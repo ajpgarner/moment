@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
- #include "gtest/gtest.h"
+#include "gtest/gtest.h"
 
 #include "symbol_set.h"
 

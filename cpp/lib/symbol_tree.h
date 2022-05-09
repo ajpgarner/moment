@@ -143,7 +143,15 @@ namespace NPATK {
     public:
         explicit SymbolTree(const SymbolSet& symbols);
 
+        [[nodiscard]] size_t count_nodes() const noexcept { return tree_nodes.size(); }
+
+        [[nodiscard]] size_t max_links() const noexcept { return tree_links.size(); }
+
         void simplify();
+
+        const SymbolNode& operator[](size_t index) {
+            return this->tree_nodes[index];
+        }
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolTree& st);
 

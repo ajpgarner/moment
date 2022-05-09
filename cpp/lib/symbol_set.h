@@ -62,6 +62,8 @@ namespace NPATK {
          */
         explicit SymbolSet(const std::vector<SymbolPair>& raw_pairs);
 
+        SymbolSet(SymbolSet&& rhs) = default;
+
         [[nodiscard]] size_t symbol_count() const noexcept { return unique_names.size(); }
 
         [[nodiscard]] size_t link_count() const noexcept { return symbol_links.size(); }
