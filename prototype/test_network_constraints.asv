@@ -1,0 +1,12 @@
+input_matrix = int[[1, 1, 3]; [2, 2, 4]; [2, 4, 5]];
+im_sparse = sparse(input_matrix);
+%[symmetrized_matrix, constraints] = symmetrize_index_matrix(input_matrix);
+
+
+constraints = impose_symmetric_constraints(input_matrix);
+constraints
+
+constraints2 = impose_symmetric_constraints(im_sparse);
+constraints2
+
+clear impose_symmetric_constraints

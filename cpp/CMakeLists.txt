@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.22)
+project(NPAToolKit)
+
+set(CMAKE_CXX_STANDARD 20)
+set(USE_CXX_EXCEPTIONS On)
+
+IF(MSVC)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /std:c++latest -Wno-unknown-attributes")
+ENDIF(MSVC)
+
+include_directories(lib)
+
+add_library(lib_npatk
+        lib/symbol.cpp
+        lib/symbol_set.cpp
+        lib/symbol_tree.cpp)
+
+add_subdirectory(mex_functions)
