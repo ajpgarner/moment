@@ -15,4 +15,7 @@ add_library(lib_npatk
         lib/symbol_set.cpp
         lib/symbol_tree.cpp)
 
+add_subdirectory(googletest)
+add_subdirectory(tests)
+
 add_subdirectory(mex_functions)
