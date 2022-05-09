@@ -1,6 +1,11 @@
 #include "gtest/gtest.h"
 
+#include "symbol_tree.h"
 
-TEST(SymbolTreeTests, HelloTestWorld) {
-    EXPECT_TRUE(true) << "Hello world of testing.";
+namespace NPATK::Tests {
+
+    TEST(SymbolTree, HelloTestWorld) {
+        EXPECT_TRUE(true) << "Hello world of testing.";
+    }
+
 }
