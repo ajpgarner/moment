@@ -1,3 +1,8 @@
+/**
+ * symbol_tree.h
+ *
+ * Copyright (c) 2022 Austrian Academy of Sciences
+ */
 #pragma once
 #include "symbol_set.h"
 #include <iosfwd>

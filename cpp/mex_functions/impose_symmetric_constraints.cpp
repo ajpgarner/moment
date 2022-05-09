@@ -1,3 +1,8 @@
+/**
+ * impose_symmetric_constraints.cpp
+ *
+ * Copyright (c) 2022 Austrian Academy of Sciences
+ */
 #include "mex.hpp"
 #include "mexAdapter.hpp"
 

@@ -1,3 +1,8 @@
+/**
+ * symbol_tree.cpp
+ *
+ * Copyright (c) 2022 Austrian Academy of Sciences
+ */
 #include "symbol_tree.h"
 
 #include <iostream>

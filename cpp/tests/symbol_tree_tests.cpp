@@ -1,3 +1,8 @@
+/**
+ * symbol_tree_tests.cpp
+ *
+ * Copyright (c) 2022 Austrian Academy of Sciences
+ */
 #include "gtest/gtest.h"
 
 #include "symbol_tree.h"

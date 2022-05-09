@@ -1,3 +1,8 @@
+/**
+ * symbol.cpp
+ *
+ * Copyright (c) 2022 Austrian Academy of Sciences
+ */
 #include "symbol.h"
 
 #include <iostream>

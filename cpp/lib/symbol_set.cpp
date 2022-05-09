@@ -1,3 +1,8 @@
+/**
+ * symbol_set.cpp
+ *
+ * Copyright (c) 2022 Austrian Academy of Sciences
+ */
 #include "symbol_set.h"
 #include <cassert>
 #include <iostream>
