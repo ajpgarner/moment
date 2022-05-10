@@ -39,6 +39,7 @@ namespace NPATK {
         public:
             using value_type = std::conditional_t<is_const, LinkedSymbolLink, LinkedSymbolLink const>;
             using ptr_type = std::conditional_t<is_const, LinkedSymbolLink*, LinkedSymbolLink const*>;
+            using ref_type = std::conditional_t<is_const, LinkedSymbolLink&, const LinkedSymbolLink &>;
 
         private:
             ptr_type cursor = nullptr;
@@ -56,11 +57,11 @@ namespace NPATK {
                 return this->cursor != rhs.cursor;
             }
 
-            constexpr value_type& operator*() noexcept {
+            constexpr ref_type operator*() noexcept {
                 return *(this->cursor);
             }
 
-            constexpr const value_type& operator*() const noexcept {
+            constexpr const ref_type operator*() const noexcept {
                 return *(this->cursor);
             }
 
@@ -127,13 +128,13 @@ namespace NPATK {
                 return LinkedSymbolLinkConstIterator{};
             }
 
+            [[nodiscard]] constexpr bool is_zero() const { return real_is_zero && im_is_zero; }
+
+            [[nodiscard]] constexpr bool empty() const noexcept { return this->first_link == nullptr; }
+
             void link_back(LinkedSymbolLink* link) noexcept;
 
-            [[nodiscard]] bool is_zero() const { return real_is_zero && im_is_zero; }
-
             void relink();
-
-            size_t find_canonical_origins(SymbolLink*& lowest_origin) noexcept;
         };
 
     private:
