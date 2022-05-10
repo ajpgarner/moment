@@ -11,38 +11,9 @@
 #include <set>
 
 #include "symbol.h"
+#include "equality_type.h"
 
 namespace NPATK {
-
-    enum struct EqualityType : uint8_t {
-        none = 0x00,
-        equal = 0x01,
-        negated = 0x02,
-        conjugated = 0x04,
-        neg_conj = 0x08
-    };
-
-    constexpr EqualityType operator&(EqualityType lhs, EqualityType rhs) {
-        return static_cast<EqualityType>(static_cast<uint8_t>(lhs) & static_cast<uint8_t>(rhs));
-    }
-
-    constexpr EqualityType operator|(EqualityType lhs, EqualityType rhs) {
-        return static_cast<EqualityType>(static_cast<uint8_t>(lhs) | static_cast<uint8_t>(rhs));
-    }
-
-
-    [[nodiscard]] constexpr EqualityType equality_type(const SymbolPair& s) {
-        if (s.negated) {
-            if (s.conjugated) {
-                return EqualityType::neg_conj;
-            }
-            return EqualityType::negated;
-        }
-        if (s.conjugated) {
-            return EqualityType::conjugated;
-        }
-        return EqualityType::equal;
-    }
 
     class SymbolSet {
     public:

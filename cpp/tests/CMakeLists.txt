@@ -1,4 +1,5 @@
 add_executable(nptk_tests
+        equality_type_tests.cpp
         symbol_set_tests.cpp
         symbol_tree_tests.cpp)
 

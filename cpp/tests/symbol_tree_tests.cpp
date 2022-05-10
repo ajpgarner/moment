@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace NPATK::Tests {
-    
+
     SymbolTree& SymbolTreeFixture::create_tree(std::initializer_list<SymbolPair> pairs) {
         SymbolSet ss{std::vector<SymbolPair>(pairs)};
         ss.pack();
@@ -326,6 +326,52 @@ namespace NPATK::Tests {
         ASSERT_EQ(childB_node_iter, childB_node.end()) << "ChildB should have no children.";
     }
 
+    TEST_F(SymbolTreeFixture, Create_InverseTriangle) {
+        auto& open_tri = this->create_tree({SymbolPair{Symbol{0}, Symbol{2}}, SymbolPair{Symbol{1}, Symbol{2}}});
+        ASSERT_EQ(open_tri.count_nodes(), 3) << "Tree has three nodes.";
+        ASSERT_EQ(open_tri.max_links(), 2) << "Tree has two links.";
+
+        const auto& baseA_node = open_tri[0];
+        const auto& baseB_node = open_tri[1];
+        const auto& child_node = open_tri[2];
+        ASSERT_NE(&baseA_node, &child_node) << "Nodes must not be same object!";
+        ASSERT_NE(&baseB_node, &child_node) << "Nodes must not be same object!";
+        ASSERT_NE(&baseA_node, &baseB_node) << "Nodes must not be same object!";
+        EXPECT_EQ(baseA_node.id, 0);
+        EXPECT_EQ(baseB_node.id, 1);
+        EXPECT_EQ(child_node.id, 2);
+        ASSERT_FALSE(baseA_node.empty()) << "BaseA node should not be empty.";
+        ASSERT_FALSE(baseB_node.empty()) << "BaseB node should not be empty.";
+        ASSERT_TRUE(child_node.empty()) << "Child node should be empty.";
+
+        // Test first link
+        auto baseA_node_iter = baseA_node.begin();
+        ASSERT_NE(baseA_node_iter, baseA_node.end()) << "Iterator must not be at end";
+        const auto& first_link = *baseA_node_iter;
+        ASSERT_EQ(first_link.origin, &baseA_node) << "Link must originate from baseA.";
+        ASSERT_EQ(first_link.target, &child_node) << "Link must target child.";
+
+        // No more links
+        ++baseA_node_iter;
+        ASSERT_EQ(baseA_node_iter, baseA_node.end()) << "Only one link from base A node.";
+
+        // Test second link
+        auto baseB_node_iter = baseB_node.begin();
+        ASSERT_NE(baseB_node_iter, baseB_node.end()) << "Iterator must not be at end";
+        const auto& second_link = *baseB_node_iter;
+        ASSERT_EQ(second_link.origin, &baseB_node) << "Link must originate from baseA.";
+        ASSERT_EQ(second_link.target, &child_node) << "Link must target child.";
+
+        // No more links
+        ++baseB_node_iter;
+        ASSERT_EQ(baseB_node_iter, baseA_node.end()) << "Only one link from base A node.";
+
+        // No links from child
+        auto child_node_iter = child_node.begin();
+        ASSERT_EQ(child_node_iter, child_node.end()) << "ChildB should have no children.";
+    }
+
+
 
     TEST_F(SymbolTreeFixture, Simplify_OneRecursion) {
         auto& chain_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{0}}});
@@ -347,6 +393,14 @@ namespace NPATK::Tests {
 
     }
 
+    TEST_F(SymbolTreeFixture, Simplify_InverseTriangle) {
+        auto &inverse_tri = this->create_tree({SymbolPair{Symbol{0}, Symbol{2}}, SymbolPair{Symbol{1}, Symbol{2}}});
+        inverse_tri.simplify();
+        this->compare_to({SymbolPair{Symbol{0}, Symbol{1}},
+                          SymbolPair{Symbol{0}, Symbol{2}}});
+
+        ASSERT_TRUE(false) << "Test not yet written.";
+    }
 
 
 }

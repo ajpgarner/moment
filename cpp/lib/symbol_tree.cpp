@@ -97,6 +97,7 @@ namespace NPATK {
         struct NodeAndIter {
             SymbolTree::SymbolNode * node;
             SymbolTree::LinkedSymbolLinkIterator iter;
+            EqualityType relationToBase = EqualityType::none;
 
             constexpr explicit NodeAndIter(SymbolTree::SymbolNode * the_node) noexcept
                 : node(the_node), iter(the_node->begin()) { }

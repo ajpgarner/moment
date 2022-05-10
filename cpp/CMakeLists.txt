@@ -12,6 +12,7 @@ include_directories(lib)
 
 add_library(lib_npatk
         lib/symbol.cpp
+        lib/equality_type.cpp
         lib/symbol_set.cpp
         lib/symbol_tree.cpp)
 
