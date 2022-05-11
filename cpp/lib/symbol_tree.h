@@ -11,49 +11,69 @@
 
 namespace NPATK {
 
+
+    //struct SymbolNode;
+    //struct SymbolLink;
+    //struct LinkedSymbolLink;
+
+
     class SymbolTree {
     public:
 
         struct SymbolNode;
 
+        template<bool is_const>
+        class SymbolLinkIteratorBase;
+
         struct SymbolLink {
         public:
-            EqualityType link_type;
+            EqualityType link_type = EqualityType::none;
             SymbolNode * origin = nullptr;
             SymbolNode * target = nullptr;
-        public:
-             SymbolLink(SymbolNode * from, SymbolNode * to, EqualityType link) noexcept
-                : origin(from), target(to), link_type(link) { }
-        };
 
-        struct LinkedSymbolLink : public SymbolLink {
-            LinkedSymbolLink * prev = nullptr;
-            LinkedSymbolLink * next = nullptr;
+        private:
+            SymbolLink * prev = nullptr;
+            SymbolLink * next = nullptr;
+
         public:
-            LinkedSymbolLink(SymbolNode * from, SymbolNode * to, EqualityType link) noexcept
-                : SymbolLink(from, to, link) { }
+
+             SymbolLink(SymbolNode * to, EqualityType link) noexcept
+                : target(to), link_type(link) { }
+
+            /**
+             * Detach link from origin, and set all values to 0.
+             * @return Pair, with values of prev and next prior to delink
+             */
+            std::pair<SymbolLink*, SymbolLink*> unlink_and_reset() noexcept;
+
+            template<bool is_const>
+            friend class SymbolLinkIteratorBase;
+
+            friend struct SymbolNode;
+
         };
 
         template<bool is_const>
-        class LinkedSymbolIteratorBase {
+        class SymbolLinkIteratorBase {
+
         public:
-            using value_type = std::conditional_t<is_const, LinkedSymbolLink, LinkedSymbolLink const>;
-            using ptr_type = std::conditional_t<is_const, LinkedSymbolLink*, LinkedSymbolLink const*>;
-            using ref_type = std::conditional_t<is_const, LinkedSymbolLink&, const LinkedSymbolLink &>;
+            using value_type = std::conditional_t<is_const, SymbolLink const, SymbolLink>;
+            using ptr_type = std::conditional_t<is_const, SymbolLink const*, SymbolLink*>;
+            using ref_type = std::conditional_t<is_const,  const SymbolLink &, SymbolLink&>;
 
         private:
             ptr_type cursor = nullptr;
 
         public:
-            LinkedSymbolIteratorBase() noexcept = default;
+            SymbolLinkIteratorBase() noexcept = default;
 
-            explicit LinkedSymbolIteratorBase(ptr_type lsl) noexcept : cursor(lsl) { }
+            explicit SymbolLinkIteratorBase(ptr_type lsl) noexcept : cursor(lsl) { }
 
-            constexpr bool operator== (const LinkedSymbolIteratorBase& rhs) const noexcept {
+            constexpr bool operator== (const SymbolLinkIteratorBase& rhs) const noexcept {
                 return this->cursor == rhs.cursor;
             }
 
-            constexpr bool operator!= (const LinkedSymbolIteratorBase& rhs) const noexcept {
+            constexpr bool operator!= (const SymbolLinkIteratorBase& rhs) const noexcept {
                 return this->cursor != rhs.cursor;
             }
 
@@ -61,26 +81,23 @@ namespace NPATK {
                 return *(this->cursor);
             }
 
-            constexpr const ref_type operator*() const noexcept {
-                return *(this->cursor);
-            }
-
-            constexpr LinkedSymbolIteratorBase<is_const>& operator++() noexcept {
+            constexpr SymbolLinkIteratorBase<is_const>& operator++() noexcept {
                 this->cursor = this->cursor->next;
                 return *this;
             }
 
-            constexpr LinkedSymbolIteratorBase<is_const>& operator--() noexcept {
+            constexpr SymbolLinkIteratorBase<is_const>& operator--() noexcept {
                 this->cursor = this->cursor->prev;
                 return *this;
             }
         };
 
-        using LinkedSymbolLinkIterator = LinkedSymbolIteratorBase<false>;
-        using LinkedSymbolLinkConstIterator = LinkedSymbolIteratorBase<true>;
-
+        using SymbolLinkIterator = SymbolLinkIteratorBase<false>;
+        using SymbolLinkConstIterator = SymbolLinkIteratorBase<true>;
 
         struct SymbolNode {
+            friend struct SymbolLink;
+
         public:
             /** Name of the symbol */
             symbol_name_t id;
@@ -96,50 +113,78 @@ namespace NPATK {
 
         private:
             /** First link, if any, to symbols with higher ID */
-            LinkedSymbolLink * first_link = nullptr;
+            SymbolLink * first_link = nullptr;
 
             /** Final link, if any, to symbols with higher ID */
-            LinkedSymbolLink * last_link = nullptr;
+            SymbolLink * last_link = nullptr;
 
         public:
             explicit SymbolNode(symbol_name_t name) noexcept : id(name) { }
 
-            [[nodiscard]] LinkedSymbolLinkIterator begin() noexcept {
-                return LinkedSymbolLinkIterator{this->first_link};
+            [[nodiscard]] SymbolLinkIterator begin() noexcept {
+                return SymbolLinkIterator{this->first_link};
             }
 
-            [[nodiscard]] LinkedSymbolLinkIterator end() noexcept {
-                return LinkedSymbolLinkIterator{};
+            [[nodiscard]] SymbolLinkIterator end() noexcept {
+                return SymbolLinkIterator{};
             }
 
-            [[nodiscard]] LinkedSymbolLinkConstIterator begin() const noexcept {
+            [[nodiscard]] SymbolLinkConstIterator begin() const noexcept {
                 return this->cbegin();
             }
 
-            [[nodiscard]] LinkedSymbolLinkConstIterator end() const noexcept {
+            [[nodiscard]] SymbolLinkConstIterator end() const noexcept {
                 return this->cend();
             }
 
-            [[nodiscard]] LinkedSymbolLinkConstIterator cbegin() const noexcept {
-                return LinkedSymbolLinkConstIterator{this->first_link};
+            [[nodiscard]] SymbolLinkConstIterator cbegin() const noexcept {
+                return SymbolLinkConstIterator{this->first_link};
             }
 
-            [[nodiscard]] LinkedSymbolLinkConstIterator cend() const noexcept {
-                return LinkedSymbolLinkConstIterator{};
+            [[nodiscard]] SymbolLinkConstIterator cend() const noexcept {
+                return SymbolLinkConstIterator{};
             }
 
-            [[nodiscard]] constexpr bool is_zero() const { return real_is_zero && im_is_zero; }
+            [[nodiscard]] constexpr bool is_zero() const {
+                return real_is_zero && im_is_zero;
+            }
 
-            [[nodiscard]] constexpr bool empty() const noexcept { return this->first_link == nullptr; }
+            [[nodiscard]] constexpr bool empty() const noexcept {
+                return this->first_link == nullptr;
+            }
 
-            void link_back(LinkedSymbolLink* link) noexcept;
+            void link_back(SymbolLink* link) noexcept;
 
             void relink();
+
+        private:
+            // XXX: Move to impl.
+            struct RebaseInfoImpl {
+                SymbolTree::SymbolLink * linkToMove;
+                SymbolTree::SymbolLink * linkFromCanonicalNode;
+
+                EqualityType relationToBase;
+                EqualityType relationToPivot = EqualityType::none;
+                bool is_pivot = false;
+
+                RebaseInfoImpl(SymbolTree::SymbolLink * it_link,
+                         SymbolTree::SymbolLink * can_link,
+                         EqualityType rtb) noexcept :
+                            linkToMove(it_link),
+                            linkFromCanonicalNode(can_link),
+                            relationToBase(rtb) { }
+            };
+
+            // XXX: Move to impl.
+            size_t find_already_linked(std::vector<RebaseInfoImpl>& rebase_list);
+
+
+
         };
 
     private:
         std::vector<SymbolNode> tree_nodes;
-        std::vector<LinkedSymbolLink> tree_links;
+        std::vector<SymbolLink> tree_links;
 
     public:
         explicit SymbolTree(const SymbolSet& symbols);
