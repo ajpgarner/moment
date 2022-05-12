@@ -11,12 +11,6 @@
 
 namespace NPATK {
 
-
-    //struct SymbolNode;
-    //struct SymbolLink;
-    //struct LinkedSymbolLink;
-
-
     class SymbolTree {
     public:
 
@@ -40,12 +34,19 @@ namespace NPATK {
              SymbolLink(SymbolNode * to, EqualityType link) noexcept
                 : target(to), link_type(link) { }
 
+
             /**
-             * Detach link from origin, and set all values to 0.
+             * Detach link from origin, but keep target and equality type info.
              * @return Pair, with values of prev and next prior to delink
              */
-            std::pair<SymbolLink*, SymbolLink*> unlink_and_reset() noexcept;
+            std::pair<SymbolLink*, SymbolLink*> detach() noexcept;
 
+            /**
+             * Detach link from origin, and reset all values.
+             * @return Pair, with values of prev and next prior to delink
+             */
+            std::pair<SymbolLink*, SymbolLink*> detach_and_reset() noexcept;
+;
             template<bool is_const>
             friend class SymbolLinkIteratorBase;
 
@@ -60,6 +61,7 @@ namespace NPATK {
             using value_type = std::conditional_t<is_const, SymbolLink const, SymbolLink>;
             using ptr_type = std::conditional_t<is_const, SymbolLink const*, SymbolLink*>;
             using ref_type = std::conditional_t<is_const,  const SymbolLink &, SymbolLink&>;
+            using cptr_type = SymbolLink const*;
 
         private:
             ptr_type cursor = nullptr;
@@ -77,8 +79,12 @@ namespace NPATK {
                 return this->cursor != rhs.cursor;
             }
 
-            constexpr ref_type operator*() noexcept {
+            [[nodiscard]] constexpr ref_type operator*() noexcept {
                 return *(this->cursor);
+            }
+
+            [[nodiscard]] constexpr ptr_type operator->() noexcept {
+                return this->cursor;
             }
 
             constexpr SymbolLinkIteratorBase<is_const>& operator++() noexcept {
@@ -153,7 +159,25 @@ namespace NPATK {
                 return this->first_link == nullptr;
             }
 
-            void link_back(SymbolLink* link) noexcept;
+            /**
+             * Register a link with this node. Pushes link to the back, without checking order.
+             * @param link Pointer to the SymbolLink object to incorporate.
+             */
+            void insert_back(SymbolLink* link) noexcept;
+
+            /**
+             * Register a link with this node, placing it in order of target id.
+             * Does not check for duplication! Use insert_maybe if this is required.
+             * @param link Pointer to the SymbolLink object to incorporate.
+             * @param hint Pointer to the first SymbolLink object in the node, to check if link is less than.
+             * @returns Pointer to SymbolLink just after insertion.
+             */
+             SymbolLink* insert_ordered(SymbolLink* link, SymbolLink* hint = nullptr) noexcept;
+
+             //size_t subsume(SymbolNode * source, EqualityType relationship) noexcept;
+             size_t subsume(SymbolLink * source) noexcept;
+
+
 
             void relink();
 

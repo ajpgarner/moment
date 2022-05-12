@@ -29,13 +29,13 @@ namespace NPATK {
 
             this->tree_links.emplace_back(target_node, link_type);
             SymbolLink * this_link = &this->tree_links[insert_index];
-            source_node->link_back(this_link);
+            source_node->insert_back(this_link);
 
             ++insert_index;
         }
     }
 
-    void SymbolTree::SymbolNode::link_back(SymbolTree::SymbolLink* link) noexcept {
+    void SymbolTree::SymbolNode::insert_back(SymbolTree::SymbolLink* link) noexcept {
         if (this->last_link != nullptr) {
             this->last_link->next = link;
             link->prev = this->last_link;
@@ -87,15 +87,7 @@ namespace NPATK {
     }
 
 
-    void SymbolTree::simplify() {
-        const size_t symbol_count = this->tree_nodes.size();
-        for (symbol_name_t base_id = 0; base_id < symbol_count; ++base_id) {
-            this->tree_nodes[base_id].relink();
-        }
-    }
-
-    std::pair<SymbolTree::SymbolLink *, SymbolTree::SymbolLink *>
-            SymbolTree::SymbolLink::unlink_and_reset() noexcept {
+    std::pair<SymbolTree::SymbolLink *, SymbolTree::SymbolLink *> SymbolTree::SymbolLink::detach() noexcept {
         auto old_values = std::make_pair(this->prev, this->next);
 
         if (this->prev != nullptr) {
@@ -112,14 +104,112 @@ namespace NPATK {
             this->origin->last_link = old_values.first; // Might be nullptr
         }
 
-        // Detach, reset.
+        // Detach:
         this->origin = nullptr;
-        this->target = nullptr;
         this->prev = nullptr;
         this->next = nullptr;
-        this->link_type = EqualityType::none;
-
         return old_values;
+    }
+
+
+    std::pair<SymbolTree::SymbolLink *, SymbolTree::SymbolLink *>
+            SymbolTree::SymbolLink::detach_and_reset() noexcept {
+        auto old_values = this->detach();
+
+        // Also reset target info:
+        this->target = nullptr;
+        this->link_type = EqualityType::none;
+        return old_values;
+    }
+
+
+
+
+
+    SymbolTree::SymbolLink *
+    SymbolTree::SymbolNode::insert_ordered(SymbolTree::SymbolLink *link, SymbolTree::SymbolLink *hint) noexcept {
+        // Debug assertions:
+        assert(link->origin == nullptr);
+        assert(link->prev == nullptr);
+        assert(link->next == nullptr);
+
+        link->origin = this;
+
+        // If only link in node:
+        if (this->empty()) {
+            this->first_link = link;
+            this->last_link = link;
+            link->prev = nullptr;
+            link->next = nullptr;
+            return link;
+        }
+
+        // Node not empty, so guaranteed this->first_link / this->last_link != nullptr
+
+        // No hint provided; so start from first link of Node
+        if (hint == nullptr) {
+            hint = this->first_link;
+        }
+
+        while (hint != nullptr) {
+            if (link->target->id < hint->target->id) {
+                link->prev = hint->prev; // might be nullptr
+                link->next = hint;
+                if (hint == this->first_link) {
+                    assert(hint->prev == nullptr);
+                    this->first_link = link;
+                }
+                if (link->prev != nullptr) {
+                    hint->prev->next = link;
+                }
+                hint->prev = link;
+                return link;
+            }
+            hint = hint->next;
+        }
+
+        // Did not insert yet, so put at end of list:
+        this->last_link->next = link;
+        link->prev = this->last_link;
+        link->next = nullptr;
+        this->last_link = link;
+
+        return link;
+    }
+
+
+    size_t SymbolTree::SymbolNode::subsume(SymbolTree::SymbolLink *source) noexcept {
+        assert(source->target != nullptr);
+
+        size_t count = 1;
+        SymbolNode& sourceNode = *(source->target);
+        const EqualityType baseET = source->link_type;
+
+        // First, insert source node
+        SymbolLink * hint = this->insert_ordered(source);
+
+        // Now, insert all sub-children.
+        SymbolLink * source_ptr = sourceNode.first_link;
+        while (source_ptr != nullptr) {
+            SymbolLink * next_ptr = source_ptr->next; // might be nullptr
+
+            // Crude detach, as we will reset whole chain...
+            auto& linkToMove = *source_ptr;
+            linkToMove.next = nullptr;
+            linkToMove.prev = nullptr;
+            linkToMove.origin = nullptr;
+            linkToMove.link_type = compose(baseET, linkToMove.link_type);
+
+            hint = this->insert_ordered(&linkToMove, hint);
+            source_ptr = next_ptr;
+            ++count;
+        }
+
+        // Source no longer has children
+        sourceNode.first_link = nullptr;
+        sourceNode.last_link = nullptr;
+
+        return count;
     }
 
 
@@ -150,7 +240,7 @@ namespace NPATK {
             for (auto& node_to_move : nodes_to_rebase) {
                 if (node_to_move.is_pivot) {
                     // Link to base can be undone
-                    node_to_move.linkToMove->unlink_and_reset();
+                    node_to_move.linkToMove->detach_and_reset();
 
 
                     link_for_base = node_to_move.linkToMove;
@@ -265,6 +355,14 @@ namespace NPATK {
         }
 
         return lowest_node_found_index;
+    }
+
+
+    void SymbolTree::simplify() {
+        const size_t symbol_count = this->tree_nodes.size();
+        for (symbol_name_t base_id = 0; base_id < symbol_count; ++base_id) {
+            this->tree_nodes[base_id].relink();
+        }
     }
 
 
