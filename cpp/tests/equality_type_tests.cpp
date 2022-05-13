@@ -143,4 +143,65 @@ namespace NPATK::Tests {
         EXPECT_EQ(compose(EqualityType::neg_conj, EqualityType::neg_conj), EqualityType::equal);
     }
 
+    TEST(EqualityType, TestZero_Exxx) {
+        auto [real_is_zero, im_is_zero] = implies_zero(EqualityType::equal);
+        EXPECT_FALSE(real_is_zero);
+        EXPECT_FALSE(im_is_zero);
+    }
+
+    TEST(EqualityType, TestZero_xNxx) {
+        auto [real_is_zero, im_is_zero] = implies_zero(EqualityType::negated);
+        EXPECT_FALSE(real_is_zero);
+        EXPECT_FALSE(im_is_zero);
+    }
+
+    TEST(EqualityType, TestZero_xxCx) {
+        auto [real_is_zero, im_is_zero] = implies_zero(EqualityType::conjugated);
+        EXPECT_FALSE(real_is_zero);
+        EXPECT_FALSE(im_is_zero);
+    }
+
+    TEST(EqualityType, TestZero_xxxT) {
+        auto [real_is_zero, im_is_zero] = implies_zero(EqualityType::neg_conj);
+        EXPECT_FALSE(real_is_zero);
+        EXPECT_FALSE(im_is_zero);
+    }
+
+
+    TEST(EqualityType, TestZero_ENxx) {
+        auto [real_is_zero, im_is_zero] = implies_zero(EqualityType::equal | EqualityType::negated);
+        EXPECT_TRUE(real_is_zero) << "Should be zero";
+        EXPECT_TRUE(im_is_zero) << "Should be zero";
+    }
+
+    TEST(EqualityType, TestZero_ExCx) {
+        auto [real_is_zero, im_is_zero] = implies_zero(EqualityType::equal | EqualityType::conjugated);
+        EXPECT_FALSE(real_is_zero) << "Should be real number";
+        EXPECT_TRUE(im_is_zero) << "Should be real number";
+    }
+
+    TEST(EqualityType, TestZero_ExxT) {
+        auto [real_is_zero, im_is_zero] = implies_zero(EqualityType::equal | EqualityType::neg_conj);
+        EXPECT_TRUE(real_is_zero) << "Should be imaginary number";
+        EXPECT_FALSE(im_is_zero) << "Should be imaginary number";
+    }
+
+    TEST(EqualityType, TestZero_xNCx) {
+        auto [real_is_zero, im_is_zero] = implies_zero(EqualityType::negated | EqualityType::conjugated);
+        EXPECT_TRUE(real_is_zero) << "Should be imaginary number";
+        EXPECT_FALSE(im_is_zero) << "Should be imaginary number";
+    }
+
+    TEST(EqualityType, TestZero_xNxT) {
+        auto [real_is_zero, im_is_zero] = implies_zero(EqualityType::negated | EqualityType::neg_conj);
+        EXPECT_FALSE(real_is_zero) << "Should be real number";
+        EXPECT_TRUE(im_is_zero) << "Should be real number";
+    }
+
+    TEST(EqualityType, TestZero_xxCT) {
+        auto [real_is_zero, im_is_zero] = implies_zero(EqualityType::conjugated | EqualityType::neg_conj);
+        EXPECT_TRUE(real_is_zero) << "Should be zero";
+        EXPECT_TRUE(im_is_zero) << "Should be zero";
+    }
+
 }
