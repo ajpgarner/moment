@@ -10,6 +10,12 @@
 #include <concepts>
 
 namespace NPATK {
+    namespace detail {
+        /**
+         * Class splitting out some of the messy methods required to simplify.
+         */
+        class SymbolNodeSimplifyImpl;
+    }
 
     class SymbolTree {
     public:
@@ -34,7 +40,6 @@ namespace NPATK {
              SymbolLink(SymbolNode * to, EqualityType link) noexcept
                 : target(to), link_type(link) { }
 
-
             /**
              * Detach link from origin, but keep target and equality type info.
              * @return Pair, with values of prev and next prior to delink
@@ -46,12 +51,13 @@ namespace NPATK {
              * @return Pair, with values of prev and next prior to delink
              */
             std::pair<SymbolLink*, SymbolLink*> detach_and_reset() noexcept;
-;
+
+
             template<bool is_const>
             friend class SymbolLinkIteratorBase;
 
             friend struct SymbolNode;
-
+            friend class detail::SymbolNodeSimplifyImpl;
         };
 
         template<bool is_const>
@@ -163,46 +169,32 @@ namespace NPATK {
              * Register a link with this node. Pushes link to the back, without checking order.
              * @param link Pointer to the SymbolLink object to incorporate.
              */
-            void insert_back(SymbolLink* link) noexcept;
+            void insert_back(SymbolLink * link) noexcept;
 
             /**
              * Register a link with this node, placing it in order of target id.
-             * Does not check for duplication! Use insert_maybe if this is required.
+             * Does not check for duplication! Use insert_or_merge if this is required.
              * @param link Pointer to the SymbolLink object to incorporate.
              * @param hint Pointer to the first SymbolLink object in the node, to check if link is less than.
-             * @returns Pointer to SymbolLink just after insertion.
+             * @return Pair: first value true if link was merged, second value points to link as in node.
              */
-             SymbolLink* insert_ordered(SymbolLink* link, SymbolLink* hint = nullptr) noexcept;
+            std::pair<bool, SymbolLink*> insert_ordered(SymbolLink* link, SymbolLink * hint = nullptr) noexcept;
 
-             //size_t subsume(SymbolNode * source, EqualityType relationship) noexcept;
+
+             /**
+              * Absorb a link to a (canonical) node, inserting link and all sub-links into this node's link list.
+              * @param source SymbolLink object that describes the relationship between this node and node to be absorbed.
+              * @return Number of links added to this object.
+              */
              size_t subsume(SymbolLink * source) noexcept;
 
+             /**
+              * Recurse through node and children, flattening the tree-structure.
+              */
+            void simplify();
 
 
-            void relink();
-
-        private:
-            // XXX: Move to impl.
-            struct RebaseInfoImpl {
-                SymbolTree::SymbolLink * linkToMove;
-                SymbolTree::SymbolLink * linkFromCanonicalNode;
-
-                EqualityType relationToBase;
-                EqualityType relationToPivot = EqualityType::none;
-                bool is_pivot = false;
-
-                RebaseInfoImpl(SymbolTree::SymbolLink * it_link,
-                         SymbolTree::SymbolLink * can_link,
-                         EqualityType rtb) noexcept :
-                            linkToMove(it_link),
-                            linkFromCanonicalNode(can_link),
-                            relationToBase(rtb) { }
-            };
-
-            // XXX: Move to impl.
-            size_t find_already_linked(std::vector<RebaseInfoImpl>& rebase_list);
-
-
+            friend class detail::SymbolNodeSimplifyImpl;
 
         };
 

@@ -14,7 +14,8 @@ add_library(lib_npatk
         lib/symbol.cpp
         lib/equality_type.cpp
         lib/symbol_set.cpp
-        lib/symbol_tree.cpp)
+        lib/symbol_tree.cpp
+        lib/symbol_tree_simplify_impl.cpp)
 
 add_subdirectory(googletest)
 add_subdirectory(tests)

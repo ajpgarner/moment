@@ -4,50 +4,12 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "symbol_tree.h"
+#include "symbol_tree_simplify_impl.h"
 
 #include <iostream>
 #include <stack>
 
 namespace NPATK {
-    SymbolTree::SymbolTree(const SymbolSet &symbols) {
-
-        /** Create nodes */
-        size_t symbol_count = symbols.symbol_count();
-        this->tree_nodes.reserve(symbol_count);
-        for (symbol_name_t i = 0; i < symbol_count; ++i) {
-            this->tree_nodes.emplace_back(i);
-        }
-
-        /** Create links */
-        this->tree_links.reserve(symbols.link_count());
-
-        size_t insert_index = 0;
-
-        for (const auto [key, link_type] : symbols ) {
-            SymbolNode * source_node = &this->tree_nodes[key.first];
-            SymbolNode * target_node = &this->tree_nodes[key.second];
-
-            this->tree_links.emplace_back(target_node, link_type);
-            SymbolLink * this_link = &this->tree_links[insert_index];
-            source_node->insert_back(this_link);
-
-            ++insert_index;
-        }
-    }
-
-    void SymbolTree::SymbolNode::insert_back(SymbolTree::SymbolLink* link) noexcept {
-        if (this->last_link != nullptr) {
-            this->last_link->next = link;
-            link->prev = this->last_link;
-            link->next = nullptr;
-            this->last_link = link;
-        } else {
-            this->first_link = link;
-            this->last_link = link;
-        }
-        link->origin = this;
-    }
-
     std::ostream& operator<<(std::ostream& os, const SymbolTree& st) {
         for (auto symbol : st.tree_nodes) {
             os << symbol.id;
@@ -123,11 +85,21 @@ namespace NPATK {
     }
 
 
+    void SymbolTree::SymbolNode::insert_back(SymbolTree::SymbolLink* link) noexcept {
+        if (this->last_link != nullptr) {
+            this->last_link->next = link;
+            link->prev = this->last_link;
+            link->next = nullptr;
+            this->last_link = link;
+        } else {
+            this->first_link = link;
+            this->last_link = link;
+        }
+        link->origin = this;
+    }
 
-
-
-    SymbolTree::SymbolLink *
-    SymbolTree::SymbolNode::insert_ordered(SymbolTree::SymbolLink *link, SymbolTree::SymbolLink *hint) noexcept {
+    std::pair<bool, SymbolTree::SymbolLink*>
+    SymbolTree::SymbolNode::insert_ordered(SymbolTree::SymbolLink *link, SymbolTree::SymbolLink * hint) noexcept {
         // Debug assertions:
         assert(link->origin == nullptr);
         assert(link->prev == nullptr);
@@ -141,7 +113,7 @@ namespace NPATK {
             this->last_link = link;
             link->prev = nullptr;
             link->next = nullptr;
-            return link;
+            return {false, link};
         }
 
         // Node not empty, so guaranteed this->first_link / this->last_link != nullptr
@@ -163,7 +135,23 @@ namespace NPATK {
                     hint->prev->next = link;
                 }
                 hint->prev = link;
-                return link;
+                return {false, link};
+            } else if (link->target->id == hint->target->id) {
+                // Merge, by combining link types
+                hint->link_type |= link->link_type;
+
+                // See if merge changes nullity of symbol
+                auto [implies_re_zero, implies_im_zero] = implies_zero(hint->link_type);
+                this->real_is_zero = this->real_is_zero || implies_re_zero;
+                this->im_is_zero = this->im_is_zero || implies_im_zero;
+
+                // Input link is reset and effectively orphaned, as it should not point to anything
+                link->origin = nullptr;
+                link->target = nullptr;
+                link->link_type = EqualityType::none;
+
+                // Return ptr to link already in the list
+                return {true, hint};
             }
             hint = hint->next;
         }
@@ -174,7 +162,7 @@ namespace NPATK {
         link->next = nullptr;
         this->last_link = link;
 
-        return link;
+        return {false, link};
     }
 
 
@@ -186,7 +174,8 @@ namespace NPATK {
         const EqualityType baseET = source->link_type;
 
         // First, insert source node
-        SymbolLink * hint = this->insert_ordered(source);
+        auto [did_merge_source, hint] = this->insert_ordered(source);
+        sourceNode.canonical_origin = source;
 
         // Now, insert all sub-children.
         SymbolLink * source_ptr = sourceNode.first_link;
@@ -199,8 +188,11 @@ namespace NPATK {
             linkToMove.prev = nullptr;
             linkToMove.origin = nullptr;
             linkToMove.link_type = compose(baseET, linkToMove.link_type);
+            assert(linkToMove.target != nullptr);
+            linkToMove.target->canonical_origin = &linkToMove;
 
-            hint = this->insert_ordered(&linkToMove, hint);
+            auto [did_merge, next_hint] = this->insert_ordered(&linkToMove, hint);
+            hint = next_hint;
             source_ptr = next_ptr;
             ++count;
         }
@@ -213,155 +205,43 @@ namespace NPATK {
     }
 
 
-    void SymbolTree::SymbolNode::relink() {
-        // If already has canonical origin, node has been visited already
-        if (this->canonical_origin != nullptr) {
-          return;
-        }
-
-        // If node has no children, nothing to do
-        if (this->empty()) {
-            return;
-        }
-
-        // See if any children think they are already part of a tree
-        std::vector<RebaseInfoImpl> nodes_to_rebase;
-        size_t lowest_node_found_index = this->find_already_linked(nodes_to_rebase);
-
-        // Anything to rebase?
-
-
-        if (!nodes_to_rebase.empty()) {
-            auto& pivot_node = nodes_to_rebase[lowest_node_found_index];
-            SymbolLink * link_for_base;
-            auto& canonical_node = *(pivot_node.linkFromCanonicalNode->origin);
-
-
-            for (auto& node_to_move : nodes_to_rebase) {
-                if (node_to_move.is_pivot) {
-                    // Link to base can be undone
-                    node_to_move.linkToMove->detach_and_reset();
-
-
-                    link_for_base = node_to_move.linkToMove;
-                    link_for_base->link_type = compose(node_to_move.linkFromCanonicalNode->link_type,
-                        node_to_move.relationToBase);
-
-
-                } else {
-
-
-
-
-                }
-                // Either way, node should be removed from base
-//                node_to_move.linkToMove.unlink();
-
-            }
-        }
+    void SymbolTree::SymbolNode::simplify() {
+        detail::SymbolNodeSimplifyImpl simpImpl{*this};
+        simpImpl.simplify();
     }
 
 
-    namespace {
-        struct NodeAndIter {
-            SymbolTree::SymbolNode * node;
-            SymbolTree::SymbolLinkIterator iter;
-            EqualityType relationToBase = EqualityType::none;
+    SymbolTree::SymbolTree(const SymbolSet &symbols) {
 
-            constexpr explicit NodeAndIter(SymbolTree::SymbolNode * the_node, EqualityType rtb) noexcept
-                    : node(the_node), iter(the_node->begin()), relationToBase(rtb) { }
-
-        };
-    }
-
-    size_t SymbolTree::SymbolNode::find_already_linked(std::vector<RebaseInfoImpl>& rebase_list) {
-        rebase_list.clear();
-
-        size_t lowest_node_found_index = -1;
-        symbol_name_t lowest_node_found = std::numeric_limits<symbol_name_t>::max();
-
-        // Scan children; kinda recursively
-        SymbolNode * node_cursor = this;
-        std::stack<NodeAndIter> recurse_stack{};
-        recurse_stack.emplace(node_cursor, EqualityType::equal);
-        while (!recurse_stack.empty()) {
-            auto& stack_frame = recurse_stack.top();
-
-            // Node has no more children,
-            if (stack_frame.iter == stack_frame.node->end()) {
-                // Go up one level in the stack.
-                recurse_stack.pop();
-                if (recurse_stack.empty()) {
-                    break;
-                }
-                // Advance iterator below
-                node_cursor = recurse_stack.top().node;
-                ++(recurse_stack.top().iter);
-                continue;
-            }
-
-            // Node still has children
-            auto& current_link  = *(stack_frame.iter);
-
-            // Node's child has canonical origin, no need to traverse deeper...!
-            if (current_link.target->canonical_origin != nullptr) {
-
-                // Register link!
-                rebase_list.emplace_back(RebaseInfoImpl{&current_link,
-                                                        current_link.target->canonical_origin,
-                                               compose(stack_frame.relationToBase, current_link.link_type) });
-                if (current_link.target->canonical_origin->origin->id < lowest_node_found) {
-                    lowest_node_found = current_link.target->canonical_origin->origin->id;
-                    lowest_node_found_index = rebase_list.size()-1;
-                }
-
-                // No need to look at children; all will be moved anyway.
-
-                // Advance current iterator to next child, and continue
-                ++(stack_frame.iter);
-                continue;
-            }
-
-            // Node's child has children
-            if (!current_link.target->empty()) {
-                // Check not recursive
-                if (current_link.target != current_link.origin) {
-
-                    // Go down one level in the stack
-                    recurse_stack.emplace(current_link.target,
-                                          compose(stack_frame.relationToBase, current_link.link_type));
-                    continue;
-                }
-            }
-
-            // Otherwise, advance current iterator
-            ++(stack_frame.iter);
+        /** Create nodes */
+        size_t symbol_count = symbols.symbol_count();
+        this->tree_nodes.reserve(symbol_count);
+        for (symbol_name_t i = 0; i < symbol_count; ++i) {
+            this->tree_nodes.emplace_back(i);
         }
 
-        // If non trivial list found...
-        if (!rebase_list.empty()) {
-            auto &pivot_entry = rebase_list[lowest_node_found_index];
+        /** Create links */
+        this->tree_links.reserve(symbols.link_count());
 
-            // Find relationship between points
-            for (auto &entry : rebase_list) {
-                if (&entry == &pivot_entry) {
-                    entry.is_pivot = true;
-                    entry.relationToPivot = EqualityType::equal; // We are the pivot node.
-                } else {
-                    entry.is_pivot = false;
-                    entry.relationToPivot = compose(pivot_entry.relationToBase, entry.relationToBase);
-                }
-            }
+        size_t insert_index = 0;
+
+        for (const auto [key, link_type] : symbols ) {
+            SymbolNode * source_node = &this->tree_nodes[key.first];
+            SymbolNode * target_node = &this->tree_nodes[key.second];
+
+            this->tree_links.emplace_back(target_node, link_type);
+            SymbolLink * this_link = &this->tree_links[insert_index];
+            source_node->insert_back(this_link);
+
+            ++insert_index;
         }
-
-        return lowest_node_found_index;
     }
 
 
     void SymbolTree::simplify() {
         const size_t symbol_count = this->tree_nodes.size();
         for (symbol_name_t base_id = 0; base_id < symbol_count; ++base_id) {
-            this->tree_nodes[base_id].relink();
+            this->tree_nodes[base_id].simplify();
         }
     }
 

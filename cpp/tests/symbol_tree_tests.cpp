@@ -6,7 +6,9 @@
 #include "gtest/gtest.h"
 
 #include "symbol_tree_tests.h"
+
 #include <vector>
+#include <stack>
 
 namespace NPATK::Tests {
 
@@ -17,6 +19,10 @@ namespace NPATK::Tests {
         return *this->the_tree;
     }
 
+    namespace {
+
+    }
+
     void SymbolTreeFixture::compare_to(std::initializer_list<SymbolPair> pairs) {
         ASSERT_TRUE(this->the_tree) << "Must instantiate source tree!";
         SymbolTree& test_tree = *(this->the_tree);
@@ -25,11 +31,47 @@ namespace NPATK::Tests {
         ss.pack();
         SymbolTree target_tree{ss};
 
-        // Trees must have same number of nodes
+        // Trees must have same node count
         ASSERT_EQ(test_tree.count_nodes(), target_tree.count_nodes());
 
+        for (size_t node_index = 0; node_index < test_tree.count_nodes(); ++node_index) {
+            const auto& lhs_node = test_tree[node_index];
+            const auto& rhs_node = target_tree[node_index];
+            ASSERT_EQ(lhs_node.id, rhs_node.id) << "Nodes ids at index " << node_index << " must match";
 
-        // TODO COMPARISON
+            auto lhs_iter = lhs_node.begin();
+            auto rhs_iter = rhs_node.begin();
+            bool lhs_at_end = (lhs_iter == lhs_node.end());
+            bool rhs_at_end = (rhs_iter == rhs_node.end());
+
+            size_t child_index = 0;
+            while (!lhs_at_end && !rhs_at_end) {
+                ASSERT_NE(lhs_iter->origin, nullptr) << "Node: " << node_index << " Child: " << child_index;
+                ASSERT_NE(rhs_iter->origin, nullptr) << "Node: " << node_index << " Child: " << child_index;
+                ASSERT_NE(lhs_iter->target, nullptr) << "Node: " << node_index << " Child: " << child_index;
+                ASSERT_NE(rhs_iter->target, nullptr) << "Node: " << node_index << " Child: " << child_index;
+                EXPECT_EQ(lhs_iter->origin->id, rhs_iter->origin->id) << "Node: " << node_index << " Child: " << child_index;
+                EXPECT_EQ(lhs_iter->target->id, rhs_iter->target->id) << "Node: " << node_index << " Child: " << child_index;
+                EXPECT_EQ(lhs_iter->link_type,  rhs_iter->link_type) << "Node: " << node_index << " Child: " << child_index;
+
+                // Advance iterators
+                ++lhs_iter;
+                ++rhs_iter;
+
+                // Check if at end...
+                lhs_at_end = (lhs_iter == lhs_node.end());
+                rhs_at_end = (rhs_iter == rhs_node.end());
+                ++child_index;
+                //ASSERT_EQ(lhs_at_end, rhs_at_end) << "Iterators for node_index " << node_index << " must end at same point.";
+            }
+
+            ASSERT_TRUE(lhs_at_end) << "Iterators for node " << node_index
+                                    << " must end at same point. Ended at child " << child_index;
+            ASSERT_TRUE(rhs_at_end) << "Iterators for node " << node_index
+                                    << " must end at same point. Ended at child " << child_index;
+
+
+        }
     }
 
     TEST_F(SymbolTreeFixture, Create_EmptyTree) {
@@ -389,9 +431,34 @@ namespace NPATK::Tests {
         this->compare_to({SymbolPair{Symbol{0}, Symbol{1}},
                           SymbolPair{Symbol{1}, Symbol{2}}});
 
-        ASSERT_TRUE(false) << "Test not yet written.";
+    }
+
+    TEST_F(SymbolTreeFixture, Simplify_Triangle) {
+        auto& chain_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{1}},
+                                              SymbolPair{Symbol{0}, Symbol{2}}});
+
+        chain_link.simplify();
+        this->compare_to({SymbolPair{Symbol{0}, Symbol{1}},
+                          SymbolPair{Symbol{0}, Symbol{2}}});
 
     }
+
+    TEST_F(SymbolTreeFixture, Simplify_TriangleWithDescendents) {
+        auto& chain_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{1}},
+                                              SymbolPair{Symbol{0}, Symbol{2}},
+                                              SymbolPair{Symbol{2}, Symbol{3}},
+                                              SymbolPair{Symbol{2}, Symbol{4}},
+                                             });
+
+        chain_link.simplify();
+        this->compare_to({SymbolPair{Symbol{0}, Symbol{1}},
+                          SymbolPair{Symbol{0}, Symbol{2}},
+                          SymbolPair{Symbol{0}, Symbol{3}},
+                          SymbolPair{Symbol{0}, Symbol{4}},
+                          });
+
+    }
+
 
     TEST_F(SymbolTreeFixture, Simplify_InverseTriangle) {
         auto &inverse_tri = this->create_tree({SymbolPair{Symbol{0}, Symbol{2}}, SymbolPair{Symbol{1}, Symbol{2}}});
@@ -399,7 +466,6 @@ namespace NPATK::Tests {
         this->compare_to({SymbolPair{Symbol{0}, Symbol{1}},
                           SymbolPair{Symbol{0}, Symbol{2}}});
 
-        ASSERT_TRUE(false) << "Test not yet written.";
     }
 
 

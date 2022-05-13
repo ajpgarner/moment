@@ -204,8 +204,10 @@ namespace NPATK::Tests {
         SymbolTree::SymbolLink linkA{&childA, EqualityType::equal};
 
         ASSERT_TRUE(base.empty());
-        base.insert_ordered(&linkA);
+        auto [did_merge, insA] = base.insert_ordered(&linkA);
         ASSERT_FALSE(base.empty());
+        EXPECT_FALSE(did_merge);
+        EXPECT_EQ(insA, &linkA);
 
         auto iter = base.cbegin();
         ASSERT_NE(iter, base.cend());
@@ -230,7 +232,10 @@ namespace NPATK::Tests {
 
         SymbolTree::SymbolNode testNode{5};
         SymbolTree::SymbolLink testLink{&testNode, EqualityType::negated};
-        base.insert_ordered(&testLink);
+        auto [did_merge, insTest] = base.insert_ordered(&testLink);
+
+        EXPECT_FALSE(did_merge);
+        EXPECT_EQ(insTest, &testLink);
 
         ASSERT_FALSE(base.empty());
 
@@ -268,7 +273,10 @@ namespace NPATK::Tests {
 
         SymbolTree::SymbolNode testNode{15};
         SymbolTree::SymbolLink testLink{&testNode, EqualityType::negated};
-        base.insert_ordered(&testLink);
+        auto [did_merge, insTest] = base.insert_ordered(&testLink);
+
+        EXPECT_FALSE(did_merge);
+        EXPECT_EQ(insTest, &testLink);
 
         ASSERT_FALSE(base.empty());
 
@@ -306,7 +314,10 @@ namespace NPATK::Tests {
 
         SymbolTree::SymbolNode testNode{35};
         SymbolTree::SymbolLink testLink{&testNode, EqualityType::negated};
-        base.insert_ordered(&testLink);
+        auto [did_merge, insTest] = base.insert_ordered(&testLink);
+
+        EXPECT_FALSE(did_merge);
+        EXPECT_EQ(insTest, &testLink);
 
         ASSERT_FALSE(base.empty());
 
@@ -344,7 +355,9 @@ namespace NPATK::Tests {
 
         SymbolTree::SymbolNode testNode{15};
         SymbolTree::SymbolLink testLink{&testNode, EqualityType::negated};
-        base.insert_ordered(&testLink, &linkB);
+        auto [did_merge, insTest] = base.insert_ordered(&testLink, &linkB);
+        EXPECT_FALSE(did_merge);
+        EXPECT_EQ(insTest, &testLink);
 
         ASSERT_FALSE(base.empty());
 
@@ -382,7 +395,9 @@ namespace NPATK::Tests {
 
         SymbolTree::SymbolNode testNode{35};
         SymbolTree::SymbolLink testLink{&testNode, EqualityType::negated};
-        base.insert_ordered(&testLink, &linkC);
+        auto [did_merge, insTest] = base.insert_ordered(&testLink, &linkC);
+        EXPECT_FALSE(did_merge);
+        EXPECT_EQ(insTest, &testLink);
 
         ASSERT_FALSE(base.empty());
 
