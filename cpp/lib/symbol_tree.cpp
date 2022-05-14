@@ -225,7 +225,7 @@ namespace NPATK {
 
         size_t insert_index = 0;
 
-        for (const auto [key, link_type] : symbols ) {
+        for (const auto [key, link_type] : symbols.Links ) {
             SymbolNode * source_node = &this->tree_nodes[key.first];
             SymbolNode * target_node = &this->tree_nodes[key.second];
 

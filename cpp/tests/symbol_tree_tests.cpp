@@ -19,17 +19,24 @@ namespace NPATK::Tests {
         return *this->the_tree;
     }
 
-    namespace {
-
-    }
-
     void SymbolTreeFixture::compare_to(std::initializer_list<SymbolPair> pairs) {
-        ASSERT_TRUE(this->the_tree) << "Must instantiate source tree!";
-        SymbolTree& test_tree = *(this->the_tree);
-
         SymbolSet ss{std::vector<SymbolPair>(pairs)};
         ss.pack();
         SymbolTree target_tree{ss};
+        compare_to(target_tree);
+    }
+
+    void SymbolTreeFixture::compare_to(std::initializer_list<Symbol> extra, std::initializer_list<SymbolPair> pairs) {
+        SymbolSet ss{std::vector<Symbol>(extra), std::vector<SymbolPair>(pairs)};
+        ss.pack();
+        SymbolTree target_tree{ss};
+        compare_to(target_tree);
+    }
+
+    void SymbolTreeFixture::compare_to(const SymbolTree &target_tree) {
+
+        ASSERT_TRUE(this->the_tree) << "Must instantiate source tree!";
+        SymbolTree& test_tree = *(this->the_tree);
 
         // Trees must have same node count
         ASSERT_EQ(test_tree.count_nodes(), target_tree.count_nodes());
@@ -81,7 +88,7 @@ namespace NPATK::Tests {
     }
 
     TEST_F(SymbolTreeFixture, Create_OneLink) {
-        auto& one_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{1}}});
+        auto& one_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}}});
         ASSERT_EQ(one_link.count_nodes(), 2) << "Tree has two nodes.";
         ASSERT_EQ(one_link.max_links(), 1) << "Tree has one link.";
 
@@ -112,7 +119,7 @@ namespace NPATK::Tests {
 
 
     TEST_F(SymbolTreeFixture, Create_OneRecursion) {
-        auto& one_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{0}}});
+        auto& one_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{0}}});
         ASSERT_EQ(one_link.count_nodes(), 1) << "Tree has one node.";
         ASSERT_EQ(one_link.max_links(), 1) << "Tree has one link.";
 
@@ -134,7 +141,7 @@ namespace NPATK::Tests {
 
 
     TEST_F(SymbolTreeFixture, Create_OneLinkOneRecursion) {
-        auto& one_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{1}}, SymbolPair{Symbol{1}, Symbol{1}}});
+        auto& one_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}}, SymbolPair{SymbolExpression{1}, SymbolExpression{1}}});
         ASSERT_EQ(one_link.count_nodes(), 2) << "Tree has two nodes.";
         ASSERT_EQ(one_link.max_links(), 2) << "Tree has two links.";
 
@@ -173,7 +180,7 @@ namespace NPATK::Tests {
 
 
     TEST_F(SymbolTreeFixture, Create_ChainLink) {
-        auto& chain_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{1}}, SymbolPair{Symbol{1}, Symbol{2}}});
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}}, SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
         ASSERT_EQ(chain_link.count_nodes(), 3) << "Tree has three nodes.";
         ASSERT_EQ(chain_link.max_links(), 2) << "Tree has two links.";
 
@@ -217,9 +224,9 @@ namespace NPATK::Tests {
     }
 
     TEST_F(SymbolTreeFixture, Create_ChainLinkMiddleRecursion) {
-        auto& chain_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{1}},
-                                      SymbolPair{Symbol{1}, Symbol{1}},
-                                      SymbolPair{Symbol{1}, Symbol{2}}});
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                                      SymbolPair{SymbolExpression{1}, SymbolExpression{1}},
+                                      SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
         ASSERT_EQ(chain_link.count_nodes(), 3) << "Tree has three nodes.";
         ASSERT_EQ(chain_link.max_links(), 3) << "Tree has three links.";
 
@@ -271,7 +278,7 @@ namespace NPATK::Tests {
 
 
     TEST_F(SymbolTreeFixture, Create_OpenTriangle) {
-        auto& open_tri = this->create_tree({SymbolPair{Symbol{0}, Symbol{1}}, SymbolPair{Symbol{0}, Symbol{2}}});
+        auto& open_tri = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}}, SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
         ASSERT_EQ(open_tri.count_nodes(), 3) << "Tree has three nodes.";
         ASSERT_EQ(open_tri.max_links(), 2) << "Tree has two links.";
 
@@ -315,9 +322,9 @@ namespace NPATK::Tests {
     }
 
     TEST_F(SymbolTreeFixture, Create_ClosedTriangle) {
-        auto& closed_tri = this->create_tree({SymbolPair{Symbol{0}, Symbol{1}},
-                                    SymbolPair{Symbol{0}, Symbol{2}},
-                                    SymbolPair{Symbol{1}, Symbol{2}}});
+        auto& closed_tri = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                                    SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+                                    SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
         ASSERT_EQ(closed_tri.count_nodes(), 3) << "Tree has three nodes.";
         ASSERT_EQ(closed_tri.max_links(), 3) << "Tree has three links.";
 
@@ -369,7 +376,7 @@ namespace NPATK::Tests {
     }
 
     TEST_F(SymbolTreeFixture, Create_InverseTriangle) {
-        auto& open_tri = this->create_tree({SymbolPair{Symbol{0}, Symbol{2}}, SymbolPair{Symbol{1}, Symbol{2}}});
+        auto& open_tri = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{2}}, SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
         ASSERT_EQ(open_tri.count_nodes(), 3) << "Tree has three nodes.";
         ASSERT_EQ(open_tri.max_links(), 2) << "Tree has two links.";
 
@@ -416,55 +423,54 @@ namespace NPATK::Tests {
 
 
     TEST_F(SymbolTreeFixture, Simplify_OneRecursion) {
-        auto& chain_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{0}}});
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{0}}});
 
         chain_link.simplify();
-
-        ASSERT_TRUE(false) << "Test not yet written.";
+        this->compare_to({Symbol{0}}, {});
     }
 
     TEST_F(SymbolTreeFixture, Simplify_ChainLink) {
-        auto& chain_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{1}},
-                                              SymbolPair{Symbol{1}, Symbol{2}}});
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                                              SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
 
         chain_link.simplify();
-        this->compare_to({SymbolPair{Symbol{0}, Symbol{1}},
-                          SymbolPair{Symbol{1}, Symbol{2}}});
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
 
     }
 
     TEST_F(SymbolTreeFixture, Simplify_Triangle) {
-        auto& chain_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{1}},
-                                              SymbolPair{Symbol{0}, Symbol{2}}});
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                                              SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
 
         chain_link.simplify();
-        this->compare_to({SymbolPair{Symbol{0}, Symbol{1}},
-                          SymbolPair{Symbol{0}, Symbol{2}}});
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
 
     }
 
     TEST_F(SymbolTreeFixture, Simplify_TriangleWithDescendents) {
-        auto& chain_link = this->create_tree({SymbolPair{Symbol{0}, Symbol{1}},
-                                              SymbolPair{Symbol{0}, Symbol{2}},
-                                              SymbolPair{Symbol{2}, Symbol{3}},
-                                              SymbolPair{Symbol{2}, Symbol{4}},
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                                              SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+                                              SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
+                                              SymbolPair{SymbolExpression{2}, SymbolExpression{4}},
                                              });
 
         chain_link.simplify();
-        this->compare_to({SymbolPair{Symbol{0}, Symbol{1}},
-                          SymbolPair{Symbol{0}, Symbol{2}},
-                          SymbolPair{Symbol{0}, Symbol{3}},
-                          SymbolPair{Symbol{0}, Symbol{4}},
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{4}},
                           });
 
     }
 
 
     TEST_F(SymbolTreeFixture, Simplify_InverseTriangle) {
-        auto &inverse_tri = this->create_tree({SymbolPair{Symbol{0}, Symbol{2}}, SymbolPair{Symbol{1}, Symbol{2}}});
+        auto &inverse_tri = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{2}}, SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
         inverse_tri.simplify();
-        this->compare_to({SymbolPair{Symbol{0}, Symbol{1}},
-                          SymbolPair{Symbol{0}, Symbol{2}}});
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
 
     }
 

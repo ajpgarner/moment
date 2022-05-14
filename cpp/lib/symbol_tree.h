@@ -205,13 +205,15 @@ namespace NPATK {
     public:
         explicit SymbolTree(const SymbolSet& symbols);
 
+        SymbolTree(const SymbolTree& rhs) = delete;
+
         [[nodiscard]] size_t count_nodes() const noexcept { return tree_nodes.size(); }
 
         [[nodiscard]] size_t max_links() const noexcept { return tree_links.size(); }
 
         void simplify();
 
-        const SymbolNode& operator[](size_t index) {
+        const SymbolNode& operator[](size_t index) const {
             return this->tree_nodes[index];
         }
 

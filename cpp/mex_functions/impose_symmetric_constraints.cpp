@@ -31,8 +31,8 @@ namespace NPATK::mex {
         size_t dimension = data.getDimensions()[0];
         for (size_t i = 0; i < dimension; ++i) {
             for (size_t j = i + 1; j < dimension; ++j) {
-                NPATK::Symbol upper{static_cast<NPATK::symbol_name_t>(data[i][j])};
-                NPATK::Symbol lower{static_cast<NPATK::symbol_name_t>(data[j][i])};
+                NPATK::SymbolExpression upper{static_cast<NPATK::symbol_name_t>(data[i][j])};
+                NPATK::SymbolExpression lower{static_cast<NPATK::symbol_name_t>(data[j][i])};
 
                 if (upper != lower) {
                     output.emplace_back(upper, lower);
@@ -72,7 +72,7 @@ namespace NPATK::mex {
 
             // If opposite index doesn't exist, this is a non-trivial constraint
             if (transposed_elem_iter == sparse_array_copy.end()) {
-                output.emplace_back(NPATK::Symbol{value}, NPATK::Symbol{0});
+                output.emplace_back(NPATK::SymbolExpression{value}, NPATK::SymbolExpression{0});
                 continue;
             }
 
@@ -80,7 +80,7 @@ namespace NPATK::mex {
             if (indices.first > indices.second) {
                 auto second_value = transposed_elem_iter->second;
                 if (value != second_value) {
-                    output.emplace_back(NPATK::Symbol{value}, NPATK::Symbol{second_value});
+                    output.emplace_back(NPATK::SymbolExpression{value}, NPATK::SymbolExpression{second_value});
                 }
             }
         }

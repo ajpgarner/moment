@@ -12,7 +12,7 @@
 
 namespace NPATK::Tests {
 
-    SymbolTree createTree(std::initializer_list<SymbolPair> pairs);
+    //SymbolTree createTree(std::initializer_list<SymbolPair> pairs);
 
     class SymbolTreeFixture : public ::testing::Test {
     protected:
@@ -20,6 +20,10 @@ namespace NPATK::Tests {
 
         SymbolTree& create_tree(std::initializer_list<SymbolPair> pairs);
         void compare_to(std::initializer_list<SymbolPair> pairs);
+        void compare_to(std::initializer_list<Symbol> extra, std::initializer_list<SymbolPair> pairs);
+
+        void compare_to(const SymbolTree& compare_tree);
+
     };
 
 }

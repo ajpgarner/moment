@@ -67,13 +67,13 @@ namespace NPATK::Tests {
     }
 
     TEST(EqualityType, CreateFromPair) {
-        EXPECT_EQ(equality_type(SymbolPair{Symbol{1}, Symbol{2}}), EqualityType::equal);
-        EXPECT_EQ(equality_type(SymbolPair{Symbol{1}, Symbol{-2}}), EqualityType::negated);
-        EXPECT_EQ(equality_type(SymbolPair{Symbol{1}, Symbol{2, true}}), EqualityType::conjugated);
-        EXPECT_EQ(equality_type(SymbolPair{Symbol{1}, Symbol{-2, true}}), EqualityType::neg_conj);
-        EXPECT_EQ(equality_type(SymbolPair{Symbol{-1}, Symbol{2}}), EqualityType::negated);
-        EXPECT_EQ(equality_type(SymbolPair{Symbol{1, true}, Symbol{2}}), EqualityType::conjugated);
-        EXPECT_EQ(equality_type(SymbolPair{Symbol{-1, true}, Symbol{2}}), EqualityType::neg_conj);
+        EXPECT_EQ(equality_type(SymbolPair{SymbolExpression{1}, SymbolExpression{2}}), EqualityType::equal);
+        EXPECT_EQ(equality_type(SymbolPair{SymbolExpression{1}, SymbolExpression{-2}}), EqualityType::negated);
+        EXPECT_EQ(equality_type(SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}}), EqualityType::conjugated);
+        EXPECT_EQ(equality_type(SymbolPair{SymbolExpression{1}, SymbolExpression{-2, true}}), EqualityType::neg_conj);
+        EXPECT_EQ(equality_type(SymbolPair{SymbolExpression{-1}, SymbolExpression{2}}), EqualityType::negated);
+        EXPECT_EQ(equality_type(SymbolPair{SymbolExpression{1, true}, SymbolExpression{2}}), EqualityType::conjugated);
+        EXPECT_EQ(equality_type(SymbolPair{SymbolExpression{-1, true}, SymbolExpression{2}}), EqualityType::neg_conj);
     }
 
     TEST(EqualityType, Negate) {

@@ -234,28 +234,29 @@ namespace NPATK::detail {
 
             // Node's child has children
             if (!current_link.target->empty()) {
+
                 // Check not recursive
                 if (current_link.target != current_link.origin) {
-
                     // Go down one level in the stack
                     recurse_stack.emplace(current_link.target,
                                           compose(stack_frame.relationToBase, current_link.link_type));
                     continue;
-                } else {
-                    // Resolve link to self, with nullity etc.
-                    auto [re_is_zero, im_is_zero] = implies_zero(current_link.link_type);
-                    stack_frame.node->real_is_zero |= re_is_zero;
-                    stack_frame.node->im_is_zero |= im_is_zero;
-
-                    // Propagate nullity down to base node
-                    this_node.real_is_zero |= stack_frame.node->real_is_zero;
-                    this_node.im_is_zero |= stack_frame.node->im_is_zero;
-
-                    // Delete link, and advance
-                    auto [prev, next] = current_link.detach_and_reset();
-                    stack_frame.cursor = next;
-                    continue;
                 }
+
+                // Resolve link to self, with nullity etc.
+                auto [re_is_zero, im_is_zero] = implies_zero(current_link.link_type);
+                stack_frame.node->real_is_zero |= re_is_zero;
+                stack_frame.node->im_is_zero |= im_is_zero;
+
+                // Propagate nullity down to base node
+                this_node.real_is_zero |= stack_frame.node->real_is_zero;
+                this_node.im_is_zero |= stack_frame.node->im_is_zero;
+
+                // Delete link, and advance
+                auto [prev, next] = current_link.detach_and_reset();
+                stack_frame.cursor = next;
+                continue;
+
             }
 
             // Otherwise, advance current iterator

@@ -8,7 +8,24 @@
 #include <iostream>
 
 namespace NPATK {
-    std::ostream &operator<<(std::ostream &os, const Symbol& symb) {
+
+    std::ostream &operator<<(std::ostream &os, const Symbol &symb) {
+        os << symb.id;
+        if (symb.im_is_zero || symb.real_is_zero) {
+            os << " [";
+            if (symb.is_zero()) {
+                os << "zero";
+            } else if (symb.im_is_zero) {
+                os << "real";
+            } else {
+                os << "imaginary";
+            }
+            os << "]";
+        }
+        return os;
+    }
+
+    std::ostream &operator<<(std::ostream &os, const SymbolExpression& symb) {
         if (symb.negated) {
             os << "-";
         }
@@ -30,4 +47,5 @@ namespace NPATK {
         }
         return os;
     }
+
 }

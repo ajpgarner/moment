@@ -10,6 +10,7 @@ namespace NPATK::detail {
     class SymbolNodeSimplifyImpl {
     private:
         struct RebaseInfoImpl {
+        public:
             SymbolTree::SymbolLink * linkToMove;
             SymbolTree::SymbolLink * linkFromCanonicalNode;
 
