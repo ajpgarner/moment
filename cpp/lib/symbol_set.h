@@ -89,7 +89,7 @@ namespace NPATK {
 
         /**
          * Adds symbol, or applies constraints (e.g. realness) from symbol to existing symbol in set.
-         * @param to_add The symbol to be added
+         * @param to_add The symbol to be added.
          * @return true if a new symbol, false if existing symbol was changed.
          */
         bool add_or_merge(const Symbol& to_add);
@@ -100,9 +100,34 @@ namespace NPATK {
         void pack();
 
         /**
-         * Restores original names of symbols
+         * Restores original names of symbols.
          */
         void unpack();
+
+        /**
+         * Get the compressed element id, looking it up by its uncompressed key.
+         * @param unpacked_key The element id, as it was before compression.
+         * @return Pair, first: true if key was found, second: the id of the element after compression (if found).
+         */
+        [[nodiscard]] std::pair<bool, symbol_name_t> packed_key(symbol_name_t unpacked_key) const noexcept {
+            auto iter = this->packing_key.find(unpacked_key);
+            if (iter == this->packing_key.cend()) {
+                return {false, 0};
+            }
+            return {true, iter->second};
+        }
+
+        /**
+         * Get the uncompressed element id, looking it up by its compressed key.
+         * @param packed_key The element id, as it is after compression
+         * @return Pair, first: true if key was found, second: the id of the element before compression (if found).
+         */
+        [[nodiscard]] std::pair<bool, symbol_name_t> unpacked_key(symbol_name_t packed_key) const noexcept {
+            if ((packed_key < 0) || (packed_key >= this->unpacking_key.size())) {
+                return {false, 0};
+            }
+            return {true, this->unpacking_key[packed_key]};
+        }
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolSet& symbolSet);
 

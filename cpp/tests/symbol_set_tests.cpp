@@ -269,6 +269,39 @@ namespace NPATK::Tests {
         ++sym_iter;
         ASSERT_EQ(sym_iter, ss.Symbols.end()) << "Iteration should be over three symbols.";
 
+        auto [fk1, upk1] = ss.packed_key(1);
+        ASSERT_TRUE(fk1);
+        EXPECT_EQ(upk1, 0);
+
+        auto [fk2, upk2] = ss.packed_key(5);
+        ASSERT_TRUE(fk2);
+        EXPECT_EQ(upk2, 1);
+
+        auto [fk3, upk3] = ss.packed_key(10);
+        ASSERT_TRUE(fk3);
+        EXPECT_EQ(upk3, 2);
+
+        auto [fk4, upk4] = ss.packed_key(20);
+        ASSERT_FALSE(fk4);
+
+        auto [gk1, pk1] = ss.unpacked_key(0);
+        ASSERT_TRUE(gk1);
+        EXPECT_EQ(pk1, 1);
+
+        auto [gk2, pk2] = ss.unpacked_key(1);
+        ASSERT_TRUE(gk2);
+        EXPECT_EQ(pk2, 5);
+
+        auto [gk3, pk3] = ss.unpacked_key(2);
+        ASSERT_TRUE(gk3);
+        EXPECT_EQ(pk3, 10);
+
+        auto [gk4, pk4] = ss.unpacked_key(-1);
+        ASSERT_FALSE(gk4);
+
+        auto [gk5, pk5] = ss.unpacked_key(3);
+        ASSERT_FALSE(gk5);
+
 
         // Now, unpack again
         ss.unpack();
