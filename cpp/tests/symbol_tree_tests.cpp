@@ -435,7 +435,7 @@ namespace NPATK::Tests {
 
         chain_link.simplify();
         this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                          SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
 
     }
 
@@ -471,6 +471,38 @@ namespace NPATK::Tests {
         inverse_tri.simplify();
         this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
                           SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
+
+    }
+
+    TEST_F(SymbolTreeFixture, Simplify_Diamond) {
+        auto &diamond = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                                           SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+                                           SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{3}}
+                                           });
+        diamond.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{3}}});
+
+    }
+
+    TEST_F(SymbolTreeFixture, Simplify_BranchingZigZag) {
+        auto &b_zz = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{3}},
+                                           SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{1}, SymbolExpression{5}},
+                                           SymbolPair{SymbolExpression{1}, SymbolExpression{6}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{4}}
+                                           });
+        b_zz.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{4}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{5}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{6}},
+                          });
 
     }
 

@@ -28,18 +28,15 @@ namespace NPATK::detail {
         };
 
 
-    private:
-        SymbolTree::SymbolNode &this_node;
-
     public:
-        explicit SymbolNodeSimplifyImpl(SymbolTree::SymbolNode& theNode) noexcept
-            : this_node(theNode) { }
 
-        void simplify();
+        static void simplify(SymbolTree::SymbolNode * theNode);
 
     private:
-        size_t find_already_linked(std::vector<RebaseInfoImpl>& rebase_list);
+        static size_t find_already_linked(SymbolTree::SymbolNode * base_node, std::vector<RebaseInfoImpl>& rebase_list);
 
-        void incorporate_all_descendents();
+        static void incorporate_all_descendents(SymbolTree::SymbolNode * base_node,
+                                                SymbolTree::SymbolNode * rebase_node,
+                                                EqualityType base_et);
     };
 }

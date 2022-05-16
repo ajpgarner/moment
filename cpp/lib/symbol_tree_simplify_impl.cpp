@@ -10,21 +10,47 @@
 
 namespace NPATK::detail {
 
-    void SymbolNodeSimplifyImpl::simplify() {
+    namespace {
+        struct NodeAndIter {
+            SymbolTree::SymbolNode *node;
+            SymbolTree::SymbolLinkIterator iter;
+            EqualityType relationToBase = EqualityType::none;
+
+            constexpr explicit NodeAndIter(SymbolTree::SymbolNode *the_node, EqualityType rtb) noexcept
+                    : node(the_node), iter(the_node->begin()), relationToBase(rtb) {}
+
+        };
+
+        struct MoveStack {
+            SymbolTree::SymbolNode * node;
+            SymbolTree::SymbolLink * cursor;
+            SymbolTree::SymbolLink * hint = nullptr;
+
+            EqualityType relationToBase = EqualityType::none;
+
+            constexpr  MoveStack(SymbolTree::SymbolNode *the_node,
+                                 EqualityType rtb) noexcept
+                    : node(the_node),
+                      cursor(the_node->empty() ? nullptr : &(*(the_node->begin()))),
+                      relationToBase(rtb) { }
+
+        };
+    }
+    void SymbolNodeSimplifyImpl::simplify(SymbolTree::SymbolNode * this_node) {
 
         // If already has canonical origin, node has been visited already
-        if (this_node.canonical_origin != nullptr) {
+        if (this_node->canonical_origin != nullptr) {
             return;
         }
 
         // If node has no children, nothing to do
-        if (this_node.empty()) {
+        if (this_node->empty()) {
             return;
         }
 
         // See if any children think they are already part of a tree
         std::vector<RebaseInfoImpl> nodes_to_rebase;
-        size_t lowest_node_found_index = this->find_already_linked(nodes_to_rebase);
+        size_t lowest_node_found_index = find_already_linked(this_node, nodes_to_rebase);
 
         // Anything to rebase?
         SymbolTree::SymbolLink * descendent_hint = nullptr;
@@ -37,28 +63,34 @@ namespace NPATK::detail {
                 auto& move_node = *(move_entry.linkToMove->target);
 
                 if (move_entry.is_pivot) {
-                    // Pivot node already has correct canonical base, and has no children...
+                    // Pivot node already has correct canonical, and (by virtue of knowing its canonical) has no children...
 
                     // Link to base can be undone, and reset to new information
                     move_entry.linkToMove->detach_and_reset();
                     link_for_base = move_entry.linkToMove;
                     link_for_base->link_type = compose(move_entry.linkFromCanonicalNode->link_type,
                                                        move_entry.relationToBase);
-                    link_for_base->target = &this_node;
+                    link_for_base->target = this_node;
 
                 } else {
                     assert(move_entry.linkToMove != nullptr);
+                    assert(move_entry.linkToMove->target->canonical_origin != nullptr);
                     auto& move_link = *(move_entry.linkToMove);
+                    auto& previous_canonical_link = *(move_entry.linkToMove->target->canonical_origin);
+                    auto& previous_canonical_node = *(previous_canonical_link.origin);
 
-                    // Repurpose link from base -...-> move, to be link from canon -...-> move
+                    // Repurpose link from base -...-> found node, to be link from canon -...-> move's previous canon
                     move_link.detach();
-                    move_link.link_type = move_entry.relationToCanonical;
+                    move_link.link_type = compose(move_entry.relationToCanonical, previous_canonical_link.link_type);
+                    move_link.target = &previous_canonical_node;
+
                     canonical_node.subsume(&move_link);
                 }
             }
 
             // Finally, move base node into canonical structure.
             assert(link_for_base != nullptr);
+
             // We are guaranteed not to be a duplicate entry in the canonical node,
             //  but the same is not guaranteed for our descendents.
             auto [did_merge, next_desc_hint] = canonical_node.insert_ordered(link_for_base);
@@ -66,34 +98,24 @@ namespace NPATK::detail {
         }
 
         // Now, only "unvisited" children remain.
-        if (descendent_hint == nullptr) {
-            this->incorporate_all_descendents();
+        if (nodes_to_rebase.empty()) {
+            incorporate_all_descendents(this_node, this_node, EqualityType::equal);
         } else {
-            // TODO: same thing, but relocated descendents elsewhere!
+            auto& pivot_entry = nodes_to_rebase[lowest_node_found_index];
+            auto& canonical_node = *(pivot_entry.linkFromCanonicalNode->origin);
+            incorporate_all_descendents(this_node, &canonical_node,
+                                              compose(pivot_entry.relationToBase, pivot_entry.relationToCanonical));
         }
-
     }
 
-    namespace {
-        struct NodeAndIter {
-            SymbolTree::SymbolNode *node;
-            SymbolTree::SymbolLinkIterator iter;
-            EqualityType relationToBase = EqualityType::none;
-
-            constexpr explicit NodeAndIter(SymbolTree::SymbolNode *the_node, EqualityType rtb) noexcept
-                    : node(the_node), iter(the_node->begin()), relationToBase(rtb) {}
-
-        };
-    }
-
-    size_t SymbolNodeSimplifyImpl::find_already_linked(std::vector<RebaseInfoImpl>& rebase_list) {
+    size_t SymbolNodeSimplifyImpl::find_already_linked(SymbolTree::SymbolNode * base_node, std::vector<RebaseInfoImpl>& rebase_list) {
         rebase_list.clear();
 
         size_t lowest_node_found_index = -1;
         symbol_name_t lowest_node_found = std::numeric_limits<symbol_name_t>::max();
 
         // Scan children; kinda recursively
-        SymbolTree::SymbolNode * node_cursor = &this_node;
+        SymbolTree::SymbolNode * node_cursor = base_node;
         std::stack<NodeAndIter> recurse_stack{};
         recurse_stack.emplace(node_cursor, EqualityType::equal);
         while (!recurse_stack.empty()) {
@@ -171,96 +193,73 @@ namespace NPATK::detail {
     }
 
 
-    namespace {
-        struct MoveStack {
-            SymbolTree::SymbolNode *node;
-            SymbolTree::SymbolLink *cursor;
-            EqualityType relationToBase = EqualityType::none;
 
-            constexpr  MoveStack(SymbolTree::SymbolNode *the_node,
-                                 EqualityType rtb) noexcept
-                    : node(the_node),
-                      cursor(the_node->empty() ? nullptr : &(*(the_node->begin()))),
-                      relationToBase(rtb) { }
+    void SymbolNodeSimplifyImpl::incorporate_all_descendents(SymbolTree::SymbolNode * base_node,
+                                                             SymbolTree::SymbolNode * rebase_node,
+                                                             EqualityType base_et) {
 
-        };
-    }
-
-
-    void SymbolNodeSimplifyImpl::incorporate_all_descendents() {
-
-        // TODO: Constraints (real=0, im=0, etc.)
-
-        // Scan children; kinda recursively
-        //SymbolTree::SymbolNode * node_cursor = &this_node;
+        // Iterate kinda recursively through tree, acting on parent nodes before their children
         std::stack<MoveStack> recurse_stack{};
-        recurse_stack.emplace(&this_node, EqualityType::equal);
+        recurse_stack.emplace(base_node, base_et);
 
         while (!recurse_stack.empty()) {
             auto& stack_frame = recurse_stack.top();
 
-            // Node has no more children,
+            // Node has no more children...
             if (stack_frame.cursor == nullptr) {
-                // Go up one level in the stack.
+                // Ascend one level in the stack.
                 recurse_stack.pop();
                 if (recurse_stack.empty()) {
                     break;
                 }
-
-                // Advance iterator below
-                assert(recurse_stack.top().cursor != nullptr);
-                SymbolTree::SymbolLink * canonical_link = recurse_stack.top().cursor;
-
-                // If rebase is required:
-                if (canonical_link->origin != &this_node) {
-                    canonical_link->detach();
-                    canonical_link->origin = &this_node;
-                    canonical_link->link_type = recurse_stack.top().relationToBase;
-                    auto [did_merge, inserted_link] = this_node.insert_ordered(canonical_link, nullptr);
-                    recurse_stack.top().node->canonical_origin = inserted_link;
-                    // Now, canonical_link is displaced
-                    if (did_merge) {
-                        // TODO: Special handling for merge?
-                    }
-                    // TODO: Handling of hints
-                }
-                recurse_stack.top().cursor = recurse_stack.top().cursor->next;
-
                 continue;
             }
 
-            // Node still has children
             auto& current_link = *(stack_frame.cursor);
 
-            // Node's child has children
-            if (!current_link.target->empty()) {
+            // Is link recursive?
+            bool recursion_link = (current_link.target == current_link.origin);
 
-                // Check not recursive
-                if (current_link.target != current_link.origin) {
+            // Unlink
+            auto [prev, next_child] = current_link.detach();
+
+            // If not recursive, reinsert as child of canonical node
+            if (!recursion_link) {
+
+                auto [did_merge, inserted_link] = rebase_node->insert_ordered(&current_link, stack_frame.hint);
+                stack_frame.hint = inserted_link;
+
+                inserted_link->target->canonical_origin = inserted_link;
+
+                // Test nullity, and propagate downwards
+                auto [re_is_zero, im_is_zero] = implies_zero(inserted_link->link_type);
+                stack_frame.node->real_is_zero |= re_is_zero;
+                stack_frame.node->im_is_zero |= im_is_zero;
+                rebase_node->real_is_zero |= stack_frame.node->real_is_zero;
+                rebase_node->im_is_zero |= stack_frame.node->im_is_zero;
+
+                // See if node has children, and if so, descend one level
+                if (!inserted_link->target->empty()) {
                     // Go down one level in the stack
                     recurse_stack.emplace(current_link.target,
                                           compose(stack_frame.relationToBase, current_link.link_type));
-                    continue;
                 }
-
-                // Resolve link to self, with nullity etc.
-                auto [re_is_zero, im_is_zero] = implies_zero(current_link.link_type);
+            } else {
+                // Test nullity, and propagate downwards
+                auto [re_is_zero, im_is_zero] = reflexive_implies_zero(current_link.link_type);
                 stack_frame.node->real_is_zero |= re_is_zero;
                 stack_frame.node->im_is_zero |= im_is_zero;
+                rebase_node->real_is_zero |= stack_frame.node->real_is_zero;
+                rebase_node->im_is_zero |= stack_frame.node->im_is_zero;
 
-                // Propagate nullity down to base node
-                this_node.real_is_zero |= stack_frame.node->real_is_zero;
-                this_node.im_is_zero |= stack_frame.node->im_is_zero;
+                // Reset link:
+                current_link.link_type = EqualityType::none;
+                current_link.target = nullptr;
 
-                // Delete link, and advance
-                auto [prev, next] = current_link.detach_and_reset();
-                stack_frame.cursor = next;
-                continue;
-
+                // Don't care if recursive node has children, since we don't want to descend to same node!
             }
 
-            // Otherwise, advance current iterator
-            stack_frame.cursor = stack_frame.cursor->next;
+            stack_frame.cursor = next_child; // Might be nullptr.
 
 
         }

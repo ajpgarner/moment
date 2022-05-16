@@ -92,6 +92,7 @@ namespace NPATK {
     }
 
     /**
+     * Test if a link between two symbols implies either the real or imaginary part of both symbols must be null.
      * @return first: true if real part is zero, second: true if imaginary part is zero.
      */
     constexpr std::pair<bool, bool> implies_zero(EqualityType lhs) {
@@ -114,6 +115,24 @@ namespace NPATK {
 
         return {real_is_zero, im_is_zero};
     }
+
+    /**
+     * Test if a 'reflexive' link between a symbols and itself implies the real or imaginary part must be null.
+     * @return first: true if real part is zero, second: true if imaginary part is zero.
+     */
+     constexpr std::pair<bool, bool> reflexive_implies_zero(EqualityType lhs) {
+         // a = -a  -> a = 0
+         if ((lhs & EqualityType::negated) == EqualityType::negated) {
+             return {true, true};
+         }
+         // a = -a* -> Re(a) = 0
+         bool re_is_zero = ((lhs & EqualityType::neg_conj) == EqualityType::neg_conj);
+
+         // a = a*  -> Im(a) = 0
+         bool im_is_zero = ((lhs & EqualityType::conjugated) == EqualityType::conjugated);
+
+         return {re_is_zero, im_is_zero};
+     }
 
 
 

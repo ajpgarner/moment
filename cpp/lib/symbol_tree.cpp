@@ -204,12 +204,9 @@ namespace NPATK {
         return count;
     }
 
-
     void SymbolTree::SymbolNode::simplify() {
-        detail::SymbolNodeSimplifyImpl simpImpl{*this};
-        simpImpl.simplify();
+        detail::SymbolNodeSimplifyImpl::simplify(this);
     }
-
 
     SymbolTree::SymbolTree(const SymbolSet &symbols) {
 

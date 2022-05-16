@@ -204,4 +204,28 @@ namespace NPATK::Tests {
         EXPECT_TRUE(im_is_zero) << "Should be zero";
     }
 
+    TEST(EqualityType, TestReflexiveZero_Exxx) {
+        auto [real_is_zero, im_is_zero] = reflexive_implies_zero(EqualityType::equal);
+        EXPECT_FALSE(real_is_zero) << "Should be unconstrained";
+        EXPECT_FALSE(im_is_zero) << "Should be unconstrained";
+    }
+
+    TEST(EqualityType, TestReflexiveZero_xNxx) {
+        auto [real_is_zero, im_is_zero] = reflexive_implies_zero(EqualityType::negated);
+        EXPECT_TRUE(real_is_zero) << "Should be zero";
+        EXPECT_TRUE(im_is_zero) << "Should be zero";
+    }
+
+    TEST(EqualityType, TestReflexiveZero_xxCx) {
+        auto [real_is_zero, im_is_zero] = reflexive_implies_zero(EqualityType::conjugated);
+        EXPECT_FALSE(real_is_zero) << "Should be real number";
+        EXPECT_TRUE(im_is_zero) << "Should be real number";
+    }
+
+    TEST(EqualityType, TestReflexiveZero_xxxT) {
+        auto [real_is_zero, im_is_zero] = reflexive_implies_zero(EqualityType::neg_conj);
+        EXPECT_TRUE(real_is_zero) << "Should be imaginary number";
+        EXPECT_FALSE(im_is_zero) << "Should be imaginary number";
+    }
+
 }
