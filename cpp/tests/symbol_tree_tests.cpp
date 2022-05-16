@@ -19,21 +19,22 @@ namespace NPATK::Tests {
         return *this->the_tree;
     }
 
-    void SymbolTreeFixture::compare_to(std::initializer_list<SymbolPair> pairs) {
+    void SymbolTreeFixture::compare_to(std::initializer_list<SymbolPair> pairs, bool only_topology) {
         SymbolSet ss{std::vector<SymbolPair>(pairs)};
         ss.pack();
         SymbolTree target_tree{ss};
-        compare_to(target_tree);
+        compare_to(target_tree, only_topology);
     }
 
-    void SymbolTreeFixture::compare_to(std::initializer_list<Symbol> extra, std::initializer_list<SymbolPair> pairs) {
+    void SymbolTreeFixture::compare_to(std::initializer_list<Symbol> extra, std::initializer_list<SymbolPair> pairs,
+                                       bool only_topology) {
         SymbolSet ss{std::vector<Symbol>(extra), std::vector<SymbolPair>(pairs)};
         ss.pack();
         SymbolTree target_tree{ss};
-        compare_to(target_tree);
+        compare_to(target_tree, only_topology);
     }
 
-    void SymbolTreeFixture::compare_to(const SymbolTree &target_tree) {
+    void SymbolTreeFixture::compare_to(const SymbolTree &target_tree, bool only_topology) {
 
         ASSERT_TRUE(this->the_tree) << "Must instantiate source tree!";
         SymbolTree& test_tree = *(this->the_tree);
@@ -59,7 +60,10 @@ namespace NPATK::Tests {
                 ASSERT_NE(rhs_iter->target, nullptr) << "Node: " << node_index << " Child: " << child_index;
                 EXPECT_EQ(lhs_iter->origin->id, rhs_iter->origin->id) << "Node: " << node_index << " Child: " << child_index;
                 EXPECT_EQ(lhs_iter->target->id, rhs_iter->target->id) << "Node: " << node_index << " Child: " << child_index;
-                EXPECT_EQ(lhs_iter->link_type,  rhs_iter->link_type) << "Node: " << node_index << " Child: " << child_index;
+                if (!only_topology) {
+                    EXPECT_EQ(lhs_iter->link_type, rhs_iter->link_type)
+                                        << "Node: " << node_index << " Child: " << child_index;
+                }
 
                 // Advance iterators
                 ++lhs_iter;
@@ -503,6 +507,70 @@ namespace NPATK::Tests {
                           SymbolPair{SymbolExpression{0}, SymbolExpression{5}},
                           SymbolPair{SymbolExpression{0}, SymbolExpression{6}},
                           });
+
+        EXPECT_FALSE(b_zz[0].is_zero());
+        EXPECT_FALSE(b_zz[0].real_is_zero);
+        EXPECT_FALSE(b_zz[0].im_is_zero);
+
+    }
+
+
+    TEST_F(SymbolTreeFixture, Simplify_OneRecursion_Null) {
+        auto& onenull = this->create_tree({SymbolPair{0, 0, true, false}}); // 0 = -0
+
+        onenull.simplify();
+        this->compare_to({Symbol{0}}, {});
+
+        EXPECT_TRUE(onenull[0].is_zero());
+        EXPECT_TRUE(onenull[0].real_is_zero);
+        EXPECT_TRUE(onenull[0].im_is_zero);
+    }
+
+    TEST_F(SymbolTreeFixture, Simplify_ChainRecursion_Null) {
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                                             SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                                             SymbolPair{2, 2, true, false}}); // 2 = -2
+
+        chain_link.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
+
+        EXPECT_TRUE(chain_link[0].is_zero());
+        EXPECT_TRUE(chain_link[0].real_is_zero);
+        EXPECT_TRUE(chain_link[0].im_is_zero);
+    }
+
+
+    TEST_F(SymbolTreeFixture, Simplify_NullTriangle) {
+        auto& nulltri = this->create_tree({SymbolPair{0, 1, true, false},  // 0 = -1
+                                              SymbolPair{0, 2, true, false},  // 0 = -2
+                                              SymbolPair{1, 2, true, false}}); // 1 = -2
+
+        nulltri.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}}},
+                         true);
+
+        EXPECT_TRUE(nulltri[0].is_zero());
+        EXPECT_TRUE(nulltri[0].real_is_zero);
+        EXPECT_TRUE(nulltri[0].im_is_zero);
+    }
+
+
+    TEST_F(SymbolTreeFixture, Simplify_NullDiamond) {
+        auto &diamond = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                                           SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+                                           SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                                           SymbolPair{2,3, true, false}
+                                          });
+        diamond.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{3}}}, true);
+
+        EXPECT_TRUE(diamond[0].is_zero());
+        EXPECT_TRUE(diamond[0].real_is_zero);
+        EXPECT_TRUE(diamond[0].im_is_zero);
 
     }
 

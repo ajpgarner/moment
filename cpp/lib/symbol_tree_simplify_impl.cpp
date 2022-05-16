@@ -217,14 +217,12 @@ namespace NPATK::detail {
 
             auto& current_link = *(stack_frame.cursor);
 
-            // Is link recursive?
-            bool recursion_link = (current_link.target == current_link.origin);
+            // If not recursive, reinsert as child of canonical node...
+            if (current_link.target != current_link.origin) {
+                auto [prev, next_child] = current_link.detach();
 
-            // Unlink
-            auto [prev, next_child] = current_link.detach();
-
-            // If not recursive, reinsert as child of canonical node
-            if (!recursion_link) {
+                // Recalculate link type...
+                current_link.link_type = compose(stack_frame.relationToBase, current_link.link_type);
 
                 auto [did_merge, inserted_link] = rebase_node->insert_ordered(&current_link, stack_frame.hint);
                 stack_frame.hint = inserted_link;
@@ -232,7 +230,7 @@ namespace NPATK::detail {
                 inserted_link->target->canonical_origin = inserted_link;
 
                 // Test nullity, and propagate downwards
-                auto [re_is_zero, im_is_zero] = implies_zero(inserted_link->link_type);
+                auto [re_is_zero, im_is_zero] = inserted_link->implies_zero();
                 stack_frame.node->real_is_zero |= re_is_zero;
                 stack_frame.node->im_is_zero |= im_is_zero;
                 rebase_node->real_is_zero |= stack_frame.node->real_is_zero;
@@ -244,25 +242,21 @@ namespace NPATK::detail {
                     recurse_stack.emplace(current_link.target,
                                           compose(stack_frame.relationToBase, current_link.link_type));
                 }
+                stack_frame.cursor = next_child;
+
             } else {
                 // Test nullity, and propagate downwards
-                auto [re_is_zero, im_is_zero] = reflexive_implies_zero(current_link.link_type);
+                auto [re_is_zero, im_is_zero] = current_link.implies_zero();
                 stack_frame.node->real_is_zero |= re_is_zero;
                 stack_frame.node->im_is_zero |= im_is_zero;
                 rebase_node->real_is_zero |= stack_frame.node->real_is_zero;
                 rebase_node->im_is_zero |= stack_frame.node->im_is_zero;
 
                 // Reset link:
-                current_link.link_type = EqualityType::none;
-                current_link.target = nullptr;
-
+                auto [prev, next_child] = current_link.detach_and_reset();
+                stack_frame.cursor = next_child;
                 // Don't care if recursive node has children, since we don't want to descend to same node!
             }
-
-            stack_frame.cursor = next_child; // Might be nullptr.
-
-
         }
-
     }
 }

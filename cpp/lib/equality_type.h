@@ -45,6 +45,22 @@ namespace NPATK {
     }
 
     /**
+     * @return True if negated or neg_conj is set.
+     */
+    constexpr bool is_negated(EqualityType lhs) {
+        return ((lhs & EqualityType::negated) == (EqualityType::negated))
+            || ((lhs & EqualityType::neg_conj) == (EqualityType::neg_conj));
+    }
+
+    /**
+     * @return True if conjugated or neg_conj is set.
+     */
+    constexpr bool is_conjugated(EqualityType lhs) {
+        return ((lhs & EqualityType::conjugated) == (EqualityType::conjugated))
+            || ((lhs & EqualityType::neg_conj) == (EqualityType::neg_conj));
+    }
+
+    /**
      * Swaps equal <-> negate, and conjugated <-> neg_conjugated
      */
     constexpr EqualityType conjugate(EqualityType lhs) {

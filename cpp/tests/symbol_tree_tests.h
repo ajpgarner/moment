@@ -19,10 +19,15 @@ namespace NPATK::Tests {
         std::unique_ptr<SymbolTree> the_tree;
 
         SymbolTree& create_tree(std::initializer_list<SymbolPair> pairs);
-        void compare_to(std::initializer_list<SymbolPair> pairs);
-        void compare_to(std::initializer_list<Symbol> extra, std::initializer_list<SymbolPair> pairs);
 
-        void compare_to(const SymbolTree& compare_tree);
+        void compare_to(std::initializer_list<SymbolPair> pairs,
+                        bool only_topology = false);
+
+        void compare_to(std::initializer_list<Symbol> extra,
+                        std::initializer_list<SymbolPair> pairs,
+                        bool only_topology = false);
+
+        void compare_to(const SymbolTree& compare_tree, bool only_topology = false);
 
     };
 

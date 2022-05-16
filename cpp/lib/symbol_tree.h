@@ -53,6 +53,18 @@ namespace NPATK {
             std::pair<SymbolLink*, SymbolLink*> detach_and_reset() noexcept;
 
 
+            /**
+             * Tests if the link type implies that the real or imaginary parts of associated symbols must be zero.
+             * @return Pair, first: true if real part is zero; second: true if imaginary part is zero.
+             */
+            [[nodiscard]] constexpr std::pair<bool, bool> implies_zero() const noexcept {
+                if ((origin == target) && (target != nullptr)) {
+                    return NPATK::reflexive_implies_zero(this->link_type);
+                }
+                return NPATK::implies_zero(this->link_type);
+            };
+
+
             template<bool is_const>
             friend class SymbolLinkIteratorBase;
 
@@ -107,23 +119,13 @@ namespace NPATK {
         using SymbolLinkIterator = SymbolLinkIteratorBase<false>;
         using SymbolLinkConstIterator = SymbolLinkIteratorBase<true>;
 
-        struct SymbolNode {
+        struct SymbolNode : public Symbol {
             friend struct SymbolLink;
 
-        public:
-            /** Name of the symbol */
-            symbol_name_t id;
-
+        private:
             /** Canonical link to symbol with lower ID, if any*/
             SymbolLink * canonical_origin = nullptr;
 
-            /** True if constraints dictate real part must be zero */
-            bool real_is_zero = false;
-
-            /** True if constraints dictate imaginary part must be zero */
-            bool im_is_zero = false;
-
-        private:
             /** First link, if any, to symbols with higher ID */
             SymbolLink * first_link = nullptr;
 
@@ -131,7 +133,7 @@ namespace NPATK {
             SymbolLink * last_link = nullptr;
 
         public:
-            explicit SymbolNode(symbol_name_t name) noexcept : id(name) { }
+            explicit SymbolNode(symbol_name_t name) noexcept : Symbol{name} { }
 
             [[nodiscard]] SymbolLinkIterator begin() noexcept {
                 return SymbolLinkIterator{this->first_link};
@@ -155,10 +157,6 @@ namespace NPATK {
 
             [[nodiscard]] SymbolLinkConstIterator cend() const noexcept {
                 return SymbolLinkConstIterator{};
-            }
-
-            [[nodiscard]] constexpr bool is_zero() const {
-                return real_is_zero && im_is_zero;
             }
 
             [[nodiscard]] constexpr bool empty() const noexcept {
@@ -192,6 +190,21 @@ namespace NPATK {
               * Recurse through node and children, flattening the tree-structure.
               */
             void simplify();
+
+            /**
+             * Represents the lowest id symbol equivalent (up to negation / conjugation) to this node.
+             */
+             [[nodiscard]] SymbolExpression canonical_expression() const {
+                 // Return canonical id, maybe with negation or conjugation
+                 if (this->canonical_origin) {
+                     return SymbolExpression{this->canonical_origin->origin->id,
+                                             is_negated(this->canonical_origin->link_type),
+                                             is_conjugated(this->canonical_origin->link_type)};
+                 }
+                 // Return self id (no negation or conjugation)
+                 return SymbolExpression{this->id};
+             }
+
 
 
             friend class detail::SymbolNodeSimplifyImpl;

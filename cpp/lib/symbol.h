@@ -82,6 +82,9 @@ namespace NPATK {
             }
         }
 
+        SymbolExpression(symbol_name_t name, bool neg, bool conj)
+            : id(name), negated(neg), conjugated(conj) { }
+
         bool operator==(const SymbolExpression& rhs) const {
             return (this->id == rhs.id)
                 && (this->negated == rhs.negated)
@@ -119,6 +122,18 @@ namespace NPATK {
             }
             this->negated = left.negated ^ right.negated;
             this->conjugated = left.conjugated ^ right.conjugated;
+        }
+
+        SymbolPair(symbol_name_t left_id, symbol_name_t right_id, bool neg, bool conj) {
+            if (left_id <= right_id) {
+                this->left_id = left_id;
+                this->right_id = right_id;
+            } else {
+                this->left_id = right_id;
+                this->right_id = left_id;
+            }
+            this->negated = neg;
+            this->conjugated = conj;
         }
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolPair& pair);
