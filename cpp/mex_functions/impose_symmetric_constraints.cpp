@@ -11,10 +11,14 @@
 #include <sstream>
 #include <algorithm>
 
-#include "helpers/reporting.h"
 #include "symbol.h"
 #include "symbol_set.h"
 #include "symbol_tree.h"
+
+#include "helpers/reporting.h"
+#include "helpers/substitute_elements_using_tree.h"
+#include "helpers/export_substitution_list.h"
+
 
 
 namespace NPATK::mex {
@@ -135,6 +139,11 @@ private:
 public:
 
     void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
+        // If no output, nothing to do...
+        if (outputs.size() <= 0) {
+            return;
+        }
+
         this->matlabPtr = getEngine();
 
         checkArguments(outputs, inputs);
@@ -161,7 +170,7 @@ public:
 
         unique_constraints.pack();
 
-        auto symbol_tree = NPATK::SymbolTree{unique_constraints};
+        auto symbol_tree = NPATK::SymbolTree{std::move(unique_constraints)};
         std::stringstream ss3;
         ss3 << "\nTree:\n" << symbol_tree;
         NPATK::mex::debug_message(*matlabPtr, ss3.str());
@@ -173,11 +182,18 @@ public:
         NPATK::mex::debug_message(*matlabPtr, ss4.str());
 
 
-        unique_constraints.unpack();
+        //unique_constraints.unpack();
 
 
         if (outputs.size() >= 1) {
-            matlab::data::ArrayFactory factory;
+            outputs[0] = NPATK::mex::substitute_elements_using_tree(*matlabPtr, std::move(inputs[0]), symbol_tree);
+        }
+
+        if (outputs.size() >= 2) {
+            outputs[1] = NPATK::mex::export_substitution_list(*matlabPtr, symbol_tree);
+        }
+
+           /* matlab::data::ArrayFactory factory;
             if (isSparse) {
                 size_t nnz = 1;
                 std::vector<double> data = {13.37};
@@ -201,8 +217,7 @@ public:
                 outputs[0] = std::move(output_array);
             } else {
                 outputs[0] = std::move(inputs[0]);
-            }
-        }
+            }*/
 
         this->matlabPtr.reset();
     }
