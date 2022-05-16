@@ -19,7 +19,6 @@ namespace NPATK {
 
     class SymbolTree {
     public:
-
         struct SymbolNode;
 
         template<bool is_const>
@@ -212,11 +211,15 @@ namespace NPATK {
         };
 
     private:
+        SymbolSet::packing_map_t packing_key;
         std::vector<SymbolNode> tree_nodes;
         std::vector<SymbolLink> tree_links;
+        bool done_simplification = false;
 
     public:
         explicit SymbolTree(const SymbolSet& symbols);
+
+        explicit SymbolTree(SymbolSet&& symbols) ;
 
         SymbolTree(const SymbolTree& rhs) = delete;
 
@@ -226,11 +229,20 @@ namespace NPATK {
 
         void simplify();
 
+        [[nodiscard]] bool ready() const { return done_simplification; }
+
         const SymbolNode& operator[](size_t index) const {
             return this->tree_nodes[index];
         }
 
+        [[nodiscard]] SymbolExpression substitute(SymbolExpression expr) const noexcept;
+
+
         friend std::ostream& operator<<(std::ostream& os, const SymbolTree& st);
 
+    private:
+        void make_nodes_and_links(const SymbolSet& symbols);
+
     };
+
 }

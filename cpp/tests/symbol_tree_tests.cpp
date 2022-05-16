@@ -15,14 +15,14 @@ namespace NPATK::Tests {
     SymbolTree& SymbolTreeFixture::create_tree(std::initializer_list<SymbolPair> pairs) {
         SymbolSet ss{std::vector<SymbolPair>(pairs)};
         ss.pack();
-        this->the_tree = std::make_unique<SymbolTree>(ss);
+        this->the_tree = std::make_unique<SymbolTree>(std::move(ss));
         return *this->the_tree;
     }
 
     void SymbolTreeFixture::compare_to(std::initializer_list<SymbolPair> pairs, bool only_topology) {
         SymbolSet ss{std::vector<SymbolPair>(pairs)};
         ss.pack();
-        SymbolTree target_tree{ss};
+        SymbolTree target_tree{std::move(ss)};
         compare_to(target_tree, only_topology);
     }
 
@@ -30,7 +30,7 @@ namespace NPATK::Tests {
                                        bool only_topology) {
         SymbolSet ss{std::vector<Symbol>(extra), std::vector<SymbolPair>(pairs)};
         ss.pack();
-        SymbolTree target_tree{ss};
+        SymbolTree target_tree{std::move(ss)};
         compare_to(target_tree, only_topology);
     }
 
@@ -463,7 +463,6 @@ namespace NPATK::Tests {
         EXPECT_FALSE(chain_link[0].is_zero());
         EXPECT_FALSE(chain_link[0].real_is_zero);
         EXPECT_FALSE(chain_link[0].im_is_zero);
-
     }
 
     TEST_F(SymbolTreeFixture, Simplify_TriangleWithDescendents) {
@@ -602,5 +601,31 @@ namespace NPATK::Tests {
 
     }
 
+
+
+    TEST_F(SymbolTreeFixture, Substitute_Triangle) {
+        auto& tree = this->create_tree({SymbolPair{SymbolExpression{10}, SymbolExpression{20}},
+                                              SymbolPair{SymbolExpression{10}, SymbolExpression{-30}}});
+
+        tree.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{10}, SymbolExpression{20}},
+                          SymbolPair{SymbolExpression{10}, SymbolExpression{-30}}});
+
+        auto expr_a = tree.substitute(SymbolExpression{20});
+        EXPECT_EQ(expr_a.id, 10);
+        EXPECT_EQ(expr_a.negated, false);
+        EXPECT_EQ(expr_a.conjugated, false);
+
+        auto expr_b = tree.substitute(SymbolExpression{30});
+        EXPECT_EQ(expr_b.id, 10);
+        EXPECT_EQ(expr_b.negated, true);
+        EXPECT_EQ(expr_b.conjugated, false);
+
+        auto expr_c = tree.substitute(SymbolExpression{-30});
+        EXPECT_EQ(expr_c.id, 10);
+        EXPECT_EQ(expr_c.negated, false);
+        EXPECT_EQ(expr_c.conjugated, false);
+
+    }
 
 }

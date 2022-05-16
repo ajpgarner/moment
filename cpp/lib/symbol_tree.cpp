@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <stack>
+#include <algorithm>
 
 namespace NPATK {
     std::ostream& operator<<(std::ostream& os, const SymbolTree& st) {
@@ -208,13 +209,33 @@ namespace NPATK {
         detail::SymbolNodeSimplifyImpl::simplify(this);
     }
 
-    SymbolTree::SymbolTree(const SymbolSet &symbols) {
+    SymbolTree::SymbolTree(const SymbolSet &symbols)
+        : packing_key{symbols.packing_key}
+    {
+        assert(symbols.is_packed());
+        this->make_nodes_and_links(symbols);
+    }
 
+    SymbolTree::SymbolTree(SymbolSet && symbols)
+        : packing_key{std::move(symbols.packing_key)}
+    {
+        assert(symbols.is_packed());
+
+        this->make_nodes_and_links(symbols);
+
+        // Reset now invalid symbols object.
+        symbols.reset();
+    }
+
+
+    void SymbolTree::make_nodes_and_links(const SymbolSet &symbols) {
         /** Create nodes */
         size_t symbol_count = symbols.symbol_count();
         this->tree_nodes.reserve(symbol_count);
         for (symbol_name_t i = 0; i < symbol_count; ++i) {
-            this->tree_nodes.emplace_back(i);
+            auto [found, upk] = symbols.unpacked_key(i);
+            assert(found);
+            this->tree_nodes.emplace_back(upk);
         }
 
         /** Create links */
@@ -222,7 +243,7 @@ namespace NPATK {
 
         size_t insert_index = 0;
 
-        for (const auto [key, link_type] : symbols.Links ) {
+        for (const auto [key, link_type] : symbols.Links) {
             SymbolNode * source_node = &this->tree_nodes[key.first];
             SymbolNode * target_node = &this->tree_nodes[key.second];
 
@@ -236,10 +257,33 @@ namespace NPATK {
 
 
     void SymbolTree::simplify() {
+        if (this->done_simplification) {
+            return;
+        }
+
         const size_t symbol_count = this->tree_nodes.size();
         for (symbol_name_t base_id = 0; base_id < symbol_count; ++base_id) {
             this->tree_nodes[base_id].simplify();
         }
+        this->done_simplification = true;
+    }
+
+    SymbolExpression SymbolTree::substitute(SymbolExpression expr) const noexcept {
+        // First, look up name of symbol as keyed
+        auto key_iter = this->packing_key.find(expr.id);
+        if (key_iter == this->packing_key.end()) {
+            // Did not find expr, cannot simplify
+            return expr;
+        }
+
+        // Now find associated node in tree...
+        assert((key_iter->second >= 0) && (key_iter->second < this->tree_nodes.size()));
+        const auto& node = this->tree_nodes[key_iter->second];
+        auto canon_expr = node.canonical_expression();
+        canon_expr.negated ^= expr.negated;
+        canon_expr.conjugated ^= expr.conjugated;
+
+        return canon_expr;
     }
 
 

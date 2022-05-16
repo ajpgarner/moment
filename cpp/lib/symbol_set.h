@@ -15,13 +15,13 @@
 
 namespace NPATK {
 
+    class SymbolTree;
+
     class SymbolSet {
     public:
-
-
         using equality_map_t = std::map<std::pair<symbol_name_t, symbol_name_t>, EqualityType>;
         using symbol_map_t = std::map<symbol_name_t, Symbol>;
-
+        using packing_map_t = std::map<symbol_name_t, symbol_name_t>;
 
         struct LinkRange {
         private:
@@ -47,7 +47,7 @@ namespace NPATK {
         symbol_map_t symbols{};
         equality_map_t symbol_links{};
 
-        std::map<symbol_name_t, symbol_name_t> packing_key{};
+        packing_map_t packing_key{};
         std::vector<symbol_name_t> unpacking_key{};
 
         bool packed = false;
@@ -105,6 +105,11 @@ namespace NPATK {
         void unpack();
 
         /**
+         * Wipe everything
+         */
+        void reset() noexcept;
+
+        /**
          * Get the compressed element id, looking it up by its uncompressed key.
          * @param unpacked_key The element id, as it was before compression.
          * @return Pair, first: true if key was found, second: the id of the element after compression (if found).
@@ -131,5 +136,6 @@ namespace NPATK {
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolSet& symbolSet);
 
+        friend class SymbolTree;
     };
 }

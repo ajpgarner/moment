@@ -4,8 +4,10 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "symbol_set.h"
+#include "symbol_tree.h"
 #include <cassert>
 #include <iostream>
+
 
 
 namespace  NPATK {
@@ -63,6 +65,14 @@ namespace  NPATK {
 
         ins_iter->second.merge_in(symbol);
         return false;
+    }
+
+    void SymbolSet::reset() noexcept {
+        this->symbols.clear();
+        this->symbol_links.clear();
+        this->packing_key.clear();
+        this->unpacking_key.clear();
+        this->packed = false;
     }
 
     std::ostream& operator<<(std::ostream &os, const SymbolSet &symbolSet) {
@@ -170,7 +180,4 @@ namespace  NPATK {
         this->packed = false;
 
     }
-
-
-
 }
