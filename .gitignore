@@ -31,6 +31,12 @@
 *.out
 *.app
 
+# Matlab executables
+*.mexa64
+*.mexmaci64
+*.mexw64
+
+
 # C++ intermediate/output directories
 /cpp/.idea
 /cpp/cmake-build-*
