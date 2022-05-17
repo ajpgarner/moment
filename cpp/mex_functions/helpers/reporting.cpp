@@ -14,6 +14,12 @@ namespace NPATK::mex {
              0, std::vector<matlab::data::Array>({ factory.createScalar(error) }));
     }
 
+    void throw_error(matlab::engine::MATLABEngine &engine, const std::basic_string<char16_t>& error) {
+        matlab::data::ArrayFactory factory;
+        engine.feval(u"error",
+             0, std::vector<matlab::data::Array>({ factory.createScalar(error) }));
+    }
+
     void debug_message(matlab::engine::MATLABEngine &engine, const std::string &message) {
         matlab::data::ArrayFactory factory;
         engine.feval(u"fprintf",

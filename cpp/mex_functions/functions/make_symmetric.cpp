@@ -1,10 +1,11 @@
-/**
- * impose_symmetric_constraints.cpp
+/*
+ * (c) 2022-2022 Austrian Academy of Sciences.
  *
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * NPAToolKit is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
+#include "make_symmetric.h"
+
 #include "mex.hpp"
-#include "mexAdapter.hpp"
 
 #include <vector>
 #include <map>
@@ -15,13 +16,13 @@
 #include "symbol_set.h"
 #include "symbol_tree.h"
 
-#include "helpers/reporting.h"
-#include "helpers/substitute_elements_using_tree.h"
-#include "helpers/export_substitution_list.h"
+#include "../helpers/reporting.h"
+#include "../helpers/substitute_elements_using_tree.h"
+#include "../helpers/export_substitution_list.h"
 
 
 
-namespace NPATK::mex {
+namespace NPATK::mex::functions {
     /**
      * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
      * @tparam datatype The data array type
@@ -102,27 +103,27 @@ namespace NPATK::mex {
                                                            const matlab::data::Array& data) {
         switch(data.getType()) {
             case matlab::data::ArrayType::SINGLE:
-                return NPATK::mex::identify_nonsymmetric_elements_dense<float>(data);
+                return identify_nonsymmetric_elements_dense<float>(data);
             case matlab::data::ArrayType::DOUBLE:
-                return NPATK::mex::identify_nonsymmetric_elements_dense<double>(data);
+                return identify_nonsymmetric_elements_dense<double>(data);
             case matlab::data::ArrayType::INT8:
-                return NPATK::mex::identify_nonsymmetric_elements_dense<int8_t>(data);
+                return identify_nonsymmetric_elements_dense<int8_t>(data);
             case matlab::data::ArrayType::UINT8:
-                return NPATK::mex::identify_nonsymmetric_elements_dense<uint8_t>(data);
+                return identify_nonsymmetric_elements_dense<uint8_t>(data);
             case matlab::data::ArrayType::INT16:
-                return NPATK::mex::identify_nonsymmetric_elements_dense<int16_t>(data);
+                return identify_nonsymmetric_elements_dense<int16_t>(data);
             case matlab::data::ArrayType::UINT16:
-                return NPATK::mex::identify_nonsymmetric_elements_dense<uint16_t>(data);
+                return identify_nonsymmetric_elements_dense<uint16_t>(data);
             case matlab::data::ArrayType::INT32:
-                return NPATK::mex::identify_nonsymmetric_elements_dense<int32_t>(data);
+                return identify_nonsymmetric_elements_dense<int32_t>(data);
             case matlab::data::ArrayType::UINT32:
-                return NPATK::mex::identify_nonsymmetric_elements_dense<uint32_t>(data);
+                return identify_nonsymmetric_elements_dense<uint32_t>(data);
             case matlab::data::ArrayType::INT64:
-                return NPATK::mex::identify_nonsymmetric_elements_dense<int64_t>(data);
+                return identify_nonsymmetric_elements_dense<int64_t>(data);
             case matlab::data::ArrayType::UINT64:
-                return NPATK::mex::identify_nonsymmetric_elements_dense<uint64_t>(data);
+                return identify_nonsymmetric_elements_dense<uint64_t>(data);
             case matlab::data::ArrayType::SPARSE_DOUBLE:
-                return NPATK::mex::identify_nonsymmetric_elements_sparse(data);
+                return identify_nonsymmetric_elements_sparse(data);
             default:
                 break;
         }
@@ -130,34 +131,42 @@ namespace NPATK::mex {
         NPATK::mex::throw_error(engine, "Matrix type not supported (should be matrix of real numbers).");
         return std::vector<SymbolPair>{};
     }
-}
 
-class MexFunction : public matlab::mex::Function {
-private:
-    std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
 
-public:
+    void checkArguments(matlab::engine::MATLABEngine& engine, WrappedArgRange outputs, WrappedArgRange inputs) {
+        if (inputs.size() != 1) {
+            NPATK::mex::throw_error(engine, "One input required.");
+        }
 
-    void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
+        auto inputDims = inputs[0].getDimensions();
+        if (inputDims.size() != 2) {
+            NPATK::mex::throw_error(engine, "Input must be a matrix.");
+        }
+
+        if (inputDims[0] != inputDims[1]) {
+            NPATK::mex::throw_error(engine, "Input must be a square matrix.");
+        }
+    }
+
+
+    void MakeSymmetric::operator()(WrappedArgRange outputs, WrappedArgRange inputs) {
         // If no output, nothing to do...
         if (outputs.size() <= 0) {
             return;
         }
 
-        this->matlabPtr = getEngine();
-
-        checkArguments(outputs, inputs);
+        checkArguments(matlabEngine, outputs, inputs);
         bool isSparse = inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE;
         size_t matrix_dimension = inputs[0].getDimensions()[0];
 
-        auto raw_constraints = NPATK::mex::identify_nonsymmetric_elements(*matlabPtr, inputs[0]);
+        auto raw_constraints = identify_nonsymmetric_elements(matlabEngine, inputs[0]);
 
-        NPATK::mex::debug_message(*matlabPtr, "Raw constraints:\n");
+        NPATK::mex::debug_message(matlabEngine, "Raw constraints:\n");
         std::stringstream ss;
         for (const auto& c : raw_constraints) {
             ss << c << "\n";
         }
-        NPATK::mex::debug_message(*matlabPtr, ss.str());
+        NPATK::mex::debug_message(matlabEngine, ss.str());
 
         auto unique_constraints = NPATK::SymbolSet{raw_constraints};
 
@@ -166,31 +175,30 @@ public:
             << unique_constraints.link_count() << " links."
             << "\nSorted, unique constraints:\n"
             << unique_constraints;
-        NPATK::mex::debug_message(*matlabPtr, ss2.str());
+        NPATK::mex::debug_message(matlabEngine, ss2.str());
 
         unique_constraints.pack();
 
         auto symbol_tree = NPATK::SymbolTree{std::move(unique_constraints)};
         std::stringstream ss3;
         ss3 << "\nTree:\n" << symbol_tree;
-        NPATK::mex::debug_message(*matlabPtr, ss3.str());
+        NPATK::mex::debug_message(matlabEngine, ss3.str());
 
         symbol_tree.simplify();
 
         std::stringstream ss4;
         ss4 << "\nTree, simplified:\n" << symbol_tree;
-        NPATK::mex::debug_message(*matlabPtr, ss4.str());
+        NPATK::mex::debug_message(matlabEngine, ss4.str());
 
 
-        //unique_constraints.unpack();
-
+        NPATK::mex::debug_message(matlabEngine, "Output size: " + std::to_string(outputs.size()) + "\n");
 
         if (outputs.size() >= 1) {
-            outputs[0] = NPATK::mex::substitute_elements_using_tree(*matlabPtr, std::move(inputs[0]), symbol_tree);
+            outputs[0] = NPATK::mex::substitute_elements_using_tree(matlabEngine, std::move(inputs[0]), symbol_tree);
         }
 
         if (outputs.size() >= 2) {
-            outputs[1] = NPATK::mex::export_substitution_list(*matlabPtr, symbol_tree);
+            outputs[1] = NPATK::mex::export_substitution_list(matlabEngine, symbol_tree);
         }
 
            /* matlab::data::ArrayFactory factory;
@@ -218,24 +226,7 @@ public:
             } else {
                 outputs[0] = std::move(inputs[0]);
             }*/
-
-        this->matlabPtr.reset();
     }
 
-    void checkArguments(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
-        matlab::data::ArrayFactory factory;
 
-        if (inputs.size() != 1) {
-            NPATK::mex::throw_error(*this->matlabPtr, "One input required.");
-        }
-
-        auto inputDims = inputs[0].getDimensions();
-        if (inputDims.size() != 2) {
-            NPATK::mex::throw_error(*this->matlabPtr, "Input must be a matrix.");
-        }
-
-        if (inputDims[0] != inputDims[1]) {
-            NPATK::mex::throw_error(*this->matlabPtr, "Input must be a square matrix.");
-        }
-    }
-};
+}

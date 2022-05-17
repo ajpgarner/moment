@@ -12,5 +12,6 @@
 
 namespace NPATK::mex {
     void throw_error(matlab::engine::MATLABEngine& engine, const std::string& error);
+    void throw_error(matlab::engine::MATLABEngine& engine, const std::basic_string<char16_t>& error);
     void debug_message(matlab::engine::MATLABEngine& engine, const std::string& message);
 }
