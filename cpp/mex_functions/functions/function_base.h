@@ -29,8 +29,9 @@ namespace NPATK::mex::functions {
         NameSet param_names{};
 
         size_t min_outputs = 0;
-
         size_t max_outputs = 0;
+        size_t min_inputs = 0;
+        size_t max_inputs = 0;
 
     public:
         const MEXEntryPointID function_id;
@@ -43,11 +44,12 @@ namespace NPATK::mex::functions {
 
         virtual void operator()(FlagArgumentRange output, SortedInputs&& input) = 0;
 
+        [[nodiscard]] virtual std::pair<bool, std::basic_string<char16_t>> validate_inputs(const SortedInputs& input) const = 0;
+
         /**
          * Set of allowed monadic flags for this function (e.g. "verbose")
          */
         [[nodiscard]] constexpr const NameSet& FlagNames() const noexcept { return this->flag_names; }
-
 
         /**
          * Set of allowed names of named parameters this function
@@ -60,6 +62,14 @@ namespace NPATK::mex::functions {
          */
         [[nodiscard]] constexpr std::pair<size_t, size_t> NumOutputs() const noexcept {
             return {min_outputs, max_outputs};
+        }
+
+        /**
+         * Get the range of (non-named) inputs expected
+         * @return Pair, first: minimum number of inputs, second: maximum number of inputs.
+         */
+        [[nodiscard]] constexpr std::pair<size_t, size_t> NumInputs() const noexcept {
+            return {min_inputs, max_inputs};
         }
 
 

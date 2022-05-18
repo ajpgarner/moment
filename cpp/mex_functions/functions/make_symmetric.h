@@ -14,5 +14,7 @@ namespace NPATK::mex::functions {
 
             void operator()(FlagArgumentRange output, SortedInputs&& input) final;
 
+        [[nodiscard]] std::pair<bool, std::basic_string<char16_t>> validate_inputs(const SortedInputs &input) const final;
+
     };
 }

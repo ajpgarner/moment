@@ -37,6 +37,9 @@ namespace NPATK::mex {
         // Get named parameters & flags
         auto processed_inputs = this->clean_inputs(*the_function, inputs);
 
+        // Check inputs are in range, and are valid
+        this->validate_inputs(*the_function, processed_inputs);
+
         // Execute function
         (*the_function)(outputs, std::move(processed_inputs));
 
@@ -157,5 +160,43 @@ namespace NPATK::mex {
 
             throw_error(*matlabPtr, ss.str());
         }
+    }
+
+    void MexMain::validate_inputs(const functions::MexFunction &func, const SortedInputs &inputs) {
+
+        // First check number of inputs is okay
+        auto [min, max] = func.NumInputs();
+        if ((inputs.inputs.size() > max) || (inputs.inputs.size() < min)) {
+
+            // Build error message:
+            std::string func_name{matlab::engine::convertUTF16StringToUTF8String(func.function_name)};
+            std::stringstream ss;
+            ss << "Function \"" << func_name << "\" ";
+            if (min != max) {
+                ss << "requires between " << min << " and " << max << " input parameters.";
+            } else {
+                if (min == 0) {
+                    ss << "does not take an input.";
+                } else {
+                    ss << "requires " << min;
+                    if (min != 1) {
+                        ss << " input parameters.";
+                    } else {
+                        ss << " input parameter.";
+                    }
+                }
+            }
+
+            throw_error(*matlabPtr, ss.str());
+        }
+
+        // Next, call functions own custom validator
+        auto [args_okay, err_msg] = func.validate_inputs(inputs);
+        if (!args_okay) {
+            std::basic_stringstream<char16_t> bss;
+            bss << u"Invalid argument to function \"" << func.function_name << "\": " << err_msg;
+            throw_error(*matlabPtr, bss.str());
+        }
+
     }
 }

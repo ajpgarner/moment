@@ -44,6 +44,8 @@ namespace NPATK::mex {
 
         [[nodiscard]] SortedInputs clean_inputs(const functions::MexFunction& func, FlagArgumentRange& inputs);
 
+        void validate_inputs(const functions::MexFunction& func, const SortedInputs& inputs);
+
         void validate_outputs(const functions::MexFunction& func, const FlagArgumentRange& outputs);
 
     };

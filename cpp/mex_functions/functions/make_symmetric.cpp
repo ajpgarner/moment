@@ -138,70 +138,84 @@ namespace NPATK::mex::functions {
             NPATK::mex::throw_error(engine, "One input required.");
         }
 
-        auto inputDims = inputs[0].getDimensions();
-        if (inputDims.size() != 2) {
-            NPATK::mex::throw_error(engine, "Input must be a matrix.");
-        }
 
-        if (inputDims[0] != inputDims[1]) {
-            NPATK::mex::throw_error(engine, "Input must be a square matrix.");
-        }
     }
 
     MakeSymmetric::MakeSymmetric(matlab::engine::MATLABEngine &matlabEngine)
             : MexFunction(matlabEngine, MEXEntryPointID::MakeSymmetric, u"make_symmetric") {
         this->min_outputs = 1;
         this->max_outputs = 2;
+        this->min_inputs = 1;
+        this->max_inputs = 1;
     }
 
-    void MakeSymmetric::operator()(FlagArgumentRange outputs, SortedInputs&& input) {
+    std::pair<bool, std::basic_string<char16_t>> MakeSymmetric::validate_inputs(const SortedInputs &input) const {
+        // Should be guaranteed~
+        assert(!input.inputs.empty());
+
+        auto inputDims = input.inputs[0].getDimensions();
+        if (inputDims.size() != 2) {
+            return {false, u"Input must be a matrix."};
+        }
+
+        if (inputDims[0] != inputDims[1]) {
+            return {false, u"Input must be a square matrix."};
+        }
+
+        return {true, u""};
+    }
+
+
+    void MakeSymmetric::operator()(FlagArgumentRange outputs, SortedInputs&& inputs) {
         // If no output, nothing to do...
         if (outputs.size() <= 0) {
             return;
         }
-        auto& inputs = input.inputs;
 
-        //checkArguments(matlabEngine, outputs, inputs);
+        bool debug = (inputs.flags.contains(u"debug"));
+        bool verbose = debug || (inputs.flags.contains(u"verbose"));
 
-        bool isSparse = inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE;
-        size_t matrix_dimension = inputs[0].getDimensions()[0];
+        auto raw_constraints = identify_nonsymmetric_elements(matlabEngine, inputs.inputs[0]);
 
-        auto raw_constraints = identify_nonsymmetric_elements(matlabEngine, inputs[0]);
-
-        NPATK::mex::print_to_console(matlabEngine, "Raw constraints:\n");
-        std::stringstream ss;
-        for (const auto& c : raw_constraints) {
-            ss << c << "\n";
+        if (debug) {
+            NPATK::mex::print_to_console(matlabEngine, "Raw constraints:\n");
+            std::stringstream ss;
+            for (const auto &c: raw_constraints) {
+                ss << c << "\n";
+            }
+            NPATK::mex::print_to_console(matlabEngine, ss.str());
         }
-        NPATK::mex::print_to_console(matlabEngine, ss.str());
 
         auto unique_constraints = NPATK::SymbolSet{raw_constraints};
 
-        std::stringstream ss2;
-        ss2 << "\nFound " << unique_constraints.symbol_count() << " symbols and "
-            << unique_constraints.link_count() << " links."
-            << "\nSorted, unique constraints:\n"
-            << unique_constraints;
-        NPATK::mex::print_to_console(matlabEngine, ss2.str());
+        if (verbose) {
+            std::stringstream ss2;
+            ss2 << "\nFound " << unique_constraints.symbol_count() << " symbols and "
+                << unique_constraints.link_count() << " links.\n";
+            ss2 << "Sorted, unique constraints:\n"
+                << unique_constraints;
+            NPATK::mex::print_to_console(matlabEngine, ss2.str());
+        }
 
         unique_constraints.pack();
-
         auto symbol_tree = NPATK::SymbolTree{std::move(unique_constraints)};
-        std::stringstream ss3;
-        ss3 << "\nTree:\n" << symbol_tree;
-        NPATK::mex::print_to_console(matlabEngine, ss3.str());
+
+        if (verbose) {
+            std::stringstream ss3;
+            ss3 << "\nTree, initial:\n" << symbol_tree;
+            NPATK::mex::print_to_console(matlabEngine, ss3.str());
+        }
 
         symbol_tree.simplify();
 
-        std::stringstream ss4;
-        ss4 << "\nTree, simplified:\n" << symbol_tree;
-        NPATK::mex::print_to_console(matlabEngine, ss4.str());
-
-
-        NPATK::mex::print_to_console(matlabEngine, "Output size: " + std::to_string(outputs.size()) + "\n");
+        if (verbose) {
+            std::stringstream ss4;
+            ss4 << "\nTree, simplified:\n" << symbol_tree;
+            NPATK::mex::print_to_console(matlabEngine, ss4.str());
+        }
 
         if (outputs.size() >= 1) {
-            outputs[0] = NPATK::mex::substitute_elements_using_tree(matlabEngine, std::move(inputs[0]), symbol_tree);
+            outputs[0] = NPATK::mex::substitute_elements_using_tree(matlabEngine, std::move(inputs.inputs[0]), symbol_tree);
         }
 
         if (outputs.size() >= 2) {
@@ -234,7 +248,4 @@ namespace NPATK::mex::functions {
                 outputs[0] = std::move(inputs[0]);
             }*/
     }
-
-
-
 }
