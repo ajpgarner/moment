@@ -20,8 +20,8 @@ namespace NPATK::mex::functions {
     void Version::operator()(FlagArgumentRange output, SortedInputs&& input) {
         size_t num_outputs = output.size();
         if ((0 == num_outputs) || input.flags.contains(u"verbose")) {
-            debug_message(this->matlabEngine,
-                          "NPA toolkit, v0.1\nCopyright (c) 2022 Austrian Academy of Sciences\n\n");
+            print_to_console(this->matlabEngine,
+                             "NPA toolkit, v0.1\nCopyright (c) 2022 Austrian Academy of Sciences\n\n");
         }
 
         if (num_outputs >= 1) {

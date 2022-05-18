@@ -168,12 +168,12 @@ namespace NPATK::mex::functions {
 
         auto raw_constraints = identify_nonsymmetric_elements(matlabEngine, inputs[0]);
 
-        NPATK::mex::debug_message(matlabEngine, "Raw constraints:\n");
+        NPATK::mex::print_to_console(matlabEngine, "Raw constraints:\n");
         std::stringstream ss;
         for (const auto& c : raw_constraints) {
             ss << c << "\n";
         }
-        NPATK::mex::debug_message(matlabEngine, ss.str());
+        NPATK::mex::print_to_console(matlabEngine, ss.str());
 
         auto unique_constraints = NPATK::SymbolSet{raw_constraints};
 
@@ -182,23 +182,23 @@ namespace NPATK::mex::functions {
             << unique_constraints.link_count() << " links."
             << "\nSorted, unique constraints:\n"
             << unique_constraints;
-        NPATK::mex::debug_message(matlabEngine, ss2.str());
+        NPATK::mex::print_to_console(matlabEngine, ss2.str());
 
         unique_constraints.pack();
 
         auto symbol_tree = NPATK::SymbolTree{std::move(unique_constraints)};
         std::stringstream ss3;
         ss3 << "\nTree:\n" << symbol_tree;
-        NPATK::mex::debug_message(matlabEngine, ss3.str());
+        NPATK::mex::print_to_console(matlabEngine, ss3.str());
 
         symbol_tree.simplify();
 
         std::stringstream ss4;
         ss4 << "\nTree, simplified:\n" << symbol_tree;
-        NPATK::mex::debug_message(matlabEngine, ss4.str());
+        NPATK::mex::print_to_console(matlabEngine, ss4.str());
 
 
-        NPATK::mex::debug_message(matlabEngine, "Output size: " + std::to_string(outputs.size()) + "\n");
+        NPATK::mex::print_to_console(matlabEngine, "Output size: " + std::to_string(outputs.size()) + "\n");
 
         if (outputs.size() >= 1) {
             outputs[0] = NPATK::mex::substitute_elements_using_tree(matlabEngine, std::move(inputs[0]), symbol_tree);

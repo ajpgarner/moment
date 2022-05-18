@@ -20,7 +20,7 @@ namespace NPATK::mex {
              0, std::vector<matlab::data::Array>({ factory.createScalar(error) }));
     }
 
-    void debug_message(matlab::engine::MATLABEngine &engine, const std::string &message) {
+    void print_to_console(matlab::engine::MATLABEngine &engine, const std::string &message) {
         matlab::data::ArrayFactory factory;
         engine.feval(u"fprintf",
              0, std::vector<matlab::data::Array>({ factory.createScalar(message) }));
