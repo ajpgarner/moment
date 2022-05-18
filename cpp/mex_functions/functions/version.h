@@ -12,10 +12,11 @@ namespace NPATK::mex::functions {
     class Version : public MexFunction {
 
     public:
-        explicit Version(matlab::engine::MATLABEngine& matlabEngine)
-            : MexFunction(matlabEngine, MEXEntryPointID::Version) { }
+        explicit Version(matlab::engine::MATLABEngine& matlabEngine);
 
-        void operator()(WrappedArgRange output, WrappedArgRange input) final;
+
+
+        void operator()(FlagArgumentRange output, SortedInputs&& input) final;
 
     };
 

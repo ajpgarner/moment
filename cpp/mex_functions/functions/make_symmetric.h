@@ -10,10 +10,9 @@
 namespace NPATK::mex::functions {
     class MakeSymmetric : public MexFunction {
         public:
-            explicit MakeSymmetric(matlab::engine::MATLABEngine& matlabEngine)
-                : MexFunction(matlabEngine, MEXEntryPointID::MakeSymmetric) { }
+            explicit MakeSymmetric(matlab::engine::MATLABEngine& matlabEngine);
 
-            void operator()(WrappedArgRange output, WrappedArgRange input) final;
+            void operator()(FlagArgumentRange output, SortedInputs&& input) final;
 
     };
 }

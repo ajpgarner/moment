@@ -133,7 +133,7 @@ namespace NPATK::mex::functions {
     }
 
 
-    void checkArguments(matlab::engine::MATLABEngine& engine, WrappedArgRange outputs, WrappedArgRange inputs) {
+    void checkArguments(matlab::engine::MATLABEngine& engine, FlagArgumentRange outputs, FlagArgumentRange inputs) {
         if (inputs.size() != 1) {
             NPATK::mex::throw_error(engine, "One input required.");
         }
@@ -148,14 +148,21 @@ namespace NPATK::mex::functions {
         }
     }
 
+    MakeSymmetric::MakeSymmetric(matlab::engine::MATLABEngine &matlabEngine)
+            : MexFunction(matlabEngine, MEXEntryPointID::MakeSymmetric, u"make_symmetric") {
+        this->min_outputs = 1;
+        this->max_outputs = 2;
+    }
 
-    void MakeSymmetric::operator()(WrappedArgRange outputs, WrappedArgRange inputs) {
+    void MakeSymmetric::operator()(FlagArgumentRange outputs, SortedInputs&& input) {
         // If no output, nothing to do...
         if (outputs.size() <= 0) {
             return;
         }
+        auto& inputs = input.inputs;
 
-        checkArguments(matlabEngine, outputs, inputs);
+        //checkArguments(matlabEngine, outputs, inputs);
+
         bool isSparse = inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE;
         size_t matrix_dimension = inputs[0].getDimensions()[0];
 
@@ -227,6 +234,7 @@ namespace NPATK::mex::functions {
                 outputs[0] = std::move(inputs[0]);
             }*/
     }
+
 
 
 }

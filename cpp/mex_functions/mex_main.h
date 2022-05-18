@@ -8,16 +8,20 @@
 #include "MatlabDataArray.hpp"
 #include "mex.hpp"
 
-#include "wrapped_arg_range.h"
+#include "io_parameters.h"
 
 #include "functions/function_list.h"
-#include "functions/function_base.h"
+//#include "functions/function_base.h"
 
 #include <memory>
 #include <vector>
 #include <iterator>
 
 namespace NPATK::mex {
+
+    namespace functions {
+        class MexFunction;
+    }
 
     class MexMain  {
     private:
@@ -26,9 +30,21 @@ namespace NPATK::mex {
     public:
         explicit MexMain(std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr);
 
-        void operator()(WrappedArgRange outputs, WrappedArgRange inputs);
+        void operator()(FlagArgumentRange outputs, FlagArgumentRange inputs);
 
     private:
-        [[nodiscard]] functions::MEXEntryPointID get_function_id(WrappedArgRange inputs);
+        /**
+         *
+         * @param inputs The input arguments. If function name is found, it is popped from front of this list.
+         * @return The ID of the function implied by the input parameters.
+         */
+        [[nodiscard]] functions::MEXEntryPointID get_function_id(FlagArgumentRange& inputs);
+
+        [[nodiscard]] std::unique_ptr<functions::MexFunction> get_function(functions::MEXEntryPointID func_id);
+
+        [[nodiscard]] SortedInputs clean_inputs(const functions::MexFunction& func, FlagArgumentRange& inputs);
+
+        void validate_outputs(const functions::MexFunction& func, const FlagArgumentRange& outputs);
+
     };
 }
