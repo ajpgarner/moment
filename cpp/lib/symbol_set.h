@@ -64,12 +64,20 @@ namespace NPATK {
         SymbolRange Symbols;
 
     public:
+        SymbolSet();
+
+        /**
+         * @param symbols List of (not necessarily unique) symbols.
+         */
+        explicit SymbolSet(const std::vector<Symbol>& symbols);
+
         /**
          * @param raw_pairs Not necessarily unique list of symbolic pairs
          */
         explicit SymbolSet(const std::vector<SymbolPair>& raw_pairs);
 
         /**
+         * @param extra_symbols List of (not necessarily unique) symbols.
          * @param raw_pairs Not necessarily unique list of symbolic pairs
          */
         SymbolSet(const std::vector<Symbol>& extra_symbols, const std::vector<SymbolPair>& raw_pairs);
@@ -80,6 +88,15 @@ namespace NPATK {
             symbols{std::move(rhs.symbols)}, symbol_links{std::move(rhs.symbol_links)},
             packing_key{std::move(rhs.packing_key)}, unpacking_key{std::move(rhs.unpacking_key)},
             packed{rhs.packed} { }
+
+        SymbolSet& operator=(SymbolSet&& rhs) noexcept {
+            std::swap(this->symbols, rhs.symbols);
+            std::swap(this->symbol_links, rhs.symbol_links);
+            std::swap(this->packing_key, rhs.packing_key);
+            std::swap(this->unpacking_key, rhs.unpacking_key);
+            packed = rhs.packed;
+            return *this;
+        }
 
         [[nodiscard]] size_t symbol_count() const noexcept { return symbols.size(); }
 

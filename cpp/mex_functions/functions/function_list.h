@@ -13,7 +13,8 @@ namespace NPATK::mex::functions {
         Unknown = 0,
         Version = 1,
         MakeSymmetric = 2,
-        MakeHermitian = 3
+        MakeHermitian = 3,
+        GenerateBasis = 4,
     };
 
     /**
@@ -25,6 +26,7 @@ namespace NPATK::mex::functions {
         output.emplace(u"version", MEXEntryPointID::Version);
         output.emplace(u"make_symmetric", MEXEntryPointID::MakeSymmetric);
         output.emplace(u"make_hermitian", MEXEntryPointID::MakeHermitian);
+        output.emplace(u"generate_basis", MEXEntryPointID::GenerateBasis);
         return output;
     }
 

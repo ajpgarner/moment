@@ -16,6 +16,7 @@ namespace NPATK::mex {
         for (auto & elem : the_array) {
             NPATK::SymbolExpression existing_symbol{static_cast<NPATK::symbol_name_t>(elem)};
             NPATK::SymbolExpression new_symbol = tree.substitute(existing_symbol);
+            // TODO: Check for zero'd elements
             elem = static_cast<data_t>(new_symbol.id) * (new_symbol.negated ? -1 : 1);
         }
 
@@ -29,6 +30,7 @@ namespace NPATK::mex {
         for (auto & elem : the_array) {
             NPATK::SymbolExpression existing_symbol{static_cast<NPATK::symbol_name_t>(elem)};
             NPATK::SymbolExpression new_symbol = tree.substitute(existing_symbol);
+            // TODO: Check for zero'd elements
             elem = static_cast<double>(new_symbol.id) * (new_symbol.negated ? -1 : 1);
         }
         return the_array;

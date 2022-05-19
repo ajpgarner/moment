@@ -12,6 +12,7 @@
 #include "functions/function_base.h"
 #include "functions/version.h"
 #include "functions/make_symmetric.h"
+#include "functions/generate_basis.h"
 
 
 
@@ -68,17 +69,22 @@ namespace NPATK::mex {
         std::unique_ptr<functions::MexFunction> the_function;
 
         switch(function_id) {
+            case functions::MEXEntryPointID::Version:
+                the_function = std::make_unique<functions::Version>(*matlabPtr);
+                break;
             case functions::MEXEntryPointID::MakeSymmetric:
                 the_function = std::make_unique<functions::MakeSymmetric>(*matlabPtr);
                 break;
             case functions::MEXEntryPointID::MakeHermitian:
                 the_function = std::make_unique<functions::MakeSymmetric>(*matlabPtr);
                 break;
+            case functions::MEXEntryPointID::GenerateBasis:
+                the_function = std::make_unique<functions::GenerateBasis>(*matlabPtr);
+                break;
             default:
             case functions::MEXEntryPointID::Unknown:
-            case functions::MEXEntryPointID::Version:
-                the_function = std::make_unique<functions::Version>(*matlabPtr);
-                break;
+                throw_error(*matlabPtr, "Unknown function!");
+                throw;
         }
         return the_function;
     }

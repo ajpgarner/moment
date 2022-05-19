@@ -133,14 +133,6 @@ namespace NPATK::mex::functions {
     }
 
 
-    void checkArguments(matlab::engine::MATLABEngine& engine, FlagArgumentRange outputs, FlagArgumentRange inputs) {
-        if (inputs.size() != 1) {
-            NPATK::mex::throw_error(engine, "One input required.");
-        }
-
-
-    }
-
     MakeSymmetric::MakeSymmetric(matlab::engine::MATLABEngine &matlabEngine)
             : MexFunction(matlabEngine, MEXEntryPointID::MakeSymmetric, u"make_symmetric") {
         this->min_outputs = 1;
@@ -160,6 +152,23 @@ namespace NPATK::mex::functions {
 
         if (inputDims[0] != inputDims[1]) {
             return {false, u"Input must be a square matrix."};
+        }
+
+        switch(input.inputs[0].getType()) {
+            case matlab::data::ArrayType::SINGLE:
+            case matlab::data::ArrayType::DOUBLE:
+            case matlab::data::ArrayType::INT8:
+            case matlab::data::ArrayType::UINT8:
+            case matlab::data::ArrayType::INT16:
+            case matlab::data::ArrayType::UINT16:
+            case matlab::data::ArrayType::INT32:
+            case matlab::data::ArrayType::UINT32:
+            case matlab::data::ArrayType::INT64:
+            case matlab::data::ArrayType::UINT64:
+            case matlab::data::ArrayType::SPARSE_DOUBLE:
+                break;
+            default:
+                return {false, u"Matrix type must be numeric."};
         }
 
         return {true, u""};

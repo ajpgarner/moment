@@ -7,12 +7,14 @@ matlab_add_mex(NAME npatk_mex
         SRC
             mex_entry.cpp
             mex_main.cpp
+            helpers/enumerate_symbols.cpp
+            helpers/export_substitution_list.cpp
             helpers/read_as_string.cpp
             helpers/reporting.cpp
             helpers/substitute_elements_using_tree.cpp
-            helpers/export_substitution_list.cpp
             functions/version.cpp
             functions/make_symmetric.cpp
+            functions/generate_basis.cpp
         OUTPUT_NAME npatk
         R2018a)
 

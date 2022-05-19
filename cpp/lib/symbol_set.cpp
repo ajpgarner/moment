@@ -11,10 +11,24 @@
 
 
 namespace  NPATK {
+
+    SymbolSet::SymbolSet()
+            : Symbols{*this}, Links{*this} {
+
+    }
+
+    SymbolSet::SymbolSet(const std::vector<Symbol> &in_symbols)
+            : Symbols{*this}, Links{*this} {
+
+        // Compile symbols
+        for (const auto& symbol : in_symbols) {
+            this->add_or_merge(symbol);
+        }
+    }
+
     SymbolSet::SymbolSet(const std::vector<SymbolPair>& raw_pairs)
         : Symbols{*this}, Links{*this}
     {
-
         for (const auto& rule : raw_pairs) {
             equality_map_t::key_type key{rule.left_id, rule.right_id};
             EqualityType eq_type = equality_type(rule);
@@ -56,7 +70,6 @@ namespace  NPATK {
         }
     }
 
-
     bool SymbolSet::add_or_merge(const Symbol &symbol) {
         auto [ins_iter, inserted] = this->symbols.insert({symbol.id, symbol});
         if (inserted) {
@@ -77,38 +90,47 @@ namespace  NPATK {
 
     std::ostream& operator<<(std::ostream &os, const SymbolSet &symbolSet) {
 
-        for (auto [names, link_type] : symbolSet.symbol_links) {
-            bool done_one = false;
-
-            if ((link_type & EqualityType::equal) == EqualityType::equal) {
-                os << names.first << " == " << names.second;
-                done_one = true;
+        if (!symbolSet.symbols.empty()) {
+            os << "Symbols:\n";
+            for (const auto& name : symbolSet.symbols) {
+                os << name.second << "\n";
             }
+        }
+        if (!symbolSet.symbol_links.empty()) {
+            os << "Symbol links:\n";
+            for (auto [names, link_type]: symbolSet.symbol_links) {
+                bool done_one = false;
 
-            if ((link_type & EqualityType::negated) == EqualityType::negated) {
-                if (done_one) {
-                    os << " AND ";
+                if ((link_type & EqualityType::equal) == EqualityType::equal) {
+                    os << names.first << " == " << names.second;
+                    done_one = true;
                 }
-                os << names.first << " == -" << names.second;
-                done_one = true;
-            }
 
-            if ((link_type & EqualityType::conjugated) == EqualityType::conjugated) {
-                if (done_one) {
-                    os << " AND ";
+                if ((link_type & EqualityType::negated) == EqualityType::negated) {
+                    if (done_one) {
+                        os << " AND ";
+                    }
+                    os << names.first << " == -" << names.second;
+                    done_one = true;
                 }
-                os << names.first << " == " << names.second << "*";
-                done_one = true;
-            }
 
-            if ((link_type & EqualityType::conjugated) == EqualityType::conjugated) {
-                if (done_one) {
-                    os << " AND ";
+                if ((link_type & EqualityType::conjugated) == EqualityType::conjugated) {
+                    if (done_one) {
+                        os << " AND ";
+                    }
+                    os << names.first << " == " << names.second << "*";
+                    done_one = true;
                 }
-                os << names.first << " == -" << names.second << "*";
-                done_one = true;
+
+                if ((link_type & EqualityType::conjugated) == EqualityType::conjugated) {
+                    if (done_one) {
+                        os << " AND ";
+                    }
+                    os << names.first << " == -" << names.second << "*";
+                    done_one = true;
+                }
+                os << "\n";
             }
-            os << "\n";
         }
 
         return os;
