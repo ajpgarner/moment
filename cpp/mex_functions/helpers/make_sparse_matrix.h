@@ -14,7 +14,8 @@
 namespace NPATK::mex {
 
     template<typename data_t>
-    inline matlab::data::SparseArray<data_t> make_sparse_matrix(std::pair<size_t, size_t> dimensions,
+    inline matlab::data::SparseArray<data_t> make_sparse_matrix(matlab::data::ArrayFactory& factory,
+                                                         std::pair<size_t, size_t> dimensions,
                                                          const std::vector<size_t>& rows,
                                                          const std::vector<size_t>& cols,
                                                          const std::vector<data_t>& values) {
@@ -24,8 +25,6 @@ namespace NPATK::mex {
             size_t nnz = values.size();
             assert(rows.size() == nnz);
             assert(cols.size() == nnz);
-
-            matlab::data::ArrayFactory factory;
 
             auto rows_p = factory.createBuffer<size_t>(rows.size());
             auto cols_p = factory.createBuffer<size_t>(cols.size());

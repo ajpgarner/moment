@@ -48,8 +48,8 @@ namespace NPATK::mex::functions {
                         }
                         if (im_id>=0) {
                             matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
-                            im_mat[index_i][index_j] = std::complex<double>{0.0, elem.negated ? -1 : 1};
-                            im_mat[index_j][index_i] = std::complex<double>{0.0, elem.negated ? 1 : -1};
+                            im_mat[index_i][index_j] = std::complex<double>{0.0, elem.negated ? -1. : 1.};
+                            im_mat[index_j][index_i] = std::complex<double>{0.0, elem.negated ? 1. : -1.};
                         }
                     }
                 }
@@ -69,6 +69,12 @@ namespace NPATK::mex::functions {
                 auto iter = matrix.cbegin();
                 while (iter != matrix.cend()) {
                     auto indices = matrix.getIndex(iter);
+
+                    if (indices.first > indices.second) {
+                        ++iter;
+                        continue;
+                    }
+
                     NPATK::SymbolExpression elem{static_cast<symbol_name_t>(*iter)};
                     auto [re_id, im_id] = this->imp.BasisKey(elem.id);
                     if (re_id>=0) {
@@ -125,13 +131,13 @@ namespace NPATK::mex::functions {
                 std::vector<double> values{};
 
                 void push_back(size_t i, size_t j, double value) {
-                    index_i.push_back(i);
-                    index_j.push_back(j);
-                    values.push_back(value);
+                    index_i.emplace_back(i);
+                    index_j.emplace_back(j);
+                    values.emplace_back(value);
 
-                    index_i.push_back(j);
-                    index_j.push_back(i);
-                    values.push_back(value);
+                    index_i.emplace_back(j);
+                    index_j.emplace_back(i);
+                    values.emplace_back(value);
                 }
             };
 
@@ -141,13 +147,13 @@ namespace NPATK::mex::functions {
                 std::vector<std::complex<double>> values;
 
                 void push_back(size_t i, size_t j, std::complex<double> value) {
-                    index_i.push_back(i);
-                    index_j.push_back(j);
-                    values.push_back(value);
+                    index_i.emplace_back(i);
+                    index_j.emplace_back(j);
+                    values.emplace_back(value);
 
-                    index_i.push_back(j);
-                    index_j.push_back(i);
-                    values.push_back(-value);
+                    index_i.emplace_back(j);
+                    index_j.emplace_back(i);
+                    values.emplace_back(conj(value));
                 }
             };
 
@@ -200,39 +206,32 @@ namespace NPATK::mex::functions {
                 std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
 
                 std::stringstream ss;
-                ss << "making from sparse...";
                 auto iter = matrix.cbegin();
                 while (iter != matrix.cend()) {
                     auto [row, col] = matrix.getIndex(iter);
-                    ss << "E: " << row << ", " << col << ": $";
+                    if (row > col) {
+                        ++iter;
+                        continue;
+                    }
 
                     NPATK::SymbolExpression elem{static_cast<symbol_name_t>(*iter)};
-                    ss << elem;
 
                     auto [re_id, im_id] = this->imp.BasisKey(elem.id);
-
-                    ss << " -> " << re_id << ", " << im_id;
 
                     if (re_id>=0) {
                         assert(re_id < real_basis_frame.size());
                         real_basis_frame[re_id].push_back(row, col,
                                                           elem.negated ? -1. : 1.);
-                        ss << "(r:" << real_basis_frame[re_id].values.size() << ") ";
                     }
                     if (im_id>=0) {
                         assert(im_id < im_basis_frame.size());
                         im_basis_frame[im_id].push_back(row, col,
-                                                        std::complex<double>{0.0, elem.negated ? -1. : 1.});
+                                                        std::complex<double>(0.0, elem.negated ? -1. : 1.));
 
-                        ss << "(i:" << im_basis_frame[im_id].values.size() << ") ";
                     }
-                    ss << "\n";
                     ++iter;
                 }
 
-
-
-                print_to_console(this->engine, ss.str());
 
                 return create_basis(real_basis_frame, im_basis_frame);
             }
@@ -245,20 +244,23 @@ namespace NPATK::mex::functions {
                                                     re_frame.size()};
                 matlab::data::ArrayDimensions im_ad{im_frame.empty() ? 0u : 1u,
                                                     im_frame.size()};
-                auto output = std::make_pair(factory.createCellArray(re_ad),
-                                             factory.createCellArray(im_ad));
+                CellArrayPair output = std::make_pair(factory.createArray<matlab::data::Array>(re_ad),
+                                                      factory.createArray<matlab::data::Array>(im_ad));
 
                 for (size_t re_id = 0, re_max = re_frame.size(); re_id < re_max; ++re_id) {
-                    output.first[re_id] = make_sparse_matrix<double>(std::make_pair(this->imp.Dimension(),
-                                                                            this->imp.Dimension()),
+
+                    output.first[0][re_id] = make_sparse_matrix<double>(factory,
+                                                                        std::make_pair(this->imp.Dimension(),
+                                                                                       this->imp.Dimension()),
                                                              re_frame[re_id].index_i,
                                                              re_frame[re_id].index_j,
                                                              re_frame[re_id].values);
                 }
 
                 for (size_t im_id = 0, im_max = im_frame.size(); im_id < im_max; ++im_id) {
-                    output.second[im_id] = make_sparse_matrix<std::complex<double>>(std::make_pair(this->imp.Dimension(),
-                                                                             this->imp.Dimension()),
+                    output.second[0][im_id] = make_sparse_matrix<std::complex<double>>(factory,
+                                                                            std::make_pair(this->imp.Dimension(),
+                                                                                           this->imp.Dimension()),
                                                               im_frame[im_id].index_i,
                                                               im_frame[im_id].index_j,
                                                               im_frame[im_id].values);
@@ -269,27 +271,25 @@ namespace NPATK::mex::functions {
 
 
         CellArrayPair make_dense_basis(matlab::engine::MATLABEngine &engine,
-                                                 matlab::data::Array &&input,
+                                                 const matlab::data::Array &input,
                                                  const IndexMatrixProperties &imp) {
             // Get symbols in matrix...
             MakeDenseBasisVisitor visitor{engine, imp};
             if (input.getType() == matlab::data::ArrayType::SPARSE_DOUBLE) {
                 return visitor.sparse(input);
-            } else {
-                return matlab::data::apply_numeric_visitor(input, visitor);
             }
+            return matlab::data::apply_numeric_visitor(input, visitor);
         }
 
         CellArrayPair make_sparse_basis(matlab::engine::MATLABEngine &engine,
-                                                  matlab::data::Array &&input,
+                                                  const matlab::data::Array &input,
                                                   const IndexMatrixProperties &imp) {
             // Get symbols in matrix...
             MakeSparseBasisVisitor visitor{engine, imp};
             if (input.getType() == matlab::data::ArrayType::SPARSE_DOUBLE) {
-                return visitor.sparse(input);
-            } else {
-                return matlab::data::apply_numeric_visitor(input, visitor);
+                return std::move(visitor.sparse(input));
             }
+            return matlab::data::apply_numeric_visitor(input, visitor);
         }
     }
 
@@ -393,13 +393,13 @@ namespace NPATK::mex::functions {
         }
 
         if (sparse_output) {
-            auto [sym, anti_sym] = make_sparse_basis(this->matlabEngine, std::move(input.inputs[0]), matrix_properties);
+            auto [sym, anti_sym] = make_sparse_basis(this->matlabEngine, input.inputs[0], matrix_properties);
             output[0] = std::move(sym);
             if (basis_type == IndexMatrixProperties::BasisType::Hermitian) {
                 output[1] = std::move(anti_sym);
             }
         } else {
-            auto [sym, anti_sym] = make_dense_basis(this->matlabEngine, std::move(input.inputs[0]), matrix_properties);
+            auto [sym, anti_sym] = make_dense_basis(this->matlabEngine, input.inputs[0], matrix_properties);
             output[0] = std::move(sym);
             if (basis_type == IndexMatrixProperties::BasisType::Hermitian) {
                 output[1] = std::move(anti_sym);
