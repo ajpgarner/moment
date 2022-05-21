@@ -141,9 +141,11 @@ namespace NPATK::mex::functions {
                     index_j.emplace_back(j);
                     values.emplace_back(value);
 
-                    index_i.emplace_back(j);
-                    index_j.emplace_back(i);
-                    values.emplace_back(value);
+                    if (i != j) {
+                        index_i.emplace_back(j);
+                        index_j.emplace_back(i);
+                        values.emplace_back(value);
+                    }
                 }
             };
 
@@ -157,9 +159,11 @@ namespace NPATK::mex::functions {
                     index_j.emplace_back(j);
                     values.emplace_back(value);
 
-                    index_i.emplace_back(j);
-                    index_j.emplace_back(i);
-                    values.emplace_back(conj(value));
+                    if (i != j) {
+                        index_i.emplace_back(j);
+                        index_j.emplace_back(i);
+                        values.emplace_back(conj(value));
+                    }
                 }
             };
 
@@ -377,8 +381,8 @@ namespace NPATK::mex::functions {
         }
 
         // Symmetric output cannot have three outputs...
-        if ((basis_type == IndexMatrixProperties::BasisType::Symmetric) && (output.size() >= 2)) {
-            throw_error(this->matlabEngine, std::string("Three outputs supplied for symmetric basis output, but only")
+        if ((basis_type == IndexMatrixProperties::BasisType::Symmetric) && (output.size() > 2)) {
+            throw_error(this->matlabEngine, std::to_string(output.size()) + " outputs supplied for symmetric basis output, but only"
                                                         + " two will be generated (basis, and key).");
         }
 
