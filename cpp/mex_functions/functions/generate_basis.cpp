@@ -6,8 +6,10 @@
 #include "generate_basis.h"
 
 #include "../helpers/enumerate_symbols.h"
+#include "../helpers/export_basis_key.h"
 #include "../helpers/reporting.h"
 #include "../helpers/make_sparse_matrix.h"
+
 
 #include <complex>
 
@@ -48,8 +50,10 @@ namespace NPATK::mex::functions {
                         }
                         if (im_id>=0) {
                             matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
-                            im_mat[index_i][index_j] = std::complex<double>{0.0, elem.negated ? -1. : 1.};
-                            im_mat[index_j][index_i] = std::complex<double>{0.0, elem.negated ? 1. : -1.};
+                            im_mat[index_i][index_j] = std::complex<double>{
+                                0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                            im_mat[index_j][index_i] = std::complex<double>{
+                                0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
                         }
                     }
                 }
@@ -84,8 +88,10 @@ namespace NPATK::mex::functions {
                     }
                     if (im_id>=0) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
-                        im_mat[indices.first][indices.second] = std::complex<double>{0.0, elem.negated ? -1 : 1};
-                        im_mat[indices.second][indices.first] = std::complex<double>{0.0, elem.negated ? 1 : -1};
+                        im_mat[indices.first][indices.second] = std::complex<double>{
+                            0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                        im_mat[indices.second][indices.first] = std::complex<double>{
+                            0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
                     }
                     ++iter;
                 }
@@ -98,9 +104,9 @@ namespace NPATK::mex::functions {
             CellArrayPair create_empty_basis() {
                 matlab::data::ArrayFactory factory{};
 
-                matlab::data::ArrayDimensions re_ad{this->imp.RealSymbols().empty() ? 0u : 1u,
+                matlab::data::ArrayDimensions re_ad{this->imp.RealSymbols().empty() ? 0U : 1U,
                                                     this->imp.RealSymbols().size()};
-                matlab::data::ArrayDimensions im_ad{this->imp.ImaginarySymbols().empty() ? 0u : 1u,
+                matlab::data::ArrayDimensions im_ad{this->imp.ImaginarySymbols().empty() ? 0U : 1U,
                                                     this->imp.ImaginarySymbols().size()};
 
                 auto output = std::make_pair(factory.createCellArray(re_ad),
@@ -185,8 +191,8 @@ namespace NPATK::mex::functions {
 
                         if (im_id>=0) {
                             assert(im_id < im_basis_frame.size());
-                            im_basis_frame[im_id].push_back(index_i, index_j,
-                                                            std::complex<double>{0.0, elem.negated ? -1. : 1.});
+                            im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
+                                0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
                         }
                     }
                 }
@@ -225,8 +231,8 @@ namespace NPATK::mex::functions {
                     }
                     if (im_id>=0) {
                         assert(im_id < im_basis_frame.size());
-                        im_basis_frame[im_id].push_back(row, col,
-                                                        std::complex<double>(0.0, elem.negated ? -1. : 1.));
+                        im_basis_frame[im_id].push_back(row, col, std::complex<double>(
+                                0.0, (elem.negated != elem.conjugated) ? -1. : 1.));
 
                     }
                     ++iter;
@@ -240,9 +246,9 @@ namespace NPATK::mex::functions {
             CellArrayPair create_basis(const std::vector<sparse_basis_re_frame>& re_frame,
                                        const std::vector<sparse_basis_im_frame>& im_frame) {
                 matlab::data::ArrayFactory factory{};
-                matlab::data::ArrayDimensions re_ad{re_frame.empty() ? 0u : 1u,
+                matlab::data::ArrayDimensions re_ad{re_frame.empty() ? 0U : 1U,
                                                     re_frame.size()};
-                matlab::data::ArrayDimensions im_ad{im_frame.empty() ? 0u : 1u,
+                matlab::data::ArrayDimensions im_ad{im_frame.empty() ? 0U : 1U,
                                                     im_frame.size()};
                 CellArrayPair output = std::make_pair(factory.createArray<matlab::data::Array>(re_ad),
                                                       factory.createArray<matlab::data::Array>(im_ad));
@@ -298,7 +304,7 @@ namespace NPATK::mex::functions {
         : MexFunction(matlabEngine, MEXEntryPointID::GenerateBasis, u"generate_basis") {
         this->min_inputs = this->max_inputs = 1;
         this->min_outputs = 1;
-        this->max_outputs = 2;
+        this->max_outputs = 3;
         this->flag_names.emplace(u"symmetric");
         this->flag_names.emplace(u"hermitian");
         this->flag_names.emplace(u"sparse");
@@ -370,6 +376,12 @@ namespace NPATK::mex::functions {
                                           + "anti-symmetric imaginary elements associated with the imaginary components.");
         }
 
+        // Symmetric output cannot have three outputs...
+        if ((basis_type == IndexMatrixProperties::BasisType::Symmetric) && (output.size() >= 2)) {
+            throw_error(this->matlabEngine, std::string("Three outputs supplied for symmetric basis output, but only")
+                                                        + " two will be generated (basis, and key).");
+        }
+
 
         // Default sparsity to matrix type of input, but allow for override
         bool sparse_output = (input.inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE);
@@ -387,10 +399,11 @@ namespace NPATK::mex::functions {
                << matrix_properties.RealSymbols().size() << " with real parts, "
                << matrix_properties.ImaginarySymbols().size() << " with imaginary parts].\n";
             if (debug) {
-                ss << "Outputting " << (sparse_output ? "sparse" : "dense") << " basis.\n";
+                ss << "Outputting as " << (sparse_output ? "sparse" : "dense") << " basis.\n";
             }
             print_to_console(matlabEngine, ss.str());
         }
+
 
         if (sparse_output) {
             auto [sym, anti_sym] = make_sparse_basis(this->matlabEngine, input.inputs[0], matrix_properties);
@@ -404,6 +417,12 @@ namespace NPATK::mex::functions {
             if (basis_type == IndexMatrixProperties::BasisType::Hermitian) {
                 output[1] = std::move(anti_sym);
             }
+        }
+
+        // If enough outputs supplied, also provide keys
+        ptrdiff_t key_output = (basis_type == IndexMatrixProperties::BasisType::Hermitian) ? 2 : 1;
+        if (output.size() > key_output) {
+            output[key_output] = export_basis_key(this->matlabEngine, matrix_properties);
         }
     }
 }

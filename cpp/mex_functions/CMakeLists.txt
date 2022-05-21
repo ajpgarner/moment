@@ -8,6 +8,7 @@ matlab_add_mex(NAME npatk_mex
             mex_entry.cpp
             mex_main.cpp
             helpers/enumerate_symbols.cpp
+            helpers/export_basis_key.cpp
             helpers/export_substitution_list.cpp
             helpers/read_as_string.cpp
             helpers/reporting.cpp
