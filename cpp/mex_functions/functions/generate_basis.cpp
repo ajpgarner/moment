@@ -59,6 +59,47 @@ namespace NPATK::mex::functions {
                 return output;
             }
 
+
+            /** String input -> dense output */
+            return_type string(const matlab::data::StringArray& matrix) {
+                auto output = create_empty_basis();
+
+                for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
+                    for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+
+                        if (!matrix[index_i][index_j].has_value()) {
+                            std::stringstream errMsg;
+                            errMsg << "Element [" << index_i << ", " << index_j << " was empty.";
+                            throw_error(engine, errMsg.str());
+                        }
+
+                        try {
+                            SymbolExpression elem{matlab::engine::convertUTF16StringToUTF8String(matrix[index_i][index_j])};
+                            auto [re_id, im_id] = this->imp.BasisKey(elem.id);
+
+                            if (re_id>=0) {
+                                matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
+                                re_mat[index_i][index_j] = elem.negated ? -1 : 1;
+                                re_mat[index_j][index_i] = elem.negated ? -1 : 1;
+                            }
+                            if (im_id>=0) {
+                                matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
+                                im_mat[index_i][index_j] = std::complex<double>{
+                                        0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                                im_mat[index_j][index_i] = std::complex<double>{
+                                        0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                            }
+                        } catch (const SymbolExpression::SymbolParseException& e) {
+                            std::stringstream errMsg;
+                            errMsg << "Error converting element [" << index_i << ", " << index_j << ": " << e.what();
+                            throw_error(engine, errMsg.str());
+                        }
+                    }
+                }
+
+                return output;
+            }
+
             /** Sparse input -> dense output */
             template<std::convertible_to<symbol_name_t> data_t>
             return_type sparse(const matlab::data::SparseArray<data_t> &matrix) {
@@ -119,6 +160,10 @@ namespace NPATK::mex::functions {
             }
 
         };
+
+        static_assert(concepts::VisitorHasRealDense<MakeDenseBasisVisitor>);
+        static_assert(concepts::VisitorHasRealSparse<MakeDenseBasisVisitor>);
+        static_assert(concepts::VisitorHasString<MakeDenseBasisVisitor>);
 
         struct MakeSparseBasisVisitor {
         public:
@@ -197,6 +242,43 @@ namespace NPATK::mex::functions {
                 return create_basis(real_basis_frame, im_basis_frame);
             }
 
+            /** String (utf16) input -> sparse output */
+            return_type string(const matlab::data::StringArray &matrix) {
+                std::vector<sparse_basis_re_frame> real_basis_frame(this->imp.RealSymbols().size());
+                std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
+
+                for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
+                    for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                        if (!matrix[index_i][index_j].has_value()) {
+                            std::stringstream errMsg;
+                            errMsg << "Element [" << index_i << ", " << index_j << " was empty.";
+                            throw_error(engine, errMsg.str());
+                        }
+                        try {
+                            SymbolExpression elem{matlab::engine::convertUTF16StringToUTF8String(matrix[index_i][index_j])};
+
+                            auto [re_id, im_id] = this->imp.BasisKey(elem.id);
+
+                            if (re_id >= 0) {
+                                assert(re_id < real_basis_frame.size());
+                                real_basis_frame[re_id].push_back(index_i, index_j, elem.negated ? -1. : 1.);
+                            }
+
+                            if (im_id >= 0) {
+                                assert(im_id < im_basis_frame.size());
+                                im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
+                                        0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
+                            }
+                        } catch (const SymbolExpression::SymbolParseException& e) {
+                            std::stringstream errMsg;
+                            errMsg << "Error converting element [" << index_i << ", " << index_j << ": " << e.what();
+                            throw_error(engine, errMsg.str());
+                        }
+                    }
+                }
+                return create_basis(real_basis_frame, im_basis_frame);
+            }
+
             /** Sparse input -> sparse output */
             template<std::convertible_to<symbol_name_t> data_t>
             return_type sparse(const matlab::data::SparseArray<data_t> &matrix) {
@@ -267,6 +349,9 @@ namespace NPATK::mex::functions {
             }
         };
 
+        static_assert(concepts::VisitorHasRealDense<MakeSparseBasisVisitor>);
+        static_assert(concepts::VisitorHasRealSparse<MakeSparseBasisVisitor>);
+        static_assert(concepts::VisitorHasString<MakeSparseBasisVisitor>);
 
         CellArrayPair make_dense_basis(matlab::engine::MATLABEngine &engine,
                                                  const matlab::data::Array &input,
@@ -336,6 +421,7 @@ namespace NPATK::mex::functions {
             case matlab::data::ArrayType::INT64:
             case matlab::data::ArrayType::UINT64:
             case matlab::data::ArrayType::SPARSE_DOUBLE:
+            case matlab::data::ArrayType::MATLAB_STRING:
                 break;
             default:
                 return {false, u"Matrix type must be numeric."};

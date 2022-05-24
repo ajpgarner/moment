@@ -92,7 +92,7 @@ namespace NPATK::mex {
         template <class functor_t>
         concept VisitorHasString = requires(functor_t& functor, matlab::data::Array& a) {
             typename functor_t::return_type;
-            {functor.template string(static_cast<matlab::data::StringArray>(a))} -> std::same_as<typename functor_t::return_type>;
+            {functor.string(static_cast<matlab::data::StringArray>(a))} -> std::same_as<typename functor_t::return_type>;
         };
     }
 

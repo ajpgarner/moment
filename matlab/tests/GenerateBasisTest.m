@@ -3,7 +3,6 @@ classdef GenerateBasisTest < matlab.unittest.TestCase
     
     properties(Constant)
         dense_input = [[1, 2, 3]; [2, 4, -3]; [3, -3, 5]]
-        sparse_input = sparse([[1, 2, 3]; [2, 4, -3]; [3, -3, 5]])
         
         dense_expected_re = {[[1,0,0]; [0,0,0]; [0,0,0]], ... 
                               [[0,1,0]; [1,0,0]; [0,0,0]], ...
@@ -14,6 +13,8 @@ classdef GenerateBasisTest < matlab.unittest.TestCase
        dense_expected_im = {0, [[0,1i,0]; [-1i,0,0]; [0,0,0]], ...
                             [[0,0,1i]; [0,0,-1i]; [-1i,1i,0]], 0, 0}
                         
+       sparse_input = sparse([[1, 2, 3]; [2, 4, -3]; [3, -3, 5]])
+       
        sparse_expected_re = {sparse([[1,0,0]; [0,0,0]; [0,0,0]]), ... 
                              sparse([[0,1,0]; [1,0,0]; [0,0,0]]), ...
                              sparse([[0,0,1]; [0,0,-1]; [1,-1,0]]), ...
@@ -23,6 +24,16 @@ classdef GenerateBasisTest < matlab.unittest.TestCase
        sparse_expected_im = {0, sparse([[0,1i,0]; [-1i,0,0]; [0,0,0]]), ...
                             sparse([[0,0,1i]; [0,0,-1i]; [-1i,1i,0]]), ...
                             0, 0}
+                        
+       string_input = [["1", "2*"]; ["2", "-1"]]
+       
+       string_expected_re = {[[1,0]; [0,-1]], [[0,1]; [1,0]]}
+       string_expected_im = {0, [[0, -1i];[1i, 0]]}
+       
+       string_expected_re_sparse = {sparse([[1,0]; [0,-1]]), ...
+                                    sparse([[0,1]; [1,0]])}
+       string_expected_im_sparse = {0, sparse([[0, -1i];[1i, 0]])}
+       
     end
     
     methods(TestMethodSetup)
@@ -98,8 +109,50 @@ classdef GenerateBasisTest < matlab.unittest.TestCase
                 testCase.verifyEqual(output_im{index}, ...
                     compare_to_im{match})
             end 
-        end
+         end
         
+        
+         
+         function verify_herm_output_str(testCase, output_re, output_im, ...
+                                     keys, sparse)
+            testCase.assertSize(keys, [2, 3])
+            testCase.assertLength(output_re, 2)
+            testCase.assertLength(output_im, 1)
+                        
+            if sparse
+                compare_to_re = testCase.string_expected_re_sparse;
+                compare_to_im = testCase.string_expected_im_sparse;
+            else
+                compare_to_re = testCase.string_expected_re;
+                compare_to_im = testCase.string_expected_im;
+            end
+            
+            % check referred to symmetric basis elements match expectations
+            for match = 1:2
+                index = keys(keys(:,1)==match,2);
+                testCase.assertNumElements(index, 1)
+                testCase.assertGreaterThan(index, 0)
+                testCase.verifyEqual(output_re{index}, ...
+                    compare_to_re{match})
+            end
+            
+            % entries 1 has no imaginary part:
+            for match = [1]
+                index = keys(keys(:,1)==match,3);
+                testCase.assertNumElements(index, 1)
+                testCase.verifyEqual(double(index), 0)
+            end
+            
+            % but check for anti-symmetric basis entries of 2
+            for match = [2]
+                index = keys(keys(:,1)==match,3);
+                testCase.assertNumElements(index, 1)
+                testCase.assertGreaterThan(index, 0)
+                testCase.verifyEqual(output_im{index}, ...
+                    compare_to_im{match})
+            end 
+        end
+         
     end
     
     methods (Test)
@@ -109,23 +162,23 @@ classdef GenerateBasisTest < matlab.unittest.TestCase
             testCase.verify_sym_output(output, keys, false);
         end 
         
-         function dense_from_dense_hermitian(testCase)
+        function dense_from_dense_hermitian(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
                 'dense', 'hermitian', testCase.dense_input);
             testCase.verify_herm_output(output_re, output_im, keys, false);
-         end 
+        end 
         
-         function dense_from_sparse_symmetric(testCase)
+        function dense_from_sparse_symmetric(testCase)
             [output, keys] = npatk('generate_basis', ...
                 'dense', 'symmetric', testCase.sparse_input);
             testCase.verify_sym_output(output, keys, false);
         end 
         
-         function dense_from_sparse_hermitian(testCase)
+        function dense_from_sparse_hermitian(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
                 'dense', 'hermitian', testCase.sparse_input);
             testCase.verify_herm_output(output_re, output_im, keys, false);
-         end 
+        end 
         
         function sparse_from_dense_symmetric(testCase)
             [output, keys] = npatk('generate_basis', ...
@@ -133,22 +186,34 @@ classdef GenerateBasisTest < matlab.unittest.TestCase
             testCase.verify_sym_output(output, keys, true);
         end 
         
-         function sparse_from_dense_hermitian(testCase)
+        function sparse_from_dense_hermitian(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
                 'sparse', 'hermitian', testCase.dense_input);
             testCase.verify_herm_output(output_re, output_im, keys, true);
-         end 
+        end 
         
-         function sparse_from_sparse_symmetric(testCase)
+        function sparse_from_sparse_symmetric(testCase)
             [output, keys] = npatk('generate_basis', ...
                 'sparse', 'symmetric', testCase.sparse_input);
             testCase.verify_sym_output(output, keys, true);
         end 
         
-         function sparse_from_sparse_hermitian(testCase)
+        function sparse_from_sparse_hermitian(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
                 'sparse', 'hermitian', testCase.sparse_input);
             testCase.verify_herm_output(output_re, output_im, keys, true);
+        end 
+                              
+        function dense_from_string_hermitian(testCase)
+            [output_re, output_im, keys] = npatk('generate_basis', ...
+                'dense', 'hermitian', testCase.string_input);
+            testCase.verify_herm_output_str(output_re, output_im, keys, false);
+        end 
+        
+        function sparse_from_string_hermitian(testCase)
+            [output_re, output_im, keys] = npatk('generate_basis', ...
+                'sparse', 'hermitian', testCase.string_input);
+            testCase.verify_herm_output_str(output_re, output_im, keys, true);
         end 
     end
 end

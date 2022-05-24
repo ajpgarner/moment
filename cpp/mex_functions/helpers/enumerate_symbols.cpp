@@ -7,7 +7,9 @@
 #include "symbol_set.h"
 
 #include "reporting.h"
-#include "MatlabDataArray/ArrayVisitors.hpp"
+#include "visitor.h"
+
+#include "MatlabEngine/engine_interface_util.hpp"
 
 namespace NPATK::mex {
     namespace {
@@ -21,14 +23,10 @@ namespace NPATK::mex {
                               IndexMatrixProperties::BasisType basisType)
                   : engine(engineRef),  basis_type(basisType) { }
 
-            template<typename generic>
-            SymbolSet operator()(const generic&) {
-                throw_error(engine, "Unsupported type.");
-                throw; // hint
-            }
+            using return_type = SymbolSet;
 
-            template<typename data_t>
-            SymbolSet operator()(const matlab::data::TypedArray<data_t>& matrix) {
+            template<std::convertible_to<symbol_name_t> data_t>
+            return_type dense(const matlab::data::TypedArray<data_t>& matrix) {
                 size_t matrix_dimension = matrix.getDimensions()[0];
                 SymbolSet symbols_found{};
 
@@ -44,21 +42,45 @@ namespace NPATK::mex {
                 return symbols_found;
             }
 
-            template<typename data_t>
-            [[noreturn]] SymbolSet operator()(const matlab::data::TypedArray<std::complex<data_t>>& matrix) {
-                throw_error(engine, "Complex numbers not yet supported.");
-                throw; // hint~
+            return_type string(const matlab::data::StringArray& matrix) {
+                size_t matrix_dimension = matrix.getDimensions()[0];
+                SymbolSet symbols_found{};
+
+                // Iterate over upper portion
+                for (size_t index_i = 0; index_i < matrix_dimension; ++index_i) {
+                    for (size_t index_j = index_i; index_j < matrix_dimension; ++index_j) {
+                        if (!matrix[index_i][index_j].has_value()) {
+                            std::stringstream errMsg;
+                            errMsg << "Element [" << index_i << ", " << index_j << " was empty.";
+                            throw_error(engine, errMsg.str());
+                        }
+                        try {
+                            NPATK::SymbolExpression elem{matlab::engine::convertUTF16StringToUTF8String(matrix[index_i][index_j])};
+                            bool could_be_complex = (basis_type == IndexMatrixProperties::BasisType::Hermitian)
+                                                    && (index_i != index_j);
+                            symbols_found.add_or_merge(Symbol{elem.id, could_be_complex});
+                        } catch (const SymbolExpression::SymbolParseException& e) {
+                            std::stringstream errMsg;
+                            errMsg << "Error converting element [" << index_i << ", " << index_j << ": " << e.what();
+                            throw_error(engine, errMsg.str());
+                        }
+                    }
+                }
+                return symbols_found;
             }
 
-            SymbolSet sparse(const matlab::data::SparseArray<double>& matrix) {
+            template<std::convertible_to<symbol_name_t> data_t>
+            return_type sparse(const matlab::data::SparseArray<data_t>& matrix) {
                 SymbolSet symbols_found{};
 
                 auto iter = matrix.cbegin();
                 while (iter != matrix.cend()) {
+
+
                     NPATK::SymbolExpression elem{static_cast<symbol_name_t>(*iter)};
                     auto indices = matrix.getIndex(iter);
                     // Only over upper portion
-                    if (indices.second > indices.first) {
+                    if (indices.first > indices.second) {
                         ++iter;
                         continue;
                     }
@@ -74,6 +96,10 @@ namespace NPATK::mex {
         };
     }
 
+    static_assert(concepts::VisitorHasRealDense<FindSymbols>);
+    static_assert(concepts::VisitorHasRealSparse<FindSymbols>);
+    static_assert(concepts::VisitorHasString<FindSymbols>);
+
     IndexMatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
                                             const matlab::data::Array& matrix,
                                             IndexMatrixProperties::BasisType basis_type,
@@ -83,12 +109,8 @@ namespace NPATK::mex {
 
         // Get symbols in matrix...
         FindSymbols visitor{engine, basis_type};
-        SymbolSet symbols_found{};
-        if (matrix.getType() == matlab::data::ArrayType::SPARSE_DOUBLE) {
-            symbols_found = visitor.sparse(matrix);
-        } else {
-            symbols_found = matlab::data::apply_numeric_visitor(matrix, visitor);
-        }
+        VisitDispatcher dispatcher{engine, visitor};
+        SymbolSet symbols_found{dispatcher(matrix)};
 
         // Report symbols detected, if debug mode enabled
         if (debug_output) {
