@@ -7,9 +7,9 @@
 
 #include "../helpers/enumerate_symbols.h"
 #include "../helpers/export_basis_key.h"
-#include "../helpers/reporting.h"
 #include "../helpers/make_sparse_matrix.h"
-
+#include "../helpers/reporting.h"
+#include "../helpers/visitor.h"
 
 #include <complex>
 
@@ -24,18 +24,16 @@ namespace NPATK::mex::functions {
             const IndexMatrixProperties &imp;
 
         public:
+            using return_type = CellArrayPair;
+
             MakeDenseBasisVisitor(matlab::engine::MATLABEngine &engineRef,
                                   const IndexMatrixProperties &matrix_properties)
                     : engine(engineRef), imp(matrix_properties) {}
 
-            template<typename generic>
-            CellArrayPair operator()(const generic &) {
-                throw_error(engine, "Unsupported type.");
-                throw; // hint
-            }
 
-            template<typename data_t>
-            CellArrayPair operator()(const matlab::data::TypedArray<data_t> &matrix) {
+            /** Dense input -> dense output */
+            template<std::convertible_to<symbol_name_t> data_t>
+            return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
                 auto output = create_empty_basis();
 
                 for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
@@ -61,13 +59,9 @@ namespace NPATK::mex::functions {
                 return output;
             }
 
-            template<typename data_t>
-            CellArrayPair operator()(const matlab::data::TypedArray<std::complex<data_t>> &) {
-                throw_error(engine, "Unsupported complex type.");
-                throw; // hint
-            }
-
-            CellArrayPair sparse(const matlab::data::SparseArray<double> &matrix) {
+            /** Sparse input -> dense output */
+            template<std::convertible_to<symbol_name_t> data_t>
+            return_type sparse(const matlab::data::SparseArray<data_t> &matrix) {
                 auto output = create_empty_basis();
 
                 auto iter = matrix.cbegin();
@@ -127,6 +121,9 @@ namespace NPATK::mex::functions {
         };
 
         struct MakeSparseBasisVisitor {
+        public:
+            using return_type = CellArrayPair;
+
         private:
             matlab::engine::MATLABEngine &engine;
             const IndexMatrixProperties &imp;
@@ -172,14 +169,10 @@ namespace NPATK::mex::functions {
                                    const IndexMatrixProperties &matrix_properties)
                     : engine(engineRef), imp(matrix_properties) {}
 
-            template<typename generic>
-            CellArrayPair operator()(const generic &) {
-                throw_error(engine, "Unsupported type.");
-                throw; // hint
-            }
 
-            template<typename data_t>
-            CellArrayPair operator()(const matlab::data::TypedArray<data_t> &matrix) {
+            /** Dense input -> sparse output */
+            template<std::convertible_to<symbol_name_t> data_t>
+            return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
                 std::vector<sparse_basis_re_frame> real_basis_frame(this->imp.RealSymbols().size());
                 std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
 
@@ -204,14 +197,9 @@ namespace NPATK::mex::functions {
                 return create_basis(real_basis_frame, im_basis_frame);
             }
 
-            template<typename data_t>
-            CellArrayPair operator()(const matlab::data::TypedArray<std::complex<data_t>> &) {
-                throw_error(engine, "Unsupported complex type.");
-                throw; // hint
-            }
-
-
-            CellArrayPair sparse(const matlab::data::SparseArray<double> &matrix) {
+            /** Sparse input -> sparse output */
+            template<std::convertible_to<symbol_name_t> data_t>
+            return_type sparse(const matlab::data::SparseArray<data_t> &matrix) {
                 std::vector<sparse_basis_re_frame> real_basis_frame(this->imp.RealSymbols().size());
                 std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
 
@@ -285,10 +273,8 @@ namespace NPATK::mex::functions {
                                                  const IndexMatrixProperties &imp) {
             // Get symbols in matrix...
             MakeDenseBasisVisitor visitor{engine, imp};
-            if (input.getType() == matlab::data::ArrayType::SPARSE_DOUBLE) {
-                return visitor.sparse(input);
-            }
-            return matlab::data::apply_numeric_visitor(input, visitor);
+            VisitDispatcher dispatcher{engine, visitor};
+            return dispatcher(input);
         }
 
         CellArrayPair make_sparse_basis(matlab::engine::MATLABEngine &engine,
@@ -296,10 +282,8 @@ namespace NPATK::mex::functions {
                                                   const IndexMatrixProperties &imp) {
             // Get symbols in matrix...
             MakeSparseBasisVisitor visitor{engine, imp};
-            if (input.getType() == matlab::data::ArrayType::SPARSE_DOUBLE) {
-                return std::move(visitor.sparse(input));
-            }
-            return matlab::data::apply_numeric_visitor(input, visitor);
+            VisitDispatcher dispatcher{engine, visitor};
+            return dispatcher(input);
         }
     }
 

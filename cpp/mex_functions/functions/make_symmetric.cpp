@@ -16,120 +16,113 @@
 #include "symbol_set.h"
 #include "symbol_tree.h"
 
+#include "../helpers/export_substitution_list.h"
 #include "../helpers/reporting.h"
 #include "../helpers/substitute_elements_using_tree.h"
-#include "../helpers/export_substitution_list.h"
+#include "../helpers/visitor.h"
 
 
 
 namespace NPATK::mex::functions {
-    /**
-     * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
-     * @tparam datatype The data array type
-     * @param data The data array
-     * @return A vector of non-matching elements, in canonical form.
-     */
-    template<typename datatype>
-    std::vector<SymbolPair> identify_nonsymmetric_elements_dense(const matlab::data::TypedArray<datatype>& data) {
-        std::vector<SymbolPair> output{};
 
-        size_t dimension = data.getDimensions()[0];
-        for (size_t i = 0; i < dimension; ++i) {
-            for (size_t j = i + 1; j < dimension; ++j) {
-                NPATK::SymbolExpression upper{static_cast<NPATK::symbol_name_t>(data[i][j])};
-                NPATK::SymbolExpression lower{static_cast<NPATK::symbol_name_t>(data[j][i])};
+    namespace {
+        /**
+         * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
+         */
+        class NonsymmetricElementIdentifierVisitor {
+            matlab::engine::MATLABEngine& engine;
 
-                if (upper != lower) {
-                    output.emplace_back(upper, lower);
+        public:
+            using return_type = std::vector<SymbolPair>;
+
+        public:
+            explicit NonsymmetricElementIdentifierVisitor(matlab::engine::MATLABEngine &the_engine)
+                : engine(the_engine) { }
+
+            /**
+              * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
+              * @tparam datatype The data array type
+              * @param data The data array
+              * @return A vector of non-matching elements, in canonical form.
+              */
+            template<std::convertible_to<NPATK::symbol_name_t> datatype>
+            return_type dense(const matlab::data::TypedArray<datatype> &data) {
+                std::vector<SymbolPair> output{};
+
+                size_t dimension = data.getDimensions()[0];
+                for (size_t i = 0; i < dimension; ++i) {
+                    for (size_t j = i + 1; j < dimension; ++j) {
+                        NPATK::SymbolExpression upper{static_cast<NPATK::symbol_name_t>(data[i][j])};
+                        NPATK::SymbolExpression lower{static_cast<NPATK::symbol_name_t>(data[j][i])};
+
+                        if (upper != lower) {
+                            output.emplace_back(upper, lower);
+                        }
+                    }
                 }
-            }
-        }
 
-        return output;
-    }
-
-    /**
-     * Read through matlab sparse matrix, and identify pairs of elements that are not symmetric.
-     * @param data The data array
-     * @return A vector of non-matching elements, in canonical form.
-     */
-    std::vector<SymbolPair> identify_nonsymmetric_elements_sparse(const matlab::data::SparseArray<double>& data) {
-        std::vector<SymbolPair> output{};
-
-        // Would like to avoid this hacky copy, but random access to matlab::data::SparseArray seems not to work...
-        std::map<std::pair<size_t, size_t>, NPATK::symbol_name_t> sparse_array_copy{};
-        for (auto iter = data.cbegin(); iter != data.cend(); ++iter) {
-            auto indices = data.getIndex(iter);
-            auto value = static_cast<NPATK::symbol_name_t>(*iter);
-            if (value != 0) {
-                sparse_array_copy.insert(
-                        sparse_array_copy.end(),
-                        std::pair<std::pair<size_t, size_t>, NPATK::symbol_name_t>{indices, value}
-                );
-            }
-        }
-
-        // Look for unmatching elements in sparse matrix.
-        for (const auto& [indices, value] : sparse_array_copy) {
-            std::pair<size_t, size_t> transpose_indices{indices.second, indices.first};
-
-            auto transposed_elem_iter = sparse_array_copy.find(transpose_indices);
-
-            // If opposite index doesn't exist, this is a non-trivial constraint
-            if (transposed_elem_iter == sparse_array_copy.end()) {
-                output.emplace_back(NPATK::SymbolExpression{value}, NPATK::SymbolExpression{0});
-                continue;
+                return output;
             }
 
-            // Now, only do comparison and insert if in upper triangle
-            if (indices.first > indices.second) {
-                auto second_value = transposed_elem_iter->second;
-                if (value != second_value) {
-                    output.emplace_back(NPATK::SymbolExpression{value}, NPATK::SymbolExpression{second_value});
+            /**
+             * Read through matlab sparse matrix, and identify pairs of elements that are not symmetric.
+             * @param data The data array
+             * @return A vector of non-matching elements, in canonical form.
+             */
+            template<std::convertible_to<NPATK::symbol_name_t> datatype>
+            return_type sparse(const matlab::data::SparseArray<datatype>& data) {
+                std::vector<SymbolPair> output{};
+
+                // Would like to avoid this hacky copy, but random access to matlab::data::SparseArray seems not to work...
+                std::map<std::pair<size_t, size_t>, NPATK::symbol_name_t> sparse_array_copy{};
+                for (auto iter = data.cbegin(); iter != data.cend(); ++iter) {
+                    auto indices = data.getIndex(iter);
+                    auto value = static_cast<NPATK::symbol_name_t>(*iter);
+                    if (value != 0) {
+                        sparse_array_copy.insert(
+                                sparse_array_copy.end(),
+                                std::pair<std::pair<size_t, size_t>, NPATK::symbol_name_t>{indices, value}
+                        );
+                    }
                 }
+
+                // Look for unmatching elements in sparse matrix.
+                for (const auto &[indices, value]: sparse_array_copy) {
+                    std::pair<size_t, size_t> transpose_indices{indices.second, indices.first};
+
+                    auto transposed_elem_iter = sparse_array_copy.find(transpose_indices);
+
+                    // If opposite index doesn't exist, this is a non-trivial constraint
+                    if (transposed_elem_iter == sparse_array_copy.end()) {
+                        output.emplace_back(NPATK::SymbolExpression{value}, NPATK::SymbolExpression{0});
+                        continue;
+                    }
+
+                    // Now, only do comparison and insert if in upper triangle
+                    if (indices.first > indices.second) {
+                        auto second_value = transposed_elem_iter->second;
+                        if (value != second_value) {
+                            output.emplace_back(NPATK::SymbolExpression{value}, NPATK::SymbolExpression{second_value});
+                        }
+                    }
+                }
+
+                return output;
             }
+        };
+
+        /**
+         * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
+         * @tparam datatype The data array type
+         * @param data The data array
+         * @return A vector of non-matching elements, in canonical form.
+         */
+        std::vector<SymbolPair> identify_nonsymmetric_elements(matlab::engine::MATLABEngine &engine,
+                                                               const matlab::data::Array &data) {
+            NonsymmetricElementIdentifierVisitor visitor{engine};
+            VisitDispatcher dispatcher{engine, visitor};
+            return dispatcher(data);
         }
-
-        return output;
-    }
-
-    /**
-     * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
-     * @tparam datatype The data array type
-     * @param data The data array
-     * @return A vector of non-matching elements, in canonical form.
-     */
-    std::vector<SymbolPair> identify_nonsymmetric_elements(matlab::engine::MATLABEngine& engine,
-                                                           const matlab::data::Array& data) {
-        switch(data.getType()) {
-            case matlab::data::ArrayType::SINGLE:
-                return identify_nonsymmetric_elements_dense<float>(data);
-            case matlab::data::ArrayType::DOUBLE:
-                return identify_nonsymmetric_elements_dense<double>(data);
-            case matlab::data::ArrayType::INT8:
-                return identify_nonsymmetric_elements_dense<int8_t>(data);
-            case matlab::data::ArrayType::UINT8:
-                return identify_nonsymmetric_elements_dense<uint8_t>(data);
-            case matlab::data::ArrayType::INT16:
-                return identify_nonsymmetric_elements_dense<int16_t>(data);
-            case matlab::data::ArrayType::UINT16:
-                return identify_nonsymmetric_elements_dense<uint16_t>(data);
-            case matlab::data::ArrayType::INT32:
-                return identify_nonsymmetric_elements_dense<int32_t>(data);
-            case matlab::data::ArrayType::UINT32:
-                return identify_nonsymmetric_elements_dense<uint32_t>(data);
-            case matlab::data::ArrayType::INT64:
-                return identify_nonsymmetric_elements_dense<int64_t>(data);
-            case matlab::data::ArrayType::UINT64:
-                return identify_nonsymmetric_elements_dense<uint64_t>(data);
-            case matlab::data::ArrayType::SPARSE_DOUBLE:
-                return identify_nonsymmetric_elements_sparse(data);
-            default:
-                break;
-        }
-
-        NPATK::mex::throw_error(engine, "Matrix type not supported (should be matrix of real numbers).");
-        return std::vector<SymbolPair>{};
     }
 
 

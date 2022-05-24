@@ -8,16 +8,18 @@
 
 namespace NPATK::mex {
 
-    void throw_error(matlab::engine::MATLABEngine &engine, const std::string& error) {
+    [[noreturn]] void throw_error(matlab::engine::MATLABEngine &engine, const std::string& error) {
         matlab::data::ArrayFactory factory;
         engine.feval(u"error",
              0, std::vector<matlab::data::Array>({ factory.createScalar(error) }));
+        throw; // hint for compiler
     }
 
-    void throw_error(matlab::engine::MATLABEngine &engine, const std::basic_string<char16_t>& error) {
+    [[noreturn]] void throw_error(matlab::engine::MATLABEngine &engine, const std::basic_string<char16_t>& error) {
         matlab::data::ArrayFactory factory;
         engine.feval(u"error",
              0, std::vector<matlab::data::Array>({ factory.createScalar(error) }));
+        throw; // hint for compiler
     }
 
     void print_to_console(matlab::engine::MATLABEngine &engine, const std::string &message) {

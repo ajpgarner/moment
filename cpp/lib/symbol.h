@@ -7,10 +7,11 @@
 #include <cstdint>
 #include <cassert>
 
+#include <iosfwd>
 #include <optional>
 #include <stdexcept>
+#include <string>
 #include <vector>
-#include <iosfwd>
 
 namespace NPATK {
 
@@ -67,15 +68,15 @@ namespace NPATK {
         }
     };
 
-
-
     /**
      * An algebraic element, as might be written in a matrix or equation.
      */
     struct SymbolExpression {
 
-
     public:
+        /**
+         * Error thrown when string expression cannot be parsed as a symbol expression.
+         */
         struct SymbolParseException : public std::runtime_error {
         public:
             /** Underlying exception, if any */
