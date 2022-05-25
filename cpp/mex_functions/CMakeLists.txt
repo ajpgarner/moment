@@ -3,6 +3,8 @@ set(MATLAB_FIND_DEBUG)
 
 find_package(Matlab)
 
+include_directories(${NPAToolKit_SOURCE_DIR}/lib)
+
 matlab_add_mex(NAME npatk_mex
         SRC
             mex_entry.cpp

@@ -5,6 +5,7 @@
  */
 #pragma once
 
+#include "../../version.h"
 #include "function_base.h"
 
 namespace NPATK::mex::functions {

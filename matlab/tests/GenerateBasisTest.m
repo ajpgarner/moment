@@ -1,5 +1,5 @@
 classdef GenerateBasisTest < matlab.unittest.TestCase
-    %GENERATEBASISTEST Unit tests for generate basis function
+    %GENERATEBASISTEST Unit tests for generate_basis function
     
     properties(Constant)
         dense_input = [[1, 2, 3]; [2, 4, -3]; [3, -3, 5]]

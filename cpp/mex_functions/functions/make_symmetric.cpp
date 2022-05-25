@@ -167,11 +167,6 @@ namespace NPATK::mex::functions {
 
 
     void MakeSymmetric::operator()(FlagArgumentRange outputs, SortedInputs&& inputs) {
-        // If no output, nothing to do...
-        if (outputs.size() <= 0) {
-            return;
-        }
-
         bool debug = (inputs.flags.contains(u"debug"));
         bool verbose = debug || (inputs.flags.contains(u"verbose"));
 
@@ -221,6 +216,6 @@ namespace NPATK::mex::functions {
         if (outputs.size() >= 2) {
             outputs[1] = NPATK::mex::export_substitution_list(matlabEngine, symbol_tree);
         }
-        
+
     }
 }

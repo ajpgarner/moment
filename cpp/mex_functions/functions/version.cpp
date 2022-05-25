@@ -8,6 +8,8 @@
 
 #include "../helpers/reporting.h"
 
+#include <sstream>
+
 namespace NPATK::mex::functions {
 
 
@@ -20,20 +22,30 @@ namespace NPATK::mex::functions {
     void Version::operator()(FlagArgumentRange output, SortedInputs&& input) {
         size_t num_outputs = output.size();
         if ((0 == num_outputs) || input.flags.contains(u"verbose")) {
-            print_to_console(this->matlabEngine,
-                             "NPA toolkit, v0.1\nCopyright (c) 2022 Austrian Academy of Sciences\n\n");
+            std::stringstream ss;
+            ss << NPATK::version::PROJECT_NAME << ", "
+               << "v" << NPATK::version::VERSION_MAJOR
+               << "." << NPATK::version::VERSION_MINOR
+               << "." << NPATK::version::VERSION_BUILD << "\n";
+            ss << NPATK::version::PROJECT_COPYRIGHT << "\n\n";
+
+            print_to_console(this->matlabEngine, ss.str());
         }
 
         if (num_outputs >= 1) {
             matlab::data::ArrayFactory factory;
             if (input.flags.contains(u"structured")) {
                 auto s = factory.createStructArray({1,1}, {"major", "minor", "build"});
-                s[0]["major"] = factory.createCharArray("0");
-                s[0]["minor"] = factory.createCharArray("1");
-                s[0]["build"] = factory.createCharArray("x");
+                s[0]["major"] = factory.createArray<int64_t>({ 1, 1 }, { NPATK::version::VERSION_MAJOR });
+                s[0]["minor"] = factory.createArray<int64_t>({ 1, 1 }, { NPATK::version::VERSION_MINOR });
+                s[0]["build"] = factory.createArray<int64_t>({ 1, 1 }, { NPATK::version::VERSION_BUILD });
                 output[0] = std::move(s);
             } else {
-                output[0] = factory.createCharArray("0.1");
+                std::stringstream ss;
+                ss << NPATK::version::VERSION_MAJOR
+                   << "." << NPATK::version::VERSION_MINOR
+                   << "." << NPATK::version::VERSION_BUILD;
+                output[0] = factory.createCharArray(ss.str());
             }
         }
     }
