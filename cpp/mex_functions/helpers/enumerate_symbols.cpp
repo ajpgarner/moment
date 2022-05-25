@@ -108,9 +108,7 @@ namespace NPATK::mex {
         size_t matrix_dimension = matrix.getDimensions()[0];
 
         // Get symbols in matrix...
-        FindSymbols visitor{engine, basis_type};
-        VisitDispatcher dispatcher{engine, visitor};
-        SymbolSet symbols_found{dispatcher(matrix)};
+        SymbolSet symbols_found{DispatchVisitor(engine, matrix, FindSymbols{engine, basis_type})};
 
         // Report symbols detected, if debug mode enabled
         if (debug_output) {

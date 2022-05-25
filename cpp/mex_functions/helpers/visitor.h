@@ -320,5 +320,11 @@ namespace NPATK::mex {
 
     };
 
+    template <class functor_t, typename matrix_t>
+    auto DispatchVisitor(matlab::engine::MATLABEngine& engine, matrix_t matrix, functor_t&& visitor) {
+        VisitDispatcher dispatcher{engine, visitor};
+        return dispatcher(std::forward<matrix_t>(matrix));
+    }
+
 
 }

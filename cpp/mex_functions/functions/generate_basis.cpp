@@ -357,18 +357,14 @@ namespace NPATK::mex::functions {
                                                  const matlab::data::Array &input,
                                                  const IndexMatrixProperties &imp) {
             // Get symbols in matrix...
-            MakeDenseBasisVisitor visitor{engine, imp};
-            VisitDispatcher dispatcher{engine, visitor};
-            return dispatcher(input);
+            return DispatchVisitor(engine, input, MakeDenseBasisVisitor{engine, imp});
         }
 
         CellArrayPair make_sparse_basis(matlab::engine::MATLABEngine &engine,
                                                   const matlab::data::Array &input,
                                                   const IndexMatrixProperties &imp) {
             // Get symbols in matrix...
-            MakeSparseBasisVisitor visitor{engine, imp};
-            VisitDispatcher dispatcher{engine, visitor};
-            return dispatcher(input);
+            return DispatchVisitor(engine, input, MakeSparseBasisVisitor{engine, imp});
         }
     }
 

@@ -119,9 +119,7 @@ namespace NPATK::mex::functions {
          */
         std::vector<SymbolPair> identify_nonsymmetric_elements(matlab::engine::MATLABEngine &engine,
                                                                const matlab::data::Array &data) {
-            NonsymmetricElementIdentifierVisitor visitor{engine};
-            VisitDispatcher dispatcher{engine, visitor};
-            return dispatcher(data);
+            return DispatchVisitor(engine, data, NonsymmetricElementIdentifierVisitor{engine});
         }
     }
 
@@ -223,31 +221,6 @@ namespace NPATK::mex::functions {
         if (outputs.size() >= 2) {
             outputs[1] = NPATK::mex::export_substitution_list(matlabEngine, symbol_tree);
         }
-
-           /* matlab::data::ArrayFactory factory;
-            if (isSparse) {
-                size_t nnz = 1;
-                std::vector<double> data = {13.37};
-                std::vector<size_t> rows = {0};
-                std::vector<size_t> cols = {0};
-                auto data_p = factory.createBuffer<double>(nnz);
-                auto rows_p = factory.createBuffer<size_t>(nnz);
-                auto cols_p = factory.createBuffer<size_t>(nnz);
-
-                double* dataPtr = data_p.get();
-                size_t* rowsPtr = rows_p.get();
-                size_t* colsPtr = cols_p.get();
-                std::for_each(data.begin(), data.end(), [&](const double& e) { *(dataPtr++) = e; });
-                std::for_each(rows.begin(), rows.end(), [&](const size_t& e) { *(rowsPtr++) = e; });
-                std::for_each(cols.begin(), cols.end(), [&](const size_t& e) { *(colsPtr++) = e; });
-
-                auto output_array = factory.createSparseArray(
-                        matlab::data::ArrayDimensions(1,1), nnz,
-                            std::move(data_p), std::move(rows_p), std::move(cols_p)
-                );
-                outputs[0] = std::move(output_array);
-            } else {
-                outputs[0] = std::move(inputs[0]);
-            }*/
+        
     }
 }
