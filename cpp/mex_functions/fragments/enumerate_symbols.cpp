@@ -6,8 +6,9 @@
 #include "enumerate_symbols.h"
 #include "symbol_set.h"
 
-#include "reporting.h"
-#include "visitor.h"
+#include "../utilities/reporting.h"
+#include "../utilities/visitor.h"
+#include "read_symbol_or_fail.h"
 
 #include "MatlabEngine/engine_interface_util.hpp"
 
@@ -49,21 +50,11 @@ namespace NPATK::mex {
                 // Iterate over upper portion
                 for (size_t index_i = 0; index_i < matrix_dimension; ++index_i) {
                     for (size_t index_j = index_i; index_j < matrix_dimension; ++index_j) {
-                        if (!matrix[index_i][index_j].has_value()) {
-                            std::stringstream errMsg;
-                            errMsg << "Element [" << index_i << ", " << index_j << " was empty.";
-                            throw_error(engine, errMsg.str());
-                        }
-                        try {
-                            NPATK::SymbolExpression elem{matlab::engine::convertUTF16StringToUTF8String(matrix[index_i][index_j])};
-                            bool could_be_complex = (basis_type == IndexMatrixProperties::BasisType::Hermitian)
+
+                        NPATK::SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
+                        bool could_be_complex = (basis_type == IndexMatrixProperties::BasisType::Hermitian)
                                                     && (index_i != index_j);
-                            symbols_found.add_or_merge(Symbol{elem.id, could_be_complex});
-                        } catch (const SymbolExpression::SymbolParseException& e) {
-                            std::stringstream errMsg;
-                            errMsg << "Error converting element [" << index_i << ", " << index_j << ": " << e.what();
-                            throw_error(engine, errMsg.str());
-                        }
+                        symbols_found.add_or_merge(Symbol{elem.id, could_be_complex});
                     }
                 }
                 return symbols_found;

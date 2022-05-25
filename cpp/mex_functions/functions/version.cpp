@@ -6,7 +6,7 @@
 #include "function_base.h"
 #include "version.h"
 
-#include "../helpers/reporting.h"
+#include "../utilities/reporting.h"
 
 #include <sstream>
 

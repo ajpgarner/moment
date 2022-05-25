@@ -6,8 +6,8 @@
 #include "mex_main.h"
 #include "MatlabEngine/engine_interface_util.hpp"
 
-#include "helpers/reporting.h"
-#include "helpers/read_as_string.h"
+#include "utilities/reporting.h"
+#include "utilities/read_as_string.h"
 
 #include "functions/function_base.h"
 #include "functions/version.h"

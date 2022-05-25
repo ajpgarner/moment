@@ -4,8 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "substitute_elements_using_tree.h"
-#include "reporting.h"
-
+#include "../utilities/reporting.h"
 
 namespace NPATK::mex {
 

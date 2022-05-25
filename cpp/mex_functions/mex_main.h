@@ -8,10 +8,9 @@
 #include "MatlabDataArray.hpp"
 #include "mex.hpp"
 
-#include "io_parameters.h"
+#include "utilities/io_parameters.h"
 
 #include "functions/function_list.h"
-//#include "functions/function_base.h"
 
 #include <memory>
 #include <vector>

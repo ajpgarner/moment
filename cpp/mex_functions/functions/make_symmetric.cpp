@@ -16,10 +16,10 @@
 #include "symbol_set.h"
 #include "symbol_tree.h"
 
-#include "../helpers/export_substitution_list.h"
-#include "../helpers/reporting.h"
-#include "../helpers/substitute_elements_using_tree.h"
-#include "../helpers/visitor.h"
+#include "../fragments/export_substitution_list.h"
+#include "../fragments/substitute_elements_using_tree.h"
+#include "../utilities/reporting.h"
+#include "../utilities/visitor.h"
 
 
 
@@ -126,6 +126,9 @@ namespace NPATK::mex::functions {
 
     MakeSymmetric::MakeSymmetric(matlab::engine::MATLABEngine &matlabEngine)
             : MexFunction(matlabEngine, MEXEntryPointID::MakeSymmetric, u"make_symmetric") {
+        this->flag_names.emplace(u"dense");
+        this->flag_names.emplace(u"sparse");
+
         this->min_outputs = 1;
         this->max_outputs = 2;
         this->min_inputs = 1;
@@ -157,9 +160,14 @@ namespace NPATK::mex::functions {
             case matlab::data::ArrayType::INT64:
             case matlab::data::ArrayType::UINT64:
             case matlab::data::ArrayType::SPARSE_DOUBLE:
+            case matlab::data::ArrayType::MATLAB_STRING:
                 break;
             default:
-                return {false, u"Matrix type must be numeric."};
+                return {false, u"Matrix type must be real numeric, or of strings."};
+        }
+
+        if (input.flags.contains(u"dense") && input.flags.contains(u"sparse")) {
+            return {false, u"Only one of \"dense\" or \"sparse\" should be set."};
         }
 
         return {true, u""};

@@ -5,11 +5,12 @@
  */
 #include "generate_basis.h"
 
-#include "../helpers/enumerate_symbols.h"
-#include "../helpers/export_basis_key.h"
-#include "../helpers/make_sparse_matrix.h"
-#include "../helpers/reporting.h"
-#include "../helpers/visitor.h"
+#include "../fragments/enumerate_symbols.h"
+#include "../fragments/export_basis_key.h"
+#include "../utilities/make_sparse_matrix.h"
+#include "../utilities/reporting.h"
+#include "../utilities/visitor.h"
+#include "fragments/read_symbol_or_fail.h"
 
 #include <complex>
 
@@ -63,36 +64,22 @@ namespace NPATK::mex::functions {
             /** String input -> dense output */
             return_type string(const matlab::data::StringArray& matrix) {
                 auto output = create_empty_basis();
-
                 for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                     for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                        SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
+                        auto [re_id, im_id] = this->imp.BasisKey(elem.id);
 
-                        if (!matrix[index_i][index_j].has_value()) {
-                            std::stringstream errMsg;
-                            errMsg << "Element [" << index_i << ", " << index_j << " was empty.";
-                            throw_error(engine, errMsg.str());
+                        if (re_id>=0) {
+                            matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
+                            re_mat[index_i][index_j] = elem.negated ? -1 : 1;
+                            re_mat[index_j][index_i] = elem.negated ? -1 : 1;
                         }
-
-                        try {
-                            SymbolExpression elem{matlab::engine::convertUTF16StringToUTF8String(matrix[index_i][index_j])};
-                            auto [re_id, im_id] = this->imp.BasisKey(elem.id);
-
-                            if (re_id>=0) {
-                                matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
-                                re_mat[index_i][index_j] = elem.negated ? -1 : 1;
-                                re_mat[index_j][index_i] = elem.negated ? -1 : 1;
-                            }
-                            if (im_id>=0) {
-                                matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
-                                im_mat[index_i][index_j] = std::complex<double>{
-                                        0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
-                                im_mat[index_j][index_i] = std::complex<double>{
-                                        0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
-                            }
-                        } catch (const SymbolExpression::SymbolParseException& e) {
-                            std::stringstream errMsg;
-                            errMsg << "Error converting element [" << index_i << ", " << index_j << ": " << e.what();
-                            throw_error(engine, errMsg.str());
+                        if (im_id>=0) {
+                            matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
+                            im_mat[index_i][index_j] = std::complex<double>{
+                                    0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                            im_mat[index_j][index_i] = std::complex<double>{
+                                    0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
                         }
                     }
                 }
@@ -249,30 +236,18 @@ namespace NPATK::mex::functions {
 
                 for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                     for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
-                        if (!matrix[index_i][index_j].has_value()) {
-                            std::stringstream errMsg;
-                            errMsg << "Element [" << index_i << ", " << index_j << " was empty.";
-                            throw_error(engine, errMsg.str());
+                        SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
+                        auto [re_id, im_id] = this->imp.BasisKey(elem.id);
+
+                        if (re_id >= 0) {
+                            assert(re_id < real_basis_frame.size());
+                            real_basis_frame[re_id].push_back(index_i, index_j, elem.negated ? -1. : 1.);
                         }
-                        try {
-                            SymbolExpression elem{matlab::engine::convertUTF16StringToUTF8String(matrix[index_i][index_j])};
 
-                            auto [re_id, im_id] = this->imp.BasisKey(elem.id);
-
-                            if (re_id >= 0) {
-                                assert(re_id < real_basis_frame.size());
-                                real_basis_frame[re_id].push_back(index_i, index_j, elem.negated ? -1. : 1.);
-                            }
-
-                            if (im_id >= 0) {
-                                assert(im_id < im_basis_frame.size());
-                                im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
-                                        0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
-                            }
-                        } catch (const SymbolExpression::SymbolParseException& e) {
-                            std::stringstream errMsg;
-                            errMsg << "Error converting element [" << index_i << ", " << index_j << ": " << e.what();
-                            throw_error(engine, errMsg.str());
+                        if (im_id >= 0) {
+                            assert(im_id < im_basis_frame.size());
+                            im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
+                                    0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
                         }
                     }
                 }

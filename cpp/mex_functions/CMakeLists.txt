@@ -4,20 +4,22 @@ set(MATLAB_FIND_DEBUG)
 find_package(Matlab)
 
 include_directories(${NPAToolKit_SOURCE_DIR}/lib)
+include_directories(${NPAToolKit_SOURCE_DIR}/mex_functions)
 
 matlab_add_mex(NAME npatk_mex
         SRC
             mex_entry.cpp
             mex_main.cpp
-            helpers/enumerate_symbols.cpp
-            helpers/export_basis_key.cpp
-            helpers/export_substitution_list.cpp
-            helpers/read_as_string.cpp
-            helpers/reporting.cpp
-            helpers/substitute_elements_using_tree.cpp
-            functions/version.cpp
-            functions/make_symmetric.cpp
+            fragments/enumerate_symbols.cpp
+            fragments/export_basis_key.cpp
+            fragments/export_substitution_list.cpp
+            fragments/substitute_elements_using_tree.cpp
+            fragments/read_symbol_or_fail.cpp
+            utilities/read_as_string.cpp
+            utilities/reporting.cpp
             functions/generate_basis.cpp
+            functions/make_symmetric.cpp
+            functions/version.cpp
         OUTPUT_NAME npatk
         R2018a)
 
