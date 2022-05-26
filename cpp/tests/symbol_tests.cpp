@@ -14,6 +14,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(symbol.id, 1);
         EXPECT_FALSE(symbol.negated);
         EXPECT_FALSE(symbol.conjugated);
+        EXPECT_EQ(symbol.as_string(), one);
     }
 
 
@@ -23,30 +24,34 @@ namespace NPATK::Tests {
         EXPECT_EQ(symbol.id, 13);
         EXPECT_FALSE(symbol.negated);
         EXPECT_FALSE(symbol.conjugated);
+        EXPECT_EQ(symbol.as_string(), thirteen);
     }
 
     TEST(SymbolExpression, Parse_MinusOne) {
-        std::string thirteen = "-1";
-        SymbolExpression symbol{thirteen};
+        std::string minus_one = "-1";
+        SymbolExpression symbol{minus_one};
         EXPECT_EQ(symbol.id, 1);
         EXPECT_TRUE(symbol.negated);
         EXPECT_FALSE(symbol.conjugated);
+        EXPECT_EQ(symbol.as_string(), minus_one);
     }
 
     TEST(SymbolExpression, Parse_OneStar) {
-        std::string thirteen = "1*";
-        SymbolExpression symbol{thirteen};
+        std::string one_star = "1*";
+        SymbolExpression symbol{one_star};
         EXPECT_EQ(symbol.id, 1);
         EXPECT_FALSE(symbol.negated);
         EXPECT_TRUE(symbol.conjugated);
+        EXPECT_EQ(symbol.as_string(), one_star);
     }
 
     TEST(SymbolExpression, Parse_MinusOneStar) {
-        std::string thirteen = "-1*";
-        SymbolExpression symbol{thirteen};
+        std::string minus_one_star = "-1*";
+        SymbolExpression symbol{minus_one_star};
         EXPECT_EQ(symbol.id, 1);
         EXPECT_TRUE(symbol.negated);
         EXPECT_TRUE(symbol.conjugated);
+        EXPECT_EQ(symbol.as_string(), minus_one_star);
     }
 
     TEST(SymbolExpression, BadStr_Empty) {

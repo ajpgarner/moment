@@ -9,7 +9,7 @@
 
 namespace NPATK {
 
-    IndexMatrixProperties::IndexMatrixProperties(size_t dim, IndexMatrixProperties::BasisType type, SymbolSet&& entries)
+    IndexMatrixProperties::IndexMatrixProperties(size_t dim, IndexMatrixProperties::MatrixType type, SymbolSet&& entries)
             : dimension(dim), basis_type(type) {
         size_t real_count = 0;
         size_t im_count = 0;

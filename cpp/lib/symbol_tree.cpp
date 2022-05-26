@@ -14,6 +14,13 @@ namespace NPATK {
     std::ostream& operator<<(std::ostream& os, const SymbolTree& st) {
         for (auto symbol : st.tree_nodes) {
             os << symbol.id;
+            if (symbol.is_zero()) {
+                os << " [0]";
+            } else if (symbol.im_is_zero) {
+                os << " [re]";
+            } else if (symbol.real_is_zero) {
+                os << " [im]";
+            }
 
             bool once = false;
 
@@ -21,7 +28,7 @@ namespace NPATK {
                  if (once) {
                      os << ",\t";
                  } else {
-                     os << "\t->\t";
+                     os << "\t<-\t";
                  }
 
                  os << lsl.target->id << "[";
@@ -137,7 +144,8 @@ namespace NPATK {
                 }
                 hint->prev = link;
                 return {false, link};
-            } else if (link->target->id == hint->target->id) {
+            }
+            if (link->target->id == hint->target->id) {
                 // Merge, by combining link types
                 hint->link_type |= link->link_type;
 
@@ -232,10 +240,17 @@ namespace NPATK {
         /** Create nodes */
         size_t symbol_count = symbols.symbol_count();
         this->tree_nodes.reserve(symbol_count);
-        for (symbol_name_t i = 0; i < symbol_count; ++i) {
-            auto [found, upk] = symbols.unpacked_key(i);
+
+
+        for (const auto& symbol : symbols.Symbols) {
+            Symbol unpacked{symbol.second};
+
+            // Replace symbol ID with its unpacked variant
+            auto [found, upk] = symbols.unpacked_key(symbol.first);
             assert(found);
-            this->tree_nodes.emplace_back(upk);
+            unpacked.id = upk;
+
+            this->tree_nodes.emplace_back(unpacked);
         }
 
         /** Create links */
@@ -280,8 +295,14 @@ namespace NPATK {
         assert((key_iter->second >= 0) && (key_iter->second < this->tree_nodes.size()));
         const auto& node = this->tree_nodes[key_iter->second];
         auto canon_expr = node.canonical_expression();
-        canon_expr.negated ^= expr.negated;
-        canon_expr.conjugated ^= expr.conjugated;
+
+        // Return 0 if node must be zero.
+        if (node.is_zero()) {
+            return SymbolExpression{0};
+        }
+
+        canon_expr.negated = (canon_expr.negated != expr.negated);
+        canon_expr.conjugated = (canon_expr.conjugated != expr.conjugated);
 
         return canon_expr;
     }

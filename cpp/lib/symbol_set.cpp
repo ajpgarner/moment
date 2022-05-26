@@ -8,65 +8,42 @@
 #include <cassert>
 #include <iostream>
 
-
-
 namespace  NPATK {
 
     SymbolSet::SymbolSet()
             : Symbols{*this}, Links{*this} {
-
+        this->add_or_merge(Symbol::zero());
     }
 
     SymbolSet::SymbolSet(const std::vector<Symbol> &in_symbols)
             : Symbols{*this}, Links{*this} {
+        this->add_or_merge(Symbol::zero());
 
-        // Compile symbols
         for (const auto& symbol : in_symbols) {
             this->add_or_merge(symbol);
         }
     }
 
     SymbolSet::SymbolSet(const std::vector<SymbolPair>& raw_pairs)
-        : Symbols{*this}, Links{*this}
-    {
+        : Symbols{*this}, Links{*this} {
+        this->add_or_merge(Symbol::zero());
+
         for (const auto& rule : raw_pairs) {
-            equality_map_t::key_type key{rule.left_id, rule.right_id};
-            EqualityType eq_type = equality_type(rule);
-
-            // Add symbol names
-            this->add_or_merge(Symbol{rule.left_id});
-            this->add_or_merge(Symbol{rule.right_id});
-
-            // Add, or update, link:
-            auto [iter, new_element] = this->symbol_links.insert({key, eq_type});
-            if (!new_element) {
-                iter->second = iter->second | eq_type;
-            }
+            this->add_or_merge(rule);
         }
     }
 
 
     SymbolSet::SymbolSet(const std::vector<Symbol> &extra_symbols, const std::vector<SymbolPair> &raw_pairs)
         : Symbols{*this}, Links{*this} {
+        this->add_or_merge(Symbol::zero());
 
-        // First, add "extra" symbols
         for (const auto& symbol : extra_symbols) {
             this->add_or_merge(symbol);
         }
 
         for (const auto& rule : raw_pairs) {
-            equality_map_t::key_type key{rule.left_id, rule.right_id};
-            EqualityType eq_type = equality_type(rule);
-
-            // Add symbol names
-            this->add_or_merge(Symbol{rule.left_id});
-            this->add_or_merge(Symbol{rule.right_id});
-
-            // Add, or update, link:
-            auto [iter, new_element] = this->symbol_links.insert({key, eq_type});
-            if (!new_element) {
-                iter->second = iter->second | eq_type;
-            }
+            this->add_or_merge(rule);
         }
     }
 
@@ -79,6 +56,25 @@ namespace  NPATK {
         ins_iter->second.merge_in(symbol);
         return false;
     }
+
+    bool SymbolSet::add_or_merge(const SymbolPair &rule, bool force_real) {
+        equality_map_t::key_type key{rule.left_id, rule.right_id};
+        EqualityType eq_type = equality_type(rule);
+
+        // Add symbol names
+        this->add_or_merge(Symbol{rule.left_id, !force_real});
+        this->add_or_merge(Symbol{rule.right_id, !force_real});
+
+        // Add, or update, link:
+        auto [iter, new_element] = this->symbol_links.insert({key, eq_type});
+        if (!new_element) {
+            iter->second = iter->second | eq_type;
+            return false;
+        }
+        return true;
+    }
+
+
 
     void SymbolSet::reset() noexcept {
         this->symbols.clear();

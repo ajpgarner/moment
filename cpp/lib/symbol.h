@@ -15,7 +15,7 @@
 
 namespace NPATK {
 
-    using symbol_name_t = int_fast32_t;
+    using symbol_name_t = int64_t;
 
     /**
      * An algebraic element
@@ -40,23 +40,37 @@ namespace NPATK {
          * @param name The identifier for the algebraic element
          * @param complex True if Symbol could be a complex value; false if real-valued.
          */
-        explicit Symbol(symbol_name_t name, bool complex = true) : id(name), im_is_zero(!complex) { }
+        explicit constexpr Symbol(symbol_name_t name, bool complex = true) : id(name), im_is_zero(!complex) { }
 
-        Symbol& merge_in(const Symbol& rhs) {
+
+        /**
+         * Construct algebraic element.
+         * @param name The identifier for the algebraic element
+         * @param re_zero True if Symbol does not have a real component.
+         * @param im_zero True if Symbol does not have an imaginary component.
+         */
+        constexpr Symbol(symbol_name_t name, bool re_zero, bool im_zero)
+            : id(name), real_is_zero(re_zero), im_is_zero(im_zero) { }
+
+        constexpr Symbol& merge_in(const Symbol& rhs) {
             this->real_is_zero |= rhs.real_is_zero;
             this->im_is_zero |= rhs.im_is_zero;
             return *this;
         }
 
-        Symbol(const Symbol& rhs) = default;
+        constexpr Symbol(const Symbol& rhs) = default;
 
-         bool operator != (const Symbol&rhs) const {
+        constexpr bool operator != (const Symbol&rhs) const {
              return (this->id != rhs.id)
                 || (this->real_is_zero != rhs.real_is_zero)
                 || (this->im_is_zero != rhs.im_is_zero);
          }
 
         friend std::ostream& operator<<(std::ostream& os, const Symbol& symb);
+
+        static constexpr Symbol zero() noexcept {
+            return Symbol{0, true, true};
+        }
     };
 
     /**
@@ -136,6 +150,20 @@ namespace NPATK {
          * The maximum length string that we are willing to attempt to parse as an SymbolExpression.
          */
         const static size_t max_strlen = 32;
+
+        /**
+         * Gets the symbol expression as a signed integer. This ignores conjugation!
+         */
+        [[nodiscard]] constexpr std::make_signed_t<symbol_name_t> as_integer() const noexcept {
+            return static_cast<std::make_signed_t<symbol_name_t>>(this->id) * (this->negated ? -1 : 1);
+        }
+
+        /**
+         * Gets the symbol expression as a string.
+         */
+        [[nodiscard]] constexpr std::string as_string() const {
+            return std::string(this->negated ? "-" : "") + std::to_string(this->id) + (this->conjugated ? "*" : "");
+        }
     };
 
 

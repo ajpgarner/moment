@@ -107,9 +107,18 @@ namespace NPATK {
         /**
          * Adds symbol, or applies constraints (e.g. realness) from symbol to existing symbol in set.
          * @param to_add The symbol to be added.
-         * @return true if a new symbol, false if existing symbol was changed.
+         * @return true if a new symbol was inserted.
          */
         bool add_or_merge(const Symbol& to_add);
+
+        /**
+         * Adds an equation between two symbols, supplying the symbols to the set if not already included.
+         * @param to_add The symbol pair to be added
+         * @param force_real true if the symbols are real (false for possibly complex).
+         * @return true if a new pair was added.
+         */
+        bool add_or_merge(const SymbolPair& to_add, bool force_real = false);
+
 
         /**
          * Re-labels nodes and links so that symbol names begin at 0, and contain no gaps.

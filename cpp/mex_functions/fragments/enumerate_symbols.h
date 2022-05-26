@@ -1,5 +1,5 @@
 /**
- * enumerate_symbols.h
+ * enumerate_upper_symbols.h
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
@@ -11,9 +11,9 @@
 #include "index_matrix_properties.h"
 
 namespace NPATK::mex {
-    IndexMatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
-                                            const matlab::data::Array& matrix,
-                                            IndexMatrixProperties::BasisType basis_type,
-                                            bool debug_output = false);
+    IndexMatrixProperties enumerate_upper_symbols(matlab::engine::MATLABEngine& engine,
+                                                  const matlab::data::Array& matrix,
+                                                  IndexMatrixProperties::MatrixType basis_type,
+                                                  bool debug_output = false);
 
 }

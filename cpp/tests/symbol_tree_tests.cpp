@@ -87,8 +87,11 @@ namespace NPATK::Tests {
 
     TEST_F(SymbolTreeFixture, Create_EmptyTree) {
         auto& empty_tree = this->create_tree({});
-        ASSERT_EQ(empty_tree.count_nodes(), 0) << "Empty tree has no nodes.";
+        ASSERT_EQ(empty_tree.count_nodes(), 1) << "Empty tree has one node (zero).";
         ASSERT_EQ(empty_tree.max_links(), 0) << "Empty tree has no links.";
+
+        const auto& base_node = empty_tree[0];
+        EXPECT_TRUE(base_node.is_zero());
     }
 
     TEST_F(SymbolTreeFixture, Create_OneLink) {
@@ -427,177 +430,203 @@ namespace NPATK::Tests {
 
 
     TEST_F(SymbolTreeFixture, Simplify_OneRecursion) {
-        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{0}}});
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{1}}});
 
         chain_link.simplify();
-        this->compare_to({Symbol{0}}, {});
+        this->compare_to({Symbol{0}, Symbol{1}}, {});
 
-        EXPECT_FALSE(chain_link[0].is_zero());
-        EXPECT_FALSE(chain_link[0].real_is_zero);
-        EXPECT_FALSE(chain_link[0].im_is_zero);
+        EXPECT_TRUE(chain_link[0].is_zero());
+        EXPECT_TRUE(chain_link[0].real_is_zero);
+        EXPECT_TRUE(chain_link[0].im_is_zero);
+
+        EXPECT_FALSE(chain_link[1].is_zero());
+        EXPECT_FALSE(chain_link[1].real_is_zero);
+        EXPECT_FALSE(chain_link[1].im_is_zero);
     }
 
     TEST_F(SymbolTreeFixture, Simplify_ChainLink) {
-        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                                              SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                                              SymbolPair{SymbolExpression{2}, SymbolExpression{3}}});
 
         chain_link.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}}});
 
-        EXPECT_FALSE(chain_link[0].is_zero());
-        EXPECT_FALSE(chain_link[0].real_is_zero);
-        EXPECT_FALSE(chain_link[0].im_is_zero);
+        ASSERT_GE(chain_link.count_nodes(), 2);
+        EXPECT_FALSE(chain_link[1].is_zero());
+        EXPECT_FALSE(chain_link[1].real_is_zero);
+        EXPECT_FALSE(chain_link[1].im_is_zero);
 
     }
 
     TEST_F(SymbolTreeFixture, Simplify_Triangle) {
-        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                                              SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                                              SymbolPair{SymbolExpression{1}, SymbolExpression{3}}});
 
         chain_link.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}}});
 
-
-        EXPECT_FALSE(chain_link[0].is_zero());
-        EXPECT_FALSE(chain_link[0].real_is_zero);
-        EXPECT_FALSE(chain_link[0].im_is_zero);
+        ASSERT_GE(chain_link.count_nodes(), 2);
+        EXPECT_FALSE(chain_link[1].is_zero());
+        EXPECT_FALSE(chain_link[1].real_is_zero);
+        EXPECT_FALSE(chain_link[1].im_is_zero);
     }
 
     TEST_F(SymbolTreeFixture, Simplify_TriangleWithDescendents) {
-        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                                              SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
-                                              SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
-                                              SymbolPair{SymbolExpression{2}, SymbolExpression{4}},
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                                              SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                                              SymbolPair{SymbolExpression{3}, SymbolExpression{4}},
+                                              SymbolPair{SymbolExpression{3}, SymbolExpression{5}},
                                              });
 
         chain_link.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{3}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{4}},
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{5}},
                           });
 
 
-        EXPECT_FALSE(chain_link[0].is_zero());
-        EXPECT_FALSE(chain_link[0].real_is_zero);
-        EXPECT_FALSE(chain_link[0].im_is_zero);
+        ASSERT_GE(chain_link.count_nodes(), 2);
+        EXPECT_FALSE(chain_link[1].is_zero());
+        EXPECT_FALSE(chain_link[1].real_is_zero);
+        EXPECT_FALSE(chain_link[1].im_is_zero);
 
     }
 
 
     TEST_F(SymbolTreeFixture, Simplify_InverseTriangle) {
-        auto &inverse_tri = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{2}}, SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
+        auto &inverse_tri = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                                               SymbolPair{SymbolExpression{2}, SymbolExpression{3}}});
         inverse_tri.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}}});
 
 
-        EXPECT_FALSE(inverse_tri[0].is_zero());
-        EXPECT_FALSE(inverse_tri[0].real_is_zero);
-        EXPECT_FALSE(inverse_tri[0].im_is_zero);
+        ASSERT_GE(inverse_tri.count_nodes(), 2);
+        EXPECT_FALSE(inverse_tri[1].is_zero());
+        EXPECT_FALSE(inverse_tri[1].real_is_zero);
+        EXPECT_FALSE(inverse_tri[1].im_is_zero);
 
     }
 
     TEST_F(SymbolTreeFixture, Simplify_Diamond) {
-        auto &diamond = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                                           SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+        auto &diamond = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
                                            SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
-                                           SymbolPair{SymbolExpression{2}, SymbolExpression{3}}
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{4}}
                                            });
         diamond.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{3}}});
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4}}});
 
-        EXPECT_FALSE(diamond[0].is_zero());
-        EXPECT_FALSE(diamond[0].real_is_zero);
-        EXPECT_FALSE(diamond[0].im_is_zero);
+        ASSERT_GE(diamond.count_nodes(), 2);
+        EXPECT_FALSE(diamond[1].is_zero());
+        EXPECT_FALSE(diamond[1].real_is_zero);
+        EXPECT_FALSE(diamond[1].im_is_zero);
 
 
     }
 
     TEST_F(SymbolTreeFixture, Simplify_BranchingZigZag) {
-        auto &b_zz = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{3}},
-                                           SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
-                                           SymbolPair{SymbolExpression{1}, SymbolExpression{5}},
-                                           SymbolPair{SymbolExpression{1}, SymbolExpression{6}},
-                                           SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
-                                           SymbolPair{SymbolExpression{2}, SymbolExpression{4}}
+        auto &b_zz = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{5}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{6}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{7}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{5}}
                                            });
         b_zz.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{3}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{4}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{5}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{6}},
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{5}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{6}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{7}},
                           });
 
-        EXPECT_FALSE(b_zz[0].is_zero());
-        EXPECT_FALSE(b_zz[0].real_is_zero);
-        EXPECT_FALSE(b_zz[0].im_is_zero);
+        ASSERT_GE(b_zz.count_nodes(), 2);
+        EXPECT_FALSE(b_zz[1].is_zero());
+        EXPECT_FALSE(b_zz[1].real_is_zero);
+        EXPECT_FALSE(b_zz[1].im_is_zero);
 
     }
 
 
     TEST_F(SymbolTreeFixture, SimplifyToZero_OneRecursion) {
-        auto& onenull = this->create_tree({SymbolPair{0, 0, true, false}}); // 0 = -0
+        auto& onenull = this->create_tree({SymbolPair{1, 1, true, false}}); // 1 = -1
 
         onenull.simplify();
-        this->compare_to({Symbol{0}}, {});
+        this->compare_to({Symbol{0}, Symbol{1}}, {});
 
+
+        ASSERT_EQ(onenull.count_nodes(), 2);
         EXPECT_TRUE(onenull[0].is_zero());
         EXPECT_TRUE(onenull[0].real_is_zero);
         EXPECT_TRUE(onenull[0].im_is_zero);
+
+        EXPECT_TRUE(onenull[1].is_zero());
+        EXPECT_TRUE(onenull[1].real_is_zero);
+        EXPECT_TRUE(onenull[1].im_is_zero);
     }
 
     TEST_F(SymbolTreeFixture, SimplifyToZero_ChainRecursion) {
-        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                                             SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
-                                             SymbolPair{2, 2, true, false}}); // 2 = -2
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                                             SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
+                                             SymbolPair{3, 3, true, false}}); // 3 = -3
 
         chain_link.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}}});
 
-        EXPECT_TRUE(chain_link[0].is_zero());
-        EXPECT_TRUE(chain_link[0].real_is_zero);
-        EXPECT_TRUE(chain_link[0].im_is_zero);
+
+        ASSERT_GE(chain_link.count_nodes(), 2);
+        EXPECT_TRUE(chain_link[1].is_zero());
+        EXPECT_TRUE(chain_link[1].real_is_zero);
+        EXPECT_TRUE(chain_link[1].im_is_zero);
     }
 
 
     TEST_F(SymbolTreeFixture, SimplifyToZero_Triangle) {
-        auto& nulltri = this->create_tree({SymbolPair{0, 1, true, false},  // 0 = -1
-                                              SymbolPair{0, 2, true, false},  // 0 = -2
-                                              SymbolPair{1, 2, true, false}}); // 1 = -2
+        auto& nulltri = this->create_tree({SymbolPair{1, 2, true, false},  // 1 = -2
+                                              SymbolPair{1, 3, true, false},  // 1 = -3
+                                              SymbolPair{2, 3, true, false}}); // 2 = -3
 
         nulltri.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}}},
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}}},
                          true);
 
         EXPECT_TRUE(nulltri[0].is_zero());
         EXPECT_TRUE(nulltri[0].real_is_zero);
         EXPECT_TRUE(nulltri[0].im_is_zero);
+
+        EXPECT_TRUE(nulltri[1].is_zero());
+        EXPECT_TRUE(nulltri[1].real_is_zero);
+        EXPECT_TRUE(nulltri[1].im_is_zero);
     }
 
 
     TEST_F(SymbolTreeFixture, SimplifyToZero_Diamond) {
-        auto &diamond = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                                           SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+        auto &diamond = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
                                            SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
-                                           SymbolPair{2,3, true, false}
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{4}},
+                                           SymbolPair{3,4, true, false}
                                           });
         diamond.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
-                          SymbolPair{SymbolExpression{0}, SymbolExpression{3}}}, true);
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4}}}, true);
 
         EXPECT_TRUE(diamond[0].is_zero());
         EXPECT_TRUE(diamond[0].real_is_zero);
         EXPECT_TRUE(diamond[0].im_is_zero);
+
+        EXPECT_TRUE(diamond[1].is_zero());
+        EXPECT_TRUE(diamond[1].real_is_zero);
+        EXPECT_TRUE(diamond[1].im_is_zero);
 
     }
 

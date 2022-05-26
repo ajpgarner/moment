@@ -1,3 +1,5 @@
+include_directories(${NPAToolKit_SOURCE_DIR}/lib)
+
 add_executable(nptk_tests
         symbol_tests.cpp
         symbol_set_tests.cpp

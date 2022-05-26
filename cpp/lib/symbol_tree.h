@@ -134,6 +134,8 @@ namespace NPATK {
         public:
             explicit SymbolNode(symbol_name_t name) noexcept : Symbol{name} { }
 
+            explicit SymbolNode(Symbol symbol) noexcept : Symbol{symbol} { }
+
             [[nodiscard]] SymbolLinkIterator begin() noexcept {
                 return SymbolLinkIterator{this->first_link};
             }
@@ -194,17 +196,24 @@ namespace NPATK {
              * Represents the lowest id symbol equivalent (up to negation / conjugation) to this node.
              */
              [[nodiscard]] SymbolExpression canonical_expression() const {
+                 // Are we zero?
+                 if (this->is_zero()) {
+                     return SymbolExpression{0};
+                 }
+
                  // Return canonical id, maybe with negation or conjugation
-                 if (this->canonical_origin) {
+                 if (this->canonical_origin != nullptr) {
+                     if (this->canonical_origin->origin->is_zero()) {
+                         return SymbolExpression{0};
+                     }
                      return SymbolExpression{this->canonical_origin->origin->id,
                                              is_negated(this->canonical_origin->link_type),
                                              is_conjugated(this->canonical_origin->link_type)};
                  }
+
                  // Return self id (no negation or conjugation)
                  return SymbolExpression{this->id};
              }
-
-
 
             friend class detail::SymbolNodeSimplifyImpl;
 

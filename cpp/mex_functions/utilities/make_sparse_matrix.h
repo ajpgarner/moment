@@ -10,8 +10,12 @@
 
 #include <cassert>
 #include <complex>
+#include <map>
 
 namespace NPATK::mex {
+
+    template<typename data_t>
+    using sparse_set_build = std::map<std::pair<size_t, size_t>, data_t>;
 
     template<typename data_t>
     inline matlab::data::SparseArray<data_t> make_sparse_matrix(matlab::data::ArrayFactory& factory,
@@ -40,5 +44,32 @@ namespace NPATK::mex {
 
             return factory.createSparseArray<data_t>(dim, nnz,
                                                      std::move(data_p), std::move(rows_p), std::move(cols_p));
+    }
+
+    template<typename data_t>
+    inline matlab::data::SparseArray<data_t> make_sparse_matrix(matlab::data::ArrayFactory& factory,
+                                                                std::pair<size_t, size_t> dimensions,
+                                                                const sparse_set_build<data_t>& specification) {
+
+        matlab::data::ArrayDimensions dim{dimensions.first, dimensions.second};
+
+        size_t nnz = specification.size();
+
+        auto rows_p = factory.createBuffer<size_t>(nnz);
+        auto cols_p = factory.createBuffer<size_t>(nnz);
+        auto data_p = factory.createBuffer<data_t>(nnz);
+
+        // Write data into the buffers
+        data_t* dataPtr = data_p.get();
+        size_t* rowsPtr = rows_p.get();
+        size_t* colsPtr = cols_p.get();
+        for (auto [indices, value] : specification) {
+            *(rowsPtr++) = indices.first;
+            *(colsPtr++) = indices.second;
+            *(dataPtr++) = value;
+        }
+
+        return factory.createSparseArray<data_t>(dim, nnz,
+                                                 std::move(data_p), std::move(rows_p), std::move(cols_p));
     }
 }

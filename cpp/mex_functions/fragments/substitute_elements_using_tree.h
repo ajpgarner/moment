@@ -12,6 +12,6 @@
 
 namespace NPATK::mex {
     [[nodiscard]] matlab::data::Array substitute_elements_using_tree(matlab::engine::MATLABEngine& engine,
-                                        matlab::data::Array&& the_array,
-                                        const SymbolTree& tree);
+                                        const matlab::data::Array& the_array,
+                                        const SymbolTree& tree, bool sparse_output);
 }

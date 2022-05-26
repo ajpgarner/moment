@@ -138,7 +138,7 @@ namespace NPATK::mex::functions {
                     output.first[rr] = factory.createArray<double>({this->imp.Dimension(), this->imp.Dimension()});
                 }
 
-                if (this->imp.Type() == IndexMatrixProperties::BasisType::Hermitian) {
+                if (this->imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) {
                     for (size_t ri = 0, ri_max = this->imp.ImaginarySymbols().size(); ri < ri_max; ++ri) {
                         output.second[ri] = factory.createArray<std::complex<double>>({this->imp.Dimension(), this->imp.Dimension()});
                     }
@@ -407,22 +407,22 @@ namespace NPATK::mex::functions {
         bool debug = input.flags.contains(u"debug");
         bool verbose = debug || input.flags.contains(u"verbose");
 
-        IndexMatrixProperties::BasisType basis_type = IndexMatrixProperties::BasisType::Symmetric;
+        IndexMatrixProperties::MatrixType basis_type = IndexMatrixProperties::MatrixType::Symmetric;
         if (input.flags.contains(u"symmetric")) {
-            basis_type = IndexMatrixProperties::BasisType::Symmetric;
+            basis_type = IndexMatrixProperties::MatrixType::Symmetric;
         } else if (input.flags.contains(u"hermitian")) {
-            basis_type = IndexMatrixProperties::BasisType::Hermitian;
+            basis_type = IndexMatrixProperties::MatrixType::Hermitian;
         }
 
         // Hermitian output requires two outputs...
-        if ((basis_type == IndexMatrixProperties::BasisType::Hermitian) && (output.size() < 2)) {
+        if ((basis_type == IndexMatrixProperties::MatrixType::Hermitian) && (output.size() < 2)) {
             throw_error(this->matlabEngine, std::string("When generating a Hermitian basis, two outputs are required (one for ")
                                           + "symmetric basis elements associated with the real components, one for the "
                                           + "anti-symmetric imaginary elements associated with the imaginary components.");
         }
 
         // Symmetric output cannot have three outputs...
-        if ((basis_type == IndexMatrixProperties::BasisType::Symmetric) && (output.size() > 2)) {
+        if ((basis_type == IndexMatrixProperties::MatrixType::Symmetric) && (output.size() > 2)) {
             throw_error(this->matlabEngine, std::to_string(output.size()) + " outputs supplied for symmetric basis output, but only"
                                                         + " two will be generated (basis, and key).");
         }
@@ -436,7 +436,7 @@ namespace NPATK::mex::functions {
             sparse_output = false;
         }
 
-        auto matrix_properties = enumerate_symbols(matlabEngine, input.inputs[0], basis_type, debug);
+        auto matrix_properties = enumerate_upper_symbols(matlabEngine, input.inputs[0], basis_type, debug);
 
         if (verbose) {
             std::stringstream ss;
@@ -453,19 +453,19 @@ namespace NPATK::mex::functions {
         if (sparse_output) {
             auto [sym, anti_sym] = make_sparse_basis(this->matlabEngine, input.inputs[0], matrix_properties);
             output[0] = std::move(sym);
-            if (basis_type == IndexMatrixProperties::BasisType::Hermitian) {
+            if (basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
                 output[1] = std::move(anti_sym);
             }
         } else {
             auto [sym, anti_sym] = make_dense_basis(this->matlabEngine, input.inputs[0], matrix_properties);
             output[0] = std::move(sym);
-            if (basis_type == IndexMatrixProperties::BasisType::Hermitian) {
+            if (basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
                 output[1] = std::move(anti_sym);
             }
         }
 
         // If enough outputs supplied, also provide keys
-        ptrdiff_t key_output = (basis_type == IndexMatrixProperties::BasisType::Hermitian) ? 2 : 1;
+        ptrdiff_t key_output = (basis_type == IndexMatrixProperties::MatrixType::Hermitian) ? 2 : 1;
         if (output.size() > key_output) {
             output[key_output] = export_basis_key(this->matlabEngine, matrix_properties);
         }

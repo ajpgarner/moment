@@ -27,13 +27,7 @@ namespace NPATK {
     }
 
     std::ostream &operator<<(std::ostream &os, const SymbolExpression& symb) {
-        if (symb.negated) {
-            os << "-";
-        }
-        os << symb.id;
-        if (symb.conjugated) {
-            os << "*";
-        }
+        os << symb.as_string();
         return os;
     }
 
@@ -86,6 +80,8 @@ namespace NPATK {
             throw SymbolParseException{strExpr, e};
         }
     }
+
+
 
     std::string SymbolExpression::SymbolParseException::make_msg(const std::string &badExpr) {
         if (badExpr.length() > SymbolExpression::max_strlen) {

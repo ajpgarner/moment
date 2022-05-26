@@ -15,23 +15,25 @@ namespace NPATK {
 
     class IndexMatrixProperties {
     public:
-        enum class BasisType {
+        enum class MatrixType {
             Unknown = 0,
+            /** Real-valued, matrix is symmetric */
             Symmetric = 1,
+            /** Complex-valued, matrix is hermitian */
             Hermitian = 2
         };
 
     private:
-        BasisType basis_type = BasisType::Unknown;
+        MatrixType basis_type = MatrixType::Unknown;
         size_t dimension = 0;
         std::map<symbol_name_t, std::pair<ptrdiff_t, ptrdiff_t>> elem_keys{};
         std::vector<symbol_name_t> real_entries;
         std::vector<symbol_name_t> imaginary_entries;
 
     public:
-        IndexMatrixProperties(size_t dim, BasisType type, SymbolSet&& entries);
+        IndexMatrixProperties(size_t dim, MatrixType type, SymbolSet&& entries);
 
-        [[nodiscard]] constexpr BasisType Type() const noexcept {
+        [[nodiscard]] constexpr MatrixType Type() const noexcept {
             return this->basis_type;
         }
 

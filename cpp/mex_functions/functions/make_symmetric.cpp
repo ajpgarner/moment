@@ -1,7 +1,7 @@
-/*
- * (c) 2022-2022 Austrian Academy of Sciences.
+/**
+ * make_symmetric.cpp
  *
- * NPAToolKit is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "make_symmetric.h"
 
@@ -16,11 +16,11 @@
 #include "symbol_set.h"
 #include "symbol_tree.h"
 
-#include "../fragments/export_substitution_list.h"
-#include "../fragments/substitute_elements_using_tree.h"
-#include "../utilities/reporting.h"
-#include "../utilities/visitor.h"
-
+#include "fragments/export_substitution_list.h"
+#include "fragments/substitute_elements_using_tree.h"
+#include "fragments/read_symbol_or_fail.h"
+#include "utilities/reporting.h"
+#include "utilities/visitor.h"
 
 
 namespace NPATK::mex::functions {
@@ -33,7 +33,7 @@ namespace NPATK::mex::functions {
             matlab::engine::MATLABEngine& engine;
 
         public:
-            using return_type = std::vector<SymbolPair>;
+            using return_type = NPATK::SymbolSet;
 
         public:
             explicit NonsymmetricElementIdentifierVisitor(matlab::engine::MATLABEngine &the_engine)
@@ -47,16 +47,25 @@ namespace NPATK::mex::functions {
               */
             template<std::convertible_to<NPATK::symbol_name_t> datatype>
             return_type dense(const matlab::data::TypedArray<datatype> &data) {
-                std::vector<SymbolPair> output{};
+                SymbolSet output{};
+
+                std::vector<SymbolPair> non_matching{};
 
                 size_t dimension = data.getDimensions()[0];
                 for (size_t i = 0; i < dimension; ++i) {
+                    // Register diagonal element as real symbol:
+                    NPATK::SymbolExpression diag{static_cast<NPATK::symbol_name_t>(data[i][i])};
+                    output.add_or_merge(Symbol{diag.id, false});
+
                     for (size_t j = i + 1; j < dimension; ++j) {
                         NPATK::SymbolExpression upper{static_cast<NPATK::symbol_name_t>(data[i][j])};
                         NPATK::SymbolExpression lower{static_cast<NPATK::symbol_name_t>(data[j][i])};
 
                         if (upper != lower) {
-                            output.emplace_back(upper, lower);
+                            output.add_or_merge(SymbolPair{upper, lower}, true);
+                        } else {
+                            output.add_or_merge(Symbol{upper.id, false});
+                            output.add_or_merge(Symbol{lower.id, false});
                         }
                     }
                 }
@@ -65,15 +74,46 @@ namespace NPATK::mex::functions {
             }
 
             /**
+              * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
+              * @param data The data array
+              * @return A vector of non-matching elements, in canonical form.
+              */
+            return_type string(const matlab::data::StringArray &data) {
+                SymbolSet output{};
+
+                size_t dimension = data.getDimensions()[0];
+                for (size_t i = 0; i < dimension; ++i) {
+                    // Register diagonal element as real symbol:
+                    NPATK::SymbolExpression diag{read_symbol_or_fail(this->engine, data, i, i)};
+                    output.add_or_merge(Symbol{diag.id, false});
+
+                    for (size_t j = i + 1; j < dimension; ++j) {
+                        NPATK::SymbolExpression upper{read_symbol_or_fail(this->engine, data, i, j)};
+                        NPATK::SymbolExpression lower{read_symbol_or_fail(this->engine, data, j, i)};
+
+                        if (upper != lower) {
+                            output.add_or_merge(SymbolPair{upper, lower});
+                        } else {
+                            output.add_or_merge(Symbol{upper.id, false});
+                            output.add_or_merge(Symbol{lower.id, false});
+                        }
+                    }
+                }
+
+                return output;
+            }
+
+
+            /**
              * Read through matlab sparse matrix, and identify pairs of elements that are not symmetric.
              * @param data The data array
              * @return A vector of non-matching elements, in canonical form.
              */
             template<std::convertible_to<NPATK::symbol_name_t> datatype>
             return_type sparse(const matlab::data::SparseArray<datatype>& data) {
-                std::vector<SymbolPair> output{};
 
-                // Would like to avoid this hacky copy, but random access to matlab::data::SparseArray seems not to work...
+                // Would like to avoid this hacky input copy,
+                //   but random access to matlab::data::SparseArray seems not to work...
                 std::map<std::pair<size_t, size_t>, NPATK::symbol_name_t> sparse_array_copy{};
                 for (auto iter = data.cbegin(); iter != data.cend(); ++iter) {
                     auto indices = data.getIndex(iter);
@@ -87,14 +127,22 @@ namespace NPATK::mex::functions {
                 }
 
                 // Look for unmatching elements in sparse matrix.
+                SymbolSet output{};
                 for (const auto &[indices, value]: sparse_array_copy) {
+                    // Add diagonal element
+                    if (indices.first == indices.second) {
+                        output.add_or_merge(Symbol{value, false});
+                        continue;
+                    }
+
                     std::pair<size_t, size_t> transpose_indices{indices.second, indices.first};
 
                     auto transposed_elem_iter = sparse_array_copy.find(transpose_indices);
 
                     // If opposite index doesn't exist, this is a non-trivial constraint
                     if (transposed_elem_iter == sparse_array_copy.end()) {
-                        output.emplace_back(NPATK::SymbolExpression{value}, NPATK::SymbolExpression{0});
+                        output.add_or_merge(SymbolPair{NPATK::SymbolExpression{value},
+                                                       NPATK::SymbolExpression{0}});
                         continue;
                     }
 
@@ -102,22 +150,32 @@ namespace NPATK::mex::functions {
                     if (indices.first > indices.second) {
                         auto second_value = transposed_elem_iter->second;
                         if (value != second_value) {
-                            output.emplace_back(NPATK::SymbolExpression{value}, NPATK::SymbolExpression{second_value});
+                            output.add_or_merge(SymbolPair{NPATK::SymbolExpression{value},
+                                                           NPATK::SymbolExpression{second_value}});
+                        } else {
+                            output.add_or_merge(Symbol{value, false});
+                            output.add_or_merge(Symbol{second_value, false});
                         }
                     }
                 }
 
                 return output;
             }
+
+
         };
+
+        static_assert(concepts::VisitorHasRealDense<NonsymmetricElementIdentifierVisitor>);
+        static_assert(concepts::VisitorHasRealSparse<NonsymmetricElementIdentifierVisitor>);
+        static_assert(concepts::VisitorHasString<NonsymmetricElementIdentifierVisitor>);
 
         /**
          * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
-         * @tparam datatype The data array type
+         * @param engine Reference to matlab engine
          * @param data The data array
-         * @return A vector of non-matching elements, in canonical form.
+         * @return A SymbolSet of elements in the matrix, with raw inferred equalities.
          */
-        std::vector<SymbolPair> identify_nonsymmetric_elements(matlab::engine::MATLABEngine &engine,
+        SymbolSet identify_nonsymmetric_elements(matlab::engine::MATLABEngine &engine,
                                                                const matlab::data::Array &data) {
             return DispatchVisitor(engine, data, NonsymmetricElementIdentifierVisitor{engine});
         }
@@ -178,32 +236,23 @@ namespace NPATK::mex::functions {
         bool debug = (inputs.flags.contains(u"debug"));
         bool verbose = debug || (inputs.flags.contains(u"verbose"));
 
-        auto raw_constraints = identify_nonsymmetric_elements(matlabEngine, inputs.inputs[0]);
-
-        if (debug) {
-            NPATK::mex::print_to_console(matlabEngine, "Raw constraints:\n");
-            std::stringstream ss;
-            for (const auto &c: raw_constraints) {
-                ss << c << "\n";
-            }
-            NPATK::mex::print_to_console(matlabEngine, ss.str());
-        }
-
-        auto unique_constraints = NPATK::SymbolSet{raw_constraints};
+        auto unique_constraints = identify_nonsymmetric_elements(matlabEngine, inputs.inputs[0]);
 
         if (verbose) {
             std::stringstream ss2;
             ss2 << "\nFound " << unique_constraints.symbol_count() << " symbols and "
                 << unique_constraints.link_count() << " links.\n";
-            ss2 << "Sorted, unique constraints:\n"
-                << unique_constraints;
+            if (debug) {
+                ss2 << "Sorted, unique constraints:\n"
+                    << unique_constraints;
+            }
             NPATK::mex::print_to_console(matlabEngine, ss2.str());
         }
 
         unique_constraints.pack();
         auto symbol_tree = NPATK::SymbolTree{std::move(unique_constraints)};
 
-        if (verbose) {
+        if (debug) {
             std::stringstream ss3;
             ss3 << "\nTree, initial:\n" << symbol_tree;
             NPATK::mex::print_to_console(matlabEngine, ss3.str());
@@ -217,13 +266,21 @@ namespace NPATK::mex::functions {
             NPATK::mex::print_to_console(matlabEngine, ss4.str());
         }
 
+        // Default sparsity to matrix type of input, but allow for override
+        bool sparse_output = (inputs.inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE);
+        if (inputs.flags.contains(u"sparse")) {
+            sparse_output = true;
+        } else if (inputs.flags.contains(u"dense")) {
+            sparse_output = false;
+        }
+
         if (outputs.size() >= 1) {
-            outputs[0] = NPATK::mex::substitute_elements_using_tree(matlabEngine, std::move(inputs.inputs[0]), symbol_tree);
+            outputs[0] = NPATK::mex::substitute_elements_using_tree(matlabEngine, inputs.inputs[0],
+                                                                    symbol_tree, sparse_output);
         }
 
         if (outputs.size() >= 2) {
             outputs[1] = NPATK::mex::export_substitution_list(matlabEngine, symbol_tree);
         }
-
     }
 }
