@@ -14,6 +14,11 @@ namespace NPATK {
         size_t real_count = 0;
         size_t im_count = 0;
         for (auto& [id, symbol] : entries.Symbols) {
+            // Skip 0 symbol.
+            if (id == 0) {
+                continue;
+            }
+
             std::pair<ptrdiff_t, ptrdiff_t> ri_index{real_count, im_count};
 
             if (!symbol.real_is_zero) {
