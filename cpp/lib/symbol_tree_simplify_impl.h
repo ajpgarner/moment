@@ -27,16 +27,31 @@ namespace NPATK::detail {
                     relationToBase(rtb) { }
         };
 
+    private:
+        SymbolTree& theTree;
 
     public:
 
-        static void simplify(SymbolTree::SymbolNode * theNode);
+        SymbolNodeSimplifyImpl(SymbolTree& tree) : theTree(tree) { }
+
+        void simplify();
 
     private:
-        static size_t find_already_linked(SymbolTree::SymbolNode * base_node, std::vector<RebaseInfoImpl>& rebase_list);
+        void simplifyNode(SymbolTree& theTree, size_t node_id);
 
-        static void incorporate_all_descendents(SymbolTree::SymbolNode * base_node,
-                                                SymbolTree::SymbolNode * rebase_node,
-                                                EqualityType base_et);
+        size_t find_already_linked(SymbolTree::SymbolNode * base_node, std::vector<RebaseInfoImpl>& rebase_list);
+
+        void incorporate_all_descendents(SymbolTree::SymbolNode * base_node,
+                                         SymbolTree::SymbolNode * rebase_node,
+                                         EqualityType base_et);
+
+        SymbolTree::SymbolLink * rebaseNodes(SymbolTree::SymbolNode *this_node,
+                                             std::vector<RebaseInfoImpl> &rebase_list,
+                                             size_t lowest_node_found_index);
+
+        void sweep_zero();
+
+        void propagate_nullity();
     };
+
 }

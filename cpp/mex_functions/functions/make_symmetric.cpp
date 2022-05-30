@@ -51,7 +51,7 @@ namespace NPATK::mex::functions {
 
                 std::vector<SymbolPair> non_matching{};
 
-                size_t dimension = data.getDimensions()[0];
+                const size_t dimension = data.getDimensions()[0];
                 for (size_t i = 0; i < dimension; ++i) {
                     // Register diagonal element as real symbol:
                     NPATK::SymbolExpression diag{static_cast<NPATK::symbol_name_t>(data[i][i])};
@@ -81,7 +81,7 @@ namespace NPATK::mex::functions {
             return_type string(const matlab::data::StringArray &data) {
                 SymbolSet output{};
 
-                size_t dimension = data.getDimensions()[0];
+                const size_t dimension = data.getDimensions()[0];
                 for (size_t i = 0; i < dimension; ++i) {
                     // Register diagonal element as real symbol:
                     NPATK::SymbolExpression diag{read_symbol_or_fail(this->engine, data, i, i)};

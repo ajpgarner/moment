@@ -187,11 +187,6 @@ namespace NPATK {
               */
              size_t subsume(SymbolLink * source) noexcept;
 
-             /**
-              * Recurse through node and children, flattening the tree-structure.
-              */
-            void simplify();
-
             /**
              * Represents the lowest id symbol equivalent (up to negation / conjugation) to this node.
              */
@@ -223,12 +218,13 @@ namespace NPATK {
         SymbolSet::packing_map_t packing_key;
         std::vector<SymbolNode> tree_nodes;
         std::vector<SymbolLink> tree_links;
+        std::vector<SymbolLink*> available_links;
         bool done_simplification = false;
 
     public:
         explicit SymbolTree(const SymbolSet& symbols);
 
-        explicit SymbolTree(SymbolSet&& symbols) ;
+        explicit SymbolTree(SymbolSet&& symbols);
 
         SymbolTree(const SymbolTree& rhs) = delete;
 
@@ -249,8 +245,13 @@ namespace NPATK {
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolTree& st);
 
+        friend class detail::SymbolNodeSimplifyImpl;
+
     private:
         void make_nodes_and_links(const SymbolSet& symbols);
+
+        void releaseLink(SymbolLink * link);
+        SymbolLink * getAvailableLink();
 
     };
 

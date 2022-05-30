@@ -185,6 +185,8 @@ namespace NPATK {
         // First, insert source node
         auto [did_merge_source, hint] = this->insert_ordered(source);
         sourceNode.canonical_origin = source;
+        sourceNode.im_is_zero = sourceNode.im_is_zero || this->im_is_zero;
+        sourceNode.real_is_zero = sourceNode.real_is_zero || this->real_is_zero;
 
         // Now, insert all sub-children.
         SymbolLink * source_ptr = sourceNode.first_link;
@@ -197,8 +199,12 @@ namespace NPATK {
             linkToMove.prev = nullptr;
             linkToMove.origin = nullptr;
             linkToMove.link_type = compose(baseET, linkToMove.link_type);
+
             assert(linkToMove.target != nullptr);
-            linkToMove.target->canonical_origin = &linkToMove;
+            auto& childNode = *(linkToMove.target);
+            childNode.canonical_origin = &linkToMove;
+            childNode.im_is_zero = childNode.im_is_zero || this->im_is_zero;
+            childNode.real_is_zero = childNode.real_is_zero || this->real_is_zero;
 
             auto [did_merge, next_hint] = this->insert_ordered(&linkToMove, hint);
             hint = next_hint;
@@ -211,10 +217,6 @@ namespace NPATK {
         sourceNode.last_link = nullptr;
 
         return count;
-    }
-
-    void SymbolTree::SymbolNode::simplify() {
-        detail::SymbolNodeSimplifyImpl::simplify(this);
     }
 
     SymbolTree::SymbolTree(const SymbolSet &symbols)
@@ -255,19 +257,27 @@ namespace NPATK {
 
         /** Create links */
         this->tree_links.reserve(symbols.link_count());
-
-        size_t insert_index = 0;
-
         for (const auto [key, link_type] : symbols.Links) {
             SymbolNode * source_node = &this->tree_nodes[key.first];
             SymbolNode * target_node = &this->tree_nodes[key.second];
-
             this->tree_links.emplace_back(target_node, link_type);
-            SymbolLink * this_link = &this->tree_links[insert_index];
-            source_node->insert_back(this_link);
-
-            ++insert_index;
+            SymbolLink * new_link = &(this->tree_links[this->tree_links.size()-1]);
+            source_node->insert_ordered(new_link);
         }
+    }
+
+
+    void SymbolTree::releaseLink(SymbolTree::SymbolLink * link) {
+        this->available_links.push_back(link);
+    }
+
+    SymbolTree::SymbolLink * SymbolTree::getAvailableLink() {
+        if (!this->available_links.empty()) {
+            auto * link = this->available_links.back();
+            this->available_links.pop_back();
+            return link;
+        }
+        return nullptr;
     }
 
 
@@ -276,10 +286,9 @@ namespace NPATK {
             return;
         }
 
-        const size_t symbol_count = this->tree_nodes.size();
-        for (symbol_name_t base_id = 0; base_id < symbol_count; ++base_id) {
-            this->tree_nodes[base_id].simplify();
-        }
+        detail::SymbolNodeSimplifyImpl impl{*this};
+        impl.simplify();
+
         this->done_simplification = true;
     }
 

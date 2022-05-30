@@ -456,7 +456,29 @@ namespace NPATK::Tests {
         EXPECT_FALSE(chain_link[1].is_zero());
         EXPECT_FALSE(chain_link[1].real_is_zero);
         EXPECT_FALSE(chain_link[1].im_is_zero);
+    }
 
+
+    TEST_F(SymbolTreeFixture, Simplify_ChainLinkFromZero) {
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                                              SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
+
+        chain_link.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
+
+        ASSERT_EQ(chain_link.count_nodes(), 3);
+        EXPECT_TRUE(chain_link[0].is_zero());
+        EXPECT_TRUE(chain_link[0].real_is_zero);
+        EXPECT_TRUE(chain_link[0].im_is_zero);
+
+        EXPECT_TRUE(chain_link[1].is_zero());
+        EXPECT_TRUE(chain_link[1].real_is_zero);
+        EXPECT_TRUE(chain_link[1].im_is_zero);
+
+        EXPECT_TRUE(chain_link[2].is_zero());
+        EXPECT_TRUE(chain_link[2].real_is_zero);
+        EXPECT_TRUE(chain_link[2].im_is_zero);
     }
 
     TEST_F(SymbolTreeFixture, Simplify_Triangle) {
@@ -559,7 +581,7 @@ namespace NPATK::Tests {
         auto& onenull = this->create_tree({SymbolPair{1, 1, true, false}}); // 1 = -1
 
         onenull.simplify();
-        this->compare_to({Symbol{0}, Symbol{1}}, {});
+        this->compare_to({Symbol{0}, Symbol{1}}, {SymbolPair{SymbolExpression{0}, SymbolExpression{1}}});
 
 
         ASSERT_EQ(onenull.count_nodes(), 2);
@@ -578,14 +600,27 @@ namespace NPATK::Tests {
                                              SymbolPair{3, 3, true, false}}); // 3 = -3
 
         chain_link.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
-                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}}});
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{3}}});
 
 
-        ASSERT_GE(chain_link.count_nodes(), 2);
+        ASSERT_EQ(chain_link.count_nodes(), 4);
+        EXPECT_TRUE(chain_link[0].is_zero());
+        EXPECT_TRUE(chain_link[0].real_is_zero);
+        EXPECT_TRUE(chain_link[0].im_is_zero);
+
         EXPECT_TRUE(chain_link[1].is_zero());
         EXPECT_TRUE(chain_link[1].real_is_zero);
         EXPECT_TRUE(chain_link[1].im_is_zero);
+
+        EXPECT_TRUE(chain_link[2].is_zero());
+        EXPECT_TRUE(chain_link[2].real_is_zero);
+        EXPECT_TRUE(chain_link[2].im_is_zero);
+
+        EXPECT_TRUE(chain_link[3].is_zero());
+        EXPECT_TRUE(chain_link[3].real_is_zero);
+        EXPECT_TRUE(chain_link[3].im_is_zero);
     }
 
 
@@ -595,9 +630,12 @@ namespace NPATK::Tests {
                                               SymbolPair{2, 3, true, false}}); // 2 = -3
 
         nulltri.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
-                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}}},
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{3}}},
                          true);
+
+        ASSERT_EQ(nulltri.count_nodes(), 4);
 
         EXPECT_TRUE(nulltri[0].is_zero());
         EXPECT_TRUE(nulltri[0].real_is_zero);
@@ -606,6 +644,14 @@ namespace NPATK::Tests {
         EXPECT_TRUE(nulltri[1].is_zero());
         EXPECT_TRUE(nulltri[1].real_is_zero);
         EXPECT_TRUE(nulltri[1].im_is_zero);
+
+        EXPECT_TRUE(nulltri[2].is_zero());
+        EXPECT_TRUE(nulltri[2].real_is_zero);
+        EXPECT_TRUE(nulltri[2].im_is_zero);
+
+        EXPECT_TRUE(nulltri[3].is_zero());
+        EXPECT_TRUE(nulltri[3].real_is_zero);
+        EXPECT_TRUE(nulltri[3].im_is_zero);
     }
 
 
@@ -616,9 +662,12 @@ namespace NPATK::Tests {
                                            SymbolPair{3,4, true, false}
                                           });
         diamond.simplify();
-        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
-                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
-                          SymbolPair{SymbolExpression{1}, SymbolExpression{4}}}, true);
+        this->compare_to({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{0}, SymbolExpression{4}}}, true);
+
+        ASSERT_EQ(diamond.count_nodes(), 5);
 
         EXPECT_TRUE(diamond[0].is_zero());
         EXPECT_TRUE(diamond[0].real_is_zero);
@@ -627,6 +676,18 @@ namespace NPATK::Tests {
         EXPECT_TRUE(diamond[1].is_zero());
         EXPECT_TRUE(diamond[1].real_is_zero);
         EXPECT_TRUE(diamond[1].im_is_zero);
+
+        EXPECT_TRUE(diamond[2].is_zero());
+        EXPECT_TRUE(diamond[2].real_is_zero);
+        EXPECT_TRUE(diamond[2].im_is_zero);
+
+        EXPECT_TRUE(diamond[3].is_zero());
+        EXPECT_TRUE(diamond[3].real_is_zero);
+        EXPECT_TRUE(diamond[3].im_is_zero);
+
+        EXPECT_TRUE(diamond[4].is_zero());
+        EXPECT_TRUE(diamond[4].real_is_zero);
+        EXPECT_TRUE(diamond[4].im_is_zero);
 
     }
 
