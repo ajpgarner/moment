@@ -115,8 +115,8 @@ namespace NPATK {
         bool conjugated;
 
     public:
-        explicit SymbolExpression(symbol_name_t name, bool conj = false)
-            : id(name), negated(name < 0), conjugated(conj) {
+        constexpr explicit SymbolExpression(symbol_name_t name, bool conj = false) noexcept
+                : id(name), negated(name < 0), conjugated(conj) {
             if (id < 0) {
                 id = -id;
             }
@@ -129,8 +129,8 @@ namespace NPATK {
          */
         explicit SymbolExpression(const std::string& strExpr);
 
-        SymbolExpression(symbol_name_t name, bool neg, bool conj)
-            : id(name), negated(neg), conjugated(conj) { }
+        constexpr SymbolExpression(symbol_name_t name, bool neg, bool conj) noexcept
+                : id(name), negated(neg), conjugated(conj) { }
 
         bool operator==(const SymbolExpression& rhs) const {
             return (this->id == rhs.id)
@@ -178,7 +178,7 @@ namespace NPATK {
         bool conjugated;
 
     public:
-        SymbolPair(SymbolExpression left, SymbolExpression right) {
+        SymbolPair(SymbolExpression left, SymbolExpression right) noexcept {
             if (left.id <= right.id) {
                 this->left_id = left.id;
                 this->right_id = right.id;
@@ -190,7 +190,7 @@ namespace NPATK {
             this->conjugated = left.conjugated ^ right.conjugated;
         }
 
-        SymbolPair(symbol_name_t left_id, symbol_name_t right_id, bool neg, bool conj) {
+        SymbolPair(symbol_name_t left_id, symbol_name_t right_id, bool neg, bool conj) noexcept  {
             if (left_id <= right_id) {
                 this->left_id = left_id;
                 this->right_id = right_id;

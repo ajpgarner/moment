@@ -32,12 +32,12 @@ namespace NPATK::detail {
 
     public:
 
-        SymbolNodeSimplifyImpl(SymbolTree& tree) : theTree(tree) { }
+        explicit SymbolNodeSimplifyImpl(SymbolTree& tree) : theTree(tree) { }
 
         void simplify();
 
     private:
-        void simplifyNode(SymbolTree& theTree, size_t node_id);
+        void simplifyNode(size_t node_id);
 
         size_t find_already_linked(SymbolTree::SymbolNode * base_node, std::vector<RebaseInfoImpl>& rebase_list);
 
@@ -53,5 +53,4 @@ namespace NPATK::detail {
 
         void propagate_nullity();
     };
-
 }

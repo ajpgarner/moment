@@ -190,27 +190,24 @@ namespace NPATK {
             /**
              * Represents the lowest id symbol equivalent (up to negation / conjugation) to this node.
              */
-             [[nodiscard]] SymbolExpression canonical_expression() const {
-                 // Are we zero?
-                 if (this->is_zero()) {
-                     return SymbolExpression{0};
-                 }
-
+             [[nodiscard]] SymbolExpression canonical_expression() const noexcept {
                  // Return canonical id, maybe with negation or conjugation
                  if (this->canonical_origin != nullptr) {
-                     if (this->canonical_origin->origin->is_zero()) {
-                         return SymbolExpression{0};
-                     }
                      return SymbolExpression{this->canonical_origin->origin->id,
                                              is_negated(this->canonical_origin->link_type),
                                              is_conjugated(this->canonical_origin->link_type)};
                  }
-
                  // Return self id (no negation or conjugation)
                  return SymbolExpression{this->id};
              }
 
+             /**
+              * @return True, if expression has no
+              */
+            bool unaliased() const noexcept { return this->canonical_origin == nullptr; }
+
             friend class detail::SymbolNodeSimplifyImpl;
+
 
         };
 
@@ -220,6 +217,7 @@ namespace NPATK {
         std::vector<SymbolLink> tree_links;
         std::vector<SymbolLink*> available_links;
         bool done_simplification = false;
+        size_t num_aliases = 0;
 
     public:
         explicit SymbolTree(const SymbolSet& symbols);
@@ -231,6 +229,8 @@ namespace NPATK {
         [[nodiscard]] size_t count_nodes() const noexcept { return tree_nodes.size(); }
 
         [[nodiscard]] size_t max_links() const noexcept { return tree_links.size(); }
+
+        [[nodiscard]] size_t alias_count() const noexcept {return this->num_aliases; }
 
         void simplify();
 

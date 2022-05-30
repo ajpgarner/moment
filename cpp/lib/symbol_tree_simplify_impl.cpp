@@ -42,7 +42,7 @@ namespace NPATK::detail {
         const size_t symbol_count = theTree.tree_nodes.size();
         for (symbol_name_t node_id = 0; node_id < symbol_count; ++node_id) {
             //theTree.tree_nodes[node_id].simplifyNode(theTree, );
-            simplifyNode(theTree, node_id);
+            simplifyNode(node_id);
         }
 
         // Sweep zeros
@@ -75,8 +75,10 @@ namespace NPATK::detail {
     }
 
     void SymbolNodeSimplifyImpl::propagate_nullity() {
+        theTree.num_aliases = 0;
         for (auto& node : theTree.tree_nodes) {
             if (node.canonical_origin != nullptr) {
+                ++theTree.num_aliases;
                 continue;
             }
 
@@ -93,7 +95,7 @@ namespace NPATK::detail {
     }
 
 
-    void SymbolNodeSimplifyImpl::simplifyNode(SymbolTree& theTree, size_t node_id) {
+    void SymbolNodeSimplifyImpl::simplifyNode(size_t node_id) {
         assert(node_id < theTree.tree_nodes.size());
         auto this_node = &(theTree.tree_nodes[node_id]);
 
