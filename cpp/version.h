@@ -2,6 +2,10 @@
  * version.h
  *
  * Copyright (c) 2022 Austrian Academy of Sciences
+ *
+ * TODO: Ultimately, this file should be automatically generated from CMAKE parameters or the like;
+ *       maybe with a template.
+ *
  */
 #pragma once
 

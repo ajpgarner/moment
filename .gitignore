@@ -38,5 +38,6 @@
 
 
 # C++ intermediate/output directories
-/cpp/.idea
-/cpp/cmake-build-*
+/.idea
+/cmake-build-*
+/build*

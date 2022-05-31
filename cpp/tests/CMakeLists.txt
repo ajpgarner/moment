@@ -1,6 +1,6 @@
-include_directories(${NPAToolKit_SOURCE_DIR}/lib)
+include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
-add_executable(nptk_tests
+add_executable(npatk_tests
         symbol_tests.cpp
         symbol_set_tests.cpp
         equality_type_tests.cpp
@@ -8,7 +8,7 @@ add_executable(nptk_tests
         symbol_tree_tests.cpp
         )
 
-target_link_libraries(nptk_tests
+target_link_libraries(npatk_tests
         lib_npatk
         gtest
         gtest_main)

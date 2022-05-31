@@ -1,4 +1,4 @@
-include_directories(${NPAToolKit_SOURCE_DIR}/lib)
+include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_library(lib_npatk
         symbol.cpp
