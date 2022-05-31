@@ -4,6 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "generate_basis.h"
+#include "../mex_main.h"
 
 #include "../fragments/enumerate_symbols.h"
 #include "../fragments/export_basis_key.h"
@@ -349,28 +350,19 @@ namespace NPATK::mex::functions {
         this->min_inputs = this->max_inputs = 1;
         this->min_outputs = 1;
         this->max_outputs = 3;
+
         this->flag_names.emplace(u"symmetric");
         this->flag_names.emplace(u"hermitian");
+        this->mutex_params.add_mutex(u"symmetric", u"hermitian");
+
         this->flag_names.emplace(u"sparse");
         this->flag_names.emplace(u"dense");
+        this->mutex_params.add_mutex(u"dense", u"sparse");
 
 
     }
 
     std::pair<bool, std::basic_string<char16_t>> GenerateBasis::validate_inputs(const SortedInputs &input) const {
-        bool is_sym = input.flags.contains(u"symmetric");
-        bool is_herm = input.flags.contains(u"hermitian");
-        if (is_sym && is_herm) {
-            return {false, u"Only one of \"symmetric\" or \"hermitian\" may be set."};
-        }
-
-        bool is_sparse = input.flags.contains(u"sparse");
-        bool is_dense = input.flags.contains(u"dense");
-        if (is_sparse && is_dense) {
-            return {false, u"Only one of \"sparse\" or \"dense\" may be set."};
-        }
-
-
         auto inputDims = input.inputs[0].getDimensions();
         if (inputDims.size() != 2) {
             return {false, u"Input must be a matrix."};
@@ -416,14 +408,16 @@ namespace NPATK::mex::functions {
 
         // Hermitian output requires two outputs...
         if ((basis_type == IndexMatrixProperties::MatrixType::Hermitian) && (output.size() < 2)) {
-            throw_error(this->matlabEngine, std::string("When generating a Hermitian basis, two outputs are required (one for ")
+            throw_error(this->matlabEngine, errors::too_few_outputs,
+                                        std::string("When generating a Hermitian basis, two outputs are required (one for ")
                                           + "symmetric basis elements associated with the real components, one for the "
                                           + "anti-symmetric imaginary elements associated with the imaginary components.");
         }
 
         // Symmetric output cannot have three outputs...
         if ((basis_type == IndexMatrixProperties::MatrixType::Symmetric) && (output.size() > 2)) {
-            throw_error(this->matlabEngine, std::to_string(output.size()) + " outputs supplied for symmetric basis output, but only"
+            throw_error(this->matlabEngine, errors::too_many_outputs,
+                                            std::to_string(output.size()) + " outputs supplied for symmetric basis output, but only"
                                                         + " two will be generated (basis, and key).");
         }
 
@@ -448,7 +442,6 @@ namespace NPATK::mex::functions {
             }
             print_to_console(matlabEngine, ss.str());
         }
-
 
         if (sparse_output) {
             auto [sym, anti_sym] = make_sparse_basis(this->matlabEngine, input.inputs[0], matrix_properties);

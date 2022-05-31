@@ -11,15 +11,39 @@
 #include <cassert>
 #include <set>
 #include <map>
+#include <optional>
 #include <string>
 
 namespace NPATK::mex {
 
-    using NameSet = std::set<std::basic_string<char16_t>>;
+    using ParamNameStr = std::basic_string<char16_t>;
 
-    using NamedParameter = std::map<std::basic_string<char16_t>, matlab::data::Array>;
+    using NameSet = std::set<ParamNameStr>;
+
+    using NamedParameter = std::map<ParamNameStr, matlab::data::Array>;
 
     using NamedFlag = NameSet;
+
+
+    class MutuallyExclusiveParams {
+        std::multimap<ParamNameStr, ParamNameStr> pairs;
+    public:
+        /**
+         * Register two flags/parameters as mutually exclusive
+         * @param str_a The first flag/parameter name
+         * @param str_b The second flag/parameter name
+         */
+        void add_mutex(const ParamNameStr& str_a, const ParamNameStr& str_b);
+
+        /**
+         * Detects if a set of flags and parameters violates any mutual exclusions.
+         * @param flags The set of flags
+         * @param params The set of named parameters
+         * @return Violating pair of names, or empty std::optional if no violations found.
+         */
+        std::optional<std::pair<ParamNameStr, ParamNameStr>> validate(const NameSet& flags,
+                                                                      const NamedParameter& params) const;
+    };
 
     /**
      * Due to matlab's weird usage of templates, matlab::mex::ArgumentList can seemingly only be used in one file

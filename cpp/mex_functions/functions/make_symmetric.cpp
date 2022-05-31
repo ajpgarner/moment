@@ -186,6 +186,7 @@ namespace NPATK::mex::functions {
             : MexFunction(matlabEngine, MEXEntryPointID::MakeSymmetric, u"make_symmetric") {
         this->flag_names.emplace(u"dense");
         this->flag_names.emplace(u"sparse");
+        this->mutex_params.add_mutex(u"dense", u"sparse");
 
         this->min_outputs = 1;
         this->max_outputs = 2;
@@ -222,10 +223,6 @@ namespace NPATK::mex::functions {
                 break;
             default:
                 return {false, u"Matrix type must be real numeric, or of strings."};
-        }
-
-        if (input.flags.contains(u"dense") && input.flags.contains(u"sparse")) {
-            return {false, u"Only one of \"dense\" or \"sparse\" should be set."};
         }
 
         return {true, u""};

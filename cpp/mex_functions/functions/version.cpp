@@ -3,7 +3,6 @@
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
-#include "function_base.h"
 #include "version.h"
 
 #include "../utilities/reporting.h"
@@ -17,6 +16,13 @@ namespace NPATK::mex::functions {
         : MexFunction(matlabEngine, MEXEntryPointID::Version, u"version") {
         this->max_outputs = 1;
         this->flag_names.emplace(u"structured");
+
+        // Debug for mutual exclusion
+        this->flag_names.emplace(u"foo");
+        this->flag_names.emplace(u"bar");
+        this->param_names.emplace(u"cake");
+        this->mutex_params.add_mutex(u"bar", u"foo");
+        this->mutex_params.add_mutex(u"foo", u"cake");
     }
 
     void Version::operator()(FlagArgumentRange output, SortedInputs&& input) {

@@ -15,9 +15,12 @@ matlab_add_mex(NAME npatk_mex
             fragments/export_substitution_list.cpp
             fragments/substitute_elements_using_tree.cpp
             fragments/read_symbol_or_fail.cpp
+            utilities/io_parameters.cpp
             utilities/read_as_string.cpp
             utilities/reporting.cpp
+            functions/function_list.cpp
             functions/generate_basis.cpp
+            functions/make_hermitian.cpp
             functions/make_symmetric.cpp
             functions/version.cpp
         OUTPUT_NAME npatk
@@ -30,4 +33,4 @@ add_custom_command(TARGET npatk_mex POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy
                 "$<TARGET_FILE:npatk_mex>"
                 "${PROJECT_SOURCE_DIR}/matlab/"
-        COMMENT "Copying to matlab directory.")
+        COMMENT "Copying compiled mex function to matlab directory.")

@@ -22,14 +22,30 @@ classdef VersionTest < matlab.unittest.TestCase
     end
     
     methods (Test)
-        function version_string(testCase)
+        function Version_String(testCase)
             actual_string = npatk('version');
             testCase.verifyEqual(actual_string, testCase.expected_string);
         end
         
-        function version_struct(testCase)
+        function Version_Struct(testCase)
             actual_struct = npatk('version', 'structured');
             testCase.verifyEqual(actual_struct, testCase.expected_struct);
+        end
+    
+        function Error_MissingParam(testCase)
+            testCase.verifyError(@() npatk('version', 'cake'), ...
+                'npatk:bad_param');
+        end
+        
+        function Error_Mutex(testCase)
+            testCase.verifyError(@() npatk('version', 'foo', 'bar'), ...
+                'npatk:mutex_param');
+        end
+        
+        function Error_Mutex2(testCase)
+            testCase.verifyError(@() npatk('version', 'foo', ...
+                                           'cake', 1), ...
+                                           'npatk:mutex_param');
         end
     end
 end

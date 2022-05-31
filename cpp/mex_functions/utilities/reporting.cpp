@@ -8,17 +8,21 @@
 
 namespace NPATK::mex {
 
-    [[noreturn]] void throw_error(matlab::engine::MATLABEngine &engine, const std::string& error) {
+    [[noreturn]] void throw_error(matlab::engine::MATLABEngine &engine,
+                                  const std::string& err_code, const std::string& error) {
         matlab::data::ArrayFactory factory;
-        engine.feval(u"error",
-             0, std::vector<matlab::data::Array>({ factory.createScalar(error) }));
+        std::string final_code = "npatk:" + err_code;
+        engine.feval(u"error", 0,
+             std::vector<matlab::data::Array>({factory.createScalar(final_code), factory.createScalar(error) }));
         throw; // hint for compiler
     }
 
-    [[noreturn]] void throw_error(matlab::engine::MATLABEngine &engine, const std::basic_string<char16_t>& error) {
+    [[noreturn]] void throw_error(matlab::engine::MATLABEngine &engine,
+                                  const std::string& err_code, const std::basic_string<char16_t>& error) {
         matlab::data::ArrayFactory factory;
-        engine.feval(u"error",
-             0, std::vector<matlab::data::Array>({ factory.createScalar(error) }));
+        std::string final_code = "npatk:" + err_code;
+        engine.feval(u"error", 0,
+             std::vector<matlab::data::Array>({factory.createScalar(final_code), factory.createScalar(error) }));
         throw; // hint for compiler
     }
 

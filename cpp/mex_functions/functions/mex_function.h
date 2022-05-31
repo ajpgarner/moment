@@ -25,8 +25,8 @@ namespace NPATK::mex::functions {
     protected:
         matlab::engine::MATLABEngine& matlabEngine;
         NameSet flag_names{};
-
         NameSet param_names{};
+        MutuallyExclusiveParams mutex_params{};
 
         size_t min_outputs = 0;
         size_t max_outputs = 0;
@@ -43,6 +43,10 @@ namespace NPATK::mex::functions {
         virtual ~MexFunction() = default;
 
         virtual void operator()(FlagArgumentRange output, SortedInputs&& input) = 0;
+
+        [[nodiscard]] inline auto check_for_mutex(const SortedInputs& input) const {
+            return mutex_params.validate(input.flags, input.params);
+        }
 
         [[nodiscard]] virtual std::pair<bool, std::basic_string<char16_t>> validate_inputs(const SortedInputs& input) const = 0;
 

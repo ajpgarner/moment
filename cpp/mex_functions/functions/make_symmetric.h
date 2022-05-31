@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "function_base.h"
+#include "mex_function.h"
 
 namespace NPATK::mex::functions {
     class MakeSymmetric : public MexFunction {

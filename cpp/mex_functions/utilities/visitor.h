@@ -12,6 +12,10 @@
 
 namespace NPATK::mex {
 
+    namespace errors {
+        constexpr char bad_visit[] = "bad_visit";
+    }
+
     namespace concepts {
         template <class functor_t>
         concept VisitorHasRealDense = requires(functor_t& functor, matlab::data::Array& a) {
@@ -201,7 +205,7 @@ namespace NPATK::mex {
                 }
             }
 
-            throw_error(this->engine, "Unexpected type.");
+            throw_error(this->engine, errors::bad_visit, "Unexpected type.");
             throw; // hint
         }
 
@@ -233,7 +237,7 @@ namespace NPATK::mex {
                 default:
                     break;
             }
-            throw_error(this->engine, "Unexpected array type (real, dense).");
+            throw_error(this->engine, errors::bad_visit, "Unexpected array type (real, dense).");
             throw; // hint
         }
 
@@ -264,7 +268,7 @@ namespace NPATK::mex {
                 default:
                     break;
             }
-            throw_error(this->engine, "Unexpected array type (complex, dense).");
+            throw_error(this->engine, errors::bad_visit, "Unexpected array type (complex, dense).");
             throw; // hint
         }
 
@@ -299,7 +303,7 @@ namespace NPATK::mex {
                 default:
                     break;
             }
-            throw_error(this->engine, "Unexpected array type (string).");
+            throw_error(this->engine, errors::bad_visit, "Unexpected array type (string).");
             throw; // hint
         }
 

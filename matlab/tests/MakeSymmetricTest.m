@@ -37,7 +37,7 @@ classdef MakeSymmetricTest < matlab.unittest.TestCase
             clear npatk
         end
     end
-    
+      
     methods (Test)
         function Plain_DenseToDense(testCase)
            [actual_dense, actual_subs] = npatk('make_symmetric', ...
@@ -181,7 +181,15 @@ classdef MakeSymmetricTest < matlab.unittest.TestCase
                                                 testCase.C_input_string);
            testCase.verifyEqual(actual_sparse, testCase.C_expected_sparse);
            testCase.verifyEqual(actual_subs, testCase.C_expected_subs);
-        end   
-        
+        end
+                
+        function Error_DenseAndSparse(testCase)
+            function call_sparse_and_dense()
+                [~, ~] = npatk('make_symmetric', 'sparse', 'dense', ...
+                               testCase.A_input_string);
+            end
+           testCase.verifyError(@() call_sparse_and_dense, ...
+                                'npatk:mutex_param');           
+        end          
     end
 end

@@ -9,12 +9,8 @@
 #include "utilities/reporting.h"
 #include "utilities/read_as_string.h"
 
-#include "functions/function_base.h"
-#include "functions/version.h"
-#include "functions/make_symmetric.h"
-#include "functions/generate_basis.h"
-
-
+#include "functions/mex_function.h"
+#include "functions/function_list.h"
 
 #include <sstream>
 
@@ -28,9 +24,13 @@ namespace NPATK::mex {
     void MexMain::operator()(FlagArgumentRange outputs, FlagArgumentRange inputs) {
         // Read and pop function name...
         functions::MEXEntryPointID function_id = get_function_id(inputs);
+        assert(function_id != functions::MEXEntryPointID::Unknown);
 
         // Construction function object from ID...
-        std::unique_ptr<functions::MexFunction> the_function = get_function(function_id);
+        std::unique_ptr<functions::MexFunction> the_function = functions::make_mex_function(*matlabPtr, function_id);
+        if (!the_function) {
+            throw_error(*matlabPtr, errors::bad_function, u"Internal error: could not create function object.");
+        }
 
         // Check outputs are in range
         this->validate_outputs(*the_function, outputs);
@@ -54,40 +54,20 @@ namespace NPATK::mex {
 
         auto command_arg = read_as_utf16(inputs.pop_front());
         if (!command_arg.has_value()) {
-            throw_error(*matlabPtr, "First argument must be a single function name (i.e. one string).");
+            throw_error(*matlabPtr, errors::bad_function,
+                        u"First argument must be a single function name (i.e. one string).");
         }
 
         auto entry_id = functions::which_entrypoint(command_arg.value());
         if (entry_id == functions::MEXEntryPointID::Unknown) {
-            throw_error(*matlabPtr, u"Function \"" + command_arg.value() + u"\" not known in NPATK.");
+            throw_error(*matlabPtr, errors::bad_function,
+                        u"Function \"" + command_arg.value() + u"\" not known in NPATK.");
         }
 
         return entry_id;
     }
 
-    std::unique_ptr<functions::MexFunction> MexMain::get_function(functions::MEXEntryPointID function_id) {
-        std::unique_ptr<functions::MexFunction> the_function;
 
-        switch(function_id) {
-            case functions::MEXEntryPointID::Version:
-                the_function = std::make_unique<functions::Version>(*matlabPtr);
-                break;
-            case functions::MEXEntryPointID::MakeSymmetric:
-                the_function = std::make_unique<functions::MakeSymmetric>(*matlabPtr);
-                break;
-            case functions::MEXEntryPointID::MakeHermitian:
-                the_function = std::make_unique<functions::MakeSymmetric>(*matlabPtr);
-                break;
-            case functions::MEXEntryPointID::GenerateBasis:
-                the_function = std::make_unique<functions::GenerateBasis>(*matlabPtr);
-                break;
-            default:
-            case functions::MEXEntryPointID::Unknown:
-                throw_error(*matlabPtr, "Unknown function!");
-                throw;
-        }
-        return the_function;
-    }
 
     SortedInputs MexMain::clean_inputs(const functions::MexFunction &func, FlagArgumentRange & inputs) {
         const auto& param_names = func.ParamNames();
@@ -113,7 +93,8 @@ namespace NPATK::mex {
                 // First, is input a parameter?
                 if (param_names.contains(param_flag_str)) {
                     if ((cursor+1) >= inputs.size()) {
-                        throw_error(*this->matlabPtr, u"Named parameter \"" + param_flag_str + u"\" was used,"
+                        throw_error(*this->matlabPtr, errors::bad_param,
+                                                      u"Named parameter \"" + param_flag_str + u"\" was used,"
                                                       + u" but next argument (with data) is missing.");
                         throw;
                     } else {
@@ -164,7 +145,11 @@ namespace NPATK::mex {
                 }
             }
 
-            throw_error(*matlabPtr, ss.str());
+            if (outputs.size() > max) {
+                throw_error(*matlabPtr, errors::too_many_outputs, ss.str());
+            } else {
+                throw_error(*matlabPtr, errors::too_few_outputs, ss.str());
+            }
         }
     }
 
@@ -193,7 +178,21 @@ namespace NPATK::mex {
                 }
             }
 
-            throw_error(*matlabPtr, ss.str());
+            if (inputs.inputs.size() > max) {
+                throw_error(*matlabPtr, errors::too_many_inputs, ss.str());
+            } else {
+                throw_error(*matlabPtr, errors::too_few_inputs, ss.str());
+            }
+        }
+
+        // Next, check for mutual exclusion
+        auto mutex_params = func.check_for_mutex(inputs);
+        if (mutex_params.has_value()) {
+            std::basic_stringstream<char16_t> bss;
+            bss << u"Invalid argument to function \"" << func.function_name << "\": "
+                << u"Cannot specify mutually exclusive parameters \"" << mutex_params->first << "\""
+                << " and \"" << mutex_params->second << "\".";
+            throw_error(*matlabPtr, errors::mutex_param, bss.str());
         }
 
         // Next, call functions own custom validator
@@ -201,7 +200,7 @@ namespace NPATK::mex {
         if (!args_okay) {
             std::basic_stringstream<char16_t> bss;
             bss << u"Invalid argument to function \"" << func.function_name << "\": " << err_msg;
-            throw_error(*matlabPtr, bss.str());
+            throw_error(*matlabPtr, errors::bad_param, bss.str());
         }
 
     }

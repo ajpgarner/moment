@@ -15,7 +15,7 @@ namespace NPATK::mex {
         if (!matrix[index_i][index_j].has_value()) {
             std::stringstream errMsg;
             errMsg << "Element [" << index_i << ", " << index_j << " was empty.";
-            throw_error(engine, errMsg.str());
+            throw_error(engine, errors::bad_symbol, errMsg.str());
         }
         try {
             NPATK::SymbolExpression elem{matlab::engine::convertUTF16StringToUTF8String(matrix[index_i][index_j])};
@@ -23,7 +23,7 @@ namespace NPATK::mex {
         } catch (const SymbolExpression::SymbolParseException& e) {
             std::stringstream errMsg;
             errMsg << "Error converting element [" << index_i << ", " << index_j << ": " << e.what();
-            throw_error(engine, errMsg.str());
+            throw_error(engine, errors::bad_symbol, errMsg.str());
         }
 
     }

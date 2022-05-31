@@ -6,7 +6,7 @@
 #pragma once
 
 #include "../../version.h"
-#include "function_base.h"
+#include "mex_function.h"
 
 namespace NPATK::mex::functions {
 

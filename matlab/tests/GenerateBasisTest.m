@@ -215,6 +215,26 @@ classdef GenerateBasisTest < matlab.unittest.TestCase
                 'sparse', 'hermitian', testCase.string_input);
             testCase.verify_herm_output_str(output_re, output_im, keys, true);
         end 
+            
+        function Error_DenseAndSparse(testCase)
+            function call_sparse_and_dense()
+                [~, ~] = npatk('generate_basis', 'symmetric', ...
+                               'sparse', 'dense', ...
+                               testCase.string_input);
+            end
+           testCase.verifyError(@() call_sparse_and_dense, ...
+                                'npatk:mutex_param');
+        end    
+               
+        function Error_HermitianAndSymmetric(testCase)
+            function call_herm_and_sym()
+                [~, ~] = npatk('generate_basis', 'dense', ...
+                               'symmetric', 'hermitian', ...
+                               testCase.string_input);
+            end
+           testCase.verifyError(@() call_herm_and_sym, ...
+                                'npatk:mutex_param');
+        end   
     end
 end
 

@@ -7,8 +7,14 @@
 
 #include <string>
 #include <map>
+#include <memory>
+
+namespace matlab::engine {
+    class MATLABEngine;
+}
 
 namespace NPATK::mex::functions {
+
     enum class MEXEntryPointID : int {
         Unknown = 0,
         Version = 1,
@@ -43,4 +49,16 @@ namespace NPATK::mex::functions {
         }
         return iter->second;
     }
+
+    class MexFunction;
+
+    /**
+     *
+     * @param engine The MATLAB engine object
+     * @param id The MEXEntryPointID of the function to create
+     * @return A unique pointer to a newly-constructed MexFunction object.
+     */
+    std::unique_ptr<MexFunction> make_mex_function(matlab::engine::MATLABEngine& engine, MEXEntryPointID id);
+
+
 }
