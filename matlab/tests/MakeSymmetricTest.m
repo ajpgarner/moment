@@ -1,29 +1,28 @@
 classdef MakeSymmetricTest < matlab.unittest.TestCase
-    %GENERATEBASISTEST Unit tests for make_symmetric function
+    %MAKESYMMETRICTEST Unit tests for make_symmetric function
     
     properties(Constant)
-        A_input_dense = [[1, 1, 3]; [-2, 2, 4]; [2, 4, 5]];
-        A_input_sparse = sparse([[1, 1, 3]; [-2, 2, 4]; [2, 4, 5]]); 
-        A_input_string= [["1","1","3"]; ["-2","2","4"]; ["2","4","5"]];
-        A_expected_dense = int64([[1, 1, -1]; [1, -1, 4]; [-1, 4, 5]]);
-        A_expected_sparse = sparse([[1, 1, -1]; [1, -1, 4]; [-1, 4, 5]]);
-        A_expected_subs = [["2", "-1"]; ["3", "-1"]];
+        plain_case = MakeSymmetricTest_Case(...
+                    [[1, 1, 3]; [-2, 2, 4]; [2, 4, 5]], ...
+                    [[1, 1, -1]; [1, -1, 4]; [-1, 4, 5]], ...
+                    [["2", "-1"]; ["3", "-1"]]);
+            
+
+        zeros_case = MakeSymmetricTest_Case(...
+                        [[1, 2, 0]; [0, 4, 5]; [3, 6, 7]], ...
+                        [[1, 0, 0]; [0, 4, 5]; [0, 5, 7]], ...
+                        [["2", "0"]; ["3", "0"]; ["6", "5"]]);
+                    
+        rtz_case = MakeSymmetricTest_Case(...
+                                [[1, 2, 0]; [-2, 1, 2]; [3, 4, 5]], ...
+                                [[1, 0, 0]; [0, 1, 0]; [0, 0, 5]], ...
+                                [["2", "0"]; ["3", "0"]; ["4", "0"]]);
         
-        B_input_dense = [[1, 2, 0]; [0, 4, 5]; [3, 6, 7]];
-        B_input_sparse = sparse([[1, 2, 0]; [0, 4, 5]; [3, 6, 7]]);
-        B_input_string = [["1","2","0"]; ["0","4","5"]; ["3","6","7"]];
-        B_expected_dense = int64([[1, 0, 0]; [0, 4, 5]; [0, 5, 7]]);
-        B_expected_sparse = sparse([[1, 0, 0]; [0, 4, 5]; [0, 5, 7]]);
-        B_expected_subs = [["2", "0"]; ["3", "0"]; ["6", "5"]];
-        
-        C_input_dense = [[1, 2, 0]; [-2, 1, 2]; [3, 4, 5]];
-        C_input_sparse = sparse([[1, 2, 0]; [-2, 1, 2]; [3, 4, 5]]);
-        C_input_string = [["1","2","0"]; ["-2","1","2"]; ["3","4","5"]];
-        C_expected_dense = int64([[1, 0, 0]; [0, 1, 0]; [0, 0, 5]]);
-        C_expected_sparse = sparse([[1, 0, 0]; [0, 1, 0]; [0, 0, 5]]);
-        C_expected_subs = [["2", "0"]; ["3", "0"]; ["4", "0"]];
+        id_case  = MakeSymmetricTest_Case(...
+                                [[1,2,3];[2,4,5];[3,5,6]], ...
+                                [[1,2,3];[2,4,5];[3,5,6]], ...
+                                [[]]);
     end
-    
     
     methods(TestMethodSetup)
         function addNPATKpath(testCase)
@@ -40,156 +39,133 @@ classdef MakeSymmetricTest < matlab.unittest.TestCase
       
     methods (Test)
         function Plain_DenseToDense(testCase)
-           [actual_dense, actual_subs] = npatk('make_symmetric', ...
-                                               'dense', ...
-                                                testCase.A_input_dense);
-           testCase.verifyEqual(actual_dense, testCase.A_expected_dense);
-           testCase.verifyEqual(actual_subs, testCase.A_expected_subs);
+            testCase.plain_case.DenseToDense(testCase);            
         end
         
         function Plain_DenseToSparse(testCase)
-           [actual_sparse, actual_subs] =npatk('make_symmetric', ...
-                                               'sparse', ...
-                                               testCase.A_input_dense);
-           testCase.verifyEqual(actual_sparse, testCase.A_expected_sparse);
-           testCase.verifyEqual(actual_subs, testCase.A_expected_subs);
+            testCase.plain_case.DenseToSparse(testCase);
         end
         
         function Plain_SparseToDense(testCase)
-           [actual_dense, actual_subs] =npatk('make_symmetric', ...
-                                              'dense', ...
-                                              testCase.A_input_sparse);
-           testCase.verifyEqual(actual_dense, testCase.A_expected_dense);
-           testCase.verifyEqual(actual_subs, testCase.A_expected_subs);
+            testCase.plain_case.SparseToDense(testCase);
         end
         
         function Plain_SparseToSparse(testCase)
-           [actual_sparse, actual_subs] =npatk('make_symmetric', ...
-                                               'sparse', ...
-                                               testCase.A_input_sparse);
-           testCase.verifyEqual(actual_sparse, testCase.A_expected_sparse);
-           testCase.verifyEqual(actual_subs, testCase.A_expected_subs);
+            testCase.plain_case.SparseToSparse(testCase);
         end
         
         function Plain_StringToDense(testCase)
-           [actual_dense, actual_subs] =npatk('make_symmetric', ...
-                                              'dense', ...
-                                              testCase.A_input_string);
-           testCase.verifyEqual(actual_dense, testCase.A_expected_dense);
-           testCase.verifyEqual(actual_subs, testCase.A_expected_subs);
+            testCase.plain_case.StringToDense(testCase);
         end
         
         function Plain_StringToSparse(testCase)
-           [actual_sparse, actual_subs] =npatk('make_symmetric', ...
-                                               'sparse', ...
-                                               testCase.A_input_string);
-           testCase.verifyEqual(actual_sparse, testCase.A_expected_sparse);
-           testCase.verifyEqual(actual_subs, testCase.A_expected_subs);
-        end
-                
-        function Zeroes_DenseToDense(testCase)
-           [actual_dense, actual_subs] =npatk('make_symmetric', ...
-                                              'dense', ...
-                                              testCase.B_input_dense);
-           testCase.verifyEqual(actual_dense, testCase.B_expected_dense);
-           testCase.verifyEqual(actual_subs, testCase.B_expected_subs);
+           testCase.plain_case.StringToSparse(testCase);
         end
         
-        function Zeroes_DenseToSparse(testCase)
-           [actual_sparse, actual_subs] =npatk('make_symmetric', ...
-                                               'sparse', ...
-                                               testCase.B_input_dense);
-           testCase.verifyEqual(actual_sparse, testCase.B_expected_sparse);
-           testCase.verifyEqual(actual_subs, testCase.B_expected_subs);
+        function Zeros_DenseToDense(testCase)
+            testCase.zeros_case.DenseToDense(testCase);            
         end
         
-        function Zeroes_SparseToDense(testCase)
-           [actual_dense, actual_subs] =npatk('make_symmetric', ...
-                                              'dense', ...
-                                              testCase.B_input_sparse);
-           testCase.verifyEqual(actual_dense, testCase.B_expected_dense);
-           testCase.verifyEqual(actual_subs, testCase.B_expected_subs);
+        function Zeros_DenseToSparse(testCase)
+            testCase.zeros_case.DenseToSparse(testCase);
         end
         
-        function Zeroes_SparseToSparse(testCase)
-           [actual_sparse, actual_subs] =npatk('make_symmetric', ...
-                                               'sparse', ...
-                                               testCase.B_input_sparse);
-           testCase.verifyEqual(actual_sparse, testCase.B_expected_sparse);
-           testCase.verifyEqual(actual_subs, testCase.B_expected_subs);
-        end
-      
-        function Zeroes_StringToDense(testCase)
-           [actual_dense, actual_subs] =npatk('make_symmetric', ...
-                                              'dense', ...
-                                              testCase.B_input_string);
-           testCase.verifyEqual(actual_dense, testCase.B_expected_dense);
-           testCase.verifyEqual(actual_subs, testCase.B_expected_subs);
+        function Zeros_SparseToDense(testCase)
+            testCase.zeros_case.SparseToDense(testCase);
         end
         
-        function Zeroes_StringToSparse(testCase)
-           [actual_sparse, actual_subs] =npatk('make_symmetric', ... 
-                                               'sparse', ...
-                                               testCase.B_input_string);
-           testCase.verifyEqual(actual_sparse, testCase.B_expected_sparse);
-           testCase.verifyEqual(actual_subs, testCase.B_expected_subs);
-        end   
+        function Zeros_SparseToSparse(testCase)
+            testCase.zeros_case.SparseToSparse(testCase);
+        end
         
+        function Zeros_StringToDense(testCase)
+            testCase.zeros_case.StringToDense(testCase);
+        end
+        
+        function Zeros_StringToSparse(testCase)
+           testCase.zeros_case.StringToSparse(testCase);
+        end
+
         function ResolveToZero_DenseToDense(testCase)
-           [actual_dense, actual_subs] =npatk('make_symmetric', ...
-                                              'dense', ...
-                                              testCase.C_input_dense);
-           testCase.verifyEqual(actual_dense, testCase.C_expected_dense);
-           testCase.verifyEqual(actual_subs, testCase.C_expected_subs);
+            testCase.rtz_case.DenseToDense(testCase);            
         end
         
         function ResolveToZero_DenseToSparse(testCase)
-           [actual_sparse, actual_subs] =npatk('make_symmetric', ...
-                                               'sparse', ...
-                                               testCase.C_input_dense);
-           testCase.verifyEqual(actual_sparse, testCase.C_expected_sparse);
-           testCase.verifyEqual(actual_subs, testCase.C_expected_subs);
+            testCase.rtz_case.DenseToSparse(testCase);
         end
         
         function ResolveToZero_SparseToDense(testCase)
-           [actual_dense, actual_subs] =npatk('make_symmetric', ...
-                                              'dense', ...
-                                              testCase.C_input_sparse);
-           testCase.verifyEqual(actual_dense, testCase.C_expected_dense);
-           testCase.verifyEqual(actual_subs, testCase.C_expected_subs);
+            testCase.rtz_case.SparseToDense(testCase);
         end
         
         function ResolveToZero_SparseToSparse(testCase)
-           [actual_sparse, actual_subs] =npatk('make_symmetric', ...
-                                               'sparse', ...
-                                               testCase.C_input_sparse);
-           testCase.verifyEqual(actual_sparse, testCase.C_expected_sparse);
-           testCase.verifyEqual(actual_subs, testCase.C_expected_subs);
+            testCase.rtz_case.SparseToSparse(testCase);
         end
-      
+        
         function ResolveToZero_StringToDense(testCase)
-           [actual_dense, actual_subs] =npatk('make_symmetric', ...
-                                              'dense', ...
-                                              testCase.C_input_string);
-           testCase.verifyEqual(actual_dense, testCase.C_expected_dense);
-           testCase.verifyEqual(actual_subs, testCase.C_expected_subs);
+            testCase.rtz_case.StringToDense(testCase);
         end
         
         function ResolveToZero_StringToSparse(testCase)
-           [actual_sparse, actual_subs] =npatk('make_symmetric', ...
-                                               'sparse', ...
-                                                testCase.C_input_string);
-           testCase.verifyEqual(actual_sparse, testCase.C_expected_sparse);
-           testCase.verifyEqual(actual_subs, testCase.C_expected_subs);
+           testCase.rtz_case.StringToSparse(testCase);
         end
+        
+        function NoChange_DenseToDense(testCase)
+            testCase.id_case.DenseToDense(testCase);            
+        end
+        
+        function NoChange_DenseToSparse(testCase)
+            testCase.id_case.DenseToSparse(testCase);
+        end
+        
+        function NoChange_SparseToDense(testCase)
+            testCase.id_case.SparseToDense(testCase);
+        end
+        
+        function NoChange_SparseToSparse(testCase)
+            testCase.id_case.SparseToSparse(testCase);
+        end
+        
+        function NoChange_StringToDense(testCase)
+            testCase.id_case.StringToDense(testCase);
+        end
+        
+        function NoChange_StringToSparse(testCase)
+           testCase.id_case.StringToSparse(testCase);
+        end
+    end
+    
+    methods (Test, TestTags={'Error'})
+        function Error_NoInput(testCase)
+            function no_in()             
+               [~, ~] = npatk('make_symmetric');
+            end
+            testCase.verifyError(@() no_in(), 'npatk:too_few_inputs');           
+        end   
+        
+          function Error_TooManyInputs(testCase)
+            function many_in()             
+               [~, ~] = npatk('make_symmetric', ...
+                              testCase.plain_case.input_dense, ...
+                              testCase.plain_case.input_dense);
+            end
+            testCase.verifyError(@() many_in(), 'npatk:too_many_inputs');           
+        end   
+              
+        function Error_NoOutput(testCase)
+            function no_out()             
+               npatk('make_symmetric', testCase.plain_case.input_dense);
+            end
+            testCase.verifyError(@() no_out(), 'npatk:too_few_outputs');
+        end  
                 
         function Error_DenseAndSparse(testCase)
             function call_sparse_and_dense()
                 [~, ~] = npatk('make_symmetric', 'sparse', 'dense', ...
-                               testCase.A_input_string);
+                               testCase.plain_case.input_dense);
             end
            testCase.verifyError(@() call_sparse_and_dense, ...
                                 'npatk:mutex_param');           
-        end          
+        end         
     end
 end

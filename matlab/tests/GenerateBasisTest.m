@@ -215,7 +215,31 @@ classdef GenerateBasisTest < matlab.unittest.TestCase
                 'sparse', 'hermitian', testCase.string_input);
             testCase.verify_herm_output_str(output_re, output_im, keys, true);
         end 
-            
+    end
+    
+    methods (Test, TestTags={'Error'})        
+        function Error_NoInput(testCase)
+            function no_in()             
+               [~, ~] = npatk('generate_basis', 'symmetric');
+            end
+            testCase.verifyError(@() no_in(), 'npatk:too_few_inputs');           
+        end   
+        
+         function Error_TooManyInputs(testCase)
+            function many_in()             
+               [~, ~] = npatk('generate_basis', 'symmetric', ...
+                              testCase.string_input, testCase.string_input);
+            end
+            testCase.verifyError(@() many_in(), 'npatk:too_many_inputs');           
+        end   
+        
+        function Error_NoOutput(testCase)
+            function no_out()             
+               npatk('generate_basis', 'symmetric', testCase.string_input);
+            end
+            testCase.verifyError(@() no_out(), 'npatk:too_few_outputs');
+        end  
+        
         function Error_DenseAndSparse(testCase)
             function call_sparse_and_dense()
                 [~, ~] = npatk('generate_basis', 'symmetric', ...

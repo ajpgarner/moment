@@ -31,11 +31,13 @@
 *.out
 *.app
 
+# Matlab autosaves
+*.asv
+
 # Matlab executables
 *.mexa64
 *.mexmaci64
 *.mexw64
-
 
 # C++ intermediate/output directories
 /.idea

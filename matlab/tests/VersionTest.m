@@ -31,7 +31,9 @@ classdef VersionTest < matlab.unittest.TestCase
             actual_struct = npatk('version', 'structured');
             testCase.verifyEqual(actual_struct, testCase.expected_struct);
         end
+    end
     
+    methods (Test, TestTags={'Error'})
         function Error_MissingParam(testCase)
             testCase.verifyError(@() npatk('version', 'cake'), ...
                 'npatk:bad_param');
