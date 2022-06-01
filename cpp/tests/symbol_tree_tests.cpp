@@ -12,6 +12,15 @@
 
 namespace NPATK::Tests {
 
+    SymbolTree& SymbolTreeFixture::create_tree(
+            std::initializer_list<Symbol> symbols,
+            std::initializer_list<SymbolPair> pairs) {
+        SymbolSet ss{std::vector<Symbol>(symbols), std::vector<SymbolPair>(pairs)};
+        ss.pack();
+        this->the_tree = std::make_unique<SymbolTree>(std::move(ss));
+        return *this->the_tree;
+    }
+
     SymbolTree& SymbolTreeFixture::create_tree(std::initializer_list<SymbolPair> pairs) {
         SymbolSet ss{std::vector<SymbolPair>(pairs)};
         ss.pack();
@@ -693,6 +702,48 @@ namespace NPATK::Tests {
 
 
 
+    TEST_F(SymbolTreeFixture, InferReal_Self) {
+        auto &pair = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{1, true}}
+                                          });
+        pair.simplify();
+        this->compare_to({Symbol{1, false}}, {});
+
+        ASSERT_EQ(pair.count_nodes(), 2);
+
+        EXPECT_TRUE(pair[0].is_zero());
+        EXPECT_TRUE(pair[0].real_is_zero);
+        EXPECT_TRUE(pair[0].im_is_zero);
+
+        EXPECT_FALSE(pair[1].is_zero());
+        EXPECT_FALSE(pair[1].real_is_zero);
+        EXPECT_TRUE(pair[1].im_is_zero);
+    }
+
+
+
+    TEST_F(SymbolTreeFixture, InferReal_Pair) {
+        auto &pair = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                                        SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}}
+                                       });
+        pair.simplify();
+        this->compare_to({Symbol{1, false}, {Symbol{2, false}}},
+                         {SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
+
+        ASSERT_EQ(pair.count_nodes(), 3);
+
+        EXPECT_TRUE(pair[0].is_zero());
+        EXPECT_TRUE(pair[0].real_is_zero);
+        EXPECT_TRUE(pair[0].im_is_zero);
+
+        EXPECT_FALSE(pair[1].is_zero());
+        EXPECT_FALSE(pair[1].real_is_zero);
+        EXPECT_TRUE(pair[1].im_is_zero);
+
+        EXPECT_FALSE(pair[2].is_zero());
+        EXPECT_FALSE(pair[2].real_is_zero);
+        EXPECT_TRUE(pair[2].im_is_zero);
+    }
+
     TEST_F(SymbolTreeFixture, Substitute_Triangle) {
         auto& tree = this->create_tree({SymbolPair{SymbolExpression{10}, SymbolExpression{20}},
                                               SymbolPair{SymbolExpression{10}, SymbolExpression{-30}}});
@@ -718,4 +769,75 @@ namespace NPATK::Tests {
 
     }
 
+
+    TEST_F(SymbolTreeFixture, Substitute_RealPair) {
+        auto &tree = this->create_tree({Symbol{1, false}},
+                                        {SymbolPair{SymbolExpression{1}, SymbolExpression{2}}}
+                                       );
+        tree.simplify();
+        this->compare_to({Symbol{1, false}, {Symbol{2, false}}},
+                         {SymbolPair{SymbolExpression{1}, SymbolExpression{2}}}, true);
+
+        ASSERT_EQ(tree.count_nodes(), 3);
+        ASSERT_FALSE(tree[1].real_is_zero);
+        ASSERT_TRUE(tree[1].im_is_zero);
+        ASSERT_FALSE(tree[2].real_is_zero);
+        ASSERT_TRUE(tree[2].im_is_zero);
+
+        auto expr_a = tree.substitute(SymbolExpression{2});
+        EXPECT_EQ(expr_a.id, 1);
+        EXPECT_EQ(expr_a.negated, false);
+        EXPECT_EQ(expr_a.conjugated, false);
+
+        auto expr_b = tree.substitute(SymbolExpression{-2});
+        EXPECT_EQ(expr_b.id, 1);
+        EXPECT_EQ(expr_b.negated, true);
+        EXPECT_EQ(expr_b.conjugated, false);
+
+        auto expr_c = tree.substitute(SymbolExpression{2, true});
+        EXPECT_EQ(expr_c.id, 1);
+        EXPECT_EQ(expr_c.negated, false);
+        EXPECT_EQ(expr_c.conjugated, false);
+
+        auto expr_d = tree.substitute(SymbolExpression{-2, true});
+        EXPECT_EQ(expr_d.id, 1);
+        EXPECT_EQ(expr_d.negated, true);
+        EXPECT_EQ(expr_d.conjugated, false);
+    }
+
+
+    TEST_F(SymbolTreeFixture, Substitute_ImaginaryPair) {
+        auto &tree = this->create_tree({Symbol{1, true, false}},
+                                       {SymbolPair{SymbolExpression{1}, SymbolExpression{2}}}
+        );
+        tree.simplify();
+        this->compare_to({Symbol{1, false}, {Symbol{2, false}}},
+                         {SymbolPair{SymbolExpression{1}, SymbolExpression{2}}}, true);
+
+        ASSERT_EQ(tree.count_nodes(), 3);
+        ASSERT_TRUE(tree[1].real_is_zero);
+        ASSERT_FALSE(tree[1].im_is_zero);
+        ASSERT_TRUE(tree[2].real_is_zero);
+        ASSERT_FALSE(tree[2].im_is_zero);
+
+        auto expr_a = tree.substitute(SymbolExpression{2});
+        EXPECT_EQ(expr_a.id, 1);
+        EXPECT_EQ(expr_a.negated, false);
+        EXPECT_EQ(expr_a.conjugated, false);
+
+        auto expr_b = tree.substitute(SymbolExpression{-2});
+        EXPECT_EQ(expr_b.id, 1);
+        EXPECT_EQ(expr_b.negated, true);
+        EXPECT_EQ(expr_b.conjugated, false);
+
+        auto expr_c = tree.substitute(SymbolExpression{2, true});
+        EXPECT_EQ(expr_c.id, 1);
+        EXPECT_EQ(expr_c.negated, true);
+        EXPECT_EQ(expr_c.conjugated, false);
+
+        auto expr_d = tree.substitute(SymbolExpression{-2, true});
+        EXPECT_EQ(expr_d.id, 1);
+        EXPECT_EQ(expr_d.negated, false);
+        EXPECT_EQ(expr_d.conjugated, false);
+    }
 }

@@ -18,6 +18,9 @@ namespace NPATK::Tests {
     protected:
         std::unique_ptr<SymbolTree> the_tree;
 
+        SymbolTree& create_tree(std::initializer_list<Symbol> symbols,
+                                std::initializer_list<SymbolPair> pairs);
+
         SymbolTree& create_tree(std::initializer_list<SymbolPair> pairs);
 
         void compare_to(std::initializer_list<SymbolPair> pairs,

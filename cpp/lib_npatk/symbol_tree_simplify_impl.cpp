@@ -90,6 +90,15 @@ namespace NPATK::detail {
 
                 child->real_is_zero = node.real_is_zero;
                 child->im_is_zero = node.im_is_zero;
+
+                // Simplify link relationships based on symbol properties
+                if (node.is_zero()) {
+                    child_link.link_type = EqualityType::equal;
+                } else if (node.real_is_zero) {
+                    child_link.link_type = simplifyPureImaginary(child_link.link_type);
+                } else if (node.im_is_zero) {
+                    child_link.link_type = simplifyPureReal(child_link.link_type);
+                }
             }
         }
     }

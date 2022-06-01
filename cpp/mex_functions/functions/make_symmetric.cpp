@@ -230,9 +230,6 @@ namespace NPATK::mex::functions {
 
 
     void MakeSymmetric::operator()(FlagArgumentRange outputs, SortedInputs&& inputs) {
-        bool debug = (inputs.flags.contains(u"debug"));
-        bool verbose = debug || (inputs.flags.contains(u"verbose"));
-
         auto unique_constraints = identify_nonsymmetric_elements(matlabEngine, inputs.inputs[0]);
 
         if (verbose) {
@@ -259,7 +256,7 @@ namespace NPATK::mex::functions {
 
         if (verbose) {
             std::stringstream ss4;
-            ss4 << "\nTree, simplified:\n" << symbol_tree;
+            ss4 << "\nTree, simplified:\n" << symbol_tree << "\n";
             NPATK::mex::print_to_console(matlabEngine, ss4.str());
         }
 
@@ -272,8 +269,8 @@ namespace NPATK::mex::functions {
         }
 
         if (outputs.size() >= 1) {
-            outputs[0] = NPATK::mex::substitute_elements_using_tree(matlabEngine, inputs.inputs[0],
-                                                                    symbol_tree, sparse_output);
+            outputs[0] = NPATK::mex::make_symmetric_using_tree(matlabEngine, inputs.inputs[0],
+                                                               symbol_tree, sparse_output);
         }
 
         if (outputs.size() >= 2) {

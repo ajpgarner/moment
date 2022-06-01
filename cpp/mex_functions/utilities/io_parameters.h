@@ -41,8 +41,8 @@ namespace NPATK::mex {
          * @param params The set of named parameters
          * @return Violating pair of names, or empty std::optional if no violations found.
          */
-        std::optional<std::pair<ParamNameStr, ParamNameStr>> validate(const NameSet& flags,
-                                                                      const NamedParameter& params) const;
+        [[nodiscard]] std::optional<std::pair<ParamNameStr, ParamNameStr>> validate(const NameSet& flags,
+                                                                                    const NamedParameter& params) const;
     };
 
     /**

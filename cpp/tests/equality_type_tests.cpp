@@ -143,6 +143,79 @@ namespace NPATK::Tests {
         EXPECT_EQ(compose(EqualityType::neg_conj, EqualityType::neg_conj), EqualityType::equal);
     }
 
+    TEST(EqualityType, SimplifyPureReal_Exxx) {
+        EqualityType type = EqualityType::equal;
+        EqualityType simplified = simplifyPureReal(type);
+        EXPECT_EQ(simplified, EqualityType::equal);
+    }
+
+    TEST(EqualityType, SimplifyPureReal_xNxx) {
+        EqualityType type = EqualityType::negated;
+        EqualityType simplified = simplifyPureReal(type);
+        EXPECT_EQ(simplified, EqualityType::negated);
+    }
+
+    TEST(EqualityType, SimplifyPureReal_xxCx) {
+        EqualityType type = EqualityType::conjugated;
+        EqualityType simplified = simplifyPureReal(type);
+        EXPECT_EQ(simplified, EqualityType::equal);
+    }
+
+    TEST(EqualityType, SimplifyPureReal_xxxT) {
+        EqualityType type = EqualityType::neg_conj;
+        EqualityType simplified = simplifyPureReal(type);
+        EXPECT_EQ(simplified, EqualityType::negated);
+    }
+
+    TEST(EqualityType, SimplifyPureReal_ExCx) {
+        EqualityType type = EqualityType::equal | EqualityType::conjugated;
+        EqualityType simplified = simplifyPureReal(type);
+        EXPECT_EQ(simplified, EqualityType::equal);
+    }
+
+    TEST(EqualityType, SimplifyPureReal_xNxT) {
+        EqualityType type = EqualityType::negated | EqualityType::neg_conj;
+        EqualityType simplified = simplifyPureReal(type);
+        EXPECT_EQ(simplified, EqualityType::negated);
+    }
+
+
+    TEST(EqualityType, SimplifyPureImaginary_Exxx) {
+        EqualityType type = EqualityType::equal;
+        EqualityType simplified = simplifyPureImaginary(type);
+        EXPECT_EQ(simplified, EqualityType::equal);
+    }
+
+    TEST(EqualityType, SimplifyPureImaginary_xNxx) {
+        EqualityType type = EqualityType::negated;
+        EqualityType simplified = simplifyPureImaginary(type);
+        EXPECT_EQ(simplified, EqualityType::negated);
+    }
+
+    TEST(EqualityType, SimplifyPureImaginary_xxCx) {
+        EqualityType type = EqualityType::conjugated;
+        EqualityType simplified = simplifyPureImaginary(type);
+        EXPECT_EQ(simplified, EqualityType::negated);
+    }
+
+    TEST(EqualityType, SimplifyPureImaginary_xxxT) {
+        EqualityType type = EqualityType::neg_conj;
+        EqualityType simplified = simplifyPureImaginary(type);
+        EXPECT_EQ(simplified, EqualityType::equal);
+    }
+
+    TEST(EqualityType, SimplifyPureImaginary_ExxT) {
+        EqualityType type = EqualityType::equal | EqualityType::neg_conj;
+        EqualityType simplified = simplifyPureImaginary(type);
+        EXPECT_EQ(simplified, EqualityType::equal);
+    }
+
+    TEST(EqualityType, SimplifyPureImaginary_xNCx) {
+        EqualityType type = EqualityType::negated | EqualityType::conjugated;
+        EqualityType simplified = simplifyPureImaginary(type);
+        EXPECT_EQ(simplified, EqualityType::negated);
+    }
+
     TEST(EqualityType, TestZero_Exxx) {
         auto [real_is_zero, im_is_zero] = implies_zero(EqualityType::equal);
         EXPECT_FALSE(real_is_zero);
@@ -227,5 +300,6 @@ namespace NPATK::Tests {
         EXPECT_TRUE(real_is_zero) << "Should be imaginary number";
         EXPECT_FALSE(im_is_zero) << "Should be imaginary number";
     }
+
 
 }

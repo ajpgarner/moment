@@ -27,7 +27,7 @@ namespace NPATK::mex::functions {
 
     void Version::operator()(FlagArgumentRange output, SortedInputs&& input) {
         size_t num_outputs = output.size();
-        if ((0 == num_outputs) || input.flags.contains(u"verbose")) {
+        if ((0 == num_outputs) || this->verbose) {
             std::stringstream ss;
             ss << NPATK::version::PROJECT_NAME << ", "
                << "v" << NPATK::version::VERSION_MAJOR

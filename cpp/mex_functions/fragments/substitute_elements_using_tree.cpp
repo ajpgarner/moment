@@ -1,5 +1,5 @@
 /**
- * substitute_elements_using_tree.cpp
+ * make_symmetric_using_tree.cpp
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
@@ -161,15 +161,37 @@ namespace NPATK::mex {
         static_assert(concepts::VisitorHasRealDense<MakeSparseSymMatrixVisitor>);
         static_assert(concepts::VisitorHasRealSparse<MakeSparseSymMatrixVisitor>);
         static_assert(concepts::VisitorHasString<MakeSparseSymMatrixVisitor>);
+
+
     }
 
-    matlab::data::Array substitute_elements_using_tree(matlab::engine::MATLABEngine& engine,
-                                        const matlab::data::Array& the_array,
-                                        const SymbolTree& tree, bool sparse_output) {
+    matlab::data::Array make_symmetric_using_tree(matlab::engine::MATLABEngine& engine,
+                                                  const matlab::data::Array& the_array,
+                                                  const SymbolTree& tree, bool sparse_output) {
         if (sparse_output) {
             return DispatchVisitor(engine, the_array, MakeSparseSymMatrixVisitor{engine, tree});
         }
 
         return DispatchVisitor(engine, the_array, MakeDenseSymMatrixVisitor{engine, tree});
+    }
+
+    matlab::data::TypedArray<matlab::data::MATLABString> make_hermitian_using_tree(
+            matlab::engine::MATLABEngine &engine,
+            const matlab::data::TypedArray<matlab::data::MATLABString> &input,
+            const SymbolTree &tree) {
+
+        matlab::data::ArrayFactory factory;
+
+        const auto matrix_dims = input.getDimensions();
+        auto output = factory.createArray<matlab::data::MATLABString>(matrix_dims);
+
+        for (size_t row = 0; row < matrix_dims[0]; ++row) {
+            for (size_t col = 0; col < matrix_dims[1]; ++col) {
+                NPATK::SymbolExpression existing_symbol{read_symbol_or_fail(engine, input, row, col)};
+                NPATK::SymbolExpression new_symbol = tree.substitute(existing_symbol);
+                output[row][col] = new_symbol.as_string();
+            }
+        }
+        return output;
     }
 }

@@ -7,8 +7,6 @@
 #include "io_parameters.h"
 
 #include <algorithm>
-#include <ranges>
-
 
 namespace NPATK::mex {
 

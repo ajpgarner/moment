@@ -396,9 +396,6 @@ namespace NPATK::mex::functions {
     }
 
     void GenerateBasis::operator()(FlagArgumentRange output, SortedInputs &&input) {
-        bool debug = input.flags.contains(u"debug");
-        bool verbose = debug || input.flags.contains(u"verbose");
-
         IndexMatrixProperties::MatrixType basis_type = IndexMatrixProperties::MatrixType::Symmetric;
         if (input.flags.contains(u"symmetric")) {
             basis_type = IndexMatrixProperties::MatrixType::Symmetric;

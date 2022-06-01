@@ -41,6 +41,12 @@ namespace NPATK::mex {
         // Check inputs are in range, and are valid
         this->validate_inputs(*the_function, processed_inputs);
 
+        // Preprocess
+        bool is_debug = processed_inputs.flags.contains(u"debug");
+        bool is_verbose = is_debug || processed_inputs.flags.contains(u"verbose");
+        the_function->setDebug(is_debug);
+        the_function->setVerbose(is_verbose);
+
         // Execute function
         (*the_function)(outputs, std::move(processed_inputs));
 

@@ -33,6 +33,9 @@ namespace NPATK::mex::functions {
         size_t min_inputs = 0;
         size_t max_inputs = 0;
 
+        bool debug = false;
+        bool verbose = false;
+
     public:
         const MEXEntryPointID function_id;
         const std::basic_string<char16_t> function_name;
@@ -76,6 +79,8 @@ namespace NPATK::mex::functions {
             return {min_inputs, max_inputs};
         }
 
+        void setDebug(bool val = true) noexcept { this->debug = val; }
+        void setVerbose(bool val = true) noexcept { this->verbose = val; }
 
     };
 }

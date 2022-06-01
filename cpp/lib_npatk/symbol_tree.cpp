@@ -310,8 +310,18 @@ namespace NPATK {
             return SymbolExpression{0};
         }
 
-        canon_expr.negated = (canon_expr.negated != expr.negated);
         canon_expr.conjugated = (canon_expr.conjugated != expr.conjugated);
+        canon_expr.negated = (canon_expr.negated != expr.negated);
+
+        // Pure imaginary node..., convert * to -
+        if (node.real_is_zero && canon_expr.conjugated) {
+                canon_expr.conjugated = false;
+                canon_expr.negated = !canon_expr.negated;
+        }
+        // Pure real node
+        if (node.im_is_zero) {
+            canon_expr.conjugated = false;
+        }
 
         return canon_expr;
     }

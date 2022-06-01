@@ -36,6 +36,14 @@ namespace NPATK {
         lhs = static_cast<EqualityType>(static_cast<uint8_t>(lhs) | static_cast<uint8_t>(rhs));
     }
 
+    constexpr EqualityType operator>>(EqualityType lhs, uint8_t rhs) {
+        return static_cast<EqualityType>(static_cast<uint8_t>(lhs) >> rhs);
+    }
+
+    constexpr EqualityType operator<<(EqualityType lhs, uint8_t rhs) {
+        return static_cast<EqualityType>(static_cast<uint8_t>(lhs) << rhs);
+    }
+
     /**
      * Swaps equal <-> negate, and conjugated <-> neg_conjugated
      */
@@ -105,6 +113,17 @@ namespace NPATK {
         }
 
         return output;
+    }
+
+    [[nodiscard]] constexpr EqualityType simplifyPureReal(EqualityType type) {
+        return (type | (type >> 2))
+                    & (EqualityType::equal | EqualityType::negated);
+    }
+
+    [[nodiscard]] constexpr EqualityType simplifyPureImaginary(EqualityType type) {
+        return (type | ((type & (EqualityType::conjugated | EqualityType::neg_conj)) >> 1)
+                    | ((type & (EqualityType::conjugated | EqualityType::neg_conj)) >> 3))
+                    & (EqualityType::equal | EqualityType::negated);
     }
 
     /**
