@@ -9,6 +9,7 @@
 #include "symbol_tree.h"
 
 #include "fragments/export_substitution_list.h"
+#include "fragments/export_symbol_properties.h"
 #include "fragments/substitute_elements_using_tree.h"
 #include "fragments/read_symbol_or_fail.h"
 #include "utilities/reporting.h"
@@ -20,9 +21,9 @@ namespace NPATK::mex::functions  {
 
 
     MakeHermitian::MakeHermitian(matlab::engine::MATLABEngine &matlabEngine)
-            : MexFunction(matlabEngine, MEXEntryPointID::MakeSymmetric, u"make_hermitian") {
+            : MexFunction(matlabEngine, MEXEntryPointID::MakeHermitian, u"make_hermitian") {
         this->min_outputs = 1;
-        this->max_outputs = 2;
+        this->max_outputs = 3;
         this->min_inputs = 1;
         this->max_inputs = 1;
     }
@@ -148,6 +149,10 @@ namespace NPATK::mex::functions  {
 
         if (outputs.size() >= 2) {
             outputs[1] = NPATK::mex::export_substitution_list(matlabEngine, symbol_tree);
+        }
+
+        if (outputs.size() >= 3) {
+            outputs[2] = NPATK::mex::export_symbol_properties(matlabEngine, symbol_tree);
         }
 
     }

@@ -13,5 +13,4 @@
 namespace NPATK::mex {
     [[nodiscard]] matlab::data::Array export_substitution_list(matlab::engine::MATLABEngine& engine,
                                                        const SymbolTree& tree);
-
 }
