@@ -1,4 +1,4 @@
-classdef MakeHermitianTest < matlab.unittest.TestCase
+classdef MakeHermitianTest < NPATKTestBase
     %MAKEHERMITIANTEST Unit tests for make_hermitian function    
     properties(Constant)
         NoChange_case = MakeHermitianTest_Case(...
@@ -18,20 +18,6 @@ classdef MakeHermitianTest < matlab.unittest.TestCase
                     
     end
     
-    
-    methods(TestMethodSetup)
-        function addNPATKpath(testCase)
-            import matlab.unittest.fixtures.PathFixture
-            testCase.applyFixture(PathFixture([".."]));
-        end
-    end
-    
-    methods(TestMethodTeardown)
-        function clearNPATK(testCase)
-            clear npatk
-        end
-    end
-      
     methods (Test)
         function NoChange(testCase)
             testCase.NoChange_case.StringToString(testCase)

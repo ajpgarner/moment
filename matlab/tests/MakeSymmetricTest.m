@@ -1,4 +1,4 @@
-classdef MakeSymmetricTest < matlab.unittest.TestCase
+classdef MakeSymmetricTest < NPATKTestBase
     %MAKESYMMETRICTEST Unit tests for make_symmetric function
     
     properties(Constant)
@@ -21,19 +21,6 @@ classdef MakeSymmetricTest < matlab.unittest.TestCase
                                 [[1,2,3];[2,4,5];[3,5,6]], ...
                                 [[1,2,3];[2,4,5];[3,5,6]], ...
                                 [[]]);
-    end
-    
-    methods(TestMethodSetup)
-        function addNPATKpath(testCase)
-            import matlab.unittest.fixtures.PathFixture
-            testCase.applyFixture(PathFixture([".."]));
-        end
-    end
-    
-    methods(TestMethodTeardown)
-        function clearNPATK(testCase)
-            clear npatk
-        end
     end
       
     methods (Test)

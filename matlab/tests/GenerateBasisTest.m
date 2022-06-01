@@ -1,4 +1,4 @@
-classdef GenerateBasisTest < matlab.unittest.TestCase
+classdef GenerateBasisTest < NPATKTestBase
     %GENERATEBASISTEST Unit tests for generate_basis function
     
     properties(Constant)
@@ -35,20 +35,7 @@ classdef GenerateBasisTest < matlab.unittest.TestCase
        string_expected_im_sparse = {0, sparse([[0, -1i];[1i, 0]])}
        
     end
-    
-    methods(TestMethodSetup)
-        function addNPATKpath(testCase)
-            import matlab.unittest.fixtures.PathFixture
-            testCase.applyFixture(PathFixture([".."]));
-        end
-    end
-    
-    methods(TestMethodTeardown)
-        function clearNPATK(testCase)
-            clear npatk
-        end
-    end
-    
+        
     methods
         function verify_sym_output(testCase, output, keys, sparse)
             testCase.assertSize(keys, [5, 2])

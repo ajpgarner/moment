@@ -1,5 +1,5 @@
-classdef VersionTest < matlab.unittest.TestCase
-    %GENERATEBASISTEST Unit tests for version function
+classdef VersionTest < NPATKTestBase
+    %VERSIONTEST Unit tests for version function
     
     properties(Constant)
         expected_string = '0.1.0';
@@ -7,20 +7,7 @@ classdef VersionTest < matlab.unittest.TestCase
                                  'minor', int64(1), ...
                                  'build', int64(0));
     end
-       
-    methods(TestMethodSetup)
-        function addNPATKpath(testCase)
-            import matlab.unittest.fixtures.PathFixture
-            testCase.applyFixture(PathFixture([".."]));
-        end
-    end
-    
-    methods(TestMethodTeardown)
-        function clearNPATK(testCase)
-            clear npatk
-        end
-    end
-    
+
     methods (Test)
         function Version_String(testCase)
             actual_string = npatk('version');
