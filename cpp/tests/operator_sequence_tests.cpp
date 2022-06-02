@@ -319,5 +319,74 @@ namespace NPATK::Tests {
     }
 
 
+    TEST(OperatorSequence, Sequence_Append_AB_listBBA) {
+        Operator memA{1, Party{1}, true};
+        Operator memB{2, Party{1}, true};
 
+        std::list<Operator> appList{memB, memB, memA};
+
+        OperatorSequence seq{memA, memB};
+
+        seq.append(appList.cbegin(), appList.cend());
+        OperatorSequence seqABA{memA, memB, memA};
+        EXPECT_EQ(seq, seqABA);
+    }
+
+    TEST(OperatorSequence, Sequence_Append_AB_vecBBA) {
+        Operator memA{1, Party{1}, true};
+        Operator memB{2, Party{1}, true};
+
+        std::vector<Operator> appVec{memB, memB, memA};
+
+        OperatorSequence seq{memA, memB};
+
+        seq.append(appVec.cbegin(), appVec.cend());
+        OperatorSequence seqABA{memA, memB, memA};
+        EXPECT_EQ(seq, seqABA);
+    }
+
+    TEST(OperatorSequence, Sequence_Append_ABC_initBBA) {
+        Operator memA{1, Party{1}, true};
+        Operator memB{2, Party{1}, true};
+        Operator memC{3, Party{2}, true};
+
+        OperatorSequence seq{memA, memB, memC};
+        seq.append({memB, memB, memA});
+        OperatorSequence seqABAC{memA, memB, memA, memC};
+        EXPECT_EQ(seq, seqABAC);
+    }
+
+    TEST(OperatorSequence, Sequence_Concat_AB_AB) {
+        Operator memA{1, Party{1}, true};
+        Operator memB{2, Party{1}, true};
+
+        OperatorSequence seqAB{memA, memB};
+        OperatorSequence seqABAB{memA, memB, memA, memB};
+
+        auto concat = seqAB * seqAB;
+        EXPECT_EQ(concat, seqABAB);
+    }
+
+
+    TEST(OperatorSequence, Sequence_Concat_ABconj_AB) {
+        Operator memA{1, Party{1}, true};
+        Operator memB{2, Party{1}, true};
+
+        OperatorSequence seqAB{memA, memB};
+        OperatorSequence seqBAB{memB, memA, memB};
+
+        auto concat = seqAB.conjugate() * seqAB;
+        EXPECT_EQ(concat, seqBAB);
+    }
+
+    TEST(OperatorSequence, Sequence_Concat_AB_ABconj) {
+        Operator memA{1, Party{1}, true};
+        Operator memB{2, Party{1}, true};
+
+        OperatorSequence seqAB{memA, memB};
+        OperatorSequence seqABA{memA, memB, memA};
+
+        auto concat = seqAB * seqAB.conjugate();
+        EXPECT_EQ(concat, seqABA);
+    }
 }
