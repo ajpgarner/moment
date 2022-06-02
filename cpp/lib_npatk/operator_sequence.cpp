@@ -8,10 +8,6 @@
 #include <algorithm>
 #include <iostream>
 
-std::ostream &NPATK::operator<<(std::ostream &os, const NPATK::Operator &op) {
-    os << op.party.id << "_" << op.id;
-    return os;
-}
 
 
 std::ostream &NPATK::operator<<(std::ostream &os, const NPATK::OperatorSequence &seq) {
@@ -27,25 +23,24 @@ std::ostream &NPATK::operator<<(std::ostream &os, const NPATK::OperatorSequence 
 }
 
 void NPATK::OperatorSequence::to_canonical_form() noexcept {
+    // Remove identity elements
+    auto trim_id = std::remove_if(this->constituents.begin(), this->constituents.end(),
+                                  [](Operator& op) { return op.identity();});
+    this->constituents.erase(trim_id, this->constituents.end());
+
     // Group first by party (preserving ordering within each party)
     std::stable_sort(this->constituents.begin(), this->constituents.end(),
                      Operator::PartyComparator{});
 
-    // Remove idempotent elements.
-    auto trim = std::unique(this->constituents.begin(), this->constituents.end(),
+    // Remove excess idempotent elements.
+    auto trim_idem = std::unique(this->constituents.begin(), this->constituents.end(),
                      Operator::IsRedundant{});
-    this->constituents.erase(trim, this->constituents.end());
+    this->constituents.erase(trim_idem, this->constituents.end());
 }
 
 NPATK::OperatorSequence NPATK::OperatorSequence::conjugate() const {
-    OperatorSequence output{};
-    output.constituents.reserve(this->constituents.size());
-
-    std::copy(this->constituents.crbegin(), this->constituents.crend(),
-              std::back_inserter(output.constituents));
-
-    // Do commutation, etc.
+    OperatorSequence output{*this};
+    std::reverse(output.constituents.begin(), output.constituents.end());
     output.to_canonical_form();
-
     return output;
 }

@@ -5,65 +5,13 @@
  */
 #pragma once
 
-#include "symbol.h"
+#include "operator.h"
 
 #include <vector>
 #include <iterator>
 #include <iosfwd>
 
 namespace NPATK {
-
-    struct Party {
-        symbol_name_t id;
-        constexpr explicit Party(symbol_name_t party_id) noexcept : id{party_id} { }
-
-        constexpr bool operator<(const Party& rhs) const noexcept {
-            return this->id < rhs.id;
-        }
-        constexpr bool operator==(const Party& rhs) const noexcept {
-            return this->id == rhs.id;
-        }
-        constexpr bool operator!=(const Party& rhs) const noexcept {
-            return this->id != rhs.id;
-        }
-    };
-
-    struct Operator {
-    public:
-        /**
-         * Predicate: true if the party ID of LHS is less than that of RHS.
-         */
-        struct PartyComparator {
-            constexpr bool operator()(const Operator& lhs, const Operator& rhs) const noexcept {
-                return lhs.party < rhs.party;
-            }
-        };
-
-        /**
-         * Predicate: true if lhs = rhs, and lhs is idempotent.
-         * I.e., true if 'AB' can be replaced by 'A'.
-         */
-        struct IsRedundant {
-            constexpr bool operator()(const Operator& lhs, const Operator& rhs) const noexcept {
-                return lhs.idempotent && (lhs == rhs);
-            }
-        };
-
-    public:
-        symbol_name_t id;
-        Party party;
-        bool idempotent = false;
-
-        constexpr Operator(symbol_name_t name, Party who, bool idem = false) noexcept
-            : id{name}, party{who}, idempotent{idem} { }
-
-
-        friend std::ostream& operator<<(std::ostream& os, const Operator& seq);
-
-        constexpr bool operator==(const Operator& rhs) const noexcept {
-            return (this->id == rhs.id) && (this->party == rhs.party);
-        }
-    };
 
     class OperatorSequence {
     private:

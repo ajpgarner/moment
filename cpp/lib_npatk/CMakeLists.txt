@@ -3,6 +3,8 @@ include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 add_library(lib_npatk
         equality_type.cpp
         index_matrix_properties.cpp
+        operator.cpp
+        operator_collection.cpp
         operator_sequence.cpp
         symbol.cpp
         symbol_set.cpp
