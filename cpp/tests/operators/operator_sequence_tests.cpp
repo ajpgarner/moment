@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 
 #include "operators/operator_sequence.h"
+#include "operators/operator_collection.h"
 
 namespace NPATK::Tests {
     TEST(OperatorSequence, Sequence_Empty) {
@@ -245,5 +246,30 @@ namespace NPATK::Tests {
 
         auto concat = seqAB * seqAB.conjugate();
         EXPECT_EQ(concat, seqABA);
+    }
+
+    TEST(OperatorSequence, WithContext_MutexZero) {
+        OperatorCollection collection{3};
+        ASSERT_EQ(collection.Parties.size(), 1);
+        auto& alice = collection.Parties[0];
+        ASSERT_EQ(alice.size(), 3);
+        alice.add_mutex(1, 2);
+        ASSERT_TRUE(alice.exclusive(1, 2));
+        ASSERT_TRUE(alice.exclusive(2, 1));
+
+        OperatorSequence seq01({alice[0], alice[1]}, &collection);
+        ASSERT_EQ(seq01.size(), 2);
+        EXPECT_EQ(seq01[0], alice[0]);
+        EXPECT_EQ(seq01[1], alice[1]);
+        EXPECT_FALSE(seq01.zero());
+
+        OperatorSequence seq12({alice[1], alice[2]}, &collection);
+        ASSERT_EQ(seq12.size(), 0);
+        EXPECT_TRUE(seq12.zero());
+
+        OperatorSequence seq21({alice[2], alice[1]}, &collection);
+        ASSERT_EQ(seq21.size(), 0);
+        EXPECT_TRUE(seq21.zero());
+
     }
 }

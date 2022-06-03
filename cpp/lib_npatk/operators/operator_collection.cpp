@@ -1,5 +1,7 @@
-/*
- * (c) 2022-2022 Austrian Academy of Sciences.
+/**
+ * operator_collection.cpp
+ *
+ * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "operator_collection.h"
 
@@ -51,6 +53,37 @@ namespace NPATK {
             ++p;
         }
         return output;
+    }
+
+    std::pair<std::vector<Operator>::iterator, bool>
+    OperatorCollection::additional_simplification(std::vector<Operator>::iterator start,
+                                                  std::vector<Operator>::iterator end) const noexcept {
+        // Do nothing on empty set
+        if (start == end) {
+            return {end, false};
+        }
+
+        // Look for mutually exclusive operators
+        auto lhs_iter = start;
+        auto rhs_iter = start + 1;
+
+        while (rhs_iter != end) {
+            // Only do comparison if operators are in same party...
+            if (lhs_iter->party.id == rhs_iter->party.id) {
+                assert(lhs_iter->party.id < this->parties.size());
+                const auto& party = this->parties[lhs_iter->party.id];
+                // If mutually-exclusive operators are found next to each other, whole sequence is zero.
+                if (party.exclusive(lhs_iter->id, rhs_iter->id)) {
+                    return {start, true};
+                }
+            }
+
+            // Advance iterators
+            lhs_iter = rhs_iter;
+            ++rhs_iter;
+        }
+
+        return {end, false};
     }
 
 }

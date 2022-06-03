@@ -42,6 +42,26 @@ namespace NPATK::Tests {
     }
 
 
+    TEST(OperatorCollection, PartyInfo_Mutex) {
+        PartyInfo party(5, 3);
+
+        EXPECT_EQ(party.id, 5);
+        EXPECT_EQ(party.name, "5");
+        ASSERT_EQ(party.size(), 3);
+
+        party.add_mutex(1, 2);
+        EXPECT_FALSE(party.exclusive(0, 0));
+        EXPECT_FALSE(party.exclusive(0, 1));
+        EXPECT_FALSE(party.exclusive(0, 2));
+        EXPECT_FALSE(party.exclusive(1, 0));
+        EXPECT_FALSE(party.exclusive(1, 1));
+        EXPECT_TRUE(party.exclusive(1, 2));
+        EXPECT_FALSE(party.exclusive(2, 0));
+        EXPECT_TRUE(party.exclusive(2, 1));
+        EXPECT_FALSE(party.exclusive(2, 2));
+    }
+
+
     TEST(OperatorCollection, Construct_Empty) {
         OperatorCollection npa_gen(0, 0);
         ASSERT_EQ(npa_gen.Parties.size(), 0);

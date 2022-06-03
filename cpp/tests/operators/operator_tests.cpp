@@ -78,7 +78,6 @@ namespace NPATK::Tests {
         EXPECT_FALSE(opB == opA1);
         EXPECT_FALSE(opA1 == opC);
         EXPECT_FALSE(opC == opA1);
-
     }
 
     TEST(Operator, Operator_CompareNotEqual) {

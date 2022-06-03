@@ -42,9 +42,7 @@ namespace NPATK {
             /** Operator is the identity element */
             Identity = 0x01,
             /** Operator X^2 = X */
-            Idempotent = 0x02,
-            /** Operator is zero element */
-            Zero = 0x04
+            Idempotent = 0x02
         };
 
         friend constexpr Flags operator|(Flags lhs, Flags rhs) noexcept {
@@ -89,6 +87,7 @@ namespace NPATK {
 
         constexpr bool operator==(const Operator &rhs) const noexcept {
             return (this->id == rhs.id) && (this->party == rhs.party);
+            // undefined to have same party & id, w/ different flags && (this->flags == rhs.flags);
         }
 
         /** True if X^2 = X */
@@ -100,6 +99,5 @@ namespace NPATK {
         [[nodiscard]] constexpr bool identity() const noexcept {
             return (this->flags & Flags::Identity) == Flags::Identity;
         }
-
     };
 }

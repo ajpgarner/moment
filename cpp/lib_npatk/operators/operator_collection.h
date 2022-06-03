@@ -1,14 +1,17 @@
-/*
- * (c) 2022-2022 Austrian Academy of Sciences.
+/**
+ * operator_collection.h
+ *
+ * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
 #include "operator.h"
 
 #include <cassert>
 
+#include <iterator>
+#include <set>
 #include <string>
 #include <vector>
-#include <iterator>
 
 namespace NPATK {
 
@@ -18,6 +21,7 @@ namespace NPATK {
     private:
         size_t global_offset = 0;
         std::vector<Operator> operators;
+        std::set<std::pair<oper_name_t, oper_name_t>> mutex;
 
     public:
         PartyInfo(party_name_t id, std::string named, oper_name_t num_opers,
@@ -27,25 +31,37 @@ namespace NPATK {
                            size_t global_offset = 0, Operator::Flags default_flags = Operator::Flags::None)
             : PartyInfo(id, std::to_string(id), num_opers, global_offset, default_flags) { }
 
-        [[nodiscard]] auto begin() const noexcept { return this->operators.begin(); }
+        [[nodiscard]] constexpr auto begin() const noexcept { return this->operators.begin(); }
 
-        [[nodiscard]] auto end() const noexcept { return this->operators.end(); }
+        [[nodiscard]] constexpr auto end() const noexcept { return this->operators.end(); }
 
-        Operator& operator[](size_t index)  noexcept {
+        constexpr Operator& operator[](size_t index)  noexcept {
             assert(index < operators.size());
             return this->operators[index];
         }
 
-        const Operator& operator[](size_t index) const noexcept {
+        constexpr const Operator& operator[](size_t index) const noexcept {
             assert(index < operators.size());
             return this->operators[index];
         }
 
-        [[nodiscard]] size_t size() const noexcept { return this->operators.size(); }
+        void add_mutex(oper_name_t lhs_id, oper_name_t rhs_id) {
+            if (lhs_id < rhs_id) {
+                this->mutex.emplace(std::make_pair(lhs_id, rhs_id));
+            } else {
+                this->mutex.emplace(std::make_pair(rhs_id, lhs_id));
+            }
+        }
 
-        [[nodiscard]] bool empty() const noexcept { return this->operators.empty(); }
+        [[nodiscard]] constexpr bool exclusive(oper_name_t lhs_id, oper_name_t rhs_id) const noexcept {
+            return mutex.contains((lhs_id < rhs_id) ? std::make_pair(lhs_id, rhs_id) : std::make_pair(rhs_id, lhs_id));
+        };
 
-        [[nodiscard]] size_t offset() const noexcept { return this->global_offset; }
+        [[nodiscard]] constexpr size_t size() const noexcept { return this->operators.size(); }
+
+        [[nodiscard]] constexpr bool empty() const noexcept { return this->operators.empty(); }
+
+        [[nodiscard]] constexpr size_t offset() const noexcept { return this->global_offset; }
     };
 
     class OperatorCollection {
@@ -173,6 +189,16 @@ namespace NPATK {
         }
 
         [[nodiscard]] constexpr size_t size() const noexcept { return this->total_operator_count; }
+
+        /**
+         * Use additional context to simplify operator string.
+         * @param start The start of the string of operators
+         * @param end  The end of the string of operators
+         * @return The new end of the string of operators (could be different from end, if operators are removed)
+         */
+         [[nodiscard]] std::pair<std::vector<Operator>::iterator, bool>
+         additional_simplification(std::vector<Operator>::iterator start,
+                                  std::vector<Operator>::iterator end) const noexcept;
 
     private:
         static std::vector<PartyInfo> make_party_list(party_name_t num_parties, oper_name_t opers_per_party,

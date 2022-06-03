@@ -1,7 +1,7 @@
 /*
  * multi_operator_iterator.h
  *
- * (c) 2022-2022 Austrian Academy of Sciences.
+ * (c) 2022 Austrian Academy of Sciences.
  */
 #pragma once
 #include "operator_collection.h"

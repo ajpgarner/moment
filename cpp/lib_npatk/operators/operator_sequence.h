@@ -1,7 +1,7 @@
-/*
- * (c) 2022-2022 Austrian Academy of Sciences.
+/**
+ * operator_sequence.h
  *
- * NPAToolKit is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
 
@@ -20,7 +20,9 @@ namespace NPATK {
     class OperatorSequence {
     private:
         std::vector<Operator> constituents{};
-        OperatorCollection * context = nullptr;
+        const OperatorCollection * context = nullptr;
+        bool is_zero = false;
+        bool is_hermitian = false;
 
     public:
         constexpr OperatorSequence() = default;
@@ -30,8 +32,8 @@ namespace NPATK {
             this->to_canonical_form();
         }
 
-        explicit OperatorSequence(std::vector<Operator>&& operators)
-                : constituents(std::move(operators)) {
+        explicit OperatorSequence(std::vector<Operator>&& operators, const OperatorCollection * context = nullptr)
+                : constituents(std::move(operators)), context{context} {
             this->to_canonical_form();
         }
 
@@ -45,9 +47,20 @@ namespace NPATK {
 
         [[nodiscard]] constexpr auto end() const noexcept { return this->constituents.cend(); }
 
+        /**
+         * True if no operators in sequence. Mathematically, this can be interpreted as either the identity operator
+         *  if zero() returns false, or as the zero operator if zero() returns true.
+         */
         [[nodiscard]] constexpr bool empty() const noexcept { return this->constituents.empty(); }
 
         [[nodiscard]] constexpr size_t size() const noexcept { return this->constituents.size(); }
+
+        /**
+         * True if the sequence represents zero.
+         */
+        [[nodiscard]] constexpr bool zero() const noexcept {
+            return this->is_zero;
+        }
 
         [[nodiscard]] constexpr const Operator& operator[](size_t i) const noexcept {
             assert(i < this->constituents.size());
@@ -58,12 +71,19 @@ namespace NPATK {
             if (this->constituents.size() != rhs.constituents.size()) {
                 return false;
             }
+            if (this->is_zero != rhs.is_zero) {
+                return false;
+            }
             for (size_t i = 0, iMax = this->constituents.size(); i < iMax; ++i) {
                 if (this->constituents[i] != rhs.constituents[i]) {
                     return false;
                 }
             }
             return true;
+        }
+
+        constexpr bool operator!=(const OperatorSequence& rhs) const noexcept {
+            return !(*this == rhs);
         }
 
         friend std::ostream& operator<<(std::ostream& os, const OperatorSequence& seq);
