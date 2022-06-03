@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "operator.h"
+#include "operators/operator.h"
 
 namespace NPATK::Tests {
     TEST(Operator, Party_Construct) {

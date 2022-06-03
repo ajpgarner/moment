@@ -37,9 +37,14 @@ namespace NPATK {
     struct Operator {
     public:
         enum class Flags : uint8_t {
+            /** No flags set */
             None = 0x00,
+            /** Operator is the identity element */
             Identity = 0x01,
-            Idempotent = 0x02
+            /** Operator X^2 = X */
+            Idempotent = 0x02,
+            /** Operator is zero element */
+            Zero = 0x04
         };
 
         friend constexpr Flags operator|(Flags lhs, Flags rhs) noexcept {

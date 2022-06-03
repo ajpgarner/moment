@@ -5,7 +5,7 @@
  */
 #include "gtest/gtest.h"
 
-#include "operator_sequence.h"
+#include "operators/operator_sequence.h"
 
 namespace NPATK::Tests {
     TEST(OperatorSequence, Sequence_Empty) {

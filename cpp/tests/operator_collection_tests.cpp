@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "operator_collection.h"
+#include "operators/operator_collection.h"
 
 namespace NPATK::Tests {
 
