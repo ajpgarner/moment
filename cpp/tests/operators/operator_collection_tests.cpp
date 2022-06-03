@@ -1,7 +1,5 @@
-/**
- * npa_generator_tests.cpp
- * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+/*
+ * (c) 2022-2022 Austrian Academy of Sciences.
  */
 
 #include "gtest/gtest.h"
@@ -52,10 +50,13 @@ namespace NPATK::Tests {
         auto iter_begin = npa_gen.begin();
         auto iter_end = npa_gen.end();
         EXPECT_EQ(iter_begin, iter_end);
+
+        EXPECT_EQ(npa_gen.size(), 0);
     }
 
     TEST(OperatorCollection, Construct_2x2) {
         OperatorCollection npa_gen(2, 2);
+        ASSERT_EQ(npa_gen.size(), 4);
         ASSERT_EQ(npa_gen.Parties.size(), 2);
         ASSERT_FALSE(npa_gen.Parties.empty());
 
@@ -112,6 +113,7 @@ namespace NPATK::Tests {
 
     TEST(OperatorCollection, Construct_3_2) {
         OperatorCollection npa_gen({3, 2});
+        ASSERT_EQ(npa_gen.size(), 5);
 
         ASSERT_EQ(npa_gen.Parties.size(), 2);
         ASSERT_FALSE(npa_gen.Parties.empty());
@@ -178,6 +180,7 @@ namespace NPATK::Tests {
 
     TEST(OperatorCollection, Construct_SpecDefaultFlags) {
         OperatorCollection npa_gen(4, 3, Operator::Flags::Idempotent);
+        ASSERT_EQ(npa_gen.size(), 12);
 
         size_t count = 0;
         for (auto& op : npa_gen) {
@@ -190,6 +193,7 @@ namespace NPATK::Tests {
 
     TEST(OperatorCollection, Construct_ListDefaultFlags) {
         OperatorCollection npa_gen({3, 2, 4}, Operator::Flags::Idempotent);
+        ASSERT_EQ(npa_gen.size(), 9);
 
         size_t count = 0;
         for (auto& op : npa_gen) {
@@ -201,6 +205,7 @@ namespace NPATK::Tests {
 
     TEST(OperatorCollection, Set_FlagWithin) {
         OperatorCollection npa_gen({3, 2});
+        ASSERT_EQ(npa_gen.size(), 5);
         ASSERT_EQ(npa_gen.Parties.size(), 2);
         auto& alice = npa_gen.Parties[0];
         auto& bob = npa_gen.Parties[1];

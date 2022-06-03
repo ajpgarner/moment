@@ -10,4 +10,4 @@ add_library(lib_npatk
         operators/operator.cpp
         operators/operator_collection.cpp
         operators/operator_sequence.cpp
-    )
+        operators/operator_sequence_generator.cpp operators/multi_operator_iterator.h)

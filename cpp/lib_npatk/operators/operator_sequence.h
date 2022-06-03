@@ -1,11 +1,13 @@
-/**
- * hermitian_operator.h
- * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+/*
+ * (c) 2022-2022 Austrian Academy of Sciences.
+ *
+ * NPAToolKit is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 #pragma once
 
 #include "operator.h"
+
+#include <cassert>
 
 #include <vector>
 #include <iterator>
@@ -13,15 +15,23 @@
 
 namespace NPATK {
 
+    class OperatorCollection;
+
     class OperatorSequence {
     private:
         std::vector<Operator> constituents{};
+        OperatorCollection * context = nullptr;
 
     public:
         constexpr OperatorSequence() = default;
 
         OperatorSequence(std::initializer_list<Operator> operators)
             : constituents(operators) {
+            this->to_canonical_form();
+        }
+
+        explicit OperatorSequence(std::vector<Operator>&& operators)
+                : constituents(std::move(operators)) {
             this->to_canonical_form();
         }
 
@@ -38,6 +48,11 @@ namespace NPATK {
         [[nodiscard]] constexpr bool empty() const noexcept { return this->constituents.empty(); }
 
         [[nodiscard]] constexpr size_t size() const noexcept { return this->constituents.size(); }
+
+        [[nodiscard]] constexpr const Operator& operator[](size_t i) const noexcept {
+            assert(i < this->constituents.size());
+            return this->constituents[i];
+        }
 
         constexpr bool operator==(const OperatorSequence& rhs) const noexcept {
             if (this->constituents.size() != rhs.constituents.size()) {

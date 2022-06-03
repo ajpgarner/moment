@@ -1,7 +1,5 @@
-/**
- * NPA_generator.h
- * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+/*
+ * (c) 2022-2022 Austrian Academy of Sciences.
  */
 #pragma once
 #include "operator.h"
@@ -18,15 +16,16 @@ namespace NPATK {
     public:
         const std::string name;
     private:
+        size_t global_offset = 0;
         std::vector<Operator> operators;
 
     public:
         PartyInfo(party_name_t id, std::string named, oper_name_t num_opers,
-                  Operator::Flags default_flags = Operator::Flags::None);
+                  size_t global_offset = 0, Operator::Flags default_flags = Operator::Flags::None);
 
         explicit PartyInfo(party_name_t id, oper_name_t num_opers,
-                           Operator::Flags default_flags = Operator::Flags::None)
-            : PartyInfo(id, std::to_string(id), num_opers, default_flags) { }
+                           size_t global_offset = 0, Operator::Flags default_flags = Operator::Flags::None)
+            : PartyInfo(id, std::to_string(id), num_opers, global_offset, default_flags) { }
 
         [[nodiscard]] auto begin() const noexcept { return this->operators.begin(); }
 
@@ -45,8 +44,9 @@ namespace NPATK {
         [[nodiscard]] size_t size() const noexcept { return this->operators.size(); }
 
         [[nodiscard]] bool empty() const noexcept { return this->operators.empty(); }
-    };
 
+        [[nodiscard]] size_t offset() const noexcept { return this->global_offset; }
+    };
 
     class OperatorCollection {
     public:
@@ -149,6 +149,7 @@ namespace NPATK {
 
     private:
         std::vector<PartyInfo> parties;
+        size_t total_operator_count = 0;
 
     public:
         PartiesRange Parties;
@@ -170,6 +171,8 @@ namespace NPATK {
         [[nodiscard]] auto end() const noexcept {
             return AllOperatorConstIterator{*this, true};
         }
+
+        [[nodiscard]] constexpr size_t size() const noexcept { return this->total_operator_count; }
 
     private:
         static std::vector<PartyInfo> make_party_list(party_name_t num_parties, oper_name_t opers_per_party,

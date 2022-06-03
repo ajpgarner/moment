@@ -1,7 +1,5 @@
-/**
- * operator_sequence_tests.cpp
- * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+/*
+ * (c) 2022-2022 Austrian Academy of Sciences.
  */
 #include "gtest/gtest.h"
 
@@ -23,6 +21,8 @@ namespace NPATK::Tests {
         auto iter = seq.begin();
         ASSERT_NE(iter, seq.end());
         EXPECT_EQ(*iter, memA);
+        EXPECT_EQ(seq[0], *iter);
+
         ++iter;
         ASSERT_EQ(iter, seq.end());
     }
@@ -36,9 +36,12 @@ namespace NPATK::Tests {
         auto iterAB = seqAB.begin();
         ASSERT_NE(iterAB, seqAB.end());
         EXPECT_EQ(*iterAB, memA);
+        EXPECT_EQ(seqAB[0], *iterAB);
         ++iterAB;
         ASSERT_NE(iterAB, seqAB.end());
         EXPECT_EQ(*iterAB, memB);
+
+        EXPECT_EQ(seqAB[1], *iterAB);
         ++iterAB;
         ASSERT_EQ(iterAB, seqAB.end());
 
@@ -48,9 +51,11 @@ namespace NPATK::Tests {
         auto iterBA = seqBA.begin();
         ASSERT_NE(iterBA, seqBA.end());
         EXPECT_EQ(*iterBA, memB);
+        EXPECT_EQ(seqBA[0], *iterBA);
         ++iterBA;
         ASSERT_NE(iterBA, seqBA.end());
         EXPECT_EQ(*iterBA, memA);
+        EXPECT_EQ(seqBA[1], *iterBA);
         ++iterBA;
         ASSERT_EQ(iterBA, seqBA.end());
     }
@@ -112,11 +117,15 @@ namespace NPATK::Tests {
         OperatorSequence seqAAA{memA, memA, memA};
 
         ASSERT_EQ(seqA.size(), 1);
-        EXPECT_EQ(seqAA.size(), 1);
-        EXPECT_EQ(seqAAA.size(), 1);
+        ASSERT_EQ(seqAA.size(), 1);
+        ASSERT_EQ(seqAAA.size(), 1);
 
         EXPECT_EQ(seqA, seqAA);
         EXPECT_EQ(seqAA, seqAAA);
+
+        EXPECT_EQ(seqA[0], memA);
+        EXPECT_EQ(seqAA[0], memA);
+        EXPECT_EQ(seqAAA[0], memA);
     }
 
     TEST(OperatorSequence, Sequence_IdemAAABB) {
