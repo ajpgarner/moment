@@ -111,4 +111,38 @@ namespace NPATK::Tests {
         EXPECT_EQ(osg[10], (OperatorSequence{bob[1],  bob[0]}));
         EXPECT_EQ(osg[11], (OperatorSequence{bob[1],  bob[1]}));
     }
+
+    TEST(OperatorSequenceGenerator, OneParty3Symbols3Length_Mutex) {
+        OperatorCollection collection{3};
+        ASSERT_EQ(collection.Parties.size(), 1);
+        auto& alice = collection.Parties[0];
+        ASSERT_EQ(alice.size(), 3);
+        alice.add_mutex(1, 2);
+        ASSERT_FALSE(alice.exclusive(0, 1));
+        ASSERT_FALSE(alice.exclusive(0, 2));
+        ASSERT_TRUE(alice.exclusive(1, 2));
+
+        OperatorSequenceGenerator osg{collection, 3};
+        ASSERT_FALSE(osg.empty());
+        ASSERT_GE(osg.size(), 17);
+        EXPECT_EQ(osg.size(), 17);
+
+        EXPECT_EQ(osg[0], (OperatorSequence{alice[0], alice[0], alice[0]}));
+        EXPECT_EQ(osg[1], (OperatorSequence{alice[0], alice[0], alice[1]}));
+        EXPECT_EQ(osg[2], (OperatorSequence{alice[0], alice[0], alice[2]}));
+        EXPECT_EQ(osg[3], (OperatorSequence{alice[0], alice[1], alice[0]}));
+        EXPECT_EQ(osg[4], (OperatorSequence{alice[0], alice[1], alice[1]}));
+        EXPECT_EQ(osg[5], (OperatorSequence{alice[0], alice[2], alice[0]}));
+        EXPECT_EQ(osg[6], (OperatorSequence{alice[0], alice[2], alice[2]}));
+        EXPECT_EQ(osg[7], (OperatorSequence{alice[1], alice[0], alice[0]}));
+        EXPECT_EQ(osg[8], (OperatorSequence{alice[1], alice[0], alice[1]}));
+        EXPECT_EQ(osg[9], (OperatorSequence{alice[1], alice[0], alice[2]}));
+        EXPECT_EQ(osg[10], (OperatorSequence{alice[1], alice[1], alice[0]}));
+        EXPECT_EQ(osg[11], (OperatorSequence{alice[1], alice[1], alice[1]}));
+        EXPECT_EQ(osg[12], (OperatorSequence{alice[2], alice[0], alice[0]}));
+        EXPECT_EQ(osg[13], (OperatorSequence{alice[2], alice[0], alice[1]}));
+        EXPECT_EQ(osg[14], (OperatorSequence{alice[2], alice[0], alice[2]}));
+        EXPECT_EQ(osg[15], (OperatorSequence{alice[2], alice[2], alice[0]}));
+        EXPECT_EQ(osg[16], (OperatorSequence{alice[2], alice[2], alice[2]}));
+    }
 }

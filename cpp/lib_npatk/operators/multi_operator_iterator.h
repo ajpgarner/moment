@@ -68,7 +68,7 @@ namespace NPATK::detail {
             for (size_t i = length; i > 0; --i) {
                 raw.emplace_back(*(this->iters[i-1]));
             }
-            return OperatorSequence{std::move(raw)};
+            return OperatorSequence{std::move(raw), this->context};
         }
 
 
