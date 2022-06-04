@@ -34,15 +34,14 @@ namespace NPATK {
         : context(operatorContext), sequence_length(chain_length) {
         std::map<size_t, OperatorSequence> build_set;
 
-        detail::MultiOperatorIterator combo_iter{context, sequence_length};
-        const detail::MultiOperatorIterator combo_iter_end = detail::MultiOperatorIterator::end_of(context, sequence_length);
         SequenceHasher hasher{context};
 
-        while (combo_iter != combo_iter_end) {
-            auto seq = *combo_iter;
+        for (auto seq : detail::MultiOperatorRange{context, sequence_length}) {
+            if (seq.zero()) {
+                continue;
+            }
             size_t hash = hasher(seq);
             build_set.emplace(hash, std::move(seq));
-            ++combo_iter;
         }
 
         this->unique_sequences.reserve(build_set.size());
