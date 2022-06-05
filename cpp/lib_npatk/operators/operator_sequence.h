@@ -25,7 +25,6 @@ namespace NPATK {
         std::vector<Operator> constituents{};
         const Context * context = nullptr;
         bool is_zero = false;
-        bool is_hermitian = false;
 
     public:
         constexpr OperatorSequence() = default;
