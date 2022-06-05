@@ -6,7 +6,7 @@
 #pragma once
 
 #include "operator_sequence.h"
-#include "operator_collection.h"
+#include "context.h"
 
 
 namespace NPATK {
@@ -15,13 +15,13 @@ namespace NPATK {
      */
     class OperatorSequenceGenerator {
     private:
-        const OperatorCollection& context;
+        const Context& context;
         std::vector<OperatorSequence> unique_sequences;
     public:
         /** The maximum length of operator sequence */
         const size_t sequence_length;
     public:
-        OperatorSequenceGenerator(const OperatorCollection& operatorContext, size_t sequence_length);
+        OperatorSequenceGenerator(const Context& operatorContext, size_t sequence_length);
 
         /**
          * Creates a generator for the piece-wise conjugated OperatorSequences of this generator.
@@ -42,7 +42,7 @@ namespace NPATK {
         /**
          * Private constructor, assigns supplied seq as unique operator sequences.
          */
-        OperatorSequenceGenerator(const OperatorCollection& operatorContext, size_t sequence_length,
+        OperatorSequenceGenerator(const Context& operatorContext, size_t sequence_length,
                                   std::vector<OperatorSequence>&& seq);
 
 

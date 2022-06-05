@@ -13,8 +13,8 @@ namespace NPATK {
 
     namespace {
         struct SequenceHasher {
-            const OperatorCollection& context;
-            explicit SequenceHasher(const OperatorCollection& context) : context{context} { }
+            const Context& context;
+            explicit SequenceHasher(const Context& context) : context{context} { }
             constexpr size_t operator()(const OperatorSequence& sequence) {
                 size_t hash = 0;
                 size_t multiplier = 1;
@@ -30,7 +30,7 @@ namespace NPATK {
         };
     }
 
-    OperatorSequenceGenerator::OperatorSequenceGenerator(const OperatorCollection &operatorContext, size_t chain_length)
+    OperatorSequenceGenerator::OperatorSequenceGenerator(const Context &operatorContext, size_t chain_length)
         : context(operatorContext), sequence_length(chain_length) {
         std::map<size_t, OperatorSequence> build_set;
 
@@ -50,7 +50,7 @@ namespace NPATK {
 
     }
 
-    OperatorSequenceGenerator::OperatorSequenceGenerator(const OperatorCollection& operatorContext,
+    OperatorSequenceGenerator::OperatorSequenceGenerator(const Context& operatorContext,
                                                          size_t chain_length,
                                                          std::vector<OperatorSequence> &&seq)
             : context(operatorContext), sequence_length(chain_length) {

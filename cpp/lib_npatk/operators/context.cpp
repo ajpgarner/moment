@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
-#include "operator_collection.h"
+#include "context.h"
 
 #include <utility>
 
@@ -20,7 +20,7 @@ namespace NPATK {
         }
     }
 
-    OperatorCollection::OperatorCollection(std::vector<PartyInfo> &&in_party) noexcept
+    Context::Context(std::vector<PartyInfo> &&in_party) noexcept
         : Parties{*this}, parties{std::move(in_party)}, total_operator_count(0)  {
         for ( auto& party : parties) {
             assert(party.offset() == this->total_operator_count);
@@ -28,8 +28,8 @@ namespace NPATK {
         }
     }
 
-    std::vector<PartyInfo> OperatorCollection::make_party_list(party_name_t num_parties, oper_name_t opers_per_party,
-                                                               Operator::Flags default_flags) {
+    std::vector<PartyInfo> Context::make_party_list(party_name_t num_parties, oper_name_t opers_per_party,
+                                                    Operator::Flags default_flags) {
         std::vector<PartyInfo> output;
         output.reserve(num_parties);
         size_t global = 0;
@@ -40,8 +40,8 @@ namespace NPATK {
         return output;
     }
 
-    std::vector<PartyInfo> OperatorCollection::make_party_list(std::initializer_list<oper_name_t> oper_per_party_list,
-                                                               Operator::Flags default_flags) {
+    std::vector<PartyInfo> Context::make_party_list(std::initializer_list<oper_name_t> oper_per_party_list,
+                                                    Operator::Flags default_flags) {
         std::vector<PartyInfo> output;
         output.reserve(oper_per_party_list.size());
 
@@ -56,8 +56,8 @@ namespace NPATK {
     }
 
     std::pair<std::vector<Operator>::iterator, bool>
-    OperatorCollection::additional_simplification(std::vector<Operator>::iterator start,
-                                                  std::vector<Operator>::iterator end) const noexcept {
+    Context::additional_simplification(std::vector<Operator>::iterator start,
+                                       std::vector<Operator>::iterator end) const noexcept {
         // Do nothing on empty set
         if (start == end) {
             return {end, false};

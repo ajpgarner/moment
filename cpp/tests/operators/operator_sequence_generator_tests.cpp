@@ -12,7 +12,7 @@
 namespace NPATK::Tests {
 
     TEST(OperatorSequenceGenerator, Empty) {
-        OperatorCollection collection{2, 2};
+        Context collection{2, 2};
         OperatorSequenceGenerator osg{collection, 0};
         EXPECT_TRUE(osg.empty());
         EXPECT_EQ(osg.size(), 0);
@@ -20,7 +20,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequenceGenerator, OneParty3Symbols1Length) {
-        OperatorCollection collection{3};
+        Context collection{3};
         OperatorSequenceGenerator osg{collection, 1};
         ASSERT_FALSE(osg.empty());
         ASSERT_EQ(osg.size(), 3);
@@ -52,7 +52,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequenceGenerator, OneParty4Symbols4Length) {
-        OperatorCollection collection{4};
+        Context collection{4};
         ASSERT_EQ(collection.Parties.size(), 1);
         const auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 4);
@@ -88,7 +88,7 @@ namespace NPATK::Tests {
 
 
     TEST(OperatorSequenceGenerator, TwoParty2Symbols2Length) {
-        OperatorCollection collection{2, 2};
+        Context collection{2, 2};
         const auto& alice = collection.Parties[0];
         const auto& bob = collection.Parties[1];
         ASSERT_EQ(alice.size(), 2);
@@ -113,7 +113,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequenceGenerator, OneParty3Symbols3Length_Mutex) {
-        OperatorCollection collection{3};
+        Context collection{3};
         ASSERT_EQ(collection.Parties.size(), 1);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 3);
@@ -151,7 +151,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequenceGenerator, Conjugate_1Party2Symbols2Length) {
-        OperatorCollection collection{2};
+        Context collection{2};
         ASSERT_EQ(collection.Parties.size(), 1);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 2);
@@ -177,7 +177,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequenceGenerator, Conjugate_2Party1Symbols2Length) {
-        OperatorCollection collection{1,1};
+        Context collection{1, 1};
         ASSERT_EQ(collection.Parties.size(), 2);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 1);

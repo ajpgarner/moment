@@ -64,35 +64,38 @@ namespace NPATK {
         [[nodiscard]] constexpr size_t offset() const noexcept { return this->global_offset; }
     };
 
-    class OperatorCollection {
+    class Context {
     public:
+        /**
+         * Range over parties in the context.
+         */
         struct PartiesRange {
         private:
-            OperatorCollection& the_gen;
+            Context& the_context;
         public:
-            constexpr explicit PartiesRange(OperatorCollection& npag) noexcept : the_gen{npag} { }
+            constexpr explicit PartiesRange(Context& context) noexcept : the_context{context} { }
 
-            [[nodiscard]] auto begin() noexcept { return the_gen.parties.begin(); }
-            [[nodiscard]] auto begin() const noexcept { return the_gen.parties.cbegin(); }
-            [[nodiscard]] auto end() noexcept { return the_gen.parties.end(); }
-            [[nodiscard]] auto end() const noexcept { return the_gen.parties.cend(); }
+            [[nodiscard]] auto begin() noexcept { return the_context.parties.begin(); }
+            [[nodiscard]] auto begin() const noexcept { return the_context.parties.cbegin(); }
+            [[nodiscard]] auto end() noexcept { return the_context.parties.end(); }
+            [[nodiscard]] auto end() const noexcept { return the_context.parties.cend(); }
 
             [[nodiscard]] PartyInfo& operator[](size_t index) noexcept {
-                assert(index < the_gen.parties.size());
-                return the_gen.parties[index];
+                assert(index < the_context.parties.size());
+                return the_context.parties[index];
             }
             [[nodiscard]] const PartyInfo& operator[](size_t index) const noexcept {
-                assert(index < the_gen.parties.size());
-                return the_gen.parties[index];
+                assert(index < the_context.parties.size());
+                return the_context.parties[index];
             }
 
-            [[nodiscard]] size_t size() const noexcept { return the_gen.parties.size(); }
+            [[nodiscard]] size_t size() const noexcept { return the_context.parties.size(); }
 
-            [[nodiscard]] bool empty() const noexcept { return the_gen.parties.empty(); }
+            [[nodiscard]] bool empty() const noexcept { return the_context.parties.empty(); }
         };
 
         /**
-         * Iterates over every symbol in every party.
+         * Iterates over every operator in every party.
          */
         class AllOperatorConstIterator {
         public:
@@ -105,13 +108,13 @@ namespace NPATK {
             std::vector<PartyInfo>::const_iterator party_iter_end;
             std::vector<Operator>::const_iterator oper_iter;
 
-            AllOperatorConstIterator(const OperatorCollection& generator, bool)
+            AllOperatorConstIterator(const Context& generator, bool)
                 : party_iter{generator.parties.end()}, party_iter_end{generator.parties.end()} { }
 
-            friend class OperatorCollection;
+            friend class Context;
 
         public:
-            explicit AllOperatorConstIterator(const OperatorCollection& generator)
+            explicit AllOperatorConstIterator(const Context& generator)
                 : party_iter{generator.parties.begin()}, party_iter_end{generator.parties.end()} {
                 if (party_iter != party_iter_end) {
                     oper_iter = party_iter->begin();
@@ -170,15 +173,15 @@ namespace NPATK {
     public:
         PartiesRange Parties;
 
-        explicit OperatorCollection(std::vector<PartyInfo>&& parties) noexcept;
+        explicit Context(std::vector<PartyInfo>&& parties) noexcept;
 
-        OperatorCollection(std::initializer_list<oper_name_t> oper_per_party_list,
-                           Operator::Flags default_flags = Operator::Flags::None)
-            : OperatorCollection(OperatorCollection::make_party_list(oper_per_party_list, default_flags)) { }
+        Context(std::initializer_list<oper_name_t> oper_per_party_list,
+                Operator::Flags default_flags = Operator::Flags::None)
+            : Context(Context::make_party_list(oper_per_party_list, default_flags)) { }
 
-        OperatorCollection(party_name_t num_parties, oper_name_t opers_per_party,
-                           Operator::Flags default_flags = Operator::Flags::None)
-            : OperatorCollection(OperatorCollection::make_party_list(num_parties, opers_per_party, default_flags)) { }
+        Context(party_name_t num_parties, oper_name_t opers_per_party,
+                Operator::Flags default_flags = Operator::Flags::None)
+            : Context(Context::make_party_list(num_parties, opers_per_party, default_flags)) { }
 
         [[nodiscard]] auto begin() const noexcept {
             return AllOperatorConstIterator{*this};

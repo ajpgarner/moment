@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "operator_sequence.h"
-#include "operator_collection.h"
+#include "context.h"
 
 #include <algorithm>
 #include <iostream>

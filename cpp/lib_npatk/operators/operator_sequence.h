@@ -15,12 +15,12 @@
 
 namespace NPATK {
 
-    class OperatorCollection;
+    class Context;
 
     class OperatorSequence {
     private:
         std::vector<Operator> constituents{};
-        const OperatorCollection * context = nullptr;
+        const Context * context = nullptr;
         bool is_zero = false;
         bool is_hermitian = false;
 
@@ -32,7 +32,7 @@ namespace NPATK {
             this->to_canonical_form();
         }
 
-        explicit OperatorSequence(std::vector<Operator>&& operators, const OperatorCollection * context = nullptr)
+        explicit OperatorSequence(std::vector<Operator>&& operators, const Context * context = nullptr)
                 : constituents(std::move(operators)), context{context} {
             this->to_canonical_form();
         }

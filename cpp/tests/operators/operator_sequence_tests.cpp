@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 
 #include "operators/operator_sequence.h"
-#include "operators/operator_collection.h"
+#include "operators/context.h"
 
 namespace NPATK::Tests {
     TEST(OperatorSequence, Sequence_Empty) {
@@ -249,7 +249,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, WithContext_MutexZero) {
-        OperatorCollection collection{3};
+        Context collection{3};
         ASSERT_EQ(collection.Parties.size(), 1);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 3);

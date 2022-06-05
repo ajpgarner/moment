@@ -4,7 +4,7 @@
  * (c) 2022 Austrian Academy of Sciences.
  */
 #pragma once
-#include "operator_collection.h"
+#include "context.h"
 #include "operator_sequence.h"
 
 #include <vector>
@@ -18,13 +18,13 @@ namespace NPATK::detail {
         using value_type = OperatorSequence;
 
     private:
-        const OperatorCollection *context = nullptr;
+        const Context *context = nullptr;
         size_t length = 0;
-        std::vector <OperatorCollection::AllOperatorConstIterator> iters{};
+        std::vector <Context::AllOperatorConstIterator> iters{};
 
     public:
         /** 'Begin' iterator */
-        constexpr MultiOperatorIterator(const OperatorCollection &the_context, size_t max_length)
+        constexpr MultiOperatorIterator(const Context &the_context, size_t max_length)
                 : context{&the_context}, length{max_length} {
             iters.reserve(length);
             for (size_t i = 0; i < length; ++i) {
@@ -75,7 +75,7 @@ namespace NPATK::detail {
     private:
 
         /** 'End' iterator, private c'tor */
-        constexpr MultiOperatorIterator(const OperatorCollection &the_context, size_t max_length, bool)
+        constexpr MultiOperatorIterator(const Context &the_context, size_t max_length, bool)
                 : context{&the_context}, length{max_length} {
             iters.reserve(length);
             for (size_t i = 0; i < length; ++i) {
@@ -105,7 +105,7 @@ namespace NPATK::detail {
 
     public:
         /** 'End' named constructor */
-        constexpr static MultiOperatorIterator end_of(const OperatorCollection &context, size_t max_length) {
+        constexpr static MultiOperatorIterator end_of(const Context &context, size_t max_length) {
             return MultiOperatorIterator{context, max_length, true};
         }
 
@@ -113,10 +113,10 @@ namespace NPATK::detail {
 
     class MultiOperatorRange {
     private:
-         const OperatorCollection& context;
+         const Context& context;
          size_t length{};
     public:
-        MultiOperatorRange(const OperatorCollection& context, size_t length)
+        MultiOperatorRange(const Context& context, size_t length)
             : context{context}, length{length} { }
 
         [[nodiscard]] auto begin() const {
