@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "enumerate_symbols.h"
-#include "symbol_set.h"
+#include "symbolic/symbol_set.h"
 
 #include "../utilities/reporting.h"
 #include "../utilities/visitor.h"

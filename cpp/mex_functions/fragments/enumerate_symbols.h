@@ -8,7 +8,7 @@
 #include "mex.hpp"
 #include "MatlabDataArray.hpp"
 
-#include "index_matrix_properties.h"
+#include "symbolic/index_matrix_properties.h"
 
 namespace NPATK::mex {
     IndexMatrixProperties enumerate_upper_symbols(matlab::engine::MATLABEngine& engine,

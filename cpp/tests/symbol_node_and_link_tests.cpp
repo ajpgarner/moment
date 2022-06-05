@@ -7,7 +7,7 @@
  *
  */
 #include "gtest/gtest.h"
-#include "symbol_tree.h"
+#include "symbolic/symbol_tree.h"
 
 namespace NPATK::Tests {
 

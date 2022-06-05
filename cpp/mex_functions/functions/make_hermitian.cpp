@@ -5,8 +5,8 @@
  */
 #include "make_hermitian.h"
 
-#include "symbol_set.h"
-#include "symbol_tree.h"
+#include "symbolic/symbol_set.h"
+#include "symbolic/symbol_tree.h"
 
 #include "fragments/export_substitution_list.h"
 #include "fragments/export_symbol_properties.h"

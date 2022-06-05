@@ -12,9 +12,9 @@
 #include <sstream>
 #include <algorithm>
 
-#include "symbol.h"
-#include "symbol_set.h"
-#include "symbol_tree.h"
+#include "symbolic/symbol.h"
+#include "symbolic/symbol_set.h"
+#include "symbolic/symbol_tree.h"
 
 #include "fragments/export_substitution_list.h"
 #include "fragments/substitute_elements_using_tree.h"

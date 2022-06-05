@@ -8,7 +8,7 @@
 #include "mex.hpp"
 
 #include "MatlabDataArray.hpp"
-#include "symbol_tree.h"
+#include "symbolic/symbol_tree.h"
 
 namespace NPATK::mex {
     [[nodiscard]] matlab::data::Array export_substitution_list(matlab::engine::MATLABEngine& engine,

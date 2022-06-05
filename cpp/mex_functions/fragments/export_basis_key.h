@@ -6,7 +6,7 @@
 #pragma once
 
 #include "MatlabDataArray/TypedArray.hpp"
-#include "index_matrix_properties.h"
+#include "symbolic/index_matrix_properties.h"
 #include "mex.hpp"
 
 namespace NPATK::mex {

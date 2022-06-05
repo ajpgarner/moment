@@ -5,7 +5,7 @@
  */
 #include "gtest/gtest.h"
 
-#include "symbol_set.h"
+#include "symbolic/symbol_set.h"
 
 namespace NPATK::Tests {
 

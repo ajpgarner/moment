@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "equality_type.h"
+#include "symbolic/equality_type.h"
 
 namespace NPATK::Tests {
 
