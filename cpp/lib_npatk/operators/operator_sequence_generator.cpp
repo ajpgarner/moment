@@ -49,4 +49,23 @@ namespace NPATK {
                        [](auto& swh) -> OperatorSequence&& { return std::move(swh.second); });
 
     }
+
+    OperatorSequenceGenerator::OperatorSequenceGenerator(const OperatorCollection& operatorContext,
+                                                         size_t chain_length,
+                                                         std::vector<OperatorSequence> &&seq)
+            : context(operatorContext), sequence_length(chain_length) {
+        this->unique_sequences.swap(seq);
+    }
+
+
+    OperatorSequenceGenerator OperatorSequenceGenerator::conjugate() const {
+        std::vector<OperatorSequence> conjList{};
+        conjList.reserve(this->unique_sequences.size());
+        for (const auto& seq : this->unique_sequences) {
+            conjList.emplace_back(seq.conjugate());
+        }
+
+        return OperatorSequenceGenerator{this->context, this->sequence_length, std::move(conjList)};
+    }
+
 }

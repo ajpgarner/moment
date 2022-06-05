@@ -149,4 +149,56 @@ namespace NPATK::Tests {
         EXPECT_EQ(osg[15], (OperatorSequence{alice[2], alice[2], alice[0]}));
         EXPECT_EQ(osg[16], (OperatorSequence{alice[2], alice[2], alice[2]}));
     }
+
+    TEST(OperatorSequenceGenerator, Conjugate_1Party2Symbols2Length) {
+        OperatorCollection collection{2};
+        ASSERT_EQ(collection.Parties.size(), 1);
+        auto& alice = collection.Parties[0];
+        ASSERT_EQ(alice.size(), 2);
+
+        OperatorSequenceGenerator osg{collection, 2};
+        ASSERT_EQ(osg.size(), 4);
+        ASSERT_EQ(osg.sequence_length, 2);
+        auto osg_conj = osg.conjugate();
+        ASSERT_EQ(osg_conj.size(), 4);
+        EXPECT_EQ(osg_conj.sequence_length, osg.sequence_length);
+
+        ASSERT_EQ(osg[0], (OperatorSequence{alice[0], alice[0]}));
+        EXPECT_EQ(osg_conj[0], (OperatorSequence{alice[0], alice[0]}));
+
+        ASSERT_EQ(osg[1], (OperatorSequence{alice[0], alice[1]}));
+        EXPECT_EQ(osg_conj[1], (OperatorSequence{alice[1], alice[0]}));
+
+        ASSERT_EQ(osg[2], (OperatorSequence{alice[1], alice[0]}));
+        EXPECT_EQ(osg_conj[2], (OperatorSequence{alice[0], alice[1]}));
+
+        ASSERT_EQ(osg[3], (OperatorSequence{alice[1], alice[1]}));
+        EXPECT_EQ(osg_conj[3], (OperatorSequence{alice[1], alice[1]}));
+    }
+
+    TEST(OperatorSequenceGenerator, Conjugate_2Party1Symbols2Length) {
+        OperatorCollection collection{1,1};
+        ASSERT_EQ(collection.Parties.size(), 2);
+        auto& alice = collection.Parties[0];
+        ASSERT_EQ(alice.size(), 1);
+        auto& bob = collection.Parties[1];
+        ASSERT_EQ(bob.size(), 1);
+
+
+        OperatorSequenceGenerator osg{collection, 2};
+        ASSERT_EQ(osg.size(), 3);
+        ASSERT_EQ(osg.sequence_length, 2);
+        auto osg_conj = osg.conjugate();
+        ASSERT_EQ(osg_conj.size(), 3);
+        EXPECT_EQ(osg_conj.sequence_length, osg.sequence_length);
+
+        ASSERT_EQ(osg[0], (OperatorSequence{alice[0], alice[0]}));
+        EXPECT_EQ(osg_conj[0], (OperatorSequence{alice[0], alice[0]}));
+
+        ASSERT_EQ(osg[1], (OperatorSequence{alice[0], bob[0]}));
+        EXPECT_EQ(osg_conj[1], (OperatorSequence{alice[0], bob[0]}));
+
+        ASSERT_EQ(osg[2], (OperatorSequence{bob[0], bob[0]}));
+        EXPECT_EQ(osg_conj[2], (OperatorSequence{bob[0], bob[0]}));
+    }
 }

@@ -10,6 +10,9 @@
 
 
 namespace NPATK {
+    /**
+     * Range over all unique permutations of operators in the supplied context.
+     */
     class OperatorSequenceGenerator {
     private:
         const OperatorCollection& context;
@@ -20,6 +23,12 @@ namespace NPATK {
     public:
         OperatorSequenceGenerator(const OperatorCollection& operatorContext, size_t sequence_length);
 
+        /**
+         * Creates a generator for the piece-wise conjugated OperatorSequences of this generator.
+         */
+        [[nodiscard]] OperatorSequenceGenerator conjugate() const;
+
+
         [[nodiscard]] constexpr auto begin() const noexcept { return unique_sequences.begin(); }
         [[nodiscard]] constexpr auto end() const noexcept { return unique_sequences.end(); }
         [[nodiscard]] constexpr size_t size() const noexcept { return unique_sequences.size(); }
@@ -28,6 +37,14 @@ namespace NPATK {
             assert(index < unique_sequences.size());
             return this->unique_sequences[index];
         };
+
+    private:
+        /**
+         * Private constructor, assigns supplied seq as unique operator sequences.
+         */
+        OperatorSequenceGenerator(const OperatorCollection& operatorContext, size_t sequence_length,
+                                  std::vector<OperatorSequence>&& seq);
+
 
     };
 }
