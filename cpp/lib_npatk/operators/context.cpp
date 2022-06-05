@@ -4,6 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "context.h"
+#include "operator_sequence.h"
 
 #include <utility>
 
@@ -86,4 +87,16 @@ namespace NPATK {
         return {end, false};
     }
 
+    size_t Context::hash(const OperatorSequence &sequence) const noexcept {
+        size_t hash = 0;
+        size_t multiplier = 1;
+
+        for (size_t n = 0; n < sequence.size(); ++n) {
+            const auto& oper = sequence[sequence.size()-n-1];
+            size_t global_index = 1 + this->parties[oper.party.id].offset() + oper.id;
+            hash += (global_index * multiplier);
+            multiplier *= this->total_operator_count;
+        }
+        return hash;
+    }
 }

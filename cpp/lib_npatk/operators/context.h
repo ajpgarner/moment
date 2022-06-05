@@ -15,6 +15,8 @@
 
 namespace NPATK {
 
+    class OperatorSequence;
+
     class PartyInfo : public Party {
     public:
         const std::string name;
@@ -202,6 +204,14 @@ namespace NPATK {
          [[nodiscard]] std::pair<std::vector<Operator>::iterator, bool>
          additional_simplification(std::vector<Operator>::iterator start,
                                   std::vector<Operator>::iterator end) const noexcept;
+
+         /**
+          * Calculates a unique number for a particular operator sequence
+          * @param seq The operator sequence to calculate the hash of.
+          * @return An integer hash.
+          */
+         [[nodiscard]] size_t hash(const OperatorSequence& seq) const noexcept;
+
 
     private:
         static std::vector<PartyInfo> make_party_list(party_name_t num_parties, oper_name_t opers_per_party,

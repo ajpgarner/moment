@@ -150,6 +150,26 @@ namespace NPATK::Tests {
         EXPECT_EQ(osg[16], (OperatorSequence{alice[2], alice[2], alice[2]}));
     }
 
+
+    TEST(OperatorSequenceGenerator, TwoParty1Symbol_Idem) {
+        Context collection(2, 1, Operator::Flags::Idempotent);
+        ASSERT_EQ(collection.Parties.size(), 2);
+        auto& alice = collection.Parties[0];
+        ASSERT_EQ(alice.size(), 1);
+        auto& bob = collection.Parties[1];
+        ASSERT_EQ(bob.size(), 1);
+
+
+        OperatorSequenceGenerator osg{collection, 2};
+        ASSERT_FALSE(osg.empty());
+        ASSERT_EQ(osg.size(), 3);
+
+        EXPECT_EQ(osg[0], (OperatorSequence{alice[0]}));
+        EXPECT_EQ(osg[1], (OperatorSequence{bob[0]}));
+        EXPECT_EQ(osg[2], (OperatorSequence{alice[0], bob[0]}));
+
+    }
+
     TEST(OperatorSequenceGenerator, Conjugate_1Party2Symbols2Length) {
         Context collection{2};
         ASSERT_EQ(collection.Parties.size(), 1);

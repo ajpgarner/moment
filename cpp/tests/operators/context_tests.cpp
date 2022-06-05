@@ -7,6 +7,7 @@
 #include "gtest/gtest.h"
 
 #include "operators/context.h"
+#include "operators/operator_sequence.h"
 
 namespace NPATK::Tests {
 
@@ -225,7 +226,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(count, 9);
     }
 
-    TEST(Context, Set_FlagWithin) {
+    TEST(Context, SetFlagWithin) {
         Context npa_gen({3, 2});
         ASSERT_EQ(npa_gen.size(), 5);
         ASSERT_EQ(npa_gen.Parties.size(), 2);
@@ -240,5 +241,51 @@ namespace NPATK::Tests {
 
         EXPECT_EQ(npa_gen.Parties[0][1].flags, Operator::Flags::Idempotent);
         EXPECT_EQ(alice[1].flags,  Operator::Flags::Idempotent);
+    }
+
+    TEST(Context, Hash) {
+        Context context({2, 2});
+        ASSERT_EQ(context.size(), 4);
+        ASSERT_EQ(context.Parties.size(), 2);
+        auto& alice = context.Parties[0];
+        ASSERT_EQ(alice.size(), 2);
+        auto& bob = context.Parties[1];
+        ASSERT_EQ(bob.size(), 2);
+
+        std::set<size_t> hashes{};
+
+        auto a0 = context.hash(OperatorSequence{alice[0]});
+        auto a0a0 = context.hash(OperatorSequence{alice[0], alice[0]});
+        EXPECT_NE(a0a0, a0);
+        auto a0a0a0 = context.hash(OperatorSequence{alice[0], alice[0], alice[0]});
+        EXPECT_NE(a0a0a0, a0);
+        EXPECT_NE(a0a0a0, a0a0);
+        hashes.insert(a0);
+        hashes.insert(a0a0);
+        hashes.insert(a0a0a0);
+
+        auto b0 = context.hash(OperatorSequence{bob[0]});
+        EXPECT_FALSE(hashes.contains(b0));
+        hashes.insert(b0);
+
+        auto a0b0 = context.hash(OperatorSequence{alice[0], bob[0]});
+        EXPECT_FALSE(hashes.contains(a0b0));
+        hashes.insert(a0b0);
+
+        auto a0a0b0 = context.hash(OperatorSequence{alice[0], alice[0], bob[0]});
+        EXPECT_FALSE(hashes.contains(a0a0b0));
+        hashes.insert(a0a0b0);
+
+        auto b0a0a0 = context.hash(OperatorSequence{bob[0], alice[0], alice[0]});
+        EXPECT_TRUE(hashes.contains(b0a0a0));
+
+        auto a1 = context.hash(OperatorSequence{alice[1]});
+        EXPECT_FALSE(hashes.contains(a1));
+        hashes.insert(a1);
+
+        auto b1 = context.hash(OperatorSequence{bob[1]});
+        EXPECT_FALSE(hashes.contains(b1));
+        hashes.insert(b1);
+
     }
 }
