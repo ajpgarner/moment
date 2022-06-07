@@ -8,7 +8,7 @@
 #include <iosfwd>
 #include <cstdint>
 
-#include "symbol.h"
+#include "symbol_expression.h"
 
 namespace NPATK {
 

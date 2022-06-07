@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "gtest/gtest.h"
-#include "symbolic/symbol.h"
+#include "symbolic/symbol_expression.h"
 
 namespace NPATK::Tests {
 

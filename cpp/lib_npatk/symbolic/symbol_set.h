@@ -11,6 +11,7 @@
 #include <set>
 
 #include "symbol.h"
+#include "symbol_expression.h"
 #include "equality_type.h"
 
 namespace NPATK {
