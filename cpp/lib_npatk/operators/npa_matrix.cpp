@@ -8,35 +8,73 @@
 #include "context.h"
 #include "operator_sequence_generator.h"
 
+#include <limits>
 
 
 namespace NPATK {
     NPAMatrix::NPAMatrix(const Context &the_context, size_t level)
-        : context{the_context}, hierarchy_level{level}, UniqueSequences{*this} {
+        : context{the_context}, hierarchy_level{level},
+        UniqueSequences{*this}, SymbolMatrix{*this} {
+
+        // Prepare generator of symbols
         OperatorSequenceGenerator colGen{context, hierarchy_level};
         OperatorSequenceGenerator rowGen{colGen.conjugate()};
-        this->matrix_dimension = colGen.size();
-        assert(this->matrix_dimension == rowGen.size());
 
         // Build matrix...
-        this->matrix_data.reserve(this->matrix_dimension * this->matrix_dimension);
+        this->matrix_dimension = colGen.size();
+        assert(this->matrix_dimension == rowGen.size());
+        std::vector<OperatorSequence> matrix_data;
+        matrix_data.reserve(this->matrix_dimension * this->matrix_dimension);
+
+        std::vector<size_t> temporaryHashes{};
+        temporaryHashes.reserve(this->matrix_dimension * this->matrix_dimension);
         for (const auto& rowSeq : rowGen) {
             for (const auto& colSeq : colGen) {
-                this->matrix_data.emplace_back(rowSeq * colSeq);
+                matrix_data.emplace_back(rowSeq * colSeq);
+                temporaryHashes.emplace_back(context.hash(matrix_data.back()));
             }
         }
+        this->op_seq_matrix = std::make_unique<SquareMatrix<OperatorSequence>>(matrix_dimension,
+                                                                               std::move(matrix_data));
 
-        // Now, find unique elements (noting: complex conjugation...!)
+        // Count unique strings in matrix (up to complex conjugation)
+        this->identifyUniqueSequences(temporaryHashes);
+
+        // Convert matrix to symbolic form...
+        this->sym_exp_matrix = this->buildSymbolMatrix(temporaryHashes);
+    }
+
+    const NPAMatrix::UniqueSequence *NPAMatrix::where(const OperatorSequence &seq) const noexcept {
+        size_t hash = this->context.hash(seq);
+
+        auto [id, conj] = this->hashToElement(hash);
+        if (id == std::numeric_limits<size_t>::max()) {
+            return nullptr;
+        }
+
+        assert(id < this->unique_sequences.size());
+        return &this->unique_sequences[id];
+    }
+
+
+    void NPAMatrix::identifyUniqueSequences(const std::vector<size_t> &temporaryHashes) {
         std::map<size_t, UniqueSequence> build_unique;
         std::map<size_t, size_t> conj_alias;
 
-        for (size_t row = 0; row < this->matrix_dimension; ++row) {
-            for (size_t col = row; col < this->matrix_dimension; ++col) {
-                const auto& elem = this->matrix_data[(row*this->matrix_dimension) + col];
-                const auto& conj_elem = this->matrix_data[(col*this->matrix_dimension) + row];
+        // First, manually insert zero and one
+        this->unique_sequences.emplace_back(UniqueSequence::Zero(this->context));
+        this->fwd_hash_table.emplace(0, 0);
+        this->unique_sequences.emplace_back(UniqueSequence::Identity(this->context));
+        this->fwd_hash_table.emplace(1, 1);
+
+
+        for (size_t row = 0; row < matrix_dimension; ++row) {
+            for (size_t col = row; col < matrix_dimension; ++col) {
+                const auto& elem = (*this)[row][col]; //(row * matrix_dimension) + col];
+                const auto& conj_elem = (*this)[col][row];
                 bool hermitian = (elem == conj_elem);
-                size_t hash = context.hash(elem);
-                size_t conj_hash = hermitian ? hash : context.hash(conj_elem);
+                size_t hash = temporaryHashes[(row * matrix_dimension) + col];
+                size_t conj_hash = temporaryHashes[(col * matrix_dimension) + row];
 
                 if (hermitian) {
                     // Does exist?
@@ -53,38 +91,60 @@ namespace NPATK {
             }
         }
 
-        // And flatten
-        this->unique_sequences.reserve(build_unique.size());
-        size_t count = 0;
+        // Flatten
+        unique_sequences.reserve(build_unique.size() + 2);
+        size_t count = 2; // 0 and 1 already in list...!
+
         for (auto& [hash, elem] : build_unique) {
             bool hermitian = elem.hermitian;
-            elem.id = count;
-            this->unique_sequences.emplace_back(std::move(elem));
-            this->fwd_hash_table.emplace_hint(this->fwd_hash_table.end(), hash, count);
+            elem.id = static_cast<symbol_name_t>(count);
+            unique_sequences.emplace_back(std::move(elem));
+            fwd_hash_table.emplace_hint(fwd_hash_table.end(), hash, count);
             if (!hermitian) {
-                this->conj_hash_table.emplace(this->unique_sequences[count].conj_hash, count);
+                conj_hash_table.emplace(unique_sequences[count].conj_hash, count);
             }
             ++count;
         }
     }
 
-    const NPAMatrix::UniqueSequence *NPAMatrix::where(const OperatorSequence &seq) const noexcept {
-        size_t hash = this->context.hash(seq);
+    std::unique_ptr<SquareMatrix<SymbolExpression>>
+    NPAMatrix::buildSymbolMatrix(const std::vector<size_t> &temporaryHashes) {
+        std::vector<SymbolExpression> symbolic_representation(matrix_dimension * matrix_dimension);
 
-        // Does this exist as its own symbol?
-        auto find = this->fwd_hash_table.find(hash);
-        if (find != this->fwd_hash_table.end()) {
-            return &this->unique_sequences[find->second];
+        for (size_t row = 0; row < matrix_dimension; ++row) {
+            for (size_t col = row; col < matrix_dimension; ++col) {
+                // Find symbol
+                size_t upper_index = (row * matrix_dimension) + col;
+                size_t hash = temporaryHashes[upper_index];
+                auto [symbol_id, conjugated] = hashToElement(hash);
+                assert(symbol_id != std::numeric_limits<size_t>::max());
+                const auto& unique_elem = unique_sequences[symbol_id];
+
+                symbolic_representation[upper_index] = SymbolExpression{unique_elem.id, conjugated};
+
+                // Make Hermitian, if off-diagonal
+                if (col > row) {
+                    size_t lower_index = (col * matrix_dimension) + row;
+                    symbolic_representation[lower_index] = SymbolExpression{unique_elem.id, !conjugated};
+                }
+            }
         }
 
-        // Does this exist as a complex conjugate?
-        auto find_alias = this->conj_hash_table.find(hash);
-        if (find_alias != this->conj_hash_table.end()) {
-            return &this->unique_sequences[find_alias->second];
+        return std::make_unique<SquareMatrix<SymbolExpression>>(matrix_dimension, std::move(symbolic_representation));
+    }
+
+    std::pair<size_t, bool> NPAMatrix::hashToElement(size_t hash) const noexcept {
+        auto fwd_hash_iter = this->fwd_hash_table.find(hash);
+        if (fwd_hash_iter != this->fwd_hash_table.end()) {
+            return {fwd_hash_iter->second, false};
         }
 
-        // Doesn't exist anywhere
-        return nullptr;
+        auto conj_hash_iter = this->conj_hash_table.find(hash);
+        if (conj_hash_iter != this->conj_hash_table.end()) {
+            return {conj_hash_iter->second, true};
+        }
+
+        return {std::numeric_limits<size_t>::max(), false};
     }
 
 }

@@ -286,6 +286,25 @@ namespace NPATK::Tests {
         auto b1 = context.hash(OperatorSequence{bob[1]});
         EXPECT_FALSE(hashes.contains(b1));
         hashes.insert(b1);
-
     }
+
+    TEST(Context, Hash_Zero) {
+        Context context({2, 2});
+        OperatorSequence zero{OperatorSequence::Zero(&context)};
+        ASSERT_TRUE(zero.zero());
+
+        size_t hash = context.hash(zero);
+        EXPECT_EQ(hash, 0);
+    }
+
+    TEST(Context, Hash_Identity) {
+        Context context({2, 2});
+        OperatorSequence identity{OperatorSequence::Identity(&context)};
+        ASSERT_FALSE(identity.zero());
+
+        size_t hash = context.hash(identity);
+        EXPECT_EQ(hash, 1);
+    }
+
+
 }

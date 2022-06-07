@@ -88,8 +88,12 @@ namespace NPATK {
     }
 
     size_t Context::hash(const OperatorSequence &sequence) const noexcept {
-        size_t hash = 0;
+        size_t hash = 1;
         size_t multiplier = 1;
+
+        if (sequence.zero()) {
+            return 0;
+        }
 
         for (size_t n = 0; n < sequence.size(); ++n) {
             const auto& oper = sequence[sequence.size()-n-1];

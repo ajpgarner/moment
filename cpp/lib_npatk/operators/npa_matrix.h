@@ -6,7 +6,8 @@
 #pragma once
 
 #include "operator_sequence.h"
-#include "symbolic/symbol.h"
+#include "symbolic/symbol_expression.h"
+#include "square_matrix.h"
 
 #include <cassert>
 #include <memory>
@@ -20,32 +21,73 @@ namespace NPATK {
     class NPAMatrix {
     private:
         class UniqueSequence {
-            size_t id = -1;
+            symbol_name_t id = -1;
             OperatorSequence opSeq;
             std::optional<OperatorSequence> conjSeq{};
             size_t fwd_hash = 0;
             size_t conj_hash = 0;
             bool hermitian = false;
 
-            UniqueSequence(OperatorSequence sequence, size_t hash) :
+            constexpr UniqueSequence(OperatorSequence sequence, size_t hash) :
                     opSeq{std::move(sequence)}, fwd_hash{hash},
                     conjSeq{}, conj_hash{hash},
                     hermitian{true} { }
 
-            UniqueSequence(OperatorSequence sequence, size_t hash,
+            constexpr UniqueSequence(OperatorSequence sequence, size_t hash,
                            OperatorSequence conjSequence, size_t conjHash) :
                     opSeq{std::move(sequence)}, fwd_hash{hash},
                     conjSeq{std::move(conjSequence)}, conj_hash{conjHash},
                     hermitian{false} { }
 
         public:
+            [[nodiscard]] constexpr size_t hash() const noexcept { return this->fwd_hash; }
+            [[nodiscard]] constexpr size_t hash_conj() const noexcept { return this->conj_hash; }
             [[nodiscard]] constexpr const OperatorSequence& sequence() const noexcept { return this->opSeq; }
             [[nodiscard]] constexpr const OperatorSequence& sequence_conj() const noexcept {
                 return this->hermitian ? opSeq : this->conjSeq.value();
             }
+            /**
+             * Does the operator sequence represent its Hermitian conjugate?
+             * If true, the element will correspond to a real symbol (cf. complex if not) in the NPA matrix.
+             */
             [[nodiscard]] constexpr bool is_hermitian() const noexcept { return this->hermitian; }
 
+            inline static UniqueSequence Zero(const Context& context) {
+                return UniqueSequence{OperatorSequence::Zero(&context), 0};
+            }
+
+            inline static UniqueSequence Identity(const Context& context) {
+                return UniqueSequence{OperatorSequence::Identity(&context), 1};
+            }
+
             friend class NPAMatrix;
+        };
+
+        class SymbolMatrixView {
+        private:
+            const NPAMatrix& matrix;
+        public:
+            explicit SymbolMatrixView(const NPAMatrix& theMatrix) : matrix{theMatrix} { };
+            [[nodiscard]] size_t dimension() const noexcept { return matrix.dimension(); }
+            [[nodiscard]] std::pair<size_t, size_t> dimensions() const noexcept { return matrix.dimensions(); }
+
+            /**
+            * Return a view (std::span<const SymbolExpression>) to the requested row of the NPA matrix's symbolic
+            * representation. Since std::span also provides an operator[], it is possible to index using
+            * "mySMV[row][col]" notation.
+            * @param row The index of the row to return.
+            * @return A std::span<const SymbolExpression> of the requested row.
+            */
+            std::span<const SymbolExpression> operator[](size_t row) const noexcept {
+                return (*(matrix.sym_exp_matrix))[row];
+            };
+
+            /**
+             * Provides access to square matrix of symbols.
+             */
+            const auto& operator()() const noexcept {
+                return (*(matrix.sym_exp_matrix));
+            }
         };
 
         class UniqueSequenceRange {
@@ -68,7 +110,9 @@ namespace NPATK {
         const Context& context;
         const size_t hierarchy_level;
         size_t matrix_dimension;
-        std::vector<OperatorSequence> matrix_data{};
+
+        std::unique_ptr<SquareMatrix<OperatorSequence>> op_seq_matrix;
+        std::unique_ptr<SquareMatrix<SymbolExpression>> sym_exp_matrix;
 
         std::vector<UniqueSequence> unique_sequences{};
 
@@ -84,8 +128,22 @@ namespace NPATK {
          */
         UniqueSequenceRange UniqueSequences;
 
+        /**
+         * View of symbolic matrix
+         */
+        SymbolMatrixView SymbolMatrix;
+
     public:
         NPAMatrix(const Context& the_context, size_t level);
+
+        NPAMatrix(const NPAMatrix&) = delete;
+
+        NPAMatrix(NPAMatrix&& src) noexcept :
+            context{src.context}, hierarchy_level{src.hierarchy_level}, matrix_dimension{src.matrix_dimension},
+            op_seq_matrix{std::move(src.op_seq_matrix)},
+            sym_exp_matrix{std::move(src.sym_exp_matrix)},
+            unique_sequences{std::move(src.unique_sequences)},
+            UniqueSequences{*this}, SymbolMatrix{*this} { }
 
         /**
          * @return The number of rows in the matrix. Matrix is square, so also the number of columns.
@@ -97,10 +155,9 @@ namespace NPATK {
         /**
          * @return The number of rows and columns in the matrix. Matrix is square, so first and second are identical.
          */
-        [[nodiscard]] auto dimensions() const noexcept {
+        [[nodiscard]] std::pair<size_t, size_t> dimensions() const noexcept {
             return std::make_pair(matrix_dimension, matrix_dimension);
         }
-
 
         /**
          * Find the unique sequence matching supplied operator string.
@@ -109,18 +166,28 @@ namespace NPATK {
          */
         [[nodiscard]] const UniqueSequence * where(const OperatorSequence& seq) const noexcept;
 
-
         /**
          * Return a view (std::span<OperatorSequence>) to the supplied row of the NPA matrix. Since std::span also
          * provides an operator[], it is possible to index using "myNPAMatrix[row][col]" notation.
          * @param row The index of the row to return.
          * @return A std::span<OperatorSequence> of the requested row.
          */
-        auto operator[](size_t row) const noexcept {
-            assert(row < this->matrix_dimension);
-            auto iter_row_start = this->matrix_data.begin() + static_cast<ptrdiff_t>(row * this->matrix_dimension);
-            return std::span<const OperatorSequence>(iter_row_start.operator->(), this->matrix_dimension);
+        constexpr auto operator[](size_t row) const noexcept {
+            return (*this->op_seq_matrix)[row];
         }
+
+    private:
+        /**
+         * Find ID, and conjugation status, of element in unique_sequences corresponding to hash.
+         * ID return will be numeric-limit max of size_t if no element found.
+         * @param hash The hash to look up
+         * @return Pair: First gives the element in unique_sequences, second is true if hash corresponds to conjugate.
+         */
+        [[nodiscard]] std::pair<size_t, bool> hashToElement(size_t hash) const noexcept;
+
+        void identifyUniqueSequences(const std::vector<size_t> &hashes);
+
+        std::unique_ptr<SquareMatrix<SymbolExpression>> buildSymbolMatrix(const std::vector<size_t> &hashes);
     };
 
 }

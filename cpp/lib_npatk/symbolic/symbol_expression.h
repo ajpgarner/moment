@@ -41,6 +41,8 @@ namespace NPATK {
         bool conjugated;
 
     public:
+        constexpr explicit SymbolExpression() = default;
+
         constexpr explicit SymbolExpression(symbol_name_t name, bool conj = false) noexcept
                 : id(name), negated(name < 0), conjugated(conj) {
             if (id < 0) {

@@ -206,7 +206,10 @@ namespace NPATK {
                                   std::vector<Operator>::iterator end) const noexcept;
 
          /**
-          * Calculates a unique number for a particular operator sequence
+          * Calculates a non-colliding hash (i.e. unique number) for a particular operator sequence.
+          * The hash is in general dependent on the total number of distinct operators in the context.
+          * The zero operator is guaranteed a hash of 0.
+          * The identity operator is guaranteed a hash of 1.
           * @param seq The operator sequence to calculate the hash of.
           * @return An integer hash.
           */

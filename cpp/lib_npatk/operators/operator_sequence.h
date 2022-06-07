@@ -27,7 +27,14 @@ namespace NPATK {
         bool is_zero = false;
 
     public:
-        constexpr OperatorSequence() = default;
+
+        /**
+         * Constructs empty operator sequence; treated as identity.
+         * @param context (Non-owning) point to the Context (if any) for further simplification.
+         */
+        constexpr explicit OperatorSequence(const Context * context = nullptr) : context{context} {
+
+        }
 
         OperatorSequence(std::initializer_list<Operator> operators)
             : constituents(operators) {
@@ -154,6 +161,15 @@ namespace NPATK {
             return lhs;
         }
 
+        constexpr static OperatorSequence Zero(const Context * context = nullptr) {
+            OperatorSequence output{context};
+            output.is_zero = true;
+            return output;
+        }
+
+        constexpr static OperatorSequence Identity(const Context * context = nullptr) {
+            return OperatorSequence{context};
+        }
 
     private:
         /**
