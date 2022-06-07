@@ -44,16 +44,26 @@ namespace NPATK {
         this->sym_exp_matrix = this->buildSymbolMatrix(temporaryHashes);
     }
 
-    const NPAMatrix::UniqueSequence *NPAMatrix::where(const OperatorSequence &seq) const noexcept {
-        size_t hash = this->context.hash(seq);
+    const NPAMatrix::UniqueSequence *NPAMatrix::UniqueSequenceRange::where(const OperatorSequence &seq) const noexcept {
+        size_t hash = this->matrix.context.hash(seq);
 
-        auto [id, conj] = this->hashToElement(hash);
+        auto [id, conj] = this->matrix.hashToElement(hash);
         if (id == std::numeric_limits<size_t>::max()) {
             return nullptr;
         }
 
-        assert(id < this->unique_sequences.size());
-        return &this->unique_sequences[id];
+        assert(id < this->matrix.unique_sequences.size());
+        return &this->matrix.unique_sequences[id];
+    }
+
+    SymbolExpression NPAMatrix::UniqueSequenceRange::to_symbol(const OperatorSequence &seq) const noexcept {
+        size_t hash = this->matrix.context.hash(seq);
+        auto [id, conj] = this->matrix.hashToElement(hash);
+        if (id == std::numeric_limits<size_t>::max()) {
+            return SymbolExpression{0};
+        }
+
+        return SymbolExpression{this->matrix.unique_sequences[id].id, conj};
     }
 
 
@@ -62,10 +72,13 @@ namespace NPATK {
         std::map<size_t, size_t> conj_alias;
 
         // First, manually insert zero and one
-        this->unique_sequences.emplace_back(UniqueSequence::Zero(this->context));
-        this->fwd_hash_table.emplace(0, 0);
-        this->unique_sequences.emplace_back(UniqueSequence::Identity(this->context));
-        this->fwd_hash_table.emplace(1, 1);
+//        this->unique_sequences.emplace_back(UniqueSequence::Zero(this->context));
+//        this->fwd_hash_table.emplace(0, 0);
+//        this->unique_sequences.emplace_back(UniqueSequence::Identity(this->context));
+//        this->fwd_hash_table.emplace(1, 1);
+        build_unique.emplace(0, UniqueSequence::Zero(this->context));
+        build_unique.emplace(1, UniqueSequence::Identity(this->context));
+
 
 
         for (size_t row = 0; row < matrix_dimension; ++row) {
@@ -92,8 +105,8 @@ namespace NPATK {
         }
 
         // Flatten
-        unique_sequences.reserve(build_unique.size() + 2);
-        size_t count = 2; // 0 and 1 already in list...!
+        unique_sequences.reserve(build_unique.size());
+        size_t count = 0; // 0 and 1 already in list...!
 
         for (auto& [hash, elem] : build_unique) {
             bool hermitian = elem.hermitian;
@@ -113,7 +126,6 @@ namespace NPATK {
 
         for (size_t row = 0; row < matrix_dimension; ++row) {
             for (size_t col = row; col < matrix_dimension; ++col) {
-                // Find symbol
                 size_t upper_index = (row * matrix_dimension) + col;
                 size_t hash = temporaryHashes[upper_index];
                 auto [symbol_id, conjugated] = hashToElement(hash);
@@ -125,7 +137,11 @@ namespace NPATK {
                 // Make Hermitian, if off-diagonal
                 if (col > row) {
                     size_t lower_index = (col * matrix_dimension) + row;
-                    symbolic_representation[lower_index] = SymbolExpression{unique_elem.id, !conjugated};
+                    if (unique_elem.hermitian) {
+                        symbolic_representation[lower_index] = SymbolExpression{unique_elem.id, false};
+                    } else {
+                        symbolic_representation[lower_index] = SymbolExpression{unique_elem.id, !conjugated};
+                    }
                 }
             }
         }

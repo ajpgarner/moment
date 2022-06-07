@@ -99,6 +99,22 @@ namespace NPATK {
             [[nodiscard]] auto end() const noexcept { return matrix.unique_sequences.cend(); }
             [[nodiscard]] bool empty() const noexcept { return matrix.unique_sequences.empty(); }
             [[nodiscard]] size_t size() const noexcept { return matrix.unique_sequences.size(); }
+
+            /**
+             * Find the unique sequence matching supplied operator string.
+             * @param seq The sequence to match
+             * @return Pointer to unique sequence element if matched, nullptr otherwise.
+             */
+            [[nodiscard]] const UniqueSequence * where(const OperatorSequence& seq) const noexcept;
+
+            /**
+             * Find symbol expression matching supplied operator sequence.
+             * @param seq The sequence to match
+             * @return The SymbolExpression matching the sequence, or zero if not found.
+             */
+            [[nodiscard]] SymbolExpression to_symbol(const OperatorSequence& seq) const noexcept;
+
+
             [[nodiscard]] const UniqueSequence& operator[](size_t index) const noexcept {
                 assert(index < matrix.unique_sequences.size());
                 return matrix.unique_sequences[index];
@@ -158,13 +174,6 @@ namespace NPATK {
         [[nodiscard]] std::pair<size_t, size_t> dimensions() const noexcept {
             return std::make_pair(matrix_dimension, matrix_dimension);
         }
-
-        /**
-         * Find the unique sequence matching supplied operator string.
-         * @param seq The sequence to match
-         * @return Pointer to unique sequence element if matched, nullptr otherwise.
-         */
-        [[nodiscard]] const UniqueSequence * where(const OperatorSequence& seq) const noexcept;
 
         /**
          * Return a view (std::span<OperatorSequence>) to the supplied row of the NPA matrix. Since std::span also

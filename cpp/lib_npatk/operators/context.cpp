@@ -99,7 +99,7 @@ namespace NPATK {
             const auto& oper = sequence[sequence.size()-n-1];
             size_t global_index = 1 + this->parties[oper.party.id].offset() + oper.id;
             hash += (global_index * multiplier);
-            multiplier *= this->total_operator_count;
+            multiplier *= (1+this->total_operator_count);
         }
         return hash;
     }
