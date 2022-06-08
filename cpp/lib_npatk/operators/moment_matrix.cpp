@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 
-#include "npa_matrix.h"
+#include "moment_matrix.h"
 #include "context.h"
 #include "operator_sequence_generator.h"
 
@@ -12,7 +12,7 @@
 
 
 namespace NPATK {
-    NPAMatrix::NPAMatrix(const Context &the_context, size_t level)
+    MomentMatrix::MomentMatrix(const Context &the_context, size_t level)
         : context{the_context}, hierarchy_level{level},
         UniqueSequences{*this}, SymbolMatrix{*this} {
 
@@ -44,7 +44,7 @@ namespace NPATK {
         this->sym_exp_matrix = this->buildSymbolMatrix(temporaryHashes);
     }
 
-    const NPAMatrix::UniqueSequence *NPAMatrix::UniqueSequenceRange::where(const OperatorSequence &seq) const noexcept {
+    const MomentMatrix::UniqueSequence *MomentMatrix::UniqueSequenceRange::where(const OperatorSequence &seq) const noexcept {
         size_t hash = this->matrix.context.hash(seq);
 
         auto [id, conj] = this->matrix.hashToElement(hash);
@@ -56,7 +56,7 @@ namespace NPATK {
         return &this->matrix.unique_sequences[id];
     }
 
-    SymbolExpression NPAMatrix::UniqueSequenceRange::to_symbol(const OperatorSequence &seq) const noexcept {
+    SymbolExpression MomentMatrix::UniqueSequenceRange::to_symbol(const OperatorSequence &seq) const noexcept {
         size_t hash = this->matrix.context.hash(seq);
         auto [id, conj] = this->matrix.hashToElement(hash);
         if (id == std::numeric_limits<size_t>::max()) {
@@ -67,7 +67,7 @@ namespace NPATK {
     }
 
 
-    void NPAMatrix::identifyUniqueSequences(const std::vector<size_t> &temporaryHashes) {
+    void MomentMatrix::identifyUniqueSequences(const std::vector<size_t> &temporaryHashes) {
         std::map<size_t, UniqueSequence> build_unique;
         std::map<size_t, size_t> conj_alias;
 
@@ -121,7 +121,7 @@ namespace NPATK {
     }
 
     std::unique_ptr<SquareMatrix<SymbolExpression>>
-    NPAMatrix::buildSymbolMatrix(const std::vector<size_t> &temporaryHashes) {
+    MomentMatrix::buildSymbolMatrix(const std::vector<size_t> &temporaryHashes) {
         std::vector<SymbolExpression> symbolic_representation(matrix_dimension * matrix_dimension);
 
         for (size_t row = 0; row < matrix_dimension; ++row) {
@@ -149,7 +149,7 @@ namespace NPATK {
         return std::make_unique<SquareMatrix<SymbolExpression>>(matrix_dimension, std::move(symbolic_representation));
     }
 
-    std::pair<size_t, bool> NPAMatrix::hashToElement(size_t hash) const noexcept {
+    std::pair<size_t, bool> MomentMatrix::hashToElement(size_t hash) const noexcept {
         auto fwd_hash_iter = this->fwd_hash_table.find(hash);
         if (fwd_hash_iter != this->fwd_hash_table.end()) {
             return {fwd_hash_iter->second, false};

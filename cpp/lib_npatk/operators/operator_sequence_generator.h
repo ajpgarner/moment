@@ -21,6 +21,11 @@ namespace NPATK {
         /** The maximum length of operator sequence */
         const size_t sequence_length;
     public:
+        /**
+         * Generates all unique permutations of operator sequences, up to sequence_length.
+         * @param operatorContext
+         * @param sequence_length
+         */
         OperatorSequenceGenerator(const Context& operatorContext, size_t sequence_length);
 
         /**
@@ -32,7 +37,6 @@ namespace NPATK {
         [[nodiscard]] constexpr auto begin() const noexcept { return unique_sequences.begin(); }
         [[nodiscard]] constexpr auto end() const noexcept { return unique_sequences.end(); }
         [[nodiscard]] constexpr size_t size() const noexcept { return unique_sequences.size(); }
-        [[nodiscard]] constexpr bool empty() const noexcept { return unique_sequences.empty(); }
         [[nodiscard]] constexpr const OperatorSequence& operator[](size_t index) const noexcept {
             assert(index < unique_sequences.size());
             return this->unique_sequences[index];

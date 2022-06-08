@@ -2,7 +2,7 @@ include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_library(lib_npatk
         operators/context.cpp
-        operators/npa_matrix.cpp
+        operators/moment_matrix.cpp
         operators/operator.cpp
         operators/operator_sequence.cpp
         operators/operator_sequence_generator.cpp

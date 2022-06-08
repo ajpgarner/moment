@@ -14,13 +14,20 @@ namespace NPATK {
         : context(operatorContext), sequence_length(chain_length) {
         std::map<size_t, OperatorSequence> build_set;
 
-        for (auto seq : detail::MultiOperatorRange{context, sequence_length}) {
-            if (seq.zero()) {
-                continue;
+        // For all lengths, even 1, we include ID operator.
+        build_set.emplace(1, OperatorSequence::Identity(&context));
+
+        // Iterate through various generators...
+        for (size_t sub_length = 1; sub_length <= sequence_length; ++sub_length) {
+            for (auto seq: detail::MultiOperatorRange{context, sub_length}) {
+                if (seq.zero()) {
+                    continue;
+                }
+                size_t hash = context.hash(seq);
+                build_set.emplace(hash, std::move(seq));
             }
-            size_t hash = context.hash(seq);
-            build_set.emplace(hash, std::move(seq));
         }
+
 
         this->unique_sequences.reserve(build_set.size());
         std::transform(build_set.begin(), build_set.end(), std::back_inserter(this->unique_sequences),

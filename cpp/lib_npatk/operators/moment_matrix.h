@@ -18,7 +18,7 @@ namespace NPATK {
     class Context;
 
 
-    class NPAMatrix {
+    class MomentMatrix {
     private:
         class UniqueSequence {
             symbol_name_t id = -1;
@@ -60,14 +60,14 @@ namespace NPATK {
                 return UniqueSequence{OperatorSequence::Identity(&context), 1};
             }
 
-            friend class NPAMatrix;
+            friend class MomentMatrix;
         };
 
         class SymbolMatrixView {
         private:
-            const NPAMatrix& matrix;
+            const MomentMatrix& matrix;
         public:
-            explicit SymbolMatrixView(const NPAMatrix& theMatrix) : matrix{theMatrix} { };
+            explicit SymbolMatrixView(const MomentMatrix& theMatrix) : matrix{theMatrix} { };
             [[nodiscard]] size_t dimension() const noexcept { return matrix.dimension(); }
             [[nodiscard]] std::pair<size_t, size_t> dimensions() const noexcept { return matrix.dimensions(); }
 
@@ -92,9 +92,9 @@ namespace NPATK {
 
         class UniqueSequenceRange {
         private:
-            const NPAMatrix& matrix;
+            const MomentMatrix& matrix;
         public:
-            explicit UniqueSequenceRange(const NPAMatrix& theMatrix) : matrix{theMatrix} { }
+            explicit UniqueSequenceRange(const MomentMatrix& theMatrix) : matrix{theMatrix} { }
             [[nodiscard]] auto begin() const noexcept { return matrix.unique_sequences.cbegin(); }
             [[nodiscard]] auto end() const noexcept { return matrix.unique_sequences.cend(); }
             [[nodiscard]] bool empty() const noexcept { return matrix.unique_sequences.empty(); }
@@ -150,11 +150,11 @@ namespace NPATK {
         SymbolMatrixView SymbolMatrix;
 
     public:
-        NPAMatrix(const Context& the_context, size_t level);
+        MomentMatrix(const Context& the_context, size_t level);
 
-        NPAMatrix(const NPAMatrix&) = delete;
+        MomentMatrix(const MomentMatrix&) = delete;
 
-        NPAMatrix(NPAMatrix&& src) noexcept :
+        MomentMatrix(MomentMatrix&& src) noexcept :
             context{src.context}, hierarchy_level{src.hierarchy_level}, matrix_dimension{src.matrix_dimension},
             op_seq_matrix{std::move(src.op_seq_matrix)},
             sym_exp_matrix{std::move(src.sym_exp_matrix)},
@@ -184,6 +184,8 @@ namespace NPATK {
         constexpr auto operator[](size_t row) const noexcept {
             return (*this->op_seq_matrix)[row];
         }
+
+        [[nodiscard]] constexpr size_t level() const noexcept { return this->hierarchy_level; }
 
     private:
         /**

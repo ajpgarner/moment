@@ -8,7 +8,7 @@ add_executable(npatk_tests
     symbol_tree_tests.cpp
     operators/context_tests.cpp
     operators/multi_operator_iterator_tests.cpp
-    operators/npa_matrix_tests.cpp
+        operators/moment_matrix_tests.cpp
     operators/operator_tests.cpp
     operators/operator_sequence_tests.cpp
     operators/operator_sequence_generator_tests.cpp)
