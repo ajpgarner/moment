@@ -8,7 +8,7 @@
 #include "mex.hpp"
 #include "MatlabDataArray.hpp"
 
-#include "symbolic/symbol.h"
+#include "symbolic/symbol_expression.h"
 
 namespace NPATK::mex {
 
