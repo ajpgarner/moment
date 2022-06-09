@@ -15,7 +15,7 @@ namespace NPATK::Tests {
         const PartyInfo& crParty{party};
 
         EXPECT_EQ(party.id, 5);
-        EXPECT_EQ(party.name, "5");
+        EXPECT_EQ(party.name, "F");
         EXPECT_EQ(party.size(), 3);
 
         auto iter = party.begin();
@@ -44,10 +44,10 @@ namespace NPATK::Tests {
     }
 
     TEST(PartyInfo, PartyInfo_Mutex) {
-        PartyInfo party(5, 3);
+        PartyInfo party(5, "Who", 3);
 
         EXPECT_EQ(party.id, 5);
-        EXPECT_EQ(party.name, "5");
+        EXPECT_EQ(party.name, "Who");
         ASSERT_EQ(party.size(), 3);
 
         party.add_mutex(1, 2);

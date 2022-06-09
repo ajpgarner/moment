@@ -14,4 +14,4 @@ add_library(lib_npatk
         symbolic/symbol_set.cpp
         symbolic/symbol_tree.cpp
         symbolic/symbol_tree_simplify_impl.cpp
-    )
+        alphabetic_namer.cpp alphabetic_namer.h)

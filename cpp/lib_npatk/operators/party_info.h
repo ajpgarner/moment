@@ -63,8 +63,10 @@ namespace NPATK {
                   Operator::Flags default_flags = Operator::Flags::None);
 
         explicit PartyInfo(party_name_t id, oper_name_t num_opers,
-                           Operator::Flags default_flags = Operator::Flags::None)
-                : PartyInfo(id, std::to_string(id), num_opers, default_flags) { }
+                           Operator::Flags default_flags = Operator::Flags::None);
+
+
+
 
         [[nodiscard]] constexpr auto begin() const noexcept { return this->operators.begin(); }
 

@@ -4,6 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "party_info.h"
+#include "alphabetic_namer.h"
 
 #include <limits>
 #include <iostream>
@@ -18,6 +19,10 @@ namespace NPATK {
             this->operator_to_measurement.emplace_back(std::numeric_limits<size_t>::max());
         }
     }
+
+
+    PartyInfo::PartyInfo(party_name_t id, oper_name_t num_opers, Operator::Flags default_flags)
+        : PartyInfo{id, AlphabeticNamer::index_to_name(id, true), num_opers, default_flags} {  }
 
     void PartyInfo::add_measurement(Measurement mmt) {
         // Register measurement in list...
@@ -159,13 +164,17 @@ namespace NPATK {
         std::vector<PartyInfo> output;
         output.reserve(num_parties);
 
+        AlphabeticNamer party_namer{true};
+        AlphabeticNamer mmt_namer{false};
+
+
         size_t global_index = 0;
         for (party_name_t p = 0; p < num_parties; ++p) {
             output.emplace_back(p, 0);
             PartyInfo& lastParty = output.back();
             lastParty.global_offset = global_index;
             for (oper_name_t o = 0; o < mmts_per_party; ++o) {
-                lastParty.add_measurement(Measurement("FIXME", outcomes_per_mmt, projective));
+                lastParty.add_measurement(Measurement(mmt_namer(p), outcomes_per_mmt, projective));
             }
             global_index += (outcomes_per_mmt * mmts_per_party);
         }

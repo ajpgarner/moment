@@ -53,7 +53,6 @@ namespace NPATK {
             return static_cast<Flags>(static_cast<uint8_t>(lhs) & static_cast<uint8_t>(rhs));
         }
 
-
     public:
         /**
          * Predicate: true if the party ID of LHS is less than that of RHS.
@@ -81,7 +80,6 @@ namespace NPATK {
 
         constexpr Operator(oper_name_t name, Party who, Flags what = Flags::None) noexcept
                 : id{name}, party{who}, flags{what} {}
-
 
         friend std::ostream &operator<<(std::ostream &os, const Operator &seq);
 
