@@ -11,7 +11,7 @@ add_executable(npatk_tests
         operators/moment_matrix_tests.cpp
     operators/operator_tests.cpp
     operators/operator_sequence_tests.cpp
-    operators/operator_sequence_generator_tests.cpp)
+    operators/operator_sequence_generator_tests.cpp operators/party_info_tests.cpp)
 
 target_link_libraries(npatk_tests
     lib_npatk

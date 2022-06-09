@@ -119,7 +119,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Empty) {
-        Context context(0, 0); // No parties, no symbols
+        Context context{}; // No parties, no symbols
         ASSERT_EQ(context.size(), 0);
 
         MomentMatrix matLevel0{context, 0};
@@ -324,7 +324,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, OpSeq_2Party1OpersIdem) {
-        Context context(2, 1, Operator::Flags::Idempotent); // Two party, one operator
+        Context context(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent)); // Two party, one operator
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
@@ -367,6 +367,122 @@ namespace NPATK::Tests {
                                          OperatorSequence({alice[0], bob[0]}, &context),
                                          OperatorSequence({alice[0], bob[0]}, &context),
                                          OperatorSequence({alice[0], bob[0]}, &context)});
+    }
+
+
+    TEST(MomentMatrix, OpSeq_CHSH) {
+        Context context(PartyInfo::MakeList(2, 2, 2, true)); // Two party, two mmts, two outcomes.
+        ASSERT_EQ(context.Parties.size(), 2);
+        EXPECT_EQ(context.size(), 8);
+        const auto& alice = context.Parties[0];
+        const auto& bob = context.Parties[1];
+        ASSERT_EQ(alice.size(), 4);
+        ASSERT_EQ(bob.size(), 4);
+        const auto& a0 = alice[0];
+        const auto& a1 = alice[1];
+        const auto& b0 = alice[2];
+        const auto& b1 = alice[3];
+
+        const auto& x0 = bob[0];
+        const auto& x1 = bob[1];
+        const auto& y0 = bob[2];
+        const auto& y1 = bob[3];
+
+        MomentMatrix matLevel0{context, 0};
+        compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+
+        MomentMatrix matLevel1{context, 1};
+        compare_os_matrix(matLevel1, 9, {OperatorSequence::Identity(&context),
+                                         OperatorSequence({a0}, &context),
+                                         OperatorSequence({a1}, &context),
+                                         OperatorSequence({b0}, &context),
+                                         OperatorSequence({b1}, &context),
+                                         OperatorSequence({x0}, &context),
+                                         OperatorSequence({x1}, &context),
+                                         OperatorSequence({y0}, &context),
+                                         OperatorSequence({y1}, &context),
+
+                                         OperatorSequence({a0}, &context),
+                                         OperatorSequence({a0}, &context),
+                                         OperatorSequence::Zero(&context),
+                                         OperatorSequence({a0, b0}, &context),
+                                         OperatorSequence({a0, b1}, &context),
+                                         OperatorSequence({a0, x0}, &context),
+                                         OperatorSequence({a0, x1}, &context),
+                                         OperatorSequence({a0, y0}, &context),
+                                         OperatorSequence({a0, y1}, &context),
+
+                                         OperatorSequence({a1}, &context),
+                                         OperatorSequence::Zero(&context),
+                                         OperatorSequence({a1}, &context),
+                                         OperatorSequence({a1, b0}, &context),
+                                         OperatorSequence({a1, b1}, &context),
+                                         OperatorSequence({a1, x0}, &context),
+                                         OperatorSequence({a1, x1}, &context),
+                                         OperatorSequence({a1, y0}, &context),
+                                         OperatorSequence({a1, y1}, &context),
+
+                                         OperatorSequence({b0}, &context),
+                                         OperatorSequence({b0, a0}, &context),
+                                         OperatorSequence({b0, a1}, &context),
+                                         OperatorSequence({b0}, &context),
+                                         OperatorSequence::Zero(&context),
+                                         OperatorSequence({b0, x0}, &context),
+                                         OperatorSequence({b0, x1}, &context),
+                                         OperatorSequence({b0, y0}, &context),
+                                         OperatorSequence({b0, y1}, &context),
+
+                                         OperatorSequence({b1}, &context),
+                                         OperatorSequence({b1, a0}, &context),
+                                         OperatorSequence({b1, a1}, &context),
+                                         OperatorSequence::Zero(&context),
+                                         OperatorSequence({b1}, &context),
+                                         OperatorSequence({b1, x0}, &context),
+                                         OperatorSequence({b1, x1}, &context),
+                                         OperatorSequence({b1, y0}, &context),
+                                         OperatorSequence({b1, y1}, &context),
+
+                                         OperatorSequence({x0}, &context),
+                                         OperatorSequence({a0, x0}, &context),
+                                         OperatorSequence({a1, x0}, &context),
+                                         OperatorSequence({b0, x0}, &context),
+                                         OperatorSequence({b1, x0}, &context),
+                                         OperatorSequence({x0}, &context),
+                                         OperatorSequence::Zero(&context),
+                                         OperatorSequence({x0, y0}, &context),
+                                         OperatorSequence({x0, y1}, &context),
+
+                                         OperatorSequence({x1}, &context),
+                                         OperatorSequence({a0, x1}, &context),
+                                         OperatorSequence({a1, x1}, &context),
+                                         OperatorSequence({b0, x1}, &context),
+                                         OperatorSequence({b1, x1}, &context),
+                                         OperatorSequence::Zero(&context),
+                                         OperatorSequence({x1}, &context),
+                                         OperatorSequence({x1, y0}, &context),
+                                         OperatorSequence({x1, y1}, &context),
+                                         
+                                         OperatorSequence({y0}, &context),
+                                         OperatorSequence({a0, y0}, &context),
+                                         OperatorSequence({a1, y0}, &context),
+                                         OperatorSequence({b0, y0}, &context),
+                                         OperatorSequence({b1, y0}, &context),
+                                         OperatorSequence({y0, x0}, &context),
+                                         OperatorSequence({y0, x1}, &context),
+                                         OperatorSequence({y0}, &context),
+                                         OperatorSequence::Zero(&context),
+                                         
+                                         OperatorSequence({y1}, &context),
+                                         OperatorSequence({a0, y1}, &context),
+                                         OperatorSequence({a1, y1}, &context),
+                                         OperatorSequence({b0, y1}, &context),
+                                         OperatorSequence({b1, y1}, &context),
+                                         OperatorSequence({y1, x0}, &context),
+                                         OperatorSequence({y1, x1}, &context),
+                                         OperatorSequence::Zero(&context),
+                                         OperatorSequence({y1}, &context)
+        });
+
     }
 
     TEST(MomentMatrix, Unique_OneElem) {
@@ -457,7 +573,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_2Party1OpersIdem) {
-        Context context(2, 1, Operator::Flags::Idempotent); // Two party, one operator
+        Context context(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent)); // Two party, one operator
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
@@ -649,7 +765,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Symbol_2Party1OpersIdem) {
-        Context context(2, 1, Operator::Flags::Idempotent); // Two party, one operator
+        Context context(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent)); // Two party, one operator
         MomentMatrix matLevel0{context, 0};
         compare_symbol_matrix(matLevel0, 1, {"1"});
 

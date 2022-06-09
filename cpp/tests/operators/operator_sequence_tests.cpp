@@ -249,11 +249,17 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, WithContext_MutexZero) {
-        Context collection{3};
+
+        PartyInfo alice_spec{0, "A", 3};
+        ASSERT_EQ(alice_spec.size(), 3);
+        alice_spec.add_mutex(1, 2);
+
+        Context collection{};
+        collection.add_party(std::move(alice_spec));
+
         ASSERT_EQ(collection.Parties.size(), 1);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 3);
-        alice.add_mutex(1, 2);
         ASSERT_TRUE(alice.exclusive(1, 2));
         ASSERT_TRUE(alice.exclusive(2, 1));
 

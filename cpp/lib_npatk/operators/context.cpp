@@ -10,38 +10,19 @@
 
 namespace NPATK {
     Context::Context(std::vector<PartyInfo> &&in_party) noexcept
-        : Parties{*this}, parties{std::move(in_party)}, total_operator_count(0)  {
+        : Parties{*this}, parties{std::move(in_party)}, total_operator_count{0}  {
         for ( auto& party : parties) {
-            assert(party.offset() == this->total_operator_count);
+            party.global_offset = this->total_operator_count;
             this->total_operator_count += party.size();
         }
     }
 
-    std::vector<PartyInfo> Context::make_party_list(party_name_t num_parties, oper_name_t opers_per_party,
-                                                    Operator::Flags default_flags) {
-        std::vector<PartyInfo> output;
-        output.reserve(num_parties);
-        size_t global = 0;
-        for (party_name_t p = 0; p < num_parties; ++p) {
-            output.emplace_back(p, opers_per_party, global, default_flags);
-            global += opers_per_party;
-        }
-        return output;
-    }
 
-    std::vector<PartyInfo> Context::make_party_list(std::initializer_list<oper_name_t> oper_per_party_list,
-                                                    Operator::Flags default_flags) {
-        std::vector<PartyInfo> output;
-        output.reserve(oper_per_party_list.size());
-
-        party_name_t p = 0;
-        size_t global = 0;
-        for (auto count : oper_per_party_list) {
-            output.emplace_back(p, count, global, default_flags);
-            global += count;
-            ++p;
-        }
-        return output;
+    void Context::add_party(PartyInfo info) {
+        this->parties.emplace_back(std::move(info));
+        auto& party = this->parties.back();
+        party.global_offset = this->total_operator_count;
+        this->total_operator_count += party.size();
     }
 
     std::pair<std::vector<Operator>::iterator, bool>
@@ -85,10 +66,11 @@ namespace NPATK {
 
         for (size_t n = 0; n < sequence.size(); ++n) {
             const auto& oper = sequence[sequence.size()-n-1];
-            size_t global_index = 1 + this->parties[oper.party.id].offset() + oper.id;
+            size_t global_index = 1 + this->parties[oper.party.id].global_offset + oper.id;
             hash += (global_index * multiplier);
             multiplier *= (1+this->total_operator_count);
         }
         return hash;
     }
+
 }
