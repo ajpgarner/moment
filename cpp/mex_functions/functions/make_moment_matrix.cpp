@@ -172,6 +172,48 @@ namespace NPATK::mex::functions {
         }
     }
 
+    std::string MakeMomentMatrixParams::to_string() const {
+        std::stringstream ss;
+        switch (this->specification_mode) {
+            case SpecificationMode::FlatNoMeasurements:
+                ss << "Specified as parties with the same number of arbitrary operators.\n";
+                break;
+            case SpecificationMode::FlatWithMeasurements:
+                ss << "Specified as parties with the same number of measurements / outcomes.\n";
+                break;
+            case SpecificationMode::PartyListOfOperators:
+                ss << "Specified as a list of parties with arbitrary operators.\n";
+                break;
+            case SpecificationMode::PartyListOfMeasurements:
+                ss << "Specified as a list of parties with measurements and outcomes.\n";
+                break;
+            default:
+            case SpecificationMode::Unknown:
+                ss << "Unknown specification mode.\n";
+                break;
+        }
+        ss << "Parties: " << this->number_of_parties << "\n";
+        switch (this->specification_mode) {
+            case SpecificationMode::FlatNoMeasurements:
+                ss << "Operators per party: " << this->flat_operators_per_party << "\n";
+                break;
+            case SpecificationMode::FlatWithMeasurements:
+                ss << "Measurements per party: " << this->flat_mmts_per_party << "\n";
+                ss << "Outcomes per measurement: " << this->flat_outcomes_per_mmt << "\n";
+                break;
+            case SpecificationMode::PartyListOfOperators:
+                break;
+            case SpecificationMode::PartyListOfMeasurements:
+                break;
+            default:
+            case SpecificationMode::Unknown:
+                break;
+        }
+
+        ss << "Hierarchy depth: " << this->hierarchy_level << "\n";
+        return ss.str();
+    }
+
 
     std::unique_ptr<SortedInputs>
     MakeMomentMatrix::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {

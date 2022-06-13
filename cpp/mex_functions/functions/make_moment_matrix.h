@@ -42,6 +42,7 @@ namespace NPATK::mex::functions  {
 
         friend class MakeMomentMatrix;
 
+        [[nodiscard]] std::string to_string() const override;
     };
 
     class MakeMomentMatrix : public NPATK::mex::functions::MexFunction {
