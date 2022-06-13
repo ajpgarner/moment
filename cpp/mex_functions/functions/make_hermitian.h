@@ -9,14 +9,13 @@
 
 namespace NPATK::mex::functions  {
 
+
     class MakeHermitian : public NPATK::mex::functions::MexFunction {
     public:
         explicit MakeHermitian(matlab::engine::MATLABEngine& matlabEngine);
 
-        [[nodiscard]] std::pair<bool, std::basic_string<char16_t>> validate_inputs(const SortedInputs &input) const final;
+        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
-        void operator()(FlagArgumentRange output, SortedInputs&& input) final;
-
-
+        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
     };
 }

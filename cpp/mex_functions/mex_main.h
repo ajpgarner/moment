@@ -8,8 +8,8 @@
 #include "MatlabDataArray.hpp"
 #include "mex.hpp"
 
+#include "error_codes.h"
 #include "utilities/io_parameters.h"
-
 #include "functions/function_list.h"
 
 #include <memory>
@@ -22,29 +22,6 @@ namespace NPATK::mex {
         class MexFunction;
     }
 
-    namespace errors {
-        /** Error code: thrown when function is not recognised */
-        constexpr char bad_function[] = "bad_function";
-
-        /** Error code: thrown when known parameter encountered, but input following was bad. */
-        constexpr char bad_param[] = "bad_param";
-
-        /** Error code: thrown when two or more mutually exclusive flags/parameters are provided. */
-        constexpr char mutex_param[] = "mutex_param";
-
-        /** Error code: thrown when inputs are missing */
-        constexpr char too_few_inputs[] = "too_few_inputs";
-
-        /** Error code: thrown when there are too many inputs */
-        constexpr char too_many_inputs[] = "too_many_inputs";
-
-        /** Error code: thrown when outputs are missing */
-        constexpr char too_few_outputs[] = "too_few_outputs";
-
-        /** Error code: thrown when there are too many outputs */
-        constexpr char too_many_outputs[] = "too_many_outputs";
-    }
-
     class MexMain  {
     private:
         std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
@@ -52,23 +29,43 @@ namespace NPATK::mex {
     public:
         explicit MexMain(std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr);
 
-        void operator()(FlagArgumentRange outputs, FlagArgumentRange inputs);
-
+        void operator()(IOArgumentRange outputs, IOArgumentRange inputs);
 
 
     private:
         /**
-         *
+         * Ascertain the function being requested
          * @param inputs The input arguments. If function name is found, it is popped from front of this list.
          * @return The ID of the function implied by the input parameters.
          */
-        [[nodiscard]] functions::MEXEntryPointID get_function_id(FlagArgumentRange& inputs);
+        [[nodiscard]] functions::MEXEntryPointID get_function_id(IOArgumentRange& inputs);
 
-        [[nodiscard]] SortedInputs clean_inputs(const functions::MexFunction& func, FlagArgumentRange& inputs);
+        /**
+         * Transforms the raw inputs into a structured "SortedInputs" object
+         * @param func The mex function
+         * @param inputs The raw inputs
+         * @return A structured SortedInputs object
+         */
+        [[nodiscard]] std::unique_ptr<SortedInputs> clean_inputs(const functions::MexFunction& func, IOArgumentRange& inputs);
 
+        /**
+         * Apply further function-specific individual transform of the structured inputs.
+         * @param func The mex function
+         * @param inputs Owning pointer to the structured inputs
+         * @return Owning pointer to the possibly transformed inputs
+         */
+        [[nodiscard]] std::unique_ptr<SortedInputs> transform_and_validate(const functions::MexFunction& func,
+                                                       std::unique_ptr<SortedInputs> inputs,
+                                                       const IOArgumentRange& outputs);
+
+        /**
+         * Checks that the inputs match expected parameters (and only expected parameters), and that their number is
+         * within a function-specified range
+         * @param func The mex function
+         * @param inputs The structured inputs
+         */
         void validate_inputs(const functions::MexFunction& func, const SortedInputs& inputs);
 
-        void validate_outputs(const functions::MexFunction& func, const FlagArgumentRange& outputs);
-
+        void validate_outputs(const functions::MexFunction& func, const IOArgumentRange& outputs);
     };
 }

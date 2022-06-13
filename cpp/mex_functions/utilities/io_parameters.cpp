@@ -4,9 +4,17 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 
+#include "utilities/reporting.h"
+#include "utilities/read_as_scalar.h"
+#include "operators/moment_matrix.h"
+#include "operators/context.h"
+
 #include "io_parameters.h"
 
+#include "mex.hpp"
+
 #include <algorithm>
+#include <memory>
 
 namespace NPATK::mex {
 
@@ -97,5 +105,43 @@ namespace NPATK::mex {
         }
 
         return {};
+    }
+
+    matlab::data::Array& SortedInputs::find_or_throw(const ParamNameStr& paramName) {
+        auto param_iter = this->params.find(paramName);
+        if (param_iter == this->params.end()) {
+            std::stringstream ss;
+            ss << "Parameter '" << matlab::engine::convertUTF16StringToUTF8String(paramName)
+               << "' should be specified.";
+            throw errors::BadInput(errors::missing_param, ss.str());
+        }
+        return param_iter->second;
+    }
+
+    unsigned long SortedInputs::read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
+                                                                  const std::string &paramName,
+                                                                  const matlab::data::Array &array,
+                                                                  unsigned long min_value) {
+        if (!castable_to_scalar_int(array)) {
+            std::stringstream ss;
+            ss << paramName << " should be a scalar positive integer.";
+            throw errors::BadInput{errors::bad_param, ss.str()};
+        }
+
+        try {
+            auto val = read_as_ulong(matlabEngine, array);
+            if (val < min_value) {
+                std::stringstream ss;
+                ss << paramName << " must have a value of at least "
+                   << min_value << ".";
+                throw errors::BadInput{errors::bad_param, ss.str()};
+            }
+            return val;
+
+        } catch (const errors::unreadable_scalar& use) {
+            std::stringstream ss;
+            ss << paramName << " could not be read: " << use.what();
+            throw errors::BadInput{use.errCode, ss.str()};
+        }
     }
 }

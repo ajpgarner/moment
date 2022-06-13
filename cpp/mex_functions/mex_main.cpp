@@ -21,7 +21,7 @@ namespace NPATK::mex {
 
     }
 
-    void MexMain::operator()(FlagArgumentRange outputs, FlagArgumentRange inputs) {
+    void MexMain::operator()(IOArgumentRange outputs, IOArgumentRange inputs) {
         // Read and pop function name...
         functions::MEXEntryPointID function_id = get_function_id(inputs);
         assert(function_id != functions::MEXEntryPointID::Unknown);
@@ -32,28 +32,37 @@ namespace NPATK::mex {
             throw_error(*matlabPtr, errors::bad_function, u"Internal error: could not create function object.");
         }
 
+        // Get named parameters & flags
+        auto processed_inputs = this->clean_inputs(*the_function, inputs);
+        assert(processed_inputs);
+
+        // Check inputs are in range, and are valid
+        this->validate_inputs(*the_function, *processed_inputs);
+
         // Check outputs are in range
         this->validate_outputs(*the_function, outputs);
 
-        // Get named parameters & flags
-        auto processed_inputs = this->clean_inputs(*the_function, inputs);
-
-        // Check inputs are in range, and are valid
-        this->validate_inputs(*the_function, processed_inputs);
-
-        // Preprocess
-        bool is_debug = processed_inputs.flags.contains(u"debug");
-        bool is_verbose = is_debug || processed_inputs.flags.contains(u"verbose");
+        // Pre-process universal input flags
+        bool is_debug = processed_inputs->flags.contains(u"debug");
+        bool is_verbose = is_debug || processed_inputs->flags.contains(u"verbose");
+        bool preprocess_only = processed_inputs->flags.contains(u"debug_preprocess");
         the_function->setDebug(is_debug);
         the_function->setVerbose(is_verbose);
 
+        // Final function-specific pre-processing and validation of inputs
+        processed_inputs = this->transform_and_validate(*the_function, std::move(processed_inputs), outputs);
+
         // Execute function
-        (*the_function)(outputs, std::move(processed_inputs));
+        if (!preprocess_only) {
+            (*the_function)(outputs, std::move(processed_inputs));
+        } else {
+            // TODO: OUTPUT PREPROCESSED INPUT
+        }
 
         // ~the_function
     }
 
-    functions::MEXEntryPointID MexMain::get_function_id(FlagArgumentRange& inputs) {
+    functions::MEXEntryPointID MexMain::get_function_id(IOArgumentRange& inputs) {
         if (inputs.size() <= 0) {
             return functions::MEXEntryPointID::Version;
         }
@@ -74,16 +83,17 @@ namespace NPATK::mex {
     }
 
 
-
-    SortedInputs MexMain::clean_inputs(const functions::MexFunction &func, FlagArgumentRange & inputs) {
+    std::unique_ptr<SortedInputs> MexMain::clean_inputs(const functions::MexFunction &func, IOArgumentRange & inputs) {
         const auto& param_names = func.ParamNames();
         const auto& func_flag_names = func.FlagNames();
 
         // Incorporate default flags:~
-        NameSet flag_names = {u"verbose", u"debug"};
+        NameSet flag_names = {u"verbose", u"debug", u"debug_preprocess"};
         flag_names.insert(func_flag_names.begin(), func_flag_names.end());
 
-        SortedInputs sorted{};
+        std::unique_ptr<SortedInputs> sortedPtr = std::make_unique<SortedInputs>();
+        assert(sortedPtr);
+        SortedInputs& sorted = *sortedPtr;
 
         // Scan through inputs
         size_t cursor = 0;
@@ -102,7 +112,6 @@ namespace NPATK::mex {
                         throw_error(*this->matlabPtr, errors::bad_param,
                                                       u"Named parameter \"" + param_flag_str + u"\" was used,"
                                                       + u" but next argument (with data) is missing.");
-                        throw;
                     } else {
                         ++input_iter;
                         auto& data = *input_iter;
@@ -125,38 +134,7 @@ namespace NPATK::mex {
             ++cursor;
         }
 
-        return sorted;
-    }
-
-    void MexMain::validate_outputs(const functions::MexFunction &func, const FlagArgumentRange &outputs) {
-        auto [min, max] = func.NumOutputs();
-        if ((outputs.size() > max) || (outputs.size() < min)) {
-
-            // Build error message:
-            std::string func_name{matlab::engine::convertUTF16StringToUTF8String(func.function_name)};
-            std::stringstream ss;
-            ss << "Function \"" << func_name << "\" ";
-            if (min != max) {
-                ss << "requires between " << min << " and " << max << " outputs.";
-            } else {
-                if (min == 0) {
-                    ss << "does not have an output.";
-                } else {
-                    ss << "requires " << min;
-                    if (min != 1) {
-                        ss << " outputs.";
-                    } else {
-                        ss << " output.";
-                    }
-                }
-            }
-
-            if (outputs.size() > max) {
-                throw_error(*matlabPtr, errors::too_many_outputs, ss.str());
-            } else {
-                throw_error(*matlabPtr, errors::too_few_outputs, ss.str());
-            }
-        }
+        return sortedPtr;
     }
 
     void MexMain::validate_inputs(const functions::MexFunction &func, const SortedInputs &inputs) {
@@ -201,13 +179,54 @@ namespace NPATK::mex {
             throw_error(*matlabPtr, errors::mutex_param, bss.str());
         }
 
-        // Next, call functions own custom validator
-        auto [args_okay, err_msg] = func.validate_inputs(inputs);
-        if (!args_okay) {
-            std::basic_stringstream<char16_t> bss;
-            bss << u"Invalid argument to function \"" << func.function_name << "\": " << err_msg;
-            throw_error(*matlabPtr, errors::bad_param, bss.str());
-        }
-
     }
+
+    void MexMain::validate_outputs(const functions::MexFunction &func, const IOArgumentRange &outputs) {
+        auto [min, max] = func.NumOutputs();
+        if ((outputs.size() > max) || (outputs.size() < min)) {
+
+            // Build error message:
+            std::string func_name{matlab::engine::convertUTF16StringToUTF8String(func.function_name)};
+            std::stringstream ss;
+            ss << "Function \"" << func_name << "\" ";
+            if (min != max) {
+                ss << "requires between " << min << " and " << max << " outputs.";
+            } else {
+                if (min == 0) {
+                    ss << "does not have an output.";
+                } else {
+                    ss << "requires " << min;
+                    if (min != 1) {
+                        ss << " outputs.";
+                    } else {
+                        ss << " output.";
+                    }
+                }
+            }
+
+            if (outputs.size() > max) {
+                throw_error(*matlabPtr, errors::too_many_outputs, ss.str());
+            } else {
+                throw_error(*matlabPtr, errors::too_few_outputs, ss.str());
+            }
+        }
+    }
+
+    std::unique_ptr<SortedInputs> MexMain::transform_and_validate(const functions::MexFunction& func,
+                                                         std::unique_ptr<SortedInputs> inputs,
+                                                         const IOArgumentRange& outputs) {
+        try {
+            // Call function's own custom validator
+            return func.transform_inputs(std::move(inputs));
+
+        } catch (const errors::BadInput& bie) {
+            std::basic_stringstream<char16_t> bss;
+            bss << u"Invalid argument to function \"" << func.function_name << "\": "
+                << matlab::engine::convertUTF8StringToUTF16String(bie.what());
+            throw_error(*matlabPtr, bie.errCode, bss.str());
+        }
+    }
+
+
+
 }

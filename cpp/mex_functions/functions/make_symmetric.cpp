@@ -194,17 +194,17 @@ namespace NPATK::mex::functions {
         this->max_inputs = 1;
     }
 
-    std::pair<bool, std::basic_string<char16_t>> MakeSymmetric::validate_inputs(const SortedInputs &input) const {
-        // Should be guaranteed~
+    std::unique_ptr<SortedInputs> MakeSymmetric::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
+        auto& input = *inputPtr;
         assert(!input.inputs.empty());
 
         auto inputDims = input.inputs[0].getDimensions();
         if (inputDims.size() != 2) {
-            return {false, u"Input must be a matrix."};
+            throw errors::BadInput{errors::bad_param, "Input must be a matrix."};
         }
 
         if (inputDims[0] != inputDims[1]) {
-            return {false, u"Input must be a square matrix."};
+            throw errors::BadInput{errors::bad_param, "Input must be a square matrix."};
         }
 
         switch(input.inputs[0].getType()) {
@@ -222,14 +222,28 @@ namespace NPATK::mex::functions {
             case matlab::data::ArrayType::MATLAB_STRING:
                 break;
             default:
-                return {false, u"Matrix type must be real numeric, or of strings."};
+                throw errors::BadInput{errors::bad_param, "Matrix type must be real numeric, or of strings."};
         }
 
-        return {true, u""};
+        return std::make_unique<MakeSymmetricParams>(std::move(input));
     }
 
 
-    void MakeSymmetric::operator()(FlagArgumentRange outputs, SortedInputs&& inputs) {
+    MakeSymmetricParams::MakeSymmetricParams(SortedInputs &&structuredInputs)
+        : SortedInputs(std::move(structuredInputs)) {
+        // Determine sparsity of output
+        this->sparse_output = (inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE);
+        if (flags.contains(u"sparse")) {
+            this->sparse_output = true;
+        } else if (flags.contains(u"dense")) {
+            this->sparse_output = false;
+        }
+    }
+
+
+    void MakeSymmetric::operator()(IOArgumentRange outputs, std::unique_ptr<SortedInputs> inputPtr) {
+        auto& inputs = dynamic_cast<MakeSymmetricParams&>(*inputPtr);
+
         auto unique_constraints = identify_nonsymmetric_elements(matlabEngine, inputs.inputs[0]);
 
         if (verbose) {
@@ -260,21 +274,15 @@ namespace NPATK::mex::functions {
             NPATK::mex::print_to_console(matlabEngine, ss4.str());
         }
 
-        // Default sparsity to matrix type of input, but allow for override
-        bool sparse_output = (inputs.inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE);
-        if (inputs.flags.contains(u"sparse")) {
-            sparse_output = true;
-        } else if (inputs.flags.contains(u"dense")) {
-            sparse_output = false;
-        }
 
         if (outputs.size() >= 1) {
             outputs[0] = NPATK::mex::make_symmetric_using_tree(matlabEngine, inputs.inputs[0],
-                                                               symbol_tree, sparse_output);
+                                                               symbol_tree, inputs.sparse_output);
         }
 
         if (outputs.size() >= 2) {
             outputs[1] = NPATK::mex::export_substitution_list(matlabEngine, symbol_tree);
         }
     }
+
 }

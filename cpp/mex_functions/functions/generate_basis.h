@@ -7,21 +7,24 @@
 #include "mex_function.h"
 
 
-namespace NPATK::mex {
-    namespace errors {
-        //constexpr char
-    }
+namespace NPATK::mex::functions {
 
-    namespace functions {
-        class GenerateBasis : public MexFunction {
-        public:
-            explicit GenerateBasis(matlab::engine::MATLABEngine &matlabEngine);
+    struct GenerateBasisParams : public SortedInputs {
+    public:
+        /** True, if output should be a sparse matrix */
+        bool sparse_output = false;
+    public:
+        explicit GenerateBasisParams(SortedInputs&& structuredInputs);
+    };
 
-            void operator()(FlagArgumentRange output, SortedInputs &&input) final;
+    class GenerateBasis : public MexFunction {
+    public:
+        explicit GenerateBasis(matlab::engine::MATLABEngine &matlabEngine);
 
-            [[nodiscard]] std::pair<bool, std::basic_string<char16_t>>
-            validate_inputs(const SortedInputs &input) const override;
+        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
-        };
-    }
+        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+
+    };
+
 }

@@ -17,7 +17,7 @@ class MexFunction : public matlab::mex::Function {
             using namespace NPATK::mex;
             MexMain executor{getEngine()};
 
-            executor(FlagArgumentRange(outputs.begin(), outputs.begin() + outputs.size()),
-                     FlagArgumentRange(inputs.begin(), inputs.begin() + inputs.size()));
+            executor(IOArgumentRange(outputs.begin(), outputs.begin() + outputs.size()),
+                     IOArgumentRange(inputs.begin(), inputs.begin() + inputs.size()));
         }
 };

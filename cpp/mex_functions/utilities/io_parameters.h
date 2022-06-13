@@ -14,6 +14,8 @@
 #include <optional>
 #include <string>
 
+#include "error_codes.h"
+
 namespace NPATK::mex {
 
     using ParamNameStr = std::basic_string<char16_t>;
@@ -50,10 +52,10 @@ namespace NPATK::mex {
      * without causing linker errors (due to non-inline functions defined in the header file that contains the full
      * definition of MexIORange).
      *
-     * Thus, the FlagArgumentRange class implements similar behaviour as matlab::mex::ArgumentList, with the added bonus
+     * Thus, the IOArgumentRange class implements similar behaviour as matlab::mex::ArgumentList, with the added bonus
      * of compiling and linking when used across more than one compilation unit.
      */
-    class FlagArgumentRange {
+    class IOArgumentRange {
     public:
         using iter_type = std::vector<matlab::data::Array>::iterator;
 
@@ -62,10 +64,10 @@ namespace NPATK::mex {
         size_t elem_count;
 
     public:
-        constexpr FlagArgumentRange(iter_type first, iter_type end)
+        constexpr IOArgumentRange(iter_type first, iter_type end)
                 : i_start(first), i_end(end), elem_count{static_cast<size_t>(std::distance(first, end))} {}
 
-        FlagArgumentRange(const FlagArgumentRange &rhs) = default;
+        IOArgumentRange(const IOArgumentRange &rhs) = default;
 
         [[nodiscard]] constexpr size_t size() const { return elem_count; }
 
@@ -75,13 +77,13 @@ namespace NPATK::mex {
 
         /**
          * Get first element in list, and remove from list.
-         * @return
          */
         matlab::data::Array& pop_front() {
             assert(elem_count > 0);
             auto& out = *(this->i_start);
             ++this->i_start;
             --elem_count;
+            // It is safe to return a reference because the range is non-owning!
             return out;
         }
 
@@ -91,18 +93,45 @@ namespace NPATK::mex {
         }
     };
 
+    namespace errors {
+        struct BadInput : std::runtime_error {
+        public:
+            std::string errCode;
+
+            BadInput(std::string errCode, const std::string& what)
+                    : std::runtime_error{what}, errCode{std::move(errCode)} { }
+        };
+    }
+
     /**
      * Pre-processed inputs to functions
      */
     struct SortedInputs {
+    public:
         NamedParameter params;
         NamedFlag flags;
         std::vector<matlab::data::Array> inputs;
 
-
         SortedInputs() = default;
+        virtual ~SortedInputs() = default;
+
         SortedInputs(const SortedInputs& rhs) = delete;
         SortedInputs(SortedInputs&& rhs) = default;
+
+        matlab::data::Array& find_or_throw(const ParamNameStr& paramName);
+
+    protected:
+        /**
+         * Read integer, or throw BadInput exception.
+         * @param matlabEngine Reference to engine.
+         * @param paramName Parameter/input name, as will appear in failure error message.
+         * @param array The array to attempt to parse as a scalar integer.
+         * @param min_value The minimum acceptable value of the integer.
+         * @return The parsed integer.
+         */
+        static unsigned long read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
+                                          const std::string& paramName, const matlab::data::Array& array,
+                                          unsigned long min_value = 0);
     };
 
 }

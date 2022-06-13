@@ -25,7 +25,7 @@ namespace NPATK::mex::functions {
         this->mutex_params.add_mutex(u"foo", u"cake");
     }
 
-    void Version::operator()(FlagArgumentRange output, SortedInputs&& input) {
+    void Version::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
         size_t num_outputs = output.size();
         if ((0 == num_outputs) || this->verbose) {
             std::stringstream ss;
@@ -40,7 +40,7 @@ namespace NPATK::mex::functions {
 
         if (num_outputs >= 1) {
             matlab::data::ArrayFactory factory;
-            if (input.flags.contains(u"structured")) {
+            if (inputPtr->flags.contains(u"structured")) {
                 auto s = factory.createStructArray({1,1}, {"major", "minor", "build"});
                 s[0]["major"] = factory.createArray<int64_t>({ 1, 1 }, { NPATK::version::VERSION_MAJOR });
                 s[0]["minor"] = factory.createArray<int64_t>({ 1, 1 }, { NPATK::version::VERSION_MINOR });

@@ -1,6 +1,7 @@
 include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_library(lib_npatk
+        alphabetic_namer.cpp
         operators/context.cpp
         operators/moment_matrix.cpp
         operators/operator.cpp
@@ -14,4 +15,4 @@ add_library(lib_npatk
         symbolic/symbol_set.cpp
         symbolic/symbol_tree.cpp
         symbolic/symbol_tree_simplify_impl.cpp
-        alphabetic_namer.cpp alphabetic_namer.h)
+    )

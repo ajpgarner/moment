@@ -21,6 +21,7 @@ namespace NPATK::mex::functions {
         MakeSymmetric = 2,
         MakeHermitian = 3,
         GenerateBasis = 4,
+        MakeMomentMatrix = 5,
     };
 
     /**
@@ -33,6 +34,7 @@ namespace NPATK::mex::functions {
         output.emplace(u"make_symmetric", MEXEntryPointID::MakeSymmetric);
         output.emplace(u"make_hermitian", MEXEntryPointID::MakeHermitian);
         output.emplace(u"generate_basis", MEXEntryPointID::GenerateBasis);
+        output.emplace(u"make_moment_matrix", MEXEntryPointID::MakeMomentMatrix);
         return output;
     }
 

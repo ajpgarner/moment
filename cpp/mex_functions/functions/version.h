@@ -11,16 +11,14 @@
 namespace NPATK::mex::functions {
 
     class Version : public MexFunction {
-
     public:
         explicit Version(matlab::engine::MATLABEngine& matlabEngine);
 
-        void operator()(FlagArgumentRange output, SortedInputs&& input) final;
-
-        [[nodiscard]] std::pair<bool, std::basic_string<char16_t>> validate_inputs(const SortedInputs &input) const override {
-            return {true, u""};
+        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final {
+            return std::move(input);
         }
 
+        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
     };
 
 }

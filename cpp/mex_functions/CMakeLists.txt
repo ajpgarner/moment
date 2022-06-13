@@ -17,12 +17,14 @@ matlab_add_mex(NAME npatk_mex
             fragments/substitute_elements_using_tree.cpp
             fragments/read_symbol_or_fail.cpp
             utilities/io_parameters.cpp
+            utilities/read_as_scalar.cpp
             utilities/read_as_string.cpp
             utilities/reporting.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
             functions/make_hermitian.cpp
             functions/make_symmetric.cpp
+            functions/make_moment_matrix.cpp
             functions/version.cpp
         OUTPUT_NAME npatk
         R2018a)

@@ -5,6 +5,7 @@
  */
 #pragma once
 
+#include <memory>
 #include <string>
 #include <set>
 #include <utility>
@@ -45,13 +46,22 @@ namespace NPATK::mex::functions {
 
         virtual ~MexFunction() = default;
 
-        virtual void operator()(FlagArgumentRange output, SortedInputs&& input) = 0;
+        virtual void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) = 0;
 
         [[nodiscard]] inline auto check_for_mutex(const SortedInputs& input) const {
             return mutex_params.validate(input.flags, input.params);
         }
 
-        [[nodiscard]] virtual std::pair<bool, std::basic_string<char16_t>> validate_inputs(const SortedInputs& input) const = 0;
+        /**
+         * Validates that inputs are correct, and restructure them as necessary.
+         * @param input Owning pointer to input object
+         * @return Owning pointer to (possibly transformed) input object.
+         * @throws error::BadInput If input cannot be transformed for any reason.
+         */
+        [[nodiscard]] virtual std::unique_ptr<SortedInputs>
+        transform_inputs(std::unique_ptr<SortedInputs> input) const {
+            return std::move(input);
+        }
 
         /**
          * Set of allowed monadic flags for this function (e.g. "verbose")
@@ -79,8 +89,15 @@ namespace NPATK::mex::functions {
             return {min_inputs, max_inputs};
         }
 
-        void setDebug(bool val = true) noexcept { this->debug = val; }
+        /**
+         * Flag whether the function should output verbose information to console.
+         */
         void setVerbose(bool val = true) noexcept { this->verbose = val; }
+
+        /**
+         * Flag whether the function should output debug information to console.
+         */
+        void setDebug(bool val = true) noexcept { this->debug = val; }
 
     };
 }

@@ -362,14 +362,26 @@ namespace NPATK::mex::functions {
 
     }
 
-    std::pair<bool, std::basic_string<char16_t>> GenerateBasis::validate_inputs(const SortedInputs &input) const {
+    GenerateBasisParams::GenerateBasisParams(NPATK::mex::SortedInputs &&structuredInputs)
+        : SortedInputs(std::move(structuredInputs)) {
+        // Determine sparsity of output
+        this->sparse_output = (inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE);
+        if (flags.contains(u"sparse")) {
+            this->sparse_output = true;
+        } else if (flags.contains(u"dense")) {
+            this->sparse_output = false;
+        }
+    }
+
+    std::unique_ptr<SortedInputs> GenerateBasis::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
+        auto& input = *inputPtr;
         auto inputDims = input.inputs[0].getDimensions();
         if (inputDims.size() != 2) {
-            return {false, u"Input must be a matrix."};
+            throw errors::BadInput{errors::bad_param, "Input must be a matrix."};
         }
 
         if (inputDims[0] != inputDims[1]) {
-            return {false, u"Input must be a square matrix."};
+            throw errors::BadInput{errors::bad_param, "Input must be a square matrix."};
         }
 
         switch(input.inputs[0].getType()) {
@@ -387,15 +399,17 @@ namespace NPATK::mex::functions {
             case matlab::data::ArrayType::MATLAB_STRING:
                 break;
             default:
-                return {false, u"Matrix type must be numeric."};
+                throw errors::BadInput{errors::bad_param, "Matrix type must be numeric."};
         }
 
-        // TODO: Check for symmetry/hermiticity
+        // TODO: Check for symmetry/hermiticity?
 
-        return {true, u""};
+        return std::make_unique<GenerateBasisParams>(std::move(input));
     }
 
-    void GenerateBasis::operator()(FlagArgumentRange output, SortedInputs &&input) {
+    void GenerateBasis::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
+        auto& input = dynamic_cast<GenerateBasisParams&>(*inputPtr);
+
         IndexMatrixProperties::MatrixType basis_type = IndexMatrixProperties::MatrixType::Symmetric;
         if (input.flags.contains(u"symmetric")) {
             basis_type = IndexMatrixProperties::MatrixType::Symmetric;
@@ -419,14 +433,6 @@ namespace NPATK::mex::functions {
         }
 
 
-        // Default sparsity to matrix type of input, but allow for override
-        bool sparse_output = (input.inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE);
-        if (input.flags.contains(u"sparse")) {
-            sparse_output = true;
-        } else if (input.flags.contains(u"dense")) {
-            sparse_output = false;
-        }
-
         auto matrix_properties = enumerate_upper_symbols(matlabEngine, input.inputs[0], basis_type, debug);
 
         if (verbose) {
@@ -435,12 +441,12 @@ namespace NPATK::mex::functions {
                << matrix_properties.RealSymbols().size() << " with real parts, "
                << matrix_properties.ImaginarySymbols().size() << " with imaginary parts].\n";
             if (debug) {
-                ss << "Outputting as " << (sparse_output ? "sparse" : "dense") << " basis.\n";
+                ss << "Outputting as " << (input.sparse_output ? "sparse" : "dense") << " basis.\n";
             }
             print_to_console(matlabEngine, ss.str());
         }
 
-        if (sparse_output) {
+        if (input.sparse_output) {
             auto [sym, anti_sym] = make_sparse_basis(this->matlabEngine, input.inputs[0], matrix_properties);
             output[0] = std::move(sym);
             if (basis_type == IndexMatrixProperties::MatrixType::Hermitian) {

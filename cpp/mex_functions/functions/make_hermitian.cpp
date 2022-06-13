@@ -28,29 +28,29 @@ namespace NPATK::mex::functions  {
         this->max_inputs = 1;
     }
 
-    std::pair<bool, std::basic_string<char16_t>> MakeHermitian::validate_inputs(const SortedInputs &input) const {
+    std::unique_ptr<SortedInputs> MakeHermitian::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
+        auto& input = *inputPtr;
         // Should be guaranteed~
         assert(!input.inputs.empty());
 
         auto inputDims = input.inputs[0].getDimensions();
         if (inputDims.size() != 2) {
-            return {false, u"Input must be a matrix."};
+            throw errors::BadInput{errors::bad_param, "Input must be a matrix."};
         }
 
         if (inputDims[0] != inputDims[1]) {
-            return {false, u"Input must be a square matrix."};
+            throw errors::BadInput{errors::bad_param, "Input must be a square matrix."};
         }
 
         switch(input.inputs[0].getType()) {
             case matlab::data::ArrayType::MATLAB_STRING:
                 break;
             default:
-                return {false, u"Matrix type must be of strings."};
+                throw errors::BadInput{errors::bad_param, "Matrix type must be of strings."};
         }
 
-        return {true, u""};
+        return std::move(inputPtr);
     }
-
 
     namespace {
         /**
@@ -112,7 +112,8 @@ namespace NPATK::mex::functions  {
         }
     }
 
-    void MakeHermitian::operator()(FlagArgumentRange outputs, SortedInputs&& inputs) {
+    void MakeHermitian::operator()(IOArgumentRange outputs, std::unique_ptr<SortedInputs> inputPtr) {
+        auto& inputs = *inputPtr;
         auto unique_constraints = identify_nonhermitian_elements(matlabEngine, inputs.inputs[0]);
 
         if (verbose) {

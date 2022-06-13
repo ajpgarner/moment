@@ -10,6 +10,7 @@
 #include "functions/make_symmetric.h"
 #include "functions/make_hermitian.h"
 #include "functions/generate_basis.h"
+#include "functions/make_moment_matrix.h"
 
 #include "utilities/reporting.h"
 
@@ -31,6 +32,9 @@ namespace NPATK::mex::functions {
                 break;
             case functions::MEXEntryPointID::GenerateBasis:
                 the_function = std::make_unique<functions::GenerateBasis>(engine);
+                break;
+            case functions::MEXEntryPointID::MakeMomentMatrix:
+                the_function = std::make_unique<functions::MakeMomentMatrix>(engine);
                 break;
             default:
             case functions::MEXEntryPointID::Unknown:
