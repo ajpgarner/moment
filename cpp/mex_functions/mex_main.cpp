@@ -52,12 +52,18 @@ namespace NPATK::mex {
         // Final function-specific pre-processing and validation of inputs
         processed_inputs = this->transform_and_validate(*the_function, std::move(processed_inputs), outputs);
 
-        // Execute function
-        if (!preprocess_only) {
-            (*the_function)(outputs, std::move(processed_inputs));
-        } else {
-            // TODO: OUTPUT PREPROCESSED INPUT
+        // If only transforming parameters, print output:
+        if (preprocess_only) {
+            print_to_console(*this->matlabPtr, processed_inputs->to_string());
+            matlab::data::ArrayFactory factory{};
+            for (auto &output: outputs) {
+                output = factory.createScalar(0);
+            }
+            return;
         }
+
+        // Execute function
+        (*the_function)(outputs, std::move(processed_inputs));
 
         // ~the_function
     }

@@ -19,6 +19,7 @@ matlab_add_mex(NAME npatk_mex
             utilities/io_parameters.cpp
             utilities/read_as_scalar.cpp
             utilities/read_as_string.cpp
+            utilities/reflection.cpp
             utilities/reporting.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp

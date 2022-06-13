@@ -120,6 +120,8 @@ namespace NPATK::mex {
 
         matlab::data::Array& find_or_throw(const ParamNameStr& paramName);
 
+        [[nodiscard]] virtual std::string to_string() const;
+
     protected:
         /**
          * Read integer, or throw BadInput exception.

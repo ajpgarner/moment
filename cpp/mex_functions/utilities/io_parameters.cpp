@@ -4,12 +4,15 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 
-#include "utilities/reporting.h"
 #include "utilities/read_as_scalar.h"
 #include "operators/moment_matrix.h"
 #include "operators/context.h"
+#include "utilities/reporting.h"
+#include "utilities/reflection.h"
 
 #include "io_parameters.h"
+
+#include "reflection.h"
 
 #include "mex.hpp"
 
@@ -143,5 +146,41 @@ namespace NPATK::mex {
             ss << paramName << " could not be read: " << use.what();
             throw errors::BadInput{use.errCode, ss.str()};
         }
+    }
+
+    std::string SortedInputs::to_string() const {
+        std::stringstream ss;
+        if (!this->flags.empty()) {
+            ss << "Flags set: ";
+            bool one_flag = false;
+            for (const auto& flag : this->flags) {
+                if (one_flag) {
+                    ss << ", ";
+                }
+                one_flag = true;
+                ss << matlab::engine::convertUTF16StringToUTF8String(flag);
+            }
+            ss << "\n";
+
+        } else {
+            ss << "No flags set.\n";
+        }
+
+        for (const auto& [param_name, val] : this->params) {
+            ss << matlab::engine::convertUTF16StringToUTF8String(param_name) << ": ";
+            ss << summary_string(val);
+            ss << "\n";
+        }
+
+        size_t index = 0;
+        for (const auto& input : this->inputs) {
+            ss << "Input " << (index+1) << ": "; // use matlab indexing
+            ss << summary_string(input);
+            ss << "\n";
+
+            ++index;
+        }
+
+        return ss.str();
     }
 }
