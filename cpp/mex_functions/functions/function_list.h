@@ -22,6 +22,7 @@ namespace NPATK::mex::functions {
         MakeHermitian = 3,
         GenerateBasis = 4,
         MakeMomentMatrix = 5,
+        AlphabeticName = 6
     };
 
     /**
@@ -35,6 +36,7 @@ namespace NPATK::mex::functions {
         output.emplace(u"make_hermitian", MEXEntryPointID::MakeHermitian);
         output.emplace(u"generate_basis", MEXEntryPointID::GenerateBasis);
         output.emplace(u"make_moment_matrix", MEXEntryPointID::MakeMomentMatrix);
+        output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
         return output;
     }
 

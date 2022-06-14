@@ -11,6 +11,7 @@
 #include "functions/make_hermitian.h"
 #include "functions/generate_basis.h"
 #include "functions/make_moment_matrix.h"
+#include "functions/alphabetic_name.h"
 
 #include "utilities/reporting.h"
 
@@ -35,6 +36,9 @@ namespace NPATK::mex::functions {
                 break;
             case functions::MEXEntryPointID::MakeMomentMatrix:
                 the_function = std::make_unique<functions::MakeMomentMatrix>(engine);
+                break;
+            case functions::MEXEntryPointID::AlphabeticName:
+                the_function = std::make_unique<functions::AlphabeticName>(engine);
                 break;
             default:
             case functions::MEXEntryPointID::Unknown:
