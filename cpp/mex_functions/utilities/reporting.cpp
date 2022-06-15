@@ -26,7 +26,15 @@ namespace NPATK::mex {
         throw; // hint for compiler
     }
 
-    void print_to_console(matlab::engine::MATLABEngine &engine, const std::string &message) {
+    void print_to_console(matlab::engine::MATLABEngine &engine,
+                          const std::string &message) {
+        matlab::data::ArrayFactory factory;
+        engine.feval(u"fprintf",
+             0, std::vector<matlab::data::Array>({ factory.createScalar(message) }));
+    }
+
+    void print_to_console(matlab::engine::MATLABEngine &engine,
+                          const std::basic_string<char16_t> &message) {
         matlab::data::ArrayFactory factory;
         engine.feval(u"fprintf",
              0, std::vector<matlab::data::Array>({ factory.createScalar(message) }));

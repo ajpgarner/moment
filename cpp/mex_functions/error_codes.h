@@ -6,6 +6,9 @@
 #pragma once
 
 namespace NPATK::mex::errors {
+    /** Error code: thrown when logical assertion fails, and it's not the users (direct) fault. */
+    constexpr char internal_error[] = "internal_error";
+
     /** Error code: thrown when function is not recognised */
     constexpr char bad_function[] = "bad_function";
 

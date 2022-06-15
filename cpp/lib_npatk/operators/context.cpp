@@ -6,6 +6,7 @@
 #include "context.h"
 #include "operator_sequence.h"
 
+#include <iostream>
 #include <utility>
 
 namespace NPATK {
@@ -71,6 +72,17 @@ namespace NPATK {
             multiplier *= (1+this->total_operator_count);
         }
         return hash;
+    }
+
+    std::ostream &operator<<(std::ostream &os, const Context &context) {
+        os << context.parties.size() << ((context.parties.size() == 1) ? " party" : " parties") << ".\n";
+        for (const auto& party : context.parties) {
+            os << party << "\n";
+        }
+        os << context.total_operator_count << ((context.total_operator_count == 1) ? " operator" : " operators")
+           << " in total.\n";
+
+        return os;
     }
 
 }

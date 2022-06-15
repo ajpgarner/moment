@@ -10,6 +10,7 @@
 #include <cassert>
 
 #include <iterator>
+#include <iosfwd>
 #include <set>
 #include <string>
 #include <vector>
@@ -167,6 +168,7 @@ namespace NPATK {
          [[nodiscard]] size_t hash(const OperatorSequence& seq) const noexcept;
 
 
+         friend std::ostream& operator<< (std::ostream& os, const Context& context);
 
     };
 
