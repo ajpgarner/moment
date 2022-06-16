@@ -19,7 +19,7 @@ namespace NPATK {
 
 
     class MomentMatrix {
-    private:
+    public:
         class UniqueSequence {
             symbol_name_t id = -1;
             OperatorSequence opSeq;
@@ -40,6 +40,7 @@ namespace NPATK {
                     hermitian{false} { }
 
         public:
+            [[nodiscard]] constexpr symbol_name_t Id() const noexcept { return this->id; }
             [[nodiscard]] constexpr size_t hash() const noexcept { return this->fwd_hash; }
             [[nodiscard]] constexpr size_t hash_conj() const noexcept { return this->conj_hash; }
             [[nodiscard]] constexpr const OperatorSequence& sequence() const noexcept { return this->opSeq; }
@@ -121,7 +122,6 @@ namespace NPATK {
             }
         };
 
-
     private:
         const Context& context;
         const size_t hierarchy_level;
@@ -186,6 +186,8 @@ namespace NPATK {
         }
 
         [[nodiscard]] constexpr size_t level() const noexcept { return this->hierarchy_level; }
+
+        [[nodiscard]] const SquareMatrix<OperatorSequence>& SequenceMatrix() const noexcept { return *this->op_seq_matrix; }
 
     private:
         /**

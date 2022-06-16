@@ -167,6 +167,11 @@ namespace NPATK {
           */
          [[nodiscard]] size_t hash(const OperatorSequence& seq) const noexcept;
 
+         /**
+          * Generates a formatted string representation of an operator sequence
+          */
+          [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const;
+
 
          friend std::ostream& operator<< (std::ostream& os, const Context& context);
 

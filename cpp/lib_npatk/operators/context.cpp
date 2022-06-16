@@ -7,6 +7,7 @@
 #include "operator_sequence.h"
 
 #include <iostream>
+#include <sstream>
 #include <utility>
 
 namespace NPATK {
@@ -83,6 +84,36 @@ namespace NPATK {
            << " in total.\n";
 
         return os;
+    }
+
+    std::string Context::format_sequence(const OperatorSequence &seq) const {
+        if (seq.zero()) {
+            return "0";
+        }
+        if (seq.empty()) {
+            return "1";
+        }
+
+        std::stringstream ss;
+        const size_t party_size = this->parties.size();
+        bool done_once = false;
+        for (const auto& oper : seq) {
+            if (done_once) {
+                ss << ";";
+            } else {
+                done_once = true;
+            }
+
+            if (oper.party.id >= party_size) {
+                return "BadSequence";
+            }
+            const auto& party = this->parties[oper.party.id];
+            if (party_size >= 1) {
+                ss << party.name << ".";
+            }
+            party.format_operator(ss, oper);
+        }
+        return ss.str();
     }
 
 }

@@ -5,7 +5,21 @@
     end
     
     methods (Test)
-   
+        function OneOper_Level0(testCase) 
+            [sym_mat, us_key] =  npatk('make_moment_matrix', 1, 0);
+            [seq_mat, us_key2] = npatk('make_moment_matrix', ...
+                                       'sequences', 1, 0);
+            testCase.verifyEqual(us_key, us_key2);
+            testCase.verifyEqual(sym_mat, [["1"]]);            
+        end
+        
+        function OneOper_Level1(testCase) 
+            [sym_mat, us_key] =  npatk('make_moment_matrix', 1, 1);
+            [seq_mat, us_key2] = npatk('make_moment_matrix', ...
+                                       'sequences', 1, 1);
+            testCase.verifyEqual(us_key, us_key2);
+            testCase.verifyEqual(sym_mat, [["1", "2"]; ["2", "3"]]);
+        end
     end
     
     methods (Test, TestTags={'Error'})

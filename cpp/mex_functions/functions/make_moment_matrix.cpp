@@ -13,6 +13,9 @@
 #include "utilities/reporting.h"
 #include "utilities/io_parameters.h"
 
+#include "fragments/export_symbol_matrix.h"
+#include "fragments/export_unique_sequences.h"
+
 #include <memory>
 
 namespace NPATK::mex::functions {
@@ -198,6 +201,14 @@ namespace NPATK::mex::functions {
             specification_mode = SpecificationMode::FlatWithMeasurements;
         }
 
+        // Get number of parties...!
+        if (inputs.size() > 2) {
+            number_of_parties = read_positive_integer(matlabEngine, "Party count",
+                                                      inputs[0], 1);
+        } else {
+            number_of_parties = 1;
+        }
+
         // Read measurements (if any) and operator count
         if (specification_mode == SpecificationMode::FlatWithMeasurements) {
             flat_mmts_per_party =  read_positive_integer(matlabEngine, "Measurement count",
@@ -281,6 +292,7 @@ namespace NPATK::mex::functions {
         if (!contextPtr) {
             throw_error(this->matlabEngine, errors::internal_error, "Context object could not be created.");
         }
+        const auto& context = *contextPtr;
 
         if (this->verbose) {
             std::stringstream ss;
@@ -289,11 +301,18 @@ namespace NPATK::mex::functions {
             print_to_console(this->matlabEngine, ss.str());
         }
 
+        // Now make moment matrix
+        MomentMatrix momentMatrix{*contextPtr, input.hierarchy_level};
 
-        throw_error(this->matlabEngine, "not_implemented", u"Not implemented");
+        if (output.size() >= 1) {
+            if (input.output_sequences) {
+                output[0] = export_sequence_matrix(this->matlabEngine, context, momentMatrix.SequenceMatrix());
+            } else {
+                output[0] = export_symbol_matrix(this->matlabEngine, momentMatrix.SymbolMatrix());
+            }
+        }
+        if (output.size() >= 2) {
+            output[1] = export_unique_sequence_struct(this->matlabEngine, context, momentMatrix.UniqueSequences);
+        }
     }
-
-
-
-
 }

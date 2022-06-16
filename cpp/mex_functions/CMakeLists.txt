@@ -13,7 +13,9 @@ matlab_add_mex(NAME npatk_mex
             fragments/enumerate_symbols.cpp
             fragments/export_basis_key.cpp
             fragments/export_substitution_list.cpp
+            fragments/export_symbol_matrix.cpp
             fragments/export_symbol_properties.cpp
+            fragments/export_unique_sequences.cpp
             fragments/read_symbol_or_fail.cpp
             fragments/substitute_elements_using_tree.cpp
             utilities/io_parameters.cpp
