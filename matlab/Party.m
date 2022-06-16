@@ -1,6 +1,6 @@
 classdef Party < handle
-    %PARTY Summary of this class goes here
-    %   Detailed explanation goes here
+    %PARTY A collection of localized operators.
+    %   
     
     properties(GetAccess = public, SetAccess = protected)
         Id

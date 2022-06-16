@@ -8,7 +8,6 @@
 #include "operators/context.h"
 #include "operators/moment_matrix.h"
 
-#include "fragments/parse_to_context.h"
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
@@ -31,8 +30,8 @@ namespace NPATK::mex::functions {
                                                      input.flat_mmts_per_party, input.flat_outcomes_per_mmt));
                     break;
                 case MakeMomentMatrixParams::SpecificationMode::FromSettingObject:
-                    assert(input.ptrSettings != nullptr);
-                    return parse_to_context(matlabEngine, *input.ptrSettings);
+                    assert(input.settingPtr);
+                    return input.settingPtr->make_context();
                 default:
                 case MakeMomentMatrixParams::SpecificationMode::Unknown:
                     throw_error(matlabEngine, "not_implemented", "Unknown input format!");
@@ -93,8 +92,7 @@ namespace NPATK::mex::functions {
             this->hierarchy_level = read_positive_integer(matlabEngine, "Parameter 'level'", depth_param, 0);
 
             if (setting_specified) {
-                this->verifyAsContext(matlabEngine, this->params[u"setting"]);
-                this->ptrSettings = &(this->params[u"setting"]);
+                this->getSettingObject(matlabEngine, this->params[u"setting"]);
                 return;
             }
             if (set_any_flat_param) {
@@ -108,8 +106,7 @@ namespace NPATK::mex::functions {
         if (this->inputs.size() == 2) {
             if ((this->inputs[0].getType() == matlab::data::ArrayType::OBJECT)
                 || (this->inputs[0].getType() == matlab::data::ArrayType::HANDLE_OBJECT_REF)) {
-                this->verifyAsContext(matlabEngine, this->inputs[0]);
-                this->ptrSettings = &(this->inputs[0]);
+                this->getSettingObject(matlabEngine, this->inputs[0]);
 
                 // Read and check level
                 this->hierarchy_level = read_positive_integer(matlabEngine, "Hierarchy level",
@@ -215,13 +212,14 @@ namespace NPATK::mex::functions {
     }
 
 
-    void MakeMomentMatrixParams::verifyAsContext(matlab::engine::MATLABEngine &matlabEngine,
-                                                 const matlab::data::Array &input) {
-        auto [good, errMsg] = verify_as_setting(matlabEngine, input);
-        if (!good) {
+    void MakeMomentMatrixParams::getSettingObject(matlab::engine::MATLABEngine &matlabEngine,
+                                                  matlab::data::Array &input) {
+        auto [readPtr, errMsg] = read_as_setting(matlabEngine, input); // <- deliberate implicit copy of input here...!
+        if (!readPtr) {
             throw errors::BadInput(errors::bad_param,
                                    std::string("Invalid setting: ") + errMsg.value());
         } else {
+            this->settingPtr = std::move(readPtr);
             this->specification_mode = SpecificationMode::FromSettingObject;
         }
     }
@@ -255,7 +253,7 @@ namespace NPATK::mex::functions {
                 ss << "Outcomes per measurement: " << this->flat_outcomes_per_mmt << "\n";
                 break;
             case SpecificationMode::FromSettingObject:
-                if (this->ptrSettings) {
+                if (this->settingPtr) {
                     ss << "Pointer to Setting object set.\n";
                 } else {
                     ss << "Pointer to Setting object not set!\n";

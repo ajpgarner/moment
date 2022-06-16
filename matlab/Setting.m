@@ -1,5 +1,7 @@
 classdef Setting < handle
-    %SETTING A scenario involving multiple agents with 
+    %SETTING A scenario involving multiple agents with measurements.
+    %   
+      
     properties(GetAccess = public, SetAccess = protected)
         Parties
     end

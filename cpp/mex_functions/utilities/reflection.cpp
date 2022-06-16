@@ -9,9 +9,9 @@
 #include <sstream>
 
 namespace NPATK::mex {
-    std::string type_as_string(const matlab::data::Array &array) {
 
-        switch (array.getType()) {
+    std::string to_string(const matlab::data::ArrayType &arrayType) {
+        switch (arrayType) {
             case matlab::data::ArrayType::LOGICAL:
                 return "Logical";
             case matlab::data::ArrayType::CHAR:

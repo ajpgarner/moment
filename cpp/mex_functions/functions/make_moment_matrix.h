@@ -6,6 +6,7 @@
 #pragma once
 
 #include "mex_function.h"
+#include "matlab_classes/setting.h"
 
 namespace NPATK {
     class Context;
@@ -34,7 +35,7 @@ namespace NPATK::mex::functions  {
         unsigned long flat_outcomes_per_mmt = 0;
         unsigned long flat_operators_per_party = 0;
 
-        matlab::data::Array* ptrSettings = nullptr;
+        std::unique_ptr<classes::Setting> settingPtr;
 
     public:
         explicit MakeMomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
@@ -47,7 +48,7 @@ namespace NPATK::mex::functions  {
         void getFlatFromParams(matlab::engine::MATLABEngine &matlabEngine);
         void getFlatFromInputs(matlab::engine::MATLABEngine &matlabEngine);
 
-        void verifyAsContext(matlab::engine::MATLABEngine &matlabEngine, const matlab::data::Array& input);
+        void getSettingObject(matlab::engine::MATLABEngine &matlabEngine, matlab::data::Array& input);
     };
 
     class MakeMomentMatrix : public NPATK::mex::functions::MexFunction {
