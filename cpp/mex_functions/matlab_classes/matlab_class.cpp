@@ -8,6 +8,7 @@
 
 #include "cppmex/mexMatlabEngine.hpp"
 #include "cppmex/mexException.hpp"
+#include "cppmex/detail/mexExceptionImpl.hpp"
 
 #include <sstream>
 
