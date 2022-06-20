@@ -21,8 +21,10 @@ namespace NPATK {
     struct Measurement {
     public:
         std::string name{};
-        size_t num_elements = 0;
+        size_t num_outcomes = 0;
         bool projective = true;
+        bool complete = true;
+
     protected:
         size_t offset = 0;
     public:
@@ -30,10 +32,19 @@ namespace NPATK {
         constexpr Measurement(const Measurement&) = default;
         constexpr Measurement( Measurement&&) = default;
 
-        constexpr Measurement(std::string name, size_t outcomes, bool projective = true) noexcept
-            : name{std::move(name)}, num_elements{outcomes}, projective{projective} { }
+        constexpr Measurement(std::string name, size_t outcomes,
+                              bool projective = true,
+                              bool complete = true) noexcept
+            : name{std::move(name)}, num_outcomes{outcomes},
+              projective{projective}, complete{complete} {
+            assert(outcomes >= 1);
+        }
 
         [[nodiscard]] constexpr size_t get_offset() const noexcept { return this->offset; }
+
+        [[nodiscard]] constexpr size_t num_operators() const noexcept {
+            return this->num_outcomes - (this->complete ? 1 : 0);
+        }
 
         friend class PartyInfo;
     };

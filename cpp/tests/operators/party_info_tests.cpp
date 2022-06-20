@@ -64,7 +64,7 @@ namespace NPATK::Tests {
 
     TEST(PartyInfo, OneMeasurement) {
         PartyInfo alice(0, "A");
-        alice.add_measurement(Measurement{"X", 3});
+        alice.add_measurement(Measurement{"X", 4});
         EXPECT_EQ(alice.id, 0);
         EXPECT_EQ(alice.name, "A");
         ASSERT_EQ(alice.size(), 3);
@@ -91,8 +91,8 @@ namespace NPATK::Tests {
 
     TEST(PartyInfo, TwoMeasurement) {
         PartyInfo alice(0, "A");
-        alice.add_measurement(Measurement{"X", 2});
-        alice.add_measurement(Measurement{"Y", 2});
+        alice.add_measurement(Measurement{"X", 3});
+        alice.add_measurement(Measurement{"Y", 3});
         EXPECT_EQ(alice.id, 0);
         EXPECT_EQ(alice.name, "A");
         ASSERT_EQ(alice.size(), 4);
@@ -174,7 +174,7 @@ namespace NPATK::Tests {
     }
 
     TEST(PartyInfo, MakeList_PartyMmtOper) {
-        auto party_list = PartyInfo::MakeList(2, 2, 2, true);
+        auto party_list = PartyInfo::MakeList(2, 2, 3, true);
         ASSERT_EQ(party_list.size(), 2);
         const auto& alice = party_list[0];
         const auto& bob = party_list[1];

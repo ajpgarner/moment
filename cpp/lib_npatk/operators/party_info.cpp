@@ -25,20 +25,21 @@ namespace NPATK {
         : PartyInfo{id, AlphabeticNamer::index_to_name(id, true), num_opers, default_flags} {  }
 
     void PartyInfo::add_measurement(Measurement mmt) {
+        // Measurement must have one outcome
+        assert(mmt.num_outcomes >= 1);
+
         // Register measurement in list...
         this->measurements.emplace_back(std::move(mmt));
-        size_t mmt_no = this->measurements.size()-1;
+        const size_t mmt_no = this->measurements.size()-1;
         auto& measurement = this->measurements.back();
         measurement.offset = this->operators.size();
 
         // Determine operator flags and number
-        size_t init_id = this->operators.size();
-        this->operators.reserve(this->operators.size() + measurement.num_elements);
+        const size_t operators_added = measurement.num_operators();
+        const size_t init_id = this->operators.size();
+        this->operators.reserve(init_id + operators_added);
         Operator::Flags oFlags = measurement.projective ? Operator::Flags::Idempotent : Operator::Flags::None;
-        if (measurement.projective && measurement.num_elements == 1) {
-            oFlags = Operator::Flags::Identity;
-        }
-        size_t final_id = init_id + measurement.num_elements;
+        size_t final_id = init_id + operators_added;
 
         // Create operators, register them with measurement.
         for (size_t index = init_id; index < final_id; ++index) {
@@ -46,7 +47,6 @@ namespace NPATK {
             this->operator_to_measurement.emplace_back(mmt_no);
         }
         assert(this->operators.size() == this->operator_to_measurement.size());
-
 
         // Register mutual exclusion
         if (measurement.projective) {
@@ -67,14 +67,15 @@ namespace NPATK {
             const auto& mmt = this->measurements[mmt_id];
             os << mmt.name << std::to_string(op.id - mmt.offset);
         } else {
-            os << op;
+            os << op.id;
         }
         return os;
     }
 
     std::ostream &operator<<(std::ostream &os, const PartyInfo &the_party) {
-        os << the_party.name;
-        if (the_party.measurements.empty()) {
+        os << the_party.name << ": ";
+        if (the_party.operators.empty()) {
+        //if (the_party.measurements.empty()) {
             os << " [empty]";
             return os;
         }
@@ -87,13 +88,21 @@ namespace NPATK {
             }
             os << "{";
             bool one_elem = false;
-            for (auto oper_index = mmt.get_offset(), oper_index_max = mmt.get_offset() + mmt.num_elements;
+            for (auto oper_index = mmt.get_offset(), oper_index_max = mmt.get_offset() + mmt.num_operators();
                 oper_index < oper_index_max; ++oper_index) {
                 if (one_elem) {
                     os << ", ";
                 }
                 the_party.format_operator(os, the_party.operators[oper_index]);
                 one_elem = true;
+            }
+            if (mmt.complete) {
+                if (one_elem) {
+                    os << ", ";
+                }
+                os << "("
+                   << mmt.name << std::to_string(mmt.num_operators())
+                   << ")";
             }
             os << "}";
             one_measurement = true;
@@ -170,11 +179,11 @@ namespace NPATK {
 
         size_t global_index = 0;
         for (party_name_t p = 0; p < num_parties; ++p) {
-            output.emplace_back(p, 0);
+            output.emplace_back(p, party_namer(p), 0);
             PartyInfo& lastParty = output.back();
             lastParty.global_offset = global_index;
             for (oper_name_t o = 0; o < mmts_per_party; ++o) {
-                lastParty.add_measurement(Measurement(mmt_namer(p), outcomes_per_mmt, projective));
+                lastParty.add_measurement(Measurement(mmt_namer(o), outcomes_per_mmt, projective));
             }
             global_index += (outcomes_per_mmt * mmts_per_party);
         }

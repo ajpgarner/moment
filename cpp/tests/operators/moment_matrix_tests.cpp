@@ -370,8 +370,8 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(MomentMatrix, OpSeq_CHSH) {
-        Context context(PartyInfo::MakeList(2, 2, 2, true)); // Two party, two mmts, two outcomes.
+    TEST(MomentMatrix, OpSeq_223) {
+        Context context(PartyInfo::MakeList(2, 2, 3, true)); // Two party, two mmts, three outcomes.
         ASSERT_EQ(context.Parties.size(), 2);
         EXPECT_EQ(context.size(), 8);
         const auto& alice = context.Parties[0];

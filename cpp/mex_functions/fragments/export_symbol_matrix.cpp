@@ -14,15 +14,75 @@
 
 namespace NPATK::mex {
 
+    namespace {
+        class FormatView {
+        public:
+            using raw_const_iterator = SquareMatrix<OperatorSequence>::ColumnMajorView::TransposeIterator;
+
+            class const_iterator {
+            public:
+                using iterator_category = std::input_iterator_tag;
+                using difference_type = ptrdiff_t;
+                using value_type = matlab::data::MATLABString;
+
+            private:
+                const Context* context = nullptr;
+                FormatView::raw_const_iterator raw_iter;
+
+            public:
+                constexpr const_iterator(const Context& context, raw_const_iterator rci)
+                        : context{&context}, raw_iter{rci} { }
+
+
+                constexpr bool operator==(const const_iterator& rhs) const noexcept { return this->raw_iter == rhs.raw_iter; }
+                constexpr bool operator!=(const const_iterator& rhs)  const noexcept { return this->raw_iter != rhs.raw_iter; }
+
+                constexpr const_iterator& operator++() {
+                    ++(this->raw_iter);
+                    return *this;
+                }
+
+                constexpr const_iterator operator++(int) & {
+                    auto copy = *this;
+                    ++(*this);
+                    return copy;
+                }
+
+                value_type operator*() const {
+                    assert(context != nullptr);
+                    return {matlab::engine::convertUTF8StringToUTF16String(context->format_sequence(*raw_iter))};
+                }
+            };
+
+            static_assert(std::input_iterator<FormatView::const_iterator>);
+
+        private:
+            const const_iterator iter_begin;
+            const const_iterator iter_end;
+
+        public:
+            FormatView(const Context &context, const SquareMatrix<OperatorSequence>& inputMatrix)
+                : iter_begin{context, inputMatrix.ColumnMajor.begin()},
+                  iter_end{context, inputMatrix.ColumnMajor.end()} {
+            }
+
+            [[nodiscard]] auto begin() const { return iter_begin; }
+            [[nodiscard]] auto end() const { return iter_end; }
+
+        };
+    }
+
     matlab::data::Array export_symbol_matrix(matlab::engine::MATLABEngine& engine,
                                              const SquareMatrix<SymbolExpression>& inputMatrix) {
         matlab::data::ArrayFactory factory;
         matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
+
         auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
         auto writeIter = outputArray.begin();
-        auto readIter = inputMatrix.begin();
 
-        while ((writeIter != outputArray.end()) && (readIter != inputMatrix.end())) {
+        auto readIter = inputMatrix.ColumnMajor.begin();
+
+        while ((writeIter != outputArray.end()) && (readIter != inputMatrix.ColumnMajor.end())) {
             *writeIter = readIter->as_string();
             ++writeIter;
             ++readIter;
@@ -31,7 +91,7 @@ namespace NPATK::mex {
             throw_error(engine, errors::internal_error,
                         "export_symbol_matrix dimension mismatch: too few input elements." );
         }
-        if (readIter != inputMatrix.end()) {
+        if (readIter != inputMatrix.ColumnMajor.end()) {
             throw_error(engine, errors::internal_error,
                         "export_symbol_matrix dimension mismatch: too many input elements.");
         }
@@ -45,12 +105,16 @@ namespace NPATK::mex {
                             const SquareMatrix<OperatorSequence>& inputMatrix) {
         matlab::data::ArrayFactory factory;
         matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
+
+
+        FormatView formatView{context, inputMatrix};
+
         auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
         auto writeIter = outputArray.begin();
-        auto readIter = inputMatrix.begin();
+        auto readIter = formatView.begin();
 
-        while ((writeIter != outputArray.end()) && (readIter != inputMatrix.end())) {
-            *writeIter = context.format_sequence(*readIter);
+        while ((writeIter != outputArray.end()) && (readIter != formatView.end())) {
+            *writeIter = *readIter;
             ++writeIter;
             ++readIter;
         }
@@ -58,7 +122,7 @@ namespace NPATK::mex {
             throw_error(engine, errors::internal_error,
                         "export_symbol_matrix dimension mismatch: too few input elements." );
         }
-        if (readIter != inputMatrix.end()) {
+        if (readIter != formatView.end()) {
             throw_error(engine, errors::internal_error,
                         "export_symbol_matrix dimension mismatch: too many input elements.");
         }

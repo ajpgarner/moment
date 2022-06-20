@@ -3,6 +3,7 @@ include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 add_executable(npatk_tests
     alphabetic_namer_tests.cpp
     equality_type_tests.cpp
+    square_matrix_tests.cpp
     symbol_expression_tests.cpp
     symbol_set_tests.cpp
     symbol_node_and_link_tests.cpp

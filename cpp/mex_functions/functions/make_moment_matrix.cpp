@@ -30,7 +30,8 @@ namespace NPATK::mex::functions {
                     break;
                 case MakeMomentMatrixParams::SpecificationMode::FlatWithMeasurements:
                     return std::make_unique<Context>(PartyInfo::MakeList(input.number_of_parties,
-                                                     input.flat_mmts_per_party, input.flat_outcomes_per_mmt));
+                                                     input.flat_mmts_per_party,
+                                                     input.flat_outcomes_per_mmt));
                     break;
                 case MakeMomentMatrixParams::SpecificationMode::FromSettingObject:
                     assert(input.settingPtr);
@@ -49,6 +50,7 @@ namespace NPATK::mex::functions {
         this->max_outputs = 2;
 
         this->flag_names.emplace(u"sequences");
+        this->flag_names.emplace(u"symbols");
 
         this->param_names.emplace(u"setting");
 
@@ -58,6 +60,8 @@ namespace NPATK::mex::functions {
         this->param_names.emplace(u"operators");
 
         this->param_names.emplace(u"level");
+
+        this->mutex_params.add_mutex(u"sequences", u"symbols");
 
         this->mutex_params.add_mutex(u"outcomes", u"operators");
 
