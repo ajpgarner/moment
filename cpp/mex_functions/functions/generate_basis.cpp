@@ -345,8 +345,8 @@ namespace NPATK::mex::functions {
     }
 
 
-    GenerateBasis::GenerateBasis(matlab::engine::MATLABEngine &matlabEngine)
-        : MexFunction(matlabEngine, MEXEntryPointID::GenerateBasis, u"generate_basis") {
+    GenerateBasis::GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
+        : MexFunction(matlabEngine, storage, MEXEntryPointID::GenerateBasis, u"generate_basis") {
         this->min_inputs = this->max_inputs = 1;
         this->min_outputs = 1;
         this->max_outputs = 3;

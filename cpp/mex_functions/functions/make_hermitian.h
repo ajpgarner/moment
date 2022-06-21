@@ -12,7 +12,7 @@ namespace NPATK::mex::functions  {
 
     class MakeHermitian : public NPATK::mex::functions::MexFunction {
     public:
-        explicit MakeHermitian(matlab::engine::MATLABEngine& matlabEngine);
+        explicit MakeHermitian(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 

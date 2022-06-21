@@ -13,6 +13,10 @@
 
 class MexFunction : public matlab::mex::Function {
     public:
+        MexFunction() {
+
+        }
+
         void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) override {
             using namespace NPATK::mex;
             MexMain executor{getEngine()};

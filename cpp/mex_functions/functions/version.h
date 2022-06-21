@@ -12,7 +12,7 @@ namespace NPATK::mex::functions {
 
     class Version : public MexFunction {
     public:
-        explicit Version(matlab::engine::MATLABEngine& matlabEngine);
+        explicit Version(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final {
             return std::move(input);

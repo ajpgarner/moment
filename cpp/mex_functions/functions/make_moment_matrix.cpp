@@ -5,6 +5,8 @@
  */
 #include "make_moment_matrix.h"
 
+#include "storage_manager.h"
+
 #include "operators/context.h"
 #include "operators/moment_matrix.h"
 
@@ -21,21 +23,21 @@
 namespace NPATK::mex::functions {
 
     namespace {
-        std::unique_ptr<Context> make_context(matlab::engine::MATLABEngine &matlabEngine,
+        std::shared_ptr<Context> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                               const MakeMomentMatrixParams& input) {
             switch (input.specification_mode) {
                 case MakeMomentMatrixParams::SpecificationMode::FlatNoMeasurements:
-                    return std::make_unique<Context>(PartyInfo::MakeList(input.number_of_parties,
+                    return std::make_shared<Context>(PartyInfo::MakeList(input.number_of_parties,
                                                      input.flat_operators_per_party));
-                    break;
                 case MakeMomentMatrixParams::SpecificationMode::FlatWithMeasurements:
-                    return std::make_unique<Context>(PartyInfo::MakeList(input.number_of_parties,
+                    return std::make_shared<Context>(PartyInfo::MakeList(input.number_of_parties,
                                                      input.flat_mmts_per_party,
                                                      input.flat_outcomes_per_mmt));
-                    break;
                 case MakeMomentMatrixParams::SpecificationMode::FromSettingObject:
                     assert(input.settingPtr);
                     return input.settingPtr->make_context();
+                case MakeMomentMatrixParams::SpecificationMode::RetrieveFromReference:
+                    throw_error(matlabEngine, "not_implemented", "Context should not be made, when in reference mode!");
                 default:
                 case MakeMomentMatrixParams::SpecificationMode::Unknown:
                     throw_error(matlabEngine, "not_implemented", "Unknown input format!");
@@ -44,15 +46,18 @@ namespace NPATK::mex::functions {
         }
     }
 
-    MakeMomentMatrix::MakeMomentMatrix(matlab::engine::MATLABEngine &matlabEngine)
-            : MexFunction(matlabEngine, MEXEntryPointID::MakeMomentMatrix, u"make_moment_matrix") {
+    MakeMomentMatrix::MakeMomentMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
+            : MexFunction(matlabEngine, storage, MEXEntryPointID::MakeMomentMatrix, u"make_moment_matrix") {
         this->min_outputs = 1;
         this->max_outputs = 2;
 
+        this->flag_names.emplace(u"reference");
         this->flag_names.emplace(u"sequences");
         this->flag_names.emplace(u"symbols");
 
         this->param_names.emplace(u"setting");
+
+        this->param_names.emplace(u"reference_id");
 
         this->param_names.emplace(u"parties");
         this->param_names.emplace(u"measurements");
@@ -61,14 +66,25 @@ namespace NPATK::mex::functions {
 
         this->param_names.emplace(u"level");
 
+        // One of three ways to output:
+        this->mutex_params.add_mutex(u"reference", u"sequences");
+        this->mutex_params.add_mutex(u"reference", u"symbols");
         this->mutex_params.add_mutex(u"sequences", u"symbols");
 
+        // One of three ways to input:
         this->mutex_params.add_mutex(u"outcomes", u"operators");
 
         this->mutex_params.add_mutex(u"setting", u"parties");
         this->mutex_params.add_mutex(u"setting", u"measurements");
         this->mutex_params.add_mutex(u"setting", u"outcomes");
         this->mutex_params.add_mutex(u"setting", u"operators");
+        this->mutex_params.add_mutex(u"setting", u"reference_id");
+
+        this->mutex_params.add_mutex(u"reference_id", u"parties");
+        this->mutex_params.add_mutex(u"reference_id", u"measurements");
+        this->mutex_params.add_mutex(u"reference_id", u"outcomes");
+        this->mutex_params.add_mutex(u"reference_id", u"operators");
+        this->mutex_params.add_mutex(u"reference_id", u"level");
 
         this->min_inputs = 0;
         this->max_inputs = 4;
@@ -76,16 +92,27 @@ namespace NPATK::mex::functions {
 
     MakeMomentMatrixParams::MakeMomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)
         : SortedInputs(std::move(rawInput)) {
-        this->output_sequences = this->flags.contains(u"sequences");
+
+        // Determine output mode
+        if (this->flags.contains(u"sequences")) {
+            this->output_mode = OutputMode::Sequences;
+        } else if (this->flags.contains(u"reference")) {
+            this->output_mode = OutputMode::Reference;
+        } else {
+            this->output_mode = OutputMode::Symbols;
+        }
 
         // Either set named params OR give multiple params
         bool setting_specified = this->params.contains(u"setting");
         bool set_any_flat_param = this->params.contains(u"parties")
                              || this->params.contains(u"measurements")
                              || this->params.contains(u"operators");
+        bool reference_specified = this->params.contains(u"reference_id");
 
-        bool set_any_param = setting_specified || set_any_flat_param || this->params.contains(u"level");
+        bool set_any_param = reference_specified || setting_specified || set_any_flat_param || this->params.contains(u"level");
         assert(!(setting_specified && set_any_flat_param)); // mutex should rule out.
+        assert(!(reference_specified && set_any_flat_param)); // mutex should rule out.
+        assert(!(reference_specified && setting_specified)); // mutex should rule out.
 
         if (set_any_param) {
             // No extra inputs
@@ -94,8 +121,15 @@ namespace NPATK::mex::functions {
                                        "Input arguments should be exclusively named, or exclusively unnamed."};
             }
 
+            if (reference_specified) {
+                auto& ref_param = this->find_or_throw(u"reference_id");
+                this->storage_key = read_positive_integer(matlabEngine, "Parameter 'reference_id'", ref_param, 0);
+                this->specification_mode = MakeMomentMatrixParams::SpecificationMode::RetrieveFromReference;
+                return;
+            }
+
             // Read and check level - required.
-            auto &depth_param = this->find_or_throw(u"level");
+            auto& depth_param = this->find_or_throw(u"level");
             this->hierarchy_level = read_positive_integer(matlabEngine, "Parameter 'level'", depth_param, 0);
 
             if (setting_specified) {
@@ -286,37 +320,65 @@ namespace NPATK::mex::functions {
     std::unique_ptr<SortedInputs>
     MakeMomentMatrix::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
         auto& input = *inputPtr;
-        return std::make_unique<MakeMomentMatrixParams>(this->matlabEngine, std::move(input));
+        auto output = std::make_unique<MakeMomentMatrixParams>(this->matlabEngine, std::move(input));
+        // Check key vs. storage manager
+        if (output->specification_mode == MakeMomentMatrixParams::SpecificationMode::RetrieveFromReference) {
+            if (!this->storageManager.MomentMatrices.check_signature(output->storage_key)) {
+                throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MomentMatrix."};
+            }
+        }
+        return output;
     }
 
     void MakeMomentMatrix::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
         auto& input = dynamic_cast<MakeMomentMatrixParams&>(*inputPtr);
 
-        auto contextPtr = make_context(this->matlabEngine, input);
-        if (!contextPtr) {
-            throw_error(this->matlabEngine, errors::internal_error, "Context object could not be created.");
-        }
-        const auto& context = *contextPtr;
 
-        if (this->verbose) {
-            std::stringstream ss;
-            ss << "Parsed setting:\n";
-            ss << *contextPtr << "\n";
-            print_to_console(this->matlabEngine, ss.str());
+        std::shared_ptr<MomentMatrix> momentMatrixPtr;
+
+        if (input.specification_mode == MakeMomentMatrixParams::SpecificationMode::RetrieveFromReference) {
+            try {
+                momentMatrixPtr = this->storageManager.MomentMatrices.get(input.storage_key);
+            } catch(const persistent_object_error& poe) {
+                throw_error(this->matlabEngine, errors::bad_param, "Could not find referenced MomentMatrix.");
+            }
+        } else {
+            // Create context on heap:
+            std::shared_ptr<Context> contextPtr{make_context(this->matlabEngine, input)};
+            if (!contextPtr) {
+                throw_error(this->matlabEngine, errors::internal_error, "Context object could not be created.");
+            }
+
+            // Output context in verbose mode
+            if (this->verbose) {
+                std::stringstream ss;
+                ss << "Parsed setting:\n";
+                ss << *contextPtr << "\n";
+                print_to_console(this->matlabEngine, ss.str());
+            }
+
+            // Make moment matrix on heap:
+            momentMatrixPtr = std::make_shared<MomentMatrix>(contextPtr, input.hierarchy_level);
         }
 
-        // Now make moment matrix
-        MomentMatrix momentMatrix{*contextPtr, input.hierarchy_level};
+        const auto& momentMatrix = *momentMatrixPtr;
 
         if (output.size() >= 1) {
-            if (input.output_sequences) {
-                output[0] = export_sequence_matrix(this->matlabEngine, context, momentMatrix.SequenceMatrix());
-            } else {
+            if (input.output_mode == MakeMomentMatrixParams::OutputMode::Sequences) {
+                output[0] = export_sequence_matrix(this->matlabEngine, momentMatrix.context,
+                                                   momentMatrix.SequenceMatrix());
+            } else if (input.output_mode == MakeMomentMatrixParams::OutputMode::Symbols) {
                 output[0] = export_symbol_matrix(this->matlabEngine, momentMatrix.SymbolMatrix());
+            } else {
+                matlab::data::ArrayFactory factory;
+                uint64_t storage_id = this->storageManager.MomentMatrices.store(std::move(momentMatrixPtr));
+                output[0] = factory.createScalar<uint64_t>(storage_id);
             }
         }
+
         if (output.size() >= 2) {
-            output[1] = export_unique_sequence_struct(this->matlabEngine, context, momentMatrix.UniqueSequences);
+            output[1] = export_unique_sequence_struct(this->matlabEngine, momentMatrix.context,
+                                                      momentMatrix.UniqueSequences);
         }
     }
 }

@@ -18,6 +18,8 @@
 
 namespace NPATK::mex {
 
+    class StorageManager;
+
     namespace functions {
         class MexFunction;
     }
@@ -25,6 +27,7 @@ namespace NPATK::mex {
     class MexMain  {
     private:
         std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
+        StorageManager& persistentStorage;
 
     public:
         explicit MexMain(std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr);

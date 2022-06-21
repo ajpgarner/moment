@@ -4,7 +4,6 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "mex_main.h"
-#include "MatlabEngine/engine_interface_util.hpp"
 
 #include "utilities/reporting.h"
 #include "utilities/read_as_string.h"
@@ -12,12 +11,14 @@
 #include "functions/mex_function.h"
 #include "functions/function_list.h"
 
+#include "storage_manager.h"
+
+#include "MatlabEngine/engine_interface_util.hpp"
 #include <sstream>
 
 namespace NPATK::mex {
     MexMain::MexMain(std::shared_ptr <matlab::engine::MATLABEngine> matlab_engine)
-        : matlabPtr(std::move(matlab_engine))
-    {
+        : matlabPtr(std::move(matlab_engine)), persistentStorage{getStorageManager()} {
 
     }
 
@@ -27,7 +28,9 @@ namespace NPATK::mex {
         assert(function_id != functions::MEXEntryPointID::Unknown);
 
         // Construction function object from ID...
-        std::unique_ptr<functions::MexFunction> the_function = functions::make_mex_function(*matlabPtr, function_id);
+        std::unique_ptr<functions::MexFunction> the_function = functions::make_mex_function(*matlabPtr,
+                                                                                            function_id,
+                                                                                            persistentStorage);
         if (!the_function) {
             throw_error(*matlabPtr, errors::bad_function, u"Internal error: could not create function object.");
         }

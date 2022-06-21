@@ -108,20 +108,20 @@ namespace NPATK::mex {
     }
 
 
-    long read_as_long(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
-        return read_as<long>(engine, input);
+    int64_t read_as_int64(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return read_as<int64_t>(engine, input);
     }
 
-    long read_as_long_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
-        return read_as_or_fail<long>(engine, input);
+    int64_t read_as_int64_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return read_as_or_fail<int64_t>(engine, input);
     }
 
-    unsigned long read_as_ulong(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
-        return read_as<unsigned long>(engine, input);
+    uint64_t read_as_uint64(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return read_as<uint64_t>(engine, input);
     }
 
-    unsigned long read_as_ulong_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
-        return read_as_or_fail<unsigned long>(engine, input);
+    uint64_t read_as_uint64_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return read_as_or_fail<uint64_t>(engine, input);
     }
 
     bool castable_to_scalar_int(const matlab::data::Array &input) {

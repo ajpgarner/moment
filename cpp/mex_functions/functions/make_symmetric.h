@@ -19,7 +19,7 @@ namespace NPATK::mex::functions {
 
     class MakeSymmetric : public MexFunction {
     public:
-        explicit MakeSymmetric(matlab::engine::MATLABEngine& matlabEngine);
+        explicit MakeSymmetric(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
 

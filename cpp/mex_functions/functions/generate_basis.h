@@ -19,7 +19,7 @@ namespace NPATK::mex::functions {
 
     class GenerateBasis : public MexFunction {
     public:
-        explicit GenerateBasis(matlab::engine::MATLABEngine &matlabEngine);
+        explicit GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 

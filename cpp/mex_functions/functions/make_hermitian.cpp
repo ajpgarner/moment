@@ -20,8 +20,8 @@ namespace NPATK::mex::functions  {
 
 
 
-    MakeHermitian::MakeHermitian(matlab::engine::MATLABEngine &matlabEngine)
-            : MexFunction(matlabEngine, MEXEntryPointID::MakeHermitian, u"make_hermitian") {
+    MakeHermitian::MakeHermitian(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
+            : MexFunction(matlabEngine, storage, MEXEntryPointID::MakeHermitian, u"make_hermitian") {
         this->min_outputs = 1;
         this->max_outputs = 3;
         this->min_inputs = 1;

@@ -12,8 +12,8 @@
 
 
 namespace NPATK {
-    MomentMatrix::MomentMatrix(const Context &the_context, size_t level)
-        : context{the_context}, hierarchy_level{level},
+    MomentMatrix::MomentMatrix(std::shared_ptr<Context> theContextPtr, size_t level)
+        : contextPtr{std::move(theContextPtr)}, context{*contextPtr}, hierarchy_level{level},
         UniqueSequences{*this}, SymbolMatrix{*this} {
 
         // Prepare generator of symbols

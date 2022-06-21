@@ -2,6 +2,7 @@ include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_library(lib_npatk
         alphabetic_namer.cpp
+        persistent_storage.cpp
         operators/context.cpp
         operators/moment_matrix.cpp
         operators/operator.cpp

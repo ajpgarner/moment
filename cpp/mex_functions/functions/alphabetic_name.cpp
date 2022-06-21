@@ -59,8 +59,8 @@ namespace NPATK::mex::functions {
 
     }
 
-    AlphabeticName::AlphabeticName(matlab::engine::MATLABEngine &matlabEngine)
-            : MexFunction(matlabEngine, MEXEntryPointID::MakeMomentMatrix, u"make_moment_matrix") {
+    AlphabeticName::AlphabeticName(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
+            : MexFunction(matlabEngine, storage, MEXEntryPointID::MakeMomentMatrix, u"make_moment_matrix") {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
@@ -83,7 +83,7 @@ namespace NPATK::mex::functions {
         matlab::data::ArrayFactory factory{};
 
         if (input.inputs[0].getNumberOfElements() == 1) {
-            auto id = read_as_ulong_or_fail(this->matlabEngine, input.inputs[0]);
+            auto id = read_as_uint64_or_fail(this->matlabEngine, input.inputs[0]);
             if (!input.zero_index) {
                 if (id < 1) {
                     throw_error(this->matlabEngine, errors::bad_param,

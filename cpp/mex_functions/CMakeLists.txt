@@ -10,6 +10,7 @@ matlab_add_mex(NAME npatk_mex
         SRC
             mex_entry.cpp
             mex_main.cpp
+            storage_manager.cpp
             fragments/enumerate_symbols.cpp
             fragments/export_basis_key.cpp
             fragments/export_substitution_list.cpp

@@ -17,6 +17,10 @@ namespace matlab::engine {
     class MATLABEngine;
 }
 
+namespace NPATK::mex {
+    class StorageManager;
+}
+
 namespace NPATK::mex::functions {
 
     /**
@@ -25,6 +29,8 @@ namespace NPATK::mex::functions {
     class MexFunction {
     protected:
         matlab::engine::MATLABEngine& matlabEngine;
+        StorageManager& storageManager;
+
         NameSet flag_names{};
         NameSet param_names{};
         MutuallyExclusiveParams mutex_params{};
@@ -41,8 +47,9 @@ namespace NPATK::mex::functions {
         const MEXEntryPointID function_id;
         const std::basic_string<char16_t> function_name;
 
-        MexFunction(matlab::engine::MATLABEngine& engine, MEXEntryPointID id, std::basic_string<char16_t> name)
-            : matlabEngine(engine), function_id{id}, function_name{std::move(name)} { }
+        MexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage,
+                    MEXEntryPointID id, std::basic_string<char16_t> name)
+            : matlabEngine(engine), storageManager{storage}, function_id{id}, function_name{std::move(name)} { }
 
         virtual ~MexFunction() = default;
 

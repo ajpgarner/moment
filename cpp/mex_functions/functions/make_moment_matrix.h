@@ -16,9 +16,6 @@ namespace NPATK::mex::functions  {
 
     struct MakeMomentMatrixParams : public SortedInputs {
     public:
-        /** True if operator sequence strings should be output, false for symbols */
-        bool output_sequences = false;
-
         unsigned long hierarchy_level = 0;
 
         unsigned long number_of_parties = 0;
@@ -27,8 +24,16 @@ namespace NPATK::mex::functions  {
             Unknown = 0,
             FlatNoMeasurements,
             FlatWithMeasurements,
-            FromSettingObject
+            FromSettingObject,
+            RetrieveFromReference
         } specification_mode = SpecificationMode::Unknown;
+
+        enum class OutputMode {
+            Unknown = 0,
+            Symbols,
+            Sequences,
+            Reference
+        } output_mode = OutputMode::Unknown;
 
         unsigned long flat_mmts_per_party = 0;
 
@@ -36,6 +41,8 @@ namespace NPATK::mex::functions  {
         unsigned long flat_operators_per_party = 0;
 
         std::unique_ptr<classes::Setting> settingPtr;
+
+        uint64_t storage_key = 0;
 
     public:
         explicit MakeMomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
@@ -53,7 +60,7 @@ namespace NPATK::mex::functions  {
 
     class MakeMomentMatrix : public NPATK::mex::functions::MexFunction {
     public:
-        explicit MakeMomentMatrix(matlab::engine::MATLABEngine& matlabEngine);
+        explicit MakeMomentMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
 

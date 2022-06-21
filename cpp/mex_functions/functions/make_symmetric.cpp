@@ -182,8 +182,8 @@ namespace NPATK::mex::functions {
     }
 
 
-    MakeSymmetric::MakeSymmetric(matlab::engine::MATLABEngine &matlabEngine)
-            : MexFunction(matlabEngine, MEXEntryPointID::MakeSymmetric, u"make_symmetric") {
+    MakeSymmetric::MakeSymmetric(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
+            : MexFunction(matlabEngine, storage, MEXEntryPointID::MakeSymmetric, u"make_symmetric") {
         this->flag_names.emplace(u"dense");
         this->flag_names.emplace(u"sparse");
         this->mutex_params.add_mutex(u"dense", u"sparse");

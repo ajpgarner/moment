@@ -38,11 +38,11 @@ namespace NPATK::mex {
         };
     }
 
-    [[nodiscard]] long read_as_long(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
-    [[nodiscard]] unsigned long read_as_ulong(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] int64_t read_as_int64(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] uint64_t read_as_uint64(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
 
-    [[nodiscard]] long read_as_long_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
-    [[nodiscard]] unsigned long read_as_ulong_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] int64_t  read_as_int64_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] uint64_t read_as_uint64_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
 
     /**
      * True if the supplied type can be interpreted as a scalar integer.

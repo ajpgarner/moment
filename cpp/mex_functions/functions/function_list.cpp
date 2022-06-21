@@ -18,27 +18,29 @@
 
 namespace NPATK::mex::functions {
 
-    std::unique_ptr<MexFunction> make_mex_function(matlab::engine::MATLABEngine& engine, MEXEntryPointID function_id) {
+    std::unique_ptr<MexFunction> make_mex_function(matlab::engine::MATLABEngine& engine,
+                                                   MEXEntryPointID function_id,
+                                                   StorageManager& storageManager) {
         std::unique_ptr<functions::MexFunction> the_function;
 
         switch(function_id) {
             case functions::MEXEntryPointID::Version:
-                the_function = std::make_unique<functions::Version>(engine);
+                the_function = std::make_unique<functions::Version>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::MakeSymmetric:
-                the_function = std::make_unique<functions::MakeSymmetric>(engine);
+                the_function = std::make_unique<functions::MakeSymmetric>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::MakeHermitian:
-                the_function = std::make_unique<functions::MakeHermitian>(engine);
+                the_function = std::make_unique<functions::MakeHermitian>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::GenerateBasis:
-                the_function = std::make_unique<functions::GenerateBasis>(engine);
+                the_function = std::make_unique<functions::GenerateBasis>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::MakeMomentMatrix:
-                the_function = std::make_unique<functions::MakeMomentMatrix>(engine);
+                the_function = std::make_unique<functions::MakeMomentMatrix>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::AlphabeticName:
-                the_function = std::make_unique<functions::AlphabeticName>(engine);
+                the_function = std::make_unique<functions::AlphabeticName>(engine, storageManager);
                 break;
             default:
             case functions::MEXEntryPointID::Unknown:

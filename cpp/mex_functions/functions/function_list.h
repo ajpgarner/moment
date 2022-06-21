@@ -13,6 +13,10 @@ namespace matlab::engine {
     class MATLABEngine;
 }
 
+namespace NPATK::mex {
+    class StorageManager;
+}
+
 namespace NPATK::mex::functions {
 
     enum class MEXEntryPointID : int {
@@ -62,7 +66,9 @@ namespace NPATK::mex::functions {
      * @param id The MEXEntryPointID of the function to create
      * @return A unique pointer to a newly-constructed MexFunction object.
      */
-    std::unique_ptr<MexFunction> make_mex_function(matlab::engine::MATLABEngine& engine, MEXEntryPointID id);
+    std::unique_ptr<MexFunction> make_mex_function(matlab::engine::MATLABEngine& engine,
+                                                   MEXEntryPointID id,
+                                                   StorageManager& storageManager);
 
 
 }

@@ -20,7 +20,7 @@ namespace NPATK::mex::functions  {
 
     class AlphabeticName : public NPATK::mex::functions::MexFunction {
     public:
-        explicit AlphabeticName(matlab::engine::MATLABEngine& matlabEngine);
+        explicit AlphabeticName(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
 

@@ -121,10 +121,10 @@ namespace NPATK::mex {
         return param_iter->second;
     }
 
-    unsigned long SortedInputs::read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
+    uint64_t SortedInputs::read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
                                                                   const std::string &paramName,
                                                                   const matlab::data::Array &array,
-                                                                  unsigned long min_value) {
+                                                                  uint64_t  min_value) {
         if (!castable_to_scalar_int(array)) {
             std::stringstream ss;
             ss << paramName << " should be a scalar positive integer.";
@@ -132,7 +132,7 @@ namespace NPATK::mex {
         }
 
         try {
-            auto val = read_as_ulong(matlabEngine, array);
+            auto val = read_as_uint64(matlabEngine, array);
             if (val < min_value) {
                 std::stringstream ss;
                 ss << paramName << " must have a value of at least "

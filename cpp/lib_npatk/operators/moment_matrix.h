@@ -8,6 +8,7 @@
 #include "operator_sequence.h"
 #include "symbolic/symbol_expression.h"
 #include "square_matrix.h"
+#include "context.h"
 
 #include <cassert>
 #include <memory>
@@ -15,8 +16,6 @@
 #include <map>
 
 namespace NPATK {
-    class Context;
-
 
     class MomentMatrix {
     public:
@@ -123,8 +122,15 @@ namespace NPATK {
         };
 
     private:
+        //const Context& context;
+        /* Moment matrix takes partial ownership over context */
+        std::shared_ptr<Context> contextPtr;
+
+    public:
         const Context& context;
         const size_t hierarchy_level;
+
+    private:
         size_t matrix_dimension;
 
         std::unique_ptr<SquareMatrix<OperatorSequence>> op_seq_matrix;
@@ -150,12 +156,13 @@ namespace NPATK {
         SymbolMatrixView SymbolMatrix;
 
     public:
-        MomentMatrix(const Context& the_context, size_t level);
+        MomentMatrix(std::shared_ptr<Context> contextPtr, size_t level);
 
         MomentMatrix(const MomentMatrix&) = delete;
 
         MomentMatrix(MomentMatrix&& src) noexcept :
-            context{src.context}, hierarchy_level{src.hierarchy_level}, matrix_dimension{src.matrix_dimension},
+            contextPtr{std::move(src.contextPtr)}, context{*contextPtr},
+            hierarchy_level{src.hierarchy_level}, matrix_dimension{src.matrix_dimension},
             op_seq_matrix{std::move(src.op_seq_matrix)},
             sym_exp_matrix{std::move(src.sym_exp_matrix)},
             unique_sequences{std::move(src.unique_sequences)},

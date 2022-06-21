@@ -131,9 +131,9 @@ namespace NPATK::mex {
          * @param min_value The minimum acceptable value of the integer.
          * @return The parsed integer.
          */
-        static unsigned long read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
+        static uint64_t read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
                                           const std::string& paramName, const matlab::data::Array& array,
-                                          unsigned long min_value = 0);
+                                          uint64_t  min_value = 0);
     };
 
 }

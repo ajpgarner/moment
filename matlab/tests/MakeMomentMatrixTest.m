@@ -58,6 +58,7 @@
                                                    'outcomes', 2, ...
                                                    'level', 1});
         end
+        
                      
         function CHSH_Level1Object(testCase) 
             chsh_setting = Setting(2);
@@ -74,8 +75,30 @@
             chsh_setting.Parties(1).AddMeasurement(2);
             chsh_setting.Parties(2).AddMeasurement(2);
             chsh_setting.Parties(2).AddMeasurement(2);
-            testCase.CHSH.CallAndVerify(testCase, {'setting', chsh_setting, ...
-                                                   'level', 1});
+            testCase.CHSH.CallAndVerify(testCase, ...
+                                        {'setting', chsh_setting, ...
+                                         'level', 1});
+        end
+        
+        function SaveAndRestore(testCase)
+            chsh_setting = Setting(2);
+            chsh_setting.Parties(1).AddMeasurement(2);
+            chsh_setting.Parties(1).AddMeasurement(2);
+            chsh_setting.Parties(2).AddMeasurement(2);
+            chsh_setting.Parties(2).AddMeasurement(2);
+            [save_sym, save_key] = npatk('make_moment_matrix', ...
+                                         'symbols', chsh_setting, 1);
+            [save_seq, ~] = npatk('make_moment_matrix', 'sequences', ...
+                                  chsh_setting, 1);
+            storage_key = npatk('make_moment_matrix', 'reference', ...
+                                chsh_setting, 1);
+            [ret_sym, ret_key] = npatk('make_moment_matrix', ...
+                                       'reference_id', storage_key);
+            [ret_seq, ~] = npatk('make_moment_matrix', 'sequences', ...
+                                 'reference_id', storage_key);
+            testCase.verifyEqual(ret_sym, save_sym);
+            testCase.verifyEqual(ret_key, save_key);
+            testCase.verifyEqual(ret_seq, save_seq);
         end
     end
     

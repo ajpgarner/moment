@@ -119,22 +119,23 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Empty) {
-        Context context{}; // No parties, no symbols
+        auto contextPtr = std::make_shared<Context>(); // No parties, no symbols
+        auto& context = *contextPtr;
         ASSERT_EQ(context.size(), 0);
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         EXPECT_EQ(matLevel0.level(), 0);
         compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
         compare_unique_sequences(matLevel0, {});
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         EXPECT_EQ(matLevel1.level(), 1);
         compare_os_matrix(matLevel1, 1, {OperatorSequence::Identity(&context)});
         compare_unique_sequences(matLevel1, {});
         compare_symbol_matrix(matLevel1, 1, {"1"});
 
-        MomentMatrix matLevel5{context, 5};
+        MomentMatrix matLevel5{contextPtr, 5};
         EXPECT_EQ(matLevel5.level(), 5);
         compare_os_matrix(matLevel5, 1, {OperatorSequence::Identity(&context)});
         compare_unique_sequences(matLevel5, {});
@@ -142,18 +143,20 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, OpSeq_OneElem) {
-        Context context{1}; // One party, one symbol
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1}); // One party, one symbol
+        auto& context = *contextPtr;
+
         ASSERT_EQ(context.size(), 1);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 1);
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         EXPECT_EQ(matLevel0.level(), 0);
         compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         EXPECT_EQ(matLevel1.level(), 1);
         compare_os_matrix(matLevel1, 2, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
@@ -161,7 +164,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({alice[0], alice[0]}, &context)});
 
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
         EXPECT_EQ(matLevel2.level(), 2);
         compare_os_matrix(matLevel2, 3, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
@@ -175,16 +178,18 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, OpSeq_1Party2Opers) {
-        Context context{2}; // One party, two symbols
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{2}); // One party, two symbols
+        auto& context = *contextPtr;
+
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 2);
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         compare_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({alice[1]}, &context),
@@ -195,7 +200,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({alice[1], alice[0]}, &context),
                                          OperatorSequence({alice[1], alice[1]}, &context)});
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
         compare_os_matrix(matLevel2, 7, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({alice[1]}, &context),
@@ -256,7 +261,10 @@ namespace NPATK::Tests {
     };
 
     TEST(MomentMatrix, OpSeq_2Party1Opers) {
-        Context context{1, 1}; // Two parties, each with one operator
+        // Two parties, each with one operator
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1, 1});
+        auto& context = *contextPtr;
+
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
@@ -264,10 +272,10 @@ namespace NPATK::Tests {
         const auto& bob = context.Parties[1];
         ASSERT_EQ(bob.size(), 1);
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         compare_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({bob[0]}, &context),
@@ -279,7 +287,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({bob[0], bob[0]}, &context)});
 
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
         compare_os_matrix(matLevel2, 6, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({bob[0]}, &context),
@@ -324,7 +332,10 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, OpSeq_2Party1OpersIdem) {
-        Context context(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent)); // Two party, one operator
+        // Two party, one operator
+        auto contextPtr = std::make_shared<Context>(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent));
+        auto& context = *contextPtr;
+
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
@@ -332,10 +343,10 @@ namespace NPATK::Tests {
         const auto& bob = context.Parties[1];
         ASSERT_EQ(bob.size(), 1);
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         compare_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({bob[0]}, &context),
@@ -347,7 +358,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({bob[0]}, &context)});
 
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
         compare_os_matrix(matLevel2, 4, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({bob[0]}, &context),
@@ -371,7 +382,10 @@ namespace NPATK::Tests {
 
 
     TEST(MomentMatrix, OpSeq_223) {
-        Context context(PartyInfo::MakeList(2, 2, 3, true)); // Two party, two mmts, three outcomes.
+         // Two party, two mmts, three outcomes.
+        auto contextPtr = std::make_shared<Context>(PartyInfo::MakeList(2, 2, 3, true));
+        auto& context = *contextPtr;
+
         ASSERT_EQ(context.Parties.size(), 2);
         EXPECT_EQ(context.size(), 8);
         const auto& alice = context.Parties[0];
@@ -388,10 +402,10 @@ namespace NPATK::Tests {
         const auto& y0 = bob[2];
         const auto& y1 = bob[3];
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         compare_os_matrix(matLevel1, 9, {OperatorSequence::Identity(&context),
                                          OperatorSequence({a0}, &context),
                                          OperatorSequence({a1}, &context),
@@ -486,22 +500,23 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_OneElem) {
-        Context context{1}; // One party, one symbol
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1}); // One party, one symbol
+        auto& context = *contextPtr;
         ASSERT_EQ(context.size(), 1);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 1);
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         compare_unique_sequences(matLevel0, {});
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         compare_unique_sequences(matLevel1, {{OperatorSequence({alice[0]}, &context),
                                                      OperatorSequence({alice[0]}, &context), true},
                                              {OperatorSequence({alice[0], alice[0]}, &context),
                                                      OperatorSequence({alice[0], alice[0]}, &context), true}});
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
         compare_unique_sequences(matLevel2,
                                  {{OperatorSequence({alice[0]}, &context),
                                           OperatorSequence({alice[0]}, &context), true},
@@ -514,7 +529,9 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_2Party1Opers) {
-        Context context{1, 1}; // Two parties, each with one operator
+        // Two parties, each with one operator
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1, 1});
+        auto& context = *contextPtr;
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
         const auto& bob = context.Parties[1];
@@ -522,10 +539,10 @@ namespace NPATK::Tests {
         ASSERT_EQ(bob.size(), 1);
 
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         compare_unique_sequences(matLevel0, {});
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         compare_unique_sequences(matLevel1,
                                  {{OperatorSequence({alice[0]}, &context),
                                           OperatorSequence({alice[0]}, &context), true},
@@ -539,7 +556,7 @@ namespace NPATK::Tests {
                                           OperatorSequence({bob[0], bob[0]}, &context), true}});
 
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
         compare_unique_sequences(matLevel2,
                                  {{OperatorSequence({alice[0]}, &context),
                                           OperatorSequence({alice[0]}, &context), true},
@@ -573,7 +590,10 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_2Party1OpersIdem) {
-        Context context(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent)); // Two party, one operator
+        // Two party, one operator
+        auto contextPtr = std::make_shared<Context>(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent));
+        auto& context = *contextPtr;
+
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
@@ -582,10 +602,10 @@ namespace NPATK::Tests {
         ASSERT_EQ(bob.size(), 1);
 
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         compare_unique_sequences(matLevel0, {});
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         compare_unique_sequences(matLevel1,
                                  {{OperatorSequence({alice[0]}, &context),
                                    OperatorSequence({alice[0]}, &context), true},
@@ -594,7 +614,7 @@ namespace NPATK::Tests {
                                   {OperatorSequence({alice[0], bob[0]}, &context),
                                    OperatorSequence({alice[0], bob[0]}, &context), true}});
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
         compare_unique_sequences(matLevel2,
                                  {{OperatorSequence({alice[0]}, &context),
                                    OperatorSequence({alice[0]}, &context), true},
@@ -605,16 +625,17 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_1Party2Opers) {
-        Context context{2}; // One party, two symbols
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{2}); // One party, two symbols
+        auto& context = *contextPtr;
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 2);
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         compare_unique_sequences(matLevel0, {});
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         compare_unique_sequences(matLevel1, {{OperatorSequence({alice[0]}, &context),
                                                      OperatorSequence({alice[0]}, &context), true},
                                              {OperatorSequence({alice[1]}, &context),
@@ -626,7 +647,7 @@ namespace NPATK::Tests {
                                              {OperatorSequence({alice[1], alice[1]}, &context),
                                                      OperatorSequence({alice[1], alice[1]}, &context), true}});
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
         compare_unique_sequences(matLevel2, {
                 {OperatorSequence({alice[0]}, &context),
                         OperatorSequence({alice[0]}, &context), true},
@@ -677,13 +698,14 @@ namespace NPATK::Tests {
     };
 
     TEST(MomentMatrix, Where_1Party2Opers) {
-        Context context{2}; // One parties with two operators.
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{2}); // One party, two symbols
+        auto& context = *contextPtr;
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 2);
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
 
         auto ptr_a0a0a0a0 = matLevel2.UniqueSequences.where(OperatorSequence{alice[0], alice[0], alice[0], alice[0]});
         ASSERT_NE(ptr_a0a0a0a0, nullptr);
@@ -705,33 +727,35 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Symbol_OneElem) {
-        Context context{1}; // One party, one symbol
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1}); // One party, one symbol
+        auto& context = *contextPtr;
 
-        MomentMatrix matLevel0{context, 0}; // id
+        MomentMatrix matLevel0{contextPtr, 0}; // id
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
-        MomentMatrix matLevel1{context, 1}; // id, a, a^2
+        MomentMatrix matLevel1{contextPtr, 1}; // id, a, a^2
         compare_symbol_matrix(matLevel1, 2, {"1", "2",
                                              "2", "3"});
 
-        MomentMatrix matLevel2{context, 2}; // id, a, a^2, a^3, a^4
+        MomentMatrix matLevel2{contextPtr, 2}; // id, a, a^2, a^3, a^4
         compare_symbol_matrix(matLevel2, 3, {"1", "2", "3",
                                              "2", "3", "4",
                                              "3", "4", "5"});
     }
 
     TEST(MomentMatrix, Symbol_1Party2Opers) {
-        Context context{2}; // One party, two symbols
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{2}); // One party, two symbols
+        auto& context = *contextPtr;
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
-        MomentMatrix matLevel1{context, 1}; // x, 0, 1???
+        MomentMatrix matLevel1{contextPtr, 1}; // x, 0, 1???
         compare_symbol_matrix(matLevel1, 3, {"1",  "2", "3",
                                              "2",  "4", "5",
                                              "3", "5*", "6"});
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
         compare_symbol_matrix(matLevel2, 7, // Remember symbol order is from hash function...
                               {"1",  "2",   "3",   "4",   "5",  "5*", "6",  // x, 0,  1,  00,  01,  10,  11
                                "2",  "4",   "5",   "7",   "8",  "9",  "10", // 0, 00, 01, 000, 001, 010, 011
@@ -744,17 +768,19 @@ namespace NPATK::Tests {
     };
 
     TEST(MomentMatrix, Symbol_2Party1Opers) {
-        Context context{1, 1}; // Two parties, each with one operator
+        // Two parties, each with one operator
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1, 1}); // One party, two symbols
+        auto& context = *contextPtr;
 
-        MomentMatrix matLevel0{context, 0};
+        MomentMatrix matLevel0{contextPtr, 0};
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         compare_symbol_matrix(matLevel1, 3, {"1", "2", "3", // 1, a, b
                                              "2", "4", "5", // a, aa, ab
                                              "3", "5", "6"}); // b, ab, bb
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
         compare_symbol_matrix(matLevel2, 6, {"1", "2", "3",  "4", "5",  "6",   //  1,  a,    b,   aa,   ab, bb
                                              "2", "4", "5",  "7", "8",  "9",   //  a,  aa,  ab,  aaa,  aab, abb
                                              "3", "5", "6",  "8", "9",  "10",  //  b,  ab,  bb,  aab,  abb, bbb
@@ -765,16 +791,19 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Symbol_2Party1OpersIdem) {
-        Context context(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent)); // Two party, one operator
-        MomentMatrix matLevel0{context, 0};
+        // Two party, one operator
+        auto contextPtr = std::make_shared<Context>(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent));
+        auto& context = *contextPtr;
+
+        MomentMatrix matLevel0{contextPtr, 0};
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
-        MomentMatrix matLevel1{context, 1};
+        MomentMatrix matLevel1{contextPtr, 1};
         compare_symbol_matrix(matLevel1, 3, {"1", "2", "3",   // 1, a, b
                                              "2", "2", "4",   // a, aa, ab
                                              "3", "4", "3"}); // b, ab, b
 
-        MomentMatrix matLevel2{context, 2}; // order of unique symbols: 1, a, b, ab
+        MomentMatrix matLevel2{contextPtr, 2}; // order of unique symbols: 1, a, b, ab
         compare_symbol_matrix(matLevel2, 4, {"1", "2", "3", "4",  // 1, a, b, ab
                                              "2", "2", "4", "4",  // a, a, ab, ab
                                              "3", "4", "3", "4",  // b, ab, b, ab
@@ -782,15 +811,17 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, ToSymbol_1Party2Opers) {
-        Context context{2}; // One party, two symbols
+        // One party, two symbols
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{2});
+        auto& context = *contextPtr;
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& a = context.Parties[0];
 
-        MomentMatrix matLevel0{context, 0}; // 0 1
+        MomentMatrix matLevel0{contextPtr, 0}; // 0 1
         EXPECT_EQ(matLevel0.UniqueSequences.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
         EXPECT_EQ(matLevel0.UniqueSequences.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
 
-        MomentMatrix matLevel1{context, 1}; // 0 1 a0a0 a0a1 (a1a0=a0a1*) a1a1
+        MomentMatrix matLevel1{contextPtr, 1}; // 0 1 a0a0 a0a1 (a1a0=a0a1*) a1a1
         ASSERT_EQ(matLevel1.UniqueSequences.size(), 7);
         EXPECT_EQ(matLevel1.UniqueSequences.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
         EXPECT_EQ(matLevel1.UniqueSequences.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
@@ -801,7 +832,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(matLevel1.UniqueSequences.to_symbol((OperatorSequence{a[1], a[0]})), SymbolExpression(5, true));
         EXPECT_EQ(matLevel1.UniqueSequences.to_symbol((OperatorSequence{a[1], a[1]})), SymbolExpression(6));
 
-        MomentMatrix matLevel2{context, 2};
+        MomentMatrix matLevel2{contextPtr, 2};
         EXPECT_EQ(matLevel2.UniqueSequences.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
         EXPECT_EQ(matLevel2.UniqueSequences.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
 
@@ -869,16 +900,19 @@ namespace NPATK::Tests {
     };
 
     TEST(MomentMatrix, ToSymbol_2Party1Opers) {
-        Context context{1, 1}; // Two parties, each with one operator
+        // Two parties, each with one operator
+        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1, 1});
+        auto& context = *contextPtr;
+
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
         const auto& bob = context.Parties[1];
 
-        MomentMatrix matLevel0{context, 0}; //0 1
+        MomentMatrix matLevel0{contextPtr, 0}; //0 1
         EXPECT_EQ(matLevel0.UniqueSequences.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
         EXPECT_EQ(matLevel0.UniqueSequences.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
 
-        MomentMatrix matLevel1{context, 1}; // 0 1 a b aa ab bb
+        MomentMatrix matLevel1{contextPtr, 1}; // 0 1 a b aa ab bb
         EXPECT_EQ(matLevel1.UniqueSequences.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
         EXPECT_EQ(matLevel1.UniqueSequences.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
         EXPECT_EQ(matLevel1.UniqueSequences.to_symbol((OperatorSequence{alice[0]})), SymbolExpression(2));
@@ -887,7 +921,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(matLevel1.UniqueSequences.to_symbol((OperatorSequence{alice[0], bob[0]})), SymbolExpression(5));
         EXPECT_EQ(matLevel1.UniqueSequences.to_symbol((OperatorSequence{bob[0], bob[0]})), SymbolExpression(6));
 
-        MomentMatrix matLevel2{context, 2}; // 0 1 aaaa aaab aabb abbb bbbb
+        MomentMatrix matLevel2{contextPtr, 2}; // 0 1 aaaa aaab aabb abbb bbbb
         EXPECT_EQ(matLevel2.UniqueSequences.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
         EXPECT_EQ(matLevel2.UniqueSequences.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
         EXPECT_EQ(matLevel2.UniqueSequences.to_symbol((OperatorSequence{alice[0]})), SymbolExpression(2));
