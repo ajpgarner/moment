@@ -52,6 +52,9 @@ namespace NPATK {
         constexpr Symbol(symbol_name_t name, bool re_zero, bool im_zero)
             : id(name), real_is_zero(re_zero), im_is_zero(im_zero) { }
 
+        /**
+         * Apply constraints of RHS symbol to this symbol.
+         */
         constexpr Symbol& merge_in(const Symbol& rhs) {
             this->real_is_zero |= rhs.real_is_zero;
             this->im_is_zero |= rhs.im_is_zero;

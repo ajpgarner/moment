@@ -5,7 +5,17 @@
  */
 #pragma once
 
+#include <string>
+
 namespace NPATK::mex::errors {
+    /** Prefix to error codes */
+    constexpr char prefix[] = "npatk:";
+
+    /** Applies prefix to code */
+    constexpr std::string applyPrefix(const std::string& errCode) {
+        return std::string(prefix) + errCode;
+    }
+
     /** Error code: thrown when logical assertion fails, and it's not the users (direct) fault. */
     constexpr char internal_error[] = "internal_error";
 
@@ -32,4 +42,5 @@ namespace NPATK::mex::errors {
 
     /** Error code: thrown when there are too many outputs */
     constexpr char too_many_outputs[] = "too_many_outputs";
+
 }

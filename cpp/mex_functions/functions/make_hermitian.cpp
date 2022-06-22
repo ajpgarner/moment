@@ -10,15 +10,12 @@
 
 #include "fragments/export_substitution_list.h"
 #include "fragments/export_symbol_properties.h"
+#include "fragments/identify_nonhermitian_elements.h"
 #include "fragments/substitute_elements_using_tree.h"
-#include "fragments/read_symbol_or_fail.h"
-#include "utilities/reporting.h"
-#include "utilities/visitor.h"
 
+#include "utilities/reporting.h"
 
 namespace NPATK::mex::functions  {
-
-
 
     MakeHermitian::MakeHermitian(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
             : MexFunction(matlabEngine, storage, MEXEntryPointID::MakeHermitian, u"make_hermitian") {
@@ -50,66 +47,6 @@ namespace NPATK::mex::functions  {
         }
 
         return std::move(inputPtr);
-    }
-
-    namespace {
-        /**
-         * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
-         */
-        class NonhermitianElementIdentifierVisitor {
-            matlab::engine::MATLABEngine& engine;
-
-        public:
-            using return_type = NPATK::SymbolSet;
-
-        public:
-            explicit NonhermitianElementIdentifierVisitor(matlab::engine::MATLABEngine &the_engine)
-                    : engine(the_engine) { }
-
-            /**
-              * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
-              * @param data The data array
-              * @return A vector of non-matching elements, in canonical form.
-              */
-            return_type string(const matlab::data::StringArray &data) {
-                SymbolSet output{};
-
-                const size_t dimension = data.getDimensions()[0];
-                for (size_t i = 0; i < dimension; ++i) {
-                    // Register diagonal element as real symbol:
-                    NPATK::SymbolExpression diag{read_symbol_or_fail(this->engine, data, i, i)};
-                    output.add_or_merge(Symbol{diag.id, false});
-
-                    for (size_t j = i + 1; j < dimension; ++j) {
-                        NPATK::SymbolExpression upper{read_symbol_or_fail(this->engine, data, i, j)};
-                        NPATK::SymbolExpression lower{read_symbol_or_fail(this->engine, data, j, i)};
-                        lower.conjugated = !lower.conjugated;
-
-                        if (upper != lower) {
-                            output.add_or_merge(SymbolPair{upper, lower});
-                        } else {
-                            output.add_or_merge(Symbol{upper.id});
-                            output.add_or_merge(Symbol{lower.id});
-                        }
-                    }
-                }
-
-                return output;
-            }
-        };
-
-        static_assert(concepts::VisitorHasString<NonhermitianElementIdentifierVisitor>);
-
-        /**
-         * Read through matlab dense numerical matrix, and identify pairs of elements that are not hermitian.
-         * @param engine Reference to matlab engine
-         * @param data The data array
-         * @return A SymbolSet of elements in the matrix, with raw inferred equalities.
-         */
-        SymbolSet identify_nonhermitian_elements(matlab::engine::MATLABEngine &engine,
-                                                 const matlab::data::Array &data) {
-            return DispatchVisitor(engine, data, NonhermitianElementIdentifierVisitor{engine});
-        }
     }
 
     void MakeHermitian::operator()(IOArgumentRange outputs, std::unique_ptr<SortedInputs> inputPtr) {

@@ -11,9 +11,9 @@
 #include "symbolic/index_matrix_properties.h"
 
 namespace NPATK::mex {
-    IndexMatrixProperties enumerate_upper_symbols(matlab::engine::MATLABEngine& engine,
-                                                  const matlab::data::Array& matrix,
-                                                  IndexMatrixProperties::MatrixType basis_type,
-                                                  bool debug_output = false);
+    IndexMatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
+                                            const matlab::data::Array& matrix,
+                                            IndexMatrixProperties::MatrixType basis_type,
+                                            bool debug_output = false);
 
 }

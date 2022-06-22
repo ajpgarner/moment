@@ -5,15 +5,26 @@
  */
 #pragma once
 
-#include <concepts>
+#include "error_codes.h"
 
-#include "mex.hpp"
+#include <concepts>
+#include <stdexcept>
+
 #include "MatlabDataArray.hpp"
+#include "mex.hpp"
+#include "cppmex/mexException.hpp"
+#include "cppmex/detail/mexExceptionImpl.hpp"
 
 namespace NPATK::mex {
 
     namespace errors {
         constexpr char bad_visit[] = "bad_visit";
+
+        class bad_visitor : public matlab::engine::MATLABException {
+        public:
+            explicit bad_visitor(const std::u16string &what)
+            : matlab::engine::MATLABException(errors::applyPrefix(bad_visit), what) { };
+        };
     }
 
     namespace concepts {
@@ -205,8 +216,7 @@ namespace NPATK::mex {
                 }
             }
 
-            throw_error(this->engine, errors::bad_visit, "Unexpected type.");
-            throw; // hint
+            throw errors::bad_visitor{u"Unexpected type."};
         }
 
         template<typename matrix_t>
@@ -237,8 +247,7 @@ namespace NPATK::mex {
                 default:
                     break;
             }
-            throw_error(this->engine, errors::bad_visit, "Unexpected array type (real, dense).");
-            throw; // hint
+            throw errors::bad_visitor{u"Unexpected array type (real, dense)."};
         }
 
         template<typename matrix_t>
@@ -268,8 +277,7 @@ namespace NPATK::mex {
                 default:
                     break;
             }
-            throw_error(this->engine, errors::bad_visit, "Unexpected array type (complex, dense).");
-            throw; // hint
+            throw errors::bad_visitor{u"Unexpected array type (complex, dense)."};
         }
 
         template<typename matrix_t>
@@ -303,8 +311,7 @@ namespace NPATK::mex {
                 default:
                     break;
             }
-            throw_error(this->engine, errors::bad_visit, "Unexpected array type (string).");
-            throw; // hint
+            throw errors::bad_visitor{u"Unexpected array type (string)."};
         }
 
 

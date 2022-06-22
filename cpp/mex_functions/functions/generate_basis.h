@@ -6,15 +6,28 @@
 #pragma once
 #include "mex_function.h"
 
+#include "symbolic/index_matrix_properties.h"
+
 
 namespace NPATK::mex::functions {
 
     struct GenerateBasisParams : public SortedInputs {
     public:
+        /** How is the input supplied to the basis generator */
+        enum class InputMode {
+            Unknown = 0,
+            MATLABArray,
+            MomentMatrixReference
+        } input_mode = InputMode::Unknown;
+
+        /** What sort of basis should we try to generate */
+        IndexMatrixProperties::MatrixType basis_type = IndexMatrixProperties::MatrixType::Unknown;
+
         /** True, if output should be a sparse matrix */
         bool sparse_output = false;
+
     public:
-        explicit GenerateBasisParams(SortedInputs&& structuredInputs);
+        explicit GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
     };
 
     class GenerateBasis : public MexFunction {

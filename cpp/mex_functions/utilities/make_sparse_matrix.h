@@ -72,4 +72,26 @@ namespace NPATK::mex {
         return factory.createSparseArray<data_t>(dim, nnz,
                                                  std::move(data_p), std::move(rows_p), std::move(cols_p));
     }
+
+    /**
+     * Copies a sparse array into a map structure, for random access purposes.
+     * @tparam input_type The data type in the MATLAB array
+     * @tparam output_type The data type in the map
+     * @param inputArray The matlab sparse array
+     * @return A map containing the data.
+     */
+    template<typename input_type, typename output_type = input_type>
+            requires std::convertible_to<input_type, output_type>
+    sparse_set_build<output_type>
+    sparse_array_to_map(const matlab::data::SparseArray<input_type>& inputArray) {
+        sparse_set_build<output_type> output{};
+        for (auto iter = inputArray.cbegin(); iter != inputArray.cend(); ++iter) {
+            auto indices = inputArray.getIndex(iter);
+            auto value = static_cast<output_type>(*iter);
+            if (value != 0) {
+                output.insert(output.end(), {indices, value});
+            }
+        }
+        return output;
+    }
 }

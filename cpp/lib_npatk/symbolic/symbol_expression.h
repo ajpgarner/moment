@@ -63,13 +63,13 @@ namespace NPATK {
         bool operator==(const SymbolExpression& rhs) const {
             return (this->id == rhs.id)
                    && (this->negated == rhs.negated)
-                   && (this->conjugated == rhs.conjugated);
+                   && ((this->id == 0) || (this->conjugated == rhs.conjugated));
         }
 
         bool operator!=(const SymbolExpression&rhs) const {
             return (this->id != rhs.id)
                    || (this->negated != rhs.negated)
-                   || (this->conjugated != rhs.conjugated);
+                   || ((this->id != 0) && (this->conjugated != rhs.conjugated));
         }
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolExpression& symb);

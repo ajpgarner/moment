@@ -4,14 +4,16 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "generate_basis.h"
-#include "../mex_main.h"
 
-#include "../fragments/enumerate_symbols.h"
-#include "../fragments/export_basis_key.h"
-#include "../utilities/make_sparse_matrix.h"
-#include "../utilities/reporting.h"
-#include "../utilities/visitor.h"
+#include "fragments/enumerate_symbols.h"
+#include "fragments/export_basis_key.h"
+#include "fragments/identify_nonhermitian_elements.h"
+#include "fragments/identify_nonsymmetric_elements.h"
 #include "fragments/read_symbol_or_fail.h"
+
+#include "utilities/make_sparse_matrix.h"
+#include "utilities/reporting.h"
+#include "utilities/visitor.h"
 
 #include <complex>
 
@@ -48,7 +50,7 @@ namespace NPATK::mex::functions {
                             re_mat[index_i][index_j] = elem.negated ? -1 : 1;
                             re_mat[index_j][index_i] = elem.negated ? -1 : 1;
                         }
-                        if (im_id>=0) {
+                        if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) && (im_id>=0)) {
                             matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                             im_mat[index_i][index_j] = std::complex<double>{
                                 0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
@@ -75,7 +77,7 @@ namespace NPATK::mex::functions {
                             re_mat[index_i][index_j] = elem.negated ? -1 : 1;
                             re_mat[index_j][index_i] = elem.negated ? -1 : 1;
                         }
-                        if (im_id>=0) {
+                        if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) &&  (im_id>=0)) {
                             matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                             im_mat[index_i][index_j] = std::complex<double>{
                                     0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
@@ -109,7 +111,7 @@ namespace NPATK::mex::functions {
                         re_mat[indices.first][indices.second] = elem.negated ? -1 : 1;
                         re_mat[indices.second][indices.first] = elem.negated ? -1 : 1;
                     }
-                    if (im_id>=0) {
+                    if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) && (im_id>=0)) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                         im_mat[indices.first][indices.second] = std::complex<double>{
                             0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
@@ -344,7 +346,6 @@ namespace NPATK::mex::functions {
         }
     }
 
-
     GenerateBasis::GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
         : MexFunction(matlabEngine, storage, MEXEntryPointID::GenerateBasis, u"generate_basis") {
         this->min_inputs = this->max_inputs = 1;
@@ -362,29 +363,12 @@ namespace NPATK::mex::functions {
 
     }
 
-    GenerateBasisParams::GenerateBasisParams(NPATK::mex::SortedInputs &&structuredInputs)
+    GenerateBasisParams::GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine,
+                                             NPATK::mex::SortedInputs &&structuredInputs)
         : SortedInputs(std::move(structuredInputs)) {
-        // Determine sparsity of output
-        this->sparse_output = (inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE);
-        if (flags.contains(u"sparse")) {
-            this->sparse_output = true;
-        } else if (flags.contains(u"dense")) {
-            this->sparse_output = false;
-        }
-    }
 
-    std::unique_ptr<SortedInputs> GenerateBasis::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        auto& input = *inputPtr;
-        auto inputDims = input.inputs[0].getDimensions();
-        if (inputDims.size() != 2) {
-            throw errors::BadInput{errors::bad_param, "Input must be a matrix."};
-        }
-
-        if (inputDims[0] != inputDims[1]) {
-            throw errors::BadInput{errors::bad_param, "Input must be a square matrix."};
-        }
-
-        switch(input.inputs[0].getType()) {
+        // Determine input type
+        switch(this->inputs[0].getType()) {
             case matlab::data::ArrayType::SINGLE:
             case matlab::data::ArrayType::DOUBLE:
             case matlab::data::ArrayType::INT8:
@@ -396,29 +380,71 @@ namespace NPATK::mex::functions {
             case matlab::data::ArrayType::INT64:
             case matlab::data::ArrayType::UINT64:
             case matlab::data::ArrayType::SPARSE_DOUBLE:
+                this->input_mode = InputMode::MATLABArray;
+                this->basis_type = IndexMatrixProperties::MatrixType::Symmetric;
+                break;
             case matlab::data::ArrayType::MATLAB_STRING:
+                this->input_mode = InputMode::MATLABArray;
+                this->basis_type = IndexMatrixProperties::MatrixType::Hermitian;
+                break;
+            case matlab::data::ArrayType::HANDLE_OBJECT_REF:
+                this->input_mode = InputMode::MomentMatrixReference;
+                this->basis_type = IndexMatrixProperties::MatrixType::Hermitian;
                 break;
             default:
-                throw errors::BadInput{errors::bad_param, "Matrix type must be numeric."};
+                throw errors::BadInput{errors::bad_param, "Invalid matrix type."};
         }
 
-        // TODO: Check for symmetry/hermiticity?
+        // Override input type
+        if (this->flags.contains(u"symmetric")) {
+            this->basis_type = IndexMatrixProperties::MatrixType::Symmetric;
+        } else if (this->flags.contains(u"hermitian")) {
+            this->basis_type = IndexMatrixProperties::MatrixType::Hermitian;
+        }
 
-        return std::make_unique<GenerateBasisParams>(std::move(input));
+        // If an array, check dimensions:
+        if (this->input_mode == InputMode::MATLABArray) {
+            auto inputDims = this->inputs[0].getDimensions();
+            if (inputDims.size() != 2) {
+                throw errors::BadInput{errors::bad_param, "Input must be a matrix."};
+            }
+
+            if (inputDims[0] != inputDims[1]) {
+                throw errors::BadInput{errors::bad_param, "Input must be a square matrix."};
+            }
+
+            // Check symmetry / Hermitianity
+            if (this->basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                if (!is_hermitian(matlabEngine, this->inputs[0])) {
+                    throw errors::BadInput{errors::bad_param, "Input must be a Hermitian symbol matrix."};
+                }
+            } else {
+                if (!is_symmetric(matlabEngine, this->inputs[0])) {
+                    throw errors::BadInput{errors::bad_param, "Input must be a symmetric symbol matrix."};
+                }
+            }
+        }
+
+        // Determine sparsity of output
+        this->sparse_output = (inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE);
+        if (flags.contains(u"sparse")) {
+            this->sparse_output = true;
+        } else if (flags.contains(u"dense")) {
+            this->sparse_output = false;
+        }
+    }
+
+    std::unique_ptr<SortedInputs> GenerateBasis::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
+        return std::make_unique<GenerateBasisParams>(this->matlabEngine, std::move(*inputPtr));
     }
 
     void GenerateBasis::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
         auto& input = dynamic_cast<GenerateBasisParams&>(*inputPtr);
 
-        IndexMatrixProperties::MatrixType basis_type = IndexMatrixProperties::MatrixType::Symmetric;
-        if (input.flags.contains(u"symmetric")) {
-            basis_type = IndexMatrixProperties::MatrixType::Symmetric;
-        } else if (input.flags.contains(u"hermitian")) {
-            basis_type = IndexMatrixProperties::MatrixType::Hermitian;
-        }
+
 
         // Hermitian output requires two outputs...
-        if ((basis_type == IndexMatrixProperties::MatrixType::Hermitian) && (output.size() < 2)) {
+        if ((input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) && (output.size() < 2)) {
             throw_error(this->matlabEngine, errors::too_few_outputs,
                                         std::string("When generating a Hermitian basis, two outputs are required (one for ")
                                           + "symmetric basis elements associated with the real components, one for the "
@@ -426,14 +452,14 @@ namespace NPATK::mex::functions {
         }
 
         // Symmetric output cannot have three outputs...
-        if ((basis_type == IndexMatrixProperties::MatrixType::Symmetric) && (output.size() > 2)) {
+        if ((input.basis_type == IndexMatrixProperties::MatrixType::Symmetric) && (output.size() > 2)) {
             throw_error(this->matlabEngine, errors::too_many_outputs,
                                             std::to_string(output.size()) + " outputs supplied for symmetric basis output, but only"
                                                         + " two will be generated (basis, and key).");
         }
 
 
-        auto matrix_properties = enumerate_upper_symbols(matlabEngine, input.inputs[0], basis_type, debug);
+        auto matrix_properties = enumerate_symbols(matlabEngine, input.inputs[0], input.basis_type, debug);
 
         if (verbose) {
             std::stringstream ss;
@@ -449,19 +475,19 @@ namespace NPATK::mex::functions {
         if (input.sparse_output) {
             auto [sym, anti_sym] = make_sparse_basis(this->matlabEngine, input.inputs[0], matrix_properties);
             output[0] = std::move(sym);
-            if (basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+            if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
                 output[1] = std::move(anti_sym);
             }
         } else {
             auto [sym, anti_sym] = make_dense_basis(this->matlabEngine, input.inputs[0], matrix_properties);
             output[0] = std::move(sym);
-            if (basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+            if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
                 output[1] = std::move(anti_sym);
             }
         }
 
         // If enough outputs supplied, also provide keys
-        ptrdiff_t key_output = (basis_type == IndexMatrixProperties::MatrixType::Hermitian) ? 2 : 1;
+        ptrdiff_t key_output = (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) ? 2 : 1;
         if (output.size() > key_output) {
             output[key_output] = export_basis_key(this->matlabEngine, matrix_properties);
         }

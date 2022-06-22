@@ -1,5 +1,6 @@
 clear
 clear npatk;
+
 chsh = Setting(2);
 chsh.Parties(1).AddMeasurement(2);
 chsh.Parties(1).AddMeasurement(2);
