@@ -32,6 +32,7 @@ namespace NPATK::mex::functions  {
             Unknown = 0,
             Symbols,
             Sequences,
+            TableOnly,
             Reference
         } output_mode = OutputMode::Unknown;
 

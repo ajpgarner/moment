@@ -32,6 +32,7 @@ matlab_add_mex(NAME npatk_mex
             functions/make_hermitian.cpp
             functions/make_moment_matrix.cpp
             functions/make_symmetric.cpp
+            functions/release.cpp
             functions/version.cpp
         OUTPUT_NAME npatk
         R2018a)

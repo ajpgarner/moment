@@ -54,6 +54,7 @@ namespace NPATK::mex::functions {
         this->flag_names.emplace(u"reference");
         this->flag_names.emplace(u"sequences");
         this->flag_names.emplace(u"symbols");
+        this->flag_names.emplace(u"table");
 
         this->param_names.emplace(u"setting");
 
@@ -66,10 +67,13 @@ namespace NPATK::mex::functions {
 
         this->param_names.emplace(u"level");
 
-        // One of three ways to output:
+        // One of four ways to output:
         this->mutex_params.add_mutex(u"reference", u"sequences");
         this->mutex_params.add_mutex(u"reference", u"symbols");
+        this->mutex_params.add_mutex(u"reference", u"table");
         this->mutex_params.add_mutex(u"sequences", u"symbols");
+        this->mutex_params.add_mutex(u"sequences", u"table");
+        this->mutex_params.add_mutex(u"symbols", u"table");
 
         // One of three ways to input:
         this->mutex_params.add_mutex(u"outcomes", u"operators");
@@ -93,11 +97,13 @@ namespace NPATK::mex::functions {
     MakeMomentMatrixParams::MakeMomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)
         : SortedInputs(std::move(rawInput)) {
 
-        // Determine output mode
+        // Determine output mode:
         if (this->flags.contains(u"sequences")) {
             this->output_mode = OutputMode::Sequences;
         } else if (this->flags.contains(u"reference")) {
             this->output_mode = OutputMode::Reference;
+        } else if (this->flags.contains(u"table")) {
+            this->output_mode = OutputMode::TableOnly;
         } else {
             this->output_mode = OutputMode::Symbols;
         }
@@ -314,6 +320,26 @@ namespace NPATK::mex::functions {
         }
 
         ss << "Hierarchy depth: " << this->hierarchy_level << "\n";
+
+        switch (this->output_mode) {
+            case OutputMode::Symbols:
+                ss << "Output symbol matrix.\n";
+                break;
+            case OutputMode::Sequences:
+                ss << "Output operator sequence matrix.\n";
+                break;
+            case OutputMode::TableOnly:
+                ss << "Output symbol table only.\n";
+                break;
+            case OutputMode::Reference:
+                ss << "Output storage key.\n";
+                break;
+            default:
+            case OutputMode::Unknown:
+                ss << "Unknown output mode!\n";
+                break;
+        }
+
         return ss.str();
     }
 
@@ -364,21 +390,38 @@ namespace NPATK::mex::functions {
         const auto& momentMatrix = *momentMatrixPtr;
 
         if (output.size() >= 1) {
-            if (input.output_mode == MakeMomentMatrixParams::OutputMode::Sequences) {
-                output[0] = export_sequence_matrix(this->matlabEngine, momentMatrix.context,
-                                                   momentMatrix.SequenceMatrix());
-            } else if (input.output_mode == MakeMomentMatrixParams::OutputMode::Symbols) {
-                output[0] = export_symbol_matrix(this->matlabEngine, momentMatrix.SymbolMatrix());
-            } else {
-                matlab::data::ArrayFactory factory;
-                uint64_t storage_id = this->storageManager.MomentMatrices.store(std::move(momentMatrixPtr));
-                output[0] = factory.createScalar<uint64_t>(storage_id);
+            switch (input.output_mode) {
+                case MakeMomentMatrixParams::OutputMode::Symbols:
+                    output[0] = export_symbol_matrix(this->matlabEngine, momentMatrix.SymbolMatrix());
+                    break;
+                case MakeMomentMatrixParams::OutputMode::Sequences:
+                    output[0] = export_sequence_matrix(this->matlabEngine, momentMatrix.context,
+                                                       momentMatrix.SequenceMatrix());
+                    break;
+                case MakeMomentMatrixParams::OutputMode::TableOnly:
+                    output[0] = export_unique_sequence_struct(this->matlabEngine, momentMatrix.context,
+                                                              momentMatrix.UniqueSequences);
+                    break;
+                case MakeMomentMatrixParams::OutputMode::Reference:
+                {
+                    matlab::data::ArrayFactory factory;
+                    uint64_t storage_id = this->storageManager.MomentMatrices.store(std::move(momentMatrixPtr));
+                    output[0] = factory.createScalar<uint64_t>(storage_id);
+                }
+                    break;
+                default:
+                case MakeMomentMatrixParams::OutputMode::Unknown:
+                    throw_error(matlabEngine, errors::internal_error, "Unknown output mode!");
             }
         }
 
         if (output.size() >= 2) {
-            output[1] = export_unique_sequence_struct(this->matlabEngine, momentMatrix.context,
-                                                      momentMatrix.UniqueSequences);
+            if (input.output_mode == MakeMomentMatrixParams::OutputMode::TableOnly) {
+                output[1] = output[0];
+            } else {
+                output[1] = export_unique_sequence_struct(this->matlabEngine, momentMatrix.context,
+                                                          momentMatrix.UniqueSequences);
+            }
         }
     }
 }

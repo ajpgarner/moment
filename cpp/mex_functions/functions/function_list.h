@@ -21,12 +21,13 @@ namespace NPATK::mex::functions {
 
     enum class MEXEntryPointID : int {
         Unknown = 0,
-        Version = 1,
-        MakeSymmetric = 2,
-        MakeHermitian = 3,
-        GenerateBasis = 4,
-        MakeMomentMatrix = 5,
-        AlphabeticName = 6
+        AlphabeticName,
+        GenerateBasis,
+        MakeHermitian,
+        MakeMomentMatrix,
+        MakeSymmetric,
+        Release,
+        Version
     };
 
     /**
@@ -35,12 +36,14 @@ namespace NPATK::mex::functions {
      */
     inline std::map<std::basic_string<char16_t>, MEXEntryPointID> make_str_to_entrypoint_map() {
         std::map<std::basic_string<char16_t>, MEXEntryPointID> output;
-        output.emplace(u"version", MEXEntryPointID::Version);
-        output.emplace(u"make_symmetric", MEXEntryPointID::MakeSymmetric);
-        output.emplace(u"make_hermitian", MEXEntryPointID::MakeHermitian);
+
+        output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
         output.emplace(u"generate_basis", MEXEntryPointID::GenerateBasis);
         output.emplace(u"make_moment_matrix", MEXEntryPointID::MakeMomentMatrix);
-        output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
+        output.emplace(u"make_hermitian", MEXEntryPointID::MakeHermitian);
+        output.emplace(u"make_symmetric", MEXEntryPointID::MakeSymmetric);
+        output.emplace(u"release", MEXEntryPointID::Release);
+        output.emplace(u"version", MEXEntryPointID::Version);
         return output;
     }
 

@@ -11,15 +11,17 @@ classdef Party < handle
     
     methods
         function obj = Party(id, name, raw)
+            arguments
+                id (1,1) uint64 {mustBeInteger, mustBePositive}
+                name (1,1) string = ""
+                raw (1,1) uint64 {mustBeInteger, mustBeNonnegative} = 0
+            end
             %PARTY Construct a party
             
-            % Can just supply an index
-            if (id < 1)
-                error("Party ID must be 1 or greater.");
-            end
-            obj.Id = uint64(id);
+            % Supply an index
+            obj.Id = id;
             
-            % Set name, or automatically generat one
+            % Set name, or automatically generate one
             if nargin >= 2            
                 obj.Name = string(name);
             else
@@ -38,7 +40,13 @@ classdef Party < handle
         end
         
         function AddMeasurement(this, num_outcomes, name)
-            num_outcomes = uint64(num_outcomes);
+            arguments
+                this Party                
+                num_outcomes (1,1) uint64 {mustBeInteger, mustBePositive}
+                name (1,1) string = ""
+            end
+            
+            % Automatically name, if non supplied
             if nargin < 3
                 next_id = length(this.Measurements)+1;
                 name = alphabetic_index(next_id, false);
