@@ -11,5 +11,6 @@ matrix = chsh.MakeMomentMatrix(1);
 
 disp(matrix.SymbolMatrix);
 disp(matrix.SequenceMatrix);
-disp(struct2table(matrix.SymbolTable));
 
+[real_basis, im_basis] = matrix.DenseBasis();
+disp(struct2table(matrix.SymbolTable));

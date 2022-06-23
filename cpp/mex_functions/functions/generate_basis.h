@@ -26,6 +26,9 @@ namespace NPATK::mex::functions {
         /** True, if output should be a sparse matrix */
         bool sparse_output = false;
 
+        /** The reference to the moment matrix, if one is requested */
+        uint64_t moment_matrix_key = 0;
+
     public:
         explicit GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
     };
@@ -37,6 +40,13 @@ namespace NPATK::mex::functions {
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+
+    private:
+        void doGenerateBasisArray(std::array<matlab::data::Array, 3>& output,
+                                  GenerateBasisParams& params);
+
+        void doGenerateBasisMomentMatrix(std::array<matlab::data::Array, 3>& output,
+                                  GenerateBasisParams& params);
 
     };
 

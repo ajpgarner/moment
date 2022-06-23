@@ -13,6 +13,8 @@
 namespace NPATK {
     class SymbolSet;
 
+    class MomentMatrix;
+
     class IndexMatrixProperties {
     public:
         enum class MatrixType {
@@ -31,7 +33,9 @@ namespace NPATK {
         std::vector<symbol_name_t> imaginary_entries;
 
     public:
-        IndexMatrixProperties(size_t dim, MatrixType type, SymbolSet&& entries);
+        explicit IndexMatrixProperties(const MomentMatrix& mm);
+
+        IndexMatrixProperties(size_t dim, MatrixType type, const SymbolSet& entries);
 
         [[nodiscard]] constexpr MatrixType Type() const noexcept {
             return this->basis_type;

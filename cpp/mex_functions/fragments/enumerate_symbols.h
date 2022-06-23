@@ -10,10 +10,14 @@
 
 #include "symbolic/index_matrix_properties.h"
 
+namespace NPATK {
+    class MomentMatrix;
+}
+
 namespace NPATK::mex {
     IndexMatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
                                             const matlab::data::Array& matrix,
-                                            IndexMatrixProperties::MatrixType basis_type,
-                                            bool debug_output = false);
+                                            IndexMatrixProperties::MatrixType basis_type);
+
 
 }

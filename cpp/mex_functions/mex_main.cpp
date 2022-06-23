@@ -48,7 +48,11 @@ namespace NPATK::mex {
         // Pre-process universal input flags
         bool is_debug = processed_inputs->flags.contains(u"debug");
         bool is_verbose = is_debug || processed_inputs->flags.contains(u"verbose");
+        bool is_quiet = processed_inputs->flags.contains(u"quiet") && !is_verbose;
+
         bool preprocess_only = processed_inputs->flags.contains(u"debug_preprocess");
+
+        the_function->setQuiet(is_quiet);
         the_function->setDebug(is_debug);
         the_function->setVerbose(is_verbose);
 
@@ -97,7 +101,7 @@ namespace NPATK::mex {
         const auto& func_flag_names = func.FlagNames();
 
         // Incorporate default flags:~
-        NameSet flag_names = {u"verbose", u"debug", u"debug_preprocess"};
+        NameSet flag_names = {u"quiet", u"verbose", u"debug", u"debug_preprocess"};
         flag_names.insert(func_flag_names.begin(), func_flag_names.end());
 
         std::unique_ptr<SortedInputs> sortedPtr = std::make_unique<SortedInputs>();

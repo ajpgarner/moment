@@ -5,6 +5,7 @@
  */
 #include "enumerate_symbols.h"
 #include "symbolic/symbol_set.h"
+#include "operators/moment_matrix.h"
 
 #include "read_symbol_or_fail.h"
 
@@ -325,8 +326,7 @@ namespace NPATK::mex {
 
     IndexMatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
                                             const matlab::data::Array& matrix,
-                                            IndexMatrixProperties::MatrixType basis_type,
-                                            bool debug_output) {
+                                            IndexMatrixProperties::MatrixType basis_type) {
 
         // Get symbols in matrix...
         SymbolSet symbols_found{(basis_type == IndexMatrixProperties::MatrixType::Symmetric)
@@ -336,13 +336,8 @@ namespace NPATK::mex {
         // Get matrix dimensions
         size_t matrix_dimension = matrix.getDimensions()[0];
 
-        // Report symbols detected, if debug mode enabled
-        if (debug_output) {
-            std::stringstream ss;
-            ss << "enumerate_upper_symbols found following:\n" << symbols_found << "\n";
-            print_to_console(engine, ss.str());
-        }
-
-        return IndexMatrixProperties{matrix_dimension, basis_type, std::move(symbols_found)};
+        // Make IMP object
+        return IndexMatrixProperties{matrix_dimension, basis_type, symbols_found};
     }
+
 }

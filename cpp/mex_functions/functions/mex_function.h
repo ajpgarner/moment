@@ -40,8 +40,12 @@ namespace NPATK::mex::functions {
         size_t min_inputs = 0;
         size_t max_inputs = 0;
 
-        bool debug = false;
+        /** True if warnings are supressed */
+        bool quiet = false;
+        /** True to display intermediate output */
         bool verbose = false;
+        /** True to display a lot of output */
+        bool debug = false;
 
     public:
         const MEXEntryPointID function_id;
@@ -97,14 +101,44 @@ namespace NPATK::mex::functions {
         }
 
         /**
+          * Flag whether the function should supress warning messages
+          */
+        constexpr void setQuiet(bool val = true) noexcept {
+            // Quiet mode only turns on if debug mode not set.
+            this->quiet = val && !this->debug;
+            if (val) {
+                // Turning on quiet mode turns off verbose mode
+                this->verbose = false;
+            }
+        }
+
+        /**
          * Flag whether the function should output verbose information to console.
          */
-        void setVerbose(bool val = true) noexcept { this->verbose = val; }
+        constexpr void setVerbose(bool val = true) noexcept {
+            this->verbose = val;
+            if (val) {
+                // Turning on verbosity turns off quiet mode
+                this->quiet = false;
+            } else {
+                // Turning off verbosity also turns off debug mode
+                this->debug = false;
+            }
+        }
 
         /**
          * Flag whether the function should output debug information to console.
          */
-        void setDebug(bool val = true) noexcept { this->debug = val; }
+        constexpr void setDebug(bool val = true) noexcept {
+            this->debug = val;
+            if (val) {
+                // Turning on debug mode turns on verbosity, and turns off quiet mode
+                this->verbose = true;
+                this->quiet = false;
+            }
+        }
+
+
 
     };
 }

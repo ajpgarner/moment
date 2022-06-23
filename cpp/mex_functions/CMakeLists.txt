@@ -27,6 +27,7 @@ matlab_add_mex(NAME npatk_mex
             utilities/reflection.cpp
             utilities/reporting.cpp
             matlab_classes/matlab_class.cpp
+            matlab_classes/moment_matrix.cpp
             matlab_classes/setting.cpp
             functions/alphabetic_name.cpp
             functions/function_list.cpp

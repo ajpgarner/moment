@@ -5,6 +5,12 @@
  */
 #include "generate_basis.h"
 
+#include "storage_manager.h"
+
+#include "operators/moment_matrix.h"
+
+#include "matlab_classes/moment_matrix.h"
+
 #include "fragments/enumerate_symbols.h"
 #include "fragments/export_basis_key.h"
 #include "fragments/identify_nonhermitian_elements.h"
@@ -15,6 +21,7 @@
 #include "utilities/reporting.h"
 #include "utilities/visitor.h"
 
+#include <array>
 #include <complex>
 
 namespace NPATK::mex::functions {
@@ -119,6 +126,33 @@ namespace NPATK::mex::functions {
                             0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
                     }
                     ++iter;
+                }
+
+                return output;
+            }
+
+            /* Moment matrix input -> dense output */
+            return_type moment_matrix(const MomentMatrix& matrix) {
+                auto output = create_empty_basis();
+                for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
+                    for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                        const auto& elem = matrix.SymbolMatrix[index_i][index_j];
+                        auto [re_id, im_id] = this->imp.BasisKey(elem.id);
+
+                        if (re_id>=0) {
+                            matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
+                            re_mat[index_i][index_j] = elem.negated ? -1 : 1;
+                            re_mat[index_j][index_i] = elem.negated ? -1 : 1;
+                        }
+
+                        if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) && (im_id>=0)) {
+                            matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
+                            im_mat[index_i][index_j] = std::complex<double>{
+                                    0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                            im_mat[index_j][index_i] = std::complex<double>{
+                                    0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                        }
+                    }
                 }
 
                 return output;
@@ -294,6 +328,31 @@ namespace NPATK::mex::functions {
                 return create_basis(real_basis_frame, im_basis_frame);
             }
 
+            /* Moment matrix input -> sparse output */
+            return_type moment_matrix(const MomentMatrix& matrix) {
+                std::vector<sparse_basis_re_frame> real_basis_frame(this->imp.RealSymbols().size());
+                std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
+
+                for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
+                    for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                        const auto& elem = matrix.SymbolMatrix[index_i][index_j];
+                        auto [re_id, im_id] = this->imp.BasisKey(elem.id);
+
+                        if (re_id>=0) {
+                            assert(re_id < real_basis_frame.size());
+                            real_basis_frame[re_id].push_back(index_i, index_j, elem.negated ? -1. : 1.);
+                        }
+
+                        if (im_id>=0) {
+                            assert(im_id < im_basis_frame.size());
+                            im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
+                                    0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
+                        }
+                    }
+                }
+                return create_basis(real_basis_frame, im_basis_frame);
+            }
+
         private:
             CellArrayPair create_basis(const std::vector<sparse_basis_re_frame>& re_frame,
                                        const std::vector<sparse_basis_im_frame>& im_frame) {
@@ -344,6 +403,25 @@ namespace NPATK::mex::functions {
             // Get symbols in matrix...
             return DispatchVisitor(engine, input, MakeSparseBasisVisitor{engine, imp});
         }
+
+
+        CellArrayPair make_dense_basis_from_mm(matlab::engine::MATLABEngine &engine,
+                                       const MomentMatrix& mm,
+                                       const IndexMatrixProperties &imp) {
+            // Get symbols in matrix...
+            MakeDenseBasisVisitor mdbv{engine, imp};
+            return mdbv.moment_matrix(mm);
+
+        }
+
+        CellArrayPair make_sparse_basis_from_mm(matlab::engine::MATLABEngine &engine,
+                                                const MomentMatrix& mm,
+                                                const IndexMatrixProperties &imp) {
+            // Get symbols in matrix...
+            MakeSparseBasisVisitor mdbv{engine, imp};
+            return mdbv.moment_matrix(mm);
+        }
+
     }
 
     GenerateBasis::GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
@@ -395,14 +473,14 @@ namespace NPATK::mex::functions {
                 throw errors::BadInput{errors::bad_param, "Invalid matrix type."};
         }
 
-        // Override input type
+        // Override basis type
         if (this->flags.contains(u"symmetric")) {
             this->basis_type = IndexMatrixProperties::MatrixType::Symmetric;
         } else if (this->flags.contains(u"hermitian")) {
             this->basis_type = IndexMatrixProperties::MatrixType::Hermitian;
         }
 
-        // If an array, check dimensions:
+        // If an explicitly given array from matlab, check dimensions:
         if (this->input_mode == InputMode::MATLABArray) {
             auto inputDims = this->inputs[0].getDimensions();
             if (inputDims.size() != 2) {
@@ -423,6 +501,13 @@ namespace NPATK::mex::functions {
                     throw errors::BadInput{errors::bad_param, "Input must be a symmetric symbol matrix."};
                 }
             }
+        } else if (this->input_mode == InputMode::MomentMatrixReference) {
+            auto [mmClassPtr, fail] = read_as_moment_matrix(matlabEngine, inputs[0]); // Implicit copy...
+            if (!mmClassPtr) {
+                throw errors::BadInput{errors::bad_param, fail.value()};
+            }
+
+            this->moment_matrix_key = mmClassPtr->Key();
         }
 
         // Determine sparsity of output
@@ -435,13 +520,109 @@ namespace NPATK::mex::functions {
     }
 
     std::unique_ptr<SortedInputs> GenerateBasis::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        return std::make_unique<GenerateBasisParams>(this->matlabEngine, std::move(*inputPtr));
+        auto output =  std::make_unique<GenerateBasisParams>(this->matlabEngine, std::move(*inputPtr));
+        if (output->input_mode == GenerateBasisParams::InputMode::MomentMatrixReference) {
+            if (!this->storageManager.MomentMatrices.check_signature(output->moment_matrix_key)) {
+                throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a moment matrix.");
+            }
+        }
+        return output;
     }
+
+    void GenerateBasis::doGenerateBasisArray(std::array<matlab::data::Array, 3>& output,
+                                             GenerateBasisParams& input) {
+
+        auto matrix_properties = enumerate_symbols(this->matlabEngine, input.inputs[0], input.basis_type);
+        if (verbose) {
+            std::stringstream ss;
+            ss << "Found " << matrix_properties.BasisMap().size() << " unique symbols ["
+               << matrix_properties.RealSymbols().size() << " with real parts, "
+               << matrix_properties.ImaginarySymbols().size() << " with imaginary parts].\n";
+            if (debug) {
+                ss << "Outputting as " << (input.sparse_output ? "sparse" : "dense") << " basis.\n";
+            }
+            print_to_console(matlabEngine, ss.str());
+        }
+
+        // Make the basis
+        if (input.sparse_output) {
+            auto [sym, anti_sym] = make_sparse_basis(this->matlabEngine, input.inputs[0], matrix_properties);
+            output[0] = std::move(sym);
+            if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                output[1] = std::move(anti_sym);
+            }
+        } else {
+            auto [sym, anti_sym] = make_dense_basis(this->matlabEngine, input.inputs[0], matrix_properties);
+            output[0] = std::move(sym);
+            if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                output[1] = std::move(anti_sym);
+            }
+        }
+
+        // Provide keys
+        output[2] = export_basis_key(this->matlabEngine, matrix_properties);
+    }
+
+    void GenerateBasis::doGenerateBasisMomentMatrix(std::array<matlab::data::Array, 3>& output,
+                                                    GenerateBasisParams& input) {
+
+        auto momentMatrixPtr = this->storageManager.MomentMatrices.get(input.moment_matrix_key);
+        assert(momentMatrixPtr); // ^-- should throw if not found
+        const auto& momentMatrix = *momentMatrixPtr;
+
+        IndexMatrixProperties matrix_properties{momentMatrix};
+
+        //auto output_basis_type = input.basis_type;
+        if (input.basis_type == IndexMatrixProperties::MatrixType::Unknown) {
+            input.basis_type = matrix_properties.Type();
+        } else if (!this->quiet) {
+            // If overrode to symmetric, but matrix might have imaginary elements, give warning:
+            if ((IndexMatrixProperties::MatrixType::Symmetric == input.basis_type)
+                && (IndexMatrixProperties::MatrixType::Hermitian == matrix_properties.Type())) {
+                print_to_console(this->matlabEngine, std::string("WARNING: Symmetric basis output was requested, ")
+                    + " but some elements of the moment matrix correspond to potentially non-Hermitian operator "
+                    + " sequences (i.e. may evaluate to complex values, whose imaginary parts will be ignored).\n");
+            }
+        }
+
+        if (input.sparse_output) {
+            auto [sym, anti_sym] = make_sparse_basis_from_mm(this->matlabEngine, momentMatrix, matrix_properties);
+            output[0] = std::move(sym);
+            if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                output[1] = std::move(anti_sym);
+            }
+        } else {
+            auto [sym, anti_sym] = make_dense_basis_from_mm(this->matlabEngine, momentMatrix, matrix_properties);
+            output[0] = std::move(sym);
+            if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                output[1] = std::move(anti_sym);
+            }
+        }
+
+        // If enough outputs supplied, also provide keys
+        ptrdiff_t key_output = (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) ? 2 : 1;
+        if (output.size() > key_output) {
+            output[key_output] = export_basis_key(this->matlabEngine, matrix_properties);
+        }
+    }
+
 
     void GenerateBasis::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
         auto& input = dynamic_cast<GenerateBasisParams&>(*inputPtr);
 
+        std::array<matlab::data::Array, 3> outputs{};
 
+        switch (input.input_mode) {
+            case GenerateBasisParams::InputMode::MATLABArray:
+                doGenerateBasisArray(outputs, input);
+                break;
+            case GenerateBasisParams::InputMode::MomentMatrixReference:
+                doGenerateBasisMomentMatrix(outputs, input);
+                break;
+            case GenerateBasisParams::InputMode ::Unknown:
+            default:
+                throw_error(this->matlabEngine, errors::internal_error, "Unknown input type for generate_basis.");
+        }
 
         // Hermitian output requires two outputs...
         if ((input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) && (output.size() < 2)) {
@@ -458,38 +639,19 @@ namespace NPATK::mex::functions {
                                                         + " two will be generated (basis, and key).");
         }
 
-
-        auto matrix_properties = enumerate_symbols(matlabEngine, input.inputs[0], input.basis_type, debug);
-
-        if (verbose) {
-            std::stringstream ss;
-            ss << "Found " << matrix_properties.BasisMap().size() << " unique symbols ["
-               << matrix_properties.RealSymbols().size() << " with real parts, "
-               << matrix_properties.ImaginarySymbols().size() << " with imaginary parts].\n";
-            if (debug) {
-                ss << "Outputting as " << (input.sparse_output ? "sparse" : "dense") << " basis.\n";
-            }
-            print_to_console(matlabEngine, ss.str());
-        }
-
-        if (input.sparse_output) {
-            auto [sym, anti_sym] = make_sparse_basis(this->matlabEngine, input.inputs[0], matrix_properties);
-            output[0] = std::move(sym);
-            if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
-                output[1] = std::move(anti_sym);
+        // Move arrays to output
+        if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+            output[0] = std::move(outputs[0]);
+            output[1] = std::move(outputs[1]);
+            if (output.size() >= 2) {
+                output[2] = std::move(outputs[2]);
             }
         } else {
-            auto [sym, anti_sym] = make_dense_basis(this->matlabEngine, input.inputs[0], matrix_properties);
-            output[0] = std::move(sym);
-            if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
-                output[1] = std::move(anti_sym);
+            output[0] = std::move(outputs[0]);
+            if (output.size() >= 1) {
+                output[1] = std::move(outputs[2]);
             }
         }
 
-        // If enough outputs supplied, also provide keys
-        ptrdiff_t key_output = (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) ? 2 : 1;
-        if (output.size() > key_output) {
-            output[key_output] = export_basis_key(this->matlabEngine, matrix_properties);
-        }
     }
 }
