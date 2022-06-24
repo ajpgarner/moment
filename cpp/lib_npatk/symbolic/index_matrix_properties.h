@@ -33,6 +33,13 @@ namespace NPATK {
         std::vector<symbol_name_t> imaginary_entries;
 
     public:
+        IndexMatrixProperties() = default;
+        IndexMatrixProperties(const IndexMatrixProperties& imp) = delete;
+        IndexMatrixProperties& operator=(const IndexMatrixProperties& imp) = delete;
+        IndexMatrixProperties(IndexMatrixProperties&& imp) = default;
+        IndexMatrixProperties& operator=(IndexMatrixProperties&& imp) = default;
+
+
         explicit IndexMatrixProperties(const MomentMatrix& mm);
 
         IndexMatrixProperties(size_t dim, MatrixType type, const SymbolSet& entries);

@@ -42,6 +42,9 @@ namespace NPATK {
 
         // Convert matrix to symbolic form...
         this->sym_exp_matrix = this->buildSymbolMatrix(temporaryHashes);
+
+        // Create index matrix
+        this->imp = IndexMatrixProperties{*this};
     }
 
     const MomentMatrix::UniqueSequence *MomentMatrix::UniqueSequenceRange::where(const OperatorSequence &seq) const noexcept {

@@ -49,7 +49,7 @@ namespace NPATK::mex::functions {
     MakeMomentMatrix::MakeMomentMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
             : MexFunction(matlabEngine, storage, MEXEntryPointID::MakeMomentMatrix, u"make_moment_matrix") {
         this->min_outputs = 1;
-        this->max_outputs = 2;
+        this->max_outputs = 3;
 
         this->flag_names.emplace(u"reference");
         this->flag_names.emplace(u"sequences");
@@ -399,8 +399,7 @@ namespace NPATK::mex::functions {
                                                        momentMatrix.SequenceMatrix());
                     break;
                 case MakeMomentMatrixParams::OutputMode::TableOnly:
-                    output[0] = export_unique_sequence_struct(this->matlabEngine, momentMatrix.context,
-                                                              momentMatrix.UniqueSequences);
+                    output[0] = export_unique_sequence_struct(this->matlabEngine, momentMatrix);
                     break;
                 case MakeMomentMatrixParams::OutputMode::Reference:
                 {
@@ -415,13 +414,19 @@ namespace NPATK::mex::functions {
             }
         }
 
+        // Export symbol table, if second output specified
         if (output.size() >= 2) {
             if (input.output_mode == MakeMomentMatrixParams::OutputMode::TableOnly) {
                 output[1] = output[0];
             } else {
-                output[1] = export_unique_sequence_struct(this->matlabEngine, momentMatrix.context,
-                                                          momentMatrix.UniqueSequences);
+                output[1] = export_unique_sequence_struct(this->matlabEngine, momentMatrix);
             }
+        }
+
+        // Also get dimensions, if third output specified
+        if (output.size() >= 3) {
+            matlab::data::ArrayFactory factory;
+            output[2] = factory.createScalar<uint64_t>(momentMatrix.dimension());
         }
     }
 }

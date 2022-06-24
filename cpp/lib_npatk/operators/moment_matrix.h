@@ -5,10 +5,13 @@
  */
 #pragma once
 
-#include "operator_sequence.h"
-#include "symbolic/symbol_expression.h"
 #include "square_matrix.h"
+
 #include "context.h"
+#include "operator_sequence.h"
+
+#include "symbolic/symbol_expression.h"
+#include "symbolic/index_matrix_properties.h"
 
 #include <cassert>
 #include <memory>
@@ -130,21 +133,6 @@ namespace NPATK {
         const Context& context;
         const size_t hierarchy_level;
 
-    private:
-        size_t matrix_dimension;
-
-        std::unique_ptr<SquareMatrix<OperatorSequence>> op_seq_matrix;
-        std::unique_ptr<SquareMatrix<SymbolExpression>> sym_exp_matrix;
-
-        std::vector<UniqueSequence> unique_sequences{};
-
-        /** Maps hash to unique symbol */
-        std::map<size_t, size_t> fwd_hash_table{};
-
-        /** Maps hash to unique symbol's Hermitian conjugate */
-        std::map<size_t, size_t> conj_hash_table{};
-
-    public:
         /**
          * Range over unique sequences.
          */
@@ -154,6 +142,24 @@ namespace NPATK {
          * View of symbolic matrix
          */
         SymbolMatrixView SymbolMatrix;
+
+    private:
+        size_t matrix_dimension;
+
+        std::unique_ptr<SquareMatrix<OperatorSequence>> op_seq_matrix;
+        std::unique_ptr<SquareMatrix<SymbolExpression>> sym_exp_matrix;
+
+        std::vector<UniqueSequence> unique_sequences{};
+
+        IndexMatrixProperties imp;
+
+        /** Maps hash to unique symbol */
+        std::map<size_t, size_t> fwd_hash_table{};
+
+        /** Maps hash to unique symbol's Hermitian conjugate */
+        std::map<size_t, size_t> conj_hash_table{};
+
+
 
     public:
         MomentMatrix(std::shared_ptr<Context> contextPtr, size_t level);
@@ -194,7 +200,11 @@ namespace NPATK {
 
         [[nodiscard]] constexpr size_t level() const noexcept { return this->hierarchy_level; }
 
-        [[nodiscard]] const SquareMatrix<OperatorSequence>& SequenceMatrix() const noexcept { return *this->op_seq_matrix; }
+        [[nodiscard]] const SquareMatrix<OperatorSequence>& SequenceMatrix() const noexcept {
+            return *this->op_seq_matrix;
+        }
+
+        [[nodiscard]] const IndexMatrixProperties& BasisIndices() const noexcept { return this->imp; }
 
     private:
         /**

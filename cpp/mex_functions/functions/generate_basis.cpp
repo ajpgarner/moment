@@ -570,7 +570,7 @@ namespace NPATK::mex::functions {
         assert(momentMatrixPtr); // ^-- should throw if not found
         const auto& momentMatrix = *momentMatrixPtr;
 
-        IndexMatrixProperties matrix_properties{momentMatrix};
+        const IndexMatrixProperties& matrix_properties = momentMatrix.BasisIndices();
 
         //auto output_basis_type = input.basis_type;
         if (input.basis_type == IndexMatrixProperties::MatrixType::Unknown) {
@@ -627,28 +627,29 @@ namespace NPATK::mex::functions {
         // Hermitian output requires two outputs...
         if ((input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) && (output.size() < 2)) {
             throw_error(this->matlabEngine, errors::too_few_outputs,
-                                        std::string("When generating a Hermitian basis, two outputs are required (one for ")
-                                          + "symmetric basis elements associated with the real components, one for the "
-                                          + "anti-symmetric imaginary elements associated with the imaginary components.");
+                                std::string("When generating a Hermitian basis, two outputs are required (one for ")
+                                  + "symmetric basis elements associated with the real components, one for the "
+                                  + "anti-symmetric imaginary elements associated with the imaginary components.");
         }
 
         // Symmetric output cannot have three outputs...
         if ((input.basis_type == IndexMatrixProperties::MatrixType::Symmetric) && (output.size() > 2)) {
             throw_error(this->matlabEngine, errors::too_many_outputs,
-                                            std::to_string(output.size()) + " outputs supplied for symmetric basis output, but only"
-                                                        + " two will be generated (basis, and key).");
+                                            std::to_string(output.size())
+                                             + " outputs supplied for symmetric basis output, but only"
+                                             + " two will be generated (basis, and key).");
         }
 
         // Move arrays to output
         if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
             output[0] = std::move(outputs[0]);
             output[1] = std::move(outputs[1]);
-            if (output.size() >= 2) {
+            if (output.size() >= 3) {
                 output[2] = std::move(outputs[2]);
             }
         } else {
             output[0] = std::move(outputs[0]);
-            if (output.size() >= 1) {
+            if (output.size() >= 2) {
                 output[1] = std::move(outputs[2]);
             }
         }

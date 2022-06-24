@@ -5,21 +5,29 @@
  */
 #include "export_unique_sequences.h"
 
-#include "operators/context.h"
-#include "utilities/reporting.h"
 #include "error_codes.h"
+#include "operators/context.h"
+#include "operators/moment_matrix.h"
+#include "utilities/reporting.h"
 
 namespace NPATK::mex {
     matlab::data::StructArray export_unique_sequence_struct(matlab::engine::MATLABEngine& engine,
-                                                            const Context& context,
-                                                            const MomentMatrix::UniqueSequenceRange& usr) {
+                                                            const MomentMatrix& mm) {
+        const Context& context = mm.context;
+        const MomentMatrix::UniqueSequenceRange& usr = mm.UniqueSequences;
         matlab::data::ArrayFactory factory;
         const size_t num_elems = usr.size();
         matlab::data::ArrayDimensions array_dims{1, num_elems};
 
         auto outputStruct = factory.createStructArray(std::move(array_dims),
-                                                      {"symbol", "operators", "conjugate", "real"});
+                                                      {"symbol", "operators", "conjugate", "real",
+                                                       "basis_re", "basis_im"});
         size_t write_index = 0;
+
+
+        const auto& basisMap = mm.BasisIndices().BasisMap();
+        auto basisMapIter = basisMap.cbegin();
+
         for (const auto& symbol : usr) {
             if (write_index >= num_elems) {
                 throw_error(engine, errors::internal_error,
@@ -31,6 +39,15 @@ namespace NPATK::mex {
             outputStruct[write_index]["conjugate"] = factory.createScalar(
                     context.format_sequence(symbol.sequence_conj()));
             outputStruct[write_index]["real"] = factory.createScalar<bool>(symbol.is_hermitian());
+            if (0 == write_index ) {
+                outputStruct[write_index]["basis_re"] = factory.createScalar<uint64_t>(0);
+                outputStruct[write_index]["basis_im"] = factory.createScalar<uint64_t>(0);
+            } else {
+                assert(basisMapIter->first == symbol.Id());
+                outputStruct[write_index]["basis_re"] = factory.createScalar<uint64_t>(basisMapIter->second.first + 1);
+                outputStruct[write_index]["basis_im"] = factory.createScalar<uint64_t>(basisMapIter->second.second + 1);
+                ++basisMapIter;
+            }
 
             ++write_index;
         }

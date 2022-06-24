@@ -7,16 +7,16 @@
 
 #include "MatlabDataArray.hpp"
 
-#include "operators/moment_matrix.h"
-
 namespace matlab::engine {
     class MATLABEngine;
 }
 
-namespace NPATK::mex {
+namespace NPATK {
+    class MomentMatrix;
+}
 
+namespace NPATK::mex {
     matlab::data::StructArray export_unique_sequence_struct(matlab::engine::MATLABEngine& engine,
-                                                            const Context& context,
-                                                            const MomentMatrix::UniqueSequenceRange& usr);
+                                                            const MomentMatrix& mm);
 
 }
