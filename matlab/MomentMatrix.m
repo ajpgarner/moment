@@ -5,6 +5,8 @@ classdef MomentMatrix  < handle
     properties(Access = protected)
         symbol_matrix
         sequence_matrix
+        mono_basis_real
+        mono_basis_im
         basis_real
         basis_im       
         sparse_basis_real
@@ -16,6 +18,8 @@ classdef MomentMatrix  < handle
         Dimension = uint64(0)
         Level
         SymbolTable
+        RealBasisSize = uint64(0)
+        ImaginaryBasisSize = uint64(0)
     end
     
     methods
@@ -50,6 +54,11 @@ classdef MomentMatrix  < handle
                 error(['First argument must be either a Setting ',...
                     'object, or a cell array of parameters.']);
             end
+            
+            % Count NNZ for basis sizes
+            obj.RealBasisSize = nnz([obj.SymbolTable.basis_re]);
+            obj.ImaginaryBasisSize = nnz([obj.SymbolTable.basis_im]);
+            
         end
         
         function delete(obj)
@@ -101,6 +110,67 @@ classdef MomentMatrix  < handle
             re = obj.sparse_basis_real;
             im = obj.sparse_basis_im;
         end 
+              
+        function [re, im] = MonolithicBasis(obj, sparse)            
+            arguments
+                obj
+                sparse (1,1) logical = true
+            end
+            if (isempty(obj.mono_basis_real) || isempty(obj.mono_basis_im))
+                if sparse
+                    sod = 'sparse';
+                else
+                    sod = 'dense';
+                end
+                [obj.mono_basis_real, obj.mono_basis_im] = ...
+                    npatk('generate_basis', obj, ...
+                          'monolith', 'hermitian', sod);
+            end
+            
+            re = obj.mono_basis_real;
+            im = obj.mono_basis_im;
+        end
+        
+        function [out_a, out_b, out_M] = cvxHermitianBasis(obj)
+            % Get handle to CVX problem
+            cvx_problem = evalin( 'caller', 'cvx_problem', '[]' );
+            if ~isa( cvx_problem, 'cvxprob' )
+                error( 'No CVX model exists in this scope!');
+            end
+            
+            % Multiple variables by basis to make matrix
+            [real_basis, im_basis] = obj.MonolithicBasis(false);
+            variable a(obj.RealBasisSize);
+            variable b(obj.ImaginaryBasisSize);
+            expression M(obj.Dimension, obj.Dimension)
+            M(:,:) = reshape(transpose(a) * real_basis ...
+                            + transpose(b) * im_basis, ...
+                        [obj.Dimension, obj.Dimension]);
+                    
+            % Output handles to cvx objects
+            out_a = a;
+            out_b = b;
+            out_M = M;
+        end
+                
+        function [out_a, out_M] = cvxSymmetricBasis(obj)
+             % Get handle to CVX problem
+            cvx_problem = evalin( 'caller', 'cvx_problem', '[]' );
+            if ~isa( cvx_problem, 'cvxprob' )
+                error( 'No CVX model exists in this scope!');
+            end
+            
+            % Multiple variables by basis to make matrix
+            [real_basis, ~] = obj.MonolithicBasis(false);
+            variable a(obj.RealBasisSize);
+            expression M(obj.Dimension, obj.Dimension);
+            M(:,:) = reshape(transpose(a) * real_basis, ...
+                            [obj.Dimension, obj.Dimension]);
+
+            % Output handles to cvx objects
+            out_a = a;
+            out_M = M;
+        end
     end
 end
 
