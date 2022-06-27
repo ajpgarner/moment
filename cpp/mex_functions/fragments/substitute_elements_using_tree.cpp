@@ -112,7 +112,7 @@ namespace NPATK::mex {
                     }
                 }
 
-                return make_sparse_matrix(factory, {matrix_dims[0], matrix_dims[1]}, output_build);
+                return make_sparse_matrix(this->engine, {matrix_dims[0], matrix_dims[1]}, output_build);
             }
 
             return_type string(const matlab::data::StringArray &input) {
@@ -129,7 +129,7 @@ namespace NPATK::mex {
                     }
                 }
 
-                return make_sparse_matrix(factory, {matrix_dims[0], matrix_dims[1]}, output_build);
+                return make_sparse_matrix(this->engine, {matrix_dims[0], matrix_dims[1]}, output_build);
             }
 
             template<std::convertible_to<NPATK::symbol_name_t> datatype>
@@ -152,7 +152,7 @@ namespace NPATK::mex {
 
                     ++input_iter;
                 }
-                return make_sparse_matrix(factory, {matrix_dims[0], matrix_dims[1]}, output_build);
+                return make_sparse_matrix(this->engine, {matrix_dims[0], matrix_dims[1]}, output_build);
             }
 
 

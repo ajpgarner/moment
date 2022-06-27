@@ -13,4 +13,6 @@ disp(struct2table(matrix.SymbolTable));
 disp(matrix.SymbolMatrix);
 disp(matrix.SequenceMatrix);
 
-[real_basis, im_basis] = matrix.DenseBasis();
+%[real_basis, im_basis] = matrix.DenseBasis();
+[re_basis, im_basis] = npatk('generate_basis', matrix, ...
+                             'hermitian', 'sparse', 'monolith');

@@ -192,116 +192,277 @@ classdef GenerateBasisTest < NPATKTestBase
                 testCase.assertNumElements(re_index, 1)
                 testCase.verifyEqual(double(re_index), 0)
             end 
-        end         
+        end      
+        
+        function verify_monolith_dense(testCase, cell_re, cell_im, ...
+                                       mono_re, mono_im, dim)                                   
+            mono_re_dims = size(mono_re);
+            testCase.assertEqual(mono_re_dims, ...
+                                [length(cell_re), dim*dim]);
+                            
+            for k = 1:length(cell_re)
+                testCase.verifyEqual(reshape(mono_re(k,:), [dim, dim]), ...
+                                     cell_re{k});
+            end
+                        
+            % Also test imaginary bits
+            if ~isequal(cell_im, 0)
+                mono_im_dims = size(mono_im);
+                testCase.assertEqual(mono_im_dims, ...
+                                    [length(cell_im), dim*dim]);
+                for k = 1:length(cell_im)
+                    testCase.verifyEqual(reshape(mono_im(k,:), ...
+                                                [dim, dim]), ...
+                                         cell_im{k});
+                end
+            elseif ~isequal(mono_im, 0)
+                testCase.verifyEqual(isempty(mono_im), true);
+            end
+        end
+        
+        function verify_monolith_sparse(testCase, cell_re, cell_im, ...
+                                       mono_re, mono_im, dim)
+            mono_re_dims = size(mono_re);
+            testCase.assertEqual(mono_re_dims, ...
+                                [length(cell_re), dim*dim]);
+                            
+            for k = 1:length(cell_re)
+                testCase.verifyEqual(reshape(mono_re(k,:), [dim, dim]), ...
+                                     cell_re{k});
+            end
+                        
+            % Also test imaginary bits
+            if ~isequal(cell_im, 0)
+                mono_im_dims = size(mono_im);
+                testCase.assertEqual(mono_im_dims, ...
+                                    [length(cell_im), dim*dim]);
+                for k = 1:length(cell_im)
+                    testCase.verifyEqual(reshape(mono_im(k,:), ...
+                                                [dim, dim]), ...
+                                         cell_im{k});
+                end
+            elseif ~isequal(mono_im, 0)
+                testCase.verifyEqual(isempty(mono_im), true);
+            end
+        end
     end
     
     methods (Test)
         function dense_from_dense_symmetric(testCase)
             [output, keys] = npatk('generate_basis', ...
-                'dense', 'symmetric', testCase.dense_input);
+                'cell', 'dense', 'symmetric', testCase.dense_input);
             testCase.verify_sym_output(output, keys, false);
+            
+            [mono_output, mono_keys] = ...
+                npatk('generate_basis', 'monolith', ...
+                      'dense', 'symmetric', testCase.dense_input);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_dense(output, 0, ...
+                mono_output, 0, 3);
         end 
         
         function dense_from_dense_hermitian(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'dense', 'hermitian', testCase.dense_input);
+                'cell', 'dense', 'hermitian', testCase.dense_input);
             testCase.verify_herm_output(output_re, output_im, keys, false);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith', ...
+                      'dense', 'hermitian', testCase.dense_input);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_dense(output_re, output_im, ...
+                mono_output_re, mono_output_im, 3);
         end 
         
         function dense_from_sparse_symmetric(testCase)
             [output, keys] = npatk('generate_basis', ...
-                'dense', 'symmetric', testCase.sparse_input);
+                'cell', 'dense', 'symmetric', testCase.sparse_input);
             testCase.verify_sym_output(output, keys, false);
+            [mono_output, mono_keys] = ...
+                npatk('generate_basis', 'monolith', ...
+                      'dense', 'symmetric', testCase.sparse_input);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_dense(output, 0, ...
+                mono_output, 0, 3);
         end 
         
         function dense_from_sparse_hermitian(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'dense', 'hermitian', testCase.sparse_input);
+                'cell', 'dense', 'hermitian', testCase.sparse_input);
             testCase.verify_herm_output(output_re, output_im, keys, false);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith', ...
+                'dense', 'hermitian', testCase.sparse_input);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_dense(output_re, output_im, ...
+                mono_output_re, mono_output_im, 3);
         end 
         
         function sparse_from_dense_symmetric(testCase)
             [output, keys] = npatk('generate_basis', ...
-                'sparse', 'symmetric', testCase.dense_input);
+                'cell', 'sparse', 'symmetric', testCase.dense_input);
             testCase.verify_sym_output(output, keys, true);
+            [mono_output, mono_keys] = ...
+                npatk('generate_basis', 'monolith', ...
+                      'sparse', 'symmetric', testCase.dense_input);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_sparse(output, 0, ...
+                mono_output, 0, 3);
         end 
         
         function sparse_from_dense_hermitian(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'sparse', 'hermitian', testCase.dense_input);
+                'cell', 'sparse', 'hermitian', testCase.dense_input);
             testCase.verify_herm_output(output_re, output_im, keys, true);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith', ...
+                      'sparse', 'hermitian', testCase.dense_input);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_sparse(output_re, output_im, ...
+                mono_output_re, mono_output_im, 3);
         end 
         
         function sparse_from_sparse_symmetric(testCase)
             [output, keys] = npatk('generate_basis', ...
-                'sparse', 'symmetric', testCase.sparse_input);
+                'cell', 'sparse', 'symmetric', testCase.sparse_input);
             testCase.verify_sym_output(output, keys, true);
+            [mono_output, mono_keys] = npatk('generate_basis', 'monolith', ...
+                'sparse', 'symmetric', testCase.sparse_input);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_sparse(output, 0, ...
+                mono_output, 0, 3);
         end 
         
         function sparse_from_sparse_hermitian(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'sparse', 'hermitian', testCase.sparse_input);
+                'cell', 'sparse', 'hermitian', testCase.sparse_input);
             testCase.verify_herm_output(output_re, output_im, keys, true);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith', ...
+                      'sparse', 'hermitian', testCase.sparse_input);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_sparse(output_re, output_im, ...
+                mono_output_re, mono_output_im, 3);
         end 
         
         function sparse_from_string_symmetric(testCase)
             [output, keys] = npatk('generate_basis', ...
-                'sparse', 'symmetric', testCase.string_input);
+                'cell', 'sparse', 'symmetric', testCase.string_input);
             testCase.verify_sym_output(output, keys, true);
+            [mono_output, mono_keys] = npatk('generate_basis', 'monolith',...
+                'sparse', 'symmetric', testCase.string_input);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_sparse(output, 0, ...
+                mono_output, 0, 3);
         end 
         
         function sparse_from_string_hermitian(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'sparse', 'hermitian', testCase.string_input);
+                'cell', 'sparse', 'hermitian', testCase.string_input);
             testCase.verify_herm_output(output_re, output_im, keys, true);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith',...
+                'sparse', 'hermitian', testCase.string_input);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_sparse(output_re, output_im, ...
+                mono_output_re, mono_output_im, 3);
         end 
                           
+    
         function dense_from_string_hermitian2(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'dense', 'hermitian', testCase.string_input2);
+                'cell', 'dense', 'hermitian', testCase.string_input2);
             testCase.verify_herm_output_str2(output_re, output_im, keys, false);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith',...
+                'dense', 'hermitian', testCase.string_input2);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_dense(output_re, output_im, ...
+                mono_output_re, mono_output_im, 2);
         end 
         
         function sparse_from_string_hermitian2(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'sparse', 'hermitian', testCase.string_input2);
+                'cell', 'sparse', 'hermitian', testCase.string_input2);
             testCase.verify_herm_output_str2(output_re, output_im, keys, true);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith',...
+                'sparse', 'hermitian', testCase.string_input2);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_sparse(output_re, output_im, ...
+                mono_output_re, mono_output_im, 2);
         end 
-                
+      
+                     
         function dense_from_dense_hermitian3(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'dense', 'hermitian', testCase.dense_input3);
+                'cell', 'dense', 'hermitian', testCase.dense_input3);
             testCase.verify_herm_output3(output_re, output_im, keys, false);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith',...
+                'dense', 'hermitian', testCase.dense_input3);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_dense(output_re, output_im, ...
+                mono_output_re, mono_output_im, 3);
         end 
                 
         function dense_from_sparse_hermitian3(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'dense', 'hermitian', testCase.sparse_input3);
+                'cell', 'dense', 'hermitian', testCase.sparse_input3);
             testCase.verify_herm_output3(output_re, output_im, keys, false);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith',...
+                      'dense', 'hermitian', testCase.sparse_input3);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_dense(output_re, output_im, ...
+                mono_output_re, mono_output_im, 3);
         end 
         
         function dense_from_string_hermitian3(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'dense', 'hermitian', testCase.string_input3);
+                'cell', 'dense', 'hermitian', testCase.string_input3);
             testCase.verify_herm_output3(output_re, output_im, keys, false);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith',...
+                      'dense', 'hermitian', testCase.string_input3);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_dense(output_re, output_im, ...
+                mono_output_re, mono_output_im, 3);
         end 
         
         function sparse_from_dense_hermitian3(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'sparse', 'hermitian', testCase.dense_input3);
+                'cell',  'sparse', 'hermitian', testCase.dense_input3);
             testCase.verify_herm_output3(output_re, output_im, keys, true);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith',...
+                'sparse', 'hermitian', testCase.dense_input3);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_sparse(output_re, output_im, ...
+                mono_output_re, mono_output_im, 3);
         end 
         
         function sparse_from_sparse_hermitian3(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'sparse', 'hermitian', testCase.sparse_input3);
+                'cell', 'sparse', 'hermitian', testCase.sparse_input3);
             testCase.verify_herm_output3(output_re, output_im, keys, true);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith',...
+                'sparse', 'hermitian', testCase.sparse_input3);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_sparse(output_re, output_im, ...
+                mono_output_re, mono_output_im, 3);
         end 
       
         function sparse_from_string_hermitian3(testCase)
             [output_re, output_im, keys] = npatk('generate_basis', ...
-                'sparse', 'hermitian', testCase.string_input3);
+                'cell', 'sparse', 'hermitian', testCase.string_input3);
             testCase.verify_herm_output3(output_re, output_im, keys, true);
+            [mono_output_re, mono_output_im, mono_keys] = ...
+                npatk('generate_basis', 'monolith',...
+                'sparse', 'hermitian', testCase.string_input3);
+            testCase.verifyEqual(keys, mono_keys);
+            testCase.verify_monolith_sparse(output_re, output_im, ...
+                mono_output_re, mono_output_im, 3);
         end 
     end
     

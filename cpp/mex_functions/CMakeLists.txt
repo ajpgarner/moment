@@ -22,6 +22,7 @@ matlab_add_mex(NAME npatk_mex
             fragments/read_symbol_or_fail.cpp
             fragments/substitute_elements_using_tree.cpp
             utilities/io_parameters.cpp
+            utilities/make_sparse_matrix.cpp
             utilities/read_as_scalar.cpp
             utilities/read_as_string.cpp
             utilities/reflection.cpp

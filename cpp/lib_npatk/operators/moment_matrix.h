@@ -91,6 +91,7 @@ namespace NPATK {
             const auto& operator()() const noexcept {
                 return (*(matrix.sym_exp_matrix));
             }
+
         };
 
         class UniqueSequenceRange {

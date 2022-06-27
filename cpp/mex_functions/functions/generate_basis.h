@@ -26,6 +26,9 @@ namespace NPATK::mex::functions {
         /** True, if output should be a sparse matrix */
         bool sparse_output = false;
 
+        /** True, if output should be an indexed sparse array, or a flattened monolithic array */
+        bool monolithic_output = false;
+
         /** The reference to the moment matrix, if one is requested */
         uint64_t moment_matrix_key = 0;
 
