@@ -9,7 +9,7 @@
 
 #include "symbolic/symbol_expression.h"
 #include "operators/operator_sequence.h"
-#include "square_matrix.h"
+#include "utilities/square_matrix.h"
 
 namespace matlab::engine {
     class MATLABEngine;

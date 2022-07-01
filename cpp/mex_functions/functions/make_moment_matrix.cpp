@@ -27,12 +27,12 @@ namespace NPATK::mex::functions {
                                               const MakeMomentMatrixParams& input) {
             switch (input.specification_mode) {
                 case MakeMomentMatrixParams::SpecificationMode::FlatNoMeasurements:
-                    return std::make_shared<Context>(PartyInfo::MakeList(input.number_of_parties,
-                                                     input.flat_operators_per_party));
+                    return std::make_shared<Context>(Party::MakeList(input.number_of_parties,
+                                                                     input.flat_operators_per_party));
                 case MakeMomentMatrixParams::SpecificationMode::FlatWithMeasurements:
-                    return std::make_shared<Context>(PartyInfo::MakeList(input.number_of_parties,
-                                                     input.flat_mmts_per_party,
-                                                     input.flat_outcomes_per_mmt));
+                    return std::make_shared<Context>(Party::MakeList(input.number_of_parties,
+                                                                     input.flat_mmts_per_party,
+                                                                     input.flat_outcomes_per_mmt));
                 case MakeMomentMatrixParams::SpecificationMode::FromSettingObject:
                     assert(input.settingPtr);
                     return input.settingPtr->make_context();

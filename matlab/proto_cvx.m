@@ -10,7 +10,7 @@ chsh.Parties(2).AddMeasurement(2);
 
 matrix = chsh.MakeMomentMatrix(1);
 
-cvx_begin sdp
+cvx_begin sdp quiet
      [a, b, M] = matrix.cvxHermitianBasis();
      a(1) == 1;
      M >= 0;
@@ -30,3 +30,8 @@ cvx_begin sdp
         
      maximize(chsh_ineq);
 cvx_end
+
+solved_matrix = SolvedMomentMatrix(matrix, a, b);
+disp(struct2table(solved_matrix.SymbolTable))
+
+imp_sym = npatk('implied_symbols', matrix)

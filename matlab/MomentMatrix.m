@@ -2,7 +2,7 @@ classdef MomentMatrix  < handle
     %MOMENTMATRIX A matrix of operator products. Wraps a reference to a 
     % MomentMatrix class stored within npatk.
     
-    properties(Access = protected)
+    properties(Access = {?SolvedMomentMatrix})
         symbol_matrix
         sequence_matrix
         mono_basis_real

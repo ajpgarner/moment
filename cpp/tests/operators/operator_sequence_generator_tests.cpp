@@ -79,7 +79,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequenceGenerator, OneParty3Symbols3Length_Mutex) {
-        PartyInfo alice_spec{0, "A", 3};
+        Party alice_spec{0, "A", 3};
         ASSERT_EQ(alice_spec.size(), 3);
         alice_spec.add_mutex(1, 2);
         Context collection{};
@@ -125,7 +125,7 @@ namespace NPATK::Tests {
 
 
     TEST(OperatorSequenceGenerator, TwoParty1Symbol_Idem) {
-        Context collection(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent));
+        Context collection(Party::MakeList(2, 1, Operator::Flags::Idempotent));
         ASSERT_EQ(collection.Parties.size(), 2);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 1);

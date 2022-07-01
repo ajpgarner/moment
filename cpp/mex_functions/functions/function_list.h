@@ -23,6 +23,7 @@ namespace NPATK::mex::functions {
         Unknown = 0,
         AlphabeticName,
         GenerateBasis,
+        ImpliedSymbols,
         MakeHermitian,
         MakeMomentMatrix,
         MakeSymmetric,
@@ -39,6 +40,7 @@ namespace NPATK::mex::functions {
 
         output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
         output.emplace(u"generate_basis", MEXEntryPointID::GenerateBasis);
+        output.emplace(u"implied_symbols", MEXEntryPointID::ImpliedSymbols);
         output.emplace(u"make_moment_matrix", MEXEntryPointID::MakeMomentMatrix);
         output.emplace(u"make_hermitian", MEXEntryPointID::MakeHermitian);
         output.emplace(u"make_symmetric", MEXEntryPointID::MakeSymmetric);

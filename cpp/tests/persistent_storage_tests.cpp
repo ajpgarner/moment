@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "persistent_storage.h"
+#include "utilities/persistent_storage.h"
 
 namespace NPATK::Tests {
 

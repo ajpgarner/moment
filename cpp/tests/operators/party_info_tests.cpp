@@ -6,13 +6,13 @@
 
 #include "gtest/gtest.h"
 
-#include "operators/party_info.h"
+#include "operators/party.h"
 #include "operators/operator_sequence.h"
 
 namespace NPATK::Tests {
-    TEST(PartyInfo, Construct_Basic) {
-        PartyInfo party(5, 3);
-        const PartyInfo& crParty{party};
+    TEST(Party, Construct_Basic) {
+        Party party(5, 3);
+        const Party& crParty{party};
 
         EXPECT_EQ(party.id, 5);
         EXPECT_EQ(party.name, "F");
@@ -21,21 +21,18 @@ namespace NPATK::Tests {
         auto iter = party.begin();
         ASSERT_NE(iter, party.end());
         EXPECT_EQ(iter->id, 0);
-        EXPECT_EQ(iter->party, party);
         EXPECT_EQ(&(*iter), &party[0]);
         EXPECT_EQ(&(*iter), &crParty[0]);
         ++iter;
 
         ASSERT_NE(iter, party.end());
         EXPECT_EQ(iter->id, 1);
-        EXPECT_EQ(iter->party, party);
         EXPECT_EQ(&(*iter), &party[1]);
         EXPECT_EQ(&(*iter), &crParty[1]);
         ++iter;
 
         ASSERT_NE(iter, party.end());
         EXPECT_EQ(iter->id, 2);
-        EXPECT_EQ(iter->party, party);
         EXPECT_EQ(&(*iter), &party[2]);
         EXPECT_EQ(&(*iter), &crParty[2]);
         ++iter;
@@ -43,8 +40,8 @@ namespace NPATK::Tests {
         ASSERT_EQ(iter, party.end());
     }
 
-    TEST(PartyInfo, PartyInfo_Mutex) {
-        PartyInfo party(5, "Who", 3);
+    TEST(Party, PartyInfo_Mutex) {
+        Party party(5, "Who", 3);
 
         EXPECT_EQ(party.id, 5);
         EXPECT_EQ(party.name, "Who");
@@ -62,8 +59,8 @@ namespace NPATK::Tests {
         EXPECT_FALSE(party.exclusive(2, 2));
     }
 
-    TEST(PartyInfo, OneMeasurement) {
-        PartyInfo alice(0, "A");
+    TEST(Party, OneMeasurement) {
+        Party alice(0, "A");
         alice.add_measurement(Measurement{"X", 4});
         EXPECT_EQ(alice.id, 0);
         EXPECT_EQ(alice.name, "A");
@@ -89,8 +86,8 @@ namespace NPATK::Tests {
         EXPECT_FALSE(alice.exclusive(2, 2));
     }
 
-    TEST(PartyInfo, TwoMeasurement) {
-        PartyInfo alice(0, "A");
+    TEST(Party, TwoMeasurement) {
+        Party alice(0, "A");
         alice.add_measurement(Measurement{"X", 3});
         alice.add_measurement(Measurement{"Y", 3});
         EXPECT_EQ(alice.id, 0);
@@ -130,8 +127,8 @@ namespace NPATK::Tests {
         EXPECT_FALSE(alice.exclusive(3, 3));
     }
 
-    TEST(PartyInfo, MakeList_FromInitializer) {
-        auto party_list = PartyInfo::MakeList({3, 4, 5}, Operator::Flags::Idempotent);
+    TEST(Party, MakeList_FromInitializer) {
+        auto party_list = Party::MakeList({3, 4, 5}, Operator::Flags::Idempotent);
         ASSERT_EQ(party_list.size(), 3);
         const auto& alice = party_list[0];
         const auto& bob = party_list[1];
@@ -156,8 +153,8 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(PartyInfo, MakeList_PartyOper) {
-        auto party_list = PartyInfo::MakeList(2, 3);
+    TEST(Party, MakeList_PartyOper) {
+        auto party_list = Party::MakeList(2, 3);
         ASSERT_EQ(party_list.size(), 2);
         const auto& alice = party_list[0];
         const auto& bob = party_list[1];
@@ -173,8 +170,8 @@ namespace NPATK::Tests {
         EXPECT_EQ(bob[2].id, 2);
     }
 
-    TEST(PartyInfo, MakeList_PartyMmtOper) {
-        auto party_list = PartyInfo::MakeList(2, 2, 3, true);
+    TEST(Party, MakeList_PartyMmtOper) {
+        auto party_list = Party::MakeList(2, 2, 3, true);
         ASSERT_EQ(party_list.size(), 2);
         const auto& alice = party_list[0];
         const auto& bob = party_list[1];

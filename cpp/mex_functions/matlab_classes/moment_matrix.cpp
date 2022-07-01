@@ -30,14 +30,14 @@ namespace NPATK::mex {
             return {nullptr, std::string("Only one MomentMatrix object should be supplied.")};
         }
 
-        // Check object is an instance of 'Setting'
-        std::unique_ptr<classes::MomentMatrix> ptrSetting;
+        // Check object is an instance of 'MomentMatrix'
+        std::unique_ptr<classes::MomentMatrix> ptrMM;
         try {
-            ptrSetting = std::make_unique<classes::MomentMatrix>(engine, std::move(raw_data));
+            ptrMM = std::make_unique<classes::MomentMatrix>(engine, std::move(raw_data));
         } catch (const errors::bad_class_exception &bce) {
             return {nullptr, std::string{bce.what()}};
         }
 
-        return std::make_pair(std::move(ptrSetting), std::nullopt);
+        return std::make_pair(std::move(ptrMM), std::nullopt);
     }
 }

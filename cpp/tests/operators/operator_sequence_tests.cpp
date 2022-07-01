@@ -15,7 +15,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_OneOper) {
-        Operator memA{3, Party{17}};
+        Operator memA{3, 17};
         OperatorSequence seq{memA};
         ASSERT_FALSE(seq.empty());
         ASSERT_EQ(seq.size(), 1);
@@ -29,8 +29,8 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_TwoSameParty) {
-        Operator memA{5, Party{1}};
-        Operator memB{10, Party{1}};
+        Operator memA{5, 1};
+        Operator memB{10, 1};
         OperatorSequence seqAB{memA, memB};
         ASSERT_FALSE(seqAB.empty());
         ASSERT_EQ(seqAB.size(), 2);
@@ -63,8 +63,8 @@ namespace NPATK::Tests {
 
 
     TEST(OperatorSequence, Sequence_TwoDiffParty) {
-        Operator memA{5, Party{1}};
-        Operator memB{10, Party{2}};
+        Operator memA{5, 1};
+        Operator memB{10, 2};
         OperatorSequence seqAB{memA, memB};
         ASSERT_FALSE(seqAB.empty());
         ASSERT_EQ(seqAB.size(), 2);
@@ -91,8 +91,8 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_CompareEqual) {
-        Operator memA{5, Party{1}};
-        Operator memB{10, Party{1}};
+        Operator memA{5, 1};
+        Operator memB{10, 1};
         OperatorSequence seqAB1{memA, memB};
         OperatorSequence seqAB2{memA, memB};
         OperatorSequence seqBA{memB, memA};
@@ -112,7 +112,7 @@ namespace NPATK::Tests {
 
 
     TEST(OperatorSequence, Sequence_IdemAAA) {
-        Operator memA{5, Party{1}, Operator::Flags::Idempotent};
+        Operator memA{5, 1, Operator::Flags::Idempotent};
         OperatorSequence seqA{memA};
         OperatorSequence seqAA{memA, memA};
         OperatorSequence seqAAA{memA, memA, memA};
@@ -130,8 +130,8 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_IdemAAABB) {
-        Operator memA{5, Party{1}, Operator::Flags::Idempotent};
-        Operator memB{10, Party{1}, Operator::Flags::Idempotent};
+        Operator memA{5, 1, Operator::Flags::Idempotent};
+        Operator memB{10, 1, Operator::Flags::Idempotent};
 
         OperatorSequence seqAB{memA, memB};
         OperatorSequence seqAAABB{memA, memA, memA, memB, memB};
@@ -143,8 +143,8 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_IdemAAABB2) {
-        Operator memA{5, Party{1}, Operator::Flags::Idempotent};
-        Operator memB{5, Party{2}, Operator::Flags::Idempotent};
+        Operator memA{5, 1, Operator::Flags::Idempotent};
+        Operator memB{5, 2, Operator::Flags::Idempotent};
 
         OperatorSequence seqAB{memA, memB};
         OperatorSequence seqAAABB{memA, memA, memA, memB, memB};
@@ -156,8 +156,8 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_ConjugateCommute) {
-        Operator memA{1, Party{1}, Operator::Flags::Idempotent};
-        Operator memB{2, Party{2}, Operator::Flags::Idempotent};
+        Operator memA{1, 1, Operator::Flags::Idempotent};
+        Operator memB{2, 2, Operator::Flags::Idempotent};
 
         OperatorSequence seqAB{memA, memB};
         auto conjugate = seqAB.conjugate();
@@ -165,8 +165,8 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_ConjugateNonncommute) {
-        Operator memA{1, Party{1}, Operator::Flags::Idempotent};
-        Operator memB{2, Party{1}, Operator::Flags::Idempotent};
+        Operator memA{1, 1, Operator::Flags::Idempotent};
+        Operator memB{2, 1, Operator::Flags::Idempotent};
 
         OperatorSequence seqAB{memA, memB};
         OperatorSequence seqBA{memB, memA};
@@ -178,8 +178,8 @@ namespace NPATK::Tests {
 
 
     TEST(OperatorSequence, Sequence_Append_AB_listBBA) {
-        Operator memA{1, Party{1}, Operator::Flags::Idempotent};
-        Operator memB{2, Party{1}, Operator::Flags::Idempotent};
+        Operator memA{1, 1, Operator::Flags::Idempotent};
+        Operator memB{2, 1, Operator::Flags::Idempotent};
 
         std::list<Operator> appList{memB, memB, memA};
 
@@ -191,8 +191,8 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_Append_AB_vecBBA) {
-        Operator memA{1, Party{1}, Operator::Flags::Idempotent};
-        Operator memB{2, Party{1}, Operator::Flags::Idempotent};
+        Operator memA{1, 1, Operator::Flags::Idempotent};
+        Operator memB{2, 1, Operator::Flags::Idempotent};
 
         std::vector<Operator> appVec{memB, memB, memA};
 
@@ -204,9 +204,9 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_Append_ABC_initBBA) {
-        Operator memA{1, Party{1}, Operator::Flags::Idempotent};
-        Operator memB{2, Party{1}, Operator::Flags::Idempotent};
-        Operator memC{3, Party{2}, Operator::Flags::Idempotent};
+        Operator memA{1, 1, Operator::Flags::Idempotent};
+        Operator memB{2, 1, Operator::Flags::Idempotent};
+        Operator memC{3, 2, Operator::Flags::Idempotent};
 
         OperatorSequence seq{memA, memB, memC};
         seq.append({memB, memB, memA});
@@ -215,8 +215,8 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_Concat_AB_AB) {
-        Operator memA{1, Party{1}, Operator::Flags::Idempotent};
-        Operator memB{2, Party{1}, Operator::Flags::Idempotent};
+        Operator memA{1, 1, Operator::Flags::Idempotent};
+        Operator memB{2, 1, Operator::Flags::Idempotent};
 
         OperatorSequence seqAB{memA, memB};
         OperatorSequence seqABAB{memA, memB, memA, memB};
@@ -227,8 +227,8 @@ namespace NPATK::Tests {
 
 
     TEST(OperatorSequence, Sequence_Concat_ABconj_AB) {
-        Operator memA{1, Party{1}, Operator::Flags::Idempotent};
-        Operator memB{2, Party{1}, Operator::Flags::Idempotent};
+        Operator memA{1, 1, Operator::Flags::Idempotent};
+        Operator memB{2, 1, Operator::Flags::Idempotent};
 
         OperatorSequence seqAB{memA, memB};
         OperatorSequence seqBAB{memB, memA, memB};
@@ -238,8 +238,8 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_Concat_AB_ABconj) {
-        Operator memA{1, Party{1}, Operator::Flags::Idempotent};
-        Operator memB{2, Party{1}, Operator::Flags::Idempotent};
+        Operator memA{1, 1, Operator::Flags::Idempotent};
+        Operator memB{2, 1, Operator::Flags::Idempotent};
 
         OperatorSequence seqAB{memA, memB};
         OperatorSequence seqABA{memA, memB, memA};
@@ -250,7 +250,7 @@ namespace NPATK::Tests {
 
     TEST(OperatorSequence, WithContext_MutexZero) {
 
-        PartyInfo alice_spec{0, "A", 3};
+        Party alice_spec{0, "A", 3};
         ASSERT_EQ(alice_spec.size(), 3);
         alice_spec.add_mutex(1, 2);
 

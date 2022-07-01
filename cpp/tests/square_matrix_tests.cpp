@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "gtest/gtest.h"
-#include "square_matrix.h"
+#include "utilities/square_matrix.h"
 
 namespace NPATK::Tests {
 

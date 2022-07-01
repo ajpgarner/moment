@@ -8,6 +8,7 @@
 
 #include "functions/alphabetic_name.h"
 #include "functions/generate_basis.h"
+#include "functions/implied_symbols.h"
 #include "functions/make_moment_matrix.h"
 #include "functions/make_hermitian.h"
 #include "functions/make_symmetric.h"
@@ -30,6 +31,9 @@ namespace NPATK::mex::functions {
                 break;
             case functions::MEXEntryPointID::GenerateBasis:
                 the_function = std::make_unique<functions::GenerateBasis>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::ImpliedSymbols:
+                the_function = std::make_unique<functions::ImpliedSymbols>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::MakeHermitian:
                 the_function = std::make_unique<functions::MakeHermitian>(engine, storageManager);

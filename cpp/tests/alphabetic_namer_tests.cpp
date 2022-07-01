@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "alphabetic_namer.h"
+#include "utilities/alphabetic_namer.h"
 
 namespace NPATK::Tests {
 

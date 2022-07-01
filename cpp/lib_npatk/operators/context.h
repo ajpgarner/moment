@@ -5,7 +5,7 @@
  */
 #pragma once
 #include "operator.h"
-#include "party_info.h"
+#include "party.h"
 
 #include <cassert>
 
@@ -33,7 +33,7 @@ namespace NPATK {
             [[nodiscard]] auto begin() const noexcept { return the_context.parties.cbegin(); }
             [[nodiscard]] auto end() const noexcept { return the_context.parties.cend(); }
 
-            [[nodiscard]] const PartyInfo& operator[](size_t index) const noexcept {
+            [[nodiscard]] const Party& operator[](size_t index) const noexcept {
                 assert(index < the_context.parties.size());
                 return the_context.parties[index];
             }
@@ -53,8 +53,8 @@ namespace NPATK {
             using value_type = Operator;
 
         private:
-            std::vector<PartyInfo>::const_iterator party_iter;
-            std::vector<PartyInfo>::const_iterator party_iter_end;
+            std::vector<Party>::const_iterator party_iter;
+            std::vector<Party>::const_iterator party_iter_end;
             std::vector<Operator>::const_iterator oper_iter;
 
             AllOperatorConstIterator(const Context& generator, bool)
@@ -112,22 +112,23 @@ namespace NPATK {
                 return tmp;
             }
         };
-
         static_assert(std::input_iterator<AllOperatorConstIterator>);
-
-    private:
-        std::vector<PartyInfo> parties;
-        size_t total_operator_count = 0;
 
     public:
         PartiesRange Parties;
 
+    private:
+        std::vector<Party> parties;
+        size_t total_measurement_count = 0;
+        size_t total_operator_count = 0;
+
+    public:
         constexpr Context() : parties{}, Parties{*this} { }
 
-        explicit Context(std::vector<PartyInfo>&& parties) noexcept;
+        explicit Context(std::vector<Party>&& parties) noexcept;
 
         Context(std::initializer_list<oper_name_t> opers_per_party) :
-            Context(PartyInfo::MakeList(opers_per_party)) { }
+            Context(Party::MakeList(opers_per_party)) { }
 
         /** Iterate over every operator in every party */
         [[nodiscard]] auto begin() const noexcept {
@@ -145,7 +146,7 @@ namespace NPATK {
          * Adds party to context. Warning: might invalidate references/pointers to previous parties.
          * @param info The new party to add.
          */
-        void add_party(PartyInfo info);
+        void add_party(Party info);
 
         /**
          * Use additional context to simplify operator string.
@@ -172,6 +173,15 @@ namespace NPATK {
           */
           [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const;
 
+          /**
+           * Returns total number of unique measurements
+           */
+           [[nodiscard]] size_t measurement_count() const noexcept { return this->total_measurement_count; }
+
+          /**
+           * Recalculate global offsets (e.g., because a Party added measurements or operators).
+           */
+           void reenumerate();
 
          friend std::ostream& operator<< (std::ostream& os, const Context& context);
 

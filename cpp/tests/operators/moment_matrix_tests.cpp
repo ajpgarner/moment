@@ -333,7 +333,7 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, OpSeq_2Party1OpersIdem) {
         // Two party, one operator
-        auto contextPtr = std::make_shared<Context>(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent));
+        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent));
         auto& context = *contextPtr;
 
         ASSERT_EQ(context.size(), 2);
@@ -383,7 +383,7 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, OpSeq_223) {
          // Two party, two mmts, three outcomes.
-        auto contextPtr = std::make_shared<Context>(PartyInfo::MakeList(2, 2, 3, true));
+        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 2, 3, true));
         auto& context = *contextPtr;
 
         ASSERT_EQ(context.Parties.size(), 2);
@@ -591,7 +591,7 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Unique_2Party1OpersIdem) {
         // Two party, one operator
-        auto contextPtr = std::make_shared<Context>(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent));
+        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent));
         auto& context = *contextPtr;
 
         ASSERT_EQ(context.size(), 2);
@@ -792,7 +792,7 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Symbol_2Party1OpersIdem) {
         // Two party, one operator
-        auto contextPtr = std::make_shared<Context>(PartyInfo::MakeList(2, 1, Operator::Flags::Idempotent));
+        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent));
         auto& context = *contextPtr;
 
         MomentMatrix matLevel0{contextPtr, 0};

@@ -1,14 +1,14 @@
 include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_library(lib_npatk
-        alphabetic_namer.cpp
-        persistent_storage.cpp
+        operators/collins_gisin.cpp
         operators/context.cpp
+        operators/implicit_symbols.cpp
         operators/moment_matrix.cpp
         operators/operator.cpp
         operators/operator_sequence.cpp
         operators/operator_sequence_generator.cpp
-        operators/party_info.cpp
+        operators/party.cpp
         symbolic/equality_type.cpp
         symbolic/index_matrix_properties.cpp
         symbolic/symbol.cpp
@@ -16,4 +16,6 @@ add_library(lib_npatk
         symbolic/symbol_set.cpp
         symbolic/symbol_tree.cpp
         symbolic/symbol_tree_simplify_impl.cpp
-    )
+        utilities/alphabetic_namer.cpp
+        utilities/persistent_storage.cpp
+        operators/multi_mmt_iterator.cpp operators/multi_mmt_iterator.h)

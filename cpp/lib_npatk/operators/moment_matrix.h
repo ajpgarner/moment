@@ -5,11 +5,12 @@
  */
 #pragma once
 
-#include "square_matrix.h"
+#include "utilities/square_matrix.h"
 
 #include "context.h"
 #include "operator_sequence.h"
 
+#include "collins_gisin.h"
 #include "symbolic/symbol_expression.h"
 #include "symbolic/index_matrix_properties.h"
 
@@ -126,13 +127,22 @@ namespace NPATK {
         };
 
     private:
-        //const Context& context;
-        /* Moment matrix takes partial ownership over context */
+        /** Moment matrix takes partial ownership over context - so it is not destroyed before moment matrix. */
         std::shared_ptr<Context> contextPtr;
 
+
     public:
+        /** Scenario */
         const Context& context;
+
+        /** The level of moment matrix defined */
         const size_t hierarchy_level;
+
+        /**
+         * The maximum length operator sequence found in this moment matrix that corresponds to a probability.
+         * Effectively: min(number of parties, 2 * hierarchy_level)
+         */
+        const size_t max_probability_length;
 
         /**
          * Range over unique sequences.
@@ -160,7 +170,8 @@ namespace NPATK {
         /** Maps hash to unique symbol's Hermitian conjugate */
         std::map<size_t, size_t> conj_hash_table{};
 
-
+        /** Map of measurement outcome symbols */
+        std::unique_ptr<CollinsGisinForm> cgForm;
 
     public:
         MomentMatrix(std::shared_ptr<Context> contextPtr, size_t level);
@@ -169,11 +180,15 @@ namespace NPATK {
 
         MomentMatrix(MomentMatrix&& src) noexcept :
             contextPtr{std::move(src.contextPtr)}, context{*contextPtr},
-            hierarchy_level{src.hierarchy_level}, matrix_dimension{src.matrix_dimension},
+            hierarchy_level{src.hierarchy_level}, max_probability_length{src.max_probability_length},
+            UniqueSequences{*this}, SymbolMatrix{*this},
+            matrix_dimension{src.matrix_dimension},
             op_seq_matrix{std::move(src.op_seq_matrix)},
             sym_exp_matrix{std::move(src.sym_exp_matrix)},
             unique_sequences{std::move(src.unique_sequences)},
-            UniqueSequences{*this}, SymbolMatrix{*this} { }
+            imp{std::move(src.imp)},
+            fwd_hash_table{std::move(src.fwd_hash_table)},
+            conj_hash_table{std::move(src.conj_hash_table)} { }
 
         /**
          * @return The number of rows in the matrix. Matrix is square, so also the number of columns.
@@ -206,6 +221,14 @@ namespace NPATK {
         }
 
         [[nodiscard]] const IndexMatrixProperties& BasisIndices() const noexcept { return this->imp; }
+
+        [[nodiscard]] const CollinsGisinForm& CollinsGisin() const {
+            if (!this->cgForm) {
+                [[unlikely]]
+                throw errors::cg_form_error{"MomentMatrix does not have CG table."};
+            }
+            return *this->cgForm;
+        }
 
     private:
         /**

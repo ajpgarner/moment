@@ -33,6 +33,7 @@ matlab_add_mex(NAME npatk_mex
             functions/alphabetic_name.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
+            functions/implied_symbols.cpp
             functions/make_hermitian.cpp
             functions/make_moment_matrix.cpp
             functions/make_symmetric.cpp

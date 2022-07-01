@@ -9,68 +9,19 @@
 #include "operators/operator.h"
 
 namespace NPATK::Tests {
-    TEST(Operator, Party_Construct) {
-        Party party{3};
-        EXPECT_EQ(party.id, 3);
-    }
-
-    TEST(Operator, Party_CompareEqual) {
-        Party pA{1}, pB{1}, pC{3};
-        EXPECT_TRUE(pA == pA);
-        EXPECT_TRUE(pA == pB);
-        EXPECT_FALSE(pA == pC);
-
-        EXPECT_TRUE(pB == pA);
-        EXPECT_TRUE(pB == pB);
-        EXPECT_FALSE(pB == pC);
-
-        EXPECT_FALSE(pC == pA);
-        EXPECT_FALSE(pC == pB);
-        EXPECT_TRUE(pC == pC);
-    }
-
-    TEST(Operator, Party_CompareNotEqual) {
-        Party pA{1}, pB{1}, pC{3};
-        EXPECT_FALSE(pA != pA);
-        EXPECT_FALSE(pA != pB);
-        EXPECT_TRUE(pA != pC);
-
-        EXPECT_FALSE(pB != pA);
-        EXPECT_FALSE(pB != pB);
-        EXPECT_TRUE(pB != pC);
-
-        EXPECT_TRUE(pC != pA);
-        EXPECT_TRUE(pC != pB);
-        EXPECT_FALSE(pC != pC);
-    }
-
-    TEST(Operator, Party_CompareLess) {
-        Party pA{1}, pB{1}, pC{3};
-        EXPECT_FALSE(pA < pA);
-        EXPECT_FALSE(pA < pB);
-        EXPECT_TRUE(pA < pC);
-
-        EXPECT_FALSE(pB < pA);
-        EXPECT_FALSE(pB < pB);
-        EXPECT_TRUE(pB < pC);
-
-        EXPECT_FALSE(pC < pA);
-        EXPECT_FALSE(pC < pB);
-        EXPECT_FALSE(pC < pC);
-    }
 
     TEST(Operator, Operator_Construct) {
-        Operator test_op{13, Party{4}};
+        Operator test_op{13, 4};
         EXPECT_EQ(test_op.id, 13);
-        EXPECT_EQ(test_op.party, Party{4});
+        EXPECT_EQ(test_op.party, 4);
     }
 
 
     TEST(Operator, Operator_CompareEqual) {
-        Operator opA1{13, Party{4}};
-        Operator opA2{13, Party{4}};
-        Operator opB{13, Party{5}};
-        Operator opC{14, Party{4}};
+        Operator opA1{13, 4};
+        Operator opA2{13, 4};
+        Operator opB{13, 5};
+        Operator opC{14, 4};
 
         EXPECT_TRUE(opA1 == opA2);
         EXPECT_TRUE(opA2 == opA1);
@@ -81,10 +32,10 @@ namespace NPATK::Tests {
     }
 
     TEST(Operator, Operator_CompareNotEqual) {
-        Operator opA1{13, Party{4}};
-        Operator opA2{13, Party{4}};
-        Operator opB{13, Party{5}};
-        Operator opC{14, Party{4}};
+        Operator opA1{13, 4};
+        Operator opA2{13, 4};
+        Operator opB{13, 5};
+        Operator opC{14, 4};
 
         EXPECT_FALSE(opA1 != opA2);
         EXPECT_FALSE(opA2 != opA1);
@@ -96,10 +47,10 @@ namespace NPATK::Tests {
 
 
     TEST(Operator, Operator_ComparePartyLess) {
-        Operator opA1{13, Party{4}};
-        Operator opA2{13, Party{4}};
-        Operator opB{13, Party{5}};
-        Operator opC{12, Party{5}};
+        Operator opA1{13, 4};
+        Operator opA2{13, 4};
+        Operator opB{13, 5};
+        Operator opC{12, 5};
 
         Operator::PartyComparator comp{};
 
@@ -127,11 +78,11 @@ namespace NPATK::Tests {
 
 
     TEST(Operator, Operator_CompareRedundant) {
-        Operator opA_idem{1, Party{1}, Operator::Flags::Idempotent};
-        Operator opA_non{1, Party{1}, Operator::Flags::None};
-        Operator opB{1, Party{1}, Operator::Flags::Idempotent};
-        Operator opC{2, Party{1}, Operator::Flags::Idempotent};
-        Operator opD{1, Party{2}, Operator::Flags::Idempotent};
+        Operator opA_idem{1, 1, Operator::Flags::Idempotent};
+        Operator opA_non{1, 1, Operator::Flags::None};
+        Operator opB{1, 1, Operator::Flags::Idempotent};
+        Operator opC{2, 1, Operator::Flags::Idempotent};
+        Operator opD{1, 2, Operator::Flags::Idempotent};
 
         Operator::IsRedundant comp{};
 

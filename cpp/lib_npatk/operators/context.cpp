@@ -11,20 +11,30 @@
 #include <utility>
 
 namespace NPATK {
-    Context::Context(std::vector<PartyInfo> &&in_party) noexcept
-        : Parties{*this}, parties{std::move(in_party)}, total_operator_count{0}  {
+    Context::Context(std::vector<Party> &&in_party) noexcept
+        : Parties{*this}, parties{std::move(in_party)},
+          total_measurement_count{0}, total_operator_count{0} {
+
+        party_name_t party_count = 0;
         for ( auto& party : parties) {
-            party.global_offset = this->total_operator_count;
+            party.global_operator_offset = this->total_operator_count;
+            party.set_offsets(party_count, static_cast<mmt_name_t>(this->total_measurement_count));
             this->total_operator_count += party.size();
+            this->total_measurement_count += party.measurements.size();
+            ++party_count;
         }
     }
 
+    void Context::add_party(Party info) {
+        const auto party_count = static_cast<party_name_t>(this->parties.size());
 
-    void Context::add_party(PartyInfo info) {
         this->parties.emplace_back(std::move(info));
         auto& party = this->parties.back();
-        party.global_offset = this->total_operator_count;
+        party.context = this;
+        party.global_operator_offset = this->total_operator_count;
+        party.set_offsets(party_count, static_cast<mmt_name_t>(this->total_measurement_count));
         this->total_operator_count += party.size();
+        this->total_measurement_count += party.measurements.size();
     }
 
     std::pair<std::vector<Operator>::iterator, bool>
@@ -41,9 +51,9 @@ namespace NPATK {
 
         while (rhs_iter != end) {
             // Only do comparison if operators are in same party...
-            if (lhs_iter->party.id == rhs_iter->party.id) {
-                assert(lhs_iter->party.id < this->parties.size());
-                const auto& party = this->parties[lhs_iter->party.id];
+            if (lhs_iter->party == rhs_iter->party) {
+                assert(lhs_iter->party < this->parties.size());
+                const auto& party = this->parties[lhs_iter->party];
                 // If mutually-exclusive operators are found next to each other, whole sequence is zero.
                 if (party.exclusive(lhs_iter->id, rhs_iter->id)) {
                     return {start, true};
@@ -68,7 +78,7 @@ namespace NPATK {
 
         for (size_t n = 0; n < sequence.size(); ++n) {
             const auto& oper = sequence[sequence.size()-n-1];
-            size_t global_index = 1 + this->parties[oper.party.id].global_offset + oper.id;
+            size_t global_index = 1 + this->parties[oper.party].global_operator_offset + oper.id;
             hash += (global_index * multiplier);
             multiplier *= (1+this->total_operator_count);
         }
@@ -104,10 +114,10 @@ namespace NPATK {
                 done_once = true;
             }
 
-            if (oper.party.id >= party_size) {
+            if (oper.party >= party_size) {
                 return "BadSequence";
             }
-            const auto& party = this->parties[oper.party.id];
+            const auto& party = this->parties[oper.party];
             if (party_size >= 1) {
                 ss << party.name << ".";
             }
@@ -116,4 +126,15 @@ namespace NPATK {
         return ss.str();
     }
 
+    void Context::reenumerate() {
+        this->total_operator_count = 0;
+        this->total_measurement_count = 0;
+        for (size_t index = 0; index < this->parties.size(); ++index) {
+            this->parties[index].global_operator_offset = this->total_operator_count;
+            this->parties[index].set_offsets(static_cast<party_name_t>(index),
+                                             static_cast<mmt_name_t>(this->total_measurement_count));
+            this->total_operator_count += this->parties[index].operators.size();
+            this->total_measurement_count += this->parties[index].measurements.size();
+        }
+    }
 }

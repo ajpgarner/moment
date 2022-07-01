@@ -13,23 +13,23 @@ namespace NPATK {
 
     using party_name_t = int16_t;
 
-    struct Party {
-        party_name_t id;
-
-        constexpr explicit Party(party_name_t party_id) noexcept: id{party_id} {}
-
-        constexpr bool operator<(const Party &rhs) const noexcept {
-            return this->id < rhs.id;
-        }
-
-        constexpr bool operator==(const Party &rhs) const noexcept {
-            return this->id == rhs.id;
-        }
-
-        constexpr bool operator!=(const Party &rhs) const noexcept {
-            return this->id != rhs.id;
-        }
-    };
+//    struct Party {
+//        party_name_t id;
+//
+//        constexpr explicit Party(party_name_t party_id) noexcept: id{party_id} {}
+//
+//        constexpr bool operator<(const Party &rhs) const noexcept {
+//            return this->id < rhs.id;
+//        }
+//
+//        constexpr bool operator==(const Party &rhs) const noexcept {
+//            return this->id == rhs.id;
+//        }
+//
+//        constexpr bool operator!=(const Party &rhs) const noexcept {
+//            return this->id != rhs.id;
+//        }
+//    };
 
 
     using oper_name_t = int64_t;
@@ -75,10 +75,10 @@ namespace NPATK {
 
     public:
         oper_name_t id;
-        Party party;
+        party_name_t party;
         Flags flags;
 
-        constexpr Operator(oper_name_t name, Party who, Flags what = Flags::None) noexcept
+        constexpr Operator(oper_name_t name, party_name_t who, Flags what = Flags::None) noexcept
                 : id{name}, party{who}, flags{what} {}
 
         friend std::ostream &operator<<(std::ostream &os, const Operator &seq);

@@ -8,6 +8,6 @@
 #include <iostream>
 
 std::ostream &NPATK::operator<<(std::ostream &os, const NPATK::Operator &op) {
-    os << op.party.id << "_" << op.id;
+    os << op.party << "_" << op.id;
     return os;
 }

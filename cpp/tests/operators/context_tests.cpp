@@ -9,9 +9,11 @@
 #include "operators/context.h"
 #include "operators/operator_sequence.h"
 
+#include <optional>
+
 namespace NPATK::Tests {
     TEST(Context, Construct_Empty) {
-        Context context(PartyInfo::MakeList(0, 0));
+        Context context(Party::MakeList(0, 0));
         ASSERT_EQ(context.Parties.size(), 0);
         ASSERT_TRUE(context.Parties.empty());
 
@@ -23,7 +25,7 @@ namespace NPATK::Tests {
     }
 
     TEST(Context, Construct_2x2) {
-        Context context(PartyInfo::MakeList(2, 2));
+        Context context(Party::MakeList(2, 2));
         ASSERT_EQ(context.size(), 4);
         ASSERT_EQ(context.Parties.size(), 2);
         ASSERT_FALSE(context.Parties.empty());
@@ -43,7 +45,7 @@ namespace NPATK::Tests {
         ASSERT_NE(alice_iter, alice.end());
         EXPECT_EQ(*all_iter, *alice_iter);
         EXPECT_EQ(all_iter->id, 0);
-        EXPECT_EQ(all_iter->party.id, 0);
+        EXPECT_EQ(all_iter->party, 0);
 
         // Alice, 1
         ++all_iter; ++alice_iter;
@@ -52,7 +54,7 @@ namespace NPATK::Tests {
 
         EXPECT_EQ(*all_iter, *alice_iter);
         EXPECT_EQ(all_iter->id, 1);
-        EXPECT_EQ(all_iter->party.id, 0);
+        EXPECT_EQ(all_iter->party, 0);
 
         // Bob, 0
         ++all_iter; ++alice_iter;
@@ -62,7 +64,7 @@ namespace NPATK::Tests {
         ASSERT_NE(bob_iter, bob.end());
         EXPECT_EQ(*all_iter, *bob_iter);
         EXPECT_EQ(all_iter->id, 0);
-        EXPECT_EQ(all_iter->party.id, 1);
+        EXPECT_EQ(all_iter->party, 1);
 
         // Bob, 1
         ++all_iter; ++bob_iter;
@@ -71,7 +73,7 @@ namespace NPATK::Tests {
 
         EXPECT_EQ(*all_iter, *bob_iter);
         EXPECT_EQ(all_iter->id, 1);
-        EXPECT_EQ(all_iter->party.id, 1);
+        EXPECT_EQ(all_iter->party, 1);
 
         // End
         ++all_iter; ++bob_iter;
@@ -80,7 +82,7 @@ namespace NPATK::Tests {
     }
 
     TEST(Context, Construct_3_2) {
-        Context context(PartyInfo::MakeList({3, 2}));
+        Context context(Party::MakeList({3, 2}));
         ASSERT_EQ(context.size(), 5);
 
         ASSERT_EQ(context.Parties.size(), 2);
@@ -101,7 +103,7 @@ namespace NPATK::Tests {
         ASSERT_NE(alice_iter, alice.end());
         EXPECT_EQ(*all_iter, *alice_iter);
         EXPECT_EQ(all_iter->id, 0);
-        EXPECT_EQ(all_iter->party.id, 0);
+        EXPECT_EQ(all_iter->party, 0);
 
         // Alice, 1
         ++all_iter; ++alice_iter;
@@ -110,7 +112,7 @@ namespace NPATK::Tests {
 
         EXPECT_EQ(*all_iter, *alice_iter);
         EXPECT_EQ(all_iter->id, 1);
-        EXPECT_EQ(all_iter->party.id, 0);
+        EXPECT_EQ(all_iter->party, 0);
 
         // Alice, 2
         ++all_iter; ++alice_iter;
@@ -119,7 +121,7 @@ namespace NPATK::Tests {
 
         EXPECT_EQ(*all_iter, *alice_iter);
         EXPECT_EQ(all_iter->id, 2);
-        EXPECT_EQ(all_iter->party.id, 0);
+        EXPECT_EQ(all_iter->party, 0);
 
         // Bob, 0
         ++all_iter; ++alice_iter;
@@ -129,7 +131,7 @@ namespace NPATK::Tests {
         ASSERT_NE(bob_iter, bob.end());
         EXPECT_EQ(*all_iter, *bob_iter);
         EXPECT_EQ(all_iter->id, 0);
-        EXPECT_EQ(all_iter->party.id, 1);
+        EXPECT_EQ(all_iter->party, 1);
 
         // Bob, 1
         ++all_iter; ++bob_iter;
@@ -138,7 +140,7 @@ namespace NPATK::Tests {
 
         EXPECT_EQ(*all_iter, *bob_iter);
         EXPECT_EQ(all_iter->id, 1);
-        EXPECT_EQ(all_iter->party.id, 1);
+        EXPECT_EQ(all_iter->party, 1);
 
         // End
         ++all_iter; ++bob_iter;
@@ -147,7 +149,7 @@ namespace NPATK::Tests {
     }
 
     TEST(Context, Construct_SpecDefaultFlags) {
-        Context context(PartyInfo::MakeList(4, 3, Operator::Flags::Idempotent));
+        Context context(Party::MakeList(4, 3, Operator::Flags::Idempotent));
         ASSERT_EQ(context.size(), 12);
 
         size_t count = 0;
@@ -160,7 +162,7 @@ namespace NPATK::Tests {
 
 
     TEST(Context, Construct_ListDefaultFlags) {
-        Context context(PartyInfo::MakeList({3, 2, 4}, Operator::Flags::Idempotent));
+        Context context(Party::MakeList({3, 2, 4}, Operator::Flags::Idempotent));
         ASSERT_EQ(context.size(), 9);
 
         size_t count = 0;
@@ -177,11 +179,11 @@ namespace NPATK::Tests {
         ASSERT_TRUE(context.Parties.empty());
         ASSERT_EQ(context.size(), 0);
 
-        context.add_party(PartyInfo{0, "A", 3});
+        context.add_party(Party{0, "A", 3});
         ASSERT_EQ(context.Parties.size(), 1);
         EXPECT_EQ(context.size(), 3);
 
-        context.add_party(PartyInfo{0, "B", 4});
+        context.add_party(Party{0, "B", 4});
         ASSERT_EQ(context.Parties.size(), 2);
         EXPECT_EQ(context.size(), 7);
 
@@ -252,5 +254,66 @@ namespace NPATK::Tests {
         EXPECT_EQ(hash, 1);
     }
 
+    TEST(Context, EnumerateMeasurements) {
+        Context context(Party::MakeList(2, 2, 2));
+        ASSERT_EQ(context.Parties.size(), 2);
+        const auto& alice = context.Parties[0];
+        const auto& bob = context.Parties[1];
+        ASSERT_EQ(alice.Measurements.size(), 2);
+        ASSERT_EQ(bob.Measurements.size(), 2);
+
+        const auto& alice_a = alice.Measurements[0];
+        const auto& alice_b = alice.Measurements[1];
+        const auto& bob_a = bob.Measurements[0];
+        const auto& bob_b = bob.Measurements[1];
+
+        EXPECT_EQ(alice_a.Index().global_mmt, 0);
+        EXPECT_EQ(alice_a.Index().party, 0);
+        EXPECT_EQ(alice_a.Index().mmt, 0);
+
+        EXPECT_EQ(alice_b.Index().global_mmt, 1);
+        EXPECT_EQ(alice_b.Index().party, 0);
+        EXPECT_EQ(alice_b.Index().mmt, 1);
+
+        EXPECT_EQ(bob_a.Index().global_mmt, 2);
+        EXPECT_EQ(bob_a.Index().party, 1);
+        EXPECT_EQ(bob_a.Index().mmt, 0);
+
+        EXPECT_EQ(bob_b.Index().global_mmt, 3);
+        EXPECT_EQ(bob_b.Index().party, 1);
+        EXPECT_EQ(bob_b.Index().mmt, 1);
+    }
+
+
+    TEST(Context, RenumerateMeasurements) {
+        Context context(Party::MakeList(2, 2, 2));
+        ASSERT_EQ(context.Parties.size(), 2);
+        auto& alice = context.Parties[0];
+        auto& bob = context.Parties[1];
+        ASSERT_EQ(alice.Measurements.size(), 2);
+        ASSERT_EQ(bob.Measurements.size(), 2);
+
+        const auto& alice_a = alice.Measurements[0];
+        const auto& alice_b = alice.Measurements[1];
+        const auto& bob_a = bob.Measurements[0];
+        const auto& bob_b = bob.Measurements[1];
+
+        context.reenumerate();
+        EXPECT_EQ(alice_a.Index().global_mmt, 0);
+        EXPECT_EQ(alice_a.Index().party, 0);
+        EXPECT_EQ(alice_a.Index().mmt, 0);
+
+        EXPECT_EQ(alice_b.Index().global_mmt, 1);
+        EXPECT_EQ(alice_b.Index().party, 0);
+        EXPECT_EQ(alice_b.Index().mmt, 1);
+
+        EXPECT_EQ(bob_a.Index().global_mmt, 2);
+        EXPECT_EQ(bob_a.Index().party, 1);
+        EXPECT_EQ(bob_a.Index().mmt, 0);
+
+        EXPECT_EQ(bob_b.Index().global_mmt, 3);
+        EXPECT_EQ(bob_b.Index().party, 1);
+        EXPECT_EQ(bob_b.Index().mmt, 1);
+    }
 
 }

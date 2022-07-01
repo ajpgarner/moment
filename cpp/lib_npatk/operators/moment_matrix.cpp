@@ -12,9 +12,16 @@
 
 
 namespace NPATK {
+    namespace {
+        constexpr size_t getMaxProbLen(const Context& context, size_t hierarchy_level) {
+            return std::min(hierarchy_level*2, context.Parties.size());
+        }
+    }
+
     MomentMatrix::MomentMatrix(std::shared_ptr<Context> theContextPtr, size_t level)
         : contextPtr{std::move(theContextPtr)}, context{*contextPtr}, hierarchy_level{level},
-        UniqueSequences{*this}, SymbolMatrix{*this} {
+            max_probability_length{getMaxProbLen(context, hierarchy_level)},
+            UniqueSequences{*this}, SymbolMatrix{*this} {
 
         // Prepare generator of symbols
         OperatorSequenceGenerator colGen{context, hierarchy_level};
@@ -45,9 +52,13 @@ namespace NPATK {
 
         // Create index matrix
         this->imp = IndexMatrixProperties{*this};
+
+        // Create CG form index
+        this->cgForm = std::make_unique<CollinsGisinForm>(*this, max_probability_length);
     }
 
-    const MomentMatrix::UniqueSequence *MomentMatrix::UniqueSequenceRange::where(const OperatorSequence &seq) const noexcept {
+    const MomentMatrix::UniqueSequence *
+    MomentMatrix::UniqueSequenceRange::where(const OperatorSequence &seq) const noexcept {
         size_t hash = this->matrix.context.hash(seq);
 
         auto [id, conj] = this->matrix.hashToElement(hash);
@@ -75,10 +86,6 @@ namespace NPATK {
         std::map<size_t, size_t> conj_alias;
 
         // First, manually insert zero and one
-//        this->unique_sequences.emplace_back(UniqueSequence::Zero(this->context));
-//        this->fwd_hash_table.emplace(0, 0);
-//        this->unique_sequences.emplace_back(UniqueSequence::Identity(this->context));
-//        this->fwd_hash_table.emplace(1, 1);
         build_unique.emplace(0, UniqueSequence::Zero(this->context));
         build_unique.emplace(1, UniqueSequence::Identity(this->context));
 

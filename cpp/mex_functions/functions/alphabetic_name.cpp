@@ -5,7 +5,7 @@
  */
 #include "alphabetic_name.h"
 
-#include "alphabetic_namer.h"
+#include "utilities/alphabetic_namer.h"
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
