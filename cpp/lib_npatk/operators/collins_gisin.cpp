@@ -56,9 +56,6 @@ namespace NPATK {
                     continue;
                 }
 
-                // Canonical order of parties
-                std::reverse(pmiStack.begin(), pmiStack.end());
-
                 // Iterate through mmts of chosen parties
                 MultiMmtIterator multiMmtIterator{momentMatrix.context, std::move(pmiStack)};
                 while (!multiMmtIterator.done()) {
