@@ -90,7 +90,7 @@ namespace NPATK::mex {
             assert(this->partyListPtr);
 
             size_t num_parties = this->Parties().num_parties;
-            std::vector<Party> partyList{};
+            std::vector<NPATK::Party> partyList{};
             partyList.reserve(num_parties);
 
             for (size_t party_index = 0; party_index < num_parties; ++party_index) {
@@ -100,7 +100,7 @@ namespace NPATK::mex {
 
                 const auto raw_op_count = this->partyListPtr->property_scalar<uint64_t>(party_index, "RawOperators");
 
-                Party party{static_cast<party_name_t>(party_index),
+                NPATK::Party party{static_cast<party_name_t>(party_index),
                             party_name,
                             static_cast<oper_name_t>(raw_op_count)};
 
