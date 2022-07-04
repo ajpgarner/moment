@@ -164,13 +164,15 @@ namespace NPATK {
         size_t current_stride = 1;
         std::vector<size_t> stride;
         for (size_t m = 0; m < mmtIndices.size(); ++m) {
-            if (iterates[m]) {
+            const size_t invM = mmtIndices.size() - m - 1;
+
+            if (iterates[invM]) {
                 stride.push_back(current_stride);
             } else {
-                assert (fixedOutcomes[m] != -1);
-                the_offset += (current_stride * fixedOutcomes[m]);
+                assert (fixedOutcomes[invM] != -1);
+                the_offset += (current_stride * fixedOutcomes[invM]);
             }
-            current_stride *= this->OperatorCounts[mmtIndices[m]];
+            current_stride *= this->OperatorCounts[mmtIndices[invM]];
         }
 
         // Get full measurement
@@ -180,7 +182,7 @@ namespace NPATK {
         while (!freeOutcomeIndexIter.done()) {
             size_t the_index = the_offset;
             for (size_t i = 0 ; i < num_iterating_indices; ++i) {
-                the_index = freeOutcomeIndexIter[i] * stride[i];
+                the_index += freeOutcomeIndexIter[i] * stride[i];
             }
 
             assert(the_index < fullMmtSpan.size());

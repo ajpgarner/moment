@@ -262,7 +262,6 @@ namespace NPATK::Tests {
         EXPECT_EQ(fixA01freeB1[0], alice_a1_bob_b0->Id());
         EXPECT_EQ(fixA01freeB1[1], alice_a1_bob_b1->Id());
 
-
         auto fixA10freeB0 = cgForm.get({1, 2}, {0, -1});
         ASSERT_EQ(fixA10freeB0.size(), 2);
         EXPECT_EQ(fixA10freeB0[0], alice_b0_bob_a0->Id());
@@ -283,5 +282,44 @@ namespace NPATK::Tests {
         EXPECT_EQ(fixA11freeB1[0], alice_b1_bob_b0->Id());
         EXPECT_EQ(fixA11freeB1[1], alice_b1_bob_b1->Id());
 
+        auto freeA0fixB00 = cgForm.get({0, 2}, {-1, 0});
+        ASSERT_EQ(freeA0fixB00.size(), 2);
+        EXPECT_EQ(freeA0fixB00[0], alice_a0_bob_a0->Id());
+        EXPECT_EQ(freeA0fixB00[1], alice_a1_bob_a0->Id());
+        
+        auto freeA0fixB01 = cgForm.get({0, 2}, {-1, 1});
+        ASSERT_EQ(freeA0fixB01.size(), 2);
+        EXPECT_EQ(freeA0fixB01[0], alice_a0_bob_a1->Id());
+        EXPECT_EQ(freeA0fixB01[1], alice_a1_bob_a1->Id());
+        
+        auto freeA0fixB10 = cgForm.get({0, 3}, {-1, 0});
+        ASSERT_EQ(freeA0fixB10.size(), 2);
+        EXPECT_EQ(freeA0fixB10[0], alice_a0_bob_b0->Id());
+        EXPECT_EQ(freeA0fixB10[1], alice_a1_bob_b0->Id());
+
+        auto freeA0fixB11 = cgForm.get({0, 3}, {-1, 1});
+        ASSERT_EQ(freeA0fixB11.size(), 2);
+        EXPECT_EQ(freeA0fixB11[0], alice_a0_bob_b1->Id());
+        EXPECT_EQ(freeA0fixB11[1], alice_a1_bob_b1->Id());
+        
+        auto freeA1fixB00 = cgForm.get({1, 2}, {-1, 0});
+        ASSERT_EQ(freeA1fixB00.size(), 2);
+        EXPECT_EQ(freeA1fixB00[0], alice_b0_bob_a0->Id());
+        EXPECT_EQ(freeA1fixB00[1], alice_b1_bob_a0->Id());
+        
+        auto freeA1fixB01 = cgForm.get({1, 2}, {-1, 1});
+        ASSERT_EQ(freeA1fixB01.size(), 2);
+        EXPECT_EQ(freeA1fixB01[0], alice_b0_bob_a1->Id());
+        EXPECT_EQ(freeA1fixB01[1], alice_b1_bob_a1->Id());
+        
+        auto freeA1fixB10 = cgForm.get({1, 3}, {-1, 0});
+        ASSERT_EQ(freeA1fixB10.size(), 2);
+        EXPECT_EQ(freeA1fixB10[0], alice_b0_bob_b0->Id());
+        EXPECT_EQ(freeA1fixB10[1], alice_b1_bob_b0->Id());
+
+        auto freeA1fixB11 = cgForm.get({1, 3}, {-1, 1});
+        ASSERT_EQ(freeA1fixB11.size(), 2);
+        EXPECT_EQ(freeA1fixB11[0], alice_b0_bob_b1->Id());
+        EXPECT_EQ(freeA1fixB11[1], alice_b1_bob_b1->Id());
     }
 }
