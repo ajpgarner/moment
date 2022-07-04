@@ -79,7 +79,7 @@ namespace NPATK {
                 }
 
                 // Get explicit outcomes
-                auto mmtSymb = this->cgForm.get_global({static_cast<size_t>(mmt.Index().global_mmt)});
+                auto mmtSymb = this->cgForm.get({static_cast<size_t>(mmt.Index().global_mmt)});
                 if (mmtSymb.size() != mmt.num_operators()) {
                     throw errors::bad_implicit_symbol(PMOIndex{mmt.Index(), 0},
                                                       "Could not find measurement in Collins-Gisin table.");
@@ -161,7 +161,7 @@ namespace NPATK {
         const auto outcomeIterEnd = stack.end_outcomes();
 
         // Get bulk of data from CG matrix
-        auto implicit_full_opers = this->cgForm.get_global(stack.global_indices());
+        const auto implicit_full_opers = this->cgForm.get(stack.global_indices());
         assert(implicit_full_opers.size() == stack.count_operators());
 
         while (outcomeIter != outcomeIterEnd) {
@@ -174,21 +174,60 @@ namespace NPATK {
                 entries.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
             } else {
                 auto implMmtOut = outcomeIter.implicit_indices();
+                assert(implMmtOut.size() == num_implicit);
                 auto explMmtOut = outcomeIter.explicit_indices();
                 assert((implMmtOut.size() + explMmtOut.size()) == level);
 
                 SymbolCombo::data_t symbolComboData;
                 symbolComboData.reserve(stack.count_operators());
-                // TODO:
-                double first_sign = (num_implicit % 2 == 0) ? +1. : -1.;
+                double the_sign = (num_implicit % 2 == 0) ? +1. : -1.;
                 for (size_t i = 0, iMax = stack.count_operators(); i < iMax; ++i) {
-                    symbolComboData.emplace_back(implicit_full_opers[i], first_sign);
+                    symbolComboData.emplace_back(implicit_full_opers[i], the_sign);
                 }
 
 
                 for (size_t missing_index = 1; missing_index < num_implicit; ++missing_index) {
+                    the_sign = -the_sign;
+                    PartitionIterator partitions{missing_index, num_implicit};
+                    while (!partitions.done()) {
+                        auto [mpi, ipi] = *partitions;
+                        assert(mpi.size() == missing_index);
 
+                        // Write indices indices...
+                        std::vector<size_t> lookUpIndices;
+                        for (auto imp : explMmtOut) {
+                            lookUpIndices.push_back(imp.first->Index().global_mmt);
+                        }
+                        for (auto iii : ipi) {
+                            lookUpIndices.push_back(implMmtOut[iii].first->Index().global_mmt);
+                        }
+                        std::sort(lookUpIndices.begin(), lookUpIndices.end());
+
+                        // Find implicit operators for this combination of measurements
+                        auto symbSpan = this->cgForm.get(lookUpIndices);
+                        // TODO: Filter by fixed value of explicit operators.
+
+                        // Copy with sign
+                        for (auto symb : symbSpan) {
+                            symbolComboData.emplace_back(symb, the_sign);
+                        }
+                        ++partitions;
+                    }
                 }
+
+                // "Normalization"
+                the_sign = -the_sign;
+                assert(the_sign == 1); // If correctly alternating, normalization should be positive always.
+                std::vector<size_t> normMmt;
+                for (const auto& [mmIter, numOut] : outcomeIter.explicit_indices()) {
+                    normMmt.emplace_back(mmIter->Index().global_mmt);
+                }
+                std::sort(normMmt.begin(), normMmt.end());
+                auto normMmtSpan = this->cgForm.get(normMmt);
+                // TODO: Access specific value.
+
+
+
 
                 entries.emplace_back(0, SymbolCombo{std::move(symbolComboData)});
             }

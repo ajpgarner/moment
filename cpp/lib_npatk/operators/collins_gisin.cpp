@@ -10,9 +10,27 @@
 #include "utilities/combinations.h"
 
 namespace NPATK {
+    namespace {
+        std::vector<size_t> makeOpCounts(const Context& context) {
+            std::vector<size_t> output;
+            output.reserve(context.measurement_count());
+            size_t i = 0;
+            for (const auto& p : context.Parties) {
+                for (const auto& m : p.Measurements) {
+                    assert(m.Index().global_mmt == i);
+                    output.push_back(m.num_operators());
+                    ++i;
+                }
+            }
+            assert(i == context.measurement_count());
+            return output;
+        }
+    }
 
     CollinsGisinForm::CollinsGisinForm(const MomentMatrix& momentMatrix, size_t level)
-        : Level{level}, indices(momentMatrix.context.measurement_count(), level) {
+        : Level{level},
+          indices(momentMatrix.context.measurement_count(), level),
+          OperatorCounts(makeOpCounts(momentMatrix.context)) {
 
         const Context& context = momentMatrix.context;
 
@@ -97,13 +115,82 @@ namespace NPATK {
         }
     }
 
-    std::span<const symbol_name_t> CollinsGisinForm::get_global(std::span<const size_t> mmtIndices) const {
+    std::span<const symbol_name_t> CollinsGisinForm::get(std::span<const size_t> mmtIndices) const {
         auto [first, last] = this->indices.access(mmtIndices);
         if ((first < 0) || (first >= last)) {
             return {this->data.begin(), 0};
         }
         assert(last <= this->data.size());
         return {this->data.begin() + first, static_cast<size_t>(last - first)};
+    }
+
+    std::vector<symbol_name_t>
+    CollinsGisinForm::get(const std::span<const size_t> mmtIndices,
+                          const std::span<const oper_name_t> fixedOutcomes) const {
+        assert(mmtIndices.size() == fixedOutcomes.size());
+        // Number of outcomes to copy; also which is fixed
+        std::vector<size_t> iterating_indices;
+        std::vector<size_t> fixed_indices;
+        std::vector<bool> iterates;
+        std::vector<size_t> iteratingSizes;
+
+        // Examine which indices are fixed, and which iterate
+        size_t total_outcomes = 1;
+        for (size_t i = 0; i < mmtIndices.size(); ++i) {
+            if (fixedOutcomes[i] == -1) {
+                const auto op_count = this->OperatorCounts[mmtIndices[i]];
+                iterating_indices.push_back(mmtIndices[i]);
+                iteratingSizes.push_back(op_count);
+                total_outcomes *= op_count;
+                iterates.push_back(true);
+            } else {
+                fixed_indices.emplace_back(mmtIndices[i]);
+                iterates.push_back(false);
+            }
+        }
+        const auto num_iterating_indices = iterating_indices.size();
+        const auto num_fixed_indices = fixed_indices.size();
+        assert(num_iterating_indices + num_fixed_indices == mmtIndices.size());
+
+        // Make iterator over free indices
+        MultiDimensionalIndexIterator freeOutcomeIndexIter{std::move(iteratingSizes)};
+
+        // Reserve space for output
+        std::vector<symbol_name_t> output;
+        output.reserve(total_outcomes);
+
+        // Calculate strides for free indices, and offset for fixed ones.
+        size_t the_offset = 0;
+        size_t current_stride = 1;
+        std::vector<size_t> stride;
+        for (size_t m = 0; m < mmtIndices.size(); ++m) {
+            if (iterates[m]) {
+                stride.push_back(current_stride);
+            } else {
+                assert (fixedOutcomes[m] != -1);
+                the_offset += (current_stride * fixedOutcomes[m]);
+            }
+            current_stride *= this->OperatorCounts[mmtIndices[m]];
+        }
+
+        // Get full measurement
+        auto fullMmtSpan = this->get(mmtIndices);
+
+        // Blit values we care about
+        while (!freeOutcomeIndexIter.done()) {
+            size_t the_index = the_offset;
+            for (size_t i = 0 ; i < num_iterating_indices; ++i) {
+                the_index = freeOutcomeIndexIter[i] * stride[i];
+            }
+
+            assert(the_index < fullMmtSpan.size());
+            output.push_back(fullMmtSpan[the_index]);
+
+            // Onto next
+            ++freeOutcomeIndexIter;
+        }
+
+        return output; // NRVO
     }
 
 }

@@ -32,6 +32,8 @@ namespace NPATK {
 
     public:
         const size_t Level;
+        const std::vector<size_t> OperatorCounts;
+
     private:
         storage_t data;
         RecursiveDoubleIndex indices;
@@ -39,12 +41,34 @@ namespace NPATK {
     public:
         CollinsGisinForm(const MomentMatrix& mm, size_t level);
 
-        [[nodiscard]] std::span<const symbol_name_t> get_global(std::span<const size_t> mmtIndices) const;
+        /**
+         * Gets a span of *all* symbols corresponding to the supplied measurement indices.
+         * @param mmtIndices A sorted list of global indices of the measurement.
+         */
+        [[nodiscard]] std::span<const symbol_name_t> get(std::span<const size_t> mmtIndices) const;
 
-        inline std::span<const symbol_name_t> get_global(std::initializer_list<size_t> mmtIndices) const {
+        [[nodiscard]] inline std::span<const symbol_name_t> get(std::initializer_list<size_t> mmtIndices) const {
             std::vector<size_t> v{mmtIndices};
-            return get_global(v);
+            return get(v);
         }
+
+        /**
+         * Gets a filtered list of symbols corresponding to the supplied measurement indices, fixing some of the
+         * measurement outcomes.
+         * @param mmtIndices A sorted list of global indices of the measurement.
+         * @param fixedIndices List of outcome indices, or -1 if not fixed.
+         * @return
+         */
+        [[nodiscard]] std::vector<symbol_name_t> get(std::span<const size_t> mmtIndices,
+                                                     std::span<const oper_name_t> fixedOutcomes) const;
+
+        [[nodiscard]] inline std::vector<symbol_name_t> get(std::initializer_list<size_t> mmtIndices,
+                                                  std::initializer_list<oper_name_t> fixedOutcomes) const {
+            std::vector<size_t> i{mmtIndices};
+            std::vector<oper_name_t> o{fixedOutcomes};
+            return get(i, o);
+        }
+
 
     };
 }
