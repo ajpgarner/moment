@@ -93,37 +93,76 @@ namespace NPATK::Tests {
     }
 
 
+
+    namespace {
+        void test_partition_vals(const PartitionIterator& comboIter,
+                                 const std::vector<size_t>& expPrim,
+                                 const std::vector<size_t>& expComp,
+                                 const std::vector<bool>& expBits) {
+            ASSERT_FALSE(comboIter.done());
+            ASSERT_EQ(comboIter.primary().size(), expPrim.size());
+            auto [prim, comp] = *comboIter;
+            EXPECT_EQ(&prim, &comboIter.primary());
+            EXPECT_EQ(&comp, &comboIter.complement());
+
+            for (size_t pIndex = 0; pIndex < expPrim.size(); ++pIndex) {
+                EXPECT_EQ(comboIter.primary(pIndex), expPrim[pIndex]) << "e:" << pIndex;
+                EXPECT_EQ(comboIter.primary()[pIndex], expPrim[pIndex]) << "e:" << pIndex;
+            }
+            ASSERT_EQ(comboIter.complement().size(), expComp.size());
+            for (size_t cIndex = 0; cIndex < expComp.size(); ++cIndex) {
+                EXPECT_EQ(comboIter.complement(cIndex), expComp[cIndex]) << "e:" << cIndex;
+                EXPECT_EQ(comboIter.complement()[cIndex], expComp[cIndex]) << "e:" << cIndex;
+            }
+            ASSERT_EQ(comboIter.bits().size(), expBits.size());
+            for (size_t bIndex = 0; bIndex < expBits.size(); ++bIndex) {
+                EXPECT_EQ(comboIter.bits(bIndex), expBits[bIndex]) << "e:" << bIndex;
+                EXPECT_EQ(comboIter.bits()[bIndex], expBits[bIndex]) << "e:" << bIndex;
+            }
+        }
+    }
+
+
     TEST(Combinations, Partition_N3K1) {
         auto comboIter = PartitionIterator{3, 1};
         EXPECT_EQ(comboIter.N, 3);
         ASSERT_EQ(comboIter.K, 1);
         ASSERT_EQ(comboIter.NminusK, 2);
-        ASSERT_FALSE(comboIter.done());
 
-        auto [prim, comp] = *comboIter;
-        EXPECT_EQ(&prim, &comboIter.primary());
-        EXPECT_EQ(&comp, &comboIter.complement());
-
-
-        ASSERT_EQ(comboIter.primary().size(), 1);
-        ASSERT_EQ(comboIter.complement().size(), 2);
-        EXPECT_EQ(comboIter.primary(0), 0);
-        EXPECT_EQ(comboIter.complement(0), 1);
-        EXPECT_EQ(comboIter.complement(1), 2);
+        test_partition_vals(comboIter, {0}, {1, 2}, {true, false, false});
 
         ++comboIter;
-        ASSERT_EQ(comboIter.primary().size(), 1);
-        ASSERT_EQ(comboIter.complement().size(), 2);
-        EXPECT_EQ(comboIter.primary(0), 1);
-        EXPECT_EQ(comboIter.complement(0), 0);
-        EXPECT_EQ(comboIter.complement(1), 2);
+        test_partition_vals(comboIter, {1}, {0, 2}, {false, true, false});
 
         ++comboIter;
-        ASSERT_EQ(comboIter.primary().size(), 1);
-        ASSERT_EQ(comboIter.complement().size(), 2);
-        EXPECT_EQ(comboIter.primary(0), 2);
-        EXPECT_EQ(comboIter.complement(0), 0);
-        EXPECT_EQ(comboIter.complement(1), 1);
+        test_partition_vals(comboIter, {2}, {0, 1}, {false, false, true});
+
+        ++comboIter;
+        EXPECT_TRUE(comboIter.done());
+    }
+
+    TEST(Combinations, Partition_N4K2) {
+        auto comboIter = PartitionIterator{4, 2};
+        EXPECT_EQ(comboIter.N, 4);
+        ASSERT_EQ(comboIter.K, 2);
+
+
+        test_partition_vals(comboIter, {0, 1}, {2, 3}, {true, true, false, false});
+
+        ++comboIter;
+        test_partition_vals(comboIter, {0, 2}, {1, 3}, {true, false, true, false});
+
+        ++comboIter;
+        test_partition_vals(comboIter, {1, 2}, {0, 3}, {false, true, true, false});
+
+        ++comboIter;
+        test_partition_vals(comboIter, {0, 3}, {1, 2}, {true, false, false, true});
+
+        ++comboIter;
+        test_partition_vals(comboIter, {1, 3}, {0, 2}, {false, true, false, true});
+
+        ++comboIter;
+        test_partition_vals(comboIter, {2, 3}, {0, 1}, {false, false, true, true});
 
         ++comboIter;
         EXPECT_TRUE(comboIter.done());

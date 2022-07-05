@@ -6,6 +6,8 @@
 #pragma once
 
 #include <cassert>
+
+#include <algorithm>
 #include <vector>
 
 namespace NPATK {
@@ -113,29 +115,31 @@ namespace NPATK {
 
 
     class PartitionIterator {
-    private:
-        CombinationIndexIterator primaryIter;
-        std::vector<size_t> complementIndices;
-
-        bool is_done;
-
-        using vecref_pair_t = std::pair<const std::vector<size_t>&, const std::vector<size_t>&>;
-
     public:
         const size_t N;
         const size_t K;
         const size_t NminusK;
 
+    private:
+        CombinationIndexIterator primaryIter;
+        std::vector<size_t> complementIndices;
+        std::vector<bool> bitField;
+        bool is_done;
+        using vecref_pair_t = std::pair<const std::vector<size_t>&, const std::vector<size_t>&>;
+
+
     public:
         PartitionIterator(size_t SetSize, size_t SubsetSize)
-            : primaryIter(SetSize, SubsetSize), is_done(primaryIter.done()),
-              N{SetSize}, K{SubsetSize}, NminusK(SetSize - SubsetSize)
+            : N{SetSize}, K{SubsetSize}, NminusK(SetSize - SubsetSize),
+               primaryIter(SetSize, SubsetSize), is_done(primaryIter.done()),
+               bitField(N, false)
         {
             assert(SetSize >= SubsetSize);
             this->complementIndices.reserve(NminusK);
             for (size_t index = K; index < N; ++index) {
                 this->complementIndices.push_back(index); // K, K+1, ... N-1
             }
+            std::fill_n(this->bitField.begin(), K, true);
         }
 
         [[nodiscard]] bool done() const noexcept { return this->is_done; }
@@ -150,6 +154,15 @@ namespace NPATK {
         [[nodiscard]] size_t complement(size_t index) const noexcept {
             assert(index < NminusK);
             return this->complementIndices[index];
+        }
+
+        /**
+         * Bit field, where element i is true if i is in primary, and false if in i is in complement.
+         */
+        [[nodiscard]] const auto& bits() const noexcept { return this->bitField; }
+        [[nodiscard]] bool bits(size_t index) const noexcept {
+            assert(index < N);
+            return this->bitField[index];
         }
 
         vecref_pair_t operator*() const noexcept {
@@ -170,8 +183,9 @@ namespace NPATK {
 
             // Algorithm works on assertion that primary index iterator is sorted (this should be by construction true).
             for (size_t i = 0; i < N; ++i) {
-                // Written all complementary values already, finish loop
+                // Written all complementary values already, no need to do final part of loop
                 if (compIndexIter == compIndexIterEnd) {
+                    std::fill(this->bitField.begin() + static_cast<ptrdiff_t>(i), this->bitField.end(), true);
                     break;
                 }
 
@@ -179,12 +193,15 @@ namespace NPATK {
                 if (primIndexIter == primIndexIterEnd) {
                     *compIndexIter = i;
                     ++compIndexIter;
+                    this->bitField[i] = false;
                 } else {
                     if (*primIndexIter == i) {
                         ++primIndexIter; // index is in primary iterator, don't write to complement.
+                        this->bitField[i] = true;
                     } else {
                         *compIndexIter = i; // index not in primary iterator, write to complement.
                         ++compIndexIter;
+                        this->bitField[i] = false;
                     }
 
                 }
