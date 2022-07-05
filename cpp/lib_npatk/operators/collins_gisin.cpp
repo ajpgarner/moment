@@ -130,7 +130,6 @@ namespace NPATK {
         assert(mmtIndices.size() == fixedOutcomes.size());
         // Number of outcomes to copy; also which is fixed
         std::vector<size_t> iterating_indices;
-        std::vector<size_t> fixed_indices;
         std::vector<bool> iterates;
         std::vector<size_t> iteratingSizes;
 
@@ -144,20 +143,18 @@ namespace NPATK {
                 total_outcomes *= op_count;
                 iterates.push_back(true);
             } else {
-                fixed_indices.emplace_back(mmtIndices[i]);
                 iterates.push_back(false);
             }
         }
         const auto num_iterating_indices = iterating_indices.size();
-        const auto num_fixed_indices = fixed_indices.size();
-        assert(num_iterating_indices + num_fixed_indices == mmtIndices.size());
 
-        // Make iterator over free indices
-        MultiDimensionalIndexIterator freeOutcomeIndexIter{std::move(iteratingSizes)};
+        // Get span to measurement
+        auto fullMmtSpan = this->get(mmtIndices);
 
-        // Reserve space for output
-        std::vector<symbol_name_t> output;
-        output.reserve(total_outcomes);
+        // If all indices iterate, just copy output, and exit early
+        if (num_iterating_indices == mmtIndices.size()) {
+            return {fullMmtSpan.begin(), fullMmtSpan.end()};
+        }
 
         // Calculate strides for free indices, and offset for fixed ones.
         size_t the_offset = 0;
@@ -175,8 +172,17 @@ namespace NPATK {
             current_stride *= this->OperatorCounts[mmtIndices[invM]];
         }
 
-        // Get full measurement
-        auto fullMmtSpan = this->get(mmtIndices);
+        // No indices iterate, so we retrieve just one value
+        if (num_iterating_indices == 0) {
+            return {fullMmtSpan[the_offset]};
+        }
+
+        // Otherwise, we have the more complex case:
+        std::vector<symbol_name_t> output;
+        output.reserve(total_outcomes);
+
+        // Make iterator over free indices
+        MultiDimensionalIndexIterator freeOutcomeIndexIter{std::move(iteratingSizes)};
 
         // Blit values we care about
         while (!freeOutcomeIndexIter.done()) {

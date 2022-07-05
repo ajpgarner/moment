@@ -76,6 +76,11 @@ namespace NPATK {
                 return std::span<const PMODefinition>(tableData.begin() + first, last - first);
             }
 
+            [[nodiscard]] inline auto get(std::initializer_list<size_t> mmtIndex) const noexcept {
+                std::vector<size_t> v{mmtIndex};
+                return this->get({v.begin(), v.size()});
+            }
+
             friend class ImplicitSymbols;
         };
 
@@ -99,8 +104,7 @@ namespace NPATK {
         size_t generateLevelZero(size_t& index_cursor);
         size_t generateLevelOne(size_t& index_cursor);
         size_t generateMoreLevels(size_t level, size_t& index_cursor);
-        size_t generateFromCurrentStack(const MultiMmtIterator& stack, size_t& index_cursor,
-                                        std::vector<PMODefinition>& entries, RecursiveDoubleIndex& indices);
+        size_t generateFromCurrentStack(const MultiMmtIterator& stack, size_t& index_cursor);
 
     };
 

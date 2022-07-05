@@ -178,6 +178,38 @@ namespace NPATK::Tests {
         auto freeB0fixB1 = cgForm.get({1, 3}, {-1, 0});
         ASSERT_EQ(freeB0fixB1.size(), 1);
         EXPECT_EQ(freeB0fixB1[0], alice_b0_bob_b0->Id());
+        
+        auto fixA0fixB0 = cgForm.get({0, 2}, {0, 0});
+        ASSERT_EQ(fixA0fixB0.size(), 1);
+        EXPECT_EQ(fixA0fixB0[0], alice_a0_bob_a0->Id());
+
+        auto fixA0fixB1 = cgForm.get({0, 3}, {0, 0});
+        ASSERT_EQ(fixA0fixB1.size(), 1);
+        EXPECT_EQ(fixA0fixB1[0], alice_a0_bob_b0->Id());
+
+        auto fixA1fixB0 = cgForm.get({1, 2}, {0, 0});
+        ASSERT_EQ(fixA1fixB0.size(), 1);
+        EXPECT_EQ(fixA1fixB0[0], alice_b0_bob_a0->Id());
+
+        auto fixA1fixB1 = cgForm.get({1, 3}, {0, 0});
+        ASSERT_EQ(fixA1fixB1.size(), 1);
+        EXPECT_EQ(fixA1fixB1[0], alice_b0_bob_b0->Id());
+        
+        auto freeA0freeB0 = cgForm.get({0, 2}, {-1, -1});
+        ASSERT_EQ(freeA0freeB0.size(), 1);
+        EXPECT_EQ(freeA0freeB0[0], alice_a0_bob_a0->Id());
+
+        auto freeA0freeB1 = cgForm.get({0, 3}, {-1, -1});
+        ASSERT_EQ(freeA0freeB1.size(), 1);
+        EXPECT_EQ(freeA0freeB1[0], alice_a0_bob_b0->Id());
+
+        auto freeA1freeB0 = cgForm.get({1, 2}, {-1, -1});
+        ASSERT_EQ(freeA1freeB0.size(), 1);
+        EXPECT_EQ(freeA1freeB0[0], alice_b0_bob_a0->Id());
+
+        auto freeA1freeB1 = cgForm.get({1, 3}, {-1, -1});
+        ASSERT_EQ(freeA1freeB1.size(), 1);
+        EXPECT_EQ(freeA1freeB1[0], alice_b0_bob_b0->Id());
     }
 
     TEST(CollinsGisin, GetWithFixed223) {

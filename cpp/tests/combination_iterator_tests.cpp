@@ -14,6 +14,10 @@ namespace NPATK::Tests {
         auto comboIter = CombinationIndexIterator{5, 0};
         EXPECT_EQ(comboIter.N, 5);
         EXPECT_EQ(comboIter.K, 0);
+        EXPECT_FALSE(comboIter.done());
+        EXPECT_EQ((*comboIter).size(), 0);
+        EXPECT_EQ(comboIter->size(), 0);
+        ++comboIter;
         EXPECT_TRUE(comboIter.done());
     }
 
@@ -120,6 +124,31 @@ namespace NPATK::Tests {
                 EXPECT_EQ(comboIter.bits()[bIndex], expBits[bIndex]) << "e:" << bIndex;
             }
         }
+    }
+
+
+    TEST(Combinations, Partition_N5K0) {
+        auto comboIter = PartitionIterator{5, 0};
+        EXPECT_EQ(comboIter.N, 5);
+        ASSERT_EQ(comboIter.K, 0);
+        ASSERT_EQ(comboIter.NminusK, 5);
+
+        test_partition_vals(comboIter, {}, {0, 1, 2, 3, 4}, {false, false, false, false, false});
+
+        ++comboIter;
+        EXPECT_TRUE(comboIter.done());
+    }
+
+    TEST(Combinations, Partition_N5K5) {
+        auto comboIter = PartitionIterator{5, 5};
+        EXPECT_EQ(comboIter.N, 5);
+        ASSERT_EQ(comboIter.K, 5);
+        ASSERT_EQ(comboIter.NminusK, 0);
+
+        test_partition_vals(comboIter, {0, 1, 2, 3, 4}, {}, {true, true, true, true, true});
+
+        ++comboIter;
+        EXPECT_TRUE(comboIter.done());
     }
 
 

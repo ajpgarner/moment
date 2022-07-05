@@ -2,6 +2,8 @@
  * multi_mmt_iterator.h
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
+ *
+ * TODO: This class is very convoluted. Simplify?!
  */
 #pragma once
 
@@ -103,7 +105,7 @@ public:
         /**
          * If operator is explicitly defined, get the operator's index.
          */
-        size_t explicit_op_index() const noexcept {
+        [[nodiscard]] size_t explicit_op_index() const noexcept {
             assert(this->num_implicit == 0);
             return this->operNumber;
         }

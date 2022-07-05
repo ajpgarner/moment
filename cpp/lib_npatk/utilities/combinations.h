@@ -33,7 +33,7 @@ namespace NPATK {
 
         /** Construct iterator in begin state */
         constexpr CombinationIndexIterator(size_t SetSize, size_t SubsetSize)
-            : N(SetSize), K(SubsetSize), endState(SubsetSize==0) {
+            : N(SetSize), K(SubsetSize), endState(false) {
             assert(SetSize >= SubsetSize);
 
             // Initialize as lowest object (0, 1, ... K-1)
@@ -99,6 +99,12 @@ namespace NPATK {
 
     private:
         inline void incIndex(size_t J) { // NOLINT(misc-no-recursion)
+            if (K == 0) {
+                [[unlikely]]
+                endState = true;
+                return;
+            }
+
             indices[J]++;
             if (J < K-1) {
                 if (indices[J] >= indices[J + 1]) {

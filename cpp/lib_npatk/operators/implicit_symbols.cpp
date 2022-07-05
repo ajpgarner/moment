@@ -30,7 +30,7 @@ namespace NPATK {
             this->generateLevelOne(index_cursor);
         }
 
-        for (size_t level = 2; level < MaxSequenceLength; ++level) {
+        for (size_t level = 2; level <= MaxSequenceLength; ++level) {
             this->generateMoreLevels(level, index_cursor);
         }
     }
@@ -88,8 +88,6 @@ namespace NPATK {
                 // Explicit outcomes:
                 SymbolCombo::data_t finalOutcome{{1, 1.0}};
                 for (uint32_t outcome = 0; outcome < mmt.num_operators(); ++outcome) {
-                    const PMOIndex indices{mmt.Index(), outcome};
-
                     // Read symbol from Collins-Gisin object
                     const auto symbol_id = mmtSymb[outcome];
                     this->probabilityTable->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
@@ -98,7 +96,6 @@ namespace NPATK {
                 }
 
                 // Add final measurement outcome, which is linear sum of remaining outcomes
-                const PMOIndex finalIndex{mmt.Index(), static_cast<uint32_t>(mmt.num_outcomes-1)};
                 this->probabilityTable->tableData.emplace_back(-1, LinearCombo(std::move(finalOutcome)));
                 ++level_one_count;
 
@@ -115,13 +112,9 @@ namespace NPATK {
 
 
     size_t ImplicitSymbols::generateMoreLevels(const size_t level, size_t& index_cursor) {
-        if (this->MaxSequenceLength < level) {
-            return 0;
-        }
+        assert(level <= this->MaxSequenceLength);
 
         const size_t init_cursor  = index_cursor;
-        std::vector<PMODefinition> entries;
-        RecursiveDoubleIndex indices{context.measurement_count(), level};
 
         // Iterate through party combinations:
         CombinationIndexIterator index_combo{this->context.Parties.size(), level};
@@ -137,7 +130,7 @@ namespace NPATK {
             // Iterate through measurements of chosen parties
             MultiMmtIterator partyStack(this->context, std::move(pmiStack));
             while (!partyStack.done()) {
-                this->generateFromCurrentStack(partyStack, index_cursor, entries, indices);
+                this->generateFromCurrentStack(partyStack, index_cursor);
                 ++partyStack;
             }
 
@@ -151,93 +144,79 @@ namespace NPATK {
 
 
     size_t ImplicitSymbols::generateFromCurrentStack(const MultiMmtIterator& stack,
-                                                     size_t& index_cursor,
-                                                     std::vector<PMODefinition>& entries,
-                                                     RecursiveDoubleIndex& indices) {
+                                                     size_t& index_cursor) {
         const size_t level = stack.dimension();
         const size_t num_outcomes = stack.count_outcomes();
 
-        auto outcomeIter = stack.begin_outcomes();
-        const auto outcomeIterEnd = stack.end_outcomes();
-
-        // Get bulk of data from CG matrix
-        const auto implicit_full_opers = this->cgForm.get(stack.global_indices());
-        assert(implicit_full_opers.size() == stack.count_operators());
-
-        while (outcomeIter != outcomeIterEnd) {
-
+        for (auto outcomeIter = stack.begin_outcomes(), outcomeIterEnd = stack.end_outcomes();
+                    outcomeIter != outcomeIterEnd; ++outcomeIter) {
             const size_t num_implicit = outcomeIter.implicit_count();
             if (num_implicit == 0) {
+                // No implicit operators, just put down the explicit operator
+                const auto implicit_full_opers = this->cgForm.get(stack.global_indices());
+                assert(implicit_full_opers.size() == stack.count_operators());
                 assert(outcomeIter.explicit_op_index() < implicit_full_opers.size());
                 const auto symbol_id = implicit_full_opers[outcomeIter.explicit_op_index()];
-
-                entries.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
+                this->probabilityTable->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
             } else {
-                auto implMmtOut = outcomeIter.implicit_indices();
-                assert(implMmtOut.size() == num_implicit);
-                auto explMmtOut = outcomeIter.explicit_indices();
-                assert((implMmtOut.size() + explMmtOut.size()) == level);
-
                 SymbolCombo::data_t symbolComboData;
-                symbolComboData.reserve(stack.count_operators());
                 double the_sign = (num_implicit % 2 == 0) ? +1. : -1.;
-                for (size_t i = 0, iMax = stack.count_operators(); i < iMax; ++i) {
-                    symbolComboData.emplace_back(implicit_full_opers[i], the_sign);
-                }
-
-
-                for (size_t missing_index = 1; missing_index < num_implicit; ++missing_index) {
-                    the_sign = -the_sign;
-                    PartitionIterator partitions{missing_index, num_implicit};
+                for (size_t missing_index = num_implicit; missing_index > 0; --missing_index) {
+                    PartitionIterator partitions{num_implicit, missing_index};
                     while (!partitions.done()) {
-                        auto [mpi, ipi] = *partitions;
-                        assert(mpi.size() == missing_index);
 
-                        // Write indices indices...
-                        std::vector<size_t> lookUpIndices;
-                        for (auto imp : explMmtOut) {
-                            lookUpIndices.push_back(imp.first->Index().global_mmt);
+                        // Build measurement index query:
+                        std::vector<size_t> lookupIndices;
+                        std::vector<symbol_name_t> outcomeIndices;
+                        size_t mNum = 0;
+                        for (size_t i = 0; i < level; ++i) {
+                            if (outcomeIter.implicit()[i]) {
+                                // Implicit measurement: either push -1, or skip
+                                if (partitions.bits(mNum)) {
+                                    lookupIndices.push_back(stack.global_indices()[i]);
+                                    outcomeIndices.push_back(-1);
+                                }
+                                ++mNum;
+                            } else {
+                                // Push explicit measurement
+                                lookupIndices.push_back(stack.global_indices()[i]);
+                                outcomeIndices.push_back(static_cast<symbol_name_t>(outcomeIter[i]));
+                            }
                         }
-                        for (auto iii : ipi) {
-                            lookUpIndices.push_back(implMmtOut[iii].first->Index().global_mmt);
-                        }
-                        std::sort(lookUpIndices.begin(), lookUpIndices.end());
 
-                        // Find implicit operators for this combination of measurements
-                        auto symbSpan = this->cgForm.get(lookUpIndices);
-                        // TODO: Filter by fixed value of explicit operators.
-
-                        // Copy with sign
-                        for (auto symb : symbSpan) {
+                        // Look up, and copy with sign
+                        const auto symbolsSpan = this->cgForm.get(lookupIndices, outcomeIndices);
+                        for (auto symb : symbolsSpan) {
                             symbolComboData.emplace_back(symb, the_sign);
                         }
                         ++partitions;
                     }
+                    the_sign = -the_sign;
                 }
 
-                // "Normalization"
-                the_sign = -the_sign;
+                // Finally, find the "Normalization" term
                 assert(the_sign == 1); // If correctly alternating, normalization should be positive always.
-                std::vector<size_t> normMmt;
-                for (const auto& [mmIter, numOut] : outcomeIter.explicit_indices()) {
-                    normMmt.emplace_back(mmIter->Index().global_mmt);
+                std::vector<size_t> normIndices;
+                std::vector<symbol_name_t> normOutcomes;
+                for (size_t i = 0; i < stack.dimension(); ++i) {
+                    if (!outcomeIter.implicit()[i]) {
+                        normIndices.push_back(stack.global_indices()[i]);
+                        normOutcomes.push_back(static_cast<symbol_name_t>(outcomeIter[i]));
+                    }
                 }
-                std::sort(normMmt.begin(), normMmt.end());
-                auto normMmtSpan = this->cgForm.get(normMmt);
-                // TODO: Access specific value.
+                auto normMmtSpan = this->cgForm.get(normIndices, normOutcomes);
+                assert(normMmtSpan.size() == 1);
+                symbolComboData.emplace_back(normMmtSpan[0], the_sign);
 
-
-
-
-                entries.emplace_back(0, SymbolCombo{std::move(symbolComboData)});
+                // Add constructed representation to data table
+                this->probabilityTable->tableData.emplace_back(-1, SymbolCombo{std::move(symbolComboData)});
             }
-            ++outcomeIter;
         }
 
         // Add index for this mmt
-        indices.set(stack.global_indices(), {index_cursor, index_cursor + num_outcomes});
+        this->probabilityTable->indices.set(stack.global_indices(), {index_cursor, index_cursor + num_outcomes});
         index_cursor += num_outcomes;
-        assert(index_cursor == entries.size());
+        assert(index_cursor == this->probabilityTable->tableData.size());
         return num_outcomes;
     }
 
