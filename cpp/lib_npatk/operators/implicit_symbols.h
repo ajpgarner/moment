@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
-#include "moment_matrix.h"
+#include "symbolic/symbol.h"
 #include "symbolic/linear_combo.h"
 #include "joint_measurement_index.h"
 
@@ -13,12 +13,15 @@
 
 namespace NPATK {
 
+    class MomentMatrix;
+    class Context;
+    class CollinsGisinForm;
     class JointMeasurementIterator;
 
     namespace errors {
         class bad_implicit_symbol : std::logic_error {
         public:
-            bad_implicit_symbol(const std::string& what) : std::logic_error(what) { }
+            explicit bad_implicit_symbol(const std::string& what) : std::logic_error(what) { }
         };
     }
 

@@ -5,21 +5,22 @@
  */
 #pragma once
 
-#include "utilities/square_matrix.h"
-
 #include "context.h"
 #include "operator_sequence.h"
-
-#include "collins_gisin.h"
 #include "symbolic/symbol_expression.h"
 #include "symbolic/index_matrix_properties.h"
+#include "utilities/square_matrix.h"
 
 #include <cassert>
+#include <atomic>
+#include <map>
 #include <memory>
 #include <span>
-#include <map>
 
 namespace NPATK {
+
+    class CollinsGisinForm;
+    class ImplicitSymbols;
 
     class MomentMatrix {
     public:
@@ -158,6 +159,7 @@ namespace NPATK {
         size_t matrix_dimension;
 
         std::unique_ptr<SquareMatrix<OperatorSequence>> op_seq_matrix;
+
         std::unique_ptr<SquareMatrix<SymbolExpression>> sym_exp_matrix;
 
         std::vector<UniqueSequence> unique_sequences{};
@@ -173,22 +175,26 @@ namespace NPATK {
         /** Map of measurement outcome symbols */
         std::unique_ptr<CollinsGisinForm> cgForm;
 
+        /** Map of implied probabilities */
+        std::unique_ptr<ImplicitSymbols> implicitSymbols;
+
+        /** For thread-safe construction of cgForm */
+        mutable std::atomic_flag cgFormExists;
+        mutable std::atomic_flag cgFormConstructFlag;
+
+        /** For thread-safe construction of implicit symbols */
+        mutable std::atomic_flag impSymExists;
+        mutable std::atomic_flag impSymConstructFlag;
+
     public:
         MomentMatrix(std::shared_ptr<Context> contextPtr, size_t level);
 
         MomentMatrix(const MomentMatrix&) = delete;
 
-        MomentMatrix(MomentMatrix&& src) noexcept :
-            contextPtr{std::move(src.contextPtr)}, context{*contextPtr},
-            hierarchy_level{src.hierarchy_level}, max_probability_length{src.max_probability_length},
-            UniqueSequences{*this}, SymbolMatrix{*this},
-            matrix_dimension{src.matrix_dimension},
-            op_seq_matrix{std::move(src.op_seq_matrix)},
-            sym_exp_matrix{std::move(src.sym_exp_matrix)},
-            unique_sequences{std::move(src.unique_sequences)},
-            imp{std::move(src.imp)},
-            fwd_hash_table{std::move(src.fwd_hash_table)},
-            conj_hash_table{std::move(src.conj_hash_table)} { }
+        MomentMatrix(MomentMatrix&& src) noexcept;
+
+        /** Destructor */
+        ~MomentMatrix();
 
         /**
          * @return The number of rows in the matrix. Matrix is square, so also the number of columns.
@@ -222,13 +228,9 @@ namespace NPATK {
 
         [[nodiscard]] const IndexMatrixProperties& BasisIndices() const noexcept { return this->imp; }
 
-        [[nodiscard]] const CollinsGisinForm& CollinsGisin() const {
-            if (!this->cgForm) {
-                [[unlikely]]
-                throw errors::cg_form_error{"MomentMatrix does not have CG table."};
-            }
-            return *this->cgForm;
-        }
+        [[nodiscard]] const CollinsGisinForm& CollinsGisin() const;
+
+        [[nodiscard]] const ImplicitSymbols& ImplicitSymbolTable() const;
 
     private:
         /**

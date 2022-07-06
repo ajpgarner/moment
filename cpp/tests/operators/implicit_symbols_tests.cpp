@@ -7,6 +7,7 @@
 
 #include "operators/context.h"
 #include "operators/implicit_symbols.h"
+#include "operators/moment_matrix.h"
 
 namespace NPATK::Tests {
 
@@ -295,7 +296,7 @@ namespace NPATK::Tests {
         ASSERT_NE(where_a1, nullptr);
         ASSERT_NE(where_a0, where_a1);
 
-        ImplicitSymbols implSym{momentMatrix};
+        const ImplicitSymbols& implSym = momentMatrix.ImplicitSymbolTable();
         EXPECT_EQ(implSym.MaxSequenceLength, 1);
 
         std::vector<size_t> indices{0};
@@ -339,7 +340,7 @@ namespace NPATK::Tests {
         ASSERT_NE(where_b0, nullptr);
         ASSERT_NE(where_a0, where_b0);
 
-        ImplicitSymbols implSym{momentMatrix};
+        const ImplicitSymbols& implSym = momentMatrix.ImplicitSymbolTable();
         EXPECT_EQ(implSym.MaxSequenceLength, 1);
 
         auto spanA = implSym.get({0});
@@ -376,7 +377,7 @@ namespace NPATK::Tests {
         ASSERT_NE(where_alice_bob, where_a0);
         ASSERT_NE(where_alice_bob, where_b0);
 
-        ImplicitSymbols implSym{momentMatrix};
+        const ImplicitSymbols& implSym = momentMatrix.ImplicitSymbolTable();
         EXPECT_EQ(implSym.MaxSequenceLength, 2);
 
         // Alice a
@@ -425,7 +426,7 @@ namespace NPATK::Tests {
         auto A1B1 = momentMatrix.UniqueSequences.where(OperatorSequence({alice.measurement_outcome(1, 0),
                                                                          bob.measurement_outcome(1, 0)},
                                                                         contextPtr.get()))->Id();
-        ImplicitSymbols implSym{momentMatrix};
+        const ImplicitSymbols& implSym = momentMatrix.ImplicitSymbolTable();
 
 
         auto spanA0 = implSym.get({0});
@@ -557,7 +558,7 @@ namespace NPATK::Tests {
                                                                            charlie.measurement_outcome(1,0)},
                                                                         contextPtr.get()))->Id();
 
-        ImplicitSymbols implSym{momentMatrix};
+        const ImplicitSymbols& implSym = momentMatrix.ImplicitSymbolTable();
 
         // MONOPARTITE TESTS:
         auto spanA0 = implSym.get({0});
@@ -674,7 +675,7 @@ namespace NPATK::Tests {
                                                                          bob.measurement_outcome(0, 0)},
                                                                         contextPtr.get()))->Id();
 
-        ImplicitSymbols implSym{momentMatrix};
+        const ImplicitSymbols& implSym = momentMatrix.ImplicitSymbolTable();
 
         // Alice
         auto spanA = implSym.get({0});

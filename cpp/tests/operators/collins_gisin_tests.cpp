@@ -23,7 +23,9 @@ namespace NPATK::Tests {
         ASSERT_NE(a1_loc, nullptr);
         ASSERT_NE(a0_loc->Id(), a1_loc->Id());
 
-        CollinsGisinForm cgForm{momentMatrix, 1};
+        const CollinsGisinForm& cgForm = momentMatrix.CollinsGisin();
+        const CollinsGisinForm& cgForm2 = momentMatrix.CollinsGisin();
+        EXPECT_EQ(&cgForm, &cgForm2);
         ASSERT_EQ(cgForm.Level, 1);
 
         std::vector<size_t> empty{};
@@ -71,7 +73,7 @@ namespace NPATK::Tests {
                 OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 0)}, contextPtr.get()));
         ASSERT_NE(alice_b0_bob_b0, nullptr);
 
-        CollinsGisinForm cgForm{momentMatrix, 2};
+        const CollinsGisinForm& cgForm = momentMatrix.CollinsGisin();
         ASSERT_EQ(cgForm.Level, 2);
 
         auto id_span = cgForm.get({});
@@ -144,7 +146,7 @@ namespace NPATK::Tests {
                 OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 0)}, contextPtr.get()));
         ASSERT_NE(alice_b0_bob_b0, nullptr);
 
-        CollinsGisinForm cgForm{momentMatrix, 2};
+        const CollinsGisinForm& cgForm = momentMatrix.CollinsGisin();
         ASSERT_EQ(cgForm.Level, 2);
 
         auto fixA0freeB0 = cgForm.get({0, 2}, {0, -1});
@@ -271,7 +273,7 @@ namespace NPATK::Tests {
         ASSERT_NE(alice_b1_bob_b0, nullptr);
         ASSERT_NE(alice_b1_bob_b1, nullptr);
 
-        CollinsGisinForm cgForm{momentMatrix, 2};
+        const CollinsGisinForm& cgForm = momentMatrix.CollinsGisin();
         ASSERT_EQ(cgForm.Level, 2);
 
         auto fixA00freeB0 = cgForm.get({0, 2}, {0, -1});

@@ -6,6 +6,8 @@
 
 #include "moment_matrix.h"
 #include "context.h"
+#include "collins_gisin.h"
+#include "implicit_symbols.h"
 #include "operator_sequence_generator.h"
 
 #include <limits>
@@ -52,10 +54,42 @@ namespace NPATK {
 
         // Create index matrix
         this->imp = IndexMatrixProperties{*this};
-
-        // Create CG form index
-        this->cgForm = std::make_unique<CollinsGisinForm>(*this, max_probability_length);
     }
+
+    MomentMatrix::MomentMatrix(MomentMatrix &&src) noexcept:
+            contextPtr{std::move(src.contextPtr)}, context{*contextPtr},
+            hierarchy_level{src.hierarchy_level}, max_probability_length{src.max_probability_length},
+            UniqueSequences{*this}, SymbolMatrix{*this},
+            matrix_dimension{src.matrix_dimension},
+            op_seq_matrix{std::move(src.op_seq_matrix)},
+            sym_exp_matrix{std::move(src.sym_exp_matrix)},
+            unique_sequences{std::move(src.unique_sequences)},
+            imp{std::move(src.imp)},
+            fwd_hash_table{std::move(src.fwd_hash_table)},
+            conj_hash_table{std::move(src.conj_hash_table)},
+            cgForm{std::move(src.cgForm)},
+            implicitSymbols{std::move(src.implicitSymbols)} {
+
+        // Do we have CG form already?
+        if (this->cgForm) {
+            this->cgFormExists.test_and_set();
+            this->cgFormConstructFlag.test_and_set();
+        } else {
+            this->cgFormExists.clear();
+            this->cgFormConstructFlag.clear();
+        }
+
+        // Do we have implicit symbol already?
+        if (this->implicitSymbols) {
+            this->impSymExists.test_and_set();
+            this->impSymConstructFlag.test_and_set();
+        } else {
+            this->impSymExists.clear();
+            this->impSymConstructFlag.clear();
+        }
+    }
+
+    MomentMatrix::~MomentMatrix() = default;
 
     const MomentMatrix::UniqueSequence *
     MomentMatrix::UniqueSequenceRange::where(const OperatorSequence &seq) const noexcept {
@@ -172,5 +206,40 @@ namespace NPATK {
 
         return {std::numeric_limits<size_t>::max(), false};
     }
+
+    const CollinsGisinForm& MomentMatrix::CollinsGisin() const {
+        // First thread to enter function constructs object
+        if (!this->cgFormConstructFlag.test_and_set(std::memory_order_acquire)) {
+            auto newCGform = std::make_unique<CollinsGisinForm>(*this, max_probability_length);
+            const_cast<MomentMatrix*>(this)->cgForm.swap(newCGform);
+            this->cgFormExists.test_and_set(std::memory_order_release);
+            this->cgFormExists.notify_all();
+            return *this->cgForm;
+        } else {
+            // Other threads spin until construction is done, if necessary
+            while (!this->cgFormExists.test(std::memory_order_acquire)) {
+                this->cgFormExists.wait(false);
+            }
+            return *this->cgForm;
+        }
+    }
+
+    const ImplicitSymbols& MomentMatrix::ImplicitSymbolTable() const {
+        // First thread to enter function constructs object
+        if (!this->impSymConstructFlag.test_and_set(std::memory_order_acquire)) {
+            auto newImpSym = std::make_unique<ImplicitSymbols>(*this);
+            const_cast<MomentMatrix*>(this)->implicitSymbols.swap(newImpSym);
+            this->impSymExists.test_and_set(std::memory_order_release);
+            this->impSymExists.notify_all();
+            return *this->implicitSymbols;
+        } else {
+            // Other threads spin until construction is done, if necessary
+            while (!this->impSymExists.test(std::memory_order_acquire)) {
+                this->impSymExists.wait(false);
+            }
+            return *this->implicitSymbols;
+        }
+    }
+
 
 }

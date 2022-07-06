@@ -4,6 +4,9 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "implicit_symbols.h"
+#include "moment_matrix.h"
+#include "collins_gisin.h"
+#include "context.h"
 
 #include "joint_measurement_iterator.h"
 
@@ -12,7 +15,6 @@
 #include <algorithm>
 
 namespace NPATK {
-
 
     ImplicitSymbols::ImplicitSymbols(const MomentMatrix &mm)
         : momentMatrix{mm},
@@ -223,10 +225,10 @@ namespace NPATK {
 
         auto [first, last] = this->indices.access(mmtIndex);
         if ((first < 0) || (first >= last)) {
-            return std::span<const PMODefinition>(tableData.begin(), 0);
+            return {tableData.begin(), 0};
         }
         assert(last <= tableData.size());
-        return std::span<const PMODefinition>(tableData.begin() + first, last - first);
+        return {tableData.begin() + first, static_cast<size_t>(last - first)};
     }
 
 
