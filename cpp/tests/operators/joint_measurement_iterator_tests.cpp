@@ -8,16 +8,16 @@
 
 #include "operators/context.h"
 #include "operators/moment_matrix.h"
-#include "operators/multi_mmt_iterator.h"
+#include "operators/joint_measurement_iterator.h"
 
 namespace NPATK::Tests {
 
-    TEST(MultiMmtIterator, BasicIteration) {
+    TEST(JointMeasurementIterator, BasicIteration) {
         auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 2, 2));
         ASSERT_EQ(contextPtr->Parties.size(), 2);
         const auto &alice = contextPtr->Parties[0];
         const auto &bob = contextPtr->Parties[1];
-        MultiMmtIterator mmIter{*contextPtr, {&alice, &bob}};
+        JointMeasurementIterator mmIter{*contextPtr, {&alice, &bob}};
         ASSERT_FALSE(mmIter.done());
 
         ASSERT_EQ(mmIter.indices().size(), 2);
@@ -62,8 +62,8 @@ namespace NPATK::Tests {
     }
 
     namespace {
-        void testOutcomeIter(const MultiMmtIterator::OutcomeIndexIterator& iter,
-                             const MultiMmtIterator::OutcomeIndexIterator &iter_end,
+        void testOutcomeIter(const JointMeasurementIterator::OutcomeIndexIterator& iter,
+                             const JointMeasurementIterator::OutcomeIndexIterator &iter_end,
                              const std::vector<size_t> &expectedIndices, const std::vector<bool> &expectedImpl) {
             const size_t vecSize = expectedIndices.size();
 
@@ -84,21 +84,15 @@ namespace NPATK::Tests {
                 EXPECT_EQ(iter[n], expectedIndices[n]) << n;
                 EXPECT_EQ(implVec[n], expectedImpl[n]) << n;
             }
-
-            auto implBits = iter.implicit_indices();
-            auto explBits = iter.explicit_indices();
-
-            ASSERT_EQ(implBits.size(), impCount);
-            ASSERT_EQ(explBits.size(), vecSize - impCount);
         }
     }
 
-    TEST(MultiMmtIterator, OutcomeIterator) {
+    TEST(JointMeasurementIterator, OutcomeIterator) {
         auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 1, 2));
         ASSERT_EQ(contextPtr->Parties.size(), 2);
         const auto &alice = contextPtr->Parties[0];
         const auto &bob = contextPtr->Parties[1];
-        MultiMmtIterator mmIter{*contextPtr, {&alice, &bob}};
+        JointMeasurementIterator mmIter{*contextPtr, {&alice, &bob}};
         ASSERT_FALSE(mmIter.done());
         ASSERT_EQ(mmIter.indices().size(), 2);
         EXPECT_EQ(mmIter.indices()[0], 0);
@@ -110,7 +104,7 @@ namespace NPATK::Tests {
         auto outcomeIter = mmIter.begin_outcomes();
         const auto outcomeIterEnd = mmIter.end_outcomes();
         testOutcomeIter(outcomeIter, outcomeIterEnd, {0, 0}, {false, false});
-        EXPECT_EQ(outcomeIter.explicit_op_index(), 0);
+        EXPECT_EQ(outcomeIter.explicit_outcome_index(), 0);
 
         ++outcomeIter;
         testOutcomeIter(outcomeIter, outcomeIterEnd, {0, 1}, {false, true});

@@ -271,10 +271,10 @@ namespace NPATK::Tests {
         ImplicitSymbols implSym{emptyMM};
 
         EXPECT_EQ(implSym.MaxSequenceLength, 0);
-        ASSERT_FALSE(implSym.Table().Data().empty());
-        ASSERT_EQ(implSym.Table().Data().size(), 1);
+        ASSERT_FALSE(implSym.Data().empty());
+        ASSERT_EQ(implSym.Data().size(), 1);
 
-        const auto& one = implSym.Table().Data().front();
+        const auto& one = implSym.Data().front();
         EXPECT_EQ(one.symbol_id, 1);
         ImplicitSymbols::SymbolCombo oneCombo{{1,1.0}};
         EXPECT_EQ(one.expression, oneCombo);
@@ -298,9 +298,8 @@ namespace NPATK::Tests {
         ImplicitSymbols implSym{momentMatrix};
         EXPECT_EQ(implSym.MaxSequenceLength, 1);
 
-        const auto& levelOne = implSym.Table();
         std::vector<size_t> indices{0};
-        auto pmoSpan = levelOne.get(indices);
+        auto pmoSpan = implSym.get(indices);
         ASSERT_FALSE(pmoSpan.empty());
         ASSERT_EQ(pmoSpan.size(), 3);
 
@@ -343,10 +342,10 @@ namespace NPATK::Tests {
         ImplicitSymbols implSym{momentMatrix};
         EXPECT_EQ(implSym.MaxSequenceLength, 1);
 
-        auto spanA = implSym.Table().get({0});
+        auto spanA = implSym.get({0});
         test2Mmt(spanA, 1, where_a0->Id(), "a0");
 
-        auto spanB = implSym.Table().get({1});
+        auto spanB = implSym.get({1});
         test2Mmt(spanB, 1, where_b0->Id(), "b0");
     }
 
@@ -380,19 +379,16 @@ namespace NPATK::Tests {
         ImplicitSymbols implSym{momentMatrix};
         EXPECT_EQ(implSym.MaxSequenceLength, 2);
 
-        // Level One
-        const auto& probabilityTable = implSym.Table();
-
         // Alice a
-        auto spanA = implSym.Table().get({0});
+        auto spanA = implSym.get({0});
         test2Mmt(spanA, 1, where_a0->Id(), "a0");
 
         // Bob b
-        auto spanB = implSym.Table().get({1});
+        auto spanB = implSym.get({1});
         test2Mmt(spanB, 1, where_b0->Id(), "b0");
 
         // Alice a, Bob b
-        auto spanAB = probabilityTable.get({0, 1});
+        auto spanAB = implSym.get({0, 1});
         test22JoinMmt(spanAB, 1, where_a0->Id(), where_b0->Id(), where_alice_bob->Id(), "AB");
     }
 
@@ -432,29 +428,29 @@ namespace NPATK::Tests {
         ImplicitSymbols implSym{momentMatrix};
 
 
-        auto spanA0 = implSym.Table().get({0});
+        auto spanA0 = implSym.get({0});
         test2Mmt(spanA0, 1, A0, "A0");
 
-        auto spanA1 = implSym.Table().get({1});
+        auto spanA1 = implSym.get({1});
         test2Mmt(spanA1, 1, A1, "A1");
 
-        auto spanB0 = implSym.Table().get({2});
+        auto spanB0 = implSym.get({2});
         test2Mmt(spanB0, 1, B0, "B0");
 
-        auto spanB1 = implSym.Table().get({3});
+        auto spanB1 = implSym.get({3});
         test2Mmt(spanB1, 1, B1, "B1");
 
         // Alice a, Bob b
-        auto spanA0B0 = implSym.Table().get({0, 2});
+        auto spanA0B0 = implSym.get({0, 2});
         test22JoinMmt(spanA0B0, 1, A0, B0, A0B0, "A0B0");
 
-        auto spanA0B1 = implSym.Table().get({0, 3});
+        auto spanA0B1 = implSym.get({0, 3});
         test22JoinMmt(spanA0B1, 1, A0, B1, A0B1, "A0B1");
 
-        auto spanA1B0 = implSym.Table().get({1, 2});
+        auto spanA1B0 = implSym.get({1, 2});
         test22JoinMmt(spanA1B0, 1, A1, B0, A1B0, "A1B0");
 
-        auto spanA1B1 = implSym.Table().get({1, 3});
+        auto spanA1B1 = implSym.get({1, 3});
         test22JoinMmt(spanA1B1, 1, A1, B1, A1B1, "A1B1");
     }
 
@@ -564,84 +560,84 @@ namespace NPATK::Tests {
         ImplicitSymbols implSym{momentMatrix};
 
         // MONOPARTITE TESTS:
-        auto spanA0 = implSym.Table().get({0});
+        auto spanA0 = implSym.get({0});
         test2Mmt(spanA0, 1, A0, "A0");
 
-        auto spanA1 = implSym.Table().get({1});
+        auto spanA1 = implSym.get({1});
         test2Mmt(spanA1, 1, A1, "A1");
 
-        auto spanB0 = implSym.Table().get({2});
+        auto spanB0 = implSym.get({2});
         test2Mmt(spanB0, 1, B0, "B0");
 
-        auto spanB1 = implSym.Table().get({3});
+        auto spanB1 = implSym.get({3});
         test2Mmt(spanB1, 1, B1, "B1");
 
-        auto spanC0 = implSym.Table().get({4});
+        auto spanC0 = implSym.get({4});
         test2Mmt(spanC0, 1, C0, "C0");
 
-        auto spanC1 = implSym.Table().get({5});
+        auto spanC1 = implSym.get({5});
         test2Mmt(spanC1, 1, C1, "C1");
 
         // BIPARTITE TESTS:
-        const auto spanA0B0 = implSym.Table().get({0, 2});
+        const auto spanA0B0 = implSym.get({0, 2});
         test22JoinMmt(spanA0B0, 1, A0, B0, A0B0, "A0B0");
 
-        const auto spanA0B1 = implSym.Table().get({0, 3});
+        const auto spanA0B1 = implSym.get({0, 3});
         test22JoinMmt(spanA0B1, 1, A0, B1, A0B1, "A0B1");
 
-        const auto spanA1B0 = implSym.Table().get({1, 2});
+        const auto spanA1B0 = implSym.get({1, 2});
         test22JoinMmt(spanA1B0, 1, A1, B0, A1B0, "A1B0");
 
-        const auto spanA1B1 = implSym.Table().get({1, 3});
+        const auto spanA1B1 = implSym.get({1, 3});
         test22JoinMmt(spanA1B1, 1, A1, B1, A1B1, "A1B1");
 
-        const auto spanA0C0 = implSym.Table().get({0, 4});
+        const auto spanA0C0 = implSym.get({0, 4});
         test22JoinMmt(spanA0C0, 1, A0, C0, A0C0, "A0C0");
 
-        const auto spanA0C1 = implSym.Table().get({0, 5});
+        const auto spanA0C1 = implSym.get({0, 5});
         test22JoinMmt(spanA0C1, 1, A0, C1, A0C1, "A0C1");
 
-        const auto spanA1C0 = implSym.Table().get({1, 4});
+        const auto spanA1C0 = implSym.get({1, 4});
         test22JoinMmt(spanA1C0, 1, A1, C0, A1C0, "A1C0");
 
-        const auto spanA1C1 = implSym.Table().get({1, 5});
+        const auto spanA1C1 = implSym.get({1, 5});
         test22JoinMmt(spanA1C1, 1, A1, C1, A1C1, "A1C1");
         
-        const auto spanB0C0 = implSym.Table().get({2, 4});
+        const auto spanB0C0 = implSym.get({2, 4});
         test22JoinMmt(spanB0C0, 1, B0, C0, B0C0, "B0C0");
 
-        const auto spanB0C1 = implSym.Table().get({2, 5});
+        const auto spanB0C1 = implSym.get({2, 5});
         test22JoinMmt(spanB0C1, 1, B0, C1, B0C1, "B0C1");
 
-        const auto spanB1C0 = implSym.Table().get({3, 4});
+        const auto spanB1C0 = implSym.get({3, 4});
         test22JoinMmt(spanB1C0, 1, B1, C0, B1C0, "B0C0");
 
-        const auto spanB1C1 = implSym.Table().get({3, 5});
+        const auto spanB1C1 = implSym.get({3, 5});
         test22JoinMmt(spanB1C1, 1, B1, C1, B1C1, "B1C1");
 
         // TRIPARTITE TESTS
-        const auto spanA0B0C0 = implSym.Table().get({0, 2, 4});
+        const auto spanA0B0C0 = implSym.get({0, 2, 4});
         test222JoinMmt(spanA0B0C0, 1, A0, B0, C0, A0B0, A0C0, B0C0, A0B0C0, "A0B0C0");
 
-        const auto spanA0B0C1 = implSym.Table().get({0, 2, 5});
+        const auto spanA0B0C1 = implSym.get({0, 2, 5});
         test222JoinMmt(spanA0B0C1, 1, A0, B0, C1, A0B0, A0C1, B0C1, A0B0C1, "A0B0C1");
 
-        const auto spanA0B1C0 = implSym.Table().get({0, 3, 4});
+        const auto spanA0B1C0 = implSym.get({0, 3, 4});
         test222JoinMmt(spanA0B1C0, 1, A0, B1, C0, A0B1, A0C0, B1C0, A0B1C0, "A0B1C0");
 
-        const auto spanA0B1C1 = implSym.Table().get({0, 3, 5});
+        const auto spanA0B1C1 = implSym.get({0, 3, 5});
         test222JoinMmt(spanA0B1C1, 1, A0, B1, C1, A0B1, A0C1, B1C1, A0B1C1, "A0B1C1");
         
-        const auto spanA1B0C0 = implSym.Table().get({1, 2, 4});
+        const auto spanA1B0C0 = implSym.get({1, 2, 4});
         test222JoinMmt(spanA1B0C0, 1, A1, B0, C0, A1B0, A1C0, B0C0, A1B0C0, "A1B0C0");
 
-        const auto spanA1B0C1 = implSym.Table().get({1, 2, 5});
+        const auto spanA1B0C1 = implSym.get({1, 2, 5});
         test222JoinMmt(spanA1B0C1, 1, A1, B0, C1, A1B0, A1C1, B0C1, A1B0C1, "A1B0C1");
 
-        const auto spanA1B1C0 = implSym.Table().get({1, 3, 4});
+        const auto spanA1B1C0 = implSym.get({1, 3, 4});
         test222JoinMmt(spanA1B1C0, 1, A1, B1, C0, A1B1, A1C0, B1C0, A1B1C0, "A1B1C0");
 
-        const auto spanA1B1C1 = implSym.Table().get({1, 3, 5});
+        const auto spanA1B1C1 = implSym.get({1, 3, 5});
         test222JoinMmt(spanA1B1C1, 1, A1, B1, C1, A1B1, A1C1, B1C1, A1B1C1, "A1B1C1");
     }
 
@@ -681,15 +677,15 @@ namespace NPATK::Tests {
         ImplicitSymbols implSym{momentMatrix};
 
         // Alice
-        auto spanA = implSym.Table().get({0});
+        auto spanA = implSym.get({0});
         test3Mmt(spanA, 1, A0, A1, "A");
 
         // Bob
-        auto spanB = implSym.Table().get({1});
+        auto spanB = implSym.get({1});
         test2Mmt(spanB, 1, B, "B");
 
         // Alice a, Bob b
-        auto spanAB = implSym.Table().get({0, 1});
+        auto spanAB = implSym.get({0, 1});
         test32JoinMmt(spanAB, 1, A0, A1, B, A0B, A1B, "AB");
     }
 

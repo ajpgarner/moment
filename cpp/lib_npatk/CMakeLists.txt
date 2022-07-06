@@ -4,6 +4,8 @@ add_library(lib_npatk
         operators/collins_gisin.cpp
         operators/context.cpp
         operators/implicit_symbols.cpp
+        operators/joint_measurement_index.cpp
+        operators/joint_measurement_iterator.cpp
         operators/moment_matrix.cpp
         operators/operator.cpp
         operators/operator_sequence.cpp
@@ -18,4 +20,4 @@ add_library(lib_npatk
         symbolic/symbol_tree_simplify_impl.cpp
         utilities/alphabetic_namer.cpp
         utilities/persistent_storage.cpp
-        operators/multi_mmt_iterator.cpp operators/multi_mmt_iterator.h)
+    )

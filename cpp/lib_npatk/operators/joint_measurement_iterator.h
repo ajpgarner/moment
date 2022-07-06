@@ -3,14 +3,12 @@
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  *
- * TODO: This class is very convoluted. Simplify?!
  */
 #pragma once
 
 #include "symbolic/symbol.h"
 #include "operator_sequence.h"
 #include "party.h"
-#include "utilities/recursive_index.h"
 #include "utilities/multi_dimensional_index_iterator.h"
 
 #include <span>
@@ -21,7 +19,7 @@ namespace NPATK {
 /**
  * Iterate over combinations of measurements, from specified parties
  */
-struct MultiMmtIterator {
+struct JointMeasurementIterator {
 public:
     using mmt_iter_t = std::vector<Measurement>::const_iterator;
 
@@ -33,11 +31,11 @@ public:
 
     private:
 
-        const MultiMmtIterator * mmIter;
+        const JointMeasurementIterator * mmIter;
         MultiDimensionalIndexIterator indexIter;
 
     public:
-        explicit OpSeqIterator(const MultiMmtIterator& mmIter, bool end = false);
+        explicit OpSeqIterator(const JointMeasurementIterator& mmIter, bool end = false);
 
         OpSeqIterator& operator++() noexcept {
             ++indexIter;
@@ -70,14 +68,14 @@ public:
         using value_type = MultiDimensionalIndexIterator::value_type;
 
     private:
-        const MultiMmtIterator * mmIter;
+        const JointMeasurementIterator * mmIter;
         MultiDimensionalIndexIterator indexIter;
         std::vector<bool> is_implicit;
         size_t num_implicit = 0;
         size_t operNumber = 0;
 
     public:
-        explicit OutcomeIndexIterator(const MultiMmtIterator& mmIter, bool end = false);
+        explicit OutcomeIndexIterator(const JointMeasurementIterator& mmIter, bool end = false);
 
         OutcomeIndexIterator& operator++() noexcept;
 
@@ -103,27 +101,19 @@ public:
         }
 
         /**
-         * If operator is explicitly defined, get the operator's index.
+         * True if index i requires implicit definition.
          */
-        [[nodiscard]] size_t explicit_op_index() const noexcept {
-            assert(this->num_implicit == 0);
-            return this->operNumber;
+        [[nodiscard]] bool implicit(size_t i) const noexcept {
+            assert(i < this->is_implicit.size());
+            return this->is_implicit[i];
         }
 
         /**
-         * The subset of measurement/outcomes that do not correspond to an explicitly defined operator in a CG table.
-         * @param implicit Set to true to return implicitly defined mmt/outcome pairs; false for the complement of this.
-         * @return Pair, vector of pairs, first: iterators to mmts, second: outcome numbers
+         * If operator is explicitly defined, get the operator's index w.r.t. the (maybe joint) measurement.
          */
-        [[nodiscard]] std::vector<std::pair<mmt_iter_t, size_t>> implicit_indices(bool implicit = true) const;
-
-        /**
-         * The subset of measurement/outcomes that correspond to an explicitly defined operator in a CG table.
-         * Complement of implicit_indices(true).
-         * @return Pair, vector of pairs, first: iterators to mmts, second: outcome numbers
-         */
-        [[nodiscard]] inline std::vector<std::pair<mmt_iter_t, size_t>> explicit_indices() const {
-            return implicit_indices(false);
+        [[nodiscard]] size_t explicit_outcome_index() const noexcept {
+            assert(this->num_implicit == 0);
+            return this->operNumber;
         }
 
         /**
@@ -165,18 +155,21 @@ private:
     std::vector<mmt_iter_t> mmt_iters;
 
     const Context * contextPtr = nullptr;
+
     bool is_done = false;
 
 public:
-    explicit MultiMmtIterator(const Context& context, party_list_t&& list);
+    explicit JointMeasurementIterator(const Context& context, party_list_t&& list);
 
-    inline MultiMmtIterator& operator++() noexcept {
+    inline JointMeasurementIterator& operator++() noexcept {
         next();
         return *this;
     }
 
     void next() noexcept;
+
     [[nodiscard]] constexpr bool done() const noexcept { return this->is_done; }
+
     [[nodiscard]] std::span<const size_t> indices() const noexcept {
         return {this->mmt_indices.begin(), this->mmt_indices.size()};
     }
@@ -189,13 +182,15 @@ public:
         return std::span{this->mmt_iters.cbegin(), this->mmt_iters.size()};
     }
 
-    /** Size of index vectors */
-    [[nodiscard]] size_t dimension() const noexcept {
+    /** Number of indices (i.e. dimension of index vector) */
+    [[nodiscard]] size_t count_indices() const noexcept {
         return this->mmt_indices.size();
     }
 
+    /** Total number of outcomes associated with joint measurement. */
     [[nodiscard]] size_t count_outcomes() const noexcept;
 
+    /** Total number of explicitly defined operators associated with joint measurement. */
     [[nodiscard]] size_t count_operators() const noexcept;
 
     [[nodiscard]] inline auto begin_operators() const noexcept {

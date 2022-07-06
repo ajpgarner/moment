@@ -137,4 +137,12 @@ namespace NPATK {
             this->total_measurement_count += this->parties[index].measurements.size();
         }
     }
+
+    std::vector<size_t> Context::measurements_per_party() const noexcept {
+        std::vector<size_t> output;
+        for (const auto& p : this->parties) {
+            output.push_back(p.measurements.size());
+        }
+        return output;
+    }
 }

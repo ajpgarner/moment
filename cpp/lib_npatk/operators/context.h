@@ -179,6 +179,12 @@ namespace NPATK {
            [[nodiscard]] size_t measurement_count() const noexcept { return this->total_measurement_count; }
 
           /**
+           * Returns total number of measurements per party in context;
+           */
+           [[nodiscard]] std::vector<size_t> measurements_per_party() const noexcept;
+
+
+          /**
            * Recalculate global offsets (e.g., because a Party added measurements or operators).
            */
            void reenumerate();

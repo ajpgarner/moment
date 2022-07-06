@@ -5,7 +5,7 @@
  */
 
 #include "collins_gisin.h"
-#include "multi_mmt_iterator.h"
+#include "joint_measurement_iterator.h"
 #include "moment_matrix.h"
 #include "utilities/combinations.h"
 
@@ -29,7 +29,7 @@ namespace NPATK {
 
     CollinsGisinForm::CollinsGisinForm(const MomentMatrix& momentMatrix, size_t level)
         : Level{level},
-          indices(momentMatrix.context.measurement_count(), level),
+          indices{momentMatrix.context},
           OperatorCounts(makeOpCounts(momentMatrix.context)) {
 
         const Context& context = momentMatrix.context;
@@ -59,7 +59,7 @@ namespace NPATK {
                 assert(partyIndices.size() == current_level);
 
                 bool all_good = true;
-                MultiMmtIterator::party_list_t  pmiStack;
+                JointMeasurementIterator::party_list_t  pmiStack;
                 for (size_t i = 0; i < current_level; ++i) {
                     // If party has no measurements, skip combination
                     if (context.Parties[partyIndices[i]].Measurements.empty()) {
@@ -75,7 +75,7 @@ namespace NPATK {
                 }
 
                 // Iterate through mmts of chosen parties
-                MultiMmtIterator multiMmtIterator{momentMatrix.context, std::move(pmiStack)};
+                JointMeasurementIterator multiMmtIterator{momentMatrix.context, std::move(pmiStack)};
                 while (!multiMmtIterator.done()) {
                     auto mmtIndices = multiMmtIterator.indices();
                     size_t num_operators = multiMmtIterator.count_operators();

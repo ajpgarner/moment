@@ -5,7 +5,7 @@
  */
 #include "implicit_symbols.h"
 
-#include "multi_mmt_iterator.h"
+#include "joint_measurement_iterator.h"
 
 #include "utilities/combinations.h"
 
@@ -18,10 +18,8 @@ namespace NPATK {
         : momentMatrix{mm},
           context{mm.context},
           cgForm{mm.CollinsGisin()},
-          MaxSequenceLength{mm.max_probability_length} {
-
-        this->probabilityTable = std::make_unique<ProbabilityTable>(context.measurement_count(), MaxSequenceLength);
-        assert(this->probabilityTable);
+          MaxSequenceLength{mm.max_probability_length},
+          indices{mm.context} {
 
         size_t index_cursor = 0;
         this->generateLevelZero(index_cursor);
@@ -38,16 +36,16 @@ namespace NPATK {
     size_t ImplicitSymbols::generateLevelZero(size_t& index_cursor) {
         // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.
         if (momentMatrix.UniqueSequences.size() < 2) {
-            throw errors::bad_implicit_symbol({0, 0, 0}, "Zero and One should be defined in MomentMatrix.");
+            throw errors::bad_implicit_symbol("Zero and One should be defined in MomentMatrix.");
         }
         const auto& oneSeq = momentMatrix.UniqueSequences[1];
         if (!oneSeq.sequence().empty() || oneSeq.sequence().zero() || (oneSeq.Id() != 1)) {
-            throw errors::bad_implicit_symbol({0, 0, 0}, "Identity symbol was improperly defined in MomentMatrix.");
+            throw errors::bad_implicit_symbol("Identity symbol was improperly defined in MomentMatrix.");
         }
 
         // Construct level 0 with just normalization
-        this->probabilityTable->tableData.emplace_back(1, SymbolCombo{{1, 1.0}});
-        this->probabilityTable->indices.set({0, 1});
+        this->tableData.emplace_back(1, SymbolCombo{{1, 1.0}});
+        this->indices.set({0, 1});
         ++index_cursor;
 
         return 1;
@@ -66,23 +64,21 @@ namespace NPATK {
                 // Only complete measurements can be inferred in this way...
                 if (!mmt.complete) {
                     [[unlikely]]
-                    throw errors::bad_implicit_symbol({mmt.Index(), 0},
-                                                      std::string("Correlation table can only be generated when")
+                    throw errors::bad_implicit_symbol(std::string("Correlation table can only be generated when")
                                                                   + " all measurements are complete.");
                 }
 
                 // PRECONDITION: Measurement has one more outcome than defined operators...
                 if (mmt.num_outcomes != (mmt.num_operators()+1)) {
                     [[unlikely]]
-                    throw errors::bad_implicit_symbol({mmt.Index(), 0},
-                        "Measurement should have one more outcome than explicit operators.");
+                    throw errors::bad_implicit_symbol(
+                            "Measurement should have one more outcome than explicit operators.");
                 }
 
                 // Get explicit outcomes
                 auto mmtSymb = this->cgForm.get({static_cast<size_t>(mmt.Index().global_mmt)});
                 if (mmtSymb.size() != mmt.num_operators()) {
-                    throw errors::bad_implicit_symbol(PMOIndex{mmt.Index(), 0},
-                                                      "Could not find measurement in Collins-Gisin table.");
+                    throw errors::bad_implicit_symbol("Could not find measurement in Collins-Gisin table.");
                 }
 
                 // Explicit outcomes:
@@ -90,22 +86,22 @@ namespace NPATK {
                 for (uint32_t outcome = 0; outcome < mmt.num_operators(); ++outcome) {
                     // Read symbol from Collins-Gisin object
                     const auto symbol_id = mmtSymb[outcome];
-                    this->probabilityTable->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
+                    this->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
                     finalOutcome.push_back({symbol_id, -1.0});
                     ++level_one_count;
                 }
 
                 // Add final measurement outcome, which is linear sum of remaining outcomes
-                this->probabilityTable->tableData.emplace_back(-1, LinearCombo(std::move(finalOutcome)));
+                this->tableData.emplace_back(-1, LinearCombo(std::move(finalOutcome)));
                 ++level_one_count;
 
                 // Make index for measurement
                 std::vector<size_t> index{static_cast<size_t>(mmt.Index().global_mmt)};
-                this->probabilityTable->indices.set(index, {mmt_index_start, mmt_index_start + mmt.num_outcomes});
+                this->indices.set(index, {mmt_index_start, mmt_index_start + mmt.num_outcomes});
                 index_cursor += mmt.num_outcomes;
             }
         }
-        assert(index_cursor == this->probabilityTable->tableData.size());
+        assert(index_cursor == this->tableData.size());
         return level_one_count;
     }
 
@@ -122,13 +118,13 @@ namespace NPATK {
             // Choose parties from indices
             const auto& partyIndices = *index_combo;
             assert(partyIndices.size() == level);
-            MultiMmtIterator::party_list_t pmiStack;
+            JointMeasurementIterator::party_list_t pmiStack;
             for (size_t i = 0; i < level; ++i) {
                 pmiStack.emplace_back(&(this->context.Parties[partyIndices[i]]));
             }
 
             // Iterate through measurements of chosen parties
-            MultiMmtIterator partyStack(this->context, std::move(pmiStack));
+            JointMeasurementIterator partyStack(this->context, std::move(pmiStack));
             while (!partyStack.done()) {
                 this->generateFromCurrentStack(partyStack, index_cursor);
                 ++partyStack;
@@ -143,9 +139,9 @@ namespace NPATK {
     }
 
 
-    size_t ImplicitSymbols::generateFromCurrentStack(const MultiMmtIterator& stack,
+    size_t ImplicitSymbols::generateFromCurrentStack(const JointMeasurementIterator& stack,
                                                      size_t& index_cursor) {
-        const size_t level = stack.dimension();
+        const size_t level = stack.count_indices();
         const size_t num_outcomes = stack.count_outcomes();
 
         for (auto outcomeIter = stack.begin_outcomes(), outcomeIterEnd = stack.end_outcomes();
@@ -155,9 +151,9 @@ namespace NPATK {
                 // No implicit operators, just put down the explicit operator
                 const auto implicit_full_opers = this->cgForm.get(stack.global_indices());
                 assert(implicit_full_opers.size() == stack.count_operators());
-                assert(outcomeIter.explicit_op_index() < implicit_full_opers.size());
-                const auto symbol_id = implicit_full_opers[outcomeIter.explicit_op_index()];
-                this->probabilityTable->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
+                assert(outcomeIter.explicit_outcome_index() < implicit_full_opers.size());
+                const auto symbol_id = implicit_full_opers[outcomeIter.explicit_outcome_index()];
+                this->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
             } else {
                 SymbolCombo::data_t symbolComboData;
                 double the_sign = (num_implicit % 2 == 0) ? +1. : -1.;
@@ -170,7 +166,7 @@ namespace NPATK {
                         std::vector<symbol_name_t> outcomeIndices;
                         size_t mNum = 0;
                         for (size_t i = 0; i < level; ++i) {
-                            if (outcomeIter.implicit()[i]) {
+                            if (outcomeIter.implicit(i)) {
                                 // Implicit measurement: either push -1, or skip
                                 if (partitions.bits(mNum)) {
                                     lookupIndices.push_back(stack.global_indices()[i]);
@@ -198,8 +194,8 @@ namespace NPATK {
                 assert(the_sign == 1); // If correctly alternating, normalization should be positive always.
                 std::vector<size_t> normIndices;
                 std::vector<symbol_name_t> normOutcomes;
-                for (size_t i = 0; i < stack.dimension(); ++i) {
-                    if (!outcomeIter.implicit()[i]) {
+                for (size_t i = 0; i < stack.count_indices(); ++i) {
+                    if (!outcomeIter.implicit(i)) {
                         normIndices.push_back(stack.global_indices()[i]);
                         normOutcomes.push_back(static_cast<symbol_name_t>(outcomeIter[i]));
                     }
@@ -209,15 +205,28 @@ namespace NPATK {
                 symbolComboData.emplace_back(normMmtSpan[0], the_sign);
 
                 // Add constructed representation to data table
-                this->probabilityTable->tableData.emplace_back(-1, SymbolCombo{std::move(symbolComboData)});
+                this->tableData.emplace_back(-1, SymbolCombo{std::move(symbolComboData)});
             }
         }
 
         // Add index for this mmt
-        this->probabilityTable->indices.set(stack.global_indices(), {index_cursor, index_cursor + num_outcomes});
+        this->indices.set(stack.global_indices(), {index_cursor, index_cursor + num_outcomes});
         index_cursor += num_outcomes;
-        assert(index_cursor == this->probabilityTable->tableData.size());
+        assert(index_cursor == this->tableData.size());
         return num_outcomes;
+    }
+
+    std::span<const ImplicitSymbols::PMODefinition> ImplicitSymbols::get(const std::span<const size_t> mmtIndex) const {
+        if (mmtIndex.size() > this->MaxSequenceLength) {
+            throw errors::bad_implicit_symbol("Cannot look up sequences longer than the max sequence length.");
+        }
+
+        auto [first, last] = this->indices.access(mmtIndex);
+        if ((first < 0) || (first >= last)) {
+            return std::span<const PMODefinition>(tableData.begin(), 0);
+        }
+        assert(last <= tableData.size());
+        return std::span<const PMODefinition>(tableData.begin() + first, last - first);
     }
 
 

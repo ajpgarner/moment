@@ -89,11 +89,11 @@ namespace NPATK::mex {
         }
         if (writeIter != outputArray.end()) {
             throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix dimension mismatch: too few input elements." );
+                        "export_symbol_matrix count_indices mismatch: too few input elements." );
         }
         if (readIter != inputMatrix.ColumnMajor.end()) {
             throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix dimension mismatch: too many input elements.");
+                        "export_symbol_matrix count_indices mismatch: too many input elements.");
         }
 
         return outputArray;
@@ -120,11 +120,11 @@ namespace NPATK::mex {
         }
         if (writeIter != outputArray.end()) {
             throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix dimension mismatch: too few input elements." );
+                        "export_symbol_matrix count_indices mismatch: too few input elements." );
         }
         if (readIter != formatView.end()) {
             throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix dimension mismatch: too many input elements.");
+                        "export_symbol_matrix count_indices mismatch: too many input elements.");
         }
 
         return outputArray;
