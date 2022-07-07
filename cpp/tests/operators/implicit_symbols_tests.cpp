@@ -277,7 +277,7 @@ namespace NPATK::Tests {
 
         const auto& one = implSym.Data().front();
         EXPECT_EQ(one.symbol_id, 1);
-        ImplicitSymbols::SymbolCombo oneCombo{{1,1.0}};
+        SymbolCombo oneCombo{{1,1.0}};
         EXPECT_EQ(one.expression, oneCombo);
     }
 
@@ -640,6 +640,134 @@ namespace NPATK::Tests {
 
         const auto spanA1B1C1 = implSym.get({1, 3, 5});
         test222JoinMmt(spanA1B1C1, 1, A1, B1, C1, A1B1, A1C1, B1C1, A1B1C1, "A1B1C1");
+    }
+
+    TEST(ImplicitSymbols, Tripartite322_LowerMoment) {
+        auto contextPtr = std::make_shared<Context>(Party::MakeList(3, 2, 2));
+        ASSERT_EQ(contextPtr->Parties.size(), 3);
+        const auto& alice = contextPtr->Parties[0];
+        const auto& bob = contextPtr->Parties[1];
+        const auto& charlie = contextPtr->Parties[2];
+        ASSERT_EQ(alice.Measurements.size(), 2);
+        ASSERT_EQ(alice.Measurements[0].num_outcomes, 2);
+        ASSERT_EQ(alice.Measurements[1].num_outcomes, 2);
+        ASSERT_EQ(bob.Measurements.size(), 2);
+        ASSERT_EQ(bob.Measurements[0].num_outcomes, 2);
+        ASSERT_EQ(bob.Measurements[1].num_outcomes, 2);
+        ASSERT_EQ(charlie.Measurements.size(), 2);
+        ASSERT_EQ(charlie.Measurements[0].num_outcomes, 2);
+        ASSERT_EQ(charlie.Measurements[1].num_outcomes, 2);
+
+        MomentMatrix momentMatrix{contextPtr, 1};
+
+        auto A0 = momentMatrix.UniqueSequences.where(OperatorSequence({alice.measurement_outcome(0,0)},
+                                                                       contextPtr.get()))->Id();
+        auto A1 = momentMatrix.UniqueSequences.where(OperatorSequence({alice.measurement_outcome(1,0)},
+                                                                       contextPtr.get()))->Id();
+        auto B0 = momentMatrix.UniqueSequences.where(OperatorSequence({bob.measurement_outcome(0,0)},
+                                                                       contextPtr.get()))->Id();
+        auto B1 = momentMatrix.UniqueSequences.where(OperatorSequence({bob.measurement_outcome(1,0)},
+                                                                       contextPtr.get()))->Id();
+        auto C0 = momentMatrix.UniqueSequences.where(OperatorSequence({charlie.measurement_outcome(0,0)},
+                                                                       contextPtr.get()))->Id();
+        auto C1 = momentMatrix.UniqueSequences.where(OperatorSequence({charlie.measurement_outcome(1,0)},
+                                                                       contextPtr.get()))->Id();
+
+        auto A0B0 = momentMatrix.UniqueSequences.where(OperatorSequence({alice.measurement_outcome(0,0),
+                                                                         bob.measurement_outcome(0,0)},
+                                                                         contextPtr.get()))->Id();
+        auto A0B1 = momentMatrix.UniqueSequences.where(OperatorSequence({alice.measurement_outcome(0,0),
+                                                                         bob.measurement_outcome(1,0)},
+                                                                         contextPtr.get()))->Id();
+        auto A0C0 = momentMatrix.UniqueSequences.where(OperatorSequence({alice.measurement_outcome(0,0),
+                                                                         charlie.measurement_outcome(0,0)},
+                                                                         contextPtr.get()))->Id();
+        auto A0C1 = momentMatrix.UniqueSequences.where(OperatorSequence({alice.measurement_outcome(0,0),
+                                                                         charlie.measurement_outcome(1,0)},
+                                                                         contextPtr.get()))->Id();
+        auto A1B0 = momentMatrix.UniqueSequences.where(OperatorSequence({alice.measurement_outcome(1,0),
+                                                                         bob.measurement_outcome(0,0)},
+                                                                         contextPtr.get()))->Id();
+        auto A1B1 = momentMatrix.UniqueSequences.where(OperatorSequence({alice.measurement_outcome(1,0),
+                                                                         bob.measurement_outcome(1,0)},
+                                                                         contextPtr.get()))->Id();
+        auto A1C0 = momentMatrix.UniqueSequences.where(OperatorSequence({alice.measurement_outcome(1,0),
+                                                                         charlie.measurement_outcome(0,0)},
+                                                                         contextPtr.get()))->Id();
+        auto A1C1 = momentMatrix.UniqueSequences.where(OperatorSequence({alice.measurement_outcome(1,0),
+                                                                         charlie.measurement_outcome(1,0)},
+                                                                         contextPtr.get()))->Id();
+
+        auto B0C0 = momentMatrix.UniqueSequences.where(OperatorSequence({bob.measurement_outcome(0,0),
+                                                                         charlie.measurement_outcome(0,0)},
+                                                                         contextPtr.get()))->Id();
+        auto B0C1 = momentMatrix.UniqueSequences.where(OperatorSequence({bob.measurement_outcome(0,0),
+                                                                         charlie.measurement_outcome(1,0)},
+                                                                         contextPtr.get()))->Id();
+        auto B1C0 = momentMatrix.UniqueSequences.where(OperatorSequence({bob.measurement_outcome(1,0),
+                                                                         charlie.measurement_outcome(0,0)},
+                                                                         contextPtr.get()))->Id();
+        auto B1C1 = momentMatrix.UniqueSequences.where(OperatorSequence({bob.measurement_outcome(1,0),
+                                                                         charlie.measurement_outcome(1,0)},
+                                                                         contextPtr.get()))->Id();
+
+        const ImplicitSymbols& implSym = momentMatrix.ImplicitSymbolTable();
+
+        // MONOPARTITE TESTS:
+        auto spanA0 = implSym.get({0});
+        test2Mmt(spanA0, 1, A0, "A0");
+
+        auto spanA1 = implSym.get({1});
+        test2Mmt(spanA1, 1, A1, "A1");
+
+        auto spanB0 = implSym.get({2});
+        test2Mmt(spanB0, 1, B0, "B0");
+
+        auto spanB1 = implSym.get({3});
+        test2Mmt(spanB1, 1, B1, "B1");
+
+        auto spanC0 = implSym.get({4});
+        test2Mmt(spanC0, 1, C0, "C0");
+
+        auto spanC1 = implSym.get({5});
+        test2Mmt(spanC1, 1, C1, "C1");
+
+        // BIPARTITE TESTS:
+        const auto spanA0B0 = implSym.get({0, 2});
+        test22JoinMmt(spanA0B0, 1, A0, B0, A0B0, "A0B0");
+
+        const auto spanA0B1 = implSym.get({0, 3});
+        test22JoinMmt(spanA0B1, 1, A0, B1, A0B1, "A0B1");
+
+        const auto spanA1B0 = implSym.get({1, 2});
+        test22JoinMmt(spanA1B0, 1, A1, B0, A1B0, "A1B0");
+
+        const auto spanA1B1 = implSym.get({1, 3});
+        test22JoinMmt(spanA1B1, 1, A1, B1, A1B1, "A1B1");
+
+        const auto spanA0C0 = implSym.get({0, 4});
+        test22JoinMmt(spanA0C0, 1, A0, C0, A0C0, "A0C0");
+
+        const auto spanA0C1 = implSym.get({0, 5});
+        test22JoinMmt(spanA0C1, 1, A0, C1, A0C1, "A0C1");
+
+        const auto spanA1C0 = implSym.get({1, 4});
+        test22JoinMmt(spanA1C0, 1, A1, C0, A1C0, "A1C0");
+
+        const auto spanA1C1 = implSym.get({1, 5});
+        test22JoinMmt(spanA1C1, 1, A1, C1, A1C1, "A1C1");
+
+        const auto spanB0C0 = implSym.get({2, 4});
+        test22JoinMmt(spanB0C0, 1, B0, C0, B0C0, "B0C0");
+
+        const auto spanB0C1 = implSym.get({2, 5});
+        test22JoinMmt(spanB0C1, 1, B0, C1, B0C1, "B0C1");
+
+        const auto spanB1C0 = implSym.get({3, 4});
+        test22JoinMmt(spanB1C0, 1, B1, C0, B1C0, "B0C0");
+
+        const auto spanB1C1 = implSym.get({3, 5});
+        test22JoinMmt(spanB1C1, 1, B1, C1, B1C1, "B1C1");
     }
 
 

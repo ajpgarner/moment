@@ -15,15 +15,16 @@ namespace NPATK {
                                             std::pair<ptrdiff_t, ptrdiff_t>, JointMeasurementIndex> {
     public:
         constexpr explicit JointMeasurementIndex(std::span<const size_t> chunk_sizes,
+                                                     size_t max_depth,
                                                      std::pair<ptrdiff_t, ptrdiff_t> zero = {-1, 0},
                                                      ptrdiff_t offset = 0)
-                : MonotonicChunkRecursiveStorage{chunk_sizes, zero, offset} { }
+                : MonotonicChunkRecursiveStorage{chunk_sizes, max_depth, zero, offset} { }
 
         constexpr explicit JointMeasurementIndex(std::pair<ptrdiff_t, ptrdiff_t> zero = {-1, 0},
                                                      ptrdiff_t offset = 0)
                 : MonotonicChunkRecursiveStorage{zero, offset} { }
 
-        explicit JointMeasurementIndex(const Context& context);
+        explicit JointMeasurementIndex(const Context& context, size_t max_depth);
     };
 
 }

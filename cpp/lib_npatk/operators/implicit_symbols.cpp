@@ -21,7 +21,7 @@ namespace NPATK {
           context{mm.context},
           cgForm{mm.CollinsGisin()},
           MaxSequenceLength{mm.max_probability_length},
-          indices{mm.context} {
+          indices{mm.context, mm.max_probability_length} {
 
         size_t index_cursor = 0;
         this->generateLevelZero(index_cursor);

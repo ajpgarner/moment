@@ -139,8 +139,14 @@ namespace NPATK {
     template<typename type_t, typename subclass_t>
     class MonotonicChunkRecursiveStorage : public RecursiveStorage<type_t, subclass_t> {
     protected:
-        constexpr MonotonicChunkRecursiveStorage(std::span<const size_t> chunk_sizes, type_t zero, ptrdiff_t offset = 0)
+        constexpr MonotonicChunkRecursiveStorage(std::span<const size_t> chunk_sizes, size_t max_depth,
+                                                 type_t zero, ptrdiff_t offset = 0)
             : RecursiveStorage<type_t, subclass_t>(zero, offset) {
+
+            // Hardcode depth limit
+            if (0 == max_depth) {
+                return;
+            }
 
             ptrdiff_t next_offset = this->index_offset;
             for (ptrdiff_t i = 0; i < chunk_sizes.size(); ++i) {
@@ -150,7 +156,7 @@ namespace NPATK {
 
                 for (size_t c = 0; c < chunk_sizes[i]; ++c) {
                     if (!nextChunkSpan.empty()) {
-                        this->subindices.emplace_back(nextChunkSpan, zero, next_offset);
+                        this->subindices.emplace_back(nextChunkSpan, max_depth-1, zero, next_offset);
                     } else {
                         this->subindices.emplace_back(zero, next_offset);
                     }

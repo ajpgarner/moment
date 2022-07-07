@@ -27,9 +27,9 @@ namespace NPATK {
         }
     }
 
-    CollinsGisinForm::CollinsGisinForm(const MomentMatrix& momentMatrix, size_t level)
+    CollinsGisinForm::CollinsGisinForm(const MomentMatrix& momentMatrix, const size_t level)
         : Level{level},
-          indices{momentMatrix.context},
+          indices{momentMatrix.context, level},
           OperatorCounts(makeOpCounts(momentMatrix.context)) {
 
         const Context& context = momentMatrix.context;
@@ -146,6 +146,7 @@ namespace NPATK {
                 iterates.push_back(false);
             }
         }
+
         const auto num_iterating_indices = iterating_indices.size();
 
         // Get span to measurement
@@ -182,6 +183,7 @@ namespace NPATK {
         output.reserve(total_outcomes);
 
         // Make iterator over free indices
+        std::reverse(iteratingSizes.begin(), iteratingSizes.end());
         MultiDimensionalIndexIterator freeOutcomeIndexIter{std::move(iteratingSizes)};
 
         // Blit values we care about
@@ -190,8 +192,6 @@ namespace NPATK {
             for (size_t i = 0 ; i < num_iterating_indices; ++i) {
                 the_index += freeOutcomeIndexIter[i] * stride[i];
             }
-
-            assert(the_index < fullMmtSpan.size());
             output.push_back(fullMmtSpan[the_index]);
 
             // Onto next

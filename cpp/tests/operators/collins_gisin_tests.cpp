@@ -356,4 +356,36 @@ namespace NPATK::Tests {
         EXPECT_EQ(freeA1fixB11[0], alice_b0_bob_b1->Id());
         EXPECT_EQ(freeA1fixB11[1], alice_b1_bob_b1->Id());
     }
+
+    TEST(CollinsGisin, VariedOutcomes_52_22_32) {
+        std::vector<Party> partyList;
+        partyList.emplace_back(0, "a");
+        partyList.emplace_back(1, "b");
+        partyList.emplace_back(2, "c");
+        partyList[0].add_measurement(Measurement("a", 5));
+        partyList[0].add_measurement(Measurement("b", 2));
+        partyList[1].add_measurement(Measurement("a", 2));
+        partyList[1].add_measurement(Measurement("b", 2));
+        partyList[2].add_measurement(Measurement("a", 3));
+        partyList[2].add_measurement(Measurement("b", 2));
+
+        auto contextPtr = std::make_shared<Context>(std::move(partyList));
+        ASSERT_EQ(contextPtr->Parties.size(), 3);
+        const auto &alice = contextPtr->Parties[0];
+        const auto &bob = contextPtr->Parties[1];
+        const auto &charlie = contextPtr->Parties[2];
+        ASSERT_EQ(alice.Measurements.size(), 2);
+        ASSERT_EQ(bob.Measurements.size(), 2);
+        ASSERT_EQ(charlie.Measurements.size(), 2);
+
+        MomentMatrix momentMatrix{contextPtr, 2};
+        const auto& cgForm = momentMatrix.CollinsGisin();
+
+        auto aaa = cgForm.get({0, 2, 4});
+        EXPECT_EQ(aaa.size(), 4*1*2); // 5, 2, 3
+
+        auto a0axax = cgForm.get({0, 2, 4}, {3, -1, -1});
+        ASSERT_EQ(a0axax.size(), 2); // [a0a0a0, a0a0a1]
+
+    }
 }

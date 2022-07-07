@@ -15,8 +15,8 @@ namespace NPATK::Tests {
     namespace {
         class ChunkTest : public MonotonicChunkRecursiveStorage<size_t, ChunkTest> {
         public:
-            explicit ChunkTest(std::span<const size_t> chunk_sizes, size_t zero = 0, ptrdiff_t offset = 0)
-                : MonotonicChunkRecursiveStorage(chunk_sizes, zero, offset) { }
+            explicit ChunkTest(std::span<const size_t> chunk_sizes, size_t max_depth, size_t zero = 0, ptrdiff_t offset = 0)
+                : MonotonicChunkRecursiveStorage(chunk_sizes, max_depth, zero, offset) { }
             explicit ChunkTest(size_t zero = 0, ptrdiff_t offset = 0)
                 : MonotonicChunkRecursiveStorage(zero, offset) { }
         };
@@ -57,7 +57,7 @@ namespace NPATK::Tests {
 
     TEST(RecursiveStorage, Chunk) {
         std::vector<size_t> chunk_sizes{2, 1, 3}; // 6 children.
-        ChunkTest c{chunk_sizes};
+        ChunkTest c{chunk_sizes, 3};
         size_t running_iter = 0;
         set_and_read(c, {}, running_iter++, 6); // []
         set_and_read(c, {0}, running_iter++, 4); // A
@@ -77,9 +77,34 @@ namespace NPATK::Tests {
         set_and_read(c, {1, 4}, running_iter++, 0); // A C
         set_and_read(c, {1, 5}, running_iter++, 0); // A C
         set_and_read(c, {2}, running_iter++, 3); // B
-        set_and_read(c, {2, 3}, running_iter++, 0); // A C
-        set_and_read(c, {2, 4}, running_iter++, 0); // A C
-        set_and_read(c, {2, 5}, running_iter++, 0); // A C
+        set_and_read(c, {2, 3}, running_iter++, 0); // B C
+        set_and_read(c, {2, 4}, running_iter++, 0); // B C
+        set_and_read(c, {2, 5}, running_iter++, 0); // B C
+        set_and_read(c, {3}, running_iter++, 0); // C
+        set_and_read(c, {4}, running_iter++, 0); // C
+        set_and_read(c, {5}, running_iter++, 0); // C
+    }
+
+
+    TEST(RecursiveStorage, ChunkClipped) {
+        std::vector<size_t> chunk_sizes{2, 1, 3}; // 6 children.
+        ChunkTest c{chunk_sizes, 2};
+        size_t running_iter = 0;
+        set_and_read(c, {}, running_iter++, 6); // []
+        set_and_read(c, {0}, running_iter++, 4); // A
+        set_and_read(c, {0, 2}, running_iter++, 0); // A B
+        set_and_read(c, {0, 3}, running_iter++, 0); // A C
+        set_and_read(c, {0, 4}, running_iter++, 0); // A C
+        set_and_read(c, {0, 5}, running_iter++, 0); // A C
+        set_and_read(c, {1}, running_iter++, 4); // A
+        set_and_read(c, {1, 2}, running_iter++, 0); // A B
+        set_and_read(c, {1, 3}, running_iter++, 0); // A C
+        set_and_read(c, {1, 4}, running_iter++, 0); // A C
+        set_and_read(c, {1, 5}, running_iter++, 0); // A C
+        set_and_read(c, {2}, running_iter++, 3); // B
+        set_and_read(c, {2, 3}, running_iter++, 0); // B C
+        set_and_read(c, {2, 4}, running_iter++, 0); // B C
+        set_and_read(c, {2, 5}, running_iter++, 0); // B C
         set_and_read(c, {3}, running_iter++, 0); // C
         set_and_read(c, {4}, running_iter++, 0); // C
         set_and_read(c, {5}, running_iter++, 0); // C
@@ -87,7 +112,7 @@ namespace NPATK::Tests {
 
     TEST(RecursiveStorage, ChunkVisitor) {
         std::vector<size_t> chunk_sizes{2, 1, 3};
-        ChunkTest c{chunk_sizes};
+        ChunkTest c{chunk_sizes, 3};
 
         // Try setting objects with visitor
         size_t sequential_set = 0;
@@ -128,5 +153,44 @@ namespace NPATK::Tests {
         compare_result(results[21], 21, {3}); // C
         compare_result(results[22], 22, {4}); // C
         compare_result(results[23], 23, {5}); // C
+    }
+
+    TEST(RecursiveStorage, ChunkVisitorClipped) {
+        std::vector<size_t> chunk_sizes{2, 1, 3};
+        ChunkTest c{chunk_sizes, 2};
+
+        // Try setting objects with visitor
+        size_t sequential_set = 0;
+        auto visitor_setter = [&](size_t& obj, const std::vector<size_t>& indices) {
+            obj = sequential_set++;
+        };
+        c.visit(visitor_setter);
+
+        // Try reading objects with visitor
+        std::vector<std::pair<size_t, std::vector<size_t>>> results;
+        auto visitor_checker = [&](const size_t& obj, const std::vector<size_t>& indices) {
+            results.emplace_back(obj, indices);
+        };
+        c.visit(visitor_checker);
+
+        ASSERT_EQ(results.size(), 18);
+        compare_result(results[0], 0, {}); // []
+        compare_result(results[1], 1, {0}); // A
+        compare_result(results[2], 2, {0, 2}); // A B
+        compare_result(results[3], 3, {0, 3}); // A C
+        compare_result(results[4], 4, {0, 4}); // A C
+        compare_result(results[5], 5, {0, 5}); // A C
+        compare_result(results[6], 6,  {1}); // A
+        compare_result(results[7], 7, {1, 2}); // A B
+        compare_result(results[8], 8, {1, 3}); // A C
+        compare_result(results[9], 9, {1, 4}); // A C
+        compare_result(results[10], 10, {1, 5}); // A C
+        compare_result(results[11], 11, {2}); // B
+        compare_result(results[12], 12, {2, 3}); // A C
+        compare_result(results[13], 13, {2, 4}); // A C
+        compare_result(results[14], 14, {2, 5}); // A C
+        compare_result(results[15], 15, {3}); // C
+        compare_result(results[16], 16, {4}); // C
+        compare_result(results[17], 17, {5}); // C
     }
 }
