@@ -5,12 +5,13 @@
  */
 #pragma once
 
+#include "symbol.h"
+
 #include <algorithm>
 #include <utility>
 #include <vector>
 
 namespace NPATK {
-
     template<typename index_t = size_t, typename weight_t = double>
     class LinearCombo {
     public:
@@ -118,4 +119,5 @@ namespace NPATK {
 
     };
 
+    using SymbolCombo = LinearCombo<symbol_name_t, double>;
 }

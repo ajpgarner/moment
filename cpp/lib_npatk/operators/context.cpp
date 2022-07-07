@@ -21,6 +21,7 @@ namespace NPATK {
             party.set_offsets(party_count, static_cast<mmt_name_t>(this->total_measurement_count));
             this->total_operator_count += party.size();
             this->total_measurement_count += party.measurements.size();
+            this->global_to_party.insert(this->global_to_party.end(), party.measurements.size(), party_count);
             ++party_count;
         }
     }
@@ -35,6 +36,7 @@ namespace NPATK {
         party.set_offsets(party_count, static_cast<mmt_name_t>(this->total_measurement_count));
         this->total_operator_count += party.size();
         this->total_measurement_count += party.measurements.size();
+        this->global_to_party.insert(this->global_to_party.end(), party.measurements.size(), party_count);
     }
 
     std::pair<std::vector<Operator>::iterator, bool>
@@ -126,6 +128,32 @@ namespace NPATK {
         return ss.str();
     }
 
+    std::string Context::format_sequence(const std::span<const PMOIndex> indices, const bool zero) const {
+        if (zero) {
+            return "0";
+        }
+
+        if (indices.empty()) {
+            return "1";
+        }
+
+        std::stringstream ss;
+        bool done_once = false;
+        for (const auto& index : indices) {
+            assert(index.party < this->parties.size());
+            const auto& party = this->parties[index.party];
+            assert(index.mmt < party.measurements.size());
+            const auto& mmt = party.measurements[index.mmt];
+            if (done_once) {
+                ss << ";";
+            }
+            ss << party.name << "." << mmt.name << index.outcome;
+            done_once = true;
+        }
+
+        return ss.str();
+    }
+
     void Context::reenumerate() {
         this->total_operator_count = 0;
         this->total_measurement_count = 0;
@@ -145,4 +173,14 @@ namespace NPATK {
         }
         return output;
     }
+
+    PMIndex Context::global_index_to_PM(size_t global_index) const noexcept {
+        assert (global_index < this->global_to_party.size());
+        auto party_id = this->global_to_party[global_index];
+        auto mmt_id = static_cast<mmt_name_t>(global_index - this->parties[party_id].global_mmt_offset);
+
+        assert(mmt_id >= 0);
+        return PMIndex{party_id, mmt_id, static_cast<mmt_name_t>(global_index)};
+    }
+
 }

@@ -13,6 +13,7 @@ matlab_add_mex(NAME npatk_mex
             storage_manager.cpp
             fragments/enumerate_symbols.cpp
             fragments/export_basis_key.cpp
+        fragments/export_implicit_symbols.cpp
             fragments/export_substitution_list.cpp
             fragments/export_symbol_matrix.cpp
             fragments/export_symbol_properties.cpp
@@ -33,7 +34,7 @@ matlab_add_mex(NAME npatk_mex
             functions/alphabetic_name.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
-            functions/implied_symbols.cpp
+        functions/probability_table.cpp
             functions/make_hermitian.cpp
             functions/make_moment_matrix.cpp
             functions/make_symmetric.cpp

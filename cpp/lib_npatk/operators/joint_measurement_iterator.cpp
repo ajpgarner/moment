@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "joint_measurement_iterator.h"
-
+#include "context.h"
 
 namespace NPATK {
     namespace {
@@ -23,6 +23,17 @@ namespace NPATK {
             for (auto mmIter: multiMmtIterator.iters()) {
                 output.push_back(mmIter->num_outcomes);
             }
+            return output;
+        }
+
+        std::vector<size_t> getMmtOutcomeCounts(const Context &context, std::span<const PMIndex> indices) {
+            std::vector<size_t> output;
+            output.reserve(indices.size());
+
+            for (auto index : indices) {
+                output.push_back(context.Parties[index.party].Measurements[index.mmt].num_outcomes);
+            }
+
             return output;
         }
     }
@@ -102,19 +113,29 @@ namespace NPATK {
 
     }
 
-    JointMeasurementIterator::OutcomeIndexIterator::OutcomeIndexIterator(const JointMeasurementIterator &theIter, bool end)
-            : mmIter(&theIter), indexIter(getMmtOutcomeCounts(theIter), end), is_implicit(theIter.count_indices(), false) {
+    OutcomeIndexIterator::OutcomeIndexIterator(const Context& context,
+                                               std::span<const PMIndex> global_mmt_indices,
+                                               bool end)
+            : indexIter(getMmtOutcomeCounts(context, global_mmt_indices), end),
+              is_implicit(global_mmt_indices.size(), false) {
         check_implicit();
     }
 
-    void JointMeasurementIterator::OutcomeIndexIterator::check_implicit() {
+    OutcomeIndexIterator::OutcomeIndexIterator(const JointMeasurementIterator &theIter, bool end)
+            : indexIter(getMmtOutcomeCounts(theIter), end),
+              is_implicit(theIter.count_indices(), false) {
+        check_implicit();
+    }
+
+    void OutcomeIndexIterator::check_implicit() {
         if (this->indexIter.done()) {
             return;
         }
 
         this->num_implicit = 0;
-        for (size_t mIndex = 0; mIndex < mmIter->count_indices(); ++mIndex) {
-            const bool elemImpl = (this->indexIter[mIndex] >= mmIter->mmt_iters[mIndex]->num_operators());
+        const auto& outcome_limits = this->indexIter.limits();
+        for (size_t mIndex = 0; mIndex < this->is_implicit.size(); ++mIndex) {
+            const bool elemImpl = this->indexIter[mIndex] >= (outcome_limits[mIndex]-1);
             this->is_implicit[mIndex] = elemImpl;
             if (elemImpl) {
                 ++this->num_implicit;
@@ -122,7 +143,7 @@ namespace NPATK {
         }
     }
 
-    JointMeasurementIterator::OutcomeIndexIterator &JointMeasurementIterator::OutcomeIndexIterator::operator++() noexcept {
+    OutcomeIndexIterator& OutcomeIndexIterator::operator++() noexcept {
         ++indexIter;
         check_implicit();
         if (0 == this->num_implicit) {

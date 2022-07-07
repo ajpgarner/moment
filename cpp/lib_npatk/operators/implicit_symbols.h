@@ -30,8 +30,6 @@ namespace NPATK {
      */
     class ImplicitSymbols {
     public:
-        using SymbolCombo = LinearCombo<symbol_name_t, double>;
-
         struct PMODefinition {
             symbol_name_t symbol_id = 0;
             SymbolCombo expression{};
@@ -67,6 +65,23 @@ namespace NPATK {
         [[nodiscard]] inline auto get(std::initializer_list<size_t> mmtIndex) const {
             std::vector<size_t> v{mmtIndex};
             return this->get({v.begin(), v.size()});
+        }
+
+        template<typename functor_t>
+        void visit(functor_t& visitor) const {
+            auto visitor_wrapper = [&](const std::pair<size_t, size_t>& tableRange,
+                                       std::span<const size_t> global_indices) {
+                std::span<const PMODefinition> pmoSpan{tableData.cbegin() + static_cast<ptrdiff_t>(tableRange.first),
+                                                       static_cast<size_t>(tableRange.second - tableRange.first)};
+                std::vector<PMIndex> converted;
+                converted.reserve(global_indices.size());
+                for (auto global_index : global_indices) {
+                    converted.push_back(this->context.global_index_to_PM(global_index));
+                }
+                visitor(pmoSpan, std::span<const PMIndex>(converted.cbegin(), converted.size()));
+            };
+
+            this->indices.visit(visitor_wrapper);
         }
 
     private:

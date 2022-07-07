@@ -13,22 +13,25 @@ namespace NPATK {
 
     using mmt_name_t = int16_t;
 
-
     struct PMIndex {
+    public:
         party_name_t party = 0;
         mmt_name_t mmt = 0;
         mmt_name_t global_mmt = 0;
 
+    public:
         [[nodiscard]] constexpr uint64_t hash() const noexcept {
             return (static_cast<uint64_t>(this->party) << 48) + (static_cast<uint64_t>(this->mmt) << 32);
         }
     };
 
     struct PMOIndex {
+    public:
         party_name_t party = 0;
         mmt_name_t mmt = 0;
         uint32_t outcome = 0;
 
+    public:
         PMOIndex() = default;
 
         PMOIndex(PMIndex pm, uint32_t o) : party{pm.party}, mmt{pm.mmt}, outcome{o} {}

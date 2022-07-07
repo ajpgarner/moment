@@ -13,6 +13,7 @@
 #include <iosfwd>
 #include <set>
 #include <string>
+#include <span>
 #include <vector>
 
 namespace NPATK {
@@ -119,6 +120,7 @@ namespace NPATK {
 
     private:
         std::vector<Party> parties;
+        std::vector<party_name_t> global_to_party;
         size_t total_measurement_count = 0;
         size_t total_operator_count = 0;
 
@@ -140,7 +142,11 @@ namespace NPATK {
             return AllOperatorConstIterator{*this, true};
         }
 
+        /** Gets total number of operators in Context */
         [[nodiscard]] constexpr size_t size() const noexcept { return this->total_operator_count; }
+
+        /** Converts global measurement index to Party, Measurement pair */
+        [[nodiscard]] PMIndex global_index_to_PM(size_t global_index) const noexcept;
 
         /**
          * Adds party to context. Warning: might invalidate references/pointers to previous parties.
@@ -172,6 +178,11 @@ namespace NPATK {
           * Generates a formatted string representation of an operator sequence
           */
           [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const;
+
+         /**
+          * Generates a formatted string representation of a list of PMO indices
+          */
+          [[nodiscard]] std::string format_sequence(std::span<const PMOIndex> indices, bool zero = false) const;
 
           /**
            * Returns total number of unique measurements

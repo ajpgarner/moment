@@ -74,6 +74,49 @@ namespace NPATK {
             std::vector<size_t> v(indices);
             return access(v);
         }
+
+        /** Recursively visit each entry in the table */
+        template<typename functor_t, typename... Args>
+        void visit(functor_t& visitor, Args... args) {
+            std::vector<size_t> index_stack;
+            do_visit(visitor, index_stack, args...);
+        }
+
+        /** Recursively visit each entry in the table */
+        template<typename functor_t, typename... Args>
+        void visit(functor_t& visitor, Args... args) const {
+            std::vector<size_t> index_stack;
+            do_visit(visitor, index_stack, args...);
+        }
+
+    private:
+        template<typename functor_t, typename... Args>
+        void do_visit(functor_t& visitor, std::vector<size_t>& indices, Args... args) {
+            const auto& const_indices = indices;
+            visitor(this->object, const_indices, args...);
+            for (size_t cIndex = 0; cIndex < this->num_children(); ++cIndex) {
+                indices.push_back(cIndex-this->index_offset);
+                this->subindices[cIndex].do_visit(visitor, indices, args...);
+            }
+            if (!indices.empty()) {
+                indices.pop_back();
+            }
+        }
+
+        template<typename functor_t, typename... Args>
+        void do_visit(functor_t& visitor, std::vector<size_t>& indices, Args... args) const {
+            const auto& const_indices = indices;
+            const auto& this_obj = static_cast<const type_t&>(this->object);
+            visitor(this_obj, const_indices, args...);
+            for (size_t cIndex = 0; cIndex < this->num_children(); ++cIndex) {
+                indices.push_back(cIndex-this->index_offset);
+                this->subindices[cIndex].do_visit(visitor, indices, args...);
+            }
+            if (!indices.empty()) {
+                indices.pop_back();
+            }
+        }
+
     };
 
     template<typename type_t, typename subclass_t>

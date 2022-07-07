@@ -20,6 +20,8 @@ to the call to function `npatk(...)`:
 
 `make_symmetric`: Makes a symbolic matrix symmetric, by inferring equality constraints and applying them.
 
+`probability_table`: Calculates the coefficients of all implied outcomes from the moment matrix.
+
 `release`: Frees the internally-stored object at the supplied key.
 
 `version`: Returns the version of this software.

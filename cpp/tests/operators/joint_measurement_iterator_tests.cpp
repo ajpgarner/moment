@@ -62,8 +62,8 @@ namespace NPATK::Tests {
     }
 
     namespace {
-        void testOutcomeIter(const JointMeasurementIterator::OutcomeIndexIterator& iter,
-                             const JointMeasurementIterator::OutcomeIndexIterator &iter_end,
+        void testOutcomeIter(const OutcomeIndexIterator& iter,
+                             const OutcomeIndexIterator &iter_end,
                              const std::vector<size_t> &expectedIndices, const std::vector<bool> &expectedImpl) {
             const size_t vecSize = expectedIndices.size();
 
@@ -103,6 +103,41 @@ namespace NPATK::Tests {
 
         auto outcomeIter = mmIter.begin_outcomes();
         const auto outcomeIterEnd = mmIter.end_outcomes();
+        testOutcomeIter(outcomeIter, outcomeIterEnd, {0, 0}, {false, false});
+        EXPECT_EQ(outcomeIter.explicit_outcome_index(), 0);
+
+        ++outcomeIter;
+        testOutcomeIter(outcomeIter, outcomeIterEnd, {0, 1}, {false, true});
+
+        ++outcomeIter;
+        testOutcomeIter(outcomeIter, outcomeIterEnd, {1, 0}, {true, false});
+
+        ++outcomeIter;
+        testOutcomeIter(outcomeIter, outcomeIterEnd, {1, 1}, {true, true});
+
+        ++outcomeIter;
+        EXPECT_EQ(outcomeIter, outcomeIterEnd);
+    }
+
+
+    TEST(JointMeasurementIterator, OutcomeIteratorAlternativeConstruction) {
+        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 1, 2));
+        ASSERT_EQ(contextPtr->Parties.size(), 2);
+        const auto &alice = contextPtr->Parties[0];
+        const auto &bob = contextPtr->Parties[1];
+
+
+        std::vector<PMIndex> pmList;
+        pmList.emplace_back(PMIndex{static_cast<party_name_t>(0),
+                                    static_cast<mmt_name_t>(0),
+                                    static_cast<mmt_name_t>(0)});
+        pmList.emplace_back(PMIndex{static_cast<party_name_t>(1),
+                                    static_cast<mmt_name_t>(0),
+                                    static_cast<mmt_name_t>(1)});
+
+        auto outcomeIter = OutcomeIndexIterator{*contextPtr, pmList};
+        const auto outcomeIterEnd = OutcomeIndexIterator{*contextPtr, pmList, true};
+
         testOutcomeIter(outcomeIter, outcomeIterEnd, {0, 0}, {false, false});
         EXPECT_EQ(outcomeIter.explicit_outcome_index(), 0);
 

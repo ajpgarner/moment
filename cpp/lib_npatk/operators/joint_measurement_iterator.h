@@ -16,51 +16,9 @@
 
 namespace NPATK {
 
-/**
- * Iterate over combinations of measurements, from specified parties
- */
-struct JointMeasurementIterator {
-public:
-    using mmt_iter_t = std::vector<Measurement>::const_iterator;
+    class JointMeasurementIterator;
 
-    class OpSeqIterator {
-    public:
-        using iterator_category = std::input_iterator_tag;
-        using difference_type = ptrdiff_t;
-        using value_type = OperatorSequence;
-
-    private:
-
-        const JointMeasurementIterator * mmIter;
-        MultiDimensionalIndexIterator indexIter;
-
-    public:
-        explicit OpSeqIterator(const JointMeasurementIterator& mmIter, bool end = false);
-
-        OpSeqIterator& operator++() noexcept {
-            ++indexIter;
-            return *this;
-        }
-
-        [[nodiscard]] OpSeqIterator operator++(int) & noexcept {
-            OpSeqIterator copy{*this};
-            ++(*this);
-            return copy;
-        }
-
-        [[nodiscard]] OperatorSequence operator*() const;
-
-        [[nodiscard]] bool operator==(const OpSeqIterator& rhs)  const noexcept {
-            assert(this->mmIter == rhs.mmIter);
-            return this->indexIter == rhs.indexIter;
-        }
-
-        [[nodiscard]] bool operator!=(const OpSeqIterator& rhs)  const noexcept {
-            assert(this->mmIter == rhs.mmIter);
-            return this->indexIter != rhs.indexIter;
-        }
-    };
-
+    /** Iterate over measurement outcomes */
     class OutcomeIndexIterator {
     public:
         using iterator_category = std::input_iterator_tag;
@@ -68,13 +26,15 @@ public:
         using value_type = MultiDimensionalIndexIterator::value_type;
 
     private:
-        const JointMeasurementIterator * mmIter;
         MultiDimensionalIndexIterator indexIter;
         std::vector<bool> is_implicit;
         size_t num_implicit = 0;
         size_t operNumber = 0;
 
     public:
+        explicit OutcomeIndexIterator(const Context& context, std::span<const PMIndex> global_mmt_indices,
+                                      bool end = false);
+
         explicit OutcomeIndexIterator(const JointMeasurementIterator& mmIter, bool end = false);
 
         OutcomeIndexIterator& operator++() noexcept;
@@ -124,17 +84,61 @@ public:
         }
 
         [[nodiscard]] bool operator==(const OutcomeIndexIterator& rhs) const noexcept {
-            assert(this->mmIter == rhs.mmIter);
             return this->indexIter == rhs.indexIter;
         }
 
         [[nodiscard]] bool operator!=(const OutcomeIndexIterator& rhs) const noexcept {
-            assert(this->mmIter == rhs.mmIter);
             return this->indexIter != rhs.indexIter;
         }
 
     private:
         void check_implicit();
+    };
+
+
+    /**
+ * Iterate over combinations of measurements, from specified parties
+ */
+struct JointMeasurementIterator {
+public:
+    using mmt_iter_t = std::vector<Measurement>::const_iterator;
+
+    class OpSeqIterator {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using difference_type = ptrdiff_t;
+        using value_type = OperatorSequence;
+
+    private:
+
+        const JointMeasurementIterator * mmIter;
+        MultiDimensionalIndexIterator indexIter;
+
+    public:
+        explicit OpSeqIterator(const JointMeasurementIterator& mmIter, bool end = false);
+
+        OpSeqIterator& operator++() noexcept {
+            ++indexIter;
+            return *this;
+        }
+
+        [[nodiscard]] OpSeqIterator operator++(int) & noexcept {
+            OpSeqIterator copy{*this};
+            ++(*this);
+            return copy;
+        }
+
+        [[nodiscard]] OperatorSequence operator*() const;
+
+        [[nodiscard]] bool operator==(const OpSeqIterator& rhs)  const noexcept {
+            assert(this->mmIter == rhs.mmIter);
+            return this->indexIter == rhs.indexIter;
+        }
+
+        [[nodiscard]] bool operator!=(const OpSeqIterator& rhs)  const noexcept {
+            assert(this->mmIter == rhs.mmIter);
+            return this->indexIter != rhs.indexIter;
+        }
     };
 
     static_assert(std::input_iterator<OpSeqIterator>);

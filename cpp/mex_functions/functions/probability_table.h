@@ -1,5 +1,5 @@
 /**
- * implied_symbols.h
+ * probability_table.h
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
@@ -9,18 +9,18 @@
 
 namespace NPATK::mex::functions {
 
-    struct ImpliedSymbolsParams : public SortedInputs {
+    struct ProbabilityTableParams : public SortedInputs {
     public:
         /** The reference to the moment matrix, if one is requested */
         uint64_t moment_matrix_key = 0;
 
     public:
-        explicit ImpliedSymbolsParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
+        explicit ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
     };
 
-    class ImpliedSymbols : public MexFunction {
+    class ProbabilityTable : public MexFunction {
     public:
-        explicit ImpliedSymbols(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
+        explicit ProbabilityTable(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
