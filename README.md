@@ -38,7 +38,10 @@ to the call to function `npatk(...)`:
 `\cpp\lib_npatk\operators`: Aspects of `lib_npatk` specifically concerned with Hermitian operator manipulation, moment
  matrices and the like.
 
-`\cpp\lib_npatk\operators`: Aspects of `lib_npatk` specifically concerned with simplification of symbolic expressions.
+`\cpp\lib_npatk\symbolic`: Aspects of `lib_npatk` specifically concerned with simplification of symbolic expressions.
+
+`\cpp\lib_npatk\utilities`: General boilerplate code for `lib_npatk`, not entirely specific to the manipulation of 
+SDP hierarchies.
 
 `\cpp\mex_functions`: Source root for MATLAB code (i.e. building `npatk` mex function).
 
