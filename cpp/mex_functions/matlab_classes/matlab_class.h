@@ -32,6 +32,55 @@ namespace NPATK::mex {
 
     namespace classes {
 
+        class DataSource {
+        protected:
+            matlab::engine::MATLABEngine& engine;
+
+        public:
+            explicit DataSource(matlab::engine::MATLABEngine &engine) : engine{engine} { }
+
+            virtual ~DataSource() = default;
+
+            [[nodiscard]] virtual matlab::data::Array get_property(const std::string &propertyName) = 0;
+
+            [[nodiscard]] virtual bool is_a(const std::string& className) const = 0;
+
+            [[nodiscard]] virtual bool has_class_type() const = 0;
+        };
+
+        class OwningArraySource : public DataSource {
+            matlab::data::Array raw_data;
+
+        public:
+            explicit OwningArraySource(matlab::engine::MATLABEngine &engine, matlab::data::Array data)
+                : DataSource(engine), raw_data(std::move(data)) { }
+
+            [[nodiscard]] matlab::data::Array get_property(const std::string &propertyName) override;
+
+            [[nodiscard]] bool is_a(const std::string& className) const override;
+
+            [[nodiscard]] bool has_class_type() const override;
+        };
+
+
+        class IndexedRefSource : public DataSource {
+            matlab::data::Array& raw_data_ref;
+            const size_t data_index;
+
+        public:
+            IndexedRefSource(matlab::engine::MATLABEngine& engine, matlab::data::Array& array, size_t index)
+                : DataSource{engine}, raw_data_ref{array}, data_index{index} {
+
+            }
+
+            [[nodiscard]] matlab::data::Array get_property(const std::string &propertyName) override;
+
+            [[nodiscard]] bool is_a(const std::string& className) const override;
+
+            [[nodiscard]] bool has_class_type() const override;
+        };
+
+
         class MATLABClass {
         public:
             using ArrayOrReason = std::variant<matlab::data::Array, std::string>;
@@ -39,17 +88,31 @@ namespace NPATK::mex {
 
         protected:
             matlab::engine::MATLABEngine &engine;
-            matlab::data::Array raw_data;
+
+            std::unique_ptr<DataSource> data_source;
+
             FieldTypeMap fields;
 
         public:
             const std::string className;
-            const size_t num_elements = 0;
 
+        private:
+            MATLABClass(matlab::engine::MATLABEngine &engine,
+                        std::string the_name,
+                        FieldTypeMap &&fields,
+                        std::unique_ptr<DataSource> src);
+
+        public:
             MATLABClass(matlab::engine::MATLABEngine &engine,
                         std::string the_name,
                         FieldTypeMap &&fields,
                         matlab::data::Array rawInput);
+
+            MATLABClass(matlab::engine::MATLABEngine &engine,
+                        std::string the_name,
+                        FieldTypeMap &&fields,
+                        matlab::data::Array& refInput,
+                        size_t dataIndex);
 
             [[nodiscard]] matlab::data::Array property(const std::string &propertyName);
 
@@ -72,38 +135,6 @@ namespace NPATK::mex {
                 return *(array.begin());
             }
 
-
-            [[nodiscard]] matlab::data::Array property(size_t index, const std::string &propertyName);
-
-            template<typename data_type>
-            [[nodiscard]] inline matlab::data::TypedArray<data_type> property_array(size_t index,
-                                                                                    const std::string &propertyName) {
-                return this->property(index, propertyName);
-            }
-
-            [[nodiscard]] inline matlab::data::StructArray property_struct(size_t index,
-                                                                           const std::string &propertyName) {
-                return this->property(index, propertyName);
-            }
-
-            template<typename data_type>
-            [[nodiscard]] inline data_type property_scalar(size_t index, const std::string &propertyName) {
-                auto array = this->property_array<data_type>(index, propertyName);
-                if (array.isEmpty()) {
-                    throw errors::bad_class_exception{this->className, std::string("Empty scalar property '")
-                                                                       + propertyName + "'"};
-                }
-                return *(array.begin());
-            }
-
-            [[nodiscard]] inline bool is_scalar() const noexcept {
-                return (this->num_elements == 1);
-            };
-
-            [[nodiscard]] inline bool empty() const noexcept {
-                return (this->num_elements == 0);
-            };
-
             /**
              * Uses MATLAB's "isa" function to test if supplied object is a MATLAB class, or a handle to a class.
              * @param engine Reference to MATLAB engine.
@@ -113,7 +144,7 @@ namespace NPATK::mex {
              */
             [[nodiscard]] static std::pair<bool, std::optional<std::string>>
             verify_as_class_handle(matlab::engine::MATLABEngine &engine,
-                                   const matlab::data::Array &input, const std::string &className);
+                                   DataSource& input, const std::string &className);
 
             /**
              * Test if class has property of supplied type, and retrieve property it if it does.
@@ -124,30 +155,11 @@ namespace NPATK::mex {
              * @return The array, or a reason why it cannot be accessed.
              */
             [[nodiscard]] static ArrayOrReason verify_class_property(matlab::engine::MATLABEngine &engine,
-                                                                     const matlab::data::Array &input,
+                                                                     DataSource& input,
                                                                      const std::string &propertyName,
                                                                      matlab::data::ArrayType type);
-
-            /**
-             * Test if class has property of supplied type at requested index, and retrieve property it if it does.
-             * @param engine Reference to MATLAB engine.
-             * @param input  The class object to test.
-             * @param propertyName The name of the property to find.
-             * @param type The type that the property should have.
-             * @return The array, or a reason why it cannot be accessed.
-             */
-            [[nodiscard]] static ArrayOrReason verify_class_property(matlab::engine::MATLABEngine &engine,
-                                                                     const matlab::data::Array &input,
-                                                                     size_t index,
-                                                                     const std::string &propertyName,
-                                                                     matlab::data::ArrayType type);
-
-
         };
 
-        [[nodiscard]] std::pair<bool, std::optional<std::string>>
-        verify_struct(matlab::engine::MATLABEngine &engine,
-                      const matlab::data::Array &input, const std::vector<std::string> &field_names);
     }
 }
 

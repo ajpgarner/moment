@@ -11,6 +11,7 @@ classdef MomentMatrix  < handle
         basis_im       
         sparse_basis_real
         sparse_basis_im
+        probability_table
     end
     
     properties(SetAccess = protected, GetAccess = public)
@@ -23,6 +24,7 @@ classdef MomentMatrix  < handle
     end
     
     methods
+        %% Constructor
         function obj = MomentMatrix(settingParams, level)
             arguments
                 settingParams
@@ -61,17 +63,19 @@ classdef MomentMatrix  < handle
             
         end
         
+        %% Destructor
         function delete(obj)
             if obj.RefId ~= 0
                 try
                     npatk('release', 'moment_matrix', obj.RefId);
                 catch ME
-                    fprintf(2, "Error while deleting MomentMatrix: %s\n", ...
+                    fprintf(2, "Error deleting MomentMatrix: %s\n", ...
                         ME.message);
                 end
             end
         end
         
+        %% Accessors for matrix representations
         function matrix = SymbolMatrix(obj)
             % Defer copy of matrix until requested...
             if (isempty(obj.symbol_matrix))
@@ -90,8 +94,24 @@ classdef MomentMatrix  < handle
             end
             matrix = obj.sequence_matrix;
         end
-               
-        function [re, im] = DenseBasis(obj)            
+        
+        %% Accessors for probability table
+        function p_table = ProbabilityTable(obj)
+            % PROBABILITYTABLE A struct-array indicating how each 
+            %   measurement outcome can be expressed in terms of real
+            %   basis elements (including implied probabilities that do not
+            %   directly exist as operators in the moment matrix).
+            if (isempty(obj.probability_table))
+                obj.probability_table = npatk('probability_table', obj);
+            end
+            p_table = obj.probability_table;
+        end
+            
+            
+           
+        %% Accessors for basis in various forms       
+        function [re, im] = DenseBasis(obj)
+            % DENSEBASIS Get the basis as a cell array of dense matrices.
             if (isempty(obj.basis_real) || isempty(obj.basis_im))
                 [obj.basis_real, obj.basis_im] = ...
                     npatk('generate_basis', obj, 'hermitian', 'dense');
@@ -102,7 +122,9 @@ classdef MomentMatrix  < handle
         end
         
         function [re, im] = SparseBasis(obj)
-            if (isempty(obj.sparse_basis_real) || isempty(obj.sparse_basis_im))
+            % SPARSEBASIS Get the basis as a cell array of sparse matrices.
+            if (isempty(obj.sparse_basis_real) ...
+                || isempty(obj.sparse_basis_im))
                 [obj.sparse_basis_real, obj.sparse_basis_im] = ...
                     npatk('generate_basis', obj, 'hermitian', 'sparse');
             end
@@ -111,7 +133,10 @@ classdef MomentMatrix  < handle
             im = obj.sparse_basis_im;
         end 
               
-        function [re, im] = MonolithicBasis(obj, sparse)            
+        function [re, im] = MonolithicBasis(obj, sparse) 
+            % MONOLITHICBASIS Return the basis as a pair of partially-
+            %   flattened matrices, such that each row represents one basis 
+            %   element, with length of Dimension*Dimension.
             arguments
                 obj
                 sparse (1,1) logical = true
@@ -129,8 +154,11 @@ classdef MomentMatrix  < handle
             
             re = obj.mono_basis_real;
             im = obj.mono_basis_im;
-        end
-        
+        end        
+    end
+    
+    %% CVX Methods
+    methods
         function [out_a, out_b, out_M] = cvxHermitianBasis(obj)
             % Get handle to CVX problem
             cvx_problem = evalin( 'caller', 'cvx_problem', '[]' );

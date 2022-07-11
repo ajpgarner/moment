@@ -35,8 +35,8 @@ classdef Party < handle
                 obj.RawOperators = uint64(0);
             end
             
-            % Prepare (empty) measurement struct
-            obj.Measurements = struct('name', {}, 'num_outcomes', {});
+            % Prepare (empty) measurement array
+            obj.Measurements = Measurement.empty;
         end
         
         function AddMeasurement(this, num_outcomes, name)
@@ -47,13 +47,14 @@ classdef Party < handle
             end
             
             % Automatically name, if non supplied
-            if nargin < 3
-                next_id = length(this.Measurements)+1;
+            next_id = length(this.Measurements)+1;
+            if nargin < 3                
                 name = alphabetic_index(next_id, false);
             end
                 
-            this.Measurements(end+1) = struct('name', string(name), ...
-                                             'num_outcomes', num_outcomes);
+            this.Measurements(end+1) = Measurement(next_id, ...
+                                                   string(name), ...
+                                                   num_outcomes);
         end
     end
 end
