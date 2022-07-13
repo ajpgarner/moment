@@ -42,7 +42,7 @@ namespace NPATK::mex {
 
                 // Add zero entry at front
                 this->output_array[write_index]["sequence"] = factory.createScalar("0");
-                this->output_array[write_index]["indices"] = factory.createArray<uint64_t>({3, 0});
+                this->output_array[write_index]["indices"] = factory.createArray<uint64_t>({0, 3});
                 this->output_array[write_index]["real_coefficients"] = make_zero_sparse_matrix<double>(engine,
                                                                                              {1, real_symbol_count});
                 ++write_index;
@@ -50,11 +50,13 @@ namespace NPATK::mex {
 
             void operator()(const std::span<const ImplicitSymbols::PMODefinition> symbols,
                             const std::span<const PMIndex> indices) {
+
+                const size_t index_depth = indices.size();
                 // Special case {} = ID
                 if (indices.empty()) {
                     [[unlikely]]
                     this->output_array[write_index]["sequence"] = factory.createScalar("1");
-                    this->output_array[write_index]["indices"] = factory.createArray<uint64_t>({3, 0});
+                    this->output_array[write_index]["indices"] = factory.createArray<uint64_t>({0, 3});
                     this->output_array[write_index]["real_coefficients"] = to_sparse_array(SymbolCombo{{1, 1.}});
                     ++write_index;
                     return;
@@ -62,15 +64,15 @@ namespace NPATK::mex {
 
                 // First, create PMx indices
                 std::vector<PMOIndex> indicesWithOutcomes;
-                std::vector<uint64_t> entryIndices;
-                entryIndices.reserve(indices.size() * 3);
-                for (auto index : indices) {
-                    indicesWithOutcomes.emplace_back(index, 0);
-                    entryIndices.emplace_back(index.party + 1);
-                    entryIndices.emplace_back(index.mmt + 1);
-                    entryIndices.emplace_back(0); // Will overwrite later...
+                std::vector<uint64_t> entryIndices(index_depth * 3, 0);
+
+                for (size_t i = 0; i < index_depth; ++i) {
+                    indicesWithOutcomes.emplace_back(indices[i], 0);
+
+                    entryIndices[i] = indices[i].party + 1; // matlab 1-indexing
+                    entryIndices[index_depth + i] = indices[i].mmt + 1; // matlab 1-indexing
                 }
-                const matlab::data::ArrayDimensions indexArrayDim{3, indices.size()};
+                const matlab::data::ArrayDimensions indexArrayDim{indices.size(), 3};
 
                 // Create iterator for reading out indices..
                 OutcomeIndexIterator outputIndexIter{context, indices};
@@ -81,7 +83,7 @@ namespace NPATK::mex {
                     const auto& outcomes = *outputIndexIter;
                     assert(outcomes.size() == indices.size());
                     for (size_t n = 0; n < outcomes.size(); ++n) {
-                        entryIndices[(3*n) + 2] = static_cast<uint64_t>(outcomes[n] + 1);
+                        entryIndices[2*index_depth + n] = static_cast<uint64_t>(outcomes[n] + 1); // matlab 1-indexing
                         indicesWithOutcomes[n].outcome = outcomes[n];
                     }
 
