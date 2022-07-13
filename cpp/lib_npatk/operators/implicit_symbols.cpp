@@ -218,7 +218,7 @@ namespace NPATK {
         return num_outcomes;
     }
 
-    std::span<const ImplicitSymbols::PMODefinition> ImplicitSymbols::get(const std::span<const size_t> mmtIndex) const {
+    std::span<const PMODefinition> ImplicitSymbols::get(const std::span<const size_t> mmtIndex) const {
         if (mmtIndex.size() > this->MaxSequenceLength) {
             throw errors::bad_implicit_symbol("Cannot look up sequences longer than the max sequence length.");
         }
@@ -229,6 +229,40 @@ namespace NPATK {
         }
         assert(last <= tableData.size());
         return {tableData.begin() + first, static_cast<size_t>(last - first)};
+    }
+
+    const PMODefinition& ImplicitSymbols::get(std::span<const PMOIndex> lookup_indices) const {
+        // First, PMO index to global index to look up by measurement
+        std::vector<size_t> globalIndices;
+        for (const auto& index : lookup_indices) {
+            globalIndices.emplace_back(context.get_global_mmt_index(index));
+        }
+
+        // Get span of data for this measurement
+        auto defsForMmt = this->get(globalIndices);
+        if (defsForMmt.empty()) {
+            throw errors::bad_implicit_symbol("Could not find implicit symbols for supplied measurement");
+        }
+
+        // If {} requested, return only entry...
+        if (lookup_indices.empty()) {
+            return defsForMmt[0];
+        }
+
+        // Otherwise, now find the requested outcome
+        size_t the_offset = 0;
+        size_t current_stride = 1;
+        for (size_t i = 0; i < lookup_indices.size(); ++i) {
+            const size_t inv_index = lookup_indices.size() - i - 1;
+            const auto& index = lookup_indices[inv_index];
+            the_offset += (current_stride * index.outcome);
+            current_stride *= this->context.Parties[index.party].Measurements[index.mmt].num_outcomes;
+        }
+        assert(the_offset < defsForMmt.size());
+        assert(current_stride == defsForMmt.size());
+
+        return defsForMmt[the_offset];
+
     }
 
 

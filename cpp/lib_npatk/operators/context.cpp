@@ -183,4 +183,13 @@ namespace NPATK {
         return PMIndex{party_id, mmt_id, static_cast<mmt_name_t>(global_index)};
     }
 
+    void Context::get_global_mmt_index(std::vector<PMIndex> &pm_index) const noexcept {
+        for (auto& pm : pm_index) {
+            assert (pm.party < this->parties.size());
+            assert (pm.mmt < this->parties[pm.party].measurements.size());
+            pm.global_mmt = static_cast<mmt_name_t>(this->parties[pm.party].global_mmt_offset + pm.mmt);
+        }
+    }
+
+
 }

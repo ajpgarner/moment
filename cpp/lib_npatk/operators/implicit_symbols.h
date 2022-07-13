@@ -6,6 +6,7 @@
 #pragma once
 #include "symbolic/symbol.h"
 #include "symbolic/linear_combo.h"
+#include "measurement.h"
 #include "joint_measurement_index.h"
 
 #include <vector>
@@ -25,19 +26,21 @@ namespace NPATK {
         };
     }
 
+    /** Definition of an implied symbol */
+    struct PMODefinition {
+        symbol_name_t symbol_id = 0;
+        SymbolCombo expression{};
+
+    public:
+        constexpr PMODefinition(symbol_name_t symbol_id, SymbolCombo expr)
+                : symbol_id{symbol_id}, expression(std::move(expr)) { }
+    };
+
     /**
      * Calculate the 'missing' marginals/probabilities from the Gisin form.
      */
     class ImplicitSymbols {
     public:
-        struct PMODefinition {
-            symbol_name_t symbol_id = 0;
-            SymbolCombo expression{};
-
-        public:
-            constexpr PMODefinition(symbol_name_t symbol_id, SymbolCombo expr)
-                : symbol_id{symbol_id}, expression(std::move(expr)) { }
-        };
 
     public:
         const size_t MaxSequenceLength;
@@ -66,6 +69,9 @@ namespace NPATK {
             std::vector<size_t> v{mmtIndex};
             return this->get({v.begin(), v.size()});
         }
+
+
+        [[nodiscard]] const PMODefinition& get(std::span<const PMOIndex> lookup_indices) const;
 
         template<typename functor_t>
         void visit(functor_t& visitor) const {

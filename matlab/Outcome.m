@@ -1,9 +1,9 @@
 classdef Outcome < handle
     %OUTCOME Measurement outcome
     properties(SetAccess={?MomentMatrix}, GetAccess=public)
-        Id
+        Id        
     end
-    
+        
     methods
         function obj = Outcome(outcome_index)
             arguments

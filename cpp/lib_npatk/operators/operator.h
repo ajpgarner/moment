@@ -13,25 +13,6 @@ namespace NPATK {
 
     using party_name_t = int16_t;
 
-//    struct Party {
-//        party_name_t id;
-//
-//        constexpr explicit Party(party_name_t party_id) noexcept: id{party_id} {}
-//
-//        constexpr bool operator<(const Party &rhs) const noexcept {
-//            return this->id < rhs.id;
-//        }
-//
-//        constexpr bool operator==(const Party &rhs) const noexcept {
-//            return this->id == rhs.id;
-//        }
-//
-//        constexpr bool operator!=(const Party &rhs) const noexcept {
-//            return this->id != rhs.id;
-//        }
-//    };
-
-
     using oper_name_t = int64_t;
 
     struct Operator {

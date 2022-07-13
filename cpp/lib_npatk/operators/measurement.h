@@ -23,6 +23,11 @@ namespace NPATK {
         [[nodiscard]] constexpr uint64_t hash() const noexcept {
             return (static_cast<uint64_t>(this->party) << 48) + (static_cast<uint64_t>(this->mmt) << 32);
         }
+
+        PMIndex() = default;
+
+        PMIndex(party_name_t party, mmt_name_t mmt, mmt_name_t global_mmt = 0)
+            : party{party}, mmt{mmt}, global_mmt{global_mmt} { }
     };
 
     struct PMOIndex {

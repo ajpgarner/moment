@@ -15,3 +15,6 @@ disp(matrix.SequenceMatrix);
  
 p_table = matrix.ProbabilityTable;
 disp(struct2table(p_table))
+
+one_mmt = npatk('probability_table', matrix, [[2, 2]; [1, 2]]);
+disp(struct2table(one_mmt));

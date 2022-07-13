@@ -148,6 +148,17 @@ namespace NPATK {
         /** Converts global measurement index to Party, Measurement pair */
         [[nodiscard]] PMIndex global_index_to_PM(size_t global_index) const noexcept;
 
+        /** Gets global measurement index from PMO index */
+        [[nodiscard]] size_t get_global_mmt_index(const PMOIndex& pm_index) const noexcept {
+            assert (pm_index.party < this->parties.size());
+            const auto& party = this->parties[pm_index.party];
+            assert (pm_index.mmt < party.measurements.size());
+            return party.global_mmt_offset + pm_index.mmt;
+        }
+
+        /** Populates global index from party & measurements in pm_index */
+        void get_global_mmt_index(std::vector<PMIndex>& pm_index) const noexcept;
+
         /**
          * Adds party to context. Warning: might invalidate references/pointers to previous parties.
          * @param info The new party to add.

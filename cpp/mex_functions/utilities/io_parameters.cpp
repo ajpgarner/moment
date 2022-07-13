@@ -148,6 +148,28 @@ namespace NPATK::mex {
         }
     }
 
+
+    uint64_t SortedInputs::read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
+                                                 const std::string &paramName,
+                                                 const matlab::data::MATLABString &mlString,
+                                                 uint64_t min_value) {
+        try {
+            auto val = read_as_uint64(matlabEngine, mlString);
+            if (val < min_value) {
+                std::stringstream ss;
+                ss << paramName << " must have a value of at least "
+                   << min_value << ".";
+                throw errors::BadInput{errors::bad_param, ss.str()};
+            }
+            return val;
+
+        } catch (const errors::unreadable_scalar& use) {
+            std::stringstream ss;
+            ss << paramName << " could not be read: " << use.what();
+            throw errors::BadInput{use.errCode, ss.str()};
+        }
+    }
+
     std::string SortedInputs::to_string() const {
         std::stringstream ss;
         if (!this->flags.empty()) {
@@ -183,4 +205,5 @@ namespace NPATK::mex {
 
         return ss.str();
     }
+
 }

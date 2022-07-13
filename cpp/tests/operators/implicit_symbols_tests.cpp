@@ -12,7 +12,7 @@
 namespace NPATK::Tests {
 
     namespace {
-        void test2Mmt(std::span<const ImplicitSymbols::PMODefinition> spanA,
+        void test2Mmt(std::span<const PMODefinition> spanA,
                       symbol_name_t id, symbol_name_t alice,
                       const std::string& ctx = "") {
             ASSERT_FALSE(spanA.empty()) << ctx;
@@ -31,7 +31,7 @@ namespace NPATK::Tests {
             EXPECT_EQ(spanA[1].expression[1].second, -1.0) << ctx;
         }
 
-        void test3Mmt(std::span<const ImplicitSymbols::PMODefinition> spanA,
+        void test3Mmt(std::span<const PMODefinition> spanA,
                       symbol_name_t id, symbol_name_t a0, symbol_name_t a1,
                       const std::string& ctx = "") {
             ASSERT_FALSE(spanA.empty()) << ctx;
@@ -57,7 +57,7 @@ namespace NPATK::Tests {
             EXPECT_EQ(spanA[2].expression[2].second, -1.0) << ctx;
         }
 
-        void test22JoinMmt(std::span<const ImplicitSymbols::PMODefinition> spanAB,
+        void test22JoinMmt(std::span<const PMODefinition> spanAB,
                            symbol_name_t id,
                            symbol_name_t alice,
                            symbol_name_t bob,
@@ -96,7 +96,7 @@ namespace NPATK::Tests {
             EXPECT_EQ(spanAB[3].expression[3].second, 1.0) << ctx;
         }
 
-        void test32JoinMmt(std::span<const ImplicitSymbols::PMODefinition> spanAB,
+        void test32JoinMmt(std::span<const PMODefinition> spanAB,
                            symbol_name_t id,
                            symbol_name_t a0,
                            symbol_name_t a1,
@@ -162,7 +162,7 @@ namespace NPATK::Tests {
             EXPECT_EQ(spanAB[5].expression[5].second, 1.0) << ctx;
         }
 
-        void test222JoinMmt(std::span<const ImplicitSymbols::PMODefinition> spanABC,
+        void test222JoinMmt(std::span<const PMODefinition> spanABC,
                            symbol_name_t id,
                            symbol_name_t alice,
                            symbol_name_t bob,
@@ -279,6 +279,10 @@ namespace NPATK::Tests {
         EXPECT_EQ(one.symbol_id, 1);
         SymbolCombo oneCombo{{1,1.0}};
         EXPECT_EQ(one.expression, oneCombo);
+
+        const auto& getOne = implSym.get(std::vector<PMOIndex>{});
+        EXPECT_EQ(getOne.symbol_id, 1);
+        EXPECT_EQ(&getOne, &one);
     }
 
     TEST(ImplicitSymbols, OnePartyOneMmt) {
@@ -308,11 +312,13 @@ namespace NPATK::Tests {
         ASSERT_EQ(pmoSpan[0].expression.size(), 1);
         EXPECT_EQ(pmoSpan[0].expression[0].first, where_a0->Id());
         EXPECT_EQ(pmoSpan[0].expression[0].second, 1.0);
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,0}}), &pmoSpan[0]);
 
         EXPECT_EQ(pmoSpan[1].symbol_id, where_a1->Id());
         ASSERT_EQ(pmoSpan[1].expression.size(), 1);
         EXPECT_EQ(pmoSpan[1].expression[0].first, where_a1->Id());
         EXPECT_EQ(pmoSpan[1].expression[0].second, 1.0);
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,1}}), &pmoSpan[1]);
 
         EXPECT_EQ(pmoSpan[2].symbol_id, -1);
         ASSERT_EQ(pmoSpan[2].expression.size(), 3);
@@ -322,6 +328,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(pmoSpan[2].expression[1].second, -1.0);
         EXPECT_EQ(pmoSpan[2].expression[2].first, where_a1->Id());
         EXPECT_EQ(pmoSpan[2].expression[2].second, -1.0);
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,2}}), &pmoSpan[2]);
     }
 
     TEST(ImplicitSymbols, OnePartyTwoMmt) {
@@ -345,9 +352,13 @@ namespace NPATK::Tests {
 
         auto spanA = implSym.get({0});
         test2Mmt(spanA, 1, where_a0->Id(), "a0");
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,0}}), &spanA[0]);
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,1}}), &spanA[1]);
 
         auto spanB = implSym.get({1});
         test2Mmt(spanB, 1, where_b0->Id(), "b0");
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,1,0}}), &spanB[0]);
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,1,1}}), &spanB[1]);
     }
 
 
@@ -383,14 +394,22 @@ namespace NPATK::Tests {
         // Alice a
         auto spanA = implSym.get({0});
         test2Mmt(spanA, 1, where_a0->Id(), "a0");
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,0}}), &spanA[0]);
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,1}}), &spanA[1]);
 
         // Bob b
         auto spanB = implSym.get({1});
         test2Mmt(spanB, 1, where_b0->Id(), "b0");
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{1,0,0}}), &spanB[0]);
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{1,0,1}}), &spanB[1]);
 
         // Alice a, Bob b
         auto spanAB = implSym.get({0, 1});
         test22JoinMmt(spanAB, 1, where_a0->Id(), where_b0->Id(), where_alice_bob->Id(), "AB");
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,0}, PMOIndex{1,0,0}}), &spanAB[0]);
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,0}, PMOIndex{1,0,1}}), &spanAB[1]);
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,1}, PMOIndex{1,0,0}}), &spanAB[2]);
+        EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,1}, PMOIndex{1,0,1}}), &spanAB[3]);
     }
 
     TEST(ImplicitSymbols, CHSH) {

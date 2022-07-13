@@ -79,7 +79,7 @@ namespace NPATK::mex {
                     ss >> output;
                     return output;
                 } catch (errors::unreadable_scalar& urs) {
-                    throw std::move(urs); // rethrow
+                    throw; // rethrow
                 } catch (std::exception& e) {
                     throw errors::unreadable_scalar{errors::could_not_convert, "Could not convert string to integer."};
                 }
@@ -108,12 +108,73 @@ namespace NPATK::mex {
     }
 
 
+
+    uint64_t read_as_uint64(matlab::engine::MATLABEngine &engine, const matlab::data::MATLABString& str) {
+        if (!str.has_value()) {
+            throw errors::unreadable_scalar{errors::empty_array, "Unexpected empty string."};
+        }
+
+        try {
+            std::string utf8str = matlab::engine::convertUTF16StringToUTF8String(*str);
+
+            // Ensure string is not negative.
+            if (!utf8str.empty() && utf8str[0] == '-') {
+                throw errors::unreadable_scalar{errors::negative_value, "Value unexpectedly negative."};
+            }
+
+            // Read
+            std::stringstream ss{utf8str};
+            uint64_t output;
+            ss >> output;
+
+            return output;
+        } catch (errors::unreadable_scalar& urs) {
+            throw; // rethrow
+        } catch (std::exception& e) {
+            throw errors::unreadable_scalar{errors::could_not_convert, "Could not convert string to integer."};
+        }
+    }
+
+
+
+    int64_t read_as_int16(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return read_as<int16_t>(engine, input);
+    }
+
+    int64_t read_as_int16_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return read_as_or_fail<int16_t>(engine, input);
+    }
+
+    int64_t read_as_int32(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return read_as<int32_t>(engine, input);
+    }
+
+    int64_t read_as_int32_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return read_as_or_fail<int64_t>(engine, input);
+    }
+
     int64_t read_as_int64(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
         return read_as<int64_t>(engine, input);
     }
 
     int64_t read_as_int64_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
         return read_as_or_fail<int64_t>(engine, input);
+    }
+
+    uint64_t read_as_uint16(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return read_as<uint16_t>(engine, input);
+    }
+
+    uint64_t read_as_uint16_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return read_as_or_fail<uint16_t>(engine, input);
+    }
+
+    uint64_t read_as_uint32(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return read_as<uint32_t>(engine, input);
+    }
+
+    uint64_t read_as_uint32_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return read_as_or_fail<uint32_t>(engine, input);
     }
 
     uint64_t read_as_uint64(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {

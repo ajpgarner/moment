@@ -38,17 +38,33 @@ namespace NPATK::mex {
         };
     }
 
-    [[nodiscard]] int64_t read_as_int64(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] int64_t  read_as_int16(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] uint64_t read_as_uint16(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] int64_t  read_as_int32(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] uint64_t read_as_uint32(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] int64_t  read_as_int64(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
     [[nodiscard]] uint64_t read_as_uint64(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
 
+    [[nodiscard]] uint64_t read_as_uint64(matlab::engine::MATLABEngine& engine,
+                                          const matlab::data::MATLABString& input);
+
+    [[nodiscard]] int64_t  read_as_int16_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] uint64_t read_as_uint16_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] int64_t  read_as_int32_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] uint64_t read_as_uint32_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
     [[nodiscard]] int64_t  read_as_int64_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
     [[nodiscard]] uint64_t read_as_uint64_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+
+
+
 
     /**
      * True if the supplied type can be interpreted as a scalar integer.
      * @param input The matlab array object to test.
      */
     [[nodiscard]] bool castable_to_scalar_int(const matlab::data::Array& input);
+
+
 
 }
 
