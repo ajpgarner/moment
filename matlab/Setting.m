@@ -23,7 +23,12 @@ classdef Setting < handle
             end
         end
         
-        function AddParty(obj, name)            
+        function AddParty(obj, name)
+            arguments
+                obj (1,1) Setting
+                name (1,1) string
+            end
+            
             next_id = length(obj.Parties)+1;
             if nargin >=2
                 obj.Parties(end+1) = Party(next_id, name);
@@ -34,7 +39,7 @@ classdef Setting < handle
         
         function mm_out = MakeMomentMatrix(obj, depth, skip_bind)
             arguments
-                obj 
+                obj (1,1) Setting 
                 depth (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 skip_bind (1,1) logical = false
             end
@@ -43,6 +48,24 @@ classdef Setting < handle
                 obj.do_bind(obj.moment_matrix)
             end
             mm_out = obj.moment_matrix;
+        end        
+        
+        function item = get(obj, index)
+            arguments
+                obj (1,1) Setting
+                index (1,:) uint64
+            end
+            get_what = length(index);
+            switch get_what
+                case 1
+                    item = obj.Parties(index(1));
+                case 2
+                    item = obj.Parties(index(1)).Measurements(index(2));
+                case 3
+                    item = obj.Parties(index(1)).Measurements(index(2)).Outcomes(index(3));
+                otherwise
+                    error("Index should be [party], [party, mmt], or [party, mmt, outcome].");
+            end
         end
     end
     
@@ -54,7 +77,15 @@ classdef Setting < handle
              end
              p_table = mm.ProbabilityTable;
              for p_row = p_table
+                 seq_len = size(p_row.indices, 1);
+                 if seq_len == 0
+                     continue
+                 end
+                 leading_outcome = obj.get(p_row.indices(1,:));
                  
+                 if seq_len == 1
+                     leading_outcome.real_coefs = p_row.real_coefficients;
+                 end
              end
         end
     end

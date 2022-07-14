@@ -39,22 +39,22 @@ classdef Party < handle
             obj.Measurements = Measurement.empty;
         end
         
-        function AddMeasurement(this, num_outcomes, name)
+        function AddMeasurement(obj, num_outcomes, name)
             arguments
-                this Party                
+                obj Party                
                 num_outcomes (1,1) uint64 {mustBeInteger, mustBePositive}
                 name (1,1) string = ""
             end
             
             % Automatically name, if non supplied
-            next_id = length(this.Measurements)+1;
+            next_id = length(obj.Measurements)+1;
             if nargin < 3                
                 name = alphabetic_index(next_id, false);
             end
                 
-            this.Measurements(end+1) = Measurement(next_id, ...
-                                                   string(name), ...
-                                                   num_outcomes);
+            obj.Measurements(end+1) = Measurement(obj.Id, next_id, ...
+                                                  string(name), ...
+                                                  num_outcomes);
         end
     end
 end
