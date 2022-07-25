@@ -66,7 +66,7 @@ classdef Setting < handle
                     error("Multiple indices must be in form" ...
                            + " [[partyA, mmtA, outcomeA]; ... ].");
                 end
-                index = sort(index);
+                index = sortrows(index);
                 leading_item = obj.Parties(index(1, 1)).Measurements(index(1, 2)).Outcomes(index(1, 3));
                 item = leading_item.JointOutcome(index);
             else            

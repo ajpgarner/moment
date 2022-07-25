@@ -8,6 +8,7 @@ classdef JointOutcome < handle
     
     properties(Access={?Setting})
         real_coefs
+        setting
     end
     
     methods
@@ -19,6 +20,7 @@ classdef JointOutcome < handle
              end
             
             % Save indices that define this joint mmt outcome
+            obj.setting = setting;
             obj.Indices = indices;
             num_mmts = size(obj.Indices, 1);
             if num_mmts < 2
@@ -32,7 +34,7 @@ classdef JointOutcome < handle
             end
         end
         
-         function rv = Coefficients(obj)
+        function rv = Coefficients(obj)
             arguments
                 obj (1,1) JointOutcome
             end
@@ -43,6 +45,41 @@ classdef JointOutcome < handle
             
             rv = obj.real_coefs;
         end
+        
+        function joint_item = mtimes(objA, objB)
+            arguments
+                objA (1,1) JointOutcome
+                objB (1,1) {mustBeOutcomeOrJointOutcome}
+            end
+            
+            if isa(objB, 'JointOutcome')
+                if ~isempty(intersect(objA.Indices(:,1), ...
+                                      objB.Indices(:,1)))
+                    error("_*_ can only be used to form joint "...
+                          + "probability outcomes (i.e. all outcomes "...
+                          + "must be from different parties).");
+                end
+                
+                % TODO: Multiparty check
+                indices = sortrows(vertcat(objA.Indices, objB.Indices));
+            else
+                if ismember(objB.Index(1), objA.Indices(:,1))
+                    error("_*_ can only be used to form joint "...
+                          + "probability outcomes (i.e. all outcomes "...
+                          + "must be from different parties).");
+                end
+                indices = sortrows(vertcat(objA.Indices, objB.Index));
+            end            
+            joint_item = objA.setting.get(indices);
+        end
     end
 end
 
+%% Private functions
+function mustBeOutcomeOrJointOutcome(a)
+    if ~(isa(a, 'Outcome') || isa(a, 'JointOutcome'))
+        eid = 'mustBeOutcomeOrJointOutcome:isNot';
+        emsg = 'Input must be Outcome or JointOutcome.';
+        throwAsCaller(MException(eid, emsg))
+    end
+end

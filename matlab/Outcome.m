@@ -3,10 +3,11 @@ classdef Outcome < handle
     properties(SetAccess={?Setting}, GetAccess=public)
         Id
         Index
+        joint_outcomes
     end
     
     properties(Access={?Setting})
-        joint_outcomes
+        
         real_coefs        
     end
     
@@ -32,6 +33,32 @@ classdef Outcome < handle
             obj.joint_outcomes = struct('indices', {}, 'outcome', {});
         end
         
+        function joint_item = mtimes(objA, objB)
+            arguments
+                objA (1,1) Outcome
+                objB (1,1) {mustBeOutcomeOrJointOutcome}
+            end
+            
+            if isa(objB, 'JointOutcome')
+                if ismember(objA.Index(1), objB.Indices(:,1))
+                    error("_*_ can only be used to form joint "...
+                          + "probability outcomes (i.e. outcomes must "...
+                          + "be from different parties).");
+                end
+                
+                indices = sortrows(vertcat(objA.Index, objB.Indices));
+            else
+                if objA.Index(1) == objB.Index(1)
+                    error("_*_ can only be used to form joint "...
+                          + "probability outcomes (i.e. outcomes must "...
+                          + "be from different parties).");
+                end
+                
+                indices = sortrows(vertcat(objA.Index, objB.Index));
+            end
+            joint_item = objA.JointOutcome(indices);
+        end
+        
         function rv = Coefficients(obj)
             arguments
                 obj (1,1) Outcome
@@ -54,7 +81,14 @@ classdef Outcome < handle
             end
             item = obj.joint_outcomes(table_index).outcome;
         end
+    end    
+end
+
+%% Private functions
+function mustBeOutcomeOrJointOutcome(a)
+    if ~(isa(a, 'Outcome') || isa(a, 'JointOutcome'))
+        eid = 'mustBeOutcomeOrJointOutcome:isNot';
+        emsg = 'Input must be Outcome or JointOutcome.';
+        throwAsCaller(MException(eid, emsg))
     end
-    
-    
 end
