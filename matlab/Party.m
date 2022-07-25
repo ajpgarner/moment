@@ -9,27 +9,35 @@ classdef Party < handle
         Measurements
     end
     
-    methods
-        function obj = Party(id, name, raw)
+    properties(Access=private)
+        setting
+    end
+        
+    methods(Access={?Setting})
+        function obj = Party(setting, id, name, raw)
             arguments
+                setting (1,1) Setting
                 id (1,1) uint64 {mustBeInteger, mustBePositive}
                 name (1,1) string = ""
                 raw (1,1) uint64 {mustBeInteger, mustBeNonnegative} = 0
             end
             %PARTY Construct a party
             
+            % Link to a setting object
+            obj.setting = setting;
+            
             % Supply an index
             obj.Id = id;
             
             % Set name, or automatically generate one
-            if nargin >= 2            
+            if nargin >= 3            
                 obj.Name = string(name);
             else
                 obj.Name = string(alphabetic_index(obj.Id, true));
             end
             
             % Add operators that are not grouped in a measurement, if any
-            if nargin >= 3
+            if nargin >= 4
                 obj.RawOperators = uint64(raw);
             else
                 obj.RawOperators = uint64(0);
@@ -38,7 +46,9 @@ classdef Party < handle
             % Prepare (empty) measurement array
             obj.Measurements = Measurement.empty;
         end
-        
+    end
+    
+    methods
         function AddMeasurement(obj, num_outcomes, name)
             arguments
                 obj Party                
@@ -52,7 +62,8 @@ classdef Party < handle
                 name = alphabetic_index(next_id, false);
             end
                 
-            obj.Measurements(end+1) = Measurement(obj.Id, next_id, ...
+            obj.Measurements(end+1) = Measurement(obj.setting, ...
+                                                  obj.Id, next_id, ...
                                                   string(name), ...
                                                   num_outcomes);
         end

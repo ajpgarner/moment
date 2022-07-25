@@ -8,15 +8,22 @@ classdef Measurement < handle
         Outcomes
     end
     
+    properties(Access=private)
+        setting
+    end
+    
     methods
-        function obj = Measurement(party_index, mmt_index, name, num_outcomes)
+        function obj = Measurement(setting, party_index, mmt_index, ...
+                                   name, num_outcomes)
             %MEASUREMENT Construct an instance of this class
             arguments
+                setting (1,1) Setting
                 party_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 mmt_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 name (1,1) string
                 num_outcomes (1,1) uint64 {mustBeInteger, mustBeNonnegative}
             end
+            obj.setting = setting;
             
             obj.Id = mmt_index;
             obj.Index = uint64([party_index, mmt_index]);
@@ -25,7 +32,8 @@ classdef Measurement < handle
             % Construct outcomes
             obj.Outcomes = Outcome.empty;
             for x = 1:num_outcomes
-                obj.Outcomes(end+1) = Outcome(obj.Index(1), ...
+                obj.Outcomes(end+1) = Outcome(obj.setting, ...
+                                              obj.Index(1), ...
                                               obj.Index(2), uint64(x));
             end
         end

@@ -15,3 +15,5 @@ disp(matrix.SequenceMatrix);
  
 p_table = matrix.ProbabilityTable;
 disp(struct2table(p_table))
+
+a22b22 = chsh.get([[1, 2, 2]; [2, 2, 2]]);
