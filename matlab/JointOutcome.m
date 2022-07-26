@@ -1,16 +1,12 @@
-classdef JointOutcome < handle
+classdef JointOutcome < handle & RealObject
     %JOINTOUTCOME Product of two or more outcomes
     
     properties(SetAccess=private, GetAccess=public)
         Constituents
         Indices
-        Setting
     end
     
-    properties(Access={?Setting})
-        real_coefs
-    end
-    
+    %% Public methods
     methods
         function obj = JointOutcome(setting, indices)
             %JOINTOUTCOME Construct an instance of this class
@@ -19,8 +15,10 @@ classdef JointOutcome < handle
                 indices (:,3) uint64 {mustBeInteger, mustBeNonnegative}
              end
             
+            % Superclass c'tor
+            obj = obj@RealObject(setting);
+            
             % Save indices that define this joint mmt outcome
-            obj.Setting = setting;
             obj.Indices = indices;
             num_mmts = size(obj.Indices, 1);
             if num_mmts < 2
@@ -34,29 +32,22 @@ classdef JointOutcome < handle
             end
         end
         
-        function rv = Coefficients(obj)
-            arguments
-                obj (1,1) JointOutcome
-            end
-            if isempty(obj.real_coefs)
-                error("JointOutcome was not associated with a " ...
-                      + "moment matrix.");
-            end
-            
-            rv = obj.real_coefs;
-        end
-        
         function joint_item = mtimes(objA, objB)
             arguments
-                objA (1,1) JointOutcome
-                objB (1,1) {mustBeOutcomeOrJointOutcome}
+                objA (1,1)
+                objB (1,1)
+            end
+                        
+            % Should only occur when A is a built-in object
+            if ~isa(objA, 'JointOutcome')
+                joint_item = mtimes@RealObject(objA, objB);
+                return
             end
             
-            if objA.Setting ~= objB.Setting
-                error("Can only combine objects from the same setting.");
-            end
-            
-            if isa(objB, 'JointOutcome')
+            if isa(objB, 'JointOutcome')                
+                if objA.Setting ~= objB.Setting
+                    error("Can only combine objects from the same setting.");
+                end
                 if ~isempty(intersect(objA.Indices(:,1), ...
                                       objB.Indices(:,1)))
                     error("_*_ can only be used to form joint "...
@@ -64,24 +55,22 @@ classdef JointOutcome < handle
                           + "must be from different parties).");
                 end
                 indices = sortrows(vertcat(objA.Indices, objB.Indices));
-            else
+                joint_item = objA.Setting.get(indices);
+            elseif isa(objB, 'Outcome')                
+                if objA.Setting ~= objB.Setting
+                    error("Can only combine objects from the same setting.");
+                end
                 if ismember(objB.Index(1), objA.Indices(:,1))
                     error("_*_ can only be used to form joint "...
                           + "probability outcomes (i.e. all outcomes "...
                           + "must be from different parties).");
                 end
                 indices = sortrows(vertcat(objA.Indices, objB.Index));
-            end            
-            joint_item = objA.Setting.get(indices);
+                joint_item = objA.Setting.get(indices);
+            else
+                % Fall back to superclass:~
+                joint_item = mtimes@RealObject(objA, objB);
+            end
         end
-    end
-end
-
-%% Private functions
-function mustBeOutcomeOrJointOutcome(a)
-    if ~(isa(a, 'Outcome') || isa(a, 'JointOutcome'))
-        eid = 'mustBeOutcomeOrJointOutcome:isNot';
-        emsg = 'Input must be Outcome or JointOutcome.';
-        throwAsCaller(MException(eid, emsg))
-    end
+    end  
 end

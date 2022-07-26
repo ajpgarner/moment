@@ -106,11 +106,11 @@ classdef Setting < handle
                  
                  if seq_len == 1
                      % Directly link co-efficients with outcome
-                     leading_outcome.real_coefs = p_row.real_coefficients;
+                     leading_outcome.setCoefficients(p_row.real_coefficients);
                  else
                      % Register co-effs as joint outcome
                      joint_outcome = JointOutcome(obj, p_row.indices);
-                     joint_outcome.real_coefs = p_row.real_coefficients;
+                     joint_outcome.setCoefficients(p_row.real_coefficients);
                      
                      leading_outcome.joint_outcomes(end+1).indices = ...
                          p_row.indices;

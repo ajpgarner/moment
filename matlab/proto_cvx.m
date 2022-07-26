@@ -21,6 +21,9 @@ Corr01 = Correlator(A0, B1);
 Corr10 = Correlator(A1, B0);
 Corr11 = Correlator(A1, B1);
 
+% Make CHSH object
+CHSH_ineq = Corr00 + Corr01 + Corr10 - Corr11;
+
 % Define and solve SDP
 cvx_begin sdp
      [a, b, M] = matrix.cvxHermitianBasis();
@@ -31,15 +34,14 @@ cvx_begin sdp
      % Positivity 
      M >= 0;
      
-     % Correlations
+     % Correlations (read only!)
      corr00 = Corr00.cvx(a);
      corr01 = Corr01.cvx(a);
      corr10 = Corr10.cvx(a);
      corr11 = Corr11.cvx(a);
              
      % CHSH inequality
-     expression chsh_ineq;
-     chsh_ineq = corr00 + corr01 + corr10 - corr11;        
+     chsh_ineq = CHSH_ineq.cvx(a);     
      maximize(chsh_ineq);
 cvx_end
 

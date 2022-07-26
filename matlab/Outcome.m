@@ -1,14 +1,12 @@
-classdef Outcome < handle
+classdef Outcome < handle & RealObject
     %OUTCOME Measurement outcome
     properties(SetAccess={?Setting}, GetAccess=public)
         Id
         Index       
-        Setting
     end
     
     properties(Access={?Setting})
-        joint_outcomes 
-        real_coefs        
+        joint_outcomes       
     end
     
     methods
@@ -20,26 +18,32 @@ classdef Outcome < handle
                 mmt_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 outcome_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
             end
-            obj.Setting = setting;
+            
+            % Superclass c'tor
+            obj = obj@RealObject(setting);
             
             obj.Id = outcome_index;
             obj.Index = uint64([party_index, mmt_index, outcome_index]);
            
-            obj.real_coefs = zeros(0,0);
             obj.joint_outcomes = struct('indices', {}, 'outcome', {});
         end
         
         function joint_item = mtimes(objA, objB)
             arguments
-                objA (1,1) Outcome
-                objB (1,1) {mustBeOutcomeOrJointOutcome}
+                objA (1,1)
+                objB (1,1)
             end
-                     
-            if objA.Setting ~= objB.Setting
-                error("Can only combine objects from the same setting.");
+            
+            % Should only occur when A is a built-in object
+            if ~isa(objA, 'Outcome')
+                joint_item = mtimes@RealObject(objA, objB);
+                return
             end
             
             if isa(objB, 'JointOutcome')
+                if objA.Setting ~= objB.Setting
+                    error("Can only combine objects from the same setting.");
+                end
                 if ismember(objA.Index(1), objB.Indices(:,1))
                     error("_*_ can only be used to form joint "...
                           + "probability outcomes (i.e. outcomes must "...
@@ -47,7 +51,11 @@ classdef Outcome < handle
                 end
                 
                 indices = sortrows(vertcat(objA.Index, objB.Indices));
-            else
+                joint_item = objA.JointOutcome(indices);
+            elseif isa(objB, 'Outcome')
+                if objA.Setting ~= objB.Setting
+                    error("Can only combine objects from the same setting.");
+                end
                 if objA.Index(1) == objB.Index(1)
                     error("_*_ can only be used to form joint "...
                           + "probability outcomes (i.e. outcomes must "...
@@ -55,23 +63,13 @@ classdef Outcome < handle
                 end
                 
                 indices = sortrows(vertcat(objA.Index, objB.Index));
-            end
-            joint_item = objA.JointOutcome(indices);
+                joint_item = objA.JointOutcome(indices);
+            else
+                % Fall back to superclass:~
+                joint_item = mtimes@RealObject(objA, objB);                
+            end         
         end
-        
-        function rv = Coefficients(obj)
-            arguments
-                obj (1,1) Outcome
-            end
-            % COEFFICIENTS  
-            if isempty(obj.real_coefs)
-                error("Outcome has not yet been associated with a " ...
-                      + "moment matrix.");
-            end
-            
-            rv = obj.real_coefs;
-        end
-        
+   
         function item = JointOutcome(obj, indices)
             table_index = find(arrayfun(@(s) ...
                               isequal(indices, s.indices), ...
@@ -82,13 +80,4 @@ classdef Outcome < handle
             item = obj.joint_outcomes(table_index).outcome;
         end
     end    
-end
-
-%% Private functions
-function mustBeOutcomeOrJointOutcome(a)
-    if ~(isa(a, 'Outcome') || isa(a, 'JointOutcome'))
-        eid = 'mustBeOutcomeOrJointOutcome:isNot';
-        emsg = 'Input must be Outcome or JointOutcome.';
-        throwAsCaller(MException(eid, emsg))
-    end
 end
