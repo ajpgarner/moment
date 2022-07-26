@@ -1,6 +1,5 @@
 classdef RealObject < handle
-    %REALOBJECT Summary of this class goes here
-    %   Detailed explanation goes here
+    %REALOBJECT Object linked to moment matrix real-coefficients.
     
     %% Properties
     properties(SetAccess=private, GetAccess=public)

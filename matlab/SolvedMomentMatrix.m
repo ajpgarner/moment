@@ -37,10 +37,23 @@ classdef SolvedMomentMatrix < handle
             end
             
             % Create symbol table
-            obj.SymbolTable = obj.makeTable();
+            obj.SymbolTable = obj.makeTable();            
+        end
+        
+        function val = Value(obj, thing)
+            arguments 
+                obj (1,1) SolvedMomentMatrix
+                thing (1,1) RealObject
+            end
             
-            % TODO: Create solved setting???
+            % Check coefficients exist
+            coefs = thing.Coefficients;
+            if isempty(coefs)
+                error("Could not obtain real coefficients associated with input.");
+            end
             
+            % Contract
+            val = coefs * obj.a;
         end
     end
     

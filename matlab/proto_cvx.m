@@ -33,17 +33,17 @@ cvx_begin sdp
      
      % Positivity 
      M >= 0;
-     
-     % Correlations (read only!)
-     corr00 = Corr00.cvx(a);
-     corr01 = Corr01.cvx(a);
-     corr10 = Corr10.cvx(a);
-     corr11 = Corr11.cvx(a);
              
-     % CHSH inequality
+     % CHSH inequality (maximize!)
      chsh_ineq = CHSH_ineq.cvx(a);     
      maximize(chsh_ineq);
 cvx_end
 
+% Get solutions
 solved_matrix = SolvedMomentMatrix(matrix, a, b);
 disp(struct2table(solved_matrix.SymbolTable))
+
+fprintf("%f,\t%f,\t%f,\t%f\n", solved_matrix.Value(Corr00), ...
+                               solved_matrix.Value(Corr01), ...
+                               solved_matrix.Value(Corr10), ...
+                               solved_matrix.Value(Corr11));
