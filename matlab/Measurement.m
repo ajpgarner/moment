@@ -6,10 +6,7 @@ classdef Measurement < handle
         Index
         Name
         Outcomes
-    end
-    
-    properties(Access=private)
-        setting
+        Setting
     end
     
     methods
@@ -23,7 +20,7 @@ classdef Measurement < handle
                 name (1,1) string
                 num_outcomes (1,1) uint64 {mustBeInteger, mustBeNonnegative}
             end
-            obj.setting = setting;
+            obj.Setting = setting;
             
             obj.Id = mmt_index;
             obj.Index = uint64([party_index, mmt_index]);
@@ -32,7 +29,7 @@ classdef Measurement < handle
             % Construct outcomes
             obj.Outcomes = Outcome.empty;
             for x = 1:num_outcomes
-                obj.Outcomes(end+1) = Outcome(obj.setting, ...
+                obj.Outcomes(end+1) = Outcome(obj.Setting, ...
                                               obj.Index(1), ...
                                               obj.Index(2), uint64(x));
             end

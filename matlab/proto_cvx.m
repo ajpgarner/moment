@@ -1,37 +1,47 @@
 clear
 clear npatk;
 
+% Two parties
 chsh = Setting(2);
-chsh.Parties(1).AddMeasurement(2);
-chsh.Parties(1).AddMeasurement(2);
-chsh.Parties(2).AddMeasurement(2);
-chsh.Parties(2).AddMeasurement(2);
+Alice = chsh.Parties(1);
+Bob = chsh.Parties(2);
 
+% Each party with two measurements
+A0 = Alice.AddMeasurement(2);
+A1 = Alice.AddMeasurement(2);
+B0 = Bob.AddMeasurement(2);
+B1 = Bob.AddMeasurement(2);
 
-matrix = chsh.MakeMomentMatrix(1);
+% Make moment matrix
+matrix = chsh.MakeMomentMatrix(2);
 
-cvx_begin sdp 
+% Make correlator objects
+Corr00 = Correlator(A0, B0);
+Corr01 = Correlator(A0, B1);
+Corr10 = Correlator(A1, B0);
+Corr11 = Correlator(A1, B1);
+
+% Define and solve SDP
+cvx_begin sdp
      [a, b, M] = matrix.cvxHermitianBasis();
+     
+     % Normalization
      a(1) == 1;
+     
+     % Positivity 
      M >= 0;
      
-     expression corr_aa
-     expression corr_ab
-     expression corr_ba
-     expression corr_bb
-     
-     corr_aa = a(1) + 4*a(7) - 2*a(2) - 2*a(4);
-     corr_ab = a(1) + 4*a(8) - 2*a(2) - 2*a(5);
-     corr_ba = a(1) + 4*a(9) - 2*a(3) - 2*a(4);
-     corr_bb = a(1) + 4*a(10) - 2*a(3) - 2*a(5);
-     
+     % Correlations
+     corr00 = Corr00.cvx(a);
+     corr01 = Corr01.cvx(a);
+     corr10 = Corr10.cvx(a);
+     corr11 = Corr11.cvx(a);
+             
+     % CHSH inequality
      expression chsh_ineq;
-     chsh_ineq = corr_aa + corr_ab + corr_ba - corr_bb;
-        
+     chsh_ineq = corr00 + corr01 + corr10 - corr11;        
      maximize(chsh_ineq);
 cvx_end
 
 solved_matrix = SolvedMomentMatrix(matrix, a, b);
 disp(struct2table(solved_matrix.SymbolTable))
-
-imp_sym = npatk('probability_table', matrix)

@@ -7,12 +7,9 @@ classdef Party < handle
         Name
         RawOperators
         Measurements
+        Setting
     end
     
-    properties(Access=private)
-        setting
-    end
-        
     methods(Access={?Setting})
         function obj = Party(setting, id, name, raw)
             arguments
@@ -21,10 +18,11 @@ classdef Party < handle
                 name (1,1) string = ""
                 raw (1,1) uint64 {mustBeInteger, mustBeNonnegative} = 0
             end
-            %PARTY Construct a party
+            %PARTY Construct a party 
+            % (Private c'tor. To construct, use Setting.AddParty.)
             
             % Link to a setting object
-            obj.setting = setting;
+            obj.Setting = setting;
             
             % Supply an index
             obj.Id = id;
@@ -49,7 +47,7 @@ classdef Party < handle
     end
     
     methods
-        function AddMeasurement(obj, num_outcomes, name)
+        function mmt = AddMeasurement(obj, num_outcomes, name)
             arguments
                 obj Party                
                 num_outcomes (1,1) uint64 {mustBeInteger, mustBePositive}
@@ -62,10 +60,12 @@ classdef Party < handle
                 name = alphabetic_index(next_id, false);
             end
                 
-            obj.Measurements(end+1) = Measurement(obj.setting, ...
+            obj.Measurements(end+1) = Measurement(obj.Setting, ...
                                                   obj.Id, next_id, ...
                                                   string(name), ...
                                                   num_outcomes);
+            % Return newly created measurement
+            mmt = obj.Measurements(end);
         end
     end
 end

@@ -2,19 +2,15 @@ classdef Outcome < handle
     %OUTCOME Measurement outcome
     properties(SetAccess={?Setting}, GetAccess=public)
         Id
-        Index
-        joint_outcomes
+        Index       
+        Setting
     end
     
     properties(Access={?Setting})
-        
+        joint_outcomes 
         real_coefs        
     end
     
-    properties(Access=private)
-        setting
-    end
-
     methods
         function obj = Outcome(setting, party_index, ...
                                mmt_index, outcome_index)
@@ -24,7 +20,7 @@ classdef Outcome < handle
                 mmt_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 outcome_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
             end
-            obj.setting = setting;
+            obj.Setting = setting;
             
             obj.Id = outcome_index;
             obj.Index = uint64([party_index, mmt_index, outcome_index]);
@@ -37,6 +33,10 @@ classdef Outcome < handle
             arguments
                 objA (1,1) Outcome
                 objB (1,1) {mustBeOutcomeOrJointOutcome}
+            end
+                     
+            if objA.Setting ~= objB.Setting
+                error("Can only combine objects from the same setting.");
             end
             
             if isa(objB, 'JointOutcome')

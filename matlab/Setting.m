@@ -4,6 +4,7 @@ classdef Setting < handle
       
     properties(GetAccess = public, SetAccess = protected)
         Parties
+        HasMomentMatrix
     end
     
     properties(Access = private)
@@ -50,7 +51,11 @@ classdef Setting < handle
                 obj.do_bind(obj.moment_matrix)
             end
             mm_out = obj.moment_matrix;
-        end        
+        end
+        
+        function val = get.HasMomentMatrix(obj)
+            val = ~isempty(obj.moment_matrix);
+        end
         
         function item = get(obj, index)
             arguments

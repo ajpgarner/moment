@@ -4,11 +4,11 @@ classdef JointOutcome < handle
     properties(SetAccess=private, GetAccess=public)
         Constituents
         Indices
+        Setting
     end
     
     properties(Access={?Setting})
         real_coefs
-        setting
     end
     
     methods
@@ -20,7 +20,7 @@ classdef JointOutcome < handle
              end
             
             % Save indices that define this joint mmt outcome
-            obj.setting = setting;
+            obj.Setting = setting;
             obj.Indices = indices;
             num_mmts = size(obj.Indices, 1);
             if num_mmts < 2
@@ -52,6 +52,10 @@ classdef JointOutcome < handle
                 objB (1,1) {mustBeOutcomeOrJointOutcome}
             end
             
+            if objA.Setting ~= objB.Setting
+                error("Can only combine objects from the same setting.");
+            end
+            
             if isa(objB, 'JointOutcome')
                 if ~isempty(intersect(objA.Indices(:,1), ...
                                       objB.Indices(:,1)))
@@ -59,8 +63,6 @@ classdef JointOutcome < handle
                           + "probability outcomes (i.e. all outcomes "...
                           + "must be from different parties).");
                 end
-                
-                % TODO: Multiparty check
                 indices = sortrows(vertcat(objA.Indices, objB.Indices));
             else
                 if ismember(objB.Index(1), objA.Indices(:,1))
@@ -70,7 +72,7 @@ classdef JointOutcome < handle
                 end
                 indices = sortrows(vertcat(objA.Indices, objB.Index));
             end            
-            joint_item = objA.setting.get(indices);
+            joint_item = objA.Setting.get(indices);
         end
     end
 end

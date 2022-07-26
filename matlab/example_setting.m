@@ -20,3 +20,6 @@ a22 = chsh.Parties(1).Measurements(2).Outcomes(2);
 b22 = chsh.Parties(2).Measurements(2).Outcomes(2);
 manual_a22b22 = chsh.get([[1, 2, 2]; [2, 2, 2]]);
 prod_a22b22 = a22 * b22;
+
+corrA1B1 = Correlator(chsh.Parties(1).Measurements(1), ...
+                      chsh.Parties(2).Measurements(2));
