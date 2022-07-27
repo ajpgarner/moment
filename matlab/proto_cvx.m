@@ -25,7 +25,7 @@ Corr11 = Correlator(A1, B1);
 CHSH_ineq = Corr00 + Corr01 + Corr10 - Corr11;
 
 % Define and solve SDP
-cvx_begin sdp
+cvx_begin sdp quiet
      [a, b, M] = matrix.cvxHermitianBasis();
      
      % Normalization
@@ -40,10 +40,6 @@ cvx_begin sdp
 cvx_end
 
 % Get solutions
-solved_matrix = SolvedMomentMatrix(matrix, a, b);
+solved_matrix = SolvedMomentMatrix(chsh, matrix, a, b);
 disp(struct2table(solved_matrix.SymbolTable))
-
-fprintf("%f,\t%f,\t%f,\t%f\n", solved_matrix.Value(Corr00), ...
-                               solved_matrix.Value(Corr01), ...
-                               solved_matrix.Value(Corr10), ...
-                               solved_matrix.Value(Corr11));
+solved_setting = solved_matrix.Setting;

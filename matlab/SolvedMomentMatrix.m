@@ -2,20 +2,23 @@ classdef SolvedMomentMatrix < handle
     %SOLVEDMOMENTMATRIX A matrix of operator products, evaluated after
     % an SDP solve.
     properties(SetAccess = protected, GetAccess = public)
-        MomentMatrix
         a
         b
         isComplex = true
         SymbolTable
+        Setting
+        MomentMatrix
     end
     
     methods
-        function obj = SolvedMomentMatrix(moment_matrix, real_sol, im_sol)
-        arguments
-            moment_matrix (1,1) MomentMatrix
-            real_sol (:,1) double
-            im_sol (:,1) double
-        end 
+        function obj = SolvedMomentMatrix(setting, moment_matrix, ...
+                                          real_sol, im_sol)
+            arguments
+                setting (:,:) Setting
+                moment_matrix (1,1) MomentMatrix
+                real_sol (:,1) double
+                im_sol (:,1) double                
+            end 
             obj.MomentMatrix = moment_matrix;
             
             % Check and copy real solution
@@ -37,7 +40,10 @@ classdef SolvedMomentMatrix < handle
             end
             
             % Create symbol table
-            obj.SymbolTable = obj.makeTable();            
+            obj.SymbolTable = obj.makeTable();
+            
+            % Apply setting
+            obj.Setting = SolvedSetting(obj, setting);            
         end
         
         function val = Value(obj, thing)
@@ -51,7 +57,7 @@ classdef SolvedMomentMatrix < handle
             if isempty(coefs)
                 error("Could not obtain real coefficients associated with input.");
             end
-            
+
             % Contract
             val = coefs * obj.a;
         end

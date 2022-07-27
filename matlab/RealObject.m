@@ -47,6 +47,18 @@ classdef RealObject < handle
             val = obj.real_coefs;
         end
         
+        function val = apply(lhs, rhs)
+            arguments
+                lhs (1,1) RealObject
+                rhs (:,1)
+            end
+            coefs = lhs.getCoefficientsOrFail();
+            if length(coefs) ~= length(rhs)
+                error("Basis vector and coefficient length do not match.");
+            end
+            val = coefs * rhs;
+        end
+        
         function val = mtimes(lhs, rhs)
             arguments
                 lhs (1,1)
@@ -56,21 +68,14 @@ classdef RealObject < handle
             % Pre-multiplication by a built-in type (probably...)
             if ~isa(lhs, 'RealObject')
                 pre_mult = true;
-                coefs = rhs.Coefficients;
+                coefs = rhs.getCoefficientsOrFail();
                 this = rhs;
                 other = lhs;
             else 
                 pre_mult = false;
-                coefs = lhs.Coefficients;
+                coefs = lhs.getCoefficientsOrFail();
                 this = lhs;
                 other = rhs;
-            end
-            
-            if isempty(coefs)
-                error("Cannot multiply this objects until its "...
-                    + "coefficients can be calculated. Perhaps a "...
-                    + "MomentMatrix has not yet been generated for "...
-                    + "this setting?");
             end
             
             if isnumeric(other)
@@ -89,8 +94,7 @@ classdef RealObject < handle
                     + " and " + class(rhs));
             end
         end
-        
-        
+         
         function val = plus(lhs, rhs)
             arguments
                 lhs (1,1) RealObject
@@ -100,14 +104,8 @@ classdef RealObject < handle
                 error("Cannot add objects from different settings.");
             end
             
-            lhs_coefs = lhs.Coefficients;
-            rhs_coefs = rhs.Coefficients;
-            if isempty(lhs_coefs ) || isempty(rhs_coefs)
-                error("Cannot add these objects until their "...
-                    + "coefficients can be calculated. Perhaps a "...
-                    + "MomentMatrix has not yet been generated for "...
-                    + "this setting?");
-            end
+            lhs_coefs = lhs.getCoefficientsOrFail();
+            rhs_coefs = rhs.getCoefficientsOrFail();
             
             % Build added real object
             val = RealObject(lhs.Setting);
@@ -123,14 +121,8 @@ classdef RealObject < handle
                 error("Cannot add objects from different settings.");
             end
             
-            lhs_coefs = lhs.Coefficients;
-            rhs_coefs = rhs.Coefficients;
-            if isempty(lhs_coefs ) || isempty(rhs_coefs)
-                error("Cannot subtract these objects until their "...
-                    + "coefficients can be calculated. Perhaps a "...
-                    + "MomentMatrix has not yet been generated for "...
-                    + "this setting?");
-            end
+            lhs_coefs = lhs.getCoefficientsOrFail();
+            rhs_coefs = rhs.getCoefficientsOrFail();
             
             % Build subtracted real object
             val = RealObject(lhs.Setting);
@@ -147,13 +139,7 @@ classdef RealObject < handle
                 real_basis (:, 1)
             end
             % Get coefficients
-            coefs = obj.Coefficients;
-            % NB: Zero sparse array is not empty...!
-            if isempty(coefs)
-                error("Could not calculate coefficients. Perhaps a " ...
-                    + "MomentMatrix has not yet been generated for " ...
-                    + "this setting?");
-            end
+            coefs = obj.getCoefficientsOrFail();
             
             % real_basis should be cvx object
             if ~isa(real_basis, 'cvx')
@@ -170,10 +156,20 @@ classdef RealObject < handle
         end
     end
     
-    %% Direct setter method
+    %% Protected methods
     methods(Access={?RealObject,?Setting})
         function setCoefficients(obj, coefs)
             obj.real_coefs = coefs;
+        end
+        
+        function coefs = getCoefficientsOrFail(obj)
+            coefs = obj.Coefficients;
+            % NB: Zero sparse array is not empty...!
+            if isempty(coefs)
+                error("Coefficients can not be calculated. Perhaps a "...
+                    + "MomentMatrix has not yet been generated for "...
+                    + "this setting?");
+            end
         end
     end
     
@@ -183,5 +179,6 @@ classdef RealObject < handle
             % Overload this!
         end
     end
+    
 end
 
