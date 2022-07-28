@@ -1,3 +1,4 @@
+addpath('..')
 clear
 clear npatk;
 

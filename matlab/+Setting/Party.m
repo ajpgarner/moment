@@ -21,6 +21,7 @@ classdef Party < handle
             %PARTY Construct a party 
             % (Private c'tor. To construct, use Setting.AddParty.)
             import Setting.Measurement
+            import Util.alphabetic_index
             
             % Link to a setting object
             obj.Setting = setting;
@@ -55,6 +56,7 @@ classdef Party < handle
                 name (1,1) string = ""
             end
             import Setting.Measurement
+            import Util.alphabetic_index
             
             % Automatically name, if non supplied
             next_id = length(obj.Measurements)+1;
