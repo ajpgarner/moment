@@ -24,3 +24,6 @@ a15b12 = a15 * b12;
 b12c22 = b12 * c22;
 a15b12c22_one = a15 * b12c22;
 a15b12c22_two = a15b12 * c22;
+
+jm_a2c2 = setting.get([[1, 2]; [3, 2]]);
+corr_a2c2 = jm_a2c2.Correlator;

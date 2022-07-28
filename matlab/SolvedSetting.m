@@ -79,8 +79,22 @@ classdef SolvedSetting < handle
                 obj (1,1) SolvedSetting
                 index (:,:) uint64
             end
-            found = obj.Setting.get(index);
-            val = obj.get(found);
+            joint_object = size(index, 1) > 1;
+            
+            if joint_object
+                joint_what = size(index, 2);
+                if joint_what == 2
+                    found_jm = obj.Setting.get(index);
+                    val = SolvedSetting.SolvedJointMeasurement(obj, ...
+                                        found_jm);
+                else
+                    error("Could not retrieve joint object with "...
+                          + joint_what + " indices per object.");
+                end
+            else
+                found = obj.Setting.get(index);
+                val = obj.get(found);
+            end
         end
         
         function val = Value(obj, thing)

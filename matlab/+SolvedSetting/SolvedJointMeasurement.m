@@ -10,26 +10,22 @@ classdef SolvedJointMeasurement < handle
     end
     
     methods
-        function obj = SolvedJointMeasurement(solvedSetting, measurements)
+        function obj = SolvedJointMeasurement(solvedSetting, jointMmt)
             %SOLVEDMEASUREMENT Construct an instance of this class
             arguments
                 solvedSetting (1,1) SolvedSetting
-                measurements (1,:) SolvedSetting.SolvedMeasurement
+                jointMmt (1,1) Setting.JointMeasurement
             end
-            import SolvedSetting.SolvedOutcome;
             
             % Get moment matrix
             solvedMM = solvedSetting.SolvedMomentMatrix;
             obj.SolvedMomentMatrix = solvedMM;
-            
+                        
             % Get marginal measurements
-            obj.Marginals = obj.checkAndSortMmts(measurements);
+            obj.Marginals = obj.getMmts(solvedSetting, jointMmt);
             
             % Get (sorted) measurement indices:
-            obj.Indices = uint64.empty(0,2);
-            for mmt = obj.Marginals
-                obj.Indices(end+1, :) = mmt.Measurement.Index;
-            end
+            obj.Indices = jointMmt.Indices;
             
             % Query for correlation table
             [obj.Correlations, obj.Sequences] = obj.queryOutcomes();
@@ -37,35 +33,18 @@ classdef SolvedJointMeasurement < handle
     end
     
     methods(Access=private)
-        function sorted = checkAndSortMmts(obj, unsorted)
+        function sorted = getMmts(obj, solvedSetting, mmt)
             arguments
                 obj (1,1) SolvedSetting.SolvedJointMeasurement
-                unsorted (1,:) SolvedSetting.SolvedMeasurement
+                solvedSetting (1,1) SolvedSetting
+                mmt (1,1) Setting.JointMeasurement
             end
             
-            % Check number of measurements
-            if (length(unsorted) <= 1)
-                error("At least two measurements should be supplied.");
-            end
-            
-            % Get party indices
-            indices = zeros(size(unsorted));
-            for i = 1:length(unsorted)
-                indices(i) = unsorted(i).Measurement.Index(1);
-            end
-            
-            % Check for duplicates
-            if length(indices) ~= length(unique(indices))
-                error("Each measurement must be from a different party.");
-            end
-            
-            % Sort measurements by party
-            [~, sortIndex] = sort(indices);
+            % Check number of measurement
             sorted = SolvedSetting.SolvedMeasurement.empty;
-            for i = 1:length(unsorted)
-                sorted(end+1) = unsorted(sortIndex(i));
+            for i = 1:length(mmt.Marginals)
+                sorted(end+1) = solvedSetting.get(mmt.Marginals(i));
             end
-            
         end
         
         function [val, names] = queryOutcomes(obj)

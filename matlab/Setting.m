@@ -69,13 +69,21 @@ classdef Setting < handle
             
             if get_joint
                 % Joint outcome object
-                if get_what ~= 3
+                if get_what == 2
+                    index = sortrows(index);
+                    mmts = Setting.Measurement.empty;
+                    for i = 1:size(index, 1)
+                        mmts(end+1) = obj.Parties(index(i, 1)).Measurements(index(i, 2));
+                    end                    
+                    item = Setting.JointMeasurement(obj, mmts);
+                elseif get_what == 3
+                    index = sortrows(index);
+                    leading_item = obj.Parties(index(1, 1)).Measurements(index(1, 2)).Outcomes(index(1, 3));
+                    item = leading_item.JointOutcome(index); 
+                else
                     error("Multiple indices must be in form" ...
                            + " [[partyA, mmtA, outcomeA]; ... ].");
                 end
-                index = sortrows(index);
-                leading_item = obj.Parties(index(1, 1)).Measurements(index(1, 2)).Outcomes(index(1, 3));
-                item = leading_item.JointOutcome(index);
             else            
                 % Otherwise, single object [party, mmt, or outcome]
                 switch get_what
