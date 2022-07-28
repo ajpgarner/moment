@@ -35,12 +35,12 @@ classdef Outcome < handle & RealObject
             end
             
             % Should only occur when A is a built-in object
-            if ~isa(objA, 'Outcome')
+            if ~isa(objA, 'Setting.Outcome')
                 joint_item = mtimes@RealObject(objA, objB);
                 return
             end
             
-            if isa(objB, 'JointOutcome')
+            if isa(objB, 'Setting.JointOutcome')
                 if objA.Setting ~= objB.Setting
                     error("Can only combine objects from the same setting.");
                 end
@@ -52,7 +52,7 @@ classdef Outcome < handle & RealObject
                 
                 indices = sortrows(vertcat(objA.Index, objB.Indices));
                 joint_item = objA.JointOutcome(indices);
-            elseif isa(objB, 'Outcome')
+            elseif isa(objB, 'Setting.Outcome')
                 if objA.Setting ~= objB.Setting
                     error("Can only combine objects from the same setting.");
                 end
@@ -71,6 +71,10 @@ classdef Outcome < handle & RealObject
         end
    
         function item = JointOutcome(obj, indices)
+            arguments
+                obj (1,1) Setting.Outcome
+                indices (:,:) uint64
+            end
             table_index = find(arrayfun(@(s) ...
                               isequal(indices, s.indices), ...
                               obj.joint_outcomes));

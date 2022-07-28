@@ -16,10 +16,11 @@ classdef Setting < handle
             arguments
                 initial_parties (1,1) uint64 {mustBeInteger, mustBeNonnegative}
             end
-            obj.Parties = Party.empty;
+            
+            obj.Parties = Setting.Party.empty;
             if (initial_parties >=1 )
                 for x = 1:initial_parties 
-                    obj.Parties(end+1) = Party(obj, x);
+                    obj.Parties(end+1) = Setting.Party(obj, x);
                 end
             end
         end
@@ -29,6 +30,7 @@ classdef Setting < handle
                 obj (1,1) Setting
                 name (1,1) string
             end
+            import Setting.Party
             
             next_id = length(obj.Parties)+1;
             if nargin >=2
@@ -109,7 +111,7 @@ classdef Setting < handle
                      leading_outcome.setCoefficients(p_row.real_coefficients);
                  else
                      % Register co-effs as joint outcome
-                     joint_outcome = JointOutcome(obj, p_row.indices);
+                     joint_outcome = Setting.JointOutcome(obj, p_row.indices);
                      joint_outcome.setCoefficients(p_row.real_coefficients);
                      
                      leading_outcome.joint_outcomes(end+1).indices = ...

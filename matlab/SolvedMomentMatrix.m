@@ -6,16 +6,14 @@ classdef SolvedMomentMatrix < handle
         b
         isComplex = true
         SymbolTable
-        Setting
         MomentMatrix
     end
     
     methods
-        function obj = SolvedMomentMatrix(setting, moment_matrix, ...
+        function obj = SolvedMomentMatrix(moment_matrix, ...
                                           real_sol, im_sol)
             arguments
-                setting (:,:) Setting
-                moment_matrix (1,1) MomentMatrix
+                moment_matrix (:,:) MomentMatrix
                 real_sol (:,1) double
                 im_sol (:,1) double                
             end 
@@ -41,9 +39,6 @@ classdef SolvedMomentMatrix < handle
             
             % Create symbol table
             obj.SymbolTable = obj.makeTable();
-            
-            % Apply setting
-            obj.Setting = SolvedSetting(obj, setting);            
         end
         
         function val = Value(obj, thing)

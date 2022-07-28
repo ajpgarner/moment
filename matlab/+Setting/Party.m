@@ -20,6 +20,7 @@ classdef Party < handle
             end
             %PARTY Construct a party 
             % (Private c'tor. To construct, use Setting.AddParty.)
+            import Setting.Measurement
             
             % Link to a setting object
             obj.Setting = setting;
@@ -49,10 +50,11 @@ classdef Party < handle
     methods
         function mmt = AddMeasurement(obj, num_outcomes, name)
             arguments
-                obj Party                
+                obj Setting.Party                
                 num_outcomes (1,1) uint64 {mustBeInteger, mustBePositive}
                 name (1,1) string = ""
             end
+            import Setting.Measurement
             
             % Automatically name, if non supplied
             next_id = length(obj.Measurements)+1;

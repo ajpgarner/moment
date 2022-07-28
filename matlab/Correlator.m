@@ -11,8 +11,8 @@ classdef Correlator < handle & RealObject
     methods     
         function obj = Correlator(mmtA, mmtB)
             arguments
-                mmtA (1,1) Measurement
-                mmtB (1,1) Measurement
+                mmtA (1,1) Setting.Measurement
+                mmtB (1,1) Setting.Measurement
             end
             %CORR Construct an instance of this class
 
@@ -28,7 +28,7 @@ classdef Correlator < handle & RealObject
             end
             
             % Link constituent parts and indices, in order
-            obj.Constituents = Measurement.empty;
+            obj.Constituents = Setting.Measurement.empty;
             if mmtA.Index(1) < mmtB.Index(1)
                 obj.Constituents(end+1) = mmtA;
                 obj.Constituents(end+1) = mmtB;

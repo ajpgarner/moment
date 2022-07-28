@@ -12,8 +12,9 @@ classdef SolvedParty < handle
             %SOLVEDMEASUREMENT Construct an instance of this class
             arguments
                 solvedMM (1,1) SolvedMomentMatrix
-                party (1,1) Party
+                party (1,1) Setting.Party
             end
+            import SolvedSetting.SolvedMeasurement;
             
             obj.SolvedMomentMatrix = solvedMM;
             obj.Party = party;

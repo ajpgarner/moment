@@ -3,22 +3,49 @@ classdef SolvedSetting < handle
     %   Detailed explanation goes here
     
     properties(SetAccess=private, GetAccess=public)
-        SolvedMomentMatrix
         Parties
         Setting
+        SolvedMomentMatrix
     end
     
     methods
-        function obj = SolvedSetting(solvedMM, setting)
-            %SOLVEDSETTING Construct an instance of this class
+        function obj = SolvedSetting(setting, argA, argB, argC)
+            %SOLVEDSETTING Construct an instance of this class.
+            % From either (Setting, SolvedMomentMatrix) or
+            % (Setting, MomentMatrix, Symmetric elements, Anti-sym elements).
             arguments
-                solvedMM (1,1) SolvedMomentMatrix
                 setting (1,1) Setting
+                argA
+                argB
+                argC
             end
                             
             % Save handles
-            obj.SolvedMomentMatrix = solvedMM;
             obj.Setting = setting;
+            
+            if nargin == 2
+                if ~isa(argA, 'SolvedMomentMatrix')
+                    error("SolvedSetting should be constructed from " + ...
+                          "Setting, SolvedMomentMatrix, or from " + ...
+                          "Setting, MomentMatrix, symmetric basis elements " + ...
+                          ", (anti-symmetric basis elements).");
+                end
+                obj.SolvedMomentMatrix = argA;                
+            elseif nargin >= 3 && nargin <= 4
+                 if ~isa(argA, 'MomentMatrix')
+                    error("SolvedSetting should be constructed from " + ...
+                          "Setting, SolvedMomentMatrix, or from " + ...
+                          "Setting, MomentMatrix, symmetric basis elements " + ...
+                          ", (anti-symmetric basis elements).");
+                end
+                if nargin == 3
+                    obj.SolvedMomentMatrix = SolvedMomentMatrix(argA, argB);
+                else
+                    obj.SolvedMomentMatrix = ...
+                        SolvedMomentMatrix(argA, argB, argC);
+                end
+            end
+           
             
             obj.applySolutionToSetting();            
         end
@@ -30,13 +57,13 @@ classdef SolvedSetting < handle
                 obj (1,1) SolvedSetting
                 what
             end
-            if isa(what, 'Party')
+            if isa(what, 'Setting.Party')
                 obj.checkSetting(what);
                 val = obj.Parties(what.Id);
-            elseif isa(what, 'Measurement')
+            elseif isa(what, 'Setting.Measurement')
                 obj.checkSetting(what);
                 val = obj.Parties(what.Index(1)).Measurements(what.Index(2));
-            elseif isa(what, 'Outcome')
+            elseif isa(what, 'Setting.Outcome')
                 obj.checkSetting(what);
                 val = obj.Parties(what.Index(1)).Measurements(what.Index(2)).Outcomes(what.Index(3));
             elseif isnumeric(what)
@@ -56,13 +83,22 @@ classdef SolvedSetting < handle
             val = obj.get(found);
         end    
         
+        function val = Value(obj, thing)
+            arguments 
+                obj (1,1) SolvedSetting
+                thing (1,1) RealObject
+            end
+            val = obj.SolvedMomentMatrix.Value(thing);
+        end
     end
     
     methods(Access=private)
         function applySolutionToSetting(obj)
             arguments
                 obj (1,1) SolvedSetting
-            end
+            end           
+            import SolvedSetting.SolvedParty;
+            
             obj.Parties = SolvedParty.empty;
             for party = obj.Setting.Parties
                 obj.Parties(end+1) = SolvedParty(obj.SolvedMomentMatrix,...

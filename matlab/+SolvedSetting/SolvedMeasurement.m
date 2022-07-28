@@ -13,8 +13,9 @@ classdef SolvedMeasurement < handle
             %SOLVEDMEASUREMENT Construct an instance of this class
             arguments
                 solvedMM (1,1) SolvedMomentMatrix
-                measurement (1,1) Measurement
+                measurement (1,1) Setting.Measurement
             end
+            import SolvedSetting.SolvedOutcome;
             
             obj.SolvedMomentMatrix = solvedMM;
             obj.Measurement = measurement;

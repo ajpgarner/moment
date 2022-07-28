@@ -11,7 +11,7 @@ namespace NPATK::mex {
         Outcome::Outcome(matlab::engine::MATLABEngine &engine,
                          const size_t p_index, const size_t m_index, const size_t o_index,
                          matlab::data::Array& rawInput)
-                : MATLABClass(engine, "Outcome", MATLABClass::FieldTypeMap{
+                : MATLABClass(engine, "Setting.Outcome", MATLABClass::FieldTypeMap{
                                                         {"Id", matlab::data::ArrayType::UINT64}
                                                  }, rawInput, o_index) {
             // Verify outcome object...
@@ -29,7 +29,7 @@ namespace NPATK::mex {
 
         Measurement::Measurement(matlab::engine::MATLABEngine &engine, const size_t party_index,
                                  const size_t mmt_index, matlab::data::Array& rawInput)
-            : MATLABClass(engine, "Measurement", MATLABClass::FieldTypeMap{
+            : MATLABClass(engine, "Setting.Measurement", MATLABClass::FieldTypeMap{
                                                     {"Id", matlab::data::ArrayType::UINT64},
                                                     {"Name", matlab::data::ArrayType::MATLAB_STRING},
                                                     {"Outcomes", matlab::data::ArrayType::HANDLE_OBJECT_REF}
@@ -75,7 +75,7 @@ namespace NPATK::mex {
         }
 
         Party::Party(matlab::engine::MATLABEngine &engine, const size_t party_index, matlab::data::Array& rawInput)
-                : MATLABClass(engine, "Party",
+                : MATLABClass(engine, "Setting.Party",
                               MATLABClass::FieldTypeMap{
                                       {"Id",           matlab::data::ArrayType::UINT64},
                                       {"Name",         matlab::data::ArrayType::MATLAB_STRING},

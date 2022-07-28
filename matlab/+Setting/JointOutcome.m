@@ -26,7 +26,7 @@ classdef JointOutcome < handle & RealObject
             end
             
             % Copy refs to outcomes that make up this joint mmt outcome
-            obj.Constituents = Outcome.empty([1, 0]);
+            obj.Constituents = Setting.Outcome.empty([1, 0]);
             for row = 1:num_mmts
                 obj.Constituents(end+1) = setting.get(obj.Indices(row, :));
             end
@@ -39,12 +39,12 @@ classdef JointOutcome < handle & RealObject
             end
                         
             % Should only occur when A is a built-in object
-            if ~isa(objA, 'JointOutcome')
+            if ~isa(objA, 'Setting.JointOutcome')
                 joint_item = mtimes@RealObject(objA, objB);
                 return
             end
             
-            if isa(objB, 'JointOutcome')                
+            if isa(objB, 'Setting.JointOutcome')                
                 if objA.Setting ~= objB.Setting
                     error("Can only combine objects from the same setting.");
                 end
@@ -56,7 +56,7 @@ classdef JointOutcome < handle & RealObject
                 end
                 indices = sortrows(vertcat(objA.Indices, objB.Indices));
                 joint_item = objA.Setting.get(indices);
-            elseif isa(objB, 'Outcome')                
+            elseif isa(objB, 'Setting.Outcome')                
                 if objA.Setting ~= objB.Setting
                     error("Can only combine objects from the same setting.");
                 end

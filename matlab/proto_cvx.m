@@ -40,6 +40,6 @@ cvx_begin sdp quiet
 cvx_end
 
 % Get solutions
-solved_matrix = SolvedMomentMatrix(chsh, matrix, a, b);
-disp(struct2table(solved_matrix.SymbolTable))
-solved_setting = solved_matrix.Setting;
+solved_setting = SolvedSetting(chsh, matrix, a, b);
+solved_matrix = solved_setting.SolvedMomentMatrix;
+disp(struct2table(solved_matrix.SymbolTable));

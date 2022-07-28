@@ -20,6 +20,8 @@ classdef Measurement < handle
                 name (1,1) string
                 num_outcomes (1,1) uint64 {mustBeInteger, mustBeNonnegative}
             end
+            import Setting.Outcome
+            
             obj.Setting = setting;
             
             obj.Id = mmt_index;
