@@ -1,5 +1,5 @@
 classdef MomentMatrix  < handle
-    %MOMENTMATRIX A matrix of operator products. Wraps a reference to a 
+    %MOMENTMATRIX A matrix of operator products. Wraps a reference to a
     % MomentMatrix class stored within npatk.
     
     properties(Access = {?SolvedMomentMatrix})
@@ -8,7 +8,7 @@ classdef MomentMatrix  < handle
         mono_basis_real
         mono_basis_im
         basis_real
-        basis_im       
+        basis_im
         sparse_basis_real
         sparse_basis_im
         probability_table
@@ -45,13 +45,13 @@ classdef MomentMatrix  < handle
                 % Unpack cell into arguments
                 [obj.RefId, obj.SymbolTable, obj.Dimension] = ...
                     npatk('make_moment_matrix', ...
-                          'reference', settingParams{:});
+                    'reference', settingParams{:});
                 
             elseif isa(settingParams, 'Setting')
                 % Supply setting object directly
                 [obj.RefId, obj.SymbolTable, obj.Dimension] = ...
                     npatk('make_moment_matrix', 'reference', ...
-                          'setting', settingParams, 'level', level);
+                    'setting', settingParams, 'level', level);
             else
                 error(['First argument must be either a Setting ',...
                     'object, or a cell array of parameters.']);
@@ -80,8 +80,8 @@ classdef MomentMatrix  < handle
             % Defer copy of matrix until requested...
             if (isempty(obj.symbol_matrix))
                 obj.symbol_matrix = npatk('make_moment_matrix', ...
-                        'reference_id', obj.RefId, ...
-                        'symbols');
+                    'reference_id', obj.RefId, ...
+                    'symbols');
             end
             matrix = obj.symbol_matrix;
         end
@@ -97,7 +97,7 @@ classdef MomentMatrix  < handle
         
         %% Accessors for probability table
         function p_table = ProbabilityTable(obj)
-            % PROBABILITYTABLE A struct-array indicating how each 
+            % PROBABILITYTABLE A struct-array indicating how each
             %   measurement outcome can be expressed in terms of real
             %   basis elements (including implied probabilities that do not
             %   directly exist as operators in the moment matrix).
@@ -106,10 +106,23 @@ classdef MomentMatrix  < handle
             end
             p_table = obj.probability_table;
         end
+        
+        function result = MeasurementCoefs(obj, indices)
+            arguments
+                obj (1,1) MomentMatrix
+                indices (:,2) uint64
+            end            
+            parties = indices(:, 1);
+            if length(parties) ~= length(unique(parties))
+                error("Measurements must be from different parties.");
+            end
             
-            
-           
-        %% Accessors for basis in various forms       
+            result = npatk('probability_table', obj, indices);
+        end
+        
+        
+        
+        %% Accessors for basis in various forms
         function [re, im] = DenseBasis(obj)
             % DENSEBASIS Get the basis as a cell array of dense matrices.
             if (isempty(obj.basis_real) || isempty(obj.basis_im))
@@ -124,18 +137,18 @@ classdef MomentMatrix  < handle
         function [re, im] = SparseBasis(obj)
             % SPARSEBASIS Get the basis as a cell array of sparse matrices.
             if (isempty(obj.sparse_basis_real) ...
-                || isempty(obj.sparse_basis_im))
+                    || isempty(obj.sparse_basis_im))
                 [obj.sparse_basis_real, obj.sparse_basis_im] = ...
                     npatk('generate_basis', obj, 'hermitian', 'sparse');
             end
             
             re = obj.sparse_basis_real;
             im = obj.sparse_basis_im;
-        end 
-              
-        function [re, im] = MonolithicBasis(obj, sparse) 
+        end
+        
+        function [re, im] = MonolithicBasis(obj, sparse)
             % MONOLITHICBASIS Return the basis as a pair of partially-
-            %   flattened matrices, such that each row represents one basis 
+            %   flattened matrices, such that each row represents one basis
             %   element, with length of Dimension*Dimension.
             arguments
                 obj
@@ -149,12 +162,12 @@ classdef MomentMatrix  < handle
                 end
                 [obj.mono_basis_real, obj.mono_basis_im] = ...
                     npatk('generate_basis', obj, ...
-                          'monolith', 'hermitian', sod);
+                    'monolith', 'hermitian', sod);
             end
             
             re = obj.mono_basis_real;
             im = obj.mono_basis_im;
-        end        
+        end
     end
     
     %% CVX Methods
@@ -172,17 +185,17 @@ classdef MomentMatrix  < handle
             variable b(obj.ImaginaryBasisSize);
             expression M(obj.Dimension, obj.Dimension)
             M(:,:) = reshape(transpose(a) * real_basis ...
-                            + transpose(b) * im_basis, ...
-                        [obj.Dimension, obj.Dimension]);
-                    
+                + transpose(b) * im_basis, ...
+                [obj.Dimension, obj.Dimension]);
+            
             % Output handles to cvx objects
             out_a = a;
             out_b = b;
             out_M = M;
         end
-                
+        
         function [out_a, out_M] = cvxSymmetricBasis(obj)
-             % Get handle to CVX problem
+            % Get handle to CVX problem
             cvx_problem = evalin( 'caller', 'cvx_problem', '[]' );
             if ~isa( cvx_problem, 'cvxprob' )
                 error( 'No CVX model exists in this scope!');
@@ -193,8 +206,8 @@ classdef MomentMatrix  < handle
             variable a(obj.RealBasisSize);
             expression M(obj.Dimension, obj.Dimension);
             M(:,:) = reshape(transpose(a) * real_basis, ...
-                            [obj.Dimension, obj.Dimension]);
-
+                [obj.Dimension, obj.Dimension]);
+            
             % Output handles to cvx objects
             out_a = a;
             out_M = M;

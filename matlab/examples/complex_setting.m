@@ -13,7 +13,7 @@ matrix = setting.MakeMomentMatrix(2);
 
 disp(struct2table(matrix.SymbolTable));
 
-p_table = npatk("probability_table", matrix);
+p_table = matrix.ProbabilityTable;
 disp(struct2table(p_table))
 
 a15 = setting.Parties(1).Measurements(1).Outcomes(5);

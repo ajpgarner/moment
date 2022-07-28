@@ -19,24 +19,24 @@ classdef SolvedSetting < handle
                 argB
                 argC
             end
-                            
+            
             % Save handles
             obj.Setting = setting;
             
             if nargin == 2
                 if ~isa(argA, 'SolvedMomentMatrix')
                     error("SolvedSetting should be constructed from " + ...
-                          "Setting, SolvedMomentMatrix, or from " + ...
-                          "Setting, MomentMatrix, symmetric basis elements " + ...
-                          ", (anti-symmetric basis elements).");
+                        "Setting, SolvedMomentMatrix, or from " + ...
+                        "Setting, MomentMatrix, symmetric basis elements " + ...
+                        ", (anti-symmetric basis elements).");
                 end
-                obj.SolvedMomentMatrix = argA;                
+                obj.SolvedMomentMatrix = argA;
             elseif nargin >= 3 && nargin <= 4
-                 if ~isa(argA, 'MomentMatrix')
+                if ~isa(argA, 'MomentMatrix')
                     error("SolvedSetting should be constructed from " + ...
-                          "Setting, SolvedMomentMatrix, or from " + ...
-                          "Setting, MomentMatrix, symmetric basis elements " + ...
-                          ", (anti-symmetric basis elements).");
+                        "Setting, SolvedMomentMatrix, or from " + ...
+                        "Setting, MomentMatrix, symmetric basis elements " + ...
+                        ", (anti-symmetric basis elements).");
                 end
                 if nargin == 3
                     obj.SolvedMomentMatrix = SolvedMomentMatrix(argA, argB);
@@ -45,14 +45,14 @@ classdef SolvedSetting < handle
                         SolvedMomentMatrix(argA, argB, argC);
                 end
             end
-           
             
-            obj.applySolutionToSetting();            
+            
+            obj.applySolutionToSetting();
         end
     end
     
     methods
-        function val = get(obj, what) 
+        function val = get(obj, what)
             arguments
                 obj (1,1) SolvedSetting
                 what
@@ -70,7 +70,7 @@ classdef SolvedSetting < handle
                 val = obj.getByIndex(what);
             else
                 error("Cannot associated a solved object with an "...
-                      + "object of type " + class(what));
+                    + "object of type " + class(what));
             end
         end
         
@@ -81,10 +81,10 @@ classdef SolvedSetting < handle
             end
             found = obj.Setting.get(index);
             val = obj.get(found);
-        end    
+        end
         
         function val = Value(obj, thing)
-            arguments 
+            arguments
                 obj (1,1) SolvedSetting
                 thing (1,1) RealObject
             end
@@ -96,13 +96,13 @@ classdef SolvedSetting < handle
         function applySolutionToSetting(obj)
             arguments
                 obj (1,1) SolvedSetting
-            end           
+            end
             import SolvedSetting.SolvedParty;
             
             obj.Parties = SolvedParty.empty;
             for party = obj.Setting.Parties
                 obj.Parties(end+1) = SolvedParty(obj.SolvedMomentMatrix,...
-                                                 party);
+                    party);
             end
         end
         
