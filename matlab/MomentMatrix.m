@@ -213,5 +213,35 @@ classdef MomentMatrix  < handle
             out_M = M;
         end
     end
+    
+    %% Yalmip Methods
+    methods
+        function [out_a, out_b, out_M] = yalmipHermitianBasis(obj)
+            % Multiple variables by basis to make matrix
+            [real_basis, im_basis] = obj.MonolithicBasis(false);
+            
+            % Basis variables
+            out_a = sdpvar(obj.RealBasisSize, 1);
+            out_b = sdpvar(obj.ImaginaryBasisSize, 1);
+            
+            % Matrix
+            out_M = reshape(transpose(out_a) * real_basis ...
+                + transpose(out_b) * im_basis, ...
+                [obj.Dimension, obj.Dimension]);
+        end
+        
+         function [out_a, out_M] = yalmipSymmetricBasis(obj)
+            % Multiple variables by basis to make matrix
+            [real_basis, ~] = obj.MonolithicBasis(false);
+            
+                
+            % Basis variables
+            out_a = sdpvar(obj.RealBasisSize, 1);
+            
+            % Matrix
+            out_M = reshape(transpose(out_a) * real_basis, ...
+                [obj.Dimension, obj.Dimension]);
+        end
+    end
 end
 

@@ -1,6 +1,7 @@
-% EXAMPLE: CHSH scenario, with CVX
+% EXAMPLE: CHSH scenario, using yalmip
 %
 addpath('..')
+yalmip('clear')
 clear
 clear npatk;
 
@@ -16,7 +17,7 @@ B0 = Bob.AddMeasurement(2);
 B1 = Bob.AddMeasurement(2);
 
 % Make moment matrix
-matrix = chsh.MakeMomentMatrix(3);
+matrix = chsh.MakeMomentMatrix(2);
 
 % Make correlator objects
 Corr00 = Correlator(A0, B0);
@@ -27,20 +28,18 @@ Corr11 = Correlator(A1, B1);
 % Make CHSH object
 CHSH_ineq = Corr00 + Corr01 + Corr10 - Corr11;
 
-% Define and solve SDP
-cvx_begin sdp quiet
-     [a, b, M] = matrix.cvxHermitianBasis();
-     
-     % Normalization
-     a(1) == 1;
-     
-     % Positivity 
-     M >= 0;
-             
-     % CHSH inequality (maximize!)
-     chsh_ineq = CHSH_ineq.cvx(a);     
-     maximize(chsh_ineq);
-cvx_end
+% Get SDP vars and matrix
+[a, b, M] = matrix.yalmipHermitianBasis();
+
+% Constraints (normalization, positivity)
+constraints = [a(1) == 1];
+constraints = [constraints; M>=0];
+
+% Objective function (maximize)
+objective = -CHSH_ineq.yalmip(a);
+
+% Solve
+optimize(constraints, objective);
 
 % Get solutions
 solved_setting = SolvedSetting(chsh, matrix, a, b);

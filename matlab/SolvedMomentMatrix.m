@@ -14,8 +14,8 @@ classdef SolvedMomentMatrix < handle
                                           real_sol, im_sol)
             arguments
                 moment_matrix (:,:) MomentMatrix
-                real_sol (:,1) double
-                im_sol (:,1) double                
+                real_sol (:,1) {isNumericOrSDPvar}
+                im_sol (:,1) {isNumericOrSDPvar} 
             end 
             obj.MomentMatrix = moment_matrix;
             
@@ -23,14 +23,30 @@ classdef SolvedMomentMatrix < handle
             if (moment_matrix.RealBasisSize ~= length(real_sol))
                 error("Real solution doesn't match basis size.");
             end
-            obj.a = real_sol;
+            
+            % Get numeric value of real part
+            if isnumeric(real_sol)
+                real_sol_vals = real_sol;
+            elseif isa(real_sol, 'sdpvar')
+                real_sol_vals = obj.extract_yalmip_value(real_sol);
+            end
+            
+            obj.a = real_sol_vals;
             
             % Check and copy imaginary solutions, if set
-            if (nargin >= 3)
+            if (nargin >= 3)                
                 if (moment_matrix.ImaginaryBasisSize ~= length(im_sol))
                     error("Imaginary solution doesn't match basis size.");
                 end            
-                obj.b = im_sol;
+                
+                % Get numeric value of imaginary part
+                if isnumeric(real_sol)
+                    im_sol_vals = im_sol
+                elseif isa(real_sol, 'sdpvar')
+                    im_sol_vals  = obj.extract_yalmip_value(im_sol);
+                end
+
+                obj.b = im_sol_vals;
                 obj.isComplex = ~isempty(obj.b);                    
             else
                 obj.b = double.empty();
@@ -74,10 +90,33 @@ classdef SolvedMomentMatrix < handle
                 end
                 if obj.isComplex && (out_table(index).basis_im > 0)
                     out_table(index).imaginary_value = ...
-                        + obj.b(out_table(index).basis_im);
+                        obj.b(out_table(index).basis_im);
                 end
             end            
+        end
+        
+        function val = extract_yalmip_value(obj, item)
+            arguments
+                obj (1,1) SolvedMomentMatrix
+                item (:,:)
+            end
+            if ~isa(item, 'sdpvar')
+                error('Input should be sdpvar.');
+            end
+            
+            val = value(item);
+            
+            if sum(isnan(val(:))) > 0
+                error("NaN returned when retrieving value of item. Has"...
+                      + " the SDP yet been solved?");
+            end
         end
     end
 end
 
+%% Checkers
+function isNumericOrSDPvar(item)
+    if ~isnumeric(item) && ~isa(item, 'sdpvar')
+        error('Input must be numeric, or a yalmip sdpvar.');
+    end
+end

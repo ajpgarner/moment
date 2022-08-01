@@ -148,11 +148,36 @@ classdef RealObject < handle
             
             if length(coefs) ~= length(real_basis)
                 error("CVX real basis vector dimension does not match "...
-                    + "Correlator coefficient dimension.");
+                    + "object coefficient dimension.");
             end
             
             % Generate expression...
             cvx_expr = coefs * real_basis;
+        end
+    end
+    
+    %% Public yalmip methods
+     methods
+        function ym_expr = yalmip(obj, real_basis)
+            arguments
+                obj (1,1) RealObject
+                real_basis (:, 1)
+            end
+            % Get coefficients
+            coefs = obj.getCoefficientsOrFail();
+            
+            % real_basis should be sdpvar object
+            if ~isa(real_basis, 'sdpvar')
+                error("Expected yalmip real basis vector input.");
+            end
+            
+            if length(coefs) ~= length(real_basis)
+                error("Yalmip sdpvar vector dimension does not match "...
+                    + "object coefficient dimension.");
+            end
+            
+            % Generate expression...
+            ym_expr = coefs * real_basis;
         end
     end
     
