@@ -10,19 +10,19 @@ classdef SolvedJointMeasurement < handle
     end
     
     methods
-        function obj = SolvedJointMeasurement(solvedSetting, jointMmt)
+        function obj = SolvedJointMeasurement(solvedScenario, jointMmt)
             %SOLVEDMEASUREMENT Construct an instance of this class
             arguments
-                solvedSetting (1,1) SolvedSetting
-                jointMmt (1,1) Setting.JointMeasurement
+                solvedScenario (1,1) SolvedScenario
+                jointMmt (1,1) Scenario.JointMeasurement
             end
             
             % Get moment matrix
-            solvedMM = solvedSetting.SolvedMomentMatrix;
+            solvedMM = solvedScenario.SolvedMomentMatrix;
             obj.SolvedMomentMatrix = solvedMM;
                         
             % Get marginal measurements
-            obj.Marginals = obj.getMmts(solvedSetting, jointMmt);
+            obj.Marginals = obj.getMmts(solvedScenario, jointMmt);
             
             % Get (sorted) measurement indices:
             obj.Indices = jointMmt.Indices;
@@ -33,17 +33,17 @@ classdef SolvedJointMeasurement < handle
     end
     
     methods(Access=private)
-        function sorted = getMmts(obj, solvedSetting, mmt)
+        function sorted = getMmts(obj, solvedScenario, mmt)
             arguments
-                obj (1,1) SolvedSetting.SolvedJointMeasurement
-                solvedSetting (1,1) SolvedSetting
-                mmt (1,1) Setting.JointMeasurement
+                obj (1,1) SolvedScenario.SolvedJointMeasurement
+                solvedScenario (1,1) SolvedScenario
+                mmt (1,1) Scenario.JointMeasurement
             end
             
             % Check number of measurement
-            sorted = SolvedSetting.SolvedMeasurement.empty;
+            sorted = SolvedScenario.SolvedMeasurement.empty;
             for i = 1:length(mmt.Marginals)
-                sorted(end+1) = solvedSetting.get(mmt.Marginals(i));
+                sorted(end+1) = solvedScenario.get(mmt.Marginals(i));
             end
         end
         

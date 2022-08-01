@@ -1,7 +1,7 @@
 # NPA Toolkit
 (c) 2022 Austrian Academy of Sciences
  
-Author: Andrew J.P. Garner
+Author: Andrew J. P. Garner
 
 A set of tools designed for straightforward manipulation of convex optimisation problems involving moment matrices,
 such as the NPA hierarchy. 

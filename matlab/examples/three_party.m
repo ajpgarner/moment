@@ -2,7 +2,7 @@ addpath('..')
 clear
 clear npatk;
 
-setting = Setting(3);
+setting = Scenario(3);
 setting.Parties(1).AddMeasurement(5);
 setting.Parties(1).AddMeasurement(2);
 setting.Parties(2).AddMeasurement(3);

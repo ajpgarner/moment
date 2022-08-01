@@ -4,7 +4,7 @@ classdef RealObject < handle
     %% Properties
     properties(SetAccess=private, GetAccess=public)
         Coefficients
-        Setting
+        Scenario
     end
     
     properties(Access=protected)
@@ -15,13 +15,13 @@ classdef RealObject < handle
     methods
         function obj = RealObject(setting)
             %REALOBJECT Construct an instance of this class
-            obj.Setting = setting;
+            obj.Scenario = setting;
         end
         
         function val = get.Coefficients(obj)
             if isempty(obj.real_coefs)
                 % (Silently) do nothing if no moment matrix yet defined.
-                if ~obj.Setting.HasMomentMatrix
+                if ~obj.Scenario.HasMomentMatrix
                     val = double.empty;
                     return
                 end
@@ -37,7 +37,7 @@ classdef RealObject < handle
             % Forced rebuilding of co-efficients
             
             % Require moment-matrix to exist
-            if ~obj.Setting.HasMomentMatrix
+            if ~obj.Scenario.HasMomentMatrix
                 error("No moment matrix has yet been defined for" ...
                     + " this setting.");
             end
@@ -83,7 +83,7 @@ classdef RealObject < handle
                     error("_*_ only supported for scalar multiplication.");
                 end
 
-                val = RealObject(this.Setting);
+                val = RealObject(this.Scenario);
                 if pre_mult
                     val.real_coefs = other * coefs;
                 else
@@ -100,7 +100,7 @@ classdef RealObject < handle
                 lhs (1,1) RealObject
                 rhs (1,1) RealObject
             end
-            if lhs.Setting ~= rhs.Setting
+            if lhs.Scenario ~= rhs.Scenario
                 error("Cannot add objects from different settings.");
             end
             
@@ -108,7 +108,7 @@ classdef RealObject < handle
             rhs_coefs = rhs.getCoefficientsOrFail();
             
             % Build added real object
-            val = RealObject(lhs.Setting);
+            val = RealObject(lhs.Scenario);
             val.real_coefs = lhs_coefs + rhs_coefs;
         end
         
@@ -117,7 +117,7 @@ classdef RealObject < handle
                 lhs (1,1) RealObject
                 rhs (1,1) RealObject
             end
-            if lhs.Setting ~= rhs.Setting
+            if lhs.Scenario ~= rhs.Scenario
                 error("Cannot add objects from different settings.");
             end
             
@@ -125,7 +125,7 @@ classdef RealObject < handle
             rhs_coefs = rhs.getCoefficientsOrFail();
             
             % Build subtracted real object
-            val = RealObject(lhs.Setting);
+            val = RealObject(lhs.Scenario);
             val.real_coefs = lhs_coefs - rhs_coefs;
         end
     end
@@ -182,7 +182,7 @@ classdef RealObject < handle
     end
     
     %% Protected methods
-    methods(Access={?RealObject,?Setting})
+    methods(Access={?RealObject,?Scenario})
         function setCoefficients(obj, coefs)
             obj.real_coefs = coefs;
         end

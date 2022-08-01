@@ -1,4 +1,4 @@
-classdef Setting < handle
+classdef Scenario < handle
     %SETTING A scenario involving multiple agents with measurements.
     %   
       
@@ -12,25 +12,25 @@ classdef Setting < handle
     end
     
     methods
-        function obj = Setting(initial_parties)
+        function obj = Scenario(initial_parties)
             arguments
                 initial_parties (1,1) uint64 {mustBeInteger, mustBeNonnegative}
             end
             
-            obj.Parties = Setting.Party.empty;
+            obj.Parties = Scenario.Party.empty;
             if (initial_parties >=1 )
                 for x = 1:initial_parties 
-                    obj.Parties(end+1) = Setting.Party(obj, x);
+                    obj.Parties(end+1) = Scenario.Party(obj, x);
                 end
             end
         end
         
         function AddParty(obj, name)
             arguments
-                obj (1,1) Setting
+                obj (1,1) Scenario
                 name (1,1) string
             end
-            import Setting.Party
+            import Scenario.Party
             
             next_id = length(obj.Parties)+1;
             if nargin >=2
@@ -44,7 +44,7 @@ classdef Setting < handle
         
         function mm_out = MakeMomentMatrix(obj, depth, skip_bind)
             arguments
-                obj (1,1) Setting 
+                obj (1,1) Scenario 
                 depth (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 skip_bind (1,1) logical = false
             end
@@ -61,7 +61,7 @@ classdef Setting < handle
         
         function item = get(obj, index)
             arguments
-                obj (1,1) Setting
+                obj (1,1) Scenario
                 index (:,:) uint64
             end
             get_what = size(index, 2);
@@ -71,11 +71,11 @@ classdef Setting < handle
                 % Joint outcome object
                 if get_what == 2
                     index = sortrows(index);
-                    mmts = Setting.Measurement.empty;
+                    mmts = Scenario.Measurement.empty;
                     for i = 1:size(index, 1)
                         mmts(end+1) = obj.Parties(index(i, 1)).Measurements(index(i, 2));
                     end                    
-                    item = Setting.JointMeasurement(obj, mmts);
+                    item = Scenario.JointMeasurement(obj, mmts);
                 elseif get_what == 3
                     index = sortrows(index);
                     leading_item = obj.Parties(index(1, 1)).Measurements(index(1, 2)).Outcomes(index(1, 3));
@@ -103,7 +103,7 @@ classdef Setting < handle
     methods(Access=private)
         function do_bind(obj, mm)
              arguments
-                obj (1,1) Setting
+                obj (1,1) Scenario
                 mm (1,1) MomentMatrix
              end
              p_table = mm.ProbabilityTable;
@@ -119,7 +119,7 @@ classdef Setting < handle
                      leading_outcome.setCoefficients(p_row.real_coefficients);
                  else
                      % Register co-effs as joint outcome
-                     joint_outcome = Setting.JointOutcome(obj, p_row.indices);
+                     joint_outcome = Scenario.JointOutcome(obj, p_row.indices);
                      joint_outcome.setCoefficients(p_row.real_coefficients);
                      
                      leading_outcome.joint_outcomes(end+1).indices = ...

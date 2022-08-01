@@ -1,11 +1,11 @@
 classdef Outcome < handle & RealObject
     %OUTCOME Measurement outcome
-    properties(SetAccess={?Setting}, GetAccess=public)
+    properties(SetAccess={?Scenario}, GetAccess=public)
         Id
         Index       
     end
     
-    properties(Access={?Setting})
+    properties(Access={?Scenario})
         joint_outcomes       
     end
     
@@ -13,7 +13,7 @@ classdef Outcome < handle & RealObject
         function obj = Outcome(setting, party_index, ...
                                mmt_index, outcome_index)
             arguments
-                setting (1,1) Setting
+                setting (1,1) Scenario
                 party_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 mmt_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 outcome_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
@@ -35,13 +35,13 @@ classdef Outcome < handle & RealObject
             end
             
             % Should only occur when A is a built-in object
-            if ~isa(objA, 'Setting.Outcome')
+            if ~isa(objA, 'Scenario.Outcome')
                 joint_item = mtimes@RealObject(objA, objB);
                 return
             end
             
-            if isa(objB, 'Setting.JointOutcome')
-                if objA.Setting ~= objB.Setting
+            if isa(objB, 'Scenario.JointOutcome')
+                if objA.Scenario ~= objB.Scenario
                     error("Can only combine objects from the same setting.");
                 end
                 if ismember(objA.Index(1), objB.Indices(:,1))
@@ -52,8 +52,8 @@ classdef Outcome < handle & RealObject
                 
                 indices = sortrows(vertcat(objA.Index, objB.Indices));
                 joint_item = objA.JointOutcome(indices);
-            elseif isa(objB, 'Setting.Outcome')
-                if objA.Setting ~= objB.Setting
+            elseif isa(objB, 'Scenario.Outcome')
+                if objA.Scenario ~= objB.Scenario
                     error("Can only combine objects from the same setting.");
                 end
                 if objA.Index(1) == objB.Index(1)
@@ -72,7 +72,7 @@ classdef Outcome < handle & RealObject
    
         function item = JointOutcome(obj, indices)
             arguments
-                obj (1,1) Setting.Outcome
+                obj (1,1) Scenario.Outcome
                 indices (:,:) uint64
             end
             table_index = find(arrayfun(@(s) ...

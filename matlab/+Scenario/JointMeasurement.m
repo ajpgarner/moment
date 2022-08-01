@@ -1,7 +1,7 @@
 classdef JointMeasurement < handle
     %JOINTMEASUREMENT Collection of two or more measurements
     properties(SetAccess=private, GetAccess=public)
-        Setting
+        Scenario
         Marginals
         Indices
         Shape
@@ -11,12 +11,12 @@ classdef JointMeasurement < handle
         function obj = JointMeasurement(setting, measurements)
             %SOLVEDMEASUREMENT Construct an instance of this class
             arguments
-                setting (1,1) Setting
-                measurements (1, :) Setting.Measurement
+                setting (1,1) Scenario
+                measurements (1, :) Scenario.Measurement
             end
             
             % Get setting
-            obj.Setting = setting;
+            obj.Scenario = setting;
                                     
             % Get marginal measurements
             obj.Marginals = obj.checkAndSortMmts(measurements);
@@ -32,7 +32,7 @@ classdef JointMeasurement < handle
         
         function val = Outcome(obj, index)
             arguments
-                obj (1,1) Setting.JointMeasurement
+                obj (1,1) Scenario.JointMeasurement
                 index (1, :) uint64
             end
             if length(index) ~= length(obj.Shape)
@@ -45,7 +45,7 @@ classdef JointMeasurement < handle
             indices = horzcat(obj.Indices, ...
                               reshape(index, [length(obj.Shape), 1]));
               
-            val = obj.Setting.get(indices);
+            val = obj.Scenario.get(indices);
         end
         
         function val = Correlator(obj)
@@ -59,8 +59,8 @@ classdef JointMeasurement < handle
     methods(Access=private)
         function sorted = checkAndSortMmts(obj, unsorted)
             arguments
-                obj (1,1) Setting.JointMeasurement
-                unsorted (1,:) Setting.Measurement
+                obj (1,1) Scenario.JointMeasurement
+                unsorted (1,:) Scenario.Measurement
             end
             
             % Check number of measurements
@@ -81,7 +81,7 @@ classdef JointMeasurement < handle
             
             % Sort measurements by party
             [~, sortIndex] = sort(indices);
-            sorted = Setting.Measurement.empty;
+            sorted = Scenario.Measurement.empty;
             for i = 1:length(unsorted)
                 sorted(end+1) = unsorted(sortIndex(i));
             end

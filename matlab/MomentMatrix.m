@@ -35,7 +35,7 @@ classdef MomentMatrix  < handle
             obj.Level = uint64(level);
             
             % First, make matrix...
-            % Check if settingsParams is Settings, or cell array
+            % Check if settingsParams is Scenario, or cell array
             %  Call npatk make_moment_matrix accordingly
             if isa(settingParams, 'cell')
                 if (nargin >= 2)
@@ -47,13 +47,13 @@ classdef MomentMatrix  < handle
                     npatk('make_moment_matrix', ...
                     'reference', settingParams{:});
                 
-            elseif isa(settingParams, 'Setting')
+            elseif isa(settingParams, 'Scenario')
                 % Supply setting object directly
                 [obj.RefId, obj.SymbolTable, obj.Dimension] = ...
                     npatk('make_moment_matrix', 'reference', ...
                     'setting', settingParams, 'level', level);
             else
-                error(['First argument must be either a Setting ',...
+                error(['First argument must be either a Scenario ',...
                     'object, or a cell array of parameters.']);
             end
             

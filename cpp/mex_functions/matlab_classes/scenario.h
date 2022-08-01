@@ -1,5 +1,5 @@
 /**
- * setting.h
+ * scenario.h
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
@@ -47,13 +47,13 @@ namespace NPATK::mex {
             }
         };
 
-        class Setting : public MATLABClass {
+        class Scenario : public MATLABClass {
         private:
             matlab::data::Array partyRaw;
             std::vector<NPATK::mex::classes::Party> parties;
 
         public:
-            Setting(matlab::engine::MATLABEngine &engine, matlab::data::Array rawInput);
+            Scenario(matlab::engine::MATLABEngine &engine, matlab::data::Array rawInput);
 
             constexpr auto &Parties() noexcept {
                 return this->parties;
@@ -64,12 +64,12 @@ namespace NPATK::mex {
     }
 
     /**
-     * Check if supplied array object matches a valid specification of (matlab) 'Setting' class.
+     * Check if supplied array object matches a valid specification of (matlab) 'Scenario' class.
      * @param engine Handle to MATLAB engine.
      * @param raw_data The raw object to verify.
-     * @return Pair: first: true ptr to Setting object, if valid; second: why verification failed, set when first is null.
+     * @return Pair: first: true ptr to Scenario object, if valid; second: why verification failed, set when first is null.
      */
-    [[nodiscard]] std::pair<std::unique_ptr<classes::Setting>, std::optional<std::string>>
+    [[nodiscard]] std::pair<std::unique_ptr<classes::Scenario>, std::optional<std::string>>
     read_as_setting(matlab::engine::MATLABEngine& engine, matlab::data::Array raw_data);
 
 }

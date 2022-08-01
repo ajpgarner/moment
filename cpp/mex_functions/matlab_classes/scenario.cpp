@@ -1,9 +1,9 @@
 /**
- * setting.cpp
+ * scenario.cpp
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
-#include "setting.h"
+#include "scenario.h"
 
 namespace NPATK::mex {
     namespace classes {
@@ -11,7 +11,7 @@ namespace NPATK::mex {
         Outcome::Outcome(matlab::engine::MATLABEngine &engine,
                          const size_t p_index, const size_t m_index, const size_t o_index,
                          matlab::data::Array& rawInput)
-                : MATLABClass(engine, "Setting.Outcome", MATLABClass::FieldTypeMap{
+                : MATLABClass(engine, "Scenario.Outcome", MATLABClass::FieldTypeMap{
                                                         {"Id", matlab::data::ArrayType::UINT64}
                                                  }, rawInput, o_index) {
             // Verify outcome object...
@@ -29,7 +29,7 @@ namespace NPATK::mex {
 
         Measurement::Measurement(matlab::engine::MATLABEngine &engine, const size_t party_index,
                                  const size_t mmt_index, matlab::data::Array& rawInput)
-            : MATLABClass(engine, "Setting.Measurement", MATLABClass::FieldTypeMap{
+            : MATLABClass(engine, "Scenario.Measurement", MATLABClass::FieldTypeMap{
                                                     {"Id", matlab::data::ArrayType::UINT64},
                                                     {"Name", matlab::data::ArrayType::MATLAB_STRING},
                                                     {"Outcomes", matlab::data::ArrayType::HANDLE_OBJECT_REF}
@@ -75,7 +75,7 @@ namespace NPATK::mex {
         }
 
         Party::Party(matlab::engine::MATLABEngine &engine, const size_t party_index, matlab::data::Array& rawInput)
-                : MATLABClass(engine, "Setting.Party",
+                : MATLABClass(engine, "Scenario.Party",
                               MATLABClass::FieldTypeMap{
                                       {"Id",           matlab::data::ArrayType::UINT64},
                                       {"Name",         matlab::data::ArrayType::MATLAB_STRING},
@@ -123,8 +123,8 @@ namespace NPATK::mex {
             }
         }
 
-        Setting::Setting(matlab::engine::MATLABEngine &engine, matlab::data::Array rawInput)
-                : MATLABClass(engine, "Setting",
+        Scenario::Scenario(matlab::engine::MATLABEngine &engine, matlab::data::Array rawInput)
+                : MATLABClass(engine, "Scenario",
                               MATLABClass::FieldTypeMap{
                                       {std::string("Parties"), matlab::data::ArrayType::HANDLE_OBJECT_REF}
                               }, std::move(rawInput)) {
@@ -132,7 +132,7 @@ namespace NPATK::mex {
             // Check party list is good...
             auto partyListArray = this->property("Parties");
             if (partyListArray.isEmpty()) {
-                throw errors::bad_class_exception{this->className, "At least one Party must be specified in Setting."};
+                throw errors::bad_class_exception{this->className, "At least one Party must be specified in Scenario."};
             }
 
             auto partyDims = partyListArray.getDimensions();
@@ -157,7 +157,7 @@ namespace NPATK::mex {
 
         }
 
-        std::unique_ptr<Context> Setting::make_context() {
+        std::unique_ptr<Context> Scenario::make_context() {
             size_t num_parties = this->Parties().size();
             std::vector<NPATK::Party> partyList{};
             partyList.reserve(num_parties);
@@ -191,19 +191,19 @@ namespace NPATK::mex {
 
     }
 
-    std::pair<std::unique_ptr<classes::Setting>, std::optional<std::string>>
+    std::pair<std::unique_ptr<classes::Scenario>, std::optional<std::string>>
     read_as_setting(matlab::engine::MATLABEngine &engine,
                     matlab::data::Array raw_data) {
 
         // Check just one
         if (raw_data.getNumberOfElements() != 1) {
-            return {nullptr, std::string("Only one Setting object should be supplied.")};
+            return {nullptr, std::string("Only one Scenario object should be supplied.")};
         }
 
-        // Check object is an instance of 'Setting'
-        std::unique_ptr<classes::Setting> ptrSetting;
+        // Check object is an instance of 'Scenario'
+        std::unique_ptr<classes::Scenario> ptrSetting;
         try {
-            ptrSetting = std::make_unique<classes::Setting>(engine, std::move(raw_data));
+            ptrSetting = std::make_unique<classes::Scenario>(engine, std::move(raw_data));
         } catch (const errors::bad_class_exception &bce) {
             return {nullptr, std::string{bce.what()}};
         }

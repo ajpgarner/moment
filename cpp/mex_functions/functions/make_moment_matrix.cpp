@@ -289,7 +289,7 @@ namespace NPATK::mex::functions {
                 ss << "Specified as parties with the same number of measurements / outcomes.\n";
                 break;
             case SpecificationMode::FromSettingObject:
-                ss << "Specified as a Setting object.\n";
+                ss << "Specified as a Scenario object.\n";
                 break;
             default:
             case SpecificationMode::Unknown:
@@ -309,9 +309,9 @@ namespace NPATK::mex::functions {
                 break;
             case SpecificationMode::FromSettingObject:
                 if (this->settingPtr) {
-                    ss << "Pointer to Setting object set.\n";
+                    ss << "Pointer to Scenario object set.\n";
                 } else {
-                    ss << "Pointer to Setting object not set!\n";
+                    ss << "Pointer to Scenario object not set!\n";
                 }
                 break;
             default:

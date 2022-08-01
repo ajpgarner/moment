@@ -11,7 +11,7 @@ classdef JointOutcome < handle & RealObject
         function obj = JointOutcome(setting, indices)
             %JOINTOUTCOME Construct an instance of this class
              arguments
-                setting (1,1) Setting
+                setting (1,1) Scenario
                 indices (:,3) uint64 {mustBeInteger, mustBeNonnegative}
              end
             
@@ -26,7 +26,7 @@ classdef JointOutcome < handle & RealObject
             end
             
             % Copy refs to outcomes that make up this joint mmt outcome
-            obj.Constituents = Setting.Outcome.empty([1, 0]);
+            obj.Constituents = Scenario.Outcome.empty([1, 0]);
             for row = 1:num_mmts
                 obj.Constituents(end+1) = setting.get(obj.Indices(row, :));
             end
@@ -39,13 +39,13 @@ classdef JointOutcome < handle & RealObject
             end
                         
             % Should only occur when A is a built-in object
-            if ~isa(objA, 'Setting.JointOutcome')
+            if ~isa(objA, 'Scenario.JointOutcome')
                 joint_item = mtimes@RealObject(objA, objB);
                 return
             end
             
-            if isa(objB, 'Setting.JointOutcome')                
-                if objA.Setting ~= objB.Setting
+            if isa(objB, 'Scenario.JointOutcome')                
+                if objA.Scenario ~= objB.Scenario
                     error("Can only combine objects from the same setting.");
                 end
                 if ~isempty(intersect(objA.Indices(:,1), ...
@@ -55,9 +55,9 @@ classdef JointOutcome < handle & RealObject
                           + "must be from different parties).");
                 end
                 indices = sortrows(vertcat(objA.Indices, objB.Indices));
-                joint_item = objA.Setting.get(indices);
-            elseif isa(objB, 'Setting.Outcome')                
-                if objA.Setting ~= objB.Setting
+                joint_item = objA.Scenario.get(indices);
+            elseif isa(objB, 'Scenario.Outcome')                
+                if objA.Scenario ~= objB.Scenario
                     error("Can only combine objects from the same setting.");
                 end
                 if ismember(objB.Index(1), objA.Indices(:,1))
@@ -66,7 +66,7 @@ classdef JointOutcome < handle & RealObject
                           + "must be from different parties).");
                 end
                 indices = sortrows(vertcat(objA.Indices, objB.Index));
-                joint_item = objA.Setting.get(indices);
+                joint_item = objA.Scenario.get(indices);
             else
                 % Fall back to superclass:~
                 joint_item = mtimes@RealObject(objA, objB);

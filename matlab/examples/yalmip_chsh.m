@@ -6,7 +6,7 @@ clear
 clear npatk;
 
 % Two parties
-chsh = Setting(2);
+chsh = Scenario(2);
 Alice = chsh.Parties(1);
 Bob = chsh.Parties(2);
 
@@ -42,7 +42,7 @@ objective = -CHSH_ineq.yalmip(a);
 optimize(constraints, objective);
 
 % Get solutions
-solved_setting = SolvedSetting(chsh, matrix, a, b);
+solved_setting = SolvedScenario(chsh, matrix, a, b);
 solved_matrix = solved_setting.SolvedMomentMatrix;
 disp(struct2table(solved_matrix.SymbolTable));
 chsh_max_val = solved_setting.Value(CHSH_ineq);

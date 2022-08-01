@@ -7,24 +7,24 @@ classdef Party < handle
         Name
         RawOperators
         Measurements
-        Setting
+        Scenario
     end
     
-    methods(Access={?Setting})
+    methods(Access={?Scenario})
         function obj = Party(setting, id, name, raw)
             arguments
-                setting (1,1) Setting
+                setting (1,1) Scenario
                 id (1,1) uint64 {mustBeInteger, mustBePositive}
                 name (1,1) string = ""
                 raw (1,1) uint64 {mustBeInteger, mustBeNonnegative} = 0
             end
             %PARTY Construct a party 
-            % (Private c'tor. To construct, use Setting.AddParty.)
-            import Setting.Measurement
+            % (Private c'tor. To construct, use Scenario.AddParty.)
+            import Scenario.Measurement
             import Util.alphabetic_index
             
             % Link to a setting object
-            obj.Setting = setting;
+            obj.Scenario = setting;
             
             % Supply an index
             obj.Id = id;
@@ -51,11 +51,11 @@ classdef Party < handle
     methods
         function mmt = AddMeasurement(obj, num_outcomes, name)
             arguments
-                obj Setting.Party                
+                obj Scenario.Party                
                 num_outcomes (1,1) uint64 {mustBeInteger, mustBePositive}
                 name (1,1) string = ""
             end
-            import Setting.Measurement
+            import Scenario.Measurement
             import Util.alphabetic_index
             
             % Automatically name, if non supplied
@@ -64,7 +64,7 @@ classdef Party < handle
                 name = alphabetic_index(next_id, false);
             end
                 
-            obj.Measurements(end+1) = Measurement(obj.Setting, ...
+            obj.Measurements(end+1) = Measurement(obj.Scenario, ...
                                                   obj.Id, next_id, ...
                                                   string(name), ...
                                                   num_outcomes);

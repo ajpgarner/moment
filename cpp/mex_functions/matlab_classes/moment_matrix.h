@@ -27,7 +27,7 @@ namespace NPATK::mex {
     * Check if supplied array object matches a valid specification of (matlab) 'MomentMatrix' class.
     * @param engine Handle to MATLAB engine.
     * @param raw_data The raw object to verify.
-    * @return Pair: first: true ptr to Setting object, if valid; second: why verification failed, set when first is null.
+    * @return Pair: first: true ptr to Scenario object, if valid; second: why verification failed, set when first is null.
     */
     [[nodiscard]] std::pair<std::unique_ptr<classes::MomentMatrix>, std::optional<std::string>>
     read_as_moment_matrix(matlab::engine::MATLABEngine& engine, matlab::data::Array raw_data);

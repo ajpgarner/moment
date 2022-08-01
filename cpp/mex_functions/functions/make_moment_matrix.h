@@ -6,7 +6,7 @@
 #pragma once
 
 #include "mex_function.h"
-#include "matlab_classes/setting.h"
+#include "matlab_classes/scenario.h"
 
 namespace NPATK {
     class Context;
@@ -41,7 +41,7 @@ namespace NPATK::mex::functions  {
         unsigned long flat_outcomes_per_mmt = 0;
         unsigned long flat_operators_per_party = 0;
 
-        std::unique_ptr<classes::Setting> settingPtr;
+        std::unique_ptr<classes::Scenario> settingPtr;
 
         uint64_t storage_key = 0;
 
