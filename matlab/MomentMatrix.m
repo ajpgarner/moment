@@ -180,7 +180,7 @@ classdef MomentMatrix  < handle
             end
             
             % Multiple variables by basis to make matrix
-            [real_basis, im_basis] = obj.MonolithicBasis(false);
+            [real_basis, im_basis] = obj.MonolithicBasis(true);
             variable a(obj.RealBasisSize);
             variable b(obj.ImaginaryBasisSize);
             expression M(obj.Dimension, obj.Dimension)
@@ -202,7 +202,7 @@ classdef MomentMatrix  < handle
             end
             
             % Multiple variables by basis to make matrix
-            [real_basis, ~] = obj.MonolithicBasis(false);
+            [real_basis, ~] = obj.MonolithicBasis(true);
             variable a(obj.RealBasisSize);
             expression M(obj.Dimension, obj.Dimension);
             M(:,:) = reshape(transpose(a) * real_basis, ...

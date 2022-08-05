@@ -16,7 +16,7 @@ B0 = Bob.AddMeasurement(2);
 B1 = Bob.AddMeasurement(2);
 
 % Make moment matrix
-matrix = chsh.MakeMomentMatrix(3);
+matrix = chsh.MakeMomentMatrix(2);
 
 % Make correlator objects
 Corr00 = Correlator(A0, B0);
@@ -38,7 +38,7 @@ cvx_begin sdp quiet
      M >= 0;
              
      % CHSH inequality (maximize!)
-     chsh_ineq = CHSH_ineq.cvx(a);     
+     chsh_ineq = CHSH_ineq.cvx(a);
      maximize(chsh_ineq);
 cvx_end
 

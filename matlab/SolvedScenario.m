@@ -16,8 +16,8 @@ classdef SolvedScenario< handle
             arguments
                 setting (1,1) Scenario
                 argA
-                argB
-                argC
+                argB = 0
+                argC = 0
             end
             
             % Save handles

@@ -17,7 +17,7 @@ B0 = Bob.AddMeasurement(2);
 B1 = Bob.AddMeasurement(2);
 
 % Make moment matrix
-matrix = chsh.MakeMomentMatrix(2);
+matrix = chsh.MakeMomentMatrix(9);
 
 % Make correlator objects
 Corr00 = Correlator(A0, B0);
@@ -39,7 +39,7 @@ constraints = [constraints; M>=0];
 objective = -CHSH_ineq.yalmip(a);
 
 % Solve
-optimize(constraints, objective);
+optimize(constraints, objective); 
 
 % Get solutions
 solved_setting = SolvedScenario(chsh, matrix, a, b);

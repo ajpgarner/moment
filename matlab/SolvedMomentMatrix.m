@@ -15,7 +15,7 @@ classdef SolvedMomentMatrix < handle
             arguments
                 moment_matrix (:,:) MomentMatrix
                 real_sol (:,1) {isNumericOrSDPvar}
-                im_sol (:,1) {isNumericOrSDPvar} 
+                im_sol (:,1) {isNumericOrSDPvar} = double.empty(0,1) 
             end 
             obj.MomentMatrix = moment_matrix;
             
@@ -34,14 +34,14 @@ classdef SolvedMomentMatrix < handle
             obj.a = real_sol_vals;
             
             % Check and copy imaginary solutions, if set
-            if (nargin >= 3)                
+            if (nargin >= 3)    
                 if (moment_matrix.ImaginaryBasisSize ~= length(im_sol))
                     error("Imaginary solution doesn't match basis size.");
                 end            
                 
                 % Get numeric value of imaginary part
                 if isnumeric(real_sol)
-                    im_sol_vals = im_sol
+                    im_sol_vals = im_sol;
                 elseif isa(real_sol, 'sdpvar')
                     im_sol_vals  = obj.extract_yalmip_value(im_sol);
                 end
