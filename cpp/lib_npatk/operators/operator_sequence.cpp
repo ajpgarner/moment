@@ -12,27 +12,11 @@
 
 
 std::ostream &NPATK::operator<<(std::ostream &os, const NPATK::OperatorSequence &seq) {
-    // Canonically zero sequences
-    if (seq.is_zero) {
-        os << "[0]";
-        return os;
+    if (seq.context == nullptr) {
+        throw std::runtime_error("operator<< requires OperatorSequence to have an associated context.");
     }
 
-    // Empty sequence represents ID
-    if (seq.empty()) {
-        os << "[I]";
-        return os;
-    }
-
-    // Otherwise, print list of operators
-    bool done_one = false;
-    for (const auto& op : seq) {
-        if (done_one) {
-            os << ", ";
-        }
-        os << op;
-        done_one = true;
-    }
+    os << seq.context->format_sequence(seq);
     return os;
 }
 

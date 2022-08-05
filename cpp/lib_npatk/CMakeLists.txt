@@ -7,7 +7,6 @@ add_library(lib_npatk
         operators/joint_measurement_index.cpp
         operators/joint_measurement_iterator.cpp
         operators/moment_matrix.cpp
-        operators/operator.cpp
         operators/operator_sequence.cpp
         operators/operator_sequence_generator.cpp
         operators/party.cpp

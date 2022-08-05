@@ -62,8 +62,6 @@ namespace NPATK {
         constexpr Operator(oper_name_t name, party_name_t who, Flags what = Flags::None) noexcept
                 : id{name}, party{who}, flags{what} {}
 
-        friend std::ostream &operator<<(std::ostream &os, const Operator &seq);
-
         constexpr bool operator==(const Operator &rhs) const noexcept {
             return (this->id == rhs.id) && (this->party == rhs.party);
             // undefined to have same party & id, w/ different flags && (this->flags == rhs.flags);
