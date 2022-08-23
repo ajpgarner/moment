@@ -13,9 +13,12 @@ classdef RealObject < handle
     
     %% Public methods
     methods
-        function obj = RealObject(setting)
+        function obj = RealObject(setting, coefs)
             %REALOBJECT Construct an instance of this class
             obj.Scenario = setting;
+            if nargin >= 2
+                obj.real_coefs = coefs;
+            end
         end
         
         function val = get.Coefficients(obj)

@@ -24,8 +24,12 @@ Corr01 = Correlator(A0, B1);
 Corr10 = Correlator(A1, B0);
 Corr11 = Correlator(A1, B1);
 
-% Make CHSH object
+% Make CHSH object manually
 CHSH_ineq = Corr00 + Corr01 + Corr10 - Corr11;
+
+% Alternatively, make via full-correlator
+fc = FullCorrelator(chsh);
+CHSH_ineq2 = fc.linfunc([[0 0 0]; [0 1 1]; [0 1 -1]]);
 
 % Define and solve SDP
 cvx_begin sdp quiet
@@ -38,8 +42,8 @@ cvx_begin sdp quiet
      M >= 0;
              
      % CHSH inequality (maximize!)
-     chsh_ineq = CHSH_ineq.cvx(a);
-     maximize(chsh_ineq);
+     solve_chsh_ineq = CHSH_ineq.cvx(a);
+     maximize(solve_chsh_ineq);
 cvx_end
 
 % Get solutions

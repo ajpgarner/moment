@@ -114,7 +114,17 @@ classdef JointMeasurement < handle & RealObject
     %% Virtual methods
     methods(Access=protected)
         function calculateCoefficients(obj)
-            % Overload this!
+            coefs = zeros(size(obj.Scenario.Normalization.Coefficients));
+            
+            for index = 1:prod(obj.Shape)
+                oc_index = reshape(Util.index_to_sub(obj.Shape, index), ...
+                                   [length(obj.Shape), 1]);
+                full_index = horzcat(obj.Indices, oc_index);
+                joint_outcome = obj.Scenario.get(full_index);
+                local_coefs = joint_outcome.Coefficients * obj.Values(index);
+                coefs = coefs + local_coefs;
+            end
+            obj.real_coefs = coefs;
         end
     end
 end

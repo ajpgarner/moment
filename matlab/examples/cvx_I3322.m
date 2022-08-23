@@ -31,10 +31,18 @@ Corr20 = Correlator(A2, B0);
 Corr21 = Correlator(A2, B1);
 Corr22 = Correlator(A2, B2);
 
-% Make CHSH object
+% Make I3322 object manually
 I3322_ineq = Corr12 + Corr21 ...
     - Corr20 - Corr11 - Corr02 - Corr01 - Corr10 - Corr00 ...
     - A1 - A0 - B1 - B0;
+
+% Make I3322 object using FC tensor
+I3322_ineq2 = i3322.FCTensor([[0  -1 -1  0]
+                              [-1 -1 -1 -1]
+                              [-1 -1 -1  1]
+                              [0  -1  1  0]]);
+
+
         
 % Define and solve SDP
 cvx_begin sdp 
@@ -45,10 +53,9 @@ cvx_begin sdp
     
      % Positivity 
      M >= 0;
-     
              
      % CHSH inequality (maximize!)
-     i3322_ineq = I3322_ineq.cvx(a);
+     i3322_ineq = I3322_ineq2.cvx(a);
      maximize(i3322_ineq);
 cvx_end
 

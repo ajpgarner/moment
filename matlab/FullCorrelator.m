@@ -33,7 +33,6 @@ classdef FullCorrelator < handle
             
             real_coefs = sparse(zeros(1, length(obj.Scenario.Normalization.Coefficients)));
             
-            
             for i = 1:total_size
                 % Skip zeros
                 if tensor(i) == 0
@@ -41,11 +40,11 @@ classdef FullCorrelator < handle
                 end
                 
                 indices = Util.index_to_sub(obj.Shape, i);
-                coef = tensor(i)
-                % TODO: Skip 0s
-                rObj = obj.at(indices - 1)
-                real_coefs = real_coefs + rObj.Coefficients;
+                coef = tensor(i);
+                rObj = obj.at(indices - 1);
+                real_coefs = real_coefs + sparse(coef * rObj.Coefficients);
             end
+            val = RealObject(obj.Scenario, real_coefs);
         end
         
         function val = at(obj, index)
