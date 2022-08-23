@@ -4,7 +4,9 @@ classdef Scenario < handle
       
     properties(GetAccess = public, SetAccess = protected)
         Parties
+        MeasurementsPerParty
         HasMomentMatrix
+        Normalization
     end
     
     properties(Access = private)
@@ -17,6 +19,8 @@ classdef Scenario < handle
                 initial_parties (1,1) uint64 {mustBeInteger, mustBeNonnegative}
             end
             
+            obj.Normalization = Scenario.Normalization(obj);
+            
             obj.Parties = Scenario.Party.empty;
             if (initial_parties >=1 )
                 for x = 1:initial_parties 
@@ -28,7 +32,7 @@ classdef Scenario < handle
         function AddParty(obj, name)
             arguments
                 obj (1,1) Scenario
-                name (1,1) string
+                name (1,1) string = ''
             end
             import Scenario.Party
             
@@ -38,8 +42,14 @@ classdef Scenario < handle
             else
                 obj.Parties(end+1) = Party(obj, next_id);
             end
-            
-            obj.Parties(end).setting = obj;
+            obj.invalidateMomentMatrix();
+        end
+        
+        function val = get.MeasurementsPerParty(obj)
+            val = zeros(1, length(obj.Parties));
+            for party_id = 1:length(obj.Parties)
+                val(party_id) = length(obj.Parties(party_id).Measurements);
+            end
         end
         
         function mm_out = MakeMomentMatrix(obj, depth, skip_bind)
@@ -67,15 +77,17 @@ classdef Scenario < handle
             get_what = size(index, 2);
             get_joint = size(index, 1) > 1;
             
+            if isempty(index)
+                item = obj.Normalization;
+                return;
+            end
+            
             if get_joint
                 % Joint outcome object
                 if get_what == 2
                     index = sortrows(index);
-                    mmts = Scenario.Measurement.empty;
-                    for i = 1:size(index, 1)
-                        mmts(end+1) = obj.Parties(index(i, 1)).Measurements(index(i, 2));
-                    end                    
-                    item = Scenario.JointMeasurement(obj, mmts);
+                    leading_mmt = obj.Parties(index(1, 1)).Measurements(index(1, 2));
+                    item = leading_mmt.JointMeasurement(index);
                 elseif get_what == 3
                     index = sortrows(index);
                     leading_item = obj.Parties(index(1, 1)).Measurements(index(1, 2)).Outcomes(index(1, 3));
@@ -100,6 +112,37 @@ classdef Scenario < handle
         end
     end
     
+    methods(Access={?Scenario,?Scenario.Party})
+        function invalidateMomentMatrix(obj)
+            obj.moment_matrix = MomentMatrix.empty;
+        end
+        
+        function make_joint_mmts(obj, party_id, new_mmt)
+            arguments
+                obj (1,1) Scenario
+                party_id (1,1) uint64
+                new_mmt (1,1) Scenario.Measurement
+            end
+            % First, add new measurement to lower index parties
+            if party_id > 1
+                for i=1:(party_id-1)
+                    for m = obj.Parties(i).Measurements
+                        m.addJointMmt(new_mmt);
+                    end
+                end
+            end
+            
+            % Second, make joint measurement with higher index parties
+            for i=(party_id+1):length(obj.Parties)
+                for m = obj.Parties(i).Measurements
+                    new_mmt.addJointMmt(m);
+                end
+            end
+        end
+    end
+    
+   
+    
     methods(Access=private)
         function do_bind(obj, mm)
              arguments
@@ -109,9 +152,16 @@ classdef Scenario < handle
              p_table = mm.ProbabilityTable;
              for p_row = p_table
                  seq_len = size(p_row.indices, 1);
+                 
+                 % Special case 0 and 1
                  if seq_len == 0
-                     continue
+                     if p_row.sequence == "1"
+                         obj.Normalization.setCoefficients(...
+                                p_row.real_coefficients);
+                     end
+                     continue;
                  end
+                 
                  leading_outcome = obj.get(p_row.indices(1,:));
                  
                  if seq_len == 1
@@ -129,6 +179,7 @@ classdef Scenario < handle
                  end
              end
         end
+        
     end
 end
 

@@ -32,11 +32,10 @@ Corr21 = Correlator(A2, B1);
 Corr22 = Correlator(A2, B2);
 
 % Make CHSH object
-I3322_ineq = Corr12 + Corr21 - Corr20 - Corr11 - Corr02 - Corr01 - Corr10 - Corr00 ...
-    - A0.Outcomes(1) - A1.Outcomes(1) - B0.Outcomes(1) - B1.Outcomes(1) ...
-    + A0.Outcomes(2) + A1.Outcomes(2) + B0.Outcomes(2) + B1.Outcomes(2);
-    % - A1 - A0 - B1 - B0;
-    
+I3322_ineq = Corr12 + Corr21 ...
+    - Corr20 - Corr11 - Corr02 - Corr01 - Corr10 - Corr00 ...
+    - A1 - A0 - B1 - B0;
+        
 % Define and solve SDP
 cvx_begin sdp 
      [a, M] = matrix.cvxSymmetricBasis();

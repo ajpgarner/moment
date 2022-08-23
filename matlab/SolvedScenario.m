@@ -49,9 +49,7 @@ classdef SolvedScenario< handle
             
             obj.applySolutionToScenario();
         end
-    end
-    
-    methods
+
         function val = get(obj, what)
             arguments
                 obj (1,1) SolvedScenario
@@ -103,7 +101,7 @@ classdef SolvedScenario< handle
                 thing (1,1) RealObject
             end
             val = obj.SolvedMomentMatrix.Value(thing);
-        end
+        end       
     end
     
     methods(Access=private)

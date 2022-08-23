@@ -4,8 +4,12 @@ clear npatk;
 
 setting = Scenario(4);
 setting.Parties(1).AddMeasurement(2);
+setting.Parties(1).AddMeasurement(2);
+setting.Parties(2).AddMeasurement(2);
 setting.Parties(2).AddMeasurement(2);
 setting.Parties(3).AddMeasurement(2);
+setting.Parties(3).AddMeasurement(2);
+setting.Parties(4).AddMeasurement(2);
 setting.Parties(4).AddMeasurement(2);
 
 matrix = setting.MakeMomentMatrix(2);

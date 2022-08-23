@@ -2,7 +2,8 @@ classdef Outcome < handle & RealObject
     %OUTCOME Measurement outcome
     properties(SetAccess={?Scenario}, GetAccess=public)
         Id
-        Index       
+        Index
+        Value
     end
     
     properties(Access={?Scenario})
@@ -11,12 +12,14 @@ classdef Outcome < handle & RealObject
     
     methods
         function obj = Outcome(setting, party_index, ...
-                               mmt_index, outcome_index)
+                               mmt_index, outcome_index, ...
+                               value)
             arguments
                 setting (1,1) Scenario
                 party_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 mmt_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 outcome_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
+                value (1,1) double = 0
             end
             
             % Superclass c'tor
@@ -24,6 +27,7 @@ classdef Outcome < handle & RealObject
             
             obj.Id = outcome_index;
             obj.Index = uint64([party_index, mmt_index, outcome_index]);
+            obj.Value = value;
            
             obj.joint_outcomes = struct('indices', {}, 'outcome', {});
         end

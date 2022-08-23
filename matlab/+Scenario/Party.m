@@ -68,8 +68,15 @@ classdef Party < handle
                                                   obj.Id, next_id, ...
                                                   string(name), ...
                                                   num_outcomes);
+
             % Return newly created measurement
             mmt = obj.Measurements(end);
+                                              
+            % Build joint measurements, if any other measurements
+            obj.Scenario.make_joint_mmts(obj.Id, mmt);
+                                              
+            % Invalidate scenario's MM, if any
+            obj.Scenario.invalidateMomentMatrix();
         end
     end
 end

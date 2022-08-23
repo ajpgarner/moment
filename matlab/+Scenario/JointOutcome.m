@@ -4,6 +4,7 @@ classdef JointOutcome < handle & RealObject
     properties(SetAccess=private, GetAccess=public)
         Constituents
         Indices
+        Value
     end
     
     %% Public methods
@@ -30,6 +31,13 @@ classdef JointOutcome < handle & RealObject
             for row = 1:num_mmts
                 obj.Constituents(end+1) = setting.get(obj.Indices(row, :));
             end
+            
+            % Make joint outcome value
+            obj.Value = 1.0;
+            for row = 1:num_mmts
+                obj.Value = obj.Value * obj.Constituents(row).Value;
+            end
+          
         end
         
         function joint_item = mtimes(objA, objB)

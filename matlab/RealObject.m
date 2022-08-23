@@ -128,6 +128,17 @@ classdef RealObject < handle
             val = RealObject(lhs.Scenario);
             val.real_coefs = lhs_coefs - rhs_coefs;
         end
+        
+        function val = uminus(obj)
+            arguments
+                obj (1,1) RealObject
+            end
+            coefs = obj.getCoefficientsOrFail();
+            
+            % Build negated real object
+            val = RealObject(obj.Scenario);
+            val.real_coefs = -coefs;
+        end
     end
     
     

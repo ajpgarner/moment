@@ -1,22 +1,22 @@
-classdef JointMeasurement < handle
+classdef JointMeasurement < handle & RealObject
     %JOINTMEASUREMENT Collection of two or more measurements
     properties(SetAccess=private, GetAccess=public)
-        Scenario
         Marginals
         Indices
         Shape
+        Values
     end
     
     methods
-        function obj = JointMeasurement(setting, measurements)
+        function obj = JointMeasurement(scenario, measurements)
             %SOLVEDMEASUREMENT Construct an instance of this class
             arguments
-                setting (1,1) Scenario
+                scenario (1,1) Scenario
                 measurements (1, :) Scenario.Measurement
             end
             
-            % Get setting
-            obj.Scenario = setting;
+            % Set scenario in superclass c'tor
+            obj = obj@RealObject(scenario);
                                     
             % Get marginal measurements
             obj.Marginals = obj.checkAndSortMmts(measurements);
@@ -27,6 +27,7 @@ classdef JointMeasurement < handle
                 obj.Indices(end+1, :) = mmt.Index;
             end
             
+            % Build joint array
             obj.buildJointOutcomeArray();            
         end
         
@@ -50,7 +51,7 @@ classdef JointMeasurement < handle
         
         function val = Correlator(obj)
             if (length(obj.Shape) ~= 2)
-                error("Correlator only defined for two-measurements.");
+                error("Correlator only defined for two measurements.");
             end
             val = Correlator(obj.Marginals(1), obj.Marginals(2));
         end
@@ -95,8 +96,25 @@ classdef JointMeasurement < handle
                 mmt = obj.Marginals(mmt_index);
                 dims(mmt_index) = length(mmt.Outcomes);
             end
+            obj.Shape = dims;
             
-            obj.Shape = dims;           
+            % Calculate product values
+            obj.Values = zeros(obj.Shape);
+            for vIndex = 1:prod(obj.Shape)
+                indices = Util.index_to_sub(obj.Shape, vIndex);
+                val = 1;
+                for i=1:length(indices)
+                    val = val * obj.Marginals(i).Outcomes(indices(i)).Value;
+                end
+                obj.Values(vIndex) = val;
+            end
+        end
+    end
+    
+    %% Virtual methods
+    methods(Access=protected)
+        function calculateCoefficients(obj)
+            % Overload this!
         end
     end
 end
