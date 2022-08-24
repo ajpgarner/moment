@@ -112,12 +112,29 @@ classdef Scenario < handle
         end
         
         function val = FCTensor(obj, tensor)
+            arguments
+                obj (1,1) Scenario
+                tensor double
+            end
             if isempty(obj.moment_matrix)
                 error("Cannot apply full-correlator tensor before " ... 
                       + "MomentMatrix has been generated.");
             end
-            fc = FullCorrelator(obj);
+            fc = Scenario.FullCorrelator(obj);
             val = fc.linfunc(tensor);
+        end
+        
+        function val = FCIndex(obj, index)
+            arguments
+                obj (1,1) Scenario
+                index (1,:) uint64
+            end
+            if isempty(obj.moment_matrix)
+                error("Cannot apply full-correlator tensor before " ... 
+                      + "MomentMatrix has been generated.");
+            end
+            fc = Scenario.FullCorrelator(obj);
+            val = fc.at(index);
         end
     end
     

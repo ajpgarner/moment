@@ -101,7 +101,14 @@ classdef SolvedScenario< handle
                 thing (1,1) RealObject
             end
             val = obj.SolvedMomentMatrix.Value(thing);
-        end       
+        end
+        
+        function val = FullCorrelator(obj)
+            arguments
+                obj (1,1) SolvedScenario
+            end
+            val = SolvedScenario.SolvedFullCorrelator(obj);
+        end
     end
     
     methods(Access=private)

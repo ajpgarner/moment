@@ -5,6 +5,11 @@ classdef FullCorrelator < handle
     properties(SetAccess={?FullCorrelator, ?Scenario}, GetAccess=public)
         Scenario
         Shape
+        Coefficients
+    end
+    
+    properties(Access=private)
+        mono_coefs = double.empty
     end
     
     methods
@@ -16,40 +21,73 @@ classdef FullCorrelator < handle
             obj.Shape = obj.Scenario.MeasurementsPerParty + 1;
         end
         
+        function val = get.Coefficients(obj)
+            % Silently fail if no moment matrix yet
+            if ~obj.Scenario.HasMomentMatrix
+                val = double.empty;
+                return;
+            end
+            
+            % Return cached value, if any
+            if ~isempty(obj.mono_coefs)
+                val = obj.mono_coefs;
+                return;
+            end
+            
+            % Build monolith of co-efficients
+            coefs = length(obj.Scenario.Normalization.Coefficients);
+            elems = prod(obj.Shape);
+            
+            global_i = uint64.empty(1,0);
+            global_j = uint64.empty(1,0);
+            global_v = double.empty(1,0);
+            
+            for index = 1:elems
+                indices = Util.index_to_sub(obj.Shape, index) - 1;
+                thing = obj.at(indices);
+                [~, coefs_j, coefs_val] = find(thing.Coefficients);
+                global_i = horzcat(global_i, ...
+                                uint64(ones(1, length(coefs_j))*index));
+                global_j = horzcat(global_j, coefs_j);
+                global_v = horzcat(global_v, coefs_val);
+                
+            end
+            
+            % Cache and return
+            obj.mono_coefs = sparse(global_i, global_j, global_v, ...
+                                    elems, coefs);
+            val = obj.mono_coefs;            
+        end
+        
         function val = linfunc(obj, tensor)
+            arguments
+                obj (1,1) Scenario.FullCorrelator
+                tensor double
+            end
             if (length(size(tensor)) ~= length(obj.Shape)) ...
                 || any(size(tensor) ~= obj.Shape)
                 error("Expected tensor with dimension " + ...
                     mat2str(obj.Shape));
             end
             
-            % TODO: Require moment matrix...
+            % Require moment matrix...
             if ~obj.Scenario.HasMomentMatrix
                 error("Must generate MomentMatrix for scenario first.");
             end
             
-            dimension = length(size(obj.Shape));
+            % Calculate coefficients as a monolith
+            full_coefs = obj.Coefficients;
+            
             total_size = prod(obj.Shape);
+            reshape_tensor = sparse(reshape(tensor, [1, total_size]));
             
-            real_coefs = sparse(zeros(1, length(obj.Scenario.Normalization.Coefficients)));
-            
-            for i = 1:total_size
-                % Skip zeros
-                if tensor(i) == 0
-                    continue
-                end
-                
-                indices = Util.index_to_sub(obj.Shape, i);
-                coef = tensor(i);
-                rObj = obj.at(indices - 1);
-                real_coefs = real_coefs + sparse(coef * rObj.Coefficients);
-            end
+            real_coefs = reshape_tensor * full_coefs;
             val = RealObject(obj.Scenario, real_coefs);
         end
         
         function val = at(obj, index)
             arguments
-                obj (1,1) FullCorrelator
+                obj (1,1) Scenario.FullCorrelator
                 index (1,:) uint64
             end
             if length(index) ~= length(obj.Shape)

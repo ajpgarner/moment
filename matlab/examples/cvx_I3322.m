@@ -37,11 +37,10 @@ I3322_ineq = Corr12 + Corr21 ...
     - A1 - A0 - B1 - B0;
 
 % Make I3322 object using FC tensor
-I3322_ineq2 = i3322.FCTensor([[0  -1 -1  0]
+I3322_ineq2 = i3322.FCTensor([[0 -1 -1  0]
                               [-1 -1 -1 -1]
                               [-1 -1 -1  1]
                               [0  -1  1  0]]);
-
 
         
 % Define and solve SDP
@@ -64,4 +63,5 @@ solved_setting = SolvedScenario(i3322, matrix, a);
 solved_matrix = solved_setting.SolvedMomentMatrix;
 disp(struct2table(solved_matrix.SymbolTable));
 format long
-i3322_max_val = solved_setting.Value(I3322_ineq)
+i3322_max_val = solved_setting.Value(I3322_ineq2)
+fc_mat = solved_setting.FullCorrelator.Values

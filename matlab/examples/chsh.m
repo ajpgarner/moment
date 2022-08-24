@@ -25,5 +25,6 @@ prod_a22b22 = a22 * b22;
 corrA1B1 = Correlator(setting.Parties(1).Measurements(1), ...
                       setting.Parties(2).Measurements(1));
 
-fc = setting.FCTensor([[0 0 0]; [0 1 1]; [0 1 -1]]);
+chsh_ineq = setting.FCTensor([[0 0 0]; [0 1 1]; [0 1 -1]]);
 
+fc = Scenario.FullCorrelator(setting);
