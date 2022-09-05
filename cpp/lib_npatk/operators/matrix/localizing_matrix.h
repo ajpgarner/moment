@@ -5,8 +5,8 @@
  */
 #pragma once
 
+#include "../operator_sequence.h"
 #include "operator_matrix.h"
-#include "operator_sequence.h"
 #include "moment_matrix.h"
 
 namespace NPATK {

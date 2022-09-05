@@ -5,8 +5,9 @@
  */
 #pragma once
 
-#include "context.h"
-#include "operator_sequence.h"
+#include "../context.h"
+#include "../operator_sequence.h"
+
 #include "operator_matrix.h"
 #include "symbol_table.h"
 

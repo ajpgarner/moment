@@ -4,7 +4,8 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "symbol_table.h"
-#include "context.h"
+
+#include "../context.h"
 
 namespace NPATK {
 

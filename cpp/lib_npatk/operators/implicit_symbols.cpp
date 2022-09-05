@@ -3,15 +3,14 @@
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
-#include "implicit_symbols.h"
-#include "moment_matrix.h"
-#include "collins_gisin.h"
 #include "context.h"
+#include "collins_gisin.h"
+#include "implicit_symbols.h"
+#include "matrix/moment_matrix.h"
 
 #include "joint_measurement_iterator.h"
 
 #include "utilities/combinations.h"
-#include "operator_matrix.h"
 
 #include <algorithm>
 

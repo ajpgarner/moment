@@ -5,7 +5,8 @@
  */
 #pragma once
 
-#include "operator_sequence.h"
+#include "../operator_sequence.h"
+
 #include "symbolic/symbol.h"
 #include "symbolic/symbol_expression.h"
 

@@ -6,9 +6,8 @@
 
 #include "collins_gisin.h"
 #include "joint_measurement_iterator.h"
-#include "moment_matrix.h"
+#include "matrix/moment_matrix.h"
 #include "utilities/combinations.h"
-#include "operator_matrix.h"
 
 namespace NPATK {
     namespace {

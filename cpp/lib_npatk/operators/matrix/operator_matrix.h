@@ -6,9 +6,9 @@
 #pragma once
 
 #include "utilities/square_matrix.h"
-#include "operator_sequence.h"
 #include "symbolic/symbol_expression.h"
-#include "context.h"
+#include "../operator_sequence.h"
+#include "../context.h"
 #include "symbol_table.h"
 
 #include <map>

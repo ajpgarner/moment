@@ -5,11 +5,13 @@
  */
 
 #include "moment_matrix.h"
-#include "context.h"
-#include "collins_gisin.h"
-#include "implicit_symbols.h"
-#include "operator_sequence_generator.h"
-#include "operator_matrix.h"
+
+#include "../context.h"
+#include "../collins_gisin.h"
+#include "../implicit_symbols.h"
+
+#include "../operator_sequence_generator.h"
+
 
 #include <limits>
 

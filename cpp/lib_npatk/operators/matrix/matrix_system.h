@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "context.h"
+#include "../context.h"
 #include "symbol_table.h"
 #include "moment_matrix.h"
 #include "localizing_matrix.h"
