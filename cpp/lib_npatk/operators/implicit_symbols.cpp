@@ -11,6 +11,7 @@
 #include "joint_measurement_iterator.h"
 
 #include "utilities/combinations.h"
+#include "operator_matrix.h"
 
 #include <algorithm>
 
@@ -37,10 +38,10 @@ namespace NPATK {
 
     size_t ImplicitSymbols::generateLevelZero(size_t& index_cursor) {
         // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.
-        if (momentMatrix.UniqueSequences.size() < 2) {
+        if (momentMatrix.Symbols.size() < 2) {
             throw errors::bad_implicit_symbol("Zero and One should be defined in MomentMatrix.");
         }
-        const auto& oneSeq = momentMatrix.UniqueSequences[1];
+        const auto& oneSeq = momentMatrix.Symbols[1];
         if (!oneSeq.sequence().empty() || oneSeq.sequence().zero() || (oneSeq.Id() != 1)) {
             throw errors::bad_implicit_symbol("Identity symbol was improperly defined in MomentMatrix.");
         }

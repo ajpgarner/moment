@@ -17,6 +17,7 @@
 
 #include "fragments/export_symbol_matrix.h"
 #include "fragments/export_unique_sequences.h"
+#include "operator_matrix.h"
 
 #include <memory>
 

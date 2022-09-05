@@ -13,6 +13,7 @@
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 #include "utilities/visitor.h"
+#include "operator_matrix.h"
 
 namespace NPATK::mex::functions {
 

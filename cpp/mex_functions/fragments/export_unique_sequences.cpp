@@ -9,6 +9,7 @@
 #include "operators/context.h"
 #include "operators/moment_matrix.h"
 #include "utilities/reporting.h"
+#include "operator_matrix.h"
 
 namespace NPATK::mex {
     matlab::data::StructArray export_unique_sequence_struct(matlab::engine::MATLABEngine& engine,

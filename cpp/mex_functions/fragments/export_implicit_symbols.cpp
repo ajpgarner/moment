@@ -11,6 +11,7 @@
 #include "operators/moment_matrix.h"
 
 #include "utilities/make_sparse_matrix.h"
+#include "operator_matrix.h"
 
 namespace NPATK::mex {
 

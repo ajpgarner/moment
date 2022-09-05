@@ -6,12 +6,15 @@ add_library(lib_npatk
         operators/implicit_symbols.cpp
         operators/joint_measurement_index.cpp
         operators/joint_measurement_iterator.cpp
+        operators/localizing_matrix.cpp
+        operators/matrix_system.cpp
         operators/moment_matrix.cpp
+        operators/operator_matrix.cpp
         operators/operator_sequence.cpp
         operators/operator_sequence_generator.cpp
         operators/party.cpp
+        operators/symbol_table.cpp
         symbolic/equality_type.cpp
-        symbolic/index_matrix_properties.cpp
         symbolic/symbol.cpp
         symbolic/symbol_expression.cpp
         symbolic/symbol_set.cpp

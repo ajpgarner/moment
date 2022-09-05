@@ -8,6 +8,7 @@
 #include "joint_measurement_iterator.h"
 #include "moment_matrix.h"
 #include "utilities/combinations.h"
+#include "operator_matrix.h"
 
 namespace NPATK {
     namespace {
@@ -35,10 +36,10 @@ namespace NPATK {
         const Context& context = momentMatrix.context;
 
         // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.
-        if (momentMatrix.UniqueSequences.size() < 2) {
+        if (momentMatrix.Symbols.size() < 2) {
             throw errors::cg_form_error("Zero and One should be defined in MomentMatrix.");
         }
-        const auto& oneSeq = momentMatrix.UniqueSequences[1];
+        const auto& oneSeq = momentMatrix.Symbols[1];
         if (!oneSeq.sequence().empty() || oneSeq.sequence().zero() || (oneSeq.Id() != 1)) {
             throw errors::cg_form_error("Identity symbol was improperly defined in MomentMatrix.");
         }
@@ -91,7 +92,7 @@ namespace NPATK {
                     const auto opIterEnd = multiMmtIterator.end_operators();
                     while (opIter != opIterEnd) {
                         // Find symbol for operator sequence
-                        auto symbol_loc = momentMatrix.UniqueSequences.where(*opIter);
+                        auto symbol_loc = momentMatrix.Symbols.where(*opIter);
                         if (symbol_loc == nullptr) {
                             throw errors::cg_form_error{"Could not find expected symbol in MomentMatrix."};
                         }
