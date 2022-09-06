@@ -4,6 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "moment_matrix.h"
+#include "matrix_system.h"
 
 namespace NPATK::mex {
     namespace classes {
@@ -11,11 +12,20 @@ namespace NPATK::mex {
         MomentMatrix::MomentMatrix(matlab::engine::MATLABEngine &engine, matlab::data::Array rawInput)
                 : MATLABClass(engine, "MomentMatrix",
                               MATLABClass::FieldTypeMap{
-                                      {"RefId", matlab::data::ArrayType::UINT64},
                                       {"Level",  matlab::data::ArrayType::UINT64},
+                                      {"MatrixSystem", matlab::data::ArrayType::HANDLE_OBJECT_REF}
                               }, std::move(rawInput)) {
-            this->reference_key = this->property_scalar<uint64_t>("RefId");
+
+            // Extract moment matrix depth
             this->level = this->property_scalar<uint64_t>("Level");
+
+            // Read handle to matrix system, and extract key.
+            auto matSys = this->property("MatrixSystem");
+            if (matSys.getNumberOfElements() != 1) {
+                throw errors::bad_class_exception{this->className, "Only one MatrixSystem handle should be specified."};
+            }
+            MatrixSystem matrixSystem{engine, matSys};
+            this->reference_key = matrixSystem.Key();
         }
     }
 

@@ -9,11 +9,12 @@
 
 #include "matlab_classes/moment_matrix.h"
 #include "operators/implicit_symbols.h"
+#include "operators/matrix/operator_matrix.h"
 #include "fragments/export_implicit_symbols.h"
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 #include "utilities/visitor.h"
-#include "operator_matrix.h"
+
 
 namespace NPATK::mex::functions {
 
@@ -141,7 +142,8 @@ namespace NPATK::mex::functions {
         if (!mmClassPtr) {
             throw errors::BadInput{errors::bad_param, fail.value()};
         }
-        this->moment_matrix_key = mmClassPtr->Key();
+        this->matrix_system_key = mmClassPtr->SystemKey();
+        this->moment_matrix_depth = mmClassPtr->Level();
 
         // For single input, just get whole table
         if (this->inputs.size() < 2) {
@@ -229,9 +231,14 @@ namespace NPATK::mex::functions {
         auto& input = dynamic_cast<ProbabilityTableParams&>(*inputPtr);
 
         // Get stored moment matrix
-        auto mmPtr = this->storageManager.MomentMatrices.get(input.moment_matrix_key);
-        assert(mmPtr);
-        const auto& momentMatrix = *mmPtr;
+        auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
+        assert(msPtr); // ^- above should throw if absent
+        if (!msPtr->HasLevel(input.moment_matrix_depth)) {
+            throw_error(this->matlabEngine, errors::bad_param,
+                        "A moment matrix at this depth could not be found in the supplied MatrixSystem.");
+
+        }
+        const auto& momentMatrix = msPtr->MomentMatrix(input.moment_matrix_depth);
         const auto& context = momentMatrix.context;
 
         // Create (or retrieve) implied sequence object
@@ -295,7 +302,7 @@ namespace NPATK::mex::functions {
 
     std::unique_ptr<SortedInputs> ProbabilityTable::transform_inputs(std::unique_ptr<SortedInputs> input) const {
         auto tx = std::make_unique<ProbabilityTableParams>(this->matlabEngine, std::move(*input));
-        if (!this->storageManager.MomentMatrices.check_signature(tx->moment_matrix_key)) {
+        if (!this->storageManager.MatrixSystems.check_signature(tx->matrix_system_key)) {
             throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
         }
         return tx;

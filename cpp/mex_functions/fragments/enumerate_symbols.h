@@ -8,16 +8,16 @@
 #include "mex.hpp"
 #include "MatlabDataArray.hpp"
 
-#include "symbolic/index_matrix_properties.h"
+#include "operators/matrix/operator_matrix.h"
 
 namespace NPATK {
     class MomentMatrix;
 }
 
 namespace NPATK::mex {
-    IndexMatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
-                                            const matlab::data::Array& matrix,
-                                            IndexMatrixProperties::MatrixType basis_type);
+    SymbolMatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
+                                                            const matlab::data::Array& matrix,
+                                                            MatrixType basis_type);
 
 
 }

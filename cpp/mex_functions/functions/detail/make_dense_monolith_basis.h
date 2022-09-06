@@ -6,8 +6,7 @@
 #pragma once
 
 #include "symbolic/symbol_expression.h"
-#include "symbolic/index_matrix_properties.h"
-#include "operators/moment_matrix.h"
+#include "operators/matrix/moment_matrix.h"
 
 #include "fragments/read_symbol_or_fail.h"
 
@@ -22,13 +21,13 @@ namespace NPATK::mex::functions::detail {
     struct DenseMonolithBasisVisitor {
     private:
         matlab::engine::MATLABEngine &engine;
-        const IndexMatrixProperties &imp;
+        const SymbolMatrixProperties &imp;
 
     public:
         using return_type = std::pair<matlab::data::TypedArray<double>, matlab::data::TypedArray<std::complex<double>>>;
 
         DenseMonolithBasisVisitor(matlab::engine::MATLABEngine &engineRef,
-                              const IndexMatrixProperties &matrix_properties)
+                              const SymbolMatrixProperties &matrix_properties)
                 : engine(engineRef), imp(matrix_properties) {}
 
         /** Dense input -> dense monolithic output */
@@ -45,7 +44,7 @@ namespace NPATK::mex::functions::detail {
                         output.first[re_id][flatten_index(index_i, index_j)] = elem.negated ? -1 : 1;
                         output.first[re_id][flatten_index(index_j, index_i)] = elem.negated ? -1 : 1;
                     }
-                    if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) && (im_id>=0)) {
+                    if ((imp.Type() == MatrixType::Hermitian) && (im_id>=0)) {
                         output.second[im_id][flatten_index(index_i, index_j)] = std::complex<double>{
                                 0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
                         output.second[im_id][flatten_index(index_j, index_i)] =  std::complex<double>{
@@ -69,7 +68,7 @@ namespace NPATK::mex::functions::detail {
                         output.first[re_id][flatten_index(index_i, index_j)] = elem.negated ? -1 : 1;
                         output.first[re_id][flatten_index(index_j, index_i)] = elem.negated ? -1 : 1;
                     }
-                    if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) && (im_id>=0)) {
+                    if ((imp.Type() == MatrixType::Hermitian) && (im_id>=0)) {
                         output.second[im_id][flatten_index(index_i, index_j)] = std::complex<double>{
                                 0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
                         output.second[im_id][flatten_index(index_j, index_i)] =  std::complex<double>{
@@ -99,7 +98,7 @@ namespace NPATK::mex::functions::detail {
                     output.first[re_id][flatten_index(indices.first, indices.second)] = elem.negated ? -1 : 1;
                     output.first[re_id][flatten_index(indices.second, indices.first)] = elem.negated ? -1 : 1;
                 }
-                if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) && (im_id>=0)) {
+                if ((imp.Type() == MatrixType::Hermitian) && (im_id>=0)) {
 
                     output.second[im_id][flatten_index(indices.first, indices.second)] = std::complex<double>{
                             0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
@@ -126,7 +125,7 @@ namespace NPATK::mex::functions::detail {
                         output.first[re_id][flatten_index(index_j, index_i)] = elem.negated ? -1 : 1;
                     }
 
-                    if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) && (im_id>=0)) {
+                    if ((imp.Type() == MatrixType::Hermitian) && (im_id>=0)) {
 
                         output.second[im_id][flatten_index(index_i, index_j)] = std::complex<double>{
                                 0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
@@ -144,7 +143,7 @@ namespace NPATK::mex::functions::detail {
 
         return_type create_empty_basis() {
             matlab::data::ArrayFactory factory{};
-            const bool hasImaginaryBasis = (this->imp.Type() == IndexMatrixProperties::MatrixType::Hermitian);
+            const bool hasImaginaryBasis = (this->imp.Type() == MatrixType::Hermitian);
 
             // Number of columns* corresponds to number of symbols [* matlab is col-major]
             const size_t real_mx_cols = this->imp.RealSymbols().size();
@@ -174,7 +173,7 @@ namespace NPATK::mex::functions::detail {
 
     inline auto make_dense_monolith_basis(matlab::engine::MATLABEngine &engine,
                                        const matlab::data::Array &input,
-                                       const IndexMatrixProperties &imp) {
+                                       const SymbolMatrixProperties &imp) {
         // Get symbols in matrix...
         return DispatchVisitor(engine, input, DenseMonolithBasisVisitor{engine, imp});
     }
@@ -183,7 +182,7 @@ namespace NPATK::mex::functions::detail {
     inline auto make_dense_monolith_basis(matlab::engine::MATLABEngine &engine,
                                        const MomentMatrix& mm) {
         // Get symbols in matrix...
-        DenseMonolithBasisVisitor mdbv{engine, mm.BasisIndices()};
+        DenseMonolithBasisVisitor mdbv{engine, mm.SMP()};
         return mdbv.moment_matrix(mm);
     }
 }

@@ -15,13 +15,15 @@ classdef MomentMatrix  < handle
     end
     
     properties(SetAccess = protected, GetAccess = public)
+        MatrixSystem
         RefId = uint64(0)
         Dimension = uint64(0)
         Level
         SymbolTable
         RealBasisSize = uint64(0)
-        ImaginaryBasisSize = uint64(0)
+        ImaginaryBasisSize = uint64(0)        
     end
+    
     
     methods
         %% Constructor
@@ -34,53 +36,34 @@ classdef MomentMatrix  < handle
             % Save depth requested.
             obj.Level = uint64(level);
             
-            % First, make matrix...
-            % Check if settingsParams is Scenario, or cell array
-            %  Call npatk make_moment_matrix accordingly
-            if isa(settingParams, 'cell')
-                if (nargin >= 2)
-                    error(["When providing a cell array input, level "...
-                        "argument should be specified as part of that cell"]);
-                end
-                % Unpack cell into arguments
-                [obj.RefId, obj.SymbolTable, obj.Dimension] = ...
-                    npatk('make_moment_matrix', ...
-                    'reference', settingParams{:});
-                
-            elseif isa(settingParams, 'Scenario')
-                % Supply setting object directly
-                [obj.RefId, obj.SymbolTable, obj.Dimension] = ...
-                    npatk('make_moment_matrix', 'reference', ...
-                    'setting', settingParams, 'level', level);
+            % First, get or make scenario, or take in supplied MatrixSystem            
+            if isa(settingParams, 'cell') || isa(settingParams, 'Scenario')
+                obj.MatrixSystem = MatrixSystem(settingParams);
+            elseif isa(settingParams, 'MatrixSystem')
+                obj.MatrixSystem = settingParams;
             else
                 error(['First argument must be either a Scenario ',...
-                    'object, or a cell array of parameters.']);
+                       'object, a cell array of parameters, or a ', ...
+                       'MatrixSystem.']);
             end
+            
+            % Generate moment matrix
+            [obj.RefId, obj.SymbolTable, obj.Dimension] = ...
+                        npatk('make_moment_matrix', ...
+                        'reference', obj.MatrixSystem.RefId, obj.Level);
             
             % Count NNZ for basis sizes
             obj.RealBasisSize = nnz([obj.SymbolTable.basis_re]);
             obj.ImaginaryBasisSize = nnz([obj.SymbolTable.basis_im]);
             
         end
-        
-        %% Destructor
-        function delete(obj)
-            if obj.RefId ~= 0
-                try
-                    npatk('release', 'moment_matrix', obj.RefId);
-                catch ME
-                    fprintf(2, "Error deleting MomentMatrix: %s\n", ...
-                        ME.message);
-                end
-            end
-        end
-        
+                
         %% Accessors for matrix representations
         function matrix = SymbolMatrix(obj)
             % Defer copy of matrix until requested...
             if (isempty(obj.symbol_matrix))
                 obj.symbol_matrix = npatk('make_moment_matrix', ...
-                    'reference_id', obj.RefId, ...
+                    obj.MatrixSystem.RefId, obj.Level, ...
                     'symbols');
             end
             matrix = obj.symbol_matrix;
@@ -90,7 +73,8 @@ classdef MomentMatrix  < handle
             % Defer copy of matrix until requested...
             if (isempty(obj.sequence_matrix))
                 obj.sequence_matrix = npatk('make_moment_matrix', ...
-                    'reference_id', obj.RefId, 'sequences');
+                    obj.MatrixSystem.RefId, obj.Level, ...
+                    'sequences');
             end
             matrix = obj.sequence_matrix;
         end
@@ -188,6 +172,8 @@ classdef MomentMatrix  < handle
                 + transpose(b) * im_basis, ...
                 [obj.Dimension, obj.Dimension]);
             
+            % TODO: Filter unused basis elements from system
+            
             % Output handles to cvx objects
             out_a = a;
             out_b = b;
@@ -208,6 +194,8 @@ classdef MomentMatrix  < handle
             M(:,:) = reshape(transpose(a) * real_basis, ...
                 [obj.Dimension, obj.Dimension]);
             
+            % TODO: Filter unused basis elements from system
+            
             % Output handles to cvx objects
             out_a = a;
             out_M = M;
@@ -219,6 +207,8 @@ classdef MomentMatrix  < handle
         function [out_a, out_b, out_M] = yalmipHermitianBasis(obj)
             % Multiple variables by basis to make matrix
             [real_basis, im_basis] = obj.MonolithicBasis(false);
+            
+            % TODO: Filter unused basis elements from system
             
             % Basis variables
             out_a = sdpvar(obj.RealBasisSize, 1);
@@ -234,6 +224,7 @@ classdef MomentMatrix  < handle
             % Multiple variables by basis to make matrix
             [real_basis, ~] = obj.MonolithicBasis(false);
             
+            % TODO: Filter unused basis elements from system
                 
             % Basis variables
             out_a = sdpvar(obj.RealBasisSize, 1);

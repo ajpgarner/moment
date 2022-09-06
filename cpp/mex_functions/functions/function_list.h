@@ -25,6 +25,7 @@ namespace NPATK::mex::functions {
         GenerateBasis,
         ProbabilityTable,
         MakeHermitian,
+        MakeMatrixSystem,
         MakeMomentMatrix,
         MakeSymmetric,
         Release,
@@ -41,6 +42,7 @@ namespace NPATK::mex::functions {
         output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
         output.emplace(u"generate_basis", MEXEntryPointID::GenerateBasis);
         output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
+        output.emplace(u"make_matrix_system", MEXEntryPointID::MakeMatrixSystem);
         output.emplace(u"make_moment_matrix", MEXEntryPointID::MakeMomentMatrix);
         output.emplace(u"make_hermitian", MEXEntryPointID::MakeHermitian);
         output.emplace(u"make_symmetric", MEXEntryPointID::MakeSymmetric);

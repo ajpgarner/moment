@@ -7,8 +7,7 @@
 
 #include "utilities/persistent_storage.h"
 
-//#include "operators/context.h"
-#include "operators/moment_matrix.h"
+#include "operators/matrix/matrix_system.h"
 
 #include <string>
 #include <optional>
@@ -25,7 +24,7 @@ namespace NPATK::mex {
      */
     class StorageManager {
     public:
-        PersistentStorage<MomentMatrix> MomentMatrices{make_signature({'m','m','t','m'})};
+        PersistentStorage<MatrixSystem> MatrixSystems{make_signature({'m','s','y','s'})};
 
         friend StorageManager& getStorageManager();
 

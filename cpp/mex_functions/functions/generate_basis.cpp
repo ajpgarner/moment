@@ -12,7 +12,7 @@
 
 #include "storage_manager.h"
 
-#include "operators/moment_matrix.h"
+#include "operators/matrix/moment_matrix.h"
 
 #include "matlab_classes/moment_matrix.h"
 
@@ -23,6 +23,7 @@
 
 #include "utilities/make_sparse_matrix.h"
 #include "utilities/reporting.h"
+#include "utilities/read_as_scalar.h"
 
 #include <array>
 #include <complex>
@@ -65,15 +66,15 @@ namespace NPATK::mex::functions {
             case matlab::data::ArrayType::UINT64:
             case matlab::data::ArrayType::SPARSE_DOUBLE:
                 this->input_mode = InputMode::MATLABArray;
-                this->basis_type = IndexMatrixProperties::MatrixType::Symmetric;
+                this->basis_type = MatrixType::Symmetric;
                 break;
             case matlab::data::ArrayType::MATLAB_STRING:
                 this->input_mode = InputMode::MATLABArray;
-                this->basis_type = IndexMatrixProperties::MatrixType::Hermitian;
+                this->basis_type = MatrixType::Hermitian;
                 break;
             case matlab::data::ArrayType::HANDLE_OBJECT_REF:
                 this->input_mode = InputMode::MomentMatrixReference;
-                this->basis_type = IndexMatrixProperties::MatrixType::Hermitian;
+                this->basis_type = MatrixType::Hermitian;
                 break;
             default:
                 throw errors::BadInput{errors::bad_param, "Invalid matrix type."};
@@ -81,9 +82,9 @@ namespace NPATK::mex::functions {
 
         // Override basis type
         if (this->flags.contains(u"symmetric")) {
-            this->basis_type = IndexMatrixProperties::MatrixType::Symmetric;
+            this->basis_type = MatrixType::Symmetric;
         } else if (this->flags.contains(u"hermitian")) {
-            this->basis_type = IndexMatrixProperties::MatrixType::Hermitian;
+            this->basis_type = MatrixType::Hermitian;
         }
 
         // Set basis type
@@ -105,7 +106,7 @@ namespace NPATK::mex::functions {
             }
 
             // Check symmetry / Hermitianity
-            if (this->basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+            if (this->basis_type == MatrixType::Hermitian) {
                 if (!is_hermitian(matlabEngine, this->inputs[0])) {
                     throw errors::BadInput{errors::bad_param, "Input must be a Hermitian symbol matrix."};
                 }
@@ -120,7 +121,8 @@ namespace NPATK::mex::functions {
                 throw errors::BadInput{errors::bad_param, fail.value()};
             }
 
-            this->moment_matrix_key = mmClassPtr->Key();
+            this->matrix_system_key = mmClassPtr->SystemKey();
+            this->moment_matrix_level = mmClassPtr->Level();
         }
 
         // Determine sparsity of output
@@ -135,7 +137,7 @@ namespace NPATK::mex::functions {
     std::unique_ptr<SortedInputs> GenerateBasis::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
         auto output =  std::make_unique<GenerateBasisParams>(this->matlabEngine, std::move(*inputPtr));
         if (output->input_mode == GenerateBasisParams::InputMode::MomentMatrixReference) {
-            if (!this->storageManager.MomentMatrices.check_signature(output->moment_matrix_key)) {
+            if (!this->storageManager.MatrixSystems.check_signature(output->matrix_system_key)) {
                 throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a moment matrix.");
             }
         }
@@ -163,14 +165,14 @@ namespace NPATK::mex::functions {
                 auto [sym, anti_sym] = detail::make_sparse_monolith_basis(this->matlabEngine, input.inputs[0],
                                                                       matrix_properties);
                 output[0] = std::move(sym);
-                if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
                 }
             } else {
                 auto [sym, anti_sym] = detail::make_dense_monolith_basis(this->matlabEngine, input.inputs[0],
                                                                      matrix_properties);
                 output[0] = std::move(sym);
-                if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
                 }
             }
@@ -179,14 +181,14 @@ namespace NPATK::mex::functions {
                 auto [sym, anti_sym] = detail::make_sparse_cell_basis(this->matlabEngine, input.inputs[0],
                                                                       matrix_properties);
                 output[0] = std::move(sym);
-                if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
                 }
             } else {
                 auto [sym, anti_sym] = detail::make_dense_cell_basis(this->matlabEngine, input.inputs[0],
                                                                      matrix_properties);
                 output[0] = std::move(sym);
-                if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
                 }
             }
@@ -198,19 +200,25 @@ namespace NPATK::mex::functions {
     void GenerateBasis::doGenerateBasisMomentMatrix(std::array<matlab::data::Array, 3>& output,
                                                     GenerateBasisParams& input) {
 
-        auto momentMatrixPtr = this->storageManager.MomentMatrices.get(input.moment_matrix_key);
-        assert(momentMatrixPtr); // ^-- should throw if not found
-        const auto& momentMatrix = *momentMatrixPtr;
+        auto matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
+        assert(matrixSystemPtr); // ^-- should throw if not found
 
-        const IndexMatrixProperties& matrix_properties = momentMatrix.BasisIndices();
+        if (!matrixSystemPtr->HasLevel(input.moment_matrix_level)) {
+            throw_error(this->matlabEngine, errors::bad_param,
+                        "System has not yet generated a moment matrix at the requested level.");
+        }
+
+        const auto& momentMatrix = matrixSystemPtr->CreateMomentMatrix(input.moment_matrix_level);
+
+        const auto& matrix_properties = momentMatrix.SMP();
 
         //auto output_basis_type = input.basis_type;
-        if (input.basis_type == IndexMatrixProperties::MatrixType::Unknown) {
+        if (input.basis_type == MatrixType::Unknown) {
             input.basis_type = matrix_properties.Type();
         } else if (!this->quiet) {
             // If overrode to symmetric, but matrix might have imaginary elements, give warning:
-            if ((IndexMatrixProperties::MatrixType::Symmetric == input.basis_type)
-                && (IndexMatrixProperties::MatrixType::Hermitian == matrix_properties.Type())) {
+            if ((MatrixType::Symmetric == input.basis_type)
+                && (MatrixType::Hermitian == matrix_properties.Type())) {
                 print_to_console(this->matlabEngine, std::string("WARNING: Symmetric basis output was requested, ")
                     + " but some elements of the moment matrix correspond to potentially non-Hermitian operator "
                     + " sequences (i.e. may evaluate to complex values, whose imaginary parts will be ignored).\n");
@@ -221,13 +229,13 @@ namespace NPATK::mex::functions {
             if (input.sparse_output) {
                 auto [sym, anti_sym] = detail::make_sparse_monolith_basis(this->matlabEngine, momentMatrix);
                 output[0] = std::move(sym);
-                if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
                 }
             } else {
                 auto [sym, anti_sym] = detail::make_dense_monolith_basis(this->matlabEngine, momentMatrix);
                 output[0] = std::move(sym);
-                if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
                 }
             }
@@ -235,20 +243,20 @@ namespace NPATK::mex::functions {
             if (input.sparse_output) {
                 auto [sym, anti_sym] = detail::make_sparse_cell_basis(this->matlabEngine, momentMatrix);
                 output[0] = std::move(sym);
-                if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
                 }
             } else {
                 auto [sym, anti_sym] = detail::make_dense_cell_basis(this->matlabEngine, momentMatrix);
                 output[0] = std::move(sym);
-                if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+                if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
                 }
             }
         }
 
         // If enough outputs supplied, also provide keys
-        ptrdiff_t key_output = (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) ? 2 : 1;
+        ptrdiff_t key_output = (input.basis_type == MatrixType::Hermitian) ? 2 : 1;
         if (output.size() > key_output) {
             output[key_output] = export_basis_key(this->matlabEngine, matrix_properties);
         }
@@ -273,7 +281,7 @@ namespace NPATK::mex::functions {
         }
 
         // Hermitian output requires two outputs...
-        if ((input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) && (output.size() < 2)) {
+        if ((input.basis_type == MatrixType::Hermitian) && (output.size() < 2)) {
             throw_error(this->matlabEngine, errors::too_few_outputs,
                                 std::string("When generating a Hermitian basis, two outputs are required (one for ")
                                   + "symmetric basis elements associated with the real components, one for the "
@@ -281,7 +289,7 @@ namespace NPATK::mex::functions {
         }
 
         // Symmetric output cannot have three outputs...
-        if ((input.basis_type == IndexMatrixProperties::MatrixType::Symmetric) && (output.size() > 2)) {
+        if ((input.basis_type == MatrixType::Symmetric) && (output.size() > 2)) {
             throw_error(this->matlabEngine, errors::too_many_outputs,
                                             std::to_string(output.size())
                                              + " outputs supplied for symmetric basis output, but only"
@@ -289,7 +297,7 @@ namespace NPATK::mex::functions {
         }
 
         // Move arrays to output
-        if (input.basis_type == IndexMatrixProperties::MatrixType::Hermitian) {
+        if (input.basis_type == MatrixType::Hermitian) {
             output[0] = std::move(outputs[0]);
             output[1] = std::move(outputs[1]);
             if (output.size() >= 3) {

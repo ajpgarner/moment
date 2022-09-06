@@ -6,8 +6,8 @@
 #pragma once
 
 #include "symbolic/symbol_expression.h"
-#include "symbolic/index_matrix_properties.h"
-#include "operators/moment_matrix.h"
+
+#include "operators/matrix/moment_matrix.h"
 
 #include "fragments/read_symbol_or_fail.h"
 
@@ -21,13 +21,13 @@ namespace NPATK::mex::functions::detail {
     struct DenseCellBasisVisitor {
     private:
         matlab::engine::MATLABEngine &engine;
-        const IndexMatrixProperties &imp;
+        const SymbolMatrixProperties &imp;
 
     public:
         using return_type = std::pair<matlab::data::CellArray, matlab::data::CellArray>;
 
         DenseCellBasisVisitor(matlab::engine::MATLABEngine &engineRef,
-                              const IndexMatrixProperties &matrix_properties)
+                              const SymbolMatrixProperties &matrix_properties)
                 : engine(engineRef), imp(matrix_properties) {}
 
 
@@ -46,7 +46,7 @@ namespace NPATK::mex::functions::detail {
                         re_mat[index_i][index_j] = elem.negated ? -1 : 1;
                         re_mat[index_j][index_i] = elem.negated ? -1 : 1;
                     }
-                    if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) && (im_id>=0)) {
+                    if ((imp.Type() == MatrixType::Hermitian) && (im_id>=0)) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                         im_mat[index_i][index_j] = std::complex<double>{
                                 0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
@@ -73,7 +73,7 @@ namespace NPATK::mex::functions::detail {
                         re_mat[index_i][index_j] = elem.negated ? -1 : 1;
                         re_mat[index_j][index_i] = elem.negated ? -1 : 1;
                     }
-                    if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) &&  (im_id>=0)) {
+                    if ((imp.Type() == MatrixType::Hermitian) &&  (im_id>=0)) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                         im_mat[index_i][index_j] = std::complex<double>{
                                 0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
@@ -107,7 +107,7 @@ namespace NPATK::mex::functions::detail {
                     re_mat[indices.first][indices.second] = elem.negated ? -1 : 1;
                     re_mat[indices.second][indices.first] = elem.negated ? -1 : 1;
                 }
-                if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) && (im_id>=0)) {
+                if ((imp.Type() == MatrixType::Hermitian) && (im_id>=0)) {
                     matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                     im_mat[indices.first][indices.second] = std::complex<double>{
                             0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
@@ -134,7 +134,7 @@ namespace NPATK::mex::functions::detail {
                         re_mat[index_j][index_i] = elem.negated ? -1 : 1;
                     }
 
-                    if ((imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) && (im_id>=0)) {
+                    if ((imp.Type() == MatrixType::Hermitian) && (im_id>=0)) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                         im_mat[index_i][index_j] = std::complex<double>{
                                 0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
@@ -164,7 +164,7 @@ namespace NPATK::mex::functions::detail {
                 output.first[rr] = factory.createArray<double>({this->imp.Dimension(), this->imp.Dimension()});
             }
 
-            if (this->imp.Type() == IndexMatrixProperties::MatrixType::Hermitian) {
+            if (this->imp.Type() == MatrixType::Hermitian) {
                 for (size_t ri = 0, ri_max = this->imp.ImaginarySymbols().size(); ri < ri_max; ++ri) {
                     output.second[ri] = factory.createArray<std::complex<double>>({this->imp.Dimension(), this->imp.Dimension()});
                 }
@@ -181,7 +181,7 @@ namespace NPATK::mex::functions::detail {
 
     inline auto make_dense_cell_basis(matlab::engine::MATLABEngine &engine,
                           const matlab::data::Array &input,
-                          const IndexMatrixProperties &imp) {
+                          const SymbolMatrixProperties &imp) {
         // Get symbols in matrix...
         return DispatchVisitor(engine, input, DenseCellBasisVisitor{engine, imp});
     }
@@ -189,7 +189,7 @@ namespace NPATK::mex::functions::detail {
     inline auto make_dense_cell_basis(matlab::engine::MATLABEngine &engine,
                                   const MomentMatrix& mm) {
         // Get symbols in matrix...
-        DenseCellBasisVisitor mdbv{engine, mm.BasisIndices()};
+        DenseCellBasisVisitor mdbv{engine, mm.SMP()};
         return mdbv.moment_matrix(mm);
 
     }

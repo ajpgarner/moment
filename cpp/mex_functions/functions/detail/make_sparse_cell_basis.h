@@ -5,8 +5,7 @@
  */
 #pragma once
 #include "symbolic/symbol_expression.h"
-#include "symbolic/index_matrix_properties.h"
-#include "operators/moment_matrix.h"
+#include "operators/matrix/moment_matrix.h"
 
 #include "fragments/read_symbol_or_fail.h"
 
@@ -25,7 +24,7 @@ namespace NPATK::mex::functions::detail {
 
     private:
         matlab::engine::MATLABEngine &engine;
-        const IndexMatrixProperties &imp;
+        const SymbolMatrixProperties &imp;
 
         struct sparse_basis_re_frame {
             std::vector<size_t> index_i{};
@@ -65,7 +64,7 @@ namespace NPATK::mex::functions::detail {
 
     public:
         SparseCellMatrixVisitor(matlab::engine::MATLABEngine &engineRef,
-                                const IndexMatrixProperties &matrix_properties)
+                                const SymbolMatrixProperties &matrix_properties)
                 : engine(engineRef), imp(matrix_properties) {}
 
 
@@ -221,7 +220,7 @@ namespace NPATK::mex::functions::detail {
 
     inline auto make_sparse_cell_basis(matlab::engine::MATLABEngine &engine,
                            const matlab::data::Array &input,
-                           const IndexMatrixProperties &imp) {
+                           const SymbolMatrixProperties &imp) {
         // Get symbols in matrix...
         return DispatchVisitor(engine, input, SparseCellMatrixVisitor{engine, imp});
     }
@@ -230,7 +229,7 @@ namespace NPATK::mex::functions::detail {
     inline auto make_sparse_cell_basis(matlab::engine::MATLABEngine &engine,
                                    const MomentMatrix& mm) {
         // Get symbols in matrix...
-        SparseCellMatrixVisitor mdbv{engine, mm.BasisIndices()};
+        SparseCellMatrixVisitor mdbv{engine, mm.SMP()};
         return mdbv.moment_matrix(mm);
     }
 

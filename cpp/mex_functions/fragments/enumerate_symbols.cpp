@@ -5,7 +5,7 @@
  */
 #include "enumerate_symbols.h"
 #include "symbolic/symbol_set.h"
-#include "operators/moment_matrix.h"
+#include "operators/matrix/moment_matrix.h"
 
 #include "read_symbol_or_fail.h"
 
@@ -324,12 +324,12 @@ namespace NPATK::mex {
         }
     }
 
-    IndexMatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
+    SymbolMatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
                                             const matlab::data::Array& matrix,
-                                            IndexMatrixProperties::MatrixType basis_type) {
+                                            MatrixType basis_type) {
 
         // Get symbols in matrix...
-        SymbolSet symbols_found{(basis_type == IndexMatrixProperties::MatrixType::Symmetric)
+        SymbolSet symbols_found{(basis_type == MatrixType::Symmetric)
                                 ? enumerate_symmetric_symbols(engine, matrix)
                                 : enumerate_hermitian_symbols(engine, matrix)};
 
@@ -337,7 +337,7 @@ namespace NPATK::mex {
         size_t matrix_dimension = matrix.getDimensions()[0];
 
         // Make IMP object
-        return IndexMatrixProperties{matrix_dimension, basis_type, symbols_found};
+        return SymbolMatrixProperties{matrix_dimension, basis_type, symbols_found};
     }
 
 }

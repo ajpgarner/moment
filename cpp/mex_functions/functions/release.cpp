@@ -13,11 +13,11 @@ namespace NPATK::mex::functions {
                                  SortedInputs &&raw_inputs) : SortedInputs(std::move(raw_inputs)) {
 
         // Attempt to read MomentMatrix delete request...
-        if (this->params.contains(u"moment_matrix")) {
-            this->type = StorableType::MomentMatrix;
-            auto mmIter = this->find_or_throw(u"moment_matrix");
-            this->key = read_positive_integer(matlab, "Parameter 'moment_matrix'", mmIter, 0);
-            if (!storage.MomentMatrices.check_signature(this->key)) {
+        if (this->params.contains(u"matrix_system")) {
+            this->type = StorableType::MatrixSystem;
+            auto mmIter = this->find_or_throw(u"matrix_system");
+            this->key = read_positive_integer(matlab, "Parameter 'matrix_system'", mmIter, 0);
+            if (!storage.MatrixSystems.check_signature(this->key)) {
                 throw errors::BadInput(errors::bad_param, "Object key is not to object of requested type.");
             }
             return;
@@ -32,8 +32,7 @@ namespace NPATK::mex::functions {
             this->max_inputs = 0;
             this->min_inputs = 0;
 
-            // Debug for mutual exclusion
-            this->param_names.emplace(u"moment_matrix");
+            this->param_names.emplace(u"matrix_system");
         }
 
 
@@ -41,9 +40,9 @@ namespace NPATK::mex::functions {
         const auto& input = dynamic_cast<const ReleaseParams&>(*inputPtr);
         size_t remainder = 0;
         switch (input.type) {
-            case ReleaseParams::StorableType::MomentMatrix:
-                this->storageManager.MomentMatrices.release(input.key);
-                remainder = this->storageManager.MomentMatrices.count();
+            case ReleaseParams::StorableType::MatrixSystem:
+                this->storageManager.MatrixSystems.release(input.key);
+                remainder = this->storageManager.MatrixSystems.count();
                 break;
             default:
             case ReleaseParams::StorableType::Unknown:

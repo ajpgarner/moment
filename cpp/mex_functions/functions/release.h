@@ -14,7 +14,7 @@ namespace NPATK::mex::functions {
     public:
         enum class StorableType {
             Unknown = 0,
-            MomentMatrix
+            MatrixSystem
         } type = StorableType::Unknown;
         size_t key = 0;
 

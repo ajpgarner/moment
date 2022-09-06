@@ -20,7 +20,10 @@ namespace NPATK::mex::functions {
         } export_mode = ExportMode::WholeTable;
 
         /** The reference to the moment matrix, if one is requested */
-        uint64_t moment_matrix_key = 0;
+        uint64_t matrix_system_key = 0;
+
+        /** The level of the moment matrix */
+        uint64_t moment_matrix_depth = 0;
 
         /** The PM index to export */
         std::vector<PMIndex> requested_measurement{};

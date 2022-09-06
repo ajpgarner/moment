@@ -29,13 +29,15 @@ matlab_add_mex(NAME npatk_mex
             utilities/reflection.cpp
             utilities/reporting.cpp
             matlab_classes/matlab_class.cpp
+            matlab_classes/matrix_system.cpp
             matlab_classes/moment_matrix.cpp
-        matlab_classes/scenario.cpp
+            matlab_classes/scenario.cpp
             functions/alphabetic_name.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
             functions/probability_table.cpp
             functions/make_hermitian.cpp
+            functions/make_matrix_system.cpp
             functions/make_moment_matrix.cpp
             functions/make_symmetric.cpp
             functions/release.cpp

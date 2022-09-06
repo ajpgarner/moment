@@ -8,10 +8,10 @@
 #include "operators/context.h"
 #include "operators/implicit_symbols.h"
 #include "operators/joint_measurement_iterator.h"
-#include "operators/moment_matrix.h"
+#include "operators/matrix/operator_matrix.h"
+#include "operators/matrix/moment_matrix.h"
 
 #include "utilities/make_sparse_matrix.h"
-#include "operator_matrix.h"
 
 namespace NPATK::mex {
 
@@ -40,7 +40,7 @@ namespace NPATK::mex {
 
             for (const auto [symbol_id, weight]: combo) {
                 *(rowsPtr++) = 0;
-                auto [re_key, im_key] = momentMatrix.BasisIndices().BasisKey(symbol_id);
+                auto [re_key, im_key] = momentMatrix.SMP().BasisKey(symbol_id);
                 assert(re_key >= 0);
                 assert(im_key < 0);
                 *(colsPtr++) = re_key;
@@ -71,7 +71,7 @@ namespace NPATK::mex {
                                 const ImplicitSymbols &impliedSymbols)
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{implicitSymbols.context},
                       implicit_table_length{implicitSymbols.Data().size() + 1},
-                      real_symbol_count{implicitSymbols.momentMatrix.BasisIndices().RealSymbols().size()},
+                      real_symbol_count{implicitSymbols.momentMatrix.SMP().RealSymbols().size()},
                       output_array{factory.createStructArray({1, implicit_table_length},
                                                              {"sequence", "indices", "real_coefficients"})} {
 
@@ -90,7 +90,7 @@ namespace NPATK::mex {
 
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{implicitSymbols.context},
                       implicit_table_length{symbols.size()},
-                      real_symbol_count{implicitSymbols.momentMatrix.BasisIndices().RealSymbols().size()},
+                      real_symbol_count{implicitSymbols.momentMatrix.SMP().RealSymbols().size()},
                       output_array{factory.createStructArray({1, implicit_table_length},
                                                              {"sequence", "indices", "real_coefficients"})} {
                 // Add entry
@@ -214,7 +214,7 @@ namespace NPATK::mex {
         output[0]["sequence"] = factory.createScalar(momentMatrix.context.format_sequence(pmoIndices));
         output[0]["indices"] = std::move(index_array);
         output[0]["real_coefficients"] = combo_to_sparse_array(engine, factory, momentMatrix,
-                                                              momentMatrix.BasisIndices().RealSymbols().size(),
+                                                              momentMatrix.SMP().RealSymbols().size(),
                                                               impliedSymbols.expression);
         return output;
     }

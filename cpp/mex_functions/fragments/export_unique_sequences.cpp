@@ -7,15 +7,14 @@
 
 #include "error_codes.h"
 #include "operators/context.h"
-#include "operators/moment_matrix.h"
+#include "operators/matrix/moment_matrix.h"
 #include "utilities/reporting.h"
-#include "operator_matrix.h"
 
 namespace NPATK::mex {
     matlab::data::StructArray export_unique_sequence_struct(matlab::engine::MATLABEngine& engine,
                                                             const MomentMatrix& mm) {
         const Context& context = mm.context;
-        const MomentMatrix::UniqueSequenceRange& usr = mm.UniqueSequences;
+        const auto& usr = mm.Symbols; // .UniqueSequences;
         matlab::data::ArrayFactory factory;
         const size_t num_elems = usr.size();
         matlab::data::ArrayDimensions array_dims{1, num_elems};
@@ -26,7 +25,7 @@ namespace NPATK::mex {
         size_t write_index = 0;
 
 
-        const auto& basisMap = mm.BasisIndices().BasisMap();
+        const auto& basisMap = mm.SMP().BasisMap();
         auto basisMapIter = basisMap.cbegin();
 
         for (const auto& symbol : usr) {

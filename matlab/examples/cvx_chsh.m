@@ -28,7 +28,7 @@ Corr11 = Correlator(A1, B1);
 CHSH_ineq = Corr00 + Corr01 + Corr10 - Corr11;
 
 % Alternatively, make via full-correlator
-fc = FullCorrelator(chsh);
+fc = Scenario.FullCorrelator(chsh);
 CHSH_ineq2 = fc.linfunc([[0 0 0]; [0 1 1]; [0 1 -1]]);
 
 % Define and solve SDP

@@ -7,7 +7,6 @@
 
 #include "matlab_class.h"
 
-
 namespace NPATK::mex {
     namespace classes {
         class MomentMatrix : public MATLABClass {
@@ -17,7 +16,7 @@ namespace NPATK::mex {
         public:
             MomentMatrix(matlab::engine::MATLABEngine &engine, matlab::data::Array rawInput);
 
-            [[nodiscard]] constexpr uint64_t Key() const noexcept { return this->reference_key; }
+            [[nodiscard]] constexpr uint64_t SystemKey() const noexcept { return this->reference_key; }
 
             [[nodiscard]] constexpr uint64_t Level() const noexcept { return this->level; }
         };

@@ -13,6 +13,7 @@ add_library(lib_npatk
         operators/matrix/matrix_system.cpp
         operators/matrix/moment_matrix.cpp
         operators/matrix/operator_matrix.cpp
+        operators/matrix/symbol_matrix_properties.cpp
         operators/matrix/symbol_table.cpp
         symbolic/equality_type.cpp
         symbolic/symbol.cpp

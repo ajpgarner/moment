@@ -12,14 +12,16 @@ classdef MakeMomentMatrixTest_Case
             obj.expected_seq_matrix = exp_seq;
         end
         
-        function CallAndVerify(testCase, testObj, params)
+        function CallAndVerify(testCase, testObj, params, level)
+            system_id = npatk('make_matrix_system', params{:});
             [sym_mat, us_key, dim_sym] = npatk('make_moment_matrix', ...
-                                           'symbols', params{:});
+                                           'symbols', system_id, level);
             [seq_mat, us_key2, dim_seq] = npatk('make_moment_matrix', ...
-                                           'sequences', params{:});            
+                                           'sequences', system_id, level);       
             testObj.verifyEqual(us_key, us_key2);
             testObj.verifyEqual(dim_sym, dim_seq);
-            testCase.Verify(testObj, sym_mat, seq_mat, us_key, dim_sym);            
+            testCase.Verify(testObj, sym_mat, seq_mat, us_key, dim_sym);
+            npatk('release', 'matrix_system', system_id);
         end
             
         function Verify(testCase, testObj, ...

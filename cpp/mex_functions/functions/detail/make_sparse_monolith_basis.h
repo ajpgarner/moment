@@ -6,8 +6,7 @@
 #pragma once
 
 #include "symbolic/symbol_expression.h"
-#include "symbolic/index_matrix_properties.h"
-#include "operators/moment_matrix.h"
+#include "operators/matrix/moment_matrix.h"
 
 #include "fragments/read_symbol_or_fail.h"
 
@@ -27,7 +26,7 @@ namespace NPATK::mex::functions::detail {
 
     private:
         matlab::engine::MATLABEngine &engine;
-        const IndexMatrixProperties &imp;
+        const SymbolMatrixProperties &imp;
 
         template<typename data_t>
         struct monolith_frame {
@@ -50,7 +49,7 @@ namespace NPATK::mex::functions::detail {
 
     public:
         SparseMonolithBasisVisitor(matlab::engine::MATLABEngine &engineRef,
-                                   const IndexMatrixProperties &matrix_properties)
+                                   const SymbolMatrixProperties &matrix_properties)
                 : engine(engineRef), imp(matrix_properties) {}
 
         /** Dense input -> sparse output */
@@ -58,7 +57,7 @@ namespace NPATK::mex::functions::detail {
         return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
             monolith_re_frame real_basis_frame{};
             monolith_im_frame im_basis_frame{};
-            const bool hasImBasis = this->imp.Type() == IndexMatrixProperties::MatrixType::Hermitian;
+            const bool hasImBasis = this->imp.Type() == MatrixType::Hermitian;
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                 for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
@@ -89,7 +88,7 @@ namespace NPATK::mex::functions::detail {
         return_type string(const matlab::data::StringArray &matrix) {
             monolith_re_frame real_basis_frame{};
             monolith_im_frame im_basis_frame{};
-            const bool hasImBasis = this->imp.Type() == IndexMatrixProperties::MatrixType::Hermitian;
+            const bool hasImBasis = this->imp.Type() == MatrixType::Hermitian;
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                 for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
@@ -121,7 +120,7 @@ namespace NPATK::mex::functions::detail {
             monolith_re_frame real_basis_frame{};
             monolith_im_frame im_basis_frame{};
 
-            const bool hasImBasis = this->imp.Type() == IndexMatrixProperties::MatrixType::Hermitian;
+            const bool hasImBasis = this->imp.Type() == MatrixType::Hermitian;
 
 
             auto iter = matrix.cbegin();
@@ -161,7 +160,7 @@ namespace NPATK::mex::functions::detail {
         return_type moment_matrix(const MomentMatrix& matrix) {
             monolith_re_frame real_basis_frame{};
             monolith_im_frame im_basis_frame{};
-            const bool hasImBasis = this->imp.Type() == IndexMatrixProperties::MatrixType::Hermitian;
+            const bool hasImBasis = this->imp.Type() == MatrixType::Hermitian;
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                 for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
@@ -191,7 +190,7 @@ namespace NPATK::mex::functions::detail {
                                     const monolith_im_frame& im_frame) {
             matlab::data::ArrayFactory factory{};
 
-            const bool hasImaginaryBasis = (this->imp.Type() == IndexMatrixProperties::MatrixType::Hermitian);
+            const bool hasImaginaryBasis = (this->imp.Type() == MatrixType::Hermitian);
 
             // Number of columns* corresponds to number of symbols [* matlab is col-major]
             const size_t real_mx_cols = this->imp.RealSymbols().size();
@@ -236,7 +235,7 @@ namespace NPATK::mex::functions::detail {
 
     inline auto make_sparse_monolith_basis(matlab::engine::MATLABEngine &engine,
                                            const matlab::data::Array &input,
-                                           const IndexMatrixProperties &imp) {
+                                           const SymbolMatrixProperties &imp) {
         // Get symbols in matrix...
         return DispatchVisitor(engine, input, SparseMonolithBasisVisitor{engine, imp});
     }
@@ -245,7 +244,7 @@ namespace NPATK::mex::functions::detail {
     inline auto make_sparse_monolith_basis(matlab::engine::MATLABEngine &engine,
                                            const MomentMatrix& mm) {
         // Get symbols in matrix...
-        SparseMonolithBasisVisitor smbv{engine, mm.BasisIndices()};
+        SparseMonolithBasisVisitor smbv{engine, mm.SMP()};
         return smbv.moment_matrix(mm);
     }
 }

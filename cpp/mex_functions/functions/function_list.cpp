@@ -9,6 +9,7 @@
 #include "functions/alphabetic_name.h"
 #include "functions/generate_basis.h"
 #include "functions/probability_table.h"
+#include "functions/make_matrix_system.h"
 #include "functions/make_moment_matrix.h"
 #include "functions/make_hermitian.h"
 #include "functions/make_symmetric.h"
@@ -37,6 +38,9 @@ namespace NPATK::mex::functions {
                 break;
             case functions::MEXEntryPointID::MakeHermitian:
                 the_function = std::make_unique<functions::MakeHermitian>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::MakeMatrixSystem:
+                the_function = std::make_unique<functions::MakeMatrixSystem>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::MakeMomentMatrix:
                 the_function = std::make_unique<functions::MakeMomentMatrix>(engine, storageManager);

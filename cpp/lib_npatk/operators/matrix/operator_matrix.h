@@ -7,31 +7,20 @@
 
 #include "utilities/square_matrix.h"
 #include "symbolic/symbol_expression.h"
+
 #include "../operator_sequence.h"
 #include "../context.h"
+
 #include "symbol_table.h"
+#include "symbol_matrix_properties.h"
 
-#include <map>
+
 #include <memory>
-#include <set>
-#include <vector>
-#include <cassert>
-#include <atomic>
-#include <span>
-
 
 namespace NPATK {
 
     class SymbolTable;
-
-    /** Matrix type */
-    enum class MatrixType {
-        Unknown = 0,
-        /** Real-valued, matrix is symmetric */
-        Symmetric = 1,
-        /** Complex-valued, matrix is hermitian */
-        Hermitian = 2
-    };
+    class SymbolMatrixProperties;
 
     class OperatorMatrix {
     public:
@@ -91,47 +80,6 @@ namespace NPATK {
 
         };
 
-        class SymbolMatrixProperties {
-        private:
-            const OperatorMatrix& matrix;
-            std::set<symbol_name_t> included_symbols;
-            std::map<symbol_name_t, std::pair<ptrdiff_t, ptrdiff_t>> elem_keys;
-            std::vector<symbol_name_t> real_entries;
-            std::vector<symbol_name_t> imaginary_entries;
-            MatrixType basis_type = MatrixType::Unknown;
-
-
-        public:
-            SymbolMatrixProperties(const OperatorMatrix& matrix,
-                                   const SymbolTable& table,
-                                   std::set<symbol_name_t>&& subset);
-
-            [[nodiscard]] constexpr const auto& RealSymbols() const noexcept {
-                return this->real_entries;
-            }
-
-            [[nodiscard]] constexpr const auto& ImaginarySymbols() const noexcept {
-                return this->imaginary_entries;
-            }
-
-            [[nodiscard]] constexpr const auto& BasisMap() const noexcept {
-                return this->elem_keys;
-            }
-
-            [[nodiscard]] std::pair<ptrdiff_t, ptrdiff_t> BasisKey(symbol_name_t id) const {
-                auto iter = this->elem_keys.find(id);
-                if (iter == this->elem_keys.cend()) {
-                    return {-1, -1};
-                }
-                return iter->second;
-            }
-
-            [[nodiscard]] constexpr MatrixType Type() const noexcept {
-                return this->basis_type;
-            }
-
-            friend class NPATK::OperatorMatrix;
-        };
 
     public:
         /** Defining scenario for matrix (especially: rules for simplifying operator sequences). */
@@ -180,6 +128,8 @@ namespace NPATK {
             op_seq_matrix{std::move(rhs.op_seq_matrix)}, sym_exp_matrix{std::move(rhs.sym_exp_matrix)},
             sym_mat_prop{std::move(rhs.sym_mat_prop)}, Symbols{rhs.Symbols},
             SymbolMatrix{*this}, SequenceMatrix{*this} { }
+
+        ~OperatorMatrix() noexcept;
 
         [[nodiscard]] constexpr size_t Dimension() const noexcept {
             return this->dimension;

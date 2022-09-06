@@ -6,7 +6,8 @@
 #pragma once
 #include "mex_function.h"
 
-#include "symbolic/index_matrix_properties.h"
+#include "operators/matrix/operator_matrix.h"
+//#include "symbolic/index_matrix_properties.h"
 
 
 namespace NPATK::mex::functions {
@@ -21,7 +22,7 @@ namespace NPATK::mex::functions {
         } input_mode = InputMode::Unknown;
 
         /** What sort of basis should we try to generate */
-        IndexMatrixProperties::MatrixType basis_type = IndexMatrixProperties::MatrixType::Unknown;
+        MatrixType basis_type = MatrixType::Unknown;
 
         /** True, if output should be a sparse matrix */
         bool sparse_output = false;
@@ -30,7 +31,10 @@ namespace NPATK::mex::functions {
         bool monolithic_output = false;
 
         /** The reference to the moment matrix, if one is requested */
-        uint64_t moment_matrix_key = 0;
+        uint64_t matrix_system_key = 0;
+
+        /** The level of MM from matrix system, if one is requested */
+        size_t moment_matrix_level = 0;
 
     public:
         explicit GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
