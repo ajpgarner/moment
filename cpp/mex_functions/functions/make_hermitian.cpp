@@ -9,7 +9,7 @@
 #include "symbolic/symbol_tree.h"
 
 #include "fragments/export_substitution_list.h"
-#include "fragments/export_symbol_properties.h"
+#include "fragments/export_symbol_tree_properties.h"
 #include "fragments/identify_nonhermitian_elements.h"
 #include "fragments/substitute_elements_using_tree.h"
 

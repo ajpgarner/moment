@@ -21,10 +21,14 @@ namespace NPATK::mex::functions  {
         unsigned long hierarchy_level = 0;
 
         enum class OutputMode {
+            /** Unknown output */
             Unknown = 0,
+            /** Output dimension of matrix */
+            DimensionOnly,
+            /** Output matrix of symbol names */
             Symbols,
-            Sequences,
-            TableOnly
+            /** Output matrix of string representation of operator sequences */
+            Sequences
         } output_mode = OutputMode::Unknown;
 
     public:

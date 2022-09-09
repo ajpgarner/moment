@@ -9,6 +9,17 @@ classdef RealObject < handle
     
     properties(Access=protected)
         real_coefs
+        matrix_system
+    end
+    
+      properties(Constant, Access = protected)
+        err_no_matrix_system = ...
+            ['Coefficients can not be calculated. This is because a ', ...
+             'MatrixSystem has not yet been associated with this ',...
+             'setting.'];
+         
+        err_mismatched_scenario = ...
+            'Cannot combine objects from different settings.';
     end
     
     %% Public methods
@@ -16,6 +27,7 @@ classdef RealObject < handle
         function obj = RealObject(setting, coefs)
             %REALOBJECT Construct an instance of this class
             obj.Scenario = setting;
+            obj.matrix_system = MatrixSystem.empty;
             if nargin >= 2
                 obj.real_coefs = coefs;
             end
@@ -24,15 +36,22 @@ classdef RealObject < handle
         function val = get.Coefficients(obj)
             if isempty(obj.real_coefs)
                 % (Silently) do nothing if no moment matrix yet defined.
-                if ~obj.Scenario.HasMomentMatrix
+                if ~obj.Scenario.HasMatrixSystem
                     val = double.empty;
                     return
+                else 
+                    % Otherwise, bind scenario's matrix system to this.
+                    obj.matrix_system = obj.Scenario.GetMatrixSystem();
                 end
                 
-                % Otherwise, call do-function
+                % Call do-function
                 obj.calculateCoefficients();
             end
             
+            % Check co-efficient length, and pad if necessary
+            obj.padCoefficients();
+            
+            % Return co-efficients
             val = obj.real_coefs;
         end
         
@@ -40,9 +59,10 @@ classdef RealObject < handle
             % Forced rebuilding of co-efficients
             
             % Require moment-matrix to exist
-            if ~obj.Scenario.HasMomentMatrix
-                error("No moment matrix has yet been defined for" ...
-                    + " this setting.");
+            if ~obj.Scenario.HasMatrixSystem
+                error(obj.err_no_matrix_system);
+            else
+                obj.matrix_system = obj.Scenario.GetMatrixSystem();
             end
             
             % Call do-function, then return coefficients
@@ -104,7 +124,7 @@ classdef RealObject < handle
                 rhs (1,1) RealObject
             end
             if lhs.Scenario ~= rhs.Scenario
-                error("Cannot add objects from different settings.");
+                error(obj.err_mismatched_scenario);
             end
             
             lhs_coefs = lhs.getCoefficientsOrFail();
@@ -121,7 +141,7 @@ classdef RealObject < handle
                 rhs (1,1) RealObject
             end
             if lhs.Scenario ~= rhs.Scenario
-                error("Cannot add objects from different settings.");
+                error(obj.err_mismatched_scenario);
             end
             
             lhs_coefs = lhs.getCoefficientsOrFail();
@@ -161,8 +181,10 @@ classdef RealObject < handle
             end
             
             if length(coefs) ~= length(real_basis)
-                error("CVX real basis vector dimension does not match "...
-                    + "object coefficient dimension.");
+                error("CVX real basis vector dimension (" ...
+                    + num2str(length(real_basis)) + ") does not match "...
+                    + "object coefficient dimension (" ...
+                    + num2str(length(coefs)) + ").");
             end
             
             % Generate expression...
@@ -203,12 +225,39 @@ classdef RealObject < handle
         
         function coefs = getCoefficientsOrFail(obj)
             coefs = obj.Coefficients;
+            
             % NB: Zero sparse array is not empty...!
             if isempty(coefs)
-                error("Coefficients can not be calculated. Perhaps a "...
-                    + "MomentMatrix has not yet been generated for "...
-                    + "this setting?");
+                error(obj.err_no_matrix_system);
             end
+        end
+        
+        function padCoefficients(obj)
+            % Do nothing, if no matrix system
+            if isempty(obj.matrix_system)
+                return
+            end
+            
+            % How long should co-efficients be
+            desired_length = obj.matrix_system.RealVarCount;
+            
+            % Matrix of zeros, if empty
+            if isempty(obj.real_coefs)
+                obj.real_coefs = sparse(zeros(1, desired_length));    
+                return
+            end
+            
+            % Pad if not long enough
+            if length(obj.real_coefs) ~= desired_length
+                excess = double(desired_length - length(obj.real_coefs));
+                if excess < 0
+                    error("Co-efficients should not shrink!");
+                end
+                
+                obj.real_coefs = ...
+                    sparse(padarray(obj.real_coefs, [0, excess], 'post'));
+            end               
+            
         end
     end
     
@@ -216,6 +265,8 @@ classdef RealObject < handle
     methods(Access=protected)
         function calculateCoefficients(obj)
             % Overload this!
+            obj.real_coefs = ...
+                sparse(zeros(1, obj.matrix_system.RealVarCount));
         end
     end
     

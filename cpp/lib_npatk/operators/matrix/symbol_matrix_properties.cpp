@@ -15,67 +15,58 @@ namespace NPATK {
                                                    const SymbolTable& table,
                                                    std::set<symbol_name_t>&& included)
             : dimension{matrix.Dimension()}, included_symbols{std::move(included)}  {
-        size_t real_count = 0;
-        size_t im_count = 0;
+
+        // Sort symbols into real only, and complex
         for (const auto& id : included_symbols) {
-            auto& us = table[id];
+            const auto& unique_symbol = table[id];
+            assert(id == unique_symbol.Id());
 
-            // Skip 0 symbol
-            if (id == 0) {
-                continue;
+            this->real_entries.insert(id);
+            if (!unique_symbol.is_hermitian()) {
+                this->imaginary_entries.insert(id);
             }
 
-            std::pair<ptrdiff_t, ptrdiff_t> ri_index{real_count, im_count};
-
-            // Moment matrix never pure imaginary, so register real symbol
-            this->real_entries.emplace_back(id);
-            ++real_count;
-
-            // Also register imaginary symbol, if not a Hermitian element
-            if (!us.is_hermitian()) {
-                this->imaginary_entries.emplace_back(id);
-                ++im_count;
-            } else {
-                ri_index.second = -1;
-            }
-
-            // Key
-            this->elem_keys.emplace_hint(this->elem_keys.end(), std::make_pair(id, ri_index));
+            // Copy key from symbol table into local table
+            this->elem_keys.insert(this->elem_keys.end(), std::make_pair(id, unique_symbol.basis_key()));
         }
 
-        // Get type, based on number of imaginary elements
-        this->basis_type = (im_count > 0) ? MatrixType::Hermitian : MatrixType::Symmetric;
+        // Matrix type depends on whether there are imaginary symbols
+        this->basis_type = this->imaginary_entries.empty() ? MatrixType::Symmetric : MatrixType::Hermitian;
     }
 
 
     SymbolMatrixProperties::SymbolMatrixProperties(size_t dim, MatrixType type, const SymbolSet &entries)
         :  dimension{dim}, basis_type{type} {
 
-        size_t real_count = 0;
-        size_t im_count = 0;
+        ptrdiff_t real_count = 0;
+        ptrdiff_t im_count = 0;
+
+        // Go through symbol table... [should be sorted...]
         for (const auto& [id, symbol] : entries.Symbols) {
             // Skip 0 symbol.
             if (id == 0) {
                 continue;
             }
 
-            std::pair<ptrdiff_t, ptrdiff_t> ri_index{real_count, im_count};
+            ptrdiff_t re_index = -1;
+            ptrdiff_t im_index = -1;
 
             if (!symbol.real_is_zero) {
-                real_entries.emplace_back(symbol.id);
-                ++real_count;
-            } else {
-                ri_index.first = -1;
+                re_index = real_count++;
+                this->real_entries.insert(real_entries.end(), symbol.id);
             }
 
             if (!symbol.im_is_zero) {
-                imaginary_entries.emplace_back(symbol.id);
-                ++im_count;
-            } else {
-                ri_index.second = -1;
+                im_index = im_count++;
+                this->imaginary_entries.insert(imaginary_entries.end(), symbol.id);
             }
-            this->elem_keys.emplace_hint(this->elem_keys.end(), std::make_pair(symbol.id, ri_index));
-        }
-    }
 
+            // Inferred basis maps, ignoring 0 element.
+            this->elem_keys.insert(this->elem_keys.end(),
+                                   std::make_pair(symbol.id, std::make_pair(re_index, im_index)));
+        }
+
+        // Matrix type depends on whether there are imaginary symbols
+        this->basis_type = this->imaginary_entries.empty() ? MatrixType::Symmetric : MatrixType::Hermitian;
+    }
 }

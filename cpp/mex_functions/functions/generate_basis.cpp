@@ -17,7 +17,7 @@
 #include "matlab_classes/moment_matrix.h"
 
 #include "fragments/enumerate_symbols.h"
-#include "fragments/export_basis_key.h"
+#include "fragments/export_operator_matrix.h"
 #include "fragments/identify_nonhermitian_elements.h"
 #include "fragments/identify_nonsymmetric_elements.h"
 
@@ -150,7 +150,7 @@ namespace NPATK::mex::functions {
         auto matrix_properties = enumerate_symbols(this->matlabEngine, input.inputs[0], input.basis_type);
         if (verbose) {
             std::stringstream ss;
-            ss << "Found " << matrix_properties.BasisMap().size() << " unique symbols ["
+            ss << "Found " << matrix_properties.BasisKey().size() << " unique symbols ["
                << matrix_properties.RealSymbols().size() << " with real parts, "
                << matrix_properties.ImaginarySymbols().size() << " with imaginary parts].\n";
             if (debug) {
@@ -203,12 +203,15 @@ namespace NPATK::mex::functions {
         auto matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
         assert(matrixSystemPtr); // ^-- should throw if not found
 
-        if (!matrixSystemPtr->HasLevel(input.moment_matrix_level)) {
+        // Read lock, for basis generation
+        auto lock = matrixSystemPtr->getReadLock();
+
+        if (!matrixSystemPtr->hasMomentMatrix(input.moment_matrix_level)) {
             throw_error(this->matlabEngine, errors::bad_param,
                         "System has not yet generated a moment matrix at the requested level.");
         }
 
-        const auto& momentMatrix = matrixSystemPtr->CreateMomentMatrix(input.moment_matrix_level);
+        const auto& momentMatrix = matrixSystemPtr->MomentMatrix(input.moment_matrix_level);
 
         const auto& matrix_properties = momentMatrix.SMP();
 

@@ -30,12 +30,12 @@ namespace NPATK {
     /** Information about the particular symbol matrix (relative to the collection) */
     class SymbolMatrixProperties {
     private:
+        MatrixType basis_type = MatrixType::Unknown;
         size_t dimension;
         std::set<symbol_name_t> included_symbols;
+        std::set<symbol_name_t> imaginary_entries;
+        std::set<symbol_name_t> real_entries;
         std::map<symbol_name_t, std::pair<ptrdiff_t, ptrdiff_t>> elem_keys;
-        std::vector<symbol_name_t> real_entries;
-        std::vector<symbol_name_t> imaginary_entries;
-        MatrixType basis_type = MatrixType::Unknown;
 
 
     public:
@@ -47,32 +47,31 @@ namespace NPATK {
         /** Construct symbolic properties manually (e.g. loaded via matlab array) */
         SymbolMatrixProperties(size_t dim, MatrixType type, const SymbolSet& entries);
 
+        /** Set of real symbols involved in this matrix */
         [[nodiscard]] constexpr const auto& RealSymbols() const noexcept {
             return this->real_entries;
         }
 
+        /** Set of imaginary symbols involved in this matrix */
         [[nodiscard]] constexpr const auto& ImaginarySymbols() const noexcept {
             return this->imaginary_entries;
         }
 
-        [[nodiscard]] constexpr const auto& BasisMap() const noexcept {
-            return this->elem_keys;
-        }
-
-        [[nodiscard]] std::pair<ptrdiff_t, ptrdiff_t> BasisKey(symbol_name_t id) const {
-            auto iter = this->elem_keys.find(id);
-            if (iter == this->elem_keys.cend()) {
-                return {-1, -1};
-            }
-            return iter->second;
-        }
-
+        /** Whether matrix is symmetric or Hermitian (i.e. does it contain imaginary symbols) */
         [[nodiscard]] constexpr MatrixType Type() const noexcept {
             return this->basis_type;
         }
 
+        /** Size of this (square) matrix */
         [[nodiscard]] constexpr size_t Dimension() const noexcept {
             return this->dimension;
+        }
+
+        /**
+         * The basis keys for symbols in this matrix
+         */
+        [[nodiscard]] const std::map<symbol_name_t, std::pair<ptrdiff_t, ptrdiff_t>>& BasisKey() const {
+            return this->elem_keys;
         }
 
         friend class OperatorMatrix;

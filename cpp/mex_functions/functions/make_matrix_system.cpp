@@ -17,14 +17,14 @@
 
 namespace NPATK::mex::functions {
     namespace {
-        std::shared_ptr<Context> make_context(matlab::engine::MATLABEngine &matlabEngine,
+        std::unique_ptr<Context> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                               const MakeMatrixSystemParams &input) {
             switch (input.specification_mode) {
                 case MakeMatrixSystemParams::SpecificationMode::FlatNoMeasurements:
-                    return std::make_shared<Context>(Party::MakeList(input.number_of_parties,
+                    return std::make_unique<Context>(Party::MakeList(input.number_of_parties,
                                                                      input.flat_operators_per_party));
                 case MakeMatrixSystemParams::SpecificationMode::FlatWithMeasurements:
-                    return std::make_shared<Context>(Party::MakeList(input.number_of_parties,
+                    return std::make_unique<Context>(Party::MakeList(input.number_of_parties,
                                                                      input.flat_mmts_per_party,
                                                                      input.flat_outcomes_per_mmt));
                 case MakeMatrixSystemParams::SpecificationMode::FromSettingObject:
@@ -139,7 +139,7 @@ namespace NPATK::mex::functions {
 
 
     void MakeMatrixSystemParams::getFlatFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
-        if (inputs.size() < 1) {
+        if (inputs.empty()) {
             std::string errStr{"Please supply either named inputs; or a list of integers in the"};
             errStr += " form of [operators], ";
             errStr += "[parties, operators per party], ";
@@ -273,7 +273,7 @@ namespace NPATK::mex::functions {
         auto& input = dynamic_cast<MakeMatrixSystemParams&>(*inputPtr);
 
         // Input to context:
-        std::shared_ptr<Context> contextPtr{make_context(this->matlabEngine, input)};
+        std::unique_ptr<Context> contextPtr{make_context(this->matlabEngine, input)};
         if (!contextPtr) {
             throw_error(this->matlabEngine, errors::internal_error, "Context object could not be created.");
         }
@@ -287,7 +287,7 @@ namespace NPATK::mex::functions {
         }
 
         // Make new system around context
-        std::shared_ptr<MatrixSystem> matrixSystemPtr = std::make_shared<MatrixSystem>(std::move(contextPtr));
+        std::unique_ptr<MatrixSystem> matrixSystemPtr = std::make_unique<MatrixSystem>(std::move(contextPtr));
 
         // Store context/system
         uint64_t storage_id = this->storageManager.MatrixSystems.store(std::move(matrixSystemPtr));

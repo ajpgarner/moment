@@ -58,6 +58,9 @@ classdef Party < handle
             import Scenario.Measurement
             import Util.alphabetic_index
             
+            % Check not locked
+            obj.Scenario.errorIfLocked();
+            
             % Automatically name, if non supplied
             next_id = length(obj.Measurements)+1;
             if nargin < 3                
@@ -74,9 +77,6 @@ classdef Party < handle
                                               
             % Build joint measurements, if any other measurements
             obj.Scenario.make_joint_mmts(obj.Id, mmt);
-                                              
-            % Invalidate scenario's MM, if any
-            obj.Scenario.invalidateMomentMatrix();
         end
     end
 end

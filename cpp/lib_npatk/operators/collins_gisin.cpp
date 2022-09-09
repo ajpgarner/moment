@@ -5,8 +5,10 @@
  */
 
 #include "collins_gisin.h"
+#include "context.h"
 #include "joint_measurement_iterator.h"
-#include "matrix/moment_matrix.h"
+#include "matrix/matrix_system.h"
+#include "matrix/symbol_table.h"
 #include "utilities/combinations.h"
 
 namespace NPATK {
@@ -27,18 +29,19 @@ namespace NPATK {
         }
     }
 
-    CollinsGisinForm::CollinsGisinForm(const MomentMatrix& momentMatrix, const size_t level)
+    CollinsGisinIndex::CollinsGisinIndex(const MatrixSystem& matrixSystem, const size_t level)
         : Level{level},
-          indices{momentMatrix.context, level},
-          OperatorCounts(makeOpCounts(momentMatrix.context)) {
+          indices{matrixSystem.Context(), level},
+          OperatorCounts(makeOpCounts(matrixSystem.Context())) {
 
-        const Context& context = momentMatrix.context;
+        const Context& context = matrixSystem.Context();
+        const SymbolTable& symbols = matrixSystem.Symbols();
 
         // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.
-        if (momentMatrix.Symbols.size() < 2) {
+        if (symbols.size() < 2) {
             throw errors::cg_form_error("Zero and One should be defined in MomentMatrix.");
         }
-        const auto& oneSeq = momentMatrix.Symbols[1];
+        const auto& oneSeq = symbols[1];
         if (!oneSeq.sequence().empty() || oneSeq.sequence().zero() || (oneSeq.Id() != 1)) {
             throw errors::cg_form_error("Identity symbol was improperly defined in MomentMatrix.");
         }
@@ -75,7 +78,7 @@ namespace NPATK {
                 }
 
                 // Iterate through mmts of chosen parties
-                JointMeasurementIterator multiMmtIterator{momentMatrix.context, std::move(pmiStack)};
+                JointMeasurementIterator multiMmtIterator{context, std::move(pmiStack)};
                 while (!multiMmtIterator.done()) {
                     auto mmtIndices = multiMmtIterator.indices();
                     size_t num_operators = multiMmtIterator.count_operators();
@@ -91,7 +94,7 @@ namespace NPATK {
                     const auto opIterEnd = multiMmtIterator.end_operators();
                     while (opIter != opIterEnd) {
                         // Find symbol for operator sequence
-                        auto symbol_loc = momentMatrix.Symbols.where(*opIter);
+                        auto symbol_loc = symbols.where(*opIter);
                         if (symbol_loc == nullptr) {
                             throw errors::cg_form_error{"Could not find expected symbol in MomentMatrix."};
                         }
@@ -115,7 +118,7 @@ namespace NPATK {
         }
     }
 
-    std::span<const symbol_name_t> CollinsGisinForm::get(std::span<const size_t> mmtIndices) const {
+    std::span<const symbol_name_t> CollinsGisinIndex::get(std::span<const size_t> mmtIndices) const {
         auto [first, last] = this->indices.access(mmtIndices);
         if ((first < 0) || (first >= last)) {
             return {this->data.begin(), 0};
@@ -125,8 +128,8 @@ namespace NPATK {
     }
 
     std::vector<symbol_name_t>
-    CollinsGisinForm::get(const std::span<const size_t> mmtIndices,
-                          const std::span<const oper_name_t> fixedOutcomes) const {
+    CollinsGisinIndex::get(const std::span<const size_t> mmtIndices,
+                           const std::span<const oper_name_t> fixedOutcomes) const {
         assert(mmtIndices.size() == fixedOutcomes.size());
         // Number of outcomes to copy; also which is fixed
         std::vector<size_t> iterating_indices;

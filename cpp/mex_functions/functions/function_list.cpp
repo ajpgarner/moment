@@ -8,6 +8,7 @@
 
 #include "functions/alphabetic_name.h"
 #include "functions/generate_basis.h"
+#include "functions/get_symbol_table.h"
 #include "functions/probability_table.h"
 #include "functions/make_matrix_system.h"
 #include "functions/make_moment_matrix.h"
@@ -32,6 +33,9 @@ namespace NPATK::mex::functions {
                 break;
             case functions::MEXEntryPointID::GenerateBasis:
                 the_function = std::make_unique<functions::GenerateBasis>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::GetSymbolTable:
+                the_function = std::make_unique<functions::GetSymbolTable>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::ProbabilityTable:
                 the_function = std::make_unique<functions::ProbabilityTable>(engine, storageManager);

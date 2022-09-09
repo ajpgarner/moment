@@ -14,8 +14,8 @@
 #include "utilities/reporting.h"
 #include "utilities/io_parameters.h"
 
-#include "fragments/export_symbol_matrix.h"
-#include "fragments/export_unique_sequences.h"
+#include "fragments/export_operator_matrix.h"
+#include "fragments/export_symbol_table.h"
 
 #include <memory>
 
@@ -23,13 +23,13 @@ namespace NPATK::mex::functions {
 
     MakeMomentMatrix::MakeMomentMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
             : MexFunction(matlabEngine, storage, MEXEntryPointID::MakeMomentMatrix, u"make_moment_matrix") {
-        this->min_outputs = 1;
-        this->max_outputs = 3;
+        this->min_outputs = 0;
+        this->max_outputs = 1;
 
         this->flag_names.emplace(u"reference");
         this->flag_names.emplace(u"sequences");
         this->flag_names.emplace(u"symbols");
-        this->flag_names.emplace(u"table");
+        this->flag_names.emplace(u"dimension");
 
         this->param_names.emplace(u"reference_id");
         this->param_names.emplace(u"level");
@@ -37,10 +37,10 @@ namespace NPATK::mex::functions {
         // One of four ways to output:
         this->mutex_params.add_mutex(u"reference", u"sequences");
         this->mutex_params.add_mutex(u"reference", u"symbols");
-        this->mutex_params.add_mutex(u"reference", u"table");
+        this->mutex_params.add_mutex(u"reference", u"dimension");
         this->mutex_params.add_mutex(u"sequences", u"symbols");
-        this->mutex_params.add_mutex(u"sequences", u"table");
-        this->mutex_params.add_mutex(u"symbols", u"table");
+        this->mutex_params.add_mutex(u"sequences", u"dimension");
+        this->mutex_params.add_mutex(u"symbols", u"dimension");
 
         // Either [ref, level] or named version thereof.
         this->min_inputs = 0;
@@ -53,10 +53,10 @@ namespace NPATK::mex::functions {
         // Determine output mode:
         if (this->flags.contains(u"sequences")) {
             this->output_mode = OutputMode::Sequences;
-        } else if (this->flags.contains(u"table")) {
-            this->output_mode = OutputMode::TableOnly;
-        } else {
+        } else if (this->flags.contains(u"symbols")) {
             this->output_mode = OutputMode::Symbols;
+        } else {
+            this->output_mode = OutputMode::DimensionOnly;
         }
 
         // Either set named params OR give multiple params
@@ -131,6 +131,8 @@ namespace NPATK::mex::functions {
         // Now, build or get moment matrix
         const auto& momentMatrix = matrixSystemPtr->CreateMomentMatrix(input.hierarchy_level);
 
+
+        // Output, if supplied.
         if (output.size() >= 1) {
             switch (input.output_mode) {
                 case MakeMomentMatrixParams::OutputMode::Symbols:
@@ -140,28 +142,15 @@ namespace NPATK::mex::functions {
                     output[0] = export_sequence_matrix(this->matlabEngine, momentMatrix.context,
                                                        momentMatrix.SequenceMatrix());
                     break;
-                case MakeMomentMatrixParams::OutputMode::TableOnly:
-                    output[0] = export_unique_sequence_struct(this->matlabEngine, momentMatrix);
+                case MakeMomentMatrixParams::OutputMode::DimensionOnly: {
+                    matlab::data::ArrayFactory factory;
+                    output[0] = factory.createScalar<uint64_t>(momentMatrix.Dimension());
+                }
                     break;
                 default:
                 case MakeMomentMatrixParams::OutputMode::Unknown:
                     throw_error(matlabEngine, errors::internal_error, "Unknown output mode!");
             }
-        }
-
-        // Export symbol table, if second output specified
-        if (output.size() >= 2) {
-            if (input.output_mode == MakeMomentMatrixParams::OutputMode::TableOnly) {
-                output[1] = output[0];
-            } else {
-                output[1] = export_unique_sequence_struct(this->matlabEngine, momentMatrix);
-            }
-        }
-
-        // Also get dimensions, if third output specified
-        if (output.size() >= 3) {
-            matlab::data::ArrayFactory factory;
-            output[2] = factory.createScalar<uint64_t>(momentMatrix.Dimension());
         }
     }
 }

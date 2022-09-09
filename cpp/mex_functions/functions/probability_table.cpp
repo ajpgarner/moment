@@ -10,6 +10,7 @@
 #include "matlab_classes/moment_matrix.h"
 #include "operators/implicit_symbols.h"
 #include "operators/matrix/operator_matrix.h"
+#include "operators/matrix/moment_matrix.h"
 #include "fragments/export_implicit_symbols.h"
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
@@ -134,16 +135,11 @@ namespace NPATK::mex::functions {
 
     }
 
-    ProbabilityTableParams::ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&input)
-            : SortedInputs(std::move(input)) {
+    ProbabilityTableParams::ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputIn)
+            : SortedInputs(std::move(inputIn)) {
 
-        // Get moment matrix class
-        auto [mmClassPtr, fail] = read_as_moment_matrix(matlabEngine, inputs[0]); // Implicit copy...
-        if (!mmClassPtr) {
-            throw errors::BadInput{errors::bad_param, fail.value()};
-        }
-        this->matrix_system_key = mmClassPtr->SystemKey();
-        this->moment_matrix_depth = mmClassPtr->Level();
+        // Get matrix system class
+        this->matrix_system_key = read_positive_integer(matlabEngine, "Reference id", this->inputs[0], 0);
 
         // For single input, just get whole table
         if (this->inputs.size() < 2) {
@@ -233,16 +229,14 @@ namespace NPATK::mex::functions {
         // Get stored moment matrix
         auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
         assert(msPtr); // ^- above should throw if absent
-        if (!msPtr->HasLevel(input.moment_matrix_depth)) {
-            throw_error(this->matlabEngine, errors::bad_param,
-                        "A moment matrix at this depth could not be found in the supplied MatrixSystem.");
 
-        }
-        const auto& momentMatrix = msPtr->MomentMatrix(input.moment_matrix_depth);
-        const auto& context = momentMatrix.context;
+        // Get read lock
+        auto lock = msPtr->getReadLock();
+        const MatrixSystem& system = *msPtr;
+        const Context& context = system.Context();
 
         // Create (or retrieve) implied sequence object
-        const ImplicitSymbols& implSym = momentMatrix.ImplicitSymbolTable();
+        const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
 
         // Export whole table?
         if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {
@@ -253,9 +247,9 @@ namespace NPATK::mex::functions {
 
         if (input.export_mode == ProbabilityTableParams::ExportMode::OneMeasurement) {
             // Check inputs are okay:
-            if (input.requested_measurement.size() > momentMatrix.max_probability_length) {
+            if (input.requested_measurement.size() > system.MaxRealSequenceLength()) {
                 throw_error(this->matlabEngine, errors::bad_param,
-                            "Moment matrix is of too low order to define the requested probability.");
+                            "A moment matrix of high enough order to define the requested probability was not specified.");
             }
             for (const auto& pm : input.requested_measurement) {
                 if (pm.party >= context.Parties.size()) {
@@ -275,29 +269,7 @@ namespace NPATK::mex::functions {
             return;
         }
 
-        // Otherwise, export one measurement
-        // Further sanitize input
-        if (input.requested_outcome.size() > momentMatrix.max_probability_length) {
-            throw_error(this->matlabEngine, errors::bad_param,
-                        "Moment matrix is of too low order to define the requested probability.");
-        }
-        for (const auto& pmo : input.requested_outcome) {
-            if (pmo.party >= context.Parties.size()) {
-                throw_error(this->matlabEngine, errors::bad_param, "Party index out of range.");
-            }
-            const auto& party = context.Parties[pmo.party];
-            if (pmo.mmt >= party.Measurements.size()) {
-                throw_error(this->matlabEngine, errors::bad_param, "Measurement index out of range.");
-            }
-            const auto& mmt = party.Measurements[pmo.mmt];
-            if (pmo.outcome >= mmt.num_outcomes) {
-                throw_error(this->matlabEngine, errors::bad_param, "Outcome index out of range.");
-            }
-        }
-
-        // Request output
-        auto foundRow = implSym.get(input.requested_outcome);
-        output[0] = export_implied_symbol_row(this->matlabEngine, momentMatrix, input.requested_outcome, foundRow);
+        throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
     }
 
     std::unique_ptr<SortedInputs> ProbabilityTable::transform_inputs(std::unique_ptr<SortedInputs> input) const {

@@ -3,8 +3,60 @@
  
 Author: Andrew J. P. Garner
 
-A set of tools designed for straightforward manipulation of convex optimisation problems involving moment matrices,
-such as the NPA hierarchy. 
+NPATK is a set of tools designed to aid in the generation and manipulation of operator matrices, for use in the context 
+of convex optimisation problems. In particular, it aids in the generation of hierarchies of moment matrices and 
+localizing matrices, such as arise in the NPA [1] and PNA [2] hierarchies.
+
+### Usage
+
+A typical program using NPATK should first define a `Scenario` object, describing the number of distinct parties, the
+measurements per parties, and the number of outcomes per measurement. For example, a CHSH Scenario would define two
+parties, with two measurements per party, each with two outcomes.
+
+For simple use cases, where only a single moment matrix (i.e. also at a fixed level within the hierarchy), a 
+`MomentMatrix` object can be created. For example, 
+``scenarioObj.MakeMomentMatrix(1)``
+generates the level 1 moment matrix associated with a scenario. 
+
+In more complex cases (e.g. where multiple depths are required, or sets of localizing matrices are also considered), a
+`MatrixSystem` should be created. 
+This object represents a shared set of SDP variables, where the same variable might appear in multiple different moment 
+matrices and localizing matrices.
+
+To ensure consistency between the many dependent objects, once a `MatrixSystem` has been created (even implicitly), no 
+further changes can be made to the `Scenario` object. However, a `clone()` method is provided for `Scenario`, that 
+constructs a deep copy, which will allow changes to the setting (until it, in turn, is associated with a new 
+`MatrixSystem`).
+
+
+
+### References / additional reading
+**[1]:** *Navascues, Pironio, and Acin*: A convergent hierarchy of semidefinite programs characterizing the set of quantum correlations.\
+New J. Phys. 10, 073013 (2008).\
+[doi:10.1088/1367-2630/10/7/073013](https://doi.org/10.1088/1367-2630/10/7/073013).
+
+**[2]:** *Pironio,  Navascues, and Acin*: Convergent relaxations of polynomial optimization problems
+with non-commuting variables.\
+SIAM J. Optim. Volume 20, Issue 5, pp. 2157-2180 (2010).\
+[doi:10.1137/090760155](https://doi.org/10.1137/090760155).
+
+## List of classes, functions and folders
+### MATLAB classes
+
+`MatrixSystem`: A collection of matrices, with shared symbols. Usually associated with a `Scenario`. 
+
+`MomentMatrix`: Handle to an individual moment matrix (of particular depth) from within a matrix system.
+
+`RealObject`: Base class for objects, associated with a `Scenario` and `MatrixSystem`, representing things that can be
+expressed as linear combination of real-valued elements from a `MomentMatrix`. This includes probabilities, 
+normalizations, correlators, etc.
+
+`Scenario`: A description of an experimental setting (including number of parties, measurements for each parties,
+number of outcomes for each measurement).
+
+`Scenario.Party`: A spatially isolated agent (e.g. Alice over here, Bob over there). By construction, all matrices generated
+respect no-signalling, and so operators associated with different parties are always assumed to commute.
+
 
 ### NPATK functions
 The matlab module `npatk` contains the following functions, the names of which should be provided as the first argument
@@ -15,6 +67,8 @@ to the call to function `npatk(...)`:
 `generate_basis`: Provide symmetric or Hermitian basis matrices for a given symbolic matrix.
 
 `make_hermitian`: Makes a symbolic matrix Hermitian, by inferring equality constraints and applying them.
+
+`make_matrix_system`: Starts a new context of shared variables, from a supplied Scenario. 
 
 `make_moment_matrix`: Generates a moment matrix for a supplied set of Hermitian operators.
 
@@ -35,8 +89,10 @@ to the call to function `npatk(...)`:
 
 `\cpp\lib_npatk`: Toolkit algorithms agnostic of MATLAB. Builds `lib_npatk`.
 
-`\cpp\lib_npatk\operators`: Aspects of `lib_npatk` specifically concerned with Hermitian operator manipulation, moment
- matrices and the like.
+`\cpp\lib_npatk\operators`: Aspects of `lib_npatk` specifically concerned with Hermitian operator manipulation.
+
+`\cpp\lib_npatk\operators\matrix`: Aspects of `lib_npatk` specifically concerned with systems of moment matrices, localizing 
+matrices, etc.
 
 `\cpp\lib_npatk\symbolic`: Aspects of `lib_npatk` specifically concerned with simplification of symbolic expressions.
 

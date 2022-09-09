@@ -18,24 +18,27 @@
 namespace NPATK {
 
     class UniqueSequence {
+    private:
         symbol_name_t id = -1;
         OperatorSequence opSeq;
         std::optional<OperatorSequence> conjSeq{};
         size_t fwd_hash = 0;
         size_t conj_hash = 0;
         bool hermitian = false;
+        ptrdiff_t real_index = -1;
+        ptrdiff_t img_index = -1;
 
     public:
         constexpr UniqueSequence(OperatorSequence sequence, size_t hash) :
                 opSeq{std::move(sequence)}, fwd_hash{hash},
-                conjSeq{}, conj_hash{hash},
-                hermitian{true} { }
+                conjSeq{}, conj_hash{hash}, hermitian{true},
+                real_index{-1}, img_index{-1}  { }
 
         constexpr UniqueSequence(OperatorSequence sequence, size_t hash,
                                  OperatorSequence conjSequence, size_t conjHash) :
                 opSeq{std::move(sequence)}, fwd_hash{hash},
                 conjSeq{std::move(conjSequence)}, conj_hash{conjHash},
-                hermitian{false} { }
+                hermitian{false}, real_index{-1}, img_index{-1} { }
 
         [[nodiscard]] constexpr symbol_name_t Id() const noexcept { return this->id; }
         [[nodiscard]] constexpr size_t hash() const noexcept { return this->fwd_hash; }
@@ -44,24 +47,42 @@ namespace NPATK {
         [[nodiscard]] constexpr const OperatorSequence& sequence_conj() const noexcept {
             return this->hermitian ? opSeq : this->conjSeq.value();
         }
+
         /**
          * Does the operator sequence represent its Hermitian conjugate?
          * If true, the element will correspond to a real symbol (cf. complex if not) in the NPA matrix.
          */
         [[nodiscard]] constexpr bool is_hermitian() const noexcept { return this->hermitian; }
 
+        /**
+         * The real and imaginary offsets of this symbol in the basis (or -1, if no such offset).
+         * @return Pair, first corresponding to real, second corresponding to imaginary.
+         */
+        [[nodiscard]] constexpr std::pair<ptrdiff_t, ptrdiff_t> basis_key() const noexcept {
+            return {this->real_index, this->img_index};
+        }
+
         inline static UniqueSequence Zero(const Context& context) {
-            return UniqueSequence{OperatorSequence::Zero(&context), 0};
+            auto us = UniqueSequence{OperatorSequence::Zero(&context), 0};
+            us.id = 0;
+            return us;
         }
 
         inline static UniqueSequence Identity(const Context& context) {
-            return UniqueSequence{OperatorSequence::Identity(&context), 1};
+            auto us = UniqueSequence{OperatorSequence::Identity(&context), 1};
+            us.id = 1;
+            us.real_index = 0;
+            return us;
         }
+
+
 
         friend class SymbolTable;
     };
 
-
+    /**
+     * List of sumbols associated with matrix system.
+     */
     class SymbolTable {
     private:
         /** Context, for simplifying operator sequences */
@@ -74,12 +95,38 @@ namespace NPATK {
          * Invariant promise: non-hermitian elements will have both forward and reverse hashes saved. */
         std::map<size_t, ptrdiff_t> hash_table;
 
+        /**
+         * Ordered list of symbols with real components.
+         * For now, this should just be 0, 1, ... sizeof(unique_sequences)-1.
+         */
+        std::vector<size_t> real_symbols;
+
+        /**
+         * Ordered list of symbols with imaginary components (i.e. corresponding to non-Hermitian operators)
+         */
+        std::vector<size_t> imaginary_symbols;
+
     public:
-        SymbolTable(const Context& context);
+        /**
+         * Constructs a symbol table, associated with a particular context.
+         * @param context The context, for simplifying and formatting operator sequences.
+         */
+        explicit SymbolTable(const Context& context);
 
-        SymbolTable(SymbolTable&& rhs) noexcept;
+        /**
+         * Move construct a symbol table.
+         */
+        SymbolTable(SymbolTable&& rhs) noexcept = default;
 
+        /**
+         * Vector of symbol IDs of every symbol containing a real component.
+         */
+        [[nodiscard]] const auto& RealSymbolIds() const noexcept { return this->real_symbols; }
 
+        /**
+         * Vector of symbol IDs of every symbol containing an imaginary component.
+         */
+        [[nodiscard]] const auto& ImaginarySymbolIds() const noexcept { return this->imaginary_symbols; }
 
         /**
          * Prune list of hashes, removing elements already in the Symbol Table.

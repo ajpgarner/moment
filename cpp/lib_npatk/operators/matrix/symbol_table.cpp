@@ -13,19 +13,20 @@ namespace NPATK {
         : context{context} {
 
         // Zero and identity are always in symbol table, in indices 0 and 1 respectively.
-        std::map<size_t, UniqueSequence> build_unique;
-        build_unique.emplace(0, UniqueSequence::Zero(this->context));
-        build_unique.emplace(1, UniqueSequence::Identity(this->context));
-        this->merge_in(std::move(build_unique));
+        this->unique_sequences.emplace_back(UniqueSequence::Zero(this->context));
+        this->unique_sequences.emplace_back(UniqueSequence::Identity(this->context));
+
+        this->hash_table.insert({this->unique_sequences[0].hash(), 0});
+        this->hash_table.insert({this->unique_sequences[1].hash(), 1});
+        this->real_symbols.emplace_back(1);
+
+
+//        std::map<size_t, UniqueSequence> build_unique;
+//        build_unique.emplace(0, UniqueSequence::Zero(this->context));
+//        build_unique.emplace(1, UniqueSequence::Identity(this->context));
+//        this->merge_in(std::move(build_unique));
 
     }
-
-    SymbolTable::SymbolTable(SymbolTable&& src)  noexcept :
-        context{src.context},
-        unique_sequences{std::move(src.unique_sequences)},
-        hash_table{std::move(src.hash_table)} {
-    }
-
 
     std::pair<std::map<size_t, UniqueSequence>, std::set<symbol_name_t>>
     SymbolTable::remove_duplicates(std::map<size_t, UniqueSequence> &&build_unique) {
@@ -77,8 +78,17 @@ namespace NPATK {
                 rev_hash_list.insert({elem.conj_hash, -static_cast<ptrdiff_t>(elem_index)});
             }
             elem.id = elem_index;
+            elem.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
+            elem.img_index = elem.is_hermitian() ? -1 : static_cast<ptrdiff_t>(this->imaginary_symbols.size());
+            this->real_symbols.emplace_back(elem_index);
+
+            if (!elem.is_hermitian()) {
+                this->imaginary_symbols.emplace_back(elem_index);
+            }
             this->unique_sequences.emplace_back(std::move(elem));
+
             symbol_ids.insert(symbol_ids.end(), elem_index);
+
             ++elem_index;
         }
 

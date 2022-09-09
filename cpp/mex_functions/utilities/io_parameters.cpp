@@ -5,8 +5,6 @@
  */
 
 #include "utilities/read_as_scalar.h"
-#include "operators/moment_matrix.h"
-#include "operators/context.h"
 #include "utilities/reporting.h"
 #include "utilities/reflection.h"
 

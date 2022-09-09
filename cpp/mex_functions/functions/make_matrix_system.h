@@ -31,8 +31,6 @@ namespace NPATK::mex::functions {
 
         std::unique_ptr<classes::Scenario> settingPtr;
 
-        uint64_t storage_key = 0;
-
     public:
         explicit MakeMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs);
 

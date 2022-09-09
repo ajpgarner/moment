@@ -32,18 +32,23 @@ fc = Scenario.FullCorrelator(chsh);
 CHSH_ineq2 = fc.linfunc([[0 0 0]; [0 1 1]; [0 1 -1]]);
 
 % Define and solve SDP
-cvx_begin sdp quiet
-     [a, b, M] = matrix.cvxHermitianBasis();
-     
-     % Normalization
-     a(1) == 1;
-     
-     % Positivity 
-     M >= 0;
-             
-     % CHSH inequality (maximize!)
-     solve_chsh_ineq = CHSH_ineq.cvx(a);
-     maximize(solve_chsh_ineq);
+cvx_begin sdp
+
+    % Declare basis variables a (real) and b (imaginary)
+    matrix.cvxVars('a', 'b');
+    
+    % Compose moment matrix from these basis variables
+    M = matrix.cvxHermitianBasis(a, b);
+
+    % Normalization
+    a(1) == 1;
+
+    % Positivity
+    M >= 0;
+
+    % CHSH inequality (maximize!)
+    solve_chsh_ineq = CHSH_ineq.cvx(a);
+    maximize(solve_chsh_ineq);
 cvx_end
 
 % Get solutions

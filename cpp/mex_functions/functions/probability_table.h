@@ -19,11 +19,8 @@ namespace NPATK::mex::functions {
             OneOutcome
         } export_mode = ExportMode::WholeTable;
 
-        /** The reference to the moment matrix, if one is requested */
+        /** The reference to the matrix system */
         uint64_t matrix_system_key = 0;
-
-        /** The level of the moment matrix */
-        uint64_t moment_matrix_depth = 0;
 
         /** The PM index to export */
         std::vector<PMIndex> requested_measurement{};

@@ -6,29 +6,29 @@
 #include "gtest/gtest.h"
 
 #include "operators/context.h"
-#include "operators/moment_matrix.h"
+#include "operators/matrix/moment_matrix.h"
+#include "operators/matrix/matrix_system.h"
 #include "operators/collins_gisin.h"
-#include "operators/matrix_system.h"
 
 namespace NPATK::Tests {
 
     TEST(CollinsGisin, OnePartyOneMeasurementThreeOutcomes) {
 
-        auto contextPtr = std::make_shared<Context>(Party::MakeList(1, 1, 3));
-        MatrixSystem system{contextPtr};
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList(1, 1, 3))};
+        const auto& context = system.Context();
         auto& momentMatrix = system.CreateMomentMatrix(1);
 
-        const auto& alice = contextPtr->Parties[0];
+        const auto& alice = context.Parties[0];
         auto a0_loc = momentMatrix.Symbols.where(
-                        OperatorSequence({alice.measurement_outcome(0, 0)}, contextPtr.get()));
+                        OperatorSequence({alice.measurement_outcome(0, 0)}, &context));
         ASSERT_NE(a0_loc, nullptr);
         auto a1_loc = momentMatrix.Symbols.where(
-                        OperatorSequence({alice.measurement_outcome(0, 1)}, contextPtr.get()));
+                        OperatorSequence({alice.measurement_outcome(0, 1)}, &context));
         ASSERT_NE(a1_loc, nullptr);
         ASSERT_NE(a0_loc->Id(), a1_loc->Id());
 
-        const CollinsGisinForm& cgForm = momentMatrix.CollinsGisin();
-        const CollinsGisinForm& cgForm2 = momentMatrix.CollinsGisin();
+        const CollinsGisinIndex& cgForm = system.CollinsGisin();
+        const CollinsGisinIndex& cgForm2 = system.CollinsGisin();
         EXPECT_EQ(&cgForm, &cgForm2);
         ASSERT_EQ(cgForm.Level, 1);
 
@@ -45,41 +45,42 @@ namespace NPATK::Tests {
     }
 
     TEST(CollinsGisin, TwoPartyTwoMeasurementTwoOutcomes) {
-        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 2, 2));
-        ASSERT_EQ(contextPtr->Parties.size(), 2);
-        const auto& alice = contextPtr->Parties[0];
-        const auto& bob = contextPtr->Parties[1];
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 2, 2))};
+        const auto& context = system.Context();
+        ASSERT_EQ(context.Parties.size(), 2);
+        const auto& alice = context.Parties[0];
+        const auto& bob = context.Parties[1];
 
-        MatrixSystem system{contextPtr};
+
         auto& momentMatrix = system.CreateMomentMatrix(1);
 
         auto alice_a0 = momentMatrix.Symbols.where(
-                        OperatorSequence({alice.measurement_outcome(0, 0)}, contextPtr.get()));
+                        OperatorSequence({alice.measurement_outcome(0, 0)}, &context));
         ASSERT_NE(alice_a0, nullptr);
         auto alice_b0 = momentMatrix.Symbols.where(
-                        OperatorSequence({alice.measurement_outcome(1, 0)}, contextPtr.get()));
+                        OperatorSequence({alice.measurement_outcome(1, 0)}, &context));
         ASSERT_NE(alice_b0, nullptr);
         auto bob_a0 = momentMatrix.Symbols.where(
-                        OperatorSequence({bob.measurement_outcome(0, 0)}, contextPtr.get()));
+                        OperatorSequence({bob.measurement_outcome(0, 0)}, &context));
         ASSERT_NE(bob_a0, nullptr);
         auto bob_b0 = momentMatrix.Symbols.where(
-                        OperatorSequence({bob.measurement_outcome(1, 0)}, contextPtr.get()));
+                        OperatorSequence({bob.measurement_outcome(1, 0)}, &context));
         ASSERT_NE(bob_b0, nullptr);
 
         auto alice_a0_bob_a0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 0)}, &context));
         ASSERT_NE(alice_a0_bob_a0, nullptr);
         auto alice_a0_bob_b0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 0)}, &context));
         ASSERT_NE(alice_a0_bob_b0, nullptr);
         auto alice_b0_bob_a0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 0)}, &context));
         ASSERT_NE(alice_b0_bob_a0, nullptr);
         auto alice_b0_bob_b0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 0)}, &context));
         ASSERT_NE(alice_b0_bob_b0, nullptr);
 
-        const CollinsGisinForm& cgForm = momentMatrix.CollinsGisin();
+        const CollinsGisinIndex& cgForm = system.CollinsGisin();
         ASSERT_EQ(cgForm.Level, 2);
 
         auto id_span = cgForm.get({});
@@ -120,41 +121,42 @@ namespace NPATK::Tests {
     }
 
     TEST(CollinsGisin, GetWithFixed222) {
-        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 2, 2));
-        ASSERT_EQ(contextPtr->Parties.size(), 2);
-        const auto& alice = contextPtr->Parties[0];
-        const auto& bob = contextPtr->Parties[1];
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 2, 2))};
+        const auto& context = system.Context();
 
-        MatrixSystem system{contextPtr};
+        ASSERT_EQ(context.Parties.size(), 2);
+        const auto& alice = context.Parties[0];
+        const auto& bob = context.Parties[1];
+
         auto& momentMatrix = system.CreateMomentMatrix(1);
 
         auto alice_a0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 0)}, &context));
         ASSERT_NE(alice_a0, nullptr);
         auto alice_b0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 0)}, &context));
         ASSERT_NE(alice_b0, nullptr);
         auto bob_a0 = momentMatrix.Symbols.where(
-                OperatorSequence({bob.measurement_outcome(0, 0)}, contextPtr.get()));
+                OperatorSequence({bob.measurement_outcome(0, 0)}, &context));
         ASSERT_NE(bob_a0, nullptr);
         auto bob_b0 = momentMatrix.Symbols.where(
-                OperatorSequence({bob.measurement_outcome(1, 0)}, contextPtr.get()));
+                OperatorSequence({bob.measurement_outcome(1, 0)}, &context));
         ASSERT_NE(bob_b0, nullptr);
 
         auto alice_a0_bob_a0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 0)}, &context));
         ASSERT_NE(alice_a0_bob_a0, nullptr);
         auto alice_a0_bob_b0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 0)}, &context));
         ASSERT_NE(alice_a0_bob_b0, nullptr);
         auto alice_b0_bob_a0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 0)}, &context));
         ASSERT_NE(alice_b0_bob_a0, nullptr);
         auto alice_b0_bob_b0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 0)}, &context));
         ASSERT_NE(alice_b0_bob_b0, nullptr);
 
-        const CollinsGisinForm& cgForm = momentMatrix.CollinsGisin();
+        const CollinsGisinIndex& cgForm = system.CollinsGisin();
         ASSERT_EQ(cgForm.Level, 2);
 
         auto fixA0freeB0 = cgForm.get({0, 2}, {0, -1});
@@ -223,67 +225,67 @@ namespace NPATK::Tests {
     }
 
     TEST(CollinsGisin, GetWithFixed223) {
-        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 2, 3));
-        ASSERT_EQ(contextPtr->Parties.size(), 2);
-        const auto &alice = contextPtr->Parties[0];
-        const auto &bob = contextPtr->Parties[1];
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 2, 3))};
+        const auto& context = system.Context();
+        ASSERT_EQ(context.Parties.size(), 2);
+        const auto &alice = context.Parties[0];
+        const auto &bob = context.Parties[1];
 
-        MatrixSystem system{contextPtr};
         auto& momentMatrix = system.CreateMomentMatrix(1);
         
         auto alice_a0_bob_a0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 0)}, &context));
         auto alice_a0_bob_a1 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 1)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 1)}, &context));
         auto alice_a0_bob_b0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 0)}, &context));
         auto alice_a0_bob_b1 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 1)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 1)}, &context));
         ASSERT_NE(alice_a0_bob_a0, nullptr);
         ASSERT_NE(alice_a0_bob_a1, nullptr);
         ASSERT_NE(alice_a0_bob_b0, nullptr);
         ASSERT_NE(alice_a0_bob_b1, nullptr);
 
         auto alice_a1_bob_a0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(0, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(0, 0)}, &context));
         auto alice_a1_bob_a1 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(0, 1)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(0, 1)}, &context));
         auto alice_a1_bob_b0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(1, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(1, 0)}, &context));
         auto alice_a1_bob_b1 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(1, 1)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(1, 1)}, &context));
         ASSERT_NE(alice_a1_bob_a0, nullptr);
         ASSERT_NE(alice_a1_bob_a1, nullptr);
         ASSERT_NE(alice_a1_bob_b0, nullptr);
         ASSERT_NE(alice_a1_bob_b1, nullptr);
         
         auto alice_b0_bob_a0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 0)}, &context));
         auto alice_b0_bob_a1 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 1)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 1)}, &context));
         auto alice_b0_bob_b0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 0)}, &context));
         auto alice_b0_bob_b1 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 1)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 1)}, &context));
         ASSERT_NE(alice_b0_bob_a0, nullptr);
         ASSERT_NE(alice_b0_bob_a1, nullptr);
         ASSERT_NE(alice_b0_bob_b0, nullptr);
         ASSERT_NE(alice_b0_bob_b1, nullptr);
 
         auto alice_b1_bob_a0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(0, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(0, 0)}, &context));
         auto alice_b1_bob_a1 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(0, 1)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(0, 1)}, &context));
         auto alice_b1_bob_b0 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(1, 0)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(1, 0)}, &context));
         auto alice_b1_bob_b1 = momentMatrix.Symbols.where(
-                OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(1, 1)}, contextPtr.get()));
+                OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(1, 1)}, &context));
         ASSERT_NE(alice_b1_bob_a0, nullptr);
         ASSERT_NE(alice_b1_bob_a1, nullptr);
         ASSERT_NE(alice_b1_bob_b0, nullptr);
         ASSERT_NE(alice_b1_bob_b1, nullptr);
 
-        const CollinsGisinForm& cgForm = momentMatrix.CollinsGisin();
+        const CollinsGisinIndex& cgForm = system.CollinsGisin();
         ASSERT_EQ(cgForm.Level, 2);
 
         auto fixA00freeB0 = cgForm.get({0, 2}, {0, -1});
@@ -379,18 +381,20 @@ namespace NPATK::Tests {
         partyList[2].add_measurement(Measurement("a", 3));
         partyList[2].add_measurement(Measurement("b", 2));
 
-        auto contextPtr = std::make_shared<Context>(std::move(partyList));
-        ASSERT_EQ(contextPtr->Parties.size(), 3);
-        const auto &alice = contextPtr->Parties[0];
-        const auto &bob = contextPtr->Parties[1];
-        const auto &charlie = contextPtr->Parties[2];
+        MatrixSystem system{std::make_unique<Context>(std::move(partyList))};
+        const auto& context = system.Context();
+
+        ASSERT_EQ(context.Parties.size(), 3);
+        const auto &alice = context.Parties[0];
+        const auto &bob = context.Parties[1];
+        const auto &charlie = context.Parties[2];
         ASSERT_EQ(alice.Measurements.size(), 2);
         ASSERT_EQ(bob.Measurements.size(), 2);
         ASSERT_EQ(charlie.Measurements.size(), 2);
 
-        MatrixSystem system{contextPtr};
+
         auto& momentMatrix = system.CreateMomentMatrix(2);
-        const auto& cgForm = momentMatrix.CollinsGisin();
+        const auto& cgForm = system.CollinsGisin();
 
         auto aaa = cgForm.get({0, 2, 4});
         EXPECT_EQ(aaa.size(), 4*1*2); // 5, 2, 3

@@ -1,5 +1,5 @@
 /**
- * enumerate_upper_symbols.cpp
+ * enumerate_symbols.cpp
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */

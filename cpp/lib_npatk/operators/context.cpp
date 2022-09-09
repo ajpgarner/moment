@@ -26,6 +26,20 @@ namespace NPATK {
         }
     }
 
+    [[nodiscard]] bool Context::admits_cg_form() const noexcept {
+        if (this->parties.empty()) {
+            return true;
+        }
+
+        for (const auto& party : this->parties) {
+            if (party.measurements.empty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
     void Context::add_party(Party info) {
         const auto party_count = static_cast<party_name_t>(this->parties.size());
 

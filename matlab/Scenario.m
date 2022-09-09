@@ -1,18 +1,29 @@
 classdef Scenario < handle
     %SETTING A scenario involving multiple agents with measurements.
-    %   
-      
+    %
+    
     properties(GetAccess = public, SetAccess = protected)
         Parties
-        MeasurementsPerParty
-        HasMomentMatrix
         Normalization
+        MeasurementsPerParty
+        HasMatrixSystem
     end
     
     properties(Access = private)
-        moment_matrix
+        matrix_system
     end
     
+    properties(Constant, Access = private)
+        err_locked = ['This Scenario object is locked, and no further changes are possible. ', ...
+            'This is because it has been associated with a MatrixSystem ', ...
+            '(e.g. at least one MomentMatrix has already been generated). ', ...
+            'To make changes to this Scenario first create a deep copy using ', ...
+            'scenario.Clone(), then make alterations to the copy.'];
+        err_badFCT = ['Cannot apply full-correlator tensor before ',...
+                      'MatrixSystem has been generated.'];
+    end
+    
+    %% Construction and initialization
     methods
         function obj = Scenario(initial_parties)
             arguments
@@ -23,10 +34,12 @@ classdef Scenario < handle
             
             obj.Parties = Scenario.Party.empty;
             if (initial_parties >=1 )
-                for x = 1:initial_parties 
+                for x = 1:initial_parties
                     obj.Parties(end+1) = Scenario.Party(obj, x);
                 end
             end
+            
+            obj.matrix_system = MatrixSystem.empty;
         end
         
         function AddParty(obj, name)
@@ -36,6 +49,10 @@ classdef Scenario < handle
             end
             import Scenario.Party
             
+            % Check not locked.
+            obj.errorIfLocked();
+            
+            % Add a parrty
             next_id = length(obj.Parties)+1;
             if nargin >=2
                 obj.Parties(end+1) = Party(obj, next_id, name);
@@ -45,6 +62,57 @@ classdef Scenario < handle
             obj.invalidateMomentMatrix();
         end
         
+        function val = Clone(obj)
+            arguments
+                obj (1,1) Scenario
+            end
+            % Construct new scenario
+            val = Scenario(0);
+            
+            % Clone all parties
+            for party_id = 1:length(obj.Parties)
+                val.Parties(end+1) = obj.Parties(party_id).Clone();
+            end
+            
+        end
+        
+        function val = get.HasMatrixSystem(obj)
+            val = ~isempty(obj.matrix_system);
+        end
+    end
+    
+    %% MatrixSystem, MomentMatrices and LocalizingMatrices
+    methods
+        function val = GetMatrixSystem(obj)
+            arguments
+                obj (1,1) Scenario
+            end
+            
+            % Make matrix system, if not already generated
+            if isempty(obj.matrix_system)
+                obj.matrix_system = MatrixSystem(obj);
+            end
+            
+            val = obj.matrix_system;
+        end
+        
+        
+        function mm_out = MakeMomentMatrix(obj, depth, skip_bind)
+            arguments
+                obj (1,1) Scenario
+                depth (1,1) uint64 {mustBeInteger, mustBeNonnegative}
+                skip_bind (1,1) logical = false
+            end
+            
+            mm_out = MomentMatrix(obj.GetMatrixSystem(), depth);
+            if ~skip_bind
+                obj.do_bind(mm_out)
+            end
+        end
+    end
+    
+    %% Accessors and information
+    methods
         function val = get.MeasurementsPerParty(obj)
             val = zeros(1, length(obj.Parties));
             for party_id = 1:length(obj.Parties)
@@ -52,22 +120,6 @@ classdef Scenario < handle
             end
         end
         
-        function mm_out = MakeMomentMatrix(obj, depth, skip_bind)
-            arguments
-                obj (1,1) Scenario 
-                depth (1,1) uint64 {mustBeInteger, mustBeNonnegative}
-                skip_bind (1,1) logical = false
-            end
-            obj.moment_matrix = MomentMatrix(obj, depth);          
-            if ~skip_bind
-                obj.do_bind(obj.moment_matrix)
-            end
-            mm_out = obj.moment_matrix;
-        end
-        
-        function val = get.HasMomentMatrix(obj)
-            val = ~isempty(obj.moment_matrix);
-        end
         
         function item = get(obj, index)
             arguments
@@ -91,12 +143,12 @@ classdef Scenario < handle
                 elseif get_what == 3
                     index = sortrows(index);
                     leading_item = obj.Parties(index(1, 1)).Measurements(index(1, 2)).Outcomes(index(1, 3));
-                    item = leading_item.JointOutcome(index); 
+                    item = leading_item.JointOutcome(index);
                 else
                     error("Multiple indices must be in form" ...
-                           + " [[partyA, mmtA, outcomeA]; ... ].");
+                        + " [[partyA, mmtA, outcomeA]; ... ].");
                 end
-            else            
+            else
                 % Otherwise, single object [party, mmt, or outcome]
                 switch get_what
                     case 1
@@ -116,9 +168,9 @@ classdef Scenario < handle
                 obj (1,1) Scenario
                 tensor double
             end
-            if isempty(obj.moment_matrix)
-                error("Cannot apply full-correlator tensor before " ... 
-                      + "MomentMatrix has been generated.");
+            if ~obj.HasMatrixSystem
+                error(obj.err_badFCT);                
+                %TODO: Check sufficient depth of MM generated.
             end
             fc = Scenario.FullCorrelator(obj);
             val = fc.linfunc(tensor);
@@ -129,18 +181,20 @@ classdef Scenario < handle
                 obj (1,1) Scenario
                 index (1,:) uint64
             end
-            if isempty(obj.moment_matrix)
-                error("Cannot apply full-correlator tensor before " ... 
-                      + "MomentMatrix has been generated.");
+            if ~obj.HasMatrixSystem
+                error(obj.err_badFCT);
             end
             fc = Scenario.FullCorrelator(obj);
             val = fc.at(index);
         end
     end
     
+    %% Internal methods
     methods(Access={?Scenario,?Scenario.Party})
-        function invalidateMomentMatrix(obj)
-            obj.moment_matrix = MomentMatrix.empty;
+        function errorIfLocked(obj)
+            if ~isempty(obj.matrix_system)
+                error(obj.err_locked);
+            end
         end
         
         function make_joint_mmts(obj, party_id, new_mmt)
@@ -167,43 +221,41 @@ classdef Scenario < handle
         end
     end
     
-   
-    
     methods(Access=private)
         function do_bind(obj, mm)
-             arguments
+            arguments
                 obj (1,1) Scenario
                 mm (1,1) MomentMatrix
-             end
-             p_table = mm.ProbabilityTable;
-             for p_row = p_table
-                 seq_len = size(p_row.indices, 1);
-                 
-                 % Special case 0 and 1
-                 if seq_len == 0
-                     if p_row.sequence == "1"
-                         obj.Normalization.setCoefficients(...
-                                p_row.real_coefficients);
-                     end
-                     continue;
-                 end
-                 
-                 leading_outcome = obj.get(p_row.indices(1,:));
-                 
-                 if seq_len == 1
-                     % Directly link co-efficients with outcome
-                     leading_outcome.setCoefficients(p_row.real_coefficients);
-                 else
-                     % Register co-effs as joint outcome
-                     joint_outcome = Scenario.JointOutcome(obj, p_row.indices);
-                     joint_outcome.setCoefficients(p_row.real_coefficients);
-                     
-                     leading_outcome.joint_outcomes(end+1).indices = ...
-                         p_row.indices;
-                     leading_outcome.joint_outcomes(end).outcome = ...
+            end
+            p_table = mm.ProbabilityTable;
+            for p_row = p_table
+                seq_len = size(p_row.indices, 1);
+                
+                % Special case 0 and 1
+                if seq_len == 0
+                    if p_row.sequence == "1"
+                        obj.Normalization.setCoefficients(...
+                            p_row.real_coefficients);
+                    end
+                    continue;
+                end
+                
+                leading_outcome = obj.get(p_row.indices(1,:));
+                
+                if seq_len == 1
+                    % Directly link co-efficients with outcome
+                    leading_outcome.setCoefficients(p_row.real_coefficients);
+                else
+                    % Register co-effs as joint outcome
+                    joint_outcome = Scenario.JointOutcome(obj, p_row.indices);
+                    joint_outcome.setCoefficients(p_row.real_coefficients);
+                    
+                    leading_outcome.joint_outcomes(end+1).indices = ...
+                        p_row.indices;
+                    leading_outcome.joint_outcomes(end).outcome = ...
                         joint_outcome;
-                 end
-             end
+                end
+            end
         end
         
     end

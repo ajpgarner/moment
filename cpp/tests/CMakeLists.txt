@@ -11,6 +11,7 @@ add_executable(npatk_tests
     operators/operator_sequence_tests.cpp
     operators/operator_sequence_generator_tests.cpp
     operators/party_info_tests.cpp
+    operators/symbol_table_tests.cpp
     symbolic/equality_type_tests.cpp
     symbolic/linear_combo_tests.cpp
     symbolic/symbol_expression_tests.cpp

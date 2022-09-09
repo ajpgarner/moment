@@ -19,11 +19,11 @@ namespace NPATK::mex {
 
         matlab::data::SparseArray<double> combo_to_sparse_array(matlab::engine::MATLABEngine &engine,
                                                                 matlab::data::ArrayFactory &factory,
-                                                                const MomentMatrix &momentMatrix,
-                                                                const size_t real_symbol_count,
+                                                                const SymbolTable& table,
                                                                 const SymbolCombo &combo) {
             // Special case, for completely zero matrix:
             const size_t nnz = combo.size();
+            const size_t real_symbol_count = table.RealSymbolIds().size();
             if (nnz == 0) {
                 return make_zero_sparse_matrix<double>(engine, {1, real_symbol_count});
             }
@@ -40,7 +40,7 @@ namespace NPATK::mex {
 
             for (const auto [symbol_id, weight]: combo) {
                 *(rowsPtr++) = 0;
-                auto [re_key, im_key] = momentMatrix.SMP().BasisKey(symbol_id);
+                auto [re_key, im_key] = table[symbol_id].basis_key();
                 assert(re_key >= 0);
                 assert(im_key < 0);
                 *(colsPtr++) = re_key;
@@ -71,7 +71,7 @@ namespace NPATK::mex {
                                 const ImplicitSymbols &impliedSymbols)
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{implicitSymbols.context},
                       implicit_table_length{implicitSymbols.Data().size() + 1},
-                      real_symbol_count{implicitSymbols.momentMatrix.SMP().RealSymbols().size()},
+                      real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()},
                       output_array{factory.createStructArray({1, implicit_table_length},
                                                              {"sequence", "indices", "real_coefficients"})} {
 
@@ -90,7 +90,7 @@ namespace NPATK::mex {
 
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{implicitSymbols.context},
                       implicit_table_length{symbols.size()},
-                      real_symbol_count{implicitSymbols.momentMatrix.SMP().RealSymbols().size()},
+                      real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()},
                       output_array{factory.createStructArray({1, implicit_table_length},
                                                              {"sequence", "indices", "real_coefficients"})} {
                 // Add entry
@@ -157,8 +157,7 @@ namespace NPATK::mex {
         private:
             inline matlab::data::SparseArray<double> to_sparse_array(const SymbolCombo &combo) {
                 return combo_to_sparse_array(this->engine, this->factory,
-                                             this->implicitSymbols.momentMatrix,
-                                             this->real_symbol_count, combo);
+                                             this->implicitSymbols.symbols, combo);
             }
         };
     }
@@ -213,8 +212,8 @@ namespace NPATK::mex {
         // Write
         output[0]["sequence"] = factory.createScalar(momentMatrix.context.format_sequence(pmoIndices));
         output[0]["indices"] = std::move(index_array);
-        output[0]["real_coefficients"] = combo_to_sparse_array(engine, factory, momentMatrix,
-                                                              momentMatrix.SMP().RealSymbols().size(),
+        output[0]["real_coefficients"] = combo_to_sparse_array(engine, factory,
+                                                              momentMatrix.Symbols,
                                                               impliedSymbols.expression);
         return output;
     }

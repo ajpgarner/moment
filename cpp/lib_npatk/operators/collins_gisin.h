@@ -11,6 +11,7 @@
 #include "party.h"
 #include "utilities/multi_dimensional_index_iterator.h"
 
+#include <initializer_list>
 #include <span>
 #include <vector>
 
@@ -23,15 +24,18 @@ namespace NPATK {
         };
     }
 
-    class MomentMatrix;
+    class MatrixSystem;
 
-    /** Returns a list of explicit symbols, according to the parties and measurements chosen. */
-    class CollinsGisinForm {
+    /** An index of explicit symbols, according to the parties and measurements chosen. */
+    class CollinsGisinIndex {
     public:
         using storage_t = std::vector<symbol_name_t>;
 
     public:
+        /** The maximum number of operators in a sequence */
         const size_t Level;
+
+
         const std::vector<size_t> OperatorCounts;
 
     private:
@@ -39,7 +43,7 @@ namespace NPATK {
         JointMeasurementIndex indices;
 
     public:
-        CollinsGisinForm(const MomentMatrix& mm, size_t level);
+        CollinsGisinIndex(const MatrixSystem& ms, size_t level);
 
         /**
          * Gets a span of *all* symbols corresponding to the supplied measurement indices.

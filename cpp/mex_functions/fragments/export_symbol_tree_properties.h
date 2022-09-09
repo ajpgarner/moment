@@ -1,5 +1,5 @@
 /**
- * export_symbol_properties.h
+ * export_symbol_tree_properties.h
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */

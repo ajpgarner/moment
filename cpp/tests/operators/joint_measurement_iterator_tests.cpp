@@ -7,17 +7,18 @@
 #include "gtest/gtest.h"
 
 #include "operators/context.h"
-#include "operators/moment_matrix.h"
+#include "operators/matrix/moment_matrix.h"
 #include "operators/joint_measurement_iterator.h"
 
 namespace NPATK::Tests {
 
     TEST(JointMeasurementIterator, BasicIteration) {
-        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 2, 2));
-        ASSERT_EQ(contextPtr->Parties.size(), 2);
-        const auto &alice = contextPtr->Parties[0];
-        const auto &bob = contextPtr->Parties[1];
-        JointMeasurementIterator mmIter{*contextPtr, {&alice, &bob}};
+        Context context{Party::MakeList(2, 2, 2)};
+
+        ASSERT_EQ(context.Parties.size(), 2);
+        const auto &alice = context.Parties[0];
+        const auto &bob = context.Parties[1];
+        JointMeasurementIterator mmIter{context, {&alice, &bob}};
         ASSERT_FALSE(mmIter.done());
 
         ASSERT_EQ(mmIter.indices().size(), 2);
@@ -88,11 +89,12 @@ namespace NPATK::Tests {
     }
 
     TEST(JointMeasurementIterator, OutcomeIterator) {
-        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 1, 2));
-        ASSERT_EQ(contextPtr->Parties.size(), 2);
-        const auto &alice = contextPtr->Parties[0];
-        const auto &bob = contextPtr->Parties[1];
-        JointMeasurementIterator mmIter{*contextPtr, {&alice, &bob}};
+        Context context{Party::MakeList(2, 1, 2)};
+
+        ASSERT_EQ(context.Parties.size(), 2);
+        const auto &alice = context.Parties[0];
+        const auto &bob = context.Parties[1];
+        JointMeasurementIterator mmIter{context, {&alice, &bob}};
         ASSERT_FALSE(mmIter.done());
         ASSERT_EQ(mmIter.indices().size(), 2);
         EXPECT_EQ(mmIter.indices()[0], 0);
@@ -121,10 +123,11 @@ namespace NPATK::Tests {
 
 
     TEST(JointMeasurementIterator, OutcomeIteratorAlternativeConstruction) {
-        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 1, 2));
-        ASSERT_EQ(contextPtr->Parties.size(), 2);
-        const auto &alice = contextPtr->Parties[0];
-        const auto &bob = contextPtr->Parties[1];
+        Context context{Party::MakeList(2, 1, 2)};
+
+        ASSERT_EQ(context.Parties.size(), 2);
+        const auto &alice = context.Parties[0];
+        const auto &bob = context.Parties[1];
 
 
         std::vector<PMIndex> pmList;
@@ -135,8 +138,8 @@ namespace NPATK::Tests {
                                     static_cast<mmt_name_t>(0),
                                     static_cast<mmt_name_t>(1)});
 
-        auto outcomeIter = OutcomeIndexIterator{*contextPtr, pmList};
-        const auto outcomeIterEnd = OutcomeIndexIterator{*contextPtr, pmList, true};
+        auto outcomeIter = OutcomeIndexIterator{context, pmList};
+        const auto outcomeIterEnd = OutcomeIndexIterator{context, pmList, true};
 
         testOutcomeIter(outcomeIter, outcomeIterEnd, {0, 0}, {false, false});
         EXPECT_EQ(outcomeIter.explicit_outcome_index(), 0);

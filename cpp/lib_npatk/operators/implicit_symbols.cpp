@@ -6,7 +6,8 @@
 #include "context.h"
 #include "collins_gisin.h"
 #include "implicit_symbols.h"
-#include "matrix/moment_matrix.h"
+#include "matrix/matrix_system.h"
+#include "matrix/symbol_table.h"
 
 #include "joint_measurement_iterator.h"
 
@@ -16,12 +17,12 @@
 
 namespace NPATK {
 
-    ImplicitSymbols::ImplicitSymbols(const MomentMatrix &mm)
-        : momentMatrix{mm},
-          context{mm.context},
-          cgForm{mm.CollinsGisin()},
-          MaxSequenceLength{mm.max_probability_length},
-          indices{mm.context, mm.max_probability_length} {
+    ImplicitSymbols::ImplicitSymbols(const MatrixSystem &ms)
+        : symbols{ms.Symbols()},
+          context{ms.Context()},
+          cgForm{ms.CollinsGisin()},
+          MaxSequenceLength{ms.MaxRealSequenceLength()},
+          indices{ms.Context(), ms.MaxRealSequenceLength()} {
 
         size_t index_cursor = 0;
         this->generateLevelZero(index_cursor);
@@ -37,10 +38,10 @@ namespace NPATK {
 
     size_t ImplicitSymbols::generateLevelZero(size_t& index_cursor) {
         // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.
-        if (momentMatrix.Symbols.size() < 2) {
+        if (symbols.size() < 2) {
             throw errors::bad_implicit_symbol("Zero and One should be defined in MomentMatrix.");
         }
-        const auto& oneSeq = momentMatrix.Symbols[1];
+        const auto& oneSeq = symbols[1];
         if (!oneSeq.sequence().empty() || oneSeq.sequence().zero() || (oneSeq.Id() != 1)) {
             throw errors::bad_implicit_symbol("Identity symbol was improperly defined in MomentMatrix.");
         }

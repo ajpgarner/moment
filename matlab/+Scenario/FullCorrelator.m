@@ -23,7 +23,8 @@ classdef FullCorrelator < handle
         
         function val = get.Coefficients(obj)
             % Silently fail if no moment matrix yet
-            if ~obj.Scenario.HasMomentMatrix
+            if ~obj.Scenario.HasMatrixSystem
+                %TODO: Check deep enough matrix system
                 val = double.empty;
                 return;
             end
@@ -71,8 +72,8 @@ classdef FullCorrelator < handle
             end
             
             % Require moment matrix...
-            if ~obj.Scenario.HasMomentMatrix
-                error("Must generate MomentMatrix for scenario first.");
+            if ~obj.Scenario.HasMatrixSystem
+                error("Must generate MatrixSystem for scenario first.");
             end
             
             % Calculate coefficients as a monolith

@@ -12,12 +12,11 @@ matlab_add_mex(NAME npatk_mex
             mex_main.cpp
             storage_manager.cpp
             fragments/enumerate_symbols.cpp
-            fragments/export_basis_key.cpp
             fragments/export_implicit_symbols.cpp
             fragments/export_substitution_list.cpp
-            fragments/export_symbol_matrix.cpp
-            fragments/export_symbol_properties.cpp
-            fragments/export_unique_sequences.cpp
+            fragments/export_operator_matrix.cpp
+            fragments/export_symbol_tree_properties.cpp
+            fragments/export_symbol_table.cpp
             fragments/identify_nonhermitian_elements.cpp
             fragments/identify_nonsymmetric_elements.cpp
             fragments/read_symbol_or_fail.cpp
@@ -35,6 +34,7 @@ matlab_add_mex(NAME npatk_mex
             functions/alphabetic_name.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
+            functions/get_symbol_table.cpp
             functions/probability_table.cpp
             functions/make_hermitian.cpp
             functions/make_matrix_system.cpp

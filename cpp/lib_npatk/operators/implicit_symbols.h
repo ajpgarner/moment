@@ -6,6 +6,7 @@
 #pragma once
 #include "symbolic/symbol.h"
 #include "symbolic/linear_combo.h"
+
 #include "measurement.h"
 #include "joint_measurement_index.h"
 
@@ -14,9 +15,10 @@
 
 namespace NPATK {
 
-    class MomentMatrix;
+    class MatrixSystem;
+    class SymbolTable;
     class Context;
-    class CollinsGisinForm;
+    class CollinsGisinIndex;
     class JointMeasurementIterator;
 
     namespace errors {
@@ -44,8 +46,9 @@ namespace NPATK {
 
     public:
         const size_t MaxSequenceLength;
-        const MomentMatrix& momentMatrix;
-        const CollinsGisinForm& cgForm;
+
+        const SymbolTable& symbols;
+        const CollinsGisinIndex& cgForm;
         const Context& context;
 
     private:
@@ -53,7 +56,7 @@ namespace NPATK {
         JointMeasurementIndex indices;
 
     public:
-        explicit ImplicitSymbols(const MomentMatrix& mm);
+        explicit ImplicitSymbols(const MatrixSystem& ms);
 
         [[nodiscard]] constexpr const std::vector<PMODefinition>& Data() const noexcept {
             return this->tableData;

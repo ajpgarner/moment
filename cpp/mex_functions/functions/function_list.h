@@ -23,6 +23,7 @@ namespace NPATK::mex::functions {
         Unknown = 0,
         AlphabeticName,
         GenerateBasis,
+        GetSymbolTable,
         ProbabilityTable,
         MakeHermitian,
         MakeMatrixSystem,
@@ -41,6 +42,7 @@ namespace NPATK::mex::functions {
 
         output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
         output.emplace(u"generate_basis", MEXEntryPointID::GenerateBasis);
+        output.emplace(u"get_symbol_table", MEXEntryPointID::GetSymbolTable);
         output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
         output.emplace(u"make_matrix_system", MEXEntryPointID::MakeMatrixSystem);
         output.emplace(u"make_moment_matrix", MEXEntryPointID::MakeMomentMatrix);

@@ -145,6 +145,11 @@ namespace NPATK {
         /** Gets total number of operators in Context */
         [[nodiscard]] constexpr size_t size() const noexcept { return this->total_operator_count; }
 
+        /** True if, in principle, (part of), the context can be referred to by its Collins-Gisin form.
+         * This would be the case if every party defines at least one measurement.
+         */
+        [[nodiscard]] bool admits_cg_form() const noexcept;
+
         /** Converts global measurement index to Party, Measurement pair */
         [[nodiscard]] PMIndex global_index_to_PM(size_t global_index) const noexcept;
 

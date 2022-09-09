@@ -5,7 +5,8 @@
  */
 #pragma once
 #include "symbolic/symbol_expression.h"
-#include "operators/matrix/moment_matrix.h"
+#include "operators/matrix/operator_matrix.h"
+#include "operators/matrix/symbol_table.h"
 
 #include "fragments/read_symbol_or_fail.h"
 
@@ -18,7 +19,7 @@
 
 namespace NPATK::mex::functions::detail {
 
-    struct SparseCellMatrixVisitor {
+    struct SparseCellBasisVisitor {
     public:
         using return_type = std::pair<matlab::data::CellArray, matlab::data::CellArray>;
 
@@ -63,7 +64,7 @@ namespace NPATK::mex::functions::detail {
         };
 
     public:
-        SparseCellMatrixVisitor(matlab::engine::MATLABEngine &engineRef,
+        SparseCellBasisVisitor(matlab::engine::MATLABEngine &engineRef,
                                 const SymbolMatrixProperties &matrix_properties)
                 : engine(engineRef), imp(matrix_properties) {}
 
@@ -71,13 +72,16 @@ namespace NPATK::mex::functions::detail {
         /** Dense input -> sparse output */
         template<std::convertible_to<symbol_name_t> data_t>
         return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
+            const auto& basis_key = this->imp.BasisKey();
             std::vector<sparse_basis_re_frame> real_basis_frame(this->imp.RealSymbols().size());
             std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                 for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
                     NPATK::SymbolExpression elem{static_cast<symbol_name_t>(matrix[index_i][index_j])};
-                    auto [re_id, im_id] = this->imp.BasisKey(elem.id);
+
+                    auto bkIter = basis_key.find(elem.id);
+                    auto [re_id, im_id] = bkIter->second;
 
                     if (re_id>=0) {
                         assert(re_id < real_basis_frame.size());
@@ -92,18 +96,21 @@ namespace NPATK::mex::functions::detail {
                 }
             }
 
-            return create_basis(real_basis_frame, im_basis_frame);
+            return construct_basis(real_basis_frame, im_basis_frame);
         }
 
         /** String (utf16) input -> sparse output */
         return_type string(const matlab::data::StringArray &matrix) {
+            const auto& basis_key = this->imp.BasisKey();
             std::vector<sparse_basis_re_frame> real_basis_frame(this->imp.RealSymbols().size());
             std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                 for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
                     SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
-                    auto [re_id, im_id] = this->imp.BasisKey(elem.id);
+
+                    auto bkIter = basis_key.find(elem.id);
+                    auto [re_id, im_id] = bkIter->second;
 
                     if (re_id >= 0) {
                         assert(re_id < real_basis_frame.size());
@@ -117,12 +124,13 @@ namespace NPATK::mex::functions::detail {
                     }
                 }
             }
-            return create_basis(real_basis_frame, im_basis_frame);
+            return construct_basis(real_basis_frame, im_basis_frame);
         }
 
         /** Sparse input -> sparse output */
         template<std::convertible_to<symbol_name_t> data_t>
         return_type sparse(const matlab::data::SparseArray<data_t> &matrix) {
+            const auto& basis_key = this->imp.BasisKey();
             std::vector<sparse_basis_re_frame> real_basis_frame(this->imp.RealSymbols().size());
             std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
 
@@ -136,7 +144,8 @@ namespace NPATK::mex::functions::detail {
 
                 NPATK::SymbolExpression elem{static_cast<symbol_name_t>(*iter)};
 
-                auto [re_id, im_id] = this->imp.BasisKey(elem.id);
+                auto bkIter = basis_key.find(elem.id);
+                auto [re_id, im_id] = bkIter->second;
 
                 if (re_id>=0) {
                     assert(re_id < real_basis_frame.size());
@@ -153,18 +162,20 @@ namespace NPATK::mex::functions::detail {
             }
 
 
-            return create_basis(real_basis_frame, im_basis_frame);
+            return construct_basis(real_basis_frame, im_basis_frame);
         }
 
-        /* Moment matrix input -> sparse output */
-        return_type moment_matrix(const MomentMatrix& matrix) {
-            std::vector<sparse_basis_re_frame> real_basis_frame(this->imp.RealSymbols().size());
-            std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
+        /** Moment matrix input -> sparse output */
+        return_type operator_matrix(const OperatorMatrix& matrix) {
+            const auto& symbols = matrix.Symbols;
+
+            std::vector<sparse_basis_re_frame> real_basis_frame(symbols.RealSymbolIds().size());
+            std::vector<sparse_basis_im_frame> im_basis_frame(symbols.ImaginarySymbolIds().size());
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                 for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
                     const auto& elem = matrix.SymbolMatrix[index_i][index_j];
-                    auto [re_id, im_id] = this->imp.BasisKey(elem.id);
+                    auto [re_id, im_id] = symbols[elem.id].basis_key();
 
                     if (re_id>=0) {
                         assert(re_id < real_basis_frame.size());
@@ -178,12 +189,13 @@ namespace NPATK::mex::functions::detail {
                     }
                 }
             }
-            return create_basis(real_basis_frame, im_basis_frame);
+            return construct_basis(real_basis_frame, im_basis_frame);
         }
 
+
     private:
-        return_type create_basis(const std::vector<sparse_basis_re_frame>& re_frame,
-                                   const std::vector<sparse_basis_im_frame>& im_frame) {
+        return_type construct_basis(const std::vector<sparse_basis_re_frame>& re_frame,
+                                    const std::vector<sparse_basis_im_frame>& im_frame) {
             matlab::data::ArrayFactory factory{};
             matlab::data::ArrayDimensions re_ad{re_frame.empty() ? 0U : 1U,
                                                 re_frame.size()};
@@ -214,23 +226,21 @@ namespace NPATK::mex::functions::detail {
         }
     };
 
-    static_assert(concepts::VisitorHasRealDense<SparseCellMatrixVisitor>);
-    static_assert(concepts::VisitorHasRealSparse<SparseCellMatrixVisitor>);
-    static_assert(concepts::VisitorHasString<SparseCellMatrixVisitor>);
+    static_assert(concepts::VisitorHasRealDense<SparseCellBasisVisitor>);
+    static_assert(concepts::VisitorHasRealSparse<SparseCellBasisVisitor>);
+    static_assert(concepts::VisitorHasString<SparseCellBasisVisitor>);
 
     inline auto make_sparse_cell_basis(matlab::engine::MATLABEngine &engine,
                            const matlab::data::Array &input,
                            const SymbolMatrixProperties &imp) {
         // Get symbols in matrix...
-        return DispatchVisitor(engine, input, SparseCellMatrixVisitor{engine, imp});
+        return DispatchVisitor(engine, input, SparseCellBasisVisitor{engine, imp});
     }
 
 
     inline auto make_sparse_cell_basis(matlab::engine::MATLABEngine &engine,
-                                   const MomentMatrix& mm) {
-        // Get symbols in matrix...
-        SparseCellMatrixVisitor mdbv{engine, mm.SMP()};
-        return mdbv.moment_matrix(mm);
+                                      const OperatorMatrix& mm) {
+        SparseCellBasisVisitor scbv{engine, mm.SMP()};
+        return scbv.operator_matrix(mm);
     }
-
 }

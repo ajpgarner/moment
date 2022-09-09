@@ -1,9 +1,9 @@
 /**
- * export_symbol_properties.cpp
+ * export_symbol_tree_properties.cpp
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
-#include "export_symbol_properties.h"
+#include "export_symbol_tree_properties.h"
 
 
 namespace NPATK::mex {

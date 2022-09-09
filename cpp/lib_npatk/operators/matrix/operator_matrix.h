@@ -129,13 +129,13 @@ namespace NPATK {
             sym_mat_prop{std::move(rhs.sym_mat_prop)}, Symbols{rhs.Symbols},
             SymbolMatrix{*this}, SequenceMatrix{*this} { }
 
-        ~OperatorMatrix() noexcept;
+        virtual ~OperatorMatrix() noexcept;
 
         [[nodiscard]] constexpr size_t Dimension() const noexcept {
             return this->dimension;
         }
 
-        const SymbolMatrixProperties& SMP() const noexcept {
+        [[nodiscard]] const SymbolMatrixProperties& SMP() const noexcept {
             assert(this->sym_mat_prop);
             return *this->sym_mat_prop;
         }

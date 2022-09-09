@@ -7,8 +7,6 @@
 #include "moment_matrix.h"
 
 #include "../context.h"
-#include "../collins_gisin.h"
-#include "../implicit_symbols.h"
 
 #include "../operator_sequence_generator.h"
 
@@ -63,27 +61,8 @@ namespace NPATK {
 
     MomentMatrix::MomentMatrix(MomentMatrix &&src) noexcept :
             OperatorMatrix{static_cast<OperatorMatrix&&>(src)},
-            hierarchy_level{src.hierarchy_level}, max_probability_length{src.max_probability_length},
-            cgForm{std::move(src.cgForm)},
-            implicitSymbols{std::move(src.implicitSymbols)} {
+            hierarchy_level{src.hierarchy_level}, max_probability_length{src.max_probability_length} {
 
-        // Do we have CG form already?
-        if (this->cgForm) {
-            this->cgFormExists.test_and_set();
-            this->cgFormConstructFlag.test_and_set();
-        } else {
-            this->cgFormExists.clear();
-            this->cgFormConstructFlag.clear();
-        }
-
-        // Do we have implicit symbol already?
-        if (this->implicitSymbols) {
-            this->impSymExists.test_and_set();
-            this->impSymConstructFlag.test_and_set();
-        } else {
-            this->impSymExists.clear();
-            this->impSymConstructFlag.clear();
-        }
     }
 
     MomentMatrix::~MomentMatrix() = default;
@@ -152,41 +131,5 @@ namespace NPATK {
 
         return std::make_unique<SquareMatrix<SymbolExpression>>(this->dimension, std::move(symbolic_representation));
     }
-
-
-    const CollinsGisinForm& MomentMatrix::CollinsGisin() const {
-        // First thread to enter function constructs object
-        if (!this->cgFormConstructFlag.test_and_set(std::memory_order_acquire)) {
-            auto newCGform = std::make_unique<CollinsGisinForm>(*this, max_probability_length);
-            const_cast<MomentMatrix*>(this)->cgForm.swap(newCGform);
-            this->cgFormExists.test_and_set(std::memory_order_release);
-            this->cgFormExists.notify_all();
-            return *this->cgForm;
-        } else {
-            // Other threads spin until construction is done, if necessary
-            while (!this->cgFormExists.test(std::memory_order_acquire)) {
-                this->cgFormExists.wait(false);
-            }
-            return *this->cgForm;
-        }
-    }
-
-    const ImplicitSymbols& MomentMatrix::ImplicitSymbolTable() const {
-        // First thread to enter function constructs object
-        if (!this->impSymConstructFlag.test_and_set(std::memory_order_acquire)) {
-            auto newImpSym = std::make_unique<ImplicitSymbols>(*this);
-            const_cast<MomentMatrix*>(this)->implicitSymbols.swap(newImpSym);
-            this->impSymExists.test_and_set(std::memory_order_release);
-            this->impSymExists.notify_all();
-            return *this->implicitSymbols;
-        } else {
-            // Other threads spin until construction is done, if necessary
-            while (!this->impSymExists.test(std::memory_order_acquire)) {
-                this->impSymExists.wait(false);
-            }
-            return *this->implicitSymbols;
-        }
-    }
-
 
 }

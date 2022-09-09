@@ -6,9 +6,9 @@
 
 #include "gtest/gtest.h"
 
-#include "operators/moment_matrix.h"
 #include "operators/context.h"
-#include "operators/matrix_system.h"
+#include "operators/matrix/moment_matrix.h"
+#include "operators/matrix/matrix_system.h"
 
 namespace NPATK::Tests {
     namespace {
@@ -116,11 +116,10 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Empty) {
-        auto contextPtr = std::make_shared<Context>(); // No parties, no symbols
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>()}; // No parties, no symbols
+        auto& context = system.Context();
         ASSERT_EQ(context.size(), 0);
 
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
 
         EXPECT_EQ(matLevel0.level(), 0);
@@ -142,15 +141,15 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, OpSeq_OneElem) {
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1}); // One party, one symbol
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1})}; // One party, one symbol
+        auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 1);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 1);
 
-        MatrixSystem system{contextPtr};
+
         auto& matLevel0 = system.CreateMomentMatrix(0);
         EXPECT_EQ(matLevel0.level(), 0);
         compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
@@ -178,15 +177,14 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, OpSeq_1Party2Opers) {
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{2}); // One party, two symbols
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 2);
 
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
 
         compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
@@ -264,8 +262,8 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, OpSeq_2Party1Opers) {
         // Two parties, each with one operator
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1, 1});
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1, 1})};
+        auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 2);
@@ -274,8 +272,6 @@ namespace NPATK::Tests {
         const auto& bob = context.Parties[1];
         ASSERT_EQ(bob.size(), 1);
 
-
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
         compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
@@ -336,8 +332,8 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, OpSeq_2Party1OpersIdem) {
         // Two party, one operator
-        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent));
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent))};
+        auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 2);
@@ -346,7 +342,6 @@ namespace NPATK::Tests {
         const auto& bob = context.Parties[1];
         ASSERT_EQ(bob.size(), 1);
 
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
 
         compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
@@ -387,8 +382,8 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, OpSeq_223) {
          // Two party, two mmts, three outcomes.
-        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 2, 3, true));
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 2, 3, true))};
+        auto& context = system.Context();
 
         ASSERT_EQ(context.Parties.size(), 2);
         EXPECT_EQ(context.size(), 8);
@@ -406,7 +401,6 @@ namespace NPATK::Tests {
         const auto& y0 = bob[2];
         const auto& y1 = bob[3];
 
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
         compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
@@ -505,14 +499,16 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_OneElem) {
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1}); // One party, one symbol
-        auto& context = *contextPtr;
+        // One party, one symbol
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1})};
+        auto& context = system.Context();
+
         ASSERT_EQ(context.size(), 1);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 1);
 
-        MatrixSystem system{contextPtr};
+
         auto& matLevel0 = system.CreateMomentMatrix(0);
         compare_unique_sequences(matLevel0, {});
 
@@ -536,16 +532,14 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Unique_2Party1Opers) {
         // Two parties, each with one operator
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1, 1});
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1, 1})};
+        auto& context = system.Context();
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
         const auto& bob = context.Parties[1];
         ASSERT_EQ(alice.size(), 1);
         ASSERT_EQ(bob.size(), 1);
 
-
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
         compare_unique_sequences(matLevel0, {});
 
@@ -597,8 +591,8 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Unique_2Party1OpersIdem) {
         // Two party, one operator
-        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent));
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent))};
+        const auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 2);
@@ -607,7 +601,6 @@ namespace NPATK::Tests {
         const auto& bob = context.Parties[1];
         ASSERT_EQ(bob.size(), 1);
 
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
 
         compare_unique_sequences(matLevel0, {});
@@ -632,15 +625,13 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_1Party2Opers) {
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{2}); // One party, two symbols
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 2);
 
-
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
         compare_unique_sequences(matLevel0, {});
 
@@ -707,15 +698,13 @@ namespace NPATK::Tests {
     };
 
     TEST(MomentMatrix, Where_1Party2Opers) {
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{2}); // One party, two symbols
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 2);
 
-
-        MatrixSystem system{contextPtr};
         auto& matLevel2 = system.CreateMomentMatrix(2);
 
         auto ptr_a0a0a0a0 = matLevel2.Symbols.where(OperatorSequence{alice[0], alice[0], alice[0], alice[0]});
@@ -738,11 +727,9 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Symbol_OneElem) {
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1}); // One party, one symbol
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1})}; // One party, one symbol
+        auto& context = system.Context();
 
-
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
@@ -757,11 +744,9 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Symbol_1Party2Opers) {
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{2}); // One party, two symbols
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        auto& context = system.Context();
 
-
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
@@ -784,10 +769,9 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Symbol_2Party1Opers) {
         // Two parties, each with one operator
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1, 1}); // One party, two symbols
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1, 1})}; // One party, two symbols
+        auto& context = system.Context();
 
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
@@ -808,10 +792,9 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Symbol_2Party1OpersIdem) {
         // Two party, one operator
-        auto contextPtr = std::make_shared<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent));
-        auto& context = *contextPtr;
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent))};
+        auto& context = system.Context();
 
-        MatrixSystem system{contextPtr};
         auto& matLevel0 = system.CreateMomentMatrix(0);
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
@@ -825,149 +808,5 @@ namespace NPATK::Tests {
                                              "2", "2", "4", "4",  // a, a, ab, ab
                                              "3", "4", "3", "4",  // b, ab, b, ab
                                              "4", "4", "4", "4"});// ab, ab, ab, ab
-    }
-
-    TEST(MomentMatrix, ToSymbol_1Party2Opers) {
-        // One party, two symbols
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{2});
-        auto& context = *contextPtr;
-        ASSERT_EQ(context.Parties.size(), 1);
-        const auto& a = context.Parties[0];
-
-
-        MatrixSystem system{contextPtr};
-        auto& matLevel0 = system.CreateMomentMatrix(0); // 0 1
-        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
-
-        auto& matLevel1 = system.CreateMomentMatrix(1); // 0 1 a0a0 a0a1 (a1a0=a0a1*) a1a1
-        ASSERT_EQ(matLevel1.Symbols.size(), 7);
-        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{a[0]})), SymbolExpression(2));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{a[1]})), SymbolExpression(3));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{a[0], a[0]})), SymbolExpression(4));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{a[0], a[1]})), SymbolExpression(5));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{a[1], a[0]})), SymbolExpression(5, true));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{a[1], a[1]})), SymbolExpression(6));
-
-        auto& matLevel2 = system.CreateMomentMatrix(2);
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
-
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0]}, &context)), SymbolExpression(2));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1]}, &context)), SymbolExpression(3));
-
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0]}, &context)), 
-                  SymbolExpression(4));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1]}, &context)),
-                  SymbolExpression(5));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0]}, &context)), 
-                  SymbolExpression(5, true));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1]}, &context)), 
-                  SymbolExpression(6));
-
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[0]}, &context)), 
-                  SymbolExpression(7));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[1]}, &context)), 
-                  SymbolExpression(8));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[0]}, &context)), 
-                  SymbolExpression(8, true));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[0]}, &context)), 
-                  SymbolExpression(9));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[1]}, &context)), 
-                  SymbolExpression(10));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[0]}, &context)),
-                  SymbolExpression(10, true));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[1]}, &context)), 
-                  SymbolExpression(11));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[1]}, &context)), 
-                  SymbolExpression(12));
-
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[0], a[0]}, &context)), 
-                  SymbolExpression(13));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[0], a[1]}, &context)),
-                  SymbolExpression(14));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[0], a[0]}, &context)),
-                  SymbolExpression(14, true));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[1], a[0]}, &context)), 
-                  SymbolExpression(15));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[0], a[0]}, &context)), 
-                  SymbolExpression(15, true));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[1], a[1]}, &context)), 
-                  SymbolExpression(16));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[0], a[0]}, &context)), 
-                  SymbolExpression(16, true));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[1], a[0]}, &context)), 
-                  SymbolExpression(17));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[1], a[1]} , &context)), 
-                  SymbolExpression(18));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[1], a[0]} , &context)), 
-                  SymbolExpression(18, true));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[0], a[1]} , &context)), 
-                  SymbolExpression(19));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[1], a[0]} , &context)), 
-                  SymbolExpression(20));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[0], a[1]} , &context)), 
-                  SymbolExpression(20, true));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[1], a[1]} , &context)), 
-                  SymbolExpression(21));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[0], a[1]} , &context)), 
-                  SymbolExpression(21, true));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[1], a[1]} , &context)), 
-                  SymbolExpression(22));
-    };
-
-    TEST(MomentMatrix, ToSymbol_2Party1Opers) {
-        // Two parties, each with one operator
-        auto contextPtr = std::make_shared<Context>(std::initializer_list<oper_name_t>{1, 1});
-        auto& context = *contextPtr;
-
-        ASSERT_EQ(context.Parties.size(), 2);
-        const auto& alice = context.Parties[0];
-        const auto& bob = context.Parties[1];
-
-        MatrixSystem system{contextPtr};
-        auto& matLevel0 = system.CreateMomentMatrix(0); //0 1
-        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
-
-        auto& matLevel1 = system.CreateMomentMatrix(1); // 0 1 a b aa ab bb
-        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{alice[0]})), SymbolExpression(2));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{bob[0]})), SymbolExpression(3));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{alice[0], alice[0]})), SymbolExpression(4));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{alice[0], bob[0]})), SymbolExpression(5));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{bob[0], bob[0]})), SymbolExpression(6));
-
-        auto& matLevel2 = system.CreateMomentMatrix(2); // 0 1 aaaa aaab aabb abbb bbbb
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Zero(&context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Identity(&context)), SymbolExpression(1));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{alice[0]})), SymbolExpression(2));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{bob[0]})), SymbolExpression(3));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{alice[0], alice[0]})), SymbolExpression(4));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{alice[0], bob[0]})), SymbolExpression(5));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{bob[0], bob[0]})), SymbolExpression(6));
-
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{alice[0], alice[0], alice[0]})),
-                  SymbolExpression(7));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{alice[0], alice[0], bob[0]})),
-                  SymbolExpression(8));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{alice[0], bob[0], bob[0]})),
-                  SymbolExpression(9));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{bob[0], bob[0], bob[0]})),
-                  SymbolExpression(10));
-
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{alice[0], alice[0], alice[0], alice[0]})),
-                  SymbolExpression(11));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{alice[0],alice[0],alice[0],bob[0]})),
-                  SymbolExpression(12));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{alice[0], alice[0], bob[0], bob[0]})),
-                  SymbolExpression(13));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{alice[0], bob[0], bob[0], bob[0]})),
-                  SymbolExpression(14));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{bob[0], bob[0], bob[0], bob[0]})),
-                  SymbolExpression(15));
     }
 }
