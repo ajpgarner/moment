@@ -125,7 +125,7 @@ classdef MatrixSystem < handle
     
     %% Yalmip Methods
     methods
-        function varargout = yalmipCreateVars(obj)
+        function [var_A, var_B] = yalmipCreateVars(obj)
             % Creates SDP variables associated with MatrixSystem.
             % First output corresponds to real components. Second output 
             % (if requested) correponds to imaginary components.
@@ -140,11 +140,10 @@ classdef MatrixSystem < handle
             else
                 error("One or two outputs expected.");
             end
-            
-            varargout = cell(1, nargout);
-            varargout{1} = sdpvar(obj.RealVarCount, 1);
+           
+            var_A = sdpvar(double(obj.RealVarCount), 1);
             if export_imaginary
-                varargout{2} = sdpvar(obj.ImaginaryVarCount, 1);
+                var_B = sdpvar(double(obj.ImaginaryVarCount), 1);
             end
         end
     end

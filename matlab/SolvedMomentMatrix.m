@@ -20,8 +20,12 @@ classdef SolvedMomentMatrix < handle
             obj.MomentMatrix = moment_matrix;
             
             % Check and copy real solution
-            if (moment_matrix.RealBasisSize ~= length(real_sol))
-                error("Real solution doesn't match basis size.");
+            exp_re_length = moment_matrix.MatrixSystem.RealVarCount;
+            if (exp_re_length ~= length(real_sol))
+                error("Real solution vector length " ...
+                     + "( " + num2str(exp_re_length) + ") " ...
+                     + "doesn't match basis size " ...
+                     + "( " + num2str(length(real_sol)) + ").");
             end
             
             % Get numeric value of real part
@@ -35,8 +39,12 @@ classdef SolvedMomentMatrix < handle
             
             % Check and copy imaginary solutions, if set
             if (nargin >= 3)    
-                if (moment_matrix.ImaginaryBasisSize ~= length(im_sol))
-                    error("Imaginary solution doesn't match basis size.");
+                exp_im_length = moment_matrix.MatrixSystem.ImaginaryVarCount;
+                if (exp_im_length ~= length(im_sol))
+                    error("Imaginary solution vector length " ...
+                     + "( " + num2str(exp_im_length) + ") " ...
+                     + "doesn't match basis size " ...
+                     + "( " + num2str(length(im_sol)) + ").");
                 end            
                 
                 % Get numeric value of imaginary part

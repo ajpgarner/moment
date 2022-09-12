@@ -5,6 +5,8 @@ classdef MomentMatrix < OperatorMatrix
     properties(Access = {?SolvedMomentMatrix})
         mono_basis_real
         mono_basis_im
+        sparse_mono_basis_real
+        sparse_mono_basis_im
         basis_real
         basis_im
         sparse_basis_real
@@ -14,8 +16,6 @@ classdef MomentMatrix < OperatorMatrix
     
     properties(SetAccess = protected, GetAccess = public)
         Level = uint64(0)
-        RealBasisSize = uint64(0)
-        ImaginaryBasisSize = uint64(0)        
     end
     
     
@@ -109,23 +109,51 @@ classdef MomentMatrix < OperatorMatrix
             %   flattened matrices, such that each row represents one basis
             %   element, with length of Dimension*Dimension.
             arguments
-                obj
+                obj (1,1) MomentMatrix
                 sparse (1,1) logical = true
             end
-            if (isempty(obj.mono_basis_real) || isempty(obj.mono_basis_im))
-                if sparse
-                    sod = 'sparse';
-                else
-                    sod = 'dense';
-                end
-                [obj.mono_basis_real, obj.mono_basis_im] = ...
-                    npatk('generate_basis', obj, ...
-                    'monolith', 'hermitian', sod);
-            end
             
-            re = obj.mono_basis_real;
-            im = obj.mono_basis_im;
+            if sparse
+                [re, im] = obj.SparseMonolithicBasis();
+            else
+                [re, im] = obj.DenseMonolithicBasis();
+            end
         end
+        
+        function [re, im] = SparseMonolithicBasis(obj)
+            arguments
+                obj (1,1) MomentMatrix
+            end
+            % TODO: Check length
+            
+            if (isempty(obj.sparse_mono_basis_real) || ...
+                isempty(obj.sparse_mono_basis_im))
+                    [obj.sparse_mono_basis_real, ...
+                     obj.sparse_mono_basis_im] = ...
+                        npatk('generate_basis', obj, ...
+                              'monolith', 'hermitian', 'sparse');
+            end            
+            re = obj.sparse_mono_basis_real;
+            im = obj.sparse_mono_basis_im;
+        end
+     
+        function [re, im] = DenseMonolithicBasis(obj)
+            arguments
+                obj (1,1) MomentMatrix
+            end
+            % TODO: Check length
+            
+            if (isempty(obj.mono_basis_real) || ...
+                isempty(obj.mono_basis_im))
+                    [obj.mono_basis_real, ...
+                     obj.mono_basis_im] = ...
+                        npatk('generate_basis', obj, ...
+                              'monolith', 'hermitian', 'dense');
+            end            
+            re = obj.sparse_mono_basis_real;
+            im = obj.sparse_mono_basis_im;
+        end   
+        
     end
     
     %% Virtual method overloads
@@ -239,8 +267,8 @@ classdef MomentMatrix < OperatorMatrix
         function out_M = yalmipHermitianBasis(obj, a, b)
  
             % Multiple variables by basis to make matrix
-            [real_basis, im_basis] = obj.MonolithicBasis(false);
-                        
+            [real_basis, im_basis] = obj.MonolithicBasis(true);
+                       
             % Matrix
             out_M = reshape(transpose(a) * real_basis ...
                 + transpose(b) * im_basis, ...
@@ -249,7 +277,7 @@ classdef MomentMatrix < OperatorMatrix
         
          function out_M = yalmipSymmetricBasis(obj, a)
             % Multiple variables by basis to make matrix
-            [real_basis, ~] = obj.MonolithicBasis(false);
+            [real_basis, ~] = obj.MonolithicBasis(true);
            
             % Matrix
             out_M = reshape(transpose(a) * real_basis, ...

@@ -17,7 +17,7 @@ B0 = Bob.AddMeasurement(2);
 B1 = Bob.AddMeasurement(2);
 
 % Make moment matrix
-matrix = chsh.MakeMomentMatrix(9);
+matrix = chsh.MakeMomentMatrix(1);
 
 % Make correlator objects
 Corr00 = Correlator(A0, B0);
@@ -29,11 +29,12 @@ Corr11 = Correlator(A1, B1);
 CHSH_ineq = Corr00 + Corr01 + Corr10 - Corr11;
 
 % Get SDP vars and matrix
-[a, b, M] = matrix.yalmipHermitianBasis();
+[a, b] = matrix.MatrixSystem.yalmipCreateVars();
+M = matrix.yalmipHermitianBasis(a, b);
 
 % Constraints (normalization, positivity)
 constraints = [a(1) == 1];
-constraints = [constraints; M>=0];
+constraints = [constraints, M>=0];
 
 % Objective function (maximize)
 objective = -CHSH_ineq.yalmip(a);

@@ -45,17 +45,21 @@ I3322_ineq2 = i3322.FCTensor([[0 -1 -1  0]
         
 % Define and solve SDP
 cvx_begin sdp 
-     [a, M] = matrix.cvxSymmetricBasis();
-     
-     % Normalization
-     a(1) == 1;
+    % Declare basis variables a (real) and b (imaginary)
+    matrix.cvxVars('a', 'b');
     
-     % Positivity 
-     M >= 0;
+    % Compose moment matrix from these basis variables
+    M = matrix.cvxHermitianBasis(a, b);
+     
+    % Normalization
+    a(1) == 1;
+    
+    % Positivity 
+    M >= 0;
              
-     % CHSH inequality (maximize!)
-     i3322_ineq = I3322_ineq2.cvx(a);
-     maximize(i3322_ineq);
+    % CHSH inequality (maximize!)
+    i3322_ineq = I3322_ineq2.cvx(a);
+    maximize(i3322_ineq);
 cvx_end
 
 % Get solutions
