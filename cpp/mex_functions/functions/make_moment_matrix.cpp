@@ -26,7 +26,6 @@ namespace NPATK::mex::functions {
         this->min_outputs = 0;
         this->max_outputs = 1;
 
-        this->flag_names.emplace(u"reference");
         this->flag_names.emplace(u"sequences");
         this->flag_names.emplace(u"symbols");
         this->flag_names.emplace(u"dimension");

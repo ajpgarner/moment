@@ -66,7 +66,9 @@ namespace NPATK {
                                    std::make_pair(symbol.id, std::make_pair(re_index, im_index)));
         }
 
-        // Matrix type depends on whether there are imaginary symbols
-        this->basis_type = this->imaginary_entries.empty() ? MatrixType::Symmetric : MatrixType::Hermitian;
+        // Unknown matrix type depends on whether there are imaginary symbols
+        if (this->basis_type == MatrixType::Unknown) {
+            this->basis_type = this->imaginary_entries.empty() ? MatrixType::Symmetric : MatrixType::Hermitian;
+        }
     }
 }

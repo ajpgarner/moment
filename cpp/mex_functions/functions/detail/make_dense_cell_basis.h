@@ -173,8 +173,8 @@ namespace NPATK::mex::functions::detail {
         static return_type create_empty_basis(const size_t real_elems, const size_t im_elems, const size_t dimension) {
             matlab::data::ArrayFactory factory{};
 
-            matlab::data::ArrayDimensions re_ad{real_elems > 0 ? 0U : 1U, real_elems};
-            matlab::data::ArrayDimensions im_ad{im_elems > 0 ? 0U : 1U, im_elems};
+            matlab::data::ArrayDimensions re_ad{real_elems > 0 ? 1U : 0U, real_elems};
+            matlab::data::ArrayDimensions im_ad{im_elems > 0 ? 1U : 0U, im_elems};
 
             auto output = std::make_pair(factory.createCellArray(re_ad),
                                          factory.createCellArray(im_ad));

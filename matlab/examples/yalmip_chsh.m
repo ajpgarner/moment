@@ -29,7 +29,7 @@ Corr11 = Correlator(A1, B1);
 CHSH_ineq = Corr00 + Corr01 + Corr10 - Corr11;
 
 % Get SDP vars and matrix
-[a, b] = matrix.MatrixSystem.yalmipCreateVars();
+[a, b] = matrix.yalmipVars();
 M = matrix.yalmipHermitianBasis(a, b);
 
 % Constraints (normalization, positivity)

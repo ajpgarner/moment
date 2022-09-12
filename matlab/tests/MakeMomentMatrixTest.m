@@ -82,7 +82,7 @@
     methods (Test, TestTags={'Error'})
         function Error_NoInputs(testCase)
             function no_in()             
-               [~, ~] = npatk('make_moment_matrix');
+               [~] = npatk('make_moment_matrix');
             end
             testCase.verifyError(@() no_in(), 'npatk:too_few_inputs');           
         end
@@ -90,7 +90,7 @@
         function Error_BadLevel1(testCase)
             function bad_in()
                system_id = npatk('make_matrix_system', 2, 2, 2);
-               [~, ~] = npatk('make_moment_matrix', ...
+               [~] = npatk('make_moment_matrix', ...
                               'reference_id', system_id, ...
                               'level', 'ff');
             end
@@ -100,7 +100,7 @@
         function Error_BadLevel2(testCase)
             function bad_in()             
                system_id = npatk('make_matrix_system', 2, 2, 2);
-               [~, ~] = npatk('make_moment_matrix', ...
+               [~] = npatk('make_moment_matrix', ...
                               'reference_id', system_id, ...
                               'level', -1);
             end
@@ -110,7 +110,7 @@
         function Error_BadLevel3(testCase)
             function bad_in()             
                system_id = npatk('make_matrix_system', 2, 2, 2);
-               [~, ~] = npatk('make_moment_matrix', ...
+               [~] = npatk('make_moment_matrix', ...
                               'reference_id', system_id, ... 
                               'level', [1, 2]);
             end
@@ -120,7 +120,7 @@
         function Error_BadLevel4(testCase)
             function bad_in()        
                system_id = npatk('make_matrix_system', 2, 2, 2);
-               [~, ~] = npatk('make_moment_matrix', ...
+               [~] = npatk('make_moment_matrix', ...
                               'reference_id', system_id, ...
                               'level', "-1");
             end
@@ -129,7 +129,7 @@
         
         function Error_TooManyInputs(testCase)
             function bad_in()             
-               [~, ~] = npatk('make_moment_matrix', 1, 1, 1, 1, 1);
+               [~] = npatk('make_moment_matrix', 1, 1, 1, 1, 1);
             end
             testCase.verifyError(@() bad_in(), 'npatk:too_many_inputs');
          end     

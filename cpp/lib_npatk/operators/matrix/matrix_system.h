@@ -40,7 +40,7 @@ namespace NPATK {
         /** Map of implied probabilities */
         std::unique_ptr<ImplicitSymbols> implicitSymbols;
 
-        /** Read-write mutext for matrices */
+        /** Read-write mutex for matrices */
         mutable std::shared_mutex rwMutex;
 
     public:
