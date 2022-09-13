@@ -12,6 +12,7 @@
 #include <atomic>
 #include <memory>
 #include <vector>
+#include <mutex>
 #include <shared_mutex>
 
 namespace NPATK {

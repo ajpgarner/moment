@@ -14,6 +14,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <limits>
 
 namespace NPATK {
 

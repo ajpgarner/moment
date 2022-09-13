@@ -5,6 +5,7 @@
 
 #include "operators/operator_sequence.h"
 #include "operators/context.h"
+#include <list>
 
 namespace NPATK::Tests {
     TEST(OperatorSequence, Sequence_Empty) {
