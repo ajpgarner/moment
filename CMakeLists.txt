@@ -12,6 +12,10 @@ IF(MSVC)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /std:c++latest -Wno-unknown-attributes")
 ENDIF(MSVC)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -static-libstdc++")
+endif()
+
 add_subdirectory(cpp/lib_npatk)
 
 add_subdirectory(cpp/googletest)
