@@ -40,6 +40,13 @@ with non-commuting variables.\
 SIAM J. Optim. Volume 20, Issue 5, pp. 2157-2180 (2010).\
 [doi:10.1137/090760155](https://doi.org/10.1137/090760155).
 
+## Minimum tested versions
+MATLAB 2021b (9.10)
+
+GCC 12.1.0 / Clang 14.0.0
+
+CMAKE 3.22
+
 ## List of classes, functions and folders
 ### MATLAB classes
 
