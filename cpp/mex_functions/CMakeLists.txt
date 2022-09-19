@@ -1,4 +1,3 @@
-set(Matlab_ROOT_DIR "C:/Program Files/MATLAB/R2021a")
 set(MATLAB_FIND_DEBUG)
 
 find_package(Matlab)
