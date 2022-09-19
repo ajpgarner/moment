@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#include <cassert>
+
 #include <initializer_list>
 #include <span>
 #include <utility>
@@ -23,7 +25,7 @@ namespace NPATK {
         explicit constexpr RecursiveStorage(type_t zero, const ptrdiff_t offset = 0)
             : object(std::move(zero)), index_offset{offset} { }
 
-        [[nodiscard]] size_t num_children() const noexcept { return this->subindices.size(); }
+        [[nodiscard]] constexpr size_t num_children() const noexcept { return this->subindices.size(); }
 
         [[nodiscard]] constexpr subclass_t& subtree(std::span<const size_t> indices) noexcept {
             if (indices.empty()) {
@@ -56,7 +58,7 @@ namespace NPATK {
             place.object = std::move(the_object);
         }
 
-        constexpr void set(std::initializer_list<size_t> indices, type_t the_object) noexcept {
+        void set(std::initializer_list<size_t> indices, type_t the_object) noexcept {
             std::vector<size_t> v(indices);
             set(v, std::move(the_object));
         }
@@ -70,7 +72,7 @@ namespace NPATK {
             return place.access();
         }
 
-        [[nodiscard]] constexpr const type_t& access(std::initializer_list<size_t> indices) const noexcept {
+        [[nodiscard]] const type_t& access(std::initializer_list<size_t> indices) const noexcept {
             std::vector<size_t> v(indices);
             return access(v);
         }

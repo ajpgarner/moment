@@ -98,7 +98,7 @@ namespace NPATK {
         }
 
     private:
-        inline void incIndex(size_t J) { // NOLINT(misc-no-recursion)
+        constexpr void incIndex(size_t J) { // NOLINT(misc-no-recursion)
             if (K == 0) {
                 [[unlikely]]
                 endState = true;

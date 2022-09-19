@@ -14,6 +14,8 @@
 #include "../implicit_symbols.h"
 
 #include <algorithm>
+#include <memory>
+#include <mutex>
 #include <stdexcept>
 
 namespace NPATK {

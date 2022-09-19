@@ -84,9 +84,9 @@ namespace NPATK {
             ptr_type cursor = nullptr;
 
         public:
-            SymbolLinkIteratorBase() noexcept = default;
+            constexpr SymbolLinkIteratorBase() noexcept = default;
 
-            explicit SymbolLinkIteratorBase(ptr_type lsl) noexcept : cursor(lsl) { }
+            constexpr explicit SymbolLinkIteratorBase(ptr_type lsl) noexcept : cursor(lsl) { }
 
             constexpr bool operator== (const SymbolLinkIteratorBase& rhs) const noexcept {
                 return this->cursor == rhs.cursor;
@@ -132,31 +132,31 @@ namespace NPATK {
             SymbolLink * last_link = nullptr;
 
         public:
-            explicit SymbolNode(symbol_name_t name) noexcept : Symbol{name} { }
+            constexpr explicit SymbolNode(symbol_name_t name) noexcept : Symbol{name} { }
 
-            explicit SymbolNode(Symbol symbol) noexcept : Symbol{symbol} { }
+            constexpr explicit SymbolNode(Symbol symbol) noexcept : Symbol{symbol} { }
 
-            [[nodiscard]] SymbolLinkIterator begin() noexcept {
+            [[nodiscard]] constexpr SymbolLinkIterator begin() noexcept {
                 return SymbolLinkIterator{this->first_link};
             }
 
-            [[nodiscard]] SymbolLinkIterator end() noexcept {
+            [[nodiscard]] constexpr  SymbolLinkIterator end() noexcept {
                 return SymbolLinkIterator{};
             }
 
-            [[nodiscard]] SymbolLinkConstIterator begin() const noexcept {
+            [[nodiscard]] constexpr SymbolLinkConstIterator begin() const noexcept {
                 return this->cbegin();
             }
 
-            [[nodiscard]] SymbolLinkConstIterator end() const noexcept {
+            [[nodiscard]] constexpr  SymbolLinkConstIterator end() const noexcept {
                 return this->cend();
             }
 
-            [[nodiscard]] SymbolLinkConstIterator cbegin() const noexcept {
+            [[nodiscard]] constexpr SymbolLinkConstIterator cbegin() const noexcept {
                 return SymbolLinkConstIterator{this->first_link};
             }
 
-            [[nodiscard]] SymbolLinkConstIterator cend() const noexcept {
+            [[nodiscard]] constexpr SymbolLinkConstIterator cend() const noexcept {
                 return SymbolLinkConstIterator{};
             }
 

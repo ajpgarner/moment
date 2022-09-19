@@ -39,9 +39,9 @@ namespace NPATK {
                 return the_context.parties[index];
             }
 
-            [[nodiscard]] size_t size() const noexcept { return the_context.parties.size(); }
+            [[nodiscard]] constexpr size_t size() const noexcept { return the_context.parties.size(); }
 
-            [[nodiscard]] bool empty() const noexcept { return the_context.parties.empty(); }
+            [[nodiscard]] constexpr bool empty() const noexcept { return the_context.parties.empty(); }
         };
 
         /**
@@ -58,13 +58,13 @@ namespace NPATK {
             std::vector<Party>::const_iterator party_iter_end;
             std::vector<Operator>::const_iterator oper_iter;
 
-            AllOperatorConstIterator(const Context& generator, bool)
+            constexpr AllOperatorConstIterator(const Context& generator, bool)
                 : party_iter{generator.parties.end()}, party_iter_end{generator.parties.end()} { }
 
             friend class Context;
 
         public:
-            explicit AllOperatorConstIterator(const Context& generator)
+            constexpr explicit AllOperatorConstIterator(const Context& generator)
                 : party_iter{generator.parties.begin()}, party_iter_end{generator.parties.end()} {
                 if (party_iter != party_iter_end) {
                     oper_iter = party_iter->begin();
@@ -79,7 +79,7 @@ namespace NPATK {
                 return oper_iter.operator->();
             }
 
-            bool operator==(const AllOperatorConstIterator& rhs) const noexcept  {
+            constexpr bool operator==(const AllOperatorConstIterator& rhs) const noexcept  {
                 assert(this->party_iter_end == rhs.party_iter_end);
 
                 // Not equivalent if not on same party.
@@ -96,7 +96,7 @@ namespace NPATK {
                 return (this->oper_iter == rhs.oper_iter);
             }
 
-            AllOperatorConstIterator& operator++() noexcept {
+            constexpr AllOperatorConstIterator& operator++() noexcept {
                 ++oper_iter;
                 if (oper_iter == party_iter->end()) {
                     ++party_iter;
@@ -133,12 +133,12 @@ namespace NPATK {
             Context(Party::MakeList(opers_per_party)) { }
 
         /** Iterate over every operator in every party */
-        [[nodiscard]] auto begin() const noexcept {
+        [[nodiscard]] constexpr auto begin() const noexcept {
             return AllOperatorConstIterator{*this};
         }
 
         /** End of iteration over every operator in every party */
-        [[nodiscard]] auto end() const noexcept {
+        [[nodiscard]] constexpr auto end() const noexcept {
             return AllOperatorConstIterator{*this, true};
         }
 

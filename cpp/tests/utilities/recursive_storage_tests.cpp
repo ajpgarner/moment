@@ -21,7 +21,7 @@ namespace NPATK::Tests {
                 : MonotonicChunkRecursiveStorage(zero, offset) { }
         };
 
-        void set_and_read(ChunkTest& c, std::initializer_list<size_t> elems, size_t i, size_t expected_children) {
+        void set_and_read(ChunkTest& c, const std::initializer_list<const size_t> elems, size_t i, size_t expected_children) {
             std::stringstream ss;
             ss << "Elems: ";
             for (auto elem : elems) {
@@ -29,7 +29,7 @@ namespace NPATK::Tests {
             }
 
             c.set(elems, i);
-            auto x = c.access(elems);
+            size_t x = c.access(elems);
             EXPECT_EQ(x, i) << ss.str();
 
             const auto& subtree = c.subtree(elems);

@@ -119,7 +119,7 @@ namespace NPATK {
          * @param rhs_id Operator B
          * @return True if AB evaluates to zero
          */
-        [[nodiscard]] constexpr bool exclusive(oper_name_t lhs_id, oper_name_t rhs_id) const noexcept {
+        [[nodiscard]] bool exclusive(oper_name_t lhs_id, oper_name_t rhs_id) const noexcept {
             return mutex.contains((lhs_id < rhs_id) ? std::make_pair(lhs_id, rhs_id) : std::make_pair(rhs_id, lhs_id));
         };
 

@@ -89,7 +89,7 @@ namespace NPATK {
         /**
          * Gets the symbol expression as a string.
          */
-        [[nodiscard]] constexpr std::string as_string() const {
+        [[nodiscard]] std::string as_string() const {
             return std::string(this->negated ? "-" : "") + std::to_string(this->id) + (this->conjugated ? "*" : "");
         }
     };
