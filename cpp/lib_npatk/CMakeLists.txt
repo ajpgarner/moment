@@ -1,7 +1,7 @@
 include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_library(lib_npatk
-        operators/collins_gisin.cpp
+        operators/explicit_symbols.cpp
         operators/context.cpp
         operators/implicit_symbols.cpp
         operators/joint_measurement_index.cpp

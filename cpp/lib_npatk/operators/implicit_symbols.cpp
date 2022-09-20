@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "context.h"
-#include "collins_gisin.h"
+#include "explicit_symbol.h"
 #include "implicit_symbols.h"
 #include "matrix/matrix_system.h"
 #include "matrix/symbol_table.h"
@@ -20,7 +20,7 @@ namespace NPATK {
     ImplicitSymbols::ImplicitSymbols(const MatrixSystem &ms)
         : symbols{ms.Symbols()},
           context{ms.Context()},
-          cgForm{ms.CollinsGisin()},
+          cgForm{ms.ExplicitSymbolTable()},
           MaxSequenceLength{ms.MaxRealSequenceLength()},
           indices{ms.Context(), ms.MaxRealSequenceLength()} {
 
@@ -88,7 +88,7 @@ namespace NPATK {
                 SymbolCombo::data_t finalOutcome{{1, 1.0}};
                 for (uint32_t outcome = 0; outcome < mmt.num_operators(); ++outcome) {
                     // Read symbol from Collins-Gisin object
-                    const auto symbol_id = mmtSymb[outcome];
+                    const auto symbol_id = mmtSymb[outcome].symbol_id;
                     this->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
                     finalOutcome.push_back({symbol_id, -1.0});
                     ++level_one_count;
@@ -155,7 +155,7 @@ namespace NPATK {
                 const auto implicit_full_opers = this->cgForm.get(stack.global_indices());
                 assert(implicit_full_opers.size() == stack.count_operators());
                 assert(outcomeIter.explicit_outcome_index() < implicit_full_opers.size());
-                const auto symbol_id = implicit_full_opers[outcomeIter.explicit_outcome_index()];
+                const auto symbol_id = implicit_full_opers[outcomeIter.explicit_outcome_index()].symbol_id;
                 this->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
             } else {
                 SymbolCombo::data_t symbolComboData;
@@ -186,7 +186,7 @@ namespace NPATK {
                         // Look up, and copy with sign
                         const auto symbolsSpan = this->cgForm.get(lookupIndices, outcomeIndices);
                         for (auto symb : symbolsSpan) {
-                            symbolComboData.emplace_back(symb, the_sign);
+                            symbolComboData.emplace_back(symb.symbol_id, the_sign);
                         }
                         ++partitions;
                     }
@@ -205,7 +205,7 @@ namespace NPATK {
                 }
                 auto normMmtSpan = this->cgForm.get(normIndices, normOutcomes);
                 assert(normMmtSpan.size() == 1);
-                symbolComboData.emplace_back(normMmtSpan[0], the_sign);
+                symbolComboData.emplace_back(normMmtSpan[0].symbol_id, the_sign);
 
                 // Add constructed representation to data table
                 this->tableData.emplace_back(-1, SymbolCombo{std::move(symbolComboData)});

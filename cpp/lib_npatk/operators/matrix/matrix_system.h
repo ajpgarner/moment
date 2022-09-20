@@ -19,7 +19,7 @@ namespace NPATK {
 
     class Context;
     class SymbolTable;
-    class CollinsGisinIndex;
+    class ExplicitSymbolIndex;
     class ImplicitSymbols;
     class OperatorMatrix;
     class MomentMatrix;
@@ -36,7 +36,7 @@ namespace NPATK {
         std::vector<ptrdiff_t> momentMatrixIndices;
 
         /** Map of measurement outcome symbols */
-        std::unique_ptr<CollinsGisinIndex> cgForm;
+        std::unique_ptr<ExplicitSymbolIndex> explicitSymbols;
 
         /** Map of implied probabilities */
         std::unique_ptr<ImplicitSymbols> implicitSymbols;
@@ -122,11 +122,11 @@ namespace NPATK {
          * Returns an indexing of real-valued symbols that correspond to explicit operators/operator sequences within
          * the context (including joint measurements).
          */
-        [[nodiscard]] const CollinsGisinIndex& CollinsGisin() const;
+        [[nodiscard]] const ExplicitSymbolIndex& ExplicitSymbolTable() const;
 
         /**
-         * Returns an indexing of all real-valued symbols, including those from CollinsGisin(), but also implied "final"
-         * outcomes of measurements (including joint measurements).
+         * Returns an indexing of all real-valued symbols, including those from ExplicitSymbolTable(), but also implied
+         * "final" outcomes of measurements (including joint measurements).
          */
         [[nodiscard]] const ImplicitSymbols& ImplicitSymbolTable() const;
     };

@@ -1,7 +1,7 @@
 include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_executable(npatk_tests
-    operators/collins_gisin_tests.cpp
+        operators/explicit_symbols_tests.cpp
     operators/context_tests.cpp
     operators/implicit_symbols_tests.cpp
     operators/joint_measurement_iterator_tests.cpp

@@ -18,7 +18,7 @@ namespace NPATK {
     class MatrixSystem;
     class SymbolTable;
     class Context;
-    class CollinsGisinIndex;
+    class ExplicitSymbolIndex;
     class JointMeasurementIterator;
 
     namespace errors {
@@ -48,7 +48,7 @@ namespace NPATK {
         const size_t MaxSequenceLength;
 
         const SymbolTable& symbols;
-        const CollinsGisinIndex& cgForm;
+        const ExplicitSymbolIndex& cgForm;
         const Context& context;
 
     private:

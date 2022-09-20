@@ -19,13 +19,6 @@ namespace NPATK {
         this->hash_table.insert({this->unique_sequences[0].hash(), 0});
         this->hash_table.insert({this->unique_sequences[1].hash(), 1});
         this->real_symbols.emplace_back(1);
-
-
-//        std::map<size_t, UniqueSequence> build_unique;
-//        build_unique.emplace(0, UniqueSequence::Zero(this->context));
-//        build_unique.emplace(1, UniqueSequence::Identity(this->context));
-//        this->merge_in(std::move(build_unique));
-
     }
 
     std::pair<std::map<size_t, UniqueSequence>, std::set<symbol_name_t>>

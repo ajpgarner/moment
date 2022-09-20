@@ -1,5 +1,5 @@
 /**
- * collins_gisin.h
+ * explicit_symbol.h
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
@@ -26,16 +26,23 @@ namespace NPATK {
 
     class MatrixSystem;
 
-    /** An index of explicit symbols, according to the parties and measurements chosen. */
-    class CollinsGisinIndex {
+    /** Data record for CGI */
+    struct ExplicitSymbolEntry {
+        symbol_name_t symbol_id;
+        ptrdiff_t real_basis;
+    };
+
+    /** An index of explicit real operators, according to the parties and measurements chosen. */
+    class ExplicitSymbolIndex {
     public:
-        using storage_t = std::vector<symbol_name_t>;
+        using storage_t = std::vector<ExplicitSymbolEntry>;
 
     public:
         /** The maximum number of operators in a sequence */
         const size_t Level;
 
 
+        /** The number of operators from each party */
         const std::vector<size_t> OperatorCounts;
 
     private:
@@ -43,15 +50,15 @@ namespace NPATK {
         JointMeasurementIndex indices;
 
     public:
-        CollinsGisinIndex(const MatrixSystem& ms, size_t level);
+        ExplicitSymbolIndex(const MatrixSystem& ms, size_t level);
 
         /**
          * Gets a span of *all* symbols corresponding to the supplied measurement indices.
          * @param mmtIndices A sorted list of global indices of the measurement.
          */
-        [[nodiscard]] std::span<const symbol_name_t> get(std::span<const size_t> mmtIndices) const;
+        [[nodiscard]] std::span<const ExplicitSymbolEntry> get(std::span<const size_t> mmtIndices) const;
 
-        [[nodiscard]] inline std::span<const symbol_name_t> get(std::initializer_list<size_t> mmtIndices) const {
+        [[nodiscard]] inline std::span<const ExplicitSymbolEntry> get(std::initializer_list<size_t> mmtIndices) const {
             std::vector<size_t> v{mmtIndices};
             return get(v);
         }
@@ -63,11 +70,11 @@ namespace NPATK {
          * @param fixedIndices List of outcome indices, or -1 if not fixed.
          * @return
          */
-        [[nodiscard]] std::vector<symbol_name_t> get(std::span<const size_t> mmtIndices,
-                                                     std::span<const oper_name_t> fixedOutcomes) const;
+        [[nodiscard]] std::vector<ExplicitSymbolEntry> get(std::span<const size_t> mmtIndices,
+                                                           std::span<const oper_name_t> fixedOutcomes) const;
 
-        [[nodiscard]] inline std::vector<symbol_name_t> get(std::initializer_list<size_t> mmtIndices,
-                                                  std::initializer_list<oper_name_t> fixedOutcomes) const {
+        [[nodiscard]] inline std::vector<ExplicitSymbolEntry> get(std::initializer_list<size_t> mmtIndices,
+                                                                  std::initializer_list<oper_name_t> fixedOutcomes) const {
             std::vector<size_t> i{mmtIndices};
             std::vector<oper_name_t> o{fixedOutcomes};
             return get(i, o);

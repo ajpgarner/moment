@@ -1,10 +1,10 @@
 /**
- * collins_gisin.cpp
+ * explicit_symbol.cpp
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 
-#include "collins_gisin.h"
+#include "explicit_symbol.h"
 #include "context.h"
 #include "joint_measurement_iterator.h"
 #include "matrix/matrix_system.h"
@@ -29,7 +29,7 @@ namespace NPATK {
         }
     }
 
-    CollinsGisinIndex::CollinsGisinIndex(const MatrixSystem& matrixSystem, const size_t level)
+    ExplicitSymbolIndex::ExplicitSymbolIndex(const MatrixSystem& matrixSystem, const size_t level)
         : Level{level},
           indices{matrixSystem.Context(), level},
           OperatorCounts(makeOpCounts(matrixSystem.Context())) {
@@ -46,9 +46,10 @@ namespace NPATK {
             throw errors::cg_form_error("Identity symbol was improperly defined in MomentMatrix.");
         }
 
+
         // Base level points to identity element symbol
         this->indices.set({0,1});
-        this->data.push_back(1);
+        this->data.push_back({1, matrixSystem.Symbols().to_basis(1).first});
         size_t index_counter = 1;
 
         // For each level,
@@ -98,7 +99,7 @@ namespace NPATK {
                         if (symbol_loc == nullptr) {
                             throw errors::cg_form_error{"Could not find expected symbol in MomentMatrix."};
                         }
-                        this->data.emplace_back(symbol_loc->Id());
+                        this->data.emplace_back(ExplicitSymbolEntry{symbol_loc->Id(), symbol_loc->basis_key().first});
 
                         ++opIter;
                     }
@@ -118,7 +119,7 @@ namespace NPATK {
         }
     }
 
-    std::span<const symbol_name_t> CollinsGisinIndex::get(std::span<const size_t> mmtIndices) const {
+    std::span<const ExplicitSymbolEntry> ExplicitSymbolIndex::get(std::span<const size_t> mmtIndices) const {
         auto [first, last] = this->indices.access(mmtIndices);
         if ((first < 0) || (first >= last)) {
             return {this->data.begin(), 0};
@@ -127,9 +128,9 @@ namespace NPATK {
         return {this->data.begin() + first, static_cast<size_t>(last - first)};
     }
 
-    std::vector<symbol_name_t>
-    CollinsGisinIndex::get(const std::span<const size_t> mmtIndices,
-                           const std::span<const oper_name_t> fixedOutcomes) const {
+    std::vector<ExplicitSymbolEntry>
+    ExplicitSymbolIndex::get(const std::span<const size_t> mmtIndices,
+                             const std::span<const oper_name_t> fixedOutcomes) const {
         assert(mmtIndices.size() == fixedOutcomes.size());
         // Number of outcomes to copy; also which is fixed
         std::vector<size_t> iterating_indices;
@@ -182,7 +183,7 @@ namespace NPATK {
         }
 
         // Otherwise, we have the more complex case:
-        std::vector<symbol_name_t> output;
+        std::vector<ExplicitSymbolEntry> output;
         output.reserve(total_outcomes);
 
         // Make iterator over free indices

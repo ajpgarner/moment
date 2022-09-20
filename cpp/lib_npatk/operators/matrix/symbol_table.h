@@ -168,6 +168,15 @@ namespace NPATK {
         [[nodiscard]] SymbolExpression to_symbol(const OperatorSequence& seq) const noexcept;
 
         /**
+         * Get basis key associated with symbol id
+         */
+        [[nodiscard]] std::pair<ptrdiff_t, ptrdiff_t> to_basis(symbol_name_t symbol_id) const noexcept {
+            assert((symbol_id >= 0) && (symbol_id < this->unique_sequences.size()));
+            return std::make_pair(this->unique_sequences[symbol_id].real_index,
+                                  this->unique_sequences[symbol_id].img_index);
+        }
+
+        /**
          * Find ID, and conjugation status, of element in unique_sequences corresponding to hash.
          * ID return will be numeric-limit max of size_t if no element found.
          * @param hash The hash to look up

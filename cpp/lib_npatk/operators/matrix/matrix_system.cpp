@@ -10,7 +10,7 @@
 #include "moment_matrix.h"
 
 #include "../context.h"
-#include "../collins_gisin.h"
+#include "../explicit_symbol.h"
 #include "../implicit_symbols.h"
 
 #include <algorithm>
@@ -31,7 +31,7 @@ namespace NPATK {
 
         // Create empty indexers
         if (this->context->admits_cg_form()) {
-            this->cgForm = std::make_unique<CollinsGisinIndex>(*this, this->MaxRealSequenceLength());
+            this->explicitSymbols = std::make_unique<ExplicitSymbolIndex>(*this, this->MaxRealSequenceLength());
             this->implicitSymbols = std::make_unique<ImplicitSymbols>(*this);
         }
     }
@@ -98,8 +98,8 @@ namespace NPATK {
 
         // Check if new indices have become available, and if so, update...
         if (this->context->admits_cg_form()) {
-            if ((oldMPL < output.max_probability_length) || !this->cgForm || !this->implicitSymbols) {
-                this->cgForm = std::make_unique<CollinsGisinIndex>(*this, this->MaxRealSequenceLength());
+            if ((oldMPL < output.max_probability_length) || !this->explicitSymbols || !this->implicitSymbols) {
+                this->explicitSymbols = std::make_unique<ExplicitSymbolIndex>(*this, this->MaxRealSequenceLength());
                 this->implicitSymbols = std::make_unique<ImplicitSymbols>(*this);
             }
         }
@@ -107,12 +107,12 @@ namespace NPATK {
         return output;
     }
 
-    const CollinsGisinIndex &MatrixSystem::CollinsGisin() const {
+    const ExplicitSymbolIndex &MatrixSystem::ExplicitSymbolTable() const {
         if (!this->context->admits_cg_form()) {
-            throw std::logic_error("CollinsGisin indexing not possible for this scenario.");
+            throw std::logic_error("ExplicitSymbolTable indexing not possible for this scenario.");
         }
-        assert(this->cgForm);
-        return *this->cgForm;
+        assert(this->explicitSymbols);
+        return *this->explicitSymbols;
     }
 
     const ImplicitSymbols &MatrixSystem::ImplicitSymbolTable() const {
