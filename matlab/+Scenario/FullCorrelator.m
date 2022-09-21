@@ -1,6 +1,5 @@
 classdef FullCorrelator < handle
-    %FULLCORRELATOR Summary of this class goes here
-    %   Detailed explanation goes here
+    %FULLCORRELATOR
     
     properties(SetAccess={?FullCorrelator, ?Scenario}, GetAccess=public)
         Scenario

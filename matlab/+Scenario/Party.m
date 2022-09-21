@@ -6,6 +6,7 @@ classdef Party < handle
         Id
         Name
         RawOperators
+        TotalOperators = uint64(0)
         Measurements
         Scenario
     end
@@ -39,8 +40,10 @@ classdef Party < handle
             % Add operators that are not grouped in a measurement, if any
             if nargin >= 4
                 obj.RawOperators = uint64(raw);
+                obj.TotalOperators = uint64(raw);
             else
                 obj.RawOperators = uint64(0);
+                obj.TotalOperators = uint64(0);
             end
             
             % Prepare (empty) measurement array
@@ -74,6 +77,9 @@ classdef Party < handle
 
             % Return newly created measurement
             mmt = obj.Measurements(end);
+            
+            % Add to total operator count (1 fewer than number of outcomes)
+            obj.TotalOperators = obj.TotalOperators + num_outcomes - 1;
                                               
             % Build joint measurements, if any other measurements
             obj.Scenario.make_joint_mmts(obj.Id, mmt);

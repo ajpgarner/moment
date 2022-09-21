@@ -6,6 +6,7 @@ classdef Scenario < handle
         Parties
         Normalization
         MeasurementsPerParty
+        OperatorsPerParty
         HasMatrixSystem
     end
     
@@ -120,6 +121,12 @@ classdef Scenario < handle
             end
         end
         
+        function val = get.OperatorsPerParty(obj)
+            val = zeros(1, length(obj.Parties));
+            for party_id = 1:length(obj.Parties)
+                val(party_id) = obj.Parties(party_id).TotalOperators;
+            end
+        end
         
         function item = get(obj, index)
             arguments
@@ -186,6 +193,19 @@ classdef Scenario < handle
             end
             fc = Scenario.FullCorrelator(obj);
             val = fc.at(index);
+        end
+        
+        function val = CGTensor(obj, tensor)
+            arguments
+                obj (1,1) Scenario
+                tensor double
+            end
+            if ~obj.HasMatrixSystem
+                error(obj.err_badFCT);                
+                %TODO: Check sufficient depth of MM generated.
+            end
+            fc = Scenario.CollinsGisin(obj);
+            val = fc.linfunc(tensor);
         end
     end
     

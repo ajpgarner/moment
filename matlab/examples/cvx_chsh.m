@@ -28,8 +28,10 @@ Corr11 = Correlator(A1, B1);
 CHSH_ineq = Corr00 + Corr01 + Corr10 - Corr11;
 
 % Alternatively, make via full-correlator
-fc = Scenario.FullCorrelator(scenario);
-CHSH_ineq2 = fc.linfunc([[0 0 0]; [0 1 1]; [0 1 -1]]);
+CHSH_ineq2 = scenario.FCTensor([[0 0 0]; [0 1 1]; [0 1 -1]]);
+
+% Alternatively, make via Collins-Gisin notation
+CHSH_ineq3 = scenario.CGTensor([[2 -4 0]; [-4 4 4]; [0 4 -4]]);
 
 % Define and solve SDP
 cvx_begin sdp
@@ -55,4 +57,8 @@ cvx_end
 solved_setting = SolvedScenario(scenario, matrix, a, b);
 solved_matrix = solved_setting.SolvedMomentMatrix;
 disp(struct2table(solved_matrix.SymbolTable));
-chsh_max_val = solved_setting.Value(CHSH_ineq);
+
+% Print out values found (should be identical!)
+chsh_max_val = solved_setting.Value(CHSH_ineq)
+chsh_max_val2 = solved_setting.Value(CHSH_ineq2)
+chsh_max_val3 = solved_setting.Value(CHSH_ineq3)
