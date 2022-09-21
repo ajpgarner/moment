@@ -77,38 +77,47 @@ namespace NPATK::Tests {
         ASSERT_EQ(cgi.Sequences().size(), 9);
         ASSERT_EQ(cgi.RealIndices().size(), 9);
 
+        EXPECT_EQ(cgi.index_to_offset({0, 0}), 0);
         EXPECT_EQ(cgi.Symbols()[0], s_id->Id());
         EXPECT_EQ(cgi.Sequences()[0], os_id);
         EXPECT_EQ(cgi.RealIndices()[0], s_id->basis_key().first);
 
+        EXPECT_EQ(cgi.index_to_offset({1, 0}), 1);
         EXPECT_EQ(cgi.Symbols()[1], s_a0->Id());
         EXPECT_EQ(cgi.Sequences()[1], os_a0);
         EXPECT_EQ(cgi.RealIndices()[1], s_a0->basis_key().first);
 
+        EXPECT_EQ(cgi.index_to_offset({2, 0}), 2);
         EXPECT_EQ(cgi.Symbols()[2], s_a1->Id());
         EXPECT_EQ(cgi.Sequences()[2], os_a1);
         EXPECT_EQ(cgi.RealIndices()[2], s_a1->basis_key().first);
 
+        EXPECT_EQ(cgi.index_to_offset({0, 1}), 3);
         EXPECT_EQ(cgi.Symbols()[3], s_b0->Id());
         EXPECT_EQ(cgi.Sequences()[3], os_b0);
         EXPECT_EQ(cgi.RealIndices()[3], s_b0->basis_key().first);
 
+        EXPECT_EQ(cgi.index_to_offset({1, 1}), 4);
         EXPECT_EQ(cgi.Symbols()[4], s_a0b0->Id());
         EXPECT_EQ(cgi.Sequences()[4], os_a0b0);
         EXPECT_EQ(cgi.RealIndices()[4], s_a0b0->basis_key().first);
 
+        EXPECT_EQ(cgi.index_to_offset({2, 1}), 5);
         EXPECT_EQ(cgi.Symbols()[5], s_a1b0->Id());
         EXPECT_EQ(cgi.Sequences()[5], os_a1b0);
         EXPECT_EQ(cgi.RealIndices()[5], s_a1b0->basis_key().first);
 
+        EXPECT_EQ(cgi.index_to_offset({0, 2}), 6);
         EXPECT_EQ(cgi.Symbols()[6], s_b1->Id());
         EXPECT_EQ(cgi.Sequences()[6], os_b1);
         EXPECT_EQ(cgi.RealIndices()[6], s_b1->basis_key().first);
 
+        EXPECT_EQ(cgi.index_to_offset({1, 2}), 7);
         EXPECT_EQ(cgi.Symbols()[7], s_a0b1->Id());
         EXPECT_EQ(cgi.Sequences()[7], os_a0b1);
         EXPECT_EQ(cgi.RealIndices()[7], s_a0b1->basis_key().first);
 
+        EXPECT_EQ(cgi.index_to_offset({2, 2}), 8);
         EXPECT_EQ(cgi.Symbols()[8], s_a1b1->Id());
         EXPECT_EQ(cgi.Sequences()[8], os_a1b1);
         EXPECT_EQ(cgi.RealIndices()[8], s_a1b1->basis_key().first);

@@ -49,6 +49,11 @@ namespace NPATK {
 
         [[nodiscard]] size_t index_to_offset(std::span<const size_t> index) const;
 
+        [[nodiscard]] inline size_t index_to_offset(std::initializer_list<size_t> index) const {
+            std::vector<size_t> v(index);
+            return index_to_offset(v);
+        }
+
         [[nodiscard]] OperatorSequence index_to_sequence(std::span<const size_t> index) const;
 
         [[nodiscard]] inline OperatorSequence index_to_sequence(std::initializer_list<size_t> index) const {
