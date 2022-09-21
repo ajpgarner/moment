@@ -40,10 +40,10 @@ classdef OperatorMatrix < handle
         end
         
         function val = get.SequenceMatrix(obj)
-            if isempty(obj.symbol_matrix)
-                obj.symbol_matrix = queryForSequenceMatrix(obj);
+            if isempty(obj.sequence_matrix)
+                obj.sequence_matrix = queryForSequenceMatrix(obj);
             end
-            val = obj.symbol_matrix;
+            val = obj.sequence_matrix;
         end
         
         function st = SymbolTable(obj)

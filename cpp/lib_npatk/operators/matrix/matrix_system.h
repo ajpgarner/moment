@@ -14,6 +14,7 @@
 #include <vector>
 #include <mutex>
 #include <shared_mutex>
+#include <stdexcept>
 
 namespace NPATK {
 
@@ -21,9 +22,16 @@ namespace NPATK {
     class SymbolTable;
     class ExplicitSymbolIndex;
     class ImplicitSymbols;
+    class CollinsGisin;
     class OperatorMatrix;
     class MomentMatrix;
 
+    namespace errors {
+        class missing_component : public std::runtime_error {
+        public:
+            explicit missing_component(const std::string& what) : std::runtime_error{what} { }
+        };
+    }
 
     class MatrixSystem {
     private:
@@ -40,6 +48,9 @@ namespace NPATK {
 
         /** Map of implied probabilities */
         std::unique_ptr<ImplicitSymbols> implicitSymbols;
+
+        /** Map of outcome symbols, by Collins Gisin index */
+        std::unique_ptr<CollinsGisin> collinsGisin;
 
         /** Read-write mutex for matrices */
         mutable std::shared_mutex rwMutex;
@@ -91,6 +102,7 @@ namespace NPATK {
          * For thread safety, call for a read lock first.
          * @param level The hierarchy depth.
          * @return The MomentMatrix for this particular level.
+         * @throws errors::missing_compoment if not generated.
          */
         [[nodiscard]] const class MomentMatrix& MomentMatrix(size_t level) const;
 
@@ -119,14 +131,22 @@ namespace NPATK {
         }
 
         /**
+         * Returns an indexing in the Collins-Gisin ordering.
+         * @throws errors::missing_compoment if not generated.
+         */
+        [[nodiscard]] const CollinsGisin& CollinsGisin() const;
+
+        /**
          * Returns an indexing of real-valued symbols that correspond to explicit operators/operator sequences within
          * the context (including joint measurements).
+         * @throws errors::missing_compoment if not generated.
          */
         [[nodiscard]] const ExplicitSymbolIndex& ExplicitSymbolTable() const;
 
         /**
          * Returns an indexing of all real-valued symbols, including those from ExplicitSymbolTable(), but also implied
          * "final" outcomes of measurements (including joint measurements).
+         * @throws errors::missing_compoment if not generated.
          */
         [[nodiscard]] const ImplicitSymbols& ImplicitSymbolTable() const;
     };

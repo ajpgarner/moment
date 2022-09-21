@@ -23,10 +23,10 @@ namespace NPATK {
     public:
         using iterator_category = std::input_iterator_tag;
         using difference_type = ptrdiff_t;
-        using value_type = MultiDimensionalIndexIterator::value_type;
+        using value_type = MultiDimensionalIndexIterator<false>::value_type;
 
     private:
-        MultiDimensionalIndexIterator indexIter;
+        MultiDimensionalIndexIterator<false> indexIter;
         std::vector<bool> is_implicit;
         size_t num_implicit = 0;
         size_t operNumber = 0;
@@ -112,7 +112,7 @@ public:
     private:
 
         const JointMeasurementIterator * mmIter;
-        MultiDimensionalIndexIterator indexIter;
+        MultiDimensionalIndexIterator<false> indexIter;
 
     public:
         explicit OpSeqIterator(const JointMeasurementIterator& mmIter, bool end = false);

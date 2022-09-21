@@ -12,6 +12,7 @@
 #include "../context.h"
 #include "../explicit_symbol.h"
 #include "../implicit_symbols.h"
+#include "../collins_gisin.h"
 
 #include <algorithm>
 #include <memory>
@@ -68,7 +69,9 @@ namespace NPATK {
     }
 
     const MomentMatrix &MatrixSystem::MomentMatrix(size_t level) const {
-        assert(this->hasMomentMatrix(level));
+        if (!this->hasMomentMatrix(level)) {
+            throw errors::missing_component("Moment matrix of level " + std::to_string(level) + " not yet generated.");
+        }
         return dynamic_cast<const class MomentMatrix&>(*matrices[momentMatrixIndices[level]]);
     }
 
@@ -98,29 +101,50 @@ namespace NPATK {
 
         // Check if new indices have become available, and if so, update...
         if (this->context->admits_cg_form()) {
+            // Should we make explicit/implicit symbol table
             if ((oldMPL < output.max_probability_length) || !this->explicitSymbols || !this->implicitSymbols) {
                 this->explicitSymbols = std::make_unique<ExplicitSymbolIndex>(*this, this->MaxRealSequenceLength());
                 this->implicitSymbols = std::make_unique<ImplicitSymbols>(*this);
+            }
+
+            // Can/should we make C-G tensor?
+            if (!this->collinsGisin && (output.max_probability_length >= this->context->Parties.size())) {
+                this->collinsGisin = std::make_unique<NPATK::CollinsGisin>(*this);
             }
         }
 
         return output;
     }
 
-    const ExplicitSymbolIndex &MatrixSystem::ExplicitSymbolTable() const {
+    const ExplicitSymbolIndex& MatrixSystem::ExplicitSymbolTable() const {
         if (!this->context->admits_cg_form()) {
-            throw std::logic_error("ExplicitSymbolTable indexing not possible for this scenario.");
+            throw errors::missing_component("ExplicitSymbolTable indexing not possible for this scenario.");
         }
-        assert(this->explicitSymbols);
+        if (!this->explicitSymbols) {
+            throw errors::missing_component("ExplicitSymbolTable has not yet been generated.");
+        }
         return *this->explicitSymbols;
     }
 
-    const ImplicitSymbols &MatrixSystem::ImplicitSymbolTable() const {
+    const ImplicitSymbols& MatrixSystem::ImplicitSymbolTable() const {
         if (!this->context->admits_cg_form()) {
-            throw std::logic_error("Implicit symbols cannot be generated for this scenario.");
+            throw errors::missing_component("Implicit symbols cannot be generated for this scenario.");
         }
-        assert(this->implicitSymbols);
+        if (!this->implicitSymbols) {
+            throw errors::missing_component("ImplicitSymbolTable has not yet been generated.");
+        }
         return *this->implicitSymbols;
+    }
+
+    const CollinsGisin& MatrixSystem::CollinsGisin() const {
+        if (!this->context->admits_cg_form()) {
+            throw errors::missing_component("Implicit symbols cannot be generated for this scenario.");
+        }
+        if (!this->collinsGisin) {
+            throw errors::missing_component(std::string("Collins-Gisin tensor has not yet been generated. ")
+                                     + "Perhaps a large enough moment matrix has not yet been created.");
+        }
+        return *this->collinsGisin;
     }
 
 

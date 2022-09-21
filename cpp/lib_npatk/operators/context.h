@@ -208,7 +208,12 @@ namespace NPATK {
           /**
            * Returns total number of measurements per party in context;
            */
-           [[nodiscard]] std::vector<size_t> measurements_per_party() const noexcept;
+           [[nodiscard]] std::vector<size_t> measurements_per_party() const;
+
+           /**
+            * Returns total number of operators per party in context;
+            */
+            [[nodiscard]] std::vector<size_t> operators_per_party() const;
 
 
           /**

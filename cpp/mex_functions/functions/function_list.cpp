@@ -7,6 +7,7 @@
 #include "mex_function.h"
 
 #include "functions/alphabetic_name.h"
+#include "functions/collins_gisin.h"
 #include "functions/generate_basis.h"
 #include "functions/get_symbol_table.h"
 #include "functions/probability_table.h"
@@ -30,6 +31,9 @@ namespace NPATK::mex::functions {
         switch(function_id) {
             case functions::MEXEntryPointID::AlphabeticName:
                 the_function = std::make_unique<functions::AlphabeticName>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::CollinsGisin:
+                the_function = std::make_unique<functions::CollinsGisin>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::GenerateBasis:
                 the_function = std::make_unique<functions::GenerateBasis>(engine, storageManager);

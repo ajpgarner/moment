@@ -9,6 +9,7 @@
 
 namespace NPATK {
 
+    template<bool reversed_indices = false>
     class MultiDimensionalIndexIterator {
     public:
         using iterator_category = std::input_iterator_tag;
@@ -38,27 +39,46 @@ namespace NPATK {
         }
 
         MultiDimensionalIndexIterator& operator++() noexcept {
-            size_t recurse_depth = num_indices - 1;
-            bool recursing = true;
-            while (recursing) {
-                ++this->indices[recurse_depth];
-                if (this->indices[recurse_depth] >= this->max_vals[recurse_depth]) {
-                    this->indices[recurse_depth] = 0;
-                    if (recurse_depth > 0) {
-                        --recurse_depth;
+            if constexpr (reversed_indices) {
+                size_t recurse_depth = 0;
+                bool recursing = true;
+                while (recursing) {
+                    ++this->indices[recurse_depth];
+                    if (this->indices[recurse_depth] >= this->max_vals[recurse_depth]) {
+                        this->indices[recurse_depth] = 0;
+                        if (recurse_depth < num_indices - 1) {
+                            ++recurse_depth;
+                        } else {
+                            this->is_done = true;
+                            recursing = false;
+                        }
                     } else {
-                        this->is_done = true;
                         recursing = false;
                     }
-                } else {
-                    // Party is not at end...
-                    recursing = false;
+                }
+            } else { // forward indices
+                size_t recurse_depth = num_indices - 1;
+                bool recursing = true;
+                while (recursing) {
+                    ++this->indices[recurse_depth];
+                    if (this->indices[recurse_depth] >= this->max_vals[recurse_depth]) {
+                        this->indices[recurse_depth] = 0;
+                        if (recurse_depth > 0) {
+                            --recurse_depth;
+                        } else {
+                            this->is_done = true;
+                            recursing = false;
+                        }
+                    } else {
+                        // Party is not at end...
+                        recursing = false;
+                    }
                 }
             }
             return *this;
         }
 
-        [[nodiscard]] MultiDimensionalIndexIterator operator++(int)& noexcept {
+        [[nodiscard]] MultiDimensionalIndexIterator operator++(int)& noexcept { // NOLINT(cert-dcl21-cpp)
             MultiDimensionalIndexIterator copy{*this};
             ++(*this);
             return copy;
@@ -108,9 +128,11 @@ namespace NPATK {
 
     };
 
-    static_assert(std::input_iterator<MultiDimensionalIndexIterator>);
+    static_assert(std::input_iterator<MultiDimensionalIndexIterator<false>>);
+    static_assert(std::input_iterator<MultiDimensionalIndexIterator<true>>);
 
-    class  MultiDimensionalIndexRange {
+    template<bool reversed_indices = false>
+    class MultiDimensionalIndexRange {
     private:
         std::vector<size_t> max_vals;
     public:
@@ -119,11 +141,11 @@ namespace NPATK {
         MultiDimensionalIndexRange(std::initializer_list<size_t> limits) : max_vals{limits} { }
 
         [[nodiscard]] auto begin() const noexcept {
-            return MultiDimensionalIndexIterator{max_vals};
+            return MultiDimensionalIndexIterator<reversed_indices>{max_vals};
         }
 
         [[nodiscard]] auto end() const noexcept {
-            return MultiDimensionalIndexIterator{max_vals, true};
+            return MultiDimensionalIndexIterator<reversed_indices>{max_vals, true};
         }
     };
 

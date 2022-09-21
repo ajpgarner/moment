@@ -43,9 +43,17 @@ SIAM J. Optim. Volume 20, Issue 5, pp. 2157-2180 (2010).\
 ## Minimum tested versions
 MATLAB 2021b (9.10)
 
-GCC 12.1.0 / Clang 14.0.0
+#### For compiling C++ library
 
+*On Windows*: \
+Clang 14.0.0 (via clang-cl) or GCC 12.1.0 \
 CMAKE 3.22
+
+*On GNU/Linux*: \
+GCC 12.1.0 \
+CMAKE 3.22
+
+
 
 ## List of classes, functions and folders
 ### MATLAB classes
@@ -71,7 +79,11 @@ to the call to function `npatk(...)`:
 
 `alphabetic_name`: Converts a numerical index into an alphabetic one.
 
+`collins_gisin`: Returns list of symbols in a matrix system/moment matrix, as a matrix/tensor using Collins-Gisin indexing. 
+
 `generate_basis`: Provide symmetric or Hermitian basis matrices for a given symbolic matrix.
+
+`get_symbol_table`: Returns total list of operators in a matrix system. 
 
 `make_hermitian`: Makes a symbolic matrix Hermitian, by inferring equality constraints and applying them.
 

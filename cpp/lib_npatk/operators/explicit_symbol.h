@@ -58,6 +58,10 @@ namespace NPATK {
          */
         [[nodiscard]] std::span<const ExplicitSymbolEntry> get(std::span<const size_t> mmtIndices) const;
 
+        /**
+         * Gets a span of *all* symbols corresponding to the supplied measurement indices.
+         * @param mmtIndices A sorted list of global indices of the measurement.
+         */
         [[nodiscard]] inline std::span<const ExplicitSymbolEntry> get(std::initializer_list<size_t> mmtIndices) const {
             std::vector<size_t> v{mmtIndices};
             return get(v);
@@ -67,12 +71,19 @@ namespace NPATK {
          * Gets a filtered list of symbols corresponding to the supplied measurement indices, fixing some of the
          * measurement outcomes.
          * @param mmtIndices A sorted list of global indices of the measurement.
-         * @param fixedIndices List of outcome indices, or -1 if not fixed.
+         * @param fixedOutcomes List of outcome indices, or -1 if not fixed.
          * @return
          */
         [[nodiscard]] std::vector<ExplicitSymbolEntry> get(std::span<const size_t> mmtIndices,
                                                            std::span<const oper_name_t> fixedOutcomes) const;
 
+        /**
+        * Gets a filtered list of symbols corresponding to the supplied measurement indices, fixing some of the
+        * measurement outcomes.
+        * @param mmtIndices A sorted list of global indices of the measurement.
+        * @param fixedOutcomes List of outcome indices, or -1 if not fixed.
+        * @return
+        */
         [[nodiscard]] inline std::vector<ExplicitSymbolEntry> get(std::initializer_list<size_t> mmtIndices,
                                                                   std::initializer_list<oper_name_t> fixedOutcomes) const {
             std::vector<size_t> i{mmtIndices};

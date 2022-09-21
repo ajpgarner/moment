@@ -31,6 +31,7 @@ matlab_add_mex(NAME npatk_mex
             matlab_classes/moment_matrix.cpp
             matlab_classes/scenario.cpp
             functions/alphabetic_name.cpp
+        functions/collins_gisin.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
             functions/get_symbol_table.cpp

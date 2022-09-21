@@ -180,10 +180,20 @@ namespace NPATK {
         }
     }
 
-    std::vector<size_t> Context::measurements_per_party() const noexcept {
+    std::vector<size_t> Context::measurements_per_party() const {
         std::vector<size_t> output;
         for (const auto& p : this->parties) {
             output.push_back(p.measurements.size());
+        }
+        return output;
+    }
+
+
+    std::vector<size_t> Context::operators_per_party() const {
+        std::vector<size_t> output;
+        output.reserve(this->parties.size());
+        for (const auto& p : this->parties) {
+            output.push_back(p.size());
         }
         return output;
     }
@@ -204,6 +214,7 @@ namespace NPATK {
             pm.global_mmt = static_cast<mmt_name_t>(this->parties[pm.party].global_mmt_offset + pm.mmt);
         }
     }
+
 
 
 }

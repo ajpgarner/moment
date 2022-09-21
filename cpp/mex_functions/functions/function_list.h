@@ -22,6 +22,7 @@ namespace NPATK::mex::functions {
     enum class MEXEntryPointID : int {
         Unknown = 0,
         AlphabeticName,
+        CollinsGisin,
         GenerateBasis,
         GetSymbolTable,
         ProbabilityTable,
@@ -41,6 +42,7 @@ namespace NPATK::mex::functions {
         std::map<std::basic_string<char16_t>, MEXEntryPointID> output;
 
         output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
+        output.emplace(u"collins_gisin", MEXEntryPointID::CollinsGisin);
         output.emplace(u"generate_basis", MEXEntryPointID::GenerateBasis);
         output.emplace(u"get_symbol_table", MEXEntryPointID::GetSymbolTable);
         output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
