@@ -79,21 +79,21 @@ to the call to function `npatk(...)`:
 
 `alphabetic_name`: Converts a numerical index into an alphabetic one.
 
-`collins_gisin`: Returns list of symbols in a matrix system/moment matrix, as a matrix/tensor using Collins-Gisin indexing. 
+`collins_gisin`: Returns list of symbols in a matrix system, as a matrix using Collins-Gisin indexing. 
 
 `generate_basis`: Provide symmetric or Hermitian basis matrices for a given symbolic matrix.
 
-`get_symbol_table`: Returns total list of operators in a matrix system. 
-
 `make_hermitian`: Makes a symbolic matrix Hermitian, by inferring equality constraints and applying them.
-
-`make_matrix_system`: Starts a new context of shared variables, from a supplied Scenario. 
-
-`make_moment_matrix`: Generates a moment matrix for a supplied set of Hermitian operators.
 
 `make_symmetric`: Makes a symbolic matrix symmetric, by inferring equality constraints and applying them.
 
-`probability_table`: Calculates the coefficients of all implied outcomes from the moment matrix.
+`moment_matrix`: Generates a moment matrix for a supplied set of Hermitian operators.
+
+`new_matrix_system`: Starts a new context of shared variables, from a supplied Scenario.
+
+`symbol_table`: Returns total list of operators in a matrix system.
+
+`probability_table`: Calculates the coefficients of all implied outcomes from the moment matrix / matrix system.
 
 `release`: Frees the internally-stored object at the supplied key.
 
@@ -134,6 +134,8 @@ MATLAB arrays, that are used by more than one mex function.
 `\cpp\tests\operators`: C++ unit tests specifically for Hermitian-operator manipulation aspects of `lib_npatk`.
 
 `\matlab`: Root of NPATK MATLAB classes & functions
+
+`\matlab\examples`: Example scripts making use of the NPATK library.
 
 `\matlab\tests`: MATLAB unit tests for `npatk` function.
 

@@ -60,7 +60,7 @@ namespace NPATK::mex::functions {
     }
 
     AlphabeticName::AlphabeticName(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : MexFunction(matlabEngine, storage, MEXEntryPointID::MakeMomentMatrix, u"make_moment_matrix") {
+            : MexFunction(matlabEngine, storage, MEXEntryPointID::AlphabeticName, u"alphabetic_name") {
         this->min_outputs = 1;
         this->max_outputs = 1;
 

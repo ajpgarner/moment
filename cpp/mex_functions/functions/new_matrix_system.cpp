@@ -1,9 +1,9 @@
 /**
- * make_matrix_system.cpp
+ * new_matrix_system.cpp
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
-#include "make_matrix_system.h"
+#include "new_matrix_system.h"
 
 #include "storage_manager.h"
 
@@ -18,27 +18,27 @@
 namespace NPATK::mex::functions {
     namespace {
         std::unique_ptr<Context> make_context(matlab::engine::MATLABEngine &matlabEngine,
-                                              const MakeMatrixSystemParams &input) {
+                                              const NewMatrixSystemParams &input) {
             switch (input.specification_mode) {
-                case MakeMatrixSystemParams::SpecificationMode::FlatNoMeasurements:
+                case NewMatrixSystemParams::SpecificationMode::FlatNoMeasurements:
                     return std::make_unique<Context>(Party::MakeList(input.number_of_parties,
                                                                      input.flat_operators_per_party));
-                case MakeMatrixSystemParams::SpecificationMode::FlatWithMeasurements:
+                case NewMatrixSystemParams::SpecificationMode::FlatWithMeasurements:
                     return std::make_unique<Context>(Party::MakeList(input.number_of_parties,
                                                                      input.flat_mmts_per_party,
                                                                      input.flat_outcomes_per_mmt));
-                case MakeMatrixSystemParams::SpecificationMode::FromSettingObject:
+                case NewMatrixSystemParams::SpecificationMode::FromSettingObject:
                     assert(input.settingPtr);
                     return input.settingPtr->make_context();
                 default:
-                case MakeMatrixSystemParams::SpecificationMode::Unknown:
+                case NewMatrixSystemParams::SpecificationMode::Unknown:
                     throw_error(matlabEngine, "not_implemented", "Unknown input format!");
             }
             assert(false);
         }
     }
 
-    MakeMatrixSystemParams::MakeMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)
+    NewMatrixSystemParams::NewMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)
             : SortedInputs(std::move(rawInput)) {
 
         // Either set named params OR give multiple params
@@ -86,7 +86,7 @@ namespace NPATK::mex::functions {
 
     }
 
-    void MakeMatrixSystemParams::getFlatFromParams(matlab::engine::MATLABEngine &matlabEngine) {
+    void NewMatrixSystemParams::getFlatFromParams(matlab::engine::MATLABEngine &matlabEngine) {
         // Read and check number of parties, or default to 1
         auto party_param = params.find(u"parties");
         if (party_param != params.end()) {
@@ -138,7 +138,7 @@ namespace NPATK::mex::functions {
     }
 
 
-    void MakeMatrixSystemParams::getFlatFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
+    void NewMatrixSystemParams::getFlatFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
         if (inputs.empty()) {
             std::string errStr{"Please supply either named inputs; or a list of integers in the"};
             errStr += " form of [operators], ";
@@ -182,8 +182,8 @@ namespace NPATK::mex::functions {
     }
 
 
-    void MakeMatrixSystemParams::getSettingObject(matlab::engine::MATLABEngine &matlabEngine,
-                                                  matlab::data::Array &input) {
+    void NewMatrixSystemParams::getSettingObject(matlab::engine::MATLABEngine &matlabEngine,
+                                                 matlab::data::Array &input) {
         auto [readPtr, errMsg] = read_as_setting(matlabEngine, input); // <- deliberate implicit copy of input here...!
         if (!readPtr) {
             throw errors::BadInput(errors::bad_param,
@@ -194,7 +194,7 @@ namespace NPATK::mex::functions {
         }
     }
 
-    std::string MakeMatrixSystemParams::to_string() const {
+    std::string NewMatrixSystemParams::to_string() const {
         std::stringstream ss;
         switch (this->specification_mode) {
             case SpecificationMode::FlatNoMeasurements:
@@ -237,15 +237,15 @@ namespace NPATK::mex::functions {
     }
 
     std::unique_ptr<SortedInputs>
-    MakeMatrixSystem::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
+    NewMatrixSystem::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
         auto& input = *inputPtr;
-        return std::make_unique<MakeMatrixSystemParams>(this->matlabEngine, std::move(input));
+        return std::make_unique<NewMatrixSystemParams>(this->matlabEngine, std::move(input));
     }
 
 
 
-    MakeMatrixSystem::MakeMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : MexFunction(matlabEngine, storage, MEXEntryPointID::MakeMatrixSystem, u"make_matrix_system") {
+    NewMatrixSystem::NewMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
+            : MexFunction(matlabEngine, storage, MEXEntryPointID::NewMatrixSystem, u"new_matrix_system") {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
@@ -269,8 +269,8 @@ namespace NPATK::mex::functions {
     }
 
 
-    void MakeMatrixSystem::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        auto& input = dynamic_cast<MakeMatrixSystemParams&>(*inputPtr);
+    void NewMatrixSystem::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
+        auto& input = dynamic_cast<NewMatrixSystemParams&>(*inputPtr);
 
         // Input to context:
         std::unique_ptr<Context> contextPtr{make_context(this->matlabEngine, input)};

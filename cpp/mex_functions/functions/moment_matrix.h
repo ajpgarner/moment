@@ -1,5 +1,5 @@
 /**
- * make_moment_matrix.h
+ * moment_matrix.h
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
@@ -14,7 +14,7 @@ namespace NPATK {
 
 namespace NPATK::mex::functions  {
 
-    struct MakeMomentMatrixParams : public SortedInputs {
+    struct MomentMatrixParams : public SortedInputs {
     public:
         uint64_t storage_key = 0;
 
@@ -32,14 +32,12 @@ namespace NPATK::mex::functions  {
         } output_mode = OutputMode::Unknown;
 
     public:
-        explicit MakeMomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
-
-        friend class MakeMomentMatrix;
+        explicit MomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
     };
 
-    class MakeMomentMatrix : public NPATK::mex::functions::MexFunction {
+    class MomentMatrix : public NPATK::mex::functions::MexFunction {
     public:
-        explicit MakeMomentMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
+        explicit MomentMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
 

@@ -24,13 +24,13 @@ namespace NPATK::mex::functions {
         AlphabeticName,
         CollinsGisin,
         GenerateBasis,
-        GetSymbolTable,
         ProbabilityTable,
         MakeHermitian,
-        MakeMatrixSystem,
-        MakeMomentMatrix,
         MakeSymmetric,
+        MomentMatrix,
+        NewMatrixSystem,
         Release,
+        SymbolTable,
         Version
     };
 
@@ -44,13 +44,13 @@ namespace NPATK::mex::functions {
         output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
         output.emplace(u"collins_gisin", MEXEntryPointID::CollinsGisin);
         output.emplace(u"generate_basis", MEXEntryPointID::GenerateBasis);
-        output.emplace(u"get_symbol_table", MEXEntryPointID::GetSymbolTable);
         output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
-        output.emplace(u"make_matrix_system", MEXEntryPointID::MakeMatrixSystem);
-        output.emplace(u"make_moment_matrix", MEXEntryPointID::MakeMomentMatrix);
         output.emplace(u"make_hermitian", MEXEntryPointID::MakeHermitian);
         output.emplace(u"make_symmetric", MEXEntryPointID::MakeSymmetric);
+        output.emplace(u"moment_matrix", MEXEntryPointID::MomentMatrix);
+        output.emplace(u"new_matrix_system", MEXEntryPointID::NewMatrixSystem);
         output.emplace(u"release", MEXEntryPointID::Release);
+        output.emplace(u"symbol_table", MEXEntryPointID::SymbolTable);
         output.emplace(u"version", MEXEntryPointID::Version);
         return output;
     }

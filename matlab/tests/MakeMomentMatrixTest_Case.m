@@ -13,13 +13,13 @@ classdef MakeMomentMatrixTest_Case
         end
         
         function CallAndVerify(testCase, testObj, params, level)
-            system_id = npatk('make_matrix_system', params{:});
-            dim = npatk('make_moment_matrix', system_id, level); 
-            sym_mat = npatk('make_moment_matrix', 'symbols', ...
+            system_id = npatk('new_matrix_system', params{:});
+            dim = npatk('moment_matrix', system_id, level);
+            sym_mat = npatk('moment_matrix', 'symbols', ...
                             system_id, level);
-            seq_mat = npatk('make_moment_matrix', 'sequences', ...
+            seq_mat = npatk('moment_matrix', 'sequences', ...
                             system_id, level);
-            us_key = npatk('get_symbol_table', system_id);
+            us_key = npatk('symbol_table', system_id);
             
             testCase.Verify(testObj, sym_mat, seq_mat, us_key, dim);
             npatk('release', 'matrix_system', system_id);

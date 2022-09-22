@@ -1,5 +1,5 @@
 /**
- * get_symbol_table.h
+ * symbol_table.h
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
@@ -13,7 +13,7 @@ namespace NPATK {
 
 namespace NPATK::mex::functions  {
 
-    struct GetSymbolTableParams : public SortedInputs {
+    struct SymbolTableParams : public SortedInputs {
     public:
         uint64_t storage_key = 0;
 
@@ -25,14 +25,12 @@ namespace NPATK::mex::functions  {
         } output_mode = OutputMode::AllSymbols;
 
     public:
-        explicit GetSymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
-
-        friend class GetSymbolTable;
+        explicit SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
     };
 
-    class GetSymbolTable : public NPATK::mex::functions::MexFunction {
+    class SymbolTable : public NPATK::mex::functions::MexFunction {
     public:
-        explicit GetSymbolTable(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
+        explicit SymbolTable(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
 

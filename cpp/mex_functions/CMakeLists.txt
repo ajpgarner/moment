@@ -34,11 +34,11 @@ matlab_add_mex(NAME npatk_mex
         functions/collins_gisin.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
-            functions/get_symbol_table.cpp
+        functions/symbol_table.cpp
             functions/probability_table.cpp
             functions/make_hermitian.cpp
-            functions/make_matrix_system.cpp
-            functions/make_moment_matrix.cpp
+        functions/new_matrix_system.cpp
+        functions/moment_matrix.cpp
             functions/make_symmetric.cpp
             functions/release.cpp
             functions/version.cpp

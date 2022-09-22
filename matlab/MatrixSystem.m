@@ -23,10 +23,10 @@ classdef MatrixSystem < handle
             % make_matrix_system to load setting into C++ code.
             if isa(settingParams, 'cell')
                 % Unpack cell into arguments
-                obj.RefId = npatk('make_matrix_system', settingParams{:});                
+                obj.RefId = npatk('new_matrix_system', settingParams{:});
             elseif isa(settingParams, 'Scenario')
                 % Supply setting object directly
-                obj.RefId = npatk('make_matrix_system', settingParams);
+                obj.RefId = npatk('new_matrix_system', settingParams);
             else
                 error(['First argument must be either a Scenario ',...
                     'object, or a cell array of parameters.']);
@@ -47,11 +47,11 @@ classdef MatrixSystem < handle
         function val = UpdateSymbolTable(obj)
             has_new_symbols = false;
             if isempty(obj.SymbolTable)
-                obj.SymbolTable = npatk('get_symbol_table', obj.RefId);
+                obj.SymbolTable = npatk('symbol_table', obj.RefId);
                 has_new_symbols = true;
             else
                 existing_id = uint64(length(obj.SymbolTable));
-                new_symbols = npatk('get_symbol_table', ...
+                new_symbols = npatk('symbol_table', ...
                                         obj.RefId, existing_id);
                 if ~isempty(new_symbols)
                     has_new_symbols = true;

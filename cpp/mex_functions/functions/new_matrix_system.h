@@ -1,5 +1,5 @@
 /**
- * make_matrix_system.h
+ * new_matrix_system.h
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
@@ -14,7 +14,7 @@ namespace NPATK {
 
 namespace NPATK::mex::functions {
 
-    struct MakeMatrixSystemParams : public SortedInputs {
+    struct NewMatrixSystemParams : public SortedInputs {
     public:
         unsigned long number_of_parties = 0;
 
@@ -32,9 +32,9 @@ namespace NPATK::mex::functions {
         std::unique_ptr<classes::Scenario> settingPtr;
 
     public:
-        explicit MakeMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs);
+        explicit NewMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs);
 
-        friend class MakeMatrixSystem;
+        friend class NewMatrixSystem;
 
         [[nodiscard]] std::string to_string() const override;
 
@@ -47,9 +47,9 @@ namespace NPATK::mex::functions {
     };
 
 
-    class MakeMatrixSystem : public NPATK::mex::functions::MexFunction {
+    class NewMatrixSystem : public NPATK::mex::functions::MexFunction {
     public:
-        explicit MakeMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
+        explicit NewMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
 

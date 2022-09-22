@@ -1,13 +1,12 @@
 /**
- * make_moment_matrix.cpp
+ * moment_matrix.cpp
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
-#include "make_moment_matrix.h"
+#include "moment_matrix.h"
 
 #include "storage_manager.h"
 
-#include "operators/context.h"
 #include "operators/matrix/moment_matrix.h"
 
 #include "utilities/read_as_scalar.h"
@@ -21,8 +20,8 @@
 
 namespace NPATK::mex::functions {
 
-    MakeMomentMatrix::MakeMomentMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : MexFunction(matlabEngine, storage, MEXEntryPointID::MakeMomentMatrix, u"make_moment_matrix") {
+    MomentMatrix::MomentMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
+            : MexFunction(matlabEngine, storage, MEXEntryPointID::MomentMatrix, u"moment_matrix") {
         this->min_outputs = 0;
         this->max_outputs = 1;
 
@@ -46,7 +45,7 @@ namespace NPATK::mex::functions {
         this->max_inputs = 2;
     }
 
-    MakeMomentMatrixParams::MakeMomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)
+    MomentMatrixParams::MomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)
         : SortedInputs(std::move(rawInput)) {
 
         // Determine output mode:
@@ -105,9 +104,9 @@ namespace NPATK::mex::functions {
 
 
     std::unique_ptr<SortedInputs>
-    MakeMomentMatrix::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
+    MomentMatrix::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
         auto& input = *inputPtr;
-        auto output = std::make_unique<MakeMomentMatrixParams>(this->matlabEngine, std::move(input));
+        auto output = std::make_unique<MomentMatrixParams>(this->matlabEngine, std::move(input));
         // Check key vs. storage manager
         if (!this->storageManager.MatrixSystems.check_signature(output->storage_key)) {
             throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
@@ -116,8 +115,8 @@ namespace NPATK::mex::functions {
         return output;
     }
 
-    void MakeMomentMatrix::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        auto& input = dynamic_cast<MakeMomentMatrixParams&>(*inputPtr);
+    void MomentMatrix::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
+        auto& input = dynamic_cast<MomentMatrixParams&>(*inputPtr);
 
 
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
@@ -134,20 +133,20 @@ namespace NPATK::mex::functions {
         // Output, if supplied.
         if (output.size() >= 1) {
             switch (input.output_mode) {
-                case MakeMomentMatrixParams::OutputMode::Symbols:
+                case MomentMatrixParams::OutputMode::Symbols:
                     output[0] = export_symbol_matrix(this->matlabEngine, momentMatrix.SymbolMatrix());
                     break;
-                case MakeMomentMatrixParams::OutputMode::Sequences:
+                case MomentMatrixParams::OutputMode::Sequences:
                     output[0] = export_sequence_matrix(this->matlabEngine, momentMatrix.context,
                                                        momentMatrix.SequenceMatrix());
                     break;
-                case MakeMomentMatrixParams::OutputMode::DimensionOnly: {
+                case MomentMatrixParams::OutputMode::DimensionOnly: {
                     matlab::data::ArrayFactory factory;
                     output[0] = factory.createScalar<uint64_t>(momentMatrix.Dimension());
                 }
                     break;
                 default:
-                case MakeMomentMatrixParams::OutputMode::Unknown:
+                case MomentMatrixParams::OutputMode::Unknown:
                     throw_error(matlabEngine, errors::internal_error, "Unknown output mode!");
             }
         }
