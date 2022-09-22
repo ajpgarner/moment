@@ -1,4 +1,4 @@
-classdef MakeMatrixSystemTest < NPATKTestBase
+classdef NewMatrixSystemTest < NPATKTestBase
     
     methods (Test, TestTags={'Error'})
         function Error_NoInputs(testCase)

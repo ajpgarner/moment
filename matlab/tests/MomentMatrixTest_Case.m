@@ -1,4 +1,4 @@
-classdef MakeMomentMatrixTest_Case
+classdef MomentMatrixTest_Case
     %MAKEMOMENTMATRIXTEST_CASE Subclass, for each make_moment_matrix_test
     
     properties
@@ -7,7 +7,7 @@ classdef MakeMomentMatrixTest_Case
     end
       
     methods
-        function obj = MakeMomentMatrixTest_Case(exp_sym, exp_seq)            
+        function obj = MomentMatrixTest_Case(exp_sym, exp_seq)            
             obj.expected_sym_matrix = exp_sym;
             obj.expected_seq_matrix = exp_seq;
         end
