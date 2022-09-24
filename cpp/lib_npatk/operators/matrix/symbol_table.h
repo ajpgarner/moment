@@ -129,16 +129,14 @@ namespace NPATK {
          */
         [[nodiscard]] const auto& ImaginarySymbolIds() const noexcept { return this->imaginary_symbols; }
 
-        /**
-         * Prune list of hashes, removing elements already in the Symbol Table.
-         * @param build_unique Map of hashes to sequences.
-         * @return Pair, First: Map of hashes to sequences, without elements already in the SymbolTable.
-         *              Second: symbol ids of duplicate elements removed.
-         */
-        std::pair<std::map<size_t, UniqueSequence>, std::set<symbol_name_t>>
-        remove_duplicates(std::map<size_t, UniqueSequence>&& build_unique);
 
-        std::set<symbol_name_t> merge_in(std::map<size_t, UniqueSequence>&& build_unique);
+        /**
+         * Add symbols to table, if not already present
+         * @param build_unique List of symbols to be potentially merged
+         * @return Set of symbol IDs
+         */
+        std::set<symbol_name_t> merge_in(std::vector<UniqueSequence>&& build_unique);
+
 
         [[nodiscard]] auto begin() const noexcept { return this->unique_sequences.cbegin(); }
         [[nodiscard]] auto end() const noexcept { return this->unique_sequences.cend(); }
@@ -182,7 +180,7 @@ namespace NPATK {
          * @param hash The hash to look up
          * @return Pair: First gives the element in unique_sequences, second is true if hash corresponds to conjugate.
          */
-        [[nodiscard]] std::pair<size_t, bool> hash_to_index(size_t hash) const noexcept;
+        [[nodiscard]] std::pair<ptrdiff_t, bool> hash_to_index(size_t hash) const noexcept;
     };
 
 }

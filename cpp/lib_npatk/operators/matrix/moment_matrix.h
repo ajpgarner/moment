@@ -24,7 +24,7 @@ namespace NPATK {
     class MomentMatrix : public OperatorMatrix {
     public:
 
-        /** The level of moment matrix defined */
+        /** The Level of moment matrix defined */
         const size_t hierarchy_level;
 
         /**
@@ -34,6 +34,12 @@ namespace NPATK {
         const size_t max_probability_length;
 
     public:
+        /**
+         * Constructs a moment matrix at the requested hierarchy depth (level) for the supplied context.
+         * @param context The setting/scenario.
+         * @param symbols Source of existing symbols, sink for any new symbols first appearing in the matrix.
+         * @param level The hierarchy depth.
+         */
         MomentMatrix(const Context& context, SymbolTable& symbols, size_t level);
 
         MomentMatrix(const MomentMatrix&) = delete;
@@ -43,13 +49,11 @@ namespace NPATK {
         /** Destructor */
         ~MomentMatrix() override;
 
-        [[nodiscard]] constexpr size_t level() const noexcept { return this->hierarchy_level; }
+        /**
+         * The hierarchy depth of this moment matrix.
+         */
+        [[nodiscard]] constexpr size_t Level() const noexcept { return this->hierarchy_level; }
 
-
-    private:
-        std::map<size_t, UniqueSequence> identifyUniqueSequences(const std::vector<size_t> &hashes);
-
-        std::unique_ptr<SquareMatrix<SymbolExpression>> buildSymbolMatrix(const std::vector<size_t> &hashes);
     };
 
 

@@ -10,29 +10,10 @@
 #include "operators/matrix/moment_matrix.h"
 #include "operators/matrix/matrix_system.h"
 
+#include "compare_os_matrix.h"
+
 namespace NPATK::Tests {
     namespace {
-        void compare_os_matrix(MomentMatrix &theMM, size_t dimension,
-                              std::initializer_list<OperatorSequence> reference) {
-            ASSERT_EQ(theMM.Dimension(), dimension) << " level = " << theMM.level();
-            size_t row = 0;
-            size_t col = 0;
-            for (const auto &ref_seq: reference) {
-                ASSERT_LT(row, dimension) << " level = " << theMM.level() << ", row = " << row << ", col = " << col;
-                ASSERT_LT(col, dimension) << " level = " << theMM.level() << ", row = " << row << ", col = " << col;
-
-                const auto &actual_seq = theMM.SequenceMatrix[row][col];
-                EXPECT_EQ(actual_seq, ref_seq) << " level = " << theMM.level() << ", row = " << row << ", col = " << col;
-                ++col;
-                if (col >= dimension) {
-                    col = 0;
-                    ++row;
-                }
-            }
-            EXPECT_EQ(col, 0) << " level = " << theMM.level();
-            EXPECT_EQ(row, dimension) << " level = " << theMM.level();
-        }
-
 
         struct unique_seq_brace_ref {
             OperatorSequence fwd;
@@ -45,39 +26,39 @@ namespace NPATK::Tests {
 
             // 0 is always zero
             auto iter = theMM.Symbols.begin();
-            ASSERT_NE(iter, theMM.Symbols.end()) << " level = " << theMM.level();
-            EXPECT_EQ(&(*iter), &theMM.Symbols[0]) << " level = " << theMM.level();
+            ASSERT_NE(iter, theMM.Symbols.end()) << " Level = " << theMM.Level();
+            EXPECT_EQ(&(*iter), &theMM.Symbols[0]) << " Level = " << theMM.Level();
             EXPECT_EQ(theMM.Symbols[0].sequence(), OperatorSequence::Zero())
-                << " level = " << theMM.level();
+                << " Level = " << theMM.Level();
             EXPECT_EQ(theMM.Symbols[0].sequence_conj(), OperatorSequence::Zero())
-                << " level = " << theMM.level();
-            EXPECT_TRUE(theMM.Symbols[0].is_hermitian()) << " level = " << theMM.level();
+                << " Level = " << theMM.Level();
+            EXPECT_TRUE(theMM.Symbols[0].is_hermitian()) << " Level = " << theMM.Level();
             ++iter;
 
             // 1 is always ID
-            ASSERT_NE(iter, theMM.Symbols.end()) << " level = " << theMM.level();
-            EXPECT_EQ(&(*iter), &theMM.Symbols[1]) << " level = " << theMM.level();
+            ASSERT_NE(iter, theMM.Symbols.end()) << " Level = " << theMM.Level();
+            EXPECT_EQ(&(*iter), &theMM.Symbols[1]) << " Level = " << theMM.Level();
             EXPECT_EQ(theMM.Symbols[1].sequence(), OperatorSequence::Identity())
-                << " level = " << theMM.level();
+                << " Level = " << theMM.Level();
             EXPECT_EQ(theMM.Symbols[1].sequence_conj(), OperatorSequence::Identity())
-                << " level = " << theMM.level();
-            EXPECT_TRUE(theMM.Symbols[1].is_hermitian())  << " level = " << theMM.level();
+                << " Level = " << theMM.Level();
+            EXPECT_TRUE(theMM.Symbols[1].is_hermitian())  << " Level = " << theMM.Level();
             ++iter;
 
             size_t index = 2;
             for (const auto& ref_seq : reference) {
-                ASSERT_NE(iter, theMM.Symbols.end()) << " level = " << theMM.level() << ", index = " << index;
-                EXPECT_EQ(&(*iter), &theMM.Symbols[index]) << " level = " << theMM.level()
+                ASSERT_NE(iter, theMM.Symbols.end()) << " Level = " << theMM.Level() << ", index = " << index;
+                EXPECT_EQ(&(*iter), &theMM.Symbols[index]) << " Level = " << theMM.Level()
                     << ", index = " << index;
-                EXPECT_EQ(iter->sequence(), ref_seq.fwd) << " level = " << theMM.level() << ", index = " << index;
-                EXPECT_EQ(iter->sequence_conj(), ref_seq.rev) << " level = " << theMM.level() << ", index = " << index;
-                EXPECT_EQ(iter->is_hermitian(), ref_seq.herm) << " level = " << theMM.level() << ", index = " << index;
+                EXPECT_EQ(iter->sequence(), ref_seq.fwd) << " Level = " << theMM.Level() << ", index = " << index;
+                EXPECT_EQ(iter->sequence_conj(), ref_seq.rev) << " Level = " << theMM.Level() << ", index = " << index;
+                EXPECT_EQ(iter->is_hermitian(), ref_seq.herm) << " Level = " << theMM.Level() << ", index = " << index;
                 ++index;
                 ++iter;
             }
 
-            EXPECT_EQ(index, 2 + reference.size()) << " level = " << theMM.level();
-            EXPECT_EQ(iter, theMM.Symbols.end()) << " level = " << theMM.level();
+            EXPECT_EQ(index, 2 + reference.size()) << " Level = " << theMM.Level();
+            EXPECT_EQ(iter, theMM.Symbols.end()) << " Level = " << theMM.Level();
         }
 
         void compare_symbol_matrix(MomentMatrix &theMM, size_t dimension,
@@ -87,20 +68,20 @@ namespace NPATK::Tests {
             size_t row = 0;
             size_t col = 0;
             for (const auto &ref_symbol: reference) {
-                ASSERT_LT(row, dimension) << " level = " << theMM.level() << ", row = " << row << ", col = " << col;
-                ASSERT_LT(col, dimension) << " level = " << theMM.level() << ", row = " << row << ", col = " << col;
+                ASSERT_LT(row, dimension) << " Level = " << theMM.Level() << ", row = " << row << ", col = " << col;
+                ASSERT_LT(col, dimension) << " Level = " << theMM.Level() << ", row = " << row << ", col = " << col;
 
                 const auto &actual_symbol = theMM.SymbolMatrix[row][col];
                 EXPECT_EQ(actual_symbol, ref_symbol)
-                    << " level = " << theMM.level() << ", row = " << row << ", col = " << col;
+                                    << " Level = " << theMM.Level() << ", row = " << row << ", col = " << col;
                 ++col;
                 if (col >= dimension) {
                     col = 0;
                     ++row;
                 }
             }
-            EXPECT_EQ(col, 0) << " level = " << theMM.level();
-            EXPECT_EQ(row, dimension) << " level = " << theMM.level();
+            EXPECT_EQ(col, 0) << " Level = " << theMM.Level();
+            EXPECT_EQ(row, dimension) << " Level = " << theMM.Level();
 
         }
 
@@ -122,20 +103,20 @@ namespace NPATK::Tests {
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
 
-        EXPECT_EQ(matLevel0.level(), 0);
-        compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        EXPECT_EQ(matLevel0.Level(), 0);
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
         compare_unique_sequences(matLevel0, {});
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
-        EXPECT_EQ(matLevel1.level(), 1);
-        compare_os_matrix(matLevel1, 1, {OperatorSequence::Identity(&context)});
+        EXPECT_EQ(matLevel1.Level(), 1);
+        compare_mm_os_matrix(matLevel1, 1, {OperatorSequence::Identity(&context)});
         compare_unique_sequences(matLevel1, {});
         compare_symbol_matrix(matLevel1, 1, {"1"});
 
         auto& matLevel5 = system.CreateMomentMatrix(5);
-        EXPECT_EQ(matLevel5.level(), 5);
-        compare_os_matrix(matLevel5, 1, {OperatorSequence::Identity(&context)});
+        EXPECT_EQ(matLevel5.Level(), 5);
+        compare_mm_os_matrix(matLevel5, 1, {OperatorSequence::Identity(&context)});
         compare_unique_sequences(matLevel5, {});
         compare_symbol_matrix(matLevel1, 1, {"1"});
     }
@@ -151,21 +132,21 @@ namespace NPATK::Tests {
 
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
-        EXPECT_EQ(matLevel0.level(), 0);
-        compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        EXPECT_EQ(matLevel0.Level(), 0);
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
-        EXPECT_EQ(matLevel1.level(), 1);
-        compare_os_matrix(matLevel1, 2, {OperatorSequence::Identity(&context),
+        EXPECT_EQ(matLevel1.Level(), 1);
+        compare_mm_os_matrix(matLevel1, 2, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({alice[0], alice[0]}, &context)});
 
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
-        EXPECT_EQ(matLevel2.level(), 2);
-        compare_os_matrix(matLevel2, 3, {OperatorSequence::Identity(&context),
+        EXPECT_EQ(matLevel2.Level(), 2);
+        compare_mm_os_matrix(matLevel2, 3, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({alice[0], alice[0]}, &context),
                                          OperatorSequence({alice[0]}, &context),
@@ -187,10 +168,10 @@ namespace NPATK::Tests {
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
 
-        compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
+        compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({alice[1]}, &context),
                                          OperatorSequence({alice[0]}, &context),
@@ -201,7 +182,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({alice[1], alice[1]}, &context)});
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
-        compare_os_matrix(matLevel2, 7, {OperatorSequence::Identity(&context),
+        compare_mm_os_matrix(matLevel2, 7, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({alice[1]}, &context),
                                          OperatorSequence({alice[0], alice[0]}, &context),
@@ -273,10 +254,10 @@ namespace NPATK::Tests {
         ASSERT_EQ(bob.size(), 1);
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
-        compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
+        compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({bob[0]}, &context),
                                          OperatorSequence({alice[0]}, &context),
@@ -287,7 +268,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({bob[0], bob[0]}, &context)});
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
-        compare_os_matrix(matLevel2, 6, {OperatorSequence::Identity(&context),
+        compare_mm_os_matrix(matLevel2, 6, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({bob[0]}, &context),
                                          OperatorSequence({alice[0], alice[0]}, &context),
@@ -344,10 +325,10 @@ namespace NPATK::Tests {
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
 
-        compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
+        compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({bob[0]}, &context),
                                          OperatorSequence({alice[0]}, &context),
@@ -358,7 +339,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({bob[0]}, &context)});
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
-        compare_os_matrix(matLevel2, 4, {OperatorSequence::Identity(&context),
+        compare_mm_os_matrix(matLevel2, 4, {OperatorSequence::Identity(&context),
                                          OperatorSequence({alice[0]}, &context),
                                          OperatorSequence({bob[0]}, &context),
                                          OperatorSequence({alice[0], bob[0]}, &context),
@@ -402,10 +383,10 @@ namespace NPATK::Tests {
         const auto& y1 = bob[3];
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
-        compare_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_os_matrix(matLevel1, 9, {OperatorSequence::Identity(&context),
+        compare_mm_os_matrix(matLevel1, 9, {OperatorSequence::Identity(&context),
                                          OperatorSequence({a0}, &context),
                                          OperatorSequence({a1}, &context),
                                          OperatorSequence({b0}, &context),
@@ -474,7 +455,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({x1}, &context),
                                          OperatorSequence({x1, y0}, &context),
                                          OperatorSequence({x1, y1}, &context),
-                                         
+
                                          OperatorSequence({y0}, &context),
                                          OperatorSequence({a0, y0}, &context),
                                          OperatorSequence({a1, y0}, &context),
@@ -484,7 +465,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({y0, x1}, &context),
                                          OperatorSequence({y0}, &context),
                                          OperatorSequence::Zero(&context),
-                                         
+
                                          OperatorSequence({y1}, &context),
                                          OperatorSequence({a0, y1}, &context),
                                          OperatorSequence({a1, y1}, &context),
@@ -624,22 +605,32 @@ namespace NPATK::Tests {
                                    OperatorSequence({alice[0], bob[0]}, &context), true}});
     }
 
-    TEST(MomentMatrix, Unique_1Party2Opers) {
+    TEST(MomentMatrix, Unique_1Party2Opers_L0) {
         MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
-        const auto& context = system.Context();
+        const auto &context = system.Context();
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
-        const auto& alice = context.Parties[0];
+        const auto &alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 2);
 
-        auto& matLevel0 = system.CreateMomentMatrix(0);
+        auto &matLevel0 = system.CreateMomentMatrix(0);
         compare_unique_sequences(matLevel0, {});
 
-        auto& matLevel1 = system.CreateMomentMatrix(1);
+    }
+
+    TEST(MomentMatrix, Unique_1Party2Opers_L1) {
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        const auto &context = system.Context();
+        ASSERT_EQ(context.size(), 2);
+        ASSERT_EQ(context.Parties.size(), 1);
+        const auto &alice = context.Parties[0];
+        ASSERT_EQ(alice.size(), 2);
+        auto &matLevel1 = system.CreateMomentMatrix(1);
+
         compare_unique_sequences(matLevel1, {{OperatorSequence({alice[0]}, &context),
-                                                     OperatorSequence({alice[0]}, &context), true},
+                                                     OperatorSequence({alice[0]}, &context),           true},
                                              {OperatorSequence({alice[1]}, &context),
-                                                     OperatorSequence({alice[1]}, &context), true},
+                                                     OperatorSequence({alice[1]}, &context),           true},
                                              {OperatorSequence({alice[0], alice[0]}, &context),
                                                      OperatorSequence({alice[0], alice[0]}, &context), true},
                                              {OperatorSequence({alice[0], alice[1]}, &context),
@@ -647,21 +638,31 @@ namespace NPATK::Tests {
                                              {OperatorSequence({alice[1], alice[1]}, &context),
                                                      OperatorSequence({alice[1], alice[1]}, &context), true}});
 
+    }
+
+    TEST(MomentMatrix, Unique_1Party2Opers_L2) {
+        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        const auto &context = system.Context();
+        ASSERT_EQ(context.size(), 2);
+        ASSERT_EQ(context.Parties.size(), 1);
+        const auto &alice = context.Parties[0];
+        ASSERT_EQ(alice.size(), 2);
         auto& matLevel2 = system.CreateMomentMatrix(2);
+
         compare_unique_sequences(matLevel2, {
-                {OperatorSequence({alice[0]}, &context),
+                {OperatorSequence({alice[0]}, &context), // 2
                         OperatorSequence({alice[0]}, &context), true},
                 {OperatorSequence({alice[1]}, &context),
                         OperatorSequence({alice[1]}, &context), true},
 
-                {OperatorSequence({alice[0], alice[0]}, &context),
+                {OperatorSequence({alice[0], alice[0]}, &context), // 4
                         OperatorSequence({alice[0], alice[0]}, &context), true},
                 {OperatorSequence({alice[0], alice[1]}, &context),
                         OperatorSequence({alice[1], alice[0]}, &context), false},
                 {OperatorSequence({alice[1], alice[1]}, &context),
                         OperatorSequence({alice[1], alice[1]}, &context), true},
 
-                {OperatorSequence({alice[0], alice[0], alice[0]}, &context),
+                {OperatorSequence({alice[0], alice[0], alice[0]}, &context), // 7
                         OperatorSequence({alice[0], alice[0], alice[0]}, &context), true},
                 {OperatorSequence({alice[0], alice[0], alice[1]}, &context),
                         OperatorSequence({alice[1], alice[0], alice[0]}, &context), false},
@@ -674,7 +675,7 @@ namespace NPATK::Tests {
                 {OperatorSequence({alice[1], alice[1], alice[1]}, &context),
                         OperatorSequence({alice[1], alice[1], alice[1]}, &context), true},
 
-                {OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context),
+                {OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context), // 13
                         OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context), true},
                 {OperatorSequence({alice[0], alice[0], alice[0], alice[1]}, &context),
                         OperatorSequence({alice[1], alice[0], alice[0], alice[0]}, &context), false},
@@ -682,20 +683,20 @@ namespace NPATK::Tests {
                         OperatorSequence({alice[0], alice[1], alice[0], alice[0]}, &context), false},
                 {OperatorSequence({alice[0], alice[0], alice[1], alice[1]}, &context),
                         OperatorSequence({alice[1], alice[1], alice[0], alice[0]}, &context), false},
+                {OperatorSequence({alice[1], alice[0], alice[0], alice[1]} , &context),
+                        OperatorSequence({alice[1], alice[0], alice[0], alice[1]} , &context), true},
+                {OperatorSequence({alice[0], alice[1], alice[0], alice[1]} , &context),
+                        OperatorSequence({alice[1], alice[0], alice[1], alice[0]} , &context), false},
+                {OperatorSequence({alice[1], alice[0], alice[1], alice[1]} , &context),
+                        OperatorSequence({alice[1], alice[1], alice[0], alice[1]} , &context), false},
                 {OperatorSequence({alice[0], alice[1], alice[1], alice[0]}, &context),
                         OperatorSequence({alice[0], alice[1], alice[1], alice[0]}, &context), true},
                 {OperatorSequence({alice[0], alice[1], alice[1], alice[1]} , &context),
                         OperatorSequence({alice[1], alice[1], alice[1], alice[0]} , &context), false},
-                {OperatorSequence({alice[1], alice[0], alice[0], alice[1]} , &context),
-                        OperatorSequence({alice[1], alice[0], alice[0], alice[1]} , &context), true},
-                {OperatorSequence({alice[1], alice[0], alice[1], alice[0]} , &context),
-                        OperatorSequence({alice[0], alice[1], alice[0], alice[1]} , &context), false},
-                {OperatorSequence({alice[1], alice[0], alice[1], alice[1]} , &context),
-                        OperatorSequence({alice[1], alice[1], alice[0], alice[1]} , &context), false},
                 {OperatorSequence({alice[1], alice[1], alice[1], alice[1]} , &context),
                         OperatorSequence({alice[1], alice[1], alice[1], alice[1]} , &context), true}
         });
-    };
+    }
 
     TEST(MomentMatrix, Where_1Party2Opers) {
         MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
@@ -761,9 +762,9 @@ namespace NPATK::Tests {
                                "2",  "4",   "5",   "7",   "8",  "9",  "10", // 0, 00, 01, 000, 001, 010, 011
                                "3",  "5*",  "6",   "8*",  "11", "10*", "12", // 1, 10, 11, 100, 101, 110, 111
                                "4",  "7",   "8",   "13",  "14", "15", "16", // 001, 000, 001, 0000, 0001, 0010, 0011
-                               "5*", "8*",  "11",  "14*", "19", "20", "21", // 10, 100, 101, 1000, 1001, 1010, 1011
-                               "5",  "9",   "10",  "15*", "20*","17", "18", // 01, 010, 011, 0100, 0101, 0110, 0111
-                               "6",  "10*", "12",  "16*", "21*","18*","22" // 11, 110, 111, 1100, 1101, 1110, 1111
+                               "5*", "8*",  "11",  "14*", "17", "18*", "19", // 10, 100, 101, 1000, 1001, 1010, 1011
+                               "5",  "9",   "10",  "15*", "18", "20", "21", // 01, 010, 011, 0100, 0101, 0110, 0111
+                               "6",  "10*", "12",  "16*", "19*","21*","22" // 11, 110, 111, 1100, 1101, 1110, 1111
         });
     };
 

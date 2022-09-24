@@ -11,6 +11,7 @@ add_library(lib_npatk
         operators/operator_sequence_generator.cpp
         operators/party.cpp
         operators/matrix/localizing_matrix.cpp
+        operators/matrix/localizing_matrix_index.cpp
         operators/matrix/matrix_system.cpp
         operators/matrix/moment_matrix.cpp
         operators/matrix/operator_matrix.cpp
@@ -24,4 +25,4 @@ add_library(lib_npatk
         symbolic/symbol_tree_simplify_impl.cpp
         utilities/alphabetic_namer.cpp
         utilities/persistent_storage.cpp
-    )
+)

@@ -7,6 +7,7 @@
 
 #include "symbol_table.h"
 #include "operator_matrix.h"
+#include "localizing_matrix.h"
 #include "moment_matrix.h"
 
 #include "../context.h"
@@ -42,7 +43,7 @@ namespace NPATK {
 
     size_t MatrixSystem::MaxRealSequenceLength() const noexcept {
         // First, get length of the longest moment matrix:
-        //  e.g. if [0] and [1] exists, size is 2, and MM of hierarchy level 1 guaranteed to exist.
+        //  e.g. if [0] and [1] exists, size is 2, and MM of hierarchy Level 1 guaranteed to exist.
         ptrdiff_t hierarchy_level = static_cast<ptrdiff_t>(this->momentMatrixIndices.size()) - 1;
         if (hierarchy_level < 0) {
             hierarchy_level = 0;
@@ -70,7 +71,7 @@ namespace NPATK {
 
     const MomentMatrix &MatrixSystem::MomentMatrix(size_t level) const {
         if (!this->hasMomentMatrix(level)) {
-            throw errors::missing_component("Moment matrix of level " + std::to_string(level) + " not yet generated.");
+            throw errors::missing_component("Moment matrix of Level " + std::to_string(level) + " not yet generated.");
         }
         return dynamic_cast<const class MomentMatrix&>(*matrices[momentMatrixIndices[level]]);
     }
@@ -116,6 +117,48 @@ namespace NPATK {
         return output;
     }
 
+
+    ptrdiff_t MatrixSystem::localizingMatrixIndex(const LocalizingMatrixIndex& lmi) const noexcept {
+        auto where = this->localizingMatrixIndices.find(lmi);
+        if (where == this->localizingMatrixIndices.end()) {
+            return -1;
+        }
+
+        return where->second;
+    }
+
+    const LocalizingMatrix& MatrixSystem::LocalizingMatrix(const LocalizingMatrixIndex& lmi) const {
+        ptrdiff_t index = this->localizingMatrixIndex(lmi);
+
+        if (index <= 0) {
+            throw errors::missing_component("Localizing matrix of Level " + std::to_string(lmi.Level)
+                                            + " for sequence \"" + this->context->format_sequence(lmi.Word)
+                                            + "\" not yet been generated.");
+        }
+
+        return dynamic_cast<const class LocalizingMatrix&>(*matrices[momentMatrixIndices[index]]);
+    }
+
+    LocalizingMatrix& MatrixSystem::CreateLocalizingMatrix(LocalizingMatrixIndex lmi) {
+        // Call for write lock...
+        std::unique_lock lock{this->rwMutex};
+
+        // First, try read...
+        ptrdiff_t index = this->localizingMatrixIndex(lmi);
+        if (index >= 0) {
+            return dynamic_cast<class LocalizingMatrix&>(*matrices[momentMatrixIndices[index]]);
+        }
+
+        // Otherwise,generate new localizing matrix, and insert index
+        auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
+        this->matrices.emplace_back(std::make_unique<class LocalizingMatrix>(*this->context, *this->symbol_table, lmi));
+        this->localizingMatrixIndices.emplace(std::make_pair(lmi, matrixIndex));
+
+        // Return (reference to) matrix just added
+        return dynamic_cast<class LocalizingMatrix&>(*this->matrices.back());
+
+    }
+
     const ExplicitSymbolIndex& MatrixSystem::ExplicitSymbolTable() const {
         if (!this->context->admits_cg_form()) {
             throw errors::missing_component("ExplicitSymbolTable indexing not possible for this scenario.");
@@ -146,6 +189,7 @@ namespace NPATK {
         }
         return *this->collinsGisin;
     }
+
 
 
 }

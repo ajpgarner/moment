@@ -16,6 +16,9 @@
 
 
 #include <memory>
+#include <cassert>
+#include <map>
+#include <span>
 
 namespace NPATK {
 
@@ -23,6 +26,7 @@ namespace NPATK {
     class SymbolMatrixProperties;
 
     class OperatorMatrix {
+
     public:
         class SymbolMatrixView {
         private:
@@ -85,6 +89,7 @@ namespace NPATK {
         /** Defining scenario for matrix (especially: rules for simplifying operator sequences). */
         const Context& context;
 
+
     protected:
         /* Look-up key for symbols */
         SymbolTable& symbol_table;
@@ -92,15 +97,20 @@ namespace NPATK {
         /** Square matrix size */
         size_t dimension = 0;
 
+        /** True, if Hermitian */
+        bool is_hermitian = false;
+
         /** Matrix, as operator sequences */
         std::unique_ptr<SquareMatrix<OperatorSequence>> op_seq_matrix;
+
+        /** Matrix, as hashes */
+        std::unique_ptr<SquareMatrix<size_t>> hash_matrix;
 
         /** Matrix, as symbolic expression */
         std::unique_ptr<SquareMatrix<SymbolExpression>> sym_exp_matrix;
 
         /** Symbol matrix properties (basis size, etc.) */
         std::unique_ptr<SymbolMatrixProperties> sym_mat_prop;
-
 
     public:
         /**
@@ -119,15 +129,16 @@ namespace NPATK {
         SequenceMatrixView SequenceMatrix;
 
     public:
-        explicit OperatorMatrix(const Context& context, SymbolTable& symbols) :
-            context{context}, symbol_table{symbols}, Symbols{symbols},
-            SymbolMatrix{*this}, SequenceMatrix{*this} { }
+        explicit OperatorMatrix(const Context& context, SymbolTable& symbols,
+                                std::unique_ptr<SquareMatrix<OperatorSequence>> op_seq_mat);
 
         OperatorMatrix(OperatorMatrix&& rhs) noexcept
-            : context{rhs.context}, symbol_table{rhs.symbol_table}, dimension{rhs.dimension},
-            op_seq_matrix{std::move(rhs.op_seq_matrix)}, sym_exp_matrix{std::move(rhs.sym_exp_matrix)},
-            sym_mat_prop{std::move(rhs.sym_mat_prop)}, Symbols{rhs.Symbols},
-            SymbolMatrix{*this}, SequenceMatrix{*this} { }
+            : context{rhs.context}, symbol_table{rhs.symbol_table},
+            dimension{rhs.dimension}, is_hermitian{rhs.is_hermitian},
+            op_seq_matrix{std::move(rhs.op_seq_matrix)},
+            sym_exp_matrix{std::move(rhs.sym_exp_matrix)},
+            sym_mat_prop{std::move(rhs.sym_mat_prop)},
+            Symbols{rhs.Symbols}, SymbolMatrix{*this}, SequenceMatrix{*this} { }
 
         virtual ~OperatorMatrix() noexcept;
 
@@ -135,11 +146,26 @@ namespace NPATK {
             return this->dimension;
         }
 
+        [[nodiscard]] constexpr bool IsHermitian() const noexcept {
+            return this->is_hermitian;
+        }
+
         [[nodiscard]] const SymbolMatrixProperties& SMP() const noexcept {
             assert(this->sym_mat_prop);
             return *this->sym_mat_prop;
         }
 
+
+    private:
+        std::set<symbol_name_t> integrateSymbols();
+
+        std::vector<UniqueSequence> identifyUniqueSequences();
+        std::vector<UniqueSequence> identifyUniqueSequencesHermitian();
+        std::vector<UniqueSequence> identifyUniqueSequencesGeneric();
+
+        std::unique_ptr<SquareMatrix<SymbolExpression>> buildSymbolMatrix();
+        std::unique_ptr<SquareMatrix<SymbolExpression>> buildSymbolMatrixHermitian();
+        std::unique_ptr<SquareMatrix<SymbolExpression>> buildSymbolMatrixGeneric();
 
     };
 }

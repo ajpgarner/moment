@@ -10,11 +10,14 @@
 #include <cassert>
 
 #include <atomic>
+#include <map>
 #include <memory>
-#include <vector>
 #include <mutex>
 #include <shared_mutex>
 #include <stdexcept>
+#include <vector>
+
+#include "localizing_matrix_index.h"
 
 namespace NPATK {
 
@@ -24,6 +27,7 @@ namespace NPATK {
     class ImplicitSymbols;
     class CollinsGisin;
     class OperatorMatrix;
+    class LocalizingMatrix;
     class MomentMatrix;
 
     namespace errors {
@@ -42,6 +46,8 @@ namespace NPATK {
         std::vector<std::unique_ptr<OperatorMatrix>> matrices;
 
         std::vector<ptrdiff_t> momentMatrixIndices;
+
+        std::map<LocalizingMatrixIndex, ptrdiff_t> localizingMatrixIndices;
 
         /** Map of measurement outcome symbols */
         std::unique_ptr<ExplicitSymbolIndex> explicitSymbols;
@@ -90,29 +96,55 @@ namespace NPATK {
         [[nodiscard]] size_t MaxRealSequenceLength() const noexcept;
 
         /**
-         * Check if a MomentMatrix has been generated for a particular hierarchy level.
+         * Check if a MomentMatrix has been generated for a particular hierarchy Level.
          * For thread safety, call for a read lock first.
          * @param level The hierarchy depth.
-         * @return True, if MomentMatrix exists for particular level.
+         * @return True, if MomentMatrix exists for particular Level.
          */
         [[nodiscard]] bool hasMomentMatrix(size_t level) const noexcept;
 
         /**
-         * Returns the MomentMatrix for a particular hierarchy level.
+         * Returns the MomentMatrix for a particular hierarchy Level.
          * For thread safety, call for a read lock first.
          * @param level The hierarchy depth.
-         * @return The MomentMatrix for this particular level.
+         * @return The MomentMatrix for this particular Level.
          * @throws errors::missing_compoment if not generated.
          */
         [[nodiscard]] const class MomentMatrix& MomentMatrix(size_t level) const;
 
         /**
-         * Constructs a moment matrix for a particular level, or returns pre-existing one.
+         * Constructs a moment matrix for a particular Level, or returns pre-existing one.
          * Will lock until all read locks have expired - so do NOT first call for a read lock...!
          * @param level The hierarchy depth.
-         * @return The MomentMatrix for this particular level.
+         * @return The MomentMatrix for this particular Level.
          */
         class MomentMatrix& CreateMomentMatrix(size_t level);
+
+        /**
+         * Check if a localizing matrix has been generated for a particular sequence and hierarchy Level.
+         * For thread safety, call for a read lock first.
+         * @param lmi The hierarchy Level and word that describes the localizing matrix.
+         * @return The numerical index within this matrix system, or -1 if not found.
+         */
+        [[nodiscard]] ptrdiff_t localizingMatrixIndex(const LocalizingMatrixIndex& lmi) const noexcept;
+
+        /**
+         * Gets the localizing matrix for a particular sequence and hierarchy Level.
+         * For thread safety, call for a read lock first.
+         * @param lmi The hierarchy Level and word that describes the localizing matrix.
+         * @return The MomentMatrix for this particular Level.
+         * @throws errors::missing_compoment if not generated.
+         */
+        [[nodiscard]] const class LocalizingMatrix& LocalizingMatrix(const LocalizingMatrixIndex& lmi) const;
+
+        /**
+         * Constructs a localizing matrix for a particular Level on a particular word, or returns a pre-existing one.
+         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
+         * @param level The hierarchy depth.
+         * @param word The word
+         * @return The LocalizingMatrix
+         */
+        class LocalizingMatrix& CreateLocalizingMatrix(LocalizingMatrixIndex lmi);
 
         /**
          * Returns the symbol table.

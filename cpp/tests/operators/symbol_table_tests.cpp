@@ -82,21 +82,21 @@ namespace NPATK::Tests {
                   SymbolExpression(16));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[0], a[0]}, &context)),
                   SymbolExpression(16, true));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[1], a[0]}, &context)),
-                  SymbolExpression(17));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[1], a[1]} , &context)),
-                  SymbolExpression(18));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[1], a[0]} , &context)),
-                  SymbolExpression(18, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[0], a[1]} , &context)),
-                  SymbolExpression(19));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[1], a[0]} , &context)),
-                  SymbolExpression(20));
+                  SymbolExpression(17));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[0], a[1]} , &context)),
-                  SymbolExpression(20, true));
+                  SymbolExpression(18));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[1], a[0]} , &context)),
+                  SymbolExpression(18, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[1], a[1]} , &context)),
-                  SymbolExpression(21));
+                  SymbolExpression(19));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[0], a[1]} , &context)),
+                  SymbolExpression(19, true));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[1], a[0]}, &context)),
+                  SymbolExpression(20));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[1], a[1]} , &context)),
+                  SymbolExpression(21));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[1], a[0]} , &context)),
                   SymbolExpression(21, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[1], a[1]} , &context)),
                   SymbolExpression(22));
