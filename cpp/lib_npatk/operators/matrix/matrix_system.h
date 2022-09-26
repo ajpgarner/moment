@@ -56,7 +56,7 @@ namespace NPATK {
         std::unique_ptr<ImplicitSymbols> implicitSymbols;
 
         /** Map of outcome symbols, by Collins Gisin index */
-        std::unique_ptr<CollinsGisin> collinsGisin;
+        std::unique_ptr<class CollinsGisin> collinsGisin;
 
         /** Read-write mutex for matrices */
         mutable std::shared_mutex rwMutex;
@@ -118,7 +118,7 @@ namespace NPATK {
          * @param level The hierarchy depth.
          * @return The MomentMatrix for this particular Level.
          */
-        class MomentMatrix& CreateMomentMatrix(size_t level);
+        class NPATK::MomentMatrix& CreateMomentMatrix(size_t level);
 
         /**
          * Check if a localizing matrix has been generated for a particular sequence and hierarchy Level.
@@ -166,7 +166,7 @@ namespace NPATK {
          * Returns an indexing in the Collins-Gisin ordering.
          * @throws errors::missing_compoment if not generated.
          */
-        [[nodiscard]] const CollinsGisin& CollinsGisin() const;
+        [[nodiscard]] const class CollinsGisin& CollinsGisin() const;
 
         /**
          * Returns an indexing of real-valued symbols that correspond to explicit operators/operator sequences within

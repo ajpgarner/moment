@@ -7,6 +7,7 @@
 #include "symbolic/symbol.h"
 #include "symbolic/linear_combo.h"
 
+#include "context.h"
 #include "measurement.h"
 #include "joint_measurement_index.h"
 

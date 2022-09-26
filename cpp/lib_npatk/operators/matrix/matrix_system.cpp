@@ -179,7 +179,7 @@ namespace NPATK {
         return *this->implicitSymbols;
     }
 
-    const CollinsGisin& MatrixSystem::CollinsGisin() const {
+    const class CollinsGisin& MatrixSystem::CollinsGisin() const {
         if (!this->context->admits_cg_form()) {
             throw errors::missing_component("Implicit symbols cannot be generated for this scenario.");
         }
