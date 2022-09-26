@@ -36,5 +36,11 @@ classdef VersionTest < NPATKTestBase
                                            'cake', 1), ...
                                            'npatk:mutex_param');
         end
+        
+        function Error_Mutex3(testCase)
+            testCase.verifyError(@() npatk('version', 'alice', ...
+                                           'bob'), ...
+                                           'npatk:mutex_param');
+        end
     end
 end

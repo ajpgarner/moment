@@ -38,6 +38,11 @@ namespace NPATK::mex {
         void add_mutex(const ParamNameStr& str_a, const ParamNameStr& str_b);
 
         /**
+         * Register a set of parameters as mutually exclusive
+         */
+        void add_mutex(std::initializer_list<ParamNameStr>&& list);
+
+        /**
          * Detects if a set of flags and parameters violates any mutual exclusions.
          * @param flags The set of flags
          * @param params The set of named parameters

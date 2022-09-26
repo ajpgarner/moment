@@ -32,13 +32,8 @@ namespace NPATK::mex::functions {
         this->param_names.emplace(u"reference_id");
         this->param_names.emplace(u"level");
 
-        // One of four ways to output:
-        this->mutex_params.add_mutex(u"reference", u"sequences");
-        this->mutex_params.add_mutex(u"reference", u"symbols");
-        this->mutex_params.add_mutex(u"reference", u"dimension");
-        this->mutex_params.add_mutex(u"sequences", u"symbols");
-        this->mutex_params.add_mutex(u"sequences", u"dimension");
-        this->mutex_params.add_mutex(u"symbols", u"dimension");
+        // One of three ways to output:
+        this->mutex_params.add_mutex({u"sequences", u"symbols", u"dimension"});
 
         // Either [ref, level] or named version thereof.
         this->min_inputs = 0;

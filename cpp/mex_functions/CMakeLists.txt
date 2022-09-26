@@ -31,14 +31,14 @@ matlab_add_mex(NAME npatk_mex
             matlab_classes/moment_matrix.cpp
             matlab_classes/scenario.cpp
             functions/alphabetic_name.cpp
-        functions/collins_gisin.cpp
+            functions/collins_gisin.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
-        functions/symbol_table.cpp
+            functions/symbol_table.cpp
             functions/probability_table.cpp
             functions/make_hermitian.cpp
-        functions/new_matrix_system.cpp
-        functions/moment_matrix.cpp
+            functions/new_matrix_system.cpp
+            functions/moment_matrix.cpp
             functions/make_symmetric.cpp
             functions/release.cpp
             functions/version.cpp

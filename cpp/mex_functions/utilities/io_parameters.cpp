@@ -108,6 +108,26 @@ namespace NPATK::mex {
         return {};
     }
 
+    void MutuallyExclusiveParams::add_mutex(std::initializer_list<ParamNameStr> &&list) {
+        // Do nothing, if not at least two in list
+        if (list.size() < 2) {
+            return;
+        }
+
+        // Triangle-iteration, registering every pair
+        auto firstIter = list.begin();
+        while (firstIter != list.end()) {
+            auto secondIter = firstIter;
+            ++secondIter;
+            while (secondIter != list.end()) {
+                this->add_mutex(*firstIter, *secondIter);
+                ++secondIter;
+            }
+            ++firstIter;
+        }
+    }
+
+
     matlab::data::Array& SortedInputs::find_or_throw(const ParamNameStr& paramName) {
         auto param_iter = this->params.find(paramName);
         if (param_iter == this->params.end()) {

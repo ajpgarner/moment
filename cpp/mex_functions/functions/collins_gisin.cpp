@@ -127,9 +127,8 @@ namespace NPATK::mex::functions  {
         this->flag_names.emplace(u"basis");
         this->flag_names.emplace(u"symbols");
         this->flag_names.emplace(u"sequences");
-        this->mutex_params.add_mutex(u"basis", u"symbols");
-        this->mutex_params.add_mutex(u"basis", u"sequences");
-        this->mutex_params.add_mutex(u"symbols", u"sequences");
+
+        this->mutex_params.add_mutex({u"basis", u"symbols", u"sequences"});
 
         this->min_outputs = 1;
         this->max_outputs = 1;
