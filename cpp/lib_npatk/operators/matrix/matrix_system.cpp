@@ -11,7 +11,7 @@
 #include "moment_matrix.h"
 
 #include "../context.h"
-#include "../explicit_symbol.h"
+#include "../explicit_symbols.h"
 #include "../implicit_symbols.h"
 #include "../collins_gisin.h"
 

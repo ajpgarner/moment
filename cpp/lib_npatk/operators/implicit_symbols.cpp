@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "context.h"
-#include "explicit_symbol.h"
+#include "explicit_symbols.h"
 #include "implicit_symbols.h"
 #include "matrix/matrix_system.h"
 #include "matrix/symbol_table.h"

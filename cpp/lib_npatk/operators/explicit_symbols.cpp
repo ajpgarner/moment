@@ -4,7 +4,8 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 
-#include "explicit_symbol.h"
+#include "explicit_symbols.h"
+
 #include "context.h"
 #include "joint_measurement_iterator.h"
 #include "matrix/matrix_system.h"
