@@ -43,7 +43,7 @@ classdef FullCorrelator < handle
             global_v = double.empty(1,0);
             
             for index = 1:elems
-                indices = Util.index_to_sub(obj.Shape, index) - 1;
+                indices = Util.index_to_sub(obj.Shape, uint64(index)) - 1;
                 thing = obj.at(indices);
                 [~, coefs_j, coefs_val] = find(thing.Coefficients);
                 global_i = horzcat(global_i, ...

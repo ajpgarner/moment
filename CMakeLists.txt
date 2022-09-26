@@ -1,13 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12.0)
-        if (NOT exists "/usr/bin/g++-12")
-            message(FATAL_ERROR "This library can only be compiled with GCC version 12.0 or newer.")
-        else()
-            set(CMAKE_CXX_COMPILER "/usr/bin/g++-12")
-        endif()
-    endif()
+if (UNIX)
+    set(CMAKE_CXX_COMPILER "/usr/bin/g++-12")
 endif()
 
 project(NPAToolKit)

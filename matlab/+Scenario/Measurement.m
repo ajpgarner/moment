@@ -36,7 +36,7 @@ classdef Measurement < handle & RealObject
             obj.joint_mmts = struct('indices', {}, 'mmt', {});
             
             % Check values, set default values
-            if isempty(values)
+            if nargin <= 5
                 if num_outcomes == 2
                     values = [+1, -1];
                 else
