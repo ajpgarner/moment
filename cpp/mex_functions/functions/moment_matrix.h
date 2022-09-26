@@ -6,7 +6,6 @@
 #pragma once
 
 #include "mex_function.h"
-#include "matlab_classes/scenario.h"
 
 namespace NPATK {
     class Context;

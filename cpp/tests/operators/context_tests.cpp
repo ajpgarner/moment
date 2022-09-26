@@ -192,7 +192,7 @@ namespace NPATK::Tests {
 
 
     TEST(Context, Hash) {
-        Context context({2, 2});
+        Context context(Party::MakeList({2, 2}));
         ASSERT_EQ(context.size(), 4);
         ASSERT_EQ(context.Parties.size(), 2);
         auto& alice = context.Parties[0];
@@ -237,7 +237,7 @@ namespace NPATK::Tests {
     }
 
     TEST(Context, Hash_Zero) {
-        Context context({2, 2});
+        Context context(Party::MakeList({2, 2}));
         OperatorSequence zero{OperatorSequence::Zero(&context)};
         ASSERT_TRUE(zero.zero());
 
@@ -246,7 +246,7 @@ namespace NPATK::Tests {
     }
 
     TEST(Context, Hash_Identity) {
-        Context context({2, 2});
+        Context context(Party::MakeList({2, 2}));
         OperatorSequence identity{OperatorSequence::Identity(&context)};
         ASSERT_FALSE(identity.zero());
 

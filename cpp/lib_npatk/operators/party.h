@@ -130,16 +130,19 @@ namespace NPATK {
 
         [[nodiscard]] constexpr bool empty() const noexcept { return this->operators.empty(); }
 
+        static std::vector<Party> MakeList(party_name_t num_parties, oper_name_t opers_per_party,
+                                           Operator::Flags default_flags = Operator::Flags::None);
+
         static std::vector<Party> MakeList(party_name_t num_parties,
                                            oper_name_t mmts_per_party,
                                            oper_name_t outcomes_per_mmt,
                                            bool projective = true);
 
-        static std::vector<Party> MakeList(party_name_t num_parties, oper_name_t opers_per_party,
+        static std::vector<Party> MakeList(const std::vector<size_t>& operators_per_party_list,
                                            Operator::Flags default_flags = Operator::Flags::None);
 
-        static std::vector<Party> MakeList(std::initializer_list<oper_name_t> operators_per_party_list,
-                                           Operator::Flags default_flags = Operator::Flags::None);
+        static std::vector<Party> MakeList(const std::vector<size_t>& mmts_per_party,
+                                           const std::vector<size_t>& outcomes_per_mmt);
 
         friend std::ostream& operator<< (std::ostream& os, const Party& the_party);
 

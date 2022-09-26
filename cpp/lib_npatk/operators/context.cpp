@@ -1,5 +1,5 @@
 /**
- * operator_collection.cpp
+ * context.cpp
  *
  * Copyright (c) 2022 Austrian Academy of Sciences
  */

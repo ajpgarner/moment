@@ -11,7 +11,6 @@
 
 namespace NPATK::mex {
 
-
     namespace {
         template<typename output_type>
         class IntReaderVisitor {
@@ -103,8 +102,6 @@ namespace NPATK::mex {
                 throw_error(engine, e.errCode, e.what());
             }
         }
-
-
     }
 
 

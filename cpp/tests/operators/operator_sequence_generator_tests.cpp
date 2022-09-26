@@ -30,13 +30,13 @@ namespace NPATK::Tests {
 
 
     TEST(OperatorSequenceGenerator, Empty) {
-        Context collection{2, 2};
+        Context collection{Party::MakeList({2, 2})};
         OperatorSequenceGenerator osg{collection, 0};
         compare_sequences(osg, {OperatorSequence::Identity(&collection)});
     }
 
     TEST(OperatorSequenceGenerator, OneParty3Symbols1Length) {
-        Context collection{3};
+        Context collection{Party::MakeList({3})};
         ASSERT_EQ(collection.Parties.size(), 1);
         const auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 3);
@@ -50,7 +50,7 @@ namespace NPATK::Tests {
 
 
     TEST(OperatorSequenceGenerator, TwoParty2Symbols2Length) {
-        Context collection{2, 2};
+        Context collection{Party::MakeList({2, 2})};
         ASSERT_EQ(collection.Parties.size(), 2);
         const auto& alice = collection.Parties[0];
         const auto& bob = collection.Parties[1];
@@ -141,7 +141,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequenceGenerator, Conjugate_1Party2Symbols2Length) {
-        Context collection{2};
+        Context collection{Party::MakeList({2})};
         ASSERT_EQ(collection.Parties.size(), 1);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 2);
@@ -167,7 +167,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequenceGenerator, Conjugate_2Party1Symbols2Length) {
-        Context collection{1, 1};
+        Context collection{Party::MakeList({1, 1})};
         ASSERT_EQ(collection.Parties.size(), 2);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 1);

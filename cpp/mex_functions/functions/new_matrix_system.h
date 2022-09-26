@@ -6,7 +6,8 @@
 #pragma once
 
 #include "mex_function.h"
-#include "matlab_classes/scenario.h"
+
+#include "operators/operator.h"
 
 namespace NPATK {
     class Context;
@@ -16,34 +17,32 @@ namespace NPATK::mex::functions {
 
     struct NewMatrixSystemParams : public SortedInputs {
     public:
-        unsigned long number_of_parties = 0;
+        size_t number_of_parties = 1;
 
-        enum class SpecificationMode {
-            Unknown = 0,
-            FlatNoMeasurements,
-            FlatWithMeasurements,
-            FromSettingObject
-        } specification_mode = SpecificationMode::Unknown;
+        bool has_measurements = false;
 
-        unsigned long flat_mmts_per_party = 0;
-        unsigned long flat_outcomes_per_mmt = 0;
-        unsigned long flat_operators_per_party = 0;
+        std::vector<size_t> mmts_per_party;
+        size_t total_measurements = 0;
 
-        std::unique_ptr<classes::Scenario> settingPtr;
+        std::vector<size_t> outcomes_per_mmt;
+        std::vector<size_t> loose_opers_per_party;
 
     public:
         explicit NewMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs);
 
-        friend class NewMatrixSystem;
-
-        [[nodiscard]] std::string to_string() const override;
-
     private:
-        void getFlatFromParams(matlab::engine::MATLABEngine &matlabEngine);
+        void getFromParams(matlab::engine::MATLABEngine &matlabEngine);
 
-        void getFlatFromInputs(matlab::engine::MATLABEngine &matlabEngine);
+        void getFromInputs(matlab::engine::MATLABEngine &matlabEngine);
 
-        void getSettingObject(matlab::engine::MATLABEngine &matlabEngine, matlab::data::Array &input);
+        void readMeasurementSpecification(matlab::engine::MATLABEngine &matlabEngine,
+                                          matlab::data::Array& input, const std::string& paramName);
+
+        void readOutcomeSpecification(matlab::engine::MATLABEngine &matlabEngine,
+                                      matlab::data::Array& input, const std::string& paramName);
+
+        void readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
+                                       matlab::data::Array& input, const std::string& paramName);
     };
 
 
@@ -56,5 +55,7 @@ namespace NPATK::mex::functions {
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
     };
+
+
 
 }

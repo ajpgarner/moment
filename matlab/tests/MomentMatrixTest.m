@@ -57,26 +57,6 @@
                                                    'measurements', 2, ...
                                                    'outcomes', 2}, 1);
         end
-        
-                     
-        function CHSH_Level1Object(testCase) 
-            chsh_setting = Scenario(2);
-            chsh_setting.Parties(1).AddMeasurement(2);
-            chsh_setting.Parties(1).AddMeasurement(2);
-            chsh_setting.Parties(2).AddMeasurement(2);
-            chsh_setting.Parties(2).AddMeasurement(2);
-            testCase.CHSH.CallAndVerify(testCase, {chsh_setting}, 1);
-        end
-                   
-        function CHSH_Level1ObjectParams(testCase) 
-            chsh_setting = Scenario(2);
-            chsh_setting.Parties(1).AddMeasurement(2);
-            chsh_setting.Parties(1).AddMeasurement(2);
-            chsh_setting.Parties(2).AddMeasurement(2);
-            chsh_setting.Parties(2).AddMeasurement(2);
-            testCase.CHSH.CallAndVerify(testCase, ...
-                                        {'setting', chsh_setting}, 1);
-        end
     end
     
     methods (Test, TestTags={'Error'})

@@ -24,12 +24,10 @@ matlab_add_mex(NAME npatk_mex
             utilities/make_sparse_matrix.cpp
             utilities/read_as_scalar.cpp
             utilities/read_as_string.cpp
+            utilities/read_as_vector.cpp
             utilities/reflection.cpp
             utilities/reporting.cpp
             matlab_classes/matlab_class.cpp
-            matlab_classes/matrix_system.cpp
-            matlab_classes/moment_matrix.cpp
-            matlab_classes/scenario.cpp
             functions/alphabetic_name.cpp
             functions/collins_gisin.cpp
             functions/function_list.cpp

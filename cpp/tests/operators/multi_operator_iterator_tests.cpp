@@ -11,7 +11,7 @@
 namespace NPATK::Tests {
 
     TEST(MultiOperatorIterator, Construct_NoLength) {
-        Context collection{2, 2};
+        Context collection{Party::MakeList({2, 2})};
 
         detail::MultiOperatorIterator iter{collection, 0};
         EXPECT_EQ(iter, iter);
@@ -19,7 +19,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MultiOperatorIterator, Construct_LengthOne2x2) {
-        Context collection{2, 2};
+        Context collection{Party::MakeList({2, 2})};
 
         detail::MultiOperatorIterator iter{collection, 1};
         auto iter_end = detail::MultiOperatorIterator::end_of(collection, 1);
@@ -61,7 +61,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MultiOperatorIterator, Construct_LengthTwo) {
-        Context collection{2};
+        Context collection{Party::MakeList({2})};
 
         detail::MultiOperatorIterator iter{collection, 2};
         auto iter_end = detail::MultiOperatorIterator::end_of(collection, 2);
@@ -107,7 +107,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MultiOperatorIterator, Construct_LengthFour) {
-        Context collection{2, 2};
+        Context collection{Party::MakeList({2, 2})};
 
         detail::MultiOperatorIterator iter{collection, 4};
         auto iter_end = detail::MultiOperatorIterator::end_of(collection, 4);
@@ -124,7 +124,7 @@ namespace NPATK::Tests {
 
 
     TEST(MultiOperatorIterator, RangeTest) {
-        Context collection{4};
+        Context collection{Party::MakeList({4})};
         ASSERT_EQ(collection.Parties.size(), 1);
         const auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 4);

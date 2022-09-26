@@ -18,15 +18,17 @@ classdef MatrixSystem < handle
     methods
         %% Constructor
         function obj = MatrixSystem(settingParams)
-            
             % Check if settingsParams is Scenario, or cell array, then call
             % make_matrix_system to load setting into C++ code.
             if isa(settingParams, 'cell')
                 % Unpack cell into arguments
                 obj.RefId = npatk('new_matrix_system', settingParams{:});
             elseif isa(settingParams, 'Scenario')
-                % Supply setting object directly
-                obj.RefId = npatk('new_matrix_system', settingParams);
+                % Unpack setting into arrays
+                obj.RefId = npatk('new_matrix_system', ...
+                                  length(settingParams.Parties), ...
+                                  settingParams.MeasurementsPerParty, ...
+                                  settingParams.OutcomesPerMeasurement);
             else
                 error(['First argument must be either a Scenario ',...
                     'object, or a cell array of parameters.']);

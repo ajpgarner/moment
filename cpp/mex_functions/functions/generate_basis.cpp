@@ -14,8 +14,6 @@
 
 #include "operators/matrix/moment_matrix.h"
 
-#include "matlab_classes/moment_matrix.h"
-
 #include "fragments/enumerate_symbols.h"
 #include "fragments/export_operator_matrix.h"
 #include "fragments/identify_nonhermitian_elements.h"
@@ -31,7 +29,8 @@
 namespace NPATK::mex::functions {
     GenerateBasis::GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
         : MexFunction(matlabEngine, storage, MEXEntryPointID::GenerateBasis, u"generate_basis") {
-        this->min_inputs = this->max_inputs = 1;
+        this->min_inputs = 1;
+        this->max_inputs = 2;
         this->min_outputs = 1;
         this->max_outputs = 3;
 
@@ -52,32 +51,41 @@ namespace NPATK::mex::functions {
                                              NPATK::mex::SortedInputs &&structuredInputs)
         : SortedInputs(std::move(structuredInputs)) {
 
-        // Determine input type
-        switch(this->inputs[0].getType()) {
-            case matlab::data::ArrayType::SINGLE:
-            case matlab::data::ArrayType::DOUBLE:
-            case matlab::data::ArrayType::INT8:
-            case matlab::data::ArrayType::UINT8:
-            case matlab::data::ArrayType::INT16:
-            case matlab::data::ArrayType::UINT16:
-            case matlab::data::ArrayType::INT32:
-            case matlab::data::ArrayType::UINT32:
-            case matlab::data::ArrayType::INT64:
-            case matlab::data::ArrayType::UINT64:
-            case matlab::data::ArrayType::SPARSE_DOUBLE:
-                this->input_mode = InputMode::MATLABArray;
-                this->basis_type = MatrixType::Symmetric;
-                break;
-            case matlab::data::ArrayType::MATLAB_STRING:
-                this->input_mode = InputMode::MATLABArray;
-                this->basis_type = MatrixType::Hermitian;
-                break;
-            case matlab::data::ArrayType::HANDLE_OBJECT_REF:
-                this->input_mode = InputMode::MomentMatrixReference;
-                this->basis_type = MatrixType::Hermitian;
-                break;
-            default:
-                throw errors::BadInput{errors::bad_param, "Invalid matrix type."};
+        // First, have we specified a reference? If so...
+        if (this->inputs.size() == 2) {
+            this->input_mode = InputMode::MomentMatrixReference;
+            this->basis_type = MatrixType::Hermitian;
+
+            this->matrix_system_key = this->read_positive_integer(matlabEngine, "MatrixSystem reference",
+                                                                  this->inputs[0], 0);
+            this->moment_matrix_level = this->read_positive_integer(matlabEngine, "Hierarchy level",
+                                                                    this->inputs[1], 0);
+            this->sparse_output = false;
+        } else {
+            this->input_mode = InputMode::MATLABArray;
+
+            // Check input type, and determine if hermitian is supported...
+            switch (this->inputs[0].getType()) {
+                case matlab::data::ArrayType::SINGLE:
+                case matlab::data::ArrayType::DOUBLE:
+                case matlab::data::ArrayType::INT8:
+                case matlab::data::ArrayType::UINT8:
+                case matlab::data::ArrayType::INT16:
+                case matlab::data::ArrayType::UINT16:
+                case matlab::data::ArrayType::INT32:
+                case matlab::data::ArrayType::UINT32:
+                case matlab::data::ArrayType::INT64:
+                case matlab::data::ArrayType::UINT64:
+                case matlab::data::ArrayType::SPARSE_DOUBLE:
+                    this->basis_type = MatrixType::Symmetric;
+                    break;
+                case matlab::data::ArrayType::MATLAB_STRING:
+                    this->basis_type = MatrixType::Hermitian;
+                    break;
+                default:
+                    throw errors::BadInput{errors::bad_param, "Invalid matrix type."};
+            }
+            this->sparse_output = (inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE);
         }
 
         // Override basis type
@@ -115,18 +123,9 @@ namespace NPATK::mex::functions {
                     throw errors::BadInput{errors::bad_param, "Input must be a symmetric symbol matrix."};
                 }
             }
-        } else if (this->input_mode == InputMode::MomentMatrixReference) {
-            auto [mmClassPtr, fail] = read_as_moment_matrix(matlabEngine, inputs[0]); // Implicit copy...
-            if (!mmClassPtr) {
-                throw errors::BadInput{errors::bad_param, fail.value()};
-            }
-
-            this->matrix_system_key = mmClassPtr->SystemKey();
-            this->moment_matrix_level = mmClassPtr->Level();
         }
 
-        // Determine sparsity of output
-        this->sparse_output = (inputs[0].getType() == matlab::data::ArrayType::SPARSE_DOUBLE);
+        // Override sparsity of output
         if (flags.contains(u"sparse")) {
             this->sparse_output = true;
         } else if (flags.contains(u"dense")) {

@@ -477,7 +477,9 @@ classdef GenerateBasisTest < NPATKTestBase
          function Error_TooManyInputs(testCase)
             function many_in()             
                [~, ~] = npatk('generate_basis', 'symmetric', ...
-                              testCase.string_input, testCase.string_input);
+                              testCase.string_input, ...
+                              testCase.string_input, ...
+                              testCase.string_input);
             end
             testCase.verifyError(@() many_in(), 'npatk:too_many_inputs');           
         end   

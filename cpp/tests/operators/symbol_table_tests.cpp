@@ -15,7 +15,7 @@ namespace NPATK::Tests {
 
     TEST(SymbolTable, ToSymbol_1Party2Opers) {
         // One party, two symbols
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})};
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))};
         auto& context = system.Context();
         ASSERT_EQ(context.Parties.size(), 1);
         const auto& a = context.Parties[0];
@@ -104,7 +104,7 @@ namespace NPATK::Tests {
 
     TEST(SymbolTable, ToSymbol_2Party1Opers) {
         // Two parties, each with one operator
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1, 1})};
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1,1}))};
         auto& context = system.Context();
 
         ASSERT_EQ(context.Parties.size(), 2);
@@ -156,7 +156,7 @@ namespace NPATK::Tests {
 
     TEST(SymbolTable, Enumerate_1Party2Opers) {
         // One party, two symbols
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})};
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))};
         const auto& context = system.Context();
         const auto& symbols = system.Symbols();
         ASSERT_EQ(context.Parties.size(), 1);
@@ -182,7 +182,7 @@ namespace NPATK::Tests {
 
     TEST(SymbolTable, SMP_BasisKey) {
         // One party, two symbols
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})};
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))};
         const auto& context = system.Context();
         const auto& symbols = system.Symbols();
         ASSERT_EQ(context.Parties.size(), 1);

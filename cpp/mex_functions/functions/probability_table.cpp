@@ -7,7 +7,6 @@
 
 #include "storage_manager.h"
 
-#include "matlab_classes/moment_matrix.h"
 #include "operators/implicit_symbols.h"
 #include "operators/matrix/operator_matrix.h"
 #include "operators/matrix/moment_matrix.h"

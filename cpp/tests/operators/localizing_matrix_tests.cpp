@@ -14,7 +14,7 @@
 
 namespace NPATK::Tests {
     TEST(LocalizingMatrix, OpSeq_OneElem) {
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1})}; // One party, one symbol
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1}))}; // One party, one symbol
         auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 1);
@@ -55,7 +55,7 @@ namespace NPATK::Tests {
     }
 
     TEST(LocalizingMatrix, OpSeq_TwoElem) {
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
         auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 2);

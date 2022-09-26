@@ -36,7 +36,7 @@ namespace NPATK {
         }
     }
 
-    void Party::add_measurement(Measurement mmt, bool defer_recount ) {
+    void Party::add_measurement(Measurement mmt, bool defer_recount) {
         // Measurement must have one outcome
         assert(mmt.num_outcomes >= 1);
 
@@ -154,37 +154,6 @@ namespace NPATK {
     }
 
     std::vector<Party>
-    Party::MakeList(std::initializer_list<oper_name_t> operators_per_party_list, Operator::Flags default_flags) {
-        std::vector<Party> output;
-        output.reserve(operators_per_party_list.size());
-
-        size_t global_index = 0;
-        party_name_t p = 0;
-        for (auto count : operators_per_party_list) {
-            output.emplace_back(p, count, default_flags);
-            //output.back().global_operator_offset = global_index;
-
-            global_index += count;
-            ++p;
-        }
-        return output;
-    }
-
-    std::vector<Party>
-    Party::MakeList(party_name_t num_parties, oper_name_t opers_per_party, Operator::Flags default_flags) {
-        std::vector<Party> output;
-        output.reserve(num_parties);
-
-        size_t global_index = 0;
-        for (party_name_t p = 0; p < num_parties; ++p) {
-            output.emplace_back(p, opers_per_party, default_flags);
-            //output.back().global_operator_offset = global_index;
-            global_index += opers_per_party;
-        }
-        return output;
-    }
-
-    std::vector<Party>
     Party::MakeList(party_name_t num_parties, oper_name_t mmts_per_party, oper_name_t outcomes_per_mmt,
                     bool projective) {
         std::vector<Party> output;
@@ -193,17 +162,63 @@ namespace NPATK {
         AlphabeticNamer party_namer{true};
         AlphabeticNamer mmt_namer{false};
 
-        size_t global_index = 0;
         for (party_name_t p = 0; p < num_parties; ++p) {
             output.emplace_back(p, party_namer(p), 0);
             Party& lastParty = output.back();
-            //lastParty.global_operator_offset = global_index;
             for (oper_name_t o = 0; o < mmts_per_party; ++o) {
                 lastParty.add_measurement(Measurement(mmt_namer(o), outcomes_per_mmt, projective));
             }
-            global_index += (outcomes_per_mmt * mmts_per_party);
         }
         return output;
     }
 
+
+    std::vector<Party>
+    Party::MakeList(party_name_t num_parties, oper_name_t opers_per_party, Operator::Flags default_flags) {
+        std::vector<Party> output;
+        output.reserve(num_parties);
+
+        for (party_name_t p = 0; p < num_parties; ++p) {
+            output.emplace_back(p, opers_per_party, default_flags);
+        }
+        return output;
+    }
+
+    std::vector<Party>
+    Party::MakeList(const std::vector<size_t>& operators_per_party_list, Operator::Flags default_flags) {
+        std::vector<Party> output;
+        output.reserve(operators_per_party_list.size());
+
+        party_name_t p = 0;
+        for (auto count : operators_per_party_list) {
+            output.emplace_back(p, count, default_flags);
+            ++p;
+        }
+        return output;
+    }
+
+    std::vector<Party> Party::MakeList(const std::vector<size_t>& mmts_per_party,
+                                       const std::vector<size_t>& outcomes_per_mmt) {
+        const auto num_parties = static_cast<party_name_t>(mmts_per_party.size());
+        std::vector<Party> output;
+        output.reserve(num_parties);
+
+        AlphabeticNamer party_namer{true};
+        AlphabeticNamer mmt_namer{false};
+
+        auto mmtCountIter = mmts_per_party.cbegin();
+        auto outcomePerMmtIter = outcomes_per_mmt.cbegin();
+
+        for (party_name_t p = 0; p < num_parties; ++p) {
+            output.emplace_back(p, party_namer(p), 0);
+            Party& lastParty = output.back();
+            auto num_mmts = *mmtCountIter;
+            for (oper_name_t o = 0; o < num_mmts; ++o) {
+                lastParty.add_measurement(Measurement(mmt_namer(o), *outcomePerMmtIter, true));
+                ++outcomePerMmtIter;
+            }
+            ++mmtCountIter;
+        }
+        return output;
+    }
 }

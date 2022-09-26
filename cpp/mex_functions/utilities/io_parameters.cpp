@@ -5,6 +5,7 @@
  */
 
 #include "utilities/read_as_scalar.h"
+#include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"
 #include "utilities/reflection.h"
 
@@ -166,6 +167,36 @@ namespace NPATK::mex {
         }
     }
 
+    std::vector<uint64_t>
+    SortedInputs::read_positive_integer_array(matlab::engine::MATLABEngine &matlabEngine, const std::string &paramName,
+                                              const matlab::data::Array &array, uint64_t min_value) {
+
+        if (!castable_to_vector_int(array)) {
+            std::stringstream ss;
+            ss << paramName << " should be a vector of positive integers.";
+            throw errors::BadInput{errors::bad_param, ss.str()};
+        }
+
+        try {
+            auto vec = read_as_uint64_vector(matlabEngine, array);
+            for (const auto& val : vec) {
+                if (val < min_value) {
+                    std::stringstream ss;
+                    ss << "All elements of " << paramName << " must have a value of at least "
+                       << min_value << ".";
+                    throw errors::BadInput{errors::bad_param, ss.str()};
+                }
+            }
+
+            return vec;
+        } catch (const errors::unreadable_vector& use) {
+            std::stringstream ss;
+            ss << paramName << " could not be read: " << use.what();
+            throw errors::BadInput{use.errCode, ss.str()};
+        }
+    }
+
+
 
     uint64_t SortedInputs::read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
                                                  const std::string &paramName,
@@ -223,5 +254,7 @@ namespace NPATK::mex {
 
         return ss.str();
     }
+
+
 
 }

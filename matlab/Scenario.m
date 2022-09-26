@@ -7,6 +7,7 @@ classdef Scenario < handle
         Normalization
         MeasurementsPerParty
         OperatorsPerParty
+        OutcomesPerMeasurement
         HasMatrixSystem
     end
     
@@ -125,6 +126,18 @@ classdef Scenario < handle
             val = zeros(1, length(obj.Parties));
             for party_id = 1:length(obj.Parties)
                 val(party_id) = obj.Parties(party_id).TotalOperators;
+            end
+        end
+        
+        function val = get.OutcomesPerMeasurement(obj)
+            total_m = sum(obj.MeasurementsPerParty);
+            val = zeros(1, length(total_m));
+            index = 1;
+            for party = obj.Parties
+                for mmt = party.Measurements
+                    val(index) = length(mmt.Outcomes);
+                    index = index + 1;
+                end
             end
         end
         

@@ -15,26 +15,18 @@
 #include "utilities/io_parameters.h"
 #include "utilities/persistent_storage.h"
 
+#include <algorithm>
+#include <numeric>
+
 namespace NPATK::mex::functions {
     namespace {
         std::unique_ptr<Context> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                               const NewMatrixSystemParams &input) {
-            switch (input.specification_mode) {
-                case NewMatrixSystemParams::SpecificationMode::FlatNoMeasurements:
-                    return std::make_unique<Context>(Party::MakeList(input.number_of_parties,
-                                                                     input.flat_operators_per_party));
-                case NewMatrixSystemParams::SpecificationMode::FlatWithMeasurements:
-                    return std::make_unique<Context>(Party::MakeList(input.number_of_parties,
-                                                                     input.flat_mmts_per_party,
-                                                                     input.flat_outcomes_per_mmt));
-                case NewMatrixSystemParams::SpecificationMode::FromSettingObject:
-                    assert(input.settingPtr);
-                    return input.settingPtr->make_context();
-                default:
-                case NewMatrixSystemParams::SpecificationMode::Unknown:
-                    throw_error(matlabEngine, "not_implemented", "Unknown input format!");
+            if (input.has_measurements) {
+                return std::make_unique<Context>(Party::MakeList(input.mmts_per_party, input.outcomes_per_mmt));
+            } else {
+                return std::make_unique<Context>(Party::MakeList(input.loose_opers_per_party));
             }
-            assert(false);
         }
     }
 
@@ -57,37 +49,20 @@ namespace NPATK::mex::functions {
                                        "Input arguments should be exclusively named, or exclusively unnamed."};
             }
 
-            // Parse in setting supplied
-            if (setting_specified) {
-                this->getSettingObject(matlabEngine, this->params[u"setting"]);
-                return;
-            }
+            this->getFromParams(matlabEngine);
+        } else {
 
-            // Generate setting from flat parameters
-            if (set_any_flat_param) {
-                this->getFlatFromParams(matlabEngine);
-                return;
-            }
-            assert(false);
+            // No named parameters... try to interpret inputs as Settings object + depth
+            // Otherwise, try to interpret inputs as flat specification
+            this->getFromInputs(matlabEngine);
         }
-
-        // No named parameters... try to interpret inputs as Settings object + depth
-        if (this->inputs.size() == 1) {
-            if ((this->inputs[0].getType() == matlab::data::ArrayType::OBJECT)
-                || (this->inputs[0].getType() == matlab::data::ArrayType::HANDLE_OBJECT_REF)) {
-                this->getSettingObject(matlabEngine, this->inputs[0]);
-
-                return;
-            }
-        }
-
-        // Otherwise, try to interpret inputs as flat specification
-        this->getFlatFromInputs(matlabEngine);
-
     }
 
-    void NewMatrixSystemParams::getFlatFromParams(matlab::engine::MATLABEngine &matlabEngine) {
+
+
+    void NewMatrixSystemParams::getFromParams(matlab::engine::MATLABEngine &matlabEngine) {
         // Read and check number of parties, or default to 1
+        this->number_of_parties = 1;
         auto party_param = params.find(u"parties");
         if (party_param != params.end()) {
             bool has_opers = params.contains(u"operators");
@@ -96,54 +71,51 @@ namespace NPATK::mex::functions {
                 throw errors::BadInput{errors::missing_param,
                                        "If 'parties' is set, then one of 'operators' or 'measurements' must also be set."};
             }
-            number_of_parties = read_positive_integer(matlabEngine, "Parameter 'parties'",
+            this->number_of_parties = read_positive_integer(matlabEngine, "Parameter 'parties'",
                                                       party_param->second, 1);
-        } else {
-            number_of_parties = 1;
         }
 
         // Read and check measurements
+        this->mmts_per_party.reserve(number_of_parties);
+
         auto mmt_param = params.find(u"measurements");
+
         if (mmt_param != params.end()) {
-            specification_mode = SpecificationMode::FlatWithMeasurements;
-            flat_mmts_per_party = read_positive_integer(matlabEngine, "Parameter 'measurements'",
-                                                        mmt_param->second, 1);
+            this->has_measurements = true;
+            this->readMeasurementSpecification(matlabEngine, mmt_param->second, "Parameter 'measurements'");
         } else {
-            specification_mode = SpecificationMode::FlatNoMeasurements;
-            flat_mmts_per_party = 0;
+            this->has_measurements = false;
+            std::fill_n(std::back_inserter(this->mmts_per_party), number_of_parties, 0);
+            this->total_measurements = 0;
         }
 
-        // Number of operators must also always be specified
-        if (specification_mode == SpecificationMode::FlatWithMeasurements) {
+        if (this->has_measurements) {
             auto outcome_param = params.find(u"outcomes");
             if (outcome_param == params.end()) {
                 throw errors::BadInput{errors::missing_param,
                                        "Parameter 'outcomes' must be set, if 'measurements' is also set."};
             }
-            flat_outcomes_per_mmt = read_positive_integer(matlabEngine, "Parameter 'outcomes'",
-                                                          outcome_param->second, 1);
-        } else if (specification_mode == SpecificationMode::FlatNoMeasurements) {
+
+            this->readOutcomeSpecification(matlabEngine, outcome_param->second, "Parameter 'outcomes'");
+
+        } else { // No measurements, just a list of operators...
             auto oper_param = params.find(u"operators");
             if (oper_param == params.end()) {
                 throw errors::BadInput{errors::missing_param,
                                        "Parameter 'operators' must be set, if 'measurements' is not set."};
             }
-            if (!castable_to_scalar_int(oper_param->second)) {
-                throw errors::BadInput{errors::missing_param,
-                                       "Parameter 'operators' must be a positive scalar integer."};
-            }
-            flat_operators_per_party = read_positive_integer(matlabEngine, "Parameter 'operators'",
-                                                             oper_param->second, 1);
+
+            this->readOperatorSpecification(matlabEngine, oper_param->second, "Parameter 'operators'");
         }
     }
 
 
-    void NewMatrixSystemParams::getFlatFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
+    void NewMatrixSystemParams::getFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
         if (inputs.empty()) {
             std::string errStr{"Please supply either named inputs; or a list of integers in the"};
-            errStr += " form of [operators], ";
-            errStr += "[parties, operators per party], ";
-            errStr += "or [parties, measurements per party, outcomes per measurement].";
+            errStr += " form of \"operators\", ";
+            errStr += "\"parties, operators per party\", ";
+            errStr += "or \"parties, measurements per party, outcomes per measurement\".";
             throw errors::BadInput{errors::too_few_inputs, errStr};
         }
 
@@ -151,90 +123,94 @@ namespace NPATK::mex::functions {
         size_t operator_index = 0;
         if (inputs.size() == 1) {
             // Operator_index stays as 0: op
-            specification_mode = SpecificationMode::FlatNoMeasurements;
+            this->has_measurements = false;
         } else if (inputs.size() == 2) {
             operator_index = 1; // party, op
-            specification_mode = SpecificationMode::FlatNoMeasurements;
+            this->has_measurements = false;
         } else if (inputs.size() == 3) {
             operator_index = 2; // party, mmts, ops
-            specification_mode = SpecificationMode::FlatWithMeasurements;
+            this->has_measurements = true;
         }
 
         // Get number of parties...!
         if (inputs.size() >= 2) {
-            number_of_parties = read_positive_integer(matlabEngine, "Party count",
+            this->number_of_parties = read_positive_integer(matlabEngine, "Party count",
                                                       inputs[0], 1);
         } else {
-            number_of_parties = 1;
+            this->number_of_parties = 1;
         }
 
         // Read measurements (if any) and operator count
-        if (specification_mode == SpecificationMode::FlatWithMeasurements) {
-            flat_mmts_per_party =  read_positive_integer(matlabEngine, "Measurement count",
-                                                         inputs[1], 1);
-            flat_outcomes_per_mmt = read_positive_integer(matlabEngine, "Number of outcomes",
-                                                          inputs[operator_index], 1);
+        if (this->has_measurements) {
+            this->readMeasurementSpecification(matlabEngine, inputs[1], "Measurement count");
+            this->readOutcomeSpecification(matlabEngine, inputs[2], "Number of outcomes");
         } else {
-            flat_mmts_per_party = 0;
-            flat_operators_per_party = read_positive_integer(matlabEngine, "Number of operators",
-                                                             inputs[operator_index], 1);
+            std::fill_n(std::back_inserter(this->mmts_per_party), number_of_parties, 0);
+            this->total_measurements = 0;
+            this->readOperatorSpecification(matlabEngine, inputs[operator_index], "Number of operators");
         }
     }
 
+    void NewMatrixSystemParams::readMeasurementSpecification(matlab::engine::MATLABEngine &matlabEngine,
+                                                             matlab::data::Array &input,
+                                                             const std::string& paramName) {
 
-    void NewMatrixSystemParams::getSettingObject(matlab::engine::MATLABEngine &matlabEngine,
-                                                 matlab::data::Array &input) {
-        auto [readPtr, errMsg] = read_as_setting(matlabEngine, input); // <- deliberate implicit copy of input here...!
-        if (!readPtr) {
-            throw errors::BadInput(errors::bad_param,
-                                   std::string("Invalid setting: ") + errMsg.value());
+        const size_t num_elems = input.getNumberOfElements();
+        if (1 == num_elems) {
+            size_t flat_mmts_per_party = read_positive_integer(matlabEngine, paramName,
+                                                               input, 1);
+
+            std::fill_n(std::back_inserter(this->mmts_per_party), number_of_parties, flat_mmts_per_party);
+            this->total_measurements = this->number_of_parties * flat_mmts_per_party;
+        } else if (number_of_parties == num_elems) {
+            this->mmts_per_party = read_positive_integer_array(matlabEngine, paramName,
+                                                               input, 1);
+            this->total_measurements = std::accumulate(mmts_per_party.cbegin(), mmts_per_party.cend(),
+                                                       static_cast<uint64_t>(0));
         } else {
-            this->settingPtr = std::move(readPtr);
-            this->specification_mode = SpecificationMode::FromSettingObject;
+            throw errors::BadInput{errors::bad_param,
+                                   paramName + " should either be a scalar, or an array with one value per party."};
+        }
+
+    }
+
+    void NewMatrixSystemParams::readOutcomeSpecification(matlab::engine::MATLABEngine &matlabEngine,
+                                                         matlab::data::Array &input,
+                                                         const std::string& paramName) {
+
+        const size_t num_elems = input.getNumberOfElements();
+        if (1 == num_elems) {
+            size_t flat_outcomes_per_mmt = read_positive_integer(matlabEngine, paramName, input, 1);
+            std::fill_n(std::back_inserter(this->outcomes_per_mmt),
+                        this->total_measurements, flat_outcomes_per_mmt);
+
+        } else if (this->total_measurements == num_elems) {
+            this->outcomes_per_mmt = read_positive_integer_array(matlabEngine, paramName, input, 1);
+        } else {
+            throw errors::BadInput{errors::bad_param,
+               paramName + " should either be a scalar, or an array with one value per measurement."};
+        }
+
+    }
+    void NewMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
+                                                          matlab::data::Array &input,
+                                                          const std::string& paramName) {
+
+        const size_t num_elems = input.getNumberOfElements();
+        if (1 == num_elems) {
+            size_t flat_opers_per_party = read_positive_integer(matlabEngine, paramName, input, 1);
+            std::fill_n(std::back_inserter(this->loose_opers_per_party),
+                        this->number_of_parties, flat_opers_per_party);
+
+        } else if (this->number_of_parties == num_elems) {
+            this->loose_opers_per_party = read_positive_integer_array(matlabEngine, paramName, input, 1);
+
+        } else {
+            throw errors::BadInput{errors::bad_param,
+                                   paramName + " should either be a scalar, or an array with one value per party."};
         }
     }
 
-    std::string NewMatrixSystemParams::to_string() const {
-        std::stringstream ss;
-        switch (this->specification_mode) {
-            case SpecificationMode::FlatNoMeasurements:
-                ss << "Specified as parties with the same number of arbitrary operators.\n";
-                break;
-            case SpecificationMode::FlatWithMeasurements:
-                ss << "Specified as parties with the same number of measurements / outcomes.\n";
-                break;
-            case SpecificationMode::FromSettingObject:
-                ss << "Specified as a Scenario object.\n";
-                break;
-            default:
-            case SpecificationMode::Unknown:
-                ss << "Unknown specification mode.\n";
-                break;
-        }
-
-        switch (this->specification_mode) {
-            case SpecificationMode::FlatNoMeasurements:
-                ss << "Parties: " << this->number_of_parties << "\n";
-                ss << "Operators per party: " << this->flat_operators_per_party << "\n";
-                break;
-            case SpecificationMode::FlatWithMeasurements:
-                ss << "Parties: " << this->number_of_parties << "\n";
-                ss << "Measurements per party: " << this->flat_mmts_per_party << "\n";
-                ss << "Outcomes per measurement: " << this->flat_outcomes_per_mmt << "\n";
-                break;
-            case SpecificationMode::FromSettingObject:
-                if (this->settingPtr) {
-                    ss << "Pointer to Scenario object set.\n";
-                } else {
-                    ss << "Pointer to Scenario object not set!\n";
-                }
-                break;
-            default:
-            case SpecificationMode::Unknown:
-                break;
-        }
-        return ss.str();
-    }
 
     std::unique_ptr<SortedInputs>
     NewMatrixSystem::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
@@ -249,8 +225,6 @@ namespace NPATK::mex::functions {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
-        this->param_names.emplace(u"setting");
-
         this->param_names.emplace(u"parties");
         this->param_names.emplace(u"measurements");
         this->param_names.emplace(u"outcomes");
@@ -258,11 +232,6 @@ namespace NPATK::mex::functions {
 
         // One of three ways to input:
         this->mutex_params.add_mutex(u"outcomes", u"operators");
-
-        this->mutex_params.add_mutex(u"setting", u"parties");
-        this->mutex_params.add_mutex(u"setting", u"measurements");
-        this->mutex_params.add_mutex(u"setting", u"outcomes");
-        this->mutex_params.add_mutex(u"setting", u"operators");
 
         this->min_inputs = 0;
         this->max_inputs = 3;

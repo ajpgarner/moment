@@ -1,5 +1,5 @@
 /**
- * operator_collection.h
+ * context.h
  *
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
@@ -128,9 +128,6 @@ namespace NPATK {
         constexpr Context() : parties{}, Parties{*this} { }
 
         explicit Context(std::vector<Party>&& parties) noexcept;
-
-        Context(std::initializer_list<oper_name_t> opers_per_party) :
-            Context(Party::MakeList(opers_per_party)) { }
 
         /** Iterate over every operator in every party */
         [[nodiscard]] constexpr auto begin() const noexcept {

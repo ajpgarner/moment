@@ -122,7 +122,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, OpSeq_OneElem) {
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1})}; // One party, one symbol
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1}))}; // One party, one symbol
         auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 1);
@@ -158,7 +158,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, OpSeq_1Party2Opers) {
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
         auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 2);
@@ -243,7 +243,7 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, OpSeq_2Party1Opers) {
         // Two parties, each with one operator
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1, 1})};
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1, 1}))};
         auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 2);
@@ -481,7 +481,7 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Unique_OneElem) {
         // One party, one symbol
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1})};
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1}))};
         auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 1);
@@ -513,7 +513,7 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Unique_2Party1Opers) {
         // Two parties, each with one operator
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1, 1})};
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1, 1}))};
         auto& context = system.Context();
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
@@ -606,7 +606,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_1Party2Opers_L0) {
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))};  // One party, two symbols
         const auto &context = system.Context();
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
@@ -619,7 +619,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_1Party2Opers_L1) {
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
         const auto &context = system.Context();
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
@@ -641,7 +641,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_1Party2Opers_L2) {
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
         const auto &context = system.Context();
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
@@ -699,7 +699,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Where_1Party2Opers) {
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
         auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
@@ -728,7 +728,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Symbol_OneElem) {
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1})}; // One party, one symbol
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1}))}; // One party, one symbol
         auto& context = system.Context();
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
@@ -745,7 +745,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Symbol_1Party2Opers) {
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{2})}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
         auto& context = system.Context();
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
@@ -770,7 +770,7 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Symbol_2Party1Opers) {
         // Two parties, each with one operator
-        MatrixSystem system{std::make_unique<Context>(std::initializer_list<oper_name_t>{1, 1})}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1, 1}))}; // Two party, one operator each
         auto& context = system.Context();
 
         auto& matLevel0 = system.CreateMomentMatrix(0);

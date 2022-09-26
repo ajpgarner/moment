@@ -200,4 +200,23 @@ namespace NPATK::Tests {
         
     }
 
+
+
+    TEST(Party, MakeList_Vector23) {
+        auto party_list = Party::MakeList({2, 1}, {2, 3, 2});
+        ASSERT_EQ(party_list.size(), 2);
+        const auto& alice = party_list[0];
+        const auto& bob = party_list[1];
+
+        ASSERT_EQ(alice.size(), 3);
+        ASSERT_EQ(alice.Measurements.size(), 2);
+        EXPECT_EQ(alice[0].id, 0);
+        EXPECT_EQ(alice[1].id, 1);
+        EXPECT_EQ(alice[2].id, 2);
+
+        ASSERT_EQ(bob.size(), 1);
+        ASSERT_EQ(bob.Measurements.size(), 1);
+        EXPECT_EQ(bob[0].id, 0);
+    }
+
 }
