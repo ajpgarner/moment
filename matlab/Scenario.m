@@ -45,12 +45,16 @@ classdef Scenario < handle
                 initial_parties = uint64(0);
             else
                 if 1 == numel(argA)
-                    if (nargin >= 3)
+                    if (nargin == 1) || (nargin >= 3)
                         initial_parties = uint64(argA);
                     else
                         initial_parties = 1;
                     end
                 else
+                    if (nargin >=3)
+                        error("If three arguments are provided, number "...
+                            + "of parties should be a scalar.");
+                    end
                     initial_parties = uint64(length(argA));
                 end                
             end
