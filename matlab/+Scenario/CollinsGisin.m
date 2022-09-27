@@ -80,7 +80,7 @@ classdef CollinsGisin
             end
             
             real_coefs = sparse(sparse_i, sparse_j, sparse_val, ...
-                                1, obj.Scenario.GetMatrixSystem.RealVarCount);
+                                1, double(obj.Scenario.GetMatrixSystem.RealVarCount));
            
             val = RealObject(obj.Scenario, real_coefs);
         end

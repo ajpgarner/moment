@@ -4,7 +4,9 @@ function val = index_to_sub(sz, index)
         sz(1,:) uint64 {mustBePositive}
         index (1,1) uint64 {mustBePositive}
     end
-    
+
+    sz = uint64(sz);
+    index = uint64(index);    
     dimension = length(sz);
     if index > prod(sz)
         error("Index out of bounds");

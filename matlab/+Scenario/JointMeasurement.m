@@ -101,7 +101,7 @@ classdef JointMeasurement < handle & RealObject
             % Calculate product values
             obj.Values = zeros(obj.Shape);
             for vIndex = 1:prod(obj.Shape)
-                indices = Util.index_to_sub(obj.Shape, uint64(vIndex));
+                indices = Util.index_to_sub(obj.Shape, vIndex);
                 val = 1;
                 for i=1:length(indices)
                     val = val * obj.Marginals(i).Outcomes(indices(i)).Value;
@@ -117,7 +117,7 @@ classdef JointMeasurement < handle & RealObject
             coefs = zeros(size(obj.Scenario.Normalization.Coefficients));
             
             for index = 1:prod(obj.Shape)
-                oc_index = reshape(Util.index_to_sub(obj.Shape, uint64(index)), ...
+                oc_index = reshape(Util.index_to_sub(obj.Shape, index), ...
                                    [length(obj.Shape), 1]);
                 full_index = horzcat(obj.Indices, oc_index);
                 joint_outcome = obj.Scenario.get(full_index);

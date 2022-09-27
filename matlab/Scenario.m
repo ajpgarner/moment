@@ -107,7 +107,7 @@ classdef Scenario < handle
             end
             
             mm_out = MomentMatrix(obj.GetMatrixSystem(), depth);
-            if ~skip_bind
+            if nargin <= 2 || ~skip_bind
                 obj.do_bind(mm_out)
             end
         end

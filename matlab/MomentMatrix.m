@@ -192,7 +192,9 @@ classdef MomentMatrix < OperatorMatrix
             % Check if exporting real, or real & imaginary
             export_imaginary = ~isempty(im_name);
             if export_imaginary
-                mustBeValidVariableName(im_name);
+             	if ~isvarname(im_name)
+             		error("Invalid variable name.");
+             	end
             end
             
             % Propagate CVX problem

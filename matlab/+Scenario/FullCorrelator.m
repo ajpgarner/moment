@@ -38,16 +38,16 @@ classdef FullCorrelator < handle
             coefs = length(obj.Scenario.Normalization.Coefficients);
             elems = prod(obj.Shape);
             
-            global_i = uint64.empty(1,0);
-            global_j = uint64.empty(1,0);
+            global_i = double.empty(1,0);
+            global_j = double.empty(1,0);
             global_v = double.empty(1,0);
             
             for index = 1:elems
-                indices = Util.index_to_sub(obj.Shape, uint64(index)) - 1;
+                indices = Util.index_to_sub(obj.Shape, index) - 1;
                 thing = obj.at(indices);
                 [~, coefs_j, coefs_val] = find(thing.Coefficients);
                 global_i = horzcat(global_i, ...
-                                uint64(ones(1, length(coefs_j))*index));
+                                ones(1, length(coefs_j))*index);
                 global_j = horzcat(global_j, coefs_j);
                 global_v = horzcat(global_v, coefs_val);
                 
