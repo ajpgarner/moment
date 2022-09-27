@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 3.22)
+project(NPAToolKit)
 
 if (UNIX)
     set(CMAKE_CXX_COMPILER "/usr/bin/g++-12")
 endif()
-
-project(NPAToolKit)
 
 set(USE_CXX_EXCEPTIONS On)
 set(CMAKE_CXX_STANDARD 20)
@@ -18,7 +17,11 @@ if(MSVC)
 endif(MSVC)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -static-libstdc++")
+    if (UNIX)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -static-libstdc++")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -static -shared")
+    endif()
 endif()
 
 

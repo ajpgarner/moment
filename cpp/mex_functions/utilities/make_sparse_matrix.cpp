@@ -14,8 +14,8 @@ namespace NPATK::mex {
     matlab::data::SparseArray<double>
     make_zero_sparse_matrix(matlab::engine::MATLABEngine &engine, std::pair<size_t, size_t> dimensions) {
         matlab::data::ArrayFactory factory;
-        std::vector<matlab::data::Array> args{factory.createScalar(dimensions.first),
-                                               factory.createScalar(dimensions.second)};
+        std::vector<matlab::data::Array> args{factory.createScalar(static_cast<double>(dimensions.first)),
+                                               factory.createScalar(static_cast<double>(dimensions.second))};
 
         return engine.feval(u"sparse", args);
     }
@@ -24,8 +24,8 @@ namespace NPATK::mex {
     matlab::data::SparseArray<std::complex<double>>
     make_zero_sparse_matrix(matlab::engine::MATLABEngine &engine, std::pair<size_t, size_t> dimensions) {
         matlab::data::ArrayFactory factory;
-        std::vector<matlab::data::Array> args{factory.createScalar(dimensions.first),
-                                              factory.createScalar(dimensions.second)};
+        std::vector<matlab::data::Array> args{factory.createScalar(static_cast<double>(dimensions.first)),
+                                              factory.createScalar(static_cast<double>(dimensions.second))};
 
         auto x = engine.feval(u"sparse", args);
         return engine.feval(u"complex", x);
@@ -35,8 +35,8 @@ namespace NPATK::mex {
     matlab::data::SparseArray<bool>
     make_zero_sparse_matrix(matlab::engine::MATLABEngine &engine, std::pair<size_t, size_t> dimensions) {
         matlab::data::ArrayFactory factory;
-        std::vector<matlab::data::Array> args{factory.createScalar(dimensions.first),
-                                              factory.createScalar(dimensions.second)};
+        std::vector<matlab::data::Array> args{factory.createScalar(static_cast<double>(dimensions.first)),
+                                              factory.createScalar(static_cast<double>(dimensions.second))};
 
         auto x = engine.feval(u"sparse", args);
         return engine.feval(u"logical", x);

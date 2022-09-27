@@ -41,6 +41,7 @@ matlab_add_mex(NAME npatk_mex
             functions/release.cpp
             functions/version.cpp
         OUTPUT_NAME npatk
+        MODULE
         R2018a)
 
 target_link_libraries(npatk_mex
