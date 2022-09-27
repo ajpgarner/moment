@@ -1,5 +1,5 @@
 classdef Scenario < handle
-    %SETTING A scenario involving multiple agents with measurements.
+    %SCENARIO A scenario involving one or more agents with measurements.
     %
     
     properties(GetAccess = public, SetAccess = protected)
@@ -22,26 +22,109 @@ classdef Scenario < handle
             'To make changes to this Scenario first create a deep copy using ', ...
             'scenario.Clone(), then make alterations to the copy.'];
         err_badFCT = ['Cannot apply full-correlator tensor before ',...
-                      'MatrixSystem has been generated.'];
+            'MatrixSystem has been generated.'];
     end
     
     %% Construction and initialization
     methods
-        function obj = Scenario(initial_parties)
-            arguments
-                initial_parties (1,1) uint64 {mustBeInteger, mustBeNonnegative}
+        function obj = Scenario(argA, argB, argC)
+            % Construct a scenario. Possible syntaxes:
+            %  Scenario()
+            %  Scenario(number of parties)
+            %  Scenario(number of parties, mmts per party, outcomers per mmt)
+            %  Scenario([mmts A, mmts B, ...], [out A, out B, ...])
+            %  Scenario([mmts A, mmts B, ...], [out A1, out A2, .. out B1, ...])
+                                   
+            % Create normalization object, and empty system ref
+            obj.Normalization = Scenario.Normalization(obj);            
+            obj.Parties = Scenario.Party.empty;
+            obj.matrix_system = MatrixSystem.empty;
+            
+            % How many parties?
+            if (nargin < 1)
+                initial_parties = uint64(0);
+            else
+                if 1 == numel(argA)
+                    if (nargin >= 3)
+                        initial_parties = uint64(argA);
+                    else
+                        initial_parties = 1;
+                    end
+                else
+                    initial_parties = uint64(length(argA));
+                end                
             end
             
-            obj.Normalization = Scenario.Normalization(obj);
-            
-            obj.Parties = Scenario.Party.empty;
+            % Create empty parties
             if (initial_parties >=1 )
                 for x = 1:initial_parties
                     obj.Parties(end+1) = Scenario.Party(obj, x);
                 end
             end
+           
+            % Are we also setting up measurements?            
+            initialize_mmts = (nargin >= 2);
             
-            obj.matrix_system = MatrixSystem.empty;
+            % No more construction, if no initial measurements
+            if ~initialize_mmts
+                return
+            end
+            
+            % Do we have a (party, mmt, outcome) specification?
+            pmo_specified = (nargin >= 3);
+            if pmo_specified
+                mmt_input = uint64(argB);
+                out_input = uint64(argC);
+            else
+                mmt_input = uint64(argA);
+                out_input = uint64(argB);
+            end
+            
+            % Get measurements per party...            
+            if numel(mmt_input) > 1
+                if pmo_specified && (numel(mmt_input) ~= initial_parties)
+                    error("Number of measurements should either be a "...
+                          + "scalar, or an array with as many elements "...
+                          + "as parties.");
+                end
+                mmts_per_party = mmt_input;
+            else
+                mmts_per_party = uint64(ones(1, initial_parties)) ...
+                                 * mmt_input;
+            end
+            total_mmts = sum(mmts_per_party);
+            
+            
+            % Get outcomes per measurement
+            if numel(out_input) == 1
+                outputs_per_mmt = uint64(ones(1, total_mmts)) * out_input;
+            else
+                if numel(out_input) == initial_parties
+                    outputs_per_mmt = uint64.empty(1,0)
+                    for i = 1:initial_parties
+                        outputs_per_mmt = horzcat(outputs_per_mmt, ...
+                            uint64(ones(1, mmts_per_party(i))) ...
+                            * out_input(i));
+                    end
+                elseif numel(out_input) == total_mmts
+                    outputs_per_mmt = out_input;
+                else
+                    error("Number of outputs should be given either as "...
+                        + "a scalar, an array with as many elements as "...
+                        + "parties, or an array with as many elements "...
+                        + "as total number of measurements.");
+                end
+            end
+            
+            % Now, create measurements
+            outIndex = 1;
+            for partyIndex = 1:initial_parties
+                for mmtIndex = 1:mmts_per_party(partyIndex)
+                    obj.Parties(partyIndex).AddMeasurement(...
+                        outputs_per_mmt(outIndex));
+                    outIndex = outIndex + 1;
+                end
+            end
         end
         
         function AddParty(obj, name)
@@ -54,14 +137,13 @@ classdef Scenario < handle
             % Check not locked.
             obj.errorIfLocked();
             
-            % Add a parrty
+            % Add a party
             next_id = length(obj.Parties)+1;
             if nargin >=2
                 obj.Parties(end+1) = Party(obj, next_id, name);
             else
                 obj.Parties(end+1) = Party(obj, next_id);
             end
-            obj.invalidateMomentMatrix();
         end
         
         function val = Clone(obj)
@@ -189,7 +271,7 @@ classdef Scenario < handle
                 tensor double
             end
             if ~obj.HasMatrixSystem
-                error(obj.err_badFCT);                
+                error(obj.err_badFCT);
                 %TODO: Check sufficient depth of MM generated.
             end
             fc = Scenario.FullCorrelator(obj);
@@ -214,7 +296,7 @@ classdef Scenario < handle
                 tensor double
             end
             if ~obj.HasMatrixSystem
-                error(obj.err_badFCT);                
+                error(obj.err_badFCT);
                 %TODO: Check sufficient depth of MM generated.
             end
             fc = Scenario.CollinsGisin(obj);
