@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "joint_measurement_index.h"
-#include "context.h"
+#include "../context.h"
 
 #include <algorithm>
 

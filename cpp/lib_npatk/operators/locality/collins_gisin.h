@@ -6,7 +6,7 @@
 #pragma once
 
 #include "symbolic/symbol.h"
-#include "operator_sequence.h"
+#include "../operator_sequence.h"
 
 #include <stdexcept>
 #include <span>

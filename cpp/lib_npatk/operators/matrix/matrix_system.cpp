@@ -11,9 +11,9 @@
 #include "moment_matrix.h"
 
 #include "../context.h"
-#include "../explicit_symbols.h"
-#include "../implicit_symbols.h"
-#include "../collins_gisin.h"
+#include "operators/locality/explicit_symbols.h"
+#include "operators/locality/implicit_symbols.h"
+#include "operators/locality/collins_gisin.h"
 
 #include <algorithm>
 #include <memory>

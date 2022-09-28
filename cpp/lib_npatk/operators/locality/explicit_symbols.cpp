@@ -6,10 +6,10 @@
 
 #include "explicit_symbols.h"
 
-#include "context.h"
+#include "../context.h"
 #include "joint_measurement_iterator.h"
-#include "matrix/matrix_system.h"
-#include "matrix/symbol_table.h"
+#include "operators/matrix/matrix_system.h"
+#include "operators/matrix/symbol_table.h"
 #include "utilities/combinations.h"
 
 namespace NPATK {

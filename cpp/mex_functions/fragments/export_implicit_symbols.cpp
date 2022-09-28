@@ -6,8 +6,8 @@
 #include "export_implicit_symbols.h"
 
 #include "operators/context.h"
-#include "operators/implicit_symbols.h"
-#include "operators/joint_measurement_iterator.h"
+#include "operators/locality/implicit_symbols.h"
+#include "operators/locality/joint_measurement_iterator.h"
 #include "operators/matrix/operator_matrix.h"
 #include "operators/matrix/moment_matrix.h"
 

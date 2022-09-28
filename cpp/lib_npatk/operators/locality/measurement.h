@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
-#include "operator.h"
+#include "../operator.h"
 
 #include <cassert>
 #include <string>

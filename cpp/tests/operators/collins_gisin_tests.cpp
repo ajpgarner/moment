@@ -8,7 +8,7 @@
 #include "operators/context.h"
 #include "operators/matrix/moment_matrix.h"
 #include "operators/matrix/matrix_system.h"
-#include "operators/collins_gisin.h"
+#include "operators/locality/collins_gisin.h"
 
 namespace NPATK::Tests {
 

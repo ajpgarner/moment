@@ -7,7 +7,7 @@
 
 #include "storage_manager.h"
 
-#include "operators/implicit_symbols.h"
+#include "operators/locality/implicit_symbols.h"
 #include "operators/matrix/operator_matrix.h"
 #include "operators/matrix/moment_matrix.h"
 #include "fragments/export_implicit_symbols.h"

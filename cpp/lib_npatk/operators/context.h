@@ -5,7 +5,8 @@
  */
 #pragma once
 #include "operator.h"
-#include "party.h"
+
+#include "locality/party.h"
 
 #include <cassert>
 

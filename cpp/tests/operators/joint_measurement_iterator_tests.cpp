@@ -8,7 +8,7 @@
 
 #include "operators/context.h"
 #include "operators/matrix/moment_matrix.h"
-#include "operators/joint_measurement_iterator.h"
+#include "operators/locality/joint_measurement_iterator.h"
 
 namespace NPATK::Tests {
 

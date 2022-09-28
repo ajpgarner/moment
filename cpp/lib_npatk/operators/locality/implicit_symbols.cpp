@@ -3,11 +3,11 @@
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
-#include "context.h"
+#include "../context.h"
 #include "explicit_symbols.h"
 #include "implicit_symbols.h"
-#include "matrix/matrix_system.h"
-#include "matrix/symbol_table.h"
+#include "operators/matrix/matrix_system.h"
+#include "operators/matrix/symbol_table.h"
 
 #include "joint_measurement_iterator.h"
 

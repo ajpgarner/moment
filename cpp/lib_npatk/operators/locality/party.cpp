@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "party.h"
-#include "context.h"
+#include "../context.h"
 #include "utilities/alphabetic_namer.h"
 
 #include <limits>

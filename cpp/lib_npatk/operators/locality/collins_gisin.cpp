@@ -5,10 +5,10 @@
  */
 #include "collins_gisin.h"
 
-#include "context.h"
+#include "../context.h"
 
-#include "matrix/matrix_system.h"
-#include "matrix/symbol_table.h"
+#include "operators/matrix/matrix_system.h"
+#include "operators/matrix/symbol_table.h"
 
 #include "utilities/multi_dimensional_index_iterator.h"
 

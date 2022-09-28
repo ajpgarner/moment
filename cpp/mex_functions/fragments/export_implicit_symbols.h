@@ -9,7 +9,7 @@
 #include "MatlabDataArray.hpp"
 
 #include "symbolic/linear_combo.h"
-#include "operators/measurement.h"
+#include "operators/locality/measurement.h"
 
 #include <span>
 

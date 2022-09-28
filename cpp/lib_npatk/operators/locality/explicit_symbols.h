@@ -6,9 +6,11 @@
 #pragma once
 
 #include "symbolic/symbol.h"
+#include "../operator_sequence.h"
+
 #include "joint_measurement_index.h"
-#include "operator_sequence.h"
 #include "party.h"
+
 #include "utilities/multi_dimensional_index_iterator.h"
 
 #include <initializer_list>

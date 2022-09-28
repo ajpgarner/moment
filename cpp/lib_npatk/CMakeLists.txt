@@ -1,15 +1,15 @@
 include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_library(lib_npatk
-        operators/explicit_symbols.cpp
-        operators/collins_gisin.cpp
         operators/context.cpp
-        operators/implicit_symbols.cpp
-        operators/joint_measurement_index.cpp
-        operators/joint_measurement_iterator.cpp
         operators/operator_sequence.cpp
         operators/operator_sequence_generator.cpp
-        operators/party.cpp
+        operators/locality/explicit_symbols.cpp
+        operators/locality/collins_gisin.cpp
+        operators/locality/implicit_symbols.cpp
+        operators/locality/joint_measurement_index.cpp
+        operators/locality/joint_measurement_iterator.cpp
+        operators/locality/party.cpp
         operators/matrix/localizing_matrix.cpp
         operators/matrix/localizing_matrix_index.cpp
         operators/matrix/matrix_system.cpp

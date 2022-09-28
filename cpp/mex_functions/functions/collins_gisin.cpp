@@ -6,7 +6,7 @@
 #include "collins_gisin.h"
 
 #include "operators/context.h"
-#include "operators/collins_gisin.h"
+#include "operators/locality/collins_gisin.h"
 #include "operators/matrix/matrix_system.h"
 
 #include "storage_manager.h"

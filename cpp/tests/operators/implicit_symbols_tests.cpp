@@ -6,7 +6,7 @@
 #include "gtest/gtest.h"
 
 #include "operators/context.h"
-#include "operators/implicit_symbols.h"
+#include "operators/locality/implicit_symbols.h"
 #include "operators/matrix/moment_matrix.h"
 #include "operators/matrix/matrix_system.h"
 

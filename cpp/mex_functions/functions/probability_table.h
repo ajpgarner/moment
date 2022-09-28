@@ -5,7 +5,7 @@
  */
 #pragma once
 #include "mex_function.h"
-#include "operators/measurement.h"
+#include "operators/locality/measurement.h"
 
 
 namespace NPATK::mex::functions {
