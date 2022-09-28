@@ -22,8 +22,10 @@ namespace NPATK {
      */
     class OperatorSequence {
     private:
+        const Context& context;
+
         std::vector<Operator> constituents{};
-        const Context * context = nullptr;
+
         bool is_zero = false;
 
     public:
@@ -32,13 +34,8 @@ namespace NPATK {
          * Constructs empty operator sequence; treated as identity.
          * @param context (Non-owning) point to the Context (if any) for further simplification.
          */
-        constexpr explicit OperatorSequence(const Context * context = nullptr) : context{context} {
+        constexpr explicit OperatorSequence(const Context& context) : context{context} {
 
-        }
-
-        OperatorSequence(std::initializer_list<Operator> operators)
-            : constituents(operators) {
-            this->to_canonical_form();
         }
 
         /**
@@ -46,7 +43,7 @@ namespace NPATK {
          * @param operators A list of operators to include in the sequence
          * @param context (Non-owning) pointer to the Context (if any) for further simplification.
          */
-        explicit OperatorSequence(std::vector<Operator>&& operators, const Context * context = nullptr)
+        explicit OperatorSequence(std::vector<Operator>&& operators, const Context& context)
                 : constituents(std::move(operators)), context{context} {
             this->to_canonical_form();
         }
@@ -68,11 +65,6 @@ namespace NPATK {
         [[nodiscard]] constexpr bool empty() const noexcept { return this->constituents.empty(); }
 
         [[nodiscard]] constexpr size_t size() const noexcept { return this->constituents.size(); }
-
-        /**
-         * Removes context from OperatorSequence.
-         */
-         constexpr void detach() noexcept { this->context = nullptr; }
 
         /**
          * True if the sequence represents zero.
@@ -161,13 +153,13 @@ namespace NPATK {
             return lhs;
         }
 
-        constexpr static OperatorSequence Zero(const Context * context = nullptr) {
+        constexpr static OperatorSequence Zero(const Context& context) {
             OperatorSequence output{context};
             output.is_zero = true;
             return output;
         }
 
-        constexpr static OperatorSequence Identity(const Context * context = nullptr) {
+        constexpr static OperatorSequence Identity(const Context& context) {
             return OperatorSequence{context};
         }
 

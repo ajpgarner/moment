@@ -297,10 +297,10 @@ namespace NPATK::Tests {
 
         auto& momentMatrix = system.CreateMomentMatrix(1);
 
-        const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, &context);
+        const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
         auto where_a0 = momentMatrix.Symbols.where(alice_a0);
         ASSERT_NE(where_a0, nullptr);
-        const auto& alice_a1 = OperatorSequence({alice.measurement_outcome(0,1)}, &context);
+        const auto& alice_a1 = OperatorSequence({alice.measurement_outcome(0,1)}, context);
         auto where_a1 = momentMatrix.Symbols.where(alice_a1);
         ASSERT_NE(where_a1, nullptr);
         ASSERT_NE(where_a0, where_a1);
@@ -347,10 +347,10 @@ namespace NPATK::Tests {
 
         auto& momentMatrix = system.CreateMomentMatrix(1);
 
-        const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, &context);
+        const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
         auto where_a0 = momentMatrix.Symbols.where(alice_a0);
         ASSERT_NE(where_a0, nullptr);
-        const auto& alice_b0 = OperatorSequence({alice.measurement_outcome(1,0)}, &context);
+        const auto& alice_b0 = OperatorSequence({alice.measurement_outcome(1,0)}, context);
         auto where_b0 = momentMatrix.Symbols.where(alice_b0);
         ASSERT_NE(where_b0, nullptr);
         ASSERT_NE(where_a0, where_b0);
@@ -385,15 +385,15 @@ namespace NPATK::Tests {
 
         auto& momentMatrix = system.CreateMomentMatrix(1);
 
-        const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, &context);
+        const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
         auto where_a0 = momentMatrix.Symbols.where(alice_a0);
         ASSERT_NE(where_a0, nullptr);
-        const auto& bob_a0 = OperatorSequence({bob.measurement_outcome(0,0)}, &context);
+        const auto& bob_a0 = OperatorSequence({bob.measurement_outcome(0,0)}, context);
         auto where_b0 = momentMatrix.Symbols.where(bob_a0);
         ASSERT_NE(where_b0, nullptr);
         ASSERT_NE(where_a0, where_b0);
         const auto& alice_a0_bob_a0 = OperatorSequence({alice.measurement_outcome(0,0), bob.measurement_outcome(0,0)},
-                                                       &context);
+                                                       context);
         auto where_alice_bob = momentMatrix.Symbols.where(alice_a0_bob_a0);
         ASSERT_NE(where_alice_bob, nullptr);
         ASSERT_NE(where_alice_bob, where_a0);
@@ -440,25 +440,25 @@ namespace NPATK::Tests {
         auto& momentMatrix = system.CreateMomentMatrix(1);
 
         auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
-                                                                      &context))->Id();
+                                                                      context))->Id();
         auto A1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1, 0)},
-                                                                      &context))->Id();
+                                                                      context))->Id();
         auto B0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0, 0)},
-                                                                      &context))->Id();
+                                                                      context))->Id();
         auto B1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1, 0)},
-                                                                      &context))->Id();
+                                                                      context))->Id();
         auto A0B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0),
                                                                          bob.measurement_outcome(0, 0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         auto A0B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0),
                                                                          bob.measurement_outcome(1, 0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         auto A1B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1, 0),
                                                                          bob.measurement_outcome(0, 0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         auto A1B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1, 0),
                                                                          bob.measurement_outcome(1, 0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
 
 
@@ -510,88 +510,88 @@ namespace NPATK::Tests {
         auto& momentMatrix = system.CreateMomentMatrix(2);
 
         auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
         auto A1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
         auto B0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
         auto B1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
         auto C0 = momentMatrix.Symbols.where(OperatorSequence({charlie.measurement_outcome(0,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
         auto C1 = momentMatrix.Symbols.where(OperatorSequence({charlie.measurement_outcome(1,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
 
         auto A0B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          bob.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A0B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          bob.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A0C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A0C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A1B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          bob.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A1B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          bob.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A1C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A1C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
 
         auto B0C0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto B0C1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto B1C0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto B1C1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
 
         auto A0B0C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                            bob.measurement_outcome(0,0),
                                                                            charlie.measurement_outcome(0,0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         auto A0B0C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                            bob.measurement_outcome(0,0),
                                                                            charlie.measurement_outcome(1,0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         auto A0B1C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                            bob.measurement_outcome(1,0),
                                                                            charlie.measurement_outcome(0,0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         auto A0B1C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                            bob.measurement_outcome(1,0),
                                                                            charlie.measurement_outcome(1,0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         auto A1B0C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                            bob.measurement_outcome(0,0),
                                                                            charlie.measurement_outcome(0,0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         auto A1B0C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                            bob.measurement_outcome(0,0),
                                                                            charlie.measurement_outcome(1,0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         auto A1B1C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                            bob.measurement_outcome(1,0),
                                                                            charlie.measurement_outcome(0,0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         auto A1B1C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                            bob.measurement_outcome(1,0),
                                                                            charlie.measurement_outcome(1,0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
 
         const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
 
@@ -698,55 +698,55 @@ namespace NPATK::Tests {
         auto& momentMatrix = system.CreateMomentMatrix(1);
 
         auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
         auto A1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
         auto B0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
         auto B1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
         auto C0 = momentMatrix.Symbols.where(OperatorSequence({charlie.measurement_outcome(0,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
         auto C1 = momentMatrix.Symbols.where(OperatorSequence({charlie.measurement_outcome(1,0)},
-                                                                       &context))->Id();
+                                                                       context))->Id();
 
         auto A0B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          bob.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A0B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          bob.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A0C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A0C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A1B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          bob.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A1B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          bob.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A1C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto A1C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
 
         auto B0C0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto B0C1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto B1C0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(0,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
         auto B1C1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(1,0)},
-                                                                         &context))->Id();
+                                                                         context))->Id();
 
         const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
 
@@ -829,18 +829,18 @@ namespace NPATK::Tests {
         auto& momentMatrix = system.CreateMomentMatrix(1);
         
         auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
-                                                                      &context))->Id();
+                                                                      context))->Id();
         auto A1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 1)},
-                                                                      &context))->Id();
+                                                                      context))->Id();
         auto B = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0, 0)},
-                                                                      &context))->Id();
+                                                                      context))->Id();
 
         auto A0B = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0),
                                                                          bob.measurement_outcome(0, 0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
         auto A1B = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 1),
                                                                          bob.measurement_outcome(0, 0)},
-                                                                        &context))->Id();
+                                                                        context))->Id();
 
         const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
 

@@ -92,7 +92,7 @@ namespace NPATK {
             ops.emplace_back(context.Parties[p][index[p]-1]);
         }
 
-        return OperatorSequence(std::move(ops), &context);
+        return OperatorSequence(std::move(ops), context);
     }
 
 

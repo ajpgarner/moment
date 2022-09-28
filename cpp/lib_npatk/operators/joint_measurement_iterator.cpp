@@ -164,6 +164,6 @@ namespace NPATK {
             ));
         }
 
-        return OperatorSequence(std::move(ops), this->mmIter->contextPtr);
+        return OperatorSequence(std::move(ops), *this->mmIter->contextPtr);
     }
 }

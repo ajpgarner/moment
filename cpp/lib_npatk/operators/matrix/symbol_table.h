@@ -64,13 +64,13 @@ namespace NPATK {
         }
 
         inline static UniqueSequence Zero(const Context& context) {
-            auto us = UniqueSequence{OperatorSequence::Zero(&context), 0};
+            auto us = UniqueSequence{OperatorSequence::Zero(context), 0};
             us.id = 0;
             return us;
         }
 
         inline static UniqueSequence Identity(const Context& context) {
-            auto us = UniqueSequence{OperatorSequence::Identity(&context), 1};
+            auto us = UniqueSequence{OperatorSequence::Identity(context), 1};
             us.id = 1;
             us.real_index = 0;
             return us;

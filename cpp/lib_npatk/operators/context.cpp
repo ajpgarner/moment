@@ -66,9 +66,8 @@ namespace NPATK {
         auto rhs_iter = start + 1;
 
         while (rhs_iter != end) {
-            // Only do comparison if operators are in same party...
-            if (lhs_iter->party == rhs_iter->party) {
-                assert(lhs_iter->party < this->parties.size());
+            // Only do comparison if operators are in same party, and party is well defined...
+            if ((lhs_iter->party < this->parties.size()) && (lhs_iter->party == rhs_iter->party)) {
                 const auto& party = this->parties[lhs_iter->party];
                 // If mutually-exclusive operators are found next to each other, whole sequence is zero.
                 if (party.exclusive(lhs_iter->id, rhs_iter->id)) {

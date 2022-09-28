@@ -43,15 +43,15 @@ namespace NPATK::Tests {
         ASSERT_EQ(cgi.Dimensions[0], 3);
         ASSERT_EQ(cgi.Dimensions[1], 3);
 
-        const OperatorSequence os_id{{}, &context};
-        const OperatorSequence os_a0{{a0}, &context};
-        const OperatorSequence os_a1{{a1}, &context};
-        const OperatorSequence os_b0{{b0}, &context};
-        const OperatorSequence os_b1{{b1}, &context};
-        const OperatorSequence os_a0b0{{a0, b0}, &context};
-        const OperatorSequence os_a0b1{{a0, b1}, &context};
-        const OperatorSequence os_a1b0{{a1, b0}, &context};
-        const OperatorSequence os_a1b1{{a1, b1}, &context};
+        const OperatorSequence os_id{{}, context};
+        const OperatorSequence os_a0{{a0}, context};
+        const OperatorSequence os_a1{{a1}, context};
+        const OperatorSequence os_b0{{b0}, context};
+        const OperatorSequence os_b1{{b1}, context};
+        const OperatorSequence os_a0b0{{a0, b0}, context};
+        const OperatorSequence os_a0b1{{a0, b1}, context};
+        const OperatorSequence os_a1b0{{a1, b0}, context};
+        const OperatorSequence os_a1b1{{a1, b1}, context};
 
         const auto& s_id = system.Symbols().where(os_id);
         const auto& s_a0 = system.Symbols().where(os_a0);

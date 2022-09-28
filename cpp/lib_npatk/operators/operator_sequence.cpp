@@ -13,11 +13,7 @@ namespace NPATK {
 
 
     std::ostream& operator<<(std::ostream &os, const NPATK::OperatorSequence &seq) {
-        if (seq.context == nullptr) {
-            throw std::runtime_error("operator<< requires OperatorSequence to have an associated context.");
-        }
-
-        os << seq.context->format_sequence(seq);
+        os << seq.context.format_sequence(seq);
         return os;
     }
 
@@ -33,16 +29,15 @@ namespace NPATK {
 
 
         // Contextual simplifications
-        if (this->context != nullptr) {
-            auto [trim, simplify_to_zero] = this->context->additional_simplification(this->constituents.begin(),
-                                                                                     this->constituents.end());
-            if (simplify_to_zero) {
-                this->constituents.clear();
-                this->is_zero = true;
-                return;
-            }
-            this->constituents.erase(trim, this->constituents.end());
+        auto [trim, simplify_to_zero] = this->context.additional_simplification(this->constituents.begin(),
+                                                                                 this->constituents.end());
+        if (simplify_to_zero) {
+            this->constituents.clear();
+            this->is_zero = true;
+            return;
         }
+        this->constituents.erase(trim, this->constituents.end());
+
 
         // Remove excess identity elements
         auto trim_id = std::remove_if(this->constituents.begin(), this->constituents.end(),

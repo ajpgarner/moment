@@ -28,9 +28,9 @@ namespace NPATK::Tests {
             auto iter = theMM.Symbols.begin();
             ASSERT_NE(iter, theMM.Symbols.end()) << " Level = " << theMM.Level();
             EXPECT_EQ(&(*iter), &theMM.Symbols[0]) << " Level = " << theMM.Level();
-            EXPECT_EQ(theMM.Symbols[0].sequence(), OperatorSequence::Zero())
+            EXPECT_EQ(theMM.Symbols[0].sequence(), OperatorSequence::Zero(theMM.context))
                 << " Level = " << theMM.Level();
-            EXPECT_EQ(theMM.Symbols[0].sequence_conj(), OperatorSequence::Zero())
+            EXPECT_EQ(theMM.Symbols[0].sequence_conj(), OperatorSequence::Zero(theMM.context))
                 << " Level = " << theMM.Level();
             EXPECT_TRUE(theMM.Symbols[0].is_hermitian()) << " Level = " << theMM.Level();
             ++iter;
@@ -38,9 +38,9 @@ namespace NPATK::Tests {
             // 1 is always ID
             ASSERT_NE(iter, theMM.Symbols.end()) << " Level = " << theMM.Level();
             EXPECT_EQ(&(*iter), &theMM.Symbols[1]) << " Level = " << theMM.Level();
-            EXPECT_EQ(theMM.Symbols[1].sequence(), OperatorSequence::Identity())
+            EXPECT_EQ(theMM.Symbols[1].sequence(), OperatorSequence::Identity(theMM.context))
                 << " Level = " << theMM.Level();
-            EXPECT_EQ(theMM.Symbols[1].sequence_conj(), OperatorSequence::Identity())
+            EXPECT_EQ(theMM.Symbols[1].sequence_conj(), OperatorSequence::Identity(theMM.context))
                 << " Level = " << theMM.Level();
             EXPECT_TRUE(theMM.Symbols[1].is_hermitian())  << " Level = " << theMM.Level();
             ++iter;
@@ -104,19 +104,19 @@ namespace NPATK::Tests {
         auto& matLevel0 = system.CreateMomentMatrix(0);
 
         EXPECT_EQ(matLevel0.Level(), 0);
-        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
         compare_unique_sequences(matLevel0, {});
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
         EXPECT_EQ(matLevel1.Level(), 1);
-        compare_mm_os_matrix(matLevel1, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel1, 1, {OperatorSequence::Identity(context)});
         compare_unique_sequences(matLevel1, {});
         compare_symbol_matrix(matLevel1, 1, {"1"});
 
         auto& matLevel5 = system.CreateMomentMatrix(5);
         EXPECT_EQ(matLevel5.Level(), 5);
-        compare_mm_os_matrix(matLevel5, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel5, 1, {OperatorSequence::Identity(context)});
         compare_unique_sequences(matLevel5, {});
         compare_symbol_matrix(matLevel1, 1, {"1"});
     }
@@ -133,28 +133,28 @@ namespace NPATK::Tests {
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
         EXPECT_EQ(matLevel0.Level(), 0);
-        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
         EXPECT_EQ(matLevel1.Level(), 1);
-        compare_mm_os_matrix(matLevel1, 2, {OperatorSequence::Identity(&context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0]}, &context)});
+        compare_mm_os_matrix(matLevel1, 2, {OperatorSequence::Identity(context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0]}, context)});
 
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
         EXPECT_EQ(matLevel2.Level(), 2);
-        compare_mm_os_matrix(matLevel2, 3, {OperatorSequence::Identity(&context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context)});
+        compare_mm_os_matrix(matLevel2, 3, {OperatorSequence::Identity(context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context)});
     }
 
     TEST(MomentMatrix, OpSeq_1Party2Opers) {
@@ -168,75 +168,75 @@ namespace NPATK::Tests {
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
 
-        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[1]}, &context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[1]}, &context),
-                                         OperatorSequence({alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[1], alice[1]}, &context)});
+        compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[1]}, context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[1]}, context),
+                                         OperatorSequence({alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[1], alice[1]}, context)});
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
-        compare_mm_os_matrix(matLevel2, 7, {OperatorSequence::Identity(&context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[1]}, &context),
-                                         OperatorSequence({alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[1] , alice[1]}, &context),
+        compare_mm_os_matrix(matLevel2, 7, {OperatorSequence::Identity(context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[1]}, context),
+                                         OperatorSequence({alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[1] , alice[1]}, context),
 
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[0], alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[1] , alice[1]}, &context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[0], alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[1] , alice[1]}, context),
 
-                                         OperatorSequence({alice[1]}, &context),
-                                         OperatorSequence({alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[1], alice[1]}, &context),
-                                         OperatorSequence({alice[1], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[1], alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[1], alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[1], alice[1] , alice[1]}, &context),
+                                         OperatorSequence({alice[1]}, context),
+                                         OperatorSequence({alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[1], alice[1]}, context),
+                                         OperatorSequence({alice[1], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[1], alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[1], alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[1], alice[1] , alice[1]}, context),
 
-                                         OperatorSequence({alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[1] , alice[1]}, &context),
+                                         OperatorSequence({alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[1] , alice[1]}, context),
 
-                                         OperatorSequence({alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[1], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[1], alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[1], alice[0], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[1], alice[0], alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[1], alice[0], alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[1], alice[0], alice[1] , alice[1]}, &context),
+                                         OperatorSequence({alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[1], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[1], alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[1], alice[0], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[1], alice[0], alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[1], alice[0], alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[1], alice[0], alice[1] , alice[1]}, context),
 
-                                         OperatorSequence({alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[0], alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[1], alice[1]}, &context),
-                                         OperatorSequence({alice[0], alice[1], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[1], alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[0], alice[1], alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[1], alice[1] , alice[1]}, &context),
+                                         OperatorSequence({alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[0], alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[1], alice[1]}, context),
+                                         OperatorSequence({alice[0], alice[1], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[1], alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[0], alice[1], alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[1], alice[1] , alice[1]}, context),
 
-                                         OperatorSequence({alice[1], alice[1]}, &context),
-                                         OperatorSequence({alice[1], alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[1], alice[1], alice[1]}, &context),
-                                         OperatorSequence({alice[1], alice[1], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[1], alice[1], alice[0], alice[1]}, &context),
-                                         OperatorSequence({alice[1], alice[1], alice[1], alice[0]}, &context),
-                                         OperatorSequence({alice[1], alice[1], alice[1] , alice[1]}, &context)}
+                                         OperatorSequence({alice[1], alice[1]}, context),
+                                         OperatorSequence({alice[1], alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[1], alice[1], alice[1]}, context),
+                                         OperatorSequence({alice[1], alice[1], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[1], alice[1], alice[0], alice[1]}, context),
+                                         OperatorSequence({alice[1], alice[1], alice[1], alice[0]}, context),
+                                         OperatorSequence({alice[1], alice[1], alice[1] , alice[1]}, context)}
 
                  );
     };
@@ -254,61 +254,61 @@ namespace NPATK::Tests {
         ASSERT_EQ(bob.size(), 1);
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
-        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({bob[0]}, &context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({bob[0], bob[0]}, &context)});
+        compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({bob[0]}, context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({bob[0], bob[0]}, context)});
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
-        compare_mm_os_matrix(matLevel2, 6, {OperatorSequence::Identity(&context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({bob[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({bob[0], bob[0]}, &context),
+        compare_mm_os_matrix(matLevel2, 6, {OperatorSequence::Identity(context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({bob[0]}, context),
+                                         OperatorSequence({alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({bob[0], bob[0]}, context),
 
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0], bob[0]}, &context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0], bob[0]}, context),
 
-                                         OperatorSequence({bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({bob[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0], bob[0]}, &context),
-                                         OperatorSequence({bob[0], bob[0], bob[0]}, &context),
+                                         OperatorSequence({bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({bob[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0], bob[0]}, context),
+                                         OperatorSequence({bob[0], bob[0], bob[0]}, context),
 
-                                         OperatorSequence({alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, &context),
+                                         OperatorSequence({alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, context),
 
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, &context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, context),
 
-                                         OperatorSequence({bob[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0], bob[0]}, &context),
-                                         OperatorSequence({bob[0], bob[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, &context),
-                                         OperatorSequence({bob[0], bob[0], bob[0], bob[0]}, &context)});
+                                         OperatorSequence({bob[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0], bob[0]}, context),
+                                         OperatorSequence({bob[0], bob[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, context),
+                                         OperatorSequence({bob[0], bob[0], bob[0], bob[0]}, context)});
     }
 
     TEST(MomentMatrix, OpSeq_2Party1OpersIdem) {
@@ -325,39 +325,39 @@ namespace NPATK::Tests {
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
 
-        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(&context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({bob[0]}, &context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({bob[0]}, &context)});
+        compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({bob[0]}, context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({bob[0]}, context)});
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
-        compare_mm_os_matrix(matLevel2, 4, {OperatorSequence::Identity(&context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
+        compare_mm_os_matrix(matLevel2, 4, {OperatorSequence::Identity(context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
 
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
 
-                                         OperatorSequence({bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
+                                         OperatorSequence({bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
 
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context),
-                                         OperatorSequence({alice[0], bob[0]}, &context)});
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context),
+                                         OperatorSequence({alice[0], bob[0]}, context)});
     }
 
 
@@ -383,98 +383,98 @@ namespace NPATK::Tests {
         const auto& y1 = bob[3];
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
-        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(&context)});
+        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_mm_os_matrix(matLevel1, 9, {OperatorSequence::Identity(&context),
-                                         OperatorSequence({a0}, &context),
-                                         OperatorSequence({a1}, &context),
-                                         OperatorSequence({b0}, &context),
-                                         OperatorSequence({b1}, &context),
-                                         OperatorSequence({x0}, &context),
-                                         OperatorSequence({x1}, &context),
-                                         OperatorSequence({y0}, &context),
-                                         OperatorSequence({y1}, &context),
+        compare_mm_os_matrix(matLevel1, 9, {OperatorSequence::Identity(context),
+                                         OperatorSequence({a0}, context),
+                                         OperatorSequence({a1}, context),
+                                         OperatorSequence({b0}, context),
+                                         OperatorSequence({b1}, context),
+                                         OperatorSequence({x0}, context),
+                                         OperatorSequence({x1}, context),
+                                         OperatorSequence({y0}, context),
+                                         OperatorSequence({y1}, context),
 
-                                         OperatorSequence({a0}, &context),
-                                         OperatorSequence({a0}, &context),
-                                         OperatorSequence::Zero(&context),
-                                         OperatorSequence({a0, b0}, &context),
-                                         OperatorSequence({a0, b1}, &context),
-                                         OperatorSequence({a0, x0}, &context),
-                                         OperatorSequence({a0, x1}, &context),
-                                         OperatorSequence({a0, y0}, &context),
-                                         OperatorSequence({a0, y1}, &context),
+                                         OperatorSequence({a0}, context),
+                                         OperatorSequence({a0}, context),
+                                         OperatorSequence::Zero(context),
+                                         OperatorSequence({a0, b0}, context),
+                                         OperatorSequence({a0, b1}, context),
+                                         OperatorSequence({a0, x0}, context),
+                                         OperatorSequence({a0, x1}, context),
+                                         OperatorSequence({a0, y0}, context),
+                                         OperatorSequence({a0, y1}, context),
 
-                                         OperatorSequence({a1}, &context),
-                                         OperatorSequence::Zero(&context),
-                                         OperatorSequence({a1}, &context),
-                                         OperatorSequence({a1, b0}, &context),
-                                         OperatorSequence({a1, b1}, &context),
-                                         OperatorSequence({a1, x0}, &context),
-                                         OperatorSequence({a1, x1}, &context),
-                                         OperatorSequence({a1, y0}, &context),
-                                         OperatorSequence({a1, y1}, &context),
+                                         OperatorSequence({a1}, context),
+                                         OperatorSequence::Zero(context),
+                                         OperatorSequence({a1}, context),
+                                         OperatorSequence({a1, b0}, context),
+                                         OperatorSequence({a1, b1}, context),
+                                         OperatorSequence({a1, x0}, context),
+                                         OperatorSequence({a1, x1}, context),
+                                         OperatorSequence({a1, y0}, context),
+                                         OperatorSequence({a1, y1}, context),
 
-                                         OperatorSequence({b0}, &context),
-                                         OperatorSequence({b0, a0}, &context),
-                                         OperatorSequence({b0, a1}, &context),
-                                         OperatorSequence({b0}, &context),
-                                         OperatorSequence::Zero(&context),
-                                         OperatorSequence({b0, x0}, &context),
-                                         OperatorSequence({b0, x1}, &context),
-                                         OperatorSequence({b0, y0}, &context),
-                                         OperatorSequence({b0, y1}, &context),
+                                         OperatorSequence({b0}, context),
+                                         OperatorSequence({b0, a0}, context),
+                                         OperatorSequence({b0, a1}, context),
+                                         OperatorSequence({b0}, context),
+                                         OperatorSequence::Zero(context),
+                                         OperatorSequence({b0, x0}, context),
+                                         OperatorSequence({b0, x1}, context),
+                                         OperatorSequence({b0, y0}, context),
+                                         OperatorSequence({b0, y1}, context),
 
-                                         OperatorSequence({b1}, &context),
-                                         OperatorSequence({b1, a0}, &context),
-                                         OperatorSequence({b1, a1}, &context),
-                                         OperatorSequence::Zero(&context),
-                                         OperatorSequence({b1}, &context),
-                                         OperatorSequence({b1, x0}, &context),
-                                         OperatorSequence({b1, x1}, &context),
-                                         OperatorSequence({b1, y0}, &context),
-                                         OperatorSequence({b1, y1}, &context),
+                                         OperatorSequence({b1}, context),
+                                         OperatorSequence({b1, a0}, context),
+                                         OperatorSequence({b1, a1}, context),
+                                         OperatorSequence::Zero(context),
+                                         OperatorSequence({b1}, context),
+                                         OperatorSequence({b1, x0}, context),
+                                         OperatorSequence({b1, x1}, context),
+                                         OperatorSequence({b1, y0}, context),
+                                         OperatorSequence({b1, y1}, context),
 
-                                         OperatorSequence({x0}, &context),
-                                         OperatorSequence({a0, x0}, &context),
-                                         OperatorSequence({a1, x0}, &context),
-                                         OperatorSequence({b0, x0}, &context),
-                                         OperatorSequence({b1, x0}, &context),
-                                         OperatorSequence({x0}, &context),
-                                         OperatorSequence::Zero(&context),
-                                         OperatorSequence({x0, y0}, &context),
-                                         OperatorSequence({x0, y1}, &context),
+                                         OperatorSequence({x0}, context),
+                                         OperatorSequence({a0, x0}, context),
+                                         OperatorSequence({a1, x0}, context),
+                                         OperatorSequence({b0, x0}, context),
+                                         OperatorSequence({b1, x0}, context),
+                                         OperatorSequence({x0}, context),
+                                         OperatorSequence::Zero(context),
+                                         OperatorSequence({x0, y0}, context),
+                                         OperatorSequence({x0, y1}, context),
 
-                                         OperatorSequence({x1}, &context),
-                                         OperatorSequence({a0, x1}, &context),
-                                         OperatorSequence({a1, x1}, &context),
-                                         OperatorSequence({b0, x1}, &context),
-                                         OperatorSequence({b1, x1}, &context),
-                                         OperatorSequence::Zero(&context),
-                                         OperatorSequence({x1}, &context),
-                                         OperatorSequence({x1, y0}, &context),
-                                         OperatorSequence({x1, y1}, &context),
+                                         OperatorSequence({x1}, context),
+                                         OperatorSequence({a0, x1}, context),
+                                         OperatorSequence({a1, x1}, context),
+                                         OperatorSequence({b0, x1}, context),
+                                         OperatorSequence({b1, x1}, context),
+                                         OperatorSequence::Zero(context),
+                                         OperatorSequence({x1}, context),
+                                         OperatorSequence({x1, y0}, context),
+                                         OperatorSequence({x1, y1}, context),
 
-                                         OperatorSequence({y0}, &context),
-                                         OperatorSequence({a0, y0}, &context),
-                                         OperatorSequence({a1, y0}, &context),
-                                         OperatorSequence({b0, y0}, &context),
-                                         OperatorSequence({b1, y0}, &context),
-                                         OperatorSequence({y0, x0}, &context),
-                                         OperatorSequence({y0, x1}, &context),
-                                         OperatorSequence({y0}, &context),
-                                         OperatorSequence::Zero(&context),
+                                         OperatorSequence({y0}, context),
+                                         OperatorSequence({a0, y0}, context),
+                                         OperatorSequence({a1, y0}, context),
+                                         OperatorSequence({b0, y0}, context),
+                                         OperatorSequence({b1, y0}, context),
+                                         OperatorSequence({y0, x0}, context),
+                                         OperatorSequence({y0, x1}, context),
+                                         OperatorSequence({y0}, context),
+                                         OperatorSequence::Zero(context),
 
-                                         OperatorSequence({y1}, &context),
-                                         OperatorSequence({a0, y1}, &context),
-                                         OperatorSequence({a1, y1}, &context),
-                                         OperatorSequence({b0, y1}, &context),
-                                         OperatorSequence({b1, y1}, &context),
-                                         OperatorSequence({y1, x0}, &context),
-                                         OperatorSequence({y1, x1}, &context),
-                                         OperatorSequence::Zero(&context),
-                                         OperatorSequence({y1}, &context)
+                                         OperatorSequence({y1}, context),
+                                         OperatorSequence({a0, y1}, context),
+                                         OperatorSequence({a1, y1}, context),
+                                         OperatorSequence({b0, y1}, context),
+                                         OperatorSequence({b1, y1}, context),
+                                         OperatorSequence({y1, x0}, context),
+                                         OperatorSequence({y1, x1}, context),
+                                         OperatorSequence::Zero(context),
+                                         OperatorSequence({y1}, context)
         });
 
     }
@@ -494,21 +494,21 @@ namespace NPATK::Tests {
         compare_unique_sequences(matLevel0, {});
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_unique_sequences(matLevel1, {{OperatorSequence({alice[0]}, &context),
-                                                     OperatorSequence({alice[0]}, &context), true},
-                                             {OperatorSequence({alice[0], alice[0]}, &context),
-                                                     OperatorSequence({alice[0], alice[0]}, &context), true}});
+        compare_unique_sequences(matLevel1, {{OperatorSequence({alice[0]}, context),
+                                                     OperatorSequence({alice[0]}, context), true},
+                                             {OperatorSequence({alice[0], alice[0]}, context),
+                                                     OperatorSequence({alice[0], alice[0]}, context), true}});
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
         compare_unique_sequences(matLevel2,
-                                 {{OperatorSequence({alice[0]}, &context),
-                                          OperatorSequence({alice[0]}, &context), true},
-                                  {OperatorSequence({alice[0], alice[0]}, &context),
-                                          OperatorSequence({alice[0], alice[0]}, &context), true},
-                                  {OperatorSequence({alice[0], alice[0], alice[0]}, &context),
-                                          OperatorSequence({alice[0], alice[0], alice[0]}, &context), true},
-                                  {OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context),
-                                          OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context), true}});
+                                 {{OperatorSequence({alice[0]}, context),
+                                          OperatorSequence({alice[0]}, context), true},
+                                  {OperatorSequence({alice[0], alice[0]}, context),
+                                          OperatorSequence({alice[0], alice[0]}, context), true},
+                                  {OperatorSequence({alice[0], alice[0], alice[0]}, context),
+                                          OperatorSequence({alice[0], alice[0], alice[0]}, context), true},
+                                  {OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context),
+                                          OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context), true}});
     }
 
     TEST(MomentMatrix, Unique_2Party1Opers) {
@@ -526,47 +526,47 @@ namespace NPATK::Tests {
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
         compare_unique_sequences(matLevel1,
-                                 {{OperatorSequence({alice[0]}, &context),
-                                          OperatorSequence({alice[0]}, &context), true},
-                                  {OperatorSequence({bob[0]}, &context),
-                                          OperatorSequence({bob[0]}, &context), true},
-                                  {OperatorSequence({alice[0], alice[0]}, &context),
-                                          OperatorSequence({alice[0], alice[0]}, &context), true},
-                                  {OperatorSequence({alice[0], bob[0]}, &context),
-                                          OperatorSequence({alice[0], bob[0]}, &context), true},
-                                  {OperatorSequence({bob[0], bob[0]}, &context),
-                                          OperatorSequence({bob[0], bob[0]}, &context), true}});
+                                 {{OperatorSequence({alice[0]}, context),
+                                          OperatorSequence({alice[0]}, context), true},
+                                  {OperatorSequence({bob[0]}, context),
+                                          OperatorSequence({bob[0]}, context), true},
+                                  {OperatorSequence({alice[0], alice[0]}, context),
+                                          OperatorSequence({alice[0], alice[0]}, context), true},
+                                  {OperatorSequence({alice[0], bob[0]}, context),
+                                          OperatorSequence({alice[0], bob[0]}, context), true},
+                                  {OperatorSequence({bob[0], bob[0]}, context),
+                                          OperatorSequence({bob[0], bob[0]}, context), true}});
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
         compare_unique_sequences(matLevel2,
-                                 {{OperatorSequence({alice[0]}, &context),
-                                          OperatorSequence({alice[0]}, &context), true},
-                                  {OperatorSequence({bob[0]}, &context),
-                                          OperatorSequence({bob[0]}, &context), true},
-                                  {OperatorSequence({alice[0], alice[0]}, &context),
-                                          OperatorSequence({alice[0], alice[0]}, &context), true},
-                                  {OperatorSequence({alice[0], bob[0]}, &context),
-                                          OperatorSequence({alice[0], bob[0]}, &context), true},
-                                  {OperatorSequence({bob[0], bob[0]}, &context),
-                                          OperatorSequence({bob[0], bob[0]}, &context), true},
-                                  {OperatorSequence({alice[0], alice[0], alice[0]}, &context),
-                                          OperatorSequence({alice[0], alice[0], alice[0]}, &context), true},
-                                  {OperatorSequence({alice[0], alice[0], bob[0]}, &context),
-                                          OperatorSequence({alice[0], alice[0], bob[0]}, &context), true},
-                                  {OperatorSequence({alice[0], bob[0], bob[0]}, &context),
-                                          OperatorSequence({alice[0], bob[0], bob[0]}, &context), true},
-                                  {OperatorSequence({bob[0], bob[0], bob[0]}, &context),
-                                          OperatorSequence({bob[0], bob[0], bob[0]}, &context), true},
-                                  {OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context),
-                                          OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context), true},
-                                  {OperatorSequence({alice[0], alice[0], alice[0], bob[0]}, &context),
-                                          OperatorSequence({alice[0],alice[0],  alice[0], bob[0]}, &context), true},
-                                  {OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, &context),
-                                          OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, &context), true},
-                                  {OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, &context),
-                                          OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, &context), true},
-                                  {OperatorSequence({bob[0], bob[0], bob[0], bob[0]}, &context),
-                                          OperatorSequence({bob[0], bob[0], bob[0], bob[0]}, &context), true}
+                                 {{OperatorSequence({alice[0]}, context),
+                                          OperatorSequence({alice[0]}, context), true},
+                                  {OperatorSequence({bob[0]}, context),
+                                          OperatorSequence({bob[0]}, context), true},
+                                  {OperatorSequence({alice[0], alice[0]}, context),
+                                          OperatorSequence({alice[0], alice[0]}, context), true},
+                                  {OperatorSequence({alice[0], bob[0]}, context),
+                                          OperatorSequence({alice[0], bob[0]}, context), true},
+                                  {OperatorSequence({bob[0], bob[0]}, context),
+                                          OperatorSequence({bob[0], bob[0]}, context), true},
+                                  {OperatorSequence({alice[0], alice[0], alice[0]}, context),
+                                          OperatorSequence({alice[0], alice[0], alice[0]}, context), true},
+                                  {OperatorSequence({alice[0], alice[0], bob[0]}, context),
+                                          OperatorSequence({alice[0], alice[0], bob[0]}, context), true},
+                                  {OperatorSequence({alice[0], bob[0], bob[0]}, context),
+                                          OperatorSequence({alice[0], bob[0], bob[0]}, context), true},
+                                  {OperatorSequence({bob[0], bob[0], bob[0]}, context),
+                                          OperatorSequence({bob[0], bob[0], bob[0]}, context), true},
+                                  {OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context),
+                                          OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context), true},
+                                  {OperatorSequence({alice[0], alice[0], alice[0], bob[0]}, context),
+                                          OperatorSequence({alice[0],alice[0],  alice[0], bob[0]}, context), true},
+                                  {OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, context),
+                                          OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, context), true},
+                                  {OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, context),
+                                          OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, context), true},
+                                  {OperatorSequence({bob[0], bob[0], bob[0], bob[0]}, context),
+                                          OperatorSequence({bob[0], bob[0], bob[0], bob[0]}, context), true}
          });
     }
 
@@ -588,26 +588,26 @@ namespace NPATK::Tests {
 
         auto& matLevel1 = system.CreateMomentMatrix(1);
         compare_unique_sequences(matLevel1,
-                                 {{OperatorSequence({alice[0]}, &context),
-                                   OperatorSequence({alice[0]}, &context), true},
-                                  {OperatorSequence({bob[0]}, &context),
-                                   OperatorSequence({bob[0]}, &context), true},
-                                  {OperatorSequence({alice[0], bob[0]}, &context),
-                                   OperatorSequence({alice[0], bob[0]}, &context), true}});
+                                 {{OperatorSequence({alice[0]}, context),
+                                   OperatorSequence({alice[0]}, context), true},
+                                  {OperatorSequence({bob[0]}, context),
+                                   OperatorSequence({bob[0]}, context), true},
+                                  {OperatorSequence({alice[0], bob[0]}, context),
+                                   OperatorSequence({alice[0], bob[0]}, context), true}});
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
         compare_unique_sequences(matLevel2,
-                                 {{OperatorSequence({alice[0]}, &context),
-                                   OperatorSequence({alice[0]}, &context), true},
-                                  {OperatorSequence({bob[0]}, &context),
-                                   OperatorSequence({bob[0]}, &context), true},
-                                  {OperatorSequence({alice[0], bob[0]}, &context),
-                                   OperatorSequence({alice[0], bob[0]}, &context), true}});
+                                 {{OperatorSequence({alice[0]}, context),
+                                   OperatorSequence({alice[0]}, context), true},
+                                  {OperatorSequence({bob[0]}, context),
+                                   OperatorSequence({bob[0]}, context), true},
+                                  {OperatorSequence({alice[0], bob[0]}, context),
+                                   OperatorSequence({alice[0], bob[0]}, context), true}});
     }
 
     TEST(MomentMatrix, Unique_1Party2Opers_L0) {
         MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))};  // One party, two symbols
-        const auto &context = system.Context();
+        const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto &alice = context.Parties[0];
@@ -620,29 +620,29 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Unique_1Party2Opers_L1) {
         MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
-        const auto &context = system.Context();
+        const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto &alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 2);
         auto &matLevel1 = system.CreateMomentMatrix(1);
 
-        compare_unique_sequences(matLevel1, {{OperatorSequence({alice[0]}, &context),
-                                                     OperatorSequence({alice[0]}, &context),           true},
-                                             {OperatorSequence({alice[1]}, &context),
-                                                     OperatorSequence({alice[1]}, &context),           true},
-                                             {OperatorSequence({alice[0], alice[0]}, &context),
-                                                     OperatorSequence({alice[0], alice[0]}, &context), true},
-                                             {OperatorSequence({alice[0], alice[1]}, &context),
-                                                     OperatorSequence({alice[1], alice[0]}, &context), false},
-                                             {OperatorSequence({alice[1], alice[1]}, &context),
-                                                     OperatorSequence({alice[1], alice[1]}, &context), true}});
+        compare_unique_sequences(matLevel1, {{OperatorSequence({alice[0]}, context),
+                                                     OperatorSequence({alice[0]}, context),           true},
+                                             {OperatorSequence({alice[1]}, context),
+                                                     OperatorSequence({alice[1]}, context),           true},
+                                             {OperatorSequence({alice[0], alice[0]}, context),
+                                                     OperatorSequence({alice[0], alice[0]}, context), true},
+                                             {OperatorSequence({alice[0], alice[1]}, context),
+                                                     OperatorSequence({alice[1], alice[0]}, context), false},
+                                             {OperatorSequence({alice[1], alice[1]}, context),
+                                                     OperatorSequence({alice[1], alice[1]}, context), true}});
 
     }
 
     TEST(MomentMatrix, Unique_1Party2Opers_L2) {
         MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
-        const auto &context = system.Context();
+        const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 1);
         const auto &alice = context.Parties[0];
@@ -650,51 +650,51 @@ namespace NPATK::Tests {
         auto& matLevel2 = system.CreateMomentMatrix(2);
 
         compare_unique_sequences(matLevel2, {
-                {OperatorSequence({alice[0]}, &context), // 2
-                        OperatorSequence({alice[0]}, &context), true},
-                {OperatorSequence({alice[1]}, &context),
-                        OperatorSequence({alice[1]}, &context), true},
+                {OperatorSequence({alice[0]}, context), // 2
+                        OperatorSequence({alice[0]}, context), true},
+                {OperatorSequence({alice[1]}, context),
+                        OperatorSequence({alice[1]}, context), true},
 
-                {OperatorSequence({alice[0], alice[0]}, &context), // 4
-                        OperatorSequence({alice[0], alice[0]}, &context), true},
-                {OperatorSequence({alice[0], alice[1]}, &context),
-                        OperatorSequence({alice[1], alice[0]}, &context), false},
-                {OperatorSequence({alice[1], alice[1]}, &context),
-                        OperatorSequence({alice[1], alice[1]}, &context), true},
+                {OperatorSequence({alice[0], alice[0]}, context), // 4
+                        OperatorSequence({alice[0], alice[0]}, context), true},
+                {OperatorSequence({alice[0], alice[1]}, context),
+                        OperatorSequence({alice[1], alice[0]}, context), false},
+                {OperatorSequence({alice[1], alice[1]}, context),
+                        OperatorSequence({alice[1], alice[1]}, context), true},
 
-                {OperatorSequence({alice[0], alice[0], alice[0]}, &context), // 7
-                        OperatorSequence({alice[0], alice[0], alice[0]}, &context), true},
-                {OperatorSequence({alice[0], alice[0], alice[1]}, &context),
-                        OperatorSequence({alice[1], alice[0], alice[0]}, &context), false},
-                {OperatorSequence({alice[0], alice[1], alice[0]}, &context),
-                        OperatorSequence({alice[0], alice[1], alice[0]}, &context), true},
-                {OperatorSequence({alice[0], alice[1], alice[1]}, &context),
-                        OperatorSequence({alice[1], alice[1], alice[0]}, &context), false},
-                {OperatorSequence({alice[1], alice[0], alice[1]}, &context),
-                        OperatorSequence({alice[1], alice[0], alice[1]}, &context), true},
-                {OperatorSequence({alice[1], alice[1], alice[1]}, &context),
-                        OperatorSequence({alice[1], alice[1], alice[1]}, &context), true},
+                {OperatorSequence({alice[0], alice[0], alice[0]}, context), // 7
+                        OperatorSequence({alice[0], alice[0], alice[0]}, context), true},
+                {OperatorSequence({alice[0], alice[0], alice[1]}, context),
+                        OperatorSequence({alice[1], alice[0], alice[0]}, context), false},
+                {OperatorSequence({alice[0], alice[1], alice[0]}, context),
+                        OperatorSequence({alice[0], alice[1], alice[0]}, context), true},
+                {OperatorSequence({alice[0], alice[1], alice[1]}, context),
+                        OperatorSequence({alice[1], alice[1], alice[0]}, context), false},
+                {OperatorSequence({alice[1], alice[0], alice[1]}, context),
+                        OperatorSequence({alice[1], alice[0], alice[1]}, context), true},
+                {OperatorSequence({alice[1], alice[1], alice[1]}, context),
+                        OperatorSequence({alice[1], alice[1], alice[1]}, context), true},
 
-                {OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context), // 13
-                        OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, &context), true},
-                {OperatorSequence({alice[0], alice[0], alice[0], alice[1]}, &context),
-                        OperatorSequence({alice[1], alice[0], alice[0], alice[0]}, &context), false},
-                {OperatorSequence({alice[0], alice[0], alice[1], alice[0]}, &context),
-                        OperatorSequence({alice[0], alice[1], alice[0], alice[0]}, &context), false},
-                {OperatorSequence({alice[0], alice[0], alice[1], alice[1]}, &context),
-                        OperatorSequence({alice[1], alice[1], alice[0], alice[0]}, &context), false},
-                {OperatorSequence({alice[1], alice[0], alice[0], alice[1]} , &context),
-                        OperatorSequence({alice[1], alice[0], alice[0], alice[1]} , &context), true},
-                {OperatorSequence({alice[0], alice[1], alice[0], alice[1]} , &context),
-                        OperatorSequence({alice[1], alice[0], alice[1], alice[0]} , &context), false},
-                {OperatorSequence({alice[1], alice[0], alice[1], alice[1]} , &context),
-                        OperatorSequence({alice[1], alice[1], alice[0], alice[1]} , &context), false},
-                {OperatorSequence({alice[0], alice[1], alice[1], alice[0]}, &context),
-                        OperatorSequence({alice[0], alice[1], alice[1], alice[0]}, &context), true},
-                {OperatorSequence({alice[0], alice[1], alice[1], alice[1]} , &context),
-                        OperatorSequence({alice[1], alice[1], alice[1], alice[0]} , &context), false},
-                {OperatorSequence({alice[1], alice[1], alice[1], alice[1]} , &context),
-                        OperatorSequence({alice[1], alice[1], alice[1], alice[1]} , &context), true}
+                {OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context), // 13
+                        OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context), true},
+                {OperatorSequence({alice[0], alice[0], alice[0], alice[1]}, context),
+                        OperatorSequence({alice[1], alice[0], alice[0], alice[0]}, context), false},
+                {OperatorSequence({alice[0], alice[0], alice[1], alice[0]}, context),
+                        OperatorSequence({alice[0], alice[1], alice[0], alice[0]}, context), false},
+                {OperatorSequence({alice[0], alice[0], alice[1], alice[1]}, context),
+                        OperatorSequence({alice[1], alice[1], alice[0], alice[0]}, context), false},
+                {OperatorSequence({alice[1], alice[0], alice[0], alice[1]} , context),
+                        OperatorSequence({alice[1], alice[0], alice[0], alice[1]} , context), true},
+                {OperatorSequence({alice[0], alice[1], alice[0], alice[1]} , context),
+                        OperatorSequence({alice[1], alice[0], alice[1], alice[0]} , context), false},
+                {OperatorSequence({alice[1], alice[0], alice[1], alice[1]} , context),
+                        OperatorSequence({alice[1], alice[1], alice[0], alice[1]} , context), false},
+                {OperatorSequence({alice[0], alice[1], alice[1], alice[0]}, context),
+                        OperatorSequence({alice[0], alice[1], alice[1], alice[0]}, context), true},
+                {OperatorSequence({alice[0], alice[1], alice[1], alice[1]} , context),
+                        OperatorSequence({alice[1], alice[1], alice[1], alice[0]} , context), false},
+                {OperatorSequence({alice[1], alice[1], alice[1], alice[1]} , context),
+                        OperatorSequence({alice[1], alice[1], alice[1], alice[1]} , context), true}
         });
     }
 
@@ -708,22 +708,30 @@ namespace NPATK::Tests {
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
 
-        auto ptr_a0a0a0a0 = matLevel2.Symbols.where(OperatorSequence{alice[0], alice[0], alice[0], alice[0]});
+        auto ptr_a0a0a0a0 = matLevel2.Symbols.where(OperatorSequence{{alice[0], alice[0], alice[0], alice[0]},
+                                                                     context});
         ASSERT_NE(ptr_a0a0a0a0, nullptr);
-        EXPECT_EQ(ptr_a0a0a0a0->sequence(), (OperatorSequence{alice[0], alice[0], alice[0], alice[0]}));
+        EXPECT_EQ(ptr_a0a0a0a0->sequence(), (OperatorSequence{{alice[0], alice[0], alice[0], alice[0]}, context}));
 
-        auto ptr_a0a0a1a1 = matLevel2.Symbols.where(OperatorSequence{alice[0], alice[0], alice[1], alice[1]});
-        auto ptr_a1a1a0a0 = matLevel2.Symbols.where(OperatorSequence{alice[1], alice[1], alice[0], alice[0]});
+        auto ptr_a0a0a1a1 = matLevel2.Symbols.where(OperatorSequence{{alice[0], alice[0], alice[1], alice[1]},
+                                                                     context});
+        auto ptr_a1a1a0a0 = matLevel2.Symbols.where(OperatorSequence{{alice[1], alice[1], alice[0], alice[0]},
+                                                                     context});
         ASSERT_NE(ptr_a0a0a1a1, nullptr);
         ASSERT_NE(ptr_a1a1a0a0, nullptr);
         EXPECT_EQ(ptr_a0a0a1a1, ptr_a1a1a0a0);
 
-        EXPECT_EQ(ptr_a0a0a1a1->sequence(), (OperatorSequence{alice[0], alice[0], alice[1], alice[1]}));
-        EXPECT_EQ(ptr_a1a1a0a0->sequence(), (OperatorSequence{alice[0], alice[0], alice[1], alice[1]}));
-        EXPECT_EQ(ptr_a0a0a1a1->sequence_conj(), (OperatorSequence{alice[1], alice[1], alice[0], alice[0]}));
-        EXPECT_EQ(ptr_a1a1a0a0->sequence_conj(), (OperatorSequence{alice[1], alice[1], alice[0], alice[0]}));
+        EXPECT_EQ(ptr_a0a0a1a1->sequence(), (OperatorSequence{{alice[0], alice[0], alice[1], alice[1]},
+                                                              context}));
+        EXPECT_EQ(ptr_a1a1a0a0->sequence(), (OperatorSequence{{alice[0], alice[0], alice[1], alice[1]},
+                                                              context}));
+        EXPECT_EQ(ptr_a0a0a1a1->sequence_conj(), (OperatorSequence{{alice[1], alice[1], alice[0], alice[0]},
+                                                                   context}));
+        EXPECT_EQ(ptr_a1a1a0a0->sequence_conj(), (OperatorSequence{{alice[1], alice[1], alice[0], alice[0]},
+                                                                   context}));
 
-        auto ptr_a0a0a0a0a0 = matLevel2.Symbols.where(OperatorSequence{alice[0], alice[0], alice[0], alice[0], alice[0]});
+        auto ptr_a0a0a0a0a0 = matLevel2.Symbols.where(
+                OperatorSequence{{alice[0], alice[0], alice[0], alice[0], alice[0]}, context});
         EXPECT_EQ(ptr_a0a0a0a0a0, nullptr);
     }
 

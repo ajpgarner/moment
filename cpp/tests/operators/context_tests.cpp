@@ -202,43 +202,43 @@ namespace NPATK::Tests {
 
         std::set<size_t> hashes{};
 
-        auto a0 = context.hash(OperatorSequence{alice[0]});
-        auto a0a0 = context.hash(OperatorSequence{alice[0], alice[0]});
+        auto a0 = context.hash(OperatorSequence{{alice[0]}, context});
+        auto a0a0 = context.hash(OperatorSequence{{alice[0], alice[0]}, context});
         EXPECT_NE(a0a0, a0);
-        auto a0a0a0 = context.hash(OperatorSequence{alice[0], alice[0], alice[0]});
+        auto a0a0a0 = context.hash(OperatorSequence{{alice[0], alice[0], alice[0]}, context});
         EXPECT_NE(a0a0a0, a0);
         EXPECT_NE(a0a0a0, a0a0);
         hashes.insert(a0);
         hashes.insert(a0a0);
         hashes.insert(a0a0a0);
 
-        auto b0 = context.hash(OperatorSequence{bob[0]});
+        auto b0 = context.hash(OperatorSequence{{bob[0]}, context});
         EXPECT_FALSE(hashes.contains(b0));
         hashes.insert(b0);
 
-        auto a0b0 = context.hash(OperatorSequence{alice[0], bob[0]});
+        auto a0b0 = context.hash(OperatorSequence{{alice[0], bob[0]}, context});
         EXPECT_FALSE(hashes.contains(a0b0));
         hashes.insert(a0b0);
 
-        auto a0a0b0 = context.hash(OperatorSequence{alice[0], alice[0], bob[0]});
+        auto a0a0b0 = context.hash(OperatorSequence{{alice[0], alice[0], bob[0]}, context});
         EXPECT_FALSE(hashes.contains(a0a0b0));
         hashes.insert(a0a0b0);
 
-        auto b0a0a0 = context.hash(OperatorSequence{bob[0], alice[0], alice[0]});
+        auto b0a0a0 = context.hash(OperatorSequence{{bob[0], alice[0], alice[0]}, context});
         EXPECT_TRUE(hashes.contains(b0a0a0));
 
-        auto a1 = context.hash(OperatorSequence{alice[1]});
+        auto a1 = context.hash(OperatorSequence{{alice[1]}, context});
         EXPECT_FALSE(hashes.contains(a1));
         hashes.insert(a1);
 
-        auto b1 = context.hash(OperatorSequence{bob[1]});
+        auto b1 = context.hash(OperatorSequence{{bob[1]}, context});
         EXPECT_FALSE(hashes.contains(b1));
         hashes.insert(b1);
     }
 
     TEST(Context, Hash_Zero) {
         Context context(Party::MakeList({2, 2}));
-        OperatorSequence zero{OperatorSequence::Zero(&context)};
+        OperatorSequence zero{OperatorSequence::Zero(context)};
         ASSERT_TRUE(zero.zero());
 
         size_t hash = context.hash(zero);
@@ -247,7 +247,7 @@ namespace NPATK::Tests {
 
     TEST(Context, Hash_Identity) {
         Context context(Party::MakeList({2, 2}));
-        OperatorSequence identity{OperatorSequence::Identity(&context)};
+        OperatorSequence identity{OperatorSequence::Identity(context)};
         ASSERT_FALSE(identity.zero());
 
         size_t hash = context.hash(identity);

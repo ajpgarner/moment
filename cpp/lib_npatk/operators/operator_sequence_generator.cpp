@@ -15,7 +15,7 @@ namespace NPATK {
         std::map<size_t, OperatorSequence> build_set;
 
         // For all lengths, even 1, we include ID operator.
-        build_set.emplace(1, OperatorSequence::Identity(&context));
+        build_set.emplace(1, OperatorSequence::Identity(context));
 
         // Iterate through various generators...
         for (size_t sub_length = 1; sub_length <= sequence_length; ++sub_length) {
@@ -33,13 +33,6 @@ namespace NPATK {
         std::transform(build_set.begin(), build_set.end(), std::back_inserter(this->unique_sequences),
                        [](auto& swh) -> OperatorSequence&& { return std::move(swh.second); });
 
-    }
-
-    OperatorSequenceGenerator::OperatorSequenceGenerator(const Context& operatorContext,
-                                                         size_t chain_length,
-                                                         std::vector<OperatorSequence> &&seq)
-            : context(operatorContext), sequence_length(chain_length) {
-        this->unique_sequences.swap(seq);
     }
 
 

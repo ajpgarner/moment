@@ -107,7 +107,7 @@ namespace NPATK {
                 return *this;
             }
 
-            AllOperatorConstIterator operator++(int) & noexcept {
+            AllOperatorConstIterator operator++(int) & noexcept { // NOLINT(cert-dcl21-cpp)
                 AllOperatorConstIterator tmp{*this};
                 ++(*this);
                 return tmp;
