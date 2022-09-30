@@ -14,7 +14,7 @@
 
 namespace NPATK {
     class MatrixSystem;
-    class Context;
+    class LocalityContext;
 
     namespace errors {
         class BadCGError : std::runtime_error {
@@ -26,7 +26,7 @@ namespace NPATK {
     class CollinsGisin {
     public:
         /** The associated operator context */
-        const Context& context;
+        const LocalityContext& context;
 
         /** The size of each dimension of the Collins Gisin (i.e. operators per party + 1) */
         const std::vector<size_t> Dimensions;

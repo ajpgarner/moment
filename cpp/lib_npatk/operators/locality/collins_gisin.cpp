@@ -5,7 +5,7 @@
  */
 #include "collins_gisin.h"
 
-#include "../context.h"
+#include "locality_context.h"
 
 #include "operators/matrix/matrix_system.h"
 #include "operators/matrix/symbol_table.h"
@@ -34,7 +34,7 @@ namespace NPATK {
     }
 
     CollinsGisin::CollinsGisin(const MatrixSystem &matrixSystem)
-        : context{matrixSystem.Context()},
+        : context{dynamic_cast<const LocalityContext&>(matrixSystem.Context())},
           Dimensions(make_dimensions(context.operators_per_party())) {
 
         const auto& symbol_table = matrixSystem.Symbols();
@@ -68,8 +68,6 @@ namespace NPATK {
 
     size_t CollinsGisin::index_to_offset(const std::span<const size_t> index) const {
         this->validate_index(index);
-
-        // XXX: Fix row to col major
 
         size_t offset = 0;
         size_t stride = 1;

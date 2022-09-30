@@ -6,6 +6,7 @@
 #include "../context.h"
 #include "explicit_symbols.h"
 #include "implicit_symbols.h"
+#include "locality_matrix_system.h"
 #include "operators/matrix/matrix_system.h"
 #include "operators/matrix/symbol_table.h"
 
@@ -17,12 +18,12 @@
 
 namespace NPATK {
 
-    ImplicitSymbols::ImplicitSymbols(const MatrixSystem &ms)
-        : symbols{ms.Symbols()},
-          context{ms.Context()},
-          cgForm{ms.ExplicitSymbolTable()},
+    ImplicitSymbols::ImplicitSymbols(const LocalityMatrixSystem &ms)
+        : context{ms.localityContext},
+          symbols{ms.Symbols()},
+          esiForm{ms.ExplicitSymbolTable()},
           MaxSequenceLength{ms.MaxRealSequenceLength()},
-          indices{ms.Context(), ms.MaxRealSequenceLength()} {
+          indices{context, ms.MaxRealSequenceLength()} {
 
         size_t index_cursor = 0;
         this->generateLevelZero(index_cursor);
@@ -63,14 +64,6 @@ namespace NPATK {
 
                 const size_t mmt_index_start = index_cursor;
 
-
-                // Only complete measurements can be inferred in this way...
-                if (!mmt.complete) {
-                    [[unlikely]]
-                    throw errors::bad_implicit_symbol(std::string("Correlation table can only be generated when")
-                                                                  + " all measurements are complete.");
-                }
-
                 // PRECONDITION: Measurement has one more outcome than defined operators...
                 if (mmt.num_outcomes != (mmt.num_operators()+1)) {
                     [[unlikely]]
@@ -79,7 +72,7 @@ namespace NPATK {
                 }
 
                 // Get explicit outcomes
-                auto mmtSymb = this->cgForm.get({static_cast<size_t>(mmt.Index().global_mmt)});
+                auto mmtSymb = this->esiForm.get({static_cast<size_t>(mmt.Index().global_mmt)});
                 if (mmtSymb.size() != mmt.num_operators()) {
                     throw errors::bad_implicit_symbol("Could not find measurement in Collins-Gisin table.");
                 }
@@ -152,7 +145,7 @@ namespace NPATK {
             const size_t num_implicit = outcomeIter.implicit_count();
             if (num_implicit == 0) {
                 // No implicit operators, just put down the explicit operator
-                const auto implicit_full_opers = this->cgForm.get(stack.global_indices());
+                const auto implicit_full_opers = this->esiForm.get(stack.global_indices());
                 assert(implicit_full_opers.size() == stack.count_operators());
                 assert(outcomeIter.explicit_outcome_index() < implicit_full_opers.size());
                 const auto symbol_id = implicit_full_opers[outcomeIter.explicit_outcome_index()].symbol_id;
@@ -184,7 +177,7 @@ namespace NPATK {
                         }
 
                         // Look up, and copy with sign
-                        const auto symbolsSpan = this->cgForm.get(lookupIndices, outcomeIndices);
+                        const auto symbolsSpan = this->esiForm.get(lookupIndices, outcomeIndices);
                         for (auto symb : symbolsSpan) {
                             symbolComboData.emplace_back(symb.symbol_id, the_sign);
                         }
@@ -203,7 +196,7 @@ namespace NPATK {
                         normOutcomes.push_back(static_cast<symbol_name_t>(outcomeIter[i]));
                     }
                 }
-                auto normMmtSpan = this->cgForm.get(normIndices, normOutcomes);
+                auto normMmtSpan = this->esiForm.get(normIndices, normOutcomes);
                 assert(normMmtSpan.size() == 1);
                 symbolComboData.emplace_back(normMmtSpan[0].symbol_id, the_sign);
 

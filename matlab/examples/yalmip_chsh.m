@@ -46,4 +46,4 @@ optimize(constraints, objective);
 solved_setting = SolvedScenario(chsh, matrix, a, b);
 solved_matrix = solved_setting.SolvedMomentMatrix;
 disp(struct2table(solved_matrix.SymbolTable));
-chsh_max_val = solved_setting.Value(CHSH_ineq);
+chsh_max_val = solved_setting.Value(CHSH_ineq)

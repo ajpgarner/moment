@@ -26,7 +26,7 @@ namespace NPATK {
         };
     }
 
-    class MatrixSystem;
+    class LocalityMatrixSystem;
 
     /** Data record for CGI */
     struct ExplicitSymbolEntry {
@@ -52,7 +52,7 @@ namespace NPATK {
         JointMeasurementIndex indices;
 
     public:
-        ExplicitSymbolIndex(const MatrixSystem& ms, size_t level);
+        ExplicitSymbolIndex(const LocalityMatrixSystem& ms, size_t level);
 
         /**
          * Gets a span of *all* symbols corresponding to the supplied measurement indices.

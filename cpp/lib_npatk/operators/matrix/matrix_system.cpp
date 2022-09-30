@@ -11,9 +11,6 @@
 #include "moment_matrix.h"
 
 #include "../context.h"
-#include "operators/locality/explicit_symbols.h"
-#include "operators/locality/implicit_symbols.h"
-#include "operators/locality/collins_gisin.h"
 
 #include <algorithm>
 #include <memory>
@@ -31,27 +28,10 @@ namespace NPATK {
     MatrixSystem::MatrixSystem(std::unique_ptr<class Context> ctxtIn)
         : context{std::move(ctxtIn)}, symbol_table{std::make_unique<SymbolTable>(assertContext(context))} {
 
-        // Create empty indexers
-        if (this->context->admits_cg_form()) {
-            this->explicitSymbols = std::make_unique<ExplicitSymbolIndex>(*this, this->MaxRealSequenceLength());
-            this->implicitSymbols = std::make_unique<ImplicitSymbols>(*this);
-        }
     }
 
     MatrixSystem::~MatrixSystem() noexcept = default;
 
-
-    size_t MatrixSystem::MaxRealSequenceLength() const noexcept {
-        // First, get length of the longest moment matrix:
-        //  e.g. if [0] and [1] exists, size is 2, and MM of hierarchy Level 1 guaranteed to exist.
-        ptrdiff_t hierarchy_level = static_cast<ptrdiff_t>(this->momentMatrixIndices.size()) - 1;
-        if (hierarchy_level < 0) {
-            hierarchy_level = 0;
-        }
-
-        // Max sequence can't also be longer than number of parties
-        return std::min(hierarchy_level*2, static_cast<ptrdiff_t>(this->context->Parties.size()));
-    }
 
     bool MatrixSystem::hasMomentMatrix(size_t level) const noexcept {
         // Do our indices even extend this far?
@@ -69,6 +49,11 @@ namespace NPATK {
         return static_cast<bool>(this->matrices[mmIndex]);
     }
 
+    ptrdiff_t MatrixSystem::highestMomentMatrix() const noexcept {
+        return static_cast<ptrdiff_t>(this->momentMatrixIndices.size()) - 1;
+    }
+
+
     const MomentMatrix &MatrixSystem::MomentMatrix(size_t level) const {
         if (!this->hasMomentMatrix(level)) {
             throw errors::missing_component("Moment matrix of Level " + std::to_string(level) + " not yet generated.");
@@ -80,8 +65,6 @@ namespace NPATK {
         // Call for write lock...
         std::unique_lock lock{this->rwMutex};
 
-        // Old max probability length...
-        auto oldMPL = this->MaxRealSequenceLength();
 
         // First, try read
         if (this->hasMomentMatrix(level)) {
@@ -101,18 +84,7 @@ namespace NPATK {
         auto& output = dynamic_cast<class MomentMatrix&>(*this->matrices[matrixIndex]);
 
         // Check if new indices have become available, and if so, update...
-        if (this->context->admits_cg_form()) {
-            // Should we make explicit/implicit symbol table
-            if ((oldMPL < output.max_probability_length) || !this->explicitSymbols || !this->implicitSymbols) {
-                this->explicitSymbols = std::make_unique<ExplicitSymbolIndex>(*this, this->MaxRealSequenceLength());
-                this->implicitSymbols = std::make_unique<ImplicitSymbols>(*this);
-            }
-
-            // Can/should we make C-G tensor?
-            if (!this->collinsGisin && (output.max_probability_length >= this->context->Parties.size())) {
-                this->collinsGisin = std::make_unique<NPATK::CollinsGisin>(*this);
-            }
-        }
+        this->onNewMomentMatrixCreated(level, output);
 
         return output;
     }
@@ -139,7 +111,7 @@ namespace NPATK {
         return dynamic_cast<const class LocalizingMatrix&>(*matrices[momentMatrixIndices[index]]);
     }
 
-    LocalizingMatrix& MatrixSystem::CreateLocalizingMatrix(LocalizingMatrixIndex lmi) {
+    LocalizingMatrix& MatrixSystem::CreateLocalizingMatrix(const LocalizingMatrixIndex& lmi) {
         // Call for write lock...
         std::unique_lock lock{this->rwMutex};
 
@@ -154,41 +126,15 @@ namespace NPATK {
         this->matrices.emplace_back(std::make_unique<class LocalizingMatrix>(*this->context, *this->symbol_table, lmi));
         this->localizingMatrixIndices.emplace(std::make_pair(lmi, matrixIndex));
 
+        // Get reference to new matrix, and call derived classes...
+        auto& newLM = dynamic_cast<class LocalizingMatrix&>(*this->matrices.back());
+        this->onNewLocalizingMatrixCreated(lmi, newLM);
+
         // Return (reference to) matrix just added
-        return dynamic_cast<class LocalizingMatrix&>(*this->matrices.back());
-
+        return newLM;
     }
 
-    const ExplicitSymbolIndex& MatrixSystem::ExplicitSymbolTable() const {
-        if (!this->context->admits_cg_form()) {
-            throw errors::missing_component("ExplicitSymbolTable indexing not possible for this scenario.");
-        }
-        if (!this->explicitSymbols) {
-            throw errors::missing_component("ExplicitSymbolTable has not yet been generated.");
-        }
-        return *this->explicitSymbols;
-    }
 
-    const ImplicitSymbols& MatrixSystem::ImplicitSymbolTable() const {
-        if (!this->context->admits_cg_form()) {
-            throw errors::missing_component("Implicit symbols cannot be generated for this scenario.");
-        }
-        if (!this->implicitSymbols) {
-            throw errors::missing_component("ImplicitSymbolTable has not yet been generated.");
-        }
-        return *this->implicitSymbols;
-    }
-
-    const class CollinsGisin& MatrixSystem::CollinsGisin() const {
-        if (!this->context->admits_cg_form()) {
-            throw errors::missing_component("Implicit symbols cannot be generated for this scenario.");
-        }
-        if (!this->collinsGisin) {
-            throw errors::missing_component(std::string("Collins-Gisin tensor has not yet been generated. ")
-                                     + "Perhaps a large enough moment matrix has not yet been created.");
-        }
-        return *this->collinsGisin;
-    }
 
 
 

@@ -9,6 +9,8 @@ add_library(lib_npatk
         operators/locality/implicit_symbols.cpp
         operators/locality/joint_measurement_index.cpp
         operators/locality/joint_measurement_iterator.cpp
+        operators/locality/locality_context.cpp
+        operators/locality/locality_matrix_system.cpp
         operators/locality/party.cpp
         operators/matrix/localizing_matrix.cpp
         operators/matrix/localizing_matrix_index.cpp

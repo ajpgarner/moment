@@ -6,15 +6,15 @@
 
 #include "explicit_symbols.h"
 
-#include "../context.h"
+#include "locality_context.h"
 #include "joint_measurement_iterator.h"
-#include "operators/matrix/matrix_system.h"
+#include "locality_matrix_system.h"
 #include "operators/matrix/symbol_table.h"
 #include "utilities/combinations.h"
 
 namespace NPATK {
     namespace {
-        std::vector<size_t> makeOpCounts(const Context& context) {
+        std::vector<size_t> makeOpCounts(const LocalityContext& context) {
             std::vector<size_t> output;
             output.reserve(context.measurement_count());
             size_t i = 0;
@@ -30,12 +30,12 @@ namespace NPATK {
         }
     }
 
-    ExplicitSymbolIndex::ExplicitSymbolIndex(const MatrixSystem& matrixSystem, const size_t level)
+    ExplicitSymbolIndex::ExplicitSymbolIndex(const LocalityMatrixSystem& matrixSystem, const size_t level)
         : Level{level},
-          indices{matrixSystem.Context(), level},
-          OperatorCounts(makeOpCounts(matrixSystem.Context())) {
+          indices{matrixSystem.localityContext, level},
+          OperatorCounts{makeOpCounts(matrixSystem.localityContext)} {
 
-        const Context& context = matrixSystem.Context();
+        const auto& context = matrixSystem.localityContext;
         const SymbolTable& symbols = matrixSystem.Symbols();
 
         // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.

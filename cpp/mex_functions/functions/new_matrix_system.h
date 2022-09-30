@@ -17,21 +17,24 @@ namespace NPATK::mex::functions {
 
     struct NewMatrixSystemParams : public SortedInputs {
     public:
+        enum class SystemType {
+            Generic,
+            Locality
+        } system_type = SystemType::Generic;
+
+        size_t total_operators = 0;
         size_t number_of_parties = 1;
-
-        bool has_measurements = false;
-
-        std::vector<size_t> mmts_per_party;
         size_t total_measurements = 0;
-
+        std::vector<size_t> mmts_per_party;
         std::vector<size_t> outcomes_per_mmt;
-        std::vector<size_t> loose_opers_per_party;
 
     public:
         explicit NewMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs);
 
     private:
-        void getFromParams(matlab::engine::MATLABEngine &matlabEngine);
+        void getGenericFromParams(matlab::engine::MATLABEngine &matlabEngine);
+
+        void getLocalityFromParams(matlab::engine::MATLABEngine &matlabEngine);
 
         void getFromInputs(matlab::engine::MATLABEngine &matlabEngine);
 

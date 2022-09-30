@@ -7,7 +7,8 @@
 
 #include "operators/context.h"
 #include "operators/matrix/moment_matrix.h"
-#include "operators/matrix/matrix_system.h"
+#include "operators/locality/locality_matrix_system.h"
+#include "operators/locality/locality_context.h"
 #include "operators/locality/collins_gisin.h"
 
 namespace NPATK::Tests {
@@ -23,8 +24,8 @@ namespace NPATK::Tests {
     }
 
     TEST(CollinsGisin, CHSH) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 2, 2))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
+        const auto& context = system.localityContext;
         const auto& mm = system.CreateMomentMatrix(1);
 
         ASSERT_EQ(context.Parties.size(), 2);
@@ -125,7 +126,7 @@ namespace NPATK::Tests {
     }
 
     TEST(CollinsGisin, BadIndices) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 2, 2))};
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
         const auto& mm = system.CreateMomentMatrix(1);
         const auto& cgi = system.CollinsGisin();
 

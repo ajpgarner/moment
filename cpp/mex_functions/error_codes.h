@@ -43,4 +43,7 @@ namespace NPATK::mex::errors {
     /** Error code: thrown when there are too many outputs */
     constexpr char too_many_outputs[] = "too_many_outputs";
 
+    /** Error code: thrown when a dynamic cast fails */
+    constexpr char bad_cast[] = "bad_cast";
+
 }

@@ -5,7 +5,9 @@
 
 #include "operators/operator_sequence.h"
 #include "operators/context.h"
-#include <list>
+#include "operators/locality/locality_context.h"
+
+#include <vector>
 
 namespace NPATK::Tests {
     TEST(OperatorSequence, Sequence_Empty) {
@@ -266,25 +268,17 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, WithContext_MutexZero) {
-
-        Party alice_spec{0, "A", 3};
-        ASSERT_EQ(alice_spec.size(), 3);
-        alice_spec.add_mutex(1, 2);
-
-        Context collection{};
-        collection.add_party(std::move(alice_spec));
+        LocalityContext collection{Party::MakeList(1, 1, 4)};
 
         ASSERT_EQ(collection.Parties.size(), 1);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 3);
-        ASSERT_TRUE(alice.exclusive(1, 2));
-        ASSERT_TRUE(alice.exclusive(2, 1));
+        ASSERT_TRUE(alice.mutually_exclusive(alice[1], alice[2]));
+        ASSERT_TRUE(alice.mutually_exclusive(alice[2], alice[1]));
 
         OperatorSequence seq01({alice[0], alice[1]}, collection);
-        ASSERT_EQ(seq01.size(), 2);
-        EXPECT_EQ(seq01[0], alice[0]);
-        EXPECT_EQ(seq01[1], alice[1]);
-        EXPECT_FALSE(seq01.zero());
+        ASSERT_EQ(seq01.size(), 0);
+        EXPECT_TRUE(seq01.zero());
 
         OperatorSequence seq12({alice[1], alice[2]}, collection);
         ASSERT_EQ(seq12.size(), 0);

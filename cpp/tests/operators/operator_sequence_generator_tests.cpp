@@ -8,6 +8,7 @@
 
 #include "operators/multi_operator_iterator.h"
 #include "operators/operator_sequence_generator.h"
+#include "operators/locality/locality_context.h"
 
 namespace NPATK::Tests {
 
@@ -30,15 +31,14 @@ namespace NPATK::Tests {
 
 
     TEST(OperatorSequenceGenerator, Empty) {
-        Context collection{Party::MakeList({2, 2})};
+        LocalityContext collection{Party::MakeList(2, 2, 2)};
         OperatorSequenceGenerator osg{collection, 0};
         compare_sequences(osg, {OperatorSequence::Identity(collection)});
     }
 
     TEST(OperatorSequenceGenerator, OneParty3Symbols1Length) {
-        Context collection{Party::MakeList({3})};
-        ASSERT_EQ(collection.Parties.size(), 1);
-        const auto& alice = collection.Parties[0];
+        Context collection{3};
+        const auto& alice = collection;
         ASSERT_EQ(alice.size(), 3);
 
         OperatorSequenceGenerator osg{collection, 1};
@@ -50,7 +50,7 @@ namespace NPATK::Tests {
 
 
     TEST(OperatorSequenceGenerator, TwoParty2Symbols2Length) {
-        Context collection{Party::MakeList({2, 2})};
+        LocalityContext collection{Party::MakeList(2, 2, 2)};
         ASSERT_EQ(collection.Parties.size(), 2);
         const auto& alice = collection.Parties[0];
         const auto& bob = collection.Parties[1];
@@ -64,68 +64,36 @@ namespace NPATK::Tests {
                                 OperatorSequence{{alice[1]}, collection},
                                 OperatorSequence{{bob[0]}, collection},
                                 OperatorSequence{{bob[1]}, collection},
-                                OperatorSequence{{alice[0], alice[0]}, collection},
                                 OperatorSequence{{alice[0], alice[1]}, collection},
                                 OperatorSequence{{alice[0], bob[0]}, collection},
                                 OperatorSequence{{alice[0], bob[1]}, collection},
                                 OperatorSequence{{alice[1], alice[0]}, collection},
-                                OperatorSequence{{alice[1], alice[1]}, collection},
                                 OperatorSequence{{alice[1], bob[0]}, collection},
                                 OperatorSequence{{alice[1], bob[1]}, collection},
-                                OperatorSequence{{bob[0],   bob[0]}, collection},
                                 OperatorSequence{{bob[0],   bob[1]}, collection},
-                                OperatorSequence{{bob[1],  bob[0]}, collection},
-                                OperatorSequence{{bob[1],  bob[1]}, collection}});
+                                OperatorSequence{{bob[1],  bob[0]}, collection}});
     }
 
     TEST(OperatorSequenceGenerator, OneParty3Symbols3Length_Mutex) {
-        Party alice_spec{0, "A", 3};
-        ASSERT_EQ(alice_spec.size(), 3);
-        alice_spec.add_mutex(1, 2);
-        Context collection{};
-        collection.add_party(std::move(alice_spec));
-
+        LocalityContext collection{Party::MakeList(1, 1, 4)};
         ASSERT_EQ(collection.Parties.size(), 1);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 3);
-        ASSERT_FALSE(alice.exclusive(0, 1));
-        ASSERT_FALSE(alice.exclusive(0, 2));
-        ASSERT_TRUE(alice.exclusive(1, 2));
+        ASSERT_TRUE(alice.mutually_exclusive(alice[0], alice[1]));
+        ASSERT_TRUE(alice.mutually_exclusive(alice[0], alice[2]));
+        ASSERT_TRUE(alice.mutually_exclusive(alice[1], alice[2]));
 
         OperatorSequenceGenerator osg{collection, 3};
         compare_sequences(osg, {OperatorSequence::Identity(collection),
                                 OperatorSequence({alice[0]}, collection),
                                 OperatorSequence({alice[1]}, collection),
                                 OperatorSequence({alice[2]}, collection),
-                                OperatorSequence({alice[0], alice[0]}, collection),
-                                OperatorSequence({alice[0], alice[1]}, collection),
-                                OperatorSequence({alice[0], alice[2]}, collection),
-                                OperatorSequence({alice[1], alice[0]}, collection),
-                                OperatorSequence({alice[1], alice[1]}, collection),
-                                OperatorSequence({alice[2], alice[0]}, collection),
-                                OperatorSequence({alice[2], alice[2]}, collection),
-                                OperatorSequence({alice[0], alice[0], alice[0]}, collection),
-                                OperatorSequence({alice[0], alice[0], alice[1]}, collection),
-                                OperatorSequence({alice[0], alice[0], alice[2]}, collection),
-                                OperatorSequence({alice[0], alice[1], alice[0]}, collection),
-                                OperatorSequence({alice[0], alice[1], alice[1]}, collection),
-                                OperatorSequence({alice[0], alice[2], alice[0]}, collection),
-                                OperatorSequence({alice[0], alice[2], alice[2]}, collection),
-                                OperatorSequence({alice[1], alice[0], alice[0]}, collection),
-                                OperatorSequence({alice[1], alice[0], alice[1]}, collection),
-                                OperatorSequence({alice[1], alice[0], alice[2]}, collection),
-                                OperatorSequence({alice[1], alice[1], alice[0]}, collection),
-                                OperatorSequence({alice[1], alice[1], alice[1]}, collection),
-                                OperatorSequence({alice[2], alice[0], alice[0]}, collection),
-                                OperatorSequence({alice[2], alice[0], alice[1]}, collection),
-                                OperatorSequence({alice[2], alice[0], alice[2]}, collection),
-                                OperatorSequence({alice[2], alice[2], alice[0]}, collection),
-                                OperatorSequence({alice[2], alice[2], alice[2]}, collection)});
+                                });
     }
 
 
     TEST(OperatorSequenceGenerator, TwoParty1Symbol_Idem) {
-        Context collection(Party::MakeList(2, 1, Operator::Flags::Idempotent));
+        LocalityContext collection{Party::MakeList(2, 1, 2)};
         ASSERT_EQ(collection.Parties.size(), 2);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 1);
@@ -141,9 +109,8 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequenceGenerator, Conjugate_1Party2Symbols2Length) {
-        Context collection{Party::MakeList({2})};
-        ASSERT_EQ(collection.Parties.size(), 1);
-        auto& alice = collection.Parties[0];
+        Context collection{2};
+        auto& alice = collection;
         ASSERT_EQ(alice.size(), 2);
 
         OperatorSequenceGenerator osg{collection, 2};
@@ -167,7 +134,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequenceGenerator, Conjugate_2Party1Symbols2Length) {
-        Context collection{Party::MakeList({1, 1})};
+        LocalityContext collection{Party::MakeList(2, 1, 2)};
         ASSERT_EQ(collection.Parties.size(), 2);
         auto& alice = collection.Parties[0];
         ASSERT_EQ(alice.size(), 1);
@@ -182,15 +149,11 @@ namespace NPATK::Tests {
         compare_sequences(osg, {OperatorSequence::Identity(collection),
                                 OperatorSequence({alice[0]}, collection),
                                 OperatorSequence({bob[0]}, collection),
-                                OperatorSequence({alice[0], alice[0]}, collection),
-                                OperatorSequence({alice[0], bob[0]}, collection),
-                                OperatorSequence({bob[0], bob[0]}, collection)});
+                                OperatorSequence({alice[0], bob[0]}, collection)});
 
         compare_sequences(osg_conj, {OperatorSequence::Identity(collection),
                                     OperatorSequence({alice[0]}, collection),
                                     OperatorSequence({bob[0]}, collection),
-                                    OperatorSequence({alice[0], alice[0]}, collection),
-                                    OperatorSequence({alice[0], bob[0]}, collection),
-                                    OperatorSequence({bob[0], bob[0]}, collection)});
+                                    OperatorSequence({alice[0], bob[0]}, collection)});
     }
 }

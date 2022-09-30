@@ -7,6 +7,7 @@
 #pragma once
 
 #include "symbolic/symbol.h"
+
 #include "../operator_sequence.h"
 #include "party.h"
 #include "utilities/multi_dimensional_index_iterator.h"
@@ -16,6 +17,7 @@
 
 namespace NPATK {
 
+    class LocalityContext;
     class JointMeasurementIterator;
 
     /** Iterate over measurement outcomes */
@@ -32,7 +34,7 @@ namespace NPATK {
         size_t operNumber = 0;
 
     public:
-        explicit OutcomeIndexIterator(const Context& context, std::span<const PMIndex> global_mmt_indices,
+        explicit OutcomeIndexIterator(const LocalityContext& context, std::span<const PMIndex> global_mmt_indices,
                                       bool end = false);
 
         explicit OutcomeIndexIterator(const JointMeasurementIterator& mmIter, bool end = false);
@@ -158,12 +160,12 @@ private:
     /** One iterator through measurements per Party. */
     std::vector<mmt_iter_t> mmt_iters;
 
-    const Context * contextPtr = nullptr;
+    const LocalityContext * contextPtr = nullptr;
 
     bool is_done = false;
 
 public:
-    explicit JointMeasurementIterator(const Context& context, party_list_t&& list);
+    explicit JointMeasurementIterator(const LocalityContext& context, party_list_t&& list);
 
     inline JointMeasurementIterator& operator++() noexcept {
         next();

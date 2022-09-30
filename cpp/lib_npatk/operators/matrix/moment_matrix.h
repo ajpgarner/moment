@@ -27,12 +27,6 @@ namespace NPATK {
         /** The Level of moment matrix defined */
         const size_t hierarchy_level;
 
-        /**
-         * The maximum length operator sequence found in this moment matrix that corresponds to a probability.
-         * Effectively: min(number of parties, 2 * hierarchy_level)
-         */
-        const size_t max_probability_length;
-
     public:
         /**
          * Constructs a moment matrix at the requested hierarchy depth (level) for the supplied context.

@@ -6,8 +6,6 @@
 #pragma once
 
 #include <cinttypes>
-#include <iosfwd>
-
 
 namespace NPATK {
 
@@ -36,7 +34,7 @@ namespace NPATK {
 
     public:
         /**
-         * Predicate: true if the party ID of LHS is less than that of RHS.
+         * Predicate: true if the party of LHS is less than that of RHS.
          */
         struct PartyComparator {
             constexpr bool operator()(const Operator &lhs, const Operator &rhs) const noexcept {
@@ -55,12 +53,17 @@ namespace NPATK {
         };
 
     public:
+        /** Identifier of operator */
         oper_name_t id;
+
+        /** Group of (potentially) non-commuting operators. Operators between parties always commute. */
         party_name_t party;
+
+        /** Operator flags */
         Flags flags;
 
-        constexpr Operator(oper_name_t name, party_name_t who, Flags what = Flags::None) noexcept
-                : id{name}, party{who}, flags{what} {}
+        explicit constexpr Operator(oper_name_t name, party_name_t who = 0, Flags what = Flags::None) noexcept
+                : id{name}, party{who}, flags{what} { }
 
         constexpr bool operator==(const Operator &rhs) const noexcept {
             return (this->id == rhs.id) && (this->party == rhs.party);

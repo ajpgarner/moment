@@ -55,20 +55,17 @@ namespace NPATK {
         std::string name{};
 
         /** Number of measurement outcomes */
-        size_t num_outcomes = 0;
+        oper_name_t num_outcomes = 0;
 
         /** True if measurement outcomes are mutually exclusive */
         bool projective = true;
 
-        /** True if measurement outcomes sum to unity */
-        bool complete = true;
-
-    protected:
+    private:
         /** Info about measurement, with respect to wider context of parties and other measurements */
         PMIndex index;
 
         /** Offset of measurement's operators within the context of owning party */
-        size_t offset = 0;
+        oper_name_t party_offset = 0;
 
     public:
         constexpr Measurement() = default;
@@ -77,18 +74,15 @@ namespace NPATK {
 
         constexpr Measurement(Measurement &&) = default;
 
-        constexpr Measurement(std::string name, size_t outcomes,
-                              bool projective = true,
-                              bool complete = true) noexcept
+        constexpr Measurement(std::string name, oper_name_t outcomes,
+                              bool projective = true) noexcept
                 : name{std::move(name)}, num_outcomes{outcomes},
-                  projective{projective}, complete{complete} {
+                  projective{projective} {
             assert(outcomes >= 1);
         }
 
-        [[nodiscard]] constexpr size_t get_offset() const noexcept { return this->offset; }
-
-        [[nodiscard]] constexpr size_t num_operators() const noexcept {
-            return this->num_outcomes - (this->complete ? 1 : 0);
+        [[nodiscard]] constexpr oper_name_t num_operators() const noexcept {
+            return this->num_outcomes - 1;
         }
 
         [[nodiscard]] constexpr const PMIndex& Index() const noexcept { return this->index; }

@@ -9,6 +9,8 @@
 #include "operators/context.h"
 #include "operators/matrix/moment_matrix.h"
 #include "operators/matrix/matrix_system.h"
+#include "operators/locality/locality_context.h"
+#include "operators/locality/locality_matrix_system.h"
 
 #include "compare_os_matrix.h"
 
@@ -122,14 +124,11 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, OpSeq_OneElem) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1}))}; // One party, one symbol
+        MatrixSystem system{std::make_unique<Context>(1)}; // One symbol
         auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 1);
-        ASSERT_EQ(context.Parties.size(), 1);
-        const auto& alice = context.Parties[0];
-        ASSERT_EQ(alice.size(), 1);
-
+        const auto& theOp = context[0];
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
         EXPECT_EQ(matLevel0.Level(), 0);
@@ -139,31 +138,29 @@ namespace NPATK::Tests {
         auto& matLevel1 = system.CreateMomentMatrix(1);
         EXPECT_EQ(matLevel1.Level(), 1);
         compare_mm_os_matrix(matLevel1, 2, {OperatorSequence::Identity(context),
-                                         OperatorSequence({alice[0]}, context),
-                                         OperatorSequence({alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0]}, context)});
+                                         OperatorSequence({theOp}, context),
+                                         OperatorSequence({theOp}, context),
+                                         OperatorSequence({theOp, theOp}, context)});
 
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
         EXPECT_EQ(matLevel2.Level(), 2);
         compare_mm_os_matrix(matLevel2, 3, {OperatorSequence::Identity(context),
-                                         OperatorSequence({alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context)});
+                                         OperatorSequence({theOp}, context),
+                                         OperatorSequence({theOp, theOp}, context),
+                                         OperatorSequence({theOp}, context),
+                                         OperatorSequence({theOp, theOp}, context),
+                                         OperatorSequence({theOp, theOp, theOp}, context),
+                                         OperatorSequence({theOp, theOp}, context),
+                                         OperatorSequence({theOp, theOp, theOp}, context),
+                                         OperatorSequence({theOp, theOp, theOp, theOp}, context)});
     }
 
-    TEST(MomentMatrix, OpSeq_1Party2Opers) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
-        auto& context = system.Context();
+    TEST(MomentMatrix, OpSeq_TwoElem) {
+        MatrixSystem system{std::make_unique<Context>(2)}; // Two elements
+        const auto& context = system.Context();
+        const auto& alice = context;
 
-        ASSERT_EQ(context.size(), 2);
-        ASSERT_EQ(context.Parties.size(), 1);
-        const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.size(), 2);
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
@@ -243,78 +240,8 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, OpSeq_2Party1Opers) {
         // Two parties, each with one operator
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1, 1}))};
-        auto& context = system.Context();
-
-        ASSERT_EQ(context.size(), 2);
-        ASSERT_EQ(context.Parties.size(), 2);
-        const auto& alice = context.Parties[0];
-        ASSERT_EQ(alice.size(), 1);
-        const auto& bob = context.Parties[1];
-        ASSERT_EQ(bob.size(), 1);
-
-        auto& matLevel0 = system.CreateMomentMatrix(0);
-        compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
-
-        auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(context),
-                                         OperatorSequence({alice[0]}, context),
-                                         OperatorSequence({bob[0]}, context),
-                                         OperatorSequence({alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0], bob[0]}, context),
-                                         OperatorSequence({bob[0]}, context),
-                                         OperatorSequence({alice[0], bob[0]}, context),
-                                         OperatorSequence({bob[0], bob[0]}, context)});
-
-        auto& matLevel2 = system.CreateMomentMatrix(2);
-        compare_mm_os_matrix(matLevel2, 6, {OperatorSequence::Identity(context),
-                                         OperatorSequence({alice[0]}, context),
-                                         OperatorSequence({bob[0]}, context),
-                                         OperatorSequence({alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0], bob[0]}, context),
-                                         OperatorSequence({bob[0], bob[0]}, context),
-
-                                         OperatorSequence({alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], bob[0], bob[0]}, context),
-
-                                         OperatorSequence({bob[0]}, context),
-                                         OperatorSequence({alice[0], bob[0]}, context),
-                                         OperatorSequence({bob[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], bob[0], bob[0]}, context),
-                                         OperatorSequence({bob[0], bob[0], bob[0]}, context),
-
-                                         OperatorSequence({alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], alice[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, context),
-
-                                         OperatorSequence({alice[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], bob[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], alice[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, context),
-
-                                         OperatorSequence({bob[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], bob[0], bob[0]}, context),
-                                         OperatorSequence({bob[0], bob[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, context),
-                                         OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, context),
-                                         OperatorSequence({bob[0], bob[0], bob[0], bob[0]}, context)});
-    }
-
-    TEST(MomentMatrix, OpSeq_2Party1OpersIdem) {
-        // Two party, one operator
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent))};
-        auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))};
+        auto& context = system.localityContext;
 
         ASSERT_EQ(context.size(), 2);
         ASSERT_EQ(context.Parties.size(), 2);
@@ -363,8 +290,8 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, OpSeq_223) {
          // Two party, two mmts, three outcomes.
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 2, 3, true))};
-        auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 3, true))};
+        auto& context = system.localityContext;
 
         ASSERT_EQ(context.Parties.size(), 2);
         EXPECT_EQ(context.size(), 8);
@@ -481,13 +408,11 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Unique_OneElem) {
         // One party, one symbol
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1}))};
+        MatrixSystem system{std::make_unique<Context>(1)};
         auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 1);
-        ASSERT_EQ(context.Parties.size(), 1);
-        const auto& alice = context.Parties[0];
-        ASSERT_EQ(alice.size(), 1);
+        const auto& alice = context;
 
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
@@ -513,73 +438,12 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Unique_2Party1Opers) {
         // Two parties, each with one operator
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1, 1}))};
-        auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))};
+        auto& context = system.localityContext;
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
         const auto& bob = context.Parties[1];
         ASSERT_EQ(alice.size(), 1);
-        ASSERT_EQ(bob.size(), 1);
-
-        auto& matLevel0 = system.CreateMomentMatrix(0);
-        compare_unique_sequences(matLevel0, {});
-
-        auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_unique_sequences(matLevel1,
-                                 {{OperatorSequence({alice[0]}, context),
-                                          OperatorSequence({alice[0]}, context), true},
-                                  {OperatorSequence({bob[0]}, context),
-                                          OperatorSequence({bob[0]}, context), true},
-                                  {OperatorSequence({alice[0], alice[0]}, context),
-                                          OperatorSequence({alice[0], alice[0]}, context), true},
-                                  {OperatorSequence({alice[0], bob[0]}, context),
-                                          OperatorSequence({alice[0], bob[0]}, context), true},
-                                  {OperatorSequence({bob[0], bob[0]}, context),
-                                          OperatorSequence({bob[0], bob[0]}, context), true}});
-
-        auto& matLevel2 = system.CreateMomentMatrix(2);
-        compare_unique_sequences(matLevel2,
-                                 {{OperatorSequence({alice[0]}, context),
-                                          OperatorSequence({alice[0]}, context), true},
-                                  {OperatorSequence({bob[0]}, context),
-                                          OperatorSequence({bob[0]}, context), true},
-                                  {OperatorSequence({alice[0], alice[0]}, context),
-                                          OperatorSequence({alice[0], alice[0]}, context), true},
-                                  {OperatorSequence({alice[0], bob[0]}, context),
-                                          OperatorSequence({alice[0], bob[0]}, context), true},
-                                  {OperatorSequence({bob[0], bob[0]}, context),
-                                          OperatorSequence({bob[0], bob[0]}, context), true},
-                                  {OperatorSequence({alice[0], alice[0], alice[0]}, context),
-                                          OperatorSequence({alice[0], alice[0], alice[0]}, context), true},
-                                  {OperatorSequence({alice[0], alice[0], bob[0]}, context),
-                                          OperatorSequence({alice[0], alice[0], bob[0]}, context), true},
-                                  {OperatorSequence({alice[0], bob[0], bob[0]}, context),
-                                          OperatorSequence({alice[0], bob[0], bob[0]}, context), true},
-                                  {OperatorSequence({bob[0], bob[0], bob[0]}, context),
-                                          OperatorSequence({bob[0], bob[0], bob[0]}, context), true},
-                                  {OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context),
-                                          OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context), true},
-                                  {OperatorSequence({alice[0], alice[0], alice[0], bob[0]}, context),
-                                          OperatorSequence({alice[0],alice[0],  alice[0], bob[0]}, context), true},
-                                  {OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, context),
-                                          OperatorSequence({alice[0], alice[0], bob[0], bob[0]}, context), true},
-                                  {OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, context),
-                                          OperatorSequence({alice[0], bob[0], bob[0], bob[0]}, context), true},
-                                  {OperatorSequence({bob[0], bob[0], bob[0], bob[0]}, context),
-                                          OperatorSequence({bob[0], bob[0], bob[0], bob[0]}, context), true}
-         });
-    }
-
-    TEST(MomentMatrix, Unique_2Party1OpersIdem) {
-        // Two party, one operator
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent))};
-        const auto& context = system.Context();
-
-        ASSERT_EQ(context.size(), 2);
-        ASSERT_EQ(context.Parties.size(), 2);
-        const auto& alice = context.Parties[0];
-        ASSERT_EQ(alice.size(), 1);
-        const auto& bob = context.Parties[1];
         ASSERT_EQ(bob.size(), 1);
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
@@ -606,12 +470,10 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_1Party2Opers_L0) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))};  // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(2)}; // Two symbols
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
-        ASSERT_EQ(context.Parties.size(), 1);
-        const auto &alice = context.Parties[0];
-        ASSERT_EQ(alice.size(), 2);
+        const auto &alice = context;
 
         auto &matLevel0 = system.CreateMomentMatrix(0);
         compare_unique_sequences(matLevel0, {});
@@ -619,11 +481,10 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_1Party2Opers_L1) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(2)}; // Two symbols
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
-        ASSERT_EQ(context.Parties.size(), 1);
-        const auto &alice = context.Parties[0];
+        const auto &alice = context;
         ASSERT_EQ(alice.size(), 2);
         auto &matLevel1 = system.CreateMomentMatrix(1);
 
@@ -641,12 +502,10 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Unique_1Party2Opers_L2) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(2)}; // One party, two symbols
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
-        ASSERT_EQ(context.Parties.size(), 1);
-        const auto &alice = context.Parties[0];
-        ASSERT_EQ(alice.size(), 2);
+        const auto &alice = context;
         auto& matLevel2 = system.CreateMomentMatrix(2);
 
         compare_unique_sequences(matLevel2, {
@@ -699,12 +558,10 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Where_1Party2Opers) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(2)}; // Two symbols
         auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
-        ASSERT_EQ(context.Parties.size(), 1);
-        const auto& alice = context.Parties[0];
-        ASSERT_EQ(alice.size(), 2);
+        const auto& alice = context;
 
         auto& matLevel2 = system.CreateMomentMatrix(2);
 
@@ -736,7 +593,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Symbol_OneElem) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1}))}; // One party, one symbol
+        MatrixSystem system{std::make_unique<Context>(1)}; // One party, one symbol
         auto& context = system.Context();
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
@@ -753,7 +610,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Symbol_1Party2Opers) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))}; // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(2)}; // One party, two symbols
         auto& context = system.Context();
 
         auto& matLevel0 = system.CreateMomentMatrix(0);
@@ -778,30 +635,7 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, Symbol_2Party1Opers) {
         // Two parties, each with one operator
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1, 1}))}; // Two party, one operator each
-        auto& context = system.Context();
-
-        auto& matLevel0 = system.CreateMomentMatrix(0);
-        compare_symbol_matrix(matLevel0, 1, {"1"});
-
-        auto& matLevel1 = system.CreateMomentMatrix(1);
-        compare_symbol_matrix(matLevel1, 3, {"1", "2", "3", // 1, a, b
-                                             "2", "4", "5", // a, aa, ab
-                                             "3", "5", "6"}); // b, ab, bb
-
-        auto& matLevel2 = system.CreateMomentMatrix(2);
-        compare_symbol_matrix(matLevel2, 6, {"1", "2", "3",  "4", "5",  "6",   //  1,  a,    b,   aa,   ab, bb
-                                             "2", "4", "5",  "7", "8",  "9",   //  a,  aa,  ab,  aaa,  aab, abb
-                                             "3", "5", "6",  "8", "9",  "10",  //  b,  ab,  bb,  aab,  abb, bbb
-                                             "4", "7", "8",  "11", "12","13",  // aa, aaa, aab, aaaa, aaab, aabb
-                                             "5", "8", "9",  "12", "13", "14", // ab, aab, abb, aaab, aabb, abbb
-                                             "6", "9", "10", "13", "14", "15", // bb, abb, bbb, aabb, abbb, bbbb
-        });
-    }
-
-    TEST(MomentMatrix, Symbol_2Party1OpersIdem) {
-        // Two party, one operator
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 1, Operator::Flags::Idempotent))};
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))}; // Two party, one operator each
         auto& context = system.Context();
 
         auto& matLevel0 = system.CreateMomentMatrix(0);

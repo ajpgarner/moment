@@ -7,7 +7,7 @@
 #include "symbolic/symbol.h"
 #include "symbolic/linear_combo.h"
 
-#include "../context.h"
+#include "locality_context.h"
 #include "measurement.h"
 #include "joint_measurement_index.h"
 
@@ -16,9 +16,8 @@
 
 namespace NPATK {
 
-    class MatrixSystem;
+    class LocalityMatrixSystem;
     class SymbolTable;
-    class Context;
     class ExplicitSymbolIndex;
     class JointMeasurementIterator;
 
@@ -44,20 +43,19 @@ namespace NPATK {
      */
     class ImplicitSymbols {
     public:
-
+        const LocalityContext& context;
     public:
         const size_t MaxSequenceLength;
 
         const SymbolTable& symbols;
-        const ExplicitSymbolIndex& cgForm;
-        const Context& context;
+        const ExplicitSymbolIndex& esiForm;
 
     private:
         std::vector<PMODefinition> tableData{};
         JointMeasurementIndex indices;
 
     public:
-        explicit ImplicitSymbols(const MatrixSystem& ms);
+        explicit ImplicitSymbols(const LocalityMatrixSystem& ms);
 
         [[nodiscard]] constexpr const std::vector<PMODefinition>& Data() const noexcept {
             return this->tableData;

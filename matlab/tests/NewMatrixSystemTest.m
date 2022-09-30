@@ -108,7 +108,7 @@ classdef NewMatrixSystemTest < NPATKTestBase
             function bad_in()             
                ref_id = npatk('new_matrix_system', ...
                               'parties', 2, ...
-                              'operators', -3);
+                              'outcomes', -3);
             end
             testCase.verifyError(@() bad_in(), 'npatk:negative_value');
          end
@@ -117,7 +117,7 @@ classdef NewMatrixSystemTest < NPATKTestBase
             function bad_in()             
                ref_id = npatk('new_matrix_system', ...
                               'parties', 2, ...
-                              'operators', "cd");
+                              'outcomes', "cd");
             end
             testCase.verifyError(@() bad_in(), 'npatk:bad_param');
          end

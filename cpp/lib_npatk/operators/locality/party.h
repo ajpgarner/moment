@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../operator.h"
+#include "../context.h"
 #include "measurement.h"
 
 #include <cassert>
@@ -17,7 +18,7 @@
 
 namespace NPATK {
 
-    class Context;
+    class LocalityContext;
 
     class Party {
     public:
@@ -39,114 +40,114 @@ namespace NPATK {
         party_name_t party_id = -1;
 
     public:
-        const party_name_t& id;
-        std::string name;
+        const std::string name;
 
     private:
-        mmt_name_t global_mmt_offset = 0;
-        size_t global_operator_offset = 0;
-
-        std::vector<Operator> operators{};
-        std::set<std::pair<oper_name_t, oper_name_t>> mutex{};
-        Context * context = nullptr;
-
         std::vector<Measurement> measurements{};
-        std::vector<size_t> operator_to_measurement{};
+        std::vector<mmt_name_t> offset_id_to_local_mmt{};
+
+        mmt_name_t global_measurement_offset = 0;
+        oper_name_t global_operator_offset = 0;
+        oper_name_t party_operator_count = 0;
+
+        LocalityContext * context = nullptr;
+
 
     public:
         Party(const Party& rhs) = delete;
 
         Party(Party&& rhs) noexcept :
-                party_id{rhs.party_id}, id{this->party_id},
-                Measurements(*this), name{std::move(rhs.name)},
-                global_mmt_offset(rhs.global_mmt_offset), global_operator_offset(rhs.global_operator_offset),
-                operators(std::move(rhs.operators)), mutex(std::move(rhs.mutex)), context{rhs.context},
-                measurements(std::move(rhs.measurements)), operator_to_measurement(std::move(rhs.operator_to_measurement)) {}
+                Measurements(*this),
+                party_id{rhs.party_id}, name{rhs.name},
+                measurements(std::move(rhs.measurements)),
+                offset_id_to_local_mmt{std::move(rhs.offset_id_to_local_mmt)},
+                global_measurement_offset(rhs.global_measurement_offset),
+                global_operator_offset(rhs.global_operator_offset),
+                party_operator_count(rhs.party_operator_count),
+                context{rhs.context} { }
 
-        Party(party_name_t id, std::string named)
-            : Measurements(*this), party_id{id}, id{this->party_id}, name{std::move(named)} { }
+        Party(party_name_t id, std::string the_name, std::vector<Measurement>&& measurements);
 
-        Party(party_name_t id, std::string named, oper_name_t num_opers,
-              Operator::Flags default_flags = Operator::Flags::None);
+        Party(party_name_t id, std::vector<Measurement>&& measurements);
 
-        explicit Party(party_name_t id, oper_name_t num_opers,
-                       Operator::Flags default_flags = Operator::Flags::None);
-
-        [[nodiscard]] constexpr auto begin() const noexcept { return this->operators.begin(); }
-
-        [[nodiscard]] constexpr auto end() const noexcept { return this->operators.end(); }
-
-        [[nodiscard]] constexpr Operator& operator[](size_t index)  noexcept {
-            assert(index < operators.size());
-            return this->operators[index];
-        }
-
-        [[nodiscard]] constexpr const Operator& operator[](size_t index) const noexcept {
-            assert(index < operators.size());
-            return this->operators[index];
-        }
-
-        [[nodiscard]] constexpr const Operator&
-        measurement_outcome(size_t mmt_index, size_t outcome_index) const noexcept {
-            assert(mmt_index < this->measurements.size());
-            const auto& mmt = this->measurements[mmt_index];
-            assert(outcome_index < mmt.num_operators());
-            return this->operators[mmt.offset + outcome_index];
-        }
-
-        void add_measurement(Measurement mmt, bool defer_recount = false);
-
-        void set_offsets(party_name_t new_id, mmt_name_t new_mmt_offset, bool force_refresh = false) noexcept;
-
-        std::ostream& format_operator(std::ostream&, const Operator& op) const;
+        [[nodiscard]] constexpr party_name_t id() const {return this->party_id; }
 
         /**
-         * Low-level command to register two operators A & B as being mutually exclusive such that AB = 0.
-         * @param lhs_id Operator A
-         * @param rhs_id Operator B
+         * Gets a range of operators that correspond to the measurement outcomes from this party.
+         * @return Span of operators
+         * @throws logic_error if Party not yet attached to a Context.
          */
-        void add_mutex(oper_name_t lhs_id, oper_name_t rhs_id) {
-            if (lhs_id < rhs_id) {
-                this->mutex.emplace(std::make_pair(lhs_id, rhs_id));
-            } else {
-                this->mutex.emplace(std::make_pair(rhs_id, lhs_id));
-            }
+        [[nodiscard]] std::span<const Operator> operators() const;
+
+        /**
+         * Gets an operator from this party.
+         * @param index The index of the operator, relative to this party.
+         * @return The requested opeartor
+         * @throws logic_error if Party not yet attached to a Context.
+         */
+        [[nodiscard]] const Operator& operator[](size_t index) const;
+
+        /**
+         * Gets the associated measurement from an operator in this party
+         */
+        const Measurement& measurement_of(const Operator& op) const;
+
+        /**
+         * Gets the name of this operator (if within party)
+         */
+        std::string format_operator(const Operator& op) const;
+
+
+        [[nodiscard]] auto begin() const {
+            return this->operators().begin();
         }
+
+        [[nodiscard]] auto end() const {
+            return this->operators().end();
+        }
+
+        /**
+         * Gets the operator corresponding to a particular outcome of a particular measurement in this party.
+         * @param mmt_index The measurement index
+         * @param outcome_index The outcome index
+         * @return Reference to operator
+         * @throws logic_error if Party not yet attached to a Context.
+         */
+        [[nodiscard]] const Operator&
+        measurement_outcome(size_t mmt_index, size_t outcome_index) const;
 
         /**
          * Test if a string of two operators AB is identically zero, because the operators are mutually exclusive.
-         * @param lhs_id Operator A
-         * @param rhs_id Operator B
+         * @param lhs Operator A
+         * @param rhs Operator B
          * @return True if AB evaluates to zero
          */
-        [[nodiscard]] bool exclusive(oper_name_t lhs_id, oper_name_t rhs_id) const noexcept {
-            return mutex.contains((lhs_id < rhs_id) ? std::make_pair(lhs_id, rhs_id) : std::make_pair(rhs_id, lhs_id));
-        };
+        [[nodiscard]] bool mutually_exclusive(const Operator& lhs, const Operator& rhs) const noexcept;
 
         /**
          * @return The total number of operators associated with this party.
          */
-        [[nodiscard]] constexpr size_t size() const noexcept { return this->operators.size(); }
+        [[nodiscard]] constexpr size_t size() const noexcept { return this->party_operator_count; }
 
-        [[nodiscard]] constexpr bool empty() const noexcept { return this->operators.empty(); }
+        [[nodiscard]] constexpr bool empty() const noexcept { return this->party_operator_count <= 0; }
 
-        static std::vector<Party> MakeList(party_name_t num_parties, oper_name_t opers_per_party,
-                                           Operator::Flags default_flags = Operator::Flags::None);
 
         static std::vector<Party> MakeList(party_name_t num_parties,
-                                           oper_name_t mmts_per_party,
+                                           mmt_name_t mmts_per_party,
                                            oper_name_t outcomes_per_mmt,
                                            bool projective = true);
 
-        static std::vector<Party> MakeList(const std::vector<size_t>& operators_per_party_list,
-                                           Operator::Flags default_flags = Operator::Flags::None);
-
         static std::vector<Party> MakeList(const std::vector<size_t>& mmts_per_party,
-                                           const std::vector<size_t>& outcomes_per_mmt);
+                                           const std::vector<size_t>& outcomes_per_mmt,
+                                           bool projective = true);
 
         friend std::ostream& operator<< (std::ostream& os, const Party& the_party);
 
-        friend class Context;
+        friend class LocalityContext;
+
+    private:
+        void set_offsets(party_name_t new_id, oper_name_t new_oper_offset, mmt_name_t new_mmt_offset) noexcept;
+
     };
 
 

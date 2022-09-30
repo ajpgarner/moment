@@ -9,7 +9,7 @@
 
 namespace NPATK {
 
-    class Context;
+    class LocalityContext;
 
     class JointMeasurementIndex : public MonotonicChunkRecursiveStorage<
                                             std::pair<ptrdiff_t, ptrdiff_t>, JointMeasurementIndex> {
@@ -24,7 +24,7 @@ namespace NPATK {
                                                      ptrdiff_t offset = 0)
                 : MonotonicChunkRecursiveStorage{zero, offset} { }
 
-        explicit JointMeasurementIndex(const Context& context, size_t max_depth);
+        explicit JointMeasurementIndex(const LocalityContext& context, size_t max_depth);
     };
 
 }

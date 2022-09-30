@@ -9,16 +9,17 @@
 #include "operators/matrix/symbol_table.h"
 #include "operators/matrix/moment_matrix.h"
 #include "operators/matrix/matrix_system.h"
+#include "operators/locality/locality_context.h"
+#include "operators/locality/locality_matrix_system.h"
 
 
 namespace NPATK::Tests {
 
     TEST(SymbolTable, ToSymbol_1Party2Opers) {
         // One party, two symbols
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))};
+        MatrixSystem system{std::make_unique<Context>(2)};
         auto& context = system.Context();
-        ASSERT_EQ(context.Parties.size(), 1);
-        const auto& a = context.Parties[0];
+        const auto& a = context;
 
         auto& matLevel0 = system.CreateMomentMatrix(0); // 0 1
         EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
@@ -104,8 +105,8 @@ namespace NPATK::Tests {
 
     TEST(SymbolTable, ToSymbol_2Party1Opers) {
         // Two parties, each with one operator
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({1,1}))};
-        auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))};
+        auto& context = system.localityContext;
 
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
@@ -115,52 +116,28 @@ namespace NPATK::Tests {
         EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
         EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
 
-        auto& matLevel1 = system.CreateMomentMatrix(1); // 0 1 a b aa ab bb
+        auto& matLevel1 = system.CreateMomentMatrix(1); // 0 1 a b ab
         EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
         EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
         EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{alice[0]}, context})), SymbolExpression(2));
         EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{bob[0]}, context})), SymbolExpression(3));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{alice[0], alice[0]}, context})), SymbolExpression(4));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{alice[0], bob[0]}, context})), SymbolExpression(5));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{bob[0], bob[0]}, context})), SymbolExpression(6));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{alice[0], bob[0]}, context})), SymbolExpression(4));
 
-        auto& matLevel2 = system.CreateMomentMatrix(2); // 0 1 aaaa aaab aabb abbb bbbb
+        auto& matLevel2 = system.CreateMomentMatrix(2); // as above
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
         EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0]}, context})), SymbolExpression(2));
         EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{bob[0]}, context})), SymbolExpression(3));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0], alice[0]}, context})), SymbolExpression(4));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0], bob[0]}, context})), SymbolExpression(5));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{bob[0], bob[0]}, context})), SymbolExpression(6));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0], bob[0]}, context})), SymbolExpression(4));
 
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0], alice[0], alice[0]}, context})),
-                  SymbolExpression(7));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0], alice[0], bob[0]}, context})),
-                  SymbolExpression(8));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0], bob[0], bob[0]}, context})),
-                  SymbolExpression(9));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{bob[0], bob[0], bob[0]}, context})),
-                  SymbolExpression(10));
 
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0], alice[0], alice[0], alice[0]}, context})),
-                  SymbolExpression(11));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0],alice[0],alice[0],bob[0]}, context})),
-                  SymbolExpression(12));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0], alice[0], bob[0], bob[0]}, context})),
-                  SymbolExpression(13));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0], bob[0], bob[0], bob[0]}, context})),
-                  SymbolExpression(14));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{bob[0], bob[0], bob[0], bob[0]}, context})),
-                  SymbolExpression(15));
     }
 
     TEST(SymbolTable, Enumerate_1Party2Opers) {
         // One party, two symbols
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))};
+        MatrixSystem system{std::make_unique<Context>(2)};
         const auto& context = system.Context();
         const auto& symbols = system.Symbols();
-        ASSERT_EQ(context.Parties.size(), 1);
-        const auto& a = context.Parties[0];
 
         auto& matLevel0 = system.CreateMomentMatrix(0); // 0 1
         auto& matLevel1 = system.CreateMomentMatrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
@@ -182,11 +159,9 @@ namespace NPATK::Tests {
 
     TEST(SymbolTable, SMP_BasisKey) {
         // One party, two symbols
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList({2}))};
+        MatrixSystem system{std::make_unique<Context>(2)};
         const auto& context = system.Context();
         const auto& symbols = system.Symbols();
-        ASSERT_EQ(context.Parties.size(), 1);
-        const auto& a = context.Parties[0];
 
         auto& matLevel0 = system.CreateMomentMatrix(0); // 0 1
         auto& matLevel1 = system.CreateMomentMatrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1

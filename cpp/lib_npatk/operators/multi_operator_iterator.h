@@ -20,7 +20,7 @@ namespace NPATK::detail {
     private:
         const Context *context = nullptr;
         size_t length = 0;
-        std::vector <Context::AllOperatorConstIterator> iters{};
+        std::vector <Context::oper_iter_t> iters{};
 
     public:
         /** 'Begin' iterator */
@@ -40,7 +40,7 @@ namespace NPATK::detail {
             return *this;
         }
 
-        constexpr MultiOperatorIterator operator++(int) &{
+        constexpr MultiOperatorIterator operator++(int) &{ // NOLINT(cert-dcl21-cpp)
             MultiOperatorIterator copy{*this};
             inc(0);
             return copy;

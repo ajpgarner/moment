@@ -5,10 +5,10 @@
  */
 #include "gtest/gtest.h"
 
-#include "operators/context.h"
+#include "operators/locality/locality_context.h"
+#include "operators/locality/locality_matrix_system.h"
 #include "operators/locality/implicit_symbols.h"
 #include "operators/matrix/moment_matrix.h"
-#include "operators/matrix/matrix_system.h"
 
 namespace NPATK::Tests {
 
@@ -267,7 +267,7 @@ namespace NPATK::Tests {
     }
 
     TEST(ImplicitSymbols, Empty) {
-        MatrixSystem system{std::make_unique<Context>()};
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>()};
         auto& emptyMM = system.CreateMomentMatrix(1);
 
         const auto& implSym = system.ImplicitSymbolTable();
@@ -288,8 +288,8 @@ namespace NPATK::Tests {
     }
 
     TEST(ImplicitSymbols, OnePartyOneMmt) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(1, 1, 3))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(1, 1, 3))};
+        const auto& context = system.localityContext;
 
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.Measurements.size(), 1);
@@ -337,8 +337,8 @@ namespace NPATK::Tests {
     }
 
     TEST(ImplicitSymbols, OnePartyTwoMmt) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(1, 2, 2))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(1, 2, 2))};
+        const auto& context = system.localityContext;
         const auto& alice = context.Parties[0];
         ASSERT_EQ(alice.Measurements.size(), 2);
         ASSERT_EQ(alice.Measurements[0].num_outcomes, 2);
@@ -371,8 +371,8 @@ namespace NPATK::Tests {
 
 
     TEST(ImplicitSymbols, TwoPartyOneMmtEach) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 1, 2))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))};
+        const auto& context = system.localityContext;
 
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
@@ -424,8 +424,8 @@ namespace NPATK::Tests {
     }
 
     TEST(ImplicitSymbols, CHSH) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 2, 2))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
+        const auto& context = system.localityContext;
 
         ASSERT_EQ(context.Parties.size(), 2);
         const auto &alice = context.Parties[0];
@@ -490,8 +490,8 @@ namespace NPATK::Tests {
 
 
     TEST(ImplicitSymbols, Tripartite322) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(3, 2, 2))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(3, 2, 2))};
+        const auto& context = system.localityContext;
 
         ASSERT_EQ(context.Parties.size(), 3);
         const auto& alice = context.Parties[0];
@@ -678,8 +678,8 @@ namespace NPATK::Tests {
     }
 
     TEST(ImplicitSymbols, Tripartite322_LowerMoment) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(3, 2, 2))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(3, 2, 2))};
+        const auto& context = system.localityContext;
 
         ASSERT_EQ(context.Parties.size(), 3);
         const auto& alice = context.Parties[0];
@@ -811,13 +811,11 @@ namespace NPATK::Tests {
     TEST(ImplicitSymbols, A13_B12) {
 
         std::vector<Party> buildParties;
-        buildParties.emplace_back(0, "A");
-        buildParties.back().add_measurement(Measurement("a", 3));
-        buildParties.emplace_back(1, "B");
-        buildParties.back().add_measurement(Measurement("b", 2));
+        buildParties.emplace_back(0, "A", std::vector{Measurement("a", 3)});
+        buildParties.emplace_back(1, "B", std::vector{Measurement("b", 2)});
 
-        MatrixSystem system{std::make_unique<Context>(std::move(buildParties))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(std::move(buildParties))};
+        const auto& context = system.localityContext;
         ASSERT_EQ(context.Parties.size(), 2);
         const auto &alice = context.Parties[0];
         const auto &bob = context.Parties[1];

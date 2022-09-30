@@ -6,14 +6,14 @@
 
 #include "gtest/gtest.h"
 
-#include "operators/context.h"
 #include "operators/matrix/moment_matrix.h"
+#include "operators/locality/locality_context.h"
 #include "operators/locality/joint_measurement_iterator.h"
 
 namespace NPATK::Tests {
 
     TEST(JointMeasurementIterator, BasicIteration) {
-        Context context{Party::MakeList(2, 2, 2)};
+        LocalityContext context{Party::MakeList(2, 2, 2)};
 
         ASSERT_EQ(context.Parties.size(), 2);
         const auto &alice = context.Parties[0];
@@ -89,7 +89,7 @@ namespace NPATK::Tests {
     }
 
     TEST(JointMeasurementIterator, OutcomeIterator) {
-        Context context{Party::MakeList(2, 1, 2)};
+        LocalityContext context{Party::MakeList(2, 1, 2)};
 
         ASSERT_EQ(context.Parties.size(), 2);
         const auto &alice = context.Parties[0];
@@ -123,7 +123,7 @@ namespace NPATK::Tests {
 
 
     TEST(JointMeasurementIterator, OutcomeIteratorAlternativeConstruction) {
-        Context context{Party::MakeList(2, 1, 2)};
+        LocalityContext context{Party::MakeList(2, 1, 2)};
 
         ASSERT_EQ(context.Parties.size(), 2);
         const auto &alice = context.Parties[0];

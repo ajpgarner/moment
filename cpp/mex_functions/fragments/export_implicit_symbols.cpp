@@ -11,7 +11,9 @@
 #include "operators/matrix/operator_matrix.h"
 #include "operators/matrix/moment_matrix.h"
 
+#include "error_codes.h"
 #include "utilities/make_sparse_matrix.h"
+#include "utilities/reporting.h"
 
 namespace NPATK::mex {
 
@@ -57,7 +59,7 @@ namespace NPATK::mex {
             matlab::data::ArrayFactory factory;
 
             const ImplicitSymbols &implicitSymbols;
-            const Context &context;
+            const LocalityContext &context;
             const size_t implicit_table_length;
             const size_t real_symbol_count;
         public:
@@ -193,6 +195,11 @@ namespace NPATK::mex {
         matlab::data::ArrayFactory factory;
         auto output = factory.createStructArray({1, 1}, {"sequence", "indices", "real_coefficients"});
 
+        const auto * context = dynamic_cast<const LocalityContext*>(&momentMatrix.context);
+        if (context == nullptr) {
+            throw_error(engine, errors::bad_cast,
+                        "The supplied MomentMatrix was not associated with a LocalityContext.");
+        }
 
         // (Re)make indices
         const size_t index_depth = pmoIndices.size();
@@ -210,7 +217,7 @@ namespace NPATK::mex {
                                                                                entryIndices.cend());
 
         // Write
-        output[0]["sequence"] = factory.createScalar(momentMatrix.context.format_sequence(pmoIndices));
+        output[0]["sequence"] = factory.createScalar(context->format_sequence(pmoIndices));
         output[0]["indices"] = std::move(index_array);
         output[0]["real_coefficients"] = combo_to_sparse_array(engine, factory,
                                                               momentMatrix.Symbols,

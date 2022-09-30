@@ -7,9 +7,10 @@
 
 #include "storage_manager.h"
 
-#include "operators/locality/implicit_symbols.h"
 #include "operators/matrix/operator_matrix.h"
 #include "operators/matrix/moment_matrix.h"
+#include "operators/locality/implicit_symbols.h"
+#include "operators/locality/locality_matrix_system.h"
 #include "fragments/export_implicit_symbols.h"
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
@@ -232,10 +233,15 @@ namespace NPATK::mex::functions {
         // Get read lock
         auto lock = msPtr->getReadLock();
         const MatrixSystem& system = *msPtr;
-        const Context& context = system.Context();
+
+        const auto * lsm = dynamic_cast<const LocalityMatrixSystem *>(&system);
+        if (nullptr == lsm) {
+            throw_error(this->matlabEngine, errors::bad_cast, "MatrixSystem was not a LocalityMatrixSystem.");
+        }
+        const LocalityContext& context = lsm->localityContext;
 
         // Create (or retrieve) implied sequence object
-        const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
+        const ImplicitSymbols& implSym = lsm->ImplicitSymbolTable();
 
         // Export whole table?
         if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {
@@ -246,7 +252,7 @@ namespace NPATK::mex::functions {
 
         if (input.export_mode == ProbabilityTableParams::ExportMode::OneMeasurement) {
             // Check inputs are okay:
-            if (input.requested_measurement.size() > system.MaxRealSequenceLength()) {
+            if (input.requested_measurement.size() > lsm->MaxRealSequenceLength()) {
                 throw_error(this->matlabEngine, errors::bad_param,
                             "A moment matrix of high enough order to define the requested probability was not specified.");
             }
@@ -260,7 +266,7 @@ namespace NPATK::mex::functions {
                 }
             }
 
-            // Assign global indices
+            // Assign global indices to input.requested_measurement object...
             context.get_global_mmt_index(input.requested_measurement);
 
             // Request

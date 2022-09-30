@@ -17,10 +17,6 @@
 
 namespace NPATK {
     namespace {
-        constexpr size_t getMaxProbLen(const Context& context, size_t hierarchy_level) {
-            return std::min(hierarchy_level*2, context.Parties.size());
-        }
-
         std::unique_ptr<SquareMatrix<OperatorSequence>>
         generate_moment_matrix_sequences(const Context& context, size_t level) {
             // Prepare generator of symbols
@@ -45,12 +41,12 @@ namespace NPATK {
 
     MomentMatrix::MomentMatrix(const Context& context, SymbolTable& symbols, size_t level)
         : OperatorMatrix{context, symbols, generate_moment_matrix_sequences(context, level)},
-          hierarchy_level{level}, max_probability_length{getMaxProbLen(context, hierarchy_level)} {
+          hierarchy_level{level} {
     }
 
     MomentMatrix::MomentMatrix(MomentMatrix &&src) noexcept :
             OperatorMatrix{static_cast<OperatorMatrix&&>(src)},
-            hierarchy_level{src.hierarchy_level}, max_probability_length{src.max_probability_length} {
+            hierarchy_level{src.hierarchy_level} {
 
     }
 

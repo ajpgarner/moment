@@ -4,98 +4,58 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "party.h"
-#include "../context.h"
+#include "locality_context.h"
 #include "utilities/alphabetic_namer.h"
 
 #include <limits>
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
 
 namespace NPATK {
-    Party::Party(party_name_t id, std::string named, oper_name_t num_opers, Operator::Flags default_flags)
-            : party_id{id}, id{this->party_id}, Measurements(*this), name{std::move(named)} {
 
-        this->operators.reserve(num_opers);
-        for (oper_name_t o = 0; o < num_opers; ++o) {
-            this->operators.emplace_back(o, this->party_id, default_flags);
-            this->operator_to_measurement.emplace_back(std::numeric_limits<size_t>::max());
+
+    Party::Party(party_name_t id, std::string the_name, std::vector<Measurement> &&mmt_in)
+        : party_id{id}, Measurements{*this}, name{std::move(the_name)}, measurements{std::move(mmt_in)} {
+
+        // Set up measurements
+        this->party_operator_count = 0;
+        mmt_name_t mmt_id = 0;
+        for (auto& mmt : this->measurements) {
+            mmt.party_offset = this->party_operator_count;
+            mmt.index.mmt = mmt_id;
+            this->party_operator_count += mmt.num_operators();
+            ++mmt_id;
+        }
+
+        // Set up party-index-to-mmt aliases
+        this->offset_id_to_local_mmt.reserve(this->party_operator_count);
+        for (const auto& mmt : this->measurements) {
+            std::fill_n(std::back_inserter(this->offset_id_to_local_mmt), mmt.num_operators(), mmt.index.mmt);
         }
     }
 
-    Party::Party(party_name_t id, oper_name_t num_opers, Operator::Flags default_flags)
-        : Party{id, AlphabeticNamer::index_to_name(id, true), num_opers, default_flags} {  }
-
-
-    void Party::set_offsets(party_name_t new_id, mmt_name_t new_mmt_offset, bool force_refresh) noexcept {
-        if (force_refresh || (new_id != this->party_id) || (new_mmt_offset != this->global_mmt_offset)) {
-            this->party_id = new_id;
-            this->global_mmt_offset = new_mmt_offset;
-            for (auto &mmt: this->measurements) {
-                mmt.index.party = new_id;
-                mmt.index.global_mmt = static_cast<mmt_name_t>(this->global_mmt_offset + mmt.index.mmt);
-            }
-        }
+    Party::Party(party_name_t id, std::vector<Measurement>&& measurements)
+        : Party{id, AlphabeticNamer::index_to_name(id, true), std::move(measurements)} {
     }
 
-    void Party::add_measurement(Measurement mmt, bool defer_recount) {
-        // Measurement must have one outcome
-        assert(mmt.num_outcomes >= 1);
+    void Party::set_offsets(party_name_t new_id, oper_name_t new_oper_offset, mmt_name_t new_mmt_offset) noexcept {
+        // Set IDs and offsets
+        this->party_id = new_id;
+        this->global_operator_offset = new_oper_offset;
+        this->global_measurement_offset = new_mmt_offset;
 
-        // Register measurement in list...
-        this->measurements.emplace_back(std::move(mmt));
-        const auto mmt_no = static_cast<mmt_name_t>(this->measurements.size()-1);
-        auto& measurement = this->measurements.back();
-        measurement.offset = this->operators.size();
-        measurement.index.party = this->party_id;
-        measurement.index.mmt = mmt_no;
-        measurement.index.global_mmt = static_cast<mmt_name_t>(this->global_mmt_offset + mmt_no);
-
-        // Determine operator flags and number
-        const size_t operators_added = measurement.num_operators();
-        const size_t init_id = this->operators.size();
-        this->operators.reserve(init_id + operators_added);
-        Operator::Flags oFlags = measurement.projective ? Operator::Flags::Idempotent : Operator::Flags::None;
-        size_t final_id = init_id + operators_added;
-
-        // Create operators, register them with measurement.
-        for (size_t index = init_id; index < final_id; ++index) {
-            this->operators.emplace_back(index, this->party_id, oFlags);
-            this->operator_to_measurement.emplace_back(mmt_no);
+        // Propagate IDs and offsets to measurements
+        for (auto &mmt: this->measurements) {
+            mmt.index.party = this->party_id;
+            mmt.index.global_mmt = static_cast<mmt_name_t>(this->global_measurement_offset + mmt.index.mmt);
         }
-        assert(this->operators.size() == this->operator_to_measurement.size());
-
-        // Register mutual exclusion
-        if (measurement.projective) {
-            for (size_t l_index = init_id; l_index < final_id; ++l_index) {
-                for (size_t r_index = l_index + 1; r_index < final_id; ++r_index) {
-                    this->add_mutex(static_cast<oper_name_t>(l_index), static_cast<oper_name_t>(r_index));
-                }
-            }
-        }
-
-        // If we have a context, recount operators, measurements, etc.
-        if (!defer_recount && (this->context != nullptr)) {
-            this->context->reenumerate();
-        }
-    }
-
-    std::ostream& Party::format_operator(std::ostream& os, const Operator &op) const {
-        assert(op.party == this->party_id);
-        assert(op.id < this->operators.size());
-
-        size_t mmt_id = this->operator_to_measurement[op.id];
-        if (mmt_id != std::numeric_limits<size_t>::max()) {
-            const auto& mmt = this->measurements[mmt_id];
-            os << mmt.name << std::to_string(op.id - mmt.offset);
-        } else {
-            os << op.id;
-        }
-        return os;
     }
 
     std::ostream &operator<<(std::ostream &os, const Party &the_party) {
         os << the_party.name << ": ";
-        if (the_party.operators.empty()) {
-        //if (the_party.measurements.empty()) {
+
+        if (the_party.measurements.empty()) {
             os << " [empty]";
             return os;
         }
@@ -108,53 +68,117 @@ namespace NPATK {
             }
             os << "{";
             bool one_elem = false;
-            for (auto oper_index = mmt.get_offset(), oper_index_max = mmt.get_offset() + mmt.num_operators();
-                oper_index < oper_index_max; ++oper_index) {
+
+            // Normal (explicitly defined) operators
+            for (size_t oper_index = 0; oper_index < mmt.num_operators(); ++oper_index) {
                 if (one_elem) {
                     os << ", ";
                 }
-                the_party.format_operator(os, the_party.operators[oper_index]);
+                os << mmt.name << oper_index;
                 one_elem = true;
             }
-            if (mmt.complete) {
-                if (one_elem) {
-                    os << ", ";
-                }
-                os << "("
-                   << mmt.name << std::to_string(mmt.num_operators())
-                   << ")";
+
+            // Implicitly defined operator
+            if (one_elem) {
+                os << ", ";
             }
+            os << "("
+               << mmt.name << std::to_string(mmt.num_operators())
+               << ")";
+
+
             os << "}";
             one_measurement = true;
         }
 
-        // Then, spare operators if any
-        bool one_loose_oper = false;
-        for (size_t oper_index = 0; oper_index < the_party.operators.size(); ++oper_index ) {
-            if (the_party.operator_to_measurement[oper_index] != std::numeric_limits<size_t>::max()) {
-                continue;
-            }
-            if (one_loose_oper) {
-                os << ", ";
-            } else {
-                if (one_measurement) {
-                    os << ", ";
-                    one_measurement = true;
-                }
-                os << "{";
-            }
-            the_party.format_operator(os, the_party.operators[oper_index]);
-            one_loose_oper = true;
-        }
-        if (one_loose_oper) {
-            os << "}";
-        }
 
         return os;
     }
 
+
+    std::span<const Operator> Party::operators() const {
+        if (!context) {
+            throw std::logic_error{"Cannot access operators of party until party has been attached to a context."};
+        }
+
+        return std::span<const Operator>{
+            this->context->begin() + this->global_operator_offset,
+            this->context->begin() + (this->global_operator_offset + this->party_operator_count)
+        };
+    }
+
+
+    const Measurement& Party::measurement_of(const Operator& op) const {
+        if (!this->context) {
+            throw std::logic_error{"Cannot access operators of party until party has been attached to a context."};
+        }
+        auto op_local_index = op.id - this->global_operator_offset;
+        if ((op_local_index < 0) || (op_local_index >= this->party_operator_count)) {
+            throw std::range_error{"Operator index out of range."};
+        }
+        auto mmt_id = this->offset_id_to_local_mmt[op_local_index];
+        return this->measurements[mmt_id];
+    }
+
+
+    /**
+     * Gets the name of this operator (if within party)
+     */
+    std::string Party::format_operator(const Operator& op) const {
+        auto op_local_index = op.id - this->global_operator_offset;
+        if ((op_local_index < 0) || (op_local_index >= this->party_operator_count)) {
+            return "[UNKNOWN]";
+        }
+
+        auto mmt_id = this->offset_id_to_local_mmt[op_local_index];
+        const auto& mmt = this->measurements[mmt_id];
+        auto outcome_num = op_local_index - mmt.party_offset;
+
+        std::stringstream ss;
+        ss << this->name << "." << mmt.name << outcome_num;
+        return ss.str();
+    }
+
+    const Operator& Party::measurement_outcome(size_t mmt_index, size_t outcome_index) const {
+        if (!context) {
+            throw std::logic_error{"Cannot access operators of party until party has been attached to a context."};
+        }
+        if (mmt_index >= this->measurements.size()) {
+            throw std::range_error{"Measurement index out of range."};
+        }
+        const auto& mmt = this->measurements[mmt_index];
+        if (outcome_index >= mmt.num_operators()) {
+            throw std::range_error{"Outcome index out of range."};
+        }
+
+        auto operIndex = this->global_operator_offset + mmt.party_offset + outcome_index;
+        return (*this->context)[operIndex];
+    }
+
+    const Operator &Party::operator[](size_t index) const {
+        if (index >= this->party_operator_count) {
+            throw std::range_error{"Operator index out of range."};
+        }
+        return this->operators()[index];
+    }
+
+    bool Party::mutually_exclusive(const Operator& lhs, const Operator& rhs) const noexcept {
+        // X^2 != 0 in general.
+        if (lhs.id == rhs.id) {
+            return false;
+        }
+        assert(lhs.party == this->party_id);
+        assert(rhs.party == this->party_id);
+
+        return (this->offset_id_to_local_mmt[lhs.id - this->global_operator_offset]
+                 == this->offset_id_to_local_mmt[rhs.id - this->global_operator_offset]);
+    }
+
+
     std::vector<Party>
-    Party::MakeList(party_name_t num_parties, oper_name_t mmts_per_party, oper_name_t outcomes_per_mmt,
+    Party::MakeList(party_name_t num_parties,
+                    mmt_name_t mmts_per_party,
+                    oper_name_t outcomes_per_mmt,
                     bool projective) {
         std::vector<Party> output;
         output.reserve(num_parties);
@@ -163,42 +187,23 @@ namespace NPATK {
         AlphabeticNamer mmt_namer{false};
 
         for (party_name_t p = 0; p < num_parties; ++p) {
-            output.emplace_back(p, party_namer(p), 0);
-            Party& lastParty = output.back();
-            for (oper_name_t o = 0; o < mmts_per_party; ++o) {
-                lastParty.add_measurement(Measurement(mmt_namer(o), outcomes_per_mmt, projective));
+            // Make measurement list
+            std::vector<Measurement> mmtList;
+            mmtList.reserve(mmts_per_party);
+            for (mmt_name_t mId = 0; mId < mmts_per_party; ++mId) {
+                mmtList.emplace_back(mmt_namer(mId), outcomes_per_mmt, projective);
             }
+
+            output.emplace_back(p, party_namer(p),std::move(mmtList));
         }
         return output;
     }
 
 
     std::vector<Party>
-    Party::MakeList(party_name_t num_parties, oper_name_t opers_per_party, Operator::Flags default_flags) {
-        std::vector<Party> output;
-        output.reserve(num_parties);
-
-        for (party_name_t p = 0; p < num_parties; ++p) {
-            output.emplace_back(p, opers_per_party, default_flags);
-        }
-        return output;
-    }
-
-    std::vector<Party>
-    Party::MakeList(const std::vector<size_t>& operators_per_party_list, Operator::Flags default_flags) {
-        std::vector<Party> output;
-        output.reserve(operators_per_party_list.size());
-
-        party_name_t p = 0;
-        for (auto count : operators_per_party_list) {
-            output.emplace_back(p, count, default_flags);
-            ++p;
-        }
-        return output;
-    }
-
-    std::vector<Party> Party::MakeList(const std::vector<size_t>& mmts_per_party,
-                                       const std::vector<size_t>& outcomes_per_mmt) {
+    Party::MakeList(const std::vector<size_t>& mmts_per_party,
+                    const std::vector<size_t>& outcomes_per_mmt,
+                    bool projective) {
         const auto num_parties = static_cast<party_name_t>(mmts_per_party.size());
         std::vector<Party> output;
         output.reserve(num_parties);
@@ -210,13 +215,19 @@ namespace NPATK {
         auto outcomePerMmtIter = outcomes_per_mmt.cbegin();
 
         for (party_name_t p = 0; p < num_parties; ++p) {
-            output.emplace_back(p, party_namer(p), 0);
-            Party& lastParty = output.back();
+            assert(mmtCountIter != mmts_per_party.cend());
+
+            std::vector<Measurement> mmtList;
+
             auto num_mmts = *mmtCountIter;
             for (oper_name_t o = 0; o < num_mmts; ++o) {
-                lastParty.add_measurement(Measurement(mmt_namer(o), *outcomePerMmtIter, true));
+                assert(outcomePerMmtIter != outcomes_per_mmt.cend());
+                mmtList.emplace_back(mmt_namer(o), *outcomePerMmtIter, projective);
                 ++outcomePerMmtIter;
             }
+
+            output.emplace_back(p, party_namer(p), std::move(mmtList));
+
             ++mmtCountIter;
         }
         return output;

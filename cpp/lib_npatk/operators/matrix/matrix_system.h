@@ -23,9 +23,7 @@ namespace NPATK {
 
     class Context;
     class SymbolTable;
-    class ExplicitSymbolIndex;
-    class ImplicitSymbols;
-    class CollinsGisin;
+
     class OperatorMatrix;
     class LocalizingMatrix;
     class MomentMatrix;
@@ -49,15 +47,7 @@ namespace NPATK {
 
         std::map<LocalizingMatrixIndex, ptrdiff_t> localizingMatrixIndices;
 
-        /** Map of measurement outcome symbols */
-        std::unique_ptr<ExplicitSymbolIndex> explicitSymbols;
-
-        /** Map of implied probabilities */
-        std::unique_ptr<ImplicitSymbols> implicitSymbols;
-
-        /** Map of outcome symbols, by Collins Gisin index */
-        std::unique_ptr<class CollinsGisin> collinsGisin;
-
+    protected:
         /** Read-write mutex for matrices */
         mutable std::shared_mutex rwMutex;
 
@@ -71,7 +61,7 @@ namespace NPATK {
         /**
          * Frees a system of matrices.
          */
-        ~MatrixSystem() noexcept;
+        virtual ~MatrixSystem() noexcept;
 
         /**
          * Gets a read lock on the matrix system.
@@ -90,18 +80,18 @@ namespace NPATK {
         }
 
         /**
-         * Calculates the longest real sequences that can exist within this system (i.e. the highest number of
-         *  parties, all of whose joint measurement outcomes correspond to symbols within.)
-         */
-        [[nodiscard]] size_t MaxRealSequenceLength() const noexcept;
-
-        /**
          * Check if a MomentMatrix has been generated for a particular hierarchy Level.
          * For thread safety, call for a read lock first.
          * @param level The hierarchy depth.
          * @return True, if MomentMatrix exists for particular Level.
          */
         [[nodiscard]] bool hasMomentMatrix(size_t level) const noexcept;
+
+        /**
+         * Returns the highest moment matrix yet generated.
+         * For thread safety, call for a read lock first.
+         */
+        [[nodiscard]] ptrdiff_t highestMomentMatrix() const noexcept;
 
         /**
          * Returns the MomentMatrix for a particular hierarchy Level.
@@ -144,7 +134,7 @@ namespace NPATK {
          * @param word The word
          * @return The LocalizingMatrix
          */
-        class LocalizingMatrix& CreateLocalizingMatrix(LocalizingMatrixIndex lmi);
+        class LocalizingMatrix& CreateLocalizingMatrix(const LocalizingMatrixIndex& lmi);
 
         /**
          * Returns the symbol table.
@@ -156,30 +146,17 @@ namespace NPATK {
 
         /**
          * Returns the context.
-         * Can be called thread-safely, since Context is immutable once MatrixSystem is constructed.
+         * Can be called without lock thread-safely, since Context is immutable once MatrixSystem is constructed.
          */
         [[nodiscard]] const class Context& Context() const noexcept {
             return *this->context;
         }
 
-        /**
-         * Returns an indexing in the Collins-Gisin ordering.
-         * @throws errors::missing_compoment if not generated.
-         */
-        [[nodiscard]] const class CollinsGisin& CollinsGisin() const;
+    protected:
+        virtual void onNewMomentMatrixCreated(size_t level, const class MomentMatrix& mm) { }
 
-        /**
-         * Returns an indexing of real-valued symbols that correspond to explicit operators/operator sequences within
-         * the context (including joint measurements).
-         * @throws errors::missing_compoment if not generated.
-         */
-        [[nodiscard]] const ExplicitSymbolIndex& ExplicitSymbolTable() const;
+        virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
+                                                  const class LocalizingMatrix& lm) { }
 
-        /**
-         * Returns an indexing of all real-valued symbols, including those from ExplicitSymbolTable(), but also implied
-         * "final" outcomes of measurements (including joint measurements).
-         * @throws errors::missing_compoment if not generated.
-         */
-        [[nodiscard]] const ImplicitSymbols& ImplicitSymbolTable() const;
     };
 }

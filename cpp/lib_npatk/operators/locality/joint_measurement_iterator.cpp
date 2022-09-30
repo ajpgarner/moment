@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "joint_measurement_iterator.h"
-#include "../context.h"
+#include "locality_context.h"
 
 namespace NPATK {
     namespace {
@@ -26,7 +26,7 @@ namespace NPATK {
             return output;
         }
 
-        std::vector<size_t> getMmtOutcomeCounts(const Context &context, std::span<const PMIndex> indices) {
+        std::vector<size_t> getMmtOutcomeCounts(const LocalityContext &context, std::span<const PMIndex> indices) {
             std::vector<size_t> output;
             output.reserve(indices.size());
 
@@ -38,7 +38,7 @@ namespace NPATK {
         }
     }
 
-    JointMeasurementIterator::JointMeasurementIterator(const Context &contextRef, party_list_t &&list)
+    JointMeasurementIterator::JointMeasurementIterator(const LocalityContext &contextRef, party_list_t &&list)
             : contextPtr{&contextRef}, party_list(std::move(list)) {
         this->mmt_iters.reserve(party_list.size());
         this->mmt_indices.reserve(party_list.size());
@@ -113,7 +113,7 @@ namespace NPATK {
 
     }
 
-    OutcomeIndexIterator::OutcomeIndexIterator(const Context& context,
+    OutcomeIndexIterator::OutcomeIndexIterator(const LocalityContext& context,
                                                std::span<const PMIndex> global_mmt_indices,
                                                bool end)
             : indexIter(getMmtOutcomeCounts(context, global_mmt_indices), end),

@@ -7,11 +7,12 @@
 
 #include "operators/context.h"
 #include "operators/locality/collins_gisin.h"
-#include "operators/matrix/matrix_system.h"
+#include "operators/locality/locality_context.h"
+#include "operators/locality/locality_matrix_system.h"
 
 #include "storage_manager.h"
-#include "utilities/reporting.h"
 
+#include "utilities/reporting.h"
 #include "mex.hpp"
 
 
@@ -152,7 +153,12 @@ namespace NPATK::mex::functions  {
 
         // Create (or retrieve) CG information
         try {
-            const NPATK::CollinsGisin &cg = system.CollinsGisin();
+            const auto * lsm = dynamic_cast<const LocalityMatrixSystem *>(&system);
+            if (nullptr == lsm) {
+                throw_error(this->matlabEngine, errors::bad_cast, "MatrixSystem was not a LocalityMatrixSystem.");
+            }
+
+            const NPATK::CollinsGisin &cg = lsm->CollinsGisin();
 
             // Export whole matrix?
             if (output.size() >= 1) {

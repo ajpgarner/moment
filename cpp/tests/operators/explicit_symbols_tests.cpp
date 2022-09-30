@@ -5,17 +5,17 @@
  */
 #include "gtest/gtest.h"
 
-#include "operators/context.h"
 #include "operators/matrix/moment_matrix.h"
-#include "operators/matrix/matrix_system.h"
+#include "operators/locality/locality_context.h"
+#include "operators/locality/locality_matrix_system.h"
 #include "operators/locality/explicit_symbols.h"
 
 namespace NPATK::Tests {
 
     TEST(ExplicitSymbols, OnePartyOneMeasurementThreeOutcomes) {
 
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(1, 1, 3))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(1, 1, 3))};
+        const auto& context = system.localityContext;
         auto& momentMatrix = system.CreateMomentMatrix(1);
 
         const auto& alice = context.Parties[0];
@@ -45,8 +45,8 @@ namespace NPATK::Tests {
     }
 
     TEST(ExplicitSymbols, TwoPartyTwoMeasurementTwoOutcomes) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 2, 2))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
+        const auto& context = system.localityContext;
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
         const auto& bob = context.Parties[1];
@@ -121,8 +121,8 @@ namespace NPATK::Tests {
     }
 
     TEST(ExplicitSymbols, GetWithFixed222) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 2, 2))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
+        const auto& context = system.localityContext;
 
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];
@@ -190,7 +190,7 @@ namespace NPATK::Tests {
         auto freeB0fixB1 = cgForm.get({1, 3}, {-1, 0});
         ASSERT_EQ(freeB0fixB1.size(), 1);
         EXPECT_EQ(freeB0fixB1[0].symbol_id, alice_b0_bob_b0->Id());
-        
+
         auto fixA0fixB0 = cgForm.get({0, 2}, {0, 0});
         ASSERT_EQ(fixA0fixB0.size(), 1);
         EXPECT_EQ(fixA0fixB0[0].symbol_id, alice_a0_bob_a0->Id());
@@ -206,7 +206,7 @@ namespace NPATK::Tests {
         auto fixA1fixB1 = cgForm.get({1, 3}, {0, 0});
         ASSERT_EQ(fixA1fixB1.size(), 1);
         EXPECT_EQ(fixA1fixB1[0].symbol_id, alice_b0_bob_b0->Id());
-        
+
         auto freeA0freeB0 = cgForm.get({0, 2}, {-1, -1});
         ASSERT_EQ(freeA0freeB0.size(), 1);
         EXPECT_EQ(freeA0freeB0[0].symbol_id, alice_a0_bob_a0->Id());
@@ -225,14 +225,14 @@ namespace NPATK::Tests {
     }
 
     TEST(ExplicitSymbols, GetWithFixed223) {
-        MatrixSystem system{std::make_unique<Context>(Party::MakeList(2, 2, 3))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 3))};
+        const auto& context = system.localityContext;
         ASSERT_EQ(context.Parties.size(), 2);
         const auto &alice = context.Parties[0];
         const auto &bob = context.Parties[1];
 
         auto& momentMatrix = system.CreateMomentMatrix(1);
-        
+
         auto alice_a0_bob_a0 = momentMatrix.Symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 0)}, context));
         auto alice_a0_bob_a1 = momentMatrix.Symbols.where(
@@ -258,7 +258,7 @@ namespace NPATK::Tests {
         ASSERT_NE(alice_a1_bob_a1, nullptr);
         ASSERT_NE(alice_a1_bob_b0, nullptr);
         ASSERT_NE(alice_a1_bob_b1, nullptr);
-        
+
         auto alice_b0_bob_a0 = momentMatrix.Symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 0)}, context));
         auto alice_b0_bob_a1 = momentMatrix.Symbols.where(
@@ -332,12 +332,12 @@ namespace NPATK::Tests {
         ASSERT_EQ(freeA0fixB00.size(), 2);
         EXPECT_EQ(freeA0fixB00[0].symbol_id, alice_a0_bob_a0->Id());
         EXPECT_EQ(freeA0fixB00[1].symbol_id, alice_a1_bob_a0->Id());
-        
+
         auto freeA0fixB01 = cgForm.get({0, 2}, {-1, 1});
         ASSERT_EQ(freeA0fixB01.size(), 2);
         EXPECT_EQ(freeA0fixB01[0].symbol_id, alice_a0_bob_a1->Id());
         EXPECT_EQ(freeA0fixB01[1].symbol_id, alice_a1_bob_a1->Id());
-        
+
         auto freeA0fixB10 = cgForm.get({0, 3}, {-1, 0});
         ASSERT_EQ(freeA0fixB10.size(), 2);
         EXPECT_EQ(freeA0fixB10[0].symbol_id, alice_a0_bob_b0->Id());
@@ -347,17 +347,17 @@ namespace NPATK::Tests {
         ASSERT_EQ(freeA0fixB11.size(), 2);
         EXPECT_EQ(freeA0fixB11[0].symbol_id, alice_a0_bob_b1->Id());
         EXPECT_EQ(freeA0fixB11[1].symbol_id, alice_a1_bob_b1->Id());
-        
+
         auto freeA1fixB00 = cgForm.get({1, 2}, {-1, 0});
         ASSERT_EQ(freeA1fixB00.size(), 2);
         EXPECT_EQ(freeA1fixB00[0].symbol_id, alice_b0_bob_a0->Id());
         EXPECT_EQ(freeA1fixB00[1].symbol_id, alice_b1_bob_a0->Id());
-        
+
         auto freeA1fixB01 = cgForm.get({1, 2}, {-1, 1});
         ASSERT_EQ(freeA1fixB01.size(), 2);
         EXPECT_EQ(freeA1fixB01[0].symbol_id, alice_b0_bob_a1->Id());
         EXPECT_EQ(freeA1fixB01[1].symbol_id, alice_b1_bob_a1->Id());
-        
+
         auto freeA1fixB10 = cgForm.get({1, 3}, {-1, 0});
         ASSERT_EQ(freeA1fixB10.size(), 2);
         EXPECT_EQ(freeA1fixB10[0].symbol_id, alice_b0_bob_b0->Id());
@@ -371,18 +371,12 @@ namespace NPATK::Tests {
 
     TEST(ExplicitSymbols, VariedOutcomes_52_22_32) {
         std::vector<Party> partyList;
-        partyList.emplace_back(0, "a");
-        partyList.emplace_back(1, "b");
-        partyList.emplace_back(2, "c");
-        partyList[0].add_measurement(Measurement("a", 5));
-        partyList[0].add_measurement(Measurement("b", 2));
-        partyList[1].add_measurement(Measurement("a", 2));
-        partyList[1].add_measurement(Measurement("b", 2));
-        partyList[2].add_measurement(Measurement("a", 3));
-        partyList[2].add_measurement(Measurement("b", 2));
+        partyList.emplace_back(0, "a", std::vector{Measurement{"a", 5}, Measurement{"b",2}});
+        partyList.emplace_back(1, "b", std::vector{Measurement{"a", 2}, Measurement{"b",2}});
+        partyList.emplace_back(2, "c", std::vector{Measurement{"a", 3}, Measurement{"b",2}});
 
-        MatrixSystem system{std::make_unique<Context>(std::move(partyList))};
-        const auto& context = system.Context();
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(std::move(partyList))};
+        const auto& context = system.localityContext;
 
         ASSERT_EQ(context.Parties.size(), 3);
         const auto &alice = context.Parties[0];
