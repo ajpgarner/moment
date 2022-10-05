@@ -16,7 +16,7 @@
 namespace NPATK::Tests {
     TEST(LocalizingMatrix, OpSeq_OneElem) {
         MatrixSystem system{std::make_unique<Context>(1)}; //One symbol
-        auto& context = system.Context();
+        const auto& context = system.Context();
 
         auto& theOp = context[0];
 
@@ -56,7 +56,7 @@ namespace NPATK::Tests {
 
     TEST(LocalizingMatrix, OpSeq_TwoElem) {
         MatrixSystem system{std::make_unique<Context>(2)}; // One party, two symbols
-        auto& context = system.Context();
+        const auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 2);
         const auto& op0 = context[0];

@@ -1,20 +1,23 @@
 include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_executable(npatk_tests
-    operators/collins_gisin_tests.cpp
+
     operators/context_tests.cpp
-    operators/explicit_symbols_tests.cpp
-    operators/implicit_symbols_tests.cpp
-    operators/joint_measurement_iterator_tests.cpp
-    operators/locality_context_tests.cpp
     operators/localizing_matrix_tests.cpp
     operators/multi_operator_iterator_tests.cpp
     operators/moment_matrix_tests.cpp
     operators/operator_tests.cpp
     operators/operator_sequence_tests.cpp
     operators/operator_sequence_generator_tests.cpp
-    operators/party_info_tests.cpp
     operators/symbol_table_tests.cpp
+    operators/algebraic/algebraic_system_tests.cpp
+    operators/algebraic/monomial_substitution_rule_tests.cpp
+    operators/locality/collins_gisin_tests.cpp
+    operators/locality/explicit_symbols_tests.cpp
+    operators/locality/implicit_symbols_tests.cpp
+    operators/locality/joint_measurement_iterator_tests.cpp
+    operators/locality/locality_context_tests.cpp
+    operators/locality/party_info_tests.cpp
     symbolic/equality_type_tests.cpp
     symbolic/linear_combo_tests.cpp
     symbolic/symbol_expression_tests.cpp

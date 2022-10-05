@@ -4,6 +4,10 @@ add_library(lib_npatk
         operators/context.cpp
         operators/operator_sequence.cpp
         operators/operator_sequence_generator.cpp
+        operators/algebraic/algebraic_context.cpp
+        operators/algebraic/algebraic_matrix_system.cpp
+        operators/algebraic/monomial_substitution_rule.cpp
+        operators/algebraic/raw_sequence_book.cpp
         operators/locality/explicit_symbols.cpp
         operators/locality/collins_gisin.cpp
         operators/locality/implicit_symbols.cpp

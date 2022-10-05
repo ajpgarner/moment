@@ -14,16 +14,16 @@ namespace NPATK::Tests {
     TEST(MultiOperatorIterator, Construct_NoLength) {
         LocalityContext collection{Party::MakeList(2, 2, 2)};
 
-        detail::MultiOperatorIterator iter{collection, 0};
+        MultiOperatorIterator iter{collection, 0};
         EXPECT_EQ(iter, iter);
-        EXPECT_EQ(iter, detail::MultiOperatorIterator::end_of(collection, 0));
+        EXPECT_EQ(iter, MultiOperatorIterator::end_of(collection, 0));
     }
 
     TEST(MultiOperatorIterator, Construct_LengthOne2x2) {
         LocalityContext collection{Party::MakeList(2, 2, 2)};
 
-        detail::MultiOperatorIterator iter{collection, 1};
-        auto iter_end = detail::MultiOperatorIterator::end_of(collection, 1);
+        MultiOperatorIterator iter{collection, 1};
+        auto iter_end = MultiOperatorIterator::end_of(collection, 1);
         EXPECT_EQ(iter, iter);
         ASSERT_NE(iter, iter_end);
 
@@ -32,6 +32,8 @@ namespace NPATK::Tests {
         ASSERT_FALSE(osA0.empty());
         ASSERT_EQ(osA0.size(), 1);
         EXPECT_EQ(osA0[0], collection.Parties[0][0]);
+        auto osRawA0 = iter.raw();
+        EXPECT_EQ(osRawA0[0], collection.Parties[0][0]);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
@@ -40,6 +42,8 @@ namespace NPATK::Tests {
         ASSERT_FALSE(osA1.empty());
         ASSERT_EQ(osA1.size(), 1);
         EXPECT_EQ(osA1[0], collection.Parties[0][1]);
+        auto osRawA1 = iter.raw();
+        EXPECT_EQ(osRawA1[0], collection.Parties[0][1]);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
@@ -48,6 +52,8 @@ namespace NPATK::Tests {
         ASSERT_FALSE(osB0.empty());
         ASSERT_EQ(osB0.size(), 1);
         EXPECT_EQ(osB0[0], collection.Parties[1][0]);
+        auto osRawB0 = iter.raw();
+        EXPECT_EQ(osRawB0[0], collection.Parties[1][0]);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
@@ -56,6 +62,8 @@ namespace NPATK::Tests {
         ASSERT_FALSE(osB1.empty());
         ASSERT_EQ(osB1.size(), 1);
         EXPECT_EQ(osB1[0], collection.Parties[1][1]);
+        auto osRawB1 = iter.raw();
+        EXPECT_EQ(osRawB1[0], collection.Parties[1][1]);
 
         ++iter;
         ASSERT_EQ(iter, iter_end);
@@ -64,8 +72,8 @@ namespace NPATK::Tests {
     TEST(MultiOperatorIterator, Construct_LengthTwo) {
         Context collection{2};
 
-        detail::MultiOperatorIterator iter{collection, 2};
-        auto iter_end = detail::MultiOperatorIterator::end_of(collection, 2);
+        MultiOperatorIterator iter{collection, 2};
+        auto iter_end = MultiOperatorIterator::end_of(collection, 2);
         EXPECT_EQ(iter, iter);
         ASSERT_NE(iter, iter_end);
 
@@ -75,6 +83,9 @@ namespace NPATK::Tests {
         ASSERT_EQ(osA0.size(), 2);
         EXPECT_EQ(osA0[0], collection[0]);
         EXPECT_EQ(osA0[1], collection[0]);
+        auto osRawA0 = iter.raw();
+        EXPECT_EQ(osRawA0[0], collection[0]);
+        EXPECT_EQ(osRawA0[1], collection[0]);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
@@ -84,6 +95,9 @@ namespace NPATK::Tests {
         ASSERT_EQ(osA1.size(), 2);
         EXPECT_EQ(osA1[0], collection[0]);
         EXPECT_EQ(osA1[1], collection[1]);
+        auto osRawA1 = iter.raw();
+        EXPECT_EQ(osRawA1[0], collection[0]);
+        EXPECT_EQ(osRawA1[1], collection[1]);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
@@ -93,6 +107,9 @@ namespace NPATK::Tests {
         ASSERT_EQ(osB0.size(), 2);
         EXPECT_EQ(osB0[0], collection[1]);
         EXPECT_EQ(osB0[1], collection[0]);
+        auto osRawB0 = iter.raw();
+        EXPECT_EQ(osRawB0[0], collection[1]);
+        EXPECT_EQ(osRawB0[1], collection[0]);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
@@ -102,6 +119,10 @@ namespace NPATK::Tests {
         ASSERT_EQ(osB1.size(), 2);
         EXPECT_EQ(osB1[0], collection[1]);
         EXPECT_EQ(osB1[1], collection[1]);
+        auto osRawB1 = iter.raw();
+        EXPECT_EQ(osRawB1[0], collection[1]);
+        EXPECT_EQ(osRawB1[1], collection[1]);
+
 
         ++iter;
         ASSERT_EQ(iter, iter_end);
@@ -110,8 +131,8 @@ namespace NPATK::Tests {
     TEST(MultiOperatorIterator, Construct_LengthFour) {
         LocalityContext collection{Party::MakeList(2, 2, 2)};
 
-        detail::MultiOperatorIterator iter{collection, 4};
-        auto iter_end = detail::MultiOperatorIterator::end_of(collection, 4);
+        MultiOperatorIterator iter{collection, 4};
+        auto iter_end = MultiOperatorIterator::end_of(collection, 4);
         // 4 * 4 * 4 * 4 = 256 combos
         for (size_t count = 0; count < 256; ++count) {
             ASSERT_NE(iter, iter_end);
@@ -129,7 +150,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(collection.size(), 4);
 
         size_t count = 0;
-        for (auto opStr : detail::MultiOperatorRange{collection, 4}) {
+        for (auto opStr : MultiOperatorRange{collection, 4}) {
             size_t v[4];
             v[0] = (count >> 6) & 0x3;
             v[1] = (count >> 4) & 0x3;

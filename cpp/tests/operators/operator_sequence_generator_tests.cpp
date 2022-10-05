@@ -114,7 +114,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(alice.size(), 2);
 
         OperatorSequenceGenerator osg{collection, 2};
-        ASSERT_EQ(osg.sequence_length, 2);
+        ASSERT_EQ(osg.max_sequence_length, 2);
         auto osg_conj = osg.conjugate();
         compare_sequences(osg, {OperatorSequence::Identity(collection),
                                 OperatorSequence({alice[0]}, collection),
@@ -144,7 +144,7 @@ namespace NPATK::Tests {
 
         OperatorSequenceGenerator osg{collection, 2};
         auto osg_conj = osg.conjugate();
-        EXPECT_EQ(osg_conj.sequence_length, osg.sequence_length);
+        EXPECT_EQ(osg_conj.max_sequence_length, osg.max_sequence_length);
 
         compare_sequences(osg, {OperatorSequence::Identity(collection),
                                 OperatorSequence({alice[0]}, collection),

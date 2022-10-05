@@ -10,7 +10,7 @@
 #include <vector>
 #include <iterator>
 
-namespace NPATK::detail {
+namespace NPATK {
     class MultiOperatorIterator {
     public:
         using iterator_category = std::input_iterator_tag;
@@ -61,15 +61,30 @@ namespace NPATK::detail {
             return !(*this == rhs);
         }
 
-        OperatorSequence operator*() const noexcept {
-            std::vector <Operator> raw{};
-            raw.reserve(length);
+        [[nodiscard]] std::vector<Operator> raw() const {
+            std::vector<Operator> raw_opers{};
+            raw_opers.reserve(length);
             // Reverse order so final operator in chain changes the most frequently:
             for (size_t i = length; i > 0; --i) {
-                raw.emplace_back(*(this->iters[i-1]));
+                raw_opers.emplace_back(*(this->iters[i-1]));
             }
-            return OperatorSequence{std::move(raw), *this->context};
+            return raw_opers;
         }
+
+        [[nodiscard]] std::vector<oper_name_t> id_str() const {
+            std::vector<oper_name_t> output{};
+            output.reserve(length);
+            // Reverse order so final operator in chain changes the most frequently:
+            for (size_t i = length; i > 0; --i) {
+                output.emplace_back(this->iters[i-1]->id);
+            }
+            return output;
+        }
+
+        OperatorSequence operator*() const {
+            return OperatorSequence{this->raw(), *this->context};
+        }
+
 
 
     private:

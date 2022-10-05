@@ -85,8 +85,6 @@ namespace NPATK {
         return {end, false};
     }
 
-
-
     PMIndex LocalityContext::global_index_to_PM(size_t global_index) const noexcept {
         assert (global_index < this->global_to_party.size());
         auto party_id = this->global_to_party[global_index];
@@ -174,8 +172,5 @@ namespace NPATK {
            << " in total.\n";
 
         return ss.str();
-
     }
-
-
 }

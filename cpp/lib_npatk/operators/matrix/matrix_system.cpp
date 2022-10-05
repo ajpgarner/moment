@@ -63,8 +63,7 @@ namespace NPATK {
 
     MomentMatrix& MatrixSystem::CreateMomentMatrix(size_t level) {
         // Call for write lock...
-        std::unique_lock lock{this->rwMutex};
-
+        auto lock = this->getWriteLock();
 
         // First, try read
         if (this->hasMomentMatrix(level)) {
@@ -113,7 +112,7 @@ namespace NPATK {
 
     LocalizingMatrix& MatrixSystem::CreateLocalizingMatrix(const LocalizingMatrixIndex& lmi) {
         // Call for write lock...
-        std::unique_lock lock{this->rwMutex};
+        auto lock = this->getWriteLock();
 
         // First, try read...
         ptrdiff_t index = this->localizingMatrixIndex(lmi);

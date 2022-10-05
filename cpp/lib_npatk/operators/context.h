@@ -76,6 +76,16 @@ namespace NPATK {
          [[nodiscard]] size_t hash(const OperatorSequence& seq) const noexcept;
 
          /**
+          * Calculates a non-colliding hash (i.e. unique number) for a particular operator sequence.
+          * The hash is in general dependent on the total number of distinct operators in the context.
+          * The zero operator is guaranteed a hash of 0.
+          * The identity operator is guaranteed a hash of 1.
+          * @param seq The raw operator sequence to calculate the hash of.
+          * @return An integer hash.
+          */
+         [[nodiscard]] size_t hash(const std::vector<oper_name_t>& rawSeq) const noexcept;
+
+         /**
           * Generates a formatted string representation of an operator sequence
           */
           [[nodiscard]] virtual std::string format_sequence(const OperatorSequence& seq) const;

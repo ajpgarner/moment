@@ -28,6 +28,9 @@ namespace NPATK {
         return {end, false};
     }
 
+
+
+
     size_t Context::hash(const OperatorSequence &sequence) const noexcept {
         if (sequence.zero()) {
             return 0;
@@ -40,6 +43,21 @@ namespace NPATK {
         for (size_t n = 0; n < sequence.size(); ++n) {
             const auto& oper = sequence[sequence.size()-n-1];
             hash += ((static_cast<size_t>(oper.id) + 1) * multiplier);
+            multiplier *= multiplier_stride;
+        }
+        return hash;
+    }
+
+    size_t Context::hash(const std::vector<oper_name_t>& rawOperators) const noexcept {
+
+        size_t hash = 1;
+        size_t multiplier = 1;
+        const size_t multiplier_stride = 1 + this->operators.size();
+        const size_t len = rawOperators.size();
+
+        for (size_t n = 0; n < len; ++n) {
+            const auto& oper = rawOperators[len-n-1];
+            hash += ((static_cast<size_t>(oper) + 1) * multiplier);
             multiplier *= multiplier_stride;
         }
         return hash;

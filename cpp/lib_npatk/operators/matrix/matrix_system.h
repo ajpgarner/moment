@@ -146,7 +146,7 @@ namespace NPATK {
 
         /**
          * Returns the context.
-         * Can be called without lock thread-safely, since Context is immutable once MatrixSystem is constructed.
+         * For thread safety, call for a read lock first.
          */
         [[nodiscard]] const class Context& Context() const noexcept {
             return *this->context;
@@ -157,6 +157,14 @@ namespace NPATK {
 
         virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
                                                   const class LocalizingMatrix& lm) { }
+
+        [[nodiscard]] class Context& getContext() noexcept {
+            return *this->context;
+        }
+
+        [[nodiscard]] auto getWriteLock()  {
+            return std::unique_lock{this->rwMutex};
+        }
 
     };
 }

@@ -24,26 +24,42 @@ namespace NPATK {
         std::vector<OperatorSequence> unique_sequences;
 
     public:
+        /** The minimum length of operator sequence */
+        const size_t min_sequence_length;
+
         /** The maximum length of operator sequence */
-        const size_t sequence_length;
+        const size_t max_sequence_length;
 
     public:
+
         /**
-         * Generates all unique permutations of operator sequences, up to sequence_length.
+         * Generates all unique permutations of operator sequences, from min_length up to max_length
          * @param operatorContext
-         * @param sequence_length
+         * @param min_length Shortest operator sequence
+         * @param max_length Longest  operator sequence
          */
-        OperatorSequenceGenerator(const Context& operatorContext, size_t sequence_length);
+        OperatorSequenceGenerator(const Context& operatorContext, size_t min_length, size_t max_length);
+
+        /**
+          * Generates all unique permutations of operator sequences, up to sequence_length.
+          * @param operatorContext
+          * @param sequence_length
+          */
+        OperatorSequenceGenerator(const Context& operatorContext, size_t sequence_length)
+            : OperatorSequenceGenerator(operatorContext, 0, sequence_length) { }
+
 
         /**
          * Create a generator with a list of pre-calculated operator sequences
          * @param operatorContext Reference to context
+         * @param min_length The shortest sequence in the pre-computed list
          * @param max_length The longest sequence in the pre-computed list
          * @param preComputedSequences An ordered list of operator sequences the generator will produce
          */
-        OperatorSequenceGenerator(const Context& operatorContext, size_t max_length,
+        OperatorSequenceGenerator(const Context& operatorContext, size_t min_length, size_t max_length,
                                   std::vector<OperatorSequence>&& preComputedSequences)
-                                  : context{operatorContext}, sequence_length{max_length},
+                                  : context{operatorContext},
+                                    min_sequence_length{min_length}, max_sequence_length{max_length},
                                     unique_sequences{std::move(preComputedSequences)} { }
 
         /**
@@ -59,6 +75,9 @@ namespace NPATK {
             assert(index < unique_sequences.size());
             return this->unique_sequences[index];
         };
+
+    private:
+        void do_generation();
 
     };
 }
