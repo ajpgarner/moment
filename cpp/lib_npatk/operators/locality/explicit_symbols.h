@@ -5,15 +5,16 @@
  */
 #pragma once
 
-#include "symbolic/symbol.h"
-#include "../operator_sequence.h"
-
 #include "joint_measurement_index.h"
 #include "party.h"
 
+#include "operators/operator_sequence.h"
 #include "utilities/multi_dimensional_index_iterator.h"
 
+#include "integer_types.h"
+
 #include <initializer_list>
+#include <stdexcept>
 #include <span>
 #include <vector>
 

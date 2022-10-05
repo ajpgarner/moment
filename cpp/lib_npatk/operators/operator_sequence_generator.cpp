@@ -6,8 +6,9 @@
 #include "operator_sequence_generator.h"
 #include "multi_operator_iterator.h"
 
-#include <map>
 #include <algorithm>
+#include <limits>
+#include <map>
 
 namespace NPATK {
     OperatorSequenceGenerator::OperatorSequenceGenerator(const Context &operatorContext,

@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "symbolic/symbol_expression.h"
+#include "integer_types.h"
 
 #include <map>
 #include <memory>

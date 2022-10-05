@@ -7,6 +7,8 @@
 
 #include "raw_sequence_book.h"
 
+#include <cassert>
+
 #include <algorithm>
 #include <iterator>
 

@@ -4,14 +4,13 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
-#include "../operator.h"
+#include "integer_types.h"
 
 #include <cassert>
 #include <string>
 
 namespace NPATK {
 
-    using mmt_name_t = int16_t;
 
     struct PMIndex {
     public:

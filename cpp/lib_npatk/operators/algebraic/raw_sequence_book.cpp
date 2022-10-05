@@ -9,6 +9,8 @@
 
 #include "../multi_operator_iterator.h"
 
+#include <cmath>
+
 namespace NPATK {
 
     namespace {

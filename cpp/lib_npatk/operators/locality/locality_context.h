@@ -5,8 +5,8 @@
  */
 #pragma once
 
-#include "../context.h"
 #include "party.h"
+#include "operators/context.h"
 
 namespace NPATK {
 

@@ -9,10 +9,6 @@
 #include "../operator_sequence.h"
 
 #include "operator_matrix.h"
-#include "symbol_table.h"
-
-#include "symbolic/symbol_expression.h"
-#include "utilities/square_matrix.h"
 
 #include <cassert>
 #include <map>

@@ -5,8 +5,7 @@
  */
 #pragma once
 
-#include "../operator.h"
-#include "../../symbolic/symbol.h"
+#include "integer_types.h"
 
 #include <vector>
 

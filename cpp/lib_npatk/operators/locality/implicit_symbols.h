@@ -4,12 +4,14 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
-#include "symbolic/symbol.h"
-#include "symbolic/linear_combo.h"
 
 #include "locality_context.h"
 #include "measurement.h"
 #include "joint_measurement_index.h"
+
+#include "symbolic/linear_combo.h"
+
+#include "integer_types.h"
 
 #include <vector>
 #include <stdexcept>

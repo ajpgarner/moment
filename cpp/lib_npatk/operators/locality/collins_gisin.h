@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "symbolic/symbol.h"
+#include "integer_types.h"
 #include "../operator_sequence.h"
 
 #include <stdexcept>

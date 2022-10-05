@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
-#include "../matrix/matrix_system.h"
+#include "operators/matrix/matrix_system.h"
 
 namespace NPATK {
     class LocalityContext;

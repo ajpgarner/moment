@@ -7,6 +7,7 @@
 #include "operators/context.h"
 #include "operators/locality/locality_context.h"
 
+#include <list>
 #include <vector>
 
 namespace NPATK::Tests {

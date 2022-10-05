@@ -6,10 +6,8 @@
  */
 #pragma once
 
-#include "symbolic/symbol.h"
-
-#include "../operator_sequence.h"
 #include "party.h"
+#include "operators/operator_sequence.h"
 #include "utilities/multi_dimensional_index_iterator.h"
 
 #include <span>

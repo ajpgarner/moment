@@ -5,13 +5,11 @@
  */
 #pragma once
 
-#include <cinttypes>
+#include <cstdint>
+
+#include "integer_types.h"
 
 namespace NPATK {
-
-    using party_name_t = int16_t;
-
-    using oper_name_t = int64_t;
 
     struct Operator {
     public:

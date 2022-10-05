@@ -6,6 +6,8 @@
 #include "joint_measurement_iterator.h"
 #include "locality_context.h"
 
+#include <stdexcept>
+
 namespace NPATK {
     namespace {
         std::vector<size_t> getMmtOpCounts(const JointMeasurementIterator &multiMmtIterator) {

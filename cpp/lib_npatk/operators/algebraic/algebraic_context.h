@@ -5,6 +5,8 @@
  */
 #pragma once
 
+
+#include "integer_types.h"
 #include "../context.h"
 #include "raw_sequence_book.h"
 #include "monomial_substitution_rule.h"

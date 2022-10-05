@@ -4,7 +4,9 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
+
 #include "symbol.h"
+
 #include <iosfwd>
 
 namespace NPATK {

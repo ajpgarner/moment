@@ -4,6 +4,9 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
+
+#include "integer_types.h"
+
 #include <cstdint>
 #include <cassert>
 
@@ -15,8 +18,6 @@
 #include <limits>
 
 namespace NPATK {
-
-    using symbol_name_t = int64_t;
 
     /**
      * An algebraic element
