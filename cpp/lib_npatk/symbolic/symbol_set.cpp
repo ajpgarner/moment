@@ -33,7 +33,6 @@ namespace  NPATK {
         }
     }
 
-
     SymbolSet::SymbolSet(const std::vector<Symbol> &extra_symbols, const std::vector<SymbolPair> &raw_pairs)
         : Symbols{*this}, Links{*this} {
         this->add_or_merge(Symbol::zero());
@@ -44,6 +43,28 @@ namespace  NPATK {
 
         for (const auto& rule : raw_pairs) {
             this->add_or_merge(rule);
+        }
+    }
+
+
+    SymbolSet::SymbolSet(const SymbolTree &tree)
+        : Symbols{*this}, Links{*this},
+          packing_key{tree.source_set.packing_key},
+          unpacking_key{tree.source_set.unpacking_key},
+          packed{true} {
+
+        assert(tree.source_set.is_packed());
+
+        for (const auto& node : tree.tree_nodes) {
+            // Copy node into symbol map
+            symbols.emplace_hint(symbols.end(), std::make_pair(node.id, static_cast<Symbol>(node)));
+            // If node is not fundamental, add link:
+            if (!node.unaliased()) {
+                auto rule = node.canonical_pair();
+                equality_map_t::key_type key{rule.left_id, rule.right_id};
+                EqualityType eq_type = equality_type(rule);
+                this->symbol_links.insert({key, eq_type});
+            }
         }
     }
 
@@ -198,4 +219,6 @@ namespace  NPATK {
         this->packed = false;
 
     }
+
+
 }

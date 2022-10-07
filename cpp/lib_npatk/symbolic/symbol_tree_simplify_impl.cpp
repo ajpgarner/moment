@@ -135,6 +135,9 @@ namespace NPATK::detail {
             auto& canonical_node = *(pivot_entry.linkFromCanonicalNode->origin);
             incorporate_all_descendents(this_node, &canonical_node,
                                         compose(pivot_entry.relationToBase, pivot_entry.relationToCanonical));
+
+            //this_node->canonical_origin = pivot_entry.linkFromCanonicalNode;
+
         }
     }
 
@@ -178,6 +181,7 @@ namespace NPATK::detail {
 
         // Finally, move base node into canonical structure.
         assert(link_for_base != nullptr);
+        this_node->canonical_origin = link_for_base;
 
         // We are guaranteed not to be a duplicate entry in the canonical node,
         //  but the same is not guaranteed for our descendents.
@@ -326,7 +330,7 @@ namespace NPATK::detail {
                 }
                 stack_frame.cursor = next_child;
 
-            } else {
+            } else { // link is reflexively from and to same node.
                 // Test nullity, and propagate
                 auto [re_is_zero, im_is_zero] = current_link.implies_zero();
                 re_is_zero = re_is_zero || stack_frame.node->real_is_zero || rebase_node->real_is_zero;

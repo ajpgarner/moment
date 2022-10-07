@@ -29,6 +29,9 @@ namespace NPATK {
         this->sequences.reserve(2);
         this->sequences.emplace_back(std::vector<oper_name_t>{}, 0, 0); // hash of 0 is always 0
         this->sequences.emplace_back(std::vector<oper_name_t>{}, 1, 1); // hash of 1 is always 1
+        this->symbols.reserve(2);
+        this->symbols.emplace_back(Symbol::zero());
+        this->symbols.emplace_back(1);
 
     }
 
@@ -39,9 +42,9 @@ namespace NPATK {
         }
 
         // Reserve for new sequences...
-        this->sequences.reserve(this->sequences.size() + num_permutations(this->context.size(),
-                                                                          this->max_seq_length,
-                                                                          target_length));
+        const size_t new_elements = num_permutations(this->context.size(), this->max_seq_length, target_length);
+        this->sequences.reserve(this->sequences.size() + new_elements);
+        this->symbols.reserve(this->symbols.size() + new_elements);
 
         auto symbol_id = static_cast<symbol_name_t>(this->sequences.size());
 
@@ -53,6 +56,7 @@ namespace NPATK {
                 size_t hash = this->context.hash(rawStr);
                 this->sequences.emplace_back(std::move(rawStr), hash, symbol_id);
                 this->hash_table.emplace(std::make_pair(hash, symbol_id));
+                this->symbols.emplace_back(symbol_id);
 
                 ++symbol_id;
                 ++moi;

@@ -5,9 +5,11 @@
  */
 #pragma once
 #include "symbol_set.h"
+
 #include <iosfwd>
 #include <iterator>
 #include <concepts>
+#include <memory>
 
 namespace NPATK {
     namespace detail {
@@ -190,21 +192,17 @@ namespace NPATK {
             /**
              * Represents the lowest id symbol equivalent (up to negation / conjugation) to this node.
              */
-             [[nodiscard]] SymbolExpression canonical_expression() const noexcept {
-                 // Return canonical id, maybe with negation or conjugation
-                 if (this->canonical_origin != nullptr) {
-                     return SymbolExpression{this->canonical_origin->origin->id,
-                                             is_negated(this->canonical_origin->link_type),
-                                             is_conjugated(this->canonical_origin->link_type)};
-                 }
-                 // Return self id (no negation or conjugation)
-                 return SymbolExpression{this->id};
-             }
+             [[nodiscard]] SymbolExpression canonical_expression() const noexcept;
+
+             /**
+              * Returns a pair of this node, and its canonical equivalent, with equivalence information.
+              */
+             [[nodiscard]] SymbolPair canonical_pair() const noexcept;
 
              /**
               * @return True, if expression has no
               */
-            bool unaliased() const noexcept { return this->canonical_origin == nullptr; }
+            [[nodiscard]] bool unaliased() const noexcept { return this->canonical_origin == nullptr; }
 
             friend class detail::SymbolNodeSimplifyImpl;
 
@@ -212,7 +210,7 @@ namespace NPATK {
         };
 
     private:
-        SymbolSet::packing_map_t packing_key;
+        const SymbolSet& source_set;
         std::vector<SymbolNode> tree_nodes;
         std::vector<SymbolLink> tree_links;
         std::vector<SymbolLink*> available_links;
@@ -221,8 +219,6 @@ namespace NPATK {
 
     public:
         explicit SymbolTree(const SymbolSet& symbols);
-
-        explicit SymbolTree(SymbolSet&& symbols);
 
         SymbolTree(const SymbolTree& rhs) = delete;
 
@@ -242,10 +238,13 @@ namespace NPATK {
 
         [[nodiscard]] SymbolExpression substitute(SymbolExpression expr) const noexcept;
 
+        [[nodiscard]] std::unique_ptr<SymbolSet> export_symbol_set() const;
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolTree& st);
 
         friend class detail::SymbolNodeSimplifyImpl;
+
+        friend class SymbolSet;
 
     private:
         void make_nodes_and_links(const SymbolSet& symbols);

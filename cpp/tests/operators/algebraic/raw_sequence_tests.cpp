@@ -13,7 +13,7 @@
 
 namespace NPATK::Tests {
 
-    TEST(AlgebraicSystem, RawSequenceBook) {
+    TEST(RawSequence, RawSequenceBook) {
         AlgebraicContext theContext{2}; // 2 symbols...
         RawSequenceBook rsb{theContext};
 
@@ -60,21 +60,5 @@ namespace NPATK::Tests {
             const auto& rs = rsb[i];
             EXPECT_EQ(rs.operators.size(), 4);
         }
-
-
-    }
-
-    TEST(AlgebraicSystem, Empty) {
-        AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(0)};
-
-        ams.generate_aliases(4);
-
-    }
-
-    TEST(AlgebraicSystem, ContextOneSubstitution_ABtoA) {
-        std::vector<MonomialSubstitutionRule> rules;
-        rules.emplace_back(std::vector<oper_name_t>{1, 2}, std::vector<oper_name_t>{1});
-        AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(3, std::move(rules))};
-
     }
 }

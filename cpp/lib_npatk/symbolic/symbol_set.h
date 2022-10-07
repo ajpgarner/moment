@@ -32,6 +32,7 @@ namespace NPATK {
 
             [[nodiscard]] auto begin() const noexcept { return the_set.symbol_links.cbegin(); }
             [[nodiscard]] auto end() const noexcept { return the_set.symbol_links.cend(); }
+            [[nodiscard]] size_t size() const noexcept { return the_set.symbol_links.size(); }
         };
 
         struct SymbolRange {
@@ -42,6 +43,7 @@ namespace NPATK {
 
             [[nodiscard]] auto begin() const noexcept { return the_set.symbols.cbegin(); }
             [[nodiscard]] auto end() const noexcept { return the_set.symbols.cend(); }
+            [[nodiscard]] size_t size() const noexcept { return the_set.symbols.size(); }
         };
 
     private:
@@ -83,7 +85,14 @@ namespace NPATK {
          */
         SymbolSet(const std::vector<Symbol>& extra_symbols, const std::vector<SymbolPair>& raw_pairs);
 
+        /**
+         * Extract a set from a SymbolTree..
+         * @param tree The SymbolTree
+         */
+        explicit SymbolSet(const SymbolTree& tree);
+
         SymbolSet(const SymbolSet& rhs) = delete;
+
 
         SymbolSet(SymbolSet&& rhs) noexcept : Links{*this}, Symbols{*this},
             symbols{std::move(rhs.symbols)}, symbol_links{std::move(rhs.symbol_links)},
@@ -164,5 +173,7 @@ namespace NPATK {
         friend std::ostream& operator<<(std::ostream& os, const SymbolSet& symbolSet);
 
         friend class SymbolTree;
+
+
     };
 }

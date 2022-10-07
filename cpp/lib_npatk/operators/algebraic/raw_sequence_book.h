@@ -6,6 +6,7 @@
 #pragma once
 
 #include "raw_sequence.h"
+#include "symbolic/symbol.h"
 
 #include <map>
 #include <vector>
@@ -19,6 +20,8 @@ namespace NPATK {
         const Context& context;
         size_t max_seq_length = 0;
         std::vector<RawSequence> sequences;
+        std::vector<Symbol> symbols;
+
         std::map<size_t, size_t> hash_table;
 
     public:
@@ -45,6 +48,7 @@ namespace NPATK {
 
         [[nodiscard]] const RawSequence * where(const std::vector<oper_name_t>& op_str) const noexcept;
 
+        [[nodiscard]] const std::vector<Symbol>& Symbols() const noexcept { return this->symbols; }
 
     };
 

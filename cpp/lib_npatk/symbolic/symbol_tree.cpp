@@ -6,9 +6,8 @@
 #include "symbol_tree.h"
 #include "symbol_tree_simplify_impl.h"
 
-#include <iostream>
-#include <stack>
 #include <algorithm>
+#include <iostream>
 
 namespace NPATK {
     std::ostream& operator<<(std::ostream& os, const SymbolTree& st) {
@@ -219,22 +218,32 @@ namespace NPATK {
         return count;
     }
 
-    SymbolTree::SymbolTree(const SymbolSet &symbols)
-        : packing_key{symbols.packing_key}
-    {
-        assert(symbols.is_packed());
-        this->make_nodes_and_links(symbols);
+    SymbolExpression SymbolTree::SymbolNode::canonical_expression() const noexcept {
+        // Return canonical id, maybe with negation or conjugation
+        if (this->canonical_origin != nullptr) {
+            return SymbolExpression{this->canonical_origin->origin->id,
+                                    is_negated(this->canonical_origin->link_type),
+                                    is_conjugated(this->canonical_origin->link_type)};
+        }
+        // Return self id (no negation or conjugation)
+        return SymbolExpression{this->id};
     }
 
-    SymbolTree::SymbolTree(SymbolSet && symbols)
-        : packing_key{std::move(symbols.packing_key)}
+    SymbolPair SymbolTree::SymbolNode::canonical_pair() const noexcept {
+        if (this->canonical_origin == nullptr) {
+            return SymbolPair{this->id, this->id, false, false};
+        }
+        return SymbolPair{this->id, this->canonical_origin->origin->id,
+                          is_negated(this->canonical_origin->link_type),
+                          is_conjugated(this->canonical_origin->link_type)};
+    }
+
+
+    SymbolTree::SymbolTree(const SymbolSet &symbols)
+        : source_set(symbols)
     {
         assert(symbols.is_packed());
-
         this->make_nodes_and_links(symbols);
-
-        // Reset now invalid symbols object.
-        symbols.reset();
     }
 
 
@@ -294,8 +303,8 @@ namespace NPATK {
 
     SymbolExpression SymbolTree::substitute(SymbolExpression expr) const noexcept {
         // First, look up name of symbol as keyed
-        auto key_iter = this->packing_key.find(expr.id);
-        if (key_iter == this->packing_key.end()) {
+        auto key_iter = this->source_set.packing_key.find(expr.id);
+        if (key_iter == this->source_set.packing_key.end()) {
             // Did not find expr, cannot simplify
             return expr;
         }
@@ -324,6 +333,10 @@ namespace NPATK {
         }
 
         return canon_expr;
+    }
+
+    std::unique_ptr<SymbolSet> SymbolTree::export_symbol_set() const {
+        return std::make_unique<SymbolSet>(*this);
     }
 
 

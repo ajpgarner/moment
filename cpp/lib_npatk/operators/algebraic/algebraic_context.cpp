@@ -5,33 +5,40 @@
  */
 #include "algebraic_context.h"
 
+#include "symbolic/symbol_set.h"
+#include "symbolic/symbol_tree.h"
+
 namespace NPATK {
 
     AlgebraicContext::AlgebraicContext(const size_t operator_count)
         : Context{operator_count}, rawSequences{*this}
     {
-
+        this->buildSet = std::make_unique<SymbolSet>();
     }
 
     AlgebraicContext::AlgebraicContext(const size_t operator_count, std::vector<MonomialSubstitutionRule> rules)
         : Context{operator_count}, rawSequences{*this}, monomialRules{std::move(rules)}
     {
-
+        this->buildSet = std::make_unique<SymbolSet>();
     }
 
-    std::set<symbol_name_t> AlgebraicContext::one_substitution(const RawSequence& input_sequence) const {
+    AlgebraicContext::~AlgebraicContext() noexcept = default;
+
+    size_t AlgebraicContext::one_substitution(std::vector<SymbolPair>& output,
+                                              const RawSequence& input_sequence) const {
         if (input_sequence.size() > this->rawSequences.longest_sequence()) {
+            [[unlikely]]
             throw errors::bad_substitution(
                     "Cannot perform substitution on strings longer than longest generated string in RawSequenceBook.",
                     input_sequence.operators);
         }
 
-        std::set<symbol_name_t> output;
+        size_t num_pairs = 0;
         for (const auto& rule : this->monomialRules) {
-            rule.all_matches(output, this->rawSequences, input_sequence);
+            num_pairs += rule.all_matches(output, this->rawSequences, input_sequence);
         }
 
-        return output;
+        return num_pairs;
     }
 
     bool AlgebraicContext::generate_aliases(size_t level) {
@@ -45,14 +52,33 @@ namespace NPATK {
         }
         const size_t num_sequences = this->rawSequences.size();
 
-        // TODO: Pull up existing transformation rules from tree.
-
-        // Now, apply every transformation rule to every part of every sequence
-        for (size_t sequence_index = initial_sequence_count; sequence_index < num_sequences; ++sequence_index) {
-            auto out_set = this->one_substitution(this->rawSequences[sequence_index]);
+        // Get existing symbol set, and ensure all new sequences are registered...
+        assert(this->buildSet);
+        SymbolSet& symbolSet = *this->buildSet;
+        for (size_t symbol_index = initial_sequence_count; symbol_index < num_sequences; ++symbol_index) {
+            symbolSet.add_or_merge(Symbol{static_cast<symbol_name_t>(symbol_index)});
         }
 
-        // TODO: Build and simplify new tree
+        // Now, apply every transformation rule to every part of every sequence
+        size_t num_matches = 0;
+        std::vector<SymbolPair> symbol_pairs;
+        for (size_t sequence_index = initial_sequence_count; sequence_index < num_sequences; ++sequence_index) {
+            num_matches += this->one_substitution(symbol_pairs, this->rawSequences[sequence_index]);
+        }
+
+        // Register discovered pairs...
+        for (const auto& pair : symbol_pairs) {
+            symbolSet.add_or_merge(pair);
+        }
+
+        symbolSet.pack();
+
+        SymbolTree theTree{symbolSet};
+        theTree.simplify();
+
+        // TODO: EXTRACT SymbolSet from tree...
+
+
 
         return true;
     }

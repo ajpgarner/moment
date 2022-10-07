@@ -85,7 +85,7 @@ namespace NPATK {
         return output;
     }
 
-    size_t MonomialSubstitutionRule::all_matches(std::set<symbol_name_t>& output,
+    size_t MonomialSubstitutionRule::all_matches(std::vector<SymbolPair>& output,
                                                  const RawSequenceBook& rsb,
                                                  const RawSequence& input) const {
         auto input_sequence = input.operators;
@@ -97,9 +97,11 @@ namespace NPATK {
         auto match_iter = this->matches_anywhere(input_iter, input_sequence.cend());
         while (match_iter != input_sequence.cend()) {
             auto altered_string = this->apply_match_with_hint(input_sequence, match_iter);
-            const auto *id = rsb.where(altered_string);
-            assert(id != nullptr);
-            output.emplace(id->raw_id);
+            const auto *target_seq = rsb.where(altered_string);
+            assert(target_seq != nullptr);
+
+            // Register symbol link
+            output.emplace_back(input.raw_id, target_seq->raw_id, this->negated, false);
 
             // Find next match
             match_iter = this->matches_anywhere(match_iter + 1, input_sequence.cend());

@@ -11,6 +11,9 @@
 #include "raw_sequence_book.h"
 #include "monomial_substitution_rule.h"
 
+#include "symbolic/symbol_expression.h"
+
+#include <memory>
 #include <set>
 
 namespace NPATK {
@@ -24,11 +27,13 @@ namespace NPATK {
         };
     }
 
-    class AlgebraicMatrixSystem;
+    class SymbolSet;
 
     class AlgebraicContext : public Context {
     private:
         RawSequenceBook rawSequences;
+
+        std::unique_ptr<SymbolSet> buildSet;
 
         std::vector<MonomialSubstitutionRule> monomialRules;
 
@@ -37,9 +42,11 @@ namespace NPATK {
 
         explicit AlgebraicContext(size_t operator_count, std::vector<MonomialSubstitutionRule> rules);
 
+        ~AlgebraicContext() noexcept override;
+
         bool generate_aliases(size_t max_length);
 
     private:
-        [[nodiscard]] std::set<symbol_name_t> one_substitution(const RawSequence& input_sequence) const;
+        size_t one_substitution(std::vector<SymbolPair>& output, const RawSequence& input_sequence) const;
     };
 }

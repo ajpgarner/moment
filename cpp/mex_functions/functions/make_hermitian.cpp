@@ -65,7 +65,7 @@ namespace NPATK::mex::functions  {
         }
 
         unique_constraints.pack();
-        auto symbol_tree = SymbolTree{std::move(unique_constraints)};
+        auto symbol_tree = SymbolTree{unique_constraints};
 
         if (debug) {
             std::stringstream ss3;

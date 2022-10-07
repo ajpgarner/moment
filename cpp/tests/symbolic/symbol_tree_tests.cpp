@@ -15,23 +15,28 @@ namespace NPATK::Tests {
     SymbolTree& SymbolTreeFixture::create_tree(
             std::initializer_list<Symbol> symbols,
             std::initializer_list<SymbolPair> pairs) {
-        SymbolSet ss{std::vector<Symbol>(symbols), std::vector<SymbolPair>(pairs)};
-        ss.pack();
-        this->the_tree = std::make_unique<SymbolTree>(std::move(ss));
+        this->source_set = std::make_unique<SymbolSet>(
+                std::vector<Symbol>(symbols), std::vector<SymbolPair>(pairs)
+                );
+        this->source_set->pack();
+
+        this->the_tree = std::make_unique<SymbolTree>(*this->source_set);
         return *this->the_tree;
     }
 
     SymbolTree& SymbolTreeFixture::create_tree(std::initializer_list<SymbolPair> pairs) {
-        SymbolSet ss{std::vector<SymbolPair>(pairs)};
-        ss.pack();
-        this->the_tree = std::make_unique<SymbolTree>(std::move(ss));
+        this->source_set = std::make_unique<SymbolSet>(
+                std::vector<SymbolPair>(pairs)
+        );
+        this->source_set->pack();
+        this->the_tree = std::make_unique<SymbolTree>(*this->source_set);
         return *this->the_tree;
     }
 
     void SymbolTreeFixture::compare_to(std::initializer_list<SymbolPair> pairs, bool only_topology) {
         SymbolSet ss{std::vector<SymbolPair>(pairs)};
         ss.pack();
-        SymbolTree target_tree{std::move(ss)};
+        SymbolTree target_tree{ss};
         compare_to(target_tree, only_topology);
     }
 
@@ -39,7 +44,7 @@ namespace NPATK::Tests {
                                        bool only_topology) {
         SymbolSet ss{std::vector<Symbol>(extra), std::vector<SymbolPair>(pairs)};
         ss.pack();
-        SymbolTree target_tree{std::move(ss)};
+        SymbolTree target_tree{ss};
         compare_to(target_tree, only_topology);
     }
 
@@ -770,7 +775,31 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, Substitute_RealPair) {
+    TEST_F(SymbolTreeFixture, Substitute_InverseTriangle) {
+        auto &tree = this->create_tree({SymbolPair{SymbolExpression{10}, SymbolExpression{30}},
+                                               SymbolPair{SymbolExpression{20}, SymbolExpression{30}}});
+        tree.simplify(); // 1 <- 2, 1 <- 3
+        this->compare_to({SymbolPair{SymbolExpression{10}, SymbolExpression{20}},
+                          SymbolPair{SymbolExpression{10}, SymbolExpression{30}}});
+
+        auto expr_a = tree.substitute(SymbolExpression{20});
+        EXPECT_EQ(expr_a.id, 10);
+        EXPECT_EQ(expr_a.negated, false);
+        EXPECT_EQ(expr_a.conjugated, false);
+
+        auto expr_b = tree.substitute(SymbolExpression{30});
+        EXPECT_EQ(expr_b.id, 10);
+        EXPECT_EQ(expr_b.negated, false);
+        EXPECT_EQ(expr_b.conjugated, false);
+
+        auto expr_c = tree.substitute(SymbolExpression{30});
+        EXPECT_EQ(expr_c.id, 10);
+        EXPECT_EQ(expr_c.negated, false);
+        EXPECT_EQ(expr_c.conjugated, false);
+
+    }
+
+        TEST_F(SymbolTreeFixture, Substitute_RealPair) {
         auto &tree = this->create_tree({Symbol{1, false}},
                                         {SymbolPair{SymbolExpression{1}, SymbolExpression{2}}}
                                        );
@@ -839,5 +868,59 @@ namespace NPATK::Tests {
         EXPECT_EQ(expr_d.id, 1);
         EXPECT_EQ(expr_d.negated, false);
         EXPECT_EQ(expr_d.conjugated, false);
+    }
+
+
+    TEST_F(SymbolTreeFixture, ExportSet_InverseTriangle) {
+        auto &inverse_tri = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                                               SymbolPair{SymbolExpression{2}, SymbolExpression{3}}});
+        inverse_tri.simplify(); // 1 <- 2, 1 <- 3
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}}});
+
+        auto out_set = inverse_tri.export_symbol_set();
+        ASSERT_EQ(out_set->Symbols.size(), 4);
+        auto symIter = out_set->Symbols.begin();
+        ASSERT_NE(symIter, out_set->Symbols.end());
+        EXPECT_EQ(symIter->first, 0);
+        EXPECT_EQ(symIter->second.id, 0);
+        EXPECT_TRUE(symIter->second.is_zero());
+
+        ++symIter;
+        ASSERT_NE(symIter, out_set->Symbols.end());
+        EXPECT_EQ(symIter->first, 1);
+        EXPECT_EQ(symIter->second.id, 1);
+        EXPECT_FALSE(symIter->second.is_zero());
+
+        ++symIter;
+        ASSERT_NE(symIter, out_set->Symbols.end());
+        EXPECT_EQ(symIter->first, 2);
+        EXPECT_EQ(symIter->second.id, 2);
+        EXPECT_FALSE(symIter->second.is_zero());
+
+        ++symIter;
+        ASSERT_NE(symIter, out_set->Symbols.end());
+        EXPECT_EQ(symIter->first, 3);
+        EXPECT_EQ(symIter->second.id, 3);
+        EXPECT_FALSE(symIter->second.is_zero());
+
+        ++symIter;
+        EXPECT_EQ(symIter, out_set->Symbols.end());
+
+        ASSERT_EQ(out_set->Links.size(), 2);
+        auto linkIter = out_set->Links.begin();
+        ASSERT_NE(linkIter, out_set->Links.end());
+        EXPECT_EQ(linkIter->first.first, 1);
+        EXPECT_EQ(linkIter->first.second, 2);
+        EXPECT_EQ(linkIter->second, EqualityType::equal);
+
+        ++linkIter;
+        ASSERT_NE(linkIter, out_set->Links.end());
+        EXPECT_EQ(linkIter->first.first, 1);
+        EXPECT_EQ(linkIter->first.second, 3);
+        EXPECT_EQ(linkIter->second, EqualityType::equal);
+
+        ++linkIter;
+        EXPECT_EQ(linkIter, out_set->Links.end());
     }
 }

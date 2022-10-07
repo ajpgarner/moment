@@ -109,17 +109,21 @@ namespace NPATK::Tests {
 
         std::vector<oper_name_t> sampleStr{1, 2, 1, 2};
         auto ssWhere = rsb.where(sampleStr);
-        ASSERT_NE(ssWhere, nullptr);
-
-        std::set<symbol_name_t> output_ids;
-        msr.all_matches(output_ids, rsb, *ssWhere);
-        ASSERT_EQ(output_ids.size(), 1);
-
-        auto oi_iter = output_ids.begin();
-        ASSERT_NE(oi_iter, output_ids.end());
         auto abWhere = rsb.where({1, 2});
+        ASSERT_NE(ssWhere, nullptr);
         ASSERT_NE(abWhere, nullptr);
-        EXPECT_EQ(abWhere->raw_id, *oi_iter);
+        ASSERT_LT(abWhere->raw_id, ssWhere->raw_id);
+
+        std::vector<SymbolPair> output_ids;
+        size_t count = msr.all_matches(output_ids, rsb, *ssWhere);
+        EXPECT_EQ(count, 2);
+        ASSERT_EQ(output_ids.size(), 2);
+
+        ASSERT_EQ(output_ids.size(), 2);
+        EXPECT_EQ(output_ids[0].left_id, abWhere->raw_id);
+        EXPECT_EQ(output_ids[0].right_id, ssWhere->raw_id);
+        EXPECT_EQ(output_ids[1].left_id, abWhere->raw_id);
+        EXPECT_EQ(output_ids[1].right_id, ssWhere->raw_id);
     }
 
     TEST(MonomialSubRule, AllMatches_ABtoA_in_ABAB) {
@@ -139,12 +143,19 @@ namespace NPATK::Tests {
         ASSERT_NE(abaWhere, nullptr);
         ASSERT_NE(aabWhere->raw_id, abaWhere->raw_id);
 
-        std::set<symbol_name_t> output_ids;
-        msr.all_matches(output_ids, rsb, *ssWhere);
-        EXPECT_EQ(output_ids.size(), 2);
-        EXPECT_TRUE(output_ids.contains(aabWhere->raw_id));
-        EXPECT_TRUE(output_ids.contains(abaWhere->raw_id));
+        // Because symbol pair sorts...!
+        ASSERT_LE(aabWhere->raw_id, ssWhere->raw_id);
+        ASSERT_LE(abaWhere->raw_id, ssWhere->raw_id);
 
+
+        std::vector<SymbolPair> output_ids;
+        size_t count = msr.all_matches(output_ids, rsb, *ssWhere);
+        EXPECT_EQ(count, 2);
+        ASSERT_EQ(output_ids.size(), 2);
+        EXPECT_EQ(output_ids[0].left_id, aabWhere->raw_id);
+        EXPECT_EQ(output_ids[0].right_id, ssWhere->raw_id);
+        EXPECT_EQ(output_ids[1].left_id, abaWhere->raw_id);
+        EXPECT_EQ(output_ids[1].right_id, ssWhere->raw_id);
     }
 
 }
