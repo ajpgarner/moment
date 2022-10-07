@@ -240,10 +240,18 @@ namespace NPATK {
 
 
     SymbolTree::SymbolTree(const SymbolSet &symbols)
-        : source_set(symbols)
+        : packing_map{symbols.packing_key}, unpacking_map{symbols.unpacking_key}
     {
         assert(symbols.is_packed());
         this->make_nodes_and_links(symbols);
+    }
+
+
+    SymbolTree::SymbolTree(SymbolSet&& symbols) {
+        assert(symbols.is_packed());
+        this->make_nodes_and_links(symbols);
+        this->packing_map.swap(symbols.packing_key);
+        this->unpacking_map.swap(symbols.unpacking_key);
     }
 
 
@@ -303,8 +311,8 @@ namespace NPATK {
 
     SymbolExpression SymbolTree::substitute(SymbolExpression expr) const noexcept {
         // First, look up name of symbol as keyed
-        auto key_iter = this->source_set.packing_key.find(expr.id);
-        if (key_iter == this->source_set.packing_key.end()) {
+        auto key_iter = this->packing_map.find(expr.id);
+        if (key_iter == this->packing_map.end()) {
             // Did not find expr, cannot simplify
             return expr;
         }

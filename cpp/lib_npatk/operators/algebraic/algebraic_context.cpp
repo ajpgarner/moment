@@ -14,12 +14,14 @@ namespace NPATK {
         : Context{operator_count}, rawSequences{*this}
     {
         this->buildSet = std::make_unique<SymbolSet>();
+        this->buildSet->add_or_merge(Symbol{1});
     }
 
     AlgebraicContext::AlgebraicContext(const size_t operator_count, std::vector<MonomialSubstitutionRule> rules)
         : Context{operator_count}, rawSequences{*this}, monomialRules{std::move(rules)}
     {
         this->buildSet = std::make_unique<SymbolSet>();
+        this->buildSet->add_or_merge(Symbol{1});
     }
 
     AlgebraicContext::~AlgebraicContext() noexcept = default;
@@ -73,10 +75,13 @@ namespace NPATK {
 
         symbolSet.pack();
 
+        // Do simplification
         SymbolTree theTree{symbolSet};
         theTree.simplify();
 
-        // TODO: EXTRACT SymbolSet from tree...
+        // Recover links...
+        this->buildSet = theTree.export_symbol_set();
+        this->buildSet->unpack();
 
 
 

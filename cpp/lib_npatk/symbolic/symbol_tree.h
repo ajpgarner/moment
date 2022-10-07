@@ -210,7 +210,9 @@ namespace NPATK {
         };
 
     private:
-        const SymbolSet& source_set;
+        SymbolSet::packing_map_t packing_map;
+        std::vector<symbol_name_t> unpacking_map;
+
         std::vector<SymbolNode> tree_nodes;
         std::vector<SymbolLink> tree_links;
         std::vector<SymbolLink*> available_links;
@@ -219,6 +221,8 @@ namespace NPATK {
 
     public:
         explicit SymbolTree(const SymbolSet& symbols);
+
+        explicit SymbolTree(SymbolSet&& symbols);
 
         SymbolTree(const SymbolTree& rhs) = delete;
 

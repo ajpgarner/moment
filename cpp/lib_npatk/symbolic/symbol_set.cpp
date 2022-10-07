@@ -49,11 +49,9 @@ namespace  NPATK {
 
     SymbolSet::SymbolSet(const SymbolTree &tree)
         : Symbols{*this}, Links{*this},
-          packing_key{tree.source_set.packing_key},
-          unpacking_key{tree.source_set.unpacking_key},
+          packing_key{tree.packing_map},
+          unpacking_key{tree.unpacking_map},
           packed{true} {
-
-        assert(tree.source_set.is_packed());
 
         for (const auto& node : tree.tree_nodes) {
             // Copy node into symbol map
