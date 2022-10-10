@@ -55,13 +55,10 @@ namespace NPATK {
 
         /**
          * Use additional context to simplify an operator string.
-         * @param start The start of the string of operators
-         * @param end  The end of the string of operators
-         * @return Pair, first: the new end of the string of operators, second: true if sequence is zero (cf. identity).
+         * @param op_sequence The string of operators
+         * @return True if sequence is zero (cf. identity).
          */
-        [[nodiscard]] std::pair<std::vector<Operator>::iterator, bool>
-        additional_simplification(std::vector<Operator>::iterator start,
-                                          std::vector<Operator>::iterator end) const noexcept override;
+        bool additional_simplification(std::vector<Operator>& op_sequence) const override;
 
         /** Converts global measurement index to Party, Measurement pair */
         [[nodiscard]] PMIndex global_index_to_PM(size_t global_index) const noexcept;

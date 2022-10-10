@@ -64,6 +64,8 @@ namespace  NPATK {
                 this->symbol_links.insert({key, eq_type});
             }
         }
+        
+        this->unpack();
     }
 
     bool SymbolSet::add_or_merge(const Symbol &symbol) {

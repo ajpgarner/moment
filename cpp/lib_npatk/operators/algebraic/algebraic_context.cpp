@@ -79,13 +79,48 @@ namespace NPATK {
         SymbolTree theTree{symbolSet};
         theTree.simplify();
 
-        // Recover links...
+        // Recover links for building tree
         this->buildSet = theTree.export_symbol_set();
-        this->buildSet->unpack();
 
+        // Finally, create map of hashes of sequences to be substituted
+        this->hashToReplacementSymbol.clear();
+        for (const auto& link : this->buildSet->Links) {
+            const auto& target_seq = this->rawSequences[link.first.first];
+            const auto& source_seq = this->rawSequences[link.first.second];
+            if (link.second != EqualityType::equal) {
+                throw std::logic_error{"Currently only equality substitutions are supported..."};
+            }
+            this->hashToReplacementSymbol.emplace(std::make_pair(source_seq.hash,
+                                                                 static_cast<size_t>(target_seq.raw_id)));
 
+        }
 
         return true;
+    }
+
+    bool AlgebraicContext::additional_simplification(std::vector<Operator>& op_sequence) const {
+        auto the_hash = this->hash(op_sequence);
+        auto ruleIter = this->hashToReplacementSymbol.find(the_hash);
+
+        // No rules, no change.
+        if (ruleIter == this->hashToReplacementSymbol.end()) {
+            return false;
+        }
+
+        // Simplify to zero?
+        if (ruleIter->second == 0) {
+            op_sequence.clear();
+            return true;
+        }
+
+        // Copy non-zero replacement
+        const auto& replacement = this->rawSequences[ruleIter->second];
+        op_sequence.clear();
+        op_sequence.reserve(replacement.operators.size());
+        for (const auto& op : replacement.operators) {
+            op_sequence.emplace_back(op);
+        }
+        return false;
     }
 
 }

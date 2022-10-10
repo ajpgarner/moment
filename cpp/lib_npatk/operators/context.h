@@ -57,13 +57,10 @@ namespace NPATK {
 
         /**
          * Use additional context to simplify an operator string.
-         * @param start The start of the string of operators
-         * @param end  The end of the string of operators
-         * @return Pair, first: the new end of the string of operators, second: true if sequence is zero (cf. identity).
+         * @param op_sequence The string of operators
+         * @return True if sequence is zero (cf. identity).
          */
-         [[nodiscard]] virtual std::pair<std::vector<Operator>::iterator, bool>
-          additional_simplification(std::vector<Operator>::iterator start,
-                                  std::vector<Operator>::iterator end) const noexcept;
+         virtual bool additional_simplification(std::vector<Operator>& op_sequence) const;
 
          /**
           * Calculates a non-colliding hash (i.e. unique number) for a particular operator sequence.
@@ -74,6 +71,16 @@ namespace NPATK {
           * @return An integer hash.
           */
          [[nodiscard]] size_t hash(const OperatorSequence& seq) const noexcept;
+
+         /**
+          * Calculates a non-colliding hash (i.e. unique number) for a particular operator sequence.
+          * The hash is in general dependent on the total number of distinct operators in the context.
+          * The zero operator is guaranteed a hash of 0.
+          * The identity operator is guaranteed a hash of 1.
+          * @param seq The operator sequence to calculate the hash of.
+          * @return An integer hash.
+          */
+         [[nodiscard]] size_t hash(const std::vector<Operator>& seq) const noexcept;
 
          /**
           * Calculates a non-colliding hash (i.e. unique number) for a particular operator sequence.

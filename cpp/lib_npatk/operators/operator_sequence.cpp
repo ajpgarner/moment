@@ -29,15 +29,12 @@ namespace NPATK {
 
 
         // Contextual simplifications
-        auto [trim, simplify_to_zero] = this->context.additional_simplification(this->constituents.begin(),
-                                                                                 this->constituents.end());
+        bool simplify_to_zero = this->context.additional_simplification(this->constituents);
         if (simplify_to_zero) {
             this->constituents.clear();
             this->is_zero = true;
             return;
         }
-        this->constituents.erase(trim, this->constituents.end());
-
 
         // Remove excess identity elements
         auto trim_id = std::remove_if(this->constituents.begin(), this->constituents.end(),

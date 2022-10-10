@@ -21,21 +21,21 @@ namespace NPATK {
 
     }
 
-    std::pair<std::vector<Operator>::iterator, bool>
-    Context::additional_simplification(std::vector<Operator>::iterator start,
-                                       std::vector<Operator>::iterator end) const noexcept {
+    bool Context::additional_simplification(std::vector<Operator>& op_sequence) const {
         // Do nothing
-        return {end, false};
+        return false;
     }
-
-
-
 
     size_t Context::hash(const OperatorSequence &sequence) const noexcept {
         if (sequence.zero()) {
             return 0;
         }
 
+        return hash(sequence.constituents);
+    }
+
+
+    size_t Context::hash(const std::vector<Operator> &sequence) const noexcept {
         size_t hash = 1;
         size_t multiplier = 1;
         const size_t multiplier_stride = 1 + this->operators.size();

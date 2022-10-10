@@ -31,11 +31,17 @@ namespace NPATK {
 
     class AlgebraicContext : public Context {
     private:
+        /** Collection of every permutation of symbols */
         RawSequenceBook rawSequences;
 
+        /** The set of substitutions */
         std::unique_ptr<SymbolSet> buildSet;
 
+        /** Monomial substitution rules */
         std::vector<MonomialSubstitutionRule> monomialRules;
+
+        /** Calculated substitutions [key: hash, value: index of replacement sequence in raw sequences] */
+        std::map<size_t, size_t> hashToReplacementSymbol;
 
     public:
         explicit AlgebraicContext(size_t operator_count);
@@ -45,6 +51,8 @@ namespace NPATK {
         ~AlgebraicContext() noexcept override;
 
         bool generate_aliases(size_t max_length);
+
+        bool additional_simplification(std::vector<Operator>& op_sequence) const override;
 
     private:
         size_t one_substitution(std::vector<SymbolPair>& output, const RawSequence& input_sequence) const;

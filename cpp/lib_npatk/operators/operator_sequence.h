@@ -29,6 +29,7 @@ namespace NPATK {
         bool is_zero = false;
 
     public:
+        friend class Context;
 
         /**
          * Constructs empty operator sequence; treated as identity.
