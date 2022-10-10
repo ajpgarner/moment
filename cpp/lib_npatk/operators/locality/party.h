@@ -5,9 +5,9 @@
  */
 #pragma once
 
-#include "../operator.h"
 #include "../context.h"
 #include "measurement.h"
+#include "integer_types.h"
 
 #include <cassert>
 
@@ -78,7 +78,7 @@ namespace NPATK {
          * @return Span of operators
          * @throws logic_error if Party not yet attached to a Context.
          */
-        [[nodiscard]] std::span<const Operator> operators() const;
+        [[nodiscard]] std::span<const oper_name_t> operators() const;
 
         /**
          * Gets an operator from this party.
@@ -86,17 +86,17 @@ namespace NPATK {
          * @return The requested opeartor
          * @throws logic_error if Party not yet attached to a Context.
          */
-        [[nodiscard]] const Operator& operator[](size_t index) const;
+        [[nodiscard]] oper_name_t operator[](size_t index) const;
 
         /**
          * Gets the associated measurement from an operator in this party
          */
-        const Measurement& measurement_of(const Operator& op) const;
+        const Measurement& measurement_of(oper_name_t op) const;
 
         /**
          * Gets the name of this operator (if within party)
          */
-        std::string format_operator(const Operator& op) const;
+        std::string format_operator(oper_name_t op) const;
 
 
         [[nodiscard]] auto begin() const {
@@ -114,8 +114,7 @@ namespace NPATK {
          * @return Reference to operator
          * @throws logic_error if Party not yet attached to a Context.
          */
-        [[nodiscard]] const Operator&
-        measurement_outcome(size_t mmt_index, size_t outcome_index) const;
+        [[nodiscard]] oper_name_t measurement_outcome(size_t mmt_index, size_t outcome_index) const;
 
         /**
          * Test if a string of two operators AB is identically zero, because the operators are mutually exclusive.
@@ -123,7 +122,7 @@ namespace NPATK {
          * @param rhs Operator B
          * @return True if AB evaluates to zero
          */
-        [[nodiscard]] bool mutually_exclusive(const Operator& lhs, const Operator& rhs) const noexcept;
+        [[nodiscard]] bool mutually_exclusive(oper_name_t lhs, oper_name_t rhs) const noexcept;
 
         /**
          * @return The total number of operators associated with this party.
@@ -135,12 +134,10 @@ namespace NPATK {
 
         static std::vector<Party> MakeList(party_name_t num_parties,
                                            mmt_name_t mmts_per_party,
-                                           oper_name_t outcomes_per_mmt,
-                                           bool projective = true);
+                                           oper_name_t outcomes_per_mmt);
 
         static std::vector<Party> MakeList(const std::vector<size_t>& mmts_per_party,
-                                           const std::vector<size_t>& outcomes_per_mmt,
-                                           bool projective = true);
+                                           const std::vector<size_t>& outcomes_per_mmt);
 
         friend std::ostream& operator<< (std::ostream& os, const Party& the_party);
 

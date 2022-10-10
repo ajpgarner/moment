@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
-#include "operator.h"
+#include "integer_types.h"
 
 #include <cassert>
 
@@ -21,10 +21,10 @@ namespace NPATK {
 
     class Context {
     public:
-        using oper_iter_t = std::vector<Operator>::const_iterator;
+        using oper_iter_t = std::vector<oper_name_t>::const_iterator;
 
     protected:
-        std::vector<Operator> operators;
+        std::vector<oper_name_t> operators;
 
     public:
         constexpr Context() = default;
@@ -50,7 +50,7 @@ namespace NPATK {
         [[nodiscard]] constexpr bool empty() const noexcept { return this->operators.empty(); }
 
         /** Get operator in context by index */
-        [[nodiscard]] constexpr const Operator& operator[](size_t index) const noexcept {
+        [[nodiscard]] constexpr oper_name_t operator[](size_t index) const noexcept {
             assert(index < this->operators.size());
             return this->operators[index];
         }
@@ -60,7 +60,7 @@ namespace NPATK {
          * @param op_sequence The string of operators
          * @return True if sequence is zero (cf. identity).
          */
-         virtual bool additional_simplification(std::vector<Operator>& op_sequence) const;
+         virtual bool additional_simplification(std::vector<oper_name_t>& op_sequence) const;
 
          /**
           * Calculates a non-colliding hash (i.e. unique number) for a particular operator sequence.
@@ -71,16 +71,6 @@ namespace NPATK {
           * @return An integer hash.
           */
          [[nodiscard]] size_t hash(const OperatorSequence& seq) const noexcept;
-
-         /**
-          * Calculates a non-colliding hash (i.e. unique number) for a particular operator sequence.
-          * The hash is in general dependent on the total number of distinct operators in the context.
-          * The zero operator is guaranteed a hash of 0.
-          * The identity operator is guaranteed a hash of 1.
-          * @param seq The operator sequence to calculate the hash of.
-          * @return An integer hash.
-          */
-         [[nodiscard]] size_t hash(const std::vector<Operator>& seq) const noexcept;
 
          /**
           * Calculates a non-colliding hash (i.e. unique number) for a particular operator sequence.

@@ -21,7 +21,7 @@ namespace NPATK::Tests {
 
     TEST(OperatorSequence, Sequence_OneOper) {
         Context empty;
-        Operator memA{3, 17};
+        oper_name_t memA{3};
         OperatorSequence seq{{memA}, empty};
         ASSERT_FALSE(seq.empty());
         ASSERT_EQ(seq.size(), 1);
@@ -36,8 +36,8 @@ namespace NPATK::Tests {
 
     TEST(OperatorSequence, Sequence_TwoSameParty) {
         Context empty;
-        Operator memA{5, 1};
-        Operator memB{10, 1};
+        oper_name_t  memA{5};
+        oper_name_t  memB{10};
         OperatorSequence seqAB{{memA, memB}, empty};
         ASSERT_FALSE(seqAB.empty());
         ASSERT_EQ(seqAB.size(), 2);
@@ -68,40 +68,10 @@ namespace NPATK::Tests {
         ASSERT_EQ(iterBA, seqBA.end());
     }
 
-
-    TEST(OperatorSequence, Sequence_TwoDiffParty) {
-        Context empty;
-        Operator memA{5, 1};
-        Operator memB{10, 2};
-        OperatorSequence seqAB{{memA, memB}, empty};
-        ASSERT_FALSE(seqAB.empty());
-        ASSERT_EQ(seqAB.size(), 2);
-        auto iterAB = seqAB.begin();
-        ASSERT_NE(iterAB, seqAB.end());
-        EXPECT_EQ(*iterAB, memA);
-        ++iterAB;
-        ASSERT_NE(iterAB, seqAB.end());
-        EXPECT_EQ(*iterAB, memB);
-        ++iterAB;
-        ASSERT_EQ(iterAB, seqAB.end());
-
-        OperatorSequence seqBA{{memB, memA}, empty};
-        ASSERT_FALSE(seqBA.empty());
-        ASSERT_EQ(seqBA.size(), 2);
-        auto iterBA = seqBA.begin();
-        ASSERT_NE(iterBA, seqBA.end());
-        EXPECT_EQ(*iterBA, memA);
-        ++iterBA;
-        ASSERT_NE(iterBA, seqBA.end());
-        EXPECT_EQ(*iterBA, memB);
-        ++iterBA;
-        ASSERT_EQ(iterBA, seqBA.end());
-    }
-
     TEST(OperatorSequence, Sequence_CompareEqual) {
         Context empty;
-        Operator memA{5, 1};
-        Operator memB{10, 1};
+        oper_name_t  memA{5};
+        oper_name_t  memB{10};
         OperatorSequence seqAB1{{memA, memB}, empty};
         OperatorSequence seqAB2{{memA, memB}, empty};
         OperatorSequence seqBA{{memB, memA}, empty};
@@ -119,68 +89,10 @@ namespace NPATK::Tests {
         EXPECT_TRUE(seqBA == seqBA);
     }
 
-
-    TEST(OperatorSequence, Sequence_IdemAAA) {
-        Context empty;
-        Operator memA{5, 1, Operator::Flags::Idempotent};
-        OperatorSequence seqA{{memA}, empty};
-        OperatorSequence seqAA{{memA, memA}, empty};
-        OperatorSequence seqAAA{{memA, memA, memA}, empty};
-
-        ASSERT_EQ(seqA.size(), 1);
-        ASSERT_EQ(seqAA.size(), 1);
-        ASSERT_EQ(seqAAA.size(), 1);
-
-        EXPECT_EQ(seqA, seqAA);
-        EXPECT_EQ(seqAA, seqAAA);
-
-        EXPECT_EQ(seqA[0], memA);
-        EXPECT_EQ(seqAA[0], memA);
-        EXPECT_EQ(seqAAA[0], memA);
-    }
-
-    TEST(OperatorSequence, Sequence_IdemAAABB) {
-        Context empty;
-        Operator memA{5, 1, Operator::Flags::Idempotent};
-        Operator memB{10, 1, Operator::Flags::Idempotent};
-
-        OperatorSequence seqAB{{memA, memB}, empty};
-        OperatorSequence seqAAABB{{memA, memA, memA, memB, memB}, empty};
-
-        ASSERT_EQ(seqAB.size(), 2);
-        EXPECT_EQ(seqAAABB.size(), 2);
-
-        EXPECT_EQ(seqAB, seqAAABB);
-    }
-
-    TEST(OperatorSequence, Sequence_IdemAAABB2) {
-        Context empty;
-        Operator memA{5, 1, Operator::Flags::Idempotent};
-        Operator memB{5, 2, Operator::Flags::Idempotent};
-
-        OperatorSequence seqAB{{memA, memB}, empty};
-        OperatorSequence seqAAABB{{memA, memA, memA, memB, memB}, empty};
-
-        ASSERT_EQ(seqAB.size(), 2);
-        EXPECT_EQ(seqAAABB.size(), 2);
-
-        EXPECT_EQ(seqAB, seqAAABB);
-    }
-
-    TEST(OperatorSequence, Sequence_ConjugateCommute) {
-        Context empty;
-        Operator memA{1, 1, Operator::Flags::Idempotent};
-        Operator memB{2, 2, Operator::Flags::Idempotent};
-
-        OperatorSequence seqAB{{memA, memB}, empty};
-        auto conjugate = seqAB.conjugate();
-        EXPECT_EQ(conjugate, seqAB);
-    }
-
     TEST(OperatorSequence, Sequence_ConjugateNonncommute) {
         Context empty;
-        Operator memA{1, 1, Operator::Flags::Idempotent};
-        Operator memB{2, 1, Operator::Flags::Idempotent};
+        oper_name_t  memA{1};
+        oper_name_t  memB{2};
 
         OperatorSequence seqAB{{memA, memB}, empty};
         OperatorSequence seqBA{{memB, memA}, empty};
@@ -193,80 +105,30 @@ namespace NPATK::Tests {
 
     TEST(OperatorSequence, Sequence_Append_AB_listBBA) {
         Context empty;
-        Operator memA{1, 1, Operator::Flags::Idempotent};
-        Operator memB{2, 1, Operator::Flags::Idempotent};
+        oper_name_t  memA{1};
+        oper_name_t  memB{2};
 
-        std::list<Operator> appList{memB, memB, memA};
+        std::list<oper_name_t > appList{memB, memB, memA};
 
         OperatorSequence seq{{memA, memB}, empty};
 
         seq.append(appList.cbegin(), appList.cend());
-        OperatorSequence seqABA{{memA, memB, memA}, empty};
-        EXPECT_EQ(seq, seqABA);
-    }
-
-    TEST(OperatorSequence, Sequence_Append_AB_vecBBA) {
-        Context empty;
-        Operator memA{1, 1, Operator::Flags::Idempotent};
-        Operator memB{2, 1, Operator::Flags::Idempotent};
-
-        std::vector<Operator> appVec{memB, memB, memA};
-
-        OperatorSequence seq{{memA, memB}, empty};
-
-        seq.append(appVec.cbegin(), appVec.cend());
-        OperatorSequence seqABA{{memA, memB, memA}, empty};
+        OperatorSequence seqABA{{memA, memB, memB, memB, memA}, empty};
         EXPECT_EQ(seq, seqABA);
     }
 
     TEST(OperatorSequence, Sequence_Append_ABC_initBBA) {
         Context empty;
-        Operator memA{1, 1, Operator::Flags::Idempotent};
-        Operator memB{2, 1, Operator::Flags::Idempotent};
-        Operator memC{3, 2, Operator::Flags::Idempotent};
+        oper_name_t  memA{1};
+        oper_name_t  memB{2};
+        oper_name_t  memC{3};
 
         OperatorSequence seq{{memA, memB, memC}, empty};
         seq.append({memB, memB, memA});
-        OperatorSequence seqABAC{{memA, memB, memA, memC}, empty};
+        OperatorSequence seqABAC{{memA, memB, memC, memB, memB, memA}, empty};
         EXPECT_EQ(seq, seqABAC);
     }
 
-    TEST(OperatorSequence, Sequence_Concat_AB_AB) {
-        Context empty;
-        Operator memA{1, 1, Operator::Flags::Idempotent};
-        Operator memB{2, 1, Operator::Flags::Idempotent};
-
-        OperatorSequence seqAB{{memA, memB}, empty};
-        OperatorSequence seqABAB{{memA, memB, memA, memB}, empty};
-
-        auto concat = seqAB * seqAB;
-        EXPECT_EQ(concat, seqABAB);
-    }
-
-
-    TEST(OperatorSequence, Sequence_Concat_ABconj_AB) {
-        Context empty;
-        Operator memA{1, 1, Operator::Flags::Idempotent};
-        Operator memB{2, 1, Operator::Flags::Idempotent};
-
-        OperatorSequence seqAB{{memA, memB}, empty};
-        OperatorSequence seqBAB{{memB, memA, memB}, empty};
-
-        auto concat = seqAB.conjugate() * seqAB;
-        EXPECT_EQ(concat, seqBAB);
-    }
-
-    TEST(OperatorSequence, Sequence_Concat_AB_ABconj) {
-        Context empty;
-        Operator memA{1, 1, Operator::Flags::Idempotent};
-        Operator memB{2, 1, Operator::Flags::Idempotent};
-
-        OperatorSequence seqAB{{memA, memB}, empty};
-        OperatorSequence seqABA{{memA, memB, memA}, empty};
-
-        auto concat = seqAB * seqAB.conjugate();
-        EXPECT_EQ(concat, seqABA);
-    }
 
     TEST(OperatorSequence, WithContext_MutexZero) {
         LocalityContext collection{Party::MakeList(1, 1, 4)};

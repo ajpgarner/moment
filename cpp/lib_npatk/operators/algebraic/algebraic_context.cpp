@@ -98,7 +98,7 @@ namespace NPATK {
         return true;
     }
 
-    bool AlgebraicContext::additional_simplification(std::vector<Operator>& op_sequence) const {
+    bool AlgebraicContext::additional_simplification(std::vector<oper_name_t>& op_sequence) const {
         auto the_hash = this->hash(op_sequence);
         auto ruleIter = this->hashToReplacementSymbol.find(the_hash);
 

@@ -7,8 +7,6 @@
 
 #include "mex_function.h"
 
-#include "operators/operator.h"
-
 namespace NPATK {
     class Context;
 }

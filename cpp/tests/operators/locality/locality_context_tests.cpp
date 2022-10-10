@@ -44,8 +44,7 @@ namespace NPATK::Tests {
         auto alice_iter = alice.begin();
         ASSERT_NE(alice_iter, alice.end());
         EXPECT_EQ(*all_iter, *alice_iter);
-        EXPECT_EQ(all_iter->id, 0);
-        EXPECT_EQ(all_iter->party, 0);
+        EXPECT_EQ(*all_iter, 0);
 
         // Alice, 1
         ++all_iter; ++alice_iter;
@@ -53,8 +52,7 @@ namespace NPATK::Tests {
         ASSERT_NE(alice_iter, alice.end());
 
         EXPECT_EQ(*all_iter, *alice_iter);
-        EXPECT_EQ(all_iter->id, 1);
-        EXPECT_EQ(all_iter->party, 0);
+        EXPECT_EQ(*all_iter, 1);
 
         // Bob, 0
         ++all_iter; ++alice_iter;
@@ -63,8 +61,7 @@ namespace NPATK::Tests {
         auto bob_iter = bob.begin();
         ASSERT_NE(bob_iter, bob.end());
         EXPECT_EQ(*all_iter, *bob_iter);
-        EXPECT_EQ(all_iter->id, 2);
-        EXPECT_EQ(all_iter->party, 1);
+        EXPECT_EQ(*all_iter, 2);
 
         // Bob, 1
         ++all_iter; ++bob_iter;
@@ -72,8 +69,7 @@ namespace NPATK::Tests {
         ASSERT_NE(bob_iter, bob.end());
 
         EXPECT_EQ(*all_iter, *bob_iter);
-        EXPECT_EQ(all_iter->id, 3);
-        EXPECT_EQ(all_iter->party, 1);
+        EXPECT_EQ(*all_iter, 3);
 
         // End
         ++all_iter; ++bob_iter;
@@ -102,8 +98,7 @@ namespace NPATK::Tests {
         auto alice_iter = alice.begin();
         ASSERT_NE(alice_iter, alice.end());
         EXPECT_EQ(*all_iter, *alice_iter);
-        EXPECT_EQ(all_iter->id, 0);
-        EXPECT_EQ(all_iter->party, 0);
+        EXPECT_EQ(*all_iter, 0);
 
         // Alice, 1
         ++all_iter; ++alice_iter;
@@ -111,8 +106,7 @@ namespace NPATK::Tests {
         ASSERT_NE(alice_iter, alice.end());
 
         EXPECT_EQ(*all_iter, *alice_iter);
-        EXPECT_EQ(all_iter->id, 1);
-        EXPECT_EQ(all_iter->party, 0);
+        EXPECT_EQ(*all_iter, 1);
 
         // Alice, 2
         ++all_iter; ++alice_iter;
@@ -120,8 +114,7 @@ namespace NPATK::Tests {
         ASSERT_NE(alice_iter, alice.end());
 
         EXPECT_EQ(*all_iter, *alice_iter);
-        EXPECT_EQ(all_iter->id, 2);
-        EXPECT_EQ(all_iter->party, 0);
+        EXPECT_EQ(*all_iter, 2);
 
         // Bob, 0
         ++all_iter; ++alice_iter;
@@ -130,8 +123,7 @@ namespace NPATK::Tests {
         auto bob_iter = bob.begin();
         ASSERT_NE(bob_iter, bob.end());
         EXPECT_EQ(*all_iter, *bob_iter);
-        EXPECT_EQ(all_iter->id, 3);
-        EXPECT_EQ(all_iter->party, 1);
+        EXPECT_EQ(*all_iter, 3);
 
         // Bob, 1
         ++all_iter; ++bob_iter;
@@ -139,8 +131,7 @@ namespace NPATK::Tests {
         ASSERT_NE(bob_iter, bob.end());
 
         EXPECT_EQ(*all_iter, *bob_iter);
-        EXPECT_EQ(all_iter->id, 4);
-        EXPECT_EQ(all_iter->party, 1);
+        EXPECT_EQ(*all_iter, 4);
 
         // End
         ++all_iter; ++bob_iter;

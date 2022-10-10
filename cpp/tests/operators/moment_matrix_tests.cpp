@@ -290,7 +290,7 @@ namespace NPATK::Tests {
 
     TEST(MomentMatrix, OpSeq_223) {
          // Two party, two mmts, three outcomes.
-        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 3, true))};
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 3))};
         auto& context = system.localityContext;
 
         ASSERT_EQ(context.Parties.size(), 2);

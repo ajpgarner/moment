@@ -16,12 +16,12 @@ namespace NPATK {
         this->operators.reserve(operator_count);
 
         for (size_t index = 0; index < operator_count; ++index) {
-            this->operators.emplace_back(static_cast<oper_name_t>(index), 0);
+            this->operators.emplace_back(static_cast<oper_name_t>(index));
         }
 
     }
 
-    bool Context::additional_simplification(std::vector<Operator>& op_sequence) const {
+    bool Context::additional_simplification(std::vector<oper_name_t>& op_sequence) const {
         // Do nothing
         return false;
     }
@@ -32,20 +32,6 @@ namespace NPATK {
         }
 
         return hash(sequence.constituents);
-    }
-
-
-    size_t Context::hash(const std::vector<Operator> &sequence) const noexcept {
-        size_t hash = 1;
-        size_t multiplier = 1;
-        const size_t multiplier_stride = 1 + this->operators.size();
-
-        for (size_t n = 0; n < sequence.size(); ++n) {
-            const auto& oper = sequence[sequence.size()-n-1];
-            hash += ((static_cast<size_t>(oper.id) + 1) * multiplier);
-            multiplier *= multiplier_stride;
-        }
-        return hash;
     }
 
     size_t Context::hash(const std::vector<oper_name_t>& rawOperators) const noexcept {
@@ -83,7 +69,7 @@ namespace NPATK {
                 done_once = true;
             }
 
-            ss << "X" << oper.id;
+            ss << "X" << oper;
         }
         return ss.str();
     }

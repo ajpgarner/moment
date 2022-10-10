@@ -52,7 +52,7 @@ namespace NPATK {
 
         bool generate_aliases(size_t max_length);
 
-        bool additional_simplification(std::vector<Operator>& op_sequence) const override;
+        bool additional_simplification(std::vector<oper_name_t>& op_sequence) const override;
 
     private:
         size_t one_substitution(std::vector<SymbolPair>& output, const RawSequence& input_sequence) const;

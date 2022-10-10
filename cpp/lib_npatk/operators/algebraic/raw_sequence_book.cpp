@@ -52,7 +52,7 @@ namespace NPATK {
             MultiOperatorIterator moi{this->context, length};
             MultiOperatorIterator moi_end{MultiOperatorIterator::end_of(this->context, length)};
             while (moi != moi_end) {
-                auto rawStr = moi.id_str();
+                auto rawStr = moi.raw();
                 size_t hash = this->context.hash(rawStr);
                 this->sequences.emplace_back(std::move(rawStr), hash, symbol_id);
                 this->hash_table.emplace(std::make_pair(hash, symbol_id));

@@ -82,7 +82,7 @@ namespace NPATK {
     OperatorSequence CollinsGisin::index_to_sequence(const std::span<const size_t> index) const {
         this->validate_index(index);
 
-        std::vector<Operator> ops;
+        std::vector<oper_name_t> ops;
         for (size_t p = 0, pMax = context.Parties.size(); p < pMax; ++p) {
             if (0 == index[p]) {
                 continue;

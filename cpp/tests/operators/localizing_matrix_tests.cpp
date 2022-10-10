@@ -18,7 +18,7 @@ namespace NPATK::Tests {
         MatrixSystem system{std::make_unique<Context>(1)}; //One symbol
         const auto& context = system.Context();
 
-        auto& theOp = context[0];
+        auto theOp = 0; // context[0];
 
         ASSERT_EQ(context.size(), 1);
 
@@ -59,8 +59,8 @@ namespace NPATK::Tests {
         const auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 2);
-        const auto& op0 = context[0];
-        const auto& op1 = context[1];
+        const auto op0 = 0; //context[0];
+        const auto op1 = 1; //context[1];
 
         OperatorSequence genWord0{{op0}, context};
         OperatorSequence genWord1{{op1}, context};

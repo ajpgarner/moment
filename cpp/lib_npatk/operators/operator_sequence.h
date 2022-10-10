@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "operator.h"
+#include "integer_types.h"
 
 #include <cassert>
 
@@ -24,7 +24,7 @@ namespace NPATK {
     private:
         const Context& context;
 
-        std::vector<Operator> constituents{};
+        std::vector<oper_name_t> constituents{};
 
         bool is_zero = false;
 
@@ -44,7 +44,7 @@ namespace NPATK {
          * @param operators A list of operators to include in the sequence
          * @param context (Non-owning) pointer to the Context (if any) for further simplification.
          */
-        explicit OperatorSequence(std::vector<Operator>&& operators, const Context& context)
+        explicit OperatorSequence(std::vector<oper_name_t>&& operators, const Context& context)
                 : constituents(std::move(operators)), context{context} {
             this->to_canonical_form();
         }
@@ -74,7 +74,7 @@ namespace NPATK {
             return this->is_zero;
         }
 
-        [[nodiscard]] constexpr const Operator& operator[](size_t i) const noexcept {
+        [[nodiscard]] constexpr oper_name_t operator[](size_t i) const noexcept {
             assert(i < this->constituents.size());
             return this->constituents[i];
         }
@@ -119,7 +119,7 @@ namespace NPATK {
          * Adds a list of operators to the end of the sequence, then simplifies to canonical form.
          * @param List of operators to append.
          */
-        inline OperatorSequence& append(std::initializer_list<Operator> opList) {
+        inline OperatorSequence& append(std::initializer_list<oper_name_t> opList) {
             return this->append(opList.begin(), opList.end());
         }
 

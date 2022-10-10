@@ -39,8 +39,9 @@ namespace NPATK {
 
     private:
         std::vector<Party> parties;
-        std::vector<party_name_t> global_to_party;
 
+        std::vector<party_name_t> global_mmt_id_to_party;
+        std::vector<party_name_t> global_op_id_to_party;
         std::vector<PMOIndex> global_to_local_indices;
 
         size_t total_measurement_count = 0;
@@ -58,7 +59,7 @@ namespace NPATK {
          * @param op_sequence The string of operators
          * @return True if sequence is zero (cf. identity).
          */
-        bool additional_simplification(std::vector<Operator>& op_sequence) const override;
+        bool additional_simplification(std::vector<oper_name_t>& op_sequence) const override;
 
         /** Converts global measurement index to Party, Measurement pair */
         [[nodiscard]] PMIndex global_index_to_PM(size_t global_index) const noexcept;

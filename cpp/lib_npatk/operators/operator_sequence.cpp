@@ -18,16 +18,6 @@ namespace NPATK {
     }
 
     void OperatorSequence::to_canonical_form() noexcept {
-        // Group first by party (preserving ordering within each party)
-        std::stable_sort(this->constituents.begin(), this->constituents.end(),
-                         Operator::PartyComparator{});
-
-        // Remove excess idempotent elements.
-        auto trim_idem = std::unique(this->constituents.begin(), this->constituents.end(),
-                                     Operator::IsRedundant{});
-        this->constituents.erase(trim_idem, this->constituents.end());
-
-
         // Contextual simplifications
         bool simplify_to_zero = this->context.additional_simplification(this->constituents);
         if (simplify_to_zero) {
@@ -35,12 +25,6 @@ namespace NPATK {
             this->is_zero = true;
             return;
         }
-
-        // Remove excess identity elements
-        auto trim_id = std::remove_if(this->constituents.begin(), this->constituents.end(),
-                                      [](Operator &op) { return op.identity(); });
-        this->constituents.erase(trim_id, this->constituents.end());
-
     }
 
     OperatorSequence OperatorSequence::conjugate() const {

@@ -26,18 +26,18 @@ namespace NPATK::Tests {
 
         auto iter = party.begin();
         ASSERT_NE(iter, party.end());
-        EXPECT_EQ(iter->id, 0);
-        EXPECT_EQ(&(*iter), &party[0]);
+        EXPECT_EQ(*iter, 0);
+        EXPECT_EQ((*iter), party[0]);
         ++iter;
 
         ASSERT_NE(iter, party.end());
-        EXPECT_EQ(iter->id, 1);
-        EXPECT_EQ(&(*iter), &party[1]);
+        EXPECT_EQ(*iter, 1);
+        EXPECT_EQ((*iter), party[1]);
         ++iter;
 
         ASSERT_NE(iter, party.end());
-        EXPECT_EQ(iter->id, 2);
-        EXPECT_EQ(&(*iter), &party[2]);
+        EXPECT_EQ(*iter, 2);
+        EXPECT_EQ((*iter), party[2]);
         ++iter;
 
         ASSERT_EQ(iter, party.end());
@@ -53,13 +53,10 @@ namespace NPATK::Tests {
         EXPECT_EQ(alice.name, "A");
         ASSERT_EQ(alice.size(), 3);
 
-        // Test IDs and flags
-        EXPECT_EQ(alice[0].id, 0);
-        EXPECT_TRUE(alice[0].idempotent());
-        EXPECT_EQ(alice[1].id, 1);
-        EXPECT_TRUE(alice[1].idempotent());
-        EXPECT_EQ(alice[2].id, 2);
-        EXPECT_TRUE(alice[2].idempotent());
+        // Test IDs
+        EXPECT_EQ(alice[0], 0);
+        EXPECT_EQ(alice[1], 1);
+        EXPECT_EQ(alice[2], 2);
 
         // Test exclusivity:
         EXPECT_TRUE(alice.mutually_exclusive(alice[0], alice[1]));
@@ -84,15 +81,11 @@ namespace NPATK::Tests {
         ASSERT_EQ(alice.size(), 4);
         EXPECT_EQ(alice.Measurements.size(), 2);
 
-        // Test IDs and flags
-        EXPECT_EQ(alice[0].id, 0);
-        EXPECT_TRUE(alice[0].idempotent());
-        EXPECT_EQ(alice[1].id, 1);
-        EXPECT_TRUE(alice[1].idempotent());
-        EXPECT_EQ(alice[2].id, 2);
-        EXPECT_TRUE(alice[2].idempotent());
-        EXPECT_EQ(alice[3].id, 3);
-        EXPECT_TRUE(alice[3].idempotent());
+        // Test IDs
+        EXPECT_EQ(alice[0], 0);
+        EXPECT_EQ(alice[1], 1);
+        EXPECT_EQ(alice[2], 2);
+        EXPECT_EQ(alice[3], 3);
 
         // Test exclusivity:
         EXPECT_TRUE(alice.mutually_exclusive(alice[0], alice[1]));
@@ -129,20 +122,17 @@ namespace NPATK::Tests {
 
         ASSERT_EQ(alice.size(), 3);
         for (size_t i = 0; i < 3; ++i) {
-            EXPECT_EQ(alice[i].id, i);
-            EXPECT_TRUE(alice[i].idempotent()) << "i = " << i;
+            EXPECT_EQ(alice[i], i);
         }
 
         ASSERT_EQ(bob.size(), 4);
         for (size_t i = 0; i < 4; ++i) {
-            EXPECT_EQ(bob[i].id, i + 3);
-            EXPECT_TRUE(bob[i].idempotent()) << "i = " << i;
+            EXPECT_EQ(bob[i], i + 3);
         }
         
         ASSERT_EQ(charlie.size(), 5);
         for (size_t i = 0; i < 5; ++i) {
-            EXPECT_EQ(charlie[i].id, i + 3 + 4);
-            EXPECT_TRUE(charlie[i].idempotent()) << "i = " << i;
+            EXPECT_EQ(charlie[i], i + 3 + 4);
         }
     }
 
@@ -155,18 +145,18 @@ namespace NPATK::Tests {
         const auto& bob = context.Parties[1];
 
         ASSERT_EQ(alice.size(), 3);
-        EXPECT_EQ(alice[0].id, 0);
-        EXPECT_EQ(alice[1].id, 1);
-        EXPECT_EQ(alice[2].id, 2);
+        EXPECT_EQ(alice[0], 0);
+        EXPECT_EQ(alice[1], 1);
+        EXPECT_EQ(alice[2], 2);
 
         ASSERT_EQ(bob.size(), 3);
-        EXPECT_EQ(bob[0].id, 3);
-        EXPECT_EQ(bob[1].id, 4);
-        EXPECT_EQ(bob[2].id, 5);
+        EXPECT_EQ(bob[0], 3);
+        EXPECT_EQ(bob[1], 4);
+        EXPECT_EQ(bob[2], 5);
     }
 
     TEST(Party, MakeList_PartyMmtOper) {
-        auto party_list = Party::MakeList(2, 2, 3, true);
+        auto party_list = Party::MakeList(2, 2, 3);
         ASSERT_EQ(party_list.size(), 2);
         LocalityContext context{std::move(party_list)};
         ASSERT_EQ(context.Parties.size(), 2);
@@ -211,13 +201,13 @@ namespace NPATK::Tests {
 
         ASSERT_EQ(alice.size(), 3);
         ASSERT_EQ(alice.Measurements.size(), 2);
-        EXPECT_EQ(alice[0].id, 0);
-        EXPECT_EQ(alice[1].id, 1);
-        EXPECT_EQ(alice[2].id, 2);
+        EXPECT_EQ(alice[0], 0);
+        EXPECT_EQ(alice[1], 1);
+        EXPECT_EQ(alice[2], 2);
 
         ASSERT_EQ(bob.size(), 1);
         ASSERT_EQ(bob.Measurements.size(), 1);
-        EXPECT_EQ(bob[0].id, 3);
+        EXPECT_EQ(bob[0], 3);
     }
 
 }

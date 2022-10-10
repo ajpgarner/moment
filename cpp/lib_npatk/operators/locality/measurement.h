@@ -56,9 +56,6 @@ namespace NPATK {
         /** Number of measurement outcomes */
         oper_name_t num_outcomes = 0;
 
-        /** True if measurement outcomes are mutually exclusive */
-        bool projective = true;
-
     private:
         /** Info about measurement, with respect to wider context of parties and other measurements */
         PMIndex index;
@@ -73,10 +70,8 @@ namespace NPATK {
 
         constexpr Measurement(Measurement &&) = default;
 
-        constexpr Measurement(std::string name, oper_name_t outcomes,
-                              bool projective = true) noexcept
-                : name{std::move(name)}, num_outcomes{outcomes},
-                  projective{projective} {
+        constexpr Measurement(std::string name, oper_name_t outcomes) noexcept
+                : name{std::move(name)}, num_outcomes{outcomes}  {
             assert(outcomes >= 1);
         }
 

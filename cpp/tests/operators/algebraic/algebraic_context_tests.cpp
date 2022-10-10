@@ -26,25 +26,25 @@ namespace NPATK::Tests {
 
         ac.generate_aliases(3);
 
-        OperatorSequence seq_AB{std::vector{Operator{1}, Operator{2}}, ac};
+        OperatorSequence seq_AB{std::vector<oper_name_t>{1, 2}, ac};
         EXPECT_FALSE(seq_AB.empty());
         EXPECT_FALSE(seq_AB.zero());
         ASSERT_EQ(seq_AB.size(), 1);
-        EXPECT_EQ(seq_AB[0].id, 1);
+        EXPECT_EQ(seq_AB[0], 1);
 
-        OperatorSequence seq_BA{std::vector{Operator{2}, Operator{1}}, ac};
+        OperatorSequence seq_BA{std::vector<oper_name_t>{2, 1}, ac};
         EXPECT_FALSE(seq_BA.empty());
         EXPECT_FALSE(seq_BA.zero());
         ASSERT_EQ(seq_BA.size(), 2);
-        EXPECT_EQ(seq_BA[0].id, 2);
-        EXPECT_EQ(seq_BA[1].id, 1);
+        EXPECT_EQ(seq_BA[0], 2);
+        EXPECT_EQ(seq_BA[1], 1);
 
-        OperatorSequence seq_AAB{std::vector{Operator{1}, Operator{1}, Operator{2}}, ac};
+        OperatorSequence seq_AAB{std::vector<oper_name_t>{1, 1, 2}, ac};
         EXPECT_FALSE(seq_AAB.empty());
         EXPECT_FALSE(seq_AAB.zero());
         ASSERT_EQ(seq_AAB.size(), 2);
-        EXPECT_EQ(seq_AAB[0].id, 1);
-        EXPECT_EQ(seq_AAB[1].id, 1);
+        EXPECT_EQ(seq_AAB[0], 1);
+        EXPECT_EQ(seq_AAB[1], 1);
     }
 
     TEST(AlgebraicContext, ContextTwoSubstitution_ABtoA_BAtoA) {
@@ -55,30 +55,30 @@ namespace NPATK::Tests {
 
         ac.generate_aliases(4);
 
-        OperatorSequence seq_AB{std::vector{Operator{1}, Operator{2}}, ac};
+        OperatorSequence seq_AB{std::vector<oper_name_t>{1, 2}, ac};
         EXPECT_FALSE(seq_AB.empty());
         EXPECT_FALSE(seq_AB.zero());
         ASSERT_EQ(seq_AB.size(), 1);
-        EXPECT_EQ(seq_AB[0].id, 1);
+        EXPECT_EQ(seq_AB[0], 1);
 
-        OperatorSequence seq_BA{std::vector{Operator{2}, Operator{1}}, ac};
+        OperatorSequence seq_BA{std::vector<oper_name_t>{2, 1}, ac};
         EXPECT_FALSE(seq_BA.empty());
         EXPECT_FALSE(seq_BA.zero());
         ASSERT_EQ(seq_BA.size(), 1);
-        EXPECT_EQ(seq_BA[0].id, 1);
+        EXPECT_EQ(seq_BA[0], 1);
 
-        OperatorSequence seq_AAB{std::vector{Operator{1}, Operator{1}, Operator{2}}, ac};
+        OperatorSequence seq_AAB{std::vector<oper_name_t>{1, 1, 2}, ac};
         EXPECT_FALSE(seq_AAB.empty());
         EXPECT_FALSE(seq_AAB.zero());
         ASSERT_EQ(seq_AAB.size(), 2);
-        EXPECT_EQ(seq_AAB[0].id, 1);
-        EXPECT_EQ(seq_AAB[1].id, 1);
+        EXPECT_EQ(seq_AAB[0], 1);
+        EXPECT_EQ(seq_AAB[1], 1);
 
-        OperatorSequence seq_BAB{std::vector{Operator{2}, Operator{1}, Operator{2}}, ac};
+        OperatorSequence seq_BAB{std::vector<oper_name_t>{2, 1, 2}, ac};
         EXPECT_FALSE(seq_BAB.empty());
         EXPECT_FALSE(seq_BAB.zero());
         ASSERT_EQ(seq_BAB.size(), 1);
-        EXPECT_EQ(seq_BAB[0].id, 1);
+        EXPECT_EQ(seq_BAB[0], 1);
     }
 
     TEST(AlgebraicContext, ContextOneSubstitution_ABtoBA) {
@@ -88,43 +88,43 @@ namespace NPATK::Tests {
 
         ac.generate_aliases(3);
 
-        OperatorSequence seq_AB{std::vector{Operator{1}, Operator{2}}, ac};
+        OperatorSequence seq_AB{std::vector<oper_name_t>{1, 2}, ac};
         EXPECT_FALSE(seq_AB.empty());
         EXPECT_FALSE(seq_AB.zero());
         ASSERT_EQ(seq_AB.size(), 2);
-        EXPECT_EQ(seq_AB[0].id, 1);
-        EXPECT_EQ(seq_AB[1].id, 2);
+        EXPECT_EQ(seq_AB[0], 1);
+        EXPECT_EQ(seq_AB[1], 2);
 
-        OperatorSequence seq_BA{std::vector{Operator{2}, Operator{1}}, ac};
+        OperatorSequence seq_BA{std::vector<oper_name_t>{2, 1}, ac};
         EXPECT_FALSE(seq_BA.empty());
         EXPECT_FALSE(seq_BA.zero());
         ASSERT_EQ(seq_BA.size(), 2);
-        EXPECT_EQ(seq_BA[0].id, 1);
-        EXPECT_EQ(seq_BA[1].id, 2);
+        EXPECT_EQ(seq_BA[0], 1);
+        EXPECT_EQ(seq_BA[1], 2);
 
-        OperatorSequence seq_AAB{std::vector{Operator{1}, Operator{1}, Operator{2}}, ac};
+        OperatorSequence seq_AAB{std::vector<oper_name_t>{1, 1, 2}, ac};
         EXPECT_FALSE(seq_AAB.empty());
         EXPECT_FALSE(seq_AAB.zero());
         ASSERT_EQ(seq_AAB.size(), 3);
-        EXPECT_EQ(seq_AAB[0].id, 1);
-        EXPECT_EQ(seq_AAB[1].id, 1);
-        EXPECT_EQ(seq_AAB[2].id, 2);
+        EXPECT_EQ(seq_AAB[0], 1);
+        EXPECT_EQ(seq_AAB[1], 1);
+        EXPECT_EQ(seq_AAB[2], 2);
 
-        OperatorSequence seq_ABA{std::vector{Operator{1}, Operator{2}, Operator{1}}, ac};
+        OperatorSequence seq_ABA{std::vector<oper_name_t>{1, 2, 1}, ac};
         EXPECT_FALSE(seq_ABA.empty());
         EXPECT_FALSE(seq_ABA.zero());
         ASSERT_EQ(seq_ABA.size(), 3);
-        EXPECT_EQ(seq_ABA[0].id, 1);
-        EXPECT_EQ(seq_ABA[1].id, 1);
-        EXPECT_EQ(seq_ABA[2].id, 2);
+        EXPECT_EQ(seq_ABA[0], 1);
+        EXPECT_EQ(seq_ABA[1], 1);
+        EXPECT_EQ(seq_ABA[2], 2);
 
-        OperatorSequence seq_BAA{std::vector{Operator{2}, Operator{1}, Operator{1}}, ac};
+        OperatorSequence seq_BAA{std::vector<oper_name_t>{2, 1, 1}, ac};
         EXPECT_FALSE(seq_BAA.empty());
         EXPECT_FALSE(seq_BAA.zero());
         ASSERT_EQ(seq_BAA.size(), 3);
-        EXPECT_EQ(seq_BAA[0].id, 1);
-        EXPECT_EQ(seq_BAA[1].id, 1);
-        EXPECT_EQ(seq_BAA[2].id, 2);
+        EXPECT_EQ(seq_BAA[0], 1);
+        EXPECT_EQ(seq_BAA[1], 1);
+        EXPECT_EQ(seq_BAA[2], 2);
     }
 
     TEST(AlgebraicContext, ContextMakeGenerator_ABtoBA) {
@@ -141,11 +141,11 @@ namespace NPATK::Tests {
 
         ++osgIter1;
         ASSERT_NE(osgIter1, osg_lvl1.end());
-        EXPECT_EQ(*osgIter1, OperatorSequence({Operator{0}}, ac));
+        EXPECT_EQ(*osgIter1, OperatorSequence({0}, ac));
 
         ++osgIter1;
         ASSERT_NE(osgIter1, osg_lvl1.end());
-        EXPECT_EQ(*osgIter1, OperatorSequence({Operator{1}}, ac));
+        EXPECT_EQ(*osgIter1, OperatorSequence({1}, ac));
 
         ++osgIter1;
         ASSERT_EQ(osgIter1, osg_lvl1.end());
@@ -158,23 +158,23 @@ namespace NPATK::Tests {
 
         ++osgIter2;
         ASSERT_NE(osgIter2, osg_lvl2.end());
-        EXPECT_EQ(*osgIter2, OperatorSequence({Operator{0}}, ac));
+        EXPECT_EQ(*osgIter2, OperatorSequence({0}, ac));
 
         ++osgIter2;
         ASSERT_NE(osgIter2, osg_lvl2.end());
-        EXPECT_EQ(*osgIter2, OperatorSequence({Operator{1}}, ac));
+        EXPECT_EQ(*osgIter2, OperatorSequence({1}, ac));
 
         ++osgIter2;
         ASSERT_NE(osgIter2, osg_lvl2.end());
-        EXPECT_EQ(*osgIter2, OperatorSequence({Operator{0}, Operator{0}}, ac));
+        EXPECT_EQ(*osgIter2, OperatorSequence({0, 0}, ac));
 
         ++osgIter2;
         ASSERT_NE(osgIter2, osg_lvl2.end());
-        EXPECT_EQ(*osgIter2, OperatorSequence({Operator{0}, Operator{1}}, ac));
+        EXPECT_EQ(*osgIter2, OperatorSequence({0, 1}, ac));
 
         ++osgIter2;
         ASSERT_NE(osgIter2, osg_lvl2.end());
-        EXPECT_EQ(*osgIter2, OperatorSequence({Operator{1}, Operator{1}}, ac));
+        EXPECT_EQ(*osgIter2, OperatorSequence({1, 1}, ac));
 
         ++osgIter2;
         ASSERT_EQ(osgIter2, osg_lvl2.end());

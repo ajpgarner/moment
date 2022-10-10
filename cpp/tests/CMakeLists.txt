@@ -6,7 +6,6 @@ add_executable(npatk_tests
     operators/localizing_matrix_tests.cpp
     operators/multi_operator_iterator_tests.cpp
     operators/moment_matrix_tests.cpp
-    operators/operator_tests.cpp
     operators/operator_sequence_tests.cpp
     operators/operator_sequence_generator_tests.cpp
     operators/symbol_table_tests.cpp

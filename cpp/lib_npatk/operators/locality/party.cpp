@@ -13,9 +13,7 @@
 #include <stdexcept>
 
 namespace NPATK {
-
-
-    Party::Party(party_name_t id, std::string the_name, std::vector<Measurement> &&mmt_in)
+   Party::Party(party_name_t id, std::string the_name, std::vector<Measurement> &&mmt_in)
         : party_id{id}, Measurements{*this}, name{std::move(the_name)}, measurements{std::move(mmt_in)} {
 
         // Set up measurements
@@ -96,23 +94,23 @@ namespace NPATK {
     }
 
 
-    std::span<const Operator> Party::operators() const {
+    std::span<const oper_name_t> Party::operators() const {
         if (!context) {
             throw std::logic_error{"Cannot access operators of party until party has been attached to a context."};
         }
 
-        return std::span<const Operator>{
+        return std::span<const oper_name_t>{
             this->context->begin() + this->global_operator_offset,
             this->context->begin() + (this->global_operator_offset + this->party_operator_count)
         };
     }
 
 
-    const Measurement& Party::measurement_of(const Operator& op) const {
+    const Measurement& Party::measurement_of(oper_name_t op) const {
         if (!this->context) {
             throw std::logic_error{"Cannot access operators of party until party has been attached to a context."};
         }
-        auto op_local_index = op.id - this->global_operator_offset;
+        auto op_local_index = op - this->global_operator_offset;
         if ((op_local_index < 0) || (op_local_index >= this->party_operator_count)) {
             throw std::range_error{"Operator index out of range."};
         }
@@ -124,8 +122,8 @@ namespace NPATK {
     /**
      * Gets the name of this operator (if within party)
      */
-    std::string Party::format_operator(const Operator& op) const {
-        auto op_local_index = op.id - this->global_operator_offset;
+    std::string Party::format_operator(oper_name_t op) const {
+        auto op_local_index = op - this->global_operator_offset;
         if ((op_local_index < 0) || (op_local_index >= this->party_operator_count)) {
             return "[UNKNOWN]";
         }
@@ -139,7 +137,7 @@ namespace NPATK {
         return ss.str();
     }
 
-    const Operator& Party::measurement_outcome(size_t mmt_index, size_t outcome_index) const {
+    oper_name_t Party::measurement_outcome(size_t mmt_index, size_t outcome_index) const {
         if (!context) {
             throw std::logic_error{"Cannot access operators of party until party has been attached to a context."};
         }
@@ -152,34 +150,31 @@ namespace NPATK {
         }
 
         auto operIndex = this->global_operator_offset + mmt.party_offset + outcome_index;
-        return (*this->context)[operIndex];
+        return operIndex;
     }
 
-    const Operator &Party::operator[](size_t index) const {
+    oper_name_t Party::operator[](size_t index) const {
         if (index >= this->party_operator_count) {
             throw std::range_error{"Operator index out of range."};
         }
         return this->operators()[index];
     }
 
-    bool Party::mutually_exclusive(const Operator& lhs, const Operator& rhs) const noexcept {
+    bool Party::mutually_exclusive(const oper_name_t lhs, const oper_name_t rhs) const noexcept {
         // X^2 != 0 in general.
-        if (lhs.id == rhs.id) {
+        if (lhs == rhs) {
             return false;
         }
-        assert(lhs.party == this->party_id);
-        assert(rhs.party == this->party_id);
 
-        return (this->offset_id_to_local_mmt[lhs.id - this->global_operator_offset]
-                 == this->offset_id_to_local_mmt[rhs.id - this->global_operator_offset]);
+        return (this->offset_id_to_local_mmt[lhs - this->global_operator_offset]
+                 == this->offset_id_to_local_mmt[rhs - this->global_operator_offset]);
     }
 
 
     std::vector<Party>
     Party::MakeList(party_name_t num_parties,
                     mmt_name_t mmts_per_party,
-                    oper_name_t outcomes_per_mmt,
-                    bool projective) {
+                    oper_name_t outcomes_per_mmt) {
         std::vector<Party> output;
         output.reserve(num_parties);
 
@@ -191,7 +186,7 @@ namespace NPATK {
             std::vector<Measurement> mmtList;
             mmtList.reserve(mmts_per_party);
             for (mmt_name_t mId = 0; mId < mmts_per_party; ++mId) {
-                mmtList.emplace_back(mmt_namer(mId), outcomes_per_mmt, projective);
+                mmtList.emplace_back(mmt_namer(mId), outcomes_per_mmt);
             }
 
             output.emplace_back(p, party_namer(p),std::move(mmtList));
@@ -202,8 +197,7 @@ namespace NPATK {
 
     std::vector<Party>
     Party::MakeList(const std::vector<size_t>& mmts_per_party,
-                    const std::vector<size_t>& outcomes_per_mmt,
-                    bool projective) {
+                    const std::vector<size_t>& outcomes_per_mmt) {
         const auto num_parties = static_cast<party_name_t>(mmts_per_party.size());
         std::vector<Party> output;
         output.reserve(num_parties);
@@ -222,7 +216,7 @@ namespace NPATK {
             auto num_mmts = *mmtCountIter;
             for (oper_name_t o = 0; o < num_mmts; ++o) {
                 assert(outcomePerMmtIter != outcomes_per_mmt.cend());
-                mmtList.emplace_back(mmt_namer(o), *outcomePerMmtIter, projective);
+                mmtList.emplace_back(mmt_namer(o), *outcomePerMmtIter);
                 ++outcomePerMmtIter;
             }
 

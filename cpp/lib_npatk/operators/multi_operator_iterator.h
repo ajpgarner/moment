@@ -61,24 +61,14 @@ namespace NPATK {
             return !(*this == rhs);
         }
 
-        [[nodiscard]] std::vector<Operator> raw() const {
-            std::vector<Operator> raw_opers{};
+        [[nodiscard]] std::vector<oper_name_t> raw() const {
+            std::vector<oper_name_t> raw_opers{};
             raw_opers.reserve(length);
             // Reverse order so final operator in chain changes the most frequently:
             for (size_t i = length; i > 0; --i) {
                 raw_opers.emplace_back(*(this->iters[i-1]));
             }
             return raw_opers;
-        }
-
-        [[nodiscard]] std::vector<oper_name_t> id_str() const {
-            std::vector<oper_name_t> output{};
-            output.reserve(length);
-            // Reverse order so final operator in chain changes the most frequently:
-            for (size_t i = length; i > 0; --i) {
-                output.emplace_back(this->iters[i-1]->id);
-            }
-            return output;
         }
 
         OperatorSequence operator*() const {
