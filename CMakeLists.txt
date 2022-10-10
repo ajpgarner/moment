@@ -21,7 +21,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     if (UNIX)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -static-libstdc++")
     else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -static -shared")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -static")
     endif()
 endif()
 
