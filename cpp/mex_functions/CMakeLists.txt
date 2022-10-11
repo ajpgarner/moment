@@ -35,7 +35,8 @@ matlab_add_mex(NAME npatk_mex
             functions/symbol_table.cpp
             functions/probability_table.cpp
             functions/make_hermitian.cpp
-            functions/new_matrix_system.cpp
+            functions/new_algebraic_matrix_system.cpp
+            functions/new_locality_matrix_system.cpp
             functions/moment_matrix.cpp
             functions/make_symmetric.cpp
             functions/release.cpp

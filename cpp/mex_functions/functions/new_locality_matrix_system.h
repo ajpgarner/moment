@@ -1,5 +1,5 @@
 /**
- * new_matrix_system.h
+ * new_locality_matrix_system.h
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
@@ -13,7 +13,7 @@ namespace NPATK {
 
 namespace NPATK::mex::functions {
 
-    struct NewMatrixSystemParams : public SortedInputs {
+    struct NewLocalityMatrixSystemParams : public SortedInputs {
     public:
         enum class SystemType {
             Generic,
@@ -27,7 +27,7 @@ namespace NPATK::mex::functions {
         std::vector<size_t> outcomes_per_mmt;
 
     public:
-        explicit NewMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs);
+        explicit NewLocalityMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs);
 
     private:
         void getGenericFromParams(matlab::engine::MATLABEngine &matlabEngine);
@@ -47,9 +47,9 @@ namespace NPATK::mex::functions {
     };
 
 
-    class NewMatrixSystem : public NPATK::mex::functions::MexFunction {
+    class NewLocalityMatrixSystem : public NPATK::mex::functions::MexFunction {
     public:
-        explicit NewMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
+        explicit NewLocalityMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
 

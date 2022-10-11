@@ -13,7 +13,7 @@ classdef MomentMatrixTest_Case
         end
         
         function CallAndVerify(testCase, testObj, params, level)
-            system_id = npatk('new_matrix_system', params{:});
+            system_id = npatk('new_locality_matrix_system', params{:});
             dim = npatk('moment_matrix', system_id, level);
             sym_mat = npatk('moment_matrix', 'symbols', ...
                             system_id, level);

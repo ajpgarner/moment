@@ -28,7 +28,8 @@ namespace NPATK::mex::functions {
         MakeHermitian,
         MakeSymmetric,
         MomentMatrix,
-        NewMatrixSystem,
+        NewAlgebraicMatrixSystem,
+        NewLocalityMatrixSystem,
         Release,
         SymbolTable,
         Version
@@ -48,7 +49,8 @@ namespace NPATK::mex::functions {
         output.emplace(u"make_hermitian", MEXEntryPointID::MakeHermitian);
         output.emplace(u"make_symmetric", MEXEntryPointID::MakeSymmetric);
         output.emplace(u"moment_matrix", MEXEntryPointID::MomentMatrix);
-        output.emplace(u"new_matrix_system", MEXEntryPointID::NewMatrixSystem);
+        output.emplace(u"new_algebraic_matrix_system", MEXEntryPointID::NewAlgebraicMatrixSystem);
+        output.emplace(u"new_locality_matrix_system", MEXEntryPointID::NewLocalityMatrixSystem);
         output.emplace(u"release", MEXEntryPointID::Release);
         output.emplace(u"symbol_table", MEXEntryPointID::SymbolTable);
         output.emplace(u"version", MEXEntryPointID::Version);

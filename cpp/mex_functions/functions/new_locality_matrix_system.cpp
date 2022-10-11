@@ -3,7 +3,7 @@
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
-#include "new_matrix_system.h"
+#include "new_locality_matrix_system.h"
 
 #include "storage_manager.h"
 
@@ -22,11 +22,11 @@
 namespace NPATK::mex::functions {
     namespace {
         std::unique_ptr<Context> make_context(matlab::engine::MATLABEngine &matlabEngine,
-                                              const NewMatrixSystemParams &input) {
+                                              const NewLocalityMatrixSystemParams &input) {
             switch (input.system_type) {
-                case NewMatrixSystemParams::SystemType::Generic:
+                case NewLocalityMatrixSystemParams::SystemType::Generic:
                     return std::make_unique<Context>(input.total_operators);
-                case NewMatrixSystemParams::SystemType::Locality:
+                case NewLocalityMatrixSystemParams::SystemType::Locality:
                     return std::make_unique<LocalityContext>(
                             Party::MakeList(input.mmts_per_party, input.outcomes_per_mmt));
             }
@@ -34,7 +34,8 @@ namespace NPATK::mex::functions {
         }
     }
 
-    NewMatrixSystemParams::NewMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)
+    NewLocalityMatrixSystemParams::NewLocalityMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine,
+                                                                 SortedInputs &&rawInput)
             : SortedInputs(std::move(rawInput)) {
 
         // Either set named params OR give multiple params
@@ -67,7 +68,7 @@ namespace NPATK::mex::functions {
         }
     }
 
-    void NewMatrixSystemParams::getGenericFromParams(matlab::engine::MATLABEngine &matlabEngine) {
+    void NewLocalityMatrixSystemParams::getGenericFromParams(matlab::engine::MATLABEngine &matlabEngine) {
         // Read number of operators
         auto oper_param = params.find(u"operators");
         if (oper_param == params.end()) {
@@ -77,7 +78,7 @@ namespace NPATK::mex::functions {
         this->system_type = SystemType::Generic;
     }
 
-    void NewMatrixSystemParams::getLocalityFromParams(matlab::engine::MATLABEngine &matlabEngine) {
+    void NewLocalityMatrixSystemParams::getLocalityFromParams(matlab::engine::MATLABEngine &matlabEngine) {
         // Read and check number of parties, or default to 1
         auto party_param = params.find(u"parties");
         if (party_param != params.end()) {
@@ -109,7 +110,7 @@ namespace NPATK::mex::functions {
     }
 
 
-    void NewMatrixSystemParams::getFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
+    void NewLocalityMatrixSystemParams::getFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
         if (inputs.empty()) {
             std::string errStr{"Please supply either named inputs; or a list of integers in the"};
             errStr += " form of \"operators\", ";
@@ -151,7 +152,7 @@ namespace NPATK::mex::functions {
         }
     }
 
-    void NewMatrixSystemParams::readMeasurementSpecification(matlab::engine::MATLABEngine &matlabEngine,
+    void NewLocalityMatrixSystemParams::readMeasurementSpecification(matlab::engine::MATLABEngine &matlabEngine,
                                                              matlab::data::Array &input,
                                                              const std::string& paramName) {
 
@@ -174,7 +175,7 @@ namespace NPATK::mex::functions {
 
     }
 
-    void NewMatrixSystemParams::readOutcomeSpecification(matlab::engine::MATLABEngine &matlabEngine,
+    void NewLocalityMatrixSystemParams::readOutcomeSpecification(matlab::engine::MATLABEngine &matlabEngine,
                                                          matlab::data::Array &input,
                                                          const std::string& paramName) {
 
@@ -198,7 +199,7 @@ namespace NPATK::mex::functions {
         }
     }
 
-    void NewMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
+    void NewLocalityMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
                                                           matlab::data::Array &input,
                                                           const std::string& paramName) {
         this->total_operators = read_positive_integer(matlabEngine, paramName, input, 1);
@@ -206,15 +207,17 @@ namespace NPATK::mex::functions {
 
 
     std::unique_ptr<SortedInputs>
-    NewMatrixSystem::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
+    NewLocalityMatrixSystem::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
         auto& input = *inputPtr;
-        return std::make_unique<NewMatrixSystemParams>(this->matlabEngine, std::move(input));
+        return std::make_unique<NewLocalityMatrixSystemParams>(this->matlabEngine, std::move(input));
     }
 
 
 
-    NewMatrixSystem::NewMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : MexFunction(matlabEngine, storage, MEXEntryPointID::NewMatrixSystem, u"new_matrix_system") {
+    NewLocalityMatrixSystem::NewLocalityMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
+            : MexFunction(matlabEngine, storage,
+                          MEXEntryPointID::NewLocalityMatrixSystem,
+                          u"new_locality_matrix_system") {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
@@ -231,8 +234,8 @@ namespace NPATK::mex::functions {
     }
 
 
-    void NewMatrixSystem::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        auto& input = dynamic_cast<NewMatrixSystemParams&>(*inputPtr);
+    void NewLocalityMatrixSystem::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
+        auto& input = dynamic_cast<NewLocalityMatrixSystemParams&>(*inputPtr);
 
         // Input to context:
         std::unique_ptr<Context> contextPtr{make_context(this->matlabEngine, input)};
@@ -250,9 +253,9 @@ namespace NPATK::mex::functions {
 
         // Make new system around context
         std::unique_ptr<MatrixSystem> matrixSystemPtr;
-        if (input.system_type == NewMatrixSystemParams::SystemType::Generic) {
+        if (input.system_type == NewLocalityMatrixSystemParams::SystemType::Generic) {
             matrixSystemPtr = std::make_unique<MatrixSystem>(std::move(contextPtr));
-        } else if (input.system_type == NewMatrixSystemParams::SystemType::Locality) {
+        } else if (input.system_type == NewLocalityMatrixSystemParams::SystemType::Locality) {
             matrixSystemPtr = std::make_unique<LocalityMatrixSystem>(std::move(contextPtr));
         }
 

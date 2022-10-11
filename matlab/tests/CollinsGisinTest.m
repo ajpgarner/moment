@@ -6,7 +6,7 @@ classdef CollinsGisinTest < NPATKTestBase
     
     methods (Test)
         function CHSH(testCase)
-            system_id = npatk('new_matrix_system', 2, 2, 2);
+            system_id = npatk('new_locality_matrix_system', 2, 2, 2);
             mm = npatk('moment_matrix', system_id, 1);
             sym_mat = npatk('collins_gisin', system_id, 'symbols');
             bas_mat = npatk('collins_gisin', system_id, 'basis');
@@ -33,7 +33,7 @@ classdef CollinsGisinTest < NPATKTestBase
         
         function Error_MutexParams(testCase)
             function bad_in()
-               system_id = npatk('new_matrix_system', 2, 2, 2);
+               system_id = npatk('new_locality_matrix_system', 2, 2, 2);
                [~] = npatk('collins_gisin', system_id, ...
                            'sequences', 'basis');
             end
@@ -42,7 +42,7 @@ classdef CollinsGisinTest < NPATKTestBase
         
         function Error_TooManyInputs(testCase)
             function bad_in()
-               system_id = npatk('new_matrix_system', 2, 2, 2);
+               system_id = npatk('new_locality_matrix_system', 2, 2, 2);
                [~] = npatk('collins_gisin', ...
                               system_id, system_id);
             end
@@ -51,7 +51,7 @@ classdef CollinsGisinTest < NPATKTestBase
         
         function Error_NoMomentMatrix(testCase)
             function bad_in()
-               system_id = npatk('new_matrix_system', 2, 2, 2);
+               system_id = npatk('new_locality_matrix_system', 2, 2, 2);
                [~] = npatk('collins_gisin', ...
                               system_id);
             end

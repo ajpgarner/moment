@@ -13,7 +13,8 @@
 #include "functions/make_hermitian.h"
 #include "functions/make_symmetric.h"
 #include "functions/moment_matrix.h"
-#include "functions/new_matrix_system.h"
+#include "functions/new_algebraic_matrix_system.h"
+#include "functions/new_locality_matrix_system.h"
 #include "functions/release.h"
 #include "functions/symbol_table.h"
 #include "functions/version.h"
@@ -50,8 +51,11 @@ namespace NPATK::mex::functions {
             case functions::MEXEntryPointID::MomentMatrix:
                 the_function = std::make_unique<functions::MomentMatrix>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::NewMatrixSystem:
-                the_function = std::make_unique<functions::NewMatrixSystem>(engine, storageManager);
+            case functions::MEXEntryPointID::NewAlgebraicMatrixSystem:
+                the_function = std::make_unique<functions::NewAlgebraicMatrixSystem>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::NewLocalityMatrixSystem:
+                the_function = std::make_unique<functions::NewLocalityMatrixSystem>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::Release:
                 the_function  = std::make_unique<functions::Release>(engine, storageManager);
