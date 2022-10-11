@@ -70,6 +70,9 @@ namespace NPATK {
             return dynamic_cast<class MomentMatrix&>(*matrices[momentMatrixIndices[level]]);
         }
 
+        // Delegated pre-generation
+        this->beforeNewMomentMatrixCreated(level);
+
         // Fill with null elements if some are missing
         if (this->momentMatrixIndices.size() < level+1) {
             this->momentMatrixIndices.resize(level+1, -1);
@@ -82,7 +85,7 @@ namespace NPATK {
 
         auto& output = dynamic_cast<class MomentMatrix&>(*this->matrices[matrixIndex]);
 
-        // Check if new indices have become available, and if so, update...
+        // Delegated post-generation
         this->onNewMomentMatrixCreated(level, output);
 
         return output;
@@ -119,6 +122,9 @@ namespace NPATK {
         if (index >= 0) {
             return dynamic_cast<class LocalizingMatrix&>(*matrices[momentMatrixIndices[index]]);
         }
+
+        // Delegated pre-generation
+        this->beforeNewLocalizingMatrixCreated(lmi);
 
         // Otherwise,generate new localizing matrix, and insert index
         auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());

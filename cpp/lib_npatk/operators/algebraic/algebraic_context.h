@@ -54,6 +54,12 @@ namespace NPATK {
 
         bool additional_simplification(std::vector<oper_name_t>& op_sequence) const override;
 
+        /**
+         * Summarize the context as a string.
+         */
+        [[nodiscard]] std::string to_string() const override;
+
+
     private:
         size_t one_substitution(std::vector<SymbolPair>& output, const RawSequence& input_sequence) const;
     };

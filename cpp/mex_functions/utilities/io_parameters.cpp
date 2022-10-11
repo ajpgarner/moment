@@ -197,6 +197,28 @@ namespace NPATK::mex {
     }
 
 
+    std::vector<int64_t>
+    SortedInputs::read_integer_array(matlab::engine::MATLABEngine &matlabEngine,
+                                     const std::string &paramName,
+                                     const matlab::data::Array &array) {
+
+        if (!castable_to_vector_int(array)) {
+            std::stringstream ss;
+            ss << paramName << " should be a vector of positive integers.";
+            throw errors::BadInput{errors::bad_param, ss.str()};
+        }
+
+        try {
+            auto vec = read_as_int64_vector(matlabEngine, array);
+            return vec;
+        } catch (const errors::unreadable_vector& use) {
+            std::stringstream ss;
+            ss << paramName << " could not be read: " << use.what();
+            throw errors::BadInput{use.errCode, ss.str()};
+        }
+    }
+
+
 
     uint64_t SortedInputs::read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
                                                  const std::string &paramName,

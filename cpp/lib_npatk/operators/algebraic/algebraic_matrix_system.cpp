@@ -32,4 +32,12 @@ namespace NPATK {
         this->algebraicContext.generate_aliases(stringLength);
     }
 
+    void AlgebraicMatrixSystem::beforeNewMomentMatrixCreated(size_t level) {
+        this->algebraicContext.generate_aliases(level*2);
+    }
+
+    void AlgebraicMatrixSystem::beforeNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi) {
+        this->algebraicContext.generate_aliases((lmi.Level*2) + lmi.Word.size());
+    }
+
 }

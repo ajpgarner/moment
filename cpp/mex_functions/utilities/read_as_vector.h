@@ -26,12 +26,11 @@ namespace NPATK::mex {
 
     }
 
-    [[nodiscard]] std::vector<uint64_t> read_as_uint64_vector(matlab::engine::MATLABEngine& engine,
+    [[nodiscard]] std::vector<int64_t> read_as_int64_vector(matlab::engine::MATLABEngine& engine,
                                                               const matlab::data::Array& input);
 
-
-    [[nodiscard]] std::vector<uint64_t> read_as_uint64_vector_or_fail(matlab::engine::MATLABEngine& engine,
-                                                                      const matlab::data::Array& input);
+    [[nodiscard]] std::vector<uint64_t> read_as_uint64_vector(matlab::engine::MATLABEngine& engine,
+                                                              const matlab::data::Array& input);
 
     /**
      * True if the supplied type can be interpreted as a vector integer.

@@ -9,6 +9,7 @@
 
 #include "symbolic/symbol_expression.h"
 
+#include <iosfwd>
 #include <set>
 #include <stdexcept>
 #include <vector>
@@ -41,7 +42,7 @@ namespace NPATK {
 
     public:
         constexpr MonomialSubstitutionRule(std::vector<oper_name_t> lhs, std::vector<oper_name_t> rhs,
-                                           bool negated = false, bool conjugated = false)
+                                           bool negated = false)
                 : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, negated{negated},
                   Delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
         }
@@ -54,5 +55,7 @@ namespace NPATK {
         apply_match_with_hint(const std::vector<oper_name_t>& input, const_iter_t hint) const;
 
         size_t all_matches(std::vector<SymbolPair>& output, const RawSequenceBook& rsb, const RawSequence& input) const;
+
+        friend std::ostream& operator<<(std::ostream& os, const MonomialSubstitutionRule& msr);
     };
 }

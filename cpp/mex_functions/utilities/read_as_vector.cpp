@@ -121,6 +121,11 @@ namespace NPATK::mex {
         return read_as_vector<uint64_t>(engine, input);
     }
 
+    std::vector<int64_t>
+    read_as_int64_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return read_as_vector<int64_t>(engine, input);
+    }
+
 
     bool castable_to_vector_int(const matlab::data::Array &input) {
         switch(input.getType()) {

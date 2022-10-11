@@ -11,7 +11,7 @@ classdef CollinsGisinTest < NPATKTestBase
             sym_mat = npatk('collins_gisin', system_id, 'symbols');
             bas_mat = npatk('collins_gisin', system_id, 'basis');
             seq_mat = npatk('collins_gisin', system_id, 'sequences');
-            
+            cl
             expected = uint64([[1, 4, 5]; [2, 7, 8]; [3, 9, 10]]);
             testCase.verifyEqual(sym_mat, expected);
             testCase.verifyEqual(bas_mat, expected);

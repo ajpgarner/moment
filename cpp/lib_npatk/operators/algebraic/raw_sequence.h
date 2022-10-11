@@ -7,6 +7,7 @@
 
 #include "integer_types.h"
 
+#include <iosfwd>
 #include <vector>
 
 namespace NPATK {
@@ -21,5 +22,7 @@ namespace NPATK {
                 : operators{std::move(oper_ids)}, hash{hash}, raw_id{name} { }
 
         [[nodiscard]] constexpr size_t size() const noexcept { return this->operators.size(); }
+
+        friend std::ostream& operator<<(std::ostream& os, const RawSequence& rs);
     };
 }

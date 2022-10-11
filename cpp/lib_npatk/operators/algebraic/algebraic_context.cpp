@@ -8,6 +8,8 @@
 #include "symbolic/symbol_set.h"
 #include "symbolic/symbol_tree.h"
 
+#include <sstream>
+
 namespace NPATK {
 
     AlgebraicContext::AlgebraicContext(const size_t operator_count)
@@ -25,6 +27,36 @@ namespace NPATK {
     }
 
     AlgebraicContext::~AlgebraicContext() noexcept = default;
+
+
+    std::string AlgebraicContext::to_string() const {
+        const size_t op_count = this->operators.size();
+        const size_t rule_count = this->monomialRules.size();
+
+        std::stringstream ss;
+        ss << "Algebraic context with "
+           << op_count << (op_count ? " operators" : " operator")
+           << " and " << rule_count << ((rule_count!= 1) ? " rules" : " rule") << ".\n";
+        ss << "Operators: ";
+        bool done_one = false;
+        for (size_t index = 0; index < op_count; ++index) {
+            if (done_one) {
+                ss << ", ";
+            }
+            ss << "X" << this->operators[index];
+            done_one = true;
+        }
+        ss << "\n";
+        if (rule_count > 0) {
+            ss << "Rules: \n";
+            for (const auto& msr : this->monomialRules) {
+                ss << "\t" << msr << "\n";
+            }
+        }
+
+        return ss.str();
+    }
+
 
     size_t AlgebraicContext::one_substitution(std::vector<SymbolPair>& output,
                                               const RawSequence& input_sequence) const {
@@ -122,5 +154,6 @@ namespace NPATK {
         }
         return false;
     }
+
 
 }

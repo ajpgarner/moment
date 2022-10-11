@@ -34,6 +34,10 @@ namespace NPATK {
          */
         void generate_aliases(size_t stringLength);
 
+    protected:
+        void beforeNewMomentMatrixCreated(size_t level) override;
+
+        void beforeNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi) override;
 
 
     };

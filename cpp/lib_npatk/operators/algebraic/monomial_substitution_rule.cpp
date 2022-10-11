@@ -10,6 +10,7 @@
 #include <cassert>
 
 #include <algorithm>
+#include <iostream>
 #include <iterator>
 
 namespace NPATK {
@@ -110,4 +111,28 @@ namespace NPATK {
         return match_count;
     }
 
+    std::ostream& operator<<(std::ostream& os, const MonomialSubstitutionRule& msr) {
+        if (msr.rawLHS.empty()) {
+            os << "I";
+        } else {
+            for (const auto i : msr.rawLHS) {
+                os << "X" << i;
+            }
+        }
+
+        os << " -> ";
+        if (msr.negated) {
+            os << "-";
+        }
+
+        if (msr.rawRHS.empty()) {
+            os << "I";
+        } else {
+            for (const auto i : msr.rawRHS) {
+                os << "X" << i;
+            }
+        }
+
+        return os;
+    }
 }

@@ -21,16 +21,9 @@
 
 namespace NPATK::mex::functions {
     namespace {
-        std::unique_ptr<Context> make_context(matlab::engine::MATLABEngine &matlabEngine,
+        std::unique_ptr<LocalityContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                               const NewLocalityMatrixSystemParams &input) {
-            switch (input.system_type) {
-                case NewLocalityMatrixSystemParams::SystemType::Generic:
-                    return std::make_unique<Context>(input.total_operators);
-                case NewLocalityMatrixSystemParams::SystemType::Locality:
-                    return std::make_unique<LocalityContext>(
-                            Party::MakeList(input.mmts_per_party, input.outcomes_per_mmt));
-            }
-            throw_error(matlabEngine, errors::internal_error, "Could not make context: Unknown scenario type.");
+            return std::make_unique<LocalityContext>(Party::MakeList(input.mmts_per_party, input.outcomes_per_mmt));
         }
     }
 
@@ -39,13 +32,9 @@ namespace NPATK::mex::functions {
             : SortedInputs(std::move(rawInput)) {
 
         // Either set named params OR give multiple params
-        bool set_any_locality_params  = this->params.contains(u"parties")
+        bool set_any_param  = this->params.contains(u"parties")
                                   || this->params.contains(u"measurements")
                                   || this->params.contains(u"outcomes");
-
-        bool set_any_generic_params = this->params.contains(u"operators");
-
-        bool set_any_param = set_any_locality_params || set_any_generic_params;
 
         if (set_any_param) {
             // No extra inputs
@@ -53,32 +42,15 @@ namespace NPATK::mex::functions {
                 throw errors::BadInput{errors::bad_param,
                                        "Input arguments should be exclusively named, or exclusively unnamed."};
             }
-
-            if (set_any_locality_params) {
-                this->getLocalityFromParams(matlabEngine);
-            } else {
-                this->getGenericFromParams(matlabEngine);
-            }
-
+            this->getFromParams(matlabEngine);
         } else {
-
             // No named parameters... try to interpret inputs as Settings object + depth
             // Otherwise, try to interpret inputs as flat specification
             this->getFromInputs(matlabEngine);
         }
     }
 
-    void NewLocalityMatrixSystemParams::getGenericFromParams(matlab::engine::MATLABEngine &matlabEngine) {
-        // Read number of operators
-        auto oper_param = params.find(u"operators");
-        if (oper_param == params.end()) {
-            throw errors::BadInput{errors::too_few_inputs, "Missing \"operators\" parameter."};
-        }
-        this->readOperatorSpecification(matlabEngine, oper_param->second, "Parameter 'operators'");
-        this->system_type = SystemType::Generic;
-    }
-
-    void NewLocalityMatrixSystemParams::getLocalityFromParams(matlab::engine::MATLABEngine &matlabEngine) {
+    void NewLocalityMatrixSystemParams::getFromParams(matlab::engine::MATLABEngine &matlabEngine) {
         // Read and check number of parties, or default to 1
         auto party_param = params.find(u"parties");
         if (party_param != params.end()) {
@@ -105,40 +77,20 @@ namespace NPATK::mex::functions {
                                    "Parameter 'outcomes' must be set."};
         }
         this->readOutcomeSpecification(matlabEngine, outcome_param->second, "Parameter 'outcomes'");
-
-        this->system_type = SystemType::Locality;
     }
 
 
     void NewLocalityMatrixSystemParams::getFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
-        if (inputs.empty()) {
-            std::string errStr{"Please supply either named inputs; or a list of integers in the"};
-            errStr += " form of \"operators\", ";
-            errStr += " '\"parties, number of outcomes\", ";
-            errStr += "or \"parties, measurements per party, outcomes per measurement\".";
+        if (inputs.size() < 2) {
+            std::string errStr{"Please supply either named inputs; or a list of integers in the form"};
+            errStr += " \"number of parties, number of outcomes\",";
+            errStr += " or \"number of parties, measurements per party, outcomes per measurement\".";
             throw errors::BadInput{errors::too_few_inputs, errStr};
         }
 
-        // Generic system?
-        if (inputs.size() == 1) {
-            // Operator_index stays as 0: op
-            this->system_type = SystemType::Generic;
-            this->readOperatorSpecification(matlabEngine, inputs[0], "Number of operators");
-            return;
-        }
-
-        // Otherwise, locality system
-        this->system_type = SystemType::Locality;
-
         // Get number of parties
-        if (this->system_type == SystemType::Locality) {
-            if (inputs.size() >= 2) { // 2 or 3 inputs
-                this->number_of_parties = read_positive_integer(matlabEngine, "Party count",
-                                                          inputs[0], 1);
-            } else {
-                this->number_of_parties = 1;
-            }
-        }
+        this->number_of_parties = read_positive_integer(matlabEngine, "Party count",
+                                                      inputs[0], 1);
 
         // Read measurements (if any) and operator count
         if (inputs.size() == 3) {
@@ -199,12 +151,6 @@ namespace NPATK::mex::functions {
         }
     }
 
-    void NewLocalityMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
-                                                          matlab::data::Array &input,
-                                                          const std::string& paramName) {
-        this->total_operators = read_positive_integer(matlabEngine, paramName, input, 1);
-    }
-
 
     std::unique_ptr<SortedInputs>
     NewLocalityMatrixSystem::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
@@ -224,10 +170,6 @@ namespace NPATK::mex::functions {
         this->param_names.emplace(u"parties");
         this->param_names.emplace(u"measurements");
         this->param_names.emplace(u"outcomes");
-        this->param_names.emplace(u"operators");
-
-        // One of three ways to input:
-        this->mutex_params.add_mutex(u"outcomes", u"operators");
 
         this->min_inputs = 0;
         this->max_inputs = 3;
@@ -238,7 +180,7 @@ namespace NPATK::mex::functions {
         auto& input = dynamic_cast<NewLocalityMatrixSystemParams&>(*inputPtr);
 
         // Input to context:
-        std::unique_ptr<Context> contextPtr{make_context(this->matlabEngine, input)};
+        std::unique_ptr<LocalityContext> contextPtr{make_context(this->matlabEngine, input)};
         if (!contextPtr) {
             throw_error(this->matlabEngine, errors::internal_error, "Context object could not be created.");
         }
@@ -252,13 +194,7 @@ namespace NPATK::mex::functions {
         }
 
         // Make new system around context
-        std::unique_ptr<MatrixSystem> matrixSystemPtr;
-        if (input.system_type == NewLocalityMatrixSystemParams::SystemType::Generic) {
-            matrixSystemPtr = std::make_unique<MatrixSystem>(std::move(contextPtr));
-        } else if (input.system_type == NewLocalityMatrixSystemParams::SystemType::Locality) {
-            matrixSystemPtr = std::make_unique<LocalityMatrixSystem>(std::move(contextPtr));
-        }
-
+        std::unique_ptr<MatrixSystem> matrixSystemPtr = std::make_unique<LocalityMatrixSystem>(std::move(contextPtr));
 
         // Store context/system
         uint64_t storage_id = this->storageManager.MatrixSystems.store(std::move(matrixSystemPtr));

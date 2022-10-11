@@ -15,11 +15,6 @@ namespace NPATK::mex::functions {
 
     struct NewLocalityMatrixSystemParams : public SortedInputs {
     public:
-        enum class SystemType {
-            Generic,
-            Locality
-        } system_type = SystemType::Generic;
-
         size_t total_operators = 0;
         size_t number_of_parties = 1;
         size_t total_measurements = 0;
@@ -30,9 +25,7 @@ namespace NPATK::mex::functions {
         explicit NewLocalityMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs);
 
     private:
-        void getGenericFromParams(matlab::engine::MATLABEngine &matlabEngine);
-
-        void getLocalityFromParams(matlab::engine::MATLABEngine &matlabEngine);
+        void getFromParams(matlab::engine::MATLABEngine &matlabEngine);
 
         void getFromInputs(matlab::engine::MATLABEngine &matlabEngine);
 
@@ -42,8 +35,6 @@ namespace NPATK::mex::functions {
         void readOutcomeSpecification(matlab::engine::MATLABEngine &matlabEngine,
                                       matlab::data::Array& input, const std::string& paramName);
 
-        void readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
-                                       matlab::data::Array& input, const std::string& paramName);
     };
 
 

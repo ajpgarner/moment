@@ -153,7 +153,11 @@ namespace NPATK {
         }
 
     protected:
+        virtual void beforeNewMomentMatrixCreated(size_t level) { }
+
         virtual void onNewMomentMatrixCreated(size_t level, const class MomentMatrix& mm) { }
+
+        virtual void beforeNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi) { }
 
         virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
                                                   const class LocalizingMatrix& lm) { }
