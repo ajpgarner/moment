@@ -32,6 +32,8 @@ namespace NPATK {
         this->symbols.reserve(2);
         this->symbols.emplace_back(Symbol::zero());
         this->symbols.emplace_back(1);
+        this->hash_table.emplace(std::make_pair(0, 0));
+        this->hash_table.emplace(std::make_pair(1, 1));
 
     }
 

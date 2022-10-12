@@ -27,6 +27,10 @@ namespace NPATK {
         class SymbolLinkIteratorBase;
 
         struct SymbolLink {
+        private:
+            /** Reference to owning tree */
+            SymbolTree& the_tree;
+
         public:
             EqualityType link_type = EqualityType::none;
             SymbolNode * origin = nullptr;
@@ -38,8 +42,8 @@ namespace NPATK {
 
         public:
 
-             SymbolLink(SymbolNode * to, EqualityType link) noexcept
-                : target(to), link_type(link) { }
+             SymbolLink(SymbolTree& tree, SymbolNode * to, EqualityType link) noexcept
+                : the_tree{tree}, target(to), link_type(link) { }
 
             /**
              * Detach link from origin, but keep target and equality type info.
@@ -124,19 +128,22 @@ namespace NPATK {
             friend struct SymbolLink;
 
         private:
-            /** Canonical link to symbol with lower ID, if any*/
+            /** Reference to owning tree */
+            SymbolTree& the_tree;
+
+            /** Canonical link to symbol with lower ID, if any (i.e. known parent) */
             SymbolLink * canonical_origin = nullptr;
 
-            /** First link, if any, to symbols with higher ID */
+            /** First link, if any, to symbols with higher ID (i.e. children) */
             SymbolLink * first_link = nullptr;
 
-            /** Final link, if any, to symbols with higher ID */
+            /** Final link, if any, to symbols with higher ID (i.e. children) */
             SymbolLink * last_link = nullptr;
 
         public:
-            constexpr explicit SymbolNode(symbol_name_t name) noexcept : Symbol{name} { }
+            constexpr explicit SymbolNode(SymbolTree& tree, symbol_name_t name) noexcept : the_tree{tree}, Symbol{name} { }
 
-            constexpr explicit SymbolNode(Symbol symbol) noexcept : Symbol{symbol} { }
+            constexpr explicit SymbolNode(SymbolTree& tree, Symbol symbol) noexcept : the_tree{tree}, Symbol{symbol} { }
 
             [[nodiscard]] constexpr SymbolLinkIterator begin() noexcept {
                 return SymbolLinkIterator{this->first_link};
@@ -220,28 +227,45 @@ namespace NPATK {
         size_t num_aliases = 0;
 
     public:
+        /** Construct a symbol tree from a symbol set (copying un/packing maps) */
         explicit SymbolTree(const SymbolSet& symbols);
 
+        /** Construct a symbol tree from a symbol set (moving un/packing maps) */
         explicit SymbolTree(SymbolSet&& symbols);
 
+        /** SymbolTree has no copy constructor. */
         SymbolTree(const SymbolTree& rhs) = delete;
 
+        /** The number of nodes in the tree */
         [[nodiscard]] size_t count_nodes() const noexcept { return tree_nodes.size(); }
 
+        /** The number of initial links in the tree */
         [[nodiscard]] size_t max_links() const noexcept { return tree_links.size(); }
 
+        /** The number of nodes that are not base nodes */
         [[nodiscard]] size_t alias_count() const noexcept {return this->num_aliases; }
 
+        /** Execute the simplification algorithm */
         void simplify();
 
+        /** True if the tree has been simplified */
         [[nodiscard]] bool ready() const { return done_simplification; }
 
+        /** Gets the node at supplied index */
         const SymbolNode& operator[](size_t index) const {
             return this->tree_nodes[index];
         }
 
+        /**
+         * Use the solved tree to rewrite symbols in a canonical way
+         * @param expr A symbol expression
+         * @return The 'canonical' way of writing that symbolic expression.
+         */
         [[nodiscard]] SymbolExpression substitute(SymbolExpression expr) const noexcept;
 
+        /**
+         * Copies the (solved) network back into a SymbolSet object.
+         */
         [[nodiscard]] std::unique_ptr<SymbolSet> export_symbol_set() const;
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolTree& st);
@@ -250,10 +274,17 @@ namespace NPATK {
 
         friend class SymbolSet;
 
+    protected:
+        /** Empty constructor, for mock classes */
+        SymbolTree();
+
     private:
         void make_nodes_and_links(const SymbolSet& symbols);
 
+        /** Flags a SymbolLink as unused */
         void releaseLink(SymbolLink * link);
+
+        /** Returns an unused SymbolLink */
         SymbolLink * getAvailableLink();
 
     };

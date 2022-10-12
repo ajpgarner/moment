@@ -28,6 +28,9 @@ namespace NPATK {
          lhs = static_cast<EqualityType>(static_cast<uint8_t>(lhs) & static_cast<uint8_t>(rhs));
     }
 
+    /**
+     * Merge two equality types (i.e. both equality types are inferred)
+     */
     constexpr EqualityType operator|(EqualityType lhs, EqualityType rhs) {
         return static_cast<EqualityType>(static_cast<uint8_t>(lhs) | static_cast<uint8_t>(rhs));
     }

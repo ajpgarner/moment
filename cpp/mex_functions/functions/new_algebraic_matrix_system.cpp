@@ -38,7 +38,7 @@ namespace NPATK::mex::functions {
                 rules.emplace_back(std::move(ir.LHS), std::move(ir.RHS), false);
             }
 
-            return std::make_unique<AlgebraicContext>(input.total_operators, std::move(rules));
+            return std::make_unique<AlgebraicContext>(input.total_operators, true, std::move(rules));
 
         }
     }

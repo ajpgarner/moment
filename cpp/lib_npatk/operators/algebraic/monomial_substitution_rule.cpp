@@ -99,7 +99,9 @@ namespace NPATK {
         while (match_iter != input_sequence.cend()) {
             auto altered_string = this->apply_match_with_hint(input_sequence, match_iter);
             const auto *target_seq = rsb.where(altered_string);
-            assert(target_seq != nullptr);
+            if (target_seq == nullptr) {
+                throw std::logic_error{"Substitution resulted in illegal string!"};
+            }
 
             // Register symbol link
             output.emplace_back(input.raw_id, target_seq->raw_id, this->negated, false);

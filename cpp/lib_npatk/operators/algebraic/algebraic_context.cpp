@@ -12,15 +12,16 @@
 
 namespace NPATK {
 
-    AlgebraicContext::AlgebraicContext(const size_t operator_count)
-        : Context{operator_count}, rawSequences{*this}
+    AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian)
+        : Context{operator_count}, self_adjoint{hermitian}, rawSequences{*this}
     {
         this->buildSet = std::make_unique<SymbolSet>();
         this->buildSet->add_or_merge(Symbol{1});
     }
 
-    AlgebraicContext::AlgebraicContext(const size_t operator_count, std::vector<MonomialSubstitutionRule> rules)
-        : Context{operator_count}, rawSequences{*this}, monomialRules{std::move(rules)}
+    AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian,
+                                       std::vector<MonomialSubstitutionRule> rules)
+        : Context{operator_count}, self_adjoint{hermitian}, rawSequences{*this}, monomialRules{std::move(rules)}
     {
         this->buildSet = std::make_unique<SymbolSet>();
         this->buildSet->add_or_merge(Symbol{1});

@@ -131,6 +131,10 @@ namespace NPATK {
         }
 
         while (hint != nullptr) {
+            assert(link != hint);
+            assert(link->target != nullptr);
+            assert(hint->target != nullptr);
+
             if (link->target->id < hint->target->id) {
                 link->prev = hint->prev; // might be nullptr
                 link->next = hint;
@@ -154,9 +158,11 @@ namespace NPATK {
                 this->im_is_zero = this->im_is_zero || implies_im_zero;
 
                 // Input link is reset and effectively orphaned, as it should not point to anything
+
                 link->origin = nullptr;
                 link->target = nullptr;
                 link->link_type = EqualityType::none;
+                // XXx tree->release()? somewhere??
 
                 // Return ptr to link already in the list
                 return {true, hint};
@@ -183,6 +189,7 @@ namespace NPATK {
 
         // First, insert source node
         auto [did_merge_source, hint] = this->insert_ordered(source);
+
         sourceNode.canonical_origin = source;
         sourceNode.im_is_zero = sourceNode.im_is_zero || this->im_is_zero;
         sourceNode.real_is_zero = sourceNode.real_is_zero || this->real_is_zero;
@@ -254,6 +261,7 @@ namespace NPATK {
         this->unpacking_map.swap(symbols.unpacking_key);
     }
 
+    SymbolTree::SymbolTree() = default;
 
     void SymbolTree::make_nodes_and_links(const SymbolSet &symbols) {
         /** Create nodes */
@@ -269,7 +277,7 @@ namespace NPATK {
             assert(found);
             unpacked.id = upk;
 
-            this->tree_nodes.emplace_back(unpacked);
+            this->tree_nodes.emplace_back(*this, unpacked);
         }
 
         /** Create links */
@@ -277,14 +285,24 @@ namespace NPATK {
         for (const auto [key, link_type] : symbols.Links) {
             SymbolNode * source_node = &this->tree_nodes[key.first];
             SymbolNode * target_node = &this->tree_nodes[key.second];
-            this->tree_links.emplace_back(target_node, link_type);
+            this->tree_links.emplace_back(*this, target_node, link_type);
             SymbolLink * new_link = &(this->tree_links[this->tree_links.size()-1]);
             source_node->insert_ordered(new_link);
         }
     }
 
+    namespace {
+        /** False, if link is already in list of released links */
+        [[nodiscard]] inline bool debug_assert_good_release(const std::vector<SymbolTree::SymbolLink*>& links,
+                                       const SymbolTree::SymbolLink * toRelease) {
+            return (toRelease != nullptr) && !std::any_of(links.cbegin(), links.cend(),
+                                                         [=](SymbolTree::SymbolLink* lhs) { return lhs == toRelease;} );
+        }
+    }
+
 
     void SymbolTree::releaseLink(SymbolTree::SymbolLink * link) {
+        assert(debug_assert_good_release(this->available_links, link));
         this->available_links.push_back(link);
     }
 

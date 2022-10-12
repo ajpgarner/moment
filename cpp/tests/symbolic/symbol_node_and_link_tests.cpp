@@ -11,12 +11,20 @@
 
 namespace NPATK::Tests {
 
+    class MockTree : public SymbolTree {
+    public:
+        MockTree() : SymbolTree{} {
+
+        }
+    };
+
 
     TEST(SymbolNodeAndLink, InsertBack_AtoB) {
+        MockTree tree{};
 
-        SymbolTree::SymbolNode nodeA{0};
-        SymbolTree::SymbolNode nodeB{1};
-        SymbolTree::SymbolLink linkToB{&nodeB, EqualityType::equal};
+        SymbolTree::SymbolNode nodeA{tree, 0};
+        SymbolTree::SymbolNode nodeB{tree, 1};
+        SymbolTree::SymbolLink linkToB{tree, &nodeB, EqualityType::equal};
         nodeA.insert_back(&linkToB);
 
         ASSERT_EQ(linkToB.origin, &nodeA) << "Origin should be node A";
@@ -29,12 +37,13 @@ namespace NPATK::Tests {
 
 
     TEST(SymbolNodeAndLink, InsertBack_AtoBandC) {
+        MockTree tree{};
 
-        SymbolTree::SymbolNode nodeA{0};
-        SymbolTree::SymbolNode nodeB{1};
-        SymbolTree::SymbolNode nodeC{2};
-        SymbolTree::SymbolLink linkB{&nodeB, EqualityType::equal};
-        SymbolTree::SymbolLink linkC{&nodeC, EqualityType::equal};
+        SymbolTree::SymbolNode nodeA{tree, 0};
+        SymbolTree::SymbolNode nodeB{tree, 1};
+        SymbolTree::SymbolNode nodeC{tree, 2};
+        SymbolTree::SymbolLink linkB{tree, &nodeB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &nodeC, EqualityType::equal};
         nodeA.insert_back(&linkB);
         nodeA.insert_back(&linkC);
 
@@ -53,19 +62,21 @@ namespace NPATK::Tests {
 
 
     TEST(SymbolNodeAndLink, TestEmptyIterator) {
+        MockTree tree{};
 
-        SymbolTree::SymbolNode nodeA{0};
+        SymbolTree::SymbolNode nodeA{tree, 0};
         auto iter = nodeA.begin();
         ASSERT_EQ(iter, nodeA.end());
     }
 
     TEST(SymbolNodeAndLink, TestIterator) {
+        MockTree tree{};
 
-        SymbolTree::SymbolNode nodeA{0};
-        SymbolTree::SymbolNode nodeB{1};
-        SymbolTree::SymbolNode nodeC{2};
-        SymbolTree::SymbolLink linkB{&nodeB, EqualityType::equal};
-        SymbolTree::SymbolLink linkC{&nodeC, EqualityType::equal};
+        SymbolTree::SymbolNode nodeA{tree, 0};
+        SymbolTree::SymbolNode nodeB{tree, 1};
+        SymbolTree::SymbolNode nodeC{tree, 2};
+        SymbolTree::SymbolLink linkB{tree, &nodeB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &nodeC, EqualityType::equal};
         nodeA.insert_back(&linkB);
         nodeA.insert_back(&linkC);
 
@@ -81,12 +92,13 @@ namespace NPATK::Tests {
     }
 
     TEST(SymbolNodeAndLink, TestConstIterator) {
+        MockTree tree{};
 
-        SymbolTree::SymbolNode nodeA{0};
-        SymbolTree::SymbolNode nodeB{1};
-        SymbolTree::SymbolNode nodeC{2};
-        SymbolTree::SymbolLink linkB{&nodeB, EqualityType::equal};
-        SymbolTree::SymbolLink linkC{&nodeC, EqualityType::equal};
+        SymbolTree::SymbolNode nodeA{tree, 0};
+        SymbolTree::SymbolNode nodeB{tree, 1};
+        SymbolTree::SymbolNode nodeC{tree, 2};
+        SymbolTree::SymbolLink linkB{tree, &nodeB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &nodeC, EqualityType::equal};
         nodeA.insert_back(&linkB);
         nodeA.insert_back(&linkC);
 
@@ -103,10 +115,11 @@ namespace NPATK::Tests {
 
 
     TEST(SymbolNodeAndLink, Unlink_OnlyLink) {
+        MockTree tree{};
 
-        SymbolTree::SymbolNode nodeA{0};
-        SymbolTree::SymbolNode nodeB{1};
-        SymbolTree::SymbolLink link{&nodeB, EqualityType::equal};
+        SymbolTree::SymbolNode nodeA{tree, 0};
+        SymbolTree::SymbolNode nodeB{tree, 1};
+        SymbolTree::SymbolLink link{tree, &nodeB, EqualityType::equal};
         nodeA.insert_back(&link);
 
         auto [prev, next] = link.detach_and_reset();
@@ -119,12 +132,13 @@ namespace NPATK::Tests {
     }
 
     TEST(SymbolNodeAndLink, Unlink_FirstOfTwo) {
+        MockTree tree{};
 
-        SymbolTree::SymbolNode nodeA{0};
-        SymbolTree::SymbolNode nodeB{1};
-        SymbolTree::SymbolNode nodeC{2};
-        SymbolTree::SymbolLink linkB{&nodeB, EqualityType::equal};
-        SymbolTree::SymbolLink linkC{&nodeC, EqualityType::equal};
+        SymbolTree::SymbolNode nodeA{tree, 0};
+        SymbolTree::SymbolNode nodeB{tree, 1};
+        SymbolTree::SymbolNode nodeC{tree, 2};
+        SymbolTree::SymbolLink linkB{tree, &nodeB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &nodeC, EqualityType::equal};
         nodeA.insert_back(&linkB);
         nodeA.insert_back(&linkC);
 
@@ -143,12 +157,13 @@ namespace NPATK::Tests {
     }
 
     TEST(SymbolNodeAndLink, Unlink_SecondOfTwo) {
+        MockTree tree{};
 
-        SymbolTree::SymbolNode nodeA{0};
-        SymbolTree::SymbolNode nodeB{1};
-        SymbolTree::SymbolNode nodeC{2};
-        SymbolTree::SymbolLink linkB{&nodeB, EqualityType::equal};
-        SymbolTree::SymbolLink linkC{&nodeC, EqualityType::equal};
+        SymbolTree::SymbolNode nodeA{tree, 0};
+        SymbolTree::SymbolNode nodeB{tree, 1};
+        SymbolTree::SymbolNode nodeC{tree, 2};
+        SymbolTree::SymbolLink linkB{tree, &nodeB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &nodeC, EqualityType::equal};
         nodeA.insert_back(&linkB);
         nodeA.insert_back(&linkC);
 
@@ -168,14 +183,15 @@ namespace NPATK::Tests {
 
 
     TEST(SymbolNodeAndLink, Unlink_SecondOfThree) {
+        MockTree tree{};
 
-        SymbolTree::SymbolNode base{0};
-        SymbolTree::SymbolNode childA{1};
-        SymbolTree::SymbolNode childB{2};
-        SymbolTree::SymbolNode childC{2};
-        SymbolTree::SymbolLink linkA{&childA, EqualityType::equal};
-        SymbolTree::SymbolLink linkB{&childB, EqualityType::equal};
-        SymbolTree::SymbolLink linkC{&childC, EqualityType::equal};
+        SymbolTree::SymbolNode base{tree, 0};
+        SymbolTree::SymbolNode childA{tree, 1};
+        SymbolTree::SymbolNode childB{tree, 2};
+        SymbolTree::SymbolNode childC{tree, 2};
+        SymbolTree::SymbolLink linkA{tree, &childA, EqualityType::equal};
+        SymbolTree::SymbolLink linkB{tree, &childB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &childC, EqualityType::equal};
         base.insert_back(&linkA);
         base.insert_back(&linkB);
         base.insert_back(&linkC);
@@ -199,9 +215,11 @@ namespace NPATK::Tests {
 
 
     TEST(SymbolNodeAndLink, InsertOrdered_EmptyList) {
-        SymbolTree::SymbolNode base{0};
-        SymbolTree::SymbolNode childA{10};
-        SymbolTree::SymbolLink linkA{&childA, EqualityType::equal};
+        MockTree tree{};
+
+        SymbolTree::SymbolNode base{tree, 0};
+        SymbolTree::SymbolNode childA{tree, 10};
+        SymbolTree::SymbolLink linkA{tree, &childA, EqualityType::equal};
 
         ASSERT_TRUE(base.empty());
         auto [did_merge, insA] = base.insert_ordered(&linkA);
@@ -219,19 +237,21 @@ namespace NPATK::Tests {
 
 
     TEST(SymbolNodeAndLink, InsertOrdered_FrontNoHint) {
-        SymbolTree::SymbolNode base{0};
-        SymbolTree::SymbolNode childA{10};
-        SymbolTree::SymbolNode childB{20};
-        SymbolTree::SymbolNode childC{30};
-        SymbolTree::SymbolLink linkA{&childA, EqualityType::equal};
-        SymbolTree::SymbolLink linkB{&childB, EqualityType::equal};
-        SymbolTree::SymbolLink linkC{&childC, EqualityType::equal};
+        MockTree tree{};
+
+        SymbolTree::SymbolNode base{tree, 0};
+        SymbolTree::SymbolNode childA{tree, 10};
+        SymbolTree::SymbolNode childB{tree, 20};
+        SymbolTree::SymbolNode childC{tree, 30};
+        SymbolTree::SymbolLink linkA{tree, &childA, EqualityType::equal};
+        SymbolTree::SymbolLink linkB{tree, &childB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &childC, EqualityType::equal};
         base.insert_back(&linkA);
         base.insert_back(&linkB);
         base.insert_back(&linkC);
 
-        SymbolTree::SymbolNode testNode{5};
-        SymbolTree::SymbolLink testLink{&testNode, EqualityType::negated};
+        SymbolTree::SymbolNode testNode{tree, 5};
+        SymbolTree::SymbolLink testLink{tree, &testNode, EqualityType::negated};
         auto [did_merge, insTest] = base.insert_ordered(&testLink);
 
         EXPECT_FALSE(did_merge);
@@ -260,19 +280,21 @@ namespace NPATK::Tests {
     }
 
     TEST(SymbolNodeAndLink, InsertOrdered_MiddleNoHint) {
-        SymbolTree::SymbolNode base{0};
-        SymbolTree::SymbolNode childA{10};
-        SymbolTree::SymbolNode childB{20};
-        SymbolTree::SymbolNode childC{30};
-        SymbolTree::SymbolLink linkA{&childA, EqualityType::equal};
-        SymbolTree::SymbolLink linkB{&childB, EqualityType::equal};
-        SymbolTree::SymbolLink linkC{&childC, EqualityType::equal};
+        MockTree tree{};
+
+        SymbolTree::SymbolNode base{tree, 0};
+        SymbolTree::SymbolNode childA{tree, 10};
+        SymbolTree::SymbolNode childB{tree, 20};
+        SymbolTree::SymbolNode childC{tree, 30};
+        SymbolTree::SymbolLink linkA{tree, &childA, EqualityType::equal};
+        SymbolTree::SymbolLink linkB{tree, &childB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &childC, EqualityType::equal};
         base.insert_back(&linkA);
         base.insert_back(&linkB);
         base.insert_back(&linkC);
 
-        SymbolTree::SymbolNode testNode{15};
-        SymbolTree::SymbolLink testLink{&testNode, EqualityType::negated};
+        SymbolTree::SymbolNode testNode{tree, 15};
+        SymbolTree::SymbolLink testLink{tree, &testNode, EqualityType::negated};
         auto [did_merge, insTest] = base.insert_ordered(&testLink);
 
         EXPECT_FALSE(did_merge);
@@ -301,19 +323,21 @@ namespace NPATK::Tests {
     }
 
     TEST(SymbolNodeAndLink, InsertOrdered_EndNoHint) {
-        SymbolTree::SymbolNode base{0};
-        SymbolTree::SymbolNode childA{10};
-        SymbolTree::SymbolNode childB{20};
-        SymbolTree::SymbolNode childC{30};
-        SymbolTree::SymbolLink linkA{&childA, EqualityType::equal};
-        SymbolTree::SymbolLink linkB{&childB, EqualityType::equal};
-        SymbolTree::SymbolLink linkC{&childC, EqualityType::equal};
+        MockTree tree{};
+
+        SymbolTree::SymbolNode base{tree, 0};
+        SymbolTree::SymbolNode childA{tree, 10};
+        SymbolTree::SymbolNode childB{tree, 20};
+        SymbolTree::SymbolNode childC{tree, 30};
+        SymbolTree::SymbolLink linkA{tree, &childA, EqualityType::equal};
+        SymbolTree::SymbolLink linkB{tree, &childB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &childC, EqualityType::equal};
         base.insert_back(&linkA);
         base.insert_back(&linkB);
         base.insert_back(&linkC);
 
-        SymbolTree::SymbolNode testNode{35};
-        SymbolTree::SymbolLink testLink{&testNode, EqualityType::negated};
+        SymbolTree::SymbolNode testNode{tree, 35};
+        SymbolTree::SymbolLink testLink{tree, &testNode, EqualityType::negated};
         auto [did_merge, insTest] = base.insert_ordered(&testLink);
 
         EXPECT_FALSE(did_merge);
@@ -342,19 +366,21 @@ namespace NPATK::Tests {
     }
 
     TEST(SymbolNodeAndLink, InsertOrdered_MiddleWithHint) {
-        SymbolTree::SymbolNode base{0};
-        SymbolTree::SymbolNode childA{10};
-        SymbolTree::SymbolNode childB{20};
-        SymbolTree::SymbolNode childC{30};
-        SymbolTree::SymbolLink linkA{&childA, EqualityType::equal};
-        SymbolTree::SymbolLink linkB{&childB, EqualityType::equal};
-        SymbolTree::SymbolLink linkC{&childC, EqualityType::equal};
+        MockTree tree{};
+
+        SymbolTree::SymbolNode base{tree, 0};
+        SymbolTree::SymbolNode childA{tree, 10};
+        SymbolTree::SymbolNode childB{tree, 20};
+        SymbolTree::SymbolNode childC{tree, 30};
+        SymbolTree::SymbolLink linkA{tree, &childA, EqualityType::equal};
+        SymbolTree::SymbolLink linkB{tree, &childB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &childC, EqualityType::equal};
         base.insert_back(&linkA);
         base.insert_back(&linkB);
         base.insert_back(&linkC);
 
-        SymbolTree::SymbolNode testNode{15};
-        SymbolTree::SymbolLink testLink{&testNode, EqualityType::negated};
+        SymbolTree::SymbolNode testNode{tree, 15};
+        SymbolTree::SymbolLink testLink{tree, &testNode, EqualityType::negated};
         auto [did_merge, insTest] = base.insert_ordered(&testLink, &linkB);
         EXPECT_FALSE(did_merge);
         EXPECT_EQ(insTest, &testLink);
@@ -382,19 +408,21 @@ namespace NPATK::Tests {
     }
 
     TEST(SymbolNodeAndLink, InsertOrdered_EndWithHint) {
-        SymbolTree::SymbolNode base{0};
-        SymbolTree::SymbolNode childA{10};
-        SymbolTree::SymbolNode childB{20};
-        SymbolTree::SymbolNode childC{30};
-        SymbolTree::SymbolLink linkA{&childA, EqualityType::equal};
-        SymbolTree::SymbolLink linkB{&childB, EqualityType::equal};
-        SymbolTree::SymbolLink linkC{&childC, EqualityType::equal};
+        MockTree tree{};
+
+        SymbolTree::SymbolNode base{tree, 0};
+        SymbolTree::SymbolNode childA{tree, 10};
+        SymbolTree::SymbolNode childB{tree, 20};
+        SymbolTree::SymbolNode childC{tree, 30};
+        SymbolTree::SymbolLink linkA{tree, &childA, EqualityType::equal};
+        SymbolTree::SymbolLink linkB{tree, &childB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &childC, EqualityType::equal};
         base.insert_back(&linkA);
         base.insert_back(&linkB);
         base.insert_back(&linkC);
 
-        SymbolTree::SymbolNode testNode{35};
-        SymbolTree::SymbolLink testLink{&testNode, EqualityType::negated};
+        SymbolTree::SymbolNode testNode{tree, 35};
+        SymbolTree::SymbolLink testLink{tree, &testNode, EqualityType::negated};
         auto [did_merge, insTest] = base.insert_ordered(&testLink, &linkC);
         EXPECT_FALSE(did_merge);
         EXPECT_EQ(insTest, &testLink);
@@ -422,29 +450,31 @@ namespace NPATK::Tests {
     }
 
     TEST(SymbolNodeAndLink, Subsume_Concatenate) {
-        SymbolTree::SymbolNode baseA{0};
-        SymbolTree::SymbolNode childAA{10};
-        SymbolTree::SymbolNode childAB{20};
-        SymbolTree::SymbolNode childAC{30};
-        SymbolTree::SymbolLink linkAA{&childAA, EqualityType::equal};
-        SymbolTree::SymbolLink linkAB{&childAB, EqualityType::equal};
-        SymbolTree::SymbolLink linkAC{&childAC, EqualityType::equal};
+        MockTree tree{};
+
+        SymbolTree::SymbolNode baseA{tree, 0};
+        SymbolTree::SymbolNode childAA{tree, 10};
+        SymbolTree::SymbolNode childAB{tree, 20};
+        SymbolTree::SymbolNode childAC{tree, 30};
+        SymbolTree::SymbolLink linkAA{tree, &childAA, EqualityType::equal};
+        SymbolTree::SymbolLink linkAB{tree, &childAB, EqualityType::equal};
+        SymbolTree::SymbolLink linkAC{tree, &childAC, EqualityType::equal};
         baseA.insert_back(&linkAA);
         baseA.insert_back(&linkAB);
         baseA.insert_back(&linkAC);
 
-        SymbolTree::SymbolNode baseB{40};
-        SymbolTree::SymbolNode childBA{50};
-        SymbolTree::SymbolNode childBB{60};
-        SymbolTree::SymbolNode childBC{70};
-        SymbolTree::SymbolLink linkBA{&childBA, EqualityType::equal};
-        SymbolTree::SymbolLink linkBB{&childBB, EqualityType::equal};
-        SymbolTree::SymbolLink linkBC{&childBC, EqualityType::equal};
+        SymbolTree::SymbolNode baseB{tree, 40};
+        SymbolTree::SymbolNode childBA{tree, 50};
+        SymbolTree::SymbolNode childBB{tree, 60};
+        SymbolTree::SymbolNode childBC{tree, 70};
+        SymbolTree::SymbolLink linkBA{tree, &childBA, EqualityType::equal};
+        SymbolTree::SymbolLink linkBB{tree, &childBB, EqualityType::equal};
+        SymbolTree::SymbolLink linkBC{tree, &childBC, EqualityType::equal};
         baseB.insert_back(&linkBA);
         baseB.insert_back(&linkBB);
         baseB.insert_back(&linkBC);
 
-        SymbolTree::SymbolLink linkInB{&baseB, EqualityType::negated};
+        SymbolTree::SymbolLink linkInB{tree, &baseB, EqualityType::negated};
 
         size_t ss_count = baseA.subsume(&linkInB);
         ASSERT_EQ(ss_count, 4) << "Four elements should have been added";
@@ -507,29 +537,31 @@ namespace NPATK::Tests {
     }
 
     TEST(SymbolNodeAndLink, Subsume_Prefix) {
-        SymbolTree::SymbolNode baseA{0};
-        SymbolTree::SymbolNode childAA{50};
-        SymbolTree::SymbolNode childAB{60};
-        SymbolTree::SymbolNode childAC{70};
-        SymbolTree::SymbolLink linkAA{&childAA, EqualityType::equal};
-        SymbolTree::SymbolLink linkAB{&childAB, EqualityType::equal};
-        SymbolTree::SymbolLink linkAC{&childAC, EqualityType::equal};
+        MockTree tree{};
+
+        SymbolTree::SymbolNode baseA{tree, 0};
+        SymbolTree::SymbolNode childAA{tree, 50};
+        SymbolTree::SymbolNode childAB{tree, 60};
+        SymbolTree::SymbolNode childAC{tree, 70};
+        SymbolTree::SymbolLink linkAA{tree, &childAA, EqualityType::equal};
+        SymbolTree::SymbolLink linkAB{tree, &childAB, EqualityType::equal};
+        SymbolTree::SymbolLink linkAC{tree, &childAC, EqualityType::equal};
         baseA.insert_back(&linkAA);
         baseA.insert_back(&linkAB);
         baseA.insert_back(&linkAC);
 
-        SymbolTree::SymbolNode baseB{10};
-        SymbolTree::SymbolNode childBA{20};
-        SymbolTree::SymbolNode childBB{30};
-        SymbolTree::SymbolNode childBC{40};
-        SymbolTree::SymbolLink linkBA{&childBA, EqualityType::equal};
-        SymbolTree::SymbolLink linkBB{&childBB, EqualityType::equal};
-        SymbolTree::SymbolLink linkBC{&childBC, EqualityType::equal};
+        SymbolTree::SymbolNode baseB{tree, 10};
+        SymbolTree::SymbolNode childBA{tree, 20};
+        SymbolTree::SymbolNode childBB{tree, 30};
+        SymbolTree::SymbolNode childBC{tree, 40};
+        SymbolTree::SymbolLink linkBA{tree, &childBA, EqualityType::equal};
+        SymbolTree::SymbolLink linkBB{tree, &childBB, EqualityType::equal};
+        SymbolTree::SymbolLink linkBC{tree, &childBC, EqualityType::equal};
         baseB.insert_back(&linkBA);
         baseB.insert_back(&linkBB);
         baseB.insert_back(&linkBC);
 
-        SymbolTree::SymbolLink linkInB{&baseB, EqualityType::negated};
+        SymbolTree::SymbolLink linkInB{tree, &baseB, EqualityType::negated};
 
         size_t ss_count = baseA.subsume(&linkInB);
         ASSERT_EQ(ss_count, 4) << "Four elements should have been added";
@@ -592,29 +624,31 @@ namespace NPATK::Tests {
 
 
     TEST(SymbolNodeAndLink, Subsume_Interleave) {
-        SymbolTree::SymbolNode baseA{0};
-        SymbolTree::SymbolNode childAA{30};
-        SymbolTree::SymbolNode childAB{50};
-        SymbolTree::SymbolNode childAC{70};
-        SymbolTree::SymbolLink linkAA{&childAA, EqualityType::equal};
-        SymbolTree::SymbolLink linkAB{&childAB, EqualityType::equal};
-        SymbolTree::SymbolLink linkAC{&childAC, EqualityType::equal};
+        MockTree tree{};
+
+        SymbolTree::SymbolNode baseA{tree, 0};
+        SymbolTree::SymbolNode childAA{tree, 30};
+        SymbolTree::SymbolNode childAB{tree, 50};
+        SymbolTree::SymbolNode childAC{tree, 70};
+        SymbolTree::SymbolLink linkAA{tree, &childAA, EqualityType::equal};
+        SymbolTree::SymbolLink linkAB{tree, &childAB, EqualityType::equal};
+        SymbolTree::SymbolLink linkAC{tree, &childAC, EqualityType::equal};
         baseA.insert_back(&linkAA);
         baseA.insert_back(&linkAB);
         baseA.insert_back(&linkAC);
 
-        SymbolTree::SymbolNode baseB{10};
-        SymbolTree::SymbolNode childBA{40};
-        SymbolTree::SymbolNode childBB{60};
-        SymbolTree::SymbolNode childBC{80};
-        SymbolTree::SymbolLink linkBA{&childBA, EqualityType::equal};
-        SymbolTree::SymbolLink linkBB{&childBB, EqualityType::equal};
-        SymbolTree::SymbolLink linkBC{&childBC, EqualityType::equal};
+        SymbolTree::SymbolNode baseB{tree, 10};
+        SymbolTree::SymbolNode childBA{tree, 40};
+        SymbolTree::SymbolNode childBB{tree, 60};
+        SymbolTree::SymbolNode childBC{tree, 80};
+        SymbolTree::SymbolLink linkBA{tree, &childBA, EqualityType::equal};
+        SymbolTree::SymbolLink linkBB{tree, &childBB, EqualityType::equal};
+        SymbolTree::SymbolLink linkBC{tree, &childBC, EqualityType::equal};
         baseB.insert_back(&linkBA);
         baseB.insert_back(&linkBB);
         baseB.insert_back(&linkBC);
 
-        SymbolTree::SymbolLink linkInB{&baseB, EqualityType::negated};
+        SymbolTree::SymbolLink linkInB{tree, &baseB, EqualityType::negated};
 
         size_t ss_count = baseA.subsume(&linkInB);
         ASSERT_EQ(ss_count, 4) << "Four elements should have been added";

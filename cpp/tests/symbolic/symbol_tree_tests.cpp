@@ -562,8 +562,18 @@ namespace NPATK::Tests {
         EXPECT_FALSE(diamond[1].is_zero());
         EXPECT_FALSE(diamond[1].real_is_zero);
         EXPECT_FALSE(diamond[1].im_is_zero);
+    }
 
-
+    TEST_F(SymbolTreeFixture, Simplify_CrissCross) {
+        auto &cross = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                                           SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{4}}
+                                           });
+        cross.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4}}});
     }
 
     TEST_F(SymbolTreeFixture, Simplify_BranchingZigZag) {
