@@ -124,8 +124,41 @@ namespace NPATK {
         using SymbolLinkIterator = SymbolLinkIteratorBase<false>;
         using SymbolLinkConstIterator = SymbolLinkIteratorBase<true>;
 
+
         struct SymbolNode : public Symbol {
             friend struct SymbolLink;
+
+        private:
+            struct RebaseInfoImpl {
+            public:
+                SymbolTree::SymbolLink * linkToMove;
+                SymbolTree::SymbolLink * linkFromCanonicalNode;
+
+                EqualityType relationToBase;
+                EqualityType relationToCanonical = EqualityType::none;
+
+                enum class PivotStatus {
+                    /** Canonical link is incorrect */
+                    NotPivot,
+                    /** Canonical link is correct, and this is the first such node in the list with this status */
+                    Pivot,
+                    /** Canonical link is correct, but another node also has this status */
+                    FalsePivot
+                } pivot_status = PivotStatus::NotPivot;
+
+                /**
+                 * Request to move a link (change its origin)
+                 * @param it_link The link to be altered (from 'base' to 'pivot')
+                 * @param can_link The link from canonical to pivot
+                 * @param rtb The relationship between this node
+                 */
+                RebaseInfoImpl(SymbolTree::SymbolLink * it_link,
+                               SymbolTree::SymbolLink * can_link,
+                               EqualityType rtb) noexcept :
+                        linkToMove{it_link},
+                        linkFromCanonicalNode{can_link},
+                        relationToBase{rtb} { }
+            };
 
         private:
             /** Reference to owning tree */
@@ -144,6 +177,10 @@ namespace NPATK {
             constexpr explicit SymbolNode(SymbolTree& tree, symbol_name_t name) noexcept : the_tree{tree}, Symbol{name} { }
 
             constexpr explicit SymbolNode(SymbolTree& tree, Symbol symbol) noexcept : the_tree{tree}, Symbol{symbol} { }
+
+            /** Iterate through node's children, and re-arrange network to point either directly to this node, or to
+             * a discovered "canonical origin" node with lower ID than this node. */
+            void simplify();
 
             [[nodiscard]] constexpr SymbolLinkIterator begin() noexcept {
                 return SymbolLinkIterator{this->first_link};
@@ -188,7 +225,6 @@ namespace NPATK {
              */
             std::pair<bool, SymbolLink*> insert_ordered(SymbolLink* link, SymbolLink * hint = nullptr) noexcept;
 
-
              /**
               * Absorb a link to a (canonical) node, inserting link and all sub-links into this node's link list.
               * @param source SymbolLink object that describes the relationship between this node and node to be absorbed.
@@ -212,6 +248,23 @@ namespace NPATK {
             [[nodiscard]] bool unaliased() const noexcept { return this->canonical_origin == nullptr; }
 
             friend class detail::SymbolNodeSimplifyImpl;
+
+        private:
+
+            /**
+             * Search for children of this nodes that already have a canonical origin (i.e. have already been discovered
+             * during another part of the algorithm).
+             * @param rebase_list The output list of discovered nodes already with a canonical origin
+             * @return The index in rebase_list corresponding to the pivot node (i.e. node with lowest canonical origin)
+             */
+            size_t find_already_linked(std::vector<RebaseInfoImpl>& rebase_list);
+
+            SymbolTree::SymbolLink * rebase_nodes(std::vector<RebaseInfoImpl> &rebase_list,
+                                                 size_t lowest_node_found_index);
+
+            void incorporate_all_descendents(SymbolTree::SymbolNode * rebase_node,
+                                             EqualityType base_et);
+
 
 
         };
@@ -279,10 +332,20 @@ namespace NPATK {
         SymbolTree();
 
     private:
+        /** Convert symbol set into nodes and links of tree */
         void make_nodes_and_links(const SymbolSet& symbols);
 
+        /** Further rearrange network, such that node clusters that evaluate to zero are explicitly aliased as zero. */
+        void sweep_zero();
+
+        /** Check that nullity (re/im = 0) of nodes is shared between parents and children */
+        void propagate_nullity();
+
+        /** Count the number of nodes that have a canonical origin, and are hence aliases of other symbols */
+        size_t count_noncanonical_nodes();
+
         /** Flags a SymbolLink as unused */
-        void releaseLink(SymbolLink * link);
+        void release_link(SymbolLink * link);
 
         /** Returns an unused SymbolLink */
         SymbolLink * getAvailableLink();

@@ -29,7 +29,7 @@ add_library(lib_npatk
         symbolic/symbol_expression.cpp
         symbolic/symbol_set.cpp
         symbolic/symbol_tree.cpp
-        symbolic/symbol_tree_simplify_impl.cpp
+        symbolic/symbol_tree_symbol_node.cpp
         utilities/alphabetic_namer.cpp
         utilities/persistent_storage.cpp
 )

@@ -1,14 +1,14 @@
 /**
- * symbol_tree_simplify_impl.cpp
+ * symbol_tree_symbol_node.cpp
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
-#include "symbol.h"
-#include "symbol_tree_simplify_impl.h"
+
+#include "symbol_tree.h"
 
 #include <stack>
 
-namespace NPATK::detail {
+namespace NPATK {
 
     namespace {
         /** Represents a node, and an iterator over the node's children */
@@ -41,119 +41,175 @@ namespace NPATK::detail {
         };
     }
 
-    void SymbolNodeSimplifyImpl::simplify() {
-        // Simplify
-        const size_t symbol_count = theTree.tree_nodes.size();
-        for (symbol_name_t node_id = 0; node_id < symbol_count; ++node_id) {
-            simplifyNode(node_id);
+    void SymbolTree::SymbolNode::insert_back(SymbolTree::SymbolLink* link) noexcept {
+        if (this->last_link != nullptr) {
+            this->last_link->next = link;
+            link->prev = this->last_link;
+            link->next = nullptr;
+            this->last_link = link;
+        } else {
+            this->first_link = link;
+            this->last_link = link;
         }
-
-        // Propagate real & imaginary nullity
-        propagate_nullity();
-
-        // Nodes that are formally zero should alias to zero
-        sweep_zero();
-
-        // Count aliases
-        count_noncanonical_nodes();
+        link->origin = this;
     }
 
-    size_t SymbolNodeSimplifyImpl::count_noncanonical_nodes() {
-        theTree.num_aliases = 0;
-        for (auto& node : theTree.tree_nodes) {
-            if (node.canonical_origin != nullptr) {
-                ++theTree.num_aliases;
-            }
+    std::pair<bool, SymbolTree::SymbolLink*>
+    SymbolTree::SymbolNode::insert_ordered(SymbolTree::SymbolLink *link, SymbolTree::SymbolLink * hint) noexcept {
+        // Debug assertions:
+        assert(link->origin == nullptr);
+        assert(link->prev == nullptr);
+        assert(link->next == nullptr);
+
+        link->origin = this;
+
+        // If only link in node:
+        if (this->empty()) {
+            this->first_link = link;
+            this->last_link = link;
+            link->prev = nullptr;
+            link->next = nullptr;
+            return {false, link};
         }
-        return theTree.num_aliases;
-    }
 
-    void SymbolNodeSimplifyImpl::sweep_zero() {
-        const size_t symbol_count = theTree.count_nodes();
+        // Node not empty, so guaranteed this->first_link / this->last_link != nullptr
 
-        auto &zeroNode = theTree.tree_nodes[0];
-        for (symbol_name_t node_id = 1; node_id < symbol_count; ++node_id) {
-            auto &theNode = theTree.tree_nodes[node_id];
-
-            // Early exit on nodes that have a parent
-            if (theNode.canonical_origin != nullptr) {
-                continue;
-            }
-
-            if (theNode.is_zero()) {
-                auto * newLink = theTree.getAvailableLink();
-                assert(newLink != nullptr);
-                newLink->link_type = EqualityType::equal;
-                newLink->target = &theNode;
-                zeroNode.subsume(newLink);
-            }
+        // No hint provided; so start from first link of Node
+        if (hint == nullptr) {
+            hint = this->first_link;
         }
-    }
 
-    void SymbolNodeSimplifyImpl::propagate_nullity() {
-        for (auto& node : theTree.tree_nodes) {
-            if (node.canonical_origin != nullptr) {
-                continue;
-            }
+        while (hint != nullptr) {
+            assert(link != hint);
+            assert(link->target != nullptr);
+            assert(hint->target != nullptr);
 
-            for (auto& child_link : node) {
-                auto& child = child_link.target;
-                // Assert that children should not have nullity that the parent does not already have.
-                assert(!(child->real_is_zero && (!node.real_is_zero)));
-                assert(!(child->im_is_zero && (!node.im_is_zero)));
-
-                child->real_is_zero = node.real_is_zero;
-                child->im_is_zero = node.im_is_zero;
-
-                // Simplify link relationships based on symbol properties
-                if (node.is_zero()) {
-                    child_link.link_type = EqualityType::equal;
-                } else if (node.real_is_zero) {
-                    child_link.link_type = simplifyPureImaginary(child_link.link_type);
-                } else if (node.im_is_zero) {
-                    child_link.link_type = simplifyPureReal(child_link.link_type);
+            if (link->target->id < hint->target->id) {
+                link->prev = hint->prev; // might be nullptr
+                link->next = hint;
+                if (hint == this->first_link) {
+                    assert(hint->prev == nullptr);
+                    this->first_link = link;
                 }
+                if (link->prev != nullptr) {
+                    hint->prev->next = link;
+                }
+                hint->prev = link;
+                return {false, link};
             }
+            if (link->target->id == hint->target->id) {
+                // Merge, by combining link types
+                hint->link_type |= link->link_type;
+
+                // See if merge changes nullity of symbol
+                auto [implies_re_zero, implies_im_zero] = implies_zero(hint->link_type);
+                this->real_is_zero = this->real_is_zero || implies_re_zero;
+                this->im_is_zero = this->im_is_zero || implies_im_zero;
+
+                // Input link is reset and effectively orphaned, as it should not point to anything
+
+                link->origin = nullptr;
+                link->target = nullptr;
+                link->link_type = EqualityType::none;
+                // XXx tree->release()? somewhere??
+
+                // Return ptr to link already in the list
+                return {true, hint};
+            }
+            hint = hint->next;
         }
+
+        // Did not insert yet, so put at end of list:
+        this->last_link->next = link;
+        link->prev = this->last_link;
+        link->next = nullptr;
+        this->last_link = link;
+
+        return {false, link};
     }
 
 
-    void SymbolNodeSimplifyImpl::simplifyNode(size_t node_id) {
-        assert(node_id < theTree.tree_nodes.size());
-        auto this_node = &(theTree.tree_nodes[node_id]);
+    size_t SymbolTree::SymbolNode::subsume(SymbolTree::SymbolLink *source) noexcept {
+        assert(source->target != nullptr);
 
+        size_t count = 1;
+        SymbolNode& sourceNode = *(source->target);
+        const EqualityType baseET = source->link_type;
+
+        // First, insert source node
+        auto [did_merge_source, hint] = this->insert_ordered(source);
+
+        sourceNode.canonical_origin = source;
+        sourceNode.im_is_zero = sourceNode.im_is_zero || this->im_is_zero;
+        sourceNode.real_is_zero = sourceNode.real_is_zero || this->real_is_zero;
+
+        // Now, insert all sub-children.
+        SymbolLink * source_ptr = sourceNode.first_link;
+        while (source_ptr != nullptr) {
+            SymbolLink * next_ptr = source_ptr->next; // might be nullptr
+
+            // Crude detach, as we will reset whole chain...
+            auto& linkToMove = *source_ptr;
+            linkToMove.next = nullptr;
+            linkToMove.prev = nullptr;
+            linkToMove.origin = nullptr;
+            linkToMove.link_type = compose(baseET, linkToMove.link_type);
+
+            assert(linkToMove.target != nullptr);
+            auto& childNode = *(linkToMove.target);
+            childNode.canonical_origin = &linkToMove;
+            childNode.im_is_zero = childNode.im_is_zero || this->im_is_zero;
+            childNode.real_is_zero = childNode.real_is_zero || this->real_is_zero;
+
+            auto [did_merge, next_hint] = this->insert_ordered(&linkToMove, hint);
+            hint = next_hint;
+            source_ptr = next_ptr;
+            ++count;
+        }
+
+        // Source no longer has children
+        sourceNode.first_link = nullptr;
+        sourceNode.last_link = nullptr;
+
+        return count;
+    }
+
+
+
+    void SymbolTree::SymbolNode::simplify() {
         // If node already has canonical origin, node has been visited already (and cannot simplify itself further).
-        if (this_node->canonical_origin != nullptr) {
+        if (this->canonical_origin != nullptr) {
             return;
         }
 
         // If node has no children, nothing to simplify
-        if (this_node->empty()) {
+        if (this->empty()) {
             return;
         }
 
         // See if any children think they are already part of a tree
         std::vector<RebaseInfoImpl> nodes_to_rebase;
-        size_t lowest_node_found_index = find_already_linked(this_node, nodes_to_rebase);
+        size_t lowest_node_found_index = find_already_linked(nodes_to_rebase);
 
         // Anything to rebase?
         if (!nodes_to_rebase.empty()) {
-            rebaseNodes(this_node, nodes_to_rebase, lowest_node_found_index);
+            rebase_nodes(nodes_to_rebase, lowest_node_found_index);
 
             // Now, only "unvisited" children remain, and they should be moved via pivot to new canonical base
             auto &pivot_entry = nodes_to_rebase[lowest_node_found_index];
             auto &canonical_node = *(pivot_entry.linkFromCanonicalNode->origin);
-            incorporate_all_descendents(this_node, &canonical_node,
+            incorporate_all_descendents(&canonical_node,
                                         compose(pivot_entry.relationToBase, pivot_entry.relationToCanonical));
 
         } else {
             // Nothing to rebase, but move this node's descendents to this node
-            incorporate_all_descendents(this_node, this_node, EqualityType::equal);
+            incorporate_all_descendents(this, EqualityType::equal);
         }
     }
 
-    size_t SymbolNodeSimplifyImpl::find_already_linked(SymbolTree::SymbolNode * const base_node,
-                                                       std::vector<RebaseInfoImpl>& rebase_list) {
+
+
+    size_t SymbolTree::SymbolNode::find_already_linked(std::vector<RebaseInfoImpl>& rebase_list) {
         rebase_list.clear();
 
         size_t lowest_node_found_index = std::numeric_limits<size_t>::max();
@@ -161,7 +217,7 @@ namespace NPATK::detail {
 
         // Scan node and children recursively
         std::stack<NodeAndIter> recurse_stack{};
-        recurse_stack.emplace(base_node, EqualityType::equal);
+        recurse_stack.emplace(this, EqualityType::equal);
         while (!recurse_stack.empty()) {
             auto& stack_frame = recurse_stack.top();
 
@@ -186,7 +242,7 @@ namespace NPATK::detail {
             // If node's child has canonical origin...!
             if (current_link.target->canonical_origin != nullptr) {
                 // Origin should not be base node...!
-                assert(current_link.target->canonical_origin->origin != base_node);
+                assert(current_link.target->canonical_origin->origin != this);
 
                 // Register link!
                 rebase_list.emplace_back(RebaseInfoImpl{&current_link,
@@ -232,7 +288,7 @@ namespace NPATK::detail {
                 } else {
                     EqualityType relationToPivot = compose(pivot_entry.relationToBase, entry.relationToBase);
                     EqualityType relationToCanon = compose(pivot_entry.linkFromCanonicalNode->link_type,
-                                                          relationToPivot);
+                                                           relationToPivot);
 
                     // Node is not the pivot, but still has correct canonical.
                     if (entry.linkFromCanonicalNode->origin == pivot_entry.linkFromCanonicalNode->origin) {
@@ -251,9 +307,8 @@ namespace NPATK::detail {
     }
 
     SymbolTree::SymbolLink *
-    SymbolNodeSimplifyImpl::rebaseNodes(SymbolTree::SymbolNode * const base_node,
-                                       std::vector<RebaseInfoImpl> &nodes_to_rebase,
-                                       size_t lowest_node_found_index) {
+    SymbolTree::SymbolNode::rebase_nodes(std::vector<RebaseInfoImpl> &nodes_to_rebase,
+                                         size_t lowest_node_found_index) {
 
         /* The link we will use ultimately for attaching the base node to the canonical node */
         SymbolTree::SymbolLink * link_for_base = nullptr;
@@ -280,7 +335,7 @@ namespace NPATK::detail {
                 link_for_base = move_entry.linkToMove;
                 link_for_base->link_type = compose(move_entry.linkFromCanonicalNode->link_type,
                                                    move_entry.relationToBase);
-                link_for_base->target = base_node; // no origin, or children, yet...
+                link_for_base->target = this; // no origin, or children, yet...
             } else if (move_entry.pivot_status == RebaseInfoImpl::PivotStatus::FalsePivot) {
                 // Node has correct canonical, but is not the first node with this status...
                 assert(move_entry.linkFromCanonicalNode->origin == &canonical_node);
@@ -290,7 +345,7 @@ namespace NPATK::detail {
 
                 // Redundant link can then be detached and freed
                 move_entry.linkToMove->detach_and_reset();
-                this->theTree.releaseLink(move_entry.linkToMove);
+                this->the_tree.release_link(move_entry.linkToMove);
             } else {
                 assert(move_entry.linkToMove->target->canonical_origin != nullptr);
                 auto& move_link = *(move_entry.linkToMove);
@@ -310,7 +365,7 @@ namespace NPATK::detail {
 
         // Finally, move base node into canonical structure.
         assert(link_for_base != nullptr);
-        base_node->canonical_origin = link_for_base;
+        this->canonical_origin = link_for_base;
 
         // We are guaranteed not to be a duplicate entry in the canonical node,
         //  but the same is not guaranteed for our descendents.
@@ -319,13 +374,12 @@ namespace NPATK::detail {
         return descendent_hint;
     }
 
-    void SymbolNodeSimplifyImpl::incorporate_all_descendents(SymbolTree::SymbolNode * base_node,
-                                                             SymbolTree::SymbolNode * rebase_node,
+    void SymbolTree::SymbolNode::incorporate_all_descendents(SymbolTree::SymbolNode * rebase_node,
                                                              EqualityType base_et) {
 
         // Iterate recursively through tree, acting on parent nodes before their children
         std::stack<MoveStack> recurse_stack{};
-        recurse_stack.emplace(base_node, base_et);
+        recurse_stack.emplace(this, base_et);
 
         while (!recurse_stack.empty()) {
             auto& stack_frame = recurse_stack.top();
@@ -354,7 +408,7 @@ namespace NPATK::detail {
 
                 // Redundant link, free:
                 if (did_merge) {
-                    theTree.releaseLink(&current_link);
+                    this->the_tree.release_link(&current_link);
                 }
 
                 inserted_link->target->canonical_origin = inserted_link;
@@ -385,10 +439,28 @@ namespace NPATK::detail {
                 // Reset link:
                 auto [prev, next_child] = current_link.detach_and_reset();
                 stack_frame.cursor = next_child;
-                theTree.releaseLink(&current_link);
+                this->the_tree.release_link(&current_link);
             }
         }
     }
 
+    SymbolExpression SymbolTree::SymbolNode::canonical_expression() const noexcept {
+        // Return canonical id, maybe with negation or conjugation
+        if (this->canonical_origin != nullptr) {
+            return SymbolExpression{this->canonical_origin->origin->id,
+                                    is_negated(this->canonical_origin->link_type),
+                                    is_conjugated(this->canonical_origin->link_type)};
+        }
+        // Return self id (no negation or conjugation)
+        return SymbolExpression{this->id};
+    }
 
+    SymbolPair SymbolTree::SymbolNode::canonical_pair() const noexcept {
+        if (this->canonical_origin == nullptr) {
+            return SymbolPair{this->id, this->id, false, false};
+        }
+        return SymbolPair{this->id, this->canonical_origin->origin->id,
+                          is_negated(this->canonical_origin->link_type),
+                          is_conjugated(this->canonical_origin->link_type)};
+    }
 }

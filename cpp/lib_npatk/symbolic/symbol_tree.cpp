@@ -4,7 +4,6 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "symbol_tree.h"
-#include "symbol_tree_simplify_impl.h"
 
 #include <algorithm>
 #include <iostream>
@@ -92,160 +91,6 @@ namespace NPATK {
     }
 
 
-    void SymbolTree::SymbolNode::insert_back(SymbolTree::SymbolLink* link) noexcept {
-        if (this->last_link != nullptr) {
-            this->last_link->next = link;
-            link->prev = this->last_link;
-            link->next = nullptr;
-            this->last_link = link;
-        } else {
-            this->first_link = link;
-            this->last_link = link;
-        }
-        link->origin = this;
-    }
-
-    std::pair<bool, SymbolTree::SymbolLink*>
-    SymbolTree::SymbolNode::insert_ordered(SymbolTree::SymbolLink *link, SymbolTree::SymbolLink * hint) noexcept {
-        // Debug assertions:
-        assert(link->origin == nullptr);
-        assert(link->prev == nullptr);
-        assert(link->next == nullptr);
-
-        link->origin = this;
-
-        // If only link in node:
-        if (this->empty()) {
-            this->first_link = link;
-            this->last_link = link;
-            link->prev = nullptr;
-            link->next = nullptr;
-            return {false, link};
-        }
-
-        // Node not empty, so guaranteed this->first_link / this->last_link != nullptr
-
-        // No hint provided; so start from first link of Node
-        if (hint == nullptr) {
-            hint = this->first_link;
-        }
-
-        while (hint != nullptr) {
-            assert(link != hint);
-            assert(link->target != nullptr);
-            assert(hint->target != nullptr);
-
-            if (link->target->id < hint->target->id) {
-                link->prev = hint->prev; // might be nullptr
-                link->next = hint;
-                if (hint == this->first_link) {
-                    assert(hint->prev == nullptr);
-                    this->first_link = link;
-                }
-                if (link->prev != nullptr) {
-                    hint->prev->next = link;
-                }
-                hint->prev = link;
-                return {false, link};
-            }
-            if (link->target->id == hint->target->id) {
-                // Merge, by combining link types
-                hint->link_type |= link->link_type;
-
-                // See if merge changes nullity of symbol
-                auto [implies_re_zero, implies_im_zero] = implies_zero(hint->link_type);
-                this->real_is_zero = this->real_is_zero || implies_re_zero;
-                this->im_is_zero = this->im_is_zero || implies_im_zero;
-
-                // Input link is reset and effectively orphaned, as it should not point to anything
-
-                link->origin = nullptr;
-                link->target = nullptr;
-                link->link_type = EqualityType::none;
-                // XXx tree->release()? somewhere??
-
-                // Return ptr to link already in the list
-                return {true, hint};
-            }
-            hint = hint->next;
-        }
-
-        // Did not insert yet, so put at end of list:
-        this->last_link->next = link;
-        link->prev = this->last_link;
-        link->next = nullptr;
-        this->last_link = link;
-
-        return {false, link};
-    }
-
-
-    size_t SymbolTree::SymbolNode::subsume(SymbolTree::SymbolLink *source) noexcept {
-        assert(source->target != nullptr);
-
-        size_t count = 1;
-        SymbolNode& sourceNode = *(source->target);
-        const EqualityType baseET = source->link_type;
-
-        // First, insert source node
-        auto [did_merge_source, hint] = this->insert_ordered(source);
-
-        sourceNode.canonical_origin = source;
-        sourceNode.im_is_zero = sourceNode.im_is_zero || this->im_is_zero;
-        sourceNode.real_is_zero = sourceNode.real_is_zero || this->real_is_zero;
-
-        // Now, insert all sub-children.
-        SymbolLink * source_ptr = sourceNode.first_link;
-        while (source_ptr != nullptr) {
-            SymbolLink * next_ptr = source_ptr->next; // might be nullptr
-
-            // Crude detach, as we will reset whole chain...
-            auto& linkToMove = *source_ptr;
-            linkToMove.next = nullptr;
-            linkToMove.prev = nullptr;
-            linkToMove.origin = nullptr;
-            linkToMove.link_type = compose(baseET, linkToMove.link_type);
-
-            assert(linkToMove.target != nullptr);
-            auto& childNode = *(linkToMove.target);
-            childNode.canonical_origin = &linkToMove;
-            childNode.im_is_zero = childNode.im_is_zero || this->im_is_zero;
-            childNode.real_is_zero = childNode.real_is_zero || this->real_is_zero;
-
-            auto [did_merge, next_hint] = this->insert_ordered(&linkToMove, hint);
-            hint = next_hint;
-            source_ptr = next_ptr;
-            ++count;
-        }
-
-        // Source no longer has children
-        sourceNode.first_link = nullptr;
-        sourceNode.last_link = nullptr;
-
-        return count;
-    }
-
-    SymbolExpression SymbolTree::SymbolNode::canonical_expression() const noexcept {
-        // Return canonical id, maybe with negation or conjugation
-        if (this->canonical_origin != nullptr) {
-            return SymbolExpression{this->canonical_origin->origin->id,
-                                    is_negated(this->canonical_origin->link_type),
-                                    is_conjugated(this->canonical_origin->link_type)};
-        }
-        // Return self id (no negation or conjugation)
-        return SymbolExpression{this->id};
-    }
-
-    SymbolPair SymbolTree::SymbolNode::canonical_pair() const noexcept {
-        if (this->canonical_origin == nullptr) {
-            return SymbolPair{this->id, this->id, false, false};
-        }
-        return SymbolPair{this->id, this->canonical_origin->origin->id,
-                          is_negated(this->canonical_origin->link_type),
-                          is_conjugated(this->canonical_origin->link_type)};
-    }
-
-
     SymbolTree::SymbolTree(const SymbolSet &symbols)
         : packing_map{symbols.packing_key}, unpacking_map{symbols.unpacking_key}
     {
@@ -301,7 +146,7 @@ namespace NPATK {
     }
 
 
-    void SymbolTree::releaseLink(SymbolTree::SymbolLink * link) {
+    void SymbolTree::release_link(SymbolTree::SymbolLink * link) {
         assert(debug_assert_good_release(this->available_links, link));
         this->available_links.push_back(link);
     }
@@ -321,8 +166,20 @@ namespace NPATK {
             return;
         }
 
-        detail::SymbolNodeSimplifyImpl impl{*this};
-        impl.simplify();
+        // Go through nodes, executing algorithm
+        const size_t symbol_count = this->tree_nodes.size();
+        for (symbol_name_t node_id = 0; node_id < symbol_count; ++node_id) {
+            this->tree_nodes[node_id].simplify();
+        }
+
+        // Propagate real & imaginary nullity
+        propagate_nullity();
+
+        // Nodes that are formally zero should alias to zero
+        sweep_zero();
+
+        // Count aliases
+        count_noncanonical_nodes();
 
         this->done_simplification = true;
     }
@@ -359,6 +216,66 @@ namespace NPATK {
         }
 
         return canon_expr;
+    }
+
+
+    size_t SymbolTree::count_noncanonical_nodes() {
+        this->num_aliases = 0;
+        for (auto& node : this->tree_nodes) {
+            if (!node.unaliased()) {
+                ++this->num_aliases;
+            }
+        }
+        return this->num_aliases;
+    }
+
+    void SymbolTree::sweep_zero() {
+        const size_t symbol_count = this->count_nodes();
+
+        auto &zeroNode = this->tree_nodes[0];
+        for (symbol_name_t node_id = 1; node_id < symbol_count; ++node_id) {
+            auto &theNode = this->tree_nodes[node_id];
+
+            // Early exit on nodes that have a parent
+            if (!theNode.unaliased()) {
+                continue;
+            }
+
+            if (theNode.is_zero()) {
+                auto * newLink = this->getAvailableLink();
+                assert(newLink != nullptr);
+                newLink->link_type = EqualityType::equal;
+                newLink->target = &theNode;
+                zeroNode.subsume(newLink);
+            }
+        }
+    }
+
+    void SymbolTree::propagate_nullity() {
+        for (auto& node : this->tree_nodes) {
+            if (!node.unaliased()) {
+                continue;
+            }
+
+            for (auto& child_link : node) {
+                auto& child = child_link.target;
+                // Assert that children should not have nullity that the parent does not already have.
+                assert(!(child->real_is_zero && (!node.real_is_zero)));
+                assert(!(child->im_is_zero && (!node.im_is_zero)));
+
+                child->real_is_zero = node.real_is_zero;
+                child->im_is_zero = node.im_is_zero;
+
+                // Simplify link relationships based on symbol properties
+                if (node.is_zero()) {
+                    child_link.link_type = EqualityType::equal;
+                } else if (node.real_is_zero) {
+                    child_link.link_type = simplifyPureImaginary(child_link.link_type);
+                } else if (node.im_is_zero) {
+                    child_link.link_type = simplifyPureReal(child_link.link_type);
+                }
+            }
+        }
     }
 
     std::unique_ptr<SymbolSet> SymbolTree::export_symbol_set() const {
