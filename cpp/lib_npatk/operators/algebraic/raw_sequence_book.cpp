@@ -48,7 +48,8 @@ namespace NPATK {
         this->sequences.reserve(this->sequences.size() + new_elements);
         this->symbols.reserve(this->symbols.size() + new_elements);
 
-        auto symbol_id = static_cast<symbol_name_t>(this->sequences.size());
+        const auto initial_symbol_count = static_cast<symbol_name_t>(this->sequences.size());
+        auto symbol_id =  initial_symbol_count;
 
         for (size_t length = this->max_seq_length+1; length <= target_length; ++length) {
             MultiOperatorIterator moi{this->context, length};
@@ -63,6 +64,18 @@ namespace NPATK {
                 ++symbol_id;
                 ++moi;
             }
+        }
+
+        // Now, reverse symbols
+        const auto final_symbol_count = symbol_id;
+        for (symbol_name_t index = initial_symbol_count; index < final_symbol_count; ++index) {
+            auto& raw_seq = this->sequences[index];
+
+            std::vector<oper_name_t> reversed(raw_seq.operators.crbegin(), raw_seq.operators.crend());
+            raw_seq.conjugate_hash = this->context.hash(reversed);
+            auto conjSymIter = this->hash_table.find(raw_seq.conjugate_hash);
+            assert(conjSymIter != this->hash_table.end());
+            raw_seq.conjugate_id = this->sequences[conjSymIter->second].raw_id;
         }
 
         this->max_seq_length = target_length;

@@ -54,43 +54,6 @@ namespace NPATK {
         return os;
     }
 
-
-    std::pair<SymbolTree::SymbolLink *, SymbolTree::SymbolLink *> SymbolTree::SymbolLink::detach() noexcept {
-        auto old_values = std::make_pair(this->prev, this->next);
-
-        if (this->prev != nullptr) {
-            this->prev->next = this->next; // Might be nullptr
-        } else if (this->origin != nullptr) {
-            // No previous nodes, this means first link in origin list needs updating
-            this->origin->first_link = this->next; // Might be nullptr
-        }
-
-        if (this->next != nullptr) {
-            this->next->prev = old_values.first; // Might be nullptr
-        } else if (this->origin != nullptr) {
-            // No succeeding nodes, this means last link in origin list needs updating
-            this->origin->last_link = old_values.first; // Might be nullptr
-        }
-
-        // Detach:
-        this->origin = nullptr;
-        this->prev = nullptr;
-        this->next = nullptr;
-        return old_values;
-    }
-
-
-    std::pair<SymbolTree::SymbolLink *, SymbolTree::SymbolLink *>
-            SymbolTree::SymbolLink::detach_and_reset() noexcept {
-        auto old_values = this->detach();
-
-        // Also reset target info:
-        this->target = nullptr;
-        this->link_type = EqualityType::none;
-        return old_values;
-    }
-
-
     SymbolTree::SymbolTree(const SymbolSet &symbols)
         : packing_map{symbols.packing_key}, unpacking_map{symbols.unpacking_key}
     {
@@ -128,6 +91,7 @@ namespace NPATK {
         /** Create links */
         this->tree_links.reserve(symbols.link_count());
         for (const auto [key, link_type] : symbols.Links) {
+            assert(key.first <= key.second);
             SymbolNode * source_node = &this->tree_nodes[key.first];
             SymbolNode * target_node = &this->tree_nodes[key.second];
             this->tree_links.emplace_back(*this, target_node, link_type);

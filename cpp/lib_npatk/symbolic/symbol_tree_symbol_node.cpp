@@ -11,6 +11,8 @@
 namespace NPATK {
 
     namespace {
+
+
         /** Represents a node, and an iterator over the node's children */
         struct NodeAndIter {
             SymbolTree::SymbolNode *node;
@@ -188,7 +190,7 @@ namespace NPATK {
         }
 
         // See if any children think they are already part of a tree
-        std::vector<RebaseInfoImpl> nodes_to_rebase;
+        std::vector<RebaseInfoImpl> nodes_to_rebase{};
         size_t lowest_node_found_index = find_already_linked(nodes_to_rebase);
 
         // Anything to rebase?
@@ -211,6 +213,7 @@ namespace NPATK {
 
     size_t SymbolTree::SymbolNode::find_already_linked(std::vector<RebaseInfoImpl>& rebase_list) {
         rebase_list.clear();
+        std::map<SymbolLink*, size_t> rebase_alias;
 
         size_t lowest_node_found_index = std::numeric_limits<size_t>::max();
         symbol_name_t lowest_node_found = std::numeric_limits<symbol_name_t>::max();
@@ -244,13 +247,28 @@ namespace NPATK {
                 // Origin should not be base node...!
                 assert(current_link.target->canonical_origin->origin != this);
 
-                // Register link!
-                rebase_list.emplace_back(RebaseInfoImpl{&current_link,
-                                                        current_link.target->canonical_origin,
-                                                        compose(stack_frame.relationToBase, current_link.link_type)});
-                if (current_link.target->canonical_origin->origin->id < lowest_node_found) {
-                    lowest_node_found = current_link.target->canonical_origin->origin->id;
-                    lowest_node_found_index = rebase_list.size()-1;
+                EqualityType full_relation = compose(stack_frame.relationToBase, current_link.link_type);
+
+
+                // Have we seen this link before?
+                auto existing_link = rebase_alias.find(&current_link);
+                if (existing_link != rebase_alias.end()) {
+                    // If so, add to existing rebase, but incorporate possible different equality type.
+                    rebase_list[existing_link->second].relationToBase |= full_relation;
+
+                } else {
+                    // Register link!
+                    rebase_list.emplace_back(RebaseInfoImpl{&current_link,
+                                                            current_link.target->canonical_origin,
+                                                            full_relation});
+
+                    // Don't let us include the same link twice...
+                    rebase_alias.emplace(std::make_pair(&current_link, rebase_list.size()-1));
+
+                    if (current_link.target->canonical_origin->origin->id < lowest_node_found) {
+                        lowest_node_found = current_link.target->canonical_origin->origin->id;
+                        lowest_node_found_index = rebase_list.size() - 1;
+                    }
                 }
 
                 // No need to look at (grand)children; all will be moved anyway!
@@ -279,7 +297,6 @@ namespace NPATK {
             const auto &pivot_entry = rebase_list[lowest_node_found_index];
 
             // Find relationship between points
-            bool assigned_pivot = false;
             for (size_t index = 0; index < rebase_list.size(); ++index) {
                 auto &entry = rebase_list[index];
                 if (index == lowest_node_found_index) {
@@ -306,52 +323,66 @@ namespace NPATK {
         return lowest_node_found_index;
     }
 
-    SymbolTree::SymbolLink *
-    SymbolTree::SymbolNode::rebase_nodes(std::vector<RebaseInfoImpl> &nodes_to_rebase,
-                                         size_t lowest_node_found_index) {
+    void SymbolTree::SymbolNode::rebase_nodes(std::vector<RebaseInfoImpl> &nodes_to_rebase,
+                                              size_t lowest_node_found_index) {
 
-        /* The link we will use ultimately for attaching the base node to the canonical node */
-        SymbolTree::SymbolLink * link_for_base = nullptr;
-
-        SymbolTree::SymbolLink * descendent_hint;
         auto& pivot_entry = nodes_to_rebase[lowest_node_found_index];
         assert(pivot_entry.pivot_status == RebaseInfoImpl::PivotStatus::Pivot);
 
         auto& canonical_node = *(pivot_entry.linkFromCanonicalNode->origin);
+        EqualityType link_to_base_type = compose(pivot_entry.linkFromCanonicalNode->link_type,
+                                                 pivot_entry.relationToBase);
 
         for (auto& move_entry : nodes_to_rebase) {
             assert(move_entry.linkToMove != nullptr);
-            assert(move_entry.linkToMove->target != nullptr);
-            auto& move_node = *(move_entry.linkToMove->target);
+            auto& move_link = *(move_entry.linkToMove);
+
+            assert(move_link.target != nullptr);
+            auto& move_node = *(move_link.target);
 
             if (move_entry.pivot_status == RebaseInfoImpl::PivotStatus::Pivot) {
                 // Pivot node already has correct canonical, and (by virtue of knowing the canonical) has no children...
                 assert(move_entry.linkFromCanonicalNode->origin == &canonical_node);
+                assert(move_node.empty());
 
                 // Can remove the link between base and this pivot
                 move_entry.linkToMove->detach_and_reset();
-
-                // Memory location for this link can now be used for link from canonical to base:
-                link_for_base = move_entry.linkToMove;
-                link_for_base->link_type = compose(move_entry.linkFromCanonicalNode->link_type,
-                                                   move_entry.relationToBase);
-                link_for_base->target = this; // no origin, or children, yet...
+                this->the_tree.release_link(move_entry.linkToMove);
             } else if (move_entry.pivot_status == RebaseInfoImpl::PivotStatus::FalsePivot) {
                 // Node has correct canonical, but is not the first node with this status...
                 assert(move_entry.linkFromCanonicalNode->origin == &canonical_node);
+                assert(move_entry.linkFromCanonicalNode != move_entry.linkToMove);
+
+                // Having a canonical at all, should have no children...
+                if (!move_node.empty()) {
+                    throw;
+                }
+                assert(move_node.empty());
 
                 // Update canonical link with new equality type information (i.e. for purpose of detecting zeros)
-                move_entry.linkFromCanonicalNode->link_type = move_entry.relationToCanonical;
+                move_entry.linkFromCanonicalNode->merge_in(move_entry.relationToCanonical);
 
                 // Redundant link can then be detached and freed
                 move_entry.linkToMove->detach_and_reset();
                 this->the_tree.release_link(move_entry.linkToMove);
+
             } else {
                 assert(move_entry.linkToMove->target->canonical_origin != nullptr);
-                auto& move_link = *(move_entry.linkToMove);
                 auto& previous_canonical_link = *(move_entry.linkToMove->target->canonical_origin);
-                assert(&move_link != &previous_canonical_link);
                 auto& previous_canonical_node = *(previous_canonical_link.origin);
+                assert(&move_link != &previous_canonical_link);
+
+                // Does node have correct canonical node (because it's been updated elsewhere in the loop)?
+                if (&canonical_node == &previous_canonical_node) {
+                    // Merge, and check nullity
+                    move_node.canonical_origin->merge_in(move_entry.relationToCanonical);
+
+                    // Redundant link can then be detached and freed
+                    move_entry.linkToMove->detach_and_reset();
+                    this->the_tree.release_link(move_entry.linkToMove);
+                    continue;
+                }
+
                 assert(&canonical_node != &previous_canonical_node);
 
                 // Repurpose link '[base -> ...? ] -> found node', to be link  'canon -...-> move's previous canon'
@@ -364,14 +395,15 @@ namespace NPATK {
         }
 
         // Finally, move base node into canonical structure.
-        assert(link_for_base != nullptr);
-        this->canonical_origin = link_for_base;
+        // We are guaranteed not to be a duplicate entry in the canonical node (even if not true for descendents).
+        auto * link_for_base = this->the_tree.getAvailableLink();
+        link_for_base->target = this;
+        link_for_base->link_type = link_to_base_type;
 
-        // We are guaranteed not to be a duplicate entry in the canonical node,
-        //  but the same is not guaranteed for our descendents.
-        auto [did_merge, next_desc_hint] = canonical_node.insert_ordered(link_for_base);
-        descendent_hint = next_desc_hint;
-        return descendent_hint;
+        auto [did_merge, descendent_hint] = canonical_node.insert_ordered(link_for_base);
+        assert(!did_merge);
+        assert(descendent_hint == link_for_base);
+        this->canonical_origin = link_for_base;
     }
 
     void SymbolTree::SymbolNode::incorporate_all_descendents(SymbolTree::SymbolNode * rebase_node,

@@ -69,6 +69,12 @@ namespace NPATK {
                 return NPATK::implies_zero(this->link_type);
             };
 
+            /**
+             * Augments current link type with supplied extra type, and assigns appropriate nullity for connected nodes.
+             * @param extra_link
+             * @return Pair, first: true if real part is zero; second: true if imaginary part is zero.
+             */
+            std::pair<bool, bool> merge_in(EqualityType extra_link) noexcept;
 
             template<bool is_const>
             friend class SymbolLinkIteratorBase;
@@ -259,8 +265,7 @@ namespace NPATK {
              */
             size_t find_already_linked(std::vector<RebaseInfoImpl>& rebase_list);
 
-            SymbolTree::SymbolLink * rebase_nodes(std::vector<RebaseInfoImpl> &rebase_list,
-                                                 size_t lowest_node_found_index);
+            void rebase_nodes(std::vector<RebaseInfoImpl> &rebase_list, size_t lowest_node_found_index);
 
             void incorporate_all_descendents(SymbolTree::SymbolNode * rebase_node,
                                              EqualityType base_et);

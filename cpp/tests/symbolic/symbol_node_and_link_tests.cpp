@@ -61,7 +61,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(SymbolNodeAndLink, TestEmptyIterator) {
+    TEST(SymbolNodeAndLink, EmptyIterator) {
         MockTree tree{};
 
         SymbolTree::SymbolNode nodeA{tree, 0};
@@ -69,7 +69,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(iter, nodeA.end());
     }
 
-    TEST(SymbolNodeAndLink, TestIterator) {
+    TEST(SymbolNodeAndLink, Iterator) {
         MockTree tree{};
 
         SymbolTree::SymbolNode nodeA{tree, 0};
@@ -91,7 +91,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(iter, nodeA.end());
     }
 
-    TEST(SymbolNodeAndLink, TestConstIterator) {
+    TEST(SymbolNodeAndLink, ConstIterator) {
         MockTree tree{};
 
         SymbolTree::SymbolNode nodeA{tree, 0};
@@ -112,6 +112,107 @@ namespace NPATK::Tests {
 
         ASSERT_EQ(iter, nodeA.cend());
     }
+
+    TEST(SymbolNodeAndLink, MergeIn_NoChange) {
+        MockTree tree{};
+
+        SymbolTree::SymbolNode nodeA{tree, 0};
+        SymbolTree::SymbolNode nodeB{tree, 1};
+        SymbolTree::SymbolLink linkAB{tree, &nodeB, EqualityType::equal};
+        nodeA.insert_back(&linkAB);
+        ASSERT_EQ(linkAB.origin, &nodeA);
+        ASSERT_EQ(linkAB.target, &nodeB);
+        EXPECT_EQ(linkAB.link_type, EqualityType::equal);
+        EXPECT_FALSE(nodeA.real_is_zero);
+        EXPECT_FALSE(nodeA.im_is_zero);
+        EXPECT_FALSE(nodeB.real_is_zero);
+        EXPECT_FALSE(nodeB.im_is_zero);
+
+        auto [re_is_zero, im_is_zero] = linkAB.merge_in(EqualityType::equal);
+        EXPECT_EQ(linkAB.link_type, EqualityType::equal);
+        EXPECT_FALSE(re_is_zero);
+        EXPECT_FALSE(im_is_zero);
+        EXPECT_FALSE(nodeA.real_is_zero);
+        EXPECT_FALSE(nodeA.im_is_zero);
+        EXPECT_FALSE(nodeB.real_is_zero);
+        EXPECT_FALSE(nodeB.im_is_zero);
+    }
+
+    TEST(SymbolNodeAndLink, MergeIn_Zero) {
+        MockTree tree{};
+
+        SymbolTree::SymbolNode nodeA{tree, 0};
+        SymbolTree::SymbolNode nodeB{tree, 1};
+        SymbolTree::SymbolLink linkAB{tree, &nodeB, EqualityType::equal};
+        nodeA.insert_back(&linkAB);
+        ASSERT_EQ(linkAB.origin, &nodeA);
+        ASSERT_EQ(linkAB.target, &nodeB);
+        EXPECT_EQ(linkAB.link_type, EqualityType::equal);
+        EXPECT_FALSE(nodeA.real_is_zero);
+        EXPECT_FALSE(nodeA.im_is_zero);
+        EXPECT_FALSE(nodeB.real_is_zero);
+        EXPECT_FALSE(nodeB.im_is_zero);
+
+        auto [re_is_zero, im_is_zero] = linkAB.merge_in(EqualityType::negated);
+        EXPECT_EQ(linkAB.link_type, EqualityType::equal | EqualityType::negated);
+        EXPECT_TRUE(re_is_zero);
+        EXPECT_TRUE(im_is_zero);
+        EXPECT_TRUE(nodeA.real_is_zero);
+        EXPECT_TRUE(nodeA.im_is_zero);
+        EXPECT_TRUE(nodeB.real_is_zero);
+        EXPECT_TRUE(nodeB.im_is_zero);
+    }
+
+    TEST(SymbolNodeAndLink, MergeIn_ReZero) {
+        MockTree tree{};
+
+        SymbolTree::SymbolNode nodeA{tree, 0};
+        SymbolTree::SymbolNode nodeB{tree, 1};
+        SymbolTree::SymbolLink linkAB{tree, &nodeB, EqualityType::equal};
+        nodeA.insert_back(&linkAB);
+        ASSERT_EQ(linkAB.origin, &nodeA);
+        ASSERT_EQ(linkAB.target, &nodeB);
+        EXPECT_EQ(linkAB.link_type, EqualityType::equal);
+        EXPECT_FALSE(nodeA.real_is_zero);
+        EXPECT_FALSE(nodeA.im_is_zero);
+        EXPECT_FALSE(nodeB.real_is_zero);
+        EXPECT_FALSE(nodeB.im_is_zero);
+
+        auto [re_is_zero, im_is_zero] = linkAB.merge_in(EqualityType::neg_conj);
+        EXPECT_EQ(linkAB.link_type, EqualityType::equal | EqualityType::neg_conj);
+        EXPECT_TRUE(re_is_zero);
+        EXPECT_FALSE(im_is_zero);
+        EXPECT_TRUE(nodeA.real_is_zero);
+        EXPECT_FALSE(nodeA.im_is_zero);
+        EXPECT_TRUE(nodeB.real_is_zero);
+        EXPECT_FALSE(nodeB.im_is_zero);
+    }
+
+    TEST(SymbolNodeAndLink, MergeIn_ImZero) {
+        MockTree tree{};
+
+        SymbolTree::SymbolNode nodeA{tree, 0};
+        SymbolTree::SymbolNode nodeB{tree, 1};
+        SymbolTree::SymbolLink linkAB{tree, &nodeB, EqualityType::equal};
+        nodeA.insert_back(&linkAB);
+        ASSERT_EQ(linkAB.origin, &nodeA);
+        ASSERT_EQ(linkAB.target, &nodeB);
+        EXPECT_EQ(linkAB.link_type, EqualityType::equal);
+        EXPECT_FALSE(nodeA.real_is_zero);
+        EXPECT_FALSE(nodeA.im_is_zero);
+        EXPECT_FALSE(nodeB.real_is_zero);
+        EXPECT_FALSE(nodeB.im_is_zero);
+
+        auto [re_is_zero, im_is_zero] = linkAB.merge_in(EqualityType::conjugated);
+        EXPECT_EQ(linkAB.link_type, EqualityType::equal | EqualityType::conjugated);
+        EXPECT_FALSE(re_is_zero);
+        EXPECT_TRUE(im_is_zero);
+        EXPECT_FALSE(nodeA.real_is_zero);
+        EXPECT_TRUE(nodeA.im_is_zero);
+        EXPECT_FALSE(nodeB.real_is_zero);
+        EXPECT_TRUE(nodeB.im_is_zero);
+    }
+
 
 
     TEST(SymbolNodeAndLink, Unlink_OnlyLink) {
@@ -182,6 +283,37 @@ namespace NPATK::Tests {
     }
 
 
+    TEST(SymbolNodeAndLink, Unlink_FirstOfThree) {
+        MockTree tree{};
+
+        SymbolTree::SymbolNode base{tree, 0};
+        SymbolTree::SymbolNode childA{tree, 1};
+        SymbolTree::SymbolNode childB{tree, 2};
+        SymbolTree::SymbolNode childC{tree, 2};
+        SymbolTree::SymbolLink linkA{tree, &childA, EqualityType::equal};
+        SymbolTree::SymbolLink linkB{tree, &childB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &childC, EqualityType::equal};
+        base.insert_back(&linkA);
+        base.insert_back(&linkB);
+        base.insert_back(&linkC);
+
+        auto [prev, next] = linkA.detach_and_reset();
+        EXPECT_EQ(prev, nullptr);
+        EXPECT_EQ(next, &linkB);
+        ASSERT_FALSE(base.empty());
+
+        auto iter = base.cbegin();
+        ASSERT_NE(iter, base.cend());
+        EXPECT_EQ(&(*iter), &linkB) << "Iter must point first to link B";
+
+        ++iter;
+        ASSERT_NE(iter, base.cend());
+        EXPECT_EQ(&(*iter), &linkC) << "Iter must next point to link C";
+
+        ++iter;
+        ASSERT_EQ(iter, base.cend());
+    }
+
     TEST(SymbolNodeAndLink, Unlink_SecondOfThree) {
         MockTree tree{};
 
@@ -208,6 +340,37 @@ namespace NPATK::Tests {
         ++iter;
         ASSERT_NE(iter, base.cend());
         EXPECT_EQ(&(*iter), &linkC) << "Iter must next point to link C";
+
+        ++iter;
+        ASSERT_EQ(iter, base.cend());
+    }
+
+    TEST(SymbolNodeAndLink, Unlink_ThirdOfThree) {
+        MockTree tree{};
+
+        SymbolTree::SymbolNode base{tree, 0};
+        SymbolTree::SymbolNode childA{tree, 1};
+        SymbolTree::SymbolNode childB{tree, 2};
+        SymbolTree::SymbolNode childC{tree, 2};
+        SymbolTree::SymbolLink linkA{tree, &childA, EqualityType::equal};
+        SymbolTree::SymbolLink linkB{tree, &childB, EqualityType::equal};
+        SymbolTree::SymbolLink linkC{tree, &childC, EqualityType::equal};
+        base.insert_back(&linkA);
+        base.insert_back(&linkB);
+        base.insert_back(&linkC);
+
+        auto [prev, next] = linkC.detach_and_reset();
+        EXPECT_EQ(prev, &linkB);
+        EXPECT_EQ(next, nullptr);
+        ASSERT_FALSE(base.empty());
+
+        auto iter = base.cbegin();
+        ASSERT_NE(iter, base.cend());
+        EXPECT_EQ(&(*iter), &linkA) << "Iter must point first to link A";
+
+        ++iter;
+        ASSERT_NE(iter, base.cend());
+        EXPECT_EQ(&(*iter), &linkB) << "Iter must next point to link B";
 
         ++iter;
         ASSERT_EQ(iter, base.cend());

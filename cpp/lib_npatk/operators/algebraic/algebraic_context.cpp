@@ -91,7 +91,9 @@ namespace NPATK {
         assert(this->buildSet);
         SymbolSet& symbolSet = *this->buildSet;
         for (size_t symbol_index = initial_sequence_count; symbol_index < num_sequences; ++symbol_index) {
-            symbolSet.add_or_merge(Symbol{static_cast<symbol_name_t>(symbol_index)});
+            Symbol new_symbol{static_cast<symbol_name_t>(symbol_index),
+                              !this->rawSequences[symbol_index].self_adjoint()};
+            symbolSet.add_or_merge(new_symbol);
         }
 
         // Now, apply every transformation rule to every part of every sequence
@@ -99,6 +101,13 @@ namespace NPATK {
         std::vector<SymbolPair> symbol_pairs;
         for (size_t sequence_index = initial_sequence_count; sequence_index < num_sequences; ++sequence_index) {
             num_matches += this->one_substitution(symbol_pairs, this->rawSequences[sequence_index]);
+        }
+
+        // Add rules inferring complex conjugation of strings...
+        for (const auto& seq : this->rawSequences) {
+            if (!seq.self_adjoint() && (seq.conjugate_id > seq.raw_id)) {
+                symbolSet.add_or_merge(SymbolPair{seq.raw_id, seq.conjugate_id, false, true});
+            }
         }
 
         // Register discovered pairs...
@@ -118,13 +127,19 @@ namespace NPATK {
         // Finally, create map of hashes of sequences to be substituted
         this->hashToReplacementSymbol.clear();
         for (const auto& link : this->buildSet->Links) {
-            const auto& target_seq = this->rawSequences[link.first.first];
             const auto& source_seq = this->rawSequences[link.first.second];
-            if (link.second != EqualityType::equal) {
-                throw std::logic_error{"Currently only equality substitutions are supported..."};
+            symbol_name_t target_id = -1;
+            if (link.second == EqualityType::equal) {
+                const auto& target_seq = this->rawSequences[link.first.first];
+                target_id = target_seq.raw_id;
+            } else if (link.second == EqualityType::conjugated) {
+                const auto& target_seq = this->rawSequences[link.first.first];
+                target_id = target_seq.conjugate_id;
+            } else {
+                throw std::logic_error{"Currently only equality and conjugation substitutions are supported..."};
             }
             this->hashToReplacementSymbol.emplace(std::make_pair(source_seq.hash,
-                                                                 static_cast<size_t>(target_seq.raw_id)));
+                                                                 static_cast<size_t>(target_id)));
 
         }
 

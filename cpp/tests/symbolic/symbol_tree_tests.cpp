@@ -576,6 +576,96 @@ namespace NPATK::Tests {
                           SymbolPair{SymbolExpression{1}, SymbolExpression{4}}});
     }
 
+    TEST_F(SymbolTreeFixture, Simplify_CrissCross2) {
+        auto &cross = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                                           SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{5}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{6}}
+                                           });
+        cross.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{5}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{6}}});
+    }
+
+    TEST_F(SymbolTreeFixture, Simplify_RebaseDiamond) {
+        auto &embedded_diamond = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{7}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{6}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{5}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{7}},
+                                           SymbolPair{SymbolExpression{4}, SymbolExpression{6}},
+                                           SymbolPair{SymbolExpression{5}, SymbolExpression{6}}
+                                           });
+        embedded_diamond.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{5}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{6}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{7}}});
+    }
+
+    TEST_F(SymbolTreeFixture, Simplify_RebaseDiamondTail) {
+        auto &embedded_diamond = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{8}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{7}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{5}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{8}},
+                                           SymbolPair{SymbolExpression{4}, SymbolExpression{6}},
+                                           SymbolPair{SymbolExpression{5}, SymbolExpression{6}},
+                                           SymbolPair{SymbolExpression{6}, SymbolExpression{7}}
+                                           });
+        embedded_diamond.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{5}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{6}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{7}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{8}}
+                          });
+    }
+
+    TEST_F(SymbolTreeFixture, Simplify_VeeDiamond) {
+        auto &embedded_diamond = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{7}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{7}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{5}},
+                                           SymbolPair{SymbolExpression{4}, SymbolExpression{6}},
+                                           SymbolPair{SymbolExpression{5}, SymbolExpression{6}},
+                                           SymbolPair{SymbolExpression{6}, SymbolExpression{7}}
+                                           });
+        embedded_diamond.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{5}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{6}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{7}}
+                          });
+    }
+
+    TEST_F(SymbolTreeFixture, Simplify_CrissCrossConjugate) {
+        auto &cross = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                                           SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{3, true}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{4}}
+                                           });
+        cross.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4}}});
+        ASSERT_GE(cross.count_nodes(), 2); // 0, 1, 2, 3,4 ??
+        EXPECT_FALSE(cross[1].is_zero());
+        EXPECT_FALSE(cross[1].real_is_zero);
+        EXPECT_TRUE(cross[1].im_is_zero);
+    }
+
     TEST_F(SymbolTreeFixture, Simplify_BranchingZigZag) {
         auto &b_zz = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{5}},

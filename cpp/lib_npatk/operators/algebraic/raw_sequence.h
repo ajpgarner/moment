@@ -13,8 +13,14 @@
 namespace NPATK {
     struct RawSequence {
         std::vector<oper_name_t> operators{};
+
         size_t hash = 0;
+
         symbol_name_t raw_id = 0;
+
+        size_t conjugate_hash = 0;
+
+        symbol_name_t conjugate_id = 0;
 
         constexpr RawSequence() = default;
 
@@ -22,6 +28,8 @@ namespace NPATK {
                 : operators{std::move(oper_ids)}, hash{hash}, raw_id{name} { }
 
         [[nodiscard]] constexpr size_t size() const noexcept { return this->operators.size(); }
+
+        [[nodiscard]] constexpr bool self_adjoint() const noexcept { return this->raw_id == this->conjugate_id; }
 
         friend std::ostream& operator<<(std::ostream& os, const RawSequence& rs);
     };
