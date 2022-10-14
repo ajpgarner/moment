@@ -188,7 +188,7 @@ namespace NPATK::Tests {
         rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{0});
         rules.emplace_back(std::vector<oper_name_t>{1, 0}, std::vector<oper_name_t>{});
         AlgebraicContext ac{2, true, std::move(rules)};
-        ac.generate_aliases(4);
+        ac.generate_aliases(2);
 
         OperatorSequenceGenerator osg_lvl1{ac, 1};
         ASSERT_EQ(osg_lvl1.size(), 1); // I
@@ -211,23 +211,40 @@ namespace NPATK::Tests {
     }
 
     TEST(AlgebraicContext, CreateMomentMatrix_ABtoI) {
-//        std::vector<MonomialSubstitutionRule> rules;
-//        rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{});
-//        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
-//        AlgebraicMatrixSystem ams{std::move(ac_ptr)};
-//        auto& mm1 = ams.CreateMomentMatrix(1); // 1, A, B; A A^2 I; B I B^2 ...
-//        ASSERT_EQ(mm1.Level(), 1);
-//        EXPECT_TRUE(mm1.IsHermitian());
+        std::vector<MonomialSubstitutionRule> rules;
+        rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{});
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
+        AlgebraicMatrixSystem ams{std::move(ac_ptr)};
+        const auto& context = ams.Context();
+
+        auto& mm1 = ams.CreateMomentMatrix(1); // 1, A, B; A A^2 I; B I B^2 ...
+        ASSERT_EQ(mm1.Level(), 1);
+        EXPECT_TRUE(mm1.IsHermitian());
+        const auto& seqMat = mm1.SequenceMatrix;
+        ASSERT_EQ(seqMat.Dimension(), 3);
+        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(context));
+        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, context));
+        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, context));
+
+        EXPECT_EQ(seqMat[1][0], OperatorSequence({0}, context));
+        EXPECT_EQ(seqMat[1][1], OperatorSequence({0, 0}, context));
+        EXPECT_EQ(seqMat[1][2], OperatorSequence::Identity(context));
+
+        EXPECT_EQ(seqMat[2][0], OperatorSequence({1}, context));
+        EXPECT_EQ(seqMat[2][1], OperatorSequence::Identity(context));
+        EXPECT_EQ(seqMat[2][2], OperatorSequence({1, 1}, context));
     }
 
     TEST(AlgebraicContext, CreateMomentMatrix_ABtoA_BAtoI) {
-//        std::vector<MonomialSubstitutionRule> rules;
-//        rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{0});
-//        rules.emplace_back(std::vector<oper_name_t>{1, 0}, std::vector<oper_name_t>{});
-//        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
-//        AlgebraicMatrixSystem ams{std::move(ac_ptr)};
-//        auto& mm1 = ams.CreateMomentMatrix(1); // 1 (because A=1, B=1...!)
-//        ASSERT_EQ(mm1.Level(), 1);
-//        EXPECT_TRUE(mm1.IsHermitian());
+        std::vector<MonomialSubstitutionRule> rules;
+        rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{0});
+        rules.emplace_back(std::vector<oper_name_t>{1, 0}, std::vector<oper_name_t>{});
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
+        AlgebraicMatrixSystem ams{std::move(ac_ptr)};
+        auto& mm1 = ams.CreateMomentMatrix(1); // 1 (because A=1, B=1...!)
+        ASSERT_EQ(mm1.Level(), 1);
+        EXPECT_TRUE(mm1.IsHermitian());
+        ASSERT_EQ(mm1.Dimension(), 1);
+        EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
     }
 }

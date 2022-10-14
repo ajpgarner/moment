@@ -102,6 +102,32 @@ namespace NPATK::Tests {
         EXPECT_EQ(conjugate, seqBA);
     }
 
+    TEST(OperatorSequence, Sequence_ConjugateIdentity) {
+        Context empty;
+
+        OperatorSequence id{{}, empty};
+        OperatorSequence id2 = OperatorSequence::Identity(empty);
+        ASSERT_EQ(id, id2);
+
+        auto conjugate = id.conjugate();
+        EXPECT_EQ(conjugate, id);
+        EXPECT_EQ(conjugate, id2);
+
+        auto conjugate2 = id2.conjugate();
+        EXPECT_EQ(conjugate2, id);
+        EXPECT_EQ(conjugate2, id2);
+    }
+
+    TEST(OperatorSequence, Sequence_ConjugateZero) {
+        Context empty;
+
+        OperatorSequence zero = OperatorSequence::Zero(empty);
+        ASSERT_TRUE(zero.zero());
+        auto conjugate = zero.conjugate();
+        EXPECT_TRUE(conjugate.zero());
+        EXPECT_EQ(conjugate, zero);
+    }
+
 
     TEST(OperatorSequence, Sequence_Append_AB_listBBA) {
         Context empty;

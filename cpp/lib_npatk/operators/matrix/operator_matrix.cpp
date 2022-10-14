@@ -20,7 +20,10 @@ namespace NPATK {
                     return false;
                 }
                 for (size_t row = col+1; row < opMat.dimension; ++row) {
-                    if (opMat[col][row] != opMat[row][col].conjugate()) {
+                    const auto& upper = opMat[col][row];
+                    const auto& lower = opMat[row][col];
+                    const auto lower_conj = lower.conjugate();
+                    if (upper != lower_conj) {
                         return false;
                     }
                 }

@@ -29,6 +29,9 @@ namespace NPATK {
         this->sequences.reserve(2);
         this->sequences.emplace_back(std::vector<oper_name_t>{}, 0, 0); // hash of 0 is always 0
         this->sequences.emplace_back(std::vector<oper_name_t>{}, 1, 1); // hash of 1 is always 1
+        this->sequences[1].conjugate_id = 1;
+        this->sequences[1].conjugate_hash = 1;
+
         this->symbols.reserve(2);
         this->symbols.emplace_back(Symbol::zero());
         this->symbols.emplace_back(1);
@@ -67,6 +70,9 @@ namespace NPATK {
         }
 
         // Now, reverse symbols
+        if (0 == initial_symbol_count) {
+
+        }
         const auto final_symbol_count = symbol_id;
         for (symbol_name_t index = initial_symbol_count; index < final_symbol_count; ++index) {
             auto& raw_seq = this->sequences[index];
