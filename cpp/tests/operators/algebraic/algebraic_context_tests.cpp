@@ -16,9 +16,16 @@ namespace NPATK::Tests {
 
     TEST(AlgebraicContext, Empty) {
         AlgebraicContext ac{0};
+        EXPECT_EQ(ac.size(), 0);
 
-        ac.generate_aliases(4);
+        EXPECT_NO_THROW(ac.generate_aliases(4));
+    }
 
+    TEST(AlgebraicContext, NoRules) {
+        AlgebraicContext ac{2};
+        EXPECT_EQ(ac.size(), 2);
+
+        EXPECT_NO_THROW(ac.generate_aliases(4));
     }
 
     TEST(AlgebraicContext, OneSubstitution_ABtoA) {
@@ -80,6 +87,46 @@ namespace NPATK::Tests {
         EXPECT_FALSE(seq_BAB.zero());
         ASSERT_EQ(seq_BAB.size(), 1);
         EXPECT_EQ(seq_BAB[0], 1);
+    }
+
+    TEST(AlgebraicContext, TwoSubstitution_ABtoA_BAtoI) {
+        std::vector<MonomialSubstitutionRule> rules;
+        rules.emplace_back(std::vector<oper_name_t>{1, 2}, std::vector<oper_name_t>{1});
+        rules.emplace_back(std::vector<oper_name_t>{2, 1}, std::vector<oper_name_t>{});
+        AlgebraicContext ac{3, true, std::move(rules)};
+
+        ac.generate_aliases(6);
+
+        OperatorSequence seq_A{std::vector<oper_name_t>{1}, ac};
+        EXPECT_TRUE(seq_A.empty());
+        EXPECT_FALSE(seq_A.zero());
+        EXPECT_EQ(seq_A.size(), 0);
+
+        OperatorSequence seq_B{std::vector<oper_name_t>{2}, ac};
+        EXPECT_TRUE(seq_B.empty());
+        EXPECT_FALSE(seq_B.zero());
+        EXPECT_EQ(seq_B.size(), 0);
+
+        OperatorSequence seq_AB{std::vector<oper_name_t>{1, 2}, ac};
+        EXPECT_TRUE(seq_AB.empty());
+        EXPECT_FALSE(seq_AB.zero());
+        EXPECT_EQ(seq_AB.size(), 0);
+
+        OperatorSequence seq_BA{std::vector<oper_name_t>{2, 1}, ac};
+        EXPECT_TRUE(seq_BA.empty());
+        EXPECT_FALSE(seq_BA.zero());
+        EXPECT_EQ(seq_BA.size(), 0);
+
+        OperatorSequence seq_AAB{std::vector<oper_name_t>{1, 1, 2}, ac};
+        EXPECT_TRUE(seq_AAB.empty());
+        EXPECT_FALSE(seq_AAB.zero());
+        EXPECT_EQ(seq_AAB.size(), 0);
+
+        OperatorSequence seq_BAB{std::vector<oper_name_t>{2, 1, 2}, ac};
+        EXPECT_TRUE(seq_BAB.empty());
+        EXPECT_FALSE(seq_BAB.zero());
+        EXPECT_EQ(seq_BAB.size(), 0);
+
     }
 
     TEST(AlgebraicContext, OneSubstitution_ABtoBA) {
@@ -210,6 +257,29 @@ namespace NPATK::Tests {
 
     }
 
+    TEST(AlgebraicContext, MakeGenerator_ABtoA_BCtoB_CAtoA) {
+        // AB=A, BC=B, CA=C -> A = B = C
+        std::vector<MonomialSubstitutionRule> rules;
+        rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{0});
+        rules.emplace_back(std::vector<oper_name_t>{1, 2}, std::vector<oper_name_t>{1});
+        rules.emplace_back(std::vector<oper_name_t>{2, 0}, std::vector<oper_name_t>{2});
+        AlgebraicContext ac{3, true, std::move(rules)};
+        ac.generate_aliases(1);
+
+        OperatorSequenceGenerator osg_lvl1{ac, 1};
+        ASSERT_EQ(osg_lvl1.size(), 2); // I, a
+        auto osgIter1 = osg_lvl1.begin();
+        ASSERT_NE(osgIter1, osg_lvl1.end());
+        EXPECT_EQ(*osgIter1, OperatorSequence({}, ac));
+
+        ++osgIter1;
+        ASSERT_NE(osgIter1, osg_lvl1.end());
+        EXPECT_EQ(*osgIter1, OperatorSequence({0}, ac));
+
+        ++osgIter1;
+        ASSERT_EQ(osgIter1, osg_lvl1.end());
+    }
+
     TEST(AlgebraicContext, CreateMomentMatrix_ABtoI) {
         std::vector<MonomialSubstitutionRule> rules;
         rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{});
@@ -241,10 +311,18 @@ namespace NPATK::Tests {
         rules.emplace_back(std::vector<oper_name_t>{1, 0}, std::vector<oper_name_t>{});
         auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
+        const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
+
         auto& mm1 = ams.CreateMomentMatrix(1); // 1 (because A=1, B=1...!)
         ASSERT_EQ(mm1.Level(), 1);
         EXPECT_TRUE(mm1.IsHermitian());
         ASSERT_EQ(mm1.Dimension(), 1);
         EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
+
+        auto& mm3 = ams.CreateMomentMatrix(3); // 1 (because A=1, B=1, still!)
+        ASSERT_EQ(mm3.Level(), 3);
+        EXPECT_TRUE(mm3.IsHermitian());
+        ASSERT_EQ(mm3.Dimension(), 1) << context.resolved_rules();
+        EXPECT_EQ(mm3.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
     }
 }

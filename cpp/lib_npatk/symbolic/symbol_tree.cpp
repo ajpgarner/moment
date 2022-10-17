@@ -72,11 +72,9 @@ namespace NPATK {
     SymbolTree::SymbolTree() = default;
 
     void SymbolTree::make_nodes_and_links(const SymbolSet &symbols) {
-        /** Create nodes */
+        // Create nodes
         size_t symbol_count = symbols.symbol_count();
         this->tree_nodes.reserve(symbol_count);
-
-
         for (const auto& symbol : symbols.Symbols) {
             Symbol unpacked{symbol.second};
 
@@ -88,7 +86,7 @@ namespace NPATK {
             this->tree_nodes.emplace_back(*this, unpacked);
         }
 
-        /** Create links */
+        // Create links
         this->tree_links.reserve(symbols.link_count());
         for (const auto [key, link_type] : symbols.Links) {
             assert(key.first <= key.second);
@@ -97,6 +95,16 @@ namespace NPATK {
             this->tree_links.emplace_back(*this, target_node, link_type);
             SymbolLink * new_link = &(this->tree_links[this->tree_links.size()-1]);
             source_node->insert_ordered(new_link);
+        }
+
+        // Propagate trivial nullity once
+        for (auto& link : this->tree_links) {
+            if ((link.target != nullptr) && (link.origin != nullptr)) {
+                bool re_is_zero = link.origin->real_is_zero || link.target->real_is_zero;
+                bool im_is_zero = link.origin->im_is_zero || link.target->im_is_zero;
+                link.origin->real_is_zero = link.target->real_is_zero = re_is_zero;
+                link.origin->im_is_zero = link.target->im_is_zero = im_is_zero;
+            }
         }
     }
 

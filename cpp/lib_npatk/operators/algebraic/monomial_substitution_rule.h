@@ -21,6 +21,7 @@ namespace NPATK {
         public:
             bad_hint();
         };
+
     }
 
     class RawSequence;
@@ -40,16 +41,21 @@ namespace NPATK {
         /** The amount the string-length changes by, on a successful match */
         const ptrdiff_t Delta = 0;
 
+        /** Where, in the algorithm, the rule is discovered */
+        const size_t generation = 0;
+
     public:
         constexpr MonomialSubstitutionRule(std::vector<oper_name_t> lhs, std::vector<oper_name_t> rhs,
-                                           bool negated = false)
-                : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, negated{negated},
+                                           size_t gen = 0, bool negated = false)
+                : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, negated{negated}, generation{gen},
                   Delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
         }
 
         [[nodiscard]] bool matches(const_iter_t iter, const_iter_t iter_end) const noexcept;
 
         [[nodiscard]] const_iter_t matches_anywhere(const_iter_t iter, const_iter_t iter_end) const noexcept;
+
+        [[nodiscard]] size_t left_size() const noexcept { return this->rawLHS.size(); }
 
         [[nodiscard]] std::vector<oper_name_t>
         apply_match_with_hint(const std::vector<oper_name_t>& input, const_iter_t hint) const;

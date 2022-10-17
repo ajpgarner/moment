@@ -9,11 +9,13 @@
 #include "symbolic/symbol.h"
 
 #include <map>
+#include <memory>
 #include <vector>
 
 namespace NPATK {
 
     class Context;
+    class SymbolSet;
 
     class RawSequenceBook {
     private:
@@ -33,6 +35,11 @@ namespace NPATK {
          * @return True, if new symbols were generated.
          */
         bool generate(size_t length);
+
+        /**
+         * Create a symbol set associated with raw sequences (including conjugate links)
+         */
+        [[nodiscard]] std::unique_ptr<SymbolSet> symbol_set() const;
 
         [[nodiscard]] size_t longest_sequence() const noexcept { return this->max_seq_length; }
 

@@ -8,6 +8,7 @@
 #include "symbolic/symbol_set.h"
 #include "symbolic/symbol_tree.h"
 
+#include <algorithm>
 #include <sstream>
 
 namespace NPATK {
@@ -15,16 +16,19 @@ namespace NPATK {
     AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian)
         : Context{operator_count}, self_adjoint{hermitian}, rawSequences{*this}
     {
-        this->buildSet = std::make_unique<SymbolSet>();
-        this->buildSet->add_or_merge(Symbol{1});
+        this->generate_aliases(0);
     }
 
     AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian,
                                        std::vector<MonomialSubstitutionRule> rules)
         : Context{operator_count}, self_adjoint{hermitian}, rawSequences{*this}, monomialRules{std::move(rules)}
     {
-        this->buildSet = std::make_unique<SymbolSet>();
-        this->buildSet->add_or_merge(Symbol{1});
+        const auto max_length_elem = std::max_element(monomialRules.cbegin(), monomialRules.cend(),
+        [](const auto& ruleL, const auto& ruleR) {
+            return ruleL.left_size() < ruleR.left_size();
+        });
+        const size_t max_length = max_length_elem->left_size();
+        this->generate_aliases(2*max_length);
     }
 
     AlgebraicContext::~AlgebraicContext() noexcept = default;
@@ -87,27 +91,15 @@ namespace NPATK {
         }
         const size_t num_sequences = this->rawSequences.size();
 
-        // Get existing symbol set, and ensure all new sequences are registered...
-        assert(this->buildSet);
-        SymbolSet& symbolSet = *this->buildSet;
-        for (size_t symbol_index = initial_sequence_count; symbol_index < num_sequences; ++symbol_index) {
-            Symbol new_symbol{static_cast<symbol_name_t>(symbol_index),
-                              !this->rawSequences[symbol_index].self_adjoint()};
-            symbolSet.add_or_merge(new_symbol);
-        }
+        // Get symbol set, with symbols and complex-conjugacy information
+        this->buildSet = this->rawSequences.symbol_set();
+        auto& symbolSet = *this->buildSet;
 
         // Now, apply every transformation rule to every part of every sequence
         size_t num_matches = 0;
         std::vector<SymbolPair> symbol_pairs;
-        for (size_t sequence_index = initial_sequence_count; sequence_index < num_sequences; ++sequence_index) {
+        for (size_t sequence_index = 0; sequence_index < num_sequences; ++sequence_index) {
             num_matches += this->one_substitution(symbol_pairs, this->rawSequences[sequence_index]);
-        }
-
-        // Add rules inferring complex conjugation of strings...
-        for (const auto& seq : this->rawSequences) {
-            if (!seq.self_adjoint() && (seq.conjugate_id > seq.raw_id)) {
-                symbolSet.add_or_merge(SymbolPair{seq.raw_id, seq.conjugate_id, false, true});
-            }
         }
 
         // Register discovered pairs...
@@ -125,25 +117,35 @@ namespace NPATK {
         this->buildSet = theTree.export_symbol_set();
 
         // Finally, create map of hashes of sequences to be substituted
+        build_hash_table();
+
+        return true;
+    }
+
+    void AlgebraicContext::build_hash_table() {
         this->hashToReplacementSymbol.clear();
         for (const auto& link : this->buildSet->Links) {
-            const auto& source_seq = this->rawSequences[link.first.second];
+            if (link.first.first == link.first.second) {
+                throw std::logic_error{"Self-references should have been resolved in tree simplification!"};
+            }
+            const auto& source_seq = rawSequences[link.first.second];
             symbol_name_t target_id = -1;
             if (link.second == EqualityType::equal) {
-                const auto& target_seq = this->rawSequences[link.first.first];
+                const auto& target_seq = rawSequences[link.first.first];
                 target_id = target_seq.raw_id;
             } else if (link.second == EqualityType::conjugated) {
-                const auto& target_seq = this->rawSequences[link.first.first];
+                const auto& target_seq = rawSequences[link.first.first];
                 target_id = target_seq.conjugate_id;
             } else {
                 throw std::logic_error{"Currently only equality and conjugation substitutions are supported..."};
             }
-            this->hashToReplacementSymbol.emplace(std::make_pair(source_seq.hash,
-                                                                 static_cast<size_t>(target_id)));
 
+            // Don't insert reflexive rules...
+            if (link.first.second != target_id) {
+                this->hashToReplacementSymbol.emplace(std::make_pair(source_seq.hash,
+                                                                     static_cast<size_t>(target_id)));
+            }
         }
-
-        return true;
     }
 
     bool AlgebraicContext::additional_simplification(std::vector<oper_name_t>& op_sequence) const {
@@ -169,6 +171,30 @@ namespace NPATK {
             op_sequence.emplace_back(op);
         }
         return false;
+    }
+
+    std::string AlgebraicContext::resolved_rules() const {
+        std::stringstream ss;
+        for (const auto [lhs_hash, rhs_symbol] : this->hashToReplacementSymbol) {
+            auto * lhs_raw_ptr = this->rawSequences.where(lhs_hash);
+            assert(lhs_raw_ptr != nullptr);
+            const auto& lhs_raw = *lhs_raw_ptr;
+            const auto& rhs_raw = this->rawSequences[rhs_symbol];
+
+            ss << lhs_raw.raw_id << " [";
+            for (auto o : lhs_raw.operators) {
+                ss << "X" << o;
+            }
+            ss << "] -> ";
+
+            ss << rhs_raw.raw_id << " [";
+            for (auto o : rhs_raw.operators) {
+                ss << "X" << o;
+            }
+            ss << "]\n";
+        }
+
+        return ss.str();
     }
 
 

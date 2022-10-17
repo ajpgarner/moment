@@ -38,11 +38,11 @@ namespace NPATK {
         /** Collection of every permutation of symbols */
         RawSequenceBook rawSequences;
 
-        /** The set of substitutions */
-        std::unique_ptr<SymbolSet> buildSet;
-
         /** Monomial substitution rules */
         std::vector<MonomialSubstitutionRule> monomialRules;
+
+        /** The set of substitutions */
+        std::unique_ptr<SymbolSet> buildSet;
 
         /** Calculated substitutions [key: hash, value: index of replacement sequence in raw sequences] */
         std::map<size_t, size_t> hashToReplacementSymbol;
@@ -64,8 +64,16 @@ namespace NPATK {
          */
         [[nodiscard]] std::string to_string() const override;
 
+        /**
+         * Summarize the substitution rules as a string
+         */
+        [[nodiscard]] std::string resolved_rules() const;
+
+
 
     private:
         size_t one_substitution(std::vector<SymbolPair>& output, const RawSequence& input_sequence) const;
+
+        void build_hash_table();
     };
 }

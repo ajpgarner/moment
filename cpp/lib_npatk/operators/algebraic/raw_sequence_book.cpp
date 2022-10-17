@@ -5,9 +5,11 @@
  */
 
 #include "raw_sequence_book.h"
-#include "../context.h"
 
+#include "../context.h"
 #include "../multi_operator_iterator.h"
+
+#include "/symbolic/symbol_set.h"
 
 #include <cmath>
 
@@ -34,7 +36,7 @@ namespace NPATK {
 
         this->symbols.reserve(2);
         this->symbols.emplace_back(Symbol::zero());
-        this->symbols.emplace_back(1);
+        this->symbols.emplace_back(1, false);
         this->hash_table.emplace(std::make_pair(0, 0));
         this->hash_table.emplace(std::make_pair(1, 1));
 
@@ -70,9 +72,6 @@ namespace NPATK {
         }
 
         // Now, reverse symbols
-        if (0 == initial_symbol_count) {
-
-        }
         const auto final_symbol_count = symbol_id;
         for (symbol_name_t index = initial_symbol_count; index < final_symbol_count; ++index) {
             auto& raw_seq = this->sequences[index];
@@ -82,11 +81,32 @@ namespace NPATK {
             auto conjSymIter = this->hash_table.find(raw_seq.conjugate_hash);
             assert(conjSymIter != this->hash_table.end());
             raw_seq.conjugate_id = this->sequences[conjSymIter->second].raw_id;
+            this->symbols[index].im_is_zero = raw_seq.self_adjoint();
         }
 
         this->max_seq_length = target_length;
         return true;
     }
+
+
+    std::unique_ptr<SymbolSet> RawSequenceBook::symbol_set() const {
+        auto the_set = std::make_unique<SymbolSet>();
+
+        // Copy all symbols
+        for (const auto& sym : this->symbols) {
+            the_set->add_or_merge(sym);
+        }
+
+        // Copy self-adjoint relationships
+        for (const auto& seq: this->sequences) {
+            if (seq.conjugate_id > seq.raw_id) { // implies not self adjoint
+                the_set->add_or_merge(SymbolPair{seq.raw_id, seq.conjugate_id, false, true});
+            }
+        }
+
+        return the_set;
+    }
+
 
     const RawSequence* RawSequenceBook::where(size_t hash) const noexcept {
         auto iter = this->hash_table.find(hash);
