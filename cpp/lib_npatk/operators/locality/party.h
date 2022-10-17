@@ -91,12 +91,12 @@ namespace NPATK {
         /**
          * Gets the associated measurement from an operator in this party
          */
-        const Measurement& measurement_of(oper_name_t op) const;
+        [[nodiscard]] const Measurement& measurement_of(oper_name_t op) const;
 
         /**
          * Gets the name of this operator (if within party)
          */
-        std::string format_operator(oper_name_t op) const;
+        [[nodiscard]] std::string format_operator(oper_name_t op) const;
 
 
         [[nodiscard]] auto begin() const {

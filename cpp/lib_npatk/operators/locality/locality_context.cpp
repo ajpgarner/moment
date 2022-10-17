@@ -44,10 +44,19 @@ namespace NPATK {
             };
 
         };
+
+        size_t count_operators(const std::vector<Party>& parties) {
+            size_t val = 0;
+            for (const auto& party : parties) {
+                val += party.size();
+            }
+            return val;
+        }
     };
 
     LocalityContext::LocalityContext(std::vector<Party> &&in_party) noexcept
-        : Parties{*this}, parties{std::move(in_party)}, total_measurement_count{0} {
+        : Context{count_operators(in_party)}, Parties{*this},
+          parties{std::move(in_party)}, total_measurement_count{0} {
         this->total_measurement_count = 0;
 
         party_name_t party_index = 0;
@@ -71,7 +80,7 @@ namespace NPATK {
             mmt_name_t mmt_index = 0;
             for (const auto& mmt : party.measurements) {
                 for (size_t oper_index = 0; oper_index < mmt.num_operators(); ++oper_index) {
-                    this->operators.emplace_back(total_operator_count);
+                    //this->operators.emplace_back(total_operator_count);
                     this->global_to_local_indices.emplace_back(party_index, mmt_index, oper_index);
                     ++party_op_count;
                     ++total_operator_count;

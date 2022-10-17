@@ -12,7 +12,7 @@
 
 namespace NPATK::Tests {
     TEST(OperatorSequence, Sequence_Empty) {
-        Context empty;
+        Context empty{0};
         OperatorSequence seq{empty};
         EXPECT_TRUE(seq.empty());
         EXPECT_EQ(seq.size(), 0);
@@ -20,7 +20,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_OneOper) {
-        Context empty;
+        Context empty{0};
         oper_name_t memA{3};
         OperatorSequence seq{{memA}, empty};
         ASSERT_FALSE(seq.empty());
@@ -35,7 +35,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_TwoSameParty) {
-        Context empty;
+        Context empty{0};
         oper_name_t  memA{5};
         oper_name_t  memB{10};
         OperatorSequence seqAB{{memA, memB}, empty};
@@ -69,7 +69,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_CompareEqual) {
-        Context empty;
+        Context empty{0};
         oper_name_t  memA{5};
         oper_name_t  memB{10};
         OperatorSequence seqAB1{{memA, memB}, empty};
@@ -90,7 +90,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_ConjugateNonncommute) {
-        Context empty;
+        Context empty{0};
         oper_name_t  memA{1};
         oper_name_t  memB{2};
 
@@ -103,7 +103,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_ConjugateIdentity) {
-        Context empty;
+        Context empty{0};
 
         OperatorSequence id{{}, empty};
         OperatorSequence id2 = OperatorSequence::Identity(empty);
@@ -119,7 +119,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_ConjugateZero) {
-        Context empty;
+        Context empty{0};
 
         OperatorSequence zero = OperatorSequence::Zero(empty);
         ASSERT_TRUE(zero.zero());
@@ -130,7 +130,7 @@ namespace NPATK::Tests {
 
 
     TEST(OperatorSequence, Sequence_Append_AB_listBBA) {
-        Context empty;
+        Context empty{0};
         oper_name_t  memA{1};
         oper_name_t  memB{2};
 
@@ -144,7 +144,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_Append_ABC_initBBA) {
-        Context empty;
+        Context empty{0};
         oper_name_t  memA{1};
         oper_name_t  memB{2};
         oper_name_t  memC{3};

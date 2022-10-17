@@ -49,7 +49,7 @@ namespace NPATK {
         std::vector<size_t> ops_per_party;
 
     public:
-        LocalityContext() : Parties{*this} { }
+        LocalityContext() : Context{0}, Parties{*this} { }
 
         explicit LocalityContext(std::vector<Party>&& parties) noexcept;
 

@@ -13,6 +13,7 @@
 
 namespace NPATK::Tests {
 
+
     TEST(RawSequence, RawSequenceBook) {
         AlgebraicContext theContext{2}; // 2 symbols...
         RawSequenceBook rsb{theContext};

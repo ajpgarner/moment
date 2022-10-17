@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "integer_types.h"
+#include "hashable_sequence.h"
 
 #include <cassert>
 
@@ -26,9 +27,9 @@ namespace NPATK {
     protected:
         std::vector<oper_name_t> operators;
 
-    public:
-        constexpr Context() = default;
+        ShortlexHasher hasher;
 
+    public:
         explicit Context(size_t operator_count);
 
         virtual ~Context() = default;
@@ -80,7 +81,9 @@ namespace NPATK {
           * @param seq The raw operator sequence to calculate the hash of.
           * @return An integer hash.
           */
-         [[nodiscard]] size_t hash(const std::vector<oper_name_t>& rawSeq) const noexcept;
+         [[nodiscard]] size_t hash(const std::vector<oper_name_t>& rawSeq) const noexcept {
+             return this->hasher(rawSeq);
+         }
 
          /**
           * Generates a formatted string representation of an operator sequence

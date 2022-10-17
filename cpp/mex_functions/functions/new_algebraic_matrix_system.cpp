@@ -33,9 +33,11 @@ namespace NPATK::mex::functions {
         std::unique_ptr<AlgebraicContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                        NewAlgebraicMatrixSystemParams& input) {
             std::vector<MonomialSubstitutionRule> rules;
+            ShortlexHasher hasher{input.total_operators};
             rules.reserve(input.rules.size());
             for (auto& ir : input.rules) {
-                rules.emplace_back(std::move(ir.LHS), std::move(ir.RHS), false);
+                rules.emplace_back(HashedSequence{std::move(ir.LHS), hasher},
+                                   HashedSequence{std::move(ir.RHS), hasher}, false);
             }
 
             return std::make_unique<AlgebraicContext>(input.total_operators, true, std::move(rules));

@@ -30,7 +30,12 @@ namespace NPATK::Tests {
 
     TEST(AlgebraicContext, OneSubstitution_ABtoA) {
         std::vector<MonomialSubstitutionRule> rules;
-        rules.emplace_back(std::vector<oper_name_t>{1, 2}, std::vector<oper_name_t>{1});
+
+
+        rules.emplace_back(
+                HashedSequence{{1, 2}, ShortlexHasher{3}},
+                HashedSequence{{1}, ShortlexHasher{3}}
+        );
         AlgebraicContext ac{3, true, std::move(rules)};
 
         ac.generate_aliases(3);
@@ -57,8 +62,16 @@ namespace NPATK::Tests {
 
     TEST(AlgebraicContext, TwoSubstitution_ABtoA_BAtoA) {
         std::vector<MonomialSubstitutionRule> rules;
-        rules.emplace_back(std::vector<oper_name_t>{1, 2}, std::vector<oper_name_t>{1});
-        rules.emplace_back(std::vector<oper_name_t>{2, 1}, std::vector<oper_name_t>{1});
+
+        rules.emplace_back(
+                HashedSequence{{1, 2}, ShortlexHasher{3}},
+                HashedSequence{{1}, ShortlexHasher{3}}
+        );
+
+        rules.emplace_back(
+                HashedSequence{{2, 1}, ShortlexHasher{3}},
+                HashedSequence{{1}, ShortlexHasher{3}}
+        );
         AlgebraicContext ac{3, true, std::move(rules)};
 
         ac.generate_aliases(4);
@@ -91,8 +104,16 @@ namespace NPATK::Tests {
 
     TEST(AlgebraicContext, TwoSubstitution_ABtoA_BAtoI) {
         std::vector<MonomialSubstitutionRule> rules;
-        rules.emplace_back(std::vector<oper_name_t>{1, 2}, std::vector<oper_name_t>{1});
-        rules.emplace_back(std::vector<oper_name_t>{2, 1}, std::vector<oper_name_t>{});
+        rules.emplace_back(
+                HashedSequence{{1, 2}, ShortlexHasher{3}},
+                HashedSequence{{1}, ShortlexHasher{3}}
+        );
+
+        rules.emplace_back(
+                HashedSequence{{2, 1}, ShortlexHasher{3}},
+                HashedSequence{{}, ShortlexHasher{3}}
+        );
+
         AlgebraicContext ac{3, true, std::move(rules)};
 
         ac.generate_aliases(6);
@@ -131,7 +152,10 @@ namespace NPATK::Tests {
 
     TEST(AlgebraicContext, OneSubstitution_ABtoBA) {
         std::vector<MonomialSubstitutionRule> rules;
-        rules.emplace_back(std::vector<oper_name_t>{1, 2}, std::vector<oper_name_t>{2, 1});
+        rules.emplace_back(
+                HashedSequence{{1, 2}, ShortlexHasher{3}},
+                HashedSequence{{2, 1}, ShortlexHasher{3}}
+        );
         AlgebraicContext ac{3, true, std::move(rules)};
 
         ac.generate_aliases(3);
@@ -177,7 +201,11 @@ namespace NPATK::Tests {
 
     TEST(AlgebraicContext, MakeGenerator_ABtoBA) {
         std::vector<MonomialSubstitutionRule> rules;
-        rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{1, 0});
+        rules.emplace_back(
+                HashedSequence{{0, 1}, ShortlexHasher{2}},
+                HashedSequence{{1, 0}, ShortlexHasher{2}}
+        );
+
         AlgebraicContext ac{2, true, std::move(rules)};
         ac.generate_aliases(4);
 
@@ -232,8 +260,15 @@ namespace NPATK::Tests {
     TEST(AlgebraicContext, MakeGenerator_ABtoA_BAtoI) {
         // AB=A, BA=1; but AB=A implies BA=A and hence A=1, and hence B=1.
         std::vector<MonomialSubstitutionRule> rules;
-        rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{0});
-        rules.emplace_back(std::vector<oper_name_t>{1, 0}, std::vector<oper_name_t>{});
+        rules.emplace_back(
+                HashedSequence{{0, 1}, ShortlexHasher{2}},
+                HashedSequence{{0}, ShortlexHasher{2}}
+        );
+        rules.emplace_back(
+                HashedSequence{{1, 0}, ShortlexHasher{2}},
+                HashedSequence{{}, ShortlexHasher{2}}
+        );
+
         AlgebraicContext ac{2, true, std::move(rules)};
         ac.generate_aliases(2);
 
@@ -260,9 +295,19 @@ namespace NPATK::Tests {
     TEST(AlgebraicContext, MakeGenerator_ABtoA_BCtoB_CAtoA) {
         // AB=A, BC=B, CA=C -> A = B = C
         std::vector<MonomialSubstitutionRule> rules;
-        rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{0});
-        rules.emplace_back(std::vector<oper_name_t>{1, 2}, std::vector<oper_name_t>{1});
-        rules.emplace_back(std::vector<oper_name_t>{2, 0}, std::vector<oper_name_t>{2});
+        rules.emplace_back(
+                HashedSequence{{0, 1}, ShortlexHasher{3}},
+                HashedSequence{{0}, ShortlexHasher{3}}
+        );
+        rules.emplace_back(
+                HashedSequence{{1, 2}, ShortlexHasher{3}},
+                HashedSequence{{1}, ShortlexHasher{3}}
+        );
+        rules.emplace_back(
+                HashedSequence{{2, 0}, ShortlexHasher{3}},
+                HashedSequence{{2}, ShortlexHasher{3}}
+        );
+
         AlgebraicContext ac{3, true, std::move(rules)};
         ac.generate_aliases(1);
 
@@ -282,7 +327,10 @@ namespace NPATK::Tests {
 
     TEST(AlgebraicContext, CreateMomentMatrix_ABtoI) {
         std::vector<MonomialSubstitutionRule> rules;
-        rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{});
+        rules.emplace_back(
+                HashedSequence{{0, 1}, ShortlexHasher{2}},
+                HashedSequence{{}, ShortlexHasher{2}}
+        );
         auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = ams.Context();
@@ -307,8 +355,14 @@ namespace NPATK::Tests {
 
     TEST(AlgebraicContext, CreateMomentMatrix_ABtoA_BAtoI) {
         std::vector<MonomialSubstitutionRule> rules;
-        rules.emplace_back(std::vector<oper_name_t>{0, 1}, std::vector<oper_name_t>{0});
-        rules.emplace_back(std::vector<oper_name_t>{1, 0}, std::vector<oper_name_t>{});
+        rules.emplace_back(
+                HashedSequence{{0, 1}, ShortlexHasher{2}},
+                HashedSequence{{0}, ShortlexHasher{2}}
+        );
+        rules.emplace_back(
+                HashedSequence{{1, 0}, ShortlexHasher{2}},
+                HashedSequence{{}, ShortlexHasher{2}}
+        );
         auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());

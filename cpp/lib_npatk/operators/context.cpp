@@ -12,7 +12,8 @@
 
 namespace NPATK {
 
-    Context::Context(size_t operator_count) {
+    Context::Context(size_t operator_count)
+        : hasher{operator_count} {
         this->operators.reserve(operator_count);
 
         for (size_t index = 0; index < operator_count; ++index) {
@@ -31,24 +32,8 @@ namespace NPATK {
             return 0;
         }
 
-        return hash(sequence.constituents);
+        return this->hasher(sequence.constituents);
     }
-
-    size_t Context::hash(const std::vector<oper_name_t>& rawOperators) const noexcept {
-
-        size_t hash = 1;
-        size_t multiplier = 1;
-        const size_t multiplier_stride = 1 + this->operators.size();
-        const size_t len = rawOperators.size();
-
-        for (size_t n = 0; n < len; ++n) {
-            const auto& oper = rawOperators[len-n-1];
-            hash += ((static_cast<size_t>(oper) + 1) * multiplier);
-            multiplier *= multiplier_stride;
-        }
-        return hash;
-    }
-
 
     std::string Context::format_sequence(const OperatorSequence &seq) const {
         // NB: May be overridden by subclasses!

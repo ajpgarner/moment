@@ -8,6 +8,7 @@
 #include "integer_types.h"
 
 #include "symbolic/symbol_expression.h"
+#include "raw_sequence.h"
 
 #include <iosfwd>
 #include <set>
@@ -24,6 +25,7 @@ namespace NPATK {
 
     }
 
+    class Context;
     class RawSequence;
     class RawSequenceBook;
 
@@ -33,23 +35,17 @@ namespace NPATK {
         using const_iter_t = std::vector<oper_name_t>::const_iterator;
 
     private:
-        const std::vector<oper_name_t> rawLHS;
-        const std::vector<oper_name_t> rawRHS;
+        const HashedSequence rawLHS;
+        const HashedSequence rawRHS;
         bool negated = false;
 
     public:
         /** The amount the string-length changes by, on a successful match */
         const ptrdiff_t Delta = 0;
 
-        /** Where, in the algorithm, the rule is discovered */
-        const size_t generation = 0;
-
     public:
-        constexpr MonomialSubstitutionRule(std::vector<oper_name_t> lhs, std::vector<oper_name_t> rhs,
-                                           size_t gen = 0, bool negated = false)
-                : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, negated{negated}, generation{gen},
-                  Delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
-        }
+        MonomialSubstitutionRule(HashedSequence lhs, HashedSequence rhs,
+                                 bool negated = false);
 
         [[nodiscard]] bool matches(const_iter_t iter, const_iter_t iter_end) const noexcept;
 

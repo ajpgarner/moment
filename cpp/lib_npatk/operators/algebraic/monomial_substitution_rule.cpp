@@ -22,6 +22,13 @@ namespace NPATK {
         }
     }
 
+    MonomialSubstitutionRule::MonomialSubstitutionRule(HashedSequence lhs,
+                                                       HashedSequence rhs,
+                                                       bool negated)
+            : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, negated{negated},
+              Delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
+    }
+
     bool MonomialSubstitutionRule::matches(MonomialSubstitutionRule::const_iter_t test_iter,
                                            const MonomialSubstitutionRule::const_iter_t test_iter_end) const noexcept {
         // No match, if not enough space left
@@ -29,8 +36,8 @@ namespace NPATK {
             return false;
         }
 
-        auto this_iter = this->rawLHS.cbegin();
-        const auto this_iter_end = this->rawLHS.cend();
+        auto this_iter = this->rawLHS.operators.cbegin();
+        const auto this_iter_end = this->rawLHS.operators.cend();
         while ((test_iter != test_iter_end) && (this_iter != this_iter_end)) {
             if (*this_iter != *test_iter) {
                 return false;
@@ -72,7 +79,7 @@ namespace NPATK {
         std::copy(input.cbegin(), hint, std::back_inserter(output));
 
         // Copy substituted string
-        std::copy(rawRHS.cbegin(), rawRHS.cend(), std::back_inserter(output));
+        std::copy(rawRHS.operators.cbegin(), rawRHS.operators.cend(), std::back_inserter(output));
 
         // Copy remainder of input string
         hint += static_cast<ptrdiff_t>(rawLHS.size());
@@ -117,7 +124,7 @@ namespace NPATK {
         if (msr.rawLHS.empty()) {
             os << "I";
         } else {
-            for (const auto i : msr.rawLHS) {
+            for (const auto i : msr.rawLHS.operators) {
                 os << "X" << i;
             }
         }
@@ -130,11 +137,12 @@ namespace NPATK {
         if (msr.rawRHS.empty()) {
             os << "I";
         } else {
-            for (const auto i : msr.rawRHS) {
+            for (const auto i : msr.rawRHS.operators) {
                 os << "X" << i;
             }
         }
 
         return os;
     }
+
 }

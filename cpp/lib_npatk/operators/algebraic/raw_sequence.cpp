@@ -4,6 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "raw_sequence.h"
+#include <algorithm>
 #include <iostream>
 
 namespace NPATK {
@@ -17,4 +18,5 @@ namespace NPATK {
         }
         return os;
     }
+
 }

@@ -1,7 +1,6 @@
 include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_executable(npatk_tests
-
     operators/context_tests.cpp
     operators/localizing_matrix_tests.cpp
     operators/multi_operator_iterator_tests.cpp
@@ -29,7 +28,8 @@ add_executable(npatk_tests
     utilities/multi_dimensional_index_iterator_tests.cpp
     utilities/persistent_storage_tests.cpp
     utilities/recursive_storage_tests.cpp
-    utilities/square_matrix_tests.cpp)
+    utilities/square_matrix_tests.cpp
+    utilities/suffix_prefix_tests.cpp)
 
 target_link_libraries(npatk_tests
     lib_npatk

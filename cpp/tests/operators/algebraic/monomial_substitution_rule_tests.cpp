@@ -15,7 +15,8 @@ namespace NPATK::Tests {
     TEST(MonomialSubRule, MatchABinABAB) {
         std::vector<oper_name_t> sampleStr{1, 2, 1, 2};
 
-        MonomialSubstitutionRule msr{std::vector<oper_name_t>{1, 2}, std::vector<oper_name_t>{3, 4}};
+        MonomialSubstitutionRule msr{HashedSequence{{1, 2}, ShortlexHasher{5}},
+                                     HashedSequence{{3, 4}, ShortlexHasher{5}}};
 
         EXPECT_TRUE(msr.matches(sampleStr.begin(), sampleStr.end()));
         EXPECT_FALSE(msr.matches(sampleStr.begin() + 1, sampleStr.end()));
@@ -34,7 +35,8 @@ namespace NPATK::Tests {
     TEST(MonomialSubRule, MatchABinBABA) {
         std::vector<oper_name_t> sampleStr{2, 1, 2, 1};
 
-        MonomialSubstitutionRule msr{std::vector<oper_name_t>{1, 2}, std::vector<oper_name_t>{3, 4}};
+        MonomialSubstitutionRule msr{HashedSequence{{1, 2}, ShortlexHasher{5}},
+                                     HashedSequence{{3, 4}, ShortlexHasher{5}}};
 
         EXPECT_FALSE(msr.matches(sampleStr.begin(), sampleStr.end()));
         EXPECT_TRUE(msr.matches(sampleStr.begin() + 1, sampleStr.end()));
@@ -51,8 +53,8 @@ namespace NPATK::Tests {
     TEST(MonomialSubRule, MatchBBAtoBA) {
         std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
 
-        MonomialSubstitutionRule msr{std::vector<oper_name_t>{2, 2, 1},
-                                     std::vector<oper_name_t>{2, 1}};
+        MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
+                                     HashedSequence{{2, 1}, ShortlexHasher{3}}};
 
         ASSERT_EQ(msr.Delta, -1);
 
@@ -70,8 +72,8 @@ namespace NPATK::Tests {
     TEST(MonomialSubRule, MatchBBAtoNothing_ABBA) {
         std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
 
-        MonomialSubstitutionRule msr{std::vector<oper_name_t>{2, 2, 1},
-                                     std::vector<oper_name_t>{}};
+        MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
+                                     HashedSequence{{}, ShortlexHasher{3}}};
 
         ASSERT_EQ(msr.Delta, -3);
 
@@ -86,8 +88,9 @@ namespace NPATK::Tests {
     TEST(MonomialSubRule, MatchBBAtoNothing_BBAB) {
         std::vector<oper_name_t> sampleStr{2, 2, 1, 2};
 
-        MonomialSubstitutionRule msr{std::vector<oper_name_t>{2, 2, 1},
-                                     std::vector<oper_name_t>{}};
+        MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
+                                     HashedSequence{{}, ShortlexHasher{3}}};
+
 
         ASSERT_EQ(msr.Delta, -3);
 
@@ -104,8 +107,8 @@ namespace NPATK::Tests {
         RawSequenceBook rsb{context};
         rsb.generate(4);
 
-        MonomialSubstitutionRule msr{std::vector<oper_name_t>{1, 2},
-                                     std::vector<oper_name_t>{}};
+        MonomialSubstitutionRule msr{HashedSequence{{1, 2}, ShortlexHasher{3}},
+                                     HashedSequence{{}, ShortlexHasher{3}}};
 
         std::vector<oper_name_t> sampleStr{1, 2, 1, 2};
         auto ssWhere = rsb.where(sampleStr);
@@ -131,8 +134,9 @@ namespace NPATK::Tests {
         RawSequenceBook rsb{context};
         rsb.generate(4);
 
-        MonomialSubstitutionRule msr{std::vector<oper_name_t>{1, 2},
-                                     std::vector<oper_name_t>{1}};
+
+        MonomialSubstitutionRule msr{HashedSequence{{1, 2}, ShortlexHasher{3}},
+                                     HashedSequence{{1}, ShortlexHasher{3}}};
 
         std::vector<oper_name_t> sampleStr{1, 2, 1, 2};
         auto ssWhere = rsb.where(sampleStr);

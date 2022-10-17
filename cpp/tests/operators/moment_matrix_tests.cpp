@@ -99,7 +99,7 @@ namespace NPATK::Tests {
     }
 
     TEST(MomentMatrix, Empty) {
-        MatrixSystem system{std::make_unique<Context>()}; // No parties, no symbols
+        MatrixSystem system{std::make_unique<Context>(0)}; // No parties, no symbols
         auto& context = system.Context();
         ASSERT_EQ(context.size(), 0);
 

@@ -2,6 +2,7 @@ include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_library(lib_npatk
         operators/context.cpp
+        operators/hashable_sequence.cpp
         operators/operator_sequence.cpp
         operators/operator_sequence_generator.cpp
         operators/algebraic/algebraic_context.cpp
@@ -9,6 +10,7 @@ add_library(lib_npatk
         operators/algebraic/monomial_substitution_rule.cpp
         operators/algebraic/raw_sequence.cpp
         operators/algebraic/raw_sequence_book.cpp
+        operators/algebraic/rule_book.cpp
         operators/locality/explicit_symbols.cpp
         operators/locality/collins_gisin.cpp
         operators/locality/implicit_symbols.cpp
