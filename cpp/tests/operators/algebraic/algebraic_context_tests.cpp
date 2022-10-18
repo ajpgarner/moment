@@ -153,8 +153,8 @@ namespace NPATK::Tests {
     TEST(AlgebraicContext, OneSubstitution_ABtoBA) {
         std::vector<MonomialSubstitutionRule> rules;
         rules.emplace_back(
-                HashedSequence{{1, 2}, ShortlexHasher{3}},
-                HashedSequence{{2, 1}, ShortlexHasher{3}}
+                HashedSequence{{2, 1}, ShortlexHasher{3}},
+                HashedSequence{{1, 2}, ShortlexHasher{3}}
         );
         AlgebraicContext ac{3, true, std::move(rules)};
 
@@ -202,8 +202,8 @@ namespace NPATK::Tests {
     TEST(AlgebraicContext, MakeGenerator_ABtoBA) {
         std::vector<MonomialSubstitutionRule> rules;
         rules.emplace_back(
-                HashedSequence{{0, 1}, ShortlexHasher{2}},
-                HashedSequence{{1, 0}, ShortlexHasher{2}}
+                HashedSequence{{1, 0}, ShortlexHasher{2}},
+                HashedSequence{{0, 1}, ShortlexHasher{2}}
         );
 
         AlgebraicContext ac{2, true, std::move(rules)};

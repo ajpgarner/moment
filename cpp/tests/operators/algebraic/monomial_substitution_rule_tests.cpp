@@ -13,10 +13,10 @@
 namespace NPATK::Tests {
 
     TEST(MonomialSubRule, MatchABinABAB) {
-        std::vector<oper_name_t> sampleStr{1, 2, 1, 2};
+        std::vector<oper_name_t> sampleStr{3, 4, 3, 4};
 
-        MonomialSubstitutionRule msr{HashedSequence{{1, 2}, ShortlexHasher{5}},
-                                     HashedSequence{{3, 4}, ShortlexHasher{5}}};
+        MonomialSubstitutionRule msr{HashedSequence{{3, 4}, ShortlexHasher{5}},
+                                     HashedSequence{{1, 2}, ShortlexHasher{5}}};
 
         EXPECT_TRUE(msr.matches(sampleStr.begin(), sampleStr.end()));
         EXPECT_FALSE(msr.matches(sampleStr.begin() + 1, sampleStr.end()));
@@ -33,10 +33,10 @@ namespace NPATK::Tests {
     }
 
     TEST(MonomialSubRule, MatchABinBABA) {
-        std::vector<oper_name_t> sampleStr{2, 1, 2, 1};
+        std::vector<oper_name_t> sampleStr{4, 3, 4, 3};
 
-        MonomialSubstitutionRule msr{HashedSequence{{1, 2}, ShortlexHasher{5}},
-                                     HashedSequence{{3, 4}, ShortlexHasher{5}}};
+        MonomialSubstitutionRule msr{HashedSequence{{3, 4}, ShortlexHasher{5}},
+                                     HashedSequence{{1, 2}, ShortlexHasher{5}}};
 
         EXPECT_FALSE(msr.matches(sampleStr.begin(), sampleStr.end()));
         EXPECT_TRUE(msr.matches(sampleStr.begin() + 1, sampleStr.end()));

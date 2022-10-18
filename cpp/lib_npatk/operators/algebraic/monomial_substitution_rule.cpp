@@ -6,6 +6,7 @@
 #include "monomial_substitution_rule.h"
 
 #include "raw_sequence_book.h"
+#include "utilities/suffix_prefix.h"
 
 #include <cassert>
 
@@ -18,7 +19,10 @@ namespace NPATK {
     namespace errors {
         bad_hint::bad_hint()
             : std::logic_error("Hint supplied does not match rule.") {
+        }
 
+        invalid_rule::invalid_rule(const std::string &why)
+            : std::logic_error("Invalid rule: " + why) {
         }
     }
 
@@ -27,6 +31,10 @@ namespace NPATK {
                                                        bool negated)
             : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, negated{negated},
               Delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
+        if (rawLHS < rawRHS) {
+            throw errors::invalid_rule(std::string("Rule was not a reduction: ")
+                                       + " the RHS must not exceed LHS in shortlex ordering.");
+        }
     }
 
     bool MonomialSubstitutionRule::matches(MonomialSubstitutionRule::const_iter_t test_iter,

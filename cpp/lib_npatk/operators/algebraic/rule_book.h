@@ -7,19 +7,43 @@
 
 #include "monomial_substitution_rule.h"
 
+#include <map>
+#include <vector>
+
 namespace NPATK {
     class AlgebraicContext;
 
     class RuleBook {
     private:
-        const AlgebraicContext& context;
-        std::vector<MonomialSubstitutionRule> monomialRules;
+        const ShortlexHasher& hasher;
+        std::map<size_t, MonomialSubstitutionRule> monomialRules;
+        //std::vector<MonomialSubstitutionRule> monomialRules;
 
     public:
-        RuleBook(const AlgebraicContext& context, std::vector<MonomialSubstitutionRule> rules);
+        RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules);
 
-    private:
-        void validate_rules();
+        explicit RuleBook(const ShortlexHasher& hasher)
+            : RuleBook(hasher, std::vector<MonomialSubstitutionRule>{}) { }
+
+        bool simplify_rules(size_t max_iterations);
+
+        bool simplify_once();
+
+    public:
+        [[nodiscard]] static std::vector<oper_name_t>
+        concat_merge_lhs(const MonomialSubstitutionRule& ruleA, const MonomialSubstitutionRule& ruleB);
+
+        [[nodiscard]] static ptrdiff_t rule_overlap_lhs(const MonomialSubstitutionRule& ruleA,
+                                                        const MonomialSubstitutionRule& ruleB);
+
+        [[nodiscard]] static std::vector<oper_name_t>
+        concat_merge_lhs(const MonomialSubstitutionRule& ruleA,
+                         const MonomialSubstitutionRule& ruleB,
+                         ptrdiff_t overlap);
+
+        [[nodiscard]] MonomialSubstitutionRule combine_rules(const MonomialSubstitutionRule& lhs,
+                                                             const MonomialSubstitutionRule& rhs,
+                                                             ptrdiff_t overlap) const;
 
     };
 

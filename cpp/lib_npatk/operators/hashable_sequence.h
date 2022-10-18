@@ -55,6 +55,11 @@ namespace NPATK {
         [[nodiscard]] constexpr bool operator<(const HashedSequence& rhs) const noexcept {
             return this->hash < rhs.hash;
         }
+
+        /** Ordering by hash value (i.e. shortlex) */
+        [[nodiscard]] constexpr bool operator>(const HashedSequence& rhs) const noexcept {
+            return this->hash > rhs.hash;
+        }
     };
 
 }

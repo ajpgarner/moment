@@ -23,11 +23,17 @@ namespace NPATK {
             bad_hint();
         };
 
+        class invalid_rule : public std::logic_error {
+        public:
+            explicit invalid_rule(const std::string& why);
+        };
+
     }
 
     class Context;
     class RawSequence;
     class RawSequenceBook;
+    class RuleBook;
 
     class MonomialSubstitutionRule {
     public:
@@ -47,6 +53,10 @@ namespace NPATK {
         MonomialSubstitutionRule(HashedSequence lhs, HashedSequence rhs,
                                  bool negated = false);
 
+        [[nodiscard]] const HashedSequence& LHS() const noexcept { return this->rawLHS; }
+
+        [[nodiscard]] const HashedSequence& RHS() const noexcept { return this->rawRHS; }
+
         [[nodiscard]] bool matches(const_iter_t iter, const_iter_t iter_end) const noexcept;
 
         [[nodiscard]] const_iter_t matches_anywhere(const_iter_t iter, const_iter_t iter_end) const noexcept;
@@ -59,5 +69,7 @@ namespace NPATK {
         size_t all_matches(std::vector<SymbolPair>& output, const RawSequenceBook& rsb, const RawSequence& input) const;
 
         friend std::ostream& operator<<(std::ostream& os, const MonomialSubstitutionRule& msr);
+
+        friend class RuleBook;
     };
 }

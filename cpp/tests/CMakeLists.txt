@@ -11,6 +11,7 @@ add_executable(npatk_tests
     operators/algebraic/algebraic_context_tests.cpp
     operators/algebraic/monomial_substitution_rule_tests.cpp
     operators/algebraic/raw_sequence_tests.cpp
+    operators/algebraic/rule_book_tests.cpp
     operators/locality/collins_gisin_tests.cpp
     operators/locality/explicit_symbols_tests.cpp
     operators/locality/implicit_symbols_tests.cpp
