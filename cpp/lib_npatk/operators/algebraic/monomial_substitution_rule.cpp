@@ -6,7 +6,6 @@
 #include "monomial_substitution_rule.h"
 
 #include "raw_sequence_book.h"
-#include "utilities/suffix_prefix.h"
 
 #include <cassert>
 
@@ -37,37 +36,6 @@ namespace NPATK {
         }
     }
 
-    bool MonomialSubstitutionRule::matches(MonomialSubstitutionRule::const_iter_t test_iter,
-                                           const MonomialSubstitutionRule::const_iter_t test_iter_end) const noexcept {
-        // No match, if not enough space left
-        if (std::distance(test_iter, test_iter_end) < this->rawLHS.size()) {
-            return false;
-        }
-
-        auto this_iter = this->rawLHS.operators.cbegin();
-        const auto this_iter_end = this->rawLHS.operators.cend();
-        while ((test_iter != test_iter_end) && (this_iter != this_iter_end)) {
-            if (*this_iter != *test_iter) {
-                return false;
-            }
-            ++test_iter;
-            ++this_iter;
-        }
-        return true;
-    }
-
-    MonomialSubstitutionRule::const_iter_t
-    MonomialSubstitutionRule::matches_anywhere(MonomialSubstitutionRule::const_iter_t iter,
-                                               const MonomialSubstitutionRule::const_iter_t iter_end) const noexcept {
-        while (iter != iter_end) {
-            if (this->matches(iter, iter_end)) {
-                return iter;
-            }
-            ++iter;
-        }
-        return iter_end;
-    }
-
     std::vector<oper_name_t>
     MonomialSubstitutionRule::apply_match_with_hint(const std::vector<oper_name_t>& input,
                                                     const_iter_t hint) const {
@@ -87,7 +55,7 @@ namespace NPATK {
         std::copy(input.cbegin(), hint, std::back_inserter(output));
 
         // Copy substituted string
-        std::copy(rawRHS.operators.cbegin(), rawRHS.operators.cend(), std::back_inserter(output));
+        std::copy(rawRHS.begin(), rawRHS.end(), std::back_inserter(output));
 
         // Copy remainder of input string
         hint += static_cast<ptrdiff_t>(rawLHS.size());
@@ -103,26 +71,25 @@ namespace NPATK {
 
     size_t MonomialSubstitutionRule::all_matches(std::vector<SymbolPair>& output,
                                                  const RawSequenceBook& rsb,
-                                                 const RawSequence& input) const {
-        auto input_sequence = input.operators;
+                                                 const RawSequence& input_sequence) const {
         assert(rsb.where(input_sequence) != nullptr);
         assert(input_sequence.size() <= rsb.longest_sequence());
 
         size_t match_count = 0;
-        auto input_iter = input_sequence.cbegin();
-        auto match_iter = this->matches_anywhere(input_iter, input_sequence.cend());
-        while (match_iter != input_sequence.cend()) {
-            auto altered_string = this->apply_match_with_hint(input_sequence, match_iter);
+        auto input_iter = input_sequence.begin();
+        auto match_iter = this->matches_anywhere(input_iter, input_sequence.end());
+        while (match_iter != input_sequence.end()) {
+            auto altered_string = this->apply_match_with_hint(input_sequence.raw(), match_iter);
             const auto *target_seq = rsb.where(altered_string);
             if (target_seq == nullptr) {
-                throw std::logic_error{"Substitution resulted in illegal string!"};
+                throw std::logic_error{"Internal error: Substitution resulted in illegal string!"};
             }
 
             // Register symbol link
-            output.emplace_back(input.raw_id, target_seq->raw_id, this->negated, false);
+            output.emplace_back(input_sequence.raw_id, target_seq->raw_id, this->negated, false);
 
             // Find next match
-            match_iter = this->matches_anywhere(match_iter + 1, input_sequence.cend());
+            match_iter = this->matches_anywhere(match_iter + 1, input_sequence.end());
             ++match_count;
         }
         return match_count;
@@ -132,7 +99,7 @@ namespace NPATK {
         if (msr.rawLHS.empty()) {
             os << "I";
         } else {
-            for (const auto i : msr.rawLHS.operators) {
+            for (const auto i : msr.rawLHS) {
                 os << "X" << i;
             }
         }
@@ -145,7 +112,7 @@ namespace NPATK {
         if (msr.rawRHS.empty()) {
             os << "I";
         } else {
-            for (const auto i : msr.rawRHS.operators) {
+            for (const auto i : msr.rawRHS) {
                 os << "X" << i;
             }
         }

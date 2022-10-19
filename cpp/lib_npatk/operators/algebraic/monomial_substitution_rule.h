@@ -30,7 +30,6 @@ namespace NPATK {
 
     }
 
-    class Context;
     class RawSequence;
     class RawSequenceBook;
     class RuleBook;
@@ -57,11 +56,9 @@ namespace NPATK {
 
         [[nodiscard]] const HashedSequence& RHS() const noexcept { return this->rawRHS; }
 
-        [[nodiscard]] bool matches(const_iter_t iter, const_iter_t iter_end) const noexcept;
-
-        [[nodiscard]] const_iter_t matches_anywhere(const_iter_t iter, const_iter_t iter_end) const noexcept;
-
-        [[nodiscard]] size_t left_size() const noexcept { return this->rawLHS.size(); }
+        [[nodiscard]] inline const_iter_t matches_anywhere(const_iter_t iter, const_iter_t iter_end) const noexcept {
+            return this->rawLHS.matches_anywhere(iter, iter_end);
+        }
 
         [[nodiscard]] std::vector<oper_name_t>
         apply_match_with_hint(const std::vector<oper_name_t>& input, const_iter_t hint) const;

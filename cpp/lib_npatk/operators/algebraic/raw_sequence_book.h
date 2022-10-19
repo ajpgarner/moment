@@ -55,6 +55,8 @@ namespace NPATK {
 
         [[nodiscard]] const RawSequence * where(const std::vector<oper_name_t>& op_str) const noexcept;
 
+        [[nodiscard]] const RawSequence * where(const HashedSequence& op_str) const noexcept;
+
         [[nodiscard]] const std::vector<Symbol>& Symbols() const noexcept { return this->symbols; }
 
     };

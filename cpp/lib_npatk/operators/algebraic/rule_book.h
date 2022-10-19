@@ -17,7 +17,6 @@ namespace NPATK {
     private:
         const ShortlexHasher& hasher;
         std::map<size_t, MonomialSubstitutionRule> monomialRules;
-        //std::vector<MonomialSubstitutionRule> monomialRules;
 
     public:
         RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules);
@@ -34,7 +33,9 @@ namespace NPATK {
         concat_merge_lhs(const MonomialSubstitutionRule& ruleA, const MonomialSubstitutionRule& ruleB);
 
         [[nodiscard]] static ptrdiff_t rule_overlap_lhs(const MonomialSubstitutionRule& ruleA,
-                                                        const MonomialSubstitutionRule& ruleB);
+                                                        const MonomialSubstitutionRule& ruleB) {
+            return ruleA.LHS().suffix_prefix_overlap(ruleB.LHS());
+        }
 
         [[nodiscard]] static std::vector<oper_name_t>
         concat_merge_lhs(const MonomialSubstitutionRule& ruleA,

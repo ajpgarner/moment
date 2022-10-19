@@ -12,44 +12,6 @@
 
 namespace NPATK::Tests {
 
-    TEST(MonomialSubRule, MatchABinABAB) {
-        std::vector<oper_name_t> sampleStr{3, 4, 3, 4};
-
-        MonomialSubstitutionRule msr{HashedSequence{{3, 4}, ShortlexHasher{5}},
-                                     HashedSequence{{1, 2}, ShortlexHasher{5}}};
-
-        EXPECT_TRUE(msr.matches(sampleStr.begin(), sampleStr.end()));
-        EXPECT_FALSE(msr.matches(sampleStr.begin() + 1, sampleStr.end()));
-        EXPECT_TRUE(msr.matches(sampleStr.begin() + 2, sampleStr.end()));
-        EXPECT_FALSE(msr.matches(sampleStr.begin() + 3, sampleStr.end()));
-        EXPECT_FALSE(msr.matches(sampleStr.end(), sampleStr.end()));
-
-        auto matchA = msr.matches_anywhere(sampleStr.begin(), sampleStr.end());
-        EXPECT_EQ(matchA, sampleStr.begin());
-        auto matchB = msr.matches_anywhere(matchA + 1, sampleStr.end());
-        EXPECT_EQ(matchB, sampleStr.begin() + 2);
-        auto matchC = msr.matches_anywhere(matchB + 1, sampleStr.end());
-        EXPECT_EQ(matchC, sampleStr.end());
-    }
-
-    TEST(MonomialSubRule, MatchABinBABA) {
-        std::vector<oper_name_t> sampleStr{4, 3, 4, 3};
-
-        MonomialSubstitutionRule msr{HashedSequence{{3, 4}, ShortlexHasher{5}},
-                                     HashedSequence{{1, 2}, ShortlexHasher{5}}};
-
-        EXPECT_FALSE(msr.matches(sampleStr.begin(), sampleStr.end()));
-        EXPECT_TRUE(msr.matches(sampleStr.begin() + 1, sampleStr.end()));
-        EXPECT_FALSE(msr.matches(sampleStr.begin() + 2, sampleStr.end()));
-        EXPECT_FALSE(msr.matches(sampleStr.begin() + 3, sampleStr.end()));
-        EXPECT_FALSE(msr.matches(sampleStr.end(), sampleStr.end()));
-
-        auto matchA = msr.matches_anywhere(sampleStr.begin(), sampleStr.end());
-        EXPECT_EQ(matchA, sampleStr.begin() + 1);
-        auto matchB = msr.matches_anywhere(matchA + 1, sampleStr.end());
-        EXPECT_EQ(matchB, sampleStr.end());
-    }
-
     TEST(MonomialSubRule, MatchBBAtoBA) {
         std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
 

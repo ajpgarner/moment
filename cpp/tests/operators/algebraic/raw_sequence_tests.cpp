@@ -43,23 +43,23 @@ namespace NPATK::Tests {
 
         for (size_t i = 0; i < 2; ++i) {
             const auto& rs = rsb[i];
-            EXPECT_EQ(rs.operators.size(), 0);
+            EXPECT_EQ(rs.size(), 0);
         }
         for (size_t i = 2; i < 4; ++i) {
             const auto& rs = rsb[i];
-            EXPECT_EQ(rs.operators.size(), 1);
+            EXPECT_EQ(rs.size(), 1);
         }
         for (size_t i = 4; i < 8; ++i) {
             const auto& rs = rsb[i];
-            EXPECT_EQ(rs.operators.size(), 2);
+            EXPECT_EQ(rs.size(), 2);
         }
         for (size_t i = 8; i < 16; ++i) {
             const auto& rs = rsb[i];
-            EXPECT_EQ(rs.operators.size(), 3);
+            EXPECT_EQ(rs.size(), 3);
         }
         for (size_t i = 16; i < 32; ++i) {
             const auto& rs = rsb[i];
-            EXPECT_EQ(rs.operators.size(), 4);
+            EXPECT_EQ(rs.size(), 4);
         }
     }
 }

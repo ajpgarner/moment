@@ -2,7 +2,7 @@ include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 
 add_library(lib_npatk
         operators/context.cpp
-        operators/hashable_sequence.cpp
+        operators/hashed_sequence.cpp
         operators/operator_sequence.cpp
         operators/operator_sequence_generator.cpp
         operators/algebraic/algebraic_context.cpp

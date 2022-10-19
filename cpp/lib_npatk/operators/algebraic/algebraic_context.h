@@ -21,9 +21,7 @@ namespace NPATK {
     namespace errors {
         class bad_substitution : public std::logic_error {
         public:
-            std::vector<oper_name_t> sequence;
-            bad_substitution(const std::string& what,
-                             std::vector<oper_name_t> seq) : std::logic_error(what), sequence{std::move(seq)} { }
+            explicit bad_substitution(const std::string& what) : std::logic_error(what) { }
         };
     }
 

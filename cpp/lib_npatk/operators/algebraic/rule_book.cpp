@@ -5,11 +5,8 @@
  */
 #include "rule_book.h"
 #include "algebraic_context.h"
-#include "utilities/suffix_prefix.h"
 
 namespace NPATK {
-
-
     RuleBook::RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules)
          : hasher{hasher} {
         for (const auto& rule : rules) {
@@ -55,28 +52,22 @@ namespace NPATK {
         return concat_merge_lhs(ruleA, ruleB, overlap_size);
     }
 
-
-
-    ptrdiff_t RuleBook::rule_overlap_lhs(const MonomialSubstitutionRule &ruleA, const MonomialSubstitutionRule &ruleB) {
-        return static_cast<ptrdiff_t>(suffix_prefix(ruleA.rawLHS.operators, ruleB.rawLHS.operators));
-    }
-
     std::vector<oper_name_t> RuleBook::concat_merge_lhs(const MonomialSubstitutionRule& ruleA,
                                                         const MonomialSubstitutionRule& ruleB,
                                                         ptrdiff_t overlap_size)  {
         std::vector<oper_name_t> joined_string;
-        joined_string.reserve(static_cast<ptrdiff_t>(ruleA.rawLHS.operators.size() + ruleB.rawLHS.operators.size())
+        joined_string.reserve(static_cast<ptrdiff_t>(ruleA.rawLHS.size() + ruleB.rawLHS.size())
                               - overlap_size);
-        std::copy(ruleA.rawLHS.operators.cbegin(), ruleA.rawLHS.operators.cend() - static_cast<ptrdiff_t>(overlap_size),
+        std::copy(ruleA.rawLHS.begin(), ruleA.rawLHS.end() - static_cast<ptrdiff_t>(overlap_size),
                   std::back_inserter(joined_string));
-        std::copy(ruleB.rawLHS.operators.cbegin(), ruleB.rawLHS.operators.cend(),
+        std::copy(ruleB.rawLHS.begin(), ruleB.rawLHS.end(),
                   std::back_inserter(joined_string));
 
         return joined_string;
     }
 
 
-    [[nodsicard]] MonomialSubstitutionRule RuleBook::combine_rules(const MonomialSubstitutionRule& ruleA,
+    MonomialSubstitutionRule RuleBook::combine_rules(const MonomialSubstitutionRule& ruleA,
                                                                    const MonomialSubstitutionRule& ruleB,
                                                                    ptrdiff_t overlap_size) const {
         // Get string from joining rules
@@ -88,7 +79,7 @@ namespace NPATK {
 
         auto furtherSimpA = this->monomialRules.find(rawHashA);
         if (furtherSimpA != this->monomialRules.cend()) {
-            rawViaRuleA = furtherSimpA->second.rawRHS.operators;
+            rawViaRuleA = furtherSimpA->second.rawRHS.raw();
             rawHashA =  furtherSimpA->second.rawRHS.hash;
         }
 
@@ -98,7 +89,7 @@ namespace NPATK {
 
         auto furtherSimpB = this->monomialRules.find(rawHashB);
         if (furtherSimpB != this->monomialRules.cend()) {
-            rawViaRuleB = furtherSimpB->second.rawRHS.operators;
+            rawViaRuleB = furtherSimpB->second.rawRHS.raw();
             rawHashB =  furtherSimpB->second.rawRHS.hash;
         }
 

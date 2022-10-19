@@ -76,7 +76,7 @@ namespace NPATK {
         for (symbol_name_t index = initial_symbol_count; index < final_symbol_count; ++index) {
             auto& raw_seq = this->sequences[index];
 
-            std::vector<oper_name_t> reversed(raw_seq.operators.crbegin(), raw_seq.operators.crend());
+            std::vector<oper_name_t> reversed(raw_seq.rbegin(), raw_seq.rend());
             raw_seq.conjugate_hash = this->context.hash(reversed);
             auto conjSymIter = this->hash_table.find(raw_seq.conjugate_hash);
             assert(conjSymIter != this->hash_table.end());
@@ -122,6 +122,14 @@ namespace NPATK {
             return nullptr;
         }
         return this->where(this->context.hash(op_str));
+    }
+
+    const RawSequence *RawSequenceBook::where(const HashedSequence &op_str) const noexcept {
+        if (op_str.size() > this->max_seq_length) {
+            [[unlikely]]
+            return nullptr;
+        }
+        return this->where(op_str.hash);
     }
 
 }

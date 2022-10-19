@@ -5,7 +5,7 @@
  */
 #pragma once
 #include "integer_types.h"
-#include "hashable_sequence.h"
+#include "hashed_sequence.h"
 
 #include <cassert>
 

@@ -37,11 +37,11 @@ namespace NPATK::Tests {
 
         auto joint_rule = rules.combine_rules(msr[0], msr[1], overlap);
         ASSERT_EQ(joint_rule.LHS().size(), 2);
-        EXPECT_EQ(joint_rule.LHS().operators[0], 0);
-        EXPECT_EQ(joint_rule.LHS().operators[1], 0);
+        EXPECT_EQ(joint_rule.LHS().raw()[0], 0);
+        EXPECT_EQ(joint_rule.LHS().raw()[1], 0);
 
         ASSERT_EQ(joint_rule.RHS().size(), 1);
-        EXPECT_EQ(joint_rule.RHS().operators[0], 0);
+        EXPECT_EQ(joint_rule.RHS().raw()[0], 0);
 
 
 

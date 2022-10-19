@@ -25,9 +25,9 @@ namespace NPATK {
     {
         const auto max_length_elem = std::max_element(monomialRules.cbegin(), monomialRules.cend(),
         [](const auto& ruleL, const auto& ruleR) {
-            return ruleL.left_size() < ruleR.left_size();
+            return ruleL.LHS().size() < ruleR.LHS().size();
         });
-        const size_t max_length = max_length_elem->left_size();
+        const size_t max_length = max_length_elem->LHS().size();
         this->generate_aliases(2*max_length);
     }
 
@@ -67,9 +67,8 @@ namespace NPATK {
                                               const RawSequence& input_sequence) const {
         if (input_sequence.size() > this->rawSequences.longest_sequence()) {
             [[unlikely]]
-            throw errors::bad_substitution(
-                    "Cannot perform substitution on strings longer than longest generated string in RawSequenceBook.",
-                    input_sequence.operators);
+            throw errors::bad_substitution{
+                    "Cannot perform substitution on strings longer than longest generated string in RawSequenceBook."};
         }
 
         size_t num_pairs = 0;
@@ -166,8 +165,8 @@ namespace NPATK {
         // Copy non-zero replacement
         const auto& replacement = this->rawSequences[ruleIter->second];
         op_sequence.clear();
-        op_sequence.reserve(replacement.operators.size());
-        for (const auto& op : replacement.operators) {
+        op_sequence.reserve(replacement.size());
+        for (const auto& op : replacement) {
             op_sequence.emplace_back(op);
         }
         return false;
@@ -182,13 +181,13 @@ namespace NPATK {
             const auto& rhs_raw = this->rawSequences[rhs_symbol];
 
             ss << lhs_raw.raw_id << " [";
-            for (auto o : lhs_raw.operators) {
+            for (auto o : lhs_raw) {
                 ss << "X" << o;
             }
             ss << "] -> ";
 
             ss << rhs_raw.raw_id << " [";
-            for (auto o : rhs_raw.operators) {
+            for (auto o : rhs_raw) {
                 ss << "X" << o;
             }
             ss << "]\n";
