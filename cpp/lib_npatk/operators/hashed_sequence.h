@@ -11,22 +11,14 @@
 
 namespace NPATK {
 
-    struct ShortlexHasher {
-    public:
-        /** The number of distinct unit operators */
-        const size_t radix;
-
-        /** Construct a shortlex hash function for supplied radix */
-        explicit ShortlexHasher(size_t r) : radix{r} { }
-
-        /** Calculate the hash of an operator sequence */
-        [[nodiscard]] size_t hash(const std::vector<oper_name_t>& sequence) const noexcept;
-
-        /** Calculate the hash of an operator sequence */
-        [[nodiscard]] inline size_t operator()(const std::vector<oper_name_t>& sequence)  const noexcept {
-            return hash(sequence);
-        }
+    /**
+     * Hash function must take vector of operators and give a number back.
+     */
+    template<class T>
+    concept HashFunction = requires(const T& hasher, std::vector<oper_name_t> seq) {
+        {hasher(seq)} -> std::convertible_to<size_t>;
     };
+
 
     class HashedSequence {
 
@@ -47,7 +39,8 @@ namespace NPATK {
                 : operators{std::move(oper_ids)}, hash{hash} { }
 
         /** Construct a sequence, from a list of operators and its hash  */
-        HashedSequence(std::vector<oper_name_t> oper_ids, const ShortlexHasher& hasher)
+        template<HashFunction hasher_t>
+        HashedSequence(std::vector<oper_name_t> oper_ids, const hasher_t& hasher)
             : operators{std::move(oper_ids)}, hash{hasher(operators)} { }
 
         /** True if this sequence is a prefix of the string defined by the supplied iterators */

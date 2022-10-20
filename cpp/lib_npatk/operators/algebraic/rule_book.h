@@ -7,6 +7,8 @@
 
 #include "monomial_substitution_rule.h"
 
+#include "operators/shortlex_hasher.h"
+
 #include <map>
 #include <vector>
 

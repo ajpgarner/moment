@@ -5,6 +5,7 @@ add_library(lib_npatk
         operators/hashed_sequence.cpp
         operators/operator_sequence.cpp
         operators/operator_sequence_generator.cpp
+        operators/shortlex_hasher.cpp
         operators/algebraic/algebraic_context.cpp
         operators/algebraic/algebraic_matrix_system.cpp
         operators/algebraic/monomial_substitution_rule.cpp

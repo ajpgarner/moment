@@ -6,6 +6,7 @@
 #pragma once
 #include "integer_types.h"
 #include "hashed_sequence.h"
+#include "shortlex_hasher.h"
 
 #include <cassert>
 
