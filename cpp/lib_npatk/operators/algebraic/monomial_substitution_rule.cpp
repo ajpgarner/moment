@@ -29,7 +29,8 @@ namespace NPATK {
                                                        HashedSequence rhs,
                                                        bool negated)
             : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, negated{negated},
-              Delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
+              is_trivial{lhs.hash == rhs.hash},
+              delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
         if (rawLHS < rawRHS) {
             throw errors::invalid_rule(std::string("Rule was not a reduction: ")
                                        + " the RHS must not exceed LHS in shortlex ordering.");
@@ -41,7 +42,7 @@ namespace NPATK {
                                                     const_iter_t hint) const {
 
         // Reserve vector, return empty vector, or give error:
-        ptrdiff_t new_size = static_cast<ptrdiff_t>(input.size()) + this->Delta;
+        ptrdiff_t new_size = static_cast<ptrdiff_t>(input.size()) + this->delta;
         if (new_size <= 0) {
             if (new_size < 0) {
                 throw errors::bad_hint{};
@@ -118,6 +119,76 @@ namespace NPATK {
         }
 
         return os;
+    }
+
+    bool MonomialSubstitutionRule::implies(const MonomialSubstitutionRule &other) const noexcept {
+        // First, do we find LHS in other rule?
+        auto embeddedLHS_begin = this->rawLHS.matches_anywhere(other.rawLHS.begin(), other.rawLHS.end());
+        if (embeddedLHS_begin== other.rawLHS.end()) {
+            return false;
+        }
+
+        // Second, do we find RHS in other rule?
+        auto embeddedRHS_begin = this->rawRHS.matches_anywhere(other.rawRHS.begin(), other.rawRHS.end());
+        if (embeddedRHS_begin == other.rawRHS.end()) {
+            return false;
+        }
+
+        // Check that prefix of other rule matches
+        if (!std::equal(other.rawLHS.begin(), embeddedLHS_begin,
+                        other.rawRHS.begin(), embeddedRHS_begin)) {
+            return false;
+        }
+
+        // Check that suffix of other rule matches
+        auto suffix_LHS = embeddedLHS_begin + static_cast<ptrdiff_t>(this->rawLHS.size());
+        auto suffix_RHS = embeddedRHS_begin + static_cast<ptrdiff_t>(this->rawRHS.size());
+        if (!std::equal(suffix_LHS, other.rawLHS.end(),
+                        suffix_RHS, other.rawRHS.end())) {
+            return false;
+        }
+
+        // No mismatches
+        return true;
+    }
+
+    std::optional<MonomialSubstitutionRule>
+    MonomialSubstitutionRule::combine(const MonomialSubstitutionRule &other, const ShortlexHasher& hasher) const {
+        // First, do we have overlap? If not, early exit.
+        ptrdiff_t overlap_size = this->LHS().suffix_prefix_overlap(other.rawLHS);
+        if (overlap_size <= 0) {
+            return std::nullopt;
+        }
+
+        // Next, make merged string from both rules' LHS
+        std::vector<oper_name_t> joined_string;
+        joined_string.reserve(static_cast<ptrdiff_t>(this->rawLHS.size() + other.rawLHS.size())
+                              - overlap_size);
+        std::copy(this->rawLHS.begin(), this->rawLHS.end() - static_cast<ptrdiff_t>(overlap_size),
+                  std::back_inserter(joined_string));
+        std::copy(other.rawLHS.begin(), other.rawLHS.end(),
+                  std::back_inserter(joined_string));
+
+        // Apply this rule to joint string
+        auto rawViaThis = this->apply_match_with_hint(joined_string, joined_string.begin());
+        auto rawHashThis = hasher(rawViaThis);
+
+
+        // Apply other rule to joint string
+        auto rawViaOther = other.apply_match_with_hint(joined_string,
+                                                       joined_string.cend()
+                                                            - static_cast<ptrdiff_t>(other.rawLHS.size()));
+        auto rawHashOther = hasher(rawViaOther);
+
+
+        // Orient rules and return
+        if (rawHashThis < rawHashOther) {
+            return MonomialSubstitutionRule{HashedSequence{std::move(rawViaOther), rawHashOther},
+                                            HashedSequence{std::move(rawViaThis), rawHashThis}};
+        } else {
+            return MonomialSubstitutionRule{HashedSequence{std::move(rawViaThis), rawHashThis},
+                                            HashedSequence{std::move(rawViaOther), rawHashOther}};
+        }
     }
 
 }

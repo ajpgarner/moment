@@ -7,6 +7,7 @@
 
 #include "integer_types.h"
 
+#include <cassert>
 #include <vector>
 
 namespace NPATK {
@@ -25,7 +26,7 @@ namespace NPATK {
     public:
         using const_iter_t = std::vector<oper_name_t>::const_iterator;
 
-    private:
+    protected:
         std::vector<oper_name_t> operators{};
 
     public:
@@ -33,6 +34,12 @@ namespace NPATK {
 
         /** Construct empty sequence */
         constexpr HashedSequence() = default;
+
+        /** Copy constructor */
+        constexpr HashedSequence(const HashedSequence& rhs) = default;
+
+        /** Move constructor */
+        constexpr HashedSequence(HashedSequence&& rhs) = default;
 
         /** Construct a sequence, from a list of operators and its hash  */
         constexpr HashedSequence(std::vector<oper_name_t> oper_ids, size_t hash)
@@ -79,12 +86,23 @@ namespace NPATK {
         /** The length of the operator string */
         [[nodiscard]] constexpr size_t size() const noexcept { return this->operators.size(); }
 
+        /** Operator at index N */
+        [[nodiscard]] oper_name_t operator[](size_t index) const noexcept {
+            assert(index < this->operators.size());
+            return this->operators[index];
+        }
+
         /** Access operator string directly */
         [[nodiscard]] constexpr const auto& raw() const noexcept { return this->operators; }
 
         /** Ordering by hash value (i.e. shortlex) */
         [[nodiscard]] constexpr bool operator<(const HashedSequence& rhs) const noexcept {
             return this->hash < rhs.hash;
+        }
+
+        /** Test hash */
+        [[nodiscard]] constexpr bool operator==(const HashedSequence& rhs) const noexcept {
+            return this->hash == rhs.hash;
         }
 
         /** Ordering by hash value (i.e. shortlex) */

@@ -7,10 +7,12 @@
 
 #include "integer_types.h"
 
-#include "symbolic/symbol_expression.h"
 #include "raw_sequence.h"
+#include "operators/shortlex_hasher.h"
+#include "symbolic/symbol_expression.h"
 
 #include <iosfwd>
+#include <optional>
 #include <set>
 #include <stdexcept>
 #include <vector>
@@ -40,22 +42,26 @@ namespace NPATK {
         using const_iter_t = std::vector<oper_name_t>::const_iterator;
 
     private:
-        const HashedSequence rawLHS;
-        const HashedSequence rawRHS;
+        HashedSequence rawLHS;
+        HashedSequence rawRHS;
         bool negated = false;
-
-    public:
-        /** The amount the string-length changes by, on a successful match */
-        const ptrdiff_t Delta = 0;
-
+        bool is_trivial = false;
+        ptrdiff_t delta = 0;
     public:
         MonomialSubstitutionRule(HashedSequence lhs, HashedSequence rhs,
                                  bool negated = false);
 
+        MonomialSubstitutionRule(const MonomialSubstitutionRule& rhs) = default;
+
+        MonomialSubstitutionRule(MonomialSubstitutionRule&& rhs) = default;
+
+        /** The sequence on the left-hand side of the rule (pattern to match) */
         [[nodiscard]] const HashedSequence& LHS() const noexcept { return this->rawLHS; }
 
+        /** The sequence on the right-hand side of the rule (replacement pattern) */
         [[nodiscard]] const HashedSequence& RHS() const noexcept { return this->rawRHS; }
 
+        /** Iterator to the first place in the supplied sequence that matches the left-hand-side pattern of rule */
         [[nodiscard]] inline const_iter_t matches_anywhere(const_iter_t iter, const_iter_t iter_end) const noexcept {
             return this->rawLHS.matches_anywhere(iter, iter_end);
         }
@@ -64,6 +70,28 @@ namespace NPATK {
         apply_match_with_hint(const std::vector<oper_name_t>& input, const_iter_t hint) const;
 
         size_t all_matches(std::vector<SymbolPair>& output, const RawSequenceBook& rsb, const RawSequence& input) const;
+
+
+        /**
+         * Forms a new rule by combining overlapping left-hand-sides of rules (suffix of this w/ prefix of other), and
+         * applying both rules to the joint string.
+         * @param other The rule to combine this with.
+         * @param hasher The hash function, for generating new rule.
+         * @return The new rule, if overlap is nonzero, empty otherwise.
+         */
+        [[nodiscard]] std::optional<MonomialSubstitutionRule> combine(const MonomialSubstitutionRule& other,
+                                                                      const ShortlexHasher& hasher) const;
+
+        /**
+         * True, if this rule directly implies the supplied other rule.
+         */
+        [[nodiscard]] bool implies(const MonomialSubstitutionRule& other) const noexcept;
+
+        /** The amount the string-length changes by, on a successful match */
+        [[nodiscard]] ptrdiff_t Delta() const noexcept { return this->delta; }
+
+        /** True, if the rule is of the form A = A. */
+        [[nodiscard]] bool trivial() const noexcept { return this->is_trivial; }
 
         friend std::ostream& operator<<(std::ostream& os, const MonomialSubstitutionRule& msr);
 

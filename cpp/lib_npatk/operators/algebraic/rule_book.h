@@ -16,9 +16,12 @@ namespace NPATK {
     class AlgebraicContext;
 
     class RuleBook {
+    public:
+        using rule_map_t = std::map<size_t, MonomialSubstitutionRule>;
     private:
         const ShortlexHasher& hasher;
-        std::map<size_t, MonomialSubstitutionRule> monomialRules;
+
+        rule_map_t monomialRules;
 
     public:
         RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules);
@@ -26,27 +29,28 @@ namespace NPATK {
         explicit RuleBook(const ShortlexHasher& hasher)
             : RuleBook(hasher, std::vector<MonomialSubstitutionRule>{}) { }
 
+        /** Handle to rules */
+        [[nodiscard]] const auto& rules() const noexcept { return this->monomialRules; }
+
         bool simplify_rules(size_t max_iterations);
 
-        bool simplify_once();
+        /** Reduce sequence, to best of knowledge, using rules */
+        [[nodiscard]] HashedSequence reduce(const HashedSequence& input) const;
 
-    public:
-        [[nodiscard]] static std::vector<oper_name_t>
-        concat_merge_lhs(const MonomialSubstitutionRule& ruleA, const MonomialSubstitutionRule& ruleB);
+        /** Reduce rule, to best of knowledge, using rules in set */
+        [[nodiscard]] MonomialSubstitutionRule reduce(const MonomialSubstitutionRule& input) const;
 
-        [[nodiscard]] static ptrdiff_t rule_overlap_lhs(const MonomialSubstitutionRule& ruleA,
-                                                        const MonomialSubstitutionRule& ruleB) {
-            return ruleA.LHS().suffix_prefix_overlap(ruleB.LHS());
-        }
+        /**
+         * Simplify any rules in the set that can be reduced by other rules.
+         * @return Number of changed rules.
+         */
+        size_t reduce_ruleset();
 
-        [[nodiscard]] static std::vector<oper_name_t>
-        concat_merge_lhs(const MonomialSubstitutionRule& ruleA,
-                         const MonomialSubstitutionRule& ruleB,
-                         ptrdiff_t overlap);
-
-        [[nodiscard]] MonomialSubstitutionRule combine_rules(const MonomialSubstitutionRule& lhs,
-                                                             const MonomialSubstitutionRule& rhs,
-                                                             ptrdiff_t overlap) const;
+        /**
+         * Attempt to deduce a novel and non-trivial rule from considering overlaps within ruleset (Knuth-Bendix).
+         * @return True, if a non-trivial rule was found.
+         */
+        bool try_new_reduction();
 
     };
 
