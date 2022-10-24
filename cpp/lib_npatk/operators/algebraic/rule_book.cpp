@@ -6,7 +6,27 @@
 #include "rule_book.h"
 #include "algebraic_context.h"
 
+#include <iostream>
+
 namespace NPATK {
+
+
+    void OStreamRuleLogger::log_rule_reduced(const MonomialSubstitutionRule& old_rule,
+                                             const MonomialSubstitutionRule& new_rule) {
+        os << "Reduce:\t" << old_rule << "\n  |-\t" << new_rule << "\n";
+    }
+
+    void OStreamRuleLogger::log_rule_removed(const MonomialSubstitutionRule& ex_rule) {
+        os << "Remove:\t" << ex_rule << "\n";
+    }
+
+    void OStreamRuleLogger::log_rule_introduced(const MonomialSubstitutionRule& parent_rule_a,
+                                                const MonomialSubstitutionRule& parent_rule_b,
+                                                const MonomialSubstitutionRule& new_rule) {
+        os << "Combine:\t" << parent_rule_a << "\tand " << parent_rule_b << ":"
+           << "\n  |-\t" << new_rule << "\n";
+    }
+
     RuleBook::RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules)
          : hasher{hasher} {
         for (const auto& rule : rules) {
@@ -18,10 +38,10 @@ namespace NPATK {
 
     }
 
-    bool RuleBook::simplify_rules(const size_t max_iterations) {
+    bool RuleBook::complete(size_t max_iterations, RuleLogger * logger) {
         size_t iteration = 0;
         while(iteration < max_iterations) {
-            if (!this->try_new_reduction()) {
+            if (!this->try_new_reduction(logger)) {
                 return true;
             }
             ++iteration;
@@ -67,7 +87,7 @@ namespace NPATK {
     }
 
 
-    size_t RuleBook::reduce_ruleset() {
+    size_t RuleBook::reduce_ruleset(RuleLogger * logger) {
         size_t number_reduced = 0;
 
         auto rule_iter = this->monomialRules.begin();
@@ -86,6 +106,9 @@ namespace NPATK {
 
             // If reduction makes rule trivial, it is redundant and can be removed from set...
             if (reduced_rule.trivial()) {
+                if (logger) {
+                    logger->log_rule_removed(isolated_rule);
+                }
                 ++number_reduced;
                 continue;
             }
@@ -93,6 +116,9 @@ namespace NPATK {
             // Test if rule has changed
             if ((isolated_rule.LHS().hash != reduced_rule.LHS().hash) ||
                 (isolated_rule.RHS().hash != reduced_rule.RHS().hash)) {
+                if (logger) {
+                    logger->log_rule_reduced(isolated_rule, reduced_rule);
+                }
                 ++number_reduced;
             }
 
@@ -103,9 +129,9 @@ namespace NPATK {
     }
 
 
-    bool RuleBook::try_new_reduction() {
+    bool RuleBook::try_new_reduction(RuleLogger * logger) {
         // First, reduce
-        this->reduce_ruleset();
+        this->reduce_ruleset(logger);
 
         // Look for non-trivially overlapping rules
         for (auto iterA = this->monomialRules.begin(); iterA != this->monomialRules.end(); ++iterA) {
@@ -132,11 +158,14 @@ namespace NPATK {
                 }
 
                 // Non-trivial, add it to rule set
+                if (logger) {
+                    logger->log_rule_introduced(ruleA, ruleB, combined_reduced_rule);
+                }
                 size_t rule_hash = combined_reduced_rule.LHS().hash;
                 this->monomialRules.insert(std::make_pair(rule_hash, std::move(combined_reduced_rule)));
 
                 // Reduce ruleset
-                this->reduce_ruleset();
+                this->reduce_ruleset(logger);
 
                 // Signal a rule was added
                 return true;

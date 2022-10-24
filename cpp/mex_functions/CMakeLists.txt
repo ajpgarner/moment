@@ -13,11 +13,13 @@ matlab_add_mex(NAME npatk_mex
             fragments/enumerate_symbols.cpp
             fragments/export_implicit_symbols.cpp
             fragments/export_substitution_list.cpp
+            fragments/export_monomial_rules.cpp
             fragments/export_operator_matrix.cpp
             fragments/export_symbol_tree_properties.cpp
             fragments/export_symbol_table.cpp
             fragments/identify_nonhermitian_elements.cpp
             fragments/identify_nonsymmetric_elements.cpp
+            fragments/read_monomial_rules.cpp
             fragments/read_symbol_or_fail.cpp
             fragments/substitute_elements_using_tree.cpp
             utilities/io_parameters.cpp
@@ -30,6 +32,7 @@ matlab_add_mex(NAME npatk_mex
             matlab_classes/matlab_class.cpp
             functions/alphabetic_name.cpp
             functions/collins_gisin.cpp
+            functions/complete.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
             functions/symbol_table.cpp

@@ -23,6 +23,7 @@ namespace NPATK::mex::functions {
         Unknown = 0,
         AlphabeticName,
         CollinsGisin,
+        Complete,
         GenerateBasis,
         ProbabilityTable,
         MakeHermitian,
@@ -44,6 +45,7 @@ namespace NPATK::mex::functions {
 
         output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
         output.emplace(u"collins_gisin", MEXEntryPointID::CollinsGisin);
+        output.emplace(u"complete", MEXEntryPointID::Complete);
         output.emplace(u"generate_basis", MEXEntryPointID::GenerateBasis);
         output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
         output.emplace(u"make_hermitian", MEXEntryPointID::MakeHermitian);

@@ -12,7 +12,7 @@ classdef NewMatrixSystemTest < NPATKTestBase
             function bad_in()             
                ref_id = npatk('new_locality_matrix_system', ...
                               'parties', 'ff', ...
-                              'operators', 3);
+                              'outcomes', 3);
             end
             testCase.verifyError(@() bad_in(), 'npatk:bad_param');           
         end
@@ -21,7 +21,7 @@ classdef NewMatrixSystemTest < NPATKTestBase
             function bad_in()             
                ref_id = npatk('new_locality_matrix_system', ...
                               'parties', -1, ...
-                              'operators', 3);
+                              'outcomes', 3);
             end
             testCase.verifyError(@() bad_in(), 'npatk:negative_value');           
         end
@@ -30,7 +30,7 @@ classdef NewMatrixSystemTest < NPATKTestBase
             function bad_in()             
                ref_id = npatk('new_locality_matrix_system', ...
                               'parties', [1, 2], ...
-                              'operators', 3);
+                              'outcomes', 3);
             end
             testCase.verifyError(@() bad_in(), 'npatk:bad_param');           
         end
@@ -71,7 +71,7 @@ classdef NewMatrixSystemTest < NPATKTestBase
                               'operators', 3);
             end 
             % should be outcomes, not operators...!
-            testCase.verifyError(@() bad_in(), 'npatk:missing_param');
+            testCase.verifyError(@() bad_in(), 'npatk:bad_param');
          end
         
           

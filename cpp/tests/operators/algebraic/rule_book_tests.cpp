@@ -169,7 +169,7 @@ namespace NPATK::Tests {
                          HashedSequence{{}, hasher});
         RuleBook rules{hasher, msr};
 
-        ASSERT_TRUE(rules.simplify_rules(20));
+        ASSERT_TRUE(rules.complete(20));
         EXPECT_EQ(rules.rules().size(), 4);
 
         EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 0}, hasher}), (HashedSequence{{}, hasher}));

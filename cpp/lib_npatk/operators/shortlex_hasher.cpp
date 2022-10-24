@@ -5,6 +5,8 @@
  */
 #include "shortlex_hasher.h"
 
+#include <cmath>
+
 namespace NPATK {
     size_t ShortlexHasher::hash(const std::vector<oper_name_t>& rawOperators) const noexcept {
         size_t hash = 1;
@@ -18,5 +20,14 @@ namespace NPATK {
             multiplier *= multiplier_stride;
         }
         return hash;
+    }
+
+    size_t ShortlexHasher::longest_hashable_string() const {
+        if (this->radix == 1) {
+            return std::numeric_limits<size_t>::max() - 1; // Hash is basically just string length for radix 1.
+        }
+        return static_cast<size_t>(
+            static_cast<double>(std::numeric_limits<size_t>::digits) / std::log2(this->radix)
+        );
     }
 }

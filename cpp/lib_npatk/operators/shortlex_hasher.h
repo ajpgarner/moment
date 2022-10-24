@@ -26,8 +26,10 @@ namespace NPATK {
         [[nodiscard]] inline size_t operator()(const std::vector<oper_name_t>& sequence)  const noexcept {
             return hash(sequence);
         }
+
+        /** The largest supported string */
+        [[nodiscard]] size_t longest_hashable_string() const;
     };
 
     static_assert(HashFunction<ShortlexHasher>);
-
 }

@@ -8,6 +8,7 @@
 
 #include "functions/alphabetic_name.h"
 #include "functions/collins_gisin.h"
+#include "functions/complete.h"
 #include "functions/generate_basis.h"
 #include "functions/probability_table.h"
 #include "functions/make_hermitian.h"
@@ -35,6 +36,9 @@ namespace NPATK::mex::functions {
                 break;
             case functions::MEXEntryPointID::CollinsGisin:
                 the_function = std::make_unique<functions::CollinsGisin>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::Complete:
+                the_function = std::make_unique<functions::Complete>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::GenerateBasis:
                 the_function = std::make_unique<functions::GenerateBasis>(engine, storageManager);

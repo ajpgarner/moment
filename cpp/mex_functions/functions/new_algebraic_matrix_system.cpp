@@ -15,20 +15,6 @@
 namespace NPATK::mex::functions {
 
     namespace {
-        std::vector<oper_name_t> getBoundedRules(matlab::engine::MATLABEngine &matlabEngine,
-                                              const std::string& name,
-                                              const matlab::data::Array& input,
-                                              uint64_t operator_count) {
-            std::vector<oper_name_t> output = SortedInputs::read_integer_array(matlabEngine, name, input);
-            for (const auto x : output) {
-                if ((x < 0) || (x >= operator_count)) {
-                    std::stringstream err;
-                    err << name << " contains an operator with out of bounds value \"" << x << "\"";
-                    throw errors::BadInput{errors::bad_param, err.str()};
-                }
-            }
-            return output;
-        }
 
         std::unique_ptr<AlgebraicContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                        NewAlgebraicMatrixSystemParams& input) {
@@ -78,12 +64,9 @@ namespace NPATK::mex::functions {
         this->readOperatorSpecification(matlabEngine, inputs[0], "Number of operators");
 
         if (inputs.size() > 1) {
-            this->readRulesSpecification(matlabEngine, inputs[1], "Rules");
+            this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", this->total_operators);
         }
     }
-
-
-
 
     void NewAlgebraicMatrixSystemParams::getFromParams(matlab::engine::MATLABEngine &matlabEngine) {
         // Read number of operators
@@ -97,48 +80,14 @@ namespace NPATK::mex::functions {
         if (rules_param == params.end()) {
             return;
         }
-        this->readRulesSpecification(matlabEngine, rules_param->second, "Parameter 'rules'");
+        this->rules = read_monomial_rules(matlabEngine, rules_param->second,
+                                          "Parameter 'rules'", this->total_operators);
     }
 
     void NewAlgebraicMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
                                                                   matlab::data::Array &input,
                                                                   const std::string& paramName) {
         this->total_operators = read_positive_integer(matlabEngine, paramName, input, 1);
-    }
-
-    void NewAlgebraicMatrixSystemParams::readRulesSpecification(matlab::engine::MATLABEngine &matlabEngine,
-                                                                  matlab::data::Array &input,
-                                                                  const std::string& paramName) {
-        if (input.getType() != matlab::data::ArrayType::CELL) {
-            throw_error(matlabEngine, errors::bad_param, paramName + " must be specified as a cell array.");
-        }
-        const auto cell_input = static_cast<matlab::data::CellArray>(input);
-        const size_t rule_count =  cell_input.getNumberOfElements();
-        this->rules.reserve(rule_count);
-        size_t rule_index = 0;
-        for (auto elem : cell_input) {
-            if (elem.getType() != matlab::data::ArrayType::CELL) {
-                throw_error(matlabEngine, errors::bad_param,
-                            paramName + " must be specified as a cell array of cell arrays (each with two elements).");
-            }
-            if (elem.getNumberOfElements() != 2) {
-                throw_error(matlabEngine, errors::bad_param,
-                            "Each rule must be specified as a cell array with two elements.");
-            }
-
-            const auto rule_cell = static_cast<matlab::data::CellArray>(elem);
-            auto lhs = rule_cell[0];
-            auto lhs_rules = getBoundedRules(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " LHS",
-                                              lhs, this->total_operators);
-
-            auto rhs = rule_cell[1];
-            auto rhs_rules = getBoundedRules(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " RHS",
-                                             rhs, this->total_operators);
-
-            this->rules.emplace_back(std::move(lhs_rules), std::move(rhs_rules));
-
-            ++rule_index;
-        }
     }
 
     NewAlgebraicMatrixSystem::NewAlgebraicMatrixSystem(matlab::engine::MATLABEngine &matlabEngine,

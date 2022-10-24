@@ -2,8 +2,8 @@
     %MAKEMOMENTMATRIXTEST Unit tests for make_moment_matrix function    
     properties(Constant)
         IDOnly = MomentMatrixTest_Case([["1"]], [["1"]]);
-        OneOper = MomentMatrixTest_Case([["1", "2"]; ["2", "3"]], ...
-                                            [["1", "X0"]; ["X0", "X0;X0"]]);
+        OneOper = MomentMatrixTest_Case([["1", "2"]; ["2", "2"]], ...
+                                            [["1", "A.a0"]; ["A.a0", "A.a0"]]);
                                         
         CHSH = MomentMatrixTest_Case(...
                     [["1", "2", "3", "4", "5"]; ...
@@ -33,19 +33,19 @@
     
     methods (Test)
         function OneOper_Level0(testCase) 
-            testCase.IDOnly.CallAndVerify(testCase, {1}, 0);
+            testCase.IDOnly.CallAndVerify(testCase, {1, 2}, 0);
         end
         
         function OneOper_Level0Params(testCase) 
-            testCase.IDOnly.CallAndVerify(testCase, {'operators', 1}, 0);
+            testCase.IDOnly.CallAndVerify(testCase, {'outcomes', 2}, 0);
         end
         
         function OneOper_Level1(testCase) 
-            testCase.OneOper.CallAndVerify(testCase, {1}, 1);
+            testCase.OneOper.CallAndVerify(testCase, {1, 2}, 1);
         end
         
         function OneOper_Level1Params(testCase) 
-            testCase.OneOper.CallAndVerify(testCase, {'operators', 1}, 1);
+            testCase.OneOper.CallAndVerify(testCase, {'outcomes', 2}, 1);
         end
         
         function CHSH_Level1(testCase) 

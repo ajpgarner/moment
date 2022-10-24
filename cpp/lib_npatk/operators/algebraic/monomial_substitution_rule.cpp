@@ -33,7 +33,7 @@ namespace NPATK {
               delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
         if (rawLHS < rawRHS) {
             throw errors::invalid_rule(std::string("Rule was not a reduction: ")
-                                       + " the RHS must not exceed LHS in shortlex ordering.");
+                                       + "the RHS must not exceed LHS in shortlex ordering.");
         }
     }
 

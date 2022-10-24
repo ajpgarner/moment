@@ -1,5 +1,5 @@
 classdef CollinsGisinTest < NPATKTestBase
-    %GENERATEBASISTEST Unit tests for generate_basis function
+    %COLLINSGISINTEST Unit tests for collins_gisin function
     
     properties(Constant)
     end
@@ -10,8 +10,7 @@ classdef CollinsGisinTest < NPATKTestBase
             mm = npatk('moment_matrix', system_id, 1);
             sym_mat = npatk('collins_gisin', system_id, 'symbols');
             bas_mat = npatk('collins_gisin', system_id, 'basis');
-            seq_mat = npatk('collins_gisin', system_id, 'sequences');
-            cl
+            seq_mat = npatk('collins_gisin', system_id, 'sequences');            
             expected = uint64([[1, 4, 5]; [2, 7, 8]; [3, 9, 10]]);
             testCase.verifyEqual(sym_mat, expected);
             testCase.verifyEqual(bas_mat, expected);
