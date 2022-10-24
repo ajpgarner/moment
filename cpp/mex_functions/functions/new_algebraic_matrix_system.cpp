@@ -65,6 +65,8 @@ namespace NPATK::mex::functions {
 
         if (inputs.size() > 1) {
             this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", this->total_operators);
+            // Check length
+            check_rule_length(matlabEngine, ShortlexHasher{this->total_operators}, this->rules);
         }
     }
 
