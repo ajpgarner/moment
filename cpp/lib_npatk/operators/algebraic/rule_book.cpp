@@ -46,7 +46,9 @@ namespace NPATK {
             }
             ++iteration;
         }
-        return false;
+
+        // Maximum iterations reached: see if we're complete (i.e. did last rule introduced complete us...)
+        return this->is_complete();
     }
 
     HashedSequence RuleBook::reduce(const HashedSequence& input) const {
@@ -126,6 +128,38 @@ namespace NPATK {
             this->monomialRules.insert(std::make_pair(reduced_hash, std::move(reduced_rule)));
         }
         return number_reduced;
+    }
+
+    bool RuleBook::is_complete() const {
+        // Look for non-trivially overlapping rules
+        for (auto iterA = this->monomialRules.begin(); iterA != this->monomialRules.end(); ++iterA) {
+            auto &ruleA = iterA->second;
+            for (auto iterB = this->monomialRules.begin(); iterB != this->monomialRules.end(); ++iterB) {
+                auto &ruleB = iterB->second;
+                // Don't compare to self
+                if (iterB == iterA) {
+                    continue;
+                }
+
+                // Can we form a rule by combining?
+                auto maybe_combined_rule = ruleA.combine(ruleB, this->hasher);
+                if (!maybe_combined_rule.has_value()) {
+                    continue;
+                }
+
+                // Reduce new rule
+                auto combined_reduced_rule = this->reduce(maybe_combined_rule.value());
+
+                // Is the new rule trivial?
+                if (combined_reduced_rule.trivial()) {
+                    continue;
+                }
+                // Not complete: a non-trivial rule was found
+                return false;
+            }
+        }
+        // Complete: no non-trivial rules were found.
+        return true;
     }
 
 

@@ -144,6 +144,9 @@ namespace NPATK::Tests {
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
                          HashedSequence{{1}, hasher});
         RuleBook rules{hasher, msr};
+
+        EXPECT_FALSE(rules.is_complete());
+
         ASSERT_TRUE(rules.try_new_reduction());
         ASSERT_EQ(rules.rules().size(), 3); // Should add 00 -> 0
 
@@ -156,6 +159,8 @@ namespace NPATK::Tests {
         EXPECT_EQ(rules.reduce(HashedSequence{{0, 1}, hasher}), (HashedSequence{{0}, hasher}));
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 0}, hasher}), (HashedSequence{{1}, hasher}));
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 1}, hasher}), (HashedSequence{{1}, hasher}));
+
+        EXPECT_TRUE(rules.is_complete());
     }
 
     TEST(RuleBook, IterativelyDeduce_AAAtoI_BBBtoI_ABABABtoI) {
@@ -169,6 +174,8 @@ namespace NPATK::Tests {
                          HashedSequence{{}, hasher});
         RuleBook rules{hasher, msr};
 
+        EXPECT_FALSE(rules.is_complete());
+
         ASSERT_TRUE(rules.complete(20));
         EXPECT_EQ(rules.rules().size(), 4);
 
@@ -176,7 +183,8 @@ namespace NPATK::Tests {
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 1, 1}, hasher}), (HashedSequence{{}, hasher}));
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 1, 0}, hasher}), (HashedSequence{{0, 0, 1, 1}, hasher}));
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 1, 0, 0}, hasher}), (HashedSequence{{0, 1, 0, 1}, hasher}));
+
+        EXPECT_TRUE(rules.is_complete());
     }
-
-
+    
 }

@@ -73,6 +73,11 @@ namespace NPATK {
          */
         bool complete(size_t max_iterations, RuleLogger * logger = nullptr);
 
+        /**
+         * Tests if the rule set has no critical pairs and is hence complete
+         */
+        [[nodiscard]] bool is_complete() const;
+
         /** Reduce sequence, to best of knowledge, using rules */
         [[nodiscard]] HashedSequence reduce(const HashedSequence& input) const;
 

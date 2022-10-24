@@ -45,7 +45,7 @@ namespace NPATK::mex::functions {
         // Do we specify number of attempts?
         auto limit_iter = this->params.find(u"limit");
         if (limit_iter != this->params.cend()) {
-            this->max_attempts = read_positive_integer(matlabEngine, "Parameter 'limit'", op_iter->second, 1);
+            this->max_attempts = read_positive_integer(matlabEngine, "Parameter 'limit'", limit_iter->second, 1);
         } else {
             this->max_attempts = 128;
         }
