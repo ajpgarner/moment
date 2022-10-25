@@ -191,4 +191,14 @@ namespace NPATK {
         }
     }
 
+    MonomialSubstitutionRule MonomialSubstitutionRule::conjugate(const ShortlexHasher& hasher) const {
+        auto lhs = this->rawLHS.conjugate(hasher);
+        auto rhs = this->rawRHS.conjugate(hasher);
+        if (lhs < rhs) {
+            return MonomialSubstitutionRule(std::move(rhs), std::move(lhs));
+        } else {
+            return MonomialSubstitutionRule(std::move(lhs), std::move(rhs));
+        }
+    }
+
 }

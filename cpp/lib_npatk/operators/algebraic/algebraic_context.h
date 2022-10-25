@@ -9,12 +9,14 @@
 #include "integer_types.h"
 #include "../context.h"
 #include "raw_sequence_book.h"
+#include "rule_book.h"
 #include "monomial_substitution_rule.h"
 
 #include "symbolic/symbol_expression.h"
 
 #include <memory>
 #include <set>
+#include <vector>
 
 namespace NPATK {
 
@@ -37,7 +39,7 @@ namespace NPATK {
         RawSequenceBook rawSequences;
 
         /** Monomial substitution rules */
-        std::vector<MonomialSubstitutionRule> monomialRules;
+        RuleBook rules;
 
         /** The set of substitutions */
         std::unique_ptr<SymbolSet> buildSet;
@@ -49,9 +51,11 @@ namespace NPATK {
         explicit AlgebraicContext(size_t operator_count, bool self_adjoint = true);
 
         explicit AlgebraicContext(size_t operator_count, bool self_adjoint,
-                                  std::vector<MonomialSubstitutionRule> rules);
+                                  const std::vector<MonomialSubstitutionRule>& rules);
 
         ~AlgebraicContext() noexcept override;
+
+        bool attempt_completion(size_t max_attempts, RuleLogger * logger = nullptr);
 
         bool generate_aliases(size_t max_length);
 
@@ -67,7 +71,10 @@ namespace NPATK {
          */
         [[nodiscard]] std::string resolved_rules() const;
 
-
+        /**
+         * Access rule information
+         */
+        [[nodiscard]] const RuleBook& rulebook() const noexcept { return this->rules; }
 
     private:
         size_t one_substitution(std::vector<SymbolPair>& output, const RawSequence& input_sequence) const;

@@ -19,6 +19,8 @@ namespace NPATK::mex::functions {
 
         uint64_t max_attempts = 128;
 
+        bool hermitian_operators = true;
+
         std::vector<RawMonomialRule> rules{};
 
         CompleteParams(matlab::engine::MATLABEngine &matlabEngine,

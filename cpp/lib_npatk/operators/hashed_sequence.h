@@ -6,20 +6,12 @@
 #pragma once
 
 #include "integer_types.h"
+#include "shortlex_hasher.h"
 
 #include <cassert>
 #include <vector>
 
 namespace NPATK {
-
-    /**
-     * Hash function must take vector of operators and give a number back.
-     */
-    template<class T>
-    concept HashFunction = requires(const T& hasher, std::vector<oper_name_t> seq) {
-        {hasher(seq)} -> std::convertible_to<size_t>;
-    };
-
 
     class HashedSequence {
 
@@ -46,8 +38,7 @@ namespace NPATK {
                 : operators{std::move(oper_ids)}, hash{hash} { }
 
         /** Construct a sequence, from a list of operators and its hash  */
-        template<HashFunction hasher_t>
-        HashedSequence(std::vector<oper_name_t> oper_ids, const hasher_t& hasher)
+        HashedSequence(std::vector<oper_name_t> oper_ids, const ShortlexHasher& hasher)
             : operators{std::move(oper_ids)}, hash{hasher(operators)} { }
 
         /** True if this sequence is a prefix of the string defined by the supplied iterators */
@@ -67,6 +58,11 @@ namespace NPATK {
          * @return The number of characters overlapping (if any).
          */
         [[nodiscard]] ptrdiff_t suffix_prefix_overlap(const HashedSequence& rhs) const noexcept;
+
+        /**
+         * Conjugate string, as if it were a string of Hermitian operators.
+         */
+        [[nodiscard]] HashedSequence conjugate(const ShortlexHasher& hasher) const;
 
         /** Begin iterator over operators */
         [[nodiscard]] constexpr auto begin() const noexcept  { return this->operators.cbegin(); }

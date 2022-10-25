@@ -6,7 +6,7 @@
 #pragma once
 
 #include "integer_types.h"
-#include "/operators/hashed_sequence.h"
+#include "operators/hashed_sequence.h"
 
 #include <iosfwd>
 #include <vector>

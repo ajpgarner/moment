@@ -119,4 +119,29 @@ namespace NPATK::Tests {
         EXPECT_EQ(suffix_prefix(seqA, seqB), 0);
         EXPECT_EQ(suffix_prefix(seqB, seqA), 2);
     }
+
+    TEST(HashedSequence, Conjugate) {
+        ShortlexHasher hasher{4};
+        HashedSequence seqA{{0, 1, 2, 3}, hasher};
+        HashedSequence seqB{{3, 2, 1, 0}, hasher};
+
+        auto conjA = seqA.conjugate(hasher);
+        EXPECT_EQ(conjA.hash, seqB.hash);
+        ASSERT_EQ(conjA.size(), 4);
+        EXPECT_EQ(conjA[0], 3);
+        EXPECT_EQ(conjA[1], 2);
+        EXPECT_EQ(conjA[2], 1);
+        EXPECT_EQ(conjA[3], 0);
+        EXPECT_EQ(conjA, seqB);
+
+        auto conjB = seqB.conjugate(hasher);
+        EXPECT_EQ(conjB.hash, seqA.hash);
+        ASSERT_EQ(conjB.size(), 4);
+        EXPECT_EQ(conjB[0], 0);
+        EXPECT_EQ(conjB[1], 1);
+        EXPECT_EQ(conjB[2], 2);
+        EXPECT_EQ(conjB[3], 3);
+        EXPECT_EQ(conjB, seqA);
+
+    }
 }

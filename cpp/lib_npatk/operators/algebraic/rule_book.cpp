@@ -11,24 +11,8 @@
 namespace NPATK {
 
 
-    void OStreamRuleLogger::log_rule_reduced(const MonomialSubstitutionRule& old_rule,
-                                             const MonomialSubstitutionRule& new_rule) {
-        os << "Reduce:\t" << old_rule << "\n  |-\t" << new_rule << "\n";
-    }
-
-    void OStreamRuleLogger::log_rule_removed(const MonomialSubstitutionRule& ex_rule) {
-        os << "Remove:\t" << ex_rule << "\n";
-    }
-
-    void OStreamRuleLogger::log_rule_introduced(const MonomialSubstitutionRule& parent_rule_a,
-                                                const MonomialSubstitutionRule& parent_rule_b,
-                                                const MonomialSubstitutionRule& new_rule) {
-        os << "Combine:\t" << parent_rule_a << "\tand " << parent_rule_b << ":"
-           << "\n  |-\t" << new_rule << "\n";
-    }
-
-    RuleBook::RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules)
-         : hasher{hasher} {
+    RuleBook::RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules, bool is_herm)
+         : hasher{hasher}, is_hermitian{is_herm} {
         for (const auto& rule : rules) {
             // Skip trivial rules
             if (!rule.trivial()) {
@@ -39,16 +23,32 @@ namespace NPATK {
     }
 
     bool RuleBook::complete(size_t max_iterations, RuleLogger * logger) {
+        // First, if we are a Hermitian ruleset, introduce initial conjugate rules
+        if (this->is_hermitian) {
+            this->conjugate_ruleset(logger);
+        }
+
         size_t iteration = 0;
         while(iteration < max_iterations) {
-            if (!this->try_new_reduction(logger)) {
+            if (!this->try_new_combination(logger)) {
+                if (logger) {
+                    logger->success(*this, iteration);
+                }
                 return true;
             }
             ++iteration;
         }
 
-        // Maximum iterations reached: see if we're complete (i.e. did last rule introduced complete us...)
-        return this->is_complete();
+        // Maximum iterations reached: see if we're complete (i.e. did final rule introduced complete the set?)
+        bool is_complete = this->is_complete();
+        if (logger) {
+            if (is_complete) {
+                logger->success(*this, iteration);
+            } else {
+                logger->failure(*this, iteration);
+            }
+        }
+        return is_complete;
     }
 
     HashedSequence RuleBook::reduce(const HashedSequence& input) const {
@@ -109,7 +109,7 @@ namespace NPATK {
             // If reduction makes rule trivial, it is redundant and can be removed from set...
             if (reduced_rule.trivial()) {
                 if (logger) {
-                    logger->log_rule_removed(isolated_rule);
+                    logger->rule_removed(isolated_rule);
                 }
                 ++number_reduced;
                 continue;
@@ -119,13 +119,15 @@ namespace NPATK {
             if ((isolated_rule.LHS().hash != reduced_rule.LHS().hash) ||
                 (isolated_rule.RHS().hash != reduced_rule.RHS().hash)) {
                 if (logger) {
-                    logger->log_rule_reduced(isolated_rule, reduced_rule);
+                    logger->rule_reduced(isolated_rule, reduced_rule);
                 }
                 ++number_reduced;
             }
 
             // Push reduced rule back into rule-set
-            this->monomialRules.insert(std::make_pair(reduced_hash, std::move(reduced_rule)));
+            auto [entry_iter, new_entry] = this->monomialRules.insert(std::make_pair(reduced_hash,
+                                                                                     std::move(reduced_rule)));
+            assert(new_entry); // True, because if hash matches, rule would have been further reduced, or trivial.
         }
         return number_reduced;
     }
@@ -163,7 +165,7 @@ namespace NPATK {
     }
 
 
-    bool RuleBook::try_new_reduction(RuleLogger * logger) {
+    bool RuleBook::try_new_combination(RuleLogger * logger) {
         // First, reduce
         this->reduce_ruleset(logger);
 
@@ -193,7 +195,7 @@ namespace NPATK {
 
                 // Non-trivial, add it to rule set
                 if (logger) {
-                    logger->log_rule_introduced(ruleA, ruleB, combined_reduced_rule);
+                    logger->rule_introduced(ruleA, ruleB, combined_reduced_rule);
                 }
                 size_t rule_hash = combined_reduced_rule.LHS().hash;
                 this->monomialRules.insert(std::make_pair(rule_hash, std::move(combined_reduced_rule)));
@@ -207,6 +209,68 @@ namespace NPATK {
         }
 
         return false;
+    }
+
+
+    size_t RuleBook::conjugate_ruleset(RuleLogger * logger) {
+        size_t added = 0;
+
+        auto rule_iter = this->rules().begin();
+
+        while (rule_iter != this->rules().end()) {
+            if (this->try_conjugation(rule_iter->second, logger)) {
+                // A new rule was added, iter is de facto invalidated, so restart at beginning of set...
+                rule_iter = this->rules().begin();
+                ++added;
+            }
+            // No new rule, try next rule in set...
+            ++rule_iter;
+        }
+
+        return added;
+    }
+
+    bool RuleBook::try_conjugation(const MonomialSubstitutionRule& rule, RuleLogger * logger) {
+        assert(this->is_hermitian);
+
+        // Conjugate and reduce rule
+        auto conj_rule = rule.conjugate(this->hasher);
+        auto conj_reduced_rule = this->reduce(conj_rule);
+
+        // Reject rule if it doesn't imply anything new
+        if (conj_reduced_rule.trivial()) {
+            return false;
+        }
+
+        // Otherwise, add reduced rule to set
+        if (logger) {
+            logger->rule_introduced_conjugate(rule, conj_reduced_rule);
+        }
+        size_t rule_hash = conj_reduced_rule.LHS().hash;
+        this->monomialRules.insert(std::make_pair(rule_hash, std::move(conj_reduced_rule)));
+
+        // Reduce ruleset
+        this->reduce_ruleset(logger);
+
+        return true;
+    }
+
+    std::ostream &operator<<(std::ostream &os, const RuleBook &rulebook) {
+        if (rulebook.is_hermitian) {
+            os << "Hermitian rule ";
+        } else {
+            os << "Rule ";
+        }
+        os << "book with " << rulebook.size() << ((rulebook.size() != 1) ? " rules" : " rule") << ":\n";
+
+        size_t rule_index = 1;
+        for (const auto& [hash, rule] : rulebook.rules()) {
+            os << "#" << rule_index << ":\t" << rule << "\n";
+            ++rule_index;
+        }
+        os << "\n";
+
+        return os;
     }
 
 }

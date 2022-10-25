@@ -6,6 +6,7 @@
 #include "hashed_sequence.h"
 
 #include <algorithm>
+#include <iterator>
 
 namespace NPATK {
 
@@ -59,6 +60,13 @@ namespace NPATK {
             ++lhs_tail_iter;
         }
         return 0;
+    }
+
+    [[nodiscard]] HashedSequence HashedSequence::conjugate(const ShortlexHasher& hasher) const {
+        std::vector<oper_name_t> str;
+        str.reserve(this->operators.size());
+        std::copy(this->operators.crbegin(), this->operators.crend(), std::back_inserter(str));
+        return HashedSequence{std::move(str), hasher};
     }
 
 

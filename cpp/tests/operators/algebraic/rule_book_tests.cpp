@@ -22,7 +22,7 @@ namespace NPATK::Tests {
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
-        RuleBook rules{hasher, msr};
+        RuleBook rules{hasher, msr, false};
 
         auto simplified_string = rules.reduce(
                 HashedSequence{{0, 1}, hasher}
@@ -37,7 +37,7 @@ namespace NPATK::Tests {
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
-        RuleBook rules{hasher, msr};
+        RuleBook rules{hasher, msr, false};
 
         auto simplified_string = rules.reduce(
                 HashedSequence{{0, 1, 1, 1}, hasher}
@@ -55,7 +55,7 @@ namespace NPATK::Tests {
                          HashedSequence{{0}, hasher});
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
                          HashedSequence{{1}, hasher});
-        RuleBook rules{hasher, msr};
+        RuleBook rules{hasher, msr, false};
 
         auto simplified_rule = rules.reduce(
                MonomialSubstitutionRule{HashedSequence{{0, 1}, hasher}, HashedSequence{{0, 0}, hasher}}
@@ -77,7 +77,7 @@ namespace NPATK::Tests {
                          HashedSequence{{0, 0, 1}, hasher});
         msr.emplace_back(HashedSequence{{2}, hasher},
                          HashedSequence{{1}, hasher});
-        RuleBook rules{hasher, msr};
+        RuleBook rules{hasher, msr, false};
 
         size_t number_reduced = rules.reduce_ruleset();
         EXPECT_EQ(number_reduced, 1); // should have removed 002->001
@@ -104,7 +104,7 @@ namespace NPATK::Tests {
                          HashedSequence{{1}, hasher});
         msr.emplace_back(HashedSequence{{1}, hasher},
                          HashedSequence{{0}, hasher});
-        RuleBook rules{hasher, msr};
+        RuleBook rules{hasher, msr, false};
 
         size_t number_reduced = rules.reduce_ruleset();
         EXPECT_EQ(number_reduced, 1); // should have altered 2->1 to 2->0
@@ -132,8 +132,37 @@ namespace NPATK::Tests {
 
         ++rule_map_iter;
         ASSERT_EQ(rule_map_iter, rule_map.cend());
+    }
 
+    TEST(RuleBook, AddConjugateRule) {
+        ShortlexHasher hasher{2};
+        std::vector<MonomialSubstitutionRule> msr;
+        msr.emplace_back(HashedSequence{{0, 0, 1}, hasher},
+                         HashedSequence{{}, hasher});
+        RuleBook rules{hasher, msr, true};
 
+        ASSERT_EQ(rules.rules().size(), 1);
+        EXPECT_TRUE(rules.try_conjugation(rules.rules().begin()->second));
+        EXPECT_EQ(rules.rules().size(), 2);
+
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 1}, hasher}), (HashedSequence{{}, hasher}));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), (HashedSequence{{}, hasher}));
+    }
+
+    TEST(RuleBook, ConjugateRuleset) {
+        ShortlexHasher hasher{2};
+        std::vector<MonomialSubstitutionRule> msr;
+        msr.emplace_back(HashedSequence{{0, 0, 1}, hasher},
+                         HashedSequence{{}, hasher});
+        RuleBook rules{hasher, msr, true};
+
+        ASSERT_EQ(rules.rules().size(), 1);
+
+        EXPECT_EQ(rules.conjugate_ruleset(), 1);
+        EXPECT_EQ(rules.rules().size(), 2);
+
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 1}, hasher}), (HashedSequence{{}, hasher}));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), (HashedSequence{{}, hasher}));
     }
 
     TEST(RuleBook, IterativelyDeduce_ABtoA_BAtoB) {
@@ -143,17 +172,17 @@ namespace NPATK::Tests {
                          HashedSequence{{0}, hasher});
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
                          HashedSequence{{1}, hasher});
-        RuleBook rules{hasher, msr};
+        RuleBook rules{hasher, msr, false};
 
         EXPECT_FALSE(rules.is_complete());
 
-        ASSERT_TRUE(rules.try_new_reduction());
+        ASSERT_TRUE(rules.try_new_combination());
         ASSERT_EQ(rules.rules().size(), 3); // Should add 00 -> 0
 
-        ASSERT_TRUE(rules.try_new_reduction());
+        ASSERT_TRUE(rules.try_new_combination());
         ASSERT_EQ(rules.rules().size(), 4); // Should add 11 -> 1
 
-        ASSERT_FALSE(rules.try_new_reduction()); // No further confluences
+        ASSERT_FALSE(rules.try_new_combination()); // No further confluences
 
         EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), (HashedSequence{{0}, hasher}));
         EXPECT_EQ(rules.reduce(HashedSequence{{0, 1}, hasher}), (HashedSequence{{0}, hasher}));
@@ -172,7 +201,7 @@ namespace NPATK::Tests {
                          HashedSequence{{}, hasher});
         msr.emplace_back(HashedSequence{{0, 1, 0, 1, 0, 1}, hasher},
                          HashedSequence{{}, hasher});
-        RuleBook rules{hasher, msr};
+        RuleBook rules{hasher, msr, false};
 
         EXPECT_FALSE(rules.is_complete());
 
@@ -186,5 +215,64 @@ namespace NPATK::Tests {
 
         EXPECT_TRUE(rules.is_complete());
     }
-    
+
+
+    TEST(RuleBook, HermitianComplete_ABtoA_BAtoB_Hermitian) {
+        ShortlexHasher hasher{2};
+        std::vector<MonomialSubstitutionRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher},
+                         HashedSequence{{0}, hasher});
+        msr.emplace_back(HashedSequence{{1, 0}, hasher},
+                         HashedSequence{{1}, hasher});
+        RuleBook rules{hasher, msr, true};
+
+        EXPECT_FALSE(rules.is_complete());
+
+        rules.complete(10);
+        ASSERT_EQ(rules.rules().size(), 2); // Should end up with 1 -> 0 and 00 -> 0.
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), (HashedSequence{{0}, hasher}));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1}, hasher}), (HashedSequence{{0}, hasher}));
+
+        EXPECT_TRUE(rules.is_complete());
+    }
+
+    TEST(RuleBook, HermitianComplete_ABtoA_BCtoB_CAtoC) {
+        ShortlexHasher hasher{2};
+        std::vector<MonomialSubstitutionRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher},
+                         HashedSequence{{0}, hasher});
+        msr.emplace_back(HashedSequence{{1, 2}, hasher},
+                         HashedSequence{{1}, hasher});
+        msr.emplace_back(HashedSequence{{2, 0}, hasher},
+                         HashedSequence{{2}, hasher});
+        RuleBook rules{hasher, msr, true};
+
+        EXPECT_FALSE(rules.is_complete());
+
+        rules.complete(10);
+        ASSERT_EQ(rules.rules().size(), 3); // Should end up with 1 -> 0, 2 -> 0 and 00 -> 0.
+
+        auto rule_iter = rules.rules().cbegin();
+        ASSERT_NE(rule_iter, rules.rules().cend());
+        EXPECT_EQ(rule_iter->first, hasher({1}));
+        ++rule_iter;
+
+        ASSERT_NE(rule_iter, rules.rules().cend());
+        EXPECT_EQ(rule_iter->first, hasher({2}));
+        ++rule_iter;
+
+        ASSERT_NE(rule_iter, rules.rules().cend());
+        EXPECT_EQ(rule_iter->first, hasher({0, 0}));
+        ++rule_iter;
+
+        ASSERT_EQ(rule_iter, rules.rules().cend());
+
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), (HashedSequence{{0}, hasher}));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1}, hasher}), (HashedSequence{{0}, hasher}));
+        EXPECT_EQ(rules.reduce(HashedSequence{{2}, hasher}), (HashedSequence{{0}, hasher}));
+
+        EXPECT_TRUE(rules.is_complete());
+    }
+
+
 }

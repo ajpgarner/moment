@@ -6,7 +6,7 @@
 #pragma once
 
 #include "integer_types.h"
-#include "hashed_sequence.h"
+
 #include <vector>
 
 namespace NPATK {
@@ -30,6 +30,4 @@ namespace NPATK {
         /** The largest supported string */
         [[nodiscard]] size_t longest_hashable_string() const;
     };
-
-    static_assert(HashFunction<ShortlexHasher>);
 }

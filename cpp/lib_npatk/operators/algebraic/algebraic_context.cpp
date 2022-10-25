@@ -14,21 +14,17 @@
 namespace NPATK {
 
     AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian)
-        : Context{operator_count}, self_adjoint{hermitian}, rawSequences{*this}
+        : Context{operator_count}, self_adjoint{hermitian}, rawSequences{*this}, rules{this->hasher, {}, hermitian}
     {
         this->generate_aliases(0);
     }
 
     AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian,
-                                       std::vector<MonomialSubstitutionRule> rules)
-        : Context{operator_count}, self_adjoint{hermitian}, rawSequences{*this}, monomialRules{std::move(rules)}
+                                       const std::vector<MonomialSubstitutionRule>& rules)
+        : Context{operator_count}, self_adjoint{hermitian}, rawSequences{*this},
+            rules{this->hasher, rules, hermitian}
     {
-        const auto max_length_elem = std::max_element(monomialRules.cbegin(), monomialRules.cend(),
-        [](const auto& ruleL, const auto& ruleR) {
-            return ruleL.LHS().size() < ruleR.LHS().size();
-        });
-        const size_t max_length = max_length_elem->LHS().size();
-        this->generate_aliases(2*max_length);
+        this->generate_aliases(0);
     }
 
     AlgebraicContext::~AlgebraicContext() noexcept = default;
@@ -36,7 +32,7 @@ namespace NPATK {
 
     std::string AlgebraicContext::to_string() const {
         const size_t op_count = this->operators.size();
-        const size_t rule_count = this->monomialRules.size();
+        const size_t rule_count = this->rules.size();
 
         std::stringstream ss;
         ss << "Algebraic context with "
@@ -54,12 +50,16 @@ namespace NPATK {
         ss << "\n";
         if (rule_count > 0) {
             ss << "Rules: \n";
-            for (const auto& msr : this->monomialRules) {
+            for (const auto& [id, msr] : this->rules.rules()) {
                 ss << "\t" << msr << "\n";
             }
         }
 
         return ss.str();
+    }
+
+    bool AlgebraicContext::attempt_completion(size_t max_attempts, RuleLogger * logger) {
+        return this->rules.complete(max_attempts, logger);
     }
 
 
@@ -72,7 +72,7 @@ namespace NPATK {
         }
 
         size_t num_pairs = 0;
-        for (const auto& rule : this->monomialRules) {
+        for (const auto& [hash, rule] : this->rules.rules()) {
             num_pairs += rule.all_matches(output, this->rawSequences, input_sequence);
         }
 
@@ -80,9 +80,6 @@ namespace NPATK {
     }
 
     bool AlgebraicContext::generate_aliases(size_t level) {
-        // Last generated sequence (+1)
-        const size_t initial_sequence_count = this->rawSequences.size();
-
         // Make sure raw sequence book has symbols of correct length
         if (!this->rawSequences.generate(level)) {
             // Early exit if no new strings generated.
@@ -128,7 +125,7 @@ namespace NPATK {
                 throw std::logic_error{"Self-references should have been resolved in tree simplification!"};
             }
             const auto& source_seq = rawSequences[link.first.second];
-            symbol_name_t target_id = -1;
+            symbol_name_t target_id;
             if (link.second == EqualityType::equal) {
                 const auto& target_seq = rawSequences[link.first.first];
                 target_id = target_seq.raw_id;
@@ -192,7 +189,6 @@ namespace NPATK {
             }
             ss << "]\n";
         }
-
         return ss.str();
     }
 

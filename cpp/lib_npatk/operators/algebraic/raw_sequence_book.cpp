@@ -9,7 +9,7 @@
 #include "../context.h"
 #include "../multi_operator_iterator.h"
 
-#include "/symbolic/symbol_set.h"
+#include "symbolic/symbol_set.h"
 
 #include <cmath>
 

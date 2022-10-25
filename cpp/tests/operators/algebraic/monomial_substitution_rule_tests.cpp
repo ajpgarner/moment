@@ -12,6 +12,26 @@
 
 namespace NPATK::Tests {
 
+    TEST(MonomialSubRule, Conjugate) {
+
+        ShortlexHasher hasher{3};
+
+        // BBA -> BA
+        MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, hasher},
+                                     HashedSequence{{2, 1}, hasher}};
+        // ABB -> AB
+        auto conj_msr = msr.conjugate(hasher);
+
+        ASSERT_EQ(conj_msr.LHS().size(), 3);
+        EXPECT_EQ(conj_msr.LHS()[0], 1);
+        EXPECT_EQ(conj_msr.LHS()[1], 2);
+        EXPECT_EQ(conj_msr.LHS()[2], 2);
+
+        ASSERT_EQ(conj_msr.RHS().size(), 2);
+        EXPECT_EQ(conj_msr.RHS()[0], 1);
+        EXPECT_EQ(conj_msr.RHS()[1], 2);
+    }
+
     TEST(MonomialSubRule, MatchBBAtoBA) {
         std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
 

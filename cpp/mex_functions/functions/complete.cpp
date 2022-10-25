@@ -6,6 +6,7 @@
 #include "complete.h"
 
 #include "operators/algebraic/rule_book.h"
+#include "operators/algebraic/ostream_rule_logger.h"
 
 #include "fragments/export_monomial_rules.h"
 #include "utilities/reporting.h"
@@ -27,7 +28,7 @@ namespace NPATK::mex::functions {
                                    HashedSequence{std::move(ir.RHS), hasher}, false);
             }
 
-            return RuleBook{hasher, rules};
+            return RuleBook{hasher, rules, input.hermitian_operators};
         }
     }
 
@@ -50,10 +51,13 @@ namespace NPATK::mex::functions {
             this->max_attempts = 128;
         }
 
+        // Default to Hermitian, but allow non-hermitian overrides
+        this->hermitian_operators = !(this->flags.contains(u"nonhermitian"));
+
         // Try to read raw rules
         this->rules = read_monomial_rules(matlabEngine, inputs[0], "Rules", this->max_operators);
 
-        // If no max operator specified, guess from rules
+        // If no max operator ID specified, guess by taking the highest value from provided rules
         if (this->max_operators == 0) {
             // Always at least one operator...
             this->max_operators = 1;
@@ -88,6 +92,10 @@ namespace NPATK::mex::functions {
         this->param_names.emplace(u"operators");
         this->param_names.emplace(u"limit");
 
+        this->flag_names.emplace(u"hermitian");
+        this->flag_names.emplace(u"nonhermitian");
+        this->mutex_params.add_mutex(u"hermitian", u"nonhermitian");
+
         this->min_inputs = 1;
         this->max_inputs = 1;
     }
@@ -115,12 +123,9 @@ namespace NPATK::mex::functions {
         }
 
         // Print a warning, if not complete (and not in quiet mode)
-        if (!this->quiet && !completed) {
+        if (!this->quiet && !this->verbose && !completed) {
             print_to_console(this->matlabEngine,
                              "Maximum number of new rules were introduced, but the set was not completed.\n");
-        }
-        if (this->verbose && completed) {
-            print_to_console(this->matlabEngine, "The rule set was successfully completed.\n");
         }
 
         // Output list of parsed rules

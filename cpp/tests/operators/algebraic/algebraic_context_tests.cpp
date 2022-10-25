@@ -36,7 +36,7 @@ namespace NPATK::Tests {
                 HashedSequence{{1, 2}, ShortlexHasher{3}},
                 HashedSequence{{1}, ShortlexHasher{3}}
         );
-        AlgebraicContext ac{3, true, std::move(rules)};
+        AlgebraicContext ac{3, true, rules};
 
         ac.generate_aliases(3);
 
@@ -72,7 +72,7 @@ namespace NPATK::Tests {
                 HashedSequence{{2, 1}, ShortlexHasher{3}},
                 HashedSequence{{1}, ShortlexHasher{3}}
         );
-        AlgebraicContext ac{3, true, std::move(rules)};
+        AlgebraicContext ac{3, true, rules};
 
         ac.generate_aliases(4);
 
@@ -114,7 +114,7 @@ namespace NPATK::Tests {
                 HashedSequence{{}, ShortlexHasher{3}}
         );
 
-        AlgebraicContext ac{3, true, std::move(rules)};
+        AlgebraicContext ac{3, true, rules};
 
         ac.generate_aliases(6);
 
@@ -156,7 +156,7 @@ namespace NPATK::Tests {
                 HashedSequence{{2, 1}, ShortlexHasher{3}},
                 HashedSequence{{1, 2}, ShortlexHasher{3}}
         );
-        AlgebraicContext ac{3, true, std::move(rules)};
+        AlgebraicContext ac{3, true, rules};
 
         ac.generate_aliases(3);
 
@@ -206,7 +206,7 @@ namespace NPATK::Tests {
                 HashedSequence{{0, 1}, ShortlexHasher{2}}
         );
 
-        AlgebraicContext ac{2, true, std::move(rules)};
+        AlgebraicContext ac{2, true, rules};
         ac.generate_aliases(4);
 
         OperatorSequenceGenerator osg_lvl1{ac, 1};
@@ -269,7 +269,8 @@ namespace NPATK::Tests {
                 HashedSequence{{}, ShortlexHasher{2}}
         );
 
-        AlgebraicContext ac{2, true, std::move(rules)};
+        AlgebraicContext ac{2, true, rules};
+        ASSERT_TRUE(ac.attempt_completion(20));
         ac.generate_aliases(2);
 
         OperatorSequenceGenerator osg_lvl1{ac, 1};
@@ -308,7 +309,8 @@ namespace NPATK::Tests {
                 HashedSequence{{2}, ShortlexHasher{3}}
         );
 
-        AlgebraicContext ac{3, true, std::move(rules)};
+        AlgebraicContext ac{3, true, rules};
+        ASSERT_TRUE(ac.attempt_completion(20));
         ac.generate_aliases(1);
 
         OperatorSequenceGenerator osg_lvl1{ac, 1};
@@ -364,8 +366,10 @@ namespace NPATK::Tests {
                 HashedSequence{{}, ShortlexHasher{2}}
         );
         auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
+        ASSERT_TRUE(ac_ptr->attempt_completion(20));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
+
 
         auto& mm1 = ams.CreateMomentMatrix(1); // 1 (because A=1, B=1...!)
         ASSERT_EQ(mm1.Level(), 1);
@@ -378,5 +382,6 @@ namespace NPATK::Tests {
         EXPECT_TRUE(mm3.IsHermitian());
         ASSERT_EQ(mm3.Dimension(), 1) << context.resolved_rules();
         EXPECT_EQ(mm3.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
+
     }
 }

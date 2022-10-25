@@ -14,56 +14,58 @@
 #include <vector>
 
 namespace NPATK {
-    class AlgebraicContext;
+    class RuleBook;
 
     class RuleLogger {
     public:
         virtual ~RuleLogger() = default;
 
-        virtual void log_rule_reduced(const MonomialSubstitutionRule& old_rule,
+        virtual void rule_reduced(const MonomialSubstitutionRule& old_rule,
                                       const MonomialSubstitutionRule& new_rule) = 0;
 
-        virtual void log_rule_removed(const MonomialSubstitutionRule& ex_rule) = 0;
+        virtual void rule_removed(const MonomialSubstitutionRule& ex_rule) = 0;
 
-        virtual void log_rule_introduced(
+        virtual void rule_introduced(
                 const MonomialSubstitutionRule& parent_rule_a,
                 const MonomialSubstitutionRule& parent_rule_b,
                 const MonomialSubstitutionRule& new_rule) = 0;
+
+        virtual void rule_introduced_conjugate(
+                const MonomialSubstitutionRule& parent_rule,
+                const MonomialSubstitutionRule& new_rule) = 0;
+
+        virtual void success(const RuleBook& rb, size_t attempts) = 0;
+
+        virtual void failure(const RuleBook& rb, size_t attempts) = 0;
     };
 
-    class OStreamRuleLogger : public RuleLogger {
-    private:
-        std::ostream& os;
-    public:
-        explicit OStreamRuleLogger(std::ostream& stream) : os{stream} { }
-
-        void log_rule_reduced(const MonomialSubstitutionRule& old_rule,
-                              const MonomialSubstitutionRule& new_rule) override;
-
-        void log_rule_removed(const MonomialSubstitutionRule& ex_rule) override;
-
-        void log_rule_introduced(
-                const MonomialSubstitutionRule& parent_rule_a,
-                const MonomialSubstitutionRule& parent_rule_b,
-                const MonomialSubstitutionRule& new_rule) override;
-    };
 
     class RuleBook {
     public:
         using rule_map_t = std::map<size_t, MonomialSubstitutionRule>;
+
     private:
         const ShortlexHasher& hasher;
 
         rule_map_t monomialRules;
 
+        bool is_hermitian = true;
+
     public:
-        RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules);
+        RuleBook(const ShortlexHasher& hasher,
+                 const std::vector<MonomialSubstitutionRule>& rules,
+                 bool hermitian = true);
 
-        explicit RuleBook(const ShortlexHasher& hasher)
-            : RuleBook(hasher, std::vector<MonomialSubstitutionRule>{}) { }
+        explicit RuleBook(const ShortlexHasher& hasher, bool hermitian = true)
+            : RuleBook(hasher, std::vector<MonomialSubstitutionRule>{}, hermitian) { }
 
-        /** Handle to rules */
+        /** Handle to rules map. */
         [[nodiscard]] const auto& rules() const noexcept { return this->monomialRules; }
+
+        /**
+         * Number of rules in rule book.
+         */
+        [[nodiscard]]  size_t size() const noexcept { return this->monomialRules.size(); }
 
         /**
          * Attempts, using Knuth-Bendix algorithm, to complete the rule sets.
@@ -96,8 +98,27 @@ namespace NPATK {
          * @param logger Pointer (may be null) to class logging which new rule is deduced.
          * @return True, if a non-trivial rule was found.
          */
-        bool try_new_reduction(RuleLogger * logger = nullptr);
+        bool try_new_combination(RuleLogger * logger = nullptr);
 
+        /**
+         * Attempt to conjugate all rules in the set, reducing after each non-trivial conjugation.
+         * @param logger Pointer (may be null) to class logging which new rules are introduced.
+         * @return Number of introduced rules.
+         */
+        size_t conjugate_ruleset(RuleLogger * logger = nullptr);
+
+        /**
+         * Attempts to introduce a rule by conjugating the supplied input rule.
+         * @param rule Reference to the rule to conjugate
+         * @param logger Pointer (may be null) to class logging which new rule is deduced.
+         * @return True, if conjugate was non-trivial (and hence added to set).
+         */
+        bool try_conjugation(const MonomialSubstitutionRule& rule, RuleLogger * logger = nullptr);
+
+        /**
+         * Print out rules.
+         */
+        friend std::ostream& operator<<(std::ostream& os, const RuleBook& rulebook);
     };
 
 }
