@@ -101,9 +101,6 @@ namespace NPATK::mex::functions  {
                     return export_cgt_sequences(matlabEngine, cgi);
             }
         }
-
-
-
     }
 
     CollinsGisinParams::CollinsGisinParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputIn)

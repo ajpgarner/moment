@@ -22,6 +22,8 @@
 
 #include "utilities/reporting.h"
 
+#include <cassert>
+
 
 namespace NPATK::mex::functions {
 
@@ -73,6 +75,37 @@ namespace NPATK::mex::functions {
             case functions::MEXEntryPointID::Unknown:
                 return {};
         }
+
+        assert(the_function->function_id == function_id);
+
         return the_function;
+    }
+
+    std::map<std::basic_string<char16_t>, MEXEntryPointID> make_str_to_entrypoint_map() {
+        std::map<std::basic_string<char16_t>, MEXEntryPointID> output;
+
+        output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
+        output.emplace(u"collins_gisin",   MEXEntryPointID::CollinsGisin);
+        output.emplace(u"complete",        MEXEntryPointID::Complete);
+        output.emplace(u"generate_basis",  MEXEntryPointID::GenerateBasis);
+        output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
+        output.emplace(u"make_hermitian",  MEXEntryPointID::MakeHermitian);
+        output.emplace(u"make_symmetric",  MEXEntryPointID::MakeSymmetric);
+        output.emplace(u"moment_matrix",   MEXEntryPointID::MomentMatrix);
+        output.emplace(u"new_algebraic_matrix_system", MEXEntryPointID::NewAlgebraicMatrixSystem);
+        output.emplace(u"new_locality_matrix_system", MEXEntryPointID::NewLocalityMatrixSystem);
+        output.emplace(u"release",         MEXEntryPointID::Release);
+        output.emplace(u"symbol_table",    MEXEntryPointID::SymbolTable);
+        output.emplace(u"version",         MEXEntryPointID::Version);
+        return output;
+    }
+
+    MEXEntryPointID which_entrypoint(const std::basic_string<char16_t> &str) {
+        static const auto the_map = make_str_to_entrypoint_map();
+        auto iter = the_map.find(str);
+        if (iter == the_map.cend()) {
+            return MEXEntryPointID::Unknown;
+        }
+        return iter->second;
     }
 }
