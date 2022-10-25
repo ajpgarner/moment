@@ -79,6 +79,8 @@ to the call to function `npatk(...)`:
 
 `alphabetic_name`: Converts a numerical index into an alphabetic one.
 
+`complete`: Attempts to complete a set of algebraic rewrite rules.
+
 `collins_gisin`: Returns list of symbols in a matrix system, as a matrix using Collins-Gisin indexing. 
 
 `generate_basis`: Provide symmetric or Hermitian basis matrices for a given symbolic matrix.
@@ -89,7 +91,10 @@ to the call to function `npatk(...)`:
 
 `moment_matrix`: Generates a moment matrix for a supplied set of Hermitian operators.
 
-`new_matrix_system`: Starts a new context of shared variables, from a supplied Scenario.
+`new_algebraic_matrix_system`: Starts a new context of shared variables, with specified algebraic relations.
+
+`new_locality_matrix_system`: Starts a new context of shared variables, for locality (party, measurement, outcome) 
+settings. 
 
 `symbol_table`: Returns total list of operators in a matrix system.
 
