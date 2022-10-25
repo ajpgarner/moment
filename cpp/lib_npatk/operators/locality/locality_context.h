@@ -53,7 +53,6 @@ namespace NPATK {
 
         explicit LocalityContext(std::vector<Party>&& parties) noexcept;
 
-
         /**
          * Use additional context to simplify an operator string.
          * @param op_sequence The string of operators

@@ -10,12 +10,13 @@
 #include "functions/collins_gisin.h"
 #include "functions/complete.h"
 #include "functions/generate_basis.h"
-#include "functions/probability_table.h"
+#include "functions/localizing_matrix.h"
 #include "functions/make_hermitian.h"
 #include "functions/make_symmetric.h"
 #include "functions/moment_matrix.h"
 #include "functions/new_algebraic_matrix_system.h"
 #include "functions/new_locality_matrix_system.h"
+#include "functions/probability_table.h"
 #include "functions/release.h"
 #include "functions/symbol_table.h"
 #include "functions/version.h"
@@ -45,8 +46,8 @@ namespace NPATK::mex::functions {
             case functions::MEXEntryPointID::GenerateBasis:
                 the_function = std::make_unique<functions::GenerateBasis>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::ProbabilityTable:
-                the_function = std::make_unique<functions::ProbabilityTable>(engine, storageManager);
+            case functions::MEXEntryPointID::LocalizingMatrix:
+                the_function = std::make_unique<functions::LocalizingMatrix>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::MakeHermitian:
                 the_function = std::make_unique<functions::MakeHermitian>(engine, storageManager);
@@ -62,6 +63,9 @@ namespace NPATK::mex::functions {
                 break;
             case functions::MEXEntryPointID::NewLocalityMatrixSystem:
                 the_function = std::make_unique<functions::NewLocalityMatrixSystem>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::ProbabilityTable:
+                the_function = std::make_unique<functions::ProbabilityTable>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::Release:
                 the_function  = std::make_unique<functions::Release>(engine, storageManager);
@@ -88,12 +92,13 @@ namespace NPATK::mex::functions {
         output.emplace(u"collins_gisin",   MEXEntryPointID::CollinsGisin);
         output.emplace(u"complete",        MEXEntryPointID::Complete);
         output.emplace(u"generate_basis",  MEXEntryPointID::GenerateBasis);
-        output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
+        output.emplace(u"localizing_matrix",  MEXEntryPointID::LocalizingMatrix);
         output.emplace(u"make_hermitian",  MEXEntryPointID::MakeHermitian);
         output.emplace(u"make_symmetric",  MEXEntryPointID::MakeSymmetric);
         output.emplace(u"moment_matrix",   MEXEntryPointID::MomentMatrix);
         output.emplace(u"new_algebraic_matrix_system", MEXEntryPointID::NewAlgebraicMatrixSystem);
         output.emplace(u"new_locality_matrix_system", MEXEntryPointID::NewLocalityMatrixSystem);
+        output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
         output.emplace(u"release",         MEXEntryPointID::Release);
         output.emplace(u"symbol_table",    MEXEntryPointID::SymbolTable);
         output.emplace(u"version",         MEXEntryPointID::Version);

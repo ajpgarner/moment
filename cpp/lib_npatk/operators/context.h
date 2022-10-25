@@ -58,7 +58,7 @@ namespace NPATK {
         }
 
         /**
-         * Use additional context to simplify an operator string.
+         * Use context to simplify an operator string.
          * @param op_sequence The string of operators
          * @return True if sequence is zero (cf. identity).
          */
