@@ -26,8 +26,8 @@ namespace NPATK::mex::functions  {
         enum class OutputMode {
             /** Unknown output */
             Unknown = 0,
-            /** Output dimension of matrix */
-            DimensionOnly,
+            /** Output index and dimension of matrix */
+            IndexAndDimension,
             /** Output matrix of symbol names */
             Symbols,
             /** Output matrix of string representation of operator sequences */

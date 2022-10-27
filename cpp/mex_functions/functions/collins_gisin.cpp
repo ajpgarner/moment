@@ -145,7 +145,7 @@ namespace NPATK::mex::functions  {
         assert(msPtr); // ^- above should throw if absent
 
         // Get read lock
-        auto lock = msPtr->getReadLock();
+        auto lock = msPtr->get_read_lock();
         const MatrixSystem& system = *msPtr;
 
         // Create (or retrieve) CG information

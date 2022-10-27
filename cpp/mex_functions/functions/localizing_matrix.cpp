@@ -28,7 +28,7 @@ namespace NPATK::mex::functions {
         } else if (this->flags.contains(u"symbols")) {
             this->output_mode = OutputMode::Symbols;
         } else {
-            this->output_mode = OutputMode::DimensionOnly;
+            this->output_mode = OutputMode::IndexAndDimension;
         }
 
         // Either set named params OR give multiple params
@@ -102,7 +102,7 @@ namespace NPATK::mex::functions {
     LocalizingMatrix::LocalizingMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
             : MexFunction(matlabEngine, storage, MEXEntryPointID::LocalizingMatrix, u"localizing_matrix") {
         this->min_outputs = 0;
-        this->max_outputs = 1;
+        this->max_outputs = 2;
 
         this->flag_names.emplace(u"sequences");
         this->flag_names.emplace(u"symbols");
@@ -135,6 +135,10 @@ namespace NPATK::mex::functions {
     void LocalizingMatrix::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
         auto& input = dynamic_cast<LocalizingMatrixParams&>(*inputPtr);
 
+        if ((output.size() >= 2) && (input.output_mode !=  LocalizingMatrixParams::OutputMode::IndexAndDimension))  {
+            throw_error(this->matlabEngine, errors::too_many_outputs,
+                        "Too many outputs supplied.");
+        }
 
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {
@@ -142,14 +146,16 @@ namespace NPATK::mex::functions {
         } catch(const persistent_object_error& poe) {
             throw_error(this->matlabEngine, errors::bad_param, "Could not find referenced MatrixSystem.");
         }
+        MatrixSystem& matrixSystem = *matrixSystemPtr;
 
         // First, make LM index
-        auto index_lock = matrixSystemPtr->getReadLock();
-        auto lmi = input.to_index(matlabEngine, matrixSystemPtr->Context());
+        auto index_lock = matrixSystemPtr->get_read_lock();
+        auto lmi = input.to_index(matlabEngine, matrixSystem.Context());
         index_lock.unlock();
 
         // Now, build or get localizing matrix
-        const auto& locMatrix = matrixSystemPtr->CreateLocalizingMatrix(lmi);
+        auto locMatrixIndexPair = matrixSystemPtr->create_localizing_matrix(lmi);
+        const auto& locMatrix = locMatrixIndexPair.second;
 
         // Output, if supplied.
         if (output.size() >= 1) {
@@ -161,9 +167,12 @@ namespace NPATK::mex::functions {
                     output[0] = export_sequence_matrix(this->matlabEngine, locMatrix.context,
                                                        locMatrix.SequenceMatrix());
                     break;
-                case LocalizingMatrixParams::OutputMode::DimensionOnly: {
+                case LocalizingMatrixParams::OutputMode::IndexAndDimension: {
                     matlab::data::ArrayFactory factory;
-                    output[0] = factory.createScalar<uint64_t>(locMatrix.Dimension());
+                    output[0] = factory.createScalar<uint64_t>(locMatrixIndexPair.first);
+                    if (output.size() >= 2) {
+                        output[1] = factory.createScalar<uint64_t>(locMatrix.Dimension());
+                    }
                 }
                     break;
                 default:

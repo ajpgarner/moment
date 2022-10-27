@@ -4,7 +4,8 @@ classdef OperatorMatrix < handle
         
     properties(SetAccess = protected, GetAccess = public)
         MatrixSystem
-        Dimension = uint64(0)
+        Index = uint64.empty
+        Dimension = uint64.empty
         
         SymbolMatrix
         SequenceMatrix        

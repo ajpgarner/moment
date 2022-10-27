@@ -23,7 +23,7 @@ namespace NPATK::mex::functions {
     MomentMatrix::MomentMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
             : MexFunction(matlabEngine, storage, MEXEntryPointID::MomentMatrix, u"moment_matrix") {
         this->min_outputs = 0;
-        this->max_outputs = 1;
+        this->max_outputs = 2;
 
         this->flag_names.emplace(u"sequences");
         this->flag_names.emplace(u"symbols");
@@ -49,7 +49,7 @@ namespace NPATK::mex::functions {
         } else if (this->flags.contains(u"symbols")) {
             this->output_mode = OutputMode::Symbols;
         } else {
-            this->output_mode = OutputMode::DimensionOnly;
+            this->output_mode = OutputMode::IndexAndDimension;
         }
 
         // Either set named params OR give multiple params
@@ -113,6 +113,10 @@ namespace NPATK::mex::functions {
     void MomentMatrix::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
         auto& input = dynamic_cast<MomentMatrixParams&>(*inputPtr);
 
+        if ((output.size() >= 2) && (input.output_mode !=  MomentMatrixParams::OutputMode::IndexAndDimension))  {
+            throw_error(this->matlabEngine, errors::too_many_outputs,
+                        "Too many outputs supplied.");
+        }
 
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {
@@ -122,8 +126,8 @@ namespace NPATK::mex::functions {
         }
 
         // Now, build or get moment matrix
-        const auto& momentMatrix = matrixSystemPtr->CreateMomentMatrix(input.hierarchy_level);
-
+        const auto& momentMatrixIndexPair = matrixSystemPtr->create_moment_matrix(input.hierarchy_level);
+        const auto& momentMatrix = momentMatrixIndexPair.second;
 
         // Output, if supplied.
         if (output.size() >= 1) {
@@ -135,9 +139,12 @@ namespace NPATK::mex::functions {
                     output[0] = export_sequence_matrix(this->matlabEngine, momentMatrix.context,
                                                        momentMatrix.SequenceMatrix());
                     break;
-                case MomentMatrixParams::OutputMode::DimensionOnly: {
+                case MomentMatrixParams::OutputMode::IndexAndDimension: {
                     matlab::data::ArrayFactory factory;
-                    output[0] = factory.createScalar<uint64_t>(momentMatrix.Dimension());
+                    output[0] = factory.createScalar<uint64_t>(momentMatrixIndexPair.first);
+                    if (output.size() >= 2) {
+                        output[1] = factory.createScalar<uint64_t>(momentMatrix.Dimension());
+                    }
                 }
                     break;
                 default:

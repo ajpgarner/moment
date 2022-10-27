@@ -18,7 +18,7 @@ namespace NPATK::mex::functions {
         enum class InputMode {
             Unknown = 0,
             MATLABArray,
-            MomentMatrixReference
+            MatrixSystemReference
         } input_mode = InputMode::Unknown;
 
         /** What sort of basis should we try to generate */
@@ -33,8 +33,8 @@ namespace NPATK::mex::functions {
         /** The reference to the moment matrix, if one is requested */
         uint64_t matrix_system_key = 0;
 
-        /** The level of MM from matrix system, if one is requested */
-        size_t moment_matrix_level = 0;
+        /** The reference to the matrix within the system, if one is requested */
+        uint64_t matrix_index = 0;
 
     public:
         explicit GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
@@ -49,11 +49,9 @@ namespace NPATK::mex::functions {
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
 
     private:
-        void doGenerateBasisArray(std::array<matlab::data::Array, 3>& output,
-                                  GenerateBasisParams& params);
+        void doGenerateBasisArray(std::array<matlab::data::Array, 3>& output, GenerateBasisParams& params);
 
-        void doGenerateBasisMomentMatrix(std::array<matlab::data::Array, 3>& output,
-                                  GenerateBasisParams& params);
+        void doGenerateBasisOperatorMatrix(std::array<matlab::data::Array, 3>& output, GenerateBasisParams& params);
 
     };
 

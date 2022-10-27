@@ -14,19 +14,19 @@ namespace NPATK {
 
     AlgebraicMatrixSystem::AlgebraicMatrixSystem(std::unique_ptr<AlgebraicContext> contextIn)
             : MatrixSystem{std::move(contextIn)},
-              algebraicContext{dynamic_cast<AlgebraicContext&>(this->getContext())} {
+              algebraicContext{dynamic_cast<AlgebraicContext&>(this->Context())} {
 
     }
 
     AlgebraicMatrixSystem::AlgebraicMatrixSystem(std::unique_ptr<class Context> contextIn)
             : MatrixSystem{std::move(contextIn)},
-              algebraicContext{dynamic_cast<AlgebraicContext&>(this->getContext())} {
+              algebraicContext{dynamic_cast<AlgebraicContext&>(this->Context())} {
 
     }
 
     void AlgebraicMatrixSystem::generate_aliases(size_t stringLength) {
         // Get write lock
-        auto lock = this->getWriteLock();
+        auto lock = this->get_write_lock();
 
         // Generate raw sequences
         this->algebraicContext.generate_aliases(stringLength);

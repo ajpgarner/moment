@@ -34,7 +34,7 @@ namespace NPATK {
     size_t LocalityMatrixSystem::MaxRealSequenceLength() const noexcept {
 
         // Largest order of moment matrix?
-        ptrdiff_t hierarchy_level = this->highestMomentMatrix();
+        ptrdiff_t hierarchy_level = this->highest_moment_matrix();
         if (hierarchy_level < 0) {
             hierarchy_level = 0;
         }

@@ -33,41 +33,28 @@ namespace NPATK {
     MatrixSystem::~MatrixSystem() noexcept = default;
 
 
-    bool MatrixSystem::hasMomentMatrix(size_t level) const noexcept {
-        // Do our indices even extend this far?
-        if (level >= momentMatrixIndices.size()) {
-            return false;
-        }
 
-        // Is index set, positive and in bounds?
-        auto mmIndex = momentMatrixIndices[level];
-        if ((mmIndex >= this->matrices.size()) || (mmIndex < 0)) {
-            return false;
-        }
-
-        // Is matrix not-null?
-        return static_cast<bool>(this->matrices[mmIndex]);
-    }
-
-    ptrdiff_t MatrixSystem::highestMomentMatrix() const noexcept {
+    ptrdiff_t MatrixSystem::highest_moment_matrix() const noexcept {
         return static_cast<ptrdiff_t>(this->momentMatrixIndices.size()) - 1;
     }
 
 
     const MomentMatrix &MatrixSystem::MomentMatrix(size_t level) const {
-        if (!this->hasMomentMatrix(level)) {
+        auto index = this->find_moment_matrix(level);
+        if (index < 0) {
             throw errors::missing_component("Moment matrix of Level " + std::to_string(level) + " not yet generated.");
         }
-        return dynamic_cast<const class MomentMatrix&>(*matrices[momentMatrixIndices[level]]);
+        return dynamic_cast<const class MomentMatrix&>(*matrices[index]);
     }
 
-    MomentMatrix& MatrixSystem::CreateMomentMatrix(size_t level) {
+    std::pair<size_t, class MomentMatrix&> MatrixSystem::create_moment_matrix(size_t level) {
         // Call for write lock...
-        auto lock = this->getWriteLock();
+        auto lock = this->get_write_lock();
 
         // First, try read
-        if (this->hasMomentMatrix(level)) {
-            return dynamic_cast<class MomentMatrix&>(*matrices[momentMatrixIndices[level]]);
+        auto index = this->find_moment_matrix(level);
+        if (index >= 0) {
+            return {index, dynamic_cast<class MomentMatrix&>(*matrices[index])};
         }
 
         // Delegated pre-generation
@@ -88,21 +75,12 @@ namespace NPATK {
         // Delegated post-generation
         this->onNewMomentMatrixCreated(level, output);
 
-        return output;
+        return {matrixIndex, output};
     }
 
-
-    ptrdiff_t MatrixSystem::localizingMatrixIndex(const LocalizingMatrixIndex& lmi) const noexcept {
-        auto where = this->localizingMatrixIndices.find(lmi);
-        if (where == this->localizingMatrixIndices.end()) {
-            return -1;
-        }
-
-        return where->second;
-    }
 
     const LocalizingMatrix& MatrixSystem::LocalizingMatrix(const LocalizingMatrixIndex& lmi) const {
-        ptrdiff_t index = this->localizingMatrixIndex(lmi);
+        ptrdiff_t index = this->find_localizing_matrix(lmi);
 
         if (index <= 0) {
             throw errors::missing_component("Localizing matrix of Level " + std::to_string(lmi.Level)
@@ -113,14 +91,15 @@ namespace NPATK {
         return dynamic_cast<const class LocalizingMatrix&>(*matrices[momentMatrixIndices[index]]);
     }
 
-    LocalizingMatrix& MatrixSystem::CreateLocalizingMatrix(const LocalizingMatrixIndex& lmi) {
+    std::pair<size_t, class LocalizingMatrix&>
+    MatrixSystem::create_localizing_matrix(const LocalizingMatrixIndex& lmi) {
         // Call for write lock...
-        auto lock = this->getWriteLock();
+        auto lock = this->get_write_lock();
 
         // First, try read...
-        ptrdiff_t index = this->localizingMatrixIndex(lmi);
+        ptrdiff_t index = this->find_localizing_matrix(lmi);
         if (index >= 0) {
-            return dynamic_cast<class LocalizingMatrix&>(*matrices[momentMatrixIndices[index]]);
+            return {index, dynamic_cast<class LocalizingMatrix&>(*matrices[momentMatrixIndices[index]])};
         }
 
         // Delegated pre-generation
@@ -136,11 +115,36 @@ namespace NPATK {
         this->onNewLocalizingMatrixCreated(lmi, newLM);
 
         // Return (reference to) matrix just added
-        return newLM;
+        return {matrixIndex, newLM};
     }
 
+    ptrdiff_t MatrixSystem::find_moment_matrix(size_t level) const noexcept {
+        // Do our indices even extend this far?
+        if (level >= momentMatrixIndices.size()) {
+            return -1;
+        }
 
+        // Is index set, positive and in bounds?
+        auto mmIndex = momentMatrixIndices[level];
+        if ((mmIndex >= this->matrices.size()) || (mmIndex < 0)) {
+            return -1;
+        }
 
+        // Is matrix null?
+        if (!this->matrices[mmIndex]) {
+            return -1;
+        }
 
+        // Otherwise, return index
+        return mmIndex;
+    }
 
+    ptrdiff_t MatrixSystem::find_localizing_matrix(const LocalizingMatrixIndex& lmi) const noexcept {
+        auto where = this->localizingMatrixIndices.find(lmi);
+        if (where == this->localizingMatrixIndices.end()) {
+            return -1;
+        }
+
+        return where->second;
+    }
 }

@@ -24,14 +24,14 @@ namespace NPATK::Tests {
 
         OperatorSequence genWord{{theOp}, context};
 
-        auto& matLevel0 = system.CreateLocalizingMatrix(LocalizingMatrixIndex{context, 0, genWord});
+        auto& matLevel0 = system.create_localizing_matrix(LocalizingMatrixIndex{context, 0, genWord});
 
         EXPECT_EQ(matLevel0.Level(), 0);
         EXPECT_EQ(matLevel0.Word(), genWord);
         compare_lm_os_matrix(matLevel0, 1, {OperatorSequence({theOp}, context)});
 
 
-        auto& matLevel1 = system.CreateLocalizingMatrix(LocalizingMatrixIndex{context, 1, genWord});
+        auto& matLevel1 = system.create_localizing_matrix(LocalizingMatrixIndex{context, 1, genWord});
         EXPECT_EQ(matLevel1.Level(), 1);
         EXPECT_EQ(matLevel1.Word(), genWord);
         compare_lm_os_matrix(matLevel1, 2, {OperatorSequence({theOp}, context),
@@ -40,7 +40,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({theOp, theOp, theOp}, context)});
 
 
-        auto& matLevel2 = system.CreateLocalizingMatrix(LocalizingMatrixIndex{context, 2, genWord});
+        auto& matLevel2 = system.create_localizing_matrix(LocalizingMatrixIndex{context, 2, genWord});
         EXPECT_EQ(matLevel2.Level(), 2);
         EXPECT_EQ(matLevel2.Word(), genWord);
         compare_lm_os_matrix(matLevel2, 3, {OperatorSequence({theOp}, context),
@@ -66,18 +66,18 @@ namespace NPATK::Tests {
         OperatorSequence genWord1{{op1}, context};
 
 
-        auto& matLevel00 = system.CreateLocalizingMatrix(LocalizingMatrixIndex{context, 0, genWord0});
+        auto& matLevel00 = system.create_localizing_matrix(LocalizingMatrixIndex{context, 0, genWord0});
         EXPECT_EQ(matLevel00.Level(), 0);
         EXPECT_EQ(matLevel00.Word(), genWord0);
         compare_lm_os_matrix(matLevel00, 1, {OperatorSequence({op0}, context)});
 
-        auto& matLevel01 = system.CreateLocalizingMatrix(LocalizingMatrixIndex{context, 0, genWord1});
+        auto& matLevel01 = system.create_localizing_matrix(LocalizingMatrixIndex{context, 0, genWord1});
         EXPECT_EQ(matLevel01.Level(), 0);
         EXPECT_EQ(matLevel01.Word(), genWord1);
         compare_lm_os_matrix(matLevel01, 1, {OperatorSequence({op1}, context)});
 
 
-        auto& matLevel10 = system.CreateLocalizingMatrix(LocalizingMatrixIndex{context, 1, genWord0});
+        auto& matLevel10 = system.create_localizing_matrix(LocalizingMatrixIndex{context, 1, genWord0});
         EXPECT_EQ(matLevel10.Level(), 1);
         EXPECT_EQ(matLevel10.Word(), genWord0);
         compare_lm_os_matrix(matLevel10, 3, {OperatorSequence({op0}, context),
@@ -90,7 +90,7 @@ namespace NPATK::Tests {
                                             OperatorSequence({op1, op0, op0}, context),
                                             OperatorSequence({op1, op0, op1}, context)});
 
-        auto& matLevel11 = system.CreateLocalizingMatrix(LocalizingMatrixIndex{context, 1, genWord1});
+        auto& matLevel11 = system.create_localizing_matrix(LocalizingMatrixIndex{context, 1, genWord1});
         EXPECT_EQ(matLevel11.Level(), 1);
         EXPECT_EQ(matLevel11.Word(), genWord1);
         compare_lm_os_matrix(matLevel11, 3, {OperatorSequence({op1}, context),

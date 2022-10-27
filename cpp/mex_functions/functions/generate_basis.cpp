@@ -27,6 +27,20 @@
 #include <complex>
 
 namespace NPATK::mex::functions {
+
+    namespace {
+        const OperatorMatrix& getMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
+                                         const MatrixSystem& matrixSystem, size_t index) {
+            try {
+                return matrixSystem[index];
+            } catch (const NPATK::errors::missing_component& mce) {
+                throw_error(matlabEngine, errors::bad_param, mce.what());
+            }
+
+        }
+
+    }
+
     GenerateBasis::GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
         : MexFunction(matlabEngine, storage, MEXEntryPointID::GenerateBasis, u"generate_basis") {
         this->min_inputs = 1;
@@ -53,13 +67,13 @@ namespace NPATK::mex::functions {
 
         // First, have we specified a reference? If so...
         if (this->inputs.size() == 2) {
-            this->input_mode = InputMode::MomentMatrixReference;
+            this->input_mode = InputMode::MatrixSystemReference;
             this->basis_type = MatrixType::Hermitian;
 
-            this->matrix_system_key = this->read_positive_integer(matlabEngine, "MatrixSystem reference",
-                                                                  this->inputs[0], 0);
-            this->moment_matrix_level = this->read_positive_integer(matlabEngine, "Hierarchy level",
-                                                                    this->inputs[1], 0);
+            this->matrix_system_key = SortedInputs::read_positive_integer(matlabEngine, "MatrixSystem reference",
+                                                                          this->inputs[0], 0);
+            this->matrix_index = SortedInputs::read_positive_integer(matlabEngine, "Matrix index",
+                                                                     this->inputs[1], 0);
             this->sparse_output = false;
         } else {
             this->input_mode = InputMode::MATLABArray;
@@ -135,7 +149,7 @@ namespace NPATK::mex::functions {
 
     std::unique_ptr<SortedInputs> GenerateBasis::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
         auto output =  std::make_unique<GenerateBasisParams>(this->matlabEngine, std::move(*inputPtr));
-        if (output->input_mode == GenerateBasisParams::InputMode::MomentMatrixReference) {
+        if (output->input_mode == GenerateBasisParams::InputMode::MatrixSystemReference) {
             if (!this->storageManager.MatrixSystems.check_signature(output->matrix_system_key)) {
                 throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a moment matrix.");
             }
@@ -196,23 +210,18 @@ namespace NPATK::mex::functions {
         output[2] = export_basis_key(this->matlabEngine, matrix_properties);
     }
 
-    void GenerateBasis::doGenerateBasisMomentMatrix(std::array<matlab::data::Array, 3>& output,
+    void GenerateBasis::doGenerateBasisOperatorMatrix(std::array<matlab::data::Array, 3>& output,
                                                     GenerateBasisParams& input) {
 
         auto matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
         assert(matrixSystemPtr); // ^-- should throw if not found
+        const MatrixSystem& matrixSystem = *matrixSystemPtr;
 
         // Read lock, for basis generation
-        auto lock = matrixSystemPtr->getReadLock();
+        auto lock = matrixSystem.get_read_lock();
 
-        if (!matrixSystemPtr->hasMomentMatrix(input.moment_matrix_level)) {
-            throw_error(this->matlabEngine, errors::bad_param,
-                        "System has not yet generated a moment matrix at the requested level.");
-        }
-
-        const auto& momentMatrix = matrixSystemPtr->MomentMatrix(input.moment_matrix_level);
-
-        const auto& matrix_properties = momentMatrix.SMP();
+        const auto& operatorMatrix = getMatrixOrThrow(this->matlabEngine, matrixSystem, input.matrix_index);
+        const auto& matrix_properties = operatorMatrix.SMP();
 
         //auto output_basis_type = input.basis_type;
         if (input.basis_type == MatrixType::Unknown) {
@@ -229,13 +238,13 @@ namespace NPATK::mex::functions {
 
         if (input.monolithic_output) {
             if (input.sparse_output) {
-                auto [sym, anti_sym] = detail::make_sparse_monolith_basis(this->matlabEngine, momentMatrix);
+                auto [sym, anti_sym] = detail::make_sparse_monolith_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
                 if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
                 }
             } else {
-                auto [sym, anti_sym] = detail::make_dense_monolith_basis(this->matlabEngine, momentMatrix);
+                auto [sym, anti_sym] = detail::make_dense_monolith_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
                 if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
@@ -243,13 +252,13 @@ namespace NPATK::mex::functions {
             }
         } else {
             if (input.sparse_output) {
-                auto [sym, anti_sym] = detail::make_sparse_cell_basis(this->matlabEngine, momentMatrix);
+                auto [sym, anti_sym] = detail::make_sparse_cell_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
                 if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
                 }
             } else {
-                auto [sym, anti_sym] = detail::make_dense_cell_basis(this->matlabEngine, momentMatrix);
+                auto [sym, anti_sym] = detail::make_dense_cell_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
                 if (input.basis_type == MatrixType::Hermitian) {
                     output[1] = std::move(anti_sym);
@@ -274,8 +283,8 @@ namespace NPATK::mex::functions {
             case GenerateBasisParams::InputMode::MATLABArray:
                 doGenerateBasisArray(outputs, input);
                 break;
-            case GenerateBasisParams::InputMode::MomentMatrixReference:
-                doGenerateBasisMomentMatrix(outputs, input);
+            case GenerateBasisParams::InputMode::MatrixSystemReference:
+                doGenerateBasisOperatorMatrix(outputs, input);
                 break;
             case GenerateBasisParams::InputMode ::Unknown:
             default:

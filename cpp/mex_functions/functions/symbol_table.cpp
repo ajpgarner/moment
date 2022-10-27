@@ -57,7 +57,7 @@ namespace NPATK::mex::functions {
         }
 
         // Get read lock on system
-        std::shared_lock lock = matrixSystemPtr->getReadLock();
+        std::shared_lock lock = matrixSystemPtr->get_read_lock();
 
         // Extract symbol table and context from system
         const auto& context = matrixSystemPtr->Context();
