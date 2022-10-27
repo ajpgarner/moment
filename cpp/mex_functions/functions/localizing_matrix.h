@@ -5,8 +5,7 @@
  */
 #pragma once
 
-#include "mex_function.h"
-#include "integer_types.h"
+#include "operator_matrix.h"
 #include "operators/matrix/localizing_matrix_index.h"
 
 namespace NPATK {
@@ -15,41 +14,41 @@ namespace NPATK {
 
 namespace NPATK::mex::functions  {
 
-    struct LocalizingMatrixParams : public SortedInputs {
+    struct LocalizingMatrixParams : public OperatorMatrixParams {
     public:
-        uint64_t storage_key = 0;
-
         unsigned long hierarchy_level = 0;
 
         std::vector<oper_name_t> localizing_word;
 
-        enum class OutputMode {
-            /** Unknown output */
-            Unknown = 0,
-            /** Output index and dimension of matrix */
-            IndexAndDimension,
-            /** Output matrix of symbol names */
-            Symbols,
-            /** Output matrix of string representation of operator sequences */
-            Sequences
-        } output_mode = OutputMode::Unknown;
-
     public:
-        explicit LocalizingMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
+        explicit LocalizingMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs)
+            : OperatorMatrixParams(matlabEngine, std::move(inputs)) { }
 
         /**
          * Use the supplied context to create an index for the requested localizing matrix.
          */
         LocalizingMatrixIndex to_index(matlab::engine::MATLABEngine &matlabEngine, const Context& context) const;
+
+    protected:
+        void extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) final;
+
+        void extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) final;
+
+        [[nodiscard]] bool any_param_set() const final;
+
+        [[nodiscard]] size_t inputs_required() const noexcept final { return 3; }
+
+        [[nodiscard]] std::string input_format() const final { return "[matrix system ID, level, word]"; }
     };
 
-    class LocalizingMatrix : public NPATK::mex::functions::MexFunction {
+    class LocalizingMatrix : public NPATK::mex::functions::OperatorMatrix {
     public:
         explicit LocalizingMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
-
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
+    protected:
+        std::pair<size_t, const NPATK::OperatorMatrix&>
+        get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp) final;
     };
 }

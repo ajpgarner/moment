@@ -12,7 +12,6 @@ namespace NPATK {
 }
 
 namespace NPATK::mex::functions {
-
     struct NewLocalityMatrixSystemParams : public SortedInputs {
     public:
         size_t total_operators = 0;
@@ -47,7 +46,4 @@ namespace NPATK::mex::functions {
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
     };
-
-
-
 }

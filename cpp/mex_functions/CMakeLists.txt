@@ -41,6 +41,7 @@ matlab_add_mex(NAME npatk_mex
             functions/moment_matrix.cpp
             functions/new_algebraic_matrix_system.cpp
             functions/new_locality_matrix_system.cpp
+            functions/operator_matrix.cpp
             functions/probability_table.cpp
             functions/release.cpp
             functions/symbol_table.cpp

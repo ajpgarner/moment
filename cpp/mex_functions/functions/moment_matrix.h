@@ -5,6 +5,7 @@
  */
 #pragma once
 
+#include "operator_matrix.h"
 #include "mex_function.h"
 
 namespace NPATK {
@@ -13,34 +14,33 @@ namespace NPATK {
 
 namespace NPATK::mex::functions  {
 
-    struct MomentMatrixParams : public SortedInputs {
+    struct MomentMatrixParams : public OperatorMatrixParams {
     public:
-        uint64_t storage_key = 0;
-
         unsigned long hierarchy_level = 0;
-
-        enum class OutputMode {
-            /** Unknown output */
-            Unknown = 0,
-            /** Output index and dimension of matrix */
-            IndexAndDimension,
-            /** Output matrix of symbol names */
-            Symbols,
-            /** Output matrix of string representation of operator sequences */
-            Sequences
-        } output_mode = OutputMode::Unknown;
-
     public:
-        explicit MomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
+        explicit MomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs)
+            : OperatorMatrixParams(matlabEngine, std::move(inputs)) { }
+
+    protected:
+        void extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) final;
+
+        void extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) final;
+
+        [[nodiscard]] bool any_param_set() const final;
+
+        [[nodiscard]] size_t inputs_required() const noexcept final { return 2; }
+
+        [[nodiscard]] std::string input_format() const final { return "[matrix system ID, level]"; }
     };
 
-    class MomentMatrix : public NPATK::mex::functions::MexFunction {
+    class MomentMatrix : public NPATK::mex::functions::OperatorMatrix {
     public:
-        explicit MomentMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
-
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+        MomentMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
+    protected:
+        std::pair<size_t, const NPATK::OperatorMatrix&>
+        get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp) final;
     };
 }
