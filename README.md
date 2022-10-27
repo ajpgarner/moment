@@ -85,6 +85,8 @@ to the call to function `npatk(...)`:
 
 `generate_basis`: Provide symmetric or Hermitian basis matrices for a given symbolic matrix.
 
+`localizing_matrix`: Generates a localizing matrix for a supplied set of Hermitian operators and monomial expression.
+
 `make_hermitian`: Makes a symbolic matrix Hermitian, by inferring equality constraints and applying them.
 
 `make_symmetric`: Makes a symbolic matrix symmetric, by inferring equality constraints and applying them.
@@ -94,7 +96,9 @@ to the call to function `npatk(...)`:
 `new_algebraic_matrix_system`: Starts a new context of shared variables, with specified algebraic relations.
 
 `new_locality_matrix_system`: Starts a new context of shared variables, for locality (party, measurement, outcome) 
-settings. 
+settings.
+
+`operator_matrix`: Returns an operator matrix from a matrix system. 
 
 `symbol_table`: Returns total list of operators in a matrix system.
 

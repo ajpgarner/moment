@@ -73,11 +73,28 @@ namespace NPATK::mex::functions  {
     }
 
 
+    void RawOperatorMatrixParams::extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) {
+        assert(inputs.empty()); // Should be guaranteed by parent.
+        // Get depth
+        auto& index_param = this->find_or_throw(u"index");
+        this->matrix_index = read_positive_integer(matlabEngine, "Parameter 'index'", index_param, 0);
+    }
+
+    void RawOperatorMatrixParams::extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) {
+        assert(this->inputs.size() == 2); // should be guaranteed by parent.
+        this->matrix_index = read_positive_integer(matlabEngine, "Matrix index", inputs[1], 0);
+    }
+
+    bool RawOperatorMatrixParams::any_param_set() const {
+        const bool index_specified = this->params.contains(u"index");
+        return index_specified || OperatorMatrixParams::any_param_set();
+    }
+
 
     OperatorMatrix::OperatorMatrix(matlab::engine::MATLABEngine &matlabEngine, NPATK::mex::StorageManager &storage,
                                    MEXEntryPointID id, std::basic_string<char16_t> name)
             : MexFunction(matlabEngine, storage, id, std::move(name)) {
-        this->min_outputs = 0;
+        this->min_outputs = 1;
         this->max_outputs = 2;
 
         this->flag_names.emplace(u"sequences");
@@ -85,15 +102,29 @@ namespace NPATK::mex::functions  {
         this->flag_names.emplace(u"dimension");
 
         this->param_names.emplace(u"reference_id");
+        this->param_names.emplace(u"index");
 
         // One of three ways to output:
         this->mutex_params.add_mutex({u"sequences", u"symbols", u"dimension"});
 
-        // Either [ref, level, word] or named version thereof.
+        // Either [ref, ref] or named version thereof.
         this->min_inputs = 0;
-        this->max_inputs = 3;
+        this->max_inputs = 2;
     }
 
+
+    std::unique_ptr<SortedInputs> OperatorMatrix::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
+        auto& input = *inputPtr;
+        auto output = std::make_unique<RawOperatorMatrixParams>(this->matlabEngine, std::move(input));
+        output->parse(this->matlabEngine);
+
+        // Check key vs. storage manager
+        if (!this->storageManager.MatrixSystems.check_signature(output->storage_key)) {
+            throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
+        }
+
+        return output;
+    }
 
     void OperatorMatrix::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
         auto& input = dynamic_cast<OperatorMatrixParams&>(*inputPtr);
@@ -138,5 +169,25 @@ namespace NPATK::mex::functions  {
             }
         }
     }
+
+    std::pair<size_t, const NPATK::OperatorMatrix&>
+    OperatorMatrix::get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp) {
+        try {
+            const auto &input = dynamic_cast<const RawOperatorMatrixParams &>(omp);
+            auto lock = system.get_read_lock(); // release on return or throw
+            if (input.matrix_index >= system.size()) {
+                throw_error(this->matlabEngine, errors::bad_param,
+                            "Could not find matrix with index " + std::to_string(input.matrix_index)
+                            + " in matrix system.");
+            }
+            return {input.matrix_index, system[input.matrix_index]};
+        } catch (const std::bad_cast& bce) {
+            throw_error(this->matlabEngine, errors::internal_error,
+                        "Misconfigured operator matrix input parameter object.");
+        } catch (const NPATK::errors::missing_component& mce) {
+            throw_error(this->matlabEngine, errors::internal_error, mce.what());
+        }
+    }
+
 
 }

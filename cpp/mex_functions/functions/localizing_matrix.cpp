@@ -63,8 +63,10 @@ namespace NPATK::mex::functions {
             : NPATK::mex::functions::OperatorMatrix(matlabEngine, storage,
                                                     MEXEntryPointID::LocalizingMatrix, u"localizing_matrix") {
         // Either [ref, level, word] or named version thereof.
+        this->param_names.erase(u"index");
         this->param_names.emplace(u"level");
         this->param_names.emplace(u"word");
+
         this->max_inputs = 3;
     }
 

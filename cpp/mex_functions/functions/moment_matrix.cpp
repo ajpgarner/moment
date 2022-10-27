@@ -24,7 +24,9 @@ namespace NPATK::mex::functions {
             : NPATK::mex::functions::OperatorMatrix(matlabEngine, storage,
                                                     MEXEntryPointID::MomentMatrix, u"moment_matrix") {
         // Either [ref, level] or named version thereof.
+        this->param_names.erase(u"index");
         this->param_names.emplace(u"level");
+
         this->max_inputs = 2;
     }
 

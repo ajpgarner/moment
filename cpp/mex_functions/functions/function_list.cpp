@@ -16,6 +16,7 @@
 #include "functions/moment_matrix.h"
 #include "functions/new_algebraic_matrix_system.h"
 #include "functions/new_locality_matrix_system.h"
+#include "functions/operator_matrix.h"
 #include "functions/probability_table.h"
 #include "functions/release.h"
 #include "functions/symbol_table.h"
@@ -64,6 +65,9 @@ namespace NPATK::mex::functions {
             case functions::MEXEntryPointID::NewLocalityMatrixSystem:
                 the_function = std::make_unique<functions::NewLocalityMatrixSystem>(engine, storageManager);
                 break;
+            case functions::MEXEntryPointID::OperatorMatrix:
+                the_function = std::make_unique<functions::OperatorMatrix>(engine, storageManager);
+                break;
             case functions::MEXEntryPointID::ProbabilityTable:
                 the_function = std::make_unique<functions::ProbabilityTable>(engine, storageManager);
                 break;
@@ -96,6 +100,7 @@ namespace NPATK::mex::functions {
         output.emplace(u"make_hermitian",  MEXEntryPointID::MakeHermitian);
         output.emplace(u"make_symmetric",  MEXEntryPointID::MakeSymmetric);
         output.emplace(u"moment_matrix",   MEXEntryPointID::MomentMatrix);
+        output.emplace(u"operator_matrix", MEXEntryPointID::OperatorMatrix);
         output.emplace(u"new_algebraic_matrix_system", MEXEntryPointID::NewAlgebraicMatrixSystem);
         output.emplace(u"new_locality_matrix_system", MEXEntryPointID::NewLocalityMatrixSystem);
         output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);

@@ -33,6 +33,7 @@ namespace NPATK::mex::functions {
         MomentMatrix,
         NewAlgebraicMatrixSystem,
         NewLocalityMatrixSystem,
+        OperatorMatrix,
         ProbabilityTable,
         Release,
         SymbolTable,
