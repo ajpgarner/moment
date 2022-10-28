@@ -62,7 +62,7 @@ classdef SolvedJointMeasurement < handle
             names = strings(dims);
             
             % Write retrieved rows into outputs
-            for row = mm.MeasurementCoefs(obj.Indices)
+            for row = mm.MatrixSystem.MeasurementCoefs(obj.Indices)
                 % (assume row.indices are sorted!)
                 out_index = num2cell(reshape(row.indices(:, 3),...
                     [1, length(dims)]));

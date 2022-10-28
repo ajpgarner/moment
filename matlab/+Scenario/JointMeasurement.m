@@ -55,6 +55,51 @@ classdef JointMeasurement < handle & RealObject
             end
             val = Correlator(obj.Marginals(1), obj.Marginals(2));
         end
+        
+        function val = ContainsParty(obj, party_index)
+            val = any(obj.Indices(:,1) == party_index);
+        end
+        
+          
+        
+        function joint_item = mtimes(objA, objB)
+            arguments
+                objA (1,1)
+                objB (1,1)
+            end
+                        
+            % Should only occur when A is a built-in object (e.g. scalar)
+            if ~isa(objA, 'Scenario.JointMeasurement')
+                joint_item = mtimes@RealObject(objA, objB);
+                return
+            end
+            
+            % Can multiply measurements to form joint measurements
+            if isa(objB, 'Scenario.Measurement')                
+                if objA.Scenario ~= objB.Scenario
+                    error(objA.err_mismatched_scenario);
+                end
+                if ~isempty(intersect(objA.Indices(:,1), ...
+                                      objB.Index(:,1)))
+                    error(objA.err_overlapping_parties);                    
+                end
+                indices = sortrows(vertcat(objA.Indices, objB.Index));
+                joint_item = objA.Scenario.get(indices);
+            elseif isa(objB, 'Scenario.JointMeasurement')
+                if objA.Scenario ~= objB.Scenario
+                    error(objA.err_mismatched_scenario);
+                end
+                if ~isempty(intersect(objA.Indices(:,1), ...
+                                      objB.Indices(:,1)))
+                    error(objA.err_overlapping_parties);                    
+                end
+                indices = sortrows(vertcat(objA.Indices, objB.Indices));
+                joint_item = objA.Scenario.get(indices);
+            else
+                % Fall back to superclass:~
+                joint_item = mtimes@RealObject(objA, objB);
+            end
+        end
     end
     
     methods(Access=private)

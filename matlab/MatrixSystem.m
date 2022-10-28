@@ -102,7 +102,7 @@ classdef MatrixSystem < handle
         
         function result = MeasurementCoefs(obj, indices)
             arguments
-                obj (1,1) MomentMatrix
+                obj (1,1) MatrixSystem
                 indices (:,2) uint64
             end            
             parties = indices(:, 1);

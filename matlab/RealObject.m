@@ -12,12 +12,12 @@ classdef RealObject < handle
         matrix_system
     end
     
-      properties(Constant, Access = protected)
+    properties(Constant, Access = protected)
         err_no_matrix_system = ...
             ['Coefficients can not be calculated. This is because a ', ...
-             'MatrixSystem has not yet been associated with this ',...
-             'setting.'];
-         
+            'MatrixSystem has not yet been associated with this ',...
+            'setting.'];
+        
         err_mismatched_scenario = ...
             'Cannot combine objects from different settings.';
     end

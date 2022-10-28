@@ -6,10 +6,18 @@ classdef Measurement < handle & RealObject
         Index
         Name
         Outcomes
+        joint_mmts
     end
     
     properties(Access={?Scenario})
-        joint_mmts
+        
+    end
+    
+    properties(Constant, Access = protected)
+        err_overlapping_parties = ...
+            "_*_ can only be used to form linear combinations of "...
+            + "probabilities (i.e. all operands must be from different "...
+            + "parties).";
     end
     
     methods
@@ -58,7 +66,6 @@ classdef Measurement < handle & RealObject
             end
         end
         
-           
         function item = JointMeasurement(obj, indices)
             arguments
                 obj (1,1) Scenario.Measurement
@@ -72,15 +79,70 @@ classdef Measurement < handle & RealObject
             end
             item = obj.joint_mmts(table_index).mmt;
         end
+        
+        function joint_item = mtimes(objA, objB)
+            arguments
+                objA (1,1)
+                objB (1,1)
+            end
+                        
+            % Should only occur when A is a built-in object (e.g. scalar)
+            if ~isa(objA, 'Scenario.Measurement')
+                joint_item = mtimes@RealObject(objA, objB);
+                return
+            end
+            
+            % Can multiply measurements to form joint measurements
+            if isa(objB, 'Scenario.Measurement')                
+                if objA.Scenario ~= objB.Scenario
+                    error(objA.err_mismatched_scenario);
+                end
+                if ~isempty(intersect(objA.Index(:,1), ...
+                                      objB.Index(:,1)))
+                    error(objA.err_overlapping_parties);                    
+                end
+                indices = sortrows(vertcat(objA.Index, objB.Index));
+                joint_item = objA.Scenario.get(indices);
+            elseif isa(objB, 'Scenario.JointMeasurement')
+                if objA.Scenario ~= objB.Scenario
+                    error(objA.err_mismatched_scenario);
+                end
+                if ~isempty(intersect(objA.Index(:,1), ...
+                                      objB.Indices(:,1)))
+                    error(objA.err_overlapping_parties);                    
+                end
+                indices = sortrows(vertcat(objA.Index, objB.Indices));
+                joint_item = objA.Scenario.get(indices);
+            else
+                % Fall back to superclass:~
+                joint_item = mtimes@RealObject(objA, objB);
+            end
+        end
     end
     
     %% Overriden methods
     methods(Access={?Scenario.Measurement,?Scenario})
         function addJointMmt(obj, otherMmt)
+            % With existing joint measurements, if a new party
+            otherParty = otherMmt.Index(1);
+            initial_len = length(obj.joint_mmts);
+            for i = 1:initial_len 
+                existing_mmt = obj.joint_mmts(i).mmt;
+                if ~existing_mmt.ContainsParty(otherParty)
+                    njMmt = Scenario.JointMeasurement(obj.Scenario, ...
+                                [existing_mmt.Marginals, otherMmt]);
+                    obj.joint_mmts(end+1) = ...
+                        struct('indices', njMmt.Indices, ...
+                               'mmt', njMmt);
+                end
+            end
+            
+            % With this...
             jointMmt = Scenario.JointMeasurement(obj.Scenario, ...
                                                 [obj, otherMmt]);
             obj.joint_mmts(end+1) = struct('indices', jointMmt.Indices, ...
                                            'mmt', jointMmt);
+            
         end
     end
     

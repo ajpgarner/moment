@@ -205,7 +205,6 @@ namespace NPATK {
         if (zero) {
             return "0";
         }
-
         if (indices.empty()) {
             return "1";
         }
