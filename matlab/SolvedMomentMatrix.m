@@ -85,7 +85,7 @@ classdef SolvedMomentMatrix < handle
     methods(Access = private)
         function out_table = makeTable(obj)
             % Copy table, adding values column:
-            out_table = obj.MomentMatrix.SymbolTable;
+            out_table = obj.MomentMatrix.MatrixSystem.SymbolTable;
             z = num2cell(zeros(1,length(out_table)));
             [out_table.real_value] = z{:};
             [out_table.imaginary_value] = z{:};

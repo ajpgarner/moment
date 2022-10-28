@@ -346,7 +346,7 @@ classdef Scenario < handle
                 obj (1,1) Scenario
                 mm (1,1) MomentMatrix
             end
-            p_table = mm.ProbabilityTable;
+            p_table = mm.MatrixSystem.ProbabilityTable;
             for p_row = p_table
                 seq_len = size(p_row.indices, 1);
                 

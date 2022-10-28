@@ -191,9 +191,12 @@ namespace NPATK {
                 done_once = true;
             }
 
-
-            const auto& party = this->parties[this->global_mmt_id_to_party[oper]];
-            ss << party.format_operator(oper);
+            if (oper > this->size()) {
+                ss << "[UNK:" << oper << "]";
+            } else {
+                const auto &party = this->parties[this->global_op_id_to_party[oper]];
+                ss << party.format_operator(oper);
+            }
         }
         return ss.str();
     }

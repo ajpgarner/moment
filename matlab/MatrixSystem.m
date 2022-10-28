@@ -85,6 +85,36 @@ classdef MatrixSystem < handle
         end        
     end
     
+                  
+    %% Accessors for probability table
+    methods
+        function val = get.ProbabilityTable(obj)
+            % PROBABILITYTABLE A struct-array indicating how each
+            %   measurement outcome can be expressed in terms of real
+            %   basis elements (including implied probabilities that do not
+            %   directly exist as operators in any moment matrix).
+            if (isempty(obj.probability_table))
+                obj.probability_table = npatk('probability_table', ...
+                                              obj.RefId);
+            end
+            val = obj.probability_table;
+        end
+        
+        function result = MeasurementCoefs(obj, indices)
+            arguments
+                obj (1,1) MomentMatrix
+                indices (:,2) uint64
+            end            
+            parties = indices(:, 1);
+            if length(parties) ~= length(unique(parties))
+                error("Measurements must be from different parties.");
+            end
+            
+            result = npatk('probability_table', ...
+                           obj.RefId, indices);
+        end
+    end
+    
     %% CVX Methods
     methods
         function cvxCreateVars(obj, real_name, im_name)

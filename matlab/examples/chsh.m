@@ -10,11 +10,11 @@ setting.Parties(2).AddMeasurement(2);
 
 matrix = setting.MakeMomentMatrix(1);
 
-disp(struct2table(matrix.SymbolTable));
+disp(struct2table(matrix.MatrixSystem.SymbolTable));
 disp(matrix.SymbolMatrix);
 disp(matrix.SequenceMatrix);
 
-p_table = matrix.ProbabilityTable;
+p_table = matrix.MatrixSystem.ProbabilityTable;
 disp(struct2table(p_table))
 
 a22 = setting.Parties(1).Measurements(2).Outcomes(2);

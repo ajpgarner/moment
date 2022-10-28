@@ -16,7 +16,7 @@ namespace NPATK::Tests {
 
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(1, 1, 3))};
         const auto& context = system.localityContext;
-        auto& momentMatrix = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         const auto& alice = context.Parties[0];
         auto a0_loc = momentMatrix.Symbols.where(
@@ -52,7 +52,7 @@ namespace NPATK::Tests {
         const auto& bob = context.Parties[1];
 
 
-        auto& momentMatrix = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         auto alice_a0 = momentMatrix.Symbols.where(
                         OperatorSequence({alice.measurement_outcome(0, 0)}, context));
@@ -128,7 +128,7 @@ namespace NPATK::Tests {
         const auto& alice = context.Parties[0];
         const auto& bob = context.Parties[1];
 
-        auto& momentMatrix = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         auto alice_a0 = momentMatrix.Symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0)}, context));
@@ -231,7 +231,7 @@ namespace NPATK::Tests {
         const auto &alice = context.Parties[0];
         const auto &bob = context.Parties[1];
 
-        auto& momentMatrix = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         auto alice_a0_bob_a0 = momentMatrix.Symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 0)}, context));
@@ -387,7 +387,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(charlie.Measurements.size(), 2);
 
 
-        auto& momentMatrix = system.create_moment_matrix(2);
+        auto [id, momentMatrix] = system.create_moment_matrix(2);
         const auto& cgForm = system.ExplicitSymbolTable();
 
         auto aaa = cgForm.get({0, 2, 4});

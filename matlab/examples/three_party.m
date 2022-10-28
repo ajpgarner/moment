@@ -11,9 +11,9 @@ setting.Parties(3).AddMeasurement(2);
 
 matrix = setting.MakeMomentMatrix(2);
 
-disp(struct2table(matrix.SymbolTable));
+disp(struct2table(matrix.MatrixSystem.SymbolTable));
 
-p_table = matrix.ProbabilityTable;
+p_table = matrix.MatrixSystem.ProbabilityTable;
 disp(struct2table(p_table))
 
 a15 = setting.Parties(1).Measurements(1).Outcomes(5);

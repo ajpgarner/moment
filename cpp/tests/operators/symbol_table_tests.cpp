@@ -21,11 +21,11 @@ namespace NPATK::Tests {
         auto& context = system.Context();
         const auto& a = context;
 
-        auto& matLevel0 = system.create_moment_matrix(0); // 0 1
+        auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
         EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
         EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
 
-        auto& matLevel1 = system.create_moment_matrix(1); // 0 1 a0a0 a0a1 (a1a0=a0a1*) a1a1
+        auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a0a0 a0a1 (a1a0=a0a1*) a1a1
         ASSERT_EQ(matLevel1.Symbols.size(), 7);
         EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
         EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
@@ -36,7 +36,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[1], a[0]}, context})), SymbolExpression(5, true));
         EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[1], a[1]}, context})), SymbolExpression(6));
 
-        auto& matLevel2 = system.create_moment_matrix(2);
+        auto [id2, matLevel2] = system.create_moment_matrix(2);
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
 
@@ -112,18 +112,18 @@ namespace NPATK::Tests {
         const auto& alice = context.Parties[0];
         const auto& bob = context.Parties[1];
 
-        auto& matLevel0 = system.create_moment_matrix(0); //0 1
+        auto [id0, matLevel0] = system.create_moment_matrix(0); //0 1
         EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
         EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
 
-        auto& matLevel1 = system.create_moment_matrix(1); // 0 1 a b ab
+        auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a b ab
         EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
         EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
         EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{alice[0]}, context})), SymbolExpression(2));
         EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{bob[0]}, context})), SymbolExpression(3));
         EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{alice[0], bob[0]}, context})), SymbolExpression(4));
 
-        auto& matLevel2 = system.create_moment_matrix(2); // as above
+        auto [id2, matLevel2] = system.create_moment_matrix(2); // as above
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
         EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0]}, context})), SymbolExpression(2));
@@ -139,8 +139,8 @@ namespace NPATK::Tests {
         const auto& context = system.Context();
         const auto& symbols = system.Symbols();
 
-        auto& matLevel0 = system.create_moment_matrix(0); // 0 1
-        auto& matLevel1 = system.create_moment_matrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
+        auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
+        auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
         ASSERT_EQ(symbols.size(), 7); // 0 1 a0 a1 a0a0 a0a1(=a1a0*) a1a1
         ASSERT_EQ(symbols.RealSymbolIds().size(), 6);
         ASSERT_EQ(symbols.ImaginarySymbolIds().size(), 1); // just a0a1
@@ -163,8 +163,8 @@ namespace NPATK::Tests {
         const auto& context = system.Context();
         const auto& symbols = system.Symbols();
 
-        auto& matLevel0 = system.create_moment_matrix(0); // 0 1
-        auto& matLevel1 = system.create_moment_matrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
+        auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
+        auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
         ASSERT_EQ(symbols.size(), 7); // 0 1 a0 a1 a0a0 a0a1(=a1a0*) a1a1
 
         auto basis_key = matLevel1.SMP().BasisKey();

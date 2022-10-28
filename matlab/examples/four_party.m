@@ -14,11 +14,11 @@ setting.Parties(4).AddMeasurement(2);
 
 matrix = setting.MakeMomentMatrix(2);
 
-disp(struct2table(matrix.SymbolTable));
+disp(struct2table(matrix.MatrixSystem.SymbolTable));
 disp(matrix.SymbolMatrix);
 disp(matrix.SequenceMatrix);
  
-p_table = matrix.ProbabilityTable;
+p_table = matrix.MatrixSystem.ProbabilityTable;
 disp(struct2table(p_table))
 
 a11 = setting.get([1, 1, 1]);

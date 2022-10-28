@@ -268,7 +268,7 @@ namespace NPATK::Tests {
 
     TEST(ImplicitSymbols, Empty) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>()};
-        auto& emptyMM = system.create_moment_matrix(1);
+        auto [eid, emptyMM] = system.create_moment_matrix(1);
 
         const auto& implSym = system.ImplicitSymbolTable();
         //ImplicitSymbols implSym{system};
@@ -295,7 +295,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(alice.Measurements.size(), 1);
         ASSERT_EQ(alice.Measurements[0].num_outcomes, 3);
 
-        auto& momentMatrix = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
         auto where_a0 = momentMatrix.Symbols.where(alice_a0);
@@ -345,7 +345,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(alice.Measurements[1].num_outcomes, 2);
 
 
-        auto& momentMatrix = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
         auto where_a0 = momentMatrix.Symbols.where(alice_a0);
@@ -383,7 +383,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(bob.Measurements[0].num_outcomes, 2);
 
 
-        auto& momentMatrix = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
         auto where_a0 = momentMatrix.Symbols.where(alice_a0);
@@ -437,7 +437,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(bob.Measurements[0].num_outcomes, 2);
         ASSERT_EQ(bob.Measurements[1].num_outcomes, 2);
 
-        auto& momentMatrix = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
                                                                       context))->Id();
@@ -507,7 +507,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(charlie.Measurements[0].num_outcomes, 2);
         ASSERT_EQ(charlie.Measurements[1].num_outcomes, 2);
 
-        auto& momentMatrix = system.create_moment_matrix(2);
+        auto [id, momentMatrix] = system.create_moment_matrix(2);
 
         auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0)},
                                                                        context))->Id();
@@ -695,7 +695,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(charlie.Measurements[0].num_outcomes, 2);
         ASSERT_EQ(charlie.Measurements[1].num_outcomes, 2);
 
-        auto& momentMatrix = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0)},
                                                                        context))->Id();
@@ -824,7 +824,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(bob.Measurements.size(), 1);
         ASSERT_EQ(bob.Measurements[0].num_outcomes, 2);
 
-        auto& momentMatrix = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.create_moment_matrix(1);
         
         auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
                                                                       context))->Id();

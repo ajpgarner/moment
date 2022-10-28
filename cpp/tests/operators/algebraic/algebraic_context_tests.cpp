@@ -337,7 +337,7 @@ namespace NPATK::Tests {
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = ams.Context();
 
-        auto& mm1 = ams.create_moment_matrix(1); // 1, A, B; A A^2 I; B I B^2 ...
+        auto [id1, mm1] = ams.create_moment_matrix(1); // 1, A, B; A A^2 I; B I B^2 ...
         ASSERT_EQ(mm1.Level(), 1);
         EXPECT_TRUE(mm1.IsHermitian());
         const auto& seqMat = mm1.SequenceMatrix;
@@ -371,13 +371,13 @@ namespace NPATK::Tests {
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
 
 
-        auto& mm1 = ams.create_moment_matrix(1); // 1 (because A=1, B=1...!)
+        auto [id1, mm1] = ams.create_moment_matrix(1); // 1 (because A=1, B=1...!)
         ASSERT_EQ(mm1.Level(), 1);
         EXPECT_TRUE(mm1.IsHermitian());
         ASSERT_EQ(mm1.Dimension(), 1);
         EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
 
-        auto& mm3 = ams.create_moment_matrix(3); // 1 (because A=1, B=1, still!)
+        auto [id3, mm3] = ams.create_moment_matrix(3); // 1 (because A=1, B=1, still!)
         ASSERT_EQ(mm3.Level(), 3);
         EXPECT_TRUE(mm3.IsHermitian());
         ASSERT_EQ(mm3.Dimension(), 1) << context.resolved_rules();
