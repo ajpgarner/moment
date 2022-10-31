@@ -28,7 +28,7 @@ classdef CollinsGisin < handle
         function val = get.Sequences(obj)
             if isempty(obj.cache_seq)         
                 obj.cache_seq = npatk('collins_gisin', 'sequences', ...
-                                      obj.Scenario.GetMatrixSystem.RefId);
+                                      obj.Scenario.System.RefId);
             end
             val = obj.cache_seq;
         end
@@ -36,7 +36,7 @@ classdef CollinsGisin < handle
         function val = get.Symbols(obj)
             if isempty(obj.cache_seq)         
                 obj.cache_sym = npatk('collins_gisin', 'symbols', ...
-                                      obj.Scenario.GetMatrixSystem.RefId);
+                                      obj.Scenario.System.RefId);
             end
             val = obj.cache_sym;
         end
@@ -44,7 +44,7 @@ classdef CollinsGisin < handle
         function val = get.BasisElements(obj)
             if isempty(obj.cache_basis)         
                 obj.cache_basis = npatk('collins_gisin', 'basis', ...
-                                       obj.Scenario.GetMatrixSystem.RefId);
+                                       obj.Scenario.System.RefId);
             end
             val = obj.cache_basis;
         end
@@ -79,7 +79,7 @@ classdef CollinsGisin < handle
             end
             
             real_coefs = sparse(sparse_i, sparse_j, sparse_val, ...
-                                1, double(obj.Scenario.GetMatrixSystem.RealVarCount));
+                                1, double(obj.Scenario.System.RealVarCount));
            
             val = RealObject(obj.Scenario, real_coefs);
         end

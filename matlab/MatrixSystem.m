@@ -5,33 +5,29 @@ classdef MatrixSystem < handle
     properties(SetAccess = private, GetAccess = public)
         RefId = uint64(0)        
         SymbolTable = struct.empty;
-        ProbabilityTable = struct.empty;
         RealVarCount = uint64(0)
         ImaginaryVarCount = uint64(0) 
     end
     
     properties(Access = private)
-        probability_table = struct.empty;
         max_prob_len = uint64(0);
     end
     
     methods
         %% Constructor
-        function obj = MatrixSystem(settingParams)
+        function obj = MatrixSystem(args)
             % Check if settingsParams is LocalityScenario, or cell array, 
             % then call appropriate function to load setting into C++.
-            if isa(settingParams, 'cell')
+            if isa(args, 'cell')
                 % Unpack cell into arguments
-                obj.RefId = npatk('new_locality_matrix_system', settingParams{:});
-            elseif isa(settingParams, 'LocalityScenario')
+                obj.RefId = npatk('new_locality_matrix_system', args{:});
+            elseif isa(args, 'Scenario')
                 % Unpack setting into arrays
-                obj.RefId = npatk('new_locality_matrix_system', ...
-                                  length(settingParams.Parties), ...
-                                  settingParams.MeasurementsPerParty, ...
-                                  settingParams.OutcomesPerMeasurement);
+                obj.RefId = args.createNewMatrixSystem;
             else
-                error(['First argument must be either a LocalityScenario ',...
-                    'object, or a cell array of parameters.']);
+                error([
+                    'First argument must be either a Scenario object,',...
+                    ' or a cell array of parameters.']);
             end
             
             obj.UpdateSymbolTable();
@@ -64,8 +60,8 @@ classdef MatrixSystem < handle
             % Extra processing, as new symbols added:
             if has_new_symbols
                 obj.RealVarCount = max([obj.SymbolTable.basis_re]);
-                obj.ImaginaryVarCount = max([obj.SymbolTable.basis_im]);                
-                obj.ProbabilityTable = npatk('probability_table', obj.RefId);
+                obj.ImaginaryVarCount = max([obj.SymbolTable.basis_im]);                               
+                obj.onNewSymbolsAdded();                
             end
             
             val = obj.SymbolTable;
@@ -85,35 +81,14 @@ classdef MatrixSystem < handle
         end        
     end
     
-                  
-    %% Accessors for probability table
-    methods
-        function val = get.ProbabilityTable(obj)
-            % PROBABILITYTABLE A struct-array indicating how each
-            %   measurement outcome can be expressed in terms of real
-            %   basis elements (including implied probabilities that do not
-            %   directly exist as operators in any moment matrix).
-            if (isempty(obj.probability_table))
-                obj.probability_table = npatk('probability_table', ...
-                                              obj.RefId);
-            end
-            val = obj.probability_table;
-        end
-        
-        function result = MeasurementCoefs(obj, indices)
+    %% Virtual methods
+    methods(Access=protected)
+        function onNewSymbolsAdded(obj)
             arguments
                 obj (1,1) MatrixSystem
-                indices (:,2) uint64
-            end            
-            parties = indices(:, 1);
-            if length(parties) ~= length(unique(parties))
-                error("Measurements must be from different parties.");
             end
-            
-            result = npatk('probability_table', ...
-                           obj.RefId, indices);
         end
-    end
+    end 
     
     %% CVX Methods
     methods

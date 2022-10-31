@@ -41,7 +41,7 @@ classdef RealObject < handle
                     return
                 else 
                     % Otherwise, bind scenario's matrix system to this.
-                    obj.matrix_system = obj.Scenario.GetMatrixSystem();
+                    obj.matrix_system = obj.Scenario.System();
                 end
                 
                 % Call do-function
@@ -62,7 +62,7 @@ classdef RealObject < handle
             if ~obj.Scenario.HasMatrixSystem
                 error(obj.err_no_matrix_system);
             else
-                obj.matrix_system = obj.Scenario.GetMatrixSystem();
+                obj.matrix_system = obj.Scenario.System();
             end
             
             % Call do-function, then return coefficients

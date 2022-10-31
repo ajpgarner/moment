@@ -1,4 +1,4 @@
-classdef LocalityScenario < handle
+classdef LocalityScenario < Scenario
     %LOCALITYSCENARIO Disjoint agents with projective measurements.
     %
     
@@ -8,21 +8,9 @@ classdef LocalityScenario < handle
         MeasurementsPerParty
         OperatorsPerParty
         OutcomesPerMeasurement
-        HasMatrixSystem
     end
     
-    properties(Access = private)
-        matrix_system
-    end
-    
-    properties(Constant, Access = private)
-        err_locked = [
-            'This Scenario is locked, and no further changes are possible. ', ...
-            'This is because it has been associated with a MatrixSystem ', ...
-            '(e.g. at least one MomentMatrix has already been generated). ', ...
-            'To make changes to this Scenario first create a deep copy using ', ...
-            'scenario.Clone(), then make alterations to the copy.'];
-        
+    properties(Constant, Access = protected)
         err_badFCT = [
             'Cannot apply full-correlator tensor before ',...
             'MatrixSystem has been generated.'];
@@ -31,16 +19,19 @@ classdef LocalityScenario < handle
     %% Construction and initialization
     methods
         function obj = LocalityScenario(argA, argB, argC)
-            % Constructs a locality scenario. Possible syntaxes:
+            % Constructs a locality scenario.
+            % Possible syntaxes:
             %  LocalityScenario()
             %  LocalityScenario(number of parties)
             %  LocalityScenario(number of parties, mmts per party, outcomers per mmt)
             %  LocalityScenario([mmts A, mmts B, ...], [out A, out B, ...])
             %  LocalityScenario([mmts A, mmts B, ...], [out A1, out A2, .. out B1, ...])
-                                   
-            % Create normalization object, and empty system ref            
+            
+            % Superclass c'tor
+            obj = obj@Scenario();
+            
+            % Create normalization object, and empty system ref
             obj.Parties = Locality.Party.empty;
-            obj.matrix_system = MatrixSystem.empty;
             
             % How many parties?
             if (nargin < 1)
@@ -58,7 +49,7 @@ classdef LocalityScenario < handle
                             + "of parties should be a scalar.");
                     end
                     initial_parties = uint64(length(argA));
-                end                
+                end
             end
             
             % Create empty parties
@@ -70,8 +61,8 @@ classdef LocalityScenario < handle
             
             % Create normalization object
             obj.Normalization = Locality.Normalization(obj);
-           
-            % Are we also setting up measurements?            
+            
+            % Are we also setting up measurements?
             initialize_mmts = (nargin >= 2);
             
             % No more construction, if no initial measurements
@@ -89,17 +80,17 @@ classdef LocalityScenario < handle
                 out_input = uint64(argB);
             end
             
-            % Get measurements per party...            
+            % Get measurements per party...
             if numel(mmt_input) > 1
                 if pmo_specified && (numel(mmt_input) ~= initial_parties)
                     error("Number of measurements should either be a "...
-                          + "scalar, or an array with as many elements "...
-                          + "as parties.");
+                        + "scalar, or an array with as many elements "...
+                        + "as parties.");
                 end
                 mmts_per_party = mmt_input;
             else
                 mmts_per_party = uint64(ones(1, initial_parties)) ...
-                                 * mmt_input;
+                    * mmt_input;
             end
             total_mmts = sum(mmts_per_party);
             
@@ -169,42 +160,26 @@ classdef LocalityScenario < handle
             
         end
         
-        function val = get.HasMatrixSystem(obj)
-            val = ~isempty(obj.matrix_system);
-        end
     end
     
-    %% MatrixSystem, MomentMatrices and LocalizingMatrices
+    
+    %% Overloaded accessor: MatrixSystem
     methods
-        function val = GetMatrixSystem(obj)
+        function val = System(obj)
             arguments
                 obj (1,1) LocalityScenario
             end
             
             % Make matrix system, if not already generated
             if isempty(obj.matrix_system)
-                obj.matrix_system = MatrixSystem(obj);
+                obj.matrix_system = Locality.LocalityMatrixSystem(obj);
             end
             
             val = obj.matrix_system;
-        end
-        
-        
-        function mm_out = MakeMomentMatrix(obj, depth, skip_bind)
-            arguments
-                obj (1,1) LocalityScenario
-                depth (1,1) uint64 {mustBeInteger, mustBeNonnegative}
-                skip_bind (1,1) logical = false
-            end
-            
-            mm_out = MomentMatrix(obj.GetMatrixSystem(), depth);
-            if nargin <= 2 || ~skip_bind
-                obj.do_bind(mm_out)
-            end
-        end
+        end     
     end
     
-    %% Accessors and information
+    %% Locality accessors and information
     methods
         function val = get.MeasurementsPerParty(obj)
             val = zeros(1, length(obj.Parties));
@@ -315,12 +290,6 @@ classdef LocalityScenario < handle
     
     %% Internal methods
     methods(Access={?LocalityScenario,?Locality.Party})
-        function errorIfLocked(obj)
-            if ~isempty(obj.matrix_system)
-                error(obj.err_locked);
-            end
-        end
-        
         function make_joint_mmts(obj, party_id, new_mmt)
             arguments
                 obj (1,1) LocalityScenario
@@ -345,8 +314,25 @@ classdef LocalityScenario < handle
         end
     end
     
-    methods(Access=private)
-        function do_bind(obj, mm)
+    %% Friend/interface methods
+    methods(Access={?Scenario,?MatrixSystem})
+        % Query for a matrix system
+        function ref_id = createNewMatrixSystem(obj)
+            arguments
+                obj (1,1) LocalityScenario
+            end
+            ref_id = npatk('new_locality_matrix_system', ...
+                           length(obj.Parties), ...
+                           obj.MeasurementsPerParty, ...
+                           obj.OutcomesPerMeasurement);
+        end
+    end
+    
+    
+    
+    %% Virtual methods
+    methods(Access=protected)
+        function onNewMomentMatrix(obj, mm)
             arguments
                 obj (1,1) LocalityScenario
                 mm (1,1) MomentMatrix
@@ -381,7 +367,6 @@ classdef LocalityScenario < handle
                 end
             end
         end
-        
     end
 end
 

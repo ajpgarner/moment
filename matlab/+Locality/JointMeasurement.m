@@ -159,7 +159,7 @@ classdef JointMeasurement < handle & RealObject
     %% Virtual methods
     methods(Access=protected)
         function calculateCoefficients(obj)
-            coefs = zeros(1, obj.Scenario.GetMatrixSystem.RealVarCount);
+            coefs = zeros(1, obj.Scenario.System.RealVarCount);
             
             for index = 1:prod(obj.Shape)
                 oc_index = reshape(Util.index_to_sub(obj.Shape, index), ...
