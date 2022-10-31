@@ -218,7 +218,7 @@ classdef RealObject < handle
     end
     
     %% Protected methods
-    methods(Access={?RealObject,?Scenario})
+    methods(Access={?RealObject,?LocalityScenario})
         function setCoefficients(obj, coefs)
             obj.real_coefs = coefs;
         end

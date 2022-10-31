@@ -1,6 +1,5 @@
-classdef CollinsGisin
-    %COLLINSGISIN Summary of this class goes here
-    %   Detailed explanation goes here
+classdef CollinsGisin < handle
+    %COLLINSGISIN
    
     properties(SetAccess={?CollinsGisin, ?Scenario}, GetAccess=public)
         Scenario
@@ -20,7 +19,7 @@ classdef CollinsGisin
     methods
         function obj = CollinsGisin(scenario)
             arguments
-                scenario (1,1) Scenario
+                scenario (1,1) LocalityScenario
             end
             obj.Scenario = scenario;
             obj.Shape = obj.Scenario.OperatorsPerParty + 1;
@@ -52,7 +51,7 @@ classdef CollinsGisin
         
         function val = linfunc(obj, tensor)
              arguments
-                obj (1,1) Scenario.CollinsGisin
+                obj (1,1) Locality.CollinsGisin
                 tensor double
             end
             if (length(size(tensor)) ~= length(obj.Shape)) ...

@@ -12,7 +12,7 @@ classdef JointOutcome < handle & RealObject
         function obj = JointOutcome(setting, indices)
             %JOINTOUTCOME Construct an instance of this class
              arguments
-                setting (1,1) Scenario
+                setting (1,1) LocalityScenario
                 indices (:,3) uint64 {mustBeInteger, mustBeNonnegative}
              end
             
@@ -27,7 +27,7 @@ classdef JointOutcome < handle & RealObject
             end
             
             % Copy refs to outcomes that make up this joint mmt outcome
-            obj.Constituents = Scenario.Outcome.empty([1, 0]);
+            obj.Constituents = Locality.Outcome.empty([1, 0]);
             for row = 1:num_mmts
                 obj.Constituents(end+1) = setting.get(obj.Indices(row, :));
             end
@@ -47,12 +47,12 @@ classdef JointOutcome < handle & RealObject
             end
                         
             % Should only occur when A is a built-in object
-            if ~isa(objA, 'Scenario.JointOutcome')
+            if ~isa(objA, 'Locality.JointOutcome')
                 joint_item = mtimes@RealObject(objA, objB);
                 return
             end
             
-            if isa(objB, 'Scenario.JointOutcome')                
+            if isa(objB, 'Locality.JointOutcome')                
                 if objA.Scenario ~= objB.Scenario
                     error("Can only combine objects from the same setting.");
                 end
@@ -64,7 +64,7 @@ classdef JointOutcome < handle & RealObject
                 end
                 indices = sortrows(vertcat(objA.Indices, objB.Indices));
                 joint_item = objA.Scenario.get(indices);
-            elseif isa(objB, 'Scenario.Outcome')                
+            elseif isa(objB, 'Locality.Outcome')                
                 if objA.Scenario ~= objB.Scenario
                     error("Can only combine objects from the same setting.");
                 end

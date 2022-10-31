@@ -6,7 +6,7 @@ clear
 clear npatk;
 
 % Two parties
-chsh = Scenario(2);
+chsh = LocalityScenario(2);
 Alice = chsh.Parties(1);
 Bob = chsh.Parties(2);
 

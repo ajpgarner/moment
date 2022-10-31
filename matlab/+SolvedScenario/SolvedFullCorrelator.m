@@ -26,7 +26,7 @@ classdef SolvedFullCorrelator < handle
             end
             
             scenario = obj.SolvedScenario.Scenario;
-            fc = Scenario.FullCorrelator(scenario);
+            fc = Locality.FullCorrelator(scenario);
             
             % Build monolith of co-efficients
             coef_mono = fc.Coefficients;

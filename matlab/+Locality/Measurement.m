@@ -1,5 +1,5 @@
 classdef Measurement < handle & RealObject
-    %MEASUREMENT A collection of outcomes
+    %MEASUREMENT A collection of outcomes with assigned values
     
     properties(SetAccess=private, GetAccess=public)
         Id
@@ -23,16 +23,15 @@ classdef Measurement < handle & RealObject
     methods
         function obj = Measurement(scenario, party_index, mmt_index, ...
                                    name, num_outcomes, values)
-            %MEASUREMENT Construct an instance of this class
             arguments
-                scenario (1,1) Scenario
+                scenario (1,1) LocalityScenario
                 party_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 mmt_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 name (1,1) string
                 num_outcomes (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 values (1,:) double = double.empty(1,0)
             end
-            import Scenario.Outcome
+            import Locality.Outcome
             
             % Superclass c'tor
             obj = obj@RealObject(scenario);
@@ -68,7 +67,7 @@ classdef Measurement < handle & RealObject
         
         function item = JointMeasurement(obj, indices)
             arguments
-                obj (1,1) Scenario.Measurement
+                obj (1,1) Locality.Measurement
                 indices (:,2) uint64
             end
             table_index = find(arrayfun(@(s) ...
@@ -121,7 +120,7 @@ classdef Measurement < handle & RealObject
     end
     
     %% Overriden methods
-    methods(Access={?Scenario.Measurement,?Scenario})
+    methods(Access={?Locality.Measurement,?LocalityScenario})
         function addJointMmt(obj, otherMmt)
             % With existing joint measurements, if a new party
             otherParty = otherMmt.Index(1);
@@ -129,7 +128,7 @@ classdef Measurement < handle & RealObject
             for i = 1:initial_len 
                 existing_mmt = obj.joint_mmts(i).mmt;
                 if ~existing_mmt.ContainsParty(otherParty)
-                    njMmt = Scenario.JointMeasurement(obj.Scenario, ...
+                    njMmt = Locality.JointMeasurement(obj.Scenario, ...
                                 [existing_mmt.Marginals, otherMmt]);
                     obj.joint_mmts(end+1) = ...
                         struct('indices', njMmt.Indices, ...
@@ -138,7 +137,7 @@ classdef Measurement < handle & RealObject
             end
             
             % With this...
-            jointMmt = Scenario.JointMeasurement(obj.Scenario, ...
+            jointMmt = Locality.JointMeasurement(obj.Scenario, ...
                                                 [obj, otherMmt]);
             obj.joint_mmts(end+1) = struct('indices', jointMmt.Indices, ...
                                            'mmt', jointMmt);

@@ -2,26 +2,24 @@ classdef Party < handle
     %PARTY A collection of localized operators.
     %   
     
-    properties(GetAccess = public, SetAccess = protected)
+    properties(GetAccess = public, SetAccess = private)
         Id
         Name
-        RawOperators
         TotalOperators = uint64(0)
         Measurements
         Scenario
     end
     
-    methods(Access={?Scenario})
-        function obj = Party(setting, id, name, raw)
+    methods(Access={?LocalityScenario})
+        function obj = Party(setting, id, name)
             arguments
-                setting (1,1) Scenario
+                setting (1,1) LocalityScenario
                 id (1,1) uint64 {mustBeInteger, mustBePositive}
                 name (1,1) string = ""
-                raw (1,1) uint64 {mustBeInteger, mustBeNonnegative} = 0
             end
             %PARTY Construct a party 
             % (Private c'tor. To construct, use Scenario.AddParty.)
-            import Scenario.Measurement
+            import Locality.Measurement
             import Util.alphabetic_index
             
             % Link to a setting object
@@ -37,14 +35,8 @@ classdef Party < handle
                 obj.Name = string(alphabetic_index(obj.Id, true));
             end
             
-            % Add operators that are not grouped in a measurement, if any
-            if nargin >= 4
-                obj.RawOperators = uint64(raw);
-                obj.TotalOperators = uint64(raw);
-            else
-                obj.RawOperators = uint64(0);
-                obj.TotalOperators = uint64(0);
-            end
+            % No operators until we have measurements
+            obj.TotalOperators = uint64(0);
             
             % Prepare (empty) measurement array
             obj.Measurements = Measurement.empty;
@@ -54,11 +46,11 @@ classdef Party < handle
     methods
         function mmt = AddMeasurement(obj, num_outcomes, name)
             arguments
-                obj Scenario.Party                
+                obj Locality.Party                
                 num_outcomes (1,1) uint64 {mustBeInteger, mustBePositive}
                 name (1,1) string = ""
             end
-            import Scenario.Measurement
+            import Locality.Measurement
             import Util.alphabetic_index
             
             % Check not locked

@@ -5,7 +5,7 @@ clear
 clear npatk;
 
 % Two parties
-scenario = Scenario(2);
+scenario = LocalityScenario(2);
 Alice = scenario.Parties(1);
 Bob = scenario.Parties(2);
 

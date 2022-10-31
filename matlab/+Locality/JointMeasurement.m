@@ -11,8 +11,8 @@ classdef JointMeasurement < handle & RealObject
         function obj = JointMeasurement(scenario, measurements)
             %SOLVEDMEASUREMENT Construct an instance of this class
             arguments
-                scenario (1,1) Scenario
-                measurements (1, :) Scenario.Measurement
+                scenario (1,1) LocalityScenario
+                measurements (1, :) Locality.Measurement
             end
             
             % Set scenario in superclass c'tor
@@ -33,7 +33,7 @@ classdef JointMeasurement < handle & RealObject
         
         function val = Outcome(obj, index)
             arguments
-                obj (1,1) Scenario.JointMeasurement
+                obj (1,1) Locality.JointMeasurement
                 index (1, :) uint64
             end
             if length(index) ~= length(obj.Shape)
@@ -69,13 +69,13 @@ classdef JointMeasurement < handle & RealObject
             end
                         
             % Should only occur when A is a built-in object (e.g. scalar)
-            if ~isa(objA, 'Scenario.JointMeasurement')
+            if ~isa(objA, 'Locality.JointMeasurement')
                 joint_item = mtimes@RealObject(objA, objB);
                 return
             end
             
             % Can multiply measurements to form joint measurements
-            if isa(objB, 'Scenario.Measurement')                
+            if isa(objB, 'Locality.Measurement')                
                 if objA.Scenario ~= objB.Scenario
                     error(objA.err_mismatched_scenario);
                 end
@@ -85,7 +85,7 @@ classdef JointMeasurement < handle & RealObject
                 end
                 indices = sortrows(vertcat(objA.Indices, objB.Index));
                 joint_item = objA.Scenario.get(indices);
-            elseif isa(objB, 'Scenario.JointMeasurement')
+            elseif isa(objB, 'Locality.JointMeasurement')
                 if objA.Scenario ~= objB.Scenario
                     error(objA.err_mismatched_scenario);
                 end
@@ -105,8 +105,8 @@ classdef JointMeasurement < handle & RealObject
     methods(Access=private)
         function sorted = checkAndSortMmts(obj, unsorted)
             arguments
-                obj (1,1) Scenario.JointMeasurement
-                unsorted (1,:) Scenario.Measurement
+                obj (1,1) Locality.JointMeasurement
+                unsorted (1,:) Locality.Measurement
             end
             
             % Check number of measurements
@@ -127,7 +127,7 @@ classdef JointMeasurement < handle & RealObject
             
             % Sort measurements by party
             [~, sortIndex] = sort(indices);
-            sorted = Scenario.Measurement.empty;
+            sorted = Locality.Measurement.empty;
             for i = 1:length(unsorted)
                 sorted(end+1) = unsorted(sortIndex(i));
             end
@@ -159,7 +159,7 @@ classdef JointMeasurement < handle & RealObject
     %% Virtual methods
     methods(Access=protected)
         function calculateCoefficients(obj)
-            coefs = zeros(size(obj.Scenario.Normalization.Coefficients));
+            coefs = zeros(1, obj.Scenario.GetMatrixSystem.RealVarCount);
             
             for index = 1:prod(obj.Shape)
                 oc_index = reshape(Util.index_to_sub(obj.Shape, index), ...

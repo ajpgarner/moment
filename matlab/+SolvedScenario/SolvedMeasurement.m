@@ -13,7 +13,7 @@ classdef SolvedMeasurement < handle
             %SOLVEDMEASUREMENT Construct an instance of this class
             arguments
                 solvedMM (1,1) SolvedMomentMatrix
-                measurement (1,1) Scenario.Measurement
+                measurement (1,1) Locality.Measurement
             end
             import SolvedScenario.SolvedOutcome;
             

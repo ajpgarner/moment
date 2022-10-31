@@ -14,7 +14,7 @@ classdef FullCorrelator < handle
     methods
         function obj = FullCorrelator(scenario)
             arguments
-                scenario (1,1) Scenario
+                scenario (1,1) LocalityScenario
             end
             obj.Scenario = scenario;
             obj.Shape = obj.Scenario.MeasurementsPerParty + 1;
@@ -61,7 +61,7 @@ classdef FullCorrelator < handle
         
         function val = linfunc(obj, tensor)
             arguments
-                obj (1,1) Scenario.FullCorrelator
+                obj (1,1) Locality.FullCorrelator
                 tensor double
             end
             if (length(size(tensor)) ~= length(obj.Shape)) ...
@@ -87,7 +87,7 @@ classdef FullCorrelator < handle
         
         function val = at(obj, index)
             arguments
-                obj (1,1) Scenario.FullCorrelator
+                obj (1,1) Locality.FullCorrelator
                 index (1,:) uint64
             end
             if length(index) ~= length(obj.Shape)

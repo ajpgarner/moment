@@ -1,12 +1,12 @@
 classdef Outcome < handle & RealObject
     %OUTCOME Measurement outcome
-    properties(SetAccess={?Scenario}, GetAccess=public)
+    properties(SetAccess={?LocalityScenario}, GetAccess=public)
         Id
         Index
         Value
     end
     
-    properties(Access={?Scenario})
+    properties(Access={?LocalityScenario})
         joint_outcomes       
     end
     
@@ -15,7 +15,7 @@ classdef Outcome < handle & RealObject
                                mmt_index, outcome_index, ...
                                value)
             arguments
-                setting (1,1) Scenario
+                setting (1,1) LocalityScenario
                 party_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 mmt_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 outcome_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
@@ -39,12 +39,12 @@ classdef Outcome < handle & RealObject
             end
             
             % Should only occur when A is a built-in object
-            if ~isa(objA, 'Scenario.Outcome')
+            if ~isa(objA, 'Locality.Outcome')
                 joint_item = mtimes@RealObject(objA, objB);
                 return
             end
             
-            if isa(objB, 'Scenario.JointOutcome')
+            if isa(objB, 'Locality.JointOutcome')
                 if objA.Scenario ~= objB.Scenario
                     error("Can only combine objects from the same setting.");
                 end
@@ -56,7 +56,7 @@ classdef Outcome < handle & RealObject
                 
                 indices = sortrows(vertcat(objA.Index, objB.Indices));
                 joint_item = objA.JointOutcome(indices);
-            elseif isa(objB, 'Scenario.Outcome')
+            elseif isa(objB, 'Locality.Outcome')
                 if objA.Scenario ~= objB.Scenario
                     error("Can only combine objects from the same setting.");
                 end
@@ -76,7 +76,7 @@ classdef Outcome < handle & RealObject
    
         function item = JointOutcome(obj, indices)
             arguments
-                obj (1,1) Scenario.Outcome
+                obj (1,1) Locality.Outcome
                 indices (:,:) uint64
             end
             table_index = find(arrayfun(@(s) ...

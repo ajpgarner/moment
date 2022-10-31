@@ -5,7 +5,7 @@ clear
 clear npatk;
 
 % Two parties
-i3322 = Scenario(2);
+i3322 = LocalityScenario(2);
 Alice = i3322.Parties(1);
 Bob = i3322.Parties(2);
 

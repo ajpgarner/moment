@@ -1,5 +1,5 @@
-classdef Scenario < handle
-    %SCENARIO A scenario involving one or more agents with measurements.
+classdef LocalityScenario < handle
+    %LOCALITYSCENARIO Disjoint agents with projective measurements.
     %
     
     properties(GetAccess = public, SetAccess = protected)
@@ -16,28 +16,30 @@ classdef Scenario < handle
     end
     
     properties(Constant, Access = private)
-        err_locked = ['This Scenario object is locked, and no further changes are possible. ', ...
+        err_locked = [
+            'This Scenario is locked, and no further changes are possible. ', ...
             'This is because it has been associated with a MatrixSystem ', ...
             '(e.g. at least one MomentMatrix has already been generated). ', ...
             'To make changes to this Scenario first create a deep copy using ', ...
             'scenario.Clone(), then make alterations to the copy.'];
-        err_badFCT = ['Cannot apply full-correlator tensor before ',...
+        
+        err_badFCT = [
+            'Cannot apply full-correlator tensor before ',...
             'MatrixSystem has been generated.'];
     end
     
     %% Construction and initialization
     methods
-        function obj = Scenario(argA, argB, argC)
-            % Construct a scenario. Possible syntaxes:
-            %  Scenario()
-            %  Scenario(number of parties)
-            %  Scenario(number of parties, mmts per party, outcomers per mmt)
-            %  Scenario([mmts A, mmts B, ...], [out A, out B, ...])
-            %  Scenario([mmts A, mmts B, ...], [out A1, out A2, .. out B1, ...])
+        function obj = LocalityScenario(argA, argB, argC)
+            % Constructs a locality scenario. Possible syntaxes:
+            %  LocalityScenario()
+            %  LocalityScenario(number of parties)
+            %  LocalityScenario(number of parties, mmts per party, outcomers per mmt)
+            %  LocalityScenario([mmts A, mmts B, ...], [out A, out B, ...])
+            %  LocalityScenario([mmts A, mmts B, ...], [out A1, out A2, .. out B1, ...])
                                    
-            % Create normalization object, and empty system ref
-            obj.Normalization = Scenario.Normalization(obj);            
-            obj.Parties = Scenario.Party.empty;
+            % Create normalization object, and empty system ref            
+            obj.Parties = Locality.Party.empty;
             obj.matrix_system = MatrixSystem.empty;
             
             % How many parties?
@@ -62,9 +64,12 @@ classdef Scenario < handle
             % Create empty parties
             if (initial_parties >=1 )
                 for x = 1:initial_parties
-                    obj.Parties(end+1) = Scenario.Party(obj, x);
+                    obj.Parties(end+1) = Locality.Party(obj, x);
                 end
             end
+            
+            % Create normalization object
+            obj.Normalization = Locality.Normalization(obj);
            
             % Are we also setting up measurements?            
             initialize_mmts = (nargin >= 2);
@@ -104,7 +109,7 @@ classdef Scenario < handle
                 outputs_per_mmt = uint64(ones(1, total_mmts)) * out_input;
             else
                 if numel(out_input) == initial_parties
-                    outputs_per_mmt = uint64.empty(1,0)
+                    outputs_per_mmt = uint64.empty(1,0);
                     for i = 1:initial_parties
                         outputs_per_mmt = horzcat(outputs_per_mmt, ...
                             uint64(ones(1, mmts_per_party(i))) ...
@@ -133,10 +138,10 @@ classdef Scenario < handle
         
         function AddParty(obj, name)
             arguments
-                obj (1,1) Scenario
+                obj (1,1) LocalityScenario
                 name (1,1) string = ''
             end
-            import Scenario.Party
+            import Locality.Party
             
             % Check not locked.
             obj.errorIfLocked();
@@ -152,10 +157,10 @@ classdef Scenario < handle
         
         function val = Clone(obj)
             arguments
-                obj (1,1) Scenario
+                obj (1,1) LocalityScenario
             end
-            % Construct new scenario
-            val = Scenario(0);
+            % Construct new LocalityScenario
+            val = LocalityScenario(0);
             
             % Clone all parties
             for party_id = 1:length(obj.Parties)
@@ -173,7 +178,7 @@ classdef Scenario < handle
     methods
         function val = GetMatrixSystem(obj)
             arguments
-                obj (1,1) Scenario
+                obj (1,1) LocalityScenario
             end
             
             % Make matrix system, if not already generated
@@ -187,7 +192,7 @@ classdef Scenario < handle
         
         function mm_out = MakeMomentMatrix(obj, depth, skip_bind)
             arguments
-                obj (1,1) Scenario
+                obj (1,1) LocalityScenario
                 depth (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 skip_bind (1,1) logical = false
             end
@@ -229,7 +234,7 @@ classdef Scenario < handle
         
         function item = get(obj, index)
             arguments
-                obj (1,1) Scenario
+                obj (1,1) LocalityScenario
                 index (:,:) uint64
             end
             get_what = size(index, 2);
@@ -271,45 +276,45 @@ classdef Scenario < handle
         
         function val = FCTensor(obj, tensor)
             arguments
-                obj (1,1) Scenario
+                obj (1,1) LocalityScenario
                 tensor double
             end
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT);
                 %TODO: Check sufficient depth of MM generated.
             end
-            fc = Scenario.FullCorrelator(obj);
+            fc = Locality.FullCorrelator(obj);
             val = fc.linfunc(tensor);
         end
         
         function val = FCIndex(obj, index)
             arguments
-                obj (1,1) Scenario
+                obj (1,1) LocalityScenario
                 index (1,:) uint64
             end
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT);
             end
-            fc = Scenario.FullCorrelator(obj);
+            fc = Locality.FullCorrelator(obj);
             val = fc.at(index);
         end
         
         function val = CGTensor(obj, tensor)
             arguments
-                obj (1,1) Scenario
+                obj (1,1) LocalityScenario
                 tensor double
             end
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT);
                 %TODO: Check sufficient depth of MM generated.
             end
-            fc = Scenario.CollinsGisin(obj);
+            fc = Locality.CollinsGisin(obj);
             val = fc.linfunc(tensor);
         end
     end
     
     %% Internal methods
-    methods(Access={?Scenario,?Scenario.Party})
+    methods(Access={?LocalityScenario,?Locality.Party})
         function errorIfLocked(obj)
             if ~isempty(obj.matrix_system)
                 error(obj.err_locked);
@@ -318,9 +323,9 @@ classdef Scenario < handle
         
         function make_joint_mmts(obj, party_id, new_mmt)
             arguments
-                obj (1,1) Scenario
+                obj (1,1) LocalityScenario
                 party_id (1,1) uint64
-                new_mmt (1,1) Scenario.Measurement
+                new_mmt (1,1) Locality.Measurement
             end
             % First, add new measurement to lower index parties
             if party_id > 1
@@ -343,7 +348,7 @@ classdef Scenario < handle
     methods(Access=private)
         function do_bind(obj, mm)
             arguments
-                obj (1,1) Scenario
+                obj (1,1) LocalityScenario
                 mm (1,1) MomentMatrix
             end
             p_table = mm.MatrixSystem.ProbabilityTable;
@@ -366,7 +371,7 @@ classdef Scenario < handle
                     leading_outcome.setCoefficients(p_row.real_coefficients);
                 else
                     % Register co-effs as joint outcome
-                    joint_outcome = Scenario.JointOutcome(obj, p_row.indices);
+                    joint_outcome = Locality.JointOutcome(obj, p_row.indices);
                     joint_outcome.setCoefficients(p_row.real_coefficients);
                     
                     leading_outcome.joint_outcomes(end+1).indices = ...

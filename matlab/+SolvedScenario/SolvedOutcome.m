@@ -13,7 +13,7 @@ classdef SolvedOutcome < handle
             %SOLVEDOUTCOME Construct an instance of this class
             arguments
                 solvedMM (1,1) SolvedMomentMatrix
-                outcome (1,1) Scenario.Outcome
+                outcome (1,1) Locality.Outcome
             end
             
             obj.SolvedMomentMatrix = solvedMM;

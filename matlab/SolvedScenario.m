@@ -1,4 +1,4 @@
-classdef SolvedScenario< handle
+classdef SolvedScenario < handle
     %SOLVEDSCENARIO A scenario, associated with a solved moment matrix.
     %   
       
@@ -14,7 +14,7 @@ classdef SolvedScenario< handle
             % From either (Scenario, SolvedMomentMatrix) or
             % (Scenario, MomentMatrix, Symmetric elements, Anti-sym elements).
             arguments
-                setting (1,1) Scenario
+                setting (1,1) LocalityScenario
                 argA
                 argB = 0
                 argC = 0
@@ -55,13 +55,13 @@ classdef SolvedScenario< handle
                 obj (1,1) SolvedScenario
                 what
             end
-            if isa(what, 'Scenario.Party')
+            if isa(what, 'Locality.Party')
                 obj.checkScenario(what);
                 val = obj.Parties(what.Id);
-            elseif isa(what, 'Scenario.Measurement')
+            elseif isa(what, 'Locality.Measurement')
                 obj.checkScenario(what);
                 val = obj.Parties(what.Index(1)).Measurements(what.Index(2));
-            elseif isa(what, 'Scenario.Outcome')
+            elseif isa(what, 'Locality.Outcome')
                 obj.checkScenario(what);
                 val = obj.Parties(what.Index(1)).Measurements(what.Index(2)).Outcomes(what.Index(3));
             elseif isnumeric(what)
