@@ -79,7 +79,7 @@ namespace NPATK::mex::functions {
         this->readOperatorSpecification(matlabEngine, inputs[0], "Number of operators");
 
         if (inputs.size() > 1) {
-            this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", this->total_operators);
+            this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", true, this->total_operators);
             // Check length
             check_rule_length(matlabEngine, ShortlexHasher{this->total_operators}, this->rules);
         }
@@ -98,7 +98,7 @@ namespace NPATK::mex::functions {
             return;
         }
         this->rules = read_monomial_rules(matlabEngine, rules_param->second,
-                                          "Parameter 'rules'", this->total_operators);
+                                          "Parameter 'rules'", true, this->total_operators);
     }
 
     void NewAlgebraicMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,

@@ -21,6 +21,16 @@ namespace NPATK::mex::functions {
 
         bool hermitian_operators = true;
 
+        /** True if testing for completion, without actually doing completion... */
+        bool test_only = false;
+
+        /** How the input to the complete command is supplied */
+        enum class InputMode {
+            FromCellArray,
+            FromMatrixSystemID
+        } input_mode = InputMode::FromCellArray;
+
+        /** The raw rules (if provided...) */
         std::vector<RawMonomialRule> rules{};
 
         CompleteParams(matlab::engine::MATLABEngine &matlabEngine,

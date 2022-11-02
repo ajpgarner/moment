@@ -19,6 +19,7 @@
 #include "functions/operator_matrix.h"
 #include "functions/probability_table.h"
 #include "functions/release.h"
+#include "functions/rules.h"
 #include "functions/symbol_table.h"
 #include "functions/version.h"
 
@@ -74,6 +75,9 @@ namespace NPATK::mex::functions {
             case functions::MEXEntryPointID::Release:
                 the_function  = std::make_unique<functions::Release>(engine, storageManager);
                 break;
+            case functions::MEXEntryPointID::Rules:
+                the_function  = std::make_unique<functions::Rules>(engine, storageManager);
+                break;
             case functions::MEXEntryPointID::SymbolTable:
                 the_function = std::make_unique<functions::SymbolTable>(engine, storageManager);
                 break;
@@ -105,6 +109,7 @@ namespace NPATK::mex::functions {
         output.emplace(u"new_locality_matrix_system", MEXEntryPointID::NewLocalityMatrixSystem);
         output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
         output.emplace(u"release",         MEXEntryPointID::Release);
+        output.emplace(u"rules",         MEXEntryPointID::Rules);
         output.emplace(u"symbol_table",    MEXEntryPointID::SymbolTable);
         output.emplace(u"version",         MEXEntryPointID::Version);
         return output;

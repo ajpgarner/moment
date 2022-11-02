@@ -30,8 +30,12 @@ namespace NPATK::mex {
     };
 
 
+    /**
+     * Reads a cell array of cell-array pairs, and parse it into a vector of RawMonomialRule.
+     */
     std::vector<RawMonomialRule> read_monomial_rules(matlab::engine::MATLABEngine &matlabEngine,
                                                      matlab::data::Array& input, const std::string& paramName,
+                                                     bool matlab_indices,
                                                      uint64_t operator_bound = 0);
 
     void check_rule_length(matlab::engine::MATLABEngine &matlabEngine,

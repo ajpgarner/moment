@@ -44,6 +44,7 @@ matlab_add_mex(NAME npatk_mex
             functions/operator_matrix.cpp
             functions/probability_table.cpp
             functions/release.cpp
+            functions/rules.cpp
             functions/symbol_table.cpp
             functions/version.cpp
         OUTPUT_NAME npatk

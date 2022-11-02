@@ -12,15 +12,15 @@
 namespace NPATK {
 
 
-    AlgebraicMatrixSystem::AlgebraicMatrixSystem(std::unique_ptr<AlgebraicContext> contextIn)
+    AlgebraicMatrixSystem::AlgebraicMatrixSystem(std::unique_ptr<class AlgebraicContext> contextIn)
             : MatrixSystem{std::move(contextIn)},
-              algebraicContext{dynamic_cast<AlgebraicContext&>(this->Context())} {
+              algebraicContext{dynamic_cast<class AlgebraicContext&>(this->Context())} {
 
     }
 
     AlgebraicMatrixSystem::AlgebraicMatrixSystem(std::unique_ptr<class Context> contextIn)
             : MatrixSystem{std::move(contextIn)},
-              algebraicContext{dynamic_cast<AlgebraicContext&>(this->Context())} {
+              algebraicContext{dynamic_cast<class AlgebraicContext&>(this->Context())} {
 
     }
 

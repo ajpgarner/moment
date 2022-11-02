@@ -12,5 +12,5 @@ namespace NPATK {
 }
 
 namespace NPATK::mex {
-    matlab::data::CellArray export_monomial_rules(const RuleBook& rules);
+    matlab::data::CellArray export_monomial_rules(const RuleBook& rules, bool matlab_indices);
 }

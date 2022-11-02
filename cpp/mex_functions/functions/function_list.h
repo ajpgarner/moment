@@ -36,6 +36,7 @@ namespace NPATK::mex::functions {
         OperatorMatrix,
         ProbabilityTable,
         Release,
+        Rules,
         SymbolTable,
         Version
     };

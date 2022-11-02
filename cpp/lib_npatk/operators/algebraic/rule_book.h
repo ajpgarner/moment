@@ -103,17 +103,19 @@ namespace NPATK {
         /**
          * Attempt to conjugate all rules in the set, reducing after each non-trivial conjugation.
          * @param logger Pointer (may be null) to class logging which new rules are introduced.
+         * @param mock Set to true to not alter rule set, but just indicate existence of non-trivial conjugate.
          * @return Number of introduced rules.
          */
-        size_t conjugate_ruleset(RuleLogger * logger = nullptr);
+        size_t conjugate_ruleset(bool mock = false, RuleLogger * logger = nullptr);
 
         /**
          * Attempts to introduce a rule by conjugating the supplied input rule.
          * @param rule Reference to the rule to conjugate
+         * @param mock Set to true to not alter rule set, but just return existence of non-trivial conjugate.
          * @param logger Pointer (may be null) to class logging which new rule is deduced.
          * @return True, if conjugate was non-trivial (and hence added to set).
          */
-        bool try_conjugation(const MonomialSubstitutionRule& rule, RuleLogger * logger = nullptr);
+        bool try_conjugation(const MonomialSubstitutionRule& rule, bool mock = false, RuleLogger * logger = nullptr);
 
         /**
          * Print out rules.

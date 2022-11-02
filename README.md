@@ -98,6 +98,8 @@ to the call to function `npatk(...)`:
 `new_locality_matrix_system`: Starts a new context of shared variables, for locality (party, measurement, outcome) 
 settings.
 
+`rules`: Returns a ruleset associated with an algebraic matrix system.
+
 `operator_matrix`: Returns an operator matrix from a matrix system. 
 
 `symbol_table`: Returns total list of operators in a matrix system.

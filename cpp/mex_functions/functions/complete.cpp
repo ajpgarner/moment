@@ -43,19 +43,27 @@ namespace NPATK::mex::functions {
             this->max_operators = 0;
         }
 
+
         // Do we specify number of attempts?
-        auto limit_iter = this->params.find(u"limit");
-        if (limit_iter != this->params.cend()) {
-            this->max_attempts = read_positive_integer(matlabEngine, "Parameter 'limit'", limit_iter->second, 1);
+        if (this->flags.contains(u"test")) {
+            this->max_attempts = 0;
+            this->test_only = true;
         } else {
-            this->max_attempts = 128;
+            auto limit_iter = this->params.find(u"limit");
+            if (limit_iter != this->params.cend()) {
+                this->max_attempts = read_positive_integer(matlabEngine, "Parameter 'limit'", limit_iter->second, 0);
+                this->test_only = (0 == this->max_attempts);
+            } else {
+                this->max_attempts = 128;
+                this->test_only = false;
+            }
         }
 
         // Default to Hermitian, but allow non-hermitian overrides
         this->hermitian_operators = !(this->flags.contains(u"nonhermitian"));
 
-        // Try to read raw rules
-        this->rules = read_monomial_rules(matlabEngine, inputs[0], "Rules", this->max_operators);
+        // Try to read raw rules (w/ matlab indices)
+        this->rules = read_monomial_rules(matlabEngine, inputs[0], "Rules", true, this->max_operators);
 
         // If no max operator ID specified, guess by taking the highest value from provided rules
         if (this->max_operators == 0) {
@@ -87,14 +95,18 @@ namespace NPATK::mex::functions {
         : MexFunction(matlabEngine, storage,
                       MEXEntryPointID::Complete, u"complete") {
         this->min_outputs = 1;
-        this->max_outputs = 1;
+        this->max_outputs = 2;
 
         this->param_names.emplace(u"operators");
         this->param_names.emplace(u"limit");
 
+        this->flag_names.emplace(u"test");
+
         this->flag_names.emplace(u"hermitian");
         this->flag_names.emplace(u"nonhermitian");
         this->mutex_params.add_mutex(u"hermitian", u"nonhermitian");
+
+        this->mutex_params.add_mutex(u"test", u"limit");
 
         this->min_inputs = 1;
         this->max_inputs = 1;
@@ -122,14 +134,29 @@ namespace NPATK::mex::functions {
             print_to_console(this->matlabEngine, ss.str());
         }
 
-        // Print a warning, if not complete (and not in quiet mode)
-        if (!this->quiet && !this->verbose && !completed) {
+        // Print a warning, if not complete (and not in quiet mode, or a test)
+        if (!completed && !input.test_only && !this->quiet && !this->verbose) {
             print_to_console(this->matlabEngine,
                              "Maximum number of new rules were introduced, but the set was not completed.\n");
         }
 
-        // Output list of parsed rules
-        output[0] = export_monomial_rules(rules);
+
+        if (input.test_only) {
+            // Output completion test result (true/false)
+            matlab::data::ArrayFactory factory;
+            output[0] = factory.createArray<bool>({1,1}, {completed});
+
+        } else {
+            // Output list of parsed rules, using matlab indices
+            output[0] = export_monomial_rules(rules, true);
+
+            // Output whether complete or not
+            if (output.size()>=2) {
+                matlab::data::ArrayFactory factory;
+                output[1] = factory.createArray<bool>({1,1}, {completed});
+            }
+        }
+
     }
 
     std::unique_ptr<SortedInputs> Complete::transform_inputs(std::unique_ptr<SortedInputs> input) const {

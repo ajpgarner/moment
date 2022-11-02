@@ -13,7 +13,7 @@ namespace NPATK {
     class AlgebraicMatrixSystem : public MatrixSystem {
 
     private:
-        AlgebraicContext &algebraicContext;
+        class AlgebraicContext &algebraicContext;
 
     public:
         /**
@@ -33,6 +33,13 @@ namespace NPATK {
          * Will call write lock on mutex, so don't lock before.
          */
         void generate_aliases(size_t stringLength);
+
+        /**
+         * Get algebraic version of context object
+         */
+        const class AlgebraicContext& AlgebraicContext() const noexcept { return this->algebraicContext; }
+
+
 
     protected:
         void beforeNewMomentMatrixCreated(size_t level) override;

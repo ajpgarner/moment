@@ -23,12 +23,21 @@ namespace NPATK {
     }
 
     bool RuleBook::complete(size_t max_iterations, RuleLogger * logger) {
+        const bool mock_mode = max_iterations == 0;
+
         // First, if we are a Hermitian ruleset, introduce initial conjugate rules
+        size_t iteration = 0;
+
         if (this->is_hermitian) {
-            this->conjugate_ruleset(logger);
+            size_t new_rules = this->conjugate_ruleset(mock_mode, logger);
+            // If no iterations allowed, but conjugation introduces non-trivial rules, then flag as incomplete
+            if (mock_mode && new_rules > 0) {
+                return false;
+            }
+            iteration += new_rules;
         }
 
-        size_t iteration = 0;
+        // Now, standard Knuth-Bendix loop
         while(iteration < max_iterations) {
             if (!this->try_new_combination(logger)) {
                 if (logger) {
@@ -212,13 +221,18 @@ namespace NPATK {
     }
 
 
-    size_t RuleBook::conjugate_ruleset(RuleLogger * logger) {
+    size_t RuleBook::conjugate_ruleset(bool mock, RuleLogger * logger) {
         size_t added = 0;
 
         auto rule_iter = this->rules().begin();
 
         while (rule_iter != this->rules().end()) {
-            if (this->try_conjugation(rule_iter->second, logger)) {
+            if (this->try_conjugation(rule_iter->second, mock, logger)) {
+                // A new rule could be added, so mock mode early return...
+                if (mock) {
+                    return 1;
+                }
+
                 // A new rule was added, iter is de facto invalidated, so restart at beginning of set...
                 rule_iter = this->rules().begin();
                 ++added;
@@ -230,7 +244,7 @@ namespace NPATK {
         return added;
     }
 
-    bool RuleBook::try_conjugation(const MonomialSubstitutionRule& rule, RuleLogger * logger) {
+    bool RuleBook::try_conjugation(const MonomialSubstitutionRule& rule, bool mock, RuleLogger * logger) {
         assert(this->is_hermitian);
 
         // Conjugate and reduce rule
@@ -246,6 +260,12 @@ namespace NPATK {
         if (logger) {
             logger->rule_introduced_conjugate(rule, conj_reduced_rule);
         }
+
+        // Early exit if mock mode
+        if (mock) {
+            return true;
+        }
+
         size_t rule_hash = conj_reduced_rule.LHS().hash;
         this->monomialRules.insert(std::make_pair(rule_hash, std::move(conj_reduced_rule)));
 

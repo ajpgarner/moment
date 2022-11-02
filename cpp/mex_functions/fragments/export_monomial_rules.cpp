@@ -11,7 +11,7 @@
 
 
 namespace NPATK::mex {
-    matlab::data::CellArray export_monomial_rules(const RuleBook& rules) {
+    matlab::data::CellArray export_monomial_rules(const RuleBook& rules, const bool matlabIndices) {
         matlab::data::ArrayFactory factory;
         matlab::data::CellArray output = factory.createArray<matlab::data::Array>({1, rules.rules().size()});
 
@@ -34,6 +34,15 @@ namespace NPATK::mex {
             auto rhs_write_iter = rule_rhs.begin();
             std::copy(rule.RHS().begin(), rule.RHS().end(), rhs_write_iter);
 
+            // Adjust indices
+            if (matlabIndices) {
+                for (auto& x : rule_lhs) {
+                    ++x;
+                }
+                for (auto& y : rule_rhs) {
+                    ++y;
+                }
+            }
             // Move to outer array
             *write_iter = std::move(rule_pair);
             ++write_iter;

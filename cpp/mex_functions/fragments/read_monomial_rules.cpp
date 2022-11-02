@@ -18,9 +18,16 @@ namespace NPATK::mex {
         std::vector<oper_name_t> getBoundedRules(matlab::engine::MATLABEngine &matlabEngine,
                                                  const std::string &name,
                                                  const matlab::data::Array &input,
-                                                 uint64_t operator_count) {
+                                                 const bool matlabIndices,
+                                                 const uint64_t operator_count) {
             std::vector<oper_name_t> output = SortedInputs::read_integer_array(matlabEngine, name, input);
+            if (matlabIndices) {
+                for (auto& x : output) {
+                    --x;
+                }
+            }
             for (const auto x: output) {
+
                 if ((x < 0) || ((operator_count != 0) && (x >= operator_count))) {
                     std::stringstream err;
                     err << name << " contains an operator with out of bounds value \"" << x << "\"";
@@ -34,6 +41,7 @@ namespace NPATK::mex {
 
     std::vector<RawMonomialRule> read_monomial_rules(matlab::engine::MATLABEngine &matlabEngine,
                                                      matlab::data::Array& input, const std::string& paramName,
+                                                     bool matlabIndices,
                                                      uint64_t operator_bound) {
 
         if (input.getType() != matlab::data::ArrayType::CELL) {
@@ -59,11 +67,11 @@ namespace NPATK::mex {
             const auto rule_cell = static_cast<matlab::data::CellArray>(elem);
             auto lhs = rule_cell[0];
             auto lhs_rules = getBoundedRules(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " LHS",
-                                             lhs, operator_bound);
+                                             lhs, matlabIndices, operator_bound);
 
             auto rhs = rule_cell[1];
             auto rhs_rules = getBoundedRules(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " RHS",
-                                             rhs, operator_bound);
+                                             rhs, matlabIndices, operator_bound);
 
             output.emplace_back(std::move(lhs_rules), std::move(rhs_rules));
 
