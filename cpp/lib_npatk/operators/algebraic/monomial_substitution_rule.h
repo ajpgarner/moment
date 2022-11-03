@@ -94,7 +94,7 @@ namespace NPATK {
         [[nodiscard]] bool trivial() const noexcept { return this->is_trivial; }
 
         /** Forms a rule by conjugating both sides of the equality */
-        MonomialSubstitutionRule conjugate(const ShortlexHasher& hasher) const;
+        [[nodiscard]] MonomialSubstitutionRule conjugate(const ShortlexHasher& hasher) const;
 
 
         friend std::ostream& operator<<(std::ostream& os, const MonomialSubstitutionRule& msr);

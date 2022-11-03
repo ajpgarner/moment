@@ -139,7 +139,7 @@ namespace  NPATK {
                     done_one = true;
                 }
 
-                if ((link_type & EqualityType::conjugated) == EqualityType::conjugated) {
+                if ((link_type & EqualityType::neg_conj) == EqualityType::neg_conj) {
                     if (done_one) {
                         os << " AND ";
                     }

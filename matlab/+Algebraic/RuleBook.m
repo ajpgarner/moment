@@ -88,7 +88,7 @@ classdef RuleBook < handle
     
     %% Completion
     methods
-        function Complete(obj, max_iterations, verbose)
+        function success = Complete(obj, max_iterations, verbose)
             arguments
                 obj (1,1) Algebraic.RuleBook
                 max_iterations (1,1) uint64

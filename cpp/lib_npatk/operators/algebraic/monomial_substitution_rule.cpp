@@ -14,7 +14,6 @@
 #include <iterator>
 
 namespace NPATK {
-
     namespace errors {
         bad_hint::bad_hint()
             : std::logic_error("Hint supplied does not match rule.") {
@@ -23,6 +22,31 @@ namespace NPATK {
         invalid_rule::invalid_rule(const std::string &why)
             : std::logic_error("Invalid rule: " + why) {
         }
+    }
+
+    std::ostream& operator<<(std::ostream& os, const MonomialSubstitutionRule& msr) {
+        if (msr.rawLHS.empty()) {
+            os << "I";
+        } else {
+            for (const auto i : msr.rawLHS) {
+                os << "X" << i;
+            }
+        }
+
+        os << " -> ";
+        if (msr.negated) {
+            os << "-";
+        }
+
+        if (msr.rawRHS.empty()) {
+            os << "I";
+        } else {
+            for (const auto i : msr.rawRHS) {
+                os << "X" << i;
+            }
+        }
+
+        return os;
     }
 
     MonomialSubstitutionRule::MonomialSubstitutionRule(HashedSequence lhs,
@@ -96,30 +120,6 @@ namespace NPATK {
         return match_count;
     }
 
-    std::ostream& operator<<(std::ostream& os, const MonomialSubstitutionRule& msr) {
-        if (msr.rawLHS.empty()) {
-            os << "I";
-        } else {
-            for (const auto i : msr.rawLHS) {
-                os << "X" << i;
-            }
-        }
-
-        os << " -> ";
-        if (msr.negated) {
-            os << "-";
-        }
-
-        if (msr.rawRHS.empty()) {
-            os << "I";
-        } else {
-            for (const auto i : msr.rawRHS) {
-                os << "X" << i;
-            }
-        }
-
-        return os;
-    }
 
     bool MonomialSubstitutionRule::implies(const MonomialSubstitutionRule &other) const noexcept {
         // First, do we find LHS in other rule?

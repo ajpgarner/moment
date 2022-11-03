@@ -131,6 +131,14 @@ namespace NPATK {
         }
 
         /**
+         * Tests if there are any matrices in the system.
+         * For thread safety, call for a read lock first.
+         */
+        [[nodiscard]] bool empty() const noexcept {
+            return this->matrices.empty();
+        }
+
+        /**
          * Returns the highest moment matrix yet generated.
          * For thread safety, call for a read lock first.
          */

@@ -472,6 +472,23 @@ namespace NPATK::Tests {
         EXPECT_FALSE(chain_link[1].im_is_zero);
     }
 
+    TEST_F(SymbolTreeFixture, Simplify_ChainLinkConj) {
+        auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}},
+                                              SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
+                                              SymbolPair{SymbolExpression{3}, SymbolExpression{4}}});
+
+        chain_link.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3, true}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4, true}}
+        });
+
+        ASSERT_GE(chain_link.count_nodes(), 2);
+        EXPECT_FALSE(chain_link[1].is_zero());
+        EXPECT_FALSE(chain_link[1].real_is_zero);
+        EXPECT_FALSE(chain_link[1].im_is_zero);
+    }
+
 
     TEST_F(SymbolTreeFixture, Simplify_ChainLinkFromZero) {
         auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
@@ -688,6 +705,45 @@ namespace NPATK::Tests {
         EXPECT_FALSE(b_zz[1].real_is_zero);
         EXPECT_FALSE(b_zz[1].im_is_zero);
 
+    }
+
+    TEST_F(SymbolTreeFixture, Simplify_SquareConj) {
+        auto &square = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}},
+                                           SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{4, true}}
+                                           });
+        square.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4, true}}
+                          });
+
+        EXPECT_FALSE(square[1].is_zero());
+        EXPECT_FALSE(square[1].real_is_zero);
+        EXPECT_FALSE(square[1].im_is_zero);
+    }
+
+    TEST_F(SymbolTreeFixture, Simplify_LadderConj) {
+        auto &ladder = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}},
+                                           SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                                           SymbolPair{SymbolExpression{2}, SymbolExpression{4}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{4, true}},
+                                           SymbolPair{SymbolExpression{3}, SymbolExpression{5}},
+                                           SymbolPair{SymbolExpression{4}, SymbolExpression{6}},
+                                           SymbolPair{SymbolExpression{5}, SymbolExpression{6, true}}
+                                           });
+        ladder.simplify();
+        this->compare_to({SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{4, true}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{5}},
+                          SymbolPair{SymbolExpression{1}, SymbolExpression{6, true}}
+                          });
+
+        EXPECT_FALSE(ladder[1].is_zero());
+        EXPECT_FALSE(ladder[1].real_is_zero);
+        EXPECT_FALSE(ladder[1].im_is_zero);
     }
 
 

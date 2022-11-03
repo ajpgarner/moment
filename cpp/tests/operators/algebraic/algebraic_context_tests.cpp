@@ -384,4 +384,31 @@ namespace NPATK::Tests {
         EXPECT_EQ(mm3.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
 
     }
+
+    TEST(AlgebraicContext, CreateMomentMatrix_AAtoA) {
+        std::vector<MonomialSubstitutionRule> rules;
+        rules.emplace_back(
+                HashedSequence{{0, 0}, ShortlexHasher{2}},
+                HashedSequence{{0}, ShortlexHasher{2}}
+        );
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
+        ASSERT_TRUE(ac_ptr->attempt_completion(20));
+        AlgebraicMatrixSystem ams{std::move(ac_ptr)};
+        const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
+
+
+        ams.generate_aliases(4);
+
+        auto [id2, mm2] = ams.create_moment_matrix(2); // 1 a b ab ba bb
+        ASSERT_EQ(mm2.Level(), 2);
+        EXPECT_TRUE(mm2.IsHermitian());
+        ASSERT_EQ(mm2.Dimension(), 6);
+        EXPECT_EQ(mm2.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(mm2.SequenceMatrix[0][1], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(mm2.SequenceMatrix[0][2], OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(mm2.SequenceMatrix[0][3], OperatorSequence({0, 1}, ams.Context()));
+        EXPECT_EQ(mm2.SequenceMatrix[0][4], OperatorSequence({1, 0}, ams.Context()));
+        EXPECT_EQ(mm2.SequenceMatrix[0][5], OperatorSequence({1, 1}, ams.Context()));
+
+    }
 }

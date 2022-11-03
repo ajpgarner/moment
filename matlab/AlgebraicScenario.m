@@ -30,6 +30,20 @@ classdef AlgebraicScenario < Scenario
         end 
     end
     
+    %% Set-up / rule manipulation etc.
+    methods
+        function success = Complete(obj, attempts, verbose)
+            arguments
+                obj (1,1) AlgebraicScenario
+                attempts (1,1) uint64
+                verbose (1,1) logical = false
+            end
+            obj.errorIfLocked();
+            success = obj.RuleBook.Complete(attempts, verbose);            
+        end
+        
+    end
+    
     %% Friend/interface methods
     methods(Access={?Scenario,?MatrixSystem})
         % Query for a matrix system

@@ -433,6 +433,7 @@ namespace NPATK {
                 auto [prev, next_child] = current_link.detach();
 
                 // Recalculate link type...
+                EqualityType inSituType = current_link.link_type;
                 current_link.link_type = compose(stack_frame.relationToBase, current_link.link_type);
 
                 auto [did_merge, inserted_link] = rebase_node->insert_ordered(&current_link, stack_frame.hint);
@@ -454,9 +455,9 @@ namespace NPATK {
 
                 // See if node has children, and if so, descend one level
                 if (!inserted_link->target->empty()) {
-                    // Go down one level in the stack
+                    // Go down one level in the stack (composing link, as originally found)
                     recurse_stack.emplace(inserted_link->target,
-                                          compose(stack_frame.relationToBase, inserted_link->link_type));
+                                          compose(stack_frame.relationToBase, inSituType));
                 }
                 stack_frame.cursor = next_child;
 
