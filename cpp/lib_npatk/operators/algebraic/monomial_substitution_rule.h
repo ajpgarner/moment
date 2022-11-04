@@ -44,9 +44,10 @@ namespace NPATK {
     private:
         HashedSequence rawLHS;
         HashedSequence rawRHS;
-        bool negated = false;
+        bool is_negated = false;
         bool is_trivial = false;
         ptrdiff_t delta = 0;
+
     public:
         MonomialSubstitutionRule(HashedSequence lhs, HashedSequence rhs,
                                  bool negated = false);
@@ -92,6 +93,14 @@ namespace NPATK {
 
         /** True, if the rule is of the form A = A. */
         [[nodiscard]] bool trivial() const noexcept { return this->is_trivial; }
+
+        /** True, if the rule requires a negative sign */
+        [[nodiscard]] bool negated() const noexcept { return this->is_negated; }
+
+        /** True if the rule is of the form A = -A */
+        [[nodiscard]] bool implies_zero() const noexcept {
+            return this->is_negated && (this->rawLHS.hash == this->rawRHS.hash);
+        }
 
         /** Forms a rule by conjugating both sides of the equality */
         [[nodiscard]] MonomialSubstitutionRule conjugate(const ShortlexHasher& hasher) const;

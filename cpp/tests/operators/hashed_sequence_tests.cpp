@@ -144,4 +144,24 @@ namespace NPATK::Tests {
         EXPECT_EQ(conjB, seqA);
 
     }
+
+    TEST(HashedSequence, Conjugate_Zero) {
+        ShortlexHasher hasher{4};
+        HashedSequence seqA{true};
+
+        auto conjA = seqA.conjugate(hasher);
+        EXPECT_EQ(conjA.hash, seqA.hash);
+        ASSERT_EQ(conjA.size(), 0);
+        EXPECT_TRUE(conjA.zero);
+    }
+
+    TEST(HashedSequence, Conjugate_Id) {
+        ShortlexHasher hasher{4};
+        HashedSequence seqA{{}, hasher};
+
+        auto conjA = seqA.conjugate(hasher);
+        EXPECT_EQ(conjA.hash, seqA.hash);
+        ASSERT_EQ(conjA.size(), 0);
+        EXPECT_FALSE(conjA.zero);
+    }
 }

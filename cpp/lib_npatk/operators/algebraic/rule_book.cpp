@@ -60,10 +60,11 @@ namespace NPATK {
         return is_complete;
     }
 
-    HashedSequence RuleBook::reduce(const HashedSequence& input) const {
+    std::pair<HashedSequence, bool> RuleBook::reduce(const HashedSequence& input) const {
         // Look through, and apply first match.
         auto rule_iter = this->monomialRules.begin();
 
+        bool negated = false;
         std::vector<oper_name_t> test_sequence(input.begin(), input.end());
 
         while (rule_iter != this->monomialRules.end()) {
@@ -71,6 +72,15 @@ namespace NPATK {
 
             auto match_iter = rule.matches_anywhere(test_sequence.begin(), test_sequence.end());
             if (match_iter != test_sequence.end()) {
+                // Reduced to zero?
+                if (rule.rawRHS.zero) {
+                    return {HashedSequence{true}, false};
+                }
+
+                // What about negation?
+                if (rule.negated()) {
+                    negated = !negated;
+                }
                 auto replacement_sequence = rule.apply_match_with_hint(test_sequence, match_iter);
                 test_sequence.swap(replacement_sequence);
                 // Reset rule iterator, as we now have new sequence to process
@@ -81,19 +91,26 @@ namespace NPATK {
         }
 
         // No further matches of any rules, stop reduction
-        return HashedSequence{std::move(test_sequence), this->hasher};
+        return {HashedSequence{std::move(test_sequence), this->hasher}, negated};
     }
 
     MonomialSubstitutionRule RuleBook::reduce(const MonomialSubstitutionRule &input) const {
         // Reduce
-        HashedSequence lhs = this->reduce(input.rawLHS);
-        HashedSequence rhs = this->reduce(input.rawRHS);
+        auto [lhs, lhsNeg] = this->reduce(input.rawLHS);
+        auto [rhs, rhsNeg] = this->reduce(input.rawRHS);
 
-        // Orient
+        bool negative = input.negated() != (lhsNeg != rhsNeg);
+
+        // Special reduction if rule implies something is zero:
+        if ((lhs.hash == rhs.hash) && negative) {
+            return MonomialSubstitutionRule{std::move(lhs), HashedSequence(true)};
+        }
+
+        // Otherwise, orient and return
         if (lhs.hash > rhs.hash) {
-            return MonomialSubstitutionRule{std::move(lhs), std::move(rhs)};
+            return MonomialSubstitutionRule{std::move(lhs), std::move(rhs), negative};
         } else {
-            return MonomialSubstitutionRule{std::move(rhs), std::move(lhs)};
+            return MonomialSubstitutionRule{std::move(rhs), std::move(lhs), negative};
         }
     }
 

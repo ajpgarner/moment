@@ -81,7 +81,8 @@ namespace NPATK {
         [[nodiscard]] bool is_complete() const;
 
         /** Reduce sequence, to best of knowledge, using rules */
-        [[nodiscard]] HashedSequence reduce(const HashedSequence& input) const;
+        [[nodiscard]]
+        std::pair<HashedSequence, bool> reduce(const HashedSequence& input) const;
 
         /** Reduce rule, to best of knowledge, using rules in set */
         [[nodiscard]] MonomialSubstitutionRule reduce(const MonomialSubstitutionRule& input) const;

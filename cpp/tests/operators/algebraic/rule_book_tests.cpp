@@ -24,10 +24,11 @@ namespace NPATK::Tests {
                          HashedSequence{{0}, hasher});
         RuleBook rules{hasher, msr, false};
 
-        auto simplified_string = rules.reduce(
+        auto [simplified_string, neg] = rules.reduce(
                 HashedSequence{{0, 1}, hasher}
         );
 
+        EXPECT_FALSE(neg);
         ASSERT_EQ(simplified_string.size(), 1); // 00
         EXPECT_EQ(simplified_string[0], 0);
     }
@@ -39,14 +40,62 @@ namespace NPATK::Tests {
                          HashedSequence{{0}, hasher});
         RuleBook rules{hasher, msr, false};
 
-        auto simplified_string = rules.reduce(
+        auto [simplified_string, neg] = rules.reduce(
                 HashedSequence{{0, 1, 1, 1}, hasher}
         );
 
+        EXPECT_FALSE(neg);
         ASSERT_EQ(simplified_string.size(), 1); // 00
         EXPECT_EQ(simplified_string[0], 0);
     }
 
+    TEST(RuleBook, Reduce_ABToZero_AB) {
+        ShortlexHasher hasher{2};
+        std::vector<MonomialSubstitutionRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
+                         HashedSequence{true});
+        RuleBook rules{hasher, msr, false};
+
+        auto [simplified_string, neg] = rules.reduce(
+                HashedSequence{{0, 1}, hasher}
+        );
+
+        EXPECT_FALSE(neg);
+        ASSERT_EQ(simplified_string.size(), 0); // 0
+        EXPECT_TRUE(simplified_string.zero);
+    }
+
+    TEST(RuleBook, Reduce_ABToZero_ABBB) {
+        ShortlexHasher hasher{2};
+        std::vector<MonomialSubstitutionRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
+                         HashedSequence{true});
+        RuleBook rules{hasher, msr, false};
+
+        auto [simplified_string, neg] = rules.reduce(
+                HashedSequence{{0, 1, 1, 1}, hasher}
+        );
+
+        EXPECT_FALSE(neg);
+        ASSERT_EQ(simplified_string.size(), 0); // 0
+        EXPECT_TRUE(simplified_string.zero);
+    }
+
+    TEST(RuleBook, Reduce_ABToZero_BAB) {
+        ShortlexHasher hasher{2};
+        std::vector<MonomialSubstitutionRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
+                         HashedSequence{true});
+        RuleBook rules{hasher, msr, false};
+
+        auto [simplified_string, neg] = rules.reduce(
+                HashedSequence{{1, 0, 1}, hasher}
+        );
+
+        EXPECT_FALSE(neg);
+        ASSERT_EQ(simplified_string.size(), 0); // 0
+        EXPECT_TRUE(simplified_string.zero);
+    }
 
     TEST(RuleBook, Reduce_Rule) {
         ShortlexHasher hasher{2};
@@ -68,6 +117,27 @@ namespace NPATK::Tests {
         ASSERT_EQ(simplified_rule.RHS().size(), 1); // 01 -> 0
         EXPECT_EQ(simplified_rule.RHS()[0], 0);
 
+    }
+
+    TEST(RuleBook, Reduce_RuleToZero) {
+        ShortlexHasher hasher{4};
+        std::vector<MonomialSubstitutionRule> msr;
+        msr.emplace_back(HashedSequence{{2}, hasher},
+                         HashedSequence{{1}, hasher}); // 2 = 1
+        msr.emplace_back(HashedSequence{{3}, hasher},
+                         HashedSequence{{1}, hasher}, true); // 3 = -1
+        RuleBook rules{hasher, msr, false};
+
+        auto simplified_rule = rules.reduce(
+               MonomialSubstitutionRule{HashedSequence{{3}, hasher}, HashedSequence{{2}, hasher}}
+                );
+
+        // Rule reduces to 1 = -1 => 1 = [null]
+        ASSERT_EQ(simplified_rule.LHS().size(), 1);
+        EXPECT_EQ(simplified_rule.LHS()[0], 1);
+
+        ASSERT_EQ(simplified_rule.RHS().size(), 0);
+        EXPECT_TRUE(simplified_rule.RHS().zero);
     }
 
     TEST(RuleBook, ReduceRuleset_AACtoAAB_CtoB) {
@@ -145,8 +215,8 @@ namespace NPATK::Tests {
         EXPECT_TRUE(rules.try_conjugation(rules.rules().begin()->second));
         EXPECT_EQ(rules.rules().size(), 2);
 
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 1}, hasher}), (HashedSequence{{}, hasher}));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), (HashedSequence{{}, hasher}));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 1}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
     }
 
     TEST(RuleBook, ConjugateRuleset) {
@@ -161,11 +231,11 @@ namespace NPATK::Tests {
         EXPECT_EQ(rules.conjugate_ruleset(), 1);
         EXPECT_EQ(rules.rules().size(), 2);
 
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 1}, hasher}), (HashedSequence{{}, hasher}));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), (HashedSequence{{}, hasher}));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 1}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
     }
 
-    TEST(RuleBook, IterativelyDeduce_ABtoA_BAtoB) {
+    TEST(RuleBook, Complete_ABtoA_BAtoB) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -184,15 +254,15 @@ namespace NPATK::Tests {
 
         ASSERT_FALSE(rules.try_new_combination()); // No further confluences
 
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), (HashedSequence{{0}, hasher}));
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 1}, hasher}), (HashedSequence{{0}, hasher}));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0}, hasher}), (HashedSequence{{1}, hasher}));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1}, hasher}), (HashedSequence{{1}, hasher}));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 1}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0}, hasher}), std::make_pair(HashedSequence{{1}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1}, hasher}), std::make_pair(HashedSequence{{1}, hasher}, false));
 
         EXPECT_TRUE(rules.is_complete());
     }
 
-    TEST(RuleBook, IterativelyDeduce_AAAtoI_BBBtoI_ABABABtoI) {
+    TEST(RuleBook, Complete_AAAtoI_BBBtoI_ABABABtoI) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 0, 0}, hasher},
@@ -208,10 +278,34 @@ namespace NPATK::Tests {
         ASSERT_TRUE(rules.complete(20));
         EXPECT_EQ(rules.rules().size(), 4);
 
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 0}, hasher}), (HashedSequence{{}, hasher}));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1, 1}, hasher}), (HashedSequence{{}, hasher}));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 1, 0}, hasher}), (HashedSequence{{0, 0, 1, 1}, hasher}));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1, 0, 0}, hasher}), (HashedSequence{{0, 1, 0, 1}, hasher}));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 0}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1, 1}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 1, 0}, hasher}),
+                  std::make_pair(HashedSequence{{0, 0, 1, 1}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1, 0, 0}, hasher}),
+                  std::make_pair(HashedSequence{{0, 1, 0, 1}, hasher}, false));
+
+        EXPECT_TRUE(rules.is_complete());
+    }
+
+
+    TEST(RuleBook, Complete_ABtoA_BAtoMinusB) {
+        ShortlexHasher hasher{2};
+        std::vector<MonomialSubstitutionRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher},
+                         HashedSequence{{0}, hasher});
+        msr.emplace_back(HashedSequence{{1, 0}, hasher},
+                         HashedSequence{{1}, hasher}, true);
+        RuleBook rules{hasher, msr, false};
+
+        EXPECT_FALSE(rules.is_complete());
+        ASSERT_TRUE(rules.complete(10));
+
+        // aa = -a; ab = a; ba = -b; bb = b
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, true));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 1}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0}, hasher}), std::make_pair(HashedSequence{{1}, hasher}, true));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1}, hasher}), std::make_pair(HashedSequence{{1}, hasher}, false));
 
         EXPECT_TRUE(rules.is_complete());
     }
@@ -230,8 +324,8 @@ namespace NPATK::Tests {
 
         rules.complete(10);
         ASSERT_EQ(rules.rules().size(), 2); // Should end up with 1 -> 0 and 00 -> 0.
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), (HashedSequence{{0}, hasher}));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1}, hasher}), (HashedSequence{{0}, hasher}));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
 
         EXPECT_TRUE(rules.is_complete());
     }
@@ -267,9 +361,9 @@ namespace NPATK::Tests {
 
         ASSERT_EQ(rule_iter, rules.rules().cend());
 
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), (HashedSequence{{0}, hasher}));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1}, hasher}), (HashedSequence{{0}, hasher}));
-        EXPECT_EQ(rules.reduce(HashedSequence{{2}, hasher}), (HashedSequence{{0}, hasher}));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{2}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
 
         EXPECT_TRUE(rules.is_complete());
     }

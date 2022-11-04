@@ -22,10 +22,15 @@ namespace NPATK {
         std::vector<oper_name_t> operators{};
 
     public:
+        /** Hash associated with operator sequence */
         const size_t hash = 0;
 
-        /** Construct empty sequence */
-        constexpr HashedSequence() = default;
+        /** True if empty sequence represents zero (cf. identity). */
+        const bool zero = false;
+
+        /** Construct empty sequence (identity or zero) */
+        explicit constexpr HashedSequence(const bool is_zero = false)
+            : hash{is_zero ? 1U : 0U}, zero{is_zero} { }
 
         /** Copy constructor */
         constexpr HashedSequence(const HashedSequence& rhs) = default;
@@ -35,11 +40,11 @@ namespace NPATK {
 
         /** Construct a sequence, from a list of operators and its hash  */
         constexpr HashedSequence(std::vector<oper_name_t> oper_ids, size_t hash)
-                : operators{std::move(oper_ids)}, hash{hash} { }
+                : operators{std::move(oper_ids)}, hash{hash}, zero{hash == 0} { }
 
         /** Construct a sequence, from a list of operators and its hash  */
         HashedSequence(std::vector<oper_name_t> oper_ids, const ShortlexHasher& hasher)
-            : operators{std::move(oper_ids)}, hash{hasher(operators)} { }
+            : operators{std::move(oper_ids)}, hash{hasher(operators)}, zero{false} { }
 
         /** True if this sequence is a prefix of the string defined by the supplied iterators */
         [[nodiscard]] bool matches(const_iter_t test_begin, const_iter_t test_end) const noexcept;

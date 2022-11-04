@@ -34,7 +34,7 @@ namespace NPATK {
         }
 
         os << " -> ";
-        if (msr.negated) {
+        if (msr.negated()) {
             os << "-";
         }
 
@@ -52,8 +52,8 @@ namespace NPATK {
     MonomialSubstitutionRule::MonomialSubstitutionRule(HashedSequence lhs,
                                                        HashedSequence rhs,
                                                        bool negated)
-            : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, negated{negated},
-              is_trivial{lhs.hash == rhs.hash},
+            : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, is_negated{negated},
+              is_trivial{(lhs.hash == rhs.hash) && !negated},
               delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
         if (rawLHS < rawRHS) {
             throw errors::invalid_rule(std::string("Rule was not a reduction: ")
@@ -111,7 +111,7 @@ namespace NPATK {
             }
 
             // Register symbol link
-            output.emplace_back(input_sequence.raw_id, target_seq->raw_id, this->negated, false);
+            output.emplace_back(input_sequence.raw_id, target_seq->raw_id, this->is_negated, false);
 
             // Find next match
             match_iter = this->matches_anywhere(match_iter + 1, input_sequence.end());
@@ -173,21 +173,22 @@ namespace NPATK {
         auto rawViaThis = this->apply_match_with_hint(joined_string, joined_string.begin());
         auto rawHashThis = hasher(rawViaThis);
 
-
         // Apply other rule to joint string
         auto rawViaOther = other.apply_match_with_hint(joined_string,
                                                        joined_string.cend()
                                                             - static_cast<ptrdiff_t>(other.rawLHS.size()));
         auto rawHashOther = hasher(rawViaOther);
 
+        // Negative if only one rule involves negation
+        bool negation = this->is_negated != other.is_negated;
 
         // Orient rules and return
         if (rawHashThis < rawHashOther) {
             return MonomialSubstitutionRule{HashedSequence{std::move(rawViaOther), rawHashOther},
-                                            HashedSequence{std::move(rawViaThis), rawHashThis}};
+                                            HashedSequence{std::move(rawViaThis), rawHashThis}, negation};
         } else {
             return MonomialSubstitutionRule{HashedSequence{std::move(rawViaThis), rawHashThis},
-                                            HashedSequence{std::move(rawViaOther), rawHashOther}};
+                                            HashedSequence{std::move(rawViaOther), rawHashOther}, negation};
         }
     }
 
@@ -195,9 +196,9 @@ namespace NPATK {
         auto lhs = this->rawLHS.conjugate(hasher);
         auto rhs = this->rawRHS.conjugate(hasher);
         if (lhs < rhs) {
-            return MonomialSubstitutionRule(std::move(rhs), std::move(lhs));
+            return MonomialSubstitutionRule(std::move(rhs), std::move(lhs), this->is_negated);
         } else {
-            return MonomialSubstitutionRule(std::move(lhs), std::move(rhs));
+            return MonomialSubstitutionRule(std::move(lhs), std::move(rhs), this->is_negated);
         }
     }
 

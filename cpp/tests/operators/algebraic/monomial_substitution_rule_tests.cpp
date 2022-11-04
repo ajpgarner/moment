@@ -19,8 +19,11 @@ namespace NPATK::Tests {
         // BBA -> BA
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, hasher},
                                      HashedSequence{{2, 1}, hasher}};
+        EXPECT_FALSE(msr.negated());
+
         // ABB -> AB
         auto conj_msr = msr.conjugate(hasher);
+        EXPECT_FALSE(conj_msr.negated());
 
         ASSERT_EQ(conj_msr.LHS().size(), 3);
         EXPECT_EQ(conj_msr.LHS()[0], 1);
@@ -32,12 +35,56 @@ namespace NPATK::Tests {
         EXPECT_EQ(conj_msr.RHS()[1], 2);
     }
 
-    TEST(MonomialSubRule, MatchBBAtoBA) {
+    TEST(MonomialSubRule, Conjugate_WithNegation) {
+
+        ShortlexHasher hasher{3};
+
+        // BBA -> BA
+        MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, hasher},
+                                     HashedSequence{{2, 1}, hasher}, true};
+        EXPECT_TRUE(msr.negated());
+
+        // ABB -> AB
+        auto conj_msr = msr.conjugate(hasher);
+        EXPECT_TRUE(conj_msr.negated());
+
+        ASSERT_EQ(conj_msr.LHS().size(), 3);
+        EXPECT_EQ(conj_msr.LHS()[0], 1);
+        EXPECT_EQ(conj_msr.LHS()[1], 2);
+        EXPECT_EQ(conj_msr.LHS()[2], 2);
+
+        ASSERT_EQ(conj_msr.RHS().size(), 2);
+        EXPECT_EQ(conj_msr.RHS()[0], 1);
+        EXPECT_EQ(conj_msr.RHS()[1], 2);
+    }
+
+    TEST(MonomialSubRule, Conjugate_WithZero) {
+
+        ShortlexHasher hasher{3};
+
+        // BBA -> BA
+        MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, hasher},
+                                     HashedSequence{true}, true};
+        EXPECT_TRUE(msr.RHS().zero);
+
+        // ABB -> AB
+        auto conj_msr = msr.conjugate(hasher);
+
+        ASSERT_EQ(conj_msr.LHS().size(), 3);
+        EXPECT_EQ(conj_msr.LHS()[0], 1);
+        EXPECT_EQ(conj_msr.LHS()[1], 2);
+        EXPECT_EQ(conj_msr.LHS()[2], 2);
+
+        ASSERT_EQ(conj_msr.RHS().size(), 0);
+        EXPECT_TRUE(conj_msr.RHS().zero);
+    }
+
+    TEST(MonomialSubRule, Match_BBAtoBA) {
         std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
 
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
                                      HashedSequence{{2, 1}, ShortlexHasher{3}}};
-
+        EXPECT_FALSE(msr.negated());
         ASSERT_EQ(msr.Delta(), -1);
 
         auto match = msr.matches_anywhere(sampleStr.begin(), sampleStr.end());
@@ -48,15 +95,14 @@ namespace NPATK::Tests {
         EXPECT_EQ(newStr[0], 1);
         EXPECT_EQ(newStr[1], 2);
         EXPECT_EQ(newStr[2], 1);
-
     }
 
-    TEST(MonomialSubRule, MatchBBAtoNothing_ABBA) {
+    TEST(MonomialSubRule, Match_BBAtoId_ABBA) {
         std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
 
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
                                      HashedSequence{{}, ShortlexHasher{3}}};
-
+        EXPECT_FALSE(msr.negated());
         ASSERT_EQ(msr.Delta(), -3);
 
         auto match = msr.matches_anywhere(sampleStr.begin(), sampleStr.end());
@@ -67,13 +113,13 @@ namespace NPATK::Tests {
         EXPECT_EQ(newStr[0], 1);
     }
 
-    TEST(MonomialSubRule, MatchBBAtoNothing_BBAB) {
+    TEST(MonomialSubRule, Match_BBAtoId_BBAB) {
         std::vector<oper_name_t> sampleStr{2, 2, 1, 2};
 
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
                                      HashedSequence{{}, ShortlexHasher{3}}};
 
-
+        EXPECT_FALSE(msr.negated());
         ASSERT_EQ(msr.Delta(), -3);
 
         auto match = msr.matches_anywhere(sampleStr.begin(), sampleStr.end());
@@ -84,7 +130,26 @@ namespace NPATK::Tests {
         EXPECT_EQ(newStr[0], 2);
     }
 
-    TEST(MonomialSubRule, AllMatches_ABtoNull_in_ABAB) {
+    TEST(MonomialSubRule, Match_BBAtoMinusBA) {
+    std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
+
+    MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
+                                 HashedSequence{{2, 1}, ShortlexHasher{3}}, true};
+
+    ASSERT_TRUE(msr.negated());
+    ASSERT_EQ(msr.Delta(), -1);
+
+    auto match = msr.matches_anywhere(sampleStr.begin(), sampleStr.end());
+    ASSERT_EQ(match, sampleStr.cbegin() + 1);
+
+    auto newStr = msr.apply_match_with_hint(sampleStr, match);
+    ASSERT_EQ(newStr.size(), 3);
+    EXPECT_EQ(newStr[0], 1);
+    EXPECT_EQ(newStr[1], 2);
+    EXPECT_EQ(newStr[2], 1);
+}
+
+    TEST(MonomialSubRule, AllMatches_ABtoId_in_ABAB) {
         AlgebraicContext context{3}; // 0, 1, 2
         RawSequenceBook rsb{context};
         rsb.generate(4);
@@ -210,7 +275,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST(MonomialSubRule, Combine_XYXYXYto1_YYYto1) {
+    TEST(MonomialSubRule, Combine_XYXYXYtoId_YYYtoId) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1, 0, 1, 0, 1}, hasher},
@@ -235,6 +300,44 @@ namespace NPATK::Tests {
         auto joint10_opt = msr[1].combine(msr[0], hasher);
         ASSERT_FALSE(joint10_opt.has_value());
 
+
+    }
+
+
+    TEST(MonomialSubRule, Combine_ABtoA_BAtoMinusB) {
+        ShortlexHasher hasher{2};
+        std::vector<MonomialSubstitutionRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher},
+                         HashedSequence{{0}, hasher});
+        msr.emplace_back(HashedSequence{{1, 0}, hasher},
+                         HashedSequence{{1}, hasher}, true);
+        auto joint01_opt = msr[0].combine(msr[1], hasher);
+        ASSERT_TRUE(joint01_opt.has_value());
+        auto& joint01 = joint01_opt.value();
+
+        ASSERT_EQ(joint01.LHS().size(), 2);
+        EXPECT_EQ(joint01.LHS()[0], 0);
+        EXPECT_EQ(joint01.LHS()[1], 1);
+
+        ASSERT_EQ(joint01.RHS().size(), 2);
+        EXPECT_EQ(joint01.RHS()[0], 0);
+        EXPECT_EQ(joint01.RHS()[1], 0);
+
+        EXPECT_TRUE(joint01.negated());
+
+        auto joint10_opt = msr[1].combine(msr[0], hasher);
+        ASSERT_TRUE(joint10_opt.has_value());
+        auto& joint10 = joint10_opt.value();
+
+        ASSERT_EQ(joint10.LHS().size(), 2);
+        EXPECT_EQ(joint10.LHS()[0], 1);
+        EXPECT_EQ(joint10.LHS()[1], 1);
+
+        ASSERT_EQ(joint10.RHS().size(), 2);
+        EXPECT_EQ(joint10.RHS()[0], 1);
+        EXPECT_EQ(joint10.RHS()[1], 0);
+
+        EXPECT_TRUE(joint10.negated());
 
     }
 
