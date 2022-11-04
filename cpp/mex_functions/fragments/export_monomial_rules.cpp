@@ -19,8 +19,11 @@ namespace NPATK::mex {
         for (const auto& [lhs_hash, rule] : rules.rules()) {
             assert(write_iter != output.end());
 
+            // Is rule a negation?
+            const size_t rhs_index = rule.negated() ? 2 : 1;
+
             // Create cell array pair
-            matlab::data::CellArray rule_pair = factory.createArray<matlab::data::Array>({1, 2});
+            matlab::data::CellArray rule_pair = factory.createArray<matlab::data::Array>({1, (rule.negated() ? 3U : 2U)});
 
             // Copy LHS
             rule_pair[0] = factory.createArray<uint64_t>({1, rule.LHS().size()});
@@ -28,9 +31,14 @@ namespace NPATK::mex {
             auto lhs_write_iter = rule_lhs.begin();
             std::copy(rule.LHS().begin(), rule.LHS().end(), lhs_write_iter);
 
+            // Add minus sign, if negated
+            if (rule.negated()) {
+                rule_pair[1] = factory.createCharArray("-");
+            }
+
             // Copy RHS
-            rule_pair[1] = factory.createArray<uint64_t>({1, rule.RHS().size()});
-            matlab::data::TypedArrayRef<uint64_t> rule_rhs = rule_pair[1];
+            rule_pair[rhs_index] = factory.createArray<uint64_t>({1, rule.RHS().size()});
+            matlab::data::TypedArrayRef<uint64_t> rule_rhs = rule_pair[rhs_index];
             auto rhs_write_iter = rule_rhs.begin();
             std::copy(rule.RHS().begin(), rule.RHS().end(), rhs_write_iter);
 

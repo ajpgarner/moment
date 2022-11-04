@@ -25,7 +25,7 @@ namespace NPATK::mex::functions {
             rules.reserve(input.rules.size());
             for (auto& ir : input.rules) {
                 rules.emplace_back(HashedSequence{std::move(ir.LHS), hasher},
-                                   HashedSequence{std::move(ir.RHS), hasher}, false);
+                                   HashedSequence{std::move(ir.RHS), hasher}, ir.negated);
             }
 
             return RuleBook{hasher, rules, input.hermitian_operators};

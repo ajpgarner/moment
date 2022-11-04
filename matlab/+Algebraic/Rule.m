@@ -4,13 +4,15 @@ classdef Rule
     properties(GetAccess = public, SetAccess = protected)
         LHS
         RHS
+        Negated = false
     end
     
     methods
-        function obj = Rule(lhs, rhs)
+        function obj = Rule(lhs, rhs, negate)
             arguments
                 lhs (1,:) uint64
                 rhs (1,:) uint64
+                negate (1,1) logical = false
             end
             
             % Determine whether lhs or rhs is longer...
@@ -32,6 +34,9 @@ classdef Rule
                 obj.LHS = rhs;
                 obj.RHS = lhs;
             end
+            
+            % Store whether rule has a minus sign            
+            obj.Negated = negate;
         end
     end
 end

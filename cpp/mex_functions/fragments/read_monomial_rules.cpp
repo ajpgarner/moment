@@ -15,7 +15,7 @@
 
 namespace NPATK::mex {
     namespace {
-        std::vector<oper_name_t> getBoundedRules(matlab::engine::MATLABEngine &matlabEngine,
+        std::vector<oper_name_t> getBoundedOpSeq(matlab::engine::MATLABEngine &matlabEngine,
                                                  const std::string &name,
                                                  const matlab::data::Array &input,
                                                  const bool matlabIndices,
@@ -59,21 +59,43 @@ namespace NPATK::mex {
                 throw_error(matlabEngine, errors::bad_param,
                             paramName + " must be specified as a cell array of cell arrays (each with two elements).");
             }
-            if (elem.getNumberOfElements() != 2) {
-                throw_error(matlabEngine, errors::bad_param,
-                            "Each rule must be specified as a cell array with two elements.");
-            }
 
             const auto rule_cell = static_cast<matlab::data::CellArray>(elem);
+
+            bool negated = false;
+            if (elem.getNumberOfElements() == 3) {
+                auto mid = rule_cell[1];
+                switch (mid.getType()) {
+                    case matlab::data::ArrayType::CHAR: {
+                        auto midAsCA = static_cast<matlab::data::CharArray>(mid);
+                        std::string midVal = midAsCA.toAscii();
+                        negated = (midVal == "-");
+                    }
+                    default:
+                        break;
+                }
+
+                // Could not verify negation:
+                if (!negated) {
+                    throw_error(matlabEngine, errors::bad_param,
+                                std::string("Each rule must be specified as a cell array of the form {[LHS], [RHS]} or ")
+                                + "{[LHS], '-', [RHS]}");
+                }
+            } else if (elem.getNumberOfElements() != 2) {
+                throw_error(matlabEngine, errors::bad_param,
+                            std::string("Each rule must be specified as a cell array of the form {[LHS], [RHS]} or ")
+                                      + "{[LHS], '-', [RHS]}");
+            }
+
             auto lhs = rule_cell[0];
-            auto lhs_rules = getBoundedRules(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " LHS",
+            auto lhs_rules = getBoundedOpSeq(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " LHS",
                                              lhs, matlabIndices, operator_bound);
 
-            auto rhs = rule_cell[1];
-            auto rhs_rules = getBoundedRules(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " RHS",
+            auto rhs = rule_cell[negated ? 2 : 1];
+            auto rhs_rules = getBoundedOpSeq(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " RHS",
                                              rhs, matlabIndices, operator_bound);
 
-            output.emplace_back(std::move(lhs_rules), std::move(rhs_rules));
+            output.emplace_back(std::move(lhs_rules), std::move(rhs_rules), negated);
 
             ++rule_index;
         }

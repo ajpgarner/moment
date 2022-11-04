@@ -147,10 +147,21 @@ classdef RuleBook < handle
             obj.Rules = Algebraic.Rule.empty(1,0);
             for index = 1:length(input)
                 rule = input{index};
-                if ~iscell(input) || ~isequal(size(rule), [1, 2])
+                if ~iscell(input)
                     error(obj.err_cellpair);
                 end
-                obj.Rules(end+1) = Algebraic.Rule(rule{1}, rule{2});
+                if  isequal(size(rule), [1, 3])
+                    if rule{2} == '-'
+                        obj.Rules(end+1) = ...
+                            Algebraic.Rule(rule{1}, rule{3}, true);
+                    else
+                        error(obj.err_cellpair);
+                    end
+                elseif ~isequal(size(rule), [1, 2])
+                    error(obj.err_cellpair);
+                else
+                    obj.Rules(end+1) = Algebraic.Rule(rule{1}, rule{2});
+                end
             end
             obj.tested_complete = false;
         end
@@ -158,9 +169,16 @@ classdef RuleBook < handle
         function val = ExportCellArray(obj)
             val = cell(1, length(obj.Rules));
             for index = 1:length(obj.Rules)
-                val{index} = cell(1, 2);
-                val{index}{1} = obj.Rules(index).LHS;
-                val{index}{2} = obj.Rules(index).RHS;
+                if obj.Rules(index).Negated
+                    val{index} = cell(1, 3);
+                    val{index}{1} = obj.Rules(index).LHS;
+                    val{index}{2} = '-';
+                    val{index}{3} = obj.Rules(index).RHS;
+                else
+                    val{index} = cell(1, 2);
+                    val{index}{1} = obj.Rules(index).LHS;
+                    val{index}{2} = obj.Rules(index).RHS;
+                end
             end
         end
     end

@@ -21,11 +21,12 @@ namespace NPATK::mex {
     struct RawMonomialRule {
         std::vector<oper_name_t> LHS{};
         std::vector<oper_name_t> RHS{};
+        bool negated = false;
 
         RawMonomialRule() = default;
 
-        RawMonomialRule(std::vector<oper_name_t> lhs, std::vector<oper_name_t> rhs)
-                : LHS(std::move(lhs)), RHS(std::move(rhs)) { }
+        RawMonomialRule(std::vector<oper_name_t> lhs, std::vector<oper_name_t> rhs, bool neg)
+                : LHS(std::move(lhs)), RHS(std::move(rhs)), negated{neg} { }
 
     };
 

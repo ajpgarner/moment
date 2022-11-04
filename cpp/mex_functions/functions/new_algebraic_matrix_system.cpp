@@ -24,7 +24,7 @@ namespace NPATK::mex::functions {
             rules.reserve(input.rules.size());
             for (auto& ir : input.rules) {
                 rules.emplace_back(HashedSequence{std::move(ir.LHS), hasher},
-                                   HashedSequence{std::move(ir.RHS), hasher}, false);
+                                   HashedSequence{std::move(ir.RHS), hasher}, ir.negated);
             }
 
             return std::make_unique<AlgebraicContext>(input.total_operators,
