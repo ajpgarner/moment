@@ -53,7 +53,7 @@ namespace NPATK {
                                                        HashedSequence rhs,
                                                        bool negated)
             : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, is_negated{negated},
-              is_trivial{(lhs.hash == rhs.hash) && !negated},
+              is_trivial{(lhs.hash() == rhs.hash()) && !negated},
               delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
         if (rawLHS < rawRHS) {
             throw errors::invalid_rule(std::string("Rule was not a reduction: ")

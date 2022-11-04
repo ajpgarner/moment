@@ -36,7 +36,7 @@ namespace NPATK::Tests {
         for (size_t i = 0; i < 32; ++i) {
             const auto& rs = rsb[i];
             EXPECT_EQ(rs.raw_id, i);
-            auto [where, new_elem] = hashes.emplace(rs.hash);
+            auto [where, new_elem] = hashes.emplace(rs.hash());
             EXPECT_TRUE(new_elem);
         }
         EXPECT_EQ(hashes.size(), 32);

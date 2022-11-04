@@ -139,7 +139,7 @@ namespace NPATK {
 
             // Don't insert reflexive rules...
             if (link.first.second != target_id) {
-                this->hashToReplacementSymbol.emplace(std::make_pair(source_seq.hash,
+                this->hashToReplacementSymbol.emplace(std::make_pair(source_seq.hash(),
                                                                      static_cast<size_t>(target_id)));
             }
         }

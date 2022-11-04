@@ -64,7 +64,7 @@ namespace NPATK {
 
     [[nodiscard]] HashedSequence HashedSequence::conjugate(const ShortlexHasher& hasher) const {
         // 0* = 0
-        if (this->zero) {
+        if (this->is_zero) {
             return HashedSequence{true};
         }
 

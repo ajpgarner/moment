@@ -62,7 +62,7 @@ namespace NPATK::Tests {
 
         EXPECT_FALSE(neg);
         ASSERT_EQ(simplified_string.size(), 0); // 0
-        EXPECT_TRUE(simplified_string.zero);
+        EXPECT_TRUE(simplified_string.zero());
     }
 
     TEST(RuleBook, Reduce_ABToZero_ABBB) {
@@ -78,7 +78,7 @@ namespace NPATK::Tests {
 
         EXPECT_FALSE(neg);
         ASSERT_EQ(simplified_string.size(), 0); // 0
-        EXPECT_TRUE(simplified_string.zero);
+        EXPECT_TRUE(simplified_string.zero());
     }
 
     TEST(RuleBook, Reduce_ABToZero_BAB) {
@@ -94,7 +94,7 @@ namespace NPATK::Tests {
 
         EXPECT_FALSE(neg);
         ASSERT_EQ(simplified_string.size(), 0); // 0
-        EXPECT_TRUE(simplified_string.zero);
+        EXPECT_TRUE(simplified_string.zero());
     }
 
     TEST(RuleBook, Reduce_Rule) {
@@ -137,7 +137,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(simplified_rule.LHS()[0], 1);
 
         ASSERT_EQ(simplified_rule.RHS().size(), 0);
-        EXPECT_TRUE(simplified_rule.RHS().zero);
+        EXPECT_TRUE(simplified_rule.RHS().zero());
     }
 
     TEST(RuleBook, ReduceRuleset_AACtoAAB_CtoB) {

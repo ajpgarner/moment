@@ -21,16 +21,14 @@ namespace NPATK {
     protected:
         std::vector<oper_name_t> operators{};
 
+        bool is_zero = false;
+
+        uint64_t the_hash = 0;
+
     public:
-        /** Hash associated with operator sequence */
-        const size_t hash = 0;
-
-        /** True if empty sequence represents zero (cf. identity). */
-        const bool zero = false;
-
         /** Construct empty sequence (identity or zero) */
-        explicit constexpr HashedSequence(const bool is_zero = false)
-            : hash{is_zero ? 1U : 0U}, zero{is_zero} { }
+        explicit constexpr HashedSequence(const bool zero = false)
+            : the_hash{is_zero ? 0U : 1U}, is_zero{zero} { }
 
         /** Copy constructor */
         constexpr HashedSequence(const HashedSequence& rhs) = default;
@@ -40,11 +38,25 @@ namespace NPATK {
 
         /** Construct a sequence, from a list of operators and its hash  */
         constexpr HashedSequence(std::vector<oper_name_t> oper_ids, size_t hash)
-                : operators{std::move(oper_ids)}, hash{hash}, zero{hash == 0} { }
+                : operators{std::move(oper_ids)}, the_hash{hash}, is_zero{hash == 0} { }
 
         /** Construct a sequence, from a list of operators and its hash  */
         HashedSequence(std::vector<oper_name_t> oper_ids, const ShortlexHasher& hasher)
-            : operators{std::move(oper_ids)}, hash{hasher(operators)}, zero{false} { }
+            : operators{std::move(oper_ids)}, the_hash{hasher(operators)}, is_zero{false} { }
+
+        /**
+         * Get sequence hash
+         */
+        [[nodiscard]] constexpr uint64_t hash() const noexcept {
+            return this->the_hash;
+        }
+
+        /**
+         * True if the operator sequence represents zero.
+         */
+        [[nodiscard]] constexpr bool zero() const noexcept {
+            return this->is_zero;
+        }
 
         /** True if this sequence is a prefix of the string defined by the supplied iterators */
         [[nodiscard]] bool matches(const_iter_t test_begin, const_iter_t test_end) const noexcept;
@@ -81,7 +93,10 @@ namespace NPATK {
         /** End reverse iterator over operators */
         [[nodiscard]] constexpr auto rend() const noexcept { return this->operators.crend(); }
 
-        /** True, if the operator string is empty */
+        /**
+         * True if no operators in sequence. This can be interpreted as either the identity operator if zero()
+         * returns false, or as the zero operator if zero() returns true.
+         */
         [[nodiscard]] constexpr bool empty() const noexcept { return this->operators.empty(); }
 
         /** The length of the operator string */
@@ -98,18 +113,33 @@ namespace NPATK {
 
         /** Ordering by hash value (i.e. shortlex) */
         [[nodiscard]] constexpr bool operator<(const HashedSequence& rhs) const noexcept {
-            return this->hash < rhs.hash;
+            return this->the_hash < rhs.the_hash;
         }
 
-        /** Test hash */
+        /** Test for equality */
         [[nodiscard]] constexpr bool operator==(const HashedSequence& rhs) const noexcept {
-            return this->hash == rhs.hash;
+            if (this->the_hash != rhs.the_hash) {
+                return false;
+            }
+            if (this->is_zero != rhs.is_zero) {
+                return false;
+            }
+            if (this->operators.size() != rhs.operators.size()) {
+                return false;
+            }
+            for (size_t i = 0, iMax = this->operators.size(); i < iMax; ++i) {
+                if (this->operators[i] != rhs.operators[i]) {
+                    return false;
+                }
+            }
+            return true;
         }
 
-        /** Ordering by hash value (i.e. shortlex) */
-        [[nodiscard]] constexpr bool operator>(const HashedSequence& rhs) const noexcept {
-            return this->hash > rhs.hash;
+        /** Test for inequality */
+        [[nodiscard]] constexpr bool operator!=(const HashedSequence& rhs) const noexcept {
+            return !(*this == rhs);
         }
+
     };
 
 }

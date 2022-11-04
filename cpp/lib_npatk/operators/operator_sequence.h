@@ -6,6 +6,7 @@
 #pragma once
 
 #include "integer_types.h"
+#include "hashed_sequence.h"
 
 #include <cassert>
 
@@ -20,13 +21,13 @@ namespace NPATK {
     /**
      * Represents a sequence of Hermitian operators, in canonical order with all known simplifications applied.
      */
-    class OperatorSequence {
+    class OperatorSequence : public HashedSequence {
     private:
         const Context& context;
 
-        std::vector<oper_name_t> constituents{};
+        //std::vector<oper_name_t> constituents{};
 
-        bool is_zero = false;
+        //bool is_zero = false;
 
     public:
         friend class Context;
@@ -35,19 +36,15 @@ namespace NPATK {
          * Constructs empty operator sequence; treated as identity.
          * @param context (Non-owning) point to the Context (if any) for further simplification.
          */
-        constexpr explicit OperatorSequence(const Context& context) : context{context} {
-
-        }
+        constexpr explicit OperatorSequence(const Context& context)
+            : HashedSequence{false}, context{context} { }
 
         /**
          * Constructs a sequence of Hermitian operators, in canonical order, with all known simplifications applied.
          * @param operators A list of operators to include in the sequence
-         * @param context (Non-owning) pointer to the Context (if any) for further simplification.
+         * @param context Context for further simplification.
          */
-        explicit OperatorSequence(std::vector<oper_name_t>&& operators, const Context& context)
-                : constituents(std::move(operators)), context{context} {
-            this->to_canonical_form();
-        }
+        explicit OperatorSequence(std::vector<oper_name_t>&& operators, const Context& context);
 
         constexpr OperatorSequence(const OperatorSequence& rhs) = default;
 
@@ -55,51 +52,7 @@ namespace NPATK {
 
         [[nodiscard]] OperatorSequence conjugate() const;
 
-        [[nodiscard]] constexpr auto begin() const noexcept { return this->constituents.cbegin(); }
-
-        [[nodiscard]] constexpr auto end() const noexcept { return this->constituents.cend(); }
-
-        /**
-         * True if no operators in sequence. Mathematically, this can be interpreted as either the identity operator
-         *  if zero() returns false, or as the zero operator if zero() returns true.
-         */
-        [[nodiscard]] constexpr bool empty() const noexcept { return this->constituents.empty(); }
-
-        [[nodiscard]] constexpr size_t size() const noexcept { return this->constituents.size(); }
-
-        /**
-         * True if the sequence represents zero.
-         */
-        [[nodiscard]] constexpr bool zero() const noexcept {
-            return this->is_zero;
-        }
-
-        [[nodiscard]] constexpr oper_name_t operator[](size_t i) const noexcept {
-            assert(i < this->constituents.size());
-            return this->constituents[i];
-        }
-
-        constexpr bool operator==(const OperatorSequence& rhs) const noexcept {
-            if (this->constituents.size() != rhs.constituents.size()) {
-                return false;
-            }
-            if (this->is_zero != rhs.is_zero) {
-                return false;
-            }
-            for (size_t i = 0, iMax = this->constituents.size(); i < iMax; ++i) {
-                if (this->constituents[i] != rhs.constituents[i]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        constexpr bool operator!=(const OperatorSequence& rhs) const noexcept {
-            return !(*this == rhs);
-        }
-
         friend std::ostream& operator<<(std::ostream& os, const OperatorSequence& seq);
-
 
         /**
          * Adds a list of operators to the end of the sequence, then simplifies to canonical form.
@@ -109,8 +62,8 @@ namespace NPATK {
          */
         template<std::input_iterator iter_t>
         inline OperatorSequence& append(iter_t begin, iter_t end) {
-            this->constituents.reserve(this->constituents.size() + std::distance(begin, end));
-            this->constituents.insert(this->constituents.end(), begin, end);
+            this->operators.reserve(this->operators.size() + std::distance(begin, end));
+            this->operators.insert(this->operators.end(), begin, end);
             this->to_canonical_form();
             return *this;
         }
@@ -128,7 +81,7 @@ namespace NPATK {
          * @param rhs The operator sequence to append to this sequence.
          */
         OperatorSequence& operator *= (const OperatorSequence& rhs) {
-            return this->append(rhs.constituents.begin(), rhs.constituents.end());
+            return this->append(rhs.operators.begin(), rhs.operators.end());
         }
 
 
@@ -156,6 +109,7 @@ namespace NPATK {
 
         constexpr static OperatorSequence Zero(const Context& context) {
             OperatorSequence output{context};
+            output.the_hash = 0;
             output.is_zero = true;
             return output;
         }

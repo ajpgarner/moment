@@ -16,7 +16,7 @@ namespace NPATK {
         for (const auto& rule : rules) {
             // Skip trivial rules
             if (!rule.trivial()) {
-                this->monomialRules.insert(std::make_pair(rule.rawLHS.hash, rule));
+                this->monomialRules.insert(std::make_pair(rule.rawLHS.hash(), rule));
             }
         }
 
@@ -73,7 +73,7 @@ namespace NPATK {
             auto match_iter = rule.matches_anywhere(test_sequence.begin(), test_sequence.end());
             if (match_iter != test_sequence.end()) {
                 // Reduced to zero?
-                if (rule.rawRHS.zero) {
+                if (rule.rawRHS.zero()) {
                     return {HashedSequence{true}, false};
                 }
 
@@ -102,12 +102,12 @@ namespace NPATK {
         bool negative = input.negated() != (lhsNeg != rhsNeg);
 
         // Special reduction if rule implies something is zero:
-        if ((lhs.hash == rhs.hash) && negative) {
+        if ((lhs.hash() == rhs.hash()) && negative) {
             return MonomialSubstitutionRule{std::move(lhs), HashedSequence(true)};
         }
 
         // Otherwise, orient and return
-        if (lhs.hash > rhs.hash) {
+        if (lhs.hash() > rhs.hash()) {
             return MonomialSubstitutionRule{std::move(lhs), std::move(rhs), negative};
         } else {
             return MonomialSubstitutionRule{std::move(rhs), std::move(lhs), negative};
@@ -129,8 +129,8 @@ namespace NPATK {
             MonomialSubstitutionRule reduced_rule = this->reduce(isolated_rule);
 
             // By definition, reduction is non-increasing of hash, so we can reinsert "before" iterator
-            size_t reduced_hash = reduced_rule.LHS().hash;
-            assert(isolated_rule.LHS().hash >= reduced_hash);
+            size_t reduced_hash = reduced_rule.LHS().hash();
+            assert(isolated_rule.LHS().hash() >= reduced_hash);
 
             // If reduction makes rule trivial, it is redundant and can be removed from set...
             if (reduced_rule.trivial()) {
@@ -142,8 +142,8 @@ namespace NPATK {
             }
 
             // Test if rule has changed
-            if ((isolated_rule.LHS().hash != reduced_rule.LHS().hash) ||
-                (isolated_rule.RHS().hash != reduced_rule.RHS().hash)) {
+            if ((isolated_rule.LHS().hash() != reduced_rule.LHS().hash()) ||
+                (isolated_rule.RHS().hash() != reduced_rule.RHS().hash())) {
                 if (logger) {
                     logger->rule_reduced(isolated_rule, reduced_rule);
                 }
@@ -223,7 +223,7 @@ namespace NPATK {
                 if (logger) {
                     logger->rule_introduced(ruleA, ruleB, combined_reduced_rule);
                 }
-                size_t rule_hash = combined_reduced_rule.LHS().hash;
+                size_t rule_hash = combined_reduced_rule.LHS().hash();
                 this->monomialRules.insert(std::make_pair(rule_hash, std::move(combined_reduced_rule)));
 
                 // Reduce ruleset
@@ -283,7 +283,7 @@ namespace NPATK {
             return true;
         }
 
-        size_t rule_hash = conj_reduced_rule.LHS().hash;
+        size_t rule_hash = conj_reduced_rule.LHS().hash();
         this->monomialRules.insert(std::make_pair(rule_hash, std::move(conj_reduced_rule)));
 
         // Reduce ruleset

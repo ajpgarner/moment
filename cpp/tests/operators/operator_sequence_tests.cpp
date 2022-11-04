@@ -103,7 +103,7 @@ namespace NPATK::Tests {
     }
 
     TEST(OperatorSequence, Sequence_ConjugateIdentity) {
-        Context empty{0};
+        Context empty{1};
 
         OperatorSequence id{{}, empty};
         OperatorSequence id2 = OperatorSequence::Identity(empty);

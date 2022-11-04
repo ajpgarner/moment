@@ -99,7 +99,7 @@ namespace NPATK {
 
         /** True if the rule is of the form A = -A */
         [[nodiscard]] bool implies_zero() const noexcept {
-            return this->is_negated && (this->rawLHS.hash == this->rawRHS.hash);
+            return this->is_negated && (this->rawLHS.hash() == this->rawRHS.hash());
         }
 
         /** Forms a rule by conjugating both sides of the equality */

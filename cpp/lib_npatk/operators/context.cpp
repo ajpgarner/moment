@@ -32,7 +32,7 @@ namespace NPATK {
             return 0;
         }
 
-        return this->hasher(sequence.constituents);
+        return this->hasher(sequence.operators);
     }
 
     std::string Context::format_sequence(const OperatorSequence &seq) const {

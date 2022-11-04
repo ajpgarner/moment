@@ -129,7 +129,7 @@ namespace NPATK {
             [[unlikely]]
             return nullptr;
         }
-        return this->where(op_str.hash);
+        return this->where(op_str.hash());
     }
 
 }

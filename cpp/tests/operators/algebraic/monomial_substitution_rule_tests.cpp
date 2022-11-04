@@ -65,7 +65,7 @@ namespace NPATK::Tests {
         // BBA -> BA
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, hasher},
                                      HashedSequence{true}, true};
-        EXPECT_TRUE(msr.RHS().zero);
+        EXPECT_TRUE(msr.RHS().zero());
 
         // ABB -> AB
         auto conj_msr = msr.conjugate(hasher);
@@ -76,7 +76,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(conj_msr.LHS()[2], 2);
 
         ASSERT_EQ(conj_msr.RHS().size(), 0);
-        EXPECT_TRUE(conj_msr.RHS().zero);
+        EXPECT_TRUE(conj_msr.RHS().zero());
     }
 
     TEST(MonomialSubRule, Match_BBAtoBA) {
