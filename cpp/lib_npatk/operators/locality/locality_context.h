@@ -58,7 +58,7 @@ namespace NPATK {
          * @param op_sequence The string of operators
          * @return True if sequence is zero (cf. identity).
          */
-        bool additional_simplification(std::vector<oper_name_t>& op_sequence) const override;
+        bool additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negated) const override;
 
         /** Converts global measurement index to Party, Measurement pair */
         [[nodiscard]] PMIndex global_index_to_PM(size_t global_index) const noexcept;

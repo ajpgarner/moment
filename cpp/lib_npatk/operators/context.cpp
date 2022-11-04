@@ -22,7 +22,7 @@ namespace NPATK {
 
     }
 
-    bool Context::additional_simplification(std::vector<oper_name_t>& op_sequence) const {
+    bool Context::additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negate) const {
         // Do nothing
         return false;
     }
@@ -47,6 +47,10 @@ namespace NPATK {
 
         std::stringstream ss;
         bool done_once = false;
+        if (seq.negated()) {
+            ss << "-";
+        }
+
         for (const auto& oper : seq) {
             if (done_once) {
                 ss << ";";

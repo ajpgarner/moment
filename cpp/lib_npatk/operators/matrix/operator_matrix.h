@@ -8,12 +8,11 @@
 #include "utilities/square_matrix.h"
 #include "symbolic/symbol_expression.h"
 
-#include "../operator_sequence.h"
-#include "../context.h"
+#include "operators/operator_sequence.h"
+#include "operators/context.h"
 
 #include "symbol_table.h"
 #include "symbol_matrix_properties.h"
-
 
 #include <memory>
 #include <cassert>
@@ -104,7 +103,7 @@ namespace NPATK {
         std::unique_ptr<SquareMatrix<OperatorSequence>> op_seq_matrix;
 
         /** Matrix, as hashes */
-        std::unique_ptr<SquareMatrix<size_t>> hash_matrix;
+        std::unique_ptr<SquareMatrix<uint64_t>> hash_matrix;
 
         /** Matrix, as symbolic expression */
         std::unique_ptr<SquareMatrix<SymbolExpression>> sym_exp_matrix;

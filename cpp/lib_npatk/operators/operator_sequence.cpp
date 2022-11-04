@@ -17,8 +17,8 @@ namespace NPATK {
         return os;
     }
 
-    OperatorSequence::OperatorSequence(std::vector<oper_name_t> &&operators, const Context &context)
-        : HashedSequence(std::move(operators), context.hash(operators)), context{context}
+    OperatorSequence::OperatorSequence(std::vector<oper_name_t> &&operators, const Context &context, const bool negated)
+        : HashedSequence(std::move(operators), context.hash(operators)), context{context}, is_negated{negated}
     {
         this->to_canonical_form();
     }
@@ -26,7 +26,7 @@ namespace NPATK {
 
     void OperatorSequence::to_canonical_form() noexcept {
         // Contextual simplifications
-        bool simplify_to_zero = this->context.additional_simplification(this->operators);
+        bool simplify_to_zero = this->context.additional_simplification(this->operators, this->is_negated);
         if (simplify_to_zero) {
             this->operators.clear();
             this->the_hash = 0;

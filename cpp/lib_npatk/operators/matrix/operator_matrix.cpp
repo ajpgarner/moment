@@ -3,12 +3,14 @@
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
-#include <limits>
-#include "../operator_sequence_generator.h"
-#include "../context.h"
-#include "moment_matrix.h"
 #include "operator_matrix.h"
+
+#include "operators/operator_sequence_generator.h"
+
 #include "symbol_matrix_properties.h"
+
+#include <limits>
+#include <stdexcept>
 
 
 namespace NPATK {
@@ -130,8 +132,7 @@ namespace NPATK {
 
     std::vector<UniqueSequence>
     OperatorMatrix::identifyUniqueSequencesGeneric() {
-        assert(false);
-        throw;
+        throw std::logic_error{"OperatorMatrix::identifyUniqueSequencesGeneric() not yet implemented."};
     }
 
 
@@ -148,23 +149,25 @@ namespace NPATK {
 
         for (size_t row = 0; row < this->dimension; ++row) {
             for (size_t col = row; col < this->dimension; ++col) {
-                size_t upper_index = (row * this->dimension) + col;
-                size_t hash = (*this->hash_matrix)[row][col]; // temporaryHashes[upper_index];
+                const size_t upper_index = (row * this->dimension) + col;
+                const size_t hash = (*this->hash_matrix)[row][col];
+                const bool negated = (*this->op_seq_matrix)[row][col].negated();
+
                 auto [symbol_id, conjugated] = this->symbol_table.hash_to_index(hash);
                 if (symbol_id == std::numeric_limits<ptrdiff_t>::max()) {
                     throw;
                 }
                 const auto& unique_elem = this->symbol_table[symbol_id];
 
-                symbolic_representation[upper_index] = SymbolExpression{unique_elem.Id(), conjugated};
+                symbolic_representation[upper_index] = SymbolExpression{unique_elem.Id(), negated, conjugated};
 
                 // Make Hermitian, if off-diagonal
                 if (col > row) {
                     size_t lower_index = (col * this->dimension) + row;
                     if (unique_elem.is_hermitian()) {
-                        symbolic_representation[lower_index] = SymbolExpression{unique_elem.Id(), false};
+                        symbolic_representation[lower_index] = SymbolExpression{unique_elem.Id(), negated, false};
                     } else {
-                        symbolic_representation[lower_index] = SymbolExpression{unique_elem.Id(), !conjugated};
+                        symbolic_representation[lower_index] = SymbolExpression{unique_elem.Id(), negated, !conjugated};
                     }
                 }
             }
@@ -175,8 +178,7 @@ namespace NPATK {
 
     std::unique_ptr<SquareMatrix<SymbolExpression>>
     OperatorMatrix::buildSymbolMatrixGeneric() {
-        assert(false);
-        throw;
+        throw std::logic_error{"OperatorMatrix::buildSymbolMatrixGeneric() not yet implemented."};
     }
 
 

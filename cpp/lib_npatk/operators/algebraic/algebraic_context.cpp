@@ -126,26 +126,20 @@ namespace NPATK {
                 throw std::logic_error{"Self-references should have been resolved in tree simplification!"};
             }
             const auto& source_seq = rawSequences[link.first.second];
-            symbol_name_t target_id;
-            if (link.second == EqualityType::equal) {
-                const auto& target_seq = rawSequences[link.first.first];
-                target_id = target_seq.raw_id;
-            } else if (link.second == EqualityType::conjugated) {
-                const auto& target_seq = rawSequences[link.first.first];
-                target_id = target_seq.conjugate_id;
-            } else {
-                throw std::logic_error{"Currently only equality and conjugation substitutions are supported..."};
-            }
+            const auto& target_seq = rawSequences[link.first.first];
+            const symbol_name_t target_id = is_conjugated(link.second) ? target_seq.conjugate_id : target_seq.raw_id;
+            bool negated = is_negated(link.second);
 
             // Don't insert reflexive rules...
             if (link.first.second != target_id) {
                 this->hashToReplacementSymbol.emplace(std::make_pair(source_seq.hash(),
-                                                                     static_cast<size_t>(target_id)));
+                                                                     std::make_pair(static_cast<uint64_t>(target_id),
+                                                                                    negated)));
             }
         }
     }
 
-    bool AlgebraicContext::additional_simplification(std::vector<oper_name_t>& op_sequence) const {
+    bool AlgebraicContext::additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negated) const {
         auto the_hash = this->hash(op_sequence);
         auto ruleIter = this->hashToReplacementSymbol.find(the_hash);
 
@@ -155,18 +149,22 @@ namespace NPATK {
         }
 
         // Simplify to zero?
-        if (ruleIter->second == 0) {
+        if (ruleIter->second.first == 0) {
             op_sequence.clear();
             return true;
         }
 
         // Copy non-zero replacement
-        const auto& replacement = this->rawSequences[ruleIter->second];
+        const auto& replacement = this->rawSequences[ruleIter->second.first];
         op_sequence.clear();
         op_sequence.reserve(replacement.size());
         for (const auto& op : replacement) {
             op_sequence.emplace_back(op);
         }
+
+        // Negate, if required.
+        negated = (negated != ruleIter->second.second);
+
         return false;
     }
 
@@ -176,7 +174,7 @@ namespace NPATK {
             auto * lhs_raw_ptr = this->rawSequences.where(lhs_hash);
             assert(lhs_raw_ptr != nullptr);
             const auto& lhs_raw = *lhs_raw_ptr;
-            const auto& rhs_raw = this->rawSequences[rhs_symbol];
+            const auto& rhs_raw = this->rawSequences[rhs_symbol.first];
 
             ss << lhs_raw.raw_id << " [";
             for (auto o : lhs_raw) {
@@ -184,7 +182,9 @@ namespace NPATK {
             }
             ss << "] -> ";
 
+            ss << (rhs_symbol.second ? "-" : "");
             ss << rhs_raw.raw_id << " [";
+            ss << (rhs_symbol.second ? "-" : "");
             for (auto o : rhs_raw) {
                 ss << "X" << o;
             }

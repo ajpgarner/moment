@@ -101,7 +101,7 @@ namespace NPATK {
 
 
 
-    bool LocalityContext::additional_simplification(std::vector<oper_name_t>& op_sequence) const {
+    bool LocalityContext::additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negated) const {
         // Do nothing on empty set
         if (op_sequence.empty()) {
             return false;
@@ -183,6 +183,9 @@ namespace NPATK {
         }
 
         std::stringstream ss;
+        if (seq.negated()) {
+            ss << "-";
+        }
         bool done_once = false;
         for (const auto& oper : seq) {
             if (done_once) {

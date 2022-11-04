@@ -62,7 +62,7 @@ namespace NPATK {
          * @param op_sequence The string of operators
          * @return True if sequence is zero (cf. identity).
          */
-         virtual bool additional_simplification(std::vector<oper_name_t>& op_sequence) const;
+         virtual bool additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negate) const;
 
          /**
           * Calculates a non-colliding hash (i.e. unique number) for a particular operator sequence.

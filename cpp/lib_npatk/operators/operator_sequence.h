@@ -25,13 +25,9 @@ namespace NPATK {
     private:
         const Context& context;
 
-        //std::vector<oper_name_t> constituents{};
-
-        //bool is_zero = false;
+        bool is_negated = false;
 
     public:
-        friend class Context;
-
         /**
          * Constructs empty operator sequence; treated as identity.
          * @param context (Non-owning) point to the Context (if any) for further simplification.
@@ -43,14 +39,20 @@ namespace NPATK {
          * Constructs a sequence of Hermitian operators, in canonical order, with all known simplifications applied.
          * @param operators A list of operators to include in the sequence
          * @param context Context for further simplification.
+         * @param negated True if sequence should be interpreted with a minus sign in front of it.
          */
-        explicit OperatorSequence(std::vector<oper_name_t>&& operators, const Context& context);
+        explicit OperatorSequence(std::vector<oper_name_t>&& operators, const Context& context, bool negated = false);
 
         constexpr OperatorSequence(const OperatorSequence& rhs) = default;
 
         constexpr OperatorSequence(OperatorSequence&& rhs) noexcept = default;
 
         [[nodiscard]] OperatorSequence conjugate() const;
+
+        /**
+         * True, if sequence should be interpreted with a negative sign.
+         */
+        [[nodiscard]] constexpr bool negated() const noexcept { return this->is_negated; }
 
         friend std::ostream& operator<<(std::ostream& os, const OperatorSequence& seq);
 
@@ -123,6 +125,9 @@ namespace NPATK {
          * Perform simplifications on the raw operator sequence, calling context if supplied.
          */
         void to_canonical_form() noexcept;
+
+
+        friend class Context;
     };
 
 

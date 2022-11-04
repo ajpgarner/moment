@@ -44,8 +44,8 @@ namespace NPATK {
         /** The set of substitutions */
         std::unique_ptr<SymbolSet> buildSet;
 
-        /** Calculated substitutions [key: hash, value: index of replacement sequence in raw sequences] */
-        std::map<size_t, size_t> hashToReplacementSymbol;
+        /** Calculated substitutions [key: hash, value: index of replacement sequence in raw sequences, negation] */
+        std::map<uint64_t, std::pair<size_t, bool>> hashToReplacementSymbol;
 
     public:
         explicit AlgebraicContext(size_t operator_count, bool self_adjoint = true);
@@ -59,7 +59,7 @@ namespace NPATK {
 
         bool generate_aliases(size_t max_length);
 
-        bool additional_simplification(std::vector<oper_name_t>& op_sequence) const override;
+        bool additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negated) const override;
 
         /**
          * Summarize the context as a string.
