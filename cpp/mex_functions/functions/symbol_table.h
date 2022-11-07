@@ -6,8 +6,10 @@
 #pragma once
 
 #include "mex_function.h"
+#include "integer_types.h"
 
 namespace NPATK {
+    class SymbolTable;
     class Context;
 }
 
@@ -21,8 +23,11 @@ namespace NPATK::mex::functions  {
 
         enum class OutputMode {
             AllSymbols,
-            FromId
+            FromId,
+            SearchBySequence
         } output_mode = OutputMode::AllSymbols;
+
+        std::vector<oper_name_t> sequence;
 
     public:
         explicit SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
@@ -36,6 +41,8 @@ namespace NPATK::mex::functions  {
 
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
+        void find_and_return_symbol(IOArgumentRange output, const SymbolTableParams& input,
+                                    const Context &context, const NPATK::SymbolTable &table);
     };
 
 }

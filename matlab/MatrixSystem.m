@@ -49,8 +49,8 @@ classdef MatrixSystem < handle
                 has_new_symbols = true;
             else
                 existing_id = uint64(length(obj.SymbolTable));
-                new_symbols = npatk('symbol_table', ...
-                                        obj.RefId, existing_id);
+                new_symbols = npatk('symbol_table', obj.RefId, ...
+                                    'from', existing_id);
                 if ~isempty(new_symbols)
                     has_new_symbols = true;
                     obj.SymbolTable = [obj.SymbolTable, new_symbols];

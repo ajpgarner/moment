@@ -6,6 +6,8 @@
 #include "symbol_table.h"
 #include "storage_manager.h"
 
+#include "operators/matrix/symbol_table.h"
+
 #include "fragments/export_symbol_table.h"
 
 #include "utilities/read_as_scalar.h"
@@ -17,9 +19,27 @@ namespace NPATK::mex::functions {
 
     SymbolTableParams::SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs) {
         this->storage_key = read_positive_integer(matlabEngine, "MatrixSystem reference", inputs.inputs[0], 0);
-        if (inputs.inputs.size() > 1) {
+
+        auto fromIter = this->params.find(u"from");
+        if (fromIter != this->params.end()) {
+            this->from_id = read_positive_integer(matlabEngine, "Symbol lower bound", fromIter->second, 0);
             this->output_mode = OutputMode::FromId;
-            this->from_id = read_positive_integer(matlabEngine, "Symbol lower bound", inputs.inputs[1], 0);
+            if (inputs.inputs.size() > 1) {
+                throw_error(matlabEngine, errors::too_many_inputs,
+                            "Only the MatrixSystem reference should be provided as input when \"from\" is used.");
+            }
+            return;
+
+        }
+
+        if (inputs.inputs.size() > 1) {
+            this->output_mode = OutputMode::SearchBySequence;
+            std::vector<uint64_t> raw_op_seq = read_positive_integer_array(matlabEngine, "Operator sequence",
+                                                                           inputs.inputs[1], 1);
+            this->sequence.reserve(raw_op_seq.size());
+            for (auto ui : raw_op_seq) {
+                this->sequence.emplace_back(ui - 1);
+            }
         } else {
             this->output_mode = OutputMode::AllSymbols;
         }
@@ -28,9 +48,11 @@ namespace NPATK::mex::functions {
 
     SymbolTable::SymbolTable(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
             : MexFunction(matlabEngine, storage, MEXEntryPointID::SymbolTable, u"symbol_table") {
-        this->min_outputs = this->max_outputs = 1;
+        this->min_outputs = 1;
+        this->max_outputs = 2;
         this->min_inputs = 1;
         this->max_inputs = 2;
+        this->param_names.emplace(u"from");
     }
 
     std::unique_ptr<SortedInputs>
@@ -47,6 +69,11 @@ namespace NPATK::mex::functions {
 
     void SymbolTable::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
         auto& input = dynamic_cast<SymbolTableParams&>(*inputPtr);
+
+        // Double check outputs
+        if ((output.size() >= 2) && (input.output_mode !=SymbolTableParams::OutputMode::SearchBySequence)) {
+            throw_error(this->matlabEngine, errors::too_many_outputs, "Too many outputs provided.");
+        }
 
         // Get referred to matrix system (or fail)
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
@@ -72,10 +99,50 @@ namespace NPATK::mex::functions {
                 case SymbolTableParams::OutputMode::FromId:
                     output[0] = export_symbol_table_struct(this->matlabEngine, context, symbolTable, input.from_id);
                     break;
+                case SymbolTableParams::OutputMode::SearchBySequence:
+                    find_and_return_symbol(output, input, context, symbolTable);
+                    break;
                 default:
                     throw_error(this->matlabEngine, errors::internal_error, "Unknown output mode.");
 
             }
         }
+
     }
+
+    void SymbolTable::find_and_return_symbol(IOArgumentRange output, const SymbolTableParams& input,
+                                const Context &context, const NPATK::SymbolTable &symbolTable) {
+        matlab::data::ArrayFactory factory;
+
+        // Try to find sequence
+        std::vector<oper_name_t> opers = input.sequence;
+        OperatorSequence trialSequence(std::move(opers), context);
+        const auto* symbolRow = symbolTable.where(trialSequence);
+
+        // Return false if nothing found
+        if (nullptr == symbolRow) {
+            if (output.size() >= 1) {
+                output[0] = factory.createScalar<bool>(false);
+            }
+            if (output.size() >= 2) {
+                output[1] = factory.createScalar<bool>(false);
+            }
+            return;
+        }
+
+        // Otherwise, export row
+        const auto& unique = *symbolRow;
+        bool conjugated = trialSequence.hash() != unique.hash();
+        assert(!conjugated || (trialSequence.hash() == unique.hash_conj()));
+
+        if (output.size() >= 1) {
+            output[0] = export_symbol_table_row(this->matlabEngine, context, unique);
+        }
+        if (output.size() >= 2) {
+            output[1] = factory.createScalar<bool>(conjugated);
+        }
+
+
+    }
+
 }

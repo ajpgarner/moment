@@ -58,7 +58,7 @@ namespace NPATK {
                 done_once = true;
             }
 
-            ss << "X" << oper;
+            ss << "X" << (oper+1); // MATLAB indexing...
         }
         return ss.str();
     }

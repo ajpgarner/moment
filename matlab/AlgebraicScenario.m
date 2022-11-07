@@ -44,6 +44,18 @@ classdef AlgebraicScenario < Scenario
         
     end
     
+    %% Algebraic expressions
+    methods
+        function item = get(obj, operators)
+            arguments
+                obj (1,1) AlgebraicScenario
+                operators (1,:) uint64
+            end
+            
+            item = Algebraic.Monomial(obj, operators, 1.0);
+        end
+    end
+    
     %% Friend/interface methods
     methods(Access={?Scenario,?MatrixSystem})
         % Query for a matrix system

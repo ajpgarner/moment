@@ -11,6 +11,33 @@
 #include "utilities/reporting.h"
 
 namespace NPATK::mex {
+    matlab::data::StructArray export_symbol_table_row(matlab::engine::MATLABEngine& engine,
+                                                      const Context& context, const UniqueSequence& symbol) {
+
+        matlab::data::ArrayFactory factory;
+
+        // Construct structure array
+        auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, 1},
+                                                      {"symbol", "operators", "conjugate", "hermitian",
+                                                       "basis_re", "basis_im"});
+
+        // Copy rest of table:
+        outputStruct[0]["symbol"] = factory.createScalar<uint64_t>(static_cast<uint64_t>(symbol.Id()));
+        outputStruct[0]["operators"] = factory.createScalar(
+                context.format_sequence(symbol.sequence()));
+        outputStruct[0]["conjugate"] = factory.createScalar(
+                context.format_sequence(symbol.sequence_conj()));
+        outputStruct[0]["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
+
+        // +1 is from MATLAB indexing
+        outputStruct[0]["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
+        outputStruct[0]["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
+
+
+        return outputStruct;
+    }
+
+
     matlab::data::StructArray export_symbol_table_struct(matlab::engine::MATLABEngine& engine,
                                                             const Context& context,
                                                             const SymbolTable& table,
