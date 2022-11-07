@@ -409,6 +409,43 @@ namespace NPATK::Tests {
         EXPECT_EQ(mm2.SequenceMatrix[0][3], OperatorSequence({0, 1}, ams.Context()));
         EXPECT_EQ(mm2.SequenceMatrix[0][4], OperatorSequence({1, 0}, ams.Context()));
         EXPECT_EQ(mm2.SequenceMatrix[0][5], OperatorSequence({1, 1}, ams.Context()));
+    }
+
+    TEST(AlgebraicContext, CreateMomentMatrix_ABtoMinusBA) {
+        std::vector<MonomialSubstitutionRule> rules;
+        rules.emplace_back(
+                HashedSequence{{1, 0}, ShortlexHasher{2}},
+                HashedSequence{{0, 1}, ShortlexHasher{2}},
+                true
+        );
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
+        ASSERT_TRUE(ac_ptr->attempt_completion(20));
+        AlgebraicMatrixSystem ams{std::move(ac_ptr)};
+        const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
+
+        auto [id1, mm1] = ams.create_moment_matrix(1); // 1 a b
+        ASSERT_EQ(mm1.Level(), 1);
+        EXPECT_TRUE(mm1.IsHermitian());
+        ASSERT_EQ(mm1.Dimension(), 3);
+        EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[0][1], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[0][2], OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[1][0], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[1][1], OperatorSequence({0, 0}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[1][2], OperatorSequence({0, 1}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[2][0], OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[2][1], OperatorSequence({0, 1}, ams.Context(), true));
+        EXPECT_EQ(mm1.SequenceMatrix[2][2], OperatorSequence({1, 1}, ams.Context()));
+
+        // Check symbols
+        const auto& symTable = ams.Symbols();
+        const auto * x0x1Ptr = symTable.where(OperatorSequence({0, 1}, ams.Context()));
+        ASSERT_NE(x0x1Ptr, nullptr);
+        const auto& x0x1 = *x0x1Ptr;
+        auto [rePart, imPart] = x0x1.basis_key();
+        EXPECT_FALSE(x0x1.is_hermitian()) << symTable;
+        EXPECT_EQ(rePart, -1) << symTable;
+        EXPECT_NE(imPart, -1) << symTable;
 
     }
 }

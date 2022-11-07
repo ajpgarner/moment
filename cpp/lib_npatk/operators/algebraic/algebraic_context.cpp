@@ -8,9 +8,10 @@
 #include "symbolic/symbol_set.h"
 #include "symbolic/symbol_tree.h"
 
+#include "operators/operator_sequence.h"
+
 #include <algorithm>
 #include <sstream>
-#include <iostream>
 
 namespace NPATK {
 
@@ -113,6 +114,9 @@ namespace NPATK {
         // Recover links for building tree
         this->buildSet = theTree.export_symbol_set();
 
+        // Synchronize symbols with deduced zeros
+        this->rawSequences.synchronizeNullity(*this->buildSet);
+
         // Finally, create map of hashes of sequences to be substituted
         build_hash_table();
 
@@ -120,6 +124,8 @@ namespace NPATK {
     }
 
     void AlgebraicContext::build_hash_table() {
+
+
         this->hashToReplacementSymbol.clear();
         for (const auto& link : this->buildSet->Links) {
             if (link.first.first == link.first.second) {
@@ -137,6 +143,9 @@ namespace NPATK {
                                                                                     negated)));
             }
         }
+
+
+
     }
 
     bool AlgebraicContext::additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negated) const {
@@ -167,6 +176,22 @@ namespace NPATK {
 
         return false;
     }
+
+    std::pair<bool, bool> AlgebraicContext::is_sequence_null(const OperatorSequence& seq) const noexcept {
+
+        // Can we find this sequence?
+        const auto* rawSeqPtr = this->rawSequences.where(seq.hash());
+        if (nullptr == rawSeqPtr) {
+            return {false, false};
+        }
+
+        // Get information from associated symbol
+        const symbol_name_t symbol_id = rawSeqPtr->raw_id;
+        const auto& symbol = this->rawSequences.Symbols()[symbol_id];
+        return {symbol.real_is_zero, symbol.im_is_zero};
+    }
+
+
 
     std::string AlgebraicContext::resolved_rules() const {
         std::stringstream ss;

@@ -89,6 +89,16 @@ namespace NPATK {
     }
 
 
+    void RawSequenceBook::synchronizeNullity(const SymbolSet &newSet) {
+        assert(this->symbols.size() == newSet.symbol_count());
+        size_t index = 0;
+        for (const auto& ns : newSet.Symbols) {
+            this->symbols[index].real_is_zero = ns.second.real_is_zero;
+            this->symbols[index].im_is_zero = ns.second.im_is_zero;
+            ++index;
+        }
+    }
+
     std::unique_ptr<SymbolSet> RawSequenceBook::symbol_set() const {
         auto the_set = std::make_unique<SymbolSet>();
 

@@ -11,10 +11,12 @@
 #include "symbolic/symbol_expression.h"
 
 #include <cassert>
+
+#include <iosfwd>
+#include <limits>
 #include <map>
 #include <set>
 #include <vector>
-#include <limits>
 
 namespace NPATK {
 
@@ -76,7 +78,10 @@ namespace NPATK {
             return us;
         }
 
-
+        /**
+         * Output unique sequence entry, as debug info
+         */
+        friend std::ostream& operator<<(std::ostream& os, const UniqueSequence& seq);
 
         friend class SymbolTable;
     };
@@ -181,6 +186,11 @@ namespace NPATK {
          * @return Pair: First gives the element in unique_sequences, second is true if hash corresponds to conjugate.
          */
         [[nodiscard]] std::pair<ptrdiff_t, bool> hash_to_index(size_t hash) const noexcept;
+
+        /**
+         * Output symbol table, as debug info
+         */
+         friend std::ostream& operator<<(std::ostream& os, const SymbolTable& table);
     };
 
 }

@@ -81,8 +81,7 @@ namespace NPATK {
         [[nodiscard]] bool is_complete() const;
 
         /** Reduce sequence, to best of knowledge, using rules */
-        [[nodiscard]]
-        std::pair<HashedSequence, bool> reduce(const HashedSequence& input) const;
+        [[nodiscard]] std::pair<HashedSequence, bool> reduce(const HashedSequence& input) const;
 
         /** Reduce rule, to best of knowledge, using rules in set */
         [[nodiscard]] MonomialSubstitutionRule reduce(const MonomialSubstitutionRule& input) const;
@@ -122,6 +121,7 @@ namespace NPATK {
          * Print out rules.
          */
         friend std::ostream& operator<<(std::ostream& os, const RuleBook& rulebook);
+
     };
 
 }

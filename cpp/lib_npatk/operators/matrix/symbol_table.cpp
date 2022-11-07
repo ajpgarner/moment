@@ -7,6 +7,8 @@
 
 #include "../context.h"
 
+#include <iostream>
+
 namespace NPATK {
 
     SymbolTable::SymbolTable(const Context& context)
@@ -27,7 +29,6 @@ namespace NPATK {
 
         auto elem_index = static_cast<symbol_name_t>(this->unique_sequences.size());
         for (auto& elem : build_unique) {
-
             // Not unique, do not add...
             auto existing_iter = this->hash_table.find(elem.fwd_hash);
             if (existing_iter != this->hash_table.end()) {
@@ -36,19 +37,41 @@ namespace NPATK {
                 continue;
             }
 
-            // Add hashes
+            // Does context know about nullity?
+            auto [re_zero, im_zero] = this->context.is_sequence_null(elem.sequence());
+
+            // Is element hermitian
             const bool is_hermitian = elem.is_hermitian();
-            elem.id = elem_index;
-            elem.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
-            this->hash_table.emplace(std::make_pair(elem.fwd_hash, elem_index));
-            this->real_symbols.emplace_back(elem_index);
             if (is_hermitian) {
-                elem.img_index = -1;
-            } else {
-                elem.img_index = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
-                this->hash_table.emplace(std::make_pair(elem.conj_hash, -elem_index));
-                this->imaginary_symbols.emplace_back(elem_index);
+                im_zero = true;
             }
+
+            // Make element
+            elem.id = elem_index;
+
+            // Real part
+            if (!re_zero) {
+                elem.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
+                this->real_symbols.emplace_back(elem_index);
+            } else {
+                elem.real_index = -1;
+            }
+
+            // Imaginary part
+            if (!im_zero) {
+                elem.img_index = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
+                this->imaginary_symbols.emplace_back(elem_index);
+            } else {
+                elem.img_index = -1;
+            }
+
+            // Add hash(es)
+            this->hash_table.emplace(std::make_pair(elem.fwd_hash, elem_index));
+            if (!is_hermitian) {
+                this->hash_table.emplace(std::make_pair(elem.conj_hash, -elem_index));
+            }
+
+            // Register element
             included_symbols.emplace(elem_index);
             this->unique_sequences.emplace_back(std::move(elem));
             ++elem_index;
@@ -94,6 +117,85 @@ namespace NPATK {
         }
     }
 
+    std::ostream& operator<<(std::ostream& os, const UniqueSequence& seq) {
+        os << "#" << seq.id << ":\t";
+        os << seq.sequence() << ":\t";
 
+        if (seq.real_index>=0) {
+            if (seq.img_index>=0) {
+                os << "Complex";
+            } else {
+                os << "Real";
+            }
+        } else if (seq.img_index>=0) {
+            os << "Imaginary";
+        } else {
+            os << "Zero";
+        }
+
+        if (seq.hermitian) {
+            os << ", Hermitian";
+        }
+        if (seq.real_index>=0) {
+            os << ", Re#=" << seq.real_index;
+        }
+        if (seq.img_index>=0) {
+            os << ", Im#=" << seq.img_index;
+        }
+        os << ", hash=" << seq.fwd_hash;
+        if (seq.conj_hash != seq.fwd_hash) {
+            os << "/" << seq.conj_hash;
+        }
+        return os;
+    }
+
+
+    std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {
+        os << "Symbol table with ";
+        os << table.unique_sequences.size()
+           << " unique sequence" << ((table.unique_sequences.size() != 1)  ? "s" : "") << ", ";
+        os << table.real_symbols.size() << " with real parts, "
+           << table.imaginary_symbols.size() << " with imaginary parts:\n";
+
+        // List real symbol IDs
+        if (table.real_symbols.empty()) {
+            os << "No symbols with real parts.\n";
+        } else {
+            os << "Symbols with real parts: ";
+            bool one_real = false;
+            for (auto i: table.real_symbols) {
+                if (one_real) {
+                    os << ", ";
+                }
+                os << i;
+                one_real = true;
+            }
+            os << "\n";
+        }
+
+        // List imaginary symbol IDs
+        if (table.imaginary_symbols.empty()) {
+            os << "No symbols with imaginary parts.\n";
+        } else {
+            os << "Symbols with imaginary parts: ";
+            bool one_im = false;
+            for (auto i: table.imaginary_symbols) {
+                if (one_im) {
+                    os << ", ";
+                }
+                os << i;
+                one_im = true;
+            }
+            os << "\n";
+        }
+
+        // List symbols
+        for (const auto& us : table.unique_sequences) {
+            os << us << "\n";
+        }
+
+
+        return os;
+    }
 
 }

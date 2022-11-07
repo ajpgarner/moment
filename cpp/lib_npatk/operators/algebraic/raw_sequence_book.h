@@ -37,6 +37,11 @@ namespace NPATK {
         bool generate(size_t length);
 
         /**
+         * Match zeros in RSB with zeros in supplied Symbolset.
+         */
+        void synchronizeNullity(const SymbolSet &symbols);
+
+        /**
          * Create a symbol set associated with raw sequences (including conjugate links)
          */
         [[nodiscard]] std::unique_ptr<SymbolSet> symbol_set() const;

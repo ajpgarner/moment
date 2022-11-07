@@ -141,9 +141,9 @@ namespace NPATK::Tests {
 
         auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
         auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
-        ASSERT_EQ(symbols.size(), 7); // 0 1 a0 a1 a0a0 a0a1(=a1a0*) a1a1
-        ASSERT_EQ(symbols.RealSymbolIds().size(), 6);
-        ASSERT_EQ(symbols.ImaginarySymbolIds().size(), 1); // just a0a1
+        ASSERT_EQ(symbols.size(), 7) << symbols; // 0 1 a0 a1 a0a0 a0a1(=a1a0*) a1a1
+        ASSERT_EQ(symbols.RealSymbolIds().size(), 6) << symbols;
+        ASSERT_EQ(symbols.ImaginarySymbolIds().size(), 1) << symbols; // just a0a1
 
         for (size_t i = 0; i < 6; ++i) {
             EXPECT_EQ(symbols.RealSymbolIds()[i], i+1) << i;

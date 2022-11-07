@@ -15,8 +15,13 @@ namespace NPATK {
 
     struct RawSequence : public HashedSequence {
     public:
+        /** Symbol ID of this sequence */
         symbol_name_t raw_id = 0;
+
+        /** Hash for conjugate of this sequence */
         size_t conjugate_hash = 0;
+
+        /** Symbol ID for conjugate of this sequence */
         symbol_name_t conjugate_id = 0;
 
     public:

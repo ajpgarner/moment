@@ -62,6 +62,13 @@ namespace NPATK {
         bool additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negated) const override;
 
         /**
+       * Does context know anything extra known about operator sequence X that would imply Re(X)=0 or Im(X)=0?
+       * @param seq The operator sequence X to test.
+       * @return Pair, first: true if real part is zero, second: true if imaginary part is zero.
+       */
+        [[nodiscard]] std::pair<bool, bool> is_sequence_null(const OperatorSequence& seq) const noexcept override;
+
+        /**
          * Summarize the context as a string.
          */
         [[nodiscard]] std::string to_string() const override;

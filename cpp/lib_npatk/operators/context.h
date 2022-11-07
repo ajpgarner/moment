@@ -65,6 +65,15 @@ namespace NPATK {
          virtual bool additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negate) const;
 
          /**
+          * Does context know anything extra known about operator sequence X that would imply Re(X)=0 or Im(X)=0?
+          * @param seq The operator sequence X to test.
+          * @return Pair, first: true if real part is zero, second: true if imaginary part is zero.
+          */
+         [[nodiscard]] virtual std::pair<bool, bool> is_sequence_null(const OperatorSequence& seq) const noexcept {
+             return {false, false};
+         }
+
+         /**
           * Calculates a non-colliding hash (i.e. unique number) for a particular operator sequence.
           * The hash is in general dependent on the total number of distinct operators in the context.
           * The zero operator is guaranteed a hash of 0.
@@ -96,9 +105,8 @@ namespace NPATK {
           */
          [[nodiscard]] virtual std::string to_string() const;
 
+
     public:
-
-
          friend std::ostream& operator<< (std::ostream& os, const Context& context);
 
     };

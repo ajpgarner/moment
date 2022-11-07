@@ -88,19 +88,19 @@ namespace NPATK {
         std::vector<UniqueSequence> build_unique;
         std::set<size_t> known_hashes;
 
-        // First, manually insert zero and one
+        // First, always manually insert zero and one
         build_unique.emplace_back(UniqueSequence::Zero(this->context));
         build_unique.emplace_back(UniqueSequence::Identity(this->context));
         known_hashes.emplace(0);
         known_hashes.emplace(1);
-
 
         // Now, look at elements and see if they are unique or not
         for (size_t row = 0; row < this->dimension; ++row) {
             for (size_t col = row; col < this->dimension; ++col) {
                 const size_t hash = (*this->hash_matrix)[row][col];
                 const size_t conj_hash = (*this->hash_matrix)[col][row]; // ONLY TRUE FOR HERMITIAN MATRIX
-                const bool hermitian = (hash == conj_hash);
+                const bool hermitian = (hash == conj_hash)
+                        && ((*this->op_seq_matrix)[row][col].negated() == (*this->op_seq_matrix)[col][row].negated());
 
                 // Don't add what is already known
                 if (known_hashes.contains(hash) || (!hermitian && known_hashes.contains(conj_hash))) {

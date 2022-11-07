@@ -32,7 +32,7 @@ namespace NPATK::mex {
 
         // Construct structure array
         auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, num_elems},
-                                                      {"symbol", "operators", "conjugate", "real",
+                                                      {"symbol", "operators", "conjugate", "hermitian",
                                                        "basis_re", "basis_im"});
 
         // Early exit, if empty
@@ -53,7 +53,7 @@ namespace NPATK::mex {
                     context.format_sequence(symbol.sequence()));
             outputStruct[write_index]["conjugate"] = factory.createScalar(
                     context.format_sequence(symbol.sequence_conj()));
-            outputStruct[write_index]["real"] = factory.createScalar<bool>(symbol.is_hermitian());
+            outputStruct[write_index]["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
 
             // +1 is from MATLAB indexing
             outputStruct[write_index]["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
