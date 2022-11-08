@@ -32,7 +32,7 @@ namespace NPATK::mex::functions {
             return;
         }
 
-        if (inputs.inputs.size() > 1) {
+        if (this->inputs.size() > 1) {
             this->output_mode = OutputMode::SearchBySequence;
             std::vector<uint64_t> raw_op_seq = read_positive_integer_array(matlabEngine, "Operator sequence",
                                                                            this->inputs[1], 1);
