@@ -18,6 +18,8 @@ namespace NPATK::mex::functions  {
     public:
         unsigned long hierarchy_level = 0;
 
+        bool matlab_indexing = false;
+
         std::vector<oper_name_t> localizing_word;
 
     public:
@@ -28,6 +30,8 @@ namespace NPATK::mex::functions  {
          * Use the supplied context to create an index for the requested localizing matrix.
          */
         LocalizingMatrixIndex to_index(matlab::engine::MATLABEngine &matlabEngine, const Context& context) const;
+
+
 
     protected:
         void extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) final;

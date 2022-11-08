@@ -23,7 +23,7 @@ classdef MatrixSystem < handle
                 obj.RefId = npatk('new_locality_matrix_system', args{:});
             elseif isa(args, 'Scenario')
                 % Unpack setting into arrays
-                obj.RefId = args.createNewMatrixSystem;
+                obj.RefId = args.createNewMatrixSystem();
             else
                 error([
                     'First argument must be either a Scenario object,',...
@@ -47,7 +47,7 @@ classdef MatrixSystem < handle
             if isempty(obj.SymbolTable)
                 obj.SymbolTable = npatk('symbol_table', obj.RefId);
                 has_new_symbols = true;
-            else
+            else                
                 existing_id = uint64(length(obj.SymbolTable));
                 new_symbols = npatk('symbol_table', obj.RefId, ...
                                     'from', existing_id);

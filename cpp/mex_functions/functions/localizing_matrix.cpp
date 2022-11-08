@@ -18,7 +18,22 @@
 
 #include <memory>
 
+
 namespace NPATK::mex::functions {
+
+    namespace {
+        void offsetWordByMATLABIndices(matlab::engine::MATLABEngine& matlabEngine,
+                                       std::vector<oper_name_t>& word,
+                                       const LocalizingMatrixParams& lmp) {
+            // Only apply offset if flag is set
+            if (!lmp.flags.contains(u"matlab_indexing")) {
+                return;
+            }
+
+
+        }
+    }
+
     void LocalizingMatrixParams::extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) {
         assert(inputs.empty()); // Should be guaranteed by parent.
 
@@ -30,6 +45,8 @@ namespace NPATK::mex::functions {
         auto& word_param = this->find_or_throw(u"word");
         this->localizing_word = read_integer_array(matlabEngine, "Parameter 'word'", word_param);
 
+        // Do we offset by -1?
+        this->matlab_indexing = this->flags.contains(u"matlab_indexing");
     }
 
     void LocalizingMatrixParams::extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) {
@@ -37,19 +54,36 @@ namespace NPATK::mex::functions {
         assert(this->inputs.size() == 3); // should be guaranteed by parent.
         this->hierarchy_level = read_positive_integer(matlabEngine, "Hierarchy level", inputs[1], 0);
         this->localizing_word = read_integer_array(matlabEngine, "Localizing word", inputs[2]);
+
+        // Do we offset by -1?
+        this->matlab_indexing = this->flags.contains(u"matlab_indexing");
+
     }
 
     LocalizingMatrixIndex LocalizingMatrixParams::to_index(matlab::engine::MATLABEngine &matlabEngine,
                                                            const Context& context) const {
+        // Do we have to offset?
+        auto oper_copy = this->localizing_word;
+        if (this->matlab_indexing) {
+            for (auto &o: oper_copy) {
+                // Throwing an error if any operator goes out of range
+                if (0 == o) {
+                    throw_error(matlabEngine, errors::bad_param,
+                                "Operator with index 0 in localizing word is out of range.");
+                }
+                --o;
+            }
+        }
+
         // Check word is in range
-        for (auto op : this->localizing_word) {
+        for (const auto op : oper_copy) {
             if (op >= context.size()) {
-                throw_error(matlabEngine, errors::bad_param, "Operator index in localizing word was out of range.");
+                throw_error(matlabEngine, errors::bad_param,
+                            "Operator with index " + std::to_string(op) + " in localizing word is out of range.");
             }
         }
 
         // Copy and construct LMI
-        auto oper_copy = this->localizing_word;
         return LocalizingMatrixIndex{context, this->hierarchy_level, OperatorSequence{std::move(oper_copy), context}};
     }
 
@@ -66,6 +100,8 @@ namespace NPATK::mex::functions {
         this->param_names.erase(u"index");
         this->param_names.emplace(u"level");
         this->param_names.emplace(u"word");
+
+        this->flag_names.emplace(u"matlab_indexing");
 
         this->max_inputs = 3;
     }

@@ -31,6 +31,8 @@ namespace NPATK::mex::functions  {
 
     public:
         explicit SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
+
+        [[nodiscard]] std::string to_string() const override;
     };
 
     class SymbolTable : public NPATK::mex::functions::MexFunction {

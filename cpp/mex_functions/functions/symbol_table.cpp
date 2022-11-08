@@ -17,25 +17,25 @@
 namespace NPATK::mex::functions {
 
 
-    SymbolTableParams::SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs) {
-        this->storage_key = read_positive_integer(matlabEngine, "MatrixSystem reference", inputs.inputs[0], 0);
+    SymbolTableParams::SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs)
+        : SortedInputs(std::move(inputs)) {
+        this->storage_key = read_positive_integer(matlabEngine, "MatrixSystem reference", this->inputs[0], 0);
 
         auto fromIter = this->params.find(u"from");
         if (fromIter != this->params.end()) {
             this->from_id = read_positive_integer(matlabEngine, "Symbol lower bound", fromIter->second, 0);
             this->output_mode = OutputMode::FromId;
-            if (inputs.inputs.size() > 1) {
+            if (this->inputs.size() > 1) {
                 throw_error(matlabEngine, errors::too_many_inputs,
                             "Only the MatrixSystem reference should be provided as input when \"from\" is used.");
             }
             return;
-
         }
 
         if (inputs.inputs.size() > 1) {
             this->output_mode = OutputMode::SearchBySequence;
             std::vector<uint64_t> raw_op_seq = read_positive_integer_array(matlabEngine, "Operator sequence",
-                                                                           inputs.inputs[1], 1);
+                                                                           this->inputs[1], 1);
             this->sequence.reserve(raw_op_seq.size());
             for (auto ui : raw_op_seq) {
                 this->sequence.emplace_back(ui - 1);
@@ -43,6 +43,36 @@ namespace NPATK::mex::functions {
         } else {
             this->output_mode = OutputMode::AllSymbols;
         }
+    }
+
+    std::string SymbolTableParams::to_string() const {
+        std::stringstream ss;
+        ss << "Exporting symbol table from ref=" << this->storage_key << " ";
+        switch (this->output_mode) {
+            case SymbolTableParams::OutputMode::AllSymbols:
+                ss << "in AllSymbols mode.\n";
+                break;
+            case SymbolTableParams::OutputMode::FromId:
+                ss << "in FromId mode, with from=" << this->from_id << ".\n";
+                break;
+            case SymbolTableParams::OutputMode::SearchBySequence:
+            {
+                ss << "in SearchBySequence mode, with seq=";
+                bool done_one = false;
+                for (auto x: this->sequence) {
+                    if (done_one) {
+                        ss << ";";
+                    }
+                    done_one = true;
+                    ss << x;
+                }
+                ss << ".\n";
+            }
+                break;
+            default:
+                ss << "in unknown mode.\n";
+        }
+        return ss.str();
     }
 
 

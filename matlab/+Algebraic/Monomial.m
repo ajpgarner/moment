@@ -32,6 +32,17 @@ classdef Monomial < handle
         
     end
     
+    %% Localizing matrix...
+    methods
+        function lm = LocalizingMatrix(obj, level)
+            arguments
+                obj (1,1) Algebraic.Monomial
+                level (1,1) uint64
+            end
+            lm = LocalizingMatrix(obj.Setting, obj.Operators, level);
+        end
+    end
+    
     %% Accessors: Symbol row info
     methods
         function val = get.SymbolId(obj)

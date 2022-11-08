@@ -104,7 +104,7 @@ classdef OperatorMatrix < handle
             %   flattened matrices, such that each row represents one basis
             %   element, with length of Dimension*Dimension.
             arguments
-                obj (1,1) MomentMatrix
+                obj (1,1) OperatorMatrix
                 sparse (1,1) logical = true
             end
             
@@ -117,7 +117,7 @@ classdef OperatorMatrix < handle
         
         function [re, im] = SparseMonolithicBasis(obj)
             arguments
-                obj (1,1) MomentMatrix
+                obj (1,1) OperatorMatrix
             end
             % TODO: Check length
             
@@ -135,7 +135,7 @@ classdef OperatorMatrix < handle
         
         function [re, im] = DenseMonolithicBasis(obj)
             arguments
-                obj (1,1) MomentMatrix
+                obj (1,1) OperatorMatrix
             end
             % TODO: Check length
             
