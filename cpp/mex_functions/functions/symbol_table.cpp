@@ -17,8 +17,8 @@
 namespace NPATK::mex::functions {
 
 
-    SymbolTableParams::SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs)
-        : SortedInputs(std::move(inputs)) {
+    SymbolTableParams::SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)
+        : SortedInputs(std::move(rawInput)) {
         this->storage_key = read_positive_integer(matlabEngine, "MatrixSystem reference", this->inputs[0], 0);
 
         auto fromIter = this->params.find(u"from");
