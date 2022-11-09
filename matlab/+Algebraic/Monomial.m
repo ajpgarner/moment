@@ -44,12 +44,21 @@ classdef Monomial < ComplexObject
     
     %% Localizing matrix...
     methods
-        function lm = LocalizingMatrix(obj, level)
+        function val = LocalizingMatrix(obj, level)
             arguments
                 obj (1,1) Algebraic.Monomial
                 level (1,1) uint64
             end
-            lm = LocalizingMatrix(obj.Setting, obj.Operators, level);
+            lm = obj.RawLocalizingMatrix(level);
+            val = CompositeOperatorMatrix(lm, obj.Coefficient);
+        end
+        
+        function val = RawLocalizingMatrix(obj, level)
+            arguments
+                obj (1,1) Algebraic.Monomial
+                level (1,1) uint64
+            end
+            val = LocalizingMatrix(obj.Setting, obj.Operators, level);
         end
     end
     

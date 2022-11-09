@@ -43,8 +43,7 @@ classdef ComplexObject < handle
                 if success
                     obj.has_coefs = true;
                 else
-                    val = false;
-                    return;
+                    error("Could not retrieve real coefficients.");
                 end
             end
             val = obj.real_coefs;
@@ -56,8 +55,7 @@ classdef ComplexObject < handle
                 if success
                     obj.has_coefs = true;
                 else
-                    val = false;
-                    return;
+                    error("Could not retrieve imaginary coefficients.");
                 end
             end
             val = obj.im_coefs;
@@ -67,6 +65,59 @@ classdef ComplexObject < handle
             success = obj.calculateCoefficients();
             if success
                 obj.has_coefs = true;
+            end
+        end
+    end
+    
+    %% Public CVX methods
+    methods
+        function cvx_expr = cvx(obj, real_basis, im_basis)
+            arguments
+                obj (1,1) ComplexObject
+                real_basis (:, 1)
+                im_basis (:, 1)
+            end
+            
+            % Get coefficients
+            the_re_coefs = obj.RealCoefficients;
+            the_im_coefs = obj.ImaginaryCoefficients;
+            
+            % Has real...
+            if nargin >= 2
+                if ~isa(real_basis, 'cvx')
+                    error("Expected CVX real basis vector input.");
+                end
+                if length(the_re_coefs) ~= length(real_basis)
+                    error("CVX real vector dimension (" ...
+                        + num2str(length(real_basis)) + ") does not match "...
+                        + "object coefficient dimension (" ...
+                        + num2str(length(coefs)) + ").");
+                end
+            else
+                error("Expected CVX real basis vector input.");
+            end
+            
+            % Has imaginary...
+            if nargin >= 3
+                if ~isa(im_basis, 'cvx')
+                    error("Expected CVX imaginary basis vector input.");
+                end
+                if length(the_im_coefs) ~= length(im_basis)
+                    error("CVX imaginary vector dimension (" ...
+                        + num2str(length(real_basis)) + ") does not match "...
+                        + "object coefficient dimension (" ...
+                        + num2str(length(coefs)) + ").");
+                end
+                has_im = true;
+            else
+                the_im_coefs = zeros(1, length(real_basis));
+                has_im = false;
+            end
+            
+            % Generate expression...
+            cvx_expr = (the_re_coefs * real_basis);
+            if (has_im)
+                cvx_expr = cvx_expr + 1i * (the_im_coefs * im_basis);
             end
         end
     end

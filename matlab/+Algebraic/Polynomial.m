@@ -1,6 +1,6 @@
 
 classdef Polynomial < ComplexObject
-    %POLYNOMIAL 
+    %POLYNOMIAL
     
     properties
         Constituents = Algebraic.Monomial.empty(1,0)
@@ -8,7 +8,7 @@ classdef Polynomial < ComplexObject
     
     methods
         function obj = Polynomial(setting, constituents)
-            arguments 
+            arguments
                 setting (1,1) Scenario
                 constituents (1,:) Algebraic.Monomial
             end
@@ -18,7 +18,26 @@ classdef Polynomial < ComplexObject
         end
     end
     
-     %% Sums and multiplication
+    %% Localizing matrix...
+    methods
+        function val = LocalizingMatrix(obj, level)
+            arguments
+                obj (1,1) Algebraic.Polynomial
+                level (1,1) uint64
+            end
+            lm = LocalizingMatrix.empty(1,0);
+            w = double.empty(1,0);
+            
+            for c = obj.Constituents
+                lm(end+1) = c.RawLocalizingMatrix(level);
+                w(end+1) = c.Coefficient;
+            end
+            
+            val = CompositeOperatorMatrix(lm, w);
+        end
+    end
+    
+    %% Sums and multiplication
     methods
         % Multiplication
         function val = mtimes(lhs, rhs)
@@ -45,8 +64,8 @@ classdef Polynomial < ComplexObject
                 for i = 1:length(this.Constituents)
                     old_m = this.Constituents(i);
                     new_coefs(end+1) = Algebraic.Monomial(this.Setting, ...
-                                        old_m.Operators, ...
-                                        double(old_m.Coefficient * other));
+                        old_m.Operators, ...
+                        double(old_m.Coefficient * other));
                 end
                 val = Algebraic.Polynomial(this.Setting, new_coefs);
             else
@@ -56,7 +75,7 @@ classdef Polynomial < ComplexObject
         end
         
         % Addition
-         function val = plus(lhs, rhs)
+        function val = plus(lhs, rhs)
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -66,8 +85,8 @@ classdef Polynomial < ComplexObject
             if ~isa(lhs, 'Algebraic.Polynomial')
                 if ~isnumeric(lhs)
                     error("_+_ not defined between " + class(lhs) ...
-                            + " and " + class(rhs));
-                end                
+                        + " and " + class(rhs));
+                end
                 this = rhs;
                 other = Algebraic.Monomial(this.Setting, [], double(lhs));
             elseif isa(lhs, 'Algebraic.Polynomial')
@@ -81,7 +100,7 @@ classdef Polynomial < ComplexObject
                     error(this.err_mismatched_scenario);
                 end
                 components = horzcat(this.Constituents, other);
-                val = Algebraic.Polynomial(this.Setting, components);                
+                val = Algebraic.Polynomial(this.Setting, components);
             elseif isa(other, 'Algebraic.Polynomial')
                 if (this.Setting ~= other.Setting)
                     error(this.err_mismatched_scenario);
@@ -89,25 +108,25 @@ classdef Polynomial < ComplexObject
                 components = horzcat(this.Constituents, other.Constituents);
                 val = Algebraic.Polynomial(this.Setting, components);
             else
-                 error("_+_ not defined between " + class(lhs) ...
-                            + " and " + class(rhs));
+                error("_+_ not defined between " + class(lhs) ...
+                    + " and " + class(rhs));
             end
         end
     end
-
+    
     %% Virtual methods
     methods(Access=protected)
         function success = calculateCoefficients(obj)
-            % Early exit if we can't get symbol information for all parts...  
+            % Early exit if we can't get symbol information for all parts...
             if ~all([obj.Constituents.FoundSymbol])
                 success = false;
                 return;
-            end            
+            end
             sys = obj.Setting.System;
             
             % Real co-efficients
             obj.real_coefs = sparse(1, sys.RealVarCount);
-            obj.im_coefs = sparse(1, sys.ImaginaryVarCount); 
+            obj.im_coefs = sparse(1, sys.ImaginaryVarCount);
             
             for index = 1:length(obj.Constituents)
                 cObj = obj.Constituents(index);
@@ -118,33 +137,33 @@ classdef Polynomial < ComplexObject
             success = true;
         end
     end
-     
+    
     
     %% Internal methods
     methods(Access=private)
         function orderAndMerge(obj)
-           [~, order] = sort([obj.Constituents.Hash]);
-           write_index = 0;
-
-           nc = Algebraic.Monomial.empty(1,0);
-           last_hash = 0;
-           for i = 1:length(obj.Constituents)
-               cObj = obj.Constituents(order(i));
-               if last_hash == cObj.Hash
-                   ncoef = nc(write_index).Coefficient + cObj.Coefficient;
-                   nc(write_index) = ...
-                       Algebraic.Monomial(obj.Setting, ...
-                                          cObj.Operators, ...
-                                          ncoef);
-               else                    
-                   write_index = write_index + 1;
-                   nc(end+1) = Algebraic.Monomial(obj.Setting, ...
-                                                  cObj.Operators, ...
-                                                  cObj.Coefficient);
-               end
-               last_hash = cObj.Hash;
-           end
-           obj.Constituents = nc;
+            [~, order] = sort([obj.Constituents.Hash]);
+            write_index = 0;
+            
+            nc = Algebraic.Monomial.empty(1,0);
+            last_hash = 0;
+            for i = 1:length(obj.Constituents)
+                cObj = obj.Constituents(order(i));
+                if last_hash == cObj.Hash
+                    ncoef = nc(write_index).Coefficient + cObj.Coefficient;
+                    nc(write_index) = ...
+                        Algebraic.Monomial(obj.Setting, ...
+                        cObj.Operators, ...
+                        ncoef);
+                else
+                    write_index = write_index + 1;
+                    nc(end+1) = Algebraic.Monomial(obj.Setting, ...
+                        cObj.Operators, ...
+                        cObj.Coefficient);
+                end
+                last_hash = cObj.Hash;
+            end
+            obj.Constituents = nc;
         end
     end
 end
