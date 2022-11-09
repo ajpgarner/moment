@@ -186,7 +186,7 @@ classdef OperatorMatrix < handle
             end
         end
             
-        function out_M = cvxHermitianBasis(obj, a, b)
+        function out_M = cvxComplexMatrix(obj, a, b)
             % Get handle to CVX problem
             cvx_problem = evalin( 'caller', 'cvx_problem', '[]' );
             if ~isa( cvx_problem, 'cvxprob' )
@@ -205,7 +205,7 @@ classdef OperatorMatrix < handle
             out_M = M;
         end
         
-        function out_M = cvxSymmetricBasis(obj, a)
+        function out_M = cvxRealMatrix(obj, a)
             % Get handle to CVX problem
             cvx_problem = evalin( 'caller', 'cvx_problem', '[]' );
             if ~isa( cvx_problem, 'cvxprob' )
@@ -244,7 +244,7 @@ classdef OperatorMatrix < handle
             end
         end
         
-        function out_M = yalmipHermitianBasis(obj, a, b)
+        function out_M = yalmipComplexMatrix(obj, a, b)
             % Multiple variables by basis to make matrix
             [real_basis, im_basis] = obj.MonolithicBasis(true);
                        
@@ -254,7 +254,7 @@ classdef OperatorMatrix < handle
                 [obj.Dimension, obj.Dimension]);
         end
         
-         function out_M = yalmipSymmetricBasis(obj, a)
+         function out_M = yalmipRealMatrix(obj, a)
             % Multiple variables by basis to make matrix
             [real_basis, ~] = obj.MonolithicBasis(true);
            

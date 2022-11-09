@@ -30,7 +30,7 @@ CHSH_ineq = Corr00 + Corr01 + Corr10 - Corr11;
 
 % Get SDP vars and matrix
 [a, b] = matrix.yalmipVars();
-M = matrix.yalmipHermitianBasis(a, b);
+M = matrix.yalmipComplexMatrix(a, b);
 
 % Constraints (normalization, positivity)
 constraints = [a(1) == 1];

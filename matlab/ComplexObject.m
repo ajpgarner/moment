@@ -72,13 +72,7 @@ classdef ComplexObject < handle
     %% Public CVX methods
     methods
         function cvx_expr = cvx(obj, real_basis, im_basis)
-            arguments
-                obj (1,1) ComplexObject
-                real_basis (:, 1)
-                im_basis (:, 1)
-            end
-            
-            % Get coefficients
+             % Get coefficients
             the_re_coefs = obj.RealCoefficients;
             the_im_coefs = obj.ImaginaryCoefficients;
             
@@ -93,6 +87,7 @@ classdef ComplexObject < handle
                         + "object coefficient dimension (" ...
                         + num2str(length(coefs)) + ").");
                 end
+                real_basis = reshape(real_basis, [], 1);
             else
                 error("Expected CVX real basis vector input.");
             end
@@ -108,6 +103,7 @@ classdef ComplexObject < handle
                         + "object coefficient dimension (" ...
                         + num2str(length(coefs)) + ").");
                 end
+                im_basis = reshape(im_basis, [], 1);
                 has_im = true;
             else
                 the_im_coefs = zeros(1, length(real_basis));

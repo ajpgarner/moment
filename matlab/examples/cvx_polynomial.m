@@ -27,14 +27,14 @@ lm = poly.LocalizingMatrix(lm_level);
 %% Define and solve SDP
 cvx_begin sdp
 
-    % Declare basis variables a (real) and b (imaginary)
-    mm.cvxVars('a', 'b');
+    % Declare basis variables a (real)
+    mm.cvxVars('a');
     
     % Compose moment matrix from these basis variables
-    M = mm.cvxHermitianBasis(a, b);
+    M = mm.cvxRealMatrix(a);
     
     % Compose localizing matrix from these basis variables
-    L = lm.cvxComplexMatrix(a, b);
+    L = lm.cvxRealMatrix(a);
     
     % Constraints
     a(1) == 1;
@@ -42,6 +42,8 @@ cvx_begin sdp
     L >= 0;
     
     % Objective
-    obj = objective.cvx(a, b);    
+    obj = objective.cvx(a);    
     minimize(obj)
 cvx_end
+
+disp(M)

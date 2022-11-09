@@ -49,7 +49,7 @@ cvx_begin sdp
     matrix.cvxVars('a', 'b');
     
     % Compose moment matrix from these basis variables
-    M = matrix.cvxHermitianBasis(a, b);
+    M = matrix.cvxComplexMatrix(a, b);
      
     % Normalization
     a(1) == 1;
