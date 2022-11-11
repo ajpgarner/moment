@@ -86,13 +86,13 @@ classdef Measurement < handle & RealObject
             end
                         
             % Should only occur when A is a built-in object (e.g. scalar)
-            if ~isa(objA, 'Scenario.Measurement')
+            if ~isa(objA, 'Locality.Measurement')
                 joint_item = mtimes@RealObject(objA, objB);
                 return
             end
             
             % Can multiply measurements to form joint measurements
-            if isa(objB, 'Scenario.Measurement')                
+            if isa(objB, 'Locality.Measurement')                
                 if objA.Scenario ~= objB.Scenario
                     error(objA.err_mismatched_scenario);
                 end
@@ -102,7 +102,7 @@ classdef Measurement < handle & RealObject
                 end
                 indices = sortrows(vertcat(objA.Index, objB.Index));
                 joint_item = objA.Scenario.get(indices);
-            elseif isa(objB, 'Scenario.JointMeasurement')
+            elseif isa(objB, 'Locality.JointMeasurement')
                 if objA.Scenario ~= objB.Scenario
                     error(objA.err_mismatched_scenario);
                 end
