@@ -28,6 +28,7 @@ add_executable(npatk_tests
     utilities/alphabetic_namer_tests.cpp
     utilities/combination_iterator_tests.cpp
     utilities/multi_dimensional_index_iterator_tests.cpp
+        utilities/ordered_permutation_tests.cpp
     utilities/persistent_storage_tests.cpp
     utilities/recursive_storage_tests.cpp
     utilities/square_matrix_tests.cpp)
