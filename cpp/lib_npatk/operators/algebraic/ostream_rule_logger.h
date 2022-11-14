@@ -14,6 +14,7 @@ namespace NPATK {
     class OStreamRuleLogger : public RuleLogger {
     private:
         std::ostream& os;
+
     public:
         explicit OStreamRuleLogger(std::ostream& stream) : os{stream} { }
 
@@ -21,6 +22,8 @@ namespace NPATK {
                           const MonomialSubstitutionRule& new_rule) override;
 
         void rule_removed(const MonomialSubstitutionRule& ex_rule) override;
+
+        void rule_introduced(const MonomialSubstitutionRule& new_rule) override;
 
         void rule_introduced(
                 const MonomialSubstitutionRule& parent_rule_a,

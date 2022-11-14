@@ -25,6 +25,10 @@ namespace NPATK {
            << "\n  |-\t" << new_rule << "\n";
     }
 
+    void OStreamRuleLogger::rule_introduced(const MonomialSubstitutionRule& new_rule) {
+        os << "Directly added:\t" << new_rule << "\n";
+    }
+
     void OStreamRuleLogger::rule_introduced_conjugate(const MonomialSubstitutionRule& parent_rule,
                                                       const MonomialSubstitutionRule& new_rule) {
         os << "Conjugate:\t" << parent_rule << ":"

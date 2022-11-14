@@ -21,6 +21,8 @@ namespace NPATK::mex::functions {
 
         bool hermitian_operators = true;
 
+        bool commutative = false;
+
         /** True if testing for completion, without actually doing completion... */
         bool test_only = false;
 

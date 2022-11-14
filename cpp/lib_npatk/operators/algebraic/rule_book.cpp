@@ -11,15 +11,109 @@
 namespace NPATK {
 
 
-    RuleBook::RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules, bool is_herm)
+    RuleBook::RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules,
+                       const bool is_herm)
          : hasher{hasher}, is_hermitian{is_herm} {
+        this->add_rules(rules);
+    }
+
+    ptrdiff_t RuleBook::add_rules(const std::vector<MonomialSubstitutionRule> &rules, RuleLogger * logger) {
+        ptrdiff_t added = 0;
         for (const auto& rule : rules) {
-            // Skip trivial rules
-            if (!rule.trivial()) {
-                this->monomialRules.insert(std::make_pair(rule.rawLHS.hash(), rule));
+            added += this->add_rule(rule, logger);
+        }
+        return added;
+    }
+
+
+
+    ptrdiff_t RuleBook::add_rule(const MonomialSubstitutionRule& rule, RuleLogger * logger) {
+        // Skip trivial rule
+        if (rule.trivial()) {
+            return 0;
+        }
+
+        // Check if rule LHS already exists
+        auto hashLHS = rule.rawLHS.hash();
+        auto preexistingIter = this->monomialRules.find(hashLHS);
+        if (preexistingIter == this->monomialRules.end()) {
+
+            // LHS doesn't already exist, just insert directly (making sure no 'minus zero' targets)
+            if (rule.RHS().zero() && rule.negated()) {
+                const auto& [inSituRule, newElem] = this->monomialRules.insert(std::make_pair(hashLHS,
+                                                          MonomialSubstitutionRule{rule.LHS(), rule.RHS()}
+                                                          ));
+                if (nullptr != logger) {
+                    logger->rule_introduced(inSituRule->second);
+                }
+
+            } else {
+                this->monomialRules.insert(std::make_pair(hashLHS, rule));
+                if (nullptr != logger) {
+                    logger->rule_introduced(rule);
+                }
+            }
+
+            return 1;
+        }
+
+        // Rule already exists...
+        auto &preexisting = preexistingIter->second;
+        if (preexisting.rawRHS == rule.rawRHS) {
+            // Is rule completely redundant?
+            if (rule.negated() == preexisting.negated()) {
+                return 0;
+            }
+
+            // One rule is positive, the other is negative: hence zero is implied...
+            if (rule.negated() != preexisting.negated()) {
+                ptrdiff_t rules_added = 0;
+                MonomialSubstitutionRule lhsToZero{rule.LHS(), HashedSequence(true)};
+
+                // Log reduction of rule LHS...
+                if (logger != nullptr) {
+                    logger->rule_reduced(preexisting, lhsToZero);
+                }
+                this->monomialRules.erase(preexistingIter);
+
+                // LHS equal to zero, since we have erased this key we can just add directly...
+                this->monomialRules.insert(std::make_pair(hashLHS,
+                                                          MonomialSubstitutionRule{rule.LHS(), HashedSequence(true)}
+                ));
+
+                // RHS also equal to zero, but we have to add carefully...
+                MonomialSubstitutionRule rhsToZero{rule.RHS(), HashedSequence(true)};
+                rules_added += this->add_rule(rhsToZero);
+                return rules_added;
             }
         }
 
+        // If existing rule (C->A) already majorizes new rule (C->B):
+        ptrdiff_t rules_added = 0;
+        const bool negated = rule.negated() != preexisting.negated();
+        if (preexisting.RHS().hash() < rule.RHS().hash()) {
+            // Then new rule should be B->A:
+            MonomialSubstitutionRule b_to_a{rule.RHS(), preexisting.RHS(), negated};
+            rules_added += this->add_rule(b_to_a); // Add carefully, in case 'B' already exists...
+        } else {
+            // Otherwise, existing rule C->B is majorized by new rule C->A:
+            // We will need to prepare a new rule B->A
+            MonomialSubstitutionRule b_to_a{preexisting.RHS(), rule.RHS(), negated};
+
+            // Log removal of rule...
+            if (logger != nullptr) {
+                logger->rule_removed(preexisting);
+                logger->rule_introduced(rule);
+            }
+            // Remove existing rule
+            this->monomialRules.erase(preexistingIter);
+            // Since we have erased this key we can just add directly C->A
+            this->monomialRules.insert(std::make_pair(hashLHS, rule));
+
+            // Add B->A carefully
+            rules_added += this->add_rule(b_to_a);
+        }
+        return rules_added;
     }
 
     bool RuleBook::complete(size_t max_iterations, RuleLogger * logger) {
@@ -291,6 +385,26 @@ namespace NPATK {
 
         return true;
     }
+
+    std::vector<MonomialSubstitutionRule> RuleBook::commutator_rules(const ShortlexHasher& hasher,
+                                                                     oper_name_t operator_count) {
+        std::vector<MonomialSubstitutionRule> output;
+
+        // Do nothing, if less than two operators
+        if (operator_count < 2) {
+            return output;
+        }
+
+        output.reserve((operator_count*(operator_count-1)) / 2);
+        for (oper_name_t b = operator_count-1; b >= 1; --b) {
+            for (oper_name_t a = b-1; a >= 0; --a) {
+                output.emplace_back(HashedSequence{{b, a}, hasher}, HashedSequence{{a, b}, hasher});
+            }
+        }
+
+        return output;
+    }
+
 
     std::ostream &operator<<(std::ostream &os, const RuleBook &rulebook) {
         if (rulebook.is_hermitian) {

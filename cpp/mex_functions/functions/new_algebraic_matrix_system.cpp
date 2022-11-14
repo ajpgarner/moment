@@ -29,6 +29,7 @@ namespace NPATK::mex::functions {
 
             return std::make_unique<AlgebraicContext>(input.total_operators,
                                                       input.hermitian_operators,
+                                                      input.commutative,
                                                       rules);
 
         }
@@ -47,8 +48,11 @@ namespace NPATK::mex::functions {
             this->complete_attempts = 0;
         }
 
-        // Default to Hermitian, but allow non-hermitian overrides
+        // Default to Hermitian, but allow non-hermitian override
         this->hermitian_operators = !(this->flags.contains(u"nonhermitian"));
+
+        // Default to non-commutative, but allow commutative override
+        this->commutative = this->flags.contains(u"commutative");
 
         // Either set named params OR give multiple params
         bool set_any_param  = this->params.contains(u"operators")
@@ -122,6 +126,10 @@ namespace NPATK::mex::functions {
         this->flag_names.emplace(u"hermitian");
         this->flag_names.emplace(u"nonhermitian");
         this->mutex_params.add_mutex(u"hermitian", u"nonhermitian");
+
+        this->flag_names.emplace(u"commutative");
+        this->flag_names.emplace(u"noncommutative");
+        this->mutex_params.add_mutex(u"commutative", u"noncommutative");
 
         this->min_inputs = 0;
         this->max_inputs = 2;

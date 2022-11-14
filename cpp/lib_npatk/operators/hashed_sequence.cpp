@@ -6,6 +6,7 @@
 #include "hashed_sequence.h"
 
 #include <algorithm>
+#include <iostream>
 #include <iterator>
 
 namespace NPATK {
@@ -73,6 +74,22 @@ namespace NPATK {
         str.reserve(this->operators.size());
         std::copy(this->operators.crbegin(), this->operators.crend(), std::back_inserter(str));
         return HashedSequence{std::move(str), hasher};
+    }
+
+    std::ostream& operator<<(std::ostream& os, const HashedSequence& seq) {
+        if (seq.empty()) {
+            if (seq.zero()) {
+                os << "0";
+            } else {
+                os << "I";
+            }
+        } else {
+            for (const auto o : seq.operators) {
+                os << "X" << o;
+            }
+        }
+        os << " [" << seq.the_hash << "]";
+        return os;
     }
 
 

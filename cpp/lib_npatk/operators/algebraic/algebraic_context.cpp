@@ -15,17 +15,16 @@
 
 namespace NPATK {
 
-    AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian)
-        : Context{operator_count}, self_adjoint{hermitian}, rawSequences{*this}, rules{this->hasher, {}, hermitian}
+    AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian, const bool commute,
+                                       const std::vector<MonomialSubstitutionRule>& initial_rules)
+        : Context{operator_count}, self_adjoint{hermitian}, commutative{commute},
+          rawSequences{*this}, rules{this->hasher, initial_rules, hermitian}
     {
-        this->generate_aliases(0);
-    }
+        if (this->commutative) {
+            auto extra_rules = RuleBook::commutator_rules(this->hasher, static_cast<oper_name_t>(operator_count));
+            this->rules.add_rules(extra_rules);
+        }
 
-    AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian,
-                                       const std::vector<MonomialSubstitutionRule>& rules)
-        : Context{operator_count}, self_adjoint{hermitian}, rawSequences{*this},
-            rules{this->hasher, rules, hermitian}
-    {
         this->generate_aliases(0);
     }
 

@@ -34,6 +34,9 @@ namespace NPATK {
         /** True, if all operators are self-adjoint */
         const bool self_adjoint = true;
 
+        /** True, if all operators are commutative */
+        const bool commutative = false;
+
     private:
         /** Collection of every permutation of symbols */
         RawSequenceBook rawSequences;
@@ -48,10 +51,11 @@ namespace NPATK {
         std::map<uint64_t, std::pair<size_t, bool>> hashToReplacementSymbol;
 
     public:
-        explicit AlgebraicContext(size_t operator_count, bool self_adjoint = true);
-
-        explicit AlgebraicContext(size_t operator_count, bool self_adjoint,
+        AlgebraicContext(size_t operator_count, bool self_adjoint, bool commutative,
                                   const std::vector<MonomialSubstitutionRule>& rules);
+
+        explicit AlgebraicContext(size_t operator_count, bool self_adjoint = true, bool commutative = false)
+            : AlgebraicContext{operator_count, self_adjoint, commutative, {}} { }
 
         ~AlgebraicContext() noexcept override;
 

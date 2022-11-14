@@ -22,12 +22,16 @@ namespace NPATK::mex::functions {
                                                         CompleteParams& input) {
             std::vector<MonomialSubstitutionRule> rules;
             const size_t max_strlen = hasher.longest_hashable_string();
-            rules.reserve(input.rules.size());
-            for (auto& ir : input.rules) {
+
+            if (input.commutative) {
+                rules = RuleBook::commutator_rules(hasher, input.max_operators);
+            }
+
+            rules.reserve(rules.size() + input.rules.size());
+            for (auto &ir: input.rules) {
                 rules.emplace_back(HashedSequence{std::move(ir.LHS), hasher},
                                    HashedSequence{std::move(ir.RHS), hasher}, ir.negated);
             }
-
             return RuleBook{hasher, rules, input.hermitian_operators};
         }
     }
@@ -42,7 +46,6 @@ namespace NPATK::mex::functions {
         } else {
             this->max_operators = 0;
         }
-
 
         // Do we specify number of attempts?
         if (this->flags.contains(u"test")) {
@@ -59,8 +62,11 @@ namespace NPATK::mex::functions {
             }
         }
 
-        // Default to Hermitian, but allow non-hermitian overrides
+        // Default to Hermitian, but allow non-hermitian override
         this->hermitian_operators = !(this->flags.contains(u"nonhermitian"));
+
+        // Default to non-commutative, but allow commutative override
+        this->commutative = this->flags.contains(u"commutative");
 
         // Try to read raw rules (w/ matlab indices)
         this->rules = read_monomial_rules(matlabEngine, inputs[0], "Rules", true, this->max_operators);
@@ -105,6 +111,10 @@ namespace NPATK::mex::functions {
         this->flag_names.emplace(u"hermitian");
         this->flag_names.emplace(u"nonhermitian");
         this->mutex_params.add_mutex(u"hermitian", u"nonhermitian");
+
+        this->flag_names.emplace(u"commutative");
+        this->flag_names.emplace(u"noncommutative");
+        this->mutex_params.add_mutex(u"commutative", u"noncommutative");
 
         this->mutex_params.add_mutex(u"test", u"limit");
 

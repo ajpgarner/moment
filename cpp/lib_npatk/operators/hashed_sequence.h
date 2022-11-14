@@ -9,6 +9,7 @@
 #include "shortlex_hasher.h"
 
 #include <cassert>
+#include <iosfwd>
 #include <vector>
 
 namespace NPATK {
@@ -140,6 +141,8 @@ namespace NPATK {
             return !(*this == rhs);
         }
 
+        /** Debug output */
+        friend std::ostream& operator<<(std::ostream& os, const HashedSequence& seq);
     };
 
 }

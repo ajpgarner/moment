@@ -30,6 +30,9 @@ namespace NPATK {
                 const MonomialSubstitutionRule& parent_rule_b,
                 const MonomialSubstitutionRule& new_rule) = 0;
 
+        virtual void rule_introduced(
+                const MonomialSubstitutionRule& new_rule) = 0;
+
         virtual void rule_introduced_conjugate(
                 const MonomialSubstitutionRule& parent_rule,
                 const MonomialSubstitutionRule& new_rule) = 0;
@@ -58,6 +61,13 @@ namespace NPATK {
 
         explicit RuleBook(const ShortlexHasher& hasher, bool hermitian = true)
             : RuleBook(hasher, std::vector<MonomialSubstitutionRule>{}, hermitian) { }
+
+        /** Add rules */
+        ptrdiff_t add_rules(const std::vector<MonomialSubstitutionRule>& rules, RuleLogger * logger = nullptr);
+
+        /** Add single rule */
+        ptrdiff_t add_rule(const MonomialSubstitutionRule& rule, RuleLogger * logger = nullptr);
+
 
         /** Handle to rules map. */
         [[nodiscard]] const auto& rules() const noexcept { return this->monomialRules; }
@@ -121,6 +131,15 @@ namespace NPATK {
          * Print out rules.
          */
         friend std::ostream& operator<<(std::ostream& os, const RuleBook& rulebook);
+
+        /**
+         * Generate complete commutation rule list.
+         * @param hasher For calculating hashes of generated strings
+         * @param operator_count Number of operators
+         * @return Vector of commutation rules.
+         */
+        static std::vector<MonomialSubstitutionRule> commutator_rules(const ShortlexHasher& hasher,
+                                                                      oper_name_t  operator_count);
 
     };
 

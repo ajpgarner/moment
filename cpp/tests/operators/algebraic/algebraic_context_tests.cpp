@@ -36,7 +36,7 @@ namespace NPATK::Tests {
                 HashedSequence{{1, 2}, ShortlexHasher{3}},
                 HashedSequence{{1}, ShortlexHasher{3}}
         );
-        AlgebraicContext ac{3, true, rules};
+        AlgebraicContext ac{3, true, false, rules};
 
         ac.generate_aliases(3);
 
@@ -72,7 +72,7 @@ namespace NPATK::Tests {
                 HashedSequence{{2, 1}, ShortlexHasher{3}},
                 HashedSequence{{1}, ShortlexHasher{3}}
         );
-        AlgebraicContext ac{3, true, rules};
+        AlgebraicContext ac{3, true, false, rules};
 
         ac.generate_aliases(4);
 
@@ -114,7 +114,7 @@ namespace NPATK::Tests {
                 HashedSequence{{}, ShortlexHasher{3}}
         );
 
-        AlgebraicContext ac{3, true, rules};
+        AlgebraicContext ac{3, true, false, rules};
 
         ac.generate_aliases(6);
 
@@ -156,7 +156,7 @@ namespace NPATK::Tests {
                 HashedSequence{{2, 1}, ShortlexHasher{3}},
                 HashedSequence{{1, 2}, ShortlexHasher{3}}
         );
-        AlgebraicContext ac{3, true, rules};
+        AlgebraicContext ac{3, true, false, rules};
 
         ac.generate_aliases(3);
 
@@ -206,7 +206,7 @@ namespace NPATK::Tests {
                 HashedSequence{{0, 1}, ShortlexHasher{2}}
         );
 
-        AlgebraicContext ac{2, true, rules};
+        AlgebraicContext ac{2, true, false, rules};
         ac.generate_aliases(4);
 
         OperatorSequenceGenerator osg_lvl1{ac, 1};
@@ -269,7 +269,7 @@ namespace NPATK::Tests {
                 HashedSequence{{}, ShortlexHasher{2}}
         );
 
-        AlgebraicContext ac{2, true, rules};
+        AlgebraicContext ac{2, true, false, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
         ac.generate_aliases(2);
 
@@ -309,7 +309,7 @@ namespace NPATK::Tests {
                 HashedSequence{{2}, ShortlexHasher{3}}
         );
 
-        AlgebraicContext ac{3, true, rules};
+        AlgebraicContext ac{3, true, false, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
         ac.generate_aliases(1);
 
@@ -333,7 +333,7 @@ namespace NPATK::Tests {
                 HashedSequence{{0, 1}, ShortlexHasher{2}},
                 HashedSequence{{}, ShortlexHasher{2}}
         );
-        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, std::move(rules));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = ams.Context();
 
@@ -365,7 +365,7 @@ namespace NPATK::Tests {
                 HashedSequence{{1, 0}, ShortlexHasher{2}},
                 HashedSequence{{}, ShortlexHasher{2}}
         );
-        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, std::move(rules));
         ASSERT_TRUE(ac_ptr->attempt_completion(20));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
@@ -391,7 +391,7 @@ namespace NPATK::Tests {
                 HashedSequence{{0, 0}, ShortlexHasher{2}},
                 HashedSequence{{0}, ShortlexHasher{2}}
         );
-        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, std::move(rules));
         ASSERT_TRUE(ac_ptr->attempt_completion(20));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
@@ -418,7 +418,7 @@ namespace NPATK::Tests {
                 HashedSequence{{0, 1}, ShortlexHasher{2}},
                 true
         );
-        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, std::move(rules));
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, std::move(rules));
         ASSERT_TRUE(ac_ptr->attempt_completion(20));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
@@ -446,6 +446,5 @@ namespace NPATK::Tests {
         EXPECT_FALSE(x0x1.is_hermitian()) << symTable;
         EXPECT_EQ(rePart, -1) << symTable;
         EXPECT_NE(imPart, -1) << symTable;
-
     }
 }
