@@ -7,8 +7,8 @@
 #include "explicit_symbols.h"
 #include "implicit_symbols.h"
 #include "locality_matrix_system.h"
-#include "operators/matrix/matrix_system.h"
-#include "operators/matrix/symbol_table.h"
+#include "../matrix_system.h"
+#include "../matrix/symbol_table.h"
 
 #include "joint_measurement_iterator.h"
 

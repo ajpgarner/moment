@@ -7,8 +7,8 @@
 
 #include "locality_context.h"
 
-#include "operators/matrix/matrix_system.h"
-#include "operators/matrix/symbol_table.h"
+#include "../matrix_system.h"
+#include "../matrix/symbol_table.h"
 
 #include "utilities/multi_dimensional_index_iterator.h"
 

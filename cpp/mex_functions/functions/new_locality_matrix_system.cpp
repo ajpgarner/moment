@@ -8,7 +8,7 @@
 #include "storage_manager.h"
 
 #include "operators/context.h"
-#include "operators/matrix/matrix_system.h"
+#include "operators/matrix_system.h"
 #include "operators/locality/locality_context.h"
 #include "operators/locality/locality_matrix_system.h"
 

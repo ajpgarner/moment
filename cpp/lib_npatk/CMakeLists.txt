@@ -3,6 +3,7 @@ include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 add_library(lib_npatk
         operators/context.cpp
         operators/hashed_sequence.cpp
+        operators/matrix_system.cpp
         operators/operator_sequence.cpp
         operators/operator_sequence_generator.cpp
         operators/shortlex_hasher.cpp
@@ -23,7 +24,6 @@ add_library(lib_npatk
         operators/locality/party.cpp
         operators/matrix/localizing_matrix.cpp
         operators/matrix/localizing_matrix_index.cpp
-        operators/matrix/matrix_system.cpp
         operators/matrix/moment_matrix.cpp
         operators/matrix/operator_matrix.cpp
         operators/matrix/symbol_matrix_properties.cpp

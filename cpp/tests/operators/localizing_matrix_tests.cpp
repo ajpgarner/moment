@@ -7,8 +7,8 @@
 #include "gtest/gtest.h"
 
 #include "operators/context.h"
+#include "operators/matrix_system.h"
 #include "operators/matrix/localizing_matrix.h"
-#include "operators/matrix/matrix_system.h"
 
 #include "compare_os_matrix.h"
 

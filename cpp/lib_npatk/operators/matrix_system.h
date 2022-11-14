@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "localizing_matrix_index.h"
+#include "matrix/localizing_matrix_index.h"
 
 namespace NPATK {
 

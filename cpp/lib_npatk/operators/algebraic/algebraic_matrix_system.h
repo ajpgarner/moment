@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
-#include "../matrix/matrix_system.h"
+#include "../matrix_system.h"
 #include "raw_sequence_book.h"
 
 namespace NPATK {

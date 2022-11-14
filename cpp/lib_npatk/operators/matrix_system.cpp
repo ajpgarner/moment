@@ -5,16 +5,14 @@
  */
 #include "matrix_system.h"
 
-#include "symbol_table.h"
-#include "operator_matrix.h"
-#include "localizing_matrix.h"
-#include "moment_matrix.h"
+#include "matrix/symbol_table.h"
+#include "matrix/localizing_matrix.h"
+#include "matrix/moment_matrix.h"
 
-#include "../context.h"
+#include "context.h"
 
 #include <algorithm>
 #include <memory>
-#include <mutex>
 #include <stdexcept>
 
 namespace NPATK {

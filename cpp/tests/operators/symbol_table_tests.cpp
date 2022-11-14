@@ -6,9 +6,9 @@
 #include "gtest/gtest.h"
 
 #include "operators/context.h"
+#include "operators/matrix_system.h"
 #include "operators/matrix/symbol_table.h"
 #include "operators/matrix/moment_matrix.h"
-#include "operators/matrix/matrix_system.h"
 #include "operators/locality/locality_context.h"
 #include "operators/locality/locality_matrix_system.h"
 
