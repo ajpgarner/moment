@@ -447,4 +447,32 @@ namespace NPATK::Tests {
         EXPECT_EQ(rePart, -1) << symTable;
         EXPECT_NE(imPart, -1) << symTable;
     }
+
+
+    TEST(AlgebraicContext, CreateMomentMatrix_Commutative) {
+        ShortlexHasher hasher{2};
+        std::vector<MonomialSubstitutionRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher},
+                         HashedSequence{{0}, hasher}); // AB-> A
+
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, false, true, std::move(msr));
+        ASSERT_TRUE(ac_ptr->attempt_completion(20));
+        AlgebraicMatrixSystem ams{std::move(ac_ptr)};
+        const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
+
+        auto [id1, mm1] = ams.create_moment_matrix(1); // 1 a b
+        ASSERT_EQ(mm1.Level(), 1);
+        EXPECT_TRUE(mm1.IsHermitian());
+        ASSERT_EQ(mm1.Dimension(), 3);
+        EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[0][1], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[0][2], OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[1][0], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[1][1], OperatorSequence({0, 0}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[1][2], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[2][0], OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(mm1.SequenceMatrix[2][1], OperatorSequence({0}, ams.Context(), true));
+        EXPECT_EQ(mm1.SequenceMatrix[2][2], OperatorSequence({1, 1}, ams.Context()));
+
+    }
 }

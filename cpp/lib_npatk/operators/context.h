@@ -96,6 +96,13 @@ namespace NPATK {
          }
 
          /**
+          * Get handle to the hasher
+          */
+          const ShortlexHasher& the_hasher() const noexcept {
+              return this->hasher;
+          }
+
+         /**
           * Generates a formatted string representation of an operator sequence
           */
           [[nodiscard]] virtual std::string format_sequence(const OperatorSequence& seq) const;

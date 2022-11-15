@@ -105,6 +105,12 @@ namespace NPATK {
         auto match_iter = this->matches_anywhere(input_iter, input_sequence.end());
         while (match_iter != input_sequence.end()) {
             auto altered_string = this->apply_match_with_hint(input_sequence.raw(), match_iter);
+
+            // If commutative, re-order after applying rules...
+            if (rsb.commutative) {
+                std::sort(altered_string.begin(), altered_string.end());
+            }
+
             const auto *target_seq = rsb.where(altered_string);
             if (target_seq == nullptr) {
                 throw std::logic_error{"Internal error: Substitution resulted in illegal string!"};

@@ -8,6 +8,7 @@
 #include "raw_sequence.h"
 #include "symbolic/symbol.h"
 
+#include <iosfwd>
 #include <map>
 #include <memory>
 #include <vector>
@@ -18,8 +19,11 @@ namespace NPATK {
     class SymbolSet;
 
     class RawSequenceBook {
-    private:
+    public:
         const Context& context;
+        const bool commutative;
+
+    private:
         size_t max_seq_length = 0;
         std::vector<RawSequence> sequences;
         std::vector<Symbol> symbols;
@@ -27,7 +31,7 @@ namespace NPATK {
         std::map<size_t, size_t> hash_table;
 
     public:
-        explicit RawSequenceBook(const Context& context);
+        explicit RawSequenceBook(const Context& context, bool commutative = false);
 
         /**
          * Generate all permutations of symbols up to nominated length.
@@ -63,6 +67,14 @@ namespace NPATK {
         [[nodiscard]] const RawSequence * where(const HashedSequence& op_str) const noexcept;
 
         [[nodiscard]] const std::vector<Symbol>& Symbols() const noexcept { return this->symbols; }
+
+        /** Debug output */
+        friend std::ostream& operator<<(std::ostream& os, const RawSequenceBook& rsb);
+
+    private:
+        void generate_all(size_t length);
+
+        void generate_commuting(size_t length);
 
     };
 

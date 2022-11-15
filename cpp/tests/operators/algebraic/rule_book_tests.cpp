@@ -499,7 +499,7 @@ namespace NPATK::Tests {
     }
 
     TEST(RuleBook, HermitianComplete_ABtoA_BCtoB_CAtoC) {
-        ShortlexHasher hasher{2};
+        ShortlexHasher hasher{3};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
@@ -557,6 +557,5 @@ namespace NPATK::Tests {
         EXPECT_EQ(comVec[2].RHS(),HashedSequence({0, 1}, hasher));
 
     }
-
 
 }

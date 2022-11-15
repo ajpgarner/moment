@@ -11,12 +11,31 @@
 
 #include "symbolic/symbol_set.h"
 
+#include "utilities/ordered_permutation.h"
+
 #include <cmath>
+#include <iostream>
 
 namespace NPATK {
 
     namespace {
+        size_t factorial(const size_t n) {
+            size_t out = 1;
+            for (size_t i = 1; i <= n; ++i) {
+                out *= i;
+            }
+            return out;
+        }
+
         size_t num_permutations(const size_t alphabet, const size_t minLength, const size_t maxLength) {
+            size_t output = 0;
+            for (size_t i = minLength; i< maxLength; ++i) {
+                output += static_cast<size_t>(pow(static_cast<double>(alphabet), static_cast<double>(i)));
+            }
+            return output;
+        }
+
+        size_t num_combinations(const size_t alphabet, const size_t minLength, const size_t maxLength) {
             size_t output = 0;
             for (size_t i = minLength; i< maxLength; ++i) {
                 output += static_cast<size_t>(pow(static_cast<double>(alphabet), static_cast<double>(i)));
@@ -26,7 +45,8 @@ namespace NPATK {
     }
 
 
-    RawSequenceBook::RawSequenceBook(const Context& context) : context{context} {
+    RawSequenceBook::RawSequenceBook(const Context& context, const bool commute)
+        : context{context}, commutative{commute} {
         // Always add zero and one symbols...
         this->sequences.reserve(2);
         this->sequences.emplace_back(std::vector<oper_name_t>{}, 0, 0); // hash of 0 is always 0
@@ -48,6 +68,16 @@ namespace NPATK {
             return false;
         }
 
+        if (this->commutative) {
+            this->generate_commuting(target_length);
+        } else {
+            this->generate_all(target_length);
+        }
+
+        return true;
+    }
+
+    void RawSequenceBook::generate_all(const size_t target_length) {
         // Reserve for new sequences...
         const size_t new_elements = num_permutations(this->context.size(), this->max_seq_length, target_length);
         this->sequences.reserve(this->sequences.size() + new_elements);
@@ -85,8 +115,37 @@ namespace NPATK {
         }
 
         this->max_seq_length = target_length;
-        return true;
     }
+
+    void RawSequenceBook::generate_commuting(const size_t target_length) {
+
+        const auto initial_symbol_count = static_cast<symbol_name_t>(this->sequences.size());
+        auto symbol_id =  initial_symbol_count;
+
+        for (size_t length = this->max_seq_length+1; length <= target_length; ++length) {
+            OrderedPermutationIterator<oper_name_t> permIter{static_cast<oper_name_t>(this->context.size()),
+                                                             static_cast<oper_name_t>(length)};
+            OrderedPermutationIterator<oper_name_t> permIterEnd{static_cast<oper_name_t>(this->context.size()),
+                                                                static_cast<oper_name_t>(length), true};
+            while (permIter != permIterEnd) {
+                auto rawStr = *permIter;
+                size_t hash = this->context.hash(rawStr);
+                this->sequences.emplace_back(std::move(rawStr), hash, symbol_id);
+                this->symbols.emplace_back(symbol_id);
+                this->hash_table.emplace(std::make_pair(hash, symbol_id));
+
+                // In commutative mode, strings are automatically self-adjoint:
+                this->sequences.back().conjugate_id = symbol_id;
+                this->sequences.back().conjugate_hash = hash;
+                this->symbols.back().im_is_zero = true;
+
+                ++symbol_id;
+                ++permIter;
+            }
+        }
+        this->max_seq_length = target_length;
+    }
+
 
 
     void RawSequenceBook::synchronizeNullity(const SymbolSet &newSet) {
@@ -140,6 +199,20 @@ namespace NPATK {
             return nullptr;
         }
         return this->where(op_str.hash());
+    }
+
+    std::ostream& operator<<(std::ostream& os, const RawSequenceBook& rsb) {
+        if (rsb.commutative) {
+            os << "Commutative ";
+        }
+        os << "RawSequenceBook with " << rsb.size() << " entries."
+           << "\n";
+        size_t n = 0;
+        for (const auto& seq : rsb.sequences) {
+            os << n << ":\t" << seq << "\n";
+            ++n;
+        }
+        return os;
     }
 
 }

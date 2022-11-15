@@ -18,7 +18,7 @@ namespace NPATK {
     AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian, const bool commute,
                                        const std::vector<MonomialSubstitutionRule>& initial_rules)
         : Context{operator_count}, self_adjoint{hermitian}, commutative{commute},
-          rawSequences{*this}, rules{this->hasher, initial_rules, hermitian}
+          rawSequences{*this, commute}, rules{this->hasher, initial_rules, hermitian}
     {
         if (this->commutative) {
             auto extra_rules = RuleBook::commutator_rules(this->hasher, static_cast<oper_name_t>(operator_count));
@@ -39,6 +39,12 @@ namespace NPATK {
         ss << "Algebraic context with "
            << op_count << (op_count ? " operators" : " operator")
            << " and " << rule_count << ((rule_count!= 1) ? " rules" : " rule") << ".\n";
+        if (this->commutative) {
+            ss << "Commutative mode.\n";
+        }
+        if (this->self_adjoint) {
+            ss << "Hermitian mode.\n";
+        }
         ss << "Operators: ";
         bool done_one = false;
         for (size_t index = 0; index < op_count; ++index) {
@@ -73,6 +79,7 @@ namespace NPATK {
         }
 
         size_t num_pairs = 0;
+
         for (const auto& [hash, rule] : this->rules.rules()) {
             num_pairs += rule.all_matches(output, this->rawSequences, input_sequence);
         }
@@ -148,10 +155,15 @@ namespace NPATK {
     }
 
     bool AlgebraicContext::additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negated) const {
+
+        if (this->commutative) {
+            std::sort(op_sequence.begin(), op_sequence.end());
+        }
+
         auto the_hash = this->hash(op_sequence);
         auto ruleIter = this->hashToReplacementSymbol.find(the_hash);
 
-        // No rules, no change.
+        // No rules, no further change.
         if (ruleIter == this->hashToReplacementSymbol.end()) {
             return false;
         }
@@ -172,7 +184,6 @@ namespace NPATK {
 
         // Negate, if required.
         negated = (negated != ruleIter->second.second);
-
         return false;
     }
 
