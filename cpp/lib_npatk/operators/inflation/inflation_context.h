@@ -44,6 +44,10 @@ namespace NPATK {
          */
          size_t Inflation() const noexcept { return this->inflation; }
 
+         /**
+          * Output inflation about context
+          */
+        std::string to_string() const override;
 
     };
 }

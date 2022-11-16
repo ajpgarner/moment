@@ -32,6 +32,7 @@ namespace NPATK::mex::functions {
         MakeSymmetric,
         MomentMatrix,
         NewAlgebraicMatrixSystem,
+        NewInflationMatrixSystem,
         NewLocalityMatrixSystem,
         OperatorMatrix,
         ProbabilityTable,

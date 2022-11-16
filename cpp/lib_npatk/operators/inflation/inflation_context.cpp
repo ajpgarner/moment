@@ -5,6 +5,8 @@
  */
 #include "inflation_context.h"
 
+#include <sstream>
+
 namespace NPATK {
 
     InflationContext::InflationContext(CausalNetwork network, size_t inflation_level)
@@ -12,5 +14,16 @@ namespace NPATK {
           base_network{std::move(network)},
           inflation{inflation_level} {
 
+    }
+
+    std::string InflationContext::to_string() const {
+        std::stringstream ss;
+        ss << "Inflation setting with "
+           << this->operators.size() << ((1 !=  this->operators.size()) ? " operators" : " operator")
+           << " in total.\n\n";
+        ss << this->base_network << "\n";
+        ss << "Inflation level: " << this->inflation;
+
+        return ss.str();
     }
 }

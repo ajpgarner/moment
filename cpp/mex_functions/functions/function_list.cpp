@@ -15,6 +15,7 @@
 #include "functions/make_symmetric.h"
 #include "functions/moment_matrix.h"
 #include "functions/new_algebraic_matrix_system.h"
+#include "functions/new_inflation_matrix_system.h"
 #include "functions/new_locality_matrix_system.h"
 #include "functions/operator_matrix.h"
 #include "functions/probability_table.h"
@@ -63,6 +64,9 @@ namespace NPATK::mex::functions {
             case functions::MEXEntryPointID::NewAlgebraicMatrixSystem:
                 the_function = std::make_unique<functions::NewAlgebraicMatrixSystem>(engine, storageManager);
                 break;
+            case functions::MEXEntryPointID::NewInflationMatrixSystem:
+                the_function = std::make_unique<functions::NewInflationMatrixSystem>(engine, storageManager);
+                break;
             case functions::MEXEntryPointID::NewLocalityMatrixSystem:
                 the_function = std::make_unique<functions::NewLocalityMatrixSystem>(engine, storageManager);
                 break;
@@ -106,6 +110,7 @@ namespace NPATK::mex::functions {
         output.emplace(u"moment_matrix",   MEXEntryPointID::MomentMatrix);
         output.emplace(u"operator_matrix", MEXEntryPointID::OperatorMatrix);
         output.emplace(u"new_algebraic_matrix_system", MEXEntryPointID::NewAlgebraicMatrixSystem);
+        output.emplace(u"new_inflation_matrix_system", MEXEntryPointID::NewInflationMatrixSystem);
         output.emplace(u"new_locality_matrix_system", MEXEntryPointID::NewLocalityMatrixSystem);
         output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
         output.emplace(u"release",         MEXEntryPointID::Release);

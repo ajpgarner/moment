@@ -40,6 +40,7 @@ matlab_add_mex(NAME npatk_mex
             functions/make_symmetric.cpp
             functions/moment_matrix.cpp
             functions/new_algebraic_matrix_system.cpp
+            functions/new_inflation_matrix_system.cpp
             functions/new_locality_matrix_system.cpp
             functions/operator_matrix.cpp
             functions/probability_table.cpp

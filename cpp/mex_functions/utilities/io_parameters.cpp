@@ -196,7 +196,6 @@ namespace NPATK::mex {
         }
     }
 
-
     std::vector<int64_t>
     SortedInputs::read_integer_array(matlab::engine::MATLABEngine &matlabEngine,
                                      const std::string &paramName,
@@ -217,8 +216,6 @@ namespace NPATK::mex {
             throw errors::BadInput{use.errCode, ss.str()};
         }
     }
-
-
 
     uint64_t SortedInputs::read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
                                                  const std::string &paramName,

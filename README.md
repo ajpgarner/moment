@@ -95,6 +95,8 @@ to the call to function `npatk(...)`:
 
 `new_algebraic_matrix_system`: Starts a new context of shared variables, with specified algebraic relations.
 
+`new_inflation_matrix_system`: Starts a new context of shared variables, for an inflated causal network.
+
 `new_locality_matrix_system`: Starts a new context of shared variables, for locality (party, measurement, outcome) 
 settings.
 

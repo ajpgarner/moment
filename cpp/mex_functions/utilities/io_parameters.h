@@ -146,7 +146,7 @@ namespace NPATK::mex {
          * @param paramName Parameter/input name, as will appear in failure error message.
          * @param array The array to attempt to parse as a scalar integer.
          * @param min_value The minimum acceptable value of the integer.
-         * @return The parsed integer.
+         * @return The parsed vector of integers.
          */
         static std::vector<uint64_t> read_positive_integer_array(matlab::engine::MATLABEngine &matlabEngine,
                                           const std::string& paramName, const matlab::data::Array& array,

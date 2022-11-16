@@ -4,6 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "causal_network.h"
+#include "utilities/alphabetic_namer.h"
 
 #include <sstream>
 
@@ -70,6 +71,56 @@ namespace NPATK {
             output += ob.count_operators(inflation_level);
         }
         return output;
+    }
+
+    std::ostream& operator<<(std::ostream& os, const CausalNetwork& network) {
+        AlphabeticNamer observable_namer{true};
+        const size_t oMax = network.observables.size();
+        const size_t sMax = network.sources.size();
+
+        os << "Causal network with " << oMax << ((1 != oMax) ? " observables" : " observable")
+           << " and " << sMax << ((1 != sMax) ? " sources" : " source") << ".\n";
+
+        // List observables
+        for (size_t oIndex = 0; oIndex < oMax; ++oIndex) {
+            const auto& observable = network.observables[oIndex];
+            os << "Observable " << observable_namer(observable.id) << " ["
+               << observable.outcomes << "]";
+            if (!observable.sources.empty()) {
+                os << " <- ";
+                bool done_one = false;
+                for (const auto s : observable.sources) {
+                    if (done_one) {
+                        os << ", ";
+                    } else {
+                        done_one = true;
+                    }
+                    os << s;
+                }
+            }
+            os << "\n";
+        }
+
+        // List sources
+        for (size_t sIndex = 0; sIndex < sMax; ++sIndex) {
+            const auto& source = network.sources[sIndex];
+            os << "Source " << source.id;
+            if (!source.observables.empty()) {
+                os << " -> ";
+                bool done_one = false;
+                for (const auto o : source.observables) {
+                    if (done_one) {
+                        os << ", ";
+                    } else {
+                        done_one = true;
+                    }
+                    os << observable_namer(o);
+                }
+            }
+            os << "\n";
+        }
+
+        return os;
     }
 }
 

@@ -13,6 +13,7 @@
 #include "observable.h"
 #include "source.h"
 
+#include <iosfwd>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -69,6 +70,8 @@ namespace NPATK {
          * Calculate total number of operators required for expressing this network at a particular inflation level
          */
         [[nodiscard]] size_t total_operator_count(size_t inflation_level) const noexcept;
+
+        friend std::ostream& operator<<(std::ostream& os, const CausalNetwork& network);
 
     private:
         /**
