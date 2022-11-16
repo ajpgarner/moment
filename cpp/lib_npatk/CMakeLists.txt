@@ -14,6 +14,11 @@ add_library(lib_npatk
         operators/algebraic/raw_sequence.cpp
         operators/algebraic/raw_sequence_book.cpp
         operators/algebraic/rule_book.cpp
+        operators/inflation/causal_network.cpp
+        operators/inflation/inflation_context.cpp
+        operators/inflation/inflation_matrix_system.cpp
+        operators/inflation/observable.cpp
+        operators/inflation/source.cpp
         operators/locality/explicit_symbols.cpp
         operators/locality/collins_gisin.cpp
         operators/locality/implicit_symbols.cpp

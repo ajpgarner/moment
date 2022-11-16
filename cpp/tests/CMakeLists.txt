@@ -13,6 +13,8 @@ add_executable(npatk_tests
     operators/algebraic/monomial_substitution_rule_tests.cpp
     operators/algebraic/raw_sequence_tests.cpp
     operators/algebraic/rule_book_tests.cpp
+    operators/inflation/causal_network_tests.cpp
+    operators/inflation/inflation_context_tests.cpp
     operators/locality/collins_gisin_tests.cpp
     operators/locality/explicit_symbols_tests.cpp
     operators/locality/implicit_symbols_tests.cpp
@@ -27,8 +29,9 @@ add_executable(npatk_tests
     symbolic/symbol_tree_tests.cpp
     utilities/alphabetic_namer_tests.cpp
     utilities/combination_iterator_tests.cpp
+    utilities/ipow_tests.cpp
     utilities/multi_dimensional_index_iterator_tests.cpp
-        utilities/ordered_permutation_tests.cpp
+    utilities/ordered_permutation_tests.cpp
     utilities/persistent_storage_tests.cpp
     utilities/recursive_storage_tests.cpp
     utilities/square_matrix_tests.cpp)
