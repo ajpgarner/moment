@@ -5,67 +5,24 @@
  */
 #include "inflation_context.h"
 
+#include <cassert>
+
 #include <algorithm>
 #include <sstream>
 
 namespace NPATK {
-    namespace {
-        struct InflationOperator {
-        public:
-            oper_name_t id = 0;
-            oper_name_t observable_id = 0;
-            oper_name_t observable_copy = 0;
-
-            InflationOperator() = default;
-            InflationOperator(oper_name_t id, oper_name_t o_id, oper_name_t o_copy)
-                : id{id}, observable_id{o_id}, observable_copy{o_copy} { }
-
-            /**
-            * Predicate: true if the operator id of LHS is less than that of RHS.
-            */
-            struct Comparator {
-                constexpr bool operator()(const InflationOperator &lhs, const InflationOperator &rhs) const noexcept {
-                    return lhs.id < rhs.id;
-                }
-            };
-
-            /**
-             * Predicate: true if lhs != rhs, but both are part of same observable.
-             */
-            struct IsOrthogonal {
-                constexpr bool operator()(const InflationOperator &lhs, const InflationOperator &rhs) const noexcept {
-                    // Not in same version of same observable, therefore not automatically orthogonal.
-                    if ((lhs.observable_id != rhs.observable_id) || (lhs.observable_copy != rhs.observable_copy)) {
-                        return false;
-                    }
-                    return (lhs.id != rhs.id);
-                }
-            };
-
-            /**
-             * Predicate: true if lhs == rhs, and both are part of same observable.
-             */
-            struct IsRedundant {
-                constexpr bool operator()(const InflationOperator &lhs, const InflationOperator &rhs) const noexcept {
-                    return (lhs.id == rhs.id);
-                }
-            };
-
-        };
-    }
-
-
-    InflationContext::InflationContext(CausalNetwork network, size_t inflation_level)
+       InflationContext::InflationContext(CausalNetwork network, size_t inflation_level)
         : Context{network.total_operator_count(inflation_level)},
           base_network{std::move(network)},
           inflation{inflation_level} {
 
-        // Create operator info
+        // Create operator and observable info
+        this->inflated_observables.reserve(this->base_network.Observables().size());
         this->operator_info.reserve(this->size());
-
         oper_name_t global_id = 0;
         for (const auto& observable : this->base_network.Observables()) {
             const auto num_copies = static_cast<oper_name_t>(observable.count_copies(inflation_level));
+            this->inflated_observables.emplace_back(observable.id, global_id, num_copies);
             for (oper_name_t copy_index = 0; copy_index < num_copies; ++copy_index) {
                 for (oper_name_t outcome = 0; outcome < (observable.outcomes-1); ++outcome) {
                     this->operator_info.emplace_back(global_id, observable.id, copy_index, outcome);
@@ -74,6 +31,7 @@ namespace NPATK {
             }
         }
         assert(this->operator_info.size() == this->size());
+        assert(this->inflated_observables.size() == this->base_network.Observables().size());
 
     }
 
@@ -90,19 +48,52 @@ namespace NPATK {
 
     bool InflationContext::additional_simplification(std::vector<oper_name_t> &op_sequence, bool &negate) const {
         // Commutation between parties...
-        std::vector<InflationOperator> io_seq;
+        std::vector<ICOperatorInfo> io_seq;
         io_seq.reserve(op_sequence.size());
         for (const auto& op : op_sequence) {
             if ((op < 0) || (op >= this->operators.size())) {
                 throw std::range_error{"Operator ID higher than number of known operators."};
             }
-            io_seq.emplace_back(op, 0, 0); // XXX get actual info for observables..
+            const auto& info = this->operator_info[op];
+            io_seq.emplace_back(info);
         }
 
-        // Completely commuting set, so sort
-        std::sort(io_seq.begin(), io_seq.end(), InflationOperator::Comparator{});
+        // Completely commuting set, so sort (no need for stability)
+        std::sort(io_seq.begin(), io_seq.end(), ICOperatorInfo::OrderByID{});
 
-        return Context::additional_simplification(op_sequence, negate);
+        // Check for nullity
+        const ICOperatorInfo::IsOrthogonal isOrth;
+        for (size_t index = 1, iMax = io_seq.size(); index < iMax; ++index) {
+            if (isOrth(io_seq[index-1], io_seq[index])) {
+                op_sequence.clear();
+                return true;
+            }
+        }
+
+        // Remove excess idempotent elements.
+        auto trim_idem = std::unique(io_seq.begin(), io_seq.end(),
+                                     ICOperatorInfo::IsRedundant{});
+        io_seq.erase(trim_idem, io_seq.end());
+
+        // Copy sequence to output
+        op_sequence.clear();
+        op_sequence.reserve(io_seq.size());
+        for (const auto& op : io_seq) {
+            op_sequence.emplace_back(op.global_id);
+        }
+        return false;
     }
+
+    oper_name_t InflationContext::operator_number(oper_name_t observable, oper_name_t variant,
+                                                  oper_name_t outcome) const noexcept {
+       assert((observable >= 0) && (observable < this->inflated_observables.size()));
+       assert((observable >= 0) && (observable < this->base_network.Observables().size()));
+       const auto& observable_info = this->inflated_observables[observable];
+       assert((variant >= 0) && (variant < observable_info.variant_count));
+       const auto& base_observable = this->base_network.Observables();
+       return static_cast<oper_name_t>(observable_info.operator_offset)
+                + (variant * (static_cast<oper_name_t>(this->base_network.Observables()[observable].outcomes)-1))
+                + outcome;
+   }
 
 }
