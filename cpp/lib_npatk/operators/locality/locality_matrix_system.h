@@ -14,7 +14,7 @@ namespace NPATK {
 
     class LocalityMatrixSystem : public MatrixSystem {
     public:
-        const LocalityContext& localityContext;
+        const class LocalityContext& localityContext;
 
     private:
         /** Map of measurement outcome symbols */

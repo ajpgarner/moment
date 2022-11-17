@@ -18,11 +18,25 @@ namespace NPATK {
 
 
     class InflationContext : public Context {
+        struct ICOperatorInfo {
+            oper_name_t global_id;
+            oper_name_t observable;
+            oper_name_t flattenedSourceIndex;
+            oper_name_t outcome;
+
+        public:
+            ICOperatorInfo(oper_name_t id, oper_name_t observable, oper_name_t flattenedIndex, oper_name_t outcome)
+                : global_id{id}, observable{observable}, flattenedSourceIndex{flattenedIndex}, outcome{outcome} { }
+        };
+
     private:
         CausalNetwork base_network;
         size_t inflation;
+        std::vector<ICOperatorInfo> operator_info;
 
     public:
+        bool additional_simplification(std::vector<oper_name_t> &op_sequence, bool &negate) const override;
+
         /**
          * Create a causal network context, for inflating.
          * @param network Causal network
@@ -42,12 +56,12 @@ namespace NPATK {
         /**
          * Level of inflation
          */
-         size_t Inflation() const noexcept { return this->inflation; }
+         [[nodiscard]] size_t Inflation() const noexcept { return this->inflation; }
 
          /**
           * Output inflation about context
           */
-        std::string to_string() const override;
+         [[nodiscard]] std::string to_string() const override;
 
     };
 }
