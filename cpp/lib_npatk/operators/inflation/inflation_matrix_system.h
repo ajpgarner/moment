@@ -23,7 +23,7 @@ namespace NPATK {
          * Construct a system of matrices with shared operators.
          * @param context The operator scenario.
          */
-        explicit InflationMatrixSystem(std::unique_ptr<InflationContext> context);
+        explicit InflationMatrixSystem(std::unique_ptr<class InflationContext> context);
 
         /**
          * Construct a system of matrices with shared operators.
