@@ -5,6 +5,9 @@
  */
 #include "inflation_context.h"
 
+#include "operators/operator_sequence.h"
+#include "utilities/alphabetic_namer.h"
+
 #include <cassert>
 
 #include <algorithm>
@@ -33,6 +36,67 @@ namespace NPATK {
         assert(this->operator_info.size() == this->size());
         assert(this->inflated_observables.size() == this->base_network.Observables().size());
 
+    }
+
+
+    std::string InflationContext::format_sequence(const OperatorSequence &seq) const {
+        if (seq.zero()) {
+            return "0";
+        }
+        if (seq.empty()) {
+            return "1";
+        }
+
+        std::stringstream ss;
+        if (seq.negated()) {
+            ss << "-";
+        }
+
+        AlphabeticNamer obsNamer{true};
+
+        const bool needs_comma = this->inflation > 9;
+        const bool needs_braces = std::any_of(this->Observables().cbegin(), this->Observables().cend(),
+                                              [](const auto& obs) { return obs.outcomes > 2; });
+        bool one_operator = false;
+        for (const auto& oper : seq) {
+            if (one_operator) {
+                ss << ";";
+            } else {
+                one_operator = true;
+            }
+
+            if (oper > this->operator_info.size()) {
+                ss << "[UNK:" << oper << "]";
+            } else {
+                const auto &extraInfo = this->operator_info[oper];
+                const auto &obsInfo = this->base_network.Observables()[extraInfo.observable];
+
+                ss << obsNamer(extraInfo.observable);
+                if (obsInfo.outcomes > 2) {
+                   ss << extraInfo.outcome;
+                }
+                // Give indices, if inflated
+                if (this->inflation > 1) {
+                    auto infIndices = obsInfo.unflatten_index(this->inflation, extraInfo.flattenedSourceIndex);
+                    bool done_one = false;
+                    if (needs_braces) {
+                        ss << "[";
+                    }
+                    for (auto infIndex : infIndices){
+                        if (needs_comma && done_one) {
+                            ss << ",";
+                        } else {
+                            done_one = true;
+                        }
+                        ss << infIndex;
+                    }
+                    if (needs_braces) {
+                        ss << "]";
+                    }
+                }
+            }
+        }
+        return ss.str();
     }
 
     std::string InflationContext::to_string() const {
@@ -95,5 +159,6 @@ namespace NPATK {
                 + (variant * (static_cast<oper_name_t>(this->base_network.Observables()[observable].outcomes)-1))
                 + outcome;
    }
+
 
 }

@@ -174,10 +174,43 @@ namespace NPATK::Tests {
         EXPECT_EQ(ic.Observables()[2].count_operators(2), 4);
         EXPECT_EQ(ic.total_operator_count(2), 12);
 
-        // Inflation level 2: A000, A001, A010, etc...
+        // Inflation level 2: A01, A01, A02, A10, etc...
         EXPECT_EQ(ic.Observables()[0].count_operators(3), 9);
         EXPECT_EQ(ic.Observables()[1].count_operators(3), 9);
         EXPECT_EQ(ic.Observables()[2].count_operators(3), 9);
         EXPECT_EQ(ic.total_operator_count(3), 27);
+    }
+
+
+    TEST(CausalNetwork, UnflattenIndices_Triangle) {
+        CausalNetwork ic{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}};
+        ASSERT_EQ(ic.Observables().size(), 3);
+        const auto& observables = ic.Observables();
+
+        // Inflation level 1: A, B, C; no copies.
+        EXPECT_EQ(observables[0].unflatten_index(1, 0), (std::vector<oper_name_t>{0, 0}));
+        EXPECT_EQ(observables[1].unflatten_index(1, 0), (std::vector<oper_name_t>{0, 0}));
+        EXPECT_EQ(observables[2].unflatten_index(1, 0), (std::vector<oper_name_t>{0, 0}));
+
+        // Inflation level 2: A00, A01, A10, A11; etc.
+        for (size_t obs = 0; obs < 3; ++obs) {
+            EXPECT_EQ(observables[obs].unflatten_index(2, 0), (std::vector<oper_name_t>{0, 0})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(2, 1), (std::vector<oper_name_t>{0, 1})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(2, 2), (std::vector<oper_name_t>{1, 0})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(2, 3), (std::vector<oper_name_t>{1, 1})) << "obs = " << obs;
+        }
+
+        // Inflation level 3: A00, A01, A02, A10...; etc.
+        for (size_t obs = 0; obs < 3; ++obs) {
+            EXPECT_EQ(observables[obs].unflatten_index(3, 0), (std::vector<oper_name_t>{0, 0})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 1), (std::vector<oper_name_t>{0, 1})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 2), (std::vector<oper_name_t>{0, 2})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 3), (std::vector<oper_name_t>{1, 0})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 4), (std::vector<oper_name_t>{1, 1})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 5), (std::vector<oper_name_t>{1, 2})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 6), (std::vector<oper_name_t>{2, 0})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 7), (std::vector<oper_name_t>{2, 1})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 8), (std::vector<oper_name_t>{2, 2})) << "obs = " << obs;
+        }
     }
 }

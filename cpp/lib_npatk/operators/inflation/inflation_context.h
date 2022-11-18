@@ -28,7 +28,6 @@ namespace NPATK {
             ICOperatorInfo(oper_name_t id, oper_name_t observable, oper_name_t flattenedIndex, oper_name_t outcome)
                 : global_id{id}, observable{observable}, flattenedSourceIndex{flattenedIndex}, outcome{outcome} { }
 
-
             /**
             * Predicate: true if the operator id of LHS is less than that of RHS.
             */
@@ -105,6 +104,12 @@ namespace NPATK {
          */
          [[nodiscard]] size_t Inflation() const noexcept { return this->inflation; }
 
+
+        /**
+         * Generates a formatted string representation of an operator sequence
+         */
+        [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const override;
+
          /**
           * Output inflation about context
           */
@@ -117,7 +122,8 @@ namespace NPATK {
           * @param outcome
           * @return The raw operator ID
           */
-        oper_name_t operator_number(oper_name_t observable, oper_name_t variant, oper_name_t outcome) const noexcept;
+        [[nodiscard]] oper_name_t operator_number(oper_name_t observable, oper_name_t variant,
+                                                  oper_name_t outcome) const noexcept;
 
     };
 }
