@@ -9,6 +9,9 @@
 
 #include "causal_network.h"
 
+#include "utilities/dynamic_bitset.h"
+
+#include <map>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -18,6 +21,8 @@ namespace NPATK {
 
 
     class InflationContext : public Context {
+    public:
+        /** Extra operator information for inflation scenario */
         struct ICOperatorInfo {
             oper_name_t global_id;
             oper_name_t observable;
@@ -63,14 +68,46 @@ namespace NPATK {
             };
         };
 
-        struct InflatedObservable {
+        /** Augment base-network observable with extra info regarding inflated variants */
+        struct ICObservable : public Observable {
         public:
-            oper_name_t observable;
-            oper_name_t operator_offset;
-            oper_name_t variant_count;
+            struct Variant {
+                oper_name_t flat_index;
+                std::vector<oper_name_t> indices;
+                std::map<oper_name_t, oper_name_t> source_variants;
+                DynamicBitset<uint64_t> connected_sources;
+
+                /** True, if no overlapping sources */
+                [[nodiscard]] bool independent(const Variant& other) const noexcept;
+
+            friend class ::NPATK::InflationContext::ICObservable;
+            private:
+                Variant(oper_name_t index,
+                        std::vector<oper_name_t>&& vecIndex,
+                        std::map<oper_name_t, oper_name_t>&& srcVariants,
+                        const DynamicBitset<uint64_t>& connected_sources);
+            };
+
+        private:
+            const InflationContext& context;
+
         public:
-            InflatedObservable(oper_name_t id, oper_name_t offset, oper_name_t variants)
-                : observable{id}, operator_offset{offset}, variant_count{variants} { }
+            const oper_name_t operator_offset;
+            const oper_name_t variant_count;
+            const std::vector<Variant> variants;
+
+
+        public:
+            ICObservable(const InflationContext& context, const Observable& baseObs,
+                         size_t inflation_level, oper_name_t offset);
+
+            static std::vector<Variant> make_variants(const CausalNetwork& network,
+                                                      const Observable &baseObs,
+                                                      size_t inflation_level);
+
+            /** Get variant by non-flat index */
+            const Variant& variant(std::span<const oper_name_t> indices) const;
+
         };
 
     private:
@@ -78,7 +115,7 @@ namespace NPATK {
         size_t inflation;
         std::vector<ICOperatorInfo> operator_info;
 
-        std::vector<InflatedObservable> inflated_observables;
+        std::vector<ICObservable> inflated_observables;
 
     public:
         bool additional_simplification(std::vector<oper_name_t> &op_sequence, bool &negate) const override;
@@ -92,7 +129,7 @@ namespace NPATK {
         /**
          * Vector of observables associated with context.
          */
-        [[nodiscard]] const auto& Observables() const noexcept { return this->base_network.Observables(); }
+        [[nodiscard]] const auto& Observables() const noexcept { return this->inflated_observables; }
 
         /**
          * Vector of sources associated with context.

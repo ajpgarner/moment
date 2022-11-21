@@ -29,6 +29,7 @@ add_executable(npatk_tests
     symbolic/symbol_tree_tests.cpp
     utilities/alphabetic_namer_tests.cpp
     utilities/combination_iterator_tests.cpp
+    utilities/dynamic_bitset_tests.cpp
     utilities/ipow_tests.cpp
     utilities/multi_dimensional_index_iterator_tests.cpp
     utilities/ordered_permutation_tests.cpp

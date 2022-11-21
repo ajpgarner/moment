@@ -100,6 +100,232 @@ namespace NPATK::Tests {
         EXPECT_EQ(three[0], A0);
         EXPECT_EQ(three[1], A1);
         EXPECT_EQ(OperatorSequence({A0, A0, A1}, ic), OperatorSequence({A0, A1}, ic));
+    }
+
+    TEST(InflationContext, ObservableVariants_Pair) {
+        InflationContext ic{CausalNetwork{{2, 2}, {{0, 1}}}, 2};
+        ASSERT_EQ(ic.Observables().size(), 2);
+        const auto& obsA = ic.Observables()[0];
+        EXPECT_EQ(obsA.variant_count, 2);
+        ASSERT_EQ(obsA.variants.size(), 2);
+
+        const auto& obsA_V0 = obsA.variant(std::vector<oper_name_t>{0});
+        EXPECT_EQ(obsA_V0.flat_index, 0);
+        EXPECT_EQ(obsA_V0.source_variants.size(), 1);
+        auto A0_sv_iter = obsA_V0.source_variants.begin();
+        ASSERT_NE(A0_sv_iter, obsA_V0.source_variants.end());
+        EXPECT_EQ(A0_sv_iter->first, 0);
+        EXPECT_EQ(A0_sv_iter->second, 0);
+
+        const auto& obsA_V1 = obsA.variant(std::vector<oper_name_t>{1});
+        EXPECT_EQ(obsA_V1.flat_index, 1);
+        EXPECT_EQ(obsA_V0.source_variants.size(), 1);
+        auto A1_sv_iter = obsA_V1.source_variants.begin();
+        ASSERT_NE(A1_sv_iter, obsA_V1.source_variants.end());
+        EXPECT_EQ(A1_sv_iter->first, 0);
+        EXPECT_EQ(A1_sv_iter->second, 1);
+
+        const auto& obsB = ic.Observables()[1];
+        EXPECT_EQ(obsB.variant_count, 2);
+        ASSERT_EQ(obsB.variants.size(), 2);
+
+        const auto& obsB_V0 = obsB.variant(std::vector<oper_name_t>{0});
+        EXPECT_EQ(obsB_V0.flat_index, 0);
+        EXPECT_EQ(obsA_V0.source_variants.size(), 1);
+        auto B0_sv_iter = obsB_V0.source_variants.begin();
+        ASSERT_NE(B0_sv_iter, obsB_V0.source_variants.end());
+        EXPECT_EQ(B0_sv_iter->first, 0);
+        EXPECT_EQ(B0_sv_iter->second, 0);
+
+        const auto& obsB_V1 = obsB.variant(std::vector<oper_name_t>{1});
+        EXPECT_EQ(obsB_V1.flat_index, 1);
+        EXPECT_EQ(obsA_V0.source_variants.size(), 1);
+        auto B1_sv_iter = obsB_V1.source_variants.begin();
+        ASSERT_NE(B1_sv_iter, obsB_V1.source_variants.end());
+        EXPECT_EQ(B1_sv_iter->first, 0);
+        EXPECT_EQ(B1_sv_iter->second, 1);
+    }
+
+    TEST(InflationContext, ObservableVariants_Triangle) {
+        InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
+        ASSERT_EQ(ic.Observables().size(), 3);
+        const auto& obsA = ic.Observables()[0];
+        EXPECT_EQ(obsA.variant_count, 4);
+        ASSERT_EQ(obsA.variants.size(), 4);
+
+        // A, V0
+        const auto& obsA_V0 = obsA.variant(std::vector<oper_name_t>{0, 0});
+        EXPECT_EQ(obsA_V0.flat_index, 0);
+        EXPECT_EQ(obsA_V0.source_variants.size(), 2);
+        auto A0_sv_iter = obsA_V0.source_variants.begin();
+        ASSERT_NE(A0_sv_iter, obsA_V0.source_variants.end());
+        EXPECT_EQ(A0_sv_iter->first, 0);
+        EXPECT_EQ(A0_sv_iter->second, 0);
+        ++A0_sv_iter;
+        ASSERT_NE(A0_sv_iter, obsA_V0.source_variants.end());
+        EXPECT_EQ(A0_sv_iter->first, 2);
+        EXPECT_EQ(A0_sv_iter->second, 0);
+
+        // A, V1
+        const auto& obsA_V1 = obsA.variant(std::vector<oper_name_t>{0, 1});
+        EXPECT_EQ(obsA_V1.flat_index, 1);
+        EXPECT_EQ(obsA_V1.source_variants.size(), 2);
+        auto A1_sv_iter = obsA_V1.source_variants.begin();
+        ASSERT_NE(A1_sv_iter, obsA_V1.source_variants.end());
+        EXPECT_EQ(A1_sv_iter->first, 0);
+        EXPECT_EQ(A1_sv_iter->second, 0);
+        ++A1_sv_iter;
+        ASSERT_NE(A1_sv_iter, obsA_V1.source_variants.end());
+        EXPECT_EQ(A1_sv_iter->first, 2);
+        EXPECT_EQ(A1_sv_iter->second, 1);
+
+        // A, V2
+        const auto& obsA_V2 = obsA.variant(std::vector<oper_name_t>{1, 0});
+        EXPECT_EQ(obsA_V2.flat_index, 2);
+        EXPECT_EQ(obsA_V2.source_variants.size(), 2);
+        auto A2_sv_iter = obsA_V2.source_variants.begin();
+        ASSERT_NE(A2_sv_iter, obsA_V2.source_variants.end());
+        EXPECT_EQ(A2_sv_iter->first, 0);
+        EXPECT_EQ(A2_sv_iter->second, 1);
+        ++A2_sv_iter;
+        ASSERT_NE(A2_sv_iter, obsA_V2.source_variants.end());
+        EXPECT_EQ(A2_sv_iter->first, 2);
+        EXPECT_EQ(A2_sv_iter->second, 0);
+
+        // A, V3
+        const auto& obsA_V3 = obsA.variant(std::vector<oper_name_t>{1, 1});
+        EXPECT_EQ(obsA_V3.flat_index, 3);
+        EXPECT_EQ(obsA_V3.source_variants.size(), 2);
+        auto A3_sv_iter = obsA_V3.source_variants.begin();
+        ASSERT_NE(A3_sv_iter, obsA_V3.source_variants.end());
+        EXPECT_EQ(A3_sv_iter->first, 0);
+        EXPECT_EQ(A3_sv_iter->second, 1);
+        ++A3_sv_iter;
+        ASSERT_NE(A3_sv_iter, obsA_V3.source_variants.end());
+        EXPECT_EQ(A3_sv_iter->first, 2);
+        EXPECT_EQ(A3_sv_iter->second, 1);
+    }
+
+    TEST(InflationContext, ObservableIndependence_Pair) {
+        InflationContext ic{CausalNetwork{{2, 2}, {{0, 1}}}, 2};
+        const auto& obsA = ic.Observables()[0];
+        const auto& obsA_V0 = obsA.variant(std::vector<oper_name_t>{0});
+        const auto& obsA_V1 = obsA.variant(std::vector<oper_name_t>{1});
+
+        const auto& obsB = ic.Observables()[1];
+        const auto& obsB_V0 = obsB.variant(std::vector<oper_name_t>{0});
+        const auto& obsB_V1 = obsB.variant(std::vector<oper_name_t>{1});
+
+        // A0
+        EXPECT_FALSE(obsA_V0.independent(obsA_V0));
+        EXPECT_TRUE(obsA_V0.independent(obsA_V1));
+        EXPECT_FALSE(obsA_V0.independent(obsB_V0));
+        EXPECT_TRUE(obsA_V0.independent(obsB_V1));
+
+        // A1
+        EXPECT_TRUE(obsA_V1.independent(obsA_V0));
+        EXPECT_FALSE(obsA_V1.independent(obsA_V1));
+        EXPECT_TRUE(obsA_V1.independent(obsB_V0));
+        EXPECT_FALSE(obsA_V1.independent(obsB_V1));
+
+        // B0
+        EXPECT_FALSE(obsB_V0.independent(obsA_V0));
+        EXPECT_TRUE(obsB_V0.independent(obsA_V1));
+        EXPECT_FALSE(obsB_V0.independent(obsB_V0));
+        EXPECT_TRUE(obsB_V0.independent(obsB_V1));
+
+        // B1
+        EXPECT_TRUE(obsB_V1.independent(obsA_V0));
+        EXPECT_FALSE(obsB_V1.independent(obsA_V1));
+        EXPECT_TRUE(obsB_V1.independent(obsB_V0));
+        EXPECT_FALSE(obsB_V1.independent(obsB_V1));
+    }
+
+    TEST(InflationContext, ObservableIndependence_Triangle) {
+        InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
+        ASSERT_EQ(ic.Observables().size(), 3);
+
+        const auto& obsA = ic.Observables()[0]; // Source 0 and 2
+        const auto& obsA_V0 = obsA.variant(std::vector<oper_name_t>{0,0});
+        const auto& obsA_V1 = obsA.variant(std::vector<oper_name_t>{0,1});
+        const auto& obsA_V2 = obsA.variant(std::vector<oper_name_t>{1,0});
+        const auto& obsA_V3 = obsA.variant(std::vector<oper_name_t>{1,1});
+
+        const auto& obsB = ic.Observables()[1]; // Source 0 and 1
+        const auto& obsB_V0 = obsB.variant(std::vector<oper_name_t>{0,0});
+        const auto& obsB_V1 = obsB.variant(std::vector<oper_name_t>{0,1});
+        const auto& obsB_V2 = obsB.variant(std::vector<oper_name_t>{1,0});
+        const auto& obsB_V3 = obsB.variant(std::vector<oper_name_t>{1,1});
+
+        const auto& obsC = ic.Observables()[2]; // Source 1 and 2
+        const auto& obsC_V0 = obsC.variant(std::vector<oper_name_t>{0,0});
+        const auto& obsC_V1 = obsC.variant(std::vector<oper_name_t>{0,1});
+        const auto& obsC_V2 = obsC.variant(std::vector<oper_name_t>{1,0});
+        const auto& obsC_V3 = obsC.variant(std::vector<oper_name_t>{1,1});
+
+
+        // A <-> B: shared source 0 [first of A, first of B]
+        EXPECT_FALSE(obsA_V0.independent(obsB_V0));
+        EXPECT_FALSE(obsA_V0.independent(obsB_V1));
+        EXPECT_TRUE(obsA_V0.independent(obsB_V2));
+        EXPECT_TRUE(obsA_V0.independent(obsB_V3));
+
+        EXPECT_FALSE(obsA_V1.independent(obsB_V0));
+        EXPECT_FALSE(obsA_V1.independent(obsB_V1));
+        EXPECT_TRUE(obsA_V1.independent(obsB_V2));
+        EXPECT_TRUE(obsA_V1.independent(obsB_V3));
+
+        EXPECT_TRUE(obsA_V2.independent(obsB_V0));
+        EXPECT_TRUE(obsA_V2.independent(obsB_V1));
+        EXPECT_FALSE(obsA_V2.independent(obsB_V2));
+        EXPECT_FALSE(obsA_V2.independent(obsB_V3));
+
+        EXPECT_TRUE(obsA_V3.independent(obsB_V0));
+        EXPECT_TRUE(obsA_V3.independent(obsB_V1));
+        EXPECT_FALSE(obsA_V3.independent(obsB_V2));
+        EXPECT_FALSE(obsA_V3.independent(obsB_V3));
+
+        // A <-> C: shared source 2 [second of A, second of C]
+        EXPECT_FALSE(obsA_V0.independent(obsC_V0));
+        EXPECT_TRUE(obsA_V0.independent(obsC_V1));
+        EXPECT_FALSE(obsA_V0.independent(obsC_V2));
+        EXPECT_TRUE(obsA_V0.independent(obsC_V3));
+
+        EXPECT_TRUE(obsA_V1.independent(obsC_V0));
+        EXPECT_FALSE(obsA_V1.independent(obsC_V1));
+        EXPECT_TRUE(obsA_V1.independent(obsC_V2));
+        EXPECT_FALSE(obsA_V1.independent(obsC_V3));
+
+        EXPECT_FALSE(obsA_V2.independent(obsC_V0));
+        EXPECT_TRUE(obsA_V2.independent(obsC_V1));
+        EXPECT_FALSE(obsA_V2.independent(obsC_V2));
+        EXPECT_TRUE(obsA_V2.independent(obsC_V3));
+
+        EXPECT_TRUE(obsA_V3.independent(obsC_V0));
+        EXPECT_FALSE(obsA_V3.independent(obsC_V1));
+        EXPECT_TRUE(obsA_V3.independent(obsC_V2));
+        EXPECT_FALSE(obsA_V3.independent(obsC_V3));
+
+        // B <-> C: shared source 1 [second of B, first of C]
+        EXPECT_FALSE(obsB_V0.independent(obsC_V0));
+        EXPECT_FALSE(obsB_V0.independent(obsC_V1));
+        EXPECT_TRUE(obsB_V0.independent(obsC_V2));
+        EXPECT_TRUE(obsB_V0.independent(obsC_V3));
+
+        EXPECT_TRUE(obsB_V1.independent(obsC_V0));
+        EXPECT_TRUE(obsB_V1.independent(obsC_V1));
+        EXPECT_FALSE(obsB_V1.independent(obsC_V2));
+        EXPECT_FALSE(obsB_V1.independent(obsC_V3));
+
+        EXPECT_FALSE(obsB_V2.independent(obsC_V0));
+        EXPECT_FALSE(obsB_V2.independent(obsC_V1));
+        EXPECT_TRUE(obsB_V2.independent(obsC_V2));
+        EXPECT_TRUE(obsB_V2.independent(obsC_V3));
+
+        EXPECT_TRUE(obsB_V3.independent(obsC_V0));
+        EXPECT_TRUE(obsB_V3.independent(obsC_V1));
+        EXPECT_FALSE(obsB_V3.independent(obsC_V2));
+        EXPECT_FALSE(obsB_V3.independent(obsC_V3));
 
     }
 
