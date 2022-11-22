@@ -132,6 +132,13 @@ namespace NPATK {
     std::vector<OperatorSequence> InflationContext::factorize(const OperatorSequence& seq) const {
         std::vector<OperatorSequence> output;
 
+        // If string of length 0 or 1, no further factorization is possible, just echo input sequence
+        if (seq.size() <= 1) {
+            output.push_back(seq);
+            return output;
+        }
+
+        // Otherwise, try to factorize properly
         DynamicBitset<uint64_t> checklist{seq.size(), true};
 
         const auto total_source_count = this->Sources().size() * this->inflation;

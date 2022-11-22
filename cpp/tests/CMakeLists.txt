@@ -14,6 +14,7 @@ add_executable(npatk_tests
     operators/algebraic/raw_sequence_tests.cpp
     operators/algebraic/rule_book_tests.cpp
     operators/inflation/causal_network_tests.cpp
+    operators/inflation/factor_table_tests.cpp
     operators/inflation/inflation_context_tests.cpp
     operators/locality/collins_gisin_tests.cpp
     operators/locality/explicit_symbols_tests.cpp

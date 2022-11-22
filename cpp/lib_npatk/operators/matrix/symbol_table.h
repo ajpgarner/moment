@@ -142,6 +142,13 @@ namespace NPATK {
          */
         std::set<symbol_name_t> merge_in(std::vector<UniqueSequence>&& build_unique);
 
+        /**
+         * Add symbol to table, if not already present
+         * @param build_unique Symbols to be potentially merge
+         * @return The ID of the (possibly new) symbol.
+         */
+        symbol_name_t merge_in(UniqueSequence&& sequence);
+
 
         [[nodiscard]] auto begin() const noexcept { return this->unique_sequences.cbegin(); }
         [[nodiscard]] auto end() const noexcept { return this->unique_sequences.cend(); }

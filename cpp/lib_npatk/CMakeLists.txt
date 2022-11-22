@@ -15,6 +15,7 @@ add_library(lib_npatk
         operators/algebraic/raw_sequence_book.cpp
         operators/algebraic/rule_book.cpp
         operators/inflation/causal_network.cpp
+        operators/inflation/factor_table.cpp
         operators/inflation/inflation_context.cpp
         operators/inflation/inflation_matrix_system.cpp
         operators/inflation/observable.cpp

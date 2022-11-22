@@ -363,6 +363,31 @@ namespace NPATK::Tests {
         auto id_b0 = obsB_V0.operator_offset;
         auto id_b1 = obsB_V1.operator_offset;
 
+        // 0, I, a0, a1, b0 and b1 should all just pass through
+        auto factors_0 = ic.factorize(OperatorSequence::Zero(ic));
+        ASSERT_EQ(factors_0.size(), 1);
+        EXPECT_EQ(factors_0[0], OperatorSequence::Zero(ic));
+
+        auto factors_I = ic.factorize(OperatorSequence::Identity(ic));
+        ASSERT_EQ(factors_I.size(), 1);
+        EXPECT_EQ(factors_I[0], OperatorSequence::Identity(ic));
+
+        auto factors_a0 = ic.factorize(OperatorSequence{{id_a0}, ic});
+        ASSERT_EQ(factors_a0.size(), 1);
+        EXPECT_EQ(factors_a0[0], OperatorSequence({id_a0}, ic));
+
+        auto factors_a1 = ic.factorize(OperatorSequence{{id_a1}, ic});
+        ASSERT_EQ(factors_a1.size(), 1);
+        EXPECT_EQ(factors_a1[0], OperatorSequence({id_a1}, ic));
+
+        auto factors_b0 = ic.factorize(OperatorSequence{{id_b0}, ic});
+        ASSERT_EQ(factors_b0.size(), 1);
+        EXPECT_EQ(factors_b0[0], OperatorSequence({id_b0}, ic));
+
+        auto factors_b1 = ic.factorize(OperatorSequence{{id_b1}, ic});
+        ASSERT_EQ(factors_b1.size(), 1);
+        EXPECT_EQ(factors_b1[0], OperatorSequence({id_b1}, ic));
+
         // A0B0 should not factorize, due to common source
         auto factors_a0b0 = ic.factorize(OperatorSequence{{id_a0, id_b0}, ic});
         ASSERT_EQ(factors_a0b0.size(), 1);

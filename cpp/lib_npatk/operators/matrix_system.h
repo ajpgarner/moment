@@ -75,6 +75,14 @@ namespace NPATK {
         }
 
         /**
+         * Returns the symbol table.
+         * For thread safety, call for write lock before making changes.
+         */
+        [[nodiscard]] SymbolTable& Symbols() noexcept {
+            return *this->symbol_table;
+        }
+
+        /**
          * Returns the context.
          * For thread safety, call for a read lock first.
          */

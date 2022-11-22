@@ -27,58 +27,66 @@ namespace NPATK {
     std::set<symbol_name_t> SymbolTable::merge_in(std::vector<UniqueSequence> &&build_unique) {
         std::set<symbol_name_t> included_symbols;
 
-        auto elem_index = static_cast<symbol_name_t>(this->unique_sequences.size());
         for (auto& elem : build_unique) {
-            // Not unique, do not add...
-            auto existing_iter = this->hash_table.find(elem.fwd_hash);
-            if (existing_iter != this->hash_table.end()) {
-                const ptrdiff_t stIndex = existing_iter->second >= 0 ? existing_iter->second : -existing_iter->second;
-                included_symbols.emplace(this->unique_sequences[stIndex].id);
-                continue;
-            }
-
-            // Does context know about nullity?
-            auto [re_zero, im_zero] = this->context.is_sequence_null(elem.sequence());
-
-            // Is element hermitian
-            const bool is_hermitian = elem.is_hermitian();
-            if (is_hermitian) {
-                im_zero = true;
-            }
-
-            // Make element
-            elem.id = elem_index;
-
-            // Real part
-            if (!re_zero) {
-                elem.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
-                this->real_symbols.emplace_back(elem_index);
-            } else {
-                elem.real_index = -1;
-            }
-
-            // Imaginary part
-            if (!im_zero) {
-                elem.img_index = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
-                this->imaginary_symbols.emplace_back(elem_index);
-            } else {
-                elem.img_index = -1;
-            }
-
-            // Add hash(es)
-            this->hash_table.emplace(std::make_pair(elem.fwd_hash, elem_index));
-            if (!is_hermitian) {
-                this->hash_table.emplace(std::make_pair(elem.conj_hash, -elem_index));
-            }
-
-            // Register element
-            included_symbols.emplace(elem_index);
-            this->unique_sequences.emplace_back(std::move(elem));
-            ++elem_index;
+            const auto symbol_name = this->merge_in(std::move(elem));
+            included_symbols.emplace(symbol_name);
         }
 
         return included_symbols;
     }
+
+    symbol_name_t SymbolTable::merge_in(UniqueSequence&& elem) {
+        // Not unique, do not add...
+        auto existing_iter = this->hash_table.find(elem.fwd_hash);
+        if (existing_iter != this->hash_table.end()) {
+            const ptrdiff_t stIndex = existing_iter->second >= 0 ? existing_iter->second : -existing_iter->second;
+            return this->unique_sequences[stIndex].id;
+        }
+
+        // Otherwise, query
+        const auto next_index = static_cast<symbol_name_t>(this->unique_sequences.size());
+
+        // Does context know about nullity?
+        auto [re_zero, im_zero] = this->context.is_sequence_null(elem.sequence());
+
+        // Is element hermitian
+        const bool is_hermitian = elem.is_hermitian();
+        if (is_hermitian) {
+            im_zero = true;
+        }
+
+        // Make element
+        elem.id = next_index;
+
+        // Real part
+        if (!re_zero) {
+            elem.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
+            this->real_symbols.emplace_back(next_index);
+        } else {
+            elem.real_index = -1;
+        }
+
+        // Imaginary part
+        if (!im_zero) {
+            elem.img_index = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
+            this->imaginary_symbols.emplace_back(next_index);
+        } else {
+            elem.img_index = -1;
+        }
+
+        // Add hash(es)
+        this->hash_table.emplace(std::make_pair(elem.fwd_hash, next_index));
+        if (!is_hermitian) {
+            this->hash_table.emplace(std::make_pair(elem.conj_hash, -next_index));
+        }
+
+        // Register element
+        this->unique_sequences.emplace_back(std::move(elem));
+
+        return next_index;
+    }
+
+
 
     const UniqueSequence *
     SymbolTable::where(const OperatorSequence &seq) const noexcept {
