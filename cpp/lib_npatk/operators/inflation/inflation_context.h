@@ -72,6 +72,8 @@ namespace NPATK {
         struct ICObservable : public Observable {
         public:
             struct Variant {
+            public:
+                oper_name_t operator_offset;
                 oper_name_t flat_index;
                 std::vector<oper_name_t> indices;
                 std::map<oper_name_t, oper_name_t> source_variants;
@@ -82,7 +84,8 @@ namespace NPATK {
 
             friend class ::NPATK::InflationContext::ICObservable;
             private:
-                Variant(oper_name_t index,
+                Variant(oper_name_t offset,
+                        oper_name_t index,
                         std::vector<oper_name_t>&& vecIndex,
                         std::map<oper_name_t, oper_name_t>&& srcVariants,
                         const DynamicBitset<uint64_t>& connected_sources);
@@ -90,32 +93,33 @@ namespace NPATK {
 
         private:
             const InflationContext& context;
-
         public:
             const oper_name_t operator_offset;
             const oper_name_t variant_count;
             const std::vector<Variant> variants;
 
-
         public:
             ICObservable(const InflationContext& context, const Observable& baseObs,
                          size_t inflation_level, oper_name_t offset);
 
+            /** Get variant by non-flat index */
+            [[nodiscard]] const Variant& variant(std::span<const oper_name_t> indices) const;
+
+        private:
             static std::vector<Variant> make_variants(const CausalNetwork& network,
                                                       const Observable &baseObs,
-                                                      size_t inflation_level);
-
-            /** Get variant by non-flat index */
-            const Variant& variant(std::span<const oper_name_t> indices) const;
-
+                                                      size_t inflation_level, oper_name_t offset);
         };
 
     private:
         CausalNetwork base_network;
         size_t inflation;
-        std::vector<ICOperatorInfo> operator_info;
 
+        std::vector<ICOperatorInfo> operator_info;
         std::vector<ICObservable> inflated_observables;
+
+        /** Bitset, size equal to number of operators in context. True if other operator is not independent */
+        std::vector<DynamicBitset<uint64_t>> dependent_operators;
 
     public:
         bool additional_simplification(std::vector<oper_name_t> &op_sequence, bool &negate) const override;
@@ -141,6 +145,10 @@ namespace NPATK {
          */
          [[nodiscard]] size_t Inflation() const noexcept { return this->inflation; }
 
+         /**
+          * Split operator sequence into smallest independent factors.
+          */
+        [[nodiscard]] std::vector<OperatorSequence> factorize(const OperatorSequence& seq) const;
 
         /**
          * Generates a formatted string representation of an operator sequence
@@ -148,7 +156,7 @@ namespace NPATK {
         [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const override;
 
          /**
-          * Output inflation about context
+          * Output information about inflation context
           */
          [[nodiscard]] std::string to_string() const override;
 

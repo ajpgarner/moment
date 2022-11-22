@@ -17,9 +17,10 @@ namespace NPATK {
 
     std::vector<InflationContext::ICObservable::Variant>
     InflationContext::ICObservable::make_variants(const CausalNetwork& network, const Observable &baseObs,
-                                                  const size_t inflation_level) {
+                                                  const size_t inflation_level, const oper_name_t base_offset) {
         std::vector<InflationContext::ICObservable::Variant> output;
         const auto variant_count = static_cast<oper_name_t>(baseObs.count_copies(inflation_level));
+        oper_name_t global_id = base_offset;
 
         for (oper_name_t variant_index = 0; variant_index < variant_count; ++variant_index) {
             auto vector_indices = baseObs.unflatten_index(inflation_level, variant_index);
@@ -33,17 +34,20 @@ namespace NPATK {
                 ++i;
             }
 
-            output.emplace_back(InflationContext::ICObservable::Variant{variant_index, std::move(vector_indices),
+            output.emplace_back(InflationContext::ICObservable::Variant{global_id, variant_index, std::move(vector_indices),
                                                                         std::move(map_to_sources), sourceMap});
+
+            global_id += static_cast<oper_name_t>(baseObs.outcomes-1);
 
         }
         return output;
     }
 
-    InflationContext::ICObservable::Variant::Variant(oper_name_t index, std::vector<oper_name_t> &&vecIndex,
+    InflationContext::ICObservable::Variant::Variant(const oper_name_t offset, const oper_name_t index,
+                                                     std::vector<oper_name_t> &&vecIndex,
                                                      std::map<oper_name_t, oper_name_t> &&srcVariants,
                                                      const DynamicBitset<uint64_t>& sourceBMP)
-            : flat_index{index}, indices{std::move(vecIndex)},
+            : operator_offset{offset}, flat_index{index}, indices{std::move(vecIndex)},
               source_variants{std::move(srcVariants)}, connected_sources{sourceBMP} { }
 
     bool InflationContext::ICObservable::Variant::independent(const InflationContext::ICObservable::Variant &other)
@@ -58,7 +62,7 @@ namespace NPATK {
                                                  const size_t inflation_level,
                                                  const oper_name_t offset)
          : Observable{baseObs}, context{context}, variant_count{static_cast<oper_name_t>(baseObs.count_copies(inflation_level))},
-           operator_offset{offset}, variants{make_variants(context.base_network, baseObs, inflation_level)} {
+           operator_offset{offset}, variants{make_variants(context.base_network, baseObs, inflation_level, offset)} {
 
     }
 
@@ -82,8 +86,10 @@ namespace NPATK {
           inflation{inflation_level} {
 
         // Create operator and observable info
+        const auto total_op_count = this->operators.size();
         this->inflated_observables.reserve(this->base_network.Observables().size());
         this->operator_info.reserve(this->size());
+        size_t obs_index = 0;
         oper_name_t global_id = 0;
         for (const auto& observable : this->base_network.Observables()) {
             this->inflated_observables.emplace_back(*this, observable, this->inflation, global_id);
@@ -94,10 +100,103 @@ namespace NPATK {
                     ++global_id;
                 }
             }
+            ++obs_index;
         }
         assert(this->operator_info.size() == this->size());
         assert(this->inflated_observables.size() == this->base_network.Observables().size());
+
+        // Create independence maps
+        this->dependent_operators.reserve(this->size());
+        for (const auto& opInfo : this->operator_info) {
+            const auto& obsInfo = this->inflated_observables[opInfo.observable];
+            const auto& variant = obsInfo.variants[opInfo.flattenedSourceIndex];
+
+            this->dependent_operators.emplace_back(this->size());
+            auto& bitmap = this->dependent_operators.back();
+
+            // Cycle through all observables, and test for independence...
+            for (const auto& otherObs : this->inflated_observables) {
+                const size_t operator_block_size = (otherObs.outcomes)-1;
+                for (const auto& otherVariant : otherObs.variants) {
+                    const bool independent = variant.independent(otherVariant);
+                    if (!independent) {
+                        const auto blitMax = otherVariant.operator_offset + operator_block_size;
+                        for (size_t blitter = otherVariant.operator_offset; blitter < blitMax; ++blitter) {
+                            bitmap.set(blitter);
+                        }
+                    }
+                }
+            }
+        }
     }
+
+    std::vector<OperatorSequence> InflationContext::factorize(const OperatorSequence& seq) const {
+        std::vector<OperatorSequence> output;
+
+        DynamicBitset<uint64_t> checklist{seq.size(), true};
+
+        const auto total_source_count = this->Sources().size() * this->inflation;
+
+        while (!checklist.empty()) {
+            // Next string of unfactorized operators...
+            std::vector<oper_name_t> opers{};
+            DynamicBitset<uint64_t> included_sources{total_source_count};
+
+            // Get next operator from input string that's not been put into any of the factors
+            const size_t this_pos = checklist.first_index();
+            checklist.unset(this_pos);
+            assert(this_pos < seq.size());
+            const oper_name_t this_oper_id = seq[this_pos];
+            assert((this_oper_id >= 0) && (this_oper_id < this->operator_info.size()));
+            const auto& this_oper_info = this->operator_info[this_oper_id];
+
+            // Add operator to factor list
+            opers.emplace_back(this_oper_id);
+
+            // Flag sources that are included
+            const auto& this_observable_variant =
+                this->inflated_observables[this_oper_info.observable].variants[this_oper_info.flattenedSourceIndex];
+            included_sources |= this_observable_variant.connected_sources;
+
+            // Loop over remaining symbols in string, trying greedily to include them if any link is found
+            bool done = false;
+            while (!done) {
+                done = true;
+                for (size_t other_pos : checklist) {
+                    assert(other_pos < seq.size());
+                    const oper_name_t other_oper_id = seq[other_pos];
+                    assert((other_oper_id >= 0) && (other_oper_id < this->operator_info.size()));
+                    const auto& other_oper_info = this->operator_info[other_oper_id];
+                    const auto& other_obs = this->inflated_observables[other_oper_info.observable];
+                    const auto& other_obs_variant = other_obs.variants[other_oper_info.flattenedSourceIndex];
+
+                    // Test for overlap
+                    const bool overlap = !(included_sources & other_obs_variant.connected_sources).empty();
+                    if (overlap) {
+                        // Add to string
+                        opers.emplace_back(other_oper_id);
+
+                        // Included sources are now relevent
+                        included_sources |= other_obs_variant.connected_sources;
+
+                        // Operator is joined in list, so flag as handled.
+                        checklist.unset(other_pos);
+
+                        // Exit the for loop, but continue the while loop...
+                        done = false;
+                        break;
+                    }
+                }
+                // For loop terminated without overlap, hence done == true and while loop terminates.
+            }
+
+            // Create operator sequence with what we have found
+            output.emplace_back(std::move(opers), *this);
+        }
+
+        return output;
+    }
+
 
 
     std::string InflationContext::format_sequence(const OperatorSequence &seq) const {

@@ -10,6 +10,25 @@
 #include "operators/inflation/inflation_matrix_system.h"
 
 namespace NPATK::Tests {
+    namespace {
+        void expect_factorizes(const InflationContext& ic, std::vector<oper_name_t>&& sequence) {
+            OperatorSequence seq{std::move(sequence), ic};
+            const size_t size = seq.size();
+            auto factors = ic.factorize(seq);
+            ASSERT_EQ(factors.size(), size) << "seq = " << seq;
+            for (size_t i = 0; i < size; ++i) {
+                EXPECT_EQ(factors[i], OperatorSequence({seq[i]}, ic)) << "seq = " << seq;
+            }
+        }
+
+        void expect_doesnt_factorize(const InflationContext& ic, std::vector<oper_name_t>&& sequence) {
+            OperatorSequence seq{std::move(sequence), ic};
+            const size_t size = seq.size();
+            auto factors = ic.factorize(seq);
+            ASSERT_EQ(factors.size(), 1) << "seq = " << seq;
+            EXPECT_EQ(factors[0], seq);
+        }
+    }
 
     TEST(InflationContext, Construct_Empty) {
         InflationContext ic{CausalNetwork{{}, {}}, 1};
@@ -326,7 +345,191 @@ namespace NPATK::Tests {
         EXPECT_TRUE(obsB_V3.independent(obsC_V1));
         EXPECT_FALSE(obsB_V3.independent(obsC_V2));
         EXPECT_FALSE(obsB_V3.independent(obsC_V3));
+    }
 
+
+    TEST(InflationContext, Factorize_Pair) {
+        InflationContext ic{CausalNetwork{{2, 2}, {{0, 1}}}, 2};
+        const auto& obsA = ic.Observables()[0];
+        const auto& obsB = ic.Observables()[1];
+
+        const auto& obsA_V0 = obsA.variant(std::vector<oper_name_t>{0});
+        const auto& obsA_V1 = obsA.variant(std::vector<oper_name_t>{1});
+        const auto& obsB_V0 = obsB.variant(std::vector<oper_name_t>{0});
+        const auto& obsB_V1 = obsB.variant(std::vector<oper_name_t>{1});
+
+        auto id_a0 = obsA_V0.operator_offset;
+        auto id_a1 = obsA_V1.operator_offset;
+        auto id_b0 = obsB_V0.operator_offset;
+        auto id_b1 = obsB_V1.operator_offset;
+
+        // A0B0 should not factorize, due to common source
+        auto factors_a0b0 = ic.factorize(OperatorSequence{{id_a0, id_b0}, ic});
+        ASSERT_EQ(factors_a0b0.size(), 1);
+        EXPECT_EQ(factors_a0b0[0], OperatorSequence({id_a0, id_b0}, ic));
+
+        // A0B1 should freely factorize
+        auto factors_a0b1 = ic.factorize(OperatorSequence{{id_a0, id_b1}, ic});
+        ASSERT_EQ(factors_a0b1.size(), 2);
+        EXPECT_EQ(factors_a0b1[0], OperatorSequence({id_a0}, ic));
+        EXPECT_EQ(factors_a0b1[1], OperatorSequence({id_b1}, ic));
+
+        // A1B0 should freely factorize
+        auto factors_a1b0 = ic.factorize(OperatorSequence{{id_a1, id_b0}, ic});
+        ASSERT_EQ(factors_a1b0.size(), 2);
+        EXPECT_EQ(factors_a1b0[0], OperatorSequence({id_a1}, ic));
+        EXPECT_EQ(factors_a1b0[1], OperatorSequence({id_b0}, ic));
+
+        // A1B1 should not factorize, due to common source
+        auto factors_a1b1 = ic.factorize(OperatorSequence{{id_a1, id_b1}, ic});
+        ASSERT_EQ(factors_a1b1.size(), 1);
+        EXPECT_EQ(factors_a1b1[0], OperatorSequence({id_a1, id_b1}, ic));
+
+         // A0A1 should freely factorize
+        auto factors_a0a1 = ic.factorize(OperatorSequence{{id_a0, id_a1}, ic});
+        EXPECT_EQ(factors_a0a1[0], OperatorSequence({id_a0}, ic));
+        EXPECT_EQ(factors_a0a1[1], OperatorSequence({id_a1}, ic));
+
+        // B0B1 should freely factorize
+        auto factors_b0b1 = ic.factorize(OperatorSequence{{id_b0, id_b1}, ic});
+        EXPECT_EQ(factors_b0b1[0], OperatorSequence({id_b0}, ic));
+        EXPECT_EQ(factors_b0b1[1], OperatorSequence({id_b1}, ic));
+    }
+
+    TEST(InflationContext, Factorize_W) {
+        InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}}}, 1};
+        const auto& obsA = ic.Observables()[0];
+        const auto& obsB = ic.Observables()[1];
+        const auto& obsC = ic.Observables()[2];
+
+        const auto& obsA_V0 = obsA.variant(std::vector<oper_name_t>{0});
+        const auto& obsB_V0 = obsB.variant(std::vector<oper_name_t>{0, 0});
+        const auto& obsC_V0 = obsC.variant(std::vector<oper_name_t>{0});
+
+        auto id_a = obsA_V0.operator_offset;
+        auto id_b = obsB_V0.operator_offset;
+        auto id_c = obsC_V0.operator_offset;
+
+        // AB should not factorize, due to common source
+        auto factors_ab = ic.factorize(OperatorSequence{{id_a, id_b}, ic});
+        ASSERT_EQ(factors_ab.size(), 1);
+        EXPECT_EQ(factors_ab[0], OperatorSequence({id_a, id_b}, ic));
+
+        // BC should not factorize, due to common source
+        auto factors_bc = ic.factorize(OperatorSequence{{id_b, id_c}, ic});
+        ASSERT_EQ(factors_bc.size(), 1);
+        EXPECT_EQ(factors_bc[0], OperatorSequence({id_b, id_c}, ic));
+
+        // AC /can/ factorize when on their own
+        auto factors_ac = ic.factorize(OperatorSequence{{id_a, id_c}, ic});
+        ASSERT_EQ(factors_ac.size(), 2);
+        EXPECT_EQ(factors_ac[0], OperatorSequence({id_a}, ic));
+        EXPECT_EQ(factors_ac[1], OperatorSequence({id_c}, ic));
+
+        // ABC does not factorize (conditional mutual info of B!)
+        auto factors_abc = ic.factorize(OperatorSequence{{id_a, id_b, id_c}, ic});
+        ASSERT_EQ(factors_abc.size(), 1);
+        EXPECT_EQ(factors_abc[0], OperatorSequence({id_a, id_b, id_c}, ic));
+    }
+
+    TEST(InflationContext, Factorize_Triangle) {
+        InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
+        const auto& obsA = ic.Observables()[0];
+        const auto& obsB = ic.Observables()[1];
+        const auto& obsC = ic.Observables()[2];
+
+        const auto id_a00 = obsA.variant(std::vector<oper_name_t>{0, 0}).operator_offset;
+        const auto id_a01 = obsA.variant(std::vector<oper_name_t>{0, 1}).operator_offset;
+        const auto id_a10 = obsA.variant(std::vector<oper_name_t>{1, 0}).operator_offset;
+        const auto id_a11 = obsA.variant(std::vector<oper_name_t>{1, 1}).operator_offset;
+
+        const auto id_b00 = obsB.variant(std::vector<oper_name_t>{0, 0}).operator_offset;
+        const auto id_b01 = obsB.variant(std::vector<oper_name_t>{0, 1}).operator_offset;
+        const auto id_b10 = obsB.variant(std::vector<oper_name_t>{1, 0}).operator_offset;
+        const auto id_b11 = obsB.variant(std::vector<oper_name_t>{1, 1}).operator_offset;
+
+        const auto id_c00 = obsC.variant(std::vector<oper_name_t>{0, 0}).operator_offset;
+        const auto id_c01 = obsC.variant(std::vector<oper_name_t>{0, 1}).operator_offset;
+        const auto id_c10 = obsC.variant(std::vector<oper_name_t>{1, 0}).operator_offset;
+        const auto id_c11 = obsC.variant(std::vector<oper_name_t>{1, 1}).operator_offset;
+
+        // A with itself
+        expect_doesnt_factorize(ic, {id_a00, id_a01});
+        expect_doesnt_factorize(ic, {id_a00, id_a10});
+        expect_factorizes(ic, {id_a00, id_a11});
+        expect_factorizes(ic, {id_a01, id_a10});
+        expect_doesnt_factorize(ic, {id_a01, id_a11});
+        expect_doesnt_factorize(ic, {id_a10, id_a11});
+        
+        // B with itself
+        expect_doesnt_factorize(ic, {id_b00, id_b01});
+        expect_doesnt_factorize(ic, {id_b00, id_b10});
+        expect_factorizes(ic, {id_b00, id_b11});
+        expect_factorizes(ic, {id_b01, id_b10});
+        expect_doesnt_factorize(ic, {id_b01, id_b11});
+        expect_doesnt_factorize(ic, {id_b10, id_b11});
+        
+        // C with itself
+        expect_doesnt_factorize(ic, {id_c00, id_c01});
+        expect_doesnt_factorize(ic, {id_c00, id_c10});
+        expect_factorizes(ic, {id_c00, id_c11});
+        expect_factorizes(ic, {id_c01, id_c10});
+        expect_doesnt_factorize(ic, {id_c01, id_c11});
+        expect_doesnt_factorize(ic, {id_c10, id_c11});
+
+        // A with B;  shared index is 1st of A, 1st of B
+        expect_doesnt_factorize(ic, {id_a00, id_b00});
+        expect_factorizes(ic, {id_a00, id_b10});
+        expect_doesnt_factorize(ic, {id_a00, id_b01});
+        expect_factorizes(ic, {id_a00, id_b11});
+        expect_doesnt_factorize(ic, {id_a01, id_b00});
+        expect_factorizes(ic, {id_a01, id_b10});
+        expect_doesnt_factorize(ic, {id_a01, id_b01});
+        expect_factorizes(ic, {id_a01, id_b11});
+        expect_factorizes(ic, {id_a10, id_b00});
+        expect_doesnt_factorize(ic, {id_a10, id_b10});
+        expect_factorizes(ic, {id_a10, id_b01});
+        expect_doesnt_factorize(ic, {id_a10, id_b11});
+        expect_factorizes(ic, {id_a11, id_b00});
+        expect_doesnt_factorize(ic, {id_a11, id_b10});
+        expect_factorizes(ic, {id_a11, id_b01});
+        expect_doesnt_factorize(ic, {id_a11, id_b11}); 
+        
+        // A with C;  shared index is 2nd of A, 2nd of B
+        expect_doesnt_factorize(ic, {id_a00, id_c00});
+        expect_doesnt_factorize(ic, {id_a00, id_c10});
+        expect_factorizes(ic, {id_a00, id_c01});
+        expect_factorizes(ic, {id_a00, id_c11});
+        expect_factorizes(ic, {id_a01, id_c00});
+        expect_factorizes(ic, {id_a01, id_c10});
+        expect_doesnt_factorize(ic, {id_a01, id_c01});
+        expect_doesnt_factorize(ic, {id_a01, id_c11});
+        expect_doesnt_factorize(ic, {id_a10, id_c00});
+        expect_doesnt_factorize(ic, {id_a10, id_c10});
+        expect_factorizes(ic, {id_a10, id_c01});
+        expect_factorizes(ic, {id_a10, id_c11});
+        expect_factorizes(ic, {id_a11, id_c00});
+        expect_factorizes(ic, {id_a11, id_c10});
+        expect_doesnt_factorize(ic, {id_a11, id_c01});
+        expect_doesnt_factorize(ic, {id_a11, id_c11});
+
+        // B with C;  shared index is 2nd of B, 1st of C
+        expect_doesnt_factorize(ic, {id_b00, id_c00});
+        expect_factorizes(ic, {id_b00, id_c10});
+        expect_doesnt_factorize(ic, {id_b00, id_c01});
+        expect_factorizes(ic, {id_b00, id_c11});
+        expect_factorizes(ic, {id_b01, id_c00});
+        expect_doesnt_factorize(ic, {id_b01, id_c10});
+        expect_factorizes(ic, {id_b01, id_c01});
+        expect_doesnt_factorize(ic, {id_b01, id_c11});
+        expect_doesnt_factorize(ic, {id_b10, id_c00});
+        expect_factorizes(ic, {id_b10, id_c10});
+        expect_doesnt_factorize(ic, {id_b10, id_c01});
+        expect_factorizes(ic, {id_b10, id_c11});
+        expect_factorizes(ic, {id_b11, id_c00});
+        expect_doesnt_factorize(ic, {id_b11, id_c10});
+        expect_factorizes(ic, {id_b11, id_c01});
+        expect_doesnt_factorize(ic, {id_b11, id_c11});
     }
 
 }

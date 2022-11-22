@@ -14,6 +14,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(bitset.page_count, 0);
         EXPECT_TRUE(bitset.empty());
         EXPECT_EQ(bitset.count(), 0);
+        EXPECT_EQ(bitset.first_index(), bitset.bit_size);
     }
 
     TEST(DynamicBitset, Empty_Small) {
@@ -25,6 +26,7 @@ namespace NPATK::Tests {
         }
         EXPECT_TRUE(bitset.empty());
         EXPECT_EQ(bitset.count(), 0);
+        EXPECT_EQ(bitset.first_index(), bitset.bit_size);
     }
 
     TEST(DynamicBitset, Empty_Boundary) {
@@ -36,6 +38,7 @@ namespace NPATK::Tests {
         }
         EXPECT_TRUE(bitset.empty());
         EXPECT_EQ(bitset.count(), 0);
+        EXPECT_EQ(bitset.first_index(), bitset.bit_size);
     }
 
     TEST(DynamicBitset, Empty_Large) {
@@ -47,7 +50,47 @@ namespace NPATK::Tests {
         }
         EXPECT_TRUE(bitset.empty());
         EXPECT_EQ(bitset.count(), 0);
+        EXPECT_EQ(bitset.first_index(), bitset.bit_size);
     }
+
+    TEST(DynamicBitset, Full_Small) {
+        DynamicBitset<uint64_t> bitset{40, true};
+        EXPECT_EQ(bitset.bit_size, 40);
+        EXPECT_EQ(bitset.page_count, 1);
+        for (size_t i = 0; i < 40; ++i) {
+            EXPECT_TRUE(bitset.test(i)) << i;
+        }
+        EXPECT_FALSE(bitset.empty());
+        EXPECT_EQ(bitset.count(), 40);
+        EXPECT_EQ(bitset.first_index(), 0);
+    }
+
+    TEST(DynamicBitset, Full_Boundary) {
+        DynamicBitset<uint64_t> bitset{64, true};
+        EXPECT_EQ(bitset.bit_size, 64);
+        EXPECT_EQ(bitset.page_count, 1);
+        for (size_t i = 0; i < 64; ++i) {
+            EXPECT_TRUE(bitset.test(i)) << i;
+        }
+        EXPECT_FALSE(bitset.empty());
+        EXPECT_EQ(bitset.count(), 64);
+        EXPECT_EQ(bitset.first_index(), 0);
+    }
+
+    TEST(DynamicBitset, Full_Large) {
+        DynamicBitset<uint64_t> bitset{65, true};
+        EXPECT_EQ(bitset.bit_size, 65);
+        EXPECT_EQ(bitset.page_count, 2);
+        for (size_t i = 0; i < 65; ++i) {
+            EXPECT_TRUE(bitset.test(i)) << i;
+        }
+        EXPECT_FALSE(bitset.empty());
+        EXPECT_EQ(bitset.count(), 65);
+        EXPECT_EQ(bitset.first_index(),0 );
+    }
+
+
+
 
     TEST(DynamicBitset, SetTestUnset_Small) {
         for (size_t magic_bit = 0; magic_bit < 40; ++magic_bit) {
@@ -56,6 +99,7 @@ namespace NPATK::Tests {
             bitset.set(magic_bit);
             EXPECT_EQ(bitset.count(), 1);
             EXPECT_FALSE(bitset.empty());
+            EXPECT_EQ(bitset.first_index(), magic_bit);
             for (size_t i = 0; i < 40; ++i) {
                 if (i == magic_bit) {
                     EXPECT_TRUE(bitset.test(i)) << i;
@@ -78,6 +122,7 @@ namespace NPATK::Tests {
             bitset.set(magic_bit);
             EXPECT_EQ(bitset.count(), 1);
             EXPECT_FALSE(bitset.empty());
+            EXPECT_EQ(bitset.first_index(), magic_bit);
             for (size_t i = 0; i < 64; ++i) {
                 if (i == magic_bit) {
                     EXPECT_TRUE(bitset.test(i)) << i;
@@ -100,6 +145,7 @@ namespace NPATK::Tests {
             bitset.set(magic_bit);
             EXPECT_EQ(bitset.count(), 1);
             EXPECT_FALSE(bitset.empty());
+            EXPECT_EQ(bitset.first_index(), magic_bit);
             for (size_t i = 0; i < 70; ++i) {
                 if (i == magic_bit) {
                     EXPECT_TRUE(bitset.test(i)) << i;
@@ -166,5 +212,77 @@ namespace NPATK::Tests {
                 EXPECT_FALSE(combo.test(test)) << test;
             }
         }
+    }
+
+
+    TEST(DynamicBitset, Iterator_Small) {
+        DynamicBitset<uint64_t> bitset{50};
+        bitset.set(5);
+        bitset.set(20);
+        bitset.set(47);
+        bitset.set(48);
+
+        auto iter = bitset.begin();
+        auto iter_end = bitset.end();
+        ASSERT_NE(iter, iter_end);
+        EXPECT_EQ(*iter, 5);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        EXPECT_EQ(*iter, 20);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        EXPECT_EQ(*iter, 47);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        EXPECT_EQ(*iter, 48);
+
+        ++iter;
+        ASSERT_EQ(iter, iter_end);
+    }
+
+    TEST(DynamicBitset, Iterator_Large) {
+        DynamicBitset<uint64_t> bitset{70};
+        bitset.set(5);
+        bitset.set(20);
+        bitset.set(47);
+        bitset.set(48);
+        bitset.set(64);
+        bitset.set(65);
+        bitset.set(68);
+
+        auto iter = bitset.begin();
+        auto iter_end = bitset.end();
+        ASSERT_NE(iter, iter_end);
+        EXPECT_EQ(*iter, 5);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        EXPECT_EQ(*iter, 20);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        EXPECT_EQ(*iter, 47);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        EXPECT_EQ(*iter, 48);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        EXPECT_EQ(*iter, 64);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        EXPECT_EQ(*iter, 65);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        EXPECT_EQ(*iter, 68);
+
+        ++iter;
+        ASSERT_EQ(iter, iter_end);
     }
 }
