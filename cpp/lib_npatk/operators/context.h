@@ -22,11 +22,8 @@ namespace NPATK {
     class OperatorSequence;
 
     class Context {
-    public:
-        using oper_iter_t = std::vector<oper_name_t>::const_iterator;
-
-    protected:
-        std::vector<oper_name_t> operators;
+        protected:
+        oper_name_t operator_count;
 
         ShortlexHasher hasher;
 
@@ -35,27 +32,11 @@ namespace NPATK {
 
         virtual ~Context() = default;
 
-        /** Iterate over every operator */
-        [[nodiscard]] constexpr auto begin() const noexcept {
-            return this->operators.cbegin();
-        }
-
-        /** End of iteration over every operator */
-        [[nodiscard]] constexpr auto end() const noexcept {
-            return this->operators.cend();
-        }
-
         /** Gets total number of operators in Context */
-        [[nodiscard]] constexpr size_t size() const noexcept { return this->operators.size(); }
+        [[nodiscard]] constexpr size_t size() const noexcept { return this->operator_count; }
 
         /** True, if no operators in Context */
-        [[nodiscard]] constexpr bool empty() const noexcept { return this->operators.empty(); }
-
-        /** Get operator in context by index */
-        [[nodiscard]] constexpr oper_name_t operator[](size_t index) const noexcept {
-            assert(index < this->operators.size());
-            return this->operators[index];
-        }
+        [[nodiscard]] constexpr bool empty() const noexcept { return this->operator_count == 0; }
 
         /**
          * Use context to simplify an operator string.

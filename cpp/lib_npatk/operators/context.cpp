@@ -12,13 +12,8 @@
 
 namespace NPATK {
 
-    Context::Context(size_t operator_count)
-        : hasher{operator_count} {
-        this->operators.reserve(operator_count);
-
-        for (size_t index = 0; index < operator_count; ++index) {
-            this->operators.emplace_back(static_cast<oper_name_t>(index));
-        }
+    Context::Context(const size_t count)
+        : operator_count{static_cast<oper_name_t>(count)}, hasher{count} {
 
     }
 
@@ -70,8 +65,7 @@ namespace NPATK {
 
         ss << "Generic setting.\n";
 
-        const size_t total_operator_count = this->operators.size();
-        ss << total_operator_count << ((total_operator_count == 1) ? " operator" : " operators")
+        ss << this->operator_count << ((this->operator_count == 1) ? " operator" : " operators")
            << " in total.\n";
 
         return ss.str();

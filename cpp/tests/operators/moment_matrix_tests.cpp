@@ -128,7 +128,7 @@ namespace NPATK::Tests {
         auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 1);
-        const auto& theOp = context[0];
+        const auto theOp = 0;
 
         auto [id0, matLevel0] = system.create_moment_matrix(0);
         EXPECT_EQ(matLevel0.Level(), 0);
@@ -159,7 +159,8 @@ namespace NPATK::Tests {
     TEST(MomentMatrix, OpSeq_TwoElem) {
         MatrixSystem system{std::make_unique<Context>(2)}; // Two elements
         const auto& context = system.Context();
-        const auto& alice = context;
+        std::vector<oper_name_t> alice{0, 1};
+
 
         ASSERT_EQ(alice.size(), 2);
 
@@ -412,7 +413,7 @@ namespace NPATK::Tests {
         auto& context = system.Context();
 
         ASSERT_EQ(context.size(), 1);
-        const auto& alice = context;
+        std::vector<oper_name_t> alice{0};
 
 
         auto [id0, matLevel0] = system.create_moment_matrix(0);
@@ -484,8 +485,7 @@ namespace NPATK::Tests {
         MatrixSystem system{std::make_unique<Context>(2)}; // Two symbols
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
-        const auto &alice = context;
-        ASSERT_EQ(alice.size(), 2);
+        std::vector<oper_name_t> alice{0, 1};
         auto [id1, matLevel1] = system.create_moment_matrix(1);
 
         compare_unique_sequences(matLevel1, {{OperatorSequence({alice[0]}, context),
@@ -505,7 +505,7 @@ namespace NPATK::Tests {
         MatrixSystem system{std::make_unique<Context>(2)}; // One party, two symbols
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
-        const auto &alice = context;
+        std::vector<oper_name_t> alice{0, 1};
         auto [id2, matLevel2] = system.create_moment_matrix(2);
 
         compare_unique_sequences(matLevel2, {
@@ -561,7 +561,7 @@ namespace NPATK::Tests {
         MatrixSystem system{std::make_unique<Context>(2)}; // Two symbols
         auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
-        const auto& alice = context;
+        std::vector<oper_name_t> alice{0, 1};
 
         auto [id2, matLevel2] = system.create_moment_matrix(2);
 

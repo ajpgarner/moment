@@ -20,16 +20,12 @@ namespace NPATK {
     private:
         const Context *context = nullptr;
         size_t length = 0;
-        std::vector <Context::oper_iter_t> iters{};
+        std::vector<oper_name_t> indices;
 
     public:
         /** 'Begin' iterator */
-        constexpr MultiOperatorIterator(const Context &the_context, size_t max_length)
-                : context{&the_context}, length{max_length} {
-            iters.reserve(length);
-            for (size_t i = 0; i < length; ++i) {
-                iters.emplace_back(context->begin());
-            }
+        constexpr MultiOperatorIterator(const Context &the_context, const size_t max_length)
+                : context{&the_context}, length{max_length}, indices(max_length, 0) {
         }
 
         MultiOperatorIterator(const MultiOperatorIterator &rhs) = default;
@@ -50,7 +46,7 @@ namespace NPATK {
             assert(this->length == rhs.length);
             assert(this->context == rhs.context);
             for (size_t i = 0; i < length; ++i) {
-                if (this->iters[i] != rhs.iters[i]) {
+                if (this->indices[i] != rhs.indices[i]) {
                     return false;
                 }
             }
@@ -62,13 +58,10 @@ namespace NPATK {
         }
 
         [[nodiscard]] std::vector<oper_name_t> raw() const {
-            std::vector<oper_name_t> raw_opers{};
-            raw_opers.reserve(length);
-            // Reverse order so final operator in chain changes the most frequently:
-            for (size_t i = length; i > 0; --i) {
-                raw_opers.emplace_back(*(this->iters[i-1]));
-            }
-            return raw_opers;
+            std::vector<oper_name_t> output;
+            output.reserve(this->indices.size());
+            std::copy(this->indices.crbegin(), this->indices.crend(), std::back_inserter(output));
+            return output;
         }
 
         OperatorSequence operator*() const {
@@ -81,23 +74,20 @@ namespace NPATK {
 
         /** 'End' iterator, private c'tor */
         constexpr MultiOperatorIterator(const Context &the_context, size_t max_length, bool)
-                : context{&the_context}, length{max_length} {
-            iters.reserve(length);
-            for (size_t i = 0; i < length; ++i) {
-                iters.emplace_back(context->end());
-            }
+                : context{&the_context}, length{max_length},
+                  indices(max_length, static_cast<oper_name_t>(context->size())) {
         }
 
         /**
          * Recursively increment iterators.
          */
         constexpr bool inc(size_t depth) noexcept { // NOLINT(misc-no-recursion)
-            ++iters[depth];
-            if (iters[depth] == context->end()) {
+            ++indices[depth];
+            if (indices[depth] == context->size()) {
                 if ((depth+1) < length) {
                     bool end = inc(depth + 1);
                     if (!end) {
-                        iters[depth] = context->begin();
+                        indices[depth] = 0;
                     }
                     return end;
                 }

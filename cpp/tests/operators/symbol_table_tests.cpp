@@ -19,7 +19,7 @@ namespace NPATK::Tests {
         // One party, two symbols
         MatrixSystem system{std::make_unique<Context>(2)};
         auto& context = system.Context();
-        const auto& a = context;
+        std::vector<oper_name_t> a{0, 1};
 
         auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
         EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));

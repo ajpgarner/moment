@@ -17,10 +17,6 @@ namespace NPATK::Tests {
         ASSERT_EQ(context.Parties.size(), 0);
         ASSERT_TRUE(context.Parties.empty());
 
-        auto iter_begin = context.begin();
-        auto iter_end = context.end();
-        EXPECT_EQ(iter_begin, iter_end);
-
         EXPECT_EQ(context.size(), 0);
     }
 
@@ -29,6 +25,8 @@ namespace NPATK::Tests {
         ASSERT_EQ(context.size(), 4);
         ASSERT_EQ(context.Parties.size(), 2);
         ASSERT_FALSE(context.Parties.empty());
+
+        std::vector<oper_name_t> all_opers{0, 1, 2, 3};
 
         auto& alice = context.Parties[0];
         auto& bob = context.Parties[1];
@@ -39,8 +37,8 @@ namespace NPATK::Tests {
         ASSERT_FALSE(bob.empty());
 
         // Alice, 0
-        auto all_iter = context.begin();
-        ASSERT_NE(all_iter, context.end());
+        auto all_iter = all_opers.begin();
+        ASSERT_NE(all_iter, all_opers.end());
         auto alice_iter = alice.begin();
         ASSERT_NE(alice_iter, alice.end());
         EXPECT_EQ(*all_iter, *alice_iter);
@@ -48,7 +46,7 @@ namespace NPATK::Tests {
 
         // Alice, 1
         ++all_iter; ++alice_iter;
-        ASSERT_NE(all_iter, context.end());
+        ASSERT_NE(all_iter, all_opers.end());
         ASSERT_NE(alice_iter, alice.end());
 
         EXPECT_EQ(*all_iter, *alice_iter);
@@ -56,7 +54,7 @@ namespace NPATK::Tests {
 
         // Bob, 0
         ++all_iter; ++alice_iter;
-        ASSERT_NE(all_iter, context.end());
+        ASSERT_NE(all_iter, all_opers.end());
         ASSERT_EQ(alice_iter, alice.end());
         auto bob_iter = bob.begin();
         ASSERT_NE(bob_iter, bob.end());
@@ -65,7 +63,7 @@ namespace NPATK::Tests {
 
         // Bob, 1
         ++all_iter; ++bob_iter;
-        ASSERT_NE(all_iter, context.end());
+        ASSERT_NE(all_iter, all_opers.end());
         ASSERT_NE(bob_iter, bob.end());
 
         EXPECT_EQ(*all_iter, *bob_iter);
@@ -73,13 +71,14 @@ namespace NPATK::Tests {
 
         // End
         ++all_iter; ++bob_iter;
-        ASSERT_EQ(all_iter, context.end());
+        ASSERT_EQ(all_iter, all_opers.end());
         ASSERT_EQ(bob_iter, bob.end());
     }
 
     TEST(LocalityContext, Construct_3_2) {
         LocalityContext context(Party::MakeList({1,1}, {4, 3}));
         ASSERT_EQ(context.size(), 5);
+        std::vector<oper_name_t> all_opers{0, 1, 2, 3, 4};
 
         ASSERT_EQ(context.Parties.size(), 2);
         ASSERT_FALSE(context.Parties.empty());
@@ -93,8 +92,8 @@ namespace NPATK::Tests {
         ASSERT_FALSE(bob.empty());
 
         // Alice, 0
-        auto all_iter = context.begin();
-        ASSERT_NE(all_iter, context.end());
+        auto all_iter = all_opers.begin();
+        ASSERT_NE(all_iter, all_opers.end());
         auto alice_iter = alice.begin();
         ASSERT_NE(alice_iter, alice.end());
         EXPECT_EQ(*all_iter, *alice_iter);
@@ -102,7 +101,7 @@ namespace NPATK::Tests {
 
         // Alice, 1
         ++all_iter; ++alice_iter;
-        ASSERT_NE(all_iter, context.end());
+        ASSERT_NE(all_iter, all_opers.end());
         ASSERT_NE(alice_iter, alice.end());
 
         EXPECT_EQ(*all_iter, *alice_iter);
@@ -110,7 +109,7 @@ namespace NPATK::Tests {
 
         // Alice, 2
         ++all_iter; ++alice_iter;
-        ASSERT_NE(all_iter, context.end());
+        ASSERT_NE(all_iter, all_opers.end());
         ASSERT_NE(alice_iter, alice.end());
 
         EXPECT_EQ(*all_iter, *alice_iter);
@@ -118,7 +117,7 @@ namespace NPATK::Tests {
 
         // Bob, 0
         ++all_iter; ++alice_iter;
-        ASSERT_NE(all_iter, context.end());
+        ASSERT_NE(all_iter, all_opers.end());
         ASSERT_EQ(alice_iter, alice.end());
         auto bob_iter = bob.begin();
         ASSERT_NE(bob_iter, bob.end());
@@ -127,7 +126,7 @@ namespace NPATK::Tests {
 
         // Bob, 1
         ++all_iter; ++bob_iter;
-        ASSERT_NE(all_iter, context.end());
+        ASSERT_NE(all_iter, all_opers.end());
         ASSERT_NE(bob_iter, bob.end());
 
         EXPECT_EQ(*all_iter, *bob_iter);
@@ -135,7 +134,7 @@ namespace NPATK::Tests {
 
         // End
         ++all_iter; ++bob_iter;
-        ASSERT_EQ(all_iter, context.end());
+        ASSERT_EQ(all_iter, all_opers.end());
         ASSERT_EQ(bob_iter, bob.end());
     }
 

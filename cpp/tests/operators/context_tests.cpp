@@ -15,10 +15,6 @@ namespace NPATK::Tests {
         ASSERT_EQ(context.size(), 0);
         ASSERT_TRUE(context.empty());
 
-        auto iter_begin = context.begin();
-        auto iter_end = context.end();
-        EXPECT_EQ(iter_begin, iter_end);
-
         EXPECT_EQ(context.size(), 0);
     }
 

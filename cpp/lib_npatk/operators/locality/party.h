@@ -51,6 +51,8 @@ namespace NPATK {
         oper_name_t global_operator_offset = 0;
         oper_name_t party_operator_count = 0;
 
+        std::vector<oper_name_t> included_operators;
+
         LocalityContext * context = nullptr;
 
 
@@ -100,11 +102,11 @@ namespace NPATK {
 
 
         [[nodiscard]] auto begin() const {
-            return this->operators().begin();
+            return this->included_operators.begin();
         }
 
         [[nodiscard]] auto end() const {
-            return this->operators().end();
+            return this->included_operators.end();
         }
 
         /**

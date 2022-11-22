@@ -86,7 +86,6 @@ namespace NPATK {
           inflation{inflation_level} {
 
         // Create operator and observable info
-        const auto total_op_count = this->operators.size();
         this->inflated_observables.reserve(this->base_network.Observables().size());
         this->operator_info.reserve(this->size());
         size_t obs_index = 0;
@@ -262,7 +261,7 @@ namespace NPATK {
     std::string InflationContext::to_string() const {
         std::stringstream ss;
         ss << "Inflation setting with "
-           << this->operators.size() << ((1 !=  this->operators.size()) ? " operators" : " operator")
+           << this->operator_count << ((1 != this->operator_count) ? " operators" : " operator")
            << " in total.\n\n";
         ss << this->base_network << "\n";
         ss << "Inflation level: " << this->inflation;
@@ -275,7 +274,7 @@ namespace NPATK {
         std::vector<ICOperatorInfo> io_seq;
         io_seq.reserve(op_sequence.size());
         for (const auto& op : op_sequence) {
-            if ((op < 0) || (op >= this->operators.size())) {
+            if ((op < 0) || (op >= this->operator_count)) {
                 throw std::range_error{"Operator ID higher than number of known operators."};
             }
             const auto& info = this->operator_info[op];

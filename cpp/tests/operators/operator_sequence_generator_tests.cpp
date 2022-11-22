@@ -38,7 +38,7 @@ namespace NPATK::Tests {
 
     TEST(OperatorSequenceGenerator, OneParty3Symbols1Length) {
         Context collection{3};
-        const auto& alice = collection;
+        std::vector<oper_name_t> alice{0, 1, 2};
         ASSERT_EQ(alice.size(), 3);
 
         OperatorSequenceGenerator osg{collection, 1};
@@ -110,8 +110,7 @@ namespace NPATK::Tests {
 
     TEST(OperatorSequenceGenerator, Conjugate_1Party2Symbols2Length) {
         Context collection{2};
-        auto& alice = collection;
-        ASSERT_EQ(alice.size(), 2);
+        std::vector<oper_name_t> alice{0, 1};
 
         OperatorSequenceGenerator osg{collection, 2};
         ASSERT_EQ(osg.max_sequence_length, 2);

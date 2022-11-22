@@ -32,12 +32,11 @@ namespace NPATK {
 
 
     std::string AlgebraicContext::to_string() const {
-        const size_t op_count = this->operators.size();
         const size_t rule_count = this->rules.size();
 
         std::stringstream ss;
         ss << "Algebraic context with "
-           << op_count << (op_count ? " operators" : " operator")
+           << this->operator_count << (this->operator_count ? " operators" : " operator")
            << " and " << rule_count << ((rule_count!= 1) ? " rules" : " rule") << ".\n";
         if (this->commutative) {
             ss << "Commutative mode.\n";
@@ -47,11 +46,11 @@ namespace NPATK {
         }
         ss << "Operators: ";
         bool done_one = false;
-        for (size_t index = 0; index < op_count; ++index) {
+        for (size_t index = 0; index < this->operator_count; ++index) {
             if (done_one) {
                 ss << ", ";
             }
-            ss << "X" << this->operators[index];
+            ss << "X" << index;
             done_one = true;
         }
         ss << "\n";

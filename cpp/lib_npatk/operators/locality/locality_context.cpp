@@ -96,7 +96,7 @@ namespace NPATK {
             ++party_index;
         }
 
-        assert(this->global_op_id_to_party.size() == this->operators.size());
+        assert(this->global_op_id_to_party.size() == this->operator_count);
     }
 
 
@@ -111,7 +111,7 @@ namespace NPATK {
         std::vector<LocalityOperator> lo_seq;
         lo_seq.reserve(op_sequence.size());
         for (const auto& op : op_sequence) {
-            if ((op < 0) || (op >= this->operators.size())) {
+            if ((op < 0) || (op >= this->operator_count)) {
                 throw std::range_error{"Operator ID higher than number of known operators."};
             }
             lo_seq.emplace_back(op, this->global_op_id_to_party[op]);
@@ -239,8 +239,7 @@ namespace NPATK {
             ss << party << "\n";
         }
 
-        const size_t total_operator_count = this->operators.size();
-        ss << total_operator_count << ((total_operator_count == 1) ? " operator" : " operators")
+        ss << this->operator_count << ((this->operator_count == 1) ? " operator" : " operators")
            << " in total.\n";
 
         return ss.str();

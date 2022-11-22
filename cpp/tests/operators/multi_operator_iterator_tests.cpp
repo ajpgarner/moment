@@ -81,11 +81,11 @@ namespace NPATK::Tests {
         auto osA0 = *iter;
         ASSERT_FALSE(osA0.empty());
         ASSERT_EQ(osA0.size(), 2);
-        EXPECT_EQ(osA0[0], collection[0]);
-        EXPECT_EQ(osA0[1], collection[0]);
+        EXPECT_EQ(osA0[0], 0);
+        EXPECT_EQ(osA0[1], 0);
         auto osRawA0 = iter.raw();
-        EXPECT_EQ(osRawA0[0], collection[0]);
-        EXPECT_EQ(osRawA0[1], collection[0]);
+        EXPECT_EQ(osRawA0[0], 0);
+        EXPECT_EQ(osRawA0[1], 0);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
@@ -93,11 +93,11 @@ namespace NPATK::Tests {
         auto osA1 = *iter;
         ASSERT_FALSE(osA1.empty());
         ASSERT_EQ(osA1.size(), 2);
-        EXPECT_EQ(osA1[0], collection[0]);
-        EXPECT_EQ(osA1[1], collection[1]);
+        EXPECT_EQ(osA1[0], 0);
+        EXPECT_EQ(osA1[1], 1);
         auto osRawA1 = iter.raw();
-        EXPECT_EQ(osRawA1[0], collection[0]);
-        EXPECT_EQ(osRawA1[1], collection[1]);
+        EXPECT_EQ(osRawA1[0], 0);
+        EXPECT_EQ(osRawA1[1], 1);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
@@ -105,11 +105,11 @@ namespace NPATK::Tests {
         auto osB0 = *iter;
         ASSERT_FALSE(osB0.empty());
         ASSERT_EQ(osB0.size(), 2);
-        EXPECT_EQ(osB0[0], collection[1]);
-        EXPECT_EQ(osB0[1], collection[0]);
+        EXPECT_EQ(osB0[0], 1);
+        EXPECT_EQ(osB0[1], 0);
         auto osRawB0 = iter.raw();
-        EXPECT_EQ(osRawB0[0], collection[1]);
-        EXPECT_EQ(osRawB0[1], collection[0]);
+        EXPECT_EQ(osRawB0[0], 1);
+        EXPECT_EQ(osRawB0[1], 0);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
@@ -117,11 +117,11 @@ namespace NPATK::Tests {
         auto osB1 = *iter;
         ASSERT_FALSE(osB1.empty());
         ASSERT_EQ(osB1.size(), 2);
-        EXPECT_EQ(osB1[0], collection[1]);
-        EXPECT_EQ(osB1[1], collection[1]);
+        EXPECT_EQ(osB1[0], 1);
+        EXPECT_EQ(osB1[1], 1);
         auto osRawB1 = iter.raw();
-        EXPECT_EQ(osRawB1[0], collection[1]);
-        EXPECT_EQ(osRawB1[1], collection[1]);
+        EXPECT_EQ(osRawB1[0], 1);
+        EXPECT_EQ(osRawB1[1], 1);
 
 
         ++iter;
@@ -158,10 +158,10 @@ namespace NPATK::Tests {
             v[3] = count & 0x3;
 
             ASSERT_EQ(opStr.size(), 4);
-            EXPECT_EQ(opStr[0], collection[v[0]]) << "count = " << count << ", v[0]=" << v[0];
-            EXPECT_EQ(opStr[1], collection[v[1]]) << "count = " << count << ", v[1]=" << v[1];
-            EXPECT_EQ(opStr[2], collection[v[2]]) << "count = " << count << ", v[2]=" << v[2];
-            EXPECT_EQ(opStr[3], collection[v[3]]) << "count = " << count << ", v[3]=" << v[3];
+            EXPECT_EQ(opStr[0], v[0]) << "count = " << count << ", v[0]=" << v[0];
+            EXPECT_EQ(opStr[1], v[1]) << "count = " << count << ", v[1]=" << v[1];
+            EXPECT_EQ(opStr[2], v[2]) << "count = " << count << ", v[2]=" << v[2];
+            EXPECT_EQ(opStr[3], v[3]) << "count = " << count << ", v[3]=" << v[3];
             ++count;
         }
         EXPECT_EQ(count, 256);

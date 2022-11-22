@@ -31,7 +31,15 @@ namespace NPATK {
         for (const auto& mmt : this->measurements) {
             std::fill_n(std::back_inserter(this->offset_id_to_local_mmt), mmt.num_operators(), mmt.index.mmt);
         }
-    }
+
+        // Note operator IDs included within party
+        this->included_operators.reserve(this->party_operator_count);
+        const oper_name_t iMax = this->global_operator_offset + this->party_operator_count;
+        for (oper_name_t i = this->global_operator_offset; i < iMax; ++i) {
+            this->included_operators.emplace_back(i);
+        }
+
+   }
 
     Party::Party(party_name_t id, std::vector<Measurement>&& measurements)
         : Party{id, AlphabeticNamer::index_to_name(id, true), std::move(measurements)} {
@@ -47,6 +55,14 @@ namespace NPATK {
         for (auto &mmt: this->measurements) {
             mmt.index.party = this->party_id;
             mmt.index.global_mmt = static_cast<mmt_name_t>(this->global_measurement_offset + mmt.index.mmt);
+        }
+
+        // Propagate offsets to included operators
+        this->included_operators.clear();
+        this->included_operators.reserve(this->party_operator_count);
+        const oper_name_t iMax = this->global_operator_offset + this->party_operator_count;
+        for (oper_name_t i = this->global_operator_offset; i < iMax; ++i) {
+            this->included_operators.emplace_back(i);
         }
     }
 
@@ -100,8 +116,7 @@ namespace NPATK {
         }
 
         return std::span<const oper_name_t>{
-            this->context->begin() + this->global_operator_offset,
-            this->context->begin() + (this->global_operator_offset + this->party_operator_count)
+                this->operators().begin(), this->operators().end()
         };
     }
 
@@ -157,7 +172,7 @@ namespace NPATK {
         if (index >= this->party_operator_count) {
             throw std::range_error{"Operator index out of range."};
         }
-        return this->operators()[index];
+        return this->included_operators[index];
     }
 
     bool Party::mutually_exclusive(const oper_name_t lhs, const oper_name_t rhs) const noexcept {
