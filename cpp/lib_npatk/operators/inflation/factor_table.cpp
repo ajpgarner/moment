@@ -24,7 +24,6 @@ namespace NPATK {
             return 0;
         }
 
-
         // Check for factors of new symbols
         for (symbol_name_t symbol_index = next_id; symbol_index < up_to_id; ++symbol_index) {
             const auto& symbol = this->symbols[symbol_index];
@@ -48,7 +47,7 @@ namespace NPATK {
             }
         }
 
-        // Extra added symbols are automatically not factorizable
+        // Newly added symbols automatically will not factorize
         const auto extra_symbols = static_cast<symbol_name_t>(this->symbols.size());
         for (symbol_name_t symbol_index = up_to_id; symbol_index < extra_symbols; ++symbol_index) {
             const auto& symbol = this->symbols[symbol_index];

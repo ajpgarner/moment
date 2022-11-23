@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../context.h"
+#include "../operator_sequence.h"
 
 #include "causal_network.h"
 
@@ -122,8 +123,6 @@ namespace NPATK {
         std::vector<DynamicBitset<uint64_t>> dependent_operators;
 
     public:
-        bool additional_simplification(std::vector<oper_name_t> &op_sequence, bool &negate) const override;
-
         /**
          * Create a causal network context, for inflating.
          * @param network Causal network
@@ -141,9 +140,21 @@ namespace NPATK {
         [[nodiscard]] const auto& Sources() const noexcept { return this->base_network.Sources(); }
 
         /**
+         * Get total number of source variants
+         */
+        [[nodiscard]] size_t source_variant_count() const noexcept {
+            return this->inflation * this->base_network.Sources().size();
+        }
+
+        /**
          * Level of inflation
          */
          [[nodiscard]] size_t Inflation() const noexcept { return this->inflation; }
+
+         /**
+          * Commute operators, check for idempotency, and check for orthogonal projectors.
+          */
+        bool additional_simplification(std::vector<oper_name_t> &op_sequence, bool &negate) const override;
 
          /**
           * Split operator sequence into smallest independent factors.
@@ -151,16 +162,16 @@ namespace NPATK {
         [[nodiscard]] std::vector<OperatorSequence> factorize(const OperatorSequence& seq) const;
 
         /**
+         * Calculate equivalent variant of operator string with lowest possible source indices (e.g. 'A2' -> 'A0' etc.).
+         */
+        [[nodiscard]] OperatorSequence canonical_moment(const OperatorSequence& input) const;
+
+        /**
          * Generates a formatted string representation of an operator sequence
          */
         [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const override;
 
-         /**
-          * Output information about inflation context
-          */
-         [[nodiscard]] std::string to_string() const override;
-
-         /**
+        /**
           * Get operator associated with following triplet:
           * @param observable
           * @param variant
@@ -169,6 +180,13 @@ namespace NPATK {
           */
         [[nodiscard]] oper_name_t operator_number(oper_name_t observable, oper_name_t variant,
                                                   oper_name_t outcome) const noexcept;
+
+
+         /**
+          * Output information about inflation context
+          */
+         [[nodiscard]] std::string to_string() const override;
+
 
     };
 }

@@ -5,7 +5,6 @@
  */
 #include "inflation_context.h"
 
-#include "operators/operator_sequence.h"
 #include "utilities/alphabetic_namer.h"
 
 #include <cassert>
@@ -203,79 +202,6 @@ namespace NPATK {
         return output;
     }
 
-
-
-    std::string InflationContext::format_sequence(const OperatorSequence &seq) const {
-        if (seq.zero()) {
-            return "0";
-        }
-        if (seq.empty()) {
-            return "1";
-        }
-
-        std::stringstream ss;
-        if (seq.negated()) {
-            ss << "-";
-        }
-
-        AlphabeticNamer obsNamer{true};
-
-        const bool needs_comma = this->inflation > 9;
-        const bool needs_braces = std::any_of(this->Observables().cbegin(), this->Observables().cend(),
-                                              [](const auto& obs) { return obs.outcomes > 2; });
-        bool one_operator = false;
-        for (const auto& oper : seq) {
-            if (one_operator) {
-                ss << ";";
-            } else {
-                one_operator = true;
-            }
-
-            if (oper > this->operator_info.size()) {
-                ss << "[UNK:" << oper << "]";
-            } else {
-                const auto &extraInfo = this->operator_info[oper];
-                const auto &obsInfo = this->inflated_observables[extraInfo.observable];
-
-                ss << obsNamer(extraInfo.observable);
-                if (obsInfo.outcomes > 2) {
-                   ss << extraInfo.outcome;
-                }
-                // Give indices, if inflated
-                if (this->inflation > 1) {
-                    const auto& infIndices = obsInfo.variants[extraInfo.flattenedSourceIndex].indices;
-                    bool done_one = false;
-                    if (needs_braces) {
-                        ss << "[";
-                    }
-                    for (auto infIndex : infIndices){
-                        if (needs_comma && done_one) {
-                            ss << ",";
-                        } else {
-                            done_one = true;
-                        }
-                        ss << infIndex;
-                    }
-                    if (needs_braces) {
-                        ss << "]";
-                    }
-                }
-            }
-        }
-        return ss.str();
-    }
-
-    std::string InflationContext::to_string() const {
-        std::stringstream ss;
-        ss << "Inflation setting with "
-           << this->operator_count << ((1 != this->operator_count) ? " operators" : " operator")
-           << " in total.\n\n";
-        ss << this->base_network << "\n";
-        ss << "Inflation level: " << this->inflation;
-
-        return ss.str();
-    }
-
     bool InflationContext::additional_simplification(std::vector<oper_name_t> &op_sequence, bool &negate) const {
         // Commutation between parties...
         std::vector<ICOperatorInfo> io_seq;
@@ -314,6 +240,47 @@ namespace NPATK {
         return false;
     }
 
+    OperatorSequence InflationContext::canonical_moment(const OperatorSequence& input) const {
+
+
+        std::vector<oper_name_t> next_available_source(this->base_network.Sources().size(), 0);
+
+        std::map<oper_name_t, oper_name_t> permutation{};
+        std::vector<oper_name_t> permuted_operators;
+
+        for (const oper_name_t op : input) {
+            assert((op>=0) && (op < this->operator_count));
+            const auto& op_info = this->operator_info[op];
+            const auto& obs_info = this->inflated_observables[op_info.observable];
+            const auto& variant_info = obs_info.variants[op_info.flattenedSourceIndex];
+
+            std::vector<oper_name_t> source_indices;
+            source_indices.reserve(variant_info.indices.size());
+
+            for (auto src : variant_info.connected_sources) {
+                auto permIter = permutation.find(static_cast<oper_name_t>(src));
+                if (permIter != permutation.end()) {
+                    // permutation already known
+                    const oper_name_t new_src = permIter->second;
+                    const oper_name_t new_variant = new_src % static_cast<oper_name_t>(this->inflation);
+                    source_indices.emplace_back(new_variant);
+                } else {
+                    // new permutation required
+                    const oper_name_t source = static_cast<oper_name_t>(src) / static_cast<oper_name_t>(this->inflation);
+                    const oper_name_t new_variant = next_available_source[source];
+                    ++next_available_source[source];
+                    const oper_name_t new_src = (source * static_cast<oper_name_t>(this->inflation)) + new_variant;
+                    permutation.emplace(std::make_pair(src, new_src));
+                    source_indices.emplace_back(new_variant);
+                }
+            }
+            const auto& new_variant_info = obs_info.variant(source_indices);
+            const oper_name_t new_oper_id = new_variant_info.operator_offset + op_info.outcome;
+            permuted_operators.push_back(new_oper_id);
+        }
+        return OperatorSequence{std::move(permuted_operators), *this};
+    }
+
     oper_name_t InflationContext::operator_number(oper_name_t observable, oper_name_t variant,
                                                   oper_name_t outcome) const noexcept {
        assert((observable >= 0) && (observable < this->inflated_observables.size()));
@@ -325,5 +292,79 @@ namespace NPATK {
                 + (variant * (static_cast<oper_name_t>(this->base_network.Observables()[observable].outcomes)-1))
                 + outcome;
    }
+
+
+
+    std::string InflationContext::format_sequence(const OperatorSequence &seq) const {
+        if (seq.zero()) {
+            return "0";
+        }
+        if (seq.empty()) {
+            return "1";
+        }
+
+        std::stringstream ss;
+        if (seq.negated()) {
+            ss << "-";
+        }
+
+        AlphabeticNamer obsNamer{true};
+
+        const bool needs_comma = this->inflation > 9;
+        const bool needs_braces = std::any_of(this->Observables().cbegin(), this->Observables().cend(),
+                                              [](const auto& obs) { return obs.outcomes > 2; });
+        bool one_operator = false;
+        for (const auto& oper : seq) {
+            if (one_operator) {
+                ss << ";";
+            } else {
+                one_operator = true;
+            }
+
+            if (oper > this->operator_info.size()) {
+                ss << "[UNK:" << oper << "]";
+            } else {
+                const auto &extraInfo = this->operator_info[oper];
+                const auto &obsInfo = this->inflated_observables[extraInfo.observable];
+
+                ss << obsNamer(extraInfo.observable);
+                if (obsInfo.outcomes > 2) {
+                    ss << extraInfo.outcome;
+                }
+                // Give indices, if inflated
+                if (this->inflation > 1) {
+                    const auto& infIndices = obsInfo.variants[extraInfo.flattenedSourceIndex].indices;
+                    bool done_one = false;
+                    if (needs_braces) {
+                        ss << "[";
+                    }
+                    for (auto infIndex : infIndices){
+                        if (needs_comma && done_one) {
+                            ss << ",";
+                        } else {
+                            done_one = true;
+                        }
+                        ss << infIndex;
+                    }
+                    if (needs_braces) {
+                        ss << "]";
+                    }
+                }
+            }
+        }
+        return ss.str();
+    }
+
+    std::string InflationContext::to_string() const {
+        std::stringstream ss;
+        ss << "Inflation setting with "
+           << this->operator_count << ((1 != this->operator_count) ? " operators" : " operator")
+           << " in total.\n\n";
+        ss << this->base_network << "\n";
+        ss << "Inflation level: " << this->inflation;
+
+        return ss.str();
+    }
+
 
 }

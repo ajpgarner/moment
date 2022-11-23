@@ -557,4 +557,114 @@ namespace NPATK::Tests {
         expect_doesnt_factorize(ic, {id_b11, id_c11});
     }
 
+    TEST(InflationContext, CanonicalMoment_Pair) {
+        InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 2};
+        const auto& obsA = ic.Observables()[0];
+        const auto& obsB = ic.Observables()[1];
+
+        const auto& obsA0 = obsA.variants[0];
+        const auto& obsA1 = obsA.variants[1];
+        const auto& obsB0 = obsB.variants[0];
+        const auto& obsB1 = obsB.variants[1];
+
+        const oper_name_t a0_0 = obsA0.operator_offset;
+        const oper_name_t a0_1 = obsA0.operator_offset + 1;
+        const oper_name_t a1_0 = obsA1.operator_offset;
+        const oper_name_t a1_1 = obsA1.operator_offset + 1;
+        const oper_name_t b0 = obsB0.operator_offset;
+        const oper_name_t b1 = obsB1.operator_offset;
+
+        const std::set<oper_name_t> all_elems{a0_0, a0_1, a1_0, a1_1, b0, b1};
+        ASSERT_EQ(all_elems.size(), 6);
+
+        // First outcome A
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a0_0}, ic}), OperatorSequence({a0_0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a0_1}, ic}), OperatorSequence({a0_1}, ic));
+
+        // Second outcome A
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a1_0}, ic}), OperatorSequence({a0_0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a1_1}, ic}), OperatorSequence({a0_1}, ic));
+
+        // Outcome B
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{b0}, ic}), OperatorSequence({b0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{b1}, ic}), OperatorSequence({b0}, ic));
+
+        // a0_0 b0 -> a0_0 b0; but same for a1_0 b_0;
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a0_0, b0}, ic}), OperatorSequence({a0_0, b0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a1_0, b1}, ic}), OperatorSequence({a0_0, b0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a0_1, b0}, ic}), OperatorSequence({a0_1, b0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a1_1, b1}, ic}), OperatorSequence({a0_1, b0}, ic));
+
+        // a0_0 a1_0, cannot further simplify (but could factor then simplify)
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a0_0, a1_0}, ic}), OperatorSequence({a0_0, a1_0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a0_0, a1_1}, ic}), OperatorSequence({a0_0, a1_1}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a0_1, a1_0}, ic}), OperatorSequence({a0_1, a1_0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a0_1, a1_1}, ic}), OperatorSequence({a0_1, a1_1}, ic));
+
+        // a0_0 b1 -> a0_0 b1; but a1_0 b0 -> a0_0 b1 too??
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a0_0, b1}, ic}), OperatorSequence({a0_0, b1}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a1_0, b0}, ic}), OperatorSequence({a0_0, b1}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a0_1, b1}, ic}), OperatorSequence({a0_1, b1}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a1_1, b0}, ic}), OperatorSequence({a0_1, b1}, ic));
+    }
+
+    TEST(InflationContext, CanonicalMoment_TwoSourceTwoObs) {
+        InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2};
+
+        const auto& obsA = ic.Observables()[0];
+        const auto& obsB = ic.Observables()[1];
+        const auto& obsA00 = obsA.variant(std::vector<oper_name_t>{0, 0});
+        const auto& obsA01 = obsA.variant(std::vector<oper_name_t>{0, 1});
+        const auto& obsA10 = obsA.variant(std::vector<oper_name_t>{1, 0});
+        const auto& obsA11 = obsA.variant(std::vector<oper_name_t>{1, 1});
+
+        const auto& obsB0 = obsB.variants[0];
+        const auto& obsB1 = obsB.variants[1];
+
+        const oper_name_t a00 = obsA00.operator_offset;
+        const oper_name_t a01 = obsA01.operator_offset;
+        const oper_name_t a10 = obsA10.operator_offset;
+        const oper_name_t a11 = obsA11.operator_offset;
+        const oper_name_t b0 = obsB0.operator_offset;
+        const oper_name_t b1 = obsB1.operator_offset;
+
+        const std::set<oper_name_t> all_elems{a00, a01, a10, a11, b0, b1};
+        ASSERT_EQ(all_elems.size(), 6);
+
+        // Outcome A
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a00}, ic}), OperatorSequence({a00}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a01}, ic}), OperatorSequence({a00}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a10}, ic}), OperatorSequence({a00}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a11}, ic}), OperatorSequence({a00}, ic));
+
+        // Outcome B
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{b0}, ic}), OperatorSequence({b0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{b1}, ic}), OperatorSequence({b0}, ic));
+
+        // Linked AB
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a00, b0}, ic}), OperatorSequence({a00, b0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a10, b0}, ic}), OperatorSequence({a00, b0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a01, b1}, ic}), OperatorSequence({a00, b0}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a11, b1}, ic}), OperatorSequence({a00, b0}, ic));
+
+        // Unlinked AB
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a00, b1}, ic}), OperatorSequence({a00, b1}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a10, b1}, ic}), OperatorSequence({a00, b1}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a01, b0}, ic}), OperatorSequence({a00, b1}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a11, b0}, ic}), OperatorSequence({a00, b1}, ic));
+
+        // A with itself [should factorize anyway]
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a00, a11}, ic}), OperatorSequence({a00, a11}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a11, a00}, ic}), OperatorSequence({a00, a11}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a01, a10}, ic}), OperatorSequence({a00, a11}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a10, a01}, ic}), OperatorSequence({a00, a11}, ic));
+
+        // A with itself [does not factorize]
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a00, a01}, ic}), OperatorSequence({a00, a01}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a10, a11}, ic}), OperatorSequence({a00, a01}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a01, a11}, ic}), OperatorSequence({a00, a10}, ic));
+        EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a10, a00}, ic}), OperatorSequence({a00, a10}, ic));
+    }
+
+
 }
