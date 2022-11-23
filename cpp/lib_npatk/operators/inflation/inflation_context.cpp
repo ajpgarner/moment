@@ -241,10 +241,13 @@ namespace NPATK {
     }
 
     OperatorSequence InflationContext::canonical_moment(const OperatorSequence& input) const {
+        // If 0 or I; or no inflation, just pass through
+        if (input.empty() || (this->inflation <= 1)) {
+            return input;
+        }
 
 
         std::vector<oper_name_t> next_available_source(this->base_network.Sources().size(), 0);
-
         std::map<oper_name_t, oper_name_t> permutation{};
         std::vector<oper_name_t> permuted_operators;
 

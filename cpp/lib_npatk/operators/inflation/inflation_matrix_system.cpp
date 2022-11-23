@@ -25,13 +25,13 @@ namespace NPATK {
     InflationMatrixSystem::~InflationMatrixSystem() noexcept = default;
 
     void InflationMatrixSystem::onNewMomentMatrixCreated(size_t level, const class MomentMatrix& mm) {
-        this->factors->check_for_new_factors();
+        this->factors->on_new_symbols_added();
         MatrixSystem::onNewMomentMatrixCreated(level, mm);
     }
 
     void InflationMatrixSystem::onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi,
                                                              const class LocalizingMatrix& lm) {
-        this->factors->check_for_new_factors();
+        this->factors->on_new_symbols_added();
         MatrixSystem::onNewLocalizingMatrixCreated(lmi, lm);
     }
 }
