@@ -22,6 +22,11 @@ namespace NPATK {
         return false;
     }
 
+    OperatorSequence Context::simplify_as_moment(OperatorSequence &&seq) const {
+        // Pass through
+        return std::move(seq);
+    }
+
     size_t Context::hash(const OperatorSequence &sequence) const noexcept {
         if (sequence.zero()) {
             return 0;

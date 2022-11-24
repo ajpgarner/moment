@@ -31,7 +31,7 @@ namespace NPATK {
             matrix_data.reserve(dimension * dimension);
             for (const auto& rowSeq : rowGen) {
                 for (const auto& colSeq : colGen) {
-                    matrix_data.emplace_back(rowSeq * colSeq);
+                    matrix_data.emplace_back(context.simplify_as_moment(rowSeq * colSeq));
                 }
             }
 

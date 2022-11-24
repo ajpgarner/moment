@@ -156,6 +156,11 @@ namespace NPATK {
           */
         bool additional_simplification(std::vector<oper_name_t> &op_sequence, bool &negate) const override;
 
+        /**
+         * Replace string with symmetric equivalent
+         */
+        OperatorSequence simplify_as_moment(OperatorSequence &&seq) const override;
+
          /**
           * Split operator sequence into smallest independent factors.
           */

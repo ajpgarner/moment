@@ -10,3 +10,4 @@ triangle = InflationScenario(inflation_level, ...
 
 moment_matrix = triangle.MakeMomentMatrix(moment_matrix_level);
 disp(moment_matrix.SequenceMatrix);
+disp(struct2table(triangle.System.SymbolTable));

@@ -371,7 +371,9 @@ namespace NPATK::Tests {
         ASSERT_EQ(all_opers.size(), 8);
 
 
-        const auto& lm = ims.create_localizing_matrix(LocalizingMatrixIndex{context, 0, OperatorSequence{{A1}, context}});
+        const auto& lm = ims.create_localizing_matrix(
+                LocalizingMatrixIndex{context, 1, OperatorSequence{{A1}, context}}
+        );
 
 
         // Get A0 symbol

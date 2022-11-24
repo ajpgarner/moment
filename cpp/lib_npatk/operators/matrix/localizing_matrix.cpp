@@ -24,13 +24,11 @@ namespace NPATK {
             matrix_data.reserve(dimension * dimension);
             for (const auto& rowSeq : rowGen) {
                 for (const auto& colSeq : colGen) {
-                    matrix_data.emplace_back(rowSeq * (word * colSeq));
+                    matrix_data.emplace_back(context.simplify_as_moment(rowSeq * (word * colSeq)));
                 }
             }
-
             return std::make_unique<SquareMatrix<OperatorSequence>>(dimension, std::move(matrix_data));
         }
-
     }
 
 

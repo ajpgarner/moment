@@ -369,5 +369,9 @@ namespace NPATK {
         return ss.str();
     }
 
+    OperatorSequence InflationContext::simplify_as_moment(OperatorSequence &&seq) const {
+        return this->canonical_moment(seq);
+    }
+
 
 }
