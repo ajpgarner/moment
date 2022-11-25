@@ -24,11 +24,15 @@ namespace NPATK::mex {
     matlab::data::SparseArray<std::complex<double>>
     make_zero_sparse_matrix(matlab::engine::MATLABEngine &engine, std::pair<size_t, size_t> dimensions) {
         matlab::data::ArrayFactory factory;
-        std::vector<matlab::data::Array> args{factory.createScalar(static_cast<double>(dimensions.first)),
-                                              factory.createScalar(static_cast<double>(dimensions.second))};
+        
+        auto sparse_template = engine.feval(u"sparse", factory.createArray<std::complex<double>>({1, 1}, {0}));
 
-        auto x = engine.feval(u"sparse", args);
-        return engine.feval(u"complex", x);
+        std::vector<matlab::data::Array> args{factory.createScalar(static_cast<double>(dimensions.first)),
+                                              factory.createScalar(static_cast<double>(dimensions.second)),
+                                              factory.createCharArray("like"),
+                                              sparse_template};
+
+        return engine.feval(u"zeros", args);
     }
 
     template<>
