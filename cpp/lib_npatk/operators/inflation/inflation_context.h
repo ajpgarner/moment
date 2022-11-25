@@ -151,6 +151,9 @@ namespace NPATK {
          */
          [[nodiscard]] size_t Inflation() const noexcept { return this->inflation; }
 
+        /** False: as InflationContext never generates non-Hermitian operator strings. */
+        [[nodiscard]] bool can_be_nonhermitian() const noexcept override { return false; }
+
          /**
           * Commute operators, check for idempotency, and check for orthogonal projectors.
           */

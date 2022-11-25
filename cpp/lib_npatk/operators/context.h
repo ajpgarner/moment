@@ -38,6 +38,9 @@ namespace NPATK {
         /** True, if no operators in Context */
         [[nodiscard]] constexpr bool empty() const noexcept { return this->operator_count == 0; }
 
+        /** True, if Context can generate (in principle) non-Hermitian operator strings */
+        [[nodiscard]] virtual bool can_be_nonhermitian() const noexcept { return true; }
+
         /**
          * Use context to simplify an operator string.
          * @param op_sequence The string of operators

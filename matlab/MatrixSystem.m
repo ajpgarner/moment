@@ -60,7 +60,11 @@ classdef MatrixSystem < handle
             % Extra processing, as new symbols added:
             if has_new_symbols
                 obj.RealVarCount = max([obj.SymbolTable.basis_re]);
-                obj.ImaginaryVarCount = max([obj.SymbolTable.basis_im]);                               
+                if (isfield(obj.SymbolTable, 'basis_im'))
+                    obj.ImaginaryVarCount = max([obj.SymbolTable.basis_im]);
+                else
+                    obj.ImaginaryVarCount = 0;
+                end
                 obj.onNewSymbolsAdded();                
             end
             
