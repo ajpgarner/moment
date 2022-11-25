@@ -112,6 +112,16 @@ classdef Polynomial < ComplexObject
                     + " and " + class(rhs));
             end
         end
+        
+        % Substraction
+        function val = minus(lhs, rhs)
+            arguments
+                lhs (1,1)
+                rhs (1,1)
+            end
+            
+            val = lhs + -rhs;            
+        end
     end
     
     %% Virtual methods

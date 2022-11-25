@@ -12,9 +12,9 @@ classdef Monomial < ComplexObject
         SymbolId
         SymbolConjugated
         RealBasisIndex
-        ImaginaryBasisIndex             
+        ImaginaryBasisIndex
     end
-   
+    
     properties(Access=private)
         symbol_id = int64(-1);
         symbol_conjugated = false;
@@ -32,7 +32,7 @@ classdef Monomial < ComplexObject
             
             obj = obj@ComplexObject(setting);
             if any(operators > setting.OperatorCount) ...
-                 || any(operators <= 0)
+                    || any(operators <= 0)
                 error("Operator string contains out of range index.");
             end
             obj.Operators = operators;
@@ -67,12 +67,12 @@ classdef Monomial < ComplexObject
         function val = get.FoundSymbol(obj)
             if obj.symbol_id < 0
                 obj.loadSymbolInfo();
-            end            
+            end
             val = logical(obj.symbol_id >= 0);
         end
         
         function val = get.SymbolId(obj)
-            obj.loadSymbolInfoOrError();            
+            obj.loadSymbolInfoOrError();
             val = obj.symbol_id;
             
         end
@@ -98,7 +98,7 @@ classdef Monomial < ComplexObject
         % Unary minus
         function val = uminus(this)
             val = Algebraic.Monomial(this.Setting, this.Operators, ...
-                                     double(-this.Coefficient));
+                double(-this.Coefficient));
         end
         
         % Multiplication
@@ -114,7 +114,7 @@ classdef Monomial < ComplexObject
                 other = lhs;
             else
                 this = lhs;
-                other = rhs;            
+                other = rhs;
             end
             
             if isnumeric(other)
@@ -123,7 +123,7 @@ classdef Monomial < ComplexObject
                 end
                 
                 val = Algebraic.Monomial(this.Setting, this.Operators, ...
-                                         double(this.Coefficient * other));
+                    double(this.Coefficient * other));
             else
                 error("_*_ not defined between " + class(lhs) ...
                     + " and " + class(rhs));
@@ -131,7 +131,7 @@ classdef Monomial < ComplexObject
         end
         
         % Addition
-         function val = plus(lhs, rhs)
+        function val = plus(lhs, rhs)
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -141,13 +141,13 @@ classdef Monomial < ComplexObject
             if ~isa(lhs, 'Algebraic.Monomial')
                 if ~isnumeric(lhs)
                     error("_+_ not defined between " + class(lhs) ...
-                            + " and " + class(rhs));
-                end                
+                        + " and " + class(rhs));
+                end
                 this = rhs;
                 other = Algebraic.Monomial(this.Setting, [], double(lhs));
             else
                 this = lhs;
-                other = rhs;            
+                other = rhs;
             end
             
             % Add monomial to monomial?
@@ -163,13 +163,23 @@ classdef Monomial < ComplexObject
                 components = horzcat(this, other.Constituents);
                 val = Algebraic.Polynomial(this.Setting, components);
             else
-                 error("_+_ not defined between " + class(lhs) ...
-                            + " and " + class(rhs));
+                error("_+_ not defined between " + class(lhs) ...
+                    + " and " + class(rhs));
             end
+        end
+        
+        % Subtraction
+        function val = minus(lhs, rhs)
+            arguments
+                lhs (1,1)
+                rhs (1,1)
+            end
+            
+            val = lhs + -rhs;
         end
     end
     
-     %% Virtual methods
+    %% Virtual methods
     methods(Access=protected)
         function success = calculateCoefficients(obj)
             % Early exit if we can't get symbol information...
@@ -189,7 +199,7 @@ classdef Monomial < ComplexObject
             end
             
             % Imaginary coefficients
-            obj.im_coefs = sparse(1, sys.ImaginaryVarCount);            
+            obj.im_coefs = sparse(1, sys.ImaginaryVarCount);
             if obj.im_basis_index > 0
                 if obj.SymbolConjugated
                     obj.im_coefs(obj.im_basis_index) = ...
@@ -204,17 +214,17 @@ classdef Monomial < ComplexObject
         end
     end
     
-   %% Internal methods
-    methods (Access=private)        
+    %% Internal methods
+    methods (Access=private)
         function loadSymbolInfoOrError(obj)
             % Cached value?
             if obj.symbol_id == -1
                 obj.loadSymbolInfo();
-            
+                
                 if obj.symbol_id == -1
                     error("No associated symbol found in matrix system.");
                 end
-            end            
+            end
         end
         
         function val = calculateShortlexHash(obj)
@@ -255,6 +265,4 @@ classdef Monomial < ComplexObject
             obj.im_basis_index = 0;
         end
     end
-        
 end
-
