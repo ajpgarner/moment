@@ -112,25 +112,23 @@ namespace NPATK::mex::functions {
         } catch(const persistent_object_error& poe) {
             throw_error(this->matlabEngine, errors::bad_param, "Could not find referenced MatrixSystem.");
         }
+        const auto& matrixSystem = *matrixSystemPtr;
 
         // Get read lock on system
-        std::shared_lock lock = matrixSystemPtr->get_read_lock();
+        std::shared_lock lock = matrixSystem.get_read_lock();
 
-        // Extract symbol table and context from system
-        const auto& context = matrixSystemPtr->Context();
-        const auto& symbolTable = matrixSystemPtr->Symbols();
 
         // Export symbol table
         if (output.size() >= 1) {
             switch (input.output_mode) {
                 case SymbolTableParams::OutputMode::AllSymbols:
-                    output[0] = export_symbol_table_struct(this->matlabEngine, context, symbolTable);
+                    output[0] = export_symbol_table_struct(this->matlabEngine, matrixSystem);
                     break;
                 case SymbolTableParams::OutputMode::FromId:
-                    output[0] = export_symbol_table_struct(this->matlabEngine, context, symbolTable, input.from_id);
+                    output[0] = export_symbol_table_struct(this->matlabEngine, matrixSystem, input.from_id);
                     break;
                 case SymbolTableParams::OutputMode::SearchBySequence:
-                    find_and_return_symbol(output, input, context, symbolTable);
+                    find_and_return_symbol(output, input, matrixSystem);
                     break;
                 default:
                     throw_error(this->matlabEngine, errors::internal_error, "Unknown output mode.");
@@ -141,8 +139,11 @@ namespace NPATK::mex::functions {
     }
 
     void SymbolTable::find_and_return_symbol(IOArgumentRange output, const SymbolTableParams& input,
-                                const Context &context, const NPATK::SymbolTable &symbolTable) {
+                                const MatrixSystem &system) {
         matlab::data::ArrayFactory factory;
+
+        const auto& context = system.Context();
+        const auto& symbolTable = system.Symbols();
 
         // Try to find sequence
         std::vector<oper_name_t> opers = input.sequence;
@@ -166,7 +167,7 @@ namespace NPATK::mex::functions {
         assert(!conjugated || (trialSequence.hash() == unique.hash_conj()));
 
         if (output.size() >= 1) {
-            output[0] = export_symbol_table_row(this->matlabEngine, context, unique);
+            output[0] = export_symbol_table_row(this->matlabEngine, system, unique);
         }
         if (output.size() >= 2) {
             output[1] = factory.createScalar<bool>(conjugated);

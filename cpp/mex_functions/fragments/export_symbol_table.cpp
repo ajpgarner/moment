@@ -7,42 +7,94 @@
 
 #include "error_codes.h"
 #include "operators/context.h"
+#include "operators/matrix_system.h"
 #include "operators/matrix/symbol_table.h"
+
+#include "operators/inflation/inflation_matrix_system.h"
+#include "operators/inflation/factor_table.h"
+
 #include "utilities/reporting.h"
 
 namespace NPATK::mex {
+
+    namespace {
+        std::vector<std::string> column_names(const bool non_herm, const bool include_factors) {
+            std::vector<std::string> table_fields{"symbol", "operators"};
+            if (non_herm) {
+                table_fields.emplace_back("conjugate");
+                table_fields.emplace_back("hermitian");
+            }
+            table_fields.emplace_back("basis_re");
+            if (non_herm) {
+                table_fields.emplace_back("basis_im");
+            }
+            if (include_factors) {
+                table_fields.emplace_back("fundamental");
+                table_fields.emplace_back("factor_sequence");
+                table_fields.emplace_back("factor_symbols");
+            }
+            return table_fields;
+        }
+    }
+
     matlab::data::StructArray export_symbol_table_row(matlab::engine::MATLABEngine& engine,
-                                                      const Context& context, const UniqueSequence& symbol) {
+                                                      const MatrixSystem& system, const UniqueSequence& symbol) {
 
         matlab::data::ArrayFactory factory;
+        const auto& context = system.Context();
+
+        // Ascertain system properties
+        const bool non_herm = context.can_be_nonhermitian();
+        const auto* inflationContextPtr = dynamic_cast<const InflationMatrixSystem*>(&system);
+        const bool include_factors = (nullptr != inflationContextPtr);
+        const FactorTable* factorTablePtr = nullptr;
+        if (include_factors) {
+            factorTablePtr = &inflationContextPtr->Factors();
+        }
 
         // Construct structure array
         auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, 1},
-                                                      {"symbol", "operators", "conjugate", "hermitian",
-                                                       "basis_re", "basis_im"});
+                                                      column_names(non_herm, include_factors));
 
         // Copy rest of table:
         outputStruct[0]["symbol"] = factory.createScalar<uint64_t>(static_cast<uint64_t>(symbol.Id()));
         outputStruct[0]["operators"] = factory.createScalar(
                 context.format_sequence(symbol.sequence()));
-        outputStruct[0]["conjugate"] = factory.createScalar(
-                context.format_sequence(symbol.sequence_conj()));
-        outputStruct[0]["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
-
         // +1 is from MATLAB indexing
         outputStruct[0]["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
-        outputStruct[0]["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
 
+        if (non_herm) {
+            outputStruct[0]["conjugate"] = factory.createScalar(
+                    context.format_sequence(symbol.sequence_conj()));
+            outputStruct[0]["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
+            // +1 is from MATLAB indexing
+            outputStruct[0]["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
+        }
+
+        if (include_factors) {
+            const auto& entry = (*factorTablePtr)[symbol.Id()];
+
+            outputStruct[0]["fundamental"] = factory.createScalar<bool>(entry.canonical.sequences.size() <= 1);
+
+            outputStruct[0]["factor_sequence"]
+                    = factory.createScalar(entry.sequence_string());
+
+            outputStruct[0]["factor_symbols"]
+                    = factory.createScalar<uint64_t>(0);
+        }
 
         return outputStruct;
     }
 
 
     matlab::data::StructArray export_symbol_table_struct(matlab::engine::MATLABEngine& engine,
-                                                            const Context& context,
-                                                            const SymbolTable& table,
-                                                            const size_t from_symbol) {
+                                                         const MatrixSystem& system,
+                                                         const size_t from_symbol) {
         matlab::data::ArrayFactory factory;
+
+        const auto& table = system.Symbols();
+        const auto& context = system.Context();
+
 
         // Advance to first new symbol (if necessary)
         auto symbolIter = table.begin();
@@ -59,19 +111,16 @@ namespace NPATK::mex {
 
         // Ascertain table field names
         const bool non_herm = context.can_be_nonhermitian();
-        std::vector<std::string> table_fields{"symbol", "operators"};
-        if (non_herm) {
-            table_fields.emplace_back("conjugate");
-            table_fields.emplace_back("hermitian");
-        }
-        table_fields.emplace_back("basis_re");
-        if (non_herm) {
-            table_fields.emplace_back("basis_im");
+        const auto* inflationContextPtr = dynamic_cast<const InflationMatrixSystem*>(&system);
+        const bool include_factors = (nullptr != inflationContextPtr);
+        const FactorTable* factorTablePtr = nullptr;
+        if (include_factors) {
+            factorTablePtr = &inflationContextPtr->Factors();
         }
 
         // Construct structure array
         auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, num_elems},
-                                                      std::move(table_fields));
+                                                      column_names(non_herm, include_factors));
 
         // Early exit, if empty
         if (0 == num_elems) {
@@ -99,6 +148,22 @@ namespace NPATK::mex {
                 outputStruct[write_index]["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
                 // +1 is from MATLAB indexing
                 outputStruct[write_index]["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
+            }
+            if (include_factors) {
+                const auto& entry = (*factorTablePtr)[symbol.Id()];
+
+                outputStruct[write_index]["fundamental"]
+                    = factory.createScalar<bool>(entry.canonical.sequences.size() <= 1);
+                outputStruct[write_index]["factor_sequence"] = factory.createScalar(entry.sequence_string());
+
+                auto factor_symbols = factory.createArray<uint64_t>({1, entry.canonical.symbols.size()});
+                auto fsWriteIter = factor_symbols.begin();
+                for (const auto symbolId : entry.canonical.symbols) {
+                    *fsWriteIter = symbolId;
+                    ++fsWriteIter;
+                }
+
+                outputStruct[write_index]["factor_symbols"] = std::move(factor_symbols);
             }
 
             ++write_index;

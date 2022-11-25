@@ -8,6 +8,7 @@
 #include "integer_types.h"
 #include "operators/operator_sequence.h"
 
+#include <string>
 #include <vector>
 
 
@@ -35,6 +36,9 @@ namespace NPATK {
         public:
             FactorEntry(const symbol_name_t sym_id)
                 : id{sym_id} { }
+
+
+            std::string sequence_string() const;
         };
 
     private:
@@ -53,6 +57,7 @@ namespace NPATK {
         [[nodiscard]] bool empty() const noexcept { return this->entries.empty(); }
 
         [[nodiscard]] const FactorEntry& operator[](size_t index) const noexcept { return this->entries[index]; }
+
 
     private:
         size_t check_for_new_factors();

@@ -9,8 +9,7 @@
 #include "integer_types.h"
 
 namespace NPATK {
-    class SymbolTable;
-    class Context;
+    class MatrixSystem;
 }
 
 namespace NPATK::mex::functions  {
@@ -43,8 +42,9 @@ namespace NPATK::mex::functions  {
 
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
+    private:
         void find_and_return_symbol(IOArgumentRange output, const SymbolTableParams& input,
-                                    const Context &context, const NPATK::SymbolTable &table);
+                                    const MatrixSystem& system);
     };
 
 }

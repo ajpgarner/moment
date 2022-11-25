@@ -9,7 +9,31 @@
 
 #include "operators/matrix/symbol_table.h"
 
+#include <sstream>
+
 namespace NPATK {
+
+    std::string FactorTable::FactorEntry::sequence_string() const {
+
+        std::stringstream ss;
+
+        if (this->canonical.sequences.size() == 1) {
+            if (this->canonical.sequences[0].empty()) {
+                if (this->canonical.sequences[0].zero()) {
+                    return "0";
+                } else {
+                    return "1";
+                }
+            }
+        }
+
+        for (const auto& seq : this->canonical.sequences) {
+            ss << "<" << seq << ">";
+        }
+        return ss.str();
+    }
+
+
     FactorTable::FactorTable(const InflationContext& context, SymbolTable& symbols_in)
         : context{context}, symbols{symbols_in} {
         this->on_new_symbols_added();
@@ -77,4 +101,5 @@ namespace NPATK {
 
         return extra_symbols - next_id;
     }
+
 }

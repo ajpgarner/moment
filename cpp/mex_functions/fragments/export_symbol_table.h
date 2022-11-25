@@ -14,17 +14,16 @@ namespace matlab::engine {
 }
 
 namespace NPATK {
-    class Context;
-    class SymbolTable;
+    class MatrixSystem;
     class UniqueSequence;
 }
 
 namespace NPATK::mex {
     matlab::data::StructArray export_symbol_table_row(matlab::engine::MATLABEngine& engine,
-                                                      const Context& context, const UniqueSequence& symbol);
+                                                      const MatrixSystem& system, const UniqueSequence& symbol);
 
     matlab::data::StructArray export_symbol_table_struct(matlab::engine::MATLABEngine& engine,
-                                                      const Context& context, const SymbolTable& table,
+                                                      const MatrixSystem& system,
                                                       size_t from_symbol = 0);
 
 }
