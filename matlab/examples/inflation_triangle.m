@@ -1,7 +1,7 @@
 clear
 clear npatk
 
-inflation_level = 2;
+inflation_level = 3;
 moment_matrix_level = 1;
 
 triangle = InflationScenario(inflation_level, ...
