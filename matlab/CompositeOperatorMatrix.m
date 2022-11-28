@@ -6,8 +6,16 @@ classdef CompositeOperatorMatrix < handle
         Constituents
         Weights
         Dimension
+    end
+    
+    properties(Dependent, GetAccess=public)
         RealBasis
         ImaginaryBasis
+    end 
+    
+    properties(Access = protected)
+        real_basis
+        im_basis
     end
         
     %% Construction
@@ -28,8 +36,8 @@ classdef CompositeOperatorMatrix < handle
             if isempty(obj.Constituents)
                 obj.MatrixSystem = MatrixSystem.empty(0,0);
                 obj.Dimension = uint64(0);
-                obj.RealBasis = sparse(0,0);
-                obj.ImaginaryBasis = sparse(0,0);
+                obj.real_basis = sparse(0,0);
+                obj.im_basis = sparse(0,0);
                 
             else
                 obj.Dimension = obj.Constituents(1).Dimension;
@@ -47,6 +55,40 @@ classdef CompositeOperatorMatrix < handle
                 obj.makeMonolithicBases();
             end
         end
+    end
+    
+    %% Basis accessors
+    methods
+        
+        function val = get.RealBasis(obj)
+            % Resize real if necessary
+            delta_re = obj.MatrixSystem.RealVarCount ...
+                        - size(obj.real_basis, 1);
+            if delta_re > 0
+               obj.real_basis = ...
+                   [obj.real_basis; ...
+                    sparse(double(delta_re), ...
+                           double(obj.Dimension * obj.Dimension))];                                                    
+            end
+            
+            % return value
+            val = obj.real_basis;
+        end
+        
+        function val = get.ImaginaryBasis(obj)
+            % Resize imaginary if necessary
+            delta_im = obj.MatrixSystem.ImaginaryVarCount ...
+                        - size(obj.im_basis, 1);
+            if delta_im > 0
+               obj.im_basis = ...
+                   [obj.im_basis ; ...
+                    sparse(double(delta_im), ...
+                           double(obj.Dimension * obj.Dimension))];                                                    
+            end
+            
+            val = obj.im_basis;
+        end
+        
     end
     
     %% CVX Methods
@@ -91,25 +133,30 @@ classdef CompositeOperatorMatrix < handle
         function makeMonolithicBases(obj)
             % No basis if no constituents
             if isempty(obj.Constituents) || isempty(obj.MatrixSystem)
-                obj.RealBasis = sparse(0,0);
-                obj.ImaginaryBasis = sparse(0,0);
+                obj.real_basis = sparse(0,0);
+                obj.im_basis = sparse(0,0);
                 return
             end
             
             % Create empty arrays
             sys = obj.MatrixSystem;           
-            obj.RealBasis = sparse(double(sys.RealVarCount), ...
+            obj.real_basis = sparse(double(sys.RealVarCount), ...
                                    double(obj.Dimension * obj.Dimension));
-            obj.ImaginaryBasis = sparse(double(sys.ImaginaryVarCount), ...
+            obj.im_basis = sparse(double(sys.ImaginaryVarCount), ...
                                    double(obj.Dimension * obj.Dimension));
-                               
-            % Weighted sum over constituents
+
+            % First trigger all constituents to make bases
+            for i = 1:length(obj.Constituents)
+                [~,~] = obj.Constituents(i).SparseMonolithicBasis();
+            end
+            
+            % Now take weighted sum over constituent bases
             for i = 1:length(obj.Constituents)
                 cObj = obj.Constituents(i);
                 w = obj.Weights(i);
                 [re, im] = cObj.SparseMonolithicBasis();
-                obj.RealBasis = obj.RealBasis + (w*re);
-                obj.ImaginaryBasis = obj.ImaginaryBasis + (w*im);
+                obj.real_basis = obj.real_basis + (w*re);
+                obj.im_basis = obj.im_basis + (w*im);
             end
         end
     end
