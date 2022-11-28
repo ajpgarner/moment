@@ -98,10 +98,10 @@ classdef CompositeOperatorMatrix < handle
             
             % Create empty arrays
             sys = obj.MatrixSystem;           
-            obj.RealBasis = sparse(sys.RealVarCount, ...
-                                   obj.Dimension * obj.Dimension);
-            obj.ImaginaryBasis = sparse(sys.ImaginaryVarCount, ...
-                                   obj.Dimension * obj.Dimension);
+            obj.RealBasis = sparse(double(sys.RealVarCount), ...
+                                   double(obj.Dimension * obj.Dimension));
+            obj.ImaginaryBasis = sparse(double(sys.ImaginaryVarCount), ...
+                                   double(obj.Dimension * obj.Dimension));
                                
             % Weighted sum over constituents
             for i = 1:length(obj.Constituents)

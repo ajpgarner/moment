@@ -192,14 +192,14 @@ classdef Monomial < ComplexObject
             sys = obj.Setting.System;
             
             % Real coefficients
-            obj.real_coefs = sparse(1, sys.RealVarCount);
+            obj.real_coefs = sparse(1, double(sys.RealVarCount));
             if obj.re_basis_index > 0
                 obj.real_coefs(obj.re_basis_index) = ...
                     obj.Coefficient;
             end
             
             % Imaginary coefficients
-            obj.im_coefs = sparse(1, sys.ImaginaryVarCount);
+            obj.im_coefs = sparse(1, double(sys.ImaginaryVarCount));
             if obj.im_basis_index > 0
                 if obj.SymbolConjugated
                     obj.im_coefs(obj.im_basis_index) = ...

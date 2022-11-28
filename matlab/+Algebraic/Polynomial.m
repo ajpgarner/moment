@@ -135,8 +135,8 @@ classdef Polynomial < ComplexObject
             sys = obj.Setting.System;
             
             % Real co-efficients
-            obj.real_coefs = sparse(1, sys.RealVarCount);
-            obj.im_coefs = sparse(1, sys.ImaginaryVarCount);
+            obj.real_coefs = sparse(1, double(sys.RealVarCount));
+            obj.im_coefs = sparse(1, double(sys.ImaginaryVarCount));
             
             for index = 1:length(obj.Constituents)
                 cObj = obj.Constituents(index);

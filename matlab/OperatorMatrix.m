@@ -161,6 +161,10 @@ classdef OperatorMatrix < handle
                 im_name (1,:) char = char.empty
             end
             
+            if nargin <= 2
+            	im_name = char.empty;
+            end
+            
             % Check if exporting real, or real & imaginary
             export_imaginary = ~isempty(im_name);
             if export_imaginary

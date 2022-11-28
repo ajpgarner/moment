@@ -38,6 +38,11 @@ classdef AlgebraicScenario < Scenario
                 attempts (1,1) uint64
                 verbose (1,1) logical = false
             end
+            
+            if nargin <= 2
+            	verbose = false;
+            end
+            
             obj.errorIfLocked();
             success = obj.RuleBook.Complete(attempts, verbose);            
         end
