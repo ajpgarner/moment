@@ -121,8 +121,8 @@ namespace NPATK::mex::functions {
     }
 
     std::pair<size_t, const NPATK::OperatorMatrix &>
-    LocalizingMatrix::get_or_make_matrix(MatrixSystem &system, const OperatorMatrixParams &inputOMP) {
-        const auto& input = dynamic_cast<const LocalizingMatrixParams&>(inputOMP);
+    LocalizingMatrix::get_or_make_matrix(MatrixSystem &system, const OperatorMatrixParams& inputOMP) {
+        const auto &input = dynamic_cast<const LocalizingMatrixParams&>(inputOMP);
 
         // Encode index under read lock
         auto read_lock = system.get_read_lock();

@@ -31,7 +31,12 @@ namespace NPATK {
         }
 
         // Matrix type depends on whether there are imaginary symbols
-        this->basis_type = this->imaginary_entries.empty() ? MatrixType::Symmetric : MatrixType::Hermitian;
+        const bool has_imaginary = !this->imaginary_entries.empty();
+        if (has_imaginary) {
+            this->basis_type = matrix.IsHermitian() ? MatrixType::Hermitian : MatrixType::Complex;
+        } else {
+            this->basis_type = matrix.IsHermitian() ? MatrixType::Symmetric : MatrixType::Real;
+        }
     }
 
 

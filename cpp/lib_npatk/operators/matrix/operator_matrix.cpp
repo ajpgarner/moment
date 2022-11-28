@@ -132,7 +132,48 @@ namespace NPATK {
 
     std::vector<UniqueSequence>
     OperatorMatrix::identifyUniqueSequencesGeneric() {
-        throw std::logic_error{"OperatorMatrix::identifyUniqueSequencesGeneric() not yet implemented."};
+        std::vector<UniqueSequence> build_unique;
+        std::set<size_t> known_hashes;
+
+        // First, always manually insert zero and one
+        build_unique.emplace_back(UniqueSequence::Zero(this->context));
+        build_unique.emplace_back(UniqueSequence::Identity(this->context));
+        known_hashes.emplace(0);
+        known_hashes.emplace(1);
+
+        // Now, look at elements and see if they are unique or not
+        for (size_t row = 0; row < this->dimension; ++row) {
+            for (size_t col = 0; col < this->dimension; ++col) {
+                const auto& elem = this->SequenceMatrix[row][col];
+                const auto conj_elem = elem.conjugate();
+
+                const size_t hash = elem.hash();
+                const size_t conj_hash = conj_elem.hash();
+                const bool hermitian = (hash == conj_hash);
+
+                // Don't add what is already known
+                if (known_hashes.contains(hash) || (!hermitian && known_hashes.contains(conj_hash))) {
+                    continue;
+                }
+
+                if (hermitian) {
+                    build_unique.emplace_back(UniqueSequence{elem, hash});
+                    known_hashes.emplace(hash);
+                } else {
+                    if (hash < conj_hash) {
+                        build_unique.emplace_back(UniqueSequence{elem, hash, elem.conjugate(), conj_hash});
+                    } else {
+                        build_unique.emplace_back(UniqueSequence{elem.conjugate(), conj_hash, elem, hash});
+                    }
+
+                    known_hashes.emplace(hash);
+                    known_hashes.emplace(conj_hash);
+                }
+            }
+        }
+
+        // NRVO?
+        return build_unique;
     }
 
 
@@ -155,7 +196,7 @@ namespace NPATK {
 
                 auto [symbol_id, conjugated] = this->symbol_table.hash_to_index(hash);
                 if (symbol_id == std::numeric_limits<ptrdiff_t>::max()) {
-                    throw;
+                    throw std::logic_error{"Unknown symbol found in MomentMatrix."};
                 }
                 const auto& unique_elem = this->symbol_table[symbol_id];
 
@@ -178,7 +219,25 @@ namespace NPATK {
 
     std::unique_ptr<SquareMatrix<SymbolExpression>>
     OperatorMatrix::buildSymbolMatrixGeneric() {
-        throw std::logic_error{"OperatorMatrix::buildSymbolMatrixGeneric() not yet implemented."};
+        std::vector<SymbolExpression> symbolic_representation(this->dimension * this->dimension);
+        for (size_t row = 0; row < this->dimension; ++row) {
+            for (size_t col = 0; col < this->dimension; ++col) {
+                const size_t index = (row * this->dimension) + col;
+                const auto& elem = this->SequenceMatrix[row][col];
+                const bool negated = elem.negated();
+                const size_t hash = elem.hash();
+
+                auto [symbol_id, conjugated] = this->symbol_table.hash_to_index(hash);
+                if (symbol_id == std::numeric_limits<ptrdiff_t>::max()) {
+                    throw std::logic_error{"Unknown symbol found in MomentMatrix."};
+                }
+                const auto& unique_elem = this->symbol_table[symbol_id];
+
+                symbolic_representation[index] = SymbolExpression{unique_elem.Id(), negated, conjugated};
+            }
+        }
+
+        return std::make_unique<SquareMatrix<SymbolExpression>>(this->dimension, std::move(symbolic_representation));
     }
 
 

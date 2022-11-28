@@ -36,9 +36,7 @@ namespace NPATK::mex::functions {
             } catch (const NPATK::errors::missing_component& mce) {
                 throw_error(matlabEngine, errors::bad_param, mce.what());
             }
-
         }
-
     }
 
     GenerateBasis::GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
@@ -50,7 +48,9 @@ namespace NPATK::mex::functions {
 
         this->flag_names.emplace(u"symmetric");
         this->flag_names.emplace(u"hermitian");
-        this->mutex_params.add_mutex(u"symmetric", u"hermitian");
+        this->flag_names.emplace(u"real");
+        this->flag_names.emplace(u"complex");
+        this->mutex_params.add_mutex({u"symmetric", u"hermitian", u"real", u"complex"});
 
         this->flag_names.emplace(u"sparse");
         this->flag_names.emplace(u"dense");

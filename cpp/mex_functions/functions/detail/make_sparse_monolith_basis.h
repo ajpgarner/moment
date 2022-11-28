@@ -60,7 +60,7 @@ namespace NPATK::mex::functions::detail {
 
             monolith_re_frame real_basis_frame{};
             monolith_im_frame im_basis_frame{};
-            const bool hasImBasis = this->imp.Type() == MatrixType::Hermitian;
+            const bool hasImBasis = this->imp.is_complex();
 
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
@@ -95,27 +95,29 @@ namespace NPATK::mex::functions::detail {
 
             monolith_re_frame real_basis_frame{};
             monolith_im_frame im_basis_frame{};
-            const bool hasImBasis = this->imp.Type() == MatrixType::Hermitian;
+            const bool symmetric = this->imp.is_hermitian();
+            const bool hasImBasis = this->imp.is_complex();
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
-                for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                for (size_t index_j = symmetric ? index_i : 0; index_j < this->imp.Dimension(); ++index_j) {
                     NPATK::SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
                     auto bkIter = basis_key.find(elem.id);
                     auto [re_id, im_id] = bkIter->second;
 
                     if (re_id>=0) {
                         real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated ? -1. : 1.);
-                        if (index_i != index_j) {
+                        if (symmetric && (index_i != index_j)) {
                             real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated ? -1. : 1.);
                         }
                     }
 
                     if (hasImBasis && (im_id>=0)) {
-                        assert (index_i != index_j);
                         im_basis_frame.push_back(im_id, flatten_index(index_i, index_j),
                                                  std::complex<double>{0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
-                        im_basis_frame.push_back(im_id, flatten_index(index_j, index_i),
+                        if (symmetric && (index_i != index_j)) {
+                            im_basis_frame.push_back(im_id, flatten_index(index_j, index_i),
                                                  std::complex<double>{0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                        }
                     }
                 }
             }
@@ -130,13 +132,14 @@ namespace NPATK::mex::functions::detail {
             monolith_re_frame real_basis_frame{};
             monolith_im_frame im_basis_frame{};
 
-            const bool hasImBasis = this->imp.Type() == MatrixType::Hermitian;
+            const bool hasImBasis = this->imp.is_complex();
+            const bool symmetric = this->imp.is_hermitian();
 
 
             auto iter = matrix.cbegin();
             while (iter != matrix.cend()) {
                 auto [row, col] = matrix.getIndex(iter);
-                if (row > col) {
+                if (symmetric && (row > col)) {
                     ++iter;
                     continue;
                 }
@@ -148,17 +151,17 @@ namespace NPATK::mex::functions::detail {
 
                 if (re_id>=0) {
                     real_basis_frame.push_back(re_id, flatten_index(row, col), elem.negated ? -1. : 1.);
-                    if (row != col) {
+                    if (symmetric && (row != col)) {
                         real_basis_frame.push_back(re_id, flatten_index(col, row), elem.negated ? -1. : 1.);
                     }
                 }
                 if (hasImBasis && (im_id>=0)) {
-                    assert(row != col);
                     im_basis_frame.push_back(im_id, flatten_index(row, col),
                          std::complex<double>(0.0, (elem.negated != elem.conjugated) ? -1. : 1.));
-                    im_basis_frame.push_back(im_id, flatten_index(col, row),
-                         std::complex<double>(0.0, (elem.negated != elem.conjugated) ? 1. : -1.));
-
+                    if (symmetric && (row != col)) {
+                        im_basis_frame.push_back(im_id, flatten_index(col, row),
+                                                 std::complex<double>(0.0, (elem.negated != elem.conjugated) ? 1. : -1.));
+                    }
                 }
                 ++iter;
             }
@@ -167,30 +170,33 @@ namespace NPATK::mex::functions::detail {
             return this->construct_basis(real_basis_frame, im_basis_frame);
         }
 
-        /** MomentMatrix input -> sparse monolithic output */
+        /** OperatorMatrix input -> sparse monolithic output */
         return_type operator_matrix(const OperatorMatrix& matrix) {
             const auto& symbols = matrix.Symbols;
+            const bool hasImBasis = this->imp.is_complex();
+            const bool symmetric = this->imp.is_hermitian();
 
             monolith_re_frame real_basis_frame{};
             monolith_im_frame im_basis_frame{};
-            const bool hasImBasis = this->imp.Type() == MatrixType::Hermitian;
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
-                for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                for (size_t index_j = symmetric ? index_i : 0 ; index_j < this->imp.Dimension(); ++index_j) {
                     const auto& elem = matrix.SymbolMatrix[index_i][index_j];
                     auto [re_id, im_id] = symbols[elem.id].basis_key();
 
                     real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated ? -1. : 1.);
-                    if (index_i != index_j) {
+
+                    if (symmetric && (index_i != index_j)) {
                         real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated ? -1. : 1.);
                     }
 
                     if (hasImBasis && (im_id>=0)) {
-                        assert (index_i != index_j);
                         im_basis_frame.push_back(im_id, flatten_index(index_i, index_j),
                              std::complex<double>{0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
-                        im_basis_frame.push_back(im_id, flatten_index(index_j, index_i),
-                             std::complex<double>{0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                        if (symmetric && (index_i != index_j)) {
+                            im_basis_frame.push_back(im_id, flatten_index(index_j, index_i),
+                                std::complex<double>{0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                        }
                     }
                 }
             }
@@ -203,7 +209,7 @@ namespace NPATK::mex::functions::detail {
     private:
         return_type construct_basis(const monolith_re_frame& re_frame,
                                     const monolith_im_frame& im_frame) {
-            const bool hasImaginaryBasis = (this->imp.Type() == MatrixType::Hermitian);
+            const bool hasImaginaryBasis = this->imp.is_complex();
             const size_t real_mx_cols = this->imp.RealSymbols().size();
             const size_t im_mx_cols = hasImaginaryBasis ? this->imp.ImaginarySymbols().size() : 0;
 

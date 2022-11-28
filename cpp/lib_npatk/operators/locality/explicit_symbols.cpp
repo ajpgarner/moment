@@ -9,6 +9,10 @@
 #include "locality_context.h"
 #include "joint_measurement_iterator.h"
 #include "locality_matrix_system.h"
+
+#include "operators/inflation/inflation_context.h"
+#include "operators/inflation/inflation_matrix_system.h"
+
 #include "operators/matrix/symbol_table.h"
 #include "utilities/combinations.h"
 
@@ -28,6 +32,15 @@ namespace NPATK {
             assert(i == context.measurement_count());
             return output;
         }
+
+        std::vector<size_t> makeOpCounts(const InflationContext& context) {
+            std::vector<size_t> output;
+            output.reserve(context.Observables().size());
+            for (const auto& o : context.Observables()) {
+                output.emplace_back(o.outcomes-1);
+            }
+            return output;
+        }
     }
 
     ExplicitSymbolIndex::ExplicitSymbolIndex(const LocalityMatrixSystem& matrixSystem, const size_t level)
@@ -40,11 +53,11 @@ namespace NPATK {
 
         // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.
         if (symbols.size() < 2) {
-            throw errors::cg_form_error("Zero and One should be defined in MomentMatrix.");
+            throw errors::cg_form_error("Zero and One should be defined.");
         }
         const auto& oneSeq = symbols[1];
         if (!oneSeq.sequence().empty() || oneSeq.sequence().zero() || (oneSeq.Id() != 1)) {
-            throw errors::cg_form_error("Identity symbol was improperly defined in MomentMatrix.");
+            throw errors::cg_form_error("Identity symbol was improperly defined.");
         }
 
 
@@ -119,6 +132,27 @@ namespace NPATK {
             }
         }
     }
+
+    ExplicitSymbolIndex::ExplicitSymbolIndex(const InflationMatrixSystem& matrixSystem, const size_t level)
+        : Level{level},
+          indices{matrixSystem.InflationContext(), level},
+          OperatorCounts{makeOpCounts(matrixSystem.InflationContext())} {
+
+        const auto& context = matrixSystem.InflationContext();
+        const SymbolTable& symbols = matrixSystem.Symbols();
+
+        // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.
+        if (symbols.size() < 2) {
+            throw errors::cg_form_error("Zero and One should be defined.");
+        }
+        const auto& oneSeq = symbols[1];
+        if (!oneSeq.sequence().empty() || oneSeq.sequence().zero() || (oneSeq.Id() != 1)) {
+            throw errors::cg_form_error("Identity symbol was improperly defined.");
+        }
+
+    }
+
+
 
     std::span<const ExplicitSymbolEntry> ExplicitSymbolIndex::get(std::span<const size_t> mmtIndices) const {
         auto [first, last] = this->indices.access(mmtIndices);

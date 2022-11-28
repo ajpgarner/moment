@@ -28,6 +28,7 @@ namespace NPATK {
     }
 
     class LocalityMatrixSystem;
+    class InflationMatrixSystem;
 
     /** Data record for CGI */
     struct ExplicitSymbolEntry {
@@ -53,7 +54,15 @@ namespace NPATK {
         JointMeasurementIndex indices;
 
     public:
+        /**
+         * Construct explicit symbol table for locality system
+         */
         ExplicitSymbolIndex(const LocalityMatrixSystem& ms, size_t level);
+
+        /**
+         * Construct explicit symbol table for inflation system
+         */
+        ExplicitSymbolIndex(const InflationMatrixSystem& ms, size_t level);
 
         /**
          * Gets a span of *all* symbols corresponding to the supplied measurement indices.

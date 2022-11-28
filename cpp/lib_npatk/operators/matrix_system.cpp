@@ -97,7 +97,7 @@ namespace NPATK {
         // First, try read...
         ptrdiff_t index = this->find_localizing_matrix(lmi);
         if (index >= 0) {
-            return {index, dynamic_cast<class LocalizingMatrix&>(*matrices[momentMatrixIndices[index]])};
+            return {index, dynamic_cast<class LocalizingMatrix&>(*matrices[index])};
         }
 
         // Delegated pre-generation

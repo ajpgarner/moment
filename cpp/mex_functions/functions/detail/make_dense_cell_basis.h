@@ -34,10 +34,11 @@ namespace NPATK::mex::functions::detail {
         template<std::convertible_to<symbol_name_t> data_t>
         return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
             const auto& basis_key = this->imp.BasisKey();
+            const bool symmetric = this->imp.is_hermitian();
             auto output = create_empty_basis();
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
-                for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                for (size_t index_j = symmetric ? index_i : 0; index_j < this->imp.Dimension(); ++index_j) {
                     NPATK::SymbolExpression elem{static_cast<symbol_name_t>(matrix[index_i][index_j])};
 
                     auto bkIter = basis_key.find(elem.id);
@@ -46,14 +47,18 @@ namespace NPATK::mex::functions::detail {
                     if (re_id>=0) {
                         matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
                         re_mat[index_i][index_j] = elem.negated ? -1 : 1;
-                        re_mat[index_j][index_i] = elem.negated ? -1 : 1;
+                        if (symmetric && (index_i != index_j)) {
+                            re_mat[index_j][index_i] = elem.negated ? -1 : 1;
+                        }
                     }
-                    if ((imp.Type() == MatrixType::Hermitian) && (im_id>=0)) {
+                    if ((this->imp.is_complex()) && (im_id>=0)) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                         im_mat[index_i][index_j] = std::complex<double>{
                                 0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
-                        im_mat[index_j][index_i] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                        if (symmetric && (index_i != index_j)) {
+                            im_mat[index_j][index_i] = std::complex<double>{
+                                    0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                        }
                     }
                 }
             }
@@ -65,9 +70,10 @@ namespace NPATK::mex::functions::detail {
         /** String input -> dense output */
         return_type string(const matlab::data::StringArray& matrix) {
             const auto& basis_key = this->imp.BasisKey();
+            const bool symmetric = this->imp.is_hermitian();
             auto output = create_empty_basis();
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
-                for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                for (size_t index_j = symmetric ? index_i : 0; index_j < this->imp.Dimension(); ++index_j) {
                     SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
 
                     auto bkIter = basis_key.find(elem.id);
@@ -76,14 +82,18 @@ namespace NPATK::mex::functions::detail {
                     if (re_id>=0) {
                         matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
                         re_mat[index_i][index_j] = elem.negated ? -1 : 1;
-                        re_mat[index_j][index_i] = elem.negated ? -1 : 1;
+                        if (symmetric && (index_i != index_j)) {
+                            re_mat[index_j][index_i] = elem.negated ? -1 : 1;
+                        }
                     }
-                    if ((imp.Type() == MatrixType::Hermitian) &&  (im_id>=0)) {
+                    if (this->imp.is_complex() &&  (im_id>=0)) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                         im_mat[index_i][index_j] = std::complex<double>{
                                 0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
-                        im_mat[index_j][index_i] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                        if (symmetric && (index_i != index_j)) {
+                            im_mat[index_j][index_i] = std::complex<double>{
+                                    0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                        }
                     }
                 }
             }
@@ -95,13 +105,14 @@ namespace NPATK::mex::functions::detail {
         template<std::convertible_to<symbol_name_t> data_t>
         return_type sparse(const matlab::data::SparseArray<data_t> &matrix) {
             const auto& basis_key = this->imp.BasisKey();
+            const bool symmetric = this->imp.is_hermitian();
             auto output = create_empty_basis();
 
             auto iter = matrix.cbegin();
             while (iter != matrix.cend()) {
                 auto indices = matrix.getIndex(iter);
 
-                if (indices.first > indices.second) {
+                if (symmetric && (indices.first > indices.second)) {
                     ++iter;
                     continue;
                 }
@@ -113,14 +124,18 @@ namespace NPATK::mex::functions::detail {
                 if (re_id>=0) {
                     matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
                     re_mat[indices.first][indices.second] = elem.negated ? -1 : 1;
-                    re_mat[indices.second][indices.first] = elem.negated ? -1 : 1;
+                    if (symmetric && (indices.first != indices.second)) {
+                        re_mat[indices.second][indices.first] = elem.negated ? -1 : 1;
+                    }
                 }
-                if ((imp.Type() == MatrixType::Hermitian) && (im_id>=0)) {
+                if (this->imp.is_complex() && (im_id>=0)) {
                     matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                     im_mat[indices.first][indices.second] = std::complex<double>{
                             0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
-                    im_mat[indices.second][indices.first] = std::complex<double>{
-                            0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                    if (symmetric && (indices.first != indices.second)) {
+                        im_mat[indices.second][indices.first] = std::complex<double>{
+                                0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                    }
                 }
                 ++iter;
             }
@@ -131,25 +146,30 @@ namespace NPATK::mex::functions::detail {
         /* Moment matrix input -> dense output */
         return_type operator_matrix(const OperatorMatrix& matrix) {
             const auto& symbols = matrix.Symbols;
+            const bool symmetric = this->imp.is_hermitian();
             auto output = create_empty_basis(symbols);
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
-                for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                for (size_t index_j = symmetric ? index_i : 0; index_j < this->imp.Dimension(); ++index_j) {
                     const auto& elem = matrix.SymbolMatrix[index_i][index_j];
                     auto [re_id, im_id] = symbols[elem.id].basis_key();
 
                     if (re_id>=0) {
                         matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
                         re_mat[index_i][index_j] = elem.negated ? -1 : 1;
-                        re_mat[index_j][index_i] = elem.negated ? -1 : 1;
+                        if (symmetric && (index_i != index_j)) {
+                            re_mat[index_j][index_i] = elem.negated ? -1 : 1;
+                        }
                     }
 
-                    if ((imp.Type() == MatrixType::Hermitian) && (im_id>=0)) {
+                    if (this->imp.is_complex() && (im_id>=0)) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                         im_mat[index_i][index_j] = std::complex<double>{
                                 0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
-                        im_mat[index_j][index_i] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                        if (symmetric && (index_i != index_j)) {
+                            im_mat[index_j][index_i] = std::complex<double>{
+                                    0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                        }
                     }
                 }
             }

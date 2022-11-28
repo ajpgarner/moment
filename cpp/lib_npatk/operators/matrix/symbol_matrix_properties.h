@@ -21,10 +21,14 @@ namespace NPATK {
     /** Matrix type */
     enum class MatrixType {
         Unknown = 0,
+        /** Real-valued */
+        Real = 1,
+        /** Complex-valued */
+        Complex = 2,
         /** Real-valued, matrix is symmetric */
-        Symmetric = 1,
+        Symmetric = 3,
         /** Complex-valued, matrix is hermitian */
-        Hermitian = 2
+        Hermitian = 4
     };
 
     /** Information about the particular symbol matrix (relative to the collection) */
@@ -72,6 +76,20 @@ namespace NPATK {
          */
         [[nodiscard]] const std::map<symbol_name_t, std::pair<ptrdiff_t, ptrdiff_t>>& BasisKey() const {
             return this->elem_keys;
+        }
+
+        /**
+         * True if the matrix has complex elements (Hermitian or otherwise)
+         */
+        [[nodiscard]] bool is_complex() const noexcept {
+            return(this->basis_type == MatrixType::Complex) || (this->basis_type == MatrixType::Hermitian);
+        }
+
+        /**
+         * True if the matrix has symmetry elements (real, or otherwise)
+         */
+        [[nodiscard]] bool is_hermitian() const noexcept {
+            return(this->basis_type == MatrixType::Symmetric) || (this->basis_type == MatrixType::Hermitian);
         }
 
         friend class OperatorMatrix;

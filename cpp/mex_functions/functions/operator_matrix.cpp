@@ -182,7 +182,7 @@ namespace NPATK::mex::functions  {
             }
             return {input.matrix_index, system[input.matrix_index]};
         } catch (const std::bad_cast& bce) {
-            throw_error(this->matlabEngine, errors::internal_error,
+            throw_error(this->matlabEngine, errors::bad_cast,
                         "Misconfigured operator matrix input parameter object.");
         } catch (const NPATK::errors::missing_component& mce) {
             throw_error(this->matlabEngine, errors::internal_error, mce.what());

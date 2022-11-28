@@ -36,12 +36,6 @@ namespace NPATK::mex::functions::detail {
                 index_i.emplace_back(i);
                 index_j.emplace_back(j);
                 values.emplace_back(value);
-
-                if (i != j) {
-                    index_i.emplace_back(j);
-                    index_j.emplace_back(i);
-                    values.emplace_back(value);
-                }
             }
         };
 
@@ -54,12 +48,6 @@ namespace NPATK::mex::functions::detail {
                 index_i.emplace_back(i);
                 index_j.emplace_back(j);
                 values.emplace_back(value);
-
-                if (i != j) {
-                    index_i.emplace_back(j);
-                    index_j.emplace_back(i);
-                    values.emplace_back(conj(value));
-                }
             }
         };
 
@@ -76,8 +64,10 @@ namespace NPATK::mex::functions::detail {
             std::vector<sparse_basis_re_frame> real_basis_frame(this->imp.RealSymbols().size());
             std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
 
+            const bool symmetric = this->imp.is_hermitian();
+
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
-                for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                for (size_t index_j = symmetric ? index_i : 0; index_j < this->imp.Dimension(); ++index_j) {
                     NPATK::SymbolExpression elem{static_cast<symbol_name_t>(matrix[index_i][index_j])};
 
                     auto bkIter = basis_key.find(elem.id);
@@ -86,12 +76,19 @@ namespace NPATK::mex::functions::detail {
                     if (re_id>=0) {
                         assert(re_id < real_basis_frame.size());
                         real_basis_frame[re_id].push_back(index_i, index_j, elem.negated ? -1. : 1.);
+                        if (symmetric && (index_i != index_j)) {
+                            real_basis_frame[re_id].push_back(index_j, index_i, elem.negated ? -1. : 1.);
+                        }
                     }
 
                     if (im_id>=0) {
                         assert(im_id < im_basis_frame.size());
                         im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
                                 0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
+                        if (symmetric && (index_i != index_j)) {
+                            im_basis_frame[im_id].push_back(index_j, index_i, std::complex<double>{
+                                    0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                        }
                     }
                 }
             }
@@ -104,9 +101,10 @@ namespace NPATK::mex::functions::detail {
             const auto& basis_key = this->imp.BasisKey();
             std::vector<sparse_basis_re_frame> real_basis_frame(this->imp.RealSymbols().size());
             std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
+            const bool symmetric = this->imp.is_hermitian();
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
-                for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                for (size_t index_j = (symmetric ? index_i : 0); index_j < this->imp.Dimension(); ++index_j) {
                     SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
 
                     auto bkIter = basis_key.find(elem.id);
@@ -115,12 +113,19 @@ namespace NPATK::mex::functions::detail {
                     if (re_id >= 0) {
                         assert(re_id < real_basis_frame.size());
                         real_basis_frame[re_id].push_back(index_i, index_j, elem.negated ? -1. : 1.);
+                        if (symmetric && (index_i != index_j)) {
+                            real_basis_frame[re_id].push_back(index_j, index_i, elem.negated ? -1. : 1.);
+                        }
                     }
 
                     if (im_id >= 0) {
                         assert(im_id < im_basis_frame.size());
                         im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
                                 0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
+                        if (symmetric && (index_i != index_j)) {
+                            im_basis_frame[im_id].push_back(index_j, index_i, std::complex<double>{
+                                    0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                        }
                     }
                 }
             }
@@ -133,11 +138,12 @@ namespace NPATK::mex::functions::detail {
             const auto& basis_key = this->imp.BasisKey();
             std::vector<sparse_basis_re_frame> real_basis_frame(this->imp.RealSymbols().size());
             std::vector<sparse_basis_im_frame> im_basis_frame(this->imp.ImaginarySymbols().size());
+            const bool symmetric = this->imp.is_hermitian();
 
             auto iter = matrix.cbegin();
             while (iter != matrix.cend()) {
                 auto [row, col] = matrix.getIndex(iter);
-                if (row > col) {
+                if (symmetric && (row > col)) {
                     ++iter;
                     continue;
                 }
@@ -147,16 +153,25 @@ namespace NPATK::mex::functions::detail {
                 auto bkIter = basis_key.find(elem.id);
                 auto [re_id, im_id] = bkIter->second;
 
+
                 if (re_id>=0) {
                     assert(re_id < real_basis_frame.size());
+
                     real_basis_frame[re_id].push_back(row, col,
                                                       elem.negated ? -1. : 1.);
+                    if (symmetric && (row != col)) {
+                        real_basis_frame[re_id].push_back(col, row,
+                                                          elem.negated ? -1. : 1.);
+                    }
                 }
                 if (im_id>=0) {
                     assert(im_id < im_basis_frame.size());
                     im_basis_frame[im_id].push_back(row, col, std::complex<double>(
                             0.0, (elem.negated != elem.conjugated) ? -1. : 1.));
-
+                    if (symmetric && (row != col)) {
+                        im_basis_frame[im_id].push_back(col, row, std::complex<double>(
+                                0.0, (elem.negated != elem.conjugated) ? 1. : -1.));
+                    }
                 }
                 ++iter;
             }
@@ -171,6 +186,7 @@ namespace NPATK::mex::functions::detail {
 
             std::vector<sparse_basis_re_frame> real_basis_frame(symbols.RealSymbolIds().size());
             std::vector<sparse_basis_im_frame> im_basis_frame(symbols.ImaginarySymbolIds().size());
+            const bool symmetric = this->imp.is_hermitian();
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                 for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
@@ -180,12 +196,19 @@ namespace NPATK::mex::functions::detail {
                     if (re_id>=0) {
                         assert(re_id < real_basis_frame.size());
                         real_basis_frame[re_id].push_back(index_i, index_j, elem.negated ? -1. : 1.);
+                        if (symmetric && (index_i != index_j)) {
+                            real_basis_frame[re_id].push_back(index_j, index_i, elem.negated ? -1. : 1.);
+                        }
                     }
 
                     if (im_id>=0) {
                         assert(im_id < im_basis_frame.size());
                         im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
                                 0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
+                        if (symmetric && (index_i != index_j)) {
+                            im_basis_frame[im_id].push_back(index_j, index_i, std::complex<double>{
+                                    0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                        }
                     }
                 }
             }
