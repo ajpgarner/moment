@@ -147,8 +147,8 @@ classdef OperatorMatrix < handle
                     obj.MatrixSystem.RefId, obj.Index, ...
                     'monolith', 'hermitian', 'dense');
             end
-            re = obj.sparse_mono_basis_real;
-            im = obj.sparse_mono_basis_im;
+            re = obj.mono_basis_real;
+            im = obj.mono_basis_im;
         end
     end
         

@@ -38,6 +38,10 @@ namespace NPATK::mex::functions {
 
     public:
         explicit GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
+
+        [[nodiscard]] bool complex_output() const noexcept {
+            return (this->basis_type == MatrixType::Hermitian) || (this->basis_type == MatrixType::Complex);
+        }
     };
 
     class GenerateBasis : public MexFunction {

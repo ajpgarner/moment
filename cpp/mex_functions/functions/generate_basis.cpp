@@ -240,13 +240,13 @@ namespace NPATK::mex::functions {
             if (input.sparse_output) {
                 auto [sym, anti_sym] = detail::make_sparse_monolith_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
-                if (input.basis_type == MatrixType::Hermitian) {
+                if (input.complex_output()) {
                     output[1] = std::move(anti_sym);
                 }
             } else {
                 auto [sym, anti_sym] = detail::make_dense_monolith_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
-                if (input.basis_type == MatrixType::Hermitian) {
+                if (input.complex_output()) {
                     output[1] = std::move(anti_sym);
                 }
             }
@@ -254,20 +254,20 @@ namespace NPATK::mex::functions {
             if (input.sparse_output) {
                 auto [sym, anti_sym] = detail::make_sparse_cell_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
-                if (input.basis_type == MatrixType::Hermitian) {
+                if (input.complex_output()) {
                     output[1] = std::move(anti_sym);
                 }
             } else {
                 auto [sym, anti_sym] = detail::make_dense_cell_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
-                if (input.basis_type == MatrixType::Hermitian) {
+                if (input.complex_output()) {
                     output[1] = std::move(anti_sym);
                 }
             }
         }
 
         // If enough outputs supplied, also provide keys
-        ptrdiff_t key_output = (input.basis_type == MatrixType::Hermitian) ? 2 : 1;
+        ptrdiff_t key_output = (input.complex_output()) ? 2 : 1;
         if (output.size() > key_output) {
             output[key_output] = export_basis_key(this->matlabEngine, matrix_properties);
         }
@@ -291,8 +291,8 @@ namespace NPATK::mex::functions {
                 throw_error(this->matlabEngine, errors::internal_error, "Unknown input type for generate_basis.");
         }
 
-        // Hermitian output requires two outputs...
-        if ((input.basis_type == MatrixType::Hermitian) && (output.size() < 2)) {
+        // Complex output requires two outputs...
+        if (input.complex_output() && (output.size() < 2)) {
             throw_error(this->matlabEngine, errors::too_few_outputs,
                                 std::string("When generating a Hermitian basis, two outputs are required (one for ")
                                   + "symmetric basis elements associated with the real components, one for the "
@@ -300,7 +300,7 @@ namespace NPATK::mex::functions {
         }
 
         // Symmetric output cannot have three outputs...
-        if ((input.basis_type == MatrixType::Symmetric) && (output.size() > 2)) {
+        if ((!input.complex_output()) && (output.size() > 2)) {
             throw_error(this->matlabEngine, errors::too_many_outputs,
                                             std::to_string(output.size())
                                              + " outputs supplied for symmetric basis output, but only"
@@ -308,7 +308,7 @@ namespace NPATK::mex::functions {
         }
 
         // Move arrays to output
-        if (input.basis_type == MatrixType::Hermitian) {
+        if (input.complex_output()) {
             output[0] = std::move(outputs[0]);
             output[1] = std::move(outputs[1]);
             if (output.size() >= 3) {

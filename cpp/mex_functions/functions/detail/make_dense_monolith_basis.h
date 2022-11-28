@@ -135,8 +135,8 @@ namespace NPATK::mex::functions::detail {
         /** Moment matrix input -> dense monolithic output */
         return_type operator_matrix(const OperatorMatrix& matrix) {
             const auto& symbols = matrix.Symbols;
-            auto output = create_empty_basis(symbols);
             const bool symmetric = this->imp.is_hermitian();
+            auto output = create_empty_basis(symbols);
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                 for (size_t index_j = symmetric ? index_i : 0; index_j < this->imp.Dimension(); ++index_j) {
@@ -168,9 +168,8 @@ namespace NPATK::mex::functions::detail {
 
     private:
         return_type create_empty_basis() {
-            const bool hasImaginaryBasis = (this->imp.Type() == MatrixType::Hermitian);
             return create_empty_basis(this->imp.RealSymbols().size(),
-                                      hasImaginaryBasis ? this->imp.ImaginarySymbols().size() : 0,
+                                      this->imp.is_complex() ? this->imp.ImaginarySymbols().size() : 0,
                                       this->imp.Dimension());
         }
 

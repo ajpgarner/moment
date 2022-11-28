@@ -57,6 +57,7 @@ namespace NPATK::mex::functions::detail {
         template<std::convertible_to<symbol_name_t> data_t>
         return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
             const auto& basis_key = this->imp.BasisKey();
+            const bool symmetric = this->imp.is_hermitian();
 
             monolith_re_frame real_basis_frame{};
             monolith_im_frame im_basis_frame{};
@@ -64,24 +65,25 @@ namespace NPATK::mex::functions::detail {
 
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
-                for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                for (size_t index_j = symmetric ? index_i : 0; index_j < this->imp.Dimension(); ++index_j) {
                     NPATK::SymbolExpression elem{static_cast<symbol_name_t>(matrix[index_i][index_j])};
                     auto bkIter = basis_key.find(elem.id);
                     auto [re_id, im_id] = bkIter->second;
 
                     if (re_id>=0) {
                         real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated ? -1. : 1.);
-                        if (index_i != index_j) {
+                        if (symmetric && (index_i != index_j)) {
                             real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated ? -1. : 1.);
                         }
                     }
 
                     if (hasImBasis && (im_id>=0)) {
-                        assert (index_i != index_j);
                         im_basis_frame.push_back(im_id, flatten_index(index_i, index_j),
                              std::complex<double>{0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
-                        im_basis_frame.push_back(im_id, flatten_index(index_j, index_i),
-                             std::complex<double>{0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                        if (symmetric && (index_i != index_j)) {
+                            im_basis_frame.push_back(im_id, flatten_index(index_j, index_i),
+                                std::complex<double>{0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                        }
                     }
                 }
             }
@@ -184,10 +186,12 @@ namespace NPATK::mex::functions::detail {
                     const auto& elem = matrix.SymbolMatrix[index_i][index_j];
                     auto [re_id, im_id] = symbols[elem.id].basis_key();
 
-                    real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated ? -1. : 1.);
+                    if (re_id >= 0) {
+                        real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated ? -1. : 1.);
 
-                    if (symmetric && (index_i != index_j)) {
-                        real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated ? -1. : 1.);
+                        if (symmetric && (index_i != index_j)) {
+                            real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated ? -1. : 1.);
+                        }
                     }
 
                     if (hasImBasis && (im_id>=0)) {

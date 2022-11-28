@@ -179,9 +179,8 @@ namespace NPATK::mex::functions::detail {
 
     private:
         return_type create_empty_basis() {
-            const bool hasImaginaryBasis = (this->imp.Type() == MatrixType::Hermitian);
             return create_empty_basis(this->imp.RealSymbols().size(),
-                                      hasImaginaryBasis ? this->imp.ImaginarySymbols().size() : 0,
+                                      this->imp.is_complex() ? this->imp.ImaginarySymbols().size() : 0,
                                       this->imp.Dimension());
         }
 
