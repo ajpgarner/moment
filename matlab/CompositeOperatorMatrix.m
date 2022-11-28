@@ -129,6 +129,21 @@ classdef CompositeOperatorMatrix < handle
         end
     end
     
+    %% YALMIP methods
+    
+    methods
+        function out_M = yalmipComplexMatrix(obj, a, b)
+            out_M = reshape(transpose(a) * obj.RealBasis ...
+                + transpose(b) * obj.ImaginaryBasis, ...
+                [obj.Dimension, obj.Dimension]);
+        end
+        
+        function out_M = yalmipRealMatrix(obj, a)
+            out_M = reshape(transpose(a) * obj.RealBasis, ...
+                [obj.Dimension, obj.Dimension]);
+        end
+    end
+    
     methods(Access=private)
         function makeMonolithicBases(obj)
             % No basis if no constituents
