@@ -5,7 +5,6 @@
  */
 #pragma once
 #include "../matrix_system.h"
-#include "raw_sequence_book.h"
 
 namespace NPATK {
     class AlgebraicContext;
@@ -29,23 +28,9 @@ namespace NPATK {
         explicit AlgebraicMatrixSystem(std::unique_ptr<class Context> context);
 
         /**
-         * Generate substitution rules, for up to desired string length.
-         * Will call write lock on mutex, so don't lock before.
-         */
-        void generate_aliases(size_t stringLength);
-
-        /**
          * Get algebraic version of context object
          */
         const class AlgebraicContext& AlgebraicContext() const noexcept { return this->algebraicContext; }
-
-
-
-    protected:
-        void beforeNewMomentMatrixCreated(size_t level) override;
-
-        void beforeNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi) override;
-
 
     };
 }

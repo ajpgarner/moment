@@ -5,8 +5,6 @@
  */
 #include "monomial_substitution_rule.h"
 
-#include "raw_sequence_book.h"
-
 #include <cassert>
 
 #include <algorithm>
@@ -93,39 +91,6 @@ namespace NPATK {
 
         return output;
     }
-
-    size_t MonomialSubstitutionRule::all_matches(std::vector<SymbolPair>& output,
-                                                 const RawSequenceBook& rsb,
-                                                 const RawSequence& input_sequence) const {
-        assert(rsb.where(input_sequence) != nullptr);
-        assert(input_sequence.size() <= rsb.longest_sequence());
-
-        size_t match_count = 0;
-        auto input_iter = input_sequence.begin();
-        auto match_iter = this->matches_anywhere(input_iter, input_sequence.end());
-        while (match_iter != input_sequence.end()) {
-            auto altered_string = this->apply_match_with_hint(input_sequence.raw(), match_iter);
-
-            // If commutative, re-order after applying rules...
-            if (rsb.commutative) {
-                std::sort(altered_string.begin(), altered_string.end());
-            }
-
-            const auto *target_seq = rsb.where(altered_string);
-            if (target_seq == nullptr) {
-                throw std::logic_error{"Internal error: Substitution resulted in illegal string!"};
-            }
-
-            // Register symbol link
-            output.emplace_back(input_sequence.raw_id, target_seq->raw_id, this->is_negated, false);
-
-            // Find next match
-            match_iter = this->matches_anywhere(match_iter + 1, input_sequence.end());
-            ++match_count;
-        }
-        return match_count;
-    }
-
 
     bool MonomialSubstitutionRule::implies(const MonomialSubstitutionRule &other) const noexcept {
         // First, do we find LHS in other rule?

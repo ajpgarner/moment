@@ -7,8 +7,6 @@
 
 #include "operators/algebraic/algebraic_context.h"
 #include "operators/algebraic/monomial_substitution_rule.h"
-#include "operators/algebraic/raw_sequence_book.h"
-
 
 namespace NPATK::Tests {
 
@@ -131,82 +129,22 @@ namespace NPATK::Tests {
     }
 
     TEST(MonomialSubRule, Match_BBAtoMinusBA) {
-    std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
+        std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
 
-    MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
-                                 HashedSequence{{2, 1}, ShortlexHasher{3}}, true};
+        MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
+                                     HashedSequence{{2, 1}, ShortlexHasher{3}}, true};
 
-    ASSERT_TRUE(msr.negated());
-    ASSERT_EQ(msr.Delta(), -1);
+        ASSERT_TRUE(msr.negated());
+        ASSERT_EQ(msr.Delta(), -1);
 
-    auto match = msr.matches_anywhere(sampleStr.begin(), sampleStr.end());
-    ASSERT_EQ(match, sampleStr.cbegin() + 1);
+        auto match = msr.matches_anywhere(sampleStr.begin(), sampleStr.end());
+        ASSERT_EQ(match, sampleStr.cbegin() + 1);
 
-    auto newStr = msr.apply_match_with_hint(sampleStr, match);
-    ASSERT_EQ(newStr.size(), 3);
-    EXPECT_EQ(newStr[0], 1);
-    EXPECT_EQ(newStr[1], 2);
-    EXPECT_EQ(newStr[2], 1);
-}
-
-    TEST(MonomialSubRule, AllMatches_ABtoId_in_ABAB) {
-        AlgebraicContext context{3}; // 0, 1, 2
-        RawSequenceBook rsb{context};
-        rsb.generate(4);
-
-        MonomialSubstitutionRule msr{HashedSequence{{1, 2}, ShortlexHasher{3}},
-                                     HashedSequence{{}, ShortlexHasher{3}}};
-
-        std::vector<oper_name_t> sampleStr{1, 2, 1, 2};
-        auto ssWhere = rsb.where(sampleStr);
-        auto abWhere = rsb.where({1, 2});
-        ASSERT_NE(ssWhere, nullptr);
-        ASSERT_NE(abWhere, nullptr);
-        ASSERT_LT(abWhere->raw_id, ssWhere->raw_id);
-
-        std::vector<SymbolPair> output_ids;
-        size_t count = msr.all_matches(output_ids, rsb, *ssWhere);
-        EXPECT_EQ(count, 2);
-        ASSERT_EQ(output_ids.size(), 2);
-
-        ASSERT_EQ(output_ids.size(), 2);
-        EXPECT_EQ(output_ids[0].left_id, abWhere->raw_id);
-        EXPECT_EQ(output_ids[0].right_id, ssWhere->raw_id);
-        EXPECT_EQ(output_ids[1].left_id, abWhere->raw_id);
-        EXPECT_EQ(output_ids[1].right_id, ssWhere->raw_id);
-    }
-
-    TEST(MonomialSubRule, AllMatches_ABtoA_in_ABAB) {
-        AlgebraicContext context{3}; // 0, 1, 2
-        RawSequenceBook rsb{context};
-        rsb.generate(4);
-
-
-        MonomialSubstitutionRule msr{HashedSequence{{1, 2}, ShortlexHasher{3}},
-                                     HashedSequence{{1}, ShortlexHasher{3}}};
-
-        std::vector<oper_name_t> sampleStr{1, 2, 1, 2};
-        auto ssWhere = rsb.where(sampleStr);
-        auto aabWhere = rsb.where({1, 1, 2});
-        auto abaWhere = rsb.where({1, 2, 1});
-        ASSERT_NE(ssWhere, nullptr);
-        ASSERT_NE(aabWhere, nullptr);
-        ASSERT_NE(abaWhere, nullptr);
-        ASSERT_NE(aabWhere->raw_id, abaWhere->raw_id);
-
-        // Because symbol pair sorts...!
-        ASSERT_LE(aabWhere->raw_id, ssWhere->raw_id);
-        ASSERT_LE(abaWhere->raw_id, ssWhere->raw_id);
-
-
-        std::vector<SymbolPair> output_ids;
-        size_t count = msr.all_matches(output_ids, rsb, *ssWhere);
-        EXPECT_EQ(count, 2);
-        ASSERT_EQ(output_ids.size(), 2);
-        EXPECT_EQ(output_ids[0].left_id, aabWhere->raw_id);
-        EXPECT_EQ(output_ids[0].right_id, ssWhere->raw_id);
-        EXPECT_EQ(output_ids[1].left_id, abaWhere->raw_id);
-        EXPECT_EQ(output_ids[1].right_id, ssWhere->raw_id);
+        auto newStr = msr.apply_match_with_hint(sampleStr, match);
+        ASSERT_EQ(newStr.size(), 3);
+        EXPECT_EQ(newStr[0], 1);
+        EXPECT_EQ(newStr[1], 2);
+        EXPECT_EQ(newStr[2], 1);
     }
 
     TEST(MonomialSubRule, Implies_BtoA_XBYtoXAY) {

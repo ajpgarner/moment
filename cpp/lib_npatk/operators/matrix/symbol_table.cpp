@@ -11,6 +11,38 @@
 
 namespace NPATK {
 
+    namespace {
+        int compare_sequences(const OperatorSequence& lhs, const OperatorSequence& rhs) {
+            if (lhs.hash() != rhs.hash()) {
+                return 0;
+            }
+            if (lhs.size() != rhs.size()) {
+                return 0;
+            }
+            for (size_t i = 0; i < lhs.size(); ++i) {
+                if (lhs[i] != rhs[i]) {
+                    return 0;
+                }
+            }
+            // Sequences are equal, but are they the same sign?
+            return lhs.negated() == rhs.negated() ? 1 : -1;
+        }
+    }
+
+    UniqueSequence::UniqueSequence(OperatorSequence sequence, size_t hash,
+                                   OperatorSequence conjSequence, size_t conjHash):
+            opSeq{std::move(sequence)}, fwd_hash{hash},
+            conjSeq{std::move(conjSequence)}, conj_hash{conjHash},
+            hermitian{false}, antihermitian{false}, real_index{-1}, img_index{-1} {
+
+        int compare = compare_sequences(opSeq, *conjSeq);
+        if (1 == compare) {
+            this->hermitian = true;
+        } else if (-1 == compare) {
+            this->antihermitian = true;
+        }
+    }
+
     SymbolTable::SymbolTable(const Context& context)
         : context{context} {
 
@@ -53,6 +85,12 @@ namespace NPATK {
         const bool is_hermitian = elem.is_hermitian();
         if (is_hermitian) {
             im_zero = true;
+        }
+
+        // Is element anti-hermitian
+        const bool is_anti_hermitian = elem.is_antihermitian();
+        if (is_anti_hermitian) {
+            re_zero = true;
         }
 
         // Make element
@@ -156,6 +194,7 @@ namespace NPATK {
         }
         return os;
     }
+
 
 
     std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {

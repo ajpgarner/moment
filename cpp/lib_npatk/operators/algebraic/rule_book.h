@@ -50,7 +50,7 @@ namespace NPATK {
     private:
         const ShortlexHasher& hasher;
 
-        rule_map_t monomialRules;
+        rule_map_t monomialRules{};
 
         bool is_hermitian = true;
 
@@ -90,7 +90,11 @@ namespace NPATK {
          */
         [[nodiscard]] bool is_complete() const;
 
-        /** Reduce sequence, to best of knowledge, using rules */
+        /**
+         * Reduce sequence, to best of knowledge, using rules
+         * @param input The sequence to reduce
+         * @return First: Reduced sequence. Second: True if sequence should be negated.
+         */
         [[nodiscard]] std::pair<HashedSequence, bool> reduce(const HashedSequence& input) const;
 
         /** Reduce rule, to best of knowledge, using rules in set */

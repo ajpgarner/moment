@@ -28,25 +28,26 @@ namespace NPATK {
         size_t fwd_hash = 0;
         size_t conj_hash = 0;
         bool hermitian = false;
+        bool antihermitian = false;
         ptrdiff_t real_index = -1;
         ptrdiff_t img_index = -1;
 
     public:
         constexpr UniqueSequence(OperatorSequence sequence, size_t hash) :
                 opSeq{std::move(sequence)}, fwd_hash{hash},
-                conjSeq{}, conj_hash{hash}, hermitian{true},
+                conjSeq{}, conj_hash{hash}, hermitian{true}, antihermitian{false},
                 real_index{-1}, img_index{-1}  { }
 
-        constexpr UniqueSequence(OperatorSequence sequence, size_t hash,
-                                 OperatorSequence conjSequence, size_t conjHash) :
-                opSeq{std::move(sequence)}, fwd_hash{hash},
-                conjSeq{std::move(conjSequence)}, conj_hash{conjHash},
-                hermitian{false}, real_index{-1}, img_index{-1} { }
+        UniqueSequence(OperatorSequence sequence, size_t hash, OperatorSequence conjSequence, size_t conjHash);
 
         [[nodiscard]] constexpr symbol_name_t Id() const noexcept { return this->id; }
+
         [[nodiscard]] constexpr size_t hash() const noexcept { return this->fwd_hash; }
+
         [[nodiscard]] constexpr size_t hash_conj() const noexcept { return this->conj_hash; }
+
         [[nodiscard]] constexpr const OperatorSequence& sequence() const noexcept { return this->opSeq; }
+
         [[nodiscard]] constexpr const OperatorSequence& sequence_conj() const noexcept {
             return this->hermitian ? opSeq : this->conjSeq.value();
         }
@@ -56,6 +57,11 @@ namespace NPATK {
          * If true, the element will correspond to a real symbol (cf. complex if not) in the NPA matrix.
          */
         [[nodiscard]] constexpr bool is_hermitian() const noexcept { return this->hermitian; }
+
+        /**
+         * Does the operator sequence represent its Hermitian conjugate up to a minus sign.
+         */
+        [[nodiscard]] constexpr bool is_antihermitian() const noexcept { return this->antihermitian; }
 
         /**
          * The real and imaginary offsets of this symbol in the basis (or -1, if no such offset).

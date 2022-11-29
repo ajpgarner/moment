@@ -18,27 +18,23 @@ namespace NPATK::Tests {
         AlgebraicContext ac{0};
         EXPECT_EQ(ac.size(), 0);
 
-        EXPECT_NO_THROW(ac.generate_aliases(4));
     }
 
     TEST(AlgebraicContext, NoRules) {
         AlgebraicContext ac{2};
         EXPECT_EQ(ac.size(), 2);
 
-        EXPECT_NO_THROW(ac.generate_aliases(4));
     }
 
     TEST(AlgebraicContext, OneSubstitution_ABtoA) {
         std::vector<MonomialSubstitutionRule> rules;
-
 
         rules.emplace_back(
                 HashedSequence{{1, 2}, ShortlexHasher{3}},
                 HashedSequence{{1}, ShortlexHasher{3}}
         );
         AlgebraicContext ac{3, true, false, rules};
-
-        ac.generate_aliases(3);
+        ASSERT_TRUE(ac.attempt_completion(20));
 
         OperatorSequence seq_AB{std::vector<oper_name_t>{1, 2}, ac};
         EXPECT_FALSE(seq_AB.empty());
@@ -73,8 +69,7 @@ namespace NPATK::Tests {
                 HashedSequence{{1}, ShortlexHasher{3}}
         );
         AlgebraicContext ac{3, true, false, rules};
-
-        ac.generate_aliases(4);
+        ASSERT_TRUE(ac.attempt_completion(20));
 
         OperatorSequence seq_AB{std::vector<oper_name_t>{1, 2}, ac};
         EXPECT_FALSE(seq_AB.empty());
@@ -115,8 +110,7 @@ namespace NPATK::Tests {
         );
 
         AlgebraicContext ac{3, true, false, rules};
-
-        ac.generate_aliases(6);
+        ASSERT_TRUE(ac.attempt_completion(20));
 
         OperatorSequence seq_A{std::vector<oper_name_t>{1}, ac};
         EXPECT_TRUE(seq_A.empty());
@@ -157,8 +151,6 @@ namespace NPATK::Tests {
                 HashedSequence{{1, 2}, ShortlexHasher{3}}
         );
         AlgebraicContext ac{3, true, false, rules};
-
-        ac.generate_aliases(3);
 
         OperatorSequence seq_AB{std::vector<oper_name_t>{1, 2}, ac};
         EXPECT_FALSE(seq_AB.empty());
@@ -207,7 +199,6 @@ namespace NPATK::Tests {
         );
 
         AlgebraicContext ac{2, true, false, rules};
-        ac.generate_aliases(4);
 
         OperatorSequenceGenerator osg_lvl1{ac, 1};
         ASSERT_EQ(osg_lvl1.size(), 3); // I, A, B
@@ -271,7 +262,6 @@ namespace NPATK::Tests {
 
         AlgebraicContext ac{2, true, false, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
-        ac.generate_aliases(2);
 
         OperatorSequenceGenerator osg_lvl1{ac, 1};
         ASSERT_EQ(osg_lvl1.size(), 1); // I
@@ -311,7 +301,6 @@ namespace NPATK::Tests {
 
         AlgebraicContext ac{3, true, false, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
-        ac.generate_aliases(1);
 
         OperatorSequenceGenerator osg_lvl1{ac, 1};
         ASSERT_EQ(osg_lvl1.size(), 2); // I, a
@@ -334,8 +323,10 @@ namespace NPATK::Tests {
                 HashedSequence{{}, ShortlexHasher{2}}
         );
         auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, std::move(rules));
+        ASSERT_TRUE(ac_ptr->attempt_completion(20));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = ams.Context();
+
 
         auto [id1, mm1] = ams.create_moment_matrix(1); // 1, A, B; A A^2 I; B I B^2 ...
         ASSERT_EQ(mm1.Level(), 1);
@@ -396,9 +387,6 @@ namespace NPATK::Tests {
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
 
-
-        ams.generate_aliases(4);
-
         auto [id2, mm2] = ams.create_moment_matrix(2); // 1 a b ab ba bb
         ASSERT_EQ(mm2.Level(), 2);
         EXPECT_TRUE(mm2.IsHermitian());
@@ -442,6 +430,7 @@ namespace NPATK::Tests {
         const auto * x0x1Ptr = symTable.where(OperatorSequence({0, 1}, ams.Context()));
         ASSERT_NE(x0x1Ptr, nullptr);
         const auto& x0x1 = *x0x1Ptr;
+        EXPECT_TRUE(x0x1.is_antihermitian()) << symTable;
         auto [rePart, imPart] = x0x1.basis_key();
         EXPECT_FALSE(x0x1.is_hermitian()) << symTable;
         EXPECT_EQ(rePart, -1) << symTable;

@@ -11,8 +11,6 @@ add_library(lib_npatk
         operators/algebraic/algebraic_matrix_system.cpp
         operators/algebraic/monomial_substitution_rule.cpp
         operators/algebraic/ostream_rule_logger.cpp
-        operators/algebraic/raw_sequence.cpp
-        operators/algebraic/raw_sequence_book.cpp
         operators/algebraic/rule_book.cpp
         operators/inflation/causal_network.cpp
         operators/inflation/factor_table.cpp

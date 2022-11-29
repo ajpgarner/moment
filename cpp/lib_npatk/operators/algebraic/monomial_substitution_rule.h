@@ -7,8 +7,8 @@
 
 #include "integer_types.h"
 
-#include "raw_sequence.h"
 #include "operators/shortlex_hasher.h"
+#include "operators/hashed_sequence.h"
 #include "symbolic/symbol_expression.h"
 
 #include <iosfwd>
@@ -70,10 +70,7 @@ namespace NPATK {
         [[nodiscard]] std::vector<oper_name_t>
         apply_match_with_hint(const std::vector<oper_name_t>& input, const_iter_t hint) const;
 
-        size_t all_matches(std::vector<SymbolPair>& output, const RawSequenceBook& rsb, const RawSequence& input) const;
-
-
-        /**
+         /**
          * Forms a new rule by combining overlapping left-hand-sides of rules (suffix of this w/ prefix of other), and
          * applying both rules to the joint string.
          * @param other The rule to combine this with.
