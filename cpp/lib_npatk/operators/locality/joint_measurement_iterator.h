@@ -95,8 +95,7 @@ namespace NPATK {
         void check_implicit();
     };
 
-
-    /**
+/**
  * Iterate over combinations of measurements, from specified parties
  */
 struct JointMeasurementIterator {

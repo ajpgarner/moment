@@ -13,6 +13,7 @@ namespace NPATK {
 
     class InflationContext;
     class FactorTable;
+    class ExplicitSymbolIndex;
 
     class InflationMatrixSystem : public MatrixSystem {
 
@@ -20,6 +21,8 @@ namespace NPATK {
         class InflationContext &inflationContext;
 
         std::unique_ptr<FactorTable> factors;
+
+        std::unique_ptr<ExplicitSymbolIndex> explicitSymbols;
 
     public:
         /**
@@ -46,6 +49,20 @@ namespace NPATK {
          * Get factorization list associated with matrices.
          */
         const FactorTable& Factors() const noexcept { return *this->factors; }
+
+        /**
+        * Returns an indexing of real-valued symbols that correspond to explicit operators/operator sequences within
+        * the context (including joint measurements).
+        * @throws errors::missing_compoment if not generated.
+        */
+        [[nodiscard]] const ExplicitSymbolIndex& ExplicitSymbolTable() const;
+
+        /**
+         * Calculates the longest real sequences that can exist within this system (i.e. the highest number of
+         *  parties, all of whose joint measurement outcomes correspond to symbols within.).
+         * For thread safety, call for a read lock first.
+         */
+        [[nodiscard]] size_t MaxRealSequenceLength() const noexcept;
 
     protected:
         void onNewMomentMatrixCreated(size_t level, const class MomentMatrix &mm) override;
