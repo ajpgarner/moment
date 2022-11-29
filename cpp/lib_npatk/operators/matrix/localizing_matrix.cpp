@@ -10,7 +10,7 @@
 namespace NPATK {
     namespace {
 
-        std::unique_ptr<SquareMatrix<OperatorSequence>>
+        std::unique_ptr<OperatorMatrix::OpSeqMatrix>
         generate_localizing_matrix_sequences(const Context& context, size_t level, const OperatorSequence& word) {
             // Prepare generator of symbols
             OperatorSequenceGenerator colGen{context, level};
@@ -27,7 +27,7 @@ namespace NPATK {
                     matrix_data.emplace_back(context.simplify_as_moment(rowSeq * (word * colSeq)));
                 }
             }
-            return std::make_unique<SquareMatrix<OperatorSequence>>(dimension, std::move(matrix_data));
+            return std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(matrix_data));
         }
     }
 

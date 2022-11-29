@@ -120,6 +120,8 @@ namespace NPATK {
             return OperatorSequence{context};
         }
 
+        [[nodiscard]] static int compare_same_negation(const OperatorSequence& lhs, const OperatorSequence& rhs);
+
     private:
         /**
          * Perform simplifications on the raw operator sequence, calling context if supplied.

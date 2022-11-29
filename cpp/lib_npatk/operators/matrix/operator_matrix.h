@@ -24,9 +24,35 @@ namespace NPATK {
     class SymbolTable;
     class SymbolMatrixProperties;
 
+
     class OperatorMatrix {
 
     public:
+        class OpSeqMatrix : public SquareMatrix<OperatorSequence> {
+        private:
+            bool hermitian = false;
+            ptrdiff_t nonh_i = -1;
+            ptrdiff_t nonh_j = -1;
+        public:
+
+            OpSeqMatrix(size_t dimension, std::vector<OperatorSequence> matrix_data);
+
+            /**
+             * True if the matrix is Hermitian.
+             */
+            [[nodiscard]] bool is_hermitian() const noexcept { return this->hermitian; }
+
+            /**
+             * Get first row and column indices of non-hermitian element in matrix, if any. Otherwise, (-1,-1).
+             */
+            [[nodiscard]] std::pair<ptrdiff_t, ptrdiff_t> nonhermitian_index() const noexcept {
+                return {nonh_i, nonh_j};
+            }
+
+        private:
+            void calculate_hermicity();
+        };
+
         class SymbolMatrixView {
         private:
             const OperatorMatrix& matrix;
@@ -100,7 +126,7 @@ namespace NPATK {
         bool is_hermitian = false;
 
         /** Matrix, as operator sequences */
-        std::unique_ptr<SquareMatrix<OperatorSequence>> op_seq_matrix;
+        std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_matrix;
 
         /** Matrix, as hashes */
         std::unique_ptr<SquareMatrix<uint64_t>> hash_matrix;
@@ -129,7 +155,7 @@ namespace NPATK {
 
     public:
         explicit OperatorMatrix(const Context& context, SymbolTable& symbols,
-                                std::unique_ptr<SquareMatrix<OperatorSequence>> op_seq_mat);
+                                std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
 
         OperatorMatrix(OperatorMatrix&& rhs) noexcept
             : context{rhs.context}, symbol_table{rhs.symbol_table},
@@ -153,7 +179,6 @@ namespace NPATK {
             assert(this->sym_mat_prop);
             return *this->sym_mat_prop;
         }
-
 
     private:
         std::set<symbol_name_t> integrateSymbols();

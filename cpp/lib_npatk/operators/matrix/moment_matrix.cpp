@@ -6,18 +6,15 @@
 
 #include "moment_matrix.h"
 
-#include "../context.h"
-
 #include "../operator_sequence_generator.h"
 #include "operator_matrix.h"
 
-
 #include <limits>
-
+#include <sstream>
 
 namespace NPATK {
     namespace {
-        std::unique_ptr<SquareMatrix<OperatorSequence>>
+        std::unique_ptr<OperatorMatrix::OpSeqMatrix>
         generate_moment_matrix_sequences(const Context& context, size_t level) {
             // Prepare generator of symbols
             OperatorSequenceGenerator colGen{context, level};
@@ -35,7 +32,22 @@ namespace NPATK {
                 }
             }
 
-            return std::make_unique<SquareMatrix<OperatorSequence>>(dimension, std::move(matrix_data));
+            auto op_matrix = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(matrix_data));
+
+            // Force MM to be Hermitian or throw exception
+            if (!op_matrix->is_hermitian()) {
+                auto [bad_row, bad_col] = op_matrix->nonhermitian_index();
+                assert(bad_row >= 0);
+                assert(bad_col >= 0);
+
+                std::stringstream ss;
+                ss << "Generated moment matrix should be Hermitian, but element [" << bad_row << "," << bad_col << "]"
+                   << " " << (*op_matrix)[bad_row][bad_col] << " could not be established as the conjugate of element"
+                   << " [" << bad_col << "," << bad_row << "] " << (*op_matrix)[bad_col][bad_row] << " (conjugate: "
+                   << (*op_matrix)[bad_col][bad_row].conjugate() << ").";
+                throw errors::hermitian_failure{ss.str()};
+            }
+            return op_matrix;
         }
     }
 

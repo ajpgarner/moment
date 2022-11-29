@@ -44,5 +44,21 @@ namespace NPATK {
         return output;
     }
 
+    int OperatorSequence::compare_same_negation(const OperatorSequence &lhs, const OperatorSequence &rhs) {
+        if (lhs.the_hash != rhs.the_hash) {
+            return 0;
+        }
+        if (lhs.size() != rhs.size()) {
+            return 0;
+        }
+        for (size_t i = 0; i < lhs.size(); ++i) {
+            if (lhs[i] != rhs[i]) {
+                return 0;
+            }
+        }
+        // Sequences are equal, but are they the same sign?
+        return lhs.negated() == rhs.negated() ? 1 : -1;
+    }
+
 
 }

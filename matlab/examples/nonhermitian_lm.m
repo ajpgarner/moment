@@ -4,7 +4,7 @@ clear
 clear npatk;
 
 %% Params
-mm_level = 2;
+mm_level = 4;
 lm_level = max(mm_level - 1, 0);
 
 %% Create setting

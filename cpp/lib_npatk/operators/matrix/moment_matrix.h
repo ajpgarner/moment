@@ -13,13 +13,20 @@
 #include <cassert>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <span>
 
 namespace NPATK {
 
+    namespace errors {
+        class hermitian_failure : public std::logic_error {
+        public:
+            explicit hermitian_failure(const std::string& what) : std::logic_error{what} { }
+        };
+    }
+
     class MomentMatrix : public OperatorMatrix {
     public:
-
         /** The Level of moment matrix defined */
         const size_t hierarchy_level;
 

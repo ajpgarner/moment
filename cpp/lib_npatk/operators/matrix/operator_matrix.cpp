@@ -11,31 +11,42 @@
 
 #include <limits>
 #include <stdexcept>
+#include <sstream>
 
 
 namespace NPATK {
-
-    namespace {
-        bool testForHermiticity(const SquareMatrix<OperatorSequence>& opMat) {
-            for (size_t col = 0; col < opMat.dimension; ++col) {
-                if (opMat[col][col] != opMat[col][col].conjugate()) {
-                    return false;
-                }
-                for (size_t row = col+1; row < opMat.dimension; ++row) {
-                    const auto& upper = opMat[col][row];
-                    const auto& lower = opMat[row][col];
-                    const auto lower_conj = lower.conjugate();
-                    if (upper != lower_conj) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
+    OperatorMatrix::OpSeqMatrix::OpSeqMatrix(size_t dimension, std::vector<OperatorSequence> matrix_data)
+        : SquareMatrix<OperatorSequence>(dimension, std::move(matrix_data)) {
+        this->calculate_hermicity();
     }
 
+    void OperatorMatrix::OpSeqMatrix::calculate_hermicity() {
+        for (size_t row = 0; row < this->dimension; ++row) {
+            if ((*this)[row][row] != (*this)[row][row].conjugate()) {
+                this->hermitian = false;
+                this->nonh_i = static_cast<ptrdiff_t>(row);
+                this->nonh_j = static_cast<ptrdiff_t>(row);
+                return;
+            }
+            for (size_t col = row+1; col < this->dimension; ++col) {
+                const auto& upper = (*this)[row][col];
+                const auto& lower = (*this)[col][row];
+                const auto lower_conj = lower.conjugate();
+                if (upper != lower_conj) {
+                    this->hermitian = false;
+                    this->nonh_i = static_cast<ptrdiff_t>(row);
+                    this->nonh_j = static_cast<ptrdiff_t>(col);
+                    return;
+                }
+            }
+        }
+        this->hermitian = true;
+        this->nonh_i = this->nonh_j = -1;
+    }
+
+
     OperatorMatrix::OperatorMatrix(const Context& context, SymbolTable& symbols,
-                                   std::unique_ptr<SquareMatrix<OperatorSequence>> op_seq_mat)
+                                   std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
        : context{context}, symbol_table{symbols}, Symbols{symbols}, SymbolMatrix{*this}, SequenceMatrix{*this},
          op_seq_matrix{std::move(op_seq_mat)}
        {
@@ -45,7 +56,7 @@ namespace NPATK {
            this->dimension = op_seq_matrix->dimension;
 
            // Test for Hermiticity
-           this->is_hermitian = testForHermiticity(*this->op_seq_matrix);
+           this->is_hermitian = op_seq_matrix->is_hermitian();
 
            // Evaluate hashes (of entire matrix)
            std::vector<size_t> temporaryHashes{};
@@ -97,26 +108,27 @@ namespace NPATK {
         // Now, look at elements and see if they are unique or not
         for (size_t row = 0; row < this->dimension; ++row) {
             for (size_t col = row; col < this->dimension; ++col) {
-                const size_t hash = (*this->hash_matrix)[row][col];
-                const size_t conj_hash = (*this->hash_matrix)[col][row]; // ONLY TRUE FOR HERMITIAN MATRIX
-                const bool hermitian = (hash == conj_hash)
-                        && ((*this->op_seq_matrix)[row][col].negated() == (*this->op_seq_matrix)[col][row].negated());
+                const auto& elem = this->SequenceMatrix[row][col];
+                const auto conj_elem = elem.conjugate();
+                int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
+                const bool hermitian = (compare == 1);
+
+                const size_t hash = elem.hash();
+                const size_t conj_hash = conj_elem.hash();
 
                 // Don't add what is already known
                 if (known_hashes.contains(hash) || (!hermitian && known_hashes.contains(conj_hash))) {
                     continue;
                 }
 
-                const auto& elem = this->SequenceMatrix[row][col];
-
                 if (hermitian) {
                     build_unique.emplace_back(UniqueSequence{elem, hash});
                     known_hashes.emplace(hash);
                 } else {
                     if (hash < conj_hash) {
-                        build_unique.emplace_back(UniqueSequence{elem, hash, elem.conjugate(), conj_hash});
+                        build_unique.emplace_back(UniqueSequence{elem, hash, conj_elem, conj_hash});
                     } else {
-                        build_unique.emplace_back(UniqueSequence{elem.conjugate(), conj_hash, elem, hash});
+                        build_unique.emplace_back(UniqueSequence{conj_elem, conj_hash, elem, hash});
                     }
 
                     known_hashes.emplace(hash);
@@ -124,7 +136,6 @@ namespace NPATK {
                 }
             }
         }
-
         // NRVO?
         return build_unique;
     }
@@ -146,10 +157,11 @@ namespace NPATK {
             for (size_t col = 0; col < this->dimension; ++col) {
                 const auto& elem = this->SequenceMatrix[row][col];
                 const auto conj_elem = elem.conjugate();
+                int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
+                const bool hermitian = (compare == 1);
 
                 const size_t hash = elem.hash();
                 const size_t conj_hash = conj_elem.hash();
-                const bool hermitian = (hash == conj_hash);
 
                 // Don't add what is already known
                 if (known_hashes.contains(hash) || (!hermitian && known_hashes.contains(conj_hash))) {
@@ -161,9 +173,9 @@ namespace NPATK {
                     known_hashes.emplace(hash);
                 } else {
                     if (hash < conj_hash) {
-                        build_unique.emplace_back(UniqueSequence{elem, hash, elem.conjugate(), conj_hash});
+                        build_unique.emplace_back(UniqueSequence{elem, hash, conj_elem, conj_hash});
                     } else {
-                        build_unique.emplace_back(UniqueSequence{elem.conjugate(), conj_hash, elem, hash});
+                        build_unique.emplace_back(UniqueSequence{conj_elem, conj_hash, elem, hash});
                     }
 
                     known_hashes.emplace(hash);
@@ -196,7 +208,10 @@ namespace NPATK {
 
                 auto [symbol_id, conjugated] = this->symbol_table.hash_to_index(hash);
                 if (symbol_id == std::numeric_limits<ptrdiff_t>::max()) {
-                    throw std::logic_error{"Unknown symbol found in MomentMatrix."};
+                    std::stringstream ss;
+                    ss << "Symbol \"" << (*this->op_seq_matrix)[row][col] << "\" at index [" << row << "," << col << "]"
+                       << " was not found in symbol table, while parsing Hermitian matrix.";
+                    throw std::logic_error{ss.str()};
                 }
                 const auto& unique_elem = this->symbol_table[symbol_id];
 
@@ -229,7 +244,10 @@ namespace NPATK {
 
                 auto [symbol_id, conjugated] = this->symbol_table.hash_to_index(hash);
                 if (symbol_id == std::numeric_limits<ptrdiff_t>::max()) {
-                    throw std::logic_error{"Unknown symbol found in MomentMatrix."};
+                    std::stringstream ss;
+                    ss << "Symbol \"" << (*this->op_seq_matrix)[row][col] << "\" at index [" << row << "," << col << "]"
+                       << " was not found in symbol table.";
+                    throw std::logic_error{ss.str()};
                 }
                 const auto& unique_elem = this->symbol_table[symbol_id];
 
