@@ -118,6 +118,55 @@ classdef ComplexObject < handle
         end
     end
     
+        %% Public yalmip methods
+     methods
+        function ym_expr = yalmip(obj, real_basis, im_basis)
+            % Get coefficients
+            the_re_coefs = obj.RealCoefficients;
+            the_im_coefs = obj.ImaginaryCoefficients;
+
+            % Has real...
+            if nargin >= 2
+                if ~isa(real_basis, 'sdpvar')
+                    error("Expected YALMIP real basis vector input.");
+                end
+                if length(the_re_coefs) ~= length(real_basis)
+                    error("YALMIP real vector dimension (" ...
+                        + num2str(length(real_basis)) + ") does not match "...
+                        + "object coefficient dimension (" ...
+                        + num2str(length(the_re_coefs)) + ").");
+                end
+                real_basis = reshape(real_basis, [], 1);
+            else
+                error("Expected YALMIP real basis vector input.");
+            end
+            
+            % Has imaginary...
+            if nargin >= 3
+                if ~isa(im_basis, 'sdpvar')
+                    error("Expected YALMIP imaginary basis vector input.");
+                end
+                if length(the_im_coefs) ~= length(im_basis)
+                    error("YALMIP imaginary vector dimension (" ...
+                        + num2str(length(im_basis)) + ") does not match "...
+                        + "object coefficient dimension (" ...
+                        + num2str(length(the_im_coefs)) + ").");
+                end
+                im_basis = reshape(im_basis, [], 1);
+                has_im = true;
+            else
+                the_im_coefs = zeros(1, length(real_basis));
+                has_im = false;
+            end
+           
+            % Generate expression...
+            ym_expr = (the_re_coefs * real_basis);
+            if (has_im)
+                ym_expr = ym_expr + 1i * (the_im_coefs * im_basis);
+            end
+        end
+    end
+    
     %% Virtual methods
     methods(Access=protected)
         function success = calculateCoefficients(obj)
