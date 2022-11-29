@@ -122,13 +122,13 @@ namespace NPATK {
                 }
 
                 if (hermitian) {
-                    build_unique.emplace_back(UniqueSequence{elem, hash});
+                    build_unique.emplace_back(UniqueSequence{elem});
                     known_hashes.emplace(hash);
                 } else {
                     if (hash < conj_hash) {
-                        build_unique.emplace_back(UniqueSequence{elem, hash, conj_elem, conj_hash});
+                        build_unique.emplace_back(UniqueSequence{elem, conj_elem});
                     } else {
-                        build_unique.emplace_back(UniqueSequence{conj_elem, conj_hash, elem, hash});
+                        build_unique.emplace_back(UniqueSequence{conj_elem, elem});
                     }
 
                     known_hashes.emplace(hash);
@@ -169,13 +169,13 @@ namespace NPATK {
                 }
 
                 if (hermitian) {
-                    build_unique.emplace_back(UniqueSequence{elem, hash});
+                    build_unique.emplace_back(UniqueSequence{elem});
                     known_hashes.emplace(hash);
                 } else {
                     if (hash < conj_hash) {
-                        build_unique.emplace_back(UniqueSequence{elem, hash, conj_elem, conj_hash});
+                        build_unique.emplace_back(UniqueSequence{elem, conj_elem});
                     } else {
-                        build_unique.emplace_back(UniqueSequence{conj_elem, conj_hash, elem, hash});
+                        build_unique.emplace_back(UniqueSequence{conj_elem, elem});
                     }
 
                     known_hashes.emplace(hash);

@@ -10,10 +10,10 @@
 #include <iostream>
 
 namespace NPATK {
-    UniqueSequence::UniqueSequence(OperatorSequence sequence, size_t hash,
-                                   OperatorSequence conjSequence, size_t conjHash):
-            opSeq{std::move(sequence)}, fwd_hash{hash},
-            conjSeq{std::move(conjSequence)}, conj_hash{conjHash},
+    UniqueSequence::UniqueSequence(OperatorSequence sequence,
+                                   OperatorSequence conjSequence):
+            opSeq{std::move(sequence)},
+            conjSeq{std::move(conjSequence)},
             hermitian{false}, antihermitian{false}, real_index{-1}, img_index{-1} {
 
         int compare = OperatorSequence::compare_same_negation(opSeq, *conjSeq);
@@ -50,7 +50,7 @@ namespace NPATK {
 
     symbol_name_t SymbolTable::merge_in(UniqueSequence&& elem) {
         // Not unique, do not add...
-        auto existing_iter = this->hash_table.find(elem.fwd_hash);
+        auto existing_iter = this->hash_table.find(elem.hash());
         if (existing_iter != this->hash_table.end()) {
             const ptrdiff_t stIndex = existing_iter->second >= 0 ? existing_iter->second : -existing_iter->second;
             return this->unique_sequences[stIndex].id;
@@ -94,9 +94,9 @@ namespace NPATK {
         }
 
         // Add hash(es)
-        this->hash_table.emplace(std::make_pair(elem.fwd_hash, next_index));
+        this->hash_table.emplace(std::make_pair(elem.hash(), next_index));
         if (!is_hermitian) {
-            this->hash_table.emplace(std::make_pair(elem.conj_hash, -next_index));
+            this->hash_table.emplace(std::make_pair(elem.hash_conj(), -next_index));
         }
 
         // Register element
@@ -169,9 +169,9 @@ namespace NPATK {
         if (seq.img_index>=0) {
             os << ", Im#=" << seq.img_index;
         }
-        os << ", hash=" << seq.fwd_hash;
-        if (seq.conj_hash != seq.fwd_hash) {
-            os << "/" << seq.conj_hash;
+        os << ", hash=" << seq.hash();
+        if (seq.hash_conj() != seq.hash()) {
+            os << "/" << seq.hash_conj();
         }
         return os;
     }

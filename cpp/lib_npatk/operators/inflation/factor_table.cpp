@@ -80,7 +80,7 @@ namespace NPATK {
                     assert(where->is_hermitian());
                     entry.canonical.symbols.emplace_back(where->Id());
                 } else {
-                    UniqueSequence us{factor_seq, context.hash(factor_seq)};
+                    UniqueSequence us{factor_seq}; 
                     auto new_entry = this->symbols.merge_in(std::move(us));
                     entry.canonical.symbols.emplace_back(new_entry);
                 }

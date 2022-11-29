@@ -25,26 +25,26 @@ namespace NPATK {
         symbol_name_t id = -1;
         OperatorSequence opSeq;
         std::optional<OperatorSequence> conjSeq{};
-        size_t fwd_hash = 0;
-        size_t conj_hash = 0;
         bool hermitian = false;
         bool antihermitian = false;
         ptrdiff_t real_index = -1;
         ptrdiff_t img_index = -1;
 
     public:
-        constexpr UniqueSequence(OperatorSequence sequence, size_t hash) :
-                opSeq{std::move(sequence)}, fwd_hash{hash},
-                conjSeq{}, conj_hash{hash}, hermitian{true}, antihermitian{false},
+        explicit constexpr UniqueSequence(OperatorSequence sequence) :
+                opSeq{std::move(sequence)},
+                conjSeq{}, hermitian{true}, antihermitian{false},
                 real_index{-1}, img_index{-1}  { }
 
-        UniqueSequence(OperatorSequence sequence, size_t hash, OperatorSequence conjSequence, size_t conjHash);
+        UniqueSequence(OperatorSequence sequence, OperatorSequence conjSequence);
 
         [[nodiscard]] constexpr symbol_name_t Id() const noexcept { return this->id; }
 
-        [[nodiscard]] constexpr size_t hash() const noexcept { return this->fwd_hash; }
+        [[nodiscard]] constexpr size_t hash() const noexcept { return this->opSeq.hash(); }
 
-        [[nodiscard]] constexpr size_t hash_conj() const noexcept { return this->conj_hash; }
+        [[nodiscard]] constexpr size_t hash_conj() const noexcept {
+            return this->conjSeq.has_value() ? this->conjSeq->hash() : this->opSeq.hash();
+        }
 
         [[nodiscard]] constexpr const OperatorSequence& sequence() const noexcept { return this->opSeq; }
 
@@ -72,13 +72,13 @@ namespace NPATK {
         }
 
         inline static UniqueSequence Zero(const Context& context) {
-            auto us = UniqueSequence{OperatorSequence::Zero(context), 0};
+            auto us = UniqueSequence{OperatorSequence::Zero(context)};
             us.id = 0;
             return us;
         }
 
         inline static UniqueSequence Identity(const Context& context) {
-            auto us = UniqueSequence{OperatorSequence::Identity(context), 1};
+            auto us = UniqueSequence{OperatorSequence::Identity(context)};
             us.id = 1;
             us.real_index = 0;
             return us;
