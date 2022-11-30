@@ -9,7 +9,7 @@
 
 #include "operators/matrix/operator_matrix.h"
 #include "operators/matrix/moment_matrix.h"
-#include "operators/locality/implicit_symbols.h"
+#include "operators/locality/locality_implicit_symbols.h"
 #include "operators/locality/locality_matrix_system.h"
 #include "fragments/export_implicit_symbols.h"
 #include "utilities/read_as_scalar.h"
@@ -241,7 +241,7 @@ namespace NPATK::mex::functions {
         const LocalityContext& context = lsm->localityContext;
 
         // Create (or retrieve) implied sequence object
-        const ImplicitSymbols& implSym = lsm->ImplicitSymbolTable();
+        const LocalityImplicitSymbols& implSym = lsm->ImplicitSymbolTable();
 
         // Export whole table?
         if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {

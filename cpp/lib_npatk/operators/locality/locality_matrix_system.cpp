@@ -6,8 +6,8 @@
 #include "locality_matrix_system.h"
 
 #include "locality_context.h"
-#include "explicit_symbols.h"
-#include "implicit_symbols.h"
+#include "locality_explicit_symbols.h"
+#include "locality_implicit_symbols.h"
 #include "collins_gisin.h"
 
 namespace NPATK {
@@ -18,8 +18,8 @@ namespace NPATK {
             : MatrixSystem(std::move(contextIn)),
               localityContext{dynamic_cast<const LocalityContext&>(this->Context())} {
 
-        this->explicitSymbols = std::make_unique<ExplicitSymbolIndex>(*this, 0);
-        this->implicitSymbols = std::make_unique<ImplicitSymbols>(*this);
+        this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, 0);
+        this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
     }
 
 
@@ -27,8 +27,8 @@ namespace NPATK {
             : MatrixSystem{std::move(contextIn)},
               localityContext{dynamic_cast<const LocalityContext&>(this->Context())} {
 
-        this->explicitSymbols = std::make_unique<ExplicitSymbolIndex>(*this, 0);
-        this->implicitSymbols = std::make_unique<ImplicitSymbols>(*this);
+        this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, 0);
+        this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
     }
 
     size_t LocalityMatrixSystem::MaxRealSequenceLength() const noexcept {
@@ -51,7 +51,7 @@ namespace NPATK {
         return *this->explicitSymbols;
     }
 
-    const ImplicitSymbols& LocalityMatrixSystem::ImplicitSymbolTable() const {
+    const LocalityImplicitSymbols& LocalityMatrixSystem::ImplicitSymbolTable() const {
 
         if (!this->implicitSymbols) {
             throw errors::missing_component("ImplicitSymbolTable has not yet been generated.");
@@ -73,8 +73,8 @@ namespace NPATK {
             this->maxProbabilityLength = newMRSL;
 
             // Make explicit/implicit symbol table
-            this->explicitSymbols = std::make_unique<ExplicitSymbolIndex>(*this, this->MaxRealSequenceLength());
-            this->implicitSymbols = std::make_unique<ImplicitSymbols>(*this);
+            this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, this->MaxRealSequenceLength());
+            this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
 
             // Can/should we make C-G tensor?
             if (!this->collinsGisin && (newMRSL >= this->localityContext.Parties.size())) {

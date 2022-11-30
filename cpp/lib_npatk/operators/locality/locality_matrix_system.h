@@ -9,7 +9,7 @@
 namespace NPATK {
     class LocalityContext;
     class ExplicitSymbolIndex;
-    class ImplicitSymbols;
+    class LocalityImplicitSymbols;
     class CollinsGisin;
 
     class LocalityMatrixSystem : public MatrixSystem {
@@ -21,7 +21,7 @@ namespace NPATK {
         std::unique_ptr<ExplicitSymbolIndex> explicitSymbols;
 
         /** Map of implied probabilities */
-        std::unique_ptr<ImplicitSymbols> implicitSymbols;
+        std::unique_ptr<LocalityImplicitSymbols> implicitSymbols;
 
         /** Map of outcome symbols, by Collins Gisin index */
         std::unique_ptr<class CollinsGisin> collinsGisin;
@@ -71,7 +71,7 @@ namespace NPATK {
          * "final" outcomes of measurements (including joint measurements).
          * @throws errors::missing_compoment if not generated.
          */
-        [[nodiscard]] const ImplicitSymbols& ImplicitSymbolTable() const;
+        [[nodiscard]] const LocalityImplicitSymbols& ImplicitSymbolTable() const;
 
     protected:
         void onNewMomentMatrixCreated(size_t level, const class MomentMatrix& mm) override;

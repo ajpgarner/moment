@@ -6,9 +6,8 @@
 #include "inflation_matrix_system.h"
 
 #include "inflation_context.h"
+#include "inflation_explicit_symbols.h"
 #include "factor_table.h"
-
-#include "operators/locality/explicit_symbols.h"
 
 
 namespace NPATK {
@@ -52,7 +51,7 @@ namespace NPATK {
         // Update explicit symbols
         const auto new_max_length = this->MaxRealSequenceLength();
         if (!this->explicitSymbols || (this->explicitSymbols->Level < new_max_length)) {
-            this->explicitSymbols = std::make_unique<ExplicitSymbolIndex>(*this, new_max_length);
+            this->explicitSymbols = std::make_unique<InflationExplicitSymbolIndex>(*this, new_max_length);
         }
 
         MatrixSystem::onNewMomentMatrixCreated(level, mm);

@@ -12,16 +12,19 @@ add_library(lib_npatk
         operators/algebraic/monomial_substitution_rule.cpp
         operators/algebraic/ostream_rule_logger.cpp
         operators/algebraic/rule_book.cpp
+        operators/common/explicit_symbols.cpp
+        operators/common/implicit_symbols.cpp
         operators/inflation/causal_network.cpp
         operators/inflation/factor_table.cpp
         operators/inflation/inflation_context.cpp
+        operators/inflation/inflation_explicit_symbols.cpp
+        operators/inflation/inflation_implicit_symbols.cpp
         operators/inflation/inflation_matrix_system.cpp
         operators/inflation/observable.cpp
         operators/inflation/source.cpp
-        operators/locality/explicit_symbols.cpp
+        operators/locality/locality_explicit_symbols.cpp
         operators/locality/collins_gisin.cpp
-        operators/locality/implicit_symbols.cpp
-        operators/locality/joint_measurement_index.cpp
+        operators/locality/locality_implicit_symbols.cpp
         operators/locality/joint_measurement_iterator.cpp
         operators/locality/locality_context.cpp
         operators/locality/locality_matrix_system.cpp

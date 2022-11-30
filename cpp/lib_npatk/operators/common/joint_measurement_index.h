@@ -9,9 +9,6 @@
 
 namespace NPATK {
 
-    class LocalityContext;
-    class InflationContext;
-
     class JointMeasurementIndex : public MonotonicChunkRecursiveStorage<
                                             std::pair<ptrdiff_t, ptrdiff_t>, JointMeasurementIndex> {
     public:
@@ -25,9 +22,5 @@ namespace NPATK {
                                                      ptrdiff_t offset = 0)
                 : MonotonicChunkRecursiveStorage{zero, offset} { }
 
-        explicit JointMeasurementIndex(const LocalityContext& context, size_t max_depth);
-
-        explicit JointMeasurementIndex(const InflationContext& context, size_t max_depth);
     };
-
 }

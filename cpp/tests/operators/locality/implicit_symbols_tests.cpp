@@ -7,7 +7,7 @@
 
 #include "operators/locality/locality_context.h"
 #include "operators/locality/locality_matrix_system.h"
-#include "operators/locality/implicit_symbols.h"
+#include "operators/locality/locality_implicit_symbols.h"
 #include "operators/matrix/moment_matrix.h"
 
 namespace NPATK::Tests {
@@ -305,7 +305,7 @@ namespace NPATK::Tests {
         ASSERT_NE(where_a1, nullptr);
         ASSERT_NE(where_a0, where_a1);
 
-        const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
+        const auto& implSym = system.ImplicitSymbolTable();
         EXPECT_EQ(implSym.MaxSequenceLength, 1);
 
         std::vector<size_t> indices{0};
@@ -355,7 +355,7 @@ namespace NPATK::Tests {
         ASSERT_NE(where_b0, nullptr);
         ASSERT_NE(where_a0, where_b0);
 
-        const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
+        const auto& implSym = system.ImplicitSymbolTable();
         EXPECT_EQ(implSym.MaxSequenceLength, 1);
 
         auto spanA = implSym.get({0});
@@ -399,7 +399,7 @@ namespace NPATK::Tests {
         ASSERT_NE(where_alice_bob, where_a0);
         ASSERT_NE(where_alice_bob, where_b0);
 
-        const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
+        const auto& implSym = system.ImplicitSymbolTable();
         EXPECT_EQ(implSym.MaxSequenceLength, 2);
 
         // Alice a
@@ -459,7 +459,7 @@ namespace NPATK::Tests {
         auto A1B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1, 0),
                                                                          bob.measurement_outcome(1, 0)},
                                                                         context))->Id();
-        const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
+        const auto& implSym = system.ImplicitSymbolTable();
 
 
         auto spanA0 = implSym.get({0});
@@ -593,7 +593,7 @@ namespace NPATK::Tests {
                                                                            charlie.measurement_outcome(1,0)},
                                                                         context))->Id();
 
-        const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
+        const auto& implSym = system.ImplicitSymbolTable();
 
         // MONOPARTITE TESTS:
         auto spanA0 = implSym.get({0});
@@ -748,7 +748,7 @@ namespace NPATK::Tests {
                                                                          charlie.measurement_outcome(1,0)},
                                                                          context))->Id();
 
-        const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
+        const auto& implSym = system.ImplicitSymbolTable();
 
         // MONOPARTITE TESTS:
         auto spanA0 = implSym.get({0});
@@ -840,7 +840,7 @@ namespace NPATK::Tests {
                                                                          bob.measurement_outcome(0, 0)},
                                                                         context))->Id();
 
-        const ImplicitSymbols& implSym = system.ImplicitSymbolTable();
+        const auto& implSym = system.ImplicitSymbolTable();
 
         // Alice
         auto spanA = implSym.get({0});

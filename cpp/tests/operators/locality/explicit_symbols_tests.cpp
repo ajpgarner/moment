@@ -8,7 +8,7 @@
 #include "operators/matrix/moment_matrix.h"
 #include "operators/locality/locality_context.h"
 #include "operators/locality/locality_matrix_system.h"
-#include "operators/locality/explicit_symbols.h"
+#include "operators/locality/locality_explicit_symbols.h"
 
 #include "operators/inflation/inflation_context.h"
 #include "operators/inflation/inflation_matrix_system.h"

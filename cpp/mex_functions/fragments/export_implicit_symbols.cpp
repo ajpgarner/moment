@@ -6,7 +6,7 @@
 #include "export_implicit_symbols.h"
 
 #include "operators/context.h"
-#include "operators/locality/implicit_symbols.h"
+#include "operators/locality/locality_implicit_symbols.h"
 #include "operators/locality/joint_measurement_iterator.h"
 #include "operators/matrix/operator_matrix.h"
 #include "operators/matrix/moment_matrix.h"
@@ -58,7 +58,7 @@ namespace NPATK::mex {
             matlab::engine::MATLABEngine &engine;
             matlab::data::ArrayFactory factory;
 
-            const ImplicitSymbols &implicitSymbols;
+            const LocalityImplicitSymbols &implicitSymbols;
             const LocalityContext &context;
             const size_t implicit_table_length;
             const size_t real_symbol_count;
@@ -70,7 +70,7 @@ namespace NPATK::mex {
 
         public:
             ImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
-                                const ImplicitSymbols &impliedSymbols)
+                                const LocalityImplicitSymbols &impliedSymbols)
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{implicitSymbols.context},
                       implicit_table_length{implicitSymbols.Data().size() + 1},
                       real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()},
@@ -86,7 +86,7 @@ namespace NPATK::mex {
             }
 
             ImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
-                                const ImplicitSymbols &impliedSymbols,
+                                const LocalityImplicitSymbols &impliedSymbols,
                                 const std::span<const PMODefinition> symbols,
                                 const std::span<const PMIndex> indices)
 
@@ -165,7 +165,7 @@ namespace NPATK::mex {
     }
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                               const ImplicitSymbols &impliedSymbols) {
+                                               const LocalityImplicitSymbols &impliedSymbols) {
         ImpliedSymbolWriter isw{engine, impliedSymbols};
         impliedSymbols.visit(isw);
 
@@ -174,7 +174,7 @@ namespace NPATK::mex {
 
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                     const ImplicitSymbols &impliedSymbols,
+                                                     const LocalityImplicitSymbols &impliedSymbols,
                                                      const std::span<const PMIndex> measurementIndex) {
         std::vector<size_t> globalMmtIndex;
         globalMmtIndex.reserve(measurementIndex.size());

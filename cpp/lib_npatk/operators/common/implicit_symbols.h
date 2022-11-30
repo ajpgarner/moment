@@ -5,20 +5,16 @@
  */
 #pragma once
 
-#include "locality_context.h"
-#include "measurement.h"
+#include "integer_types.h"
+
 #include "joint_measurement_index.h"
 
 #include "symbolic/linear_combo.h"
-
-#include "integer_types.h"
 
 #include <vector>
 #include <stdexcept>
 
 namespace NPATK {
-
-    class LocalityMatrixSystem;
     class SymbolTable;
     class ExplicitSymbolIndex;
     class JointMeasurementIterator;
@@ -41,23 +37,25 @@ namespace NPATK {
     };
 
     /**
-     * Calculate the 'missing' marginals/probabilities from the Gisin form.
+     * Calculate the 'missing' marginals/probabilities from the explicit form.
      */
     class ImplicitSymbols {
     public:
-        const LocalityContext& context;
-    public:
         const size_t MaxSequenceLength;
-
         const SymbolTable& symbols;
         const ExplicitSymbolIndex& esiForm;
 
-    private:
+    protected:
         std::vector<PMODefinition> tableData{};
         JointMeasurementIndex indices;
 
+    protected:
+        ImplicitSymbols(const SymbolTable &st, const ExplicitSymbolIndex& esi,
+                        size_t max_length, JointMeasurementIndex index)
+                : symbols{st}, esiForm{esi}, MaxSequenceLength{max_length}, indices{std::move(index)} { }
+
     public:
-        explicit ImplicitSymbols(const LocalityMatrixSystem& ms);
+        virtual ~ImplicitSymbols() = default;
 
         [[nodiscard]] constexpr const std::vector<PMODefinition>& Data() const noexcept {
             return this->tableData;
@@ -74,30 +72,25 @@ namespace NPATK {
             return this->get({v.begin(), v.size()});
         }
 
+//        [[nodiscard]] const PMODefinition& get(std::span<const PMOIndex> lookup_indices) const;
 
-        [[nodiscard]] const PMODefinition& get(std::span<const PMOIndex> lookup_indices) const;
+//
+//        template<typename functor_t>
+//        void visit(functor_t& visitor) const {
+//            auto visitor_wrapper = [&](const std::pair<size_t, size_t>& tableRange,
+//                                       std::span<const size_t> global_indices) {
+//                std::span<const PMODefinition> pmoSpan{tableData.cbegin() + static_cast<ptrdiff_t>(tableRange.first),
+//                                                       static_cast<size_t>(tableRange.second - tableRange.first)};
+//                std::vector<PMIndex> converted;
+//                converted.reserve(global_indices.size());
+//                for (auto global_index : global_indices) {
+//                    converted.push_back(this->context.global_index_to_PM(global_index));
+//                }
+//                visitor(pmoSpan, std::span<const PMIndex>(converted.cbegin(), converted.size()));
+//            };
+//
+//            this->indices.visit(visitor_wrapper);
+//        }
 
-        template<typename functor_t>
-        void visit(functor_t& visitor) const {
-            auto visitor_wrapper = [&](const std::pair<size_t, size_t>& tableRange,
-                                       std::span<const size_t> global_indices) {
-                std::span<const PMODefinition> pmoSpan{tableData.cbegin() + static_cast<ptrdiff_t>(tableRange.first),
-                                                       static_cast<size_t>(tableRange.second - tableRange.first)};
-                std::vector<PMIndex> converted;
-                converted.reserve(global_indices.size());
-                for (auto global_index : global_indices) {
-                    converted.push_back(this->context.global_index_to_PM(global_index));
-                }
-                visitor(pmoSpan, std::span<const PMIndex>(converted.cbegin(), converted.size()));
-            };
-
-            this->indices.visit(visitor_wrapper);
-        }
-
-    private:
-        size_t generateLevelZero(size_t& index_cursor);
-        size_t generateLevelOne(size_t& index_cursor);
-        size_t generateMoreLevels(size_t level, size_t& index_cursor);
-        size_t generateFromCurrentStack(const JointMeasurementIterator& stack, size_t& index_cursor);
     };
 }

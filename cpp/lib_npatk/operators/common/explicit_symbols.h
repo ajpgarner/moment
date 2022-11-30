@@ -1,17 +1,13 @@
 /**
- * explicit_symbol.h
+ * explicit_symbols.h
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
 
-#include "joint_measurement_index.h"
-#include "party.h"
-
-#include "operators/operator_sequence.h"
-#include "utilities/multi_dimensional_index_iterator.h"
-
 #include "integer_types.h"
+
+#include "joint_measurement_index.h"
 
 #include <initializer_list>
 #include <stdexcept>
@@ -45,39 +41,21 @@ namespace NPATK {
         /** The maximum number of operators in a sequence */
         const size_t Level;
 
-
         /** The number of operators from each party */
         const std::vector<size_t> OperatorCounts;
 
-    private:
+    protected:
         storage_t data;
         JointMeasurementIndex indices;
 
     public:
-        /**
-         * Construct explicit symbol table for locality system
-         */
-        ExplicitSymbolIndex(const LocalityMatrixSystem& ms, size_t level);
-
-        /**
-         * Construct explicit symbol table for inflation system
-         */
-        ExplicitSymbolIndex(const InflationMatrixSystem& ms, size_t level);
+        virtual ~ExplicitSymbolIndex() = default;
 
         /**
          * Gets a span of *all* symbols corresponding to the supplied measurement indices.
          * @param mmtIndices A sorted list of global indices of the measurement.
          */
         [[nodiscard]] std::span<const ExplicitSymbolEntry> get(std::span<const size_t> mmtIndices) const;
-
-        /**
-         * Gets a span of *all* symbols corresponding to the supplied measurement indices.
-         * @param mmtIndices A sorted list of global indices of the measurement.
-         */
-        [[nodiscard]] inline std::span<const ExplicitSymbolEntry> get(std::initializer_list<size_t> mmtIndices) const {
-            std::vector<size_t> v{mmtIndices};
-            return get(v);
-        }
 
         /**
          * Gets a filtered list of symbols corresponding to the supplied measurement indices, fixing some of the
@@ -88,6 +66,16 @@ namespace NPATK {
          */
         [[nodiscard]] std::vector<ExplicitSymbolEntry> get(std::span<const size_t> mmtIndices,
                                                            std::span<const oper_name_t> fixedOutcomes) const;
+
+
+        /**
+         * Gets a span of *all* symbols corresponding to the supplied measurement indices.
+         * @param mmtIndices A sorted list of global indices of the measurement.
+         */
+        [[nodiscard]] inline std::span<const ExplicitSymbolEntry> get(std::initializer_list<size_t> mmtIndices) const {
+            std::vector<size_t> v{mmtIndices};
+            return get(v);
+        }
 
         /**
         * Gets a filtered list of symbols corresponding to the supplied measurement indices, fixing some of the
@@ -103,6 +91,12 @@ namespace NPATK {
             return get(i, o);
         }
 
-
+    protected:
+        /**
+         * Construct explicit symbol table for locality system
+         */
+        explicit ExplicitSymbolIndex(size_t level, std::vector<size_t> ops, JointMeasurementIndex initial_index)
+            : Level{level}, OperatorCounts{std::move(ops)}, indices{std::move(initial_index)} { }
     };
+
 }

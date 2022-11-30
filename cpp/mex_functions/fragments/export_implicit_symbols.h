@@ -15,15 +15,15 @@
 
 namespace NPATK {
     class MomentMatrix;
-    class ImplicitSymbols;
+    class LocalityImplicitSymbols;
     class PMODefinition;
 
     namespace mex {
         matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                   const ImplicitSymbols &impliedSymbols);
+                                                   const LocalityImplicitSymbols &impliedSymbols);
 
         matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                   const ImplicitSymbols &impliedSymbols,
+                                                   const LocalityImplicitSymbols &impliedSymbols,
                                                    std::span<const PMIndex> measurementIndex);
 
         matlab::data::StructArray export_implied_symbol_row(matlab::engine::MATLABEngine &engine,

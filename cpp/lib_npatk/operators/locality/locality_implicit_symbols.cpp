@@ -4,10 +4,9 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "../context.h"
-#include "explicit_symbols.h"
-#include "implicit_symbols.h"
+#include "locality_explicit_symbols.h"
+#include "locality_implicit_symbols.h"
 #include "locality_matrix_system.h"
-#include "../matrix_system.h"
 #include "../matrix/symbol_table.h"
 
 #include "joint_measurement_iterator.h"
@@ -18,12 +17,12 @@
 
 namespace NPATK {
 
-    ImplicitSymbols::ImplicitSymbols(const LocalityMatrixSystem &ms)
-        : context{ms.localityContext},
-          symbols{ms.Symbols()},
-          esiForm{ms.ExplicitSymbolTable()},
-          MaxSequenceLength{ms.MaxRealSequenceLength()},
-          indices{context, ms.MaxRealSequenceLength()} {
+    LocalityImplicitSymbols::LocalityImplicitSymbols(const LocalityMatrixSystem &ms)
+        : ImplicitSymbols{ms.Symbols(), ms.ExplicitSymbolTable(), ms.MaxRealSequenceLength(),
+                          JointMeasurementIndex{ms.localityContext.measurements_per_party(),
+                                                std::min(ms.localityContext.Parties.size(),
+                                                         ms.MaxRealSequenceLength())}},
+          context{ms.localityContext}  {
 
         size_t index_cursor = 0;
         this->generateLevelZero(index_cursor);
@@ -37,7 +36,7 @@ namespace NPATK {
         }
     }
 
-    size_t ImplicitSymbols::generateLevelZero(size_t& index_cursor) {
+    size_t LocalityImplicitSymbols::generateLevelZero(size_t& index_cursor) {
         // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.
         if (symbols.size() < 2) {
             throw errors::bad_implicit_symbol("Zero and One should be defined in MomentMatrix.");
@@ -55,7 +54,7 @@ namespace NPATK {
         return 1;
     }
 
-    size_t ImplicitSymbols::generateLevelOne(size_t& index_cursor) {
+    size_t LocalityImplicitSymbols::generateLevelOne(size_t& index_cursor) {
         ptrdiff_t level_one_count = 0;
 
         // Iterate through parties & measurements, also here perform some basic checks
@@ -103,7 +102,7 @@ namespace NPATK {
 
 
 
-    size_t ImplicitSymbols::generateMoreLevels(const size_t level, size_t& index_cursor) {
+    size_t LocalityImplicitSymbols::generateMoreLevels(const size_t level, size_t& index_cursor) {
         assert(level <= this->MaxSequenceLength);
 
         const size_t init_cursor  = index_cursor;
@@ -135,7 +134,7 @@ namespace NPATK {
     }
 
 
-    size_t ImplicitSymbols::generateFromCurrentStack(const JointMeasurementIterator& stack,
+    size_t LocalityImplicitSymbols::generateFromCurrentStack(const JointMeasurementIterator& stack,
                                                      size_t& index_cursor) {
         const size_t level = stack.count_indices();
         const size_t num_outcomes = stack.count_outcomes();
@@ -212,20 +211,7 @@ namespace NPATK {
         return num_outcomes;
     }
 
-    std::span<const PMODefinition> ImplicitSymbols::get(const std::span<const size_t> mmtIndex) const {
-        if (mmtIndex.size() > this->MaxSequenceLength) {
-            throw errors::bad_implicit_symbol("Cannot look up sequences longer than the max sequence length.");
-        }
-
-        auto [first, last] = this->indices.access(mmtIndex);
-        if ((first < 0) || (first >= last)) {
-            return {tableData.begin(), 0};
-        }
-        assert(last <= tableData.size());
-        return {tableData.begin() + first, static_cast<size_t>(last - first)};
-    }
-
-    const PMODefinition& ImplicitSymbols::get(std::span<const PMOIndex> lookup_indices) const {
+    const PMODefinition& LocalityImplicitSymbols::get(std::span<const PMOIndex> lookup_indices) const {
         // First, PMO index to global index to look up by measurement
         std::vector<size_t> globalIndices;
         for (const auto& index : lookup_indices) {
