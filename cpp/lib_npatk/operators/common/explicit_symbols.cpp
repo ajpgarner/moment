@@ -5,9 +5,9 @@
  */
 #include "explicit_symbols.h"
 
-// XXX
-//#include "operators/locality/joint_measurement_iterator.h"
 #include "utilities/multi_dimensional_index_iterator.h"
+
+#include <algorithm>
 
 namespace NPATK {
     std::span<const ExplicitSymbolEntry> ExplicitSymbolIndex::get(std::span<const size_t> mmtIndices) const {
