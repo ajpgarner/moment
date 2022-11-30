@@ -13,6 +13,7 @@ namespace NPATK {
 
     class InflationContext;
     class FactorTable;
+    class CanonicalObservables;
     class ExplicitSymbolIndex;
 
     class InflationMatrixSystem : public MatrixSystem {
@@ -21,6 +22,8 @@ namespace NPATK {
         class InflationContext &inflationContext;
 
         std::unique_ptr<FactorTable> factors;
+
+        std::unique_ptr<class CanonicalObservables> canonicalObservables;
 
         std::unique_ptr<ExplicitSymbolIndex> explicitSymbols;
 
@@ -49,6 +52,12 @@ namespace NPATK {
          * Get factorization list associated with matrices.
          */
         const FactorTable& Factors() const noexcept { return *this->factors; }
+
+
+        /**
+         * Get factorization list associated with matrices.
+         */
+        const class CanonicalObservables& CanonicalObservables() const noexcept { return *this->canonicalObservables; }
 
         /**
         * Returns an indexing of real-valued symbols that correspond to explicit operators/operator sequences within

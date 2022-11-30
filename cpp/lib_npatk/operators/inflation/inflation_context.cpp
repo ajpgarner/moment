@@ -42,11 +42,12 @@ namespace NPATK {
         return output;
     }
 
-    InflationContext::ICObservable::Variant::Variant(const oper_name_t offset, const oper_name_t index,
+    InflationContext::ICObservable::Variant::Variant(const oper_name_t op_offset,
+                                                     const oper_name_t index,
                                                      std::vector<oper_name_t> &&vecIndex,
                                                      std::map<oper_name_t, oper_name_t> &&srcVariants,
                                                      const DynamicBitset<uint64_t>& sourceBMP)
-            : operator_offset{offset}, flat_index{index}, indices{std::move(vecIndex)},
+            : operator_offset{op_offset},  flat_index{index}, indices{std::move(vecIndex)},
               source_variants{std::move(srcVariants)}, connected_sources{sourceBMP} { }
 
     bool InflationContext::ICObservable::Variant::independent(const InflationContext::ICObservable::Variant &other)
@@ -59,9 +60,11 @@ namespace NPATK {
     InflationContext::ICObservable::ICObservable(const InflationContext& context,
                                                  const Observable &baseObs,
                                                  const size_t inflation_level,
-                                                 const oper_name_t offset)
+                                                 const oper_name_t op_offset,
+                                                 const oper_name_t var_offset)
          : Observable{baseObs}, context{context}, variant_count{static_cast<oper_name_t>(baseObs.count_copies(inflation_level))},
-           operator_offset{offset}, variants{make_variants(context.base_network, baseObs, inflation_level, offset)} {
+           operator_offset{op_offset}, variant_offset{var_offset},
+           variants{make_variants(context.base_network, baseObs, inflation_level, op_offset)} {
 
     }
 
@@ -87,12 +90,17 @@ namespace NPATK {
         // Create operator and observable info
         this->inflated_observables.reserve(this->base_network.Observables().size());
         this->operator_info.reserve(this->size());
+        this->total_inflated_observables = 0;
+        this->global_variant_to_observer_variant.clear();
         size_t obs_index = 0;
         oper_name_t global_id = 0;
         for (const auto& observable : this->base_network.Observables()) {
-            this->inflated_observables.emplace_back(*this, observable, this->inflation, global_id);
+            this->inflated_observables.emplace_back(*this, observable, this->inflation,
+                                                    global_id, this->total_inflated_observables);
             const auto num_copies = this->inflated_observables.back().variant_count;
+            this->total_inflated_observables += num_copies;
             for (oper_name_t copy_index = 0; copy_index < num_copies; ++copy_index) {
+                this->global_variant_to_observer_variant.emplace_back(observable.id, copy_index);
                 for (oper_name_t outcome = 0; outcome < (observable.outcomes-1); ++outcome) {
                     this->operator_info.emplace_back(global_id, observable.id, copy_index, outcome);
                     ++global_id;
@@ -246,7 +254,6 @@ namespace NPATK {
             return input;
         }
 
-
         std::vector<oper_name_t> next_available_source(this->base_network.Sources().size(), 0);
         std::map<oper_name_t, oper_name_t> permutation{};
         std::vector<oper_name_t> permuted_operators;
@@ -284,6 +291,62 @@ namespace NPATK {
         return OperatorSequence{std::move(permuted_operators), *this};
     }
 
+    std::vector<std::pair<oper_name_t, oper_name_t>>
+    InflationContext::canonical_variants(const std::vector<std::pair<oper_name_t, oper_name_t>>& input) const {
+        // If 0 or I; or no inflation, then nothing.
+        if (input.empty() || (this->inflation <= 1)) {
+            return {};
+        }
+
+        std::vector<oper_name_t> next_available_source(this->base_network.Sources().size(), 0);
+        std::map<oper_name_t, oper_name_t> permutation{};
+        std::vector<std::pair<oper_name_t, oper_name_t>> permuted_variants;
+
+        for (const auto [obs_id, var_id] : input) {
+            assert((obs_id>=0) && (obs_id < this->inflated_observables.size()));
+            const auto& obs_info = this->inflated_observables[obs_id];
+            assert((var_id>=0) && (var_id < obs_info.variant_count));
+            const auto& variant_info = obs_info.variants[var_id];
+
+            std::vector<oper_name_t> source_indices;
+            source_indices.reserve(variant_info.indices.size());
+
+            for (auto src : variant_info.connected_sources) {
+                auto permIter = permutation.find(static_cast<oper_name_t>(src));
+                if (permIter != permutation.end()) {
+                    // permutation already known
+                    const oper_name_t new_src = permIter->second;
+                    const oper_name_t new_variant = new_src % static_cast<oper_name_t>(this->inflation);
+                    source_indices.emplace_back(new_variant);
+                } else {
+                    // new permutation required
+                    const oper_name_t source = static_cast<oper_name_t>(src) / static_cast<oper_name_t>(this->inflation);
+                    const oper_name_t new_variant = next_available_source[source];
+                    ++next_available_source[source];
+                    const oper_name_t new_src = (source * static_cast<oper_name_t>(this->inflation)) + new_variant;
+                    permutation.emplace(std::make_pair(src, new_src));
+                    source_indices.emplace_back(new_variant);
+                }
+            }
+            const auto& new_variant_info = obs_info.variant(source_indices);
+            permuted_variants.emplace_back(obs_id, new_variant_info.flat_index);
+        }
+
+        // Canonical sequence of variants is always sorted...
+        std::sort(permuted_variants.begin(), permuted_variants.end(),
+                  [](const auto& lhs, const auto& rhs) { if (lhs.first < rhs.first) {
+                      return true;
+                  } else if (lhs.first > rhs.first) {
+                      return false;
+                  } else {
+                      return lhs.second < rhs.second;
+                  }});
+
+        return permuted_variants;
+    }
+
+
+
     oper_name_t InflationContext::operator_number(oper_name_t observable, oper_name_t variant,
                                                   oper_name_t outcome) const noexcept {
        assert((observable >= 0) && (observable < this->inflated_observables.size()));
@@ -296,7 +359,18 @@ namespace NPATK {
                 + outcome;
    }
 
+    oper_name_t InflationContext::obs_variant_to_index(const oper_name_t observable, const oper_name_t variant) const {
+        assert((observable >= 0) && (observable < this->inflated_observables.size()));
+        const auto& observable_info = this->inflated_observables[observable];
+        assert((variant >= 0) && (variant < observable_info.variant_count));
+        return observable_info.variant_offset + variant;
+    }
 
+    std::pair<oper_name_t, oper_name_t>
+    InflationContext::index_to_obs_variant(const oper_name_t global_variant_index) const {
+        assert((global_variant_index >= 0) && (global_variant_index < this->global_variant_to_observer_variant.size()));
+        return this->global_variant_to_observer_variant[global_variant_index];
+    }
 
     std::string InflationContext::format_sequence(const OperatorSequence &seq) const {
         if (seq.zero()) {

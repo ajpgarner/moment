@@ -85,7 +85,7 @@ namespace NPATK {
 
             friend class ::NPATK::InflationContext::ICObservable;
             private:
-                Variant(oper_name_t offset,
+                Variant(oper_name_t operator_offset,
                         oper_name_t index,
                         std::vector<oper_name_t>&& vecIndex,
                         std::map<oper_name_t, oper_name_t>&& srcVariants,
@@ -96,12 +96,13 @@ namespace NPATK {
             const InflationContext& context;
         public:
             const oper_name_t operator_offset;
+            const oper_name_t variant_offset;
             const oper_name_t variant_count;
             const std::vector<Variant> variants;
 
         public:
             ICObservable(const InflationContext& context, const Observable& baseObs,
-                         size_t inflation_level, oper_name_t offset);
+                         size_t inflation_level, oper_name_t operator_offset, oper_name_t variant_offset);
 
             /** Get variant by non-flat index */
             [[nodiscard]] const Variant& variant(std::span<const oper_name_t> indices) const;
@@ -118,6 +119,9 @@ namespace NPATK {
 
         std::vector<ICOperatorInfo> operator_info;
         std::vector<ICObservable> inflated_observables;
+
+        size_t total_inflated_observables = 0;
+        std::vector<std::pair<oper_name_t, oper_name_t>> global_variant_to_observer_variant;
 
         /** Bitset, size equal to number of operators in context. True if other operator is not independent */
         std::vector<DynamicBitset<uint64_t>> dependent_operators;
@@ -140,6 +144,12 @@ namespace NPATK {
         [[nodiscard]] const auto& Sources() const noexcept { return this->base_network.Sources(); }
 
         /**
+         * Level of inflation
+         */
+        [[nodiscard]] size_t Inflation() const noexcept { return this->inflation; }
+
+
+        /**
          * Get total number of source variants
          */
         [[nodiscard]] size_t source_variant_count() const noexcept {
@@ -147,9 +157,11 @@ namespace NPATK {
         }
 
         /**
-         * Level of inflation
-         */
-         [[nodiscard]] size_t Inflation() const noexcept { return this->inflation; }
+        * Counts total number of variants of all observables
+        */
+        [[nodiscard]] size_t observable_variant_count() const noexcept {
+            return this->total_inflated_observables;
+        }
 
         /** False: as InflationContext never generates non-Hermitian operator strings. */
         [[nodiscard]] bool can_be_nonhermitian() const noexcept override { return false; }
@@ -174,6 +186,9 @@ namespace NPATK {
          */
         [[nodiscard]] OperatorSequence canonical_moment(const OperatorSequence& input) const;
 
+        [[nodiscard]] std::vector<std::pair<oper_name_t, oper_name_t>>
+        canonical_variants(const std::vector<std::pair<oper_name_t, oper_name_t>>& input) const;
+
         /**
          * Generates a formatted string representation of an operator sequence
          */
@@ -188,6 +203,20 @@ namespace NPATK {
           */
         [[nodiscard]] oper_name_t operator_number(oper_name_t observable, oper_name_t variant,
                                                   oper_name_t outcome) const noexcept;
+
+        /**
+         * Get a global observable variant index from the following pair:
+         * @param observable
+         * @param variant
+         * @return The global variant index
+         */
+        [[nodiscard]] oper_name_t obs_variant_to_index(oper_name_t observable, oper_name_t variant) const;
+
+        /**
+         * Get a global observable variant index from the following pair:
+         * @return Pair, the observable and the variant thereof
+         */
+        [[nodiscard]] std::pair<oper_name_t, oper_name_t> index_to_obs_variant(oper_name_t global_variant_index) const;
 
 
          /**

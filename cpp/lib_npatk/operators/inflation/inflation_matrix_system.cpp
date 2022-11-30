@@ -5,9 +5,10 @@
  */
 #include "inflation_matrix_system.h"
 
+#include "canonical_observables.h"
+#include "factor_table.h"
 #include "inflation_context.h"
 #include "inflation_explicit_symbols.h"
-#include "factor_table.h"
 
 
 namespace NPATK {
@@ -15,12 +16,14 @@ namespace NPATK {
             : MatrixSystem{std::move(contextIn)},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
+        this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);
     }
 
     InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class Context> contextIn)
             : MatrixSystem{std::move(contextIn)},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
+        this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);
     }
 
     InflationMatrixSystem::~InflationMatrixSystem() noexcept = default;
@@ -41,6 +44,7 @@ namespace NPATK {
 
         // Max sequence can't also be longer than number of observables
         return std::min(hierarchy_level*2, static_cast<ptrdiff_t>(this->inflationContext.Observables().size()));
+        // return std::min(hierarchy_level*2, static_cast<ptrdiff_t>(this->inflationContext.observable_variant_count()));
     }
 
 
@@ -48,11 +52,15 @@ namespace NPATK {
         // Register factors
         this->factors->on_new_symbols_added();
 
-        // Update explicit symbols
+        // Update canonical observables (if necessary)
         const auto new_max_length = this->MaxRealSequenceLength();
+        this->canonicalObservables->generate_up_to_level(new_max_length);
+
+        // Update explicit symbols
         if (!this->explicitSymbols || (this->explicitSymbols->Level < new_max_length)) {
             this->explicitSymbols = std::make_unique<InflationExplicitSymbolIndex>(*this, new_max_length);
         }
+
 
         MatrixSystem::onNewMomentMatrixCreated(level, mm);
     }

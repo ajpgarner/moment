@@ -38,6 +38,9 @@ namespace NPATK::Tests {
     TEST(InflationContext, Construct_Pair) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 1};
         ASSERT_EQ(ic.size(), 3);
+        EXPECT_EQ(ic.source_variant_count(), 1);
+        EXPECT_EQ(ic.observable_variant_count(), 2);
+
 
         const auto& observables = ic.Observables();
         ASSERT_EQ(observables.size(), 2);
@@ -67,6 +70,9 @@ namespace NPATK::Tests {
         ASSERT_EQ(ic.Observables()[1].count_copies(2), 2);
         ASSERT_EQ(ic.Observables()[0].count_operators(2), 4);
         ASSERT_EQ(ic.Observables()[1].count_operators(2), 2);
+        EXPECT_EQ(ic.source_variant_count(), 2);
+        EXPECT_EQ(ic.observable_variant_count(), 4);
+
         auto A0_0 = ic.operator_number(0, 0, 0);
         auto A0_1 = ic.operator_number(0, 0, 1);
         auto A1_0 = ic.operator_number(0, 1, 0);
@@ -223,6 +229,19 @@ namespace NPATK::Tests {
         ASSERT_NE(A3_sv_iter, obsA_V3.source_variants.end());
         EXPECT_EQ(A3_sv_iter->first, 2);
         EXPECT_EQ(A3_sv_iter->second, 1);
+    }
+
+    TEST(InflationContext, VariantIndexing_Triangle) {
+        InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
+
+        ASSERT_EQ(ic.observable_variant_count(), 12); // A00, A01, ... B00, ...
+        for (oper_name_t index = 0; index < 12; ++index) {
+            const auto [obs, var] = ic.index_to_obs_variant(index);
+            EXPECT_EQ(obs, index / 4);
+            EXPECT_EQ(var, index % 4);
+            const auto re_index = ic.obs_variant_to_index(obs, var);
+            EXPECT_EQ(re_index, index);
+        }
     }
 
     TEST(InflationContext, ObservableIndependence_Pair) {
@@ -666,5 +685,37 @@ namespace NPATK::Tests {
         EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a10, a00}, ic}), OperatorSequence({a00, a10}, ic));
     }
 
+    TEST(InflationContext, CanonicalVariants_TwoSourceTwoObs) {
+        InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2}; // A00,A01,A10,A11,B0,B1
 
+        ASSERT_EQ(ic.observable_variant_count(), 6);
+
+        for (oper_name_t a_var = 0; a_var < 4; ++a_var) {
+            auto canA = ic.canonical_variants({{0LL, a_var}});
+            ASSERT_EQ(canA.size(), 1);
+            EXPECT_EQ(canA[0], std::make_pair(0LL, 0LL));
+        }
+
+        for (oper_name_t b_var = 0; b_var < 2; ++b_var) {
+            auto canB = ic.canonical_variants({{1LL, b_var}});
+            ASSERT_EQ(canB.size(), 1);
+            EXPECT_EQ(canB[0], std::make_pair(1LL, 0LL));
+        }
+
+        auto fromA00B0 = ic.canonical_variants({{0LL, 0LL}, {1LL, 0LL}}); // A00 B0
+        ASSERT_EQ(fromA00B0.size(), 2);
+        EXPECT_EQ(fromA00B0[0], std::make_pair(0LL, 0LL));
+        EXPECT_EQ(fromA00B0[1], std::make_pair(1LL, 0LL));
+
+        auto fromA01B1 = ic.canonical_variants({{0LL, 1LL}, {1LL, 1LL}}); // A01 B1
+        ASSERT_EQ(fromA01B1.size(), 2);
+        EXPECT_EQ(fromA01B1[0], std::make_pair(0LL, 0LL));
+        EXPECT_EQ(fromA01B1[1], std::make_pair(1LL, 0LL));
+
+        auto fromB1A01 = ic.canonical_variants({{1LL, 1LL}, {0LL, 1LL}}); // B1 A01
+        ASSERT_EQ(fromB1A01.size(), 2);
+        EXPECT_EQ(fromB1A01[0], std::make_pair(0LL, 0LL));
+        EXPECT_EQ(fromB1A01[1], std::make_pair(1LL, 0LL));
+
+    }
 }

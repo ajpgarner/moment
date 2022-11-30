@@ -16,7 +16,6 @@
 namespace NPATK {
 
     namespace {
-
         std::vector<size_t> makeOpCounts(const InflationContext& context) {
             std::vector<size_t> output;
             output.reserve(context.Observables().size());
@@ -30,10 +29,10 @@ namespace NPATK {
     InflationExplicitSymbolIndex::InflationExplicitSymbolIndex(const InflationMatrixSystem &matrixSystem,
                                                                const size_t level)
             : ExplicitSymbolIndex{level, makeOpCounts(matrixSystem.InflationContext()),
-                                  JointMeasurementIndex(
-                                          std::vector<size_t>(matrixSystem.InflationContext().Observables().size(),
-                                                              static_cast<size_t>(1)),
-                                          std::min(level, matrixSystem.InflationContext().Observables().size()))} {
+                                  JointMeasurementIndex{
+                                      std::vector<size_t>(matrixSystem.InflationContext().Observables().size(),
+                                                          static_cast<size_t>(1)),
+                                          std::min(level, matrixSystem.InflationContext().Observables().size())}} {
 
         const auto &context = matrixSystem.InflationContext();
         const auto &observables = context.Observables();
