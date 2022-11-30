@@ -24,8 +24,8 @@ classdef LocalityScenario < Scenario
             %  LocalityScenario()
             %  LocalityScenario(number of parties)
             %  LocalityScenario(number of parties, mmts per party, outcomers per mmt)
-            %  LocalityScenario([mmts A, mmts B, ...], [out A, out B, ...])
-            %  LocalityScenario([mmts A, mmts B, ...], [out A1, out A2, .. out B1, ...])
+            %  LocalityScenario([out A, out B, ..., mmts A, mmts B, ...])
+            %  LocalityScenario({[out A1, out A2, ..],[out B1, ...]})
             
             % Superclass c'tor
             obj = obj@Scenario();
@@ -34,26 +34,30 @@ classdef LocalityScenario < Scenario
             obj.Parties = Locality.Party.empty;
             
             % How many parties?
-            if (nargin < 1)
+            if (nargin == 0)
                 initial_parties = uint64(0);
+                initialize_mmts = false;
             else
                 if 1 == numel(argA)
-                    if (nargin == 1) || (nargin >= 3)
-                        initial_parties = uint64(argA);
+                	initial_parties = uint64(argA);
+                	if nargin == 1
+                		initialize_mmts = false;
+                	elseif nargin == 3
+                		initialize_mmts = true;
                     else
-                        initial_parties = 1;
+						error("Invalid input.");
                     end
-                else
-                    if (nargin >=3)
-                        error("If three arguments are provided, number "...
-                            + "of parties should be a scalar.");
-                    end
-                    initial_parties = uint64(length(argA));
+                elseif isa(argA,'double')
+                	initial_parties = uint64(length(argA)/2);
+                	initialize_mmts = true;
+                elseif isa(argA,'cell')
+                	initial_parties = length(argA);
+                	initialize_mmts = true;
                 end
             end
             
             % Create empty parties
-            if (initial_parties >=1 )
+            if (initial_parties >= 1 )
                 for x = 1:initial_parties
                     obj.Parties(end+1) = Locality.Party(obj, x);
                 end
@@ -62,76 +66,34 @@ classdef LocalityScenario < Scenario
             % Create normalization object
             obj.Normalization = Locality.Normalization(obj);
             
-            % Are we also setting up measurements?
-            initialize_mmts = (nargin >= 2);
-            
             % No more construction, if no initial measurements
             if ~initialize_mmts
                 return
             end
-            
-            % Do we have a (party, mmt, outcome) specification?
-            pmo_specified = (nargin >= 3);
-            if pmo_specified
-                mmt_input = uint64(argB);
-                out_input = uint64(argC);
-            else
-                mmt_input = uint64(argA);
-                out_input = uint64(argB);
-            end
-            
-            % Get measurements per party...
-            if numel(mmt_input) > 1
-                if pmo_specified && (numel(mmt_input) ~= initial_parties)
-                    error("Number of measurements should either be a "...
-                        + "scalar, or an array with as many elements "...
-                        + "as parties.");
-                end
-                mmts_per_party = mmt_input;
-            else
-                mmts_per_party = uint64(ones(1, initial_parties)) ...
-                    * mmt_input;
-            end
-            total_mmts = sum(mmts_per_party);
-            
-            
-            % Get outcomes per measurement
-            if numel(out_input) == 1
-                outputs_per_mmt = uint64(ones(1, total_mmts)) * out_input;
-            else
-                if numel(out_input) == initial_parties
-                    outputs_per_mmt = uint64.empty(1,0);
-                    for i = 1:initial_parties
-                        outputs_per_mmt = horzcat(outputs_per_mmt, ...
-                            uint64(ones(1, mmts_per_party(i))) ...
-                            * out_input(i));
-                    end
-                elseif numel(out_input) == total_mmts
-                    outputs_per_mmt = out_input;
-                else
-                    error("Number of outputs should be given either as "...
-                        + "a scalar, an array with as many elements as "...
-                        + "parties, or an array with as many elements "...
-                        + "as total number of measurements.");
-                end
-            end
-            
+
+            if (nargin == 3)  % Do we have a (party, mmt, outcome) specification?
+            	desc = cell(initial_parties,1);            
+            	for partyIndex = 1:initial_parties
+            		desc{partyIndex} = argC*ones(argB,1);
+            	end
+            elseif isa(argA,'double') %Or we have a [outcomes, measurements] specification?
+	            desc = cell(initial_parties,1);            
+	           	for partyIndex = 1:initial_parties
+	           		desc{partyIndex} = argA(partyIndex)*ones(argA(initial_parties+partyIndex),1);
+	           	end
+	        elseif isa(argA,'cell') %Or the general case?
+	           	desc = argA;
+	        end
+                        
             % Now, create measurements
-            outIndex = 1;
             for partyIndex = 1:initial_parties
-                for mmtIndex = 1:mmts_per_party(partyIndex)
-                    obj.Parties(partyIndex).AddMeasurement(...
-                        outputs_per_mmt(outIndex));
-                    outIndex = outIndex + 1;
+                for mmtIndex = 1:length(desc{partyIndex})
+               		obj.Parties(partyIndex).AddMeasurement(desc{partyIndex}(mmtIndex));
                 end
             end
         end
         
         function AddParty(obj, name)
-            arguments
-                obj (1,1) LocalityScenario
-                name (1,1) string = ''
-            end
             import Locality.Party
             
             % Check not locked.
@@ -147,9 +109,6 @@ classdef LocalityScenario < Scenario
         end
         
         function val = Clone(obj)
-            arguments
-                obj (1,1) LocalityScenario
-            end
             % Construct new LocalityScenario
             val = LocalityScenario(0);
             
@@ -166,9 +125,6 @@ classdef LocalityScenario < Scenario
     %% Overloaded accessor: MatrixSystem
     methods
         function val = System(obj)
-            arguments
-                obj (1,1) LocalityScenario
-            end
             
             % Make matrix system, if not already generated
             if isempty(obj.matrix_system)
@@ -208,10 +164,6 @@ classdef LocalityScenario < Scenario
         end
         
         function item = get(obj, index)
-            arguments
-                obj (1,1) LocalityScenario
-                index (:,:) uint64
-            end
             get_what = size(index, 2);
             get_joint = size(index, 1) > 1;
             
@@ -250,10 +202,6 @@ classdef LocalityScenario < Scenario
         end
         
         function val = FCTensor(obj, tensor)
-            arguments
-                obj (1,1) LocalityScenario
-                tensor double
-            end
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT);
                 %TODO: Check sufficient depth of MM generated.
@@ -263,10 +211,6 @@ classdef LocalityScenario < Scenario
         end
         
         function val = FCIndex(obj, index)
-            arguments
-                obj (1,1) LocalityScenario
-                index (1,:) uint64
-            end
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT);
             end
@@ -275,10 +219,6 @@ classdef LocalityScenario < Scenario
         end
         
         function val = CGTensor(obj, tensor)
-            arguments
-                obj (1,1) LocalityScenario
-                tensor double
-            end
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT);
                 %TODO: Check sufficient depth of MM generated.
@@ -291,11 +231,6 @@ classdef LocalityScenario < Scenario
     %% Internal methods
     methods(Access={?LocalityScenario,?Locality.Party})
         function make_joint_mmts(obj, party_id, new_mmt)
-            arguments
-                obj (1,1) LocalityScenario
-                party_id (1,1) uint64
-                new_mmt (1,1) Locality.Measurement
-            end
             % First, add new measurement to lower index parties
             if party_id > 1
                 for i=1:(party_id-1)
@@ -318,9 +253,6 @@ classdef LocalityScenario < Scenario
     methods(Access={?Scenario,?MatrixSystem})
         % Query for a matrix system
         function ref_id = createNewMatrixSystem(obj)
-            arguments
-                obj (1,1) LocalityScenario
-            end
             ref_id = npatk('new_locality_matrix_system', ...
                            length(obj.Parties), ...
                            obj.MeasurementsPerParty, ...
@@ -333,10 +265,6 @@ classdef LocalityScenario < Scenario
     %% Virtual methods
     methods(Access=protected)
         function onNewMomentMatrix(obj, mm)
-            arguments
-                obj (1,1) LocalityScenario
-                mm (1,1) MomentMatrix
-            end
             p_table = mm.MatrixSystem.ProbabilityTable;
             for p_row = p_table
                 seq_len = size(p_row.indices, 1);
