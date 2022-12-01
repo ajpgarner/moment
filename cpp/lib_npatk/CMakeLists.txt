@@ -22,6 +22,7 @@ add_library(lib_npatk
         operators/inflation/inflation_implicit_symbols.cpp
         operators/inflation/inflation_matrix_system.cpp
         operators/inflation/observable.cpp
+        operators/inflation/observable_variant_index.cpp
         operators/inflation/source.cpp
         operators/locality/locality_explicit_symbols.cpp
         operators/locality/collins_gisin.cpp

@@ -693,29 +693,62 @@ namespace NPATK::Tests {
         for (oper_name_t a_var = 0; a_var < 4; ++a_var) {
             auto canA = ic.canonical_variants({{0LL, a_var}});
             ASSERT_EQ(canA.size(), 1);
-            EXPECT_EQ(canA[0], std::make_pair(0LL, 0LL));
+            EXPECT_EQ(canA[0], OVIndex(0LL, 0LL));
         }
 
         for (oper_name_t b_var = 0; b_var < 2; ++b_var) {
             auto canB = ic.canonical_variants({{1LL, b_var}});
             ASSERT_EQ(canB.size(), 1);
-            EXPECT_EQ(canB[0], std::make_pair(1LL, 0LL));
+            EXPECT_EQ(canB[0], OVIndex(1LL, 0LL));
         }
 
         auto fromA00B0 = ic.canonical_variants({{0LL, 0LL}, {1LL, 0LL}}); // A00 B0
         ASSERT_EQ(fromA00B0.size(), 2);
-        EXPECT_EQ(fromA00B0[0], std::make_pair(0LL, 0LL));
-        EXPECT_EQ(fromA00B0[1], std::make_pair(1LL, 0LL));
+        EXPECT_EQ(fromA00B0[0], OVIndex(0LL, 0LL));
+        EXPECT_EQ(fromA00B0[1], OVIndex(1LL, 0LL));
 
         auto fromA01B1 = ic.canonical_variants({{0LL, 1LL}, {1LL, 1LL}}); // A01 B1
         ASSERT_EQ(fromA01B1.size(), 2);
-        EXPECT_EQ(fromA01B1[0], std::make_pair(0LL, 0LL));
-        EXPECT_EQ(fromA01B1[1], std::make_pair(1LL, 0LL));
+        EXPECT_EQ(fromA01B1[0], OVIndex(0LL, 0LL));
+        EXPECT_EQ(fromA01B1[1], OVIndex(1LL, 0LL));
 
         auto fromB1A01 = ic.canonical_variants({{1LL, 1LL}, {0LL, 1LL}}); // B1 A01
         ASSERT_EQ(fromB1A01.size(), 2);
-        EXPECT_EQ(fromB1A01[0], std::make_pair(0LL, 0LL));
-        EXPECT_EQ(fromB1A01[1], std::make_pair(1LL, 0LL));
+        EXPECT_EQ(fromB1A01[0], OVIndex(0LL, 0LL));
+        EXPECT_EQ(fromB1A01[1], OVIndex(1LL, 0LL));
 
+    }
+
+    TEST(InflationContext, CanonicalVariants_OVIndexHash) {
+        InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2}; // A00,A01,A10,A11,B0,B1
+
+        size_t hash_a0 = ic.ov_hash(std::vector{OVIndex(0LL, 0LL)});
+        size_t hash_a1 = ic.ov_hash(std::vector{OVIndex(0LL, 1LL)});
+        size_t hash_a2 = ic.ov_hash(std::vector{OVIndex(0LL, 2LL)});
+        size_t hash_a3 = ic.ov_hash(std::vector{OVIndex(0LL, 3LL)});
+        size_t hash_b0 = ic.ov_hash(std::vector{OVIndex(1LL, 0LL)});
+        size_t hash_b1 = ic.ov_hash(std::vector{OVIndex(1LL, 1LL)});
+
+        EXPECT_LT(hash_a0, hash_a1);
+        EXPECT_LT(hash_a1, hash_a2);
+        EXPECT_LT(hash_a2, hash_a3);
+        EXPECT_LT(hash_a3, hash_b0);
+        EXPECT_LT(hash_b0, hash_b1);
+
+        std::set<size_t> a_hashes;
+        for (oper_name_t a_var = 0; a_var < 4; ++a_var) {
+            size_t hash = ic.ov_hash(std::vector{OVIndex(0LL, 0LL), OVIndex(0LL, a_var)});
+            a_hashes.emplace(hash);
+            EXPECT_LT(hash_b1, hash);
+        }
+        EXPECT_EQ(a_hashes.size(), 4);
+
+
+        for (oper_name_t b_var = 0; b_var < 2; ++b_var) {
+            size_t hash = ic.ov_hash(std::vector{OVIndex(0LL, 0LL), OVIndex(1LL, b_var)});
+            a_hashes.emplace(hash);
+            EXPECT_LT(hash_b1, hash);
+        }
+        EXPECT_EQ(a_hashes.size(), 6);
     }
 }

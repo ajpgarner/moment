@@ -9,6 +9,7 @@
 #include "../operator_sequence.h"
 
 #include "causal_network.h"
+#include "observable_variant_index.h"
 
 #include "utilities/dynamic_bitset.h"
 
@@ -16,6 +17,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <span>
 #include <vector>
 
 namespace NPATK {
@@ -121,7 +123,7 @@ namespace NPATK {
         std::vector<ICObservable> inflated_observables;
 
         size_t total_inflated_observables = 0;
-        std::vector<std::pair<oper_name_t, oper_name_t>> global_variant_to_observer_variant;
+        std::vector<OVIndex> global_variant_indices;
 
         /** Bitset, size equal to number of operators in context. True if other operator is not independent */
         std::vector<DynamicBitset<uint64_t>> dependent_operators;
@@ -163,6 +165,11 @@ namespace NPATK {
             return this->total_inflated_observables;
         }
 
+        /**
+         * Hash a string of OV indices
+         */
+        [[nodiscard]] size_t ov_hash(std::span<const OVIndex> index) const;
+
         /** False: as InflationContext never generates non-Hermitian operator strings. */
         [[nodiscard]] bool can_be_nonhermitian() const noexcept override { return false; }
 
@@ -186,8 +193,8 @@ namespace NPATK {
          */
         [[nodiscard]] OperatorSequence canonical_moment(const OperatorSequence& input) const;
 
-        [[nodiscard]] std::vector<std::pair<oper_name_t, oper_name_t>>
-        canonical_variants(const std::vector<std::pair<oper_name_t, oper_name_t>>& input) const;
+        [[nodiscard]] std::vector<OVIndex>
+        canonical_variants(const std::vector<OVIndex>& input) const;
 
         /**
          * Generates a formatted string representation of an operator sequence
@@ -214,9 +221,19 @@ namespace NPATK {
 
         /**
          * Get a global observable variant index from the following pair:
+         * @param observable
+         * @param variant
+         * @return The global variant index
+         */
+        [[nodiscard]] oper_name_t obs_variant_to_index(const OVIndex& index) const {
+            return this->obs_variant_to_index(index.observable, index.variant);
+        }
+
+        /**
+         * Get a global observable variant index from the following pair:
          * @return Pair, the observable and the variant thereof
          */
-        [[nodiscard]] std::pair<oper_name_t, oper_name_t> index_to_obs_variant(oper_name_t global_variant_index) const;
+        [[nodiscard]] OVIndex index_to_obs_variant(oper_name_t global_variant_index) const;
 
 
          /**

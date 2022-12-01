@@ -12,6 +12,7 @@ add_executable(npatk_tests
     operators/algebraic/algebraic_context_tests.cpp
     operators/algebraic/monomial_substitution_rule_tests.cpp
     operators/algebraic/rule_book_tests.cpp
+    operators/inflation/canonical_observables_tests.cpp
     operators/inflation/causal_network_tests.cpp
     operators/inflation/factor_table_tests.cpp
     operators/inflation/inflation_context_tests.cpp
