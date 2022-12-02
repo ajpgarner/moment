@@ -266,7 +266,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(ImplicitSymbols, Empty) {
+    TEST(Operators_Locality_ImplicitSymbols, Empty) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>()};
         auto [eid, emptyMM] = system.create_moment_matrix(1);
 
@@ -287,7 +287,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(&getOne, &one);
     }
 
-    TEST(ImplicitSymbols, OnePartyOneMmt) {
+    TEST(Operators_Locality_ImplicitSymbols, OnePartyOneMmt) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(1, 1, 3))};
         const auto& context = system.localityContext;
 
@@ -336,7 +336,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,2}}), &pmoSpan[2]);
     }
 
-    TEST(ImplicitSymbols, OnePartyTwoMmt) {
+    TEST(Operators_Locality_ImplicitSymbols, OnePartyTwoMmt) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(1, 2, 2))};
         const auto& context = system.localityContext;
         const auto& alice = context.Parties[0];
@@ -370,7 +370,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(ImplicitSymbols, TwoPartyOneMmtEach) {
+    TEST(Operators_Locality_ImplicitSymbols, TwoPartyOneMmtEach) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))};
         const auto& context = system.localityContext;
 
@@ -423,7 +423,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,1}, PMOIndex{1,0,1}}), &spanAB[3]);
     }
 
-    TEST(ImplicitSymbols, CHSH) {
+    TEST(Operators_Locality_ImplicitSymbols, CHSH) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
         const auto& context = system.localityContext;
 
@@ -489,7 +489,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(ImplicitSymbols, Tripartite322) {
+    TEST(Operators_Locality_ImplicitSymbols, Tripartite322) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(3, 2, 2))};
         const auto& context = system.localityContext;
 
@@ -677,7 +677,7 @@ namespace NPATK::Tests {
         test222JoinMmt(spanA1B1C1, 1, A1, B1, C1, A1B1, A1C1, B1C1, A1B1C1, "A1B1C1");
     }
 
-    TEST(ImplicitSymbols, Tripartite322_LowerMoment) {
+    TEST(Operators_Locality_ImplicitSymbols, Tripartite322_LowerMoment) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(3, 2, 2))};
         const auto& context = system.localityContext;
 
@@ -808,7 +808,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(ImplicitSymbols, A13_B12) {
+    TEST(Operators_Locality_ImplicitSymbols, A13_B12) {
 
         std::vector<Party> buildParties;
         buildParties.emplace_back(0, "A", std::vector{Measurement("a", 3)});

@@ -98,7 +98,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(MomentMatrix, Empty) {
+    TEST(Operators_MomentMatrix, Empty) {
         MatrixSystem system{std::make_unique<Context>(0)}; // No parties, no symbols
         auto& context = system.Context();
         ASSERT_EQ(context.size(), 0);
@@ -123,7 +123,7 @@ namespace NPATK::Tests {
         compare_symbol_matrix(matLevel1, 1, {"1"});
     }
 
-    TEST(MomentMatrix, OpSeq_OneElem) {
+    TEST(Operators_MomentMatrix, OpSeq_OneElem) {
         MatrixSystem system{std::make_unique<Context>(1)}; // One symbol
         auto& context = system.Context();
 
@@ -156,7 +156,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({theOp, theOp, theOp, theOp}, context)});
     }
 
-    TEST(MomentMatrix, OpSeq_TwoElem) {
+    TEST(Operators_MomentMatrix, OpSeq_TwoElem) {
         MatrixSystem system{std::make_unique<Context>(2)}; // Two elements
         const auto& context = system.Context();
         std::vector<oper_name_t> alice{0, 1};
@@ -239,7 +239,7 @@ namespace NPATK::Tests {
                  );
     };
 
-    TEST(MomentMatrix, OpSeq_2Party1Opers) {
+    TEST(Operators_MomentMatrix, OpSeq_2Party1Opers) {
         // Two parties, each with one operator
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))};
         auto& context = system.localityContext;
@@ -289,7 +289,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(MomentMatrix, OpSeq_223) {
+    TEST(Operators_MomentMatrix, OpSeq_223) {
          // Two party, two mmts, three outcomes.
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 3))};
         auto& context = system.localityContext;
@@ -407,7 +407,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST(MomentMatrix, Unique_OneElem) {
+    TEST(Operators_MomentMatrix, Unique_OneElem) {
         // One party, one symbol
         MatrixSystem system{std::make_unique<Context>(1)};
         auto& context = system.Context();
@@ -437,7 +437,7 @@ namespace NPATK::Tests {
                                           OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context), true}});
     }
 
-    TEST(MomentMatrix, Unique_2Party1Opers) {
+    TEST(Operators_MomentMatrix, Unique_2Party1Opers) {
         // Two parties, each with one operator
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))};
         auto& context = system.localityContext;
@@ -470,7 +470,7 @@ namespace NPATK::Tests {
                                    OperatorSequence({alice[0], bob[0]}, context), true}});
     }
 
-    TEST(MomentMatrix, Unique_1Party2Opers_L0) {
+    TEST(Operators_MomentMatrix, Unique_1Party2Opers_L0) {
         MatrixSystem system{std::make_unique<Context>(2)}; // Two symbols
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
@@ -481,7 +481,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST(MomentMatrix, Unique_1Party2Opers_L1) {
+    TEST(Operators_MomentMatrix, Unique_1Party2Opers_L1) {
         MatrixSystem system{std::make_unique<Context>(2)}; // Two symbols
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
@@ -501,7 +501,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST(MomentMatrix, Unique_1Party2Opers_L2) {
+    TEST(Operators_MomentMatrix, Unique_1Party2Opers_L2) {
         MatrixSystem system{std::make_unique<Context>(2)}; // One party, two symbols
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
@@ -557,7 +557,7 @@ namespace NPATK::Tests {
         });
     }
 
-    TEST(MomentMatrix, Where_1Party2Opers) {
+    TEST(Operators_MomentMatrix, Where_1Party2Opers) {
         MatrixSystem system{std::make_unique<Context>(2)}; // Two symbols
         auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
@@ -592,7 +592,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(ptr_a0a0a0a0a0, nullptr);
     }
 
-    TEST(MomentMatrix, Symbol_OneElem) {
+    TEST(Operators_MomentMatrix, Symbol_OneElem) {
         MatrixSystem system{std::make_unique<Context>(1)}; // One party, one symbol
         auto& context = system.Context();
 
@@ -609,7 +609,7 @@ namespace NPATK::Tests {
                                              "3", "4", "5"});
     }
 
-    TEST(MomentMatrix, Symbol_1Party2Opers) {
+    TEST(Operators_MomentMatrix, Symbol_1Party2Opers) {
         MatrixSystem system{std::make_unique<Context>(2)}; // One party, two symbols
         auto& context = system.Context();
 
@@ -633,7 +633,7 @@ namespace NPATK::Tests {
         });
     };
 
-    TEST(MomentMatrix, Symbol_2Party1Opers) {
+    TEST(Operators_MomentMatrix, Symbol_2Party1Opers) {
         // Two parties, each with one operator
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))}; // Two party, one operator each
         auto& context = system.Context();

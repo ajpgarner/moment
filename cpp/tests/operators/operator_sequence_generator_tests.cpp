@@ -30,13 +30,13 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(OperatorSequenceGenerator, Empty) {
+    TEST(Operators_OperatorSequenceGenerator, Empty) {
         LocalityContext collection{Party::MakeList(2, 2, 2)};
         OperatorSequenceGenerator osg{collection, 0};
         compare_sequences(osg, {OperatorSequence::Identity(collection)});
     }
 
-    TEST(OperatorSequenceGenerator, OneParty3Symbols1Length) {
+    TEST(Operators_OperatorSequenceGenerator, OneParty3Symbols1Length) {
         Context collection{3};
         std::vector<oper_name_t> alice{0, 1, 2};
         ASSERT_EQ(alice.size(), 3);
@@ -49,7 +49,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(OperatorSequenceGenerator, TwoParty2Symbols2Length) {
+    TEST(Operators_OperatorSequenceGenerator, TwoParty2Symbols2Length) {
         LocalityContext collection{Party::MakeList(2, 2, 2)};
         ASSERT_EQ(collection.Parties.size(), 2);
         const auto& alice = collection.Parties[0];
@@ -74,7 +74,7 @@ namespace NPATK::Tests {
                                 OperatorSequence{{bob[1],  bob[0]}, collection}});
     }
 
-    TEST(OperatorSequenceGenerator, OneParty3Symbols3Length_Mutex) {
+    TEST(Operators_OperatorSequenceGenerator, OneParty3Symbols3Length_Mutex) {
         LocalityContext collection{Party::MakeList(1, 1, 4)};
         ASSERT_EQ(collection.Parties.size(), 1);
         auto& alice = collection.Parties[0];
@@ -92,7 +92,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(OperatorSequenceGenerator, TwoParty1Symbol_Idem) {
+    TEST(Operators_OperatorSequenceGenerator, TwoParty1Symbol_Idem) {
         LocalityContext collection{Party::MakeList(2, 1, 2)};
         ASSERT_EQ(collection.Parties.size(), 2);
         auto& alice = collection.Parties[0];
@@ -108,7 +108,7 @@ namespace NPATK::Tests {
                                 OperatorSequence({alice[0], bob[0]}, collection)});
     }
 
-    TEST(OperatorSequenceGenerator, Conjugate_1Party2Symbols2Length) {
+    TEST(Operators_OperatorSequenceGenerator, Conjugate_1Party2Symbols2Length) {
         Context collection{2};
         std::vector<oper_name_t> alice{0, 1};
 
@@ -132,7 +132,7 @@ namespace NPATK::Tests {
                                 OperatorSequence({alice[1], alice[1]}, collection)});
     }
 
-    TEST(OperatorSequenceGenerator, Conjugate_2Party1Symbols2Length) {
+    TEST(Operators_OperatorSequenceGenerator, Conjugate_2Party1Symbols2Length) {
         LocalityContext collection{Party::MakeList(2, 1, 2)};
         ASSERT_EQ(collection.Parties.size(), 2);
         auto& alice = collection.Parties[0];

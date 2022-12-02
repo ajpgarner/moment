@@ -10,7 +10,7 @@
 
 namespace NPATK::Tests {
 
-    TEST(PersistentStorage, Signature) {
+    TEST(Utilities_PersistentStorage, Signature) {
         uint32_t signature = make_signature({'s','t','r','b'});
         PersistentStorage<std::string> strBank{signature};
         EXPECT_EQ(strBank.signature, signature);
@@ -18,7 +18,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(strBank.empty());
     }
 
-    TEST(PersistentStorage, CheckSignature) {
+    TEST(Utilities_PersistentStorage, CheckSignature) {
         uint32_t signature = make_signature({'s','t','r','b'});
         PersistentStorage<std::string> strBank{signature};
         ASSERT_EQ(strBank.signature, signature);
@@ -29,7 +29,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(strBank.check_signature(bad_sig));
     }
 
-    TEST(PersistentStorage, SetAndRetrieveOnce) {
+    TEST(Utilities_PersistentStorage, SetAndRetrieveOnce) {
         uint32_t signature = make_signature({'s','t','r','b'});
         PersistentStorage<std::string> strBank{signature};
 
@@ -45,7 +45,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(*retrievedStr, msg);
     }
 
-    TEST(PersistentStorage, SetAndRetrieveTwice) {
+    TEST(Utilities_PersistentStorage, SetAndRetrieveTwice) {
         uint32_t signature = make_signature({'s','t','r','b'});
         PersistentStorage<std::string> strBank{signature};
 
@@ -67,7 +67,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(*retrievedStr2, msg2);
     }
 
-    TEST(PersistentStorage, SetAndRelease) {
+    TEST(Utilities_PersistentStorage, SetAndRelease) {
         uint32_t signature = make_signature({'s','t','r','b'});
         PersistentStorage<std::string> strBank{signature};
 
@@ -83,7 +83,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(strBank.count(), 0);
     }
 
-    TEST(PersistentStorage, SetAndReleaseTwice) {
+    TEST(Utilities_PersistentStorage, SetAndReleaseTwice) {
         uint32_t signature = make_signature({'s','t','r','b'});
         PersistentStorage<std::string> strBank{signature};
 
@@ -111,7 +111,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(PersistentStorage, Error_BadSignature) {
+    TEST(Utilities_PersistentStorage, Error_BadSignature) {
         uint32_t signature = make_signature({'s','t','r','b'});
         PersistentStorage<std::string> strBank{signature};
 
@@ -119,7 +119,7 @@ namespace NPATK::Tests {
         EXPECT_THROW(strBank.get(bad_id), bad_signature_error);
     }
 
-    TEST(PersistentStorage, Error_BadID) {
+    TEST(Utilities_PersistentStorage, Error_BadID) {
         uint32_t signature = make_signature({'s','t','r','b'});
         PersistentStorage<std::string> strBank{signature};
 

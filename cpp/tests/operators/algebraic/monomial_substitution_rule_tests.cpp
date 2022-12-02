@@ -10,7 +10,7 @@
 
 namespace NPATK::Tests {
 
-    TEST(MonomialSubRule, Conjugate) {
+    TEST(Operators_Algebraic_MonomialSubRule, Conjugate) {
 
         ShortlexHasher hasher{3};
 
@@ -33,7 +33,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(conj_msr.RHS()[1], 2);
     }
 
-    TEST(MonomialSubRule, Conjugate_WithNegation) {
+    TEST(Operators_Algebraic_MonomialSubRule, Conjugate_WithNegation) {
 
         ShortlexHasher hasher{3};
 
@@ -56,7 +56,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(conj_msr.RHS()[1], 2);
     }
 
-    TEST(MonomialSubRule, Conjugate_WithZero) {
+    TEST(Operators_Algebraic_MonomialSubRule, Conjugate_WithZero) {
 
         ShortlexHasher hasher{3};
 
@@ -77,7 +77,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(conj_msr.RHS().zero());
     }
 
-    TEST(MonomialSubRule, Match_BBAtoBA) {
+    TEST(Operators_Algebraic_MonomialSubRule, Match_BBAtoBA) {
         std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
 
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
@@ -95,7 +95,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(newStr[2], 1);
     }
 
-    TEST(MonomialSubRule, Match_BBAtoId_ABBA) {
+    TEST(Operators_Algebraic_MonomialSubRule, Match_BBAtoId_ABBA) {
         std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
 
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
@@ -111,7 +111,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(newStr[0], 1);
     }
 
-    TEST(MonomialSubRule, Match_BBAtoId_BBAB) {
+    TEST(Operators_Algebraic_MonomialSubRule, Match_BBAtoId_BBAB) {
         std::vector<oper_name_t> sampleStr{2, 2, 1, 2};
 
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
@@ -128,7 +128,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(newStr[0], 2);
     }
 
-    TEST(MonomialSubRule, Match_BBAtoMinusBA) {
+    TEST(Operators_Algebraic_MonomialSubRule, Match_BBAtoMinusBA) {
         std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
 
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
@@ -147,7 +147,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(newStr[2], 1);
     }
 
-    TEST(MonomialSubRule, Implies_BtoA_XBYtoXAY) {
+    TEST(Operators_Algebraic_MonomialSubRule, Implies_BtoA_XBYtoXAY) {
         ShortlexHasher hasher{5};
         MonomialSubstitutionRule b_to_a{HashedSequence{{2}, hasher}, HashedSequence{{1}, hasher}};
         MonomialSubstitutionRule xby_to_xay{HashedSequence{{3, 2, 4}, hasher}, HashedSequence{{3, 1, 4}, hasher}};
@@ -158,7 +158,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(xby_to_xay.implies(xby_to_xay));
     }
 
-    TEST(MonomialSubRule, Implies_BBAtoA_XBBAYtoXAY) {
+    TEST(Operators_Algebraic_MonomialSubRule, Implies_BBAtoA_XBBAYtoXAY) {
         ShortlexHasher hasher{5};
         MonomialSubstitutionRule bba_to_a{HashedSequence{{2, 2, 1}, hasher}, HashedSequence{{1}, hasher}};
         MonomialSubstitutionRule xbbay_to_xay{HashedSequence{{3, 2, 2, 1, 4}, hasher}, HashedSequence{{3, 1, 4}, hasher}};
@@ -169,7 +169,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(xbbay_to_xay.implies(xbbay_to_xay));
     }
 
-    TEST(MonomialSubRule, Implies_BtoA_DtoC) {
+    TEST(Operators_Algebraic_MonomialSubRule, Implies_BtoA_DtoC) {
         ShortlexHasher hasher{5};
         MonomialSubstitutionRule b_to_a{HashedSequence{{2}, hasher}, HashedSequence{{1}, hasher}};
         MonomialSubstitutionRule d_to_c{HashedSequence{{4}, hasher}, HashedSequence{{3}, hasher}};
@@ -180,7 +180,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(d_to_c.implies(d_to_c));
     }
 
-    TEST(MonomialSubRule, Combine_ABtoA_BAtoB) {
+    TEST(Operators_Algebraic_MonomialSubRule, Combine_ABtoA_BAtoB) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -213,7 +213,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST(MonomialSubRule, Combine_XYXYXYtoId_YYYtoId) {
+    TEST(Operators_Algebraic_MonomialSubRule, Combine_XYXYXYtoId_YYYtoId) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1, 0, 1, 0, 1}, hasher},
@@ -242,7 +242,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(MonomialSubRule, Combine_ABtoA_BAtoMinusB) {
+    TEST(Operators_Algebraic_MonomialSubRule, Combine_ABtoA_BAtoMinusB) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},

@@ -10,7 +10,7 @@
 
 namespace NPATK::Tests {
 
-    TEST(OrderedPermutation, Gen2C1) {
+    TEST(Utilities_OrderedPermutation, Gen2C1) {
         OrderedPermutationIterator<int> opi{2, 1};
         OrderedPermutationIterator<int> opi_end{2, 1, true};
 
@@ -27,7 +27,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(opi, opi_end);
     }
 
-    TEST(OrderedPermutation, Gen2C2) {
+    TEST(Utilities_OrderedPermutation, Gen2C2) {
         OrderedPermutationIterator<int> opi{2, 2};
         OrderedPermutationIterator<int> opi_end{2, 2, true};
 
@@ -51,7 +51,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(opi, opi_end);
     }
 
-    TEST(OrderedPermutation, Gen2C3) {
+    TEST(Utilities_OrderedPermutation, Gen2C3) {
         OrderedPermutationIterator<int> opi{2, 3};
         OrderedPermutationIterator<int> opi_end{2, 3, true};
 
@@ -84,7 +84,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(opi, opi_end);
     }
 
-    TEST(OrderedPermutation, Gen3C2) {
+    TEST(Utilities_OrderedPermutation, Gen3C2) {
         OrderedPermutationIterator<int> opi{3, 2};
         OrderedPermutationIterator<int> opi_end{3, 2, true};
 
@@ -124,7 +124,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(opi, opi_end);
     }
 
-    TEST(OrderedPermutation, Gen3C3) {
+    TEST(Utilities_OrderedPermutation, Gen3C3) {
         OrderedPermutationIterator<int> opi{3, 3};
         OrderedPermutationIterator<int> opi_end{3, 3, true};
 

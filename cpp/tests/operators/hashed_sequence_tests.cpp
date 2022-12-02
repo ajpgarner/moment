@@ -24,7 +24,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(HashedSequence, Match_ABinABAB) {
+    TEST(Operators_HashedSequence, Match_ABinABAB) {
         std::vector<oper_name_t> sampleStr{3, 4, 3, 4};
 
         HashedSequence msr{{3, 4}, ShortlexHasher{5}};
@@ -43,7 +43,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(matchC, sampleStr.end());
     }
 
-    TEST(HashedSequence, Match_ABinBABA) {
+    TEST(Operators_HashedSequence, Match_ABinBABA) {
         std::vector<oper_name_t> sampleStr{4, 3, 4, 3};
 
         HashedSequence msr{{3, 4}, ShortlexHasher{5}};
@@ -60,7 +60,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(matchB, sampleStr.end());
     }
 
-    TEST(HashedSequence, SuffixPrefix_None) {
+    TEST(Operators_HashedSequence, SuffixPrefix_None) {
 
         std::vector<oper_name_t> seqA{0, 1, 2};
         std::vector<oper_name_t> seqB{3, 4, 5};
@@ -69,7 +69,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(suffix_prefix(seqB, seqA), 0);
     }
 
-    TEST(HashedSequence, SuffixPrefix_None_OneEmpty) {
+    TEST(Operators_HashedSequence, SuffixPrefix_None_OneEmpty) {
         std::vector<oper_name_t> seqA{};
         std::vector<oper_name_t> seqB{0, 1, 2};
 
@@ -77,7 +77,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(suffix_prefix(seqB, seqA), 0);
     }
 
-    TEST(HashedSequence, SuffixPrefix_Complete) {
+    TEST(Operators_HashedSequence, SuffixPrefix_Complete) {
         std::vector<oper_name_t> seqA{0, 1, 2};
         std::vector<oper_name_t> seqB{0, 1, 2};
 
@@ -87,7 +87,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(suffix_prefix(seqB, seqB), 3);
     }
 
-    TEST(HashedSequence, SuffixPrefix_OverlapOne) {
+    TEST(Operators_HashedSequence, SuffixPrefix_OverlapOne) {
         std::vector<oper_name_t> seqA{0, 1, 2};
         std::vector<oper_name_t> seqB{2, 3, 4};
 
@@ -95,7 +95,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(suffix_prefix(seqB, seqA), 0);
     }
 
-    TEST(HashedSequence, SuffixPrefix_OverlapOne_short) {
+    TEST(Operators_HashedSequence, SuffixPrefix_OverlapOne_short) {
         std::vector<oper_name_t> seqA{0, 1, 2};
         std::vector<oper_name_t> seqB{2};
 
@@ -104,7 +104,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(HashedSequence, SuffixPrefix_OverlapTwo) {
+    TEST(Operators_HashedSequence, SuffixPrefix_OverlapTwo) {
         std::vector<oper_name_t> seqA{0, 1, 2, 3};
         std::vector<oper_name_t> seqB{2, 3, 4};
 
@@ -112,7 +112,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(suffix_prefix(seqB, seqA), 0);
     }
 
-    TEST(HashedSequence, SuffixPrefix_OverlapTwo_alt) {
+    TEST(Operators_HashedSequence, SuffixPrefix_OverlapTwo_alt) {
         std::vector<oper_name_t> seqA{0, 1, 2, 3};
         std::vector<oper_name_t> seqB{2, 0, 1};
 
@@ -120,7 +120,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(suffix_prefix(seqB, seqA), 2);
     }
 
-    TEST(HashedSequence, Conjugate) {
+    TEST(Operators_HashedSequence, Conjugate) {
         ShortlexHasher hasher{4};
         HashedSequence seqA{{0, 1, 2, 3}, hasher};
         HashedSequence seqB{{3, 2, 1, 0}, hasher};
@@ -145,7 +145,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST(HashedSequence, Conjugate_Zero) {
+    TEST(Operators_HashedSequence, Conjugate_Zero) {
         ShortlexHasher hasher{4};
         HashedSequence seqA{true};
 
@@ -155,7 +155,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(conjA.zero());
     }
 
-    TEST(HashedSequence, Conjugate_Id) {
+    TEST(Operators_HashedSequence, Conjugate_Id) {
         ShortlexHasher hasher{4};
         HashedSequence seqA{{}, hasher};
 

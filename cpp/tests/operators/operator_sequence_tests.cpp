@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace NPATK::Tests {
-    TEST(OperatorSequence, Sequence_Empty) {
+    TEST(Operators_OperatorSequence, Sequence_Empty) {
         Context empty{0};
         OperatorSequence seq{empty};
         EXPECT_TRUE(seq.empty());
@@ -19,7 +19,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(seq.begin(), seq.end());
     }
 
-    TEST(OperatorSequence, Sequence_OneOper) {
+    TEST(Operators_OperatorSequence, Sequence_OneOper) {
         Context empty{0};
         oper_name_t memA{3};
         OperatorSequence seq{{memA}, empty};
@@ -34,7 +34,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(iter, seq.end());
     }
 
-    TEST(OperatorSequence, Sequence_TwoSameParty) {
+    TEST(Operators_OperatorSequence, Sequence_TwoSameParty) {
         Context empty{0};
         oper_name_t  memA{5};
         oper_name_t  memB{10};
@@ -68,7 +68,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(iterBA, seqBA.end());
     }
 
-    TEST(OperatorSequence, Sequence_CompareEqual) {
+    TEST(Operators_OperatorSequence, Sequence_CompareEqual) {
         Context empty{0};
         oper_name_t  memA{5};
         oper_name_t  memB{10};
@@ -89,7 +89,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(seqBA == seqBA);
     }
 
-    TEST(OperatorSequence, Sequence_ConjugateNonncommute) {
+    TEST(Operators_OperatorSequence, Sequence_ConjugateNonncommute) {
         Context empty{0};
         oper_name_t  memA{1};
         oper_name_t  memB{2};
@@ -102,7 +102,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(conjugate, seqBA);
     }
 
-    TEST(OperatorSequence, Sequence_ConjugateIdentity) {
+    TEST(Operators_OperatorSequence, Sequence_ConjugateIdentity) {
         Context empty{1};
 
         OperatorSequence id{{}, empty};
@@ -118,7 +118,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(conjugate2, id2);
     }
 
-    TEST(OperatorSequence, Sequence_ConjugateZero) {
+    TEST(Operators_OperatorSequence, Sequence_ConjugateZero) {
         Context empty{0};
 
         OperatorSequence zero = OperatorSequence::Zero(empty);
@@ -129,7 +129,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(OperatorSequence, Sequence_Append_AB_listBBA) {
+    TEST(Operators_OperatorSequence, Sequence_Append_AB_listBBA) {
         Context empty{0};
         oper_name_t  memA{1};
         oper_name_t  memB{2};
@@ -143,7 +143,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(seq, seqABA);
     }
 
-    TEST(OperatorSequence, Sequence_Append_ABC_initBBA) {
+    TEST(Operators_OperatorSequence, Sequence_Append_ABC_initBBA) {
         Context empty{0};
         oper_name_t  memA{1};
         oper_name_t  memB{2};
@@ -156,7 +156,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(OperatorSequence, WithContext_MutexZero) {
+    TEST(Operators_OperatorSequence, WithContext_MutexZero) {
         LocalityContext collection{Party::MakeList(1, 1, 4)};
 
         ASSERT_EQ(collection.Parties.size(), 1);

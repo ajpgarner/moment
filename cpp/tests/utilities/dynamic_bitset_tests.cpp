@@ -8,7 +8,7 @@
 #include "utilities/dynamic_bitset.h"
 
 namespace NPATK::Tests {
-    TEST(DynamicBitset, Empty_Empty) {
+    TEST(Utilities_DynamicBitset, Empty_Empty) {
         DynamicBitset<uint64_t> bitset{0};
         EXPECT_EQ(bitset.bit_size, 0);
         EXPECT_EQ(bitset.page_count, 0);
@@ -17,7 +17,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(bitset.first_index(), bitset.bit_size);
     }
 
-    TEST(DynamicBitset, Empty_Small) {
+    TEST(Utilities_DynamicBitset, Empty_Small) {
         DynamicBitset<uint64_t> bitset{40};
         EXPECT_EQ(bitset.bit_size, 40);
         EXPECT_EQ(bitset.page_count, 1);
@@ -29,7 +29,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(bitset.first_index(), bitset.bit_size);
     }
 
-    TEST(DynamicBitset, Empty_Boundary) {
+    TEST(Utilities_DynamicBitset, Empty_Boundary) {
         DynamicBitset<uint64_t> bitset{64};
         EXPECT_EQ(bitset.bit_size, 64);
         EXPECT_EQ(bitset.page_count, 1);
@@ -41,7 +41,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(bitset.first_index(), bitset.bit_size);
     }
 
-    TEST(DynamicBitset, Empty_Large) {
+    TEST(Utilities_DynamicBitset, Empty_Large) {
         DynamicBitset<uint64_t> bitset{65};
         EXPECT_EQ(bitset.bit_size, 65);
         EXPECT_EQ(bitset.page_count, 2);
@@ -53,7 +53,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(bitset.first_index(), bitset.bit_size);
     }
 
-    TEST(DynamicBitset, Full_Small) {
+    TEST(Utilities_DynamicBitset, Full_Small) {
         DynamicBitset<uint64_t> bitset{40, true};
         EXPECT_EQ(bitset.bit_size, 40);
         EXPECT_EQ(bitset.page_count, 1);
@@ -65,7 +65,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(bitset.first_index(), 0);
     }
 
-    TEST(DynamicBitset, Full_Boundary) {
+    TEST(Utilities_DynamicBitset, Full_Boundary) {
         DynamicBitset<uint64_t> bitset{64, true};
         EXPECT_EQ(bitset.bit_size, 64);
         EXPECT_EQ(bitset.page_count, 1);
@@ -77,7 +77,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(bitset.first_index(), 0);
     }
 
-    TEST(DynamicBitset, Full_Large) {
+    TEST(Utilities_DynamicBitset, Full_Large) {
         DynamicBitset<uint64_t> bitset{65, true};
         EXPECT_EQ(bitset.bit_size, 65);
         EXPECT_EQ(bitset.page_count, 2);
@@ -92,7 +92,7 @@ namespace NPATK::Tests {
 
 
 
-    TEST(DynamicBitset, SetTestUnset_Small) {
+    TEST(Utilities_DynamicBitset, SetTestUnset_Small) {
         for (size_t magic_bit = 0; magic_bit < 40; ++magic_bit) {
             DynamicBitset<uint64_t> bitset{40};
             EXPECT_TRUE(bitset.empty());
@@ -115,7 +115,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(DynamicBitset, SetTestUnset_Exact) {
+    TEST(Utilities_DynamicBitset, SetTestUnset_Exact) {
         for (size_t magic_bit = 0; magic_bit < 64; ++magic_bit) {
             DynamicBitset<uint64_t> bitset{64};
             EXPECT_TRUE(bitset.empty());
@@ -138,7 +138,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(DynamicBitset, SetTestUnset_Large) {
+    TEST(Utilities_DynamicBitset, SetTestUnset_Large) {
         for (size_t magic_bit = 0; magic_bit < 70; ++magic_bit) {
             DynamicBitset<uint64_t> bitset{70};
             EXPECT_TRUE(bitset.empty());
@@ -161,7 +161,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(DynamicBitset, LogicalAND) {
+    TEST(Utilities_DynamicBitset, LogicalAND) {
         DynamicBitset<uint64_t> bitsetA{70};
         bitsetA.set(5);
         bitsetA.set(20);
@@ -187,7 +187,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(DynamicBitset, LogicalOR) {
+    TEST(Utilities_DynamicBitset, LogicalOR) {
         DynamicBitset<uint64_t> bitsetA{70};
         bitsetA.set(5);
         bitsetA.set(20);
@@ -215,7 +215,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(DynamicBitset, Iterator_Small) {
+    TEST(Utilities_DynamicBitset, Iterator_Small) {
         DynamicBitset<uint64_t> bitset{50};
         bitset.set(5);
         bitset.set(20);
@@ -243,7 +243,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(iter, iter_end);
     }
 
-    TEST(DynamicBitset, Iterator_Large) {
+    TEST(Utilities_DynamicBitset, Iterator_Large) {
         DynamicBitset<uint64_t> bitset{70};
         bitset.set(5);
         bitset.set(20);

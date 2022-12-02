@@ -10,7 +10,7 @@
 #include "operators/inflation/canonical_observables.h"
 
 namespace NPATK::Tests {
-    TEST(CanonicalObservables, AliasTriangle) {
+    TEST(Operators_Inflation_CanonicalObservables, AliasTriangle) {
         InflationMatrixSystem ims{
             std::make_unique<InflationContext>(CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2)};
         const auto& ic = ims.InflationContext();

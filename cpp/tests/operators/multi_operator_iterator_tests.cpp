@@ -11,7 +11,7 @@
 
 namespace NPATK::Tests {
 
-    TEST(MultiOperatorIterator, Construct_NoLength) {
+    TEST(Operators_MultiOperatorIterator, Construct_NoLength) {
         LocalityContext collection{Party::MakeList(2, 2, 2)};
 
         MultiOperatorIterator iter{collection, 0};
@@ -19,7 +19,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(iter, MultiOperatorIterator::end_of(collection, 0));
     }
 
-    TEST(MultiOperatorIterator, Construct_LengthOne2x2) {
+    TEST(Operators_MultiOperatorIterator, Construct_LengthOne2x2) {
         LocalityContext collection{Party::MakeList(2, 2, 2)};
 
         MultiOperatorIterator iter{collection, 1};
@@ -69,7 +69,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(iter, iter_end);
     }
 
-    TEST(MultiOperatorIterator, Construct_LengthTwo) {
+    TEST(Operators_MultiOperatorIterator, Construct_LengthTwo) {
         Context collection{2};
 
         MultiOperatorIterator iter{collection, 2};
@@ -128,7 +128,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(iter, iter_end);
     }
 
-    TEST(MultiOperatorIterator, Construct_LengthFour) {
+    TEST(Operators_MultiOperatorIterator, Construct_LengthFour) {
         LocalityContext collection{Party::MakeList(2, 2, 2)};
 
         MultiOperatorIterator iter{collection, 4};
@@ -145,7 +145,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(MultiOperatorIterator, RangeTest) {
+    TEST(Operators_MultiOperatorIterator, RangeTest) {
         Context collection{4};
         ASSERT_EQ(collection.size(), 4);
 

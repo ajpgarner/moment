@@ -18,12 +18,12 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(CollinsGisin, Empty) {
+    TEST(Operators_Locality_CollinsGisin, Empty) {
 
 
     }
 
-    TEST(CollinsGisin, CHSH) {
+    TEST(Operators_Locality_CollinsGisin, CHSH) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
         const auto& context = system.localityContext;
         const auto& mm = system.create_moment_matrix(1);
@@ -125,7 +125,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST(CollinsGisin, BadIndices) {
+    TEST(Operators_Locality_CollinsGisin, BadIndices) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
         const auto& mm = system.create_moment_matrix(1);
         const auto& cgi = system.CollinsGisin();

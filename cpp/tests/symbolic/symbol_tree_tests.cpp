@@ -12,7 +12,7 @@
 
 namespace NPATK::Tests {
 
-    SymbolTree& SymbolTreeFixture::create_tree(
+    SymbolTree& Symbolic_SymbolTreeFixture::create_tree(
             std::initializer_list<Symbol> symbols,
             std::initializer_list<SymbolPair> pairs) {
         this->source_set = std::make_unique<SymbolSet>(
@@ -24,7 +24,7 @@ namespace NPATK::Tests {
         return *this->the_tree;
     }
 
-    SymbolTree& SymbolTreeFixture::create_tree(std::initializer_list<SymbolPair> pairs) {
+    SymbolTree& Symbolic_SymbolTreeFixture::create_tree(std::initializer_list<SymbolPair> pairs) {
         this->source_set = std::make_unique<SymbolSet>(
                 std::vector<SymbolPair>(pairs)
         );
@@ -33,14 +33,14 @@ namespace NPATK::Tests {
         return *this->the_tree;
     }
 
-    void SymbolTreeFixture::compare_to(std::initializer_list<SymbolPair> pairs, bool only_topology) {
+    void Symbolic_SymbolTreeFixture::compare_to(std::initializer_list<SymbolPair> pairs, bool only_topology) {
         SymbolSet ss{std::vector<SymbolPair>(pairs)};
         ss.pack();
         SymbolTree target_tree{ss};
         compare_to(target_tree, only_topology);
     }
 
-    void SymbolTreeFixture::compare_to(std::initializer_list<Symbol> extra, std::initializer_list<SymbolPair> pairs,
+    void Symbolic_SymbolTreeFixture::compare_to(std::initializer_list<Symbol> extra, std::initializer_list<SymbolPair> pairs,
                                        bool only_topology) {
         SymbolSet ss{std::vector<Symbol>(extra), std::vector<SymbolPair>(pairs)};
         ss.pack();
@@ -48,7 +48,7 @@ namespace NPATK::Tests {
         compare_to(target_tree, only_topology);
     }
 
-    void SymbolTreeFixture::compare_to(const SymbolTree &target_tree, bool only_topology) {
+    void Symbolic_SymbolTreeFixture::compare_to(const SymbolTree &target_tree, bool only_topology) {
 
         ASSERT_TRUE(this->the_tree) << "Must instantiate source tree!";
         SymbolTree& test_tree = *(this->the_tree);
@@ -99,7 +99,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST_F(SymbolTreeFixture, Create_EmptyTree) {
+    TEST_F(Symbolic_SymbolTreeFixture, Create_EmptyTree) {
         auto& empty_tree = this->create_tree({});
         ASSERT_EQ(empty_tree.count_nodes(), 1) << "Empty tree has one node (zero).";
         ASSERT_EQ(empty_tree.max_links(), 0) << "Empty tree has no links.";
@@ -108,7 +108,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(base_node.is_zero());
     }
 
-    TEST_F(SymbolTreeFixture, Create_OneLink) {
+    TEST_F(Symbolic_SymbolTreeFixture, Create_OneLink) {
         auto& one_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}}});
         ASSERT_EQ(one_link.count_nodes(), 2) << "Tree has two nodes.";
         ASSERT_EQ(one_link.max_links(), 1) << "Tree has one link.";
@@ -139,7 +139,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, Create_OneRecursion) {
+    TEST_F(Symbolic_SymbolTreeFixture, Create_OneRecursion) {
         auto& one_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{0}}});
         ASSERT_EQ(one_link.count_nodes(), 1) << "Tree has one node.";
         ASSERT_EQ(one_link.max_links(), 1) << "Tree has one link.";
@@ -161,7 +161,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, Create_OneLinkOneRecursion) {
+    TEST_F(Symbolic_SymbolTreeFixture, Create_OneLinkOneRecursion) {
         auto& one_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}}, SymbolPair{SymbolExpression{1}, SymbolExpression{1}}});
         ASSERT_EQ(one_link.count_nodes(), 2) << "Tree has two nodes.";
         ASSERT_EQ(one_link.max_links(), 2) << "Tree has two links.";
@@ -200,7 +200,7 @@ namespace NPATK::Tests {
 
 
 
-    TEST_F(SymbolTreeFixture, Create_ChainLink) {
+    TEST_F(Symbolic_SymbolTreeFixture, Create_ChainLink) {
         auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}}, SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
         ASSERT_EQ(chain_link.count_nodes(), 3) << "Tree has three nodes.";
         ASSERT_EQ(chain_link.max_links(), 2) << "Tree has two links.";
@@ -244,7 +244,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(grandchild_node_iter, grandchild_node.end()) << "Grandchild has no children.";
     }
 
-    TEST_F(SymbolTreeFixture, Create_ChainLinkMiddleRecursion) {
+    TEST_F(Symbolic_SymbolTreeFixture, Create_ChainLinkMiddleRecursion) {
         auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
                                       SymbolPair{SymbolExpression{1}, SymbolExpression{1}},
                                       SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
@@ -298,7 +298,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, Create_OpenTriangle) {
+    TEST_F(Symbolic_SymbolTreeFixture, Create_OpenTriangle) {
         auto& open_tri = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}}, SymbolPair{SymbolExpression{0}, SymbolExpression{2}}});
         ASSERT_EQ(open_tri.count_nodes(), 3) << "Tree has three nodes.";
         ASSERT_EQ(open_tri.max_links(), 2) << "Tree has two links.";
@@ -342,7 +342,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(childB_node_iter, childB_node.end()) << "ChildB should have no children.";
     }
 
-    TEST_F(SymbolTreeFixture, Create_ClosedTriangle) {
+    TEST_F(Symbolic_SymbolTreeFixture, Create_ClosedTriangle) {
         auto& closed_tri = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
                                     SymbolPair{SymbolExpression{0}, SymbolExpression{2}},
                                     SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
@@ -396,7 +396,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(childB_node_iter, childB_node.end()) << "ChildB should have no children.";
     }
 
-    TEST_F(SymbolTreeFixture, Create_InverseTriangle) {
+    TEST_F(Symbolic_SymbolTreeFixture, Create_InverseTriangle) {
         auto& open_tri = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{2}}, SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
         ASSERT_EQ(open_tri.count_nodes(), 3) << "Tree has three nodes.";
         ASSERT_EQ(open_tri.max_links(), 2) << "Tree has two links.";
@@ -443,7 +443,7 @@ namespace NPATK::Tests {
 
 
 
-    TEST_F(SymbolTreeFixture, Simplify_OneRecursion) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_OneRecursion) {
         auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{1}}});
 
         chain_link.simplify();
@@ -458,7 +458,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(chain_link[1].im_is_zero);
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_ChainLink) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_ChainLink) {
         auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
                                               SymbolPair{SymbolExpression{2}, SymbolExpression{3}}});
 
@@ -472,7 +472,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(chain_link[1].im_is_zero);
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_ChainLinkConj) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_ChainLinkConj) {
         auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}},
                                               SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
                                               SymbolPair{SymbolExpression{3}, SymbolExpression{4}}});
@@ -490,7 +490,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, Simplify_ChainLinkFromZero) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_ChainLinkFromZero) {
         auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{0}, SymbolExpression{1}},
                                               SymbolPair{SymbolExpression{1}, SymbolExpression{2}}});
 
@@ -512,7 +512,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(chain_link[2].im_is_zero);
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_Triangle) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_Triangle) {
         auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
                                               SymbolPair{SymbolExpression{1}, SymbolExpression{3}}});
 
@@ -526,7 +526,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(chain_link[1].im_is_zero);
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_TriangleWithDescendents) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_TriangleWithDescendents) {
         auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
                                               SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
                                               SymbolPair{SymbolExpression{3}, SymbolExpression{4}},
@@ -549,7 +549,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, Simplify_InverseTriangle) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_InverseTriangle) {
         auto &inverse_tri = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
                                                SymbolPair{SymbolExpression{2}, SymbolExpression{3}}});
         inverse_tri.simplify();
@@ -564,7 +564,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_Diamond) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_Diamond) {
         auto &diamond = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
                                            SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{4}},
@@ -581,7 +581,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(diamond[1].im_is_zero);
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_CrissCross) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_CrissCross) {
         auto &cross = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
                                            SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
@@ -593,7 +593,7 @@ namespace NPATK::Tests {
                           SymbolPair{SymbolExpression{1}, SymbolExpression{4}}});
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_CrissCross2) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_CrissCross2) {
         auto &cross = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
                                            SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
@@ -609,7 +609,7 @@ namespace NPATK::Tests {
                           SymbolPair{SymbolExpression{1}, SymbolExpression{6}}});
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_RebaseDiamond) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_RebaseDiamond) {
         auto &embedded_diamond = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{7}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{6}},
                                            SymbolPair{SymbolExpression{3}, SymbolExpression{4}},
@@ -627,7 +627,7 @@ namespace NPATK::Tests {
                           SymbolPair{SymbolExpression{1}, SymbolExpression{7}}});
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_RebaseDiamondTail) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_RebaseDiamondTail) {
         auto &embedded_diamond = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{8}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{7}},
                                            SymbolPair{SymbolExpression{3}, SymbolExpression{4}},
@@ -648,7 +648,7 @@ namespace NPATK::Tests {
                           });
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_VeeDiamond) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_VeeDiamond) {
         auto &embedded_diamond = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{7}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{7}},
                                            SymbolPair{SymbolExpression{3}, SymbolExpression{4}},
@@ -667,7 +667,7 @@ namespace NPATK::Tests {
                           });
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_CrissCrossConjugate) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_CrissCrossConjugate) {
         auto &cross = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
                                            SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{3, true}},
@@ -683,7 +683,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(cross[1].im_is_zero);
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_BranchingZigZag) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_BranchingZigZag) {
         auto &b_zz = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{4}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{5}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{6}},
@@ -707,7 +707,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_SquareConj) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_SquareConj) {
         auto &square = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}},
                                            SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{4}},
@@ -724,7 +724,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(square[1].im_is_zero);
     }
 
-    TEST_F(SymbolTreeFixture, Simplify_LadderConj) {
+    TEST_F(Symbolic_SymbolTreeFixture, Simplify_LadderConj) {
         auto &ladder = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}},
                                            SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{4}},
@@ -747,7 +747,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, SimplifyToZero_OneRecursion) {
+    TEST_F(Symbolic_SymbolTreeFixture, SimplifyToZero_OneRecursion) {
         auto& onenull = this->create_tree({SymbolPair{1, 1, true, false}}); // 1 = -1
 
         onenull.simplify();
@@ -764,7 +764,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(onenull[1].im_is_zero);
     }
 
-    TEST_F(SymbolTreeFixture, SimplifyToZero_ChainRecursion) {
+    TEST_F(Symbolic_SymbolTreeFixture, SimplifyToZero_ChainRecursion) {
         auto& chain_link = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
                                              SymbolPair{SymbolExpression{2}, SymbolExpression{3}},
                                              SymbolPair{3, 3, true, false}}); // 3 = -3
@@ -794,7 +794,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, SimplifyToZero_Triangle) {
+    TEST_F(Symbolic_SymbolTreeFixture, SimplifyToZero_Triangle) {
         auto& nulltri = this->create_tree({SymbolPair{1, 2, true, false},  // 1 = -2
                                               SymbolPair{1, 3, true, false},  // 1 = -3
                                               SymbolPair{2, 3, true, false}}); // 2 = -3
@@ -825,7 +825,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, SimplifyToZero_Diamond) {
+    TEST_F(Symbolic_SymbolTreeFixture, SimplifyToZero_Diamond) {
         auto &diamond = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
                                            SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
                                            SymbolPair{SymbolExpression{2}, SymbolExpression{4}},
@@ -863,7 +863,7 @@ namespace NPATK::Tests {
 
 
 
-    TEST_F(SymbolTreeFixture, InferReal_Self) {
+    TEST_F(Symbolic_SymbolTreeFixture, InferReal_Self) {
         auto &pair = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{1, true}}
                                           });
         pair.simplify();
@@ -882,7 +882,7 @@ namespace NPATK::Tests {
 
 
 
-    TEST_F(SymbolTreeFixture, InferReal_Pair) {
+    TEST_F(Symbolic_SymbolTreeFixture, InferReal_Pair) {
         auto &pair = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{2}},
                                         SymbolPair{SymbolExpression{1}, SymbolExpression{2, true}}
                                        });
@@ -905,7 +905,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(pair[2].im_is_zero);
     }
 
-    TEST_F(SymbolTreeFixture, Substitute_Triangle) {
+    TEST_F(Symbolic_SymbolTreeFixture, Substitute_Triangle) {
         auto& tree = this->create_tree({SymbolPair{SymbolExpression{10}, SymbolExpression{20}},
                                               SymbolPair{SymbolExpression{10}, SymbolExpression{-30}}});
 
@@ -931,7 +931,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, Substitute_InverseTriangle) {
+    TEST_F(Symbolic_SymbolTreeFixture, Substitute_InverseTriangle) {
         auto &tree = this->create_tree({SymbolPair{SymbolExpression{10}, SymbolExpression{30}},
                                                SymbolPair{SymbolExpression{20}, SymbolExpression{30}}});
         tree.simplify(); // 1 <- 2, 1 <- 3
@@ -955,7 +955,7 @@ namespace NPATK::Tests {
 
     }
 
-        TEST_F(SymbolTreeFixture, Substitute_RealPair) {
+        TEST_F(Symbolic_SymbolTreeFixture, Substitute_RealPair) {
         auto &tree = this->create_tree({Symbol{1, false}},
                                         {SymbolPair{SymbolExpression{1}, SymbolExpression{2}}}
                                        );
@@ -991,7 +991,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, Substitute_ImaginaryPair) {
+    TEST_F(Symbolic_SymbolTreeFixture, Substitute_ImaginaryPair) {
         auto &tree = this->create_tree({Symbol{1, true, false}},
                                        {SymbolPair{SymbolExpression{1}, SymbolExpression{2}}}
         );
@@ -1027,7 +1027,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST_F(SymbolTreeFixture, ExportSet_InverseTriangle) {
+    TEST_F(Symbolic_SymbolTreeFixture, ExportSet_InverseTriangle) {
         auto &inverse_tri = this->create_tree({SymbolPair{SymbolExpression{1}, SymbolExpression{3}},
                                                SymbolPair{SymbolExpression{2}, SymbolExpression{3}}});
         inverse_tri.simplify(); // 1 <- 2, 1 <- 3

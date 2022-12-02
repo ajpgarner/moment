@@ -10,7 +10,7 @@
 
 namespace NPATK::Tests {
 
-    TEST(AlphabeticNamer, StrLen) {
+    TEST(Utilities_AlphabeticNamer, StrLen) {
         EXPECT_EQ(AlphabeticNamer::strlen(0), 1); // a
         EXPECT_EQ(AlphabeticNamer::strlen(25), 1); // z
         EXPECT_EQ(AlphabeticNamer::strlen(26), 2); // aa
@@ -20,14 +20,14 @@ namespace NPATK::Tests {
         EXPECT_EQ(AlphabeticNamer::strlen(26 + (26*26) + (26*26*26)), 4); // aaaa
     }
 
-    TEST(AlphabeticNamer, LevelOffset) {
+    TEST(Utilities_AlphabeticNamer, LevelOffset) {
         EXPECT_EQ(AlphabeticNamer::level_offset(0), 0);
         EXPECT_EQ(AlphabeticNamer::level_offset(1), 26);
         EXPECT_EQ(AlphabeticNamer::level_offset(2), 26 + 26*26);
         EXPECT_EQ(AlphabeticNamer::level_offset(3), 26 + 26*26 + 26*26*26);
     }
 
-    TEST(AlphabeticNamer, AtoZ_Lower) {
+    TEST(Utilities_AlphabeticNamer, AtoZ_Lower) {
         AlphabeticNamer namer{false};
         EXPECT_EQ(namer(0), std::string("a"));
         EXPECT_EQ(namer(1), std::string("b"));
@@ -57,7 +57,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(namer(25), std::string("z"));
     }
 
-    TEST(AlphabeticNamer, AtoZ_Upper) {
+    TEST(Utilities_AlphabeticNamer, AtoZ_Upper) {
         AlphabeticNamer namer{true};
 
         EXPECT_EQ(namer(0), std::string("A"));
@@ -88,7 +88,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(namer(25), std::string("Z"));
     }
 
-    TEST(AlphabeticNamer, AA_Lower) {
+    TEST(Utilities_AlphabeticNamer, AA_Lower) {
         AlphabeticNamer namer{false};
         EXPECT_EQ(namer(26), std::string("aa"));
         EXPECT_EQ(namer(51), std::string("az"));
@@ -97,7 +97,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(namer(702), std::string("aaa"));
     }
 
-    TEST(AlphabeticNamer, AA_Upper) {
+    TEST(Utilities_AlphabeticNamer, AA_Upper) {
         AlphabeticNamer namer{true};
         EXPECT_EQ(namer(26), std::string("AA"));
         EXPECT_EQ(namer(51), std::string("AZ"));

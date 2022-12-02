@@ -12,7 +12,7 @@
 #include <optional>
 
 namespace NPATK::Tests {
-    TEST(LocalityContext, Construct_Empty) {
+    TEST(Operators_Locality_LocalityContext, Construct_Empty) {
         LocalityContext context{};
         ASSERT_EQ(context.Parties.size(), 0);
         ASSERT_TRUE(context.Parties.empty());
@@ -20,7 +20,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(context.size(), 0);
     }
 
-    TEST(LocalityContext, Construct_2x2) {
+    TEST(Operators_Locality_LocalityContext, Construct_2x2) {
         LocalityContext context(Party::MakeList(2, 2, 2));
         ASSERT_EQ(context.size(), 4);
         ASSERT_EQ(context.Parties.size(), 2);
@@ -75,7 +75,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(bob_iter, bob.end());
     }
 
-    TEST(LocalityContext, Construct_3_2) {
+    TEST(Operators_Locality_LocalityContext, Construct_3_2) {
         LocalityContext context(Party::MakeList({1,1}, {4, 3}));
         ASSERT_EQ(context.size(), 5);
         std::vector<oper_name_t> all_opers{0, 1, 2, 3, 4};
@@ -138,7 +138,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(bob_iter, bob.end());
     }
 
-    TEST(LocalityContext, Hash) {
+    TEST(Operators_Locality_LocalityContext, Hash) {
         LocalityContext context(Party::MakeList(2, 2, 2));
         ASSERT_EQ(context.size(), 4);
         ASSERT_EQ(context.Parties.size(), 2);
@@ -183,7 +183,7 @@ namespace NPATK::Tests {
         hashes.insert(b1);
     }
 
-    TEST(LocalityContext, Hash_Zero) {
+    TEST(Operators_Locality_LocalityContext, Hash_Zero) {
         LocalityContext context(Party::MakeList(2, 2, 2));
         OperatorSequence zero{OperatorSequence::Zero(context)};
         ASSERT_TRUE(zero.zero());
@@ -192,7 +192,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(hash, 0);
     }
 
-    TEST(LocalityContext, Hash_Identity) {
+    TEST(Operators_Locality_LocalityContext, Hash_Identity) {
         LocalityContext context(Party::MakeList(2, 2, 2));
         OperatorSequence identity{OperatorSequence::Identity(context)};
         ASSERT_FALSE(identity.zero());
@@ -201,7 +201,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(hash, 1);
     }
 
-    TEST(LocalityContext, EnumerateMeasurements) {
+    TEST(Operators_Locality_LocalityContext, EnumerateMeasurements) {
         LocalityContext context(Party::MakeList(2, 2, 2));
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];

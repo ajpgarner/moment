@@ -11,14 +11,14 @@
 
 namespace NPATK::Tests {
 
-    TEST(RuleBook, Empty) {
+    TEST(Operators_Algebraic_RuleBook, Empty) {
         ShortlexHasher slh{0};
         RuleBook rules{slh};
         EXPECT_EQ(rules.size(), 0);
         EXPECT_TRUE(rules.rules().empty());
     }
 
-    TEST(RuleBook, AddRule_ToEmpty) {
+    TEST(Operators_Algebraic_RuleBook, AddRule_ToEmpty) {
         ShortlexHasher hasher{2};
         RuleBook rules{hasher};
         EXPECT_EQ(rules.size(), 0);
@@ -33,7 +33,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(theRule->second.negated());
     }
 
-    TEST(RuleBook, AddRule_ToNonEmpty) {
+    TEST(Operators_Algebraic_RuleBook, AddRule_ToNonEmpty) {
         ShortlexHasher hasher{3};
         std::vector<MonomialSubstitutionRule> msr_list;
         msr_list.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -58,7 +58,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(theRuleB->second.negated());
     }
 
-    TEST(RuleBook, AddRule_Redundant) {
+    TEST(Operators_Algebraic_RuleBook, AddRule_Redundant) {
         ShortlexHasher hasher{3};
         std::vector<MonomialSubstitutionRule> msr_list;
         msr_list.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -77,7 +77,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(theRuleA->second.negated());
     }
 
-    TEST(RuleBook, AddRule_ImpliesZero) {
+    TEST(Operators_Algebraic_RuleBook, AddRule_ImpliesZero) {
         ShortlexHasher hasher{3};
         std::vector<MonomialSubstitutionRule> msr_list;
         msr_list.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -102,7 +102,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(theRuleB->second.negated());
     }
 
-    TEST(RuleBook, AddRule_CtoB_CtoA) {
+    TEST(Operators_Algebraic_RuleBook, AddRule_CtoB_CtoA) {
         ShortlexHasher hasher{3};
         std::vector<MonomialSubstitutionRule> msr_list;
         msr_list.emplace_back(HashedSequence{{2}, hasher},
@@ -127,7 +127,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(theRuleB->second.negated());
     }
 
-    TEST(RuleBook, AddRule_CtoA_CtoB) {
+    TEST(Operators_Algebraic_RuleBook, AddRule_CtoA_CtoB) {
         ShortlexHasher hasher{3};
         std::vector<MonomialSubstitutionRule> msr_list;
         msr_list.emplace_back(HashedSequence{{2}, hasher},
@@ -152,7 +152,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(theRuleB->second.negated());
     }
 
-    TEST(RuleBook, AddRule_Cascade) {
+    TEST(Operators_Algebraic_RuleBook, AddRule_Cascade) {
         ShortlexHasher hasher{4};
         std::vector<MonomialSubstitutionRule> msr_list;
         msr_list.emplace_back(HashedSequence{{3}, hasher},
@@ -185,7 +185,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(theRuleB->second.negated());
     }
 
-    TEST(RuleBook, Reduce_String) {
+    TEST(Operators_Algebraic_RuleBook, Reduce_String) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -201,7 +201,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(simplified_string[0], 0);
     }
 
-     TEST(RuleBook, Reduce_StringRecursive) {
+     TEST(Operators_Algebraic_RuleBook, Reduce_StringRecursive) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -217,7 +217,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(simplified_string[0], 0);
     }
 
-    TEST(RuleBook, Reduce_ABToZero_AB) {
+    TEST(Operators_Algebraic_RuleBook, Reduce_ABToZero_AB) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
@@ -233,7 +233,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(simplified_string.zero());
     }
 
-    TEST(RuleBook, Reduce_ABToZero_ABBB) {
+    TEST(Operators_Algebraic_RuleBook, Reduce_ABToZero_ABBB) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
@@ -249,7 +249,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(simplified_string.zero());
     }
 
-    TEST(RuleBook, Reduce_ABToZero_BAB) {
+    TEST(Operators_Algebraic_RuleBook, Reduce_ABToZero_BAB) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
@@ -265,7 +265,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(simplified_string.zero());
     }
 
-    TEST(RuleBook, Reduce_Rule) {
+    TEST(Operators_Algebraic_RuleBook, Reduce_Rule) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -287,7 +287,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST(RuleBook, Reduce_RuleToZero) {
+    TEST(Operators_Algebraic_RuleBook, Reduce_RuleToZero) {
         ShortlexHasher hasher{4};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{2}, hasher},
@@ -308,7 +308,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(simplified_rule.RHS().zero());
     }
 
-    TEST(RuleBook, ReduceRuleset_AACtoAAB_CtoB) {
+    TEST(Operators_Algebraic_RuleBook, ReduceRuleset_AACtoAAB_CtoB) {
         ShortlexHasher hasher{3};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 0, 2}, hasher},
@@ -335,7 +335,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(rule_map_iter, rule_map.cend());
     }
 
-    TEST(RuleBook, ReduceRuleset_CtoB_BtoA) {
+    TEST(Operators_Algebraic_RuleBook, ReduceRuleset_CtoB_BtoA) {
         ShortlexHasher hasher{3};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{2}, hasher},
@@ -372,7 +372,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(rule_map_iter, rule_map.cend());
     }
 
-    TEST(RuleBook, AddConjugateRule) {
+    TEST(Operators_Algebraic_RuleBook, AddConjugateRule) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 0, 1}, hasher},
@@ -387,7 +387,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
     }
 
-    TEST(RuleBook, ConjugateRuleset) {
+    TEST(Operators_Algebraic_RuleBook, ConjugateRuleset) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 0, 1}, hasher},
@@ -403,7 +403,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
     }
 
-    TEST(RuleBook, Complete_ABtoA_BAtoB) {
+    TEST(Operators_Algebraic_RuleBook, Complete_ABtoA_BAtoB) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -430,7 +430,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(rules.is_complete());
     }
 
-    TEST(RuleBook, Complete_AAAtoI_BBBtoI_ABABABtoI) {
+    TEST(Operators_Algebraic_RuleBook, Complete_AAAtoI_BBBtoI_ABABABtoI) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 0, 0}, hasher},
@@ -457,7 +457,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(RuleBook, Complete_ABtoA_BAtoMinusB) {
+    TEST(Operators_Algebraic_RuleBook, Complete_ABtoA_BAtoMinusB) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -479,7 +479,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(RuleBook, HermitianComplete_ABtoA_BAtoB_Hermitian) {
+    TEST(Operators_Algebraic_RuleBook, HermitianComplete_ABtoA_BAtoB_Hermitian) {
         ShortlexHasher hasher{2};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -498,7 +498,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(rules.is_complete());
     }
 
-    TEST(RuleBook, HermitianComplete_ABtoA_BCtoB_CAtoC) {
+    TEST(Operators_Algebraic_RuleBook, HermitianComplete_ABtoA_BCtoB_CAtoC) {
         ShortlexHasher hasher{3};
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -537,7 +537,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(RuleBook, GenerateCommutators) {
+    TEST(Operators_Algebraic_RuleBook, GenerateCommutators) {
         ShortlexHasher hasher{3};
         auto comVec = RuleBook::commutator_rules(hasher, 3);
         ASSERT_EQ(comVec.size(), 3);

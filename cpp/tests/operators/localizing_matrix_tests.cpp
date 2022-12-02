@@ -13,7 +13,7 @@
 #include "compare_os_matrix.h"
 
 namespace NPATK::Tests {
-    TEST(LocalizingMatrix, OpSeq_OneElem) {
+    TEST(Operators_LocalizingMatrix, OpSeq_OneElem) {
         MatrixSystem system{std::make_unique<Context>(1)}; //One symbol
         const auto& context = system.Context();
 
@@ -53,7 +53,7 @@ namespace NPATK::Tests {
                                          OperatorSequence({theOp, theOp, theOp, theOp, theOp}, context)});
     }
 
-    TEST(LocalizingMatrix, OpSeq_TwoElem) {
+    TEST(Operators_LocalizingMatrix, OpSeq_TwoElem) {
         MatrixSystem system{std::make_unique<Context>(2)}; // One party, two symbols
         const auto& context = system.Context();
 

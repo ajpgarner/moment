@@ -30,12 +30,12 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(InflationContext, Construct_Empty) {
+    TEST(Operators_Inflation_InflationContext, Construct_Empty) {
         InflationContext ic{CausalNetwork{{}, {}}, 1};
         EXPECT_EQ(ic.size(), 0);
     }
 
-    TEST(InflationContext, Construct_Pair) {
+    TEST(Operators_Inflation_InflationContext, Construct_Pair) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 1};
         ASSERT_EQ(ic.size(), 3);
         EXPECT_EQ(ic.source_variant_count(), 1);
@@ -63,7 +63,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST(InflationContext, NumberOperators) {
+    TEST(Operators_Inflation_InflationContext, NumberOperators) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 2};
         ASSERT_EQ(ic.size(), 6);
         ASSERT_EQ(ic.Observables()[0].count_copies(2), 2);
@@ -83,7 +83,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(found_opers.size(), 6);
     }
 
-    TEST(InflationContext, Sequence_Commute) {
+    TEST(Operators_Inflation_InflationContext, Sequence_Commute) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 2};
 
         auto A0_0 = ic.operator_number(0, 0, 0);
@@ -98,7 +98,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(OperatorSequence({B_0, A1_1}, ic), OperatorSequence({A1_1, B_0}, ic));
     }
 
-    TEST(InflationContext, Sequence_Orthogonal) {
+    TEST(Operators_Inflation_InflationContext, Sequence_Orthogonal) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 2};
 
         auto A0_0 = ic.operator_number(0, 0, 0);
@@ -112,7 +112,7 @@ namespace NPATK::Tests {
         EXPECT_NE(OperatorSequence({A0_1, A1_0}, ic), OperatorSequence::Zero(ic));
     }
 
-    TEST(InflationContext, Sequence_Projector) {
+    TEST(Operators_Inflation_InflationContext, Sequence_Projector) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0, 1}}}, 2};
 
         auto A0 = ic.operator_number(0, 0, 0);
@@ -127,7 +127,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(OperatorSequence({A0, A0, A1}, ic), OperatorSequence({A0, A1}, ic));
     }
 
-    TEST(InflationContext, ObservableVariants_Pair) {
+    TEST(Operators_Inflation_InflationContext, ObservableVariants_Pair) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0, 1}}}, 2};
         ASSERT_EQ(ic.Observables().size(), 2);
         const auto& obsA = ic.Observables()[0];
@@ -171,7 +171,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(B1_sv_iter->second, 1);
     }
 
-    TEST(InflationContext, ObservableVariants_Triangle) {
+    TEST(Operators_Inflation_InflationContext, ObservableVariants_Triangle) {
         InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
         ASSERT_EQ(ic.Observables().size(), 3);
         const auto& obsA = ic.Observables()[0];
@@ -231,7 +231,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(A3_sv_iter->second, 1);
     }
 
-    TEST(InflationContext, VariantIndexing_Triangle) {
+    TEST(Operators_Inflation_InflationContext, VariantIndexing_Triangle) {
         InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
 
         ASSERT_EQ(ic.observable_variant_count(), 12); // A00, A01, ... B00, ...
@@ -244,7 +244,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(InflationContext, ObservableIndependence_Pair) {
+    TEST(Operators_Inflation_InflationContext, ObservableIndependence_Pair) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0, 1}}}, 2};
         const auto& obsA = ic.Observables()[0];
         const auto& obsA_V0 = obsA.variant(std::vector<oper_name_t>{0});
@@ -279,7 +279,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(obsB_V1.independent(obsB_V1));
     }
 
-    TEST(InflationContext, ObservableIndependence_Triangle) {
+    TEST(Operators_Inflation_InflationContext, ObservableIndependence_Triangle) {
         InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
         ASSERT_EQ(ic.Observables().size(), 3);
 
@@ -367,7 +367,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(InflationContext, Factorize_Pair) {
+    TEST(Operators_Inflation_InflationContext, Factorize_Pair) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0, 1}}}, 2};
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
@@ -440,7 +440,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(factors_b0b1[1], OperatorSequence({id_b1}, ic));
     }
 
-    TEST(InflationContext, Factorize_W) {
+    TEST(Operators_Inflation_InflationContext, Factorize_W) {
         InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}}}, 1};
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
@@ -476,7 +476,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(factors_abc[0], OperatorSequence({id_a, id_b, id_c}, ic));
     }
 
-    TEST(InflationContext, Factorize_Triangle) {
+    TEST(Operators_Inflation_InflationContext, Factorize_Triangle) {
         InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
@@ -576,7 +576,7 @@ namespace NPATK::Tests {
         expect_doesnt_factorize(ic, {id_b11, id_c11});
     }
 
-    TEST(InflationContext, CanonicalMoment_Pair) {
+    TEST(Operators_Inflation_InflationContext, CanonicalMoment_Pair) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 2};
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
@@ -627,7 +627,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a1_1, b0}, ic}), OperatorSequence({a0_1, b1}, ic));
     }
 
-    TEST(InflationContext, CanonicalMoment_TwoSourceTwoObs) {
+    TEST(Operators_Inflation_InflationContext, CanonicalMoment_TwoSourceTwoObs) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2};
 
         const auto& obsA = ic.Observables()[0];
@@ -685,7 +685,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a10, a00}, ic}), OperatorSequence({a00, a10}, ic));
     }
 
-    TEST(InflationContext, CanonicalVariants_TwoSourceTwoObs) {
+    TEST(Operators_Inflation_InflationContext, CanonicalVariants_TwoSourceTwoObs) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2}; // A00,A01,A10,A11,B0,B1
 
         ASSERT_EQ(ic.observable_variant_count(), 6);
@@ -719,7 +719,7 @@ namespace NPATK::Tests {
 
     }
 
-    TEST(InflationContext, CanonicalVariants_OVIndexHash) {
+    TEST(Operators_Inflation_InflationContext, CanonicalVariants_OVIndexHash) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2}; // A00,A01,A10,A11,B0,B1
 
         size_t hash_a0 = ic.ov_hash(std::vector{OVIndex(0LL, 0LL)});

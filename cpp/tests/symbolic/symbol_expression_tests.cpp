@@ -8,7 +8,7 @@
 
 namespace NPATK::Tests {
 
-    TEST(SymbolExpression, Parse_One) {
+    TEST(Symbolic_SymbolExpression, Parse_One) {
         std::string one = "1";
         SymbolExpression symbol{one};
         EXPECT_EQ(symbol.id, 1);
@@ -18,7 +18,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(SymbolExpression, Parse_Thirteen) {
+    TEST(Symbolic_SymbolExpression, Parse_Thirteen) {
         std::string thirteen = "13";
         SymbolExpression symbol{thirteen};
         EXPECT_EQ(symbol.id, 13);
@@ -27,7 +27,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(symbol.as_string(), thirteen);
     }
 
-    TEST(SymbolExpression, Parse_MinusOne) {
+    TEST(Symbolic_SymbolExpression, Parse_MinusOne) {
         std::string minus_one = "-1";
         SymbolExpression symbol{minus_one};
         EXPECT_EQ(symbol.id, 1);
@@ -36,7 +36,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(symbol.as_string(), minus_one);
     }
 
-    TEST(SymbolExpression, Parse_OneStar) {
+    TEST(Symbolic_SymbolExpression, Parse_OneStar) {
         std::string one_star = "1*";
         SymbolExpression symbol{one_star};
         EXPECT_EQ(symbol.id, 1);
@@ -45,7 +45,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(symbol.as_string(), one_star);
     }
 
-    TEST(SymbolExpression, Parse_MinusOneStar) {
+    TEST(Symbolic_SymbolExpression, Parse_MinusOneStar) {
         std::string minus_one_star = "-1*";
         SymbolExpression symbol{minus_one_star};
         EXPECT_EQ(symbol.id, 1);
@@ -54,27 +54,27 @@ namespace NPATK::Tests {
         EXPECT_EQ(symbol.as_string(), minus_one_star);
     }
 
-    TEST(SymbolExpression, BadStr_Empty) {
+    TEST(Symbolic_SymbolExpression, BadStr_Empty) {
         std::string empty{};
         EXPECT_THROW(SymbolExpression{empty}, SymbolExpression::SymbolParseException);
     }
 
-    TEST(SymbolExpression, BadStr_TooLong) {
+    TEST(Symbolic_SymbolExpression, BadStr_TooLong) {
         std::string longStr = std::string(SymbolExpression::max_strlen+1, '1');
         EXPECT_THROW(SymbolExpression{longStr}, SymbolExpression::SymbolParseException);
     }
 
-    TEST(SymbolExpression, BadStr_NAN) {
+    TEST(Symbolic_SymbolExpression, BadStr_NAN) {
         std::string badStr = "cheesecake";
         EXPECT_THROW(SymbolExpression{badStr}, SymbolExpression::SymbolParseException);
     }
 
-    TEST(SymbolExpression, BadStr_DoubleMinus) {
+    TEST(Symbolic_SymbolExpression, BadStr_DoubleMinus) {
         std::string badStr = "--100";
         EXPECT_THROW(SymbolExpression{badStr}, SymbolExpression::SymbolParseException);
     }
 
-    TEST(SymbolExpression, BadStr_DoubleConj) {
+    TEST(Symbolic_SymbolExpression, BadStr_DoubleConj) {
         std::string badStr = "100**";
         EXPECT_THROW(SymbolExpression{badStr}, SymbolExpression::SymbolParseException);
     }

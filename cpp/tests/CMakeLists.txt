@@ -21,7 +21,7 @@ add_executable(npatk_tests
     operators/locality/implicit_symbols_tests.cpp
     operators/locality/joint_measurement_iterator_tests.cpp
     operators/locality/locality_context_tests.cpp
-    operators/locality/party_info_tests.cpp
+    operators/locality/party_tests.cpp
     symbolic/equality_type_tests.cpp
     symbolic/linear_combo_tests.cpp
     symbolic/symbol_expression_tests.cpp

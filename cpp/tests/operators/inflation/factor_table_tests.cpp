@@ -12,7 +12,7 @@
 #include "operators/inflation/inflation_matrix_system.h"
 
 namespace NPATK::Tests {
-    TEST(FactorTable, Empty) {
+    TEST(Operators_Inflation_FactorTable, Empty) {
         std::unique_ptr<InflationContext> icPtr
             = std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {{0, 1}}}, 2);
         InflationMatrixSystem ims{std::move(icPtr)};
@@ -44,7 +44,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(FactorTable, UnlinkedPair) {
+    TEST(Operators_Inflation_FactorTable, UnlinkedPair) {
         std::unique_ptr<InflationContext> icPtr
                 = std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {}}, 1);
         InflationMatrixSystem ims{std::move(icPtr)};
@@ -110,7 +110,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(factors_AB.canonical.symbols[1], 3);
     }
 
-    TEST(FactorTable, W) {
+    TEST(Operators_Inflation_FactorTable, W) {
         std::unique_ptr<InflationContext> icPtr
                 = std::make_unique<InflationContext>(CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}}}, 1);
         InflationMatrixSystem ims{std::move(icPtr)};

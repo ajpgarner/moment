@@ -8,14 +8,14 @@
 
 namespace NPATK::Tests {
 
-    TEST(SquareMatrix, Empty) {
+    TEST(Utilities_SquareMatrix, Empty) {
         SquareMatrix<int> empty{};
         EXPECT_EQ(empty.dimension, 0);
         EXPECT_EQ(empty.begin(), empty.end());
 
     }
 
-    TEST(SquareMatrix, TwoByTwo) {
+    TEST(Utilities_SquareMatrix, TwoByTwo) {
         SquareMatrix<int> matrix{2, {1, 2, 3, 4}};
         ASSERT_EQ(matrix.dimension, 2);
         EXPECT_EQ(matrix[0][0], 1);
@@ -43,7 +43,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(iter, matrix.end());
     }
 
-    TEST(SquareMatrix, TransposeIterator) {
+    TEST(Utilities_SquareMatrix, TransposeIterator) {
         SquareMatrix<int> matrix{2, {1, 2, 3, 4}};
 
         ASSERT_EQ(matrix.dimension, 2);

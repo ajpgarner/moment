@@ -10,7 +10,7 @@
 
 namespace NPATK::Tests {
 
-    TEST(Combinations, ComboIndex_Empty) {
+    TEST(Utilities_Combinations, ComboIndex_Empty) {
         auto comboIter = CombinationIndexIterator{5, 0};
         EXPECT_EQ(comboIter.N, 5);
         EXPECT_EQ(comboIter.K, 0);
@@ -21,7 +21,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(comboIter.done());
     }
 
-    TEST(Combinations, ComboIndex_N4K4) {
+    TEST(Utilities_Combinations, ComboIndex_N4K4) {
         auto comboIter = CombinationIndexIterator{4, 4};
         EXPECT_EQ(comboIter.N, 4);
         ASSERT_EQ(comboIter.K, 4);
@@ -36,7 +36,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(vals[3], 3);
     }
 
-    TEST(Combinations, ComboIndex_N3K1) {
+    TEST(Utilities_Combinations, ComboIndex_N3K1) {
         auto comboIter = CombinationIndexIterator{3, 1};
         EXPECT_EQ(comboIter.N, 3);
         ASSERT_EQ(comboIter.K, 1);
@@ -57,7 +57,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(comboIter.done());
     }
 
-    TEST(Combinations, ComboIndex_N4K2) {
+    TEST(Utilities_Combinations, ComboIndex_N4K2) {
         auto comboIter = CombinationIndexIterator{4, 2};
         EXPECT_EQ(comboIter.N, 4);
         ASSERT_EQ(comboIter.K, 2);
@@ -127,7 +127,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(Combinations, Partition_N5K0) {
+    TEST(Utilities_Combinations, Partition_N5K0) {
         auto comboIter = PartitionIterator{5, 0};
         EXPECT_EQ(comboIter.N, 5);
         ASSERT_EQ(comboIter.K, 0);
@@ -139,7 +139,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(comboIter.done());
     }
 
-    TEST(Combinations, Partition_N5K5) {
+    TEST(Utilities_Combinations, Partition_N5K5) {
         auto comboIter = PartitionIterator{5, 5};
         EXPECT_EQ(comboIter.N, 5);
         ASSERT_EQ(comboIter.K, 5);
@@ -152,7 +152,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(Combinations, Partition_N3K1) {
+    TEST(Utilities_Combinations, Partition_N3K1) {
         auto comboIter = PartitionIterator{3, 1};
         EXPECT_EQ(comboIter.N, 3);
         ASSERT_EQ(comboIter.K, 1);
@@ -170,7 +170,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(comboIter.done());
     }
 
-    TEST(Combinations, Partition_N4K2) {
+    TEST(Utilities_Combinations, Partition_N4K2) {
         auto comboIter = PartitionIterator{4, 2};
         EXPECT_EQ(comboIter.N, 4);
         ASSERT_EQ(comboIter.K, 2);

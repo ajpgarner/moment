@@ -9,7 +9,7 @@
 
 namespace NPATK::Tests {
 
-    TEST(SymbolSet, Create_EmptySet) {
+    TEST(Symbolic_SymbolSet, Create_EmptySet) {
         std::vector<NPATK::SymbolPair> empty_list{};
 
         auto ss = SymbolSet{empty_list};
@@ -33,7 +33,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(SymbolSet, Create_ThreeUnlinkedSymbols) {
+    TEST(Symbolic_SymbolSet, Create_ThreeUnlinkedSymbols) {
         std::vector<NPATK::SymbolPair> empty_list{};
         std::vector<NPATK::Symbol> three_symbols = {Symbol{0}, Symbol{1}, Symbol{2, false}};
 
@@ -70,7 +70,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(SymbolSet, Create_TwoUnlinkedWithMerge) {
+    TEST(Symbolic_SymbolSet, Create_TwoUnlinkedWithMerge) {
         std::vector<NPATK::SymbolPair> empty_list{};
         std::vector<NPATK::Symbol> three_symbols = {Symbol{0}, Symbol{1}, Symbol{1, false}};
 
@@ -99,7 +99,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(symb_iter, ss.Symbols.end());
     }
 
-    TEST(SymbolSet, Create_OneLinkSet) {
+    TEST(Symbolic_SymbolSet, Create_OneLinkSet) {
         // 0 == 1
         std::vector<NPATK::SymbolPair> oet_list{};
         oet_list.emplace_back(SymbolExpression{0}, SymbolExpression{1});
@@ -122,7 +122,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(ss_iter, ss.Links.end()) << "Iteration should be only over one link.";
     }
 
-    TEST(SymbolSet, Create_OpenTriangle) {
+    TEST(Symbolic_SymbolSet, Create_OpenTriangle) {
         // 0 == 1, 0 == 2
         std::vector<NPATK::SymbolPair> oet_list{};
         oet_list.emplace_back(SymbolExpression{0}, SymbolExpression{1});
@@ -153,7 +153,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(ss_iter, ss.Links.end()) << "Iteration should be over two links.";
     }
 
-    TEST(SymbolSet, Create_ClosedTriangle) {
+    TEST(Symbolic_SymbolSet, Create_ClosedTriangle) {
         // 0 == 1, 0 == 2
         std::vector<NPATK::SymbolPair> oet_list{};
         oet_list.emplace_back(SymbolExpression{0}, SymbolExpression{1});
@@ -193,7 +193,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(SymbolSet, PackUnpack_EmptySet) {
+    TEST(Symbolic_SymbolSet, PackUnpack_EmptySet) {
         std::vector<NPATK::SymbolPair> empty_list{};
 
         auto ss = SymbolSet{empty_list};
@@ -236,7 +236,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(SymbolSet, PackUnpack_ClosedTriangle) {
+    TEST(Symbolic_SymbolSet, PackUnpack_ClosedTriangle) {
         // 0 == 1, 0 == 2
         std::vector<NPATK::SymbolPair> oet_list{};
         oet_list.emplace_back(SymbolExpression{1}, SymbolExpression{5});

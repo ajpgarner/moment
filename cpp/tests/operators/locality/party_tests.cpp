@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace NPATK::Tests {
-    TEST(Party, Construct_Basic) {
+    TEST(Operators_Locality_Party, Construct_Basic) {
         std::vector<Party> the_party;
         the_party.emplace_back(5, std::vector{Measurement{"a", 4}});
         LocalityContext context{std::move(the_party)};
@@ -43,7 +43,7 @@ namespace NPATK::Tests {
         ASSERT_EQ(iter, party.end());
     }
 
-    TEST(Party, OneMeasurement) {
+    TEST(Operators_Locality_Party, OneMeasurement) {
         std::vector<Party> the_party;
         the_party.emplace_back(0, "A", std::vector{Measurement{"X", 4}});
         LocalityContext context{std::move(the_party)};
@@ -70,7 +70,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(alice.mutually_exclusive(alice[2], alice[2]));
     }
 
-    TEST(Party, TwoMeasurement) {
+    TEST(Operators_Locality_Party, TwoMeasurement) {
         std::vector<Party> the_party;
         the_party.emplace_back(0, "A", std::vector{Measurement{"X", 3}, Measurement{"Y", 3}});
         LocalityContext context{std::move(the_party)};
@@ -110,7 +110,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(alice.mutually_exclusive(alice[3], alice[3]));
     }
 
-    TEST(Party, MakeList_FromInitializer) {
+    TEST(Operators_Locality_Party, MakeList_FromInitializer) {
         auto party_list = Party::MakeList({1, 1, 1}, {4, 5, 6});
         ASSERT_EQ(party_list.size(), 3);
         LocalityContext context{std::move(party_list)};
@@ -136,7 +136,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(Party, MakeList_PartyOper) {
+    TEST(Operators_Locality_Party, MakeList_PartyOper) {
         auto party_list = Party::MakeList(2, 1, 4);
         ASSERT_EQ(party_list.size(), 2);
         LocalityContext context{std::move(party_list)};
@@ -155,7 +155,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(bob[2], 5);
     }
 
-    TEST(Party, MakeList_PartyMmtOper) {
+    TEST(Operators_Locality_Party, MakeList_PartyMmtOper) {
         auto party_list = Party::MakeList(2, 2, 3);
         ASSERT_EQ(party_list.size(), 2);
         LocalityContext context{std::move(party_list)};
@@ -190,7 +190,7 @@ namespace NPATK::Tests {
 
 
 
-    TEST(Party, MakeList_Vector23) {
+    TEST(Operators_Locality_Party, MakeList_Vector23) {
         auto party_list = Party::MakeList({2, 1}, {2, 3, 2});
         ASSERT_EQ(party_list.size(), 2);
         LocalityContext context{std::move(party_list)};

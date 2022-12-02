@@ -9,7 +9,7 @@
 
 namespace NPATK::Tests {
 
-    TEST(MDIIterator, Empty) {
+    TEST(Utilities_MDIIterator, Empty) {
         MultiDimensionalIndexIterator mdiIter{{}};
         MultiDimensionalIndexIterator mdiIterEnd{{}, true};
 
@@ -17,7 +17,7 @@ namespace NPATK::Tests {
         EXPECT_FALSE(mdiIter != mdiIterEnd);
     }
 
-    TEST(MDIIterator, OneDimensional) {
+    TEST(Utilities_MDIIterator, OneDimensional) {
         MultiDimensionalIndexIterator mdiIter{{4}};
         MultiDimensionalIndexIterator mdiIterEnd{{}, true};
 
@@ -47,7 +47,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(mdiIter == mdiIterEnd);
     }
 
-    TEST(MDIIterator, TwoDimensional) {
+    TEST(Utilities_MDIIterator, TwoDimensional) {
         MultiDimensionalIndexIterator mdiIter{{3, 2}};
         MultiDimensionalIndexIterator mdiIterEnd{{3, 2}, true};
 

@@ -10,33 +10,33 @@
 
 namespace NPATK::Tests {
 
-    TEST(CausalNetwork, Empty) {
+    TEST(Operators_Inflation_CausalNetwork, Empty) {
         CausalNetwork ic{{}, {}};
         EXPECT_EQ(ic.Observables().size(), 0);
         EXPECT_EQ(ic.Sources().size(), 0);
     }
 
-    TEST(CausalNetwork, Empty_NoSources) {
+    TEST(Operators_Inflation_CausalNetwork, Empty_NoSources) {
         CausalNetwork ic{{2, 2}, {}};
         EXPECT_EQ(ic.Observables().size(),2);
         EXPECT_EQ(ic.Sources().size(), 0);
     }
 
-    TEST(CausalNetwork, Empty_NoObservables) {
+    TEST(Operators_Inflation_CausalNetwork, Empty_NoObservables) {
         CausalNetwork ic{{}, {{},{},{}}};
         EXPECT_EQ(ic.Observables().size(), 0);
         EXPECT_EQ(ic.Sources().size(), 3);
     }
 
-    TEST(CausalNetwork, Error_BadObservable) {
+    TEST(Operators_Inflation_CausalNetwork, Error_BadObservable) {
         EXPECT_THROW(CausalNetwork({0}, {{0}}), errors::bad_observable);
     }
 
-    TEST(CausalNetwork, Error_BadSource) {
+    TEST(Operators_Inflation_CausalNetwork, Error_BadSource) {
         EXPECT_THROW(CausalNetwork({2, 2}, {{1,2}}), errors::bad_source);
     }
 
-    TEST(CausalNetwork, Construct_Line) {
+    TEST(Operators_Inflation_CausalNetwork, Construct_Line) {
         CausalNetwork ic{{2, 2}, {{0, 1}}};
 
         const auto& observables = ic.Observables();
@@ -59,7 +59,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(sources[0].observables.contains(1));
     }
 
-    TEST(CausalNetwork, Construct_Triangle) {
+    TEST(Operators_Inflation_CausalNetwork, Construct_Triangle) {
         CausalNetwork ic{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}};
 
         const auto& observables = ic.Observables();
@@ -100,7 +100,7 @@ namespace NPATK::Tests {
         EXPECT_TRUE(sources[2].observables.contains(2));
     }
 
-    TEST(CausalNetwork, CountCopies_Pair) {
+    TEST(Operators_Inflation_CausalNetwork, CountCopies_Pair) {
         CausalNetwork ic{{2, 3}, {{0, 1}}};
         ASSERT_EQ(ic.Observables().size(), 2);
 
@@ -117,7 +117,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(ic.Observables()[1].count_copies(3), 3);
     }
 
-    TEST(CausalNetwork, CountCopies_Triangle) {
+    TEST(Operators_Inflation_CausalNetwork, CountCopies_Triangle) {
         CausalNetwork ic{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}};
         ASSERT_EQ(ic.Observables().size(), 3);
 
@@ -137,7 +137,7 @@ namespace NPATK::Tests {
         EXPECT_EQ(ic.Observables()[2].count_copies(3), 9);
     }
 
-    TEST(CausalNetwork, CountOperators_Pair) {
+    TEST(Operators_Inflation_CausalNetwork, CountOperators_Pair) {
         CausalNetwork ic{{2, 3}, {{0, 1}}};
         ASSERT_EQ(ic.Observables().size(), 2);
 
@@ -158,7 +158,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(CausalNetwork, CountOperators_Triangle) {
+    TEST(Operators_Inflation_CausalNetwork, CountOperators_Triangle) {
         CausalNetwork ic{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}};
         ASSERT_EQ(ic.Observables().size(), 3);
 
@@ -182,7 +182,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(CausalNetwork, UnflattenIndices_Triangle) {
+    TEST(Operators_Inflation_CausalNetwork, UnflattenIndices_Triangle) {
         CausalNetwork ic{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}};
         ASSERT_EQ(ic.Observables().size(), 3);
         const auto& observables = ic.Observables();

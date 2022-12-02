@@ -55,7 +55,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(RecursiveStorage, Chunk) {
+    TEST(Utilities_RecursiveStorage, Chunk) {
         std::vector<size_t> chunk_sizes{2, 1, 3}; // 6 children.
         ChunkTest c{chunk_sizes, 3};
         size_t running_iter = 0;
@@ -86,7 +86,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(RecursiveStorage, ChunkClipped) {
+    TEST(Utilities_RecursiveStorage, ChunkClipped) {
         std::vector<size_t> chunk_sizes{2, 1, 3}; // 6 children.
         ChunkTest c{chunk_sizes, 2};
         size_t running_iter = 0;
@@ -110,7 +110,7 @@ namespace NPATK::Tests {
         set_and_read(c, {5}, running_iter++, 0); // C
     }
 
-    TEST(RecursiveStorage, ChunkVisitor) {
+    TEST(Utilities_RecursiveStorage, ChunkVisitor) {
         std::vector<size_t> chunk_sizes{2, 1, 3};
         ChunkTest c{chunk_sizes, 3};
 
@@ -155,7 +155,7 @@ namespace NPATK::Tests {
         compare_result(results[23], 23, {5}); // C
     }
 
-    TEST(RecursiveStorage, ChunkVisitorClipped) {
+    TEST(Utilities_RecursiveStorage, ChunkVisitorClipped) {
         std::vector<size_t> chunk_sizes{2, 1, 3};
         ChunkTest c{chunk_sizes, 2};
 

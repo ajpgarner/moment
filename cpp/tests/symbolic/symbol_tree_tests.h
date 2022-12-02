@@ -14,7 +14,7 @@ namespace NPATK::Tests {
 
     //SymbolTree createTree(std::initializer_list<SymbolPair> pairs);
 
-    class SymbolTreeFixture : public ::testing::Test {
+    class Symbolic_SymbolTreeFixture : public ::testing::Test {
     protected:
         std::unique_ptr<SymbolSet> source_set;
         std::unique_ptr<SymbolTree> the_tree;

@@ -12,7 +12,7 @@
 
 namespace NPATK::Tests {
 
-    TEST(JointMeasurementIterator, BasicIteration) {
+    TEST(Operators_Locality_JointMeasurementIterator, BasicIteration) {
         LocalityContext context{Party::MakeList(2, 2, 2)};
 
         ASSERT_EQ(context.Parties.size(), 2);
@@ -88,7 +88,7 @@ namespace NPATK::Tests {
         }
     }
 
-    TEST(JointMeasurementIterator, OutcomeIterator) {
+    TEST(Operators_Locality_JointMeasurementIterator, OutcomeIterator) {
         LocalityContext context{Party::MakeList(2, 1, 2)};
 
         ASSERT_EQ(context.Parties.size(), 2);
@@ -122,7 +122,7 @@ namespace NPATK::Tests {
     }
 
 
-    TEST(JointMeasurementIterator, OutcomeIteratorAlternativeConstruction) {
+    TEST(Operators_Locality_JointMeasurementIterator, OutcomeIteratorAlternativeConstruction) {
         LocalityContext context{Party::MakeList(2, 1, 2)};
 
         ASSERT_EQ(context.Parties.size(), 2);

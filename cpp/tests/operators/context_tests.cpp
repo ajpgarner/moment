@@ -10,7 +10,7 @@
 
 
 namespace NPATK::Tests {
-    TEST(Context, Construct_Empty) {
+    TEST(Operators_Context, Construct_Empty) {
         Context context{0};
         ASSERT_EQ(context.size(), 0);
         ASSERT_TRUE(context.empty());
