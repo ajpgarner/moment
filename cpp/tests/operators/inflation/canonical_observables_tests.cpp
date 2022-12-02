@@ -19,6 +19,7 @@ namespace NPATK::Tests {
 
         EXPECT_EQ(co.distinct_observables(0), 1);
         EXPECT_EQ(co.distinct_observables(1), 3);
+        EXPECT_EQ(co.distinct_observables(2), 15);
 
         auto h_a00 = co.canonical(std::vector{OVIndex{0,0}});
         auto h_a01 = co.canonical(std::vector{OVIndex{0,1}});

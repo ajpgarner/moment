@@ -8,10 +8,10 @@
 #include <cmath>
 
 namespace NPATK {
-    size_t ShortlexHasher::hash(const std::vector<oper_name_t>& rawOperators) const noexcept {
-        size_t hash = 1;
+    size_t ShortlexHasher::hash(std::span<const oper_name_t> rawOperators) const noexcept {
+        size_t hash = this->offset;
         size_t multiplier = 1;
-        const size_t multiplier_stride = 1 + radix;
+        const size_t multiplier_stride = this->radix;
         const size_t len = rawOperators.size();
 
         for (size_t n = 0; n < len; ++n) {
@@ -24,7 +24,7 @@ namespace NPATK {
 
     size_t ShortlexHasher::longest_hashable_string() const {
         if (this->radix == 1) {
-            return std::numeric_limits<size_t>::max() - 1; // Hash is basically just string length for radix 1.
+            return std::numeric_limits<size_t>::max() - this->offset; // Hash is basically just string length for radix 1.
         }
         return static_cast<size_t>(
             static_cast<double>(std::numeric_limits<size_t>::digits) / std::log2(this->radix)

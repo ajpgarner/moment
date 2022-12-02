@@ -722,6 +722,7 @@ namespace NPATK::Tests {
     TEST(Operators_Inflation_InflationContext, CanonicalVariants_OVIndexHash) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2}; // A00,A01,A10,A11,B0,B1
 
+        size_t hash_e = ic.ov_hash(std::vector<OVIndex>{});
         size_t hash_a0 = ic.ov_hash(std::vector{OVIndex(0LL, 0LL)});
         size_t hash_a1 = ic.ov_hash(std::vector{OVIndex(0LL, 1LL)});
         size_t hash_a2 = ic.ov_hash(std::vector{OVIndex(0LL, 2LL)});
@@ -729,25 +730,30 @@ namespace NPATK::Tests {
         size_t hash_b0 = ic.ov_hash(std::vector{OVIndex(1LL, 0LL)});
         size_t hash_b1 = ic.ov_hash(std::vector{OVIndex(1LL, 1LL)});
 
+        EXPECT_LT(hash_e, hash_a0);
         EXPECT_LT(hash_a0, hash_a1);
         EXPECT_LT(hash_a1, hash_a2);
         EXPECT_LT(hash_a2, hash_a3);
         EXPECT_LT(hash_a3, hash_b0);
         EXPECT_LT(hash_b0, hash_b1);
 
+        size_t last_hash = hash_b1;
         std::set<size_t> a_hashes;
         for (oper_name_t a_var = 0; a_var < 4; ++a_var) {
             size_t hash = ic.ov_hash(std::vector{OVIndex(0LL, 0LL), OVIndex(0LL, a_var)});
             a_hashes.emplace(hash);
             EXPECT_LT(hash_b1, hash);
+            EXPECT_LT(last_hash, hash);
+            last_hash = hash;
         }
         EXPECT_EQ(a_hashes.size(), 4);
-
 
         for (oper_name_t b_var = 0; b_var < 2; ++b_var) {
             size_t hash = ic.ov_hash(std::vector{OVIndex(0LL, 0LL), OVIndex(1LL, b_var)});
             a_hashes.emplace(hash);
             EXPECT_LT(hash_b1, hash);
+            EXPECT_LT(last_hash, hash);
+            last_hash = hash;
         }
         EXPECT_EQ(a_hashes.size(), 6);
     }

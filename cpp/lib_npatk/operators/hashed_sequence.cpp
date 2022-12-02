@@ -10,9 +10,6 @@
 #include <iterator>
 
 namespace NPATK {
-
-
-
     bool HashedSequence::matches(HashedSequence::const_iter_t test_iter,
                                  HashedSequence::const_iter_t test_iter_end) const noexcept {
         // No match, if not enough space left

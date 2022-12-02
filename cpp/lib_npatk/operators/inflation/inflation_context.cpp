@@ -376,7 +376,7 @@ namespace NPATK {
         for (auto rIter = indices.rbegin(); rIter != indices.rend(); ++rIter) {
             const auto& index = *rIter;
             hash += (1+this->obs_variant_to_index(index)) * multiplier;
-            multiplier *= (1+this->total_inflated_observables);
+            multiplier *= (this->total_inflated_observables);
         }
         return hash;
     }
