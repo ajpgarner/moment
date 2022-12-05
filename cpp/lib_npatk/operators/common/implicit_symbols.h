@@ -47,12 +47,11 @@ namespace NPATK {
 
     protected:
         std::vector<PMODefinition> tableData{};
-        JointMeasurementIndex indices;
+
 
     protected:
-        ImplicitSymbols(const SymbolTable &st, const ExplicitSymbolIndex& esi,
-                        size_t max_length, JointMeasurementIndex index)
-                : symbols{st}, esiForm{esi}, MaxSequenceLength{max_length}, indices{std::move(index)} { }
+        ImplicitSymbols(const SymbolTable &st, const ExplicitSymbolIndex& esi, size_t max_length)
+                : symbols{st}, esiForm{esi}, MaxSequenceLength{max_length} { }
 
     public:
         virtual ~ImplicitSymbols() = default;
@@ -61,36 +60,11 @@ namespace NPATK {
             return this->tableData;
         }
 
-        [[nodiscard]] constexpr const JointMeasurementIndex& Indices() const noexcept {
-            return this->indices;
-        }
-
-        [[nodiscard]] std::span<const PMODefinition> get(std::span<const size_t> mmtIndex) const;
+        [[nodiscard]] virtual std::span<const PMODefinition> get(std::span<const size_t> mmtIndex) const = 0;
 
         [[nodiscard]] inline auto get(std::initializer_list<size_t> mmtIndex) const {
             std::vector<size_t> v{mmtIndex};
-            return this->get({v.begin(), v.size()});
+            return this->get(std::span(v.begin(), v.size()));
         }
-
-//        [[nodiscard]] const PMODefinition& get(std::span<const PMOIndex> lookup_indices) const;
-
-//
-//        template<typename functor_t>
-//        void visit(functor_t& visitor) const {
-//            auto visitor_wrapper = [&](const std::pair<size_t, size_t>& tableRange,
-//                                       std::span<const size_t> global_indices) {
-//                std::span<const PMODefinition> pmoSpan{tableData.cbegin() + static_cast<ptrdiff_t>(tableRange.first),
-//                                                       static_cast<size_t>(tableRange.second - tableRange.first)};
-//                std::vector<PMIndex> converted;
-//                converted.reserve(global_indices.size());
-//                for (auto global_index : global_indices) {
-//                    converted.push_back(this->context.global_index_to_PM(global_index));
-//                }
-//                visitor(pmoSpan, std::span<const PMIndex>(converted.cbegin(), converted.size()));
-//            };
-//
-//            this->indices.visit(visitor_wrapper);
-//        }
-
     };
 }

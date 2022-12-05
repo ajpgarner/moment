@@ -41,12 +41,11 @@ namespace NPATK {
         /** The maximum number of operators in a sequence */
         const size_t Level;
 
-        /** The number of operators from each party */
-        const std::vector<size_t> OperatorCounts;
-
     protected:
         storage_t data;
-        JointMeasurementIndex indices;
+
+        /** Operators per measurement */
+        std::vector<size_t> operator_counts;
 
     public:
         virtual ~ExplicitSymbolIndex() = default;
@@ -55,7 +54,7 @@ namespace NPATK {
          * Gets a span of *all* symbols corresponding to the supplied measurement indices.
          * @param mmtIndices A sorted list of global indices of the measurement.
          */
-        [[nodiscard]] std::span<const ExplicitSymbolEntry> get(std::span<const size_t> mmtIndices) const;
+        [[nodiscard]] virtual std::span<const ExplicitSymbolEntry> get(std::span<const size_t> mmtIndices) const = 0;
 
         /**
          * Gets a filtered list of symbols corresponding to the supplied measurement indices, fixing some of the
@@ -64,9 +63,8 @@ namespace NPATK {
          * @param fixedOutcomes List of outcome indices, or -1 if not fixed.
          * @return
          */
-        [[nodiscard]] std::vector<ExplicitSymbolEntry> get(std::span<const size_t> mmtIndices,
-                                                           std::span<const oper_name_t> fixedOutcomes) const;
-
+        [[nodiscard]] std::vector<ExplicitSymbolEntry>
+        get(std::span<const size_t> mmtIndices, std::span<const oper_name_t> fixedOutcomes) const;
 
         /**
          * Gets a span of *all* symbols corresponding to the supplied measurement indices.
@@ -95,8 +93,8 @@ namespace NPATK {
         /**
          * Construct explicit symbol table for locality system
          */
-        explicit ExplicitSymbolIndex(size_t level, std::vector<size_t> ops, JointMeasurementIndex initial_index)
-            : Level{level}, OperatorCounts{std::move(ops)}, indices{std::move(initial_index)} { }
+        explicit ExplicitSymbolIndex(size_t level, std::vector<size_t> op_counts)
+            : Level{level}, operator_counts(std::move(op_counts)) { }
     };
 
 }

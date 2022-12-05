@@ -10,15 +10,6 @@
 #include <algorithm>
 
 namespace NPATK {
-    std::span<const ExplicitSymbolEntry> ExplicitSymbolIndex::get(std::span<const size_t> mmtIndices) const {
-        auto [first, last] = this->indices.access(mmtIndices);
-        if ((first < 0) || (first >= last)) {
-            return {this->data.begin(), 0};
-        }
-        assert(last <= this->data.size());
-        return {this->data.begin() + first, static_cast<size_t>(last - first)};
-    }
-
     std::vector<ExplicitSymbolEntry>
     ExplicitSymbolIndex::get(const std::span<const size_t> mmtIndices,
                              const std::span<const oper_name_t> fixedOutcomes) const {
@@ -32,7 +23,7 @@ namespace NPATK {
         size_t total_outcomes = 1;
         for (size_t i = 0; i < mmtIndices.size(); ++i) {
             if (fixedOutcomes[i] == -1) {
-                const auto op_count = this->OperatorCounts[mmtIndices[i]];
+                const auto op_count = this->operator_counts[mmtIndices[i]];
                 iterating_indices.push_back(mmtIndices[i]);
                 iteratingSizes.push_back(op_count);
                 total_outcomes *= op_count;
@@ -65,7 +56,7 @@ namespace NPATK {
                 assert (fixedOutcomes[invM] != -1);
                 the_offset += (current_stride * fixedOutcomes[invM]);
             }
-            current_stride *= this->OperatorCounts[mmtIndices[invM]];
+            current_stride *= this->operator_counts[mmtIndices[invM]];
         }
 
         // No indices iterate, so we retrieve just one value
@@ -95,4 +86,5 @@ namespace NPATK {
 
         return output; // NRVO
     }
+
 }

@@ -18,10 +18,9 @@
 namespace NPATK {
 
     LocalityImplicitSymbols::LocalityImplicitSymbols(const LocalityMatrixSystem &ms)
-        : ImplicitSymbols{ms.Symbols(), ms.ExplicitSymbolTable(), ms.MaxRealSequenceLength(),
-                          JointMeasurementIndex{ms.localityContext.measurements_per_party(),
-                                                std::min(ms.localityContext.Parties.size(),
-                                                         ms.MaxRealSequenceLength())}},
+        : ImplicitSymbols{ms.Symbols(), ms.ExplicitSymbolTable(), ms.MaxRealSequenceLength()},
+          indices{ms.localityContext.measurements_per_party(), std::min(ms.localityContext.Parties.size(),
+                                                                        ms.MaxRealSequenceLength())},
           context{ms.localityContext}  {
 
         size_t index_cursor = 0;
@@ -34,6 +33,19 @@ namespace NPATK {
         for (size_t level = 2; level <= MaxSequenceLength; ++level) {
             this->generateMoreLevels(level, index_cursor);
         }
+    }
+
+    std::span<const PMODefinition> LocalityImplicitSymbols::get(const std::span<const size_t> mmtIndex) const {
+        if (mmtIndex.size() > this->MaxSequenceLength) {
+            throw errors::bad_implicit_symbol("Cannot look up sequences longer than the max sequence length.");
+        }
+
+        auto [first, last] = this->indices.access(mmtIndex);
+        if ((first < 0) || (first >= last)) {
+            return {tableData.begin(), 0};
+        }
+        assert(last <= tableData.size());
+        return {tableData.begin() + first, static_cast<size_t>(last - first)};
     }
 
     size_t LocalityImplicitSymbols::generateLevelZero(size_t& index_cursor) {

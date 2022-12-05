@@ -5,6 +5,7 @@
  */
 #include "inflation_explicit_symbols.h"
 
+#include "canonical_observables.h"
 #include "inflation_context.h"
 #include "inflation_matrix_system.h"
 
@@ -18,21 +19,19 @@ namespace NPATK {
     namespace {
         std::vector<size_t> makeOpCounts(const InflationContext& context) {
             std::vector<size_t> output;
-            output.reserve(context.Observables().size());
+            output.reserve(context.observable_variant_count());
             for (const auto& o : context.Observables()) {
-                output.emplace_back(o.outcomes-1);
+                std::fill_n(std::back_inserter(output), o.variant_count, o.outcomes-1);
             }
+            assert(output.size() == context.observable_variant_count());
             return output;
         }
     }
 
     InflationExplicitSymbolIndex::InflationExplicitSymbolIndex(const InflationMatrixSystem &matrixSystem,
                                                                const size_t level)
-            : ExplicitSymbolIndex{level, makeOpCounts(matrixSystem.InflationContext()),
-                                  JointMeasurementIndex{
-                                      std::vector<size_t>(matrixSystem.InflationContext().Observables().size(),
-                                                          static_cast<size_t>(1)),
-                                          std::min(level, matrixSystem.InflationContext().Observables().size())}} {
+            : ExplicitSymbolIndex{level, makeOpCounts(matrixSystem.InflationContext())},
+              canonicalObservables{matrixSystem.CanonicalObservables()}  {
 
         const auto &context = matrixSystem.InflationContext();
         const auto &observables = context.Observables();
@@ -47,62 +46,72 @@ namespace NPATK {
             throw errors::cg_form_error("Identity symbol was improperly defined.");
         }
 
-        // Base level points to identity element symbol
-        this->indices.set({0, 1});
-        this->data.push_back({1, matrixSystem.Symbols().to_basis(1).first});
-        size_t index_counter = 1;
+        // Manually add ID
+        this->data.emplace_back(ExplicitSymbolEntry{oneSeq.Id(), oneSeq.basis_key().first});
+        this->indices.emplace_back(0);
 
-        // For each level,
-        for (size_t current_level = 1; current_level < (Level + 1); ++current_level) {
-
-            // Iterate through party combinations:
-            CombinationIndexIterator index_combo{observables.size(), current_level};
-            while (!index_combo.done()) {
-                // Choose parties from indices
-                const auto &partyIndices = *index_combo;
-                assert(partyIndices.size() == current_level);
-
-                // Count operators associated with chosen parties
-                std::vector<size_t> opers_per_observable;
-                opers_per_observable.reserve(partyIndices.size());
-                for (const auto party: partyIndices) {
-                    opers_per_observable.emplace_back(observables[party].outcomes - 1);
-                }
-                const auto num_operators = std::reduce(opers_per_observable.cbegin(), opers_per_observable.cend(),
-                                                       static_cast<size_t>(1), std::multiplies{});
-
-                this->data.reserve(this->data.size() + num_operators);
-
-                // Now, iterate over every operator sequence
-                MultiDimensionalIndexIterator opIndicesIter{opers_per_observable, false};
-                const MultiDimensionalIndexIterator opIndicesIterEnd{opers_per_observable, true};
-                while (opIndicesIter != opIndicesIterEnd) {
-                    // Find symbol for operator sequence
-                    auto opIndices = *opIndicesIter;
-                    std::vector<oper_name_t> op_str;
-                    op_str.reserve(opIndices.size());
-                    for (size_t i = 0; i < opIndices.size(); ++i) {
-                        op_str.emplace_back(observables[partyIndices[i]].operator_offset + opIndices[i]);
-                    }
-
-                    OperatorSequence opSeq{std::move(op_str), context};
-                    auto symbol_loc = symbols.where(opSeq);
-                    if (symbol_loc == nullptr) {
-                        throw errors::cg_form_error{"Could not find expected symbol in MomentMatrix."};
-                    }
-                    this->data.emplace_back(ExplicitSymbolEntry{symbol_loc->Id(), symbol_loc->basis_key().first});
-
-                    ++opIndicesIter;
-                }
-
-                // Add index
-                this->indices.set(partyIndices, {index_counter, index_counter + num_operators});
-                index_counter += num_operators;
-                assert(this->data.size() == index_counter);
-
-                // Next combination of party indices
-                ++index_combo;
+        // For each measurement in canonical symbols
+        for (const auto& canonObs : this->canonicalObservables) {
+            // Skip ID
+            if (canonObs.indices.empty()) {
+                // (should only be one ID)
+                assert(this->data.size() == 1);
+                continue;
             }
+
+            // Count operators associated with chosen parties
+            std::vector<size_t> opers_per_observable;
+            opers_per_observable.reserve(canonObs.indices.size());
+            for (const auto ovIndex : canonObs.indices) {
+                opers_per_observable.emplace_back(context.Observables()[ovIndex.observable].outcomes - 1);
+            }
+            const auto num_operators = canonObs.operators;
+
+            // Get start of data block
+            const auto data_start_index = static_cast<ptrdiff_t>(this->data.size());
+            this->data.reserve(this->data.size() + num_operators);
+
+            // Now, iterate over every operator sequence within measurement
+            MultiDimensionalIndexIterator opIndicesIter{opers_per_observable, false};
+            const MultiDimensionalIndexIterator opIndicesIterEnd{opers_per_observable, true};
+            while (opIndicesIter != opIndicesIterEnd) {
+                // Find operator sequence
+                auto opIndices = *opIndicesIter;
+                std::vector<oper_name_t> op_str;
+                op_str.reserve(opIndices.size());
+                for (size_t i = 0; i < opIndices.size(); ++i) {
+                    const auto& obs = observables[canonObs.indices[i].observable];
+                    const auto& var = obs.variants[canonObs.indices[i].variant];
+                    op_str.emplace_back(var.operator_offset + opIndices[i]);
+                }
+                OperatorSequence opSeq{std::move(op_str), context};
+
+                // Find associated symbol with operator sequence
+                auto symbol_loc = symbols.where(opSeq);
+                if (symbol_loc == nullptr) {
+                    throw errors::cg_form_error{"Could not find expected symbol in MomentMatrix."};
+                }
+                this->data.emplace_back(ExplicitSymbolEntry{symbol_loc->Id(), symbol_loc->basis_key().first});
+
+                ++opIndicesIter;
+            }
+
+            // Add index
+            this->indices.push_back(data_start_index);
         }
+    }
+
+    std::span<const ExplicitSymbolEntry> InflationExplicitSymbolIndex::get(std::span<const size_t> mmtIndices) const {
+        const auto& entry = this->canonicalObservables.canonical(mmtIndices);
+        const auto first = this->indices[entry.index];
+        assert(first + entry.operators <= this->data.size());
+        return {this->data.begin() + first, entry.operators};
+    }
+
+    std::span<const ExplicitSymbolEntry> InflationExplicitSymbolIndex::get(std::span<const OVIndex> mmts) const {
+        const auto& entry = this->canonicalObservables.canonical(mmts);
+        const auto first = this->indices[entry.index];
+        assert(first + entry.operators <= this->data.size());
+        return {this->data.begin() + first, entry.operators};
     }
 }

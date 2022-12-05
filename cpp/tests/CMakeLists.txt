@@ -17,11 +17,12 @@ add_executable(npatk_tests
     operators/inflation/causal_network_tests.cpp
     operators/inflation/factor_table_tests.cpp
     operators/inflation/inflation_context_tests.cpp
+    operators/inflation/inflation_explicit_symbols_tests.cpp
     operators/locality/collins_gisin_tests.cpp
-    operators/locality/explicit_symbols_tests.cpp
     operators/locality/implicit_symbols_tests.cpp
     operators/locality/joint_measurement_iterator_tests.cpp
     operators/locality/locality_context_tests.cpp
+    operators/locality/locality_explicit_symbols_tests.cpp
     operators/locality/party_tests.cpp
     symbolic/equality_type_tests.cpp
     symbolic/linear_combo_tests.cpp
@@ -30,7 +31,7 @@ add_executable(npatk_tests
     symbolic/symbol_set_tests.cpp
     symbolic/symbol_tree_tests.cpp
     utilities/alphabetic_namer_tests.cpp
-        utilities/combination_tests.cpp
+    utilities/combination_tests.cpp
     utilities/dynamic_bitset_tests.cpp
     utilities/ipow_tests.cpp
     utilities/multi_dimensional_index_iterator_tests.cpp

@@ -28,7 +28,7 @@ namespace NPATK {
 
     InflationMatrixSystem::~InflationMatrixSystem() noexcept = default;
 
-    const ExplicitSymbolIndex &InflationMatrixSystem::ExplicitSymbolTable() const {
+    const InflationExplicitSymbolIndex &InflationMatrixSystem::ExplicitSymbolTable() const {
         if (!this->explicitSymbols) {
             throw errors::missing_component("ExplicitSymbolTable has not yet been generated.");
         }

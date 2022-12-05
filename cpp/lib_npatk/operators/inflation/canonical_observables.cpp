@@ -18,7 +18,7 @@ namespace NPATK {
         : context{context}, max_level{0} {
 
         // One at level 0 (ID)
-        this->canonical_observables.emplace_back(std::vector<OVIndex>{}, 0);
+        this->canonical_observables.emplace_back(0, std::vector<OVIndex>{}, 0, 1, 1);
         this->hash_aliases.emplace(std::make_pair(0ULL, 0ULL));
         this->distinct_observables_per_level.emplace_back(1);
     }
@@ -57,13 +57,22 @@ namespace NPATK {
                 auto canonicalEntryIter = this->hash_aliases.find(canonical_hash);
                 size_t the_index = 0;
                 if (canonicalEntryIter == this->hash_aliases.cend()) {
+                    size_t op_count = 1;
+                    size_t out_count = 1;
+                    for (const auto& cv : canonical_indices) {
+                        const auto cvOutcomes = context.Observables()[cv.observable].outcomes;
+                        op_count *= (cvOutcomes - 1);
+                        out_count *= cvOutcomes;
+                    }
+
                     // new hash
-                    auto [coEmplaceIter, co_new_entry]
-                        = this->canonical_observables.emplace_back(std::move(canonical_indices), canonical_hash);
+                    this->canonical_observables.emplace_back(this->canonical_observables.size(),
+                                                             std::move(canonical_indices), canonical_hash,
+                                                             op_count, out_count);
+
 
                     the_index = this->canonical_observables.size() - 1;
                     this->hash_aliases.emplace(std::make_pair(canonical_hash, the_index));
-                    assert(co_new_entry);
                 } else {
                     the_index = canonicalEntryIter->second;
                 }
@@ -87,6 +96,17 @@ namespace NPATK {
         for (auto rIter = indices.rbegin(); rIter != indices.rend(); ++rIter) {
             const auto& index = *rIter;
             hash += (1+this->context.obs_variant_to_index(index)) * multiplier;
+            multiplier *= (this->context.observable_variant_count());
+        }
+        return hash;
+    }
+
+    size_t CanonicalObservables::hash(std::span<const size_t> global_indices) const {
+        size_t multiplier = 1;
+        size_t hash = 0;
+        for (auto rIter = global_indices.rbegin(); rIter != global_indices.rend(); ++rIter) {
+            const auto& index = *rIter;
+            hash += (1+index) * multiplier;
             multiplier *= (this->context.observable_variant_count());
         }
         return hash;
@@ -116,6 +136,32 @@ namespace NPATK {
             ss << "Error with string \"";
             for (const auto& index : indices) {
                 ss << index;
+            }
+            ss << "\": " << e.what();
+
+            // Rethrow with string info
+            throw errors::bad_ov_string{ss.str()};
+        }
+    }
+
+    const CanonicalObservables::CanonicalObservable&
+    CanonicalObservables::canonical(std::span<const size_t> indices) const {
+        try {
+            if (indices.size() > this->max_level) {
+                throw errors::bad_ov_string{"String is too long."};
+            }
+            const auto raw_hash = this->hash(indices);
+            return this->canonical(raw_hash);
+        } catch (const errors::bad_ov_string& e) {
+            std::stringstream ss;
+            ss << "Error with indices \"";
+            bool done_one = false;
+            for (const auto& index : indices) {
+                if (done_one) {
+                    ss << ", ";
+                }
+                ss << index;
+                done_one = true;
             }
             ss << "\": " << e.what();
 

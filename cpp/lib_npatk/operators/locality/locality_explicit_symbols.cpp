@@ -31,10 +31,11 @@ namespace NPATK {
         }
     }
 
+
     LocalityExplicitSymbolIndex::LocalityExplicitSymbolIndex(const LocalityMatrixSystem& matrixSystem, const size_t level)
-        : ExplicitSymbolIndex{level, makeOpCounts(matrixSystem.localityContext),
-                              JointMeasurementIndex(matrixSystem.localityContext.measurements_per_party(),
-                                                    std::min(level, matrixSystem.localityContext.Parties.size()))} {
+        : ExplicitSymbolIndex{level, makeOpCounts(matrixSystem.localityContext)},
+            indices{matrixSystem.localityContext.measurements_per_party(),
+                    std::min(level, matrixSystem.localityContext.Parties.size())} {
 
         const auto& context = matrixSystem.localityContext;
         const SymbolTable& symbols = matrixSystem.Symbols();
@@ -119,5 +120,16 @@ namespace NPATK {
             }
         }
     }
+
+    std::span<const ExplicitSymbolEntry> LocalityExplicitSymbolIndex::get(std::span<const size_t> mmtIndices) const {
+        auto [first, last] = this->indices.access(mmtIndices);
+        if ((first < 0) || (first >= last)) {
+            return {this->data.begin(), 0};
+        }
+        assert(last <= this->data.size());
+        return {this->data.begin() + first, static_cast<size_t>(last - first)};
+    }
+
+
 
 }

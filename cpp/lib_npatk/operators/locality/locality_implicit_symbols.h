@@ -20,10 +20,16 @@ namespace NPATK {
     class LocalityImplicitSymbols : public ImplicitSymbols {
     public:
         const LocalityContext& context;
+
+    private:
+        JointMeasurementIndex indices;
+
     public:
         explicit LocalityImplicitSymbols(const LocalityMatrixSystem& ms);
 
         using ImplicitSymbols::get;
+
+        [[nodiscard]] std::span<const PMODefinition> get(std::span<const size_t> mmtIndex) const override;
 
         [[nodiscard]] const PMODefinition& get(std::span<const PMOIndex> lookup_indices) const;
 
@@ -44,6 +50,11 @@ namespace NPATK {
             this->indices.visit(visitor_wrapper);
         }
 
+
+        [[nodiscard]] constexpr const JointMeasurementIndex& Indices() const noexcept {
+            return this->indices;
+        }
+//
     private:
         size_t generateLevelZero(size_t& index_cursor);
         size_t generateLevelOne(size_t& index_cursor);
