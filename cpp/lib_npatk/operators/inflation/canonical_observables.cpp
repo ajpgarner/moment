@@ -8,6 +8,7 @@
 #include "inflation_context.h"
 
 #include "utilities/combinations.h"
+#include "utilities/multi_dimensional_index_iterator.h"
 
 #include <sstream>
 
@@ -15,14 +16,11 @@ namespace NPATK {
 
     CanonicalObservables::CanonicalObservables(const InflationContext &context)
         : context{context}, max_level{0} {
-        // One at level 0 (ID)
-        this->distinct_observables_per_level.emplace_back(1);
 
-        std::vector<OVIndex> empty{};
-        const auto empty_hash = this->context.ov_hash(empty);
-        const auto empty_canon = this->context.canonical_variants(empty);
-        const auto empty_canon_hash = this->context.ov_hash(empty_canon);
-        this->hash_aliases.emplace(std::make_pair(empty_hash, empty_canon_hash));
+        // One at level 0 (ID)
+        this->canonical_observables.emplace_back(std::vector<OVIndex>{}, 0);
+        this->hash_aliases.emplace(std::make_pair(0ULL, 0ULL));
+        this->distinct_observables_per_level.emplace_back(1);
     }
 
     void CanonicalObservables::generate_up_to_level(const size_t new_level) {
@@ -31,53 +29,87 @@ namespace NPATK {
             return;
         }
 
+        // Add new entries...
         for (size_t level = this->max_level+1; level <= new_level; ++level) {
+            const size_t unique_observables_at_start = this->canonical_observables.size();
+
             CombinationIndexIterator comboIter{context.observable_variant_count(), level};
             const CombinationIndexIterator comboIterEnd{context.observable_variant_count(), level, true};
 
             std::vector<OVIndex> obs_var_indices;
             obs_var_indices.reserve(level);
-
-            std::set<size_t> hashes_this_level{};
-
             while (comboIter != comboIterEnd) {
+                // Make raw string
                 const auto& global_indices = *comboIter;
                 obs_var_indices.clear();
                 for (auto index : global_indices) {
                     obs_var_indices.push_back(context.index_to_obs_variant(static_cast<oper_name_t>(index)));
                 }
 
-                size_t raw_hash = context.ov_hash(obs_var_indices);
+                // Get raw hash
+                const size_t raw_hash = this->hash(obs_var_indices);
 
-                const auto canonical_indices = context.canonical_variants(obs_var_indices);
-                size_t canonical_hash = context.ov_hash(canonical_indices);
+                // Get canonical string & hash
+                auto canonical_indices = context.canonical_variants(obs_var_indices);
+                size_t canonical_hash = this->hash(canonical_indices);
 
-                this->hash_aliases.emplace(std::make_pair(raw_hash, canonical_hash));
-                hashes_this_level.emplace(canonical_hash);
+                // Make sure canonical entry exists
+                auto canonicalEntryIter = this->hash_aliases.find(canonical_hash);
+                size_t the_index = 0;
+                if (canonicalEntryIter == this->hash_aliases.cend()) {
+                    // new hash
+                    auto [coEmplaceIter, co_new_entry]
+                        = this->canonical_observables.emplace_back(std::move(canonical_indices), canonical_hash);
+
+                    the_index = this->canonical_observables.size() - 1;
+                    this->hash_aliases.emplace(std::make_pair(canonical_hash, the_index));
+                    assert(co_new_entry);
+                } else {
+                    the_index = canonicalEntryIter->second;
+                }
+
+                // Add hash alias
+                this->hash_aliases.emplace(std::make_pair(raw_hash, the_index));
 
                 ++comboIter;
             }
-            this->distinct_observables_per_level.emplace_back(hashes_this_level.size());
+            this->distinct_observables_per_level.emplace_back(this->canonical_observables.size()
+                                                              - unique_observables_at_start);
         }
 
         // Save level
         this->max_level = new_level;
     }
 
-    size_t CanonicalObservables::canonical(const size_t hash) const {
-        auto iter = this->hash_aliases.find(hash);
-        if (iter == this->hash_aliases.cend()) {
-            throw errors::bad_ov_string{"Could not find string in hash table."};
+    size_t CanonicalObservables::hash(std::span<const OVIndex> indices) const {
+        size_t multiplier = 1;
+        size_t hash = 0;
+        for (auto rIter = indices.rbegin(); rIter != indices.rend(); ++rIter) {
+            const auto& index = *rIter;
+            hash += (1+this->context.obs_variant_to_index(index)) * multiplier;
+            multiplier *= (this->context.observable_variant_count());
         }
-        return iter->second;
+        return hash;
     }
 
-    size_t  CanonicalObservables::canonical(std::span<const OVIndex> indices) const {
+
+    const CanonicalObservables::CanonicalObservable& CanonicalObservables::canonical(const size_t hash) const {
+       auto iter = this->hash_aliases.find(hash);
+       if (iter == this->hash_aliases.cend()) {
+           throw errors::bad_ov_string{"Could not find string in hash table."};
+       }
+
+       const auto index = iter->second;
+       assert(index < this->canonical_observables.size());
+       return this->canonical_observables[index];
+    }
+
+    const CanonicalObservables::CanonicalObservable& CanonicalObservables::canonical(std::span<const OVIndex> indices) const {
         try {
             if (indices.size() > this->max_level) {
                 throw errors::bad_ov_string{"String is too long."};
             }
-            const auto raw_hash = context.ov_hash(indices);
+            const auto raw_hash = this->hash(indices);
             return this->canonical(raw_hash);
         } catch (const errors::bad_ov_string& e) {
             std::stringstream ss;

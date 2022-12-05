@@ -1,5 +1,5 @@
 /**
- * combination_iterator_tests.cpp
+ * combination_tests.cpp
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
@@ -9,6 +9,22 @@
 #include "utilities/combinations.h"
 
 namespace NPATK::Tests {
+
+    TEST(Utilities_Combinations, Combination_5C1) {
+        EXPECT_EQ(combinations(5, 1), 5);
+    }
+
+    TEST(Utilities_Combinations, Combination_3C2) {
+        EXPECT_EQ(combinations(3, 2), 3);
+    }
+
+    TEST(Utilities_Combinations, Combination_8C3) {
+        EXPECT_EQ(combinations(8, 3), 56);
+    }
+
+    TEST(Utilities_Combinations, Combination_15C0) {
+        EXPECT_EQ(combinations(15, 0), 1);
+    }
 
     TEST(Utilities_Combinations, ComboIndex_Empty) {
         auto comboIter = CombinationIndexIterator{5, 0};

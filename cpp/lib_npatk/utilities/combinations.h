@@ -8,9 +8,30 @@
 #include <cassert>
 
 #include <algorithm>
+#include <concepts>
 #include <vector>
 
 namespace NPATK {
+
+    /**
+     * How many ways of choosing a subset of size K from a set of size N.
+     * @tparam int_t The integer type
+     * @param N The size of the set
+     * @param K The size of the subset
+     * @return The number of distinct combinations.
+     */
+    template<std::integral int_t>
+    [[nodiscard]] constexpr int_t combinations(int_t N, int_t K) {
+        int_t numerator = 1;
+        for (int_t iN = N-K+1; iN <= N; ++iN) {
+            numerator *= iN;
+        }
+        int_t denominator = 1;
+        for (int_t iD = 1; iD <= K; ++iD) {
+            denominator *= iD;
+        }
+        return numerator/denominator;
+    }
 
     class CombinationIndexIterator {
     public:
@@ -95,6 +116,10 @@ namespace NPATK {
         /** True if no more combinations */
         [[nodiscard]] constexpr bool done() const noexcept {
             return this->endState;
+        }
+
+        [[nodiscard]] constexpr size_t combination_count() const noexcept {
+            return combinations(this->N, this->K);
         }
 
     private:

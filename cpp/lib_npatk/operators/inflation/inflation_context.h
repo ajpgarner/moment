@@ -165,11 +165,6 @@ namespace NPATK {
             return this->total_inflated_observables;
         }
 
-        /**
-         * Hash a string of OV indices
-         */
-        [[nodiscard]] size_t ov_hash(std::span<const OVIndex> index) const;
-
         /** False: as InflationContext never generates non-Hermitian operator strings. */
         [[nodiscard]] bool can_be_nonhermitian() const noexcept override { return false; }
 
@@ -193,6 +188,9 @@ namespace NPATK {
          */
         [[nodiscard]] OperatorSequence canonical_moment(const OperatorSequence& input) const;
 
+        /**
+         * Calculate equivalent variant of observables with lowest possible source indices (e.g. 'A2' -> 'A0' etc.).
+         */
         [[nodiscard]] std::vector<OVIndex>
         canonical_variants(const std::vector<OVIndex>& input) const;
 

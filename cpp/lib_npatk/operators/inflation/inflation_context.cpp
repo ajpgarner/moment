@@ -370,17 +370,6 @@ namespace NPATK {
         return this->global_variant_indices[global_variant_index];
     }
 
-    size_t InflationContext::ov_hash(std::span<const OVIndex> indices) const {
-        size_t multiplier = 1;
-        size_t hash = 0;
-        for (auto rIter = indices.rbegin(); rIter != indices.rend(); ++rIter) {
-            const auto& index = *rIter;
-            hash += (1+this->obs_variant_to_index(index)) * multiplier;
-            multiplier *= (this->total_inflated_observables);
-        }
-        return hash;
-    }
-
     std::string InflationContext::format_sequence(const OperatorSequence &seq) const {
         if (seq.zero()) {
             return "0";
