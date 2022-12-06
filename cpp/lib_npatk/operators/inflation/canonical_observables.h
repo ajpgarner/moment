@@ -27,29 +27,28 @@ namespace NPATK {
         };
     }
 
-    class CanonicalObservables {
-    public:
-        struct CanonicalObservable {
-            /** Index, in list of canonical observables */
-            size_t index;
+    struct CanonicalObservable {
+        /** Index, in list of canonical observables */
+        size_t index;
 
-            /** Index string, in terms of observable/variant */
-            std::vector<OVIndex> indices;
+        /** Index string, in terms of observable/variant */
+        std::vector<OVIndex> indices;
 
-            /** Hash of OVIndex string */
-            size_t hash;
+        /** Hash of OVIndex string */
+        size_t hash;
 
-            /** Total number of associated operators */
-            size_t operators;
+        /** Total number of associated operators */
+        size_t operators;
 
-            /** Total number of associated outputs (i.e. operators + implicit operators) */
-            size_t outcomes;
+        /** Total number of associated outputs (i.e. operators + implicit operators) */
+        size_t outcomes;
 
-            CanonicalObservable(size_t index, std::vector<OVIndex> index_list, size_t the_hash,
-                                size_t ops, size_t outcomes)
+        CanonicalObservable(size_t index, std::vector<OVIndex> index_list, size_t the_hash,
+                            size_t ops, size_t outcomes)
                 : index{index}, indices(std::move(index_list)), hash{the_hash}, operators{ops}, outcomes{outcomes} { }
-        };
+    };
 
+    class CanonicalObservables {
     private:
         const InflationContext& context;
         size_t max_level = 0;

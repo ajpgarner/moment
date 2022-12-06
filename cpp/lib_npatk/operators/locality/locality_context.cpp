@@ -99,8 +99,6 @@ namespace NPATK {
         assert(this->global_op_id_to_party.size() == this->operator_count);
     }
 
-
-
     bool LocalityContext::additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negated) const {
         // Do nothing on empty set
         if (op_sequence.empty()) {
@@ -173,6 +171,20 @@ namespace NPATK {
         }
     }
 
+    std::vector<size_t> LocalityContext::outcomes_per_measurement(std::span<const PMIndex> indices) const noexcept {
+        std::vector<size_t> output;
+        output.reserve(indices.size());
+
+        for (auto index : indices) {
+            assert(index.party < this->Parties.size());
+            const auto& party = this->Parties[index.party];
+            assert(index.mmt < party.Measurements.size());
+            const auto& mmt = party.Measurements[index.mmt];
+            output.push_back(mmt.num_outcomes);
+        }
+
+        return output;
+    }
 
     std::string LocalityContext::format_sequence(const OperatorSequence &seq) const {
         if (seq.zero()) {
@@ -244,4 +256,5 @@ namespace NPATK {
 
         return ss.str();
     }
+
 }

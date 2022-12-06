@@ -9,9 +9,12 @@
 
 #include "inflation_context.h"
 
+#include <vector>
+
 namespace NPATK {
 
     class InflationMatrixSystem;
+    class CanonicalObservable;
 
     /**
      * Calculate the 'missing' marginals/probabilities from the explicit form.
@@ -19,8 +22,14 @@ namespace NPATK {
     class InflationImplicitSymbols : public ImplicitSymbols {
     public:
         const InflationContext &context;
+    private:
+        std::vector<size_t> indices;
+
     public:
-        InflationImplicitSymbols(const InflationMatrixSystem& ims);
+        explicit InflationImplicitSymbols(const InflationMatrixSystem& ims);
+
+    private:
+        size_t generateFromCanonicalObservable(const CanonicalObservable& canonicalObservable);
 
     };
 }

@@ -126,7 +126,7 @@ namespace NPATK::mex {
                 const matlab::data::ArrayDimensions indexArrayDim{indices.size(), 3};
 
                 // Create iterator for reading out indices..
-                OutcomeIndexIterator outputIndexIter{context, indices};
+                OutcomeIndexIterator outputIndexIter{context.outcomes_per_measurement(indices)};
 
                 // For each outcome of this joint measurement
                 for (const auto &symbol: symbols) {
@@ -138,12 +138,10 @@ namespace NPATK::mex {
                         indicesWithOutcomes[n].outcome = outcomes[n];
                     }
 
-                    matlab::data::TypedArray<uint64_t> index_array = indices.empty()
-                                                                     ? this->factory.createArray<uint64_t>(
-                                    indexArrayDim)
-                                                                     : this->factory.createArray(indexArrayDim,
-                                                                                                 entryIndices.cbegin(),
-                                                                                                 entryIndices.cend());
+                    matlab::data::TypedArray<uint64_t> index_array
+                        = indices.empty() ? this->factory.createArray<uint64_t>(indexArrayDim)
+                                          : this->factory.createArray(indexArrayDim,
+                                                                      entryIndices.cbegin(), entryIndices.cend());
 
                     this->output_array[write_index]["sequence"] =
                             factory.createScalar(context.format_sequence(indicesWithOutcomes));

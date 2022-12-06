@@ -28,16 +28,6 @@ namespace NPATK {
             return output;
         }
 
-        std::vector<size_t> getMmtOutcomeCounts(const LocalityContext &context, std::span<const PMIndex> indices) {
-            std::vector<size_t> output;
-            output.reserve(indices.size());
-
-            for (auto index : indices) {
-                output.push_back(context.Parties[index.party].Measurements[index.mmt].num_outcomes);
-            }
-
-            return output;
-        }
     }
 
     JointMeasurementIterator::JointMeasurementIterator(const LocalityContext &contextRef, party_list_t &&list)
@@ -110,48 +100,17 @@ namespace NPATK {
         return outcomes;
     }
 
+    OutcomeIndexIterator JointMeasurementIterator::begin_outcomes() const noexcept {
+        return OutcomeIndexIterator{getMmtOutcomeCounts(*this), false};
+    }
+
+    OutcomeIndexIterator JointMeasurementIterator::end_outcomes() const noexcept {
+        return OutcomeIndexIterator{getMmtOutcomeCounts(*this), true};
+    }
+
     JointMeasurementIterator::OpSeqIterator::OpSeqIterator(const JointMeasurementIterator &iterRef, bool end)
             : mmIter{&iterRef}, indexIter(getMmtOpCounts(iterRef), end) {
 
-    }
-
-    OutcomeIndexIterator::OutcomeIndexIterator(const LocalityContext& context,
-                                               std::span<const PMIndex> global_mmt_indices,
-                                               bool end)
-            : indexIter(getMmtOutcomeCounts(context, global_mmt_indices), end),
-              is_implicit(global_mmt_indices.size(), false) {
-        check_implicit();
-    }
-
-    OutcomeIndexIterator::OutcomeIndexIterator(const JointMeasurementIterator &theIter, bool end)
-            : indexIter(getMmtOutcomeCounts(theIter), end),
-              is_implicit(theIter.count_indices(), false) {
-        check_implicit();
-    }
-
-    void OutcomeIndexIterator::check_implicit() {
-        if (this->indexIter.done()) {
-            return;
-        }
-
-        this->num_implicit = 0;
-        const auto& outcome_limits = this->indexIter.limits();
-        for (size_t mIndex = 0; mIndex < this->is_implicit.size(); ++mIndex) {
-            const bool elemImpl = this->indexIter[mIndex] >= (outcome_limits[mIndex]-1);
-            this->is_implicit[mIndex] = elemImpl;
-            if (elemImpl) {
-                ++this->num_implicit;
-            }
-        }
-    }
-
-    OutcomeIndexIterator& OutcomeIndexIterator::operator++() noexcept {
-        ++indexIter;
-        check_implicit();
-        if (0 == this->num_implicit) {
-            ++operNumber;
-        }
-        return *this;
     }
 
     OperatorSequence JointMeasurementIterator::OpSeqIterator::operator*() const {

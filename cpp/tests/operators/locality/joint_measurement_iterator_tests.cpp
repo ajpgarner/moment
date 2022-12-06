@@ -138,8 +138,10 @@ namespace NPATK::Tests {
                                     static_cast<mmt_name_t>(0),
                                     static_cast<mmt_name_t>(1)});
 
-        auto outcomeIter = OutcomeIndexIterator{context, pmList};
-        const auto outcomeIterEnd = OutcomeIndexIterator{context, pmList, true};
+        auto sizeList = context.outcomes_per_measurement(pmList);
+
+        auto outcomeIter = OutcomeIndexIterator{sizeList};
+        const auto outcomeIterEnd = OutcomeIndexIterator{std::move(sizeList), true};
 
         testOutcomeIter(outcomeIter, outcomeIterEnd, {0, 0}, {false, false});
         EXPECT_EQ(outcomeIter.explicit_outcome_index(), 0);

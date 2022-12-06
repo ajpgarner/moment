@@ -87,6 +87,11 @@ namespace NPATK {
         }
 
         /**
+         * Returns number of outcomes for each measurement referred to by indices
+         */
+        [[nodiscard]] std::vector<size_t> outcomes_per_measurement(std::span<const PMIndex> indices) const noexcept;
+
+        /**
          * Returns total number of operators per party in context;
          */
         [[nodiscard]] const std::vector<size_t>& operators_per_party() const noexcept {

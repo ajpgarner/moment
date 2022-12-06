@@ -7,7 +7,10 @@
 #pragma once
 
 #include "party.h"
+
 #include "operators/operator_sequence.h"
+#include "operators/common/outcome_index_iterator.h"
+
 #include "utilities/multi_dimensional_index_iterator.h"
 
 #include <span>
@@ -18,82 +21,6 @@ namespace NPATK {
     class LocalityContext;
     class JointMeasurementIterator;
 
-    /** Iterate over measurement outcomes */
-    class OutcomeIndexIterator {
-    public:
-        using iterator_category = std::input_iterator_tag;
-        using difference_type = ptrdiff_t;
-        using value_type = MultiDimensionalIndexIterator<false>::value_type;
-
-    private:
-        MultiDimensionalIndexIterator<false> indexIter;
-        std::vector<bool> is_implicit;
-        size_t num_implicit = 0;
-        size_t operNumber = 0;
-
-    public:
-        explicit OutcomeIndexIterator(const LocalityContext& context, std::span<const PMIndex> global_mmt_indices,
-                                      bool end = false);
-
-        explicit OutcomeIndexIterator(const JointMeasurementIterator& mmIter, bool end = false);
-
-        OutcomeIndexIterator& operator++() noexcept;
-
-        [[nodiscard]] OutcomeIndexIterator operator++(int) & noexcept {
-            OutcomeIndexIterator copy{*this};
-            ++(*this);
-            return copy;
-        }
-
-        [[nodiscard]] inline auto operator*() const noexcept {
-            return *this->indexIter;
-        }
-
-        [[nodiscard]] inline auto operator[](size_t index) const noexcept {
-            return this->indexIter.operator[](index);
-        }
-
-        /**
-         * Vector of bools, indicating which indices do not correspond to explicitly defined operators.
-         */
-        [[nodiscard]] const auto& implicit() const noexcept {
-            return this->is_implicit;
-        }
-
-        /**
-         * True if index i requires implicit definition.
-         */
-        [[nodiscard]] bool implicit(size_t i) const noexcept {
-            assert(i < this->is_implicit.size());
-            return this->is_implicit[i];
-        }
-
-        /**
-         * If operator is explicitly defined, get the operator's index w.r.t. the (maybe joint) measurement.
-         */
-        [[nodiscard]] size_t explicit_outcome_index() const noexcept {
-            assert(this->num_implicit == 0);
-            return this->operNumber;
-        }
-
-        /**
-         * Number of indices that are "out of bounds" in the CG form.
-         */
-        [[nodiscard]] const auto& implicit_count() const noexcept {
-            return this->num_implicit;
-        }
-
-        [[nodiscard]] bool operator==(const OutcomeIndexIterator& rhs) const noexcept {
-            return this->indexIter == rhs.indexIter;
-        }
-
-        [[nodiscard]] bool operator!=(const OutcomeIndexIterator& rhs) const noexcept {
-            return this->indexIter != rhs.indexIter;
-        }
-
-    private:
-        void check_implicit();
-    };
 
 /**
  * Iterate over combinations of measurements, from specified parties
@@ -204,13 +131,9 @@ public:
         return OpSeqIterator{*this, true};
     }
 
-    [[nodiscard]] inline auto begin_outcomes() const noexcept {
-        return OutcomeIndexIterator{*this};
-    }
+    [[nodiscard]] OutcomeIndexIterator begin_outcomes() const noexcept;
 
-    [[nodiscard]] inline auto end_outcomes() const noexcept {
-        return OutcomeIndexIterator{*this, true};
-    }
+    [[nodiscard]] OutcomeIndexIterator end_outcomes() const noexcept;
 };
 
 }

@@ -113,7 +113,7 @@ namespace NPATK {
     }
 
 
-    const CanonicalObservables::CanonicalObservable& CanonicalObservables::canonical(const size_t hash) const {
+    const CanonicalObservable& CanonicalObservables::canonical(const size_t hash) const {
        auto iter = this->hash_aliases.find(hash);
        if (iter == this->hash_aliases.cend()) {
            throw errors::bad_ov_string{"Could not find string in hash table."};
@@ -124,7 +124,7 @@ namespace NPATK {
        return this->canonical_observables[index];
     }
 
-    const CanonicalObservables::CanonicalObservable& CanonicalObservables::canonical(std::span<const OVIndex> indices) const {
+    const CanonicalObservable& CanonicalObservables::canonical(std::span<const OVIndex> indices) const {
         try {
             if (indices.size() > this->max_level) {
                 throw errors::bad_ov_string{"String is too long."};
@@ -144,8 +144,7 @@ namespace NPATK {
         }
     }
 
-    const CanonicalObservables::CanonicalObservable&
-    CanonicalObservables::canonical(std::span<const size_t> indices) const {
+    const CanonicalObservable& CanonicalObservables::canonical(std::span<const size_t> indices) const {
         try {
             if (indices.size() > this->max_level) {
                 throw errors::bad_ov_string{"String is too long."};

@@ -1,5 +1,5 @@
 /**
- * implicit_symbols_tests.cpp
+ * locality_implicit_symbols_tests.cpp
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  */

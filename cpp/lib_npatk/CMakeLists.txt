@@ -14,6 +14,7 @@ add_library(lib_npatk
         operators/algebraic/rule_book.cpp
         operators/common/explicit_symbols.cpp
         operators/common/implicit_symbols.cpp
+        operators/common/outcome_index_iterator.cpp
         operators/inflation/canonical_observables.cpp
         operators/inflation/causal_network.cpp
         operators/inflation/factor_table.cpp
