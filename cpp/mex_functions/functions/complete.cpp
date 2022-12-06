@@ -74,7 +74,6 @@ namespace NPATK::mex::functions {
         // If no max operator ID specified, guess by taking the highest value from provided rules
         if (this->max_operators == 0) {
             // Always at least one operator...
-            this->max_operators = 1;
             // Look through rules
             for (const auto& raw_rule : this->rules) {
                 // LHS
@@ -83,6 +82,7 @@ namespace NPATK::mex::functions {
                         this->max_operators = l;
                     }
                 }
+
                 // RHS
                 for (auto r : raw_rule.RHS) {
                     if (r > max_operators) {
@@ -90,6 +90,7 @@ namespace NPATK::mex::functions {
                     }
                 }
             }
+            ++this->max_operators;
         }
 
         // Assert that rule lengths are okay
@@ -136,11 +137,22 @@ namespace NPATK::mex::functions {
         ShortlexHasher hasher{input.max_operators};
         RuleBook rules = make_rulebook(this->matlabEngine, hasher, input);
 
+        // Print input
+        if (this->debug) {
+            std::stringstream dss;
+            dss << "Input rules:\n" << rules;
+            print_to_console(this->matlabEngine, dss.str());
+        }
+
         // Attempt completion
         bool completed = rules.complete(input.max_attempts, logger.get());
 
         // Print completion log (in verbose mode)
         if (this->verbose) {
+            if (this->debug) {
+                ss << "Max operators: " << input.max_operators << "\n";
+                ss << "Output rules:\n" << rules;
+            }
             print_to_console(this->matlabEngine, ss.str());
         }
 
