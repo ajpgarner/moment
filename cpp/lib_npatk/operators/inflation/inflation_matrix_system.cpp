@@ -9,6 +9,7 @@
 #include "factor_table.h"
 #include "inflation_context.h"
 #include "inflation_explicit_symbols.h"
+#include "inflation_implicit_symbols.h"
 
 
 namespace NPATK {
@@ -35,6 +36,13 @@ namespace NPATK {
         return *this->explicitSymbols;
     }
 
+    const InflationImplicitSymbols &InflationMatrixSystem::ImplicitSymbolTable() const {
+        if (!this->implicitSymbols) {
+            throw errors::missing_component("ImplicitSymbolTable has not yet been generated.");
+        }
+        return *this->implicitSymbols;
+    }
+
     size_t InflationMatrixSystem::MaxRealSequenceLength() const noexcept {
         // Largest order of moment matrix?
         ptrdiff_t hierarchy_level = this->highest_moment_matrix();
@@ -42,9 +50,8 @@ namespace NPATK {
             hierarchy_level = 0;
         }
 
-        // Max sequence can't also be longer than number of observables
-        return std::min(hierarchy_level*2, static_cast<ptrdiff_t>(this->inflationContext.Observables().size()));
-        // return std::min(hierarchy_level*2, static_cast<ptrdiff_t>(this->inflationContext.observable_variant_count()));
+        // Max sequence can't also be longer than number of observable variants
+        return std::min(hierarchy_level*2, static_cast<ptrdiff_t>(this->inflationContext.observable_variant_count()));
     }
 
 
@@ -56,9 +63,10 @@ namespace NPATK {
         const auto new_max_length = this->MaxRealSequenceLength();
         this->canonicalObservables->generate_up_to_level(new_max_length);
 
-        // Update explicit symbols
+        // Update explicit/implicit symbols
         if (!this->explicitSymbols || (this->explicitSymbols->Level < new_max_length)) {
             this->explicitSymbols = std::make_unique<InflationExplicitSymbolIndex>(*this, new_max_length);
+            this->implicitSymbols = std::make_unique<InflationImplicitSymbols>(*this);
         }
 
 

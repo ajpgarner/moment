@@ -299,7 +299,7 @@ namespace NPATK {
     std::vector<OVIndex>
     InflationContext::canonical_variants(const std::vector<OVIndex>& input) const {
         // If 0 or I; or no inflation, then nothing.
-        if (input.empty() || (this->inflation <= 1)) {
+        if (input.empty() || (this->inflation < 1)) {
             return {};
         }
 
@@ -428,6 +428,18 @@ namespace NPATK {
             }
         }
         return ss.str();
+    }
+
+    std::vector<size_t> InflationContext::outcomes_per_observable(std::span<const OVIndex> indices) const noexcept {
+        std::vector<size_t> output{};
+        output.reserve(indices.size());
+        for (const auto& index : indices) {
+            assert(index.observable < this->inflated_observables.size());
+            const auto& obs = this->inflated_observables[index.observable];
+            output.push_back(obs.outcomes);
+        }
+
+        return output;
     }
 
     std::string InflationContext::to_string() const {

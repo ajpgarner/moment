@@ -48,6 +48,40 @@ namespace NPATK {
         return {tableData.begin() + first, static_cast<size_t>(last - first)};
     }
 
+    const PMODefinition& LocalityImplicitSymbols::get(std::span<const PMOIndex> lookup_indices) const {
+        // First, PMO index to global index to look up by measurement
+        std::vector<size_t> globalIndices;
+        for (const auto& index : lookup_indices) {
+            globalIndices.emplace_back(context.get_global_mmt_index(index));
+        }
+
+        // Get span of data for this measurement
+        auto defsForMmt = this->get(globalIndices);
+        if (defsForMmt.empty()) {
+            throw errors::bad_implicit_symbol("Could not find implicit symbols for supplied measurement");
+        }
+
+        // If {} requested, return only entry...
+        if (lookup_indices.empty()) {
+            return defsForMmt[0];
+        }
+
+        // Otherwise, now find the requested outcome
+        size_t the_offset = 0;
+        size_t current_stride = 1;
+        for (size_t i = 0; i < lookup_indices.size(); ++i) {
+            const size_t inv_index = lookup_indices.size() - i - 1;
+            const auto& index = lookup_indices[inv_index];
+            the_offset += (current_stride * index.outcome);
+            current_stride *= this->context.Parties[index.party].Measurements[index.mmt].num_outcomes;
+        }
+        assert(the_offset < defsForMmt.size());
+        assert(current_stride == defsForMmt.size());
+
+        return defsForMmt[the_offset];
+
+    }
+
     size_t LocalityImplicitSymbols::generateLevelZero(size_t& index_cursor) {
         // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.
         if (symbols.size() < 2) {
@@ -85,7 +119,7 @@ namespace NPATK {
                 // Get explicit outcomes
                 auto mmtSymb = this->esiForm.get({static_cast<size_t>(mmt.Index().global_mmt)});
                 if (mmtSymb.size() != mmt.num_operators()) {
-                    throw errors::bad_implicit_symbol("Could not find measurement in Collins-Gisin table.");
+                    throw errors::bad_implicit_symbol("Could not find measurement in explicit index table.");
                 }
 
                 // Explicit outcomes:
@@ -201,7 +235,7 @@ namespace NPATK {
                 assert(the_sign == 1); // If correctly alternating, normalization should be positive always.
                 std::vector<size_t> normIndices;
                 std::vector<symbol_name_t> normOutcomes;
-                for (size_t i = 0; i < stack.count_indices(); ++i) {
+                for (size_t i = 0; i < level; ++i) {
                     if (!outcomeIter.implicit(i)) {
                         normIndices.push_back(stack.global_indices()[i]);
                         normOutcomes.push_back(static_cast<symbol_name_t>(outcomeIter[i]));
@@ -222,40 +256,4 @@ namespace NPATK {
         assert(index_cursor == this->tableData.size());
         return num_outcomes;
     }
-
-    const PMODefinition& LocalityImplicitSymbols::get(std::span<const PMOIndex> lookup_indices) const {
-        // First, PMO index to global index to look up by measurement
-        std::vector<size_t> globalIndices;
-        for (const auto& index : lookup_indices) {
-            globalIndices.emplace_back(context.get_global_mmt_index(index));
-        }
-
-        // Get span of data for this measurement
-        auto defsForMmt = this->get(globalIndices);
-        if (defsForMmt.empty()) {
-            throw errors::bad_implicit_symbol("Could not find implicit symbols for supplied measurement");
-        }
-
-        // If {} requested, return only entry...
-        if (lookup_indices.empty()) {
-            return defsForMmt[0];
-        }
-
-        // Otherwise, now find the requested outcome
-        size_t the_offset = 0;
-        size_t current_stride = 1;
-        for (size_t i = 0; i < lookup_indices.size(); ++i) {
-            const size_t inv_index = lookup_indices.size() - i - 1;
-            const auto& index = lookup_indices[inv_index];
-            the_offset += (current_stride * index.outcome);
-            current_stride *= this->context.Parties[index.party].Measurements[index.mmt].num_outcomes;
-        }
-        assert(the_offset < defsForMmt.size());
-        assert(current_stride == defsForMmt.size());
-
-        return defsForMmt[the_offset];
-
-    }
-
-
 }

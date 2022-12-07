@@ -26,11 +26,6 @@ namespace NPATK {
     public:
         explicit OutcomeIndexIterator(std::vector<size_t> outcomes_per_measurement, bool end = false);
 
-//        explicit OutcomeIndexIterator(const LocalityContext& context, std::span<const PMIndex> global_mmt_indices,
-//                                      bool end = false);
-//
-//        explicit OutcomeIndexIterator(const JointMeasurementIterator& mmIter, bool end = false);
-
         OutcomeIndexIterator& operator++() noexcept;
 
         [[nodiscard]] OutcomeIndexIterator operator++(int) & noexcept {
@@ -45,6 +40,13 @@ namespace NPATK {
 
         [[nodiscard]] inline auto operator[](size_t index) const noexcept {
             return this->indexIter.operator[](index);
+        }
+
+        /**
+         * True if iterator is at end.
+         */
+        [[nodiscard]] constexpr bool done() const noexcept {
+            return indexIter.done();
         }
 
         /**

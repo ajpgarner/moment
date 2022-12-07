@@ -18,7 +18,7 @@ namespace NPATK {
         : context{context}, max_level{0} {
 
         // One at level 0 (ID)
-        this->canonical_observables.emplace_back(0, std::vector<OVIndex>{}, 0, 1, 1);
+        this->canonical_observables.emplace_back(0, std::vector<OVIndex>{}, std::vector<size_t>{}, 0, 1, 1);
         this->hash_aliases.emplace(std::make_pair(0ULL, 0ULL));
         this->distinct_observables_per_level.emplace_back(1);
     }
@@ -59,15 +59,22 @@ namespace NPATK {
                 if (canonicalEntryIter == this->hash_aliases.cend()) {
                     size_t op_count = 1;
                     size_t out_count = 1;
+
+                    std::vector<size_t> flat_indices{};
+                    flat_indices.reserve(canonical_indices.size());
                     for (const auto& cv : canonical_indices) {
-                        const auto cvOutcomes = context.Observables()[cv.observable].outcomes;
+                        const auto& observable = context.Observables()[cv.observable];
+                        flat_indices.emplace_back(observable.variant_offset + cv.variant);
+
+                        const auto cvOutcomes = observable.outcomes;
                         op_count *= (cvOutcomes - 1);
                         out_count *= cvOutcomes;
                     }
 
                     // new hash
                     this->canonical_observables.emplace_back(this->canonical_observables.size(),
-                                                             std::move(canonical_indices), canonical_hash,
+                                                             std::move(canonical_indices), std::move(flat_indices),
+                                                             canonical_hash,
                                                              op_count, out_count);
 
 

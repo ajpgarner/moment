@@ -51,6 +51,27 @@ namespace NPATK::Tests {
         EXPECT_EQ(a_hashes.size(), 6);
     }
 
+    TEST(Operators_Inflation_CanonicalObservables, Singleton) {
+        InflationMatrixSystem ims{
+                std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 1)};
+        const auto& ic = ims.InflationContext();
+        const auto& co = ims.CanonicalObservables();
+        auto [mm, id] = ims.create_moment_matrix(1);
+        ASSERT_EQ(co.size(), 2); // e, A.
+
+    }
+    TEST(Operators_Inflation_CanonicalObservables, Singleton_Cloned) {
+        InflationMatrixSystem ims{
+                std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 2)};
+        const auto& ic = ims.InflationContext();
+        const auto& co = ims.CanonicalObservables();
+        auto [mm, id] = ims.create_moment_matrix(1);
+        EXPECT_EQ(ic.observable_variant_count(), 2); // a0, a1)
+        ASSERT_EQ(co.size(), 3); // e, A0, A0A1
+
+
+    }
+
     TEST(Operators_Inflation_CanonicalObservables, AliasTriangle) {
         InflationMatrixSystem ims{
                 std::make_unique<InflationContext>(CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2)};

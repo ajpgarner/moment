@@ -3,6 +3,7 @@ include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
 add_executable(npatk_tests
     operators/context_tests.cpp
     operators/hashed_sequence_tests.cpp
+    operators/implicit_symbol_test_helpers.cpp
     operators/localizing_matrix_tests.cpp
     operators/multi_operator_iterator_tests.cpp
     operators/moment_matrix_tests.cpp

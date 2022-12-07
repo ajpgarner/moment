@@ -54,7 +54,7 @@ namespace NPATK {
         [[nodiscard]] constexpr const JointMeasurementIndex& Indices() const noexcept {
             return this->indices;
         }
-//
+
     private:
         size_t generateLevelZero(size_t& index_cursor);
         size_t generateLevelOne(size_t& index_cursor);

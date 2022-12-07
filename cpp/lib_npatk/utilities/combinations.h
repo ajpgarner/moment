@@ -64,8 +64,10 @@ namespace NPATK {
             }
         }
 
-        constexpr CombinationIndexIterator(size_t SetSize, size_t SubsetSize, bool)
-                : N(SetSize), K(SubsetSize), endState(true) { }
+        constexpr CombinationIndexIterator(size_t SetSize, size_t SubsetSize, bool set_to_true)
+                : N(SetSize), K(SubsetSize), endState(true) {
+            assert(set_to_true);
+        }
 
         constexpr CombinationIndexIterator& operator++() {
             assert(!this->endState);

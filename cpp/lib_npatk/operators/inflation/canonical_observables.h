@@ -34,6 +34,9 @@ namespace NPATK {
         /** Index string, in terms of observable/variant */
         std::vector<OVIndex> indices;
 
+        /** Index string, flattened */
+        std::vector<size_t> flattened_indices;
+
         /** Hash of OVIndex string */
         size_t hash;
 
@@ -43,9 +46,16 @@ namespace NPATK {
         /** Total number of associated outputs (i.e. operators + implicit operators) */
         size_t outcomes;
 
-        CanonicalObservable(size_t index, std::vector<OVIndex> index_list, size_t the_hash,
-                            size_t ops, size_t outcomes)
-                : index{index}, indices(std::move(index_list)), hash{the_hash}, operators{ops}, outcomes{outcomes} { }
+        CanonicalObservable(size_t index, std::vector<OVIndex> index_list, std::vector<size_t> flat_index_list,
+                            size_t the_hash, size_t ops, size_t outcomes)
+                : index{index}, indices(std::move(index_list)), flattened_indices(std::move(flat_index_list)),
+                  hash{the_hash}, operators{ops}, outcomes{outcomes} { }
+
+        /** String length of the canonical observable */
+        [[nodiscard]] constexpr auto size() const noexcept { return this->indices.size(); }
+
+        /** Does the canonical observable have a string length of zero (i.e. represents normalization) */
+        [[nodiscard]] constexpr auto empty() const noexcept { return this->indices.empty(); }
     };
 
     class CanonicalObservables {

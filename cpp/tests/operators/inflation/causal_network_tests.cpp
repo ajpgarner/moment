@@ -36,6 +36,23 @@ namespace NPATK::Tests {
         EXPECT_THROW(CausalNetwork({2, 2}, {{1,2}}), errors::bad_source);
     }
 
+
+    TEST(Operators_Inflation_CausalNetwork, Construct_Singleton) {
+        CausalNetwork ic{{2}, {{0}}};
+        const auto& observables = ic.Observables();
+        ASSERT_EQ(observables.size(), 1);
+        EXPECT_EQ(observables[0].id, 0);
+        EXPECT_EQ(observables[0].outcomes, 2);
+        EXPECT_EQ(observables[0].sources.size(), 1);
+        EXPECT_TRUE(observables[0].sources.contains(0));
+
+        const auto& sources = ic.Sources();
+        ASSERT_EQ(sources.size(), 1);
+        EXPECT_EQ(sources[0].id, 0);
+        EXPECT_EQ(sources[0].observables.size(), 1);
+        EXPECT_TRUE(sources[0].observables.contains(0));
+    }
+
     TEST(Operators_Inflation_CausalNetwork, Construct_Line) {
         CausalNetwork ic{{2, 2}, {{0, 1}}};
 

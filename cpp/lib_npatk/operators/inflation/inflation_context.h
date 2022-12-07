@@ -76,6 +76,7 @@ namespace NPATK {
         public:
             struct Variant {
             public:
+                /** Global number of first operator in variant */
                 oper_name_t operator_offset;
                 oper_name_t flat_index;
                 std::vector<oper_name_t> indices;
@@ -97,9 +98,16 @@ namespace NPATK {
         private:
             const InflationContext& context;
         public:
+            /** Global number of first operator in observable */
             const oper_name_t operator_offset;
+
+            /** Global number of first variant in observable */
             const oper_name_t variant_offset;
+
+            /** Number of variants of this observable */
             const oper_name_t variant_count;
+
+            /** Variants of this observable */
             const std::vector<Variant> variants;
 
         public:
@@ -233,6 +241,10 @@ namespace NPATK {
          */
         [[nodiscard]] OVIndex index_to_obs_variant(oper_name_t global_variant_index) const;
 
+        /**
+         * Returns number of outcomes for each observable referred to by indices
+         */
+        [[nodiscard]] std::vector<size_t> outcomes_per_observable(std::span<const OVIndex> indices) const noexcept;
 
          /**
           * Output information about inflation context

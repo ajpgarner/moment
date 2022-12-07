@@ -15,6 +15,7 @@ namespace NPATK {
     class FactorTable;
     class CanonicalObservables;
     class InflationExplicitSymbolIndex;
+    class InflationImplicitSymbols;
 
     class InflationMatrixSystem : public MatrixSystem {
 
@@ -26,6 +27,8 @@ namespace NPATK {
         std::unique_ptr<class CanonicalObservables> canonicalObservables;
 
         std::unique_ptr<InflationExplicitSymbolIndex> explicitSymbols;
+
+        std::unique_ptr<InflationImplicitSymbols> implicitSymbols;
 
     public:
         /**
@@ -65,6 +68,13 @@ namespace NPATK {
         * @throws errors::missing_compoment if not generated.
         */
         [[nodiscard]] const InflationExplicitSymbolIndex& ExplicitSymbolTable() const;
+
+        /**
+        * Returns an indexing of real-valued symbols that correspond to explicit operators/operator sequences within
+        * the context (including joint measurements).
+        * @throws errors::missing_compoment if not generated.
+        */
+        [[nodiscard]] const InflationImplicitSymbols& ImplicitSymbolTable() const;
 
         /**
          * Calculates the longest real sequences that can exist within this system (i.e. the highest number of
