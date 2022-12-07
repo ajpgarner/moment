@@ -41,6 +41,36 @@ namespace NPATK::Tests {
         ASSERT_EQ(iter, threeElems.end());
     }
 
+
+    TEST(Symbolic_LinearCombo, CreateFromMap) {
+        std::map<size_t, double> testMap{{2, 13.0}, {10, 100.0}, {5, -23.0}};
+
+        LinearCombo threeElems{testMap};
+        ASSERT_FALSE(threeElems.empty());
+        ASSERT_EQ(threeElems.size(), 3);
+        auto iter = threeElems.begin();
+        ASSERT_NE(iter, threeElems.end());
+        EXPECT_EQ(&(*iter), &threeElems[0]);
+        EXPECT_EQ(iter->first, 2);
+        EXPECT_EQ(iter->second, 13.0);
+
+        ++iter;
+        ASSERT_NE(iter, threeElems.end());
+        EXPECT_EQ(&(*iter), &threeElems[1]);
+        EXPECT_EQ(iter->first, 5);
+        EXPECT_EQ(iter->second, -23.0);
+
+        ++iter;
+        ASSERT_NE(iter, threeElems.end());
+        EXPECT_EQ(&(*iter), &threeElems[2]);
+        EXPECT_EQ(iter->first, 10);
+        EXPECT_EQ(iter->second, 100.0);
+
+        ++iter;
+        ASSERT_EQ(iter, threeElems.end());
+    }
+
+
     TEST(Symbolic_LinearCombo, Equality) {
         LinearCombo listA{{2, 10.0}, {5, 20.0}};
         LinearCombo listB{{2, 10.0}, {5, 20.0}};

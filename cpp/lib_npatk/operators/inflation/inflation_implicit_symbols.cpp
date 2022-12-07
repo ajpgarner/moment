@@ -128,7 +128,8 @@ namespace NPATK {
             }
 
             const size_t level = canonicalObservable.indices.size();
-            SymbolCombo::data_t symbolComboData;
+            SymbolCombo::map_t  symbolComboData;
+            //SymbolCombo::data_t symbolComboData;
             double the_sign = (num_implicit % 2 == 0) ? +1. : -1.;
             for (size_t missing_index = num_implicit; missing_index > 0; --missing_index) {
                 PartitionIterator partitions{num_implicit, missing_index};
@@ -156,7 +157,10 @@ namespace NPATK {
                     // Look up, and copy with sign
                     const auto symbolsSpan = this->esiForm.get(lookupIndices, outcomeIndices);
                     for (auto symb : symbolsSpan) {
-                        symbolComboData.emplace_back(symb.symbol_id, the_sign);
+                        auto [existingIter, inserted] = symbolComboData.insert(std::pair(symb.symbol_id, the_sign));
+                        if (!inserted) {
+                            existingIter->second += the_sign;
+                        }
                     }
                     ++partitions;
                 }
@@ -175,10 +179,13 @@ namespace NPATK {
             }
             auto normMmtSpan = this->esiForm.get(normIndices, normOutcomes);
             assert(normMmtSpan.size() == 1);
-            symbolComboData.emplace_back(normMmtSpan[0].symbol_id, the_sign);
+            auto [existingIter, inserted] = symbolComboData.insert(std::pair(normMmtSpan[0].symbol_id, the_sign));
+            if (!inserted) {
+                existingIter->second += the_sign;
+            }
 
             // Add constructed representation to data table
-            this->tableData.emplace_back(-1, SymbolCombo{std::move(symbolComboData)});
+            this->tableData.emplace_back(-1, SymbolCombo{symbolComboData});
 
             ++outcomeIter;
         }

@@ -83,16 +83,28 @@ namespace NPATK::Tests {
         EXPECT_EQ(spanAB[2].expression[1].first, alice_bob) << ctx;
         EXPECT_EQ(spanAB[2].expression[1].second, -1.0) << ctx;
 
-        EXPECT_EQ(spanAB[3].symbol_id, -1) << ctx;
-        ASSERT_EQ(spanAB[3].expression.size(), 4) << ctx;
-        EXPECT_EQ(spanAB[3].expression[0].first, id) << ctx; // ID
-        EXPECT_EQ(spanAB[3].expression[0].second, 1.0) << ctx;
-        EXPECT_EQ(spanAB[3].expression[1].first, alice) << ctx;
-        EXPECT_EQ(spanAB[3].expression[1].second, -1.0) << ctx;
-        EXPECT_EQ(spanAB[3].expression[2].first, bob) << ctx;
-        EXPECT_EQ(spanAB[3].expression[2].second, -1.0) << ctx;
-        EXPECT_EQ(spanAB[3].expression[3].first, alice_bob) << ctx;
-        EXPECT_EQ(spanAB[3].expression[3].second, 1.0) << ctx;
+        if (alice == bob) {
+            EXPECT_EQ(spanAB[3].symbol_id, -1) << ctx;
+            ASSERT_EQ(spanAB[3].expression.size(), 3) << ctx;
+            EXPECT_EQ(spanAB[3].expression[0].first, id) << ctx; // ID
+            EXPECT_EQ(spanAB[3].expression[0].second, 1.0) << ctx;
+            EXPECT_EQ(spanAB[3].expression[1].first, alice) << ctx;
+            EXPECT_EQ(spanAB[3].expression[1].second, -2.0) << ctx;
+            EXPECT_EQ(spanAB[3].expression[2].first, alice_bob) << ctx;
+            EXPECT_EQ(spanAB[3].expression[2].second, 1.0) << ctx;
+        } else {
+            EXPECT_EQ(spanAB[3].symbol_id, -1) << ctx;
+            ASSERT_EQ(spanAB[3].expression.size(), 4) << ctx;
+            EXPECT_EQ(spanAB[3].expression[0].first, id) << ctx; // ID
+            EXPECT_EQ(spanAB[3].expression[0].second, 1.0) << ctx;
+            EXPECT_EQ(spanAB[3].expression[1].first, alice) << ctx;
+            EXPECT_EQ(spanAB[3].expression[1].second, -1.0) << ctx;
+            EXPECT_EQ(spanAB[3].expression[2].first, bob) << ctx;
+            EXPECT_EQ(spanAB[3].expression[2].second, -1.0) << ctx;
+            EXPECT_EQ(spanAB[3].expression[3].first, alice_bob) << ctx;
+            EXPECT_EQ(spanAB[3].expression[3].second, 1.0) << ctx;
+        }
+
     }
 
     void test32JoinMmt(std::span<const PMODefinition> spanAB,

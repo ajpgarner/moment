@@ -8,6 +8,7 @@
 #include "integer_types.h"
 
 #include <algorithm>
+#include <map>
 #include <utility>
 #include <vector>
 
@@ -17,6 +18,7 @@ namespace NPATK {
     public:
         using column_value_t = std::pair<index_t, weight_t>;
         using data_t = std::vector<column_value_t>;
+        using map_t = std::map<index_t, weight_t>;
     private:
         data_t data;
 
@@ -27,6 +29,10 @@ namespace NPATK {
         constexpr explicit LinearCombo(data_t input) : data(std::move(input)) {
             std::sort(data.begin(), data.end(),
                       [](const column_value_t& lhs, const column_value_t& rhs) { return lhs.first < rhs.first;} );
+        }
+
+        constexpr explicit LinearCombo(const map_t& input)
+            : data(input.cbegin(), input.cend()) {
         }
 
         constexpr LinearCombo(std::initializer_list<column_value_t> input)
