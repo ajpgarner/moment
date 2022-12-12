@@ -59,7 +59,6 @@ classdef CompositeOperatorMatrix < handle
     
     %% Basis accessors
     methods
-        
         function val = get.RealBasis(obj)
             % Resize real if necessary
             delta_re = obj.MatrixSystem.RealVarCount ...
@@ -130,7 +129,6 @@ classdef CompositeOperatorMatrix < handle
     end
     
     %% YALMIP methods
-    
     methods
         function out_M = yalmipComplexMatrix(obj, a, b)
             out_M = reshape(transpose(a) * obj.RealBasis ...
@@ -144,6 +142,7 @@ classdef CompositeOperatorMatrix < handle
         end
     end
     
+    %% Internal methods
     methods(Access=private)
         function makeMonolithicBases(obj)
             % No basis if no constituents

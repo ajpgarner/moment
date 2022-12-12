@@ -49,7 +49,7 @@ classdef AlgebraicScenario < Scenario
         
     end
     
-    %% Algebraic expressions
+    %% Bind algebraic expressions
     methods
         function item = get(obj, operators)
             arguments
@@ -58,6 +58,25 @@ classdef AlgebraicScenario < Scenario
             end
             
             item = Algebraic.Monomial(obj, operators, 1.0);
+        end
+        
+        function varargout = getAll(obj)
+            if obj.OperatorCount == 0
+                error("No operators to get.");
+            end
+            if nargout ~= obj.OperatorCount
+                error(sprintf("getAll() expects %d outputs", ...
+                              obj.OperatorCount));
+            end
+            
+            varargout = cell(1, nargout);
+            for index = 1:obj.OperatorCount
+                varargout{index} = obj.get(index);
+            end
+        end
+        
+        function val = id(obj)
+            val = obj.get([]);
         end
     end
     

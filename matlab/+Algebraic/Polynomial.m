@@ -1,9 +1,18 @@
-
-classdef Polynomial < ComplexObject
+classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < ComplexObject
     %POLYNOMIAL
     
     properties
         Constituents = Algebraic.Monomial.empty(1,0)
+    end
+    
+    methods(Static)
+        function obj = Zero(setting)
+            arguments
+                setting (1,1) Scenario
+            end
+            obj = Algebraic.Polynomial(setting, ...
+                                       Algebraic.Monomial.empty(1,0));
+        end
     end
     
     methods
@@ -50,12 +59,14 @@ classdef Polynomial < ComplexObject
             if ~isa(lhs, 'Algebraic.Polynomial')
                 this = rhs;
                 other = lhs;
+                premult = true;
             else
                 this = lhs;
                 other = rhs;
+                premult = false;
             end
             
-            if isnumeric(other)
+            if isnumeric(other) % Scalar multiplication by number...
                 if length(other) ~= 1
                     error("_*_ only supported for scalar multiplication.");
                 end
@@ -68,6 +79,26 @@ classdef Polynomial < ComplexObject
                         double(old_m.Coefficient * other));
                 end
                 val = Algebraic.Polynomial(this.Setting, new_coefs);
+            elseif isa(other, 'Algebraic.Monomial')
+                new_coefs = Algebraic.Monomial.empty(1,0);
+                for i = 1:length(this.Constituents)
+                    old_m = this.Constituents(i);
+                    if premult
+                        new_ops = [other.Operators, old_m.Operators];
+                    else
+                        new_ops = [old_m.Operators, other.Operators];
+                    end
+                    new_coefs(end+1) = Algebraic.Monomial(this.Setting, ...
+                        new_ops, ...
+                        double(old_m.Coefficient * other.Coefficient));                    
+                end
+                val = Algebraic.Polynomial(this.Setting, new_coefs);
+            elseif isa(other, 'Algebraic.Polynomial')
+                val = Algebraic.Polynomial.Zero(this.Setting);                
+                for i = 1:length(this.Constituents)
+                    new_m = this.Constituents(i) * other;
+                    val = val + new_m;
+                end
             else
                 error("_*_ not defined between " + class(lhs) ...
                     + " and " + class(rhs));
@@ -81,24 +112,31 @@ classdef Polynomial < ComplexObject
                 rhs (1,1)
             end
             
-            % Add a scalar by a built-in type?
+            % Which are we??
             if ~isa(lhs, 'Algebraic.Polynomial')
-                if ~isnumeric(lhs)
-                    error("_+_ not defined between " + class(lhs) ...
-                        + " and " + class(rhs));
-                end
                 this = rhs;
-                other = Algebraic.Monomial(this.Setting, [], double(lhs));
-            elseif isa(lhs, 'Algebraic.Polynomial')
+                other = lhs;
+            else
                 this = lhs;
                 other = rhs;
             end
             
+            % Is other side built-in numeric; if so, cast to monomial
+            if isnumeric(other)
+                other = Algebraic.Monomial(this.Setting, [], double(other));
+            elseif ~isa(other, 'Algebraic.Monomial') && ...
+                    ~isa(other, 'Algebraic.Polynomial')
+                error("_+_ not defined between " + class(lhs) ...
+                        + " and " + class(rhs));
+            end
+            
+            % Check objects are from same scenario
+            if (this.Setting ~= other.Setting)
+                error(this.err_mismatched_scenario);
+            end
+                        
             % Add monomial to polynomial?
             if isa(other, 'Algebraic.Monomial')
-                if (this.Setting ~= other.Setting)
-                    error(this.err_mismatched_scenario);
-                end
                 components = horzcat(this.Constituents, other);
                 val = Algebraic.Polynomial(this.Setting, components);
             elseif isa(other, 'Algebraic.Polynomial')
@@ -108,8 +146,8 @@ classdef Polynomial < ComplexObject
                 components = horzcat(this.Constituents, other.Constituents);
                 val = Algebraic.Polynomial(this.Setting, components);
             else
-                error("_+_ not defined between " + class(lhs) ...
-                    + " and " + class(rhs));
+                error(['Assertion failed: ',...
+                       'other should be Monomial or Polynomial.']);
             end
         end
         

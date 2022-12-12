@@ -112,18 +112,26 @@ classdef Monomial < ComplexObject
             if ~isa(lhs, 'Algebraic.Monomial')
                 this = rhs;
                 other = lhs;
+                if ~isnumeric(other)
+                    error(['Pre-multiplication _*_ should only be ',...
+                          'invoked when LHS is a built-in type.']);
+                end
             else
                 this = lhs;
-                other = rhs;
+                other = rhs;                
             end
             
-            if isnumeric(other)
+            if isnumeric(other) % Scalar number multiplication:
                 if length(other) ~= 1
                     error("_*_ only supported for scalar multiplication.");
                 end
                 
                 val = Algebraic.Monomial(this.Setting, this.Operators, ...
                     double(this.Coefficient * other));
+            elseif isa(other, 'Algebraic.Monomial') % mono * mono = mono
+                val = Algebraic.Monomial(this.Setting, ...
+                        [this.Operators, other.Operators], ...
+                        double(this.Coefficient * other.Coefficient));
             else
                 error("_*_ not defined between " + class(lhs) ...
                     + " and " + class(rhs));
@@ -137,35 +145,30 @@ classdef Monomial < ComplexObject
                 rhs (1,1)
             end
             
+            % Is it simply two monomials of the same type?
+            if isa(lhs, 'Algebraic.Monomial') ...
+                && isa(rhs, 'Algebraic.Monomial')
+                if lhs.Operators == rhs.Operators
+                    val = Algebraic.Monomial(lhs.Setting, lhs.Operators,...
+                          double(lhs.Coefficient + rhs.Coefficient));
+                    return;
+                end
+            end
+                        
             % Add a scalar by a built-in type?
             if ~isa(lhs, 'Algebraic.Monomial')
-                if ~isnumeric(lhs)
-                    error("_+_ not defined between " + class(lhs) ...
-                        + " and " + class(rhs));
-                end
                 this = rhs;
-                other = Algebraic.Monomial(this.Setting, [], double(lhs));
+                other = lhs; % Algebraic.Monomial(this.Setting, [], double(lhs));
             else
                 this = lhs;
                 other = rhs;
             end
             
-            % Add monomial to monomial?
-            if isa(other, 'Algebraic.Monomial')
-                if (this.Setting ~= other.Setting)
-                    error(this.err_mismatched_scenario);
-                end
-                val = Algebraic.Polynomial(this.Setting, [this, other]);
-            elseif isa(other, 'Algebraic.Polynomial')
-                if (this.Setting ~= other.Setting)
-                    error(this.err_mismatched_scenario);
-                end
-                components = horzcat(this, other.Constituents);
-                val = Algebraic.Polynomial(this.Setting, components);
-            else
-                error("_+_ not defined between " + class(lhs) ...
-                    + " and " + class(rhs));
-            end
+            % Promote to polynomial
+            this = Algebraic.Polynomial(this.Setting, [this]);
+            
+            % Add (commutes, so ordering does not matter)
+            val = this.plus(other);
         end
         
         % Subtraction
@@ -230,7 +233,7 @@ classdef Monomial < ComplexObject
         function val = calculateShortlexHash(obj)
             val = 1;
             stride = uint64(1);
-            for index = 1:length(obj.Operators)
+            for index = length(obj.Operators):-1:1
                 val = val + stride*obj.Operators(index);
                 stride = uint64(stride * (obj.Setting.OperatorCount));
             end
