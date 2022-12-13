@@ -4,9 +4,11 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
-#include <vector>
+
 #include <cassert>
 #include <cstddef>
+
+#include <vector>
 
 namespace NPATK {
 
@@ -24,7 +26,7 @@ namespace NPATK {
         bool is_done = false;
 
     public:
-        explicit MultiDimensionalIndexIterator(std::vector<size_t> sizes, bool end = false)
+        constexpr explicit MultiDimensionalIndexIterator(std::vector<size_t> sizes, bool end = false)
             : num_indices(sizes.size()), max_vals(std::move(sizes)), indices(num_indices, 0), is_done{end} {
             // No iteration if no indices.
             if (num_indices == 0) {
@@ -39,7 +41,7 @@ namespace NPATK {
             }
         }
 
-        MultiDimensionalIndexIterator& operator++() noexcept {
+        constexpr MultiDimensionalIndexIterator& operator++() noexcept {
             if constexpr (reversed_indices) {
                 size_t recurse_depth = 0;
                 bool recursing = true;
@@ -79,13 +81,13 @@ namespace NPATK {
             return *this;
         }
 
-        [[nodiscard]] MultiDimensionalIndexIterator operator++(int)& noexcept { // NOLINT(cert-dcl21-cpp)
+        [[nodiscard]] constexpr MultiDimensionalIndexIterator operator++(int)& noexcept { // NOLINT(cert-dcl21-cpp)
             MultiDimensionalIndexIterator copy{*this};
             ++(*this);
             return copy;
         }
 
-        [[nodiscard]] bool operator==(const MultiDimensionalIndexIterator& rhs) const noexcept {
+        [[nodiscard]] constexpr bool operator==(const MultiDimensionalIndexIterator& rhs) const noexcept {
             // Cannot be equal if one iter is done and the other not
             if (this->is_done != rhs.is_done) {
                 return false;
@@ -106,24 +108,24 @@ namespace NPATK {
             return true;
         }
 
-        [[nodiscard]] bool operator!=(const MultiDimensionalIndexIterator& rhs) const noexcept {
+        [[nodiscard]] constexpr bool operator!=(const MultiDimensionalIndexIterator& rhs) const noexcept {
             return !this->operator==(rhs);
         }
 
-        const std::vector<size_t>& operator*() const noexcept {
+        constexpr const std::vector<size_t>& operator*() const noexcept {
             return this->indices;
         }
 
-        size_t operator[](size_t dim) const noexcept {
+        [[nodiscard]] constexpr size_t operator[](size_t dim) const noexcept {
             assert(dim < this->num_indices);
             return this->indices[dim];
         };
 
-        [[nodiscard]] const std::vector<size_t>& limits() const noexcept {
+        [[nodiscard]] constexpr const std::vector<size_t>& limits() const noexcept {
             return this->max_vals;
         }
 
-        [[nodiscard]] bool done() const noexcept {
+        [[nodiscard]] constexpr bool done() const noexcept {
             return this->is_done;
         }
 
@@ -137,15 +139,15 @@ namespace NPATK {
     private:
         std::vector<size_t> max_vals;
     public:
-        explicit MultiDimensionalIndexRange(std::vector<size_t> limits) : max_vals(std::move(limits)) { }
+        constexpr explicit MultiDimensionalIndexRange(std::vector<size_t> limits) : max_vals(std::move(limits)) { }
 
         MultiDimensionalIndexRange(std::initializer_list<size_t> limits) : max_vals{limits} { }
 
-        [[nodiscard]] auto begin() const noexcept {
+        [[nodiscard]] constexpr auto begin() const noexcept {
             return MultiDimensionalIndexIterator<reversed_indices>{max_vals};
         }
 
-        [[nodiscard]] auto end() const noexcept {
+        [[nodiscard]] constexpr auto end() const noexcept {
             return MultiDimensionalIndexIterator<reversed_indices>{max_vals, true};
         }
     };
