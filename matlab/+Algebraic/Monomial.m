@@ -148,7 +148,7 @@ classdef Monomial < ComplexObject
             % Is it simply two monomials of the same type?
             if isa(lhs, 'Algebraic.Monomial') ...
                 && isa(rhs, 'Algebraic.Monomial')
-                if lhs.Operators == rhs.Operators
+                if isequal(lhs.Operators, rhs.Operators)
                     val = Algebraic.Monomial(lhs.Setting, lhs.Operators,...
                           double(lhs.Coefficient + rhs.Coefficient));
                     return;

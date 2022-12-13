@@ -149,6 +149,33 @@ classdef AlgebraicTest < NPATKTestBase
             testCase.verifyEqual(x_plus_x.Coefficient, 2 * x.Coefficient);
         end
         
+          
+        function plus_mono_mono_different_length(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.get([1]);
+            xy = setting.get([1, 2]);
+            
+            x_plus_xy = x + xy;
+            xy_plus_x = xy + x;
+            testCase.verifyTrue(isa(x_plus_xy, 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(x_plus_xy.Constituents), 2);
+            part_x = x_plus_xy.Constituents(1);
+            part_xy = x_plus_xy.Constituents(2);            
+            testCase.assertEqual(part_x.Operators, x.Operators);
+            testCase.assertEqual(part_x.Coefficient, x.Coefficient);
+            testCase.assertEqual(part_xy.Operators, xy.Operators);
+            testCase.assertEqual(part_xy.Coefficient, xy.Coefficient);            
+            
+            testCase.verifyTrue(isa(xy_plus_x, 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(xy_plus_x.Constituents), 2);
+            partB_x = xy_plus_x.Constituents(1);
+            partB_xy = xy_plus_x.Constituents(2);                       
+            testCase.assertEqual(partB_x.Operators, x.Operators);
+            testCase.assertEqual(partB_x.Coefficient, x.Coefficient);
+            testCase.assertEqual(partB_xy.Operators, xy.Operators);
+            testCase.assertEqual(partB_xy.Coefficient, xy.Coefficient);
+        end
+        
         function plus_mono_poly(testCase)
             setting = AlgebraicScenario(3);
             [x, y, z] = setting.getAll();
