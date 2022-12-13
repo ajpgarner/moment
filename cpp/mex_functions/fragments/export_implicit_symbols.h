@@ -14,11 +14,16 @@
 #include <span>
 
 namespace NPATK {
+    class Context;
     class MomentMatrix;
     class LocalityImplicitSymbols;
+    class InflationImplicitSymbols;
     class PMODefinition;
 
     namespace mex {
+        matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                                                         const InflationImplicitSymbols &impliedSymbols);
+
         matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
                                                    const LocalityImplicitSymbols &impliedSymbols);
 

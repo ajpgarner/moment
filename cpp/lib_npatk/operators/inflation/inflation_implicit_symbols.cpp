@@ -191,6 +191,4 @@ namespace NPATK {
         }
         return this->tableData.size() - initial_index;
     }
-
-
 }

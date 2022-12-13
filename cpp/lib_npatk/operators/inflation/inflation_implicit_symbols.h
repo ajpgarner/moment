@@ -5,9 +5,11 @@
  */
 #pragma once
 
+#include "inflation_context.h"
+
 #include "operators/common/implicit_symbols.h"
 
-#include "inflation_context.h"
+#include "utilities/variable_chunk_range.h"
 
 #include <vector>
 
@@ -37,6 +39,10 @@ namespace NPATK {
         [[nodiscard]] std::span<const PMODefinition> get(std::span<const size_t> mmtIndex) const override;
 
         [[nodiscard]] std::span<const PMODefinition> get(std::span<const OVIndex> mmtIndices) const;
+
+        [[nodiscard]] VariableChunkRange<PMODefinition, ptrdiff_t> BlockData() const noexcept {
+            return {this->tableData, this->indices};
+        }
 
     private:
         size_t generateFromCanonicalObservable(const CanonicalObservable& canonicalObservable);

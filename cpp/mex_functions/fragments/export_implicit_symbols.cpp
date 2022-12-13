@@ -6,6 +6,8 @@
 #include "export_implicit_symbols.h"
 
 #include "operators/context.h"
+#include "operators/inflation/canonical_observables.h"
+#include "operators/inflation/inflation_implicit_symbols.h"
 #include "operators/locality/locality_implicit_symbols.h"
 #include "operators/locality/joint_measurement_iterator.h"
 #include "operators/matrix/operator_matrix.h"
@@ -53,7 +55,7 @@ namespace NPATK::mex {
                                                      std::move(data_p), std::move(rows_p), std::move(cols_p));
         }
 
-        class ImpliedSymbolWriter {
+        class LocalityImpliedSymbolWriter {
         private:
             matlab::engine::MATLABEngine &engine;
             matlab::data::ArrayFactory factory;
@@ -69,9 +71,9 @@ namespace NPATK::mex {
             size_t write_index = 0;
 
         public:
-            ImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
-                                const LocalityImplicitSymbols &impliedSymbols)
-                    : engine{engine}, implicitSymbols{impliedSymbols}, context{implicitSymbols.context},
+            LocalityImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
+                                        const LocalityImplicitSymbols &impliedSymbols)
+                    : engine{engine}, implicitSymbols{impliedSymbols}, context{impliedSymbols.context},
                       implicit_table_length{implicitSymbols.Data().size() + 1},
                       real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()},
                       output_array{factory.createStructArray({1, implicit_table_length},
@@ -85,12 +87,12 @@ namespace NPATK::mex {
                 ++write_index;
             }
 
-            ImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
-                                const LocalityImplicitSymbols &impliedSymbols,
-                                const std::span<const PMODefinition> symbols,
-                                const std::span<const PMIndex> indices)
+            LocalityImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
+                                        const LocalityImplicitSymbols &impliedSymbols,
+                                        const std::span<const PMODefinition> symbols,
+                                        const std::span<const PMIndex> indices)
 
-                    : engine{engine}, implicitSymbols{impliedSymbols}, context{implicitSymbols.context},
+                    : engine{engine}, implicitSymbols{impliedSymbols}, context{impliedSymbols.context},
                       implicit_table_length{symbols.size()},
                       real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()},
                       output_array{factory.createStructArray({1, implicit_table_length},
@@ -162,9 +164,73 @@ namespace NPATK::mex {
         };
     }
 
+
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                               const LocalityImplicitSymbols &impliedSymbols) {
-        ImpliedSymbolWriter isw{engine, impliedSymbols};
+                                                     const InflationImplicitSymbols &impliedSymbols) {
+
+        const auto& canonicalObservables = impliedSymbols.canonicalObservables;
+        const auto& context = impliedSymbols.context;
+        const auto& symbolTable = impliedSymbols.symbols;
+
+        matlab::data::ArrayFactory factory;
+        matlab::data::StructArray output{factory.createStructArray({1, impliedSymbols.Data().size()},
+                                               {"sequence", "indices", "real_coefficients"})};
+
+        size_t outputIndex = 0;
+        const auto& data = impliedSymbols.Data();
+
+        size_t co_index = 0;
+
+        for (auto chunk : impliedSymbols.BlockData()) {
+            assert(co_index < canonicalObservables.size());
+            const auto& canonical = canonicalObservables[co_index];
+            oper_name_t outcome_index = 0;
+
+            for (const auto& entry : chunk) {
+
+                auto full_indices = context.unflatten_outcome_index(canonical.indices, outcome_index);
+
+
+                output[outputIndex]["sequence"] = factory.createScalar(context.format_sequence(full_indices));
+
+                // Calculate indices
+                if (full_indices.empty()) {
+                    output[outputIndex]["indices"] = factory.createArray<uint64_t>({0, 3});
+                } else {
+                    const size_t index_size = full_indices.size();
+                    auto index_data = factory.createBuffer<uint64_t>(3*index_size);
+
+                    size_t row = 0;
+                    for (const auto& i : full_indices) {
+                        index_data[row] = i.observable_variant.observable + 1;
+                        index_data[index_size + row] = i.observable_variant.variant + 1;
+                        index_data[2*index_size + row] = i.outcome + 1;
+                        ++row;
+                    }
+                    output[outputIndex]["indices"]
+                        = factory.createArrayFromBuffer({index_size, 3}, std::move(index_data));
+                }
+
+                // And next, real co-efficients
+                output[outputIndex]["real_coefficients"] =
+                        combo_to_sparse_array(engine, factory, symbolTable, entry.expression);
+                ++outputIndex;
+                ++outcome_index;
+            }
+
+            ++co_index;
+        }
+        assert(co_index = canonicalObservables.size());
+
+
+        return output;
+    }
+
+
+
+    matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                                               const LocalityImplicitSymbols& impliedSymbols) {
+        LocalityImpliedSymbolWriter isw{engine, impliedSymbols};
         impliedSymbols.visit(isw);
 
         return std::move(isw.output_array);
@@ -182,7 +248,7 @@ namespace NPATK::mex {
 
         auto pmod = impliedSymbols.get(globalMmtIndex);
 
-        ImpliedSymbolWriter isw{engine, impliedSymbols, pmod, measurementIndex};
+        LocalityImpliedSymbolWriter isw{engine, impliedSymbols, pmod, measurementIndex};
         return std::move(isw.output_array);
     }
 

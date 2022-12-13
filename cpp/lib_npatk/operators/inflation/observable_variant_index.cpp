@@ -17,4 +17,9 @@ namespace NPATK {
         os << obsNamer(index.observable) << index.variant;
         return os;
     }
+
+    std::ostream& operator<<(std::ostream& os, const OVOIndex& index) {
+        os << index.observable_variant << "." << index.outcome;
+        return os;
+    }
 }

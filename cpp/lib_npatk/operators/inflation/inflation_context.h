@@ -203,9 +203,20 @@ namespace NPATK {
         canonical_variants(const std::vector<OVIndex>& input) const;
 
         /**
+         * Unwrap outcome number to various outcomes of source measurements
+         */
+        [[nodiscard]] std::vector<OVOIndex>
+        unflatten_outcome_index(const std::vector<OVIndex>& input, oper_name_t outcome_number) const;
+
+        using Context::format_sequence;
+
+        /**
          * Generates a formatted string representation of an operator sequence
          */
         [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const override;
+
+        [[nodiscard]] std::string format_sequence(const std::vector<OVOIndex>& indices) const;
+
 
         /**
           * Get operator associated with following triplet:
@@ -250,7 +261,5 @@ namespace NPATK {
           * Output information about inflation context
           */
          [[nodiscard]] std::string to_string() const override;
-
-
     };
 }

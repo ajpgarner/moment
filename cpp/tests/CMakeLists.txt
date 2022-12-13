@@ -41,6 +41,7 @@ add_executable(npatk_tests
     utilities/persistent_storage_tests.cpp
     utilities/recursive_storage_tests.cpp
     utilities/square_matrix_tests.cpp
+    utilities/variable_chunk_range_tests.cpp
 )
 
 target_link_libraries(npatk_tests

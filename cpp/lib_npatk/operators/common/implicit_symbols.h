@@ -11,8 +11,12 @@
 
 #include "symbolic/linear_combo.h"
 
-#include <vector>
+#include <cassert>
+
+#include <memory>
 #include <stdexcept>
+#include <vector>
+
 
 namespace NPATK {
     class SymbolTable;
@@ -40,6 +44,7 @@ namespace NPATK {
      * Calculate the 'missing' marginals/probabilities from the explicit form.
      */
     class ImplicitSymbols {
+
     public:
         const size_t MaxSequenceLength;
         const SymbolTable& symbols;
@@ -55,6 +60,10 @@ namespace NPATK {
 
     public:
         virtual ~ImplicitSymbols() = default;
+
+        [[nodiscard]] auto begin() const { return this->tableData.begin(); }
+        [[nodiscard]] auto end() const {  return this->tableData.end(); }
+
 
         [[nodiscard]] constexpr const std::vector<PMODefinition>& Data() const noexcept {
             return this->tableData;

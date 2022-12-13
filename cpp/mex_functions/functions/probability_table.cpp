@@ -9,6 +9,7 @@
 
 #include "operators/matrix/operator_matrix.h"
 #include "operators/matrix/moment_matrix.h"
+#include "operators/inflation/inflation_matrix_system.h"
 #include "operators/locality/locality_implicit_symbols.h"
 #include "operators/locality/locality_matrix_system.h"
 #include "fragments/export_implicit_symbols.h"
@@ -133,12 +134,70 @@ namespace NPATK::mex::functions {
         static_assert(concepts::VisitorHasRealDense<PMIndexReaderVisitor>);
         static_assert(concepts::VisitorHasString<PMIndexReaderVisitor>);
 
+        class OVIndexReaderVisitor {
+
+        private:
+            matlab::engine::MATLABEngine &engine;
+        public:
+            using return_type = std::vector<OVIndex>;
+
+            explicit OVIndexReaderVisitor(matlab::engine::MATLABEngine &matlabEngine)
+                    : engine{matlabEngine} { }
+
+            /** Dense input -> dense monolithic output */
+            template<std::convertible_to<size_t> data_t>
+            return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
+                std::vector<OVIndex> output;
+                const auto dims = matrix.getDimensions();
+                assert(dims.size() == 2);
+                assert(dims[1] == 2);
+
+                for (size_t row = 0; row < dims[0]; ++row) {
+                    if (matrix[row][0] < 1) {
+                        throw errors::BadInput{errors::bad_param, "Observable index should be positive integer."};
+                    }
+                    if (matrix[row][1] < 1) {
+                        throw errors::BadInput{errors::bad_param, "Variant index should be positive integer."};
+                    }
+
+                    output.emplace_back(static_cast<party_name_t>(matrix[row][0]-1),// from matlab index to C++ index
+                                        static_cast<mmt_name_t>(matrix[row][1]-1));  // from matlab index to C++ index
+                }
+                return output;
+            }
+
+            /** Dense input -> dense monolithic output */
+            return_type string(const matlab::data::StringArray& matrix) {
+                std::vector<OVIndex> output;
+                const auto dims = matrix.getDimensions();
+                assert(dims.size() == 2);
+                assert(dims[1] == 3);
+                for (size_t row = 0; row < dims[0]; ++row) {
+                    auto party_raw = SortedInputs::read_positive_integer(engine, "Observable index",
+                                                                         matrix[row][0], 1);
+                    auto mmt_raw = SortedInputs::read_positive_integer(engine, "Variant index",
+                                                                       matrix[row][1], 1);
+
+                    output.emplace_back(static_cast<party_name_t>(party_raw - 1), // from matlab index to C++ index
+                                        static_cast<mmt_name_t>(mmt_raw - 1));    // from matlab index to C++ index
+
+                }
+                return output;
+            }
+        };
+
+        static_assert(concepts::VisitorHasRealDense<OVIndexReaderVisitor>);
+        static_assert(concepts::VisitorHasString<OVIndexReaderVisitor>);
+
     }
 
     ProbabilityTableParams::ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputIn)
             : SortedInputs(std::move(inputIn)) {
 
-        // Get matrix system class
+        // Is this explicitly inflation mode?
+        this->inflation_mode = this->flags.contains(u"inflation");
+
+        // Get matrix system ID
         this->matrix_system_key = read_positive_integer(matlabEngine, "Reference id", this->inputs[0], 0);
 
         // For single input, just get whole table
@@ -146,15 +205,6 @@ namespace NPATK::mex::functions {
             this->export_mode = ExportMode::WholeTable;
             return;
         }
-        // Otherwise, parse as potential PMO index
-        const auto keyDims = this->inputs[1].getDimensions();
-        if ((2 != keyDims.size()) || ((keyDims[1] != 3) && (keyDims[1] != 2))) {
-            throw errors::BadInput{errors::bad_param, std::string("Measurement indices should be written as a")
-                                    + " Nx3 matrix (e.g., [[party, mmt, outcome]; [party mmt, outcome]]),"
-                                    + " or as a Nx2 matrix (e.g., [[party, mmt]; [party, mmt]])."};
-        }
-
-        this->export_mode = (keyDims[1] == 3) ? ExportMode::OneOutcome : ExportMode::OneMeasurement;
 
         // Check input type
         switch (this->inputs[1].getType()) {
@@ -175,6 +225,26 @@ namespace NPATK::mex::functions {
                 throw errors::BadInput{errors::bad_param, "Index type must be real numeric, or of numeric strings."};
         }
 
+        // Check input dimensions
+        const auto keyDims = this->inputs[1].getDimensions();
+        if (this->inflation_mode) {
+            if ((2 != keyDims.size()) || (keyDims[1] != 2)) {
+                throw errors::BadInput{errors::bad_param,
+                                       std::string("Observable indices should be written as a")
+                                       + " Nx2 matrix (e.g., [[observable, variant]; [observable, variant]])."};
+            }
+            this->export_mode = ExportMode::OneObservable;
+        } else {
+            if ((2 != keyDims.size()) || ((keyDims[1] != 3) && (keyDims[1] != 2))) {
+                throw errors::BadInput{errors::bad_param,
+                                       std::string("Measurement indices should be written as a")
+                                        + " Nx3 matrix (e.g., [[party, mmt, outcome]; [party mmt, outcome]]),"
+                                        + " or as a Nx2 matrix (e.g., [[party, mmt]; [party, mmt]])."};
+
+            }
+            this->export_mode = (keyDims[1] == 3) ? ExportMode::OneOutcome : ExportMode::OneMeasurement;
+        }
+
         // Read indices
         if (this->export_mode == ExportMode::OneOutcome) {
             this->requested_outcome = DispatchVisitor(matlabEngine, this->inputs[1],
@@ -192,7 +262,7 @@ namespace NPATK::mex::functions {
             // Sort requested indices
             std::sort(this->requested_outcome.begin(), this->requested_outcome.end(),
                       [](const auto &lhs, const auto &rhs) { return lhs.party < rhs.party; });
-        } else {
+        } else if (this->export_mode == ExportMode::OneMeasurement) {
             this->requested_measurement = DispatchVisitor(matlabEngine, this->inputs[1],
                                                           PMIndexReaderVisitor{matlabEngine});
 
@@ -208,6 +278,11 @@ namespace NPATK::mex::functions {
             // Sort requested indices
             std::sort(this->requested_measurement.begin(), this->requested_measurement.end(),
                       [](const auto &lhs, const auto &rhs) { return lhs.party < rhs.party; });
+        } else if (this->export_mode == ExportMode::OneObservable) {
+            this->requested_observables = DispatchVisitor(matlabEngine, this->inputs[1],
+                                                          OVIndexReaderVisitor{matlabEngine});
+
+
         }
 
     }
@@ -219,6 +294,8 @@ namespace NPATK::mex::functions {
 
         this->min_inputs = 1;
         this->max_inputs = 2;
+
+        this->flag_names.emplace(u"inflation");
     }
 
     void ProbabilityTable::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
@@ -234,14 +311,41 @@ namespace NPATK::mex::functions {
         auto lock = msPtr->get_read_lock();
         const MatrixSystem& system = *msPtr;
 
-        const auto * lsm = dynamic_cast<const LocalityMatrixSystem *>(&system);
-        if (nullptr == lsm) {
-            throw_error(this->matlabEngine, errors::bad_cast, "MatrixSystem was not a LocalityMatrixSystem.");
+        // Attempt to read as locality system
+        const auto * lms = dynamic_cast<const LocalityMatrixSystem *>(&system);
+        if (nullptr != lms) {
+            export_locality(output, input, *lms);
+            return;
         }
-        const LocalityContext& context = lsm->localityContext;
+
+        // Attempt to read as inflation system
+        const auto * ims = dynamic_cast<const InflationMatrixSystem *>(&system);
+        if (nullptr != ims) {
+            export_inflation(output, input, *ims);
+            return;
+        }
+
+        // Could not read...!
+        throw_error(this->matlabEngine, errors::bad_cast,
+                    "MatrixSystem was neither a LocalityMatrixSystem, or an InflationMatrixSystem.");
+
+    }
+
+    std::unique_ptr<SortedInputs> ProbabilityTable::transform_inputs(std::unique_ptr<SortedInputs> input) const {
+        auto tx = std::make_unique<ProbabilityTableParams>(this->matlabEngine, std::move(*input));
+        if (!this->storageManager.MatrixSystems.check_signature(tx->matrix_system_key)) {
+            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
+        }
+        return tx;
+    }
+
+    void ProbabilityTable::export_locality(IOArgumentRange output,
+                                          ProbabilityTableParams& input, const LocalityMatrixSystem& lms) {
+
+        const LocalityContext& context = lms.localityContext;
 
         // Create (or retrieve) implied sequence object
-        const LocalityImplicitSymbols& implSym = lsm->ImplicitSymbolTable();
+        const LocalityImplicitSymbols& implSym = lms.ImplicitSymbolTable();
 
         // Export whole table?
         if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {
@@ -252,9 +356,9 @@ namespace NPATK::mex::functions {
 
         if (input.export_mode == ProbabilityTableParams::ExportMode::OneMeasurement) {
             // Check inputs are okay:
-            if (input.requested_measurement.size() > lsm->MaxRealSequenceLength()) {
+            if (input.requested_measurement.size() > lms.MaxRealSequenceLength()) {
                 throw_error(this->matlabEngine, errors::bad_param,
-                            "A moment matrix of high enough order to define the requested probability was not specified.");
+                    "A moment matrix of high enough order to define the requested probability was not specified.");
             }
             for (const auto& pm : input.requested_measurement) {
                 if (pm.party >= context.Parties.size()) {
@@ -277,12 +381,23 @@ namespace NPATK::mex::functions {
         throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
     }
 
-    std::unique_ptr<SortedInputs> ProbabilityTable::transform_inputs(std::unique_ptr<SortedInputs> input) const {
-        auto tx = std::make_unique<ProbabilityTableParams>(this->matlabEngine, std::move(*input));
-        if (!this->storageManager.MatrixSystems.check_signature(tx->matrix_system_key)) {
-            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
+    void ProbabilityTable::export_inflation(IOArgumentRange output,
+                                            ProbabilityTableParams& input, const InflationMatrixSystem& ims) {
+
+        const InflationContext& context = ims.InflationContext();
+
+        // Create (or retrieve) implied sequence object
+        const InflationImplicitSymbols& implSym = ims.ImplicitSymbolTable();
+
+        // Export whole table?
+        if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {
+            // Export symbols
+            output[0] = export_implied_symbols(this->matlabEngine, implSym);
+            return;
         }
-        return tx;
+
+        throw_error(this->matlabEngine, errors::internal_error, "Non-complete table inflation export not yet supported.");
     }
+
 
 }

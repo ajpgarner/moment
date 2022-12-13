@@ -343,7 +343,39 @@ namespace NPATK {
         return permuted_variants;
     }
 
+    std::vector<OVOIndex>
+    InflationContext::unflatten_outcome_index(const std::vector<OVIndex> &input, oper_name_t outcome_number) const {
+        // Empty input -> empty output
+        if (input.empty()) {
+            return {};
+        }
 
+        // Otherwise, first copy O/V indices, and bounds check
+        std::vector<OVOIndex> output;
+        output.reserve(input.size());
+        size_t index = 0;
+        for (const auto& ov : input) {
+            if (ov.observable > this->inflated_observables.size()) {
+                std::stringstream errSS;
+                errSS << "Observable \"" << ov.observable << "\" at index " << index << " out of range.";
+                throw errors::bad_observable{index, errSS.str()};
+            }
+            output.emplace_back(ov, 0);
+            ++index;
+        }
+
+        // Now, we reverse iterate and deduce outcome number
+        for (auto iter = output.rbegin(); iter != output.rend(); ++iter) {
+            const auto max_outcomes = static_cast<oper_name_t>(
+                    this->inflated_observables[iter->observable_variant.observable].outcomes);
+
+            iter->outcome = outcome_number % max_outcomes;
+            outcome_number = outcome_number / max_outcomes;
+        }
+
+        // Move output
+        return output;
+    }
 
     oper_name_t InflationContext::operator_number(oper_name_t observable, oper_name_t variant,
                                                   oper_name_t outcome) const noexcept {
@@ -396,7 +428,7 @@ namespace NPATK {
                 one_operator = true;
             }
 
-            if (oper > this->operator_info.size()) {
+            if (oper >= this->operator_info.size()) {
                 ss << "[UNK:" << oper << "]";
             } else {
                 const auto &extraInfo = this->operator_info[oper];
@@ -429,6 +461,72 @@ namespace NPATK {
         }
         return ss.str();
     }
+
+    std::string InflationContext::format_sequence(const std::vector<OVOIndex> &indices) const {
+        if (indices.empty()) {
+            return "1";
+        }
+
+        std::stringstream ss;
+        AlphabeticNamer obsNamer{true};
+
+        const bool needs_comma = this->inflation > 9;
+        const bool needs_braces = std::any_of(this->Observables().cbegin(), this->Observables().cend(),
+                                              [](const auto& obs) { return obs.outcomes > 2; });
+        bool one_operator = false;
+        for (const auto& ovo : indices) {
+            if (one_operator) {
+                ss << ";";
+            } else {
+                one_operator = true;
+            }
+
+            // Check valid observable
+            if (ovo.observable_variant.observable >= this->inflated_observables.size()) {
+                ss << "[UNK: " << ovo.observable_variant.observable << ", "
+                               << ovo.observable_variant.variant << ", "
+                               << ovo.outcome << "]";
+            } else {
+
+                // Name observable
+                const auto &obsInfo = this->inflated_observables[ovo.observable_variant.observable];
+                ss << obsNamer(ovo.observable_variant.observable);
+
+                // Give indices, if inflated
+                if (this->inflation > 1) {
+                    // Check variant index
+                    if (ovo.observable_variant.variant >= obsInfo.variant_count) {
+                        ss << "[UNK-VAR: " << ovo.observable_variant.variant << "]";
+
+                    } else {
+                        const auto &infIndices = obsInfo.variants[ovo.observable_variant.variant].indices;
+
+                        bool done_one = false;
+                        if (needs_braces) {
+                            ss << "[";
+                        }
+                        for (auto infIndex: infIndices) {
+                            if (needs_comma && done_one) {
+                                ss << ",";
+                            } else {
+                                done_one = true;
+                            }
+                            ss << infIndex;
+                        }
+                        if (needs_braces) {
+                            ss << "]";
+                        }
+                    }
+                }
+            }
+
+            // Write output number
+            ss << "." << ovo.outcome;
+
+        }
+        return ss.str();
+    }
+
 
     std::vector<size_t> InflationContext::outcomes_per_observable(std::span<const OVIndex> indices) const noexcept {
         std::vector<size_t> output{};

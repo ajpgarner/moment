@@ -104,7 +104,6 @@ namespace NPATK::Tests {
             EXPECT_EQ(spanAB[3].expression[3].first, alice_bob) << ctx;
             EXPECT_EQ(spanAB[3].expression[3].second, 1.0) << ctx;
         }
-
     }
 
     void test32JoinMmt(std::span<const PMODefinition> spanAB,
@@ -118,7 +117,6 @@ namespace NPATK::Tests {
         ASSERT_FALSE(spanAB.empty()) << ctx;
         ASSERT_EQ(spanAB.size(), 6) << ctx;
 
-        // a0b0 (expl.)
         EXPECT_EQ(spanAB[0].symbol_id, a0b) << ctx;
         ASSERT_EQ(spanAB[0].expression.size(), 1) << ctx;
         EXPECT_EQ(spanAB[0].expression[0].first, a0b) << ctx;

@@ -15,9 +15,9 @@ namespace NPATK {
         oper_name_t observable;
         oper_name_t variant;
 
-        OVIndex() = default;
+        constexpr OVIndex() = default;
 
-        OVIndex(oper_name_t o, oper_name_t v) : observable{o}, variant{v} { }
+        constexpr OVIndex(oper_name_t o, oper_name_t v) : observable{o}, variant{v} { }
 
         constexpr bool operator<(const OVIndex& other) const noexcept {
             if (this->observable < other.observable) {
@@ -33,5 +33,24 @@ namespace NPATK {
         }
 
         friend std::ostream& operator<<(std::ostream& os, const OVIndex& index);
+    };
+
+    struct OVOIndex {
+        OVIndex observable_variant;
+        oper_name_t outcome;
+
+        constexpr OVOIndex() = default;
+
+        constexpr OVOIndex(OVIndex obs_var, oper_name_t out)
+                : observable_variant{obs_var}, outcome{out} { }
+
+        constexpr OVOIndex(oper_name_t obs, oper_name_t var, oper_name_t out)
+            : observable_variant{obs, var}, outcome{out} { }
+
+        constexpr bool operator==(const OVOIndex& other) const noexcept {
+            return (this->observable_variant == other.observable_variant) && (this->outcome == other.outcome);
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const OVOIndex& index);
     };
 }

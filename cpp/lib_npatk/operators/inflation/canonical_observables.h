@@ -87,7 +87,6 @@ namespace NPATK {
 
         [[nodiscard]] const CanonicalObservable& canonical(std::span<const size_t> indices) const;
 
-
         [[nodiscard]] size_t distinct_observables(size_t level) const noexcept {
             assert(level < this->distinct_observables_per_level.size());
             return this->distinct_observables_per_level[level];
@@ -95,7 +94,11 @@ namespace NPATK {
 
         [[nodiscard]] auto begin() const noexcept { return this->canonical_observables.cbegin(); }
         [[nodiscard]] auto end() const noexcept { return this->canonical_observables.cend(); }
-        [[nodiscard]] auto size() const noexcept { return this->canonical_observables.size(); }
+        [[nodiscard]] constexpr size_t size() const noexcept { return this->canonical_observables.size(); }
+        [[nodiscard]] constexpr const CanonicalObservable& operator[](const size_t index) const {
+            assert(index < this->size());
+            return this->canonical_observables[index];
+        }
 
     };
 }

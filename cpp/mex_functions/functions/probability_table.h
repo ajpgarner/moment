@@ -5,8 +5,13 @@
  */
 #pragma once
 #include "mex_function.h"
+#include "operators/inflation/observable_variant_index.h"
 #include "operators/locality/measurement.h"
 
+namespace NPATK {
+    class LocalityMatrixSystem;
+    class InflationMatrixSystem;
+}
 
 namespace NPATK::mex::functions {
 
@@ -16,7 +21,8 @@ namespace NPATK::mex::functions {
         enum struct ExportMode {
             WholeTable,
             OneMeasurement,
-            OneOutcome
+            OneOutcome,
+            OneObservable
         } export_mode = ExportMode::WholeTable;
 
         /** The reference to the matrix system */
@@ -28,6 +34,10 @@ namespace NPATK::mex::functions {
         /** The PMO index to export */
         std::vector<PMOIndex> requested_outcome{};
 
+        /** THe OV index to export */
+        std::vector<OVIndex> requested_observables{};
+
+        bool inflation_mode = false;
     public:
         explicit ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
     };
@@ -39,6 +49,16 @@ namespace NPATK::mex::functions {
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+
+    private:
+        void export_locality(IOArgumentRange output,
+                             ProbabilityTableParams& input,
+                             const LocalityMatrixSystem& lms);
+
+        void export_inflation(IOArgumentRange output,
+                              ProbabilityTableParams& input,
+                              const InflationMatrixSystem& ims);
+
     };
 
 }

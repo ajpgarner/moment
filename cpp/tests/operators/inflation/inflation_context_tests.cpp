@@ -717,4 +717,73 @@ namespace NPATK::Tests {
         EXPECT_EQ(fromB1A01[0], OVIndex(0LL, 0LL));
         EXPECT_EQ(fromB1A01[1], OVIndex(1LL, 0LL));
     }
+
+
+    TEST(Operators_Locality_LocalityContext, UnflattenOutcomeIndex) {
+        InflationContext ic{CausalNetwork{{3, 2}, {{0}, {0, 1}}}, 2}; // mmts: A00, A01, A10, A11, B0, B1
+        ASSERT_EQ(ic.observable_variant_count(), 6);
+
+        const std::vector<OVIndex> ov{{0, 0}, {1, 0}}; // should have 6 outcomes...
+
+        // 0,0
+        auto ovo_00 = ic.unflatten_outcome_index(ov, 0);
+        ASSERT_EQ(ovo_00.size(), 2);
+        EXPECT_EQ(ovo_00[0].observable_variant.observable, 0);
+        EXPECT_EQ(ovo_00[0].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_00[0].outcome, 0);
+        EXPECT_EQ(ovo_00[1].observable_variant.observable, 1);
+        EXPECT_EQ(ovo_00[1].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_00[1].outcome, 0);
+
+        // 0,1
+        auto ovo_01 = ic.unflatten_outcome_index(ov, 1);
+        ASSERT_EQ(ovo_01.size(), 2);
+        EXPECT_EQ(ovo_01[0].observable_variant.observable, 0);
+        EXPECT_EQ(ovo_01[0].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_01[0].outcome, 0);
+        EXPECT_EQ(ovo_01[1].observable_variant.observable, 1);
+        EXPECT_EQ(ovo_01[1].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_01[1].outcome, 1);  // 0,0
+        
+        // 1,0
+        auto ovo_10 = ic.unflatten_outcome_index(ov, 2);
+        ASSERT_EQ(ovo_10.size(), 2);
+        EXPECT_EQ(ovo_10[0].observable_variant.observable, 0);
+        EXPECT_EQ(ovo_10[0].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_10[0].outcome, 1);
+        EXPECT_EQ(ovo_10[1].observable_variant.observable, 1);
+        EXPECT_EQ(ovo_10[1].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_10[1].outcome, 0);
+
+        // 1,1
+        auto ovo_11 = ic.unflatten_outcome_index(ov, 3);
+        ASSERT_EQ(ovo_11.size(), 2);
+        EXPECT_EQ(ovo_11[0].observable_variant.observable, 0);
+        EXPECT_EQ(ovo_11[0].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_11[0].outcome, 1);
+        EXPECT_EQ(ovo_11[1].observable_variant.observable, 1);
+        EXPECT_EQ(ovo_11[1].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_11[1].outcome, 1);
+        
+        // 2,0
+        auto ovo_20 = ic.unflatten_outcome_index(ov, 4);
+        ASSERT_EQ(ovo_20.size(), 2);
+        EXPECT_EQ(ovo_20[0].observable_variant.observable, 0);
+        EXPECT_EQ(ovo_20[0].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_20[0].outcome, 2);
+        EXPECT_EQ(ovo_20[1].observable_variant.observable, 1);
+        EXPECT_EQ(ovo_20[1].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_20[1].outcome, 0);
+
+        // 2,1
+        auto ovo_21 = ic.unflatten_outcome_index(ov, 5);
+        ASSERT_EQ(ovo_21.size(), 2);
+        EXPECT_EQ(ovo_21[0].observable_variant.observable, 0);
+        EXPECT_EQ(ovo_21[0].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_21[0].outcome, 2);
+        EXPECT_EQ(ovo_21[1].observable_variant.observable, 1);
+        EXPECT_EQ(ovo_21[1].observable_variant.variant, 0);
+        EXPECT_EQ(ovo_21[1].outcome, 1);
+    }
+
 }
