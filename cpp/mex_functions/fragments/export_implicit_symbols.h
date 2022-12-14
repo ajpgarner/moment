@@ -34,6 +34,12 @@ namespace NPATK {
         [[nodiscard]] matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
                                                                        const InflationImplicitSymbols &impliedSymbols,
                                                                        std::span<const OVIndex> obsVarIndices);
+        /**
+         * Export one outcome of implied symbols from inflation scenario
+         */
+        [[nodiscard]] matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                                                                       const InflationImplicitSymbols &impliedSymbols,
+                                                                       std::span<const OVOIndex> obsVarIndices);
 
         /**
          * Export complete table of implied symbols from locality scenario
@@ -48,9 +54,11 @@ namespace NPATK {
                                                                        const LocalityImplicitSymbols &impliedSymbols,
                                                                        std::span<const PMIndex> measurementIndex);
 
-        matlab::data::StructArray export_implied_symbol_row(matlab::engine::MATLABEngine &engine,
-                                                            const MomentMatrix& momentMatrix,
-                                                            const std::vector<PMOIndex>& pmoIndices,
-                                                            const PMODefinition& impliedSymbols);
+        /**
+         * Export one outcome of implied symbols from inflation scenario
+         */
+        [[nodiscard]] matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                                                                       const LocalityImplicitSymbols &impliedSymbols,
+                                                                       std::span<const PMOIndex> outcomeIndex);
     }
 }

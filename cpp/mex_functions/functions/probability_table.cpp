@@ -21,22 +21,22 @@
 namespace NPATK::mex::functions {
 
     namespace {
-        class PMOIndexReaderVisitor {
+        class IndexReaderVisitor {
         private:
             matlab::engine::MATLABEngine &engine;
         public:
-            using return_type = std::vector<PMOIndex>;
+            using return_type = std::vector<ProbabilityTableParams::RawTriplet>;
 
-            explicit PMOIndexReaderVisitor(matlab::engine::MATLABEngine &matlabEngine)
-                : engine{matlabEngine} { }
+            explicit IndexReaderVisitor(matlab::engine::MATLABEngine &matlabEngine) : engine{matlabEngine} { }
 
             /** Dense input -> dense monolithic output */
             template<std::convertible_to<size_t> data_t>
             return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
-                std::vector<PMOIndex> output;
+                std::vector<ProbabilityTableParams::RawTriplet> output;
                 const auto dims = matrix.getDimensions();
                 assert(dims.size() == 2);
-                assert(dims[1] == 3);
+                assert((dims[1] == 2) || (dims[1] == 3));
+                const bool triplet = (dims[1] == 3);
 
                 for (size_t row = 0; row < dims[0]; ++row) {
                     if (matrix[row][0] < 1) {
@@ -45,220 +45,60 @@ namespace NPATK::mex::functions {
                     if (matrix[row][1] < 1) {
                         throw errors::BadInput{errors::bad_param, "Measurement index should be positive integer."};
                     }
-                    if (matrix[row][2] < 1) {
+                    if (triplet && (matrix[row][2] < 1)) {
                         throw errors::BadInput{errors::bad_param, "Outcome index should be positive integer."};
                     }
-                    output.emplace_back(static_cast<party_name_t>(matrix[row][0]-1),// from matlab index to C++ index
-                                        static_cast<mmt_name_t>(matrix[row][1]-1),  // from matlab index to C++ index
-                                        static_cast<uint32_t>(matrix[row][2]-1));   // from matlab index to C++ index
+                    if (triplet) {
+                        // from matlab index to C++ index
+                        output.emplace_back(static_cast<size_t>(matrix[row][0] - 1),
+                                            static_cast<size_t>(matrix[row][1] - 1),
+                                            static_cast<size_t>(matrix[row][2] - 1));
+                    } else {
+                        // from matlab index to C++ index
+                        output.emplace_back(static_cast<size_t>(matrix[row][0] - 1),
+                                            static_cast<size_t>(matrix[row][1] - 1), 0);
+                    }
                 }
                 return output;
             }
 
             /** Dense input -> dense monolithic output */
             return_type string(const matlab::data::StringArray& matrix) {
-                std::vector<PMOIndex> output;
+                std::vector<ProbabilityTableParams::RawTriplet> output;
                 const auto dims = matrix.getDimensions();
                 assert(dims.size() == 2);
-                assert(dims[1] == 3);
-                for (size_t row = 0; row < dims[0]; ++row) {
-                    auto party_raw = SortedInputs::read_positive_integer(engine, "Party index",
-                                                                         matrix[row][0], 1);
-                    auto mmt_raw = SortedInputs::read_positive_integer(engine, "Measurement index",
-                                                                         matrix[row][1], 1);
-                    auto outcome_raw = SortedInputs::read_positive_integer(engine, "Outcome index",
-                                                                         matrix[row][2], 1);
+                const bool triplet = (dims[1] == 3);
 
-                    output.emplace_back(static_cast<party_name_t>(party_raw - 1), // from matlab index to C++ index
-                                        static_cast<mmt_name_t>(mmt_raw - 1),     // from matlab index to C++ index
-                                        static_cast<uint32_t>(outcome_raw - 1));  // from matlab index to C++ index
-                }
-                return output;
-            }
-        };
-
-        static_assert(concepts::VisitorHasRealDense<PMOIndexReaderVisitor>);
-        static_assert(concepts::VisitorHasString<PMOIndexReaderVisitor>);
-
-        class PMIndexReaderVisitor {
-
-        private:
-            matlab::engine::MATLABEngine &engine;
-        public:
-            using return_type = std::vector<PMIndex>;
-
-            explicit PMIndexReaderVisitor(matlab::engine::MATLABEngine &matlabEngine)
-                : engine{matlabEngine} { }
-
-            /** Dense input -> dense monolithic output */
-            template<std::convertible_to<size_t> data_t>
-            return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
-                std::vector<PMIndex> output;
-                const auto dims = matrix.getDimensions();
-                assert(dims.size() == 2);
-                assert(dims[1] == 2);
-
-                for (size_t row = 0; row < dims[0]; ++row) {
-                    if (matrix[row][0] < 1) {
-                        throw errors::BadInput{errors::bad_param, "Party index should be positive integer."};
-                    }
-                    if (matrix[row][1] < 1) {
-                        throw errors::BadInput{errors::bad_param, "Measurement index should be positive integer."};
-                    }
-                    output.emplace_back(static_cast<party_name_t>(matrix[row][0]-1),// from matlab index to C++ index
-                                        static_cast<mmt_name_t>(matrix[row][1]-1));   // from matlab index to C++ index
-                }
-                return output;
-            }
-
-            /** Dense input -> dense monolithic output */
-            return_type string(const matlab::data::StringArray& matrix) {
-                std::vector<PMIndex> output;
-                const auto dims = matrix.getDimensions();
-                assert(dims.size() == 2);
-                assert(dims[1] == 2);
                 for (size_t row = 0; row < dims[0]; ++row) {
                     auto party_raw = SortedInputs::read_positive_integer(engine, "Party index",
                                                                          matrix[row][0], 1);
                     auto mmt_raw = SortedInputs::read_positive_integer(engine, "Measurement index",
                                                                          matrix[row][1], 1);
 
-                    output.emplace_back(static_cast<party_name_t>(party_raw - 1), // from matlab index to C++ index
-                                        static_cast<mmt_name_t>(mmt_raw - 1));     // from matlab index to C++ index
+                    if (!triplet) {
+                        // from matlab index to C++ index
+                        output.emplace_back(static_cast<size_t>(party_raw - 1),
+                                            static_cast<size_t>(mmt_raw - 1), 0);
+                    } else {
+                        auto outcome_raw = SortedInputs::read_positive_integer(engine, "Outcome index",
+                                                                               matrix[row][2], 1);
+                        // from matlab index to C++ index
+                        output.emplace_back(static_cast<size_t>(party_raw - 1),
+                                            static_cast<size_t>(mmt_raw - 1),
+                                            static_cast<size_t>(outcome_raw - 1));
+                    }
                 }
                 return output;
             }
         };
 
-        static_assert(concepts::VisitorHasRealDense<PMIndexReaderVisitor>);
-        static_assert(concepts::VisitorHasString<PMIndexReaderVisitor>);
-
-        class OVIndexReaderVisitor {
-
-        private:
-            matlab::engine::MATLABEngine &engine;
-        public:
-            using return_type = std::vector<OVIndex>;
-
-            explicit OVIndexReaderVisitor(matlab::engine::MATLABEngine &matlabEngine)
-                    : engine{matlabEngine} { }
-
-            /** Dense input -> dense monolithic output */
-            template<std::convertible_to<size_t> data_t>
-            return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
-                std::vector<OVIndex> output;
-                const auto dims = matrix.getDimensions();
-                assert(dims.size() == 2);
-                assert(dims[1] == 2);
-
-                for (size_t row = 0; row < dims[0]; ++row) {
-                    if (matrix[row][0] < 1) {
-                        throw errors::BadInput{errors::bad_param, "Observable index should be positive integer."};
-                    }
-                    if (matrix[row][1] < 1) {
-                        throw errors::BadInput{errors::bad_param, "Variant index should be positive integer."};
-                    }
-
-                    output.emplace_back(static_cast<party_name_t>(matrix[row][0]-1),// from matlab index to C++ index
-                                        static_cast<mmt_name_t>(matrix[row][1]-1));  // from matlab index to C++ index
-                }
-                return output;
-            }
-
-            /** Dense input -> dense monolithic output */
-            return_type string(const matlab::data::StringArray& matrix) {
-                std::vector<OVIndex> output;
-                const auto dims = matrix.getDimensions();
-                assert(dims.size() == 2);
-                assert(dims[1] == 2);
-                for (size_t row = 0; row < dims[0]; ++row) {
-                    auto party_raw = SortedInputs::read_positive_integer(engine, "Observable index",
-                                                                         matrix[row][0], 1);
-                    auto mmt_raw = SortedInputs::read_positive_integer(engine, "Variant index",
-                                                                       matrix[row][1], 1);
-
-                    output.emplace_back(static_cast<party_name_t>(party_raw - 1), // from matlab index to C++ index
-                                        static_cast<mmt_name_t>(mmt_raw - 1));    // from matlab index to C++ index
-
-                }
-                return output;
-            }
-        };
-
-        static_assert(concepts::VisitorHasRealDense<OVIndexReaderVisitor>);
-        static_assert(concepts::VisitorHasString<OVIndexReaderVisitor>);
-
-        class OVOIndexReaderVisitor {
-
-        private:
-            matlab::engine::MATLABEngine &engine;
-        public:
-            using return_type = std::vector<OVOIndex>;
-
-            explicit OVOIndexReaderVisitor(matlab::engine::MATLABEngine &matlabEngine)
-                    : engine{matlabEngine} { }
-
-            /** Dense input -> dense monolithic output */
-            template<std::convertible_to<size_t> data_t>
-            return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
-                std::vector<OVOIndex> output;
-                const auto dims = matrix.getDimensions();
-                assert(dims.size() == 2);
-                assert(dims[1] == 3);
-
-                for (size_t row = 0; row < dims[0]; ++row) {
-                    if (matrix[row][0] < 1) {
-                        throw errors::BadInput{errors::bad_param, "Observable index should be positive integer."};
-                    }
-                    if (matrix[row][1] < 1) {
-                        throw errors::BadInput{errors::bad_param, "Variant index should be positive integer."};
-                    }
-                    if (matrix[row][1] < 1) {
-                        throw errors::BadInput{errors::bad_param, "Outcome index should be positive integer."};
-                    }
-
-                    output.emplace_back(static_cast<oper_name_t>(matrix[row][0]-1),
-                                        static_cast<oper_name_t>(matrix[row][1]-1),
-                                        static_cast<oper_name_t>(matrix[row][2]-1));  // from matlab index to C++ index
-                }
-                return output;
-            }
-
-            /** Dense input -> dense monolithic output */
-            return_type string(const matlab::data::StringArray& matrix) {
-                std::vector<OVOIndex> output;
-                const auto dims = matrix.getDimensions();
-                assert(dims.size() == 2);
-                assert(dims[1] == 3);
-                for (size_t row = 0; row < dims[0]; ++row) {
-                    auto obs_raw = SortedInputs::read_positive_integer(engine, "Observable index",
-                                                                         matrix[row][0], 1);
-                    auto var_raw = SortedInputs::read_positive_integer(engine, "Variant index",
-                                                                       matrix[row][1], 1);
-                    auto out_raw = SortedInputs::read_positive_integer(engine, "Outcome index",
-                                                                       matrix[row][2], 1);
-
-
-                    output.emplace_back(static_cast<party_name_t>(obs_raw - 1),  // from matlab index to C++ index
-                                        static_cast<mmt_name_t>(var_raw - 1),    // from matlab index to C++ index
-                                        static_cast<mmt_name_t>(out_raw - 1));   // from matlab index to C++ index
-
-                }
-                return output;
-            }
-        };
-
-        static_assert(concepts::VisitorHasRealDense<OVOIndexReaderVisitor>);
-        static_assert(concepts::VisitorHasString<OVOIndexReaderVisitor>);
+        static_assert(concepts::VisitorHasRealDense<IndexReaderVisitor>);
+        static_assert(concepts::VisitorHasString<IndexReaderVisitor>);
 
     }
 
     ProbabilityTableParams::ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputIn)
             : SortedInputs(std::move(inputIn)) {
-
-        // Is this explicitly inflation mode?
-        this->inflation_mode = this->flags.contains(u"inflation");
-
         // Get matrix system ID
         this->matrix_system_key = read_positive_integer(matlabEngine, "Reference id", this->inputs[0], 0);
 
@@ -289,66 +129,80 @@ namespace NPATK::mex::functions {
 
         // Check input dimensions
         const auto keyDims = this->inputs[1].getDimensions();
-        if (this->inflation_mode) {
-            if ((2 != keyDims.size()) || ((keyDims[1] != 3) && (keyDims[1] != 2))) {
-                throw errors::BadInput{errors::bad_param,
-                                       std::string("Observable indices should be written as a")
-                                       + " Nx2 matrix (e.g., [[observable, variant]; [observable, variant]]),"
-                                       + " or as a Nx3 matrix (e.g. [[obs., var., outcome]]"};
-            }
-            this->export_mode = (keyDims[1] == 3) ? ExportMode::OneInflationOutcome : ExportMode::OneInflationObservable;
-        } else {
-            if ((2 != keyDims.size()) || ((keyDims[1] != 3) && (keyDims[1] != 2))) {
-                throw errors::BadInput{errors::bad_param,
-                                       std::string("Measurement indices should be written as a")
-                                        + " Nx3 matrix (e.g., [[party, mmt, outcome]; [party mmt, outcome]]),"
-                                        + " or as a Nx2 matrix (e.g., [[party, mmt]; [party, mmt]])."};
+        if ((2 != keyDims.size()) || ((keyDims[1] != 3) && (keyDims[1] != 2))) {
+            throw errors::BadInput{errors::bad_param,
+                                   std::string("Measurement indices should be written as a")
+                                    + " Nx3 matrix (e.g., [[party, mmt, outcome]; [party mmt, outcome]]),"
+                                    + " or as a Nx2 matrix (e.g., [[party, mmt]; [party, mmt]])."};
 
-            }
-            this->export_mode = (keyDims[1] == 3) ? ExportMode::OneOutcome : ExportMode::OneMeasurement;
+        }
+        this->export_mode = (keyDims[1] == 3) ? ExportMode::OneOutcome : ExportMode::OneMeasurement;
+
+        this->requested_indices = DispatchVisitor(matlabEngine, this->inputs[1], IndexReaderVisitor{matlabEngine});
+    }
+
+    std::vector<PMIndex> ProbabilityTableParams::requested_measurement() const {
+        std::vector<PMIndex> output{};
+        output.reserve(this->requested_indices.size());
+        for (const auto& i : this->requested_indices) {
+            output.emplace_back(i.first, i.second);
         }
 
-        // Read indices
-        if (this->export_mode == ExportMode::OneOutcome) {
-            this->requested_outcome = DispatchVisitor(matlabEngine, this->inputs[1],
-                                                      PMOIndexReaderVisitor{matlabEngine});
-
-            // Check for duplicate parties
-            std::set<size_t> partySet;
-            for (const auto &pmo: this->requested_outcome) {
-                partySet.emplace(pmo.party);
-            }
-            if (partySet.size() != this->requested_outcome.size()) {
-                throw errors::BadInput{errors::bad_param, "No duplicate parties may be specified."};
-            }
-
-            // Sort requested indices
-            std::sort(this->requested_outcome.begin(), this->requested_outcome.end(),
-                      [](const auto &lhs, const auto &rhs) { return lhs.party < rhs.party; });
-        } else if (this->export_mode == ExportMode::OneMeasurement) {
-            this->requested_measurement = DispatchVisitor(matlabEngine, this->inputs[1],
-                                                          PMIndexReaderVisitor{matlabEngine});
-
-            // Check for duplicate parties
-            std::set<size_t> partySet;
-            for (const auto &pm: this->requested_measurement) {
-                partySet.emplace(pm.party);
-            }
-            if (partySet.size() != this->requested_measurement.size()) {
-                throw errors::BadInput{errors::bad_param, "No duplicate parties may be specified."};
-            }
-
-            // Sort requested indices
-            std::sort(this->requested_measurement.begin(), this->requested_measurement.end(),
-                      [](const auto &lhs, const auto &rhs) { return lhs.party < rhs.party; });
-        } else if (this->export_mode == ExportMode::OneInflationObservable) {
-            this->requested_observables = DispatchVisitor(matlabEngine, this->inputs[1],
-                                                          OVIndexReaderVisitor{matlabEngine});
-        } else if (this->export_mode == ExportMode::OneInflationOutcome) {
-            this->requested_ovo = DispatchVisitor(matlabEngine, this->inputs[1],
-                                                  OVOIndexReaderVisitor{matlabEngine});
+        // Check for duplicate parties
+        std::set<size_t> partySet;
+        for (const auto &pm: output) {
+            partySet.emplace(pm.party);
+        }
+        if (partySet.size() != output.size()) {
+            throw errors::BadInput{errors::bad_param, "No duplicate parties may be specified."};
         }
 
+        // Sort requested indices
+        std::sort(output.begin(), output.end(),
+                  [](const auto &lhs, const auto &rhs) { return lhs.party < rhs.party; });
+
+        return output;
+    }
+
+    std::vector<PMOIndex> ProbabilityTableParams::requested_outcome() const {
+        std::vector<PMOIndex> output{};
+        output.reserve(this->requested_indices.size());
+        for (const auto& i : this->requested_indices) {
+            output.emplace_back(i.first, i.second, i.third);
+        }
+
+        // Check for duplicate parties
+        std::set<size_t> partySet;
+        for (const auto &pmo: output) {
+            partySet.emplace(pmo.party);
+        }
+        if (partySet.size() != output.size()) {
+            throw errors::BadInput{errors::bad_param, "No duplicate parties may be specified."};
+        }
+
+        // Sort requested indices
+        std::sort(output.begin(), output.end(),
+                  [](const auto &lhs, const auto &rhs) { return lhs.party < rhs.party; });
+
+        return output;
+    }
+
+    std::vector<OVIndex> ProbabilityTableParams::requested_observables() const {
+        std::vector<OVIndex> output{};
+        output.reserve(this->requested_indices.size());
+        for (const auto& i : this->requested_indices) {
+            output.emplace_back(i.first, i.second);
+        }
+        return output;
+    }
+
+    std::vector<OVOIndex> ProbabilityTableParams::requested_ovo() const {
+        std::vector<OVOIndex> output{};
+        output.reserve(this->requested_indices.size());
+        for (const auto& i : this->requested_indices) {
+            output.emplace_back(i.first, i.second, i.third);
+        }
+        return output;
     }
 
     ProbabilityTable::ProbabilityTable(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
@@ -419,12 +273,13 @@ namespace NPATK::mex::functions {
         }
 
         if (input.export_mode == ProbabilityTableParams::ExportMode::OneMeasurement) {
+            auto requested_measurement = input.requested_measurement();
             // Check inputs are okay:
-            if (input.requested_measurement.size() > lms.MaxRealSequenceLength()) {
+            if (requested_measurement.size() > lms.MaxRealSequenceLength()) {
                 throw_error(this->matlabEngine, errors::bad_param,
                     "A moment matrix of high enough order to define the requested probability was not specified.");
             }
-            for (const auto& pm : input.requested_measurement) {
+            for (const auto& pm : requested_measurement) {
                 if (pm.party >= context.Parties.size()) {
                     throw_error(this->matlabEngine, errors::bad_param, "Party index out of range.");
                 }
@@ -435,14 +290,42 @@ namespace NPATK::mex::functions {
             }
 
             // Assign global indices to input.requested_measurement object...
-            context.get_global_mmt_index(input.requested_measurement);
+            context.get_global_mmt_index(requested_measurement);
 
             // Request
-            output[0] = export_implied_symbols(this->matlabEngine, implSym, input.requested_measurement);
+            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_measurement);
             return;
         }
 
-        throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
+
+        if (input.export_mode == ProbabilityTableParams::ExportMode::OneOutcome) {
+            auto requested_outcome = input.requested_outcome();
+            // Check inputs are okay:
+            if (requested_outcome.size() > lms.MaxRealSequenceLength()) {
+                throw_error(this->matlabEngine, errors::bad_param,
+                    "A moment matrix of high enough order to define the requested probability was not specified.");
+            }
+            for (const auto& pm : requested_outcome) {
+                if (pm.party >= context.Parties.size()) {
+                    throw_error(this->matlabEngine, errors::bad_param, "Party index out of range.");
+                }
+                const auto &party = context.Parties[pm.party];
+                if (pm.mmt >= party.Measurements.size()) {
+                    throw_error(this->matlabEngine, errors::bad_param, "Measurement index out of range.");
+                }
+                const auto &mmt = party.Measurements[pm.mmt];
+                if (pm.outcome >= mmt.num_outcomes) {
+                    throw_error(this->matlabEngine, errors::bad_param, "Outcome index out of range.");
+                }
+            }
+            // Request
+            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_outcome);
+            return;
+        }
+
+
+
+        throw_error(this->matlabEngine, errors::internal_error, "Unknown export type.");
     }
 
     void ProbabilityTable::export_inflation(IOArgumentRange output,
@@ -460,15 +343,19 @@ namespace NPATK::mex::functions {
             return;
         }
 
-        if (input.export_mode == ProbabilityTableParams::ExportMode::OneInflationObservable) {
-            output[0] = export_implied_symbols(this->matlabEngine, implSym, input.requested_observables);
+        if (input.export_mode == ProbabilityTableParams::ExportMode::OneMeasurement) {
+            auto requested_observable = input.requested_observables();
+            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_observable);
             return;
         }
 
-        if (input.export_mode == ProbabilityTableParams::ExportMode::OneInflationOutcome) {
-
+        if (input.export_mode == ProbabilityTableParams::ExportMode::OneOutcome) {
+            auto requested_outcome = input.requested_ovo();
+            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_outcome);
+            return;
         }
-        throw_error(this->matlabEngine, errors::internal_error, "Non-complete table inflation export not yet supported.");
+
+        throw_error(this->matlabEngine, errors::internal_error, "Unknown export type.");
     }
 
 

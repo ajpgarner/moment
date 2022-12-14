@@ -206,7 +206,12 @@ namespace NPATK {
          * Unwrap outcome number to various outcomes of source measurements
          */
         [[nodiscard]] std::vector<OVOIndex>
-        unflatten_outcome_index(const std::vector<OVIndex>& input, oper_name_t outcome_number) const;
+        unflatten_outcome_index(std::span<const OVIndex> input, oper_name_t outcome_number) const;
+
+        /**
+         * Unwrap outcome number to various outcomes of source measurements
+         */
+        [[nodiscard]] size_t flatten_outcome_index(std::span<const OVOIndex> input) const;
 
         using Context::format_sequence;
 

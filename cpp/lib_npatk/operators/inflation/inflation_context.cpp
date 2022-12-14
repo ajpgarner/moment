@@ -344,7 +344,7 @@ namespace NPATK {
     }
 
     std::vector<OVOIndex>
-    InflationContext::unflatten_outcome_index(const std::vector<OVIndex> &input, oper_name_t outcome_number) const {
+    InflationContext::unflatten_outcome_index(const std::span<const OVIndex> input, oper_name_t outcome_number) const {
         // Empty input -> empty output
         if (input.empty()) {
             return {};
@@ -375,6 +375,50 @@ namespace NPATK {
 
         // Move output
         return output;
+    }
+
+
+    size_t InflationContext::flatten_outcome_index(std::span<const OVOIndex> input) const {
+        size_t calculated_outcome_index = 0;
+        size_t stride = 1;
+
+        size_t input_index = input.size() - 1;
+        for (auto indexIter = input.rbegin(); indexIter != input.rend(); ++indexIter) {
+            const auto& index = *indexIter;
+            const auto& ov = index.observable_variant;
+
+            // Check observable
+            if (index.observable_variant.observable >= this->inflated_observables.size()) {
+                std::stringstream errSS;
+                errSS << "Observable \"" << ov.observable << "\" at index " << input_index << " is out of range.";
+                throw errors::bad_observable{input_index, errSS.str()};
+            }
+            const auto& observable = this->inflated_observables[ov.observable];
+
+            // Check variant
+            if (index.observable_variant.variant >= observable.variant_count) {
+                std::stringstream errSS;
+                errSS << "Variant \"" << ov.variant << "\" for observable \"" << ov.observable << "\" at index "
+                      << input_index << " is out of range.";
+                throw errors::bad_observable{input_index, errSS.str()};
+            }
+
+            // Check outcome
+            if (index.outcome >= observable.outcomes) {
+                std::stringstream errSS;
+                errSS << "Outcome \"" << index.outcome << "\" for variant \""
+                       << ov.variant << "\" of observable \"" << ov.observable << "\" at index "
+                      << input_index << " is out of range.";
+                throw errors::bad_observable{input_index, errSS.str()};
+            }
+
+            // Add to index
+            calculated_outcome_index += stride * index.outcome;
+            stride *= observable.outcomes;
+            --input_index;
+        }
+
+        return calculated_outcome_index;
     }
 
     oper_name_t InflationContext::operator_number(oper_name_t observable, oper_name_t variant,

@@ -220,6 +220,21 @@ namespace NPATK::mex {
                 return output;
             }
 
+            matlab::data::StructArray one_outcome(std::span<const OVOIndex> obsVarIndices) {
+                const auto &observable = canonicalObservables.canonical(obsVarIndices);
+
+                auto output = init_array(1);
+                const auto data_block = implicitSymbols.Block(observable.index);
+                const size_t outcome_index = context.flatten_outcome_index(obsVarIndices);
+                if (outcome_index > data_block.size()) {
+                    throw std::runtime_error{"Outcome index out of range."};
+                }
+
+                write_row(output, 0, observable, outcome_index, data_block[outcome_index]);
+
+                return output;
+            }
+
         private:
             matlab::data::StructArray init_array(const size_t table_length) {
                 return factory.createStructArray({1, table_length}, {"sequence", "indices", "real_coefficients"});
@@ -271,6 +286,13 @@ namespace NPATK::mex {
         return iisw.one_observable(obsVarIndices);
     }
 
+    matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                                                     const InflationImplicitSymbols &impliedSymbols,
+                                                     std::span<const OVOIndex> obsVarIndices) {
+        InflationImpliedSymbolWriter iisw{engine, impliedSymbols};
+        return iisw.one_outcome(obsVarIndices);
+    }
+
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
                                                const LocalityImplicitSymbols& impliedSymbols) {
@@ -296,39 +318,38 @@ namespace NPATK::mex {
         return std::move(isw.output_array);
     }
 
-    matlab::data::StructArray export_implied_symbol_row(matlab::engine::MATLABEngine &engine,
-                                               const MomentMatrix& momentMatrix,
-                                               const std::vector<PMOIndex>& pmoIndices,
-                                               const PMODefinition& impliedSymbols) {
+    matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                                                     const LocalityImplicitSymbols &impliedSymbols,
+                                                     const std::span<const PMOIndex> outcomeIndex) {
         matlab::data::ArrayFactory factory;
-        auto output = factory.createStructArray({1, 1}, {"sequence", "indices", "real_coefficients"});
 
-        const auto * context = dynamic_cast<const LocalityContext*>(&momentMatrix.context);
-        if (context == nullptr) {
-            throw_error(engine, errors::bad_cast,
-                        "The supplied MomentMatrix was not associated with a LocalityContext.");
-        }
+        const auto& context = impliedSymbols.context;
 
-        // (Re)make indices
-        const size_t index_depth = pmoIndices.size();
+        // Find element...
+        const auto& symbolDefinition = impliedSymbols.get(outcomeIndex);
+
+        // (Re)make indices for export
+        const size_t index_depth = outcomeIndex.size();
         std::vector<uint64_t> entryIndices(index_depth * 3, 0);
         for (size_t i = 0; i < index_depth; ++i) {
-            entryIndices[i] = pmoIndices[i].party + 1;                       // matlab 1-indexing
-            entryIndices[index_depth + i] = pmoIndices[i].mmt + 1;           // matlab 1-indexing
-            entryIndices[2*index_depth + i ] = pmoIndices[i].outcome + 1;    // matlab 1-indexing
+            entryIndices[i] = outcomeIndex[i].party + 1;                       // matlab 1-indexing
+            entryIndices[index_depth + i] = outcomeIndex[i].mmt + 1;           // matlab 1-indexing
+            entryIndices[2*index_depth + i ] = outcomeIndex[i].outcome + 1;    // matlab 1-indexing
         }
-        const matlab::data::ArrayDimensions indexArrayDim{pmoIndices.size(), 3};
-        matlab::data::TypedArray<uint64_t> index_array = pmoIndices.empty()
+        const matlab::data::ArrayDimensions indexArrayDim{outcomeIndex.size(), 3};
+        matlab::data::TypedArray<uint64_t> index_array = outcomeIndex.empty()
                                                          ? factory.createArray<uint64_t>(indexArrayDim)
                                                          : factory.createArray(indexArrayDim,
                                                                                entryIndices.cbegin(),
                                                                                entryIndices.cend());
 
-        // Write
-        output[0]["sequence"] = factory.createScalar(context->format_sequence(pmoIndices));
+
+        // Write entry
+        auto output = factory.createStructArray({1, 1}, {"sequence", "indices", "real_coefficients"});
+        output[0]["sequence"] = factory.createScalar(context.format_sequence(outcomeIndex));
         output[0]["indices"] = std::move(index_array);
-        output[0]["real_coefficients"] = combo_to_sparse_array(engine, factory, momentMatrix.Symbols,
-                                                              impliedSymbols.expression);
+        output[0]["real_coefficients"] = combo_to_sparse_array(engine, factory, impliedSymbols.symbols,
+                                                               symbolDefinition.expression);
         return output;
     }
 }

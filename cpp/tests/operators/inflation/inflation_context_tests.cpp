@@ -786,4 +786,17 @@ namespace NPATK::Tests {
         EXPECT_EQ(ovo_21[1].outcome, 1);
     }
 
+    TEST(Operators_Locality_LocalityContext, FlattenOutcomeIndex) {
+        InflationContext ic{CausalNetwork{{3, 2}, {{0}, {0, 1}}}, 2}; // mmts: A00, A01, A10, A11, B0, B1
+        ASSERT_EQ(ic.observable_variant_count(), 6);
+
+        EXPECT_EQ(ic.flatten_outcome_index(std::vector<OVOIndex>{{0, 0, 0}, {1, 0, 0}}), 0);
+        EXPECT_EQ(ic.flatten_outcome_index(std::vector<OVOIndex>{{0, 0, 0}, {1, 0, 1}}), 1);
+        EXPECT_EQ(ic.flatten_outcome_index(std::vector<OVOIndex>{{0, 0, 1}, {1, 0, 0}}), 2);
+        EXPECT_EQ(ic.flatten_outcome_index(std::vector<OVOIndex>{{0, 0, 1}, {1, 0, 1}}), 3);
+        EXPECT_EQ(ic.flatten_outcome_index(std::vector<OVOIndex>{{0, 0, 2}, {1, 0, 0}}), 4);
+        EXPECT_EQ(ic.flatten_outcome_index(std::vector<OVOIndex>{{0, 0, 2}, {1, 0, 1}}), 5);
+
+    }
+
 }

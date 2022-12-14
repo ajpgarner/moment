@@ -75,6 +75,9 @@ namespace NPATK {
         /** Hash a string of OV indices */
         [[nodiscard]] size_t hash(std::span<const OVIndex> index) const;
 
+        /** Hash a string of OVO indices (outcome is ignored) */
+        [[nodiscard]] size_t hash(std::span<const OVOIndex> index) const;
+
         [[nodiscard]] size_t hash(std::span<const size_t> global_index) const;
 
         void generate_up_to_level(size_t new_level);
@@ -84,6 +87,9 @@ namespace NPATK {
 
         /** Look up canonical observable associated with particular OV index string */
         [[nodiscard]] const CanonicalObservable& canonical(std::span<const OVIndex> indices) const;
+
+        /** Look up canonical observable associated with particular OVO index string (outcome is ignored) */
+        [[nodiscard]] const CanonicalObservable& canonical(std::span<const OVOIndex> indices) const;
 
         /** Look up canonical observable associated with particular raw variant number string */
         [[nodiscard]] const CanonicalObservable& canonical(std::span<const size_t> indices) const;

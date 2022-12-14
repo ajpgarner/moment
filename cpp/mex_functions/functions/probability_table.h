@@ -21,27 +21,33 @@ namespace NPATK::mex::functions {
         enum struct ExportMode {
             WholeTable,
             OneMeasurement,
-            OneOutcome,
-            OneInflationObservable,
-            OneInflationOutcome
+            OneOutcome
         } export_mode = ExportMode::WholeTable;
+
+
+        struct RawTriplet {
+            size_t first, second, third;
+            RawTriplet() = default;
+            RawTriplet(size_t a, size_t b, size_t c) : first{a}, second{b}, third{c} { }
+        };
 
         /** The reference to the matrix system */
         uint64_t matrix_system_key = 0;
 
-        /** The PM index to export */
-        std::vector<PMIndex> requested_measurement{};
+        std::vector<RawTriplet> requested_indices{};
 
-        /** The PMO index to export */
-        std::vector<PMOIndex> requested_outcome{};
+        /** Interpret requested indices as PM index */
+        [[nodiscard]] std::vector<PMIndex> requested_measurement() const;
 
-        /** The OV index to export */
-        std::vector<OVIndex> requested_observables{};
+        /** Interpret requested indices as PMO index */
+        [[nodiscard]] std::vector<PMOIndex> requested_outcome() const;
 
-        /** The OVO index to export */
-        std::vector<OVOIndex> requested_ovo{};
+        /** Interpret requested indices as OV index */
+        [[nodiscard]] std::vector<OVIndex> requested_observables() const;
 
-        bool inflation_mode = false;
+        /** Interpret requested indices as OVO index */
+        [[nodiscard]] std::vector<OVOIndex> requested_ovo() const;
+
     public:
         explicit ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
     };

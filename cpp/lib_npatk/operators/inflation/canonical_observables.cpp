@@ -108,6 +108,17 @@ namespace NPATK {
         return hash;
     }
 
+    size_t CanonicalObservables::hash(std::span<const OVOIndex> indices) const {
+        size_t multiplier = 1;
+        size_t hash = 0;
+        for (auto rIter = indices.rbegin(); rIter != indices.rend(); ++rIter) {
+            const auto& index = *rIter;
+            hash += (1+this->context.obs_variant_to_index(index.observable_variant)) * multiplier;
+            multiplier *= (this->context.observable_variant_count());
+        }
+        return hash;
+    }
+
     size_t CanonicalObservables::hash(std::span<const size_t> global_indices) const {
         size_t multiplier = 1;
         size_t hash = 0;
@@ -132,6 +143,26 @@ namespace NPATK {
     }
 
     const CanonicalObservable& CanonicalObservables::canonical(std::span<const OVIndex> indices) const {
+        try {
+            if (indices.size() > this->max_level) {
+                throw errors::bad_ov_string{"String is too long."};
+            }
+            const auto raw_hash = this->hash(indices);
+            return this->canonical(raw_hash);
+        } catch (const errors::bad_ov_string& e) {
+            std::stringstream ss;
+            ss << "Error with string \"";
+            for (const auto& index : indices) {
+                ss << index;
+            }
+            ss << "\": " << e.what();
+
+            // Rethrow with string info
+            throw errors::bad_ov_string{ss.str()};
+        }
+    }
+
+    const CanonicalObservable& CanonicalObservables::canonical(std::span<const OVOIndex> indices) const {
         try {
             if (indices.size() > this->max_level) {
                 throw errors::bad_ov_string{"String is too long."};
