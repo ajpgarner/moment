@@ -22,7 +22,8 @@ namespace NPATK::mex::functions {
             WholeTable,
             OneMeasurement,
             OneOutcome,
-            OneObservable
+            OneInflationObservable,
+            OneInflationOutcome
         } export_mode = ExportMode::WholeTable;
 
         /** The reference to the matrix system */
@@ -34,8 +35,11 @@ namespace NPATK::mex::functions {
         /** The PMO index to export */
         std::vector<PMOIndex> requested_outcome{};
 
-        /** THe OV index to export */
+        /** The OV index to export */
         std::vector<OVIndex> requested_observables{};
+
+        /** The OVO index to export */
+        std::vector<OVOIndex> requested_ovo{};
 
         bool inflation_mode = false;
     public:

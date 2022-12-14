@@ -44,6 +44,9 @@ namespace NPATK {
             return {this->tableData, this->indices};
         }
 
+        [[nodiscard]] std::span<const PMODefinition> Block(size_t index) const noexcept;
+
+
     private:
         size_t generateFromCanonicalObservable(const CanonicalObservable& canonicalObservable);
         size_t generateLevelZero(const CanonicalObservable& canonicalObservable);

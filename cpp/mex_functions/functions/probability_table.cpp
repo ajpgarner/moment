@@ -22,7 +22,6 @@ namespace NPATK::mex::functions {
 
     namespace {
         class PMOIndexReaderVisitor {
-
         private:
             matlab::engine::MATLABEngine &engine;
         public:
@@ -171,7 +170,7 @@ namespace NPATK::mex::functions {
                 std::vector<OVIndex> output;
                 const auto dims = matrix.getDimensions();
                 assert(dims.size() == 2);
-                assert(dims[1] == 3);
+                assert(dims[1] == 2);
                 for (size_t row = 0; row < dims[0]; ++row) {
                     auto party_raw = SortedInputs::read_positive_integer(engine, "Observable index",
                                                                          matrix[row][0], 1);
@@ -188,6 +187,69 @@ namespace NPATK::mex::functions {
 
         static_assert(concepts::VisitorHasRealDense<OVIndexReaderVisitor>);
         static_assert(concepts::VisitorHasString<OVIndexReaderVisitor>);
+
+        class OVOIndexReaderVisitor {
+
+        private:
+            matlab::engine::MATLABEngine &engine;
+        public:
+            using return_type = std::vector<OVOIndex>;
+
+            explicit OVOIndexReaderVisitor(matlab::engine::MATLABEngine &matlabEngine)
+                    : engine{matlabEngine} { }
+
+            /** Dense input -> dense monolithic output */
+            template<std::convertible_to<size_t> data_t>
+            return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
+                std::vector<OVOIndex> output;
+                const auto dims = matrix.getDimensions();
+                assert(dims.size() == 2);
+                assert(dims[1] == 3);
+
+                for (size_t row = 0; row < dims[0]; ++row) {
+                    if (matrix[row][0] < 1) {
+                        throw errors::BadInput{errors::bad_param, "Observable index should be positive integer."};
+                    }
+                    if (matrix[row][1] < 1) {
+                        throw errors::BadInput{errors::bad_param, "Variant index should be positive integer."};
+                    }
+                    if (matrix[row][1] < 1) {
+                        throw errors::BadInput{errors::bad_param, "Outcome index should be positive integer."};
+                    }
+
+                    output.emplace_back(static_cast<oper_name_t>(matrix[row][0]-1),
+                                        static_cast<oper_name_t>(matrix[row][1]-1),
+                                        static_cast<oper_name_t>(matrix[row][2]-1));  // from matlab index to C++ index
+                }
+                return output;
+            }
+
+            /** Dense input -> dense monolithic output */
+            return_type string(const matlab::data::StringArray& matrix) {
+                std::vector<OVOIndex> output;
+                const auto dims = matrix.getDimensions();
+                assert(dims.size() == 2);
+                assert(dims[1] == 3);
+                for (size_t row = 0; row < dims[0]; ++row) {
+                    auto obs_raw = SortedInputs::read_positive_integer(engine, "Observable index",
+                                                                         matrix[row][0], 1);
+                    auto var_raw = SortedInputs::read_positive_integer(engine, "Variant index",
+                                                                       matrix[row][1], 1);
+                    auto out_raw = SortedInputs::read_positive_integer(engine, "Outcome index",
+                                                                       matrix[row][2], 1);
+
+
+                    output.emplace_back(static_cast<party_name_t>(obs_raw - 1),  // from matlab index to C++ index
+                                        static_cast<mmt_name_t>(var_raw - 1),    // from matlab index to C++ index
+                                        static_cast<mmt_name_t>(out_raw - 1));   // from matlab index to C++ index
+
+                }
+                return output;
+            }
+        };
+
+        static_assert(concepts::VisitorHasRealDense<OVOIndexReaderVisitor>);
+        static_assert(concepts::VisitorHasString<OVOIndexReaderVisitor>);
 
     }
 
@@ -228,12 +290,13 @@ namespace NPATK::mex::functions {
         // Check input dimensions
         const auto keyDims = this->inputs[1].getDimensions();
         if (this->inflation_mode) {
-            if ((2 != keyDims.size()) || (keyDims[1] != 2)) {
+            if ((2 != keyDims.size()) || ((keyDims[1] != 3) && (keyDims[1] != 2))) {
                 throw errors::BadInput{errors::bad_param,
                                        std::string("Observable indices should be written as a")
-                                       + " Nx2 matrix (e.g., [[observable, variant]; [observable, variant]])."};
+                                       + " Nx2 matrix (e.g., [[observable, variant]; [observable, variant]]),"
+                                       + " or as a Nx3 matrix (e.g. [[obs., var., outcome]]"};
             }
-            this->export_mode = ExportMode::OneObservable;
+            this->export_mode = (keyDims[1] == 3) ? ExportMode::OneInflationOutcome : ExportMode::OneInflationObservable;
         } else {
             if ((2 != keyDims.size()) || ((keyDims[1] != 3) && (keyDims[1] != 2))) {
                 throw errors::BadInput{errors::bad_param,
@@ -278,11 +341,12 @@ namespace NPATK::mex::functions {
             // Sort requested indices
             std::sort(this->requested_measurement.begin(), this->requested_measurement.end(),
                       [](const auto &lhs, const auto &rhs) { return lhs.party < rhs.party; });
-        } else if (this->export_mode == ExportMode::OneObservable) {
+        } else if (this->export_mode == ExportMode::OneInflationObservable) {
             this->requested_observables = DispatchVisitor(matlabEngine, this->inputs[1],
                                                           OVIndexReaderVisitor{matlabEngine});
-
-
+        } else if (this->export_mode == ExportMode::OneInflationOutcome) {
+            this->requested_ovo = DispatchVisitor(matlabEngine, this->inputs[1],
+                                                  OVOIndexReaderVisitor{matlabEngine});
         }
 
     }
@@ -396,6 +460,14 @@ namespace NPATK::mex::functions {
             return;
         }
 
+        if (input.export_mode == ProbabilityTableParams::ExportMode::OneInflationObservable) {
+            output[0] = export_implied_symbols(this->matlabEngine, implSym, input.requested_observables);
+            return;
+        }
+
+        if (input.export_mode == ProbabilityTableParams::ExportMode::OneInflationOutcome) {
+
+        }
         throw_error(this->matlabEngine, errors::internal_error, "Non-complete table inflation export not yet supported.");
     }
 

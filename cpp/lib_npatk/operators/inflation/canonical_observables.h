@@ -72,19 +72,20 @@ namespace NPATK {
     public:
         explicit CanonicalObservables(const InflationContext& context);
 
-        /**
-         * Hash a string of OV indices
-         */
+        /** Hash a string of OV indices */
         [[nodiscard]] size_t hash(std::span<const OVIndex> index) const;
 
         [[nodiscard]] size_t hash(std::span<const size_t> global_index) const;
 
         void generate_up_to_level(size_t new_level);
 
+        /** Look up canonical observable associated with particular hash */
         [[nodiscard]] const CanonicalObservable& canonical(size_t hash) const;
 
+        /** Look up canonical observable associated with particular OV index string */
         [[nodiscard]] const CanonicalObservable& canonical(std::span<const OVIndex> indices) const;
 
+        /** Look up canonical observable associated with particular raw variant number string */
         [[nodiscard]] const CanonicalObservable& canonical(std::span<const size_t> indices) const;
 
         [[nodiscard]] size_t distinct_observables(size_t level) const noexcept {
@@ -93,8 +94,11 @@ namespace NPATK {
         }
 
         [[nodiscard]] auto begin() const noexcept { return this->canonical_observables.cbegin(); }
+
         [[nodiscard]] auto end() const noexcept { return this->canonical_observables.cend(); }
+
         [[nodiscard]] constexpr size_t size() const noexcept { return this->canonical_observables.size(); }
+
         [[nodiscard]] constexpr const CanonicalObservable& operator[](const size_t index) const {
             assert(index < this->size());
             return this->canonical_observables[index];

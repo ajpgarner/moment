@@ -162,70 +162,114 @@ namespace NPATK::mex {
                                              this->implicitSymbols.symbols, combo);
             }
         };
+
+        class InflationImpliedSymbolWriter {
+        private:
+            matlab::engine::MATLABEngine &engine;
+            matlab::data::ArrayFactory factory;
+
+            const InflationImplicitSymbols &implicitSymbols;
+            const InflationContext &context;
+            const CanonicalObservables &canonicalObservables;
+            const size_t real_symbol_count;
+
+
+        public:
+            InflationImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
+                                         const InflationImplicitSymbols &impliedSymbols)
+                    : engine{engine}, implicitSymbols{impliedSymbols}, context{impliedSymbols.context},
+                      canonicalObservables{impliedSymbols.canonicalObservables},
+                      real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()} {
+            }
+
+            matlab::data::StructArray whole_table() {
+                auto output = init_array(this->implicitSymbols.Data().size());
+
+                size_t output_index = 0;
+                size_t co_index = 0;
+
+                for (auto chunk : implicitSymbols.BlockData()) {
+                    assert(co_index < canonicalObservables.size());
+                    const auto& canonical = canonicalObservables[co_index];
+                    oper_name_t outcome_index = 0;
+
+                    for (const auto& entry : chunk) {
+                        write_row(output, output_index, canonical, outcome_index, entry);
+                        ++output_index;
+                        ++outcome_index;
+                    }
+                    ++co_index;
+                }
+                assert(co_index = canonicalObservables.size());
+
+                return output;
+            }
+
+            matlab::data::StructArray one_observable(std::span<const OVIndex> obsVarIndices) {
+                const auto &observable = canonicalObservables.canonical(obsVarIndices);
+
+                auto output = init_array(observable.outcomes);
+                auto data_block = implicitSymbols.Block(observable.index);
+
+                size_t output_index = 0;
+                for (const auto& entry : data_block) {
+                    write_row(output, output_index, observable, output_index, entry);
+                    ++output_index;
+                }
+
+                return output;
+            }
+
+        private:
+            matlab::data::StructArray init_array(const size_t table_length) {
+                return factory.createStructArray({1, table_length}, {"sequence", "indices", "real_coefficients"});
+            }
+
+            void write_row(matlab::data::StructArray &output, const size_t output_index,
+                           const CanonicalObservable& canonical, const size_t outcome_index,
+                           const PMODefinition& entry) {
+                auto full_indices = context.unflatten_outcome_index(canonical.indices,
+                                                                    static_cast<oper_name_t>(outcome_index));
+                output[output_index]["sequence"] = factory.createScalar(context.format_sequence(full_indices));
+
+                // Calculate indices
+                if (full_indices.empty()) {
+                    output[output_index]["indices"] = factory.createArray<uint64_t>({0, 3});
+                } else {
+                    const size_t index_size = full_indices.size();
+                    auto index_data = factory.createBuffer<uint64_t>(3 * index_size);
+
+                    size_t row = 0;
+                    for (const auto &i: full_indices) {
+                        index_data[row] = i.observable_variant.observable + 1;
+                        index_data[index_size + row] = i.observable_variant.variant + 1;
+                        index_data[2 * index_size + row] = i.outcome + 1;
+                        ++row;
+                    }
+                    output[output_index]["indices"]
+                            = factory.createArrayFromBuffer({index_size, 3}, std::move(index_data));
+                }
+
+                // And next, real co-efficients
+                output[output_index]["real_coefficients"] =
+                        combo_to_sparse_array(engine, factory, implicitSymbols.symbols, entry.expression);
+            }
+        };
+    }
+
+    matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                                                     const InflationImplicitSymbols &impliedSymbols) {
+        InflationImpliedSymbolWriter iisw{engine, impliedSymbols};
+        return iisw.whole_table();
     }
 
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                     const InflationImplicitSymbols &impliedSymbols) {
-
-        const auto& canonicalObservables = impliedSymbols.canonicalObservables;
-        const auto& context = impliedSymbols.context;
-        const auto& symbolTable = impliedSymbols.symbols;
-
-        matlab::data::ArrayFactory factory;
-        matlab::data::StructArray output{factory.createStructArray({1, impliedSymbols.Data().size()},
-                                               {"sequence", "indices", "real_coefficients"})};
-
-        size_t outputIndex = 0;
-        const auto& data = impliedSymbols.Data();
-
-        size_t co_index = 0;
-
-        for (auto chunk : impliedSymbols.BlockData()) {
-            assert(co_index < canonicalObservables.size());
-            const auto& canonical = canonicalObservables[co_index];
-            oper_name_t outcome_index = 0;
-
-            for (const auto& entry : chunk) {
-
-                auto full_indices = context.unflatten_outcome_index(canonical.indices, outcome_index);
-
-
-                output[outputIndex]["sequence"] = factory.createScalar(context.format_sequence(full_indices));
-
-                // Calculate indices
-                if (full_indices.empty()) {
-                    output[outputIndex]["indices"] = factory.createArray<uint64_t>({0, 3});
-                } else {
-                    const size_t index_size = full_indices.size();
-                    auto index_data = factory.createBuffer<uint64_t>(3*index_size);
-
-                    size_t row = 0;
-                    for (const auto& i : full_indices) {
-                        index_data[row] = i.observable_variant.observable + 1;
-                        index_data[index_size + row] = i.observable_variant.variant + 1;
-                        index_data[2*index_size + row] = i.outcome + 1;
-                        ++row;
-                    }
-                    output[outputIndex]["indices"]
-                        = factory.createArrayFromBuffer({index_size, 3}, std::move(index_data));
-                }
-
-                // And next, real co-efficients
-                output[outputIndex]["real_coefficients"] =
-                        combo_to_sparse_array(engine, factory, symbolTable, entry.expression);
-                ++outputIndex;
-                ++outcome_index;
-            }
-
-            ++co_index;
-        }
-        assert(co_index = canonicalObservables.size());
-
-
-        return output;
+                                                     const InflationImplicitSymbols &impliedSymbols,
+                                                     std::span<const OVIndex> obsVarIndices) {
+        InflationImpliedSymbolWriter iisw{engine, impliedSymbols};
+        return iisw.one_observable(obsVarIndices);
     }
-
 
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
@@ -243,7 +287,7 @@ namespace NPATK::mex {
         std::vector<size_t> globalMmtIndex;
         globalMmtIndex.reserve(measurementIndex.size());
         for (const auto& pmi : measurementIndex) {
-            globalMmtIndex.emplace_back(pmi.global_mmt );
+            globalMmtIndex.emplace_back(pmi.global_mmt);
         }
 
         auto pmod = impliedSymbols.get(globalMmtIndex);
@@ -283,8 +327,7 @@ namespace NPATK::mex {
         // Write
         output[0]["sequence"] = factory.createScalar(context->format_sequence(pmoIndices));
         output[0]["indices"] = std::move(index_array);
-        output[0]["real_coefficients"] = combo_to_sparse_array(engine, factory,
-                                                              momentMatrix.Symbols,
+        output[0]["real_coefficients"] = combo_to_sparse_array(engine, factory, momentMatrix.Symbols,
                                                               impliedSymbols.expression);
         return output;
     }

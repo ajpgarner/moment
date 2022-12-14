@@ -85,4 +85,29 @@ namespace NPATK::Tests {
         test22JoinMmt(getAAprime, 1, 2, 2, 3, "A0A1");
 
     }
+
+    TEST(Operators_Inflation_ImplicitSymbols, Block) {
+        auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 2);
+        InflationMatrixSystem ims{std::move(icPtr)};
+        auto [id, momentMatrix] = ims.create_moment_matrix(1);
+        const auto& implSym = ims.ImplicitSymbolTable();
+
+        ASSERT_EQ(implSym.MaxSequenceLength, 2); // now we have A0A1 too
+        ASSERT_FALSE(implSym.Data().empty());
+        ASSERT_EQ(implSym.Data().size(), 7); // e, a0 [2], a0a1 [4]
+
+        auto eBlock = implSym.Block(0);
+        ASSERT_EQ(eBlock.size(), 1);
+        EXPECT_EQ(eBlock[0].symbol_id, 1);
+
+        auto a0Block = implSym.Block(1);
+        ASSERT_EQ(a0Block.size(), 2);
+        EXPECT_EQ(a0Block[0].symbol_id, 2);
+        EXPECT_EQ(a0Block[1].symbol_id, -1);
+
+
+
+
+
+    }
 }
