@@ -67,7 +67,7 @@ namespace NPATK::mex::functions {
         }
 
         this->outcomes_per_observable = read_positive_integer_array(matlabEngine, "Parameter \"observables\"",
-                                                                    obsIter->second, 1);
+                                                                    obsIter->second, 0);
 
         readSourceCell(matlabEngine, this->outcomes_per_observable.size(), sourceIter->second);
 
@@ -77,7 +77,7 @@ namespace NPATK::mex::functions {
 
     void NewInflationMatrixSystemParams::getFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
         this->outcomes_per_observable = read_positive_integer_array(matlabEngine, "Observables",
-                                                                    this->inputs[0], 1);
+                                                                    this->inputs[0], 0);
         readSourceCell(matlabEngine, this->outcomes_per_observable.size(), this->inputs[1]);
         this->inflation_level = read_positive_integer(matlabEngine, "Inflation level",
                                                       this->inputs[2], 1);

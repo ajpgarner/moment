@@ -195,7 +195,8 @@ namespace NPATK {
     std::span<const PMODefinition> InflationImplicitSymbols::Block(const size_t index) const noexcept {
         assert(index < this->indices.size());
         const ptrdiff_t initial = this->indices[index];
-        const ptrdiff_t final = ((index+1) < this->indices.size()) ? this->indices[index+1] : this->tableData.size();
+        const auto final = static_cast<ptrdiff_t>(((index+1) < this->indices.size())
+                                                    ? this->indices[index+1] : this->tableData.size());
         const size_t block_size = final - initial;
 
         return {this->tableData.begin() + initial, block_size};

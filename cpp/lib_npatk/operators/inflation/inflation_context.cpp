@@ -350,6 +350,14 @@ namespace NPATK {
         // Canonical sequence of variants is always sorted...
         std::sort(permuted_variants.begin(), permuted_variants.end());
 
+        // Remove excess idempotent elements.
+        auto trim_idem = std::unique(permuted_variants.begin(), permuted_variants.end(),
+             [this](const OVIndex& lhs, const OVIndex& rhs) {
+                return (lhs == rhs) && this->Observables()[lhs.observable].projective();
+             });
+
+        permuted_variants.erase(trim_idem, permuted_variants.end());
+
         return permuted_variants;
     }
 

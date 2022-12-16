@@ -137,6 +137,94 @@ namespace NPATK::Tests {
         EXPECT_EQ(all_indices.size(), 6);
     }
 
+    TEST(Operators_Inflation_CanonicalObservables, PairSingleton) {
+        InflationMatrixSystem ims{
+                std::make_unique<InflationContext>(CausalNetwork{{2, 2, 0}, {{0, 1}}}, 1)};
+        const auto& ic = ims.InflationContext();
+        const auto& co = ims.CanonicalObservables();
+        auto [mm, id] = ims.create_moment_matrix(1);
+        ASSERT_EQ(co.size(), 8); // e, A, B, C, AB, AC, BC, CC)
+
+        const auto& canon_e = co.canonical(std::vector<OVIndex>{});
+        EXPECT_EQ(canon_e.outcomes, 1) << co;
+        EXPECT_EQ(canon_e.operators, 1);
+        EXPECT_TRUE(canon_e.projective);
+        ASSERT_EQ(canon_e.indices.size(), 0);
+
+        const auto& canon_A = co.canonical(std::vector<OVIndex>{{0, 0}});
+        EXPECT_EQ(canon_A.outcomes, 2);
+        EXPECT_EQ(canon_A.operators, 1);
+        EXPECT_TRUE(canon_A.projective);
+        ASSERT_EQ(canon_A.indices.size(), 1);
+        EXPECT_EQ(canon_A.indices[0].observable, 0);
+        EXPECT_EQ(canon_A.indices[0].variant, 0);
+
+        const auto& canon_B = co.canonical(std::vector<OVIndex>{{1, 0}});
+        EXPECT_EQ(canon_B.outcomes, 2);
+        EXPECT_EQ(canon_B.operators, 1);
+        EXPECT_TRUE(canon_B.projective);
+        ASSERT_EQ(canon_B.indices.size(), 1);
+        EXPECT_EQ(canon_B.indices[0].observable, 1);
+        EXPECT_EQ(canon_B.indices[0].variant, 0);
+        
+        const auto& canon_C = co.canonical(std::vector<OVIndex>{{2, 0}});
+        EXPECT_EQ(canon_C.outcomes, 0);
+        EXPECT_EQ(canon_C.operators, 1);
+        EXPECT_FALSE(canon_C.projective);
+        ASSERT_EQ(canon_C.indices.size(), 1);
+        EXPECT_EQ(canon_C.indices[0].observable, 2);
+        EXPECT_EQ(canon_C.indices[0].variant, 0);
+
+        
+        const auto& canon_AB = co.canonical(std::vector<OVIndex>{{0, 0}, {1, 0}});
+        EXPECT_EQ(canon_AB.outcomes, 4);
+        EXPECT_EQ(canon_AB.operators, 1);
+        EXPECT_TRUE(canon_AB.projective);
+        ASSERT_EQ(canon_AB.indices.size(), 2);
+        EXPECT_EQ(canon_AB.indices[0].observable, 0);
+        EXPECT_EQ(canon_AB.indices[0].variant, 0);
+        EXPECT_EQ(canon_AB.indices[1].observable, 1);
+        EXPECT_EQ(canon_AB.indices[1].variant, 0);
+
+        
+        const auto& canon_AC = co.canonical(std::vector<OVIndex>{{0, 0}, {2, 0}});
+        EXPECT_EQ(canon_AC.outcomes, 0);
+        EXPECT_EQ(canon_AC.operators, 1);
+        EXPECT_FALSE(canon_AC.projective);
+        ASSERT_EQ(canon_AC.indices.size(), 2);
+        EXPECT_EQ(canon_AC.indices[0].observable, 0);
+        EXPECT_EQ(canon_AC.indices[0].variant, 0);
+        EXPECT_EQ(canon_AC.indices[1].observable, 2);
+        EXPECT_EQ(canon_AC.indices[1].variant, 0);
+
+        
+        const auto& canon_BC = co.canonical(std::vector<OVIndex>{{1, 0}, {2, 0}});
+        EXPECT_EQ(canon_BC.outcomes, 0);
+        EXPECT_EQ(canon_BC.operators, 1);
+        EXPECT_FALSE(canon_BC.projective);
+        ASSERT_EQ(canon_BC.indices.size(), 2);
+        EXPECT_EQ(canon_BC.indices[0].observable, 1);
+        EXPECT_EQ(canon_BC.indices[0].variant, 0);
+        EXPECT_EQ(canon_BC.indices[1].observable, 2);
+        EXPECT_EQ(canon_BC.indices[1].variant, 0);
+        
+        const auto& canon_CC = co.canonical(std::vector<OVIndex>{{2, 0}, {2, 0}});
+        EXPECT_EQ(canon_CC.outcomes, 0);
+        EXPECT_EQ(canon_CC.operators, 1);
+        EXPECT_FALSE(canon_CC.projective);
+        ASSERT_EQ(canon_CC.indices.size(), 2);
+        EXPECT_EQ(canon_CC.indices[0].observable, 2);
+        EXPECT_EQ(canon_CC.indices[0].variant, 0);
+        EXPECT_EQ(canon_CC.indices[1].observable, 2);
+        EXPECT_EQ(canon_CC.indices[1].variant, 0);
+
+
+        // Verify all indices are unique (and thus account for all canonical entries)
+        const std::set all_indices = {canon_e.index, canon_A.index, canon_B.index, canon_C.index,
+                                      canon_AB.index, canon_AC.index, canon_BC.index, canon_CC.index};
+        EXPECT_EQ(all_indices.size(), 8);
+    }
+
 
     TEST(Operators_Inflation_CanonicalObservables, AliasTriangle) {
         InflationMatrixSystem ims{

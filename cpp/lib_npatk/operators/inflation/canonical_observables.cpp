@@ -77,6 +77,8 @@ namespace NPATK {
             // Make raw string
             const auto& global_indices = *comboIter;
 
+
+
             // Try to register as symbol
             try_add_entry(level, global_indices);
             ++comboIter;
@@ -94,6 +96,7 @@ namespace NPATK {
         for (auto index : global_indices) {
             obs_var_indices.push_back(context.index_to_obs_variant(static_cast<oper_name_t>(index)));
         }
+
 
         // Get raw hash
         const size_t raw_hash = this->hash(obs_var_indices);

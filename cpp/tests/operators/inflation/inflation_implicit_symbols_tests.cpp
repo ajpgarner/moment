@@ -83,6 +83,13 @@ namespace NPATK::Tests {
 
         const auto& getAAprime = implSym.get(std::vector<OVIndex>{{0, 0}, {0, 1}});
         test22JoinMmt(getAAprime, 1, 2, 2, 3, "A0A1");
+    }
+
+    TEST(Operators_Inflation_ImplicitSymbols, Pair_OneCV) {
+        auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{2, 0}, {{0, 1}}}, 2);
+        InflationMatrixSystem ims{std::move(icPtr)};
+        auto [id, momentMatrix] = ims.create_moment_matrix(1);
+        const auto& implSym = ims.ImplicitSymbolTable();
 
     }
 
