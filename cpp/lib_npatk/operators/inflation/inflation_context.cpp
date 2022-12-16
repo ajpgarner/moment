@@ -36,7 +36,7 @@ namespace NPATK {
             output.emplace_back(InflationContext::ICObservable::Variant{global_id, variant_index, std::move(vector_indices),
                                                                         std::move(map_to_sources), sourceMap});
 
-            global_id += static_cast<oper_name_t>(baseObs.outcomes-1);
+            global_id += static_cast<oper_name_t>(baseObs.operators());
 
         }
         return output;
@@ -52,6 +52,12 @@ namespace NPATK {
 
     bool InflationContext::ICObservable::Variant::independent(const InflationContext::ICObservable::Variant &other)
         const noexcept {
+        // If singleton, independent with everything except for itself
+        if (this->source_variants.empty()) {
+            return this->operator_offset != other.operator_offset;
+        }
+
+        // Otherwise, independent if no common sources
         auto overlap = this->connected_sources & other.connected_sources;
         return overlap.empty();
     }
@@ -87,6 +93,9 @@ namespace NPATK {
           base_network{std::move(network)},
           inflation{inflation_level} {
 
+        // Query for source count
+        this->total_inflated_sources = this->base_network.total_source_count(inflation);
+
         // Create operator and observable info
         this->inflated_observables.reserve(this->base_network.Observables().size());
         this->operator_info.reserve(this->size());
@@ -101,8 +110,9 @@ namespace NPATK {
             this->total_inflated_observables += num_copies;
             for (oper_name_t copy_index = 0; copy_index < num_copies; ++copy_index) {
                 this->global_variant_indices.emplace_back(observable.id, copy_index);
-                for (oper_name_t outcome = 0; outcome < (observable.outcomes-1); ++outcome) {
-                    this->operator_info.emplace_back(global_id, observable.id, copy_index, outcome);
+                for (oper_name_t outcome = 0; outcome < observable.operators(); ++outcome) {
+                    this->operator_info.emplace_back(global_id, observable.id, copy_index,
+                                                     outcome, observable.projective());
                     ++global_id;
                 }
             }
@@ -122,7 +132,7 @@ namespace NPATK {
 
             // Cycle through all observables, and test for independence...
             for (const auto& otherObs : this->inflated_observables) {
-                const size_t operator_block_size = (otherObs.outcomes)-1;
+                const size_t operator_block_size = otherObs.operators();
                 for (const auto& otherVariant : otherObs.variants) {
                     const bool independent = variant.independent(otherVariant);
                     if (!independent) {
@@ -429,7 +439,7 @@ namespace NPATK {
        assert((variant >= 0) && (variant < observable_info.variant_count));
        const auto& base_observable = this->base_network.Observables();
        return static_cast<oper_name_t>(observable_info.operator_offset)
-                + (variant * (static_cast<oper_name_t>(this->base_network.Observables()[observable].outcomes)-1))
+                + (variant * static_cast<oper_name_t>(this->base_network.Observables()[observable].operators()))
                 + outcome;
    }
 

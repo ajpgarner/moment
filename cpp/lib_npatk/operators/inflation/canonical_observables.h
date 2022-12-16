@@ -11,6 +11,7 @@
 
 #include <cassert>
 
+#include <iosfwd>
 #include <map>
 #include <stdexcept>
 #include <span>
@@ -37,6 +38,9 @@ namespace NPATK {
         /** Index string, flattened */
         std::vector<size_t> flattened_indices;
 
+        /** True, if all constituent parts are projective */
+        bool projective;
+
         /** Hash of OVIndex string */
         size_t hash;
 
@@ -47,9 +51,9 @@ namespace NPATK {
         size_t outcomes;
 
         CanonicalObservable(size_t index, std::vector<OVIndex> index_list, std::vector<size_t> flat_index_list,
-                            size_t the_hash, size_t ops, size_t outcomes)
+                            bool projective, size_t the_hash, size_t ops, size_t outcomes)
                 : index{index}, indices(std::move(index_list)), flattened_indices(std::move(flat_index_list)),
-                  hash{the_hash}, operators{ops}, outcomes{outcomes} { }
+                  projective{projective}, hash{the_hash}, operators{ops}, outcomes{outcomes} { }
 
         /** String length of the canonical observable */
         [[nodiscard]] constexpr auto size() const noexcept { return this->indices.size(); }
@@ -109,6 +113,15 @@ namespace NPATK {
             assert(index < this->size());
             return this->canonical_observables[index];
         }
+
+    private:
+        void generate_level_projective(size_t new_level);
+
+        void generate_level_nonprojective(size_t new_level);
+
+        void try_add_entry(const size_t level, const std::vector<size_t>& global_indices);
+
+        friend std::ostream& operator<<(std::ostream& os, const CanonicalObservables& co);
 
     };
 }

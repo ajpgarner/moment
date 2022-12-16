@@ -112,7 +112,96 @@ namespace NPATK::Tests {
         EXPECT_TRUE(comboIter.done());
     }
 
+    TEST(Utilities_Combinations, CommutingIndex_N4K1) {
+        auto comboIter = CommutingIndexIterator {4, 1};
+        EXPECT_EQ(comboIter.N, 4);
+        ASSERT_EQ(comboIter.K, 1);
 
+        ASSERT_FALSE(comboIter.done());
+
+        ASSERT_EQ(comboIter->size(), 1);
+        EXPECT_EQ(comboIter->operator[](0), 0);
+
+        ++comboIter;
+        ASSERT_FALSE(comboIter.done());
+        EXPECT_EQ(comboIter->operator[](0), 1);
+
+        ++comboIter;
+        ASSERT_FALSE(comboIter.done());
+        EXPECT_EQ(comboIter->operator[](0), 2);
+
+        ++comboIter;
+        ASSERT_FALSE(comboIter.done());
+        EXPECT_EQ(comboIter->operator[](0), 3);
+
+        ++comboIter;
+        EXPECT_TRUE(comboIter.done());
+    }
+
+    TEST(Utilities_Combinations, CommutingIndex_N2K2) {
+        auto comboIter = CommutingIndexIterator {2, 2};
+        EXPECT_EQ(comboIter.N, 2);
+        ASSERT_EQ(comboIter.K, 2);
+
+        ASSERT_FALSE(comboIter.done());
+
+        ASSERT_EQ(comboIter->size(), 2);
+        EXPECT_EQ(comboIter->operator[](0), 0);
+        EXPECT_EQ(comboIter->operator[](1), 0);
+
+        ++comboIter;
+        ASSERT_FALSE(comboIter.done());
+        EXPECT_EQ(comboIter->operator[](0), 0);
+        EXPECT_EQ(comboIter->operator[](1), 1);
+
+        ++comboIter;
+        ASSERT_FALSE(comboIter.done());
+        EXPECT_EQ(comboIter->operator[](0), 1);
+        EXPECT_EQ(comboIter->operator[](1), 1);
+
+        ++comboIter;
+        EXPECT_TRUE(comboIter.done());
+    }
+
+    TEST(Utilities_Combinations, CommutingIndex_N3K2) {
+        auto comboIter = CommutingIndexIterator {3, 2};
+        EXPECT_EQ(comboIter.N, 3);
+        ASSERT_EQ(comboIter.K, 2);
+
+        ASSERT_FALSE(comboIter.done());
+
+        ASSERT_EQ(comboIter->size(), 2);
+        EXPECT_EQ(comboIter->operator[](0), 0);
+        EXPECT_EQ(comboIter->operator[](1), 0);
+
+        ++comboIter;
+        ASSERT_FALSE(comboIter.done());
+        EXPECT_EQ(comboIter->operator[](0), 0);
+        EXPECT_EQ(comboIter->operator[](1), 1);
+
+        ++comboIter;
+        ASSERT_FALSE(comboIter.done());
+        EXPECT_EQ(comboIter->operator[](0), 0);
+        EXPECT_EQ(comboIter->operator[](1), 2);
+
+        ++comboIter;
+        ASSERT_FALSE(comboIter.done());
+        EXPECT_EQ(comboIter->operator[](0), 1);
+        EXPECT_EQ(comboIter->operator[](1), 1);
+
+        ++comboIter;
+        ASSERT_FALSE(comboIter.done());
+        EXPECT_EQ(comboIter->operator[](0), 1);
+        EXPECT_EQ(comboIter->operator[](1), 2);
+
+        ++comboIter;
+        ASSERT_FALSE(comboIter.done());
+        EXPECT_EQ(comboIter->operator[](0), 2);
+        EXPECT_EQ(comboIter->operator[](1), 2);
+
+        ++comboIter;
+        EXPECT_TRUE(comboIter.done());
+    }
 
     namespace {
         void test_partition_vals(const PartitionIterator& comboIter,

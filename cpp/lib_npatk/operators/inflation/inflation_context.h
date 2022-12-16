@@ -31,10 +31,13 @@ namespace NPATK {
             oper_name_t observable;
             oper_name_t flattenedSourceIndex;
             oper_name_t outcome;
+            bool projective;
 
         public:
-            ICOperatorInfo(oper_name_t id, oper_name_t observable, oper_name_t flattenedIndex, oper_name_t outcome)
-                : global_id{id}, observable{observable}, flattenedSourceIndex{flattenedIndex}, outcome{outcome} { }
+            ICOperatorInfo(oper_name_t id, oper_name_t observable, oper_name_t flattenedIndex,
+                           oper_name_t outcome, bool projective)
+                : global_id{id}, observable{observable}, flattenedSourceIndex{flattenedIndex},
+                  outcome{outcome}, projective{projective} { }
 
             /**
             * Predicate: true if the operator id of LHS is less than that of RHS.
@@ -61,12 +64,12 @@ namespace NPATK {
             };
 
             /**
-             * Predicate: true if lhs == rhs, and both are part of same observable.
+             * Predicate: true if lhs == rhs, and both are part of same projective observable.
              */
             struct IsRedundant {
                 constexpr IsRedundant() noexcept = default;
                 constexpr bool operator()(const ICOperatorInfo &lhs, const ICOperatorInfo &rhs) const noexcept {
-                    return (lhs.global_id == rhs.global_id);
+                    return lhs.projective && (lhs.global_id == rhs.global_id);
                 }
             };
         };
@@ -74,16 +77,25 @@ namespace NPATK {
         /** Augment base-network observable with extra info regarding inflated variants */
         struct ICObservable : public Observable {
         public:
+            /** Information for an inflated variant of an observable */
             struct Variant {
             public:
-                /** Global number of first operator in variant */
+                /** Global number of first operator in variant. */
                 oper_name_t operator_offset;
+
+                /** Single-number index of variant within observable. */
                 oper_name_t flat_index;
+
+                /** Index per source of variant within observable. */
                 std::vector<oper_name_t> indices;
+
+                /** Map, key: source ID, value: source variant. */
                 std::map<oper_name_t, oper_name_t> source_variants;
+
+                /** Bitmap, flagging which sources are connected to variant. */
                 DynamicBitset<uint64_t> connected_sources;
 
-                /** True, if no overlapping sources */
+                /** True, if no overlapping sources, and not the same variant as other. */
                 [[nodiscard]] bool independent(const Variant& other) const noexcept;
 
             friend class ::NPATK::InflationContext::ICObservable;
@@ -131,6 +143,9 @@ namespace NPATK {
         std::vector<ICObservable> inflated_observables;
 
         size_t total_inflated_observables = 0;
+
+        size_t total_inflated_sources = 0;
+
         std::vector<OVIndex> global_variant_indices;
 
         /** Bitset, size equal to number of operators in context. True if other operator is not independent */
@@ -163,7 +178,7 @@ namespace NPATK {
          * Get total number of source variants
          */
         [[nodiscard]] size_t source_variant_count() const noexcept {
-            return this->inflation * this->base_network.Sources().size();
+            return this->total_inflated_sources;
         }
 
         /**

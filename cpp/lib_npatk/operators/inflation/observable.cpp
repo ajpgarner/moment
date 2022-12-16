@@ -11,18 +11,18 @@
 
 namespace NPATK {
     size_t Observable::count_copies(size_t inflation_level) const {
-        return ipow(inflation_level, this->source_count);
+        return this->singleton ? 1 : ipow(inflation_level, this->source_count);
     }
 
     size_t Observable::count_operators(size_t inflation_level) const {
-        return (this->outcomes-1) * this->count_copies(inflation_level);
+        return this->operators() * this->count_copies(inflation_level);
     }
 
     std::vector<oper_name_t> Observable::unflatten_index(const size_t inflation_level, oper_name_t index) const {
         std::vector<oper_name_t> output(this->source_count, 0);
 
-        // Just return 0s if no inflation
-        if (inflation_level<=0) {
+        // Just return 0s if no inflation, or sources
+        if (output.empty() || (inflation_level<=0)) {
             return output;
         }
 

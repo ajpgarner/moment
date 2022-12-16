@@ -193,6 +193,9 @@ namespace NPATK::mex::functions {
         for (const auto& i : this->requested_indices) {
             output.emplace_back(i.first, i.second);
         }
+        // Sort requested indices
+        std::sort(output.begin(), output.end());
+
         return output;
     }
 
@@ -202,6 +205,8 @@ namespace NPATK::mex::functions {
         for (const auto& i : this->requested_indices) {
             output.emplace_back(i.first, i.second, i.third);
         }
+        // Sort requested indices
+        std::sort(output.begin(), output.end());
         return output;
     }
 

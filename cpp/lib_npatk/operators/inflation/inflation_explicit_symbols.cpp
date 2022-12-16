@@ -21,7 +21,7 @@ namespace NPATK {
             std::vector<size_t> output;
             output.reserve(context.observable_variant_count());
             for (const auto& o : context.Observables()) {
-                std::fill_n(std::back_inserter(output), o.variant_count, o.outcomes-1);
+                std::fill_n(std::back_inserter(output), o.variant_count, o.operators());
             }
             assert(output.size() == context.observable_variant_count());
             return output;
@@ -63,7 +63,7 @@ namespace NPATK {
             std::vector<size_t> opers_per_observable;
             opers_per_observable.reserve(canonObs.indices.size());
             for (const auto ovIndex : canonObs.indices) {
-                opers_per_observable.emplace_back(context.Observables()[ovIndex.observable].outcomes - 1);
+                opers_per_observable.emplace_back(context.Observables()[ovIndex.observable].operators());
             }
             const auto num_operators = canonObs.operators;
 

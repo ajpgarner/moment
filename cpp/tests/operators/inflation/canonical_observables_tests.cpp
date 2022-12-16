@@ -58,8 +58,8 @@ namespace NPATK::Tests {
         const auto& co = ims.CanonicalObservables();
         auto [mm, id] = ims.create_moment_matrix(1);
         ASSERT_EQ(co.size(), 2); // e, A.
-
     }
+
     TEST(Operators_Inflation_CanonicalObservables, Singleton_Cloned) {
         InflationMatrixSystem ims{
                 std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 2)};
@@ -68,9 +68,75 @@ namespace NPATK::Tests {
         auto [mm, id] = ims.create_moment_matrix(1);
         EXPECT_EQ(ic.observable_variant_count(), 2); // a0, a1)
         ASSERT_EQ(co.size(), 3); // e, A0, A0A1
-
-
     }
+
+
+    TEST(Operators_Inflation_CanonicalObservables, CVPair) {
+        InflationMatrixSystem ims{
+                std::make_unique<InflationContext>(CausalNetwork{{0, 0}, {{0, 1}}}, 1)};
+        const auto& ic = ims.InflationContext();
+        const auto& co = ims.CanonicalObservables();
+        auto [mm, id] = ims.create_moment_matrix(1);
+        ASSERT_EQ(co.size(), 6); // e, A, B, AA, AB, BB)
+
+        const auto& canon_e = co.canonical(std::vector<OVIndex>{});
+        EXPECT_EQ(canon_e.outcomes, 1) << co;
+        EXPECT_EQ(canon_e.operators, 1);
+        EXPECT_TRUE(canon_e.projective);
+        ASSERT_EQ(canon_e.indices.size(), 0);
+
+        const auto& canon_A = co.canonical(std::vector<OVIndex>{{0, 0}});
+        EXPECT_EQ(canon_A.outcomes, 0);
+        EXPECT_EQ(canon_A.operators, 1);
+        EXPECT_FALSE(canon_A.projective);
+        ASSERT_EQ(canon_A.indices.size(), 1);
+        EXPECT_EQ(canon_A.indices[0].observable, 0);
+        EXPECT_EQ(canon_A.indices[0].variant, 0);
+
+        const auto& canon_B = co.canonical(std::vector<OVIndex>{{1, 0}});
+        EXPECT_EQ(canon_B.outcomes, 0);
+        EXPECT_EQ(canon_B.operators, 1);
+        EXPECT_FALSE(canon_B.projective);
+        ASSERT_EQ(canon_B.indices.size(), 1);
+        EXPECT_EQ(canon_B.indices[0].observable, 1);
+        EXPECT_EQ(canon_B.indices[0].variant, 0);
+
+        const auto& canon_AA = co.canonical(std::vector<OVIndex>{{0, 0}, {0, 0}});
+        EXPECT_EQ(canon_AA.outcomes, 0);
+        EXPECT_EQ(canon_AA.operators, 1);
+        EXPECT_FALSE(canon_AA.projective);
+        ASSERT_EQ(canon_AA.indices.size(), 2);
+        EXPECT_EQ(canon_AA.indices[0].observable, 0);
+        EXPECT_EQ(canon_AA.indices[0].variant, 0);
+        EXPECT_EQ(canon_AA.indices[1].observable, 0);
+        EXPECT_EQ(canon_AA.indices[1].variant, 0);
+
+        const auto& canon_AB = co.canonical(std::vector<OVIndex>{{0, 0}, {1, 0}});
+        EXPECT_EQ(canon_AB.outcomes, 0);
+        EXPECT_EQ(canon_AB.operators, 1);
+        EXPECT_FALSE(canon_AB.projective);
+        ASSERT_EQ(canon_AB.indices.size(), 2);
+        EXPECT_EQ(canon_AB.indices[0].observable, 0);
+        EXPECT_EQ(canon_AB.indices[0].variant, 0);
+        EXPECT_EQ(canon_AB.indices[1].observable, 1);
+        EXPECT_EQ(canon_AB.indices[1].variant, 0);
+
+        const auto& canon_BB = co.canonical(std::vector<OVIndex>{{1, 0}, {1, 0}});
+        EXPECT_EQ(canon_BB.outcomes, 0);
+        EXPECT_EQ(canon_BB.operators, 1);
+        EXPECT_FALSE(canon_BB.projective);
+        ASSERT_EQ(canon_BB.indices.size(), 2);
+        EXPECT_EQ(canon_BB.indices[0].observable, 1);
+        EXPECT_EQ(canon_BB.indices[0].variant, 0);
+        EXPECT_EQ(canon_BB.indices[1].observable, 1);
+        EXPECT_EQ(canon_BB.indices[1].variant, 0);
+
+        // Verify all indices are unique (and thus account for all canonical entries)
+        const std::set all_indices = {canon_e.index, canon_A.index, canon_B.index,
+                                      canon_AA.index, canon_AB.index, canon_BB.index};
+        EXPECT_EQ(all_indices.size(), 6);
+    }
+
 
     TEST(Operators_Inflation_CanonicalObservables, AliasTriangle) {
         InflationMatrixSystem ims{

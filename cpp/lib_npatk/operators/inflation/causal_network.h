@@ -43,6 +43,9 @@ namespace NPATK {
         /** Hidden variables connecting measurements */
         std::vector<Source> sources;
 
+        /** Index of first implicit source */
+        size_t implicit_source_index;
+
     public:
         /**
           * Create a causal network
@@ -67,9 +70,15 @@ namespace NPATK {
         [[nodiscard]] const auto& Sources() const noexcept { return this->sources; }
 
         /**
+         * Calculate total number of sources for this network at a particular inflation level
+         */
+        [[nodiscard]] size_t total_source_count(size_t inflation_level) const noexcept;
+
+        /**
          * Calculate total number of operators required for expressing this network at a particular inflation level
          */
         [[nodiscard]] size_t total_operator_count(size_t inflation_level) const noexcept;
+
 
         friend std::ostream& operator<<(std::ostream& os, const CausalNetwork& network);
 

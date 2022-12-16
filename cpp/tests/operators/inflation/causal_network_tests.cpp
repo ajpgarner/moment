@@ -19,17 +19,22 @@ namespace NPATK::Tests {
     TEST(Operators_Inflation_CausalNetwork, Empty_NoSources) {
         CausalNetwork ic{{2, 2}, {}};
         EXPECT_EQ(ic.Observables().size(),2);
-        EXPECT_EQ(ic.Sources().size(), 0);
+        ASSERT_EQ(ic.Sources().size(), 2);
+        const auto& sources = ic.Sources();
+        EXPECT_EQ(sources[0].implicit, true);
+        EXPECT_EQ(sources[0].observables.size(), 1);
+        EXPECT_TRUE(sources[0].observables.contains(0));
+
+        EXPECT_EQ(sources[1].implicit, true);
+        EXPECT_EQ(sources[1].observables.size(), 1);
+        EXPECT_TRUE(sources[1].observables.contains(1));
+
     }
 
     TEST(Operators_Inflation_CausalNetwork, Empty_NoObservables) {
         CausalNetwork ic{{}, {{},{},{}}};
         EXPECT_EQ(ic.Observables().size(), 0);
         EXPECT_EQ(ic.Sources().size(), 3);
-    }
-
-    TEST(Operators_Inflation_CausalNetwork, Error_BadObservable) {
-        EXPECT_THROW(CausalNetwork({0}, {{0}}), errors::bad_observable);
     }
 
     TEST(Operators_Inflation_CausalNetwork, Error_BadSource) {
@@ -43,6 +48,8 @@ namespace NPATK::Tests {
         ASSERT_EQ(observables.size(), 1);
         EXPECT_EQ(observables[0].id, 0);
         EXPECT_EQ(observables[0].outcomes, 2);
+        EXPECT_EQ(observables[0].operators(), 1);
+        EXPECT_TRUE(observables[0].projective());
         EXPECT_EQ(observables[0].sources.size(), 1);
         EXPECT_TRUE(observables[0].sources.contains(0));
 
@@ -60,11 +67,15 @@ namespace NPATK::Tests {
         ASSERT_EQ(observables.size(), 2);
         EXPECT_EQ(observables[0].id, 0);
         EXPECT_EQ(observables[0].outcomes, 2);
+        EXPECT_EQ(observables[0].operators(), 1);
+        EXPECT_TRUE(observables[0].projective());
         EXPECT_EQ(observables[0].sources.size(), 1);
         EXPECT_TRUE(observables[0].sources.contains(0));
 
         EXPECT_EQ(observables[1].id, 1);
         EXPECT_EQ(observables[1].outcomes, 2);
+        EXPECT_EQ(observables[1].operators(), 1);
+        EXPECT_TRUE(observables[1].projective());
         EXPECT_EQ(observables[1].sources.size(), 1);
         EXPECT_TRUE(observables[1].sources.contains(0));
 
@@ -83,18 +94,24 @@ namespace NPATK::Tests {
         ASSERT_EQ(observables.size(), 3);
         EXPECT_EQ(observables[0].id, 0);
         EXPECT_EQ(observables[0].outcomes, 2);
+        EXPECT_EQ(observables[0].operators(), 1);
+        EXPECT_TRUE(observables[0].projective());
         EXPECT_EQ(observables[0].sources.size(), 2);
         EXPECT_TRUE(observables[0].sources.contains(0));
         EXPECT_TRUE(observables[0].sources.contains(2));
 
         EXPECT_EQ(observables[1].id, 1);
         EXPECT_EQ(observables[1].outcomes, 2);
+        EXPECT_EQ(observables[1].operators(), 1);
+        EXPECT_TRUE(observables[1].projective());
         EXPECT_EQ(observables[1].sources.size(), 2);
         EXPECT_TRUE(observables[1].sources.contains(0));
         EXPECT_TRUE(observables[1].sources.contains(1));
 
         EXPECT_EQ(observables[2].id, 2);
         EXPECT_EQ(observables[2].outcomes, 2);
+        EXPECT_EQ(observables[2].operators(), 1);
+        EXPECT_TRUE(observables[2].projective());
         EXPECT_EQ(observables[2].sources.size(), 2);
         EXPECT_TRUE(observables[2].sources.contains(1));
         EXPECT_TRUE(observables[2].sources.contains(2));
@@ -115,6 +132,105 @@ namespace NPATK::Tests {
         EXPECT_EQ(sources[2].observables.size(), 2);
         EXPECT_TRUE(sources[2].observables.contains(0));
         EXPECT_TRUE(sources[2].observables.contains(2));
+    }
+
+
+    TEST(Operators_Inflation_CausalNetwork, Construct_CVLine) {
+        CausalNetwork ic{{0, 0}, {{0, 1}}};
+
+        const auto& observables = ic.Observables();
+        ASSERT_EQ(observables.size(), 2);
+        EXPECT_EQ(observables[0].id, 0);
+        EXPECT_EQ(observables[0].outcomes, 0);
+        EXPECT_EQ(observables[0].operators(), 1);
+        EXPECT_FALSE(observables[0].projective());
+        EXPECT_EQ(observables[0].sources.size(), 1);
+        EXPECT_TRUE(observables[0].sources.contains(0));
+
+        EXPECT_EQ(observables[1].id, 1);
+        EXPECT_EQ(observables[1].outcomes, 0);
+        EXPECT_EQ(observables[1].operators(), 1);
+        EXPECT_FALSE(observables[1].projective());
+        EXPECT_EQ(observables[1].sources.size(), 1);
+        EXPECT_TRUE(observables[1].sources.contains(0));
+
+        const auto& sources = ic.Sources();
+        ASSERT_EQ(sources.size(), 1);
+        EXPECT_EQ(sources[0].id, 0);
+        EXPECT_EQ(sources[0].observables.size(), 2);
+        EXPECT_TRUE(sources[0].observables.contains(0));
+        EXPECT_TRUE(sources[0].observables.contains(1));
+    }
+
+    TEST(Operators_Inflation_CausalNetwork, Construct_UnlinkedCVPair) {
+        CausalNetwork ic{{0, 0}, {}};
+
+        const auto& observables = ic.Observables();
+        ASSERT_EQ(observables.size(), 2);
+        EXPECT_EQ(observables[0].id, 0);
+        EXPECT_EQ(observables[0].outcomes, 0);
+        EXPECT_EQ(observables[0].operators(), 1);
+        EXPECT_FALSE(observables[0].projective());
+        EXPECT_EQ(observables[0].sources.size(), 1);
+        EXPECT_TRUE(observables[0].sources.contains(0));
+
+        EXPECT_EQ(observables[1].id, 1);
+        EXPECT_EQ(observables[1].outcomes, 0);
+        EXPECT_EQ(observables[1].operators(), 1);
+        EXPECT_FALSE(observables[1].projective());
+        EXPECT_EQ(observables[1].sources.size(), 1);
+        EXPECT_TRUE(observables[1].sources.contains(1));
+
+        const auto& sources = ic.Sources();
+        ASSERT_EQ(sources.size(), 2);
+        EXPECT_EQ(sources[0].id, 0);
+        EXPECT_TRUE(sources[0].implicit);
+        EXPECT_EQ(sources[0].observables.size(), 1);
+        EXPECT_TRUE(sources[0].observables.contains(0));
+        EXPECT_EQ(sources[1].id, 1);
+        EXPECT_TRUE(sources[1].implicit);
+        EXPECT_EQ(sources[1].observables.size(), 1);
+        EXPECT_TRUE(sources[1].observables.contains(1));
+    }
+
+    TEST(Operators_Inflation_CausalNetwork, Construct_LineAndSingleton) {
+        CausalNetwork ic{{2, 2, 2}, {{0, 1}}};
+
+        const auto& observables = ic.Observables();
+        ASSERT_EQ(observables.size(), 3);
+        EXPECT_EQ(observables[0].id, 0);
+        EXPECT_EQ(observables[0].outcomes, 2);
+        EXPECT_EQ(observables[0].operators(), 1);
+        EXPECT_TRUE(observables[0].projective());
+        EXPECT_EQ(observables[0].sources.size(), 1);
+        EXPECT_TRUE(observables[0].sources.contains(0));
+
+        EXPECT_EQ(observables[1].id, 1);
+        EXPECT_EQ(observables[1].outcomes, 2);
+        EXPECT_EQ(observables[1].operators(), 1);
+        EXPECT_TRUE(observables[1].projective());
+        EXPECT_EQ(observables[1].sources.size(), 1);
+        EXPECT_TRUE(observables[1].sources.contains(0));
+
+        EXPECT_EQ(observables[2].id, 2);
+        EXPECT_EQ(observables[2].outcomes, 2);
+        EXPECT_EQ(observables[2].operators(), 1);
+        EXPECT_TRUE(observables[2].projective());
+        EXPECT_EQ(observables[2].sources.size(), 1);
+        EXPECT_TRUE(observables[2].sources.contains(1));
+
+        const auto& sources = ic.Sources();
+        ASSERT_EQ(sources.size(), 2);
+        EXPECT_EQ(sources[0].id, 0);
+        EXPECT_FALSE(sources[0].implicit);
+        EXPECT_EQ(sources[0].observables.size(), 2);
+        EXPECT_TRUE(sources[0].observables.contains(0));
+        EXPECT_TRUE(sources[0].observables.contains(1));
+
+        EXPECT_EQ(sources[1].id, 1);
+        EXPECT_TRUE(sources[1].implicit);
+        EXPECT_EQ(sources[1].observables.size(), 1);
+        EXPECT_TRUE(sources[1].observables.contains(2));
     }
 
     TEST(Operators_Inflation_CausalNetwork, CountCopies_Pair) {
@@ -196,6 +312,32 @@ namespace NPATK::Tests {
         EXPECT_EQ(ic.Observables()[1].count_operators(3), 9);
         EXPECT_EQ(ic.Observables()[2].count_operators(3), 9);
         EXPECT_EQ(ic.total_operator_count(3), 27);
+    }
+
+    TEST(Operators_Inflation_CausalNetwork, CountOperators_LineSingleton) {
+        CausalNetwork ic{{2, 2, 2}, {{0, 1}}};
+        ASSERT_EQ(ic.Observables().size(), 3);
+
+        // Inflation level 1: A, B, C
+        EXPECT_EQ(ic.Observables()[0].count_operators(1), 1);
+        EXPECT_EQ(ic.Observables()[1].count_operators(1), 1);
+        EXPECT_EQ(ic.Observables()[2].count_operators(1), 1);
+        EXPECT_EQ(ic.total_operator_count(1), 3);
+        EXPECT_EQ(ic.total_source_count(1), 2);
+
+        // Inflation level 2: A00, A01, A10, A11; etc.
+        EXPECT_EQ(ic.Observables()[0].count_operators(2), 2);
+        EXPECT_EQ(ic.Observables()[1].count_operators(2), 2);
+        EXPECT_EQ(ic.Observables()[2].count_operators(2), 1);
+        EXPECT_EQ(ic.total_operator_count(2), 5);
+        EXPECT_EQ(ic.total_source_count(2), 3);
+
+        // Inflation level 2: A01, A01, A02, A10, etc...
+        EXPECT_EQ(ic.Observables()[0].count_operators(3), 3);
+        EXPECT_EQ(ic.Observables()[1].count_operators(3), 3);
+        EXPECT_EQ(ic.Observables()[2].count_operators(3), 1);
+        EXPECT_EQ(ic.total_operator_count(3), 7);
+        EXPECT_EQ(ic.total_source_count(3), 4);
     }
 
 

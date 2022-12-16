@@ -61,6 +61,201 @@ namespace NPATK::Tests {
         EXPECT_TRUE(sources[0].observables.contains(0));
         EXPECT_TRUE(sources[0].observables.contains(1));
 
+
+        // Check XX is simplified
+        OperatorSequence xx{{0, 0}, ic};
+        ASSERT_EQ(xx.size(), 1);
+        EXPECT_EQ(xx[0], 0);
+
+        OperatorSequence yy{{1, 1}, ic};
+        ASSERT_EQ(yy.size(), 1);
+        EXPECT_EQ(yy[0], 1);
+    }
+
+    TEST(Operators_Inflation_InflationContext, Construct_CVPair) {
+        InflationContext ic{CausalNetwork{{0, 0}, {{0, 1}}}, 1};
+        ASSERT_EQ(ic.size(), 2); // X, Y
+        EXPECT_EQ(ic.source_variant_count(), 1);
+        EXPECT_EQ(ic.observable_variant_count(), 2);
+
+        const auto& observables = ic.Observables();
+        ASSERT_EQ(observables.size(), 2);
+        EXPECT_EQ(observables[0].id, 0);
+        EXPECT_EQ(observables[0].outcomes, 0);
+        EXPECT_EQ(observables[0].operators(), 1);
+        EXPECT_EQ(observables[0].projective(), false);
+        EXPECT_EQ(observables[0].sources.size(), 1);
+        EXPECT_TRUE(observables[0].sources.contains(0));
+
+        EXPECT_EQ(observables[1].id, 1);
+        EXPECT_EQ(observables[1].outcomes, 0);
+        EXPECT_EQ(observables[1].operators(), 1);
+        EXPECT_EQ(observables[1].projective(), false);
+        EXPECT_EQ(observables[1].sources.size(), 1);
+        EXPECT_TRUE(observables[1].sources.contains(0));
+
+        const auto& sources = ic.Sources();
+        ASSERT_EQ(sources.size(), 1);
+        EXPECT_EQ(sources[0].id, 0);
+        EXPECT_EQ(sources[0].observables.size(), 2);
+        EXPECT_TRUE(sources[0].observables.contains(0));
+        EXPECT_TRUE(sources[0].observables.contains(1));
+
+        // Check XX isn't simplified
+        OperatorSequence xx{{0, 0}, ic};
+        ASSERT_EQ(xx.size(), 2);
+        EXPECT_EQ(xx[0], 0);
+        EXPECT_EQ(xx[1], 0);
+
+        OperatorSequence yy{{1, 1}, ic};
+        ASSERT_EQ(yy.size(), 2);
+        EXPECT_EQ(yy[0], 1);
+        EXPECT_EQ(yy[1], 1);
+    }
+
+    TEST(Operators_Inflation_InflationContext, Construct_InflatedCVPair) {
+        InflationContext ic{CausalNetwork{{0, 0}, {{0, 1}}}, 2};
+        ASSERT_EQ(ic.size(), 4); // X0, X1, Y0, Y1
+        ASSERT_EQ(ic.source_variant_count(), 2);
+        ASSERT_EQ(ic.observable_variant_count(), 4);
+
+        const auto& observables = ic.Observables();
+        ASSERT_EQ(observables.size(), 2);
+        
+        const auto& A = observables[0];
+        EXPECT_EQ(A.id, 0);
+        EXPECT_EQ(A.outcomes, 0);
+        EXPECT_EQ(A.operators(), 1);
+        EXPECT_EQ(A.projective(), false);
+        EXPECT_EQ(A.sources.size(), 1);
+        EXPECT_TRUE(A.sources.contains(0));
+        EXPECT_EQ(A.variant_count, 2);
+        ASSERT_EQ(A.variants.size(), 2);
+        EXPECT_EQ(A.variant_offset, 0);
+        const auto& A0 = A.variants[0];
+        EXPECT_EQ(A0.flat_index, 0);
+        EXPECT_EQ(A0.operator_offset, 0);
+        EXPECT_TRUE(A0.connected_sources.test(0));
+        EXPECT_FALSE(A0.connected_sources.test(1));
+
+
+        const auto& A1 = A.variants[1];
+        EXPECT_EQ(A1.flat_index, 1);
+        EXPECT_EQ(A1.operator_offset, 1);
+        EXPECT_FALSE(A1.connected_sources.test(0));
+        EXPECT_TRUE(A1.connected_sources.test(1));
+
+        EXPECT_FALSE(A0.independent(A0));
+        EXPECT_TRUE(A0.independent(A1));
+        EXPECT_FALSE(A1.independent(A1));
+
+        const auto& B = observables[1];
+        EXPECT_EQ(B.id, 1);
+        EXPECT_EQ(B.outcomes, 0);
+        EXPECT_EQ(B.operators(), 1);
+        EXPECT_EQ(B.projective(), false);
+        EXPECT_EQ(B.sources.size(), 1);
+        EXPECT_TRUE(B.sources.contains(0));
+        EXPECT_EQ(B.variant_count, 2);
+        ASSERT_EQ(B.variants.size(), 2);
+        EXPECT_EQ(B.variant_offset, 2);
+        const auto& B0 = B.variants[0];
+        EXPECT_EQ(B0.flat_index, 0);
+        EXPECT_EQ(B0.operator_offset, 2);
+        EXPECT_TRUE(B0.connected_sources.test(0));
+        EXPECT_FALSE(B0.connected_sources.test(1));
+
+        const auto& B1 = B.variants[1];
+        EXPECT_EQ(B1.flat_index, 1);
+        EXPECT_EQ(B1.operator_offset, 3);
+        EXPECT_FALSE(B1.connected_sources.test(0));
+        EXPECT_TRUE(B1.connected_sources.test(1));
+
+
+        EXPECT_FALSE(B0.independent(B0));
+        EXPECT_TRUE(B0.independent(B1));
+        EXPECT_FALSE(B1.independent(B1));
+
+
+        EXPECT_FALSE(A0.independent(B0));
+        EXPECT_TRUE(A0.independent(B1));
+        EXPECT_FALSE(A1.independent(B1));
+        EXPECT_TRUE(A1.independent(B0));
+        EXPECT_FALSE(B0.independent(A0));
+        EXPECT_TRUE(B0.independent(A1));
+        EXPECT_FALSE(B1.independent(A1));
+        EXPECT_TRUE(B1.independent(A0));
+
+
+        const auto& sources = ic.Sources();
+        ASSERT_EQ(sources.size(), 1);
+        EXPECT_EQ(sources[0].id, 0);
+        EXPECT_EQ(sources[0].observables.size(), 2);
+        EXPECT_TRUE(sources[0].observables.contains(0));
+        EXPECT_TRUE(sources[0].observables.contains(1));
+    }
+
+
+    TEST(Operators_Inflation_InflationContext, Construct_UnlinkedCVPair) {
+        InflationContext ic{CausalNetwork{{0, 0}, {}}, 2};
+        ASSERT_EQ(ic.size(), 2); // X, Y
+        EXPECT_EQ(ic.source_variant_count(), 2); // two, implicit sources, not inflated
+        EXPECT_EQ(ic.observable_variant_count(), 2); // two observables
+
+        const auto& observables = ic.Observables();
+        ASSERT_EQ(observables.size(), 2);
+        const auto& A = observables[0];
+        EXPECT_EQ(A.id, 0);
+        EXPECT_EQ(A.outcomes, 0);
+        EXPECT_EQ(A.operators(), 1);
+        EXPECT_EQ(A.projective(), false);
+        ASSERT_EQ(A.sources.size(), 1);
+        EXPECT_TRUE(A.sources.contains(0));
+        EXPECT_EQ(A.variant_count, 1);
+        ASSERT_EQ(A.variants.size(), 1);
+        const auto& A0 = A.variants[0];
+        EXPECT_EQ(A0.source_variants.size(), 1);
+        
+        const auto& B = observables[1];
+        EXPECT_EQ(B.id, 1);
+        EXPECT_EQ(B.outcomes, 0);
+        EXPECT_EQ(B.operators(), 1);
+        EXPECT_EQ(B.projective(), false);
+        ASSERT_EQ(B.sources.size(), 1);
+        EXPECT_TRUE(B.sources.contains(1));
+        EXPECT_EQ(B.variant_count, 1);
+        ASSERT_EQ(B.variants.size(), 1);
+        const auto& B0 = B.variants[0];
+        EXPECT_EQ(B0.source_variants.size(), 1);
+
+        // Check (in)dependence:
+        EXPECT_FALSE(A0.independent(A0));
+        EXPECT_TRUE(A0.independent(B0));
+        EXPECT_FALSE(B0.independent(B0));
+
+
+        const auto& sources = ic.Sources();
+        ASSERT_EQ(sources.size(), 2);
+        EXPECT_EQ(sources[0].id, 0);
+        ASSERT_EQ(sources[0].observables.size(), 1);
+        EXPECT_TRUE(sources[0].observables.contains(0));
+        EXPECT_TRUE(sources[0].implicit);
+
+        EXPECT_EQ(sources[1].id, 1);
+        ASSERT_EQ(sources[1].observables.size(), 1);
+        EXPECT_TRUE(sources[1].observables.contains(1));
+        EXPECT_TRUE(sources[1].implicit);
+
+        // Check XX isn't simplified
+        OperatorSequence xx{{0, 0}, ic};
+        ASSERT_EQ(xx.size(), 2);
+        EXPECT_EQ(xx[0], 0);
+        EXPECT_EQ(xx[1], 0);
+
+        OperatorSequence yy{{1, 1}, ic};
+        ASSERT_EQ(yy.size(), 2);
+        EXPECT_EQ(yy[0], 1);
+        EXPECT_EQ(yy[1], 1);
     }
 
     TEST(Operators_Inflation_InflationContext, NumberOperators) {
@@ -433,6 +628,266 @@ namespace NPATK::Tests {
         auto factors_a0a1 = ic.factorize(OperatorSequence{{id_a0, id_a1}, ic});
         EXPECT_EQ(factors_a0a1[0], OperatorSequence({id_a0}, ic));
         EXPECT_EQ(factors_a0a1[1], OperatorSequence({id_a1}, ic));
+
+        // B0B1 should freely factorize
+        auto factors_b0b1 = ic.factorize(OperatorSequence{{id_b0, id_b1}, ic});
+        EXPECT_EQ(factors_b0b1[0], OperatorSequence({id_b0}, ic));
+        EXPECT_EQ(factors_b0b1[1], OperatorSequence({id_b1}, ic));
+    }
+
+    TEST(Operators_Inflation_InflationContext, Factorize_CVPair) {
+        InflationContext ic{CausalNetwork{{0, 0}, {{0, 1}}}, 1};
+        const auto& obsA = ic.Observables()[0];
+        const auto& obsB = ic.Observables()[1];
+
+        const auto& obsA_V0 = obsA.variant(std::vector<oper_name_t>{0});
+        const auto& obsB_V0 = obsB.variant(std::vector<oper_name_t>{0});
+
+        const auto id_a0 = obsA_V0.operator_offset;
+        const auto id_b0 = obsB_V0.operator_offset;
+        const std::set all_ids{id_a0, id_b0};
+        ASSERT_EQ(all_ids.size(), 2);
+
+        // 0, I, a0, and b0 should all just pass through unfactorized
+        auto factors_0 = ic.factorize(OperatorSequence::Zero(ic));
+        ASSERT_EQ(factors_0.size(), 1);
+        EXPECT_EQ(factors_0[0], OperatorSequence::Zero(ic));
+
+        auto factors_I = ic.factorize(OperatorSequence::Identity(ic));
+        ASSERT_EQ(factors_I.size(), 1);
+        EXPECT_EQ(factors_I[0], OperatorSequence::Identity(ic));
+
+        auto factors_a0 = ic.factorize(OperatorSequence{{id_a0}, ic});
+        ASSERT_EQ(factors_a0.size(), 1);
+        EXPECT_EQ(factors_a0[0], OperatorSequence({id_a0}, ic));
+
+        auto factors_b0 = ic.factorize(OperatorSequence{{id_b0}, ic});
+        ASSERT_EQ(factors_b0.size(), 1);
+        EXPECT_EQ(factors_b0[0], OperatorSequence({id_b0}, ic));
+
+        // A0B0 should not factorize, due to common source
+        auto factors_a0b0 = ic.factorize(OperatorSequence{{id_a0, id_b0}, ic});
+        ASSERT_EQ(factors_a0b0.size(), 1);
+        EXPECT_EQ(factors_a0b0[0], OperatorSequence({id_a0, id_b0}, ic));
+
+        // A0A0 should not factorize, due to common source
+        auto factors_a0a0 = ic.factorize(OperatorSequence{{id_a0, id_a0}, ic});
+        ASSERT_EQ(factors_a0a0.size(), 1);
+        EXPECT_EQ(factors_a0a0[0], OperatorSequence({id_a0, id_a0}, ic));
+
+        // B0B0 should not factorize, due to common source
+        auto factors_b0b0 = ic.factorize(OperatorSequence{{id_b0, id_b0}, ic});
+        ASSERT_EQ(factors_b0b0.size(), 1);
+        EXPECT_EQ(factors_b0b0[0], OperatorSequence({id_b0, id_b0}, ic));
+    }
+
+    TEST(Operators_Inflation_InflationContext, Factorize_CVUnlinkedPair) {
+        InflationContext ic{CausalNetwork{{0, 0}, {}}, 1};
+        const auto& obsA = ic.Observables()[0];
+        const auto& obsB = ic.Observables()[1];
+
+        const auto& obsA_V0 = obsA.variants[0];
+        const auto& obsB_V0 = obsB.variants[0];
+
+        const auto id_a0 = obsA_V0.operator_offset;
+        const auto id_b0 = obsB_V0.operator_offset;
+        const std::set all_ids{id_a0, id_b0};
+        ASSERT_EQ(all_ids.size(), 2);
+
+        // 0, I, a0, and b0 should all just pass through unfactorized
+        auto factors_0 = ic.factorize(OperatorSequence::Zero(ic));
+        ASSERT_EQ(factors_0.size(), 1);
+        EXPECT_EQ(factors_0[0], OperatorSequence::Zero(ic));
+
+        auto factors_I = ic.factorize(OperatorSequence::Identity(ic));
+        ASSERT_EQ(factors_I.size(), 1);
+        EXPECT_EQ(factors_I[0], OperatorSequence::Identity(ic));
+
+        auto factors_a0 = ic.factorize(OperatorSequence{{id_a0}, ic});
+        ASSERT_EQ(factors_a0.size(), 1);
+        EXPECT_EQ(factors_a0[0], OperatorSequence({id_a0}, ic));
+
+        auto factors_b0 = ic.factorize(OperatorSequence{{id_b0}, ic});
+        ASSERT_EQ(factors_b0.size(), 1);
+        EXPECT_EQ(factors_b0[0], OperatorSequence({id_b0}, ic));
+
+        // A0B0 should factorize
+        auto factors_a0b0 = ic.factorize(OperatorSequence{{id_a0, id_b0}, ic});
+        ASSERT_EQ(factors_a0b0.size(), 2);
+        EXPECT_EQ(factors_a0b0[0], OperatorSequence({id_a0}, ic));
+        EXPECT_EQ(factors_a0b0[1], OperatorSequence({id_b0}, ic));
+
+        // A0A0 should not factorize, due to common source
+        auto factors_a0a0 = ic.factorize(OperatorSequence{{id_a0, id_a0}, ic});
+        ASSERT_EQ(factors_a0a0.size(), 1);
+        EXPECT_EQ(factors_a0a0[0], OperatorSequence({id_a0, id_a0}, ic));
+
+        // B0B0 should not factorize, due to common source
+        auto factors_b0b0 = ic.factorize(OperatorSequence{{id_b0, id_b0}, ic});
+        ASSERT_EQ(factors_b0b0.size(), 1);
+        EXPECT_EQ(factors_b0b0[0], OperatorSequence({id_b0, id_b0}, ic));
+    }
+
+    TEST(Operators_Inflation_InflationContext, Factorize_PairSingleton) {
+        InflationContext ic{CausalNetwork{{2, 2, 0}, {{0,1}}}, 1};
+        ASSERT_EQ(ic.Observables().size(), 3);
+        const auto& obsA = ic.Observables()[0];
+        const auto& obsB = ic.Observables()[1];
+        const auto& obsC = ic.Observables()[2];
+
+        const auto& obsA_V0 = obsA.variants[0];
+        const auto& obsB_V0 = obsB.variants[0];
+        const auto& obsC_V0 = obsC.variants[0];
+
+        const auto id_a0 = obsA_V0.operator_offset;
+        const auto id_b0 = obsB_V0.operator_offset;
+        const auto id_c0 = obsC_V0.operator_offset;
+        const std::set all_ids{id_a0, id_b0, id_c0};
+        ASSERT_EQ(all_ids.size(), 3);
+
+        // 0, I, a0, b0 and c0 should all just pass through unfactorized
+        auto factors_0 = ic.factorize(OperatorSequence::Zero(ic));
+        ASSERT_EQ(factors_0.size(), 1);
+        EXPECT_EQ(factors_0[0], OperatorSequence::Zero(ic));
+
+        auto factors_I = ic.factorize(OperatorSequence::Identity(ic));
+        ASSERT_EQ(factors_I.size(), 1);
+        EXPECT_EQ(factors_I[0], OperatorSequence::Identity(ic));
+
+        auto factors_a0 = ic.factorize(OperatorSequence{{id_a0}, ic});
+        ASSERT_EQ(factors_a0.size(), 1);
+        EXPECT_EQ(factors_a0[0], OperatorSequence({id_a0}, ic));
+
+        auto factors_b0 = ic.factorize(OperatorSequence{{id_b0}, ic});
+        ASSERT_EQ(factors_b0.size(), 1);
+        EXPECT_EQ(factors_b0[0], OperatorSequence({id_b0}, ic));
+
+        auto factors_c0 = ic.factorize(OperatorSequence{{id_c0}, ic});
+        ASSERT_EQ(factors_c0.size(), 1);
+        EXPECT_EQ(factors_c0[0], OperatorSequence({id_c0}, ic));
+
+        // A0B0 shouldn't factorize, due to common source
+        auto factors_a0b0 = ic.factorize(OperatorSequence{{id_a0, id_b0}, ic});
+        ASSERT_EQ(factors_a0b0.size(), 1);
+        EXPECT_EQ(factors_a0b0[0], OperatorSequence({id_a0, id_b0}, ic));
+
+        // A0A0 should not factorize, same object [moreover, a0^2 = a0]
+        auto factors_a0a0 = ic.factorize(OperatorSequence{{id_a0, id_a0}, ic});
+        ASSERT_EQ(factors_a0a0.size(), 1);
+        EXPECT_EQ(factors_a0a0[0], OperatorSequence({id_a0, id_a0}, ic));
+
+        // B0B0 should not factorize, same object [moreover, b0^2 = b0]
+        auto factors_b0b0 = ic.factorize(OperatorSequence{{id_b0, id_b0}, ic});
+        ASSERT_EQ(factors_b0b0.size(), 1);
+        EXPECT_EQ(factors_b0b0[0], OperatorSequence({id_b0, id_b0}, ic));
+
+        // C0C0 should not factorize, same object
+        auto factors_c0c0 = ic.factorize(OperatorSequence{{id_c0, id_c0}, ic});
+        ASSERT_EQ(factors_c0c0.size(), 1);
+        EXPECT_EQ(factors_c0c0[0], OperatorSequence({id_c0, id_c0}, ic));
+        
+        // A0C0 should factorize
+        auto factors_a0c0 = ic.factorize(OperatorSequence{{id_a0, id_c0}, ic});
+        ASSERT_EQ(factors_a0c0.size(), 2);
+        EXPECT_EQ(factors_a0c0[0], OperatorSequence({id_a0}, ic));
+        EXPECT_EQ(factors_a0c0[1], OperatorSequence({id_c0}, ic));
+        
+        // B0C0 should factorize
+        auto factors_b0c0 = ic.factorize(OperatorSequence{{id_b0, id_c0}, ic});
+        ASSERT_EQ(factors_b0c0.size(), 2);
+        EXPECT_EQ(factors_b0c0[0], OperatorSequence({id_b0}, ic));
+        EXPECT_EQ(factors_b0c0[1], OperatorSequence({id_c0}, ic));
+
+    }
+
+    TEST(Operators_Inflation_InflationContext, Factorize_InflatedCVPair) {
+        InflationContext ic{CausalNetwork{{0, 0}, {{0, 1}}}, 2};
+        const auto& obsA = ic.Observables()[0];
+        const auto& obsB = ic.Observables()[1];
+
+        const auto& obsA_V0 = obsA.variant(std::vector<oper_name_t>{0});
+        const auto& obsA_V1 = obsA.variant(std::vector<oper_name_t>{1});
+        const auto& obsB_V0 = obsB.variant(std::vector<oper_name_t>{0});
+        const auto& obsB_V1 = obsB.variant(std::vector<oper_name_t>{1});
+
+        const auto id_a0 = obsA_V0.operator_offset;
+        const auto id_a1 = obsA_V1.operator_offset;
+        const auto id_b0 = obsB_V0.operator_offset;
+        const auto id_b1 = obsB_V1.operator_offset;
+        const std::set all_ids{id_a0, id_a1, id_b0, id_b1};
+        ASSERT_EQ(all_ids.size(), 4);
+
+        // 0, I, a0, a1, b0 and b1 should all just pass through
+        auto factors_0 = ic.factorize(OperatorSequence::Zero(ic));
+        ASSERT_EQ(factors_0.size(), 1);
+        EXPECT_EQ(factors_0[0], OperatorSequence::Zero(ic));
+
+        auto factors_I = ic.factorize(OperatorSequence::Identity(ic));
+        ASSERT_EQ(factors_I.size(), 1);
+        EXPECT_EQ(factors_I[0], OperatorSequence::Identity(ic));
+
+        auto factors_a0 = ic.factorize(OperatorSequence{{id_a0}, ic});
+        ASSERT_EQ(factors_a0.size(), 1);
+        EXPECT_EQ(factors_a0[0], OperatorSequence({id_a0}, ic));
+
+        auto factors_a1 = ic.factorize(OperatorSequence{{id_a1}, ic});
+        ASSERT_EQ(factors_a1.size(), 1);
+        EXPECT_EQ(factors_a1[0], OperatorSequence({id_a1}, ic));
+
+        auto factors_b0 = ic.factorize(OperatorSequence{{id_b0}, ic});
+        ASSERT_EQ(factors_b0.size(), 1);
+        EXPECT_EQ(factors_b0[0], OperatorSequence({id_b0}, ic));
+
+        auto factors_b1 = ic.factorize(OperatorSequence{{id_b1}, ic});
+        ASSERT_EQ(factors_b1.size(), 1);
+        EXPECT_EQ(factors_b1[0], OperatorSequence({id_b1}, ic));
+
+        // A0B0 should not factorize, due to common source
+        auto factors_a0b0 = ic.factorize(OperatorSequence{{id_a0, id_b0}, ic});
+        ASSERT_EQ(factors_a0b0.size(), 1);
+        EXPECT_EQ(factors_a0b0[0], OperatorSequence({id_a0, id_b0}, ic));
+
+        // A0A0 should not factorize, due to common source
+        auto factors_a0a0 = ic.factorize(OperatorSequence{{id_a0, id_a0}, ic});
+        ASSERT_EQ(factors_a0a0.size(), 1);
+        EXPECT_EQ(factors_a0a0[0], OperatorSequence({id_a0, id_a0}, ic));
+
+        // A1A1 should not factorize, due to common source
+        auto factors_a1a1 = ic.factorize(OperatorSequence{{id_a1, id_a1}, ic});
+        ASSERT_EQ(factors_a1a1.size(), 1);
+        EXPECT_EQ(factors_a1a1[0], OperatorSequence({id_a1, id_a1}, ic));
+
+        // A0B1 should freely factorize
+        auto factors_a0b1 = ic.factorize(OperatorSequence{{id_a0, id_b1}, ic});
+        ASSERT_EQ(factors_a0b1.size(), 2);
+        EXPECT_EQ(factors_a0b1[0], OperatorSequence({id_a0}, ic));
+        EXPECT_EQ(factors_a0b1[1], OperatorSequence({id_b1}, ic));
+
+        // A1B0 should freely factorize
+        auto factors_a1b0 = ic.factorize(OperatorSequence{{id_a1, id_b0}, ic});
+        ASSERT_EQ(factors_a1b0.size(), 2);
+        EXPECT_EQ(factors_a1b0[0], OperatorSequence({id_a1}, ic));
+        EXPECT_EQ(factors_a1b0[1], OperatorSequence({id_b0}, ic));
+
+        // A1B1 should not factorize, due to common source
+        auto factors_a1b1 = ic.factorize(OperatorSequence{{id_a1, id_b1}, ic});
+        ASSERT_EQ(factors_a1b1.size(), 1);
+        EXPECT_EQ(factors_a1b1[0], OperatorSequence({id_a1, id_b1}, ic));
+
+         // A0A1 should freely factorize
+        auto factors_a0a1 = ic.factorize(OperatorSequence{{id_a0, id_a1}, ic});
+        EXPECT_EQ(factors_a0a1[0], OperatorSequence({id_a0}, ic));
+        EXPECT_EQ(factors_a0a1[1], OperatorSequence({id_a1}, ic));
+
+        // B0B0 should not factorize, due to common source
+        auto factors_b0b0 = ic.factorize(OperatorSequence{{id_b0, id_b0}, ic});
+        ASSERT_EQ(factors_b0b0.size(), 1);
+        EXPECT_EQ(factors_b0b0[0], OperatorSequence({id_b0, id_b0}, ic));
+
+        // B1B1 should not factorize, due to common source
+        auto factors_b1b1 = ic.factorize(OperatorSequence{{id_b1, id_b1}, ic});
+        ASSERT_EQ(factors_b1b1.size(), 1);
+        EXPECT_EQ(factors_b1b1[0], OperatorSequence({id_b1, id_b1}, ic));
 
         // B0B1 should freely factorize
         auto factors_b0b1 = ic.factorize(OperatorSequence{{id_b0, id_b1}, ic});

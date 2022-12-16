@@ -51,6 +51,20 @@ namespace NPATK {
             return (this->observable_variant == other.observable_variant) && (this->outcome == other.outcome);
         }
 
+        constexpr bool operator<(const OVOIndex& other) const noexcept {
+            if (this->observable_variant.observable < other.observable_variant.observable) {
+                return true;
+            } else if (this->observable_variant.observable > other.observable_variant.observable) {
+                return false;
+            }
+            if (this->observable_variant.variant < other.observable_variant.variant) {
+                return true;
+            } else if (this->observable_variant.variant > other.observable_variant.variant) {
+                return false;
+            }
+            return this->outcome < other.outcome;
+        }
+
         friend std::ostream& operator<<(std::ostream& os, const OVOIndex& index);
     };
 }

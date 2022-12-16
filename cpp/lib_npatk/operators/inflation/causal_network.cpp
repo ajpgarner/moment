@@ -6,39 +6,50 @@
 #include "causal_network.h"
 #include "utilities/alphabetic_namer.h"
 
+#include <cassert>
+
 #include <sstream>
 
 namespace NPATK {
     CausalNetwork::CausalNetwork(const std::vector<size_t> &observable_init_list,
-                                       std::vector<std::set<oper_name_t>> &&source_init_list) {
-
-        // Check observable outcome counts
-        for (size_t o = 0, oMax = observable_init_list.size(); o < oMax; ++o) {
-            if (observable_init_list[o] <= 0) {
-                std::stringstream errSS;
-                errSS << "Observable " << o << " must have at least one outcome.";
-                throw errors::bad_observable(o, errSS.str());
-            }
-        }
-
+                                 std::vector<std::set<oper_name_t>> &&source_init_list)
+             : implicit_source_index{source_init_list.size()} {
         // Check sources, and get reverse list
         auto observable_source_sets = CausalNetwork::reverse_observable_to_source(observable_init_list.size(),
                                                                                   source_init_list);
 
+        // List of singleton observables, that will receive implicit sources (necessary for correct factorization!)
+        std::vector<oper_name_t> singleton_observables;
+        size_t next_implicit_source = this->implicit_source_index;
+
         // Make observables
         this->observables.reserve(observable_init_list.size());
         for (size_t o = 0, oMax = observable_init_list.size(); o < oMax; ++o) {
+            // Singleton, if no sources map to observable
+            const bool singleton = observable_source_sets[o].empty();
+            if (singleton) {
+                singleton_observables.emplace_back(static_cast<oper_name_t>(o));
+                observable_source_sets[o].emplace(next_implicit_source);
+                ++next_implicit_source;
+            }
+
             this->observables.emplace_back(static_cast<oper_name_t>(o), observable_init_list[o],
-                                           std::move(observable_source_sets[o]));
+                                           std::move(observable_source_sets[o]), singleton);
         }
         observable_source_sets.clear();
 
-        // Make sources
+        // Make explicit sources
         this->sources.reserve(source_init_list.size());
         for (size_t s = 0, sMax = source_init_list.size(); s < sMax; ++s) {
-            this->sources.emplace_back(static_cast<oper_name_t>(s), std::move(source_init_list[s]));
+            this->sources.emplace_back(static_cast<oper_name_t>(s), std::move(source_init_list[s]), false);
         }
         source_init_list.clear();
+
+        // Now, add implicit sources
+        for (const oper_name_t obs : singleton_observables) {
+            this->sources.emplace_back(this->sources.size(), std::set<oper_name_t>{obs}, true);
+        }
+        assert(this->sources.size() == next_implicit_source);
     }
 
     std::vector<std::set<oper_name_t>>
@@ -63,6 +74,12 @@ namespace NPATK {
 
         return output;
 
+    }
+
+    size_t CausalNetwork::total_source_count(size_t inflation_level) const noexcept {
+        const size_t explicit_sources = this->implicit_source_index;
+        const size_t implicit_sources = this->sources.size() - explicit_sources;
+        return (explicit_sources * inflation_level) + implicit_sources;
     }
 
     size_t CausalNetwork::total_operator_count(size_t inflation_level) const noexcept {

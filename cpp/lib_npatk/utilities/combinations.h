@@ -33,7 +33,8 @@ namespace NPATK {
         return numerator/denominator;
     }
 
-    class CombinationIndexIterator {
+    template<bool inclusive = false>
+    class CombinationIndexIteratorBase {
     public:
         using index_list = std::vector<size_t>;
 
@@ -53,38 +54,54 @@ namespace NPATK {
     public:
 
         /** Construct iterator in begin state */
-        constexpr CombinationIndexIterator(size_t SetSize, size_t SubsetSize)
-            : N(SetSize), K(SubsetSize), endState(false) {
+        constexpr CombinationIndexIteratorBase(size_t SetSize, size_t SubsetSize)
+            : N{SetSize}, K{SubsetSize}, endState{false} {
             assert(SetSize >= SubsetSize);
 
             // Initialize as lowest object (0, 1, ... K-1)
             this->indices.reserve(K);
-            for (size_t i = 0; i < K; ++i) {
-                indices.push_back(i);
+            if constexpr (inclusive) {
+                std::fill_n(std::back_inserter(this->indices), K, 0);
+            } else {
+                for (size_t i = 0; i < K; ++i) {
+                    this->indices.push_back(i);
+                }
             }
         }
 
-        constexpr CombinationIndexIterator(size_t SetSize, size_t SubsetSize, bool set_to_true)
+        constexpr CombinationIndexIteratorBase(size_t SetSize, size_t SubsetSize, bool set_to_true)
                 : N(SetSize), K(SubsetSize), endState(true) {
             assert(set_to_true);
         }
 
-        constexpr CombinationIndexIterator& operator++() {
+        constexpr CombinationIndexIteratorBase& operator++() {
             assert(!this->endState);
 
-            incIndex(0);
+            // K = 0 expires immediately
+            if (K == 0) {
+                [[unlikely]]
+                this->endState = true;
+                return *this;
+            }
+
+            // Otherwise, increase indices
+            if constexpr(inclusive) {
+                incIndexInclusive(K-1);
+            } else {
+                incIndexExclusive(0);
+            }
 
             return *this;
         }
 
-        [[nodiscard]] constexpr CombinationIndexIterator operator++(int) & {
+        [[nodiscard]] constexpr CombinationIndexIteratorBase operator++(int) & {
             auto copy{*this};
             ++(*this);
             return copy;
         }
 
 
-        constexpr bool operator==(const CombinationIndexIterator& other) const noexcept {
+        constexpr bool operator==(const CombinationIndexIteratorBase& other) const noexcept {
             // All expired iterators are equivalent, and distinct from unexpired iterators
             if (this->endState != other.endState) {
                 return false;
@@ -101,7 +118,7 @@ namespace NPATK {
             return true;
         }
 
-        constexpr bool operator!=(const CombinationIndexIterator& other) const noexcept {
+        constexpr bool operator!=(const CombinationIndexIteratorBase& other) const noexcept {
             return !(this->operator==(other));
         }
 
@@ -125,27 +142,39 @@ namespace NPATK {
         }
 
     private:
-        constexpr void incIndex(size_t J) { // NOLINT(misc-no-recursion)
-            if (K == 0) {
-                [[unlikely]]
-                endState = true;
-                return;
-            }
-
+        constexpr void incIndexInclusive(size_t J) { // NOLINT(misc-no-recursion)
             indices[J]++;
-            if (J < K-1) {
-                if (indices[J] >= indices[J + 1]) {
-                    indices[J] = J; // minval
-                    incIndex(J + 1);
+            if (J > 0) {
+                if (indices[J] >= N) {
+                    incIndexInclusive(J - 1);
+                    indices[J] = indices[J-1];
                 }
             } else {
-                if (indices[K-1] >= N) {
+                // N+1, ... N
+                if (indices[0] >= N) {
+                    endState = true;
+                }
+            }
+        }
+
+        constexpr void incIndexExclusive(size_t J) { // NOLINT(misc-no-recursion)
+            indices[J]++;
+            if (J + 1 < K) {
+                if (indices[J] >= indices[J + 1]) {
+                    indices[J] = J; // minval
+                    incIndexExclusive(J + 1);
+                }
+            } else {
+                if (indices[K - 1] >= N) {
                     endState = true;
                 }
             }
         }
     };
 
+    using CombinationIndexIterator = CombinationIndexIteratorBase<false>;
+
+    using CommutingIndexIterator = CombinationIndexIteratorBase<true>;
 
     class PartitionIterator {
     public:
