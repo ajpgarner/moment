@@ -6,7 +6,7 @@
 #include "gtest/gtest.h"
 #include "symbolic/symbol_expression.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Symbolic_SymbolExpression, Parse_One) {
         std::string one = "1";

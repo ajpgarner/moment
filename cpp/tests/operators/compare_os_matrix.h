@@ -12,7 +12,7 @@
 
 #include <sstream>
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
     inline void compare_os_matrix(const std::string& prefix,
                                   const OperatorMatrix& theMM, size_t dimension,
                                   const std::initializer_list<OperatorSequence> reference) {

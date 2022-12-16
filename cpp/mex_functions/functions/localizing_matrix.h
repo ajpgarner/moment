@@ -8,11 +8,11 @@
 #include "operator_matrix.h"
 #include "operators/matrix/localizing_matrix_index.h"
 
-namespace NPATK {
+namespace Moment {
     class Context;
 }
 
-namespace NPATK::mex::functions  {
+namespace Moment::mex::functions  {
 
     struct LocalizingMatrixParams : public OperatorMatrixParams {
     public:
@@ -45,14 +45,14 @@ namespace NPATK::mex::functions  {
         [[nodiscard]] std::string input_format() const final { return "[matrix system ID, level, word]"; }
     };
 
-    class LocalizingMatrix : public NPATK::mex::functions::OperatorMatrix {
+    class LocalizingMatrix : public Moment::mex::functions::OperatorMatrix {
     public:
         explicit LocalizingMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
     protected:
-        std::pair<size_t, const NPATK::OperatorMatrix&>
+        std::pair<size_t, const Moment::OperatorMatrix&>
         get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp) final;
     };
 }

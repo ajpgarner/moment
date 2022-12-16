@@ -16,7 +16,7 @@
 
 #include "mex.hpp"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     namespace {
         class FormatView {

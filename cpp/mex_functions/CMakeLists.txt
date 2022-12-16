@@ -2,10 +2,10 @@ set(MATLAB_FIND_DEBUG)
 
 find_package(Matlab)
 
-include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
+include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_moment)
 include_directories(${NPAToolKit_SOURCE_DIR}/cpp/mex_functions)
 
-matlab_add_mex(NAME npatk_mex
+matlab_add_mex(NAME moment_mex
         SRC
             mex_entry.cpp
             mex_main.cpp
@@ -48,15 +48,15 @@ matlab_add_mex(NAME npatk_mex
             functions/rules.cpp
             functions/symbol_table.cpp
             functions/version.cpp
-        OUTPUT_NAME npatk
+        OUTPUT_NAME mtk
         MODULE
         R2018a)
 
-target_link_libraries(npatk_mex
-        lib_npatk)
+target_link_libraries(moment_mex
+        lib_moment)
 
-add_custom_command(TARGET npatk_mex POST_BUILD
+add_custom_command(TARGET moment_mex POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy
-                "$<TARGET_FILE:npatk_mex>"
+                "$<TARGET_FILE:moment_mex>"
                 "${PROJECT_SOURCE_DIR}/matlab/"
         COMMENT "Copying compiled mex function to matlab directory.")

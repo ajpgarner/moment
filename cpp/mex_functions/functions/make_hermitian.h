@@ -7,10 +7,10 @@
 
 #include "mex_function.h"
 
-namespace NPATK::mex::functions  {
+namespace Moment::mex::functions  {
 
 
-    class MakeHermitian : public NPATK::mex::functions::MexFunction {
+class MakeHermitian : public Moment::mex::functions::MexFunction {
     public:
         explicit MakeHermitian(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

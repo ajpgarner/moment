@@ -8,7 +8,7 @@
 
 #include "utilities/combinations.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Utilities_Combinations, Combination_5C1) {
         EXPECT_EQ(combinations(5, 1), 5);

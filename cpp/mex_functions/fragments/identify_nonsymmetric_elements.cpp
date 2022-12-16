@@ -11,7 +11,7 @@
 
 #include "MatlabDataArray.hpp"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     namespace {
         /**
@@ -21,7 +21,7 @@ namespace NPATK::mex {
             matlab::engine::MATLABEngine& engine;
 
         public:
-            using return_type = NPATK::SymbolSet;
+            using return_type = SymbolSet;
 
         public:
             explicit NonsymmetricElementIdentifierVisitor(matlab::engine::MATLABEngine &the_engine)
@@ -33,7 +33,7 @@ namespace NPATK::mex {
               * @param data The data array
               * @return A vector of non-matching elements, in canonical form.
               */
-            template<std::convertible_to<NPATK::symbol_name_t> datatype>
+            template<std::convertible_to<symbol_name_t> datatype>
             return_type dense(const matlab::data::TypedArray<datatype> &data) {
                 SymbolSet output{};
 
@@ -42,12 +42,12 @@ namespace NPATK::mex {
                 const size_t dimension = data.getDimensions()[0];
                 for (size_t i = 0; i < dimension; ++i) {
                     // Register diagonal element as real symbol:
-                    NPATK::SymbolExpression diag{static_cast<NPATK::symbol_name_t>(data[i][i])};
+                    SymbolExpression diag{static_cast<symbol_name_t>(data[i][i])};
                     output.add_or_merge(Symbol{diag.id, false});
 
                     for (size_t j = i + 1; j < dimension; ++j) {
-                        NPATK::SymbolExpression upper{static_cast<NPATK::symbol_name_t>(data[i][j])};
-                        NPATK::SymbolExpression lower{static_cast<NPATK::symbol_name_t>(data[j][i])};
+                        SymbolExpression upper{static_cast<symbol_name_t>(data[i][j])};
+                        SymbolExpression lower{static_cast<symbol_name_t>(data[j][i])};
 
                         if (upper != lower) {
                             output.add_or_merge(SymbolPair{upper, lower}, true);
@@ -72,12 +72,12 @@ namespace NPATK::mex {
                 const size_t dimension = data.getDimensions()[0];
                 for (size_t i = 0; i < dimension; ++i) {
                     // Register diagonal element as real symbol:
-                    NPATK::SymbolExpression diag{read_symbol_or_fail(this->engine, data, i, i)};
+                    SymbolExpression diag{read_symbol_or_fail(this->engine, data, i, i)};
                     output.add_or_merge(Symbol{diag.id, false});
 
                     for (size_t j = i + 1; j < dimension; ++j) {
-                        NPATK::SymbolExpression upper{read_symbol_or_fail(this->engine, data, i, j)};
-                        NPATK::SymbolExpression lower{read_symbol_or_fail(this->engine, data, j, i)};
+                        SymbolExpression upper{read_symbol_or_fail(this->engine, data, i, j)};
+                        SymbolExpression lower{read_symbol_or_fail(this->engine, data, j, i)};
 
                         if (upper != lower) {
                             output.add_or_merge(SymbolPair{upper, lower});
@@ -97,7 +97,7 @@ namespace NPATK::mex {
              * @param data The data array
              * @return A vector of non-matching elements, in canonical form.
              */
-            template<std::convertible_to<NPATK::symbol_name_t> datatype>
+            template<std::convertible_to<symbol_name_t> datatype>
             return_type sparse(const matlab::data::SparseArray<datatype>& data) {
 
                 // Get sparse array as something that can be randomly accessed...
@@ -118,8 +118,8 @@ namespace NPATK::mex {
 
                     // If opposite index doesn't exist, this is a non-trivial constraint
                     if (transposed_elem_iter == sparse_array_copy.end()) {
-                        output.add_or_merge(SymbolPair{NPATK::SymbolExpression{value},
-                                                       NPATK::SymbolExpression{0}});
+                        output.add_or_merge(SymbolPair{SymbolExpression{value},
+                                                       SymbolExpression{0}});
                         continue;
                     }
 
@@ -127,8 +127,8 @@ namespace NPATK::mex {
                     if (indices.first > indices.second) {
                         auto second_value = transposed_elem_iter->second;
                         if (value != second_value) {
-                            output.add_or_merge(SymbolPair{NPATK::SymbolExpression{value},
-                                                           NPATK::SymbolExpression{second_value}});
+                            output.add_or_merge(SymbolPair{SymbolExpression{value},
+                                                           SymbolExpression{second_value}});
                         } else {
                             output.add_or_merge(Symbol{value, false});
                             output.add_or_merge(Symbol{second_value, false});
@@ -165,15 +165,15 @@ namespace NPATK::mex {
               * @param data The data array
               * @return A vector of non-matching elements, in canonical form.
               */
-            template<std::convertible_to<NPATK::symbol_name_t> datatype>
+            template<std::convertible_to<symbol_name_t> datatype>
             return_type dense(const matlab::data::TypedArray<datatype> &data) {
                 SymbolSet output{};
 
                 const size_t dimension = data.getDimensions()[0];
                 for (size_t i = 0; i < dimension; ++i) {
                     for (size_t j = i + 1; j < dimension; ++j) {
-                        NPATK::SymbolExpression upper{static_cast<NPATK::symbol_name_t>(data[i][j])};
-                        NPATK::SymbolExpression lower{static_cast<NPATK::symbol_name_t>(data[j][i])};
+                        SymbolExpression upper{static_cast<symbol_name_t>(data[i][j])};
+                        SymbolExpression lower{static_cast<symbol_name_t>(data[j][i])};
 
                         if (upper != lower) {
                             return false;
@@ -195,8 +195,8 @@ namespace NPATK::mex {
                 const size_t dimension = data.getDimensions()[0];
                 for (size_t i = 0; i < dimension; ++i) {
                     for (size_t j = i + 1; j < dimension; ++j) {
-                        NPATK::SymbolExpression upper{read_symbol_or_fail(this->engine, data, i, j)};
-                        NPATK::SymbolExpression lower{read_symbol_or_fail(this->engine, data, j, i)};
+                        SymbolExpression upper{read_symbol_or_fail(this->engine, data, i, j)};
+                        SymbolExpression lower{read_symbol_or_fail(this->engine, data, j, i)};
 
                         if (upper != lower) {
                             return false;
@@ -212,7 +212,7 @@ namespace NPATK::mex {
              * @param data The data array
              * @return A vector of non-matching elements, in canonical form.
              */
-            template<std::convertible_to<NPATK::symbol_name_t> datatype>
+            template<std::convertible_to<symbol_name_t> datatype>
             return_type sparse(const matlab::data::SparseArray<datatype>& data) {
 
                 // Get sparse array as something that can be randomly accessed...

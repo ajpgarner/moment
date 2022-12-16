@@ -10,7 +10,7 @@
 #include <list>
 #include <vector>
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
     TEST(Operators_OperatorSequence, Sequence_Empty) {
         Context empty{0};
         OperatorSequence seq{empty};

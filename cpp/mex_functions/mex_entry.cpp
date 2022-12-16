@@ -3,7 +3,7 @@
  * 
  * Copyright (c) 2022 Austrian Academy of Sciences
  *
- * Entry point for NPATK mex function suite.
+ * Entry point for Moment mex function suite.
  */
 
 #include "mex.hpp"
@@ -18,10 +18,9 @@ class MexFunction : public matlab::mex::Function {
         }
 
         void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) override {
-            using namespace NPATK::mex;
-            MexMain executor{getEngine()};
+            Moment::mex::MexMain executor{getEngine()};
 
-            executor(IOArgumentRange(outputs.begin(), outputs.begin() + outputs.size()),
-                     IOArgumentRange(inputs.begin(), inputs.begin() + inputs.size()));
+            executor(Moment::mex::IOArgumentRange(outputs.begin(), outputs.begin() + outputs.size()),
+                     Moment::mex::IOArgumentRange(inputs.begin(), inputs.begin() + inputs.size()));
         }
 };

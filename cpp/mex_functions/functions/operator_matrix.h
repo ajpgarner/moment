@@ -10,12 +10,12 @@
 
 #include <string>
 
-namespace NPATK {
+namespace Moment {
     class MatrixSystem;
     class OperatorMatrix;
 }
 
-namespace NPATK::mex::functions  {
+namespace Moment::mex::functions  {
 
     struct OperatorMatrixParams : public SortedInputs {
     public:
@@ -77,7 +77,7 @@ namespace NPATK::mex::functions  {
     };
 
 
-    class OperatorMatrix : public NPATK::mex::functions::MexFunction {
+    class OperatorMatrix : public Moment::mex::functions::MexFunction {
     protected:
         OperatorMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage,
                        MEXEntryPointID id, std::basic_string<char16_t> name);
@@ -96,7 +96,7 @@ namespace NPATK::mex::functions  {
          * Query matrix system for requested matrix.
          * @return Pair: Index of matrix, reference to matrix.
          */
-        virtual std::pair<size_t, const NPATK::OperatorMatrix&>
+        virtual std::pair<size_t, const Moment::OperatorMatrix&>
         get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp);
 
     };

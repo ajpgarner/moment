@@ -13,11 +13,11 @@
 
 #include <map>
 
-namespace NPATK {
+namespace Moment {
     class MomentMatrix;
 }
 
-namespace NPATK::mex {
+namespace Moment::mex {
     /**
      * Scan supplied matrix for symbols, ascertaining which must be Hermitian, and which are unconstrained.
      * @param engine The MATLAB engine.

@@ -1,15 +1,15 @@
-# NPA Toolkit
+# Moment
 (c) 2022 Austrian Academy of Sciences
  
 Author: Andrew J. P. Garner
 
-NPATK is a set of tools designed to aid in the generation and manipulation of operator matrices, for use in the context 
+Moment a set of tools designed to aid in the generation and manipulation of operator matrices, for use in the context 
 of convex optimisation problems. In particular, it aids in the generation of hierarchies of moment matrices and 
 localizing matrices, such as arise in the NPA [1] and PNA [2] hierarchies.
 
 ### Usage
 
-A typical program using NPATK should first define a `Scenario` object, describing the number of distinct parties, the
+A typical program using Moment should first define a `Scenario` object, describing the number of distinct parties, the
 measurements per parties, and the number of outcomes per measurement. For example, a CHSH Scenario would define two
 parties, with two measurements per party, each with two outcomes.
 
@@ -66,16 +66,16 @@ CMAKE 3.22
 expressed as linear combination of real-valued elements from a `MomentMatrix`. This includes probabilities, 
 normalizations, correlators, etc.
 
-`Scenario`: A description of an experimental setting (including number of parties, measurements for each parties,
+`LocalityScenario`: A description of an experimental setting (including number of parties, measurements for each parties,
 number of outcomes for each measurement).
 
-`Scenario.Party`: A spatially isolated agent (e.g. Alice over here, Bob over there). By construction, all matrices generated
+`LocalityScenario.Party`: A spatially isolated agent (e.g. Alice over here, Bob over there). By construction, all matrices generated
 respect no-signalling, and so operators associated with different parties are always assumed to commute.
 
 
-### NPATK functions
-The matlab module `npatk` contains the following functions, the names of which should be provided as the first argument
-to the call to function `npatk(...)`:
+### Moment functions
+The matlab module `mtk` contains the following functions, the names of which should be provided as the first argument
+to the call to function `mtk(...)`:
 
 `alphabetic_name`: Converts a numerical index into an alphabetic one.
 
@@ -119,37 +119,57 @@ settings.
 
 `\cpp\googletest`: Inclusion of googletest subproject
 
-`\cpp\lib_npatk`: Toolkit algorithms agnostic of MATLAB. Builds `lib_npatk`.
+`\cpp\lib_moment`: Toolkit algorithms agnostic of MATLAB. Builds `lib_moment`.
 
-`\cpp\lib_npatk\operators`: Aspects of `lib_npatk` specifically concerned with Hermitian operator manipulation.
+`\cpp\lib_moment\operators`: Aspects of `lib_moment` concerning Hermitian operator manipulation.
 
-`\cpp\lib_npatk\operators\matrix`: Aspects of `lib_npatk` specifically concerned with systems of moment matrices, localizing 
-matrices, etc.
+`\cpp\lib_moment\operators\algebraic`: Aspects of `lib_moment` concerning generic algebraic operator
+manipulation (with monomial rewrite rules).
 
-`\cpp\lib_npatk\symbolic`: Aspects of `lib_npatk` specifically concerned with simplification of symbolic expressions.
+`\cpp\lib_moment\operators\common`: Aspects of `lib_moment` concerning functionality shared between various operator 
+systems.
 
-`\cpp\lib_npatk\utilities`: General boilerplate code for `lib_npatk`, not entirely specific to the manipulation of 
+`\cpp\lib_moment\operators\inflation`: Aspects of `lib_moment` concerning inflation scenarios.
+
+`\cpp\lib_moment\operators\locality`: Aspects of `lib_moment` concerning locality scenarios (e.g. NPA Hierarchy).
+
+`\cpp\lib_moment\operators\matrix`: Aspects of `lib_moment` specifically concerned with systems of moment matrices,
+localizing matrices, etc.
+
+`\cpp\lib_moment\symbolic`: Aspects of `lib_moment` specifically concerned with simplification of symbolic expressions.
+
+`\cpp\lib_moment\utilities`: General boilerplate code for `lib_moment`, not entirely specific to the manipulation of 
 SDP hierarchies.
 
-`\cpp\mex_functions`: Source root for MATLAB code (i.e. building `npatk` mex function).
+`\cpp\mex_functions`: Source root for MATLAB code (i.e. building `mtk` mex library).
 
 `\cpp\mex_functions\fragments`: Code pieces specific to NPATK, involving manipulation of
 MATLAB arrays, that are used by more than one mex function.
 
-`\cpp\mex_functions\functions`: Entry points for the various `npatk` commands.
+`\cpp\mex_functions\functions`: Entry points for the various `mtk` commands.
 
 `\cpp\mex_functions\matlab_classes`: Mirrors of matlab classes (e.g. defined in `\matlab`), so as to be parsed into C++.
 
 `\cpp\mex_functions\utilities`: Boilerplate code, useful for interfacing MATLAB with C++.
 
-`\cpp\tests`: C++ unit tests for `lib_npatk` (build using googletest).
+`\cpp\tests`: C++ unit tests for `lib_moment` (build using googletest).
 
-`\cpp\tests\operators`: C++ unit tests specifically for Hermitian-operator manipulation aspects of `lib_npatk`.
+`\cpp\tests\operators`: C++ unit tests for Hermitian-operator manipulation aspects of `lib_moment`.
 
-`\matlab`: Root of NPATK MATLAB classes & functions
+`\cpp\tests\symbolic`: C++ unit tests for symbol manipulation aspects of `lib_moment`.
+
+`\cpp\tests\utilities`: C++ unit tests for general utility functions in `lib_moment`.
+
+`\matlab`: Root of NPATK MATLAB classes & functions.
+
+`\matlab\+Algebraic`: MATLAB classes associated with generic algebraic scenarios.
+
+`\matlab\+Inflation`: MATLAB classes associated with inflation scenarios.
+
+`\matlab\+Locality`: MATLAB classes associated with locality scenarios.
 
 `\matlab\examples`: Example scripts making use of the NPATK library.
 
-`\matlab\tests`: MATLAB unit tests for `npatk` function.
+`\matlab\tests`: MATLAB unit tests for `moment` mex library, and other matlab classes.
 
 `\prototype` *(temporary)*: Sketch implementations of algorithms in MATLAB.

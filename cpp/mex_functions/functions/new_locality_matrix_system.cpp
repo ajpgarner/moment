@@ -19,7 +19,7 @@
 
 #include <numeric>
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
     namespace {
         std::unique_ptr<LocalityContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                               const NewLocalityMatrixSystemParams &input) {

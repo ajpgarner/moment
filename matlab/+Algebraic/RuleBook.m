@@ -98,7 +98,7 @@ classdef RuleBook < handle
             % Complain if locked...
             obj.errorIfLocked();
             
-            % Parameters to pass to npatk
+            % Parameters to pass to mtk
             extra_params = {};
             if verbose
                 extra_params{end+1} = 'verbose';
@@ -109,7 +109,7 @@ classdef RuleBook < handle
                 extra_params{end+1} = 'nonhermitian';
             end
             
-            [output, success] = npatk('complete', extra_params{:}, ...
+            [output, success] = mtk('complete', extra_params{:}, ...
                 'limit', max_iterations, ...
                 obj.ExportCellArray());
             
@@ -126,7 +126,7 @@ classdef RuleBook < handle
                 else
                     params{end+1} = 'nonhermitian';
                 end
-                obj.is_complete = npatk('complete', 'test', 'quiet', ...
+                obj.is_complete = mtk('complete', 'test', 'quiet', ...
                     params{:}, obj.ExportCellArray());
                 obj.tested_complete = true;
             end

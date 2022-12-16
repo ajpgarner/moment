@@ -7,10 +7,10 @@
 
 #include "MatlabDataArray.hpp"
 
-namespace NPATK {
+namespace Moment {
     class RuleBook;
 }
 
-namespace NPATK::mex {
+namespace Moment::mex {
     matlab::data::CellArray export_monomial_rules(const RuleBook& rules, bool matlab_indices);
 }

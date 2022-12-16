@@ -7,7 +7,7 @@
 
 #include "mex_function.h"
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     struct MakeSymmetricParams : public SortedInputs {
     public:

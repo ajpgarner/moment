@@ -7,7 +7,7 @@
 
 #include "mex_function.h"
 
-namespace NPATK::mex::functions  {
+namespace Moment::mex::functions  {
 
     struct RulesParams : public SortedInputs {
     public:
@@ -17,7 +17,7 @@ namespace NPATK::mex::functions  {
         explicit RulesParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
     };
 
-    class Rules : public NPATK::mex::functions::MexFunction {
+    class Rules : public Moment::mex::functions::MexFunction {
     public:
         explicit Rules(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

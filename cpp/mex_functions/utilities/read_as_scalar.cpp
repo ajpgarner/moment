@@ -9,7 +9,7 @@
 
 #include <sstream>
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     namespace {
         template<typename output_type>

@@ -12,7 +12,7 @@
 
 #include <utility>
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
 
     namespace {

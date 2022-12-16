@@ -8,7 +8,7 @@
 #include "operators/hashed_sequence.h"
 #include "operators/shortlex_hasher.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     namespace {
         ptrdiff_t suffix_prefix(const HashedSequence& lhs, const HashedSequence& rhs) {

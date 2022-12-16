@@ -13,7 +13,7 @@
 #include "operators/locality/locality_matrix_system.h"
 
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Operators_SymbolTable, ToSymbol_1Party2Opers) {
         // One party, two symbols

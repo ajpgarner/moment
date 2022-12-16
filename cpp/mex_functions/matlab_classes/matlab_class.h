@@ -20,7 +20,7 @@ namespace matlab::engine {
     class MATLABEngine;
 }
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     namespace errors {
         struct bad_class_exception : public std::runtime_error {

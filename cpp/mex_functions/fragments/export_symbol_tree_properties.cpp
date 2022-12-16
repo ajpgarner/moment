@@ -6,7 +6,7 @@
 #include "export_symbol_tree_properties.h"
 
 
-namespace NPATK::mex {
+namespace Moment::mex {
     matlab::data::StructArray export_symbol_properties(matlab::engine::MATLABEngine& engine,
                                                                const SymbolTree& tree) {
         assert(tree.ready());

@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     void MutuallyExclusiveParams::add_mutex(const ParamNameStr &str_a, const ParamNameStr &str_b) {
         if (str_a < str_b) {

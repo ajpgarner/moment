@@ -9,7 +9,7 @@
 #include "operators/locality/locality_context.h"
 #include "operators/multi_operator_iterator.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Operators_MultiOperatorIterator, Construct_NoLength) {
         LocalityContext collection{Party::MakeList(2, 2, 2)};

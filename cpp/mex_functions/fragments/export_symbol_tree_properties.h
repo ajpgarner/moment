@@ -9,7 +9,7 @@
 
 #include "symbolic/symbol_tree.h"
 
-namespace NPATK::mex {
+namespace Moment::mex {
     [[nodiscard]] matlab::data::StructArray export_symbol_properties(matlab::engine::MATLABEngine& engine,
                                                                 const SymbolTree& tree);
 

@@ -12,7 +12,7 @@
 #include "operators/inflation/inflation_context.h"
 #include "operators/inflation/inflation_matrix_system.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
     TEST(Operators_Inflation_FactorTable, Empty) {
         std::unique_ptr<InflationContext> icPtr
             = std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {{0, 1}}}, 2);

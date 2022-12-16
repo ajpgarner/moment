@@ -6,7 +6,7 @@
 #include "export_substitution_list.h"
 #include "../utilities/reporting.h"
 
-namespace NPATK::mex {
+namespace Moment::mex {
     matlab::data::Array export_substitution_list(matlab::engine::MATLABEngine& engine,
                                                        const SymbolTree& tree) {
         using namespace matlab::engine;

@@ -10,7 +10,7 @@
 #include "substitute_elements_using_tree.h"
 #include "read_symbol_or_fail.h"
 
-namespace NPATK::mex {
+namespace Moment::mex {
     namespace {
         class MakeDenseSymMatrixVisitor {
         private:
@@ -22,7 +22,7 @@ namespace NPATK::mex {
             explicit MakeDenseSymMatrixVisitor(matlab::engine::MATLABEngine& the_engine, const SymbolTree& the_tree)
                 : engine{the_engine}, tree{the_tree} { }
 
-            template<std::convertible_to<NPATK::symbol_name_t> datatype>
+            template<std::convertible_to<symbol_name_t> datatype>
             return_type dense(const matlab::data::TypedArray<datatype> &input) {
                 matlab::data::ArrayFactory factory;
 
@@ -32,8 +32,8 @@ namespace NPATK::mex {
 
                 for (auto & elem : input) {
                     assert(out_iter != output.end());
-                    NPATK::SymbolExpression existing_symbol{static_cast<NPATK::symbol_name_t>(elem)};                     
-                    NPATK::SymbolExpression new_symbol = tree.substitute(existing_symbol);
+                    SymbolExpression existing_symbol{static_cast<symbol_name_t>(elem)};                     
+                    SymbolExpression new_symbol = tree.substitute(existing_symbol);
 
                     *out_iter = new_symbol.as_integer();
                     ++out_iter;
@@ -51,8 +51,8 @@ namespace NPATK::mex {
 
                 for (size_t row = 0; row < matrix_dims[0]; ++row) {
                     for (size_t col = 0; col < matrix_dims[1]; ++col) {
-                        NPATK::SymbolExpression existing_symbol{read_symbol_or_fail(this->engine, input, row, col)};
-                        NPATK::SymbolExpression new_symbol = tree.substitute(existing_symbol);
+                        SymbolExpression existing_symbol{read_symbol_or_fail(this->engine, input, row, col)};
+                        SymbolExpression new_symbol = tree.substitute(existing_symbol);
 
                         output[row][col] = new_symbol.as_integer();
                     }
@@ -60,7 +60,7 @@ namespace NPATK::mex {
                 return output;
             }
 
-            template<std::convertible_to<NPATK::symbol_name_t> datatype>
+            template<std::convertible_to<symbol_name_t> datatype>
             return_type sparse(const matlab::data::SparseArray<datatype> &input) {
                 matlab::data::ArrayFactory factory;
                 const auto matrix_dims = input.getDimensions();
@@ -68,8 +68,8 @@ namespace NPATK::mex {
 
                 auto input_iter = input.cbegin();
                 while (input_iter != input.cend()) {
-                    NPATK::SymbolExpression existing_symbol{static_cast<NPATK::symbol_name_t>(*input_iter)};
-                    NPATK::SymbolExpression new_symbol = tree.substitute(existing_symbol);
+                    SymbolExpression existing_symbol{static_cast<symbol_name_t>(*input_iter)};
+                    SymbolExpression new_symbol = tree.substitute(existing_symbol);
                     int64_t ns_symbol_int = new_symbol.as_integer();
 
                     auto [row, col] = input.getIndex(input_iter);
@@ -97,7 +97,7 @@ namespace NPATK::mex {
             explicit MakeSparseSymMatrixVisitor(matlab::engine::MATLABEngine& the_engine, const SymbolTree& the_tree)
                 : engine(the_engine), tree{the_tree} { }
 
-            template<std::convertible_to<NPATK::symbol_name_t> datatype>
+            template<std::convertible_to<symbol_name_t> datatype>
             return_type dense(const matlab::data::TypedArray<datatype> &input) {
                 matlab::data::ArrayFactory factory;
 
@@ -106,8 +106,8 @@ namespace NPATK::mex {
 
                 for (size_t row = 0; row < matrix_dims[0]; ++row) {
                     for (size_t col = 0; col < matrix_dims[1]; ++col) {
-                        NPATK::SymbolExpression existing_symbol{static_cast<NPATK::symbol_name_t>(input[row][col])};
-                        NPATK::SymbolExpression new_symbol = tree.substitute(existing_symbol);
+                        SymbolExpression existing_symbol{static_cast<symbol_name_t>(input[row][col])};
+                        SymbolExpression new_symbol = tree.substitute(existing_symbol);
                         output_build.emplace_hint(output_build.end(), std::make_pair(row,col), new_symbol.as_integer());;
                     }
                 }
@@ -123,8 +123,8 @@ namespace NPATK::mex {
 
                 for (size_t row = 0; row < matrix_dims[0]; ++row) {
                     for (size_t col = 0; col < matrix_dims[1]; ++col) {
-                        NPATK::SymbolExpression existing_symbol{read_symbol_or_fail(this->engine, input, row, col)};
-                        NPATK::SymbolExpression new_symbol = tree.substitute(existing_symbol);
+                        SymbolExpression existing_symbol{read_symbol_or_fail(this->engine, input, row, col)};
+                        SymbolExpression new_symbol = tree.substitute(existing_symbol);
                         output_build.emplace_hint(output_build.end(), std::make_pair(row,col), new_symbol.as_integer());;
                     }
                 }
@@ -132,7 +132,7 @@ namespace NPATK::mex {
                 return make_sparse_matrix(this->engine, {matrix_dims[0], matrix_dims[1]}, output_build);
             }
 
-            template<std::convertible_to<NPATK::symbol_name_t> datatype>
+            template<std::convertible_to<symbol_name_t> datatype>
             return_type sparse(const matlab::data::SparseArray<datatype> &input) {
                 matlab::data::ArrayFactory factory;
 
@@ -141,8 +141,8 @@ namespace NPATK::mex {
 
                 auto input_iter = input.cbegin();
                 while (input_iter != input.cend()) {
-                    NPATK::SymbolExpression existing_symbol{static_cast<NPATK::symbol_name_t>(*input_iter)};
-                    NPATK::SymbolExpression new_symbol = tree.substitute(existing_symbol);
+                    SymbolExpression existing_symbol{static_cast<symbol_name_t>(*input_iter)};
+                    SymbolExpression new_symbol = tree.substitute(existing_symbol);
                     int64_t ns_symbol_int = new_symbol.as_integer();
 
                     auto [row, col] = input.getIndex(input_iter);
@@ -187,8 +187,8 @@ namespace NPATK::mex {
 
         for (size_t row = 0; row < matrix_dims[0]; ++row) {
             for (size_t col = 0; col < matrix_dims[1]; ++col) {
-                NPATK::SymbolExpression existing_symbol{read_symbol_or_fail(engine, input, row, col)};
-                NPATK::SymbolExpression new_symbol = tree.substitute(existing_symbol);
+                SymbolExpression existing_symbol{read_symbol_or_fail(engine, input, row, col)};
+                SymbolExpression new_symbol = tree.substitute(existing_symbol);
                 output[row][col] = new_symbol.as_string();
             }
         }

@@ -14,7 +14,7 @@
 
 #include <span>
 
-namespace NPATK {
+namespace Moment {
     class Context;
     class MomentMatrix;
     class LocalityImplicitSymbols;

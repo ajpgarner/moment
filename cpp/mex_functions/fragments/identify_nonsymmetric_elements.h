@@ -15,7 +15,7 @@ namespace matlab {
     }
 }
 
-namespace NPATK::mex {
+namespace Moment::mex {
     /**
      * Read through matlab numerical matrix, and identify pairs of elements that are not symmetric.
      * @param engine Reference to matlab engine

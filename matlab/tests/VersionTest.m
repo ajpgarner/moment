@@ -1,4 +1,4 @@
-classdef VersionTest < NPATKTestBase
+classdef VersionTest < MTKTestBase
     %VERSIONTEST Unit tests for version function
     
     properties(Constant)
@@ -10,37 +10,37 @@ classdef VersionTest < NPATKTestBase
 
     methods (Test)
         function Version_String(testCase)
-            actual_string = npatk('version');
+            actual_string = mtk('version');
             testCase.verifyEqual(actual_string, testCase.expected_string);
         end
         
         function Version_Struct(testCase)
-            actual_struct = npatk('version', 'structured');
+            actual_struct = mtk('version', 'structured');
             testCase.verifyEqual(actual_struct, testCase.expected_struct);
         end
     end
     
     methods (Test, TestTags={'Error'})
         function Error_MissingParam(testCase)
-            testCase.verifyError(@() npatk('version', 'cake'), ...
-                'npatk:bad_param');
+            testCase.verifyError(@() mtk('version', 'cake'), ...
+                'mtk:bad_param');
         end
         
         function Error_Mutex(testCase)
-            testCase.verifyError(@() npatk('version', 'foo', 'bar'), ...
-                'npatk:mutex_param');
+            testCase.verifyError(@() mtk('version', 'foo', 'bar'), ...
+                'mtk:mutex_param');
         end
         
         function Error_Mutex2(testCase)
-            testCase.verifyError(@() npatk('version', 'foo', ...
+            testCase.verifyError(@() mtk('version', 'foo', ...
                                            'cake', 1), ...
-                                           'npatk:mutex_param');
+                                           'mtk:mutex_param');
         end
         
         function Error_Mutex3(testCase)
-            testCase.verifyError(@() npatk('version', 'alice', ...
+            testCase.verifyError(@() mtk('version', 'alice', ...
                                            'bob'), ...
-                                           'npatk:mutex_param');
+                                           'mtk:mutex_param');
         end
     end
 end

@@ -15,7 +15,7 @@
 
 #include <memory>
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Operators_Locality_ExplicitSymbols, OnePartyOneMeasurementThreeOutcomes) {
 

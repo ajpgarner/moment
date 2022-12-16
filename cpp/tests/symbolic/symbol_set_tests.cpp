@@ -7,10 +7,10 @@
 
 #include "symbolic/symbol_set.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Symbolic_SymbolSet, Create_EmptySet) {
-        std::vector<NPATK::SymbolPair> empty_list{};
+        std::vector<SymbolPair> empty_list{};
 
         auto ss = SymbolSet{empty_list};
         ASSERT_EQ(ss.symbol_count(), 1) << "Empty list has just one symbol.";
@@ -34,8 +34,8 @@ namespace NPATK::Tests {
 
 
     TEST(Symbolic_SymbolSet, Create_ThreeUnlinkedSymbols) {
-        std::vector<NPATK::SymbolPair> empty_list{};
-        std::vector<NPATK::Symbol> three_symbols = {Symbol{0}, Symbol{1}, Symbol{2, false}};
+        std::vector<SymbolPair> empty_list{};
+        std::vector<Symbol> three_symbols = {Symbol{0}, Symbol{1}, Symbol{2, false}};
 
         auto ss = SymbolSet{three_symbols, empty_list};
         ASSERT_EQ(ss.symbol_count(), 3) << "List should have three symbols.";
@@ -71,8 +71,8 @@ namespace NPATK::Tests {
 
 
     TEST(Symbolic_SymbolSet, Create_TwoUnlinkedWithMerge) {
-        std::vector<NPATK::SymbolPair> empty_list{};
-        std::vector<NPATK::Symbol> three_symbols = {Symbol{0}, Symbol{1}, Symbol{1, false}};
+        std::vector<SymbolPair> empty_list{};
+        std::vector<Symbol> three_symbols = {Symbol{0}, Symbol{1}, Symbol{1, false}};
 
         auto ss = SymbolSet{three_symbols, empty_list};
         ASSERT_EQ(ss.symbol_count(), 2) << "List should have two  symbols.";
@@ -101,7 +101,7 @@ namespace NPATK::Tests {
 
     TEST(Symbolic_SymbolSet, Create_OneLinkSet) {
         // 0 == 1
-        std::vector<NPATK::SymbolPair> oet_list{};
+        std::vector<SymbolPair> oet_list{};
         oet_list.emplace_back(SymbolExpression{0}, SymbolExpression{1});
 
         auto ss = SymbolSet{oet_list};
@@ -124,7 +124,7 @@ namespace NPATK::Tests {
 
     TEST(Symbolic_SymbolSet, Create_OpenTriangle) {
         // 0 == 1, 0 == 2
-        std::vector<NPATK::SymbolPair> oet_list{};
+        std::vector<SymbolPair> oet_list{};
         oet_list.emplace_back(SymbolExpression{0}, SymbolExpression{1});
         oet_list.emplace_back(SymbolExpression{0}, SymbolExpression{2});
 
@@ -155,7 +155,7 @@ namespace NPATK::Tests {
 
     TEST(Symbolic_SymbolSet, Create_ClosedTriangle) {
         // 0 == 1, 0 == 2
-        std::vector<NPATK::SymbolPair> oet_list{};
+        std::vector<SymbolPair> oet_list{};
         oet_list.emplace_back(SymbolExpression{0}, SymbolExpression{1});
         oet_list.emplace_back(SymbolExpression{0}, SymbolExpression{2});
         oet_list.emplace_back(SymbolExpression{1}, SymbolExpression{2});
@@ -194,7 +194,7 @@ namespace NPATK::Tests {
 
 
     TEST(Symbolic_SymbolSet, PackUnpack_EmptySet) {
-        std::vector<NPATK::SymbolPair> empty_list{};
+        std::vector<SymbolPair> empty_list{};
 
         auto ss = SymbolSet{empty_list};
         ASSERT_EQ(ss.symbol_count(), 1) << "Empty list should have one symbol.";
@@ -238,7 +238,7 @@ namespace NPATK::Tests {
 
     TEST(Symbolic_SymbolSet, PackUnpack_ClosedTriangle) {
         // 0 == 1, 0 == 2
-        std::vector<NPATK::SymbolPair> oet_list{};
+        std::vector<SymbolPair> oet_list{};
         oet_list.emplace_back(SymbolExpression{1}, SymbolExpression{5});
         oet_list.emplace_back(SymbolExpression{1}, SymbolExpression{10});
         oet_list.emplace_back(SymbolExpression{5}, SymbolExpression{10});

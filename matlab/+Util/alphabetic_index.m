@@ -19,17 +19,17 @@ function [theString] = alphabetic_index(theIndex, isUpper, isZeroIndex)
     
     if isZeroIndex
         if isUpper
-            theString = npatk('alphabetic_name', 'zero_index', ...
+            theString = mtk('alphabetic_name', 'zero_index', ...
                               'upper', theIndex);
         else
-            theString = npatk('alphabetic_name', 'zero_index', ...
+            theString = mtk('alphabetic_name', 'zero_index', ...
                               'lower', theIndex);
         end
     else
         if isUpper
-            theString = npatk('alphabetic_name', 'upper', theIndex);
+            theString = mtk('alphabetic_name', 'upper', theIndex);
         else
-            theString = npatk('alphabetic_name', 'lower', theIndex);
+            theString = mtk('alphabetic_name', 'lower', theIndex);
         end
     end
 end

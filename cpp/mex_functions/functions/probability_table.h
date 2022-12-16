@@ -8,12 +8,12 @@
 #include "operators/inflation/observable_variant_index.h"
 #include "operators/locality/measurement.h"
 
-namespace NPATK {
+namespace Moment {
     class LocalityMatrixSystem;
     class InflationMatrixSystem;
 }
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     struct ProbabilityTableParams : public SortedInputs {
     public:

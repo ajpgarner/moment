@@ -18,7 +18,7 @@
 
 #include <complex>
 
-namespace NPATK::mex::functions::detail {
+namespace Moment::mex::functions::detail {
 
     struct SparseMonolithBasisVisitor {
     public:
@@ -66,7 +66,7 @@ namespace NPATK::mex::functions::detail {
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                 for (size_t index_j = symmetric ? index_i : 0; index_j < this->imp.Dimension(); ++index_j) {
-                    NPATK::SymbolExpression elem{static_cast<symbol_name_t>(matrix[index_i][index_j])};
+                    Moment::SymbolExpression elem{static_cast<symbol_name_t>(matrix[index_i][index_j])};
                     auto bkIter = basis_key.find(elem.id);
                     auto [re_id, im_id] = bkIter->second;
 
@@ -102,7 +102,7 @@ namespace NPATK::mex::functions::detail {
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
                 for (size_t index_j = symmetric ? index_i : 0; index_j < this->imp.Dimension(); ++index_j) {
-                    NPATK::SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
+                    Moment::SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
                     auto bkIter = basis_key.find(elem.id);
                     auto [re_id, im_id] = bkIter->second;
 
@@ -146,7 +146,7 @@ namespace NPATK::mex::functions::detail {
                     continue;
                 }
 
-                NPATK::SymbolExpression elem{static_cast<symbol_name_t>(*iter)};
+                Moment::SymbolExpression elem{static_cast<symbol_name_t>(*iter)};
 
                 auto bkIter = basis_key.find(elem.id);
                 auto [re_id, im_id] = bkIter->second;

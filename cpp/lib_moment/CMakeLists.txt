@@ -1,0 +1,50 @@
+include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_moment)
+
+add_library(lib_moment
+        operators/context.cpp
+        operators/hashed_sequence.cpp
+        operators/matrix_system.cpp
+        operators/operator_sequence.cpp
+        operators/operator_sequence_generator.cpp
+        operators/shortlex_hasher.cpp
+        operators/algebraic/algebraic_context.cpp
+        operators/algebraic/algebraic_matrix_system.cpp
+        operators/algebraic/monomial_substitution_rule.cpp
+        operators/algebraic/ostream_rule_logger.cpp
+        operators/algebraic/rule_book.cpp
+        operators/common/explicit_symbols.cpp
+        operators/common/implicit_symbols.cpp
+        operators/common/outcome_index_iterator.cpp
+        operators/inflation/canonical_observables.cpp
+        operators/inflation/causal_network.cpp
+        operators/inflation/factor_table.cpp
+        operators/inflation/inflation_context.cpp
+        operators/inflation/inflation_explicit_symbols.cpp
+        operators/inflation/inflation_implicit_symbols.cpp
+        operators/inflation/inflation_matrix_system.cpp
+        operators/inflation/observable.cpp
+        operators/inflation/observable_variant_index.cpp
+        operators/inflation/source.cpp
+        operators/locality/locality_explicit_symbols.cpp
+        operators/locality/collins_gisin.cpp
+        operators/locality/locality_implicit_symbols.cpp
+        operators/locality/joint_measurement_iterator.cpp
+        operators/locality/locality_context.cpp
+        operators/locality/locality_matrix_system.cpp
+        operators/locality/party.cpp
+        operators/matrix/localizing_matrix.cpp
+        operators/matrix/localizing_matrix_index.cpp
+        operators/matrix/moment_matrix.cpp
+        operators/matrix/operator_matrix.cpp
+        operators/matrix/symbol_matrix_properties.cpp
+        operators/matrix/symbol_table.cpp
+        symbolic/equality_type.cpp
+        symbolic/symbol.cpp
+        symbolic/symbol_expression.cpp
+        symbolic/symbol_set.cpp
+        symbolic/symbol_tree.cpp
+        symbolic/symbol_tree_symbol_link.cpp
+        symbolic/symbol_tree_symbol_node.cpp
+        utilities/alphabetic_namer.cpp
+        utilities/persistent_storage.cpp
+)

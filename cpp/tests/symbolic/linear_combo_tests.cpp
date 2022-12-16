@@ -7,7 +7,7 @@
 
 #include "symbolic/linear_combo.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
     TEST(Symbolic_LinearCombo, CreateEmpty) {
         LinearCombo empty{};
         EXPECT_TRUE(empty.empty());

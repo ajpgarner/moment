@@ -3,7 +3,7 @@
 addpath('..')
 yalmip('clear')
 clear
-clear npatk;
+clear mtk;
 
 % Two parties
 chsh = LocalityScenario(2);

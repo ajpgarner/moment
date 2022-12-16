@@ -9,7 +9,7 @@
 #include "operators/inflation/inflation_context.h"
 #include "operators/inflation/inflation_matrix_system.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
     namespace {
         void expect_factorizes(const InflationContext& ic, std::vector<oper_name_t>&& sequence) {
             OperatorSequence seq{std::move(sequence), ic};

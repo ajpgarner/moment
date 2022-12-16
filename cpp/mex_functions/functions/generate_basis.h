@@ -10,7 +10,7 @@
 //#include "symbolic/index_matrix_properties.h"
 
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     struct GenerateBasisParams : public SortedInputs {
     public:

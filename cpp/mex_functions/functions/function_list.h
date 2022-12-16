@@ -13,11 +13,11 @@ namespace matlab::engine {
     class MATLABEngine;
 }
 
-namespace NPATK::mex {
+namespace Moment::mex {
     class StorageManager;
 }
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     class MexFunction;
 

@@ -10,7 +10,7 @@
 #include <vector>
 #include <stack>
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     SymbolTree& Symbolic_SymbolTreeFixture::create_tree(
             std::initializer_list<Symbol> symbols,

@@ -12,7 +12,7 @@
 
 #include "../implicit_symbol_test_helpers.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Operators_Locality_ImplicitSymbols, Empty) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>()};

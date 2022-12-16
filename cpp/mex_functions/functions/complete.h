@@ -11,7 +11,7 @@
 
 #include "fragments/read_monomial_rules.h"
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     class CompleteParams : public SortedInputs {
     public:
@@ -40,7 +40,7 @@ namespace NPATK::mex::functions {
 
     };
 
-    class Complete : public NPATK::mex::functions::MexFunction {
+    class Complete : public Moment::mex::functions::MexFunction {
     public:
         explicit Complete(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

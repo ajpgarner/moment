@@ -16,7 +16,7 @@
 #include <vector>
 #include <iterator>
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     class StorageManager;
 

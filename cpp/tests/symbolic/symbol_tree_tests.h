@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     //SymbolTree createTree(std::initializer_list<SymbolPair> pairs);
 

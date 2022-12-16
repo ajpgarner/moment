@@ -7,7 +7,7 @@
 
 #include "utilities/dynamic_bitset.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
     TEST(Utilities_DynamicBitset, Empty_Empty) {
         DynamicBitset<uint64_t> bitset{0};
         EXPECT_EQ(bitset.bit_size, 0);

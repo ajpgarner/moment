@@ -8,7 +8,7 @@
 
 #include "utilities/ipow.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Utilities_IntegerPower, Pow0_0) {
         EXPECT_EQ(ipow(0, 0), 1);

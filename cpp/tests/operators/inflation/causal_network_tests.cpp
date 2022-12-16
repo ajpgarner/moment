@@ -8,7 +8,7 @@
 
 #include "operators/inflation/causal_network.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Operators_Inflation_CausalNetwork, Empty) {
         CausalNetwork ic{{}, {}};

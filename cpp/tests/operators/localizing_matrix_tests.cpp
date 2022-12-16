@@ -12,7 +12,7 @@
 
 #include "compare_os_matrix.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
     TEST(Operators_LocalizingMatrix, OpSeq_OneElem) {
         MatrixSystem system{std::make_unique<Context>(1)}; //One symbol
         const auto& context = system.Context();

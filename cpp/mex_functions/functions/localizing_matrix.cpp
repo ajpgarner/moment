@@ -19,7 +19,7 @@
 #include <memory>
 
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     namespace {
         void offsetWordByMATLABIndices(matlab::engine::MATLABEngine& matlabEngine,
@@ -94,7 +94,7 @@ namespace NPATK::mex::functions {
     }
 
     LocalizingMatrix::LocalizingMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : NPATK::mex::functions::OperatorMatrix(matlabEngine, storage,
+            : Moment::mex::functions::OperatorMatrix(matlabEngine, storage,
                                                     MEXEntryPointID::LocalizingMatrix, u"localizing_matrix") {
         // Either [ref, level, word] or named version thereof.
         this->param_names.erase(u"index");
@@ -120,7 +120,7 @@ namespace NPATK::mex::functions {
         return output;
     }
 
-    std::pair<size_t, const NPATK::OperatorMatrix &>
+    std::pair<size_t, const Moment::OperatorMatrix &>
     LocalizingMatrix::get_or_make_matrix(MatrixSystem &system, const OperatorMatrixParams& inputOMP) {
         const auto &input = dynamic_cast<const LocalizingMatrixParams&>(inputOMP);
 

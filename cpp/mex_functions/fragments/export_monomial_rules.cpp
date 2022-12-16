@@ -10,7 +10,7 @@
 #include <algorithm>
 
 
-namespace NPATK::mex {
+namespace Moment::mex {
     matlab::data::CellArray export_monomial_rules(const RuleBook& rules, const bool matlabIndices) {
         matlab::data::ArrayFactory factory;
         matlab::data::CellArray output = factory.createArray<matlab::data::Array>({1, rules.rules().size()});

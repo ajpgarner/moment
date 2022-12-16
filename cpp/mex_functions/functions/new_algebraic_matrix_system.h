@@ -9,7 +9,7 @@
 #include "integer_types.h"
 #include "fragments/read_monomial_rules.h"
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     class NewAlgebraicMatrixSystemParams : public SortedInputs {
         public:
@@ -33,7 +33,7 @@ namespace NPATK::mex::functions {
 
     };
 
-    class NewAlgebraicMatrixSystem : public NPATK::mex::functions::MexFunction {
+    class NewAlgebraicMatrixSystem : public Moment::mex::functions::MexFunction {
     public:
         explicit NewAlgebraicMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

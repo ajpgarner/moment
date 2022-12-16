@@ -9,7 +9,7 @@
 #include "operators/inflation/inflation_matrix_system.h"
 #include "operators/inflation/canonical_observables.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
       TEST(Operators_Inflation_CanonicalObservables, Hash) {
         InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2)};
         const auto& ic = ims.InflationContext();

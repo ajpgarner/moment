@@ -2,7 +2,7 @@
 %
 addpath('..')
 clear
-clear npatk;
+clear mtk;
 
 % Two parties
 i3322 = LocalityScenario(2);

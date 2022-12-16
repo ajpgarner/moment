@@ -15,7 +15,7 @@
 
 #include "MatlabEngine/engine_interface_util.hpp"
 
-namespace NPATK::mex {
+namespace Moment::mex {
     namespace {
 
         struct FindSymbolsInSymmetricMatrix {
@@ -36,15 +36,15 @@ namespace NPATK::mex {
                 // Iterate over upper portion
                 for (size_t index_i = 0; index_i < matrix_dimension; ++index_i) {
                     // Diagonal elements are always real
-                    NPATK::SymbolExpression diag_elem{static_cast<symbol_name_t>(matrix[index_i][index_i])};
+                    SymbolExpression diag_elem{static_cast<symbol_name_t>(matrix[index_i][index_i])};
                     symbols_found.add_or_merge(Symbol{diag_elem.id, false});
 
                     // Look at off-diagonal elements
                     size_t initial_j = index_i + 1;
                     for (size_t index_j = initial_j; index_j < matrix_dimension; ++index_j) {
 
-                        NPATK::SymbolExpression elem{static_cast<symbol_name_t>(matrix[index_i][index_j])};
-                        NPATK::SymbolExpression txElem{static_cast<symbol_name_t>(matrix[index_j][index_i])};
+                        SymbolExpression elem{static_cast<symbol_name_t>(matrix[index_i][index_j])};
+                        SymbolExpression txElem{static_cast<symbol_name_t>(matrix[index_j][index_i])};
 
                         if (elem.id != txElem.id) {
                             throw_error(this->engine, errors::internal_error,
@@ -72,15 +72,15 @@ namespace NPATK::mex {
                 // Iterate over upper portion
                 for (size_t index_i = 0; index_i < matrix_dimension; ++index_i) {
                     // Diagonal elements are always real
-                    NPATK::SymbolExpression diag_elem{read_symbol_or_fail(engine, matrix, index_i, index_i)};
+                    SymbolExpression diag_elem{read_symbol_or_fail(engine, matrix, index_i, index_i)};
                     symbols_found.add_or_merge(Symbol{diag_elem.id, false});
 
                     // Look at off-diagonal elements
                     size_t initial_j = index_i + 1;
                     for (size_t index_j = initial_j; index_j < matrix_dimension; ++index_j) {
 
-                        NPATK::SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
-                        NPATK::SymbolExpression txElem{read_symbol_or_fail(engine, matrix, index_j, index_i)};
+                        SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
+                        SymbolExpression txElem{read_symbol_or_fail(engine, matrix, index_j, index_i)};
 
                         if (elem.id != txElem.id) {
                             throw_error(this->engine, errors::internal_error,
@@ -181,15 +181,15 @@ namespace NPATK::mex {
                 // Iterate over upper portion
                 for (size_t index_i = 0; index_i < matrix_dimension; ++index_i) {
                     // Diagonal elements are always real
-                    NPATK::SymbolExpression diag_elem{static_cast<symbol_name_t>(matrix[index_i][index_i])};
+                    SymbolExpression diag_elem{static_cast<symbol_name_t>(matrix[index_i][index_i])};
                     symbols_found.add_or_merge(Symbol{diag_elem.id, false});
 
                     // Look at off-diagonal elements
                     size_t initial_j = index_i + 1;
                     for (size_t index_j = initial_j; index_j < matrix_dimension; ++index_j) {
 
-                        NPATK::SymbolExpression elem{static_cast<symbol_name_t>(matrix[index_i][index_j])};
-                        NPATK::SymbolExpression txElem{static_cast<symbol_name_t>(matrix[index_j][index_i])};
+                        SymbolExpression elem{static_cast<symbol_name_t>(matrix[index_i][index_j])};
+                        SymbolExpression txElem{static_cast<symbol_name_t>(matrix[index_j][index_i])};
 
                         if (elem.id != txElem.id) {
                             throw_error(this->engine, errors::internal_error,
@@ -217,15 +217,15 @@ namespace NPATK::mex {
                 // Iterate over upper portion
                 for (size_t index_i = 0; index_i < matrix_dimension; ++index_i) {
                     // Diagonal elements are always real
-                    NPATK::SymbolExpression diag_elem{read_symbol_or_fail(engine, matrix, index_i, index_i)};
+                    SymbolExpression diag_elem{read_symbol_or_fail(engine, matrix, index_i, index_i)};
                     symbols_found.add_or_merge(Symbol{diag_elem.id, false});
 
                     // Look at off-diagonal elements
                     size_t initial_j = index_i + 1;
                     for (size_t index_j = initial_j; index_j < matrix_dimension; ++index_j) {
 
-                        NPATK::SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
-                        NPATK::SymbolExpression txElem{read_symbol_or_fail(engine, matrix, index_j, index_i)};
+                        SymbolExpression elem{read_symbol_or_fail(engine, matrix, index_i, index_j)};
+                        SymbolExpression txElem{read_symbol_or_fail(engine, matrix, index_j, index_i)};
                         txElem.conjugated = !txElem.conjugated; // So we compare...
 
                         if (elem.id != txElem.id) {

@@ -11,7 +11,7 @@
 
 #include <optional>
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
     TEST(Operators_Locality_LocalityContext, Construct_Empty) {
         LocalityContext context{};
         ASSERT_EQ(context.Parties.size(), 0);

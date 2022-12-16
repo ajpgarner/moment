@@ -15,7 +15,7 @@
 #include "cppmex/mexException.hpp"
 #include "cppmex/detail/mexExceptionImpl.hpp"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     namespace errors {
         constexpr char bad_visit[] = "bad_visit";

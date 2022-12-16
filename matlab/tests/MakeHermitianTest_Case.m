@@ -19,7 +19,7 @@ classdef MakeHermitianTest_Case
             
         function StringToString(testCase, testObj)
            [actual_string, actual_subs, actual_sym] = ...
-                    npatk('make_hermitian', testCase.input_string);
+                    mtk('make_hermitian', testCase.input_string);
            testObj.verifyEqual(actual_string, testCase.expected_string);
            testObj.verifyEqual(actual_subs, testCase.expected_subs);
            testObj.verifyEqual(actual_sym, testCase.expected_sym);

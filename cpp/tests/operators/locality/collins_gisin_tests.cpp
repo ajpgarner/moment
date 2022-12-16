@@ -11,7 +11,7 @@
 #include "operators/locality/locality_context.h"
 #include "operators/locality/collins_gisin.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     namespace {
 

@@ -1,6 +1,6 @@
 addpath('..')
 clear
-clear npatk;
+clear mtk;
 
 setting = LocalityScenario(3);
 setting.Parties(1).AddMeasurement(5);

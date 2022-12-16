@@ -1,4 +1,4 @@
-classdef MakeHermitianTest < NPATKTestBase
+classdef MakeHermitianTest < MTKTestBase
     %MAKEHERMITIANTEST Unit tests for make_hermitian function    
     properties(Constant)
         NoChange_case = MakeHermitianTest_Case(...
@@ -63,26 +63,26 @@ classdef MakeHermitianTest < NPATKTestBase
     methods (Test, TestTags={'Error'})
         function Error_NoInput(testCase)
             function no_in()             
-               [~, ~] = npatk('make_hermitian');
+               [~, ~] = mtk('make_hermitian');
             end
-            testCase.verifyError(@() no_in(), 'npatk:too_few_inputs');           
+            testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');           
         end
         
         function Error_TooManyInputs(testCase)
             function many_in()             
-               [~, ~] = npatk('make_hermitian', ...
+               [~, ~] = mtk('make_hermitian', ...
                               testCase.NoChange_case.input_string, ...
                               testCase.NoChange_case.input_string);
             end
-            testCase.verifyError(@() many_in(), 'npatk:too_many_inputs');           
+            testCase.verifyError(@() many_in(), 'mtk:too_many_inputs');           
         end   
         
         function Error_NoOutput(testCase)
             function no_out()             
-               npatk('make_hermitian', ...
+               mtk('make_hermitian', ...
                    testCase.NoChange_case.input_string);
             end
-            testCase.verifyError(@() no_out(), 'npatk:too_few_outputs');
+            testCase.verifyError(@() no_out(), 'mtk:too_few_outputs');
         end  
     end
 end

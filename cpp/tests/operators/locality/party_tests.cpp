@@ -12,7 +12,7 @@
 
 #include <vector>
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
     TEST(Operators_Locality_Party, Construct_Basic) {
         std::vector<Party> the_party;
         the_party.emplace_back(5, std::vector{Measurement{"a", 4}});

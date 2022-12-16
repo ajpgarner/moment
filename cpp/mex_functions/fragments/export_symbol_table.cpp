@@ -15,7 +15,7 @@
 
 #include "utilities/reporting.h"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     namespace {
         std::vector<std::string> column_names(const bool non_herm, const bool include_factors) {

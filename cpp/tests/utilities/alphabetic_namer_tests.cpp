@@ -8,7 +8,7 @@
 
 #include "utilities/alphabetic_namer.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Utilities_AlphabeticNamer, StrLen) {
         EXPECT_EQ(AlphabeticNamer::strlen(0), 1); // a

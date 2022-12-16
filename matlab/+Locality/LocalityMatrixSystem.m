@@ -27,7 +27,7 @@ classdef LocalityMatrixSystem < MatrixSystem
             %   basis elements (including implied probabilities that do not
             %   directly exist as operators in any moment matrix).
             if (isempty(obj.probability_table))
-                obj.probability_table = npatk('probability_table', ...
+                obj.probability_table = mtk('probability_table', ...
                                               obj.RefId);
             end
             val = obj.probability_table;
@@ -43,7 +43,7 @@ classdef LocalityMatrixSystem < MatrixSystem
                 error("Measurements must be from different parties.");
             end
             
-            result = npatk('probability_table', ...
+            result = mtk('probability_table', ...
                            obj.RefId, indices);
         end
     end
@@ -53,7 +53,7 @@ classdef LocalityMatrixSystem < MatrixSystem
             arguments
                 obj (1,1) Locality.LocalityMatrixSystem
             end
-            obj.ProbabilityTable = npatk('probability_table', obj.RefId);
+            obj.ProbabilityTable = mtk('probability_table', obj.RefId);
         end
     end 
 end

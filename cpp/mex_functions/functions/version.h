@@ -8,7 +8,7 @@
 #include "../../version.h"
 #include "mex_function.h"
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     class Version : public MexFunction {
     public:

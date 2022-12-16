@@ -1,6 +1,6 @@
 classdef LocalizingMatrix < OperatorMatrix
     %LocalizingMatrix A matrix of operator products. Wraps a reference to a
-    % LocalizingMatrix class stored within npatk.
+    % LocalizingMatrix class stored within mtk.
     
     properties(SetAccess = protected, GetAccess = public)
         Level = uint64(0)
@@ -29,7 +29,7 @@ classdef LocalizingMatrix < OperatorMatrix
             obj.Operators = uint64(reshape(operators, 1,[]));
             
             % Generate localizing matrix
-            [obj.Index, obj.Dimension] = npatk('localizing_matrix', ...
+            [obj.Index, obj.Dimension] = mtk('localizing_matrix', ...
                                                'matlab_indexing', ...
                                                'dimension', ...
                                                obj.MatrixSystem.RefId, ...

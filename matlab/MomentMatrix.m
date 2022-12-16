@@ -1,6 +1,6 @@
 classdef MomentMatrix < OperatorMatrix
     %MOMENTMATRIX A matrix of operator products. Wraps a reference to a
-    % MomentMatrix class stored within npatk.
+    % MomentMatrix class stored within mtk.
     
     properties(Access = {?SolvedMomentMatrix})
         probability_table
@@ -36,7 +36,7 @@ classdef MomentMatrix < OperatorMatrix
             obj.Level = uint64(level);
                         
             % Generate moment matrix
-            [obj.Index, obj.Dimension] = npatk('moment_matrix', ...
+            [obj.Index, obj.Dimension] = mtk('moment_matrix', ...
                                                'dimension', ...
                                                obj.MatrixSystem.RefId, ...
                                                obj.Level);

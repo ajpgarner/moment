@@ -9,11 +9,11 @@
 
 #include "integer_types.h"
 
-namespace NPATK {
+namespace Moment {
     class Context;
 }
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
     struct NewInflationMatrixSystemParams : public SortedInputs {
     public:
         std::vector<size_t> outcomes_per_observable{};
@@ -36,7 +36,7 @@ namespace NPATK::mex::functions {
     };
 
 
-    class NewInflationMatrixSystem : public NPATK::mex::functions::MexFunction {
+    class NewInflationMatrixSystem : public Moment::mex::functions::MexFunction {
     public:
         explicit NewInflationMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

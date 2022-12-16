@@ -16,7 +16,7 @@
 
 #include "error_codes.h"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     using ParamNameStr = std::basic_string<char16_t>;
 

@@ -9,7 +9,7 @@
 #include "gtest/gtest.h"
 #include "symbolic/symbol_tree.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     class MockTree : public SymbolTree {
     public:

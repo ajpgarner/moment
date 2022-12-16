@@ -1,4 +1,4 @@
- classdef MomentMatrixTest < NPATKTestBase
+ classdef MomentMatrixTest < MTKTestBase
     %MAKEMOMENTMATRIXTEST Unit tests for make_moment_matrix function    
     properties(Constant)
         IDOnly = MomentMatrixTest_Case([["1"]], [["1"]]);
@@ -62,56 +62,56 @@
     methods (Test, TestTags={'Error'})
         function Error_NoInputs(testCase)
             function no_in()             
-               [~] = npatk('moment_matrix');
+               [~] = mtk('moment_matrix');
             end
-            testCase.verifyError(@() no_in(), 'npatk:too_few_inputs');           
+            testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');           
         end
         
         function Error_BadLevel1(testCase)
             function bad_in()
-               system_id = npatk('new_locality_matrix_system', 2, 2, 2);
-               [~] = npatk('moment_matrix', ...
+               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               [~] = mtk('moment_matrix', ...
                               'reference_id', system_id, ...
                               'level', 'ff');
             end
-            testCase.verifyError(@() bad_in(), 'npatk:bad_param');           
+            testCase.verifyError(@() bad_in(), 'mtk:bad_param');           
         end
         
         function Error_BadLevel2(testCase)
             function bad_in()             
-               system_id = npatk('new_locality_matrix_system', 2, 2, 2);
-               [~] = npatk('moment_matrix', ...
+               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               [~] = mtk('moment_matrix', ...
                               'reference_id', system_id, ...
                               'level', -1);
             end
-            testCase.verifyError(@() bad_in(), 'npatk:negative_value');           
+            testCase.verifyError(@() bad_in(), 'mtk:negative_value');           
         end
       
         function Error_BadLevel3(testCase)
             function bad_in()             
-               system_id = npatk('new_locality_matrix_system', 2, 2, 2);
-               [~] = npatk('moment_matrix', ...
+               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               [~] = mtk('moment_matrix', ...
                               'reference_id', system_id, ... 
                               'level', [1, 2]);
             end
-            testCase.verifyError(@() bad_in(), 'npatk:bad_param');           
+            testCase.verifyError(@() bad_in(), 'mtk:bad_param');           
         end    
           
         function Error_BadLevel4(testCase)
             function bad_in()        
-               system_id = npatk('new_locality_matrix_system', 2, 2, 2);
-               [~] = npatk('moment_matrix', ...
+               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               [~] = mtk('moment_matrix', ...
                               'reference_id', system_id, ...
                               'level', "-1");
             end
-            testCase.verifyError(@() bad_in(), 'npatk:negative_value');           
+            testCase.verifyError(@() bad_in(), 'mtk:negative_value');           
         end
         
         function Error_TooManyInputs(testCase)
             function bad_in()             
-               [~] = npatk('moment_matrix', 1, 1, 1, 1, 1);
+               [~] = mtk('moment_matrix', 1, 1, 1, 1, 1);
             end
-            testCase.verifyError(@() bad_in(), 'npatk:too_many_inputs');
+            testCase.verifyError(@() bad_in(), 'mtk:too_many_inputs');
          end     
     end
 end

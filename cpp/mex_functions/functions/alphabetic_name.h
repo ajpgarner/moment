@@ -8,7 +8,7 @@
 
 #include "mex_function.h"
 
-namespace NPATK::mex::functions  {
+namespace Moment::mex::functions  {
 
     class AlphabeticNameInputs : public SortedInputs {
     public:
@@ -18,7 +18,7 @@ namespace NPATK::mex::functions  {
         explicit AlphabeticNameInputs(SortedInputs&& input);
     };
 
-    class AlphabeticName : public NPATK::mex::functions::MexFunction {
+    class AlphabeticName : public Moment::mex::functions::MexFunction {
     public:
         explicit AlphabeticName(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

@@ -10,7 +10,7 @@
 
 #include "symbolic/symbol_tree.h"
 
-namespace NPATK::mex {
+namespace Moment::mex {
     [[nodiscard]] matlab::data::Array make_symmetric_using_tree(matlab::engine::MATLABEngine& engine,
                                                                 const matlab::data::Array& the_array,
                                                                 const SymbolTree& tree, bool sparse_output);

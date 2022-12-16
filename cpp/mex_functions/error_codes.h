@@ -7,9 +7,9 @@
 
 #include <string>
 
-namespace NPATK::mex::errors {
+namespace Moment::mex::errors {
     /** Prefix to error codes */
-    constexpr char prefix[] = "npatk:";
+    constexpr char prefix[] = "mtk:";
 
     /** Applies prefix to code */
     constexpr std::string applyPrefix(const std::string& errCode) {

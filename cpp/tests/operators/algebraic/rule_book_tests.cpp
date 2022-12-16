@@ -9,7 +9,7 @@
 #include "operators/algebraic/algebraic_context.h"
 #include "operators/algebraic/rule_book.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Operators_Algebraic_RuleBook, Empty) {
         ShortlexHasher slh{0};

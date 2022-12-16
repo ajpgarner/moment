@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     namespace errors {
         /** Exception thrown by failed read_as_[...] functions */

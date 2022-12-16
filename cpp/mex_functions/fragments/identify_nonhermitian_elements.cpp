@@ -12,7 +12,7 @@
 #include "MatlabDataArray.hpp"
 
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
 
     namespace {
@@ -23,7 +23,7 @@ namespace NPATK::mex {
             matlab::engine::MATLABEngine& engine;
 
         public:
-            using return_type = NPATK::SymbolSet;
+            using return_type = Moment::SymbolSet;
 
         public:
             explicit NonhermitianElementIdentifierVisitor(matlab::engine::MATLABEngine &the_engine)
@@ -40,12 +40,12 @@ namespace NPATK::mex {
                 const size_t dimension = data.getDimensions()[0];
                 for (size_t i = 0; i < dimension; ++i) {
                     // Register diagonal element as real symbol:
-                    NPATK::SymbolExpression diag{read_symbol_or_fail(this->engine, data, i, i)};
+                    SymbolExpression diag{read_symbol_or_fail(this->engine, data, i, i)};
                     output.add_or_merge(Symbol{diag.id, false});
 
                     for (size_t j = i + 1; j < dimension; ++j) {
-                        NPATK::SymbolExpression upper{read_symbol_or_fail(this->engine, data, i, j)};
-                        NPATK::SymbolExpression lower{read_symbol_or_fail(this->engine, data, j, i)};
+                        SymbolExpression upper{read_symbol_or_fail(this->engine, data, i, j)};
+                        SymbolExpression lower{read_symbol_or_fail(this->engine, data, j, i)};
                         lower.conjugated = !lower.conjugated;
 
                         if (upper != lower) {
@@ -76,7 +76,7 @@ namespace NPATK::mex {
             explicit IsHermitianVisitor(matlab::engine::MATLABEngine &the_engine)
                     : engine(the_engine) { }
 
-            template<std::convertible_to<NPATK::symbol_name_t> datatype>
+            template<std::convertible_to<symbol_name_t> datatype>
             return_type dense(const matlab::data::TypedArray<datatype> &data) {
                 SymbolSet output{};
 
@@ -85,12 +85,12 @@ namespace NPATK::mex {
                 const size_t dimension = data.getDimensions()[0];
                 for (size_t i = 0; i < dimension; ++i) {
                     // Register diagonal element as real symbol:
-                    NPATK::SymbolExpression diag{static_cast<NPATK::symbol_name_t>(data[i][i])};
+                    SymbolExpression diag{static_cast<symbol_name_t>(data[i][i])};
                     output.add_or_merge(Symbol{diag.id, false});
 
                     for (size_t j = i + 1; j < dimension; ++j) {
-                        NPATK::SymbolExpression upper{static_cast<NPATK::symbol_name_t>(data[i][j])};
-                        NPATK::SymbolExpression lower{static_cast<NPATK::symbol_name_t>(data[j][i])};
+                        SymbolExpression upper{static_cast<symbol_name_t>(data[i][j])};
+                        SymbolExpression lower{static_cast<symbol_name_t>(data[j][i])};
 
                         // Wrong ID, can never be Hermitian
                         if (upper.id != lower.id) {
@@ -121,8 +121,8 @@ namespace NPATK::mex {
 
                     // Check off diagonal elements
                     for (size_t j = i + 1; j < dimension; ++j) {
-                        NPATK::SymbolExpression upper{read_symbol_or_fail(this->engine, data, i, j)};
-                        NPATK::SymbolExpression lower{read_symbol_or_fail(this->engine, data, j, i)};
+                        SymbolExpression upper{read_symbol_or_fail(this->engine, data, i, j)};
+                        SymbolExpression lower{read_symbol_or_fail(this->engine, data, j, i)};
 
                         // Never Hermitian if IDs don't match
                         if (upper.id != lower.id) {

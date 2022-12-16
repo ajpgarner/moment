@@ -8,7 +8,7 @@
 #include "operators/algebraic/algebraic_context.h"
 #include "operators/algebraic/monomial_substitution_rule.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Operators_Algebraic_MonomialSubRule, Conjugate) {
 

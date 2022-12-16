@@ -7,7 +7,7 @@
 #include "error_codes.h"
 #include "MatlabDataArray.hpp"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     [[noreturn]] void throw_error(matlab::engine::MATLABEngine &engine,
                                   const std::string& err_code, const std::string& error) {

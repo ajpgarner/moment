@@ -1,4 +1,4 @@
-classdef CompleteTest < NPATKTestBase
+classdef CompleteTest < MTKTestBase
     %COMPLETETEST Unit tests for complete function
     
     properties(Constant)
@@ -6,12 +6,12 @@ classdef CompleteTest < NPATKTestBase
     
     methods
         function check_completion_nh(testCase, input, expected)
-            output = npatk('complete', 'nonhermitian', input);
+            output = mtk('complete', 'nonhermitian', input);
             testCase.verifyEqual(output, expected);
         end
         
         function check_completion_h(testCase, input, expected)
-            output = npatk('complete', 'hermitian', input);
+            output = mtk('complete', 'hermitian', input);
             testCase.verifyEqual(output, expected);
         end
     end
@@ -49,17 +49,17 @@ classdef CompleteTest < NPATKTestBase
     methods (Test, TestTags={'Error'})
         function Error_NoInputs(testCase)
             function no_in()
-                [~] = npatk('complete');
+                [~] = mtk('complete');
             end
-            testCase.verifyError(@() no_in(), 'npatk:too_few_inputs');
+            testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');
         end
         
         function Error_HermNoherm(testCase)
             function no_in()
-                [~] = npatk('complete', 'hermitian', 'nonhermitian', ...
+                [~] = mtk('complete', 'hermitian', 'nonhermitian', ...
                             {{[1],[]}});
             end
-            testCase.verifyError(@() no_in(), 'npatk:mutex_param');
+            testCase.verifyError(@() no_in(), 'mtk:mutex_param');
         end
     end
     

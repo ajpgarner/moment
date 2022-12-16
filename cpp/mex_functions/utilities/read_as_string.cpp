@@ -5,7 +5,7 @@
  */
 #include "read_as_string.h"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     std::optional<std::basic_string<char16_t>> read_as_utf16(matlab::data::Array input) {
         if (input.getType() == matlab::data::ArrayType::CHAR) {

@@ -17,7 +17,7 @@ namespace matlab::engine {
     class MATLABEngine;
 }
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     namespace concepts {
         /**

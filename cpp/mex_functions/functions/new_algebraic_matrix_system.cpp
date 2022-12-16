@@ -13,7 +13,7 @@
 
 #include "utilities/reporting.h"
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     namespace {
 

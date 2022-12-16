@@ -8,7 +8,7 @@
 #include "operators/shortlex_hasher.h"
 
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Operators_ShortlexHasher, Unary) {
         ShortlexHasher hasher{1};

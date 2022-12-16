@@ -8,7 +8,7 @@
 
 #include "symbolic/equality_type.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Symbolic_EqualityType, DistinctValues) {
         EXPECT_NE(EqualityType::none, EqualityType::equal);

@@ -6,7 +6,7 @@
 #include "gtest/gtest.h"
 #include "utilities/square_matrix.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Utilities_SquareMatrix, Empty) {
         SquareMatrix<int> empty{};

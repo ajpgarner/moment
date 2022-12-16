@@ -13,7 +13,7 @@
 #include "utilities/reporting.h"
 
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     RulesParams::RulesParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs) {
         this->storage_key = read_positive_integer(matlabEngine, "MatrixSystem reference", inputs.inputs[0], 0);

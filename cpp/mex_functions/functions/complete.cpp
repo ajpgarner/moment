@@ -13,7 +13,7 @@
 
 #include <sstream>
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     namespace {
 

@@ -8,7 +8,7 @@
 
 #include "utilities/persistent_storage.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Utilities_PersistentStorage, Signature) {
         uint32_t signature = make_signature({'s','t','r','b'});

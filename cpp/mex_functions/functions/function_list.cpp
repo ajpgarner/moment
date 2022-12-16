@@ -29,7 +29,7 @@
 #include <cassert>
 
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     std::unique_ptr<MexFunction> make_mex_function(matlab::engine::MATLABEngine& engine,
                                                    MEXEntryPointID function_id,

@@ -27,7 +27,7 @@ classdef CollinsGisin < handle
         
         function val = get.Sequences(obj)
             if isempty(obj.cache_seq)         
-                obj.cache_seq = npatk('collins_gisin', 'sequences', ...
+                obj.cache_seq = mtk('collins_gisin', 'sequences', ...
                                       obj.Scenario.System.RefId);
             end
             val = obj.cache_seq;
@@ -35,7 +35,7 @@ classdef CollinsGisin < handle
        
         function val = get.Symbols(obj)
             if isempty(obj.cache_seq)         
-                obj.cache_sym = npatk('collins_gisin', 'symbols', ...
+                obj.cache_sym = mtk('collins_gisin', 'symbols', ...
                                       obj.Scenario.System.RefId);
             end
             val = obj.cache_sym;
@@ -43,7 +43,7 @@ classdef CollinsGisin < handle
         
         function val = get.BasisElements(obj)
             if isempty(obj.cache_basis)         
-                obj.cache_basis = npatk('collins_gisin', 'basis', ...
+                obj.cache_basis = mtk('collins_gisin', 'basis', ...
                                        obj.Scenario.System.RefId);
             end
             val = obj.cache_basis;

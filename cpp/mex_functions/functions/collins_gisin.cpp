@@ -16,13 +16,13 @@
 #include "mex.hpp"
 
 
-namespace NPATK::mex::functions  {
+namespace Moment::mex::functions  {
 
     namespace {
 
         matlab::data::TypedArray<uint64_t>
         export_cgt_real_basis(matlab::engine::MATLABEngine &matlabEngine,
-                              const NPATK::CollinsGisin& cgi) {
+                              const Moment::CollinsGisin& cgi) {
 
             matlab::data::ArrayFactory factory;
             matlab::data::ArrayDimensions dimensions{cgi.Dimensions};
@@ -44,7 +44,7 @@ namespace NPATK::mex::functions  {
 
         matlab::data::TypedArray<uint64_t>
         export_cgt_symbol_ids(matlab::engine::MATLABEngine &matlabEngine,
-                              const NPATK::CollinsGisin& cgi) {
+                              const Moment::CollinsGisin& cgi) {
 
 
             matlab::data::ArrayFactory factory;
@@ -66,7 +66,7 @@ namespace NPATK::mex::functions  {
 
         matlab::data::TypedArray<matlab::data::MATLABString>
         export_cgt_sequences(matlab::engine::MATLABEngine &matlabEngine,
-                              const NPATK::CollinsGisin& cgi) {
+                              const Moment::CollinsGisin& cgi) {
             matlab::data::ArrayFactory factory;
             matlab::data::ArrayDimensions dimensions{cgi.Dimensions};
             matlab::data::TypedArray<matlab::data::MATLABString> output
@@ -89,7 +89,7 @@ namespace NPATK::mex::functions  {
         matlab::data::Array
         export_cg_tensor(matlab::engine::MATLABEngine &matlabEngine,
                         CollinsGisinParams::OutputType method,
-                        const NPATK::CollinsGisin& cgi) {
+                        const Moment::CollinsGisin& cgi) {
 
             switch (method) {
                 default:
@@ -155,14 +155,14 @@ namespace NPATK::mex::functions  {
                 throw_error(this->matlabEngine, errors::bad_cast, "MatrixSystem was not a LocalityMatrixSystem.");
             }
 
-            const NPATK::CollinsGisin &cg = lsm->CollinsGisin();
+            const Moment::CollinsGisin &cg = lsm->CollinsGisin();
 
             // Export whole matrix?
             if (output.size() >= 1) {
                 // Export symbols
                 output[0] = export_cg_tensor(this->matlabEngine, input.outputType, cg);
             }
-        } catch (const NPATK::errors::missing_component& mce) {
+        } catch (const Moment::errors::missing_component& mce) {
             throw_error(this->matlabEngine, "missing_cg", mce.what());
         }
 

@@ -8,7 +8,7 @@
 
 #include "mex.hpp"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     template<>
     matlab::data::SparseArray<double>

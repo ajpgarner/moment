@@ -1,4 +1,4 @@
-classdef MakeSymmetricTest < NPATKTestBase
+classdef MakeSymmetricTest < MTKTestBase
     %MAKESYMMETRICTEST Unit tests for make_symmetric function
     
     properties(Constant)
@@ -124,34 +124,34 @@ classdef MakeSymmetricTest < NPATKTestBase
     methods (Test, TestTags={'Error'})
         function Error_NoInput(testCase)
             function no_in()             
-               [~, ~] = npatk('make_symmetric');
+               [~, ~] = mtk('make_symmetric');
             end
-            testCase.verifyError(@() no_in(), 'npatk:too_few_inputs');           
+            testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');           
         end   
         
           function Error_TooManyInputs(testCase)
             function many_in()             
-               [~, ~] = npatk('make_symmetric', ...
+               [~, ~] = mtk('make_symmetric', ...
                               testCase.plain_case.input_dense, ...
                               testCase.plain_case.input_dense);
             end
-            testCase.verifyError(@() many_in(), 'npatk:too_many_inputs');           
+            testCase.verifyError(@() many_in(), 'mtk:too_many_inputs');           
         end   
               
         function Error_NoOutput(testCase)
             function no_out()             
-               npatk('make_symmetric', testCase.plain_case.input_dense);
+               mtk('make_symmetric', testCase.plain_case.input_dense);
             end
-            testCase.verifyError(@() no_out(), 'npatk:too_few_outputs');
+            testCase.verifyError(@() no_out(), 'mtk:too_few_outputs');
         end  
                 
         function Error_DenseAndSparse(testCase)
             function call_sparse_and_dense()
-                [~, ~] = npatk('make_symmetric', 'sparse', 'dense', ...
+                [~, ~] = mtk('make_symmetric', 'sparse', 'dense', ...
                                testCase.plain_case.input_dense);
             end
            testCase.verifyError(@() call_sparse_and_dense, ...
-                                'npatk:mutex_param');           
+                                'mtk:mutex_param');           
         end         
     end
 end

@@ -1,7 +1,7 @@
 %% Clear
 addpath('..')
 clear
-clear npatk;
+clear mtk;
 
 %% Params
 mm_level = 3;

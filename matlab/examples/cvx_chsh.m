@@ -2,7 +2,7 @@
 %
 addpath('..')
 clear
-clear npatk;
+clear mtk;
 
 % Two parties
 scenario = LocalityScenario(2);

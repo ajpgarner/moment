@@ -8,7 +8,7 @@
 #include "mex_function.h"
 
 
-namespace NPATK::mex::functions  {
+namespace Moment::mex::functions  {
 
     struct CollinsGisinParams : public SortedInputs {
     public:
@@ -25,7 +25,7 @@ namespace NPATK::mex::functions  {
 
     };
 
-    class CollinsGisin : public NPATK::mex::functions::MexFunction {
+    class CollinsGisin : public Moment::mex::functions::MexFunction {
     public:
         explicit CollinsGisin(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

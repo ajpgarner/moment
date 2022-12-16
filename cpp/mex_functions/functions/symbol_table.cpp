@@ -14,7 +14,7 @@
 #include "utilities/reporting.h"
 #include "utilities/io_parameters.h"
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
 
     SymbolTableParams::SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)

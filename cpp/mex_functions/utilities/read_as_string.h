@@ -11,7 +11,7 @@
 #include "mex.hpp"
 #include "MatlabDataArray.hpp"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     std::optional<std::basic_string<char16_t>> read_as_utf16(matlab::data::Array input);
 

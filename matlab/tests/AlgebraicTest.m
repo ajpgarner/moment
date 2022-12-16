@@ -1,4 +1,4 @@
-classdef AlgebraicTest < NPATKTestBase
+classdef AlgebraicTest < MTKTestBase
     %ALGEBRAICTEST
     
     %% Construction / binding

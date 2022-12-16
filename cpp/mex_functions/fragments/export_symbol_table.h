@@ -13,12 +13,12 @@ namespace matlab::engine {
     class MATLABEngine;
 }
 
-namespace NPATK {
+namespace Moment {
     class MatrixSystem;
     class UniqueSequence;
 }
 
-namespace NPATK::mex {
+namespace Moment::mex {
     matlab::data::StructArray export_symbol_table_row(matlab::engine::MATLABEngine& engine,
                                                       const MatrixSystem& system, const UniqueSequence& symbol);
 

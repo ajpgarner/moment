@@ -10,7 +10,7 @@
 
 #include <sstream>
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     namespace {
         class ChunkTest : public MonotonicChunkRecursiveStorage<size_t, ChunkTest> {

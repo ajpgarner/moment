@@ -10,7 +10,7 @@
 
 #include "symbolic/symbol_expression.h"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     namespace errors {
         constexpr char bad_symbol[] = "bad_symbol";

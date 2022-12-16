@@ -13,16 +13,16 @@ classdef MomentMatrixTest_Case
         end
         
         function CallAndVerify(testCase, testObj, params, level)
-            system_id = npatk('new_locality_matrix_system', params{:});
-            [~, dim] = npatk('moment_matrix', system_id, level);
-            sym_mat = npatk('moment_matrix', 'symbols', ...
+            system_id = mtk('new_locality_matrix_system', params{:});
+            [~, dim] = mtk('moment_matrix', system_id, level);
+            sym_mat = mtk('moment_matrix', 'symbols', ...
                             system_id, level);
-            seq_mat = npatk('moment_matrix', 'sequences', ...
+            seq_mat = mtk('moment_matrix', 'sequences', ...
                             system_id, level);
-            us_key = npatk('symbol_table', system_id);
+            us_key = mtk('symbol_table', system_id);
             
             testCase.Verify(testObj, sym_mat, seq_mat, us_key, dim);
-            npatk('release', 'matrix_system', system_id);
+            mtk('release', 'matrix_system', system_id);
         end
             
         function Verify(testCase, testObj, ...

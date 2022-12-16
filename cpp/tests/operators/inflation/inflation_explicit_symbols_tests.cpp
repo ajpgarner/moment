@@ -12,7 +12,7 @@
 
 #include "operators/matrix/moment_matrix.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Operators_Inflation_ExplicitSymbols, W) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{2, 2, 3}, {{0, 1}, {1, 2}}}, 2);

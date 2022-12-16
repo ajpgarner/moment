@@ -8,11 +8,11 @@
 #include "mex_function.h"
 #include "integer_types.h"
 
-namespace NPATK {
+namespace Moment {
     class MatrixSystem;
 }
 
-namespace NPATK::mex::functions  {
+namespace Moment::mex::functions  {
 
     struct SymbolTableParams : public SortedInputs {
     public:
@@ -34,7 +34,7 @@ namespace NPATK::mex::functions  {
         [[nodiscard]] std::string to_string() const override;
     };
 
-    class SymbolTable : public NPATK::mex::functions::MexFunction {
+    class SymbolTable : public Moment::mex::functions::MexFunction {
     public:
         explicit SymbolTable(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

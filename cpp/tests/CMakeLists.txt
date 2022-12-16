@@ -1,6 +1,6 @@
-include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_npatk)
+include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_moment)
 
-add_executable(npatk_tests
+add_executable(moment_tests
     operators/context_tests.cpp
     operators/hashed_sequence_tests.cpp
     operators/implicit_symbol_test_helpers.cpp
@@ -44,8 +44,8 @@ add_executable(npatk_tests
     utilities/variable_chunk_range_tests.cpp
 )
 
-target_link_libraries(npatk_tests
-    lib_npatk
+target_link_libraries(moment_tests
+    lib_moment
     gtest
     gtest_main
 )

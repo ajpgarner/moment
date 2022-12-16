@@ -12,7 +12,7 @@
 #include <string>
 #include <optional>
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     namespace errors {
         constexpr char bad_signature[] = "bad_signature";

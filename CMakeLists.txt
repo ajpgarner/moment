@@ -26,7 +26,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 
-add_subdirectory(cpp/lib_npatk)
+add_subdirectory(cpp/lib_moment)
 
 add_subdirectory(cpp/googletest)
 add_subdirectory(cpp/tests)

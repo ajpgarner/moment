@@ -8,7 +8,7 @@
 
 #include <sstream>
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     std::string to_string(const matlab::data::ArrayType &arrayType) {
         switch (arrayType) {

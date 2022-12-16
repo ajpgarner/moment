@@ -10,7 +10,7 @@
 #include "operators/operator_sequence_generator.h"
 #include "operators/locality/locality_context.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     void compare_sequences(OperatorSequenceGenerator& osg, std::initializer_list<OperatorSequence> refSeq) {
         ASSERT_EQ(osg.size(), refSeq.size());

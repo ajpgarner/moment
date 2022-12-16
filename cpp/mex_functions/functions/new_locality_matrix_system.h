@@ -7,11 +7,11 @@
 
 #include "mex_function.h"
 
-namespace NPATK {
+namespace Moment {
     class Context;
 }
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
     struct NewLocalityMatrixSystemParams : public SortedInputs {
     public:
         size_t total_operators = 0;
@@ -37,7 +37,7 @@ namespace NPATK::mex::functions {
     };
 
 
-    class NewLocalityMatrixSystem : public NPATK::mex::functions::MexFunction {
+    class NewLocalityMatrixSystem : public Moment::mex::functions::MexFunction {
     public:
         explicit NewLocalityMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

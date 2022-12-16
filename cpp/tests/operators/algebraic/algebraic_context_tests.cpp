@@ -12,7 +12,7 @@
 #include "operators/algebraic/algebraic_context.h"
 #include "operators/algebraic/algebraic_matrix_system.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Operators_Algebraic_AlgebraicContext, Empty) {
         AlgebraicContext ac{0};

@@ -8,7 +8,7 @@
 
 #include "utilities/ordered_permutation.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Utilities_OrderedPermutation, Gen2C1) {
         OrderedPermutationIterator<int> opi{2, 1};

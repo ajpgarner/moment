@@ -10,7 +10,7 @@
 
 #include "MatlabDataArray.hpp"
 
-namespace NPATK::mex {
+namespace Moment::mex {
     /**
      * Get a string describing the array type.
      */

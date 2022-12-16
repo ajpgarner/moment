@@ -7,7 +7,7 @@
 
 #include "utilities/multi_dimensional_index_iterator.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Utilities_MDIIterator, Empty) {
         MultiDimensionalIndexIterator mdiIter{{}};

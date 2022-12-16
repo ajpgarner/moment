@@ -5,7 +5,7 @@
  */
 #include "storage_manager.h"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     StorageManager& getStorageManager() {
         static StorageManager manager{};

@@ -18,10 +18,10 @@
 
 #include <memory>
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     MomentMatrix::MomentMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : NPATK::mex::functions::OperatorMatrix(matlabEngine, storage,
+            : Moment::mex::functions::OperatorMatrix(matlabEngine, storage,
                                                     MEXEntryPointID::MomentMatrix, u"moment_matrix") {
         // Either [ref, level] or named version thereof.
         this->param_names.erase(u"index");
@@ -68,7 +68,7 @@ namespace NPATK::mex::functions {
         return output;
     }
 
-    std::pair<size_t, const NPATK::OperatorMatrix &>
+    std::pair<size_t, const Moment::OperatorMatrix &>
     MomentMatrix::get_or_make_matrix(MatrixSystem &system, const OperatorMatrixParams &inputOMP) {
         const auto& input = dynamic_cast<const MomentMatrixParams&>(inputOMP);
         return system.create_moment_matrix(input.hierarchy_level);

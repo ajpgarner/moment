@@ -1,5 +1,5 @@
 clear
-clear npatk
+clear mtk
 
 inflation_level = 2;
 moment_matrix_level = 1;

@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Utilities_VariableChunkRange, Empty) {
         std::vector<std::string> data{};

@@ -15,7 +15,7 @@
 
 #include "utilities/reporting.h"
 
-namespace NPATK::mex::functions  {
+namespace Moment::mex::functions  {
 
     MakeHermitian::MakeHermitian(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
             : MexFunction(matlabEngine, storage, MEXEntryPointID::MakeHermitian, u"make_hermitian") {
@@ -70,7 +70,7 @@ namespace NPATK::mex::functions  {
         if (debug) {
             std::stringstream ss3;
             ss3 << "\nTree, initial:\n" << symbol_tree;
-            NPATK::mex::print_to_console(matlabEngine, ss3.str());
+            Moment::mex::print_to_console(matlabEngine, ss3.str());
         }
 
         symbol_tree.simplify();
@@ -78,19 +78,19 @@ namespace NPATK::mex::functions  {
         if (verbose) {
             std::stringstream ss4;
             ss4 << "\nTree, simplified:\n" << symbol_tree << "\n";
-            NPATK::mex::print_to_console(matlabEngine, ss4.str());
+            Moment::mex::print_to_console(matlabEngine, ss4.str());
         }
 
         if (outputs.size() >= 1) {
-            outputs[0] = NPATK::mex::make_hermitian_using_tree(matlabEngine, inputs.inputs[0], symbol_tree);
+            outputs[0] = Moment::mex::make_hermitian_using_tree(matlabEngine, inputs.inputs[0], symbol_tree);
         }
 
         if (outputs.size() >= 2) {
-            outputs[1] = NPATK::mex::export_substitution_list(matlabEngine, symbol_tree);
+            outputs[1] = Moment::mex::export_substitution_list(matlabEngine, symbol_tree);
         }
 
         if (outputs.size() >= 3) {
-            outputs[2] = NPATK::mex::export_symbol_properties(matlabEngine, symbol_tree);
+            outputs[2] = Moment::mex::export_symbol_properties(matlabEngine, symbol_tree);
         }
 
     }

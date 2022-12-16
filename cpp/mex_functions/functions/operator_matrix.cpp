@@ -12,7 +12,7 @@
 #include "utilities/reporting.h"
 #include "fragments/export_operator_matrix.h"
 
-namespace NPATK::mex::functions  {
+namespace Moment::mex::functions  {
 
 
     void OperatorMatrixParams::parse(matlab::engine::MATLABEngine &matlabEngine) {
@@ -91,7 +91,7 @@ namespace NPATK::mex::functions  {
     }
 
 
-    OperatorMatrix::OperatorMatrix(matlab::engine::MATLABEngine &matlabEngine, NPATK::mex::StorageManager &storage,
+    OperatorMatrix::OperatorMatrix(matlab::engine::MATLABEngine &matlabEngine, Moment::mex::StorageManager &storage,
                                    MEXEntryPointID id, std::basic_string<char16_t> name)
             : MexFunction(matlabEngine, storage, id, std::move(name)) {
         this->min_outputs = 1;
@@ -170,7 +170,7 @@ namespace NPATK::mex::functions  {
         }
     }
 
-    std::pair<size_t, const NPATK::OperatorMatrix&>
+    std::pair<size_t, const Moment::OperatorMatrix&>
     OperatorMatrix::get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp) {
         try {
             const auto &input = dynamic_cast<const RawOperatorMatrixParams &>(omp);
@@ -184,7 +184,7 @@ namespace NPATK::mex::functions  {
         } catch (const std::bad_cast& bce) {
             throw_error(this->matlabEngine, errors::bad_cast,
                         "Misconfigured operator matrix input parameter object.");
-        } catch (const NPATK::errors::missing_component& mce) {
+        } catch (const Moment::errors::missing_component& mce) {
             throw_error(this->matlabEngine, errors::internal_error, mce.what());
         }
     }

@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <sstream>
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
     namespace {
         std::unique_ptr<InflationContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                        NewInflationMatrixSystemParams &input) {

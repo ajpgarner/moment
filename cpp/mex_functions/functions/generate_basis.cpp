@@ -26,14 +26,14 @@
 #include <array>
 #include <complex>
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     namespace {
         const OperatorMatrix& getMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
                                          const MatrixSystem& matrixSystem, size_t index) {
             try {
                 return matrixSystem[index];
-            } catch (const NPATK::errors::missing_component& mce) {
+            } catch (const Moment::errors::missing_component& mce) {
                 throw_error(matlabEngine, errors::bad_param, mce.what());
             }
         }
@@ -62,7 +62,7 @@ namespace NPATK::mex::functions {
     }
 
     GenerateBasisParams::GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine,
-                                             NPATK::mex::SortedInputs &&structuredInputs)
+                                             Moment::mex::SortedInputs &&structuredInputs)
         : SortedInputs(std::move(structuredInputs)) {
 
         // First, have we specified a reference? If so...

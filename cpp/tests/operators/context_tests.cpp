@@ -9,7 +9,7 @@
 #include "operators/operator_sequence.h"
 
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
     TEST(Operators_Context, Construct_Empty) {
         Context context{0};
         ASSERT_EQ(context.size(), 0);

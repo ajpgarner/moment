@@ -9,8 +9,8 @@
  */
 #pragma once
 
-namespace NPATK::version {
-    static constexpr const char PROJECT_NAME[] = "NPA Toolkit";
+namespace Moment::version {
+    static constexpr const char PROJECT_NAME[] = "Moment";
     static constexpr const char PROJECT_COPYRIGHT[] = "Copyright (c) 2022 Austrian Academy of Sciences";
 
     static constexpr int VERSION_MAJOR = 0;

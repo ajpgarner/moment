@@ -8,7 +8,7 @@
 #include "mex_function.h"
 #include "storage_manager.h"
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     class ReleaseParams : public SortedInputs {
     public:

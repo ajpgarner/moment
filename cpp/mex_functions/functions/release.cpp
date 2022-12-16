@@ -7,7 +7,7 @@
 
 #include "utilities/reporting.h"
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     ReleaseParams::ReleaseParams(matlab::engine::MATLABEngine &matlab, const StorageManager& storage,
                                  SortedInputs &&raw_inputs) : SortedInputs(std::move(raw_inputs)) {

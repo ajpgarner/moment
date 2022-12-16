@@ -1,6 +1,6 @@
 classdef MatrixSystem < handle
     %MATRIXSYSTEM A matrix of operator products. Wraps a reference to a
-    % MatrixSystem class stored within npatk.
+    % MatrixSystem class stored within mtk.
     
     properties(SetAccess = private, GetAccess = public)
         RefId = uint64(0)        
@@ -20,7 +20,7 @@ classdef MatrixSystem < handle
             % then call appropriate function to load setting into C++.
             if isa(args, 'cell')
                 % Unpack cell into arguments
-                obj.RefId = npatk('new_locality_matrix_system', args{:});
+                obj.RefId = mtk('new_locality_matrix_system', args{:});
             elseif isa(args, 'Scenario')
                 % Unpack setting into arrays
                 obj.RefId = args.createNewMatrixSystem();
@@ -45,11 +45,11 @@ classdef MatrixSystem < handle
         function val = UpdateSymbolTable(obj)
             has_new_symbols = false;
             if isempty(obj.SymbolTable)
-                obj.SymbolTable = npatk('symbol_table', obj.RefId);
+                obj.SymbolTable = mtk('symbol_table', obj.RefId);
                 has_new_symbols = true;
             else                
                 existing_id = uint64(length(obj.SymbolTable));
-                new_symbols = npatk('symbol_table', obj.RefId, ...
+                new_symbols = mtk('symbol_table', obj.RefId, ...
                                     'from', existing_id);
                 if ~isempty(new_symbols)
                     has_new_symbols = true;
@@ -76,7 +76,7 @@ classdef MatrixSystem < handle
         function delete(obj)
             if obj.RefId ~= 0
                 try
-                    npatk('release', 'matrix_system', obj.RefId);
+                    mtk('release', 'matrix_system', obj.RefId);
                 catch ME
                     fprintf(2, "Error deleting MatrixSystem: %s\n", ...
                         ME.message);

@@ -14,7 +14,7 @@
 
 #include "compare_os_matrix.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
     namespace {
 
         struct unique_seq_brace_ref {

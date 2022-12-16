@@ -1,4 +1,4 @@
-classdef CollinsGisinTest < NPATKTestBase
+classdef CollinsGisinTest < MTKTestBase
     %COLLINSGISINTEST Unit tests for collins_gisin function
     
     properties(Constant)
@@ -6,11 +6,11 @@ classdef CollinsGisinTest < NPATKTestBase
     
     methods (Test)
         function CHSH(testCase)
-            system_id = npatk('new_locality_matrix_system', 2, 2, 2);
-            mm = npatk('moment_matrix', system_id, 1);
-            sym_mat = npatk('collins_gisin', system_id, 'symbols');
-            bas_mat = npatk('collins_gisin', system_id, 'basis');
-            seq_mat = npatk('collins_gisin', system_id, 'sequences');            
+            system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            mm = mtk('moment_matrix', system_id, 1);
+            sym_mat = mtk('collins_gisin', system_id, 'symbols');
+            bas_mat = mtk('collins_gisin', system_id, 'basis');
+            seq_mat = mtk('collins_gisin', system_id, 'sequences');            
             expected = uint64([[1, 4, 5]; [2, 7, 8]; [3, 9, 10]]);
             testCase.verifyEqual(sym_mat, expected);
             testCase.verifyEqual(bas_mat, expected);
@@ -24,37 +24,37 @@ classdef CollinsGisinTest < NPATKTestBase
     methods (Test, TestTags={'Error'})
         function Error_NoInputs(testCase)
             function no_in()             
-               [~] = npatk('collins_gisin');
+               [~] = mtk('collins_gisin');
             end
-            testCase.verifyError(@() no_in(), 'npatk:too_few_inputs');           
+            testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');           
         end
         
         
         function Error_MutexParams(testCase)
             function bad_in()
-               system_id = npatk('new_locality_matrix_system', 2, 2, 2);
-               [~] = npatk('collins_gisin', system_id, ...
+               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               [~] = mtk('collins_gisin', system_id, ...
                            'sequences', 'basis');
             end
-            testCase.verifyError(@() bad_in(), 'npatk:mutex_param');           
+            testCase.verifyError(@() bad_in(), 'mtk:mutex_param');           
         end  
         
         function Error_TooManyInputs(testCase)
             function bad_in()
-               system_id = npatk('new_locality_matrix_system', 2, 2, 2);
-               [~] = npatk('collins_gisin', ...
+               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               [~] = mtk('collins_gisin', ...
                               system_id, system_id);
             end
-            testCase.verifyError(@() bad_in(), 'npatk:too_many_inputs');           
+            testCase.verifyError(@() bad_in(), 'mtk:too_many_inputs');           
         end  
         
         function Error_NoMomentMatrix(testCase)
             function bad_in()
-               system_id = npatk('new_locality_matrix_system', 2, 2, 2);
-               [~] = npatk('collins_gisin', ...
+               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               [~] = mtk('collins_gisin', ...
                               system_id);
             end
-            testCase.verifyError(@() bad_in(), 'npatk:missing_cg');           
+            testCase.verifyError(@() bad_in(), 'mtk:missing_cg');           
         end  
         
     end

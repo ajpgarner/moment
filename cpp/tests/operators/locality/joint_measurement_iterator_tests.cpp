@@ -10,7 +10,7 @@
 #include "operators/locality/locality_context.h"
 #include "operators/locality/joint_measurement_iterator.h"
 
-namespace NPATK::Tests {
+namespace Moment::Tests {
 
     TEST(Operators_Locality_JointMeasurementIterator, BasicIteration) {
         LocalityContext context{Party::MakeList(2, 2, 2)};

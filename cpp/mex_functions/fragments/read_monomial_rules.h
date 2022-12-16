@@ -12,11 +12,11 @@
 
 #include <vector>
 
-namespace NPATK {
+namespace Moment {
     class ShortlexHasher;
 }
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     struct RawMonomialRule {
         std::vector<oper_name_t> LHS{};

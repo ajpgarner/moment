@@ -16,7 +16,7 @@
 #include "MatlabEngine/engine_interface_util.hpp"
 #include <sstream>
 
-namespace NPATK::mex {
+namespace Moment::mex {
     MexMain::MexMain(std::shared_ptr <matlab::engine::MATLABEngine> matlab_engine)
         : matlabPtr(std::move(matlab_engine)), persistentStorage{getStorageManager()} {
 
@@ -89,7 +89,7 @@ namespace NPATK::mex {
         auto entry_id = functions::which_entrypoint(command_arg.value());
         if (entry_id == functions::MEXEntryPointID::Unknown) {
             throw_error(*matlabPtr, errors::bad_function,
-                        u"Function \"" + command_arg.value() + u"\" not known in NPATK.");
+                        u"Function \"" + command_arg.value() + u"\" not known in Moment.");
         }
 
         return entry_id;

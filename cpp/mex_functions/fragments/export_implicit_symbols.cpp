@@ -17,7 +17,7 @@
 #include "utilities/make_sparse_matrix.h"
 #include "utilities/reporting.h"
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     namespace {
 

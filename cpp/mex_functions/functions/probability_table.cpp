@@ -18,7 +18,7 @@
 #include "utilities/visitor.h"
 
 
-namespace NPATK::mex::functions {
+namespace Moment::mex::functions {
 
     namespace {
         class IndexReaderVisitor {

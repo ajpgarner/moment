@@ -15,13 +15,13 @@ namespace matlab::engine {
     class MATLABEngine;
 }
 
-namespace NPATK {
+namespace Moment {
     class Context;
     class SymbolTable;
     class SymbolMatrixProperties;
 }
 
-namespace NPATK::mex {
+namespace Moment::mex {
 
     /**
      * Outputs a matrix of symbol expressions, as a matlab string matrix

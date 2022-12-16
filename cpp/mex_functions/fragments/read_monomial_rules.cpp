@@ -13,7 +13,7 @@
 
 #include "operators/shortlex_hasher.h"
 
-namespace NPATK::mex {
+namespace Moment::mex {
     namespace {
         std::vector<oper_name_t> getBoundedOpSeq(matlab::engine::MATLABEngine &matlabEngine,
                                                  const std::string &name,
