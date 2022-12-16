@@ -2,8 +2,8 @@ set(MATLAB_FIND_DEBUG)
 
 find_package(Matlab)
 
-include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_moment)
-include_directories(${NPAToolKit_SOURCE_DIR}/cpp/mex_functions)
+include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
+include_directories(${Moment_SOURCE_DIR}/cpp/mex_functions)
 
 matlab_add_mex(NAME moment_mex
         SRC

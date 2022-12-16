@@ -1,4 +1,4 @@
-include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_moment)
+include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
 
 add_executable(moment_tests
     operators/context_tests.cpp

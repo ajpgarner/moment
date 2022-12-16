@@ -3,7 +3,7 @@ if(UNIX)
     set(CMAKE_CXX_COMPILER "/usr/bin/g++-12")
 endif()
 
-project(NPAToolKit)
+project(Moment)
 
 
 set(USE_CXX_EXCEPTIONS On)

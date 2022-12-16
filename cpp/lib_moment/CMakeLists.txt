@@ -1,4 +1,4 @@
-include_directories(${NPAToolKit_SOURCE_DIR}/cpp/lib_moment)
+include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
 
 add_library(lib_moment
         operators/context.cpp
