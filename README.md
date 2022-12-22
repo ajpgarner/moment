@@ -61,13 +61,19 @@ To download and compile the library use the following commands:
 
 <pre>git clone https://github.com/ajpgarner/moment.git
 cd moment
-git submodule init
-git submodule update
 cmake .
 cmake --build .</pre>
 
 To use it on MATLAB add the following folder to its path: `moment/matlab`
 
+If you want to include the unit tests do instead:
+
+<pre>git clone https://github.com/ajpgarner/moment.git
+cd moment
+git submodule init
+git submodule update
+cmake .
+cmake --build .</pre>
 
 ## List of classes, functions and folders
 ### MATLAB classes
