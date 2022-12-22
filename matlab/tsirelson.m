@@ -29,7 +29,8 @@ constraints = [a(1) == 1, Gamma >= 0];
 objective = bell_functional.yalmip(a);
 
 % Solve
-optimize(constraints, -objective); 
+ops = sdpsettings(sdpsettings,'verbose',0,'cachesolvers',1);
+optimize(constraints, -objective, ops); 
 objective = value(objective);
 
 
