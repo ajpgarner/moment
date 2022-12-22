@@ -4,6 +4,9 @@ addpath('..')
 clear
 clear mtk;
 
+%set level of the hierarchy
+level = 4;
+
 % Two parties
 i3322 = LocalityScenario(2);
 Alice = i3322.Parties(1);
@@ -18,7 +21,7 @@ B1 = Bob.AddMeasurement(2);
 B2 = Bob.AddMeasurement(2);
 
 % Make moment matrix
-matrix = i3322.MakeMomentMatrix(4);
+matrix = i3322.MakeMomentMatrix(level);
 
 % Make correlator objects
 Corr00 = Correlator(A0, B0);
@@ -46,10 +49,10 @@ I3322_ineq2 = i3322.FCTensor([[0 -1 -1  0]
 % Define and solve SDP
 cvx_begin sdp 
     % Declare basis variables a (real) and b (imaginary)
-    matrix.cvxVars('a', 'b');
+    matrix.cvxVars('a');
     
     % Compose moment matrix from these basis variables
-    M = matrix.cvxComplexMatrix(a, b);
+    M = matrix.cvxRealMatrix(a);
      
     % Normalization
     a(1) == 1;

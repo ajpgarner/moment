@@ -29,8 +29,8 @@ Corr11 = Correlator(A1, B1);
 CHSH_ineq = Corr00 + Corr01 + Corr10 - Corr11;
 
 % Get SDP vars and matrix
-[a, b] = matrix.yalmipVars();
-M = matrix.yalmipComplexMatrix(a, b);
+a = matrix.yalmipVars();
+M = matrix.yalmipRealMatrix(a);
 
 % Constraints (normalization, positivity)
 constraints = [a(1) == 1];
@@ -43,7 +43,7 @@ objective = -CHSH_ineq.yalmip(a);
 optimize(constraints, objective); 
 
 % Get solutions
-solved_setting = SolvedScenario(chsh, matrix, a, b);
+solved_setting = SolvedScenario(chsh, matrix, a);
 solved_matrix = solved_setting.SolvedMomentMatrix;
 disp(struct2table(solved_matrix.SymbolTable));
 chsh_max_val = solved_setting.Value(CHSH_ineq)
