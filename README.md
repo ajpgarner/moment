@@ -53,6 +53,20 @@ CMAKE 3.22
 GCC 12.1.0 \
 CMAKE 3.22
 
+## Installation
+
+### GNU/Linux
+
+To download and compile the library use the following commands:
+
+<pre>git clone https://github.com/ajpgarner/moment.git
+cd moment
+git submodule init
+git submodule update
+cmake .
+cmake --build .</pre>
+
+To use it on MATLAB add the following folder to its path: `moment/matlab`
 
 
 ## List of classes, functions and folders
