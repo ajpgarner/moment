@@ -12,7 +12,7 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace Moment {
+namespace Moment::Locality {
    Party::Party(party_name_t id, std::string the_name, std::vector<Measurement> &&mmt_in)
         : party_id{id}, Measurements{*this}, name{std::move(the_name)}, measurements{std::move(mmt_in)} {
 

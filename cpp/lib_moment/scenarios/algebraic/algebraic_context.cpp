@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <sstream>
 
-namespace Moment {
+namespace Moment::Algebraic {
 
     AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian, const bool commute,
                                        const std::vector<MonomialSubstitutionRule>& initial_rules)

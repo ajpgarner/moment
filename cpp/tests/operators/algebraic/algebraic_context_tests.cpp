@@ -13,6 +13,7 @@
 #include "scenarios/algebraic/algebraic_matrix_system.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Algebraic;
 
     TEST(Operators_Algebraic_AlgebraicContext, Empty) {
         AlgebraicContext ac{0};

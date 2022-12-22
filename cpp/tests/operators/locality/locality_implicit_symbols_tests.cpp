@@ -14,6 +14,7 @@
 #include "../implicit_symbol_test_helpers.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Locality;
 
     TEST(Operators_Locality_ImplicitSymbols, Empty) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>()};

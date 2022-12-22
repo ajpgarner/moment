@@ -61,8 +61,8 @@ namespace Moment::mex {
             matlab::engine::MATLABEngine &engine;
             matlab::data::ArrayFactory factory;
 
-            const LocalityImplicitSymbols &implicitSymbols;
-            const LocalityContext &context;
+            const Locality::LocalityImplicitSymbols &implicitSymbols;
+            const Locality::LocalityContext &context;
             const size_t implicit_table_length;
             const size_t real_symbol_count;
         public:
@@ -73,7 +73,7 @@ namespace Moment::mex {
 
         public:
             LocalityImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
-                                        const LocalityImplicitSymbols &impliedSymbols)
+                                        const Locality::LocalityImplicitSymbols &impliedSymbols)
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{impliedSymbols.context},
                       implicit_table_length{implicitSymbols.Data().size() + 1},
                       real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()},
@@ -89,9 +89,9 @@ namespace Moment::mex {
             }
 
             LocalityImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
-                                        const LocalityImplicitSymbols &impliedSymbols,
+                                        const Locality::LocalityImplicitSymbols &impliedSymbols,
                                         const std::span<const PMODefinition> symbols,
-                                        const std::span<const PMIndex> indices)
+                                        const std::span<const Locality::PMIndex> indices)
 
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{impliedSymbols.context},
                       implicit_table_length{symbols.size()},
@@ -103,7 +103,7 @@ namespace Moment::mex {
             }
 
             void operator()(const std::span<const PMODefinition> symbols,
-                            const std::span<const PMIndex> indices) {
+                            const std::span<const Locality::PMIndex> indices) {
 
                 const size_t index_depth = indices.size();
                 // Special case {} = ID
@@ -117,7 +117,7 @@ namespace Moment::mex {
                 }
 
                 // First, create PMx indices
-                std::vector<PMOIndex> indicesWithOutcomes;
+                std::vector<Locality::PMOIndex> indicesWithOutcomes;
                 std::vector<uint64_t> entryIndices(index_depth * 3, 0);
 
                 for (size_t i = 0; i < index_depth; ++i) {
@@ -169,15 +169,15 @@ namespace Moment::mex {
             matlab::engine::MATLABEngine &engine;
             matlab::data::ArrayFactory factory;
 
-            const InflationImplicitSymbols &implicitSymbols;
-            const InflationContext &context;
-            const CanonicalObservables &canonicalObservables;
+            const Inflation::InflationImplicitSymbols &implicitSymbols;
+            const Inflation::InflationContext &context;
+            const Inflation::CanonicalObservables &canonicalObservables;
             const size_t real_symbol_count;
 
 
         public:
             InflationImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
-                                         const InflationImplicitSymbols &impliedSymbols)
+                                         const Inflation::InflationImplicitSymbols &impliedSymbols)
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{impliedSymbols.context},
                       canonicalObservables{impliedSymbols.canonicalObservables},
                       real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()} {
@@ -206,7 +206,7 @@ namespace Moment::mex {
                 return output;
             }
 
-            matlab::data::StructArray one_observable(std::span<const OVIndex> obsVarIndices) {
+            matlab::data::StructArray one_observable(std::span<const Inflation::OVIndex> obsVarIndices) {
                 const auto &observable = canonicalObservables.canonical(obsVarIndices);
 
                 auto output = init_array(observable.outcomes);
@@ -221,7 +221,7 @@ namespace Moment::mex {
                 return output;
             }
 
-            matlab::data::StructArray one_outcome(std::span<const OVOIndex> obsVarIndices) {
+            matlab::data::StructArray one_outcome(std::span<const Inflation::OVOIndex> obsVarIndices) {
                 const auto &observable = canonicalObservables.canonical(obsVarIndices);
 
                 auto output = init_array(1);
@@ -242,7 +242,7 @@ namespace Moment::mex {
             }
 
             void write_row(matlab::data::StructArray &output, const size_t output_index,
-                           const CanonicalObservable& canonical, const size_t outcome_index,
+                           const Inflation::CanonicalObservable& canonical, const size_t outcome_index,
                            const PMODefinition& entry) {
                 auto full_indices = context.unflatten_outcome_index(canonical.indices,
                                                                     static_cast<oper_name_t>(outcome_index));
@@ -274,29 +274,29 @@ namespace Moment::mex {
     }
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                     const InflationImplicitSymbols &impliedSymbols) {
+                                                     const Inflation::InflationImplicitSymbols &impliedSymbols) {
         InflationImpliedSymbolWriter iisw{engine, impliedSymbols};
         return iisw.whole_table();
     }
 
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                     const InflationImplicitSymbols &impliedSymbols,
-                                                     std::span<const OVIndex> obsVarIndices) {
+                                                     const Inflation::InflationImplicitSymbols &impliedSymbols,
+                                                     std::span<const Inflation::OVIndex> obsVarIndices) {
         InflationImpliedSymbolWriter iisw{engine, impliedSymbols};
         return iisw.one_observable(obsVarIndices);
     }
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                     const InflationImplicitSymbols &impliedSymbols,
-                                                     std::span<const OVOIndex> obsVarIndices) {
+                                                     const Inflation::InflationImplicitSymbols &impliedSymbols,
+                                                     std::span<const Inflation::OVOIndex> obsVarIndices) {
         InflationImpliedSymbolWriter iisw{engine, impliedSymbols};
         return iisw.one_outcome(obsVarIndices);
     }
 
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                               const LocalityImplicitSymbols& impliedSymbols) {
+                                               const Locality::LocalityImplicitSymbols& impliedSymbols) {
         LocalityImpliedSymbolWriter isw{engine, impliedSymbols};
         impliedSymbols.visit(isw);
 
@@ -305,8 +305,8 @@ namespace Moment::mex {
 
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                     const LocalityImplicitSymbols &impliedSymbols,
-                                                     const std::span<const PMIndex> measurementIndex) {
+                                                     const Locality::LocalityImplicitSymbols &impliedSymbols,
+                                                     const std::span<const Locality::PMIndex> measurementIndex) {
         std::vector<size_t> globalMmtIndex;
         globalMmtIndex.reserve(measurementIndex.size());
         for (const auto& pmi : measurementIndex) {
@@ -320,8 +320,8 @@ namespace Moment::mex {
     }
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                     const LocalityImplicitSymbols &impliedSymbols,
-                                                     const std::span<const PMOIndex> outcomeIndex) {
+                                                     const Locality::LocalityImplicitSymbols &impliedSymbols,
+                                                     const std::span<const Locality::PMOIndex> outcomeIndex) {
         matlab::data::ArrayFactory factory;
 
         const auto& context = impliedSymbols.context;

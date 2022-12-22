@@ -9,8 +9,12 @@
 #include "scenarios/locality/measurement.h"
 
 namespace Moment {
-    class LocalityMatrixSystem;
-    class InflationMatrixSystem;
+    namespace Locality {
+        class LocalityMatrixSystem;
+    }
+    namespace Inflation {
+        class InflationMatrixSystem;
+    }
 }
 
 namespace Moment::mex::functions {
@@ -37,16 +41,16 @@ namespace Moment::mex::functions {
         std::vector<RawTriplet> requested_indices{};
 
         /** Interpret requested indices as PM index */
-        [[nodiscard]] std::vector<PMIndex> requested_measurement() const;
+        [[nodiscard]] std::vector<Locality::PMIndex> requested_measurement() const;
 
         /** Interpret requested indices as PMO index */
-        [[nodiscard]] std::vector<PMOIndex> requested_outcome() const;
+        [[nodiscard]] std::vector<Locality::PMOIndex> requested_outcome() const;
 
         /** Interpret requested indices as OV index */
-        [[nodiscard]] std::vector<OVIndex> requested_observables() const;
+        [[nodiscard]] std::vector<Inflation::OVIndex> requested_observables() const;
 
         /** Interpret requested indices as OVO index */
-        [[nodiscard]] std::vector<OVOIndex> requested_ovo() const;
+        [[nodiscard]] std::vector<Inflation::OVOIndex> requested_ovo() const;
 
     public:
         explicit ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
@@ -63,11 +67,11 @@ namespace Moment::mex::functions {
     private:
         void export_locality(IOArgumentRange output,
                              ProbabilityTableParams& input,
-                             const LocalityMatrixSystem& lms);
+                             const Locality::LocalityMatrixSystem& lms);
 
         void export_inflation(IOArgumentRange output,
                               ProbabilityTableParams& input,
-                              const InflationMatrixSystem& ims);
+                              const Inflation::InflationMatrixSystem& ims);
 
     };
 

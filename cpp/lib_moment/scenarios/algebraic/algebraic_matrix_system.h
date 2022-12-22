@@ -6,7 +6,7 @@
 #pragma once
 #include "matrix_system.h"
 
-namespace Moment {
+namespace Moment::Algebraic {
     class AlgebraicContext;
 
     class AlgebraicMatrixSystem : public MatrixSystem {

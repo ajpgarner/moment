@@ -17,7 +17,7 @@
 #include <span>
 #include <vector>
 
-namespace Moment {
+namespace Moment::Inflation {
 
     class InflationContext;
 

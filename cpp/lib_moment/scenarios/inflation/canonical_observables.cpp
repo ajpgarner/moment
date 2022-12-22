@@ -13,7 +13,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace Moment {
+namespace Moment::Inflation {
 
     CanonicalObservables::CanonicalObservables(const InflationContext &context)
         : context{context}, max_level{0} {

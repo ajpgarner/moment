@@ -9,7 +9,7 @@
 
 #include <set>
 
-namespace Moment {
+namespace Moment::Inflation {
 
     class Source  {
     public:

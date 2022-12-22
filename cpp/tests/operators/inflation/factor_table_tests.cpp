@@ -14,6 +14,8 @@
 #include "scenarios/inflation/inflation_matrix_system.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Inflation;
+
     TEST(Operators_Inflation_FactorTable, Empty) {
         std::unique_ptr<InflationContext> icPtr
             = std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {{0, 1}}}, 2);

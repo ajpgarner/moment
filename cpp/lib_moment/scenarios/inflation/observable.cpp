@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-namespace Moment {
+namespace Moment::Inflation {
     size_t Observable::count_copies(size_t inflation_level) const {
         return this->singleton ? 1 : ipow(inflation_level, this->source_count);
     }

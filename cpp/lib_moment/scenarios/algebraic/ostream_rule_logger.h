@@ -9,7 +9,7 @@
 
 #include <iosfwd>
 
-namespace Moment {
+namespace Moment::Algebraic {
 
     class OStreamRuleLogger : public RuleLogger {
     private:

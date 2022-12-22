@@ -7,8 +7,11 @@
 #include "matrix_system.h"
 
 namespace Moment {
-    class LocalityContext;
     class ExplicitSymbolIndex;
+}
+
+namespace Moment::Locality {
+    class LocalityContext;
     class LocalityImplicitSymbols;
     class CollinsGisin;
 

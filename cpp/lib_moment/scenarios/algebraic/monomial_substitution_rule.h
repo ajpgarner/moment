@@ -17,7 +17,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace Moment {
+namespace Moment::Algebraic {
 
     namespace errors {
         class bad_hint : public std::logic_error {

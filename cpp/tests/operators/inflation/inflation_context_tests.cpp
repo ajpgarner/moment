@@ -9,6 +9,8 @@
 #include "scenarios/inflation/inflation_context.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Inflation;
+
     namespace {
         void expect_factorizes(const InflationContext& ic, std::vector<oper_name_t>&& sequence) {
             OperatorSequence seq{std::move(sequence), ic};

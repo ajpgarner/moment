@@ -11,7 +11,7 @@
 #include <iostream>
 #include <iterator>
 
-namespace Moment {
+namespace Moment::Algebraic {
     namespace errors {
         bad_hint::bad_hint()
             : std::logic_error("Hint supplied does not match rule.") {

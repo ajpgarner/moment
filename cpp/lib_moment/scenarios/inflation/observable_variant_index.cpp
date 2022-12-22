@@ -10,7 +10,7 @@
 #include <iostream>
 
 
-namespace Moment {
+namespace Moment::Inflation {
 
     std::ostream& operator<<(std::ostream& os, const OVIndex& index) {
         AlphabeticNamer obsNamer{true};

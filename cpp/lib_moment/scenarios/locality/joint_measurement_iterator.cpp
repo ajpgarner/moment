@@ -8,7 +8,7 @@
 
 #include <stdexcept>
 
-namespace Moment {
+namespace Moment::Locality {
     namespace {
         std::vector<size_t> getMmtOpCounts(const JointMeasurementIterator &multiMmtIterator) {
             std::vector<size_t> output;

@@ -11,7 +11,7 @@
 
 #include <sstream>
 
-namespace Moment {
+namespace Moment::Inflation {
 
     std::string FactorTable::FactorEntry::sequence_string() const {
 

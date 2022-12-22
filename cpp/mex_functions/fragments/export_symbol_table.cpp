@@ -46,9 +46,9 @@ namespace Moment::mex {
 
         // Ascertain system properties
         const bool non_herm = context.can_be_nonhermitian();
-        const auto* inflationContextPtr = dynamic_cast<const InflationMatrixSystem*>(&system);
+        const auto* inflationContextPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
         const bool include_factors = (nullptr != inflationContextPtr);
-        const FactorTable* factorTablePtr = nullptr;
+        const Inflation::FactorTable* factorTablePtr = nullptr;
         if (include_factors) {
             factorTablePtr = &inflationContextPtr->Factors();
         }
@@ -112,9 +112,9 @@ namespace Moment::mex {
 
         // Ascertain table field names
         const bool non_herm = context.can_be_nonhermitian();
-        const auto* inflationContextPtr = dynamic_cast<const InflationMatrixSystem*>(&system);
+        const auto* inflationContextPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
         const bool include_factors = (nullptr != inflationContextPtr);
-        const FactorTable* factorTablePtr = nullptr;
+        const Inflation::FactorTable* factorTablePtr = nullptr;
         if (include_factors) {
             factorTablePtr = &inflationContextPtr->Factors();
         }

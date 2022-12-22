@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-namespace Moment {
+namespace Moment::Inflation {
 
     namespace errors {
         class bad_observable : public std::logic_error {

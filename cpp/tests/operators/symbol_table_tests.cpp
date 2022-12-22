@@ -103,6 +103,8 @@ namespace Moment::Tests {
     };
 
     TEST(Operators_SymbolTable, ToSymbol_2Party1Opers) {
+        using namespace Moment::Locality;
+
         // Two parties, each with one operator
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))};
         auto& context = system.localityContext;

@@ -10,7 +10,7 @@
 #include <set>
 #include <vector>
 
-namespace Moment {
+namespace Moment::Inflation {
     class Observable  {
     public:
         const oper_name_t id;

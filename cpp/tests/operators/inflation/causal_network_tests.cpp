@@ -9,6 +9,7 @@
 #include "scenarios/inflation/causal_network.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Inflation;
 
     TEST(Operators_Inflation_CausalNetwork, Empty) {
         CausalNetwork ic{{}, {}};

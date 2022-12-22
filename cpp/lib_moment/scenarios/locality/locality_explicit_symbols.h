@@ -7,7 +7,7 @@
 
 #include "scenarios/explicit_symbols.h"
 
-namespace Moment {
+namespace Moment::Locality {
 
     class LocalityMatrixSystem;
 

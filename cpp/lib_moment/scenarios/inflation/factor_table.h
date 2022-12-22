@@ -14,6 +14,9 @@
 
 namespace Moment {
     class SymbolTable;
+}
+
+namespace Moment::Inflation {
     class InflationContext;
 
     class FactorTable {

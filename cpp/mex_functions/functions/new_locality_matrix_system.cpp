@@ -19,9 +19,11 @@
 
 namespace Moment::mex::functions {
     namespace {
-        std::unique_ptr<LocalityContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
+        std::unique_ptr<Locality::LocalityContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                               const NewLocalityMatrixSystemParams &input) {
-            return std::make_unique<LocalityContext>(Party::MakeList(input.mmts_per_party, input.outcomes_per_mmt));
+            return std::make_unique<Locality::LocalityContext>(
+                    Locality::Party::MakeList(input.mmts_per_party, input.outcomes_per_mmt)
+            );
         }
     }
 
@@ -175,6 +177,8 @@ namespace Moment::mex::functions {
 
 
     void NewLocalityMatrixSystem::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
+        using namespace Locality;
+
         auto& input = dynamic_cast<NewLocalityMatrixSystemParams&>(*inputPtr);
 
         // Input to context:

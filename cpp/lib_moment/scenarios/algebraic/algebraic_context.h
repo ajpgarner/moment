@@ -17,7 +17,7 @@
 #include <set>
 #include <vector>
 
-namespace Moment {
+namespace Moment::Algebraic {
 
     namespace errors {
         class bad_substitution : public std::logic_error {

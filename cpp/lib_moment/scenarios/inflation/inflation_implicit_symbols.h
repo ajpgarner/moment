@@ -13,7 +13,7 @@
 
 #include <vector>
 
-namespace Moment {
+namespace Moment::Inflation {
 
     class InflationMatrixSystem;
     class InflationExplicitSymbolIndex;

@@ -9,7 +9,7 @@
 #include "../../symbolic/symbol_set.h"
 
 
-namespace Moment {
+namespace Moment::Algebraic {
 
 
     AlgebraicMatrixSystem::AlgebraicMatrixSystem(std::unique_ptr<class AlgebraicContext> contextIn)

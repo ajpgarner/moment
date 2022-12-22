@@ -20,7 +20,7 @@
 #include <span>
 #include <vector>
 
-namespace Moment {
+namespace Moment::Inflation {
 
 
     class InflationContext : public Context {
@@ -98,7 +98,7 @@ namespace Moment {
                 /** True, if no overlapping sources, and not the same variant as other. */
                 [[nodiscard]] bool independent(const Variant& other) const noexcept;
 
-            friend class ::Moment::InflationContext::ICObservable;
+            friend class ::Moment::Inflation::InflationContext::ICObservable;
             private:
                 Variant(oper_name_t operator_offset,
                         oper_name_t index,

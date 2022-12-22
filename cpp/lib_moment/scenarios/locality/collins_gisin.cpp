@@ -12,7 +12,7 @@
 
 #include "utilities/multi_dimensional_index_iterator.h"
 
-namespace Moment {
+namespace Moment::Locality {
     namespace {
         [[nodiscard]] constexpr std::vector<size_t> make_dimensions(const std::vector<size_t>& oc) {
             std::vector<size_t> output;

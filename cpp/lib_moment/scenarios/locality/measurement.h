@@ -9,8 +9,7 @@
 #include <cassert>
 #include <string>
 
-namespace Moment {
-
+namespace Moment::Locality {
 
     struct PMIndex {
     public:

@@ -156,6 +156,7 @@ namespace Moment::Tests {
 
 
     TEST(Operators_OperatorSequence, WithContext_MutexZero) {
+        using namespace Moment::Locality;
         LocalityContext collection{Party::MakeList(1, 1, 4)};
 
         ASSERT_EQ(collection.Parties.size(), 1);

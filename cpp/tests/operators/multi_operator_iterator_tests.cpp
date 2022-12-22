@@ -11,6 +11,7 @@
 #include "scenarios/locality/locality_context.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Locality;
 
     TEST(Operators_MultiOperatorIterator, Construct_NoLength) {
         LocalityContext collection{Party::MakeList(2, 2, 2)};

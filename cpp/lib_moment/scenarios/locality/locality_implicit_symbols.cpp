@@ -16,7 +16,7 @@
 
 #include <algorithm>
 
-namespace Moment {
+namespace Moment::Locality {
 
     LocalityImplicitSymbols::LocalityImplicitSymbols(const LocalityMatrixSystem &ms)
         : ImplicitSymbols{ms.Symbols(), ms.ExplicitSymbolTable(), ms.MaxRealSequenceLength()},

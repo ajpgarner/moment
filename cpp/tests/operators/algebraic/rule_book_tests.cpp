@@ -10,6 +10,7 @@
 #include "scenarios/algebraic/rule_book.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Algebraic;
 
     TEST(Operators_Algebraic_RuleBook, Empty) {
         ShortlexHasher slh{0};

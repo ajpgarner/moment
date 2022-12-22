@@ -12,7 +12,7 @@
 #include "scenarios/outcome_index_iterator.h"
 #include "utilities/combinations.h"
 
-namespace Moment {
+namespace Moment::Inflation {
     InflationImplicitSymbols::InflationImplicitSymbols(const InflationMatrixSystem& ms)
         : ImplicitSymbols{ms.Symbols(), ms.ExplicitSymbolTable(), ms.MaxRealSequenceLength()},
           context{ms.InflationContext()}, canonicalObservables{ms.CanonicalObservables()},
@@ -31,7 +31,7 @@ namespace Moment {
 
     std::span<const PMODefinition> InflationImplicitSymbols::get(const std::span<const size_t> mmtIndices) const {
         if (mmtIndices.size() > this->MaxSequenceLength) {
-            throw errors::bad_implicit_symbol("Cannot look up sequences longer than the max sequence length.");
+            throw Moment::errors::bad_implicit_symbol("Cannot look up sequences longer than the max sequence length.");
         }
         const auto& entry = this->canonicalObservables.canonical(mmtIndices);
         const ptrdiff_t first = this->indices[entry.index];
@@ -41,7 +41,7 @@ namespace Moment {
 
     std::span<const PMODefinition> InflationImplicitSymbols::get(const std::span<const OVIndex> mmtIndices) const {
         if (mmtIndices.size() > this->MaxSequenceLength) {
-            throw errors::bad_implicit_symbol("Cannot look up sequences longer than the max sequence length.");
+            throw Moment::errors::bad_implicit_symbol("Cannot look up sequences longer than the max sequence length.");
         }
         const auto& entry = this->canonicalObservables.canonical(mmtIndices);
         const ptrdiff_t first = this->indices[entry.index];
@@ -86,7 +86,7 @@ namespace Moment {
         // Get explicit outcomes
         auto mmtSymb = this->iesi.get(canonicalObservable.flattened_indices);
         if (mmtSymb.size() != expected_op_count) {
-            throw errors::bad_implicit_symbol("Query to explicit symbol index returned incorrect number of outcomes.");
+            throw Moment::errors::bad_implicit_symbol("Query to explicit symbol index returned incorrect number of outcomes.");
         }
 
         // Explicit outcomes:
@@ -95,7 +95,7 @@ namespace Moment {
             // Read explicit symbol
             const auto symbol_id = mmtSymb[outcome].symbol_id;
             this->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
-            finalOutcome.push_back({symbol_id, -1.0});
+            finalOutcome.emplace_back(symbol_id, -1.0);
         }
 
         // Add final measurement outcome, which is linear sum of remaining outcomes

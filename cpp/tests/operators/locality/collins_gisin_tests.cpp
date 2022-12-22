@@ -12,6 +12,8 @@
 #include "scenarios/locality/collins_gisin.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Locality;
+
     TEST(Operators_Locality_CollinsGisin, CHSH) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
         const auto& context = system.localityContext;
@@ -120,16 +122,16 @@ namespace Moment::Tests {
         const auto& cgi = system.CollinsGisin();
 
         std::vector<size_t> biA = {1};
-        EXPECT_THROW(cgi.validate_index(biA), errors::BadCGError);
+        EXPECT_THROW(cgi.validate_index(biA), Moment::Locality::errors::BadCGError);
 
         std::vector<size_t> biB = {1, 1, 1};
-        EXPECT_THROW(cgi.validate_index(biA), errors::BadCGError);
+        EXPECT_THROW(cgi.validate_index(biA), Moment::Locality::errors::BadCGError);
 
         std::vector<size_t> biC = {3, 1};
-        EXPECT_THROW(cgi.validate_index(biA), errors::BadCGError);
+        EXPECT_THROW(cgi.validate_index(biA), Moment::Locality::errors::BadCGError);
 
         std::vector<size_t> biD = {1, 3};
-        EXPECT_THROW(cgi.validate_index(biA), errors::BadCGError);
+        EXPECT_THROW(cgi.validate_index(biA), Moment::Locality::errors::BadCGError);
     }
 
 }

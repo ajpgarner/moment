@@ -10,6 +10,9 @@
 #include "scenarios/inflation/canonical_observables.h"
 
 namespace Moment::Tests {
+
+    using namespace Moment::Inflation;
+
       TEST(Operators_Inflation_CanonicalObservables, Hash) {
         InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2)};
         const auto& ic = ims.InflationContext();

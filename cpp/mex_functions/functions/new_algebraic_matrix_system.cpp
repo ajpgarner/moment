@@ -17,9 +17,9 @@ namespace Moment::mex::functions {
 
     namespace {
 
-        std::unique_ptr<AlgebraicContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
+        std::unique_ptr<Algebraic::AlgebraicContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                        NewAlgebraicMatrixSystemParams& input) {
-            std::vector<MonomialSubstitutionRule> rules;
+            std::vector<Algebraic::MonomialSubstitutionRule> rules;
             ShortlexHasher hasher{input.total_operators};
             rules.reserve(input.rules.size());
             for (auto& ir : input.rules) {
@@ -27,7 +27,7 @@ namespace Moment::mex::functions {
                                    HashedSequence{std::move(ir.RHS), hasher}, ir.negated);
             }
 
-            return std::make_unique<AlgebraicContext>(input.total_operators,
+            return std::make_unique<Algebraic::AlgebraicContext>(input.total_operators,
                                                       input.hermitian_operators,
                                                       input.commutative,
                                                       rules);
@@ -136,6 +136,8 @@ namespace Moment::mex::functions {
     }
 
     void NewAlgebraicMatrixSystem::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
+        using namespace Algebraic;
+
         auto& input = dynamic_cast<NewAlgebraicMatrixSystemParams&>(*inputPtr);
 
         // Input to context:

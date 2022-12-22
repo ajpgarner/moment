@@ -14,7 +14,7 @@
 #include "utilities/multi_dimensional_index_iterator.h"
 
 
-namespace Moment {
+namespace Moment::Inflation {
 
     namespace {
         std::vector<size_t> makeOpCounts(const InflationContext& context) {
@@ -39,11 +39,11 @@ namespace Moment {
 
         // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.
         if (symbols.size() < 2) {
-            throw errors::cg_form_error("Zero and One should be defined.");
+            throw Moment::errors::bad_explicit_symbol{"Zero and One should be defined."};
         }
         const auto &oneSeq = symbols[1];
         if (!oneSeq.sequence().empty() || oneSeq.sequence().zero() || (oneSeq.Id() != 1)) {
-            throw errors::cg_form_error("Identity symbol was improperly defined.");
+            throw Moment::errors::bad_explicit_symbol{"Identity symbol was improperly defined."};
         }
 
         // Manually add ID
@@ -89,7 +89,7 @@ namespace Moment {
                 // Find associated symbol with operator sequence
                 auto symbol_loc = symbols.where(opSeq);
                 if (symbol_loc == nullptr) {
-                    throw errors::cg_form_error{"Could not find expected symbol in MomentMatrix."};
+                    throw Moment::errors::bad_explicit_symbol{"Could not find expected symbol in MomentMatrix."};
                 }
                 this->data.emplace_back(ExplicitSymbolEntry{symbol_loc->Id(), symbol_loc->basis_key().first});
 

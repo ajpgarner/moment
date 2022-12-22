@@ -15,6 +15,7 @@
 #include "../implicit_symbol_test_helpers.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Inflation;
 
     TEST(Operators_Inflation_ImplicitSymbols, Empty) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{}, {}}, 1);

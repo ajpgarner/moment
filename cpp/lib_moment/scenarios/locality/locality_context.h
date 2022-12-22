@@ -8,7 +8,7 @@
 #include "scenarios/context.h"
 #include "party.h"
 
-namespace Moment {
+namespace Moment::Locality {
 
     class LocalityContext : public Context {
     public:

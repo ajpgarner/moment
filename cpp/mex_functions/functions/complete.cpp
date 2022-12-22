@@ -17,14 +17,13 @@ namespace Moment::mex::functions {
 
     namespace {
 
-        RuleBook make_rulebook(matlab::engine::MATLABEngine &matlabEngine,
-                                                        ShortlexHasher& hasher,
-                                                        CompleteParams& input) {
-            std::vector<MonomialSubstitutionRule> rules;
+        Algebraic::RuleBook make_rulebook(matlab::engine::MATLABEngine &matlabEngine,
+                                          ShortlexHasher& hasher, CompleteParams& input) {
+            std::vector<Algebraic::MonomialSubstitutionRule> rules;
             const size_t max_strlen = hasher.longest_hashable_string();
 
             if (input.commutative) {
-                rules = RuleBook::commutator_rules(hasher, input.max_operators);
+                rules = Algebraic::RuleBook::commutator_rules(hasher, input.max_operators);
             }
 
             rules.reserve(rules.size() + input.rules.size());
@@ -32,7 +31,7 @@ namespace Moment::mex::functions {
                 rules.emplace_back(HashedSequence{std::move(ir.LHS), hasher},
                                    HashedSequence{std::move(ir.RHS), hasher}, ir.negated);
             }
-            return RuleBook{hasher, rules, input.hermitian_operators};
+            return Algebraic::RuleBook{hasher, rules, input.hermitian_operators};
         }
     }
 
@@ -128,14 +127,14 @@ namespace Moment::mex::functions {
 
         // Output context in verbose mode
         std::stringstream ss;
-        std::unique_ptr<OStreamRuleLogger> logger;
+        std::unique_ptr<Algebraic::OStreamRuleLogger> logger;
         if (this->verbose) {
-            logger = std::make_unique<OStreamRuleLogger>(ss);
+            logger = std::make_unique<Algebraic::OStreamRuleLogger>(ss);
         }
 
         // Set up hasher & rules
         ShortlexHasher hasher{input.max_operators};
-        RuleBook rules = make_rulebook(this->matlabEngine, hasher, input);
+        auto rules = make_rulebook(this->matlabEngine, hasher, input);
 
         // Print input
         if (this->debug) {

@@ -240,6 +240,8 @@ namespace Moment::Tests {
     };
 
     TEST(Operators_MomentMatrix, OpSeq_2Party1Opers) {
+        using namespace Moment::Locality;
+
         // Two parties, each with one operator
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))};
         auto& context = system.localityContext;
@@ -290,6 +292,8 @@ namespace Moment::Tests {
 
 
     TEST(Operators_MomentMatrix, OpSeq_223) {
+        using namespace Moment::Locality;
+
          // Two party, two mmts, three outcomes.
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 3))};
         auto& context = system.localityContext;
@@ -438,6 +442,8 @@ namespace Moment::Tests {
     }
 
     TEST(Operators_MomentMatrix, Unique_2Party1Opers) {
+        using namespace Moment::Locality;
+
         // Two parties, each with one operator
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))};
         auto& context = system.localityContext;
@@ -634,6 +640,8 @@ namespace Moment::Tests {
     };
 
     TEST(Operators_MomentMatrix, Symbol_2Party1Opers) {
+        using namespace Moment::Locality;
+
         // Two parties, each with one operator
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))}; // Two party, one operator each
         auto& context = system.Context();

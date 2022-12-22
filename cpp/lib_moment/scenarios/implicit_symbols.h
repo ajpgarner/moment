@@ -21,7 +21,6 @@
 namespace Moment {
     class SymbolTable;
     class ExplicitSymbolIndex;
-    class JointMeasurementIterator;
 
     namespace errors {
         class bad_implicit_symbol : std::logic_error {

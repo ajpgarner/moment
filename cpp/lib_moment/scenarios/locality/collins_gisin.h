@@ -14,6 +14,9 @@
 
 namespace Moment {
     class MatrixSystem;
+}
+
+namespace Moment::Locality {
     class LocalityContext;
 
     namespace errors {

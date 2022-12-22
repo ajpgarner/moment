@@ -10,7 +10,7 @@
 
 #include <sstream>
 
-namespace Moment {
+namespace Moment::Inflation {
     CausalNetwork::CausalNetwork(const std::vector<size_t> &observable_init_list,
                                  std::vector<std::set<oper_name_t>> &&source_init_list)
              : implicit_source_index{source_init_list.size()} {

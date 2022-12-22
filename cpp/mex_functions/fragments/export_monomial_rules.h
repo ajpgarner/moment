@@ -7,10 +7,10 @@
 
 #include "MatlabDataArray.hpp"
 
-namespace Moment {
+namespace Moment::Algebraic {
     class RuleBook;
 }
 
 namespace Moment::mex {
-    matlab::data::CellArray export_monomial_rules(const RuleBook& rules, bool matlab_indices);
+    matlab::data::CellArray export_monomial_rules(const Algebraic::RuleBook& rules, bool matlab_indices);
 }

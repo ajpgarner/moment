@@ -5,6 +5,6 @@
  */
 #include "source.h"
 
-namespace Moment {
+namespace Moment::Inflation {
 
 }

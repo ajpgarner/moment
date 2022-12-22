@@ -17,14 +17,11 @@
 namespace Moment {
 
     namespace errors {
-        class cg_form_error : std::logic_error {
+        class bad_explicit_symbol : std::logic_error {
         public:
-            explicit cg_form_error(const std::string& what) : std::logic_error(what) { }
+            explicit bad_explicit_symbol(const std::string& what) : std::logic_error(what) { }
         };
     }
-
-    class LocalityMatrixSystem;
-    class InflationMatrixSystem;
 
     /** Data record for CGI */
     struct ExplicitSymbolEntry {

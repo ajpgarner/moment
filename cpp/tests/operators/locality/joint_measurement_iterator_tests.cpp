@@ -11,6 +11,7 @@
 #include "scenarios/locality/joint_measurement_iterator.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Locality;
 
     TEST(Operators_Locality_JointMeasurementIterator, BasicIteration) {
         LocalityContext context{Party::MakeList(2, 2, 2)};

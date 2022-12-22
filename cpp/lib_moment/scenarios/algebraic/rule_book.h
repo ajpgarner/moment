@@ -13,7 +13,7 @@
 #include <map>
 #include <vector>
 
-namespace Moment {
+namespace Moment::Algebraic {
     class RuleBook;
 
     class RuleLogger {

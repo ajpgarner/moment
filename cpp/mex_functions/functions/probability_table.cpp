@@ -142,8 +142,8 @@ namespace Moment::mex::functions {
         this->requested_indices = DispatchVisitor(matlabEngine, this->inputs[1], IndexReaderVisitor{matlabEngine});
     }
 
-    std::vector<PMIndex> ProbabilityTableParams::requested_measurement() const {
-        std::vector<PMIndex> output{};
+    std::vector<Locality::PMIndex> ProbabilityTableParams::requested_measurement() const {
+        std::vector<Locality::PMIndex> output{};
         output.reserve(this->requested_indices.size());
         for (const auto& i : this->requested_indices) {
             output.emplace_back(i.first, i.second);
@@ -165,8 +165,8 @@ namespace Moment::mex::functions {
         return output;
     }
 
-    std::vector<PMOIndex> ProbabilityTableParams::requested_outcome() const {
-        std::vector<PMOIndex> output{};
+    std::vector<Locality::PMOIndex> ProbabilityTableParams::requested_outcome() const {
+        std::vector<Locality::PMOIndex> output{};
         output.reserve(this->requested_indices.size());
         for (const auto& i : this->requested_indices) {
             output.emplace_back(i.first, i.second, i.third);
@@ -188,8 +188,8 @@ namespace Moment::mex::functions {
         return output;
     }
 
-    std::vector<OVIndex> ProbabilityTableParams::requested_observables() const {
-        std::vector<OVIndex> output{};
+    std::vector<Inflation::OVIndex> ProbabilityTableParams::requested_observables() const {
+        std::vector<Inflation::OVIndex> output{};
         output.reserve(this->requested_indices.size());
         for (const auto& i : this->requested_indices) {
             output.emplace_back(i.first, i.second);
@@ -200,8 +200,8 @@ namespace Moment::mex::functions {
         return output;
     }
 
-    std::vector<OVOIndex> ProbabilityTableParams::requested_ovo() const {
-        std::vector<OVOIndex> output{};
+    std::vector<Inflation::OVOIndex> ProbabilityTableParams::requested_ovo() const {
+        std::vector<Inflation::OVOIndex> output{};
         output.reserve(this->requested_indices.size());
         for (const auto& i : this->requested_indices) {
             output.emplace_back(i.first, i.second, i.third);
@@ -236,14 +236,14 @@ namespace Moment::mex::functions {
         const MatrixSystem& system = *msPtr;
 
         // Attempt to read as locality system
-        const auto * lms = dynamic_cast<const LocalityMatrixSystem *>(&system);
+        const auto * lms = dynamic_cast<const Locality::LocalityMatrixSystem *>(&system);
         if (nullptr != lms) {
             export_locality(output, input, *lms);
             return;
         }
 
         // Attempt to read as inflation system
-        const auto * ims = dynamic_cast<const InflationMatrixSystem *>(&system);
+        const auto * ims = dynamic_cast<const Inflation::InflationMatrixSystem *>(&system);
         if (nullptr != ims) {
             export_inflation(output, input, *ims);
             return;
@@ -264,7 +264,9 @@ namespace Moment::mex::functions {
     }
 
     void ProbabilityTable::export_locality(IOArgumentRange output,
-                                          ProbabilityTableParams& input, const LocalityMatrixSystem& lms) {
+                                          ProbabilityTableParams& input, const Locality::LocalityMatrixSystem& lms) {
+
+        using namespace Locality;
 
         const LocalityContext& context = lms.localityContext;
 
@@ -335,7 +337,9 @@ namespace Moment::mex::functions {
     }
 
     void ProbabilityTable::export_inflation(IOArgumentRange output,
-                                            ProbabilityTableParams& input, const InflationMatrixSystem& ims) {
+                                            ProbabilityTableParams& input,
+                                            const Inflation::InflationMatrixSystem& ims) {
+        using namespace Inflation;
 
         const InflationContext& context = ims.InflationContext();
 

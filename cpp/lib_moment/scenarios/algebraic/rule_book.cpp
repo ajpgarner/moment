@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-namespace Moment {
+namespace Moment::Algebraic {
 
 
     RuleBook::RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules,

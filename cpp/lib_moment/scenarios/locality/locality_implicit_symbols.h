@@ -10,8 +10,8 @@
 #include "locality_context.h"
 #include "measurement.h"
 
-namespace Moment {
-
+namespace Moment::Locality {
+    class JointMeasurementIterator;
     class LocalityMatrixSystem;
 
     /**

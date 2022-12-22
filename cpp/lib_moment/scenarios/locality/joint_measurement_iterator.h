@@ -16,7 +16,7 @@
 #include <span>
 #include <vector>
 
-namespace Moment {
+namespace Moment::Locality {
 
     class LocalityContext;
     class JointMeasurementIterator;

@@ -9,7 +9,7 @@
 
 #include <iosfwd>
 
-namespace Moment {
+namespace Moment::Inflation {
     struct OVIndex {
     public:
         oper_name_t observable;

@@ -17,48 +17,58 @@
 namespace Moment {
     class Context;
     class MomentMatrix;
-    class LocalityImplicitSymbols;
-    class InflationImplicitSymbols;
-    class PMODefinition;
+    namespace Locality {
+        class LocalityImplicitSymbols;
+    }
+
+    namespace Inflation {
+        class InflationImplicitSymbols;
+    }
 
     namespace mex {
         /**
          * Export complete table of implied symbols from inflation scenario
          */
-        [[nodiscard]] matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                                       const InflationImplicitSymbols &impliedSymbols);
+        [[nodiscard]] matlab::data::StructArray
+        export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                               const Inflation::InflationImplicitSymbols &impliedSymbols);
 
         /**
          * Export one observable of implied symbols from inflation scenario
          */
-        [[nodiscard]] matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                                       const InflationImplicitSymbols &impliedSymbols,
-                                                                       std::span<const OVIndex> obsVarIndices);
+        [[nodiscard]] matlab::data::StructArray
+        export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                               const Inflation::InflationImplicitSymbols &impliedSymbols,
+                               std::span<const Inflation::OVIndex> obsVarIndices);
         /**
          * Export one outcome of implied symbols from inflation scenario
          */
-        [[nodiscard]] matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                                       const InflationImplicitSymbols &impliedSymbols,
-                                                                       std::span<const OVOIndex> obsVarIndices);
+        [[nodiscard]] matlab::data::StructArray
+        export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                               const Inflation::InflationImplicitSymbols &impliedSymbols,
+                               std::span<const Inflation::OVOIndex> obsVarIndices);
 
         /**
          * Export complete table of implied symbols from locality scenario
          */
-        [[nodiscard]] matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                                       const LocalityImplicitSymbols &impliedSymbols);
+        [[nodiscard]] matlab::data::StructArray
+        export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                               const Locality::LocalityImplicitSymbols &impliedSymbols);
 
         /**
          * Export one measurement of implied symbols from inflation scenario
          */
-        [[nodiscard]] matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                                       const LocalityImplicitSymbols &impliedSymbols,
-                                                                       std::span<const PMIndex> measurementIndex);
+        [[nodiscard]] matlab::data::StructArray
+        export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                               const Locality::LocalityImplicitSymbols &impliedSymbols,
+                               std::span<const Locality::PMIndex> measurementIndex);
 
         /**
          * Export one outcome of implied symbols from inflation scenario
          */
-        [[nodiscard]] matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                                                                       const LocalityImplicitSymbols &impliedSymbols,
-                                                                       std::span<const PMOIndex> outcomeIndex);
+        [[nodiscard]] matlab::data::StructArray
+        export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                               const Locality::LocalityImplicitSymbols &impliedSymbols,
+                               std::span<const Locality::PMOIndex> outcomeIndex);
     }
 }

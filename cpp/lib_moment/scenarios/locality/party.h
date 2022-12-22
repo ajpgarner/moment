@@ -17,7 +17,7 @@
 #include <vector>
 #include <iosfwd>
 
-namespace Moment {
+namespace Moment::Locality {
 
     class LocalityContext;
 

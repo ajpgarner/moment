@@ -12,6 +12,8 @@
 #include <optional>
 
 namespace Moment::Tests {
+    using namespace Moment::Locality;
+
     TEST(Operators_Locality_LocalityContext, Construct_Empty) {
         LocalityContext context{};
         ASSERT_EQ(context.Parties.size(), 0);

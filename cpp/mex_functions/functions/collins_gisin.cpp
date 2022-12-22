@@ -21,7 +21,7 @@ namespace Moment::mex::functions  {
 
         matlab::data::TypedArray<uint64_t>
         export_cgt_real_basis(matlab::engine::MATLABEngine &matlabEngine,
-                              const Moment::CollinsGisin& cgi) {
+                              const Moment::Locality::CollinsGisin& cgi) {
 
             matlab::data::ArrayFactory factory;
             matlab::data::ArrayDimensions dimensions{cgi.Dimensions};
@@ -43,7 +43,7 @@ namespace Moment::mex::functions  {
 
         matlab::data::TypedArray<uint64_t>
         export_cgt_symbol_ids(matlab::engine::MATLABEngine &matlabEngine,
-                              const Moment::CollinsGisin& cgi) {
+                              const Moment::Locality::CollinsGisin& cgi) {
 
 
             matlab::data::ArrayFactory factory;
@@ -65,7 +65,7 @@ namespace Moment::mex::functions  {
 
         matlab::data::TypedArray<matlab::data::MATLABString>
         export_cgt_sequences(matlab::engine::MATLABEngine &matlabEngine,
-                              const Moment::CollinsGisin& cgi) {
+                              const Moment::Locality::CollinsGisin& cgi) {
             matlab::data::ArrayFactory factory;
             matlab::data::ArrayDimensions dimensions{cgi.Dimensions};
             matlab::data::TypedArray<matlab::data::MATLABString> output
@@ -88,7 +88,7 @@ namespace Moment::mex::functions  {
         matlab::data::Array
         export_cg_tensor(matlab::engine::MATLABEngine &matlabEngine,
                         CollinsGisinParams::OutputType method,
-                        const Moment::CollinsGisin& cgi) {
+                        const Moment::Locality::CollinsGisin& cgi) {
 
             switch (method) {
                 default:
@@ -149,12 +149,12 @@ namespace Moment::mex::functions  {
 
         // Create (or retrieve) CG information
         try {
-            const auto * lsm = dynamic_cast<const LocalityMatrixSystem *>(&system);
+            const auto * lsm = dynamic_cast<const Locality::LocalityMatrixSystem *>(&system);
             if (nullptr == lsm) {
                 throw_error(this->matlabEngine, errors::bad_cast, "MatrixSystem was not a LocalityMatrixSystem.");
             }
 
-            const Moment::CollinsGisin &cg = lsm->CollinsGisin();
+            const auto &cg = lsm->CollinsGisin();
 
             // Export whole matrix?
             if (output.size() >= 1) {

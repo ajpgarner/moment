@@ -9,6 +9,7 @@
 #include "scenarios/algebraic/monomial_substitution_rule.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Algebraic;
 
     TEST(Operators_Algebraic_MonomialSubRule, Conjugate) {
 

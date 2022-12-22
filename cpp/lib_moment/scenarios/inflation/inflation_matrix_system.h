@@ -9,7 +9,7 @@
 
 #include "matrix_system.h"
 
-namespace Moment {
+namespace Moment::Inflation {
 
     class InflationContext;
     class FactorTable;

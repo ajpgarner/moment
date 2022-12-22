@@ -17,11 +17,12 @@
 
 namespace Moment::mex::functions {
     namespace {
-        std::unique_ptr<InflationContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
-                                                       NewInflationMatrixSystemParams &input) {
-            return std::make_unique<InflationContext>(
-                    CausalNetwork{input.outcomes_per_observable, std::move(input.source_init_list)}, input.inflation_level
-                    );
+        std::unique_ptr<Inflation::InflationContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
+                                                                  NewInflationMatrixSystemParams &input) {
+            return std::make_unique<Inflation::InflationContext>(
+                    Inflation::CausalNetwork{input.outcomes_per_observable, std::move(input.source_init_list)},
+                    input.inflation_level
+                );
         }
     }
 
@@ -176,6 +177,8 @@ namespace Moment::mex::functions {
 
     void NewInflationMatrixSystem::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
         auto& input = dynamic_cast<NewInflationMatrixSystemParams&>(*inputPtr);
+
+        using namespace Inflation;
 
         // Interpret context
         std::unique_ptr<InflationContext> contextPtr = make_context(this->matlabEngine, input);

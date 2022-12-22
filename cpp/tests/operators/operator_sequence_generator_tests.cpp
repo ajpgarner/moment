@@ -11,6 +11,7 @@
 #include "scenarios/locality/locality_context.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Locality;
 
     void compare_sequences(OperatorSequenceGenerator& osg, std::initializer_list<OperatorSequence> refSeq) {
         ASSERT_EQ(osg.size(), refSeq.size());

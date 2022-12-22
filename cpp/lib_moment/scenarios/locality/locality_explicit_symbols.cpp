@@ -13,7 +13,7 @@
 #include "symbolic/symbol_table.h"
 #include "utilities/combinations.h"
 
-namespace Moment {
+namespace Moment::Locality {
     namespace {
         std::vector<size_t> makeOpCounts(const LocalityContext &context) {
             std::vector<size_t> output;
@@ -42,11 +42,11 @@ namespace Moment {
 
         // ASSERTIONS: Zero and One should be defined as unique sequences in elements 0 and 1 accordingly.
         if (symbols.size() < 2) {
-            throw errors::cg_form_error("Zero and One should be defined.");
+            throw Moment::errors::bad_explicit_symbol{"Zero and One should be defined."};
         }
         const auto& oneSeq = symbols[1];
         if (!oneSeq.sequence().empty() || oneSeq.sequence().zero() || (oneSeq.Id() != 1)) {
-            throw errors::cg_form_error("Identity symbol was improperly defined.");
+            throw Moment::errors::bad_explicit_symbol{"Identity symbol was improperly defined."};
         }
 
         // Base level points to identity element symbol
@@ -99,7 +99,7 @@ namespace Moment {
                         // Find symbol for operator sequence
                         auto symbol_loc = symbols.where(*opIter);
                         if (symbol_loc == nullptr) {
-                            throw errors::cg_form_error{"Could not find expected symbol in MomentMatrix."};
+                            throw Moment::errors::bad_explicit_symbol{"Could not find expected symbol in MomentMatrix."};
                         }
                         this->data.emplace_back(ExplicitSymbolEntry{symbol_loc->Id(), symbol_loc->basis_key().first});
 

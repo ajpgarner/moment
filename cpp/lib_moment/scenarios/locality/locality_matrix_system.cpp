@@ -10,7 +10,7 @@
 #include "locality_implicit_symbols.h"
 #include "collins_gisin.h"
 
-namespace Moment {
+namespace Moment::Locality {
     LocalityMatrixSystem::~LocalityMatrixSystem() noexcept = default;
 
 
@@ -46,7 +46,7 @@ namespace Moment {
     const ExplicitSymbolIndex& LocalityMatrixSystem::ExplicitSymbolTable() const {
 
         if (!this->explicitSymbols) {
-            throw errors::missing_component("ExplicitSymbolTable has not yet been generated.");
+            throw Moment::errors::missing_component("ExplicitSymbolTable has not yet been generated.");
         }
         return *this->explicitSymbols;
     }
@@ -54,14 +54,14 @@ namespace Moment {
     const LocalityImplicitSymbols& LocalityMatrixSystem::ImplicitSymbolTable() const {
 
         if (!this->implicitSymbols) {
-            throw errors::missing_component("ImplicitSymbolTable has not yet been generated.");
+            throw Moment::errors::missing_component("ImplicitSymbolTable has not yet been generated.");
         }
         return *this->implicitSymbols;
     }
 
     const class CollinsGisin& LocalityMatrixSystem::CollinsGisin() const {
         if (!this->collinsGisin) {
-            throw errors::missing_component(std::string("Collins-Gisin tensor has not yet been generated. ")
+            throw Moment::errors::missing_component(std::string("Collins-Gisin tensor has not yet been generated. ")
                                             + "Perhaps a large enough moment matrix has not yet been created.");
         }
         return *this->collinsGisin;
@@ -78,7 +78,7 @@ namespace Moment {
 
             // Can/should we make C-G tensor?
             if (!this->collinsGisin && (newMRSL >= this->localityContext.Parties.size())) {
-                this->collinsGisin = std::make_unique<Moment::CollinsGisin>(*this);
+                this->collinsGisin = std::make_unique<Moment::Locality::CollinsGisin>(*this);
             }
         }
     }

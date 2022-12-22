@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <sstream>
 
-namespace Moment {
+namespace Moment::Inflation {
 
     std::vector<InflationContext::ICObservable::Variant>
     InflationContext::ICObservable::make_variants(const CausalNetwork& network, const Observable &baseObs,

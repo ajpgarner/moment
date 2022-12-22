@@ -14,7 +14,7 @@
 #include <sstream>
 #include <utility>
 
-namespace Moment {
+namespace Moment::Locality {
     namespace {
         struct LocalityOperator {
         public:

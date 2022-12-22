@@ -13,6 +13,7 @@
 #include <memory>
 
 namespace Moment::Tests {
+    using namespace Moment::Locality;
 
     TEST(Operators_Locality_ExplicitSymbols, OnePartyOneMeasurementThreeOutcomes) {
 

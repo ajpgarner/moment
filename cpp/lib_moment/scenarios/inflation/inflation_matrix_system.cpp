@@ -12,7 +12,7 @@
 #include "inflation_implicit_symbols.h"
 
 
-namespace Moment {
+namespace Moment::Inflation {
     InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class InflationContext> contextIn)
             : MatrixSystem{std::move(contextIn)},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
@@ -31,14 +31,14 @@ namespace Moment {
 
     const InflationExplicitSymbolIndex &InflationMatrixSystem::ExplicitSymbolTable() const {
         if (!this->explicitSymbols) {
-            throw errors::missing_component("ExplicitSymbolTable has not yet been generated.");
+            throw Moment::errors::missing_component("ExplicitSymbolTable has not yet been generated.");
         }
         return *this->explicitSymbols;
     }
 
     const InflationImplicitSymbols &InflationMatrixSystem::ImplicitSymbolTable() const {
         if (!this->implicitSymbols) {
-            throw errors::missing_component("ImplicitSymbolTable has not yet been generated.");
+            throw Moment::errors::missing_component("ImplicitSymbolTable has not yet been generated.");
         }
         return *this->implicitSymbols;
     }

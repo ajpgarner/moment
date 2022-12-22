@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-namespace Moment {
+namespace Moment::Algebraic {
 
     void OStreamRuleLogger::rule_reduced(const MonomialSubstitutionRule& old_rule,
                                          const MonomialSubstitutionRule& new_rule) {
