@@ -6,8 +6,7 @@
 #pragma once
 #include "mex_function.h"
 
-#include "operators/matrix/operator_matrix.h"
-//#include "symbolic/index_matrix_properties.h"
+#include "matrix/operator_matrix.h"
 
 
 namespace Moment::mex::functions {

@@ -5,13 +5,12 @@
  */
 #include "gtest/gtest.h"
 
-#include "operators/context.h"
-#include "operators/matrix_system.h"
-#include "operators/matrix/symbol_table.h"
-#include "operators/matrix/moment_matrix.h"
-#include "operators/locality/locality_context.h"
-#include "operators/locality/locality_matrix_system.h"
-
+#include "matrix_system.h"
+#include "matrix/moment_matrix.h"
+#include "scenarios/context.h"
+#include "scenarios/locality/locality_context.h"
+#include "scenarios/locality/locality_matrix_system.h"
+#include "symbolic/symbol_table.h"
 
 namespace Moment::Tests {
 
@@ -174,32 +173,32 @@ namespace Moment::Tests {
         ASSERT_NE(f0Iter, basis_key.end());
         EXPECT_EQ(f0Iter->second.first, -1);
         EXPECT_EQ(f0Iter->second.second, -1);
-        
+
         auto f1Iter = basis_key.find(1);
         ASSERT_NE(f1Iter, basis_key.end());
         EXPECT_EQ(f1Iter->second.first, 0);
         EXPECT_EQ(f1Iter->second.second, -1);
-        
+
         auto f2Iter = basis_key.find(2);
         ASSERT_NE(f2Iter, basis_key.end());
         EXPECT_EQ(f2Iter->second.first, 1);
         EXPECT_EQ(f2Iter->second.second, -1);
-        
+
         auto f3Iter = basis_key.find(3);
         ASSERT_NE(f3Iter, basis_key.end());
         EXPECT_EQ(f3Iter->second.first, 2);
         EXPECT_EQ(f3Iter->second.second, -1);
-        
+
         auto f4Iter = basis_key.find(4);
         ASSERT_NE(f4Iter, basis_key.end());
         EXPECT_EQ(f4Iter->second.first, 3);
         EXPECT_EQ(f4Iter->second.second, -1);
-        
+
         auto f5Iter = basis_key.find(5);
         ASSERT_NE(f5Iter, basis_key.end());
         EXPECT_EQ(f5Iter->second.first, 4);
         EXPECT_EQ(f5Iter->second.second, 0);
-        
+
         auto f6Iter = basis_key.find(6);
         ASSERT_NE(f6Iter, basis_key.end());
         EXPECT_EQ(f6Iter->second.first, 5);

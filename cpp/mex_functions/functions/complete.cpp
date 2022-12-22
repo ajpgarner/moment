@@ -5,8 +5,8 @@
  */
 #include "complete.h"
 
-#include "operators/algebraic/rule_book.h"
-#include "operators/algebraic/ostream_rule_logger.h"
+#include "scenarios/algebraic/rule_book.h"
+#include "scenarios/algebraic/ostream_rule_logger.h"
 
 #include "fragments/export_monomial_rules.h"
 #include "utilities/reporting.h"

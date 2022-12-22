@@ -4,8 +4,10 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "enumerate_symbols.h"
+
 #include "symbolic/symbol_set.h"
-#include "operators/matrix/moment_matrix.h"
+
+#include "matrix/moment_matrix.h"
 
 #include "read_symbol_or_fail.h"
 
@@ -324,7 +326,7 @@ namespace Moment::mex {
         }
     }
 
-    SymbolMatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
+    MatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
                                             const matlab::data::Array& matrix,
                                             MatrixType basis_type) {
 
@@ -337,7 +339,7 @@ namespace Moment::mex {
         size_t matrix_dimension = matrix.getDimensions()[0];
 
         // Make IMP object
-        return SymbolMatrixProperties{matrix_dimension, basis_type, symbols_found};
+        return MatrixProperties{matrix_dimension, basis_type, symbols_found};
     }
 
 }

@@ -8,8 +8,8 @@
 #include "mex.hpp"
 #include "MatlabDataArray.hpp"
 
-#include "operators/matrix/operator_matrix.h"
-#include "operators/matrix/symbol_matrix_properties.h"
+#include "matrix/operator_matrix.h"
+#include "matrix/matrix_properties.h"
 
 #include <map>
 
@@ -25,7 +25,7 @@ namespace Moment::mex {
      * @param basis_type Whether the matrix should be read as symmetric or as Hermitian.
      * @return A SymbolMatrixProperties class listing the found symbols.
      */
-    SymbolMatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
+    MatrixProperties enumerate_symbols(matlab::engine::MATLABEngine& engine,
                                                             const matlab::data::Array& matrix,
                                                             MatrixType basis_type);
 

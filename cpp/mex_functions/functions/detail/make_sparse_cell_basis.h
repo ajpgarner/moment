@@ -4,9 +4,10 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
+#include "matrix/operator_matrix.h"
+
 #include "symbolic/symbol_expression.h"
-#include "operators/matrix/operator_matrix.h"
-#include "operators/matrix/symbol_table.h"
+#include "symbolic/symbol_table.h"
 
 #include "fragments/read_symbol_or_fail.h"
 
@@ -25,7 +26,7 @@ namespace Moment::mex::functions::detail {
 
     private:
         matlab::engine::MATLABEngine &engine;
-        const SymbolMatrixProperties &imp;
+        const MatrixProperties &imp;
 
         struct sparse_basis_re_frame {
             std::vector<size_t> index_i{};
@@ -53,7 +54,7 @@ namespace Moment::mex::functions::detail {
 
     public:
         SparseCellBasisVisitor(matlab::engine::MATLABEngine &engineRef,
-                                const SymbolMatrixProperties &matrix_properties)
+                                const MatrixProperties &matrix_properties)
                 : engine(engineRef), imp(matrix_properties) {}
 
 
@@ -255,7 +256,7 @@ namespace Moment::mex::functions::detail {
 
     inline auto make_sparse_cell_basis(matlab::engine::MATLABEngine &engine,
                            const matlab::data::Array &input,
-                           const SymbolMatrixProperties &imp) {
+                           const MatrixProperties &imp) {
         // Get symbols in matrix...
         return DispatchVisitor(engine, input, SparseCellBasisVisitor{engine, imp});
     }

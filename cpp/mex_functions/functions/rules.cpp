@@ -5,8 +5,8 @@
  */
 #include "rules.h"
 
-#include "operators/algebraic/algebraic_context.h"
-#include "operators/algebraic/algebraic_matrix_system.h"
+#include "scenarios/algebraic/algebraic_context.h"
+#include "scenarios/algebraic/algebraic_matrix_system.h"
 
 #include "storage_manager.h"
 #include "fragments/export_monomial_rules.h"

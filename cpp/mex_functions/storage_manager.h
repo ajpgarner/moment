@@ -7,7 +7,7 @@
 
 #include "utilities/persistent_storage.h"
 
-#include "operators/matrix_system.h"
+#include "matrix_system.h"
 
 #include <string>
 #include <optional>

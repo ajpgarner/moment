@@ -5,8 +5,8 @@
  */
 #pragma once
 #include "mex_function.h"
-#include "operators/inflation/observable_variant_index.h"
-#include "operators/locality/measurement.h"
+#include "scenarios/inflation/observable_variant_index.h"
+#include "scenarios/locality/measurement.h"
 
 namespace Moment {
     class LocalityMatrixSystem;

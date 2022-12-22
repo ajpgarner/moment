@@ -5,9 +5,10 @@
  */
 #pragma once
 
+#include "matrix/operator_matrix.h"
+
 #include "symbolic/symbol_expression.h"
-#include "operators/matrix/operator_matrix.h"
-#include "operators/matrix/symbol_table.h"
+#include "symbolic/symbol_table.h"
 
 #include "fragments/read_symbol_or_fail.h"
 
@@ -27,7 +28,7 @@ namespace Moment::mex::functions::detail {
 
     private:
         matlab::engine::MATLABEngine &engine;
-        const SymbolMatrixProperties &imp;
+        const MatrixProperties &imp;
 
         template<typename data_t>
         struct monolith_frame {
@@ -50,7 +51,7 @@ namespace Moment::mex::functions::detail {
 
     public:
         SparseMonolithBasisVisitor(matlab::engine::MATLABEngine &engineRef,
-                                   const SymbolMatrixProperties &matrix_properties)
+                                   const MatrixProperties &matrix_properties)
                 : engine(engineRef), imp(matrix_properties) {}
 
         /** Dense input -> sparse output */
@@ -267,7 +268,7 @@ namespace Moment::mex::functions::detail {
 
     inline auto make_sparse_monolith_basis(matlab::engine::MATLABEngine &engine,
                                            const matlab::data::Array &input,
-                                           const SymbolMatrixProperties &imp) {
+                                           const MatrixProperties &imp) {
         // Get symbols in matrix...
         return DispatchVisitor(engine, input, SparseMonolithBasisVisitor{engine, imp});
     }

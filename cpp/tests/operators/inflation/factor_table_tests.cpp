@@ -6,11 +6,12 @@
 
 #include "gtest/gtest.h"
 
-#include "operators/matrix/symbol_table.h"
-#include "operators/inflation/canonical_observables.h"
-#include "operators/inflation/factor_table.h"
-#include "operators/inflation/inflation_context.h"
-#include "operators/inflation/inflation_matrix_system.h"
+#include "symbolic/symbol_table.h"
+
+#include "scenarios/inflation/canonical_observables.h"
+#include "scenarios/inflation/factor_table.h"
+#include "scenarios/inflation/inflation_context.h"
+#include "scenarios/inflation/inflation_matrix_system.h"
 
 namespace Moment::Tests {
     TEST(Operators_Inflation_FactorTable, Empty) {

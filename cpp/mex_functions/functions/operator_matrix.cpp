@@ -7,7 +7,7 @@
 
 #include "storage_manager.h"
 
-#include "operators/matrix/operator_matrix.h"
+#include "matrix/operator_matrix.h"
 
 #include "utilities/reporting.h"
 #include "fragments/export_operator_matrix.h"

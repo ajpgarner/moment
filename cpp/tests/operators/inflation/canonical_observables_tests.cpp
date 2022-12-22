@@ -5,9 +5,9 @@
  */
 #include "gtest/gtest.h"
 
-#include "operators/inflation/inflation_context.h"
-#include "operators/inflation/inflation_matrix_system.h"
-#include "operators/inflation/canonical_observables.h"
+#include "scenarios/inflation/inflation_context.h"
+#include "scenarios/inflation/inflation_matrix_system.h"
+#include "scenarios/inflation/canonical_observables.h"
 
 namespace Moment::Tests {
       TEST(Operators_Inflation_CanonicalObservables, Hash) {

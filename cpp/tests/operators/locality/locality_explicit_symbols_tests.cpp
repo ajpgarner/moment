@@ -5,13 +5,10 @@
  */
 #include "gtest/gtest.h"
 
-#include "operators/matrix/moment_matrix.h"
-#include "operators/locality/locality_context.h"
-#include "operators/locality/locality_matrix_system.h"
-#include "operators/locality/locality_explicit_symbols.h"
-
-#include "operators/inflation/inflation_context.h"
-#include "operators/inflation/inflation_matrix_system.h"
+#include "matrix/moment_matrix.h"
+#include "scenarios/locality/locality_context.h"
+#include "scenarios/locality/locality_matrix_system.h"
+#include "scenarios/locality/locality_explicit_symbols.h"
 
 #include <memory>
 

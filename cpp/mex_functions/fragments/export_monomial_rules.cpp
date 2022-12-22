@@ -5,7 +5,7 @@
  */
 #include "export_monomial_rules.h"
 
-#include "operators/algebraic/rule_book.h"
+#include "scenarios/algebraic/rule_book.h"
 
 #include <algorithm>
 

@@ -6,8 +6,8 @@
 
 #include "gtest/gtest.h"
 
-#include "operators/algebraic/algebraic_context.h"
-#include "operators/algebraic/rule_book.h"
+#include "scenarios/algebraic/algebraic_context.h"
+#include "scenarios/algebraic/rule_book.h"
 
 namespace Moment::Tests {
 

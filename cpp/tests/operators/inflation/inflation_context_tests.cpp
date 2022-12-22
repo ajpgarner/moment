@@ -6,8 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "operators/inflation/inflation_context.h"
-#include "operators/inflation/inflation_matrix_system.h"
+#include "scenarios/inflation/inflation_context.h"
 
 namespace Moment::Tests {
     namespace {

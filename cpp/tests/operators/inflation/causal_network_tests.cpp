@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "operators/inflation/causal_network.h"
+#include "scenarios/inflation/causal_network.h"
 
 namespace Moment::Tests {
 

@@ -5,8 +5,8 @@
  */
 #include "gtest/gtest.h"
 
-#include "operators/hashed_sequence.h"
-#include "operators/shortlex_hasher.h"
+#include "hashed_sequence.h"
+#include "utilities/shortlex_hasher.h"
 
 namespace Moment::Tests {
 

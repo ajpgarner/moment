@@ -6,7 +6,7 @@
 #include "symbol_table.h"
 #include "storage_manager.h"
 
-#include "operators/matrix/symbol_table.h"
+#include "symbolic/symbol_table.h"
 
 #include "fragments/export_symbol_table.h"
 

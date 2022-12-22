@@ -6,13 +6,13 @@
 
 #include "export_operator_matrix.h"
 
-#include "operators/matrix/symbol_table.h"
-#include "operators/matrix/symbol_matrix_properties.h"
+#include "matrix/matrix_properties.h"
+#include "symbolic/symbol_table.h"
+#include "scenarios/context.h"
 
+#include "utilities/reporting.h"
 
 #include "error_codes.h"
-#include "operators/context.h"
-#include "utilities/reporting.h"
 
 #include "mex.hpp"
 
@@ -135,7 +135,7 @@ namespace Moment::mex {
     }
 
     std::pair<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<uint64_t>>
-    export_basis_lists(matlab::engine::MATLABEngine &engine, const SymbolMatrixProperties &smp) {
+    export_basis_lists(matlab::engine::MATLABEngine &engine, const MatrixProperties &smp) {
         // Prepare output lists
         matlab::data::ArrayFactory factory;
         auto output = std::make_pair(
@@ -166,7 +166,7 @@ namespace Moment::mex {
     std::pair<matlab::data::TypedArray<bool>, matlab::data::TypedArray<bool>>
     export_basis_masks(matlab::engine::MATLABEngine& engine,
                        const SymbolTable& symbol_table,
-                       const SymbolMatrixProperties& smp) {
+                       const MatrixProperties& smp) {
 
         // Prepare masks
         matlab::data::ArrayFactory factory;
@@ -208,7 +208,7 @@ namespace Moment::mex {
     }
 
     matlab::data::TypedArray<int32_t>
-    export_basis_key(matlab::engine::MATLABEngine &engine, const SymbolMatrixProperties &imp) {
+    export_basis_key(matlab::engine::MATLABEngine &engine, const MatrixProperties &imp) {
         matlab::data::ArrayFactory factory{};
         matlab::data::ArrayDimensions dims{imp.BasisKey().size(),
                                            (imp.Type() == MatrixType::Hermitian) ? 3U : 2U};

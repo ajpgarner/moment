@@ -5,8 +5,8 @@
  */
 #include "new_inflation_matrix_system.h"
 
-#include "operators/inflation/inflation_context.h"
-#include "operators/inflation/inflation_matrix_system.h"
+#include "scenarios/inflation/inflation_context.h"
+#include "scenarios/inflation/inflation_matrix_system.h"
 
 #include "utilities/reporting.h"
 

@@ -5,8 +5,8 @@
  */
 #include "gtest/gtest.h"
 
-#include "operators/context.h"
-#include "operators/operator_sequence.h"
+#include "scenarios/context.h"
+#include "scenarios/operator_sequence.h"
 
 
 namespace Moment::Tests {

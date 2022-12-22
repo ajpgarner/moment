@@ -6,8 +6,8 @@
 
 #include "gtest/gtest.h"
 
-#include "operators/locality/locality_context.h"
-#include "operators/operator_sequence.h"
+#include "scenarios/operator_sequence.h"
+#include "scenarios/locality/locality_context.h"
 
 #include <optional>
 

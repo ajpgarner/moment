@@ -6,9 +6,10 @@
 #pragma once
 
 #include "gtest/gtest.h"
-#include "operators/matrix/operator_matrix.h"
-#include "operators/matrix/moment_matrix.h"
-#include "operators/matrix/localizing_matrix.h"
+
+#include "matrix/operator_matrix.h"
+#include "matrix/moment_matrix.h"
+#include "matrix/localizing_matrix.h"
 
 #include <sstream>
 

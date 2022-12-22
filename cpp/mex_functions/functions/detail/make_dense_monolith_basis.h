@@ -5,9 +5,10 @@
  */
 #pragma once
 
+#include "matrix/operator_matrix.h"
+
 #include "symbolic/symbol_expression.h"
-#include "operators/matrix/operator_matrix.h"
-#include "operators/matrix/symbol_table.h"
+#include "symbolic/symbol_table.h"
 
 #include "fragments/read_symbol_or_fail.h"
 
@@ -22,12 +23,12 @@ namespace Moment::mex::functions::detail {
     struct DenseMonolithBasisVisitor {
     private:
         matlab::engine::MATLABEngine &engine;
-        const SymbolMatrixProperties &imp;
+        const MatrixProperties &imp;
     public:
         using return_type = std::pair<matlab::data::TypedArray<double>, matlab::data::TypedArray<std::complex<double>>>;
 
         DenseMonolithBasisVisitor(matlab::engine::MATLABEngine &engineRef,
-                              const SymbolMatrixProperties &matrix_properties)
+                              const MatrixProperties &matrix_properties)
                 : engine(engineRef), imp(matrix_properties) {}
 
         /** Dense input -> dense monolithic output */
@@ -205,7 +206,7 @@ namespace Moment::mex::functions::detail {
 
     inline auto make_dense_monolith_basis(matlab::engine::MATLABEngine &engine,
                                        const matlab::data::Array &input,
-                                       const SymbolMatrixProperties &imp) {
+                                       const MatrixProperties &imp) {
         // Get symbols in matrix...
         return DispatchVisitor(engine, input, DenseMonolithBasisVisitor{engine, imp});
     }

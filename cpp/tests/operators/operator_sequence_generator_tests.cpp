@@ -6,9 +6,9 @@
 
 #include "gtest/gtest.h"
 
-#include "operators/multi_operator_iterator.h"
-#include "operators/operator_sequence_generator.h"
-#include "operators/locality/locality_context.h"
+#include "matrix/operator_sequence_generator.h"
+#include "scenarios/multi_operator_iterator.h"
+#include "scenarios/locality/locality_context.h"
 
 namespace Moment::Tests {
 

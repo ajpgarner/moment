@@ -6,11 +6,11 @@
 
 #include "gtest/gtest.h"
 
-#include "operators/operator_sequence.h"
-#include "operators/operator_sequence_generator.h"
-#include "operators/matrix/moment_matrix.h"
-#include "operators/algebraic/algebraic_context.h"
-#include "operators/algebraic/algebraic_matrix_system.h"
+#include "matrix/operator_sequence_generator.h"
+#include "matrix/moment_matrix.h"
+#include "scenarios/operator_sequence.h"
+#include "scenarios/algebraic/algebraic_context.h"
+#include "scenarios/algebraic/algebraic_matrix_system.h"
 
 namespace Moment::Tests {
 

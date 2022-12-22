@@ -7,8 +7,8 @@
 
 #include "MatlabDataArray.hpp"
 
+#include "scenarios/operator_sequence.h"
 #include "symbolic/symbol_expression.h"
-#include "operators/operator_sequence.h"
 #include "utilities/square_matrix.h"
 
 namespace matlab::engine {
@@ -18,7 +18,7 @@ namespace matlab::engine {
 namespace Moment {
     class Context;
     class SymbolTable;
-    class SymbolMatrixProperties;
+    class MatrixProperties;
 }
 
 namespace Moment::mex {
@@ -50,7 +50,7 @@ namespace Moment::mex {
      * @return 2xn or 3xn matlab array. First column are symbol ids, second real indices, third imaginary indices.
      */
     matlab::data::TypedArray<int32_t>
-    export_basis_key(matlab::engine::MATLABEngine &engine, const SymbolMatrixProperties &smp);
+    export_basis_key(matlab::engine::MATLABEngine &engine, const MatrixProperties &smp);
 
     /**
      * Outputs a list of real and imaginary symbols associated with a matrix.
@@ -59,7 +59,7 @@ namespace Moment::mex {
      * @return Pair of matlab arrays, first for real symbols, second for imaginary symbols.
      */
     std::pair<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<uint64_t>>
-        export_basis_lists(matlab::engine::MATLABEngine& engine, const SymbolMatrixProperties& smp);
+        export_basis_lists(matlab::engine::MATLABEngine& engine, const MatrixProperties& smp);
 
     /**
      * Outputs masks for the real and imaginary symbols associated with a matrix.
@@ -73,7 +73,7 @@ namespace Moment::mex {
     std::pair<matlab::data::TypedArray<bool>, matlab::data::TypedArray<bool>>
         export_basis_masks(matlab::engine::MATLABEngine& engine,
                            const SymbolTable& symbol_table,
-                           const SymbolMatrixProperties& smp);
+                           const MatrixProperties& smp);
 
 
 }

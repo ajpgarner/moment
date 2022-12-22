@@ -6,11 +6,11 @@
 
 #include "gtest/gtest.h"
 
-#include "operators/context.h"
-#include "operators/matrix_system.h"
-#include "operators/matrix/moment_matrix.h"
-#include "operators/locality/locality_context.h"
-#include "operators/locality/locality_matrix_system.h"
+#include "matrix_system.h"
+#include "matrix/moment_matrix.h"
+#include "scenarios/context.h"
+#include "scenarios/locality/locality_context.h"
+#include "scenarios/locality/locality_matrix_system.h"
 
 #include "compare_os_matrix.h"
 

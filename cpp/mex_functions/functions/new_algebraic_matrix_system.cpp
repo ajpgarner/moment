@@ -5,9 +5,9 @@
  */
 #include "new_algebraic_matrix_system.h"
 
-#include "operators/algebraic/algebraic_context.h"
-#include "operators/algebraic/algebraic_matrix_system.h"
-#include "operators/algebraic/ostream_rule_logger.h"
+#include "scenarios/algebraic/algebraic_context.h"
+#include "scenarios/algebraic/algebraic_matrix_system.h"
+#include "scenarios/algebraic/ostream_rule_logger.h"
 
 #include "storage_manager.h"
 

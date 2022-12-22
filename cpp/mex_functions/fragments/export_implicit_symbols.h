@@ -9,8 +9,8 @@
 #include "MatlabDataArray.hpp"
 
 #include "symbolic/linear_combo.h"
-#include "operators/inflation/observable_variant_index.h"
-#include "operators/locality/measurement.h"
+#include "scenarios/inflation/observable_variant_index.h"
+#include "scenarios/locality/measurement.h"
 
 #include <span>
 

@@ -6,8 +6,10 @@
 #pragma once
 
 #include "symbolic/symbol_expression.h"
-#include "operators/matrix/operator_matrix.h"
-#include "operators/matrix/symbol_table.h"
+
+#include "matrix/operator_matrix.h"
+
+#include "symbolic/symbol_table.h"
 
 #include "fragments/read_symbol_or_fail.h"
 #include "utilities/visitor.h"
@@ -20,13 +22,13 @@ namespace Moment::mex::functions::detail {
     struct DenseCellBasisVisitor {
     private:
         matlab::engine::MATLABEngine &engine;
-        const SymbolMatrixProperties &imp;
+        const MatrixProperties &imp;
 
     public:
         using return_type = std::pair<matlab::data::CellArray, matlab::data::CellArray>;
 
         DenseCellBasisVisitor(matlab::engine::MATLABEngine &engineRef,
-                              const SymbolMatrixProperties &matrix_properties)
+                              const MatrixProperties &matrix_properties)
                 : engine(engineRef), imp(matrix_properties) {}
 
 
@@ -217,7 +219,7 @@ namespace Moment::mex::functions::detail {
 
     inline auto make_dense_cell_basis(matlab::engine::MATLABEngine &engine,
                           const matlab::data::Array &input,
-                          const SymbolMatrixProperties &imp) {
+                          const MatrixProperties &imp) {
         // Get symbols in matrix...
         return DispatchVisitor(engine, input, DenseCellBasisVisitor{engine, imp});
     }

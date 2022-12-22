@@ -9,7 +9,6 @@ add_executable(moment_tests
     operators/moment_matrix_tests.cpp
     operators/operator_sequence_tests.cpp
     operators/operator_sequence_generator_tests.cpp
-    operators/shortlex_hasher_tests.cpp
     operators/symbol_table_tests.cpp
     operators/algebraic/algebraic_context_tests.cpp
     operators/algebraic/monomial_substitution_rule_tests.cpp
@@ -38,6 +37,7 @@ add_executable(moment_tests
     utilities/ordered_permutation_tests.cpp
     utilities/persistent_storage_tests.cpp
     utilities/recursive_storage_tests.cpp
+    utilities/shortlex_hasher_tests.cpp
     utilities/square_matrix_tests.cpp
     utilities/variable_chunk_range_tests.cpp
 )

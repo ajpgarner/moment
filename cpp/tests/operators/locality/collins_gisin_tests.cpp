@@ -5,24 +5,13 @@
  */
 #include "gtest/gtest.h"
 
-#include "operators/context.h"
-#include "operators/matrix/moment_matrix.h"
-#include "operators/locality/locality_matrix_system.h"
-#include "operators/locality/locality_context.h"
-#include "operators/locality/collins_gisin.h"
+#include "matrix/moment_matrix.h"
+
+#include "scenarios/locality/locality_matrix_system.h"
+#include "scenarios/locality/locality_context.h"
+#include "scenarios/locality/collins_gisin.h"
 
 namespace Moment::Tests {
-
-    namespace {
-
-    }
-
-
-    TEST(Operators_Locality_CollinsGisin, Empty) {
-
-
-    }
-
     TEST(Operators_Locality_CollinsGisin, CHSH) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
         const auto& context = system.localityContext;

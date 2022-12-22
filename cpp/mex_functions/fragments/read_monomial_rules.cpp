@@ -11,7 +11,7 @@
 #include "utilities/io_parameters.h"
 #include "utilities/reporting.h"
 
-#include "operators/shortlex_hasher.h"
+#include "utilities/shortlex_hasher.h"
 
 namespace Moment::mex {
     namespace {

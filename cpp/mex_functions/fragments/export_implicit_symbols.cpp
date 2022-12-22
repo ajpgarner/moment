@@ -5,13 +5,14 @@
  */
 #include "export_implicit_symbols.h"
 
-#include "operators/context.h"
-#include "operators/inflation/canonical_observables.h"
-#include "operators/inflation/inflation_implicit_symbols.h"
-#include "operators/locality/locality_implicit_symbols.h"
-#include "operators/locality/joint_measurement_iterator.h"
-#include "operators/matrix/operator_matrix.h"
-#include "operators/matrix/moment_matrix.h"
+#include "scenarios/context.h"
+#include "scenarios/inflation/canonical_observables.h"
+#include "scenarios/inflation/inflation_implicit_symbols.h"
+#include "scenarios/locality/locality_implicit_symbols.h"
+#include "scenarios/locality/joint_measurement_iterator.h"
+
+#include "matrix/operator_matrix.h"
+#include "matrix/moment_matrix.h"
 
 #include "error_codes.h"
 #include "utilities/make_sparse_matrix.h"

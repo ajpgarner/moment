@@ -12,7 +12,7 @@
 
 #include "storage_manager.h"
 
-#include "operators/matrix/moment_matrix.h"
+#include "matrix/moment_matrix.h"
 
 #include "fragments/enumerate_symbols.h"
 #include "fragments/export_operator_matrix.h"
@@ -21,7 +21,6 @@
 
 #include "utilities/make_sparse_matrix.h"
 #include "utilities/reporting.h"
-#include "utilities/read_as_scalar.h"
 
 #include <array>
 #include <complex>

@@ -7,11 +7,12 @@
 
 #include "storage_manager.h"
 
-#include "operators/matrix/operator_matrix.h"
-#include "operators/matrix/moment_matrix.h"
-#include "operators/inflation/inflation_matrix_system.h"
-#include "operators/locality/locality_implicit_symbols.h"
-#include "operators/locality/locality_matrix_system.h"
+#include "matrix/moment_matrix.h"
+
+#include "scenarios/inflation/inflation_matrix_system.h"
+#include "scenarios/locality/locality_implicit_symbols.h"
+#include "scenarios/locality/locality_matrix_system.h"
+
 #include "fragments/export_implicit_symbols.h"
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"

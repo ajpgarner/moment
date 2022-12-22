@@ -5,10 +5,9 @@
  */
 #include "collins_gisin.h"
 
-#include "operators/context.h"
-#include "operators/locality/collins_gisin.h"
-#include "operators/locality/locality_context.h"
-#include "operators/locality/locality_matrix_system.h"
+#include "scenarios/locality/collins_gisin.h"
+#include "scenarios/locality/locality_context.h"
+#include "scenarios/locality/locality_matrix_system.h"
 
 #include "storage_manager.h"
 

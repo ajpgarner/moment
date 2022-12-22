@@ -6,12 +6,13 @@
 #include "export_symbol_table.h"
 
 #include "error_codes.h"
-#include "operators/context.h"
-#include "operators/matrix_system.h"
-#include "operators/matrix/symbol_table.h"
 
-#include "operators/inflation/inflation_matrix_system.h"
-#include "operators/inflation/factor_table.h"
+#include "symbolic/symbol_table.h"
+
+#include "scenarios/context.h"
+
+#include "scenarios/inflation/inflation_matrix_system.h"
+#include "scenarios/inflation/factor_table.h"
 
 #include "utilities/reporting.h"
 

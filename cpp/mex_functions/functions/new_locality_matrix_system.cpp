@@ -7,10 +7,8 @@
 
 #include "storage_manager.h"
 
-#include "operators/context.h"
-#include "operators/matrix_system.h"
-#include "operators/locality/locality_context.h"
-#include "operators/locality/locality_matrix_system.h"
+#include "scenarios/locality/locality_context.h"
+#include "scenarios/locality/locality_matrix_system.h"
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"

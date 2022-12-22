@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
-#include "operators/common/implicit_symbols.h"
+#include "scenarios/implicit_symbols.h"
 
 #include <string>
 #include <span>

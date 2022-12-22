@@ -5,8 +5,8 @@
  */
 #include "gtest/gtest.h"
 
-#include "operators/algebraic/algebraic_context.h"
-#include "operators/algebraic/monomial_substitution_rule.h"
+#include "scenarios/algebraic/algebraic_context.h"
+#include "scenarios/algebraic/monomial_substitution_rule.h"
 
 namespace Moment::Tests {
 
