@@ -27,7 +27,9 @@ endif()
 
 add_subdirectory(cpp/lib_moment)
 
-add_subdirectory(cpp/googletest)
-add_subdirectory(cpp/tests)
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cpp/googletest/CMakeLists.txt")
+    add_subdirectory(cpp/googletest)
+    add_subdirectory(cpp/tests)
+endif()
 
 add_subdirectory(cpp/mex_functions)
