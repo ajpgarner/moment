@@ -16,8 +16,6 @@
 
 namespace Moment {
 
-    class SymbolTree;
-
     class SymbolSet {
     public:
         using equality_map_t = std::map<std::pair<symbol_name_t, symbol_name_t>, EqualityType>;
@@ -85,14 +83,7 @@ namespace Moment {
          */
         SymbolSet(const std::vector<Symbol>& extra_symbols, const std::vector<SymbolPair>& raw_pairs);
 
-        /**
-         * Extract a set from a SymbolTree..
-         * @param tree The SymbolTree
-         */
-        explicit SymbolSet(const SymbolTree& tree);
-
         SymbolSet(const SymbolSet& rhs) = delete;
-
 
         SymbolSet(SymbolSet&& rhs) noexcept : Links{*this}, Symbols{*this},
             symbols{std::move(rhs.symbols)}, symbol_links{std::move(rhs.symbol_links)},

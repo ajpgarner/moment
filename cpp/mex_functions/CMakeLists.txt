@@ -12,16 +12,13 @@ matlab_add_mex(NAME moment_mex
             storage_manager.cpp
             fragments/enumerate_symbols.cpp
             fragments/export_implicit_symbols.cpp
-            fragments/export_substitution_list.cpp
             fragments/export_monomial_rules.cpp
             fragments/export_operator_matrix.cpp
-            fragments/export_symbol_tree_properties.cpp
             fragments/export_symbol_table.cpp
             fragments/identify_nonhermitian_elements.cpp
             fragments/identify_nonsymmetric_elements.cpp
             fragments/read_monomial_rules.cpp
             fragments/read_symbol_or_fail.cpp
-            fragments/substitute_elements_using_tree.cpp
             utilities/io_parameters.cpp
             utilities/make_sparse_matrix.cpp
             utilities/read_as_scalar.cpp
@@ -36,8 +33,6 @@ matlab_add_mex(NAME moment_mex
             functions/function_list.cpp
             functions/generate_basis.cpp
             functions/localizing_matrix.cpp
-            functions/make_hermitian.cpp
-            functions/make_symmetric.cpp
             functions/moment_matrix.cpp
             functions/new_algebraic_matrix_system.cpp
             functions/new_inflation_matrix_system.cpp

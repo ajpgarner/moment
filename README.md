@@ -101,10 +101,6 @@ to the call to function `mtk(...)`:
 
 `localizing_matrix`: Generates a localizing matrix for a supplied set of Hermitian operators and monomial expression.
 
-`make_hermitian`: Makes a symbolic matrix Hermitian, by inferring equality constraints and applying them.
-
-`make_symmetric`: Makes a symbolic matrix symmetric, by inferring equality constraints and applying them.
-
 `moment_matrix`: Generates a moment matrix for a supplied set of Hermitian operators.
 
 `new_algebraic_matrix_system`: Starts a new context of shared variables, with specified algebraic relations.

@@ -11,8 +11,6 @@
 #include "functions/complete.h"
 #include "functions/generate_basis.h"
 #include "functions/localizing_matrix.h"
-#include "functions/make_hermitian.h"
-#include "functions/make_symmetric.h"
 #include "functions/moment_matrix.h"
 #include "functions/new_algebraic_matrix_system.h"
 #include "functions/new_inflation_matrix_system.h"
@@ -51,12 +49,6 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::LocalizingMatrix:
                 the_function = std::make_unique<functions::LocalizingMatrix>(engine, storageManager);
-                break;
-            case functions::MEXEntryPointID::MakeHermitian:
-                the_function = std::make_unique<functions::MakeHermitian>(engine, storageManager);
-                break;
-            case functions::MEXEntryPointID::MakeSymmetric:
-                the_function = std::make_unique<functions::MakeSymmetric>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::MomentMatrix:
                 the_function = std::make_unique<functions::MomentMatrix>(engine, storageManager);
@@ -105,8 +97,6 @@ namespace Moment::mex::functions {
         output.emplace(u"complete",        MEXEntryPointID::Complete);
         output.emplace(u"generate_basis",  MEXEntryPointID::GenerateBasis);
         output.emplace(u"localizing_matrix",  MEXEntryPointID::LocalizingMatrix);
-        output.emplace(u"make_hermitian",  MEXEntryPointID::MakeHermitian);
-        output.emplace(u"make_symmetric",  MEXEntryPointID::MakeSymmetric);
         output.emplace(u"moment_matrix",   MEXEntryPointID::MomentMatrix);
         output.emplace(u"operator_matrix", MEXEntryPointID::OperatorMatrix);
         output.emplace(u"new_algebraic_matrix_system", MEXEntryPointID::NewAlgebraicMatrixSystem);

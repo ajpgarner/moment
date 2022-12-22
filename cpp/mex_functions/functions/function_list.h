@@ -28,8 +28,6 @@ namespace Moment::mex::functions {
         Complete,
         GenerateBasis,
         LocalizingMatrix,
-        MakeHermitian,
-        MakeSymmetric,
         MomentMatrix,
         NewAlgebraicMatrixSystem,
         NewInflationMatrixSystem,

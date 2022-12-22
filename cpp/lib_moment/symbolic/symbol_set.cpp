@@ -4,7 +4,6 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "symbol_set.h"
-#include "symbol_tree.h"
 #include <cassert>
 #include <iostream>
 
@@ -44,28 +43,6 @@ namespace Moment {
         for (const auto& rule : raw_pairs) {
             this->add_or_merge(rule);
         }
-    }
-
-
-    SymbolSet::SymbolSet(const SymbolTree &tree)
-        : Symbols{*this}, Links{*this},
-          packing_key{tree.packing_map},
-          unpacking_key{tree.unpacking_map},
-          packed{true} {
-
-        for (const auto& node : tree.tree_nodes) {
-            // Copy node into symbol map
-            symbols.emplace_hint(symbols.end(), std::make_pair(node.id, static_cast<Symbol>(node)));
-            // If node is not fundamental, add link:
-            if (!node.unaliased()) {
-                auto rule = node.canonical_pair();
-                equality_map_t::key_type key{rule.left_id, rule.right_id};
-                EqualityType eq_type = equality_type(rule);
-                this->symbol_links.insert({key, eq_type});
-            }
-        }
-        
-        this->unpack();
     }
 
     bool SymbolSet::add_or_merge(const Symbol &symbol) {

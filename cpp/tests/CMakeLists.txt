@@ -29,9 +29,7 @@ add_executable(moment_tests
     symbolic/equality_type_tests.cpp
     symbolic/linear_combo_tests.cpp
     symbolic/symbol_expression_tests.cpp
-    symbolic/symbol_node_and_link_tests.cpp
     symbolic/symbol_set_tests.cpp
-    symbolic/symbol_tree_tests.cpp
     utilities/alphabetic_namer_tests.cpp
     utilities/combination_tests.cpp
     utilities/dynamic_bitset_tests.cpp

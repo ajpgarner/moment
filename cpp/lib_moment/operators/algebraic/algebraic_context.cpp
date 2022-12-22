@@ -6,7 +6,6 @@
 #include "algebraic_context.h"
 
 #include "symbolic/symbol_set.h"
-#include "symbolic/symbol_tree.h"
 
 #include "operators/operator_sequence.h"
 
