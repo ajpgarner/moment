@@ -46,17 +46,15 @@ MATLAB 2021b (9.10)
 #### For compiling C++ library
 
 *On Windows*: \
-Clang 14.0.0 (via clang-cl) or GCC 12.1.0 \
+Clang 14.0.0 (via clang-cl), GCC 12.1.0, or Visual Studio 2022 \
 CMAKE 3.22
 
 *On GNU/Linux*: \
 GCC 12.1.0 \
 CMAKE 3.22
 
-## Installation
-
+## Installation Instructions
 ### GNU/Linux
-
 To download and compile the library use the following commands:
 
 <pre>git clone https://github.com/ajpgarner/moment.git
@@ -64,9 +62,11 @@ cd moment
 cmake .
 cmake --build .</pre>
 
-To use it on MATLAB add the following folder to its path: `moment/matlab`
+Once the build is complete, the binary `mtk.mexa64` will be automatically copied into the `moment/matlab` folder. 
 
-If you want to include the unit tests do instead:
+To use from MATLAB, add the following folder to the matlab path: `moment/matlab`
+
+To build with the C++ unit tests, instead:
 
 <pre>git clone https://github.com/ajpgarner/moment.git
 cd moment
@@ -74,6 +74,30 @@ git submodule init
 git submodule update
 cmake .
 cmake --build .</pre>
+
+### Windows: CLion
+Clone the repository (e.g. with GitHub desktop).
+
+Open CLion, and from the `File > Open` menu, navigate to the cloned repository root directory.
+
+To build the MATLAB binary, select the target `moment_mex` in the Build Configurations drop down, then press the build 
+button. Alternatively, select `Build Project` from the `Build` menu.
+
+Once the build is complete, the binary `mtk.mexw64` will have been copied to the `moment/matlab` folder.
+
+To use from MATLAB, add the following folder to the matlab path: `moment/matlab`.
+
+### Windows: Visual Studio 
+Clone the repository (e.g. with GitHub desktop).
+
+Open Visual Studio 2022, and select "Open a local folder". Navigate to the root of the cloned repository and click 
+'Select folder'. Visual Studio will accordingly parse the CMakeList files. The project can then be built by selecting 
+"Build All" from Visual Studio's Build menu, or pressing F7.
+
+Once the build is complete, the binary `mtk.mexw64` will have been copied to the `moment/matlab` folder.
+
+To use from MATLAB, add the following folder to the matlab path: `moment/matlab`.
+
 
 ## List of classes, functions and folders
 ### MATLAB classes
@@ -86,7 +110,7 @@ cmake --build .</pre>
 expressed as linear combination of real-valued elements from a `MomentMatrix`. This includes probabilities, 
 normalizations, correlators, etc.
 
-`LocalityScenario`: A description of an experimental setting (including number of parties, measurements for each parties,
+`LocalityScenario`: A description of an experimental setting (including number of parties, measurements for each party,
 number of outcomes for each measurement).
 
 `LocalityScenario.Party`: A spatially isolated agent (e.g. Alice over here, Bob over there). By construction, all matrices generated

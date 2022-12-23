@@ -81,7 +81,8 @@ namespace Moment::Locality {
             for (const auto& mmt : party.measurements) {
                 for (size_t oper_index = 0; oper_index < mmt.num_operators(); ++oper_index) {
                     //this->operators.emplace_back(total_operator_count);
-                    this->global_to_local_indices.emplace_back(party_index, mmt_index, oper_index);
+                    this->global_to_local_indices.emplace_back(party_index, mmt_index, 
+                                                               static_cast<uint32_t>(oper_index));
                     ++party_op_count;
                     ++total_operator_count;
                 }

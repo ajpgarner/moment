@@ -83,7 +83,7 @@ namespace Moment::mex {
                         std::stringstream ss{utf8str};
                         value_type read_buf;
                         ss >> read_buf;
-                        output.template emplace_back(read_buf);
+                        output.emplace_back(read_buf);
                     } catch (errors::unreadable_scalar &urs) {
                         throw; // rethrow
                     } catch (std::exception &e) {

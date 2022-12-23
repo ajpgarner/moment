@@ -67,7 +67,7 @@ namespace Moment::mex {
                 auto mid = rule_cell[1];
                 switch (mid.getType()) {
                     case matlab::data::ArrayType::CHAR: {
-                        auto midAsCA = static_cast<matlab::data::CharArray>(mid);
+                        matlab::data::CharArray midAsCA = mid;
                         std::string midVal = midAsCA.toAscii();
                         negated = (midVal == "-");
                     }

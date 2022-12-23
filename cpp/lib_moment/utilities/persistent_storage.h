@@ -105,7 +105,7 @@ namespace Moment {
             const std::unique_lock<std::shared_mutex> lock(theMutex);
 
             const uint64_t key = (static_cast<uint64_t>(signature) << 32) + static_cast<uint64_t>(nextID);
-            this->objects.template emplace_hint(this->objects.end(), nextID, std::move(obj));
+            this->objects.emplace_hint(this->objects.end(), nextID, std::move(obj));
 
             ++nextID;
             return key;
@@ -120,7 +120,7 @@ namespace Moment {
             const std::unique_lock<std::shared_mutex> lock(theMutex);
 
             const uint64_t key = (static_cast<uint64_t>(signature) << 32) + static_cast<uint64_t>(nextID);
-            this->objects.template emplace_hint(this->objects.end(), nextID, std::move(obj));
+            this->objects.emplace_hint(this->objects.end(), nextID, std::move(obj));
 
             ++nextID;
             return key;
