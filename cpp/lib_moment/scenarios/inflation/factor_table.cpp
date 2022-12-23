@@ -99,6 +99,18 @@ namespace Moment::Inflation {
             entry.canonical.symbols = std::vector<symbol_name_t>{entry.id};
         }
 
+        // Count factors
+        for (size_t entry_index = next_id; entry_index < extra_symbols; ++entry_index) {
+            const auto& factor_entry = this->entries[entry_index];
+            // Non-trivial factors?
+            if (factor_entry.canonical.symbols.size() > 1) {
+                for (const auto& factor_symbol : factor_entry.canonical.symbols) {
+                    assert(factor_symbol < this->entries.size());
+                    this->entries[factor_symbol].appearances += 1;
+                }
+            }
+        }
+
         return extra_symbols - next_id;
     }
 

@@ -36,12 +36,17 @@ namespace Moment::Inflation {
                 std::vector<symbol_name_t> symbols{};
             } canonical;
 
+            /** The number of times this symbol appears as a factor of another symbol */
+            size_t appearances = 0;
+
         public:
-            FactorEntry(const symbol_name_t sym_id)
+            explicit FactorEntry(const symbol_name_t sym_id)
                 : id{sym_id} { }
 
+            /** True if table entry does not factorize */
+            [[nodiscard]] bool fundamental() const noexcept { return canonical.sequences.size() <= 1; }
 
-            std::string sequence_string() const;
+            [[nodiscard]] std::string sequence_string() const;
         };
 
     private:
@@ -51,21 +56,23 @@ namespace Moment::Inflation {
         std::vector<FactorEntry> entries;
 
     public:
+        /** Create additional factor information, synchronized with symbol table. */
         explicit FactorTable(const InflationContext& context, SymbolTable& symbols);
 
+        /** Bring factor table up to date, when new symbols are added to symbol table. */
         size_t on_new_symbols_added();
 
+        /** The number of entries in the factor table. */
         [[nodiscard]] size_t size() const noexcept { return this->entries.size(); }
 
+        /** True if factor table contains at least one entry. */
         [[nodiscard]] bool empty() const noexcept { return this->entries.empty(); }
 
+        /** Access one entry in factor table by index. */
         [[nodiscard]] const FactorEntry& operator[](size_t index) const noexcept { return this->entries[index]; }
-
 
     private:
         size_t check_for_new_factors();
-
-
-
+        
     };
 }

@@ -17,7 +17,6 @@
 #include "utilities/reporting.h"
 
 namespace Moment::mex {
-
     namespace {
         std::vector<std::string> column_names(const bool non_herm, const bool include_factors) {
             std::vector<std::string> table_fields{"symbol", "operators"};
@@ -33,8 +32,21 @@ namespace Moment::mex {
                 table_fields.emplace_back("fundamental");
                 table_fields.emplace_back("factor_sequence");
                 table_fields.emplace_back("factor_symbols");
+                table_fields.emplace_back("factor_appearances");
             }
             return table_fields;
+        }
+
+
+        matlab::data::TypedArray<uint64_t>
+        make_factor_symbol_array(matlab::data::ArrayFactory &factory, const Inflation::FactorTable::FactorEntry &entry) {
+            auto factor_symbols = factory.createArray<uint64_t>({1, entry.canonical.symbols.size()});
+            auto fsWriteIter = factor_symbols.begin();
+            for (const auto symbolId : entry.canonical.symbols) {
+                *fsWriteIter = symbolId;
+                ++fsWriteIter;
+            }
+            return factor_symbols;
         }
     }
 
@@ -74,19 +86,14 @@ namespace Moment::mex {
 
         if (include_factors) {
             const auto& entry = (*factorTablePtr)[symbol.Id()];
-
-            outputStruct[0]["fundamental"] = factory.createScalar<bool>(entry.canonical.sequences.size() <= 1);
-
-            outputStruct[0]["factor_sequence"]
-                    = factory.createScalar(entry.sequence_string());
-
-            outputStruct[0]["factor_symbols"]
-                    = factory.createScalar<uint64_t>(0);
+            outputStruct[0]["fundamental"] = factory.createScalar<bool>(entry.fundamental());
+            outputStruct[0]["factor_sequence"] = factory.createScalar(entry.sequence_string());
+            outputStruct[0]["factor_symbols"] = make_factor_symbol_array(factory, entry);
+            outputStruct[0]["factor_appearances"] = factory.createScalar(entry.appearances);
         }
 
         return outputStruct;
     }
-
 
     matlab::data::StructArray export_symbol_table_struct(matlab::engine::MATLABEngine& engine,
                                                          const MatrixSystem& system,
@@ -153,18 +160,10 @@ namespace Moment::mex {
             if (include_factors) {
                 const auto& entry = (*factorTablePtr)[symbol.Id()];
 
-                outputStruct[write_index]["fundamental"]
-                    = factory.createScalar<bool>(entry.canonical.sequences.size() <= 1);
+                outputStruct[write_index]["fundamental"] = factory.createScalar<bool>(entry.fundamental());
                 outputStruct[write_index]["factor_sequence"] = factory.createScalar(entry.sequence_string());
-
-                auto factor_symbols = factory.createArray<uint64_t>({1, entry.canonical.symbols.size()});
-                auto fsWriteIter = factor_symbols.begin();
-                for (const auto symbolId : entry.canonical.symbols) {
-                    *fsWriteIter = symbolId;
-                    ++fsWriteIter;
-                }
-
-                outputStruct[write_index]["factor_symbols"] = std::move(factor_symbols);
+                outputStruct[write_index]["factor_symbols"] = make_factor_symbol_array(factory, entry);
+                outputStruct[write_index]["factor_appearances"] = factory.createScalar(entry.appearances);
             }
 
             ++write_index;
