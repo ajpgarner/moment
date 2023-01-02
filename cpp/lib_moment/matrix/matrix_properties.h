@@ -14,7 +14,7 @@
 
 namespace Moment {
 
-    class OperatorMatrix;
+    class SymbolicMatrix;
     class SymbolTable;
     class SymbolSet;
 
@@ -44,9 +44,9 @@ namespace Moment {
 
     public:
         /** Construct symbolic properties from operator matrix */
-        MatrixProperties(const OperatorMatrix& matrix,
-                               const SymbolTable& table,
-                               std::set<symbol_name_t>&& subset);
+        MatrixProperties(const SymbolicMatrix& matrix,
+                         const SymbolTable& table,
+                         std::set<symbol_name_t>&& subset);
 
         /** Construct symbolic properties manually (e.g. loaded via matlab array) */
         MatrixProperties(size_t dim, MatrixType type, const SymbolSet& entries);

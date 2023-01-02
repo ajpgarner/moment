@@ -1,7 +1,7 @@
 /**
  * inflation_matrix_system.cpp
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 #include "inflation_matrix_system.h"
 
@@ -10,7 +10,6 @@
 #include "inflation_context.h"
 #include "inflation_explicit_symbols.h"
 #include "inflation_implicit_symbols.h"
-
 
 namespace Moment::Inflation {
     InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class InflationContext> contextIn)
@@ -68,7 +67,6 @@ namespace Moment::Inflation {
             this->explicitSymbols = std::make_unique<InflationExplicitSymbolIndex>(*this, new_max_length);
             this->implicitSymbols = std::make_unique<InflationImplicitSymbols>(*this);
         }
-
 
         MatrixSystem::onNewMomentMatrixCreated(level, mm);
     }

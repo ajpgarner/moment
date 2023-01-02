@@ -5,13 +5,13 @@
  */
 #include "matrix_properties.h"
 
-#include "operator_matrix.h"
+#include "symbolic_matrix.h"
 #include "symbolic/symbol_table.h"
 #include "symbolic/symbol_set.h"
 
 
 namespace Moment {
-    MatrixProperties::MatrixProperties(const OperatorMatrix& matrix, const SymbolTable& table,
+    MatrixProperties::MatrixProperties(const SymbolicMatrix& matrix, const SymbolTable& table,
                                        std::set<symbol_name_t>&& included)
             : dimension{matrix.Dimension()}, included_symbols{std::move(included)}  {
 

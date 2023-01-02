@@ -1,10 +1,11 @@
 /**
  * operator_matrix.h
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 #pragma once
 
+#include "symbolic_matrix.h"
 #include "matrix_properties.h"
 
 #include "scenarios/context.h"
@@ -26,7 +27,7 @@ namespace Moment {
     class MatrixProperties;
 
 
-    class OperatorMatrix {
+    class OperatorMatrix : public SymbolicMatrix {
 
     public:
         class OpSeqMatrix : public SquareMatrix<OperatorSequence> {
@@ -52,34 +53,6 @@ namespace Moment {
 
         private:
             void calculate_hermicity();
-        };
-
-        class SymbolMatrixView {
-        private:
-            const OperatorMatrix& matrix;
-        public:
-            explicit SymbolMatrixView(const OperatorMatrix& theMatrix) noexcept : matrix{theMatrix} { };
-
-            [[nodiscard]] size_t Dimension() const noexcept { return matrix.Dimension(); }
-
-            /**
-            * Return a view (std::span<const SymbolExpression>) to the requested row of the NPA matrix's symbolic
-            * representation. Since std::span also provides an operator[], it is possible to index using
-            * "mySMV[row][col]" notation.
-            * @param row The index of the row to return.
-            * @return A std::span<const SymbolExpression> of the requested row.
-            */
-            std::span<const SymbolExpression> operator[](size_t row) const noexcept {
-                return (*(matrix.sym_exp_matrix))[row];
-            };
-
-            /**
-             * Provides access to square matrix of symbols.
-             */
-            const auto& operator()() const noexcept {
-                return (*(matrix.sym_exp_matrix));
-            }
-
         };
 
         class SequenceMatrixView {
@@ -111,44 +84,14 @@ namespace Moment {
         };
 
 
-    public:
-        /** Defining scenario for matrix (especially: rules for simplifying operator sequences). */
-        const Context& context;
-
-
     protected:
-        /* Look-up key for symbols */
-        SymbolTable& symbol_table;
-
-        /** Square matrix size */
-        size_t dimension = 0;
-
-        /** True, if Hermitian */
-        bool is_hermitian = false;
-
         /** Matrix, as operator sequences */
         std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_matrix;
 
         /** Matrix, as hashes */
         std::unique_ptr<SquareMatrix<uint64_t>> hash_matrix;
 
-        /** Matrix, as symbolic expression */
-        std::unique_ptr<SquareMatrix<SymbolExpression>> sym_exp_matrix;
-
-        /** Symbol matrix properties (basis size, etc.) */
-        std::unique_ptr<MatrixProperties> mat_prop;
-
     public:
-        /**
-         * Table of symbols for entire system.
-         */
-        const SymbolTable& Symbols;
-
-        /**
-         * Matrix, as symbols
-         */
-        SymbolMatrixView SymbolMatrix;
-
         /**
          * Matrix, as operator strings
          */
@@ -159,38 +102,12 @@ namespace Moment {
                                 std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
 
         OperatorMatrix(OperatorMatrix&& rhs) noexcept
-            : context{rhs.context}, symbol_table{rhs.symbol_table},
-            dimension{rhs.dimension}, is_hermitian{rhs.is_hermitian},
+            : SymbolicMatrix{std::move(rhs)},
             op_seq_matrix{std::move(rhs.op_seq_matrix)},
-            sym_exp_matrix{std::move(rhs.sym_exp_matrix)},
-            mat_prop{std::move(rhs.mat_prop)},
-            Symbols{rhs.Symbols}, SymbolMatrix{*this}, SequenceMatrix{*this} { }
+            hash_matrix{std::move(rhs.hash_matrix)},
+            SequenceMatrix{*this} { }
 
-        virtual ~OperatorMatrix() noexcept;
-
-        [[nodiscard]] constexpr size_t Dimension() const noexcept {
-            return this->dimension;
-        }
-
-        [[nodiscard]] constexpr bool IsHermitian() const noexcept {
-            return this->is_hermitian;
-        }
-
-        [[nodiscard]] const MatrixProperties& SMP() const noexcept {
-            assert(this->mat_prop);
-            return *this->mat_prop;
-        }
-
-    private:
-        std::set<symbol_name_t> integrateSymbols();
-
-        std::vector<UniqueSequence> identifyUniqueSequences();
-        std::vector<UniqueSequence> identifyUniqueSequencesHermitian();
-        std::vector<UniqueSequence> identifyUniqueSequencesGeneric();
-
-        std::unique_ptr<SquareMatrix<SymbolExpression>> buildSymbolMatrix();
-        std::unique_ptr<SquareMatrix<SymbolExpression>> buildSymbolMatrixHermitian();
-        std::unique_ptr<SquareMatrix<SymbolExpression>> buildSymbolMatrixGeneric();
+        ~OperatorMatrix() noexcept;
 
     };
 }

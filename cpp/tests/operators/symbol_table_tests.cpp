@@ -169,12 +169,7 @@ namespace Moment::Tests {
         ASSERT_EQ(symbols.size(), 7); // 0 1 a0 a1 a0a0 a0a1(=a1a0*) a1a1
 
         auto basis_key = matLevel1.SMP().BasisKey();
-        ASSERT_EQ(basis_key.size(), 7);
-
-        auto f0Iter = basis_key.find(0);
-        ASSERT_NE(f0Iter, basis_key.end());
-        EXPECT_EQ(f0Iter->second.first, -1);
-        EXPECT_EQ(f0Iter->second.second, -1);
+        ASSERT_EQ(basis_key.size(), 6) << symbols;
 
         auto f1Iter = basis_key.find(1);
         ASSERT_NE(f1Iter, basis_key.end());

@@ -9,6 +9,7 @@ add_library(lib_moment
         matrix/operator_matrix.cpp
         matrix/operator_sequence_generator.cpp
         matrix/matrix_properties.cpp
+        matrix/symbolic_matrix.cpp
         scenarios/context.cpp
         scenarios/explicit_symbols.cpp
         scenarios/implicit_symbols.cpp
@@ -21,6 +22,7 @@ add_library(lib_moment
         scenarios/algebraic/rule_book.cpp
         scenarios/inflation/canonical_observables.cpp
         scenarios/inflation/causal_network.cpp
+        scenarios/inflation/extended_matrix.cpp
         scenarios/inflation/factor_table.cpp
         scenarios/inflation/inflation_context.cpp
         scenarios/inflation/inflation_explicit_symbols.cpp
