@@ -9,6 +9,7 @@
 
 #include "symbolic/symbol_table.h"
 
+#include <algorithm>
 #include <sstream>
 
 namespace Moment::Inflation {
@@ -70,6 +71,7 @@ namespace Moment::Inflation {
             entry.canonical.sequences.reserve(entry.raw.sequences.size());
             entry.canonical.symbols.reserve(entry.raw.sequences.size());
 
+            // Get symbols for each canonical sequence
             for (const auto& factor_raw_seq : entry.raw.sequences) {
                 entry.canonical.sequences.emplace_back(this->context.canonical_moment(factor_raw_seq));
                 const auto& factor_seq = entry.canonical.sequences.back();
@@ -85,6 +87,11 @@ namespace Moment::Inflation {
                     entry.canonical.symbols.emplace_back(new_entry);
                 }
             }
+
+            // Canonical symbols should be sorted in factor entry
+            std::sort(entry.canonical.symbols.begin(), entry.canonical.symbols.end());
+            // Add to index tree
+            this->index_tree.add(entry.canonical.symbols, entry.id);
         }
 
         // Newly added symbols automatically should not factorize, and will be canonical
@@ -97,6 +104,7 @@ namespace Moment::Inflation {
             entry.raw.sequences = std::vector<OperatorSequence>{symbol.sequence()};
             entry.canonical.sequences = std::vector<OperatorSequence>{symbol.sequence()};
             entry.canonical.symbols = std::vector<symbol_name_t>{entry.id};
+            this->index_tree.add(entry.canonical.symbols, entry.id);
         }
 
         // Count factors

@@ -45,6 +45,17 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_I.canonical.sequences[0], OperatorSequence::Identity(context));
         ASSERT_EQ(factors_I.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_I.canonical.symbols[0], 1);
+
+        // Do we find 0 and 1 by factor?
+        auto find_zero = factors.find_index_by_factors({0});
+        ASSERT_TRUE(find_zero.has_value());
+        EXPECT_EQ(find_zero.value(), factors_0.id);
+
+        auto find_one = factors.find_index_by_factors({1});
+        ASSERT_TRUE(find_one.has_value());
+        EXPECT_EQ(find_one.value(), factors_I.id);
+
+
     }
 
 
@@ -69,7 +80,10 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_0.canonical.sequences[0], OperatorSequence::Zero(context));
         ASSERT_EQ(factors_0.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_0.canonical.symbols[0], 0);
-
+        auto find_zero = factors.find_index_by_factors({0});
+        ASSERT_TRUE(find_zero.has_value());
+        EXPECT_EQ(find_zero.value(), factors_0.id);
+        
         // ID
         const auto& factors_I = factors[1];
         EXPECT_EQ(factors_I.id, 1);
@@ -79,6 +93,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_I.canonical.sequences[0], OperatorSequence::Identity(context));
         ASSERT_EQ(factors_I.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_I.canonical.symbols[0], 1);
+        auto find_I = factors.find_index_by_factors({1});
+        ASSERT_TRUE(find_I.has_value());
+        EXPECT_EQ(find_I.value(), factors_I.id);
 
         // A
         const auto& factors_A = factors[2];
@@ -89,6 +106,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_A.canonical.sequences[0], OperatorSequence({0}, context));
         ASSERT_EQ(factors_A.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_A.canonical.symbols[0], 2);
+        auto find_A = factors.find_index_by_factors({2});
+        ASSERT_TRUE(find_A.has_value());
+        EXPECT_EQ(find_A.value(), factors_A.id);
         
         // B
         const auto& factors_B = factors[3];
@@ -99,6 +119,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_B.canonical.sequences[0], OperatorSequence({1}, context));
         ASSERT_EQ(factors_B.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_B.canonical.symbols[0], 3);
+        auto find_B = factors.find_index_by_factors({3});
+        ASSERT_TRUE(find_B.has_value());
+        EXPECT_EQ(find_B.value(), factors_B.id);
 
         // AB -> A, B
         const auto& factors_AB = factors[4];
@@ -112,6 +135,11 @@ namespace Moment::Tests {
         ASSERT_EQ(factors_AB.canonical.symbols.size(), 2);
         EXPECT_EQ(factors_AB.canonical.symbols[0], 2);
         EXPECT_EQ(factors_AB.canonical.symbols[1], 3);
+        auto find_AB = factors.find_index_by_factors({2, 3});
+        ASSERT_TRUE(find_AB.has_value());
+        EXPECT_EQ(find_AB.value(), factors_AB.id);
+      
+
     }
 
     TEST(Operators_Inflation_FactorTable, UnlinkedCVPair) {
@@ -136,6 +164,10 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_0.canonical.sequences[0], OperatorSequence::Zero(context));
         ASSERT_EQ(factors_0.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_0.canonical.symbols[0], 0);
+        auto find_zero = factors.find_index_by_factors({0});
+        ASSERT_TRUE(find_zero.has_value());
+        EXPECT_EQ(find_zero.value(), factors_0.id);
+
 
         // ID
         const auto& factors_I = factors[1];
@@ -146,6 +178,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_I.canonical.sequences[0], OperatorSequence::Identity(context));
         ASSERT_EQ(factors_I.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_I.canonical.symbols[0], 1);
+        auto find_I = factors.find_index_by_factors({1});
+        ASSERT_TRUE(find_I.has_value());
+        EXPECT_EQ(find_I.value(), factors_I.id);
 
         // A
         const auto& factors_A = factors[2];
@@ -156,6 +191,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_A.canonical.sequences[0], OperatorSequence({0}, context));
         ASSERT_EQ(factors_A.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_A.canonical.symbols[0], 2);
+        auto find_A = factors.find_index_by_factors({2});
+        ASSERT_TRUE(find_A.has_value());
+        EXPECT_EQ(find_A.value(), factors_A.id);
 
         // B
         const auto& factors_B = factors[3];
@@ -166,6 +204,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_B.canonical.sequences[0], OperatorSequence({1}, context));
         ASSERT_EQ(factors_B.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_B.canonical.symbols[0], 3);
+        auto find_B = factors.find_index_by_factors({3});
+        ASSERT_TRUE(find_B.has_value());
+        EXPECT_EQ(find_B.value(), factors_B.id);
 
         // AA
         const auto& factors_AA = factors[4];
@@ -176,6 +217,10 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_AA.canonical.sequences[0], OperatorSequence({0, 0}, context));
         ASSERT_EQ(factors_AA.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_AA.canonical.symbols[0], 4);
+        auto find_AA = factors.find_index_by_factors({4});
+        ASSERT_TRUE(find_AA.has_value());
+        EXPECT_EQ(find_AA.value(), factors_AA.id);
+
         
         // AB -> A, B
         const auto& factors_AB = factors[5];
@@ -189,6 +234,9 @@ namespace Moment::Tests {
         ASSERT_EQ(factors_AB.canonical.symbols.size(), 2);
         EXPECT_EQ(factors_AB.canonical.symbols[0], 2);
         EXPECT_EQ(factors_AB.canonical.symbols[1], 3);
+        auto find_AB = factors.find_index_by_factors({2, 3});
+        ASSERT_TRUE(find_AB.has_value());
+        EXPECT_EQ(find_AB.value(), factors_AB.id);
 
         // BB
         const auto& factors_BB = factors[6];
@@ -199,6 +247,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_BB.canonical.sequences[0], OperatorSequence({1, 1}, context));
         ASSERT_EQ(factors_BB.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_BB.canonical.symbols[0], 6);
+        auto find_BB = factors.find_index_by_factors({6});
+        ASSERT_TRUE(find_BB.has_value());
+        EXPECT_EQ(find_BB.value(), factors_BB.id);
     }
 
     TEST(Operators_Inflation_FactorTable, W) {
@@ -218,6 +269,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_0.id, 0);
         ASSERT_EQ(factors_0.raw.sequences.size(), 1);
         EXPECT_EQ(factors_0.raw.sequences[0], OperatorSequence::Zero(context));
+        auto find_zero = factors.find_index_by_factors({0});
+        ASSERT_TRUE(find_zero.has_value());
+        EXPECT_EQ(find_zero.value(), factors_0.id);
 
         // ID
         const auto& factors_I = factors[1];
@@ -228,6 +282,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_I.canonical.sequences[0], OperatorSequence::Identity(context));
         ASSERT_EQ(factors_I.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_I.canonical.symbols[0], 1);
+        auto find_I = factors.find_index_by_factors({1});
+        ASSERT_TRUE(find_I.has_value());
+        EXPECT_EQ(find_I.value(), factors_I.id);
 
         // A
         const auto& factors_A = factors[2];
@@ -238,6 +295,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_A.canonical.sequences[0], OperatorSequence({0}, context));
         ASSERT_EQ(factors_A.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_A.canonical.symbols[0], 2);
+        auto find_A = factors.find_index_by_factors({2});
+        ASSERT_TRUE(find_A.has_value());
+        EXPECT_EQ(find_A.value(), factors_A.id);
 
         // B
         const auto& factors_B = factors[3];
@@ -248,6 +308,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_B.canonical.sequences[0], OperatorSequence({1}, context));
         ASSERT_EQ(factors_B.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_B.canonical.symbols[0], 3);
+        auto find_B = factors.find_index_by_factors({3});
+        ASSERT_TRUE(find_B.has_value());
+        EXPECT_EQ(find_B.value(), factors_B.id);
 
         // C
         const auto& factors_C = factors[4];
@@ -258,6 +321,9 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_C.canonical.sequences[0], OperatorSequence({2}, context));
         ASSERT_EQ(factors_C.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_C.canonical.symbols[0], 4);
+        auto find_C = factors.find_index_by_factors({4});
+        ASSERT_TRUE(find_C.has_value());
+        EXPECT_EQ(find_C.value(), factors_C.id);
 
         // AB -> AB
         const auto& factors_AB = factors[5];
@@ -268,7 +334,10 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_AB.canonical.sequences[0], OperatorSequence({0, 1}, context));
         ASSERT_EQ(factors_AB.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_AB.canonical.symbols[0], 5);
-        
+        auto find_AB = factors.find_index_by_factors({5});
+        ASSERT_TRUE(find_AB.has_value());
+        EXPECT_EQ(find_AB.value(), factors_AB.id);
+
         // AC -> A, C
         const auto& factors_AC = factors[6];
         EXPECT_EQ(factors_AC.id, 6);
@@ -281,6 +350,9 @@ namespace Moment::Tests {
         ASSERT_EQ(factors_AC.canonical.symbols.size(), 2);
         EXPECT_EQ(factors_AC.canonical.symbols[0], 2);
         EXPECT_EQ(factors_AC.canonical.symbols[1], 4);
+        auto find_AC = factors.find_index_by_factors({2, 4});
+        ASSERT_TRUE(find_AC.has_value());
+        EXPECT_EQ(find_AC.value(), factors_AC.id);
 
         // BC -> BC
         const auto& factors_BC = factors[7];
@@ -291,5 +363,8 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_BC.canonical.sequences[0], OperatorSequence({1, 2}, context));
         ASSERT_EQ(factors_BC.canonical.symbols.size(), 1);
         EXPECT_EQ(factors_BC.canonical.symbols[0], 7);
+        auto find_BC = factors.find_index_by_factors({7});
+        ASSERT_TRUE(find_BC.has_value());
+        EXPECT_EQ(find_BC.value(), factors_BC.id);
     }
 }

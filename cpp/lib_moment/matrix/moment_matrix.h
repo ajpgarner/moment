@@ -18,10 +18,13 @@ namespace Moment {
         };
     }
 
+    class OperatorSequenceGenerator;
+
     class MomentMatrix : public OperatorMatrix {
     public:
         /** The Level of moment matrix defined */
         const size_t hierarchy_level;
+
 
     public:
         /**
@@ -44,7 +47,9 @@ namespace Moment {
          */
         [[nodiscard]] constexpr size_t Level() const noexcept { return this->hierarchy_level; }
 
+        /**
+         * The generators associated with this matrix
+         */
+         [[nodiscard]] OperatorSequenceGenerator Generators() const;
     };
-
-
 }

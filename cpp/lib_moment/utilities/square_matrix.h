@@ -135,5 +135,30 @@ namespace Moment {
 
         constexpr iterator end() noexcept { return this->data.end(); }
 
+        /**
+         * Create new square matrix with this matrix as  the principle submatrix.
+         * @param padding The number of 'zeros' to pad with
+         * @param zero Reference 'zero' value.
+         * @return New square matrix of dimension "dimension + padding".
+         */
+        [[nodiscard]] SquareMatrix pad(size_t padding, const element_t zero) const {
+            const size_t new_dimension = this->dimension + padding;
+            storage_t new_data;
+
+            for (size_t i = 0; i < this->dimension; ++i) {
+                const auto old_data_iter = this->data.begin() + (i * this->dimension);
+                const auto old_data_iter_end = this->data.begin() + ((i+1) * this->dimension);
+                // Copy
+                new_data.insert(new_data.end(), old_data_iter, old_data_iter_end);
+                // Pad
+                new_data.insert(new_data.end(), padding, zero);
+            }
+
+            const size_t remaining_zeros = padding * new_dimension;
+            // Pad
+            new_data.insert(new_data.end(), remaining_zeros, zero);
+            return SquareMatrix(new_dimension, std::move(new_data));
+        }
+
     };
 }

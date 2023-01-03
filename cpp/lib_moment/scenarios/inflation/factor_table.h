@@ -7,6 +7,7 @@
 
 #include "integer_types.h"
 #include "scenarios/operator_sequence.h"
+#include "utilities/index_tree.h"
 
 #include <string>
 #include <vector>
@@ -55,6 +56,8 @@ namespace Moment::Inflation {
 
         std::vector<FactorEntry> entries;
 
+        IndexTree<symbol_name_t, symbol_name_t> index_tree;
+
     public:
         /** Create additional factor information, synchronized with symbol table. */
         explicit FactorTable(const InflationContext& context, SymbolTable& symbols);
@@ -70,6 +73,18 @@ namespace Moment::Inflation {
 
         /** Access one entry in factor table by index. */
         [[nodiscard]] const FactorEntry& operator[](size_t index) const noexcept { return this->entries[index]; }
+
+        /** Attempt to find entry by factors */
+        [[nodiscard]] std::optional<symbol_name_t> find_index_by_factors(std::span<const symbol_name_t> factors) const {
+            return this->index_tree.find(factors);
+        }
+
+        /** Attempt to find entry by factors (initializer list) */
+        [[nodiscard]] std::optional<symbol_name_t>
+        find_index_by_factors(std::initializer_list<symbol_name_t> factors) const {
+            std::vector<symbol_name_t> factor_vec(factors);
+            return this->index_tree.find(factor_vec);
+        }
 
     private:
         size_t check_for_new_factors();

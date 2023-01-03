@@ -63,4 +63,8 @@ namespace Moment {
 
     MomentMatrix::~MomentMatrix() = default;
 
+    OperatorSequenceGenerator MomentMatrix::Generators() const {
+        return OperatorSequenceGenerator{this->context, this->Level()};
+    }
+
 }
