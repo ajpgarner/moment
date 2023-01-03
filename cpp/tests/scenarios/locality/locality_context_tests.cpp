@@ -14,7 +14,7 @@
 namespace Moment::Tests {
     using namespace Moment::Locality;
 
-    TEST(Operators_Locality_LocalityContext, Construct_Empty) {
+    TEST(Scenarios_Locality_LocalityContext, Construct_Empty) {
         LocalityContext context{};
         ASSERT_EQ(context.Parties.size(), 0);
         ASSERT_TRUE(context.Parties.empty());
@@ -22,7 +22,7 @@ namespace Moment::Tests {
         EXPECT_EQ(context.size(), 0);
     }
 
-    TEST(Operators_Locality_LocalityContext, Construct_2x2) {
+    TEST(Scenarios_Locality_LocalityContext, Construct_2x2) {
         LocalityContext context(Party::MakeList(2, 2, 2));
         ASSERT_EQ(context.size(), 4);
         ASSERT_EQ(context.Parties.size(), 2);
@@ -77,7 +77,7 @@ namespace Moment::Tests {
         ASSERT_EQ(bob_iter, bob.end());
     }
 
-    TEST(Operators_Locality_LocalityContext, Construct_3_2) {
+    TEST(Scenarios_Locality_LocalityContext, Construct_3_2) {
         LocalityContext context(Party::MakeList({1,1}, {4, 3}));
         ASSERT_EQ(context.size(), 5);
         std::vector<oper_name_t> all_opers{0, 1, 2, 3, 4};
@@ -140,7 +140,7 @@ namespace Moment::Tests {
         ASSERT_EQ(bob_iter, bob.end());
     }
 
-    TEST(Operators_Locality_LocalityContext, Hash) {
+    TEST(Scenarios_Locality_LocalityContext, Hash) {
         LocalityContext context(Party::MakeList(2, 2, 2));
         ASSERT_EQ(context.size(), 4);
         ASSERT_EQ(context.Parties.size(), 2);
@@ -185,7 +185,7 @@ namespace Moment::Tests {
         hashes.insert(b1);
     }
 
-    TEST(Operators_Locality_LocalityContext, Hash_Zero) {
+    TEST(Scenarios_Locality_LocalityContext, Hash_Zero) {
         LocalityContext context(Party::MakeList(2, 2, 2));
         OperatorSequence zero{OperatorSequence::Zero(context)};
         ASSERT_TRUE(zero.zero());
@@ -194,7 +194,7 @@ namespace Moment::Tests {
         EXPECT_EQ(hash, 0);
     }
 
-    TEST(Operators_Locality_LocalityContext, Hash_Identity) {
+    TEST(Scenarios_Locality_LocalityContext, Hash_Identity) {
         LocalityContext context(Party::MakeList(2, 2, 2));
         OperatorSequence identity{OperatorSequence::Identity(context)};
         ASSERT_FALSE(identity.zero());
@@ -203,7 +203,7 @@ namespace Moment::Tests {
         EXPECT_EQ(hash, 1);
     }
 
-    TEST(Operators_Locality_LocalityContext, EnumerateMeasurements) {
+    TEST(Scenarios_Locality_LocalityContext, EnumerateMeasurements) {
         LocalityContext context(Party::MakeList(2, 2, 2));
         ASSERT_EQ(context.Parties.size(), 2);
         const auto& alice = context.Parties[0];

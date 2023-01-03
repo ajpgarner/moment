@@ -13,7 +13,7 @@
 namespace Moment::Tests {
     using namespace Moment::Locality;
 
-    TEST(Operators_Locality_JointMeasurementIterator, BasicIteration) {
+    TEST(Scenarios_Locality_JointMeasurementIterator, BasicIteration) {
         LocalityContext context{Party::MakeList(2, 2, 2)};
 
         ASSERT_EQ(context.Parties.size(), 2);
@@ -89,7 +89,7 @@ namespace Moment::Tests {
         }
     }
 
-    TEST(Operators_Locality_JointMeasurementIterator, OutcomeIterator) {
+    TEST(Scenarios_Locality_JointMeasurementIterator, OutcomeIterator) {
         LocalityContext context{Party::MakeList(2, 1, 2)};
 
         ASSERT_EQ(context.Parties.size(), 2);
@@ -123,7 +123,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_Locality_JointMeasurementIterator, OutcomeIteratorAlternativeConstruction) {
+    TEST(Scenarios_Locality_JointMeasurementIterator, OutcomeIteratorAlternativeConstruction) {
         LocalityContext context{Party::MakeList(2, 1, 2)};
 
         ASSERT_EQ(context.Parties.size(), 2);

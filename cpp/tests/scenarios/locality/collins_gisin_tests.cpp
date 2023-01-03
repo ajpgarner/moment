@@ -14,7 +14,7 @@
 namespace Moment::Tests {
     using namespace Moment::Locality;
 
-    TEST(Operators_Locality_CollinsGisin, CHSH) {
+    TEST(Scenarios_Locality_CollinsGisin, CHSH) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
         const auto& context = system.localityContext;
         const auto& mm = system.create_moment_matrix(1);
@@ -116,7 +116,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Operators_Locality_CollinsGisin, BadIndices) {
+    TEST(Scenarios_Locality_CollinsGisin, BadIndices) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
         const auto& mm = system.create_moment_matrix(1);
         const auto& cgi = system.CollinsGisin();

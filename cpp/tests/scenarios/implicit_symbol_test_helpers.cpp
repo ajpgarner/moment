@@ -7,9 +7,6 @@
 
 #include "gtest/gtest.h"
 
-
-
-
 namespace Moment::Tests {
     void test2Mmt(std::span<const PMODefinition> spanA,
                   symbol_name_t id, symbol_name_t alice,

@@ -11,13 +11,13 @@
 namespace Moment::Tests {
     using namespace Moment::Inflation;
 
-    TEST(Operators_Inflation_CausalNetwork, Empty) {
+    TEST(Scenarios_Inflation_CausalNetwork, Empty) {
         CausalNetwork ic{{}, {}};
         EXPECT_EQ(ic.Observables().size(), 0);
         EXPECT_EQ(ic.Sources().size(), 0);
     }
 
-    TEST(Operators_Inflation_CausalNetwork, Empty_NoSources) {
+    TEST(Scenarios_Inflation_CausalNetwork, Empty_NoSources) {
         CausalNetwork ic{{2, 2}, {}};
         EXPECT_EQ(ic.Observables().size(),2);
         ASSERT_EQ(ic.Sources().size(), 2);
@@ -32,18 +32,18 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Operators_Inflation_CausalNetwork, Empty_NoObservables) {
+    TEST(Scenarios_Inflation_CausalNetwork, Empty_NoObservables) {
         CausalNetwork ic{{}, {{},{},{}}};
         EXPECT_EQ(ic.Observables().size(), 0);
         EXPECT_EQ(ic.Sources().size(), 3);
     }
 
-    TEST(Operators_Inflation_CausalNetwork, Error_BadSource) {
+    TEST(Scenarios_Inflation_CausalNetwork, Error_BadSource) {
         EXPECT_THROW(CausalNetwork({2, 2}, {{1,2}}), errors::bad_source);
     }
 
 
-    TEST(Operators_Inflation_CausalNetwork, Construct_Singleton) {
+    TEST(Scenarios_Inflation_CausalNetwork, Construct_Singleton) {
         CausalNetwork ic{{2}, {{0}}};
         const auto& observables = ic.Observables();
         ASSERT_EQ(observables.size(), 1);
@@ -61,7 +61,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(sources[0].observables.contains(0));
     }
 
-    TEST(Operators_Inflation_CausalNetwork, Construct_Line) {
+    TEST(Scenarios_Inflation_CausalNetwork, Construct_Line) {
         CausalNetwork ic{{2, 2}, {{0, 1}}};
 
         const auto& observables = ic.Observables();
@@ -88,7 +88,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(sources[0].observables.contains(1));
     }
 
-    TEST(Operators_Inflation_CausalNetwork, Construct_Triangle) {
+    TEST(Scenarios_Inflation_CausalNetwork, Construct_Triangle) {
         CausalNetwork ic{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}};
 
         const auto& observables = ic.Observables();
@@ -136,7 +136,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_Inflation_CausalNetwork, Construct_CVLine) {
+    TEST(Scenarios_Inflation_CausalNetwork, Construct_CVLine) {
         CausalNetwork ic{{0, 0}, {{0, 1}}};
 
         const auto& observables = ic.Observables();
@@ -163,7 +163,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(sources[0].observables.contains(1));
     }
 
-    TEST(Operators_Inflation_CausalNetwork, Construct_UnlinkedCVPair) {
+    TEST(Scenarios_Inflation_CausalNetwork, Construct_UnlinkedCVPair) {
         CausalNetwork ic{{0, 0}, {}};
 
         const auto& observables = ic.Observables();
@@ -194,7 +194,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(sources[1].observables.contains(1));
     }
 
-    TEST(Operators_Inflation_CausalNetwork, Construct_LineAndSingleton) {
+    TEST(Scenarios_Inflation_CausalNetwork, Construct_LineAndSingleton) {
         CausalNetwork ic{{2, 2, 2}, {{0, 1}}};
 
         const auto& observables = ic.Observables();
@@ -234,7 +234,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(sources[1].observables.contains(2));
     }
 
-    TEST(Operators_Inflation_CausalNetwork, CountCopies_Pair) {
+    TEST(Scenarios_Inflation_CausalNetwork, CountCopies_Pair) {
         CausalNetwork ic{{2, 3}, {{0, 1}}};
         ASSERT_EQ(ic.Observables().size(), 2);
 
@@ -251,7 +251,7 @@ namespace Moment::Tests {
         EXPECT_EQ(ic.Observables()[1].count_copies(3), 3);
     }
 
-    TEST(Operators_Inflation_CausalNetwork, CountCopies_Triangle) {
+    TEST(Scenarios_Inflation_CausalNetwork, CountCopies_Triangle) {
         CausalNetwork ic{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}};
         ASSERT_EQ(ic.Observables().size(), 3);
 
@@ -271,7 +271,7 @@ namespace Moment::Tests {
         EXPECT_EQ(ic.Observables()[2].count_copies(3), 9);
     }
 
-    TEST(Operators_Inflation_CausalNetwork, CountOperators_Pair) {
+    TEST(Scenarios_Inflation_CausalNetwork, CountScenarios_Pair) {
         CausalNetwork ic{{2, 3}, {{0, 1}}};
         ASSERT_EQ(ic.Observables().size(), 2);
 
@@ -292,7 +292,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_Inflation_CausalNetwork, CountOperators_Triangle) {
+    TEST(Scenarios_Inflation_CausalNetwork, CountScenarios_Triangle) {
         CausalNetwork ic{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}};
         ASSERT_EQ(ic.Observables().size(), 3);
 
@@ -315,7 +315,7 @@ namespace Moment::Tests {
         EXPECT_EQ(ic.total_operator_count(3), 27);
     }
 
-    TEST(Operators_Inflation_CausalNetwork, CountOperators_LineSingleton) {
+    TEST(Scenarios_Inflation_CausalNetwork, CountScenarios_LineSingleton) {
         CausalNetwork ic{{2, 2, 2}, {{0, 1}}};
         ASSERT_EQ(ic.Observables().size(), 3);
 
@@ -342,7 +342,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_Inflation_CausalNetwork, UnflattenIndices_Triangle) {
+    TEST(Scenarios_Inflation_CausalNetwork, UnflattenIndices_Triangle) {
         CausalNetwork ic{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}};
         ASSERT_EQ(ic.Observables().size(), 3);
         const auto& observables = ic.Observables();

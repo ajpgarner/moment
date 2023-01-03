@@ -16,7 +16,7 @@
 namespace Moment::Tests {
     using namespace Moment::Inflation;
 
-    TEST(Operators_Inflation_FactorTable, Empty) {
+    TEST(Scenarios_Inflation_FactorTable, Empty) {
         std::unique_ptr<InflationContext> icPtr
             = std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {{0, 1}}}, 2);
         InflationMatrixSystem ims{std::move(icPtr)};
@@ -59,7 +59,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_Inflation_FactorTable, UnlinkedPair) {
+    TEST(Scenarios_Inflation_FactorTable, UnlinkedPair) {
         std::unique_ptr<InflationContext> icPtr
                 = std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {}}, 1);
         InflationMatrixSystem ims{std::move(icPtr)};
@@ -142,7 +142,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Operators_Inflation_FactorTable, UnlinkedCVPair) {
+    TEST(Scenarios_Inflation_FactorTable, UnlinkedCVPair) {
         std::unique_ptr<InflationContext> icPtr
                 = std::make_unique<InflationContext>(CausalNetwork{{0, 0}, {}}, 1);
         InflationMatrixSystem ims{std::move(icPtr)};
@@ -252,7 +252,7 @@ namespace Moment::Tests {
         EXPECT_EQ(find_BB.value(), factors_BB.id);
     }
 
-    TEST(Operators_Inflation_FactorTable, W) {
+    TEST(Scenarios_Inflation_FactorTable, W) {
         std::unique_ptr<InflationContext> icPtr
                 = std::make_unique<InflationContext>(CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}}}, 1);
         InflationMatrixSystem ims{std::move(icPtr)};

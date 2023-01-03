@@ -15,7 +15,7 @@
 namespace Moment::Tests {
     using namespace Moment::Locality;
 
-    TEST(Operators_Locality_ExplicitSymbols, OnePartyOneMeasurementThreeOutcomes) {
+    TEST(Scenarios_Locality_ExplicitSymbols, OnePartyOneMeasurementThreeOutcomes) {
 
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(1, 1, 3))};
         const auto& context = system.localityContext;
@@ -47,7 +47,7 @@ namespace Moment::Tests {
         EXPECT_EQ(aSpan[1].symbol_id, a1_loc->Id());
     }
 
-    TEST(Operators_Locality_ExplicitSymbols, TwoPartyTwoMeasurementTwoOutcomes) {
+    TEST(Scenarios_Locality_ExplicitSymbols, TwoPartyTwoMeasurementTwoOutcomes) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
         const auto& context = system.localityContext;
         ASSERT_EQ(context.Parties.size(), 2);
@@ -123,7 +123,7 @@ namespace Moment::Tests {
         EXPECT_EQ(bb_span[0].symbol_id, alice_b0_bob_b0->Id());
     }
 
-    TEST(Operators_Locality_ExplicitSymbols, GetWithFixed222) {
+    TEST(Scenarios_Locality_ExplicitSymbols, GetWithFixed222) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
         const auto& context = system.localityContext;
 
@@ -227,7 +227,7 @@ namespace Moment::Tests {
         EXPECT_EQ(freeA1freeB1[0].symbol_id, alice_b0_bob_b0->Id());
     }
 
-    TEST(Operators_Locality_ExplicitSymbols, GetWithFixed223) {
+    TEST(Scenarios_Locality_ExplicitSymbols, GetWithFixed223) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 3))};
         const auto& context = system.localityContext;
         ASSERT_EQ(context.Parties.size(), 2);
@@ -372,7 +372,7 @@ namespace Moment::Tests {
         EXPECT_EQ(freeA1fixB11[1].symbol_id, alice_b1_bob_b1->Id());
     }
 
-    TEST(Operators_Locality_ExplicitSymbols, VariedOutcomes_52_22_32) {
+    TEST(Scenarios_Locality_ExplicitSymbols, VariedOutcomes_52_22_32) {
         std::vector<Party> partyList;
         partyList.emplace_back(0, "a", std::vector{Measurement{"a", 5}, Measurement{"b",2}});
         partyList.emplace_back(1, "b", std::vector{Measurement{"a", 2}, Measurement{"b",2}});

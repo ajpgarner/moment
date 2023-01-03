@@ -3,28 +3,28 @@ include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
 add_executable(moment_tests
     operators/context_tests.cpp
     operators/hashed_sequence_tests.cpp
-    operators/implicit_symbol_test_helpers.cpp
     operators/localizing_matrix_tests.cpp
     operators/multi_operator_iterator_tests.cpp
     operators/moment_matrix_tests.cpp
     operators/operator_sequence_tests.cpp
     operators/operator_sequence_generator_tests.cpp
     operators/symbol_table_tests.cpp
-    operators/algebraic/algebraic_context_tests.cpp
-    operators/algebraic/monomial_substitution_rule_tests.cpp
-    operators/algebraic/rule_book_tests.cpp
-    operators/inflation/canonical_observables_tests.cpp
-    operators/inflation/causal_network_tests.cpp
-    operators/inflation/factor_table_tests.cpp
-    operators/inflation/inflation_context_tests.cpp
-    operators/inflation/inflation_explicit_symbols_tests.cpp
-    operators/inflation/inflation_implicit_symbols_tests.cpp
-    operators/locality/collins_gisin_tests.cpp
-    operators/locality/joint_measurement_iterator_tests.cpp
-    operators/locality/locality_context_tests.cpp
-    operators/locality/locality_explicit_symbols_tests.cpp
-    operators/locality/locality_implicit_symbols_tests.cpp
-    operators/locality/party_tests.cpp
+    scenarios/implicit_symbol_test_helpers.cpp
+    scenarios/algebraic/algebraic_context_tests.cpp
+    scenarios/algebraic/monomial_substitution_rule_tests.cpp
+    scenarios/algebraic/rule_book_tests.cpp
+    scenarios/inflation/canonical_observables_tests.cpp
+    scenarios/inflation/causal_network_tests.cpp
+    scenarios/inflation/factor_table_tests.cpp
+    scenarios/inflation/inflation_context_tests.cpp
+    scenarios/inflation/inflation_explicit_symbols_tests.cpp
+    scenarios/inflation/inflation_implicit_symbols_tests.cpp
+    scenarios/locality/collins_gisin_tests.cpp
+    scenarios/locality/joint_measurement_iterator_tests.cpp
+    scenarios/locality/locality_context_tests.cpp
+    scenarios/locality/locality_explicit_symbols_tests.cpp
+    scenarios/locality/locality_implicit_symbols_tests.cpp
+    scenarios/locality/party_tests.cpp
     symbolic/equality_type_tests.cpp
     symbolic/linear_combo_tests.cpp
     symbolic/symbol_expression_tests.cpp

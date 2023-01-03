@@ -17,7 +17,7 @@
 namespace Moment::Tests {
     using namespace Moment::Inflation;
 
-    TEST(Operators_Inflation_ImplicitSymbols, Empty) {
+    TEST(Scenarios_Inflation_ImplicitSymbols, Empty) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{}, {}}, 1);
         InflationMatrixSystem ims{std::move(icPtr)};
         auto [id, momentMatrix] = ims.create_moment_matrix(1);
@@ -38,7 +38,7 @@ namespace Moment::Tests {
         EXPECT_EQ(&getOne[0], &one);
     }
 
-    TEST(Operators_Inflation_ImplicitSymbols, Singleton) {
+    TEST(Scenarios_Inflation_ImplicitSymbols, Singleton) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 1);
         InflationMatrixSystem ims{std::move(icPtr)};
         auto [id, momentMatrix] = ims.create_moment_matrix(1); // should be [[1 A]; [A A]]
@@ -62,7 +62,7 @@ namespace Moment::Tests {
         test2Mmt(getA, 1, 2);
     }
 
-    TEST(Operators_Inflation_ImplicitSymbols, Singleton_Cloned) {
+    TEST(Scenarios_Inflation_ImplicitSymbols, Singleton_Cloned) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 2);
         InflationMatrixSystem ims{std::move(icPtr)};
         auto [id, momentMatrix] = ims.create_moment_matrix(1);
@@ -86,7 +86,7 @@ namespace Moment::Tests {
         test22JoinMmt(getAAprime, 1, 2, 2, 3, "A0A1");
     }
 
-    TEST(Operators_Inflation_ImplicitSymbols, Pair_OneCV) {
+    TEST(Scenarios_Inflation_ImplicitSymbols, Pair_OneCV) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{2, 0}, {{0, 1}}}, 2);
         InflationMatrixSystem ims{std::move(icPtr)};
         auto [id, momentMatrix] = ims.create_moment_matrix(1);
@@ -94,7 +94,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Operators_Inflation_ImplicitSymbols, Block) {
+    TEST(Scenarios_Inflation_ImplicitSymbols, Block) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 2);
         InflationMatrixSystem ims{std::move(icPtr)};
         auto [id, momentMatrix] = ims.create_moment_matrix(1);

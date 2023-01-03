@@ -13,7 +13,7 @@ namespace Moment::Tests {
 
     using namespace Moment::Inflation;
 
-      TEST(Operators_Inflation_CanonicalObservables, Hash) {
+      TEST(Scenarios_Inflation_CanonicalObservables, Hash) {
         InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2)};
         const auto& ic = ims.InflationContext();
         const auto& co = ims.CanonicalObservables();
@@ -54,7 +54,7 @@ namespace Moment::Tests {
         EXPECT_EQ(a_hashes.size(), 6);
     }
 
-    TEST(Operators_Inflation_CanonicalObservables, Singleton) {
+    TEST(Scenarios_Inflation_CanonicalObservables, Singleton) {
         InflationMatrixSystem ims{
                 std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 1)};
         const auto& ic = ims.InflationContext();
@@ -63,7 +63,7 @@ namespace Moment::Tests {
         ASSERT_EQ(co.size(), 2); // e, A.
     }
 
-    TEST(Operators_Inflation_CanonicalObservables, Singleton_Cloned) {
+    TEST(Scenarios_Inflation_CanonicalObservables, Singleton_Cloned) {
         InflationMatrixSystem ims{
                 std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 2)};
         const auto& ic = ims.InflationContext();
@@ -74,7 +74,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_Inflation_CanonicalObservables, CVPair) {
+    TEST(Scenarios_Inflation_CanonicalObservables, CVPair) {
         InflationMatrixSystem ims{
                 std::make_unique<InflationContext>(CausalNetwork{{0, 0}, {{0, 1}}}, 1)};
         const auto& ic = ims.InflationContext();
@@ -140,7 +140,7 @@ namespace Moment::Tests {
         EXPECT_EQ(all_indices.size(), 6);
     }
 
-    TEST(Operators_Inflation_CanonicalObservables, PairSingleton) {
+    TEST(Scenarios_Inflation_CanonicalObservables, PairSingleton) {
         InflationMatrixSystem ims{
                 std::make_unique<InflationContext>(CausalNetwork{{2, 2, 0}, {{0, 1}}}, 1)};
         const auto& ic = ims.InflationContext();
@@ -229,7 +229,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_Inflation_CanonicalObservables, AliasTriangle) {
+    TEST(Scenarios_Inflation_CanonicalObservables, AliasTriangle) {
         InflationMatrixSystem ims{
                 std::make_unique<InflationContext>(CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2)};
         const auto& ic = ims.InflationContext();

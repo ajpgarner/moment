@@ -16,7 +16,7 @@ namespace Moment::Tests {
     using namespace Moment::Inflation;
 
 
-    TEST(Operators_Inflation_ExplicitSymbols, W) {
+    TEST(Scenarios_Inflation_ExplicitSymbols, W) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{2, 2, 3}, {{0, 1}, {1, 2}}}, 2);
         InflationMatrixSystem ims{std::move(icPtr)};
         auto [id, momentMatrix] = ims.create_moment_matrix(2);
@@ -109,7 +109,7 @@ namespace Moment::Tests {
         EXPECT_EQ(s_abc[1].symbol_id, a0b0c1Ptr->Id());
     }
 
-    TEST(Operators_Inflation_ExplicitSymbols, SingletonPair) {
+    TEST(Scenarios_Inflation_ExplicitSymbols, SingletonPair) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{2, 2, 0}, {{0, 1}}}, 2);
         InflationMatrixSystem ims{std::move(icPtr)};
         auto [id, momentMatrix] = ims.create_moment_matrix(2);

@@ -31,12 +31,12 @@ namespace Moment::Tests {
         }
     }
 
-    TEST(Operators_Inflation_InflationContext, Construct_Empty) {
+    TEST(Scenarios_Inflation_InflationContext, Construct_Empty) {
         InflationContext ic{CausalNetwork{{}, {}}, 1};
         EXPECT_EQ(ic.size(), 0);
     }
 
-    TEST(Operators_Inflation_InflationContext, Construct_Pair) {
+    TEST(Scenarios_Inflation_InflationContext, Construct_Pair) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 1};
         ASSERT_EQ(ic.size(), 3);
         EXPECT_EQ(ic.source_variant_count(), 1);
@@ -73,7 +73,7 @@ namespace Moment::Tests {
         EXPECT_EQ(yy[0], 1);
     }
 
-    TEST(Operators_Inflation_InflationContext, Construct_CVPair) {
+    TEST(Scenarios_Inflation_InflationContext, Construct_CVPair) {
         InflationContext ic{CausalNetwork{{0, 0}, {{0, 1}}}, 1};
         ASSERT_EQ(ic.size(), 2); // X, Y
         EXPECT_EQ(ic.source_variant_count(), 1);
@@ -114,7 +114,7 @@ namespace Moment::Tests {
         EXPECT_EQ(yy[1], 1);
     }
 
-    TEST(Operators_Inflation_InflationContext, Construct_InflatedCVPair) {
+    TEST(Scenarios_Inflation_InflationContext, Construct_InflatedCVPair) {
         InflationContext ic{CausalNetwork{{0, 0}, {{0, 1}}}, 2};
         ASSERT_EQ(ic.size(), 4); // X0, X1, Y0, Y1
         ASSERT_EQ(ic.source_variant_count(), 2);
@@ -197,7 +197,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_Inflation_InflationContext, Construct_UnlinkedCVPair) {
+    TEST(Scenarios_Inflation_InflationContext, Construct_UnlinkedCVPair) {
         InflationContext ic{CausalNetwork{{0, 0}, {}}, 2};
         ASSERT_EQ(ic.size(), 2); // X, Y
         EXPECT_EQ(ic.source_variant_count(), 2); // two, implicit sources, not inflated
@@ -259,7 +259,7 @@ namespace Moment::Tests {
         EXPECT_EQ(yy[1], 1);
     }
 
-    TEST(Operators_Inflation_InflationContext, NumberOperators) {
+    TEST(Scenarios_Inflation_InflationContext, NumberOperators) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 2};
         ASSERT_EQ(ic.size(), 6);
         ASSERT_EQ(ic.Observables()[0].count_copies(2), 2);
@@ -279,7 +279,7 @@ namespace Moment::Tests {
         ASSERT_EQ(found_opers.size(), 6);
     }
 
-    TEST(Operators_Inflation_InflationContext, Sequence_Commute) {
+    TEST(Scenarios_Inflation_InflationContext, Sequence_Commute) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 2};
 
         auto A0_0 = ic.operator_number(0, 0, 0);
@@ -294,7 +294,7 @@ namespace Moment::Tests {
         EXPECT_EQ(OperatorSequence({B_0, A1_1}, ic), OperatorSequence({A1_1, B_0}, ic));
     }
 
-    TEST(Operators_Inflation_InflationContext, Sequence_Orthogonal) {
+    TEST(Scenarios_Inflation_InflationContext, Sequence_Orthogonal) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 2};
 
         auto A0_0 = ic.operator_number(0, 0, 0);
@@ -308,7 +308,7 @@ namespace Moment::Tests {
         EXPECT_NE(OperatorSequence({A0_1, A1_0}, ic), OperatorSequence::Zero(ic));
     }
 
-    TEST(Operators_Inflation_InflationContext, Sequence_Projector) {
+    TEST(Scenarios_Inflation_InflationContext, Sequence_Projector) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0, 1}}}, 2};
 
         auto A0 = ic.operator_number(0, 0, 0);
@@ -323,7 +323,7 @@ namespace Moment::Tests {
         EXPECT_EQ(OperatorSequence({A0, A0, A1}, ic), OperatorSequence({A0, A1}, ic));
     }
 
-    TEST(Operators_Inflation_InflationContext, ObservableVariants_Pair) {
+    TEST(Scenarios_Inflation_InflationContext, ObservableVariants_Pair) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0, 1}}}, 2};
         ASSERT_EQ(ic.Observables().size(), 2);
         const auto& obsA = ic.Observables()[0];
@@ -367,7 +367,7 @@ namespace Moment::Tests {
         EXPECT_EQ(B1_sv_iter->second, 1);
     }
 
-    TEST(Operators_Inflation_InflationContext, ObservableVariants_Triangle) {
+    TEST(Scenarios_Inflation_InflationContext, ObservableVariants_Triangle) {
         InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
         ASSERT_EQ(ic.Observables().size(), 3);
         const auto& obsA = ic.Observables()[0];
@@ -427,7 +427,7 @@ namespace Moment::Tests {
         EXPECT_EQ(A3_sv_iter->second, 1);
     }
 
-    TEST(Operators_Inflation_InflationContext, VariantIndexing_Triangle) {
+    TEST(Scenarios_Inflation_InflationContext, VariantIndexing_Triangle) {
         InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
 
         ASSERT_EQ(ic.observable_variant_count(), 12); // A00, A01, ... B00, ...
@@ -440,7 +440,7 @@ namespace Moment::Tests {
         }
     }
 
-    TEST(Operators_Inflation_InflationContext, ObservableIndependence_Pair) {
+    TEST(Scenarios_Inflation_InflationContext, ObservableIndependence_Pair) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0, 1}}}, 2};
         const auto& obsA = ic.Observables()[0];
         const auto& obsA_V0 = obsA.variant(std::vector<oper_name_t>{0});
@@ -475,7 +475,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(obsB_V1.independent(obsB_V1));
     }
 
-    TEST(Operators_Inflation_InflationContext, ObservableIndependence_Triangle) {
+    TEST(Scenarios_Inflation_InflationContext, ObservableIndependence_Triangle) {
         InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
         ASSERT_EQ(ic.Observables().size(), 3);
 
@@ -563,7 +563,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_Inflation_InflationContext, Factorize_Pair) {
+    TEST(Scenarios_Inflation_InflationContext, Factorize_Pair) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0, 1}}}, 2};
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
@@ -636,7 +636,7 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_b0b1[1], OperatorSequence({id_b1}, ic));
     }
 
-    TEST(Operators_Inflation_InflationContext, Factorize_CVPair) {
+    TEST(Scenarios_Inflation_InflationContext, Factorize_CVPair) {
         InflationContext ic{CausalNetwork{{0, 0}, {{0, 1}}}, 1};
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
@@ -682,7 +682,7 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_b0b0[0], OperatorSequence({id_b0, id_b0}, ic));
     }
 
-    TEST(Operators_Inflation_InflationContext, Factorize_CVUnlinkedPair) {
+    TEST(Scenarios_Inflation_InflationContext, Factorize_CVUnlinkedPair) {
         InflationContext ic{CausalNetwork{{0, 0}, {}}, 1};
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
@@ -729,7 +729,7 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_b0b0[0], OperatorSequence({id_b0, id_b0}, ic));
     }
 
-    TEST(Operators_Inflation_InflationContext, Factorize_PairSingleton) {
+    TEST(Scenarios_Inflation_InflationContext, Factorize_PairSingleton) {
         InflationContext ic{CausalNetwork{{2, 2, 0}, {{0,1}}}, 1};
         ASSERT_EQ(ic.Observables().size(), 3);
         const auto& obsA = ic.Observables()[0];
@@ -801,7 +801,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Operators_Inflation_InflationContext, Factorize_InflatedCVPair) {
+    TEST(Scenarios_Inflation_InflationContext, Factorize_InflatedCVPair) {
         InflationContext ic{CausalNetwork{{0, 0}, {{0, 1}}}, 2};
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
@@ -896,7 +896,7 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_b0b1[1], OperatorSequence({id_b1}, ic));
     }
 
-    TEST(Operators_Inflation_InflationContext, Factorize_W) {
+    TEST(Scenarios_Inflation_InflationContext, Factorize_W) {
         InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}}}, 1};
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
@@ -932,7 +932,7 @@ namespace Moment::Tests {
         EXPECT_EQ(factors_abc[0], OperatorSequence({id_a, id_b, id_c}, ic));
     }
 
-    TEST(Operators_Inflation_InflationContext, Factorize_Triangle) {
+    TEST(Scenarios_Inflation_InflationContext, Factorize_Triangle) {
         InflationContext ic{CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2};
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
@@ -1032,7 +1032,7 @@ namespace Moment::Tests {
         expect_doesnt_factorize(ic, {id_b11, id_c11});
     }
 
-    TEST(Operators_Inflation_InflationContext, CanonicalMoment_Pair) {
+    TEST(Scenarios_Inflation_InflationContext, CanonicalMoment_Pair) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0, 1}}}, 2};
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
@@ -1083,7 +1083,7 @@ namespace Moment::Tests {
         EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a1_1, b0}, ic}), OperatorSequence({a0_1, b1}, ic));
     }
 
-    TEST(Operators_Inflation_InflationContext, CanonicalMoment_TwoSourceTwoObs) {
+    TEST(Scenarios_Inflation_InflationContext, CanonicalMoment_TwoSourceTwoObs) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2};
 
         const auto& obsA = ic.Observables()[0];
@@ -1141,7 +1141,7 @@ namespace Moment::Tests {
         EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a10, a00}, ic}), OperatorSequence({a00, a10}, ic));
     }
 
-    TEST(Operators_Inflation_InflationContext, CanonicalVariants_TwoSourceTwoObs) {
+    TEST(Scenarios_Inflation_InflationContext, CanonicalVariants_TwoSourceTwoObs) {
         InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2}; // A00,A01,A10,A11,B0,B1
 
         ASSERT_EQ(ic.observable_variant_count(), 6);
@@ -1175,7 +1175,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_Locality_LocalityContext, UnflattenOutcomeIndex) {
+    TEST(Scenarios_Locality_LocalityContext, UnflattenOutcomeIndex) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0}, {0, 1}}}, 2}; // mmts: A00, A01, A10, A11, B0, B1
         ASSERT_EQ(ic.observable_variant_count(), 6);
 
@@ -1242,7 +1242,7 @@ namespace Moment::Tests {
         EXPECT_EQ(ovo_21[1].outcome, 1);
     }
 
-    TEST(Operators_Locality_LocalityContext, FlattenOutcomeIndex) {
+    TEST(Scenarios_Locality_LocalityContext, FlattenOutcomeIndex) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0}, {0, 1}}}, 2}; // mmts: A00, A01, A10, A11, B0, B1
         ASSERT_EQ(ic.observable_variant_count(), 6);
 
