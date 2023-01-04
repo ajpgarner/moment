@@ -64,7 +64,6 @@ namespace Moment::mex::functions {
     GenerateBasisParams::GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine,
                                              Moment::mex::SortedInputs &&structuredInputs)
         : SortedInputs(std::move(structuredInputs)) {
-
         // First, have we specified a reference? If so...
         if (this->inputs.size() == 2) {
             this->input_mode = InputMode::MatrixSystemReference;

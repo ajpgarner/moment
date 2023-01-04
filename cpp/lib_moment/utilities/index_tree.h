@@ -7,6 +7,7 @@
 
 #include <cassert>
 
+#include <algorithm>
 #include <concepts>
 #include <optional>
 #include <span>

@@ -59,9 +59,7 @@ namespace Moment::mex {
     [[nodiscard]] uint64_t read_as_uint64(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
 
     template<std::integral int_t>
-    inline int_t read_as_scalar(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
-        static_assert(false); // <- Should never be compiled.
-    }
+    inline int_t read_as_scalar(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
 
     template<>
     inline int16_t read_as_scalar<int16_t>(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
