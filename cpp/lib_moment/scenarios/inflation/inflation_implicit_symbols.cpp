@@ -129,7 +129,6 @@ namespace Moment::Inflation {
 
             const size_t level = canonicalObservable.indices.size();
             SymbolCombo::map_t  symbolComboData;
-            //SymbolCombo::data_t symbolComboData;
             double the_sign = (num_implicit % 2 == 0) ? +1. : -1.;
             for (size_t missing_index = num_implicit; missing_index > 0; --missing_index) {
                 PartitionIterator partitions{num_implicit, missing_index};
