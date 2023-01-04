@@ -136,7 +136,7 @@ namespace Moment::Inflation {
 
                     // Build measurement index query:
                     std::vector<size_t> lookupIndices;
-                    std::vector<symbol_name_t> outcomeIndices;
+                    std::vector<oper_name_t> outcomeIndices;
                     size_t mNum = 0;
                     for (size_t i = 0; i < level; ++i) {
                         if (outcomeIter.implicit(i)) {
@@ -169,7 +169,7 @@ namespace Moment::Inflation {
             // Finally, find the "Normalization" term
             assert(the_sign == 1); // If correctly alternating, normalization should be positive always.
             std::vector<size_t> normIndices;
-            std::vector<symbol_name_t> normOutcomes;
+            std::vector<oper_name_t> normOutcomes;
             for (size_t i = 0; i < level; ++i) {
                 if (!outcomeIter.implicit(i)) {
                     normIndices.push_back(canonicalObservable.flattened_indices[i]);

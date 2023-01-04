@@ -16,7 +16,7 @@ namespace Moment::mex::functions  {
 
     struct MomentMatrixParams : public OperatorMatrixParams {
     public:
-        unsigned long hierarchy_level = 0;
+        size_t hierarchy_level = 0;
     public:
         explicit MomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs)
             : OperatorMatrixParams(matlabEngine, std::move(inputs)) { }

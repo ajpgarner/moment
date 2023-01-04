@@ -18,7 +18,7 @@ namespace Moment::Tests {
         MatrixSystem system{std::make_unique<Context>(1)}; //One symbol
         const auto& context = system.Context();
 
-        auto theOp = 0; // context[0];
+        oper_name_t theOp = 0; // context[0];
 
         ASSERT_EQ(context.size(), 1);
 

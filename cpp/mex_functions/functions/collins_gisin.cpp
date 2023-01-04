@@ -11,7 +11,9 @@
 
 #include "storage_manager.h"
 
+#include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
+
 #include "mex.hpp"
 
 
@@ -106,7 +108,7 @@ namespace Moment::mex::functions  {
             : SortedInputs(std::move(inputIn)) {
 
         // Get matrix system class
-        this->matrix_system_key = read_positive_integer(matlabEngine, "Reference id", this->inputs[0], 0);
+        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "Reference id", this->inputs[0], 0);
 
         // See if output type is set
         if (this->flags.contains(u"symbols")) {

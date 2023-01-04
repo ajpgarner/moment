@@ -25,10 +25,10 @@ namespace Moment::Tests {
 
         // Operator IDs
         ASSERT_EQ(context.Observables().size(), 3);
-        const auto a0 = context.Observables()[0].operator_offset;
-        const auto b0 = context.Observables()[1].operator_offset;
-        const auto c0 = context.Observables()[2].operator_offset;
-        const auto c1 = context.Observables()[2].operator_offset + 1;
+        oper_name_t a0 = context.Observables()[0].operator_offset;
+        oper_name_t b0 = context.Observables()[1].operator_offset;
+        oper_name_t c0 = context.Observables()[2].operator_offset;
+        oper_name_t c1 = context.Observables()[2].operator_offset + 1;
 
         const auto* ePtr = symbols.where(OperatorSequence::Identity(context));
 

@@ -10,20 +10,22 @@
 
 #include "fragments/export_symbol_table.h"
 
-#include "utilities/read_as_scalar.h"
-#include "utilities/reporting.h"
 #include "utilities/io_parameters.h"
+#include "utilities/read_as_scalar.h"
+#include "utilities/read_as_vector.h"
+#include "utilities/reporting.h"
 
 namespace Moment::mex::functions {
 
 
     SymbolTableParams::SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)
         : SortedInputs(std::move(rawInput)) {
-        this->storage_key = read_positive_integer(matlabEngine, "MatrixSystem reference", this->inputs[0], 0);
+        this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference", this->inputs[0], 0);
 
         auto fromIter = this->params.find(u"from");
         if (fromIter != this->params.end()) {
-            this->from_id = read_positive_integer(matlabEngine, "Symbol lower bound", fromIter->second, 0);
+            this->from_id = read_positive_integer<symbol_name_t>(matlabEngine, "Symbol lower bound",
+                                                                 fromIter->second, 0);
             this->output_mode = OutputMode::FromId;
             if (this->inputs.size() > 1) {
                 throw_error(matlabEngine, errors::too_many_inputs,
@@ -34,8 +36,8 @@ namespace Moment::mex::functions {
 
         if (this->inputs.size() > 1) {
             this->output_mode = OutputMode::SearchBySequence;
-            std::vector<uint64_t> raw_op_seq = read_positive_integer_array(matlabEngine, "Operator sequence",
-                                                                           this->inputs[1], 1);
+            std::vector<uint64_t> raw_op_seq = read_positive_integer_array<uint64_t>(matlabEngine, "Operator sequence",
+                                                                                     this->inputs[1], 1);
             this->sequence.reserve(raw_op_seq.size());
             for (auto ui : raw_op_seq) {
                 this->sequence.emplace_back(ui - 1);

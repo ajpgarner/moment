@@ -1,7 +1,7 @@
 /**
  * io_parameters.h
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  *
  */
 #pragma once
@@ -127,53 +127,6 @@ namespace Moment::mex {
 
         [[nodiscard]] virtual std::string to_string() const;
 
-    public:
-        /**
-         * Read integer, or throw BadInput exception.
-         * @param matlabEngine Reference to engine.
-         * @param paramName Parameter/input name, as will appear in failure error message.
-         * @param array The array to attempt to parse as a scalar integer.
-         * @param min_value The minimum acceptable value of the integer.
-         * @return The parsed integer.
-         */
-        static uint64_t read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
-                                          const std::string& paramName, const matlab::data::Array& array,
-                                          uint64_t  min_value = 0);
-
-        /**
-         * Read integer array, or throw BadInput exception.
-         * @param matlabEngine Reference to engine.
-         * @param paramName Parameter/input name, as will appear in failure error message.
-         * @param array The array to attempt to parse as a scalar integer.
-         * @param min_value The minimum acceptable value of the integer.
-         * @return The parsed vector of integers.
-         */
-        static std::vector<uint64_t> read_positive_integer_array(matlab::engine::MATLABEngine &matlabEngine,
-                                          const std::string& paramName, const matlab::data::Array& array,
-                                          uint64_t min_value = 0);
-
-        /**
-         * Read integer array, or throw BadInput exception.
-         * @param matlabEngine Reference to engine.
-         * @param paramName Parameter/input name, as will appear in failure error message.
-         * @param array The array to attempt to parse as a scalar integer.
-         * @param min_value The minimum acceptable value of the integer.
-         * @return The parsed integer.
-         */
-        static std::vector<int64_t> read_integer_array(matlab::engine::MATLABEngine &matlabEngine,
-                                                       const std::string& paramName, const matlab::data::Array& array);
-
-        /**
-         * Read integer, or throw BadInput exception.
-         * @param matlabEngine Reference to engine.
-         * @param paramName Parameter/input name, as will appear in failure error message.
-         * @param array The array to attempt to parse as a scalar integer.
-         * @param min_value The minimum acceptable value of the integer.
-         * @return The parsed integer.
-         */
-        static uint64_t read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
-                                          const std::string& paramName, const matlab::data::MATLABString& mlString,
-                                          uint64_t  min_value = 0);
     };
 
 }

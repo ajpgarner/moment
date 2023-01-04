@@ -11,6 +11,7 @@
 #include "scenarios/locality/locality_matrix_system.h"
 
 #include "utilities/read_as_scalar.h"
+#include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"
 #include "utilities/io_parameters.h"
 #include "utilities/persistent_storage.h"
@@ -54,8 +55,8 @@ namespace Moment::mex::functions {
         // Read and check number of parties, or default to 1
         auto party_param = params.find(u"parties");
         if (party_param != params.end()) {
-            this->number_of_parties = read_positive_integer(matlabEngine, "Parameter 'parties'",
-                                                      party_param->second, 1);
+            this->number_of_parties = read_positive_integer<size_t>(matlabEngine, "Parameter 'parties'",
+                                                                    party_param->second, 1);
         } else {
             this->number_of_parties = 1;
         }
@@ -89,8 +90,8 @@ namespace Moment::mex::functions {
         }
 
         // Get number of parties
-        this->number_of_parties = read_positive_integer(matlabEngine, "Party count",
-                                                      inputs[0], 1);
+        this->number_of_parties = read_positive_integer<size_t>(matlabEngine, "Party count",
+                                                                inputs[0], 1);
 
         // Read measurements (if any) and operator count
         if (inputs.size() == 3) {
@@ -110,14 +111,12 @@ namespace Moment::mex::functions {
 
         const size_t num_elems = input.getNumberOfElements();
         if (1 == num_elems) {
-            size_t flat_mmts_per_party = read_positive_integer(matlabEngine, paramName,
-                                                               input, 1);
+            size_t flat_mmts_per_party = read_positive_integer<size_t>(matlabEngine, paramName, input, 1);
 
             std::fill_n(std::back_inserter(this->mmts_per_party), number_of_parties, flat_mmts_per_party);
             this->total_measurements = this->number_of_parties * flat_mmts_per_party;
         } else if (number_of_parties == num_elems) {
-            this->mmts_per_party = read_positive_integer_array(matlabEngine, paramName,
-                                                               input, 1);
+            this->mmts_per_party = read_positive_integer_array<size_t>(matlabEngine, paramName, input, 1);
             this->total_measurements = std::accumulate(mmts_per_party.cbegin(), mmts_per_party.cend(),
                                                        static_cast<uint64_t>(0));
         } else {
@@ -133,12 +132,12 @@ namespace Moment::mex::functions {
 
         const size_t num_elems = input.getNumberOfElements();
         if (1 == num_elems) {
-            size_t flat_outcomes_per_mmt = read_positive_integer(matlabEngine, paramName, input, 1);
+            size_t flat_outcomes_per_mmt = read_positive_integer<size_t>(matlabEngine, paramName, input, 1);
             std::fill_n(std::back_inserter(this->outcomes_per_mmt),
                         this->total_measurements, flat_outcomes_per_mmt);
 
         } else if (this->total_measurements == num_elems) {
-            this->outcomes_per_mmt = read_positive_integer_array(matlabEngine, paramName, input, 1);
+            this->outcomes_per_mmt = read_positive_integer_array<size_t>(matlabEngine, paramName, input, 1);
         } else {
             throw errors::BadInput{errors::bad_param,
                paramName + " should either be a scalar, or an array with one value per measurement."};

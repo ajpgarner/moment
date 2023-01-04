@@ -205,7 +205,7 @@ namespace Moment::Locality {
 
                         // Build measurement index query:
                         std::vector<size_t> lookupIndices;
-                        std::vector<symbol_name_t> outcomeIndices;
+                        std::vector<oper_name_t> outcomeIndices;
                         size_t mNum = 0;
                         for (size_t i = 0; i < level; ++i) {
                             if (outcomeIter.implicit(i)) {
@@ -235,11 +235,11 @@ namespace Moment::Locality {
                 // Finally, find the "Normalization" term
                 assert(the_sign == 1); // If correctly alternating, normalization should be positive always.
                 std::vector<size_t> normIndices;
-                std::vector<symbol_name_t> normOutcomes;
+                std::vector<oper_name_t> normOutcomes;
                 for (size_t i = 0; i < level; ++i) {
                     if (!outcomeIter.implicit(i)) {
                         normIndices.push_back(stack.global_indices()[i]);
-                        normOutcomes.push_back(static_cast<symbol_name_t>(outcomeIter[i]));
+                        normOutcomes.push_back(static_cast<oper_name_t>(outcomeIter[i]));
                     }
                 }
                 auto normMmtSpan = this->esiForm.get(normIndices, normOutcomes);

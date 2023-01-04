@@ -5,6 +5,7 @@
  */
 #include "release.h"
 
+#include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 
 namespace Moment::mex::functions {
@@ -16,7 +17,7 @@ namespace Moment::mex::functions {
         if (this->params.contains(u"matrix_system")) {
             this->type = StorableType::MatrixSystem;
             auto mmIter = this->find_or_throw(u"matrix_system");
-            this->key = read_positive_integer(matlab, "Parameter 'matrix_system'", mmIter, 0);
+            this->key = read_positive_integer<uint64_t>(matlab, "Parameter 'matrix_system'", mmIter, 0);
             if (!storage.MatrixSystems.check_signature(this->key)) {
                 throw errors::BadInput(errors::bad_param, "Object key is not to object of requested type.");
             }

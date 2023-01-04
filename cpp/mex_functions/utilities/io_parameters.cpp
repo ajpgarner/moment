@@ -1,7 +1,7 @@
 /**
  * io_parameters.cpp
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 
 #include "utilities/read_as_scalar.h"
@@ -128,7 +128,6 @@ namespace Moment::mex {
         }
     }
 
-
     matlab::data::Array& SortedInputs::find_or_throw(const ParamNameStr& paramName) {
         auto param_iter = this->params.find(paramName);
         if (param_iter == this->params.end()) {
@@ -138,104 +137,6 @@ namespace Moment::mex {
             throw errors::BadInput(errors::missing_param, ss.str());
         }
         return param_iter->second;
-    }
-
-    uint64_t SortedInputs::read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
-                                                                  const std::string &paramName,
-                                                                  const matlab::data::Array &array,
-                                                                  uint64_t  min_value) {
-        if (!castable_to_scalar_int(array)) {
-            std::stringstream ss;
-            ss << paramName << " should be a scalar positive integer.";
-            throw errors::BadInput{errors::bad_param, ss.str()};
-        }
-
-        try {
-            auto val = read_as_uint64(matlabEngine, array);
-            if (val < min_value) {
-                std::stringstream ss;
-                ss << paramName << " must have a value of at least "
-                   << min_value << ".";
-                throw errors::BadInput{errors::bad_param, ss.str()};
-            }
-            return val;
-
-        } catch (const errors::unreadable_scalar& use) {
-            std::stringstream ss;
-            ss << paramName << " could not be read: " << use.what();
-            throw errors::BadInput{use.errCode, ss.str()};
-        }
-    }
-
-    std::vector<uint64_t>
-    SortedInputs::read_positive_integer_array(matlab::engine::MATLABEngine &matlabEngine, const std::string &paramName,
-                                              const matlab::data::Array &array, uint64_t min_value) {
-
-        if (!castable_to_vector_int(array)) {
-            std::stringstream ss;
-            ss << paramName << " should be a vector of positive integers.";
-            throw errors::BadInput{errors::bad_param, ss.str()};
-        }
-
-        try {
-            auto vec = read_as_uint64_vector(matlabEngine, array);
-            for (const auto& val : vec) {
-                if (val < min_value) {
-                    std::stringstream ss;
-                    ss << "All elements of " << paramName << " must have a value of at least "
-                       << min_value << ".";
-                    throw errors::BadInput{errors::bad_param, ss.str()};
-                }
-            }
-
-            return vec;
-        } catch (const errors::unreadable_vector& use) {
-            std::stringstream ss;
-            ss << paramName << " could not be read: " << use.what();
-            throw errors::BadInput{use.errCode, ss.str()};
-        }
-    }
-
-    std::vector<int64_t>
-    SortedInputs::read_integer_array(matlab::engine::MATLABEngine &matlabEngine,
-                                     const std::string &paramName,
-                                     const matlab::data::Array &array) {
-
-        if (!castable_to_vector_int(array)) {
-            std::stringstream ss;
-            ss << paramName << " should be a vector of positive integers.";
-            throw errors::BadInput{errors::bad_param, ss.str()};
-        }
-
-        try {
-            auto vec = read_as_int64_vector(matlabEngine, array);
-            return vec;
-        } catch (const errors::unreadable_vector& use) {
-            std::stringstream ss;
-            ss << paramName << " could not be read: " << use.what();
-            throw errors::BadInput{use.errCode, ss.str()};
-        }
-    }
-
-    uint64_t SortedInputs::read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
-                                                 const std::string &paramName,
-                                                 const matlab::data::MATLABString &mlString,
-                                                 uint64_t min_value) {
-        try {
-            auto val = read_as_uint64(matlabEngine, mlString);
-            if (val < min_value) {
-                std::stringstream ss;
-                ss << paramName << " must have a value of at least "
-                   << min_value << ".";
-                throw errors::BadInput{errors::bad_param, ss.str()};
-            }
-            return val;
-
-        } catch (const errors::unreadable_scalar& use) {
-            std::stringstream ss;
-            ss << paramName << " could not be read: " << use.what();
-            throw errors::BadInput{use.errCode, ss.str()};
-        }
     }
 
     std::string SortedInputs::to_string() const {

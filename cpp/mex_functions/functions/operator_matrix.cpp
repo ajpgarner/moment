@@ -9,6 +9,7 @@
 
 #include "matrix/operator_matrix.h"
 
+#include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 #include "fragments/export_operator_matrix.h"
 
@@ -43,7 +44,7 @@ namespace Moment::mex::functions  {
 
             // Get ref id
             auto& ref_param = this->find_or_throw(u"reference_id");
-            this->storage_key = read_positive_integer(matlabEngine, "Parameter 'reference_id'", ref_param, 0);
+            this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'reference_id'", ref_param, 0);
 
             // Extra parsing
             this->extra_parse_params(matlabEngine);
@@ -62,7 +63,7 @@ namespace Moment::mex::functions  {
             throw errors::BadInput{errors::too_many_inputs,
                                    "Input should be provided in form: " + this->input_format()};
         }
-        this->storage_key = read_positive_integer(matlabEngine, "MatrixSystem reference", inputs[0], 0);
+        this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference", inputs[0], 0);
 
         // Extra parsing
         this->extra_parse_inputs(matlabEngine);
@@ -77,12 +78,12 @@ namespace Moment::mex::functions  {
         assert(inputs.empty()); // Should be guaranteed by parent.
         // Get depth
         auto& index_param = this->find_or_throw(u"index");
-        this->matrix_index = read_positive_integer(matlabEngine, "Parameter 'index'", index_param, 0);
+        this->matrix_index = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'index'", index_param, 0);
     }
 
     void RawOperatorMatrixParams::extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) {
         assert(this->inputs.size() == 2); // should be guaranteed by parent.
-        this->matrix_index = read_positive_integer(matlabEngine, "Matrix index", inputs[1], 0);
+        this->matrix_index = read_positive_integer<uint64_t>(matlabEngine, "Matrix index", inputs[1], 0);
     }
 
     bool RawOperatorMatrixParams::any_param_set() const {

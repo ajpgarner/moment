@@ -11,6 +11,7 @@
 
 #include "storage_manager.h"
 
+#include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 
 namespace Moment::mex::functions {
@@ -42,8 +43,8 @@ namespace Moment::mex::functions {
         // Any completion requested?
         auto complete_param = params.find(u"complete_attempts");
         if (complete_param != params.end()) {
-            this->complete_attempts = SortedInputs::read_positive_integer(matlabEngine, "Parameter 'complete_attempts'",
-                                                                          complete_param->second, 0);
+            this->complete_attempts = read_positive_integer<size_t>(matlabEngine, "Parameter 'complete_attempts'",
+                                                                    complete_param->second, 0);
         } else {
             this->complete_attempts = 0;
         }
@@ -108,7 +109,7 @@ namespace Moment::mex::functions {
     void NewAlgebraicMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
                                                                   matlab::data::Array &input,
                                                                   const std::string& paramName) {
-        this->total_operators = read_positive_integer(matlabEngine, paramName, input, 1);
+        this->total_operators = read_positive_integer<size_t>(matlabEngine, paramName, input, 1);
     }
 
     NewAlgebraicMatrixSystem::NewAlgebraicMatrixSystem(matlab::engine::MATLABEngine &matlabEngine,

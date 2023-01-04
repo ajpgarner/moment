@@ -35,17 +35,17 @@ namespace Moment::mex::functions {
 
         // Get ref id
         auto& ref_param = this->find_or_throw(u"reference_id");
-        this->storage_key = read_positive_integer(matlabEngine, "Parameter 'reference_id'", ref_param, 0);
+        this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'reference_id'", ref_param, 0);
 
         // Get depth
         auto& depth_param = this->find_or_throw(u"level");
-        this->hierarchy_level = read_positive_integer(matlabEngine, "Parameter 'level'", depth_param, 0);
+        this->hierarchy_level = read_positive_integer<size_t>(matlabEngine, "Parameter 'level'", depth_param, 0);
     }
 
     void MomentMatrixParams::extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) {
         // No named parameters... try to interpret inputs as Settings object + depth
         assert(this->inputs.size() == 2); // should be guaranteed by parent
-        this->hierarchy_level = read_positive_integer(matlabEngine, "Hierarchy level", inputs[1], 0);
+        this->hierarchy_level = read_positive_integer<size_t>(matlabEngine, "Hierarchy level", inputs[1], 0);
     }
 
     bool MomentMatrixParams::any_param_set() const {

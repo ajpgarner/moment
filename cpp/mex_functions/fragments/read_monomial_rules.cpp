@@ -9,6 +9,7 @@
 #include "error_codes.h"
 
 #include "utilities/io_parameters.h"
+#include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"
 
 #include "utilities/shortlex_hasher.h"
@@ -20,7 +21,7 @@ namespace Moment::mex {
                                                  const matlab::data::Array &input,
                                                  const bool matlabIndices,
                                                  const uint64_t operator_count) {
-            std::vector<oper_name_t> output = SortedInputs::read_integer_array(matlabEngine, name, input);
+            std::vector<oper_name_t> output = read_integer_array<oper_name_t>(matlabEngine, name, input);
             if (matlabIndices) {
                 for (auto& x : output) {
                     --x;

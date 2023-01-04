@@ -83,7 +83,7 @@ namespace Moment::mex::functions {
         matlab::data::ArrayFactory factory{};
 
         if (input.inputs[0].getNumberOfElements() == 1) {
-            auto id = read_as_uint64_or_fail(this->matlabEngine, input.inputs[0]);
+            auto id = read_positive_integer<uint64_t>(this->matlabEngine, "Input", input.inputs[0]);
             if (!input.zero_index) {
                 if (id < 1) {
                     throw_error(this->matlabEngine, errors::bad_param,

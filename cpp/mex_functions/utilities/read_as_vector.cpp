@@ -1,19 +1,39 @@
 /**
  * read_as_vector.cpp
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 #include "read_as_vector.h"
-
 #include "read_as_scalar.h"
 
+#include "io_parameters.h"
+
 #include "visitor.h"
-#include "reporting.h"
 
 #include <utility>
 
 namespace Moment::mex {
 
+    namespace errors {
+        void throw_not_castable_to_vector(const std::string& paramName) {
+            std::stringstream ss;
+            ss << paramName << " should be a vector of positive integers.";
+            throw errors::BadInput{errors::bad_param, ss.str()};
+        }
+
+        void throw_unreadable_vector(const std::string &paramName, const unreadable_vector& urv) {
+            std::stringstream ss;
+            ss << paramName << " could not be read: " << urv.what();
+            throw errors::BadInput{urv.errCode, ss.str()};
+        }
+
+        void throw_under_min_vector(const std::string &paramName, uint64_t min_value) {
+            std::stringstream ss;
+            ss << "All elements of " << paramName << " must have a value of at least "
+               << min_value << ".";
+            throw errors::BadInput{errors::bad_param, ss.str()};
+        }
+    }
 
     namespace {
         template<typename value_type>
@@ -101,31 +121,40 @@ namespace Moment::mex {
         static_assert(concepts::VisitorHasString<IntVectorReaderVisitor<uint64_t>>);
 
         template<typename value_type>
-        std::vector<value_type> read_as_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        std::vector<value_type> do_read_as_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
             return DispatchVisitor(engine, input, IntVectorReaderVisitor<value_type>{});
-        }
-
-        template<typename value_type>
-        std::vector<value_type> read_as_vector_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
-            try {
-                return read_as_vector<value_type>(engine, input);
-            } catch (const errors::unreadable_vector& e) {
-                throw_error(engine, e.errCode, e.what());
-            }
         }
     }
 
+    std::vector<int16_t>
+    read_as_int16_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return do_read_as_vector<int16_t>(engine, input);
+    }
 
-    std::vector<uint64_t>
-    read_as_uint64_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
-        return read_as_vector<uint64_t>(engine, input);
+    std::vector<uint16_t>
+    read_as_uint16_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return do_read_as_vector<uint16_t>(engine, input);
+    }
+
+    std::vector<int32_t>
+    read_as_int32_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return do_read_as_vector<int32_t>(engine, input);
+    }
+
+    std::vector<uint32_t>
+    read_as_uint32_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return do_read_as_vector<uint32_t>(engine, input);
     }
 
     std::vector<int64_t>
     read_as_int64_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
-        return read_as_vector<int64_t>(engine, input);
+        return do_read_as_vector<int64_t>(engine, input);
     }
 
+    std::vector<uint64_t>
+    read_as_uint64_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return do_read_as_vector<uint64_t>(engine, input);
+    }
 
     bool castable_to_vector_int(const matlab::data::Array &input) {
         switch(input.getType()) {

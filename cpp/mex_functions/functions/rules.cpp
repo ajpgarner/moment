@@ -10,13 +10,16 @@
 
 #include "storage_manager.h"
 #include "fragments/export_monomial_rules.h"
+
+#include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 
 
 namespace Moment::mex::functions {
 
     RulesParams::RulesParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs) {
-        this->storage_key = read_positive_integer(matlabEngine, "MatrixSystem reference", inputs.inputs[0], 0);
+        this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
+                                                            inputs.inputs[0], 0);
     }
 
 

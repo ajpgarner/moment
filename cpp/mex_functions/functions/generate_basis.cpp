@@ -20,6 +20,7 @@
 #include "fragments/identify_nonsymmetric_elements.h"
 
 #include "utilities/make_sparse_matrix.h"
+#include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 
 #include <array>
@@ -69,10 +70,9 @@ namespace Moment::mex::functions {
             this->input_mode = InputMode::MatrixSystemReference;
             this->basis_type = MatrixType::Hermitian;
 
-            this->matrix_system_key = SortedInputs::read_positive_integer(matlabEngine, "MatrixSystem reference",
-                                                                          this->inputs[0], 0);
-            this->matrix_index = SortedInputs::read_positive_integer(matlabEngine, "Matrix index",
-                                                                     this->inputs[1], 0);
+            this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
+                                                                      this->inputs[0], 0);
+            this->matrix_index = read_positive_integer<uint64_t>(matlabEngine, "Matrix index", this->inputs[1], 0);
             this->sparse_output = false;
         } else {
             this->input_mode = InputMode::MATLABArray;

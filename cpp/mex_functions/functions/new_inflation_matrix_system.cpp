@@ -8,6 +8,8 @@
 #include "scenarios/inflation/inflation_context.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
 
+#include "utilities/read_as_scalar.h"
+#include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"
 
 #include "storage_manager.h"
@@ -67,21 +69,21 @@ namespace Moment::mex::functions {
             throw errors::BadInput{errors::too_few_inputs, "If parameters are set, \"inflation\" should be set."};
         }
 
-        this->outcomes_per_observable = read_positive_integer_array(matlabEngine, "Parameter \"observables\"",
-                                                                    obsIter->second, 0);
+        this->outcomes_per_observable = read_positive_integer_array<size_t>(matlabEngine, "Parameter \"observables\"",
+                                                                            obsIter->second, 0);
 
         readSourceCell(matlabEngine, this->outcomes_per_observable.size(), sourceIter->second);
 
-        this->inflation_level = read_positive_integer(matlabEngine, "Parameter \"inflation_level\"",
+        this->inflation_level = read_positive_integer<size_t>(matlabEngine, "Parameter \"inflation_level\"",
                                                       inflationIter->second, 1);
     }
 
     void NewInflationMatrixSystemParams::getFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
-        this->outcomes_per_observable = read_positive_integer_array(matlabEngine, "Observables",
-                                                                    this->inputs[0], 0);
+        this->outcomes_per_observable = read_positive_integer_array<size_t>(matlabEngine, "Observables",
+                                                                            this->inputs[0], 0);
         readSourceCell(matlabEngine, this->outcomes_per_observable.size(), this->inputs[1]);
-        this->inflation_level = read_positive_integer(matlabEngine, "Inflation level",
-                                                      this->inputs[2], 1);
+        this->inflation_level = read_positive_integer<size_t>(matlabEngine, "Inflation level",
+                                                              this->inputs[2], 1);
     }
 
     void NewInflationMatrixSystemParams::readSourceCell(matlab::engine::MATLABEngine &matlabEngine,
@@ -94,7 +96,7 @@ namespace Moment::mex::functions {
         const matlab::data::CellArray cellInput = input;
         this->source_init_list.reserve(input.getNumberOfElements());
         for (const auto& cell : cellInput) {
-            auto obsVec = read_positive_integer_array(matlabEngine, "Observables", cell, 1);
+            auto obsVec = read_positive_integer_array<uint64_t>(matlabEngine, "Observables", cell, 1);
 
             this->source_init_list.emplace_back();
             auto& targetSet = this->source_init_list.back();

@@ -10,6 +10,7 @@
 
 #include "fragments/export_monomial_rules.h"
 #include "utilities/reporting.h"
+#include "utilities/read_as_scalar.h"
 
 #include <sstream>
 
@@ -41,7 +42,7 @@ namespace Moment::mex::functions {
         // Do we specify number of operators?
         auto op_iter = this->params.find(u"operators");
         if (op_iter != this->params.cend()) {
-            this->max_operators = read_positive_integer(matlabEngine, "Parameter 'operators'", op_iter->second, 0);
+            this->max_operators = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'operators'", op_iter->second, 0);
         } else {
             this->max_operators = 0;
         }
@@ -53,7 +54,8 @@ namespace Moment::mex::functions {
         } else {
             auto limit_iter = this->params.find(u"limit");
             if (limit_iter != this->params.cend()) {
-                this->max_attempts = read_positive_integer(matlabEngine, "Parameter 'limit'", limit_iter->second, 0);
+                this->max_attempts = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'limit'",
+                                                                     limit_iter->second, 0);
                 this->test_only = (0 == this->max_attempts);
             } else {
                 this->max_attempts = 128;

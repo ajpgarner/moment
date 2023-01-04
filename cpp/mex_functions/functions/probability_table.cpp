@@ -18,7 +18,6 @@
 #include "utilities/reporting.h"
 #include "utilities/visitor.h"
 
-
 namespace Moment::mex::functions {
 
     namespace {
@@ -71,18 +70,15 @@ namespace Moment::mex::functions {
                 const bool triplet = (dims[1] == 3);
 
                 for (size_t row = 0; row < dims[0]; ++row) {
-                    auto party_raw = SortedInputs::read_positive_integer(engine, "Party index",
-                                                                         matrix[row][0], 1);
-                    auto mmt_raw = SortedInputs::read_positive_integer(engine, "Measurement index",
-                                                                         matrix[row][1], 1);
+                    auto party_raw = read_positive_integer<size_t>(engine, "Party index", matrix[row][0], 1);
+                    auto mmt_raw = read_positive_integer<size_t>(engine, "Measurement index", matrix[row][1], 1);
 
                     if (!triplet) {
                         // from matlab index to C++ index
                         output.emplace_back(static_cast<size_t>(party_raw - 1),
                                             static_cast<size_t>(mmt_raw - 1), 0);
                     } else {
-                        auto outcome_raw = SortedInputs::read_positive_integer(engine, "Outcome index",
-                                                                               matrix[row][2], 1);
+                        auto outcome_raw = read_positive_integer<size_t>(engine, "Outcome index", matrix[row][2], 1);
                         // from matlab index to C++ index
                         output.emplace_back(static_cast<size_t>(party_raw - 1),
                                             static_cast<size_t>(mmt_raw - 1),
@@ -101,7 +97,7 @@ namespace Moment::mex::functions {
     ProbabilityTableParams::ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputIn)
             : SortedInputs(std::move(inputIn)) {
         // Get matrix system ID
-        this->matrix_system_key = read_positive_integer(matlabEngine, "Reference id", this->inputs[0], 0);
+        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "Reference id", this->inputs[0], 0);
 
         // For single input, just get whole table
         if (this->inputs.size() < 2) {

@@ -10,6 +10,7 @@
 #include "matrix/localizing_matrix.h"
 
 #include "utilities/read_as_scalar.h"
+#include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"
 #include "utilities/io_parameters.h"
 
@@ -39,11 +40,11 @@ namespace Moment::mex::functions {
 
         // Get depth
         auto& depth_param = this->find_or_throw(u"level");
-        this->hierarchy_level = read_positive_integer(matlabEngine, "Parameter 'level'", depth_param, 0);
+        this->hierarchy_level = read_positive_integer<size_t>(matlabEngine, "Parameter 'level'", depth_param, 0);
 
         // Get localizing word sequence
         auto& word_param = this->find_or_throw(u"word");
-        this->localizing_word = read_integer_array(matlabEngine, "Parameter 'word'", word_param);
+        this->localizing_word = read_integer_array<oper_name_t>(matlabEngine, "Parameter 'word'", word_param);
 
         // Do we offset by -1?
         this->matlab_indexing = this->flags.contains(u"matlab_indexing");
@@ -52,8 +53,8 @@ namespace Moment::mex::functions {
     void LocalizingMatrixParams::extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) {
         // No named parameters... try to interpret inputs as matrix system, depth and word.
         assert(this->inputs.size() == 3); // should be guaranteed by parent.
-        this->hierarchy_level = read_positive_integer(matlabEngine, "Hierarchy level", inputs[1], 0);
-        this->localizing_word = read_integer_array(matlabEngine, "Localizing word", inputs[2]);
+        this->hierarchy_level = read_positive_integer<size_t>(matlabEngine, "Hierarchy level", inputs[1], 0);
+        this->localizing_word = read_integer_array<oper_name_t>(matlabEngine, "Localizing word", inputs[2]);
 
         // Do we offset by -1?
         this->matlab_indexing = this->flags.contains(u"matlab_indexing");

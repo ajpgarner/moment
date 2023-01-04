@@ -23,7 +23,7 @@ namespace Moment {
     /**
      * For enumerating operators.
      */
-    using oper_name_t = int64_t;
+    using oper_name_t = int16_t;
 
     /**
      * For enumerating symbolic algebra elements

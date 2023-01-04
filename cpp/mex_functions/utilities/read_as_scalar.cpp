@@ -1,15 +1,45 @@
 /**
  * read_as_int.cpp
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 #include "read_as_scalar.h"
+#include "io_parameters.h"
 #include "visitor.h"
-#include "reporting.h"
 
 #include <sstream>
 
 namespace Moment::mex {
+
+    namespace errors {
+
+        void throw_unreadable_scalar(const std::string &paramName, const unreadable_scalar& urs) {
+            std::stringstream ss;
+            ss << paramName << " could not be read: " << urs.what();
+            throw errors::BadInput{urs.errCode, ss.str()};
+        }
+
+        void throw_not_castable_to_scalar(const std::string &paramName) {
+            std::stringstream ss;
+            ss << paramName << " should be a scalar positive integer.";
+            throw errors::BadInput{errors::bad_param, ss.str()};
+        }
+
+        void throw_under_min_scalar(const std::string &paramName, int64_t min_value) {
+            std::stringstream ss;
+            ss << paramName << " must have a value of at least "
+               << min_value << ".";
+            throw errors::BadInput{errors::bad_param, ss.str()};
+        }
+
+        void throw_over_max_scalar(const std::string &paramName, uint64_t max_value) {
+            std::stringstream ss;
+            ss << paramName << " must have a value of at least "
+               << max_value << ".";
+            throw errors::BadInput{errors::bad_param, ss.str()};
+        }
+    }
+
 
     namespace {
         template<typename output_type>
@@ -90,23 +120,13 @@ namespace Moment::mex {
         static_assert(concepts::VisitorHasString<IntReaderVisitor<long>>);
 
         template<typename output_type>
-        output_type read_as(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        output_type do_read_as_scalar(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
             return DispatchVisitor(engine, input, IntReaderVisitor<output_type>{});
-        }
-
-        template<typename output_type>
-        output_type read_as_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
-            try {
-                return read_as<output_type>(engine, input);
-            } catch (const errors::unreadable_scalar& e) {
-                throw_error(engine, e.errCode, e.what());
-            }
         }
     }
 
 
-
-    uint64_t read_as_uint64(matlab::engine::MATLABEngine &engine, const matlab::data::MATLABString& str) {
+    uint64_t read_as_scalar(matlab::engine::MATLABEngine &engine, const matlab::data::MATLABString& str) {
         if (!str.has_value()) {
             throw errors::unreadable_scalar{errors::empty_array, "Unexpected empty string."};
         }
@@ -132,54 +152,28 @@ namespace Moment::mex {
         }
     }
 
-
-
-    int64_t read_as_int16(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
-        return read_as<int16_t>(engine, input);
+    int16_t read_as_int16(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return do_read_as_scalar<int16_t>(engine, input);
     }
 
-    int64_t read_as_int16_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
-        return read_as_or_fail<int16_t>(engine, input);
-    }
-
-    int64_t read_as_int32(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
-        return read_as<int32_t>(engine, input);
-    }
-
-    int64_t read_as_int32_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
-        return read_as_or_fail<int64_t>(engine, input);
+    int32_t read_as_int32(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return do_read_as_scalar<int32_t>(engine, input);
     }
 
     int64_t read_as_int64(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
-        return read_as<int64_t>(engine, input);
+        return do_read_as_scalar<int64_t>(engine, input);
     }
 
-    int64_t read_as_int64_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
-        return read_as_or_fail<int64_t>(engine, input);
+    uint16_t read_as_uint16(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return do_read_as_scalar<uint16_t>(engine, input);
     }
 
-    uint64_t read_as_uint16(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
-        return read_as<uint16_t>(engine, input);
-    }
-
-    uint64_t read_as_uint16_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
-        return read_as_or_fail<uint16_t>(engine, input);
-    }
-
-    uint64_t read_as_uint32(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
-        return read_as<uint32_t>(engine, input);
-    }
-
-    uint64_t read_as_uint32_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
-        return read_as_or_fail<uint32_t>(engine, input);
+    uint32_t read_as_uint32(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return do_read_as_scalar<uint32_t>(engine, input);
     }
 
     uint64_t read_as_uint64(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
-        return read_as<uint64_t>(engine, input);
-    }
-
-    uint64_t read_as_uint64_or_fail(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
-        return read_as_or_fail<uint64_t>(engine, input);
+        return do_read_as_scalar<uint64_t>(engine, input);
     }
 
     bool castable_to_scalar_int(const matlab::data::Array &input) {
