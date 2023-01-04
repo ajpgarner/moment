@@ -1,7 +1,7 @@
 /**
  * symbol_table.cpp
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 #include "symbol_table.h"
 
@@ -16,7 +16,7 @@ namespace Moment {
             conjSeq{std::move(conjSequence)},
             hermitian{false}, antihermitian{false}, real_index{-1}, img_index{-1} {
 
-        int compare = OperatorSequence::compare_same_negation(opSeq, *conjSeq);
+        int compare = OperatorSequence::compare_same_negation(*opSeq, *conjSeq);
         if (1 == compare) {
             this->hermitian = true;
         } else if (-1 == compare) {
@@ -103,6 +103,16 @@ namespace Moment {
         this->unique_sequences.emplace_back(std::move(elem));
 
         return next_index;
+    }
+
+
+    symbol_name_t SymbolTable::create() {
+        auto next_id = static_cast<symbol_name_t>(this->unique_sequences.size());
+        UniqueSequence blank;
+        blank.id = next_id;
+        this->unique_sequences.emplace_back(std::move(blank));
+
+        return next_id;
     }
 
 

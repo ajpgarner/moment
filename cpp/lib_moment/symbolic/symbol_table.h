@@ -1,7 +1,7 @@
 /**
  * symbol_table.h
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 #pragma once
 
@@ -23,7 +23,7 @@ namespace Moment {
     class UniqueSequence {
     private:
         symbol_name_t id = -1;
-        OperatorSequence opSeq;
+        std::optional<OperatorSequence> opSeq{};
         std::optional<OperatorSequence> conjSeq{};
         bool hermitian = false;
         bool antihermitian = false;
@@ -31,6 +31,8 @@ namespace Moment {
         ptrdiff_t img_index = -1;
 
     public:
+        UniqueSequence() = default;
+
         explicit constexpr UniqueSequence(OperatorSequence sequence) :
                 opSeq{std::move(sequence)},
                 conjSeq{}, hermitian{true}, antihermitian{false},
@@ -40,16 +42,16 @@ namespace Moment {
 
         [[nodiscard]] constexpr symbol_name_t Id() const noexcept { return this->id; }
 
-        [[nodiscard]] constexpr size_t hash() const noexcept { return this->opSeq.hash(); }
+        [[nodiscard]] constexpr size_t hash() const noexcept { return this->opSeq.value().hash(); }
 
         [[nodiscard]] constexpr size_t hash_conj() const noexcept {
-            return this->conjSeq.has_value() ? this->conjSeq->hash() : this->opSeq.hash();
+            return this->conjSeq.has_value() ? this->conjSeq->hash() : this->opSeq.value().hash();
         }
 
-        [[nodiscard]] constexpr const OperatorSequence& sequence() const noexcept { return this->opSeq; }
+        [[nodiscard]] constexpr const OperatorSequence& sequence() const noexcept { return this->opSeq.value(); }
 
         [[nodiscard]] constexpr const OperatorSequence& sequence_conj() const noexcept {
-            return this->hermitian ? opSeq : this->conjSeq.value();
+            return this->hermitian ? opSeq.value() : this->conjSeq.value();
         }
 
         /**
@@ -154,6 +156,12 @@ namespace Moment {
          * @return The ID of the (possibly new) symbol.
          */
         symbol_name_t merge_in(UniqueSequence&& sequence);
+
+        /**
+         * Add empty symbol to table.
+         * @return The ID of the new symbol.
+         */
+        symbol_name_t create();
 
 
         [[nodiscard]] auto begin() const noexcept { return this->unique_sequences.cbegin(); }

@@ -122,4 +122,53 @@ namespace Moment::Inflation {
         return extra_symbols - next_id;
     }
 
+    void FactorTable::register_new(symbol_name_t id, std::vector<symbol_name_t> factors) {
+        this->entries.emplace_back(id);
+        assert(this->entries.size() == id+1);
+        auto& new_entry = this->entries.back();
+        new_entry.canonical.symbols.swap(factors);
+
+        // Look up associated sequences
+        new_entry.canonical.sequences.reserve(new_entry.canonical.symbols.size());
+        for (auto sym_id : new_entry.canonical.symbols) {
+            new_entry.canonical.sequences.push_back(symbols[sym_id].sequence());
+        }
+
+        // Create index
+        index_tree.add(new_entry.canonical.symbols, new_entry.id);
+
+    }
+
+    std::vector<symbol_name_t> FactorTable::combine_symbolic_factors(std::vector<symbol_name_t> left,
+                                                                     const std::vector<symbol_name_t>& right) {
+        // First, no factors on either side -> identity.
+        if (left.empty() && right.empty()) {
+            return {1};
+        }
+
+        // Copy, and sort factors
+        std::vector<symbol_name_t> output{std::move(left)};
+        output.reserve(output.size() + right.size());
+        output.insert(output.end(), right.cbegin(), right.cend());
+        std::sort(output.begin(), output.end());
+
+        // If "0" is somehow a factor of either left or right, the product is zero
+        assert(!output.empty());
+        if (output[0] == 0) {
+            [[unlikely]]
+            return {0};
+        }
+
+        // Now, if we have more than one factor, prune identities (unless only identity)
+        if (output.size()>1) {
+            auto first_non_id = std::upper_bound(output.begin(), output.end(), 1);
+            output.erase(output.begin(), first_non_id);
+            // Factors were  1 x 1 x ... x 1
+            if (output.empty()) {
+                return {1};
+            }
+        }
+        return output;
+    }
+
 }

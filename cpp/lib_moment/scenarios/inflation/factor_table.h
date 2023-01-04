@@ -86,6 +86,16 @@ namespace Moment::Inflation {
             return this->index_tree.find(factor_vec);
         }
 
+        /**
+         * Manually insert a list of factors associated with an entry.
+         */
+        void register_new(symbol_name_t id, std::vector<symbol_name_t> factors);
+
+    public:
+        /** Merge and sort two sets of factors, removing redundant identities */
+        [[nodiscard]] static std::vector<symbol_name_t>
+        combine_symbolic_factors(std::vector<symbol_name_t> left, const std::vector<symbol_name_t>& right);
+
     private:
         size_t check_for_new_factors();
         

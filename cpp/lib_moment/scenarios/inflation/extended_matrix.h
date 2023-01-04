@@ -6,19 +6,26 @@
 #pragma once
 
 #include "matrix/operator_matrix.h"
+#include "matrix/moment_matrix.h"
+
+#include "factor_table.h"
 
 #include <span>
 
-namespace Moment {
+namespace Moment::Inflation {
 
 
+    /**
+     * Scalar extensions of moment matrix
+     */
     class ExtendedMatrix : public SymbolicMatrix {
     public:
         const size_t OriginalDimension;
 
     public:
-        ExtendedMatrix(SymbolTable& symbols, const OperatorMatrix& source,
-                       std::span<const OperatorSequence> extensions);
+        ExtendedMatrix(SymbolTable& symbols, Inflation::FactorTable& factors,
+                       const MomentMatrix& source,
+                       std::span<const symbol_name_t> extensions);
 
     };
 

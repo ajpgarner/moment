@@ -367,4 +367,45 @@ namespace Moment::Tests {
         ASSERT_TRUE(find_BC.has_value());
         EXPECT_EQ(find_BC.value(), factors_BC.id);
     }
+
+    TEST(Scenarios_Inflation_FactorTable, Combine_Regular) {
+        std::vector<symbol_name_t> left{2};
+        std::vector<symbol_name_t> right{3};
+
+        auto lr = FactorTable::combine_symbolic_factors(left, right);
+        ASSERT_EQ(lr.size(), 2);
+        EXPECT_EQ(lr[0], 2);
+        EXPECT_EQ(lr[1], 3);
+
+        auto rl = FactorTable::combine_symbolic_factors(right, left);
+        ASSERT_EQ(rl.size(), 2);
+        EXPECT_EQ(rl[0], 2);
+        EXPECT_EQ(rl[1], 3);
+    }
+
+    TEST(Scenarios_Inflation_FactorTable, Combine_WithID) {
+        std::vector<symbol_name_t> left{2};
+        std::vector<symbol_name_t> right{1};
+
+        auto lr = FactorTable::combine_symbolic_factors(left, right);
+        ASSERT_EQ(lr.size(), 1);
+        EXPECT_EQ(lr[0], 2);
+
+        auto rl = FactorTable::combine_symbolic_factors(right, left);
+        ASSERT_EQ(rl.size(), 1);
+        EXPECT_EQ(rl[0], 2);
+    }
+
+    TEST(Scenarios_Inflation_FactorTable, Combine_MultiID) {
+        std::vector<symbol_name_t> left{1};
+        std::vector<symbol_name_t> right{1};
+
+        auto lr = FactorTable::combine_symbolic_factors(left, right);
+        ASSERT_EQ(lr.size(), 1);
+        EXPECT_EQ(lr[0], 1);
+
+        auto rl = FactorTable::combine_symbolic_factors(right, left);
+        ASSERT_EQ(rl.size(), 1);
+        EXPECT_EQ(rl[0], 1);
+    }
 }

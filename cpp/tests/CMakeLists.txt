@@ -15,6 +15,7 @@ add_executable(moment_tests
     scenarios/algebraic/rule_book_tests.cpp
     scenarios/inflation/canonical_observables_tests.cpp
     scenarios/inflation/causal_network_tests.cpp
+    scenarios/inflation/extended_matrix_tests.cpp
     scenarios/inflation/factor_table_tests.cpp
     scenarios/inflation/inflation_context_tests.cpp
     scenarios/inflation/inflation_explicit_symbols_tests.cpp

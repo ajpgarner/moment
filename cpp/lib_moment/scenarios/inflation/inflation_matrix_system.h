@@ -1,7 +1,7 @@
 /**
  * inflation_matrix_system.h
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 #pragma once
 
@@ -53,9 +53,15 @@ namespace Moment::Inflation {
 
         /**
          * Get factorization list associated with matrices.
+         * For thread safety, call for read lock before accessing.
          */
         const FactorTable& Factors() const noexcept { return *this->factors; }
 
+        /**
+         * Get write access to factorization list associated with matrices.
+         * For thread safety, call for write lock before making changes.
+         */
+        FactorTable& Factors() noexcept { return *this->factors; }
 
         /**
          * Get factorization list associated with matrices.
@@ -65,14 +71,14 @@ namespace Moment::Inflation {
         /**
         * Returns an indexing of real-valued symbols that correspond to explicit operators/operator sequences within
         * the context (including joint measurements).
-        * @throws errors::missing_compoment if not generated.
+        * @throws errors::missing_component if not generated.
         */
         [[nodiscard]] const InflationExplicitSymbolIndex& ExplicitSymbolTable() const;
 
         /**
         * Returns an indexing of real-valued symbols that correspond to explicit operators/operator sequences within
         * the context (including joint measurements).
-        * @throws errors::missing_compoment if not generated.
+        * @throws errors::missing_component if not generated.
         */
         [[nodiscard]] const InflationImplicitSymbols& ImplicitSymbolTable() const;
 
