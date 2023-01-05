@@ -35,8 +35,13 @@ namespace Moment {
         }
 
         /** Calculate the hash of an operator sequence */
-        [[nodiscard]] inline size_t operator()(const std::vector<oper_name_t>& sequence)  const noexcept {
+        [[nodiscard]] inline size_t operator()(std::span<const oper_name_t> sequence)  const noexcept {
             return hash(sequence);
+        }
+
+        /** Calculate the hash of an operator sequence */
+        [[nodiscard]] inline size_t operator()(std::initializer_list<oper_name_t> sequence)  const noexcept {
+            return hash(std::vector(sequence));
         }
 
         /** The largest supported string */

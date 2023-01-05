@@ -305,6 +305,107 @@ namespace Moment::Tests {
 
     }
 
+
+    TEST(Utilities_SmallVector, Insert_NoRealloc_Front) {
+        SmallVector<double, 5> small{1.0, 2.0};
+        std::vector<double> extras{3.0, 4.0};
+        small.insert(small.begin(), extras.cbegin(), extras.cend());
+        ASSERT_EQ(small.size(), 4);
+        ASSERT_GE(small.capacity(), 4);
+        EXPECT_EQ(small[0], 3.0);
+        EXPECT_EQ(small[1], 4.0);
+        EXPECT_EQ(small[2], 1.0);
+        EXPECT_EQ(small[3], 2.0);
+    }
+
+
+    TEST(Utilities_SmallVector, Insert_NoRealloc_Middle) {
+        SmallVector<double, 5> small{1.0, 2.0};
+        std::vector<double> extras{3.0, 4.0};
+        small.insert(small.begin() + 1, extras.cbegin(), extras.cend());
+        ASSERT_EQ(small.size(), 4);
+        ASSERT_GE(small.capacity(), 4);
+        EXPECT_EQ(small[0], 1.0);
+        EXPECT_EQ(small[1], 3.0);
+        EXPECT_EQ(small[2], 4.0);
+        EXPECT_EQ(small[3], 2.0);
+    }
+
+
+    TEST(Utilities_SmallVector, Insert_NoRealloc_Back) {
+        SmallVector<double, 5> small{1.0, 2.0};
+        std::vector<double> extras{3.0, 4.0};
+        small.insert(small.end(), extras.cbegin(), extras.cend());
+        ASSERT_EQ(small.size(), 4);
+        ASSERT_GE(small.capacity(), 4);
+        EXPECT_EQ(small[0], 1.0);
+        EXPECT_EQ(small[1], 2.0);
+        EXPECT_EQ(small[2], 3.0);
+        EXPECT_EQ(small[3], 4.0);
+    }
+
+    TEST(Utilities_SmallVector, Insert_Realloc_Front) {
+        SmallVector<double, 4> small{1.0, 2.0};
+        std::vector<double> extras{3.0, 4.0, 5.0};
+        small.insert(small.begin(), extras.cbegin(), extras.cend());
+        ASSERT_EQ(small.size(), 5);
+        ASSERT_GE(small.capacity(), 5);
+        EXPECT_EQ(small[0], 3.0);
+        EXPECT_EQ(small[1], 4.0);
+        EXPECT_EQ(small[2], 5.0);
+        EXPECT_EQ(small[3], 1.0);
+        EXPECT_EQ(small[4], 2.0);
+    }
+
+    TEST(Utilities_SmallVector, Insert_Realloc_Middle) {
+        SmallVector<double, 4> small{1.0, 2.0};
+        std::vector<double> extras{3.0, 4.0, 5.0};
+        small.insert(small.begin() + 1, extras.cbegin(), extras.cend());
+        ASSERT_EQ(small.size(), 5);
+        ASSERT_GE(small.capacity(), 5);
+        EXPECT_EQ(small[0], 1.0);
+        EXPECT_EQ(small[1], 3.0);
+        EXPECT_EQ(small[2], 4.0);
+        EXPECT_EQ(small[3], 5.0);
+        EXPECT_EQ(small[4], 2.0);
+    }
+
+    TEST(Utilities_SmallVector, Insert_Realloc_Back) {
+        SmallVector<double, 4> small{1.0, 2.0};
+        std::vector<double> extras{3.0, 4.0, 5.0};
+        small.insert(small.end(), extras.cbegin(), extras.cend());
+        ASSERT_EQ(small.size(), 5);
+        ASSERT_GE(small.capacity(), 5);
+        EXPECT_EQ(small[0], 1.0);
+        EXPECT_EQ(small[1], 2.0);
+        EXPECT_EQ(small[2], 3.0);
+        EXPECT_EQ(small[3], 4.0);
+        EXPECT_EQ(small[4], 5.0);
+    }
+
+
+    TEST(Utilities_SmallVector, Span) {
+        SmallVector<double, 4> small{1.0, 2.0, 3.0};
+        auto as_span = static_cast<std::span<double>>(small);
+        ASSERT_EQ(as_span.size(), 3);
+        EXPECT_EQ(as_span[0], 1.0);
+        EXPECT_EQ(as_span[1], 2.0);
+        EXPECT_EQ(as_span[2], 3.0);
+
+        // test write
+        as_span[1] = 20.0;
+        EXPECT_EQ(small[1], 20.0);
+    }
+
+    TEST(Utilities_SmallVector, ConstSpan) {
+        SmallVector<double, 4> small{1.0, 2.0, 3.0};
+        auto as_span = static_cast<std::span<const double>>(small);
+        ASSERT_EQ(as_span.size(), 3);
+        EXPECT_EQ(as_span[0], 1.0);
+        EXPECT_EQ(as_span[1], 2.0);
+        EXPECT_EQ(as_span[2], 3.0);
+    }
+
     TEST(Utilities_SmallVector, ConstIterator) {
         SmallVector<double, 4> small{1.0, 2.0, 3.0};
 

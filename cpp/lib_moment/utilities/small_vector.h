@@ -27,7 +27,7 @@ namespace Moment {
         using const_iterator = const value_t *;
 
     private:
-        std::unique_ptr<value_t[]> heap_data;
+        std::unique_ptr<value_t[]> heap_data{nullptr};
         std::array<value_t, SmallN> stack_data;
 
         size_t _size = 0;
@@ -45,7 +45,7 @@ namespace Moment {
          * Copy constructor.
          * @param rhs Source.
          */
-        SmallVector(const SmallVector& rhs) : _size{rhs._size}, _capacity{rhs._capacity} {
+        constexpr SmallVector(const SmallVector& rhs) : _size{rhs._size}, _capacity{rhs._capacity} {
             if (rhs.heap_data) {
                 this->heap_data = std::make_unique<value_t[]>(this->_capacity);
                 std::span<const value_t> other_view{rhs.heap_data.get(), this->_size};
@@ -88,7 +88,7 @@ namespace Moment {
          * @param iter_end Must be reachable from iter.
          */
         template<class input_iterator>
-        SmallVector(input_iterator iter, input_iterator iter_end)
+        constexpr SmallVector(input_iterator iter, input_iterator iter_end)
             : _size{static_cast<size_t>(std::distance(iter, iter_end))} {
             if (_size <= SmallN) {
                 std::copy(iter, iter_end, this->stack_data.data());
@@ -106,8 +106,7 @@ namespace Moment {
         /**
          * Construct vector from initializer list
          */
-        SmallVector(std::initializer_list<value_t> initial_data)
-                : _size{initial_data.size()} {
+        constexpr SmallVector(std::initializer_list<value_t> initial_data) : _size{initial_data.size()} {
             if (initial_data.size() <= SmallN) {
                 std::move(initial_data.begin(), initial_data.end(), this->stack_data.begin());
                 this->data_start = this->stack_data.data();
@@ -124,7 +123,7 @@ namespace Moment {
         /**
          * Destructor.
          */
-        ~SmallVector() = default;
+        constexpr ~SmallVector() = default;
 
         /**
          * Access data by pointer.
@@ -223,44 +222,83 @@ namespace Moment {
         }
 
         /**
+         * Insert into container
+         */
+        template<class input_iter_t>
+        void insert(iterator where, input_iter_t source_iter, input_iter_t source_iter_end) {
+            const auto amount_before_insert = static_cast<size_t>(std::distance(this->data_start, where));
+            const auto amount_to_insert = static_cast<size_t>(std::distance(source_iter, source_iter_end));
+            const bool insert_at_back = (amount_before_insert == this->_size);
+
+            // Can we do move without reallocation?
+            if (this->_size + amount_to_insert <= this->_capacity) {
+                // First, move tail of elements to make space for new insertion
+                if (!insert_at_back) {
+                    std::move_backward(where, this->data_start + this->_size,
+                                       this->data_start + this->_size + amount_to_insert);
+                }
+                // Now, copy (cf. move with appropriate input_iter_t) new elements into container
+                std::copy(source_iter, source_iter_end, where);
+                this->_size += amount_to_insert;
+            } else {
+                const size_t new_capacity = suggest_capacity(this->_size+amount_to_insert);
+                auto new_heap = std::make_unique<value_t[]>(new_capacity);
+
+                // Move previous bits before allocation; copy new chunk in middle
+                std::move(this->data_start, where, new_heap.get());
+                std::copy(source_iter, source_iter_end, new_heap.get() + amount_before_insert);
+                if (!insert_at_back) {
+                    std::move(where, this->data_start + this->_size,
+                              new_heap.get() + amount_before_insert + amount_to_insert);
+                }
+
+                // Set copy as new data block
+                this->heap_data = std::move(new_heap);
+                this->_size += amount_to_insert;
+                this->_capacity = new_capacity;
+                this->data_start = this->heap_data.get();
+            }
+        }
+
+        /**
          * Iterator to beginning of vector
          */
-        iterator begin() noexcept {
+        constexpr iterator begin() noexcept {
             return this->data_start;
         }
 
         /**
          * Constant iterator to beginning of vector
          */
-        const_iterator begin() const noexcept {
+        constexpr const_iterator begin() const noexcept {
             return this->data_start;
         }
 
         /**
          * Constant iterator to beginning of vector
          */
-        const_iterator cbegin() const noexcept {
+        constexpr const_iterator cbegin() const noexcept {
             return this->data_start;
         }
 
         /**
          * Iterator to point past end of vector
          */
-        iterator end() noexcept {
+        constexpr iterator end() noexcept {
             return this->data_start + this->_size;
         }
 
         /**
          * Constant iterator to point past end of vector
          */
-        const_iterator end() const noexcept {
+        constexpr const_iterator end() const noexcept {
             return this->data_start + this->_size;
         }
 
         /**
          * Constant iterator to point past end of vector
          */
-        const_iterator cend() const noexcept {
+        constexpr const_iterator cend() const noexcept {
             return this->data_start + this->_size;
         }
 
@@ -273,6 +311,20 @@ namespace Moment {
             if (requested_storage > this->_capacity) {
                 this->reallocate(requested_storage);
             }
+        }
+
+        /**
+         * Degrade to span
+         */
+        constexpr operator ::std::span<value_t>() noexcept {
+            return std::span<value_t>{this->data_start, this->_size};
+        }
+
+        /**
+         * Degrade to span over constant values
+         */
+        constexpr operator ::std::span<const value_t>() const noexcept {
+            return std::span<const value_t>{this->data_start, this->_size};
         }
 
     private:
