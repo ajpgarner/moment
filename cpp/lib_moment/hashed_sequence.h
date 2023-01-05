@@ -6,21 +6,25 @@
 #pragma once
 
 #include "integer_types.h"
+
 #include "utilities/shortlex_hasher.h"
+#include "utilities/small_vector.h"
 
 #include <cassert>
 #include <iosfwd>
 #include <vector>
 
 namespace Moment {
+    /** Operator string storage */
+    using sequence_storage_t = SmallVector<oper_name_t, op_seq_stack_length>;
 
     class HashedSequence {
 
     public:
-        using const_iter_t = std::vector<oper_name_t>::const_iterator;
+        using const_iter_t = sequence_storage_t::const_iterator;
 
     protected:
-        std::vector<oper_name_t> operators{};
+        sequence_storage_t operators{};
 
         bool is_zero = false;
 
@@ -28,7 +32,7 @@ namespace Moment {
 
     public:
         /** Construct empty sequence (identity or zero) */
-        explicit constexpr HashedSequence(const bool zero = false)
+        constexpr explicit HashedSequence(const bool zero = false)
             : the_hash{is_zero ? 0U : 1U}, is_zero{zero} { }
 
         /** Copy constructor */
@@ -38,12 +42,14 @@ namespace Moment {
         constexpr HashedSequence(HashedSequence&& rhs) = default;
 
         /** Construct a sequence, from a list of operators and its hash  */
-        constexpr HashedSequence(std::vector<oper_name_t> oper_ids, size_t hash)
+        HashedSequence(sequence_storage_t oper_ids, size_t hash)
                 : operators{std::move(oper_ids)}, the_hash{hash}, is_zero{hash == 0} { }
 
         /** Construct a sequence, from a list of operators and its hash  */
-        HashedSequence(std::vector<oper_name_t> oper_ids, const ShortlexHasher& hasher)
-            : operators{std::move(oper_ids)}, the_hash{hasher(operators)}, is_zero{false} { }
+        HashedSequence(sequence_storage_t oper_ids, const ShortlexHasher& hasher)
+            : operators{std::move(oper_ids)},
+              the_hash{hasher(static_cast<std::span<const oper_name_t>>(operators))},
+              is_zero{false} { }
 
         /**
          * Get sequence hash
@@ -87,12 +93,6 @@ namespace Moment {
 
         /** End iterator over operators */
         [[nodiscard]] constexpr auto end() const noexcept { return this->operators.cend(); }
-
-        /** Begin reverse iterator over operators */
-        [[nodiscard]] constexpr auto rbegin() const noexcept  { return this->operators.crbegin(); }
-
-        /** End reverse iterator over operators */
-        [[nodiscard]] constexpr auto rend() const noexcept { return this->operators.crend(); }
 
         /**
          * True if no operators in sequence. This can be interpreted as either the identity operator if zero()

@@ -159,7 +159,7 @@ namespace Moment::Algebraic {
         auto rule_iter = this->monomialRules.begin();
 
         bool negated = false;
-        std::vector<oper_name_t> test_sequence(input.begin(), input.end());
+        sequence_storage_t test_sequence(input.begin(), input.end());
 
         while (rule_iter != this->monomialRules.end()) {
             const auto& rule = rule_iter->second;

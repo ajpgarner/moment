@@ -30,4 +30,9 @@ namespace Moment {
      */
     using symbol_name_t = int64_t;
 
+    /**
+     * The maximum length of operator sequence before heap allocations are required
+     */
+    constexpr size_t op_seq_stack_length = 16ULL;
+
 };

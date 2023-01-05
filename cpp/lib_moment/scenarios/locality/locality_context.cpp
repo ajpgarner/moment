@@ -42,7 +42,6 @@ namespace Moment::Locality {
                     return (lhs.id == rhs.id);
                 }
             };
-
         };
 
         size_t count_operators(const std::vector<Party>& parties) {
@@ -100,14 +99,15 @@ namespace Moment::Locality {
         assert(this->global_op_id_to_party.size() == this->operator_count);
     }
 
-    bool LocalityContext::additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negated) const {
+    bool LocalityContext::additional_simplification(sequence_storage_t &op_sequence, bool& negated) const {
         // Do nothing on empty set
         if (op_sequence.empty()) {
             return false;
         }
 
         // Commutation between parties...
-        std::vector<LocalityOperator> lo_seq;
+        SmallVector<LocalityOperator, op_seq_stack_length> lo_seq;
+
         lo_seq.reserve(op_sequence.size());
         for (const auto& op : op_sequence) {
             if ((op < 0) || (op >= this->operator_count)) {

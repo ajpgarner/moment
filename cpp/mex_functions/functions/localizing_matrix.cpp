@@ -85,7 +85,8 @@ namespace Moment::mex::functions {
         }
 
         // Copy and construct LMI
-        return LocalizingMatrixIndex{context, this->hierarchy_level, OperatorSequence{std::move(oper_copy), context}};
+        return LocalizingMatrixIndex{context, this->hierarchy_level,
+                                     OperatorSequence{sequence_storage_t(oper_copy.begin(), oper_copy.end()), context}};
     }
 
     bool LocalizingMatrixParams::any_param_set() const {

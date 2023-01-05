@@ -31,9 +31,9 @@ namespace Moment {
         ptrdiff_t img_index = -1;
 
     public:
-        UniqueSequence() = default;
+        constexpr UniqueSequence() = default;
 
-        explicit constexpr UniqueSequence(OperatorSequence sequence) :
+        explicit UniqueSequence(OperatorSequence sequence) :
                 opSeq{std::move(sequence)},
                 conjSeq{}, hermitian{true}, antihermitian{false},
                 real_index{-1}, img_index{-1}  { }

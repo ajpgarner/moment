@@ -383,6 +383,108 @@ namespace Moment::Tests {
         EXPECT_EQ(small[4], 5.0);
     }
 
+    TEST(Utilities_SmallVector, Erase_Front) {
+        SmallVector<double, 4> small{1.0, 2.0, 3.0};
+        auto where = small.erase(small.begin(), small.begin()+1);
+        ASSERT_EQ(small.size(), 2);
+        ASSERT_GE(small.capacity(), 2);
+        EXPECT_EQ(small[0], 2.0);
+        EXPECT_EQ(small[1], 3.0);
+        EXPECT_EQ(where, small.begin());
+    }
+
+    TEST(Utilities_SmallVector, Erase_Middle) {
+        SmallVector<double, 4> small{1.0, 2.0, 3.0};
+        auto where = small.erase(small.begin()+1, small.begin()+2);
+        ASSERT_EQ(small.size(), 2);
+        ASSERT_GE(small.capacity(), 2);
+        EXPECT_EQ(small[0], 1.0);
+        EXPECT_EQ(small[1], 3.0);
+        EXPECT_EQ(where, small.begin()+1);
+    }
+
+    TEST(Utilities_SmallVector, Erase_Back) {
+        SmallVector<double, 4> small{1.0, 2.0, 3.0};
+        auto where =  small.erase(small.begin()+1, small.end());
+        ASSERT_EQ(small.size(), 1);
+        ASSERT_GE(small.capacity(), 1);
+        EXPECT_EQ(small[0], 1.0);
+        EXPECT_EQ(where, small.end());
+    }
+
+    TEST(Utilities_SmallVector, Swap_StackStack) {
+        SmallVector<double, 5> left{1.0, 2.0};
+        SmallVector<double, 5> right{3.0, 4.0, 5.0};
+        left.swap(right);
+
+        ASSERT_EQ(left.size(), 3);
+        ASSERT_GE(left.capacity(), 3);
+        EXPECT_EQ(left[0], 3.0);
+        EXPECT_EQ(left[1], 4.0);
+        EXPECT_EQ(left[2], 5.0);
+
+        ASSERT_EQ(right.size(), 2);
+        ASSERT_GE(right.capacity(), 2);
+        EXPECT_EQ(right[0], 1.0);
+        EXPECT_EQ(right[1], 2.0);
+    }
+
+    TEST(Utilities_SmallVector, Swap_StackHeap) {
+        SmallVector<double, 3> left{1.0, 2.0};
+        SmallVector<double, 3> right{3.0, 4.0, 5.0, 6.0};
+        left.swap(right);
+
+        ASSERT_EQ(left.size(), 4);
+        ASSERT_GE(left.capacity(), 4);
+        EXPECT_EQ(left[0], 3.0);
+        EXPECT_EQ(left[1], 4.0);
+        EXPECT_EQ(left[2], 5.0);
+        EXPECT_EQ(left[3], 6.0);
+
+        ASSERT_EQ(right.size(), 2);
+        ASSERT_GE(right.capacity(), 2);
+        EXPECT_EQ(right[0], 1.0);
+        EXPECT_EQ(right[1], 2.0);
+    }
+
+    TEST(Utilities_SmallVector, Swap_HeapStack) {
+        SmallVector<double, 3> left{1.0, 2.0, 3.0, 4.0};
+        SmallVector<double, 3> right{5.0, 6.0};
+        left.swap(right);
+
+        ASSERT_EQ(left.size(), 2);
+        ASSERT_GE(left.capacity(), 2);
+        EXPECT_EQ(left[0], 5.0);
+        EXPECT_EQ(left[1], 6.0);
+
+        ASSERT_EQ(right.size(), 4);
+        ASSERT_GE(right.capacity(), 4);
+        EXPECT_EQ(right[0], 1.0);
+        EXPECT_EQ(right[1], 2.0);
+        EXPECT_EQ(right[2], 3.0);
+        EXPECT_EQ(right[3], 4.0);
+    }
+
+    TEST(Utilities_SmallVector, Swap_HeapHeap) {
+        SmallVector<double, 3> left{1.0, 2.0, 3.0, 4.0};
+        SmallVector<double, 3> right{5.0, 6.0, 7.0, 8.0};
+        left.swap(right);
+
+        ASSERT_EQ(left.size(), 4);
+        ASSERT_GE(left.capacity(), 4);
+        EXPECT_EQ(left[0], 5.0);
+        EXPECT_EQ(left[1], 6.0);
+        EXPECT_EQ(left[2], 7.0);
+        EXPECT_EQ(left[3], 8.0);
+
+        ASSERT_EQ(right.size(), 4);
+        ASSERT_GE(right.capacity(), 4);
+        EXPECT_EQ(right[0], 1.0);
+        EXPECT_EQ(right[1], 2.0);
+        EXPECT_EQ(right[2], 3.0);
+        EXPECT_EQ(right[3], 4.0);
+    }
+
 
     TEST(Utilities_SmallVector, Span) {
         SmallVector<double, 4> small{1.0, 2.0, 3.0};

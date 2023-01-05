@@ -15,7 +15,7 @@ namespace Moment::Tests {
             return lhs.suffix_prefix_overlap(rhs);
         }
 
-        ptrdiff_t suffix_prefix(const std::vector<oper_name_t>& lhs, const std::vector<oper_name_t>& rhs) {
+        ptrdiff_t suffix_prefix(const sequence_storage_t & lhs, const sequence_storage_t& rhs) {
             ShortlexHasher hasher{100};
             HashedSequence lhsHash{lhs, hasher};
             HashedSequence rhsHash{rhs, hasher};
@@ -25,7 +25,7 @@ namespace Moment::Tests {
     }
 
     TEST(Operators_HashedSequence, Match_ABinABAB) {
-        std::vector<oper_name_t> sampleStr{3, 4, 3, 4};
+        sequence_storage_t  sampleStr{3, 4, 3, 4};
 
         HashedSequence msr{{3, 4}, ShortlexHasher{5}};
 
@@ -44,7 +44,7 @@ namespace Moment::Tests {
     }
 
     TEST(Operators_HashedSequence, Match_ABinBABA) {
-        std::vector<oper_name_t> sampleStr{4, 3, 4, 3};
+        sequence_storage_t  sampleStr{4, 3, 4, 3};
 
         HashedSequence msr{{3, 4}, ShortlexHasher{5}};
 
@@ -62,24 +62,24 @@ namespace Moment::Tests {
 
     TEST(Operators_HashedSequence, SuffixPrefix_None) {
 
-        std::vector<oper_name_t> seqA{0, 1, 2};
-        std::vector<oper_name_t> seqB{3, 4, 5};
+        sequence_storage_t  seqA{0, 1, 2};
+        sequence_storage_t  seqB{3, 4, 5};
 
         EXPECT_EQ(suffix_prefix(seqA, seqB), 0);
         EXPECT_EQ(suffix_prefix(seqB, seqA), 0);
     }
 
     TEST(Operators_HashedSequence, SuffixPrefix_None_OneEmpty) {
-        std::vector<oper_name_t> seqA{};
-        std::vector<oper_name_t> seqB{0, 1, 2};
+        sequence_storage_t  seqA{};
+        sequence_storage_t  seqB{0, 1, 2};
 
         EXPECT_EQ(suffix_prefix(seqA, seqB), 0);
         EXPECT_EQ(suffix_prefix(seqB, seqA), 0);
     }
 
     TEST(Operators_HashedSequence, SuffixPrefix_Complete) {
-        std::vector<oper_name_t> seqA{0, 1, 2};
-        std::vector<oper_name_t> seqB{0, 1, 2};
+        sequence_storage_t  seqA{0, 1, 2};
+        sequence_storage_t  seqB{0, 1, 2};
 
         EXPECT_EQ(suffix_prefix(seqA, seqB), 3);
         EXPECT_EQ(suffix_prefix(seqB, seqA), 3);
@@ -88,16 +88,16 @@ namespace Moment::Tests {
     }
 
     TEST(Operators_HashedSequence, SuffixPrefix_OverlapOne) {
-        std::vector<oper_name_t> seqA{0, 1, 2};
-        std::vector<oper_name_t> seqB{2, 3, 4};
+        sequence_storage_t  seqA{0, 1, 2};
+        sequence_storage_t  seqB{2, 3, 4};
 
         EXPECT_EQ(suffix_prefix(seqA, seqB), 1);
         EXPECT_EQ(suffix_prefix(seqB, seqA), 0);
     }
 
     TEST(Operators_HashedSequence, SuffixPrefix_OverlapOne_short) {
-        std::vector<oper_name_t> seqA{0, 1, 2};
-        std::vector<oper_name_t> seqB{2};
+        sequence_storage_t  seqA{0, 1, 2};
+        sequence_storage_t  seqB{2};
 
         EXPECT_EQ(suffix_prefix(seqA, seqB), 1);
         EXPECT_EQ(suffix_prefix(seqB, seqA), 0);
@@ -105,16 +105,16 @@ namespace Moment::Tests {
 
 
     TEST(Operators_HashedSequence, SuffixPrefix_OverlapTwo) {
-        std::vector<oper_name_t> seqA{0, 1, 2, 3};
-        std::vector<oper_name_t> seqB{2, 3, 4};
+        sequence_storage_t  seqA{0, 1, 2, 3};
+        sequence_storage_t  seqB{2, 3, 4};
 
         EXPECT_EQ(suffix_prefix(seqA, seqB), 2);
         EXPECT_EQ(suffix_prefix(seqB, seqA), 0);
     }
 
     TEST(Operators_HashedSequence, SuffixPrefix_OverlapTwo_alt) {
-        std::vector<oper_name_t> seqA{0, 1, 2, 3};
-        std::vector<oper_name_t> seqB{2, 0, 1};
+        sequence_storage_t  seqA{0, 1, 2, 3};
+        sequence_storage_t  seqB{2, 0, 1};
 
         EXPECT_EQ(suffix_prefix(seqA, seqB), 0);
         EXPECT_EQ(suffix_prefix(seqB, seqA), 2);

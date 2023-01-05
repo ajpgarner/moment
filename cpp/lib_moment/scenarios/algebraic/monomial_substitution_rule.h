@@ -38,8 +38,8 @@ namespace Moment::Algebraic {
 
     class MonomialSubstitutionRule {
     public:
-        using iter_t = std::vector<oper_name_t>::iterator;
-        using const_iter_t = std::vector<oper_name_t>::const_iterator;
+        using iter_t = sequence_storage_t::iterator;
+        using const_iter_t = sequence_storage_t::const_iterator;
 
     private:
         HashedSequence rawLHS;
@@ -67,8 +67,8 @@ namespace Moment::Algebraic {
             return this->rawLHS.matches_anywhere(iter, iter_end);
         }
 
-        [[nodiscard]] std::vector<oper_name_t>
-        apply_match_with_hint(const std::vector<oper_name_t>& input, const_iter_t hint) const;
+        [[nodiscard]] sequence_storage_t
+        apply_match_with_hint(const sequence_storage_t& input, const_iter_t hint) const;
 
          /**
          * Forms a new rule by combining overlapping left-hand-sides of rules (suffix of this w/ prefix of other), and

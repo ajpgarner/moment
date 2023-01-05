@@ -37,19 +37,19 @@ namespace Moment::Tests {
         AlgebraicContext ac{3, true, false, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
 
-        OperatorSequence seq_AB{std::vector<oper_name_t>{1, 2}, ac};
+        OperatorSequence seq_AB{sequence_storage_t{1, 2}, ac};
         EXPECT_FALSE(seq_AB.empty());
         EXPECT_FALSE(seq_AB.zero());
         ASSERT_EQ(seq_AB.size(), 1);
         EXPECT_EQ(seq_AB[0], 1);
 
-        OperatorSequence seq_BA{std::vector<oper_name_t>{2, 1}, ac};
+        OperatorSequence seq_BA{sequence_storage_t{2, 1}, ac};
         EXPECT_FALSE(seq_BA.empty());
         EXPECT_FALSE(seq_BA.zero());
         ASSERT_EQ(seq_BA.size(), 1);
         EXPECT_EQ(seq_BA[0], 1);
 
-        OperatorSequence seq_AAB{std::vector<oper_name_t>{1, 1, 2}, ac};
+        OperatorSequence seq_AAB{sequence_storage_t{1, 1, 2}, ac};
         EXPECT_FALSE(seq_AAB.empty());
         EXPECT_FALSE(seq_AAB.zero());
         ASSERT_EQ(seq_AAB.size(), 2);
@@ -72,26 +72,26 @@ namespace Moment::Tests {
         AlgebraicContext ac{3, true, false, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
 
-        OperatorSequence seq_AB{std::vector<oper_name_t>{1, 2}, ac};
+        OperatorSequence seq_AB{sequence_storage_t{1, 2}, ac};
         EXPECT_FALSE(seq_AB.empty());
         EXPECT_FALSE(seq_AB.zero());
         ASSERT_EQ(seq_AB.size(), 1);
         EXPECT_EQ(seq_AB[0], 1);
 
-        OperatorSequence seq_BA{std::vector<oper_name_t>{2, 1}, ac};
+        OperatorSequence seq_BA{sequence_storage_t{2, 1}, ac};
         EXPECT_FALSE(seq_BA.empty());
         EXPECT_FALSE(seq_BA.zero());
         ASSERT_EQ(seq_BA.size(), 1);
         EXPECT_EQ(seq_BA[0], 1);
 
-        OperatorSequence seq_AAB{std::vector<oper_name_t>{1, 1, 2}, ac};
+        OperatorSequence seq_AAB{sequence_storage_t{1, 1, 2}, ac};
         EXPECT_FALSE(seq_AAB.empty());
         EXPECT_FALSE(seq_AAB.zero());
         ASSERT_EQ(seq_AAB.size(), 2);
         EXPECT_EQ(seq_AAB[0], 1);
         EXPECT_EQ(seq_AAB[1], 1);
 
-        OperatorSequence seq_BAB{std::vector<oper_name_t>{2, 1, 2}, ac};
+        OperatorSequence seq_BAB{sequence_storage_t{2, 1, 2}, ac};
         EXPECT_FALSE(seq_BAB.empty());
         EXPECT_FALSE(seq_BAB.zero());
         ASSERT_EQ(seq_BAB.size(), 1);
@@ -113,32 +113,32 @@ namespace Moment::Tests {
         AlgebraicContext ac{3, true, false, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
 
-        OperatorSequence seq_A{std::vector<oper_name_t>{1}, ac};
+        OperatorSequence seq_A{sequence_storage_t{1}, ac};
         EXPECT_TRUE(seq_A.empty());
         EXPECT_FALSE(seq_A.zero());
         EXPECT_EQ(seq_A.size(), 0);
 
-        OperatorSequence seq_B{std::vector<oper_name_t>{2}, ac};
+        OperatorSequence seq_B{sequence_storage_t{2}, ac};
         EXPECT_TRUE(seq_B.empty());
         EXPECT_FALSE(seq_B.zero());
         EXPECT_EQ(seq_B.size(), 0);
 
-        OperatorSequence seq_AB{std::vector<oper_name_t>{1, 2}, ac};
+        OperatorSequence seq_AB{sequence_storage_t{1, 2}, ac};
         EXPECT_TRUE(seq_AB.empty());
         EXPECT_FALSE(seq_AB.zero());
         EXPECT_EQ(seq_AB.size(), 0);
 
-        OperatorSequence seq_BA{std::vector<oper_name_t>{2, 1}, ac};
+        OperatorSequence seq_BA{sequence_storage_t{2, 1}, ac};
         EXPECT_TRUE(seq_BA.empty());
         EXPECT_FALSE(seq_BA.zero());
         EXPECT_EQ(seq_BA.size(), 0);
 
-        OperatorSequence seq_AAB{std::vector<oper_name_t>{1, 1, 2}, ac};
+        OperatorSequence seq_AAB{sequence_storage_t{1, 1, 2}, ac};
         EXPECT_TRUE(seq_AAB.empty());
         EXPECT_FALSE(seq_AAB.zero());
         EXPECT_EQ(seq_AAB.size(), 0);
 
-        OperatorSequence seq_BAB{std::vector<oper_name_t>{2, 1, 2}, ac};
+        OperatorSequence seq_BAB{sequence_storage_t{2, 1, 2}, ac};
         EXPECT_TRUE(seq_BAB.empty());
         EXPECT_FALSE(seq_BAB.zero());
         EXPECT_EQ(seq_BAB.size(), 0);
@@ -153,21 +153,21 @@ namespace Moment::Tests {
         );
         AlgebraicContext ac{3, true, false, rules};
 
-        OperatorSequence seq_AB{std::vector<oper_name_t>{1, 2}, ac};
+        OperatorSequence seq_AB{sequence_storage_t{1, 2}, ac};
         EXPECT_FALSE(seq_AB.empty());
         EXPECT_FALSE(seq_AB.zero());
         ASSERT_EQ(seq_AB.size(), 2);
         EXPECT_EQ(seq_AB[0], 1);
         EXPECT_EQ(seq_AB[1], 2);
 
-        OperatorSequence seq_BA{std::vector<oper_name_t>{2, 1}, ac};
+        OperatorSequence seq_BA{sequence_storage_t{2, 1}, ac};
         EXPECT_FALSE(seq_BA.empty());
         EXPECT_FALSE(seq_BA.zero());
         ASSERT_EQ(seq_BA.size(), 2);
         EXPECT_EQ(seq_BA[0], 1);
         EXPECT_EQ(seq_BA[1], 2);
 
-        OperatorSequence seq_AAB{std::vector<oper_name_t>{1, 1, 2}, ac};
+        OperatorSequence seq_AAB{sequence_storage_t{1, 1, 2}, ac};
         EXPECT_FALSE(seq_AAB.empty());
         EXPECT_FALSE(seq_AAB.zero());
         ASSERT_EQ(seq_AAB.size(), 3);
@@ -175,7 +175,7 @@ namespace Moment::Tests {
         EXPECT_EQ(seq_AAB[1], 1);
         EXPECT_EQ(seq_AAB[2], 2);
 
-        OperatorSequence seq_ABA{std::vector<oper_name_t>{1, 2, 1}, ac};
+        OperatorSequence seq_ABA{sequence_storage_t{1, 2, 1}, ac};
         EXPECT_FALSE(seq_ABA.empty());
         EXPECT_FALSE(seq_ABA.zero());
         ASSERT_EQ(seq_ABA.size(), 3);
@@ -183,7 +183,7 @@ namespace Moment::Tests {
         EXPECT_EQ(seq_ABA[1], 1);
         EXPECT_EQ(seq_ABA[2], 2);
 
-        OperatorSequence seq_BAA{std::vector<oper_name_t>{2, 1, 1}, ac};
+        OperatorSequence seq_BAA{sequence_storage_t{2, 1, 1}, ac};
         EXPECT_FALSE(seq_BAA.empty());
         EXPECT_FALSE(seq_BAA.zero());
         ASSERT_EQ(seq_BAA.size(), 3);

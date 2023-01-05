@@ -29,8 +29,8 @@ namespace Moment::mex::functions {
 
             rules.reserve(rules.size() + input.rules.size());
             for (auto &ir: input.rules) {
-                rules.emplace_back(HashedSequence{std::move(ir.LHS), hasher},
-                                   HashedSequence{std::move(ir.RHS), hasher}, ir.negated);
+                rules.emplace_back(HashedSequence{sequence_storage_t(ir.LHS.begin(), ir.LHS.end()), hasher},
+                                   HashedSequence{sequence_storage_t(ir.RHS.begin(), ir.RHS.end()), hasher}, ir.negated);
             }
             return Algebraic::RuleBook{hasher, rules, input.hermitian_operators};
         }

@@ -12,7 +12,7 @@ namespace Moment::Tests {
     using namespace Moment::Inflation;
 
     namespace {
-        void expect_factorizes(const InflationContext& ic, std::vector<oper_name_t>&& sequence) {
+        void expect_factorizes(const InflationContext& ic, sequence_storage_t&& sequence) {
             OperatorSequence seq{std::move(sequence), ic};
             const size_t size = seq.size();
             auto factors = ic.factorize(seq);
@@ -22,7 +22,7 @@ namespace Moment::Tests {
             }
         }
 
-        void expect_doesnt_factorize(const InflationContext& ic, std::vector<oper_name_t>&& sequence) {
+        void expect_doesnt_factorize(const InflationContext& ic, sequence_storage_t&& sequence) {
             OperatorSequence seq{std::move(sequence), ic};
             const size_t size = seq.size();
             auto factors = ic.factorize(seq);

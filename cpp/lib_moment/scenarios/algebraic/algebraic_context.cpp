@@ -31,7 +31,7 @@ namespace Moment::Algebraic {
         return this->rules.complete(max_attempts, logger);
     }
 
-    bool AlgebraicContext::additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negated) const {
+    bool AlgebraicContext::additional_simplification(sequence_storage_t &op_sequence, bool& negated) const {
         if (this->commutative) {
             std::sort(op_sequence.begin(), op_sequence.end());
         }

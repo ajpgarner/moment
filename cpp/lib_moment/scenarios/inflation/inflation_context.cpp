@@ -162,7 +162,7 @@ namespace Moment::Inflation {
 
         while (!checklist.empty()) {
             // Next string of unfactorized operators...
-            std::vector<oper_name_t> opers{};
+            sequence_storage_t opers{};
             DynamicBitset<uint64_t> included_sources{total_source_count};
 
             // Get next operator from input string that's not been put into any of the factors
@@ -220,9 +220,9 @@ namespace Moment::Inflation {
         return output;
     }
 
-    bool InflationContext::additional_simplification(std::vector<oper_name_t> &op_sequence, bool &negate) const {
+    bool InflationContext::additional_simplification(sequence_storage_t &op_sequence, bool &negate) const {
         // Commutation between parties...
-        std::vector<ICOperatorInfo> io_seq;
+        SmallVector<ICOperatorInfo, op_seq_stack_length> io_seq;
         io_seq.reserve(op_sequence.size());
         for (const auto& op : op_sequence) {
             if ((op < 0) || (op >= this->operator_count)) {
@@ -271,7 +271,7 @@ namespace Moment::Inflation {
 
         std::vector<oper_name_t> next_available_source(this->base_network.Sources().size(), 0);
         std::map<oper_name_t, oper_name_t> permutation{};
-        std::vector<oper_name_t> permuted_operators;
+        sequence_storage_t permuted_operators;
 
         for (const oper_name_t op : input) {
             assert((op>=0) && (op < this->operator_count));

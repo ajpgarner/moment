@@ -40,7 +40,7 @@ namespace Moment {
          * @param context Context for further simplification.
          * @param negated True if sequence should be interpreted with a minus sign in front of it.
          */
-        explicit OperatorSequence(std::vector<oper_name_t>&& operators, const Context& context, bool negated = false);
+        explicit OperatorSequence(sequence_storage_t&& operators, const Context& context, bool negated = false);
 
         constexpr OperatorSequence(const OperatorSequence& rhs) = default;
 
@@ -108,14 +108,14 @@ namespace Moment {
             return lhs;
         }
 
-        constexpr static OperatorSequence Zero(const Context& context) {
+        static OperatorSequence Zero(const Context& context) {
             OperatorSequence output{context};
             output.the_hash = 0;
             output.is_zero = true;
             return output;
         }
 
-        constexpr static OperatorSequence Identity(const Context& context) {
+        static OperatorSequence Identity(const Context& context) {
             return OperatorSequence{context};
         }
 

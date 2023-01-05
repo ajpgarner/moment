@@ -57,8 +57,8 @@ namespace Moment {
             return !(*this == rhs);
         }
 
-        [[nodiscard]] std::vector<oper_name_t> raw() const {
-            std::vector<oper_name_t> output;
+        [[nodiscard]] sequence_storage_t raw() const {
+            sequence_storage_t output;
             output.reserve(this->indices.size());
             std::copy(this->indices.crbegin(), this->indices.crend(), std::back_inserter(output));
             return output;

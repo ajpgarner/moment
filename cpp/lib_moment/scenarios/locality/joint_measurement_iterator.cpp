@@ -116,7 +116,7 @@ namespace Moment::Locality {
     OperatorSequence JointMeasurementIterator::OpSeqIterator::operator*() const {
         assert(mmIter != nullptr);
 
-        std::vector<oper_name_t > ops;
+        sequence_storage_t ops;
         ops.reserve(indexIter.limits().size());
         for (size_t i = 0; i < indexIter.limits().size(); ++i) {
             ops.emplace_back(this->mmIter->party_list[i]->measurement_outcome(

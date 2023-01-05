@@ -59,8 +59,8 @@ namespace Moment::Algebraic {
         }
     }
 
-    std::vector<oper_name_t>
-    MonomialSubstitutionRule::apply_match_with_hint(const std::vector<oper_name_t>& input,
+    sequence_storage_t
+    MonomialSubstitutionRule::apply_match_with_hint(const sequence_storage_t& input,
                                                     const_iter_t hint) const {
 
         // Reserve vector, return empty vector, or give error:
@@ -69,9 +69,9 @@ namespace Moment::Algebraic {
             if (new_size < 0) {
                 throw errors::bad_hint{};
             }
-            return std::vector<oper_name_t>{};
+            return sequence_storage_t{};
         }
-        std::vector<oper_name_t> output;
+        sequence_storage_t output;
         output.reserve(new_size);
 
         // Copy start of input string up to hint
@@ -132,7 +132,7 @@ namespace Moment::Algebraic {
         }
 
         // Next, make merged string from both rules' LHS
-        std::vector<oper_name_t> joined_string;
+        sequence_storage_t joined_string;
         joined_string.reserve(static_cast<ptrdiff_t>(this->rawLHS.size() + other.rawLHS.size())
                               - overlap_size);
         std::copy(this->rawLHS.begin(), this->rawLHS.end() - static_cast<ptrdiff_t>(overlap_size),

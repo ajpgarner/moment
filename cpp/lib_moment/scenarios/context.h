@@ -41,7 +41,7 @@ namespace Moment {
          * @param op_sequence The string of operators
          * @return True if sequence is zero (cf. identity).
          */
-         virtual bool additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negate) const;
+         virtual bool additional_simplification(sequence_storage_t &op_sequence, bool& negate) const;
 
          /**
           * Use context to simplify or substitute an operator sequence, at the point where it is taken as a moment.
@@ -76,7 +76,7 @@ namespace Moment {
           * @param seq The raw operator sequence to calculate the hash of.
           * @return An integer hash.
           */
-         [[nodiscard]] size_t hash(const std::vector<oper_name_t>& rawSeq) const noexcept {
+         [[nodiscard]] size_t hash(const sequence_storage_t& rawSeq) const noexcept {
              return this->hasher(rawSeq);
          }
 

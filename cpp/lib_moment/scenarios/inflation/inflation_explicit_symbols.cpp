@@ -77,7 +77,7 @@ namespace Moment::Inflation {
             while (opIndicesIter != opIndicesIterEnd) {
                 // Find operator sequence
                 auto opIndices = *opIndicesIter;
-                std::vector<oper_name_t> op_str;
+                sequence_storage_t op_str;
                 op_str.reserve(opIndices.size());
                 for (size_t i = 0; i < opIndices.size(); ++i) {
                     const auto& obs = observables[canonObs.indices[i].observable];

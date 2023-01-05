@@ -17,7 +17,7 @@ namespace Moment {
 
     }
 
-    bool Context::additional_simplification(std::vector<oper_name_t>& op_sequence, bool& negate) const {
+    bool Context::additional_simplification(sequence_storage_t &op_sequence, bool& negate) const {
         // Do nothing
         return false;
     }

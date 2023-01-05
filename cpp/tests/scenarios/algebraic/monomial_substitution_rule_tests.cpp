@@ -79,7 +79,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_MonomialSubRule, Match_BBAtoBA) {
-        std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
+        sequence_storage_t sampleStr{1, 2, 2, 1};
 
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
                                      HashedSequence{{2, 1}, ShortlexHasher{3}}};
@@ -97,7 +97,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_MonomialSubRule, Match_BBAtoId_ABBA) {
-        std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
+        sequence_storage_t sampleStr{1, 2, 2, 1};
 
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
                                      HashedSequence{{}, ShortlexHasher{3}}};
@@ -113,7 +113,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_MonomialSubRule, Match_BBAtoId_BBAB) {
-        std::vector<oper_name_t> sampleStr{2, 2, 1, 2};
+        sequence_storage_t sampleStr{2, 2, 1, 2};
 
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
                                      HashedSequence{{}, ShortlexHasher{3}}};
@@ -130,7 +130,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_MonomialSubRule, Match_BBAtoMinusBA) {
-        std::vector<oper_name_t> sampleStr{1, 2, 2, 1};
+        sequence_storage_t sampleStr{1, 2, 2, 1};
 
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
                                      HashedSequence{{2, 1}, ShortlexHasher{3}}, true};

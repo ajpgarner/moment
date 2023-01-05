@@ -34,6 +34,8 @@ namespace Moment::Inflation {
             bool projective;
 
         public:
+            ICOperatorInfo() = default;
+
             ICOperatorInfo(oper_name_t id, oper_name_t observable, oper_name_t flattenedIndex,
                            oper_name_t outcome, bool projective)
                 : global_id{id}, observable{observable}, flattenedSourceIndex{flattenedIndex},
@@ -194,7 +196,7 @@ namespace Moment::Inflation {
          /**
           * Commute operators, check for idempotency, and check for orthogonal projectors.
           */
-        bool additional_simplification(std::vector<oper_name_t> &op_sequence, bool &negate) const override;
+        bool additional_simplification(sequence_storage_t &op_sequence, bool &negate) const override;
 
         /**
          * Replace string with symmetric equivalent

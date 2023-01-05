@@ -148,8 +148,7 @@ namespace Moment::mex::functions {
         const auto& symbolTable = system.Symbols();
 
         // Try to find sequence
-        std::vector<oper_name_t> opers = input.sequence;
-        OperatorSequence trialSequence(std::move(opers), context);
+        OperatorSequence trialSequence(sequence_storage_t(input.sequence.begin(), input.sequence.end()), context);
         const auto* symbolRow = symbolTable.where(trialSequence);
 
         // Return false if nothing found

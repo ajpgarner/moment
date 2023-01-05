@@ -21,6 +21,8 @@ namespace Moment {
      */
     template<typename value_t, size_t SmallN>
     class SmallVector {
+    public:
+        using value_type = value_t;
 
     public:
         using iterator = value_t *;
@@ -48,9 +50,7 @@ namespace Moment {
         constexpr SmallVector(const SmallVector& rhs) : _size{rhs._size}, _capacity{rhs._capacity} {
             if (rhs.heap_data) {
                 this->heap_data = std::make_unique<value_t[]>(this->_capacity);
-                std::span<const value_t> other_view{rhs.heap_data.get(), this->_size};
-                std::span<value_t> this_view{this->heap_data.get(), this->_capacity};
-                std::copy(other_view.begin(), other_view.end(), this_view.begin());
+                std::copy(rhs.heap_data.get(), rhs.heap_data.get() + rhs._size, this->heap_data.get());
                 this->data_start = this->heap_data.get();
             } else {
                 std::copy(rhs.stack_data.cbegin(), rhs.stack_data.cbegin() + rhs._size, this->stack_data.begin());
@@ -97,9 +97,7 @@ namespace Moment {
                 this->_capacity = suggest_capacity(this->_size);
                 this->heap_data = std::make_unique<value_t[]>(this->_capacity);
                 this->data_start = this->heap_data.get();
-
-                std::span<value_t> heap_view{this->heap_data.get(), this->_capacity};
-                std::copy(iter, iter_end, heap_view.begin());
+                std::copy(iter, iter_end, this->heap_data.get());
             }
         }
 
@@ -115,8 +113,7 @@ namespace Moment {
                 this->heap_data = std::make_unique<value_t[]>(this->_capacity);
                 this->data_start = this->heap_data.get();
 
-                std::span<value_t> heap_view{this->heap_data.get(), this->_capacity};
-                std::move(initial_data.begin(), initial_data.end(), heap_view.begin());
+                std::move(initial_data.begin(), initial_data.end(), this->heap_data.get());
             }
         }
 
@@ -260,6 +257,17 @@ namespace Moment {
             }
         }
 
+
+        /**
+         * Cut range from container
+         */
+        iterator erase(iterator where_from, iterator where_to) {
+            const auto elements_trimmed = static_cast<size_t>(std::distance(where_from, where_to));
+            std::move(where_to, this->data_start + this->_size, where_from);
+            this->_size -= elements_trimmed;
+            return where_from;
+        }
+
         /**
          * Iterator to beginning of vector
          */
@@ -311,6 +319,56 @@ namespace Moment {
             if (requested_storage > this->_capacity) {
                 this->reallocate(requested_storage);
             }
+        }
+
+        /**
+         * Swap vector contents: take contents of RHS into this vector, and put this vector's contents into RHS.
+         */
+        void swap(SmallVector& rhs) noexcept {
+            if (this->heap_data) {
+                if (rhs.heap_data) {
+                    std::swap(this->heap_data, rhs.heap_data);
+                    std::swap(this->data_start, rhs.data_start);
+                } else {
+                    // copy/move RHS stack to our stack, give RHS our heap
+                    rhs.heap_data = std::move(this->heap_data);
+                    rhs.data_start = rhs.heap_data.get();
+                    std::move(rhs.stack_data.begin(), rhs.stack_data.begin() + rhs._size, this->stack_data.begin());
+                    this->data_start = this->stack_data.data();
+                }
+            } else {
+                if (rhs.heap_data) {
+                    // copy/move our stack to RHS stack, take RHS's heap
+                    this->heap_data = std::move(rhs.heap_data);
+                    this->data_start = this->heap_data.get();
+                    std::move(this->stack_data.begin(), this->stack_data.begin() + this->_size, rhs.stack_data.begin());
+                    rhs.data_start = rhs.stack_data.data();
+                } else {
+                    // swap stack data
+                    size_t common_size = std::min(this->_size, rhs._size);
+                    for (size_t i = 0; i < common_size; ++i) {
+                        std::swap(this->stack_data[i], rhs.stack_data[i]);
+                    }
+                    if (this->_size > common_size) {
+                        std::move(this->stack_data.begin() + common_size, this->stack_data.begin() + this->_size,
+                                  rhs.stack_data.begin() + common_size);
+                    } else if (rhs._size > common_size) {
+                        std::move(rhs.stack_data.begin() + common_size, rhs.stack_data.begin() + rhs._size,
+                                  this->stack_data.begin() + common_size);
+                    }
+                }
+            }
+
+            // Swap sizes and capacities
+            std::swap(this->_size, rhs._size);
+            std::swap(this->_capacity, rhs._capacity);
+        }
+
+        /**
+         * Exchange left and right hand arguments.
+         */
+        friend void swap(SmallVector& lhs, SmallVector& rhs) noexcept {
+            lhs.swap(rhs);
         }
 
         /**
