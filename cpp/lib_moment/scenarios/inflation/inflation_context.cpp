@@ -199,7 +199,7 @@ namespace Moment::Inflation {
                         // Add to string
                         opers.emplace_back(other_oper_id);
 
-                        // Included sources are now relevent
+                        // Included sources are now relevant
                         included_sources |= other_obs_variant.connected_sources;
 
                         // Operator is joined in list, so flag as handled.
@@ -221,40 +221,28 @@ namespace Moment::Inflation {
     }
 
     bool InflationContext::additional_simplification(sequence_storage_t &op_sequence, bool &negate) const {
-        // Commutation between parties...
-        SmallVector<ICOperatorInfo, op_seq_stack_length> io_seq;
-        io_seq.reserve(op_sequence.size());
-        for (const auto& op : op_sequence) {
-            if ((op < 0) || (op >= this->operator_count)) {
-                throw std::range_error{"Operator ID higher than number of known operators."};
-            }
-            const auto& info = this->operator_info[op];
-            io_seq.emplace_back(info);
-        }
 
         // Completely commuting set, so sort (no need for stability)
-        std::sort(io_seq.begin(), io_seq.end(), ICOperatorInfo::OrderByID{});
+        std::sort(op_sequence.begin(), op_sequence.end());
 
         // Check for nullity
         const ICOperatorInfo::IsOrthogonal isOrth;
-        for (size_t index = 1, iMax = io_seq.size(); index < iMax; ++index) {
-            if (isOrth(io_seq[index-1], io_seq[index])) {
+        for (size_t index = 1, iMax = op_sequence.size(); index < iMax; ++index) {
+            const auto& lhs = this->operator_info[op_sequence[index-1]];
+            const auto& rhs = this->operator_info[op_sequence[index]];
+            if (isOrth(lhs, rhs)) {
                 op_sequence.clear();
                 return true;
             }
         }
 
         // Remove excess idempotent elements.
-        auto trim_idem = std::unique(io_seq.begin(), io_seq.end(),
-                                     ICOperatorInfo::IsRedundant{});
-        io_seq.erase(trim_idem, io_seq.end());
+        auto redundancy_checker = [&](oper_name_t lhs, oper_name_t rhs) {
+            return (lhs == rhs) && this->operator_info[lhs].projective;
+        };
+        auto trim_idem = std::unique(op_sequence.begin(), op_sequence.end(), redundancy_checker);
+        op_sequence.erase(trim_idem, op_sequence.end());
 
-        // Copy sequence to output
-        op_sequence.clear();
-        op_sequence.reserve(io_seq.size());
-        for (const auto& op : io_seq) {
-            op_sequence.emplace_back(op.global_id);
-        }
         return false;
     }
 
