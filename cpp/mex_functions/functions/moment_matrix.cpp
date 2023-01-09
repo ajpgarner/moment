@@ -9,12 +9,9 @@
 
 #include "matrix/moment_matrix.h"
 
-#include "utilities/read_as_scalar.h"
-#include "utilities/reporting.h"
-#include "utilities/io_parameters.h"
 
-#include "fragments/export_operator_matrix.h"
-#include "fragments/export_symbol_table.h"
+#include "utilities/read_as_scalar.h"
+#include "utilities/io_parameters.h"
 
 #include <memory>
 
@@ -32,10 +29,6 @@ namespace Moment::mex::functions {
 
     void MomentMatrixParams::extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) {
         assert(inputs.empty()); // Should be guaranteed by parent
-
-        // Get ref id
-        auto& ref_param = this->find_or_throw(u"reference_id");
-        this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'reference_id'", ref_param, 0);
 
         // Get depth
         auto& depth_param = this->find_or_throw(u"level");
@@ -68,9 +61,10 @@ namespace Moment::mex::functions {
         return output;
     }
 
-    std::pair<size_t, const Moment::OperatorMatrix &>
+    std::pair<size_t, const Moment::SymbolicMatrix &>
     MomentMatrix::get_or_make_matrix(MatrixSystem &system, const OperatorMatrixParams &inputOMP) {
         const auto& input = dynamic_cast<const MomentMatrixParams&>(inputOMP);
+
         return system.create_moment_matrix(input.hierarchy_level);
     }
 

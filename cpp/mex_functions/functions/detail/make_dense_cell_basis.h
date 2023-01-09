@@ -146,7 +146,7 @@ namespace Moment::mex::functions::detail {
         }
 
         /* Moment matrix input -> dense output */
-        return_type operator_matrix(const OperatorMatrix& matrix) {
+        return_type operator_matrix(const SymbolicMatrix& matrix) {
             const auto& symbols = matrix.Symbols;
             const bool symmetric = this->imp.is_hermitian();
             auto output = create_empty_basis(symbols);
@@ -225,7 +225,7 @@ namespace Moment::mex::functions::detail {
     }
 
     inline auto make_dense_cell_basis(matlab::engine::MATLABEngine &engine,
-                                           const OperatorMatrix& mm) {
+                                           const SymbolicMatrix& mm) {
         DenseCellBasisVisitor dcbv{engine, mm.SMP()};
         return dcbv.operator_matrix(mm);
     }

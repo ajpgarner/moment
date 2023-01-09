@@ -26,6 +26,7 @@ namespace Moment::mex::functions {
         AlphabeticName,
         CollinsGisin,
         Complete,
+        ExtendedMatrix,
         GenerateBasis,
         LocalizingMatrix,
         MomentMatrix,

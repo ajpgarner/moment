@@ -29,7 +29,7 @@
 namespace Moment::mex::functions {
 
     namespace {
-        const OperatorMatrix& getMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
+        const SymbolicMatrix& getMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
                                          const MatrixSystem& matrixSystem, size_t index) {
             try {
                 return matrixSystem[index];

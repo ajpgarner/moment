@@ -139,11 +139,14 @@ namespace Moment::mex::functions  {
         try {
             matrixSystemPtr = this->storageManager.MatrixSystems.get(input.storage_key);
         } catch(const persistent_object_error& poe) {
-            throw_error(this->matlabEngine, errors::bad_param, "Could not find referenced MatrixSystem.");
+            std::stringstream errSS;
+            errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.storage_key << std::dec;
+            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
         }
         MatrixSystem& matrixSystem = *matrixSystemPtr;
 
         auto matIndexPair = this->get_or_make_matrix(matrixSystem, input);
+
         const auto& theMatrix = matIndexPair.second;
 
         // Output, if supplied.
@@ -153,8 +156,7 @@ namespace Moment::mex::functions  {
                     output[0] = export_symbol_matrix(this->matlabEngine, theMatrix.SymbolMatrix());
                     break;
                 case OperatorMatrixParams::OutputMode::Sequences:
-                    output[0] = export_sequence_matrix(this->matlabEngine, theMatrix.context,
-                                                       theMatrix.SequenceMatrix());
+                    output[0] = export_sequence_matrix(this->matlabEngine, theMatrix);
                     break;
                 case OperatorMatrixParams::OutputMode::IndexAndDimension: {
                     matlab::data::ArrayFactory factory;
@@ -171,7 +173,7 @@ namespace Moment::mex::functions  {
         }
     }
 
-    std::pair<size_t, const Moment::OperatorMatrix&>
+    std::pair<size_t, const Moment::SymbolicMatrix&>
     OperatorMatrix::get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp) {
         try {
             const auto &input = dynamic_cast<const RawOperatorMatrixParams &>(omp);

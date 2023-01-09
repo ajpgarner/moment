@@ -15,6 +15,10 @@ namespace Moment::Tests {
 
         auto f = tree.find(std::vector<int>{});
         EXPECT_FALSE(f.has_value());
+
+        // Root
+        const auto* basePtr = tree.find_node(std::vector<int>{});
+        EXPECT_EQ(basePtr, &tree);
     }
 
     TEST(Utilities_IndexTree, Singleton) {
@@ -26,6 +30,17 @@ namespace Moment::Tests {
         auto val = tree.find(std::vector{12});
         ASSERT_TRUE(val.has_value());
         EXPECT_EQ(val.value(), 52);
+
+        // Root
+        const auto* basePtr = tree.find_node(std::vector<int>{});
+        EXPECT_EQ(basePtr, &tree);
+
+        // Child
+        const auto* childPtr = tree.find_node(std::vector<int>{12});
+        ASSERT_NE(childPtr, nullptr);
+        ASSERT_TRUE(childPtr->index().has_value());
+        EXPECT_EQ(childPtr->index().value(), 52);
+
     }
 
     TEST(Utilities_IndexTree, Pair_Ordered) {
@@ -42,6 +57,23 @@ namespace Moment::Tests {
         auto valB = tree.find(std::vector{12});
         ASSERT_TRUE(valB.has_value());
         EXPECT_EQ(valB.value(), 20);
+
+        // Root
+        const auto* basePtr = tree.find_node(std::vector<int>{});
+        EXPECT_EQ(basePtr, &tree);
+
+        // Child
+        const auto* childAPtr = tree.find_node(std::vector<int>{3});
+        ASSERT_NE(childAPtr, nullptr);
+        ASSERT_TRUE(childAPtr->index().has_value());
+        EXPECT_EQ(childAPtr->index().value(), 10);
+        
+        // Child
+        const auto* childBPtr = tree.find_node(std::vector<int>{12});
+        ASSERT_NE(childBPtr, nullptr);
+        ASSERT_TRUE(childBPtr->index().has_value());
+        EXPECT_EQ(childBPtr->index().value(), 20);
+
     }
 
     TEST(Utilities_IndexTree, Pair_Unordered) {
@@ -61,6 +93,23 @@ namespace Moment::Tests {
         auto valB = tree.find(std::vector{12});
         ASSERT_TRUE(valB.has_value());
         EXPECT_EQ(valB.value(), 20);
+
+        // Root
+        const auto* basePtr = tree.find_node(std::vector<int>{});
+        EXPECT_EQ(basePtr, &tree);
+
+        // Child
+        const auto* childAPtr = tree.find_node(std::vector<int>{3});
+        ASSERT_NE(childAPtr, nullptr);
+        ASSERT_TRUE(childAPtr->index().has_value());
+        EXPECT_EQ(childAPtr->index().value(), 10);
+
+        // Child
+        const auto* childBPtr = tree.find_node(std::vector<int>{12});
+        ASSERT_NE(childBPtr, nullptr);
+        ASSERT_TRUE(childBPtr->index().has_value());
+        EXPECT_EQ(childBPtr->index().value(), 20);
+
     }
 
     TEST(Utilities_IndexTree, OneString) {
@@ -79,6 +128,32 @@ namespace Moment::Tests {
         EXPECT_FALSE(tree.find(std::vector<int>{}).has_value());
         EXPECT_FALSE(tree.find(std::vector{1}).has_value());
         EXPECT_FALSE(tree.find(std::vector{1, 2}).has_value());
+
+
+        // Root
+        const auto* basePtr = tree.find_node(std::vector<int>{});
+        EXPECT_EQ(basePtr, &tree);
+
+        // Child
+        const auto* childAPtr = tree.find_node(1);
+        ASSERT_NE(childAPtr, nullptr);
+        EXPECT_FALSE(childAPtr->index().has_value());
+
+        // Grandchild
+        const auto* grandChildPtr = childAPtr->find_node(2);
+        ASSERT_NE(grandChildPtr, nullptr);
+        EXPECT_FALSE(grandChildPtr->index().has_value());
+
+        // Great-grandchild
+        const auto* greatGrandChildPtr = grandChildPtr->find_node(3);
+        ASSERT_NE(greatGrandChildPtr, nullptr);
+        ASSERT_TRUE(greatGrandChildPtr->index().has_value());
+        EXPECT_EQ(greatGrandChildPtr->index().value(), 13);
+
+        // Alternative search
+        const auto* altGGCPtr = childAPtr->find_node(std::vector{2, 3});
+        EXPECT_EQ(altGGCPtr, greatGrandChildPtr);
+
     }
 
 

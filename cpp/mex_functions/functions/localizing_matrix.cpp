@@ -122,7 +122,7 @@ namespace Moment::mex::functions {
         return output;
     }
 
-    std::pair<size_t, const Moment::OperatorMatrix &>
+    std::pair<size_t, const Moment::SymbolicMatrix &>
     LocalizingMatrix::get_or_make_matrix(MatrixSystem &system, const OperatorMatrixParams& inputOMP) {
         const auto &input = dynamic_cast<const LocalizingMatrixParams&>(inputOMP);
 

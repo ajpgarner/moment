@@ -30,6 +30,7 @@ matlab_add_mex(NAME moment_mex
             functions/alphabetic_name.cpp
             functions/collins_gisin.cpp
             functions/complete.cpp
+        functions/extended_matrix.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
             functions/localizing_matrix.cpp

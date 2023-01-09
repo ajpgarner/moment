@@ -7,8 +7,11 @@
 #include "export_operator_matrix.h"
 
 #include "matrix/matrix_properties.h"
+#include "matrix/operator_matrix.h"
+
 #include "symbolic/symbol_table.h"
 #include "scenarios/context.h"
+#include "scenarios/inflation/extended_matrix.h"
 
 #include "utilities/reporting.h"
 
@@ -134,6 +137,22 @@ namespace Moment::mex {
         return outputArray;
     }
 
+    matlab::data::Array
+    export_sequence_matrix(matlab::engine::MATLABEngine &engine, const SymbolicMatrix &matrix) {
+        const auto* opMatPtr = dynamic_cast<const Moment::OperatorMatrix*>(&matrix);
+        if (nullptr != opMatPtr) {
+            return export_sequence_matrix(engine, opMatPtr->context, opMatPtr->SequenceMatrix());
+        }
+        const auto* extMatPtr = dynamic_cast<const Inflation::ExtendedMatrix*>(&matrix);
+        if (nullptr != extMatPtr) {
+            throw_error(engine, errors::internal_error, "Export of extended matrix sequences not yet implemented.");
+        }
+
+        throw_error(engine, errors::internal_error,
+                    "Could not access sequence matrix information for requested matrix.");
+    }
+
+
     std::pair<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<uint64_t>>
     export_basis_lists(matlab::engine::MATLABEngine &engine, const MatrixProperties &smp) {
         // Prepare output lists
@@ -234,4 +253,5 @@ namespace Moment::mex {
 
         return output;
     }
+
 }

@@ -7,6 +7,8 @@
 
 #include "canonical_observables.h"
 #include "factor_table.h"
+
+#include "extended_matrix.h"
 #include "inflation_context.h"
 #include "inflation_explicit_symbols.h"
 #include "inflation_implicit_symbols.h"
@@ -76,6 +78,46 @@ namespace Moment::Inflation {
         // Register factors
         this->factors->on_new_symbols_added();
         MatrixSystem::onNewLocalizingMatrixCreated(lmi, lm);
+    }
+
+    ptrdiff_t InflationMatrixSystem::find_extended_matrix(size_t mm_level, std::span<const symbol_name_t> extensions) {
+        // Do we have any extended matrices at this MM level?
+        const auto* indexRoot = this->extension_indices.find_node(static_cast<symbol_name_t>(mm_level));
+        if (nullptr == indexRoot) {
+            return -1;
+        }
+
+        // Try with extensions
+        auto index = indexRoot->find(extensions);
+        if (!index.has_value()) {
+            return -1;
+        }
+        return static_cast<ptrdiff_t>(index.value());
+    }
+
+    std::pair<size_t, ExtendedMatrix &>
+    InflationMatrixSystem::create_extended_matrix(const class MomentMatrix &source,
+                                                  std::span<const symbol_name_t> extensions) {
+        auto lock = this->get_write_lock();
+
+        // Attempt to get pre-existing extended matrix
+        auto pre_existing = this->find_extended_matrix(source.Level(), extensions);
+        if (pre_existing >= 0) {
+            auto& existingMatrix = this->get(pre_existing);
+            return {pre_existing, dynamic_cast<ExtendedMatrix&>(existingMatrix)};
+        }
+
+        // ...otherwise, create new one.
+        auto em_ptr = std::make_unique<ExtendedMatrix>(this->Symbols(), this->Factors(), source, extensions);
+        auto& ref = *em_ptr;
+        auto index = this->push_back(std::move(em_ptr));
+
+        // Register index in tree
+        auto * root = this->extension_indices.add_node(static_cast<symbol_name_t>(source.Level()));
+        root->add(extensions, index);
+
+        // Return created matrix
+        return {index, ref};
     }
 
 }

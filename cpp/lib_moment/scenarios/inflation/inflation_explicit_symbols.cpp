@@ -10,7 +10,6 @@
 #include "inflation_matrix_system.h"
 
 #include "symbolic/symbol_table.h"
-#include "utilities/combinations.h"
 #include "utilities/multi_dimensional_index_iterator.h"
 
 

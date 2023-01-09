@@ -9,6 +9,7 @@
 #include "functions/alphabetic_name.h"
 #include "functions/collins_gisin.h"
 #include "functions/complete.h"
+#include "functions/extended_matrix.h"
 #include "functions/generate_basis.h"
 #include "functions/localizing_matrix.h"
 #include "functions/moment_matrix.h"
@@ -43,6 +44,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::Complete:
                 the_function = std::make_unique<functions::Complete>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::ExtendedMatrix:
+                the_function = std::make_unique<functions::ExtendedMatrix>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::GenerateBasis:
                 the_function = std::make_unique<functions::GenerateBasis>(engine, storageManager);
@@ -95,16 +99,17 @@ namespace Moment::mex::functions {
         output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
         output.emplace(u"collins_gisin",   MEXEntryPointID::CollinsGisin);
         output.emplace(u"complete",        MEXEntryPointID::Complete);
+        output.emplace(u"extended_matrix", MEXEntryPointID::ExtendedMatrix);
         output.emplace(u"generate_basis",  MEXEntryPointID::GenerateBasis);
         output.emplace(u"localizing_matrix",  MEXEntryPointID::LocalizingMatrix);
         output.emplace(u"moment_matrix",   MEXEntryPointID::MomentMatrix);
         output.emplace(u"operator_matrix", MEXEntryPointID::OperatorMatrix);
         output.emplace(u"new_algebraic_matrix_system", MEXEntryPointID::NewAlgebraicMatrixSystem);
         output.emplace(u"new_inflation_matrix_system", MEXEntryPointID::NewInflationMatrixSystem);
-        output.emplace(u"new_locality_matrix_system", MEXEntryPointID::NewLocalityMatrixSystem);
+        output.emplace(u"new_locality_matrix_system",  MEXEntryPointID::NewLocalityMatrixSystem);
         output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
         output.emplace(u"release",         MEXEntryPointID::Release);
-        output.emplace(u"rules",         MEXEntryPointID::Rules);
+        output.emplace(u"rules",           MEXEntryPointID::Rules);
         output.emplace(u"symbol_table",    MEXEntryPointID::SymbolTable);
         output.emplace(u"version",         MEXEntryPointID::Version);
         return output;

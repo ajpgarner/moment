@@ -12,7 +12,7 @@
 
 namespace Moment {
     class MatrixSystem;
-    class OperatorMatrix;
+    class SymbolicMatrix;
 }
 
 namespace Moment::mex::functions  {
@@ -96,7 +96,7 @@ namespace Moment::mex::functions  {
          * Query matrix system for requested matrix.
          * @return Pair: Index of matrix, reference to matrix.
          */
-        virtual std::pair<size_t, const Moment::OperatorMatrix&>
+        virtual std::pair<size_t, const Moment::SymbolicMatrix&>
         get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp);
 
     };

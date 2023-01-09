@@ -182,7 +182,7 @@ namespace Moment::mex::functions::detail {
         }
 
         /** Moment matrix input -> sparse output */
-        return_type operator_matrix(const OperatorMatrix& matrix) {
+        return_type operator_matrix(const SymbolicMatrix& matrix) {
             const auto& symbols = matrix.Symbols;
 
             std::vector<sparse_basis_re_frame> real_basis_frame(symbols.RealSymbolIds().size());
@@ -263,7 +263,7 @@ namespace Moment::mex::functions::detail {
 
 
     inline auto make_sparse_cell_basis(matlab::engine::MATLABEngine &engine,
-                                      const OperatorMatrix& mm) {
+                                      const SymbolicMatrix& mm) {
         SparseCellBasisVisitor scbv{engine, mm.SMP()};
         return scbv.operator_matrix(mm);
     }

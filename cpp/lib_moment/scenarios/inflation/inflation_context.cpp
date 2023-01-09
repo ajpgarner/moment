@@ -319,14 +319,15 @@ namespace Moment::Inflation {
                 if (permIter != permutation.end()) {
                     // permutation already known
                     const oper_name_t new_src = permIter->second;
-                    const oper_name_t new_variant = new_src % static_cast<oper_name_t>(this->inflation);
+                    const auto new_variant = static_cast<oper_name_t>(
+                            new_src % static_cast<oper_name_t>(this->inflation));
                     source_indices.emplace_back(new_variant);
                 } else {
                     // new permutation required
-                    const oper_name_t source = static_cast<oper_name_t>(src) / static_cast<oper_name_t>(this->inflation);
+                    const auto source = static_cast<oper_name_t>(src / this->inflation);
                     const oper_name_t new_variant = next_available_source[source];
                     ++next_available_source[source];
-                    const oper_name_t new_src = (source * static_cast<oper_name_t>(this->inflation)) + new_variant;
+                    const auto new_src = static_cast<oper_name_t>((source * this->inflation) + new_variant);
                     permutation.emplace(std::make_pair(src, new_src));
                     source_indices.emplace_back(new_variant);
                 }
@@ -374,9 +375,8 @@ namespace Moment::Inflation {
         for (auto iter = output.rbegin(); iter != output.rend(); ++iter) {
             const auto max_outcomes = static_cast<oper_name_t>(
                     this->inflated_observables[iter->observable_variant.observable].outcomes);
-
-            iter->outcome = outcome_number % max_outcomes;
-            outcome_number = outcome_number / max_outcomes;
+            iter->outcome = static_cast<oper_name_t>(outcome_number % max_outcomes);
+            outcome_number = static_cast<oper_name_t>(outcome_number / max_outcomes);
         }
 
         // Move output

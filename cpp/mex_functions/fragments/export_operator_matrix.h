@@ -19,6 +19,7 @@ namespace Moment {
     class Context;
     class SymbolTable;
     class MatrixProperties;
+    class SymbolicMatrix;
 }
 
 namespace Moment::mex {
@@ -41,6 +42,15 @@ namespace Moment::mex {
     matlab::data::Array export_sequence_matrix(matlab::engine::MATLABEngine& engine,
                                                const Context& context,
                                                const SquareMatrix<OperatorSequence>& matrix);
+
+    /**
+     * Outputs a matrix of operator sequences, as a matlab string matrix
+     * @param engine The matlab engine.
+     * @param matrix The matrix object
+     * @return A matlab string array.
+     */
+    matlab::data::Array export_sequence_matrix(matlab::engine::MATLABEngine& engine,
+                                              const SymbolicMatrix& matrix);
 
 
     /**

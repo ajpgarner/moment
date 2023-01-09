@@ -7,6 +7,7 @@
 
 #include "matrix/operator_sequence_generator.h"
 #include "factor_table.h"
+#include "inflation_context.h"
 
 #include <algorithm>
 #include <sstream>
@@ -32,6 +33,10 @@ namespace Moment::Inflation {
         std::unique_ptr<SquareMatrix<SymbolExpression>>
         make_extended_matrix(SymbolTable& symbols, Inflation::FactorTable& factors,
                              const MomentMatrix &source, const std::span<const symbol_name_t> extension_scalars) {
+
+            // Moment matrix must come from inflation context
+            const auto& context = dynamic_cast<const InflationContext&>(source.context);
+
             // Check scalars are in range
             for (const auto scalar : extension_scalars) {
                 if ((scalar >= symbols.size()) || (scalar < 0)) {
@@ -59,13 +64,14 @@ namespace Moment::Inflation {
             auto mm_osg = source.Generators();
 
             size_t row_index = 0;
-            for (auto seq : mm_osg) {
+            for (auto raw_seq : mm_osg) {
+                // Get canonical version of sequence...
+                auto seq = context.canonical_moment(raw_seq);
 
                 auto [source_sym_index, source_conj] = symbols.hash_to_index(seq.hash());
                 assert(!source_conj); // No symbols should be conjugated in entirely commutative, Hermitian setting...!
                 assert(source_sym_index != std::numeric_limits<ptrdiff_t>::max()); // Must find symbol in table.
                 const auto& source_factors = factors[source_sym_index].canonical.symbols;
-
 
                 size_t col_index = old_dimension;
                 for (auto scalar_symbol_id : extension_scalars) {

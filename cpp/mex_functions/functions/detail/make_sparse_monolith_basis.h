@@ -173,8 +173,8 @@ namespace Moment::mex::functions::detail {
             return this->construct_basis(real_basis_frame, im_basis_frame);
         }
 
-        /** OperatorMatrix input -> sparse monolithic output */
-        return_type operator_matrix(const OperatorMatrix& matrix) {
+        /** SymbolicMatrix input -> sparse monolithic output */
+        return_type operator_matrix(const SymbolicMatrix& matrix) {
             const auto& symbols = matrix.Symbols;
             const bool hasImBasis = this->imp.is_complex();
             const bool symmetric = this->imp.is_hermitian();
@@ -275,7 +275,7 @@ namespace Moment::mex::functions::detail {
 
 
     inline auto make_sparse_monolith_basis(matlab::engine::MATLABEngine &engine,
-                                          const OperatorMatrix& mm) {
+                                          const SymbolicMatrix& mm) {
         SparseMonolithBasisVisitor smbv{engine, mm.SMP()};
         return smbv.operator_matrix(mm);
     }

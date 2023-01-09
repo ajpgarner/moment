@@ -176,4 +176,72 @@ namespace Moment::Tests {
                                                            id_A, id_A_A, id_AB,  id_A_A, id_AB,
                                                            id_B, id_AB,  id_B_B, id_AB,  id_B_B});
     }
+
+
+    TEST(Scenarios_Inflation_ExtendedMatrix, MS_UnlinkedPair) {
+        InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {}}, 1)};
+        auto [mm_index, mm_ref] = ims.create_moment_matrix(1);
+        const auto& symbols = ims.Symbols();
+        ASSERT_EQ(symbols.size(), 5);
+        auto id_0 = find_or_fail(symbols, OperatorSequence::Zero(ims.Context()));
+        auto id_e = find_or_fail(symbols, OperatorSequence::Identity(ims.Context()));
+        auto id_A = find_or_fail(symbols, OperatorSequence{{0}, ims.Context()});
+        auto id_B = find_or_fail(symbols, OperatorSequence{{1}, ims.Context()});
+        auto id_AB = find_or_fail(symbols, OperatorSequence{{0, 1}, ims.Context()});
+        std::set all_symbs{id_0, id_e, id_A, id_B, id_AB};
+        ASSERT_EQ(all_symbs.size(), 5);
+
+        auto [em_index, em_ref] = ims.create_extended_matrix(mm_ref, std::vector<symbol_name_t>{id_A});
+
+        ASSERT_EQ(symbols.size(), 6);
+        auto id_A_A = find_or_fail(ims.Factors(), {id_A, id_A});
+        all_symbs.emplace(id_A_A);
+        ASSERT_EQ(all_symbs.size(), 6);
+
+        compare_symbol_matrices(em_ref.SymbolMatrix, {id_e, id_A,   id_B,   id_A,
+                                                      id_A, id_A,   id_AB,  id_A_A,
+                                                      id_B, id_AB,  id_B,   id_AB,
+                                                      id_A, id_A_A, id_AB,  id_A_A});
+
+        auto [em_second_access, em_sa_ref] = ims.create_extended_matrix(mm_ref, std::vector<symbol_name_t>{id_A});
+        EXPECT_EQ(em_second_access, em_index);
+        EXPECT_EQ(&em_sa_ref, &em_ref);
+    }
+
+    TEST(Scenarios_Inflation_ExtendedMatrix, MS_PairAndScalar) {
+        InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{2, 2, 0}, {{0, 1}}}, 2)};
+        auto [mm_index, mm_ref] = ims.create_moment_matrix(1);
+        const auto& context = ims.InflationContext();
+        const auto& symbols = ims.Symbols();
+
+        oper_name_t op_a0 = context.Observables()[0].variants[0].operator_offset;
+        oper_name_t op_a1 = context.Observables()[0].variants[1].operator_offset;
+        oper_name_t op_b0 = context.Observables()[1].variants[0].operator_offset;
+        oper_name_t op_b1 = context.Observables()[1].variants[1].operator_offset;
+        oper_name_t op_c0 = context.Observables()[2].variants[0].operator_offset;
+
+        ASSERT_EQ(symbols.size(), 12) << symbols;
+        auto id_0 = find_or_fail(symbols, OperatorSequence::Zero(ims.Context()));
+        auto id_e = find_or_fail(symbols, OperatorSequence::Identity(ims.Context()));
+        auto id_A0 = find_or_fail(symbols, OperatorSequence{{op_a0}, ims.Context()});
+        auto id_B0 = find_or_fail(symbols, OperatorSequence{{op_b0}, ims.Context()});
+        auto id_C0 = find_or_fail(symbols, OperatorSequence{{op_c0}, ims.Context()});
+
+        auto id_A0A1 = find_or_fail(symbols, OperatorSequence{{op_a0, op_a1}, ims.Context()});
+        auto id_A0B0 = find_or_fail(symbols, OperatorSequence{{op_a0, op_b0}, ims.Context()});
+        auto id_A0B1 = find_or_fail(symbols, OperatorSequence{{op_a0, op_b1}, ims.Context()});
+        auto id_A0C0 = find_or_fail(symbols, OperatorSequence{{op_a0, op_c0}, ims.Context()});
+        auto id_B0B1 = find_or_fail(symbols, OperatorSequence{{op_b0, op_b1}, ims.Context()});
+        auto id_B0C0 = find_or_fail(symbols, OperatorSequence{{op_b0, op_c0}, ims.Context()});
+        auto id_C0C0 = find_or_fail(symbols, OperatorSequence{{op_c0, op_c0}, ims.Context()});
+
+
+        std::set all_symbs{id_0, id_e, id_A0, id_B0, id_C0,
+                            id_A0A1, id_A0B0, id_A0B1, id_A0C0,
+                            id_B0B1, id_B0C0, id_C0C0};
+        ASSERT_EQ(all_symbs.size(), 12) << symbols;
+
+        auto [em_index, em_ref] = ims.create_extended_matrix(mm_ref, std::vector<symbol_name_t>{id_A0});
+
+    }
 }

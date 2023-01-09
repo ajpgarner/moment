@@ -8,17 +8,18 @@
 #include <memory>
 
 #include "matrix_system.h"
+#include "utilities/index_tree.h"
 
 namespace Moment::Inflation {
 
     class InflationContext;
     class FactorTable;
     class CanonicalObservables;
+    class ExtendedMatrix;
     class InflationExplicitSymbolIndex;
     class InflationImplicitSymbols;
 
     class InflationMatrixSystem : public MatrixSystem {
-
     private:
         class InflationContext &inflationContext;
 
@@ -29,6 +30,8 @@ namespace Moment::Inflation {
         std::unique_ptr<InflationExplicitSymbolIndex> explicitSymbols;
 
         std::unique_ptr<InflationImplicitSymbols> implicitSymbols;
+
+        IndexTree<symbol_name_t, size_t> extension_indices;
 
     public:
         /**
@@ -62,6 +65,17 @@ namespace Moment::Inflation {
          * For thread safety, call for write lock before making changes.
          */
         FactorTable& Factors() noexcept { return *this->factors; }
+
+        /**
+         * Create or retrieve an extended matrix. This function will call for a write lock.
+         */
+        std::pair<size_t, ExtendedMatrix&> create_extended_matrix(const class MomentMatrix& source,
+                                                                  std::span<const symbol_name_t> extensions);
+
+        /**
+         * Retrieve index of extended matrix, that already exists, by extensions.
+         */
+        ptrdiff_t find_extended_matrix(size_t mm_level, std::span<const symbol_name_t> extensions);
 
         /**
          * Get factorization list associated with matrices.

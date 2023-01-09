@@ -134,7 +134,7 @@ namespace Moment::mex::functions::detail {
         }
 
         /** Moment matrix input -> dense monolithic output */
-        return_type operator_matrix(const OperatorMatrix& matrix) {
+        return_type operator_matrix(const SymbolicMatrix& matrix) {
             const auto& symbols = matrix.Symbols;
             const bool symmetric = this->imp.is_hermitian();
             auto output = create_empty_basis(symbols);
@@ -213,7 +213,7 @@ namespace Moment::mex::functions::detail {
 
 
     inline auto make_dense_monolith_basis(matlab::engine::MATLABEngine &engine,
-                                                  const OperatorMatrix& mm) {
+                                                  const SymbolicMatrix& mm) {
         DenseMonolithBasisVisitor dmbv{engine, mm.SMP()};
         return dmbv.operator_matrix(mm);
     }

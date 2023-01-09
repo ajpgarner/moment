@@ -22,6 +22,7 @@ namespace Moment {
     class Context;
     class SymbolTable;
 
+    class SymbolicMatrix;
     class OperatorMatrix;
     class LocalizingMatrix;
     class MomentMatrix;
@@ -42,7 +43,7 @@ namespace Moment {
         std::unique_ptr<SymbolTable> symbol_table;
 
         /** List of matrices in the system */
-        std::vector<std::unique_ptr<OperatorMatrix>> matrices;
+        std::vector<std::unique_ptr<SymbolicMatrix>> matrices;
 
         /** The index (in this->matrices) of generated moment matrices */
         std::vector<ptrdiff_t> momentMatrixIndices;
@@ -120,15 +121,7 @@ namespace Moment {
          * Access matrix by subscript corresponding to order of creation.
          * For thread safety, call for a read lock first.
          */
-        [[nodiscard]] const OperatorMatrix& operator[](size_t index) const {
-            if (index >= this->matrices.size()) {
-                throw errors::missing_component("Matrix index out of range.");
-            }
-            if (!this->matrices[index]) {
-                throw errors::missing_component("Matrix at supplied index was missing.");
-            }
-            return *this->matrices[index];
-        }
+        [[nodiscard]] const SymbolicMatrix& operator[](size_t index) const;
 
         /**
          * Counts matrices in system.
@@ -208,6 +201,14 @@ namespace Moment {
 
         virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
                                                   const class LocalizingMatrix& lm) { }
+
+
+        /** Get read-write access to symbolic matrix by index. Changes should not be made without a write lock. */
+        SymbolicMatrix& get(size_t index);
+
+
+        /** Add symbolic matrix to end of array */
+        ptrdiff_t push_back(std::unique_ptr<SymbolicMatrix> matrix);
 
     };
 }

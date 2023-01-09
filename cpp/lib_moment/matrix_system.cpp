@@ -146,4 +146,30 @@ namespace Moment {
 
         return where->second;
     }
+
+    const SymbolicMatrix &MatrixSystem::operator[](size_t index) const {
+        if (index >= this->matrices.size()) {
+            throw errors::missing_component("Matrix index out of range.");
+        }
+        if (!this->matrices[index]) {
+            throw errors::missing_component("Matrix at supplied index was missing.");
+        }
+        return *this->matrices[index];
+    }
+
+    SymbolicMatrix& MatrixSystem::get(size_t index) {
+        if (index >= this->matrices.size()) {
+            throw errors::missing_component("Matrix index out of range.");
+        }
+        if (!this->matrices[index]) {
+            throw errors::missing_component("Matrix at supplied index was missing.");
+        }
+        return *this->matrices[index];
+    }
+
+    ptrdiff_t MatrixSystem::push_back(std::unique_ptr<SymbolicMatrix> matrix) {
+        auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
+        this->matrices.emplace_back(std::move(matrix));
+        return matrixIndex;
+    }
 }
