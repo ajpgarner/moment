@@ -78,11 +78,10 @@ namespace Moment {
          */
         SymbolMatrixView SymbolMatrix;
 
-    protected:
         SymbolicMatrix(const Context& context, SymbolTable& symbols,
                        std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix);
 
-        SymbolicMatrix(SymbolicMatrix&& rhs)
+        SymbolicMatrix(SymbolicMatrix&& rhs) noexcept
             : context{rhs.context}, symbol_table{rhs.symbol_table}, dimension{rhs.dimension},
               is_hermitian{rhs.is_hermitian}, sym_exp_matrix{std::move(rhs.sym_exp_matrix)},
               mat_prop{std::move(rhs.mat_prop)}, Symbols{rhs.Symbols}, SymbolMatrix{*this} { }

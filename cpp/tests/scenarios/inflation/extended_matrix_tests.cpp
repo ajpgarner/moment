@@ -9,22 +9,14 @@
 #include "scenarios/inflation/inflation_context.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
 
+#include "../../symbolic/symbolic_matrix_helpers.h"
+
 #include <sstream>
 
 namespace Moment::Tests {
     using namespace Moment::Inflation;
 
     namespace {
-        symbol_name_t find_or_fail(const SymbolTable& symbols, const OperatorSequence& seq) {
-            const UniqueSequence * find_ptr = symbols.where(seq);
-            if (find_ptr == nullptr) {
-                std::stringstream ss;
-                ss << "Could not find sequence \"" << seq << "\".";
-                throw std::logic_error{ss.str()};
-            }
-            return find_ptr->Id();
-        }
-
         symbol_name_t find_or_fail(const FactorTable& factors, std::initializer_list<symbol_name_t> symbols) {
 
             auto maybe_entry = factors.find_index_by_factors(symbols);
@@ -46,18 +38,6 @@ namespace Moment::Tests {
             return maybe_entry.value();
         }
 
-        void compare_symbol_matrices(const SymbolicMatrix::SymbolMatrixView& test,
-                                     const std::vector<symbol_name_t>& reference) {
-            ASSERT_EQ(test.Dimension()*test.Dimension(), reference.size());
-            auto refIter = reference.cbegin();
-            for (size_t row_counter = 0; row_counter < test.Dimension(); ++row_counter) {
-                for (size_t column_counter = 0; column_counter < test.Dimension(); ++column_counter) {
-                    EXPECT_EQ(test[row_counter][column_counter].id, *refIter) << "row = " << row_counter
-                                                                              << ", col = " << column_counter;
-                    ++refIter;
-                }
-            }
-        }
     }
 
 

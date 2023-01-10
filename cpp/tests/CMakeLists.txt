@@ -29,6 +29,7 @@ add_executable(moment_tests
     symbolic/linear_combo_tests.cpp
     symbolic/substitution_list_tests.cpp
     symbolic/symbol_expression_tests.cpp
+    symbolic/symbolic_matrix_helpers.cpp
     symbolic/symbol_set_tests.cpp
     utilities/alphabetic_namer_tests.cpp
     utilities/combination_tests.cpp

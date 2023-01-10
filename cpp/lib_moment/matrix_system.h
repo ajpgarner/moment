@@ -21,6 +21,7 @@ namespace Moment {
 
     class Context;
     class SymbolTable;
+    class SubstitutionList;
 
     class SymbolicMatrix;
     class OperatorMatrix;
@@ -177,6 +178,12 @@ namespace Moment {
          * @return The numerical index within this matrix system, or -1 if not found.
          */
         [[nodiscard]] ptrdiff_t find_localizing_matrix(const LocalizingMatrixIndex& lmi) const noexcept;
+
+        /**
+         * Clone a matrix, with substituted values
+         */
+        std::pair<size_t, class SymbolicMatrix&>
+        clone_and_substitute(size_t matrix_index, const SubstitutionList& list);
 
         /**
          * Gets a read lock for the matrix system.
