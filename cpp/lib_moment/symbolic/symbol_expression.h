@@ -39,14 +39,14 @@ namespace Moment {
 
     public:
         symbol_name_t id;
-        bool negated;
+        double factor;
         bool conjugated;
 
     public:
         constexpr explicit SymbolExpression() = default;
 
         constexpr explicit SymbolExpression(symbol_name_t name, bool conj = false) noexcept
-                : id(name), negated(name < 0), conjugated(conj) {
+                : id{name}, factor{(name < 0) ? -1.0 : 1.0}, conjugated{conj} {
             if (id < 0) {
                 id = -id;
             }
@@ -60,21 +60,19 @@ namespace Moment {
         explicit SymbolExpression(const std::string& strExpr);
 
         constexpr SymbolExpression(symbol_name_t name, bool neg, bool conj) noexcept
-                : id(name), negated(neg), conjugated(conj) { }
+                : id(name), factor{neg ? -1.0 : 1.0}, conjugated(conj) { }
 
         bool operator==(const SymbolExpression& rhs) const {
             return (this->id == rhs.id)
-                   && (this->negated == rhs.negated)
+                   && (this->factor == rhs.factor)
                    && ((this->id == 0) || (this->conjugated == rhs.conjugated));
         }
 
         bool operator!=(const SymbolExpression&rhs) const {
             return (this->id != rhs.id)
-                   || (this->negated != rhs.negated)
+                   || (this->factor != rhs.factor)
                    || ((this->id != 0) && (this->conjugated != rhs.conjugated));
         }
-
-        friend std::ostream& operator<<(std::ostream& os, const SymbolExpression& symb);
 
         /**
          * The maximum length string that we are willing to attempt to parse as an SymbolExpression.
@@ -82,56 +80,22 @@ namespace Moment {
         const static size_t max_strlen = 32;
 
         /**
-         * Gets the symbol expression as a signed integer. This ignores conjugation!
+         * Gets the symbol expression as a signed integer. This ignores conjugation, and factors!
          */
         [[nodiscard]] constexpr std::make_signed_t<symbol_name_t> as_integer() const noexcept {
-            return static_cast<std::make_signed_t<symbol_name_t>>(this->id) * (this->negated ? -1 : 1);
+            return static_cast<std::make_signed_t<symbol_name_t>>(this->id) * ((this->factor < 0) ? -1 : 1);
         }
+
+        /**
+         * True if the symbol has a negative factor
+         */
+        [[nodiscard]] constexpr bool negated() const noexcept { return this->factor < 0; }
 
         /**
          * Gets the symbol expression as a string.
          */
-        [[nodiscard]] std::string as_string() const {
-            return std::string(this->negated ? "-" : "") + std::to_string(this->id) + (this->conjugated ? "*" : "");
-        }
-    };
+        [[nodiscard]] std::string as_string() const;
 
-
-    /**
-     * Represents equality between two symbols, potentially with negation and/or complex-conjugation.
-     */
-    struct SymbolPair {
-    public:
-        symbol_name_t left_id;
-        symbol_name_t right_id;
-        bool negated;
-        bool conjugated;
-
-    public:
-        SymbolPair(SymbolExpression left, SymbolExpression right) noexcept {
-            if (left.id <= right.id) {
-                this->left_id = left.id;
-                this->right_id = right.id;
-            } else {
-                this->left_id = right.id;
-                this->right_id = left.id;
-            }
-            this->negated = left.negated ^ right.negated;
-            this->conjugated = left.conjugated ^ right.conjugated;
-        }
-
-        SymbolPair(symbol_name_t left_id, symbol_name_t right_id, bool neg, bool conj) noexcept  {
-            if (left_id <= right_id) {
-                this->left_id = left_id;
-                this->right_id = right_id;
-            } else {
-                this->left_id = right_id;
-                this->right_id = left_id;
-            }
-            this->negated = neg;
-            this->conjugated = conj;
-        }
-
-        friend std::ostream& operator<<(std::ostream& os, const SymbolPair& pair);
+        friend std::ostream& operator<<(std::ostream& os, const SymbolExpression& expr);
     };
 }

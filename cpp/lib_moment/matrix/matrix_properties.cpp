@@ -46,7 +46,7 @@ namespace Moment {
         ptrdiff_t im_count = 0;
 
         // Go through symbol table... [should be sorted...]
-        for (const auto& [id, symbol] : entries.Symbols) {
+        for (const auto& [id, symbol] : entries) {
             // Skip 0 symbol.
             if (id == 0) {
                 continue;

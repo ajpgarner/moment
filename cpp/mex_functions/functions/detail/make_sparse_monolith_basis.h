@@ -72,18 +72,18 @@ namespace Moment::mex::functions::detail {
                     auto [re_id, im_id] = bkIter->second;
 
                     if (re_id>=0) {
-                        real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated ? -1. : 1.);
+                        real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated() ? -1. : 1.);
                         if (symmetric && (index_i != index_j)) {
-                            real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated ? -1. : 1.);
+                            real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated() ? -1. : 1.);
                         }
                     }
 
                     if (hasImBasis && (im_id>=0)) {
                         im_basis_frame.push_back(im_id, flatten_index(index_i, index_j),
-                             std::complex<double>{0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
+                             std::complex<double>{0.0, (elem.negated() != elem.conjugated) ? -1. : 1.});
                         if (symmetric && (index_i != index_j)) {
                             im_basis_frame.push_back(im_id, flatten_index(index_j, index_i),
-                                std::complex<double>{0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                                std::complex<double>{0.0, (elem.negated() != elem.conjugated) ? 1. : -1.});
                         }
                     }
                 }
@@ -108,18 +108,18 @@ namespace Moment::mex::functions::detail {
                     auto [re_id, im_id] = bkIter->second;
 
                     if (re_id>=0) {
-                        real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated ? -1. : 1.);
+                        real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated() ? -1. : 1.);
                         if (symmetric && (index_i != index_j)) {
-                            real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated ? -1. : 1.);
+                            real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated() ? -1. : 1.);
                         }
                     }
 
                     if (hasImBasis && (im_id>=0)) {
                         im_basis_frame.push_back(im_id, flatten_index(index_i, index_j),
-                                                 std::complex<double>{0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
+                                                 std::complex<double>{0.0, (elem.negated() != elem.conjugated) ? -1. : 1.});
                         if (symmetric && (index_i != index_j)) {
                             im_basis_frame.push_back(im_id, flatten_index(index_j, index_i),
-                                                 std::complex<double>{0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                                                 std::complex<double>{0.0, (elem.negated() != elem.conjugated) ? 1. : -1.});
                         }
                     }
                 }
@@ -153,17 +153,17 @@ namespace Moment::mex::functions::detail {
                 auto [re_id, im_id] = bkIter->second;
 
                 if (re_id>=0) {
-                    real_basis_frame.push_back(re_id, flatten_index(row, col), elem.negated ? -1. : 1.);
+                    real_basis_frame.push_back(re_id, flatten_index(row, col), elem.negated() ? -1. : 1.);
                     if (symmetric && (row != col)) {
-                        real_basis_frame.push_back(re_id, flatten_index(col, row), elem.negated ? -1. : 1.);
+                        real_basis_frame.push_back(re_id, flatten_index(col, row), elem.negated() ? -1. : 1.);
                     }
                 }
                 if (hasImBasis && (im_id>=0)) {
                     im_basis_frame.push_back(im_id, flatten_index(row, col),
-                         std::complex<double>(0.0, (elem.negated != elem.conjugated) ? -1. : 1.));
+                         std::complex<double>(0.0, (elem.negated() != elem.conjugated) ? -1. : 1.));
                     if (symmetric && (row != col)) {
                         im_basis_frame.push_back(im_id, flatten_index(col, row),
-                                                 std::complex<double>(0.0, (elem.negated != elem.conjugated) ? 1. : -1.));
+                                                 std::complex<double>(0.0, (elem.negated() != elem.conjugated) ? 1. : -1.));
                     }
                 }
                 ++iter;
@@ -188,19 +188,19 @@ namespace Moment::mex::functions::detail {
                     auto [re_id, im_id] = symbols[elem.id].basis_key();
 
                     if (re_id >= 0) {
-                        real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated ? -1. : 1.);
+                        real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated() ? -1. : 1.);
 
                         if (symmetric && (index_i != index_j)) {
-                            real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated ? -1. : 1.);
+                            real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated() ? -1. : 1.);
                         }
                     }
 
                     if (hasImBasis && (im_id>=0)) {
                         im_basis_frame.push_back(im_id, flatten_index(index_i, index_j),
-                             std::complex<double>{0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
+                             std::complex<double>{0.0, (elem.negated() != elem.conjugated) ? -1. : 1.});
                         if (symmetric && (index_i != index_j)) {
                             im_basis_frame.push_back(im_id, flatten_index(index_j, index_i),
-                                std::complex<double>{0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                                std::complex<double>{0.0, (elem.negated() != elem.conjugated) ? 1. : -1.});
                         }
                     }
                 }

@@ -17,16 +17,6 @@ namespace matlab {
 
 namespace Moment::mex {
     /**
-     * Read through matlab numerical matrix, and identify pairs of elements that are not symmetric.
-     * @param engine Reference to matlab engine
-     * @param data The data array
-     * @return A SymbolSet of elements in the matrix, with raw inferred equalities.
-     */
-    SymbolSet identify_nonsymmetric_elements(matlab::engine::MATLABEngine &engine,
-                                             const matlab::data::Array &data);
-
-
-    /**
      * Check if symbolic matrix is symmetric.
      * @param engine Reference to matlab engine
      * @param data The data array

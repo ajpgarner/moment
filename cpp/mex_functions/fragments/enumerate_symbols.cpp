@@ -54,7 +54,7 @@ namespace Moment::mex {
                         }
 
                         // Casting from int type, will never be conjugated - but might be negated
-                        if (elem.negated != txElem.negated) {
+                        if (elem.negated() != txElem.negated()) {
                             // a = -a; and hence symbol is zero. Should have been omitted!
                             throw_error(this->engine, errors::internal_error,
                                         "Element found that cannot be symmetric.");
@@ -93,7 +93,7 @@ namespace Moment::mex {
                         bool hasReal = true;
                         bool hasImaginary = true;
 
-                        if (elem.negated != txElem.negated) {
+                        if (elem.negated() != txElem.negated()) {
                             if (elem.conjugated == txElem.conjugated) {
                                 // a = -a, or a* = -a* => a= -a; symbol must be zero.
                                 throw_error(this->engine, errors::internal_error,
@@ -199,7 +199,7 @@ namespace Moment::mex {
                         }
 
                         // Casting from int type, will never be conjugated - but might be negated
-                        if (elem.negated != txElem.negated) {
+                        if (elem.negated() != txElem.negated()) {
                             // a* = -a or -a* = a; and hence symbol is purely imaginary
                             symbols_found.add_or_merge(Symbol{elem.id, true, false});
                         } else {
@@ -239,7 +239,7 @@ namespace Moment::mex {
                         bool hasReal = true;
                         bool hasImaginary = true;
 
-                        if (elem.negated != txElem.negated) {
+                        if (elem.negated() != txElem.negated()) {
                             if (elem.conjugated == txElem.conjugated) {
                                 // a = -a, or a* = -a* => a= -a; symbol must be zero.
                                 throw_error(this->engine, errors::internal_error,

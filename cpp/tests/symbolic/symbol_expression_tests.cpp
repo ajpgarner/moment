@@ -12,7 +12,7 @@ namespace Moment::Tests {
         std::string one = "1";
         SymbolExpression symbol{one};
         EXPECT_EQ(symbol.id, 1);
-        EXPECT_FALSE(symbol.negated);
+        EXPECT_FALSE(symbol.negated());
         EXPECT_FALSE(symbol.conjugated);
         EXPECT_EQ(symbol.as_string(), one);
     }
@@ -22,7 +22,7 @@ namespace Moment::Tests {
         std::string thirteen = "13";
         SymbolExpression symbol{thirteen};
         EXPECT_EQ(symbol.id, 13);
-        EXPECT_FALSE(symbol.negated);
+        EXPECT_FALSE(symbol.negated());
         EXPECT_FALSE(symbol.conjugated);
         EXPECT_EQ(symbol.as_string(), thirteen);
     }
@@ -31,7 +31,7 @@ namespace Moment::Tests {
         std::string minus_one = "-1";
         SymbolExpression symbol{minus_one};
         EXPECT_EQ(symbol.id, 1);
-        EXPECT_TRUE(symbol.negated);
+        EXPECT_TRUE(symbol.negated());
         EXPECT_FALSE(symbol.conjugated);
         EXPECT_EQ(symbol.as_string(), minus_one);
     }
@@ -40,7 +40,7 @@ namespace Moment::Tests {
         std::string one_star = "1*";
         SymbolExpression symbol{one_star};
         EXPECT_EQ(symbol.id, 1);
-        EXPECT_FALSE(symbol.negated);
+        EXPECT_FALSE(symbol.negated());
         EXPECT_TRUE(symbol.conjugated);
         EXPECT_EQ(symbol.as_string(), one_star);
     }
@@ -49,7 +49,7 @@ namespace Moment::Tests {
         std::string minus_one_star = "-1*";
         SymbolExpression symbol{minus_one_star};
         EXPECT_EQ(symbol.id, 1);
-        EXPECT_TRUE(symbol.negated);
+        EXPECT_TRUE(symbol.negated());
         EXPECT_TRUE(symbol.conjugated);
         EXPECT_EQ(symbol.as_string(), minus_one_star);
     }

@@ -48,18 +48,18 @@ namespace Moment::mex::functions::detail {
 
                     if (re_id>=0) {
                         matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
-                        re_mat[index_i][index_j] = elem.negated ? -1 : 1;
+                        re_mat[index_i][index_j] = elem.negated() ? -1 : 1;
                         if (symmetric && (index_i != index_j)) {
-                            re_mat[index_j][index_i] = elem.negated ? -1 : 1;
+                            re_mat[index_j][index_i] = elem.negated() ? -1 : 1;
                         }
                     }
                     if ((this->imp.is_complex()) && (im_id>=0)) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                         im_mat[index_i][index_j] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                                0.0, (elem.conjugated != elem.negated()) ? -1. : 1.};
                         if (symmetric && (index_i != index_j)) {
                             im_mat[index_j][index_i] = std::complex<double>{
-                                    0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                                    0.0, (elem.conjugated != elem.negated()) ? 1. : -1.};
                         }
                     }
                 }
@@ -83,18 +83,18 @@ namespace Moment::mex::functions::detail {
 
                     if (re_id>=0) {
                         matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
-                        re_mat[index_i][index_j] = elem.negated ? -1 : 1;
+                        re_mat[index_i][index_j] = elem.negated() ? -1 : 1;
                         if (symmetric && (index_i != index_j)) {
-                            re_mat[index_j][index_i] = elem.negated ? -1 : 1;
+                            re_mat[index_j][index_i] = elem.negated() ? -1 : 1;
                         }
                     }
                     if (this->imp.is_complex() &&  (im_id>=0)) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                         im_mat[index_i][index_j] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                                0.0, (elem.conjugated != elem.negated()) ? -1. : 1.};
                         if (symmetric && (index_i != index_j)) {
                             im_mat[index_j][index_i] = std::complex<double>{
-                                    0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                                    0.0, (elem.conjugated != elem.negated()) ? 1. : -1.};
                         }
                     }
                 }
@@ -125,18 +125,18 @@ namespace Moment::mex::functions::detail {
                 auto [re_id, im_id] = bkIter->second;
                 if (re_id>=0) {
                     matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
-                    re_mat[indices.first][indices.second] = elem.negated ? -1 : 1;
+                    re_mat[indices.first][indices.second] = elem.negated() ? -1 : 1;
                     if (symmetric && (indices.first != indices.second)) {
-                        re_mat[indices.second][indices.first] = elem.negated ? -1 : 1;
+                        re_mat[indices.second][indices.first] = elem.negated() ? -1 : 1;
                     }
                 }
                 if (this->imp.is_complex() && (im_id>=0)) {
                     matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                     im_mat[indices.first][indices.second] = std::complex<double>{
-                            0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                            0.0, (elem.conjugated != elem.negated()) ? -1. : 1.};
                     if (symmetric && (indices.first != indices.second)) {
                         im_mat[indices.second][indices.first] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                                0.0, (elem.conjugated != elem.negated()) ? 1. : -1.};
                     }
                 }
                 ++iter;
@@ -158,19 +158,19 @@ namespace Moment::mex::functions::detail {
 
                     if (re_id>=0) {
                         matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
-                        re_mat[index_i][index_j] = elem.negated ? -1 : 1;
+                        re_mat[index_i][index_j] = elem.negated() ? -1 : 1;
                         if (symmetric && (index_i != index_j)) {
-                            re_mat[index_j][index_i] = elem.negated ? -1 : 1;
+                            re_mat[index_j][index_i] = elem.negated() ? -1 : 1;
                         }
                     }
 
                     if (this->imp.is_complex() && (im_id>=0)) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
                         im_mat[index_i][index_j] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                                0.0, (elem.conjugated != elem.negated()) ? -1. : 1.};
                         if (symmetric && (index_i != index_j)) {
                             im_mat[index_j][index_i] = std::complex<double>{
-                                    0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                                    0.0, (elem.conjugated != elem.negated()) ? 1. : -1.};
                         }
                     }
                 }

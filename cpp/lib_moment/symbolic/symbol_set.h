@@ -12,57 +12,21 @@
 
 #include "symbol.h"
 #include "symbol_expression.h"
-#include "equality_type.h"
 
 namespace Moment {
 
     class SymbolSet {
     public:
-        using equality_map_t = std::map<std::pair<symbol_name_t, symbol_name_t>, EqualityType>;
         using symbol_map_t = std::map<symbol_name_t, Symbol>;
         using packing_map_t = std::map<symbol_name_t, symbol_name_t>;
 
-        struct LinkRange {
-        private:
-            const SymbolSet& the_set;
-        public:
-            constexpr explicit LinkRange(const SymbolSet& ss) noexcept : the_set{ss} { }
-
-            [[nodiscard]] auto begin() const noexcept { return the_set.symbol_links.cbegin(); }
-            [[nodiscard]] auto end() const noexcept { return the_set.symbol_links.cend(); }
-            [[nodiscard]] size_t size() const noexcept { return the_set.symbol_links.size(); }
-        };
-
-        struct SymbolRange {
-        private:
-            const SymbolSet& the_set;
-        public:
-            constexpr explicit SymbolRange(const SymbolSet& ss) noexcept  : the_set{ss} { }
-
-            [[nodiscard]] auto begin() const noexcept { return the_set.symbols.cbegin(); }
-            [[nodiscard]] auto end() const noexcept { return the_set.symbols.cend(); }
-            [[nodiscard]] size_t size() const noexcept { return the_set.symbols.size(); }
-        };
-
     private:
         symbol_map_t symbols{};
-        equality_map_t symbol_links{};
 
         packing_map_t packing_key{};
         std::vector<symbol_name_t> unpacking_key{};
 
         bool packed = false;
-
-    public:
-        /**
-         * Range, over all links in SymbolSet.
-         */
-        LinkRange Links;
-
-        /**
-         * Range, over all symbols in SymbolSet.
-         */
-        SymbolRange Symbols;
 
     public:
         SymbolSet();
@@ -72,27 +36,15 @@ namespace Moment {
          */
         explicit SymbolSet(const std::vector<Symbol>& symbols);
 
-        /**
-         * @param raw_pairs Not necessarily unique list of symbolic pairs
-         */
-        explicit SymbolSet(const std::vector<SymbolPair>& raw_pairs);
-
-        /**
-         * @param extra_symbols List of (not necessarily unique) symbols.
-         * @param raw_pairs Not necessarily unique list of symbolic pairs
-         */
-        SymbolSet(const std::vector<Symbol>& extra_symbols, const std::vector<SymbolPair>& raw_pairs);
-
         SymbolSet(const SymbolSet& rhs) = delete;
 
-        SymbolSet(SymbolSet&& rhs) noexcept : Links{*this}, Symbols{*this},
-            symbols{std::move(rhs.symbols)}, symbol_links{std::move(rhs.symbol_links)},
+        SymbolSet(SymbolSet&& rhs) noexcept :
+            symbols{std::move(rhs.symbols)},
             packing_key{std::move(rhs.packing_key)}, unpacking_key{std::move(rhs.unpacking_key)},
             packed{rhs.packed} { }
 
         SymbolSet& operator=(SymbolSet&& rhs) noexcept {
             std::swap(this->symbols, rhs.symbols);
-            std::swap(this->symbol_links, rhs.symbol_links);
             std::swap(this->packing_key, rhs.packing_key);
             std::swap(this->unpacking_key, rhs.unpacking_key);
             packed = rhs.packed;
@@ -100,8 +52,6 @@ namespace Moment {
         }
 
         [[nodiscard]] size_t symbol_count() const noexcept { return symbols.size(); }
-
-        [[nodiscard]] size_t link_count() const noexcept { return symbol_links.size(); }
 
         [[nodiscard]] constexpr bool is_packed() const noexcept { return this->packed; }
 
@@ -111,15 +61,6 @@ namespace Moment {
          * @return true if a new symbol was inserted.
          */
         bool add_or_merge(const Symbol& to_add);
-
-        /**
-         * Adds an equation between two symbols, supplying the symbols to the set if not already included.
-         * @param to_add The symbol pair to be added
-         * @param force_real true if the symbols are real (false for possibly complex).
-         * @return true if a new pair was added.
-         */
-        bool add_or_merge(const SymbolPair& to_add, bool force_real = false);
-
 
         /**
          * Re-labels nodes and links so that symbol names begin at 0, and contain no gaps.
@@ -160,6 +101,14 @@ namespace Moment {
             }
             return {true, this->unpacking_key[packed_key]};
         }
+
+
+        [[nodiscard]] auto begin() const noexcept { return this->symbols.cbegin(); }
+        [[nodiscard]] auto end() const noexcept { return this->symbols.cend(); }
+        [[nodiscard]] size_t size() const noexcept { return this->symbols.size(); }
+        [[nodiscard]] bool empty() const noexcept { return this->symbols.empty(); }
+
+
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolSet& symbolSet);
 

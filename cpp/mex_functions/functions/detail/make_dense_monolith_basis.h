@@ -45,17 +45,17 @@ namespace Moment::mex::functions::detail {
                     auto [re_id, im_id] = bkIter->second;
 
                     if (re_id>=0) {
-                        output.first[re_id][flatten_index(index_i, index_j)] = elem.negated ? -1 : 1;
+                        output.first[re_id][flatten_index(index_i, index_j)] = elem.negated() ? -1 : 1;
                         if (symmetric && (index_i != index_j)) {
-                            output.first[re_id][flatten_index(index_j, index_i)] = elem.negated ? -1 : 1;
+                            output.first[re_id][flatten_index(index_j, index_i)] = elem.negated() ? -1 : 1;
                         }
                     }
                     if ((imp.is_complex()) && (im_id>=0)) {
                         output.second[im_id][flatten_index(index_i, index_j)] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                                0.0, (elem.conjugated != elem.negated()) ? -1. : 1.};
                         if (symmetric && (index_i != index_j)) {
                             output.second[im_id][flatten_index(index_j, index_i)] = std::complex<double>{
-                                    0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                                    0.0, (elem.conjugated != elem.negated()) ? 1. : -1.};
                         }
                     }
                 }
@@ -77,17 +77,17 @@ namespace Moment::mex::functions::detail {
                     auto [re_id, im_id] = bkIter->second;
 
                     if (re_id>=0) {
-                        output.first[re_id][flatten_index(index_i, index_j)] = elem.negated ? -1 : 1;
+                        output.first[re_id][flatten_index(index_i, index_j)] = elem.negated() ? -1 : 1;
                         if (symmetric && (index_i != index_j)) {
-                            output.first[re_id][flatten_index(index_j, index_i)] = elem.negated ? -1 : 1;
+                            output.first[re_id][flatten_index(index_j, index_i)] = elem.negated() ? -1 : 1;
                         }
                     }
                     if ((this->imp.is_complex()) && (im_id>=0)) {
                         output.second[im_id][flatten_index(index_i, index_j)] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                                0.0, (elem.conjugated != elem.negated()) ? -1. : 1.};
                         if (symmetric && (index_i != index_j)) {
                             output.second[im_id][flatten_index(index_j, index_i)] =  std::complex<double>{
-                                    0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                                    0.0, (elem.conjugated != elem.negated()) ? 1. : -1.};
                         }
                     }
                 }
@@ -114,17 +114,17 @@ namespace Moment::mex::functions::detail {
                 auto bkIter = basis_key.find(elem.id);
                 auto [re_id, im_id] = bkIter->second;
                 if (re_id>=0) {
-                    output.first[re_id][flatten_index(indices.first, indices.second)] = elem.negated ? -1 : 1;
+                    output.first[re_id][flatten_index(indices.first, indices.second)] = elem.negated() ? -1 : 1;
                     if (symmetric && (indices.first != indices.second)) {
-                        output.first[re_id][flatten_index(indices.second, indices.first)] = elem.negated ? -1 : 1;
+                        output.first[re_id][flatten_index(indices.second, indices.first)] = elem.negated() ? -1 : 1;
                     }
                 }
                 if ((this->imp.is_complex()) && (im_id>=0)) {
                     output.second[im_id][flatten_index(indices.first, indices.second)] = std::complex<double>{
-                            0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                            0.0, (elem.conjugated != elem.negated()) ? -1. : 1.};
                     if (symmetric && (indices.first != indices.second)) {
                         output.second[im_id][flatten_index(indices.second, indices.first)] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                                0.0, (elem.conjugated != elem.negated()) ? 1. : -1.};
                     }
                 }
                 ++iter;
@@ -145,19 +145,19 @@ namespace Moment::mex::functions::detail {
                     auto [re_id, im_id] = symbols[elem.id].basis_key();
 
                     if (re_id>=0) {
-                        output.first[re_id][flatten_index(index_i, index_j)] = elem.negated ? -1 : 1;
+                        output.first[re_id][flatten_index(index_i, index_j)] = elem.negated() ? -1 : 1;
                         if (symmetric && (index_i != index_j)) {
-                            output.first[re_id][flatten_index(index_j, index_i)] = elem.negated ? -1 : 1;
+                            output.first[re_id][flatten_index(index_j, index_i)] = elem.negated() ? -1 : 1;
                         }
                     }
 
                     if ((this->imp.is_complex()) && (im_id>=0)) {
 
                         output.second[im_id][flatten_index(index_i, index_j)] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated) ? -1. : 1.};
+                                0.0, (elem.conjugated != elem.negated()) ? -1. : 1.};
                         if (symmetric && (index_i != index_j)) {
                             output.second[im_id][flatten_index(index_j, index_i)] = std::complex<double>{
-                                    0.0, (elem.conjugated != elem.negated) ? 1. : -1.};
+                                    0.0, (elem.conjugated != elem.negated()) ? 1. : -1.};
                         }
                     }
                 }

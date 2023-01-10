@@ -4,22 +4,20 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "symbol_expression.h"
+
 #include <iostream>
+#include <sstream>
 
 namespace Moment {
 
-    std::ostream &operator<<(std::ostream &os, const SymbolExpression& symb) {
-        os << symb.as_string();
-        return os;
-    }
-
-    std::ostream &operator<<(std::ostream &os, const SymbolPair &pair) {
-        os << pair.left_id << " == ";
-        if (pair.negated) {
+    std::ostream& operator<<(std::ostream& os, const SymbolExpression& expr) {
+        if (expr.factor == -1.0) {
             os << "-";
+        } else if (expr.factor != 1.0) {
+            os << expr.factor;
         }
-        os << pair.right_id;
-        if (pair.conjugated) {
+        os << expr.id;
+        if (expr.conjugated) {
             os << "*";
         }
         return os;
@@ -48,10 +46,10 @@ namespace Moment {
             }
 
             if (read_me < 0) {
-                this->negated = true;
+                this->factor = -1.0;
                 read_me = -read_me;
             } else {
-                this->negated = false;
+                this->factor = 1.0;
             }
             this->id = static_cast<symbol_name_t>(read_me);
         }
@@ -63,6 +61,11 @@ namespace Moment {
         }
     }
 
+    std::string SymbolExpression::as_string() const {
+        std::stringstream ss;
+        ss << *this;
+        return ss.str();
+    }
 
 
     std::string SymbolExpression::SymbolParseException::make_msg(const std::string &badExpr) {

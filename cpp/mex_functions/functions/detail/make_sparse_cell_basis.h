@@ -76,19 +76,19 @@ namespace Moment::mex::functions::detail {
 
                     if (re_id>=0) {
                         assert(re_id < real_basis_frame.size());
-                        real_basis_frame[re_id].push_back(index_i, index_j, elem.negated ? -1. : 1.);
+                        real_basis_frame[re_id].push_back(index_i, index_j, elem.negated() ? -1. : 1.);
                         if (symmetric && (index_i != index_j)) {
-                            real_basis_frame[re_id].push_back(index_j, index_i, elem.negated ? -1. : 1.);
+                            real_basis_frame[re_id].push_back(index_j, index_i, elem.negated() ? -1. : 1.);
                         }
                     }
 
                     if (im_id>=0) {
                         assert(im_id < im_basis_frame.size());
                         im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
-                                0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
+                                0.0, (elem.negated() != elem.conjugated) ? -1. : 1.});
                         if (symmetric && (index_i != index_j)) {
                             im_basis_frame[im_id].push_back(index_j, index_i, std::complex<double>{
-                                    0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                                    0.0, (elem.negated() != elem.conjugated) ? 1. : -1.});
                         }
                     }
                 }
@@ -113,19 +113,19 @@ namespace Moment::mex::functions::detail {
 
                     if (re_id >= 0) {
                         assert(re_id < real_basis_frame.size());
-                        real_basis_frame[re_id].push_back(index_i, index_j, elem.negated ? -1. : 1.);
+                        real_basis_frame[re_id].push_back(index_i, index_j, elem.negated() ? -1. : 1.);
                         if (symmetric && (index_i != index_j)) {
-                            real_basis_frame[re_id].push_back(index_j, index_i, elem.negated ? -1. : 1.);
+                            real_basis_frame[re_id].push_back(index_j, index_i, elem.negated() ? -1. : 1.);
                         }
                     }
 
                     if (im_id >= 0) {
                         assert(im_id < im_basis_frame.size());
                         im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
-                                0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
+                                0.0, (elem.negated() != elem.conjugated) ? -1. : 1.});
                         if (symmetric && (index_i != index_j)) {
                             im_basis_frame[im_id].push_back(index_j, index_i, std::complex<double>{
-                                    0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                                    0.0, (elem.negated() != elem.conjugated) ? 1. : -1.});
                         }
                     }
                 }
@@ -159,19 +159,19 @@ namespace Moment::mex::functions::detail {
                     assert(re_id < real_basis_frame.size());
 
                     real_basis_frame[re_id].push_back(row, col,
-                                                      elem.negated ? -1. : 1.);
+                                                      elem.negated() ? -1. : 1.);
                     if (symmetric && (row != col)) {
                         real_basis_frame[re_id].push_back(col, row,
-                                                          elem.negated ? -1. : 1.);
+                                                          elem.negated() ? -1. : 1.);
                     }
                 }
                 if (im_id>=0) {
                     assert(im_id < im_basis_frame.size());
                     im_basis_frame[im_id].push_back(row, col, std::complex<double>(
-                            0.0, (elem.negated != elem.conjugated) ? -1. : 1.));
+                            0.0, (elem.negated() != elem.conjugated) ? -1. : 1.));
                     if (symmetric && (row != col)) {
                         im_basis_frame[im_id].push_back(col, row, std::complex<double>(
-                                0.0, (elem.negated != elem.conjugated) ? 1. : -1.));
+                                0.0, (elem.negated() != elem.conjugated) ? 1. : -1.));
                     }
                 }
                 ++iter;
@@ -196,19 +196,19 @@ namespace Moment::mex::functions::detail {
 
                     if (re_id>=0) {
                         assert(re_id < real_basis_frame.size());
-                        real_basis_frame[re_id].push_back(index_i, index_j, elem.negated ? -1. : 1.);
+                        real_basis_frame[re_id].push_back(index_i, index_j, elem.negated() ? -1. : 1.);
                         if (symmetric && (index_i != index_j)) {
-                            real_basis_frame[re_id].push_back(index_j, index_i, elem.negated ? -1. : 1.);
+                            real_basis_frame[re_id].push_back(index_j, index_i, elem.negated() ? -1. : 1.);
                         }
                     }
 
                     if (im_id>=0) {
                         assert(im_id < im_basis_frame.size());
                         im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
-                                0.0, (elem.negated != elem.conjugated) ? -1. : 1.});
+                                0.0, (elem.negated() != elem.conjugated) ? -1. : 1.});
                         if (symmetric && (index_i != index_j)) {
                             im_basis_frame[im_id].push_back(index_j, index_i, std::complex<double>{
-                                    0.0, (elem.negated != elem.conjugated) ? 1. : -1.});
+                                    0.0, (elem.negated() != elem.conjugated) ? 1. : -1.});
                         }
                     }
                 }

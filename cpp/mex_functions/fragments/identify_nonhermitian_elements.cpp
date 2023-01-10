@@ -19,53 +19,6 @@ namespace Moment::mex {
         /**
          * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
          */
-        class NonhermitianElementIdentifierVisitor {
-            matlab::engine::MATLABEngine& engine;
-
-        public:
-            using return_type = Moment::SymbolSet;
-
-        public:
-            explicit NonhermitianElementIdentifierVisitor(matlab::engine::MATLABEngine &the_engine)
-                    : engine(the_engine) { }
-
-            /**
-              * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
-              * @param data The data array
-              * @return A vector of non-matching elements, in canonical form.
-              */
-            return_type string(const matlab::data::StringArray &data) {
-                SymbolSet output{};
-
-                const size_t dimension = data.getDimensions()[0];
-                for (size_t i = 0; i < dimension; ++i) {
-                    // Register diagonal element as real symbol:
-                    SymbolExpression diag{read_symbol_or_fail(this->engine, data, i, i)};
-                    output.add_or_merge(Symbol{diag.id, false});
-
-                    for (size_t j = i + 1; j < dimension; ++j) {
-                        SymbolExpression upper{read_symbol_or_fail(this->engine, data, i, j)};
-                        SymbolExpression lower{read_symbol_or_fail(this->engine, data, j, i)};
-                        lower.conjugated = !lower.conjugated;
-
-                        if (upper != lower) {
-                            output.add_or_merge(SymbolPair{upper, lower});
-                        } else {
-                            output.add_or_merge(Symbol{upper.id});
-                            output.add_or_merge(Symbol{lower.id});
-                        }
-                    }
-                }
-
-                return output;
-            }
-        };
-
-        static_assert(concepts::VisitorHasString<NonhermitianElementIdentifierVisitor>);
-
-        /**
-         * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
-         */
         class IsHermitianVisitor {
             matlab::engine::MATLABEngine& engine;
 
@@ -79,8 +32,6 @@ namespace Moment::mex {
             template<std::convertible_to<symbol_name_t> datatype>
             return_type dense(const matlab::data::TypedArray<datatype> &data) {
                 SymbolSet output{};
-
-                std::vector<SymbolPair> non_matching{};
 
                 const size_t dimension = data.getDimensions()[0];
                 for (size_t i = 0; i < dimension; ++i) {
@@ -130,7 +81,7 @@ namespace Moment::mex {
                         }
 
                         // a = (-a*)* -> a = -a = 0; but not written as zero.
-                        if ((lower.conjugated != upper.conjugated) && (lower.negated != upper.negated)) {
+                        if ((lower.conjugated != upper.conjugated) && (lower.negated() != upper.negated())) {
                             return false;
                         }
 
@@ -191,11 +142,6 @@ namespace Moment::mex {
         static_assert(concepts::VisitorHasString<IsHermitianVisitor>);
         static_assert(concepts::VisitorHasRealDense<IsHermitianVisitor>);
         static_assert(concepts::VisitorHasRealSparse<IsHermitianVisitor>);
-    }
-
-    SymbolSet identify_nonhermitian_elements(matlab::engine::MATLABEngine &engine,
-                                             const matlab::data::Array &data) {
-        return DispatchVisitor(engine, data, NonhermitianElementIdentifierVisitor{engine});
     }
 
     bool is_hermitian(matlab::engine::MATLABEngine &engine, const matlab::data::Array &data) {
