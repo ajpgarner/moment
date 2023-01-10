@@ -1,7 +1,7 @@
 /**
  * factor_table.h
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 #pragma once
 
@@ -70,6 +70,12 @@ namespace Moment::Inflation {
 
         /** True if factor table contains at least one entry. */
         [[nodiscard]] bool empty() const noexcept { return this->entries.empty(); }
+
+        /** Iterator to factor entries */
+        [[nodiscard]] auto begin() const noexcept { return this->entries.cbegin(); }
+
+        /** Iterator end to factor entries */
+        [[nodiscard]] auto end() const noexcept { return this->entries.cend(); }
 
         /** Access one entry in factor table by index. */
         [[nodiscard]] const FactorEntry& operator[](size_t index) const noexcept { return this->entries[index]; }

@@ -38,6 +38,7 @@ add_library(lib_moment
         scenarios/locality/locality_context.cpp
         scenarios/locality/locality_matrix_system.cpp
         scenarios/locality/party.cpp
+        symbolic/substitution_list.cpp
         symbolic/symbol.cpp
         symbolic/symbol_expression.cpp
         symbolic/symbol_set.cpp

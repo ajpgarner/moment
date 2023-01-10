@@ -27,6 +27,7 @@ add_executable(moment_tests
     scenarios/locality/locality_implicit_symbols_tests.cpp
     scenarios/locality/party_tests.cpp
     symbolic/linear_combo_tests.cpp
+    symbolic/substitution_list_tests.cpp
     symbolic/symbol_expression_tests.cpp
     symbolic/symbol_set_tests.cpp
     utilities/alphabetic_namer_tests.cpp
@@ -41,8 +42,7 @@ add_executable(moment_tests
     utilities/shortlex_hasher_tests.cpp
     utilities/small_vector_tests.cpp
     utilities/square_matrix_tests.cpp
-    utilities/variable_chunk_range_tests.cpp
-)
+    utilities/variable_chunk_range_tests.cpp)
 
 target_link_libraries(moment_tests
     lib_moment

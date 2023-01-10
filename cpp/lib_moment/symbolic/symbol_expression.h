@@ -1,7 +1,7 @@
 /**
  * symbol_expression.h
  *
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 #pragma once
 
@@ -11,10 +11,10 @@
 
 namespace Moment {
     /**
-        * An algebraic element, as might be written in a matrix or equation.
-        */
+     * An algebraic element, as might be written in a matrix or equation.
+     * Effectively, a symbol up to some pre-factor and conjugation.
+     */
     struct SymbolExpression {
-
     public:
         /**
          * Error thrown when string expression cannot be parsed as a symbol expression.
@@ -43,9 +43,17 @@ namespace Moment {
         bool conjugated;
 
     public:
+        /**
+         * Default (uninitialized!) construction of SymbolExpression
+         */
         constexpr explicit SymbolExpression() = default;
 
-        constexpr explicit SymbolExpression(symbol_name_t name, bool conj = false) noexcept
+        /**
+         * Construct a symbol expression.
+         * @param name The symbol ID. Use a negative value to interpret as -1 times absolute value.
+         * @param conj Whether the symbol is conjugated.
+         */
+        constexpr explicit SymbolExpression(std::make_signed<symbol_name_t>::type name, bool conj = false) noexcept
                 : id{name}, factor{(name < 0) ? -1.0 : 1.0}, conjugated{conj} {
             if (id < 0) {
                 id = -id;
@@ -53,14 +61,29 @@ namespace Moment {
         }
 
         /**
+         * Construct a symbol expression.
+         * @param name The symbol ID.
+         * @param neg The scalar factor for this symbol.
+         * @param conj Whether the symbol is conjugated.
+         */
+        constexpr explicit SymbolExpression(symbol_name_t name, double factor, bool conj = false) noexcept
+                : id{name}, factor{factor}, conjugated{conj} { }
+
+        /**
+         * Construct a symbol expression.
+         * @param name The symbol ID.
+         * @param neg Whether the symbol is negated.
+         * @param conj Whether the symbol is conjugated.
+         */
+        constexpr SymbolExpression(symbol_name_t name, bool neg, bool conj) noexcept
+                : id(name), factor{neg ? -1.0 : 1.0}, conjugated(conj) { }
+
+        /**
          * Construct a symbol expression, from supplied string input.
          * @param strExpr String representing the expression
          * @throws SymbolParseException if strExpr cannot be interpreted as a valid symbol.
          */
         explicit SymbolExpression(const std::string& strExpr);
-
-        constexpr SymbolExpression(symbol_name_t name, bool neg, bool conj) noexcept
-                : id(name), factor{neg ? -1.0 : 1.0}, conjugated(conj) { }
 
         bool operator==(const SymbolExpression& rhs) const {
             return (this->id == rhs.id)
