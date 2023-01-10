@@ -19,6 +19,7 @@ namespace Moment {
     class Context;
     class SymbolTable;
     class MatrixProperties;
+    class MatrixSystem;
     class SymbolicMatrix;
 }
 
@@ -50,6 +51,7 @@ namespace Moment::mex {
      * @return A matlab string array.
      */
     matlab::data::Array export_sequence_matrix(matlab::engine::MATLABEngine& engine,
+                                              const MatrixSystem& system,
                                               const SymbolicMatrix& matrix);
 
 

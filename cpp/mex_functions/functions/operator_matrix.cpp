@@ -155,8 +155,9 @@ namespace Moment::mex::functions  {
                 case OperatorMatrixParams::OutputMode::Symbols:
                     output[0] = export_symbol_matrix(this->matlabEngine, theMatrix.SymbolMatrix());
                     break;
-                case OperatorMatrixParams::OutputMode::Sequences:
-                    output[0] = export_sequence_matrix(this->matlabEngine, theMatrix);
+                case OperatorMatrixParams::OutputMode::Sequences: {
+                    output[0] = export_sequence_matrix(this->matlabEngine, matrixSystem, theMatrix);
+                    }
                     break;
                 case OperatorMatrixParams::OutputMode::IndexAndDimension: {
                     matlab::data::ArrayFactory factory;
