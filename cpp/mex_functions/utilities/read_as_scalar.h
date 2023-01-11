@@ -57,6 +57,8 @@ namespace Moment::mex {
     [[nodiscard]] uint32_t read_as_uint32(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
     [[nodiscard]] int64_t  read_as_int64(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
     [[nodiscard]] uint64_t read_as_uint64(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] float read_as_float(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    [[nodiscard]] double read_as_double(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
 
     template<std::integral int_t>
     inline int_t read_as_scalar(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
@@ -90,6 +92,19 @@ namespace Moment::mex {
     inline uint64_t read_as_scalar<uint64_t>(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
         return read_as_uint64(engine, input);
     };
+    
+    template<std::floating_point float_t>
+    inline float_t read_as_scalar(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+
+    template<>
+    inline float read_as_scalar<float>(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
+        return read_as_float(engine, input);
+    };
+    
+    template<>
+    inline double read_as_scalar<double>(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
+        return read_as_double(engine, input);
+    };
 
     [[nodiscard]] uint64_t read_as_scalar(matlab::engine::MATLABEngine& engine,
                                           const matlab::data::MATLABString& input);
@@ -99,6 +114,12 @@ namespace Moment::mex {
      * @param input The matlab array object to test.
      */
     [[nodiscard]] bool castable_to_scalar_int(const matlab::data::Array& input);
+
+    /**
+     * True if the supplied type can be interpreted as a scalar floating point.
+     * @param input The matlab array object to test.
+     */
+    [[nodiscard]] bool castable_to_scalar_float(const matlab::data::Array& input);
 
     /**
     * Read integer, or throw BadInput exception.

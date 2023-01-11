@@ -41,6 +41,6 @@ namespace Moment::mex::functions  {
 
     protected:
         std::pair<size_t, const Moment::SymbolicMatrix&>
-        get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp) final;
+        get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) final;
     };
 }

@@ -42,7 +42,7 @@ namespace Moment::mex {
 
 
     namespace {
-        template<typename output_type>
+        template<std::integral output_type>
         class IntReaderVisitor {
 
         public:
@@ -119,12 +119,72 @@ namespace Moment::mex {
         static_assert(concepts::VisitorHasRealDense<IntReaderVisitor<long>>);
         static_assert(concepts::VisitorHasString<IntReaderVisitor<long>>);
 
-        template<typename output_type>
+        template<std::floating_point output_type>
+        class FloatReaderVisitor {
+
+        public:
+            using return_type = output_type;
+
+        public:
+            explicit FloatReaderVisitor() = default;
+
+            /**
+              * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
+              * @tparam datatype The data array type
+              * @param data The data array
+              * @return A vector of non-matching elements, in canonical form.
+              */
+            template<std::convertible_to<return_type> datatype>
+            return_type dense(const matlab::data::TypedArray<datatype> &data) {
+                if (data.isEmpty()) {
+                    throw errors::unreadable_scalar{errors::empty_array, "Unexpected empty array."};
+                }
+                if (data.getNumberOfElements() > 1) {
+                    throw errors::unreadable_scalar{errors::not_a_scalar, "Not a scalar."};
+                }
+
+                // Just directly cast:
+                return static_cast<return_type>(*data.begin());
+            }
+
+            return_type string(const matlab::data::StringArray &data) {
+                if (data.isEmpty()) {
+                    throw errors::unreadable_scalar{errors::empty_array, "Unexpected empty array."};
+                }
+                if (data.getNumberOfElements() > 1) {
+                    throw errors::unreadable_scalar{errors::not_a_scalar, "Not a scalar."};
+                }
+                auto str = *data.begin();
+                if (!str.has_value()) {
+                    throw errors::unreadable_scalar{errors::empty_array, "Unexpected empty string."};
+                }
+
+                try {
+                    std::string utf8str = matlab::engine::convertUTF16StringToUTF8String(*str);
+                    std::stringstream ss{utf8str};
+                    return_type output{};
+                    ss >> output;
+                    return output;
+                } catch (std::exception& e) {
+                    throw errors::unreadable_scalar{errors::could_not_convert, "Could not convert string to integer."};
+                }
+            }
+
+        };
+
+        static_assert(concepts::VisitorHasRealDense<FloatReaderVisitor<double>>);
+        static_assert(concepts::VisitorHasString<FloatReaderVisitor<double>>);
+
+        template<std::integral output_type>
         output_type do_read_as_scalar(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
             return DispatchVisitor(engine, input, IntReaderVisitor<output_type>{});
         }
-    }
 
+        template<std::floating_point output_type>
+        output_type do_read_as_scalar(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+            return DispatchVisitor(engine, input, FloatReaderVisitor<output_type>{});
+        }
+    }
 
     uint64_t read_as_scalar(matlab::engine::MATLABEngine &engine, const matlab::data::MATLABString& str) {
         if (!str.has_value()) {
@@ -176,6 +236,14 @@ namespace Moment::mex {
         return do_read_as_scalar<uint64_t>(engine, input);
     }
 
+    float read_as_float(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return do_read_as_scalar<float>(engine, input);
+    }
+
+    double read_as_double(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return do_read_as_scalar<double>(engine, input);
+    }
+
     bool castable_to_scalar_int(const matlab::data::Array &input) {
         if (input.isEmpty()) {
             return false;
@@ -203,4 +271,8 @@ namespace Moment::mex {
         }
     }
 
+    bool castable_to_scalar_float(const matlab::data::Array &input) {
+        // Same criteria as int:
+        return castable_to_scalar_int(input);
+    }
 }

@@ -73,7 +73,7 @@ namespace Moment::mex::functions {
     }
 
     std::pair<size_t, const Moment::SymbolicMatrix&>
-    ExtendedMatrix::get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp)  {
+    ExtendedMatrix::get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp)  {
         // Get extended parameters
         const auto& emp = dynamic_cast<const ExtendedMatrixParams&>(omp);
 

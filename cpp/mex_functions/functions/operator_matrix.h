@@ -97,7 +97,7 @@ namespace Moment::mex::functions  {
          * @return Pair: Index of matrix, reference to matrix.
          */
         virtual std::pair<size_t, const Moment::SymbolicMatrix&>
-        get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp);
+        get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp);
 
     };
 }

@@ -38,7 +38,7 @@ namespace Moment::mex::functions {
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
         std::pair<size_t, const Moment::SymbolicMatrix&>
-        get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp) override;
+        get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) override;
 
     };
 }

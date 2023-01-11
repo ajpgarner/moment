@@ -175,7 +175,7 @@ namespace Moment::mex::functions  {
     }
 
     std::pair<size_t, const Moment::SymbolicMatrix&>
-    OperatorMatrix::get_or_make_matrix(MatrixSystem& system, const OperatorMatrixParams& omp) {
+    OperatorMatrix::get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) {
         try {
             const auto &input = dynamic_cast<const RawOperatorMatrixParams &>(omp);
             auto lock = system.get_read_lock(); // release on return or throw

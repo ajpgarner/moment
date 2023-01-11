@@ -62,7 +62,7 @@ namespace Moment::mex::functions {
     }
 
     std::pair<size_t, const Moment::SymbolicMatrix &>
-    MomentMatrix::get_or_make_matrix(MatrixSystem &system, const OperatorMatrixParams &inputOMP) {
+    MomentMatrix::get_or_make_matrix(MatrixSystem &system, OperatorMatrixParams &inputOMP) {
         const auto& input = dynamic_cast<const MomentMatrixParams&>(inputOMP);
 
         return system.create_moment_matrix(input.hierarchy_level);

@@ -14,7 +14,7 @@ namespace Moment {
         if (expr.factor == -1.0) {
             os << "-";
         } else if (expr.factor != 1.0) {
-            os << expr.factor;
+            os << expr.factor << "*";
         }
         os << expr.id;
         if (expr.conjugated) {
