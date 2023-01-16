@@ -32,7 +32,7 @@ namespace Moment::mex::functions  {
         assert(inputs.size() == 3);
 
         this->matrix_index = read_positive_integer<size_t>(matlabEngine, "Matrix index", inputs[1], 0);
-        this->substitutions = read_substitution_cell(matlabEngine, "Substitution list'", inputs[2]);
+        this->substitutions = read_substitution_cell(matlabEngine, "Substitution list", inputs[2]);
     }
 
     bool ApplyValuesParams::any_param_set() const {

@@ -70,6 +70,20 @@ classdef OperatorMatrix < handle
             val = obj.sequence_matrix;
         end
         
+        %% Apply values
+        function val = ApplyValues(obj, value_list)
+            arguments
+                obj (1,1) OperatorMatrix
+                value_list (1,:) cell
+            end
+            
+            val = OperatorMatrix(obj.MatrixSystem);
+            [val.Index, val.Dimension] = ...
+                mtk('apply_values', obj.MatrixSystem.RefId, obj.Index, ...
+                value_list);
+        end
+        
+        
         
         %% Accessors for basis in various forms
         function [re, im] = DenseBasis(obj)
