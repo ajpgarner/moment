@@ -13,6 +13,7 @@ add_executable(moment_tests
     scenarios/algebraic/algebraic_context_tests.cpp
     scenarios/algebraic/monomial_substitution_rule_tests.cpp
     scenarios/algebraic/rule_book_tests.cpp
+    scenarios/imported/imported_matrix_system_tests.cpp
     scenarios/inflation/canonical_observables_tests.cpp
     scenarios/inflation/causal_network_tests.cpp
     scenarios/inflation/extended_matrix_tests.cpp

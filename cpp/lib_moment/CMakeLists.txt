@@ -20,6 +20,8 @@ add_library(lib_moment
         scenarios/algebraic/monomial_substitution_rule.cpp
         scenarios/algebraic/ostream_rule_logger.cpp
         scenarios/algebraic/rule_book.cpp
+        scenarios/imported/imported_context.cpp
+        scenarios/imported/imported_matrix_system.cpp
         scenarios/inflation/canonical_observables.cpp
         scenarios/inflation/causal_network.cpp
         scenarios/inflation/extended_matrix.cpp

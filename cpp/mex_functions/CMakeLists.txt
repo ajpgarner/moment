@@ -38,6 +38,7 @@ matlab_add_mex(NAME moment_mex
             functions/localizing_matrix.cpp
             functions/moment_matrix.cpp
             functions/new_algebraic_matrix_system.cpp
+            functions/new_imported_matrix_system.cpp
             functions/new_inflation_matrix_system.cpp
             functions/new_locality_matrix_system.cpp
             functions/operator_matrix.cpp

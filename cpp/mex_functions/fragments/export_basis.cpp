@@ -47,19 +47,19 @@ namespace Moment::mex {
 
                     if (re_id>=0) {
                         matlab::data::TypedArrayRef<double> re_mat = output.first[re_id];
-                        re_mat[index_i][index_j] = elem.negated() ? -1 : 1;
+                        re_mat[index_i][index_j] = elem.factor;
                         if (symmetric && (index_i != index_j)) {
-                            re_mat[index_j][index_i] = elem.negated() ? -1 : 1;
+                            re_mat[index_j][index_i] = elem.factor;
                         }
                     }
 
                     if (this->imp.is_complex() && (im_id>=0)) {
                         matlab::data::TypedArrayRef<std::complex<double>> im_mat = output.second[im_id];
-                        im_mat[index_i][index_j] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated()) ? -1. : 1.};
+                        im_mat[index_i][index_j] = std::complex<double>{0.0,
+                                                                        (elem.conjugated ? -1.0 : 1.0) * elem.factor};
                         if (symmetric && (index_i != index_j)) {
                             im_mat[index_j][index_i] = std::complex<double>{
-                                    0.0, (elem.conjugated != elem.negated()) ? 1. : -1.};
+                                    0.0, (elem.conjugated ? 1.0 : -1.0) * elem.factor};
                         }
                     }
                 }
@@ -147,19 +147,19 @@ namespace Moment::mex {
 
                     if (re_id>=0) {
                         assert(re_id < real_basis_frame.size());
-                        real_basis_frame[re_id].push_back(index_i, index_j, elem.negated() ? -1. : 1.);
+                        real_basis_frame[re_id].push_back(index_i, index_j, elem.factor);
                         if (symmetric && (index_i != index_j)) {
-                            real_basis_frame[re_id].push_back(index_j, index_i, elem.negated() ? -1. : 1.);
+                            real_basis_frame[re_id].push_back(index_j, index_i, elem.factor);
                         }
                     }
 
                     if (im_id>=0) {
                         assert(im_id < im_basis_frame.size());
                         im_basis_frame[im_id].push_back(index_i, index_j, std::complex<double>{
-                                0.0, (elem.negated() != elem.conjugated) ? -1. : 1.});
+                                0.0, (elem.conjugated ? -1.0 : 1.0) * elem.factor});
                         if (symmetric && (index_i != index_j)) {
                             im_basis_frame[im_id].push_back(index_j, index_i, std::complex<double>{
-                                    0.0, (elem.negated() != elem.conjugated) ? 1. : -1.});
+                                    0.0, (elem.conjugated ? 1.0 : -1.0) * elem.factor});
                         }
                     }
                 }
@@ -224,19 +224,19 @@ namespace Moment::mex {
                     auto [re_id, im_id] = symbols[elem.id].basis_key();
 
                     if (re_id>=0) {
-                        output.first[re_id][flatten_index(index_i, index_j)] = elem.negated() ? -1 : 1;
+                        output.first[re_id][flatten_index(index_i, index_j)] = elem.factor;
                         if (symmetric && (index_i != index_j)) {
-                            output.first[re_id][flatten_index(index_j, index_i)] = elem.negated() ? -1 : 1;
+                            output.first[re_id][flatten_index(index_j, index_i)] = elem.factor;
                         }
                     }
 
                     if ((this->imp.is_complex()) && (im_id>=0)) {
 
-                        output.second[im_id][flatten_index(index_i, index_j)] = std::complex<double>{
-                                0.0, (elem.conjugated != elem.negated()) ? -1. : 1.};
+                        output.second[im_id][flatten_index(index_i, index_j)]
+                            = std::complex<double>{0.0, (elem.conjugated ? -1.0 : 1.0) * elem.factor};
                         if (symmetric && (index_i != index_j)) {
-                            output.second[im_id][flatten_index(index_j, index_i)] = std::complex<double>{
-                                    0.0, (elem.conjugated != elem.negated()) ? 1. : -1.};
+                            output.second[im_id][flatten_index(index_j, index_i)]
+                                = std::complex<double>{0.0, (elem.conjugated ? 1.0 : -1.0) * elem.factor};
                         }
                     }
                 }
@@ -326,19 +326,19 @@ namespace Moment::mex {
                     auto [re_id, im_id] = symbols[elem.id].basis_key();
 
                     if (re_id >= 0) {
-                        real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.negated() ? -1. : 1.);
+                        real_basis_frame.push_back(re_id, flatten_index(index_i, index_j), elem.factor);
 
                         if (symmetric && (index_i != index_j)) {
-                            real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.negated() ? -1. : 1.);
+                            real_basis_frame.push_back(re_id, flatten_index(index_j, index_i), elem.factor);
                         }
                     }
 
                     if (hasImBasis && (im_id>=0)) {
                         im_basis_frame.push_back(im_id, flatten_index(index_i, index_j),
-                                                 std::complex<double>{0.0, (elem.negated() != elem.conjugated) ? -1. : 1.});
+                                                 std::complex<double>{0.0, (elem.conjugated ? -1.0 : 1.0) * elem.factor});
                         if (symmetric && (index_i != index_j)) {
                             im_basis_frame.push_back(im_id, flatten_index(index_j, index_i),
-                                                     std::complex<double>{0.0, (elem.negated() != elem.conjugated) ? 1. : -1.});
+                                                     std::complex<double>{0.0, (elem.conjugated ? 1.0 : -1.0) * elem.factor});
                         }
                     }
                 }
@@ -350,15 +350,6 @@ namespace Moment::mex {
         }
 
     private:
-        return_type construct_basis(const monolith_re_frame& re_frame,
-                                    const monolith_im_frame& im_frame) {
-            const bool hasImaginaryBasis = this->imp.is_complex();
-            const size_t real_mx_cols = this->imp.RealSymbols().size();
-            const size_t im_mx_cols = hasImaginaryBasis ? this->imp.ImaginarySymbols().size() : 0;
-
-            return construct_basis(real_mx_cols, im_mx_cols, re_frame, im_frame);
-        }
-
         return_type construct_basis(const size_t real_mx_cols,
                                     const size_t im_mx_cols,
                                     const monolith_re_frame& re_frame,
