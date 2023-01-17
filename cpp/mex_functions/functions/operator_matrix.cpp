@@ -12,9 +12,38 @@
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 #include "fragments/export_operator_matrix.h"
+#include "fragments/export_matrix_basis_masks.h"
 
 namespace Moment::mex::functions  {
 
+    namespace {
+
+        void export_masks(matlab::engine::MATLABEngine &engine, IOArgumentRange& output,
+                          const MatrixSystem& system, const SymbolicMatrix &matrix) {
+            const auto num_outputs = output.size();
+            auto read_lock = system.get_read_lock();
+
+            // Export lists, if requested
+            if (num_outputs > 2) {
+                auto [re_list, im_list] = export_basis_lists(engine, system.Symbols(), matrix.SMP());
+                // Guaranteed by above if:
+                output[2] = std::move(re_list);
+
+                if (num_outputs >= 4) {
+                    output[3] = std::move(im_list);
+                }
+            }
+
+            // Export masks
+            auto [re_mask, im_mask] = export_basis_masks(engine, system.Symbols(), matrix.SMP());
+            if (num_outputs >= 1) {
+                output[0] = std::move(re_mask);
+            }
+            if (num_outputs >= 2) {
+                output[1] = std::move(im_mask);
+            }
+        }
+    }
 
     void OperatorMatrixParams::parse(matlab::engine::MATLABEngine &matlabEngine) {
         // Determine output mode:
@@ -22,6 +51,8 @@ namespace Moment::mex::functions  {
             this->output_mode = OutputMode::Sequences;
         } else if (this->flags.contains(u"symbols")) {
             this->output_mode = OutputMode::Symbols;
+        } else if (this->flags.contains(u"masks")) {
+            this->output_mode = OutputMode::Masks;
         } else {
             this->output_mode = OutputMode::IndexAndDimension;
         }
@@ -96,17 +127,18 @@ namespace Moment::mex::functions  {
                                    MEXEntryPointID id, std::basic_string<char16_t> name)
             : MexFunction(matlabEngine, storage, id, std::move(name)) {
         this->min_outputs = 1;
-        this->max_outputs = 2;
+        this->max_outputs = 4;
 
         this->flag_names.emplace(u"sequences");
         this->flag_names.emplace(u"symbols");
         this->flag_names.emplace(u"dimension");
+        this->flag_names.emplace(u"masks");
 
         this->param_names.emplace(u"reference_id");
         this->param_names.emplace(u"index");
 
-        // One of three ways to output:
-        this->mutex_params.add_mutex({u"sequences", u"symbols", u"dimension"});
+        // One of four ways to output:
+        this->mutex_params.add_mutex({u"sequences", u"symbols", u"dimension", u"masks"});
 
         // Either [ref, ref] or named version thereof.
         this->min_inputs = 0;
@@ -123,17 +155,11 @@ namespace Moment::mex::functions  {
         if (!this->storageManager.MatrixSystems.check_signature(output->storage_key)) {
             throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
         }
-
         return output;
     }
 
     void OperatorMatrix::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
         auto& input = dynamic_cast<OperatorMatrixParams&>(*inputPtr);
-
-        if ((output.size() >= 2) && (input.output_mode !=  OperatorMatrixParams::OutputMode::IndexAndDimension))  {
-            throw_error(this->matlabEngine, errors::too_many_outputs,
-                        "Too many outputs supplied.");
-        }
 
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {
@@ -167,6 +193,9 @@ namespace Moment::mex::functions  {
                     }
                 }
                     break;
+                case OperatorMatrixParams::OutputMode::Masks:
+                    export_masks(this->matlabEngine, output, matrixSystem, theMatrix);
+                    break;
                 default:
                 case OperatorMatrixParams::OutputMode::Unknown:
                     throw_error(matlabEngine, errors::internal_error, "Unknown output mode!");
@@ -193,5 +222,31 @@ namespace Moment::mex::functions  {
         }
     }
 
-
+    void OperatorMatrix::validate_output_count(const size_t outputs, const SortedInputs &rawInputs) const {
+        const auto& input = dynamic_cast<const OperatorMatrixParams&>(rawInputs);
+        switch(input.output_mode) {
+            case OperatorMatrixParams::OutputMode::IndexAndDimension:
+                if (outputs > 2) {
+                    throw_error(this->matlabEngine, errors::too_many_outputs,
+                                "At most two outputs should be provided for index (and dimension).");
+                }
+                break;
+            case OperatorMatrixParams::OutputMode::Symbols:
+            case OperatorMatrixParams::OutputMode::Sequences:
+                if (outputs > 1) {
+                    throw_error(this->matlabEngine, errors::too_many_outputs,
+                                "Only one output should be provided for matrix export.");
+                }
+                break;
+            case OperatorMatrixParams::OutputMode::Masks:
+                if (outputs == 3) {
+                    throw_error(this->matlabEngine, errors::too_many_outputs,
+                                "Either one, two or four outputs should be provided for index (and mask) export");
+                }
+                break;
+            case OperatorMatrixParams::OutputMode::Unknown:
+            default:
+                break;
+        }
+    }
 }

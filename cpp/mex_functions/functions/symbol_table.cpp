@@ -99,13 +99,18 @@ namespace Moment::mex::functions {
         return output;
     }
 
-    void SymbolTable::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        auto& input = dynamic_cast<SymbolTableParams&>(*inputPtr);
+
+    void SymbolTable::validate_output_count(const size_t outputs, const SortedInputs &inputRaw) const {
+        const auto& input = dynamic_cast<const SymbolTableParams&>(inputRaw);
 
         // Double check outputs
-        if ((output.size() >= 2) && (input.output_mode !=SymbolTableParams::OutputMode::SearchBySequence)) {
+        if ((outputs >= 2) && (input.output_mode != SymbolTableParams::OutputMode::SearchBySequence)) {
             throw_error(this->matlabEngine, errors::too_many_outputs, "Too many outputs provided.");
         }
+    }
+
+    void SymbolTable::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
+        auto& input = dynamic_cast<SymbolTableParams&>(*inputPtr);
 
         // Get referred to matrix system (or fail)
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
@@ -118,7 +123,6 @@ namespace Moment::mex::functions {
 
         // Get read lock on system
         std::shared_lock lock = matrixSystem.get_read_lock();
-
 
         // Export symbol table
         if (output.size() >= 1) {
@@ -176,5 +180,6 @@ namespace Moment::mex::functions {
 
 
     }
+
 
 }

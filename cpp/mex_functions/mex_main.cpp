@@ -42,9 +42,6 @@ namespace Moment::mex {
         // Check inputs are in range, and are valid
         this->validate_inputs(*the_function, *processed_inputs);
 
-        // Check outputs are in range
-        this->validate_outputs(*the_function, outputs);
-
         // Pre-process universal input flags
         bool is_debug = processed_inputs->flags.contains(u"debug");
         bool is_verbose = is_debug || processed_inputs->flags.contains(u"verbose");
@@ -56,8 +53,11 @@ namespace Moment::mex {
         the_function->setDebug(is_debug);
         the_function->setVerbose(is_verbose);
 
-        // Final function-specific pre-processing and validation of inputs
+        // Final function-specific pre-processing and validation of inputs (transfer ownership to function)
         processed_inputs = this->transform_and_validate(*the_function, std::move(processed_inputs), outputs);
+
+        // Check outputs are in range
+        this->validate_outputs(*the_function, outputs, *processed_inputs);
 
         // If only transforming parameters, print output:
         if (preprocess_only) {
@@ -194,7 +194,8 @@ namespace Moment::mex {
 
     }
 
-    void MexMain::validate_outputs(const functions::MexFunction &func, const IOArgumentRange &outputs) {
+    void MexMain::validate_outputs(const functions::MexFunction &func,
+                                   const IOArgumentRange &outputs,  const SortedInputs &inputs) {
         auto [min, max] = func.NumOutputs();
         if ((outputs.size() > max) || (outputs.size() < min)) {
 
@@ -223,6 +224,9 @@ namespace Moment::mex {
                 throw_error(*matlabPtr, errors::too_few_outputs, ss.str());
             }
         }
+
+        // Function-specific validation
+        func.validate_output_count(outputs.size(), inputs);
     }
 
     std::unique_ptr<SortedInputs> MexMain::transform_and_validate(const functions::MexFunction& func,

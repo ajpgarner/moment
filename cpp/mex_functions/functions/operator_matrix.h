@@ -29,7 +29,9 @@ namespace Moment::mex::functions  {
             /** Output matrix of symbol names */
             Symbols,
             /** Output matrix of string representation of operator sequences */
-            Sequences
+            Sequences,
+            /** Output basis indices and masks associated with matrix */
+            Masks
         } output_mode = OutputMode::Unknown;
 
     public:
@@ -91,6 +93,8 @@ namespace Moment::mex::functions  {
         [[nodiscard]] std::unique_ptr<SortedInputs>
         transform_inputs(std::unique_ptr<SortedInputs> input) const override;
 
+        void validate_output_count(size_t outputs, const SortedInputs &inputs) const override;
+
     protected:
         /**
          * Query matrix system for requested matrix.
@@ -98,6 +102,5 @@ namespace Moment::mex::functions  {
          */
         virtual std::pair<size_t, const Moment::SymbolicMatrix&>
         get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp);
-
     };
 }

@@ -69,6 +69,8 @@ namespace Moment::mex {
          */
         void validate_inputs(const functions::MexFunction& func, const SortedInputs& inputs);
 
-        void validate_outputs(const functions::MexFunction& func, const IOArgumentRange& outputs);
+        void validate_outputs(const functions::MexFunction& func,
+                              const IOArgumentRange& outputs,
+                              const SortedInputs& inputs);
     };
 }

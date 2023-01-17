@@ -11,11 +11,17 @@ classdef CompositeOperatorMatrix < handle
     properties(Dependent, GetAccess=public)
         RealBasis
         ImaginaryBasis
+        RealBasisElements
+        ImaginaryBasisElements
+        RealMask
+        ImaginaryMask
     end 
     
     properties(Access = protected)
         real_basis
         im_basis
+        real_basis_elems = uint64.empty(1,0);
+        im_basis_elems = uint64.empty(1,0);
     end
         
     %% Construction
@@ -86,9 +92,52 @@ classdef CompositeOperatorMatrix < handle
             end
             
             val = obj.im_basis;
+        end 
+    end
+    
+    %% Mask accessors
+    methods
+        function val = get.RealBasisElements(obj)
+            if isempty(obj.real_basis_elems)
+                obj.real_basis_elems = uint64.empty(1,0);
+                for c = obj.Constituents
+                    obj.real_basis_elems = ...
+                        [obj.real_basis_elems, c.RealBasisElements];
+                end
+                obj.real_basis_elems = unique(obj.real_basis_elems, ...
+                                              'sorted');                
+            end
+            val = obj.real_basis_elems;
         end
         
+        function val = get.ImaginaryBasisElements(obj)
+            if isempty(obj.im_basis_elems)
+                obj.im_basis_elems = uint64.empty(1,0);
+                for c = obj.Constituents
+                    obj.im_basis_elems = ...
+                        [obj.im_basis_elems, c.ImaginaryBasisElements];
+                end
+                obj.im_basis_elems = unique(obj.im_basis_elems, ...
+                                              'sorted');                
+            end
+            val = obj.im_basis_elems;
+        end
+        
+        function val = get.RealMask(obj)
+            val = false(1, obj.MatrixSystem.RealVarCount);
+            for c = obj.Constituents
+                val = val | c.RealMask;
+            end
+        end
+        
+        function val = get.ImaginaryMask(obj)
+            val = false(1, obj.MatrixSystem.ImaginaryVarCount);
+            for c = obj.Constituents
+                val = val | c.ImaginaryMask;
+            end
+        end
     end
+            
     
     %% CVX Methods
     methods

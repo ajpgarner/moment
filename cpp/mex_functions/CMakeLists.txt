@@ -12,6 +12,7 @@ matlab_add_mex(NAME moment_mex
             storage_manager.cpp
             fragments/enumerate_symbols.cpp
             fragments/export_implicit_symbols.cpp
+            fragments/export_matrix_basis_masks.cpp
             fragments/export_monomial_rules.cpp
             fragments/export_operator_matrix.cpp
             fragments/export_symbol_table.cpp

@@ -10,10 +10,13 @@ classdef OperatorMatrix < handle
         SymbolMatrix
         SequenceMatrix
         
-        RealSymbols
-        ImaginarySymbols
-        RealSymbolMask
-        ImaginarySymbolMask
+    end
+    
+    properties(Dependent, GetAccess = public)        
+        RealBasisElements
+        ImaginaryBasisElements
+        RealMask
+        ImaginaryMask
     end
     
     properties(Access = protected)
@@ -27,6 +30,14 @@ classdef OperatorMatrix < handle
         basis_im
         sparse_basis_real
         sparse_basis_im
+    end
+    
+    properties(Access = private)
+        queried_for_masks = false
+        basis_elems_re = uint64.empty(1,0)
+        basis_elems_im = uint64.empty(1,0)
+        mask_re = logical.empty(1,0);
+        mask_im = logical.empty(1,0);
     end
     
     methods
@@ -69,8 +80,10 @@ classdef OperatorMatrix < handle
             end
             val = obj.sequence_matrix;
         end
-        
-        %% Apply values
+    end
+    
+    %% Apply values
+    methods        
         function val = ApplyValues(obj, value_list)
             arguments
                 obj (1,1) OperatorMatrix
@@ -81,11 +94,67 @@ classdef OperatorMatrix < handle
             [val.Index, val.Dimension] = ...
                 mtk('apply_values', obj.MatrixSystem.RefId, obj.Index, ...
                 value_list);
+        end 
+    end    
+    
+    %% Accessors for masks and element lists
+    methods
+        function val = get.RealBasisElements(obj)
+            if ~obj.queried_for_masks
+                obj.query_for_masks()
+            end
+            val = obj.basis_elems_re;
         end
         
+        function val = get.ImaginaryBasisElements(obj)
+            if ~obj.queried_for_masks
+                obj.query_for_masks()
+            end
+            val = obj.basis_elems_im;
+        end
         
+        function val = get.RealMask(obj)
+            if ~obj.queried_for_masks
+                obj.query_for_masks()
+            end
+            
+            % Resize real if necessary
+            delta_re = obj.MatrixSystem.RealVarCount ...
+                        - length(obj.mask_re);
+            if delta_re > 0
+                obj.mask_re = [obj.mask_re, false(1, delta_re)];
+            end
+                
+            val = obj.mask_re;
+        end
         
-        %% Accessors for basis in various forms
+        function val = get.ImaginaryMask(obj)
+            if ~obj.queried_for_masks
+                obj.query_for_masks()
+            end
+            
+            % Resize imaginary if necessary
+            delta_im = obj.MatrixSystem.ImaginaryVarCount ...
+                        - length(obj.mask_im);
+            if delta_im > 0
+                obj.mask_im = [obj.mask_im, false(1, delta_im)];
+            end
+            
+            val = obj.mask_im;
+        end
+    end
+    methods(Access=private)
+        function query_for_masks(obj)
+            [obj.mask_re, obj.mask_im, ...
+             obj.basis_elems_re, obj.basis_elems_im] = ...
+                mtk('operator_matrix', 'masks', ...
+                    obj.MatrixSystem.RefId, obj.Index);
+            obj.queried_for_masks = true;
+        end
+    end
+        
+    %% Accessors for basis in various forms
+    methods
         function [re, im] = DenseBasis(obj)
             % DENSEBASIS Get the basis as a cell array of dense matrices.
             if (isempty(obj.basis_real) || isempty(obj.basis_im))
@@ -243,7 +312,10 @@ classdef OperatorMatrix < handle
             im = obj.mono_basis_im;
         end
     end
-        
+       
+    %% Accessors for masks
+    
+    
     %% CVX Methods
     methods
         function cvxVars(obj, re_name, im_name)

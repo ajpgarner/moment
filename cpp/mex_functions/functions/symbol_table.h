@@ -36,6 +36,8 @@ namespace Moment::mex::functions  {
 
     class SymbolTable : public Moment::mex::functions::MexFunction {
     public:
+        void validate_output_count(size_t outputs, const SortedInputs &inputs) const override;
+
         explicit SymbolTable(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;

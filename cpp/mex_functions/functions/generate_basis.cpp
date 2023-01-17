@@ -15,7 +15,7 @@
 #include "matrix/moment_matrix.h"
 
 #include "fragments/enumerate_symbols.h"
-#include "fragments/export_operator_matrix.h"
+#include "fragments/export_matrix_basis_masks.h"
 #include "fragments/identify_nonhermitian_elements.h"
 #include "fragments/identify_nonsymmetric_elements.h"
 

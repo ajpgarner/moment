@@ -75,6 +75,11 @@ namespace Moment::mex::functions {
         }
 
         /**
+         * Validates that the number of outputs matches that expected from the input parameters
+         */
+         virtual void validate_output_count(size_t outputs, const SortedInputs& inputs) const { }
+
+        /**
          * Set of allowed monadic flags for this function (e.g. "verbose")
          */
         [[nodiscard]] constexpr const NameSet& FlagNames() const noexcept { return this->flag_names; }
