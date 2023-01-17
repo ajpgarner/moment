@@ -209,10 +209,8 @@ namespace Moment {
         virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
                                                   const class LocalizingMatrix& lm) { }
 
-
         /** Get read-write access to symbolic matrix by index. Changes should not be made without a write lock. */
         SymbolicMatrix& get(size_t index);
-
 
         /** Add symbolic matrix to end of array */
         ptrdiff_t push_back(std::unique_ptr<SymbolicMatrix> matrix);

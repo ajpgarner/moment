@@ -29,6 +29,7 @@ namespace Moment::mex::functions {
         Complete,
         ExtendedMatrix,
         GenerateBasis,
+        ImportMatrix,
         LocalizingMatrix,
         MomentMatrix,
         NewAlgebraicMatrixSystem,

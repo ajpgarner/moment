@@ -12,6 +12,7 @@
 #include "functions/complete.h"
 #include "functions/extended_matrix.h"
 #include "functions/generate_basis.h"
+#include "functions/import_matrix.h"
 #include "functions/localizing_matrix.h"
 #include "functions/moment_matrix.h"
 #include "functions/new_algebraic_matrix_system.h"
@@ -55,6 +56,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::GenerateBasis:
                 the_function = std::make_unique<functions::GenerateBasis>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::ImportMatrix:
+                the_function = std::make_unique<functions::ImportMatrix>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::LocalizingMatrix:
                 the_function = std::make_unique<functions::LocalizingMatrix>(engine, storageManager);
@@ -111,6 +115,7 @@ namespace Moment::mex::functions {
         output.emplace(u"extended_matrix", MEXEntryPointID::ExtendedMatrix);
         output.emplace(u"generate_basis",  MEXEntryPointID::GenerateBasis);
         output.emplace(u"localizing_matrix",  MEXEntryPointID::LocalizingMatrix);
+        output.emplace(u"import_matrix",   MEXEntryPointID::ImportMatrix);
         output.emplace(u"moment_matrix",   MEXEntryPointID::MomentMatrix);
         output.emplace(u"operator_matrix", MEXEntryPointID::OperatorMatrix);
         output.emplace(u"new_algebraic_matrix_system", MEXEntryPointID::NewAlgebraicMatrixSystem);

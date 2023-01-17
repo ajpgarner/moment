@@ -20,6 +20,7 @@ matlab_add_mex(NAME moment_mex
             fragments/identify_nonhermitian_elements.cpp
             fragments/identify_nonsymmetric_elements.cpp
             fragments/read_monomial_rules.cpp
+            fragments/read_raw_symbol_matrix.cpp
             fragments/read_symbol_or_fail.cpp
             utilities/io_parameters.cpp
             utilities/make_sparse_matrix.cpp
@@ -33,6 +34,7 @@ matlab_add_mex(NAME moment_mex
             functions/collins_gisin.cpp
             functions/complete.cpp
             functions/extended_matrix.cpp
+            functions/import_matrix.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
             functions/localizing_matrix.cpp
