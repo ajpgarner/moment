@@ -13,15 +13,8 @@ namespace Moment::mex::functions {
 
     struct GenerateBasisParams : public SortedInputs {
     public:
-        /** How is the input supplied to the basis generator */
-        enum class InputMode {
-            Unknown = 0,
-            MATLABArray,
-            MatrixSystemReference
-        } input_mode = InputMode::Unknown;
-
         /** What sort of basis should we try to generate */
-        MatrixType basis_type = MatrixType::Unknown;
+        MatrixType basis_type = MatrixType::Hermitian;
 
         /** True, if output should be a sparse matrix */
         bool sparse_output = false;
@@ -29,10 +22,10 @@ namespace Moment::mex::functions {
         /** True, if output should be an indexed sparse array, or a flattened monolithic array */
         bool monolithic_output = false;
 
-        /** The reference to the moment matrix, if one is requested */
+        /** The reference to the matrix system. */
         uint64_t matrix_system_key = 0;
 
-        /** The reference to the matrix within the system, if one is requested */
+        /** The reference to the matrix within the system. */
         uint64_t matrix_index = 0;
 
     public:
@@ -50,12 +43,6 @@ namespace Moment::mex::functions {
         [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
-
-    private:
-        void doGenerateBasisArray(std::array<matlab::data::Array, 3>& output, GenerateBasisParams& params);
-
-        void doGenerateBasisOperatorMatrix(std::array<matlab::data::Array, 3>& output, GenerateBasisParams& params);
-
     };
 
 }
