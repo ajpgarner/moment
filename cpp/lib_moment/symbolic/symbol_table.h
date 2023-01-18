@@ -171,13 +171,13 @@ namespace Moment {
          * Add empty symbol to table.
          * @return The ID of the new symbol.
          */
-        symbol_name_t create();
+        symbol_name_t create(bool has_real = true, bool has_imaginary = true);
 
         /**
          * Add multiple empty symbols to table.
          * @return The ID of the first new symbol.
          */
-        symbol_name_t create(size_t count);
+        symbol_name_t create(size_t count, bool has_real = true, bool has_imaginary = true);
 
 
         [[nodiscard]] auto begin() const noexcept { return this->unique_sequences.cbegin(); }

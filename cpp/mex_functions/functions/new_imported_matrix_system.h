@@ -10,6 +10,14 @@
 
 namespace Moment::mex::functions {
 
+    class NewImportedMatrixSystemParams : public SortedInputs {
+    public:
+        bool purely_real = false;
+
+        NewImportedMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine,
+                                      SortedInputs &&rawInput);
+
+    };
 
     class NewImportedMatrixSystem : public Moment::mex::functions::MexFunction {
     public:
@@ -17,5 +25,6 @@ namespace Moment::mex::functions {
 
         void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
 
+        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
     };
 }

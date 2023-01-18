@@ -11,8 +11,9 @@
 #include <cassert>
 
 namespace Moment::Imported {
-ImportedMatrixSystem::ImportedMatrixSystem()
-        : MatrixSystem(std::make_unique<ImportedContext>()) {
+    ImportedMatrixSystem::ImportedMatrixSystem(const bool purely_real)
+        : MatrixSystem(std::make_unique<ImportedContext>(purely_real)),
+          importedContext{dynamic_cast<ImportedContext&>(this->Context())} {
 
     }
 
@@ -38,7 +39,8 @@ ImportedMatrixSystem::ImportedMatrixSystem()
 
         // Densely fill table until we reach largest supplied symbol
         if (new_max_symbol_id >= initial_symbol_size) {
-            this->Symbols().create(1 + new_max_symbol_id - initial_symbol_size);
+            this->Symbols().create(1 + new_max_symbol_id - initial_symbol_size,
+                                   true, !this->importedContext.real_only());
         }
 
         // Construct symbolic matrix

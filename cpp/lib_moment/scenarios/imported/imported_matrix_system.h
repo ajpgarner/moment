@@ -22,11 +22,14 @@ namespace Moment::Imported {
      */
     class ImportedMatrixSystem : public MatrixSystem {
     public:
+        ImportedContext& importedContext;
+
+    public:
         /**
          * Construct a system of matrices with shared operators.
          * @param context The operator scenario.
          */
-        ImportedMatrixSystem();
+        ImportedMatrixSystem(bool purely_real = false);
 
         /**
          * Register a matrix into the system, identifying symbols, etc. Call for write lock before importing.

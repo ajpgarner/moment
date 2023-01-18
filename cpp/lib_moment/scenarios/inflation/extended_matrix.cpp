@@ -23,7 +23,7 @@ namespace Moment::Inflation {
 
             // Push in new factors to symbol table, if not already there
             if (!maybe_symbol_index.has_value()) {
-                maybe_symbol_index = symbols.create();
+                maybe_symbol_index = symbols.create(true, false);
                 factors.register_new(*maybe_symbol_index, joint_factors);
             }
 

@@ -107,30 +107,50 @@ namespace Moment {
     }
 
 
-    symbol_name_t SymbolTable::create() {
+    symbol_name_t SymbolTable::create(const bool has_real, const bool has_imaginary) {
         auto next_id = static_cast<symbol_name_t>(this->unique_sequences.size());
         UniqueSequence blank;
         blank.id = next_id;
+        if (has_real) {
+            blank.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
+            this->real_symbols.push_back(blank.id);
+        }
+        if (has_imaginary) {
+            blank.img_index = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
+            this->imaginary_symbols.push_back(blank.id);
+        }
         this->unique_sequences.emplace_back(std::move(blank));
 
         return next_id;
     }
 
-    symbol_name_t SymbolTable::create(const size_t count) {
+    symbol_name_t SymbolTable::create(const size_t count, const bool has_real, const bool has_imaginary) {
         const auto first_id = static_cast<symbol_name_t>(this->unique_sequences.size());
         const auto range_end = first_id + count;
 
         this->unique_sequences.reserve(range_end);
+        if (has_real) {
+            this->real_symbols.reserve(this->real_symbols.size() + count);
+        }
+        if (has_imaginary) {
+            this->imaginary_symbols.reserve(this->imaginary_symbols.size() + count);
+        }
 
         for (size_t next_id = first_id; next_id < range_end; ++next_id) {
             UniqueSequence blank;
-            blank.id = next_id;
+            blank.id = static_cast<symbol_name_t>(next_id);
+            if (has_real) {
+                blank.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
+                this->real_symbols.push_back(blank.id);
+            }
+            if (has_imaginary) {
+                blank.img_index = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
+                this->imaginary_symbols.push_back(blank.id);
+            }
             this->unique_sequences.emplace_back(std::move(blank));
        }
         return first_id;
     }
-
-
 
     const UniqueSequence *
     SymbolTable::where(const OperatorSequence &seq) const noexcept {

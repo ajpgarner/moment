@@ -7,7 +7,11 @@
 
 namespace Moment::Imported {
 
-    ImportedContext::ImportedContext() : Context(0) {
+    ImportedContext::ImportedContext(const bool is_real) : Context(0), purely_real{is_real} {
 
+    }
+
+    bool ImportedContext::can_be_nonhermitian() const noexcept {
+        return !this->purely_real;
     }
 }

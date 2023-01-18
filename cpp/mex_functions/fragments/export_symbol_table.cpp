@@ -71,14 +71,12 @@ namespace Moment::mex {
 
         // Copy rest of table:
         outputStruct[0]["symbol"] = factory.createScalar<uint64_t>(static_cast<uint64_t>(symbol.Id()));
-        outputStruct[0]["operators"] = factory.createScalar(
-                context.format_sequence(symbol.sequence()));
+        outputStruct[0]["operators"] = factory.createScalar(symbol.formatted_sequence());
         // +1 is from MATLAB indexing
         outputStruct[0]["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
 
         if (non_herm) {
-            outputStruct[0]["conjugate"] = factory.createScalar(
-                    context.format_sequence(symbol.sequence_conj()));
+            outputStruct[0]["conjugate"] = factory.createScalar(symbol.formatted_sequence_conj());
             outputStruct[0]["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
             // +1 is from MATLAB indexing
             outputStruct[0]["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
@@ -144,15 +142,13 @@ namespace Moment::mex {
                             "Unexpectedly many sequences in export_symbol_table_struct.");
             }
             outputStruct[write_index]["symbol"] = factory.createScalar<uint64_t>(static_cast<uint64_t>(symbol.Id()));
-            outputStruct[write_index]["operators"] = factory.createScalar(
-                    context.format_sequence(symbol.sequence()));
+            outputStruct[write_index]["operators"] = factory.createScalar(symbol.formatted_sequence());
 
             // +1 is from MATLAB indexing
             outputStruct[write_index]["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
 
             if (non_herm) {
-                outputStruct[write_index]["conjugate"] = factory.createScalar(
-                        context.format_sequence(symbol.sequence_conj()));
+                outputStruct[write_index]["conjugate"] = factory.createScalar(symbol.formatted_sequence_conj());
                 outputStruct[write_index]["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
                 // +1 is from MATLAB indexing
                 outputStruct[write_index]["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
