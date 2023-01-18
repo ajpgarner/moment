@@ -55,6 +55,16 @@ namespace Moment {
         }
 
         /**
+         * Formatted view of sequence, if any, otherwise just symbol name.
+         */
+        [[nodiscard]] std::string formatted_sequence() const;
+
+        /**
+         * Formatted view of conjugate sequence, if any, otherwise just symbol name.
+         */
+        [[nodiscard]] std::string formatted_sequence_conj() const;
+
+        /**
          * Does the operator sequence represent its Hermitian conjugate?
          * If true, the element will correspond to a real symbol (cf. complex if not) in the NPA matrix.
          */
@@ -162,6 +172,12 @@ namespace Moment {
          * @return The ID of the new symbol.
          */
         symbol_name_t create();
+
+        /**
+         * Add multiple empty symbols to table.
+         * @return The ID of the first new symbol.
+         */
+        symbol_name_t create(size_t count);
 
 
         [[nodiscard]] auto begin() const noexcept { return this->unique_sequences.cbegin(); }

@@ -8,6 +8,7 @@
 #include "scenarios/context.h"
 
 #include <iostream>
+#include <sstream>
 
 namespace Moment {
     UniqueSequence::UniqueSequence(OperatorSequence sequence,
@@ -115,6 +116,20 @@ namespace Moment {
         return next_id;
     }
 
+    symbol_name_t SymbolTable::create(const size_t count) {
+        const auto first_id = static_cast<symbol_name_t>(this->unique_sequences.size());
+        const auto range_end = first_id + count;
+
+        this->unique_sequences.reserve(range_end);
+
+        for (size_t next_id = first_id; next_id < range_end; ++next_id) {
+            UniqueSequence blank;
+            blank.id = next_id;
+            this->unique_sequences.emplace_back(std::move(blank));
+       }
+        return first_id;
+    }
+
 
 
     const UniqueSequence *
@@ -184,6 +199,28 @@ namespace Moment {
             os << "/" << seq.hash_conj();
         }
         return os;
+    }
+
+    std::string UniqueSequence::formatted_sequence() const {
+        if (this->opSeq.has_value()) {
+            return this->opSeq->formatted_string();
+        }
+
+        std::stringstream ss;
+        ss << "S" << this->id;
+        return ss.str();
+    }
+
+    std::string UniqueSequence::formatted_sequence_conj() const {
+        if (this->conjSeq.has_value()) {
+            return this->opSeq->formatted_string();
+        } else if (this->hermitian && this->opSeq.has_value()) {
+            return this->opSeq->formatted_string();
+        }
+
+        std::stringstream ss;
+        ss << "S" << this->id << "*";
+        return ss.str();
     }
 
 

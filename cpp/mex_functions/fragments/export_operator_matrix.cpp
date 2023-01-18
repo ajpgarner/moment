@@ -7,7 +7,6 @@
 #include "export_operator_matrix.h"
 
 #include "matrix_system.h"
-#include "matrix/matrix_properties.h"
 #include "matrix/operator_matrix.h"
 
 #include "symbolic/symbol_table.h"
@@ -125,8 +124,10 @@ namespace Moment::mex {
                         ssErr << "[MISSING:" << id << "]";
                         return {matlab::engine::convertUTF8StringToUTF16String(ssErr.str())};
                     }
+
+
                     const auto& symEntry = (*symbols)[raw_iter->id];
-                    const std::string symbol_str = context->format_sequence(symEntry.sequence());
+                    const std::string symbol_str = symEntry.formatted_sequence();
 
                     if (1.0 == raw_iter->factor) {
                         return {matlab::engine::convertUTF8StringToUTF16String(symbol_str)};

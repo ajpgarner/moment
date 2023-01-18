@@ -18,6 +18,10 @@ namespace Moment {
         return os;
     }
 
+    std::string OperatorSequence::formatted_string() const {
+        return this->context.format_sequence(*this);
+    }
+
     OperatorSequence::OperatorSequence(sequence_storage_t&& operators, const Context &context, const bool negated)
         : HashedSequence(std::move(operators), context.hash(operators)), context{context}, is_negated{negated}
     {

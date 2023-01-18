@@ -8,9 +8,10 @@
 #include "integer_types.h"
 #include "hashed_sequence.h"
 
-#include <vector>
-#include <iterator>
 #include <iosfwd>
+#include <iterator>
+#include <string>
+#include <vector>
 
 namespace Moment {
 
@@ -53,6 +54,14 @@ namespace Moment {
          */
         [[nodiscard]] constexpr bool negated() const noexcept { return this->is_negated; }
 
+        /**
+         * Get operator sequence as a context-formatted string.
+         */
+        [[nodiscard]] std::string formatted_string() const;
+
+        /**
+         * Stream-out operator sequence as a context-formatted string.
+         */
         friend std::ostream& operator<<(std::ostream& os, const OperatorSequence& seq);
 
         /**

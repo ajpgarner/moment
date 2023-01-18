@@ -28,7 +28,8 @@ ImportedMatrixSystem::ImportedMatrixSystem()
         assert(input);
 
         // Parse for largest symbol identity
-        size_t new_max_symbol_id = 0;
+        const size_t initial_symbol_size = this->Symbols().size();
+        size_t new_max_symbol_id = (initial_symbol_size > 0) ? (initial_symbol_size - 1) : 0;
         for (const auto& symbol_expression : *input) {
             if (symbol_expression.id > new_max_symbol_id) {
                 new_max_symbol_id = symbol_expression.id;
@@ -36,8 +37,8 @@ ImportedMatrixSystem::ImportedMatrixSystem()
         }
 
         // Densely fill table until we reach largest supplied symbol
-        while (this->Symbols().size() <= new_max_symbol_id) {
-            this->Symbols().create();
+        if (new_max_symbol_id >= initial_symbol_size) {
+            this->Symbols().create(1 + new_max_symbol_id - initial_symbol_size);
         }
 
         // Construct symbolic matrix
