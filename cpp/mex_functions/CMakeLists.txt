@@ -11,17 +11,17 @@ matlab_add_mex(NAME moment_mex
             mex_main.cpp
             storage_manager.cpp
             fragments/enumerate_symbols.cpp
-            fragments/export_basis.cpp
-            fragments/export_implicit_symbols.cpp
-            fragments/export_matrix_basis_masks.cpp
-            fragments/export_monomial_rules.cpp
-            fragments/export_operator_matrix.cpp
-            fragments/export_symbol_table.cpp
             fragments/identify_nonhermitian_elements.cpp
             fragments/identify_nonsymmetric_elements.cpp
-            fragments/read_monomial_rules.cpp
-            fragments/read_raw_symbol_matrix.cpp
-            fragments/read_symbol_or_fail.cpp
+            export/export_basis.cpp
+            export/export_implicit_symbols.cpp
+            export/export_matrix_basis_masks.cpp
+            export/export_monomial_rules.cpp
+            export/export_operator_matrix.cpp
+            export/export_symbol_table.cpp
+            import/read_monomial_rules.cpp
+            import/read_raw_symbol_matrix.cpp
+            import/read_symbol_or_fail.cpp
             utilities/io_parameters.cpp
             utilities/make_sparse_matrix.cpp
             utilities/read_as_scalar.cpp

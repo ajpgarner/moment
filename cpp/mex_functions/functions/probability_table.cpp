@@ -13,7 +13,7 @@
 #include "scenarios/locality/locality_implicit_symbols.h"
 #include "scenarios/locality/locality_matrix_system.h"
 
-#include "fragments/export_implicit_symbols.h"
+#include "export/export_implicit_symbols.h"
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 #include "utilities/visitor.h"

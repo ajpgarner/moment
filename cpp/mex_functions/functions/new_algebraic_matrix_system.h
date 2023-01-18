@@ -7,7 +7,7 @@
 
 #include "mex_function.h"
 #include "integer_types.h"
-#include "fragments/read_monomial_rules.h"
+#include "import/read_monomial_rules.h"
 
 namespace Moment::mex::functions {
 

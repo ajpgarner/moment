@@ -14,8 +14,8 @@
 #include "utilities/reporting.h"
 #include "utilities/io_parameters.h"
 
-#include "fragments/export_operator_matrix.h"
-#include "fragments/export_symbol_table.h"
+#include "export/export_operator_matrix.h"
+#include "export/export_symbol_table.h"
 
 #include <memory>
 

@@ -11,7 +11,7 @@
 
 #include "scenarios/imported/imported_matrix_system.h"
 
-#include "fragments/read_raw_symbol_matrix.h"
+#include "import/read_raw_symbol_matrix.h"
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"

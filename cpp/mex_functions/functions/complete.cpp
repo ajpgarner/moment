@@ -8,7 +8,7 @@
 #include "scenarios/algebraic/rule_book.h"
 #include "scenarios/algebraic/ostream_rule_logger.h"
 
-#include "fragments/export_monomial_rules.h"
+#include "export/export_monomial_rules.h"
 #include "utilities/reporting.h"
 #include "utilities/read_as_scalar.h"
 

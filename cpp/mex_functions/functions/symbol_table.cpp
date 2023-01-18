@@ -8,7 +8,7 @@
 
 #include "symbolic/symbol_table.h"
 
-#include "fragments/export_symbol_table.h"
+#include "export/export_symbol_table.h"
 
 #include "utilities/io_parameters.h"
 #include "utilities/read_as_scalar.h"

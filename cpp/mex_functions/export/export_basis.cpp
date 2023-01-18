@@ -11,7 +11,7 @@
 
 #include "symbolic/symbol_table.h"
 
-#include "fragments/read_symbol_or_fail.h"
+#include "import/read_symbol_or_fail.h"
 
 #include "utilities/make_sparse_matrix.h"
 #include "utilities/visitor.h"

@@ -9,7 +9,7 @@
 
 #include "matrix/moment_matrix.h"
 
-#include "read_symbol_or_fail.h"
+#include "import/read_symbol_or_fail.h"
 
 #include "utilities/make_sparse_matrix.h"
 #include "utilities/reporting.h"

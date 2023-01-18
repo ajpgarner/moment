@@ -9,10 +9,11 @@
 
 #include "matrix/operator_matrix.h"
 
+#include "export/export_operator_matrix.h"
+#include "export/export_matrix_basis_masks.h"
+
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
-#include "fragments/export_operator_matrix.h"
-#include "fragments/export_matrix_basis_masks.h"
 
 namespace Moment::mex::functions  {
 
