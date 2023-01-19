@@ -324,7 +324,10 @@ namespace Moment {
         }
 
         std::stringstream ss;
-        ss << "S" << this->id << "*";
+        ss << "S" << this->id;
+        if (!this->hermitian) {
+            ss << "*";
+        }
         return ss.str();
     }
 

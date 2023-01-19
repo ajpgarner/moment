@@ -41,13 +41,22 @@ classdef OperatorMatrix < handle
     end
     
     methods
-        function obj = OperatorMatrix(matrixSystem)
+        function obj = OperatorMatrix(matrixSystem, index, dimension)
             %OPERATORMATRIX Construct an instance of this class
-            arguments
-                matrixSystem (1,1) MatrixSystem
+            if (nargin < 1) || ~isa(matrixSystem, 'MatrixSystem')
+                error('OperatorMatrix must be associated with a matrix system');
+            end
+            obj.MatrixSystem = matrixSystem;
+            
+            if nargin == 2
+                error('If matrix index is supplied, its size must also be supplied');
             end
             
-            obj.MatrixSystem = matrixSystem;
+            if nargin >= 3
+                obj.Index = uint64(index);
+                obj.Dimension = dimension;
+            end
+            
             obj.symbol_matrix = [];
             obj.sequence_matrix = [];
         end
@@ -312,9 +321,6 @@ classdef OperatorMatrix < handle
             im = obj.mono_basis_im;
         end
     end
-       
-    %% Accessors for masks
-    
     
     %% CVX Methods
     methods
