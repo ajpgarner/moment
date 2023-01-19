@@ -8,14 +8,23 @@
 #include "matrix_system.h"
 #include "imported_context.h"
 
-#include "utilities/square_matrix.h"
+#include "matrix/matrix_type.h"
 #include "symbolic/symbol_expression.h"
+#include "utilities/square_matrix.h"
+
 #include <memory>
+#include <string>
 #include <stdexcept>
 
 
 namespace Moment::Imported {
     class ImportedContext;
+
+    namespace errors {
+        struct bad_import_matrix : std::runtime_error {
+            bad_import_matrix(const std::string& what) : std::runtime_error{what} { }
+        };
+    }
 
     /**
      * Matrix system with no underlying operators - just symbols.
@@ -36,7 +45,7 @@ namespace Moment::Imported {
          * @param input The input matrix.
          * @return The index of the newly inserted matrix.
          */
-        size_t import_matrix(std::unique_ptr<SquareMatrix<SymbolExpression>> input);
+        size_t import_matrix(std::unique_ptr<SquareMatrix<SymbolExpression>> input, MatrixType matrix_type);
 
     protected:
         void beforeNewMomentMatrixCreated(size_t level) override;

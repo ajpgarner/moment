@@ -11,9 +11,6 @@
 
 #include "export/export_basis.h"
 #include "export/export_matrix_basis_masks.h"
-#include "fragments/enumerate_symbols.h"
-#include "fragments/identify_nonhermitian_elements.h"
-#include "fragments/identify_nonsymmetric_elements.h"
 
 #include "utilities/make_sparse_matrix.h"
 #include "utilities/read_as_scalar.h"

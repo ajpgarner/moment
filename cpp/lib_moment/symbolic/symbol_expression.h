@@ -85,13 +85,13 @@ namespace Moment {
          */
         explicit SymbolExpression(const std::string& strExpr);
 
-        bool operator==(const SymbolExpression& rhs) const {
+        [[nodiscard]] bool operator==(const SymbolExpression& rhs) const {
             return (this->id == rhs.id)
                    && (this->factor == rhs.factor)
                    && ((this->id == 0) || (this->conjugated == rhs.conjugated));
         }
 
-        bool operator!=(const SymbolExpression&rhs) const {
+        [[nodiscard]] bool operator!=(const SymbolExpression&rhs) const {
             return (this->id != rhs.id)
                    || (this->factor != rhs.factor)
                    || ((this->id != 0) && (this->conjugated != rhs.conjugated));

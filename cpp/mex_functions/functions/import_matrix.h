@@ -10,6 +10,8 @@
 
 #include "integer_types.h"
 
+#include "matrix/matrix_type.h"
+
 #include <string>
 
 namespace Moment::mex::functions  {
@@ -17,6 +19,8 @@ namespace Moment::mex::functions  {
     struct ImportMatrixParams : public SortedInputs {
     public:
         uint64_t matrix_system_key = 0;
+
+        MatrixType input_matrix_type = MatrixType::Unknown;
 
         matlab::data::Array inputMatrix;
 

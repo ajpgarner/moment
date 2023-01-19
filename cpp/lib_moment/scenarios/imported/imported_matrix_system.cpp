@@ -7,10 +7,90 @@
 #include "imported_context.h"
 
 #include "matrix/symbolic_matrix.h"
+#include "utilities/dynamic_bitset.h"
 
 #include <cassert>
+#include <cmath>
+#include <sstream>
 
 namespace Moment::Imported {
+
+    namespace {
+        void checkIMSymmetric(const SquareMatrix<SymbolExpression>& input,
+                            DynamicBitset<uint64_t>& can_be_real, DynamicBitset<uint64_t>& can_be_imaginary) {
+            for (size_t i = 0; i < input.dimension; ++i) {
+                const auto& diagonal = input[i][i];
+
+                for (size_t j = i+1; j < input.dimension; ++j) {
+                    auto& upper = input[i][j];
+                    auto& lower = input[j][i];
+                    if ((upper.id != lower.id) || (abs(upper.factor) != abs(lower.factor))) {
+                        std::stringstream errSS;
+                        errSS << "In symmetric matrix import, element [" << i << ", " << j << "] = "
+                              << upper.as_string() << " does not match element [" << j << ", " << i << "] = " << lower;
+
+                        throw errors::bad_import_matrix{errSS.str()};
+                    }
+                    const bool conj_eq = upper.conjugated == lower.conjugated;
+                    const bool neg_eq = upper.factor == lower.factor;
+
+                    if (conj_eq) {
+                        if (!neg_eq) { // a = -a -> a is zero
+                            can_be_real.unset(upper.id);
+                            can_be_imaginary.unset(upper.id);
+                        } // else a = a, no constraints
+                    } else if (neg_eq) { // a = a* -> a is real
+                        can_be_imaginary.unset(upper.id);
+                    } else { // a = -a* -> a is imaginary
+                        can_be_real.unset(upper.id);
+                    }
+                }
+            }
+        }
+
+        void checkIMHermitian(const SquareMatrix<SymbolExpression>& input, bool can_be_complex,
+                              DynamicBitset<uint64_t>& can_be_real, DynamicBitset<uint64_t>& can_be_imaginary) {
+
+            for (size_t i = 0; i < input.dimension; ++i) {
+                const auto &diagonal = input[i][i];
+                // Diagonal elements are always real;
+                can_be_imaginary.unset(diagonal.id);
+
+                for (size_t j = i + 1; j < input.dimension; ++j) {
+                    auto &upper = input[i][j];
+                    auto &lower = input[j][i];
+
+                    if ((upper.id != lower.id) || (abs(upper.factor) != abs(lower.factor))) {
+                        std::stringstream errSS;
+                        errSS << "In hermitian matrix import, element [" << i << ", " << j << "] = "
+                              << upper.as_string() << " does not match element [" << j << ", " << i << "] = " << lower;
+
+                        throw errors::bad_import_matrix{errSS.str()};
+                    }
+                    const bool conj_eq = upper.conjugated != lower.conjugated; // <- account for Hermiticity
+                    const bool neg_eq = upper.factor == lower.factor;
+
+                    if (!conj_eq) {
+                        if (neg_eq) { // a* = a -> a = -a* -> a is real
+                            can_be_imaginary.unset(upper.id);
+                        } else { // else a* = -a -> a = -a* -> a is imaginary
+                            can_be_real.unset(upper.id);
+                        }
+                    } else if (!neg_eq) { // a = -a -> a is zero
+                        can_be_real.unset(upper.id);
+                        can_be_imaginary.unset(upper.id);
+                    } // else, a* = a*, no constraints
+
+                    // In real-only context, no symbol mentioend can be imaginary
+                    if (!can_be_complex) {
+                        can_be_imaginary.unset(upper.id);
+                    }
+                }
+            }
+        }
+
+    }
+
     ImportedMatrixSystem::ImportedMatrixSystem(const bool purely_real)
         : MatrixSystem(std::make_unique<ImportedContext>(purely_real)),
           importedContext{dynamic_cast<ImportedContext&>(this->Context())} {
@@ -25,8 +105,15 @@ namespace Moment::Imported {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
-    size_t ImportedMatrixSystem::import_matrix(std::unique_ptr<SquareMatrix<SymbolExpression>> input) {
+    size_t ImportedMatrixSystem::import_matrix(std::unique_ptr<SquareMatrix<SymbolExpression>> input,
+                                               MatrixType matrix_type) {
         assert(input);
+
+        // Real context only defines real symbols, and real import only provides real symbols
+        bool can_be_complex = !this->importedContext.real_only();
+        if (matrix_type == MatrixType::Real) {
+            can_be_complex = false;
+        }
 
         // Parse for largest symbol identity
         const size_t initial_symbol_size = this->Symbols().size();
@@ -37,10 +124,31 @@ namespace Moment::Imported {
             }
         }
 
-        // Densely fill table until we reach largest supplied symbol
-        if (new_max_symbol_id >= initial_symbol_size) {
-            this->Symbols().create(1 + new_max_symbol_id - initial_symbol_size,
-                                   true, !this->importedContext.real_only());
+        // Flag whether a symbol can be real
+        DynamicBitset can_be_real{new_max_symbol_id+1, true};
+
+        // Flag whether a symbol can be imaginary
+        DynamicBitset can_be_imaginary{new_max_symbol_id+1, !this->importedContext.real_only()};
+
+        // Check if import type implies real or imaginary parts of mentioned symbols should be zero
+        if (matrix_type == MatrixType::Symmetric) {
+            checkIMSymmetric(*input, can_be_real, can_be_imaginary);
+        } else if (matrix_type == MatrixType::Hermitian) {
+            checkIMHermitian(*input, can_be_complex, can_be_real, can_be_imaginary);
+        } else if (matrix_type == MatrixType::Real) {
+            // If importing real matrix into non-real-only system, all reference symbols must be real.
+            if (!this->importedContext.real_only()) {
+                for (auto &symbol: *input) {
+                    can_be_imaginary.unset(symbol.id);
+                }
+            }
+        }
+
+        // Do merge, renumbering bases as appropriate, and complaining if a symbol becomes zero.
+        try {
+            this->Symbols().merge_in(can_be_real, can_be_imaginary);
+        } catch (const Moment::errors::zero_symbol& zse) {
+            throw errors::bad_import_matrix{zse.what()};
         }
 
         // Construct symbolic matrix

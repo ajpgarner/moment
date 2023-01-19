@@ -6,6 +6,7 @@
 #pragma once
 
 #include "integer_types.h"
+#include "matrix_type.h"
 
 #include <map>
 #include <memory>
@@ -17,19 +18,6 @@ namespace Moment {
     class SymbolicMatrix;
     class SymbolTable;
     class SymbolSet;
-
-    /** Matrix type */
-    enum class MatrixType {
-        Unknown = 0,
-        /** Real-valued */
-        Real = 1,
-        /** Complex-valued */
-        Complex = 2,
-        /** Real-valued, matrix is symmetric */
-        Symmetric = 3,
-        /** Complex-valued, matrix is hermitian */
-        Hermitian = 4
-    };
 
     /** Information about the particular symbol matrix (relative to the collection) */
     class MatrixProperties {

@@ -29,12 +29,28 @@ namespace Moment::mex::functions {
             throw errors::BadInput{errors::bad_param, "Input must be square matrix."};
         }
 
+        // Check explicitly requested type
+        if (this->flags.contains(u"hermitian")) {
+            this->input_matrix_type = MatrixType::Hermitian;
+        } else if (this->flags.contains(u"symmetric")) {
+            this->input_matrix_type = MatrixType::Symmetric;
+        } else if (this->flags.contains(u"real")) {
+            this->input_matrix_type = MatrixType::Real;
+        } else if (this->flags.contains(u"complex")) {
+            this->input_matrix_type = MatrixType::Complex;
+        }
+
     }
 
     ImportMatrix::ImportMatrix(matlab::engine::MATLABEngine &matlabEngine, Moment::mex::StorageManager &storage)
         : Moment::mex::functions::MexFunction(matlabEngine, storage, MEXEntryPointID::ImportMatrix, u"import_matrix") {
         this->min_inputs = this->max_inputs = 2;
         this->min_outputs = this->max_outputs = 1;
+        this->flag_names.insert(u"hermitian");
+        this->flag_names.insert(u"symmetric");
+        this->flag_names.insert(u"real");
+        this->flag_names.insert(u"complex");
+        this->mutex_params.add_mutex({u"hermitian", u"symmetric", u"real", u"complex"});
     }
 
     std::unique_ptr<SortedInputs> ImportMatrix::transform_inputs(std::unique_ptr<SortedInputs> input) const {
@@ -71,6 +87,39 @@ namespace Moment::mex::functions {
         }
         Imported::ImportedMatrixSystem& ims = *imsPtr;
 
+        // Check consistent type requested
+        if (imsPtr->importedContext.real_only()) {
+            if (input.input_matrix_type == MatrixType::Hermitian) {
+                if (!this->quiet) {
+                    std::stringstream noticeSS;
+                    noticeSS << "Hermitian matrix type was requested, but system is purely real. "
+                             << "Matrix will instead be interpreted as symmetric.";
+                    print_to_console(this->matlabEngine, noticeSS.str());
+                }
+                input.input_matrix_type = MatrixType::Symmetric;
+            }
+            if (input.input_matrix_type == MatrixType::Complex) {
+                if (!this->quiet) {
+                    std::stringstream noticeSS;
+                    noticeSS << "Complex matrix type was requested, but system is purely real. "
+                             << "Matrix will instead be interpreted as real.";
+                    print_to_console(this->matlabEngine, noticeSS.str());
+                }
+                input.input_matrix_type = MatrixType::Real;
+            }
+        } else {
+            // Complain, but proceed, with symmetric matrix types
+            if (input.input_matrix_type == MatrixType::Symmetric) {
+                if (!this->quiet) {
+                    std::stringstream noticeSS;
+                    noticeSS << "Symmetric matrix type was requested, but matrix system is complex. "
+                             << "This may potentially result in the import of a non-Hermitian matrix "
+                             << "(due to the imaginary components of off-diagonal elements).";
+                    print_to_console(this->matlabEngine, noticeSS.str());
+                }
+            }
+        }
+
         // Read input to raw form
         auto raw_sym_mat = read_raw_symbol_matrix(this->matlabEngine, input.inputMatrix);
         assert(raw_sym_mat);
@@ -78,8 +127,13 @@ namespace Moment::mex::functions {
         // Lock for import
         auto write_lock = ims.get_write_lock();
 
-        // Do import
-        size_t matrix_index = ims.import_matrix(std::move(raw_sym_mat));
+        // Try import
+        size_t matrix_index;
+        try {
+            matrix_index = ims.import_matrix(std::move(raw_sym_mat), input.input_matrix_type);
+        } catch (Imported::errors::bad_import_matrix& e) {
+            throw_error(this->matlabEngine, errors::bad_param, e.what());
+        }
 
         // Output created matrix ID
         matlab::data::ArrayFactory factory;

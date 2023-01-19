@@ -7,10 +7,24 @@
 
 #include "scenarios/context.h"
 
+#include "utilities/dynamic_bitset.h"
+
+
 #include <iostream>
 #include <sstream>
 
 namespace Moment {
+
+    namespace errors {
+        std::string make_zs_err_msg(symbol_name_t id) {
+            std::stringstream errMsg;
+            errMsg << "Symbol " << id << " is identically zero; but zero should be uniquely represented as \"0\"";
+            return errMsg.str();
+        }
+
+        errors::zero_symbol::zero_symbol(symbol_name_t sid) : std::runtime_error{make_zs_err_msg(sid)}, id{sid} { }
+    }
+
     UniqueSequence::UniqueSequence(OperatorSequence sequence,
                                    OperatorSequence conjSequence):
             opSeq{std::move(sequence)},
@@ -107,6 +121,7 @@ namespace Moment {
     }
 
 
+
     symbol_name_t SymbolTable::create(const bool has_real, const bool has_imaginary) {
         auto next_id = static_cast<symbol_name_t>(this->unique_sequences.size());
         UniqueSequence blank;
@@ -150,6 +165,76 @@ namespace Moment {
             this->unique_sequences.emplace_back(std::move(blank));
        }
         return first_id;
+    }
+
+    void SymbolTable::merge_in(const DynamicBitset<uint64_t>& can_be_real,
+                               const DynamicBitset<uint64_t>& can_be_imaginary) {
+        assert(can_be_real.bit_size == can_be_imaginary.bit_size);
+
+        // Ensure enough elements exist
+        const size_t elems = can_be_real.bit_size;
+        if (elems > this->unique_sequences.size()) {
+            this->create(elems - this->unique_sequences.size());
+        }
+
+        // Go through symbols, flagging where they must be real / imaginary
+        for (auto& symbol : this->unique_sequences) {
+            if (0 == symbol.id) {
+                symbol.hermitian = true;
+                symbol.antihermitian = true;
+                continue;
+            }
+
+            const bool sym_has_real = can_be_real.test(symbol.id);
+            const bool sym_has_imaginary = can_be_imaginary.test(symbol.id);
+            if (sym_has_real) {
+                if (!sym_has_imaginary) {
+                    symbol.hermitian = true;
+                    if (symbol.antihermitian) {
+                        throw errors::zero_symbol{symbol.id};
+                    }
+                }
+            } else if (sym_has_imaginary) {
+                symbol.antihermitian = true;
+                if (symbol.hermitian) {
+                    throw errors::zero_symbol{symbol.id};
+                }
+            } else {
+                throw errors::zero_symbol{symbol.id};
+            }
+        }
+
+        // With new real/imaginary information, re-count the bases
+        this->renumerate_bases();
+    }
+
+
+    std::pair<size_t, size_t> SymbolTable::renumerate_bases() {
+        ptrdiff_t real_index = 0;
+        ptrdiff_t imaginary_index = 0;
+        this->real_symbols.clear();
+        this->imaginary_symbols.clear();
+        for (auto& symbol : this->unique_sequences) {
+            const bool has_real = !symbol.antihermitian;
+            const bool has_im = !symbol.hermitian;
+
+            if (has_real) {
+                this->real_symbols.emplace_back(symbol.id);
+                symbol.real_index = real_index;
+                ++real_index;
+            } else {
+                symbol.real_index = -1;
+            }
+
+            if (has_im) {
+                this->imaginary_symbols.emplace_back(symbol.id);
+                symbol.img_index = imaginary_index;
+                ++imaginary_index;
+            } else {
+                symbol.img_index = -1;
+            }
+        }
+        return {real_index, imaginary_index};
     }
 
     const UniqueSequence *
@@ -242,8 +327,6 @@ namespace Moment {
         ss << "S" << this->id << "*";
         return ss.str();
     }
-
-
 
     std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {
         os << "Symbol table with ";

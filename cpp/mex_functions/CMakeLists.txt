@@ -10,9 +10,6 @@ matlab_add_mex(NAME moment_mex
             mex_entry.cpp
             mex_main.cpp
             storage_manager.cpp
-            fragments/enumerate_symbols.cpp
-            fragments/identify_nonhermitian_elements.cpp
-            fragments/identify_nonsymmetric_elements.cpp
             export/export_basis.cpp
             export/export_implicit_symbols.cpp
             export/export_matrix_basis_masks.cpp

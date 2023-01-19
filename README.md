@@ -183,8 +183,14 @@ SDP hierarchies.
 
 `\cpp\mex_functions`: Source root for MATLAB code (i.e. building `mtk` mex library).
 
-`\cpp\mex_functions\fragments`: Code pieces specific to NPATK, involving manipulation of
+`\cpp\mex_functions\fragments`: Code pieces specific to Moment, involving manipulation of
 MATLAB arrays, that are used by more than one mex function.
+
+`\cpp\mex_functions\export`: Code pieces specific to Moment, involving the conversion of Moment library objects 
+to MATLAB arrays.
+
+`\cpp\mex_functions\import`: Code pieces specific to Moment, involving the reading of MATLAB arrays into Moment
+library objects.
 
 `\cpp\mex_functions\functions`: Entry points for the various `mtk` commands.
 
@@ -200,7 +206,7 @@ MATLAB arrays, that are used by more than one mex function.
 
 `\cpp\tests\utilities`: C++ unit tests for general utility functions in `lib_moment`.
 
-`\matlab`: Root of NPATK MATLAB classes & functions.
+`\matlab`: Root of Moment MATLAB classes & functions.
 
 `\matlab\+Algebraic`: MATLAB classes associated with generic algebraic scenarios.
 
@@ -208,7 +214,7 @@ MATLAB arrays, that are used by more than one mex function.
 
 `\matlab\+Locality`: MATLAB classes associated with locality scenarios.
 
-`\matlab\examples`: Example scripts making use of the NPATK library.
+`\matlab\examples`: Example scripts making use of the Moment library.
 
 `\matlab\tests`: MATLAB unit tests for `moment` mex library, and other matlab classes.
 

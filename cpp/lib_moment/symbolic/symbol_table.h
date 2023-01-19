@@ -9,6 +9,7 @@
 #include "symbol_expression.h"
 
 #include "scenarios/operator_sequence.h"
+#include "utilities/dynamic_bitset.h"
 
 #include <cassert>
 
@@ -16,9 +17,17 @@
 #include <limits>
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <vector>
 
 namespace Moment {
+
+    namespace errors {
+        struct zero_symbol : std::runtime_error {
+            const symbol_name_t id;
+            zero_symbol(symbol_name_t id);
+        };
+    }
 
     class UniqueSequence {
     private:
@@ -86,12 +95,16 @@ namespace Moment {
         inline static UniqueSequence Zero(const Context& context) {
             auto us = UniqueSequence{OperatorSequence::Zero(context)};
             us.id = 0;
+            us.hermitian = true;
+            us.antihermitian = true;
             return us;
         }
 
         inline static UniqueSequence Identity(const Context& context) {
             auto us = UniqueSequence{OperatorSequence::Identity(context)};
             us.id = 1;
+            us.hermitian = true;
+            us.antihermitian = false;
             us.real_index = 0;
             return us;
         }
@@ -168,6 +181,11 @@ namespace Moment {
         symbol_name_t merge_in(UniqueSequence&& sequence);
 
         /**
+         * Add symbols to table, if not already present, and adjust real/imaginary zeros of those already present
+         */
+        void merge_in(const DynamicBitset<uint64_t>& can_be_real, const DynamicBitset<uint64_t>& can_be_imaginary);
+
+        /**
          * Add empty symbol to table.
          * @return The ID of the new symbol.
          */
@@ -178,6 +196,13 @@ namespace Moment {
          * @return The ID of the first new symbol.
          */
         symbol_name_t create(size_t count, bool has_real = true, bool has_imaginary = true);
+
+        /**
+         * Go through symbols, and re-number real/imaginary bases based on whether symbols can be have
+         * real or imaginary parts.
+         * @return A pair: the number of real basis elements, and the number of imaginary basis elements.
+         */
+        std::pair<size_t, size_t> renumerate_bases();
 
 
         [[nodiscard]] auto begin() const noexcept { return this->unique_sequences.cbegin(); }
