@@ -79,7 +79,8 @@ namespace Moment::mex::functions {
 
 
     SymbolTable::SymbolTable(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : MexFunction(matlabEngine, storage, MEXEntryPointID::SymbolTable, u"symbol_table") {
+            : ParameterizedMexFunction(matlabEngine, storage, u"symbol_table") {
+
         this->min_outputs = 1;
         this->max_outputs = 2;
         this->min_inputs = 1;
@@ -87,16 +88,13 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"from");
     }
 
-    std::unique_ptr<SortedInputs>
-    SymbolTable::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        auto& input = *inputPtr;
-        auto output = std::make_unique<SymbolTableParams>(this->matlabEngine, std::move(input));
+
+
+    void SymbolTable::extra_input_checks(SymbolTableParams &input) const {
         // Check key vs. storage manager
-        if (!this->storageManager.MatrixSystems.check_signature(output->storage_key)) {
+        if (!this->storageManager.MatrixSystems.check_signature(input.storage_key)) {
             throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
         }
-
-        return output;
     }
 
 
@@ -109,9 +107,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    void SymbolTable::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        auto& input = dynamic_cast<SymbolTableParams&>(*inputPtr);
-
+    void SymbolTable::operator()(IOArgumentRange output, SymbolTableParams& input) {
         // Get referred to matrix system (or fail)
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {

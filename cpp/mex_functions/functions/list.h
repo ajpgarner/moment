@@ -23,13 +23,14 @@ namespace Moment::mex::functions  {
 
     };
 
-    class List : public Moment::mex::functions::MexFunction {
+    class List : public ParameterizedMexFunction<ListParams, MEXEntryPointID::List> {
     public:
         explicit List(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+    protected:
+        void operator()(IOArgumentRange output, ListParams &input) override;
 
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+        void extra_input_checks(ListParams &input) const override;
 
     };
 

@@ -40,13 +40,12 @@ namespace Moment::mex::functions {
 
     };
 
-    class Complete : public Moment::mex::functions::MexFunction {
+    class Complete : public ParameterizedMexFunction<CompleteParams, MEXEntryPointID::Complete> {
     public:
         explicit Complete(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
-
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+    protected:
+        void operator()(IOArgumentRange output, CompleteParams &input) override;
 
     };
 

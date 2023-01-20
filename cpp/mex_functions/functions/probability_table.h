@@ -56,15 +56,16 @@ namespace Moment::mex::functions {
         explicit ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
     };
 
-    class ProbabilityTable : public MexFunction {
+class ProbabilityTable : public ParameterizedMexFunction<ProbabilityTableParams, MEXEntryPointID::ProbabilityTable> {
     public:
         explicit ProbabilityTable(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+protected:
+    void operator()(IOArgumentRange output, ProbabilityTableParams &input) override;
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+    void extra_input_checks(ProbabilityTableParams &input) const override;
 
-    private:
+private:
         void export_locality(IOArgumentRange output,
                              ProbabilityTableParams& input,
                              const Locality::LocalityMatrixSystem& lms);

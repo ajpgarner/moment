@@ -155,9 +155,7 @@ namespace Moment::mex::functions {
     }
 
     NewInflationMatrixSystem::NewInflationMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : MexFunction(matlabEngine, storage,
-                          MEXEntryPointID::NewInflationMatrixSystem,
-                          u"new_inflation_matrix_system") {
+            : ParameterizedMexFunction(matlabEngine, storage, u"new_inflation_matrix_system") {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
@@ -169,17 +167,7 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"sources");
     }
 
-    std::unique_ptr<SortedInputs>
-    NewInflationMatrixSystem::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        auto& input = *inputPtr;
-        return std::make_unique<NewInflationMatrixSystemParams>(this->matlabEngine, std::move(input));
-    }
-
-
-
-    void NewInflationMatrixSystem::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        auto& input = dynamic_cast<NewInflationMatrixSystemParams&>(*inputPtr);
-
+    void NewInflationMatrixSystem::operator()(IOArgumentRange output, NewInflationMatrixSystemParams &input) {
         using namespace Inflation;
 
         // Interpret context
@@ -203,4 +191,5 @@ namespace Moment::mex::functions {
         matlab::data::ArrayFactory factory;
         output[0] = factory.createScalar<uint64_t>(storage_id);
     }
+
 }

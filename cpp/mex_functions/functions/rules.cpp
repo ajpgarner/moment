@@ -22,29 +22,20 @@ namespace Moment::mex::functions {
                                                             inputs.inputs[0], 0);
     }
 
-
     Rules::Rules(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : MexFunction(matlabEngine, storage, MEXEntryPointID::Rules, u"rules") {
+            : ParameterizedMexFunction(matlabEngine, storage, u"rules") {
         this->min_outputs = this->max_outputs = 1;
         this->min_inputs = 1;
         this->max_inputs = 1;
     }
 
-    std::unique_ptr<SortedInputs>
-    Rules::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        auto& input = *inputPtr;
-        auto output = std::make_unique<RulesParams>(this->matlabEngine, std::move(input));
-        // Check key vs. storage manager
-        if (!this->storageManager.MatrixSystems.check_signature(output->storage_key)) {
+    void Rules::extra_input_checks(RulesParams &input) const {
+        if (!this->storageManager.MatrixSystems.check_signature(input.storage_key)) {
             throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
         }
-
-        return output;
     }
 
-    void Rules::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        auto& input = dynamic_cast<RulesParams&>(*inputPtr);
-
+    void Rules::operator()(IOArgumentRange output, RulesParams &input) {
         // Get referred to matrix system (or fail)
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {

@@ -29,12 +29,14 @@ namespace Moment::mex::functions  {
 
     };
 
-    class ImportMatrix : public Moment::mex::functions::MexFunction {
+    class ImportMatrix : public ParameterizedMexFunction<ImportMatrixParams, MEXEntryPointID::ImportMatrix> {
     public:
         ImportMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+    protected:
+        void operator()(IOArgumentRange output, ImportMatrixParams &input) override;
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+    protected:
+        void extra_input_checks(ImportMatrixParams &input) const override;
     };
 }

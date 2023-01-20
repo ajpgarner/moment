@@ -35,14 +35,12 @@ namespace Moment::mex::functions {
 
     };
 
-
-    class NewInflationMatrixSystem : public Moment::mex::functions::MexFunction {
+    class NewInflationMatrixSystem
+        : public ParameterizedMexFunction<NewInflationMatrixSystemParams, MEXEntryPointID::NewInflationMatrixSystem> {
     public:
         explicit NewInflationMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
-
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+        void operator()(IOArgumentRange output, NewInflationMatrixSystemParams &input) override;
 
     };
 }

@@ -33,13 +33,13 @@ namespace Moment::mex::functions {
 
     };
 
-    class NewAlgebraicMatrixSystem : public Moment::mex::functions::MexFunction {
+    class NewAlgebraicMatrixSystem
+        : public ParameterizedMexFunction<NewAlgebraicMatrixSystemParams, MEXEntryPointID::NewAlgebraicMatrixSystem> {
     public:
         explicit NewAlgebraicMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
-
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+    protected:
+        void operator()(IOArgumentRange output, NewAlgebraicMatrixSystemParams &input) override;
 
     };
 

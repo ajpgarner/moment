@@ -48,26 +48,23 @@ namespace Moment::mex::functions {
     }
 
     List::List(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : Moment::mex::functions::MexFunction(matlabEngine, storage, MEXEntryPointID::List, u"list") {
+        : ParameterizedMexFunction<ListParams, MEXEntryPointID::List>(matlabEngine, storage, u"list") {
         this->min_inputs = 0;
         this->max_inputs = 1;
         this->min_outputs = 0;
         this->max_outputs = 1;
     }
 
-    std::unique_ptr<SortedInputs> List::transform_inputs(std::unique_ptr<SortedInputs> input) const {
-        auto txInput = std::make_unique<ListParams>(this->matlabEngine, std::move(*input));
-        if ((txInput->output_type == ListParams::OutputType::OneSystem)
-            && (!this->storageManager.MatrixSystems.check_signature(txInput->matrix_system_key))) {
+
+    void List::extra_input_checks(ListParams &input) const {
+        if ((input.output_type == ListParams::OutputType::OneSystem)
+            && (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key))) {
             throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
         }
-        return txInput;
     }
 
-    void List::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputRaw) {
-        assert(inputRaw);
-        auto& input = dynamic_cast<ListParams&>(*inputRaw);
 
+    void List::operator()(IOArgumentRange output, ListParams &input) {
         bool output_to_console = (output.size() == 0);
 
         std::stringstream ss;

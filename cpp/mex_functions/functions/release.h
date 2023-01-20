@@ -18,19 +18,18 @@ namespace Moment::mex::functions {
         } type = StorableType::Unknown;
         size_t key = 0;
 
-        ReleaseParams(matlab::engine::MATLABEngine &matlabEngine, const StorageManager& storage,
-                      SortedInputs&& raw_inputs);
+        ReleaseParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& raw_inputs);
     };
 
-    class Release : public MexFunction {
+    class Release : public ParameterizedMexFunction<ReleaseParams, MEXEntryPointID::Release> {
     public:
         explicit Release(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final {
-            return std::make_unique<ReleaseParams>(this->matlabEngine, this->storageManager, std::move(*input));
-        }
+    protected:
+        void operator()(IOArgumentRange output, ReleaseParams &input) override;
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+        void extra_input_checks(ReleaseParams &input) const override;
+
     };
 
 }

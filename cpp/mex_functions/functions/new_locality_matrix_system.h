@@ -37,13 +37,13 @@ namespace Moment::mex::functions {
     };
 
 
-    class NewLocalityMatrixSystem : public Moment::mex::functions::MexFunction {
+    class NewLocalityMatrixSystem : public ParameterizedMexFunction<NewLocalityMatrixSystemParams, MEXEntryPointID::NewLocalityMatrixSystem> {
     public:
         explicit NewLocalityMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+    protected:
+        void operator()(IOArgumentRange output, NewLocalityMatrixSystemParams &input) override;
 
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
     };
 }

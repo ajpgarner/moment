@@ -12,7 +12,6 @@
 #include "utilities/visitor.h"
 
 namespace Moment::mex::functions {
-
     namespace {
         class AlphabeticNamerMatrixVisitor {
         private:
@@ -56,11 +55,33 @@ namespace Moment::mex::functions {
                 return output;
             }
         };
+    }
 
+    AlphabeticNameInputs::AlphabeticNameInputs(matlab::engine::MATLABEngine& matlabEngine, SortedInputs &&input)
+            : SortedInputs(std::move(input)) {
+        this->is_upper = !this->flags.contains(u"lower");
+        this->zero_index = this->flags.contains(u"zero_index");
+
+        // Check input type is parseable
+        switch (this->inputs[0].getType()) {
+            case matlab::data::ArrayType::SINGLE:
+            case matlab::data::ArrayType::DOUBLE:
+            case matlab::data::ArrayType::INT8:
+            case matlab::data::ArrayType::UINT8:
+            case matlab::data::ArrayType::INT16:
+            case matlab::data::ArrayType::UINT16:
+            case matlab::data::ArrayType::INT32:
+            case matlab::data::ArrayType::UINT32:
+            case matlab::data::ArrayType::INT64:
+            case matlab::data::ArrayType::UINT64:
+                break;
+            default:
+                throw errors::BadInput{errors::bad_param, "Matrix type must be real numeric."};
+        }
     }
 
     AlphabeticName::AlphabeticName(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : MexFunction(matlabEngine, storage, MEXEntryPointID::AlphabeticName, u"alphabetic_name") {
+            : ParameterizedMexFunction(matlabEngine, storage, u"alphabetic_name") {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
@@ -75,10 +96,7 @@ namespace Moment::mex::functions {
         this->max_inputs = 1;
     }
 
-    void AlphabeticName::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-
-        const auto& input = dynamic_cast<AlphabeticNameInputs&>(*inputPtr);
-
+    void AlphabeticName::operator()(IOArgumentRange output, AlphabeticNameInputs &input) {
         AlphabeticNamer namer{input.is_upper};
         matlab::data::ArrayFactory factory{};
 
@@ -97,34 +115,5 @@ namespace Moment::mex::functions {
             output[0] = DispatchVisitor(this->matlabEngine, input.inputs[0],
                             AlphabeticNamerMatrixVisitor{this->matlabEngine, namer, input.zero_index});
         }
-    }
-
-    std::unique_ptr<SortedInputs> AlphabeticName::transform_inputs(std::unique_ptr<SortedInputs> input) const {
-        auto txInput = std::make_unique<AlphabeticNameInputs>(std::move(*input));
-
-        // Check input type is parseable
-        switch (txInput->inputs[0].getType()) {
-            case matlab::data::ArrayType::SINGLE:
-            case matlab::data::ArrayType::DOUBLE:
-            case matlab::data::ArrayType::INT8:
-            case matlab::data::ArrayType::UINT8:
-            case matlab::data::ArrayType::INT16:
-            case matlab::data::ArrayType::UINT16:
-            case matlab::data::ArrayType::INT32:
-            case matlab::data::ArrayType::UINT32:
-            case matlab::data::ArrayType::INT64:
-            case matlab::data::ArrayType::UINT64:
-                break;
-            default:
-                throw errors::BadInput{errors::bad_param, "Matrix type must be real numeric."};
-        }
-
-
-        return txInput;
-    }
-
-    AlphabeticNameInputs::AlphabeticNameInputs(SortedInputs &&input) : SortedInputs(std::move(input)) {
-        this->is_upper = !this->flags.contains(u"lower");
-        this->zero_index = this->flags.contains(u"zero_index");
     }
 }

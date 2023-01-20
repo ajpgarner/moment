@@ -100,8 +100,7 @@ namespace Moment::mex::functions {
     }
 
     Complete::Complete(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : MexFunction(matlabEngine, storage,
-                      MEXEntryPointID::Complete, u"complete") {
+        : ParameterizedMexFunction(matlabEngine, storage, u"complete") {
         this->min_outputs = 1;
         this->max_outputs = 2;
 
@@ -124,9 +123,7 @@ namespace Moment::mex::functions {
         this->max_inputs = 1;
     }
 
-    void Complete::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        auto& input = dynamic_cast<CompleteParams&>(*inputPtr);
-
+    void Complete::operator()(IOArgumentRange output, CompleteParams &input) {
         // Output context in verbose mode
         std::stringstream ss;
         std::unique_ptr<Algebraic::OStreamRuleLogger> logger;
@@ -182,8 +179,5 @@ namespace Moment::mex::functions {
 
     }
 
-    std::unique_ptr<SortedInputs> Complete::transform_inputs(std::unique_ptr<SortedInputs> input) const {
-        return std::make_unique<CompleteParams>(this->matlabEngine, std::move(*input));
-    }
 
 }

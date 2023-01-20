@@ -36,13 +36,14 @@ namespace Moment::mex::functions {
         }
     };
 
-    class GenerateBasis : public MexFunction {
+class GenerateBasis : public ParameterizedMexFunction<GenerateBasisParams, MEXEntryPointID::GenerateBasis> {
     public:
         explicit GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+protected:
+    void operator()(IOArgumentRange output, GenerateBasisParams &input) override;
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
-    };
+    void extra_input_checks(GenerateBasisParams &input) const override;
+};
 
 }

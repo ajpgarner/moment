@@ -5,6 +5,7 @@
  */
 #pragma once
 
+#include <concepts>
 #include <memory>
 #include <string>
 #include <set>
@@ -142,8 +143,43 @@ namespace Moment::mex::functions {
                 this->quiet = false;
             }
         }
+    };
 
+    /**
+     * Utility intermediate abstract class - binds function to appropriate parameter types
+     */
+    template<std::derived_from<SortedInputs> param_t, MEXEntryPointID i_entry_id>
+    class ParameterizedMexFunction : public MexFunction {
+    public:
+        using parameter_type = param_t;
+        static const MEXEntryPointID entry_id = i_entry_id;
 
+    protected:
+        ParameterizedMexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage,
+                                 std::basic_string<char16_t> name)
+                 : MexFunction(engine, storage, entry_id, name) { }
+
+    public:
+
+        [[nodiscard]] std::unique_ptr<SortedInputs>
+        transform_inputs(std::unique_ptr<SortedInputs> input) const final {
+            assert(input);
+            auto output = std::make_unique<param_t>(this->matlabEngine, std::move(*input));
+            assert(output);
+            extra_input_checks(*output);
+            return output;
+        }
+
+        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputRaw) final {
+            assert(inputRaw);
+            auto& input = dynamic_cast<param_t&>(*inputRaw);
+            this->operator()(std::move(output), input);
+        }
+
+    protected:
+        virtual void operator()(IOArgumentRange output, param_t& input) = 0;
+
+        virtual void extra_input_checks(param_t& input) const { }
 
     };
 }

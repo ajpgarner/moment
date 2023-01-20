@@ -43,7 +43,7 @@ namespace Moment::mex::functions {
     }
 
     ImportMatrix::ImportMatrix(matlab::engine::MATLABEngine &matlabEngine, Moment::mex::StorageManager &storage)
-        : Moment::mex::functions::MexFunction(matlabEngine, storage, MEXEntryPointID::ImportMatrix, u"import_matrix") {
+        : ParameterizedMexFunction(matlabEngine, storage, u"import_matrix") {
         this->min_inputs = this->max_inputs = 2;
         this->min_outputs = this->max_outputs = 1;
         this->flag_names.insert(u"hermitian");
@@ -53,21 +53,13 @@ namespace Moment::mex::functions {
         this->mutex_params.add_mutex({u"hermitian", u"symmetric", u"real", u"complex"});
     }
 
-    std::unique_ptr<SortedInputs> ImportMatrix::transform_inputs(std::unique_ptr<SortedInputs> input) const {
-        auto processed = std::make_unique<ImportMatrixParams>(this->matlabEngine, std::move(*input));
-
-        if (!this->storageManager.MatrixSystems.check_signature(processed->matrix_system_key)) {
+    void ImportMatrix::extra_input_checks(ImportMatrixParams &input) const {
+        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
             throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
         }
-
-        return processed;
     }
 
-    void ImportMatrix::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        // Get input
-        assert(inputPtr);
-        auto& input = dynamic_cast<ImportMatrixParams&>(*inputPtr);
-
+    void ImportMatrix::operator()(IOArgumentRange output, ImportMatrixParams &input) {
         // Attempt to get matrix system, and cast to ImportedMatrixSystem
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {

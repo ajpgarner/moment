@@ -121,7 +121,7 @@ namespace Moment::mex::functions  {
     }
 
     CollinsGisin::CollinsGisin(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : MexFunction(matlabEngine, storage, MEXEntryPointID::CollinsGisin, u"collins_gisin") {
+            : ParameterizedMexFunction(matlabEngine, storage, u"collins_gisin") {
 
         this->flag_names.emplace(u"basis");
         this->flag_names.emplace(u"symbols");
@@ -136,10 +136,14 @@ namespace Moment::mex::functions  {
         this->max_inputs = 1;
     }
 
-    void CollinsGisin::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        // Get input
-        assert(inputPtr);
-        auto& input = dynamic_cast<CollinsGisinParams&>(*inputPtr);
+
+    void CollinsGisin::extra_input_checks(CollinsGisinParams &input) const {
+        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
+            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
+        }
+    }
+
+    void CollinsGisin::operator()(IOArgumentRange output, CollinsGisinParams &input) {
 
         // Get stored moment matrix
         auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
@@ -167,13 +171,5 @@ namespace Moment::mex::functions  {
             throw_error(this->matlabEngine, "missing_cg", mce.what());
         }
 
-    }
-
-    std::unique_ptr<SortedInputs> CollinsGisin::transform_inputs(std::unique_ptr<SortedInputs> input) const {
-        auto tx = std::make_unique<CollinsGisinParams>(this->matlabEngine, std::move(*input));
-        if (!this->storageManager.MatrixSystems.check_signature(tx->matrix_system_key)) {
-            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
-        }
-        return tx;
     }
 }

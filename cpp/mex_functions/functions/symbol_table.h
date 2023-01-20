@@ -34,15 +34,16 @@ namespace Moment::mex::functions  {
         [[nodiscard]] std::string to_string() const override;
     };
 
-    class SymbolTable : public Moment::mex::functions::MexFunction {
+    class SymbolTable : public ParameterizedMexFunction<SymbolTableParams, MEXEntryPointID::SymbolTable> {
     public:
         void validate_output_count(size_t outputs, const SortedInputs &inputs) const override;
 
         explicit SymbolTable(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+        void operator()(IOArgumentRange output, SymbolTableParams& input) final;
 
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+    protected:
+        void extra_input_checks(SymbolTableParams &input) const override;
 
     private:
         void find_and_return_symbol(IOArgumentRange output, const SymbolTableParams& input,

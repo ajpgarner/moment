@@ -33,7 +33,7 @@ namespace Moment::mex::functions {
     }
 
     GenerateBasis::GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-        : MexFunction(matlabEngine, storage, MEXEntryPointID::GenerateBasis, u"generate_basis") {
+        : ParameterizedMexFunction(matlabEngine, storage, u"generate_basis") {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 1;
@@ -53,6 +53,7 @@ namespace Moment::mex::functions {
         this->flag_names.emplace(u"monolith");
         this->mutex_params.add_mutex(u"cell", u"monolith");
     }
+
 
     GenerateBasisParams::GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine,
                                              Moment::mex::SortedInputs &&structuredInputs)
@@ -84,18 +85,15 @@ namespace Moment::mex::functions {
         }
     }
 
-    std::unique_ptr<SortedInputs> GenerateBasis::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        auto output = std::make_unique<GenerateBasisParams>(this->matlabEngine, std::move(*inputPtr));
-        if (!this->storageManager.MatrixSystems.check_signature(output->matrix_system_key)) {
+
+    void GenerateBasis::extra_input_checks(GenerateBasisParams &input) const {
+        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
             throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a moment matrix.");
         }
-        return output;
     }
 
 
-    void GenerateBasis::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        auto& input = dynamic_cast<GenerateBasisParams&>(*inputPtr);
-
+    void GenerateBasis::operator()(IOArgumentRange output, GenerateBasisParams &input) {
         auto matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
         assert(matrixSystemPtr); // ^-- should throw if not found
         const MatrixSystem& matrixSystem = *matrixSystemPtr;

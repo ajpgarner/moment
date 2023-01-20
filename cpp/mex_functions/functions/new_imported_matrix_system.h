@@ -19,12 +19,12 @@ namespace Moment::mex::functions {
 
     };
 
-    class NewImportedMatrixSystem : public Moment::mex::functions::MexFunction {
+    class NewImportedMatrixSystem
+        : public ParameterizedMexFunction<NewImportedMatrixSystemParams, MEXEntryPointID::NewImportedMatrixSystem> {
     public:
         explicit NewImportedMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
-
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+    protected:
+        void operator()(IOArgumentRange output, NewImportedMatrixSystemParams &input) override;
     };
 }

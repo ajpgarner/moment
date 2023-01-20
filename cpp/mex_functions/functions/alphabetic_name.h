@@ -15,15 +15,14 @@ namespace Moment::mex::functions  {
         bool is_upper = false;
         bool zero_index = false;
 
-        explicit AlphabeticNameInputs(SortedInputs&& input);
+        explicit AlphabeticNameInputs(matlab::engine::MATLABEngine& matlabEngine, SortedInputs&& input);
     };
 
-    class AlphabeticName : public Moment::mex::functions::MexFunction {
+    class AlphabeticName : public ParameterizedMexFunction<AlphabeticNameInputs, MEXEntryPointID::AlphabeticName> {
     public:
         explicit AlphabeticName(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
-
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+    protected:
+        void operator()(IOArgumentRange output, AlphabeticNameInputs &input) override;
     };
 }

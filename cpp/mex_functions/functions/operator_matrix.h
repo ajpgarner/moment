@@ -78,7 +78,6 @@ namespace Moment::mex::functions  {
         [[nodiscard]] std::string input_format() const final { return "[matrix system ID, matrix index]"; }
     };
 
-
     class OperatorMatrix : public Moment::mex::functions::MexFunction {
     protected:
         OperatorMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage,

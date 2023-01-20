@@ -114,9 +114,7 @@ namespace Moment::mex::functions {
 
     NewAlgebraicMatrixSystem::NewAlgebraicMatrixSystem(matlab::engine::MATLABEngine &matlabEngine,
                                                        StorageManager &storage)
-           : MexFunction(matlabEngine, storage,
-                         MEXEntryPointID::NewAlgebraicMatrixSystem,
-                         u"new_algebraic_matrix_system") {
+           : ParameterizedMexFunction(matlabEngine, storage, u"new_algebraic_matrix_system") {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
@@ -136,10 +134,8 @@ namespace Moment::mex::functions {
         this->max_inputs = 2;
     }
 
-    void NewAlgebraicMatrixSystem::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
+    void NewAlgebraicMatrixSystem::operator()(IOArgumentRange output, NewAlgebraicMatrixSystemParams &input) {
         using namespace Algebraic;
-
-        auto& input = dynamic_cast<NewAlgebraicMatrixSystemParams&>(*inputPtr);
 
         // Input to context:
         std::unique_ptr<AlgebraicContext> contextPtr{make_context(this->matlabEngine, input)};
@@ -194,8 +190,5 @@ namespace Moment::mex::functions {
         output[0] = factory.createScalar<uint64_t>(storage_id);
     }
 
-    std::unique_ptr<SortedInputs> NewAlgebraicMatrixSystem::transform_inputs(std::unique_ptr<SortedInputs> input) const {
-        return std::make_unique<NewAlgebraicMatrixSystemParams>(this->matlabEngine, std::move(*input));
-    }
 
 }

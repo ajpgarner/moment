@@ -25,13 +25,14 @@ namespace Moment::mex::functions  {
 
     };
 
-    class CollinsGisin : public Moment::mex::functions::MexFunction {
+    class CollinsGisin : public ParameterizedMexFunction<CollinsGisinParams, MEXEntryPointID::CollinsGisin> {
     public:
         explicit CollinsGisin(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+    protected:
+        void operator()(IOArgumentRange output, CollinsGisinParams &input) override;
 
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+        void extra_input_checks(CollinsGisinParams &input) const override;
 
     };
 

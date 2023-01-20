@@ -208,7 +208,7 @@ namespace Moment::mex::functions {
     }
 
     ProbabilityTable::ProbabilityTable(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : MexFunction(matlabEngine, storage, MEXEntryPointID::ProbabilityTable, u"probability_table") {
+            : ParameterizedMexFunction{matlabEngine, storage, u"probability_table"} {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
@@ -218,11 +218,14 @@ namespace Moment::mex::functions {
         this->flag_names.emplace(u"inflation");
     }
 
-    void ProbabilityTable::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        // Get input
-        assert(inputPtr);
-        auto& input = dynamic_cast<ProbabilityTableParams&>(*inputPtr);
 
+    void ProbabilityTable::extra_input_checks(ProbabilityTableParams &input) const {
+        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
+            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
+        }
+    }
+
+    void ProbabilityTable::operator()(IOArgumentRange output, ProbabilityTableParams &input) {
         // Get stored moment matrix
         auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
         assert(msPtr); // ^- above should throw if absent
@@ -251,13 +254,7 @@ namespace Moment::mex::functions {
 
     }
 
-    std::unique_ptr<SortedInputs> ProbabilityTable::transform_inputs(std::unique_ptr<SortedInputs> input) const {
-        auto tx = std::make_unique<ProbabilityTableParams>(this->matlabEngine, std::move(*input));
-        if (!this->storageManager.MatrixSystems.check_signature(tx->matrix_system_key)) {
-            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
-        }
-        return tx;
-    }
+
 
     void ProbabilityTable::export_locality(IOArgumentRange output,
                                           ProbabilityTableParams& input, const Locality::LocalityMatrixSystem& lms) {
@@ -363,6 +360,4 @@ namespace Moment::mex::functions {
 
         throw_error(this->matlabEngine, errors::internal_error, "Unknown export type.");
     }
-
-
 }

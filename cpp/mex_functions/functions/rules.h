@@ -17,13 +17,14 @@ namespace Moment::mex::functions  {
         explicit RulesParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
     };
 
-    class Rules : public Moment::mex::functions::MexFunction {
+    class Rules : public ParameterizedMexFunction<RulesParams, MEXEntryPointID::Rules> {
     public:
         explicit Rules(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) final;
+    protected:
+        void operator()(IOArgumentRange output, RulesParams &input) override;
 
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
+        void extra_input_checks(RulesParams &input) const override;
 
     };
 

@@ -150,19 +150,8 @@ namespace Moment::mex::functions {
         }
     }
 
-
-    std::unique_ptr<SortedInputs>
-    NewLocalityMatrixSystem::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        auto& input = *inputPtr;
-        return std::make_unique<NewLocalityMatrixSystemParams>(this->matlabEngine, std::move(input));
-    }
-
-
-
     NewLocalityMatrixSystem::NewLocalityMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : MexFunction(matlabEngine, storage,
-                          MEXEntryPointID::NewLocalityMatrixSystem,
-                          u"new_locality_matrix_system") {
+            : ParameterizedMexFunction(matlabEngine, storage, u"new_locality_matrix_system") {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
@@ -174,11 +163,8 @@ namespace Moment::mex::functions {
         this->max_inputs = 3;
     }
 
-
-    void NewLocalityMatrixSystem::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
+    void NewLocalityMatrixSystem::operator()(IOArgumentRange output, NewLocalityMatrixSystemParams &input) {
         using namespace Locality;
-
-        auto& input = dynamic_cast<NewLocalityMatrixSystemParams&>(*inputPtr);
 
         // Input to context:
         std::unique_ptr<LocalityContext> contextPtr{make_context(this->matlabEngine, input)};
