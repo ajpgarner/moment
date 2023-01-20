@@ -67,4 +67,10 @@ namespace Moment {
         return OperatorSequenceGenerator{this->context, this->Level()};
     }
 
+    std::string MomentMatrix::description() const {
+        std::stringstream ss;
+        ss << "Moment Matrix, Level " << this->hierarchy_level;
+        return ss.str();
+    }
+
 }

@@ -5,6 +5,7 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <map>
 #include <memory>
@@ -73,6 +74,15 @@ namespace Moment {
         };
 
         /**
+         * Get the index associated with the supplied key
+         * @param itemKey The item key
+         * @return The index part of the key
+         */
+        constexpr static uint32_t get_index(uint64_t itemKey) noexcept {
+            return static_cast<uint32_t>(itemKey & 0x00000000FFFFFFFF);
+        };
+
+        /**
          * Return pointer to object stored with key.
          * Shared-ownership pointer emitted, to be thread-safe at pointer level with release(itemKey) on another thread.
          * @param itemKey The item key.
@@ -127,10 +137,36 @@ namespace Moment {
         }
 
         /**
+         * Get first item in bank. Thread-safe, in that either an item or nullptr is returned.
+         * Return, pair: item index and shared pointer (cf. [0xFFFFFFFF, nullptr] - if at end).
+         */
+         auto first() const {
+            const std::unique_lock<std::shared_mutex> lock(theMutex);
+            if (this->objects.empty()) {
+                return std::make_pair(uint32_t{0xFFFFFFFF}, std::shared_ptr<class_t>(nullptr));
+            }
+            auto first_iter = this->objects.begin();
+            return std::make_pair(first_iter->first, first_iter->second);
+         }
+
+        /**
+         * Get next item in bank. Thread-safe, in that either an item or nullptr is returned.
+         * Return, pair: item index and shared pointer (cf. [0xFFFFFFFF, nullptr] - if at end).
+         */
+         auto next(uint32_t previous_id) const {
+            const std::unique_lock<std::shared_mutex> lock(theMutex);
+            auto the_next = this->objects.upper_bound(previous_id);
+            if (the_next == this->objects.cend()) {
+                return std::make_pair(uint32_t{0xFFFFFFFF}, std::shared_ptr<class_t>(nullptr));
+            }
+            return std::make_pair(the_next->first, the_next->second);
+         }
+
+        /**
          * Return total number of items in the bank. Thread-safe.
          * @return Number of items in bank.
          */
-        inline size_t count() const noexcept {
+        inline size_t size() const noexcept {
             const std::shared_lock<std::shared_mutex> lock(theMutex);
             return this->objects.size();
         }
@@ -155,7 +191,7 @@ namespace Moment {
             }
 
             // Find item, or throw
-            const auto item_id = static_cast<uint32_t>(itemKey & 0x00000000FFFFFFFF);
+            const auto item_id = PersistentStorage<class_t>::get_index(itemKey);
             auto itemIter = this->objects.find(item_id);
             if (itemIter == this->objects.end()) {
                 throw not_found_error(itemKey, item_id);

@@ -71,6 +71,15 @@ classdef MatrixSystem < handle
             val = obj.SymbolTable;
         end
         
+        function varargout = List(obj)
+            the_list = mtk('list', obj.RefId);
+            if nargout == 1
+                varargout{1} = the_list;
+            else
+                disp(the_list)
+            end
+        end
+        
         
         %% Destructor
         function delete(obj)

@@ -47,6 +47,9 @@ namespace Moment::Imported {
          */
         size_t import_matrix(std::unique_ptr<SquareMatrix<SymbolExpression>> input, MatrixType matrix_type);
 
+        std::string system_type_name() const override {
+            return "Imported Matrix System";
+        }
     protected:
         void beforeNewMomentMatrixCreated(size_t level) override;
 

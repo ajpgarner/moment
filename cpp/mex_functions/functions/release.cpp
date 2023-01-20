@@ -43,7 +43,7 @@ namespace Moment::mex::functions {
         switch (input.type) {
             case ReleaseParams::StorableType::MatrixSystem:
                 this->storageManager.MatrixSystems.release(input.key);
-                remainder = this->storageManager.MatrixSystems.count();
+                remainder = this->storageManager.MatrixSystems.size();
                 break;
             default:
             case ReleaseParams::StorableType::Unknown:

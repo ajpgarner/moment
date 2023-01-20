@@ -28,7 +28,6 @@ namespace Moment {
 
 
     class OperatorMatrix : public SymbolicMatrix {
-
     public:
         class OpSeqMatrix : public SquareMatrix<OperatorSequence> {
         private:
@@ -109,5 +108,8 @@ namespace Moment {
 
         ~OperatorMatrix() noexcept;
 
+        [[nodiscard]] std::string description() const override {
+            return "Operator Matrix";
+        }
     };
 }

@@ -86,8 +86,14 @@ namespace Moment {
               is_hermitian{rhs.is_hermitian}, sym_exp_matrix{std::move(rhs.sym_exp_matrix)},
               mat_prop{std::move(rhs.mat_prop)}, Symbols{rhs.Symbols}, SymbolMatrix{*this} { }
 
-    public:
         virtual ~SymbolicMatrix() noexcept;
+
+        /**
+         * Description of matrix type
+         */
+        [[nodiscard]] virtual std::string description() const {
+            return "Symbolic Matrix";
+        }
 
         /**
          * Dimension of the matrix

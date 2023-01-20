@@ -49,6 +49,10 @@ namespace Moment::Inflation {
         /** Destructor */
         ~InflationMatrixSystem() noexcept override;
 
+        std::string system_type_name() const override {
+            return "Inflation Matrix System";
+        }
+
         /**
          * Get algebraic version of context object
          */

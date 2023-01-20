@@ -141,6 +141,13 @@ namespace Moment {
         }
 
         /**
+         * Get type of matrix system
+         */
+        [[nodiscard]] virtual std::string system_type_name() const {
+            return "Generic Matrix System";
+        }
+
+        /**
          * Returns the highest moment matrix yet generated.
          * For thread safety, call for a read lock first.
          */

@@ -15,6 +15,11 @@ namespace Moment::Algebraic {
         class AlgebraicContext &algebraicContext;
 
     public:
+        std::string system_type_name() const override {
+            return "Algebraic Matrix System";
+        }
+
+    public:
         /**
          * Construct a system of matrices with shared operators.
          * @param context The operator scenario.

@@ -52,5 +52,7 @@ namespace Moment {
         [[nodiscard]] constexpr size_t Level() const noexcept {
             return Index.Level;
         }
+
+        [[nodiscard]] std::string description() const override;
     };
 }

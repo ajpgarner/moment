@@ -247,9 +247,5 @@ namespace Moment {
 
        }
 
-
     OperatorMatrix::~OperatorMatrix() noexcept = default;
-
-
-
 }

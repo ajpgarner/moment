@@ -117,6 +117,21 @@ namespace Moment::Inflation {
         : SymbolicMatrix{source.context, symbols, make_extended_matrix(symbols, factors, source, extensions)},
         OriginalDimension{source.Dimension()} {
 
+        // Make description string of extended matrix
+        std::stringstream ss;
+        ss << "Extended Moment Matrix, Level " <<  source.Level() << ", Extensions ";
+        bool done_one = false;
+        for (auto ext : extensions) {
+            if (done_one) {
+                ss << ", ";
+            } else {
+                done_one = true;
+            }
+            ss << "S" << ext;
+        }
+        this->description_string = ss.str();
+
     }
+
 
 }

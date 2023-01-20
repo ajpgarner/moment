@@ -47,6 +47,9 @@ namespace Moment::Locality {
 
         ~LocalityMatrixSystem() noexcept override;
 
+        std::string system_type_name() const override {
+            return "Locality Matrix System";
+        }
 
         /**
          * Calculates the longest real sequences that can exist within this system (i.e. the highest number of

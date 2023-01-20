@@ -7,6 +7,8 @@
 
 #include "operator_sequence_generator.h"
 
+#include <sstream>
+
 namespace Moment {
     namespace {
 
@@ -36,6 +38,12 @@ namespace Moment {
         : OperatorMatrix{context, symbols, generate_localizing_matrix_sequences(context, lmi.Level, lmi.Word)},
           Index{std::move(lmi)} {
 
+    }
+
+    std::string LocalizingMatrix::description() const {
+        std::stringstream ss;
+        ss << "Localizing Matrix, Level " << this->Index.Level << ", Word " << this->Index.Word;
+        return ss.str();
     }
 
 }

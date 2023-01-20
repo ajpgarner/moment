@@ -34,6 +34,7 @@ matlab_add_mex(NAME moment_mex
             functions/import_matrix.cpp
             functions/function_list.cpp
             functions/generate_basis.cpp
+            functions/list.cpp
             functions/localizing_matrix.cpp
             functions/moment_matrix.cpp
             functions/new_algebraic_matrix_system.cpp

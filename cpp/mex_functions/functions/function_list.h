@@ -30,6 +30,7 @@ namespace Moment::mex::functions {
         ExtendedMatrix,
         GenerateBasis,
         ImportMatrix,
+        List,
         LocalizingMatrix,
         MomentMatrix,
         NewAlgebraicMatrixSystem,

@@ -22,11 +22,17 @@ namespace Moment::Inflation {
     public:
         const size_t OriginalDimension;
 
+    private:
+        std::string description_string;
+
     public:
         ExtendedMatrix(SymbolTable& symbols, Inflation::FactorTable& factors,
                        const MomentMatrix& source,
                        std::span<const symbol_name_t> extensions);
 
+        std::string description() const override {
+            return description_string;
+        }
     };
 
 }
