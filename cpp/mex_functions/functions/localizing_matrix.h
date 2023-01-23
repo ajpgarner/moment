@@ -31,8 +31,6 @@ namespace Moment::mex::functions  {
          */
         LocalizingMatrixIndex to_index(matlab::engine::MATLABEngine &matlabEngine, const Context& context) const;
 
-
-
     protected:
         void extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) final;
 
@@ -45,11 +43,10 @@ namespace Moment::mex::functions  {
         [[nodiscard]] std::string input_format() const final { return "[matrix system ID, level, word]"; }
     };
 
-    class LocalizingMatrix : public Moment::mex::functions::OperatorMatrix {
+    class LocalizingMatrix
+        : public Moment::mex::functions::OperatorMatrix<LocalizingMatrixParams, MEXEntryPointID::LocalizingMatrix> {
     public:
         explicit LocalizingMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
-
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
     protected:
         std::pair<size_t, const Moment::SymbolicMatrix&>

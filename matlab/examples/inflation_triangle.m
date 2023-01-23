@@ -14,7 +14,7 @@ disp(moment_matrix.SequenceMatrix);
 subbed_matrix = moment_matrix.ApplyValues({{2, 0.5}, {3, 0.5}});
 disp(subbed_matrix.SequenceMatrix);
 
-cvx_begin sdp quiet
+cvx_begin sdp
     subbed_matrix.cvxVars('a')
     
     M = subbed_matrix.cvxRealMatrix(a);

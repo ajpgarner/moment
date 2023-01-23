@@ -31,11 +31,10 @@ namespace Moment::mex::functions {
         [[nodiscard]] std::string input_format() const final { return "[matrix system ID, level, extensions]"; }
     };
 
-    class ExtendedMatrix : public Moment::mex::functions::OperatorMatrix {
+    class ExtendedMatrix
+        : public Moment::mex::functions::OperatorMatrix<ExtendedMatrixParams, MEXEntryPointID::ExtendedMatrix> {
     public:
         explicit ExtendedMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
-
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
         std::pair<size_t, const Moment::SymbolicMatrix&>
         get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) override;

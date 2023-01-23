@@ -48,8 +48,7 @@ namespace Moment::mex::functions {
 
 
     ExtendedMatrix::ExtendedMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : Moment::mex::functions::OperatorMatrix(matlabEngine, storage,
-                                                     MEXEntryPointID::ExtendedMatrix, u"extended_matrix") {
+            : OperatorMatrix{matlabEngine, storage, u"extended_matrix"} {
         // Either [ref, level, extensions] or named version thereof.
         this->param_names.erase(u"index");
         this->param_names.emplace(u"level");
@@ -57,19 +56,6 @@ namespace Moment::mex::functions {
 
         this->min_inputs = 0;
         this->max_inputs = 3;
-    }
-
-    std::unique_ptr<SortedInputs> ExtendedMatrix::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        auto& input = *inputPtr;
-        auto output = std::make_unique<ExtendedMatrixParams>(this->matlabEngine, std::move(input));
-        output->parse(this->matlabEngine);
-
-        // Check key vs. storage manager
-        if (!this->storageManager.MatrixSystems.check_signature(output->storage_key)) {
-            throw errors::BadInput{errors::bad_signature, "Reference supplied was not to a MatrixSystem."};
-        }
-
-        return output;
     }
 
     std::pair<size_t, const Moment::SymbolicMatrix&>

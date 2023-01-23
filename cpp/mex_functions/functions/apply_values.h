@@ -43,11 +43,9 @@ namespace Moment::mex::functions  {
                                const matlab::data::Array &input);
     };
 
-    class ApplyValues : public Moment::mex::functions::OperatorMatrix {
+    class ApplyValues : public Moment::mex::functions::OperatorMatrix<ApplyValuesParams, MEXEntryPointID::ApplyValues> {
     public:
         ApplyValues(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
-
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
     protected:
         std::pair<size_t, const Moment::SymbolicMatrix&>

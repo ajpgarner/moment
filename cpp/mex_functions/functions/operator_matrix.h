@@ -8,6 +8,7 @@
 #include "mex_function.h"
 #include "integer_types.h"
 
+#include <concepts>
 #include <string>
 
 namespace Moment {
@@ -78,28 +79,84 @@ namespace Moment::mex::functions  {
         [[nodiscard]] std::string input_format() const final { return "[matrix system ID, matrix index]"; }
     };
 
-    class OperatorMatrix : public Moment::mex::functions::MexFunction {
+    class OperatorMatrixVirtualBase {
+    private:
+        matlab::engine::MATLABEngine& omvb_matlabEngine;
+        StorageManager& omvb_storageManager;
+
     protected:
-        OperatorMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage,
-                       MEXEntryPointID id, std::basic_string<char16_t> name);
+        OperatorMatrixVirtualBase(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
+            : omvb_matlabEngine{matlabEngine}, omvb_storageManager{storage} { }
 
     public:
-        OperatorMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
-            : OperatorMatrix(matlabEngine, storage, MEXEntryPointID::OperatorMatrix, u"operator_matrix") { }
-
-        void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) override;
-
-        [[nodiscard]] std::unique_ptr<SortedInputs>
-        transform_inputs(std::unique_ptr<SortedInputs> input) const override;
-
-        void validate_output_count(size_t outputs, const SortedInputs &inputs) const override;
+        virtual ~OperatorMatrixVirtualBase() = default;
 
     protected:
+        void process(IOArgumentRange output, OperatorMatrixParams& input);
+
+        void check_mat_sys_id(OperatorMatrixParams &input) const;
+
+        void do_validate_output_count(size_t outputs, const OperatorMatrixParams& inputs) const;
+
         /**
          * Query matrix system for requested matrix.
          * @return Pair: Index of matrix, reference to matrix.
          */
         virtual std::pair<size_t, const Moment::SymbolicMatrix&>
-        get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp);
+        get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) = 0;
+
+    };
+
+    template<std::derived_from<OperatorMatrixParams> om_param_t, MEXEntryPointID om_entry_id>
+    class OperatorMatrix : public ParameterizedMexFunction<om_param_t, om_entry_id>,
+                           public OperatorMatrixVirtualBase {
+    protected:
+        OperatorMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage,
+                       std::basic_string<char16_t> name)
+           : ParameterizedMexFunction<om_param_t, om_entry_id>{matlabEngine, storage, std::move(name)},
+             OperatorMatrixVirtualBase{matlabEngine, storage}
+        {
+            this->min_outputs = 1;
+            this->max_outputs = 4;
+
+            this->flag_names.emplace(u"sequences");
+            this->flag_names.emplace(u"symbols");
+            this->flag_names.emplace(u"dimension");
+            this->flag_names.emplace(u"masks");
+
+            this->param_names.emplace(u"reference_id");
+            this->param_names.emplace(u"index");
+
+            // One of four ways to output:
+            this->mutex_params.add_mutex({u"sequences", u"symbols", u"dimension", u"masks"});
+
+            // Either [ref, ref] or named version thereof.
+            this->min_inputs = 0;
+            this->max_inputs = 2;
+        }
+
+        void operator()(IOArgumentRange output, om_param_t &input) final {
+            this->process(output, input);
+        }
+
+        void extra_input_checks(om_param_t &input) const final {
+            input.parse(this->matlabEngine);
+            this->check_mat_sys_id(input);
+        }
+
+        void validate_output_count(size_t outputs, const SortedInputs &inputs) const override {
+            const auto& cast_inputs = dynamic_cast<const OperatorMatrixParams&>(inputs);
+            this->do_validate_output_count(outputs, cast_inputs);
+        }
+    };
+
+    class RawOperatorMatrix : public OperatorMatrix<RawOperatorMatrixParams, MEXEntryPointID::OperatorMatrix> {
+    public:
+        RawOperatorMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
+            : OperatorMatrix(matlabEngine, storage, u"operator_matrix") { }
+
+    protected:
+        std::pair<size_t, const Moment::SymbolicMatrix&>
+        get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) final;
     };
 }

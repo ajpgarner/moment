@@ -96,8 +96,7 @@ namespace Moment::mex::functions {
     }
 
     LocalizingMatrix::LocalizingMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : Moment::mex::functions::OperatorMatrix(matlabEngine, storage,
-                                                    MEXEntryPointID::LocalizingMatrix, u"localizing_matrix") {
+            : OperatorMatrix{matlabEngine, storage, u"localizing_matrix"} {
         // Either [ref, level, word] or named version thereof.
         this->param_names.erase(u"index");
         this->param_names.emplace(u"level");
@@ -106,20 +105,6 @@ namespace Moment::mex::functions {
         this->flag_names.emplace(u"matlab_indexing");
 
         this->max_inputs = 3;
-    }
-
-    std::unique_ptr<SortedInputs>
-    LocalizingMatrix::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        auto& input = *inputPtr;
-        auto output = std::make_unique<LocalizingMatrixParams>(this->matlabEngine, std::move(input));
-        output->parse(this->matlabEngine);
-
-        // Check key vs. storage manager
-        if (!this->storageManager.MatrixSystems.check_signature(output->storage_key)) {
-            throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
-        }
-
-        return output;
     }
 
     std::pair<size_t, const Moment::SymbolicMatrix &>

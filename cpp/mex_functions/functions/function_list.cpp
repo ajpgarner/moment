@@ -83,7 +83,7 @@ namespace Moment::mex::functions {
                 the_function = std::make_unique<functions::NewLocalityMatrixSystem>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::OperatorMatrix:
-                the_function = std::make_unique<functions::OperatorMatrix>(engine, storageManager);
+                the_function = std::make_unique<functions::RawOperatorMatrix>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::ProbabilityTable:
                 the_function = std::make_unique<functions::ProbabilityTable>(engine, storageManager);
@@ -113,12 +113,12 @@ namespace Moment::mex::functions {
         std::map<std::basic_string<char16_t>, MEXEntryPointID> output;
 
         output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
-        output.emplace(u"apply_values", MEXEntryPointID::ApplyValues);
+        output.emplace(u"apply_values",    MEXEntryPointID::ApplyValues);
         output.emplace(u"collins_gisin",   MEXEntryPointID::CollinsGisin);
         output.emplace(u"complete",        MEXEntryPointID::Complete);
         output.emplace(u"extended_matrix", MEXEntryPointID::ExtendedMatrix);
         output.emplace(u"generate_basis",  MEXEntryPointID::GenerateBasis);
-        output.emplace(u"list",  MEXEntryPointID::List);
+        output.emplace(u"list",            MEXEntryPointID::List);
         output.emplace(u"localizing_matrix",  MEXEntryPointID::LocalizingMatrix);
         output.emplace(u"import_matrix",   MEXEntryPointID::ImportMatrix);
         output.emplace(u"moment_matrix",   MEXEntryPointID::MomentMatrix);

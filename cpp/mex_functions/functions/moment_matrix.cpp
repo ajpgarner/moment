@@ -18,8 +18,7 @@
 namespace Moment::mex::functions {
 
     MomentMatrix::MomentMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : Moment::mex::functions::OperatorMatrix(matlabEngine, storage,
-                                                    MEXEntryPointID::MomentMatrix, u"moment_matrix") {
+            : OperatorMatrix{matlabEngine, storage, u"moment_matrix"} {
         // Either [ref, level] or named version thereof.
         this->param_names.erase(u"index");
         this->param_names.emplace(u"level");
@@ -44,21 +43,6 @@ namespace Moment::mex::functions {
     bool MomentMatrixParams::any_param_set() const {
         const bool level_specified = this->params.contains(u"level");
         return level_specified || OperatorMatrixParams::any_param_set();
-    }
-
-
-    std::unique_ptr<SortedInputs>
-    MomentMatrix::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        auto& input = *inputPtr;
-        auto output = std::make_unique<MomentMatrixParams>(this->matlabEngine, std::move(input));
-        output->parse(this->matlabEngine);
-
-        // Check key vs. storage manager
-        if (!this->storageManager.MatrixSystems.check_signature(output->storage_key)) {
-            throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
-        }
-
-        return output;
     }
 
     std::pair<size_t, const Moment::SymbolicMatrix &>

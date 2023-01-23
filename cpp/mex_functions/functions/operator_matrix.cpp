@@ -123,52 +123,50 @@ namespace Moment::mex::functions  {
         return index_specified || OperatorMatrixParams::any_param_set();
     }
 
-
-    OperatorMatrix::OperatorMatrix(matlab::engine::MATLABEngine &matlabEngine, Moment::mex::StorageManager &storage,
-                                   MEXEntryPointID id, std::basic_string<char16_t> name)
-            : MexFunction(matlabEngine, storage, id, std::move(name)) {
-        this->min_outputs = 1;
-        this->max_outputs = 4;
-
-        this->flag_names.emplace(u"sequences");
-        this->flag_names.emplace(u"symbols");
-        this->flag_names.emplace(u"dimension");
-        this->flag_names.emplace(u"masks");
-
-        this->param_names.emplace(u"reference_id");
-        this->param_names.emplace(u"index");
-
-        // One of four ways to output:
-        this->mutex_params.add_mutex({u"sequences", u"symbols", u"dimension", u"masks"});
-
-        // Either [ref, ref] or named version thereof.
-        this->min_inputs = 0;
-        this->max_inputs = 2;
-    }
-
-
-    std::unique_ptr<SortedInputs> OperatorMatrix::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        auto& input = *inputPtr;
-        auto output = std::make_unique<RawOperatorMatrixParams>(this->matlabEngine, std::move(input));
-        output->parse(this->matlabEngine);
-
+    void OperatorMatrixVirtualBase::check_mat_sys_id(OperatorMatrixParams &input) const {
         // Check key vs. storage manager
-        if (!this->storageManager.MatrixSystems.check_signature(output->storage_key)) {
+        if (!this->omvb_storageManager.MatrixSystems.check_signature(input.storage_key)) {
             throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
         }
-        return output;
     }
 
-    void OperatorMatrix::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {
-        auto& input = dynamic_cast<OperatorMatrixParams&>(*inputPtr);
+    void OperatorMatrixVirtualBase::do_validate_output_count(size_t outputs, const OperatorMatrixParams& input) const {
+        switch(input.output_mode) {
+            case OperatorMatrixParams::OutputMode::IndexAndDimension:
+                if (outputs > 2) {
+                    throw_error(this->omvb_matlabEngine, errors::too_many_outputs,
+                                "At most two outputs should be provided for index (and dimension).");
+                }
+                break;
+            case OperatorMatrixParams::OutputMode::Symbols:
+            case OperatorMatrixParams::OutputMode::Sequences:
+                if (outputs > 1) {
+                    throw_error(this->omvb_matlabEngine, errors::too_many_outputs,
+                                "Only one output should be provided for matrix export.");
+                }
+                break;
+            case OperatorMatrixParams::OutputMode::Masks:
+                if (outputs == 3) {
+                    throw_error(this->omvb_matlabEngine, errors::too_many_outputs,
+                                "Either one, two or four outputs should be provided for index (and mask) export");
+                }
+                break;
+            case OperatorMatrixParams::OutputMode::Unknown:
+            default:
+                break;
+        }
+    }
+
+
+    void OperatorMatrixVirtualBase::process(IOArgumentRange output, OperatorMatrixParams& input) {
 
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {
-            matrixSystemPtr = this->storageManager.MatrixSystems.get(input.storage_key);
+            matrixSystemPtr = this->omvb_storageManager.MatrixSystems.get(input.storage_key);
         } catch(const persistent_object_error& poe) {
             std::stringstream errSS;
             errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.storage_key << std::dec;
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw_error(this->omvb_matlabEngine, errors::bad_param, errSS.str());
         }
         MatrixSystem& matrixSystem = *matrixSystemPtr;
 
@@ -180,10 +178,10 @@ namespace Moment::mex::functions  {
         if (output.size() >= 1) {
             switch (input.output_mode) {
                 case OperatorMatrixParams::OutputMode::Symbols:
-                    output[0] = export_symbol_matrix(this->matlabEngine, theMatrix.SymbolMatrix());
+                    output[0] = export_symbol_matrix(this->omvb_matlabEngine, theMatrix.SymbolMatrix());
                     break;
                 case OperatorMatrixParams::OutputMode::Sequences: {
-                    output[0] = export_sequence_matrix(this->matlabEngine, matrixSystem, theMatrix);
+                    output[0] = export_sequence_matrix(this->omvb_matlabEngine, matrixSystem, theMatrix);
                     }
                     break;
                 case OperatorMatrixParams::OutputMode::IndexAndDimension: {
@@ -195,17 +193,17 @@ namespace Moment::mex::functions  {
                 }
                     break;
                 case OperatorMatrixParams::OutputMode::Masks:
-                    export_masks(this->matlabEngine, output, matrixSystem, theMatrix);
+                    export_masks(this->omvb_matlabEngine, output, matrixSystem, theMatrix);
                     break;
                 default:
                 case OperatorMatrixParams::OutputMode::Unknown:
-                    throw_error(matlabEngine, errors::internal_error, "Unknown output mode!");
+                    throw_error(omvb_matlabEngine, errors::internal_error, "Unknown output mode!");
             }
         }
     }
 
     std::pair<size_t, const Moment::SymbolicMatrix&>
-    OperatorMatrix::get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) {
+    RawOperatorMatrix::get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) {
         try {
             const auto &input = dynamic_cast<const RawOperatorMatrixParams &>(omp);
             auto lock = system.get_read_lock(); // release on return or throw
@@ -220,34 +218,6 @@ namespace Moment::mex::functions  {
                         "Misconfigured operator matrix input parameter object.");
         } catch (const Moment::errors::missing_component& mce) {
             throw_error(this->matlabEngine, errors::internal_error, mce.what());
-        }
-    }
-
-    void OperatorMatrix::validate_output_count(const size_t outputs, const SortedInputs &rawInputs) const {
-        const auto& input = dynamic_cast<const OperatorMatrixParams&>(rawInputs);
-        switch(input.output_mode) {
-            case OperatorMatrixParams::OutputMode::IndexAndDimension:
-                if (outputs > 2) {
-                    throw_error(this->matlabEngine, errors::too_many_outputs,
-                                "At most two outputs should be provided for index (and dimension).");
-                }
-                break;
-            case OperatorMatrixParams::OutputMode::Symbols:
-            case OperatorMatrixParams::OutputMode::Sequences:
-                if (outputs > 1) {
-                    throw_error(this->matlabEngine, errors::too_many_outputs,
-                                "Only one output should be provided for matrix export.");
-                }
-                break;
-            case OperatorMatrixParams::OutputMode::Masks:
-                if (outputs == 3) {
-                    throw_error(this->matlabEngine, errors::too_many_outputs,
-                                "Either one, two or four outputs should be provided for index (and mask) export");
-                }
-                break;
-            case OperatorMatrixParams::OutputMode::Unknown:
-            default:
-                break;
         }
     }
 }

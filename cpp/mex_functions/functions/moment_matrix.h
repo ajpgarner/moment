@@ -33,11 +33,10 @@ namespace Moment::mex::functions  {
         [[nodiscard]] std::string input_format() const final { return "[matrix system ID, level]"; }
     };
 
-    class MomentMatrix : public Moment::mex::functions::OperatorMatrix {
+    class MomentMatrix
+        : public Moment::mex::functions::OperatorMatrix<MomentMatrixParams, MEXEntryPointID::MomentMatrix> {
     public:
         MomentMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
-
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_inputs(std::unique_ptr<SortedInputs> input) const final;
 
     protected:
         std::pair<size_t, const Moment::SymbolicMatrix&>

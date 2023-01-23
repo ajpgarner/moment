@@ -97,22 +97,9 @@ namespace Moment::mex::functions  {
     }
 
     ApplyValues::ApplyValues(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : OperatorMatrix(matlabEngine, storage, MEXEntryPointID::ApplyValues, u"apply_values") {
+        : OperatorMatrix{matlabEngine, storage, u"apply_values"} {
         this->param_names.emplace(u"substitutions");
         this->max_inputs = 3;
-    }
-
-    std::unique_ptr<SortedInputs> ApplyValues::transform_inputs(std::unique_ptr<SortedInputs> inputPtr) const {
-        auto& input = *inputPtr;
-        auto output = std::make_unique<ApplyValuesParams>(this->matlabEngine, std::move(input));
-        output->parse(this->matlabEngine);
-
-        // Check key vs. storage manager
-        if (!this->storageManager.MatrixSystems.check_signature(output->storage_key)) {
-            throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
-        }
-
-        return output;
     }
 
     std::pair<size_t, const Moment::SymbolicMatrix &>
