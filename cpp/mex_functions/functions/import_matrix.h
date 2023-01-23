@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "mex_function.h"
+#include "../mex_function.h"
 #include "operator_matrix.h"
 
 #include "integer_types.h"

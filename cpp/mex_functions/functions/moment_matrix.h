@@ -6,7 +6,6 @@
 #pragma once
 
 #include "operator_matrix.h"
-#include "mex_function.h"
 
 namespace Moment {
     class Context;

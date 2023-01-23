@@ -6,7 +6,7 @@
 #pragma once
 
 #include "../../version.h"
-#include "mex_function.h"
+#include "../mex_function.h"
 
 namespace Moment::mex::functions {
 

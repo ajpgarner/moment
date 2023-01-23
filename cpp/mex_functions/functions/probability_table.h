@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
-#include "mex_function.h"
+#include "../mex_function.h"
 #include "scenarios/inflation/observable_variant_index.h"
 #include "scenarios/locality/measurement.h"
 

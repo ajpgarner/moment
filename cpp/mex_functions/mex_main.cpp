@@ -8,7 +8,7 @@
 #include "utilities/reporting.h"
 #include "utilities/read_as_string.h"
 
-#include "functions/mex_function.h"
+#include "mex_function.h"
 #include "functions/function_list.h"
 
 #include "storage_manager.h"

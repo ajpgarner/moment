@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "mex_function.h"
+#include "../mex_function.h"
 #include "storage_manager.h"
 
 namespace Moment::mex::functions {

@@ -5,8 +5,7 @@
  */
 #pragma once
 
-#include "mex_function.h"
-
+#include "../mex_function.h"
 
 namespace Moment::mex::functions  {
 

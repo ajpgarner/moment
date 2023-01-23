@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #pragma once
-#include "mex_function.h"
+#include "../mex_function.h"
 
 #include "matrix/operator_matrix.h"
 

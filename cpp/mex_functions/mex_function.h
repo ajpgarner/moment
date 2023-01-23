@@ -11,7 +11,7 @@
 #include <set>
 #include <utility>
 
-#include "function_list.h"
+#include "functions/function_list.h"
 #include "utilities/io_parameters.h"
 
 namespace matlab::engine {
