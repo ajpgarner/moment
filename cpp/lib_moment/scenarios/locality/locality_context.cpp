@@ -105,38 +105,37 @@ namespace Moment::Locality {
             return false;
         }
 
-        // Commutation between parties...
-        SmallVector<LocalityOperator, op_seq_stack_length> lo_seq;
-
-        lo_seq.reserve(op_sequence.size());
+        // Verify operator sequence is valid
         for (const auto& op : op_sequence) {
             if ((op < 0) || (op >= this->operator_count)) {
                 throw std::range_error{"Operator ID higher than number of known operators."};
             }
-            lo_seq.emplace_back(op, this->global_op_id_to_party[op]);
         }
 
         // Group first by party (preserving ordering within each party)
-        std::stable_sort(lo_seq.begin(), lo_seq.end(),
-                         LocalityOperator::PartyComparator{});
+        std::stable_sort(op_sequence.begin(), op_sequence.end(),
+                         [&](const auto& lhs, const auto& rhs) {
+            return this->global_op_id_to_party[lhs] < this->global_op_id_to_party[rhs];
+        });
 
-        // Remove excess idempotent elements.
-        auto trim_idem = std::unique(lo_seq.begin(), lo_seq.end(),
-                                     LocalityOperator::IsRedundant{});
-        lo_seq.erase(trim_idem, lo_seq.end());
-
+        // Remove excess idempotent elements [all ops are projectors in this context!]
+        auto trim_idem = std::unique(op_sequence.begin(), op_sequence.end());
+        op_sequence.erase(trim_idem, op_sequence.end());
 
         // Look for mutually exclusive operators
-        auto lhs_iter = lo_seq.begin();
-        auto rhs_iter = lo_seq.begin() + 1;
+        auto lhs_iter = op_sequence.begin();
+        auto rhs_iter = op_sequence.begin() + 1;
 
-        while (rhs_iter != lo_seq.end()) {
+        while (rhs_iter != op_sequence.end()) {
             // Only do comparison if operators are in same party, and party is well defined...
-            if (lhs_iter->party == rhs_iter->party) {
-                assert((lhs_iter->party >= 0) && (lhs_iter->party < this->parties.size()));
-                const auto& party = this->parties[lhs_iter->party];
+            const auto lhs_party_id = this->global_op_id_to_party[*lhs_iter];
+            const auto rhs_party_id = this->global_op_id_to_party[*rhs_iter];
+
+            if (lhs_party_id == rhs_party_id) {
+                assert((lhs_party_id >= 0) && (lhs_party_id < this->parties.size()));
+                const auto& party = this->parties[lhs_party_id];
                 // If mutually-exclusive operators are found next to each other, whole sequence is zero.
-                if (party.mutually_exclusive(lhs_iter->id, rhs_iter->id)) {
+                if (party.mutually_exclusive(*lhs_iter, *rhs_iter)) {
                     op_sequence.clear();
                     return true;
                 }
@@ -145,12 +144,6 @@ namespace Moment::Locality {
             // Advance iterators
             lhs_iter = rhs_iter;
             ++rhs_iter;
-        }
-
-        // Copy transformed string to operator sequence
-        op_sequence.clear();
-        for (const auto& op : lo_seq) {
-            op_sequence.emplace_back(op.id);
         }
         return false;
     }
