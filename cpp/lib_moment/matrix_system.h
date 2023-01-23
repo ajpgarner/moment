@@ -190,7 +190,7 @@ namespace Moment {
          * Clone a matrix, with substituted values
          */
         std::pair<size_t, class SymbolicMatrix&>
-        clone_and_substitute(size_t matrix_index, const SubstitutionList& list);
+        clone_and_substitute(size_t matrix_index, std::unique_ptr<SubstitutionList> list);
 
         /**
          * Gets a read lock for the matrix system.

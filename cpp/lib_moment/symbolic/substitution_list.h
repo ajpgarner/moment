@@ -7,9 +7,11 @@
 
 #include "integer_types.h"
 #include "symbol_expression.h"
+#include "utilities/square_matrix.h"
 
 #include <iosfwd>
 #include <map>
+#include <memory>
 #include <span>
 
 namespace Moment {
@@ -59,6 +61,14 @@ namespace Moment {
         [[nodiscard]] inline auto operator()(const SymbolExpression& i) const {
             return this->substitute(i);
         }
+
+        /**
+         * Make substituted data
+         */
+         [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolExpression>>
+         operator()(const SquareMatrix<SymbolExpression>& source_matrix) const;
+
+        std::ostream& write_list(std::ostream& os, const std::string& delimiter) const;
 
         friend std::ostream& operator<<(std::ostream& os, const SubstitutionList& list);
 

@@ -152,11 +152,11 @@ namespace Moment::Tests {
                                                              id_b, id_ab, id_b});
 
         // Build substitutions of just A
-        SubstitutionList sub_list{{{id_a, 2.0}}};
-        sub_list.infer_substitutions(ims);
+        auto sub_list = std::make_unique<SubstitutionList>(SubstitutionList::raw_map_t{{id_a, 2.0}});
+        sub_list->infer_substitutions(ims);
 
         // Rewrite moment matrix with known values
-        auto [sub_id, sub_matrix] = ims.clone_and_substitute(mm_id, sub_list);
+        auto [sub_id, sub_matrix] = ims.clone_and_substitute(mm_id, std::move(sub_list));
 
         // Test matrix object is unique
         ASSERT_NE(mm_id, sub_id);

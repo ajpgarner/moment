@@ -7,6 +7,7 @@
 
 #include "matrix/localizing_matrix.h"
 #include "matrix/moment_matrix.h"
+#include "matrix/substituted_matrix.h"
 
 #include "symbolic/substitution_list.h"
 #include "symbolic/symbol_table.h"
@@ -175,25 +176,16 @@ namespace Moment {
     }
 
     std::pair<size_t, class SymbolicMatrix &>
-    MatrixSystem::clone_and_substitute(size_t matrix_index, const SubstitutionList& list) {
-        auto read_lock = this->get_read_lock();
-        auto& source_matrix = this->get(matrix_index);
-
-        // Clone, with substituted values
-        std::vector<SymbolExpression> new_matrix_data;
-        new_matrix_data.reserve(source_matrix.Dimension()*source_matrix.Dimension());
-        for (const auto& entry : source_matrix.SymbolMatrix()) {
-            new_matrix_data.emplace_back(list(entry));
-        }
-        auto new_matrix_object = std::make_unique<SquareMatrix<SymbolExpression>>(source_matrix.Dimension(),
-                                                                                  std::move(new_matrix_data));
-        read_lock.unlock();
+    MatrixSystem::clone_and_substitute(size_t matrix_index, std::unique_ptr<SubstitutionList> list) {
+        assert(list);
 
         // Get write lock before pushing matrix
         auto write_lock = this->get_write_lock();
+
+        auto& source_matrix = this->get(matrix_index);
         size_t new_index = this->matrices.size();
-        this->matrices.emplace_back(std::make_unique<SymbolicMatrix>(*this->context, *this->symbol_table,
-                                                                     std::move(new_matrix_object)));
+        this->matrices.emplace_back(std::make_unique<SubstitutedMatrix>(*this->context, *this->symbol_table,
+                                                                        source_matrix, std::move(list)));
         auto& new_matrix = *(this->matrices.back());
         return {new_index, new_matrix};
     }

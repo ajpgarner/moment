@@ -104,7 +104,7 @@ namespace Moment::mex::functions  {
 
     std::pair<size_t, const Moment::SymbolicMatrix &>
     ApplyValues::get_or_make_matrix(MatrixSystem &system, OperatorMatrixParams &omp) {
-        const auto& avp = dynamic_cast<const ApplyValuesParams&>(omp);
+        auto& avp = dynamic_cast< ApplyValuesParams&>(omp);
 
         // Lock symbol table to do preprocessing of substitution list
         auto read_lock = system.get_read_lock();
@@ -118,10 +118,10 @@ namespace Moment::mex::functions  {
             }
         }
         // Preprocess substitution list
-        SubstitutionList sub_list{std::move(avp.substitutions)};
-        sub_list.infer_substitutions(system);
+        auto sub_list = std::make_unique<SubstitutionList>(std::move(avp.substitutions));
+        sub_list->infer_substitutions(system);
         read_lock.unlock();
 
-        return system.clone_and_substitute(avp.matrix_index, sub_list);
+        return system.clone_and_substitute(avp.matrix_index, std::move(sub_list));
     }
 }

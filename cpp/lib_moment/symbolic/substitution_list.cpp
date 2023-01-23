@@ -102,10 +102,32 @@ namespace Moment {
         return SymbolExpression{sub_symbol.id, i.factor * sub_symbol.factor, sub_symbol.conjugated != i.conjugated};
     }
 
+
+    std::unique_ptr<SquareMatrix<SymbolExpression>>
+    SubstitutionList::operator()(const SquareMatrix<SymbolExpression> &source_matrix) const {
+        std::vector<SymbolExpression> new_matrix_data;
+        new_matrix_data.reserve(source_matrix.dimension*source_matrix.dimension);
+        for (const auto& entry : source_matrix) {
+            new_matrix_data.emplace_back(this->substitute(entry));
+        }
+        return std::make_unique<SquareMatrix<SymbolExpression>>(source_matrix.dimension, std::move(new_matrix_data));
+    }
+
     std::ostream& operator<<(std::ostream& os, const SubstitutionList& list) {
-        for (auto [key, expr] : list.sub_data) {
-            os << key << " -> " << expr << "\n";
+        return list.write_list(os, "\n");
+    }
+
+    std::ostream &SubstitutionList::write_list(std::ostream &os, const std::string& delimiter) const {
+        bool done_one = false;
+        for (auto [key, expr] : this->sub_data) {
+            if (done_one) {
+                os << delimiter;
+            } else {
+                done_one = true;
+            }
+            os << key << " -> " << expr;
         }
         return os;
     }
+
 }

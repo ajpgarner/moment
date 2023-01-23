@@ -9,6 +9,7 @@ add_library(lib_moment
         matrix/operator_matrix.cpp
         matrix/operator_sequence_generator.cpp
         matrix/matrix_properties.cpp
+        matrix/substituted_matrix.cpp
         matrix/symbolic_matrix.cpp
         scenarios/context.cpp
         scenarios/explicit_symbols.cpp

@@ -24,3 +24,5 @@ cvx_begin sdp
     
 cvx_end
 feasible = ~strcmp(cvx_status, 'Infeasible')
+
+mtk('list')
