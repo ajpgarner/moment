@@ -26,6 +26,7 @@ add_library(lib_moment
         scenarios/inflation/canonical_observables.cpp
         scenarios/inflation/causal_network.cpp
         scenarios/inflation/extended_matrix.cpp
+        scenarios/inflation/extension_suggester.cpp
         scenarios/inflation/factor_table.cpp
         scenarios/inflation/inflation_context.cpp
         scenarios/inflation/inflation_explicit_symbols.cpp

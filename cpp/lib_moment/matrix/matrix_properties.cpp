@@ -16,11 +16,13 @@ namespace Moment {
             : dimension{matrix.Dimension()}, included_symbols{std::move(included)}  {
 
         // Sort symbols into real only, and complex
-        for (const auto& id : included_symbols) {
+        for (const auto& id : this->included_symbols) {
             const auto& unique_symbol = table[id];
             assert(id == unique_symbol.Id());
 
-            this->real_entries.insert(id);
+            if (!unique_symbol.is_antihermitian()) {
+                this->real_entries.insert(id);
+            }
             if (!unique_symbol.is_hermitian()) {
                 this->imaginary_entries.insert(id);
             }

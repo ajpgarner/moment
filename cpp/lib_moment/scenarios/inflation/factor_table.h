@@ -9,12 +9,13 @@
 #include "scenarios/operator_sequence.h"
 #include "utilities/index_tree.h"
 
+#include <set>
 #include <string>
 #include <vector>
 
-
 namespace Moment {
     class SymbolTable;
+    class SymbolicMatrix;
 }
 
 namespace Moment::Inflation {
@@ -96,6 +97,7 @@ namespace Moment::Inflation {
          * Manually insert a list of factors associated with an entry.
          */
         void register_new(symbol_name_t id, std::vector<symbol_name_t> factors);
+
 
     public:
         /** Merge and sort two sets of factors, removing redundant identities */

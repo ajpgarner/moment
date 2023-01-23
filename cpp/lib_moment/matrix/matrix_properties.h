@@ -39,6 +39,11 @@ namespace Moment {
         /** Construct symbolic properties manually (e.g. loaded via matlab array) */
         MatrixProperties(size_t dim, MatrixType type, const SymbolSet& entries);
 
+        /** Set of all symbols involved in this matrix */
+        [[nodiscard]] constexpr const auto& IncludedSymbols() const noexcept {
+            return this->included_symbols;
+        }
+
         /** Set of real symbols involved in this matrix */
         [[nodiscard]] constexpr const auto& RealSymbols() const noexcept {
             return this->real_entries;

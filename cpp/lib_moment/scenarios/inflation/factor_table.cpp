@@ -7,6 +7,7 @@
 
 #include "inflation_context.h"
 
+#include "matrix/symbolic_matrix.h"
 #include "symbolic/symbol_table.h"
 
 #include <algorithm>
@@ -170,5 +171,6 @@ namespace Moment::Inflation {
         }
         return output;
     }
+
 
 }

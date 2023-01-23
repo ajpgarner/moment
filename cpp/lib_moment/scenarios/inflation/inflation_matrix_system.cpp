@@ -7,6 +7,7 @@
 
 #include "canonical_observables.h"
 #include "factor_table.h"
+#include "extension_suggester.h"
 
 #include "extended_matrix.h"
 #include "inflation_context.h"
@@ -18,6 +19,7 @@ namespace Moment::Inflation {
             : MatrixSystem{std::move(contextIn)},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
+        this->extensionSuggester = std::make_unique<ExtensionSuggester>(this->Symbols(), *this->factors);
         this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);
     }
 
@@ -25,6 +27,7 @@ namespace Moment::Inflation {
             : MatrixSystem{std::move(contextIn)},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
+        this->extensionSuggester = std::make_unique<ExtensionSuggester>(this->Symbols(), *this->factors);
         this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);
     }
 
@@ -118,6 +121,10 @@ namespace Moment::Inflation {
 
         // Return created matrix
         return {index, ref};
+    }
+
+    std::set<symbol_name_t> InflationMatrixSystem::suggest_extensions(const class MomentMatrix& matrix) const {
+        return (*this->extensionSuggester)(matrix);
     }
 
 }

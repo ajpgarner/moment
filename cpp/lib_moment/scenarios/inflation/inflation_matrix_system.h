@@ -6,6 +6,7 @@
 #pragma once
 
 #include <memory>
+#include <set>
 
 #include "matrix_system.h"
 #include "utilities/index_tree.h"
@@ -16,6 +17,7 @@ namespace Moment::Inflation {
     class FactorTable;
     class CanonicalObservables;
     class ExtendedMatrix;
+    class ExtensionSuggester;
     class InflationExplicitSymbolIndex;
     class InflationImplicitSymbols;
 
@@ -24,6 +26,8 @@ namespace Moment::Inflation {
         class InflationContext &inflationContext;
 
         std::unique_ptr<FactorTable> factors;
+
+        std::unique_ptr<ExtensionSuggester> extensionSuggester;
 
         std::unique_ptr<class CanonicalObservables> canonicalObservables;
 
@@ -106,6 +110,11 @@ namespace Moment::Inflation {
          * For thread safety, call for a read lock first.
          */
         [[nodiscard]] size_t MaxRealSequenceLength() const noexcept;
+
+        /**
+         * Suggest scalar extensions to impose factorization constraints on a matrix
+         */
+        [[nodiscard]] std::set<symbol_name_t> suggest_extensions(const class MomentMatrix& matrix) const;
 
     protected:
         void onNewMomentMatrixCreated(size_t level, const class MomentMatrix &mm) override;
