@@ -40,17 +40,96 @@ namespace Moment {
     };
 
 
+    class PersistentStorageBase {
+    public:
+        const uint32_t signature;
+
+        /**
+        * Create an object store, for thread-safe static retrieval (persistent between subsequent calls from matlab).
+        * @param signature Prefix for valid object IDs.
+        */
+        explicit PersistentStorageBase(const uint32_t signature) : signature{signature} { }
+
+        /**
+         * Check if an item key has a matching signature with this bank
+         * @param itemKey The item key
+         * @return True, if the signature matches this bank
+         */
+        [[nodiscard]] constexpr bool check_signature(uint64_t itemKey) const noexcept {
+            return static_cast<uint32_t>((itemKey & 0xFFFFFFFF00000000) >> 32) == signature;
+        };
+    };
+
+    /**
+     * Monoid storage manager
+     * @tparam class_t The class to store
+     */
+    template<class class_t>
+    class PersistentStorageMonoid : public PersistentStorageBase {
+    private:
+        /** The stored object */
+        std::shared_ptr<class_t> the_object;
+
+        /** Mutex is for setting storage pointer!! class_t must maintain its own thread safety if not constant. */
+        mutable std::shared_mutex theMutex;
+    public:
+
+        explicit PersistentStorageMonoid(uint32_t signature, std::shared_ptr<class_t> input_obj)
+            : PersistentStorageBase{signature}, the_object{std::move(input_obj)} {
+        }
+
+        explicit PersistentStorageMonoid(uint32_t signature, std::unique_ptr<class_t> input_obj)
+            : PersistentStorageBase{signature}, the_object{std::move(input_obj)} { }
+
+        explicit PersistentStorageMonoid(uint32_t signature)
+                : PersistentStorageBase{signature}, the_object{nullptr} {
+        }
+
+        [[nodiscard]] std::shared_ptr<class_t> get() const {
+            std::shared_lock lock{theMutex};
+            return the_object;
+        }
+
+        void set(std::shared_ptr<class_t> input) {
+            std::unique_lock lock{theMutex};
+            this->the_object.swap(input);
+        }
+
+        [[nodiscard]] bool empty() const {
+            std::unique_lock lock{theMutex};
+            return !static_cast<bool>(this->the_object);
+        }
+
+        template<typename... Args>
+        std::shared_ptr<class_t> create_if_empty(Args... args) {
+            // If object already exists, just return it.
+            std::shared_lock read_lock{theMutex};
+            if (this->the_object) {
+                return this->the_object;
+            }
+            read_lock.unlock();
+
+            // No object, so we try to create one...
+            std::unique_lock write_lock{theMutex};
+            // Make sure another thread did not construct object while we were waiting for exclusive lock
+            if (this->the_object) {
+                return this->the_object;
+            }
+            // Create object
+            this->the_object = std::make_shared<class_t>(std::forward<Args>(args)...);
+            return this->the_object;
+        }
+    };
+
+
     /**
      * Storage manager for shared pointers of class. Should be as thread-safe as the classes being stored.
      * @tparam class_t The class to store
      */
     template<class class_t>
-    class PersistentStorage {
+    class PersistentStorage : public PersistentStorageBase {
     public:
         using map_type = typename std::map<uint32_t, std::shared_ptr<class_t>>;
-
-    public:
-        const uint32_t signature;
 
     private:
         map_type objects;
@@ -62,16 +141,7 @@ namespace Moment {
          * Create a bank of objects, for thread-safe static retrieval (persistent between subsequent calls from matlab).
          * @param signature Prefix for valid object IDs.
          */
-        explicit PersistentStorage(uint32_t signature) : signature{signature}, nextID(0) { }
-
-        /**
-         * Check if an item key has a matching signature with this bank
-         * @param itemKey The item key
-         * @return True, if the signature matches this bank
-         */
-        constexpr bool check_signature(uint64_t itemKey) const noexcept {
-            return static_cast<uint32_t>((itemKey & 0xFFFFFFFF00000000) >> 32) == signature;
-        };
+        explicit PersistentStorage(uint32_t signature) : PersistentStorageBase{signature}, nextID(0) { }
 
         /**
          * Get the index associated with the supplied key

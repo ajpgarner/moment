@@ -141,6 +141,31 @@ namespace Moment::Tests {
         EXPECT_EQ(endPtr, nullptr);
     }
 
+    TEST(Utilities_PersistentStorage, Monoid_Premade) {
+        uint32_t signature = make_signature({'1','s','t','r'});
+        PersistentStorageMonoid<std::string> strMonoid{signature, std::make_shared<std::string>("Hello")};
+        EXPECT_FALSE(strMonoid.empty());
+        auto get_obj = strMonoid.get();
+        ASSERT_TRUE(static_cast<bool>(get_obj));
+        EXPECT_EQ(*get_obj, "Hello");
+    }
+
+    TEST(Utilities_PersistentStorage, Monoid_Deferred) {
+        uint32_t signature = make_signature({'1','s','t','r'});
+        PersistentStorageMonoid<std::string> strMonoid{signature};
+        EXPECT_TRUE(strMonoid.empty());
+        auto early_get = strMonoid.get();
+        EXPECT_FALSE(static_cast<bool>(early_get));
+
+        auto emplaced_object = strMonoid.create_if_empty("Hello world");
+        ASSERT_TRUE(static_cast<bool>(emplaced_object));
+        EXPECT_EQ(*emplaced_object, "Hello world");
+
+        auto second_creation = strMonoid.create_if_empty("No cheesecake");
+        ASSERT_TRUE(static_cast<bool>(second_creation));
+        EXPECT_EQ(emplaced_object, second_creation);
+        EXPECT_EQ(*second_creation, "Hello world");
+    }
 
     TEST(Utilities_PersistentStorage, Error_BadSignature) {
         uint32_t signature = make_signature({'s','t','r','b'});
