@@ -7,6 +7,7 @@
 
 #include "integer_types.h"
 
+#include <iosfwd>
 #include <memory>
 
 namespace Moment {
@@ -24,12 +25,15 @@ namespace Moment::mex {
     public:
         EnvironmentalVariables();
 
+        EnvironmentalVariables(const EnvironmentalVariables& reference);
+
         ~EnvironmentalVariables();
 
         void set_locality_formatter(std::shared_ptr<Locality::LocalityOperatorFormatter> replacement);
 
         [[nodiscard]] std::shared_ptr<Locality::LocalityOperatorFormatter> get_locality_formatter() const;
 
+        friend std::ostream& operator<<(std::ostream& os, const EnvironmentalVariables& ev);
 
     };
 

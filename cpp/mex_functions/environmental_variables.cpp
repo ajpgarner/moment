@@ -9,6 +9,8 @@
 
 #include <cassert>
 
+#include <iostream>
+
 namespace Moment::mex {
     EnvironmentalVariables::EnvironmentalVariables() {
         // Default to natural format of locality operators
@@ -27,5 +29,14 @@ namespace Moment::mex {
         this->the_l_op_formatter = std::move(lof);
     }
 
+    std::ostream& operator<<(std::ostream& os, const EnvironmentalVariables& ev) {
+        os << "Locality scenario operator format: " << ev.the_l_op_formatter->name();
+        return os;
+    }
+
+    EnvironmentalVariables::EnvironmentalVariables(const EnvironmentalVariables &reference) {
+        // shallow copy is okay, as formatter is const shared object
+        this->the_l_op_formatter = reference.the_l_op_formatter;
+    }
 
 }

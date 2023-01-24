@@ -40,4 +40,17 @@ namespace Moment::Locality {
         os << mmt.name << outcome_num;
         return os;
     }
+
+    std::ostream& TraditionalLOFormatter::format(std::ostream &os, const Party &party, const Measurement &mmt,
+                                             oper_name_t outcome_num) const {
+        os << party.name << outcome_num << "|" << mmt.Index().mmt;
+        return os;
+    }
+
+    std::ostream&
+    TraditionalLOFormatter::format(std::ostream &os, const Measurement &mmt, oper_name_t outcome_num) const {
+        os << mmt.name << outcome_num;
+        os << outcome_num << "|" << mmt.Index().mmt;
+        return os;
+    }
 }

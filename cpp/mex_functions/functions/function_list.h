@@ -41,6 +41,7 @@ namespace Moment::mex::functions {
         ProbabilityTable,
         Release,
         Rules,
+        Settings,
         SymbolTable,
         Version
     };

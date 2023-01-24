@@ -24,6 +24,7 @@ matlab_add_mex(NAME moment_mex
             import/read_symbol_or_fail.cpp
             utilities/io_parameters.cpp
             utilities/make_sparse_matrix.cpp
+            utilities/read_choice.cpp
             utilities/read_as_scalar.cpp
             utilities/read_as_string.cpp
             utilities/read_as_vector.cpp
@@ -48,6 +49,7 @@ matlab_add_mex(NAME moment_mex
             functions/probability_table.cpp
             functions/release.cpp
             functions/rules.cpp
+            functions/settings.cpp
             functions/symbol_table.cpp
             functions/version.cpp
         OUTPUT_NAME mtk

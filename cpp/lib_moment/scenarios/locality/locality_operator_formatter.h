@@ -34,6 +34,9 @@ namespace Moment::Locality {
         /** Format operator, without party information */
         virtual std::ostream&
         format(std::ostream& os, const Measurement& measurement, oper_name_t outcome) const = 0;
+
+        /** Name of formatter */
+        virtual std::string name() const = 0;
     };
 
     class NaturalLOFormatter : public LocalityOperatorFormatter {
@@ -41,9 +44,23 @@ namespace Moment::Locality {
         NaturalLOFormatter() = default;
 
         std::ostream& format(std::ostream &os,
-                             const Party &party, const Measurement &measurement, oper_name_t outcome) const override;
+                             const Party &party, const Measurement &measurement, oper_name_t outcome) const final;
 
-        std::ostream& format(std::ostream &os, const Measurement &measurement, oper_name_t outcome) const override;
+        std::ostream& format(std::ostream &os, const Measurement &measurement, oper_name_t outcome) const final;
+
+        std::string name() const final { return "Natural"; }
+    };
+
+    class TraditionalLOFormatter : public LocalityOperatorFormatter {
+    public:
+        TraditionalLOFormatter() = default;
+
+        std::ostream& format(std::ostream &os,
+                             const Party &party, const Measurement &measurement, oper_name_t outcome) const final;
+
+        std::ostream& format(std::ostream &os, const Measurement &measurement, oper_name_t outcome) const final;
+
+        std::string name() const final { return "Traditional"; }
 
     };
 }
