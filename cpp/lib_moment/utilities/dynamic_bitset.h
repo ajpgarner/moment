@@ -13,6 +13,7 @@
 #include <concepts>
 #include <limits>
 #include <numeric>
+#include <set>
 #include <vector>
 
 namespace Moment {
@@ -128,6 +129,16 @@ namespace Moment {
 
         constexpr auto end() const {
             return DynamicBitsetIterator{this->bit_size};
+        }
+
+        /** Export bitset as a std::set of integers */
+        template<std::integral int_t = size_t>
+        [[nodiscard]] std::set<int_t> to_set() const {
+            std::set<int_t> output;
+            for (auto x : *this) {
+                output.emplace_hint(output.end(), static_cast<int_t>(x));
+            }
+            return output;
         }
 
         [[nodiscard]] constexpr bool operator==(const DynamicBitset<page_t>& rhs) const noexcept {

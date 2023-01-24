@@ -285,4 +285,27 @@ namespace Moment::Tests {
         ++iter;
         ASSERT_EQ(iter, iter_end);
     }
+
+    TEST(Utilities_DynamicBitset, ToSet) {
+        DynamicBitset<uint32_t> bitset{70};
+        bitset.set(5);
+        bitset.set(20);
+        bitset.set(47);
+        bitset.set(48);
+        bitset.set(64);
+        bitset.set(65);
+        bitset.set(68);
+        ASSERT_EQ(bitset.count(), 7);
+
+        auto set = bitset.to_set<int>();
+        EXPECT_EQ(set.size(), 7);
+        EXPECT_TRUE(set.contains(5));
+        EXPECT_TRUE(set.contains(20));
+        EXPECT_TRUE(set.contains(47));
+        EXPECT_TRUE(set.contains(48));
+        EXPECT_TRUE(set.contains(64));
+        EXPECT_TRUE(set.contains(65));
+        EXPECT_TRUE(set.contains(68));
+
+    }
 }

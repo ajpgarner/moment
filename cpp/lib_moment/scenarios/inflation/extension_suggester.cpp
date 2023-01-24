@@ -19,7 +19,9 @@ namespace Moment::Inflation {
 
     std::set<symbol_name_t> ExtensionSuggester::operator()(const MomentMatrix& matrix) const {
         assert(&matrix.Symbols == &this->symbols);
-        std::set<symbol_name_t> output;
+
+        DynamicBitset<uint64_t> tested_factors{this->symbols.size()};
+        DynamicBitset<uint64_t> chosen_factors{this->symbols.size()};
 
         auto necessary_factors = nonfundamental_symbols(matrix);
 
@@ -27,18 +29,18 @@ namespace Moment::Inflation {
 
         // Return if nothing needs factorizing
         if (necessary_factors.empty()) {
-            return output;
+            return {};
         }
 
         while ((extension_count < max_extensions) && !(necessary_factors.empty())) {
-
             // 1. choose factor of some non-fundamental string
-            const auto &nonfundamental_object = this->factors[*necessary_factors.begin()];
-            assert(!nonfundamental_object.canonical.symbols.empty());
-            auto trial_factor_symbol = nonfundamental_object.canonical.symbols.front();
-            assert(!necessary_factors.test(trial_factor_symbol)); // Factor should be fundamental, and hence not in list
+            const auto trial_factor_symbol = get_symbol_to_test(necessary_factors, tested_factors);
+            if (trial_factor_symbol < 0) {
+                break;
+            }
 
             // 2. see what constraints introducing this extension could impose
+            bool any_use = false;
             for (const auto &prefix: matrix.Generators()) {
                 // Find prefix as factored object
                 auto [source_sym_index, source_conj] = symbols.hash_to_index(prefix.hash());
@@ -53,13 +55,18 @@ namespace Moment::Inflation {
 
                 // If it does, then we check the symbol off as generated, and register suggested symbol as useful
                 necessary_factors.unset(maybe_symbol_index.value());
-                output.insert(trial_factor_symbol);
+                any_use = true;
+            }
+
+            tested_factors.set(trial_factor_symbol);
+            if (any_use) {
+                chosen_factors.set(trial_factor_symbol);
             }
 
             ++extension_count;
         }
 
-        return output;
+        return chosen_factors.to_set<symbol_name_t>();
     }
 
     DynamicBitset<uint64_t> ExtensionSuggester::nonfundamental_symbols(const SymbolicMatrix &matrix) const {
@@ -71,6 +78,25 @@ namespace Moment::Inflation {
             }
         }
         return expressions;
+    }
+
+    symbol_name_t ExtensionSuggester::get_symbol_to_test(const DynamicBitset<uint64_t> &necessary_factors,
+                                                         const DynamicBitset<uint64_t> &tested_factors) const {
+
+        // Find new symbol
+        for (auto nf_index : necessary_factors) {
+            const auto &nonfundamental_object = this->factors[nf_index];
+            for (auto possible_factor : nonfundamental_object.canonical.symbols) {
+                if (!tested_factors.test(possible_factor)) {
+                    // Factor should be fundamental, and hence not in list
+                    assert(!necessary_factors.test(possible_factor));
+                    return possible_factor;
+                }
+            }
+        }
+
+        // No further suggestions
+        return -1;
     }
 
 }

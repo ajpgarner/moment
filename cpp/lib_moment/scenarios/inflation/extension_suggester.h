@@ -36,6 +36,10 @@ namespace Moment::Inflation {
          * Bitset, with set bits corresponding to non-fundamental symbols present in matrix.
          */
         [[nodiscard]] DynamicBitset<uint64_t> nonfundamental_symbols(const SymbolicMatrix &matrix) const;
+
+    private:
+        symbol_name_t get_symbol_to_test(const DynamicBitset <uint64_t> &necessary_factors,
+                                         const DynamicBitset <uint64_t> &tested_factors) const;
     };
 
 }
