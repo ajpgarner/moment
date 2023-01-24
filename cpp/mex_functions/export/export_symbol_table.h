@@ -19,11 +19,15 @@ namespace Moment {
 }
 
 namespace Moment::mex {
+    class EnvironmentalVariables;
+
     matlab::data::StructArray export_symbol_table_row(matlab::engine::MATLABEngine& engine,
+                                                      const EnvironmentalVariables& env,
                                                       const MatrixSystem& system, const UniqueSequence& symbol);
 
     matlab::data::StructArray export_symbol_table_struct(matlab::engine::MATLABEngine& engine,
-                                                      const MatrixSystem& system,
-                                                      size_t from_symbol = 0);
+                                                         const EnvironmentalVariables& env,
+                                                         const MatrixSystem& system,
+                                                         size_t from_symbol = 0);
 
 }

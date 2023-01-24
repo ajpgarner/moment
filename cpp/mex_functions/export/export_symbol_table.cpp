@@ -6,11 +6,14 @@
 #include "export_symbol_table.h"
 
 #include "error_codes.h"
+#include "environmental_variables.h"
 
 #include "symbolic/symbol_table.h"
 
 #include "scenarios/context.h"
 
+#include "scenarios/locality/locality_context.h"
+#include "scenarios/locality/locality_operator_formatter.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
 #include "scenarios/inflation/factor_table.h"
 
@@ -48,9 +51,51 @@ namespace Moment::mex {
             }
             return factor_symbols;
         }
+
+
+        void write_row(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
+                       matlab::data::ArrayFactory &factory,
+                       const bool non_herm, const bool include_factors,
+                       const Inflation::FactorTable *factorTablePtr, const Locality::LocalityContext *localityContextPtr,
+                       const bool locality_format, matlab::data::StructArray &outputStruct, size_t write_index,
+                       const UniqueSequence &symbol) {
+
+            outputStruct[write_index]["symbol"] = factory.createScalar<uint64_t>(static_cast<uint64_t>(symbol.Id()));
+            if (locality_format) {
+                outputStruct[write_index]["operators"] =  factory.createScalar(
+                        localityContextPtr->format_sequence(*env.get_locality_formatter(),symbol.sequence()));
+            } else {
+                outputStruct[write_index]["operators"] = factory.createScalar(symbol.formatted_sequence());
+            }
+
+            // +1 is from MATLAB indexing
+            outputStruct[write_index]["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
+
+            if (non_herm) {
+                if (locality_format) {
+                    outputStruct[write_index]["conjugate"] = factory.createScalar(
+                            localityContextPtr->format_sequence(*env.get_locality_formatter(), symbol.sequence_conj()));
+                } else {
+                    outputStruct[write_index]["conjugate"] = factory.createScalar(symbol.formatted_sequence_conj());
+                }
+
+                outputStruct[write_index]["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
+                // +1 is from MATLAB indexing
+                outputStruct[write_index]["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
+            }
+            if (include_factors) {
+                const auto& entry = (*factorTablePtr)[symbol.Id()];
+
+                outputStruct[write_index]["fundamental"] = factory.createScalar<bool>(entry.fundamental());
+                outputStruct[write_index]["factor_sequence"] = factory.createScalar(entry.sequence_string());
+                outputStruct[write_index]["factor_symbols"] = make_factor_symbol_array(factory, entry);
+                outputStruct[write_index]["factor_appearances"] = factory.createScalar(entry.appearances);
+            }
+        }
     }
 
     matlab::data::StructArray export_symbol_table_row(matlab::engine::MATLABEngine& engine,
+                                                      const EnvironmentalVariables& env,
                                                       const MatrixSystem& system, const UniqueSequence& symbol) {
 
         matlab::data::ArrayFactory factory;
@@ -65,35 +110,23 @@ namespace Moment::mex {
             factorTablePtr = &inflationContextPtr->Factors();
         }
 
+        const auto* localityContextPtr = dynamic_cast<const Locality::LocalityContext*>(&(system.Context()));
+        const bool locality_format = (nullptr != localityContextPtr);
+
         // Construct structure array
         auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, 1},
                                                       column_names(non_herm, include_factors));
 
-        // Copy rest of table:
-        outputStruct[0]["symbol"] = factory.createScalar<uint64_t>(static_cast<uint64_t>(symbol.Id()));
-        outputStruct[0]["operators"] = factory.createScalar(symbol.formatted_sequence());
-        // +1 is from MATLAB indexing
-        outputStruct[0]["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
-
-        if (non_herm) {
-            outputStruct[0]["conjugate"] = factory.createScalar(symbol.formatted_sequence_conj());
-            outputStruct[0]["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
-            // +1 is from MATLAB indexing
-            outputStruct[0]["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
-        }
-
-        if (include_factors) {
-            const auto& entry = (*factorTablePtr)[symbol.Id()];
-            outputStruct[0]["fundamental"] = factory.createScalar<bool>(entry.fundamental());
-            outputStruct[0]["factor_sequence"] = factory.createScalar(entry.sequence_string());
-            outputStruct[0]["factor_symbols"] = make_factor_symbol_array(factory, entry);
-            outputStruct[0]["factor_appearances"] = factory.createScalar(entry.appearances);
-        }
+        // Write single row
+        write_row(engine, env, factory, non_herm, include_factors, factorTablePtr,
+                  localityContextPtr, locality_format, outputStruct, 0, symbol);
 
         return outputStruct;
     }
 
+
     matlab::data::StructArray export_symbol_table_struct(matlab::engine::MATLABEngine& engine,
+                                                         const EnvironmentalVariables& env,
                                                          const MatrixSystem& system,
                                                          const size_t from_symbol) {
         matlab::data::ArrayFactory factory;
@@ -124,6 +157,9 @@ namespace Moment::mex {
             factorTablePtr = &inflationContextPtr->Factors();
         }
 
+        const auto* localityContextPtr = dynamic_cast<const Locality::LocalityContext*>(&(system.Context()));
+        const bool locality_format = (nullptr != localityContextPtr);
+
         // Construct structure array
         auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, num_elems},
                                                       column_names(non_herm, include_factors));
@@ -141,26 +177,9 @@ namespace Moment::mex {
                 throw_error(engine, errors::internal_error,
                             "Unexpectedly many sequences in export_symbol_table_struct.");
             }
-            outputStruct[write_index]["symbol"] = factory.createScalar<uint64_t>(static_cast<uint64_t>(symbol.Id()));
-            outputStruct[write_index]["operators"] = factory.createScalar(symbol.formatted_sequence());
 
-            // +1 is from MATLAB indexing
-            outputStruct[write_index]["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
-
-            if (non_herm) {
-                outputStruct[write_index]["conjugate"] = factory.createScalar(symbol.formatted_sequence_conj());
-                outputStruct[write_index]["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
-                // +1 is from MATLAB indexing
-                outputStruct[write_index]["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
-            }
-            if (include_factors) {
-                const auto& entry = (*factorTablePtr)[symbol.Id()];
-
-                outputStruct[write_index]["fundamental"] = factory.createScalar<bool>(entry.fundamental());
-                outputStruct[write_index]["factor_sequence"] = factory.createScalar(entry.sequence_string());
-                outputStruct[write_index]["factor_symbols"] = make_factor_symbol_array(factory, entry);
-                outputStruct[write_index]["factor_appearances"] = factory.createScalar(entry.appearances);
-            }
+            write_row(engine, env, factory, non_herm, include_factors, factorTablePtr,
+                      localityContextPtr, locality_format, outputStruct, write_index, symbol);
 
             ++write_index;
             ++symbolIter;

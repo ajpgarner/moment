@@ -124,10 +124,10 @@ namespace Moment::mex::functions {
         if (output.size() >= 1) {
             switch (input.output_mode) {
                 case SymbolTableParams::OutputMode::AllSymbols:
-                    output[0] = export_symbol_table_struct(this->matlabEngine, matrixSystem);
+                    output[0] = export_symbol_table_struct(this->matlabEngine, *this->settings, matrixSystem);
                     break;
                 case SymbolTableParams::OutputMode::FromId:
-                    output[0] = export_symbol_table_struct(this->matlabEngine, matrixSystem, input.from_id);
+                    output[0] = export_symbol_table_struct(this->matlabEngine, *this->settings, matrixSystem, input.from_id);
                     break;
                 case SymbolTableParams::OutputMode::SearchBySequence:
                     find_and_return_symbol(output, input, matrixSystem);
@@ -168,7 +168,7 @@ namespace Moment::mex::functions {
         assert(!conjugated || (trialSequence.hash() == unique.hash_conj()));
 
         if (output.size() >= 1) {
-            output[0] = export_symbol_table_row(this->matlabEngine, system, unique);
+            output[0] = export_symbol_table_row(this->matlabEngine, *this->settings, system, unique);
         }
         if (output.size() >= 2) {
             output[1] = factory.createScalar<bool>(conjugated);
