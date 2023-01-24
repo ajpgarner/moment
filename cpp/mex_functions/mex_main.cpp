@@ -19,7 +19,8 @@
 namespace Moment::mex {
     MexMain::MexMain(std::shared_ptr <matlab::engine::MATLABEngine> matlab_engine)
         : matlabPtr(std::move(matlab_engine)), persistentStorage{getStorageManager()} {
-
+        // Ensure environmental variables are loaded
+        persistentStorage.Settings.create_if_empty();
     }
 
     void MexMain::operator()(IOArgumentRange outputs, IOArgumentRange inputs) {

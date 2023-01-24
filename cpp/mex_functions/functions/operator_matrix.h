@@ -105,6 +105,11 @@ namespace Moment::mex::functions  {
         virtual std::pair<size_t, const Moment::SymbolicMatrix&>
         get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) = 0;
 
+        /**
+         * Get settings object
+         */
+        virtual const EnvironmentalVariables& omvb_settings() const = 0;
+
     };
 
     template<std::derived_from<OperatorMatrixParams> om_param_t, MEXEntryPointID om_entry_id>
@@ -147,6 +152,10 @@ namespace Moment::mex::functions  {
         void validate_output_count(size_t outputs, const SortedInputs &inputs) const override {
             const auto& cast_inputs = dynamic_cast<const OperatorMatrixParams&>(inputs);
             this->do_validate_output_count(outputs, cast_inputs);
+        }
+
+        const EnvironmentalVariables& omvb_settings() const final {
+            return *this->settings;
         }
     };
 

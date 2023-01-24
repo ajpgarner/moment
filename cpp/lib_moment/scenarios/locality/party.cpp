@@ -5,6 +5,7 @@
  */
 #include "party.h"
 #include "locality_context.h"
+#include "locality_operator_formatter.h"
 #include "utilities/alphabetic_namer.h"
 
 #include <limits>
@@ -45,28 +46,12 @@ namespace Moment::Locality {
         : Party{id, AlphabeticNamer::index_to_name(id, true), std::move(measurements)} {
     }
 
-    void Party::set_offsets(party_name_t new_id, oper_name_t new_oper_offset, mmt_name_t new_mmt_offset) noexcept {
-        // Set IDs and offsets
-        this->party_id = new_id;
-        this->global_operator_offset = new_oper_offset;
-        this->global_measurement_offset = new_mmt_offset;
 
-        // Propagate IDs and offsets to measurements
-        for (auto &mmt: this->measurements) {
-            mmt.index.party = this->party_id;
-            mmt.index.global_mmt = static_cast<mmt_name_t>(this->global_measurement_offset + mmt.index.mmt);
-        }
-
-        // Propagate offsets to included operators
-        this->included_operators.clear();
-        this->included_operators.reserve(this->party_operator_count);
-        const oper_name_t iMax = this->global_operator_offset + this->party_operator_count;
-        for (oper_name_t i = this->global_operator_offset; i < iMax; ++i) {
-            this->included_operators.emplace_back(i);
-        }
-    }
 
     std::ostream &operator<<(std::ostream &os, const Party &the_party) {
+        // Get formatting object
+        const static NaturalLOFormatter default_formatter{};
+
         os << the_party.name << ": ";
 
         if (the_party.measurements.empty()) {
@@ -88,7 +73,8 @@ namespace Moment::Locality {
                 if (one_elem) {
                     os << ", ";
                 }
-                os << mmt.name << oper_index;
+                default_formatter.format(os, mmt, static_cast<oper_name_t>(oper_index));
+                // os << mmt.name << oper_index;
                 one_elem = true;
             }
 
@@ -96,10 +82,9 @@ namespace Moment::Locality {
             if (one_elem) {
                 os << ", ";
             }
-            os << "("
-               << mmt.name << std::to_string(mmt.num_operators())
-               << ")";
-
+            os << "(";
+            default_formatter.format(os, mmt, mmt.num_operators());
+            os << ")";
 
             os << "}";
             one_measurement = true;
@@ -107,6 +92,54 @@ namespace Moment::Locality {
 
 
         return os;
+    }
+    /**
+     * Gets the name of this operator (if within party)
+     */
+    std::string Party::format_operator(const LocalityOperatorFormatter& formatter, oper_name_t op) const {
+        std::stringstream ss;
+        this->format_operator(ss, formatter, op);
+        return ss.str();
+    }
+
+    /**
+     * Gets the name of this operator (if within party)
+     */
+    std::ostream& Party::format_operator(std::ostream& os, const LocalityOperatorFormatter& formatter, oper_name_t op) const {
+        auto op_local_index = op - this->global_operator_offset;
+        if ((op_local_index < 0) || (op_local_index >= this->party_operator_count)) {
+            os << "[UNK#" << op << "]";
+            return os;
+        }
+
+        auto mmt_id = this->offset_id_to_local_mmt[op_local_index];
+        const auto& mmt = this->measurements[mmt_id];
+        auto outcome_num = op_local_index - mmt.party_offset;
+
+        formatter.format(os, *this, mmt, static_cast<oper_name_t>(outcome_num));
+
+        return os;
+    }
+
+    void Party::set_offsets(party_name_t new_id, oper_name_t new_oper_offset, mmt_name_t new_mmt_offset) noexcept {
+        // Set IDs and offsets
+        this->party_id = new_id;
+        this->global_operator_offset = new_oper_offset;
+        this->global_measurement_offset = new_mmt_offset;
+
+        // Propagate IDs and offsets to measurements
+        for (auto &mmt: this->measurements) {
+            mmt.index.party = this->party_id;
+            mmt.index.global_mmt = static_cast<mmt_name_t>(this->global_measurement_offset + mmt.index.mmt);
+        }
+
+        // Propagate offsets to included operators
+        this->included_operators.clear();
+        this->included_operators.reserve(this->party_operator_count);
+        const oper_name_t iMax = this->global_operator_offset + this->party_operator_count;
+        for (oper_name_t i = this->global_operator_offset; i < iMax; ++i) {
+            this->included_operators.emplace_back(i);
+        }
     }
 
 
@@ -131,25 +164,6 @@ namespace Moment::Locality {
         }
         auto mmt_id = this->offset_id_to_local_mmt[op_local_index];
         return this->measurements[mmt_id];
-    }
-
-
-    /**
-     * Gets the name of this operator (if within party)
-     */
-    std::string Party::format_operator(oper_name_t op) const {
-        auto op_local_index = op - this->global_operator_offset;
-        if ((op_local_index < 0) || (op_local_index >= this->party_operator_count)) {
-            return "[UNKNOWN]";
-        }
-
-        auto mmt_id = this->offset_id_to_local_mmt[op_local_index];
-        const auto& mmt = this->measurements[mmt_id];
-        auto outcome_num = op_local_index - mmt.party_offset;
-
-        std::stringstream ss;
-        ss << this->name << "." << mmt.name << outcome_num;
-        return ss.str();
     }
 
     oper_name_t Party::measurement_outcome(size_t mmt_index, size_t outcome_index) const {
@@ -241,4 +255,6 @@ namespace Moment::Locality {
         }
         return output;
     }
+
+
 }

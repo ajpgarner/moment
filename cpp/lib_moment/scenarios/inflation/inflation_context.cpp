@@ -434,16 +434,16 @@ namespace Moment::Inflation {
        const auto& observable_info = this->inflated_observables[observable];
        assert((variant >= 0) && (variant < observable_info.variant_count));
        const auto& base_observable = this->base_network.Observables();
-       return static_cast<oper_name_t>(observable_info.operator_offset)
+       return static_cast<oper_name_t>(observable_info.operator_offset
                 + (variant * static_cast<oper_name_t>(this->base_network.Observables()[observable].operators()))
-                + outcome;
+                + outcome);
    }
 
     oper_name_t InflationContext::obs_variant_to_index(const oper_name_t observable, const oper_name_t variant) const {
         assert((observable >= 0) && (observable < this->inflated_observables.size()));
         const auto& observable_info = this->inflated_observables[observable];
         assert((variant >= 0) && (variant < observable_info.variant_count));
-        return observable_info.variant_offset + variant;
+        return static_cast<oper_name_t>(observable_info.variant_offset + variant);
     }
 
     OVIndex

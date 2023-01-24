@@ -7,14 +7,17 @@ include_directories(${Moment_SOURCE_DIR}/cpp/mex_functions)
 
 matlab_add_mex(NAME moment_mex
         SRC
+            environmental_variables.cpp
             mex_entry.cpp
+            mex_function.cpp
             mex_main.cpp
             storage_manager.cpp
             export/export_basis.cpp
             export/export_implicit_symbols.cpp
             export/export_matrix_basis_masks.cpp
             export/export_monomial_rules.cpp
-            export/export_operator_matrix.cpp
+            export/export_sequence_matrix.cpp
+            export/export_symbol_matrix.cpp
             export/export_symbol_table.cpp
             import/read_monomial_rules.cpp
             import/read_raw_symbol_matrix.cpp

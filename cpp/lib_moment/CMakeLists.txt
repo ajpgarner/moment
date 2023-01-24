@@ -35,12 +35,13 @@ add_library(lib_moment
         scenarios/inflation/observable.cpp
         scenarios/inflation/observable_variant_index.cpp
         scenarios/inflation/source.cpp
-        scenarios/locality/locality_explicit_symbols.cpp
         scenarios/locality/collins_gisin.cpp
-        scenarios/locality/locality_implicit_symbols.cpp
-        scenarios/locality/joint_measurement_iterator.cpp
         scenarios/locality/locality_context.cpp
+        scenarios/locality/locality_explicit_symbols.cpp
+        scenarios/locality/locality_implicit_symbols.cpp
         scenarios/locality/locality_matrix_system.cpp
+        scenarios/locality/locality_operator_formatter.cpp
+        scenarios/locality/joint_measurement_iterator.cpp
         scenarios/locality/party.cpp
         symbolic/substitution_list.cpp
         symbolic/symbol.cpp
@@ -50,4 +51,4 @@ add_library(lib_moment
         utilities/alphabetic_namer.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
-    )
+        )

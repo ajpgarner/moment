@@ -20,6 +20,7 @@
 namespace Moment::Locality {
 
     class LocalityContext;
+    class LocalityOperatorFormatter;
 
     class Party {
     public:
@@ -98,7 +99,13 @@ namespace Moment::Locality {
         /**
          * Gets the name of this operator (if within party)
          */
-        [[nodiscard]] std::string format_operator(oper_name_t op) const;
+        [[nodiscard]] std::string format_operator(const LocalityOperatorFormatter& formatter, oper_name_t op) const;
+
+        /**
+         * Gets the name of this operator (if within party)
+         */
+        std::ostream& format_operator(std::ostream& os, const LocalityOperatorFormatter& formatter,
+                                      oper_name_t op) const;
 
 
         [[nodiscard]] auto begin() const {

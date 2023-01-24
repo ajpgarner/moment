@@ -12,6 +12,7 @@
 #include "scenarios/inflation/inflation_matrix_system.h"
 #include "scenarios/locality/locality_implicit_symbols.h"
 #include "scenarios/locality/locality_matrix_system.h"
+#include "scenarios/locality/locality_operator_formatter.h"
 
 #include "export/export_implicit_symbols.h"
 #include "utilities/read_as_scalar.h"
@@ -263,13 +264,17 @@ namespace Moment::mex::functions {
 
         const LocalityContext& context = lms.localityContext;
 
+        // Get formatter
+        auto formatter = this->settings->get_locality_formatter();
+        assert(formatter);
+
         // Create (or retrieve) implied sequence object
         const LocalityImplicitSymbols& implSym = lms.ImplicitSymbolTable();
 
         // Export whole table?
         if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {
             // Export symbols
-            output[0] = export_implied_symbols(this->matlabEngine, implSym);
+            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym);
             return;
         }
 
@@ -294,7 +299,7 @@ namespace Moment::mex::functions {
             context.get_global_mmt_index(requested_measurement);
 
             // Request
-            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_measurement);
+            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym, requested_measurement);
             return;
         }
 
@@ -320,7 +325,7 @@ namespace Moment::mex::functions {
                 }
             }
             // Request
-            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_outcome);
+            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym, requested_outcome);
             return;
         }
 

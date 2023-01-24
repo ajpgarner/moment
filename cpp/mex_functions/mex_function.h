@@ -20,6 +20,7 @@ namespace matlab::engine {
 
 namespace Moment::mex {
     class StorageManager;
+    class EnvironmentalVariables;
 }
 
 namespace Moment::mex::functions {
@@ -31,6 +32,13 @@ namespace Moment::mex::functions {
     protected:
         matlab::engine::MATLABEngine& matlabEngine;
         StorageManager& storageManager;
+
+        /**
+         * Shared ptr to settings just before function invocation.
+         * For thread safety, use this settings object within the function execution - as there is no guarantee that the
+         * settings object in the storage manager is not changed part-way through execution.
+         */
+        std::shared_ptr<const EnvironmentalVariables> settings;
 
         NameSet flag_names{};
         NameSet param_names{};
@@ -53,10 +61,9 @@ namespace Moment::mex::functions {
         const std::basic_string<char16_t> function_name;
 
         MexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage,
-                    MEXEntryPointID id, std::basic_string<char16_t> name)
-            : matlabEngine(engine), storageManager{storage}, function_id{id}, function_name{std::move(name)} { }
+                    MEXEntryPointID id, std::basic_string<char16_t> name);
 
-        virtual ~MexFunction() = default;
+        virtual ~MexFunction();
 
         virtual void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) = 0;
 
@@ -71,9 +78,7 @@ namespace Moment::mex::functions {
          * @throws error::BadInput If input cannot be transformed for any reason.
          */
         [[nodiscard]] virtual std::unique_ptr<SortedInputs>
-        transform_inputs(std::unique_ptr<SortedInputs> input) const {
-            return std::move(input);
-        }
+        transform_inputs(std::unique_ptr<SortedInputs> input) const;
 
         /**
          * Validates that the number of outputs matches that expected from the input parameters
@@ -109,40 +114,17 @@ namespace Moment::mex::functions {
         /**
           * Flag whether the function should supress warning messages
           */
-        constexpr void setQuiet(bool val = true) noexcept {
-            // Quiet mode only turns on if debug mode not set.
-            this->quiet = val && !this->debug;
-            if (val) {
-                // Turning on quiet mode turns off verbose mode
-                this->verbose = false;
-            }
-        }
+        void setQuiet(bool val = true) noexcept;
 
         /**
          * Flag whether the function should output verbose information to console.
          */
-        constexpr void setVerbose(bool val = true) noexcept {
-            this->verbose = val;
-            if (val) {
-                // Turning on verbosity turns off quiet mode
-                this->quiet = false;
-            } else {
-                // Turning off verbosity also turns off debug mode
-                this->debug = false;
-            }
-        }
+        void setVerbose(bool val = true) noexcept;
 
         /**
          * Flag whether the function should output debug information to console.
          */
-        constexpr void setDebug(bool val = true) noexcept {
-            this->debug = val;
-            if (val) {
-                // Turning on debug mode turns on verbosity, and turns off quiet mode
-                this->verbose = true;
-                this->quiet = false;
-            }
-        }
+        void setDebug(bool val = true) noexcept;
     };
 
     /**

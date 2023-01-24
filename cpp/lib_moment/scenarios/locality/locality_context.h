@@ -8,7 +8,11 @@
 #include "scenarios/context.h"
 #include "party.h"
 
+#include <memory>
+
 namespace Moment::Locality {
+
+    class LocalityOperatorFormatter;
 
     class LocalityContext : public Context {
     public:
@@ -48,8 +52,9 @@ namespace Moment::Locality {
         std::vector<size_t> mmts_per_party;
         std::vector<size_t> ops_per_party;
 
+
     public:
-        LocalityContext() : Context{0}, Parties{*this} { }
+        LocalityContext();
 
         explicit LocalityContext(std::vector<Party>&& parties) noexcept;
 
@@ -104,9 +109,16 @@ namespace Moment::Locality {
         [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const override;
 
         /**
+         * Generates a formatted string representation of an operator sequence
+         */
+        [[nodiscard]] std::string format_sequence(const LocalityOperatorFormatter& formatter,
+                                                  const OperatorSequence& seq) const;
+
+        /**
          * Generates a formatted string representation of a list of PMO indices
          */
-        [[nodiscard]] std::string format_sequence(std::span<const PMOIndex> indices, bool zero = false) const;
+        [[nodiscard]] std::string format_sequence(const LocalityOperatorFormatter& formatter,
+                                                  std::span<const PMOIndex> indices, bool zero = false) const;
 
         /**
          * Summarize the context as a string.

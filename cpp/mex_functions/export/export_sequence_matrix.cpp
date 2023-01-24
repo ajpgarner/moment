@@ -1,16 +1,21 @@
 /**
- * exported_symbol_matrix.cpp
+ * export_sequence_matrix.cpp
  *
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 
-#include "export_operator_matrix.h"
+#include "export_sequence_matrix.h"
 
 #include "matrix_system.h"
 #include "matrix/operator_matrix.h"
 
 #include "symbolic/symbol_table.h"
 #include "scenarios/context.h"
+
+#include "scenarios/locality/locality_context.h"
+#include "scenarios/locality/locality_matrix_system.h"
+#include "scenarios/locality/locality_operator_formatter.h"
+
 #include "scenarios/inflation/factor_table.h"
 #include "scenarios/inflation/inflation_context.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
@@ -73,6 +78,71 @@ namespace Moment::mex {
             DirectFormatView(const Context &context, const SquareMatrix<OperatorSequence>& inputMatrix)
                 : iter_begin{context, inputMatrix.ColumnMajor.begin()},
                   iter_end{context, inputMatrix.ColumnMajor.end()} {
+            }
+
+            [[nodiscard]] auto begin() const { return iter_begin; }
+            [[nodiscard]] auto end() const { return iter_end; }
+
+        };
+
+        class LocalityFormatView {
+        public:
+            using raw_const_iterator = SquareMatrix<OperatorSequence>::ColumnMajorView::TransposeIterator;
+
+            class const_iterator {
+            public:
+                using iterator_category = std::input_iterator_tag;
+                using difference_type = ptrdiff_t;
+                using value_type = matlab::data::MATLABString;
+
+            private:
+                const Locality::LocalityContext* context = nullptr;
+                const Locality::LocalityOperatorFormatter* formatter = nullptr;
+                DirectFormatView::raw_const_iterator raw_iter;
+
+            public:
+                constexpr const_iterator(const Locality::LocalityContext& context,
+                                         const Locality::LocalityOperatorFormatter& formatter,
+                                         raw_const_iterator rci)
+                        : context{&context}, formatter{&formatter}, raw_iter{rci} { }
+
+
+                constexpr bool operator==(const const_iterator& rhs) const noexcept { return this->raw_iter == rhs.raw_iter; }
+                constexpr bool operator!=(const const_iterator& rhs)  const noexcept { return this->raw_iter != rhs.raw_iter; }
+
+                constexpr const_iterator& operator++() {
+                    ++(this->raw_iter);
+                    return *this;
+                }
+
+                constexpr const_iterator operator++(int) & {
+                    auto copy = *this;
+                    ++(*this);
+                    return copy;
+                }
+
+                value_type operator*() const {
+                    assert(context != nullptr);
+                    assert(formatter != nullptr);
+                    return {matlab::engine::convertUTF8StringToUTF16String(
+                            context->format_sequence(*formatter, *raw_iter)
+                            )};
+                }
+            };
+
+            static_assert(std::input_iterator<DirectFormatView::const_iterator>);
+
+        private:
+            const const_iterator iter_begin;
+            const const_iterator iter_end;
+            const Locality::LocalityOperatorFormatter& formatter;
+
+        public:
+            LocalityFormatView(const Locality::LocalityContext &context,
+                               const Locality::LocalityOperatorFormatter& formatter,
+                               const SquareMatrix<OperatorSequence>& inputMatrix)
+                : iter_begin{context, formatter, inputMatrix.ColumnMajor.begin()},
+                  iter_end{context, formatter, inputMatrix.ColumnMajor.end()}, formatter{formatter} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }
@@ -247,33 +317,6 @@ namespace Moment::mex {
         };
     }
 
-    matlab::data::Array export_symbol_matrix(matlab::engine::MATLABEngine& engine,
-                                             const SquareMatrix<SymbolExpression>& inputMatrix) {
-        matlab::data::ArrayFactory factory;
-        matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
-
-        auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
-        auto writeIter = outputArray.begin();
-
-        auto readIter = inputMatrix.ColumnMajor.begin();
-
-        while ((writeIter != outputArray.end()) && (readIter != inputMatrix.ColumnMajor.end())) {
-            *writeIter = readIter->as_string();
-            ++writeIter;
-            ++readIter;
-        }
-        if (writeIter != outputArray.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix count_indices mismatch: too few input elements." );
-        }
-        if (readIter != inputMatrix.ColumnMajor.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix count_indices mismatch: too many input elements.");
-        }
-
-        return outputArray;
-    }
-
     matlab::data::Array
     export_sequence_matrix(matlab::engine::MATLABEngine &engine,
                             const Context &context,
@@ -282,6 +325,38 @@ namespace Moment::mex {
         matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
 
         DirectFormatView formatView{context, inputMatrix};
+
+        auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
+        auto writeIter = outputArray.begin();
+        auto readIter = formatView.begin();
+
+        while ((writeIter != outputArray.end()) && (readIter != formatView.end())) {
+            *writeIter = *readIter;
+            ++writeIter;
+            ++readIter;
+        }
+        if (writeIter != outputArray.end()) {
+            throw_error(engine, errors::internal_error,
+                        "export_symbol_matrix index count mismatch: too few input elements." );
+        }
+        if (readIter != formatView.end()) {
+            throw_error(engine, errors::internal_error,
+                        "export_symbol_matrix index count mismatch: too many input elements.");
+        }
+
+        return outputArray;
+    }
+
+    matlab::data::Array
+    export_sequence_matrix(matlab::engine::MATLABEngine& engine,
+                            const Locality::LocalityContext& context,
+                            const Locality::LocalityOperatorFormatter& formatter,
+                            const SquareMatrix<OperatorSequence>& inputMatrix) {
+
+        matlab::data::ArrayFactory factory;
+        matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
+
+        LocalityFormatView formatView{context, formatter, inputMatrix};
 
         auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
         auto writeIter = outputArray.begin();
@@ -389,4 +464,22 @@ namespace Moment::mex {
         // If all else fails, use inferred string formatting
         return export_inferred_sequence_matrix(engine, system.Context(), system.Symbols(), matrix);
     }
+
+    matlab::data::Array
+    export_sequence_matrix(matlab::engine::MATLABEngine& engine,
+                           const Locality::LocalityMatrixSystem& system,
+                           const Locality::LocalityOperatorFormatter& formatter,
+                           const SymbolicMatrix& matrix) {
+
+        // Attempt to use normal context formatting
+        const auto* opMatPtr = dynamic_cast<const Moment::OperatorMatrix*>(&matrix);
+        if (nullptr != opMatPtr) {
+            return export_sequence_matrix(engine, system.localityContext, formatter, opMatPtr->SequenceMatrix());
+        }
+
+        // If all else fails, use inferred string formatting
+        return export_inferred_sequence_matrix(engine, system.Context(), system.Symbols(), matrix);
+
+    }
+
 }

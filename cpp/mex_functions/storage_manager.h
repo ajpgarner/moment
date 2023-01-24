@@ -8,6 +8,7 @@
 #include "utilities/persistent_storage.h"
 
 #include "matrix_system.h"
+#include "environmental_variables.h"
 
 #include <string>
 #include <optional>
@@ -25,6 +26,7 @@ namespace Moment::mex {
     class StorageManager {
     public:
         PersistentStorage<MatrixSystem> MatrixSystems{make_signature({'m','s','y','s'})};
+        PersistentStorageMonoid<EnvironmentalVariables> Settings{make_signature({'e','n','v','v'})};
 
         friend StorageManager& getStorageManager();
 

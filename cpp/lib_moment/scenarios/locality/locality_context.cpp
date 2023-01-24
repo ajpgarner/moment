@@ -6,6 +6,7 @@
 #include "locality_context.h"
 
 #include "../operator_sequence.h"
+#include "locality_operator_formatter.h"
 
 #include "party.h"
 
@@ -16,35 +17,7 @@
 
 namespace Moment::Locality {
     namespace {
-        struct LocalityOperator {
-        public:
-            oper_name_t id = 0;
-            party_name_t party = 0;
-
-            LocalityOperator() = default;
-            LocalityOperator(oper_name_t i, party_name_t p) : id{i}, party{p} { }
-
-            /**
-            * Predicate: true if the party of LHS is less than that of RHS.
-            */
-            struct PartyComparator {
-                constexpr bool operator()(const LocalityOperator &lhs, const LocalityOperator &rhs) const noexcept {
-                    return lhs.party < rhs.party;
-                }
-            };
-
-            /**
-             * Predicate: true if lhs = rhs, and lhs is idempotent.
-             * I.e., true if 'AB' can be replaced by 'A'.
-             */
-            struct IsRedundant {
-                constexpr bool operator()(const LocalityOperator &lhs, const LocalityOperator &rhs) const noexcept {
-                    return (lhs.id == rhs.id);
-                }
-            };
-        };
-
-        size_t count_operators(const std::vector<Party>& parties) {
+          size_t count_operators(const std::vector<Party>& parties) {
             size_t val = 0;
             for (const auto& party : parties) {
                 val += party.size();
@@ -52,6 +25,9 @@ namespace Moment::Locality {
             return val;
         }
     };
+
+    LocalityContext::LocalityContext() : Context{0}, Parties{*this} {
+    }
 
     LocalityContext::LocalityContext(std::vector<Party> &&in_party) noexcept
         : Context{count_operators(in_party)}, Parties{*this},
@@ -181,6 +157,12 @@ namespace Moment::Locality {
     }
 
     std::string LocalityContext::format_sequence(const OperatorSequence &seq) const {
+        NaturalLOFormatter formatter;
+        return this->format_sequence(formatter, seq);
+    }
+
+    std::string LocalityContext::format_sequence(const LocalityOperatorFormatter& formatter,
+                                                 const OperatorSequence &seq) const {
         if (seq.zero()) {
             return "0";
         }
@@ -204,20 +186,20 @@ namespace Moment::Locality {
                 ss << "[UNK:" << oper << "]";
             } else {
                 const auto &party = this->parties[this->global_op_id_to_party[oper]];
-                ss << party.format_operator(oper);
+                party.format_operator(ss, formatter, oper);
             }
         }
         return ss.str();
     }
 
-    std::string LocalityContext::format_sequence(const std::span<const PMOIndex> indices, const bool zero) const {
+    std::string LocalityContext::format_sequence(const LocalityOperatorFormatter& formatter,
+                                                 const std::span<const PMOIndex> indices, const bool zero) const {
         if (zero) {
             return "0";
         }
         if (indices.empty()) {
             return "1";
         }
-
         std::stringstream ss;
         bool done_once = false;
         for (const auto& index : indices) {
@@ -228,7 +210,8 @@ namespace Moment::Locality {
             if (done_once) {
                 ss << ";";
             }
-            ss << party.name << "." << mmt.name << index.outcome;
+
+            formatter.format(ss, party, mmt, static_cast<oper_name_t>(index.outcome));
             done_once = true;
         }
 
@@ -250,5 +233,6 @@ namespace Moment::Locality {
 
         return ss.str();
     }
+
 
 }

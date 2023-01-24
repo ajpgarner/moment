@@ -1,7 +1,7 @@
 /**
- * exported_symbol_matrix.h
+ * export_sequence_matrix.h
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 #pragma once
 
@@ -21,19 +21,14 @@ namespace Moment {
     class MatrixProperties;
     class MatrixSystem;
     class SymbolicMatrix;
+
+    namespace Locality {
+        class LocalityMatrixSystem;
+        class LocalityOperatorFormatter;
+    };
 }
 
 namespace Moment::mex {
-
-    /**
-     * Outputs a matrix of symbol expressions, as a matlab string matrix
-     * @param engine The matlab engine.
-     * @param matrix The matrix of symbols to output.
-     * @return A matlab string array.
-     */
-    matlab::data::Array export_symbol_matrix(matlab::engine::MATLABEngine& engine,
-                                             const SquareMatrix<SymbolExpression>& matrix);
-
     /**
      * Outputs a matrix of operator sequences, as a matlab string matrix
      * @param engine The matlab engine.
@@ -45,6 +40,18 @@ namespace Moment::mex {
                                                const SquareMatrix<OperatorSequence>& matrix);
 
     /**
+     * Outputs a matrix of operator sequences, as a matlab string matrix, using supplied formatter
+     * @param engine The matlab engine.
+     * @param matrix The matrix of operator sequences to output.
+     * @return A matlab string array.
+     */
+    matlab::data::Array
+    export_sequence_matrix(matlab::engine::MATLABEngine& engine,
+                           const Locality::LocalityMatrixSystem& system,
+                           const Locality::LocalityOperatorFormatter& formatter,
+                           const SymbolicMatrix& matrix);
+
+    /**
      * Outputs a matrix of operator sequences, as a matlab string matrix
      * @param engine The matlab engine.
      * @param matrix The matrix object
@@ -53,5 +60,4 @@ namespace Moment::mex {
     matlab::data::Array export_sequence_matrix(matlab::engine::MATLABEngine& engine,
                                               const MatrixSystem& system,
                                               const SymbolicMatrix& matrix);
-
 }

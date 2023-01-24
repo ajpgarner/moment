@@ -47,7 +47,7 @@ namespace Moment::Locality {
         }
     };
 
-    struct Measurement {
+    class Measurement {
     public:
         /** Name of measurement */
         std::string name{};

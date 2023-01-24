@@ -9,6 +9,7 @@
 #include "scenarios/inflation/canonical_observables.h"
 #include "scenarios/inflation/inflation_implicit_symbols.h"
 #include "scenarios/locality/locality_implicit_symbols.h"
+#include "scenarios/locality/locality_operator_formatter.h"
 #include "scenarios/locality/joint_measurement_iterator.h"
 
 #include "matrix/operator_matrix.h"
@@ -63,6 +64,7 @@ namespace Moment::mex {
 
             const Locality::LocalityImplicitSymbols &implicitSymbols;
             const Locality::LocalityContext &context;
+            const Locality::LocalityOperatorFormatter &formatter;
             const size_t implicit_table_length;
             const size_t real_symbol_count;
         public:
@@ -73,8 +75,10 @@ namespace Moment::mex {
 
         public:
             LocalityImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
-                                        const Locality::LocalityImplicitSymbols &impliedSymbols)
+                                        const Locality::LocalityImplicitSymbols &impliedSymbols,
+                                        const Locality::LocalityOperatorFormatter &formatter)
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{impliedSymbols.context},
+                      formatter{formatter},
                       implicit_table_length{implicitSymbols.Data().size() + 1},
                       real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()},
                       output_array{factory.createStructArray({1, implicit_table_length},
@@ -90,11 +94,12 @@ namespace Moment::mex {
 
             LocalityImpliedSymbolWriter(matlab::engine::MATLABEngine &engine,
                                         const Locality::LocalityImplicitSymbols &impliedSymbols,
+                                        const Locality::LocalityOperatorFormatter &formatter,
                                         const std::span<const PMODefinition> symbols,
                                         const std::span<const Locality::PMIndex> indices)
 
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{impliedSymbols.context},
-                      implicit_table_length{symbols.size()},
+                      formatter{formatter}, implicit_table_length{symbols.size()},
                       real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()},
                       output_array{factory.createStructArray({1, implicit_table_length},
                                                              {"sequence", "indices", "real_coefficients"})} {
@@ -147,7 +152,7 @@ namespace Moment::mex {
                                                                       entryIndices.cbegin(), entryIndices.cend());
 
                     this->output_array[write_index]["sequence"] =
-                            factory.createScalar(context.format_sequence(indicesWithOutcomes));
+                            factory.createScalar(context.format_sequence(formatter, indicesWithOutcomes));
                     this->output_array[write_index]["indices"] = std::move(index_array);
                     this->output_array[write_index]["real_coefficients"] = to_sparse_array(symbol.expression);
                     ++write_index;
@@ -296,8 +301,9 @@ namespace Moment::mex {
 
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                                               const Locality::LocalityOperatorFormatter& formatter,
                                                const Locality::LocalityImplicitSymbols& impliedSymbols) {
-        LocalityImpliedSymbolWriter isw{engine, impliedSymbols};
+        LocalityImpliedSymbolWriter isw{engine, impliedSymbols, formatter};
         impliedSymbols.visit(isw);
 
         return std::move(isw.output_array);
@@ -305,6 +311,7 @@ namespace Moment::mex {
 
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                                                     const Locality::LocalityOperatorFormatter& formatter,
                                                      const Locality::LocalityImplicitSymbols &impliedSymbols,
                                                      const std::span<const Locality::PMIndex> measurementIndex) {
         std::vector<size_t> globalMmtIndex;
@@ -315,11 +322,12 @@ namespace Moment::mex {
 
         auto pmod = impliedSymbols.get(globalMmtIndex);
 
-        LocalityImpliedSymbolWriter isw{engine, impliedSymbols, pmod, measurementIndex};
+        LocalityImpliedSymbolWriter isw{engine, impliedSymbols, formatter, pmod, measurementIndex};
         return std::move(isw.output_array);
     }
 
     matlab::data::StructArray export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                                                     const Locality::LocalityOperatorFormatter& formatter,
                                                      const Locality::LocalityImplicitSymbols &impliedSymbols,
                                                      const std::span<const Locality::PMOIndex> outcomeIndex) {
         matlab::data::ArrayFactory factory;
@@ -344,10 +352,9 @@ namespace Moment::mex {
                                                                                entryIndices.cbegin(),
                                                                                entryIndices.cend());
 
-
         // Write entry
         auto output = factory.createStructArray({1, 1}, {"sequence", "indices", "real_coefficients"});
-        output[0]["sequence"] = factory.createScalar(context.format_sequence(outcomeIndex));
+        output[0]["sequence"] = factory.createScalar(context.format_sequence(formatter, outcomeIndex));
         output[0]["indices"] = std::move(index_array);
         output[0]["real_coefficients"] = combo_to_sparse_array(engine, factory, impliedSymbols.symbols,
                                                                symbolDefinition.expression);

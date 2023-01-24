@@ -8,12 +8,16 @@
 #include "storage_manager.h"
 
 #include "matrix/operator_matrix.h"
+#include "scenarios/locality/locality_context.h"
+#include "scenarios/locality/locality_operator_formatter.h"
 
-#include "export/export_operator_matrix.h"
+#include "export/export_sequence_matrix.h"
+#include "export/export_symbol_matrix.h"
 #include "export/export_matrix_basis_masks.h"
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
+#include "scenarios/locality/locality_matrix_system.h"
 
 namespace Moment::mex::functions  {
 
@@ -176,12 +180,21 @@ namespace Moment::mex::functions  {
 
         // Output, if supplied.
         if (output.size() >= 1) {
+            auto lock = matrixSystem.get_read_lock();
+
             switch (input.output_mode) {
                 case OperatorMatrixParams::OutputMode::Symbols:
                     output[0] = export_symbol_matrix(this->omvb_matlabEngine, theMatrix.SymbolMatrix());
                     break;
                 case OperatorMatrixParams::OutputMode::Sequences: {
-                    output[0] = export_sequence_matrix(this->omvb_matlabEngine, matrixSystem, theMatrix);
+                    const auto * locality_ms = dynamic_cast<const Locality::LocalityMatrixSystem*>(&matrixSystem);
+                    if (locality_ms != nullptr) {
+                        auto formatter = this->omvb_settings().get_locality_formatter();
+                        assert(formatter);
+                        output[0] = export_sequence_matrix(this->omvb_matlabEngine, *locality_ms, *formatter, theMatrix);
+                    } else {
+                        output[0] = export_sequence_matrix(this->omvb_matlabEngine, matrixSystem, theMatrix);
+                    }
                     }
                     break;
                 case OperatorMatrixParams::OutputMode::IndexAndDimension: {

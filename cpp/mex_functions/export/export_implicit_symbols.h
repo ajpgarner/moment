@@ -19,10 +19,12 @@ namespace Moment {
     class MomentMatrix;
     namespace Locality {
         class LocalityImplicitSymbols;
+        class LocalityOperatorFormatter;
     }
 
     namespace Inflation {
         class InflationImplicitSymbols;
+
     }
 
     namespace mex {
@@ -53,21 +55,24 @@ namespace Moment {
          */
         [[nodiscard]] matlab::data::StructArray
         export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                               const Locality::LocalityOperatorFormatter& formatter,
                                const Locality::LocalityImplicitSymbols &impliedSymbols);
 
         /**
-         * Export one measurement of implied symbols from inflation scenario
+         * Export one measurement of implied symbols from locality scenario
          */
         [[nodiscard]] matlab::data::StructArray
         export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                               const Locality::LocalityOperatorFormatter& formatter,
                                const Locality::LocalityImplicitSymbols &impliedSymbols,
                                std::span<const Locality::PMIndex> measurementIndex);
 
         /**
-         * Export one outcome of implied symbols from inflation scenario
+         * Export one outcome of implied symbols from locality scenario
          */
         [[nodiscard]] matlab::data::StructArray
         export_implied_symbols(matlab::engine::MATLABEngine &engine,
+                               const Locality::LocalityOperatorFormatter& formatter,
                                const Locality::LocalityImplicitSymbols &impliedSymbols,
                                std::span<const Locality::PMOIndex> outcomeIndex);
     }
