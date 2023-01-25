@@ -13,7 +13,6 @@
 #include "matrix/operator_sequence_generator.h"
 #include "symbolic/symbol_table.h"
 
-
 namespace Moment::Inflation {
     ExtensionSuggester::ExtensionSuggester(const InflationContext& context,
                                            const SymbolTable& symbols,
@@ -29,6 +28,7 @@ namespace Moment::Inflation {
         auto necessary_factors = nonfundamental_symbols(matrix);
 
         size_t extension_count = 0;
+
 
         // Return if nothing needs factorizing
         if (necessary_factors.empty()) {
@@ -47,6 +47,7 @@ namespace Moment::Inflation {
             for (const auto &rawPrefix: matrix.Generators()) {
                 // Find prefix as factored object
                 auto prefix = context.canonical_moment(rawPrefix);
+
                 auto [source_sym_index, source_conj] = symbols.hash_to_index(prefix.hash());
                 assert(source_sym_index != std::numeric_limits<ptrdiff_t>::max());
                 const auto &source_factors = factors[source_sym_index].canonical.symbols;
@@ -57,14 +58,12 @@ namespace Moment::Inflation {
                 if (!maybe_symbol_index.has_value()) {
                     continue;
                 }
-
                 // Do we need this one?
                 if (necessary_factors.test(maybe_symbol_index.value())) {
                     // If it does, then we check the symbol off as generated, and register suggested symbol as useful
                     necessary_factors.unset(maybe_symbol_index.value());
                     any_use = true;
                 }
-
             }
 
             tested_factors.set(trial_factor_symbol);
