@@ -13,6 +13,7 @@
 #include "utilities/read_as_scalar.h"
 #include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"
+#include "utilities/read_as_string.h"
 
 namespace Moment::mex::functions {
 
@@ -24,9 +25,9 @@ namespace Moment::mex::functions {
         this->hierarchy_level = read_positive_integer<size_t>(matlabEngine, "Parameter 'level'", depth_param, 0);
 
         // Get extensions
+
         auto& ext_param = this->find_or_throw(u"extensions");
-        this->extensions = read_positive_integer_array<symbol_name_t>(matlabEngine, "Parameter 'extensions'",
-                                                                      ext_param, 0);
+        this->read_extension_argument(matlabEngine, "Parameter 'extensions'", ext_param);
     }
 
     void ExtendedMatrixParams::extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) {
@@ -37,13 +38,48 @@ namespace Moment::mex::functions {
         this->hierarchy_level = read_positive_integer<size_t>(matlabEngine, "Hierarchy level", inputs[1], 0);
 
         // Get extensions
-        this->extensions = read_positive_integer_array<symbol_name_t>(matlabEngine, "Extensions", inputs[2], 0);
+        this->read_extension_argument(matlabEngine, "Extensions", inputs[2]);
     }
 
     [[nodiscard]] bool ExtendedMatrixParams::any_param_set() const {
         const bool level_specified = this->params.contains(u"level");
         const bool extensions_specified = this->params.contains(u"extensions");
         return level_specified || extensions_specified || OperatorMatrixParams::any_param_set();
+    }
+
+
+    void ExtendedMatrixParams::read_extension_argument(matlab::engine::MATLABEngine& matlabEngine,
+                                                       const std::string& paramName,
+                                                       const matlab::data::Array& input_array) {
+        // Try read as a string...
+        std::optional<std::basic_string<char16_t>> asString;
+        switch(input_array.getType()) {
+            case matlab::data::ArrayType::MATLAB_STRING:
+                if (input_array.getNumberOfElements() == 1) {
+                    asString = read_as_utf16(input_array);
+                }
+                break;
+            case matlab::data::ArrayType::CHAR:
+                asString = read_as_utf16(input_array);
+                break;
+            default:
+                break;
+        }
+        if (asString.has_value()) {
+            if (!(asString.value() == u"auto")) {
+                std::stringstream errSS;
+                errSS << paramName << " must either be an array of symbol IDs, or the string 'auto'.";
+                throw_error(matlabEngine, errors::bad_param, errSS.str());
+            } else {
+                this->extensions.clear();
+                this->extension_type = ExtensionType::Automatic;
+            }
+            return;
+        }
+
+        // Otherwise, read manually specified extensions
+        this->extensions = read_positive_integer_array<symbol_name_t>(matlabEngine, paramName, input_array, 0);
+        this->extension_type = ExtensionType::Manual;
     }
 
 
@@ -61,7 +97,7 @@ namespace Moment::mex::functions {
     std::pair<size_t, const Moment::SymbolicMatrix&>
     ExtendedMatrix::get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp)  {
         // Get extended parameters
-        const auto& emp = dynamic_cast<const ExtendedMatrixParams&>(omp);
+        auto& emp = dynamic_cast<ExtendedMatrixParams&>(omp);
 
         // Get inflation matrix system
         auto * inflationSystemPtr = dynamic_cast<Inflation::InflationMatrixSystem*>(&system);
@@ -74,14 +110,44 @@ namespace Moment::mex::functions {
         auto [mm_index, mm_op_matrix] = inflationSystem.create_moment_matrix(emp.hierarchy_level);
         const auto& moment_matrix = dynamic_cast<const MomentMatrix&>(mm_op_matrix);
 
-        // Sanitize symbols
-        const size_t symbol_count = inflationSystem.Symbols().size();
-        for (auto sym_id : emp.extensions) {
-            if (sym_id >= symbol_count) {
-                std::stringstream errSS;
-                errSS << "Symbol with ID \"" << sym_id << "\" was not found in matrix system's symbol table.";
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+
+        if (emp.extension_type == ExtendedMatrixParams::ExtensionType::Manual) {
+            // Sanitize manual symbols
+            const size_t symbol_count = inflationSystem.Symbols().size();
+            for (auto sym_id: emp.extensions) {
+                if (sym_id >= symbol_count) {
+                    std::stringstream errSS;
+                    errSS << "Symbol with ID \"" << sym_id << "\" was not found in matrix system's symbol table.";
+                    throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                }
             }
+        } else {
+            // Get automatic symbols
+            auto lock = inflationSystem.get_read_lock();
+            auto extension_set = inflationSystem.suggest_extensions(moment_matrix);
+            emp.extensions.clear();
+            emp.extensions.reserve(extension_set.size());
+            std::copy(extension_set.cbegin(), extension_set.cend(), std::back_inserter(emp.extensions));
+        }
+
+        // Verbose output
+        if (this->verbose) {
+            std::stringstream ss;
+            ss << "Extended " << moment_matrix.description() << " "
+                << (emp.extension_type == ExtendedMatrixParams::ExtensionType::Automatic ? "automatically" : "manually")
+                << " with " << emp.extensions.size() << (emp.extensions.size()!=1 ? " extensions" : " extension")
+                << ": ";
+            bool done_one = false;
+            for (auto ex : emp.extensions) {
+                if (done_one) {
+                    ss << ", ";
+                } else {
+                    done_one = true;
+                }
+                ss << "S" << ex;
+            }
+            ss << ".\n";
+            print_to_console(this->matlabEngine, ss.str());
         }
 
         // Now, call for extension

@@ -19,16 +19,18 @@ namespace Moment::Inflation {
             : MatrixSystem{std::move(contextIn)},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
-        this->extensionSuggester = std::make_unique<ExtensionSuggester>(this->Symbols(), *this->factors);
         this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);
+        this->extensionSuggester = std::make_unique<ExtensionSuggester>(this->inflationContext,
+                                                                        this->Symbols(), *this->factors);
     }
 
     InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class Context> contextIn)
             : MatrixSystem{std::move(contextIn)},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
-        this->extensionSuggester = std::make_unique<ExtensionSuggester>(this->Symbols(), *this->factors);
         this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);
+        this->extensionSuggester = std::make_unique<ExtensionSuggester>(this->inflationContext,
+                                                                        this->Symbols(), *this->factors);
     }
 
     InflationMatrixSystem::~InflationMatrixSystem() noexcept = default;

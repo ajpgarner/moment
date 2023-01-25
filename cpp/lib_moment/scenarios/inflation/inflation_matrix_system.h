@@ -27,9 +27,9 @@ namespace Moment::Inflation {
 
         std::unique_ptr<FactorTable> factors;
 
-        std::unique_ptr<ExtensionSuggester> extensionSuggester;
-
         std::unique_ptr<class CanonicalObservables> canonicalObservables;
+
+        std::unique_ptr<ExtensionSuggester> extensionSuggester;
 
         std::unique_ptr<InflationExplicitSymbolIndex> explicitSymbols;
 

@@ -18,17 +18,20 @@ namespace Moment {
 
 namespace Moment::Inflation {
 
+    class InflationContext;
     class FactorTable;
 
     class ExtensionSuggester {
     private:
+        const InflationContext& context;
         const SymbolTable& symbols;
         const FactorTable& factors;
 
         const size_t max_extensions = 100;
 
     public:
-        explicit ExtensionSuggester(const SymbolTable& symbols, const FactorTable& factors);
+        explicit ExtensionSuggester(const InflationContext& context,
+                                    const SymbolTable& symbols, const FactorTable& factors);
 
         [[nodiscard]] std::set<symbol_name_t> operator()(const MomentMatrix& matrix) const;
 

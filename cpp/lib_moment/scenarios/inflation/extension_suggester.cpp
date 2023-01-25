@@ -6,6 +6,7 @@
 #include "extension_suggester.h"
 
 #include "factor_table.h"
+#include "inflation_context.h"
 
 #include "matrix/symbolic_matrix.h"
 #include "matrix/moment_matrix.h"
@@ -14,8 +15,10 @@
 
 
 namespace Moment::Inflation {
-    ExtensionSuggester::ExtensionSuggester(const SymbolTable& symbols, const FactorTable& factors)
-        : symbols{symbols}, factors{factors} { }
+    ExtensionSuggester::ExtensionSuggester(const InflationContext& context,
+                                           const SymbolTable& symbols,
+                                           const FactorTable& factors)
+        : context{context}, symbols{symbols}, factors{factors} { }
 
     std::set<symbol_name_t> ExtensionSuggester::operator()(const MomentMatrix& matrix) const {
         assert(&matrix.Symbols == &this->symbols);
@@ -41,9 +44,11 @@ namespace Moment::Inflation {
 
             // 2. see what constraints introducing this extension could impose
             bool any_use = false;
-            for (const auto &prefix: matrix.Generators()) {
+            for (const auto &rawPrefix: matrix.Generators()) {
                 // Find prefix as factored object
+                auto prefix = context.canonical_moment(rawPrefix);
                 auto [source_sym_index, source_conj] = symbols.hash_to_index(prefix.hash());
+                assert(source_sym_index != std::numeric_limits<ptrdiff_t>::max());
                 const auto &source_factors = factors[source_sym_index].canonical.symbols;
 
                 // See if multiplying prefix by chosen factor yields a known symbol
@@ -53,9 +58,13 @@ namespace Moment::Inflation {
                     continue;
                 }
 
-                // If it does, then we check the symbol off as generated, and register suggested symbol as useful
-                necessary_factors.unset(maybe_symbol_index.value());
-                any_use = true;
+                // Do we need this one?
+                if (necessary_factors.test(maybe_symbol_index.value())) {
+                    // If it does, then we check the symbol off as generated, and register suggested symbol as useful
+                    necessary_factors.unset(maybe_symbol_index.value());
+                    any_use = true;
+                }
+
             }
 
             tested_factors.set(trial_factor_symbol);

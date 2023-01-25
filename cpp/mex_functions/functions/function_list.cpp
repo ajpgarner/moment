@@ -25,6 +25,7 @@
 #include "functions/release.h"
 #include "functions/rules.h"
 #include "functions/settings.h"
+#include "functions/suggest_factors.h"
 #include "functions/symbol_table.h"
 #include "functions/version.h"
 
@@ -98,6 +99,9 @@ namespace Moment::mex::functions {
             case functions::MEXEntryPointID::Settings:
                 the_function = std::make_unique<functions::Settings>(engine, storageManager);
                 break;
+            case functions::MEXEntryPointID::SuggestFactors:
+                the_function = std::make_unique<functions::SuggestFactors>(engine, storageManager);
+                break;
             case functions::MEXEntryPointID::SymbolTable:
                 the_function = std::make_unique<functions::SymbolTable>(engine, storageManager);
                 break;
@@ -128,13 +132,14 @@ namespace Moment::mex::functions {
         output.emplace(u"moment_matrix",   MEXEntryPointID::MomentMatrix);
         output.emplace(u"operator_matrix", MEXEntryPointID::OperatorMatrix);
         output.emplace(u"new_algebraic_matrix_system", MEXEntryPointID::NewAlgebraicMatrixSystem);
-        output.emplace(u"new_imported_matrix_system", MEXEntryPointID::NewImportedMatrixSystem);
+        output.emplace(u"new_imported_matrix_system",  MEXEntryPointID::NewImportedMatrixSystem);
         output.emplace(u"new_inflation_matrix_system", MEXEntryPointID::NewInflationMatrixSystem);
         output.emplace(u"new_locality_matrix_system",  MEXEntryPointID::NewLocalityMatrixSystem);
         output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
         output.emplace(u"release",         MEXEntryPointID::Release);
         output.emplace(u"rules",           MEXEntryPointID::Rules);
         output.emplace(u"settings",        MEXEntryPointID::Settings);
+        output.emplace(u"suggest_factors", MEXEntryPointID::SuggestFactors);
         output.emplace(u"symbol_table",    MEXEntryPointID::SymbolTable);
         output.emplace(u"version",         MEXEntryPointID::Version);
         return output;

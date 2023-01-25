@@ -15,6 +15,11 @@ namespace Moment::mex::functions {
         size_t hierarchy_level = 0;
         std::vector<symbol_name_t> extensions;
 
+        enum class ExtensionType {
+            Manual,
+            Automatic
+        } extension_type = ExtensionType::Manual;
+
         ExtendedMatrixParams(matlab::engine::MATLABEngine& matlabEngine, SortedInputs&& input)
             : OperatorMatrixParams(matlabEngine, std::move(input)) { }
 
@@ -28,6 +33,11 @@ namespace Moment::mex::functions {
         [[nodiscard]] size_t inputs_required() const noexcept final { return 3; }
 
         [[nodiscard]] std::string input_format() const final { return "[matrix system ID, level, extensions]"; }
+
+    private:
+        void read_extension_argument(matlab::engine::MATLABEngine& matlabEngine,
+                                     const std::string& paramName,
+                                     const matlab::data::Array& input_array);
     };
 
     class ExtendedMatrix
