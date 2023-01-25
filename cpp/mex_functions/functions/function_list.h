@@ -42,7 +42,7 @@ namespace Moment::mex::functions {
         Release,
         Rules,
         Settings,
-        SuggestFactors,
+        SuggestExtensions,
         SymbolTable,
         Version
     };

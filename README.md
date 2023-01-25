@@ -159,6 +159,10 @@ settings.
 
 `rules`: Returns a ruleset associated with an algebraic matrix system.
 
+`settings`: Adjust environmental variables for Moment.
+
+`suggest_extensions`: Returns list of symbols that could be used to extend a matrix to impose factorization constraints. 
+
 `symbol_table`: Returns total list of operators in a matrix system.
 
 `version`: Returns the version of this software.

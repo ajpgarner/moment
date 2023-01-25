@@ -50,7 +50,7 @@ matlab_add_mex(NAME moment_mex
             functions/release.cpp
             functions/rules.cpp
             functions/settings.cpp
-            functions/suggest_factors.cpp
+        functions/suggest_extensions.cpp
             functions/symbol_table.cpp
             functions/version.cpp
         OUTPUT_NAME mtk

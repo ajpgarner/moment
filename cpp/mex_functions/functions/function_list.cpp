@@ -25,7 +25,7 @@
 #include "functions/release.h"
 #include "functions/rules.h"
 #include "functions/settings.h"
-#include "functions/suggest_factors.h"
+#include "functions/suggest_extensions.h"
 #include "functions/symbol_table.h"
 #include "functions/version.h"
 
@@ -99,8 +99,8 @@ namespace Moment::mex::functions {
             case functions::MEXEntryPointID::Settings:
                 the_function = std::make_unique<functions::Settings>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::SuggestFactors:
-                the_function = std::make_unique<functions::SuggestFactors>(engine, storageManager);
+            case functions::MEXEntryPointID::SuggestExtensions:
+                the_function = std::make_unique<functions::SuggestExtensions>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::SymbolTable:
                 the_function = std::make_unique<functions::SymbolTable>(engine, storageManager);
@@ -139,7 +139,7 @@ namespace Moment::mex::functions {
         output.emplace(u"release",         MEXEntryPointID::Release);
         output.emplace(u"rules",           MEXEntryPointID::Rules);
         output.emplace(u"settings",        MEXEntryPointID::Settings);
-        output.emplace(u"suggest_factors", MEXEntryPointID::SuggestFactors);
+        output.emplace(u"suggest_extensions", MEXEntryPointID::SuggestExtensions);
         output.emplace(u"symbol_table",    MEXEntryPointID::SymbolTable);
         output.emplace(u"version",         MEXEntryPointID::Version);
         return output;
