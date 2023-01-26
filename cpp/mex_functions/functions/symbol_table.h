@@ -23,10 +23,11 @@ namespace Moment::mex::functions  {
         enum class OutputMode {
             AllSymbols,
             FromId,
-            SearchBySequence
+            SearchBySequence,
+            SearchBySequenceArray,
         } output_mode = OutputMode::AllSymbols;
 
-        std::vector<oper_name_t> sequence;
+        std::vector<std::vector<oper_name_t>> sequences;
 
     public:
         explicit SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
@@ -47,6 +48,9 @@ namespace Moment::mex::functions  {
 
     private:
         void find_and_return_symbol(IOArgumentRange output, const SymbolTableParams& input,
+                                    const MatrixSystem& system);
+
+        void find_and_return_symbol_array(IOArgumentRange output, const SymbolTableParams& input,
                                     const MatrixSystem& system);
     };
 

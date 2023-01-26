@@ -7,6 +7,10 @@ classdef Observable < handle
         OutcomeCount
     end
     
+    properties(GetAccess=public, SetAccess={?Inflation.Observable,?InflationScenario})
+        OperatorOffset = 0;
+    end
+    
     methods
         function obj = Observable(setting, id, outcomes)
             arguments

@@ -157,7 +157,7 @@ namespace Moment::mex::functions {
     NewInflationMatrixSystem::NewInflationMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
             : ParameterizedMexFunction(matlabEngine, storage, u"new_inflation_matrix_system") {
         this->min_outputs = 1;
-        this->max_outputs = 1;
+        this->max_outputs = 2;
 
         this->min_inputs = 0;
         this->max_inputs = 3;
@@ -183,6 +183,8 @@ namespace Moment::mex::functions {
 
         // Make new system around context
         std::unique_ptr<MatrixSystem> matrixSystemPtr = std::make_unique<InflationMatrixSystem>(std::move(contextPtr));
+        auto lock = matrixSystemPtr->get_read_lock();
+        const auto& context = dynamic_cast<const InflationMatrixSystem*>(matrixSystemPtr.get())->InflationContext();
 
         // Store context/system
         uint64_t storage_id = this->storageManager.MatrixSystems.store(std::move(matrixSystemPtr));
@@ -190,6 +192,17 @@ namespace Moment::mex::functions {
         // Return reference
         matlab::data::ArrayFactory factory;
         output[0] = factory.createScalar<uint64_t>(storage_id);
+
+        // Return list of canonical observable operator IDs
+        if (output.size() > 1) {
+            auto canonical_obs = factory.createArray<uint64_t>({1ULL, context.Observables().size()});
+            auto write_iter = canonical_obs.begin();
+            for (const auto& cObs : context.Observables()) {
+                *write_iter = cObs.operator_offset;
+                ++write_iter;
+            }
+            output[1] = std::move(canonical_obs);
+        }
     }
 
 }
