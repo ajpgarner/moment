@@ -5,6 +5,7 @@
  */
 #include "read_raw_symbol_matrix.h"
 
+#include "read_symbol_or_fail.h"
 #include "utilities/visitor.h"
 
 #include "mex.hpp"
@@ -37,6 +38,21 @@ namespace Moment::mex {
                         data.emplace_back(-sym_id, -1.0);
                     }
                 }
+                return std::make_unique<SquareMatrix<SymbolExpression>>(matrix_dimension, std::move(data));
+            }
+
+
+            return_type string(const matlab::data::StringArray &input_matrix) {
+                const size_t matrix_dimension = input_matrix.getDimensions()[0];
+                std::vector<SymbolExpression> data;
+                data.reserve(matrix_dimension * matrix_dimension);
+
+                for (size_t index_i = 0; index_i < matrix_dimension; ++index_i) {
+                    for (size_t index_j = 0; index_j < matrix_dimension; ++index_j) {
+                        data.push_back(read_symbol_or_fail(this->engine, input_matrix, index_i, index_j));
+                    }
+                }
+
                 return std::make_unique<SquareMatrix<SymbolExpression>>(matrix_dimension, std::move(data));
             }
         };

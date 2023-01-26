@@ -30,6 +30,8 @@ namespace Moment {
         std::set<symbol_name_t> real_entries;
         std::map<symbol_name_t, std::pair<ptrdiff_t, ptrdiff_t>> elem_keys;
 
+        /** True if matrix is complex Hermitian or real symmetric */
+        bool mat_is_herm = false;
 
     public:
         /** Construct symbolic properties from operator matrix */
@@ -44,6 +46,9 @@ namespace Moment {
         [[nodiscard]] constexpr const auto& IncludedSymbols() const noexcept {
             return this->included_symbols;
         }
+
+        /** Use symbol table to sort included symbols into real and imaginary. */
+        void rebuild_keys(const SymbolTable& table);
 
         /** Set of real symbols involved in this matrix */
         [[nodiscard]] constexpr const auto& RealSymbols() const noexcept {
@@ -83,7 +88,7 @@ namespace Moment {
          * True if the matrix has symmetry elements (real, or otherwise)
          */
         [[nodiscard]] bool is_hermitian() const noexcept {
-            return(this->basis_type == MatrixType::Symmetric) || (this->basis_type == MatrixType::Hermitian);
+            return this->mat_is_herm;
         }
 
         friend std::ostream& operator<<(std::ostream& os, const MatrixProperties& mp);

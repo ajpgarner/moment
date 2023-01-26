@@ -197,11 +197,14 @@ namespace Moment::mex {
 
 
                     const auto& symEntry = (*symbols)[raw_iter->id];
-                    const std::string symbol_str = symEntry.formatted_sequence();
+
+                    const std::string symbol_str = raw_iter->conjugated ? symEntry.formatted_sequence_conj()
+                                                                        : symEntry.formatted_sequence();
 
                     if (1.0 == raw_iter->factor) {
                         return {matlab::engine::convertUTF8StringToUTF16String(symbol_str)};
                     }
+
                     std::stringstream ss;
                     if (-1.0 == raw_iter->factor) {
                         ss << "-" << symbol_str;

@@ -32,5 +32,9 @@ namespace Moment {
 
     }
 
+    void SymbolicMatrix::renumerate_bases(const SymbolTable &symbols) {
+        this->mat_prop->rebuild_keys(symbols);
+    }
+
     SymbolicMatrix::~SymbolicMatrix() noexcept = default;
 }

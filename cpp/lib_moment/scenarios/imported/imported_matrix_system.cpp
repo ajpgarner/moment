@@ -151,6 +151,12 @@ namespace Moment::Imported {
             throw errors::bad_import_matrix{zse.what()};
         }
 
+        // Reconstruct existing bases
+        for (size_t index = 0; index < this->size(); ++index) {
+            auto& old_mat = this->get(index);
+            old_mat.renumerate_bases(this->Symbols());
+        }
+
         // Construct symbolic matrix
         return this->push_back(std::make_unique<SymbolicMatrix>(this->Context(), this->Symbols(), std::move(input)));
     }

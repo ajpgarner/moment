@@ -116,5 +116,11 @@ namespace Moment {
             assert(this->mat_prop);
             return *this->mat_prop;
         }
+
+        /**
+         * Force renumbering of matrix bases keys
+         */
+        void renumerate_bases(const SymbolTable& symbols);
+
     };
 }

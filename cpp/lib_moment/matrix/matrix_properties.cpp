@@ -15,9 +15,16 @@
 namespace Moment {
     MatrixProperties::MatrixProperties(const SymbolicMatrix& matrix, const SymbolTable& table,
                                        std::set<symbol_name_t>&& included)
-            : dimension{matrix.Dimension()}, included_symbols{std::move(included)}  {
+            : dimension{matrix.Dimension()}, included_symbols{std::move(included)}, mat_is_herm{matrix.IsHermitian()} {
 
-        // Sort symbols into real only, and complex
+        this->rebuild_keys(table);
+    }
+
+    void MatrixProperties::rebuild_keys(const SymbolTable& table) {
+        this->real_entries.clear();
+        this->imaginary_entries.clear();
+        this->elem_keys.clear();
+
         for (const auto& id : this->included_symbols) {
             const auto& unique_symbol = table[id];
             assert(id == unique_symbol.Id());
@@ -29,19 +36,17 @@ namespace Moment {
                 this->imaginary_entries.insert(id);
             }
 
-            // Copy key from symbol table into local table
             this->elem_keys.insert(this->elem_keys.end(), std::make_pair(id, unique_symbol.basis_key()));
         }
 
-        // Matrix type depends on whether there are imaginary symbols
+        // Matrix type depends on whether there are imaginary symbols or not
         const bool has_imaginary = !this->imaginary_entries.empty();
         if (has_imaginary) {
-            this->basis_type = matrix.IsHermitian() ? MatrixType::Hermitian : MatrixType::Complex;
+            this->basis_type = this->mat_is_herm ? MatrixType::Hermitian : MatrixType::Complex;
         } else {
-            this->basis_type = matrix.IsHermitian() ? MatrixType::Symmetric : MatrixType::Real;
+            this->basis_type = this->mat_is_herm ? MatrixType::Symmetric : MatrixType::Real;
         }
     }
-
 
     MatrixProperties::MatrixProperties(size_t dim, MatrixType type, const SymbolSet &entries)
         :  dimension{dim}, basis_type{type} {

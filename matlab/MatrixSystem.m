@@ -45,7 +45,17 @@ classdef MatrixSystem < handle
             val = MomentMatrix(obj, level);
         end
         
-        function val = UpdateSymbolTable(obj)
+        function val = UpdateSymbolTable(obj, reset)
+            if nargin < 2
+                reset = false;
+            else
+                reset = logical(reset);
+            end
+            
+            if reset
+                obj.SymbolTable = struct.empty;
+            end
+            
             has_new_symbols = false;
             if isempty(obj.SymbolTable)
                 obj.SymbolTable = mtk('symbol_table', obj.RefId);

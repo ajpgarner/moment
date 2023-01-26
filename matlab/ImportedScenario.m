@@ -78,7 +78,8 @@ classdef ImportedScenario < Scenario
 
             val = OperatorMatrix(obj.System, index, dimension);
             
-            obj.System.UpdateSymbolTable();            
+            % Update symbols, with forced reset
+            obj.System.UpdateSymbolTable(true);            
         end
         
         function val = ImportSymmetricMatrix(obj, input)
