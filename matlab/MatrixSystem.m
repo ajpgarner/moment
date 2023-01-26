@@ -33,7 +33,10 @@ classdef MatrixSystem < handle
             obj.UpdateSymbolTable();
                         
         end
-        
+    end
+    
+    %% Matrices
+    methods    
         function val = MakeMomentMatrix(obj, level)
             arguments
                 obj (1,1) MatrixSystem

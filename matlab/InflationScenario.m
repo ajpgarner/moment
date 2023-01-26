@@ -95,7 +95,25 @@ classdef InflationScenario < Scenario
         end
         
     end
- 
+    
+    %% Unique matrix types
+    methods
+        function val = MakeExtendedMomentMatrix(obj, level, extensions)
+            % Sanitize input
+            level = uint64(level);
+            if nargin <= 3
+                extensions = 'auto';
+            else
+                extensions = uint64(extensions);
+            end
+            % Call MTK to create
+            [index, dimension] = ...
+               mtk('extended_matrix', obj.System.RefId, level, extensions);
+               
+            % Make wrapper object            
+            val = OperatorMatrix(obj.System, index, dimension);            
+        end
+    end
         
     %% Overloaded accessor: MatrixSystem
     methods
@@ -112,7 +130,7 @@ classdef InflationScenario < Scenario
             val = obj.matrix_system;
         end     
     end
-    
+        
     %% Causal network / inflation accessors and information
     methods
        function val = get.OutcomesPerObservable(obj)

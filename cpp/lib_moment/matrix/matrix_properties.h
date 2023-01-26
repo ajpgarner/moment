@@ -8,6 +8,7 @@
 #include "integer_types.h"
 #include "matrix_type.h"
 
+#include <iosfwd>
 #include <map>
 #include <memory>
 #include <set>
@@ -84,6 +85,8 @@ namespace Moment {
         [[nodiscard]] bool is_hermitian() const noexcept {
             return(this->basis_type == MatrixType::Symmetric) || (this->basis_type == MatrixType::Hermitian);
         }
+
+        friend std::ostream& operator<<(std::ostream& os, const MatrixProperties& mp);
 
         friend class OperatorMatrix;
     };

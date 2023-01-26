@@ -129,10 +129,16 @@ namespace Moment {
         if (has_real) {
             blank.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
             this->real_symbols.push_back(blank.id);
+        } else {
+            blank.antihermitian = true;
+            blank.real_index = -1;
         }
         if (has_imaginary) {
             blank.img_index = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
             this->imaginary_symbols.push_back(blank.id);
+        } else {
+            blank.hermitian = true;
+            blank.img_index = -1;
         }
         this->unique_sequences.emplace_back(std::move(blank));
 
@@ -157,10 +163,16 @@ namespace Moment {
             if (has_real) {
                 blank.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
                 this->real_symbols.push_back(blank.id);
+            } else {
+                blank.real_index = -1;
+                blank.antihermitian = true;
             }
             if (has_imaginary) {
                 blank.img_index = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
                 this->imaginary_symbols.push_back(blank.id);
+            } else {
+                blank.img_index = -1;
+                blank.hermitian = true;
             }
             this->unique_sequences.emplace_back(std::move(blank));
        }
@@ -274,37 +286,6 @@ namespace Moment {
         }
     }
 
-    std::ostream& operator<<(std::ostream& os, const UniqueSequence& seq) {
-        os << "#" << seq.id << ":\t";
-        os << seq.sequence() << ":\t";
-
-        if (seq.real_index>=0) {
-            if (seq.img_index>=0) {
-                os << "Complex";
-            } else {
-                os << "Real";
-            }
-        } else if (seq.img_index>=0) {
-            os << "Imaginary";
-        } else {
-            os << "Zero";
-        }
-
-        if (seq.hermitian) {
-            os << ", Hermitian";
-        }
-        if (seq.real_index>=0) {
-            os << ", Re#=" << seq.real_index;
-        }
-        if (seq.img_index>=0) {
-            os << ", Im#=" << seq.img_index;
-        }
-        os << ", hash=" << seq.hash();
-        if (seq.hash_conj() != seq.hash()) {
-            os << "/" << seq.hash_conj();
-        }
-        return os;
-    }
 
     std::string UniqueSequence::formatted_sequence() const {
         if (this->opSeq.has_value()) {
@@ -329,6 +310,51 @@ namespace Moment {
             ss << "*";
         }
         return ss.str();
+    }
+
+    std::ostream& operator<<(std::ostream& os, const UniqueSequence& seq) {
+        const bool has_fwd = seq.opSeq.has_value();
+        const bool has_rev = seq.opSeq.has_value();
+
+        os << "#" << seq.id << ":\t";
+        if (has_fwd) {
+            os << seq.opSeq.value();
+        } else {
+            os << "[No sequence]";
+        }
+        os << ":\t";
+
+        if (seq.real_index>=0) {
+            if (seq.img_index>=0) {
+                os << "Complex";
+            } else {
+                os << "Real";
+            }
+        } else if (seq.img_index>=0) {
+            os << "Imaginary";
+        } else {
+            os << "Zero";
+        }
+
+        if (seq.hermitian) {
+            os << ", Hermitian";
+        }
+        if (seq.real_index>=0) {
+            os << ", Re#=" << seq.real_index;
+        }
+        if (seq.img_index>=0) {
+            os << ", Im#=" << seq.img_index;
+        }
+
+        if (has_fwd) {
+            os << ", hash=" << seq.hash();
+            if (seq.hash_conj() != seq.hash()) {
+                os << "/" << seq.hash_conj();
+            }
+        } else {
+            os << ", unhashable";
+        }
+        return os;
     }
 
     std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {

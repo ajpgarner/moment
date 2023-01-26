@@ -104,11 +104,8 @@ namespace Moment::Inflation {
                     extended_matrix[old_dimension+j][old_dimension+i] = SymbolExpression{offdiag_fac_id};
                 }
             }
-
             return std::make_unique<SquareMatrix<SymbolExpression>>(std::move(extended_matrix));
         }
-
-
     }
 
     ExtendedMatrix::ExtendedMatrix(SymbolTable& symbols, Inflation::FactorTable& factors,

@@ -19,7 +19,7 @@ namespace Moment {
                 throw std::runtime_error{"Symbol pointer passed to SymbolicMatrix was nullptr."};
             }
 
-            // Find included symbols (but always include 0 & 1)
+            // Find included symbols
             std::set<symbol_name_t> included_symbols;
             const size_t max_symbol_id = symbols.size();
             for (const auto& x : *sym_exp_matrix) {

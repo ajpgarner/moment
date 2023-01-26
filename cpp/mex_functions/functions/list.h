@@ -18,6 +18,10 @@ namespace Moment::mex::functions  {
 
         uint64_t matrix_system_key = 0;
 
+        bool export_symbols = false;
+
+        bool export_matrix_properties = false;
+
     public:
         explicit ListParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
 

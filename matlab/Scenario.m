@@ -46,6 +46,13 @@ classdef Scenario < handle
         end
     end
     
+    %% Accessors: SymbolTable
+    methods
+        function val = Symbols(obj)
+            val = struct2table(obj.System.SymbolTable);
+        end
+    end
+    
     %% Accessors: Operator matrices
     methods
          function mm_out = MakeMomentMatrix(obj, depth)
