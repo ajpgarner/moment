@@ -5,8 +5,6 @@
  */
 #include "algebraic_context.h"
 
-#include "symbolic/symbol_set.h"
-
 #include <algorithm>
 #include <sstream>
 

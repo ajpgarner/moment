@@ -18,7 +18,6 @@ namespace Moment {
 
     class SymbolicMatrix;
     class SymbolTable;
-    class SymbolSet;
 
     /** Information about the particular symbol matrix (relative to the collection) */
     class MatrixProperties {
@@ -38,9 +37,6 @@ namespace Moment {
         MatrixProperties(const SymbolicMatrix& matrix,
                          const SymbolTable& table,
                          std::set<symbol_name_t>&& subset);
-
-        /** Construct symbolic properties manually (e.g. loaded via matlab array) */
-        MatrixProperties(size_t dim, MatrixType type, const SymbolSet& entries);
 
         /** Set of all symbols involved in this matrix */
         [[nodiscard]] constexpr const auto& IncludedSymbols() const noexcept {

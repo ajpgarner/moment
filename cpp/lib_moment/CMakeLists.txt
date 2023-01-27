@@ -46,7 +46,6 @@ add_library(lib_moment
         symbolic/substitution_list.cpp
         symbolic/symbol.cpp
         symbolic/symbol_expression.cpp
-        symbolic/symbol_set.cpp
         symbolic/symbol_table.cpp
         utilities/alphabetic_namer.cpp
         utilities/persistent_storage.cpp
