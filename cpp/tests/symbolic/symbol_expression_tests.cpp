@@ -54,6 +54,50 @@ namespace Moment::Tests {
         EXPECT_EQ(symbol.as_string(), minus_one_star);
     }
 
+    TEST(Symbolic_SymbolExpression, Equality) {
+        SymbolExpression symbolA{1, 2.0};
+        SymbolExpression symbolA_again{1, 2.0};
+        SymbolExpression symbolA_prime{1, 2.0, true};
+        SymbolExpression symbol2A{1, 4.0};
+        SymbolExpression symbolB{2, 2.0};
+
+        EXPECT_TRUE(symbolA == symbolA_again);
+        EXPECT_FALSE(symbolA == symbolA_prime);
+        EXPECT_FALSE(symbolA == symbol2A);
+        EXPECT_FALSE(symbolA == symbolB);
+    }
+
+    TEST(Symbolic_SymbolExpression, Equality_Zero) {
+        SymbolExpression zero{0};
+        SymbolExpression also_zero{0, 2.0};
+        SymbolExpression not_zero{1};
+
+        EXPECT_TRUE(zero == also_zero);
+        EXPECT_FALSE(zero == not_zero);
+    }
+
+    TEST(Symbolic_SymbolExpression, Inequality) {
+        SymbolExpression symbolA{1, 2.0};
+        SymbolExpression symbolA_again{1, 2.0};
+        SymbolExpression symbolA_prime{1, 2.0, true};
+        SymbolExpression symbol2A{1, 4.0};
+        SymbolExpression symbolB{2, 2.0};
+
+        EXPECT_FALSE(symbolA != symbolA_again);
+        EXPECT_TRUE(symbolA != symbolA_prime);
+        EXPECT_TRUE(symbolA != symbol2A);
+        EXPECT_TRUE(symbolA != symbolB);
+    }
+
+    TEST(Symbolic_SymbolExpression, Inequality_Zero) {
+        SymbolExpression zero{0};
+        SymbolExpression also_zero{0, 2.0};
+        SymbolExpression not_zero{1};
+
+        EXPECT_FALSE(zero != also_zero);
+        EXPECT_TRUE(zero != not_zero);
+    }
+
     TEST(Symbolic_SymbolExpression, BadStr_Empty) {
         std::string empty{};
         EXPECT_THROW(SymbolExpression{empty}, SymbolExpression::SymbolParseException);

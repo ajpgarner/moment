@@ -93,7 +93,45 @@ classdef InflationScenario < Scenario
                                     obj.OutcomesPerObservable, ...
                                     obj.ObservablesFromEachSource);            
         end
+    end
+    
+    
+    methods
+        function val = ObservablesToOperators(obj, array)
+            % Translate observable IDs into operator IDs
+            arguments
+                obj (1,1) InflationScenario
+                array (:,:) uint64
+            end
+            the_shape = size(array);
+            array_row = array(:);            
+            val = uint64(zeros(1, length(array_row)));
+            
+            for index = 1:length(array_row)
+                probe_index = array_row(index);
+                if probe_index > length(obj.Observables)
+                    error("Observable out of bounds.");
+                end
+                val(index) = obj.Observables(probe_index).OperatorOffset;
+            end
+                        
+            val = reshape(val, the_shape);            
+        end
         
+        function val = ObservablesToSymbols(obj, input_list)
+            % Translate observable IDs into symbol IDs
+            arguments
+                obj (1,1) InflationScenario
+                input_list (1,:) cell
+            end
+            for index = 1:length(input_list)
+                input_list{index} = ...
+                    obj.ObservablesToOperators(input_list{index});
+            end
+            
+            result = mtk('symbol_table', obj.System.RefId, input_list);
+            val = [result.symbol];
+        end
     end
     
     %% Unique matrix types

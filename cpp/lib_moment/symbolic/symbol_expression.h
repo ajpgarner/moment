@@ -87,14 +87,15 @@ namespace Moment {
 
         [[nodiscard]] bool operator==(const SymbolExpression& rhs) const {
             return (this->id == rhs.id)
-                   && (this->factor == rhs.factor)
-                   && ((this->id == 0) || (this->conjugated == rhs.conjugated));
+                   && ((this->id == 0) || ((this->conjugated == rhs.conjugated)
+                                            && (this->factor == rhs.factor)));
+
         }
 
         [[nodiscard]] bool operator!=(const SymbolExpression&rhs) const {
             return (this->id != rhs.id)
-                   || (this->factor != rhs.factor)
-                   || ((this->id != 0) && (this->conjugated != rhs.conjugated));
+                   || ((this->id != 0) && ((this->conjugated != rhs.conjugated)
+                                            || (this->factor != rhs.factor)));
         }
 
         /**

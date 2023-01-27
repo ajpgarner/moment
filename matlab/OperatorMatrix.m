@@ -93,10 +93,21 @@ classdef OperatorMatrix < handle
     
     %% Apply values
     methods        
-        function val = ApplyValues(obj, value_list)
-            arguments
-                obj (1,1) OperatorMatrix
-                value_list (1,:) cell
+        function val = ApplyValues(obj, arg_A, arg_B)
+            if nargin == 2 && isa(arg_A, 'cell')
+                value_list = arg_A;
+            elseif nargin == 3
+                if length(arg_A) ~= length(arg_B)
+                    error('Symbol list must match value list in length.')
+                end
+                value_list = cell(1, length(arg_A));
+                for index = 1:length(arg_A)
+                    value_list{index} = {uint64(arg_A(index)),...
+                                         double(arg_B(index))};
+                end
+            else
+                error(['ApplyValues takes either a cell array of pairs,'...
+                       ' or an array of symbol ids and an array of values.']);
             end
             
             val = OperatorMatrix(obj.MatrixSystem);

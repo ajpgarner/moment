@@ -17,7 +17,7 @@ namespace Moment {
         // Populate computed values
         for (auto [symbol_id, value] : this->raw_sub_data) {
             this->sub_data.emplace_hint(this->sub_data.end(),
-                                        std::make_pair(symbol_id, SymbolExpression{1, value, false}));
+                                        std::make_pair(symbol_id, SymbolExpression{value != 0 ? 1 : 0, value, false}));
 
         }
     }
@@ -61,7 +61,14 @@ namespace Moment {
 
             // All matches, replace by scalar
             if (matched.count() == factor.canonical.symbols.size()) {
-                this->sub_data.insert(std::make_pair(factor.id, SymbolExpression{1, new_weight}));
+                this->sub_data.insert(std::make_pair(factor.id,
+                                                     SymbolExpression{new_weight != 0.0 ? 1 : 0, new_weight}));
+                continue;
+            }
+
+            // Weight is zero, replace by scalar zero
+            if (new_weight == 0) {
+                this->sub_data.insert(std::make_pair(factor.id, SymbolExpression{0, 0.0}));
                 continue;
             }
 
@@ -98,8 +105,10 @@ namespace Moment {
 
         const auto& sub_symbol = found_sub_iter->second;
 
+
         // Otherwise, apply substitution
-        return SymbolExpression{sub_symbol.id, i.factor * sub_symbol.factor, sub_symbol.conjugated != i.conjugated};
+        const bool conjugated = (sub_symbol.id != 0) && (sub_symbol.conjugated != i.conjugated);
+        return SymbolExpression{sub_symbol.id, i.factor * sub_symbol.factor, conjugated};
     }
 
 
