@@ -299,7 +299,7 @@ namespace Moment {
 
     std::string UniqueSequence::formatted_sequence_conj() const {
         if (this->conjSeq.has_value()) {
-            return this->opSeq->formatted_string();
+            return this->conjSeq->formatted_string();
         } else if (this->hermitian && this->opSeq.has_value()) {
             return this->opSeq->formatted_string();
         }

@@ -1,4 +1,6 @@
-classdef NewMatrixSystemTest < MTKTestBase
+classdef NewLocalityMatrixSystemTest < MTKTestBase
+    %NEWLOCALITYMATRIXSYSTEMTESTS Unit tests for new_locality_matrix_system
+    % mex function
     
     methods (Test, TestTags={'Error'})
         function Error_NoInputs(testCase)

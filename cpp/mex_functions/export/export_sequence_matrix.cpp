@@ -203,6 +203,8 @@ namespace Moment::mex {
 
                     if (1.0 == raw_iter->factor) {
                         return {matlab::engine::convertUTF8StringToUTF16String(symbol_str)};
+                    } else if (0.0 == raw_iter->factor) {
+                        return {u"0"};
                     }
 
                     std::stringstream ss;
@@ -282,10 +284,15 @@ namespace Moment::mex {
                         ssErr << "[MISSING:" << id << "]";
                         return {matlab::engine::convertUTF8StringToUTF16String(ssErr.str())};
                     }
+                    if (raw_iter->id == 0) {
+                        return {u"0"};
+                    }
+                    
                     const auto& facEntry = (*factors)[raw_iter->id];
                     if (1.0 == raw_iter->factor) {
                         return {matlab::engine::convertUTF8StringToUTF16String(facEntry.sequence_string())};
                     }
+
                     std::stringstream ss;
                     if (-1.0 == raw_iter->factor) {
                         ss << "-" << facEntry.sequence_string();
