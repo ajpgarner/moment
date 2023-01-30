@@ -54,6 +54,7 @@ namespace Moment::mex::functions {
         } else {
             this->output_type = OutputType::All;
         }
+        this->structured = this->flags.contains(u"structured");
         this->export_symbols = this->flags.contains(u"symbols");
         this->export_matrix_properties = this->flags.contains(u"details");
     }
@@ -64,8 +65,11 @@ namespace Moment::mex::functions {
         this->max_inputs = 1;
         this->min_outputs = 0;
         this->max_outputs = 1;
+        this->flag_names.insert(u"structured");
         this->flag_names.insert(u"symbols");
         this->flag_names.insert(u"details");
+        this->mutex_params.add_mutex(u"structured", u"symbols");
+        this->mutex_params.add_mutex(u"structured", u"details");
     }
 
 
@@ -81,14 +85,46 @@ namespace Moment::mex::functions {
         bool output_to_console = (output.size() == 0);
 
         // If verbose flag, override export flags
+        bool generate_string = !input.structured;
         if (this->verbose) {
             input.export_symbols = true;
             input.export_matrix_properties = true;
+            generate_string = true;
+            // In verbose mode, always output string
+            if (input.structured) {
+                output_to_console = true;
+            }
         }
 
+        // Make string info, if required
+        std::string list_as_str;
+        if (generate_string) {
+            list_as_str = generateListString(input);
+        }
+
+        if (output_to_console) {
+            list_as_str.append("\n");
+            print_to_console(this->matlabEngine, list_as_str);
+        }
+
+        if (output.size() > 0) {
+            matlab::data::ArrayFactory factory;
+            if (input.structured) {
+                if (input.output_type == ListParams::OutputType::OneSystem) {
+                    output[0] = generateOneSystemStruct(input);
+                } else {
+                    output[0] = generateListStruct(input);
+                }
+            } else {
+                output[0] = factory.createScalar(list_as_str);
+            }
+        }
+    }
+
+    std::string List::generateListString(const ListParams &input) const {
         std::stringstream ss;
         if (input.output_type == ListParams::OutputType::All) {
-            auto [id, msPtr] = this->storageManager.MatrixSystems.first();
+            auto [id, msPtr] = storageManager.MatrixSystems.first();
             bool done_one = false;
             if ((id != 0xffffffff) && (msPtr != nullptr)) {
                 do {
@@ -99,7 +135,7 @@ namespace Moment::mex::functions {
                     }
                     output_ms_info(ss, id, *msPtr, input.export_symbols, input.export_matrix_properties);
                     // Get next:
-                    auto [next_id, nextPtr] = this->storageManager.MatrixSystems.next(id);
+                    auto [next_id, nextPtr] = storageManager.MatrixSystems.next(id);
                     id = next_id;
                     msPtr = nextPtr;
                 } while ((id != 0xffffffff) && (msPtr != nullptr));
@@ -108,17 +144,62 @@ namespace Moment::mex::functions {
             }
         } else {
             auto id = PersistentStorage<MatrixSystem>::get_index(input.matrix_system_key);
-            auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
+            auto msPtr = storageManager.MatrixSystems.get(input.matrix_system_key);
             output_ms_info(ss, id, *msPtr, input.export_symbols, input.export_matrix_properties);
         }
+        return ss.str();
+    }
 
+    matlab::data::StructArray List::generateListStruct(const ListParams &input) const {
+        matlab::data::ArrayFactory factory;
+        struct temp_system_info_t {
+            uint64_t id;
+            std::string desc;
+            uint64_t matrices;
+            uint64_t symbols;
+            temp_system_info_t(uint64_t id, std::string desc, uint64_t matrices, uint64_t symbols)
+                : id{id}, desc{std::move(desc)}, matrices{matrices}, symbols{symbols} { }
+        };
+        std::vector<temp_system_info_t> data;
 
-        if (output_to_console) {
-            ss << "\n";
-            print_to_console(this->matlabEngine, ss.str());
-        } else {
-            matlab::data::ArrayFactory factory;
-            output[0] = factory.createScalar(ss.str());
+        auto [id, msPtr] = storageManager.MatrixSystems.first();
+        while ((id != 0xffffffff) && (msPtr != nullptr)) {
+            auto lock = msPtr->get_read_lock();
+
+            data.emplace_back(storageManager.MatrixSystems.sign_index(id), msPtr->system_type_name(),
+                              msPtr->size(), msPtr->Symbols().size());
+
+            lock.unlock();
+            // Get next:
+            auto [next_id, nextPtr] = storageManager.MatrixSystems.next(id);
+            id = next_id;
+            msPtr = nextPtr;
         }
+
+        matlab::data::ArrayDimensions dimensions{1, data.size()};
+        auto output = factory.createStructArray(std::move(dimensions), {"RefId", "Description", "Matrices", "Symbols"});
+        size_t out_index = 0;
+        for (const auto& datum : data) {
+            output[out_index]["RefId"] = factory.createScalar(datum.id);
+            output[out_index]["Description"] = factory.createScalar(datum.desc);
+            output[out_index]["Matrices"] = factory.createScalar(datum.matrices);
+            output[out_index]["Symbols"] = factory.createScalar(datum.symbols);
+            ++out_index;
+        }
+        return output;
+    }
+
+    matlab::data::StructArray List::generateOneSystemStruct(const ListParams &input) const {
+        auto msPtr = storageManager.MatrixSystems.get(input.matrix_system_key);
+        assert(msPtr);
+        auto lock = msPtr->get_read_lock();
+
+        matlab::data::ArrayFactory factory;
+        auto output = factory.createStructArray({1, 1}, {"RefId", "Description", "Matrices", "Symbols"});
+        output[0]["RefId"] = factory.createScalar(input.matrix_system_key);
+        output[0]["Description"] = factory.createScalar(msPtr->system_type_name());
+        output[0]["Matrices"] = factory.createScalar(msPtr->size());
+        output[0]["Symbols"] = factory.createScalar(msPtr->Symbols().size());
+        return output;
     }
 }

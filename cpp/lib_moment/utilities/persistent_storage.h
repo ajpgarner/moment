@@ -153,6 +153,14 @@ namespace Moment {
         };
 
         /**
+         * Sign an index with the bank signature
+         * @param itemIndex The item index (key without signature)
+         * @return Signed index
+         */
+        [[nodiscard]] constexpr uint64_t sign_index(uint32_t itemKey) const noexcept {
+            return (static_cast<uint64_t>(signature) << 32) | static_cast<uint64_t>(itemKey);
+        };
+        /**
          * Return pointer to object stored with key.
          * Shared-ownership pointer emitted, to be thread-safe at pointer level with release(itemKey) on another thread.
          * @param itemKey The item key.
@@ -184,7 +192,7 @@ namespace Moment {
         uint64_t store(std::unique_ptr<class_t> obj) {
             const std::unique_lock<std::shared_mutex> lock(theMutex);
 
-            const uint64_t key = (static_cast<uint64_t>(signature) << 32) + static_cast<uint64_t>(nextID);
+            const uint64_t key = this->sign_index(nextID);
             this->objects.emplace_hint(this->objects.end(), nextID, std::move(obj));
 
             ++nextID;

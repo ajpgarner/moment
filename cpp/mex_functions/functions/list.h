@@ -18,6 +18,8 @@ namespace Moment::mex::functions  {
 
         uint64_t matrix_system_key = 0;
 
+        bool structured = false;
+
         bool export_symbols = false;
 
         bool export_matrix_properties = false;
@@ -36,6 +38,12 @@ namespace Moment::mex::functions  {
 
         void extra_input_checks(ListParams &input) const override;
 
+    private:
+        std::string generateListString(const ListParams &input) const;
+
+        matlab::data::StructArray generateListStruct(const ListParams &input) const;
+
+        matlab::data::StructArray generateOneSystemStruct(const ListParams &input) const;
     };
 
 }
