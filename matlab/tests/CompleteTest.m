@@ -61,6 +61,47 @@ classdef CompleteTest < MTKTestBase
             end
             testCase.verifyError(@() no_in(), 'mtk:mutex_param');
         end
+        
+        
+        function Error_BadRule1(testCase)
+            function no_in()
+                ref_id = mtk('complete', 'operators', 1, ...
+                    {{[1 1], [2]}});
+            end
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
+        end
+        
+        function Error_BadRule2(testCase)
+            function no_in()
+                ref_id = mtk('complete', ...
+                    {{[1], [1 1]}});
+            end
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
+        end
+        
+        function Error_BadRule3(testCase)
+            function no_in()
+                ref_id = mtk('complete', ...
+                    {{[1 1], [1 2]}});
+            end
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
+        end
+        
+        function Error_BadRule4(testCase)
+            function no_in()
+                ref_id = mtk('complete', ...
+                    {{[1 1]}});
+            end
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
+        end
+        
+        function Error_BadRule5(testCase)
+            function no_in()
+                ref_id = mtk('complete', ...
+                    {{[1 1], ["Not a number"]}});
+            end
+            testCase.verifyError(@() no_in(), 'mtk:could_not_convert');
+        end
     end
     
 end

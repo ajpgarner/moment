@@ -23,9 +23,17 @@ namespace Moment::mex::functions {
             std::vector<Algebraic::MonomialSubstitutionRule> rules;
             ShortlexHasher hasher{input.total_operators};
             rules.reserve(input.rules.size());
+            size_t rule_index = 0;
             for (auto& ir : input.rules) {
-                rules.emplace_back(HashedSequence{sequence_storage_t(ir.LHS.begin(), ir.LHS.end()), hasher},
-                                   HashedSequence{sequence_storage_t(ir.RHS.begin(), ir.RHS.end()), hasher}, ir.negated);
+                try {
+                    rules.emplace_back(HashedSequence{sequence_storage_t(ir.LHS.begin(), ir.LHS.end()), hasher},
+                                       HashedSequence{sequence_storage_t(ir.RHS.begin(), ir.RHS.end()), hasher}, ir.negated);
+                } catch (Moment::Algebraic::errors::invalid_rule& ire) {
+                    std::stringstream errSS;
+                    errSS << "Error with rule #" + std::to_string(rule_index+1) + ": " << ire.what();
+                    throw_error(matlabEngine, errors::bad_param, errSS.str());
+                }
+                ++rule_index;
             }
 
             return std::make_unique<Algebraic::AlgebraicContext>(input.total_operators,
