@@ -1,5 +1,5 @@
 classdef CompleteTest < MTKTestBase
-    %COMPLETETEST Unit tests for complete function
+    %COMPLETETEST Unit tests for complete mex function
     
     properties(Constant)
     end
