@@ -103,8 +103,13 @@ namespace Moment::mex {
                         std::stringstream ss{utf8str};
                         value_type read_buf;
                         ss >> read_buf;
+                        if (ss.fail()) {
+                            std::stringstream errSS;
+                            errSS << "Could not interpret string\"" << utf8str << "\" as integer.";
+                            throw errors::unreadable_vector{errors::could_not_convert, errSS.str()};
+                        }
                         output.emplace_back(read_buf);
-                    } catch (errors::unreadable_scalar &urs) {
+                    } catch (errors::unreadable_vector &urs) {
                         throw; // rethrow
                     } catch (std::exception &e) {
                         throw errors::unreadable_vector{errors::could_not_convert,

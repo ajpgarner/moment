@@ -106,6 +106,11 @@ namespace Moment::mex {
                     std::stringstream ss{utf8str};
                     return_type output{};
                     ss >> output;
+                    if (ss.fail()) {
+                        std::stringstream errSS;
+                        errSS << "Could not interpret string\"" << utf8str << "\" as integer.";
+                        throw errors::unreadable_scalar{errors::could_not_convert, errSS.str()};
+                    }
                     return output;
                 } catch (errors::unreadable_scalar& urs) {
                     throw; // rethrow

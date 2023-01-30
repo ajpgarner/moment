@@ -2,6 +2,19 @@ classdef NewLocalityMatrixSystemTest < MTKTestBase
     %NEWLOCALITYMATRIXSYSTEMTESTS Unit tests for new_locality_matrix_system
     % mex function
     
+    methods (Test)
+        function CHSH(testCase)
+            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            testCase.verifyGreaterThan(ref_id, 0);
+            
+            mm = mtk('moment_matrix', ref_id, 1);
+            sys_info = mtk('list', 'structured', ref_id);
+            testCase.verifyEqual(sys_info.RefId, ref_id);
+            testCase.verifyEqual(sys_info.Matrices, uint64(1));
+            testCase.verifyEqual(sys_info.Symbols, uint64(12));
+        end
+    end
+        
     methods (Test, TestTags={'Error'})
         function Error_NoInputs(testCase)
             function no_in()             
