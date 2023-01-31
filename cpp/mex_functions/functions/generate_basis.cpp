@@ -39,12 +39,6 @@ namespace Moment::mex::functions {
         this->min_outputs = 1;
         this->max_outputs = 3;
 
-        this->flag_names.emplace(u"symmetric");
-        this->flag_names.emplace(u"hermitian");
-        this->flag_names.emplace(u"real");
-        this->flag_names.emplace(u"complex");
-        this->mutex_params.add_mutex({u"symmetric", u"hermitian", u"real", u"complex"});
-
         this->flag_names.emplace(u"sparse");
         this->flag_names.emplace(u"dense");
         this->mutex_params.add_mutex(u"dense", u"sparse");
@@ -62,13 +56,6 @@ namespace Moment::mex::functions {
         this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
                                                                   this->inputs[0], 0);
         this->matrix_index = read_positive_integer<uint64_t>(matlabEngine, "Matrix index", this->inputs[1], 0);
-
-        // Override basis type if necessary
-        if (this->flags.contains(u"symmetric")) {
-            this->basis_type = MatrixType::Symmetric;
-        } else if (this->flags.contains(u"hermitian")) {
-            this->basis_type = MatrixType::Hermitian;
-        }
 
         // Choose basis output type
         if (this->flags.contains(u"cell")) {
@@ -94,7 +81,15 @@ namespace Moment::mex::functions {
 
 
     void GenerateBasis::operator()(IOArgumentRange output, GenerateBasisParams &input) {
-        auto matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
+        std::shared_ptr<MatrixSystem> matrixSystemPtr;
+        try {
+            matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
+        } catch (const persistent_object_error& poe) {
+            std::stringstream errSS;
+            errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.matrix_system_key << std::dec;
+            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+        }
+
         assert(matrixSystemPtr); // ^-- should throw if not found
         const MatrixSystem& matrixSystem = *matrixSystemPtr;
 
@@ -103,33 +98,14 @@ namespace Moment::mex::functions {
         const auto& operatorMatrix = getMatrixOrThrow(this->matlabEngine, matrixSystem, input.matrix_index);
         const auto& matrix_properties = operatorMatrix.SMP();
 
-        if (input.basis_type == MatrixType::Unknown) {
-            input.basis_type = matrix_properties.Type();
-        } else if (!this->quiet) {
-            // If overrode to symmetric, but matrix might have imaginary elements, give warning:
-            if ((MatrixType::Symmetric == input.basis_type)
-                && (MatrixType::Hermitian == matrix_properties.Type())) {
-                print_to_console(this->matlabEngine,
-                                 std::string("WARNING: Symmetric basis output was requested, ")
-                                            + " but some elements of the moment matrix correspond to potentially non-Hermitian operator "
-                                            + " sequences (i.e. may evaluate to complex values, whose imaginary parts will be ignored).\n");
-            }
-        }
+        const auto basis_type = matrix_properties.Type();
+        const bool complex_output = (basis_type == MatrixType::Hermitian) || (basis_type == MatrixType::Complex);
 
-        // Complex output requires two outputs...
-        if (input.complex_output() && (output.size() < 2)) {
-            throw_error(this->matlabEngine, errors::too_few_outputs,
-                        std::string("When generating a Hermitian basis, two outputs are required (one for ")
-                        + "symmetric basis elements associated with the real components, one for the "
-                        + "anti-symmetric imaginary elements associated with the imaginary components.");
-        }
-
-        // Symmetric output cannot have three outputs...
-        if ((!input.complex_output()) && (output.size() > 2)) {
-            throw_error(this->matlabEngine, errors::too_many_outputs,
-                        std::to_string(output.size())
-                        + " outputs supplied for symmetric basis output, but only"
-                        + " two will be generated (basis, and key).");
+        // Complex output requires two outputs... give warning
+        if (!this->quiet && complex_output && (output.size() < 2)) {
+            print_to_console(this->matlabEngine,
+                 "Matrix is potentially complex, but the imaginary element output has not been bound."
+            );
         }
 
         // Do generation
@@ -137,13 +113,13 @@ namespace Moment::mex::functions {
             if (input.sparse_output) {
                 auto [sym, anti_sym] = export_sparse_monolith_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
-                if (input.complex_output()) {
+                if (output.size() >= 2) {
                     output[1] = std::move(anti_sym);
                 }
             } else {
                 auto [sym, anti_sym] = export_dense_monolith_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
-                if (input.complex_output()) {
+                if (output.size() >= 2) {
                     output[1] = std::move(anti_sym);
                 }
             }
@@ -151,22 +127,21 @@ namespace Moment::mex::functions {
             if (input.sparse_output) {
                 auto [sym, anti_sym] = export_sparse_cell_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
-                if (input.complex_output()) {
+                if (output.size() >= 2) {
                     output[1] = std::move(anti_sym);
                 }
             } else {
                 auto [sym, anti_sym] = export_dense_cell_basis(this->matlabEngine, operatorMatrix);
                 output[0] = std::move(sym);
-                if (input.complex_output()) {
+                if (output.size() >= 2) {
                     output[1] = std::move(anti_sym);
                 }
             }
         }
 
         // If enough outputs supplied, also provide basis key
-        ptrdiff_t key_output = (input.complex_output()) ? 2 : 1;
-        if (output.size() > key_output) {
-            output[key_output] = export_basis_key(this->matlabEngine, matrix_properties);
+        if (output.size() >= 3) {
+            output[2] = export_basis_key(this->matlabEngine, matrix_properties);
         }
 
     }

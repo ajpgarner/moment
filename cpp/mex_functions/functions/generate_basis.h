@@ -13,9 +13,6 @@ namespace Moment::mex::functions {
 
     struct GenerateBasisParams : public SortedInputs {
     public:
-        /** What sort of basis should we try to generate */
-        MatrixType basis_type = MatrixType::Hermitian;
-
         /** True, if output should be a sparse matrix */
         bool sparse_output = false;
 
@@ -31,9 +28,6 @@ namespace Moment::mex::functions {
     public:
         explicit GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
 
-        [[nodiscard]] bool complex_output() const noexcept {
-            return (this->basis_type == MatrixType::Hermitian) || (this->basis_type == MatrixType::Complex);
-        }
     };
 
 class GenerateBasis : public ParameterizedMexFunction<GenerateBasisParams, MEXEntryPointID::GenerateBasis> {

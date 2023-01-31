@@ -141,7 +141,7 @@ namespace Moment::mex {
             const bool symmetric = this->imp.is_hermitian();
 
             for (size_t index_i = 0; index_i < this->imp.Dimension(); ++index_i) {
-                for (size_t index_j = index_i; index_j < this->imp.Dimension(); ++index_j) {
+                for (size_t index_j = symmetric ? index_i : 0; index_j < this->imp.Dimension(); ++index_j) {
                     const auto& elem = matrix.SymbolMatrix[index_i][index_j];
                     auto [re_id, im_id] = symbols[elem.id].basis_key();
 
