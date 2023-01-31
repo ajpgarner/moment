@@ -182,8 +182,11 @@ namespace Moment {
 
         /**
          * Add symbols to table, if not already present, and adjust real/imaginary zeros of those already present
+         * @param can_be_real Bit set of symbols with real parts
+         * @param can_be_imaginary Bit set of symbols with imaginary parts
+         * @return True, if existing symbol realness was modified
          */
-        void merge_in(const DynamicBitset<uint64_t>& can_be_real, const DynamicBitset<uint64_t>& can_be_imaginary);
+        bool merge_in(const DynamicBitset<uint64_t>& can_be_real, const DynamicBitset<uint64_t>& can_be_imaginary);
 
         /**
          * Add empty symbol to table.

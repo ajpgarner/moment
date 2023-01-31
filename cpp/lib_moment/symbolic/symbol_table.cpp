@@ -179,14 +179,16 @@ namespace Moment {
         return first_id;
     }
 
-    void SymbolTable::merge_in(const DynamicBitset<uint64_t>& can_be_real,
+    bool SymbolTable::merge_in(const DynamicBitset<uint64_t>& can_be_real,
                                const DynamicBitset<uint64_t>& can_be_imaginary) {
         assert(can_be_real.bit_size == can_be_imaginary.bit_size);
+        bool changes = false;
 
         // Ensure enough elements exist
+        const size_t initial_elems = this->unique_sequences.size();
         const size_t elems = can_be_real.bit_size;
-        if (elems > this->unique_sequences.size()) {
-            this->create(elems - this->unique_sequences.size());
+        if (elems > initial_elems) {
+            this->create(elems - initial_elems);
         }
 
         // Go through symbols, flagging where they must be real / imaginary
@@ -201,12 +203,18 @@ namespace Moment {
             const bool sym_has_imaginary = can_be_imaginary.test(symbol.id);
             if (sym_has_real) {
                 if (!sym_has_imaginary) {
+                    if (!symbol.hermitian) {
+                        changes = true;
+                    }
                     symbol.hermitian = true;
                     if (symbol.antihermitian) {
                         throw errors::zero_symbol{symbol.id};
                     }
                 }
             } else if (sym_has_imaginary) {
+                if (!symbol.antihermitian) {
+                    changes = true;
+                }
                 symbol.antihermitian = true;
                 if (symbol.hermitian) {
                     throw errors::zero_symbol{symbol.id};
@@ -218,6 +226,8 @@ namespace Moment {
 
         // With new real/imaginary information, re-count the bases
         this->renumerate_bases();
+
+        return changes;
     }
 
 

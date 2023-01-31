@@ -25,17 +25,19 @@ namespace Moment::mex {
 
             template<std::convertible_to<symbol_name_t> data_t>
             return_type dense(const matlab::data::TypedArray<data_t> &input_matrix) {
-                size_t matrix_dimension = input_matrix.getDimensions()[0];
+                const size_t matrix_dimension = input_matrix.getDimensions()[0];
                 std::vector<SymbolExpression> data;
                 data.reserve(matrix_dimension * matrix_dimension);
 
                 // Read through matrix, into vector
-                for (auto x: input_matrix) {
-                    auto sym_id = static_cast<symbol_name_t>(x);
-                    if (sym_id >= 0) {
-                        data.emplace_back(sym_id);
-                    } else {
-                        data.emplace_back(-sym_id, -1.0);
+                for (size_t i = 0; i < matrix_dimension; ++i) {
+                    for (size_t j = 0; j < matrix_dimension; ++j) {
+                        auto sym_id = static_cast<symbol_name_t>(input_matrix[i][j]);
+                        if (sym_id >= 0) {
+                            data.emplace_back(sym_id);
+                        } else {
+                            data.emplace_back(-sym_id, -1.0);
+                        }
                     }
                 }
                 return std::make_unique<SquareMatrix<SymbolExpression>>(matrix_dimension, std::move(data));

@@ -75,7 +75,7 @@ classdef NewLocalityMatrixSystemTest < MTKTestBase
                               'measurements', "ab", ...
                               'outcomes', 3);
             end
-            testCase.verifyError(@() bad_in(), 'mtk:bad_param');           
+            testCase.verifyError(@() bad_in(), 'mtk:could_not_convert');           
          end
         
          function Error_MissingOperators1(testCase)
@@ -134,7 +134,7 @@ classdef NewLocalityMatrixSystemTest < MTKTestBase
                               'parties', 2, ...
                               'outcomes', "cd");
             end
-            testCase.verifyError(@() bad_in(), 'mtk:bad_param');
+            testCase.verifyError(@() bad_in(), 'mtk:could_not_convert');
          end
                     
          function Error_BadInputsMix(testCase)

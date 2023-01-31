@@ -16,9 +16,10 @@ namespace Moment::mex::functions {
          : SortedInputs(std::move(rawInput)) {
         if (this->flags.contains(u"real")) {
             this->purely_real = true;
-        } else {
+        } else if (this->flags.contains(u"complex")) {
             this->purely_real = false;
         }
+
     }
 
     NewImportedMatrixSystem::NewImportedMatrixSystem(matlab::engine::MATLABEngine &matlabEngine,
@@ -26,6 +27,8 @@ namespace Moment::mex::functions {
          : ParameterizedMexFunction(matlabEngine, storage,  u"new_imported_matrix_system")
     {
         this->flag_names.insert(u"real");
+        this->flag_names.insert(u"complex");
+        this->mutex_params.add_mutex(u"real", u"complex");
         this->min_inputs = this->max_inputs = 0;
         this->min_outputs = this->max_outputs = 1;
     }

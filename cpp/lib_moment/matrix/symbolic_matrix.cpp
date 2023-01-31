@@ -33,6 +33,19 @@ namespace Moment {
     }
 
     void SymbolicMatrix::renumerate_bases(const SymbolTable &symbols) {
+        for (auto& symbol : *this->sym_exp_matrix) {
+            // Make conjugation status canonical:~
+            if (symbol.conjugated) {
+                const auto& ref_symbol = symbols[symbol.id];
+                if (ref_symbol.is_hermitian()) {
+                    symbol.conjugated = false;
+                } else if (ref_symbol.is_antihermitian()) {
+                    symbol.conjugated = false;
+                    symbol.factor *= -1.0;
+                }
+            }
+        }
+
         this->mat_prop->rebuild_keys(symbols);
     }
 

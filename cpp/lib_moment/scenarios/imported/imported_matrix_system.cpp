@@ -145,19 +145,22 @@ namespace Moment::Imported {
         }
 
         // Do merge, renumbering bases as appropriate, and complaining if a symbol becomes zero.
+        bool changed_symbols = false;
         try {
-            this->Symbols().merge_in(can_be_real, can_be_imaginary);
+            changed_symbols = this->Symbols().merge_in(can_be_real, can_be_imaginary);
         } catch (const Moment::errors::zero_symbol& zse) {
             throw errors::bad_import_matrix{zse.what()};
         }
 
         // Reconstruct existing bases
-        for (size_t index = 0; index < this->size(); ++index) {
-            auto& old_mat = this->get(index);
-            old_mat.renumerate_bases(this->Symbols());
+        if (changed_symbols) {
+            for (size_t index = 0; index < this->size(); ++index) {
+                auto &old_mat = this->get(index);
+                old_mat.renumerate_bases(this->Symbols());
+            }
         }
 
-        // Construct symbolic matrix
+        // Construct new symbolic matrix
         return this->push_back(std::make_unique<SymbolicMatrix>(this->Context(), this->Symbols(), std::move(input)));
     }
 }
