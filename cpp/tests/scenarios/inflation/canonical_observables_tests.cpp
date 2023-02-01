@@ -61,6 +61,9 @@ namespace Moment::Tests {
         const auto& co = ims.CanonicalObservables();
         auto [mm, id] = ims.create_moment_matrix(1);
         ASSERT_EQ(co.size(), 2); // e, A.
+
+        EXPECT_EQ(co[0].outcomes_per_observable, std::vector<size_t>{});
+        EXPECT_EQ(co[1].outcomes_per_observable, std::vector<size_t>{2});
     }
 
     TEST(Scenarios_Inflation_CanonicalObservables, Singleton_Cloned) {
@@ -71,6 +74,10 @@ namespace Moment::Tests {
         auto [mm, id] = ims.create_moment_matrix(1);
         EXPECT_EQ(ic.observable_variant_count(), 2); // a0, a1)
         ASSERT_EQ(co.size(), 3); // e, A0, A0A1
+
+        EXPECT_EQ(co[0].outcomes_per_observable, (std::vector<size_t>{}));
+        EXPECT_EQ(co[1].outcomes_per_observable, (std::vector<size_t>{2}));
+        EXPECT_EQ(co[2].outcomes_per_observable, (std::vector<size_t>{2, 2}));
     }
 
 

@@ -50,10 +50,14 @@ namespace Moment::Inflation {
         /** Total number of associated outputs (i.e. operators + implicit operators) */
         size_t outcomes;
 
+        /** Number of outcomes for each associated measurement */
+        std::vector<size_t> outcomes_per_observable;
+
         CanonicalObservable(size_t index, std::vector<OVIndex> index_list, std::vector<size_t> flat_index_list,
-                            bool projective, size_t the_hash, size_t ops, size_t outcomes)
+                            bool projective, size_t the_hash, size_t ops, size_t outcomes, std::vector<size_t> opo)
                 : index{index}, indices(std::move(index_list)), flattened_indices(std::move(flat_index_list)),
-                  projective{projective}, hash{the_hash}, operators{ops}, outcomes{outcomes} { }
+                  projective{projective}, hash{the_hash}, operators{ops}, outcomes{outcomes},
+                  outcomes_per_observable(std::move(opo)) { }
 
         /** String length of the canonical observable */
         [[nodiscard]] constexpr auto size() const noexcept { return this->indices.size(); }

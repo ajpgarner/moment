@@ -32,6 +32,7 @@ namespace Moment::mex::functions {
         ImportMatrix,
         List,
         LocalizingMatrix,
+        MakeExplicit,
         MomentMatrix,
         NewAlgebraicMatrixSystem,
         NewImportedMatrixSystem,

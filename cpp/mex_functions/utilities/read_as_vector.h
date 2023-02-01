@@ -44,6 +44,10 @@ namespace Moment::mex {
                                                               const matlab::data::Array& input);
     [[nodiscard]] std::vector<uint64_t> read_as_uint64_vector(matlab::engine::MATLABEngine& engine,
                                                               const matlab::data::Array& input);
+    [[nodiscard]] std::vector<float> read_as_float_vector(matlab::engine::MATLABEngine& engine,
+                                                              const matlab::data::Array& input);
+    [[nodiscard]] std::vector<double> read_as_double_vector(matlab::engine::MATLABEngine& engine,
+                                                              const matlab::data::Array& input);
 
 
     template<std::integral int_t = uint64_t>
@@ -86,6 +90,20 @@ namespace Moment::mex {
         return read_as_uint64_vector(engine, input);
     }
 
+    template<std::floating_point float_t>
+    inline std::vector<float_t> read_as_vector(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+
+    template<>
+    inline std::vector<float> read_as_vector<float>(matlab::engine::MATLABEngine& engine,
+                                                    const matlab::data::Array& input) {
+        return read_as_float_vector(engine, input);
+    };
+
+    template<>
+    inline std::vector<double>  read_as_vector<double>(matlab::engine::MATLABEngine& engine,
+                                                       const matlab::data::Array& input) {
+        return read_as_double_vector(engine, input);
+    };
 
     /**
      * True if the supplied type can be interpreted as a vector integer.

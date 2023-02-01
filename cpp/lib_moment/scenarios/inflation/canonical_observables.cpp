@@ -19,7 +19,8 @@ namespace Moment::Inflation {
         : context{context}, max_level{0} {
 
         // One at level 0 (ID)
-        this->canonical_observables.emplace_back(0, std::vector<OVIndex>{}, std::vector<size_t>{}, true, 0, 1, 1);
+        this->canonical_observables.emplace_back(0, std::vector<OVIndex>{}, std::vector<size_t>{},
+                                                 true, 0, 1, 1, std::vector<size_t>{});
         this->hash_aliases.emplace(std::make_pair(0ULL, 0ULL));
         this->distinct_observables_per_level.emplace_back(1);
     }
@@ -113,6 +114,7 @@ namespace Moment::Inflation {
             size_t out_count = 1;
 
             std::vector<size_t> flat_indices{};
+            std::vector<size_t> outcomes_per_observable;
             flat_indices.reserve(canonical_indices.size());
             for (const auto& cv : canonical_indices) {
                 const auto& observable = context.Observables()[cv.observable];
@@ -121,9 +123,11 @@ namespace Moment::Inflation {
                 if (observable.projective()) {
                     op_count *= observable.operators();
                     out_count *= observable.outcomes;
+                    outcomes_per_observable.emplace_back(observable.outcomes);
                 } else {
                     op_count *= observable.operators();
                     out_count = 0;
+                    outcomes_per_observable.emplace_back(0);
                 }
             }
 
@@ -135,11 +139,13 @@ namespace Moment::Inflation {
                                                     return observable.projective();
                                                 });
 
+
+
             // new hash
             this->canonical_observables.emplace_back(this->canonical_observables.size(),
                                                      std::move(canonical_indices), std::move(flat_indices),
                                                      projective, canonical_hash,
-                                                     op_count, out_count);
+                                                     op_count, out_count, std::move(outcomes_per_observable));
 
 
             the_index = this->canonical_observables.size() - 1;

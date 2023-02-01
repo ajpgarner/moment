@@ -46,6 +46,28 @@ namespace Moment::Inflation {
 
         [[nodiscard]] std::span<const PMODefinition> Block(size_t index) const noexcept;
 
+        using ImplicitSymbols::implicit_to_explicit;
+
+        /**
+         * Convert a full probability distribution over supplied (joint) observables to a list of explicit symbol
+         * assignments imposing the same distribution.
+         * @param mmtIndices The indices of the observable/variants to use
+         * @param input_values The full probability distribution including implicit symbols
+         * @return Vector of pairs, first being symbol ID, second being the calculated value, defining input explicitly.
+         */
+        std::map<symbol_name_t, double>
+        implicit_to_explicit(std::span<const OVIndex> mmtIndices, std::span<const double> input_values) const;
+
+        /**
+         * Convert a full probability distribution over supplied (joint) observables to a list of explicit symbol
+         * assignments imposing the same distribution.
+         * @param canonicalObservable The observable to use
+         * @param input_values The full probability distribution including implicit symbols
+         * @return Vector of pairs, first being symbol ID, second being the calculated value, defining input explicitly.
+         */
+        std::map<symbol_name_t, double>
+        implicit_to_explicit(const CanonicalObservable& canonicalObservable, std::span<const double> input_values) const;
+
 
     private:
         size_t generateFromCanonicalObservable(const CanonicalObservable& canonicalObservable);

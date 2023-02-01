@@ -75,7 +75,7 @@ namespace Moment::mex::functions {
 
     void GenerateBasis::extra_input_checks(GenerateBasisParams &input) const {
         if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a moment matrix.");
+            throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a matrix system.");
         }
     }
 

@@ -12,6 +12,8 @@
 #include "scenarios/outcome_index_iterator.h"
 #include "utilities/combinations.h"
 
+#include <sstream>
+
 namespace Moment::Inflation {
     InflationImplicitSymbols::InflationImplicitSymbols(const InflationMatrixSystem& ms)
         : ImplicitSymbols{ms.Symbols(), ms.ExplicitSymbolTable(), ms.MaxRealSequenceLength()},
@@ -106,8 +108,7 @@ namespace Moment::Inflation {
 
     size_t InflationImplicitSymbols::generateMoreLevels(const CanonicalObservable& canonicalObservable) {
         const size_t initial_index = this->tableData.size();
-        std::vector<size_t> outcomes_per_measurement
-            = this->context.outcomes_per_observable(canonicalObservable.indices);
+        const std::vector<size_t>& outcomes_per_measurement = canonicalObservable.outcomes_per_observable;
 
         OutcomeIndexIterator outcomeIter{outcomes_per_measurement};
 
@@ -200,4 +201,46 @@ namespace Moment::Inflation {
 
         return {this->tableData.begin() + initial, block_size};
     }
+
+    std::map<symbol_name_t, double>
+    InflationImplicitSymbols::implicit_to_explicit(const std::span<const OVIndex> mmtIndices,
+                                                   const std::span<const double> input_values) const {
+        try {
+            const auto &canonicalObservable = this->canonicalObservables.canonical(mmtIndices);
+            return this->implicit_to_explicit(canonicalObservable, input_values);
+        } catch (const errors::bad_ov_string& bad_ov_e) {
+            std::stringstream errSS;
+            errSS << "Could not convert indices to canonical observable: " << bad_ov_e.what();
+            throw Moment::errors::implicit_to_explicit_error{errSS.str()};
+        }
+    }
+
+    std::map<symbol_name_t, double>
+    InflationImplicitSymbols::implicit_to_explicit(const CanonicalObservable& canonicalObservable,
+                                                   const std::span<const double> input_values) const {
+        // Make sure input probability distribution has enough values
+        if (canonicalObservable.outcomes != input_values.size()) {
+            std::stringstream errSS;
+            errSS << "Selected observable has "
+                  << canonicalObservable.outcomes << ((canonicalObservable.outcomes != 1) ? " outcomes" : " outcome")
+                  << " but "
+                  << input_values.size() << ((input_values.size() != 1) ? " outcomes were" : " outcome was")
+                  << "provided.";
+            std::string errString = errSS.str();
+            throw Moment::errors::implicit_to_explicit_error{errSS.str()};
+        }
+
+        // Check index is valid, then get data
+        if (canonicalObservable.index > this->indices.size()) {
+            throw Moment::errors::implicit_to_explicit_error{
+                "Requested measurement does not correspond to symbols defined in matrix system."
+            };
+        }
+        auto implicit_symbols = this->Block(canonicalObservable.index);
+
+        return ImplicitSymbols::implicit_to_explicit(canonicalObservable.outcomes_per_observable, implicit_symbols,
+                                                     input_values);
+    }
+
+
 }

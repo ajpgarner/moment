@@ -13,6 +13,7 @@ add_library(lib_moment
         matrix/symbolic_matrix.cpp
         scenarios/context.cpp
         scenarios/explicit_symbols.cpp
+        scenarios/implicit_outcome_iterator.cpp
         scenarios/implicit_symbols.cpp
         scenarios/operator_sequence.cpp
         scenarios/outcome_index_iterator.cpp

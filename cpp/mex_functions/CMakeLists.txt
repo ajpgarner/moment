@@ -17,6 +17,7 @@ matlab_add_mex(NAME moment_mex
             export/export_matrix_basis_masks.cpp
             export/export_monomial_rules.cpp
             export/export_sequence_matrix.cpp
+            export/export_substitution_list.cpp
             export/export_symbol_matrix.cpp
             export/export_symbol_table.cpp
             import/read_monomial_rules.cpp
@@ -40,6 +41,7 @@ matlab_add_mex(NAME moment_mex
             functions/generate_basis.cpp
             functions/list.cpp
             functions/localizing_matrix.cpp
+            functions/make_explicit.cpp
             functions/moment_matrix.cpp
             functions/new_algebraic_matrix_system.cpp
             functions/new_imported_matrix_system.cpp
@@ -50,7 +52,7 @@ matlab_add_mex(NAME moment_mex
             functions/release.cpp
             functions/rules.cpp
             functions/settings.cpp
-        functions/suggest_extensions.cpp
+            functions/suggest_extensions.cpp
             functions/symbol_table.cpp
             functions/version.cpp
         OUTPUT_NAME mtk

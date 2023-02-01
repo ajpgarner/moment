@@ -6,6 +6,8 @@
 #pragma once
 
 #include "utilities/multi_dimensional_index_iterator.h"
+
+#include <span>
 #include <vector>
 
 namespace Moment {
@@ -23,8 +25,13 @@ namespace Moment {
         size_t num_implicit = 0;
         size_t operNumber = 0;
 
+
     public:
         explicit OutcomeIndexIterator(std::vector<size_t> outcomes_per_measurement, bool end = false);
+
+        explicit OutcomeIndexIterator(std::span<const size_t> outcomes_per_measurement, bool end = false)
+            : OutcomeIndexIterator(std::vector<size_t>(outcomes_per_measurement.begin(),
+                                                       outcomes_per_measurement.end()), end) { }
 
         OutcomeIndexIterator& operator++() noexcept;
 
@@ -85,6 +92,10 @@ namespace Moment {
 
         [[nodiscard]] bool operator!=(const OutcomeIndexIterator& rhs) const noexcept {
             return this->indexIter != rhs.indexIter;
+        }
+
+        [[nodiscard]] inline size_t global() const noexcept {
+            return this->indexIter.global();
         }
 
     private:

@@ -27,21 +27,25 @@ namespace Moment::Tests {
 
         ASSERT_EQ((*mdiIter).size(), 1);
         EXPECT_EQ((*mdiIter)[0], 0);
+        EXPECT_EQ(mdiIter.global(), 0);
 
         ++mdiIter;
         ASSERT_FALSE(mdiIter == mdiIterEnd);
         ASSERT_EQ((*mdiIter).size(), 1);
         EXPECT_EQ((*mdiIter)[0], 1);
+        EXPECT_EQ(mdiIter.global(), 1);
 
         ++mdiIter;
         ASSERT_FALSE(mdiIter == mdiIterEnd);
         ASSERT_EQ((*mdiIter).size(), 1);
         EXPECT_EQ((*mdiIter)[0], 2);
+        EXPECT_EQ(mdiIter.global(), 2);
 
         ++mdiIter;
         ASSERT_FALSE(mdiIter == mdiIterEnd);
         ASSERT_EQ((*mdiIter).size(), 1);
         EXPECT_EQ((*mdiIter)[0], 3);
+        EXPECT_EQ(mdiIter.global(), 3);
 
         ++mdiIter;
         EXPECT_TRUE(mdiIter == mdiIterEnd);
@@ -61,6 +65,7 @@ namespace Moment::Tests {
         EXPECT_EQ(mdiIter[0], 0);
         EXPECT_EQ((*mdiIter)[1], 0);
         EXPECT_EQ(mdiIter[1], 0);
+        EXPECT_EQ(mdiIter.global(), 0);
 
         ++mdiIter;
         ASSERT_FALSE(mdiIter == mdiIterEnd);
@@ -69,6 +74,7 @@ namespace Moment::Tests {
         EXPECT_EQ(mdiIter[0], 0);
         EXPECT_EQ((*mdiIter)[1], 1);
         EXPECT_EQ(mdiIter[1], 1);
+        EXPECT_EQ(mdiIter.global(), 1);
 
         ++mdiIter;
         ASSERT_FALSE(mdiIter == mdiIterEnd);
@@ -77,6 +83,7 @@ namespace Moment::Tests {
         EXPECT_EQ(mdiIter[0], 1);
         EXPECT_EQ((*mdiIter)[1], 0);
         EXPECT_EQ(mdiIter[1], 0);
+        EXPECT_EQ(mdiIter.global(), 2);
 
         ++mdiIter;
         ASSERT_FALSE(mdiIter == mdiIterEnd);
@@ -85,6 +92,7 @@ namespace Moment::Tests {
         EXPECT_EQ(mdiIter[0], 1);
         EXPECT_EQ((*mdiIter)[1], 1);
         EXPECT_EQ(mdiIter[1], 1);
+        EXPECT_EQ(mdiIter.global(), 3);
 
         ++mdiIter;
         ASSERT_FALSE(mdiIter == mdiIterEnd);
@@ -93,6 +101,7 @@ namespace Moment::Tests {
         EXPECT_EQ(mdiIter[0], 2);
         EXPECT_EQ((*mdiIter)[1], 0);
         EXPECT_EQ(mdiIter[1], 0);
+        EXPECT_EQ(mdiIter.global(), 4);
 
         ++mdiIter;
         ASSERT_FALSE(mdiIter == mdiIterEnd);
@@ -101,6 +110,7 @@ namespace Moment::Tests {
         EXPECT_EQ(mdiIter[0], 2);
         EXPECT_EQ((*mdiIter)[1], 1);
         EXPECT_EQ(mdiIter[1], 1);
+        EXPECT_EQ(mdiIter.global(), 5);
 
         ++mdiIter;
         EXPECT_TRUE(mdiIter == mdiIterEnd);

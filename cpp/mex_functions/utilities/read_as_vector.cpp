@@ -36,21 +36,16 @@ namespace Moment::mex {
     }
 
     namespace {
-        template<typename value_type>
-        class IntVectorReaderVisitor {
 
+
+        template<std::integral value_type>
+        class IntVectorReaderVisitor {
         public:
             using return_type = std::vector<value_type>;
 
         public:
             explicit IntVectorReaderVisitor() = default;
 
-            /**
-              * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
-              * @tparam datatype The data array type
-              * @param data The data array
-              * @return A vector of non-matching elements, in canonical form.
-              */
             template<std::convertible_to<value_type> datatype>
             return_type dense(const matlab::data::TypedArray<datatype> &data) {
                 if (data.isEmpty()) {
@@ -125,10 +120,84 @@ namespace Moment::mex {
         static_assert(concepts::VisitorHasRealDense<IntVectorReaderVisitor<uint64_t>>);
         static_assert(concepts::VisitorHasString<IntVectorReaderVisitor<uint64_t>>);
 
-        template<typename value_type>
+
+        template<std::floating_point value_type>
+        class FloatVectorReaderVisitor {
+        public:
+            using return_type = std::vector<value_type>;
+
+        public:
+            explicit FloatVectorReaderVisitor() = default;
+
+            template<std::convertible_to<value_type> datatype>
+            return_type dense(const matlab::data::TypedArray<datatype> &data) {
+                if (data.isEmpty()) {
+                    return return_type{};
+                }
+
+                return_type output;
+                output.reserve(data.getNumberOfElements());
+
+                for (const auto& val : data) {
+                    output.emplace_back(static_cast<value_type>(val));
+                }
+
+                return output;
+            }
+
+            return_type string(const matlab::data::StringArray &data) {
+
+                if (data.isEmpty()) {
+                    return return_type{};
+                }
+
+                return_type output;
+                output.reserve(data.getNumberOfElements());
+
+                for (const auto& str : data) {
+
+                    if (!str.has_value()) {
+                        throw errors::unreadable_scalar{errors::empty_array, "Unexpected empty string."};
+                    }
+
+                    try {
+                        std::string utf8str = matlab::engine::convertUTF16StringToUTF8String(*str);
+
+                        std::stringstream ss{utf8str};
+                        value_type read_buf;
+                        ss >> read_buf;
+                        if (ss.fail()) {
+                            std::stringstream errSS;
+                            errSS << "Could not interpret string\"" << utf8str << "\" as floating point.";
+                            throw errors::unreadable_vector{errors::could_not_convert, errSS.str()};
+                        }
+                        output.emplace_back(read_buf);
+                    } catch (errors::unreadable_vector &urs) {
+                        throw; // rethrow
+                    } catch (std::exception &e) {
+                        throw errors::unreadable_vector{errors::could_not_convert,
+                                                        "Could not convert string to floating point."};
+                    }
+                }
+                return output;
+            }
+        };
+
+        static_assert(concepts::VisitorHasRealDense<FloatVectorReaderVisitor<float>>);
+        static_assert(concepts::VisitorHasString<FloatVectorReaderVisitor<float>>);
+        static_assert(concepts::VisitorHasRealDense<FloatVectorReaderVisitor<double>>);
+        static_assert(concepts::VisitorHasString<FloatVectorReaderVisitor<double>>);
+
+        template<std::integral value_type>
         std::vector<value_type> do_read_as_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
             return DispatchVisitor(engine, input, IntVectorReaderVisitor<value_type>{});
         }
+
+        template<std::floating_point value_type>
+        std::vector<value_type> do_read_as_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+            return DispatchVisitor(engine, input, FloatVectorReaderVisitor<value_type>{});
+        }
+
     }
 
     std::vector<int16_t>
@@ -159,6 +228,16 @@ namespace Moment::mex {
     std::vector<uint64_t>
     read_as_uint64_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
         return do_read_as_vector<uint64_t>(engine, input);
+    }
+
+    std::vector<float>
+    read_as_float_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return do_read_as_vector<float>(engine, input);
+    }
+
+    std::vector<double>
+    read_as_double_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return do_read_as_vector<double>(engine, input);
     }
 
     bool castable_to_vector_int(const matlab::data::Array &input) {

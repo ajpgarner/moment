@@ -13,6 +13,7 @@
 
 #include <cassert>
 
+#include <map>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -23,9 +24,15 @@ namespace Moment {
     class ExplicitSymbolIndex;
 
     namespace errors {
-        class bad_implicit_symbol : std::logic_error {
+        class bad_implicit_symbol : public std::logic_error {
         public:
             explicit bad_implicit_symbol(const std::string& what) : std::logic_error(what) { }
+        };
+
+        /** Errors when attempting to convert probability distribution with implicit symbols to explicit values */
+        class implicit_to_explicit_error : public std::runtime_error {
+        public:
+            explicit implicit_to_explicit_error(const std::string& what) : std::runtime_error(what) { }
         };
     }
 
@@ -74,5 +81,16 @@ namespace Moment {
             std::vector<size_t> v{mmtIndex};
             return this->get(std::span(v.begin(), v.size()));
         }
+
+        /**
+       * Convert a full probability distribution to a list of explicit symbol assignments for the same distribution.
+       * @param symbol_definitions A block containing the implicit symbol definitions
+       * @param input_values The full probability distribution including implicit symbols (size must match above.)
+       * @return Vector of pairs, first being symbol ID, second being the calculated value, defining input explicitly.
+       */
+        static std::map<symbol_name_t, double>
+        implicit_to_explicit(std::span<const size_t> outcomes_per_mmt,
+                             std::span<const PMODefinition> symbol_definitions,
+                             std::span<const double> input_values);
     };
 }

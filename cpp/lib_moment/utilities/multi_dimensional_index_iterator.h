@@ -21,6 +21,7 @@ namespace Moment {
 
     private:
         size_t num_indices;
+        size_t global_index = 0;
         std::vector<size_t> max_vals;
         std::vector<size_t> indices;
         bool is_done = false;
@@ -39,6 +40,15 @@ namespace Moment {
                     this->is_done = true;
                 }
             }
+
+            // If done, set global index to product of items
+            if (this->is_done) {
+                this->global_index = 1;
+                for (auto max_val : this->max_vals) {
+                    this->global_index *= max_val;
+                }
+            }
+
         }
 
         constexpr MultiDimensionalIndexIterator& operator++() noexcept {
@@ -78,6 +88,9 @@ namespace Moment {
                     }
                 }
             }
+
+            ++this->global_index;
+
             return *this;
         }
 
@@ -127,6 +140,10 @@ namespace Moment {
 
         [[nodiscard]] constexpr bool done() const noexcept {
             return this->is_done;
+        }
+
+        [[nodiscard]] constexpr size_t global() const noexcept {
+            return this->global_index;
         }
 
     };

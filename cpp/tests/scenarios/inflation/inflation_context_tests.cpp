@@ -1175,7 +1175,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Scenarios_Locality_LocalityContext, UnflattenOutcomeIndex) {
+    TEST(Scenarios_Inflation_InflationContext, UnflattenOutcomeIndex) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0}, {0, 1}}}, 2}; // mmts: A00, A01, A10, A11, B0, B1
         ASSERT_EQ(ic.observable_variant_count(), 6);
 
@@ -1242,7 +1242,7 @@ namespace Moment::Tests {
         EXPECT_EQ(ovo_21[1].outcome, 1);
     }
 
-    TEST(Scenarios_Locality_LocalityContext, FlattenOutcomeIndex) {
+    TEST(Scenarios_Inflation_InflationContext, FlattenOutcomeIndex) {
         InflationContext ic{CausalNetwork{{3, 2}, {{0}, {0, 1}}}, 2}; // mmts: A00, A01, A10, A11, B0, B1
         ASSERT_EQ(ic.observable_variant_count(), 6);
 
