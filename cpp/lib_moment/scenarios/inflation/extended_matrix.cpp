@@ -64,18 +64,19 @@ namespace Moment::Inflation {
             auto mm_osg = source.Generators();
 
             size_t row_index = 0;
-            for (auto raw_seq : mm_osg) {
+            for (const auto& raw_seq : mm_osg) {
                 // Get canonical version of sequence...
                 auto seq = context.canonical_moment(raw_seq);
 
                 auto [source_sym_index, source_conj] = symbols.hash_to_index(seq.hash());
                 assert(!source_conj); // No symbols should be conjugated in entirely commutative, Hermitian setting...!
                 assert(source_sym_index != std::numeric_limits<ptrdiff_t>::max()); // Must find symbol in table.
-                const auto& source_factors = factors[source_sym_index].canonical.symbols;
 
                 size_t col_index = old_dimension;
                 for (auto scalar_symbol_id : extension_scalars) {
                     // Calculate factors
+                    // [look up each time, because of possible re-allocation of factors!]
+                    const auto& source_factors = factors[source_sym_index].canonical.symbols;
                     const auto& extended_factors = factors[scalar_symbol_id].canonical.symbols;
                     symbol_name_t factor_id = combine_and_register_factors(symbols, factors,
                                                                            source_factors, extended_factors);

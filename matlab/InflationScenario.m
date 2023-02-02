@@ -149,7 +149,22 @@ classdef InflationScenario < Scenario
                mtk('extended_matrix', obj.System.RefId, level, extensions);
                
             % Make wrapper object            
-            val = OperatorMatrix(obj.System, index, dimension);            
+            val = OperatorMatrix(obj.System, index, dimension);
+            
+            % Symbol table update
+            obj.System.UpdateSymbolTable();
+        end
+    end
+    
+    %% Get assignments
+    methods
+        function val = GetAssignments(obj, param_A, param_B)
+            if nargin < 3
+                val = mtk('make_explicit', obj.System.RefId, param_A);
+            else
+                val = mtk('make_explicit', obj.System.RefId, ...
+                          param_A, param_B);
+            end
         end
     end
         
