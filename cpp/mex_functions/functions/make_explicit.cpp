@@ -67,6 +67,31 @@ namespace Moment::mex::functions {
         size_t value_input_index = 2;
         if (this->inputs.size() >= 3) {
             this->input_type = InputType::SpecifiedMeasurement;
+
+            // Try to read measurement information
+            auto inputTwoDims = this->inputs[1].getDimensions();
+            if (inputTwoDims.size() != 2) {
+                throw_error(matlabEngine, errors::bad_param,
+                            "Measurement/observable list must be a vector or Nx2 matrix.");
+            }
+            if (inputTwoDims[1] == 1) {
+                auto matLine = read_as_vector<uint64_t>(matlabEngine, this->inputs[1]);
+                this->measurements_or_observables.reserve(matLine.size());
+                for (auto x : matLine) {
+                    this->measurements_or_observables.emplace_back(x, 1ULL);
+                }
+            } else if (inputTwoDims[1] == 2) {
+                this->measurements_or_observables.reserve(inputTwoDims[0]);
+                for (size_t row = 0; row < inputTwoDims[0]; ++row) {
+                    this->measurements_or_observables.emplace_back(
+                            static_cast<uint64_t>(this->inputs[1][row][0]),
+                            static_cast<uint64_t>(this->inputs[1][row][1]));
+
+                }
+            } else {
+                throw_error(matlabEngine, errors::bad_param,
+                            "Measurement/observable list must be a vector or Nx2 matrix.");
+            }
         } else {
             value_input_index = 1;
             this->input_type = InputType::AllMeasurements;

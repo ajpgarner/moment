@@ -139,6 +139,9 @@ to the call to function `mtk(...)`:
 
 `localizing_matrix`: Generates a localizing matrix for a supplied set of Hermitian operators and monomial expression.
 
+`make_explicit`: Converts a full probability distribution into a list of explicit symbol assignments for the locality 
+and inflation scenarios. 
+
 `moment_matrix`: Generates a moment matrix for a supplied set of Hermitian operators.
 
 `new_algebraic_matrix_system`: Starts a new context of shared variables, with specified algebraic relations.

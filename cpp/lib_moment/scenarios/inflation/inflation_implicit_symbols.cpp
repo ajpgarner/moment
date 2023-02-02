@@ -225,7 +225,7 @@ namespace Moment::Inflation {
                   << canonicalObservable.outcomes << ((canonicalObservable.outcomes != 1) ? " outcomes" : " outcome")
                   << " but "
                   << input_values.size() << ((input_values.size() != 1) ? " outcomes were" : " outcome was")
-                  << "provided.";
+                  << " provided.";
             std::string errString = errSS.str();
             throw Moment::errors::implicit_to_explicit_error{errSS.str()};
         }
