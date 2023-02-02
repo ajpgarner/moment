@@ -49,6 +49,12 @@ namespace Moment::Locality {
         return {tableData.begin() + first, static_cast<size_t>(last - first)};
     }
 
+
+    std::span<const PMODefinition> LocalityImplicitSymbols::get(const std::span<const PMIndex> lookup_indices) const {
+        std::vector<size_t> global_indices = this->context.PM_to_global_index(lookup_indices);
+        return this->get(global_indices);
+    }
+
     const PMODefinition& LocalityImplicitSymbols::get(std::span<const PMOIndex> lookup_indices) const {
         // First, PMO index to global index to look up by measurement
         std::vector<size_t> globalIndices;
@@ -257,4 +263,44 @@ namespace Moment::Locality {
         assert(index_cursor == this->tableData.size());
         return num_outcomes;
     }
+
+
+    std::map<symbol_name_t, double>
+    LocalityImplicitSymbols::implicit_to_explicit(std::span<const PMIndex> mmtIndices,
+                                                  std::span<const double> input_values) const {
+
+        // Try to get symbol definitions (also range check mmtIndices)
+        std::span<const PMODefinition> symbol_definitions;
+        try {
+            symbol_definitions = this->get(mmtIndices);
+        } catch (const std::range_error& re) {
+            std::stringstream errSS;
+            errSS << "Invalid measurement string: " << re.what();
+            throw Moment::errors::implicit_to_explicit_error{errSS.str()};
+        } catch (const errors::bad_implicit_symbol& bis) {
+            std::stringstream errSS;
+            errSS << "Invalid measurement string: " << bis.what();
+            throw Moment::errors::implicit_to_explicit_error{errSS.str()};
+        }
+
+        auto outcomes_per_mmt = this->context.outcomes_per_measurement(mmtIndices);
+
+        // Check appropriate number of outcomes provided
+        const auto expected_outcomes = symbol_definitions.size();
+        const auto actual_outcomes = input_values.size();
+        if (actual_outcomes != expected_outcomes) {
+            std::stringstream errSS;
+            errSS << "Selected measurement has "
+                  << expected_outcomes << ((expected_outcomes) ? " outcomes" : " outcome")
+                  << " but "
+                  << actual_outcomes << ((actual_outcomes != 1) ? " outcomes were" : " outcome was")
+                  << " provided.";
+            std::string errString = errSS.str();
+            throw Moment::errors::implicit_to_explicit_error{errSS.str()};
+        }
+
+        // Call parent function
+        return ImplicitSymbols::implicit_to_explicit(outcomes_per_mmt, symbol_definitions, input_values);
+    }
+
 }

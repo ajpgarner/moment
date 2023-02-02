@@ -234,5 +234,11 @@ namespace Moment::Tests {
     }
 
 
+    TEST(Scenarios_Locality_LocalityContext, PMToGlobalIndex) {
+        LocalityContext context(Party::MakeList(2, 2, 2));
 
+        const std::vector<PMIndex> trial{{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+        const std::vector<size_t> expected{0, 1, 2, 3};
+        EXPECT_EQ(context.PM_to_global_index(trial), expected);
+    }
 }

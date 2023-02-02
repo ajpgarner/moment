@@ -77,7 +77,12 @@ namespace Moment::Locality {
         }
 
         /** Populates global index from party & measurements in pm_index */
-        void get_global_mmt_index(std::vector<PMIndex>& pm_index) const noexcept;
+        void populate_global_mmt_index(std::vector<PMIndex>& pm_index) const noexcept;
+
+        /** Creates vector of global measurement numbers based off PM index.
+         * @throws std::range_error if any Party/Measurement in span is invalid.
+         * */
+        [[nodiscard]] std::vector<size_t> PM_to_global_index(std::span<const PMIndex> pm_index) const;
 
         /**
          * Returns total number of unique measurements
@@ -93,8 +98,9 @@ namespace Moment::Locality {
 
         /**
          * Returns number of outcomes for each measurement referred to by indices
+         * @throws std::range_error if any Party/Measurement in span is invalid.
          */
-        [[nodiscard]] std::vector<size_t> outcomes_per_measurement(std::span<const PMIndex> indices) const noexcept;
+        [[nodiscard]] std::vector<size_t> outcomes_per_measurement(std::span<const PMIndex> indices) const;
 
         /**
          * Returns total number of operators per party in context;

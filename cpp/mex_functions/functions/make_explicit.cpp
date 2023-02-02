@@ -55,6 +55,42 @@ namespace Moment::mex::functions {
 
             return output;
         }
+
+
+        std::vector<Locality::PMIndex> mmts_to_pm_index(matlab::engine::MATLABEngine &matlabEngine,
+                                                         const Locality::LocalityContext& context,
+                                                         MakeExplicitParams& input) {
+            const size_t num_parties = context.Parties.size();
+            std::vector<Locality::PMIndex> output;
+            if (input.input_type == MakeExplicitParams::InputType::AllMeasurements) {
+                output.reserve(num_parties);
+                for (size_t o = 0; o < num_parties; ++o) {
+                    output.emplace_back(o, 0);
+                }
+            } else {
+                output.reserve(input.measurements_or_observables.size());
+                for (auto [party, measurement] : input.measurements_or_observables) {
+                    if ((party > num_parties) || (party <= 0)) {
+                        std::stringstream errSS;
+                        errSS << "Party " << party << " out of range.";
+                        throw_error(matlabEngine, errors::bad_param, errSS.str());
+                    }
+                    const auto& partyInfo = context.Parties[party-1];
+                    const size_t num_mmts = partyInfo.Measurements.size();
+                    if ((measurement > num_mmts ) || (measurement <= 0)) {
+                        std::stringstream errSS;
+                        errSS << "Measurement " << measurement << " out of range for party " << party << ".";
+                        throw_error(matlabEngine, errors::bad_param, errSS.str());
+                    }
+
+                    output.emplace_back(party - 1, measurement - 1);
+                }
+            }
+            context.populate_global_mmt_index(output);
+            return output;
+        }
+
+
     }
 
     MakeExplicitParams::MakeExplicitParams(matlab::engine::MATLABEngine &matlabEngine,
@@ -176,7 +212,24 @@ namespace Moment::mex::functions {
 
     matlab::data::Array
     MakeExplicit::do_make_explicit(const Locality::LocalityMatrixSystem &lms, MakeExplicitParams &input) {
-        throw_error(this->matlabEngine, errors::internal_error,
-                    "MakeExplicit::do_make_explicit not yet implemented for LocalityMatrixSystem");
+        auto pm_indices = mmts_to_pm_index(this->matlabEngine, lms.localityContext, input);
+        const auto& is_table = lms.ImplicitSymbolTable();
+        try {
+            auto explicit_form = is_table.implicit_to_explicit(pm_indices, input.values);
+
+            auto unit_value = explicit_form.find(1);
+            if (unit_value != explicit_form.end()) {
+                if ((!this->quiet) && (std::abs(unit_value->second - 1.0) > 1e-7)) {
+                    std::stringstream warningSS;
+                    warningSS << "WARNING: probability distribution supplied summed up to " << unit_value->second
+                              << " but unity was expected.\n";
+                    print_to_console(this->matlabEngine, warningSS.str());
+                }
+                explicit_form.erase(unit_value);
+            }
+            return export_substitution_list(matlabEngine, explicit_form);
+        } catch (const Moment::errors::implicit_to_explicit_error& itee) {
+            throw_error(this->matlabEngine, errors::bad_param, itee.what());
+        }
     }
 }

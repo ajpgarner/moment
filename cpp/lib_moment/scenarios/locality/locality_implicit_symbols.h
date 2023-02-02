@@ -31,6 +31,8 @@ namespace Moment::Locality {
 
         [[nodiscard]] std::span<const PMODefinition> get(std::span<const size_t> mmtIndex) const override;
 
+        [[nodiscard]] std::span<const PMODefinition> get(std::span<const PMIndex> mmtIndex) const;
+
         [[nodiscard]] const PMODefinition& get(std::span<const PMOIndex> lookup_indices) const;
 
         template<typename functor_t>
@@ -54,6 +56,18 @@ namespace Moment::Locality {
         [[nodiscard]] constexpr const JointMeasurementIndex& Indices() const noexcept {
             return this->indices;
         }
+
+        using ImplicitSymbols::implicit_to_explicit;
+
+        /**
+         * Convert a full probability distribution over supplied (joint) observables to a list of explicit symbol
+         * assignments imposing the same distribution.
+         * @param mmtIndices The indices of the parties/measurements to use
+         * @param input_values The full probability distribution including implicit symbols
+         * @return Vector of pairs, first being symbol ID, second being the calculated value, defining input explicitly.
+         */
+        std::map<symbol_name_t, double>
+        implicit_to_explicit(std::span<const PMIndex> mmtIndices, std::span<const double> input_values) const;
 
     private:
         size_t generateLevelZero(size_t& index_cursor);

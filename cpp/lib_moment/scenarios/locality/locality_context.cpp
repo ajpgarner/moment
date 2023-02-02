@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <utility>
 
 namespace Moment::Locality {
@@ -133,7 +134,7 @@ namespace Moment::Locality {
         return PMIndex{party_id, mmt_id, static_cast<mmt_name_t>(global_index)};
     }
 
-    void LocalityContext::get_global_mmt_index(std::vector<PMIndex> &pm_index) const noexcept {
+    void LocalityContext::populate_global_mmt_index(std::vector<PMIndex> &pm_index) const noexcept {
         for (auto& pm : pm_index) {
             assert (pm.party < this->parties.size());
             assert (pm.mmt < this->parties[pm.party].measurements.size());
@@ -141,14 +142,43 @@ namespace Moment::Locality {
         }
     }
 
-    std::vector<size_t> LocalityContext::outcomes_per_measurement(std::span<const PMIndex> indices) const noexcept {
+    std::vector<size_t> LocalityContext::PM_to_global_index(std::span<const PMIndex> pm_index) const {
+        std::vector<size_t> output{};
+        output.reserve(pm_index.size());
+        for (const auto& pm : pm_index) {
+            if (pm.party >= this->parties.size()) {
+                std::stringstream errSS;
+                errSS << "Party " << pm.party << " out of range.";
+                throw std::range_error(errSS.str());
+            }
+            const auto& party = this->parties[pm.party];
+            if (pm.mmt >= party.measurements.size()) {
+                std::stringstream errSS;
+                errSS << "Measurement " << pm.mmt << " out of range for party \"" << party.name << "\".";
+                throw std::range_error(errSS.str());
+            }
+            output.emplace_back(party.global_measurement_offset + pm.mmt);
+        }
+        return output;
+    }
+
+    std::vector<size_t> LocalityContext::outcomes_per_measurement(const std::span<const PMIndex> indices) const {
         std::vector<size_t> output;
         output.reserve(indices.size());
 
         for (auto index : indices) {
-            assert(index.party < this->Parties.size());
+            if (index.party >= this->parties.size()) {
+                std::stringstream errSS;
+                errSS << "Party " << index.party << " out of range.";
+                throw std::range_error(errSS.str());
+            }
             const auto& party = this->Parties[index.party];
-            assert(index.mmt < party.Measurements.size());
+
+            if (index.mmt >= party.measurements.size()) {
+                std::stringstream errSS;
+                errSS << "Measurement " << index.mmt << " out of range for party \"" << party.name << "\".";
+                throw std::range_error(errSS.str());
+            }
             const auto& mmt = party.Measurements[index.mmt];
             output.push_back(mmt.num_outcomes);
         }

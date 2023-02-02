@@ -13,7 +13,31 @@
 
 #include "../implicit_symbol_test_helpers.h"
 
+#include <map>
+#include <string>
+#include <vector>
+
 namespace Moment::Tests {
+    namespace {
+        void check_ite_mmt(const std::string& desc,
+                           const std::map<symbol_name_t, double>& actual,
+                           const std::vector<symbol_name_t>& expected_symbols,
+                           const std::vector<double>& expected_probabilities) {
+
+            ASSERT_EQ(expected_symbols.size(), expected_probabilities.size()) << desc;
+
+            EXPECT_EQ(actual.size(), expected_symbols.size()) << desc;
+
+            for (size_t index = 0; index < expected_symbols.size(); ++index) {
+                auto find_sym = actual.find(expected_symbols[index]);
+                ASSERT_NE(find_sym, actual.end()) << desc
+                    << ", symbol = " << expected_symbols[index] << ", index = " << index;
+                EXPECT_FLOAT_EQ(find_sym->second, expected_probabilities[index])
+                    << desc << ", symbol = " << expected_symbols[index] << ", index = " << index;
+            }
+        }
+    }
+
     using namespace Moment::Locality;
 
     TEST(Scenarios_Locality_ImplicitSymbols, Empty) {
@@ -117,7 +141,6 @@ namespace Moment::Tests {
         EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,1,0}}), &spanB[0]);
         EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,1,1}}), &spanB[1]);
     }
-
 
     TEST(Scenarios_Locality_ImplicitSymbols, TwoPartyOneMmtEach) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))};
@@ -236,7 +259,6 @@ namespace Moment::Tests {
         auto spanA1B1 = implSym.get({1, 3});
         test22JoinMmt(spanA1B1, 1, A1, B1, A1B1, "A1B1");
     }
-
 
     TEST(Scenarios_Locality_ImplicitSymbols, Tripartite322) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(3, 2, 2))};
@@ -556,7 +578,6 @@ namespace Moment::Tests {
         test22JoinMmt(spanB1C1, 1, B1, C1, B1C1, "B1C1");
     }
 
-
     TEST(Scenarios_Locality_ImplicitSymbols, A13_B12) {
 
         std::vector<Party> buildParties;
@@ -602,6 +623,96 @@ namespace Moment::Tests {
         // Alice a, Bob b
         auto spanAB = implSym.get({0, 1});
         test32JoinMmt(spanAB, 1, A0, A1, B, A0B, A1B, "AB");
+    }
+
+    TEST(Scenarios_Locality_ImplicitSymbols, ITE_CHSH) {
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 2))};
+        const auto& context = system.localityContext;
+        ASSERT_EQ(context.Parties.size(), 2);
+        const auto& alice = context.Parties[0];
+        const auto& bob = context.Parties[1];
+
+        ASSERT_EQ(alice.Measurements.size(), 2);
+        ASSERT_EQ(alice.Measurements[0].num_outcomes, 2);
+        ASSERT_EQ(alice.Measurements[1].num_outcomes, 2);
+        ASSERT_EQ(bob.Measurements.size(), 2);
+        ASSERT_EQ(bob.Measurements[0].num_outcomes, 2);
+        ASSERT_EQ(bob.Measurements[1].num_outcomes, 2);
+
+        auto op_A0 = alice.measurement_outcome(0, 0);
+        auto op_A1 = alice.measurement_outcome(1, 0);
+        auto op_B0 = bob.measurement_outcome(0, 0);
+        auto op_B1 = bob.measurement_outcome(1, 0);
+        std::set<oper_name_t> all_ops{ op_A0, op_A1, op_B0, op_B1};
+        ASSERT_EQ(all_ops.size(), 4);
+
+        auto [id, momentMatrix] = system.create_moment_matrix(1);
+        const auto& symbols = system.Symbols();
+
+        auto id_ePtr = symbols.where(OperatorSequence::Identity(context));
+        ASSERT_NE(id_ePtr, nullptr);
+        auto id_e  = id_ePtr->Id();
+
+        auto id_A0Ptr = symbols.where(OperatorSequence{{op_A0}, context});
+        ASSERT_NE(id_A0Ptr, nullptr);
+        auto id_A0  = id_A0Ptr->Id();
+
+        auto id_A1Ptr = symbols.where(OperatorSequence{{op_A1}, context});
+        ASSERT_NE(id_A1Ptr, nullptr);
+        auto id_A1  = id_A1Ptr->Id();
+
+        auto id_B0Ptr = symbols.where(OperatorSequence{{op_B0}, context});
+        ASSERT_NE(id_B0Ptr, nullptr);
+        auto id_B0  = id_B0Ptr->Id();
+
+        auto id_B1Ptr = symbols.where(OperatorSequence{{op_B1}, context});
+        ASSERT_NE(id_B1Ptr, nullptr);
+        auto id_B1  = id_B1Ptr->Id();
+
+        auto id_A0B0Ptr = symbols.where(OperatorSequence{{op_A0, op_B0}, context});
+        ASSERT_NE(id_A0B0Ptr, nullptr);
+        auto id_A0B0  = id_A0B0Ptr->Id();
+
+        auto id_A0B1Ptr = symbols.where(OperatorSequence{{op_A0, op_B1}, context});
+        ASSERT_NE(id_A0B0Ptr, nullptr);
+        auto id_A0B1  = id_A0B1Ptr->Id();
+
+        auto id_A1B0Ptr = symbols.where(OperatorSequence{{op_A1, op_B0}, context});
+        ASSERT_NE(id_A1B0Ptr, nullptr);
+        auto id_A1B0  = id_A1B0Ptr->Id();
+
+        auto id_A1B1Ptr = symbols.where(OperatorSequence{{op_A1, op_B1}, context});
+        ASSERT_NE(id_A1B1Ptr, nullptr);
+        auto id_A1B1  = id_A1B1Ptr->Id();
+
+        std::set all_symbols{id_e, id_A0, id_A1, id_B0, id_B1,
+                             id_A0B0, id_A0B1, id_A1B0, id_A1B1};
+        ASSERT_EQ(all_symbols.size(), 9);
+
+        const auto& implSym = system.ImplicitSymbolTable();
+
+        const std::vector<double> distribution{0.1, 0.2, 0.3, 0.4};
+
+        // A0 B0
+        const std::vector<PMIndex> mmts_A0B0{{0, 0}, {1, 0}};
+        auto ef_A0B0 = implSym.implicit_to_explicit(mmts_A0B0, distribution);
+        check_ite_mmt("A0B0", ef_A0B0, {id_e, id_A0, id_B0, id_A0B0}, {1.0, 0.3, 0.4, 0.1});
+
+        // A0 B1
+        const std::vector<PMIndex> mmts_A0B1{{0, 0}, {1, 1}};
+        auto ef_A0B1 = implSym.implicit_to_explicit(mmts_A0B1, distribution);
+        check_ite_mmt("A0B1", ef_A0B1, {id_e, id_A0, id_B1, id_A0B1}, {1.0, 0.3, 0.4, 0.1});
+
+        // A1 B0
+        const std::vector<PMIndex> mmts_A1B0{{0, 1}, {1, 0}};
+        auto ef_A1B0 = implSym.implicit_to_explicit(mmts_A1B0, distribution);
+        check_ite_mmt("A1B0", ef_A1B0, {id_e, id_A1, id_B0, id_A1B0}, {1.0, 0.3, 0.4, 0.1});
+
+        // A1 B1
+        const std::vector<PMIndex> mmts_A1B1{{0, 1}, {1, 1}};
+        auto ef_A1B1 = implSym.implicit_to_explicit(mmts_A1B1, distribution);
+        check_ite_mmt("A1B1", ef_A1B1, {id_e, id_A1, id_B1, id_A1B1}, {1.0, 0.3, 0.4, 0.1});
+
     }
 
 }

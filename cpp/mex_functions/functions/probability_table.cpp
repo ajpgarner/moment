@@ -296,7 +296,7 @@ namespace Moment::mex::functions {
             }
 
             // Assign global indices to input.requested_measurement object...
-            context.get_global_mmt_index(requested_measurement);
+            context.populate_global_mmt_index(requested_measurement);
 
             // Request
             output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym, requested_measurement);
