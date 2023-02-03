@@ -5,9 +5,7 @@
  */
 #include "hashed_sequence.h"
 
-#include <algorithm>
 #include <iostream>
-#include <iterator>
 
 namespace Moment {
     bool HashedSequence::matches(HashedSequence::const_iter_t test_iter,
@@ -58,19 +56,6 @@ namespace Moment {
             ++lhs_tail_iter;
         }
         return 0;
-    }
-
-    [[nodiscard]] HashedSequence HashedSequence::conjugate(const ShortlexHasher& hasher) const {
-        // 0* = 0
-        if (this->is_zero) {
-            return HashedSequence{true};
-        }
-
-        // Otherwise, reverse operators...
-        sequence_storage_t str;
-        str.reserve(this->operators.size());
-        std::reverse_copy(this->operators.cbegin(), this->operators.cend(), std::back_inserter(str));
-        return HashedSequence{std::move(str), hasher};
     }
 
     std::ostream& operator<<(std::ostream& os, const HashedSequence& seq) {

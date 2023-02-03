@@ -27,7 +27,7 @@ namespace Moment::Tests {
         EXPECT_EQ(rules.add_rule(msr), 1);
         ASSERT_EQ(rules.size(), 1);
 
-        auto theRule = rules.rules().find(hasher.hash({0, 1}));
+        auto theRule = rules.rules().find(hasher({0, 1}));
         ASSERT_NE(theRule, rules.rules().cend());
         EXPECT_EQ(theRule->second.LHS(), HashedSequence({0, 1}, hasher));
         EXPECT_EQ(theRule->second.RHS(), HashedSequence({0}, hasher));
@@ -46,13 +46,13 @@ namespace Moment::Tests {
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 2);
 
-        auto theRuleA = rules.rules().find(hasher.hash({0, 1}));
+        auto theRuleA = rules.rules().find(hasher({0, 1}));
         ASSERT_NE(theRuleA, rules.rules().cend());
         EXPECT_EQ(theRuleA->second.LHS(), HashedSequence({0, 1}, hasher));
         EXPECT_EQ(theRuleA->second.RHS(), HashedSequence({0}, hasher));
         EXPECT_FALSE(theRuleA->second.negated());
 
-        auto theRuleB = rules.rules().find(hasher.hash({0, 2}));
+        auto theRuleB = rules.rules().find(hasher({0, 2}));
         ASSERT_NE(theRuleB, rules.rules().cend());
         EXPECT_EQ(theRuleB->second.LHS(), HashedSequence({0, 2}, hasher));
         EXPECT_EQ(theRuleB->second.RHS(), HashedSequence({1}, hasher));
@@ -71,7 +71,7 @@ namespace Moment::Tests {
         EXPECT_EQ(rules.add_rule(msr), 0);
         EXPECT_EQ(rules.size(), 1);
 
-        auto theRuleA = rules.rules().find(hasher.hash({0, 1}));
+        auto theRuleA = rules.rules().find(hasher({0, 1}));
         ASSERT_NE(theRuleA, rules.rules().cend());
         EXPECT_EQ(theRuleA->second.LHS(), HashedSequence({0, 1}, hasher));
         EXPECT_EQ(theRuleA->second.RHS(), HashedSequence({0}, hasher));
@@ -90,13 +90,13 @@ namespace Moment::Tests {
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 2);
 
-        auto theRuleA = rules.rules().find(hasher.hash({0, 1}));
+        auto theRuleA = rules.rules().find(hasher({0, 1}));
         ASSERT_NE(theRuleA, rules.rules().cend());
         EXPECT_EQ(theRuleA->second.LHS(), HashedSequence({0, 1}, hasher));
         EXPECT_EQ(theRuleA->second.RHS(), HashedSequence(true));
         EXPECT_FALSE(theRuleA->second.negated());
 
-        auto theRuleB = rules.rules().find(hasher.hash({0}));
+        auto theRuleB = rules.rules().find(hasher({0}));
         ASSERT_NE(theRuleB, rules.rules().cend());
         EXPECT_EQ(theRuleB->second.LHS(), HashedSequence({0}, hasher));
         EXPECT_EQ(theRuleB->second.RHS(), HashedSequence(true));
@@ -115,13 +115,13 @@ namespace Moment::Tests {
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 2);
 
-        auto theRuleA = rules.rules().find(hasher.hash({2}));
+        auto theRuleA = rules.rules().find(hasher({2}));
         ASSERT_NE(theRuleA, rules.rules().cend());
         EXPECT_EQ(theRuleA->second.LHS(), HashedSequence({2}, hasher));
         EXPECT_EQ(theRuleA->second.RHS(), HashedSequence({0}, hasher));
         EXPECT_FALSE(theRuleA->second.negated());
 
-        auto theRuleB = rules.rules().find(hasher.hash({1}));
+        auto theRuleB = rules.rules().find(hasher({1}));
         ASSERT_NE(theRuleB, rules.rules().cend());
         EXPECT_EQ(theRuleB->second.LHS(), HashedSequence({1}, hasher));
         EXPECT_EQ(theRuleB->second.RHS(), HashedSequence({0}, hasher));
@@ -140,13 +140,13 @@ namespace Moment::Tests {
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 2);
 
-        auto theRuleA = rules.rules().find(hasher.hash({2}));
+        auto theRuleA = rules.rules().find(hasher({2}));
         ASSERT_NE(theRuleA, rules.rules().cend());
         EXPECT_EQ(theRuleA->second.LHS(), HashedSequence({2}, hasher));
         EXPECT_EQ(theRuleA->second.RHS(), HashedSequence({0}, hasher));
         EXPECT_FALSE(theRuleA->second.negated());
 
-        auto theRuleB = rules.rules().find(hasher.hash({1}));
+        auto theRuleB = rules.rules().find(hasher({1}));
         ASSERT_NE(theRuleB, rules.rules().cend());
         EXPECT_EQ(theRuleB->second.LHS(), HashedSequence({1}, hasher));
         EXPECT_EQ(theRuleB->second.RHS(), HashedSequence({0}, hasher));
@@ -167,19 +167,19 @@ namespace Moment::Tests {
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 3);
 
-        auto theRuleD = rules.rules().find(hasher.hash({3}));
+        auto theRuleD = rules.rules().find(hasher({3}));
         ASSERT_NE(theRuleD, rules.rules().cend());
         EXPECT_EQ(theRuleD->second.LHS(), HashedSequence({3}, hasher));
         EXPECT_EQ(theRuleD->second.RHS(), HashedSequence({1}, hasher));
         EXPECT_FALSE(theRuleD->second.negated());
 
-        auto theRuleC = rules.rules().find(hasher.hash({2}));
+        auto theRuleC = rules.rules().find(hasher({2}));
         ASSERT_NE(theRuleC, rules.rules().cend());
         EXPECT_EQ(theRuleC->second.LHS(), HashedSequence({2}, hasher));
         EXPECT_EQ(theRuleC->second.RHS(), HashedSequence({0}, hasher));
         EXPECT_FALSE(theRuleC->second.negated());
 
-        auto theRuleB = rules.rules().find(hasher.hash({1}));
+        auto theRuleB = rules.rules().find(hasher({1}));
         ASSERT_NE(theRuleB, rules.rules().cend());
         EXPECT_EQ(theRuleB->second.LHS(), HashedSequence({1}, hasher));
         EXPECT_EQ(theRuleB->second.RHS(), HashedSequence({0}, hasher));

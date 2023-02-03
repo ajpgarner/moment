@@ -40,10 +40,19 @@ namespace Moment::Inflation {
 
         [[nodiscard]] std::span<const PMODefinition> get(std::span<const OVIndex> mmtIndices) const;
 
+        /**
+         * Get range over data, allowing iteration over each canonical measurement at a time.
+         * May be invalidated if PMODefinition data is manipulated.
+         */
         [[nodiscard]] VariableChunkRange<PMODefinition, ptrdiff_t> BlockData() const noexcept {
             return {this->tableData, this->indices};
         }
 
+        /**
+         * Get span of data regarding specific implicit measurement.
+         * @param index The index of the canonical observable to get data on.
+         * @return Span of PMODefinition data (i.e. linear expressions for each outcome in observable).
+         */
         [[nodiscard]] std::span<const PMODefinition> Block(size_t index) const noexcept;
 
         using ImplicitSymbols::implicit_to_explicit;

@@ -16,7 +16,7 @@ namespace Moment::Tests {
         std::vector<std::string> data{};
         std::vector<size_t> indices{};
 
-        VariableChunkRange vcr{data, indices};
+        VariableChunkRange<std::string, size_t> vcr{data, indices};
 
         EXPECT_EQ(vcr.begin(), vcr.end());
         EXPECT_TRUE(vcr.begin() == vcr.end());
@@ -29,7 +29,7 @@ namespace Moment::Tests {
         std::vector<std::string> data{"Apple", "Orange", "Cherry", "Pear"};
         std::vector<size_t> indices{0, 1, 2, 3};
 
-        VariableChunkRange vcr{data, indices};
+        VariableChunkRange<std::string> vcr{data, indices};
 
         auto iter = vcr.begin();
         ASSERT_NE(iter, vcr.end());
@@ -64,7 +64,7 @@ namespace Moment::Tests {
         std::vector<std::string> data{"Apple", "Orange", "Cherry", "Pear"};
         std::vector<size_t> indices{0, 1, 3};
 
-        VariableChunkRange vcr{data, indices};
+        VariableChunkRange<std::string> vcr{data, indices};
 
         auto iter = vcr.begin();
         ASSERT_NE(iter, vcr.end());
@@ -93,7 +93,7 @@ namespace Moment::Tests {
         std::vector<std::string> data{"Apple", "Orange", "Cherry", "Pear", "Carrot"};
         std::vector<size_t> indices{0, 1, 3};
 
-        VariableChunkRange vcr{data, indices};
+        VariableChunkRange<std::string> vcr{data, indices};
 
         auto iter = vcr.begin();
         ASSERT_NE(iter, vcr.end());
@@ -122,7 +122,7 @@ namespace Moment::Tests {
         std::vector<std::string> data{"Apple", "Orange", "Cherry", "Pear"};
         std::vector<size_t> indices{0, 1, 2, 2, 3};
 
-        VariableChunkRange vcr{data, indices};
+        VariableChunkRange<std::string> vcr{data, indices};
 
         auto iter = vcr.begin();
         ASSERT_NE(iter, vcr.end());

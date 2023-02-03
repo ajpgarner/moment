@@ -29,6 +29,9 @@ namespace Moment {
     class MomentMatrix;
 
     namespace errors {
+        /**
+         * Error issued when a component from the matrix system is requested, but does not exist.
+         */
         class missing_component : public std::runtime_error {
         public:
             explicit missing_component(const std::string& what) : std::runtime_error{what} { }
@@ -193,33 +196,60 @@ namespace Moment {
         clone_and_substitute(size_t matrix_index, std::unique_ptr<SubstitutionList> list);
 
         /**
-         * Gets a read lock for the matrix system.
+         * Gets a read (shared) lock for accessing data within the matrix system.
          */
         [[nodiscard]] auto get_read_lock() const {
             return std::shared_lock{this->rwMutex};
         }
 
         /**
-         * Gets a write lock for the matrix system.
+         * Gets a write (exclusive) lock for manipulating data within the matrix system.
          */
         [[nodiscard]] auto get_write_lock() {
             return std::unique_lock{this->rwMutex};
         }
 
     protected:
+        /**
+         * Virtual method, called before generating a moment matrix.
+         * @param level The moment matrix level.
+         */
         virtual void beforeNewMomentMatrixCreated(size_t level) { }
 
+        /**
+         * Virtual method, called after a moment matrix is generated.
+         * @param level The moment matrix level.
+         * @param mm The newly generated moment matrix.
+         */
         virtual void onNewMomentMatrixCreated(size_t level, const class MomentMatrix& mm) { }
 
+        /**
+         * Virtual method, called before generating a localizing matrix.
+         * @param lmi The hierarchy Level and word that describes the localizing matrix.
+         */
         virtual void beforeNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi) { }
 
+        /**
+         * Virtual method, called after a localizing matrix is generated.
+         * @param lmi The hierarchy Level and word that describes the localizing matrix.
+         * @param lm The newly generated localizing matrix.
+         */
         virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
                                                   const class LocalizingMatrix& lm) { }
 
-        /** Get read-write access to symbolic matrix by index. Changes should not be made without a write lock. */
+        /**
+         * Get read-write access to symbolic matrix by index. Changes should not be made without a write lock.
+         * @param index The number of the matrix within the system.
+         * @return A reference to the requested matrix.
+         * @throws errors::missing_component if index does not correspond to a matrix in the system.
+         */
         SymbolicMatrix& get(size_t index);
 
-        /** Add symbolic matrix to end of array */
+        /**
+         * Add symbolic matrix to end of array. Changes should not be made without a write lock.
+         * @param matrix Owning pointer to matrix to add.
+         * @return The index of the newly appended matrix.
+         */
         ptrdiff_t push_back(std::unique_ptr<SymbolicMatrix> matrix);
 
     };

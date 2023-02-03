@@ -15,6 +15,7 @@
 #include "utilities/combinations.h"
 
 #include <algorithm>
+#include <sstream>
 
 namespace Moment::Locality {
 

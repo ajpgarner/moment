@@ -14,6 +14,11 @@
 
 namespace Moment {
 
+    /**
+     * Tree-like recursive storage, where objects may be stored on branches and leaves.
+     * @tparam type_t The object in the tree
+     * @tparam subclass_t A specialization or subclass of RecursiveStorage (for polymorphic purposes).
+     */
     template<typename type_t, typename subclass_t>
     class RecursiveStorage {
     protected:
@@ -22,11 +27,24 @@ namespace Moment {
         std::vector<subclass_t> subindices{};
 
     public:
+        /**
+         * Constructs an empty recursive storage node
+         * @param zero The value of the node (supposedly, zero).
+         * @param offset The offset between children of this node, and supplied index parameters.
+         */
         explicit constexpr RecursiveStorage(type_t zero, const ptrdiff_t offset = 0)
             : object(std::move(zero)), index_offset{offset} { }
 
+        /**
+         * Gets number of subnodes.
+         */
         [[nodiscard]] constexpr size_t num_children() const noexcept { return this->subindices.size(); }
 
+        /**
+         * Gets subtree, selected according to indices.
+         * @param indices The indices to select from the subtree.
+         * @return Found subtree.
+         */
         [[nodiscard]] constexpr subclass_t& subtree(std::span<const size_t> indices) noexcept {
             if (indices.empty()) {
                 return static_cast<subclass_t&>(*this);
