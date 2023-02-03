@@ -15,7 +15,7 @@
 namespace Moment::mex::functions  {
 
 
-    void ApplyValuesParams::extra_parse_params(matlab::engine::MATLABEngine &matlabEngine) {
+    void ApplyValuesParams::extra_parse_params() {
         assert(inputs.empty());
 
         // Get matrix index
@@ -28,7 +28,7 @@ namespace Moment::mex::functions  {
 
     }
 
-    void ApplyValuesParams::extra_parse_inputs(matlab::engine::MATLABEngine &matlabEngine) {
+    void ApplyValuesParams::extra_parse_inputs() {
         assert(inputs.size() == 3);
 
         this->matrix_index = read_positive_integer<size_t>(matlabEngine, "Matrix index", inputs[1], 0);

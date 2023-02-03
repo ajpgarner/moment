@@ -57,7 +57,7 @@ namespace Moment::mex::functions {
         };
     }
 
-    AlphabeticNameInputs::AlphabeticNameInputs(matlab::engine::MATLABEngine& matlabEngine, SortedInputs &&input)
+    AlphabeticNameInputs::AlphabeticNameInputs(SortedInputs &&input)
             : SortedInputs(std::move(input)) {
         this->is_upper = !this->flags.contains(u"lower");
         this->zero_index = this->flags.contains(u"zero_index");

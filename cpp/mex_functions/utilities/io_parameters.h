@@ -16,6 +16,10 @@
 
 #include "error_codes.h"
 
+namespace matlab::engine {
+    class MATLABEngine;
+}
+
 namespace Moment::mex {
 
     using ParamNameStr = std::basic_string<char16_t>;
@@ -112,16 +116,19 @@ namespace Moment::mex {
      * Pre-processed inputs to functions
      */
     struct SortedInputs {
+    protected:
+        matlab::engine::MATLABEngine& matlabEngine;
+
     public:
         NamedParameter params;
         NamedFlag flags;
         std::vector<matlab::data::Array> inputs;
 
-        SortedInputs() = default;
-        virtual ~SortedInputs() = default;
-
+        explicit SortedInputs(matlab::engine::MATLABEngine& engine) : matlabEngine{engine} { }
         SortedInputs(const SortedInputs& rhs) = delete;
         SortedInputs(SortedInputs&& rhs) = default;
+
+        virtual ~SortedInputs() = default;
 
         matlab::data::Array& find_or_throw(const ParamNameStr& paramName);
 

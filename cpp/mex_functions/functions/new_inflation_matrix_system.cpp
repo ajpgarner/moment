@@ -28,8 +28,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    NewInflationMatrixSystemParams::NewInflationMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine,
-                                                                   SortedInputs &&rawInput)
+    NewInflationMatrixSystemParams::NewInflationMatrixSystemParams(SortedInputs &&rawInput)
             : SortedInputs(std::move(rawInput)) {
 
         // Either set named params OR give multiple params
@@ -43,17 +42,17 @@ namespace Moment::mex::functions {
                 throw errors::BadInput{errors::bad_param,
                                        "Input arguments should be exclusively named, or exclusively unnamed."};
             }
-            this->getFromParams(matlabEngine);
+            this->getFromParams();
         } else {
             if (this->inputs.size() < 3) {
                 throw errors::BadInput{errors::too_few_inputs,
                    "Input should be in the form: [outcomes per observable], [list of sources], inflation level."};
             }
-            this->getFromInputs(matlabEngine);
+            this->getFromInputs();
         }
     }
 
-    void NewInflationMatrixSystemParams::getFromParams(matlab::engine::MATLABEngine &matlabEngine) {
+    void NewInflationMatrixSystemParams::getFromParams() {
         auto obsIter = this->params.find(u"observables");
         if (obsIter == this->params.cend()) {
             throw errors::BadInput{errors::too_few_inputs, "If parameters are set, \"observables\" should be set."};
@@ -72,22 +71,21 @@ namespace Moment::mex::functions {
         this->outcomes_per_observable = read_positive_integer_array<size_t>(matlabEngine, "Parameter \"observables\"",
                                                                             obsIter->second, 0);
 
-        readSourceCell(matlabEngine, this->outcomes_per_observable.size(), sourceIter->second);
+        readSourceCell(this->outcomes_per_observable.size(), sourceIter->second);
 
         this->inflation_level = read_positive_integer<size_t>(matlabEngine, "Parameter \"inflation_level\"",
                                                       inflationIter->second, 1);
     }
 
-    void NewInflationMatrixSystemParams::getFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
+    void NewInflationMatrixSystemParams::getFromInputs() {
         this->outcomes_per_observable = read_positive_integer_array<size_t>(matlabEngine, "Observables",
                                                                             this->inputs[0], 0);
-        readSourceCell(matlabEngine, this->outcomes_per_observable.size(), this->inputs[1]);
+        readSourceCell(this->outcomes_per_observable.size(), this->inputs[1]);
         this->inflation_level = read_positive_integer<size_t>(matlabEngine, "Inflation level",
                                                               this->inputs[2], 1);
     }
 
-    void NewInflationMatrixSystemParams::readSourceCell(matlab::engine::MATLABEngine &matlabEngine,
-                                                        const size_t num_observables,
+    void NewInflationMatrixSystemParams::readSourceCell(const size_t num_observables,
                                                         const matlab::data::Array &input) {
         if (input.getType() != matlab::data::ArrayType::CELL) {
             throw errors::BadInput{errors::bad_param,

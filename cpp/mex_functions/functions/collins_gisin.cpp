@@ -104,7 +104,7 @@ namespace Moment::mex::functions  {
         }
     }
 
-    CollinsGisinParams::CollinsGisinParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputIn)
+    CollinsGisinParams::CollinsGisinParams(SortedInputs &&inputIn)
             : SortedInputs(std::move(inputIn)) {
 
         // Get matrix system class

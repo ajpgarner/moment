@@ -17,9 +17,8 @@
 #include "utilities/reporting.h"
 
 namespace Moment::mex::functions {
-    ImportMatrixParams::ImportMatrixParams(matlab::engine::MATLABEngine &matlabEngine,
-                                           Moment::mex::SortedInputs &&rawInputs)
-       : SortedInputs(std::move(rawInputs)), inputMatrix{this->inputs[1]} {
+    ImportMatrixParams::ImportMatrixParams(Moment::mex::SortedInputs &&rawInputs)
+       : SortedInputs(std::move(rawInputs)), inputMatrix{std::move(this->inputs[1])} {
         this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
                                                                   this->inputs[0], 0);
 

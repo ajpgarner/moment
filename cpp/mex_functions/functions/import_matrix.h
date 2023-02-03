@@ -25,7 +25,7 @@ namespace Moment::mex::functions  {
         matlab::data::Array inputMatrix;
 
     public:
-        ImportMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
+        explicit ImportMatrixParams(SortedInputs&& inputs);
 
     };
 

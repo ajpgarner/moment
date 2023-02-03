@@ -20,7 +20,7 @@ namespace Moment::mex::functions  {
         } outputType = OutputType::RealBasis;
 
     public:
-        explicit CollinsGisinParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
+        explicit CollinsGisinParams(SortedInputs&& inputs);
 
     };
 

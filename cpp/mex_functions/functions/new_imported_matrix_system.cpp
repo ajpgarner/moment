@@ -11,8 +11,7 @@
 
 namespace Moment::mex::functions {
 
-    NewImportedMatrixSystemParams::NewImportedMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine,
-                                                                 SortedInputs &&rawInput)
+    NewImportedMatrixSystemParams::NewImportedMatrixSystemParams(SortedInputs &&rawInput)
          : SortedInputs(std::move(rawInput)) {
         if (this->flags.contains(u"real")) {
             this->purely_real = true;

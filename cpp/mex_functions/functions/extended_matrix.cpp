@@ -17,7 +17,7 @@
 
 namespace Moment::mex::functions {
 
-    void ExtendedMatrixParams::extra_parse_params(matlab::engine::MATLABEngine& matlabEngine)  {
+    void ExtendedMatrixParams::extra_parse_params()  {
         assert(inputs.empty()); // Should be guaranteed by parent
 
         // Get depth
@@ -27,10 +27,10 @@ namespace Moment::mex::functions {
         // Get extensions
 
         auto& ext_param = this->find_or_throw(u"extensions");
-        this->read_extension_argument(matlabEngine, "Parameter 'extensions'", ext_param);
+        this->read_extension_argument("Parameter 'extensions'", ext_param);
     }
 
-    void ExtendedMatrixParams::extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) {
+    void ExtendedMatrixParams::extra_parse_inputs() {
         // No named parameters... try to interpret inputs as Settings object + depth
         assert(this->inputs.size() == 3); // should be guaranteed by parent
 
@@ -38,7 +38,7 @@ namespace Moment::mex::functions {
         this->hierarchy_level = read_positive_integer<size_t>(matlabEngine, "Hierarchy level", inputs[1], 0);
 
         // Get extensions
-        this->read_extension_argument(matlabEngine, "Extensions", inputs[2]);
+        this->read_extension_argument("Extensions", inputs[2]);
     }
 
     [[nodiscard]] bool ExtendedMatrixParams::any_param_set() const {
@@ -48,8 +48,7 @@ namespace Moment::mex::functions {
     }
 
 
-    void ExtendedMatrixParams::read_extension_argument(matlab::engine::MATLABEngine& matlabEngine,
-                                                       const std::string& paramName,
+    void ExtendedMatrixParams::read_extension_argument(const std::string& paramName,
                                                        const matlab::data::Array& input_array) {
         // Try read as a string...
         std::optional<std::basic_string<char16_t>> asString;

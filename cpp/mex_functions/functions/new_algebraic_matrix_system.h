@@ -20,8 +20,7 @@ namespace Moment::mex::functions {
 
             std::vector<RawMonomialRule> rules{};
 
-            NewAlgebraicMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine,
-                                           SortedInputs &&rawInput);
+        explicit NewAlgebraicMatrixSystemParams(SortedInputs &&rawInput);
 
     private:
         void getFromParams(matlab::engine::MATLABEngine &matlabEngine);
@@ -36,7 +35,7 @@ namespace Moment::mex::functions {
     class NewAlgebraicMatrixSystem
         : public ParameterizedMexFunction<NewAlgebraicMatrixSystemParams, MEXEntryPointID::NewAlgebraicMatrixSystem> {
     public:
-        explicit NewAlgebraicMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
+        explicit NewAlgebraicMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 
     protected:
         void operator()(IOArgumentRange output, NewAlgebraicMatrixSystemParams &input) override;

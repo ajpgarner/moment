@@ -18,13 +18,12 @@ namespace Moment::mex::functions  {
         std::map<symbol_name_t, double> substitutions;
 
     public:
-        ApplyValuesParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs)
-        : OperatorMatrixParams(matlabEngine, std::move(inputs)) { }
+        explicit ApplyValuesParams(SortedInputs&& inputs) : OperatorMatrixParams(std::move(inputs)) { }
 
     protected:
-        void extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) final;
+        void extra_parse_params() final;
 
-        void extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) final;
+        void extra_parse_inputs() final;
 
         /** True if reference id, or derived parameter (e.g. level, word, etc.), set */
         [[nodiscard]] bool any_param_set() const final;

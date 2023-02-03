@@ -35,7 +35,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    void LocalizingMatrixParams::extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) {
+    void LocalizingMatrixParams::extra_parse_params() {
         assert(inputs.empty()); // Should be guaranteed by parent.
 
         // Get depth
@@ -50,7 +50,7 @@ namespace Moment::mex::functions {
         this->matlab_indexing = this->flags.contains(u"matlab_indexing");
     }
 
-    void LocalizingMatrixParams::extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) {
+    void LocalizingMatrixParams::extra_parse_inputs() {
         // No named parameters... try to interpret inputs as matrix system, depth and word.
         assert(this->inputs.size() == 3); // should be guaranteed by parent.
         this->hierarchy_level = read_positive_integer<size_t>(matlabEngine, "Hierarchy level", inputs[1], 0);
@@ -61,8 +61,7 @@ namespace Moment::mex::functions {
 
     }
 
-    LocalizingMatrixIndex LocalizingMatrixParams::to_index(matlab::engine::MATLABEngine &matlabEngine,
-                                                           const Context& context) const {
+    LocalizingMatrixIndex LocalizingMatrixParams::to_index(const Context& context) const {
         // Do we have to offset?
         auto oper_copy = this->localizing_word;
         if (this->matlab_indexing) {
@@ -113,7 +112,7 @@ namespace Moment::mex::functions {
 
         // Encode index under read lock
         auto read_lock = system.get_read_lock();
-        auto lmi = input.to_index(this->matlabEngine, system.Context());
+        auto lmi = input.to_index(system.Context());
         read_lock.unlock();
 
         return system.create_localizing_matrix(lmi);

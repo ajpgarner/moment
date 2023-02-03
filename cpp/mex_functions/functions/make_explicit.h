@@ -41,7 +41,7 @@ namespace Moment::mex::functions {
 
 
     public:
-        explicit MakeExplicitParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
+        explicit MakeExplicitParams(SortedInputs&& structuredInputs);
 
     };
 

@@ -18,7 +18,7 @@
 #include "utilities/reporting.h"
 
 namespace Moment::mex::functions {
-    SymbolTableParams::SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)
+    SymbolTableParams::SymbolTableParams(SortedInputs &&rawInput)
         : SortedInputs(std::move(rawInput)) {
         this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference", this->inputs[0], 0);
 

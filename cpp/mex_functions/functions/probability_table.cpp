@@ -95,7 +95,7 @@ namespace Moment::mex::functions {
 
     }
 
-    ProbabilityTableParams::ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputIn)
+    ProbabilityTableParams::ProbabilityTableParams(SortedInputs &&inputIn)
             : SortedInputs(std::move(inputIn)) {
         // Get matrix system ID
         this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "Reference id", this->inputs[0], 0);

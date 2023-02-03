@@ -17,7 +17,7 @@ namespace Moment::mex::functions  {
         uint64_t matrix_index = 0;
 
     public:
-        explicit SuggestExtensionsParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
+        explicit SuggestExtensionsParams(SortedInputs&& inputs);
 
     };
 

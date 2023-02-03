@@ -146,7 +146,7 @@ namespace Moment::mex::functions {
         [[nodiscard]] std::unique_ptr<SortedInputs>
         transform_inputs(std::unique_ptr<SortedInputs> input) const final {
             assert(input);
-            auto output = std::make_unique<param_t>(this->matlabEngine, std::move(*input));
+            auto output = std::make_unique<param_t>(std::move(*input));
             assert(output);
             extra_input_checks(*output);
             return output;

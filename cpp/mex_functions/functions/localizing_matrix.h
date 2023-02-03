@@ -23,18 +23,17 @@ namespace Moment::mex::functions  {
         std::vector<oper_name_t> localizing_word;
 
     public:
-        explicit LocalizingMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs)
-            : OperatorMatrixParams(matlabEngine, std::move(inputs)) { }
+        explicit LocalizingMatrixParams(SortedInputs&& inputs) : OperatorMatrixParams(std::move(inputs)) { }
 
         /**
          * Use the supplied context to create an index for the requested localizing matrix.
          */
-        LocalizingMatrixIndex to_index(matlab::engine::MATLABEngine &matlabEngine, const Context& context) const;
+        LocalizingMatrixIndex to_index(const Context& context) const;
 
     protected:
-        void extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) final;
+        void extra_parse_params() final;
 
-        void extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) final;
+        void extra_parse_inputs() final;
 
         [[nodiscard]] bool any_param_set() const final;
 

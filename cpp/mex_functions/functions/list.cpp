@@ -46,7 +46,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    ListParams::ListParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs)
+    ListParams::ListParams(SortedInputs &&inputs)
         : SortedInputs(std::move(inputs)) {
         if (this->inputs.size() >= 1) {
             this->output_type = OutputType::OneSystem;

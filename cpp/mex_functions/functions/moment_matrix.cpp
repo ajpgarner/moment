@@ -26,7 +26,7 @@ namespace Moment::mex::functions {
         this->max_inputs = 2;
     }
 
-    void MomentMatrixParams::extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) {
+    void MomentMatrixParams::extra_parse_params() {
         assert(inputs.empty()); // Should be guaranteed by parent
 
         // Get depth
@@ -34,7 +34,7 @@ namespace Moment::mex::functions {
         this->hierarchy_level = read_positive_integer<size_t>(matlabEngine, "Parameter 'level'", depth_param, 0);
     }
 
-    void MomentMatrixParams::extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) {
+    void MomentMatrixParams::extra_parse_inputs() {
         // No named parameters... try to interpret inputs as Settings object + depth
         assert(this->inputs.size() == 2); // should be guaranteed by parent
         this->hierarchy_level = read_positive_integer<size_t>(matlabEngine, "Hierarchy level", inputs[1], 0);

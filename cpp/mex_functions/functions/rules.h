@@ -14,7 +14,7 @@ namespace Moment::mex::functions  {
         uint64_t storage_key = 0;
 
     public:
-        explicit RulesParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
+        explicit RulesParams(SortedInputs&& inputs);
     };
 
     class Rules : public ParameterizedMexFunction<RulesParams, MEXEntryPointID::Rules> {

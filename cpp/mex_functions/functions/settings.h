@@ -27,12 +27,12 @@ namespace Moment::mex::functions  {
         std::vector<std::string> unknown_settings;
 
     public:
-        explicit SettingsParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
+        explicit SettingsParams(SortedInputs&& inputs);
 
     private:
-        void getFromParams(matlab::engine::MATLABEngine &matlabEngine);
+        void getFromParams();
 
-        void getFromStruct(matlab::engine::MATLABEngine &matlabEngine);
+        void getFromStruct();
     };
 
     class Settings : public ParameterizedMexFunction<SettingsParams, MEXEntryPointID::Settings> {

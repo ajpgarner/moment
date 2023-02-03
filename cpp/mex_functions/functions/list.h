@@ -25,7 +25,7 @@ namespace Moment::mex::functions  {
         bool export_matrix_properties = false;
 
     public:
-        explicit ListParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
+        explicit ListParams(SortedInputs&& inputs);
 
     };
 

@@ -20,13 +20,12 @@ namespace Moment::mex::functions {
             Automatic
         } extension_type = ExtensionType::Manual;
 
-        ExtendedMatrixParams(matlab::engine::MATLABEngine& matlabEngine, SortedInputs&& input)
-            : OperatorMatrixParams(matlabEngine, std::move(input)) { }
+        explicit ExtendedMatrixParams(SortedInputs&& input) : OperatorMatrixParams(std::move(input)) { }
 
     protected:
-        void extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) final;
+        void extra_parse_params() final;
 
-        void extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) final;
+        void extra_parse_inputs() final;
 
         [[nodiscard]] bool any_param_set() const final;
 
@@ -35,8 +34,7 @@ namespace Moment::mex::functions {
         [[nodiscard]] std::string input_format() const final { return "[matrix system ID, level, extensions]"; }
 
     private:
-        void read_extension_argument(matlab::engine::MATLABEngine& matlabEngine,
-                                     const std::string& paramName,
+        void read_extension_argument(const std::string& paramName,
                                      const matlab::data::Array& input_array);
     };
 

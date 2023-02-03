@@ -18,7 +18,7 @@ namespace Moment::mex::functions {
         } type = StorableType::Unknown;
         size_t key = 0;
 
-        ReleaseParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& raw_inputs);
+        explicit ReleaseParams(SortedInputs&& raw_inputs);
     };
 
     class Release : public ParameterizedMexFunction<ReleaseParams, MEXEntryPointID::Release> {

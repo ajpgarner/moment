@@ -50,7 +50,7 @@ namespace Moment::mex::functions  {
         }
     }
 
-    void OperatorMatrixParams::parse(matlab::engine::MATLABEngine &matlabEngine) {
+    void OperatorMatrixParams::parse() {
         // Determine output mode:
         if (this->flags.contains(u"sequences")) {
             this->output_mode = OutputMode::Sequences;
@@ -83,7 +83,7 @@ namespace Moment::mex::functions  {
             this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'reference_id'", ref_param, 0);
 
             // Extra parsing
-            this->extra_parse_params(matlabEngine);
+            this->extra_parse_params();
 
             // Done
             return;
@@ -102,7 +102,7 @@ namespace Moment::mex::functions  {
         this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference", inputs[0], 0);
 
         // Extra parsing
-        this->extra_parse_inputs(matlabEngine);
+        this->extra_parse_inputs();
     }
 
     bool OperatorMatrixParams::any_param_set() const {
@@ -110,14 +110,14 @@ namespace Moment::mex::functions  {
     }
 
 
-    void RawOperatorMatrixParams::extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) {
+    void RawOperatorMatrixParams::extra_parse_params() {
         assert(inputs.empty()); // Should be guaranteed by parent.
         // Get depth
         auto& index_param = this->find_or_throw(u"index");
         this->matrix_index = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'index'", index_param, 0);
     }
 
-    void RawOperatorMatrixParams::extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) {
+    void RawOperatorMatrixParams::extra_parse_inputs() {
         assert(this->inputs.size() == 2); // should be guaranteed by parent.
         this->matrix_index = read_positive_integer<uint64_t>(matlabEngine, "Matrix index", inputs[1], 0);
     }

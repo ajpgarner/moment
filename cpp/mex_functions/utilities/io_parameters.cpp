@@ -11,8 +11,6 @@
 
 #include "io_parameters.h"
 
-#include "reflection.h"
-
 #include "mex.hpp"
 
 #include <algorithm>

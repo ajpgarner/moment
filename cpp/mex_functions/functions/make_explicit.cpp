@@ -93,8 +93,7 @@ namespace Moment::mex::functions {
 
     }
 
-    MakeExplicitParams::MakeExplicitParams(matlab::engine::MATLABEngine &matlabEngine,
-                                           SortedInputs &&structuredInputs)
+    MakeExplicitParams::MakeExplicitParams(SortedInputs &&structuredInputs)
            : SortedInputs(std::move(structuredInputs)) {
         // Get system reference
         this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",

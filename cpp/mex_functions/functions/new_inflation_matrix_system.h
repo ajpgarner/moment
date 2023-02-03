@@ -21,17 +21,16 @@ namespace Moment::mex::functions {
         size_t inflation_level = 1;
 
     public:
-        explicit NewInflationMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs);
+        explicit NewInflationMatrixSystemParams(SortedInputs &&inputs);
 
         [[nodiscard]] std::string to_string() const override;
 
     private:
-        void getFromParams(matlab::engine::MATLABEngine &matlabEngine);
+        void getFromParams();
 
-        void getFromInputs(matlab::engine::MATLABEngine &matlabEngine);
+        void getFromInputs();
 
-        void readSourceCell(matlab::engine::MATLABEngine &matlabEngine, size_t num_observables,
-                            const matlab::data::Array& input);
+        void readSourceCell(size_t num_observables, const matlab::data::Array& input);
 
     };
 

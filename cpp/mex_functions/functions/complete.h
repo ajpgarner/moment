@@ -35,8 +35,7 @@ namespace Moment::mex::functions {
         /** The raw rules (if provided...) */
         std::vector<RawMonomialRule> rules{};
 
-        CompleteParams(matlab::engine::MATLABEngine &matlabEngine,
-                       SortedInputs &&rawInput);
+        explicit CompleteParams(SortedInputs &&rawInput);
 
     };
 

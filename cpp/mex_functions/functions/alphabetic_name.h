@@ -15,7 +15,7 @@ namespace Moment::mex::functions  {
         bool is_upper = false;
         bool zero_index = false;
 
-        explicit AlphabeticNameInputs(matlab::engine::MATLABEngine& matlabEngine, SortedInputs&& input);
+        explicit AlphabeticNameInputs(SortedInputs&& input);
     };
 
     class AlphabeticName : public ParameterizedMexFunction<AlphabeticNameInputs, MEXEntryPointID::AlphabeticName> {

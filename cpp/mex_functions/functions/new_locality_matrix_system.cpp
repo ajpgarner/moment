@@ -21,15 +21,14 @@
 namespace Moment::mex::functions {
     namespace {
         std::unique_ptr<Locality::LocalityContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
-                                              const NewLocalityMatrixSystemParams &input) {
+                                                                const NewLocalityMatrixSystemParams &input) {
             return std::make_unique<Locality::LocalityContext>(
                     Locality::Party::MakeList(input.mmts_per_party, input.outcomes_per_mmt)
             );
         }
     }
 
-    NewLocalityMatrixSystemParams::NewLocalityMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine,
-                                                                 SortedInputs &&rawInput)
+    NewLocalityMatrixSystemParams::NewLocalityMatrixSystemParams(SortedInputs &&rawInput)
             : SortedInputs(std::move(rawInput)) {
 
         // Either set named params OR give multiple params
@@ -43,15 +42,15 @@ namespace Moment::mex::functions {
                 throw errors::BadInput{errors::bad_param,
                                        "Input arguments should be exclusively named, or exclusively unnamed."};
             }
-            this->getFromParams(matlabEngine);
+            this->getFromParams();
         } else {
             // No named parameters... try to interpret inputs as Settings object + depth
             // Otherwise, try to interpret inputs as flat specification
-            this->getFromInputs(matlabEngine);
+            this->getFromInputs();
         }
     }
 
-    void NewLocalityMatrixSystemParams::getFromParams(matlab::engine::MATLABEngine &matlabEngine) {
+    void NewLocalityMatrixSystemParams::getFromParams() {
         // Read and check number of parties, or default to 1
         auto party_param = params.find(u"parties");
         if (party_param != params.end()) {
@@ -65,7 +64,7 @@ namespace Moment::mex::functions {
         this->mmts_per_party.reserve(number_of_parties);
         auto mmt_param = params.find(u"measurements");
         if (mmt_param != params.end()) {
-            this->readMeasurementSpecification(matlabEngine, mmt_param->second, "Parameter 'measurements'");
+            this->readMeasurementSpecification(mmt_param->second, "Parameter 'measurements'");
         } else {
             std::fill_n(std::back_inserter(this->mmts_per_party), number_of_parties, 1);
             this->total_measurements = number_of_parties;
@@ -77,11 +76,11 @@ namespace Moment::mex::functions {
             throw errors::BadInput{errors::missing_param,
                                    "Parameter 'outcomes' must be set."};
         }
-        this->readOutcomeSpecification(matlabEngine, outcome_param->second, "Parameter 'outcomes'");
+        this->readOutcomeSpecification(outcome_param->second, "Parameter 'outcomes'");
     }
 
 
-    void NewLocalityMatrixSystemParams::getFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
+    void NewLocalityMatrixSystemParams::getFromInputs() {
         if (inputs.size() < 2) {
             std::string errStr{"Please supply either named inputs; or a list of integers in the form"};
             errStr += " \"number of parties, number of outcomes\",";
@@ -95,19 +94,18 @@ namespace Moment::mex::functions {
 
         // Read measurements (if any) and operator count
         if (inputs.size() == 3) {
-            this->readMeasurementSpecification(matlabEngine, inputs[1], "Measurement count");
-            this->readOutcomeSpecification(matlabEngine, inputs[2], "Number of outcomes");
+            this->readMeasurementSpecification(inputs[1], "Measurement count");
+            this->readOutcomeSpecification(inputs[2], "Number of outcomes");
         } else {
             // Auto 1 mmt per party
             std::fill_n(std::back_inserter(this->mmts_per_party), number_of_parties, 1);
             this->total_measurements = 1;
-            this->readOutcomeSpecification(matlabEngine, inputs[1], "Number of outcomes");
+            this->readOutcomeSpecification(inputs[1], "Number of outcomes");
         }
     }
 
-    void NewLocalityMatrixSystemParams::readMeasurementSpecification(matlab::engine::MATLABEngine &matlabEngine,
-                                                             matlab::data::Array &input,
-                                                             const std::string& paramName) {
+    void NewLocalityMatrixSystemParams::readMeasurementSpecification(matlab::data::Array &input,
+                                                                     const std::string& paramName) {
 
         const size_t num_elems = input.getNumberOfElements();
         if (1 == num_elems) {
@@ -126,9 +124,8 @@ namespace Moment::mex::functions {
 
     }
 
-    void NewLocalityMatrixSystemParams::readOutcomeSpecification(matlab::engine::MATLABEngine &matlabEngine,
-                                                         matlab::data::Array &input,
-                                                         const std::string& paramName) {
+    void NewLocalityMatrixSystemParams::readOutcomeSpecification(matlab::data::Array &input,
+                                                                 const std::string& paramName) {
 
         const size_t num_elems = input.getNumberOfElements();
         if (1 == num_elems) {

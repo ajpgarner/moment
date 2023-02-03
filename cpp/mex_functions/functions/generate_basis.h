@@ -26,7 +26,7 @@ namespace Moment::mex::functions {
         uint64_t matrix_index = 0;
 
     public:
-        explicit GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
+        explicit GenerateBasisParams(SortedInputs&& structuredInputs);
 
     };
 

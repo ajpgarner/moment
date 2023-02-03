@@ -30,7 +30,7 @@ namespace Moment::mex::functions  {
         std::vector<std::vector<oper_name_t>> sequences;
 
     public:
-        explicit SymbolTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs);
+        explicit SymbolTableParams(SortedInputs&& inputs);
 
         [[nodiscard]] std::string to_string() const override;
     };

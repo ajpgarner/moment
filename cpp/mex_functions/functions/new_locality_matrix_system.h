@@ -21,18 +21,16 @@ namespace Moment::mex::functions {
         std::vector<size_t> outcomes_per_mmt;
 
     public:
-        explicit NewLocalityMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs);
+        explicit NewLocalityMatrixSystemParams(SortedInputs &&inputs);
 
     private:
-        void getFromParams(matlab::engine::MATLABEngine &matlabEngine);
+        void getFromParams();
 
-        void getFromInputs(matlab::engine::MATLABEngine &matlabEngine);
+        void getFromInputs();
 
-        void readMeasurementSpecification(matlab::engine::MATLABEngine &matlabEngine,
-                                          matlab::data::Array& input, const std::string& paramName);
+        void readMeasurementSpecification( matlab::data::Array& input, const std::string& paramName);
 
-        void readOutcomeSpecification(matlab::engine::MATLABEngine &matlabEngine,
-                                      matlab::data::Array& input, const std::string& paramName);
+        void readOutcomeSpecification(matlab::data::Array& input, const std::string& paramName);
 
     };
 

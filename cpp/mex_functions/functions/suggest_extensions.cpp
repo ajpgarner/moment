@@ -26,7 +26,7 @@ namespace Moment::mex::functions  {
         }
     }
 
-    SuggestExtensionsParams::SuggestExtensionsParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInputs)
+    SuggestExtensionsParams::SuggestExtensionsParams(SortedInputs &&rawInputs)
         : SortedInputs(std::move(rawInputs)) {
         this->matrix_system_key = read_as_scalar<uint64_t>(matlabEngine, this->inputs[0]);
         this->matrix_index = read_as_scalar<uint64_t>(matlabEngine, this->inputs[1]);

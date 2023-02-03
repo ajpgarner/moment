@@ -13,20 +13,20 @@
 
 namespace Moment::mex::functions {
 
-    SettingsParams::SettingsParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&raw_inputs)
+    SettingsParams::SettingsParams(SortedInputs &&raw_inputs)
         : SortedInputs(std::move(raw_inputs)) {
 
         if (!inputs.empty()) {
-            this->getFromStruct(matlabEngine);
+            this->getFromStruct();
         } else {
-            this->getFromParams(matlabEngine);
+            this->getFromParams();
         }
 
         this->structured_output = this->flags.contains(u"structured");
     }
 
 
-    void SettingsParams::getFromParams(matlab::engine::MATLABEngine &matlabEngine) {
+    void SettingsParams::getFromParams() {
         auto lf_iter = this->params.find(u"locality_format");
         if (lf_iter != this->params.end()) {
             try {
@@ -51,7 +51,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    void SettingsParams::getFromStruct(matlab::engine::MATLABEngine &matlabEngine) {
+    void SettingsParams::getFromStruct() {
         if (inputs[0].getType() != matlab::data::ArrayType::STRUCT) {
             throw_error(matlabEngine, errors::bad_param,
                         "Input to settings must be a struct. (Possible misspelled parameter supplied!)");
@@ -181,5 +181,4 @@ namespace Moment::mex::functions {
         output[0]["locality_format"] = factory.createScalar(vars.get_locality_formatter()->name());
         return output;
     }
-
 }

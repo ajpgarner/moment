@@ -10,14 +10,14 @@
 
 namespace Moment::mex::functions {
 
-    ReleaseParams::ReleaseParams(matlab::engine::MATLABEngine &matlab, SortedInputs &&raw_inputs)
+    ReleaseParams::ReleaseParams(SortedInputs &&raw_inputs)
         : SortedInputs(std::move(raw_inputs)) {
 
         // Attempt to read MomentMatrix delete request...
         if (this->params.contains(u"matrix_system")) {
             this->type = StorableType::MatrixSystem;
             auto mmIter = this->find_or_throw(u"matrix_system");
-            this->key = read_positive_integer<uint64_t>(matlab, "Parameter 'matrix_system'", mmIter, 0);
+            this->key = read_positive_integer<uint64_t>(this->matlabEngine, "Parameter 'matrix_system'", mmIter, 0);
             return;
         }
 
@@ -59,7 +59,4 @@ namespace Moment::mex::functions {
             output[0] = arrayFactory.createScalar<uint64_t>(remainder);
         }
     }
-
-
-
 }

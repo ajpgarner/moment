@@ -36,15 +36,14 @@ namespace Moment::mex::functions  {
         } output_mode = OutputMode::Unknown;
 
     public:
-        OperatorMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs)
-            : SortedInputs(std::move(inputs)) { }
+        explicit OperatorMatrixParams(SortedInputs&& inputs) : SortedInputs(std::move(inputs)) { }
 
-        void parse(matlab::engine::MATLABEngine &matlabEngine);
+        void parse();
 
     protected:
-        virtual void extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) = 0;
+        virtual void extra_parse_params() = 0;
 
-        virtual void extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) = 0;
+        virtual void extra_parse_inputs() = 0;
 
         /** True if reference id, or derived parameter (e.g. level, word, etc.), set */
         [[nodiscard]] virtual bool any_param_set() const;
@@ -61,13 +60,12 @@ namespace Moment::mex::functions  {
         uint64_t matrix_index = 0;
 
     public:
-        RawOperatorMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs)
-            : OperatorMatrixParams(matlabEngine, std::move(inputs)) { }
+        explicit RawOperatorMatrixParams(SortedInputs&& inputs) : OperatorMatrixParams(std::move(inputs)) { }
 
     protected:
-        void extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) final;
+        void extra_parse_params() final;
 
-        void extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) final;
+        void extra_parse_inputs() final;
 
         /** True if reference id, or derived parameter (e.g. level, word, etc.), set */
         [[nodiscard]] bool any_param_set() const final;
@@ -145,7 +143,7 @@ namespace Moment::mex::functions  {
         }
 
         void extra_input_checks(om_param_t &input) const final {
-            input.parse(this->matlabEngine);
+            input.parse();
             this->check_mat_sys_id(input);
         }
 

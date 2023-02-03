@@ -44,8 +44,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    NewAlgebraicMatrixSystemParams::NewAlgebraicMatrixSystemParams(matlab::engine::MATLABEngine &matlabEngine,
-                                                                   SortedInputs &&rawInput)
+    NewAlgebraicMatrixSystemParams::NewAlgebraicMatrixSystemParams(SortedInputs &&rawInput)
        : SortedInputs(std::move(rawInput)) {
 
         // Any completion requested?

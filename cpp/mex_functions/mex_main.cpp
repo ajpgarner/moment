@@ -105,7 +105,7 @@ namespace Moment::mex {
         NameSet flag_names = {u"quiet", u"verbose", u"debug", u"debug_preprocess"};
         flag_names.insert(func_flag_names.begin(), func_flag_names.end());
 
-        std::unique_ptr<SortedInputs> sortedPtr = std::make_unique<SortedInputs>();
+        std::unique_ptr<SortedInputs> sortedPtr = std::make_unique<SortedInputs>(*matlabPtr);
         assert(sortedPtr);
         SortedInputs& sorted = *sortedPtr;
 

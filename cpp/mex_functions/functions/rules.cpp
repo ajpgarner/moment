@@ -17,9 +17,10 @@
 
 namespace Moment::mex::functions {
 
-    RulesParams::RulesParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&inputs) {
+    RulesParams::RulesParams(SortedInputs &&rawInput)
+        : SortedInputs(std::move(rawInput)) {
         this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
-                                                            inputs.inputs[0], 0);
+                                                            this->inputs[0], 0);
     }
 
     Rules::Rules(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)

@@ -53,7 +53,7 @@ namespace Moment::mex::functions {
         [[nodiscard]] std::vector<Inflation::OVOIndex> requested_ovo() const;
 
     public:
-        explicit ProbabilityTableParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& structuredInputs);
+        explicit ProbabilityTableParams(SortedInputs&& structuredInputs);
     };
 
 class ProbabilityTable : public ParameterizedMexFunction<ProbabilityTableParams, MEXEntryPointID::ProbabilityTable> {

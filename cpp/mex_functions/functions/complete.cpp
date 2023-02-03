@@ -46,7 +46,7 @@ namespace Moment::mex::functions {
     }
 
 
-    CompleteParams::CompleteParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs &&rawInput)
+    CompleteParams::CompleteParams(SortedInputs &&rawInput)
         : SortedInputs(std::move(rawInput)) {
         // Do we specify number of operators?
         auto op_iter = this->params.find(u"operators");

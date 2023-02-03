@@ -32,26 +32,8 @@ namespace Moment::mex::functions {
         }
     }
 
-    GenerateBasis::GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-        : ParameterizedMexFunction(matlabEngine, storage, u"generate_basis") {
-        this->min_inputs = 2;
-        this->max_inputs = 2;
-        this->min_outputs = 1;
-        this->max_outputs = 3;
-
-        this->flag_names.emplace(u"sparse");
-        this->flag_names.emplace(u"dense");
-        this->mutex_params.add_mutex(u"dense", u"sparse");
-
-        this->flag_names.emplace(u"cell");
-        this->flag_names.emplace(u"monolith");
-        this->mutex_params.add_mutex(u"cell", u"monolith");
-    }
-
-
-    GenerateBasisParams::GenerateBasisParams(matlab::engine::MATLABEngine &matlabEngine,
-                                             Moment::mex::SortedInputs &&structuredInputs)
-        : SortedInputs(std::move(structuredInputs)) {
+    GenerateBasisParams::GenerateBasisParams(Moment::mex::SortedInputs &&structuredInputs)
+            : SortedInputs(std::move(structuredInputs)) {
         // Get reference
         this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
                                                                   this->inputs[0], 0);
@@ -71,6 +53,23 @@ namespace Moment::mex::functions {
             this->sparse_output = false;
         }
     }
+
+    GenerateBasis::GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
+        : ParameterizedMexFunction(matlabEngine, storage, u"generate_basis") {
+        this->min_inputs = 2;
+        this->max_inputs = 2;
+        this->min_outputs = 1;
+        this->max_outputs = 3;
+
+        this->flag_names.emplace(u"sparse");
+        this->flag_names.emplace(u"dense");
+        this->mutex_params.add_mutex(u"dense", u"sparse");
+
+        this->flag_names.emplace(u"cell");
+        this->flag_names.emplace(u"monolith");
+        this->mutex_params.add_mutex(u"cell", u"monolith");
+    }
+
 
 
     void GenerateBasis::extra_input_checks(GenerateBasisParams &input) const {

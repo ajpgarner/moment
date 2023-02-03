@@ -17,13 +17,12 @@ namespace Moment::mex::functions  {
     public:
         size_t hierarchy_level = 0;
     public:
-        explicit MomentMatrixParams(matlab::engine::MATLABEngine &matlabEngine, SortedInputs&& inputs)
-            : OperatorMatrixParams(matlabEngine, std::move(inputs)) { }
+        explicit MomentMatrixParams(SortedInputs&& inputs) : OperatorMatrixParams(std::move(inputs)) { }
 
     protected:
-        void extra_parse_params(matlab::engine::MATLABEngine& matlabEngine) final;
+        void extra_parse_params() final;
 
-        void extra_parse_inputs(matlab::engine::MATLABEngine& matlabEngine) final;
+        void extra_parse_inputs() final;
 
         [[nodiscard]] bool any_param_set() const final;
 
