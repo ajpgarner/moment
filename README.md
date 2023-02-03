@@ -179,27 +179,29 @@ settings.
 
 `\cpp\lib_moment`: Toolkit algorithms agnostic of MATLAB. Builds `lib_moment`.
 
-`\cpp\lib_moment\operators`: Aspects of `lib_moment` concerning Hermitian operator manipulation.
+`\cpp\lib_moment\matrix`: Aspects of `lib_moment` concerning operator matrices.
 
-`\cpp\lib_moment\operators\algebraic`: Aspects of `lib_moment` concerning generic algebraic operator
-manipulation (with monomial rewrite rules).
-
-`\cpp\lib_moment\operators\common`: Aspects of `lib_moment` concerning functionality shared between various operator 
+`\cpp\lib_moment\scenarios`: Aspects of `lib_moment` concerning functionality shared between various matrix
 systems.
 
-`\cpp\lib_moment\operators\inflation`: Aspects of `lib_moment` concerning inflation scenarios.
+`\cpp\lib_moment\scenarios\algebraic`: Aspects of `lib_moment` concerning generic algebraic operator
+manipulation (with monomial rewrite rules).
 
-`\cpp\lib_moment\operators\locality`: Aspects of `lib_moment` concerning locality scenarios (e.g. NPA Hierarchy).
+`\cpp\lib_moment\scenarios\imported`: Aspects of `lib_moment` concerning manually imported matrices.
 
-`\cpp\lib_moment\operators\matrix`: Aspects of `lib_moment` specifically concerned with systems of moment matrices,
+`\cpp\lib_moment\scenarios\inflation`: Aspects of `lib_moment` concerning inflation scenarios.
+
+`\cpp\lib_moment\scenarios\locality`: Aspects of `lib_moment` concerning locality scenarios (e.g. NPA Hierarchy).
+
+`\cpp\lib_moment\operators\matrix`: Aspects of `lib_moment` concerning systems of moment matrices,
 localizing matrices, etc.
 
-`\cpp\lib_moment\symbolic`: Aspects of `lib_moment` specifically concerned with simplification of symbolic expressions.
+`\cpp\lib_moment\symbolic`: Aspects of `lib_moment`  concerning symbolic expressions.
 
 `\cpp\lib_moment\utilities`: General boilerplate code for `lib_moment`, not entirely specific to the manipulation of 
 SDP hierarchies.
 
-`\cpp\mex_functions`: Source root for MATLAB code (i.e. building `mtk` mex library).
+`\cpp\mex_functions`: Root for MATLAB/C++ interface code (i.e. building `mtk` mex library).
 
 `\cpp\mex_functions\fragments`: Code pieces specific to Moment, involving manipulation of
 MATLAB arrays, that are used by more than one mex function.
@@ -212,17 +214,25 @@ library objects.
 
 `\cpp\mex_functions\functions`: Entry points for the various `mtk` commands.
 
-`\cpp\mex_functions\matlab_classes`: Mirrors of matlab classes (e.g. defined in `\matlab`), so as to be parsed into C++.
-
-`\cpp\mex_functions\utilities`: Boilerplate code, useful for interfacing MATLAB with C++.
+`\cpp\mex_functions\utilities`: Boilerplate code for interfacing MATLAB with C++.
 
 `\cpp\tests`: C++ unit tests for `lib_moment` (build using googletest).
 
-`\cpp\tests\operators`: C++ unit tests for Hermitian-operator manipulation aspects of `lib_moment`.
+`\cpp\tests\operators`: C++ unit tests for Hermitian-operator manipulation.
 
-`\cpp\tests\symbolic`: C++ unit tests for symbol manipulation aspects of `lib_moment`.
+`\cpp\tests\scenarios`: C++ unit tests for specific matrix system types.
 
-`\cpp\tests\utilities`: C++ unit tests for general utility functions in `lib_moment`.
+`\cpp\tests\scenarios\algebraic`: C++ unit tests for algebraic matrix systems.
+
+`\cpp\tests\scenarios\imported`: C++ unit tests for imported matrix systems.
+
+`\cpp\tests\scenarios\inflation`: C++ unit tests for inflation scenario matrix systems.
+
+`\cpp\tests\scenarios\locality`: C++ unit tests for locality scenario matrix systems.
+
+`\cpp\tests\symbolic`: C++ unit tests for symbolic manipulation.
+
+`\cpp\tests\utilities`: C++ unit tests for general utility functions.
 
 `\matlab`: Root of Moment MATLAB classes & functions.
 
