@@ -56,6 +56,11 @@ namespace Moment {
             return this->subindices[front + this->index_offset].subtree(indices.last(indices.size() - 1));
         }
 
+        /**
+          * Gets subtree, selected according to indices.
+          * @param indices The indices to select from the subtree.
+          * @retrun Found subtree.
+          */
         [[nodiscard]] constexpr const subclass_t& subtree(std::span<const size_t> indices) const noexcept {
             if (indices.empty()) {
                 return static_cast<const subclass_t&>(*this);
@@ -67,29 +72,54 @@ namespace Moment {
             return this->subindices[front + this->index_offset].subtree(indices.last(indices.size() - 1));
         }
 
+        /**
+         * Sets this node to the specified value
+         * @param the_object The value to assign.
+         */
         constexpr void set(type_t the_object) noexcept {
             this->object = std::move(the_object);
         }
 
+        /**
+         * Sets a subnode to the specified value
+         * @param indices The indices to select the subnode.
+         * @param the_object The value to assign.
+         */
         constexpr void set(std::span<const size_t> indices, type_t the_object) noexcept {
             auto& place = subtree(indices);
             place.object = std::move(the_object);
         }
 
+        /**
+         * Sets a subnode to the specified value
+         * @param indices The indices to select the subnode.
+         * @param the_object The value to assign.
+         */
         void set(std::initializer_list<size_t> indices, type_t the_object) noexcept {
             std::vector<size_t> v(indices);
             set(v, std::move(the_object));
         }
 
+        /** Gets the value associated with this node. */
         [[nodiscard]] constexpr const type_t& access() const noexcept {
             return object;
         }
 
+        /**
+         * Gets the value associated with the selected subnode
+         * @param indices The indices to the subnode
+         * @return Reference to the stored value.
+         */
         [[nodiscard]] constexpr const type_t& access(std::span<const size_t> indices) const noexcept {
             auto place = subtree(indices);
             return place.access();
         }
 
+        /**
+         * Gets the value associated with the selected subnode
+         * @param indices The indices to the subnode
+         * @return Reference to the stored value.
+         */
         [[nodiscard]] const type_t& access(std::initializer_list<size_t> indices) const noexcept {
             std::vector<size_t> v(indices);
             return access(v);
