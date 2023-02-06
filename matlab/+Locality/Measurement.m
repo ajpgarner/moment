@@ -79,6 +79,18 @@ classdef Measurement < handle & RealObject
             item = obj.joint_mmts(table_index).mmt;
         end
         
+        function val = ExplicitValues(obj, distribution)
+            arguments
+                obj Locality.Measurement
+                distribution (1,:) double
+            end
+            if length(distribution) ~= length(obj.Outcomes)
+                error("Distribution must match number of outcomes.");
+            end
+            val = mtk('make_explicit', obj.Scenario.System.RefId, ...
+                      obj.Index, distribution);
+        end
+        
         function joint_item = mtimes(objA, objB)
             arguments
                 objA (1,1)

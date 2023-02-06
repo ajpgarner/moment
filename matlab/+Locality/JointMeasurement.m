@@ -59,13 +59,23 @@ classdef JointMeasurement < handle & RealObject
         function val = ContainsParty(obj, party_index)
             val = any(obj.Indices(:,1) == party_index);
         end
-        
-          
+                
+        function val = ExplicitValues(obj, distribution)
+            arguments
+                obj Locality.JointMeasurement
+                distribution (1,:) double
+            end
+            if length(distribution) ~= prod(obj.Shape)
+                error("Distribution must match number of outcomes.");
+            end
+            val = mtk('make_explicit', obj.Scenario.System.RefId, ...
+                      obj.Indices, distribution);
+        end
         
         function joint_item = mtimes(objA, objB)
             arguments
                 objA (1,1)
-                objB (1,1)
+                objB (1,1)                
             end
                         
             % Should only occur when A is a built-in object (e.g. scalar)

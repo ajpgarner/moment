@@ -33,3 +33,6 @@ b11d11 = b11*d11;
 
 a11b11c11d11_one = a11b11 * c11d11;
 a11b11c11d11_two = a11c11 * b11d11;
+
+small_joint = setting.get([[1 1]; [2 1]]);
+big_joint = setting.get([[1 1]; [2 1]; [3 1]; [4 1]]);

@@ -69,7 +69,7 @@ classdef RealObject < handle
             obj.calculateCoefficients();
             val = obj.real_coefs;
         end
-        
+                
         function val = apply(lhs, rhs)
             arguments
                 lhs (1,1) RealObject
@@ -81,7 +81,10 @@ classdef RealObject < handle
             end
             val = coefs * rhs;
         end
-        
+    end
+
+    %% */+/- operators
+    methods        
         function val = mtimes(lhs, rhs)
             arguments
                 lhs (1,1)
