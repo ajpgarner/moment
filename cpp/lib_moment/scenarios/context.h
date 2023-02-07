@@ -47,7 +47,14 @@ namespace Moment {
           * Use context to simplify or substitute an operator sequence, at the point where it is taken as a moment.
           * @param seq The operator sequence to simplify
           */
-         virtual OperatorSequence simplify_as_moment(OperatorSequence&& seq) const;
+         [[nodiscard]] virtual OperatorSequence simplify_as_moment(OperatorSequence&& seq) const;
+
+
+        /**
+         * Use context to conjugate operator sequence.
+         * @param seq The operator sequence to conjugate.
+         */
+        [[nodiscard]] virtual OperatorSequence conjugate(const OperatorSequence& seq) const;
 
          /**
           * Does context know anything extra known about operator sequence X that would imply Re(X)=0 or Im(X)=0?
@@ -96,6 +103,7 @@ namespace Moment {
           * Summarize the context as a string.
           */
          [[nodiscard]] virtual std::string to_string() const;
+
 
 
     public:

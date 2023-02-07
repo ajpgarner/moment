@@ -11,10 +11,8 @@
 
 #include <cassert>
 
-#include <algorithm>
 #include <concepts>
 #include <iosfwd>
-#include <iterator>
 #include <vector>
 
 namespace Moment {
@@ -111,26 +109,6 @@ namespace Moment {
          * @return The number of characters overlapping (if any).
          */
         [[nodiscard]] ptrdiff_t suffix_prefix_overlap(const HashedSequence& rhs) const noexcept;
-
-        /**
-         * Conjugate string, as if it were a string of Hermitian operators.
-         * @tparam hasher_t The functional for calculating hashes
-         * @param hasher Instance of a hasher object
-         */
-        template<OperatorHasher hasher_t>
-        [[nodiscard]] HashedSequence conjugate(const hasher_t& hasher) const {
-            // 0* = 0
-            if (this->is_zero) {
-                return HashedSequence{true};
-            }
-
-            // Otherwise, reverse operators...
-            sequence_storage_t str;
-            str.reserve(this->operators.size());
-            std::reverse_copy(this->operators.cbegin(), this->operators.cend(), std::back_inserter(str));
-            return HashedSequence{std::move(str), hasher};
-        }
-
 
         /** Begin iterator over operators */
         [[nodiscard]] constexpr auto begin() const noexcept  { return this->operators.cbegin(); }

@@ -5,6 +5,7 @@
  */
 #include "hashed_sequence.h"
 
+#include <algorithm>
 #include <iostream>
 
 namespace Moment {

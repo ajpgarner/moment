@@ -6,6 +6,7 @@
 #include "complete.h"
 
 #include "scenarios/algebraic/rule_book.h"
+#include "scenarios/algebraic/algebraic_precontext.h"
 #include "scenarios/algebraic/ostream_rule_logger.h"
 
 #include "export/export_monomial_rules.h"
@@ -19,20 +20,33 @@ namespace Moment::mex::functions {
     namespace {
 
         Algebraic::RuleBook make_rulebook(matlab::engine::MATLABEngine &matlabEngine,
-                                          ShortlexHasher& hasher, CompleteParams& input) {
+                                          CompleteParams& input) {
             std::vector<Algebraic::MonomialSubstitutionRule> rules;
-            const size_t max_strlen = hasher.longest_hashable_string();
+            const Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(input.max_operators),
+                                                     input.hermitian_operators};
+
+            const size_t max_strlen = apc.hasher.longest_hashable_string();
 
             if (input.commutative) {
-                rules = Algebraic::RuleBook::commutator_rules(hasher, input.max_operators);
+                rules = Algebraic::RuleBook::commutator_rules(apc);
             }
 
             rules.reserve(rules.size() + input.rules.size());
             size_t rule_index = 0;
             for (auto &ir: input.rules) {
                 try {
-                    rules.emplace_back(HashedSequence{sequence_storage_t(ir.LHS.begin(), ir.LHS.end()), hasher},
-                                       HashedSequence{sequence_storage_t(ir.RHS.begin(), ir.RHS.end()), hasher},
+                    if (ir.LHS.size() > max_strlen) {
+                        std::stringstream errSS;
+                        errSS << "Error with rule #" + std::to_string(rule_index+1) + ": LHS too long.";
+                        throw_error(matlabEngine, errors::bad_param, errSS.str());
+                    }
+                    if (ir.RHS.size() > max_strlen) {
+                        std::stringstream errSS;
+                        errSS << "Error with rule #" + std::to_string(rule_index+1) + ": RHS too long.";
+                        throw_error(matlabEngine, errors::bad_param, errSS.str());
+                    }
+                    rules.emplace_back(HashedSequence{sequence_storage_t(ir.LHS.begin(), ir.LHS.end()), apc.hasher},
+                                       HashedSequence{sequence_storage_t(ir.RHS.begin(), ir.RHS.end()), apc.hasher},
                                        ir.negated);
                 } catch (Moment::Algebraic::errors::invalid_rule& ire) {
                     std::stringstream errSS;
@@ -41,7 +55,7 @@ namespace Moment::mex::functions {
                 }
                 ++rule_index;
             }
-            return Algebraic::RuleBook{hasher, rules, input.hermitian_operators};
+            return Algebraic::RuleBook{apc, rules, input.hermitian_operators};
         }
     }
 
@@ -140,9 +154,8 @@ namespace Moment::mex::functions {
             logger = std::make_unique<Algebraic::OStreamRuleLogger>(ss);
         }
 
-        // Set up hasher & rules
-        ShortlexHasher hasher{input.max_operators};
-        auto rules = make_rulebook(this->matlabEngine, hasher, input);
+        // Set up rules
+        auto rules = make_rulebook(this->matlabEngine, input);
 
         // Print input
         if (this->debug) {

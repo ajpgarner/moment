@@ -7,7 +7,6 @@
 
 #include "integer_types.h"
 
-#include "utilities/shortlex_hasher.h"
 #include "hashed_sequence.h"
 #include "symbolic/symbol_expression.h"
 
@@ -32,8 +31,7 @@ namespace Moment::Algebraic {
 
     }
 
-    class RawSequence;
-    class RawSequenceBook;
+    class AlgebraicPrecontext;
     class RuleBook;
 
     class MonomialSubstitutionRule {
@@ -78,7 +76,7 @@ namespace Moment::Algebraic {
          * @return The new rule, if overlap is nonzero, empty otherwise.
          */
         [[nodiscard]] std::optional<MonomialSubstitutionRule> combine(const MonomialSubstitutionRule& other,
-                                                                      const ShortlexHasher& hasher) const;
+                                                                      const AlgebraicPrecontext& precontext) const;
 
         /**
          * True, if this rule directly implies the supplied other rule.
@@ -100,7 +98,7 @@ namespace Moment::Algebraic {
         }
 
         /** Forms a rule by conjugating both sides of the equality */
-        [[nodiscard]] MonomialSubstitutionRule conjugate(const ShortlexHasher& hasher) const;
+        [[nodiscard]] MonomialSubstitutionRule conjugate(const AlgebraicPrecontext& precontext) const;
 
 
         friend std::ostream& operator<<(std::ostream& os, const MonomialSubstitutionRule& msr);

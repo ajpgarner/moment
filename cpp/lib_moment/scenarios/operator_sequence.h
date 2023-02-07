@@ -117,6 +117,11 @@ namespace Moment {
             return lhs;
         }
 
+        /**
+         * Construct sequence equal to algebraic zero.
+         * @param context The scenario to associate with the constructed sequence.
+         * @return Zero.
+         */
         static OperatorSequence Zero(const Context& context) {
             OperatorSequence output{context};
             output.the_hash = 0;
@@ -124,10 +129,21 @@ namespace Moment {
             return output;
         }
 
+        /**
+         * Construct sequence equal to algebraic identity.
+         * @param context The scenario to associate with the constructed sequence.
+         * @return One.
+         */
         static OperatorSequence Identity(const Context& context) {
             return OperatorSequence{context};
         }
 
+        /**
+         * Compare two sequences for equality or negative-equality.
+         * @param lhs First sequence to compare.
+         * @param rhs Second sequence to compare.
+         * @return +1 if sequences are identical, 0 if they are completely different, -1 if lhs = -rhs.
+         */
         [[nodiscard]] static int compare_same_negation(const OperatorSequence& lhs, const OperatorSequence& rhs);
 
     private:

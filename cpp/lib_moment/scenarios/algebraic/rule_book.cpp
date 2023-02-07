@@ -11,9 +11,10 @@
 namespace Moment::Algebraic {
 
 
-    RuleBook::RuleBook(const ShortlexHasher& hasher, const std::vector<MonomialSubstitutionRule>& rules,
-                       const bool is_herm)
-         : hasher{hasher}, is_hermitian{is_herm} {
+    RuleBook::RuleBook(const AlgebraicPrecontext& pc,
+                       const std::vector<MonomialSubstitutionRule>& rules,
+                       const bool is_herm) :
+            precontext{pc}, is_hermitian{is_herm} {
         this->add_rules(rules);
     }
 
@@ -185,7 +186,7 @@ namespace Moment::Algebraic {
         }
 
         // No further matches of any rules, stop reduction
-        return {HashedSequence{std::move(test_sequence), this->hasher}, negated};
+        return {HashedSequence{std::move(test_sequence), this->precontext.hasher}, negated};
     }
 
     MonomialSubstitutionRule RuleBook::reduce(const MonomialSubstitutionRule &input) const {
@@ -264,7 +265,7 @@ namespace Moment::Algebraic {
                 }
 
                 // Can we form a rule by combining?
-                auto maybe_combined_rule = ruleA.combine(ruleB, this->hasher);
+                auto maybe_combined_rule = ruleA.combine(ruleB, this->precontext);
                 if (!maybe_combined_rule.has_value()) {
                     continue;
                 }
@@ -300,7 +301,7 @@ namespace Moment::Algebraic {
                 }
 
                 // Can we form a rule by combining?
-                auto maybe_combined_rule = ruleA.combine(ruleB, this->hasher);
+                auto maybe_combined_rule = ruleA.combine(ruleB, this->precontext);
                 if (!maybe_combined_rule.has_value()) {
                     continue;
                 }
@@ -359,7 +360,7 @@ namespace Moment::Algebraic {
         assert(this->is_hermitian);
 
         // Conjugate and reduce rule
-        auto conj_rule = rule.conjugate(this->hasher);
+        auto conj_rule = rule.conjugate(this->precontext);
         auto conj_reduced_rule = this->reduce(conj_rule);
 
         // Reject rule if it doesn't imply anything new
@@ -386,8 +387,8 @@ namespace Moment::Algebraic {
         return true;
     }
 
-    std::vector<MonomialSubstitutionRule> RuleBook::commutator_rules(const ShortlexHasher& hasher,
-                                                                     oper_name_t operator_count) {
+    std::vector<MonomialSubstitutionRule> RuleBook::commutator_rules(const AlgebraicPrecontext& apc) {
+        const oper_name_t operator_count = apc.num_operators;
         std::vector<MonomialSubstitutionRule> output;
 
         // Do nothing, if less than two operators
@@ -398,7 +399,7 @@ namespace Moment::Algebraic {
         output.reserve((operator_count*(operator_count-1)) / 2);
         for (oper_name_t b = operator_count-1; b >= 1; --b) {
             for (oper_name_t a = b-1; a >= 0; --a) {
-                output.emplace_back(HashedSequence{{b, a}, hasher}, HashedSequence{{a, b}, hasher});
+                output.emplace_back(HashedSequence{{b, a}, apc.hasher}, HashedSequence{{a, b}, apc.hasher});
             }
         }
 

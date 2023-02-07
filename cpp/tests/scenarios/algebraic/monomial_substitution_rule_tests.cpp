@@ -13,7 +13,8 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Algebraic_MonomialSubRule, Conjugate) {
 
-        ShortlexHasher hasher{3};
+        AlgebraicPrecontext apc{3};
+        const ShortlexHasher& hasher = apc.hasher;
 
         // BBA -> BA
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, hasher},
@@ -21,7 +22,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(msr.negated());
 
         // ABB -> AB
-        auto conj_msr = msr.conjugate(hasher);
+        auto conj_msr = msr.conjugate(apc);
         EXPECT_FALSE(conj_msr.negated());
 
         ASSERT_EQ(conj_msr.LHS().size(), 3);
@@ -35,8 +36,8 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_MonomialSubRule, Conjugate_WithNegation) {
-
-        ShortlexHasher hasher{3};
+        AlgebraicPrecontext apc{3};
+        const ShortlexHasher& hasher = apc.hasher;
 
         // BBA -> BA
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, hasher},
@@ -44,7 +45,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(msr.negated());
 
         // ABB -> AB
-        auto conj_msr = msr.conjugate(hasher);
+        auto conj_msr = msr.conjugate(apc);
         EXPECT_TRUE(conj_msr.negated());
 
         ASSERT_EQ(conj_msr.LHS().size(), 3);
@@ -58,8 +59,8 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_MonomialSubRule, Conjugate_WithZero) {
-
-        ShortlexHasher hasher{3};
+        AlgebraicPrecontext apc{3};
+        const ShortlexHasher& hasher = apc.hasher;
 
         // BBA -> BA
         MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, hasher},
@@ -67,7 +68,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(msr.RHS().zero());
 
         // ABB -> AB
-        auto conj_msr = msr.conjugate(hasher);
+        auto conj_msr = msr.conjugate(apc);
 
         ASSERT_EQ(conj_msr.LHS().size(), 3);
         EXPECT_EQ(conj_msr.LHS()[0], 1);
@@ -182,13 +183,16 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_MonomialSubRule, Combine_ABtoA_BAtoB) {
-        ShortlexHasher hasher{2};
+
+        AlgebraicPrecontext apc{2};
+        const ShortlexHasher& hasher = apc.hasher;
+
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
                          HashedSequence{{1}, hasher});
-        auto joint01_opt = msr[0].combine(msr[1], hasher);
+        auto joint01_opt = msr[0].combine(msr[1], apc);
         ASSERT_TRUE(joint01_opt.has_value());
         auto& joint01 = joint01_opt.value();
 
@@ -200,7 +204,7 @@ namespace Moment::Tests {
         EXPECT_EQ(joint01.RHS()[0], 0);
         EXPECT_EQ(joint01.RHS()[1], 0);
 
-        auto joint10_opt = msr[1].combine(msr[0], hasher);
+        auto joint10_opt = msr[1].combine(msr[0], apc);
         ASSERT_TRUE(joint10_opt.has_value());
         auto& joint10 = joint10_opt.value();
 
@@ -215,13 +219,15 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_MonomialSubRule, Combine_XYXYXYtoId_YYYtoId) {
-        ShortlexHasher hasher{2};
+        AlgebraicPrecontext apc{2};
+        const ShortlexHasher& hasher = apc.hasher;
+
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1, 0, 1, 0, 1}, hasher},
                          HashedSequence{{}, hasher});
         msr.emplace_back(HashedSequence{{1, 1, 1}, hasher},
                          HashedSequence{{}, hasher});
-        auto joint01_opt = msr[0].combine(msr[1], hasher);
+        auto joint01_opt = msr[0].combine(msr[1], apc);
         ASSERT_TRUE(joint01_opt.has_value());
         auto& joint01 = joint01_opt.value();
 
@@ -236,7 +242,7 @@ namespace Moment::Tests {
         EXPECT_EQ(joint01.RHS()[0], 1);
         EXPECT_EQ(joint01.RHS()[1], 1);
 
-        auto joint10_opt = msr[1].combine(msr[0], hasher);
+        auto joint10_opt = msr[1].combine(msr[0], apc);
         ASSERT_FALSE(joint10_opt.has_value());
 
 
@@ -244,13 +250,16 @@ namespace Moment::Tests {
 
 
     TEST(Scenarios_Algebraic_MonomialSubRule, Combine_ABtoA_BAtoMinusB) {
-        ShortlexHasher hasher{2};
+
+        AlgebraicPrecontext apc{2};
+        const ShortlexHasher& hasher = apc.hasher;
+
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
                          HashedSequence{{1}, hasher}, true);
-        auto joint01_opt = msr[0].combine(msr[1], hasher);
+        auto joint01_opt = msr[0].combine(msr[1], apc);
         ASSERT_TRUE(joint01_opt.has_value());
         auto& joint01 = joint01_opt.value();
 
@@ -264,7 +273,7 @@ namespace Moment::Tests {
 
         EXPECT_TRUE(joint01.negated());
 
-        auto joint10_opt = msr[1].combine(msr[0], hasher);
+        auto joint10_opt = msr[1].combine(msr[0], apc);
         ASSERT_TRUE(joint10_opt.has_value());
         auto& joint10 = joint10_opt.value();
 

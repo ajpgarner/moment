@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 
 #include "scenarios/operator_sequence.h"
+#include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/locality/locality_context.h"
 
 #include <list>
@@ -176,6 +177,54 @@ namespace Moment::Tests {
         OperatorSequence seq21({alice[2], alice[1]}, collection);
         ASSERT_EQ(seq21.size(), 0);
         EXPECT_TRUE(seq21.zero());
+    }
 
+
+    TEST(Operators_OperatorSequence, Conjugate) {
+        using namespace Moment::Algebraic;
+        AlgebraicContext context{4, true};
+        OperatorSequence seqA{{0, 1, 2, 3}, context};
+        OperatorSequence seqB{{3, 2, 1, 0}, context};
+
+        auto conjA = seqA.conjugate();
+        EXPECT_EQ(conjA.hash(), seqB.hash());
+        ASSERT_EQ(conjA.size(), 4);
+        EXPECT_EQ(conjA[0], 3);
+        EXPECT_EQ(conjA[1], 2);
+        EXPECT_EQ(conjA[2], 1);
+        EXPECT_EQ(conjA[3], 0);
+        EXPECT_EQ(conjA, seqB);
+
+        auto conjB = seqB.conjugate();
+        EXPECT_EQ(conjB.hash(), seqA.hash());
+        ASSERT_EQ(conjB.size(), 4);
+        EXPECT_EQ(conjB[0], 0);
+        EXPECT_EQ(conjB[1], 1);
+        EXPECT_EQ(conjB[2], 2);
+        EXPECT_EQ(conjB[3], 3);
+        EXPECT_EQ(conjB, seqA);
+
+    }
+
+    TEST(Operators_OperatorSequence, Conjugate_Zero) {
+        using namespace Moment::Algebraic;
+        AlgebraicContext context{4, true};
+        auto seqA = OperatorSequence::Zero(context);
+
+        auto conjA = seqA.conjugate();
+        EXPECT_EQ(conjA.hash(), seqA.hash());
+        ASSERT_EQ(conjA.size(), 0);
+        EXPECT_TRUE(conjA.zero());
+    }
+
+    TEST(Operators_OperatorSequence, Conjugate_Id) {
+        using namespace Moment::Algebraic;
+        AlgebraicContext context{4, true};
+        auto seqA = OperatorSequence::Identity(context);
+
+        auto conjA = seqA.conjugate();
+        EXPECT_EQ(conjA.hash(), seqA.hash());
+        ASSERT_EQ(conjA.size(), 0);
+        EXPECT_FALSE(conjA.zero());
     }
 }

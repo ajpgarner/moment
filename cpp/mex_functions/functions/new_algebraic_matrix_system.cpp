@@ -21,13 +21,28 @@ namespace Moment::mex::functions {
         std::unique_ptr<Algebraic::AlgebraicContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                        NewAlgebraicMatrixSystemParams& input) {
             std::vector<Algebraic::MonomialSubstitutionRule> rules;
-            ShortlexHasher hasher{input.total_operators};
+            Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(input.total_operators),
+                                               input.hermitian_operators};
+
+            const auto max_strlen = apc.hasher.longest_hashable_string();
+
             rules.reserve(input.rules.size());
             size_t rule_index = 0;
             for (auto& ir : input.rules) {
+                if (ir.LHS.size() > max_strlen) {
+                    std::stringstream errSS;
+                    errSS << "Error with rule #" + std::to_string(rule_index+1) + ": LHS too long.";
+                    throw_error(matlabEngine, errors::bad_param, errSS.str());
+                }
+                if (ir.RHS.size() > max_strlen) {
+                    std::stringstream errSS;
+                    errSS << "Error with rule #" + std::to_string(rule_index+1) + ": RHS too long.";
+                    throw_error(matlabEngine, errors::bad_param, errSS.str());
+                }
                 try {
-                    rules.emplace_back(HashedSequence{sequence_storage_t(ir.LHS.begin(), ir.LHS.end()), hasher},
-                                       HashedSequence{sequence_storage_t(ir.RHS.begin(), ir.RHS.end()), hasher}, ir.negated);
+                    rules.emplace_back(HashedSequence{sequence_storage_t(ir.LHS.begin(), ir.LHS.end()), apc.hasher},
+                                       HashedSequence{sequence_storage_t(ir.RHS.begin(), ir.RHS.end()), apc.hasher},
+                                       ir.negated);
                 } catch (Moment::Algebraic::errors::invalid_rule& ire) {
                     std::stringstream errSS;
                     errSS << "Error with rule #" + std::to_string(rule_index+1) + ": " << ire.what();

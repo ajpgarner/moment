@@ -6,6 +6,7 @@
 #include "context.h"
 #include "operator_sequence.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <utility>
@@ -20,6 +21,18 @@ namespace Moment {
     bool Context::additional_simplification(sequence_storage_t &op_sequence, bool& negate) const {
         // Do nothing
         return false;
+    }
+
+    OperatorSequence Context::conjugate(const OperatorSequence& seq) const {
+        // 0* = 0
+        if (seq.zero()) {
+            return OperatorSequence::Zero(*this);
+        }
+
+        sequence_storage_t str;
+        str.reserve(seq.operators.size());
+        std::reverse_copy(seq.operators.cbegin(), seq.operators.cend(), std::back_inserter(str));
+        return OperatorSequence(std::move(str), *this);
     }
 
     OperatorSequence Context::simplify_as_moment(OperatorSequence &&seq) const {

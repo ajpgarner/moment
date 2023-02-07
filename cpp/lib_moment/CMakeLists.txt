@@ -18,6 +18,7 @@ add_library(lib_moment
         scenarios/operator_sequence.cpp
         scenarios/outcome_index_iterator.cpp
         scenarios/algebraic/algebraic_context.cpp
+        scenarios/algebraic/algebraic_precontext.cpp
         scenarios/algebraic/algebraic_matrix_system.cpp
         scenarios/algebraic/monomial_substitution_rule.cpp
         scenarios/algebraic/ostream_rule_logger.cpp

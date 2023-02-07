@@ -445,7 +445,7 @@ namespace Moment::Tests {
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher}); // AB-> A
 
-        auto ac_ptr = std::make_unique<AlgebraicContext>(2, false, true, std::move(msr));
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, true, std::move(msr));
         ASSERT_TRUE(ac_ptr->attempt_completion(20));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());

@@ -4,6 +4,7 @@
  * Copyright (c) 2022 Austrian Academy of Sciences
  */
 #include "monomial_substitution_rule.h"
+#include "algebraic_precontext.h"
 
 #include <cassert>
 
@@ -124,7 +125,7 @@ namespace Moment::Algebraic {
     }
 
     std::optional<MonomialSubstitutionRule>
-    MonomialSubstitutionRule::combine(const MonomialSubstitutionRule &other, const ShortlexHasher& hasher) const {
+    MonomialSubstitutionRule::combine(const MonomialSubstitutionRule &other, const AlgebraicPrecontext& pc) const {
         // First, do we have overlap? If not, early exit.
         ptrdiff_t overlap_size = this->LHS().suffix_prefix_overlap(other.rawLHS);
         if (overlap_size <= 0) {
@@ -142,13 +143,13 @@ namespace Moment::Algebraic {
 
         // Apply this rule to joint string
         auto rawViaThis = this->apply_match_with_hint(joined_string, joined_string.begin());
-        auto rawHashThis = hasher(rawViaThis);
+        auto rawHashThis = pc.hash(rawViaThis);
 
         // Apply other rule to joint string
         auto rawViaOther = other.apply_match_with_hint(joined_string,
                                                        joined_string.cend()
                                                             - static_cast<ptrdiff_t>(other.rawLHS.size()));
-        auto rawHashOther = hasher(rawViaOther);
+        auto rawHashOther = pc.hash(rawViaOther);
 
         // Negative if only one rule involves negation
         bool negation = this->is_negated != other.is_negated;
@@ -163,9 +164,9 @@ namespace Moment::Algebraic {
         }
     }
 
-    MonomialSubstitutionRule MonomialSubstitutionRule::conjugate(const ShortlexHasher& hasher) const {
-        auto lhs = this->rawLHS.conjugate(hasher);
-        auto rhs = this->rawRHS.conjugate(hasher);
+    MonomialSubstitutionRule MonomialSubstitutionRule::conjugate(const AlgebraicPrecontext& pc) const {
+        auto lhs = pc.conjugate(this->rawLHS);
+        auto rhs = pc.conjugate(this->rawRHS);
         if (lhs < rhs) {
             return MonomialSubstitutionRule(std::move(rhs), std::move(lhs), this->is_negated);
         } else {

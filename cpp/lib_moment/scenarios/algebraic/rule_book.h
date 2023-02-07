@@ -6,6 +6,7 @@
 #pragma once
 
 #include "monomial_substitution_rule.h"
+#include "algebraic_precontext.h"
 
 #include "utilities/shortlex_hasher.h"
 
@@ -48,19 +49,19 @@ namespace Moment::Algebraic {
         using rule_map_t = std::map<size_t, MonomialSubstitutionRule>;
 
     private:
-        const ShortlexHasher& hasher;
+        AlgebraicPrecontext precontext;
 
         rule_map_t monomialRules{};
 
         bool is_hermitian = true;
 
     public:
-        RuleBook(const ShortlexHasher& hasher,
+        RuleBook(const AlgebraicPrecontext& precontext,
                  const std::vector<MonomialSubstitutionRule>& rules,
                  bool hermitian = true);
 
-        explicit RuleBook(const ShortlexHasher& hasher, bool hermitian = true)
-            : RuleBook(hasher, std::vector<MonomialSubstitutionRule>{}, hermitian) { }
+        explicit RuleBook(const AlgebraicPrecontext& pc, bool hermitian = true)
+            : RuleBook(pc, std::vector<MonomialSubstitutionRule>{}, hermitian) { }
 
         /** Add rules */
         ptrdiff_t add_rules(const std::vector<MonomialSubstitutionRule>& rules, RuleLogger * logger = nullptr);
@@ -142,8 +143,7 @@ namespace Moment::Algebraic {
          * @param operator_count Number of operators
          * @return Vector of commutation rules.
          */
-        static std::vector<MonomialSubstitutionRule> commutator_rules(const ShortlexHasher& hasher,
-                                                                      oper_name_t  operator_count);
+        static std::vector<MonomialSubstitutionRule> commutator_rules(const AlgebraicPrecontext& apc);
 
     };
 

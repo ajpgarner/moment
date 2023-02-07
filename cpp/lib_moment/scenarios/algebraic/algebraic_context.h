@@ -5,11 +5,13 @@
  */
 #pragma once
 
-
 #include "integer_types.h"
+
 #include "../context.h"
-#include "rule_book.h"
+
+#include "algebraic_precontext.h"
 #include "monomial_substitution_rule.h"
+#include "rule_book.h"
 
 #include "symbolic/symbol_expression.h"
 
@@ -26,8 +28,6 @@ namespace Moment::Algebraic {
         };
     }
 
-    class SymbolSet;
-
     class AlgebraicContext : public Context {
     public:
         /** True, if all operators are self-adjoint */
@@ -37,6 +37,9 @@ namespace Moment::Algebraic {
         const bool commutative = false;
 
     private:
+        /** Additional operator manipulation */
+        AlgebraicPrecontext precontext;
+
         /** Monomial substitution rules */
         RuleBook rules;
 
@@ -71,6 +74,13 @@ namespace Moment::Algebraic {
          * Summarize the substitution rules as a string
          */
         [[nodiscard]] std::string resolved_rules() const;
+
+        /**
+         * Conjugate the supplied operator sequence; taking into account possible non-Hermitian operators.
+         * @param seq The sequence to conjugate.
+         * @return The conjugated sequence.
+         */
+        [[nodiscard]] OperatorSequence conjugate(const OperatorSequence &seq) const final;
 
         /**
          * Access rule information

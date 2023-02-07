@@ -5,6 +5,8 @@
  */
 #include "algebraic_context.h"
 
+#include "scenarios/operator_sequence.h"
+
 #include <algorithm>
 #include <sstream>
 
@@ -12,11 +14,12 @@ namespace Moment::Algebraic {
 
     AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian, const bool commute,
                                        const std::vector<MonomialSubstitutionRule>& initial_rules)
-        : Context{operator_count}, self_adjoint{hermitian}, commutative{commute},
-          rules{this->hasher, initial_rules, hermitian}
-    {
+        : Context{hermitian ? operator_count : 2 * operator_count},
+          precontext{static_cast<oper_name_t>(operator_count), hermitian},
+          self_adjoint{hermitian}, commutative{commute},
+          rules{precontext, initial_rules, hermitian} {
         if (this->commutative) {
-            auto extra_rules = RuleBook::commutator_rules(this->hasher, static_cast<oper_name_t>(operator_count));
+            auto extra_rules = RuleBook::commutator_rules(this->precontext);
             this->rules.add_rules(extra_rules);
         }
     }
@@ -96,5 +99,19 @@ namespace Moment::Algebraic {
             ss << "\t" << msr << "\n";
         }
         return ss.str();
+    }
+
+    OperatorSequence AlgebraicContext::conjugate(const OperatorSequence &seq) const {
+        // If self-adjoint, use default function
+        if (this->self_adjoint) {
+            return Context::conjugate(seq);
+        }
+
+        // 0* = 0
+        if (seq.zero()) {
+            return OperatorSequence::Zero(*this);
+        }
+
+        return OperatorSequence(this->precontext.conjugate(seq.raw()), *this);
     }
 }
