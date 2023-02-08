@@ -101,8 +101,14 @@ namespace Moment::mex::functions {
         // Default to non-commutative, but allow commutative override
         this->commutative = this->flags.contains(u"commutative");
 
+        if ((this->max_operators == 0) && (!this->hermitian_operators)) {
+            throw_error(this->matlabEngine, errors::bad_param,
+                        "Cannot automatically infer operator count for non-Hermitian operator mode.");
+        }
+
         // Try to read raw rules (w/ matlab indices)
-        this->rules = read_monomial_rules(matlabEngine, inputs[0], "Rules", true, this->max_operators);
+        auto max_ops = this->max_operators * (this->hermitian_operators ? 1 : 2);
+        this->rules = read_monomial_rules(matlabEngine, inputs[0], "Rules", true, max_ops);
 
         // If no max operator ID specified, guess by taking the highest value from provided rules
         if (this->max_operators == 0) {
@@ -124,11 +130,11 @@ namespace Moment::mex::functions {
                 }
             }
             ++this->max_operators;
+            max_ops = this->max_operators * (this->hermitian_operators ? 1 : 2);
         }
 
         // Assert that rule lengths are okay
-        check_rule_length(matlabEngine, ShortlexHasher{this->max_operators}, this->rules);
-
+        check_rule_length(matlabEngine, ShortlexHasher{max_ops}, this->rules);
     }
 
     Complete::Complete(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)

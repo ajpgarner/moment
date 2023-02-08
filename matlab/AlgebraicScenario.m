@@ -21,11 +21,15 @@ classdef AlgebraicScenario < Scenario
             if nargin < 3
                 is_hermitian = true;
                 is_normal = true;
+            else
+                is_hermitian = logical(is_hermitian);
             end
+            
             % Default to normal, except if non-Hermitian
             if nargin < 4
                 is_normal = is_hermitian;
             else
+                is_normal = logical(is_normal);
                 if is_hermitian && ~is_normal
                     error("Hermitian operators must be normal.");
                 end
@@ -39,7 +43,8 @@ classdef AlgebraicScenario < Scenario
                 rules = cell(1,0);
             end            
 
-            obj.RuleBook = Algebraic.RuleBook(rules, is_hermitian);
+            obj.RuleBook = Algebraic.RuleBook(rules, obj.OperatorCount, ...
+                                              is_hermitian, is_normal);
         end 
     end
     

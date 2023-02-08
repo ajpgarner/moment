@@ -2,6 +2,7 @@ classdef RuleBook < handle
     %RULEBOOK Collection of algebraic rules
    
     properties(GetAccess = public, SetAccess = protected)
+        MaxOperators = uint64(0);
         Rules = Algebraic.Rule.empty(1,0)
         Hermitian = true;
         Normal = true;
@@ -30,13 +31,15 @@ classdef RuleBook < handle
     
     %% Constructor
     methods
-        function obj = RuleBook(initialRules, is_hermitian, is_normal)
+        function obj = RuleBook(initialRules, max_ops, ....
+                                is_hermitian, is_normal)
             
             if isa(initialRules, 'Algebraic.Rule')
                 obj.Rules = reshape(initialRules, 1, []);
             elseif iscell(initialRules)
                 obj.ImportCellArray(initialRules)
             elseif isa(initialRules, 'Algebraic.RuleBook')
+                obj.MaxOperators = initialRules.MaxOperators;
                 obj.Rules = initialRules.Rules;
                 obj.Hermitian = initialRules.Hermitian;
                 obj.Normal = initialRules.Normal;
@@ -50,14 +53,26 @@ classdef RuleBook < handle
                     ' Algebraic.Rule, or as a cell array.']);
             end
             
-            % Hermicity
+            % Get number of operators count
             if nargin < 2
+                max_ops = uint64(0);
+            else
+                max_ops = uint64(max_ops);
+            end
+            if max_ops <= 0
+                 max_ops = obj.highestMentionedOp();
+            end
+            obj.MaxOperators = max_ops;
+            
+            
+            % Hermicity
+            if nargin < 3
                 is_hermitian = true;
             end
             obj.Hermitian = logical(is_hermitian);
             
             % Normality
-            if nargin < 3
+            if nargin < 4
                 is_normal = is_hermitian;
             end
             obj.Normal = logical(is_normal);
@@ -122,6 +137,7 @@ classdef RuleBook < handle
             
             [output, success] = mtk('complete', extra_params{:}, ...
                 'limit', max_iterations, ...
+                'operators', obj.MaxOperators, ...
                 obj.ExportCellArray());
             
             obj.ImportCellArray(output);
@@ -141,6 +157,7 @@ classdef RuleBook < handle
                     end
                 end
                 obj.is_complete = mtk('complete', 'test', 'quiet', ...
+                    'operators', obj.MaxOperators, ...
                     params{:}, obj.ExportCellArray());
                 obj.tested_complete = true;
             end
@@ -164,18 +181,21 @@ classdef RuleBook < handle
                 if ~iscell(input)
                     error(obj.err_cellpair);
                 end
-                if  isequal(size(rule), [1, 3])
+                rhs_index = 2;
+                if isequal(size(rule), [1, 3])
                     if rule{2} == '-'
-                        obj.Rules(end+1) = ...
-                            Algebraic.Rule(rule{1}, rule{3}, true);
+                        rhs_index = 3;                        
                     else
                         error(obj.err_cellpair);
                     end
                 elseif ~isequal(size(rule), [1, 2])
                     error(obj.err_cellpair);
-                else
-                    obj.Rules(end+1) = Algebraic.Rule(rule{1}, rule{2});
                 end
+                lhs = rule{1};
+                rhs = rule{rhs_index};
+                
+                obj.Rules(end+1) = Algebraic.Rule(lhs, rhs);
+                
             end
             obj.tested_complete = false;
         end
@@ -207,6 +227,13 @@ classdef RuleBook < handle
             if obj.locked
                 error(obj.err_locked)
             end
+        end
+    end
+    
+    %% Private
+    methods(Access=private)
+        function val = highestMentionedOp(obj)
+            error("Not implemented");
         end
     end
 end

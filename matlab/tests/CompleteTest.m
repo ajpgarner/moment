@@ -5,8 +5,9 @@ classdef CompleteTest < MTKTestBase
     end
     
     methods
-        function check_completion_nh(testCase, input, expected)
-            output = mtk('complete', 'nonhermitian', input);
+        function check_completion_nh(testCase, ops, input, expected)
+            output = mtk('complete', 'nonhermitian', ...
+                         'operators', ops, input);
             testCase.verifyEqual(output, expected);
         end
         
@@ -27,7 +28,7 @@ classdef CompleteTest < MTKTestBase
                 {uint64([3, 4]), uint64([4])}, ...
                 {uint64([4, 3]), uint64([3])}, ...
                 {uint64([4, 4]), uint64([4])}};
-            testCase.check_completion_nh(input, expected);
+            testCase.check_completion_nh(2, input, expected);
         end
         
         function AAAtoI_BBBtoI_ABABABtoI(testCase)
@@ -41,7 +42,7 @@ classdef CompleteTest < MTKTestBase
                 {uint64([2, 2, 1, 1]), uint64([1, 2, 1, 2])}, ...
                 {uint64([4, 3, 4, 3]), uint64([3, 3, 4, 4])}, ...
                 {uint64([4, 4, 3, 3]), uint64([3, 4, 3, 4])}};
-            testCase.check_completion_nh(input, expected);
+            testCase.check_completion_nh(2, input, expected);
         end
         
         function Herm_ABtoA_BCtoB_CAtoA(testCase)
@@ -51,6 +52,14 @@ classdef CompleteTest < MTKTestBase
                 {uint64([3]), uint64([1])}, ...
                 {uint64([1, 1]), uint64([1])}};
             testCase.check_completion_h(input, expected);
+        end
+        
+        
+        function NonHerm_InferHermitian(testCase)
+            input = {{[1, 2], [1]}};
+            expected = {{uint64([2]), uint64([1])}, ...
+                {uint64([1, 1]), uint64([1])}};
+            testCase.check_completion_nh(1, input, expected);
         end
                 
         function Normal(testCase)

@@ -111,9 +111,9 @@ namespace Moment::mex::functions {
         this->readOperatorSpecification(matlabEngine, inputs[0], "Number of operators");
 
         if (inputs.size() > 1) {
-            this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", true, this->total_operators);
-            // Check length
-            check_rule_length(matlabEngine, ShortlexHasher{this->total_operators}, this->rules);
+            const auto max_ops = this->total_operators * (this->hermitian_operators ? 1 : 2);
+            this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", true, max_ops);
+            check_rule_length(matlabEngine, ShortlexHasher{max_ops}, this->rules);
         }
     }
 
@@ -129,8 +129,11 @@ namespace Moment::mex::functions {
         if (rules_param == params.end()) {
             return;
         }
+
+        const auto max_ops = this->total_operators * (this->hermitian_operators ? 1 : 2);
         this->rules = read_monomial_rules(matlabEngine, rules_param->second,
-                                          "Parameter 'rules'", true, this->total_operators);
+                                          "Parameter 'rules'", true, max_ops);
+        check_rule_length(matlabEngine, ShortlexHasher{max_ops}, this->rules);
     }
 
     void NewAlgebraicMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
