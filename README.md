@@ -203,18 +203,15 @@ SDP hierarchies.
 
 `\cpp\mex_functions`: Root for MATLAB/C++ interface code (i.e. building `mtk` mex library).
 
-`\cpp\mex_functions\fragments`: Code pieces specific to Moment, involving manipulation of
-MATLAB arrays, that are used by more than one mex function.
-
 `\cpp\mex_functions\export`: Code pieces specific to Moment, involving the conversion of Moment library objects 
 to MATLAB arrays.
+
+`\cpp\mex_functions\functions`: Entry points for the various `mtk` commands.
 
 `\cpp\mex_functions\import`: Code pieces specific to Moment, involving the reading of MATLAB arrays into Moment
 library objects.
 
-`\cpp\mex_functions\functions`: Entry points for the various `mtk` commands.
-
-`\cpp\mex_functions\utilities`: Boilerplate code for interfacing MATLAB with C++.
+`\cpp\mex_functions\utilities`: Boilerplate code for interfacing MATLAB with C++, not specific to Moment.
 
 `\cpp\tests`: C++ unit tests for `lib_moment` (build using googletest).
 
@@ -242,8 +239,8 @@ library objects.
 
 `\matlab\+Locality`: MATLAB classes associated with locality scenarios.
 
+`\matlab\+Util`: Minor utility functions for MATLAB. 
+
 `\matlab\examples`: Example scripts making use of the Moment library.
 
 `\matlab\tests`: MATLAB unit tests for `moment` mex library, and other matlab classes.
-
-`\prototype` *(temporary)*: Sketch implementations of algorithms in MATLAB.
