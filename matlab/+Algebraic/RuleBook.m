@@ -4,6 +4,7 @@ classdef RuleBook < handle
     properties(GetAccess = public, SetAccess = protected)
         Rules = Algebraic.Rule.empty(1,0)
         Hermitian = true;
+        Normal = true;
         IsComplete;
     end
     
@@ -29,7 +30,7 @@ classdef RuleBook < handle
     
     %% Constructor
     methods
-        function obj = RuleBook(initialRules, is_hermitian)
+        function obj = RuleBook(initialRules, is_hermitian, is_normal)
             
             if isa(initialRules, 'Algebraic.Rule')
                 obj.Rules = reshape(initialRules, 1, []);
@@ -38,6 +39,7 @@ classdef RuleBook < handle
             elseif isa(initialRules, 'Algebraic.RuleBook')
                 obj.Rules = initialRules.Rules;
                 obj.Hermitian = initialRules.Hermitian;
+                obj.Normal = initialRules.Normal;
                 if nargin >= 2
                     error(['Copy constructor of RuleBook does not ',...
                            'take more than one argument.']);
@@ -53,6 +55,12 @@ classdef RuleBook < handle
                 is_hermitian = true;
             end
             obj.Hermitian = logical(is_hermitian);
+            
+            % Normality
+            if nargin < 3
+                is_normal = is_hermitian;
+            end
+            obj.Normal = logical(is_normal);
         end
     end
     
@@ -107,6 +115,9 @@ classdef RuleBook < handle
                 extra_params{end+1} = 'hermitian';
             else
                 extra_params{end+1} = 'nonhermitian';
+                if obj.Normal
+                        extra_params{end+1} = 'normal';
+                end
             end
             
             [output, success] = mtk('complete', extra_params{:}, ...
@@ -125,6 +136,9 @@ classdef RuleBook < handle
                     params{end+1} = 'hermitian';
                 else
                     params{end+1} = 'nonhermitian';
+                    if obj.Normal
+                        params{end+1} = 'normal';
+                    end
                 end
                 obj.is_complete = mtk('complete', 'test', 'quiet', ...
                     params{:}, obj.ExportCellArray());

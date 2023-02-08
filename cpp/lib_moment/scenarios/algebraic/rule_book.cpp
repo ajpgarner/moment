@@ -387,23 +387,36 @@ namespace Moment::Algebraic {
         return true;
     }
 
-    std::vector<MonomialSubstitutionRule> RuleBook::commutator_rules(const AlgebraicPrecontext& apc) {
+    void RuleBook::commutator_rules(const AlgebraicPrecontext& apc, std::vector<MonomialSubstitutionRule>& output) {
         const oper_name_t operator_count = apc.num_operators;
-        std::vector<MonomialSubstitutionRule> output;
 
         // Do nothing, if less than two operators
         if (operator_count < 2) {
-            return output;
+            return;
         }
 
-        output.reserve((operator_count*(operator_count-1)) / 2);
+        const auto expected_new_rules = (operator_count*(operator_count-1)) / 2;
+        output.reserve(output.size() + expected_new_rules);
         for (oper_name_t b = operator_count-1; b >= 1; --b) {
             for (oper_name_t a = b-1; a >= 0; --a) {
                 output.emplace_back(HashedSequence{{b, a}, apc.hasher}, HashedSequence{{a, b}, apc.hasher});
             }
         }
+    }
 
-        return output;
+
+   void RuleBook::normal_rules(const AlgebraicPrecontext& apc, std::vector<MonomialSubstitutionRule>& output) {
+        if (apc.self_adjoint || (apc.num_operators == 0)) {
+            return;
+        }
+
+        const auto raw_operator_count = static_cast<oper_name_t>(apc.num_operators / 2);
+
+        output.reserve(output.size() + raw_operator_count);
+        for (oper_name_t a = 0; a < raw_operator_count; ++a) {
+            const auto aStar = static_cast<oper_name_t>(a + raw_operator_count);
+            output.emplace_back(HashedSequence{{aStar, a}, apc.hasher}, HashedSequence{{a, aStar}, apc.hasher});
+        }
     }
 
 

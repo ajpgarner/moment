@@ -588,4 +588,26 @@ namespace Moment::Tests {
 
     }
 
+    TEST(Scenarios_Algebraic_RuleBook, GenerateNormalRules) {
+        AlgebraicPrecontext apc{3, false};
+        const ShortlexHasher& hasher = apc.hasher;
+        auto normVec = RuleBook::normal_rules(apc);
+        ASSERT_EQ(normVec.size(), 3);
+
+        for (size_t i = 0; i < 3; ++i) {
+            ASSERT_EQ(normVec[i].LHS().size(), 2) << i;
+            ASSERT_EQ(normVec[i].RHS().size(), 2) << i;
+        }
+
+        EXPECT_EQ(normVec[0].LHS(),HashedSequence({3, 0}, hasher));
+        EXPECT_EQ(normVec[0].RHS(),HashedSequence({0, 3}, hasher));
+
+        EXPECT_EQ(normVec[1].LHS(),HashedSequence({4, 1}, hasher));
+        EXPECT_EQ(normVec[1].RHS(),HashedSequence({1, 4}, hasher));
+
+        EXPECT_EQ(normVec[2].LHS(),HashedSequence({5, 2}, hasher));
+        EXPECT_EQ(normVec[2].RHS(),HashedSequence({2, 5}, hasher));
+
+    }
+
 }

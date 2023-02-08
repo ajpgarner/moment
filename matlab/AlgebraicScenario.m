@@ -4,12 +4,14 @@ classdef AlgebraicScenario < Scenario
     properties(GetAccess = public, SetAccess = protected)
         OperatorCount
         IsHermitian
+        IsNormal
         RuleBook
     end
     
     %% Constructor
     methods
-        function obj = AlgebraicScenario(op_count, rules, is_hermitian)
+        function obj = AlgebraicScenario(op_count, rules, ...
+                                         is_hermitian, is_normal)
             % Superclass c'tor
             obj = obj@Scenario();
             
@@ -18,8 +20,19 @@ classdef AlgebraicScenario < Scenario
             % Default to hermitian
             if nargin < 3
                 is_hermitian = true;
+                is_normal = true;
             end
+            % Default to normal, except if non-Hermitian
+            if nargin < 4
+                is_normal = is_hermitian;
+            else
+                if is_hermitian && ~is_normal
+                    error("Hermitian operators must be normal.");
+                end
+            end
+            
             obj.IsHermitian = is_hermitian;
+            obj.IsNormal = is_normal;
             
             % Default to empty ruleset
             if nargin < 2
@@ -92,6 +105,9 @@ classdef AlgebraicScenario < Scenario
                 extra_args{end+1} = 'hermitian';
             else
                 extra_args{end+1} = 'nonhermitian';
+                if obj.IsNormal
+                    extra_args{end+1} = 'normal';
+                end
             end
 
             % Call for matrix system

@@ -44,6 +44,15 @@ classdef CompleteTest < MTKTestBase
                 {uint64([1, 1]), uint64([1])}};
             testCase.check_completion_h(input, expected);
         end
+                
+        function Normal(testCase)
+            input_rules = {};
+            expected = {{uint64([3 1]), uint64([1 3])}, ...
+                        {uint64([4 2]), uint64([2 4])}};
+            output = mtk('complete', 'nonhermitian', 'normal', ...
+                         'operators', 2, input_rules);
+            testCase.verifyEqual(output, expected);            
+        end
     end
     
     methods (Test, TestTags={'Error'})

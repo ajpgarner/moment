@@ -16,6 +16,7 @@ namespace Moment::mex::functions {
             size_t total_operators = 0;
             size_t complete_attempts = 0;
             bool hermitian_operators = true;
+            bool normal_operators = true;
             bool commutative = false;
 
             std::vector<RawMonomialRule> rules{};

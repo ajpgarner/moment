@@ -21,6 +21,8 @@ namespace Moment::mex::functions {
 
         Algebraic::RuleBook make_rulebook(matlab::engine::MATLABEngine &matlabEngine,
                                           CompleteParams& input) {
+            using namespace Algebraic;
+
             std::vector<Algebraic::MonomialSubstitutionRule> rules;
             const Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(input.max_operators),
                                                      input.hermitian_operators};
@@ -28,7 +30,10 @@ namespace Moment::mex::functions {
             const size_t max_strlen = apc.hasher.longest_hashable_string();
 
             if (input.commutative) {
-                rules = Algebraic::RuleBook::commutator_rules(apc);
+                Algebraic::RuleBook::commutator_rules(apc, rules);
+            }
+            if (!input.hermitian_operators && input.normal_operators) {
+                Algebraic::RuleBook::normal_rules(apc, rules);
             }
 
             rules.reserve(rules.size() + input.rules.size());
@@ -88,6 +93,11 @@ namespace Moment::mex::functions {
 
         // Default to Hermitian, but allow non-hermitian override
         this->hermitian_operators = !(this->flags.contains(u"nonhermitian"));
+        if (!this->hermitian_operators) {
+            this->normal_operators = this->flags.contains(u"normal");
+        } else {
+            this->normal_operators = true;
+        }
 
         // Default to non-commutative, but allow commutative override
         this->commutative = this->flags.contains(u"commutative");
@@ -135,6 +145,8 @@ namespace Moment::mex::functions {
         this->flag_names.emplace(u"hermitian");
         this->flag_names.emplace(u"nonhermitian");
         this->mutex_params.add_mutex(u"hermitian", u"nonhermitian");
+
+        this->flag_names.emplace(u"normal");
 
         this->flag_names.emplace(u"commutative");
         this->flag_names.emplace(u"noncommutative");

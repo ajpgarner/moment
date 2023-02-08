@@ -44,11 +44,12 @@ namespace Moment::Algebraic {
         RuleBook rules;
 
     public:
-        AlgebraicContext(size_t operator_count, bool self_adjoint, bool commutative,
-                                  const std::vector<MonomialSubstitutionRule>& rules);
+        AlgebraicContext(size_t operator_count, bool self_adjoint, bool commutative, bool normal,
+                         const std::vector<MonomialSubstitutionRule>& rules);
 
-        explicit AlgebraicContext(size_t operator_count, bool self_adjoint = true, bool commutative = false)
-            : AlgebraicContext{operator_count, self_adjoint, commutative, {}} { }
+        explicit AlgebraicContext(size_t operator_count, bool self_adjoint = true,
+                                  bool commutative = false, bool normal = true)
+            : AlgebraicContext{operator_count, self_adjoint, commutative, normal, {}} { }
 
         ~AlgebraicContext() noexcept override;
 

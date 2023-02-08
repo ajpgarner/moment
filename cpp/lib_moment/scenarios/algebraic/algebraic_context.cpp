@@ -12,7 +12,8 @@
 
 namespace Moment::Algebraic {
 
-    AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian, const bool commute,
+    AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian,
+                                       const bool commute, const bool normal,
                                        const std::vector<MonomialSubstitutionRule>& initial_rules)
         : Context{hermitian ? operator_count : 2 * operator_count},
           precontext{static_cast<oper_name_t>(operator_count), hermitian},
@@ -22,10 +23,13 @@ namespace Moment::Algebraic {
             auto extra_rules = RuleBook::commutator_rules(this->precontext);
             this->rules.add_rules(extra_rules);
         }
+        if (!this->self_adjoint && normal) {
+            auto extra_rules = RuleBook::normal_rules(this->precontext);
+            this->rules.add_rules(extra_rules);
+        }
     }
 
     AlgebraicContext::~AlgebraicContext() noexcept = default;
-
 
 
     bool AlgebraicContext::attempt_completion(size_t max_attempts, RuleLogger * logger) {

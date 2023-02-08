@@ -34,7 +34,7 @@ namespace Moment::Tests {
                 HashedSequence{{1, 2}, ShortlexHasher{3}},
                 HashedSequence{{1}, ShortlexHasher{3}}
         );
-        AlgebraicContext ac{3, true, false, rules};
+        AlgebraicContext ac{3, true, false, true, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
 
         OperatorSequence seq_AB{sequence_storage_t{1, 2}, ac};
@@ -69,7 +69,7 @@ namespace Moment::Tests {
                 HashedSequence{{2, 1}, ShortlexHasher{3}},
                 HashedSequence{{1}, ShortlexHasher{3}}
         );
-        AlgebraicContext ac{3, true, false, rules};
+        AlgebraicContext ac{3, true, false, true, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
 
         OperatorSequence seq_AB{sequence_storage_t{1, 2}, ac};
@@ -110,7 +110,7 @@ namespace Moment::Tests {
                 HashedSequence{{}, ShortlexHasher{3}}
         );
 
-        AlgebraicContext ac{3, true, false, rules};
+        AlgebraicContext ac{3, true, false, true, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
 
         OperatorSequence seq_A{sequence_storage_t{1}, ac};
@@ -151,7 +151,7 @@ namespace Moment::Tests {
                 HashedSequence{{2, 1}, ShortlexHasher{3}},
                 HashedSequence{{1, 2}, ShortlexHasher{3}}
         );
-        AlgebraicContext ac{3, true, false, rules};
+        AlgebraicContext ac{3, true, false, true, rules};
 
         OperatorSequence seq_AB{sequence_storage_t{1, 2}, ac};
         EXPECT_FALSE(seq_AB.empty());
@@ -199,7 +199,7 @@ namespace Moment::Tests {
                 HashedSequence{{0, 1}, ShortlexHasher{2}}
         );
 
-        AlgebraicContext ac{2, true, false, rules};
+        AlgebraicContext ac{2, true, false, true, rules};
 
         OperatorSequenceGenerator osg_lvl1{ac, 1};
         ASSERT_EQ(osg_lvl1.size(), 3); // I, A, B
@@ -261,7 +261,7 @@ namespace Moment::Tests {
                 HashedSequence{{}, ShortlexHasher{2}}
         );
 
-        AlgebraicContext ac{2, true, false, rules};
+        AlgebraicContext ac{2, true, false, true, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
 
         OperatorSequenceGenerator osg_lvl1{ac, 1};
@@ -300,7 +300,7 @@ namespace Moment::Tests {
                 HashedSequence{{2}, ShortlexHasher{3}}
         );
 
-        AlgebraicContext ac{3, true, false, rules};
+        AlgebraicContext ac{3, true, false, true, rules};
         ASSERT_TRUE(ac.attempt_completion(20));
 
         OperatorSequenceGenerator osg_lvl1{ac, 1};
@@ -323,7 +323,7 @@ namespace Moment::Tests {
                 HashedSequence{{0, 1}, ShortlexHasher{2}},
                 HashedSequence{{}, ShortlexHasher{2}}
         );
-        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, std::move(rules));
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, true, std::move(rules));
         ASSERT_TRUE(ac_ptr->attempt_completion(20));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = ams.Context();
@@ -357,7 +357,7 @@ namespace Moment::Tests {
                 HashedSequence{{1, 0}, ShortlexHasher{2}},
                 HashedSequence{{}, ShortlexHasher{2}}
         );
-        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, std::move(rules));
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, true, std::move(rules));
         ASSERT_TRUE(ac_ptr->attempt_completion(20));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
@@ -383,7 +383,7 @@ namespace Moment::Tests {
                 HashedSequence{{0, 0}, ShortlexHasher{2}},
                 HashedSequence{{0}, ShortlexHasher{2}}
         );
-        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, std::move(rules));
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, true, std::move(rules));
         ASSERT_TRUE(ac_ptr->attempt_completion(20));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
@@ -407,7 +407,7 @@ namespace Moment::Tests {
                 HashedSequence{{0, 1}, ShortlexHasher{2}},
                 true
         );
-        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, std::move(rules));
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, false, true, std::move(rules));
         ASSERT_TRUE(ac_ptr->attempt_completion(20));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
@@ -445,10 +445,10 @@ namespace Moment::Tests {
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher}); // AB-> A
 
-        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, true, std::move(msr));
+        auto ac_ptr = std::make_unique<AlgebraicContext>(2, true, true, true, std::move(msr));
         ASSERT_TRUE(ac_ptr->attempt_completion(20));
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
-        const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
+        const auto& context = ams.AlgebraicContext();
 
         auto [id1, mm1] = ams.create_moment_matrix(1); // 1 a b
         ASSERT_EQ(mm1.Level(), 1);
@@ -464,5 +464,54 @@ namespace Moment::Tests {
         EXPECT_EQ(mm1.SequenceMatrix[2][1], OperatorSequence({0}, ams.Context(), true));
         EXPECT_EQ(mm1.SequenceMatrix[2][2], OperatorSequence({1, 1}, ams.Context()));
 
+    }
+
+
+    TEST(Scenarios_Algebraic_AlgebraicContext, CreateMomentMatrix_NonHermitian) {
+        AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(1, false, false, false)};
+        const auto& context = ams.AlgebraicContext();
+        ASSERT_EQ(context.size(), 2); // a, a*
+
+        auto [id1, mm1] = ams.create_moment_matrix(1); // 1 a a*
+        ASSERT_EQ(mm1.Level(), 1);
+        EXPECT_TRUE(mm1.IsHermitian());
+        ASSERT_EQ(mm1.Dimension(), 3);
+
+        EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(context)); // 1
+        EXPECT_EQ(mm1.SequenceMatrix[0][1], OperatorSequence({0}, context));      // a
+        EXPECT_EQ(mm1.SequenceMatrix[0][2], OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(mm1.SequenceMatrix[1][0], OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(mm1.SequenceMatrix[1][1], OperatorSequence({1, 0}, context));   // a* a
+        EXPECT_EQ(mm1.SequenceMatrix[1][2], OperatorSequence({1, 1}, context));   // a* a*
+        EXPECT_EQ(mm1.SequenceMatrix[2][0], OperatorSequence({0}, context));   // a
+        EXPECT_EQ(mm1.SequenceMatrix[2][1], OperatorSequence({0, 0}, context));   // a a
+        EXPECT_EQ(mm1.SequenceMatrix[2][2], OperatorSequence({0, 1}, context));   // a a*
+
+        const auto& symbols = ams.Symbols();
+        ASSERT_EQ(symbols.size(), 6); // 0, 1, a<->a*, aa<->a*a*, a*a, aa*
+    }
+
+    TEST(Scenarios_Algebraic_AlgebraicContext, CreateMomentMatrix_NonHermitian_Normal) {
+        AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(1, false, false, true)};
+        const auto& context = ams.AlgebraicContext();
+        ASSERT_EQ(context.size(), 2); // a, a*
+
+        auto [id1, mm1] = ams.create_moment_matrix(1); // 1 a a*
+        ASSERT_EQ(mm1.Level(), 1);
+        EXPECT_TRUE(mm1.IsHermitian());
+        ASSERT_EQ(mm1.Dimension(), 3);
+
+        EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(context)); // 1
+        EXPECT_EQ(mm1.SequenceMatrix[0][1], OperatorSequence({0}, context));      // a
+        EXPECT_EQ(mm1.SequenceMatrix[0][2], OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(mm1.SequenceMatrix[1][0], OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(mm1.SequenceMatrix[1][1], OperatorSequence({0, 1}, context));   // a a *
+        EXPECT_EQ(mm1.SequenceMatrix[1][2], OperatorSequence({1, 1}, context));   // a* a*
+        EXPECT_EQ(mm1.SequenceMatrix[2][0], OperatorSequence({0}, context));   // a
+        EXPECT_EQ(mm1.SequenceMatrix[2][1], OperatorSequence({0, 0}, context));   // a a
+        EXPECT_EQ(mm1.SequenceMatrix[2][2], OperatorSequence({0, 1}, context));   // a a*
+
+        const auto& symbols = ams.Symbols();
+        ASSERT_EQ(symbols.size(), 5); // 0, 1, a<->a*, aa<->a*a*, aa*
     }
 }

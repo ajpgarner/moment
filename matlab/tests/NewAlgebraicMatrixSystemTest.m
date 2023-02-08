@@ -35,6 +35,17 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
                 {uint64([2, 2, 1, 1]), uint64([1, 2, 1, 2])}};
             testCase.verifyEqual(comp_rules, expected);
         end
+        
+        function NonHermitianButNormal(testCase)
+            raw_rules = {};
+            ref_id = mtk('new_algebraic_matrix_system', ...
+                         'complete_attempts', 20, ...
+                         'nonhermitian', 'normal', 2, raw_rules);
+            comp_rules = mtk('rules', ref_id);
+            expected = {{uint64([3, 1]), uint64([1, 3])}, ...
+                        {uint64([4, 2]), uint64([2, 4])}};
+            testCase.verifyEqual(comp_rules, expected);
+        end
     end
     
     methods (Test, TestTags={'Error'})

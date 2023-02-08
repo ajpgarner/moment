@@ -43,6 +43,11 @@ namespace Moment::Algebraic {
         virtual void failure(const RuleBook& rb, size_t attempts) = 0;
     };
 
+    enum class OperatorType {
+        Generic,
+        Normal,
+        Hermitian
+    };
 
     class RuleBook {
     public:
@@ -139,11 +144,39 @@ namespace Moment::Algebraic {
 
         /**
          * Generate complete commutation rule list.
-         * @param hasher For calculating hashes of generated strings
-         * @param operator_count Number of operators
+         * @param apc Pre-context, for generating hashes and conjugates
+         * @param output The vector of rules to append to - will have commutation rules added.
+         */
+        inline static std::vector<MonomialSubstitutionRule> commutator_rules(const AlgebraicPrecontext& apc) {
+            std::vector<MonomialSubstitutionRule> output;
+            RuleBook::commutator_rules(apc, output);
+            return output;
+        }
+
+        /**
+         * Generate complete commutation rule list.
+         * @param apc Pre-context, for generating hashes and conjugates
          * @return Vector of commutation rules.
          */
-        static std::vector<MonomialSubstitutionRule> commutator_rules(const AlgebraicPrecontext& apc);
+        static void commutator_rules(const AlgebraicPrecontext& apc, std::vector<MonomialSubstitutionRule>& output);
+
+        /**
+         * Generate "normal" rule list (a*a -> aa*), for non-self adjoint systems.
+         * @param apc Pre-context, for generating hashes and conjugates.
+         * @return Vector of normal rules; will be empty if apc is already self-adjoint.
+         */
+        static inline std::vector<MonomialSubstitutionRule> normal_rules(const AlgebraicPrecontext& apc) {
+            std::vector<MonomialSubstitutionRule> output;
+            RuleBook::normal_rules(apc, output);
+            return output;
+        }
+
+        /**
+         * Generate "normal" rule list (a*a -> aa*), for non-self adjoint systems.
+         * @param apc Pre-context, for generating hashes and conjugates.
+         * @param output The vector of rules to append to - will have normal rules added (no change if apc is self-adj.)
+         */
+        static void normal_rules(const AlgebraicPrecontext& apc, std::vector<MonomialSubstitutionRule>& output);
 
     };
 

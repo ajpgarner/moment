@@ -53,7 +53,7 @@ namespace Moment::mex::functions {
 
             return std::make_unique<Algebraic::AlgebraicContext>(input.total_operators,
                                                       input.hermitian_operators,
-                                                      input.commutative,
+                                                      input.commutative, input.normal_operators,
                                                       rules);
 
         }
@@ -73,6 +73,11 @@ namespace Moment::mex::functions {
 
         // Default to Hermitian, but allow non-hermitian override
         this->hermitian_operators = !(this->flags.contains(u"nonhermitian"));
+        if (!this->hermitian_operators) {
+            this->normal_operators = this->flags.contains(u"normal");
+        } else {
+            this->normal_operators = true;
+        }
 
         // Default to non-commutative, but allow commutative override
         this->commutative = this->flags.contains(u"commutative");
@@ -147,6 +152,8 @@ namespace Moment::mex::functions {
         this->flag_names.emplace(u"hermitian");
         this->flag_names.emplace(u"nonhermitian");
         this->mutex_params.add_mutex(u"hermitian", u"nonhermitian");
+
+        this->flag_names.emplace(u"normal");
 
         this->flag_names.emplace(u"commutative");
         this->flag_names.emplace(u"noncommutative");

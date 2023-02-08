@@ -5,7 +5,6 @@
  */
 #pragma once
 
-
 #include "../mex_function.h"
 #include "integer_types.h"
 
@@ -20,6 +19,8 @@ namespace Moment::mex::functions {
         uint64_t max_attempts = 128;
 
         bool hermitian_operators = true;
+
+        bool normal_operators = true;
 
         bool commutative = false;
 
