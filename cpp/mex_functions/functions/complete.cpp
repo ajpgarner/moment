@@ -60,10 +60,9 @@ namespace Moment::mex::functions {
                 }
                 ++rule_index;
             }
-            return Algebraic::RuleBook{apc, rules, input.hermitian_operators};
+            return Algebraic::RuleBook{apc, rules};
         }
     }
-
 
     CompleteParams::CompleteParams(SortedInputs &&rawInput)
         : SortedInputs(std::move(rawInput)) {

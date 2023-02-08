@@ -62,11 +62,10 @@ namespace Moment::Algebraic {
 
     public:
         RuleBook(const AlgebraicPrecontext& precontext,
-                 const std::vector<MonomialSubstitutionRule>& rules,
-                 bool hermitian = true);
+                 const std::vector<MonomialSubstitutionRule>& rules);
 
-        explicit RuleBook(const AlgebraicPrecontext& pc, bool hermitian = true)
-            : RuleBook(pc, std::vector<MonomialSubstitutionRule>{}, hermitian) { }
+        explicit RuleBook(const AlgebraicPrecontext& pc)
+            : RuleBook(pc, std::vector<MonomialSubstitutionRule>{}) { }
 
         /** Add rules */
         ptrdiff_t add_rules(const std::vector<MonomialSubstitutionRule>& rules, RuleLogger * logger = nullptr);

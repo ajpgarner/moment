@@ -18,7 +18,7 @@ namespace Moment::Algebraic {
         : Context{hermitian ? operator_count : 2 * operator_count},
           precontext{static_cast<oper_name_t>(operator_count), hermitian},
           self_adjoint{hermitian}, commutative{commute},
-          rules{precontext, initial_rules, hermitian} {
+          rules{precontext, initial_rules} {
         if (this->commutative) {
             auto extra_rules = RuleBook::commutator_rules(this->precontext);
             this->rules.add_rules(extra_rules);

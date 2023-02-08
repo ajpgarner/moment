@@ -12,9 +12,8 @@ namespace Moment::Algebraic {
 
 
     RuleBook::RuleBook(const AlgebraicPrecontext& pc,
-                       const std::vector<MonomialSubstitutionRule>& rules,
-                       const bool is_herm) :
-            precontext{pc}, is_hermitian{is_herm} {
+                       const std::vector<MonomialSubstitutionRule>& rules) :
+            precontext{pc}, is_hermitian{pc.self_adjoint} {
         this->add_rules(rules);
     }
 
@@ -123,14 +122,14 @@ namespace Moment::Algebraic {
         // First, if we are a Hermitian ruleset, introduce initial conjugate rules
         size_t iteration = 0;
 
-        if (this->is_hermitian) {
-            size_t new_rules = this->conjugate_ruleset(mock_mode, logger);
-            // If no iterations allowed, but conjugation introduces non-trivial rules, then flag as incomplete
-            if (mock_mode && new_rules > 0) {
-                return false;
-            }
-            iteration += new_rules;
+
+        // First, see if any complex conjugate rules are implied
+        const size_t cc_new_rules = this->conjugate_ruleset(mock_mode, logger);
+        // If no iterations allowed, but conjugation introduced non-trivial rules, then flag as incomplete
+        if (mock_mode && (cc_new_rules > 0)) {
+            return false;
         }
+        iteration += cc_new_rules;
 
         // Now, standard Knuth-Bendix loop
         while(iteration < max_iterations) {
@@ -357,8 +356,6 @@ namespace Moment::Algebraic {
     }
 
     bool RuleBook::try_conjugation(const MonomialSubstitutionRule& rule, bool mock, RuleLogger * logger) {
-        assert(this->is_hermitian);
-
         // Conjugate and reduce rule
         auto conj_rule = rule.conjugate(this->precontext);
         auto conj_reduced_rule = this->reduce(conj_rule);
