@@ -37,7 +37,7 @@ namespace Moment::mex::functions {
             ss << Moment::version::PROJECT_NAME << ", "
                << "v" << Moment::version::VERSION_MAJOR
                << "." << Moment::version::VERSION_MINOR
-               << "." << Moment::version::VERSION_BUILD << "\n";
+               << "." << Moment::version::VERSION_PATCH << "\n";
             ss << Moment::version::PROJECT_COPYRIGHT << "\n\n";
 
             print_to_console(this->matlabEngine, ss.str());
@@ -46,16 +46,16 @@ namespace Moment::mex::functions {
         if (num_outputs >= 1) {
             matlab::data::ArrayFactory factory;
             if (inputPtr->flags.contains(u"structured")) {
-                auto s = factory.createStructArray({1,1}, {"major", "minor", "build"});
+                auto s = factory.createStructArray({1,1}, {"major", "minor", "patch"});
                 s[0]["major"] = factory.createArray<int64_t>({ 1, 1 }, { Moment::version::VERSION_MAJOR });
                 s[0]["minor"] = factory.createArray<int64_t>({ 1, 1 }, { Moment::version::VERSION_MINOR });
-                s[0]["build"] = factory.createArray<int64_t>({ 1, 1 }, { Moment::version::VERSION_BUILD });
+                s[0]["patch"] = factory.createArray<int64_t>({ 1, 1 }, { Moment::version::VERSION_PATCH });
                 output[0] = std::move(s);
             } else {
                 std::stringstream ss;
                 ss << Moment::version::VERSION_MAJOR
                    << "." << Moment::version::VERSION_MINOR
-                   << "." << Moment::version::VERSION_BUILD;
+                   << "." << Moment::version::VERSION_PATCH;
                 output[0] = factory.createCharArray(ss.str());
             }
         }

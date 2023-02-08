@@ -2,10 +2,10 @@ classdef VersionTest < MTKTestBase
     %VERSIONTEST Unit tests for version function
     
     properties(Constant)
-        expected_string = '0.1.0';
+        expected_string = '0.1.1';
         expected_struct = struct('major', int64(0), ...
                                  'minor', int64(1), ...
-                                 'build', int64(0));
+                                 'patch', int64(1));
     end
 
     methods (Test)
