@@ -173,6 +173,8 @@ settings.
 
 ### Directory structure
 
+`\`: Root of Moment.
+
 `\cpp`: Root of the C++ source code.
 
 `\cpp\googletest`: Inclusion of googletest subproject
@@ -231,16 +233,20 @@ library objects.
 
 `\cpp\tests\utilities`: C++ unit tests for general utility functions.
 
-`\matlab`: Root of Moment MATLAB classes & functions.
+`\matlab`: Root of Moment MATLAB package
 
-`\matlab\+Algebraic`: MATLAB classes associated with generic algebraic scenarios.
+`\matlab\classes`: Object-oriented interface for moment.
 
-`\matlab\+Inflation`: MATLAB classes associated with inflation scenarios.
+`\matlab\classes\+Algebraic`: MATLAB classes associated with generic algebraic scenarios.
 
-`\matlab\+Locality`: MATLAB classes associated with locality scenarios.
+`\matlab\classes\+Inflation`: MATLAB classes associated with inflation scenarios.
 
-`\matlab\+Util`: Minor utility functions for MATLAB. 
+`\matlab\classes\+Locality`: MATLAB classes associated with locality scenarios.
 
 `\matlab\examples`: Example scripts making use of the Moment library.
+
+`\matlab\functions`: MATLAB functional interface for Moment.
+
+`\matlab\functions\+Util`: Minor utility functions.
 
 `\matlab\tests`: MATLAB unit tests for `moment` mex library, and other matlab classes.
