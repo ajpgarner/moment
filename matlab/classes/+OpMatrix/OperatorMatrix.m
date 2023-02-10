@@ -110,7 +110,7 @@ classdef OperatorMatrix < handle
                        ' or an array of symbol ids and an array of values.']);
             end
             
-            val = OperatorMatrix(obj.MatrixSystem);
+            val = OpMatrix.OperatorMatrix(obj.MatrixSystem);
             [val.Index, val.Dimension] = ...
                 mtk('apply_values', obj.MatrixSystem.RefId, obj.Index, ...
                 value_list);
@@ -245,7 +245,7 @@ classdef OperatorMatrix < handle
             %   flattened matrices, such that each row represents one basis
             %   element, with length of Dimension*Dimension.
             arguments
-                obj (1,1) OperatorMatrix
+                obj (1,1) OpMatrix.OperatorMatrix
                 sparse (1,1) logical = true
             end
             
@@ -258,7 +258,7 @@ classdef OperatorMatrix < handle
         
         function [re, im] = SparseMonolithicBasis(obj)
             arguments
-                obj (1,1) OperatorMatrix
+                obj (1,1) OpMatrix.OperatorMatrix
             end
             % TODO: Check length
             
@@ -297,7 +297,7 @@ classdef OperatorMatrix < handle
         
         function [re, im] = DenseMonolithicBasis(obj)
             arguments
-                obj (1,1) OperatorMatrix
+                obj (1,1) OpMatrix.OperatorMatrix
             end
             if (isempty(obj.mono_basis_real) || ...
                     isempty(obj.mono_basis_im))
@@ -337,7 +337,7 @@ classdef OperatorMatrix < handle
     methods
         function cvxVars(obj, re_name, im_name)
             arguments
-                obj (1,1) OperatorMatrix
+                obj (1,1) OpMatrix.OperatorMatrix
                 re_name (1,:) char {mustBeValidVariableName}
                 im_name (1,:) char = char.empty
             end

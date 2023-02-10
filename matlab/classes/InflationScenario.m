@@ -1,4 +1,4 @@
-classdef InflationScenario < Scenario
+classdef InflationScenario < Abstract.Scenario
     %INFLATIONSCENARIO Classical observables with hidden classical sources.
     %
     
@@ -18,7 +18,7 @@ classdef InflationScenario < Scenario
     methods
         function obj = InflationScenario(inf_level, observables, sources)                        
             % Superclass c'tor
-            obj = obj@Scenario();
+            obj = obj@Abstract.Scenario();
             
             % Set inflation level
             if nargin>=1
@@ -195,8 +195,8 @@ classdef InflationScenario < Scenario
        end
     end
  
-    %% Friend/interface methods
-    methods(Access={?Scenario,?MatrixSystem})
+    %% Virtual methods
+    methods(Access={?Abstract.Scenario,?MatrixSystem})
         % Query for a matrix system
         function ref_id = createNewMatrixSystem(obj)
             arguments
@@ -217,7 +217,7 @@ classdef InflationScenario < Scenario
         function onNewMomentMatrix(obj, mm)
             arguments
                 obj (1,1) InflationScenario
-                mm (1,1) MomentMatrix
+                mm (1,1) OpMatrix.MomentMatrix
             end            
         end
     end

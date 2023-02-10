@@ -2,24 +2,23 @@ classdef SolvedJointMeasurement < handle
     %SOLVEDJOINTMEASUREMENT Summary of this class goes here
     %   Detailed explanation goes here
     properties(SetAccess=private, GetAccess=public)
-        SolvedMomentMatrix
+        SolvedScenario
         Marginals
         Indices
-        Correlations
-        Sequences
+        Distribution
+        ExpectationValue
     end
     
     methods
         function obj = SolvedJointMeasurement(solvedScenario, jointMmt)
             %SOLVEDMEASUREMENT Construct an instance of this class
             arguments
-                solvedScenario (1,1) SolvedScenario
-                jointMmt (1,1) Scenario.JointMeasurement
+                solvedScenario (1,1) SolvedScenario.SolvedLocalityScenario
+                jointMmt (1,1) Locality.JointMeasurement
             end
-            
-            % Get moment matrix
-            solvedMM = solvedScenario.SolvedMomentMatrix;
-            obj.SolvedMomentMatrix = solvedMM;
+           
+            % Get handle to scenario
+            obj.SolvedScenario = solvedScenario;
                         
             % Get marginal measurements
             obj.Marginals = obj.getMmts(solvedScenario, jointMmt);
@@ -28,7 +27,10 @@ classdef SolvedJointMeasurement < handle
             obj.Indices = jointMmt.Indices;
             
             % Query for correlation table
-            [obj.Correlations, obj.Sequences] = obj.queryOutcomes();
+            obj.Distribution = obj.queryOutcomes(jointMmt);
+            
+            % Query for EV
+            obj.ExpectationValue = solvedScenario.Value(jointMmt);
         end
     end
     
@@ -36,19 +38,23 @@ classdef SolvedJointMeasurement < handle
         function sorted = getMmts(obj, solvedScenario, mmt)
             arguments
                 obj (1,1) SolvedScenario.SolvedJointMeasurement
-                solvedScenario (1,1) SolvedScenario
-                mmt (1,1) Scenario.JointMeasurement
+                solvedScenario (1,1) SolvedScenario.SolvedLocalityScenario
+                mmt (1,1) Locality.JointMeasurement
             end
             
             % Check number of measurement
             sorted = SolvedScenario.SolvedMeasurement.empty;
             for i = 1:length(mmt.Marginals)
-                sorted(end+1) = solvedScenario.get(mmt.Marginals(i));
+                sorted(end+1) = solvedScenario.Get(mmt.Marginals(i));
             end
         end
         
-        function [val, names] = queryOutcomes(obj)
-            mm = obj.SolvedMomentMatrix.MomentMatrix;
+        function val = queryOutcomes(obj, jointMmt)
+            %SOLVEDMEASUREMENT Construct an instance of this class
+            arguments
+                obj (1,1) SolvedScenario.SolvedJointMeasurement
+                jointMmt (1,1) Locality.JointMeasurement
+            end
             
             % Get number of outcomes, per measurement
             dims = uint64(zeros(1, length(obj.Marginals)));
@@ -58,18 +64,20 @@ classdef SolvedJointMeasurement < handle
             end
             
             % Prepare outputs
-            val = zeros(dims);
-            names = strings(dims);
+            max_index = prod(dims);
+            val = zeros(1, max_index);
             
-            % Write retrieved rows into outputs
-            for row = mm.MatrixSystem.MeasurementCoefs(obj.Indices)
-                % (assume row.indices are sorted!)
-                out_index = num2cell(reshape(row.indices(:, 3),...
-                    [1, length(dims)]));
-                coefs = row.real_coefficients;
-                val(out_index{:}) = coefs * obj.SolvedMomentMatrix.a;
-                names(out_index{:}) = row.sequence;
+            
+            % Iterate through outcomes
+            for index = 1:max_index
+                outcome_numbers = reshape(Util.index_to_sub(dims, index),...
+                                          [length(dims), 1]);
+                query_index = [obj.Indices, outcome_numbers];
+                joint_outcome = obj.SolvedScenario.Scenario.get(query_index);
+                val(index) = obj.SolvedScenario.Value(joint_outcome);
+
             end
+            val = reshape(val, dims);
         end
     end
 end

@@ -1,6 +1,6 @@
 classdef MatrixSystem < handle
-    %MATRIXSYSTEM A matrix of operator products. Wraps a reference to a
-    % MatrixSystem class stored within mtk.
+    %MATRIXSYSTEM A matrix of operator products. 
+    % Wraps a reference to a MatrixSystem class stored within mtk.
     
     properties(SetAccess = private, GetAccess = public)
         RefId = uint64(0)        
@@ -13,29 +13,66 @@ classdef MatrixSystem < handle
         max_prob_len = uint64(0);
     end
     
+    properties(Constant, Access = protected)
+        err_bad_scenario_type = [
+            'First cell of array argument must be one of "algebraic",',...
+            '"locality", "imported" or "inflation"'];
+        
+        err_bad_ctor_arg = ['Argument must be either a Scenario class,',...
+                            ' or a cell array of parameters.'];
+    end  
+    
+    
     methods
         %% Constructor
         function obj = MatrixSystem(args)
-            % Check if settingsParams is LocalityScenario, or cell array, 
-            % then call appropriate function to load setting into C++.
-            if isa(args, 'cell')
-                % Unpack cell into arguments
-                obj.RefId = mtk('new_locality_matrix_system', args{:});
-            elseif isa(args, 'Scenario')
-                % Unpack setting into arrays
+            % Checks if args is a Scenario, or cell array, then calls
+            % appropriate MEX function to initiate setting.
+            % End-users are encouraged not to invoke this manually, but
+            % prefer automating it through a [System-Type]Scenario class.
+            
+            if isa(args, 'Abstract.Scenario')
+                % Invoke Scenario's own MatrixSystem creation function
                 obj.RefId = args.createNewMatrixSystem();
+            elseif isa(args, 'cell')
+                if length(args) < 1
+                    error(obj.err_bad_scenario_type);
+                end
+                
+                % Make sure head is a string
+                head = args{1};
+                if ischar(head)
+                    head = string(head);
+                end
+                if ~isstring(head) || ~isscalar(head)
+                    error(obj.err_bad_scenario_type);
+                end
+
+                % Invoke appropriate MTK system creation
+                switch(lower(head))
+                    case "algebraic"
+                        args{1} = 'new_algebraic_matrix_system';
+                    case "locality"
+                        args{1} = 'new_locality_matrix_system';
+                    case "imported"
+                        args{1} = 'new_imported_matrix_system';
+                    case "inflation"
+                        args{1} = 'new_inflation_matrix_system';
+                    otherwise
+                        error(obj.err_bad_scenario_type);
+                end
+                
+                % Invoke MTK to create a matrix system
+                obj.RefId = mtk(args{:});
             else
-                error([
-                    'First argument must be either a Scenario object,',...
-                    ' or a cell array of parameters.']);
+                error(obj.err_bad_ctor_arg);
             end
             
             obj.UpdateSymbolTable();
-                        
         end
     end
     
-    %% Matrices
+    %% Operator matrices
     methods    
         function val = MakeMomentMatrix(obj, level)
             arguments
@@ -44,7 +81,19 @@ classdef MatrixSystem < handle
             end
             val = MomentMatrix(obj, level);
         end
-        
+                
+        function varargout = List(obj)
+            the_list = mtk('list', obj.RefId);
+            if nargout == 1
+                varargout{1} = the_list;
+            else
+                disp(the_list)
+            end
+        end
+    end
+    
+    %% Symbols
+    methods
         function val = UpdateSymbolTable(obj, reset)
             if nargin < 2
                 reset = false;
@@ -83,16 +132,6 @@ classdef MatrixSystem < handle
             
             val = obj.SymbolTable;
         end
-        
-        function varargout = List(obj)
-            the_list = mtk('list', obj.RefId);
-            if nargout == 1
-                varargout{1} = the_list;
-            else
-                disp(the_list)
-            end
-        end
-        
         
         %% Destructor
         function delete(obj)

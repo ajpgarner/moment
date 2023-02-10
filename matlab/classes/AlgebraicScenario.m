@@ -1,5 +1,6 @@
-classdef AlgebraicScenario < Scenario
-    %ALGEBRAICSCENARIO
+classdef AlgebraicScenario < Abstract.Scenario
+    %ALGEBRAICSCENARIO Scenario for operators with monomial substitution
+    % rules.
     
     properties(GetAccess = public, SetAccess = protected)
         OperatorCount
@@ -13,7 +14,7 @@ classdef AlgebraicScenario < Scenario
         function obj = AlgebraicScenario(op_count, rules, ...
                                          is_hermitian, is_normal)
             % Superclass c'tor
-            obj = obj@Scenario();
+            obj = obj@Abstract.Scenario();
             
             obj.OperatorCount = uint64(op_count);
             
@@ -99,7 +100,7 @@ classdef AlgebraicScenario < Scenario
     end
     
     %% Friend/interface methods
-    methods(Access={?Scenario,?MatrixSystem})
+    methods(Access={?Abstract.Scenario,?MatrixSystem})
         % Query for a matrix system
         function ref_id = createNewMatrixSystem(obj)
             arguments
@@ -131,7 +132,7 @@ classdef AlgebraicScenario < Scenario
         function onNewMomentMatrix(obj, mm)
             arguments
                 obj (1,1) AlgebraicScenario
-                mm (1,1) MomentMatrix
+                mm (1,1) OpMatrix.MomentMatrix
             end
         end
     end

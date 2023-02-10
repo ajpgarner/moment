@@ -1,4 +1,4 @@
-classdef Normalization < handle & RealObject
+classdef Normalization < handle & Abstract.RealObject
     %NORMALIZATION The normalization element of the setting (typically 1)
     
     methods
@@ -6,7 +6,7 @@ classdef Normalization < handle & RealObject
             %NORMALIZATION Construct an instance of this class
     
             % Superclass c'tor
-            obj = obj@RealObject(scenario);
+            obj = obj@Abstract.RealObject(scenario);
         end
     end   
 end

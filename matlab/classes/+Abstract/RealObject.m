@@ -70,16 +70,16 @@ classdef RealObject < handle
             val = obj.real_coefs;
         end
                 
-        function val = apply(lhs, rhs)
+        function val = Apply(obj, vals)
             arguments
-                lhs (1,1) RealObject
-                rhs (:,1)
+                obj (1,1) Abstract.RealObject
+                vals (:,1)
             end
-            coefs = lhs.getCoefficientsOrFail();
-            if length(coefs) ~= length(rhs)
+            coefs = obj.getCoefficientsOrFail();
+            if length(coefs) ~= length(vals)
                 error("Basis vector and coefficient length do not match.");
             end
-            val = coefs * rhs;
+            val = coefs * vals;
         end
     end
 
@@ -92,7 +92,7 @@ classdef RealObject < handle
             end
             
             % Pre-multiplication by a built-in type (probably...)
-            if ~isa(lhs, 'RealObject')
+            if ~isa(lhs, 'Abstract.RealObject')
                 pre_mult = true;
                 coefs = rhs.getCoefficientsOrFail();
                 this = rhs;
@@ -109,7 +109,7 @@ classdef RealObject < handle
                     error("_*_ only supported for scalar multiplication.");
                 end
 
-                val = RealObject(this.Scenario);
+                val = Abstract.RealObject(this.Scenario);
                 if pre_mult
                     val.real_coefs = other * coefs;
                 else
@@ -123,8 +123,8 @@ classdef RealObject < handle
          
         function val = plus(lhs, rhs)
             arguments
-                lhs (1,1) RealObject
-                rhs (1,1) RealObject
+                lhs (1,1) Abstract.RealObject
+                rhs (1,1) Abstract.RealObject
             end
             if lhs.Scenario ~= rhs.Scenario
                 error(obj.err_mismatched_scenario);
@@ -134,14 +134,14 @@ classdef RealObject < handle
             rhs_coefs = rhs.getCoefficientsOrFail();
             
             % Build added real object
-            val = RealObject(lhs.Scenario);
+            val = Abstract.RealObject(lhs.Scenario);
             val.real_coefs = lhs_coefs + rhs_coefs;
         end
         
         function val = minus(lhs, rhs)
             arguments
-                lhs (1,1) RealObject
-                rhs (1,1) RealObject
+                lhs (1,1) Abstract.RealObject
+                rhs (1,1) Abstract.RealObject
             end
             if lhs.Scenario ~= rhs.Scenario
                 error(obj.err_mismatched_scenario);
@@ -151,18 +151,18 @@ classdef RealObject < handle
             rhs_coefs = rhs.getCoefficientsOrFail();
             
             % Build subtracted real object
-            val = RealObject(lhs.Scenario);
+            val = Abstract.RealObject(lhs.Scenario);
             val.real_coefs = lhs_coefs - rhs_coefs;
         end
         
         function val = uminus(obj)
             arguments
-                obj (1,1) RealObject
+                obj (1,1) Abstract.RealObject
             end
             coefs = obj.getCoefficientsOrFail();
             
             % Build negated real object
-            val = RealObject(obj.Scenario);
+            val = Abstract.RealObject(obj.Scenario);
             val.real_coefs = -coefs;
         end
     end
@@ -172,7 +172,7 @@ classdef RealObject < handle
     methods
         function cvx_expr = cvx(obj, real_basis)
             arguments
-                obj (1,1) RealObject
+                obj (1,1) Abstract.RealObject
                 real_basis (:, 1)
             end
             % Get coefficients
@@ -199,7 +199,7 @@ classdef RealObject < handle
      methods
         function ym_expr = yalmip(obj, real_basis)
             arguments
-                obj (1,1) RealObject
+                obj (1,1) Abstract.RealObject
                 real_basis (:, 1)
             end
             % Get coefficients
@@ -221,7 +221,7 @@ classdef RealObject < handle
     end
     
     %% Protected methods
-    methods(Access={?RealObject,?LocalityScenario})
+    methods(Access={?Abstract.RealObject,?LocalityScenario})
         function setCoefficients(obj, coefs)
             obj.real_coefs = coefs;
         end

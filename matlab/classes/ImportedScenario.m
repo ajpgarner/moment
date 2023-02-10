@@ -1,4 +1,4 @@
-classdef ImportedScenario < Scenario
+classdef ImportedScenario < Abstract.Scenario
     %IMPORTEDSCENARIO Manually input matrices
     %    
     properties(GetAccess = public, SetAccess = protected)
@@ -10,7 +10,7 @@ classdef ImportedScenario < Scenario
     methods
         function obj = ImportedScenario(all_real)
             % Superclass c'tor
-            obj = obj@Scenario();
+            obj = obj@Abstract.Scenario();
             
             % Set inflation level
             if nargin>=1
@@ -30,8 +30,8 @@ classdef ImportedScenario < Scenario
         
     end
     
-    %% Friend/interface methods
-    methods(Access={?Scenario,?MatrixSystem})
+    %% Virtual methods
+    methods(Access={?Abstract.Scenario,?MatrixSystem})
         % Query for a matrix system
         function ref_id = createNewMatrixSystem(obj)
             arguments
@@ -49,6 +49,11 @@ classdef ImportedScenario < Scenario
     %% Input methods
     methods
         function val = ImportMatrix(obj, input, matrix_type)
+            arguments
+                obj (1,1) ImportedScenario
+                input
+                matrix_type 
+            end
             cell_args = cell.empty;
             
             % Validate input
@@ -76,7 +81,7 @@ classdef ImportedScenario < Scenario
             index = mtk('import_matrix', obj.System.RefId, ...
                                      input, cell_args{:});
 
-            val = OperatorMatrix(obj.System, index, dimension);
+            val = OpMatrix.OperatorMatrix(obj.System, index, dimension);
             
             % Update symbols, with forced reset
             obj.System.UpdateSymbolTable(true);            
@@ -96,7 +101,7 @@ classdef ImportedScenario < Scenario
         function onNewMomentMatrix(obj, mm)
             arguments
                 obj (1,1) ImportedScenario
-                mm (1,1) MomentMatrix
+                mm (1,1) OpMatrix.MomentMatrix
             end
             error('Imported scenario can not generate matrices.');
         end

@@ -46,4 +46,6 @@ cvx_begin sdp
     minimize(obj)
 cvx_end
 
-disp(M)
+solution = setting.Solved(a);
+
+alt_obj = solution.Value(objective)

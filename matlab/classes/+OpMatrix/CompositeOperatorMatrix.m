@@ -27,7 +27,7 @@ classdef CompositeOperatorMatrix < handle
     %% Construction
     methods
         function obj = CompositeOperatorMatrix(constituents, weights)
-            if isa(obj.Constituents, 'OperatorMatrix')
+            if isa(obj.Constituents, 'OpMatrix.OperatorMatrix')
                 error("Constituents must be operator matrices.");
             end
             obj.Constituents = reshape(constituents, 1, []);

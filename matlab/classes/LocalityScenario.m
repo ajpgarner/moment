@@ -1,4 +1,4 @@
-classdef LocalityScenario < Scenario
+classdef LocalityScenario < Abstract.Scenario
     %LOCALITYSCENARIO Disjoint agents with projective measurements.
     %
     
@@ -28,7 +28,7 @@ classdef LocalityScenario < Scenario
             %  LocalityScenario({[out A1, out A2, ..],[out B1, ...]})
             
             % Superclass c'tor
-            obj = obj@Scenario();
+            obj = obj@Abstract.Scenario();
             
             % Create normalization object, and empty system ref
             obj.Parties = Locality.Party.empty;
@@ -204,7 +204,6 @@ classdef LocalityScenario < Scenario
         function val = FCTensor(obj, tensor)
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT);
-                %TODO: Check sufficient depth of MM generated.
             end
             fc = Locality.FullCorrelator(obj);
             val = fc.linfunc(tensor);
@@ -221,7 +220,6 @@ classdef LocalityScenario < Scenario
         function val = CGTensor(obj, tensor)
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT);
-                %TODO: Check sufficient depth of MM generated.
             end
             fc = Locality.CollinsGisin(obj);
             val = fc.linfunc(tensor);
@@ -250,7 +248,7 @@ classdef LocalityScenario < Scenario
     end
     
     %% Friend/interface methods
-    methods(Access={?Scenario,?MatrixSystem})
+    methods(Access={?Abstract.Scenario,?MatrixSystem})
         % Query for a matrix system
         function ref_id = createNewMatrixSystem(obj)
             ref_id = mtk('new_locality_matrix_system', ...
@@ -259,9 +257,7 @@ classdef LocalityScenario < Scenario
                            obj.OutcomesPerMeasurement);
         end
     end
-    
-    
-    
+        
     %% Virtual methods
     methods(Access=protected)
         function onNewMomentMatrix(obj, mm)
@@ -294,6 +290,10 @@ classdef LocalityScenario < Scenario
                         joint_outcome;
                 end
             end
+        end
+        
+        function val = createSolvedScenario(obj, a, b)
+            val = SolvedScenario.SolvedLocalityScenario(obj, a, b);
         end
     end
 end

@@ -81,7 +81,7 @@ classdef CollinsGisin < handle
             real_coefs = sparse(sparse_i, sparse_j, sparse_val, ...
                                 1, double(obj.Scenario.System.RealVarCount));
            
-            val = RealObject(obj.Scenario, real_coefs);
+            val = Abstract.RealObject(obj.Scenario, real_coefs);
         end
     end
 end

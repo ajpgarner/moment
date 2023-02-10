@@ -1,4 +1,4 @@
-classdef Monomial < ComplexObject
+classdef Monomial < Abstract.ComplexObject
     %MONOMIAL A monomial expression, as part of an algebraic setting
     
     properties(GetAccess = public, SetAccess = protected)
@@ -30,7 +30,7 @@ classdef Monomial < ComplexObject
                 scale (1,1) double = 1.0
             end
             
-            obj = obj@ComplexObject(setting);
+            obj = obj@Abstract.ComplexObject(setting);
             if any(operators > setting.OperatorCount) ...
                     || any(operators <= 0)
                 error("Operator string contains out of range index.");
@@ -50,7 +50,7 @@ classdef Monomial < ComplexObject
                 level (1,1) uint64
             end
             lm = obj.RawLocalizingMatrix(level);
-            val = CompositeOperatorMatrix(lm, obj.Coefficient);
+            val = OpMatrix.CompositeOperatorMatrix(lm, obj.Coefficient);
         end
         
         function val = RawLocalizingMatrix(obj, level)
@@ -58,7 +58,8 @@ classdef Monomial < ComplexObject
                 obj (1,1) Algebraic.Monomial
                 level (1,1) uint64
             end
-            val = LocalizingMatrix(obj.Setting, obj.Operators, level);
+            val = OpMatrix.LocalizingMatrix(obj.Setting, ...
+                                            obj.Operators, level);
         end
     end
     

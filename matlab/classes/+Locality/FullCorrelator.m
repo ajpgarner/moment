@@ -82,7 +82,7 @@ classdef FullCorrelator < handle
             reshape_tensor = sparse(reshape(tensor, [1, total_size]));
             
             real_coefs = reshape_tensor * full_coefs;
-            val = RealObject(obj.Scenario, real_coefs);
+            val = Abstract.RealObject(obj.Scenario, real_coefs);
         end
         
         function val = at(obj, index)

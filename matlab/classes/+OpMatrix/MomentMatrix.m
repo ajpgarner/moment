@@ -1,4 +1,4 @@
-classdef MomentMatrix < OperatorMatrix
+classdef MomentMatrix < OpMatrix.OperatorMatrix
     %MOMENTMATRIX A matrix of operator products. Wraps a reference to a
     % MomentMatrix class stored within mtk.
     
@@ -30,7 +30,7 @@ classdef MomentMatrix < OperatorMatrix
             end
             
             % Register matrix system            
-            obj = obj@OperatorMatrix(matsys_input);
+            obj = obj@OpMatrix.OperatorMatrix(matsys_input);
             
             % Save depth requested.
             obj.Level = uint64(level);

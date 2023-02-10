@@ -1,9 +1,7 @@
 classdef SolvedFullCorrelator < handle
-    %SOLVEDFULLCORRELATOR Summary of this class goes here
-    %   Detailed explanation goes here
+    %SOLVEDFULLCORRELATOR 
     
     properties(SetAccess=private, GetAccess=public)
-        SolvedMomentMatrix
         SolvedScenario
         Values
     end
@@ -11,9 +9,8 @@ classdef SolvedFullCorrelator < handle
     methods
         function obj = SolvedFullCorrelator(scenario)
             arguments
-                scenario (1,1) SolvedScenario
+                scenario (1,1) SolvedScenario.SolvedScenario
             end
-            obj.SolvedMomentMatrix = scenario.SolvedMomentMatrix;
             obj.SolvedScenario = scenario;
             obj.Values = obj.calculateValues();
         end
@@ -30,7 +27,9 @@ classdef SolvedFullCorrelator < handle
             
             % Build monolith of co-efficients
             coef_mono = fc.Coefficients;
-            values = reshape(coef_mono * obj.SolvedMomentMatrix.a, fc.Shape);
+            disp(coef_mono)
+            values = reshape(coef_mono * obj.SolvedScenario.RealValues,...
+                             fc.Shape);
 
         end
     end

@@ -3,23 +3,23 @@ classdef SolvedOutcome < handle
     %   Detailed explanation goes here
     
     properties
-        SolvedMomentMatrix
+        SolvedSetting
         Outcome
         Probability
     end
     
      methods
-        function obj = SolvedOutcome(solvedMM, outcome)
+        function obj = SolvedOutcome(solved_setting, outcome)
             %SOLVEDOUTCOME Construct an instance of this class
             arguments
-                solvedMM (1,1) SolvedMomentMatrix
+                solved_setting (1,1) SolvedScenario.SolvedScenario
                 outcome (1,1) Locality.Outcome
             end
             
-            obj.SolvedMomentMatrix = solvedMM;
+            obj.SolvedSetting = solved_setting;
             obj.Outcome = outcome;
             
-            obj.Probability = obj.Outcome.apply(solvedMM.a);
+            obj.Probability = obj.Outcome.Apply(solved_setting.RealValues);
         end
     end
 end

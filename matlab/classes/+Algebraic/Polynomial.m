@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < ComplexObject
+classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexObject
     %POLYNOMIAL
     
     properties
@@ -8,7 +8,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < ComplexObject
     methods(Static)
         function obj = Zero(setting)
             arguments
-                setting (1,1) Scenario
+                setting (1,1) Abstract.Scenario
             end
             obj = Algebraic.Polynomial(setting, ...
                                        Algebraic.Monomial.empty(1,0));
@@ -18,10 +18,10 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < ComplexObject
     methods
         function obj = Polynomial(setting, constituents)
             arguments
-                setting (1,1) Scenario
+                setting (1,1) Abstract.Scenario
                 constituents (1,:) Algebraic.Monomial
             end
-            obj = obj@ComplexObject(setting);
+            obj = obj@Abstract.ComplexObject(setting);
             obj.Constituents = constituents;
             obj.orderAndMerge();
         end
@@ -34,7 +34,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < ComplexObject
                 obj (1,1) Algebraic.Polynomial
                 level (1,1) uint64
             end
-            lm = LocalizingMatrix.empty(1,0);
+            lm = OpMatrix.LocalizingMatrix.empty(1,0);
             w = double.empty(1,0);
             
             for c = obj.Constituents
@@ -42,7 +42,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < ComplexObject
                 w(end+1) = c.Coefficient;
             end
             
-            val = CompositeOperatorMatrix(lm, w);
+            val = OpMatrix.CompositeOperatorMatrix(lm, w);
         end
     end
     

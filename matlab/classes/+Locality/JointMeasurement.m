@@ -1,4 +1,4 @@
-classdef JointMeasurement < handle & RealObject
+classdef JointMeasurement < handle & Abstract.RealObject
     %JOINTMEASUREMENT Collection of two or more measurements
     properties(SetAccess=private, GetAccess=public)
         Marginals
@@ -16,7 +16,7 @@ classdef JointMeasurement < handle & RealObject
             end
             
             % Set scenario in superclass c'tor
-            obj = obj@RealObject(scenario);
+            obj = obj@Abstract.RealObject(scenario);
                                     
             % Get marginal measurements
             obj.Marginals = obj.checkAndSortMmts(measurements);

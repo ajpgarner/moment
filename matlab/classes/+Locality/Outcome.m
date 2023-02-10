@@ -1,4 +1,4 @@
-classdef Outcome < handle & RealObject
+classdef Outcome < handle & Abstract.RealObject
     %OUTCOME Measurement outcome
     properties(SetAccess={?LocalityScenario}, GetAccess=public)
         Id
@@ -23,7 +23,7 @@ classdef Outcome < handle & RealObject
             end
             
             % Superclass c'tor
-            obj = obj@RealObject(setting);
+            obj = obj@Abstract.RealObject(setting);
             
             obj.Id = outcome_index;
             obj.Index = uint64([party_index, mmt_index, outcome_index]);

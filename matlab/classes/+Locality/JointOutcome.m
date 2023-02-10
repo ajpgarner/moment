@@ -1,4 +1,4 @@
-classdef JointOutcome < handle & RealObject
+classdef JointOutcome < handle & Abstract.RealObject
     %JOINTOUTCOME Product of two or more outcomes
     
     properties(SetAccess=private, GetAccess=public)
@@ -17,7 +17,7 @@ classdef JointOutcome < handle & RealObject
              end
             
             % Superclass c'tor
-            obj = obj@RealObject(setting);
+            obj = obj@Abstract.RealObject(setting);
             
             % Save indices that define this joint mmt outcome
             obj.Indices = indices;

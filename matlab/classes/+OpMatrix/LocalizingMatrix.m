@@ -1,4 +1,4 @@
-classdef LocalizingMatrix < OperatorMatrix
+classdef LocalizingMatrix < OpMatrix.OperatorMatrix
     %LocalizingMatrix A matrix of operator products. Wraps a reference to a
     % LocalizingMatrix class stored within mtk.
     
@@ -11,13 +11,13 @@ classdef LocalizingMatrix < OperatorMatrix
         %% Constructor
         function obj = LocalizingMatrix(setting, operators, level)
             arguments
-                setting (1,1) Scenario
+                setting (1,1) Abstract.Scenario
                 operators
                 level (1,1) {mustBeNonnegative, mustBeInteger} = 1
             end
             
             % Register matrix system            
-            obj = obj@OperatorMatrix(setting.System);
+            obj = obj@OpMatrix.OperatorMatrix(setting.System);
             
             % Save depth requested.
             obj.Level = uint64(level);

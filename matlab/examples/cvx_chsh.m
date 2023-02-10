@@ -54,9 +54,8 @@ cvx_begin sdp
 cvx_end
 
 % Get solutions
-solved_setting = SolvedScenario(scenario, matrix, a, b);
-solved_matrix = solved_setting.SolvedMomentMatrix;
-disp(struct2table(solved_matrix.SymbolTable));
+solved_setting = scenario.Solved(a, b);
+disp(struct2table(solved_setting.SymbolTable));
 
 % Print out values found (should be identical!)
 chsh_max_val = solved_setting.Value(CHSH_ineq)

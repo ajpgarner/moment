@@ -1,4 +1,4 @@
-classdef Correlator < handle & RealObject
+classdef Correlator < handle & Abstract.RealObject
     %CORR Binary correlator
     %   +1 if outcomes same, -1 if different
     
@@ -8,19 +8,19 @@ classdef Correlator < handle & RealObject
     end
         
     %% Public methods
-    methods     
+    methods
         function obj = Correlator(mmtA, mmtB)
             arguments
                 mmtA (1,1) Locality.Measurement
                 mmtB (1,1) Locality.Measurement
             end
-            %CORR Construct an instance of this class
+            %CORRELEATOR Construct a correlator between two measurements.
 
             % Check settings match, and call super class constructor
             if mmtA.Scenario ~= mmtB.Scenario
                 error("Measurements should be in same setting.");
             end
-            obj = obj@RealObject(mmtA.Scenario);
+            obj = obj@Abstract.RealObject(mmtA.Scenario);
                 
             % Check outcome counts match
             if length(mmtA.Outcomes) ~= length(mmtB.Outcomes)

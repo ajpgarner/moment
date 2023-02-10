@@ -1,6 +1,6 @@
 classdef ComplexObject < handle
-    %COMPLEXOBJECT 
-        
+    %COMPLEXOBJECT
+    
     properties(GetAccess = public, SetAccess = private)
         Setting
     end
@@ -13,7 +13,7 @@ classdef ComplexObject < handle
     properties(Access=protected)
         real_coefs = sparse(1,0)
         im_coefs = sparse(1,0)
-    end    
+    end
     
     properties(Access = private)
         has_coefs = false
@@ -29,7 +29,7 @@ classdef ComplexObject < handle
     methods
         function obj = ComplexObject(setting)
             arguments
-                setting (1,1) Scenario
+                setting (1,1) Abstract.Scenario
             end
             obj.Setting = setting;
         end
@@ -61,18 +61,46 @@ classdef ComplexObject < handle
             val = obj.im_coefs;
         end
         
+        function val = Apply(obj, re_vals, im_vals)
+            arguments
+                obj (1,1) Abstract.ComplexObject
+                re_vals (:,1)
+                im_vals (:,1) = double.empty(1,0)
+            end
+            % Get and check real coefficients
+            rec = obj.RealCoefficients;
+            if length(rec) ~= length(re_vals)
+                error("Expected %d real values, but %d were provided",...
+                      length(rec), length(re_vals));
+            end
+            val = rec * re_vals;
+            
+            % Get and check imaginary coefficients
+            if nargin >= 3 && ~isempty(im_vals)
+                imc = obj.ImaginaryCoefficients;
+                if length(imc) ~= length(im_vals)
+                    error("Expected %d imaginary values, but %d were provided",...
+                          length(imc), length(im_vals));
+                end
+                val = val + 1i * (imc * im_vals);
+            end
+            
+        end
+        
         function success = refreshCoefficients(obj)
             success = obj.calculateCoefficients();
             if success
                 obj.has_coefs = true;
             end
         end
+        
+        
     end
     
     %% Public CVX methods
     methods
         function cvx_expr = cvx(obj, real_basis, im_basis)
-             % Get coefficients
+            % Get coefficients
             the_re_coefs = obj.RealCoefficients;
             the_im_coefs = obj.ImaginaryCoefficients;
             
@@ -118,13 +146,13 @@ classdef ComplexObject < handle
         end
     end
     
-        %% Public yalmip methods
-     methods
+    %% Public yalmip methods
+    methods
         function ym_expr = yalmip(obj, real_basis, im_basis)
             % Get coefficients
             the_re_coefs = obj.RealCoefficients;
             the_im_coefs = obj.ImaginaryCoefficients;
-
+            
             % Has real...
             if nargin >= 2
                 if ~isa(real_basis, 'sdpvar')
@@ -158,7 +186,7 @@ classdef ComplexObject < handle
                 the_im_coefs = zeros(1, length(real_basis));
                 has_im = false;
             end
-           
+            
             % Generate expression...
             ym_expr = (the_re_coefs * real_basis);
             if (has_im)
@@ -170,7 +198,7 @@ classdef ComplexObject < handle
     %% Virtual methods
     methods(Access=protected)
         function success = calculateCoefficients(obj)
-           success = false;
+            success = false;
         end
     end
 end

@@ -1,4 +1,4 @@
-classdef Measurement < handle & RealObject
+classdef Measurement < handle & Abstract.RealObject
     %MEASUREMENT A collection of outcomes with assigned values
     
     properties(SetAccess=private, GetAccess=public)
@@ -34,7 +34,7 @@ classdef Measurement < handle & RealObject
             import Locality.Outcome
             
             % Superclass c'tor
-            obj = obj@RealObject(scenario);
+            obj = obj@Abstract.RealObject(scenario);
                         
             obj.Id = mmt_index;
             obj.Index = uint64([party_index, mmt_index]);

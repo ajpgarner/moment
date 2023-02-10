@@ -43,7 +43,10 @@ objective = -CHSH_ineq.yalmip(a);
 optimize(constraints, objective); 
 
 % Get solutions
-solved_setting = SolvedScenario(chsh, matrix, a);
-solved_matrix = solved_setting.SolvedMomentMatrix;
-disp(struct2table(solved_matrix.SymbolTable));
+solved_setting = chsh.Solved(a);
+disp(struct2table(solved_setting.SymbolTable));
+
+solved_FC = solved_setting.FullCorrelator;
+disp(solved_FC.Values);
+
 chsh_max_val = solved_setting.Value(CHSH_ineq)

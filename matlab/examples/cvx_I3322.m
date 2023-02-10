@@ -66,7 +66,7 @@ cvx_begin sdp
 cvx_end
 
 % Get solutions
-solved_setting = SolvedScenario(i3322, matrix, a);
+solved_setting = i3322.Solved(a); % SolvedScenario(i3322, matrix, a);
 solved_matrix = solved_setting.SolvedMomentMatrix;
 disp(struct2table(solved_matrix.SymbolTable));
 format long
