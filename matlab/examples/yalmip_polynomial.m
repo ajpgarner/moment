@@ -11,20 +11,17 @@ lm_level = max(mm_level - 1, 0);
 setting = AlgebraicScenario(2, {{[1, 1], [1]}}, true);
 setting.Complete(4);
 
-x1x2 = setting.get([1 2]);
-x2x1 = setting.get([2 1]);
-x2x2 = setting.get([2 2]);
-x2 = setting.get([2]);
-I = setting.get([]);
+[x1, x2] = setting.getAll();
+I = setting.id(); 
 
-objective = x1x2 + x2x1;
-poly = -x2x2 + x2 + 0.5*I;
+objective = x1 * x2 + x2 * x1;
+poly = -x2 * x2 + x2 + 0.5*I;
 
 %% Make matrices 
 mm = setting.MakeMomentMatrix(mm_level);
 lm = poly.LocalizingMatrix(lm_level);
 
-%% Define and solve SDP
+%% Define and solve SDP via YALMIP
 yalmip('clear');
 
     % Declare basis variables a (real)
@@ -41,7 +38,8 @@ yalmip('clear');
     
     % Objective
     obj = objective.yalmip(a);    
-    optimize(constraints,obj)
-obj = value(obj)
+    opt_results = optimize(constraints,obj);
 
-disp(value(M))
+%% Output solution
+format long
+obj = value(obj)
