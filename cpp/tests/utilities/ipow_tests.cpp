@@ -49,4 +49,21 @@ namespace Moment::Tests {
     TEST(Utilities_IntegerPower, Pow13_2) {
         EXPECT_EQ(ipow(13, 2), 169);
     }
+
+    TEST(Utilities_IntegerPower, PowMinus1_0) {
+        EXPECT_EQ(ipow(-1, 0), 1);
+    }
+
+    TEST(Utilities_IntegerPower, PowMinus1_1) {
+        EXPECT_EQ(ipow(-1, 1), -1);
+    }
+
+    TEST(Utilities_IntegerPower, PowMinus2_2) {
+        EXPECT_EQ(ipow(-2, 2), 4);
+    }
+
+    TEST(Utilities_IntegerPower, PowMinus2_3) {
+        EXPECT_EQ(ipow(-2, 3), -8);
+    }
+
 }

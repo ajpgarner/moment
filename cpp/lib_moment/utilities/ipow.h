@@ -22,11 +22,22 @@ namespace Moment {
         if (0 == exp) {
             return 1;
         }
+        if (1 == exp) {
+            return base;
+        }
         if (0 == base) {
             return 0;
         }
         if (1 == base) {
             return 1;
+        }
+
+        bool output_neg = false;
+        if constexpr(std::is_signed_v<int_t>) {
+            if (base < 0) {
+                base = -base;
+                output_neg = ((exp & 1) == 1);
+            }
         }
 
         auto output = static_cast<int_t>(1);
@@ -40,6 +51,11 @@ namespace Moment {
             }
             base *= base;
         }
+
+        if (output_neg) {
+            return -output;
+        }
+
         return output;
     }
 }
