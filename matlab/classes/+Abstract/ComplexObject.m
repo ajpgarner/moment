@@ -2,7 +2,7 @@ classdef ComplexObject < handle
     %COMPLEXOBJECT
     
     properties(GetAccess = public, SetAccess = private)
-        Setting
+        Scenario
     end
     
     properties(Dependent, GetAccess = public, SetAccess = private)
@@ -21,23 +21,26 @@ classdef ComplexObject < handle
     
     properties(Constant, Access = protected)
         err_mismatched_scenario = ...
-            'Cannot combine objects from different settings.';
+            'Cannot combine objects from different scenarios.';
     end
     
     
     %% Constructor
     methods
-        function obj = ComplexObject(setting)
+        function obj = ComplexObject(scenario)
             arguments
-                setting (1,1) Abstract.Scenario
+                scenario (1,1) Abstract.Scenario
             end
-            obj.Setting = setting;
+            obj.Scenario = scenario;
         end
     end
     
     %% Co-efficients, and accessors
     methods
         function val = get.RealCoefficients(obj)
+            arguments
+                obj (1,1) Abstract.ComplexObject
+            end
             if ~obj.has_coefs
                 success = obj.calculateCoefficients();
                 if success
@@ -50,6 +53,9 @@ classdef ComplexObject < handle
         end
         
         function val = get.ImaginaryCoefficients(obj)
+            arguments
+                obj (1,1) Abstract.ComplexObject
+            end
             if ~obj.has_coefs
                 success = obj.calculateCoefficients();
                 if success
@@ -76,7 +82,7 @@ classdef ComplexObject < handle
             val = rec * re_vals;
             
             % Get and check imaginary coefficients
-            if nargin >= 3 && ~isempty(im_vals)
+            if ~isempty(im_vals)
                 imc = obj.ImaginaryCoefficients;
                 if length(imc) ~= length(im_vals)
                     error("Expected %d imaginary values, but %d were provided",...
@@ -88,6 +94,9 @@ classdef ComplexObject < handle
         end
         
         function success = refreshCoefficients(obj)
+            arguments
+                obj (1,1) Abstract.ComplexObject
+            end
             success = obj.calculateCoefficients();
             if success
                 obj.has_coefs = true;

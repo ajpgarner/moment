@@ -33,6 +33,12 @@ classdef RuleBook < handle
     methods
         function obj = RuleBook(initialRules, max_ops, ....
                                 is_hermitian, is_normal)
+            arguments
+                initialRules (1,:)
+                max_ops (1,1) uint64 = 0
+                is_hermitian (1,1) logical = true
+                is_normal (1,1) logical = is_hermitian
+            end 
             
             if isa(initialRules, 'Algebraic.Rule')
                 obj.Rules = reshape(initialRules, 1, []);
@@ -43,9 +49,10 @@ classdef RuleBook < handle
                 obj.Rules = initialRules.Rules;
                 obj.Hermitian = initialRules.Hermitian;
                 obj.Normal = initialRules.Normal;
+                
                 if nargin >= 2
                     error(['Copy constructor of RuleBook does not ',...
-                           'take more than one argument.']);
+                           'take more than one input.']);
                 end
                 return;
             else
@@ -53,27 +60,16 @@ classdef RuleBook < handle
                     ' Algebraic.Rule, or as a cell array.']);
             end
             
-            % Get number of operators count
-            if nargin < 2
-                max_ops = uint64(0);
-            else
-                max_ops = uint64(max_ops);
-            end
+            % Get number of operators
             if max_ops <= 0
                  max_ops = obj.highestMentionedOp();
             end
-            obj.MaxOperators = max_ops;
+            obj.MaxOperators = uint64(max_ops);
             
-            
-            % Hermicity
-            if nargin < 3
-                is_hermitian = true;
-            end
+            % Hermicity and normality
             obj.Hermitian = logical(is_hermitian);
-            
-            % Normality
-            if nargin < 4
-                is_normal = is_hermitian;
+            if is_hermitian && ~is_normal
+                error("Hermitian operators must be normal.");
             end
             obj.Normal = logical(is_normal);
         end
@@ -82,7 +78,7 @@ classdef RuleBook < handle
     %% Add rules
     methods
         function AddRule(obj, new_rule, new_rule_rhs)            
-            % Complain if locked...
+            % Complain if locked
             obj.errorIfLocked();
             
             % Construct rule from inputs and append to list

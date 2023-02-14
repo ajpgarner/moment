@@ -42,6 +42,6 @@ cvx_begin sdp
     maximize(obj)
 cvx_end
 
+%% Display outcomes
 format long
-disp(M)
-disp(L)
+disp(obj)

@@ -12,41 +12,28 @@ classdef AlgebraicScenario < Abstract.Scenario
     %% Constructor
     methods
         function obj = AlgebraicScenario(op_count, rules, ...
-                                         is_hermitian, is_normal)
+                is_hermitian, is_normal)
+            arguments
+                op_count (1,1) uint64
+                rules (1,:) cell = cell(1,0)
+                is_hermitian (1,1) logical = true
+                is_normal (1,1) logical = is_hermitian
+            end
             % Superclass c'tor
             obj = obj@Abstract.Scenario();
             
             obj.OperatorCount = uint64(op_count);
             
-            % Default to hermitian
-            if nargin < 3
-                is_hermitian = true;
-                is_normal = true;
-            else
-                is_hermitian = logical(is_hermitian);
-            end
-            
             % Default to normal, except if non-Hermitian
-            if nargin < 4
-                is_normal = is_hermitian;
-            else
-                is_normal = logical(is_normal);
-                if is_hermitian && ~is_normal
-                    error("Hermitian operators must be normal.");
-                end
+            if is_hermitian && ~is_normal
+                error("Hermitian operators must be normal.");
             end
             
-            obj.IsHermitian = is_hermitian;
-            obj.IsNormal = is_normal;
-            
-            % Default to empty ruleset
-            if nargin < 2
-                rules = cell(1,0);
-            end            
-
+            obj.IsHermitian = logical(is_hermitian);
+            obj.IsNormal = logical(is_normal);
             obj.RuleBook = Algebraic.RuleBook(rules, obj.OperatorCount, ...
                                               is_hermitian, is_normal);
-        end 
+        end
     end
     
     %% Set-up / rule manipulation etc.
@@ -58,12 +45,8 @@ classdef AlgebraicScenario < Abstract.Scenario
                 verbose (1,1) logical = false
             end
             
-            if nargin <= 2
-            	verbose = false;
-            end
-            
             obj.errorIfLocked();
-            success = obj.RuleBook.Complete(attempts, verbose);            
+            success = obj.RuleBook.Complete(attempts, verbose);
         end
         
     end
@@ -80,12 +63,14 @@ classdef AlgebraicScenario < Abstract.Scenario
         end
         
         function varargout = getAll(obj)
+            arguments
+                obj (1,1) AlgebraicScenario
+            end
             if obj.OperatorCount == 0
                 error("No operators to get.");
             end
             if nargout ~= obj.OperatorCount
-                error(sprintf("getAll() expects %d outputs", ...
-                              obj.OperatorCount));
+                error("getAll() expects %d outputs", obj.OperatorCount);
             end
             
             varargout = cell(1, nargout);
@@ -115,18 +100,18 @@ classdef AlgebraicScenario < Abstract.Scenario
                     extra_args{end+1} = 'normal';
                 end
             end
-
+            
             % Call for matrix system
             ref_id = mtk('new_algebraic_matrix_system', ...
-                           extra_args{:}, ...
-                           obj.OperatorCount, ...
-                           obj.RuleBook.ExportCellArray());
-                       
+                extra_args{:}, ...
+                obj.OperatorCount, ...
+                obj.RuleBook.ExportCellArray());
+            
             % No further changes to rules allowed...
             obj.RuleBook.lock();
         end
     end
-
+    
     %% Virtual methods
     methods(Access=protected)
         function onNewMomentMatrix(obj, mm)

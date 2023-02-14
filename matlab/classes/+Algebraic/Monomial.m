@@ -58,7 +58,7 @@ classdef Monomial < Abstract.ComplexObject
                 obj (1,1) Algebraic.Monomial
                 level (1,1) uint64
             end
-            val = OpMatrix.LocalizingMatrix(obj.Setting, ...
+            val = OpMatrix.LocalizingMatrix(obj.Scenario, ...
                                             obj.Operators, level);
         end
     end
@@ -98,7 +98,7 @@ classdef Monomial < Abstract.ComplexObject
     methods
         % Unary minus
         function val = uminus(this)
-            val = Algebraic.Monomial(this.Setting, this.Operators, ...
+            val = Algebraic.Monomial(this.Scenario, this.Operators, ...
                 double(-this.Coefficient));
         end
         
@@ -127,10 +127,10 @@ classdef Monomial < Abstract.ComplexObject
                     error("_*_ only supported for scalar multiplication.");
                 end
                 
-                val = Algebraic.Monomial(this.Setting, this.Operators, ...
+                val = Algebraic.Monomial(this.Scenario, this.Operators, ...
                     double(this.Coefficient * other));
             elseif isa(other, 'Algebraic.Monomial') % mono * mono = mono
-                val = Algebraic.Monomial(this.Setting, ...
+                val = Algebraic.Monomial(this.Scenario, ...
                         [this.Operators, other.Operators], ...
                         double(this.Coefficient * other.Coefficient));
             else
@@ -150,7 +150,7 @@ classdef Monomial < Abstract.ComplexObject
             if isa(lhs, 'Algebraic.Monomial') ...
                 && isa(rhs, 'Algebraic.Monomial')
                 if isequal(lhs.Operators, rhs.Operators)
-                    val = Algebraic.Monomial(lhs.Setting, lhs.Operators,...
+                    val = Algebraic.Monomial(lhs.Scenario, lhs.Operators,...
                           double(lhs.Coefficient + rhs.Coefficient));
                     return;
                 end
@@ -159,14 +159,14 @@ classdef Monomial < Abstract.ComplexObject
             % Add a scalar by a built-in type?
             if ~isa(lhs, 'Algebraic.Monomial')
                 this = rhs;
-                other = lhs; % Algebraic.Monomial(this.Setting, [], double(lhs));
+                other = lhs;
             else
                 this = lhs;
                 other = rhs;
             end
             
             % Promote to polynomial
-            this = Algebraic.Polynomial(this.Setting, [this]);
+            this = Algebraic.Polynomial(this.Scenario, [this]);
             
             % Add (commutes, so ordering does not matter)
             val = this.plus(other);
@@ -193,7 +193,7 @@ classdef Monomial < Abstract.ComplexObject
                 return;
             end
             
-            sys = obj.Setting.System;
+            sys = obj.Scenario.System;
             
             % Real coefficients
             obj.real_coefs = sparse(1, double(sys.RealVarCount));
@@ -236,13 +236,13 @@ classdef Monomial < Abstract.ComplexObject
             stride = uint64(1);
             for index = length(obj.Operators):-1:1
                 val = val + stride*obj.Operators(index);
-                stride = uint64(stride * (obj.Setting.OperatorCount));
+                stride = uint64(stride * (obj.Scenario.OperatorCount));
             end
         end
         
         function success = loadSymbolInfo(obj)
-            if obj.Setting.HasMatrixSystem
-                sys = obj.Setting.System;
+            if obj.Scenario.HasMatrixSystem
+                sys = obj.Scenario.System;
                 [row, conjugated] = mtk('symbol_table', ...
                     sys.RefId, ...
                     obj.Operators);

@@ -4,22 +4,24 @@ classdef ImportedScenario < Abstract.Scenario
     properties(GetAccess = public, SetAccess = protected)
         Real
     end
-    
-    
+        
     %% Construction and initialization
     methods
         function obj = ImportedScenario(all_real)
+            arguments
+                all_real (1,1) logical = false
+            end
+            
             % Superclass c'tor
             obj = obj@Abstract.Scenario();
             
-            % Set inflation level
-            if nargin>=1
-                obj.Real = logical(all_real);
-            else 
-                obj.Real = false;
-            end            
+            % Set whether all symbols are real or not
+            obj.Real = logical(all_real);            
         end
+        
+        
         function val = Clone(obj)
+            % Copy scenario
             arguments
                 obj (1,1) InflationScenario
             end
@@ -27,7 +29,6 @@ classdef ImportedScenario < Abstract.Scenario
             % Clone ImportedScenario
             val = ImportedScenario(obj.Real);
         end
-        
     end
     
     %% Virtual methods
@@ -60,7 +61,7 @@ classdef ImportedScenario < Abstract.Scenario
             if nargin < 2
                error("A matrix must be supplied as input.");
             end
-            if ndims(input)~=2
+            if ~ismatrix(input)
                 error("Input must be a matrix");
             end
             [dimension, other_dimension] = size(input);
@@ -88,10 +89,18 @@ classdef ImportedScenario < Abstract.Scenario
         end
         
         function val = ImportSymmetricMatrix(obj, input)
+            arguments
+                obj (1,1) ImportedScenario
+                input
+            end
             val = obj.ImportMatrix(input, 'symmetric');
         end
         
         function val = ImportHermitianMatrix(obj, input)
+            arguments
+                obj (1,1) ImportedScenario
+                input
+            end
             val = obj.ImportMatrix(input, 'hermitian');
         end
     end

@@ -39,20 +39,20 @@ classdef LocalityScenario < Abstract.Scenario
                 initialize_mmts = false;
             else
                 if 1 == numel(argA)
-                	initial_parties = uint64(argA);
-                	if nargin == 1
-                		initialize_mmts = false;
-                	elseif nargin == 3
-                		initialize_mmts = true;
+                    initial_parties = uint64(argA);
+                    if nargin == 1
+                        initialize_mmts = false;
+                    elseif nargin == 3
+                        initialize_mmts = true;
                     else
-						error("Invalid input.");
+                        error("Invalid input.");
                     end
                 elseif isa(argA,'double')
-                	initial_parties = uint64(length(argA)/2);
-                	initialize_mmts = true;
+                    initial_parties = uint64(length(argA)/2);
+                    initialize_mmts = true;
                 elseif isa(argA,'cell')
-                	initial_parties = length(argA);
-                	initialize_mmts = true;
+                    initial_parties = length(argA);
+                    initialize_mmts = true;
                 end
             end
             
@@ -70,31 +70,34 @@ classdef LocalityScenario < Abstract.Scenario
             if ~initialize_mmts
                 return
             end
-
+            
             if (nargin == 3)  % Do we have a (party, mmt, outcome) specification?
-            	desc = cell(initial_parties,1);            
-            	for partyIndex = 1:initial_parties
-            		desc{partyIndex} = argC*ones(argB,1);
-            	end
+                desc = cell(initial_parties,1);
+                for partyIndex = 1:initial_parties
+                    desc{partyIndex} = argC*ones(argB,1);
+                end
             elseif isa(argA,'double') %Or we have a [outcomes, measurements] specification?
-	            desc = cell(initial_parties,1);            
-	           	for partyIndex = 1:initial_parties
-	           		desc{partyIndex} = argA(partyIndex)*ones(argA(initial_parties+partyIndex),1);
-	           	end
-	        elseif isa(argA,'cell') %Or the general case?
-	           	desc = argA;
-	        end
-                        
+                desc = cell(initial_parties,1);
+                for partyIndex = 1:initial_parties
+                    desc{partyIndex} = argA(partyIndex)*ones(argA(initial_parties+partyIndex),1);
+                end
+            elseif isa(argA,'cell') %Or the general case?
+                desc = argA;
+            end
+            
             % Now, create measurements
             for partyIndex = 1:initial_parties
                 for mmtIndex = 1:length(desc{partyIndex})
-               		obj.Parties(partyIndex).AddMeasurement(desc{partyIndex}(mmtIndex));
+                    obj.Parties(partyIndex).AddMeasurement(desc{partyIndex}(mmtIndex));
                 end
             end
         end
         
         function AddParty(obj, name)
-            import Locality.Party
+            arguments
+                obj (1,1) LocalityScenario
+                name (1,1) string = string.empty(1,0)
+            end
             
             % Check not locked.
             obj.errorIfLocked();
@@ -102,13 +105,16 @@ classdef LocalityScenario < Abstract.Scenario
             % Add a party
             next_id = length(obj.Parties)+1;
             if nargin >=2
-                obj.Parties(end+1) = Party(obj, next_id, name);
+                obj.Parties(end+1) = Locality.Party(obj, next_id, name);
             else
-                obj.Parties(end+1) = Party(obj, next_id);
+                obj.Parties(end+1) = Locality.Party(obj, next_id);
             end
         end
         
         function val = Clone(obj)
+            arguments
+                obj (1,1) LocalityScenario
+            end
             % Construct new LocalityScenario
             val = LocalityScenario(0);
             
@@ -132,7 +138,7 @@ classdef LocalityScenario < Abstract.Scenario
             end
             
             val = obj.matrix_system;
-        end     
+        end
     end
     
     %% Locality accessors and information
@@ -252,12 +258,12 @@ classdef LocalityScenario < Abstract.Scenario
         % Query for a matrix system
         function ref_id = createNewMatrixSystem(obj)
             ref_id = mtk('new_locality_matrix_system', ...
-                           length(obj.Parties), ...
-                           obj.MeasurementsPerParty, ...
-                           obj.OutcomesPerMeasurement);
+                length(obj.Parties), ...
+                obj.MeasurementsPerParty, ...
+                obj.OutcomesPerMeasurement);
         end
     end
-        
+    
     %% Virtual methods
     methods(Access=protected)
         function onNewMomentMatrix(obj, mm)

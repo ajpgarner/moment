@@ -74,11 +74,12 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 new_coefs = Algebraic.Monomial.empty(1,0);
                 for i = 1:length(this.Constituents)
                     old_m = this.Constituents(i);
-                    new_coefs(end+1) = Algebraic.Monomial(this.Setting, ...
-                        old_m.Operators, ...
-                        double(old_m.Coefficient * other));
+                    new_coefs(end+1) = ...
+                        Algebraic.Monomial(this.Scenario, ...
+                                           old_m.Operators, ...
+                                           double(old_m.Coefficient * other));
                 end
-                val = Algebraic.Polynomial(this.Setting, new_coefs);
+                val = Algebraic.Polynomial(this.Scenario, new_coefs);
             elseif isa(other, 'Algebraic.Monomial')
                 new_coefs = Algebraic.Monomial.empty(1,0);
                 for i = 1:length(this.Constituents)
@@ -88,13 +89,13 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                     else
                         new_ops = [old_m.Operators, other.Operators];
                     end
-                    new_coefs(end+1) = Algebraic.Monomial(this.Setting, ...
+                    new_coefs(end+1) = Algebraic.Monomial(this.Scenario, ...
                         new_ops, ...
                         double(old_m.Coefficient * other.Coefficient));                    
                 end
-                val = Algebraic.Polynomial(this.Setting, new_coefs);
+                val = Algebraic.Polynomial(this.Scenario, new_coefs);
             elseif isa(other, 'Algebraic.Polynomial')
-                val = Algebraic.Polynomial.Zero(this.Setting);                
+                val = Algebraic.Polynomial.Zero(this.Scenario);                
                 for i = 1:length(this.Constituents)
                     new_m = this.Constituents(i) * other;
                     val = val + new_m;
@@ -123,7 +124,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             
             % Is other side built-in numeric; if so, cast to monomial
             if isnumeric(other)
-                other = Algebraic.Monomial(this.Setting, [], double(other));
+                other = Algebraic.Monomial(this.Scenario, [], double(other));
             elseif ~isa(other, 'Algebraic.Monomial') && ...
                     ~isa(other, 'Algebraic.Polynomial')
                 error("_+_ not defined between " + class(lhs) ...
@@ -131,20 +132,20 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             end
             
             % Check objects are from same scenario
-            if (this.Setting ~= other.Setting)
+            if (this.Scenario ~= other.Scenario)
                 error(this.err_mismatched_scenario);
             end
                         
             % Add monomial to polynomial?
             if isa(other, 'Algebraic.Monomial')
                 components = horzcat(this.Constituents, other);
-                val = Algebraic.Polynomial(this.Setting, components);
+                val = Algebraic.Polynomial(this.Scenario, components);
             elseif isa(other, 'Algebraic.Polynomial')
-                if (this.Setting ~= other.Setting)
+                if (this.Scenario ~= other.Scenario)
                     error(this.err_mismatched_scenario);
                 end
                 components = horzcat(this.Constituents, other.Constituents);
-                val = Algebraic.Polynomial(this.Setting, components);
+                val = Algebraic.Polynomial(this.Scenario, components);
             else
                 error(['Assertion failed: ',...
                        'other should be Monomial or Polynomial.']);
@@ -170,7 +171,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 success = false;
                 return;
             end
-            sys = obj.Setting.System;
+            sys = obj.Scenario.System;
             
             % Real co-efficients
             obj.real_coefs = sparse(1, double(sys.RealVarCount));
@@ -200,12 +201,12 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 if last_hash == cObj.Hash
                     ncoef = nc(write_index).Coefficient + cObj.Coefficient;
                     nc(write_index) = ...
-                        Algebraic.Monomial(obj.Setting, ...
+                        Algebraic.Monomial(obj.Scenario, ...
                         cObj.Operators, ...
                         ncoef);
                 else
                     write_index = write_index + 1;
-                    nc(end+1) = Algebraic.Monomial(obj.Setting, ...
+                    nc(end+1) = Algebraic.Monomial(obj.Scenario, ...
                         cObj.Operators, ...
                         cObj.Coefficient);
                 end

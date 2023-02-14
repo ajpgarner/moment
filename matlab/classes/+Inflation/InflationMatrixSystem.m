@@ -2,6 +2,9 @@ classdef InflationMatrixSystem < MatrixSystem
     %% Constructor
     methods
         function obj = InflationMatrixSystem(infSetting)
+            arguments
+                infSetting (1,1) InflationScenario
+            end
             % Superclass c'tor
             obj = obj@MatrixSystem(infSetting);
             

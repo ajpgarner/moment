@@ -83,6 +83,9 @@ classdef MatrixSystem < handle
         end
                 
         function varargout = List(obj)
+            arguments
+                obj (1,1) MatrixSystem
+            end
             the_list = mtk('list', obj.RefId);
             if nargout == 1
                 varargout{1} = the_list;
@@ -95,6 +98,10 @@ classdef MatrixSystem < handle
     %% Symbols
     methods
         function val = UpdateSymbolTable(obj, reset)
+            arguments
+                obj (1,1) MatrixSystem
+                reset (1,1) logical = false
+            end
             if nargin < 2
                 reset = false;
             else
@@ -109,14 +116,14 @@ classdef MatrixSystem < handle
             if isempty(obj.SymbolTable)
                 obj.SymbolTable = mtk('symbol_table', obj.RefId);
                 has_new_symbols = true;
-            else                
+            else
                 existing_id = uint64(length(obj.SymbolTable));
                 new_symbols = mtk('symbol_table', obj.RefId, ...
-                                    'from', existing_id);
+                    'from', existing_id);
                 if ~isempty(new_symbols)
                     has_new_symbols = true;
                     obj.SymbolTable = [obj.SymbolTable, new_symbols];
-                end                
+                end
             end
             
             % Extra processing, as new symbols added:
@@ -127,7 +134,7 @@ classdef MatrixSystem < handle
                 else
                     obj.ImaginaryVarCount = 0;
                 end
-                obj.onNewSymbolsAdded();                
+                obj.onNewSymbolsAdded();
             end
             
             val = obj.SymbolTable;
@@ -135,6 +142,9 @@ classdef MatrixSystem < handle
         
         %% Destructor
         function delete(obj)
+            arguments
+                obj (1,1) MatrixSystem
+            end
             if obj.RefId ~= 0
                 try
                     mtk('release', 'matrix_system', obj.RefId);
