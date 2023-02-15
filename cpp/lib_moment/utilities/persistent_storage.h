@@ -1,7 +1,7 @@
 /**
  * persistent_storage.h
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * Copyright (c) 2022-2023 Austrian Academy of Sciences
  */
 #pragma once
 
@@ -14,31 +14,31 @@
 #include <stdexcept>
 
 namespace Moment {
+    namespace errors {
+        class persistent_object_error : public std::runtime_error {
+        public:
+            uint64_t key;
 
-    class persistent_object_error : public std::runtime_error {
-    public:
-        uint64_t key;
+            persistent_object_error(uint64_t key, const std::string &what)
+                    : key{key}, std::runtime_error{what} {}
+        };
 
-        persistent_object_error(uint64_t key, const std::string &what)
-                : key{key}, std::runtime_error{what} { }
-    };
+        class bad_signature_error : public persistent_object_error {
+        public:
+            bad_signature_error(uint64_t key, uint32_t actual_sig, uint32_t expected_sig)
+                    : persistent_object_error(key, make_msg(actual_sig, expected_sig)) {}
 
-    class bad_signature_error : public persistent_object_error {
-    public:
-        bad_signature_error(uint64_t key, uint32_t actual_sig, uint32_t expected_sig)
-            : persistent_object_error(key, make_msg(actual_sig, expected_sig)) { }
+            static std::string make_msg(uint32_t actual_sig, uint32_t expected_sig);
+        };
 
-        static std::string make_msg(uint32_t actual_sig, uint32_t expected_sig);
-    };
+        class not_found_error : public persistent_object_error {
+        public:
+            not_found_error(uint64_t key, uint32_t supplied_id)
+                    : persistent_object_error(key, make_msg(supplied_id)) {}
 
-    class not_found_error : public persistent_object_error {
-    public:
-        not_found_error(uint64_t key, uint32_t supplied_id)
-            : persistent_object_error(key, make_msg(supplied_id)) { }
-
-        static std::string make_msg(uint32_t supplied_id);
-    };
-
+            static std::string make_msg(uint32_t supplied_id);
+        };
+    }
 
     class PersistentStorageBase {
     public:
@@ -265,14 +265,14 @@ namespace Moment {
 
             // Match signature, or throw
             if (!this->check_signature(itemKey)) {
-                throw bad_signature_error(itemKey, (itemKey >> 32), signature);
+                throw errors::bad_signature_error(itemKey, (itemKey >> 32), signature);
             }
 
             // Find item, or throw
             const auto item_id = PersistentStorage<class_t>::get_index(itemKey);
             auto itemIter = this->objects.find(item_id);
             if (itemIter == this->objects.end()) {
-                throw not_found_error(itemKey, item_id);
+                throw errors::not_found_error(itemKey, item_id);
             }
 
             return itemIter;

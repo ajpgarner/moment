@@ -6,7 +6,7 @@
     <param.company>Austrian Academy of Sciences</param.company>
     <param.summary>Moment matrix generation and manipulation.</param.summary>
     <param.description />
-    <param.screenshot>${PROJECT_ROOT}\logo.png</param.screenshot>
+    <param.screenshot>${PROJECT_ROOT}\doc\logo.png</param.screenshot>
     <param.version>0.1.1</param.version>
     <param.output>${PROJECT_ROOT}\Moment.mltbx</param.output>
     <param.products.name />

@@ -63,7 +63,7 @@ namespace Moment::mex::functions {
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {
             matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
-        } catch(const persistent_object_error& poe) {
+        } catch(const Moment::errors::persistent_object_error& poe) {
             std::stringstream errSS;
             errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.matrix_system_key << std::dec;
             throw_error(this->matlabEngine, errors::bad_param, errSS.str());

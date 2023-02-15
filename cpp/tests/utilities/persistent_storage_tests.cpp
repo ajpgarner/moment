@@ -172,7 +172,7 @@ namespace Moment::Tests {
         PersistentStorage<std::string> strBank{signature};
 
         uint64_t bad_id = (static_cast<uint64_t>(signature)+1) << 32;
-        EXPECT_THROW(strBank.get(bad_id), bad_signature_error);
+        EXPECT_THROW(strBank.get(bad_id), errors::bad_signature_error);
     }
 
     TEST(Utilities_PersistentStorage, Error_BadID) {
@@ -180,6 +180,6 @@ namespace Moment::Tests {
         PersistentStorage<std::string> strBank{signature};
 
         uint64_t bad_id = (static_cast<uint64_t>(signature)) << 32;
-        EXPECT_THROW(strBank.get(bad_id), not_found_error);
+        EXPECT_THROW(strBank.get(bad_id), errors::not_found_error);
     }
 }

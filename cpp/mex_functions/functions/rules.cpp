@@ -41,7 +41,7 @@ namespace Moment::mex::functions {
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {
             matrixSystemPtr = this->storageManager.MatrixSystems.get(input.storage_key);
-        } catch(const persistent_object_error& poe) {
+        } catch(const Moment::errors::persistent_object_error& poe) {
             throw_error(this->matlabEngine, errors::bad_param, "Could not find referenced MatrixSystem.");
         }
 
