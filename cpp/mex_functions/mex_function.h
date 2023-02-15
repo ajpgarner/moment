@@ -1,7 +1,7 @@
 /**
- * function_base.h
+ * mex_function.h
  * 
- * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 #pragma once
@@ -31,7 +31,10 @@ namespace Moment::mex::functions {
      */
     class MexFunction {
     protected:
+        /** The MATLAB engine handle. */
         matlab::engine::MATLABEngine& matlabEngine;
+
+        /** Reference to persistent storage. */
         StorageManager& storageManager;
 
         /**
@@ -41,33 +44,62 @@ namespace Moment::mex::functions {
          */
         std::shared_ptr<const EnvironmentalVariables> settings;
 
+        /** Input strings that will be treated as boolean flags if set. */
         NameSet flag_names{};
+
+        /** Input strings that will be treated as indicators that the following input is a named parameter. */
         NameSet param_names{};
+
+        /** Handle flags and/or parameters that cannot be simultaneously defined. */
         MutuallyExclusiveParams mutex_params{};
 
+        /** Minimum number of outputs to be supplied from MATLAB, below which the function will error. */
         size_t min_outputs = 0;
+        /** Maximum number of outputs to be supplied from MATLAB, above which the function will error. */
         size_t max_outputs = 0;
+        /** Minimum number of inputs to be supplied from MATLAB, below which the function will error. */
         size_t min_inputs = 0;
+        /** Maximum number of inputs to be supplied from MATLAB, above which the function will error. */
         size_t max_inputs = 0;
 
-        /** True if warnings are supressed */
+        /** True if warnings are supressed. */
         bool quiet = false;
-        /** True to display intermediate output */
+        /** True to display intermediate output. */
         bool verbose = false;
-        /** True to display a lot of output */
+        /** True to display a lot of intermediate output. */
         bool debug = false;
 
     public:
+        /** The numeric ID of the function. */
         const MEXEntryPointID function_id;
+
+        /** The name of the function, as invoked as the first input parameter to mtk. */
         const std::basic_string<char16_t> function_name;
 
+        /**
+         * Constructs a function, to be invoked from MATLAB as: mtk(name, args...)
+         * @param engine Handle to the MATLAB engine.
+         * @param storage Reference to persistent storage manager.
+         * @param id The numeric ID of the function.
+         * @param name The name of the function, as it should be invoked.
+         */
         MexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage,
                     MEXEntryPointID id, std::basic_string<char16_t> name);
 
         virtual ~MexFunction();
 
+        /**
+         * Executes the MEX function.
+         * @param output Range over MATLAB output arrays.
+         * @param input Pointer to (semi-)parsed input array.
+         */
         virtual void operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> input) = 0;
 
+        /**
+         * Checks if parsed input array has any mutually-exclusive parameters.
+         * @param input Reference to parsed input array.
+         * @return Empty optional if no mutually-exclusive parameters; otherwise a pair of clashing parameter strings.
+         */
         [[nodiscard]] inline auto check_for_mutex(const SortedInputs& input) const {
             return mutex_params.validate(input.flags, input.params);
         }
@@ -129,15 +161,25 @@ namespace Moment::mex::functions {
     };
 
     /**
-     * Utility intermediate abstract class - binds function to appropriate parameter types
+     * Utility intermediate abstract class - binds function to appropriate parameter subclasses.
+     * @tparam param_t Subclass of SortedInputs defining parameters specifically for this function.
+     * @tparam i_entry_id The numeric ID of the mex function.
      */
     template<std::derived_from<SortedInputs> param_t, MEXEntryPointID i_entry_id>
     class ParameterizedMexFunction : public MexFunction {
     public:
+        /** Subclass of SortedInputs defining parameters specifically for this mex function. */
         using parameter_type = param_t;
+        /** The numeric ID of this mex function. */
         static const MEXEntryPointID entry_id = i_entry_id;
 
     protected:
+        /**
+         * Construct a mex function with additional pre-processing of the input parameters.
+         * @param engine Handle to the MATLAB engine.
+         * @param storage Reference to persistent storage manager.
+         * @param name The name of the function, as it should be invoked.
+         */
         ParameterizedMexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage,
                                  std::basic_string<char16_t> name)
                  : MexFunction(engine, storage, entry_id, name) { }
@@ -160,8 +202,18 @@ namespace Moment::mex::functions {
         }
 
     protected:
+        /**
+         * Execute the mex function on pre-processed parameters.
+         * @param output Range over the MATLAB output arrays.
+         * @param input The pre-processed input parameters.
+         */
         virtual void operator()(IOArgumentRange output, param_t& input) = 0;
 
+        /**
+         * Checks if pre-processed paramaters are valid, which cannot be done when the parameters are first parsed.
+         * Override, and throw exceptions if parameters invalid.
+         * @param input Check pre-processed parameters are valid.
+         */
         virtual void extra_input_checks(param_t& input) const { }
 
     };
