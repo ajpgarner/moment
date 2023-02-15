@@ -1,7 +1,8 @@
 /**
- * unique_operator_strings.h
+ * operator_sequence_generator.h
  *
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #pragma once
 

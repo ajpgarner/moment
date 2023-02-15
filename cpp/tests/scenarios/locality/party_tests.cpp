@@ -1,7 +1,8 @@
 /**
  * party_info_tests.cpp
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 
 #include "gtest/gtest.h"

@@ -1,7 +1,8 @@
 /*
- * unique_operator_strings.cpp
+ * operator_sequence_generator.cpp
  *
- * (c) 2022-2022 Austrian Academy of Sciences.
+ * @copyright Copyright (c) 2022-2022 Austrian Academy of Sciences.
+ * @author Andrew J. P. Garner
  */
 #include "operator_sequence_generator.h"
 

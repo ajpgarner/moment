@@ -1,7 +1,7 @@
 /**
  * causal_network.h
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  *
  * Classical causal network.
  *

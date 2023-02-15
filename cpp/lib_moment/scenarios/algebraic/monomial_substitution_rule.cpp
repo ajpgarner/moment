@@ -1,7 +1,8 @@
 /**
  * monomial_substitution_rule.cpp
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #include "monomial_substitution_rule.h"
 #include "algebraic_precontext.h"

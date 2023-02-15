@@ -1,7 +1,8 @@
 /**
  * locality_operator_formatter.cpp
  * 
- * Copyright (c) 2023 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2023 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #include "locality_operator_formatter.h"
 

@@ -1,7 +1,7 @@
 /**
  * mex_entry.cpp
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  *
  * Entry point for Moment mex function suite.
  */

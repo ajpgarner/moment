@@ -1,7 +1,8 @@
 /**
  * ostream_rule_logger.cpp
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #include "ostream_rule_logger.h"
 

@@ -1,7 +1,12 @@
 /**
  * visitor.h
  *
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
+ *
+ * Template implements the "visitor" idiom, allowing for dynamic (i.e. runtime) dispatch of a MATLAB array to a functor
+ * equipped to handle the appropriate array type. Functors should implement at least one of the visitor concepts defined
+ * in this file.
  */
 #pragma once
 
@@ -20,6 +25,9 @@ namespace Moment::mex {
     namespace errors {
         constexpr char bad_visit[] = "bad_visit";
 
+        /**
+         * Exception thrown when the VisitDispatcher cannot handle the requested array type.
+         */
         class bad_visitor : public matlab::engine::MATLABException {
         public:
             explicit bad_visitor(const std::u16string &what)
@@ -28,6 +36,11 @@ namespace Moment::mex {
     }
 
     namespace concepts {
+
+        /**
+         * True if functor can process real, dense, numeric arrays.
+         * @tparam functor_t The visited functor class that will be applied to the array.
+         */
         template <class functor_t>
         concept VisitorHasRealDense = requires(functor_t& functor, matlab::data::Array& a) {
             typename functor_t::return_type;
@@ -54,6 +67,10 @@ namespace Moment::mex {
                 -> std::same_as<typename functor_t::return_type>;
         };
 
+        /**
+         * True if functor can process complex, dense, numeric arrays.
+         * @tparam functor_t The visited functor class that will be applied to the array.
+         */
         template <class functor_t>
         concept VisitorHasComplexDense = requires(functor_t& functor, matlab::data::Array& a) {
             typename functor_t::return_type;
@@ -79,31 +96,50 @@ namespace Moment::mex {
                 -> std::same_as<typename functor_t::return_type>;
         };
 
+        /**
+         * True if functor can process logical/boolean, dense arrays.
+         * @tparam functor_t The visited functor class that will be applied to the array.
+         */
         template <class functor_t>
         concept VisitorHasBooleanDense = requires(functor_t& functor, matlab::data::Array& a) {
             typename functor_t::return_type;
             {functor.template dense<bool>(static_cast<matlab::data::TypedArray<bool>>(a))} -> std::same_as<typename functor_t::return_type>;
         };
 
-
+        /**
+         * True if functor can process real, sparse, numeric arrays.
+         * @tparam functor_t The visited functor class that will be applied to the array.
+         */
         template <class functor_t>
         concept VisitorHasRealSparse = requires(functor_t& functor, matlab::data::Array& a) {
             typename functor_t::return_type;
             {functor.template sparse<double>(static_cast<matlab::data::SparseArray<double>>(a))} -> std::same_as<typename functor_t::return_type>;
         };
 
+        /**
+          * True if functor can process complex, sparse, numeric arrays.
+          * @tparam functor_t The visited functor class that will be applied to the array.
+          */
         template <class functor_t>
         concept VisitorHasComplexSparse = requires(functor_t& functor, matlab::data::Array& a) {
             typename functor_t::return_type;
             {functor.template dense<std::complex<double>>(static_cast<matlab::data::SparseArray<std::complex<double>>>(a))} -> std::same_as<typename functor_t::return_type>;
         };
 
+        /**
+          * True if functor can process logical/boolean, sparse arrays.
+          * @tparam functor_t The visited functor class that will be applied to the array.
+          */
         template <class functor_t>
         concept VisitorHasBooleanSparse = requires(functor_t& functor, matlab::data::Array& a) {
             typename functor_t::return_type;
             {functor.template sparse<bool>(static_cast<matlab::data::SparseArray<bool>>(a))} -> std::same_as<typename functor_t::return_type>;
         };
 
+        /**
+         * True if functor can process arrays of matlab strings.
+         * @tparam functor_t The visited functor class that will be applied to the array.
+         */
         template <class functor_t>
         concept VisitorHasString = requires(functor_t& functor, matlab::data::Array& a) {
             typename functor_t::return_type;
@@ -112,7 +148,10 @@ namespace Moment::mex {
     }
 
 
-
+    /**
+     * Dispatch class, bound to a functor.
+     * @tparam functor_t The function to apply to the supplied array inputs.
+     */
     template <class functor_t>
     class VisitDispatcher {
     protected:
@@ -130,8 +169,12 @@ namespace Moment::mex {
 
         using return_t = typename functor_t::return_type;
 
-
     public:
+        /**
+         * Construct a class allowing for the application of appropriate methods in a functor to a MATLAB array.
+         * @param the_engine The MATLAB engine instance.
+         * @param the_visitor Instance of the functor class.
+         */
         explicit VisitDispatcher(matlab::engine::MATLABEngine &the_engine,
                                  functor_t& the_visitor) : engine(the_engine), visitor(the_visitor) { }
 
@@ -316,21 +359,43 @@ namespace Moment::mex {
 
 
     public:
+        /**
+         * Invokes the functor on supplied MATLAB array.
+         * @param data rvalue reference input MATLAB array.
+         * @return Object of functor_t::return_type, as a result of the functor's application.
+         */
         inline return_t operator()(matlab::data::Array&& data) {
             return invoke<matlab::data::Array&&>(std::move(data));
         }
 
+        /**
+         * Invokes the functor on supplied MATLAB array.
+         * @param data Reference to input MATLAB array.
+         * @return Object of functor_t::return_type, as a result of the functor's application.
+         */
         inline return_t operator()(matlab::data::Array& data) {
             return invoke<matlab::data::Array&>(data);
         }
 
+        /**
+         * Invokes the functor on supplied MATLAB array.
+         * @param data Read-only reference to input MATLAB array.
+         * @return Object of functor_t::return_type, as a result of the functor's application.
+         */
         inline return_t operator()(const matlab::data::Array& data) {
             return invoke<const matlab::data::Array&>(data);
         }
-
-
     };
 
+    /**
+     * Calls the appropriate function within a functor on a MATLAB array/matrix.
+     * @tparam functor_t The functor class that will be applied to the input matrix.
+     * @tparam matrix_t A MATLAB array type to be passed into the function.
+     * @param engine The MATLAB engine.
+     * @param matrix The input matrix to act upon.
+     * @param visitor Instance of the functor that will act on the input matrix.
+     * @return Object of functor_t::return_type, as a result of the function.
+     */
     template <class functor_t, typename matrix_t>
     auto DispatchVisitor(matlab::engine::MATLABEngine& engine, matrix_t matrix, functor_t&& visitor) {
         VisitDispatcher dispatcher{engine, visitor};

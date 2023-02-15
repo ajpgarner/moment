@@ -46,3 +46,6 @@
 /cpp/.idea
 /cmake-build-*
 /out*
+
+# Built documentation
+/doc/cpp

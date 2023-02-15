@@ -1,7 +1,8 @@
 /**
  * symbolic_matrix_helpers.cpp
  * 
- * Copyright (c) 2023 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2023 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #include "symbolic_matrix_helpers.h"
 

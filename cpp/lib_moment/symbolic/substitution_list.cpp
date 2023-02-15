@@ -1,7 +1,8 @@
 /**
  * substitution_list.cpp
  * 
- * Copyright (c) 2023 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2023 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #include "substitution_list.h"
 #include "scenarios/inflation/factor_table.h"

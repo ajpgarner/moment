@@ -1,7 +1,7 @@
 /**
  * matrix_system.h
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  *
  * FOR THREAD SAFETY: Functions accessing a matrix system should call for the read lock before accessing anything.
  */

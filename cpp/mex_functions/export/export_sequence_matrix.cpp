@@ -1,7 +1,8 @@
 /**
  * export_sequence_matrix.cpp
  *
- * Copyright (c) 2022-2023 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 
 #include "export_sequence_matrix.h"
@@ -287,7 +288,7 @@ namespace Moment::mex {
                     if (raw_iter->id == 0) {
                         return {u"0"};
                     }
-                    
+
                     const auto& facEntry = (*factors)[raw_iter->id];
                     if (1.0 == raw_iter->factor) {
                         return {matlab::engine::convertUTF8StringToUTF16String(facEntry.sequence_string())};

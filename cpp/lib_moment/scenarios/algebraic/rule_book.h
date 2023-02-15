@@ -1,7 +1,8 @@
 /**
  * rule_book.h
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #pragma once
 

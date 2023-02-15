@@ -1,7 +1,8 @@
 /**
- * symbol_matrix_properties.cpp
+ * matrix_properties.cpp
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #include "matrix_properties.h"
 

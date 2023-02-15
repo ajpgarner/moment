@@ -1,7 +1,8 @@
 /**
  * version.h
  *
- * Copyright (c) 2022-2023 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  *
  * TODO: Ultimately, this file should be automatically generated from CMAKE parameters or the like;
  *       maybe with a template.

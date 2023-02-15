@@ -1,7 +1,8 @@
 /**
  * outcome_index_iterator.cpp
  * 
- * Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #include "outcome_index_iterator.h"
 

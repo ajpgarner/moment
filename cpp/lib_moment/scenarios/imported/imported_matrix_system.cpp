@@ -1,7 +1,8 @@
 /**
  * imported_matrix_system.cpp
  * 
- * Copyright (c) 2023 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2023 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #include "imported_matrix_system.h"
 #include "imported_context.h"

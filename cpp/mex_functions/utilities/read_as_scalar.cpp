@@ -1,7 +1,8 @@
 /**
  * read_as_int.cpp
  * 
- * Copyright (c) 2022-2023 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #include "read_as_scalar.h"
 #include "io_parameters.h"

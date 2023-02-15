@@ -1,7 +1,7 @@
 /**
  * io_parameters.h
  * 
- * Copyright (c) 2022-2023 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  *
  */
 #pragma once
