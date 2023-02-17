@@ -1,13 +1,44 @@
 classdef LocalityScenario < Abstract.Scenario
-    %LOCALITYSCENARIO Disjoint agents with projective measurements.
+    %LOCALITYSCENARIO Scenario for agents with projective measurements.
+    %
+    % This scenario is the classic locality setting, of spatially-disjoint
+    % agents (Alice, Bob, etc.) who choose to make a measurement, and
+    % record the output.
+    %
+    % All measurements are assumed to be projective and complete, such that
+    % each measurement with N outcomes defines N-1 fundamental operators.
+    % For operators Xi, Xj within a measurement, it is taken that XiXj = 1
+    % if i=j and XiXj=0 otherwise. Operators belonging to different
+    % measurements made by the same party are assumed not to commute.
+    % Operators from measurements made by different parties are assumed to 
+    % commute.
+    %    
+    % The moment matrices generated from such a scenario implement the NPA
+    % hierarchy [See: https://doi.org/10.1088/1367-2630/10/7/073013].
+    %
+    % The scenario can either be specified entirely in the constructor, or
+    % an empty scenario can be created and parties and measurements be
+    % added via the AddParty method (and the AddMeasurement method of
+    % Locality.Party).
+    %
+    % EXAMPLES:
+    %       /examples/chsh.m
+    %       /examples/cvx_chsh.m
+    %       /examples/cvx_I3322.m
+    %       /examples/four_party.m
+    %       /examples/three_party.m
+    %       /examples/yalmip_chsh.m
+    %
+    % See also: Locality.Party, Locality.Measurement, Locality.Outcome,
+    %           SolvedScenario.SolvedLocalityScenario
     %
     
     properties(GetAccess = public, SetAccess = protected)
-        Parties
-        Normalization
-        MeasurementsPerParty
-        OperatorsPerParty
-        OutcomesPerMeasurement
+        Parties % Spatially disjoint agents (Alice, Bob, etc.).
+        Normalization % Normalization element of scenario (i.e. identity matrix).
+        MeasurementsPerParty % Number of measurements each agent can make.
+        OperatorsPerParty % Number of operators associated with each agent.
+        OutcomesPerMeasurement % Number of outcomes associated with each measurement.
     end
     
     properties(Constant, Access = protected)
@@ -19,13 +50,30 @@ classdef LocalityScenario < Abstract.Scenario
     %% Construction and initialization
     methods
         function obj = LocalityScenario(argA, argB, argC)
-            % Constructs a locality scenario.
-            % Possible syntaxes:
-            %  LocalityScenario()
-            %  LocalityScenario(number of parties)
-            %  LocalityScenario(number of parties, mmts per party, outcomers per mmt)
-            %  LocalityScenario([out A, out B, ..., mmts A, mmts B, ...])
-            %  LocalityScenario({[out A1, out A2, ..],[out B1, ...]})
+            % LOCALITYSCENARIO Construct a locality scenario.
+            % 
+            % SYNTAX:
+            %  1. LocalityScenario()
+            %       Creates an empty scenario (no parties).
+            %  2. LocalityScenario(number of parties)
+            %       Creates a scenario, with a number of parties, but no
+            %       measurements/outcomes.
+            %  3. LocalityScenario(number of parties, mmts per party, outcomers per mmt)
+            %       Creates a scenario, which each party has the same
+            %       number of measurements, and each measurement the same
+            %       number of outcomes.
+            %  4. LocalityScenario([out A, out B, ..., mmts A, mmts B, ...])
+            %       Creates a scenario where each party may have different
+            %       numbers of measurements/outcomes, but within any
+            %       particular party, all measurements have the same number
+            %       of outcomes.
+            %  5. LocalityScenario({[out A1, out A2, ..], [out B1, ...], ...})
+            %       Creates a scenario where each party can have a
+            %       different number of measurements, and each measurement
+            %       can have a different number of outcomes.
+            %
+            % See also: AddParty, Party.AddMeasurement
+            %
             
             % Superclass c'tor
             obj = obj@Abstract.Scenario();
@@ -94,6 +142,18 @@ classdef LocalityScenario < Abstract.Scenario
         end
         
         function AddParty(obj, name)
+        % ADDPARTY Add an empty party to the scenario.
+        %
+        % PARAMS:
+        %   name (optional) - The string to identify this party (e.g. "A").
+        %                     If blank, parties will be named in
+        %                     increasing alphabetical order.
+        %
+        % RETURNS:
+        %   A Locality.Party object, representing the newly added party.
+        %
+        % See also: Locality.Party
+        %
             arguments
                 obj (1,1) LocalityScenario
                 name (1,1) string = string.empty(1,0)
@@ -131,6 +191,16 @@ classdef LocalityScenario < Abstract.Scenario
     %% Overloaded accessor: MatrixSystem
     methods
         function val = System(obj)
+            % SYSTEM Gets associated Locality.LocalityMatrixSystem.
+            %
+            % Will generate the MatrixSystem if it has not yet been
+            % created.
+            %
+            % RETURN:
+            %   A Locality.LocalityMatrixSystem.object.
+            %
+            % See also: Locality.LocalityMatrixSystem.
+            %
             
             % Make matrix system, if not already generated
             if isempty(obj.matrix_system)
@@ -170,6 +240,44 @@ classdef LocalityScenario < Abstract.Scenario
         end
         
         function item = get(obj, index)
+        % GET Retrieve an object in the locality scenario by index.
+        %
+        % SYNTAX
+        %   1. norm = setting.get();
+        %      Gets the normalization associated with 
+        %   2. party = setting.get([party P])
+        %      Gets the party at index P.
+        %   3. mmt = setting.get([party P, mmt X])
+        %      Gets measurement X associated with party A.
+        %   4. out = setting.get([party P, mmt X, outcome A])
+        %      Gets outcome A associated with measurement X of party A.
+        %   5. joint_mmt = setting.get([[party P, mmt X]; [party Q, mmt Y]])
+        %      Gets the joint measurement formed from measurement X of
+        %      party P together with measurement Y of party Q. P must not
+        %      be equal to Q. Multiple parties can be specified, but they
+        %      must all be different.
+        %   6. joint_out = setting.get([[party P, mmt X, outcome A]; ...
+        %                               [party Q, mmt Y, outcome B]])
+        %      Gets the joint outcome formed from outcome A of measurement
+        %      X of party P with outcome B of measurement Y of party Q.
+        %      Multiple parties can be specified, but they must all be
+        %      different.
+        %
+        % PARAMS
+        %   index The index/indices of the outcome/measurement (as above).
+        %
+        % RETURNS
+        %   For each syntax 1. Locality.Normalization, 2. Locality.Party, 
+        %   3. Locality.Measurement, 4. Locality.Outcome,
+        %   5. Locality.JointMeasurement, 6. Locality.JointOutcome.
+        %
+        % See also: Abstract.RealObject
+        %
+            arguments
+                obj (1,1) LocalityScenario
+                index (:,:) uint64 = uint64.empty(1,0);
+            end
+            
             get_what = size(index, 2);
             get_joint = size(index, 1) > 1;
             
@@ -208,6 +316,29 @@ classdef LocalityScenario < Abstract.Scenario
         end
         
         function val = FCTensor(obj, tensor)
+        % FCTENSOR Build an objective function by supplying weights to a full correlator.
+        %
+        % For example, in a (2,2,2)-CHSH scenario, an object representing 
+        % the usual CHSH inequality <A1B1> + <A1B2> + <A2B1> - <A2B2> is 
+        % generated by:
+        %   CHSH_ineq = scenario.FCTensor([[0 0 0]; [0 1 1]; [0 1 -1]])
+        %
+        % May throw an error if a moment matrix large enough to contain
+        % all correlations has not yet been generated. For bipartite
+        % systems, a level 1 matrix is required; for tri- and 4-partite
+        % systems, a level 2 matrix is required, etc.
+        %
+        % RETURNS:
+        %   An Abstract.RealObject representing the requested objective
+        %   function.
+        %
+        % See also: Locality.FullCorrelator, Abstract.RealObject
+        %
+            arguments
+                obj (1,1) LocalityScenario
+                tensor
+            end
+            
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT);
             end
@@ -216,14 +347,65 @@ classdef LocalityScenario < Abstract.Scenario
         end
         
         function val = FCIndex(obj, index)
+        % FCINDEX Retrieve an object corresponding an index in the full-correlator tensor.
+        %
+        % For a bipartite example, setting the value of index to:
+        %    - [1,1] returns a Locality.Normalization
+        %    - [x>1, 1] returns the Locality.Measurement for measurement 
+        %       X-1 from the first party
+        %    - [1, x>1] returns the Locality.Measurement for measurement 
+        %       X-1 from the second party
+        %    - [x>1,y>1] would return a Locality.JointMeasurement for the
+        %    joint measurement of X-1 from the first party and Y-1 from the
+        %    second party.
+        %
+        % For scenarios with more parties, more indices must be set.
+        %
+        % PARAMS
+        %   index - The indices of the element within the full-correlator.
+        %
+        % RETURNS
+        %   As appropriate above, either Locality.Normalization,
+        %   Locality.Measurement or Locality.JointMeasurement.
+        %
+        % See also: Locality.FullCorrelator
+        %
+            arguments
+                obj (1,1) LocalityScenario
+                index (1,:) uint64
+            end
+            
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT);
             end
+            
             fc = Locality.FullCorrelator(obj);
             val = fc.at(index);
         end
         
         function val = CGTensor(obj, tensor)
+        % CGTENSOR Build an objective function by supplying weights to a Collins-Gisin tensor.
+        %
+        % For example, in a (2,2,2)-CHSH scenario, an object representing 
+        % the usual CHSH inequality <A1B1> + <A1B2> + <A2B1> - <A2B2> is 
+        % generated by:
+        %	CHSH_ineq = scenario.CGTensor([[2 -4 0]; [-4 4 4]; [0 4 -4]]))
+        %
+        % May throw an error if a moment matrix large enough to contain
+        % all joint operator strings has not yet been generated. For 
+        % bipartite systems, a level 1 matrix is required; for tri- and 
+        % 4-partite systems, a level 2 matrix is required, etc.
+        %
+        % RETURNS:
+        %   An Abstract.RealObject representing the requested objective
+        %   function.
+        %
+        % See also: Locality.CollinsGisin, Abstract.RealObject
+        %
+        arguments
+            obj (1,1) LocalityScenario
+            tensor double
+        end
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT);
             end

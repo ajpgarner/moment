@@ -14,8 +14,7 @@ disp(struct2table(matrix.MatrixSystem.SymbolTable));
 disp(matrix.SymbolMatrix);
 disp(matrix.SequenceMatrix);
 
-p_table = matrix.MatrixSystem.ProbabilityTable;
-disp(struct2table(p_table))
+disp(setting.Symbols());
 
 a22 = setting.Parties(1).Measurements(2).Outcomes(2);
 b22 = setting.Parties(2).Measurements(2).Outcomes(2);

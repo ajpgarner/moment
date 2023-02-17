@@ -1,6 +1,6 @@
 function test_result = has_yalmip()
-    %HAS_YALMIP Ascertain whether yalmip is installed
-    if exist('yalmip') ~= 2
+%HAS_YALMIP Determine whether YALMIP is available to call from MATLAB.
+    if exist('yalmip', 'file') ~= 2
         test_result = false;
         return;
     end

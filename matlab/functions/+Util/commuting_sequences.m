@@ -1,10 +1,12 @@
 function output = commuting_sequences(operators, level)
-%COMMUTING_SEQUENCES Generate all commuting sequences of a certain length
+%COMMUTING_SEQUENCES Generate all commuting sequences of a certain length.
+%
+
     arguments
         operators (1,1) uint64
         level (1,1) uint64
     end
-    
+
     % Level 0, just identity
     if level <= 0
        output = {uint64.empty(1,0)};

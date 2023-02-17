@@ -1,5 +1,5 @@
 function [objective] = tsirelson(M, desc, level, toolkit)
-% Optimize to find the Tsirelson bound
+% TSIRELSON Optimize a locality scenario to find the Tsirelson bound
 % - M is the object function, in Collins-Gisin form.
 % - If all parties have the same number of measurements with the same number of outcomes
 % desc is a vector of the form [parties, measurements, outcomes]
@@ -57,6 +57,8 @@ function [objective] = tsirelson(M, desc, level, toolkit)
     end
 
 end
+
+%% Private functions
 
 function objective = tsirelson_yalmip(matrix, functional)
     % Define SDP variables, and represent moment matrix

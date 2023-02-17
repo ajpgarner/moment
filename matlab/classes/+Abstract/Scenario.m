@@ -1,15 +1,22 @@
 classdef Scenario < handle
-    %SCENARIO 
+%SCENARIO A setting or context defining a set of operators.
+% 
+% A scenario amounts to a description of a system, with a set of operators,
+% and the rules for multiplying and conjugating these operators.
+%
+% See also: AlgebraicScenario, ImportedScenario, InflationScenario, 
+%           LocalityScenario
     
     properties(GetAccess = public, SetAccess = protected)
-        HasMatrixSystem
+        HasMatrixSystem % True if a matrix system has been created in mtk.
     end
     
     properties(Access = protected)
-        matrix_system
+        matrix_system % A MatrixSystem handle for the given scenario.
     end
       
-    properties(Constant, Access = protected)
+    properties(Constant, Access = private)
+        % Error message when scenario is locked, but changes are requested.
         err_locked = [
             'This Scenario is locked, and no further changes are possible. ', ...
             'This is because it has been associated with a MatrixSystem ', ...
@@ -21,6 +28,7 @@ classdef Scenario < handle
     %% Constructor (abstract base class)
     methods(Access = protected)
         function obj = Scenario()
+        % SCENARIO Create an scenario object.
             obj.matrix_system = MatrixSystem.empty;
         end
     end
@@ -28,6 +36,16 @@ classdef Scenario < handle
     %% Accessors: MatrixSystem
     methods
         function val = System(obj)
+        % SYSTEM Gets MatrixSystem object associated with scenario
+        %
+        % Will generate the MatrixSystem if it has not yet been
+        % created.
+        %
+        % RETURN:
+        %   A MatrixSystem object.
+        %
+        % See also: MatrixSystem
+        %
             arguments
                 obj (1,1) Abstract.Scenario
             end
@@ -40,35 +58,52 @@ classdef Scenario < handle
             val = obj.matrix_system;
         end       
         
-        
         function val = get.HasMatrixSystem(obj)
             val = ~isempty(obj.matrix_system);
         end
     end
     
     %% Accessor: SolvedScenario
-    methods
+    methods(Sealed)
         function val = Solved(obj, a, b)
-            if nargin < 2
-                a = double.empty(1, 0);
+        % SOLVED Bind numeric values from an SDP solve.
+        % 
+        % PARAMS:
+        %   a - Vector of coefficients for real basis elements.
+        %   b (optional) - Vector of coefficients for imaginary basis
+        %                  elements.
+        %
+        % RETURNS:
+        %   SOLVEDSCENARIO.SOLVEDSCENARIO or specialized subclass thereof.
+        %
+        % See also: SOLVEDSCENARIO.SOLVEDSCENARIO
+        %
+            arguments
+                obj (1,1) Abstract.Scenario
+                a (:,1) double = double.empty(0,1)
+                b (:,1) double = double.empty(0,1)
             end
-            if nargin < 3
-                b = double.empty(1, 0);
-            end
-            
             val = obj.createSolvedScenario(a, b);            
         end
     end
     
     %% Accessors: SymbolTable
-    methods
+    methods(Sealed)
         function val = Symbols(obj)
+        % SYMBOLS Get table of defined symbols in the matrix system.
+        %
+        % RETURNS:
+        %   Table object with symbol information. 
+            arguments
+                obj (1,1) Abstract.Scenario
+            end
+     
             val = struct2table(obj.System.SymbolTable);
         end
     end
     
     %% Accessors: Operator matrices
-    methods
+    methods(Sealed)
          function mm_out = MakeMomentMatrix(obj, depth)
             arguments
                 obj (1,1) Abstract.Scenario
@@ -84,8 +119,9 @@ classdef Scenario < handle
     end
             
     %% Internal/friend methods
-    methods(Access={?Abstract.Scenario,?Locality.Party})
+    methods(Sealed, Access={?Abstract.Scenario,?Locality.Party})
         function errorIfLocked(obj)
+        % ERRORIFLOCKED Raise an error if matrix system is already created.
             if ~isempty(obj.matrix_system)
                 error(obj.err_locked);
             end
@@ -94,24 +130,29 @@ classdef Scenario < handle
     
     %% Abstract methods
     methods(Abstract, Access=protected)
-        % Post-process on new moment matrix
-        onNewMomentMatrix(obj, mm)        
+        % ONNEWMOMENTMATRIX Post-processing after moment matrix created.
+        onNewMomentMatrix(obj, mm)
+       
     end
     
     %% Friend/interface methods
-    methods(Abstract, Access={?Abstract.Scenario,?MatrixSystem})
-        % Query mex for a matrix system
-        ref_id = createNewMatrixSystem(obj)
+    methods(Abstract, Access={?Abstract.Scenario,?MatrixSystem})   
+        ref_id = createNewMatrixSystem(obj) 
     end
     
     %% Virtual methods 
     methods(Access=protected)
         function val = createSolvedScenario(obj, a, b)
-            val = SolvedScenario.SolvedScenario(obj, a, b);
+        % CREATESOLVEDSCENARIO Bind numeric values from an SDP solve.
+        % 
+        % PARAMS
+        %   a - Vector of values for real basis elements
+        %   b (optional) - Vector of values for imaginary basis elements
+        %
+        % RETURNS
+        %   SOLVEDSCENARIO.SOLVEDSCENARIO or specialized subclass thereof.
+        %
+            val = SolvedScenario.SolvedScenario(obj, a, b); 
         end
     end
-        
-    
-    
 end
-

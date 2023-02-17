@@ -1,36 +1,23 @@
 function [theString] = alphabetic_index(theIndex, isUpper, isZeroIndex)
-%ALPHABETIC_INDEX Sequentially assign letters of the alphabet.
-%   The letter assigned uses excel-like notation: A-Z, AA-ZZ, AAA-ZZZ, etc.
-    if nargin < 3
-        isZeroIndex = false;
-    else
-        isZeroIndex = logical(isZeroIndex);
+% ALPHABETIC_INDEX Convert index/indices from numbers to letters.
+% The letters are assigned in shortlex (excel-like) order: A-Z, AA-ZZ, etc.
+    arguments
+        theIndex (:,:) uint64
+        isUpper (1,1) logical = true
+        isZeroIndex (1,1) logical = false
     end
-    
-    if nargin < 2
-        isUpper = true;
+
+    flags = cell(1,0);
+    if isUpper
+        flags{end+1} = 'upper';
     else
-        isUpper = logical(isUpper);
-    end
-    
-    if nargin < 1
-        error("At least one argument must be provided.");
+        flags{end+1} = 'lower';
     end
     
     if isZeroIndex
-        if isUpper
-            theString = mtk('alphabetic_name', 'zero_index', ...
-                              'upper', theIndex);
-        else
-            theString = mtk('alphabetic_name', 'zero_index', ...
-                              'lower', theIndex);
-        end
-    else
-        if isUpper
-            theString = mtk('alphabetic_name', 'upper', theIndex);
-        else
-            theString = mtk('alphabetic_name', 'lower', theIndex);
-        end
+        flags{end+1} = 'zero_index';
     end
+    
+    theString = mtk('alphabetic_name', theIndex, flags{:});        
 end
 
