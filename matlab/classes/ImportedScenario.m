@@ -25,6 +25,10 @@ classdef ImportedScenario < Abstract.Scenario
         arguments
             all_real (1,1) logical = false
         end
+        
+        if nargin == 0
+        	all_real = false;
+        end
             
             % Superclass c'tor
             obj = obj@Abstract.Scenario();
