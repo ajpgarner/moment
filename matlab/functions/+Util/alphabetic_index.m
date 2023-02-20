@@ -14,8 +14,10 @@ function [theString] = alphabetic_index(theIndex, isUpper, isZeroIndex)
         flags{end+1} = 'lower';
     end
     
-    if isZeroIndex
-        flags{end+1} = 'zero_index';
+    if nargin == 3
+        if isZeroIndex
+            flags{end+1} = 'zero_index';
+        end
     end
     
     theString = mtk('alphabetic_name', theIndex, flags{:});        
