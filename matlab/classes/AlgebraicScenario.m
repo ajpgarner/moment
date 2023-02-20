@@ -36,7 +36,11 @@ classdef AlgebraicScenario < Abstract.Scenario
                 is_hermitian (1,1) logical = true
                 is_normal (1,1) logical = is_hermitian
             end
-               
+
+            if nargin <= 3
+            	is_normal = is_hermitian;
+            end
+
             % Call superclass c'tor
             obj = obj@Abstract.Scenario();
             
