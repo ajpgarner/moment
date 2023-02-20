@@ -40,7 +40,11 @@ classdef AlgebraicScenario < Abstract.Scenario
                 is_hermitian (1,1) logical = true
                 is_normal (1,1) logical = is_hermitian
             end
-               
+
+            if nargin <= 3
+            	is_normal = is_hermitian;
+            end
+
             % Call superclass c'tor
             obj = obj@Abstract.Scenario();
             
@@ -85,7 +89,11 @@ classdef AlgebraicScenario < Abstract.Scenario
                 attempts (1,1) uint64
                 verbose (1,1) logical = false
             end
-            
+
+            if nargin <= 2
+            	verbose = false;
+            end
+
             obj.errorIfLocked();
             success = obj.RuleBook.Complete(attempts, verbose);
         end
