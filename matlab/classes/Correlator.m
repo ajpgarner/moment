@@ -1,6 +1,6 @@
 classdef Correlator < handle & Abstract.RealObject
-    %CORR Binary correlator
-    %   +1 if outcomes same, -1 if different
+    %CORRELATOR Binary correlator between two measurements in locality scenario.
+    %   Gives value of +1 if outcomes are same, -1 if they are different.
     
     properties(SetAccess=private, GetAccess=public)
         Constituents

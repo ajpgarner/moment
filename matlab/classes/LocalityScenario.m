@@ -1,37 +1,36 @@
 classdef LocalityScenario < Abstract.Scenario
-    %LOCALITYSCENARIO Scenario for agents with projective measurements.
-    %
-    % This scenario is the classic locality setting, of spatially-disjoint
-    % agents (Alice, Bob, etc.) who choose to make a measurement, and
-    % record the output.
-    %
-    % All measurements are assumed to be projective and complete, such that
-    % each measurement with N outcomes defines N-1 fundamental operators.
-    % For operators Xi, Xj within a measurement, it is taken that XiXj = 1
-    % if i=j and XiXj=0 otherwise. Operators belonging to different
-    % measurements made by the same party are assumed not to commute.
-    % Operators from measurements made by different parties are assumed to 
-    % commute.
-    %    
-    % The moment matrices generated from such a scenario implement the NPA
-    % hierarchy [See: https://doi.org/10.1088/1367-2630/10/7/073013].
-    %
-    % The scenario can either be specified entirely in the constructor, or
-    % an empty scenario can be created and parties and measurements be
-    % added via the AddParty method (and the AddMeasurement method of
-    % Locality.Party).
-    %
-    % EXAMPLES:
-    %       /examples/chsh.m
-    %       /examples/cvx_chsh.m
-    %       /examples/cvx_I3322.m
-    %       /examples/four_party.m
-    %       /examples/three_party.m
-    %       /examples/yalmip_chsh.m
-    %
-    % See also: Locality.Party, Locality.Measurement, Locality.Outcome,
-    %           SolvedScenario.SolvedLocalityScenario
-    %
+%LOCALITYSCENARIO Scenario for agents with projective measurements.
+%
+% This scenario is the classic locality setting, of spatially-disjoint
+% agents (Alice, Bob, etc.) who choose to make a measurement, and record the 
+% output.
+%
+% All measurements are assumed to be projective and complete, such that
+% each measurement with N outcomes defines N-1 fundamental operators. For
+% operators Xi, Xj within a measurement, it is taken that XiXj = Xi if i=j 
+% and XiXj = 0 otherwise. Operators belonging to different measurements 
+% made by the same party are assumed not to commute. Operators from 
+% measurements made by different parties commute.
+%    
+% The moment matrices generated from such a scenario implement the NPA
+% hierarchy. [See: https://doi.org/10.1088/1367-2630/10/7/073013].
+%
+% The scenario can either be specified entirely in the constructor, or
+% an empty scenario can be created and parties and measurements be
+% added via the AddParty method (and the AddMeasurement method of
+% Locality.Party).
+%
+% EXAMPLES:
+%       /examples/chsh.m
+%       /examples/cvx_chsh.m
+%       /examples/cvx_I3322.m
+%       /examples/four_party.m
+%       /examples/three_party.m
+%       /examples/yalmip_chsh.m
+%
+% See also: Locality.Party, Locality.Measurement, Locality.Outcome,
+%           SolvedScenario.SolvedLocalityScenario
+%
     
     properties(GetAccess = public, SetAccess = protected)
         Parties % Spatially disjoint agents (Alice, Bob, etc.).

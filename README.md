@@ -4,30 +4,10 @@
 Author: Andrew J. P. Garner
 
 Moment a set of tools designed to aid in the generation and manipulation of operator matrices, for use in the context 
-of convex optimisation problems. In particular, it aids in the generation of hierarchies of moment matrices and 
-localizing matrices, such as arise in the NPA [1] and PNA [2] hierarchies.
-
-### Usage
-
-A typical program using Moment should first define a `Scenario` object, describing the number of distinct parties, the
-measurements per parties, and the number of outcomes per measurement. For example, a CHSH Scenario would define two
-parties, with two measurements per party, each with two outcomes.
-
-For simple use cases, where only a single moment matrix (i.e. also at a fixed level within the hierarchy), a 
-`MomentMatrix` object can be created. For example, 
-``scenarioObj.MakeMomentMatrix(1)``
-generates the level 1 moment matrix associated with a scenario. 
-
-In more complex cases (e.g. where multiple depths are required, or sets of localizing matrices are also considered), a
-`MatrixSystem` should be created. 
-This object represents a shared set of SDP variables, where the same variable might appear in multiple different moment 
-matrices and localizing matrices.
-
-To ensure consistency between the many dependent objects, once a `MatrixSystem` has been created (even implicitly), no 
-further changes can be made to the `Scenario` object. However, a `clone()` method is provided for `Scenario`, that 
-constructs a deep copy, which will allow changes to the setting (until it, in turn, is associated with a new 
-`MatrixSystem`).
-
+of convex optimization problems. 
+In particular, it aids in the generation of hierarchies of moment matrices and 
+localizing matrices, such as arise in the NPA [1] and PNA [2] hierarchies. 
+Can also generate matrices for inflated causal-compatibility scenarios [3].
 
 
 ### References / additional reading
@@ -39,6 +19,10 @@ New J. Phys. 10, 073013 (2008).\
 with non-commuting variables.\
 SIAM J. Optim. Volume 20, Issue 5, pp. 2157-2180 (2010).\
 [doi:10.1137/090760155](https://doi.org/10.1137/090760155).
+
+**[3]:** *Wolfe, Spekkens, and Fritz*: The Inflation Technique for Causal Inference with Latent Variables.\
+Journal of Causal Inference, Volume 7, Issue 2, pp. 20170020 (2019). \
+[doi:10.1515/jci-2017-0020](https://doi.org/10.1515/jci-2017-0020).
 
 ## Minimum tested versions
 MATLAB 2021b (9.10)

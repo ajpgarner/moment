@@ -8,7 +8,11 @@ classdef AlgebraicScenario < Abstract.Scenario
 % allowed. For example, for operators a and b, 'aab -> ab', and 'ab -> aa' 
 % are reductions, 'a -> b' and 'b -> aa' are not.
 %
-% 
+% EXAMPLES:
+%       /examples/cvx_polynomial.m
+%       /examples/nonhermitian_lm.m
+%       /examples/yalmip_polynomial.m
+%
 % See also: ALGEBRAIC.RULEBOOK, ABSTRACT.SCENARIO
     
     properties(GetAccess = public, SetAccess = protected)

@@ -2,7 +2,8 @@ classdef Scenario < handle
 %SCENARIO A setting or context defining a set of operators.
 % 
 % A scenario amounts to a description of a system, with a set of operators,
-% and the rules for multiplying and conjugating these operators.
+% and the rules for multiplying and conjugating these operators, and for
+% writing a string of operators in a 'canonical' manner.
 %
 % See also: AlgebraicScenario, ImportedScenario, InflationScenario, 
 %           LocalityScenario
