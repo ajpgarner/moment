@@ -15,6 +15,10 @@ classdef Rule
                 negate (1,1) logical = false
             end
 
+			if nargin <= 2
+    			negate = false;
+		    end
+
             % Determine whether lhs or rhs is longer...
             lhs_longer = true;
             if length(rhs) > length(lhs)
