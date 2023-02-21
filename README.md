@@ -109,9 +109,11 @@ to the call to function `mtk(...)`:
 
 `apply_values`: Create a new matrix by substituting listed symbols with numeric values.
 
+`collins_gisin`: Returns list of symbols in a matrix system, as a matrix using Collins-Gisin indexing.
+
 `complete`: Attempts to complete a set of algebraic rewrite rules.
 
-`collins_gisin`: Returns list of symbols in a matrix system, as a matrix using Collins-Gisin indexing. 
+`conjugate`: Returns the complex-conjugation of an operator sequence.
 
 `extended_matrix`: Creates a scalar extension of a moment matrix, extended by listed symbols.
 
