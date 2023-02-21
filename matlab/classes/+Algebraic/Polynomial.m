@@ -5,6 +5,10 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         Constituents = Algebraic.Monomial.empty(1,0)
     end
     
+    properties(Dependent)
+        IsZero
+    end
+    
     methods(Static)
         function obj = Zero(setting)
             arguments
@@ -24,6 +28,10 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             obj = obj@Abstract.ComplexObject(setting);
             obj.Constituents = constituents;
             obj.orderAndMerge();
+        end
+        
+        function val = get.IsZero(obj)
+            val = isempty(obj.Constituents);
         end
     end
     
@@ -46,10 +54,94 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         end
     end
     
-    %% Sums and multiplication
+    %% Comparison
     methods
-        % Multiplication
+        function val = eq(lhs, rhs)
+        % EQ Compare LHS and RHS for value-wise equality.
+            
+            % Trivially equal if same object
+            if eq@handle(lhs, rhs)
+                val = true;
+                return;
+            end
+       
+            if isa(lhs, 'Algebraic.Polynomial')
+                this = lhs;
+                other = rhs;
+            else
+                this = rhs;
+                other = lhs;
+            end
+            
+            tol = 2*eps(1);
+            
+            if isnumeric(other)
+                if length(other) ~= 1
+                    error("_==_ only supported for scalar comparison.");
+                end
+                
+                % Polynomial is zero, RHS is zero
+                if this.IsZero && abs(other) < tol
+                    val = true;
+                    return;
+                end
+                % Promoted monomial, compare as if monomial
+                if length(this.Constituents) == 1
+                    as_mono = this.Constituents(1);
+                    val = as_mono.eq(other);
+                    return;
+                end
+                % Wrong number of elements, mismatch
+                val = false;
+                return;                    
+            end
+            
+            if isa(other, 'Algebraic.Monomial')
+                % If length one, compare as Monomial
+                if length(this.Constituents) == 1
+                    as_mono = this.Constituents(1);
+                    val = as_mono.eq(other);
+                    return;
+                end
+                % Wrong number of elements, mismatch
+                val = false;
+                return;    
+            end
+            
+            if isa(other, 'Algebraic.Polynomial')
+                % Wrong number of elements, mismatch
+                if length(this.Constituents) ~= length(other.Constituents)
+                    val = false;
+                    return;
+                end
+                
+                % If any constituent part does not match, mismatch
+                for i = 1:length(this.Constituents)
+                    if this.Constituents(i) ~= other.Constituents(i)
+                        val = false;
+                        return;
+                    end
+                end
+                val = true;
+                return;               
+            end
+            
+
+            error("_==_ not defined between " + class(lhs) ...
+                    + " and " + class(rhs));
+        end 
+        
+        function val = ne(lhs, rhs)
+            % NEQ Compare LHS and RHS for value-wise inequality.
+            val = ~eq(lhs, rhs);
+        end
+  
+    end
+    
+    %% Sums and multiplication
+    methods        
         function val = mtimes(lhs, rhs)
+        % MTIMES Multiplication
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -103,11 +195,11 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             else
                 error("_*_ not defined between " + class(lhs) ...
                     + " and " + class(rhs));
-            end
+            end            
         end
         
-        % Addition
         function val = plus(lhs, rhs)
+        % PLUS Addition
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -124,6 +216,17 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             
             % Is other side built-in numeric; if so, cast to monomial
             if isnumeric(other)
+                if length(other) ~= 1
+                    error("_+_ only supported for scalar addition.");
+                end
+                
+                % If +0; just return self (in canonical form)
+                if abs(other) < 2*eps
+                    val = +this;
+                    return
+                end
+                
+                
                 other = Algebraic.Monomial(this.Scenario, [], double(other));
             elseif ~isa(other, 'Algebraic.Monomial') && ...
                     ~isa(other, 'Algebraic.Polynomial')
@@ -141,29 +244,62 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 components = horzcat(this.Constituents, other);
                 val = Algebraic.Polynomial(this.Scenario, components);
             elseif isa(other, 'Algebraic.Polynomial')
-                if (this.Scenario ~= other.Scenario)
-                    error(this.err_mismatched_scenario);
-                end
                 components = horzcat(this.Constituents, other.Constituents);
                 val = Algebraic.Polynomial(this.Scenario, components);
             else
                 error(['Assertion failed: ',...
                        'other should be Monomial or Polynomial.']);
             end
+            
+            % Degrade to zero, if zero
+            if val.IsZero
+                val = 0;
+                return;
+            end
+            
+            % Degrade to monomial, if single element
+            if length(val.Constituents) == 1
+                val = val.Constituents(1);
+            end
+            
+
+            
         end
         
-        % Subtraction
+        function val = uplus(obj)
+        % UPLUS Unary plus.
+        % If single-element polynomial, will degrade to monomial.
+        % If equal to zero, will degrade to numeric 0.
+            if length(obj.Constituents) == 1
+                val = obj.Constituents(1);
+            elseif obj.IsZero
+                val = 0;
+            else
+                val = obj;
+            end
+        end
+        
+        function val = uminus(obj)
+        % UMINUS Unary minus
+            new_constituents = Algebraic.Monomial.empty(1,0);
+            for c = obj.Constituents
+                new_constituents(end+1) = -c;
+            end
+            val = Algebraic.Polynomial(obj.Scenario, new_constituents);
+        end
+        
         function val = minus(lhs, rhs)
+        % MINUS Subtraction
             arguments
                 lhs (1,1)
                 rhs (1,1)
             end
             
-            val = lhs + -rhs;            
+            val = lhs + (-rhs);
         end
         
-        % Complex conjugation
         function val = ctranspose(obj)
+        % CTRANSPOSE Complex conjugation
             new_constituents = Algebraic.Monomial.empty(1,0);
             for c = obj.Constituents
                 new_constituents(end+1) = c';
@@ -200,9 +336,11 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
     %% Internal methods
     methods(Access=private)
         function orderAndMerge(obj)
+            % Order
             [~, order] = sort([obj.Constituents.Hash]);
             write_index = 0;
             
+            % Merge
             nc = Algebraic.Monomial.empty(1,0);
             last_hash = 0;
             for i = 1:length(obj.Constituents)
@@ -221,7 +359,12 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 end
                 last_hash = cObj.Hash;
             end
-            obj.Constituents = nc;
+            
+            % Trim zeros
+            nz_mask = abs([nc(:).Coefficient]) >= 2*eps(0);
+            obj.Constituents = nc(nz_mask);
+            
+            
         end
     end
 end

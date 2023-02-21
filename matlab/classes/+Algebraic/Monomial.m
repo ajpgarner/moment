@@ -62,7 +62,7 @@ classdef Monomial < Abstract.ComplexObject
                 level (1,1) uint64
             end
             val = OpMatrix.LocalizingMatrix(obj.Scenario, ...
-                                            obj.Operators, level);
+                obj.Operators, level);
         end
     end
     
@@ -97,16 +97,101 @@ classdef Monomial < Abstract.ComplexObject
         end
     end
     
-    %% Sum and multiplication
+    %% Equality
     methods
-        % Unary minus
+        function val = eq(lhs, rhs)
+            % EQ Compare LHS and RHS for value-wise equality.
+            
+            % Trivially equal if same object
+            if eq@handle(lhs, rhs)
+                val = true;
+                return;
+            end
+            
+            tol = 2*eps(1.0);
+            
+            if isa(lhs, 'Algebraic.Monomial')
+                this = lhs;
+                other = rhs;
+            else
+                this = rhs;
+                other = lhs;
+            end
+            
+            % Compare vs. a polynomial: use Algebraic.Polynomial
+            if isa(other, 'Algebraic.Polynomial')
+                val = other.eq(lhs);
+                return;
+            end
+            
+            % Compare vs. another monomial
+            if isa(other, 'Algebraic.Monomial')
+                % Equal if same operators and coefficient.
+                if (isequal(this.Operators, other.Operators) && ...
+                        (abs(this.Coefficient - other.Coefficient) < tol))
+                    val = true;
+                    return;
+                end
+                
+                % Equal if both coefficents are 0
+                if ((abs(this.Coefficient) < tol) && ...
+                        (abs(this.Coefficient) < tol))
+                    val = true;
+                    return;
+                end
+                val = false;
+                return;
+            end
+            
+            % Compare vs. a number
+            if isnumeric(other)
+                % Must be single number
+                if length(other) ~= 1
+                    error("_==_ only supported for scalar comparison.");
+                end
+                
+                
+                % Equal if no operators, and coefficient matches
+                if (isempty(this.Operators) && ...
+                        (abs(this.Coefficient - other) < tol))
+                    val = true;
+                    return;
+                end
+                % Equal if coef. is 0, and rhs is 0
+                if ((abs(this.Coefficient) < tol) && (abs(other) < tol))
+                    val = true;
+                    return;
+                end
+                val = false;
+                return;
+            end
+            
+            error("_==_ not defined between " + class(lhs) ...
+                + " and " + class(rhs));
+        end
+        
+        function val = ne(lhs, rhs)
+            % NEQ Compare LHS and RHS for value-wise inequality.
+            val = ~eq(lhs, rhs);
+        end
+    end
+    
+    %% Algebraic manipulation
+    methods
+        
+        function val = uplus(obj)
+            % UPLUS Unary plus (do nothing).
+            val = obj;
+        end
+        
         function val = uminus(this)
+            % UMINUS Unary minus - invert coefficient sign.
             val = Algebraic.Monomial(this.Scenario, this.Operators, ...
                 double(-this.Coefficient));
         end
         
-        % Multiplication
         function val = mtimes(lhs, rhs)
+            % MTIMES Multiplication
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -118,11 +203,11 @@ classdef Monomial < Abstract.ComplexObject
                 other = lhs;
                 if ~isnumeric(other)
                     error(['Pre-multiplication _*_ should only be ',...
-                          'invoked when LHS is a built-in type.']);
+                        'invoked when LHS is a built-in type.']);
                 end
             else
                 this = lhs;
-                other = rhs;                
+                other = rhs;
             end
             
             if isnumeric(other) % Scalar number multiplication:
@@ -134,16 +219,16 @@ classdef Monomial < Abstract.ComplexObject
                     double(this.Coefficient * other));
             elseif isa(other, 'Algebraic.Monomial') % mono * mono = mono
                 val = Algebraic.Monomial(this.Scenario, ...
-                        [this.Operators, other.Operators], ...
-                        double(this.Coefficient * other.Coefficient));
+                    [this.Operators, other.Operators], ...
+                    double(this.Coefficient * other.Coefficient));
             else
                 error("_*_ not defined between " + class(lhs) ...
                     + " and " + class(rhs));
             end
         end
         
-        % Addition
         function val = plus(lhs, rhs)
+            % PLUS Addition
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -151,14 +236,22 @@ classdef Monomial < Abstract.ComplexObject
             
             % Is it simply two monomials of the same type?
             if isa(lhs, 'Algebraic.Monomial') ...
-                && isa(rhs, 'Algebraic.Monomial')
+                    && isa(rhs, 'Algebraic.Monomial')
+                
+                % Are these monomials equal up to negation?
+                if eq(lhs, -rhs)
+                    val = 0;
+                    return;
+                end
+                
+                % Are these monomials with the same operator string
                 if isequal(lhs.Operators, rhs.Operators)
                     val = Algebraic.Monomial(lhs.Scenario, lhs.Operators,...
-                          double(lhs.Coefficient + rhs.Coefficient));
+                        double(lhs.Coefficient + rhs.Coefficient));
                     return;
                 end
             end
-                        
+            
             % Add a scalar by a built-in type?
             if ~isa(lhs, 'Algebraic.Monomial')
                 this = rhs;
@@ -175,8 +268,9 @@ classdef Monomial < Abstract.ComplexObject
             val = this.plus(other);
         end
         
-        % Subtraction
+        
         function val = minus(lhs, rhs)
+            % MINUS Subtraction
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -185,14 +279,14 @@ classdef Monomial < Abstract.ComplexObject
             val = lhs + -rhs;
         end
         
-        % Conjugation
         function val = ctranspose(obj)
+            % CTRANSPOSE Complex conjugation
             conj_ops = mtk('conjugate', ...
-                           obj.Scenario.System.RefId, ...
-                           obj.Operators);
-                            
+                obj.Scenario.System.RefId, ...
+                obj.Operators);
+            
             val = Algebraic.Monomial(obj.Scenario, ...
-                                     conj_ops, obj.Coefficient);            
+                conj_ops, obj.Coefficient);
         end
     end
     
@@ -250,7 +344,7 @@ classdef Monomial < Abstract.ComplexObject
             for index = length(obj.Operators):-1:1
                 val = val + stride*obj.Operators(index);
                 stride = uint64(stride * ...
-                                obj.Scenario.EffectiveOperatorCount);
+                    obj.Scenario.EffectiveOperatorCount);
             end
         end
         

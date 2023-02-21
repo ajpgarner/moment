@@ -1,8 +1,16 @@
 classdef AlgebraicTest < MTKTestBase
-    %ALGEBRAICTEST
+%ALGEBRAICTEST Tests for Algebraic.Monomial and Algebraic.Polynomial
     
-    %% Construction / binding
+%% Construction / binding
     methods(Test)
+       function zero(testCase)
+            setting = AlgebraicScenario(2);
+            zero = Algebraic.Polynomial.Zero(setting);
+            testCase.verifyTrue(isa(zero, 'Algebraic.Polynomial'));
+            testCase.verifyEqual(zero.Scenario, setting);
+            testCase.verifyEqual(length(zero.Constituents), 0);           
+        end
+        
         function get_id(testCase)
             setting = AlgebraicScenario(2);
             id = setting.get([]);
@@ -78,8 +86,70 @@ classdef AlgebraicTest < MTKTestBase
             testCase.verifyNotEqual(y.SymbolId, z.SymbolId);
         end
     end
+  
+%% Unary plus (uplus)
+    methods(Test)
+        function uplus_mono(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.get(1);
+            i_x = +x;
+            
+            testCase.verifyTrue(isa(i_x, 'Algebraic.Monomial'));
+            testCase.assertEqual(i_x.Operators, uint64([1]));
+            testCase.assertEqual(i_x.Coefficient, 1.0);
+        end
+        
+        function uplus_poly(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.get(1);
+            y = setting.get(2);
+            x_y = x+y;            
+            ux_y = +x_y;
+            
+            testCase.verifyTrue(isa(ux_y, 'Algebraic.Polynomial'));
+
+            testCase.assertEqual(length(ux_y.Constituents), 2);
+            part_x = ux_y.Constituents(1);
+            part_y = ux_y.Constituents(2);            
+            testCase.assertEqual(part_x.Operators, x.Operators);
+            testCase.assertEqual(part_x.Coefficient, x.Coefficient);
+            testCase.assertEqual(part_y.Operators, y.Operators);
+            testCase.assertEqual(part_y.Coefficient, y.Coefficient);
+        end
+    end
     
-    %% Addition (plus)
+%% Unary minus (uminus)
+    methods(Test)
+        function uminus_mono(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.get(1);
+            i_x = -x;
+            
+            testCase.verifyTrue(isa(i_x, 'Algebraic.Monomial'));
+            testCase.assertEqual(i_x.Operators, uint64([1]));
+            testCase.assertEqual(i_x.Coefficient, -1.0);
+        end
+        
+        function uminus_poly(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.get(1);
+            y = setting.get(2);
+            x_y = x+y;            
+            ux_y = -x_y;
+            
+            testCase.verifyTrue(isa(ux_y, 'Algebraic.Polynomial'));
+
+            testCase.assertEqual(length(ux_y.Constituents), 2);
+            part_x = ux_y.Constituents(1);
+            part_y = ux_y.Constituents(2);            
+            testCase.assertEqual(part_x.Operators, x.Operators);
+            testCase.assertEqual(part_x.Coefficient, -x.Coefficient);
+            testCase.assertEqual(part_y.Operators, y.Operators);
+            testCase.assertEqual(part_y.Coefficient, -y.Coefficient);
+        end
+    end
+    
+%% Addition (plus)
     methods(Test)
         function plus_num_mono(testCase)
             setting = AlgebraicScenario(2);
@@ -93,7 +163,7 @@ classdef AlgebraicTest < MTKTestBase
             testCase.assertEqual(part_i.Operators, uint64.empty(1,0));
             testCase.assertEqual(part_i.Coefficient, 1.0);
             testCase.assertEqual(part_x.Operators, uint64([1]));
-            testCase.assertEqual(part_i.Coefficient, 1.0);
+            testCase.assertEqual(part_x.Coefficient, 1.0);
             
         end
         
@@ -387,7 +457,220 @@ classdef AlgebraicTest < MTKTestBase
         end
     end
     
-    %% Multiplication (mtimes)
+      
+%% Subtraction (minus)
+    methods(Test)
+        function minus_num_mono(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.get(1);
+            i_x = 1 - x;
+            
+            testCase.verifyTrue(isa(i_x, 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(i_x.Constituents), 2);
+            part_i = i_x.Constituents(1);
+            part_x = i_x.Constituents(2);
+            testCase.assertEqual(part_i.Operators, uint64.empty(1,0));
+            testCase.assertEqual(part_i.Coefficient, 1.0);
+            testCase.assertEqual(part_x.Operators, uint64([1]));
+            testCase.assertEqual(part_x.Coefficient, -1.0);
+            
+        end
+        
+        function minus_mono_num(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.get(1);
+            testCase.verifyEqual(x.Operators, uint64([1]));
+            
+            x_i = x - 1;
+            
+            testCase.verifyTrue(isa(x_i, 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(x_i.Constituents), 2);
+            part_i = x_i.Constituents(1);
+            part_x = x_i.Constituents(2);
+            testCase.assertEqual(part_i.Operators, uint64.empty(1,0));
+            testCase.assertEqual(part_i.Coefficient, -1.0);
+            testCase.assertEqual(part_x.Operators, x.Operators);
+            testCase.assertEqual(part_x.Coefficient, x.Coefficient);
+        end
+        
+        function minus_mono_mono(testCase)
+            setting = AlgebraicScenario(2);
+            [x, y] = setting.getAll();
+            
+            x_minus_y = x - y;
+            y_minus_x = y - x;
+            testCase.verifyTrue(isa(x_minus_y, 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(x_minus_y.Constituents), 2);
+            part_x = x_minus_y.Constituents(1);
+            part_y = x_minus_y.Constituents(2);
+            testCase.assertEqual(part_x.Operators, x.Operators);
+            testCase.assertEqual(part_x.Coefficient, x.Coefficient);
+            testCase.assertEqual(part_y.Operators, y.Operators);
+            testCase.assertEqual(part_y.Coefficient, -y.Coefficient);
+            
+            testCase.verifyTrue(isa(y_minus_x, 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(y_minus_x.Constituents), 2);
+            partB_x = y_minus_x.Constituents(1);
+            partB_y = y_minus_x.Constituents(2);
+            testCase.assertEqual(partB_x.Operators, x.Operators);
+            testCase.assertEqual(partB_x.Coefficient, -x.Coefficient);
+            testCase.assertEqual(partB_y.Operators, y.Operators);
+            testCase.assertEqual(partB_y.Coefficient, y.Coefficient);
+        end
+        
+        function minus_mono_mono_same(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.get(1);
+            
+            x_minus_x = x - x;
+            testCase.verifyTrue(isa(x_minus_x, 'double'));
+            testCase.verifyEqual(x_minus_x, 0);
+        end
+         
+        function minus_mono_poly(testCase)
+            setting = AlgebraicScenario(3);
+            [x, y, z] = setting.getAll();
+            
+            y_z = y + z;
+            testCase.verifyTrue(isa(y_z , 'Algebraic.Polynomial'));
+            x_y_z = x - y_z;
+            testCase.verifyTrue(isa(x_y_z , 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(x_y_z.Constituents), 3);
+            part_x = x_y_z.Constituents(1);
+            part_y = x_y_z.Constituents(2);
+            part_z = x_y_z.Constituents(3);
+            
+            testCase.verifyEqual(part_x.Operators, x.Operators);
+            testCase.verifyEqual(part_x.Coefficient, x.Coefficient);
+            testCase.verifyEqual(part_y.Operators, y.Operators);
+            testCase.verifyEqual(part_y.Coefficient, -y.Coefficient);
+            testCase.verifyEqual(part_z.Operators, z.Operators);
+            testCase.verifyEqual(part_z.Coefficient, -z.Coefficient);
+        end
+        
+        function minus_mono_poly_overlap(testCase)
+            setting = AlgebraicScenario(2);
+            [x, y] = setting.getAll();
+            
+            x_y = x + y;
+            testCase.verifyTrue(isa(x_y , 'Algebraic.Polynomial'));
+            
+            x_x_y = x - 2*x_y;
+            testCase.verifyTrue(isa(x_x_y , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_x_y , 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(x_x_y.Constituents), 2);
+            partA_x = x_x_y.Constituents(1);
+            partA_y = x_x_y.Constituents(2);
+            
+            testCase.verifyEqual(partA_x.Operators, x.Operators);
+            testCase.verifyEqual(partA_x.Coefficient, -x.Coefficient);
+            testCase.verifyEqual(partA_y.Operators, y.Operators);
+            testCase.verifyEqual(partA_y.Coefficient, -2*y.Coefficient);
+        end
+        
+            
+        function minus_mono_poly_overlap_to_zero(testCase)
+            setting = AlgebraicScenario(2);
+            [x, y] = setting.getAll();
+            
+            x_y = x + y;
+            testCase.verifyTrue(isa(x_y , 'Algebraic.Polynomial'));
+            
+            alt_y = x - x_y;
+            testCase.assertTrue(isa(alt_y , 'Algebraic.Monomial'));
+            
+            testCase.verifyEqual(alt_y.Operators, y.Operators);
+            testCase.verifyEqual(alt_y.Coefficient, -y.Coefficient);            
+        end
+
+        function minus_poly_poly(testCase)
+            setting = AlgebraicScenario(4);
+            [w, x, y, z] = setting.getAll();
+            
+            w_x = w + x;
+            y_z = y + z;
+            
+            testCase.assertTrue(isa(w_x, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(y_z, 'Algebraic.Polynomial'));
+            
+            w_x_y_z = w_x - y_z;
+            testCase.assertTrue(isa(w_x_y_z, 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(w_x_y_z.Constituents), 4);
+            part_w = w_x_y_z.Constituents(1);
+            part_x = w_x_y_z.Constituents(2);
+            part_y = w_x_y_z.Constituents(3);
+            part_z = w_x_y_z.Constituents(4);
+            
+            testCase.assertEqual(part_w.Operators, w.Operators);
+            testCase.assertEqual(part_w.Coefficient, w.Coefficient);
+            testCase.assertEqual(part_x.Operators, x.Operators);
+            testCase.assertEqual(part_x.Coefficient, x.Coefficient);
+            testCase.assertEqual(part_y.Operators, y.Operators);
+            testCase.assertEqual(part_y.Coefficient, -y.Coefficient);
+            testCase.assertEqual(part_z.Operators, z.Operators);
+            testCase.assertEqual(part_z.Coefficient, -z.Coefficient);
+        end
+
+        function minus_poly_poly_overlap(testCase)
+            setting = AlgebraicScenario(3);
+            [x, y, z] = setting.getAll();
+            
+            x_y = x + y;
+            y_z = y + z;
+            x_2y_z = x_y - 2*y_z;            
+            testCase.assertTrue(isa(x_2y_z, 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(x_2y_z.Constituents), 3);
+            
+            partA_x = x_2y_z.Constituents(1);
+            partA_y = x_2y_z.Constituents(2);
+            partA_z = x_2y_z.Constituents(3);
+            
+            testCase.assertEqual(partA_x.Operators, x.Operators);
+            testCase.assertEqual(partA_x.Coefficient, x.Coefficient);
+            testCase.assertEqual(partA_y.Operators, y.Operators);
+            testCase.assertEqual(partA_y.Coefficient, -y.Coefficient);
+            testCase.assertEqual(partA_z.Operators, z.Operators);
+            testCase.assertEqual(partA_z.Coefficient, -2* z.Coefficient);
+  
+        end
+        
+        function minus_poly_poly_overlap_to_zero(testCase)
+            setting = AlgebraicScenario(3);
+            [x, y, z] = setting.getAll();
+            
+            x_y = x + y;
+            y_z = y + z;
+            x_2y_z = x_y - y_z;            
+            testCase.assertTrue(isa(x_2y_z, 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(x_2y_z.Constituents), 2);
+            
+            partA_x = x_2y_z.Constituents(1);
+            partA_z = x_2y_z.Constituents(2);
+            
+            testCase.assertEqual(partA_x.Operators, x.Operators);
+            testCase.assertEqual(partA_x.Coefficient, x.Coefficient);
+            testCase.assertEqual(partA_z.Operators, z.Operators);
+            testCase.assertEqual(partA_z.Coefficient, -z.Coefficient);
+  
+        end
+        
+        
+        function minus_poly_poly_to_zero(testCase)
+            setting = AlgebraicScenario(2);
+            [x, y] = setting.getAll();
+            
+            x_y = x + y;
+            x_y2 = x + y;           
+            
+            as_zero = x_y - x_y2;
+            
+            testCase.assertTrue(isa(as_zero, 'double'));
+            testCase.verifyEqual(as_zero, 0);
+  
+        end
+    end
+    
+%% Multiplication (mtimes)
     methods(Test)
         function mtimes_num_mono(testCase)
             setting = AlgebraicScenario(2);
@@ -509,7 +792,7 @@ classdef AlgebraicTest < MTKTestBase
         end
     end
 
-    %% Complex conjugation (ctranspose)
+%% Complex conjugation (ctranspose)
     methods(Test)
         function ctranspose_id(testCase)
             setting = AlgebraicScenario(2);
