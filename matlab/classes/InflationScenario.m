@@ -309,7 +309,7 @@ classdef InflationScenario < Abstract.Scenario
         %   These are provided in a format that could be input into
         %   OpMatrix.OperatorMatrix.ApplyValues.
         %
-        % See also: OpMatrix.OperatorMatrix.ApplyValues
+        % See also: OPMATRIX.OPERATORMATRIX.APPLYVALUES
         %
 
             if nargin < 3

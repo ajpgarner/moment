@@ -31,10 +31,13 @@ classdef Monomial < Abstract.ComplexObject
             end
             
             obj = obj@Abstract.ComplexObject(setting);
-            if any(operators > setting.OperatorCount) ...
+            
+            % Check operator string is in range
+            if any(operators > setting.EffectiveOperatorCount) ...
                     || any(operators <= 0)
                 error("Operator string contains out of range index.");
             end
+            
             obj.Operators = operators;
             obj.Hash = obj.calculateShortlexHash();
             obj.Coefficient = scale;
@@ -181,6 +184,16 @@ classdef Monomial < Abstract.ComplexObject
             
             val = lhs + -rhs;
         end
+        
+        % Conjugation
+        function val = ctranspose(obj)
+            conj_ops = mtk('conjugate', ...
+                           obj.Scenario.System.RefId, ...
+                           obj.Operators);
+                            
+            val = Algebraic.Monomial(obj.Scenario, ...
+                                     conj_ops, obj.Coefficient);            
+        end
     end
     
     %% Virtual methods
@@ -236,7 +249,8 @@ classdef Monomial < Abstract.ComplexObject
             stride = uint64(1);
             for index = length(obj.Operators):-1:1
                 val = val + stride*obj.Operators(index);
-                stride = uint64(stride * (obj.Scenario.OperatorCount));
+                stride = uint64(stride * ...
+                                obj.Scenario.EffectiveOperatorCount);
             end
         end
         

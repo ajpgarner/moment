@@ -15,6 +15,7 @@ classdef AlgebraicScenario < Abstract.Scenario
 %
 % See also: ALGEBRAIC.RULEBOOK, ABSTRACT.SCENARIO
     
+%% Properties
     properties(GetAccess = public, SetAccess = protected)
         OperatorCount % Number of fundamental operators in scenario.
         IsHermitian   % True if fundamental operators are Hermitian.
@@ -22,7 +23,12 @@ classdef AlgebraicScenario < Abstract.Scenario
         RuleBook      % Manages substitution rules for operator strings.
     end
     
-    %% Constructor
+    properties(Dependent, GetAccess = public)
+        % Number of operators, taking into acount conjugates
+        EffectiveOperatorCount
+    end
+    
+%% Constructor
     methods
         function obj = AlgebraicScenario(op_count, rules, ...
                 is_hermitian, is_normal)
@@ -61,11 +67,22 @@ classdef AlgebraicScenario < Abstract.Scenario
                                               is_hermitian, is_normal);
         end
     end
-    
-    %% Set-up / rule manipulation etc.
+%% Dependent variables
+    methods
+        function val = get.EffectiveOperatorCount(obj)            
+            if obj.IsHermitian
+                val = obj.OperatorCount;
+            else
+                val = 2 * obj.OperatorCount;
+            end
+        end
+    end
+
+%% Set-up / rule manipulation etc.
     methods
         function success = Complete(obj, attempts, verbose)
         % COMPLETE Attempt to complete the set of rules.
+        %
         % Completion is attempted according to a Knuth-Bendix algorithm,
         % such that new rules are introduced until either the ruleset is
         % confluent (i.e. the order of application of rules will not
@@ -100,7 +117,7 @@ classdef AlgebraicScenario < Abstract.Scenario
         
     end
     
-    %% Bind algebraic expressions to MATLAB objects
+%% Bind algebraic expressions to MATLAB objects
     methods
         function item = get(obj, operators)
         % GET Return a monomial object associated with an operator string.
@@ -188,7 +205,7 @@ classdef AlgebraicScenario < Abstract.Scenario
         end
     end
     
-    %% Virtual methods
+%% Virtual methods
     methods(Access=protected)
         function onNewMomentMatrix(obj, mm)
         % ONNEWMOMENTMATRIX Called after a moment matrix has been created.

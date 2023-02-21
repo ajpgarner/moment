@@ -152,7 +152,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             end
         end
         
-        % Substraction
+        % Subtraction
         function val = minus(lhs, rhs)
             arguments
                 lhs (1,1)
@@ -160,6 +160,15 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             end
             
             val = lhs + -rhs;            
+        end
+        
+        % Complex conjugation
+        function val = ctranspose(obj)
+            new_constituents = Algebraic.Monomial.empty(1,0);
+            for c = obj.Constituents
+                new_constituents(end+1) = c';
+            end
+            val = Algebraic.Polynomial(obj.Scenario, new_constituents);
         end
     end
     

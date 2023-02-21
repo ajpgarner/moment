@@ -508,5 +508,51 @@ classdef AlgebraicTest < MTKTestBase
             testCase.verifyEqual(xz.Coefficient, xz_direct.Coefficient);
         end
     end
+
+    %% Complex conjugation (ctranspose)
+    methods(Test)
+        function ctranspose_id(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.id();
+            ct_x = x';
+            testCase.assertTrue(isa(ct_x, 'Algebraic.Monomial'));
+            testCase.verifyEqual(ct_x.Operators, uint64.empty(1,0));
+            testCase.verifyEqual(ct_x.Coefficient, 1);
+        end  
+        
+        function ctranspose_mono_hermitian(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.get([1 2 2]);
+            ct_x = x';
+            testCase.assertTrue(isa(ct_x, 'Algebraic.Monomial'));
+            testCase.verifyEqual(ct_x.Operators, uint64([2 2 1]));
+            testCase.verifyEqual(ct_x.Coefficient, x.Coefficient);
+        end  
+        
+        function ctranspose_mono_nonhermitian(testCase)
+            setting = AlgebraicScenario(2, {}, false);
+            x = setting.get([1 2 2]);
+            ct_x = x';
+            testCase.assertTrue(isa(ct_x, 'Algebraic.Monomial'));
+            testCase.verifyEqual(ct_x.Operators, uint64([4 4 3]));
+            testCase.verifyEqual(ct_x.Coefficient, x.Coefficient);
+        end  
+        
+       function ctranspose_poly_hermitian(testCase)
+            setting = AlgebraicScenario(2, {}, false);
+            x = setting.get([1 2]);
+            y = setting.get([2]);
+            x_plus_y = x + y;            
+            ct = x_plus_y';
+            testCase.assertTrue(isa(ct, 'Algebraic.Polynomial'));
+            testCase.assertEqual(length(ct.Constituents), 2);
+            yc = ct.Constituents(1);
+            yc_xc = ct.Constituents(2);            
+            testCase.verifyEqual(yc.Operators, uint64([4]));
+            testCase.verifyEqual(yc_xc.Operators, uint64([4 3]));
+            
+        end  
+    end
+    
 end
 

@@ -1,12 +1,14 @@
 classdef RuleBook < handle
-    %RULEBOOK Collection of algebraic rules
+    %RULEBOOK Collection of algebraic rules.
+    %
+    % See also: AlgebraicScenario, Algebraic.Rule
    
     properties(GetAccess = public, SetAccess = protected)
-        MaxOperators = uint64(0);
-        Rules = Algebraic.Rule.empty(1,0)
-        Hermitian = true;
-        Normal = true;
-        IsComplete;
+        MaxOperators = uint64(0); % The number of operators in the system.
+        Rules = Algebraic.Rule.empty(1,0) % The rewrite rules.
+        Hermitian = true;   % True if fundamental operators are Hermitian.
+        Normal = true;      % True if fundamental operators are Normal.
+        IsComplete;         % True if the ruleset is confluent.
     end
     
     properties(Access = private)
@@ -33,6 +35,18 @@ classdef RuleBook < handle
     methods
         function obj = RuleBook(initialRules, max_ops, ....
                                 is_hermitian, is_normal)
+        % RULEBOOK Constructs a list of rewrite rules.
+        %
+        % PARAMS:
+        %  initial_rules - Algebraic rewrite rules. Can be given as either 
+        %                  a cell array, an array of Algebraic.Rule or 
+        %                  another Algebraic.RuleBook object.
+        %  max_ops - The highest number of operators in the scenario. Set
+        %            to 0 to use the highest number found in initial_rules.
+        %  is_hermitian - True if fundamental operators are Hermitian.
+        %  is_normal - True if fundamental operators are normal.
+        %
+        % See also: ALGEBRAIC.RULE
             arguments
                 initialRules (1,:)
                 max_ops (1,1) uint64 = 0
@@ -77,7 +91,27 @@ classdef RuleBook < handle
     
     %% Add rules
     methods
-        function AddRule(obj, new_rule, new_rule_rhs)            
+        function AddRule(obj, new_rule, new_rule_rhs)
+        % ADDRULE Add a rule to the rule book.
+        % 
+        % SYNTAX
+        %   1. rb.AddRule(rule)
+        %   2. rb.AddRule(lhs, rhs)
+        %
+        % PARAMS (Syntax 1)
+        %   new_rule - An object of type Algebraic.Rule, defining the rule
+        %              or a cell array with two elements, the first
+        %              defining the left-hand-side of the rule (pattern),
+        %              the second the right-hand-side (replacement).
+        %
+        % PARAMS (Syntax 2)
+        %   new_rule     - An array defining the operator string to match. 
+        %   new_rule_rhs - An array defining the operator sequence to 
+        %                  replace new_rule with.
+        %
+        % See also: AlgebraicScenario, Algebraic.Rule
+        %
+            
             % Complain if locked
             obj.errorIfLocked();
             
@@ -108,6 +142,17 @@ classdef RuleBook < handle
     %% Completion
     methods
         function success = Complete(obj, max_iterations, verbose)
+        % COMPLETE Attempt to complete the set of rules.
+        %
+        % See description in AlgebraicScenario.Complete
+        %
+        % PARAMS:
+        %   max_iterators - The maximum number of new rules to introduce 
+        %                   before giving up
+        %   verbose - Set to true to output a log of rules introduced and
+        %             reduced.
+        %
+        % See also: ALGEBRAICSCENARIO.COMPLETE
             arguments
                 obj (1,1) Algebraic.RuleBook
                 max_iterations (1,1) uint64
@@ -164,6 +209,9 @@ classdef RuleBook < handle
     %% Import/Export cell array
     methods
         function ImportCellArray(obj, input)
+        % IMPORTCELLARRAY Converts cell array into array of Algebraic.Rule objects.
+        %
+        %
             arguments
                 obj (1,1) Algebraic.RuleBook
                 input cell
@@ -197,6 +245,9 @@ classdef RuleBook < handle
         end
         
         function val = ExportCellArray(obj)
+        % EXPORTCELLARRAY Produces cell array describing rules of rulebook.
+        %
+        %
             val = cell(1, length(obj.Rules));
             for index = 1:length(obj.Rules)
                 if obj.Rules(index).Negated

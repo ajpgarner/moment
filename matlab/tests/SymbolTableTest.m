@@ -1,5 +1,6 @@
 classdef SymbolTableTest < MTKTestBase
-    
+%SYMBOLTABLETESTS Unit tests for symbol_table mex function    
+
     methods(Access=protected)
         function verifyUpToPermutation(testCase, actual, expected)
             expected = [struct('operators', {"0", "1"}, ...
@@ -36,9 +37,7 @@ classdef SymbolTableTest < MTKTestBase
             testCase.verifyEqual(im_symbs, uint64(1:exp_im_count));
         end
     end
-    
-    
-    %SYMBOLTABLETESTS Unit tests for symbol_table mex function
+
     methods (Test)
         function FullTable(testCase)
             ref_id = mtk('new_locality_matrix_system', 2, 2, 2);

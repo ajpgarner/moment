@@ -28,6 +28,7 @@ namespace Moment::mex::functions {
         ApplyValues,
         CollinsGisin,
         Complete,
+        Conjugate,
         ExtendedMatrix,
         GenerateBasis,
         ImportMatrix,

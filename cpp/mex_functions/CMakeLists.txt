@@ -16,6 +16,7 @@ matlab_add_mex(NAME moment_mex
             export/export_implicit_symbols.cpp
             export/export_matrix_basis_masks.cpp
             export/export_monomial_rules.cpp
+            export/export_operator_sequence.cpp
             export/export_sequence_matrix.cpp
             export/export_substitution_list.cpp
             export/export_symbol_matrix.cpp
@@ -54,6 +55,7 @@ matlab_add_mex(NAME moment_mex
             functions/settings.cpp
             functions/suggest_extensions.cpp
             functions/symbol_table.cpp
+        functions/conjugate.cpp
             functions/version.cpp
         OUTPUT_NAME mtk
         MODULE
