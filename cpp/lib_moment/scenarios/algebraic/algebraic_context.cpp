@@ -6,6 +6,8 @@
  */
 #include "algebraic_context.h"
 
+#include "name_table.h"
+
 #include "scenarios/operator_sequence.h"
 
 #include <algorithm>
@@ -13,13 +15,21 @@
 
 namespace Moment::Algebraic {
 
-    AlgebraicContext::AlgebraicContext(const size_t operator_count, const bool hermitian,
+    AlgebraicContext::AlgebraicContext(size_t operator_count, bool self_adjoint, bool commutative, bool normal,
+                                       const std::vector<MonomialSubstitutionRule>& rules)
+        : AlgebraicContext{std::make_unique<NameTable>(operator_count), self_adjoint, commutative, normal, rules} {
+    }
+
+
+    AlgebraicContext::AlgebraicContext(std::unique_ptr<NameTable> names, const bool hermitian,
                                        const bool commute, const bool normal,
                                        const std::vector<MonomialSubstitutionRule>& initial_rules)
-        : Context{hermitian ? operator_count : 2 * operator_count},
-          precontext{static_cast<oper_name_t>(operator_count), hermitian},
+        : Context{hermitian ? names->operator_count : 2 * names->operator_count},
+          precontext{static_cast<oper_name_t>(names->operator_count), hermitian},
           self_adjoint{hermitian}, commutative{commute},
-          rules{precontext, initial_rules} {
+          rules{precontext, initial_rules}, op_names{std::move(names)} {
+
+        // Make rules
         if (this->commutative) {
             auto extra_rules = RuleBook::commutator_rules(this->precontext);
             this->rules.add_rules(extra_rules);
@@ -83,7 +93,7 @@ namespace Moment::Algebraic {
             if (done_one) {
                 ss << ", ";
             }
-            ss << "X" << index;
+            ss << (*this->op_names)[index];
             done_one = true;
         }
         ss << "\n";
@@ -118,5 +128,37 @@ namespace Moment::Algebraic {
         }
 
         return OperatorSequence(this->precontext.conjugate(seq.raw()), *this);
+    }
+
+    std::string AlgebraicContext::format_sequence(const OperatorSequence &seq) const {
+        if (seq.zero()) {
+            return "0";
+        }
+        if (seq.empty()) {
+            return "1";
+        }
+
+        std::stringstream ss;
+
+        if (seq.negated()) {
+            ss << "-";
+        }
+
+        if (this->op_names->all_single()) {
+            for (const auto &oper: seq) {
+                ss << (*this->op_names)[oper];
+            }
+        } else {
+            bool done_once = false;
+            for (const auto &oper: seq) {
+                if (done_once) {
+                    ss << ";";
+                } else {
+                    done_once = true;
+                }
+                ss << (*this->op_names)[oper];
+            }
+        }
+        return ss.str();
     }
 }

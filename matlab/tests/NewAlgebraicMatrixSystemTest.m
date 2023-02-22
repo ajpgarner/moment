@@ -88,10 +88,19 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         function Error_BadOpCount2(testCase)
             function no_in()
                 ref_id = mtk('new_algebraic_matrix_system', ...
-                    "Unreadable", {{[1 1], 1}});
+                    "", {{[1 1], 1}});
             end
-            testCase.verifyError(@() no_in(), 'mtk:could_not_convert');
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
+        
+       function Error_DuplicateName(testCase)
+            function no_in()
+                ref_id = mtk('new_algebraic_matrix_system', ...
+                    ["x", "x"], {{[1 1], 1}});
+            end
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
+        end
+        
         
         function Error_BadRule1(testCase)
             function no_in()

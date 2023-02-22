@@ -22,6 +22,8 @@
 
 namespace Moment::Algebraic {
 
+    class NameTable;
+
     namespace errors {
         class bad_substitution : public std::logic_error {
         public:
@@ -44,7 +46,13 @@ namespace Moment::Algebraic {
         /** Monomial substitution rules */
         RuleBook rules;
 
+        /** Names */
+        std::unique_ptr<NameTable> op_names;
+
     public:
+        AlgebraicContext(std::unique_ptr<NameTable> names, bool self_adjoint, bool commutative, bool normal,
+                         const std::vector<MonomialSubstitutionRule>& rules);
+
         AlgebraicContext(size_t operator_count, bool self_adjoint, bool commutative, bool normal,
                          const std::vector<MonomialSubstitutionRule>& rules);
 
@@ -83,6 +91,8 @@ namespace Moment::Algebraic {
          * @return The conjugated sequence.
          */
         [[nodiscard]] OperatorSequence conjugate(const OperatorSequence &seq) const final;
+
+        [[nodiscard]] std::string format_sequence(const OperatorSequence &seq) const override;
 
         /**
          * Access rule information

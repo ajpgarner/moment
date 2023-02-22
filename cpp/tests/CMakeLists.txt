@@ -12,6 +12,7 @@ add_executable(moment_tests
     scenarios/implicit_symbol_test_helpers.cpp
     scenarios/algebraic/algebraic_context_tests.cpp
     scenarios/algebraic/monomial_substitution_rule_tests.cpp
+    scenarios/algebraic/name_table_tests.cpp
     scenarios/algebraic/rule_book_tests.cpp
     scenarios/imported/imported_matrix_system_tests.cpp
     scenarios/inflation/canonical_observables_tests.cpp

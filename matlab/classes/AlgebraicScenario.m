@@ -21,6 +21,7 @@ classdef AlgebraicScenario < Abstract.Scenario
         IsHermitian   % True if fundamental operators are Hermitian.
         IsNormal      % True if fundamental operators are Normal.
         RuleBook      % Manages substitution rules for operator strings.
+        OperatorNames % Names of the fundamental operators.
     end
     
     properties(Dependent, GetAccess = public)
@@ -30,18 +31,19 @@ classdef AlgebraicScenario < Abstract.Scenario
     
 %% Constructor
     methods
-        function obj = AlgebraicScenario(op_count, rules, ...
+        function obj = AlgebraicScenario(operators, rules, ...
                 is_hermitian, is_normal)
             % Creates an algebraic scenario.
             %
             % PARAMS:
-            %  op_count - The number of fundamental operators.
+            %  operators - The number of fundamental operators, or an array
+            %              of names of operators to define.
             %  rules - Cell array of rewrite rules on strings of operators.
             %  is_hermitian - True if fundamental operators are Hermitian.
             %  is_normal - True if fundamental operators are normal.
             %
             arguments
-                op_count (1,1) uint64
+                operators (1,:)
                 rules (1,:) cell = cell(1,0)
                 is_hermitian (1,1) logical = true
                 is_normal (1,1) logical = is_hermitian
@@ -54,7 +56,20 @@ classdef AlgebraicScenario < Abstract.Scenario
             % Call superclass c'tor
             obj = obj@Abstract.Scenario();
             
-            obj.OperatorCount = uint64(op_count);
+            if isnumeric(operators) && isscalar(operators)
+                obj.OperatorNames = string.empty(1,0);
+                obj.OperatorCount = uint64(operators);
+            elseif isstring(operators)
+                obj.OperatorNames = reshape(operators, 1, []);
+                obj.OperatorCount = uint64(length(obj.OperatorNames));                  
+            elseif ischar(operators)
+                obj.OperatorNames = reshape(string(operators(:)), 1, []);
+                obj.OperatorCount = uint64(length(obj.OperatorNames));                
+            else
+                error("Input 'operators' must be set either to the "...
+                      +"number of desired operators, or an array of "...
+                      +"operator names.");
+            end
             
             % Default to normal, except if non-Hermitian
             if is_hermitian && ~is_normal
@@ -184,20 +199,25 @@ classdef AlgebraicScenario < Abstract.Scenario
             arguments
                 obj (1,1) AlgebraicScenario
             end
-            extra_args = cell(1,0);
-            if obj.IsHermitian
-                extra_args{end+1} = 'hermitian';
+            nams_args = cell(1,0);
+            if isempty(obj.OperatorNames)
+                nams_args{end+1} = obj.OperatorCount;
             else
-                extra_args{end+1} = 'nonhermitian';
+                nams_args{end+1} = obj.OperatorNames;
+            end
+            
+            if obj.IsHermitian
+                nams_args{end+1} = 'hermitian';
+            else
+                nams_args{end+1} = 'nonhermitian';
                 if obj.IsNormal
-                    extra_args{end+1} = 'normal';
+                    nams_args{end+1} = 'normal';
                 end
             end
             
             % Call for matrix system
             ref_id = mtk('new_algebraic_matrix_system', ...
-                extra_args{:}, ...
-                obj.OperatorCount, ...
+                nams_args{:}, ...
                 obj.RuleBook.ExportCellArray());
             
             % No further changes to rules allowed...

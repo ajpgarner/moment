@@ -8,6 +8,7 @@
 
 #include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/algebraic/algebraic_matrix_system.h"
+#include "scenarios/algebraic/name_table.h"
 #include "scenarios/algebraic/ostream_rule_logger.h"
 
 #include "storage_manager.h"
@@ -21,6 +22,20 @@ namespace Moment::mex::functions {
 
         std::unique_ptr<Algebraic::AlgebraicContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                        NewAlgebraicMatrixSystemParams& input) {
+
+            // First, create name table (or error trying)
+            std::unique_ptr<Algebraic::NameTable> name_table;
+            if (input.names.empty()) {
+                name_table = std::make_unique<Algebraic::NameTable>(input.total_operators);
+            } else {
+                try {
+                    name_table = std::make_unique<Algebraic::NameTable>(std::move(input.names));
+                }
+                catch (const std::invalid_argument& iae) {
+                    throw_error(matlabEngine, errors::bad_param, iae.what());
+                }
+            }
+
             std::vector<Algebraic::MonomialSubstitutionRule> rules;
             Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(input.total_operators),
                                                input.hermitian_operators};
@@ -52,11 +67,10 @@ namespace Moment::mex::functions {
                 ++rule_index;
             }
 
-            return std::make_unique<Algebraic::AlgebraicContext>(input.total_operators,
-                                                      input.hermitian_operators,
-                                                      input.commutative, input.normal_operators,
-                                                      rules);
-
+            return std::make_unique<Algebraic::AlgebraicContext>(std::move(name_table),
+                                                                 input.hermitian_operators,
+                                                                 input.commutative, input.normal_operators,
+                                                                 rules);
         }
     }
 
@@ -140,6 +154,32 @@ namespace Moment::mex::functions {
     void NewAlgebraicMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
                                                                   matlab::data::Array &input,
                                                                   const std::string& paramName) {
+        // Is operator argument a single string?
+        if (input.getType() == matlab::data::ArrayType::CHAR) {
+            auto name_char_array = static_cast<matlab::data::CharArray>(input);
+            auto name_str = name_char_array.toAscii();
+            this->names.reserve(name_str.size());
+            for (auto x : name_str) {
+                this->names.emplace_back(1, x);
+            }
+            this->total_operators = this->names.size();
+            return;
+        }
+
+        // Is operator argument an array of strings?
+        if (input.getType() == matlab::data::ArrayType::MATLAB_STRING) {
+            auto mls_array = static_cast<matlab::data::TypedArray<matlab::data::MATLABString>>(input);
+            this->names.reserve(mls_array.getNumberOfElements());
+            for (auto elem : mls_array) {
+                if (elem.has_value()) {
+                    this->names.emplace_back(static_cast<std::string>(elem));
+                }
+            }
+            this->total_operators = this->names.size();
+            return;
+        }
+
+        // Otherwise, assume operator argument is a number.
         this->total_operators = read_positive_integer<size_t>(matlabEngine, paramName, input, 1);
     }
 

@@ -22,6 +22,9 @@ namespace Moment::mex::functions {
 
             std::vector<RawMonomialRule> rules{};
 
+            std::vector<std::string> names{};
+
+
         explicit NewAlgebraicMatrixSystemParams(SortedInputs &&rawInput);
 
     private:
