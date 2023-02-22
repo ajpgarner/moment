@@ -93,6 +93,7 @@ namespace Moment::Algebraic {
             if (done_one) {
                 ss << ", ";
             }
+
             ss << (*this->op_names)[index];
             done_one = true;
         }
@@ -146,7 +147,11 @@ namespace Moment::Algebraic {
 
         if (this->op_names->all_single()) {
             for (const auto &oper: seq) {
-                ss << (*this->op_names)[oper];
+                if (!this->self_adjoint && (oper > this->operator_count/2)) {
+                    ss << (*this->op_names)[oper - this->operator_count/2] << "*";
+                } else {
+                    ss << (*this->op_names)[oper];
+                }
             }
         } else {
             bool done_once = false;
@@ -156,7 +161,11 @@ namespace Moment::Algebraic {
                 } else {
                     done_once = true;
                 }
-                ss << (*this->op_names)[oper];
+                if (!this->self_adjoint && (oper > this->operator_count/2)) {
+                    ss << (*this->op_names)[oper - this->operator_count/2] << "*";
+                } else {
+                    ss << (*this->op_names)[oper];
+                }
             }
         }
         return ss.str();

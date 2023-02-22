@@ -5,7 +5,7 @@ m=8;
 chsh = 0.80;
 value_ch = 2*chsh-1.5;
 
-[w t] = gauss_radau(m);
+[w, t] = gauss_radau(m);
 
 
 key = (-1/m^2 + sum(w./t))/log(2);
@@ -71,7 +71,7 @@ yalmip('clear');
 end
 
 
-function [w t] = gauss_radau(m)
+function [w, t] = gauss_radau(m)
 
 J = zeros(m,m);
 for n=1:m-1

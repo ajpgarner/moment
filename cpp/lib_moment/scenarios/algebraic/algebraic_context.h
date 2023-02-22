@@ -92,7 +92,7 @@ namespace Moment::Algebraic {
          */
         [[nodiscard]] OperatorSequence conjugate(const OperatorSequence &seq) const final;
 
-        [[nodiscard]] std::string format_sequence(const OperatorSequence &seq) const override;
+        [[nodiscard]]  std::string format_sequence(const OperatorSequence &seq) const override;
 
         /**
          * Access rule information
