@@ -48,6 +48,20 @@ classdef Monomial < Abstract.ComplexObject
     %% Localizing matrix...
     methods
         function val = LocalizingMatrix(obj, level)
+        % LOCALIZINGMATRIX Create a localizing matrix for this expression.
+        %
+        % PARAMS
+        %   level - The level of matrix to generate. 
+        %           Set to 0 for a 1x1 matrix containing just the monomial 
+        %           expression.
+        %
+        % RETURNS
+        %   A new OpMatrix.CompositeOperatorMatrix object, containing the
+        %   localizing matrix associated with this monomial.
+        %
+        % See also: OpMatrix.CompositeOperatorMatrix,
+        %           OpMatrix.LocalizingMatrix
+        %
             arguments
                 obj (1,1) Algebraic.Monomial
                 level (1,1) uint64
@@ -57,6 +71,23 @@ classdef Monomial < Abstract.ComplexObject
         end
         
         function val = RawLocalizingMatrix(obj, level)
+        % RAWLOCALIZINGMATRIX Create a normalized localizing matrix for this expression.
+        %
+        % The created matrix ignores the coefficient associated with the
+        % monomial (i.e. just creating a LM for the operator 'word'). To 
+        % construct the full localizing matrix taking into account the
+        % co-efficient, use Monomial.LocalizingMatrix instead.
+        %
+        % PARAMS
+        %   level - The level of matrix to generate. 
+        %           Set to 0 for a 1x1 matrix containing just the monomial 
+        %           expression.
+        %
+        % RETURNS
+        %   A new OpMatrix.LocalizingMatrix object.
+        %
+        % See also: Monomial.LocalizingMatrix, OpMatrix.LocalizingMatrix
+        %
             arguments
                 obj (1,1) Algebraic.Monomial
                 level (1,1) uint64
@@ -100,7 +131,32 @@ classdef Monomial < Abstract.ComplexObject
     %% Equality
     methods
         function val = eq(lhs, rhs)
-            % EQ Compare LHS and RHS for value-wise equality.
+        % EQ Compare LHS and RHS for value-wise equality.
+        %
+        % SYNTAX
+        %   1. result = mono_A == mono_B
+        %   2. result = mono == double
+        %   3. result = double == mono
+        %
+        % RETURNS
+        %   True if objects are functionally the same, false otherwise.
+        %
+        % Syntax 1 will throw an exception if objects are not part of the
+        % same scenario.
+        %
+        % For syntax 1, it is sufficient for equality that the monomials 
+        % have the same coefficient and operator strings.
+        %
+        % For syntaxes 2 and 3, truth requires either the operator string 
+        % of mono to be empty and the coefficient to match the double; or 
+        % for the double to be zero and the monomial's coefficient to also 
+        % be zero.
+        %
+        % Due to class precedence, "mono == poly" and "poly == mono" are 
+        % handled by Algebraic.Polynomial.eq.
+        %
+        % See also: ALGEBRAIC.POLYNOMIAL.EQ
+        %
             
             % Trivially equal if same object
             if eq@handle(lhs, rhs)
@@ -108,20 +164,13 @@ classdef Monomial < Abstract.ComplexObject
                 return;
             end
             
-            tol = 2*eps(1.0);
-            
+            tol = 2*eps(1.0);            
             if isa(lhs, 'Algebraic.Monomial')
                 this = lhs;
                 other = rhs;
             else
                 this = rhs;
                 other = lhs;
-            end
-            
-            % Compare vs. a polynomial: use Algebraic.Polynomial
-            if isa(other, 'Algebraic.Polynomial')
-                val = other.eq(lhs);
-                return;
             end
             
             % Compare vs. another monomial
@@ -171,27 +220,59 @@ classdef Monomial < Abstract.ComplexObject
         end
         
         function val = ne(lhs, rhs)
-            % NEQ Compare LHS and RHS for value-wise inequality.
+        % NE Compare LHS and RHS for value-wise inequality.
+        % Logical negation of eq(lhs, rhs)
+        %
+        % See also: MONOMIAL.EQ
+        %
             val = ~eq(lhs, rhs);
         end
     end
     
     %% Algebraic manipulation
     methods
-        
         function val = uplus(obj)
-            % UPLUS Unary plus (do nothing).
+        % UPLUS Unary plus (do nothing).
+        %
+        % SYNTAX
+        %   v = +mono
+        %
+        % RETURNS
+        %   The same monomial object.
+        %
             val = obj;
         end
         
         function val = uminus(this)
-            % UMINUS Unary minus - invert coefficient sign.
+        % UMINUS Unary minus; inverts coefficient sign.
+        %
+        % SYNTAX
+        %   v = -mono
+        %
+        % RETURNS
+        %   A new Algebraic.Monomial, with the coefficient negated.
+        %
             val = Algebraic.Monomial(this.Scenario, this.Operators, ...
                 double(-this.Coefficient));
         end
         
         function val = mtimes(lhs, rhs)
-            % MTIMES Multiplication
+        % MTIMES Multiplication.
+        %
+        % SYNTAX
+        %   1. v = monomial * double
+        %   2. v = double * monomial
+        %   3. v = monomial * monomial
+        %
+        % RETURNS
+        %   A new Algebraic.Monomoial with appropriate coefficients and
+        %   operators; except when double = 0, then 0.
+        %
+        % Due to class precedence, poly * mono and mono * poly cases are 
+        % handled by Algebraic.Polynomial.mtimes.
+        %
+        % See also: ALGEBRAIC.POLYNOMIAL.MTIMES.
+        %
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -215,6 +296,12 @@ classdef Monomial < Abstract.ComplexObject
                     error("_*_ only supported for scalar multiplication.");
                 end
                 
+                if abs(other) < eps(1)
+                    val = 0;
+                    return;
+                end
+                
+                
                 val = Algebraic.Monomial(this.Scenario, this.Operators, ...
                     double(this.Coefficient * other));
             elseif isa(other, 'Algebraic.Monomial') % mono * mono = mono
@@ -228,7 +315,31 @@ classdef Monomial < Abstract.ComplexObject
         end
         
         function val = plus(lhs, rhs)
-            % PLUS Addition
+        % PLUS Addition.
+        %
+        % SYNTAX:
+        %   1. val = mono + double
+        %   2. val = double + mono
+        %   3. val = mono_A + mono_B
+        %
+        % RETURNS (Syntax 1,2)
+        %   0 if monomial is proportional to identity with coefficient of
+        %   -double. Algebraic.Monomial, if monomial is proportional to 
+        %   identity but not equal to double. Algebraic.Polynomial with two 
+        %   terms otherwise.
+        %
+        % RETURNS (Suntax 3)
+        %   Algebraic.Monomial if operator string in two monomials matches,
+        %   and the coefficients are not negations of each other. 0 if the
+        %   operator string of the two monomials matches, and the
+        %   coefficients negate each other. Algebraic.Polynomial with two 
+        %   terms otherwise.
+        %   
+        % Due to class precedence, "poly + mono" and "mono + poly" cases 
+        % are handled by Algebraic.Polynomial.plus.
+        %
+        % See also: ALGEBRAIC.POLYNOMIAL.PLUS
+        %
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -261,16 +372,25 @@ classdef Monomial < Abstract.ComplexObject
                 other = rhs;
             end
             
-            % Promote to polynomial
+            % Quick pass through for "+0" case
+            if Util.is_scalar_zero(other)
+                val = this;
+                return;
+            end
+            
+            % Otherwise, promote to polynomial to handle.
             this = Algebraic.Polynomial(this.Scenario, [this]);
             
-            % Add (commutes, so ordering does not matter)
+            % Add commutes, so ordering does not matter.
             val = this.plus(other);
         end
         
         
         function val = minus(lhs, rhs)
-            % MINUS Subtraction
+        % MINUS Subtraction, defined as addition of lhs with -rhs.
+        %
+        % See also: ALGEBRAIC.MONOMIAL.PLUS, ALGEBRAIC.MONOMIAL.UMINUS
+        %
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -280,7 +400,7 @@ classdef Monomial < Abstract.ComplexObject
         end
         
         function val = ctranspose(obj)
-            % CTRANSPOSE Complex conjugation
+        % CTRANSPOSE Complex conjugation.
             conj_ops = mtk('conjugate', ...
                 obj.Scenario.System.RefId, ...
                 obj.Operators);
@@ -293,6 +413,7 @@ classdef Monomial < Abstract.ComplexObject
     %% Virtual methods
     methods(Access=protected)
         function success = calculateCoefficients(obj)
+            
             % Early exit if we can't get symbol information...
             obj_id = obj.SymbolId;
             if obj_id < 0
@@ -328,6 +449,7 @@ classdef Monomial < Abstract.ComplexObject
     %% Internal methods
     methods (Access=private)
         function loadSymbolInfoOrError(obj)
+            
             % Cached value?
             if obj.symbol_id == -1
                 obj.loadSymbolInfo();

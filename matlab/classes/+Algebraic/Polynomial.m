@@ -35,9 +35,22 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         end
     end
     
-    %% Localizing matrix...
+    %% Localizing matrix
     methods
         function val = LocalizingMatrix(obj, level)
+        % LOCALIZINGMATRIX Create a localizing matrix for this expression.
+        %
+        % PARAMS
+        %   level - The level of matrix to generate. 
+        %
+        % RETURNS
+        %   A new OpMatrix.CompositeOperatorMatrix object, containing one
+        %   OpMatrix.LocalizingMatrix for each constituent term of the
+        %   monomial, weighted by the appropriate co-efficient.
+        %
+        % See also: OpMatrix.CompositeOperatorMatrix,
+        %           OpMatrix.LocalizingMatrix
+        %
             arguments
                 obj (1,1) Algebraic.Polynomial
                 level (1,1) uint64
@@ -58,6 +71,31 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
     methods
         function val = eq(lhs, rhs)
         % EQ Compare LHS and RHS for value-wise equality.
+        %
+        % SYNTAX:
+        %   1. result = poly == double
+        %   2. result = double == poly
+        %   3. result = poly == mono
+        %   4. result = mono == poly
+        %   5. result = poly == poly
+        %
+        % RETURNS
+        %   True, if objects are functionally the same, false otherwise.
+        %
+        % Syntaxes 3, 4 and 5 will error if objects do not share the same
+        % setting.
+        %        
+        % For syntaxes 1 and 2, truth requires either the polynomial have 
+        % one constituent, and this to be equal to the double (see
+        % Algebraic.Monomial.EQ), or for the polynomial to be zero as a
+        % whole, and the double to also be zero.
+        %
+        % For syntaxes 3 and 4, truth requires the polynomial contain only 
+        % one constituent, and that this is equal to the monomial.
+        %
+        % For syntax 5, truth requires that the two polynomials contain the
+        % same number of terms, and these terms are all equivalent.
+        %
             
             % Trivially equal if same object
             if eq@handle(lhs, rhs)
@@ -132,7 +170,11 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         end 
         
         function val = ne(lhs, rhs)
-            % NEQ Compare LHS and RHS for value-wise inequality.
+        % NE Compare LHS and RHS for value-wise inequality.
+        % Logical negation of eq(lhs, rhs)
+        %
+        % See also: POLYNOMIAL.EQ
+        %
             val = ~eq(lhs, rhs);
         end
   
@@ -141,7 +183,21 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
     %% Sums and multiplication
     methods        
         function val = mtimes(lhs, rhs)
-        % MTIMES Multiplication
+       % MTIMES Multiplication.
+       %
+       % SYNTAX
+       %   1. v = polynomial * double
+       %   2. v = double * polynomial 
+       %   3. v = polynomial * monomial
+       %   4. v = monomial * polynomial 
+       %   5. v = polynomial_A * polynomial_B
+       %
+       % RETURNS
+       %   A new Algebraic.Polynomial with appropriate coefficients and
+       %   operators.
+       %
+       % See also: Monomial.mtimes
+       %
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -199,7 +255,23 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         end
         
         function val = plus(lhs, rhs)
-        % PLUS Addition
+        % PLUS Addition.
+        %
+        % SYNTAX:
+        %   1. val = poly + double
+        %   2. val = double + poly
+        %   3. val = mono + poly
+        %   4. val = poly + mono
+        %   5. val = poly + poly
+        %
+        % RETURNS 
+        %   Either 0, an Algebraic.Monomial, or Algebraic.Polynomial.
+        %   Numeric 0 is returned if all terms cancel out after addition.
+        %   Algebraic.Monomial is returned if all but one term cancels out.
+        %   Otherwise, Algebraic.Polynomial is returned.
+        %
+        % See also: ALGEBRAIC.MONOMIAL.PLUS
+        %
             arguments
                 lhs (1,1)
                 rhs (1,1)
@@ -216,7 +288,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             
             % Is other side built-in numeric; if so, cast to monomial
             if isnumeric(other)
-                if length(other) ~= 1
+                if ~isscalar(other)
                     error("_+_ only supported for scalar addition.");
                 end
                 
@@ -225,7 +297,6 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                     val = +this;
                     return
                 end
-                
                 
                 other = Algebraic.Monomial(this.Scenario, [], double(other));
             elseif ~isa(other, 'Algebraic.Monomial') && ...
@@ -244,26 +315,17 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 components = horzcat(this.Constituents, other);
                 val = Algebraic.Polynomial(this.Scenario, components);
             elseif isa(other, 'Algebraic.Polynomial')
-                components = horzcat(this.Constituents, other.Constituents);
-                val = Algebraic.Polynomial(this.Scenario, components);
+                if ~other.IsZero
+                    components = horzcat(this.Constituents, other.Constituents);
+                    val = Algebraic.Polynomial(this.Scenario, components);
+                end
             else
                 error(['Assertion failed: ',...
                        'other should be Monomial or Polynomial.']);
             end
             
-            % Degrade to zero, if zero
-            if val.IsZero
-                val = 0;
-                return;
-            end
-            
-            % Degrade to monomial, if single element
-            if length(val.Constituents) == 1
-                val = val.Constituents(1);
-            end
-            
-
-            
+            % Degrade, as necessary
+            val = +val;
         end
         
         function val = uplus(obj)
@@ -272,6 +334,9 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         % If equal to zero, will degrade to numeric 0.
             if length(obj.Constituents) == 1
                 val = obj.Constituents(1);
+                if abs(val.Coefficient) < 2*eps
+                    val = 0;
+                end
             elseif obj.IsZero
                 val = 0;
             else
@@ -280,7 +345,9 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         end
         
         function val = uminus(obj)
-        % UMINUS Unary minus
+        % UMINUS Unary minus.
+        % Creates new polynomial, with all coefficients negated.
+        %
             new_constituents = Algebraic.Monomial.empty(1,0);
             for c = obj.Constituents
                 new_constituents(end+1) = -c;
@@ -289,7 +356,10 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         end
         
         function val = minus(lhs, rhs)
-        % MINUS Subtraction
+        % MINUS Subtraction. Equivalent to addition of lhs with -rhs.
+        %
+        % See also: ALGEBRAIC.POLYNOMIAL.PLUS, ALGEBRAIC.POLYNOMIAL.UMINUS.
+        %
             arguments
                 lhs (1,1)
                 rhs (1,1)
