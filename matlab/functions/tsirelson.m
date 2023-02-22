@@ -1,6 +1,6 @@
 function [objective] = tsirelson(M, desc, level, toolkit)
 % TSIRELSON Optimize a locality scenario to find the Tsirelson bound
-% - M is the object function, in Collins-Gisin form.
+% - M is the Bell functional, in Collins-Gisin form.
 % - If all parties have the same number of measurements with the same number of outcomes
 % desc is a vector of the form [parties, measurements, outcomes]
 % if each party's measurements have the same number of outcomes
