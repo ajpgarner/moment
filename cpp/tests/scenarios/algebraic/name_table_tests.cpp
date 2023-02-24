@@ -7,6 +7,7 @@
 
 #include "gtest/gtest.h"
 
+#include "scenarios/algebraic/algebraic_precontext.h"
 #include "scenarios/algebraic/name_table.h"
 
 #include <stdexcept>
@@ -108,5 +109,33 @@ namespace Moment::Tests {
         EXPECT_EQ(names[0], "X");
         EXPECT_EQ(names[1], "Y");
         EXPECT_EQ(names[2], "Z");
+    }
+
+    TEST(Scenarios_Algebraic_NameTable, Find_XYZ) {
+        AlgebraicPrecontext apc{3};
+        NameTable names{std::vector<std::string>{"X", "Y", "Z"}};
+
+        EXPECT_EQ(names.find(apc, "X"), 0);
+        EXPECT_EQ(names.find(apc, "Y"), 1);
+        EXPECT_EQ(names.find(apc, "Z"), 2);
+        EXPECT_EQ(names.find(apc, "X*"), 0);
+        EXPECT_EQ(names.find(apc, "Y*"), 1);
+        EXPECT_EQ(names.find(apc, "Z*"), 2);
+        EXPECT_THROW(names.find(apc, "A"), std::invalid_argument);
+    }
+
+    TEST(Scenarios_Algebraic_NameTable, Find_XYZ_NonHermitian) {
+        AlgebraicPrecontext apc{3, false};
+        NameTable names{std::vector<std::string>{"X", "Y", "Z"}};
+
+        EXPECT_EQ(names.find(apc, "X"), 0);
+        EXPECT_EQ(names.find(apc, "Y"), 1);
+        EXPECT_EQ(names.find(apc, "Z"), 2);
+        EXPECT_EQ(names.find(apc, "X*"), 3);
+        EXPECT_EQ(names.find(apc, "Y*"), 4);
+        EXPECT_EQ(names.find(apc, "Z*"), 5);
+        EXPECT_THROW(names.find(apc, "A"), std::invalid_argument);
+        EXPECT_THROW(names.find(apc, "A*"), std::invalid_argument);
+        EXPECT_THROW(names.find(apc, "X**"), std::invalid_argument);
     }
 }

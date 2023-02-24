@@ -6,13 +6,12 @@ classdef CompleteTest < MTKTestBase
     
     methods
         function check_completion_nh(testCase, ops, input, expected)
-            output = mtk('complete', 'nonhermitian', ...
-                         'operators', ops, input);
+            output = mtk('complete', 'nonhermitian', ops, input);
             testCase.verifyEqual(output, expected);
         end
         
-        function check_completion_h(testCase, input, expected)
-            output = mtk('complete', 'hermitian', input);
+        function check_completion_h(testCase, ops, input, expected)
+            output = mtk('complete', 'hermitian', ops, input);
             testCase.verifyEqual(output, expected);
         end
     end
@@ -51,9 +50,25 @@ classdef CompleteTest < MTKTestBase
             expected = {{uint64([2]), uint64([1])}, ...
                 {uint64([3]), uint64([1])}, ...
                 {uint64([1, 1]), uint64([1])}};
-            testCase.check_completion_h(input, expected);
+            testCase.check_completion_h(3, input, expected);
         end
         
+        function CharArray_Herm_ABtoA_BCtoB_CAtoA(testCase)
+            input = {{'ab', 'a'}, {'bc', 'b'}, {'ca', 'c'}};
+            expected = {{uint64([2]), uint64([1])}, ...
+                {uint64([3]), uint64([1])}, ...
+                {uint64([1, 1]), uint64([1])}};
+            testCase.check_completion_h('abc', input, expected);
+        end
+        
+        function StrArray_Herm_ABtoA_BCtoB_CAtoA(testCase)
+            input = {{["a", "b"], "a"}, {["b", "c"], "b"}, ...
+                     {["c", "a"], "c"}};
+            expected = {{uint64([2]), uint64([1])}, ...
+                {uint64([3]), uint64([1])}, ...
+                {uint64([1, 1]), uint64([1])}};
+            testCase.check_completion_h(["a", "b", "c"], input, expected);
+        end
         
         function NonHerm_InferHermitian(testCase)
             input = {{[1, 2], [1]}};
@@ -67,7 +82,7 @@ classdef CompleteTest < MTKTestBase
             expected = {{uint64([3 1]), uint64([1 3])}, ...
                         {uint64([4 2]), uint64([2 4])}};
             output = mtk('complete', 'nonhermitian', 'normal', ...
-                         'operators', 2, input_rules);
+                         2, input_rules);
             testCase.verifyEqual(output, expected);            
         end
     end
@@ -83,7 +98,7 @@ classdef CompleteTest < MTKTestBase
         function Error_HermNoherm(testCase)
             function no_in()
                 [~] = mtk('complete', 'hermitian', 'nonhermitian', ...
-                            {{[1],[]}});
+                            1, {{[1],[]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:mutex_param');
         end
@@ -91,42 +106,38 @@ classdef CompleteTest < MTKTestBase
         
         function Error_BadRule1(testCase)
             function no_in()
-                ref_id = mtk('complete', 'operators', 1, ...
-                    {{[1 1], [2]}});
+                ref_id = mtk('complete', 1, {{[1 1], [2]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
         
         function Error_BadRule2(testCase)
             function no_in()
-                ref_id = mtk('complete', ...
-                    {{[1], [1 1]}});
+                ref_id = mtk('complete', 1, {{[1], [1 1]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
         
         function Error_BadRule3(testCase)
             function no_in()
-                ref_id = mtk('complete', ...
-                    {{[1 1], [1 2]}});
+                ref_id = mtk('complete', 2, {{[1 1], [1 2]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
         
         function Error_BadRule4(testCase)
             function no_in()
-                ref_id = mtk('complete', ...
-                    {{[1 1]}});
+                ref_id = mtk('complete', 2, {{[1 1]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
         
         function Error_BadRule5(testCase)
             function no_in()
-                ref_id = mtk('complete', ...
+                ref_id = mtk('complete', 2, ...
                     {{[1 1], ["Not a number"]}});
             end
-            testCase.verifyError(@() no_in(), 'mtk:could_not_convert');
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
     end
     

@@ -78,7 +78,7 @@ classdef AlgebraicScenario < Abstract.Scenario
             
             obj.IsHermitian = logical(is_hermitian);
             obj.IsNormal = logical(is_normal);
-            obj.RuleBook = Algebraic.RuleBook(rules, obj.OperatorCount, ...
+            obj.RuleBook = Algebraic.RuleBook(operators, rules, ...
                                               is_hermitian, is_normal);
         end
     end

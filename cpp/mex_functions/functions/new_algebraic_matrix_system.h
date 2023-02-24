@@ -10,6 +10,13 @@
 #include "integer_types.h"
 #include "import/read_monomial_rules.h"
 
+#include <memory>
+#include <vector>
+
+namespace Moment::Algebraic {
+    class NameTable;
+}
+
 namespace Moment::mex::functions {
 
     class NewAlgebraicMatrixSystemParams : public SortedInputs {
@@ -22,10 +29,12 @@ namespace Moment::mex::functions {
 
             std::vector<RawMonomialRule> rules{};
 
-            std::vector<std::string> names{};
+            std::unique_ptr<Algebraic::NameTable> names;
 
+    public:
+            explicit NewAlgebraicMatrixSystemParams(SortedInputs &&rawInput);
 
-        explicit NewAlgebraicMatrixSystemParams(SortedInputs &&rawInput);
+            ~NewAlgebraicMatrixSystemParams();
 
     private:
         void getFromParams(matlab::engine::MATLABEngine &matlabEngine);

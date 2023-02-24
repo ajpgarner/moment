@@ -15,6 +15,10 @@
 
 namespace Moment {
     class ShortlexHasher;
+    namespace Algebraic {
+        class AlgebraicPrecontext;
+        class NameTable;
+    }
 }
 
 namespace Moment::mex {
@@ -38,7 +42,9 @@ namespace Moment::mex {
     std::vector<RawMonomialRule> read_monomial_rules(matlab::engine::MATLABEngine &matlabEngine,
                                                      matlab::data::Array& input, const std::string& paramName,
                                                      bool matlab_indices,
-                                                     uint64_t operator_bound = 0);
+                                                     const Algebraic::AlgebraicPrecontext& apc,
+                                                     const Algebraic::NameTable& names);
+
 
     void check_rule_length(matlab::engine::MATLABEngine &matlabEngine,
                            const ShortlexHasher& hasher, const std::vector<RawMonomialRule>& raw);

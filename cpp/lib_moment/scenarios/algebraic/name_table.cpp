@@ -6,6 +6,8 @@
  */
 #include "name_table.h"
 
+#include "algebraic_precontext.h"
+
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -14,7 +16,7 @@ namespace Moment::Algebraic {
 
     NameTable::NameTable(std::vector<std::string> &&input_names) :
         operator_count(input_names.size()), names{std::move(input_names)} {
-        size_t op_number = 0;
+        oper_name_t op_number = 0;
         this->all_single_char = true;
         for (const auto& name : this->names) {
             auto result = NameTable::validate_name(name);
@@ -34,6 +36,13 @@ namespace Moment::Algebraic {
                 this->all_single_char = false;
             }
             ++op_number;
+        }
+
+        // Add "*" variants to names vector.
+        this->names.reserve(2*this->names.size());
+        for (size_t strIndex = 0, index_max = this->names.size(); strIndex < index_max; ++strIndex) {
+            this->names.emplace_back(this->names[strIndex]);
+            this->names.back().append("*");
         }
     }
 
@@ -68,5 +77,34 @@ namespace Moment::Algebraic {
 
         // Otherwise, generic fail:
         return {"Name must be alphanumeric, and begin with a letter."};
+    }
+
+    oper_name_t NameTable::find(const AlgebraicPrecontext& apc, std::string str) const {
+        if (str.empty()) {
+            throw std::invalid_argument{"Operator cannot be empty string."};
+        }
+
+        // Is operator conjugated?
+        bool conjugated = false;
+        if (str.ends_with('*')) {
+            str = str.substr(0, str.size()-1);
+            conjugated = !apc.self_adjoint;
+        }
+
+        // Try and match name
+        auto search_iter = this->index.find(str);
+        if (search_iter == this->index.end()) {
+            std::stringstream errSS;
+            errSS << "Cannot find operator \"" << str << "\"";
+            throw std::invalid_argument{errSS.str()};
+        }
+
+        // Extract operator name, apply conjugation if necessary
+        oper_name_t raw_oper = search_iter->second;
+        if (conjugated) {
+            raw_oper += apc.conj_offset;
+        }
+
+        return raw_oper;
     }
 }

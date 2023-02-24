@@ -11,6 +11,12 @@
 
 #include "import/read_monomial_rules.h"
 
+#include <memory>
+
+namespace Moment::Algebraic {
+    class NameTable;
+}
+
 namespace Moment::mex::functions {
 
     class CompleteParams : public SortedInputs {
@@ -28,6 +34,9 @@ namespace Moment::mex::functions {
         /** True if testing for completion, without actually doing completion... */
         bool test_only = false;
 
+        /** Name table object, for parsing rules */
+        std::unique_ptr<Algebraic::NameTable> names;
+
         /** How the input to the complete command is supplied */
         enum class InputMode {
             FromCellArray,
@@ -37,7 +46,12 @@ namespace Moment::mex::functions {
         /** The raw rules (if provided...) */
         std::vector<RawMonomialRule> rules{};
 
+    public:
+        /** Constructor */
         explicit CompleteParams(SortedInputs &&rawInput);
+
+        /** Destructor */
+        ~CompleteParams() noexcept;
 
     };
 

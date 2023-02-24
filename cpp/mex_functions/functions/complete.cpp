@@ -8,9 +8,12 @@
 
 #include "scenarios/algebraic/rule_book.h"
 #include "scenarios/algebraic/algebraic_precontext.h"
+#include "scenarios/algebraic/name_table.h"
 #include "scenarios/algebraic/ostream_rule_logger.h"
 
+#include "import/read_operator_names.h"
 #include "export/export_monomial_rules.h"
+
 #include "utilities/reporting.h"
 #include "utilities/read_as_scalar.h"
 
@@ -67,12 +70,17 @@ namespace Moment::mex::functions {
 
     CompleteParams::CompleteParams(SortedInputs &&rawInput)
         : SortedInputs(std::move(rawInput)) {
-        // Do we specify number of operators?
-        auto op_iter = this->params.find(u"operators");
-        if (op_iter != this->params.cend()) {
-            this->max_operators = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'operators'", op_iter->second, 0);
+
+        // Do we specify number of operators, or list of names
+        if ((inputs[0].getType() == matlab::data::ArrayType::CHAR)
+            || (inputs[0].getType() == matlab::data::ArrayType::MATLAB_STRING)) {
+            this->names = read_name_table(matlabEngine, inputs[0], "Operator specification");
+            assert(this->names);
+            this->max_operators = this->names->operator_count;
         } else {
-            this->max_operators = 0;
+            this->max_operators = read_positive_integer<uint64_t>(matlabEngine, "Operator specification",
+                                                                  inputs[0], 1);
+            this->names = std::make_unique<Algebraic::NameTable>(this->max_operators);
         }
 
         // Do we specify number of attempts?
@@ -109,41 +117,21 @@ namespace Moment::mex::functions {
 
         // Try to read raw rules (w/ matlab indices)
         auto max_ops = this->max_operators * (this->hermitian_operators ? 1 : 2);
-        this->rules = read_monomial_rules(matlabEngine, inputs[0], "Rules", true, max_ops);
-
-        // If no max operator ID specified, guess by taking the highest value from provided rules
-        if (this->max_operators == 0) {
-            // Always at least one operator...
-            // Look through rules
-            for (const auto& raw_rule : this->rules) {
-                // LHS
-                for (auto l : raw_rule.LHS) {
-                    if (l > this->max_operators) {
-                        this->max_operators = l;
-                    }
-                }
-
-                // RHS
-                for (auto r : raw_rule.RHS) {
-                    if (r > max_operators) {
-                        this->max_operators = r;
-                    }
-                }
-            }
-            ++this->max_operators;
-            max_ops = this->max_operators * (this->hermitian_operators ? 1 : 2);
-        }
+        Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(max_ops), this->hermitian_operators};
+        this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", true, apc, *this->names);
 
         // Assert that rule lengths are okay
-        check_rule_length(matlabEngine, ShortlexHasher{max_ops}, this->rules);
+        check_rule_length(matlabEngine, apc.hasher, this->rules);
     }
+
+    CompleteParams::~CompleteParams() noexcept = default;
+
 
     Complete::Complete(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
         : ParameterizedMexFunction(matlabEngine, storage, u"complete") {
         this->min_outputs = 1;
         this->max_outputs = 2;
 
-        this->param_names.emplace(u"operators");
         this->param_names.emplace(u"limit");
 
         this->flag_names.emplace(u"test");
@@ -160,8 +148,8 @@ namespace Moment::mex::functions {
 
         this->mutex_params.add_mutex(u"test", u"limit");
 
-        this->min_inputs = 1;
-        this->max_inputs = 1;
+        this->min_inputs = 2;
+        this->max_inputs = 2;
     }
 
     void Complete::operator()(IOArgumentRange output, CompleteParams &input) {
@@ -199,7 +187,6 @@ namespace Moment::mex::functions {
             print_to_console(this->matlabEngine,
                              "Maximum number of new rules were introduced, but the set was not completed.\n");
         }
-
 
         if (input.test_only) {
             // Output completion test result (true/false)

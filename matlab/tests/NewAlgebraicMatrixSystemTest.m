@@ -139,7 +139,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
                 ref_id = mtk('new_algebraic_matrix_system', ...
                     2, {{[1 1], ["Not a number"]}});
             end
-            testCase.verifyError(@() no_in(), 'mtk:could_not_convert');
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
     end
 end

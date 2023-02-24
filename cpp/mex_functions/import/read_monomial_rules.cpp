@@ -15,28 +15,119 @@
 
 #include "utilities/shortlex_hasher.h"
 
+#include "scenarios/algebraic/algebraic_precontext.h"
+#include "scenarios/algebraic/name_table.h"
+
+#include <stdexcept>
+
 namespace Moment::mex {
     namespace {
-        std::vector<oper_name_t> getBoundedOpSeq(matlab::engine::MATLABEngine &matlabEngine,
-                                                 const std::string &name,
-                                                 const matlab::data::Array &input,
-                                                 const bool matlabIndices,
-                                                 const uint64_t operator_count) {
-            std::vector<oper_name_t> output = read_integer_array<oper_name_t>(matlabEngine, name, input);
+
+        std::vector<oper_name_t>
+        get_op_seq_from_string(matlab::engine::MATLABEngine &matlabEngine,
+                               const std::string &field_name,
+                               const matlab::data::TypedArray<matlab::data::MATLABString> &input,
+                               const Algebraic::AlgebraicPrecontext& apc,
+                               const Algebraic::NameTable& names) {
+            std::vector<oper_name_t> output;
+            output.reserve(input.getNumberOfElements());
+
+            for (const auto& mlStr : input) {
+                if (!mlStr.has_value()) {
+                    std::stringstream err;
+                    err << field_name << " cannot be parsed as an operator sequence, as it contains an empty string.";
+                    throw errors::BadInput{errors::bad_param, err.str()};
+                }
+
+                try {
+                    // Convert from UTF16 -> UTF8
+                    std::string utf8str = matlab::engine::convertUTF16StringToUTF8String(mlStr);
+                    output.emplace_back(names.find(apc, utf8str));
+                } catch (const std::invalid_argument& iae) {
+                    std::stringstream err;
+                    err << field_name << " cannot be parsed: " << iae.what();
+                    throw errors::BadInput{errors::bad_param, err.str()};
+                }
+            }
+            return output;
+        }
+
+        std::vector<oper_name_t>
+        get_op_seq_from_char_array(matlab::engine::MATLABEngine &matlabEngine,
+                                   const std::string &field_name,
+                                   const matlab::data::CharArray &input,
+                                   const Algebraic::AlgebraicPrecontext& apc,
+                                   const Algebraic::NameTable& names) {
+            // Validate names object
+            if (!names.all_single()) {
+                std::stringstream err;
+                err << field_name
+                    << " can only be parsed as a char array when every operator name is a single character.";
+                throw errors::BadInput{errors::bad_param, err.str()};
+            }
+
+            auto asString = input.toAscii();
+
+            std::vector<oper_name_t> output;
+            output.reserve(asString.length());
+
+            for (auto one_char : asString) {
+                try {
+                    output.emplace_back(names.find(apc,  std::string(1, one_char)));
+                } catch (const std::invalid_argument& iae) {
+                    std::stringstream err;
+                    err << field_name << " cannot be parsed:" << iae.what();
+                    throw errors::BadInput{errors::bad_param, err.str()};
+                }
+            }
+
+            return output;
+        }
+
+        std::vector<oper_name_t>
+        get_op_seq_from_numeric(matlab::engine::MATLABEngine &matlabEngine,
+                                const std::string &field_name,
+                                const matlab::data::Array &input,
+                                const Algebraic::AlgebraicPrecontext& apc,
+                                const bool matlabIndices) {
+            std::vector<oper_name_t> output = read_integer_array<oper_name_t>(matlabEngine, field_name, input);
             if (matlabIndices) {
                 for (auto& x : output) {
                     --x;
                 }
             }
-            for (const auto x: output) {
 
-                if ((x < 0) || ((operator_count != 0) && (x >= operator_count))) {
+            for (const auto x: output) {
+                if ((x < 0) || ((apc.num_operators != 0) && (x >= apc.num_operators))) {
                     std::stringstream err;
-                    err << name << " contains an operator with out of bounds value \"" << x << "\"";
+                    err << field_name << " contains an operator with out of bounds value \"" << x << "\"";
                     throw errors::BadInput{errors::bad_param, err.str()};
                 }
             }
             return output;
+        }
+
+        std::vector<oper_name_t> get_op_seq(matlab::engine::MATLABEngine &matlabEngine,
+                                            const std::string &field_name,
+                                            const matlab::data::Array &input,
+                                            const Algebraic::AlgebraicPrecontext& apc,
+                                            const Algebraic::NameTable& names,
+                                            const bool matlabIndices) {
+
+            // Parse as named operator string
+            if (input.getType() == matlab::data::ArrayType::MATLAB_STRING) {
+                auto strArray = static_cast<matlab::data::TypedArray<matlab::data::MATLABString>>(input);
+                return get_op_seq_from_string(matlabEngine, field_name, strArray, apc, names);
+            }
+
+            // Parse as one long string.
+            if (input.getType() == matlab::data::ArrayType::CHAR) {
+                auto charArray = static_cast<matlab::data::CharArray>(input);
+                return get_op_seq_from_char_array(matlabEngine, field_name, charArray, apc, names);
+            }
+
+            // Otherwise, parse as integer
+            return get_op_seq_from_numeric(matlabEngine, field_name, input, apc, matlabIndices);
         }
 
     }
@@ -44,7 +135,8 @@ namespace Moment::mex {
     std::vector<RawMonomialRule> read_monomial_rules(matlab::engine::MATLABEngine &matlabEngine,
                                                      matlab::data::Array& input, const std::string& paramName,
                                                      bool matlabIndices,
-                                                     uint64_t operator_bound) {
+                                                     const Algebraic::AlgebraicPrecontext& apc,
+                                                     const Algebraic::NameTable& names) {
 
         if (input.getType() != matlab::data::ArrayType::CELL) {
             throw_error(matlabEngine, errors::bad_param, paramName + " must be specified as a cell array.");
@@ -90,12 +182,12 @@ namespace Moment::mex {
             }
 
             auto lhs = rule_cell[0];
-            auto lhs_rules = getBoundedOpSeq(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " LHS",
-                                             lhs, matlabIndices, operator_bound);
+            auto lhs_rules = get_op_seq(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " LHS",
+                                             lhs, apc, names, matlabIndices);
 
             auto rhs = rule_cell[negated ? 2 : 1];
-            auto rhs_rules = getBoundedOpSeq(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " RHS",
-                                             rhs, matlabIndices, operator_bound);
+            auto rhs_rules = get_op_seq(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " RHS",
+                                             rhs, apc, names, matlabIndices);
 
             output.emplace_back(std::move(lhs_rules), std::move(rhs_rules), negated);
 
@@ -103,6 +195,7 @@ namespace Moment::mex {
         }
         return output;
     }
+
 
     void throw_bad_length(matlab::engine::MATLABEngine &matlabEngine,
                           const std::vector<oper_name_t>& vec, size_t n, const std::string& lhs_or_rhs) {

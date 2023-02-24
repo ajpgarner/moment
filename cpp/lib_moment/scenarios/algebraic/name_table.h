@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include "integer_types.h"
+
 #include <cassert>
 
 #include <map>
@@ -13,15 +15,16 @@
 #include <string>
 #include <vector>
 
-
 namespace Moment::Algebraic {
+
+    class AlgebraicPrecontext;
 
     class NameTable {
     public:
         const size_t operator_count;
     private:
         std::vector<std::string> names;
-        std::map<std::string, size_t> index;
+        std::map<std::string, oper_name_t> index;
 
         bool all_single_char = false;
 
@@ -40,13 +43,21 @@ namespace Moment::Algebraic {
         explicit NameTable(size_t num_operators) : NameTable(default_string_names(num_operators)) { }
 
         /** Gets the name associated with the operator at index. */
-        const std::string& operator[](const size_t idx) const noexcept {
+        inline const std::string& operator[](const size_t idx) const noexcept {
             assert(idx < this->names.size());
             return this->names[idx];
         }
 
         /** True, if every name is just one letter long */
         bool all_single() const noexcept { return this->all_single_char; }
+
+        /**
+         * Translate name to operator number.
+         * @param apc The algebraic pre-context.
+         * @param str The name to attempt to match.
+         * @throws std::invalid_argument If string cannot be translated to valid operator number.
+         */
+        [[nodiscard]] oper_name_t find(const AlgebraicPrecontext& apc, std::string str) const;
 
     public:
         /** Checks if a name is allowed.

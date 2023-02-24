@@ -3,9 +3,10 @@ classdef RuleBook < handle
     %
     % See also: AlgebraicScenario, Algebraic.Rule
    
-    properties(GetAccess = public, SetAccess = protected)
+    properties(GetAccess = public, SetAccess = protected)        
         MaxOperators = uint64(0); % The number of operators in the system.
         Rules = Algebraic.Rule.empty(1,0) % The rewrite rules.
+        OperatorNames;      % String names of operators, if known.
         Hermitian = true;   % True if fundamental operators are Hermitian.
         Normal = true;      % True if fundamental operators are Normal.
         IsComplete;         % True if the ruleset is confluent.
@@ -33,52 +34,71 @@ classdef RuleBook < handle
     
     %% Constructor
     methods
-        function obj = RuleBook(initialRules, max_ops, ....
+        function obj = RuleBook(operators, initialRules, ...
                                 is_hermitian, is_normal)
         % RULEBOOK Constructs a list of rewrite rules.
         %
-        % PARAMS:
+        % SYNTAX
+        %   1. book = RuleBook(otherRuleBook)
+        %   2. book = RuleBook(ops, rules, is_herm, is_normal)
+        %
+        % PARAMS (Syntax 2):
+        %  operators - Either the number of the highest number operators in 
+        %              the scenario, or a list of names.
         %  initial_rules - Algebraic rewrite rules. Can be given as either 
         %                  a cell array, an array of Algebraic.Rule or 
-        %                  another Algebraic.RuleBook object.
-        %  max_ops - The highest number of operators in the scenario. Set
-        %            to 0 to use the highest number found in initial_rules.
+        %                  another Algebraic.RuleBook object.       
         %  is_hermitian - True if fundamental operators are Hermitian.
         %  is_normal - True if fundamental operators are normal.
+        %  names_hint - List of operator names, if they exist.
         %
         % See also: ALGEBRAIC.RULE
             arguments
+                operators
                 initialRules (1,:)
-                max_ops (1,1) uint64 = 0
                 is_hermitian (1,1) logical = true
                 is_normal (1,1) logical = is_hermitian
             end 
             
-            if isa(initialRules, 'Algebraic.Rule')
-                obj.Rules = reshape(initialRules, 1, []);
-            elseif iscell(initialRules)
-                obj.ImportCellArray(initialRules)
-            elseif isa(initialRules, 'Algebraic.RuleBook')
-                obj.MaxOperators = initialRules.MaxOperators;
-                obj.Rules = initialRules.Rules;
-                obj.Hermitian = initialRules.Hermitian;
-                obj.Normal = initialRules.Normal;
+            % Copy c'tor
+            if isa(operators, 'Algebraic.RuleBook')
+                obj.MaxOperators = operators.MaxOperators;
+                obj.Rules = operators.Rules;
+                obj.OperatorNames = operators.OperatorNames;
+                obj.Hermitian = operators.Hermitian;
+                obj.Normal = operators.Normal;
                 
                 if nargin >= 2
                     error(['Copy constructor of RuleBook does not ',...
                            'take more than one input.']);
                 end
                 return;
-            else
-                error(['Rules should be provided either as an array of',...
-                    ' Algebraic.Rule, or as a cell array.']);
             end
             
-            % Get number of operators
-            if max_ops <= 0
-                 max_ops = obj.highestMentionedOp();
+            % Parse operators
+            if isnumeric(operators) && isscalar(operators)
+                obj.OperatorNames = string.empty(1,0);
+                obj.MaxOperators = uint64(operators);                
+            elseif isstring(operators)
+                obj.OperatorNames = reshape(operators, 1, []);
+                obj.MaxOperators = uint64(length(obj.OperatorNames));
+            elseif ischar(operators)
+                obj.OperatorNames = string(operators(:))';
+                obj.MaxOperators = uint64(length(obj.OperatorNames));
+            else
+                error("Argument 'operators' should either be the maximum"...
+                      +" operator number, or a list of operator names.");
             end
-            obj.MaxOperators = uint64(max_ops);
+            
+            % Parse rules
+            if isa(initialRules, 'Algebraic.Rule')
+                obj.Rules = reshape(initialRules, 1, []);
+            elseif iscell(initialRules)
+                obj.ImportCellArray(initialRules);
+            else
+                error(['Rules should be provided either as an array of',...
+                       ' Algebraic.Rule, or as a cell array.']);    
+            end
             
             % Hermicity and normality
             obj.Hermitian = logical(is_hermitian);
@@ -91,7 +111,7 @@ classdef RuleBook < handle
     
     %% Add rules
     methods
-        function AddRule(obj, new_rule, new_rule_rhs)
+        function AddRule(obj, new_rule, new_rule_rhs, negate)
         % ADDRULE Add a rule to the rule book.
         % 
         % SYNTAX
@@ -108,6 +128,7 @@ classdef RuleBook < handle
         %   new_rule     - An array defining the operator string to match. 
         %   new_rule_rhs - An array defining the operator sequence to 
         %                  replace new_rule with.
+        %   negate       - Set to true for LHS => -RHS.
         %
         % See also: AlgebraicScenario, Algebraic.Rule
         %
@@ -115,18 +136,31 @@ classdef RuleBook < handle
             % Complain if locked
             obj.errorIfLocked();
             
+            if nargin < 4
+                negate = false;
+            else
+                negate = logical(negate);
+            end
+            
             % Construct rule from inputs and append to list
             if nargin >= 3
-                obj.Rules(end+1) = Algebraic.Rule(new_rule, new_rule_rhs);
+                obj.Rules(end+1) = Algebraic.Rule(new_rule, ...
+                                                  new_rule_rhs, negate);
             elseif nargin >= 2
                 if isa(new_rule, 'Algebraic.Rule')
                     obj.Rules(end+1) = new_rule;
                 elseif iscell(new_rule)
-                    if ~isequal(size(new_rule), [1, 2])
+                    if isequal(size(new_rule), [1, 2])
+                        obj.Rules(end+1) = Algebraic.Rule(new_rule{1}, ...
+                                                          new_rule{2});
+                    elseif isequal(size(new_rule), [1, 3]) ...
+                            && isequal(new_rule{2}, '-')
+                        obj.Rules(end+1) = Algebraic.Rule(new_rule{1}, ...
+                                                          new_rule{2}, ...
+                                                          true);
+                    else
                         error(obj.err_cellpair);
                     end
-                    obj.Rules(end+1) = Algebraic.Rule(new_rule{1}, ...
-                                                      new_rule{2});
                 else
                     error(obj.err_badrule);
                 end
@@ -176,10 +210,15 @@ classdef RuleBook < handle
                 end
             end
             
+            if ~isempty(obj.OperatorNames)
+                op_arg = obj.OperatorNames;
+            else
+                op_arg = obj.MaxOperators;
+            end
+            
             [output, success] = mtk('complete', extra_params{:}, ...
                 'limit', max_iterations, ...
-                'operators', obj.MaxOperators, ...
-                obj.ExportCellArray());
+                op_arg, obj.ExportCellArray());
             
             obj.ImportCellArray(output);
             obj.tested_complete = true;
@@ -197,9 +236,15 @@ classdef RuleBook < handle
                         params{end+1} = 'normal';
                     end
                 end
+                
+                if ~isempty(obj.OperatorNames)
+                    op_arg = obj.OperatorNames;
+                else
+                    op_arg = obj.MaxOperators;
+                end
+                
                 obj.is_complete = mtk('complete', 'test', 'quiet', ...
-                    'operators', obj.MaxOperators, ...
-                    params{:}, obj.ExportCellArray());
+                    params{:}, op_arg, obj.ExportCellArray());
                 obj.tested_complete = true;
             end
             val = obj.is_complete;
@@ -208,13 +253,17 @@ classdef RuleBook < handle
 
     %% Import/Export cell array
     methods
-        function ImportCellArray(obj, input)
+        function ImportCellArray(obj, input, names_hint)
         % IMPORTCELLARRAY Converts cell array into array of Algebraic.Rule objects.
         %
+        % PARAMS
+        %   input - The cell array to parse
+        %   names_hint - Operator names.
         %
             arguments
                 obj (1,1) Algebraic.RuleBook
                 input cell
+                names_hint (1,:) string = string.empty(1,0)
             end
             obj.errorIfLocked();
             

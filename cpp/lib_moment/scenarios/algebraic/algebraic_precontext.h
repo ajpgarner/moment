@@ -18,8 +18,6 @@ namespace Moment::Algebraic {
         const oper_name_t num_operators;
         const bool self_adjoint;
         const ShortlexHasher hasher;
-
-    private:
         const oper_name_t conj_offset;
 
     public:
