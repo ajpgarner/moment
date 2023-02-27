@@ -16,6 +16,8 @@ classdef RuleBook < handle
         tested_complete = false;
         is_complete = false;
         locked = false;
+        extended_names;
+        mono_names = false;
     end
     
     properties(Constant, Access = private)
@@ -78,13 +80,21 @@ classdef RuleBook < handle
             % Parse operators
             if isnumeric(operators) && isscalar(operators)
                 obj.OperatorNames = string.empty(1,0);
-                obj.MaxOperators = uint64(operators);                
+                obj.extended_names = string.empty(1,0);
+                obj.MaxOperators = uint64(operators);
+                obj.mono_names = false;
             elseif isstring(operators)
                 obj.OperatorNames = reshape(operators, 1, []);
+                obj.extended_names = [obj.OperatorNames, ...
+                                      obj.OperatorNames + "*"];
                 obj.MaxOperators = uint64(length(obj.OperatorNames));
+                obj.mono_names = ~any(strlength(obj.OperatorNames)>1);
             elseif ischar(operators)
                 obj.OperatorNames = string(operators(:))';
+                obj.extended_names = [obj.OperatorNames, ...
+                                      obj.OperatorNames + "*"];
                 obj.MaxOperators = uint64(length(obj.OperatorNames));
+                obj.mono_names = true;
             else
                 error("Argument 'operators' should either be the maximum"...
                       +" operator number, or a list of operator names.");
@@ -112,7 +122,7 @@ classdef RuleBook < handle
     %% Add rules
     methods
         function AddRule(obj, new_rule, new_rule_rhs, negate)
-        % ADDRULE Add a rule to the rule book.
+        % ADDRULE Add a generic rule to the rule book.
         % 
         % SYNTAX
         %   1. rb.AddRule(rule)
@@ -170,6 +180,99 @@ classdef RuleBook < handle
             
             % Invalidate completeness test
             obj.tested_complete = false;
+        end
+        
+        function AddCommutator(obj, lhs, rhs, anti_comm)
+        % ADDCOMMUTATOR Add a rule imposing a commutation relationship
+        % If input is (Y, X), the rule created is YX -> XY.
+        % If anti-commutation flag is set, the rule created is YX -> -XY.
+        %
+        % PARAMS
+        %   lhs - Left-hand side of the commutation bracket
+        %   rhs - Right-hand side of the commutation bracket.
+        %   anti_comm - Set to true to make an anti-commutator instead:
+        %
+            arguments
+                obj (1,1) Algebraic.RuleBook
+                lhs (1,:)
+                rhs (1,:)
+                anti_comm (1,1) logical = false
+            end
+            
+            if nargin<4
+                anti_comm = false;
+            end
+      
+            % Complain if locked
+            obj.errorIfLocked();
+            
+            % Make and add rule
+            rule_left = [lhs, rhs];
+            rule_right = [rhs, lhs];            
+            obj.AddRule(rule_left, rule_right, anti_comm);
+      
+        end
+        
+        function AddAntiCommutator(obj, lhs, rhs)
+        % ADDCOMMUTATOR Add a rule imposing an anti-commutation relationship.
+        % If input is (Y, X), the rule created is YX -> -XY.
+        %
+        % PARAMS
+        %   lhs - Left-hand side of the anti-commutation bracket
+        %   rhs - Right-hand side of the anti-commutation bracket.
+        %
+            arguments
+                obj (1,1) Algebraic.RuleBook
+                lhs (1,:)
+                rhs (1,:)
+            end
+            
+            obj.AddCommutator(lhs, rhs, true);
+        end
+        
+                
+        function MakeProjector(obj, symbol)
+        % MAKEPROJECTOR Add a rule imposing that an operator is a projector.
+        % If input is X, the rule created is XX -> X.
+        %
+        % PARAMS
+        %   symbol - The operator, or operator sequence, X that is
+        %   projective.
+        %
+            arguments
+                obj (1,1) Algebraic.RuleBook
+                symbol (1,:)
+            end
+
+            % Complain if locked
+            obj.errorIfLocked();
+            
+            % Make and add rule
+            lhs = [symbol, symbol];
+            obj.AddRule(lhs, symbol);
+            
+        end
+        
+                 
+        function MakeHermitian(obj, symbol)
+        % MAKEPROJECTOR Add a rule imposing that an operator is a Hermitian.
+        % If input is X, the rule created is X* -> X.
+        %
+        % PARAMS
+        %   symbol - The operator, or operator sequence, that is Hermitian.
+        %
+            arguments
+                obj (1,1) Algebraic.RuleBook
+                symbol (1,:)
+            end
+
+            % Complain if locked
+            obj.errorIfLocked();
+            
+            % Make and add rule
+            lhs = obj.RawConjugate(symbol);
+            obj.AddRule(lhs, symbol);
+            
         end
     end
     
@@ -253,17 +356,15 @@ classdef RuleBook < handle
 
     %% Import/Export cell array
     methods
-        function ImportCellArray(obj, input, names_hint)
+        function ImportCellArray(obj, input)
         % IMPORTCELLARRAY Converts cell array into array of Algebraic.Rule objects.
         %
         % PARAMS
-        %   input - The cell array to parse
-        %   names_hint - Operator names.
+        %   input - The cell array to parse.
         %
             arguments
                 obj (1,1) Algebraic.RuleBook
                 input cell
-                names_hint (1,:) string = string.empty(1,0)
             end
             obj.errorIfLocked();
             
@@ -309,6 +410,56 @@ classdef RuleBook < handle
                     val{index}{1} = obj.Rules(index).LHS;
                     val{index}{2} = obj.Rules(index).RHS;
                 end
+            end
+        end
+    end
+    
+    %% Raw conjugation
+    methods
+        function conj = RawConjugate(obj, op_str)
+            arguments
+                obj (1,1) Algebraic.RuleBook
+                op_str (1,:)
+            end
+            
+            % If char array, parse first to string
+            is_char = ischar(op_str);
+            if is_char
+                if obj.mono_names
+                    op_str = string(op_str(:))';
+                else
+                    op_str = string(op_str);
+                end
+            end
+                        
+            % Conjugate as string
+            if isstring(op_str)
+                conj = flip(op_str, 2);
+                
+                starred = ~endsWith(conj, "*");
+                conj = strip(conj, "*");
+                for i=1:length(conj)
+                    if starred(i)
+                        conj(i) = conj(i) + "*";
+                    end
+                end
+                
+                % Originally char, reconstruct char
+                if is_char
+                    conj = char(strjoin(conj,''));
+                end
+                return;
+            end
+            
+            % Conjugate in terms of operator numbers
+            if isnumeric(op_str)
+                conj = uint64(flip(op_str, 2));
+                if ~obj.Hermitian
+                    conj = conj + obj.MaxOperators - 1;
+                    conj = mod(conj , obj.MaxOperators*2);
+                    conj = conj + 1;                    
+                end
+                return;
             end
         end
     end

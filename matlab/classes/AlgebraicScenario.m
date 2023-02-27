@@ -44,7 +44,7 @@ classdef AlgebraicScenario < Abstract.Scenario
             %
             arguments
                 operators (1,:)
-                rules (1,:) cell = cell(1,0)
+                rules (1,:) = cell.empty(1,0)
                 is_hermitian (1,1) logical = true
                 is_normal (1,1) logical = is_hermitian
             end

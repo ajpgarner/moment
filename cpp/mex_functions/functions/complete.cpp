@@ -116,8 +116,7 @@ namespace Moment::mex::functions {
         }
 
         // Try to read raw rules (w/ matlab indices)
-        auto max_ops = this->max_operators * (this->hermitian_operators ? 1 : 2);
-        Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(max_ops), this->hermitian_operators};
+        Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(this->max_operators), this->hermitian_operators};
         this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", true, apc, *this->names);
 
         // Assert that rule lengths are okay
