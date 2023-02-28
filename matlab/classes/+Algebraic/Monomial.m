@@ -1,18 +1,27 @@
 classdef Monomial < Abstract.ComplexObject
-    %MONOMIAL A monomial expression, as part of an algebraic setting
-    
+    %MONOMIAL A monomial expression, as part of an algebraic setting.
+        
     properties(GetAccess = public, SetAccess = protected)
-        Operators
-        Coefficient
-        Hash
+        Operators % The operator string defining this monomial.
+        Coefficient % Scalar co-efficient factor of the monomial.
+        Hash % Hash of the operator sequence in this monomial.
     end
     
     properties(Dependent, GetAccess = public)
-        FoundSymbol
-        SymbolId
-        SymbolConjugated
-        RealBasisIndex
-        ImaginaryBasisIndex
+        % True if monomial can be found in symbol table.
+        FoundSymbol  
+        
+        % The ID number of the corresponding symbol in table.
+        SymbolId     
+        
+        % True if this monomial represents a conjugation of the symbol in the table.
+        SymbolConjugated 
+        
+        % The real basis element representing the real part of this monomial, or 0.
+        RealBasisIndex 
+        
+        % The imaginary basis element representing the imaginary part of this monomial, or 0.
+        ImaginaryBasisIndex 
     end
     
     properties(Access=private)
@@ -24,6 +33,13 @@ classdef Monomial < Abstract.ComplexObject
     
     methods
         function obj = Monomial(setting, operators, scale)
+        % MONOMIAL Construct a monomial.
+        %
+        % PARAMS
+        %   setting - The algebraic scenario the monomial is a part of.
+        %   operators - The operator string describing the monomial.
+        %   scale - The scalar coefficient premultiplying the monomial.
+        %
             arguments
                 setting (1,1) AlgebraicScenario
                 operators (1,:) uint64
@@ -174,7 +190,13 @@ classdef Monomial < Abstract.ComplexObject
             end
             
             % Compare vs. another monomial
-            if isa(other, 'Algebraic.Monomial')
+            if isa(other, 'Algebraic.Monomial')                
+                % Not equal if scenarios do not match
+                if this.Scenario ~= other.Scenario
+                    val = false;
+                    return
+                end
+                
                 % Equal if same operators and coefficient.
                 if (isequal(this.Operators, other.Operators) && ...
                         (abs(this.Coefficient - other.Coefficient) < tol))
@@ -305,6 +327,8 @@ classdef Monomial < Abstract.ComplexObject
                 val = Algebraic.Monomial(this.Scenario, this.Operators, ...
                     double(this.Coefficient * other));
             elseif isa(other, 'Algebraic.Monomial') % mono * mono = mono
+                this.checkSameScenario(other);
+                
                 val = Algebraic.Monomial(this.Scenario, ...
                     [this.Operators, other.Operators], ...
                     double(this.Coefficient * other.Coefficient));
@@ -348,6 +372,8 @@ classdef Monomial < Abstract.ComplexObject
             % Is it simply two monomials of the same type?
             if isa(lhs, 'Algebraic.Monomial') ...
                     && isa(rhs, 'Algebraic.Monomial')
+                
+                lhs.checkSameScenario(rhs);
                 
                 % Are these monomials equal up to negation?
                 if eq(lhs, -rhs)

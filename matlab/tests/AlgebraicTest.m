@@ -86,7 +86,54 @@ classdef AlgebraicTest < MTKTestBase
             testCase.verifyNotEqual(y.SymbolId, z.SymbolId);
         end
     end
-  
+    
+%% Equality (eq)
+    methods(Test)
+        function eq_mono_mono(testCase)
+            setting = AlgebraicScenario(2);
+            [x, y] = setting.getAll();
+            testCase.verifyFalse(x == y);
+            testCase.verifyTrue(x == x);
+            testCase.verifyTrue(y == y);
+            x2 = setting.get([1]);
+            testCase.verifyTrue(x == x2);            
+        end
+        
+       function eq_mono_mono_two_settings(testCase)
+            setting = AlgebraicScenario(2);
+            other_setting = AlgebraicScenario(2);
+            [x, y] = setting.getAll();
+            [x2, y2] = other_setting.getAll();
+            testCase.verifyFalse(x == x2);
+            testCase.verifyFalse(x == y2);
+            testCase.verifyFalse(y == x2);
+            testCase.verifyFalse(y == y2);
+        end
+        
+        function eq_mono_double(testCase)
+            setting = AlgebraicScenario(2);
+            two = Algebraic.Monomial(setting, [], 2.0);                       
+            testCase.verifyFalse(two == 1.0);
+            testCase.verifyFalse(1.0 == two);
+            testCase.verifyTrue(two == 2.0);
+            testCase.verifyTrue(2.0 == two);            
+        end
+        
+        function eq_poly_poly(testCase)
+            setting = AlgebraicScenario(2);
+            [x, y] = setting.getAll();
+            p1 = x + 2*y;
+            p2 = 2*x + y;
+            p3 = 2*y + x;
+            testCase.verifyFalse(p1 == p2);
+            testCase.verifyFalse(p2 == p1);
+            testCase.verifyTrue(p1 == p3);
+            testCase.verifyTrue(p3 == p1);
+            testCase.verifyFalse(p2 == p3);
+            testCase.verifyFalse(p3 == p2);            
+        end
+    end
+
 %% Unary plus (uplus)
     methods(Test)
         function uplus_mono(testCase)
@@ -455,8 +502,7 @@ classdef AlgebraicTest < MTKTestBase
             testCase.assertEqual(partB_z.Operators, z.Operators);
             testCase.assertEqual(partB_z.Coefficient, z.Coefficient);
         end
-    end
-    
+    end  
       
 %% Subtraction (minus)
     methods(Test)

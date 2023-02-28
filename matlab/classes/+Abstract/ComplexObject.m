@@ -1,18 +1,26 @@
 classdef ComplexObject < handle
-    %COMPLEXOBJECT
+% COMPLEXOBJECT An object that can be evaluated to a complex number.
+%
+% A complex object is defined by its real and imaginary coefficients,
+% corresponding to weightings to give to the real and imaginary basis
+% elements in a scenario's symbol table.
+%
+% For solution column vectors 'a' and 'b', the value of a complex object is 
+% given by "a . real_coefs + i b . im_coefs".
+%
     
     properties(GetAccess = public, SetAccess = private)
-        Scenario
+        Scenario % Associated Abstract.Scenario object
     end
     
     properties(Dependent, GetAccess = public, SetAccess = private)
-        RealCoefficients
-        ImaginaryCoefficients
+        RealCoefficients      % Real coefficients as a vector.
+        ImaginaryCoefficients % Imaginary coefficients as a vector.
     end
     
     properties(Access=protected)
-        real_coefs = sparse(1,0)
-        im_coefs = sparse(1,0)
+        real_coefs = sparse(1,0) % Real coefficients.
+        im_coefs = sparse(1,0)   % Complex coefficients.
     end
     
     properties(Access = private)
@@ -20,6 +28,7 @@ classdef ComplexObject < handle
     end
     
     properties(Constant, Access = protected)
+        % Error: Mismatched scenario
         err_mismatched_scenario = ...
             'Cannot combine objects from different scenarios.';
     end
@@ -28,6 +37,11 @@ classdef ComplexObject < handle
     %% Constructor
     methods
         function obj = ComplexObject(scenario)
+        % COMPLEXOBJECT Construct an object that evaluates to a complex number.
+        %
+        % PARAMS:
+        %   scenario - The associated matrix system scenario.
+        %
             arguments
                 scenario (1,1) Abstract.Scenario
             end
@@ -68,6 +82,16 @@ classdef ComplexObject < handle
         end
         
         function val = Apply(obj, re_vals, im_vals)
+        % APPLY Combine values with coefficients
+        % Calculates: re_coefs * re_coefs + i * im_coefs * im_vals
+        %
+        % PARAMS
+        %   re_vals - The values to combine with real coefficients.
+        %   im_vals  - The values to combine with imaginary coefficients.
+        %
+        % RETURNS
+        %   Scalar object of the same type as re_vals; usually numeric.
+        %
             arguments
                 obj (1,1) Abstract.ComplexObject
                 re_vals (:,1)
@@ -79,7 +103,7 @@ classdef ComplexObject < handle
                 error("Expected %d real values, but %d were provided",...
                       length(rec), length(re_vals));
             end
-            val = rec * re_vals;
+            val = rec * reshape(re_vals, [], 1);
             
             % Get and check imaginary coefficients
             if ~isempty(im_vals)
@@ -88,7 +112,7 @@ classdef ComplexObject < handle
                     error("Expected %d imaginary values, but %d were provided",...
                           length(imc), length(im_vals));
                 end
-                val = val + 1i * (imc * im_vals);
+                val = val + 1i * (imc * reshape(im_vals, [], 1));
             end
             
         end
@@ -102,13 +126,30 @@ classdef ComplexObject < handle
                 obj.has_coefs = true;
             end
         end
+    end
+    
+    %% Protected methods
+    methods(Access=protected)
+        function checkSameScenario(obj, other)
+        % CHECKSAMESCENARIO Raise an error if scenarios do not match.
         
-        
+            if obj.Scenario ~= other.Scenario
+                error(obj.err_mismatched_scenario);
+            end
+        end
     end
     
     %% Public CVX methods
     methods
         function cvx_expr = cvx(obj, real_basis, im_basis)
+        % CVX Convert object to a CVX expression.
+        %
+        % Effectively same as Apply, but with CVX variables instead of
+        % numbers being passed in.
+        %
+        % See also: ABSTRACT.COMPLEXOBJECT.APPLY
+        %
+                       
             % Get coefficients
             the_re_coefs = obj.RealCoefficients;
             the_im_coefs = obj.ImaginaryCoefficients;
@@ -158,6 +199,14 @@ classdef ComplexObject < handle
     %% Public yalmip methods
     methods
         function ym_expr = yalmip(obj, real_basis, im_basis)
+        % YALMIP Convert object to a YALMIP expression.
+        %
+        % Effectively same as Apply, but with yalmip sdpvar objects instead 
+        % of numbers being passed in.
+        %
+        % See also: ABSTRACT.COMPLEXOBJECT.APPLY
+        %
+        
             % Get coefficients
             the_re_coefs = obj.RealCoefficients;
             the_im_coefs = obj.ImaginaryCoefficients;

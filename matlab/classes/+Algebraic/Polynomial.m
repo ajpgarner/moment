@@ -26,6 +26,11 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 constituents (1,:) Algebraic.Monomial
             end
             obj = obj@Abstract.ComplexObject(setting);
+            
+            % Check constituents all belong to correct scenario
+            for other = constituents
+                obj.checkSameScenario(other);
+            end                        
             obj.Constituents = constituents;
             obj.orderAndMerge();
         end
@@ -135,6 +140,12 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             end
             
             if isa(other, 'Algebraic.Monomial')
+                % Objects in different scenarios cannot be equal
+                if this.Scenario ~= other.Scenario
+                    val = false;
+                    return;
+                end
+                
                 % If length one, compare as Monomial
                 if length(this.Constituents) == 1
                     as_mono = this.Constituents(1);
@@ -147,6 +158,12 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             end
             
             if isa(other, 'Algebraic.Polynomial')
+                % Objects in different scenarios cannot be equal
+                if this.Scenario ~= other.Scenario
+                    val = false;
+                    return;
+                end
+                                
                 % Wrong number of elements, mismatch
                 if length(this.Constituents) ~= length(other.Constituents)
                     val = false;
@@ -169,7 +186,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                     + " and " + class(rhs));
         end 
         
-        function val = ne(lhs, rhs)
+    function val = ne(lhs, rhs)
         % NE Compare LHS and RHS for value-wise inequality.
         % Logical negation of eq(lhs, rhs)
         %
@@ -229,6 +246,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 end
                 val = Algebraic.Polynomial(this.Scenario, new_coefs);
             elseif isa(other, 'Algebraic.Monomial')
+                this.checkSameScenario(other);                
                 new_coefs = Algebraic.Monomial.empty(1,0);
                 for i = 1:length(this.Constituents)
                     old_m = this.Constituents(i);
@@ -243,6 +261,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 end
                 val = Algebraic.Polynomial(this.Scenario, new_coefs);
             elseif isa(other, 'Algebraic.Polynomial')
+                this.checkSameScenario(other);
                 val = Algebraic.Polynomial.Zero(this.Scenario);                
                 for i = 1:length(this.Constituents)
                     new_m = this.Constituents(i) * other;
@@ -306,9 +325,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             end
             
             % Check objects are from same scenario
-            if (this.Scenario ~= other.Scenario)
-                error(this.err_mismatched_scenario);
-            end
+            this.checkSameScenario(other);
                         
             % Add monomial to polynomial?
             if isa(other, 'Algebraic.Monomial')
@@ -367,9 +384,9 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             
             val = lhs + (-rhs);
         end
-        
+                
         function val = ctranspose(obj)
-        % CTRANSPOSE Complex conjugation
+        % CTRANSPOSE Complex conjugation.
             new_constituents = Algebraic.Monomial.empty(1,0);
             for c = obj.Constituents
                 new_constituents(end+1) = c';
