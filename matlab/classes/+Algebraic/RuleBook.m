@@ -388,9 +388,12 @@ classdef RuleBook < handle
                 lhs = rule{1};
                 rhs = rule{rhs_index};
                 
-                obj.Rules(end+1) = Algebraic.Rule(lhs, rhs);
+                lhs = obj.ToStringArray(lhs);
+                rhs = obj.ToStringArray(rhs);
                 
+                obj.Rules(end+1) = Algebraic.Rule(lhs, rhs);                
             end
+            
             obj.tested_complete = false;
         end
         
@@ -414,7 +417,7 @@ classdef RuleBook < handle
         end
     end
     
-    %% Raw conjugation
+    %% Raw manipulation of operator strings
     methods
         function conj = RawConjugate(obj, op_str)
             arguments
@@ -461,6 +464,49 @@ classdef RuleBook < handle
                 end
                 return;
             end
+        end
+        
+        function str = ToStringArray(obj, input)
+        % TOSTRING Format operator input sequence into string array.
+        %
+        arguments
+            obj (1,1) Algebraic.RuleBook
+            input (1,:)
+        end
+        
+            % Do nothing if input is already string
+            if isstring(input)
+                str = reshape(input, 1, []);
+                return;
+            end
+            
+            % Split up char array
+            if ischar(input)
+                str = string(input(:))';
+                return
+            end
+            
+            % Complain if not numeric now
+            if ~isnumeric(input)
+                error("Expected string array, character array, "...
+                      +"or numeric array");
+            end
+                
+            
+            % Do nothing if no op names
+            if isempty(obj.OperatorNames)
+                str = input;
+                return;
+            end
+            
+            % Do nothing if out of range
+            if any(input <= 0) || any(input > length(obj.extended_names))
+                str = input;
+                return;
+            end
+            
+            % Translate
+            str = reshape(obj.extended_names(input), 1, []);
         end
     end
     
