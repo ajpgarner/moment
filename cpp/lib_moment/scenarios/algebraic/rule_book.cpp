@@ -26,8 +26,6 @@ namespace Moment::Algebraic {
         return added;
     }
 
-
-
     ptrdiff_t RuleBook::add_rule(const MonomialSubstitutionRule& rule, RuleLogger * logger) {
         // Skip trivial rule
         if (rule.trivial()) {
@@ -123,14 +121,14 @@ namespace Moment::Algebraic {
         // First, if we are a Hermitian ruleset, introduce initial conjugate rules
         size_t iteration = 0;
 
-
         // First, see if any complex conjugate rules are implied
-        const size_t cc_new_rules = this->conjugate_ruleset(mock_mode, logger);
-        // If no iterations allowed, but conjugation introduced non-trivial rules, then flag as incomplete
-        if (mock_mode && (cc_new_rules > 0)) {
-            return false;
+        if (mock_mode) {
+            if (this->mock_conjugate()) {
+                return false;
+            }
+        } else {
+            iteration += this->conjugate_ruleset( logger);
         }
-        iteration += cc_new_rules;
 
         // Now, standard Knuth-Bendix loop
         while(iteration < max_iterations) {
@@ -144,7 +142,7 @@ namespace Moment::Algebraic {
         }
 
         // Maximum iterations reached: see if we're complete (i.e. did final rule introduced complete the set?)
-        bool is_complete = this->is_complete();
+        bool is_complete = this->is_complete(false);
         if (logger) {
             if (is_complete) {
                 logger->success(*this, iteration);
@@ -253,7 +251,12 @@ namespace Moment::Algebraic {
         return number_reduced;
     }
 
-    bool RuleBook::is_complete() const {
+    bool RuleBook::is_complete(const bool test_cc) const {
+        // Look for CC rules
+        if (test_cc && this->mock_conjugate()) {
+            return false;
+        }
+
         // Look for non-trivially overlapping rules
         for (auto iterA = this->monomialRules.begin(); iterA != this->monomialRules.end(); ++iterA) {
             auto &ruleA = iterA->second;
@@ -332,18 +335,34 @@ namespace Moment::Algebraic {
         return false;
     }
 
+    bool RuleBook::mock_conjugate() const {
+        auto rule_iter = this->rules().begin();
 
-    size_t RuleBook::conjugate_ruleset(bool mock, RuleLogger * logger) {
+        for (const auto& [hash, rule] : this->rules()) {
+            // Conjugate and reduce rule
+            auto conj_rule = rule.conjugate(this->precontext);
+            auto conj_reduced_rule = this->reduce(conj_rule);
+
+            // Reject rule if it doesn't imply anything new
+            if (conj_reduced_rule.trivial()) {
+                continue;
+            }
+
+            // Otherwise, we have non-trivial rule
+            return true;
+        }
+
+        // No non-trivial rules discovered
+        return false;
+    }
+
+    size_t RuleBook::conjugate_ruleset(RuleLogger * logger) {
         size_t added = 0;
 
         auto rule_iter = this->rules().begin();
 
         while (rule_iter != this->rules().end()) {
-            if (this->try_conjugation(rule_iter->second, mock, logger)) {
-                // A new rule could be added, so mock mode early return...
-                if (mock) {
-                    return 1;
-                }
+            if (this->try_conjugation(rule_iter->second, logger)) {
 
                 // A new rule was added, iter is de facto invalidated, so restart at beginning of set...
                 rule_iter = this->rules().begin();
@@ -356,7 +375,7 @@ namespace Moment::Algebraic {
         return added;
     }
 
-    bool RuleBook::try_conjugation(const MonomialSubstitutionRule& rule, bool mock, RuleLogger * logger) {
+    bool RuleBook::try_conjugation(const MonomialSubstitutionRule& rule, RuleLogger * logger) {
         // Conjugate and reduce rule
         auto conj_rule = rule.conjugate(this->precontext);
         auto conj_reduced_rule = this->reduce(conj_rule);
@@ -369,11 +388,6 @@ namespace Moment::Algebraic {
         // Otherwise, add reduced rule to set
         if (logger) {
             logger->rule_introduced_conjugate(rule, conj_reduced_rule);
-        }
-
-        // Early exit if mock mode
-        if (mock) {
-            return true;
         }
 
         size_t rule_hash = conj_reduced_rule.LHS().hash();

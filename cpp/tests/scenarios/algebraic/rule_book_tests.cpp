@@ -452,7 +452,8 @@ namespace Moment::Tests {
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 0}, hasher}), std::make_pair(HashedSequence{{1}, hasher}, false));
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 1}, hasher}), std::make_pair(HashedSequence{{1}, hasher}, false));
 
-        EXPECT_TRUE(rules.is_complete());
+        EXPECT_TRUE(rules.is_complete(false));
+        EXPECT_FALSE(rules.is_complete(true));
     }
 
     TEST(Scenarios_Algebraic_RuleBook, Complete_AAAtoI_BBBtoI_ABABABtoI) {

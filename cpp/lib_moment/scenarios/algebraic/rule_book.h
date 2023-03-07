@@ -92,9 +92,10 @@ namespace Moment::Algebraic {
         bool complete(size_t max_iterations, RuleLogger * logger = nullptr);
 
         /**
-         * Tests if the rule set has no critical pairs and is hence complete
+         * Tests if the rule set has no critical pairs and is hence complete.
+         * @param test_cc Also see if rule-set misses complexly-conjugated rules
          */
-        [[nodiscard]] bool is_complete() const;
+        [[nodiscard]] bool is_complete(bool test_cc = true) const;
 
         /**
          * Reduce sequence, to best of knowledge, using rules
@@ -121,12 +122,16 @@ namespace Moment::Algebraic {
         bool try_new_combination(RuleLogger * logger = nullptr);
 
         /**
+         * True if non-trivial rules can be formed through complex conjugation.
+         */
+        bool mock_conjugate() const;
+        /**
          * Attempt to conjugate all rules in the set, reducing after each non-trivial conjugation.
-         * @param logger Pointer (may be null) to class logging which new rules are introduced.
          * @param mock Set to true to not alter rule set, but just indicate existence of non-trivial conjugate.
+         * @param logger Pointer (may be null) to class logging which new rules are introduced.
          * @return Number of introduced rules.
          */
-        size_t conjugate_ruleset(bool mock = false, RuleLogger * logger = nullptr);
+        size_t conjugate_ruleset(RuleLogger * logger = nullptr);
 
         /**
          * Attempts to introduce a rule by conjugating the supplied input rule.
@@ -135,7 +140,7 @@ namespace Moment::Algebraic {
          * @param logger Pointer (may be null) to class logging which new rule is deduced.
          * @return True, if conjugate was non-trivial (and hence added to set).
          */
-        bool try_conjugation(const MonomialSubstitutionRule& rule, bool mock = false, RuleLogger * logger = nullptr);
+        bool try_conjugation(const MonomialSubstitutionRule& rule, RuleLogger * logger = nullptr);
 
         /**
          * Print out rules.
