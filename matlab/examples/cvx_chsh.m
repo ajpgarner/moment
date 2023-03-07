@@ -16,7 +16,7 @@ B0 = Bob.AddMeasurement(2);
 B1 = Bob.AddMeasurement(2);
 
 % Make moment matrix
-matrix = scenario.MakeMomentMatrix(6);
+matrix = scenario.MakeMomentMatrix(1);
 
 % Make correlator objects
 Corr00 = Correlator(A0, B0);
