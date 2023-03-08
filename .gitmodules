@@ -1,3 +1,6 @@
 [submodule "cpp/googletest"]
 	path = cpp/googletest
 	url = https://github.com/google/googletest
+[submodule "cpp/eigen"]
+	path = cpp/eigen
+	url = https://gitlab.com/libeigen/eigen.git
