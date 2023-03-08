@@ -115,6 +115,8 @@ to the call to function `mtk(...)`:
 
 `conjugate`: Returns the complex-conjugation of an operator sequence.
 
+`echo`: *[Debug function]*: Returns supplied numerical array.
+
 `extended_matrix`: Creates a scalar extension of a moment matrix, extended by listed symbols.
 
 `generate_basis`: Provide symmetric or Hermitian basis matrices for a given symbolic matrix.
@@ -163,7 +165,9 @@ settings.
 
 `\cpp`: Root of the C++ source code.
 
-`\cpp\googletest`: Inclusion of googletest subproject
+`\cpp\eigen`: Inclusion of [eigen](https://gitlab.com/libeigen/eigen) subproject.
+
+`\cpp\googletest`: Inclusion of [googletest](https://github.com/google/googletest) subproject.
 
 `\cpp\lib_moment`: Toolkit algorithms agnostic of MATLAB. Builds `lib_moment`.
 
@@ -190,6 +194,8 @@ localizing matrices, etc.
 SDP hierarchies.
 
 `\cpp\mex_functions`: Root for MATLAB/C++ interface code (i.e. building `mtk` mex library).
+
+`\cpp\mex_functions\eigen`: Code pieces involving the conversion between MATLAB arrays and `eigen` matrices.
 
 `\cpp\mex_functions\export`: Code pieces specific to Moment, involving the conversion of Moment library objects 
 to MATLAB arrays.

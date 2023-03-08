@@ -7,8 +7,8 @@ classdef GroupTest < MTKTestBase
            generators = {[0 1; 1 0]};
            group = Symmetry.Group(generators);
            group.Generate();
-           testCase.verifyEqual(group.Size, 2);
-           testCase.verifyEqual(group.RepDimension, 2);
+           testCase.verifyEqual(group.Size, uint64(2));
+           testCase.verifyEqual(group.RepDimension, uint64(2));
        end
        
       function S3(testCase)
@@ -16,8 +16,8 @@ classdef GroupTest < MTKTestBase
                          [1 0 0; 0 0 1; 0 1 0]};
            group = Symmetry.Group(generators);
            group.Generate();
-           testCase.verifyEqual(group.Size, 6);
-           testCase.verifyEqual(group.RepDimension, 3);
+           testCase.verifyEqual(group.Size, uint64(6));
+           testCase.verifyEqual(group.RepDimension, uint64(3));
       end
         
       function S4(testCase)
@@ -26,8 +26,8 @@ classdef GroupTest < MTKTestBase
                          [1 0 0 0; 0 1 0 0; 0 0 0 1; 0 0 1 0]};
            group = Symmetry.Group(generators);
            group.Generate();
-           testCase.verifyEqual(group.Size, 24);
-           testCase.verifyEqual(group.RepDimension, 4);
+           testCase.verifyEqual(group.Size, uint64(24));
+           testCase.verifyEqual(group.RepDimension, uint64(4));
        end
     end    
 end

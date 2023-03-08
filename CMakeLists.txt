@@ -25,6 +25,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     endif()
 endif()
 
+include_directories(cpp/eigen)
+
 add_subdirectory(cpp/lib_moment)
 
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cpp/googletest/CMakeLists.txt")
@@ -33,3 +35,4 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cpp/googletest/CMakeLists.txt")
 endif()
 
 add_subdirectory(cpp/mex_functions)
+

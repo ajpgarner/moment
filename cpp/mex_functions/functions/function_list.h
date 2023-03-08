@@ -29,6 +29,7 @@ namespace Moment::mex::functions {
         CollinsGisin,
         Complete,
         Conjugate,
+        Echo,
         ExtendedMatrix,
         GenerateBasis,
         ImportMatrix,

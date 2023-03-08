@@ -12,6 +12,10 @@ matlab_add_mex(NAME moment_mex
             mex_function.cpp
             mex_main.cpp
             storage_manager.cpp
+            eigen/read_eigen_dense.cpp
+            eigen/read_eigen_sparse.cpp
+            eigen/export_eigen_dense.cpp
+            eigen/export_eigen_sparse.cpp
             export/export_basis.cpp
             export/export_implicit_symbols.cpp
             export/export_matrix_basis_masks.cpp
@@ -37,6 +41,8 @@ matlab_add_mex(NAME moment_mex
             functions/apply_values.cpp
             functions/collins_gisin.cpp
             functions/complete.cpp
+            functions/conjugate.cpp
+            functions/echo.cpp
             functions/extended_matrix.cpp
             functions/import_matrix.cpp
             functions/function_list.cpp
@@ -56,7 +62,6 @@ matlab_add_mex(NAME moment_mex
             functions/settings.cpp
             functions/suggest_extensions.cpp
             functions/symbol_table.cpp
-        functions/conjugate.cpp
             functions/version.cpp
         OUTPUT_NAME mtk
         MODULE

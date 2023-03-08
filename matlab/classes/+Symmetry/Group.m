@@ -25,13 +25,13 @@ classdef Group < handle
             % Empty generators -> group is just the identity
             if isempty(generators)
                 obj.Elements = {1};
-                obj.RepDimension = 1;
+                obj.RepDimension = uint64(1);
                 return;
             end
             
             % Non empty generators, check all are same size
             obj_dims = size(generators{1});            
-            obj.RepDimension = obj_dims(1);
+            obj.RepDimension = uint64(obj_dims(1));
             for idx = 1:length(generators)
                 if ~ismatrix(generators{idx})
                    error("Generator at index %d was not a matrix.", idx); 
