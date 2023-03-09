@@ -50,7 +50,9 @@ add_library(lib_moment
         symbolic/symbol.cpp
         symbolic/symbol_expression.cpp
         symbolic/symbol_table.cpp
+        symmetry/group.cpp
         symmetry/remapper.cpp
+        symmetry/representation.cpp
         utilities/alphabetic_namer.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp

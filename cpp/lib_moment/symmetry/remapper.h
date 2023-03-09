@@ -14,6 +14,9 @@
 namespace Moment {
     class Context;
 
+    /**
+     * Utility for generating new representations of a symmetry group on a context.
+     */
     class Remapper {
 
     private:
