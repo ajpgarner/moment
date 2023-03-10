@@ -32,6 +32,8 @@ namespace Moment {
             ++osg_index;
         }
 
+        // XXX: '1+op_count' will fail on contexts with single character rewrite equivalences (e.g. "b = a")
+
         // Now, iterate through raw indices to make dense map from potential words to canonical index
         auto op_count = context.size();
         for (const auto& raw_vec : MultiDimensionalIndexRange{std::vector<size_t>(max_word_length, 1+op_count)}) {

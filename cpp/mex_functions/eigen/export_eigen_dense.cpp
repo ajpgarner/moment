@@ -11,11 +11,11 @@
 
 namespace Moment::mex {
     matlab::data::TypedArray<double> export_eigen_dense(matlab::engine::MATLABEngine& engine,
+                                                        matlab::data::ArrayFactory& factory,
                                                         const Eigen::MatrixXd& matrix) {
         const matlab::data::ArrayDimensions dims{static_cast<size_t>(matrix.rows()),
                                            static_cast<size_t>(matrix.cols())};
 
-        matlab::data::ArrayFactory factory;
         auto output = factory.createArray<double>(dims);
 
         // MATLAB is col major

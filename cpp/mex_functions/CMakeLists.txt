@@ -37,6 +37,7 @@ matlab_add_mex(NAME moment_mex
             utilities/read_as_vector.cpp
             utilities/reflection.cpp
             utilities/reporting.cpp
+            functions/add_symmetry.cpp
             functions/alphabetic_name.cpp
             functions/apply_values.cpp
             functions/collins_gisin.cpp

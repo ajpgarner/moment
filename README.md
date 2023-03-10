@@ -43,6 +43,8 @@ To download and compile the library use the following commands:
 
 <pre>git clone https://github.com/ajpgarner/moment.git
 cd moment
+git submodule init
+git submodule update
 cmake .
 cmake --build .</pre>
 
@@ -50,14 +52,6 @@ Once the build is complete, the binary `mtk.mexa64` will be automatically copied
 
 To use from MATLAB, add the following folder to the matlab path: `moment/matlab`
 
-To build with the C++ unit tests, instead:
-
-<pre>git clone https://github.com/ajpgarner/moment.git
-cd moment
-git submodule init
-git submodule update
-cmake .
-cmake --build .</pre>
 
 ### Windows: CLion
 Clone the repository (e.g. with GitHub desktop).
@@ -82,6 +76,13 @@ Once the build is complete, the binary `mtk.mexw64` will have been copied to the
 
 To use from MATLAB, add the following folder to the matlab path: `moment/matlab`.
 
+## Dependencies
+**[Googletest](https://github.com/google/googletest):** C++ unit test suite.
+
+**[Eigen](https://gitlab.com/libeigen/eigen):** Linear algebra template library for C++.
+
+Both dependencies are included as git submodules (and hence will be pulled by using the above installation instructions).
+
 
 ## List of classes, functions and folders
 ### MATLAB classes
@@ -104,6 +105,8 @@ respect no-signalling, and so operators associated with different parties are al
 ### Moment functions
 The matlab module `mtk` contains the following functions, the names of which should be provided as the first argument
 to the call to function `mtk(...)`:
+
+`add_symmetry`: Associate a symmetry group with a context.
 
 `alphabetic_name`: Converts a numerical index into an alphabetic one.
 

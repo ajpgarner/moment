@@ -13,6 +13,7 @@
 
 namespace Moment::mex {
     matlab::data::SparseArray<double> export_eigen_sparse(matlab::engine::MATLABEngine& engine,
+                                                          matlab::data::ArrayFactory& factory,
                                                           const Eigen::SparseMatrix<double>& matrix) {
 
         matlab::data::ArrayDimensions dims{static_cast<size_t>(matrix.rows()),
@@ -25,8 +26,6 @@ namespace Moment::mex {
         }
 
         // Otherwise, do properly
-        matlab::data::ArrayFactory factory;
-
         auto rows_p = factory.createBuffer<size_t>(nnz);
         auto cols_p = factory.createBuffer<size_t>(nnz);
         auto data_p = factory.createBuffer<double>(nnz);
@@ -49,4 +48,23 @@ namespace Moment::mex {
         return factory.createSparseArray<double>(dims, nnz,
                                                  std::move(data_p), std::move(rows_p), std::move(cols_p));
     }
+
+
+
+    matlab::data::TypedArray<matlab::data::Array>
+    export_eigen_sparse_array(matlab::engine::MATLABEngine& engine,
+                              matlab::data::ArrayFactory& factory,
+                              const std::vector<Eigen::SparseMatrix<double>>& matrices) {
+
+        matlab::data::ArrayDimensions dims{1, matrices.size()};
+        matlab::data::TypedArray<matlab::data::Array> output = factory.createCellArray(dims);
+        auto write_iter = output.begin();
+        for (const auto& matrix : matrices) {
+            *write_iter = export_eigen_sparse(engine, factory, matrix);
+            ++write_iter;
+        }
+
+        return output;
+    }
+
 }

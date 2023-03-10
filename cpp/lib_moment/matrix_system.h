@@ -28,6 +28,8 @@ namespace Moment {
     class LocalizingMatrix;
     class MomentMatrix;
 
+    class Group;
+
     namespace errors {
         /**
          * Error issued when a component from the matrix system is requested, but does not exist.
@@ -35,6 +37,14 @@ namespace Moment {
         class missing_component : public std::runtime_error {
         public:
             explicit missing_component(const std::string& what) : std::runtime_error{what} { }
+        };
+
+        /**
+         * Error issued when something fails when adding a symmetry.
+         */
+        class bad_symmetry : public std::runtime_error {
+        public:
+            explicit bad_symmetry(const std::string& what) : std::runtime_error{what} { }
         };
     }
 
@@ -54,6 +64,9 @@ namespace Moment {
 
         /** The index (in this->matrices) of generated localizing matrices */
         std::map<LocalizingMatrixIndex, ptrdiff_t> localizingMatrixIndices;
+
+        /** Any applicable symmetry groups */
+        std::vector<std::unique_ptr<Group>> symmetries;
 
     private:
         /** Read-write mutex for matrices */
@@ -208,6 +221,26 @@ namespace Moment {
         [[nodiscard]] auto get_write_lock() {
             return std::unique_lock{this->rwMutex};
         }
+
+        /**
+         * Adds a symmetry group.
+         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
+         * @param group Owning pointer to the new group.
+         * @return Pair: the index of the added group, reference to the added group.
+         */
+        [[nodiscard]] std::pair<size_t, Group&> add_symmetry(std::unique_ptr<Group> group);
+
+        /**
+         * Retrieve symmetry group at supplied index.
+         * For thread safety, call for a read lock first.
+         */
+        [[nodiscard]] Group& symmetry(size_t index);
+
+        /**
+         * Retrieve symmetry group at supplied index.
+         * For thread safety, call for a read lock first.
+         */
+        [[nodiscard]] const Group& symmetry(size_t index) const;
 
     protected:
         /**

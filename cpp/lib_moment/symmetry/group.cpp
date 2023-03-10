@@ -6,28 +6,46 @@
  */
 #include "group.h"
 
+#include "matrix/operator_sequence_generator.h"
+#include "scenarios/context.h"
+
 #include <iostream>
 
 namespace Moment {
 
     namespace {
-        Eigen::SparseMatrix<double> sparse_id_matrix(int dimension) {
-            Eigen::SparseMatrix<double> id(dimension, dimension);
+        repmat_t sparse_id_matrix(int dimension) {
+            repmat_t id(dimension, dimension);
             id.setIdentity();
             return id;
         }
     }
 
 
-    Group::Group(const std::vector<Eigen::SparseMatrix<double>>& generators) {
-        auto elems = Group::dimino_generation(generators);
+    Group::Group(const Context& context, Representation&& rep)
+        : context{context}, fundamental_dimension{rep.dimension} {
 
+        // Calculate expected fundamental representation size:
+        OperatorSequenceGenerator osg{context, 0, 1};
+        const auto expected_size = osg.size();
+
+        // Throw exception is unexpected size
+        if (rep.dimension != expected_size) {
+            std::stringstream errSS;
+            errSS << "Initial representation has dimension " << rep.dimension
+                  << ", but dimension " << expected_size
+                  << " was expected (matching number of fundamental operators + 1).";
+            throw std::runtime_error{errSS.str()};
+        }
+
+        // Save rep
+        this->representations.emplace_back(std::move(rep));
     }
 
-    std::vector<Eigen::SparseMatrix<double>>
-    Group::dimino_generation(const std::vector<Eigen::SparseMatrix<double>> &generators,
+    std::vector<repmat_t>
+    Group::dimino_generation(const std::vector<repmat_t> &generators,
                                   const size_t max_subgroup_size) {
-        std::vector<Eigen::SparseMatrix<double>> elements;
+        std::vector<repmat_t> elements;
 
         // Special case of no generators, 1x1 identity only.
         if (generators.empty()) {
@@ -44,7 +62,7 @@ namespace Moment {
         elements.emplace_back(id);
 
         // Generate orbit for first generator
-        Eigen::SparseMatrix<double> elem(*gen_iter);
+        repmat_t elem(*gen_iter);
         size_t sg_index = 0;
         while ((sg_index < max_subgroup_size) && (!elem.isApprox(id))) {
             elements.emplace_back(elem);
@@ -80,7 +98,7 @@ namespace Moment {
             do {
                 for (const auto& other_gen : generators) {
                     // Try to find a non-trivial new coset
-                    const Eigen::SparseMatrix<double> next_coset_rep = (elements[rep_pos] * other_gen).pruned();
+                    const repmat_t next_coset_rep = (elements[rep_pos] * other_gen).pruned();
 
                     // Skip redundant coset
                     if (std::any_of(elements.begin(), elements.end(),

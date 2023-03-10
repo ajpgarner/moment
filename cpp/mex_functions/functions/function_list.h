@@ -24,6 +24,7 @@ namespace Moment::mex::functions {
 
     enum class MEXEntryPointID : int {
         Unknown = 0,
+        AddSymmetry,
         AlphabeticName,
         ApplyValues,
         CollinsGisin,

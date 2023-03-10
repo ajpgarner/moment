@@ -13,6 +13,8 @@
 #include "symbolic/substitution_list.h"
 #include "symbolic/symbol_table.h"
 
+#include "symmetry/group.h"
+
 #include "scenarios/context.h"
 
 #include <algorithm>
@@ -149,6 +151,47 @@ namespace Moment {
 
         return where->second;
     }
+
+    std::pair<size_t, Group&> MatrixSystem::add_symmetry(std::unique_ptr<Group> group_ptr) {
+
+        // Check group is not empty
+        if (!group_ptr) {
+            throw errors::bad_symmetry{"New symmetry group is missing."};
+        }
+        if (&group_ptr->context != &(this->Context())) {
+            throw errors::bad_symmetry{"New symmetry group is for a different context."};
+        }
+
+        auto write_lock = this->get_write_lock();
+
+        this->symmetries.emplace_back(std::move(group_ptr));
+
+        size_t index = this->symmetries.size()-1;
+        Group& group = *(this->symmetries.back());
+        return {index, group};
+
+    }
+
+    Group& MatrixSystem::symmetry(size_t index) {
+        if (index >= this->symmetries.size()) {
+            throw errors::missing_component{"Symmetry index out of range."};
+        }
+        if (!this->symmetries[index]) {
+            throw errors::missing_component{"Symmetry at supplied index was missing."};
+        }
+        return *this->symmetries[index];
+    }
+
+    const Group& MatrixSystem::symmetry(size_t index) const {
+        if (index >= this->symmetries.size()) {
+            throw errors::missing_component{"Symmetry index out of range."};
+        }
+        if (!this->symmetries[index]) {
+            throw errors::missing_component{"Symmetry at supplied index was missing."};
+        }
+        return *this->symmetries[index];
+    }
+
 
     const SymbolicMatrix &MatrixSystem::operator[](size_t index) const {
         if (index >= this->matrices.size()) {

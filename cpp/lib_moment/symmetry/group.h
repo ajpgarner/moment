@@ -17,10 +17,15 @@ namespace Moment {
     class Context;
 
     class Group {
+    public:
+        const Context& context;
+        const size_t fundamental_dimension;
+
+    private:
         std::vector<Representation> representations;
 
     public:
-        Group(const std::vector<Eigen::SparseMatrix<double>>& generators);
+        Group(const Context& context, Representation&& basis_rep);
 
     public:
         /**
@@ -28,9 +33,10 @@ namespace Moment {
          * @param generators Generator matrices, all square matrices of same dimension.
          * @return List of group elements.
          */
-        static std::vector<Eigen::SparseMatrix<double>>
-        dimino_generation(const std::vector<Eigen::SparseMatrix<double>>& generators,
+        static std::vector<repmat_t>
+        dimino_generation(const std::vector<repmat_t>& generators,
                          size_t max_subgroup_size = 1000000);
+
 
     };
 

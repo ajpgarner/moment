@@ -8,6 +8,8 @@
 
 #include <Eigen/Sparse>
 
+#include <vector>
+
 namespace matlab::data {
     class Array;
 }
@@ -17,8 +19,12 @@ namespace matlab::engine {
 
 namespace Moment::mex {
 
-    /** Reads a matlab matrix into a real eigen sparse matrix */
+    /** Reads a matlab matrix into a real eigen sparse matrix. */
     Eigen::SparseMatrix<double> read_eigen_sparse(matlab::engine::MATLABEngine& engine,
                                                   const matlab::data::Array& array);
+
+    /** Reads a matlab cell array into a vector of real eigen sparse matrices. */
+    std::vector<Eigen::SparseMatrix<double>>
+    read_eigen_sparse_array(matlab::engine::MATLABEngine& engine, const matlab::data::Array& array);
 
 }

@@ -117,4 +117,16 @@ namespace Moment::mex {
         return DispatchVisitor(engine, input, ReadNumericMatrixVisitor{engine});
 
     }
+
+
+    std::vector<Eigen::SparseMatrix<double>>
+    read_eigen_sparse_array(matlab::engine::MATLABEngine& engine, const matlab::data::Array& array) {
+        std::vector<Eigen::SparseMatrix<double>> output;
+        const matlab::data::TypedArray<matlab::data::Array> cell_array = array;
+        output.reserve(cell_array.getNumberOfElements());
+        for (const auto& elem : cell_array) {
+            output.emplace_back(read_eigen_sparse(engine, elem));
+        }
+        return output;
+    }
 }

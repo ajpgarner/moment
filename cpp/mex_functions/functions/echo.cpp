@@ -70,7 +70,8 @@ namespace Moment::mex::functions {
             }
 
             if (output_to_matlab) {
-                output[0] = export_eigen_dense(this->matlabEngine, eigen_dense_object);
+                matlab::data::ArrayFactory factory;
+                output[0] = export_eigen_dense(this->matlabEngine, factory, eigen_dense_object);
             }
             return;
         }
@@ -85,7 +86,8 @@ namespace Moment::mex::functions {
             }
 
             if (output_to_matlab) {
-                output[0] = export_eigen_sparse(this->matlabEngine, eigen_sparse_object);
+                matlab::data::ArrayFactory factory;
+                output[0] = export_eigen_sparse(this->matlabEngine, factory, eigen_sparse_object);
             }
             return;
         }

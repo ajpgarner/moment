@@ -13,5 +13,6 @@
 
 namespace Moment::mex {
     matlab::data::TypedArray<double> export_eigen_dense(matlab::engine::MATLABEngine& engine,
-                                                       const Eigen::MatrixXd& matrix);
+                                                        matlab::data::ArrayFactory& factory,
+                                                        const Eigen::MatrixXd& matrix);
 }

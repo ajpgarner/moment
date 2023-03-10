@@ -7,6 +7,7 @@
 #include "function_list.h"
 #include "mex_function.h"
 
+#include "functions/add_symmetry.h"
 #include "functions/alphabetic_name.h"
 #include "functions/apply_values.h"
 #include "functions/collins_gisin.h"
@@ -46,6 +47,9 @@ namespace Moment::mex::functions {
         std::unique_ptr<functions::MexFunction> the_function;
 
         switch(function_id) {
+            case functions::MEXEntryPointID::AddSymmetry:
+                the_function = std::make_unique<functions::AddSymmetry>(engine, storageManager);
+                break;
             case functions::MEXEntryPointID::AlphabeticName:
                 the_function = std::make_unique<functions::AlphabeticName>(engine, storageManager);
                 break;
@@ -133,6 +137,7 @@ namespace Moment::mex::functions {
     std::map<std::basic_string<char16_t>, MEXEntryPointID> make_str_to_entrypoint_map() {
         std::map<std::basic_string<char16_t>, MEXEntryPointID> output;
 
+        output.emplace(u"add_symmetry", MEXEntryPointID::AddSymmetry);
         output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
         output.emplace(u"apply_values",    MEXEntryPointID::ApplyValues);
         output.emplace(u"collins_gisin",   MEXEntryPointID::CollinsGisin);
