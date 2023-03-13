@@ -22,8 +22,13 @@ namespace Moment {
     private:
         std::vector<size_t> remap;
 
+        size_t raw_dim;
+        size_t remapped_dim;
+
+
     public:
         const Context& context;
+        const size_t target_word_length;
 
         Remapper(const Context& context, size_t max_word_length);
 

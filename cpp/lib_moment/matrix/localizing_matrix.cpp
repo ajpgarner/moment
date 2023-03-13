@@ -16,8 +16,8 @@ namespace Moment {
         std::unique_ptr<OperatorMatrix::OpSeqMatrix>
         generate_localizing_matrix_sequences(const Context& context, size_t level, const OperatorSequence& word) {
             // Prepare generator of symbols
-            OperatorSequenceGenerator colGen{context, level};
-            OperatorSequenceGenerator rowGen{colGen.conjugate()};
+            const OperatorSequenceGenerator& colGen = context.operator_sequence_generator(level);
+            const OperatorSequenceGenerator& rowGen = context.operator_sequence_generator(level, true);
 
             // Build matrix...
             size_t dimension = colGen.size();

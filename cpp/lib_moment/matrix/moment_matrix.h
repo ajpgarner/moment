@@ -51,7 +51,7 @@ namespace Moment {
         /**
          * The generators associated with this matrix
          */
-         [[nodiscard]] OperatorSequenceGenerator Generators() const;
+         [[nodiscard]] const OperatorSequenceGenerator& Generators() const;
 
         [[nodiscard]] std::string description() const override;
     };

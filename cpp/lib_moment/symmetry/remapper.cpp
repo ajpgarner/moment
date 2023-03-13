@@ -13,15 +13,17 @@
 #include "scenarios/context.h"
 #include "scenarios/operator_sequence.h"
 
+#include "utilities/ipow.h"
 #include "utilities/multi_dimensional_index_iterator.h"
+
 
 namespace Moment {
 
     Remapper::Remapper(const Context &context, const size_t max_word_length)
-        : context{context} {
+        : context{context}, target_word_length{max_word_length} {
 
         // First, reverse OSG to get map from hash to order.
-        OperatorSequenceGenerator osg(context,0, max_word_length);
+        const auto& osg = context.operator_sequence_generator(target_word_length);
         std::map<size_t, size_t> hash_to_index;
         size_t osg_index = 0;
         for (const auto& seq : osg) {
@@ -32,11 +34,13 @@ namespace Moment {
             ++osg_index;
         }
 
+        this->remapped_dim = osg.size();
+
         // XXX: '1+op_count' will fail on contexts with single character rewrite equivalences (e.g. "b = a")
 
         // Now, iterate through raw indices to make dense map from potential words to canonical index
         auto op_count = context.size();
-        for (const auto& raw_vec : MultiDimensionalIndexRange{std::vector<size_t>(max_word_length, 1+op_count)}) {
+        for (const auto& raw_vec : MultiDimensionalIndexRange{std::vector<size_t>(target_word_length, 1+op_count)}) {
             sequence_storage_t seq_vec;
             for (const auto x : raw_vec) {
                 if (x > 0) {
@@ -49,5 +53,6 @@ namespace Moment {
             assert(remap_iter != hash_to_index.cend());
             this->remap.emplace_back(remap_iter->second);
         }
+        this->raw_dim = ipow(1+op_count, target_word_length);
     }
 }

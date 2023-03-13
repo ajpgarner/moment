@@ -17,6 +17,7 @@ add_library(lib_moment
         scenarios/implicit_symbols.cpp
         scenarios/operator_sequence.cpp
         scenarios/outcome_index_iterator.cpp
+        scenarios/word_list.cpp
         scenarios/algebraic/algebraic_context.cpp
         scenarios/algebraic/algebraic_precontext.cpp
         scenarios/algebraic/algebraic_matrix_system.cpp

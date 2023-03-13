@@ -6,6 +6,7 @@
  */
 #include "context.h"
 #include "operator_sequence.h"
+#include "word_list.h"
 
 #include <algorithm>
 #include <iostream>
@@ -16,8 +17,10 @@ namespace Moment {
 
     Context::Context(const size_t count)
         : operator_count{static_cast<oper_name_t>(count)}, hasher{count} {
-
+        this->word_list = std::make_unique<WordList>(*this);
     }
+
+    Context::~Context() = default;
 
     bool Context::additional_simplification(sequence_storage_t &op_sequence, bool& negate) const {
         // Do nothing
@@ -47,6 +50,15 @@ namespace Moment {
         }
 
         return this->hasher(sequence.operators);
+    }
+
+
+    const OperatorSequenceGenerator&
+    Context::operator_sequence_generator(const size_t level, const bool conjugated) const {
+        if (conjugated) {
+            return this->word_list->conjugated(level);
+        }
+        return (*this->word_list)[level];
     }
 
     std::string Context::format_sequence(const OperatorSequence &seq) const {

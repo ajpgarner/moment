@@ -23,6 +23,8 @@ namespace Moment {
     class SymbolTable;
     class SubstitutionList;
 
+    class WordList;
+
     class SymbolicMatrix;
     class OperatorMatrix;
     class LocalizingMatrix;

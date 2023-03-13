@@ -10,12 +10,14 @@
 #include "matrix/moment_matrix.h"
 #include "matrix/substituted_matrix.h"
 
+
 #include "symbolic/substitution_list.h"
 #include "symbolic/symbol_table.h"
 
 #include "symmetry/group.h"
 
 #include "scenarios/context.h"
+#include "scenarios/word_list.h"
 
 #include <algorithm>
 #include <memory>
@@ -31,7 +33,6 @@ namespace Moment {
 
     MatrixSystem::MatrixSystem(std::unique_ptr<class Context> ctxtIn)
         : context{std::move(ctxtIn)}, symbol_table{std::make_unique<SymbolTable>(assertContext(context))} {
-
     }
 
     MatrixSystem::~MatrixSystem() noexcept = default;

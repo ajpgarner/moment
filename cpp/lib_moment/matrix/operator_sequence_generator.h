@@ -39,6 +39,12 @@ namespace Moment {
         OperatorSequenceGenerator(const Context& operatorContext, size_t min_length, size_t max_length);
 
         /**
+         * Move construct OSG
+         */
+        OperatorSequenceGenerator(OperatorSequenceGenerator&& rhs) = default;
+
+
+        /**
           * Generates all unique permutations of operator sequences, up to sequence_length.
           * @param operatorContext
           * @param sequence_length
@@ -73,9 +79,5 @@ namespace Moment {
             assert(index < unique_sequences.size());
             return this->unique_sequences[index];
         };
-
-    private:
-        void do_generation();
-
     };
 }

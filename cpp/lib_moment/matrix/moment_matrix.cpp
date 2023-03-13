@@ -17,8 +17,8 @@ namespace Moment {
         std::unique_ptr<OperatorMatrix::OpSeqMatrix>
         generate_moment_matrix_sequences(const Context& context, size_t level) {
             // Prepare generator of symbols
-            OperatorSequenceGenerator colGen{context, level};
-            OperatorSequenceGenerator rowGen{colGen.conjugate()};
+            const OperatorSequenceGenerator& colGen = context.operator_sequence_generator(level);
+            const OperatorSequenceGenerator& rowGen = context.operator_sequence_generator(level, true);
 
             // Build matrix...
             size_t dimension = colGen.size();
@@ -64,8 +64,8 @@ namespace Moment {
 
     MomentMatrix::~MomentMatrix() = default;
 
-    OperatorSequenceGenerator MomentMatrix::Generators() const {
-        return OperatorSequenceGenerator{this->context, this->Level()};
+    const OperatorSequenceGenerator& MomentMatrix::Generators() const {
+        return this->context.operator_sequence_generator(this->Level());
     }
 
     std::string MomentMatrix::description() const {

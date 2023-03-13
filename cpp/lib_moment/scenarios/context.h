@@ -16,6 +16,8 @@
 namespace Moment {
 
     class OperatorSequence;
+    class OperatorSequenceGenerator;
+    class WordList;
 
     class Context {
     protected:
@@ -23,10 +25,14 @@ namespace Moment {
 
         ShortlexHasher hasher;
 
+    private:
+        /** List of operator-sequence-generators */
+        std::unique_ptr<WordList> word_list;
+
     public:
         explicit Context(size_t operator_count);
 
-        virtual ~Context() = default;
+        virtual ~Context();
 
         /** Gets total number of operators in Context */
         [[nodiscard]] constexpr size_t size() const noexcept { return this->operator_count; }
@@ -105,6 +111,10 @@ namespace Moment {
           */
          [[nodiscard]] virtual std::string to_string() const;
 
+         /**
+          * Gets a generator for operator sequences in this context
+          */
+         const OperatorSequenceGenerator& operator_sequence_generator(size_t level, bool conjugated = false) const;
 
 
     public:
