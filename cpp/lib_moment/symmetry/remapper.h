@@ -38,10 +38,24 @@ namespace Moment {
 
         Remapper(const Context& context, size_t max_word_length);
 
+        /** Dimension of Kronecker product */
+        [[nodiscard]] inline size_t raw_dimension() const noexcept { return this->raw_dim; }
+
+        /** Dimension after equivalences applied */
+        [[nodiscard]] inline size_t remapped_dimension() const noexcept { return this->remapped_dim; }
+
+        /** The matrix that acts on the left of the Kronecker product (encoding redundant dims) */
+        [[nodiscard]] inline auto LHS() const noexcept { return this->lhs; }
+
+        /** The matrix that acts on the right of the Kronecker product (encoding remapped dims) */
+        [[nodiscard]] inline auto RHS() const noexcept { return this->rhs; }
+
+
+
         /**
          * Get index offset.
          */
-        inline size_t operator[](size_t index) const {
+        [[nodiscard]] inline size_t operator[](size_t index) const noexcept {
             assert(index < this->remap.size());
             return this->remap[index];
         }
@@ -51,6 +65,7 @@ namespace Moment {
          * @param matrix
          * @return
          */
-        repmat_t operator()(const repmat_t& matrix) const;
+        [[nodiscard]] repmat_t operator()(const repmat_t& matrix) const;
+
     };
 }

@@ -36,4 +36,11 @@ namespace Moment::Tests {
 
         return sparse;
     }
+
+    inline Eigen::SparseMatrix<double> one_elem(size_t dim, size_t i, size_t j) {
+        Eigen::SparseMatrix<double> matrix(static_cast<int>(dim), static_cast<int>(dim));
+        matrix.insert(static_cast<int>(i), static_cast<int>(j)) = 1.0;
+        matrix.makeCompressed();
+        return matrix;
+    }
 }
