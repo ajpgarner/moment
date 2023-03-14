@@ -6,6 +6,10 @@
  */
 #pragma once
 
+#include "representation.h"
+
+#include <Eigen/Sparse>
+
 #include <cassert>
 
 #include <map>
@@ -25,6 +29,8 @@ namespace Moment {
         size_t raw_dim;
         size_t remapped_dim;
 
+        repmat_t lhs;
+        repmat_t rhs;
 
     public:
         const Context& context;
@@ -32,9 +38,19 @@ namespace Moment {
 
         Remapper(const Context& context, size_t max_word_length);
 
+        /**
+         * Get index offset.
+         */
         inline size_t operator[](size_t index) const {
             assert(index < this->remap.size());
             return this->remap[index];
         }
+
+        /**
+         * Map group matrix in length 1 representation to length N representation
+         * @param matrix
+         * @return
+         */
+        repmat_t operator()(const repmat_t& matrix) const;
     };
 }

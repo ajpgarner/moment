@@ -55,6 +55,7 @@ add_library(lib_moment
         symmetry/remapper.cpp
         symmetry/representation.cpp
         utilities/alphabetic_namer.cpp
+        utilities/kronecker_power.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
         )

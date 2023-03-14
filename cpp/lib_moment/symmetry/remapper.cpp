@@ -14,8 +14,10 @@
 #include "scenarios/operator_sequence.h"
 
 #include "utilities/ipow.h"
+#include "utilities/kronecker_power.h"
 #include "utilities/multi_dimensional_index_iterator.h"
 
+#include <stdexcept>
 
 namespace Moment {
 
@@ -54,5 +56,9 @@ namespace Moment {
             this->remap.emplace_back(remap_iter->second);
         }
         this->raw_dim = ipow(1+op_count, target_word_length);
+    }
+
+    repmat_t Remapper::operator()(const repmat_t &matrix) const {
+        throw std::logic_error{"Remapper::operator() not yet implemented."};
     }
 }
