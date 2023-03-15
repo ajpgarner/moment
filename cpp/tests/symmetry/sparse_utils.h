@@ -43,4 +43,5 @@ namespace Moment::Tests {
         matrix.makeCompressed();
         return matrix;
     }
+
 }
