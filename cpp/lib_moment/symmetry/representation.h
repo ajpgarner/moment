@@ -28,10 +28,22 @@ namespace Moment {
 
         Representation(Representation&& rhs) = default;
 
-        const repmat_t& operator[](size_t idx) const {
+        [[nodiscard]] const repmat_t& operator[](size_t idx) const {
             assert(idx < this->elements.size());
             return this->elements[idx];
         }
+
+        [[nodiscard]] inline const auto& group_elements() const noexcept { return this->elements; }
+
+        [[nodiscard]] inline bool empty() const noexcept { return this->elements.empty(); }
+
+        [[nodiscard]] inline auto size() const noexcept { return this->elements.size(); }
+
+        [[nodiscard]] inline auto begin() const noexcept { return this->elements.cbegin(); }
+
+        [[nodiscard]] inline auto end() const noexcept { return this->elements.cend(); }
+
+
 
 
     };

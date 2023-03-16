@@ -8,6 +8,7 @@
 
 #include "sparse_utils.h"
 
+#include "scenarios/locality/locality_context.h"
 #include "symmetry/group.h"
 
 #include <Eigen/Sparse>
@@ -124,5 +125,45 @@ namespace Moment::Tests {
         ASSERT_EQ(group.size(), 16);
         EXPECT_TRUE(group[0].isApprox(sparse_id(5)));
         test_group_unique(group);
+    }
+
+    TEST(Symmetry_Group, CreateRepresentation) {
+
+        // CHSH
+        Locality::LocalityContext context{Locality::Party::MakeList(2, 2, 2)};
+
+        // Dihedral-8 group <-> symmetries of CHSH inequality.
+        std::vector<Eigen::SparseMatrix<double>> generators;
+        generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
+                                                1, 0, 0, 0,-1,
+                                                0, 0, 0, 1, 0,
+                                                0, 1, 0, 0 ,0,
+                                                0, 0, 1, 0 ,0}));
+        generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
+                                                0, 0, 0, 0, 1,
+                                                0, 0, 0, 1, 0,
+                                                0, 0, 1, 0 ,0,
+                                                0, 1, 0, 0 ,0}));
+
+        auto group_elems = Group::dimino_generation(generators);
+        auto base_rep = std::make_unique<Representation>(std::move(group_elems));
+        Group group{context, std::move(base_rep)};
+        auto& rep1 = group.representation(1);
+        ASSERT_EQ(rep1.size(), 16);
+
+        auto& rep2 = group.create_representation(2);
+        auto& rep2_alias = group.representation(2);
+        auto& rep2_alias2 = group.create_representation(2);
+        ASSERT_NE(&rep1, &rep2);
+        EXPECT_EQ(&rep2, &rep2_alias);
+        EXPECT_EQ(&rep2, &rep2_alias2);
+
+        EXPECT_EQ(rep2.size(), 16);
+        EXPECT_EQ(rep2.dimension, 13);
+        for (const auto& mat : rep2) {
+            EXPECT_EQ(mat.rows(), 13);
+            EXPECT_EQ(mat.cols(), 13);
+        }
+
     }
 }

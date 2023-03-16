@@ -10,6 +10,8 @@
 
 #include <Eigen/Sparse>
 
+#include <mutex>
+#include <shared_mutex>
 #include <vector>
 
 namespace Moment {
@@ -18,14 +20,28 @@ namespace Moment {
 
     class Group {
     public:
+        /** Context this group represents a symmetry on */
         const Context& context;
+
+        /** Matrix dimension of the fundamental representation of the group */
         const size_t fundamental_dimension;
 
+        /** Number of unique group elements */
+        const size_t size;
+
     private:
-        std::vector<Representation> representations;
+        mutable std::shared_mutex mutex;
+        std::vector<std::unique_ptr<Representation>> representations;
 
     public:
-        Group(const Context& context, Representation&& basis_rep);
+        Group(const Context& context, std::unique_ptr<Representation> basis_rep);
+
+        const Representation& create_representation(size_t word_length);
+
+        const Representation& representation(size_t word_length) const;
+
+    private:
+
 
     public:
         /**

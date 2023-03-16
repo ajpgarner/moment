@@ -5,11 +5,14 @@
  * @author Andrew J. P. Garner
  */
 #include "group.h"
+#include "remapper.h"
 
 #include "matrix/operator_sequence_generator.h"
+
 #include "scenarios/context.h"
 
 #include <iostream>
+
 
 namespace Moment {
 
@@ -19,11 +22,22 @@ namespace Moment {
             id.setIdentity();
             return id;
         }
+
+        inline Representation * assertRP(std::unique_ptr<Representation>& rep_ptr) {
+            if (!rep_ptr) {
+                throw std::runtime_error{"Initial representation cannot be null pointer."};
+            }
+            return rep_ptr.get();
+        }
     }
 
 
-    Group::Group(const Context& context, Representation&& rep)
-        : context{context}, fundamental_dimension{rep.dimension} {
+    Group::Group(const Context& context, std::unique_ptr<Representation> rep_ptr)
+        : context{context}, fundamental_dimension{assertRP(rep_ptr)->dimension}, size{assertRP(rep_ptr)->size()} {
+
+        // Push fundamental representation
+        this->representations.emplace_back(std::move(rep_ptr));
+        auto& rep = *(this->representations.front());
 
         // Calculate expected fundamental representation size:
         OperatorSequenceGenerator osg{context, 0, 1};
@@ -38,8 +52,6 @@ namespace Moment {
             throw std::runtime_error{errSS.str()};
         }
 
-        // Save rep
-        this->representations.emplace_back(std::move(rep));
     }
 
     std::vector<repmat_t>
@@ -117,6 +129,66 @@ namespace Moment {
             } while (rep_pos < elements.size());
         }
         return elements;
+    }
+
+    const Representation& Group::create_representation(const size_t word_length) {
+        if (word_length <= 0) {
+            throw std::range_error{"Word length must be at least 1."};
+        }
+        const size_t index = word_length - 1;
+
+        std::shared_lock read_lock{this->mutex};
+        if ((index < this->representations.size()) && this->representations[index]) {
+            return *this->representations[index]; // unlock read_lock
+        }
+
+        // Could not retrieve, obtain write lock to create
+        read_lock.unlock();
+        std::unique_lock write_lock{this->mutex};
+
+        // Avoid race condition creation:~
+        if ((index < this->representations.size()) && this->representations[index]) {
+            return *this->representations[index]; // unlock write_lock
+        }
+
+        // Create remapper
+        Remapper remapper{this->context, word_length};
+
+        // Remap group elements
+        std::vector<repmat_t> remapped_elems;
+        remapped_elems.reserve(this->size);
+        const auto& fundamentals = this->representations[0]->group_elements();
+        for (const auto& elem : fundamentals) {
+            remapped_elems.emplace_back(remapper(elem));
+        }
+
+        // Construct new representation
+        std::unique_ptr<Representation> rep = std::make_unique<Representation>(std::move(remapped_elems));
+
+        // Do we need to expand list?
+        if (this->representations.size() <= index) {
+            this->representations.resize(index+1);
+        }
+        this->representations[index] = std::move(rep);
+
+        return *this->representations[index];
+    }
+
+    const Representation& Group::representation(const size_t word_length) const {
+        std::shared_lock lock{this->mutex};
+
+        if (word_length <= 0) {
+            throw std::range_error{"Word length must be at least 1."};
+        }
+        const size_t index = word_length - 1;
+
+        if ((index  >= this->representations.size()) || (!this->representations[index ])) {
+            std::stringstream errSS;
+            errSS << "Representation of word length " << word_length << " has not yet been created.";
+            throw std::runtime_error(errSS.str());
+        }
+
+        return *this->representations[index];
     }
 
 

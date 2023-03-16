@@ -51,6 +51,7 @@ matlab_add_mex(NAME moment_mex
             functions/list.cpp
             functions/localizing_matrix.cpp
             functions/make_explicit.cpp
+            functions/make_representation.cpp
             functions/moment_matrix.cpp
             functions/new_algebraic_matrix_system.cpp
             functions/new_imported_matrix_system.cpp
