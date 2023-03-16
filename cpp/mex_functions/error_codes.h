@@ -26,7 +26,7 @@ namespace Moment::mex::errors {
     /** Error code: thrown when known parameter encountered, but input following was bad. */
     constexpr char bad_param[] = "bad_param";
 
-    /** Error code: thrown when a named paramter should be present, but is not */
+    /** Error code: thrown when a named parameter should be present, but is not */
     constexpr char missing_param[] = "missing_param";
 
     /** Error code: thrown when two or more mutually exclusive flags/parameters are provided. */
