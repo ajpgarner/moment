@@ -47,15 +47,17 @@ add_library(lib_moment
         scenarios/locality/locality_operator_formatter.cpp
         scenarios/locality/joint_measurement_iterator.cpp
         scenarios/locality/party.cpp
+        scenarios/symmetrized/group.cpp
+        scenarios/symmetrized/remapper.cpp
+        scenarios/symmetrized/representation.cpp
+        scenarios/symmetrized/symmetrized_context.cpp
+        scenarios/symmetrized/symmetrized_matrix_system.cpp
         symbolic/substitution_list.cpp
         symbolic/symbol.cpp
         symbolic/symbol_expression.cpp
         symbolic/symbol_table.cpp
-        symmetry/group.cpp
-        symmetry/remapper.cpp
-        symmetry/representation.cpp
         utilities/alphabetic_namer.cpp
         utilities/kronecker_power.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
-        )
+    )

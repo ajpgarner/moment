@@ -9,12 +9,14 @@
 #include "sparse_utils.h"
 
 #include "scenarios/locality/locality_context.h"
-#include "symmetry/group.h"
+#include "scenarios/symmetrized/group.h"
 
 #include <Eigen/Sparse>
 
 #include <initializer_list>
 #include <vector>
+
+using namespace Moment::Symmetrized;
 
 namespace Moment::Tests {
 
@@ -26,8 +28,6 @@ namespace Moment::Tests {
         }
     }
 
-
-
     TEST(Symmetry_Group, Dimino_ID) {
 
         //Eigen::SparseMatrix<double> gen_a(2);
@@ -36,7 +36,6 @@ namespace Moment::Tests {
         ASSERT_EQ(group.size(), 1);
         EXPECT_TRUE(group[0].isApprox(sparse_id(1)));
     }
-
 
     TEST(Symmetry_Group, Dimino_Z2_2d) {
 

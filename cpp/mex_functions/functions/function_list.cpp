@@ -7,7 +7,6 @@
 #include "function_list.h"
 #include "mex_function.h"
 
-#include "functions/add_symmetry.h"
 #include "functions/alphabetic_name.h"
 #include "functions/apply_values.h"
 #include "functions/collins_gisin.h"
@@ -25,6 +24,7 @@
 #include "functions/new_imported_matrix_system.h"
 #include "functions/new_inflation_matrix_system.h"
 #include "functions/new_locality_matrix_system.h"
+#include "functions/new_symmetrized_matrix_system.h"
 #include "functions/operator_matrix.h"
 #include "functions/probability_table.h"
 #include "functions/release.h"
@@ -48,9 +48,6 @@ namespace Moment::mex::functions {
         std::unique_ptr<functions::MexFunction> the_function;
 
         switch(function_id) {
-            case functions::MEXEntryPointID::AddSymmetry:
-                the_function = std::make_unique<functions::AddSymmetry>(engine, storageManager);
-                break;
             case functions::MEXEntryPointID::AlphabeticName:
                 the_function = std::make_unique<functions::AlphabeticName>(engine, storageManager);
                 break;
@@ -105,6 +102,9 @@ namespace Moment::mex::functions {
             case functions::MEXEntryPointID::NewLocalityMatrixSystem:
                 the_function = std::make_unique<functions::NewLocalityMatrixSystem>(engine, storageManager);
                 break;
+            case functions::MEXEntryPointID::NewSymmetrizedMatrixSystem:
+                the_function = std::make_unique<functions::NewSymmetrizedMatrixSystem>(engine, storageManager);
+                break;
             case functions::MEXEntryPointID::OperatorMatrix:
                 the_function = std::make_unique<functions::RawOperatorMatrix>(engine, storageManager);
                 break;
@@ -140,8 +140,6 @@ namespace Moment::mex::functions {
 
     std::map<std::basic_string<char16_t>, MEXEntryPointID> make_str_to_entrypoint_map() {
         std::map<std::basic_string<char16_t>, MEXEntryPointID> output;
-
-        output.emplace(u"add_symmetry", MEXEntryPointID::AddSymmetry);
         output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
         output.emplace(u"apply_values",    MEXEntryPointID::ApplyValues);
         output.emplace(u"collins_gisin",   MEXEntryPointID::CollinsGisin);
@@ -161,6 +159,7 @@ namespace Moment::mex::functions {
         output.emplace(u"new_imported_matrix_system",  MEXEntryPointID::NewImportedMatrixSystem);
         output.emplace(u"new_inflation_matrix_system", MEXEntryPointID::NewInflationMatrixSystem);
         output.emplace(u"new_locality_matrix_system",  MEXEntryPointID::NewLocalityMatrixSystem);
+        output.emplace(u"new_symmetrized_matrix_system", MEXEntryPointID::NewSymmetrizedMatrixSystem);
         output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
         output.emplace(u"release",         MEXEntryPointID::Release);
         output.emplace(u"rules",           MEXEntryPointID::Rules);

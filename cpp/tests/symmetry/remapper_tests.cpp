@@ -6,12 +6,14 @@
  */
 #include "gtest/gtest.h"
 
-#include "symmetry/remapper.h"
+#include "scenarios/symmetrized/remapper.h"
 
 #include "sparse_utils.h"
 
 #include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/locality/locality_context.h"
+
+using namespace Moment::Symmetrized;
 
 namespace Moment::Tests {
 

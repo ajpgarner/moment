@@ -12,7 +12,7 @@
 
 #include <vector>
 
-namespace Moment {
+namespace Moment::Symmetrized {
 
     using repmat_t = Eigen::SparseMatrix<double>;
 
@@ -21,7 +21,11 @@ namespace Moment {
         const size_t dimension;
 
     private:
+        /** The group elements. */
         std::vector<repmat_t> elements;
+
+        /** Sum of all group elements. */
+        repmat_t sum_of_elements;
 
     public:
         explicit Representation(std::vector<repmat_t>&& entries);
@@ -32,6 +36,8 @@ namespace Moment {
             assert(idx < this->elements.size());
             return this->elements[idx];
         }
+
+        [[nodiscard]] inline const auto& sum_of() const { return this->sum_of_elements; }
 
         [[nodiscard]] inline const auto& group_elements() const noexcept { return this->elements; }
 

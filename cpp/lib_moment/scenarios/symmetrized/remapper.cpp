@@ -19,7 +19,7 @@
 
 #include <stdexcept>
 
-namespace Moment {
+namespace Moment::Symmetrized {
 
     namespace {
 

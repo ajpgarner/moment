@@ -15,8 +15,21 @@
 #include <vector>
 
 namespace Moment {
-
     class Context;
+
+    namespace errors {
+        /**
+         * Error issued when something fails when adding a symmetry.
+         */
+        class bad_symmetry : public std::runtime_error {
+        public:
+            explicit bad_symmetry(const std::string& what) : std::runtime_error{what} { }
+        };
+    }
+};
+
+
+namespace Moment::Symmetrized {
 
     class Group {
     public:

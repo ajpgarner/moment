@@ -14,7 +14,7 @@
 #include <iostream>
 
 
-namespace Moment {
+namespace Moment::Symmetrized {
 
     namespace {
         repmat_t sparse_id_matrix(int dimension) {

@@ -6,7 +6,7 @@
  */
 #include "representation.h"
 
-namespace Moment {
+namespace Moment::Symmetrized {
     namespace  {
         size_t extract_dim(const std::vector<repmat_t>& e) {
             if (e.empty()) {
@@ -31,7 +31,14 @@ namespace Moment {
 
     Representation::Representation(std::vector<repmat_t> &&entries)
         : dimension(extract_dim(entries)), elements(std::move(entries)) {
-
         assert(debug_check_all_same_dim(elements, dimension));
+
+        // Calculate average
+        this->sum_of_elements = repmat_t(static_cast<int>(dimension), static_cast<int>(dimension));
+        for (const auto& elem : this->elements) {
+            this->sum_of_elements += elem;
+        }
+
+
     }
 }

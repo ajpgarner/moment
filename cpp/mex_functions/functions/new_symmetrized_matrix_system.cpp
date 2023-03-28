@@ -4,11 +4,12 @@
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "add_symmetry.h"
+#include "new_symmetrized_matrix_system.h"
 
 #include "storage_manager.h"
 
-#include "symmetry/group.h"
+#include "scenarios/symmetrized/group.h"
+#include "scenarios/symmetrized/symmetrized_matrix_system.h"
 
 #include "eigen/export_eigen_sparse.h"
 #include "eigen/read_eigen_sparse.h"
@@ -19,7 +20,8 @@
 namespace Moment::mex::functions {
 
 
-    AddSymmetryParams::AddSymmetryParams(SortedInputs&& raw_inputs) : SortedInputs(std::move(raw_inputs)) {
+    NewSymmetrizedMatrixSystemParams::NewSymmetrizedMatrixSystemParams(SortedInputs&& raw_inputs)
+        : SortedInputs(std::move(raw_inputs)) {
         // Get matrix system ID
         this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "Reference id", this->inputs[0], 0);
 
@@ -86,8 +88,8 @@ namespace Moment::mex::functions {
 
     }
 
-     AddSymmetry::AddSymmetry(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
-         : ParameterizedMexFunction(matlabEngine, storage, u"add_symmetry") {
+    NewSymmetrizedMatrixSystem::NewSymmetrizedMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
+         : ParameterizedMexFunction(matlabEngine, storage, u"new_symmetrized_matrix_system") {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 1;
@@ -96,7 +98,9 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"max_subgroup");
     }
 
-    void AddSymmetry::operator()(IOArgumentRange output, AddSymmetryParams &input) {
+    void NewSymmetrizedMatrixSystem::operator()(IOArgumentRange output, NewSymmetrizedMatrixSystemParams &input) {
+
+        using namespace Moment::Symmetrized;
 
         // Get matrix system:
         auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
@@ -138,15 +142,19 @@ namespace Moment::mex::functions {
             throw_error(matlabEngine, errors::bad_param, errSS.str());
         }
 
-        auto [index, group] = matrixSystem.add_symmetry(std::move(groupPtr));
+
+        // Now, create new matrix system with group, and store
+        std::unique_ptr<MatrixSystem> smsPtr =
+                std::make_unique<SymmetrizedMatrixSystem>(std::move(msPtr), std::move(groupPtr));
+        auto nms_id = this->storageManager.MatrixSystems.store(std::move(smsPtr));
 
         if (output.size() >= 1) {
             matlab::data::ArrayFactory factory;
-            output[0] = factory.createScalar<uint64_t>(index);
+            output[0] = factory.createScalar<uint64_t>(nms_id);
         }
     }
 
-    void AddSymmetry::extra_input_checks(AddSymmetryParams &input) const {
+    void NewSymmetrizedMatrixSystem::extra_input_checks(NewSymmetrizedMatrixSystemParams &input) const {
         if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
             throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
         }
