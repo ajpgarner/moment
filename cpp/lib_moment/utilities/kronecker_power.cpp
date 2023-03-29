@@ -7,7 +7,7 @@
 #include "kronecker_power.h"
 
 #include <unsupported/Eigen/KroneckerProduct>
-
+#include <cassert>
 
 namespace Moment {
 

@@ -70,7 +70,7 @@ namespace Moment::mex::functions  {
                 std::stringstream errSS;
                 errSS << param_str << " element " << (index+1) << " must be a cell array.";
             }
-            auto the_cell_as_cell = static_cast<matlab::data::CellArray>(the_cell);
+            const matlab::data::CellArray the_cell_as_cell = the_cell;
             if (the_cell_as_cell.getNumberOfElements() != 2) {
                 std::stringstream errSS;
                 errSS << param_str << " element " << (index+1) << " must have two elements: {symbol id, value}.";
