@@ -25,7 +25,7 @@ Journal of Causal Inference, Volume 7, Issue 2, pp. 20170020 (2019). \
 [doi:10.1515/jci-2017-0020](https://doi.org/10.1515/jci-2017-0020).
 
 ## Minimum tested versions
-MATLAB 2021b (9.10)
+MATLAB 2021a (9.10)
 
 #### For compiling C++ library
 
