@@ -246,7 +246,7 @@ namespace Moment::Locality {
             auto num_mmts = *mmtCountIter;
             for (oper_name_t o = 0; o < num_mmts; ++o) {
                 assert(outcomePerMmtIter != outcomes_per_mmt.cend());
-                mmtList.emplace_back(mmt_namer(o), *outcomePerMmtIter);
+                mmtList.emplace_back(mmt_namer(o), static_cast<oper_name_t>(*outcomePerMmtIter));
                 ++outcomePerMmtIter;
             }
 

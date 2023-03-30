@@ -51,7 +51,7 @@ namespace Moment::mex::functions {
                     auto &seq = this->sequences.back();
                     seq.reserve(raw_op_seq.size());
                     for (auto ui: raw_op_seq) {
-                        seq.emplace_back(ui - 1);
+                        seq.emplace_back(static_cast<oper_name_t>(ui - 1));
                     }
                 }
             } else {
@@ -64,7 +64,7 @@ namespace Moment::mex::functions {
                 auto &seq = this->sequences.back();
                 seq.reserve(raw_op_seq.size());
                 for (auto ui: raw_op_seq) {
-                    seq.emplace_back(ui - 1);
+                    seq.emplace_back(static_cast<oper_name_t>(ui - 1));
                 }
             }
         } else {

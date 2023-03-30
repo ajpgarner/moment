@@ -105,7 +105,7 @@ namespace Moment::mex::functions {
                     errSS << "Observable \"" << x << "\" out of bounds in source list.";
                     throw errors::BadInput{errors::bad_param, errSS.str()};
                 }
-                targetSet.emplace(x-1);
+                targetSet.emplace(static_cast<oper_name_t>(x-1));
             }
         }
 

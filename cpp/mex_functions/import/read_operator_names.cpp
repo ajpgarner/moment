@@ -43,7 +43,8 @@ namespace Moment::mex {
             raw_names.reserve(mls_array.getNumberOfElements());
             for (auto elem : mls_array) {
                 if (elem.has_value()) {
-                    raw_names.emplace_back(static_cast<std::string>(elem));
+                    auto utf8str = matlab::engine::convertUTF16StringToUTF8String(elem);
+                    raw_names.emplace_back(utf8str);
                 }
             }
 

@@ -243,7 +243,7 @@ namespace Moment::Tests {
         const auto& context = ims.Context();
         EXPECT_EQ(context.size(), 0);
 
-        EXPECT_THROW(ims.MomentMatrix(1), std::runtime_error);
+        EXPECT_THROW(auto& x = ims.MomentMatrix(1), std::runtime_error);
     }
 
     TEST(Scenarios_Imported_ImportedMatrixSystem, Error_NoLocalizingMatrix) {
@@ -252,7 +252,7 @@ namespace Moment::Tests {
         EXPECT_EQ(context.size(), 0);
 
         LocalizingMatrixIndex lmi{context, 1, OperatorSequence::Identity(context)};
-        EXPECT_THROW(ims.LocalizingMatrix(lmi), std::runtime_error);
+        EXPECT_THROW(auto& y = ims.LocalizingMatrix(lmi), std::runtime_error);
     }
 
 

@@ -121,7 +121,7 @@ namespace Moment::Tests {
         EXPECT_EQ(names.find(apc, "X*"), 0);
         EXPECT_EQ(names.find(apc, "Y*"), 1);
         EXPECT_EQ(names.find(apc, "Z*"), 2);
-        EXPECT_THROW(names.find(apc, "A"), std::invalid_argument);
+        EXPECT_THROW(auto x = names.find(apc, "A"), std::invalid_argument);
     }
 
     TEST(Scenarios_Algebraic_NameTable, Find_XYZ_NonHermitian) {
@@ -134,8 +134,8 @@ namespace Moment::Tests {
         EXPECT_EQ(names.find(apc, "X*"), 3);
         EXPECT_EQ(names.find(apc, "Y*"), 4);
         EXPECT_EQ(names.find(apc, "Z*"), 5);
-        EXPECT_THROW(names.find(apc, "A"), std::invalid_argument);
-        EXPECT_THROW(names.find(apc, "A*"), std::invalid_argument);
-        EXPECT_THROW(names.find(apc, "X**"), std::invalid_argument);
+        EXPECT_THROW(auto x = names.find(apc, "A"), std::invalid_argument);
+        EXPECT_THROW(auto y = names.find(apc, "A*"), std::invalid_argument);
+        EXPECT_THROW(auto z = names.find(apc, "X**"), std::invalid_argument);
     }
 }

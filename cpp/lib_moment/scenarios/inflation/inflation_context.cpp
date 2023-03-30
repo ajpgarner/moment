@@ -105,8 +105,9 @@ namespace Moment::Inflation {
         size_t obs_index = 0;
         oper_name_t global_id = 0;
         for (const auto& observable : this->base_network.Observables()) {
-            this->inflated_observables.emplace_back(*this, observable, this->inflation,
-                                                    global_id, this->total_inflated_observables);
+            this->inflated_observables.emplace_back(*this, observable,
+                                         this->inflation,global_id,
+                                                    static_cast<oper_name_t>(this->total_inflated_observables));
             const auto num_copies = this->inflated_observables.back().variant_count;
             this->total_inflated_observables += num_copies;
             for (oper_name_t copy_index = 0; copy_index < num_copies; ++copy_index) {
@@ -276,20 +277,20 @@ namespace Moment::Inflation {
                 if (permIter != permutation.end()) {
                     // permutation already known
                     const oper_name_t new_src = permIter->second;
-                    const oper_name_t new_variant = new_src % static_cast<oper_name_t>(this->inflation);
+                    const auto new_variant = static_cast<oper_name_t>(new_src % this->inflation);
                     source_indices.emplace_back(new_variant);
                 } else {
                     // new permutation required
-                    const oper_name_t source = static_cast<oper_name_t>(src) / static_cast<oper_name_t>(this->inflation);
+                    const auto source = static_cast<oper_name_t>(src / this->inflation);
                     const oper_name_t new_variant = next_available_source[source];
                     ++next_available_source[source];
-                    const oper_name_t new_src = (source * static_cast<oper_name_t>(this->inflation)) + new_variant;
-                    permutation.emplace(std::make_pair(src, new_src));
+                    const auto new_src = static_cast<oper_name_t>((source * this->inflation) + new_variant);
+                    permutation.emplace(std::make_pair(static_cast<oper_name_t>(src), new_src));
                     source_indices.emplace_back(new_variant);
                 }
             }
             const auto& new_variant_info = obs_info.variant(source_indices);
-            const oper_name_t new_oper_id = new_variant_info.operator_offset + op_info.outcome;
+            const auto new_oper_id = static_cast<oper_name_t>(new_variant_info.operator_offset + op_info.outcome);
             permuted_operators.push_back(new_oper_id);
         }
         return OperatorSequence{std::move(permuted_operators), *this};
@@ -329,7 +330,7 @@ namespace Moment::Inflation {
                     const oper_name_t new_variant = next_available_source[source];
                     ++next_available_source[source];
                     const auto new_src = static_cast<oper_name_t>((source * this->inflation) + new_variant);
-                    permutation.emplace(std::make_pair(src, new_src));
+                    permutation.emplace(std::make_pair(static_cast<oper_name_t>(src), new_src));
                     source_indices.emplace_back(new_variant);
                 }
             }

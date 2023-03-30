@@ -144,7 +144,8 @@ namespace Moment::mex::functions {
         std::vector<Locality::PMIndex> output{};
         output.reserve(this->requested_indices.size());
         for (const auto& i : this->requested_indices) {
-            output.emplace_back(i.first, i.second);
+            output.emplace_back(static_cast<party_name_t>(i.first),
+                                static_cast<mmt_name_t>(i.second));
         }
 
         // Check for duplicate parties
@@ -167,7 +168,9 @@ namespace Moment::mex::functions {
         std::vector<Locality::PMOIndex> output{};
         output.reserve(this->requested_indices.size());
         for (const auto& i : this->requested_indices) {
-            output.emplace_back(i.first, i.second, i.third);
+            output.emplace_back(static_cast<party_name_t>(i.first),
+                                static_cast<mmt_name_t>(i.second),
+                                static_cast<oper_name_t>(i.third));
         }
 
         // Check for duplicate parties
@@ -190,7 +193,7 @@ namespace Moment::mex::functions {
         std::vector<Inflation::OVIndex> output{};
         output.reserve(this->requested_indices.size());
         for (const auto& i : this->requested_indices) {
-            output.emplace_back(i.first, i.second);
+            output.emplace_back(static_cast<oper_name_t>(i.first), static_cast<oper_name_t>(i.second));
         }
         // Sort requested indices
         std::sort(output.begin(), output.end());
@@ -202,7 +205,9 @@ namespace Moment::mex::functions {
         std::vector<Inflation::OVOIndex> output{};
         output.reserve(this->requested_indices.size());
         for (const auto& i : this->requested_indices) {
-            output.emplace_back(i.first, i.second, i.third);
+            output.emplace_back(static_cast<oper_name_t>(i.first),
+                                static_cast<oper_name_t>(i.second),
+                                static_cast<oper_name_t>(i.third));
         }
         // Sort requested indices
         std::sort(output.begin(), output.end());

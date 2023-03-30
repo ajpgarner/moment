@@ -9,8 +9,7 @@
 
 #include "symmetrized_context.h"
 
-#include <cstdio>
-
+#include <cassert>
 
 namespace Moment::Symmetrized {
 
@@ -27,7 +26,22 @@ namespace Moment::Symmetrized {
         : MatrixSystem{make_symmetrized_context(*base_system, *group)},
             base_ms_ptr(std::move(base_system)), symmetry{std::move(group)} {
 
+        // Avoid deadlock. Should never occur...!
+        assert(this->base_ms_ptr.get() != this);
+
+
+
     }
 
     SymmetrizedMatrixSystem::~SymmetrizedMatrixSystem() noexcept = default;
+
+    std::unique_ptr<struct MomentMatrix> SymmetrizedMatrixSystem::createNewMomentMatrix(size_t level) {
+        throw std::logic_error{"SymmetrizedMatrixSystem::createNewMomentMatrix not yet implemented."};
+    }
+
+    std::unique_ptr<struct LocalizingMatrix>
+    SymmetrizedMatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) {
+        throw std::logic_error{"SymmetrizedMatrixSystem::createNewLocalizingMatrix not yet implemented."};
+    }
+
 }

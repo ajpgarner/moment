@@ -27,7 +27,7 @@ namespace Moment::mex::functions {
 
             using return_type = matlab::data::TypedArray<matlab::data::MATLABString>;
 
-            template<std::convertible_to<unsigned long> datatype>
+            template<std::convertible_to<size_t> datatype>
             return_type dense(const matlab::data::TypedArray<datatype> &data) {
                 matlab::data::ArrayFactory factory{};
                 const auto& dimensions = data.getDimensions();
@@ -40,7 +40,7 @@ namespace Moment::mex::functions {
                 auto write_iter = output.begin();
 
                 while ((read_iter != data.end()) && (write_iter != output.end())) {
-                    auto id = *read_iter;
+                    auto id = static_cast<size_t>(*read_iter); // NOLINT(cert-str34-c)
                     if (!zero_index) {
                         if (id < 1) {
                             throw_error(this->the_engine, errors::bad_param,

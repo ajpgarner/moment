@@ -30,7 +30,7 @@ namespace Moment::Inflation {
             const bool singleton = observable_source_sets[o].empty();
             if (singleton) {
                 singleton_observables.emplace_back(static_cast<oper_name_t>(o));
-                observable_source_sets[o].emplace(next_implicit_source);
+                observable_source_sets[o].emplace(static_cast<oper_name_t>(next_implicit_source));
                 ++next_implicit_source;
             }
 
@@ -48,7 +48,8 @@ namespace Moment::Inflation {
 
         // Now, add implicit sources
         for (const oper_name_t obs : singleton_observables) {
-            this->sources.emplace_back(this->sources.size(), std::set<oper_name_t>{obs}, true);
+            this->sources.emplace_back(static_cast<oper_name_t>(this->sources.size()),
+                                       std::set<oper_name_t>{obs}, true);
         }
         assert(this->sources.size() == next_implicit_source);
     }
@@ -69,7 +70,7 @@ namespace Moment::Inflation {
                     throw errors::bad_source(s, errSS.str());
                 }
                 // Add to set
-                output[oId].emplace(s);
+                output[oId].emplace(static_cast<oper_name_t>(s));
             }
         }
 

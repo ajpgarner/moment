@@ -46,5 +46,10 @@ namespace Moment::Symmetrized {
         std::string system_type_name() const override {
             return "Symmetrized Matrix System";
         }
+
+    protected:
+        std::unique_ptr<struct MomentMatrix> createNewMomentMatrix(size_t level) override;
+
+        std::unique_ptr<struct LocalizingMatrix> createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) override;
     };
 }

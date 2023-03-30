@@ -33,7 +33,7 @@ namespace Moment::mex::functions {
 
                 output.reserve(num_obs);
                 for (size_t o = 0; o < num_obs; ++o) {
-                    output.emplace_back(o, 0);
+                    output.emplace_back(static_cast<oper_name_t>(o), 0);
                 }
             } else {
                 output.reserve(input.measurements_or_observables.size());
@@ -50,7 +50,8 @@ namespace Moment::mex::functions {
                         throw_error(matlabEngine, errors::bad_param, errSS.str());
                     }
 
-                    output.emplace_back(observable - 1, variant - 1);
+                    output.emplace_back(static_cast<oper_name_t>(observable - 1),
+                                        static_cast<oper_name_t>(variant - 1));
                 }
             }
 
@@ -66,7 +67,7 @@ namespace Moment::mex::functions {
             if (input.input_type == MakeExplicitParams::InputType::AllMeasurements) {
                 output.reserve(num_parties);
                 for (size_t o = 0; o < num_parties; ++o) {
-                    output.emplace_back(o, 0);
+                    output.emplace_back(static_cast<party_name_t>(o), 0);
                 }
             } else {
                 output.reserve(input.measurements_or_observables.size());
@@ -84,7 +85,8 @@ namespace Moment::mex::functions {
                         throw_error(matlabEngine, errors::bad_param, errSS.str());
                     }
 
-                    output.emplace_back(party - 1, measurement - 1);
+                    output.emplace_back(static_cast<party_name_t>(party - 1),
+                                        static_cast<mmt_name_t>(measurement - 1));
                 }
             }
             context.populate_global_mmt_index(output);
