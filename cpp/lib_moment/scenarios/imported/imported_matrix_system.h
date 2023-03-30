@@ -51,11 +51,11 @@ namespace Moment::Imported {
         std::string system_type_name() const override {
             return "Imported Matrix System";
         }
+
     protected:
-        void beforeNewMomentMatrixCreated(size_t level) override;
+        std::unique_ptr<class MomentMatrix> createNewMomentMatrix(size_t level) override;
 
-        void beforeNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi) override;
-
+        std::unique_ptr<class LocalizingMatrix> createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) override;
 
     };
 

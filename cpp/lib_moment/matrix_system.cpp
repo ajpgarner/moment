@@ -56,9 +56,6 @@ namespace Moment {
             return {index, dynamic_cast<class MomentMatrix&>(*matrices[index])};
         }
 
-        // Delegated pre-generation
-        this->beforeNewMomentMatrixCreated(level);
-
         // Fill with null elements if some are missing
         if (this->momentMatrixIndices.size() < level+1) {
             this->momentMatrixIndices.resize(level+1, -1);
@@ -66,7 +63,7 @@ namespace Moment {
 
         // Generate new moment matrix
         auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
-        this->matrices.emplace_back(std::make_unique<class MomentMatrix>(*this->context, *this->symbol_table, level));
+        this->matrices.emplace_back(this->createNewMomentMatrix(level));
         this->momentMatrixIndices[level] = matrixIndex;
 
         auto& output = dynamic_cast<class MomentMatrix&>(*this->matrices[matrixIndex]);
@@ -101,12 +98,9 @@ namespace Moment {
             return {index, dynamic_cast<class LocalizingMatrix&>(*matrices[index])};
         }
 
-        // Delegated pre-generation
-        this->beforeNewLocalizingMatrixCreated(lmi);
-
         // Otherwise,generate new localizing matrix, and insert index
         auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
-        this->matrices.emplace_back(std::make_unique<class LocalizingMatrix>(*this->context, *this->symbol_table, lmi));
+        this->matrices.emplace_back(this->createNewLocalizingMatrix(lmi));
         this->localizingMatrixIndices.emplace(std::make_pair(lmi, matrixIndex));
 
         // Get reference to new matrix, and call derived classes...
@@ -146,6 +140,17 @@ namespace Moment {
 
         return where->second;
     }
+
+    std::unique_ptr<class MomentMatrix> MatrixSystem::createNewMomentMatrix(const size_t level) {
+        return std::make_unique<class MomentMatrix>(*this->context, *this->symbol_table, level);
+    }
+
+
+    std::unique_ptr<class LocalizingMatrix> MatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi) {
+        return std::make_unique<class LocalizingMatrix>(*this->context, *this->symbol_table, lmi);
+    }
+
+
 
     const SymbolicMatrix &MatrixSystem::operator[](size_t index) const {
         if (index >= this->matrices.size()) {

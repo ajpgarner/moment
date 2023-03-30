@@ -98,11 +98,12 @@ namespace Moment::Imported {
 
     }
 
-    void ImportedMatrixSystem::beforeNewMomentMatrixCreated(size_t level) {
+    std::unique_ptr<class MomentMatrix> ImportedMatrixSystem::createNewMomentMatrix(size_t level) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
-    void ImportedMatrixSystem::beforeNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi) {
+    std::unique_ptr<class LocalizingMatrix>
+    ImportedMatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 

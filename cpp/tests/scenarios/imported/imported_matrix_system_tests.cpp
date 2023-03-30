@@ -11,6 +11,8 @@
 #include "symbolic/symbol_table.h"
 #include "scenarios/imported/imported_matrix_system.h"
 
+#include <stdexcept>
+
 namespace Moment::Tests {
     using namespace Moment::Imported;
 
@@ -234,6 +236,23 @@ namespace Moment::Tests {
         EXPECT_EQ(symbols[4].Id(), 4);
         EXPECT_TRUE(symbols[4].is_hermitian());
         EXPECT_FALSE(symbols[4].is_antihermitian());
+    }
+
+    TEST(Scenarios_Imported_ImportedMatrixSystem, Error_NoMomentMatrix) {
+        ImportedMatrixSystem ims{};
+        const auto& context = ims.Context();
+        EXPECT_EQ(context.size(), 0);
+
+        EXPECT_THROW(ims.MomentMatrix(1), std::runtime_error);
+    }
+
+    TEST(Scenarios_Imported_ImportedMatrixSystem, Error_NoLocalizingMatrix) {
+        ImportedMatrixSystem ims{};
+        const auto& context = ims.Context();
+        EXPECT_EQ(context.size(), 0);
+
+        LocalizingMatrixIndex lmi{context, 1, OperatorSequence::Identity(context)};
+        EXPECT_THROW(ims.LocalizingMatrix(lmi), std::runtime_error);
     }
 
 

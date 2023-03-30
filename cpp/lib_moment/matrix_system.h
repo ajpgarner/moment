@@ -218,10 +218,18 @@ namespace Moment {
 
     protected:
         /**
-         * Virtual method, called before generating a moment matrix.
+         * Overrideable method, called to generate a moment matrix.
          * @param level The moment matrix level.
+         * @return Owning pointer of new moment matrix.
          */
-        virtual void beforeNewMomentMatrixCreated(size_t level) { }
+        virtual std::unique_ptr<class MomentMatrix> createNewMomentMatrix(size_t level);
+
+        /**
+         * Virtual method, called to generate a localizing matrix.
+         * @param lmi The hierarchy Level and word that describes the localizing matrix.
+         * @return Owning pointer of new localizing matrix.
+         */
+        virtual std::unique_ptr<class LocalizingMatrix> createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi);
 
         /**
          * Virtual method, called after a moment matrix is generated.
@@ -229,12 +237,6 @@ namespace Moment {
          * @param mm The newly generated moment matrix.
          */
         virtual void onNewMomentMatrixCreated(size_t level, const class MomentMatrix& mm) { }
-
-        /**
-         * Virtual method, called before generating a localizing matrix.
-         * @param lmi The hierarchy Level and word that describes the localizing matrix.
-         */
-        virtual void beforeNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi) { }
 
         /**
          * Virtual method, called after a localizing matrix is generated.
