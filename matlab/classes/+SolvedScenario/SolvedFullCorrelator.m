@@ -27,7 +27,6 @@ classdef SolvedFullCorrelator < handle
             
             % Build monolith of co-efficients
             coef_mono = fc.Coefficients;
-            disp(coef_mono)
             values = reshape(coef_mono * obj.SolvedScenario.RealValues,...
                              fc.Shape);
 

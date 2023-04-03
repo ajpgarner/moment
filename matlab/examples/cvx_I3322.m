@@ -66,9 +66,9 @@ cvx_begin sdp
 cvx_end
 
 % Get solutions
-solved_setting = i3322.Solved(a); % SolvedScenario(i3322, matrix, a);
-solved_matrix = solved_setting.SolvedMomentMatrix;
-disp(struct2table(solved_matrix.SymbolTable));
+solved_setting = i3322.Solved(a);
+disp(struct2table(solved_setting.SymbolTable));
+
 format long
 i3322_max_val = solved_setting.Value(I3322_ineq2)
 fc_mat = solved_setting.FullCorrelator.Values
