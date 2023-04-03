@@ -3,12 +3,11 @@ classdef Group < handle
     
     properties(GetAccess=public,SetAccess=private)
         Scenario     % Scenario that this group represents a symmetry on.
-        Index        % Index of the symmetry within the context
+        Generators
     end
     
     properties(Dependent,GetAccess=public)
         Size         % Number of elements in the group.
-        Average      % Average over all elements
     end
     
     properties(Access=private)
@@ -30,7 +29,6 @@ classdef Group < handle
             
             % Record scenario
             obj.Scenario = scenario;
-            ref_id = obj.Scenario.System.RefId;
             
             % Empty generators -> group is just the identity
             if isempty(generators)
@@ -54,14 +52,18 @@ classdef Group < handle
                 end
             end
             
-            % Register symmetry
-            [index, base_elems] = mtk('add_symmetry', ref_id, generators);
-            obj.Index = index;
+            % Save generators
+            obj.Generators = generators;
+            
+            % Prepare representation storage
             obj.representations = containers.Map('KeyType', 'uint64',...
-                'ValueType', 'any');
-            obj.representations(1) = Symmetry.Representation(obj, base_elems);
+                                                  'ValueType', 'any');
         end
         
+        function val = get.Size(obj)
+            rep1 = obj.Representation(1);
+            val = rep1.Size;
+        end
         
         
         function val = Representation(obj, word_length)
@@ -84,7 +86,7 @@ classdef Group < handle
             % Make representation           
             ref_id = obj.Scenario.System.RefId;
             new_rep_elems = mtk('make_representation', ...
-                                ref_id, obj.Index, word_length);
+                                ref_id, word_length);
             
             obj.representations(word_length) = ...
                Symmetry.Representation(obj, new_rep_elems);

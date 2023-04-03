@@ -36,11 +36,17 @@ namespace Moment::Symmetrized {
     SymmetrizedMatrixSystem::~SymmetrizedMatrixSystem() noexcept = default;
 
     std::unique_ptr<struct MomentMatrix> SymmetrizedMatrixSystem::createNewMomentMatrix(size_t level) {
+        // First of all, make sure we have rep. up to the right level
+        const auto& rep = this->symmetry->representation(2*level);
+
         throw std::logic_error{"SymmetrizedMatrixSystem::createNewMomentMatrix not yet implemented."};
     }
 
     std::unique_ptr<struct LocalizingMatrix>
     SymmetrizedMatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) {
+        // First of all, make sure we have rep. up to the right level
+        const auto& rep = this->symmetry->representation(2*lmi.Level + lmi.Word.size());
+
         throw std::logic_error{"SymmetrizedMatrixSystem::createNewLocalizingMatrix not yet implemented."};
     }
 
