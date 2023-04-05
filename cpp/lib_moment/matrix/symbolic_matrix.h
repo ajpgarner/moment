@@ -9,7 +9,7 @@
 #include "symbolic/symbol_table.h"
 #include "utilities/square_matrix.h"
 
-#include "matrix_properties.h"
+#include "matrix.h"
 
 #include <memory>
 
@@ -18,7 +18,7 @@ namespace Moment {
     class SymbolTable;
     class MatrixProperties;
 
-    class SymbolicMatrix {
+    class SymbolicMatrix : public Matrix {
     public:
         class SymbolMatrixView {
         private:
@@ -48,32 +48,13 @@ namespace Moment {
 
         };
 
-    public:
-        /** Defining scenario for matrix (especially: rules for simplifying operator sequences). */
-        const Context& context;
 
     protected:
-        /** Look-up key for symbols */
-        SymbolTable& symbol_table;
-
-        /** Square matrix size */
-        size_t dimension = 0;
-
-        /** True, if Hermitian */
-        bool is_hermitian = false;
-
         /** Matrix, as symbolic expression */
         std::unique_ptr<SquareMatrix<SymbolExpression>> sym_exp_matrix;
 
-        /** Symbol matrix properties (basis size, etc.) */
-        std::unique_ptr<MatrixProperties> mat_prop;
 
     public:
-        /**
-         * Table of symbols for entire system.
-         */
-        const SymbolTable& Symbols;
-
         /**
          * Matrix, as symbols
          */
@@ -83,45 +64,36 @@ namespace Moment {
                        std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix);
 
         SymbolicMatrix(SymbolicMatrix&& rhs) noexcept
-            : context{rhs.context}, symbol_table{rhs.symbol_table}, dimension{rhs.dimension},
-              is_hermitian{rhs.is_hermitian}, sym_exp_matrix{std::move(rhs.sym_exp_matrix)},
-              mat_prop{std::move(rhs.mat_prop)}, Symbols{rhs.Symbols}, SymbolMatrix{*this} { }
+            : Matrix{std::move(rhs)},
+              sym_exp_matrix{std::move(rhs.sym_exp_matrix)},  SymbolMatrix{*this} { }
 
-        virtual ~SymbolicMatrix() noexcept;
+        ~SymbolicMatrix() noexcept;
 
         /**
          * Description of matrix type
          */
-        [[nodiscard]] virtual std::string description() const {
+        [[nodiscard]] std::string description() const override {
             return "Symbolic Matrix";
-        }
-
-        /**
-         * Dimension of the matrix
-         */
-        [[nodiscard]] constexpr size_t Dimension() const noexcept {
-            return this->dimension;
-        }
-
-        /**
-         * True, if matrix is Hermitian
-         */
-        [[nodiscard]] constexpr bool IsHermitian() const noexcept {
-            return this->is_hermitian;
-        }
-
-        /**
-         * Properties of the matrix
-         */
-        [[nodiscard]] const MatrixProperties& SMP() const noexcept {
-            assert(this->mat_prop);
-            return *this->mat_prop;
         }
 
         /**
          * Force renumbering of matrix bases keys
          */
         void renumerate_bases(const SymbolTable& symbols);
+
+    protected:
+
+        /**
+         * Create dense basis.
+         */
+        [[nodiscard]] std::pair<dense_basis_storage_t, dense_basis_storage_t> create_dense_basis() const override;
+
+        /**
+         * Create sparse basis.
+         */
+        [[nodiscard]] std::pair<sparse_basis_storage_t, sparse_basis_storage_t> create_sparse_basis() const override;
+
+
 
     };
 }

@@ -60,4 +60,4 @@ add_library(lib_moment
         utilities/kronecker_power.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
-    )
+        matrix/matrix.h matrix/matrix.cpp)

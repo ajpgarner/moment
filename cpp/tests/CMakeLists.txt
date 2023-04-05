@@ -4,6 +4,7 @@ add_executable(moment_tests
     operators/context_tests.cpp
     operators/hashed_sequence_tests.cpp
     operators/localizing_matrix_tests.cpp
+    operators/matrix_tests.cpp
     operators/multi_operator_iterator_tests.cpp
     operators/moment_matrix_tests.cpp
     operators/operator_sequence_tests.cpp
@@ -48,7 +49,8 @@ add_executable(moment_tests
     utilities/shortlex_hasher_tests.cpp
     utilities/small_vector_tests.cpp
     utilities/square_matrix_tests.cpp
-    utilities/variable_chunk_range_tests.cpp)
+    utilities/variable_chunk_range_tests.cpp
+)
 
 target_link_libraries(moment_tests
     lib_moment

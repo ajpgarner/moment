@@ -26,8 +26,8 @@ namespace Moment {
         MatrixType basis_type = MatrixType::Unknown;
         size_t dimension;
         std::set<symbol_name_t> included_symbols;
-        std::set<symbol_name_t> imaginary_entries;
         std::set<symbol_name_t> real_entries;
+        std::set<symbol_name_t> imaginary_entries;
         std::map<symbol_name_t, std::pair<ptrdiff_t, ptrdiff_t>> elem_keys;
 
         /** True if matrix is complex Hermitian or real symmetric. */
