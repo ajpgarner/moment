@@ -27,7 +27,7 @@ namespace Moment {
         this->done_sparse_mono = rhs.done_sparse_mono.load(std::memory_order_relaxed);
     }
 
-    dense_basis_indexed_ref_t Matrix::MatrixBasis::Dense() const {
+    Matrix::MatrixBasis::dense_basis_indexed_ref_t Matrix::MatrixBasis::Dense() const {
         // Already exists:
         if (this->done_dense.load(std::memory_order_acquire)) {
             return {this->dense_re, this->dense_im};
@@ -49,7 +49,7 @@ namespace Moment {
         return {this->dense_re, this->dense_im}; // unlock
     }
 
-    dense_basis_mono_ref_t Matrix::MatrixBasis::DenseMonolithic() const {
+    Matrix::MatrixBasis::dense_basis_mono_ref_t Matrix::MatrixBasis::DenseMonolithic() const {
         // Already exists:
         if (this->done_dense_mono.load(std::memory_order_acquire)) {
             return {*this->dense_mono_re, *this->dense_mono_im};
@@ -75,7 +75,7 @@ namespace Moment {
         return {*this->dense_mono_re, *this->dense_mono_im}; // unlock
     }
 
-    sparse_basis_indexed_ref_t Matrix::MatrixBasis::Sparse() const {
+    Matrix::MatrixBasis::sparse_basis_indexed_ref_t Matrix::MatrixBasis::Sparse() const {
         // Already exists:
         if (this->done_sparse.load(std::memory_order_acquire)) {
             return {this->sparse_re, this->sparse_im};
@@ -95,7 +95,7 @@ namespace Moment {
         return {this->sparse_re, this->sparse_im}; // unlock
     }
 
-   sparse_basis_mono_ref_t Matrix::MatrixBasis::SparseMonolithic() const {
+    Matrix::MatrixBasis::sparse_basis_mono_ref_t Matrix::MatrixBasis::SparseMonolithic() const {
        // Already exists:
        if (this->done_sparse_mono.load(std::memory_order_acquire)) {
            return {*this->sparse_mono_re, *this->sparse_mono_im};
@@ -126,14 +126,14 @@ namespace Moment {
         assert(this->done_dense);
 
         // Common
-        auto dim = static_cast<dense_basis_elem_t::Index>(this->matrix.dimension);
-        dense_basis_elem_t::Index length = dim*dim;
+        auto dim = static_cast<dense_real_elem_t::Index>(this->matrix.dimension);
+        dense_real_elem_t::Index length = dim * dim;
 
         // Real
-        auto re_height = static_cast<dense_basis_elem_t::Index>(this->dense_re.size());
-        this->dense_mono_re = std::make_unique<dense_basis_elem_t>(length, re_height);
+        auto re_height = static_cast<dense_real_elem_t::Index>(this->dense_re.size());
+        this->dense_mono_re = std::make_unique<dense_real_elem_t>(length, re_height);
         auto& real = *this->dense_mono_re;
-        dense_basis_elem_t::Index re_col_index = 0;
+        dense_real_elem_t::Index re_col_index = 0;
         for (const auto& basis_elem : this->dense_re) {
             assert(basis_elem.outerSize() * basis_elem.innerSize() == length);
             real.col(re_col_index) = basis_elem.reshaped();
@@ -141,10 +141,10 @@ namespace Moment {
         }
 
         // Imaginary
-        auto im_height = static_cast<dense_basis_elem_t::Index>(this->dense_im.size());
-        this->dense_mono_im = std::make_unique<dense_basis_elem_t>(length, im_height);
+        auto im_height = static_cast<dense_real_elem_t::Index>(this->dense_im.size());
+        this->dense_mono_im = std::make_unique<dense_complex_elem_t>(length, im_height);
         auto& im = *this->dense_mono_im;
-        dense_basis_elem_t::Index im_col_index = 0;
+        dense_real_elem_t::Index im_col_index = 0;
         for (const auto& basis_elem : this->dense_im) {
             assert(basis_elem.outerSize() * basis_elem.innerSize() == length);
             im.col(im_col_index) = basis_elem.reshaped();
@@ -158,26 +158,26 @@ namespace Moment {
         assert(this->done_sparse);
 
         // Common
-        auto dim = static_cast<sparse_basis_elem_t::Index>(this->matrix.dimension);
-        sparse_basis_elem_t::Index flat_dim = dim * dim;
+        auto dim = static_cast<sparse_real_elem_t::Index>(this->matrix.dimension);
+        sparse_real_elem_t::Index flat_dim = dim * dim;
 
         // Make real
         size_t re_nnz = 0;
         for (const auto& b : this->sparse_re) {
             re_nnz += b.nonZeros();
         }
-        auto re_height = static_cast<sparse_basis_elem_t::Index>(this->sparse_re.size());
+        auto re_height = static_cast<sparse_real_elem_t::Index>(this->sparse_re.size());
 
 
-        // Prepare trips
-        std::vector<Eigen::Triplet<sparse_basis_elem_t::Scalar>> re_trips;
+        // Prepare real trips
+        std::vector<Eigen::Triplet<sparse_real_elem_t::Scalar>> re_trips;
         re_trips.reserve(re_nnz);
-        sparse_basis_elem_t::Index re_col_index = 0;
+        sparse_real_elem_t::Index re_col_index = 0;
         for (const auto& src : this->sparse_re) {
 
             for (int src_col=0; src_col < src.outerSize(); ++src_col) {
-                for (sparse_basis_elem_t::InnerIterator it(src, src_col); it; ++it) {
-                    sparse_basis_elem_t::Index remapped_index = (src_col*dim) + it.row();
+                for (sparse_real_elem_t::InnerIterator it(src, src_col); it; ++it) {
+                    sparse_real_elem_t::Index remapped_index = (src_col*dim) + it.row();
                     assert(remapped_index < flat_dim);
                     re_trips.emplace_back(remapped_index, re_col_index, it.value());
                 }
@@ -186,7 +186,7 @@ namespace Moment {
         }
 
         // Copy to sparse matrix
-        this->sparse_mono_re = std::make_unique<sparse_basis_elem_t>(flat_dim, re_height );
+        this->sparse_mono_re = std::make_unique<sparse_real_elem_t>(flat_dim, re_height );
         this->sparse_mono_re->setFromSortedTriplets(re_trips.cbegin(), re_trips.cend());
 
         // Make imaginary
@@ -194,18 +194,18 @@ namespace Moment {
         for (const auto& b : this->sparse_im) {
             im_nnz += b.nonZeros();
         }
-        auto im_height = static_cast<sparse_basis_elem_t::Index>(this->sparse_im.size());
+        auto im_height = static_cast<sparse_complex_elem_t::Index>(this->sparse_im.size());
 
 
         // Prepare trips
-        std::vector<Eigen::Triplet<sparse_basis_elem_t::Scalar>> im_trips;
+        std::vector<Eigen::Triplet<sparse_complex_elem_t::Scalar>> im_trips;
         im_trips.reserve(im_nnz);
-        sparse_basis_elem_t::Index im_col_index = 0;
+        sparse_complex_elem_t::Index im_col_index = 0;
         for (const auto& src : this->sparse_im) {
 
             for (int src_col=0; src_col < src.outerSize(); ++src_col) {
-                for (sparse_basis_elem_t::InnerIterator it(src, src_col); it; ++it) {
-                    sparse_basis_elem_t::Index remapped_index = (src_col*dim) + it.row();
+                for (sparse_complex_elem_t::InnerIterator it(src, src_col); it; ++it) {
+                    sparse_complex_elem_t::Index remapped_index = (src_col*dim) + it.row();
                     assert(remapped_index < flat_dim);
                     im_trips.emplace_back(remapped_index, im_col_index,  it.value());
                 }
@@ -214,7 +214,7 @@ namespace Moment {
         }
 
         // Copy to sparse matrix
-        this->sparse_mono_im = std::make_unique<sparse_basis_elem_t>(flat_dim, im_height);
+        this->sparse_mono_im = std::make_unique<sparse_complex_elem_t>(flat_dim, im_height);
         this->sparse_mono_im->setFromSortedTriplets(im_trips.cbegin(), im_trips.cend());
 
         this->done_sparse_mono.store(true, std::memory_order_release);

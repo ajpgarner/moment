@@ -12,6 +12,7 @@
 #include <Eigen/SparseCore>
 
 #include <atomic>
+#include <complex>
 #include <mutex>
 #include <vector>
 #include <memory>
@@ -22,47 +23,24 @@ namespace Moment {
     class Context;
 
     /**
-     * Representation of a basis element, and monolithic variants thereof.
+     * Representation of a real basis element, and monolithic variants thereof.
      */
-    using dense_basis_elem_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    using dense_real_elem_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
     /**
-     * An array of dense basis elements.
+     * Representation of a complex basis element, and monolithic variants thereof.
      */
-    using dense_basis_storage_t = std::vector<dense_basis_elem_t>;
-
-    /**
-     * Pair of references to dense basis arrays.
-     */
-    using dense_basis_indexed_ref_t = std::pair<const dense_basis_storage_t&, const dense_basis_storage_t&>;
-
-    /**
-     * Pair of references to monolithic dense basis matrices.
-     */
-    using dense_basis_mono_ref_t = std::pair<const dense_basis_elem_t&, const dense_basis_elem_t&>;
-
-
+    using dense_complex_elem_t = Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
     /**
      * Sparse representation of a basis element, and monolithic variants thereof.
      */
-    using sparse_basis_elem_t = Eigen::SparseMatrix<double>;
+    using sparse_real_elem_t = Eigen::SparseMatrix<double>;
 
     /**
-     * An array of sparse basis elements.
+     * Sparse representation of a complex basis element, and monolithic variants thereof.
      */
-    using sparse_basis_storage_t = std::vector<sparse_basis_elem_t>;
-
-    /**
-     * Pair of references to sparse basis arrays.
-     */
-    using sparse_basis_indexed_ref_t = std::pair<const sparse_basis_storage_t&, const sparse_basis_storage_t&>;
-
-    /**
-     * Pair of references to monolithic sparse basis matrices.
-     */
-    using sparse_basis_mono_ref_t = std::pair<const sparse_basis_elem_t&, const sparse_basis_elem_t&>;
-
+    using sparse_complex_elem_t = Eigen::SparseMatrix<std::complex<double>>;
 
     class Matrix {
 
@@ -97,29 +75,70 @@ namespace Moment {
          */
         class MatrixBasis {
         public:
+            /**
+              * An array of real dense basis elements.
+              */
+            using dense_real_storage_t = std::vector<dense_real_elem_t>;
+
+            /**
+             * An array of complex dense basis elements.
+             */
+            using dense_complex_storage_t = std::vector<dense_complex_elem_t>;
+
+            /**
+             * Pair of references to dense basis arrays.
+             */
+            using dense_basis_indexed_ref_t = std::pair<const dense_real_storage_t&, const dense_complex_storage_t&>;
+
+            /**
+             * Pair of references to monolithic dense basis matrices.
+             */
+            using dense_basis_mono_ref_t = std::pair<const dense_real_elem_t&, const dense_complex_elem_t&>;
+
+            /**
+             * An array of real sparse basis elements.
+             */
+            using sparse_real_storage_t = std::vector<sparse_real_elem_t>;
+
+            /**
+             * An array of complex sparse basis elements.
+             */
+            using sparse_complex_storage_t = std::vector<sparse_complex_elem_t>;
+
+            /**
+             * Pair of references to sparse basis arrays.
+             */
+            using sparse_basis_indexed_ref_t = std::pair<const sparse_real_storage_t&, const sparse_complex_storage_t&>;
+
+            /**
+             * Pair of references to monolithic sparse basis matrices.
+             */
+            using sparse_basis_mono_ref_t = std::pair<const sparse_real_elem_t&, const sparse_complex_elem_t&>;
+
+        public:
             const Matrix& matrix;
 
         private:
             mutable std::mutex mutex;
 
             mutable std::atomic<bool> done_dense = false;
-            mutable dense_basis_storage_t dense_re;
-            mutable dense_basis_storage_t dense_im;
+            mutable dense_real_storage_t dense_re;
+            mutable dense_complex_storage_t dense_im;
 
             mutable std::atomic<bool> done_dense_mono = false;
-            mutable std::unique_ptr<dense_basis_elem_t> dense_mono_re;
-            mutable std::unique_ptr<dense_basis_elem_t> dense_mono_im;
+            mutable std::unique_ptr<dense_real_elem_t> dense_mono_re;
+            mutable std::unique_ptr<dense_complex_elem_t> dense_mono_im;
 
             mutable std::atomic<bool> done_sparse = false;
-            mutable sparse_basis_storage_t sparse_re;
-            mutable sparse_basis_storage_t sparse_im;
+            mutable sparse_real_storage_t sparse_re;
+            mutable sparse_complex_storage_t sparse_im;
 
             mutable std::atomic<bool> done_sparse_mono = false;
-            mutable std::unique_ptr<sparse_basis_elem_t> sparse_mono_re;
-            mutable std::unique_ptr<sparse_basis_elem_t> sparse_mono_im;
+            mutable std::unique_ptr<sparse_real_elem_t> sparse_mono_re;
+            mutable std::unique_ptr<sparse_complex_elem_t> sparse_mono_im;
 
         public:
-            MatrixBasis(const Matrix& matrix) : matrix{matrix} { }
+            explicit MatrixBasis(const Matrix& matrix) : matrix{matrix} { }
 
             MatrixBasis(const Matrix& matrix, MatrixBasis&& rhs) noexcept;
 
@@ -208,7 +227,7 @@ namespace Moment {
          * For thread safety, call read lock on hosting matrix system.
          * basis_mutex is assumed to be uniquely locked when this function is entered.
          */
-        [[nodiscard]] virtual std::pair<dense_basis_storage_t, dense_basis_storage_t>
+        [[nodiscard]] virtual std::pair<MatrixBasis::dense_real_storage_t, MatrixBasis::dense_complex_storage_t>
         create_dense_basis() const = 0;
 
         /**
@@ -216,7 +235,7 @@ namespace Moment {
          * For thread safety, call read lock on hosting matrix system.
          * basis_mutex is assumed to be uniquely locked when this function is entered.
          */
-        [[nodiscard]] virtual std::pair<sparse_basis_storage_t, sparse_basis_storage_t>
+        [[nodiscard]] virtual std::pair<MatrixBasis::sparse_real_storage_t, MatrixBasis::sparse_complex_storage_t>
         create_sparse_basis() const = 0;
 
 

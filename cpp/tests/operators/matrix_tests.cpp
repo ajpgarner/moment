@@ -20,10 +20,10 @@ namespace Moment::Tests {
 
     namespace {
 
-        std::pair<std::vector<dense_basis_elem_t>, std::vector<dense_basis_elem_t>> reference_dense() {
-            std::pair<std::vector<dense_basis_elem_t>, std::vector<dense_basis_elem_t>> output
-                = std::make_pair(std::vector<dense_basis_elem_t>(6, dense_basis_elem_t::Zero(3, 3)),
-                                 std::vector<dense_basis_elem_t>(1, dense_basis_elem_t::Zero(3, 3)));
+        std::pair<std::vector<dense_real_elem_t>, std::vector<dense_complex_elem_t>> reference_dense() {
+            std::pair<std::vector<dense_real_elem_t>, std::vector<dense_complex_elem_t>> output
+                = std::make_pair(std::vector<dense_real_elem_t>(6, dense_real_elem_t::Zero(3, 3)),
+                                 std::vector<dense_complex_elem_t>(1, dense_complex_elem_t::Zero(3, 3)));
 
             auto& real = output.first;
             auto& im = output.second;
@@ -43,15 +43,15 @@ namespace Moment::Tests {
 
             real[5](2, 2) = 1.0;
 
-            im[0](1, 2) = 1.0;
-            im[0](2, 1) = -1.0;
+            im[0](1, 2) = std::complex(0.0, 1.0);
+            im[0](2, 1) = std::complex(0.0, -1.0);
 
             return output;
         }
 
-        std::pair<dense_basis_elem_t, dense_basis_elem_t> reference_dense_monolithic() {
-            std:std::pair<dense_basis_elem_t, dense_basis_elem_t> output
-                = std::make_pair(dense_basis_elem_t::Zero(9, 6), dense_basis_elem_t::Zero(9, 1));
+        std::pair<dense_real_elem_t, dense_complex_elem_t> reference_dense_monolithic() {
+            std:std::pair<dense_real_elem_t, dense_complex_elem_t> output
+                = std::make_pair(dense_real_elem_t::Zero(9, 6), dense_complex_elem_t::Zero(9, 1));
 
             auto& real = output.first;
             auto& im = output.second;
@@ -71,14 +71,14 @@ namespace Moment::Tests {
 
             real(8, 5) = 1.0;
 
-            im(7, 0) = 1.0; // (1,2) -> 2*3+1=7 (col major!)
-            im(5, 0) = -1.0; // (2,1) -> 1*3+2=5 (col major!)
+            im(7, 0) = std::complex(0.0, 1.0); // (1,2) -> 2*3+1=7 (col major!)
+            im(5, 0) = std::complex(0.0, -1.0); // (2,1) -> 1*3+2=5 (col major!)
 
             return output;
         }
 
-        std::pair<std::vector<sparse_basis_elem_t>, std::vector<sparse_basis_elem_t>> reference_sparse() {
-            std::pair<std::vector<sparse_basis_elem_t>, std::vector<sparse_basis_elem_t>> output;
+        std::pair<std::vector<sparse_real_elem_t>, std::vector<sparse_complex_elem_t>> reference_sparse() {
+            std::pair<std::vector<sparse_real_elem_t>, std::vector<sparse_complex_elem_t>> output;
 
             auto& real = output.first;
             auto& im = output.second;
@@ -94,9 +94,9 @@ namespace Moment::Tests {
             return output;
         }
 
-        std::pair<sparse_basis_elem_t, sparse_basis_elem_t> reference_sparse_monolithic() {
-            std::pair<sparse_basis_elem_t , sparse_basis_elem_t> output
-                = std::make_pair(sparse_basis_elem_t(9,6), sparse_basis_elem_t(9,1));
+        std::pair<sparse_real_elem_t, sparse_complex_elem_t> reference_sparse_monolithic() {
+            std::pair<sparse_real_elem_t , sparse_complex_elem_t> output
+                = std::make_pair(sparse_real_elem_t(9,6), sparse_complex_elem_t(9,1));
 
             auto& real = output.first;
             real.setZero();
@@ -114,14 +114,15 @@ namespace Moment::Tests {
 
             auto& im = output.second;
             im.setZero();
-            im.insert(5, 0) = -1.0; // (2,1) -> 1*3+2=5 (col major!)
-            im.insert(7, 0) = 1.0; // (1,2) -> 2*3+1=7 (col major!)
+            im.insert(5, 0) = std::complex(0.0, -1.0); // (2,1) -> 1*3+2=5 (col major!)
+            im.insert(7, 0) = std::complex(0.0, 1.0); // (1,2) -> 2*3+1=7 (col major!)
             im.makeCompressed();
 
             return output;
         }
 
-        void assert_same_matrix(const std::string& name, const dense_basis_elem_t& test, const dense_basis_elem_t& ref) {
+        template<typename matrix_t>
+        void assert_same_matrix(const std::string& name, const matrix_t& test, const matrix_t& ref) {
             ASSERT_EQ(test.cols(), ref.cols()) << name;
             ASSERT_EQ(test.rows(), ref.rows()) << name;
             for (int col_index = 0; col_index < ref.cols(); ++col_index) {
@@ -132,21 +133,9 @@ namespace Moment::Tests {
             }
         }
 
-        void assert_same_matrix(const std::string& name, const sparse_basis_elem_t& test, const sparse_basis_elem_t& ref) {
-            ASSERT_EQ(test.cols(), ref.cols()) << name;
-            ASSERT_EQ(test.rows(), ref.rows()) << name;
-            ASSERT_EQ(test.nonZeros(), ref.nonZeros()) << name;
-
-            for (int col_index = 0; col_index < ref.cols(); ++col_index) {
-                for (int row_index = 0; row_index < ref.rows(); ++row_index) {
-                    EXPECT_EQ(test.coeff(row_index, col_index), ref.coeff(row_index, col_index))
-                        << name << ": (" << row_index << ", " << col_index << ")";
-                }
-            }
-        }
-
+        template<typename matrix_t>
         void assert_same_basis(const std::string& name,
-                               const dense_basis_storage_t& test, const dense_basis_storage_t& ref) {
+                               const std::vector<matrix_t>& test, const std::vector<matrix_t>& ref) {
             ASSERT_EQ(test.size(), ref.size()) << name;
             for (size_t elem = 0; elem < test.size(); ++elem) {
                 std::stringstream ss;
@@ -154,17 +143,6 @@ namespace Moment::Tests {
                 assert_same_matrix(ss.str(), test[elem], ref[elem]);
             }
         }
-
-        void assert_same_basis(const std::string& name,
-                               const sparse_basis_storage_t& test, const sparse_basis_storage_t& ref) {
-            ASSERT_EQ(test.size(), ref.size()) << name;
-            for (size_t elem = 0; elem < test.size(); ++elem) {
-                std::stringstream ss;
-                ss << name << " #" << elem;
-                assert_same_matrix(ss.str(), test[elem], ref[elem]);
-            }
-        }
-
     }
 
     TEST(Operators_Matrix, DenseBasis) {

@@ -86,12 +86,14 @@ namespace Moment {
         /**
          * Create dense basis.
          */
-        [[nodiscard]] std::pair<dense_basis_storage_t, dense_basis_storage_t> create_dense_basis() const override;
+        [[nodiscard]] std::pair<MatrixBasis::dense_real_storage_t, MatrixBasis::dense_complex_storage_t>
+        create_dense_basis() const override;
 
         /**
          * Create sparse basis.
          */
-        [[nodiscard]] std::pair<sparse_basis_storage_t, sparse_basis_storage_t> create_sparse_basis() const override;
+        [[nodiscard]] std::pair<MatrixBasis::sparse_real_storage_t, MatrixBasis::sparse_complex_storage_t>
+        create_sparse_basis() const override;
 
 
 
