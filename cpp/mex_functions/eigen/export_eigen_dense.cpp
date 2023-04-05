@@ -16,17 +16,49 @@ namespace Moment::mex {
         const matlab::data::ArrayDimensions dims{static_cast<size_t>(matrix.rows()),
                                            static_cast<size_t>(matrix.cols())};
 
-        auto output = factory.createArray<double>(dims);
+        // MATLAB is col major; but so is eigen...
+        return factory.createArray<double>(dims, matrix.data(), matrix.data() + (dims[0]*dims[1]));
+    }
 
-        // MATLAB is col major
+    matlab::data::TypedArray<std::complex<double>> export_eigen_dense(matlab::engine::MATLABEngine& engine,
+                                                        matlab::data::ArrayFactory& factory,
+                                                        const Eigen::MatrixXcd& matrix) {
+        const matlab::data::ArrayDimensions dims{static_cast<size_t>(matrix.rows()),
+                                                 static_cast<size_t>(matrix.cols())};
+
+        // MATLAB is col major; but so is eigen...
+        return factory.createArray<std::complex<double>>(dims, matrix.data(), matrix.data() + (dims[0]*dims[1]));
+    }
+
+    matlab::data::TypedArray<matlab::data::Array>
+    export_eigen_dense_array(matlab::engine::MATLABEngine& engine,
+                             matlab::data::ArrayFactory& factory,
+                             const std::vector<Eigen::MatrixXd>& matrices) {
+
+        matlab::data::ArrayDimensions dims{1, matrices.size()};
+        matlab::data::TypedArray<matlab::data::Array> output = factory.createCellArray(dims);
         auto write_iter = output.begin();
-        for (size_t col = 0; col < dims[1]; ++col) {
-            for (size_t row = 0; row < dims[0]; ++row) {
-                *write_iter = matrix(row, col);
-                ++write_iter;
-            }
+        for (const auto& matrix : matrices) {
+            *write_iter = export_eigen_dense(engine, factory, matrix);
+            ++write_iter;
         }
-        assert(write_iter == output.end());
+
+        return output;
+    }
+
+    matlab::data::TypedArray<matlab::data::Array>
+    export_eigen_dense_array(matlab::engine::MATLABEngine& engine,
+                             matlab::data::ArrayFactory& factory,
+                             const std::vector<Eigen::MatrixXcd>& matrices) {
+
+        matlab::data::ArrayDimensions dims{matrices.empty() ? 0U : 1U, matrices.size()};
+        matlab::data::TypedArray<matlab::data::Array> output = factory.createCellArray(dims);
+
+        auto write_iter = output.begin();
+        for (const auto& matrix : matrices) {
+            *write_iter = export_eigen_dense(engine, factory, matrix);
+            ++write_iter;
+        }
 
         return output;
     }

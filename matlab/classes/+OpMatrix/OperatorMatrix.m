@@ -382,8 +382,8 @@ classdef OperatorMatrix < handle
             [real_basis, im_basis] = obj.MonolithicBasis(true);
             
             expression M(obj.Dimension, obj.Dimension)
-            M(:,:) = reshape(transpose(a) * real_basis ...
-                + transpose(b) * im_basis, ...
+            M(:,:) = reshape(real_basis * a ...
+                + im_basis * b, ...
                 [obj.Dimension, obj.Dimension]);
                         
             % Output handles to cvx objects
@@ -400,7 +400,7 @@ classdef OperatorMatrix < handle
             % Multiple variables by basis to make matrix
             [real_basis, ~] = obj.MonolithicBasis(true);
             expression M(obj.Dimension, obj.Dimension);
-            M(:,:) = reshape(transpose(a) * real_basis, ...
+            M(:,:) = reshape(real_basis * a, ...
                 [obj.Dimension, obj.Dimension]);
             
             % Output handles to cvx objects
@@ -434,8 +434,8 @@ classdef OperatorMatrix < handle
             [real_basis, im_basis] = obj.MonolithicBasis(true);
                        
             % Matrix
-            out_M = reshape(transpose(a) * real_basis ...
-                + transpose(b) * im_basis, ...
+            out_M = reshape(real_basis * a...
+                + im_basis * b, ...
                 [obj.Dimension, obj.Dimension]);
         end
         
@@ -444,7 +444,7 @@ classdef OperatorMatrix < handle
             [real_basis, ~] = obj.MonolithicBasis(true);
            
             % Matrix
-            out_M = reshape(transpose(a) * real_basis, ...
+            out_M = reshape(real_basis * a, ...
                 [obj.Dimension, obj.Dimension]);
         end
     end

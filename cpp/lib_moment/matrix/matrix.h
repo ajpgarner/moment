@@ -25,12 +25,14 @@ namespace Moment {
     /**
      * Representation of a real basis element, and monolithic variants thereof.
      */
-    using dense_real_elem_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    using dense_real_elem_t = Eigen::MatrixXd;
+    static_assert(!dense_real_elem_t::IsRowMajor);
 
     /**
      * Representation of a complex basis element, and monolithic variants thereof.
      */
-    using dense_complex_elem_t = Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    using dense_complex_elem_t = Eigen::MatrixXcd;
+    static_assert(!dense_complex_elem_t::IsRowMajor);
 
     /**
      * Sparse representation of a basis element, and monolithic variants thereof.
