@@ -8,7 +8,7 @@
 
 #include "storage_manager.h"
 
-#include "matrix/symbolic_matrix.h"
+#include "matrix/monomial_matrix.h"
 
 #include "scenarios/imported/imported_matrix_system.h"
 

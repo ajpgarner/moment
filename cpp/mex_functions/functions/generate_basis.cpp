@@ -23,8 +23,8 @@
 namespace Moment::mex::functions {
 
     namespace {
-        const SymbolicMatrix& getMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
-                                         const MatrixSystem& matrixSystem, size_t index) {
+        const MonomialMatrix& getMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
+                                               const MatrixSystem& matrixSystem, size_t index) {
             try {
                 return matrixSystem[index];
             } catch (const Moment::errors::missing_component& mce) {

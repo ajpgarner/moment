@@ -7,7 +7,7 @@
 #include "imported_matrix_system.h"
 #include "imported_context.h"
 
-#include "matrix/symbolic_matrix.h"
+#include "matrix/monomial_matrix.h"
 #include "utilities/dynamic_bitset.h"
 
 #include <cassert>
@@ -163,6 +163,6 @@ namespace Moment::Imported {
         }
 
         // Construct new symbolic matrix
-        return this->push_back(std::make_unique<SymbolicMatrix>(this->Context(), this->Symbols(), std::move(input)));
+        return this->push_back(std::make_unique<MonomialMatrix>(this->Context(), this->Symbols(), std::move(input)));
     }
 }

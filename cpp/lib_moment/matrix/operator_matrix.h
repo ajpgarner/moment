@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "symbolic_matrix.h"
+#include "monomial_matrix.h"
 #include "matrix_properties.h"
 
 #include "scenarios/context.h"
@@ -28,7 +28,7 @@ namespace Moment {
     class MatrixProperties;
 
 
-    class OperatorMatrix : public SymbolicMatrix {
+    class OperatorMatrix : public MonomialMatrix {
     public:
         class OpSeqMatrix : public SquareMatrix<OperatorSequence> {
         private:
@@ -102,10 +102,10 @@ namespace Moment {
                                 std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
 
         OperatorMatrix(OperatorMatrix&& rhs) noexcept
-            : SymbolicMatrix{std::move(rhs)},
-            op_seq_matrix{std::move(rhs.op_seq_matrix)},
-            hash_matrix{std::move(rhs.hash_matrix)},
-            SequenceMatrix{*this} { }
+            : MonomialMatrix{std::move(rhs)},
+              op_seq_matrix{std::move(rhs.op_seq_matrix)},
+              hash_matrix{std::move(rhs.hash_matrix)},
+              SequenceMatrix{*this} { }
 
         ~OperatorMatrix() noexcept;
 

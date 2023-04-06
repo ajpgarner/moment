@@ -152,7 +152,7 @@ namespace Moment {
 
 
 
-    const SymbolicMatrix &MatrixSystem::operator[](size_t index) const {
+    const MonomialMatrix &MatrixSystem::operator[](size_t index) const {
         if (index >= this->matrices.size()) {
             throw errors::missing_component("Matrix index out of range.");
         }
@@ -162,7 +162,7 @@ namespace Moment {
         return *this->matrices[index];
     }
 
-    SymbolicMatrix& MatrixSystem::get(size_t index) {
+    MonomialMatrix& MatrixSystem::get(size_t index) {
         if (index >= this->matrices.size()) {
             throw errors::missing_component("Matrix index out of range.");
         }
@@ -172,13 +172,13 @@ namespace Moment {
         return *this->matrices[index];
     }
 
-    ptrdiff_t MatrixSystem::push_back(std::unique_ptr<SymbolicMatrix> matrix) {
+    ptrdiff_t MatrixSystem::push_back(std::unique_ptr<MonomialMatrix> matrix) {
         auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
         this->matrices.emplace_back(std::move(matrix));
         return matrixIndex;
     }
 
-    std::pair<size_t, class SymbolicMatrix &>
+    std::pair<size_t, class MonomialMatrix &>
     MatrixSystem::clone_and_substitute(size_t matrix_index, std::unique_ptr<SubstitutionList> list) {
         assert(list);
 

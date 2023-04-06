@@ -16,7 +16,7 @@
 
 namespace Moment {
     class SymbolTable;
-    class SymbolicMatrix;
+    class MonomialMatrix;
 }
 
 namespace Moment::Inflation {

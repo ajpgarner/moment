@@ -8,7 +8,7 @@
 
 #include "matrix_system.h"
 
-#include "matrix/symbolic_matrix.h"
+#include "matrix/monomial_matrix.h"
 #include "matrix/matrix_properties.h"
 #include "symbolic/symbol_table.h"
 

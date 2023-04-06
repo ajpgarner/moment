@@ -19,7 +19,7 @@ namespace Moment::Inflation {
     /**
      * Scalar extensions of moment matrix
      */
-    class ExtendedMatrix : public SymbolicMatrix {
+    class ExtendedMatrix : public MonomialMatrix {
     public:
         const size_t OriginalDimension;
 

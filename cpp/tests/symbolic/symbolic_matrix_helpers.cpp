@@ -25,7 +25,7 @@ namespace Moment::Tests {
         return find_ptr->Id();
     }
 
-    void compare_symbol_matrices(const SymbolicMatrix::SymbolMatrixView& test,
+    void compare_symbol_matrices(const MonomialMatrix::MMSymbolMatrixView& test,
                                  const std::vector<symbol_name_t>& reference) {
         ASSERT_EQ(test.Dimension()*test.Dimension(), reference.size());
         auto refIter = reference.cbegin();

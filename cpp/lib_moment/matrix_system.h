@@ -25,7 +25,7 @@ namespace Moment {
 
     class WordList;
 
-    class SymbolicMatrix;
+    class MonomialMatrix;
     class OperatorMatrix;
     class LocalizingMatrix;
     class MomentMatrix;
@@ -54,7 +54,7 @@ namespace Moment {
         std::unique_ptr<SymbolTable> symbol_table;
 
         /** List of matrices in the system */
-        std::vector<std::unique_ptr<SymbolicMatrix>> matrices;
+        std::vector<std::unique_ptr<MonomialMatrix>> matrices;
 
         /** The index (in this->matrices) of generated moment matrices */
         std::vector<ptrdiff_t> momentMatrixIndices;
@@ -132,7 +132,7 @@ namespace Moment {
          * Access matrix by subscript corresponding to order of creation.
          * For thread safety, call for a read lock first.
          */
-        [[nodiscard]] const SymbolicMatrix& operator[](size_t index) const;
+        [[nodiscard]] const MonomialMatrix& operator[](size_t index) const;
 
         /**
          * Counts matrices in system.
@@ -199,7 +199,7 @@ namespace Moment {
         /**
          * Clone a matrix, with substituted values
          */
-        std::pair<size_t, class SymbolicMatrix&>
+        std::pair<size_t, class MonomialMatrix&>
         clone_and_substitute(size_t matrix_index, std::unique_ptr<SubstitutionList> list);
 
         /**
@@ -252,14 +252,14 @@ namespace Moment {
          * @return A reference to the requested matrix.
          * @throws errors::missing_component if index does not correspond to a matrix in the system.
          */
-        SymbolicMatrix& get(size_t index);
+        MonomialMatrix& get(size_t index);
 
         /**
          * Add symbolic matrix to end of array. Changes should not be made without a write lock.
          * @param matrix Owning pointer to matrix to add.
          * @return The index of the newly appended matrix.
          */
-        ptrdiff_t push_back(std::unique_ptr<SymbolicMatrix> matrix);
+        ptrdiff_t push_back(std::unique_ptr<MonomialMatrix> matrix);
 
     };
 }

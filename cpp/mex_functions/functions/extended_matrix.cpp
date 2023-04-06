@@ -94,7 +94,7 @@ namespace Moment::mex::functions {
         this->max_inputs = 3;
     }
 
-    std::pair<size_t, const Moment::SymbolicMatrix&>
+    std::pair<size_t, const Moment::MonomialMatrix&>
     ExtendedMatrix::get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp)  {
         // Get extended parameters
         auto& emp = dynamic_cast<ExtendedMatrixParams&>(omp);

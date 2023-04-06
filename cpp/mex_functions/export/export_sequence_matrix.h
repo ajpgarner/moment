@@ -21,7 +21,7 @@ namespace Moment {
     class SymbolTable;
     class MatrixProperties;
     class MatrixSystem;
-    class SymbolicMatrix;
+    class MonomialMatrix;
 
     namespace Locality {
         class LocalityMatrixSystem;
@@ -50,7 +50,7 @@ namespace Moment::mex {
     export_sequence_matrix(matlab::engine::MATLABEngine& engine,
                            const Locality::LocalityMatrixSystem& system,
                            const Locality::LocalityOperatorFormatter& formatter,
-                           const SymbolicMatrix& matrix);
+                           const MonomialMatrix& matrix);
 
     /**
      * Outputs a matrix of operator sequences, as a matlab string matrix
@@ -60,5 +60,5 @@ namespace Moment::mex {
      */
     matlab::data::Array export_sequence_matrix(matlab::engine::MATLABEngine& engine,
                                               const MatrixSystem& system,
-                                              const SymbolicMatrix& matrix);
+                                              const MonomialMatrix& matrix);
 }

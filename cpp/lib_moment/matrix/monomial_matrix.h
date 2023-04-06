@@ -1,5 +1,5 @@
 /**
- * symbolic_matrix.h
+ * monomial_matrix.h
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -18,13 +18,16 @@ namespace Moment {
     class SymbolTable;
     class MatrixProperties;
 
-    class SymbolicMatrix : public Matrix {
+    /**
+     * Symbolic matrix, where each entry represents a monomial expression.
+     */
+    class MonomialMatrix : public Matrix {
     public:
-        class SymbolMatrixView {
+        class MMSymbolMatrixView {
         private:
-            const SymbolicMatrix& matrix;
+            const MonomialMatrix& matrix;
         public:
-            explicit SymbolMatrixView(const SymbolicMatrix& theMatrix) noexcept : matrix{theMatrix} { };
+            explicit MMSymbolMatrixView(const MonomialMatrix& theMatrix) noexcept : matrix{theMatrix} { };
 
             [[nodiscard]] size_t Dimension() const noexcept { return matrix.Dimension(); }
 
@@ -46,7 +49,7 @@ namespace Moment {
                 return (*(matrix.sym_exp_matrix));
             }
 
-        };
+        } SymbolMatrix;
 
 
     protected:
@@ -55,19 +58,14 @@ namespace Moment {
 
 
     public:
-        /**
-         * Matrix, as symbols
-         */
-        SymbolMatrixView SymbolMatrix;
-
-        SymbolicMatrix(const Context& context, SymbolTable& symbols,
+        MonomialMatrix(const Context& context, SymbolTable& symbols,
                        std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix);
 
-        SymbolicMatrix(SymbolicMatrix&& rhs) noexcept
+        MonomialMatrix(MonomialMatrix&& rhs) noexcept
             : Matrix{std::move(rhs)},
               sym_exp_matrix{std::move(rhs.sym_exp_matrix)},  SymbolMatrix{*this} { }
 
-        ~SymbolicMatrix() noexcept;
+        ~MonomialMatrix() noexcept;
 
         /**
          * Description of matrix type

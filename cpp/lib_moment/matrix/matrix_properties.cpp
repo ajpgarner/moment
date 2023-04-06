@@ -6,14 +6,14 @@
  */
 #include "matrix_properties.h"
 
-#include "symbolic_matrix.h"
+#include "monomial_matrix.h"
 #include "symbolic/symbol_table.h"
 
 #include <iostream>
 
 
 namespace Moment {
-    MatrixProperties::MatrixProperties(const SymbolicMatrix& matrix, const SymbolTable& table,
+    MatrixProperties::MatrixProperties(const MonomialMatrix& matrix, const SymbolTable& table,
                                        std::set<symbol_name_t>&& included)
             : dimension{matrix.Dimension()}, included_symbols{std::move(included)}, mat_is_herm{matrix.IsHermitian()} {
 

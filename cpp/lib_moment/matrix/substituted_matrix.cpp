@@ -11,10 +11,10 @@
 namespace Moment {
 
     SubstitutedMatrix::SubstitutedMatrix(const Context& context, SymbolTable& symbols,
-                                         const SymbolicMatrix& the_source,
+                                         const MonomialMatrix& the_source,
                                          std::unique_ptr<SubstitutionList> subs)
-         : SymbolicMatrix{context, symbols, subs ? (*subs)(the_source.SymbolMatrix()) : nullptr},
-            source_matrix{the_source}, sub_list{std::move(subs)} {
+         : MonomialMatrix{context, symbols, subs ? (*subs)(the_source.SymbolMatrix()) : nullptr},
+           source_matrix{the_source}, sub_list{std::move(subs)} {
         assert(this->sub_list);
     }
 

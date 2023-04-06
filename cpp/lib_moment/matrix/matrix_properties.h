@@ -17,7 +17,7 @@
 
 namespace Moment {
 
-    class SymbolicMatrix;
+    class MonomialMatrix;
     class SymbolTable;
 
     /** Information about the particular matrix (relative to the collection). */
@@ -35,7 +35,7 @@ namespace Moment {
 
     public:
         /** Construct symbolic properties from operator matrix. */
-        MatrixProperties(const SymbolicMatrix& matrix,
+        MatrixProperties(const MonomialMatrix& matrix,
                          const SymbolTable& table,
                          std::set<symbol_name_t>&& subset);
 

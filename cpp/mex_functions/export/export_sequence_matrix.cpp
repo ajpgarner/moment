@@ -394,7 +394,7 @@ namespace Moment::mex {
     export_inferred_sequence_matrix(matlab::engine::MATLABEngine& engine,
                                   const Context& context,
                                   const SymbolTable& symbols,
-                                  const SymbolicMatrix& inputMatrix) {
+                                  const MonomialMatrix& inputMatrix) {
         matlab::data::ArrayFactory factory;
 
         // Prepare output
@@ -427,7 +427,7 @@ namespace Moment::mex {
     export_factor_sequence_matrix(matlab::engine::MATLABEngine& engine,
                                   const Inflation::InflationContext& context,
                                   const Inflation::FactorTable& factors,
-                                  const SymbolicMatrix& inputMatrix) {
+                                  const MonomialMatrix& inputMatrix) {
         matlab::data::ArrayFactory factory;
 
         // Prepare output
@@ -458,7 +458,7 @@ namespace Moment::mex {
 
     matlab::data::Array
     export_sequence_matrix(matlab::engine::MATLABEngine &engine, const MatrixSystem& system,
-                           const SymbolicMatrix &matrix) {
+                           const MonomialMatrix &matrix) {
 
         // Is this an inflation matrix? If so, display factorized format:
         const auto* inflSystem = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
@@ -480,7 +480,7 @@ namespace Moment::mex {
     export_sequence_matrix(matlab::engine::MATLABEngine& engine,
                            const Locality::LocalityMatrixSystem& system,
                            const Locality::LocalityOperatorFormatter& formatter,
-                           const SymbolicMatrix& matrix) {
+                           const MonomialMatrix& matrix) {
 
         // Attempt to use normal context formatting
         const auto* opMatPtr = dynamic_cast<const Moment::OperatorMatrix*>(&matrix);

@@ -7,7 +7,7 @@
 
 #include "gtest/gtest.h"
 
-#include "matrix/symbolic_matrix.h"
+#include "matrix/monomial_matrix.h"
 #include "symbolic/symbol_table.h"
 #include "scenarios/imported/imported_matrix_system.h"
 

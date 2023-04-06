@@ -5,12 +5,12 @@ add_library(lib_moment
         matrix_system.cpp
         matrix/localizing_matrix.cpp
         matrix/localizing_matrix_index.cpp
+        matrix/matrix_properties.cpp
         matrix/moment_matrix.cpp
+        matrix/monomial_matrix.cpp
         matrix/operator_matrix.cpp
         matrix/operator_sequence_generator.cpp
-        matrix/matrix_properties.cpp
         matrix/substituted_matrix.cpp
-        matrix/symbolic_matrix.cpp
         scenarios/context.cpp
         scenarios/explicit_symbols.cpp
         scenarios/implicit_outcome_iterator.cpp
@@ -60,4 +60,4 @@ add_library(lib_moment
         utilities/kronecker_power.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
-        matrix/matrix.h matrix/matrix.cpp)
+        matrix/matrix.h matrix/matrix.cpp matrix/polynomial_matrix.cpp matrix/polynomial_matrix.h)

@@ -49,7 +49,7 @@ namespace Moment::mex::functions  {
         explicit LocalizingMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
     protected:
-        std::pair<size_t, const Moment::SymbolicMatrix&>
+        std::pair<size_t, const Moment::MonomialMatrix&>
         get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) final;
     };
 }

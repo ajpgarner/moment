@@ -238,7 +238,7 @@ namespace Moment {
 
     OperatorMatrix::OperatorMatrix(const Context& context, SymbolTable& symbols,
                                    std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
-       : SymbolicMatrix{context, symbols, registerSymbolsAndBuildMatrix(context, symbols, *op_seq_mat)},
+       : MonomialMatrix{context, symbols, registerSymbolsAndBuildMatrix(context, symbols, *op_seq_mat)},
          SequenceMatrix{*this}, op_seq_matrix{std::move(op_seq_mat)}
        {
            assert(op_seq_matrix);

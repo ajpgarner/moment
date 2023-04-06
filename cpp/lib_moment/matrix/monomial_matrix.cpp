@@ -1,23 +1,23 @@
 /**
- * symbolic_matrix.cpp
+ * monomial_matrix.cpp
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "symbolic_matrix.h"
+#include "monomial_matrix.h"
 
 #include <stdexcept>
 
 namespace Moment {
 
 
-    SymbolicMatrix::SymbolicMatrix(const Context& context, SymbolTable& symbols,
+    MonomialMatrix::MonomialMatrix(const Context& context, SymbolTable& symbols,
                                    std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix)
         : Matrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0},
             SymbolMatrix{*this}, sym_exp_matrix{std::move(symbolMatrix)}
         {
             if (!sym_exp_matrix) {
-                throw std::runtime_error{"Symbol pointer passed to SymbolicMatrix was nullptr."};
+                throw std::runtime_error{"Symbol pointer passed to MonomialMatrix was nullptr."};
             }
 
             // Find included symbols
@@ -33,7 +33,7 @@ namespace Moment {
 
     }
 
-    void SymbolicMatrix::renumerate_bases(const SymbolTable &symbols) {
+    void MonomialMatrix::renumerate_bases(const SymbolTable &symbols) {
         for (auto& symbol : *this->sym_exp_matrix) {
             // Make conjugation status canonical:~
             if (symbol.conjugated) {
@@ -50,10 +50,10 @@ namespace Moment {
         this->mat_prop->rebuild_keys(symbols);
     }
 
-    SymbolicMatrix::~SymbolicMatrix() noexcept = default;
+    MonomialMatrix::~MonomialMatrix() noexcept = default;
 
     std::pair<Matrix::MatrixBasis::dense_real_storage_t, Matrix::MatrixBasis::dense_complex_storage_t>
-    SymbolicMatrix::create_dense_basis() const {
+    MonomialMatrix::create_dense_basis() const {
         std::pair<Matrix::MatrixBasis::dense_real_storage_t, Matrix::MatrixBasis::dense_complex_storage_t> output;
         auto& real = output.first;
         auto& im = output.second;
@@ -100,7 +100,7 @@ namespace Moment {
 
 
     std::pair<Matrix::MatrixBasis::sparse_real_storage_t, Matrix::MatrixBasis::sparse_complex_storage_t>
-    SymbolicMatrix::create_sparse_basis() const {
+    MonomialMatrix::create_sparse_basis() const {
         // Get matrix properties
         const auto dim = static_cast<sparse_real_elem_t::Index>(this->dimension);
         const bool symmetric = this->SMP().is_hermitian();

@@ -103,7 +103,7 @@ namespace Moment::mex::functions  {
         this->max_inputs = 3;
     }
 
-    std::pair<size_t, const Moment::SymbolicMatrix &>
+    std::pair<size_t, const Moment::MonomialMatrix &>
     ApplyValues::get_or_make_matrix(MatrixSystem &system, OperatorMatrixParams &omp) {
         auto& avp = dynamic_cast< ApplyValuesParams&>(omp);
 

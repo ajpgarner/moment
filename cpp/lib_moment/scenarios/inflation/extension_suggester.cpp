@@ -9,7 +9,7 @@
 #include "factor_table.h"
 #include "inflation_context.h"
 
-#include "matrix/symbolic_matrix.h"
+#include "matrix/monomial_matrix.h"
 #include "matrix/moment_matrix.h"
 #include "matrix/operator_sequence_generator.h"
 #include "symbolic/symbol_table.h"
@@ -78,7 +78,7 @@ namespace Moment::Inflation {
         return chosen_factors.to_set<symbol_name_t>();
     }
 
-    DynamicBitset<uint64_t> ExtensionSuggester::nonfundamental_symbols(const SymbolicMatrix &matrix) const {
+    DynamicBitset<uint64_t> ExtensionSuggester::nonfundamental_symbols(const MonomialMatrix &matrix) const {
         DynamicBitset<uint64_t> expressions(this->symbols.size());
         for (auto symbol_id : matrix.SMP().RealSymbols()) {
             const auto& factor_info = factors[symbol_id];

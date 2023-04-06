@@ -113,8 +113,8 @@ namespace Moment::Inflation {
     ExtendedMatrix::ExtendedMatrix(SymbolTable& symbols, Inflation::FactorTable& factors,
                                    const MomentMatrix &source,
                                    const std::span<const symbol_name_t> extensions)
-        : SymbolicMatrix{source.context, symbols, make_extended_matrix(symbols, factors, source, extensions)},
-        OriginalDimension{source.Dimension()} {
+        : MonomialMatrix{source.context, symbols, make_extended_matrix(symbols, factors, source, extensions)},
+          OriginalDimension{source.Dimension()} {
 
         // Make description string of extended matrix
         std::stringstream ss;
