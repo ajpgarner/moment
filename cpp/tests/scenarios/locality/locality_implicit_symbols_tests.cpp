@@ -53,7 +53,7 @@ namespace Moment::Tests {
 
         const auto& one = implSym.Data().front();
         EXPECT_EQ(one.symbol_id, 1);
-        SymbolCombo oneCombo{{1,1.0}};
+        SymbolCombo oneCombo{SymbolExpression{1,1.0}};
         EXPECT_EQ(one.expression, oneCombo);
 
         const auto& getOne = implSym.get(std::vector<PMOIndex>{});
@@ -89,24 +89,24 @@ namespace Moment::Tests {
 
         EXPECT_EQ(pmoSpan[0].symbol_id, where_a0->Id());
         ASSERT_EQ(pmoSpan[0].expression.size(), 1);
-        EXPECT_EQ(pmoSpan[0].expression[0].first, where_a0->Id());
-        EXPECT_EQ(pmoSpan[0].expression[0].second, 1.0);
+        EXPECT_EQ(pmoSpan[0].expression[0].id, where_a0->Id());
+        EXPECT_EQ(pmoSpan[0].expression[0].factor, 1.0);
         EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,0}}), &pmoSpan[0]);
 
         EXPECT_EQ(pmoSpan[1].symbol_id, where_a1->Id());
         ASSERT_EQ(pmoSpan[1].expression.size(), 1);
-        EXPECT_EQ(pmoSpan[1].expression[0].first, where_a1->Id());
-        EXPECT_EQ(pmoSpan[1].expression[0].second, 1.0);
+        EXPECT_EQ(pmoSpan[1].expression[0].id, where_a1->Id());
+        EXPECT_EQ(pmoSpan[1].expression[0].factor, 1.0);
         EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,1}}), &pmoSpan[1]);
 
         EXPECT_EQ(pmoSpan[2].symbol_id, -1);
         ASSERT_EQ(pmoSpan[2].expression.size(), 3);
-        EXPECT_EQ(pmoSpan[2].expression[0].first, 1);
-        EXPECT_EQ(pmoSpan[2].expression[0].second, 1.0);
-        EXPECT_EQ(pmoSpan[2].expression[1].first, where_a0->Id());
-        EXPECT_EQ(pmoSpan[2].expression[1].second, -1.0);
-        EXPECT_EQ(pmoSpan[2].expression[2].first, where_a1->Id());
-        EXPECT_EQ(pmoSpan[2].expression[2].second, -1.0);
+        EXPECT_EQ(pmoSpan[2].expression[0].id, 1);
+        EXPECT_EQ(pmoSpan[2].expression[0].factor, 1.0);
+        EXPECT_EQ(pmoSpan[2].expression[1].id, where_a0->Id());
+        EXPECT_EQ(pmoSpan[2].expression[1].factor, -1.0);
+        EXPECT_EQ(pmoSpan[2].expression[2].id, where_a1->Id());
+        EXPECT_EQ(pmoSpan[2].expression[2].factor, -1.0);
         EXPECT_EQ(&implSym.get(std::vector{PMOIndex{0,0,2}}), &pmoSpan[2]);
     }
 

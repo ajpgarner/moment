@@ -48,15 +48,15 @@ namespace Moment {
                 symbol_name_t the_symbol = -1;
                 double final_weight = 1.0;
 
-                for (auto [symbol, weight] : implicit_symbols[global_index].expression) {
+                for (auto [symbol, factor, conjugated] : implicit_symbols[global_index].expression) {
                     // Do we know value of this?
                     auto expr_iter = calculated_symbols.find(symbol);
                     if (expr_iter != calculated_symbols.end()) {
-                        the_value -= expr_iter->second * weight;
+                        the_value -= expr_iter->second * factor;
                     } else {
                         assert(the_symbol == -1);
                         the_symbol = symbol;
-                        final_weight = weight;
+                        final_weight = factor;
                     }
                 }
                 assert(the_symbol != -1);

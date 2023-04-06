@@ -8,6 +8,7 @@
 #include "imported_context.h"
 
 #include "matrix/monomial_matrix.h"
+#include "symbolic/symbol_table.h"
 #include "utilities/dynamic_bitset.h"
 
 #include <cassert>

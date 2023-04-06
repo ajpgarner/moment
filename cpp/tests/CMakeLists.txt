@@ -30,8 +30,8 @@ add_executable(moment_tests
     scenarios/locality/locality_explicit_symbols_tests.cpp
     scenarios/locality/locality_implicit_symbols_tests.cpp
     scenarios/locality/party_tests.cpp
-    symbolic/linear_combo_tests.cpp
     symbolic/substitution_list_tests.cpp
+    symbolic/symbol_combo_tests.cpp
     symbolic/symbol_expression_tests.cpp
     symbolic/symbolic_matrix_helpers.cpp
     symmetry/group_tests.cpp

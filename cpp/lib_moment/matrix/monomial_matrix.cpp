@@ -6,6 +6,7 @@
  */
 #include "monomial_matrix.h"
 
+#include "symbolic/symbol_table.h"
 #include <stdexcept>
 
 namespace Moment {
@@ -17,7 +18,7 @@ namespace Moment {
             SymbolMatrix{*this}, sym_exp_matrix{std::move(symbolMatrix)}
         {
             if (!sym_exp_matrix) {
-                throw std::runtime_error{"Symbol pointer passed to MonomialMatrix was nullptr."};
+                throw std::runtime_error{"Symbol pointer passed to MonomialMatrix constructor was nullptr."};
             }
 
             // Find included symbols

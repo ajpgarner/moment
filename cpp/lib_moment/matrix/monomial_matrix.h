@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "symbolic/symbol_table.h"
+#include "symbolic/symbol_expression.h"
 #include "utilities/square_matrix.h"
 
 #include "matrix.h"

@@ -68,7 +68,7 @@ namespace Moment::Inflation {
     size_t InflationImplicitSymbols::generateLevelZero(const CanonicalObservable& canonicalObservable) {
         assert(canonicalObservable.empty());
         this->tableData.emplace_back(
-                1, SymbolCombo{{1, 1.0}}
+                1, SymbolCombo{SymbolExpression{1, 1.0}}
         );
         return 1;
     }
@@ -93,16 +93,16 @@ namespace Moment::Inflation {
         }
 
         // Explicit outcomes:
-        SymbolCombo::data_t finalOutcome{{1, 1.0}};
+        SymbolCombo::storage_t finalOutcome{SymbolExpression{1, 1.0}};
         for (uint32_t outcome = 0; outcome < (mmt.outcomes - 1); ++outcome) {
             // Read explicit symbol
             const auto symbol_id = mmtSymb[outcome].symbol_id;
-            this->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
+            this->tableData.emplace_back(symbol_id, SymbolCombo{SymbolExpression{symbol_id, 1.0}});
             finalOutcome.emplace_back(symbol_id, -1.0);
         }
 
         // Add final measurement outcome, which is linear sum of remaining outcomes
-        this->tableData.emplace_back(-1, LinearCombo(std::move(finalOutcome)));
+        this->tableData.emplace_back(-1, SymbolCombo(std::move(finalOutcome)));
 
         return this->tableData.size() - initial_index;
     }
@@ -122,7 +122,7 @@ namespace Moment::Inflation {
                 assert(outcomeIter.explicit_outcome_index() < implicit_full_opers.size());
 
                 const auto symbol_id = implicit_full_opers[outcomeIter.explicit_outcome_index()].symbol_id;
-                this->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
+                this->tableData.emplace_back(symbol_id, SymbolCombo{SymbolExpression{symbol_id, 1.0}});
 
                 // Early exit
                 ++outcomeIter;
@@ -130,7 +130,7 @@ namespace Moment::Inflation {
             }
 
             const size_t level = canonicalObservable.indices.size();
-            SymbolCombo::map_t  symbolComboData;
+            std::map<symbol_name_t, double> symbolComboData;
             double the_sign = (num_implicit % 2 == 0) ? +1. : -1.;
             for (size_t missing_index = num_implicit; missing_index > 0; --missing_index) {
                 PartitionIterator partitions{num_implicit, missing_index};

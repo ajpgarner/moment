@@ -10,7 +10,7 @@
 
 #include "joint_measurement_index.h"
 
-#include "symbolic/linear_combo.h"
+#include "symbolic/symbol_combo.h"
 
 #include <cassert>
 
@@ -43,7 +43,7 @@ namespace Moment {
         SymbolCombo expression{};
 
     public:
-        constexpr PMODefinition(symbol_name_t symbol_id, SymbolCombo expr)
+        PMODefinition(symbol_name_t symbol_id, SymbolCombo expr)
                 : symbol_id{symbol_id}, expression(std::move(expr)) { }
     };
 

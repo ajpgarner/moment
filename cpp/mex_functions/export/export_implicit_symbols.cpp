@@ -45,7 +45,7 @@ namespace Moment::mex {
             double *dataPtr = data_p.get();
 
 
-            for (const auto [symbol_id, weight]: combo) {
+            for (const auto [symbol_id, weight, conjugated]: combo) {
                 *(rowsPtr++) = 0;
                 auto [re_key, im_key] = table[symbol_id].basis_key();
                 assert(re_key >= 0);
@@ -117,7 +117,8 @@ namespace Moment::mex {
                     [[unlikely]]
                     this->output_array[write_index]["sequence"] = factory.createScalar("1");
                     this->output_array[write_index]["indices"] = factory.createArray<uint64_t>({0, 3});
-                    this->output_array[write_index]["real_coefficients"] = to_sparse_array(SymbolCombo{{1, 1.}});
+                    this->output_array[write_index]["real_coefficients"]
+                        = to_sparse_array(SymbolCombo{SymbolExpression{1, 1.}});
                     ++write_index;
                     return;
                 }

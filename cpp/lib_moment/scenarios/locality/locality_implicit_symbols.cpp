@@ -102,7 +102,7 @@ namespace Moment::Locality {
         }
 
         // Construct level 0 with just normalization
-        this->tableData.emplace_back(1, SymbolCombo{{1, 1.0}});
+        this->tableData.emplace_back(1, SymbolCombo{SymbolExpression{1, 1.0}});
         this->indices.set({0, 1});
         ++index_cursor;
 
@@ -132,17 +132,17 @@ namespace Moment::Locality {
                 }
 
                 // Explicit outcomes:
-                SymbolCombo::data_t finalOutcome{{1, 1.0}};
+                SymbolCombo::storage_t finalOutcome{SymbolExpression{1, 1.0}};
                 for (uint32_t outcome = 0; outcome < mmt.num_operators(); ++outcome) {
                     // Read symbol from Collins-Gisin object
                     const auto symbol_id = mmtSymb[outcome].symbol_id;
-                    this->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
-                    finalOutcome.push_back({symbol_id, -1.0});
+                    this->tableData.emplace_back(symbol_id, SymbolCombo{SymbolExpression{symbol_id, 1.0}});
+                    finalOutcome.push_back(SymbolExpression{symbol_id, -1.0});
                     ++level_one_count;
                 }
 
                 // Add final measurement outcome, which is linear sum of remaining outcomes
-                this->tableData.emplace_back(-1, LinearCombo(std::move(finalOutcome)));
+                this->tableData.emplace_back(-1, SymbolCombo(std::move(finalOutcome)));
                 ++level_one_count;
 
                 // Make index for measurement
@@ -203,9 +203,9 @@ namespace Moment::Locality {
                 assert(implicit_full_opers.size() == stack.count_operators());
                 assert(outcomeIter.explicit_outcome_index() < implicit_full_opers.size());
                 const auto symbol_id = implicit_full_opers[outcomeIter.explicit_outcome_index()].symbol_id;
-                this->tableData.emplace_back(symbol_id, SymbolCombo{{symbol_id, 1.0}});
+                this->tableData.emplace_back(symbol_id, SymbolCombo{SymbolExpression{symbol_id, 1.0}});
             } else {
-                SymbolCombo::data_t symbolComboData;
+                SymbolCombo::storage_t symbolComboData;
                 double the_sign = (num_implicit % 2 == 0) ? +1. : -1.;
                 for (size_t missing_index = num_implicit; missing_index > 0; --missing_index) {
                     PartitionIterator partitions{num_implicit, missing_index};

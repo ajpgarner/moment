@@ -10,6 +10,7 @@ add_library(lib_moment
         matrix/monomial_matrix.cpp
         matrix/operator_matrix.cpp
         matrix/operator_sequence_generator.cpp
+        matrix/polynomial_matrix.cpp
         matrix/substituted_matrix.cpp
         scenarios/context.cpp
         scenarios/explicit_symbols.cpp
@@ -60,4 +61,4 @@ add_library(lib_moment
         utilities/kronecker_power.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
-        matrix/matrix.h matrix/matrix.cpp matrix/polynomial_matrix.cpp matrix/polynomial_matrix.h)
+        matrix/matrix.h matrix/matrix.cpp matrix/polynomial_matrix.cpp matrix/polynomial_matrix.h symbolic/symbol_combo.cpp)
