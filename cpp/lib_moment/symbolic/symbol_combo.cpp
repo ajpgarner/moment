@@ -119,18 +119,6 @@ namespace Moment {
 
     SymbolCombo::SymbolCombo(SymbolCombo::storage_t input)
         : data{std::move(input)} {
-        this->order();
-    }
-
-    SymbolCombo::SymbolCombo(const std::map<symbol_name_t, double> &input) {
-        data.reserve(input.size());
-        for (const auto& pair : input) {
-            data.emplace_back(pair.first, pair.second);
-        }
-        this->order();
-    }
-
-    void SymbolCombo::order() {
         // Put orders in lexographic order
         std::sort(this->data.begin(), this->data.end(), LexLessComparator{});
 
@@ -163,6 +151,13 @@ namespace Moment {
         assert(lagging_iter <= leading_iter);
         assert(leading_iter <= last_iter);
         this->data.erase(lagging_iter, last_iter);
+    }
+
+    SymbolCombo::SymbolCombo(const std::map<symbol_name_t, double> &input) {
+        data.reserve(input.size());
+        for (const auto& pair : input) {
+            data.emplace_back(pair.first, pair.second);
+        }
     }
 
     std::ostream &operator<<(std::ostream &os, const SymbolCombo &combo) {

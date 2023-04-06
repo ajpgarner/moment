@@ -72,11 +72,6 @@ namespace Moment {
         }
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolCombo& combo);
-
-    private:
-        void order();
-
-
     };
 
 }
