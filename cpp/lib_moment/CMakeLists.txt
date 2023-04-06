@@ -5,6 +5,7 @@ add_library(lib_moment
         matrix_system.cpp
         matrix/localizing_matrix.cpp
         matrix/localizing_matrix_index.cpp
+        matrix/matrix.cpp
         matrix/matrix_properties.cpp
         matrix/moment_matrix.cpp
         matrix/monomial_matrix.cpp
@@ -55,10 +56,11 @@ add_library(lib_moment
         scenarios/symmetrized/symmetrized_matrix_system.cpp
         symbolic/substitution_list.cpp
         symbolic/symbol.cpp
+        symbolic/symbol_combo.cpp
         symbolic/symbol_expression.cpp
         symbolic/symbol_table.cpp
         utilities/alphabetic_namer.cpp
         utilities/kronecker_power.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
-        matrix/matrix.h matrix/matrix.cpp matrix/polynomial_matrix.cpp matrix/polynomial_matrix.h symbolic/symbol_combo.cpp)
+)
