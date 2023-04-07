@@ -5,7 +5,6 @@
  * @author Andrew J. P. Garner
  */
 
-
 #include "gtest/gtest.h"
 
 #include "scenarios/algebraic/algebraic_matrix_system.h"
@@ -13,8 +12,10 @@
 
 #include "matrix/moment_matrix.h"
 
+#include "compare_basis.h"
+
 #include <memory>
-#include <sstream>
+#include <string>
 
 namespace Moment::Tests {
 
@@ -121,40 +122,17 @@ namespace Moment::Tests {
             return output;
         }
 
-        template<typename matrix_t>
-        void assert_same_matrix(const std::string& name, const matrix_t& test, const matrix_t& ref) {
-            ASSERT_EQ(test.cols(), ref.cols()) << name;
-            ASSERT_EQ(test.rows(), ref.rows()) << name;
-            for (int col_index = 0; col_index < ref.cols(); ++col_index) {
-                for (int row_index = 0; row_index < ref.rows(); ++row_index) {
-                    EXPECT_EQ(test.coeff(row_index, col_index), ref.coeff(row_index, col_index))
-                        << name << ": (" << row_index << ", " << col_index << ")";
-                }
-            }
-        }
-
-        template<typename matrix_t>
-        void assert_same_basis(const std::string& name,
-                               const std::vector<matrix_t>& test, const std::vector<matrix_t>& ref) {
-            ASSERT_EQ(test.size(), ref.size()) << name;
-            for (size_t elem = 0; elem < test.size(); ++elem) {
-                std::stringstream ss;
-                ss << name << " #" << elem;
-                assert_same_matrix(ss.str(), test[elem], ref[elem]);
-            }
-        }
     }
 
     TEST(Operators_Matrix, DenseBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
-        const AlgebraicContext& context = ams.AlgebraicContext();
         const SymbolTable& symbol = ams.Symbols();
 
         const auto [id, mm] = ams.create_moment_matrix(1);
         ASSERT_EQ(symbol.size(), 7);
 
-        const auto [real, imaginary] = mm.Basis.Dense();
+        const auto& [real, imaginary] = mm.Basis.Dense();
         const auto [ref_real, ref_imaginary] = reference_dense();
 
         assert_same_basis("Real", real, ref_real);
@@ -164,13 +142,12 @@ namespace Moment::Tests {
     TEST(Operators_Matrix, DenseMonolithicBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
-        const AlgebraicContext& context = ams.AlgebraicContext();
         const SymbolTable& symbol = ams.Symbols();
 
         const auto [id, mm] = ams.create_moment_matrix(1);
         ASSERT_EQ(symbol.size(), 7);
 
-        const auto [real, imaginary] = mm.Basis.DenseMonolithic();
+        const auto& [real, imaginary] = mm.Basis.DenseMonolithic();
         const auto [ref_real, ref_imaginary] = reference_dense_monolithic();
 
         assert_same_matrix("Real", real, ref_real);
@@ -180,13 +157,12 @@ namespace Moment::Tests {
     TEST(Operators_Matrix, SparseBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
-        const AlgebraicContext& context = ams.AlgebraicContext();
         const SymbolTable& symbol = ams.Symbols();
 
         const auto [id, mm] = ams.create_moment_matrix(1);
         ASSERT_EQ(symbol.size(), 7);
 
-        const auto [real, imaginary] = mm.Basis.Sparse();
+        const auto& [real, imaginary] = mm.Basis.Sparse();
         const auto [ref_real, ref_imaginary] = reference_sparse();
 
         assert_same_basis("Real", real, ref_real);
@@ -196,13 +172,12 @@ namespace Moment::Tests {
     TEST(Operators_Matrix, SparseMonolithicBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
-        const AlgebraicContext& context = ams.AlgebraicContext();
         const SymbolTable& symbol = ams.Symbols();
 
         const auto [id, mm] = ams.create_moment_matrix(1);
         ASSERT_EQ(symbol.size(), 7);
 
-        const auto [real, imaginary] = mm.Basis.SparseMonolithic();
+        const auto& [real, imaginary] = mm.Basis.SparseMonolithic();
         const auto [ref_real, ref_imaginary] = reference_sparse_monolithic();
 
         assert_same_matrix("Real", real, ref_real);

@@ -15,7 +15,7 @@
 
 namespace Moment::Tests {
 
-    TEST(Operators_SymbolTable, ToSymbol_1Party2Opers) {
+    TEST(Symbols_SymbolTable, ToSymbol_1Party2Opers) {
         // One party, two symbols
         MatrixSystem system{std::make_unique<Context>(2)};
         auto& context = system.Context();
@@ -103,7 +103,7 @@ namespace Moment::Tests {
                   SymbolExpression(22));
     };
 
-    TEST(Operators_SymbolTable, ToSymbol_2Party1Opers) {
+    TEST(Symbols_SymbolTable, ToSymbol_2Party1Opers) {
         using namespace Moment::Locality;
 
         // Two parties, each with one operator
@@ -135,7 +135,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Operators_SymbolTable, Enumerate_1Party2Opers) {
+    TEST(Symbols_SymbolTable, Enumerate_1Party2Opers) {
         // One party, two symbols
         MatrixSystem system{std::make_unique<Context>(2)};
         const auto& context = system.Context();
@@ -159,7 +159,7 @@ namespace Moment::Tests {
 
     };
 
-    TEST(Operators_SymbolTable, SMP_BasisKey) {
+    TEST(Symbols_SymbolTable, SMP_BasisKey) {
         // One party, two symbols
         MatrixSystem system{std::make_unique<Context>(2)};
         const auto& context = system.Context();

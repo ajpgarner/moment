@@ -59,12 +59,18 @@ namespace Moment {
 
         ~PolynomialMatrix() noexcept = default;
 
+        /**
+         * Description of matrix type
+         */
+        [[nodiscard]] std::string description() const override {
+            return "Symbolic Polynomial Matrix";
+        }
+
     protected:
         std::pair<MatrixBasis::dense_real_storage_t, MatrixBasis::dense_complex_storage_t>
         create_dense_basis() const override;
 
         std::pair<MatrixBasis::sparse_real_storage_t, MatrixBasis::sparse_complex_storage_t>
         create_sparse_basis() const override;
-
     };
 }

@@ -1,7 +1,6 @@
 include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
 
 add_executable(moment_tests
-    operators/context_tests.cpp
     operators/hashed_sequence_tests.cpp
     operators/localizing_matrix_tests.cpp
     operators/matrix_tests.cpp
@@ -9,7 +8,8 @@ add_executable(moment_tests
     operators/moment_matrix_tests.cpp
     operators/operator_sequence_tests.cpp
     operators/operator_sequence_generator_tests.cpp
-    operators/symbol_table_tests.cpp
+    operators/polynomial_matrix_tests.cpp
+    scenarios/context_tests.cpp
     scenarios/implicit_symbol_test_helpers.cpp
     scenarios/algebraic/algebraic_context_tests.cpp
     scenarios/algebraic/monomial_substitution_rule_tests.cpp
@@ -33,6 +33,7 @@ add_executable(moment_tests
     symbolic/substitution_list_tests.cpp
     symbolic/symbol_combo_tests.cpp
     symbolic/symbol_expression_tests.cpp
+    symbolic/symbol_table_tests.cpp
     symbolic/symbolic_matrix_helpers.cpp
     symmetry/group_tests.cpp
     symmetry/remapper_tests.cpp
@@ -49,8 +50,7 @@ add_executable(moment_tests
     utilities/shortlex_hasher_tests.cpp
     utilities/small_vector_tests.cpp
     utilities/square_matrix_tests.cpp
-    utilities/variable_chunk_range_tests.cpp
-)
+    utilities/variable_chunk_range_tests.cpp)
 
 target_link_libraries(moment_tests
     lib_moment

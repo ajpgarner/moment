@@ -7,6 +7,9 @@
 #include "gtest/gtest.h"
 
 #include "symbolic/symbol_combo.h"
+#include "symbolic/symbol_table.h"
+
+#include "scenarios/imported/imported_matrix_system.h"
 
 namespace Moment::Tests {
     TEST(Symbolic_SymbolCombo, CreateEmpty) {
@@ -200,6 +203,39 @@ namespace Moment::Tests {
         const auto listB = listA * 3;
         EXPECT_NE(listA, listB);
         EXPECT_EQ(listB, expected);
+    }
+
+    TEST(Symbolic_SymboCombo, IsHermitian) {
+        Imported::ImportedMatrixSystem ims;
+        auto& symbols = ims.Symbols();
+        symbols.create(true, false); // 2 real
+        symbols.create(true, true); // 3 complex
+        symbols.create(false, true); // 4 imaginary
+
+        const SymbolCombo comboEmpty{};
+        EXPECT_TRUE(comboEmpty.is_hermitian(symbols));
+
+        const SymbolCombo combo_H_Id{SymbolExpression{1, 1.0}};
+        EXPECT_TRUE(combo_H_Id.is_hermitian(symbols));
+
+        const SymbolCombo combo_H_A{SymbolExpression{2, 1.0}};
+        EXPECT_TRUE(combo_H_A.is_hermitian(symbols));
+
+        const SymbolCombo combo_H_B_Bstar{SymbolExpression{3, 1.0}, SymbolExpression{3, 1.0, true}};
+        EXPECT_TRUE(combo_H_B_Bstar.is_hermitian(symbols));
+
+        const SymbolCombo combo_H_C_Cstar{SymbolExpression{4, 1.0}, SymbolExpression{4, 1.0, true}};
+        EXPECT_TRUE(combo_H_C_Cstar.is_hermitian(symbols));
+
+        const SymbolCombo combo_Id_B{SymbolExpression{1, 1.0}, SymbolExpression{3, 1.0}};
+        EXPECT_FALSE(combo_Id_B.is_hermitian(symbols));
+
+        const SymbolCombo combo_B{SymbolExpression{3, 1.0}};
+        EXPECT_FALSE(combo_B.is_hermitian(symbols));
+
+        const SymbolCombo combo_B_3Bstar{SymbolExpression{3, 1.0}, SymbolExpression{3, 2.0, true}};
+        EXPECT_FALSE(combo_B_3Bstar.is_hermitian(symbols));
+
     }
 
 }

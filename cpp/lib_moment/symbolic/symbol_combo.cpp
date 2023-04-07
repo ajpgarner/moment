@@ -5,6 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "symbol_combo.h"
+#include "symbol_table.h"
 
 #include <iostream>
 
@@ -170,6 +171,108 @@ namespace Moment {
             os << se;
         }
         return os;
+    }
+
+    bool SymbolCombo::is_hermitian(const SymbolTable& symbols) const noexcept {
+
+        const SymbolExpression* last_symbol = nullptr;
+        for (const auto& elem : this->data) {
+
+            // Factors of 0 are always hermitian.
+            if (elem.factor == 0.0) {
+                continue;
+            }
+
+            assert(elem.id < symbols.size());
+            const auto& symbolInfo = symbols[elem.id];
+
+            // Adding a Hermitian term preserves Hermiticity
+            if (symbolInfo.is_hermitian()) {
+                // X, Y; where X is not Hermitian
+                if (last_symbol != nullptr) {
+                    return false;
+                }
+                last_symbol = nullptr;
+                continue;
+            }
+
+            // Symbol /could/ have complex parts. Note: X < X* in ordering.
+            if (elem.conjugated) {
+                if (last_symbol == nullptr) {
+                    // elem.factor != 0.0
+                    return false;
+                } else {
+                    // "X, Y*"; meaning either X* was missed, or Y was missed...
+                    if (last_symbol->id != elem.id) {
+                        return false;
+                    }
+                }
+
+                // Expect kX, kX*
+                if (last_symbol->factor != elem.factor) {
+                    return false;
+                }
+
+                last_symbol = nullptr;
+            } else {
+                // X, Y; where X is not Hermitian
+                if (last_symbol != nullptr) {
+                    return false;
+                }
+                last_symbol = &elem;
+            }
+        }
+        // Expecting, but did not find, X*
+        if (last_symbol != nullptr) {
+            return false;
+        }
+
+        return true;
+    }
+
+    bool SymbolCombo::is_conjugate(const SymbolTable& symbols, const SymbolCombo &other) const noexcept {
+        if (this->data.size() != other.data.size()) {
+            return false;
+        }
+        for (size_t index = 0, iMax = this->data.size(); index < iMax; ++index) {
+            const auto& lhs_elem = this->data[index];
+            const auto& rhs_elem = other.data[index];
+
+            if (lhs_elem.id != rhs_elem.id) {
+                return false;
+            }
+            assert(lhs_elem.id < symbols.size());
+            const auto& symbolInfo = symbols[lhs_elem.id];
+
+            // Zero is zero.
+            if (lhs_elem.id == 0) {
+                continue;
+            }
+            // Nothing else is zero.
+            assert(!(symbolInfo.is_antihermitian() && symbolInfo.is_hermitian()));
+
+            if (symbolInfo.is_hermitian()) {
+                if (lhs_elem.factor != rhs_elem.factor) {
+                    return false;
+                }
+                // no need to compare conjugation, symbol is real.
+            } else if (symbolInfo.is_antihermitian()) {
+                // Symbol is purely imaginary; so either A = -A, or A = A*.
+                if (lhs_elem.factor == rhs_elem.factor) {
+                    if (lhs_elem.conjugated == rhs_elem.conjugated) {
+                        return false;
+                    }
+                } else if (lhs_elem.factor == -rhs_elem.factor) {
+                    if (lhs_elem.conjugated != rhs_elem.conjugated) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
 }

@@ -1,5 +1,8 @@
-/*
- * (c) 2022-2022 Austrian Academy of Sciences.
+/**
+ * operator_sequence_tests.cpp
+ *
+ * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @author Andrew J. P. Garner
  */
 #include "gtest/gtest.h"
 
@@ -8,7 +11,6 @@
 #include "scenarios/locality/locality_context.h"
 
 #include <list>
-#include <vector>
 
 namespace Moment::Tests {
     TEST(Operators_OperatorSequence, Sequence_Empty) {

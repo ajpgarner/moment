@@ -18,6 +18,8 @@
 #include <vector>
 
 namespace Moment {
+    class SymbolTable;
+
     class SymbolCombo {
     public:
         /**
@@ -70,6 +72,20 @@ namespace Moment {
         inline bool operator!=(const SymbolCombo& rhs) const noexcept {
             return !(this->operator==(rhs));
         }
+
+        /**
+         * True if sum of symbols is Hermitian.
+         * @param symbols Symbol table (needed to know which symbols are purely real/imaginary etc.).
+         */
+        [[nodiscard]] bool is_hermitian(const SymbolTable& symbols) const noexcept;
+
+        /**
+         * True if other is conjugate of this symbol combo.
+         * @param symbols Symbol table (needed to know which symbols are purely real).
+         * @param other SymbolCombo to compare against.
+         * @return True if this and other are Hermitian conjugates of each other.
+         */
+        [[nodiscard]] bool is_conjugate(const SymbolTable& symbols, const SymbolCombo& other) const noexcept;
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolCombo& combo);
     };
