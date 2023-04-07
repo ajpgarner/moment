@@ -43,6 +43,27 @@ namespace Moment::Tests {
     }
 
 
+    TEST(Symbolic_SymbolCombo, Create_Overlapped1) {
+        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0},
+                                 SymbolExpression{2, 20.0}, SymbolExpression{3, 40.0}};
+        const SymbolCombo expected{SymbolExpression{1, 10.0}, SymbolExpression{2, 50.0}, SymbolExpression{3, 40.0}};
+        EXPECT_EQ(actual, expected);
+    }
+
+    TEST(Symbolic_SymbolCombo, Create_Overlapped2) {
+        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0},
+                                 SymbolExpression{1, 20.0}, SymbolExpression{2, 40.0}};
+        const SymbolCombo expected{SymbolExpression{1, 30.0}, SymbolExpression{2, 70.0}};
+        EXPECT_EQ(actual, expected);
+    }
+
+    TEST(Symbolic_SymbolCombo, Create_Overlapped3) {
+        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0}, SymbolExpression{3, 50.0},
+                                 SymbolExpression{1, 20.0}, SymbolExpression{2, 40.0}};
+        const SymbolCombo expected{SymbolExpression{1, 30.0}, SymbolExpression{2, 70.0}, SymbolExpression{3, 50.0}};
+        EXPECT_EQ(actual, expected);
+    }
+
     TEST(Symbolic_SymbolCombo, CreateFromMap) {
         std::map<symbol_name_t , double> testMap{{2, 13.0}, {10, 100.0}, {5, -23.0}};
 

@@ -142,7 +142,7 @@ namespace Moment {
                 ++lagging_iter;
                 if (leading_iter != lagging_iter) {
                     // copy/move
-                    *leading_iter = *lagging_iter;
+                    *lagging_iter = *leading_iter;
                 }
             }
             ++leading_iter;
