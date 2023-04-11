@@ -10,18 +10,24 @@
 #include "symbolic/symbol_table.h"
 #include "representation.h"
 
-
 #include <sstream>
-
-
 
 namespace Moment::Symmetrized {
 
-    ImpliedMap::ImpliedMap(const SymbolTable& origin_symbols, const SymbolTable& target_symbols,
+    ImpliedMap::ImpliedMap(const SymbolTable& origin_symbols, SymbolTable& target_symbols,
                            const Representation& rep)
-       : origin_symbols{origin_symbols}, target_symbols{target_symbols} {
+       : origin_symbols{origin_symbols}, target_symbols{target_symbols}, map(origin_symbols.size()) {
+        assert(this->origin_symbols.size() > 2);
+        assert(&origin_symbols != &target_symbols);
 
+        // Get group average
         const auto& average = rep.sum_of(); // off by factor of rep.size() - to avoid division.
+
+        // First, build constants
+        this->map[0] = SymbolCombo::Zero(); // 0 -> 0 always.
+        this->map[1] = SymbolCombo::Scalar(1.0); // 1 -> 1 always.
+
+        throw std::runtime_error{"ImpliedMap::ImpliedMap not yet implemented."};
 
     }
 

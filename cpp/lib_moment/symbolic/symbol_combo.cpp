@@ -305,8 +305,5 @@ namespace Moment {
         return true;
     }
 
-    SymbolCombo SymbolCombo::Zero() {
-        return SymbolCombo();
-    }
 
 }

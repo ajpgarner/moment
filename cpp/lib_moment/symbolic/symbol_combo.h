@@ -108,11 +108,23 @@ namespace Moment {
         [[nodiscard]] bool is_conjugate(const SymbolTable& symbols, const SymbolCombo& other) const noexcept;
 
         /**
-         * Construct an empty combination
+         * Construct an empty combination.
          */
-        [[nodiscard]] static SymbolCombo Zero();
+        inline static SymbolCombo Zero() {
+            return SymbolCombo{};
+        }
+
+        /**
+         * Construct a combination representing a scalar.
+         * @param the_factor The scalar value (default: 1.0).
+         */
+        inline static SymbolCombo Scalar(const double the_factor = 1.0) {
+            return SymbolCombo(storage_t{SymbolExpression{1, the_factor , false}});
+        }
+
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolCombo& combo);
+
     };
 
 }

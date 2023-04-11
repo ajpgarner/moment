@@ -37,7 +37,7 @@ namespace Moment {
             std::vector<SymbolCombo> map;
 
         public:
-            ImpliedMap(const SymbolTable& origin_symbols, const SymbolTable& target_symbols, const Representation& rep);
+            ImpliedMap(const SymbolTable& origin_symbols, SymbolTable& target_symbols, const Representation& rep);
 
             /**
              * Get symbol/symbol combo in target, associated with symbol in source.

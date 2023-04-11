@@ -60,7 +60,25 @@ namespace Moment::Symmetrized {
 
         repmat_t make_lhs(const std::vector<size_t>& remap, size_t raw_dim, size_t remapped_dim) {
             assert(raw_dim == remap.size());
-            repmat_t output(remapped_dim, raw_dim); // rows, cols
+            repmat_t output(static_cast<int>(remapped_dim), static_cast<int>(raw_dim)); // rows, cols
+            std::vector<Eigen::Triplet<double>> triplets;
+
+            size_t true_index = 0;
+            for (const auto mapped_index : remap) {
+                triplets.emplace_back(static_cast<int>(mapped_index),   // row
+                                      static_cast<int>(true_index), // col
+                                      1.0);
+                ++true_index;
+            }
+
+            output.setFromTriplets(triplets.begin(), triplets.end());
+
+            return output;
+        }
+
+        repmat_t make_rhs(const std::vector<size_t>& remap, size_t raw_dim, size_t remapped_dim) {
+            assert(raw_dim == remap.size());
+            repmat_t output(static_cast<int>(raw_dim), static_cast<int>(remapped_dim)); // rows, cols
             std::vector<Eigen::Triplet<double>> triplets;
 
             size_t true_index = 0;
@@ -69,8 +87,8 @@ namespace Moment::Symmetrized {
                 const bool remapped = mapped_index != expected_index;
 
                 if (!remapped) {
-                    triplets.emplace_back(static_cast<int>(expected_index),   // row
-                                          static_cast<int>(true_index), // col
+                    triplets.emplace_back(static_cast<int>(true_index),   // row
+                                          static_cast<int>(expected_index), // col
                                           1.0);
                     ++expected_index;
                 }
@@ -82,23 +100,6 @@ namespace Moment::Symmetrized {
             return output;
         }
 
-        repmat_t make_rhs(const std::vector<size_t>& remap, size_t raw_dim, size_t remapped_dim) {
-            assert(raw_dim == remap.size());
-            repmat_t output(raw_dim, remapped_dim); // rows, cols
-            std::vector<Eigen::Triplet<double>> triplets;
-
-            size_t true_index = 0;
-            for (const auto mapped_index : remap) {
-                triplets.emplace_back(static_cast<int>(true_index),   // row
-                                      static_cast<int>(mapped_index), // col
-                                      1.0);
-                ++true_index;
-            }
-
-            output.setFromTriplets(triplets.begin(), triplets.end());
-
-            return output;
-        }
     }
 
     RepresentationMapper::RepresentationMapper(const Context &context, const size_t max_word_length)
@@ -123,7 +124,7 @@ namespace Moment::Symmetrized {
 
     repmat_t RepresentationMapper::operator()(const repmat_t &matrix) const {
 
-        repmat_t kroned = kronecker_power(matrix, target_word_length);
+        repmat_t kroned = kronecker_power(matrix, static_cast<int>(target_word_length));
 
         return this->lhs * kroned * this->rhs;
     }

@@ -1,16 +1,16 @@
 classdef MakeRepresentationTest < MTKTestBase
     %ADDSYMMETRYTEST Unit tests for make_representation function
      properties(Constant)
-        chsh_generators = {[[1 0 0 0 0]; 
-                            [1 0 0 0 -1];
+        chsh_generators = {[[1  1 0 0 0];
+                            [0  0 0 1 0];
+                            [0  0 0 0 1];
+                            [0  0 1 0 0];
+                            [0 -1 0 0 0]], ...
+                           [[1 0 0 0 0];
+                            [0 0 0 0 1];
                             [0 0 0 1 0];
-                            [0 1 0 0 0];
-                            [0 0 1 0 0]], ...
-                            [[1 0 0 0 0];
-                             [0 0 0 0 1];
-                             [0 0 0 1 0];
-                             [0 0 1 0 0];
-                             [0 1 0 0 0]]}
+                            [0 0 1 0 0];
+                            [0 1 0 0 0]]};
     end
 
     methods (Test)
