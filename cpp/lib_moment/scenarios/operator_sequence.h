@@ -95,6 +95,13 @@ namespace Moment {
             return this->append(rhs.operators.begin(), rhs.operators.end());
         }
 
+        /**
+         * True if supplied context matches
+         */
+        inline bool is_same_context(const Context& rhs) const noexcept {
+            return &this->context == &rhs;
+        }
+
 
         /**
         * Concatenates two OperatorSequences, putting the output in a new sequence, and simplifying to canonical form.

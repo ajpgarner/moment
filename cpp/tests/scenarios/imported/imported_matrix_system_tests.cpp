@@ -251,7 +251,7 @@ namespace Moment::Tests {
         const auto& context = ims.Context();
         EXPECT_EQ(context.size(), 0);
 
-        LocalizingMatrixIndex lmi{context, 1, OperatorSequence::Identity(context)};
+        LocalizingMatrixIndex lmi{1, OperatorSequence::Identity(context)};
         EXPECT_THROW(auto& y = ims.LocalizingMatrix(lmi), std::runtime_error);
     }
 

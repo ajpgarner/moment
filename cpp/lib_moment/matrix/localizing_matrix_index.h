@@ -10,8 +10,6 @@
 
 namespace Moment {
 
-    class Context;
-
     struct LocalizingMatrixIndex {
     public:
         size_t Level;
@@ -20,7 +18,10 @@ namespace Moment {
         bool WordIsHermitian;
 
     public:
-        LocalizingMatrixIndex(const Context& context, size_t level, OperatorSequence word);
+        LocalizingMatrixIndex(size_t level, OperatorSequence word)
+                : Level{level}, Word{std::move(word)},
+                  WordHash{Word.hash()}, WordIsHermitian{Word == Word.conjugate()} {
+        }
 
         constexpr bool operator<(const LocalizingMatrixIndex& rhs) const noexcept {
             // Order first by Level...

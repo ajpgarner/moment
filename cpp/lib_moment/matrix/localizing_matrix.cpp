@@ -32,11 +32,18 @@ namespace Moment {
             }
             return std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(matrix_data));
         }
+
+        inline const Context& assert_context(const Context& context, const LocalizingMatrixIndex& lmi) {
+            assert(lmi.Word.is_same_context(context));
+            return context;
+        }
+
     }
 
 
     LocalizingMatrix::LocalizingMatrix(const Context& context, SymbolTable& symbols, LocalizingMatrixIndex lmi)
-        : OperatorMatrix{context, symbols, generate_localizing_matrix_sequences(context, lmi.Level, lmi.Word)},
+        : OperatorMatrix{assert_context(context, lmi), symbols,
+                         generate_localizing_matrix_sequences(context, lmi.Level, lmi.Word)},
           Index{std::move(lmi)} {
 
     }

@@ -4,7 +4,6 @@ add_library(lib_moment
         hashed_sequence.cpp
         matrix_system.cpp
         matrix/localizing_matrix.cpp
-        matrix/localizing_matrix_index.cpp
         matrix/matrix.cpp
         matrix/matrix_properties.cpp
         matrix/moment_matrix.cpp

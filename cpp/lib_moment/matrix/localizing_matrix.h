@@ -38,7 +38,7 @@ namespace Moment {
          * @param word The localizing word.
          */
         LocalizingMatrix(const Context& context, SymbolTable& symbols, size_t level, OperatorSequence&& word)
-            : LocalizingMatrix(context, symbols, LocalizingMatrixIndex{context, level, std::move(word)}) { }
+            : LocalizingMatrix(context, symbols, LocalizingMatrixIndex{level, std::move(word)}) { }
 
         /**
          * The generating word for this localizing matrix.

@@ -89,7 +89,5 @@ namespace Moment {
         }
 
         friend std::ostream& operator<<(std::ostream& os, const MatrixProperties& mp);
-
-        friend class OperatorMatrix;
     };
 }

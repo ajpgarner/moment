@@ -25,14 +25,14 @@ namespace Moment::Tests {
 
         OperatorSequence genWord{{theOp}, context};
 
-        auto [id, matLevel0] = system.create_localizing_matrix(LocalizingMatrixIndex{context, 0, genWord});
+        auto [id, matLevel0] = system.create_localizing_matrix(LocalizingMatrixIndex{0, genWord});
 
         EXPECT_EQ(matLevel0.Level(), 0);
         EXPECT_EQ(matLevel0.Word(), genWord);
         compare_lm_os_matrix(matLevel0, 1, {OperatorSequence({theOp}, context)});
 
 
-        auto [id1, matLevel1] = system.create_localizing_matrix(LocalizingMatrixIndex{context, 1, genWord});
+        auto [id1, matLevel1] = system.create_localizing_matrix(LocalizingMatrixIndex{1, genWord});
         EXPECT_EQ(matLevel1.Level(), 1);
         EXPECT_EQ(matLevel1.Word(), genWord);
         compare_lm_os_matrix(matLevel1, 2, {OperatorSequence({theOp}, context),
@@ -41,7 +41,7 @@ namespace Moment::Tests {
                                          OperatorSequence({theOp, theOp, theOp}, context)});
 
 
-        auto [id2, matLevel2] = system.create_localizing_matrix(LocalizingMatrixIndex{context, 2, genWord});
+        auto [id2, matLevel2] = system.create_localizing_matrix(LocalizingMatrixIndex{2, genWord});
         EXPECT_EQ(matLevel2.Level(), 2);
         EXPECT_EQ(matLevel2.Word(), genWord);
         compare_lm_os_matrix(matLevel2, 3, {OperatorSequence({theOp}, context),
@@ -67,18 +67,18 @@ namespace Moment::Tests {
         OperatorSequence genWord1{{op1}, context};
 
 
-        auto [id00, matLevel00] = system.create_localizing_matrix(LocalizingMatrixIndex{context, 0, genWord0});
+        auto [id00, matLevel00] = system.create_localizing_matrix(LocalizingMatrixIndex{0, genWord0});
         EXPECT_EQ(matLevel00.Level(), 0);
         EXPECT_EQ(matLevel00.Word(), genWord0);
         compare_lm_os_matrix(matLevel00, 1, {OperatorSequence({op0}, context)});
 
-        auto [id01, matLevel01] = system.create_localizing_matrix(LocalizingMatrixIndex{context, 0, genWord1});
+        auto [id01, matLevel01] = system.create_localizing_matrix(LocalizingMatrixIndex{0, genWord1});
         EXPECT_EQ(matLevel01.Level(), 0);
         EXPECT_EQ(matLevel01.Word(), genWord1);
         compare_lm_os_matrix(matLevel01, 1, {OperatorSequence({op1}, context)});
 
 
-        auto [id10, matLevel10] = system.create_localizing_matrix(LocalizingMatrixIndex{context, 1, genWord0});
+        auto [id10, matLevel10] = system.create_localizing_matrix(LocalizingMatrixIndex{1, genWord0});
         EXPECT_EQ(matLevel10.Level(), 1);
         EXPECT_EQ(matLevel10.Word(), genWord0);
         compare_lm_os_matrix(matLevel10, 3, {OperatorSequence({op0}, context),
@@ -91,7 +91,7 @@ namespace Moment::Tests {
                                             OperatorSequence({op1, op0, op0}, context),
                                             OperatorSequence({op1, op0, op1}, context)});
 
-        auto [id11, matLevel11] = system.create_localizing_matrix(LocalizingMatrixIndex{context, 1, genWord1});
+        auto [id11, matLevel11] = system.create_localizing_matrix(LocalizingMatrixIndex{1, genWord1});
         EXPECT_EQ(matLevel11.Level(), 1);
         EXPECT_EQ(matLevel11.Word(), genWord1);
         compare_lm_os_matrix(matLevel11, 3, {OperatorSequence({op1}, context),
