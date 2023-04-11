@@ -61,14 +61,17 @@ namespace Moment::mex::functions {
 
     void ImportMatrix::operator()(IOArgumentRange output, ImportMatrixParams &input) {
         // Attempt to get matrix system, and cast to ImportedMatrixSystem
-        std::shared_ptr<MatrixSystem> matrixSystemPtr;
-        try {
-            matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
-        } catch(const Moment::errors::persistent_object_error& poe) {
-            std::stringstream errSS;
-            errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.matrix_system_key << std::dec;
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
-        }
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = [&]() { ;
+            try {
+                return this->storageManager.MatrixSystems.get(input.matrix_system_key);
+            } catch (const Moment::errors::persistent_object_error &poe) {
+                std::stringstream errSS;
+                errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.matrix_system_key
+                      << std::dec;
+                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            }
+        }();
+
         MatrixSystem& matrixSystem = *matrixSystemPtr;
         auto* imsPtr = dynamic_cast<Imported::ImportedMatrixSystem*>(&matrixSystem);
         if (nullptr == imsPtr) {

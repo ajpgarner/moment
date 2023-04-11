@@ -95,7 +95,15 @@ namespace Moment::mex::functions {
 
         auto lock = matrixSystem.get_read_lock();
 
-        const auto& operatorMatrix = getMatrixOrThrow(this->matlabEngine, matrixSystem, input.matrix_index);
+        const auto& operatorMatrix = [&]() -> const MonomialMatrix& {
+            try {
+                return matrixSystem[input.matrix_index];
+            } catch (const Moment::errors::missing_component& mce) {
+                throw_error(matlabEngine, errors::bad_param, mce.what());
+            }
+        }();
+
+
         const auto& matrix_properties = operatorMatrix.SMP();
 
         const auto basis_type = matrix_properties.Type();
