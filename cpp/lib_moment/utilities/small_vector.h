@@ -60,6 +60,24 @@ namespace Moment {
         }
 
         /**
+         * Copy assignment.
+         * @param rhs Source.
+         */
+        constexpr SmallVector& operator=(const SmallVector& rhs) {
+            this->_size = rhs._size;
+            this->_capacity = rhs._capacity;
+            if (rhs.heap_data) {
+                this->heap_data = std::make_unique<value_t[]>(this->_capacity); // release existing ptr.
+                std::copy(rhs.heap_data.get(), rhs.heap_data.get() + rhs._size, this->heap_data.get());
+                this->data_start = this->heap_data.get();
+            } else {
+                std::copy(rhs.stack_data.cbegin(), rhs.stack_data.cbegin() + rhs._size, this->stack_data.begin());
+                this->data_start = this->stack_data.data();
+            }
+            return *this;
+        }
+
+        /**
          * Move constructor. Note: if vector is small enough to be on stack, it must be copied.
          * @param rhs Source object. Must not be used after being moved from!
          */
@@ -80,6 +98,33 @@ namespace Moment {
                 // RHS is left untouched ~
             }
         }
+
+
+        /**
+         * Move assignment
+         */
+         constexpr SmallVector& operator=(SmallVector&& rhs) noexcept {
+             if (rhs.heap_data) {
+                 // Move and overright LHS
+                 this->heap_data = std::move(rhs.heap_data); // release existing ptr.
+                 this->_size = rhs._size;
+                 this->_capacity = rhs._capacity;
+
+                 // Reset RHS
+                 rhs.data_start = rhs.stack_data.data();
+                 rhs._size = 0;
+                 rhs._capacity = SmallN;
+             } else {
+                 // Stack data must be copied
+                 std::move(rhs.stack_data.begin(), rhs.stack_data.begin() + rhs._size,
+                           this->stack_data.begin());
+                 this->data_start = this->stack_data.data();
+                 this->_size = rhs._size;
+                 this->_capacity = SmallN;
+                 // RHS is left untouched ~
+             }
+            return *this;
+         }
 
         /**
          * Construct small vector, copying data from iterator
@@ -371,6 +416,8 @@ namespace Moment {
         friend void swap(SmallVector& lhs, SmallVector& rhs) noexcept {
             lhs.swap(rhs);
         }
+
+
 
         /**
          * Degrade to span

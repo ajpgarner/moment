@@ -68,7 +68,9 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, CreateFromMap) {
-        std::map<symbol_name_t , double> testMap{{2, 13.0}, {10, 100.0}, {5, -23.0}};
+        std::map<symbol_name_t, double> testMap{{2,  13.0},
+                                                {10, 100.0},
+                                                {5,  -23.0}};
 
         SymbolCombo threeElems{testMap};
         ASSERT_FALSE(threeElems.empty());
@@ -207,7 +209,7 @@ namespace Moment::Tests {
 
     TEST(Symbolic_SymboCombo, IsHermitian) {
         Imported::ImportedMatrixSystem ims;
-        auto& symbols = ims.Symbols();
+        auto &symbols = ims.Symbols();
         symbols.create(true, false); // 2 real
         symbols.create(true, true); // 3 complex
         symbols.create(false, true); // 4 imaginary
@@ -236,6 +238,96 @@ namespace Moment::Tests {
         const SymbolCombo combo_B_3Bstar{SymbolExpression{3, 1.0}, SymbolExpression{3, 2.0, true}};
         EXPECT_FALSE(combo_B_3Bstar.is_hermitian(symbols));
 
+    }
+
+    TEST(Symbolic_SymboCombo, Conjugate_Empty) {
+        Imported::ImportedMatrixSystem ims;
+        auto &symbols = ims.Symbols();
+        symbols.create(true, false); // 2 real
+        symbols.create(true, true); // 3 complex
+        symbols.create(false, true); // 4 imaginary
+
+        const SymbolCombo comboEmpty{};
+        const auto comboEmptyConj = comboEmpty.conjugate(symbols);
+        EXPECT_EQ(comboEmpty, comboEmptyConj);
+    }
+
+    TEST(Symbolic_SymboCombo, Conjugate_Real) {
+        Imported::ImportedMatrixSystem ims;
+        auto &symbols = ims.Symbols();
+        symbols.create(true, false); // 2 real
+        symbols.create(true, true); // 3 complex
+        symbols.create(false, true); // 4 imaginary
+
+        const SymbolCombo combo{SymbolExpression{2, 2.0, false}};
+        const SymbolCombo comboConjExp{SymbolExpression{2, 2.0, false}};
+        const auto comboConj = combo.conjugate(symbols);
+        EXPECT_EQ(comboConj, comboConjExp);
+    }
+
+    TEST(Symbolic_SymboCombo, Conjugate_RealCombo) {
+        Imported::ImportedMatrixSystem ims;
+        auto &symbols = ims.Symbols();
+        symbols.create(true, false); // 2 real
+        symbols.create(true, true); // 3 complex
+        symbols.create(false, true); // 4 imaginary
+
+        const SymbolCombo combo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 2.0, false}};
+        const SymbolCombo comboConjExp{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 2.0, false}};
+        const auto comboConj = combo.conjugate(symbols);
+        EXPECT_EQ(comboConj, comboConjExp);
+    }
+
+    TEST(Symbolic_SymboCombo, Conjugate_Imaginary) {
+        Imported::ImportedMatrixSystem ims;
+        auto &symbols = ims.Symbols();
+        symbols.create(true, false); // 2 real
+        symbols.create(true, true); // 3 complex
+        symbols.create(false, true); // 4 imaginary
+
+        const SymbolCombo combo{SymbolExpression{4, 2.0, false}};
+        const SymbolCombo comboConjExp{SymbolExpression{4, -2.0, false}};
+        const auto comboConj = combo.conjugate(symbols);
+        EXPECT_EQ(comboConj, comboConjExp);
+    }
+
+    TEST(Symbolic_SymboCombo, Conjugate_RealImaginaryCombo) {
+        Imported::ImportedMatrixSystem ims;
+        auto &symbols = ims.Symbols();
+        symbols.create(true, false); // 2 real
+        symbols.create(true, true); // 3 complex
+        symbols.create(false, true); // 4 imaginary
+
+        const SymbolCombo combo{SymbolExpression{1, 1.0, false}, SymbolExpression{4, 2.0, false}};
+        const SymbolCombo comboConjExp{SymbolExpression{1, 1.0, false}, SymbolExpression{4, -2.0, false}};
+        const auto comboConj = combo.conjugate(symbols);
+        EXPECT_EQ(comboConj, comboConjExp);
+    }
+
+    TEST(Symbolic_SymboCombo, Conjugate_Complex) {
+        Imported::ImportedMatrixSystem ims;
+        auto &symbols = ims.Symbols();
+        symbols.create(true, false); // 2 real
+        symbols.create(true, true); // 3 complex
+        symbols.create(false, true); // 4 imaginary
+
+        const SymbolCombo combo{SymbolExpression{3, 2.0, false}};
+        const SymbolCombo comboConjExp{SymbolExpression{3, 2.0, true}};
+        const auto comboConj = combo.conjugate(symbols);
+        EXPECT_EQ(comboConj, comboConjExp);
+    }
+
+    TEST(Symbolic_SymboCombo, Conjugate_ComplexCombo) {
+        Imported::ImportedMatrixSystem ims;
+        auto &symbols = ims.Symbols();
+        symbols.create(true, false); // 2 real
+        symbols.create(true, true); // 3 complex
+        symbols.create(false, true); // 4 imaginary
+
+        const SymbolCombo combo{SymbolExpression{3, 2.0, false}, SymbolExpression{3, 1.0, true}};
+        const SymbolCombo comboConjExp{SymbolExpression{3, 1.0, false}, SymbolExpression{3, 2.0, true}};
+        const auto comboConj = combo.conjugate(symbols);
+        EXPECT_EQ(comboConj, comboConjExp);
     }
 
 }

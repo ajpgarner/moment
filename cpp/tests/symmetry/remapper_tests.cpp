@@ -6,7 +6,7 @@
  */
 #include "gtest/gtest.h"
 
-#include "scenarios/symmetrized/remapper.h"
+#include "scenarios/symmetrized/representation_mapper.h"
 
 #include "sparse_utils.h"
 
@@ -20,7 +20,7 @@ namespace Moment::Tests {
     TEST(Symmetry_Remapper, Remap1to2_TwoOps) {
         Algebraic::AlgebraicContext ac{2}; // two operators
 
-        Remapper remapper{ac, 2};
+        RepresentationMapper remapper{ac, 2};
         ASSERT_EQ(remapper.raw_dimension(), 9);
         ASSERT_EQ(remapper.remapped_dimension(), 7); // redundant ea -> a, redundant eb -> b
 
@@ -72,7 +72,7 @@ namespace Moment::Tests {
     TEST(Symmetry_Remapper, Remap1to2_CHSH) {
         Locality::LocalityContext context{Locality::Party::MakeList(2, 2, 2)};
 
-        Remapper remapper{context, 2};
+        RepresentationMapper remapper{context, 2};
         ASSERT_EQ(remapper.raw_dimension(), 25);
         ASSERT_EQ(remapper.remapped_dimension(), 13);
 

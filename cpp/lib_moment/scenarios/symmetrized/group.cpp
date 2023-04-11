@@ -5,12 +5,13 @@
  * @author Andrew J. P. Garner
  */
 #include "group.h"
-#include "remapper.h"
+#include "representation_mapper.h"
 
 #include "matrix/operator_sequence_generator.h"
 
 #include "scenarios/context.h"
 
+#include <atomic>
 #include <iostream>
 
 
@@ -147,12 +148,13 @@ namespace Moment::Symmetrized {
         std::unique_lock write_lock{this->mutex};
 
         // Avoid race condition creation:~
+        std::atomic_thread_fence(std::memory_order_acquire);
         if ((index < this->representations.size()) && this->representations[index]) {
             return *this->representations[index]; // unlock write_lock
         }
 
         // Create remapper
-        Remapper remapper{this->context, word_length};
+        RepresentationMapper remapper{this->context, word_length};
 
         // Remap group elements
         std::vector<repmat_t> remapped_elems;
@@ -171,7 +173,8 @@ namespace Moment::Symmetrized {
         }
         this->representations[index] = std::move(rep);
 
-        return *this->representations[index];
+        std::atomic_thread_fence(std::memory_order_release);
+        return *this->representations[index]; // Release write lock
     }
 
     const Representation& Group::representation(const size_t word_length) const {

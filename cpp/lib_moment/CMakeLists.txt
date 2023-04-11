@@ -49,8 +49,9 @@ add_library(lib_moment
         scenarios/locality/joint_measurement_iterator.cpp
         scenarios/locality/party.cpp
         scenarios/symmetrized/group.cpp
-        scenarios/symmetrized/remapper.cpp
+        scenarios/symmetrized/implied_map.cpp
         scenarios/symmetrized/representation.cpp
+        scenarios/symmetrized/representation_mapper.cpp
         scenarios/symmetrized/symmetrized_context.cpp
         scenarios/symmetrized/symmetrized_matrix_system.cpp
         symbolic/substitution_list.cpp

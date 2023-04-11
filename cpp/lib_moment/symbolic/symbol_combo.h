@@ -39,6 +39,10 @@ namespace Moment {
 
         SymbolCombo(SymbolCombo&& rhs) = default;
 
+        inline SymbolCombo& operator=(const SymbolCombo& rhs) = default;
+
+        inline SymbolCombo& operator=(SymbolCombo&& rhs) noexcept = default;
+
         explicit SymbolCombo(storage_t input);
 
         explicit SymbolCombo(const std::map<symbol_name_t, double>& input);
@@ -51,6 +55,8 @@ namespace Moment {
         [[nodiscard]] auto begin() const noexcept { return this->data.cbegin(); }
         [[nodiscard]] auto end() const noexcept { return this->data.cend(); }
         [[nodiscard]] const SymbolExpression& operator[](size_t index) const noexcept { return this->data[index]; }
+
+
 
         SymbolCombo& operator+=(const SymbolCombo& rhs);
 
@@ -74,6 +80,20 @@ namespace Moment {
         }
 
         /**
+         * Transform this combo into its complex conjugate.
+         */
+        SymbolCombo& conjugate_in_place(const SymbolTable& symbols) noexcept;
+
+        /**
+         * Return a new SymbolCombo equal to the complex conjugate of this one.
+         */
+        [[nodiscard]] SymbolCombo conjugate(const SymbolTable& symbols) const {
+            SymbolCombo output{*this};
+            output.conjugate_in_place(symbols);
+            return output;
+        }
+
+        /**
          * True if sum of symbols is Hermitian.
          * @param symbols Symbol table (needed to know which symbols are purely real/imaginary etc.).
          */
@@ -86,6 +106,11 @@ namespace Moment {
          * @return True if this and other are Hermitian conjugates of each other.
          */
         [[nodiscard]] bool is_conjugate(const SymbolTable& symbols, const SymbolCombo& other) const noexcept;
+
+        /**
+         * Construct an empty combination
+         */
+        [[nodiscard]] static SymbolCombo Zero();
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolCombo& combo);
     };

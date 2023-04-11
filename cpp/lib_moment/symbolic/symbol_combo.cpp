@@ -42,10 +42,57 @@ namespace Moment {
         };
     }
 
+    SymbolCombo::SymbolCombo(SymbolCombo::storage_t input)
+        : data{std::move(input)} {
+        // No pruning/sorting etc. if zero or one elements
+        if (this->data.size() <= 1) {
+            return;
+        }
+
+        // Put orders in lexographic order
+        std::sort(this->data.begin(), this->data.end(), LexLessComparator{});
+
+        // Iterate forwards, looking for duplicates
+        LexEqComparator lex_eq{};
+        auto leading_iter = this->data.begin();
+        auto lagging_iter = leading_iter;
+        ++leading_iter;
+        const auto last_iter = this->data.end();
+        while (leading_iter != last_iter) {
+            assert(lagging_iter <= leading_iter);
+            assert(leading_iter <= last_iter);
+            if (lex_eq(*lagging_iter, *leading_iter)) {
+                lagging_iter->factor += leading_iter->factor;
+            } else {
+                ++lagging_iter;
+                if (leading_iter != lagging_iter) {
+                    // copy/move
+                    *lagging_iter = *leading_iter;
+                }
+            }
+            ++leading_iter;
+        }
+        ++lagging_iter;
+        assert(lagging_iter <= leading_iter);
+        assert(leading_iter <= last_iter);
+        this->data.erase(lagging_iter, last_iter);
+    }
+
+    SymbolCombo::SymbolCombo(const std::map<symbol_name_t, double> &input) {
+        data.reserve(input.size());
+        for (const auto& pair : input) {
+            data.emplace_back(pair.first, pair.second);
+        }
+    }
+
 
     SymbolCombo& SymbolCombo::operator*=(const double factor) noexcept {
         if (factor == 0) {
             this->data.clear();
+            return *this;
+        }
+
+        if (factor == 1.0) {
             return *this;
         }
 
@@ -118,47 +165,30 @@ namespace Moment {
         return true;
     }
 
-    SymbolCombo::SymbolCombo(SymbolCombo::storage_t input)
-        : data{std::move(input)} {
-        // Put orders in lexographic order
-        std::sort(this->data.begin(), this->data.end(), LexLessComparator{});
+    SymbolCombo &SymbolCombo::conjugate_in_place(const SymbolTable& symbols) noexcept {
+        bool any_conjugate = false;
 
-        // No pruning if zero or one elements
-        if (this->data.size() <= 1) {
-            return;
-        }
-
-        // Iterate forwards, looking for duplicates
-        LexEqComparator lex_eq{};
-        auto leading_iter = this->data.begin();
-        auto lagging_iter = leading_iter;
-        ++leading_iter;
-        const auto last_iter = this->data.end();
-        while (leading_iter != last_iter) {
-            assert(lagging_iter <= leading_iter);
-            assert(leading_iter <= last_iter);
-            if (lex_eq(*lagging_iter, *leading_iter)) {
-                lagging_iter->factor += leading_iter->factor;
-            } else {
-                ++lagging_iter;
-                if (leading_iter != lagging_iter) {
-                    // copy/move
-                    *lagging_iter = *leading_iter;
-                }
+        for (auto& elem: this->data) {
+            assert(elem.id < symbols.size());
+            auto& symbolInfo = symbols[elem.id];
+            if (symbolInfo.is_hermitian()) {
+                continue;
             }
-            ++leading_iter;
-        }
-        ++lagging_iter;
-        assert(lagging_iter <= leading_iter);
-        assert(leading_iter <= last_iter);
-        this->data.erase(lagging_iter, last_iter);
-    }
 
-    SymbolCombo::SymbolCombo(const std::map<symbol_name_t, double> &input) {
-        data.reserve(input.size());
-        for (const auto& pair : input) {
-            data.emplace_back(pair.first, pair.second);
+            if (symbolInfo.is_antihermitian()) {
+                elem.factor = -elem.factor;
+            } else {
+                elem.conjugated = !elem.conjugated;
+            }
+
+            any_conjugate = true;
         }
+
+        // Put into lexicographical order, if any non-trivial conjugations
+        if (any_conjugate) {
+            std::sort(this->data.begin(), this->data.end(), LexLessComparator{});
+        }
+        return *this;
     }
 
     std::ostream &operator<<(std::ostream &os, const SymbolCombo &combo) {
@@ -273,6 +303,10 @@ namespace Moment {
         }
 
         return true;
+    }
+
+    SymbolCombo SymbolCombo::Zero() {
+        return SymbolCombo();
     }
 
 }

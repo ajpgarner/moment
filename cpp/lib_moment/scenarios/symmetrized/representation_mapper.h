@@ -1,5 +1,5 @@
 /**
- * remapper.h
+ * representation_mapper.h
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -24,7 +24,7 @@ namespace Moment::Symmetrized {
     /**
      * Utility for generating new representations of a symmetry group on a context.
      */
-    class Remapper {
+    class RepresentationMapper {
 
     private:
         std::vector<size_t> remap;
@@ -39,7 +39,7 @@ namespace Moment::Symmetrized {
         const Context& context;
         const size_t target_word_length;
 
-        Remapper(const Context& context, size_t max_word_length);
+        RepresentationMapper(const Context& context, size_t max_word_length);
 
         /** Dimension of Kronecker product */
         [[nodiscard]] inline size_t raw_dimension() const noexcept { return this->raw_dim; }

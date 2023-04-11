@@ -1,10 +1,10 @@
 /**
- * remapper.cpp
+ * representation_mapper.cpp
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "remapper.h"
+#include "representation_mapper.h"
 
 #include "integer_types.h"
 
@@ -101,7 +101,7 @@ namespace Moment::Symmetrized {
         }
     }
 
-    Remapper::Remapper(const Context &context, const size_t max_word_length)
+    RepresentationMapper::RepresentationMapper(const Context &context, const size_t max_word_length)
         : context{context}, target_word_length{max_word_length} {
 
         // Get size from OSG
@@ -121,7 +121,7 @@ namespace Moment::Symmetrized {
 
     }
 
-    repmat_t Remapper::operator()(const repmat_t &matrix) const {
+    repmat_t RepresentationMapper::operator()(const repmat_t &matrix) const {
 
         repmat_t kroned = kronecker_power(matrix, target_word_length);
 
