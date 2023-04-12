@@ -18,7 +18,11 @@ namespace Moment::Symmetrized {
 
     class Representation {
     public:
+        /** The size of each matrix */
         const size_t dimension;
+
+        /** The longest word represented by this representation */
+        const size_t word_length;
 
     private:
         /** The group elements. */
@@ -28,7 +32,7 @@ namespace Moment::Symmetrized {
         repmat_t sum_of_elements;
 
     public:
-        explicit Representation(std::vector<repmat_t>&& entries);
+        explicit Representation(size_t word_length, std::vector<repmat_t>&& entries);
 
         Representation(Representation&& rhs) = default;
 

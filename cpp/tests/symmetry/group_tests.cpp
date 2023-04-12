@@ -145,10 +145,11 @@ namespace Moment::Tests {
                                                 0, 1, 0, 0 ,0}));
 
         auto group_elems = Group::dimino_generation(generators);
-        auto base_rep = std::make_unique<Representation>(std::move(group_elems));
+        auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));
         Group group{context, std::move(base_rep)};
         auto& rep1 = group.representation(1);
         ASSERT_EQ(rep1.size(), 16);
+        EXPECT_EQ(rep1.word_length, 1);
 
         auto& rep2 = group.create_representation(2);
         auto& rep2_alias = group.representation(2);
@@ -158,6 +159,7 @@ namespace Moment::Tests {
         EXPECT_EQ(&rep2, &rep2_alias2);
 
         EXPECT_EQ(rep2.size(), 16);
+        EXPECT_EQ(rep2.word_length, 2);
         EXPECT_EQ(rep2.dimension, 13);
         for (const auto& mat : rep2) {
             EXPECT_EQ(mat.rows(), 13);

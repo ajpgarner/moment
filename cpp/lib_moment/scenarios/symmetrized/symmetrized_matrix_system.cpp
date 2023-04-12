@@ -8,6 +8,10 @@
 #include "group.h"
 
 #include "symmetrized_context.h"
+#include "implied_map.h"
+
+#include "matrix/moment_matrix.h"
+#include "matrix/localizing_matrix.h"
 
 #include <cassert>
 
@@ -36,8 +40,35 @@ namespace Moment::Symmetrized {
     SymmetrizedMatrixSystem::~SymmetrizedMatrixSystem() noexcept = default;
 
     std::unique_ptr<struct MomentMatrix> SymmetrizedMatrixSystem::createNewMomentMatrix(size_t level) {
-        // First of all, make sure we have rep. up to the right level
+        // First check source moment matrix exists, create it if it doesn't
+        const auto& source_matrix = [&]() -> const class MomentMatrix& {
+            auto read_source_lock = this->base_system().get_read_lock();
+            // Get, if exists
+            auto index = this->base_system().find_moment_matrix(level);
+            if (index >= 0) {
+                return dynamic_cast<const class MomentMatrix&>(this->base_system()[index]);
+            }
+            read_source_lock.unlock();
+
+            // Wait for write lock...
+            auto write_source_lock = this->base_system().get_write_lock();
+            auto [mm_index, mm] = this->base_system().create_moment_matrix(level);
+
+            return mm; // write_source_lock unlocks
+        }();
+
+        // Next, generate symmetries up to right level
         const auto& rep = this->symmetry->representation(2*level);
+
+        // Lock source for read again, as we will use symbol table.
+        auto source_lock = this->base_system().get_read_lock();
+
+        // Create map
+        ImpliedMap base_change{this->base_system().Symbols(), this->Symbols(), rep};
+
+        // Apply map
+
+
 
         throw std::logic_error{"SymmetrizedMatrixSystem::createNewMomentMatrix not yet implemented."};
     }

@@ -192,4 +192,16 @@ namespace Moment {
         auto& new_matrix = *(this->matrices.back());
         return {new_index, new_matrix};
     }
+
+    bool MatrixSystem::ensure_osg_symbols(size_t word_length) {
+        auto write_lock = this->get_write_lock();
+
+        auto [osg_size, new_symbols] = this->symbol_table->fill_to_word_length(word_length);
+
+        auto& word_list = this->context->osg_list();
+        bool new_remap = word_list.update_symbol_map(*this->symbol_table);
+
+        // Did anything change?
+        return new_symbols || new_remap;
+    }
 }

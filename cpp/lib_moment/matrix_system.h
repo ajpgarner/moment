@@ -197,10 +197,17 @@ namespace Moment {
         [[nodiscard]] ptrdiff_t find_localizing_matrix(const LocalizingMatrixIndex& lmi) const noexcept;
 
         /**
-         * Clone a matrix, with substituted values
+         * Clone a matrix, with substituted values.
+         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
          */
         std::pair<size_t, class MonomialMatrix&>
         clone_and_substitute(size_t matrix_index, std::unique_ptr<SubstitutionList> list);
+
+        /**
+         * Ensure that all symbols up to a particular length are defined in system, and mapped.
+         * @return True if new symbols were created.
+         */
+        bool ensure_osg_symbols(size_t word_length);
 
         /**
          * Gets a read (shared) lock for accessing data within the matrix system.

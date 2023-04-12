@@ -152,11 +152,6 @@ namespace Moment {
         explicit SymbolTable(const Context& context);
 
         /**
-         * Move construct a symbol table.
-         */
-        SymbolTable(SymbolTable&& rhs) noexcept = default;
-
-        /**
          * Vector of symbol IDs of every symbol containing a real component.
          */
         [[nodiscard]] const auto& RealSymbolIds() const noexcept { return this->real_symbols; }

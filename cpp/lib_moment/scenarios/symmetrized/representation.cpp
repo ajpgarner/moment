@@ -29,8 +29,8 @@ namespace Moment::Symmetrized {
         }
     }
 
-    Representation::Representation(std::vector<repmat_t> &&entries)
-        : dimension(extract_dim(entries)), elements(std::move(entries)) {
+    Representation::Representation(const size_t length, std::vector<repmat_t> &&entries)
+        : word_length{length}, dimension(extract_dim(entries)), elements(std::move(entries)) {
         assert(debug_check_all_same_dim(elements, dimension));
 
         // Calculate average

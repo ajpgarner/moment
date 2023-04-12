@@ -97,7 +97,7 @@ namespace Moment {
          /**
           * Get handle to the hasher
           */
-          const ShortlexHasher& the_hasher() const noexcept {
+          [[nodiscard]] const ShortlexHasher& the_hasher() const noexcept {
               return this->hasher;
           }
 
@@ -114,7 +114,19 @@ namespace Moment {
          /**
           * Gets a generator for operator sequences in this context
           */
-         const OperatorSequenceGenerator& operator_sequence_generator(size_t level, bool conjugated = false) const;
+         [[nodiscard]] const OperatorSequenceGenerator&
+         operator_sequence_generator(size_t level, bool conjugated = false) const;
+
+         /**
+          * Gets a generator for operator sequences in this context
+          */
+         [[nodiscard]] const WordList& osg_list() const noexcept { return *this->word_list; }
+
+         /**
+          * Gets a generator for operator sequences in this context
+          */
+         [[nodiscard]] WordList& osg_list() noexcept { return *this->word_list; }
+
 
 
     public:

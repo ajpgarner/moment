@@ -17,6 +17,7 @@
 
 namespace Moment {
 
+
     class SymbolTable;
 
     namespace errors {
@@ -33,6 +34,7 @@ namespace Moment {
         private:
             const SymbolTable& origin_symbols;
             const SymbolTable& target_symbols;
+            size_t max_length;
 
             std::vector<SymbolCombo> map;
 
@@ -56,6 +58,10 @@ namespace Moment {
               */
             SymbolCombo operator()(const SymbolExpression& symbol) const;
 
+            /**
+             * The longest word that can be remapped by this map.
+             */
+             [[nodiscard]] size_t longest_word() const noexcept { return this->max_length; }
 
         };
     };

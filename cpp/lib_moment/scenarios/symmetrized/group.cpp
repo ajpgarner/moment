@@ -165,7 +165,7 @@ namespace Moment::Symmetrized {
         }
 
         // Construct new representation
-        std::unique_ptr<Representation> rep = std::make_unique<Representation>(std::move(remapped_elems));
+        std::unique_ptr<Representation> rep = std::make_unique<Representation>(word_length, std::move(remapped_elems));
 
         // Do we need to expand list?
         if (this->representations.size() <= index) {

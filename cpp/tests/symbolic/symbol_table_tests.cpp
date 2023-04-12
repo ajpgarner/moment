@@ -234,4 +234,26 @@ namespace Moment::Tests {
 
      }
 
+     TEST(Symbols_SymbolTable, FillToWordLength_Redundant) {
+        // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(2)};
+        auto& context = system.Context();
+        auto& symbols = system.Symbols();
+        ASSERT_EQ(symbols.size(), 2); // 0 & 1
+
+        const auto& mm1 = system.create_moment_matrix(1);
+        ASSERT_EQ(symbols.size(), 7) << symbols;
+
+        auto [totalA, addedA] = symbols.fill_to_word_length(1); // Should add a & b
+        ASSERT_EQ(symbols.size(), 7) << symbols;
+        ASSERT_EQ(totalA, 3) << symbols; // e, a, b
+        ASSERT_EQ(addedA, 0) << symbols; // a, b
+
+        auto [totalB, addedB] = symbols.fill_to_word_length(2); // Should add: e, a, b, aa, ab, (ba=(ab*)), bb
+        ASSERT_EQ(symbols.size(), 7) << symbols;
+        ASSERT_EQ(totalB, 7) << symbols; // e, a, b, aa, ab, (ba), bb
+        ASSERT_EQ(addedB, 0) << symbols; // aa, ab, bb
+
+     }
+
 }
