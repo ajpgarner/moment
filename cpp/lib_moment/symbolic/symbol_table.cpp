@@ -6,10 +6,10 @@
  */
 #include "symbol_table.h"
 
+#include "matrix/operator_sequence_generator.h"
 #include "scenarios/context.h"
 
 #include "utilities/dynamic_bitset.h"
-
 
 #include <iostream>
 #include <sstream>
@@ -53,12 +53,22 @@ namespace Moment {
     }
 
 
-    std::set<symbol_name_t> SymbolTable::merge_in(std::vector<UniqueSequence> &&build_unique) {
+    std::set<symbol_name_t> SymbolTable::merge_in(std::vector<UniqueSequence> &&build_unique, size_t * newly_added) {
         std::set<symbol_name_t> included_symbols;
+
+        size_t added = 0;
+        size_t symbol_max = this->unique_sequences.size();
 
         for (auto& elem : build_unique) {
             const auto symbol_name = this->merge_in(std::move(elem));
             included_symbols.emplace(symbol_name);
+            if (symbol_name >= symbol_max) {
+                ++added;
+                symbol_max = this->unique_sequences.size();
+            }
+        }
+        if (newly_added != nullptr) {
+            *newly_added = added;
         }
 
         return included_symbols;
@@ -414,6 +424,23 @@ namespace Moment {
 
 
         return os;
+    }
+
+    std::pair<size_t, size_t> SymbolTable::fill_to_word_length(size_t word_length) {
+        const auto& osg = this->context.operator_sequence_generator(word_length);
+        std::vector<UniqueSequence> build_unique;
+        build_unique.reserve(osg.size());
+        for (const auto& op_seq : osg) {
+            auto conj_seq = op_seq.conjugate();
+            if (op_seq == conj_seq) {
+                build_unique.emplace_back(op_seq);
+            } else {
+                build_unique.emplace_back(op_seq, std::move(conj_seq));
+            }
+        }
+        size_t new_symbols{};
+        this->merge_in(std::move(build_unique), &new_symbols);
+        return std::make_pair(osg.size(), new_symbols);
     }
 
 }

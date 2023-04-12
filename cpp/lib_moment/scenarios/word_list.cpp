@@ -6,6 +6,8 @@
  */
 #include "word_list.h"
 
+
+#include <atomic>
 #include <sstream>
 
 namespace Moment {
@@ -28,6 +30,7 @@ namespace Moment {
         std::unique_lock write_lock{this->mutex};
 
         // Check wasn't created by racing other thread
+        std::atomic_thread_fence(std::memory_order_acquire);
         const bool expansion_required = word_length >= this->osgs.size();
         if (!expansion_required) {
             auto& ptr = this->osgs[word_length];
@@ -46,6 +49,9 @@ namespace Moment {
         // Create conjugate
         auto conjed = this->osgs[word_length]->conjugate();
         this->conj_osgs[word_length] = std::make_unique<OperatorSequenceGenerator>(std::move(conjed));
+
+        // Release fence
+        std::atomic_thread_fence(std::memory_order_release);
 
         // Return newly created OSG
         return *this->osgs[word_length]; // release write lock

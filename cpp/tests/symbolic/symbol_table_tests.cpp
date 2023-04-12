@@ -203,4 +203,35 @@ namespace Moment::Tests {
         EXPECT_EQ(f6Iter->second.second, -1);
     };
 
+    TEST(Symbols_SymbolTable, FillToWordLength) {
+        // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(2)};
+        auto& context = system.Context();
+        auto& symbols = system.Symbols();
+        ASSERT_EQ(symbols.size(), 2); // 0 & 1
+
+        auto [totalA, addedA] = symbols.fill_to_word_length(1); // Should add a & b
+        ASSERT_EQ(symbols.size(), 4) << symbols;
+        ASSERT_EQ(totalA, 3) << symbols; // e, a, b
+        ASSERT_EQ(addedA, 2) << symbols; // a, b
+        EXPECT_EQ(symbols[2].sequence(), (OperatorSequence{{0}, context})) << symbols[2];
+        EXPECT_TRUE(symbols[2].is_hermitian()) << symbols[2];
+        EXPECT_EQ(symbols[3].sequence(), (OperatorSequence{{1}, context})) << symbols[3];
+        EXPECT_TRUE(symbols[3].is_hermitian()) << symbols[3];
+
+        auto [totalB, addedB] = symbols.fill_to_word_length(2); // Should add: e, a, b, aa, ab, (ba=(ab*)), bb
+        ASSERT_EQ(symbols.size(), 7) << symbols;
+        ASSERT_EQ(totalB, 7) << symbols; // e, a, b, aa, ab, (ba), bb
+        ASSERT_EQ(addedB, 3) << symbols; // aa, ab, bb
+        EXPECT_EQ(symbols[4].sequence(), (OperatorSequence{{0, 0}, context})) << symbols[4];
+        EXPECT_TRUE(symbols[4].is_hermitian()) << symbols[4];
+        EXPECT_EQ(symbols[5].sequence(), (OperatorSequence{{0, 1}, context})) << symbols[5];
+        EXPECT_EQ(symbols[5].sequence_conj(), (OperatorSequence{{1, 0}, context})) << symbols[5];
+        EXPECT_FALSE(symbols[5].is_hermitian()) << symbols[5];
+        EXPECT_EQ(symbols[6].sequence(), (OperatorSequence{{1, 1}, context})) << symbols[6];
+        EXPECT_TRUE(symbols[6].is_hermitian()) << symbols[6];
+
+
+     }
+
 }

@@ -170,9 +170,10 @@ namespace Moment {
         /**
          * Add symbols to table, if not already present
          * @param build_unique List of symbols to be potentially merged
+         * @paran new_symbols Output: number of new symbols if not nullptr.
          * @return Set of symbol IDs
          */
-        std::set<symbol_name_t> merge_in(std::vector<UniqueSequence>&& build_unique);
+        std::set<symbol_name_t> merge_in(std::vector<UniqueSequence>&& build_unique, size_t * new_symbols = nullptr);
 
         /**
          * Add symbol to table, if not already present
@@ -208,10 +209,31 @@ namespace Moment {
          */
         std::pair<size_t, size_t> renumerate_bases();
 
+        /**
+         * Generate all symbols up to a particular word length (merging with existing symbols).
+         * For thread safety, a write lock should be called on the owning matrix system first.
+         * @return Pair, first: number of symbols up to that word length, second: number of new symbols added.
+         */
+         std::pair<size_t, size_t> fill_to_word_length(size_t word_length);
 
+        /**
+         * Begin iteration over symbols of the table
+         */
         [[nodiscard]] auto begin() const noexcept { return this->unique_sequences.cbegin(); }
+
+        /**
+         * End iteration over symbols of the table
+         */
         [[nodiscard]] auto end() const noexcept { return this->unique_sequences.cend(); }
+
+        /**
+         * True if no symbols in table
+         */
         [[nodiscard]] bool empty() const noexcept { return this->unique_sequences.empty(); }
+
+        /**
+         * Number of symbols in table
+         */
         [[nodiscard]] size_t size() const noexcept { return this->unique_sequences.size(); }
 
        /**
