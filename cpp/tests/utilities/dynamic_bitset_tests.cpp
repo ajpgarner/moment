@@ -162,6 +162,19 @@ namespace Moment::Tests {
         }
     }
 
+    TEST(Utilities_DynamicBitset, ProxySet) {
+        DynamicBitset<uint64_t> bitset{40};
+        EXPECT_EQ(bitset.count(), 0);
+        EXPECT_TRUE(bitset.empty());
+        bitset[13] = true;
+        EXPECT_EQ(bitset.count(), 1);
+        EXPECT_FALSE(bitset.empty());
+        EXPECT_TRUE(bitset.test(13));
+        EXPECT_TRUE(bitset[13]);
+    }
+
+
+
     TEST(Utilities_DynamicBitset, LogicalAND) {
         DynamicBitset<uint64_t> bitsetA{70};
         bitsetA.set(5);

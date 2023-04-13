@@ -54,6 +54,31 @@ namespace Moment {
             }
         };
 
+        class ElementProxy {
+        private:
+            DynamicBitset& bs;
+            const size_t index;
+
+        public:
+            constexpr explicit ElementProxy(DynamicBitset& bs, const size_t index)
+                : bs{bs}, index{index} { }
+
+            constexpr ElementProxy& operator=(const bool rhs) {
+                if (rhs) {
+                    bs.set(index);
+                } else {
+                    bs.unset(index);
+                }
+                return *this;
+            }
+
+            constexpr operator bool() const noexcept {
+                return bs.test(index);
+            }
+        };
+
+
+
     public:
         const size_t bit_size;
         const size_t page_count;
@@ -140,6 +165,20 @@ namespace Moment {
                 output.emplace_hint(output.end(), static_cast<int_t>(x));
             }
             return output;
+        }
+
+        /**
+         * Creates proxy object for assignment, which is castable to bool of elements
+         */
+        [[nodiscard]] constexpr ElementProxy operator[](size_t index) noexcept {
+            return ElementProxy{*this, index};
+        }
+
+        /**
+         * Alias for test().
+         */
+        [[nodiscard]] constexpr bool operator[](size_t index) const noexcept {
+            return this->test(index);
         }
 
         [[nodiscard]] constexpr bool operator==(const DynamicBitset<page_t>& rhs) const noexcept {
