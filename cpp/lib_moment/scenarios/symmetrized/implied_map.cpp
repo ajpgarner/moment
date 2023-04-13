@@ -7,8 +7,12 @@
 
 #include "implied_map.h"
 
+#include "scenarios/context.h"
+
 #include "symbolic/symbol_table.h"
+
 #include "representation.h"
+#include "symmetrized_matrix_system.h"
 
 #include <limits>
 #include <sstream>
@@ -22,13 +26,16 @@ namespace Moment::Symmetrized {
 
     }
 
-    ImpliedMap::ImpliedMap(const SymbolTable& origin_symbols, SymbolTable& target_symbols,
+    ImpliedMap::ImpliedMap(SymmetrizedMatrixSystem& sms,
                            const Representation& rep)
-       : origin_symbols{origin_symbols}, target_symbols{target_symbols}, max_length{rep.word_length} {
+
+       : origin_symbols{sms.base_system().Symbols()}, target_symbols{sms.Symbols()}, max_length{rep.word_length} {
         assert(this->origin_symbols.size() >= 2);
         assert(&origin_symbols != &target_symbols);
 
-        // TODO: Check if we can generate a map using this representation for this symbol table.
+        // TODO: Pass OSG and some-way of mapping OSG indices to symbol table indices.
+
+
 
 
         // Get group average

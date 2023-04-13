@@ -29,10 +29,6 @@ namespace Moment {
         mutable std::vector<std::unique_ptr<OperatorSequenceGenerator>> osgs;
         mutable std::vector<std::unique_ptr<OperatorSequenceGenerator>> conj_osgs;
 
-        std::atomic<size_t> symbol_map_max_length;
-        std::vector<symbol_name_t> symbol_map;
-
-
     public:
         const Context& context;
 
@@ -41,31 +37,27 @@ namespace Moment {
 
         /**
          * Gets dictionary of supplied word length. Creates dictionary if it doesn't already exist.
-         * Nomimally thread-safe, will lock for write if new dictionary requested.
+         * Nominally thread-safe, will lock for write if new dictionary requested.
          * @param word_length The maximum number of operators in a word.
          * @return Operator sequence generator.
          */
         const OperatorSequenceGenerator& operator[](size_t word_length) const;
 
         /**
+         * Gets largest dictionary known.
+         * Nominally thread-safe.
+         * @return Operator sequence generator.
+         */
+        [[nodiscard]] const OperatorSequenceGenerator& largest() const;
+
+        /**
          * Gets dictionary of supplied word length in conjugated order. Creates dictionary if it doesn't already exist.
-         * Nomimally thread-safe, will lock for write if new dictionary requested.
+         * Nominally thread-safe, will lock for write if new dictionary requested.
          * @param word_length The maximum number of operators in a word.
          * @return Operator sequence generator.
          */
         const OperatorSequenceGenerator& conjugated(size_t word_length) const;
 
-        /**
-         * Stores map of registered symbols
-         */
-        bool update_symbol_map(const SymbolTable& table);
-
-        /**
-         * Convert the index within an operator sequence generator to an entry in a symbol table.
-         * @param index The index an operator sequence generator
-         * @return Pair, first: symbol id, second: true if symbol is conjugated.
-         */
-        std::pair<symbol_name_t, bool> osg_index_to_symbol(size_t index) const;
 
     };
 }

@@ -40,6 +40,8 @@ namespace Moment::Symmetrized {
     SymmetrizedMatrixSystem::~SymmetrizedMatrixSystem() noexcept = default;
 
     std::unique_ptr<struct MomentMatrix> SymmetrizedMatrixSystem::createNewMomentMatrix(size_t level) {
+        // NOTE: We should be an scope where we hold a write lock to this matrix system.
+
         // First check source moment matrix exists, create it if it doesn't
         const auto& source_matrix = [&]() -> const class MomentMatrix& {
             auto read_source_lock = this->base_system().get_read_lock();
@@ -57,16 +59,22 @@ namespace Moment::Symmetrized {
             return mm; // write_source_lock unlocks
         }();
 
-        // Next, generate symmetries up to right level
+        // TODO: If a larger moment matrix has already been created, no need to re-do generation steps
+
+        // Next, ensure source scenario defines a sufficiently large symbol map
+        this->base_system().generate_dictionary(2*level);
+
+        // Next, ensure the symmetry group has a large enough representation
         const auto& rep = this->symmetry->representation(2*level);
 
-        // Lock source for read again, as we will use symbol table.
+        // Lock source for read again.
         auto source_lock = this->base_system().get_read_lock();
 
         // Create map
-        ImpliedMap base_change{this->base_system().Symbols(), this->Symbols(), rep};
+        ImpliedMap base_change{*this, rep};
 
         // Apply map
+
 
 
 

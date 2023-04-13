@@ -13,6 +13,7 @@ add_library(lib_moment
         matrix/polynomial_matrix.cpp
         matrix/substituted_matrix.cpp
         scenarios/context.cpp
+        scenarios/dictionary_map.cpp
         scenarios/explicit_symbols.cpp
         scenarios/implicit_outcome_iterator.cpp
         scenarios/implicit_symbols.cpp

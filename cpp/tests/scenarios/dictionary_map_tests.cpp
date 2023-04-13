@@ -21,7 +21,7 @@ namespace Moment::Tests {
         const auto& context = ams.AlgebraicContext();
         const auto& symbols = ams.Symbols();
 
-        bool anything = ams.ensure_osg_symbols(0);
+        bool anything = ams.generate_dictionary(0);
         EXPECT_FALSE(anything);
     }
 
@@ -30,21 +30,21 @@ namespace Moment::Tests {
         const auto& context = ams.AlgebraicContext();
         const auto& symbols = ams.Symbols();
 
-        bool anything = ams.ensure_osg_symbols(2);
+        bool anything = ams.generate_dictionary(2);
         EXPECT_TRUE(anything);
         EXPECT_EQ(symbols.size(), 7); // 0, e, a, b, aa, ab, bb
 
-        const auto& wordlist = context.osg_list();
-        EXPECT_EQ(wordlist.osg_index_to_symbol(0), std::make_pair(1LL, false)); // e -> 1
-        EXPECT_EQ(wordlist.osg_index_to_symbol(1), std::make_pair(2LL, false)); // a -> 2
-        EXPECT_EQ(wordlist.osg_index_to_symbol(2), std::make_pair(3LL, false)); // b -> 3
-        EXPECT_EQ(wordlist.osg_index_to_symbol(3), std::make_pair(4LL, false)); // aa -> 4
-        EXPECT_EQ(wordlist.osg_index_to_symbol(4), std::make_pair(5LL, false)); // ab -> 5
-        EXPECT_EQ(wordlist.osg_index_to_symbol(5), std::make_pair(5LL, true)); // ba -> 5*
-        EXPECT_EQ(wordlist.osg_index_to_symbol(6), std::make_pair(6LL, false)); // bb -> 6
-        EXPECT_THROW(auto discard = wordlist.osg_index_to_symbol(7), std::range_error); // 7 not defined.
+        const auto& wordlist = symbols.OSGIndex;
+        EXPECT_EQ(wordlist(0), std::make_pair(1LL, false)); // e -> 1
+        EXPECT_EQ(wordlist(1), std::make_pair(2LL, false)); // a -> 2
+        EXPECT_EQ(wordlist(2), std::make_pair(3LL, false)); // b -> 3
+        EXPECT_EQ(wordlist(3), std::make_pair(4LL, false)); // aa -> 4
+        EXPECT_EQ(wordlist(4), std::make_pair(5LL, false)); // ab -> 5
+        EXPECT_EQ(wordlist(5), std::make_pair(5LL, true)); // ba -> 5*
+        EXPECT_EQ(wordlist(6), std::make_pair(6LL, false)); // bb -> 6
+        EXPECT_THROW(auto discard = wordlist(7), std::range_error); // 7 not defined.
 
-        bool nothing = ams.ensure_osg_symbols(2);
+        bool nothing = ams.generate_dictionary(2);
         EXPECT_FALSE(nothing);
         EXPECT_EQ(symbols.size(), 7);
     }

@@ -132,7 +132,7 @@ namespace Moment::mex::functions {
             output[1] = export_eigen_sparse_array(matlabEngine, factory, group_elements);
         }
 
-        std::unique_ptr<Representation> rep = std::make_unique<Representation>(std::move(group_elements));
+        std::unique_ptr<Representation> rep = std::make_unique<Representation>(1, std::move(group_elements));
         std::unique_ptr<Group> groupPtr;
         try {
             groupPtr = std::make_unique<Group>(matrixSystem.Context(), std::move(rep));

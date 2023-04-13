@@ -9,7 +9,9 @@
 #include "symbol.h"
 #include "symbol_expression.h"
 
+#include "scenarios/dictionary_map.h"
 #include "scenarios/operator_sequence.h"
+
 #include "utilities/dynamic_bitset.h"
 
 #include <cassert>
@@ -143,6 +145,12 @@ namespace Moment {
          * Ordered list of symbols with imaginary components (i.e. corresponding to non-Hermitian operators)
          */
         std::vector<size_t> imaginary_symbols;
+
+    public:
+        /**
+         * Map from operator-sequence-generator output indices to symbol ids in this table.
+         */
+        DictionaryMap OSGIndex;
 
     public:
         /**

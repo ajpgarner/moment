@@ -23,12 +23,13 @@ namespace Moment {
     namespace errors {
         class bad_map : public std::range_error {
         public:
-            bad_map(const std::string& what) : std::range_error{what} { }
+            explicit bad_map(const std::string& what) noexcept : std::range_error{what} { }
         };
     }
 
     namespace Symmetrized {
         class Representation;
+        class SymmetrizedMatrixSystem;
 
         class ImpliedMap {
         private:
@@ -39,7 +40,7 @@ namespace Moment {
             std::vector<SymbolCombo> map;
 
         public:
-            ImpliedMap(const SymbolTable& origin_symbols, SymbolTable& target_symbols, const Representation& rep);
+            ImpliedMap(SymmetrizedMatrixSystem& sms, const Representation& rep);
 
             /**
              * Get symbol/symbol combo in target, associated with symbol in source.

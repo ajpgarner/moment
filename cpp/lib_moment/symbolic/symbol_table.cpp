@@ -41,7 +41,7 @@ namespace Moment {
     }
 
     SymbolTable::SymbolTable(const Context& context)
-        : context{context} {
+        : context{context}, OSGIndex{context, *this} {
 
         // Zero and identity are always in symbol table, in indices 0 and 1 respectively.
         this->unique_sequences.emplace_back(UniqueSequence::Zero(this->context));
@@ -440,6 +440,9 @@ namespace Moment {
         }
         size_t new_symbols{};
         this->merge_in(std::move(build_unique), &new_symbols);
+
+        this->OSGIndex.update();
+
         return std::make_pair(osg.size(), new_symbols);
     }
 

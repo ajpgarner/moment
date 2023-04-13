@@ -14,9 +14,10 @@
 #include <sstream>
 
 namespace Moment {
-    WordList::WordList(const Context& context) : context{context}, symbol_map_max_length{0} {
-        // Initially, all we know is that index 0 of generator maps to symbol 1 (e).
-        this->symbol_map.emplace_back(1);
+    WordList::WordList(const Context& context) : context{context} {
+        // Make order 0 OSG (e)
+        this->osgs.emplace_back(std::make_unique<OperatorSequenceGenerator>(context, 0, 0));
+        this->conj_osgs.emplace_back(std::make_unique<OperatorSequenceGenerator>(this->osgs[0]->conjugate()));
     }
 
     const OperatorSequenceGenerator& WordList::operator[](size_t word_length) const {
@@ -71,66 +72,16 @@ namespace Moment {
         return *(this->conj_osgs[word_length]);
     }
 
-    bool WordList::update_symbol_map(const SymbolTable& table) {
-        std::shared_lock read_lock{this->mutex};
+
+    const OperatorSequenceGenerator& WordList::largest() const {
         // Find largest created OSG
-        const size_t largest_osg = [&]() {
-            for (const auto& osg : std::ranges::reverse_view(osgs)) {
-                if (osg) {
-                    return osg->max_sequence_length;
-                }
+        for (const auto &osg: std::ranges::reverse_view(osgs)) {
+            if (osg) {
+                return *osg;
             }
-            return 0ULL;
-        }();
-
-        // If largest OSG already generated, return.
-        if (largest_osg <= this->symbol_map_max_length.load(std::memory_order_acquire)) {
-            return false; // unlock read lock
         }
-
-        // Upgrade lock
-        read_lock.unlock();
-        std::shared_lock write_lock{this->mutex};
-        if (largest_osg <= this->symbol_map_max_length.load(std::memory_order_acquire)) {
-            return false;
-        }
-        const auto& new_osg = *this->osgs[largest_osg];
-
-        const auto target_size = new_osg.size();
-        const auto start_index = this->symbol_map.size();
-
-        this->symbol_map.reserve(target_size);
-        for (auto iter = new_osg.begin() + static_cast<ptrdiff_t>(start_index); iter != new_osg.end(); ++iter) {
-            const auto& seq = *iter;
-            const auto* datum = table.where(seq);
-            assert(datum != nullptr);
-            const bool isConjugated = (seq != datum->sequence());
-            this->symbol_map.emplace_back((isConjugated ? -1 : 1) * datum->Id());
-        }
-
-        assert(this->symbol_map.size() == new_osg.size());
-
-        // Update atomic
-        this->symbol_map_max_length.store(new_osg.max_sequence_length, std::memory_order_release);
-
-        // Release write lock~
-        return true;
+        throw std::runtime_error{"WordList contains no OperatorSequenceGenerators!"};
     }
 
-    std::pair<symbol_name_t, bool> WordList::osg_index_to_symbol(size_t index) const {
-        std::shared_lock read_lock{this->mutex};
-        if (index >= this->symbol_map.size()) {
-            std::stringstream errSS;
-            errSS << "Symbol at index " << index << " not yet defined.";
-            throw std::range_error{errSS.str()};
-        }
-
-        // Return symbol
-        auto val = this->symbol_map[index];
-        if (val < 0) {
-            return {-val, true};
-        }
-        return {val, false};
-    }
 
 }

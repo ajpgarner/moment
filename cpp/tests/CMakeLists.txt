@@ -10,7 +10,7 @@ add_executable(moment_tests
     operators/operator_sequence_generator_tests.cpp
     operators/polynomial_matrix_tests.cpp
     scenarios/context_tests.cpp
-    scenarios/word_list_tests.cpp
+    scenarios/dictionary_map_tests.cpp
     scenarios/implicit_symbol_test_helpers.cpp
     scenarios/algebraic/algebraic_context_tests.cpp
     scenarios/algebraic/monomial_substitution_rule_tests.cpp

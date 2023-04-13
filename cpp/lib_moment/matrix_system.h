@@ -207,7 +207,7 @@ namespace Moment {
          * Ensure that all symbols up to a particular length are defined in system, and mapped.
          * @return True if new symbols were created.
          */
-        bool ensure_osg_symbols(size_t word_length);
+        bool generate_dictionary(size_t word_length);
 
         /**
          * Gets a read (shared) lock for accessing data within the matrix system.
