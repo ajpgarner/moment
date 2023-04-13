@@ -17,7 +17,7 @@ using namespace Moment::Symmetrized;
 
 namespace Moment::Tests {
 
-    TEST(Symmetry_Remapper, Remap1to2_TwoOps) {
+    TEST(Scenarios_Symmetry_RepresentationMapper, Remap1to2_TwoOps) {
         Algebraic::AlgebraicContext ac{2}; // two operators
 
         RepresentationMapper remapper{ac, 2};
@@ -68,7 +68,7 @@ namespace Moment::Tests {
         }
     }
 
-    TEST(Symmetry_Remapper, Remap1to2_CHSH) {
+    TEST(Scenarios_Symmetry_RepresentationMapper, Remap1to2_CHSH) {
         Locality::LocalityContext context{Locality::Party::MakeList(2, 2, 2)};
 
         RepresentationMapper remapper{context, 2};

@@ -28,7 +28,7 @@ namespace Moment::Tests {
         }
     }
 
-    TEST(Symmetry_Group, Dimino_ID) {
+    TEST(Scenarios_Symmetry_Group, Dimino_ID) {
 
         //Eigen::SparseMatrix<double> gen_a(2);
         auto group = Group::dimino_generation(std::vector<Eigen::SparseMatrix<double>>{});
@@ -37,7 +37,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(group[0].isApprox(sparse_id(1)));
     }
 
-    TEST(Symmetry_Group, Dimino_Z2_2d) {
+    TEST(Scenarios_Symmetry_Group, Dimino_Z2_2d) {
 
         std::vector<Eigen::SparseMatrix<double>> generators;
         generators.emplace_back(make_sparse(2, {0, 1, 1, 0}));
@@ -50,7 +50,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Symmetry_Group, Dimino_Z2_4d) {
+    TEST(Scenarios_Symmetry_Group, Dimino_Z2_4d) {
 
         std::vector<Eigen::SparseMatrix<double>> generators;
         generators.emplace_back(make_sparse(4, {0, 1, 0, 0,
@@ -65,7 +65,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(group[1].isApprox(generators[0]));
     }
 
-    TEST(Symmetry_Group, Dimino_S3) {
+    TEST(Scenarios_Symmetry_Group, Dimino_S3) {
 
         std::vector<Eigen::SparseMatrix<double>> generators;
         generators.emplace_back(make_sparse(3, {0, 1, 0,
@@ -82,7 +82,7 @@ namespace Moment::Tests {
         test_group_unique(group);
     }
 
-    TEST(Symmetry_Group, Dimino_S4) {
+    TEST(Scenarios_Symmetry_Group, Dimino_S4) {
 
         std::vector<Eigen::SparseMatrix<double>> generators;
         generators.emplace_back(make_sparse(4, {0, 1, 0, 0,
@@ -105,7 +105,7 @@ namespace Moment::Tests {
         test_group_unique(group);
     }
 
-    TEST(Symmetry_Group, Dimino_D8) {
+    TEST(Scenarios_Symmetry_Group, Dimino_D8) {
         // Dihedral-8 group <-> symmetries of CHSH inequality.
         std::vector<Eigen::SparseMatrix<double>> generators;
         generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
@@ -126,7 +126,7 @@ namespace Moment::Tests {
         test_group_unique(group);
     }
 
-    TEST(Symmetry_Group, CreateRepresentation) {
+    TEST(Scenarios_Symmetry_Group, CreateRepresentation) {
 
         // CHSH
         Locality::LocalityContext context{Locality::Party::MakeList(2, 2, 2)};

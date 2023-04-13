@@ -23,6 +23,7 @@ namespace Moment::Tests {
 
         bool anything = ams.generate_dictionary(0);
         EXPECT_FALSE(anything);
+        EXPECT_EQ(symbols.OSGIndex.max_length(), 0);
     }
 
     TEST(Scenarios_WordList, EnsureOSG_Level2) {
@@ -30,9 +31,11 @@ namespace Moment::Tests {
         const auto& context = ams.AlgebraicContext();
         const auto& symbols = ams.Symbols();
 
+        EXPECT_EQ(symbols.OSGIndex.max_length(), 0);
         bool anything = ams.generate_dictionary(2);
         EXPECT_TRUE(anything);
         EXPECT_EQ(symbols.size(), 7); // 0, e, a, b, aa, ab, bb
+        EXPECT_EQ(symbols.OSGIndex.max_length(), 2);
 
         const auto& wordlist = symbols.OSGIndex;
         EXPECT_EQ(wordlist(0), std::make_pair(1LL, false)); // e -> 1

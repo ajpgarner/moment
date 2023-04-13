@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "gtest/gtest.h"
-#include "../symmetry/sparse_utils.h"
+#include "../scenarios/symmetry/sparse_utils.h"
 
 #include "utilities/kronecker_power.h"
 

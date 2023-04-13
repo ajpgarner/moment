@@ -30,13 +30,19 @@ namespace Moment::Symmetrized {
                            const Representation& rep)
 
        : origin_symbols{sms.base_system().Symbols()}, target_symbols{sms.Symbols()}, max_length{rep.word_length} {
-        assert(this->origin_symbols.size() >= 2);
         assert(&origin_symbols != &target_symbols);
 
+        // Check length of origin symbols is sufficiently long:
+        const size_t osg_length = origin_symbols.OSGIndex.max_length();
+        if (rep.word_length > osg_length) {
+            std::stringstream errSS;
+            errSS << "Symbol only guarantees dictionary up to length " << osg_length
+                  << " but representation of length " << rep.word_length << " was supplied.";
+            throw errors::bad_map{errSS.str()};
+        }
+
+
         // TODO: Pass OSG and some-way of mapping OSG indices to symbol table indices.
-
-
-
 
         // Get group average
         const auto& raw_remap = rep.sum_of(); // off by factor of rep.size() - to avoid division.
@@ -44,6 +50,7 @@ namespace Moment::Symmetrized {
         // First, build constants
         this->map[0] = SymbolCombo::Zero(); // 0 -> 0 always.
         this->map[1] = SymbolCombo::Scalar(1.0); // 1 -> 1 always.
+
 
         // First, check column 0 just maps 1 -> 1
         if ((raw_remap.col(0).nonZeros() != 1) || !is_close(raw_remap.coeff(0,0), static_cast<double>(rep.size()))) {
@@ -54,6 +61,8 @@ namespace Moment::Symmetrized {
         std::vector<bool> trivial(raw_remap.cols(), false);
         trivial[0] = true;
         for (int col_index = 1; col_index < raw_remap.cols(); ++col_index) {
+            auto [symbol_id, conjugated] = origin_symbols.OSGIndex(col_index);
+
             repmat_t::Index nnz = raw_remap.col(col_index).nonZeros();
             if (0 == nnz) {
 

@@ -42,6 +42,13 @@ namespace Moment {
         bool update();
 
         /**
+         * Get maximum index currently generated
+         */
+        [[nodiscard]] inline size_t max_length() const noexcept {
+            return this->symbol_map_max_length.load(std::memory_order_acquire);
+        }
+
+        /**
          * Convert the index within an operator sequence generator to an entry in a symbol table.
          * @param index The index an operator sequence generator
          * @return Pair, first: symbol id, second: true if symbol is conjugated.
