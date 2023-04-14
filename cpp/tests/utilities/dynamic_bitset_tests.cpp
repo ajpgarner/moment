@@ -228,6 +228,46 @@ namespace Moment::Tests {
         }
     }
 
+    TEST(Utilities_DynamicBitset, LogicalNOT) {
+        DynamicBitset<uint64_t> bitsetA{70};
+        bitsetA.set(5);
+        bitsetA.set(20);
+        bitsetA.set(67);
+
+        auto bitsetB = ~bitsetA;
+
+        ASSERT_EQ(bitsetB.bit_size, 70);
+        std::set<uint64_t> false_nums{5, 20, 67};
+        EXPECT_EQ(bitsetB.count(), 67);
+        for (size_t test = 0; test < 70; ++test) {
+            if (false_nums.contains(test)) {
+                EXPECT_FALSE(bitsetB.test(test)) << test;
+            } else {
+                EXPECT_TRUE(bitsetB.test(test)) << test;
+            }
+        }
+    }
+
+    TEST(Utilities_DynamicBitset, LogicalNOT_InPlace) {
+        DynamicBitset<uint64_t> bitsetA{70};
+        bitsetA.set(5);
+        bitsetA.set(20);
+        bitsetA.set(67);
+
+        bitsetA.invert_in_place();
+
+        ASSERT_EQ(bitsetA.bit_size, 70);
+        std::set<uint64_t> false_nums{5, 20, 67};
+        EXPECT_EQ(bitsetA.count(), 67);
+        for (size_t test = 0; test < 70; ++test) {
+            if (false_nums.contains(test)) {
+                EXPECT_FALSE(bitsetA.test(test)) << test;
+            } else {
+                EXPECT_TRUE(bitsetA.test(test)) << test;
+            }
+        }
+    }
+
 
     TEST(Utilities_DynamicBitset, Iterator_Small) {
         DynamicBitset<uint64_t> bitset{50};

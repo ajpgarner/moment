@@ -77,8 +77,6 @@ namespace Moment {
             }
         };
 
-
-
     public:
         const size_t bit_size;
         const size_t page_count;
@@ -167,6 +165,7 @@ namespace Moment {
             return output;
         }
 
+
         /**
          * Creates proxy object for assignment, which is castable to bool of elements
          */
@@ -222,6 +221,33 @@ namespace Moment {
             DynamicBitset<page_t> copy{*this};
             copy |= rhs;
             return copy;
+        }
+
+        constexpr DynamicBitset<page_t>& invert_in_place() noexcept {
+            // Do nothing if no data
+            if (this->page_count <= 0) {
+                return *this;
+            }
+
+            // Invert
+            for (size_t page = 0; page < (this->page_count-1); ++page) {
+                this->data[page] = ~data[page];
+            }
+            this->data[this->page_count - 1] = (~this->data[this->page_count - 1]) & this->final_page_mask;
+
+            return *this;
+        }
+
+        /**
+         * Copy bitset with all bits inverted
+         */
+        constexpr DynamicBitset operator~() const {
+            DynamicBitset output{this->bit_size};
+            for (size_t page = 0; page < (this->page_count-1); ++page) {
+                output.data[page] = ~this->data[page];
+            }
+            output.data[this->page_count - 1] = (~this->data[this->page_count - 1]) & output.final_page_mask;
+            return output;
         }
 
     private:
