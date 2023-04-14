@@ -111,6 +111,14 @@ namespace Moment::Tests {
         EXPECT_EQ(names[2], "Z");
     }
 
+
+    TEST(Scenarios_Algebraic_NameTable, Construct_XYZ_InitList) {
+        NameTable names{"X", "Y", "Z"};
+        EXPECT_EQ(names[0], "X");
+        EXPECT_EQ(names[1], "Y");
+        EXPECT_EQ(names[2], "Z");
+    }
+
     TEST(Scenarios_Algebraic_NameTable, Find_XYZ) {
         AlgebraicPrecontext apc{3};
         NameTable names{std::vector<std::string>{"X", "Y", "Z"}};

@@ -37,6 +37,14 @@ namespace Moment::Algebraic {
         explicit NameTable(std::vector<std::string>&& names);
 
         /**
+         * Create table of names.
+         * @param names The names of each fundamental operator, in order.
+         * @throws std::invalid_argument if any name is invalid, or if there is a duplicate name.
+         */
+        inline NameTable(std::initializer_list<std::string> input_names)
+            : NameTable{std::vector<std::string>(input_names.begin(), input_names.end())} { }
+
+        /**
          * Create table of automatically generated names.
          * @param num_operators The number of fundamental operators.
          */

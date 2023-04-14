@@ -7,8 +7,16 @@
 
 #pragma once
 
+#include "representation.h"
+
 #include "symbolic/symbol_combo.h"
 
+#include "utilities/dynamic_bitset.h"
+
+#include <Eigen/Dense>
+
+#include <map>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -17,7 +25,7 @@
 
 namespace Moment {
 
-
+    class SymbolCombo;
     class SymbolTable;
 
     namespace errors {
@@ -32,6 +40,20 @@ namespace Moment {
         class SymmetrizedMatrixSystem;
 
         class ImpliedMap {
+        public:
+            struct NontrivialMapCore {
+            public:
+                DynamicBitset<size_t> nontrivial_cols;
+                DynamicBitset<size_t> nontrivial_rows;
+                std::map<Eigen::Index, double> constants;
+                std::set<Eigen::Index> conjugates;
+                Eigen::MatrixXd core;
+
+            public:
+                NontrivialMapCore(const SymbolTable& origin_symbols, const repmat_t& matrix);
+
+            };
+
         private:
             const SymbolTable& origin_symbols;
             const SymbolTable& target_symbols;
@@ -39,8 +61,11 @@ namespace Moment {
 
             std::vector<SymbolCombo> map;
 
+            std::unique_ptr<NontrivialMapCore> nontrivial_core;
+
         public:
             ImpliedMap(SymmetrizedMatrixSystem& sms, const Representation& rep);
+
 
             /**
              * Get symbol/symbol combo in target, associated with symbol in source.
@@ -63,6 +88,12 @@ namespace Moment {
              * The longest word that can be remapped by this map.
              */
              [[nodiscard]] size_t longest_word() const noexcept { return this->max_length; }
+
+
+        private:
+            void process_nontrivial_core();
+
+
 
         };
     };

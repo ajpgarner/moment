@@ -20,6 +20,9 @@ namespace Moment::Algebraic {
         : AlgebraicContext{std::make_unique<NameTable>(operator_count), self_adjoint, commutative, normal, rules} {
     }
 
+    AlgebraicContext::AlgebraicContext(NameTable&& names, bool self_adjoint, bool commutative, bool normal)
+        : AlgebraicContext{std::make_unique<NameTable>(std::move(names)), self_adjoint, commutative, normal, {}} {
+    }
 
     AlgebraicContext::AlgebraicContext(std::unique_ptr<NameTable> names, const bool hermitian,
                                        const bool commute, const bool normal,

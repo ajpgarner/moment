@@ -56,6 +56,8 @@ namespace Moment::Algebraic {
         AlgebraicContext(size_t operator_count, bool self_adjoint, bool commutative, bool normal,
                          const std::vector<MonomialSubstitutionRule>& rules);
 
+        AlgebraicContext(NameTable&& names, bool self_adjoint = true, bool commutative = false, bool normal = true);
+
         explicit AlgebraicContext(size_t operator_count, bool self_adjoint = true,
                                   bool commutative = false, bool normal = true)
             : AlgebraicContext{operator_count, self_adjoint, commutative, normal, {}} { }

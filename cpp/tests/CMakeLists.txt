@@ -32,7 +32,9 @@ add_executable(moment_tests
     scenarios/locality/locality_implicit_symbols_tests.cpp
     scenarios/locality/party_tests.cpp
     scenarios/symmetry/group_tests.cpp
+    scenarios/symmetry/implied_map_tests.cpp
     scenarios/symmetry/representation_mapper_tests.cpp
+    scenarios/symmetry/symmetrized_matrix_system_tests.cpp
     symbolic/substitution_list_tests.cpp
     symbolic/symbol_combo_tests.cpp
     symbolic/symbol_expression_tests.cpp
