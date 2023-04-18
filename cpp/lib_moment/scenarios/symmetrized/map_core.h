@@ -49,7 +49,11 @@ namespace Moment {
         class MapCoreProcessor {
         public:
             virtual ~MapCoreProcessor() noexcept = default;
-            virtual SolvedMapCore operator()(const MapCore& core) = 0;
+
+            /**
+             * Process MapCore into a SolvedMapCore.
+             */
+            virtual std::unique_ptr<SolvedMapCore> operator()(const MapCore& core) = 0;
         };
 
         /**
@@ -57,29 +61,50 @@ namespace Moment {
          */
         struct MapCore {
         public:
+            /** The number of symbols in the origin defined by the map (e.g. columns in initial matrix). */
+            size_t initial_size;
+
+            /** Parts of the OSG index that appear in the core as a source. */
             DynamicBitset<size_t> nontrivial_cols;
+
+            /** Parts of the OSG index that appear in the core as a target. */
             DynamicBitset<size_t> nontrivial_rows;
-            std::map<Eigen::Index, double> constants;
-            std::set<Eigen::Index> conjugates;
+
+            /** Terms in OSG index that are always ignored (e.g. because they correspond to symbol conjugates). */
+            DynamicBitset<size_t> skipped_cols;
+
+            /** Trivial part of the map, from OSG index to constant values */
+            std::map<size_t, double> constants;
+
+            /** Constant offset to add to the non-trivial parts of the map. */
             Eigen::RowVectorXd core_offset;
+
+            /** Non-trivial part of the map; each column represents an input; each row an output. */
             Eigen::MatrixXd core;
+
 
         public:
             /**
              * Extracts core of map.
-             * @param origin_symbols  Associated symbol table [ TODO: Deprecate ]
+             * @param skipped Columns to skip from the transformation matrix.
              * @param matrix The input transformation matrix.
              * @param zero_tolerance The value below which an entry is treated as zero.
              */
-            MapCore(const SymbolTable& origin_symbols, const Eigen::MatrixXd& matrix, double zero_tolerance = 1e-12);
+            MapCore(DynamicBitset<size_t>&& skipped, const Eigen::MatrixXd& matrix, double zero_tolerance = 1e-12);
 
-            /** Extract core of map from sparse re-write matrix */
-            MapCore(const SymbolTable& origin_symbols, const Eigen::SparseMatrix<double>& matrix);
+            /**
+            * Extracts core of map.
+            * @param skipped Columns to skip from the transformation matrix.
+            * @param matrix The input transformation sparse matrix.
+            */
+            MapCore(DynamicBitset<size_t>&& skipped, const Eigen::SparseMatrix<double>& matrix);
 
-            /** Process map core */
-            inline SolvedMapCore accept(MapCoreProcessor& mcp) const {
-                return mcp(*this);
-            }
+            /**
+             * Process map core with visitor class, and sanity check solution.
+             * @return Owning pointer to solution.
+             * @throws errors::invalid_solution if solution has an obvious problem.
+             */
+            [[nodiscard]] std::unique_ptr<SolvedMapCore> accept(MapCoreProcessor&& mcp) const;
         };
     }
 

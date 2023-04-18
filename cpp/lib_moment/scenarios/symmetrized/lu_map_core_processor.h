@@ -8,9 +8,9 @@
  * symbol table with another with fewer symbols.
  *
  * This can be done by taking an LU decomposition of the mapping matrix's transpose (X').
- * In particular, let [L, U] = lu(X') be the lower and upper triangular decomposition. Then, U is a matrix whose rows
- * defines the new symbols in terms of the old ones; and L is a matrix whose rows tells us which elements of
- * y we should replace the original (pre-tansformation) symbols in x with.
+ * In particular, let [L, U] = lu(X') be the lower and upper triangular decomposition (up to some permutation).
+ * Then, U is a matrix whose rows defines the new symbols in terms of the old ones; and L is a matrix whose rows tells
+ * us which elements of y we should replace the original (pre-transformation) symbols in x with.
  */
 #pragma once
 #include "map_core.h"
@@ -18,6 +18,6 @@
 namespace Moment::Symmetrized {
     class LUMapCoreProcessor : public MapCoreProcessor {
     public:
-        SolvedMapCore operator()(const MapCore& core) final;
+        std::unique_ptr<SolvedMapCore> operator()(const MapCore& core) final;
     };
 }

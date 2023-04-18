@@ -14,8 +14,10 @@
 
 namespace Moment::Symmetrized {
 
-    SolvedMapCore LUMapCoreProcessor::operator()(const MapCore &core) {
-        SolvedMapCore solution{};
+    std::unique_ptr<SolvedMapCore> LUMapCoreProcessor::operator()(const MapCore &core) {
+        auto solutionPtr = std::make_unique<SolvedMapCore>();
+        auto& solution = *solutionPtr;
+
         const Eigen::Index input_cols = core.core.cols();
         const Eigen::Index input_rows = core.core.rows();
 
@@ -23,7 +25,7 @@ namespace Moment::Symmetrized {
             solution.trivial_solution = true;
             solution.map.resize(0, 0);
             solution.inv_map.resize(0, 0);
-            return solution;
+            return solutionPtr;
         }
 
         // Decompose matrix
@@ -40,6 +42,6 @@ namespace Moment::Symmetrized {
         solution.inv_map = lu.matrixLU().topLeftCorner(rank, input_cols).triangularView<Eigen::Upper>();
         solution.inv_map = solution.inv_map * lu.permutationQ().inverse();
 
-        return solution;
+        return solutionPtr;
     }
 }

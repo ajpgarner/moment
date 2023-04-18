@@ -70,8 +70,8 @@ namespace Moment::Symmetrized {
         // Lock source for read again.
         auto source_lock = this->base_system().get_read_lock();
 
-        // Create map
-        ImpliedMap base_change{*this, rep};
+        // Create map from average
+
 
         // Apply map
 

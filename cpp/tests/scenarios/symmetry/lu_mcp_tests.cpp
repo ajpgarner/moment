@@ -7,13 +7,10 @@
 
 #include "gtest/gtest.h"
 
-#include "scenarios/algebraic/algebraic_context.h"
-#include "scenarios/algebraic/algebraic_matrix_system.h"
-
 #include "scenarios/symmetrized/map_core.h"
 #include "scenarios/symmetrized/lu_map_core_processor.h"
 
-#include "symbolic/symbol_table.h"
+#include "utilities/dynamic_bitset.h"
 
 #include "sparse_utils.h"
 
@@ -22,33 +19,20 @@
 namespace Moment::Tests {
 
     using namespace Moment::Symmetrized;
-    namespace {
-        std::shared_ptr<Algebraic::AlgebraicMatrixSystem> setup_ams(size_t op_count) {
-            auto amsPtr = std::make_shared<Algebraic::AlgebraicMatrixSystem>(
-                    std::make_unique<Algebraic::AlgebraicContext>(op_count)
-            );
-            auto &ams = *amsPtr;
-            ams.generate_dictionary(1);
-            return amsPtr;
-        }
-    }
-
 
     TEST(Scenarios_Symmetry_luMCP, Trivial) {
-
-        auto amsPtr = setup_ams(2);
         Eigen::SparseMatrix<double> m = make_sparse(3, {1.0, 2.0, 3.0,
                                                         0.0, 0.0, 0.0,
                                                         0.0, 0.0, 0.0});
-        MapCore core{amsPtr->Symbols(), m};
+        MapCore core{DynamicBitset<size_t>(3,false), m};
 
-        LUMapCoreProcessor processor{};
-        auto solution = core.accept(processor);
-        EXPECT_TRUE(solution.trivial_solution);
-        EXPECT_EQ(solution.output_symbols, 0);
+        auto solution = core.accept(LUMapCoreProcessor{});
+        ASSERT_TRUE(solution);
+        EXPECT_TRUE(solution->trivial_solution);
+        EXPECT_EQ(solution->output_symbols, 0);
 
-        const auto& x_to_y = solution.map;
-        const auto& y_to_x = solution.inv_map;
+        const auto& x_to_y = solution->map;
+        const auto& y_to_x = solution->inv_map;
         EXPECT_EQ(x_to_y.rows(), 0);
         EXPECT_EQ(x_to_y.cols(), 0);
         EXPECT_EQ(y_to_x.rows(), 0);
@@ -57,20 +41,19 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Symmetry_luMCP, RankReducingMap) {
-
-        auto amsPtr = setup_ams(2);
         Eigen::SparseMatrix<double> m = make_sparse(3, {1.0, 0.0, 0.0,
                                                         0.0, 1.0, 1.0,
                                                         0.0, 1.0, 1.0});
-        MapCore core{amsPtr->Symbols(), m};
+        MapCore core{DynamicBitset<size_t>(3,false), m};
 
-        LUMapCoreProcessor processor{};
-        auto solution = core.accept(processor);
-        EXPECT_FALSE(solution.trivial_solution);
-        EXPECT_EQ(solution.output_symbols, 1);
 
-        const auto& x_to_y = solution.map;
-        const auto& y_to_x = solution.inv_map;
+        auto solution = core.accept(LUMapCoreProcessor{});
+        ASSERT_TRUE(solution);
+        EXPECT_FALSE(solution->trivial_solution);
+        EXPECT_EQ(solution->output_symbols, 1);
+
+        const auto& x_to_y = solution->map;
+        const auto& y_to_x = solution->inv_map;
         ASSERT_EQ(x_to_y.rows(), 2);
         ASSERT_EQ(x_to_y.cols(), 1);
         ASSERT_EQ(y_to_x.rows(), 1);

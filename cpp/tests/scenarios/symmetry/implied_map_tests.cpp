@@ -44,7 +44,7 @@ namespace Moment::Tests {
 
         SymmetrizedMatrixSystem sms{amsPtr, std::move(group)};
 
-        ImpliedMap map{sms, sms.group().representation(1)};
+        //ImpliedMap map{sms, sms.group().representation(1)};
 
 
 

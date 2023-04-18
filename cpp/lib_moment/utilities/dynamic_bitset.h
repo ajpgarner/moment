@@ -105,6 +105,8 @@ namespace Moment {
 
         constexpr DynamicBitset(const DynamicBitset& rhs) = default;
 
+        constexpr DynamicBitset(DynamicBitset&& rhs) noexcept = default;
+
         constexpr void set(const size_t index) noexcept {
             const auto [page, bit] = this->unfold_index(index);
             this->data[page] = this->data[page] | (static_cast<page_t>(1) << bit);

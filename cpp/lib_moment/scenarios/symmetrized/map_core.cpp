@@ -6,11 +6,15 @@
  */
 
 #include "map_core.h"
+
+#include "symmetrized_errors.h"
+
 #include "symbolic/symbol_table.h"
 
 #include <cmath>
 
 #include <limits>
+#include <sstream>
 
 namespace Moment::Symmetrized {
     namespace {
@@ -21,9 +25,11 @@ namespace Moment::Symmetrized {
     }
 
 
-    MapCore::MapCore(const SymbolTable &origin_symbols, const Eigen::MatrixXd &raw_remap, const double zero_tolerance)
-            : nontrivial_rows{static_cast<size_t>(raw_remap.rows()), false},
-              nontrivial_cols{static_cast<size_t>(raw_remap.cols()), true} {
+    MapCore::MapCore(DynamicBitset<size_t>&& skipped, const Eigen::MatrixXd &raw_remap, const double zero_tolerance)
+            : initial_size{static_cast<size_t>(raw_remap.cols())},
+              nontrivial_rows{static_cast<size_t>(raw_remap.rows()), false},
+              nontrivial_cols{static_cast<size_t>(raw_remap.cols()), true},
+              skipped_cols{std::move(skipped)} {
 
         this->nontrivial_cols[0] = false;
         this->nontrivial_rows[0] = true;
@@ -31,7 +37,7 @@ namespace Moment::Symmetrized {
 
         // Check first column maps ID->ID
         if (!is_close(raw_remap.coeff(0,0), 1.0)) {
-            throw std::range_error{"First column of transformation must map identity to the identity."};
+            throw errors::bad_map{"First column of transformation must map identity to the identity."};
         }
         auto col_has_any_non_constant = [&raw_remap,&zero_tolerance](Eigen::Index col) -> bool {
             auto row_iter = Eigen::MatrixXd::InnerIterator{raw_remap, col};
@@ -45,16 +51,13 @@ namespace Moment::Symmetrized {
             return false;
         };
         if (col_has_any_non_constant(0)) {
-            throw std::range_error{"First column of transformation must map identity to the identity."};
+            throw errors::bad_map{"First column of transformation must map identity to the identity."};
         }
 
         for (int col_index = 1; col_index < raw_remap.cols(); ++col_index) {
-
-            // Identify complex conjugate rows. TODO: remove SymbolTable dependency.
-            auto [symbol_id, conjugated] = origin_symbols.OSGIndex(col_index);
-            if (conjugated) {
+            // Skip columns (and mark as trivial)
+            if (this->skipped_cols.test(col_index)) {
                 this->nontrivial_cols[col_index] = false;
-                this->conjugates.emplace(col_index);
                 continue;
             }
 
@@ -107,38 +110,38 @@ namespace Moment::Symmetrized {
     }
 
 
-    MapCore::MapCore(const SymbolTable& origin_symbols, const Eigen::SparseMatrix<double>& raw_remap)
-            : nontrivial_rows{static_cast<size_t>(raw_remap.rows()), false},
-              nontrivial_cols{static_cast<size_t>(raw_remap.cols()), true} {
+    MapCore::MapCore(DynamicBitset<size_t>&& skipped, const Eigen::SparseMatrix<double>& raw_remap)
+            : initial_size{static_cast<size_t>(raw_remap.cols())},
+              nontrivial_rows{static_cast<size_t>(raw_remap.rows()), false},
+              nontrivial_cols{static_cast<size_t>(raw_remap.cols()), true},
+              skipped_cols{std::move(skipped)} {
 
         this->nontrivial_cols[0] = false;
         this->nontrivial_rows[0] = true;
 
         // Check first column maps ID->ID
         if ((raw_remap.col(0).nonZeros() != 1) || !is_close(raw_remap.coeff(0,0), 1.0)) {
-            throw std::range_error{"First column of transformation must map identity to the identity."};
+            throw errors::bad_map{"First column of transformation must map identity to the identity."};
         }
 
         for (int col_index = 1; col_index < raw_remap.cols(); ++col_index) {
 
-            // Identify complex conjugate rows. TODO: remove SymbolTable dependency.
-            auto [symbol_id, conjugated] = origin_symbols.OSGIndex(col_index);
-            if (conjugated) {
+            // Skip columns (and mark as trivial)
+            if (this->skipped_cols.test(col_index)) {
                 this->nontrivial_cols[col_index] = false;
-                this->conjugates.emplace(col_index);
                 continue;
             }
 
             // Identify rows with no values, or only a constant value:
             Eigen::Index nnz = raw_remap.col(col_index).nonZeros();
             if (0 == nnz) {
-                this->constants.emplace(std::make_pair(col_index, 0));
+                this->constants.emplace(std::make_pair(static_cast<size_t>(col_index), 0));
                 this->nontrivial_cols[col_index] = false;
                 continue;
             } else if (1 == nnz) {
                 const double offset_term = raw_remap.coeff(0, col_index);
                 if (offset_term > 0) {
-                    this->constants.emplace(std::make_pair(col_index, offset_term));
+                    this->constants.emplace(std::make_pair(static_cast<size_t>(col_index), offset_term));
                     this->nontrivial_cols[col_index] = false;
                     continue;
                 }
@@ -170,6 +173,43 @@ namespace Moment::Symmetrized {
                 ++write_iter;
             }
         }
+    }
+
+    std::unique_ptr<SolvedMapCore> MapCore::accept(MapCoreProcessor&& mcp) const {
+        auto solution = mcp(*this);
+
+        if (this->core.cols() != solution->map.rows()) {
+            std::stringstream errSS;
+            errSS << "MapCore has " << this->core.cols() << ((this->core.cols() != 1) ? " columns" : " column")
+                  << ", which does not match with SolvedMapCore map's "
+                  << solution->map.rows() << ((solution->map.rows() != 1) ? " rows" : " row") << ".";
+            throw errors::invalid_solution{errSS.str()};
+        }
+
+        if (solution->map.cols() != solution->output_symbols) {
+            std::stringstream errSS;
+            errSS << "SolvedMapCore map has " << this->core.cols() << ((this->core.cols() != 1) ? " columns" : " column")
+                  << ", which does not match declared map rank " << solution->output_symbols << ".";
+            throw errors::invalid_solution{errSS.str()};
+        }
+
+        if (solution->inv_map.rows() != solution->output_symbols) {
+            std::stringstream errSS;
+            errSS << "SolvedMapCore inverse map has " << this->core.rows() << ((this->core.cols() != 1) ? " rows" : " row")
+                  << ", which does not match declared map rank " << solution->output_symbols << ".";
+            throw errors::invalid_solution{errSS.str()};
+        }
+
+        if (solution->inv_map.cols() != this->core.rows()) {
+            std::stringstream errSS;
+            errSS << "SolvedMapCore inverse map has "
+                  << solution->inv_map.cols() << ((solution->inv_map.cols() != 1) ? " columns" : " column")
+                  << ", which does not match with MapCore's "
+                  << this->core.rows() << ((this->core.rows() != 1) ? " rows" : " row") << ".";
+            throw errors::invalid_solution{errSS.str()};
+        }
+
+        return solution;
     }
 
 }
