@@ -33,6 +33,8 @@ add_executable(moment_tests
     scenarios/locality/party_tests.cpp
     scenarios/symmetry/group_tests.cpp
     scenarios/symmetry/implied_map_tests.cpp
+    scenarios/symmetry/lu_mcp_tests.cpp
+    scenarios/symmetry/map_core_tests.cpp
     scenarios/symmetry/representation_mapper_tests.cpp
     scenarios/symmetry/symmetrized_matrix_system_tests.cpp
     symbolic/substitution_list_tests.cpp

@@ -51,6 +51,8 @@ add_library(lib_moment
         scenarios/locality/party.cpp
         scenarios/symmetrized/group.cpp
         scenarios/symmetrized/implied_map.cpp
+        scenarios/symmetrized/lu_map_core_processor.cpp
+        scenarios/symmetrized/map_core.cpp
         scenarios/symmetrized/representation.cpp
         scenarios/symmetrized/representation_mapper.cpp
         scenarios/symmetrized/symmetrized_context.cpp

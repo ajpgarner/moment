@@ -28,6 +28,6 @@ disp(full(rep2.Average));
 
 %sym_mm = sym_scenario.MakeMomentMatrix(1);
 
-%r2a = rep2.Average;
+r2a = rep2.Average;
 
-%[u,s,v] = svds(r2a,2)
+[u,s,v] = svds(r2a,2)
