@@ -49,8 +49,8 @@ add_library(lib_moment
         scenarios/locality/locality_operator_formatter.cpp
         scenarios/locality/joint_measurement_iterator.cpp
         scenarios/locality/party.cpp
+        scenarios/symmetrized/defining_map.cpp
         scenarios/symmetrized/group.cpp
-        scenarios/symmetrized/implied_map.cpp
         scenarios/symmetrized/lu_map_core_processor.cpp
         scenarios/symmetrized/map_core.cpp
         scenarios/symmetrized/representation.cpp

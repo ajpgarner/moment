@@ -15,35 +15,49 @@ namespace Moment {
 
 namespace Moment::Symmetrized {
     class Group;
+    class DefiningMap;
 
     class SymmetrizedMatrixSystem : public MatrixSystem {
 
     private:
+        /**
+         * Owning pointer to base system.
+         * Ownership is necessary, to prevent deletion of base system while SMS is still alive.
+         */
         std::shared_ptr<MatrixSystem> base_ms_ptr;
+
+        /** Symmetry group defining the system */
         std::unique_ptr<Group> symmetry;
+
+        /** Map that defines the system */
+        std::unique_ptr<DefiningMap> map_ptr;
 
     public:
         SymmetrizedMatrixSystem(std::shared_ptr<MatrixSystem> &&base_system, std::unique_ptr<Group>&& group);
 
         ~SymmetrizedMatrixSystem() noexcept override;
 
-        MatrixSystem &base_system() {
+        [[nodiscard]] inline MatrixSystem& base_system() noexcept {
             return *base_ms_ptr;
         }
 
-        const MatrixSystem &base_system() const {
+        [[nodiscard]] inline const MatrixSystem& base_system() const noexcept {
             return *base_ms_ptr;
         }
 
-        Group& group() {
+        [[nodiscard]] inline Group& group() noexcept{
             return *symmetry;
         }
 
-        const Group& group() const {
+        [[nodiscard]] inline const Group& group() const noexcept {
             return *symmetry;
         }
 
-        std::string system_type_name() const override {
+        [[nodiscard]] inline const DefiningMap& map() const noexcept {
+            return *map_ptr;
+        }
+
+        [[nodiscard]] std::string system_type_name() const override {
             return "Symmetrized Matrix System";
         }
 

@@ -8,7 +8,7 @@
 #include "group.h"
 
 #include "symmetrized_context.h"
-#include "implied_map.h"
+#include "defining_map.h"
 
 #include "matrix/moment_matrix.h"
 #include "matrix/localizing_matrix.h"
@@ -25,7 +25,7 @@ namespace Moment::Symmetrized {
         }
     }
 
-    SymmetrizedMatrixSystem::SymmetrizedMatrixSystem(std::shared_ptr<MatrixSystem> &&base_system,
+    SymmetrizedMatrixSystem::SymmetrizedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system,
                                                      std::unique_ptr<Group>&& group)
         : MatrixSystem{make_symmetrized_context(*base_system, *group)},
             base_ms_ptr(std::move(base_system)), symmetry{std::move(group)} {
@@ -40,7 +40,7 @@ namespace Moment::Symmetrized {
     SymmetrizedMatrixSystem::~SymmetrizedMatrixSystem() noexcept = default;
 
     std::unique_ptr<struct MomentMatrix> SymmetrizedMatrixSystem::createNewMomentMatrix(size_t level) {
-        // NOTE: We should be an scope where we hold a write lock to this matrix system.
+        // NOTE: We should be in a scope where we hold a write lock to this matrix system.
 
         // First check source moment matrix exists, create it if it doesn't
         const auto& source_matrix = [&]() -> const class MomentMatrix& {

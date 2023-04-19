@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 
 #include "scenarios/symmetrized/group.h"
-#include "scenarios/symmetrized/implied_map.h"
+#include "scenarios/symmetrized/defining_map.h"
 #include "scenarios/symmetrized/representation.h"
 #include "scenarios/symmetrized/symmetrized_matrix_system.h"
 

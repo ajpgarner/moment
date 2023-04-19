@@ -1,11 +1,11 @@
 /**
- * implied_map.cpp
+ * defining_map.cpp
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 
-#include "implied_map.h"
+#include "defining_map.h"
 
 #include "map_core.h"
 #include "representation.h"
@@ -43,9 +43,10 @@ namespace Moment::Symmetrized {
     }
 
 
-    ImpliedMap::ImpliedMap(SymmetrizedMatrixSystem& sms, std::unique_ptr<MapCore> core_in,
+    DefiningMap::DefiningMap(const SymbolTable& origin, SymbolTable& target,
+                             std::unique_ptr<MapCore> core_in,
                            std::unique_ptr<SolvedMapCore> solution_in)
-        : origin_symbols{sms.base_system().Symbols()}, target_symbols{sms.Symbols()},
+        : origin_symbols{origin}, target_symbols{target},
             core{std::move(core_in)}, core_solution{std::move(solution_in)} {
         if (!this->core) {
             throw errors::bad_map{"Map cannot be constructed without a MapCore."};
@@ -54,27 +55,26 @@ namespace Moment::Symmetrized {
             throw errors::bad_map{"Map cannot be constructed without a SolvedMapCore."};
         }
 
-
-        auto [osg_to_sym, conjugates] = unzip_indices(sms.base_system().Symbols(), this->core->initial_size);
+        auto [osg_to_sym, conjugates] = unzip_indices(this->origin_symbols, this->core->initial_size);
         this->construct_map(osg_to_sym);
     }
 
-    ImpliedMap::ImpliedMap(SymmetrizedMatrixSystem& sms,
-                           MapCoreProcessor&& processor, const Eigen::MatrixXd& src)
-        : origin_symbols{sms.base_system().Symbols()}, target_symbols{sms.Symbols()} {
+    DefiningMap::DefiningMap(const SymbolTable& origin, SymbolTable& target,
+                             MapCoreProcessor&& processor, const Eigen::MatrixXd& src)
+        : origin_symbols{origin}, target_symbols{target} {
 
-        auto [osg_to_sym, conjugates] = unzip_indices(sms.base_system().Symbols(), src.cols());
+        auto [osg_to_sym, conjugates] = unzip_indices(this->origin_symbols, src.cols());
 
         this->core = std::make_unique<MapCore>(std::move(conjugates), src);
         this->core_solution = core->accept(std::move(processor));
         this->construct_map(osg_to_sym);
     }
 
-    ImpliedMap::ImpliedMap(SymmetrizedMatrixSystem& sms,
-                           MapCoreProcessor&& processor, const Eigen::SparseMatrix<double>& src)
-        : origin_symbols{sms.base_system().Symbols()}, target_symbols{sms.Symbols()} {
+    DefiningMap::DefiningMap(const SymbolTable& origin, SymbolTable& target,
+                             MapCoreProcessor&& processor, const Eigen::SparseMatrix<double>& src)
+        : origin_symbols{origin}, target_symbols{target} {
 
-        auto [osg_to_sym, conjugates] = unzip_indices(sms.base_system().Symbols(), src.cols());
+        auto [osg_to_sym, conjugates] = unzip_indices(this->origin_symbols, src.cols());
 
         this->core = std::make_unique<MapCore>(std::move(conjugates), src);
         this->core_solution = core->accept(std::move(processor));
@@ -82,10 +82,12 @@ namespace Moment::Symmetrized {
     }
 
 
-    void ImpliedMap::construct_map(const std::vector<symbol_name_t>& osg_to_symbols) {
-        assert(&origin_symbols != &target_symbols);
+    void DefiningMap::construct_map(const std::vector<symbol_name_t>& osg_to_symbols) {
         assert(this->core);
         assert(this->core_solution);
+
+        // Check sore and solution map.
+        this->core->check_solution(*this->core_solution);
 
         // First, build fixed constants
         this->map.assign(origin_symbols.size(), SymbolCombo::Zero()); // 0 -> 0 always
@@ -131,15 +133,37 @@ namespace Moment::Symmetrized {
         this->inverse_map.assign(2 + this->core_solution->output_symbols, SymbolCombo::Zero());
         this->inverse_map[0] = SymbolCombo::Zero();      // 0 -> 0 always.
         this->inverse_map[1] = SymbolCombo::Scalar(1.0); // 1 -> 1 always.
-        // TODO: Create reverse map
 
+        for (Eigen::Index im_row_id = 0; im_row_id < this->core_solution->output_symbols; ++im_row_id) {
+            const auto dest_symbol = static_cast<symbol_name_t>(im_row_id + 2);
+            SymbolCombo::storage_t from_y_to_x;
+            for (Eigen::Index im_col_id = 0, im_col_max = this->core_solution->inv_map.cols();
+                im_col_id < im_col_max; ++im_col_id) {
+                const auto as_symbol = static_cast<symbol_name_t>(im_col_id + 2);
+                const double value = raw_map(core_col_id, im_col_id);
+                if (abs(value) != 0.0) {
+                    from_y_to_x.emplace_back(as_symbol, value);
+                }
+            }
+            this->inverse_map.emplace_back(std::move(from_y_to_x));
+        }
+        assert(this->inverse_map.size() == this->core_solution->output_symbols+2);
+    }
+
+    size_t DefiningMap::populate_target_symbols() {
+        if (2 != this->target_symbols.size()) {
+            throw errors::bad_map{"Target SymbolTable should be empty (except for zero and identity)."};
+        }
+
+        return this->map.size();
     }
 
 
-    ImpliedMap::~ImpliedMap() noexcept = default;
+
+    DefiningMap::~DefiningMap() noexcept = default;
 
 
-    const SymbolCombo& ImpliedMap::operator()(symbol_name_t symbol_id) const {
+    const SymbolCombo& DefiningMap::operator()(symbol_name_t symbol_id) const {
         // Bounds check
         if ((symbol_id < 0) || (symbol_id >= this->map.size())) {
             std::stringstream ss;
@@ -151,20 +175,21 @@ namespace Moment::Symmetrized {
         return this->map[symbol_id];
     }
 
-    SymbolCombo ImpliedMap::operator()(const SymbolExpression &symbol) const {
+    SymbolCombo DefiningMap::operator()(const SymbolExpression &symbol) const {
         // Get raw combo, or throw range error
         SymbolCombo output = (*this)(symbol.id);
 
         // Apply transformations (using target symbol table)
         output *= symbol.factor;
         if (symbol.conjugated) {
-            output.conjugate_in_place(this->target_symbols);
+            // XXX
+            // output.conjugate_in_place(this->target_symbols);
         }
 
         return output;
     }
 
-    const SymbolCombo& ImpliedMap::inverse(symbol_name_t symbol_id) const {
+    const SymbolCombo& DefiningMap::inverse(symbol_name_t symbol_id) const {
         // Bounds check
         if ((symbol_id < 0) || (symbol_id >= this->inverse_map.size())) {
             std::stringstream ss;
@@ -176,14 +201,15 @@ namespace Moment::Symmetrized {
         return this->inverse_map[symbol_id];
     }
 
-    SymbolCombo ImpliedMap::inverse(const SymbolExpression& symbol) const {
+    SymbolCombo DefiningMap::inverse(const SymbolExpression& symbol) const {
         // Get raw combo, or throw range error
         SymbolCombo output = this->inverse(symbol.id);
 
         // Apply transformations (using target symbol table)
         output *= symbol.factor;
         if (symbol.conjugated) {
-            output.conjugate_in_place(this->target_symbols);
+            // XXX
+            // output.conjugate_in_place(this->target_symbols);
         }
 
         return output;

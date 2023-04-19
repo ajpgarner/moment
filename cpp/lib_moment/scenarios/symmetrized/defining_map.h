@@ -1,8 +1,10 @@
 /**
- * implied_map.h
+ * defining_map.h
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
+ *
+ * The map that defines the symbols of a symmetrized matrix system.
  */
 
 #pragma once
@@ -31,7 +33,6 @@ namespace Moment {
     class SymbolCombo;
     class SymbolTable;
 
-
     namespace Symmetrized {
         class Representation;
         class SymmetrizedMatrixSystem;
@@ -39,10 +40,10 @@ namespace Moment {
         class MapCoreProcessor;
         class SolvedMapCore;
 
-        class ImpliedMap {
+        class DefiningMap {
         private:
             const SymbolTable& origin_symbols;
-            const SymbolTable& target_symbols;
+            SymbolTable& target_symbols;
             size_t max_length = 0;
 
             std::vector<SymbolCombo> map;
@@ -53,19 +54,31 @@ namespace Moment {
 
         public:
 
-            ImpliedMap(SymmetrizedMatrixSystem& sms, MapCoreProcessor&& proc, const Eigen::MatrixXd& src);
+            DefiningMap(const SymbolTable& origin, SymbolTable& target,
+                        MapCoreProcessor&& proc, const Eigen::MatrixXd& src);
 
-            ImpliedMap(SymmetrizedMatrixSystem& sms, MapCoreProcessor&& proc, const Eigen::SparseMatrix<double>& src);
+            DefiningMap(const SymbolTable& origin, SymbolTable& target,
+                        MapCoreProcessor&& proc, const Eigen::SparseMatrix<double>& src);
 
-            ImpliedMap(SymmetrizedMatrixSystem& sms,
+            DefiningMap(const SymbolTable& origin, SymbolTable& target,
                        std::unique_ptr<MapCore> core,
                        std::unique_ptr<SolvedMapCore> solution);
 
         private:
+            /**
+             * Use core and solution to build map.
+             * @param osg_to_symbols The symbol IDs in the origin table corresponding to the OSG indices.
+             */
              void construct_map(const std::vector<symbol_name_t>& osg_to_symbols);
 
+             /**
+              *
+              * @return Number of defined symbols.
+              */
+             size_t populate_target_symbols();
+
         public:
-            ~ImpliedMap() noexcept;
+            ~DefiningMap() noexcept;
 
             /**
              * Get symbol/symbol combo in target, associated with symbol in source.
@@ -77,7 +90,7 @@ namespace Moment {
 
             /**
               * Create symbol/symbol combo in target, associated with symbol expression in source.
-              * Also takes into account prefactors/complex conjugation etc.
+              * Also takes into account pre-factors/complex conjugation etc.
               * @param symbol_id Source symbol
               * @return New symbol combo, transforming the supplied expression.
               * @throws error::bad_map If symbol is out of range.

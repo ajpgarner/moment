@@ -175,41 +175,38 @@ namespace Moment::Symmetrized {
         }
     }
 
-    std::unique_ptr<SolvedMapCore> MapCore::accept(MapCoreProcessor&& mcp) const {
-        auto solution = mcp(*this);
 
-        if (this->core.cols() != solution->map.rows()) {
+    void MapCore::check_solution(const SolvedMapCore& solution) const {
+        if (this->core.cols() != solution.map.rows()) {
             std::stringstream errSS;
             errSS << "MapCore has " << this->core.cols() << ((this->core.cols() != 1) ? " columns" : " column")
                   << ", which does not match with SolvedMapCore map's "
-                  << solution->map.rows() << ((solution->map.rows() != 1) ? " rows" : " row") << ".";
+                  << solution.map.rows() << ((solution.map.rows() != 1) ? " rows" : " row") << ".";
             throw errors::invalid_solution{errSS.str()};
         }
 
-        if (solution->map.cols() != solution->output_symbols) {
+        if (solution.map.cols() != solution.output_symbols) {
             std::stringstream errSS;
             errSS << "SolvedMapCore map has " << this->core.cols() << ((this->core.cols() != 1) ? " columns" : " column")
-                  << ", which does not match declared map rank " << solution->output_symbols << ".";
+                  << ", which does not match declared map rank " << solution.output_symbols << ".";
             throw errors::invalid_solution{errSS.str()};
         }
 
-        if (solution->inv_map.rows() != solution->output_symbols) {
+        if (solution.inv_map.rows() != solution.output_symbols) {
             std::stringstream errSS;
             errSS << "SolvedMapCore inverse map has " << this->core.rows() << ((this->core.cols() != 1) ? " rows" : " row")
-                  << ", which does not match declared map rank " << solution->output_symbols << ".";
+                  << ", which does not match declared map rank " << solution.output_symbols << ".";
             throw errors::invalid_solution{errSS.str()};
         }
 
-        if (solution->inv_map.cols() != this->core.rows()) {
+        if (solution.inv_map.cols() != this->core.rows()) {
             std::stringstream errSS;
             errSS << "SolvedMapCore inverse map has "
-                  << solution->inv_map.cols() << ((solution->inv_map.cols() != 1) ? " columns" : " column")
+                  << solution.inv_map.cols() << ((solution.inv_map.cols() != 1) ? " columns" : " column")
                   << ", which does not match with MapCore's "
                   << this->core.rows() << ((this->core.rows() != 1) ? " rows" : " row") << ".";
             throw errors::invalid_solution{errSS.str()};
         }
-
-        return solution;
     }
 
 }

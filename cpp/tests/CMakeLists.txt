@@ -31,8 +31,8 @@ add_executable(moment_tests
     scenarios/locality/locality_explicit_symbols_tests.cpp
     scenarios/locality/locality_implicit_symbols_tests.cpp
     scenarios/locality/party_tests.cpp
+    scenarios/symmetry/defining_map_tests.cpp
     scenarios/symmetry/group_tests.cpp
-    scenarios/symmetry/implied_map_tests.cpp
     scenarios/symmetry/lu_mcp_tests.cpp
     scenarios/symmetry/map_core_tests.cpp
     scenarios/symmetry/representation_mapper_tests.cpp
@@ -55,7 +55,8 @@ add_executable(moment_tests
     utilities/shortlex_hasher_tests.cpp
     utilities/small_vector_tests.cpp
     utilities/square_matrix_tests.cpp
-    utilities/variable_chunk_range_tests.cpp)
+    utilities/variable_chunk_range_tests.cpp
+)
 
 target_link_libraries(moment_tests
     lib_moment

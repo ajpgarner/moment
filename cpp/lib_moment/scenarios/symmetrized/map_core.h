@@ -102,9 +102,16 @@ namespace Moment {
             /**
              * Process map core with visitor class, and sanity check solution.
              * @return Owning pointer to solution.
-             * @throws errors::invalid_solution if solution has an obvious problem.
              */
-            [[nodiscard]] std::unique_ptr<SolvedMapCore> accept(MapCoreProcessor&& mcp) const;
+            [[nodiscard]] inline std::unique_ptr<SolvedMapCore> accept(MapCoreProcessor&& mcp) const {
+                return mcp(*this);
+            }
+
+            /**
+             * Sanity check solution.
+             @throws errors::invalid_solution if solution has an obvious problem.
+             */
+            void check_solution(const SolvedMapCore& solution) const;
         };
     }
 
