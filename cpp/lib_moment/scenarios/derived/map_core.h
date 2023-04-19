@@ -17,7 +17,7 @@ namespace Moment {
 
     class SymbolTable;
 
-    namespace Symmetrized {
+    namespace Derived {
         struct MapCore;
 
         /**

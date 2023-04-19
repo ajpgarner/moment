@@ -6,7 +6,7 @@
  */
 #include "gtest/gtest.h"
 
-#include "sparse_utils.h"
+#include "../sparse_utils.h"
 
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/symmetrized/group.h"

@@ -1,14 +1,14 @@
 /**
- * symmetrized_context.cpp
+ * derived_context.cpp
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "symmetrized_context.h"
+#include "derived_context.h"
 
-namespace Moment::Symmetrized {
+namespace Moment::Derived {
 
-    SymmetrizedContext::SymmetrizedContext(const Context& source_context)
+    DerivedContext::DerivedContext(const Context& source_context)
         : Context(0), base_context{source_context} {
 
     }

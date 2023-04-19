@@ -7,8 +7,8 @@
 #include "symmetrized_matrix_system.h"
 #include "group.h"
 
-#include "symmetrized_context.h"
-#include "defining_map.h"
+#include "../derived/derived_context.h"
+#include "../derived/symbol_table_map.h"
 
 #include "matrix/moment_matrix.h"
 #include "matrix/localizing_matrix.h"
@@ -21,7 +21,7 @@ namespace Moment::Symmetrized {
 
     namespace {
         std::unique_ptr<Context> make_symmetrized_context(const MatrixSystem& source, const Group& group) {
-            return std::make_unique<SymmetrizedContext>(source.Context());
+            return std::make_unique<Derived::DerivedContext>(source.Context());
         }
     }
 

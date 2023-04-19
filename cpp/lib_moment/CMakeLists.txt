@@ -27,6 +27,10 @@ add_library(lib_moment
         scenarios/algebraic/name_table.cpp
         scenarios/algebraic/ostream_rule_logger.cpp
         scenarios/algebraic/rule_book.cpp
+        scenarios/derived/derived_context.cpp
+        scenarios/derived/lu_map_core_processor.cpp
+        scenarios/derived/map_core.cpp
+        scenarios/derived/symbol_table_map.cpp
         scenarios/imported/imported_context.cpp
         scenarios/imported/imported_matrix_system.cpp
         scenarios/inflation/canonical_observables.cpp
@@ -49,13 +53,9 @@ add_library(lib_moment
         scenarios/locality/locality_operator_formatter.cpp
         scenarios/locality/joint_measurement_iterator.cpp
         scenarios/locality/party.cpp
-        scenarios/symmetrized/defining_map.cpp
         scenarios/symmetrized/group.cpp
-        scenarios/symmetrized/lu_map_core_processor.cpp
-        scenarios/symmetrized/map_core.cpp
         scenarios/symmetrized/representation.cpp
         scenarios/symmetrized/representation_mapper.cpp
-        scenarios/symmetrized/symmetrized_context.cpp
         scenarios/symmetrized/symmetrized_matrix_system.cpp
         symbolic/substitution_list.cpp
         symbolic/symbol.cpp

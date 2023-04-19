@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace Moment::Symmetrized {
+namespace Moment::Derived {
 
     std::unique_ptr<SolvedMapCore> LUMapCoreProcessor::operator()(const MapCore &core) {
         auto solutionPtr = std::make_unique<SolvedMapCore>();

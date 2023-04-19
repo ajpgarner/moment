@@ -9,8 +9,7 @@
 
 #pragma once
 
-#include "symmetrized_errors.h"
-#include "representation.h"
+#include "derived_errors.h"
 
 #include "symbolic/symbol_combo.h"
 
@@ -33,14 +32,12 @@ namespace Moment {
     class SymbolCombo;
     class SymbolTable;
 
-    namespace Symmetrized {
-        class Representation;
-        class SymmetrizedMatrixSystem;
+    namespace Derived {
         class MapCore;
         class MapCoreProcessor;
         class SolvedMapCore;
 
-        class DefiningMap {
+        class SymbolTableMap {
         private:
             const SymbolTable& origin_symbols;
             SymbolTable& target_symbols;
@@ -54,13 +51,13 @@ namespace Moment {
 
         public:
 
-            DefiningMap(const SymbolTable& origin, SymbolTable& target,
+            SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
                         MapCoreProcessor&& proc, const Eigen::MatrixXd& src);
 
-            DefiningMap(const SymbolTable& origin, SymbolTable& target,
+            SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
                         MapCoreProcessor&& proc, const Eigen::SparseMatrix<double>& src);
 
-            DefiningMap(const SymbolTable& origin, SymbolTable& target,
+            SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
                        std::unique_ptr<MapCore> core,
                        std::unique_ptr<SolvedMapCore> solution);
 
@@ -78,7 +75,7 @@ namespace Moment {
              size_t populate_target_symbols();
 
         public:
-            ~DefiningMap() noexcept;
+            ~SymbolTableMap() noexcept;
 
             /**
              * Get symbol/symbol combo in target, associated with symbol in source.

@@ -7,20 +7,20 @@
 
 #include "gtest/gtest.h"
 
-#include "scenarios/symmetrized/map_core.h"
-#include "scenarios/symmetrized/lu_map_core_processor.h"
+#include "scenarios/derived/map_core.h"
+#include "scenarios/derived/lu_map_core_processor.h"
 
 #include "utilities/dynamic_bitset.h"
 
-#include "sparse_utils.h"
+#include "../sparse_utils.h"
 
 #include <stdexcept>
 
 namespace Moment::Tests {
 
-    using namespace Moment::Symmetrized;
+    using namespace Moment::Derived;
 
-    TEST(Scenarios_Symmetry_luMCP, Trivial) {
+    TEST(Scenarios_Derived_luMCP, Trivial) {
         Eigen::SparseMatrix<double> m = make_sparse(3, {1.0, 2.0, 3.0,
                                                         0.0, 0.0, 0.0,
                                                         0.0, 0.0, 0.0});
@@ -40,7 +40,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Scenarios_Symmetry_luMCP, RankReducingMap) {
+    TEST(Scenarios_Derived_luMCP, RankReducingMap) {
         Eigen::SparseMatrix<double> m = make_sparse(3, {1.0, 0.0, 0.0,
                                                         0.0, 1.0, 1.0,
                                                         0.0, 1.0, 1.0});

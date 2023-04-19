@@ -11,11 +11,13 @@
 
 namespace Moment {
     class ExplicitSymbolIndex;
+    namespace Derived {
+        class SymbolTableMap;
+    }
 }
 
 namespace Moment::Symmetrized {
     class Group;
-    class DefiningMap;
 
     class SymmetrizedMatrixSystem : public MatrixSystem {
 
@@ -30,7 +32,7 @@ namespace Moment::Symmetrized {
         std::unique_ptr<Group> symmetry;
 
         /** Map that defines the system */
-        std::unique_ptr<DefiningMap> map_ptr;
+        std::unique_ptr<Derived::SymbolTableMap> map_ptr;
 
     public:
         SymmetrizedMatrixSystem(std::shared_ptr<MatrixSystem> &&base_system, std::unique_ptr<Group>&& group);
@@ -53,7 +55,7 @@ namespace Moment::Symmetrized {
             return *symmetry;
         }
 
-        [[nodiscard]] inline const DefiningMap& map() const noexcept {
+        [[nodiscard]] inline const Derived::SymbolTableMap& map() const noexcept {
             return *map_ptr;
         }
 

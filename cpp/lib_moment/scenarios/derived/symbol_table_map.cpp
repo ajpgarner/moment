@@ -5,11 +5,9 @@
  * @author Andrew J. P. Garner
  */
 
-#include "defining_map.h"
+#include "symbol_table_map.h"
 
 #include "map_core.h"
-#include "representation.h"
-#include "symmetrized_matrix_system.h"
 
 #include "scenarios/context.h"
 
@@ -19,7 +17,7 @@
 #include <limits>
 #include <sstream>
 
-namespace Moment::Symmetrized {
+namespace Moment::Derived {
 
     namespace {
         constexpr bool is_close(const double x, const double y, const double eps_mult = 1.0) {
@@ -43,7 +41,7 @@ namespace Moment::Symmetrized {
     }
 
 
-    DefiningMap::DefiningMap(const SymbolTable& origin, SymbolTable& target,
+    SymbolTableMap::SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
                              std::unique_ptr<MapCore> core_in,
                            std::unique_ptr<SolvedMapCore> solution_in)
         : origin_symbols{origin}, target_symbols{target},
@@ -59,7 +57,7 @@ namespace Moment::Symmetrized {
         this->construct_map(osg_to_sym);
     }
 
-    DefiningMap::DefiningMap(const SymbolTable& origin, SymbolTable& target,
+    SymbolTableMap::SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
                              MapCoreProcessor&& processor, const Eigen::MatrixXd& src)
         : origin_symbols{origin}, target_symbols{target} {
 
@@ -70,7 +68,7 @@ namespace Moment::Symmetrized {
         this->construct_map(osg_to_sym);
     }
 
-    DefiningMap::DefiningMap(const SymbolTable& origin, SymbolTable& target,
+    SymbolTableMap::SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
                              MapCoreProcessor&& processor, const Eigen::SparseMatrix<double>& src)
         : origin_symbols{origin}, target_symbols{target} {
 
@@ -82,7 +80,7 @@ namespace Moment::Symmetrized {
     }
 
 
-    void DefiningMap::construct_map(const std::vector<symbol_name_t>& osg_to_symbols) {
+    void SymbolTableMap::construct_map(const std::vector<symbol_name_t>& osg_to_symbols) {
         assert(this->core);
         assert(this->core_solution);
 
@@ -150,7 +148,7 @@ namespace Moment::Symmetrized {
         assert(this->inverse_map.size() == this->core_solution->output_symbols+2);
     }
 
-    size_t DefiningMap::populate_target_symbols() {
+    size_t SymbolTableMap::populate_target_symbols() {
         if (2 != this->target_symbols.size()) {
             throw errors::bad_map{"Target SymbolTable should be empty (except for zero and identity)."};
         }
@@ -160,10 +158,10 @@ namespace Moment::Symmetrized {
 
 
 
-    DefiningMap::~DefiningMap() noexcept = default;
+    SymbolTableMap::~SymbolTableMap() noexcept = default;
 
 
-    const SymbolCombo& DefiningMap::operator()(symbol_name_t symbol_id) const {
+    const SymbolCombo& SymbolTableMap::operator()(symbol_name_t symbol_id) const {
         // Bounds check
         if ((symbol_id < 0) || (symbol_id >= this->map.size())) {
             std::stringstream ss;
@@ -175,21 +173,20 @@ namespace Moment::Symmetrized {
         return this->map[symbol_id];
     }
 
-    SymbolCombo DefiningMap::operator()(const SymbolExpression &symbol) const {
+    SymbolCombo SymbolTableMap::operator()(const SymbolExpression &symbol) const {
         // Get raw combo, or throw range error
         SymbolCombo output = (*this)(symbol.id);
 
         // Apply transformations (using target symbol table)
         output *= symbol.factor;
         if (symbol.conjugated) {
-            // XXX
-            // output.conjugate_in_place(this->target_symbols);
+            output.conjugate_in_place(this->target_symbols);
         }
 
         return output;
     }
 
-    const SymbolCombo& DefiningMap::inverse(symbol_name_t symbol_id) const {
+    const SymbolCombo& SymbolTableMap::inverse(symbol_name_t symbol_id) const {
         // Bounds check
         if ((symbol_id < 0) || (symbol_id >= this->inverse_map.size())) {
             std::stringstream ss;
@@ -201,15 +198,14 @@ namespace Moment::Symmetrized {
         return this->inverse_map[symbol_id];
     }
 
-    SymbolCombo DefiningMap::inverse(const SymbolExpression& symbol) const {
+    SymbolCombo SymbolTableMap::inverse(const SymbolExpression& symbol) const {
         // Get raw combo, or throw range error
         SymbolCombo output = this->inverse(symbol.id);
 
         // Apply transformations (using target symbol table)
         output *= symbol.factor;
         if (symbol.conjugated) {
-            // XXX
-            // output.conjugate_in_place(this->target_symbols);
+            output.conjugate_in_place(this->target_symbols);
         }
 
         return output;

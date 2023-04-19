@@ -1,5 +1,5 @@
 /**
- * symmetrized_context.h
+ * derived_context.h
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -8,13 +8,13 @@
 
 #include "../context.h"
 
-namespace Moment::Symmetrized {
+namespace Moment::Derived {
 
-    class SymmetrizedContext : public Context {
+    class DerivedContext : public Context {
     public:
         const Context& base_context;
 
-        SymmetrizedContext(const Context& source_context);
+        DerivedContext(const Context& source_context);
 
     };
 

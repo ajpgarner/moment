@@ -16,6 +16,9 @@ add_executable(moment_tests
     scenarios/algebraic/monomial_substitution_rule_tests.cpp
     scenarios/algebraic/name_table_tests.cpp
     scenarios/algebraic/rule_book_tests.cpp
+    scenarios/derived/lu_mcp_tests.cpp
+    scenarios/derived/map_core_tests.cpp
+    scenarios/derived/symbol_table_map_tests.cpp
     scenarios/imported/imported_matrix_system_tests.cpp
     scenarios/inflation/canonical_observables_tests.cpp
     scenarios/inflation/causal_network_tests.cpp
@@ -31,10 +34,7 @@ add_executable(moment_tests
     scenarios/locality/locality_explicit_symbols_tests.cpp
     scenarios/locality/locality_implicit_symbols_tests.cpp
     scenarios/locality/party_tests.cpp
-    scenarios/symmetry/defining_map_tests.cpp
     scenarios/symmetry/group_tests.cpp
-    scenarios/symmetry/lu_mcp_tests.cpp
-    scenarios/symmetry/map_core_tests.cpp
     scenarios/symmetry/representation_mapper_tests.cpp
     scenarios/symmetry/symmetrized_matrix_system_tests.cpp
     symbolic/substitution_list_tests.cpp

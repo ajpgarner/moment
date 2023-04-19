@@ -8,7 +8,7 @@
 
 #include "scenarios/symmetrized/representation_mapper.h"
 
-#include "sparse_utils.h"
+#include "../sparse_utils.h"
 
 #include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/locality/locality_context.h"

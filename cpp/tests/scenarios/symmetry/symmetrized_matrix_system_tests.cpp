@@ -7,7 +7,6 @@
 #include "gtest/gtest.h"
 
 #include "scenarios/symmetrized/group.h"
-#include "scenarios/symmetrized/defining_map.h"
 #include "scenarios/symmetrized/representation.h"
 #include "scenarios/symmetrized/symmetrized_matrix_system.h"
 
@@ -15,7 +14,7 @@
 #include "scenarios/algebraic/algebraic_matrix_system.h"
 #include "scenarios/algebraic/name_table.h"
 
-#include "sparse_utils.h"
+#include "../sparse_utils.h"
 
 namespace Moment::Tests {
 

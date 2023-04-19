@@ -7,7 +7,7 @@
 
 #include "map_core.h"
 
-#include "symmetrized_errors.h"
+#include "derived_errors.h"
 
 #include "symbolic/symbol_table.h"
 
@@ -16,7 +16,7 @@
 #include <limits>
 #include <sstream>
 
-namespace Moment::Symmetrized {
+namespace Moment::Derived {
     namespace {
         constexpr bool is_close(const double x, const double y, const double eps_mult = 1.0) {
             return std::abs(x - y)
