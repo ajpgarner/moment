@@ -11,21 +11,16 @@
 
 #include "symbolic/symbol_table.h"
 
+#include "utilities/float_utils.h"
+
 #include <cmath>
 
 #include <limits>
 #include <sstream>
 
 namespace Moment::Derived {
-    namespace {
-        constexpr bool is_close(const double x, const double y, const double eps_mult = 1.0) {
-            return std::abs(x - y)
-                < eps_mult * std::numeric_limits<double>::epsilon() * std::max(std::abs(x), std::abs(y));
-        }
-    }
 
-
-    MapCore::MapCore(DynamicBitset<size_t>&& skipped, const Eigen::MatrixXd &raw_remap, const double zero_tolerance)
+    MapCore::MapCore(DynamicBitset<size_t>&& skipped, const Eigen::MatrixXd &raw_remap, const double zero_epsilon)
             : initial_size{static_cast<size_t>(raw_remap.cols())},
               nontrivial_rows{static_cast<size_t>(raw_remap.rows()), false},
               nontrivial_cols{static_cast<size_t>(raw_remap.cols()), true},
@@ -36,14 +31,14 @@ namespace Moment::Derived {
 
 
         // Check first column maps ID->ID
-        if (!is_close(raw_remap.coeff(0,0), 1.0)) {
+        if (!approximately_equal(raw_remap.coeff(0,0), 1.0)) {
             throw errors::bad_map{"First column of transformation must map identity to the identity."};
         }
-        auto col_has_any_non_constant = [&raw_remap,&zero_tolerance](Eigen::Index col) -> bool {
+        auto col_has_any_non_constant = [&raw_remap, &zero_epsilon](Eigen::Index col) -> bool {
             auto row_iter = Eigen::MatrixXd::InnerIterator{raw_remap, col};
             ++row_iter;
             while (row_iter) {
-                if (std::abs(row_iter.value()) > zero_tolerance) {
+                if (!approximately_zero(row_iter.value(), zero_epsilon)) {
                     return true;
                 }
                 ++row_iter;
@@ -62,7 +57,7 @@ namespace Moment::Derived {
             }
 
             // Identify rows with no values, or only a constant value:
-            const bool hasConstant = std::abs(raw_remap(0, col_index)) > zero_tolerance;
+            const bool hasConstant = !approximately_zero(raw_remap(0, col_index), zero_epsilon);
             const bool hasAnythingElse = col_has_any_non_constant(col_index);
             if (!hasAnythingElse) {
                 if (!hasConstant) {
@@ -80,7 +75,7 @@ namespace Moment::Derived {
             // Otherwise, column is nontrivial - identify rows that are nontrivial
             for (auto row_iter = Eigen::MatrixXd::InnerIterator{raw_remap, col_index};
                  row_iter; ++row_iter) {
-                if (std::abs(row_iter.value()) > zero_tolerance) {
+                if (!approximately_zero(row_iter.value(), zero_epsilon)) {
                     this->nontrivial_rows[row_iter.row()] = true;
                 }
             }
@@ -98,12 +93,12 @@ namespace Moment::Derived {
         auto *write_iter = this->core.data();
         for (const auto old_col_idx : this->nontrivial_cols) {
             double c_read_val = raw_remap.coeff(0, static_cast<Eigen::Index>(old_col_idx));
-            *(offset_write_iter) = (abs(c_read_val) > zero_tolerance) ? c_read_val : 0.0;
+            *(offset_write_iter) = approximately_zero(c_read_val, zero_epsilon) ? 0.0 : c_read_val;
             ++offset_write_iter;
             for (const auto old_row_idx : this->nontrivial_rows) {
                 double read_val = raw_remap.coeff(static_cast<Eigen::Index>(old_row_idx),
                                                     static_cast<Eigen::Index>(old_col_idx));
-                *(write_iter) = (abs(read_val) > zero_tolerance) ? read_val : 0.0;
+                *(write_iter) = approximately_zero(read_val, zero_epsilon) ? 0.0 : read_val;
                 ++write_iter;
             }
         }
@@ -120,7 +115,7 @@ namespace Moment::Derived {
         this->nontrivial_rows[0] = true;
 
         // Check first column maps ID->ID
-        if ((raw_remap.col(0).nonZeros() != 1) || !is_close(raw_remap.coeff(0,0), 1.0)) {
+        if ((raw_remap.col(0).nonZeros() != 1) || !approximately_equal(raw_remap.coeff(0,0), 1.0)) {
             throw errors::bad_map{"First column of transformation must map identity to the identity."};
         }
 

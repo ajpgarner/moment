@@ -52,10 +52,10 @@ namespace Moment {
         public:
 
             SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
-                        MapCoreProcessor&& proc, const Eigen::MatrixXd& src);
+                        const MapCoreProcessor& proc, const Eigen::MatrixXd& src);
 
             SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
-                        MapCoreProcessor&& proc, const Eigen::SparseMatrix<double>& src);
+                        const MapCoreProcessor& proc, const Eigen::SparseMatrix<double>& src);
 
             SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
                        std::unique_ptr<MapCore> core,
@@ -114,7 +114,7 @@ namespace Moment {
             /**
              * The longest word that can be remapped by this map.
              */
-             [[nodiscard]] size_t longest_word() const noexcept { return this->max_length; }
+             [[nodiscard]] inline size_t longest_word() const noexcept { return this->max_length; }
 
         };
     };

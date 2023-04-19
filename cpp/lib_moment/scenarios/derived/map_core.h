@@ -52,8 +52,9 @@ namespace Moment {
 
             /**
              * Process MapCore into a SolvedMapCore.
+             * Should be logically constant and thread safe.
              */
-            virtual std::unique_ptr<SolvedMapCore> operator()(const MapCore& core) = 0;
+            virtual std::unique_ptr<SolvedMapCore> operator()(const MapCore& core) const = 0;
         };
 
         /**
@@ -103,7 +104,7 @@ namespace Moment {
              * Process map core with visitor class, and sanity check solution.
              * @return Owning pointer to solution.
              */
-            [[nodiscard]] inline std::unique_ptr<SolvedMapCore> accept(MapCoreProcessor&& mcp) const {
+            [[nodiscard]] inline std::unique_ptr<SolvedMapCore> accept(const MapCoreProcessor& mcp) const {
                 return mcp(*this);
             }
 

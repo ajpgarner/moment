@@ -14,7 +14,7 @@
 
 namespace Moment::Derived {
 
-    std::unique_ptr<SolvedMapCore> LUMapCoreProcessor::operator()(const MapCore &core) {
+    std::unique_ptr<SolvedMapCore> LUMapCoreProcessor::operator()(const MapCore &core) const {
         auto solutionPtr = std::make_unique<SolvedMapCore>();
         auto& solution = *solutionPtr;
 
@@ -35,11 +35,11 @@ namespace Moment::Derived {
         solution.trivial_solution = false;
 
         // Otherwise, we have non-trivial rank reduction; extract L and U matrices as map and inverse map.
-        solution.map = Eigen::MatrixXd::Identity(input_rows, rank);
-        solution.map.triangularView<Eigen::StrictlyLower>() = lu.matrixLU().topLeftCorner(input_rows, rank);
+        solution.map = Eigen::MatrixXd::Identity(input_cols, rank);
+        solution.map.triangularView<Eigen::StrictlyLower>() = lu.matrixLU().topLeftCorner(input_cols, rank);
         solution.map = lu.permutationP().inverse() * solution.map;
 
-        solution.inv_map = lu.matrixLU().topLeftCorner(rank, input_cols).triangularView<Eigen::Upper>();
+        solution.inv_map = lu.matrixLU().topLeftCorner(rank, input_rows).triangularView<Eigen::Upper>();
         solution.inv_map = solution.inv_map * lu.permutationQ().inverse();
 
         return solutionPtr;

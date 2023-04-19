@@ -8,85 +8,58 @@
 #include "group.h"
 
 #include "../derived/derived_context.h"
+#include "../derived/map_core.h"
 #include "../derived/symbol_table_map.h"
 
 #include "matrix/moment_matrix.h"
 #include "matrix/localizing_matrix.h"
 
 #include <cassert>
+#include <sstream>
 
 namespace Moment::Symmetrized {
 
-    // TODO: Make context
 
-    namespace {
-        std::unique_ptr<Context> make_symmetrized_context(const MatrixSystem& source, const Group& group) {
-            return std::make_unique<Derived::DerivedContext>(source.Context());
-        }
+    SymmetrizedMatrixSystem::SymmetrizedSTMFactory::SymmetrizedSTMFactory(
+            Group& group, size_t max_word_length, std::unique_ptr<Derived::MapCoreProcessor>&& proc_in) noexcept
+          : group{group}, max_word_length{max_word_length}, processor{std::move(proc_in)}  {
+        assert(static_cast<bool>(this->processor));
     }
 
+    std::unique_ptr<Derived::SymbolTableMap>
+    SymmetrizedMatrixSystem::SymmetrizedSTMFactory::operator()(const SymbolTable& origin_symbols,
+                                                               SymbolTable& target_symbols) {
+        // First, ensure source defines enough symbols to do generation
+        const auto osg_length = origin_symbols.OSGIndex.max_length();
+        if (osg_length < max_word_length) {
+            std::stringstream errSS;
+            errSS << "Could not generate map for strings of length " << max_word_length
+                 << ", because origin symbol table has only been populated up to strings of length " << osg_length;
+            throw errors::bad_map{errSS.str()};
+        }
+
+        // Next, ensure group has representation for requested length.
+        const auto& group_rep = this->group.create_representation(max_word_length);
+
+        // Next, get average of group action in this representation
+        const repmat_t average = group_rep.sum_of() / static_cast<double>(group.size);
+
+        // Do processing
+        return std::make_unique<Derived::SymbolTableMap>(origin_symbols, target_symbols, *this->processor, average);
+    }
+
+
+
     SymmetrizedMatrixSystem::SymmetrizedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system,
-                                                     std::unique_ptr<Group>&& group)
-        : MatrixSystem{make_symmetrized_context(*base_system, *group)},
-            base_ms_ptr(std::move(base_system)), symmetry{std::move(group)} {
-
-        // Avoid deadlock. Should never occur...!
-        assert(this->base_ms_ptr.get() != this);
-
-
+                                                     std::unique_ptr<Group>&& group,
+                                                     size_t max_word_length,
+                                                     std::unique_ptr<Derived::MapCoreProcessor>&& processor)
+        : Derived::DerivedMatrixSystem{std::move(base_system),
+                                       SymmetrizedSTMFactory{*group, max_word_length, std::move(processor)}},
+          symmetry{std::move(group)} {
 
     }
 
     SymmetrizedMatrixSystem::~SymmetrizedMatrixSystem() noexcept = default;
-
-    std::unique_ptr<struct MomentMatrix> SymmetrizedMatrixSystem::createNewMomentMatrix(size_t level) {
-        // NOTE: We should be in a scope where we hold a write lock to this matrix system.
-
-        // First check source moment matrix exists, create it if it doesn't
-        const auto& source_matrix = [&]() -> const class MomentMatrix& {
-            auto read_source_lock = this->base_system().get_read_lock();
-            // Get, if exists
-            auto index = this->base_system().find_moment_matrix(level);
-            if (index >= 0) {
-                return dynamic_cast<const class MomentMatrix&>(this->base_system()[index]);
-            }
-            read_source_lock.unlock();
-
-            // Wait for write lock...
-            auto write_source_lock = this->base_system().get_write_lock();
-            auto [mm_index, mm] = this->base_system().create_moment_matrix(level);
-
-            return mm; // write_source_lock unlocks
-        }();
-
-        // TODO: If a larger moment matrix has already been created, no need to re-do generation steps
-
-        // Next, ensure source scenario defines a sufficiently large symbol map
-        this->base_system().generate_dictionary(2*level);
-
-        // Next, ensure the symmetry group has a large enough representation
-        const auto& rep = this->symmetry->representation(2*level);
-
-        // Lock source for read again.
-        auto source_lock = this->base_system().get_read_lock();
-
-        // Create map from average
-
-
-        // Apply map
-
-
-
-
-        throw std::logic_error{"SymmetrizedMatrixSystem::createNewMomentMatrix not yet implemented."};
-    }
-
-    std::unique_ptr<struct LocalizingMatrix>
-    SymmetrizedMatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) {
-        // First of all, make sure we have rep. up to the right level
-        const auto& rep = this->symmetry->representation(2*lmi.Level + lmi.Word.size());
-
-        throw std::logic_error{"SymmetrizedMatrixSystem::createNewLocalizingMatrix not yet implemented."};
-    }
 
 }

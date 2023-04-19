@@ -6,6 +6,8 @@
  */
 #include "gtest/gtest.h"
 
+#include "scenarios/derived/lu_map_core_processor.h"
+
 #include "scenarios/symmetrized/group.h"
 #include "scenarios/symmetrized/representation.h"
 #include "scenarios/symmetrized/symmetrized_matrix_system.h"
@@ -27,6 +29,7 @@ namespace Moment::Tests {
         );
         auto& ams = *amsPtr;
         auto& context = ams.Context();
+        ams.generate_dictionary(2);
 
         // Z2 symmetry; e.g. max "a + b" subject to "a + b < 10"
         std::vector<Eigen::SparseMatrix<double>> generators;
@@ -38,7 +41,7 @@ namespace Moment::Tests {
         auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));
         auto group = std::make_unique<Group>(context, std::move(base_rep));
 
-        SymmetrizedMatrixSystem sms{amsPtr, std::move(group)};
+        SymmetrizedMatrixSystem sms{amsPtr, std::move(group), 2, std::make_unique<Derived::LUMapCoreProcessor>()};
 
         ASSERT_EQ(&ams, &sms.base_system());
 

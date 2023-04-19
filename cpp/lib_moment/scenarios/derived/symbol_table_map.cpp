@@ -42,8 +42,8 @@ namespace Moment::Derived {
 
 
     SymbolTableMap::SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
-                             std::unique_ptr<MapCore> core_in,
-                           std::unique_ptr<SolvedMapCore> solution_in)
+                                   std::unique_ptr<MapCore> core_in,
+                                   std::unique_ptr<SolvedMapCore> solution_in)
         : origin_symbols{origin}, target_symbols{target},
             core{std::move(core_in)}, core_solution{std::move(solution_in)} {
         if (!this->core) {
@@ -58,24 +58,24 @@ namespace Moment::Derived {
     }
 
     SymbolTableMap::SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
-                             MapCoreProcessor&& processor, const Eigen::MatrixXd& src)
+                                   const MapCoreProcessor& processor, const Eigen::MatrixXd& src)
         : origin_symbols{origin}, target_symbols{target} {
 
         auto [osg_to_sym, conjugates] = unzip_indices(this->origin_symbols, src.cols());
 
         this->core = std::make_unique<MapCore>(std::move(conjugates), src);
-        this->core_solution = core->accept(std::move(processor));
+        this->core_solution = core->accept(processor);
         this->construct_map(osg_to_sym);
     }
 
     SymbolTableMap::SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
-                             MapCoreProcessor&& processor, const Eigen::SparseMatrix<double>& src)
+                                   const MapCoreProcessor& processor, const Eigen::SparseMatrix<double>& src)
         : origin_symbols{origin}, target_symbols{target} {
 
         auto [osg_to_sym, conjugates] = unzip_indices(this->origin_symbols, src.cols());
 
         this->core = std::make_unique<MapCore>(std::move(conjugates), src);
-        this->core_solution = core->accept(std::move(processor));
+        this->core_solution = core->accept(processor);
         this->construct_map(osg_to_sym);
     }
 
@@ -84,10 +84,10 @@ namespace Moment::Derived {
         assert(this->core);
         assert(this->core_solution);
 
-        // Check sore and solution map.
+        // Check core and solution match.
         this->core->check_solution(*this->core_solution);
 
-        // First, build fixed constants
+        // First, build fixed constants.
         this->map.assign(origin_symbols.size(), SymbolCombo::Zero()); // 0 -> 0 always
         this->map[0] = SymbolCombo::Zero();      // 0 -> 0 always.
         this->map[1] = SymbolCombo::Scalar(1.0); // 1 -> 1 always.
@@ -106,7 +106,7 @@ namespace Moment::Derived {
         Eigen::Index core_col_id = 0;
         for (auto non_trivial_idx : this->core->nontrivial_cols) {
 
-            const symbol_name_t source_symbol = osg_to_symbols[core_col_id];
+            const symbol_name_t source_symbol = osg_to_symbols[non_trivial_idx];
 
             SymbolCombo::storage_t from_x_to_y;
 
@@ -128,17 +128,16 @@ namespace Moment::Derived {
         }
 
         // Create reverse map:
-        this->inverse_map.assign(2 + this->core_solution->output_symbols, SymbolCombo::Zero());
-        this->inverse_map[0] = SymbolCombo::Zero();      // 0 -> 0 always.
-        this->inverse_map[1] = SymbolCombo::Scalar(1.0); // 1 -> 1 always.
+        this->inverse_map.reserve(2 + this->core_solution->output_symbols);
+        this->inverse_map.emplace_back(SymbolCombo::Zero());      // 0 -> 0 always.
+        this->inverse_map.emplace_back(SymbolCombo::Scalar(1.0)); // 1 -> 1 always.
 
         for (Eigen::Index im_row_id = 0; im_row_id < this->core_solution->output_symbols; ++im_row_id) {
-            const auto dest_symbol = static_cast<symbol_name_t>(im_row_id + 2);
             SymbolCombo::storage_t from_y_to_x;
             for (Eigen::Index im_col_id = 0, im_col_max = this->core_solution->inv_map.cols();
                 im_col_id < im_col_max; ++im_col_id) {
                 const auto as_symbol = static_cast<symbol_name_t>(im_col_id + 2);
-                const double value = raw_map(core_col_id, im_col_id);
+                const double value = raw_inv_map(im_row_id, im_col_id);
                 if (abs(value) != 0.0) {
                     from_y_to_x.emplace_back(as_symbol, value);
                 }

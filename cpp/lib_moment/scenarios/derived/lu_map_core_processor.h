@@ -22,6 +22,6 @@ namespace Moment::Derived {
      */
     class LUMapCoreProcessor : public MapCoreProcessor {
     public:
-        std::unique_ptr<SolvedMapCore> operator()(const MapCore& core) final;
+        std::unique_ptr<SolvedMapCore> operator()(const MapCore& core) const final;
     };
 }

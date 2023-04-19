@@ -6,12 +6,14 @@
  */
 #pragma once
 #include "matrix_system.h"
+#include "../derived/derived_matrix_system.h"
 
 #include <memory>
 
 namespace Moment {
     class ExplicitSymbolIndex;
     namespace Derived {
+        class MapCoreProcessor;
         class SymbolTableMap;
     }
 }
@@ -19,33 +21,35 @@ namespace Moment {
 namespace Moment::Symmetrized {
     class Group;
 
-    class SymmetrizedMatrixSystem : public MatrixSystem {
+    class SymmetrizedMatrixSystem : public Derived::DerivedMatrixSystem {
+
+    public:
+        class SymmetrizedSTMFactory : public STMFactory {
+        private:
+            Group& group;
+            const size_t max_word_length;
+            std::unique_ptr<Derived::MapCoreProcessor> processor;
+
+        public:
+            SymmetrizedSTMFactory(Group &group, size_t max_word_length,
+                                  std::unique_ptr<Derived::MapCoreProcessor>&& processor) noexcept;
+
+            std::unique_ptr<Derived::SymbolTableMap> operator()(const SymbolTable& origin, SymbolTable& target) final;
+
+        };
 
     private:
-        /**
-         * Owning pointer to base system.
-         * Ownership is necessary, to prevent deletion of base system while SMS is still alive.
-         */
-        std::shared_ptr<MatrixSystem> base_ms_ptr;
-
         /** Symmetry group defining the system */
         std::unique_ptr<Group> symmetry;
 
-        /** Map that defines the system */
-        std::unique_ptr<Derived::SymbolTableMap> map_ptr;
 
     public:
-        SymmetrizedMatrixSystem(std::shared_ptr<MatrixSystem> &&base_system, std::unique_ptr<Group>&& group);
+        SymmetrizedMatrixSystem(std::shared_ptr<MatrixSystem> &&base_system,
+                                std::unique_ptr<Group>&& group,
+                                size_t max_word_length,
+                                std::unique_ptr<Derived::MapCoreProcessor>&& processor);
 
         ~SymmetrizedMatrixSystem() noexcept override;
-
-        [[nodiscard]] inline MatrixSystem& base_system() noexcept {
-            return *base_ms_ptr;
-        }
-
-        [[nodiscard]] inline const MatrixSystem& base_system() const noexcept {
-            return *base_ms_ptr;
-        }
 
         [[nodiscard]] inline Group& group() noexcept{
             return *symmetry;
@@ -55,17 +59,8 @@ namespace Moment::Symmetrized {
             return *symmetry;
         }
 
-        [[nodiscard]] inline const Derived::SymbolTableMap& map() const noexcept {
-            return *map_ptr;
-        }
-
         [[nodiscard]] std::string system_type_name() const override {
             return "Symmetrized Matrix System";
         }
-
-    protected:
-        std::unique_ptr<struct MomentMatrix> createNewMomentMatrix(size_t level) override;
-
-        std::unique_ptr<struct LocalizingMatrix> createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) override;
     };
 }
