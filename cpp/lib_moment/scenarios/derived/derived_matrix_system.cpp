@@ -24,14 +24,8 @@ namespace Moment::Derived {
         assert(this->base_ms_ptr.get() != this);
 
         // Make map from factory (i.e. virtual call).
+        auto lock = this->base_ms_ptr->get_read_lock();
         this->map_ptr = stm_factory(this->base_ms_ptr->Symbols(), this->Symbols());
-
-        // Make map core ?
-        //this->map_ptr = std::make_unique<SymbolTableMap>(this->base_ms_ptr->Symbols(), this->Symbols(),
-        //                                                 nullptr, nullptr);
-
-        // Ensure source scenario defines a sufficiently large symbol table
-        //this->base_system().generate_dictionary(2*level);
 
     }
 
@@ -43,7 +37,14 @@ namespace Moment::Derived {
 
     std::unique_ptr<class MomentMatrix> DerivedMatrixSystem::createNewMomentMatrix(size_t level) {
         // First check if map is capable of defining this MM.
-
+        const auto lsw = this->longest_supported_word();
+        if ((level*2) > lsw) {
+            std::stringstream errSS;
+            errSS << "Map defining derived matrix system acts on operator strings of up to length " << lsw
+                << ", but words of up to length " << (level*2)
+                << " are required to generate a moment matrix of level " << level << ".";
+            throw errors::bad_map{errSS.str()};
+        }
 
         // Check source moment matrix exists, create it if it doesn't
         const auto& source_matrix = [&]() -> const class MomentMatrix& {
@@ -63,19 +64,43 @@ namespace Moment::Derived {
         }();
 
 
-        throw std::runtime_error{"Not implemented."};
+        throw std::runtime_error{"DerivedMatrixSystem::createNewMomentMatrix not implemented."};
     }
 
     std::unique_ptr<class LocalizingMatrix>
     DerivedMatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) {
-        throw std::runtime_error{"Not implemented."};
+        // First check if map is capable of defining this LM.
+        const auto lsw = this->longest_supported_word();
+        const auto size_req = lmi.Level*2 + lmi.Word.size();
+        if (size_req > lsw) {
+            std::stringstream errSS;
+            errSS << "Map defining derived matrix system acts on operator strings of up to length " << lsw
+                  << ", but words of up to length " << size_req
+                  << " are required to generate a localizing matrix of level " << lmi.Level
+                  << " for a word of length " << lmi.Word.size() << ".";
+            throw errors::bad_map{errSS.str()};
+        }
+
+        // Check if source localizing matrix exists, create it if it doesn't
+        const auto& source_matrix = [this, &lmi]() -> const class LocalizingMatrix& {
+            auto read_source_lock = this->base_system().get_read_lock();
+            // Get, if exists
+            auto index = this->base_system().find_localizing_matrix(lmi);
+            if (index >= 0) {
+                return dynamic_cast<const class LocalizingMatrix&>(this->base_system()[index]);
+            }
+            read_source_lock.unlock();
+
+            // Wait for write lock...
+            auto write_source_lock = this->base_system().get_write_lock();
+            auto [mm_index, mm] = this->base_system().create_localizing_matrix(lmi);
+
+            return mm; // write_source_lock unlocks
+        }();
+
+        throw std::runtime_error{"DerivedMatrixSystem::createNewLocalizingMatrix not implemented."};
     }
 
-    const Derived::SymbolTableMap &DerivedMatrixSystem::map() const {
-        if (!this->map_ptr) {
-            throw errors::missing_component{"SymbolTableMap not yet defined."};
-        }
-        return *map_ptr;
-    }
+
 
 }

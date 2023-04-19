@@ -52,11 +52,11 @@ namespace Moment::Symmetrized {
 
     SymmetrizedMatrixSystem::SymmetrizedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system,
                                                      std::unique_ptr<Group>&& group,
-                                                     size_t max_word_length,
+                                                     const size_t max_word_length,
                                                      std::unique_ptr<Derived::MapCoreProcessor>&& processor)
         : Derived::DerivedMatrixSystem{std::move(base_system),
                                        SymmetrizedSTMFactory{*group, max_word_length, std::move(processor)}},
-          symmetry{std::move(group)} {
+          symmetry{std::move(group)}, max_word_length{max_word_length} {
 
     }
 

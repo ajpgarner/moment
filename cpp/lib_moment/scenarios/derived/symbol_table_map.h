@@ -41,7 +41,6 @@ namespace Moment {
         private:
             const SymbolTable& origin_symbols;
             SymbolTable& target_symbols;
-            size_t max_length = 0;
 
             std::vector<SymbolCombo> map;
             std::vector<SymbolCombo> inverse_map;
@@ -65,14 +64,14 @@ namespace Moment {
             /**
              * Use core and solution to build map.
              * @param osg_to_symbols The symbol IDs in the origin table corresponding to the OSG indices.
+             * @param cc A bitmap, true if the corresponding OSG index is a complex conjugate of the symbol.
              */
-             void construct_map(const std::vector<symbol_name_t>& osg_to_symbols);
+             void construct_map(const std::vector<symbol_name_t>& osg_to_symbols, const DynamicBitset<size_t>& cc);
 
              /**
-              *
-              * @return Number of defined symbols.
+              * Write symbols from map to target symbol table.
               */
-             size_t populate_target_symbols();
+             void populate_target_symbols();
 
         public:
             ~SymbolTableMap() noexcept;
@@ -111,10 +110,6 @@ namespace Moment {
               */
             [[nodiscard]] SymbolCombo inverse(const SymbolExpression& symbol) const;
 
-            /**
-             * The longest word that can be remapped by this map.
-             */
-             [[nodiscard]] inline size_t longest_word() const noexcept { return this->max_length; }
 
         };
     };

@@ -42,6 +42,8 @@ namespace Moment::Symmetrized {
         /** Symmetry group defining the system */
         std::unique_ptr<Group> symmetry;
 
+        /** Maxmimum word length that can be translated. */
+        const size_t max_word_length;
 
     public:
         SymmetrizedMatrixSystem(std::shared_ptr<MatrixSystem> &&base_system,
@@ -53,6 +55,10 @@ namespace Moment::Symmetrized {
 
         [[nodiscard]] inline Group& group() noexcept{
             return *symmetry;
+        }
+
+        size_t longest_supported_word() const noexcept override {
+            return this->max_word_length;
         }
 
         [[nodiscard]] inline const Group& group() const noexcept {

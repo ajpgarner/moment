@@ -48,6 +48,13 @@ namespace Moment::Derived {
         virtual ~DerivedMatrixSystem() noexcept;
 
         /**
+         * Gets the longest words in the base system that are sure to be mapped into this symbol.
+         * The check can be skipped, but then this risks individual symbols triggering error::bad_map errors at a later
+         * stage in the symbol matrix generations.
+         */
+        virtual size_t longest_supported_word() const noexcept { return std::numeric_limits<size_t>::max(); }
+
+        /**
          * The original system this DMS is derived from.
          */
         [[nodiscard]] inline MatrixSystem& base_system() noexcept {
@@ -63,9 +70,10 @@ namespace Moment::Derived {
 
         /**
          * Map between base matrix system symbols and this system's symbols.
-         * @throws errors::missing_component if map has not yet been generated.
          */
-        [[nodiscard]] inline const Derived::SymbolTableMap& map() const;
+        [[nodiscard]] inline const Derived::SymbolTableMap& map() const {
+            return *this->map_ptr;
+        }
 
         [[nodiscard]] std::string system_type_name() const override {
             return "Derived Matrix System";

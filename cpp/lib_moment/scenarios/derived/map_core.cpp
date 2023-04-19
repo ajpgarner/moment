@@ -20,7 +20,7 @@
 
 namespace Moment::Derived {
 
-    MapCore::MapCore(DynamicBitset<size_t>&& skipped, const Eigen::MatrixXd &raw_remap, const double zero_epsilon)
+    MapCore::MapCore(DynamicBitset<size_t> skipped, const Eigen::MatrixXd &raw_remap, const double zero_epsilon)
             : initial_size{static_cast<size_t>(raw_remap.cols())},
               nontrivial_rows{static_cast<size_t>(raw_remap.rows()), false},
               nontrivial_cols{static_cast<size_t>(raw_remap.cols()), true},
@@ -105,7 +105,7 @@ namespace Moment::Derived {
     }
 
 
-    MapCore::MapCore(DynamicBitset<size_t>&& skipped, const Eigen::SparseMatrix<double>& raw_remap)
+    MapCore::MapCore(DynamicBitset<size_t> skipped, const Eigen::SparseMatrix<double>& raw_remap)
             : initial_size{static_cast<size_t>(raw_remap.cols())},
               nontrivial_rows{static_cast<size_t>(raw_remap.rows()), false},
               nontrivial_cols{static_cast<size_t>(raw_remap.cols()), true},

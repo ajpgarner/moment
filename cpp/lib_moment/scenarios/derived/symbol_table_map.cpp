@@ -54,7 +54,8 @@ namespace Moment::Derived {
         }
 
         auto [osg_to_sym, conjugates] = unzip_indices(this->origin_symbols, this->core->initial_size);
-        this->construct_map(osg_to_sym);
+        this->construct_map(osg_to_sym, conjugates);
+        this->populate_target_symbols();
     }
 
     SymbolTableMap::SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
@@ -63,9 +64,10 @@ namespace Moment::Derived {
 
         auto [osg_to_sym, conjugates] = unzip_indices(this->origin_symbols, src.cols());
 
-        this->core = std::make_unique<MapCore>(std::move(conjugates), src);
+        this->core = std::make_unique<MapCore>(conjugates, src);
         this->core_solution = core->accept(processor);
-        this->construct_map(osg_to_sym);
+        this->construct_map(osg_to_sym, conjugates);
+        this->populate_target_symbols();
     }
 
     SymbolTableMap::SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
@@ -74,13 +76,15 @@ namespace Moment::Derived {
 
         auto [osg_to_sym, conjugates] = unzip_indices(this->origin_symbols, src.cols());
 
-        this->core = std::make_unique<MapCore>(std::move(conjugates), src);
+        this->core = std::make_unique<MapCore>(conjugates, src);
         this->core_solution = core->accept(processor);
-        this->construct_map(osg_to_sym);
+        this->construct_map(osg_to_sym, conjugates);
+        this->populate_target_symbols();
     }
 
 
-    void SymbolTableMap::construct_map(const std::vector<symbol_name_t>& osg_to_symbols) {
+    void SymbolTableMap::construct_map(const std::vector<symbol_name_t>& osg_to_symbols,
+                                       const DynamicBitset<size_t>& osg_conjugate) {
         assert(this->core);
         assert(this->core_solution);
 
@@ -117,9 +121,10 @@ namespace Moment::Derived {
             // Non-trivial parts
             for (Eigen::Index map_col_id = 0, map_col_max = raw_map.cols();
                 map_col_id < map_col_max; ++map_col_id) {
+                const auto as_symbol = static_cast<symbol_name_t>(map_col_id + 2);
                 const double value = raw_map(core_col_id, map_col_id);
                 if (abs(value) != 0.0) {
-                    from_x_to_y.emplace_back(osg_to_symbols[map_col_id], value);
+                    from_x_to_y.emplace_back(as_symbol, value);
                 }
             }
             // Create mapping
@@ -134,25 +139,37 @@ namespace Moment::Derived {
 
         for (Eigen::Index im_row_id = 0; im_row_id < this->core_solution->output_symbols; ++im_row_id) {
             SymbolCombo::storage_t from_y_to_x;
-            for (Eigen::Index im_col_id = 0, im_col_max = this->core_solution->inv_map.cols();
-                im_col_id < im_col_max; ++im_col_id) {
-                const auto as_symbol = static_cast<symbol_name_t>(im_col_id + 2);
+            assert(this->core->nontrivial_rows.count() == this->core_solution->inv_map.cols());
+
+            Eigen::Index im_col_id = 0;
+            for (auto non_trivial_idx : this->core->nontrivial_rows) {
                 const double value = raw_inv_map(im_row_id, im_col_id);
                 if (abs(value) != 0.0) {
-                    from_y_to_x.emplace_back(as_symbol, value);
+                    // Map: Core index -> osg index -> symbol table ID
+                    from_y_to_x.emplace_back(osg_to_symbols[non_trivial_idx], value, osg_conjugate[non_trivial_idx]);
                 }
+                ++ im_col_id;
             }
             this->inverse_map.emplace_back(std::move(from_y_to_x));
         }
         assert(this->inverse_map.size() == this->core_solution->output_symbols+2);
     }
 
-    size_t SymbolTableMap::populate_target_symbols() {
+    void SymbolTableMap::populate_target_symbols() {
+        // Function occurs in context of construction of a derived matrix system.
+        // target_symbols should not yet be publicly visible elsewhere, so should be automatically thread safe.
+        // origin_symbols should be read-locked as part of the origin matrix system lock.
+
         if (2 != this->target_symbols.size()) {
             throw errors::bad_map{"Target SymbolTable should be empty (except for zero and identity)."};
         }
 
-        return this->map.size();
+        for (const auto& polynomial : this->inverse_map) {
+            const bool is_hermitian = polynomial.is_hermitian(this->origin_symbols);
+            this->target_symbols.create(true, !is_hermitian);
+        }
+
+        assert(this->target_symbols.size() == 2 + this->inverse_map.size());
     }
 
 

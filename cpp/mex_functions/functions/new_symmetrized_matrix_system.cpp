@@ -143,15 +143,17 @@ namespace Moment::mex::functions {
         }
 
 
-        // Now, create new matrix system with group, and store
-        std::unique_ptr<MatrixSystem> smsPtr =
-                std::make_unique<SymmetrizedMatrixSystem>(std::move(msPtr), std::move(groupPtr));
-        auto nms_id = this->storageManager.MatrixSystems.store(std::move(smsPtr));
+        throw_error(matlabEngine, errors::internal_error, "new_symmetrized_matrix_system currently not implemented.");
 
-        if (output.size() >= 1) {
-            matlab::data::ArrayFactory factory;
-            output[0] = factory.createScalar<uint64_t>(nms_id);
-        }
+        // Now, create new matrix system with group, and store
+//        std::unique_ptr<MatrixSystem> smsPtr =
+//                std::make_unique<SymmetrizedMatrixSystem>(std::move(msPtr), std::move(groupPtr));
+//        auto nms_id = this->storageManager.MatrixSystems.store(std::move(smsPtr));
+//
+//        if (output.size() >= 1) {
+//            matlab::data::ArrayFactory factory;
+//            output[0] = factory.createScalar<uint64_t>(nms_id);
+//        }
     }
 
     void NewSymmetrizedMatrixSystem::extra_input_checks(NewSymmetrizedMatrixSystemParams &input) const {

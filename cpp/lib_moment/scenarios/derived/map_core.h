@@ -91,14 +91,14 @@ namespace Moment {
              * @param matrix The input transformation matrix.
              * @param zero_tolerance The value below which an entry is treated as zero.
              */
-            MapCore(DynamicBitset<size_t>&& skipped, const Eigen::MatrixXd& matrix, double zero_tolerance = 1e-12);
+            MapCore(DynamicBitset<size_t> skipped, const Eigen::MatrixXd& matrix, double zero_tolerance = 1e-12);
 
             /**
             * Extracts core of map.
             * @param skipped Columns to skip from the transformation matrix.
             * @param matrix The input transformation sparse matrix.
             */
-            MapCore(DynamicBitset<size_t>&& skipped, const Eigen::SparseMatrix<double>& matrix);
+            MapCore(DynamicBitset<size_t> skipped, const Eigen::SparseMatrix<double>& matrix);
 
             /**
              * Process map core with visitor class, and sanity check solution.
