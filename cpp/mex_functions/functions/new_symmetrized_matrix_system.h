@@ -8,6 +8,8 @@
 
 #include "mex_function.h"
 
+#include <limits>
+
 namespace Moment::mex::functions {
 
     class NewSymmetrizedMatrixSystemParams : public SortedInputs {
@@ -17,6 +19,8 @@ namespace Moment::mex::functions {
         uint64_t matrix_system_key = 0;
 
         size_t max_subgroup = 0;
+
+        size_t max_word_length = 0;
     };
 
     class NewSymmetrizedMatrixSystem

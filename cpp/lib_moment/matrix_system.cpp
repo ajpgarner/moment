@@ -35,6 +35,9 @@ namespace Moment {
     MatrixSystem::~MatrixSystem() noexcept = default;
 
     ptrdiff_t MatrixSystem::highest_moment_matrix() const noexcept {
+        if (this->momentMatrixIndices.empty()) {
+            return -1;
+        }
         return static_cast<ptrdiff_t>(this->momentMatrixIndices.size()) - 1;
     }
 

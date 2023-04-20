@@ -68,5 +68,6 @@ namespace Moment::Symmetrized {
         [[nodiscard]] std::string system_type_name() const override {
             return "Symmetrized Matrix System";
         }
+
     };
 }

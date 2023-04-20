@@ -8,6 +8,7 @@
 
 #include "storage_manager.h"
 
+#include "scenarios/derived/lu_map_core_processor.h"
 #include "scenarios/symmetrized/group.h"
 #include "scenarios/symmetrized/symmetrized_matrix_system.h"
 
@@ -18,7 +19,6 @@
 #include "utilities/reporting.h"
 
 namespace Moment::mex::functions {
-
 
     NewSymmetrizedMatrixSystemParams::NewSymmetrizedMatrixSystemParams(SortedInputs&& raw_inputs)
         : SortedInputs(std::move(raw_inputs)) {
@@ -77,6 +77,15 @@ namespace Moment::mex::functions {
             ++cell_index;
         }
 
+        // Read maximum element size, if one is set
+        if (this->inputs.size() >= 3) {
+            if (!castable_to_scalar_int(this->inputs[2])) {
+                throw_error(matlabEngine, errors::bad_param,
+                            "Maximum word length, if provided, must be a scalar non-negative integer.");
+            }
+            this->max_word_length = read_as_uint64(this->matlabEngine, this->inputs[2]);
+        }
+
         // Is a subgroup limit specified?
         auto maxSGiter = this->params.find(u"max_subgroup");
         if (maxSGiter != this->params.end()) {
@@ -91,7 +100,7 @@ namespace Moment::mex::functions {
     NewSymmetrizedMatrixSystem::NewSymmetrizedMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
          : ParameterizedMexFunction(matlabEngine, storage, u"new_symmetrized_matrix_system") {
         this->min_inputs = 2;
-        this->max_inputs = 2;
+        this->max_inputs = 3;
         this->min_outputs = 1;
         this->max_outputs = 2;
 
@@ -142,18 +151,45 @@ namespace Moment::mex::functions {
             throw_error(matlabEngine, errors::bad_param, errSS.str());
         }
 
+        // Check input matrix system has required symbols. [Write-locks source matrix system].
+        auto input_system_lock = matrixSystem.get_read_lock();
+        if (input.max_word_length > 0) {
+            input_system_lock.unlock(); // unlock as gen dict will try to acquire a write lock.
+            matrixSystem.generate_dictionary(input.max_word_length);
+            input_system_lock.lock();
+        } else {
+            auto hmm = matrixSystem.highest_moment_matrix();
+            if (hmm > 0) {
+                input.max_word_length = 2 * hmm;
+            }
+        }
+        if (0 == input.max_word_length) {
+            std::stringstream errSS;
+            errSS << "Maximum operator word length for map could not be automatically deduced.\n"
+                 << "Either first create a moment matrix of the desired maximum size in the base system, "
+                 << "or manually supply the size of the longest operator string to be mapped.";
+            throw_error(matlabEngine, errors::bad_param, errSS.str());
+        }
 
-        throw_error(matlabEngine, errors::internal_error, "new_symmetrized_matrix_system currently not implemented.");
+        // Now, create new matrix system with group
+        std::unique_ptr<MatrixSystem> smsPtr =
+                std::make_unique<SymmetrizedMatrixSystem>(std::move(msPtr), std::move(groupPtr),
+                                                          input.max_word_length,
+                                                          std::make_unique<Derived::LUMapCoreProcessor>());
+        // Print map information
+        if (verbose) {
+            print_to_console(this->matlabEngine,
+                             dynamic_cast<SymmetrizedMatrixSystem&>(*smsPtr).describe_map());
+        }
 
-        // Now, create new matrix system with group, and store
-//        std::unique_ptr<MatrixSystem> smsPtr =
-//                std::make_unique<SymmetrizedMatrixSystem>(std::move(msPtr), std::move(groupPtr));
-//        auto nms_id = this->storageManager.MatrixSystems.store(std::move(smsPtr));
-//
-//        if (output.size() >= 1) {
-//            matlab::data::ArrayFactory factory;
-//            output[0] = factory.createScalar<uint64_t>(nms_id);
-//        }
+        // Store matrix system (makes visible to other threads!)
+        auto nms_id = this->storageManager.MatrixSystems.store(std::move(smsPtr));
+
+        // Write output ID of symmetrized system
+        if (output.size() >= 1) {
+            matlab::data::ArrayFactory factory;
+            output[0] = factory.createScalar<uint64_t>(nms_id);
+        }
     }
 
     void NewSymmetrizedMatrixSystem::extra_input_checks(NewSymmetrizedMatrixSystemParams &input) const {

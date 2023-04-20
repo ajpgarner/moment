@@ -110,6 +110,16 @@ namespace Moment {
               */
             [[nodiscard]] SymbolCombo inverse(const SymbolExpression& symbol) const;
 
+            /**
+             * Number of elements in forward map.
+             */
+            [[nodiscard]] size_t fwd_size() const noexcept { return this->map.size(); }
+
+            /**
+             * Number of elements in inverse  map.
+             */
+            [[nodiscard]] size_t inv_size() const noexcept { return this->inverse_map.size(); }
+
 
         };
     };

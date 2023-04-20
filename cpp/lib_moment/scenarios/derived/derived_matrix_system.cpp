@@ -5,7 +5,12 @@
  * @author Andrew J. P. Garner
  */
 
+#include <sstream>
+
+#include "derived_context.h"
 #include "derived_matrix_system.h"
+#include "map_core.h"
+#include "symbol_table_map.h"
 
 #include "derived_context.h"
 #include "symbol_table_map.h"
@@ -101,6 +106,28 @@ namespace Moment::Derived {
         throw std::runtime_error{"DerivedMatrixSystem::createNewLocalizingMatrix not implemented."};
     }
 
+    std::string DerivedMatrixSystem::describe_map() const {
+        std::stringstream msgSS;
+        size_t bs_size = this->base_system().Symbols().size();
+        size_t bs_actual = this->map().fwd_size();
+        msgSS << "Map from " << this->base_system().system_type_name()
+              << " with " << bs_size << " " << ((bs_size != 1) ? "symbols" : "symbol");
+        if (bs_actual != bs_size) {
+            msgSS << " [" << bs_actual << " defined" << "]";
+        }
+        msgSS << " to ";
+
+        size_t this_size = this->Symbols().size();
+        size_t this_actual = this->map().inv_size();
+        msgSS << this->system_type_name() << " with "
+              <<  this_size << " " << ((this_size != 1) ? "symbols" : "symbol");
+        if (this_size != this_actual) {
+            msgSS << " [" << this_actual << " defined" << "]";
+        }
+        msgSS << ".";
+
+        return msgSS.str();
+    }
 
 
 }

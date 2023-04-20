@@ -8,6 +8,7 @@
 #pragma once
 
 #include "matrix_system.h"
+#include "../derived/derived_matrix_system.h"
 
 #include <memory>
 
@@ -78,6 +79,12 @@ namespace Moment::Derived {
         [[nodiscard]] std::string system_type_name() const override {
             return "Derived Matrix System";
         }
+
+        /**
+         * A description block for the map that defines this SMS.
+         * For thread safety, a read lock should be in place on this matrix system, and on the base matrix system.
+         */
+        [[nodiscard]] virtual std::string describe_map() const;
 
     protected:
         [[nodiscard]] std::unique_ptr<struct MomentMatrix>
