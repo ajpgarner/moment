@@ -120,6 +120,11 @@ namespace Moment {
              */
             [[nodiscard]] size_t inv_size() const noexcept { return this->inverse_map.size(); }
 
+            /**
+             * View core solution directly.
+             */
+            [[nodiscard]] const SolvedMapCore& raw_solution() const noexcept { return *this->core_solution; }
+
 
         };
     };

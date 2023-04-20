@@ -13,6 +13,8 @@
 
 #include "symbolic/symbol_table.h"
 #include "utilities/dynamic_bitset.h"
+#include "utilities/float_utils.h"
+
 
 #include <limits>
 #include <ranges>
@@ -21,9 +23,6 @@
 namespace Moment::Derived {
 
     namespace {
-        constexpr bool is_close(const double x, const double y, const double eps_mult = 1.0) {
-            return (std::abs(x - y) < std::numeric_limits<double>::epsilon() * std::max(std::abs(x), std::abs(y)));
-        }
 
         std::pair<std::vector<symbol_name_t>, DynamicBitset<size_t>>
         unzip_indices(const SymbolTable& origin_symbols, size_t matrix_size) {
@@ -116,18 +115,21 @@ namespace Moment::Derived {
             SymbolCombo::storage_t from_x_to_y;
 
             // Constant offset, if any:
-            if (this->core->core_offset[core_col_id] != 0.0) {
-                from_x_to_y.emplace_back(static_cast<symbol_name_t>(1), this->core->core_offset[core_col_id]);
+            const double offset = this->core->core_offset[core_col_id];
+            if (!approximately_zero(offset)) {
+                from_x_to_y.emplace_back(static_cast<symbol_name_t>(1), offset);
             }
+
             // Non-trivial parts
             for (Eigen::Index map_col_id = 0, map_col_max = raw_map.cols();
                 map_col_id < map_col_max; ++map_col_id) {
                 const auto as_symbol = static_cast<symbol_name_t>(map_col_id + 2);
                 const double value = raw_map(core_col_id, map_col_id);
-                if (abs(value) != 0.0) {
+                if (!approximately_zero(value)) {
                     from_x_to_y.emplace_back(as_symbol, value);
                 }
             }
+
             // Create mapping
             this->map[source_symbol] = SymbolCombo{std::move(from_x_to_y)};
             ++core_col_id;

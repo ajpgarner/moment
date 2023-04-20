@@ -21,7 +21,3 @@ sym_scenario = SymmetrizedScenario(chsh_scenario, chsh_generators, 2);
 
 sym_scenario.System;
 mtk('list','verbose');
-
-%rep2_av = sym_scenario.Group.Representation(2).Average;
-%[l, u, P] = lu(full(rep2_av'));
-

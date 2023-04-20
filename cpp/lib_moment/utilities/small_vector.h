@@ -105,8 +105,9 @@ namespace Moment {
          */
          constexpr SmallVector& operator=(SmallVector&& rhs) noexcept {
              if (rhs.heap_data) {
-                 // Move and overright LHS
+                 // Move and overwrite LHS
                  this->heap_data = std::move(rhs.heap_data); // release existing ptr.
+                 this->data_start = this->heap_data.get();
                  this->_size = rhs._size;
                  this->_capacity = rhs._capacity;
 

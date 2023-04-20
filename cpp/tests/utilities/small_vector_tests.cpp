@@ -147,6 +147,95 @@ namespace Moment::Tests {
         SmallVector<double, 3> moved_small{std::move(small)};
         ASSERT_EQ(moved_small.size(), 5);
         EXPECT_TRUE(moved_small.on_heap());
+        small.clear(); // NOLINT(bugprone-use-after-move)
+
+        // Check data moved
+        EXPECT_EQ(moved_small[0], 1.0);
+        EXPECT_EQ(moved_small[1], 2.0);
+        EXPECT_EQ(moved_small[2], 3.0);
+        EXPECT_EQ(moved_small[3], 4.0);
+        EXPECT_EQ(moved_small[4], 5.0);
+    }
+
+    TEST(Utilities_SmallVector, CopyAssign_Stack) {
+        const SmallVector<double, 5> small{1.0, 2.0, 3.0};
+        ASSERT_FALSE(small.on_heap());
+
+        SmallVector<double, 5> copied_small;
+        copied_small = small;
+        ASSERT_EQ(copied_small.size(), 3);
+        ASSERT_GE(copied_small.capacity(), 3);
+        EXPECT_FALSE(copied_small.on_heap());
+
+        // Check data copied
+        EXPECT_EQ(small[0], 1.0);
+        EXPECT_EQ(copied_small[0], 1.0);
+        EXPECT_EQ(small[1], 2.0);
+        EXPECT_EQ(copied_small[1], 2.0);
+        EXPECT_EQ(small[2], 3.0);
+        EXPECT_EQ(copied_small[2], 3.0);
+
+        // Check copy is deep (pointers not same!)
+        EXPECT_NE(small.get(), copied_small.get());
+        copied_small[2] = 4.0;
+        EXPECT_EQ(small[2], 3.0);
+        EXPECT_EQ(copied_small[2], 4.0);
+    }
+
+    TEST(Utilities_SmallVector, CopyAssign_Heap) {
+        const SmallVector<double, 3> small{1.0, 2.0, 3.0, 4.0, 5.0};
+        ASSERT_TRUE(small.on_heap());
+
+        SmallVector<double, 3> copied_small;
+        copied_small = small;
+        ASSERT_EQ(copied_small.size(), 5);
+        ASSERT_GE(copied_small.capacity(), 5);
+        EXPECT_TRUE(copied_small.on_heap());
+
+        // Check data copied
+        EXPECT_EQ(small[0], 1.0);
+        EXPECT_EQ(copied_small[0], 1.0);
+        EXPECT_EQ(small[1], 2.0);
+        EXPECT_EQ(copied_small[1], 2.0);
+        EXPECT_EQ(small[2], 3.0);
+        EXPECT_EQ(copied_small[2], 3.0);
+        EXPECT_EQ(small[3], 4.0);
+        EXPECT_EQ(copied_small[3], 4.0);
+        EXPECT_EQ(small[4], 5.0);
+        EXPECT_EQ(copied_small[4], 5.0);
+
+        // Check copy is deep (pointers not same!)
+        EXPECT_NE(small.get(), copied_small.get());
+        copied_small[2] = 40.0;
+        EXPECT_EQ(small[2], 3.0);
+        EXPECT_EQ(copied_small[2], 40.0);
+    }
+
+    TEST(Utilities_SmallVector, MoveAssign_Stack) {
+        SmallVector<double, 5> small{1.0, 2.0, 3.0};
+        ASSERT_FALSE(small.on_heap());
+
+        SmallVector<double, 5> moved_small;
+        moved_small = std::move(small);
+        ASSERT_EQ(moved_small.size(), 3);
+        ASSERT_GE(moved_small.capacity(), 3);
+        EXPECT_FALSE(moved_small.on_heap());
+
+        // Check data moved successfully
+        EXPECT_EQ(moved_small[0], 1.0);
+        EXPECT_EQ(moved_small[1], 2.0);
+        EXPECT_EQ(moved_small[2], 3.0);
+    }
+
+    TEST(Utilities_SmallVector, MoveAssign_Heap) {
+        SmallVector<double, 3> small{1.0, 2.0, 3.0, 4.0, 5.0};
+        ASSERT_TRUE(small.on_heap());
+
+        SmallVector<double, 3> moved_small;
+        moved_small = std::move(small);
+        ASSERT_EQ(moved_small.size(), 5);
+        EXPECT_TRUE(moved_small.on_heap());
+        small.clear(); // NOLINT(bugprone-use-after-move)
 
         // Check data moved
         EXPECT_EQ(moved_small[0], 1.0);
@@ -272,8 +361,6 @@ namespace Moment::Tests {
         EXPECT_EQ(trickySmall[0].second, "Hello world");
         EXPECT_EQ(trickySmall[1].first, 20.0);
         EXPECT_EQ(trickySmall[1].second, "Cheesecake");
-
-
     }
 
     TEST(Utilities_SmallVector, Iterator) {

@@ -99,6 +99,15 @@ namespace Moment::Tests {
         EXPECT_TRUE(zero != not_zero);
     }
 
+    TEST(Symbolic_SymbolExpression, CopyConstruct) {
+        const SymbolExpression symbol{13, 2.0, true};
+        const SymbolExpression copied{symbol};
+        EXPECT_EQ(symbol, copied);
+        EXPECT_EQ(copied.id, 13);
+        EXPECT_EQ(copied.factor, 2.0);
+        EXPECT_TRUE(copied.conjugated);
+    }
+
     TEST(Symbolic_SymbolExpression, BadStr_Empty) {
         std::string empty{};
         EXPECT_THROW(SymbolExpression{empty}, SymbolExpression::SymbolParseException);
