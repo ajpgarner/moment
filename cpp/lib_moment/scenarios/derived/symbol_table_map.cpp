@@ -15,6 +15,7 @@
 #include "utilities/dynamic_bitset.h"
 
 #include <limits>
+#include <ranges>
 #include <sstream>
 
 namespace Moment::Derived {
@@ -164,12 +165,17 @@ namespace Moment::Derived {
             throw errors::bad_map{"Target SymbolTable should be empty (except for zero and identity)."};
         }
 
-        for (const auto& polynomial : this->inverse_map) {
+        if (this->inverse_map.size() < 2) {
+            throw errors::bad_map{"Inverse map must define zero and identity."};
+        }
+
+
+        for (const auto& polynomial : this->inverse_map | std::views::drop(2)) {
             const bool is_hermitian = polynomial.is_hermitian(this->origin_symbols);
             this->target_symbols.create(true, !is_hermitian);
         }
 
-        assert(this->target_symbols.size() == 2 + this->inverse_map.size());
+        assert(this->target_symbols.size() == this->inverse_map.size());
     }
 
 
