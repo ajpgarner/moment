@@ -59,7 +59,8 @@ namespace Moment {
 
     public:
         MonomialMatrix(SymbolTable& symbols, const Context& context,
-                       std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix);
+                       std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix,
+                       bool is_hermitian);
 
         MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix);
 

@@ -331,7 +331,7 @@ namespace Moment::Tests {
 
 
         auto [id1, mm1] = ams.create_moment_matrix(1); // 1, A, B; A A^2 I; B I B^2 ...
-        EXPECT_TRUE(mm1.IsHermitian());
+        EXPECT_TRUE(mm1.is_hermitian());
         const auto& seqMatPtr = MomentMatrix::as_monomial_moment_matrix(mm1);
         ASSERT_NE(seqMatPtr, nullptr);
         const auto& seqMat = *seqMatPtr;
@@ -370,7 +370,7 @@ namespace Moment::Tests {
         ASSERT_NE(seqMat1Ptr, nullptr);
         const auto& seqMat1 = *seqMat1Ptr;
         ASSERT_EQ(seqMat1.Level(), 1);
-        EXPECT_TRUE(mm1.IsHermitian());
+        EXPECT_TRUE(mm1.is_hermitian());
         ASSERT_EQ(mm1.Dimension(), 1);
         EXPECT_EQ(seqMat1[0][0], OperatorSequence::Identity(ams.Context()));
 
@@ -379,7 +379,7 @@ namespace Moment::Tests {
         ASSERT_NE(seqMat3Ptr, nullptr);
         const auto& seqMat3 = *seqMat3Ptr;
         ASSERT_EQ(seqMat3.Level(), 3);
-        EXPECT_TRUE(mm3.IsHermitian());
+        EXPECT_TRUE(mm3.is_hermitian());
         ASSERT_EQ(mm3.Dimension(), 1) << context.resolved_rules();
         EXPECT_EQ(seqMat3[0][0], OperatorSequence::Identity(ams.Context()));
 
@@ -402,7 +402,7 @@ namespace Moment::Tests {
         const auto& seqMat = *seqMatPtr;
 
         ASSERT_EQ(seqMat.Level(), 2);
-        EXPECT_TRUE(mm2.IsHermitian());
+        EXPECT_TRUE(mm2.is_hermitian());
         ASSERT_EQ(mm2.Dimension(), 6);
         EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(ams.Context()));
         EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, ams.Context()));
@@ -429,7 +429,7 @@ namespace Moment::Tests {
         ASSERT_NE(seqMatPtr, nullptr);
         const auto& seqMat = *seqMatPtr;
         ASSERT_EQ(seqMat.Level(), 1);
-        EXPECT_TRUE(mm1.IsHermitian());
+        EXPECT_TRUE(mm1.is_hermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
         EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(ams.Context()));
         EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, ams.Context()));
@@ -471,7 +471,7 @@ namespace Moment::Tests {
         const auto& seqMat = *seqMatPtr;
 
         ASSERT_EQ(seqMat.Level(), 1);
-        EXPECT_TRUE(mm1.IsHermitian());
+        EXPECT_TRUE(mm1.is_hermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
         EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(ams.Context()));
         EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, ams.Context()));
@@ -497,7 +497,7 @@ namespace Moment::Tests {
         const auto& seqMat = *seqMatPtr;
 
         ASSERT_EQ(seqMat.Level(), 1);
-        EXPECT_TRUE(mm1.IsHermitian());
+        EXPECT_TRUE(mm1.is_hermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
 
         EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(context)); // 1
@@ -525,7 +525,7 @@ namespace Moment::Tests {
         const auto& seqMat = *seqMatPtr;
         ASSERT_EQ(seqMat.Level(), 1);
 
-        EXPECT_TRUE(mm1.IsHermitian());
+        EXPECT_TRUE(mm1.is_hermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
 
         EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(context)); // 1

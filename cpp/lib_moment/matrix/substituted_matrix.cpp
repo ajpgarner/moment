@@ -24,7 +24,9 @@ namespace Moment {
     SubstitutedMatrix::SubstitutedMatrix(const Context& context, SymbolTable& symbols,
                                          const MonomialMatrix& the_source,
                                          std::unique_ptr<SubstitutionList> subs)
-         : MonomialMatrix{symbols, context, subs ? (*subs)(the_source.SymbolMatrix()) : nullptr},
+         : MonomialMatrix{symbols, context,
+                          subs ? (*subs)(the_source.SymbolMatrix()) : nullptr,
+                          the_source.is_hermitian()},
            source_matrix{the_source}, sub_list{std::move(subs)} {
         assert(this->sub_list);
 

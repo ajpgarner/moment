@@ -76,6 +76,8 @@ namespace Moment {
 
         [[nodiscard]] size_t Dimension() const noexcept { return this->op_seq_matrix->dimension; }
 
+        [[nodiscard]] bool is_hermitian() const noexcept { return this->op_seq_matrix->is_hermitian(); }
+
         /**
           * Return a view (std::span<const OperatorSequence>) to the requested row of the NPA matrix's operator
           * sequences. Since std::span also provides an operator[], it is possible to index using

@@ -134,9 +134,12 @@ namespace Moment::Imported {
         DynamicBitset can_be_imaginary{new_max_symbol_id+1, !this->importedContext.real_only()};
 
         // Check if import type implies real or imaginary parts of mentioned symbols should be zero
+        bool is_hermitian = false;
         if (matrix_type == MatrixType::Symmetric) {
+            is_hermitian = true;
             checkIMSymmetric(*input, can_be_real, can_be_imaginary);
         } else if (matrix_type == MatrixType::Hermitian) {
+            is_hermitian = true;
             checkIMHermitian(*input, can_be_complex, can_be_real, can_be_imaginary);
         } else if (matrix_type == MatrixType::Real) {
             // If importing real matrix into non-real-only system, all reference symbols must be real.
@@ -165,6 +168,8 @@ namespace Moment::Imported {
         }
 
         // Construct new symbolic matrix
-        return this->push_back(std::make_unique<MonomialMatrix>(this->Symbols(), this->Context(), std::move(input)));
+        return this->push_back(
+            std::make_unique<MonomialMatrix>(this->Symbols(), this->Context(), std::move(input), is_hermitian)
+        );
     }
 }

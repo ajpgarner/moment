@@ -210,7 +210,7 @@ namespace Moment {
         /**
          * True, if matrix is Hermitian.
          */
-        [[nodiscard]] constexpr bool IsHermitian() const noexcept {
+        [[nodiscard]] constexpr bool is_hermitian() const noexcept {
             assert(this->mat_prop);
             return this->mat_prop->IsHermitian();
         }

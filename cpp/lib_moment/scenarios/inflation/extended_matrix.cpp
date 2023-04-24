@@ -77,7 +77,7 @@ namespace Moment::Inflation {
             }
 
             // Check source is Hermitian
-            if (!source.IsHermitian()) {
+            if (!source.is_hermitian()) {
                 throw std::logic_error{"Scalar extension of non-Hermitian matrices is not supported."};
             }
 
@@ -142,7 +142,9 @@ namespace Moment::Inflation {
     ExtendedMatrix::ExtendedMatrix(SymbolTable& symbols, Inflation::FactorTable& factors,
                                    const MonomialMatrix &source,
                                    const std::span<const symbol_name_t> extensions)
-        : MonomialMatrix{symbols, source.context, make_extended_matrix(symbols, factors, source, extensions)},
+        : MonomialMatrix{symbols, source.context,
+                         make_extended_matrix(symbols, factors, source, extensions),
+                         source.is_hermitian()},
           OriginalDimension{source.Dimension()} {
 
         const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix(source);

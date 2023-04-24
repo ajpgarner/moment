@@ -284,7 +284,8 @@ namespace Moment {
     }
 
     MonomialMatrix::MonomialMatrix(SymbolTable& symbols, const Context& context,
-                                   std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix)
+                                   std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix,
+                                   const bool is_hermitian)
         : Matrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0},
             SymbolMatrix{*this}, sym_exp_matrix{std::move(symbolMatrix)}
         {
@@ -300,10 +301,6 @@ namespace Moment {
                 included_symbols.emplace(x.id);
             }
 
-            // XXX Do we know if matrix is hermitian or not???
-            //  TODO: Test for Hermiticity in terms of symbol matrix.
-            const bool is_hermitian = false;
-
             // Create symbol matrix properties
             this->mat_prop = std::make_unique<MatrixProperties>(*this, this->symbol_table, std::move(included_symbols),
                                                                 "Monomial Symbolic Matrix", is_hermitian);
@@ -311,7 +308,8 @@ namespace Moment {
 
     MonomialMatrix::MonomialMatrix(SymbolTable &symbols, std::unique_ptr<OperatorMatrix> op_mat_ptr)
         : MonomialMatrix{symbols, op_mat_ptr->context,
-                         OpSeqToSymbolConverter{op_mat_ptr->context, symbols, (*op_mat_ptr)()}()} {
+                         OpSeqToSymbolConverter{op_mat_ptr->context, symbols, (*op_mat_ptr)()}(),
+                         op_mat_ptr->is_hermitian()} {
         this->op_mat = std::move(op_mat_ptr);
         this->mat_prop = this->op_mat->replace_properties(std::move(this->mat_prop));
     }

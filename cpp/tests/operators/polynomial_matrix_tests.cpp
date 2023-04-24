@@ -175,7 +175,7 @@ namespace Moment::Tests {
         ASSERT_EQ(elem11.size(), 1);
         EXPECT_EQ(elem11[0], SymbolExpression(5, 1.0, false));
 
-        EXPECT_TRUE(matrix.IsHermitian());
+        EXPECT_TRUE(matrix.is_hermitian());
         const auto& smp = matrix.SMP();
         EXPECT_TRUE(smp.IsHermitian());
         EXPECT_TRUE(smp.IsComplex());
