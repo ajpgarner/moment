@@ -11,6 +11,8 @@
 #include <Eigen/Dense>
 #include <Eigen/SparseCore>
 
+#include <cassert>
+
 #include <atomic>
 #include <complex>
 #include <memory>
@@ -210,7 +212,7 @@ namespace Moment {
         /**
          * True, if matrix is Hermitian.
          */
-        [[nodiscard]] constexpr bool is_hermitian() const noexcept {
+        [[nodiscard]] bool is_hermitian() const noexcept {
             assert(this->mat_prop);
             return this->mat_prop->IsHermitian();
         }
