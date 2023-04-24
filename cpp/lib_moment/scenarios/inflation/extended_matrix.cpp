@@ -6,16 +6,37 @@
  */
 #include "extended_matrix.h"
 
+
+#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix.h"
 #include "matrix/operator_sequence_generator.h"
+
 #include "factor_table.h"
 #include "inflation_context.h"
 
 #include <algorithm>
 #include <sstream>
 
+
 namespace Moment::Inflation {
 
     namespace {
+
+        std::string make_description(const size_t level, const std::span<const symbol_name_t> extensions) {
+            std::stringstream ss;
+            ss << "Extended Moment Matrix, Level " <<  level << ", Extensions ";
+            bool done_one = false;
+            for (auto ext : extensions) {
+                if (done_one) {
+                    ss << ", ";
+                } else {
+                    done_one = true;
+                }
+                ss << "S" << ext;
+            }
+            return ss.str();
+        }
+
         symbol_name_t combine_and_register_factors(SymbolTable &symbols, FactorTable &factors,
                                                    const std::vector<symbol_name_t> &source_factors,
                                                    const std::vector<symbol_name_t> &extended_factors) {
@@ -33,10 +54,18 @@ namespace Moment::Inflation {
 
         std::unique_ptr<SquareMatrix<SymbolExpression>>
         make_extended_matrix(SymbolTable& symbols, Inflation::FactorTable& factors,
-                             const MomentMatrix &source, const std::span<const symbol_name_t> extension_scalars) {
+                             const MonomialMatrix& source,
+                             const std::span<const symbol_name_t> extension_scalars) {
 
             // Moment matrix must come from inflation context
-            const auto& context = dynamic_cast<const InflationContext&>(source.context);
+            const auto& context = dynamic_cast<const InflationContext&>(source.context); // throws if invalid!
+
+            // Source matrix must be moment matrix
+            const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix(source);
+            if (nullptr == mm_ptr) {
+                throw std::invalid_argument{"Can only extend monomial moment matrices."};
+            }
+            const auto& moment_matrix = *mm_ptr;
 
             // Check scalars are in range
             for (const auto scalar : extension_scalars) {
@@ -62,7 +91,7 @@ namespace Moment::Inflation {
             assert(new_dimension == extended_matrix.dimension);
 
             // Existing generators, combine with scalars...
-            const auto& mm_osg = source.Generators();
+            const auto& mm_osg = moment_matrix.Generators();
 
             size_t row_index = 0;
             for (const auto& raw_seq : mm_osg) {
@@ -111,25 +140,16 @@ namespace Moment::Inflation {
     }
 
     ExtendedMatrix::ExtendedMatrix(SymbolTable& symbols, Inflation::FactorTable& factors,
-                                   const MomentMatrix &source,
+                                   const MonomialMatrix &source,
                                    const std::span<const symbol_name_t> extensions)
-        : MonomialMatrix{source.context, symbols, make_extended_matrix(symbols, factors, source, extensions)},
+        : MonomialMatrix{symbols, source.context, make_extended_matrix(symbols, factors, source, extensions)},
           OriginalDimension{source.Dimension()} {
 
-        // Make description string of extended matrix
-        std::stringstream ss;
-        ss << "Extended Moment Matrix, Level " <<  source.Level() << ", Extensions ";
-        bool done_one = false;
-        for (auto ext : extensions) {
-            if (done_one) {
-                ss << ", ";
-            } else {
-                done_one = true;
-            }
-            ss << "S" << ext;
-        }
-        this->description_string = ss.str();
+        const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix(source);
+        assert(mm_ptr); // ^- make_extended_matrix should have already thrown exception if above is nullptr!
 
+        // Make description string of extended matrix
+        this->set_description(make_description(mm_ptr->hierarchy_level, extensions));
     }
 
 

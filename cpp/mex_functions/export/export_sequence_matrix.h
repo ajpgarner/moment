@@ -12,53 +12,74 @@
 #include "symbolic/symbol_expression.h"
 #include "utilities/square_matrix.h"
 
-namespace matlab::engine {
-    class MATLABEngine;
-}
+#include "exporter.h"
 
 namespace Moment {
-    class Context;
-    class SymbolTable;
-    class MatrixProperties;
-    class MatrixSystem;
+    class OperatorMatrix;
     class MonomialMatrix;
+    class PolynomialMatrix;
+    class MatrixSystem;
 
     namespace Locality {
-        class LocalityMatrixSystem;
         class LocalityOperatorFormatter;
-    };
+    }
+
+    namespace Inflation {
+        class InflationContext;
+        class FactorTable;
+    }
 }
 
 namespace Moment::mex {
-    /**
-     * Outputs a matrix of operator sequences, as a matlab string matrix
-     * @param engine The matlab engine.
-     * @param matrix The matrix of operator sequences to output.
-     * @return A matlab string array.
-     */
-    matlab::data::Array export_sequence_matrix(matlab::engine::MATLABEngine& engine,
-                                               const Context& context,
-                                               const SquareMatrix<OperatorSequence>& matrix);
 
-    /**
-     * Outputs a matrix of operator sequences, as a matlab string matrix, using supplied formatter
-     * @param engine The matlab engine.
-     * @param matrix The matrix of operator sequences to output.
-     * @return A matlab string array.
-     */
-    matlab::data::Array
-    export_sequence_matrix(matlab::engine::MATLABEngine& engine,
-                           const Locality::LocalityMatrixSystem& system,
-                           const Locality::LocalityOperatorFormatter& formatter,
-                           const MonomialMatrix& matrix);
 
-    /**
-     * Outputs a matrix of operator sequences, as a matlab string matrix
-     * @param engine The matlab engine.
-     * @param matrix The matrix object
-     * @return A matlab string array.
-     */
-    matlab::data::Array export_sequence_matrix(matlab::engine::MATLABEngine& engine,
-                                              const MatrixSystem& system,
-                                              const MonomialMatrix& matrix);
+    class SequenceMatrixExporter : public Exporter {
+
+    public:
+        explicit SequenceMatrixExporter(matlab::engine::MATLABEngine& engine) noexcept
+            : Exporter{engine} { }
+
+        /**
+         * Outputs a matrix of operator sequences, as a matlab string matrix.
+         * @param matrix The matrix object.
+         * @return A matlab string array.
+         */
+        [[nodiscard]] matlab::data::Array operator()(const OperatorMatrix& op_matrix) const;
+
+        /**
+          * Outputs a matrix of operator sequences, as a matlab string matrix, using locality formatter
+          * @param matrix The matrix object.
+          * @param formatter Object for formatting display of locality operators.
+          * @return A matlab string array.
+          */
+        [[nodiscard]] matlab::data::Array operator()(const MonomialMatrix& matrix,
+                                                     const Locality::LocalityOperatorFormatter& formatter) const;
+
+        /**
+         * Outputs a matrix of operator sequences, as a matlab string matrix.
+         * @param matrix The matrix object.
+         * @param system The system the matrix belongs to.
+         * @return A matlab string array.
+         */
+        [[nodiscard]] matlab::data::Array operator()(const MonomialMatrix& matrix, const MatrixSystem& system) const;
+
+        /**
+         * Outputs a matrix of operator sequences, as a matlab string matrix.
+         * @param matrix The matrix object.
+         * @param system The system the matrix belongs to.
+         * @return A matlab string array.
+         */
+        [[nodiscard]] matlab::data::Array operator()(const PolynomialMatrix& matrix, const MatrixSystem& system) const;
+
+    private:
+        [[nodiscard]] matlab::data::Array export_inferred(const MonomialMatrix& matrix) const;
+
+        [[nodiscard]] matlab::data::Array export_direct(const OperatorMatrix& opMatrix) const;
+
+        [[nodiscard]] matlab::data::Array export_factored(const Inflation::InflationContext& context,
+                                                          const Inflation::FactorTable& factors,
+                                                          const MonomialMatrix& inputMatrix) const;
+    };
+
+
 }

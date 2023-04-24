@@ -328,10 +328,88 @@ namespace Moment::mex {
         };
     }
 
+
+    matlab::data::Array SequenceMatrixExporter::operator()(const OperatorMatrix &op_matrix) const  {
+        return this->export_direct(op_matrix);
+    }
+
+    matlab::data::Array SequenceMatrixExporter::operator()(const MonomialMatrix &inputMatrix,
+                                                           const Locality::LocalityOperatorFormatter &formatter) const {
+
+        // Get locality context, or throw
+        const auto& localityContext = [&]() -> const Locality::LocalityContext& {
+            try {
+                return dynamic_cast<const Locality::LocalityContext&>(inputMatrix.context);
+            } catch (const std::bad_cast& bce) {
+                throw_error(this->engine, errors::internal_error,
+                            "Supplied matrix was not part of a locality matrix system.");
+            }
+        }();
+
+        // If no operator matrix, infer one:
+        if (!inputMatrix.has_operator_matrix()) {
+            return this->export_inferred(inputMatrix);
+            //throw_error(this->engine, errors::internal_error,
+            //            "Supplied matrix is not associated with an operator matrix.");
+        }
+
+        matlab::data::ArrayFactory factory;
+        const size_t dimension = inputMatrix.Dimension();
+        matlab::data::ArrayDimensions array_dims{dimension, dimension};
+
+        LocalityFormatView formatView{localityContext, formatter, inputMatrix.operator_matrix()()};
+
+        auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
+        auto writeIter = outputArray.begin();
+        auto readIter = formatView.begin();
+
+        while ((writeIter != outputArray.end()) && (readIter != formatView.end())) {
+            *writeIter = *readIter;
+            ++writeIter;
+            ++readIter;
+        }
+        if (writeIter != outputArray.end()) {
+            throw_error(engine, errors::internal_error,
+                        "export_symbol_matrix index count mismatch: too few input elements." );
+        }
+        if (readIter != formatView.end()) {
+            throw_error(engine, errors::internal_error,
+                        "export_symbol_matrix index count mismatch: too many input elements.");
+        }
+
+        return outputArray;
+    }
+
+    matlab::data::Array SequenceMatrixExporter::operator()(const MonomialMatrix &matrix,
+                                                           const MatrixSystem& system) const {
+        // Is this an inflation matrix? If so, display factorized format:
+        const auto* inflSystem = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
+        if (nullptr != inflSystem) {
+            return this->export_factored(inflSystem->InflationContext(), inflSystem->Factors(), matrix);
+        }
+
+        // Do we have direct sequences? If so, export direct (neutral) view.
+        if (matrix.has_operator_matrix()) {
+            const auto& op_mat = matrix.operator_matrix();
+
+            return this->export_direct(op_mat);
+        }
+
+        // If all else fails, use inferred string formatting
+        return this->export_inferred( matrix);
+    }
+
     matlab::data::Array
-    export_sequence_matrix(matlab::engine::MATLABEngine &engine,
-                            const Context &context,
-                            const SquareMatrix<OperatorSequence>& inputMatrix) {
+    SequenceMatrixExporter::operator()(const PolynomialMatrix &matrix, const MatrixSystem &system) const {
+        throw_error(this->engine, errors::internal_error,
+                "SequenceMatrixExporter::operator()(const PolynomialMatrix &matrix, const MatrixSystem &system) not yet implemented.");
+    }
+
+
+    matlab::data::Array SequenceMatrixExporter::export_direct(const OperatorMatrix& opMatrix) const {
+        const auto& context = opMatrix.context;
+        const auto& inputMatrix = opMatrix();
+
         matlab::data::ArrayFactory factory;
         matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
 
@@ -358,44 +436,11 @@ namespace Moment::mex {
         return outputArray;
     }
 
-    matlab::data::Array
-    export_sequence_matrix(matlab::engine::MATLABEngine& engine,
-                            const Locality::LocalityContext& context,
-                            const Locality::LocalityOperatorFormatter& formatter,
-                            const SquareMatrix<OperatorSequence>& inputMatrix) {
-
+    matlab::data::Array SequenceMatrixExporter::export_inferred(const MonomialMatrix& inputMatrix) const {
         matlab::data::ArrayFactory factory;
-        matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
 
-        LocalityFormatView formatView{context, formatter, inputMatrix};
-
-        auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
-        auto writeIter = outputArray.begin();
-        auto readIter = formatView.begin();
-
-        while ((writeIter != outputArray.end()) && (readIter != formatView.end())) {
-            *writeIter = *readIter;
-            ++writeIter;
-            ++readIter;
-        }
-        if (writeIter != outputArray.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix index count mismatch: too few input elements." );
-        }
-        if (readIter != formatView.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix index count mismatch: too many input elements.");
-        }
-
-        return outputArray;
-    }
-
-    matlab::data::Array
-    export_inferred_sequence_matrix(matlab::engine::MATLABEngine& engine,
-                                  const Context& context,
-                                  const SymbolTable& symbols,
-                                  const MonomialMatrix& inputMatrix) {
-        matlab::data::ArrayFactory factory;
+        const auto& context = inputMatrix.context;
+        const auto& symbols = inputMatrix.Symbols;
 
         // Prepare output
         const auto dimension = inputMatrix.Dimension();
@@ -424,10 +469,13 @@ namespace Moment::mex {
     }
 
     matlab::data::Array
-    export_factor_sequence_matrix(matlab::engine::MATLABEngine& engine,
-                                  const Inflation::InflationContext& context,
-                                  const Inflation::FactorTable& factors,
-                                  const MonomialMatrix& inputMatrix) {
+    SequenceMatrixExporter::export_factored(const Inflation::InflationContext& context,
+                                            const Inflation::FactorTable& factors,
+                                            const MonomialMatrix& inputMatrix) const {
+        assert(&inputMatrix.context == &context);
+
+
+
         matlab::data::ArrayFactory factory;
 
         // Prepare output
@@ -455,42 +503,4 @@ namespace Moment::mex {
         }
         return outputArray;
     }
-
-    matlab::data::Array
-    export_sequence_matrix(matlab::engine::MATLABEngine &engine, const MatrixSystem& system,
-                           const MonomialMatrix &matrix) {
-
-        // Is this an inflation matrix? If so, display factorized format:
-        const auto* inflSystem = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
-        if (nullptr != inflSystem) {
-            return export_factor_sequence_matrix(engine, inflSystem->InflationContext(), inflSystem->Factors(), matrix);
-        }
-
-        // Attempt to use normal context formatting
-        const auto* opMatPtr = dynamic_cast<const Moment::OperatorMatrix*>(&matrix);
-        if (nullptr != opMatPtr) {
-            return export_sequence_matrix(engine, opMatPtr->context, opMatPtr->SequenceMatrix());
-        }
-
-        // If all else fails, use inferred string formatting
-        return export_inferred_sequence_matrix(engine, system.Context(), system.Symbols(), matrix);
-    }
-
-    matlab::data::Array
-    export_sequence_matrix(matlab::engine::MATLABEngine& engine,
-                           const Locality::LocalityMatrixSystem& system,
-                           const Locality::LocalityOperatorFormatter& formatter,
-                           const MonomialMatrix& matrix) {
-
-        // Attempt to use normal context formatting
-        const auto* opMatPtr = dynamic_cast<const Moment::OperatorMatrix*>(&matrix);
-        if (nullptr != opMatPtr) {
-            return export_sequence_matrix(engine, system.localityContext, formatter, opMatPtr->SequenceMatrix());
-        }
-
-        // If all else fails, use inferred string formatting
-        return export_inferred_sequence_matrix(engine, system.Context(), system.Symbols(), matrix);
-
-    }
-
 }

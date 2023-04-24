@@ -68,7 +68,7 @@ namespace Moment::Locality {
         return *this->collinsGisin;
     }
 
-    void LocalityMatrixSystem::onNewMomentMatrixCreated(size_t level, const class MomentMatrix &mm) {
+    void LocalityMatrixSystem::onNewMomentMatrixCreated(size_t level, const class Matrix &mm) {
         auto newMRSL = this->MaxRealSequenceLength();
         if (newMRSL > this->maxProbabilityLength) {
             this->maxProbabilityLength = newMRSL;

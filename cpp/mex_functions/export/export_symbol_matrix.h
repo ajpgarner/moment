@@ -6,24 +6,42 @@
  */
 #pragma once
 
-#include "MatlabDataArray.hpp"
+#include "exporter.h"
 
-#include "symbolic/symbol_expression.h"
-#include "utilities/square_matrix.h"
+#include "MatlabDataArray.hpp"
 
 namespace matlab::engine {
     class MATLABEngine;
 }
 
+namespace Moment {
+    class MonomialMatrix;
+    class PolynomialMatrix;
+}
+
 namespace Moment::mex {
 
-    /**
-     * Outputs a matrix of symbol expressions, as a matlab string matrix
-     * @param engine The matlab engine.
-     * @param matrix The matrix of symbols to output.
-     * @return A matlab string array.
-     */
-    matlab::data::Array export_symbol_matrix(matlab::engine::MATLABEngine &engine,
-                                             const SquareMatrix <SymbolExpression> &matrix);
+
+    class SymbolMatrixExporter : public Exporter {
+    public:
+        explicit SymbolMatrixExporter(matlab::engine::MATLABEngine& engine) : Exporter{engine} { }
+
+        /**
+        * Outputs a matrix of symbol expressions, as a matlab string matrix
+        * @param engine The matlab engine.
+        * @param matrix The matrix of symbols to output.
+        * @return A matlab string array.
+        */
+        [[nodiscard]] matlab::data::Array operator()(const MonomialMatrix &matrix) const;
+
+        /**
+        * Outputs a matrix of symbol expressions, as a matlab string matrix
+        * @param engine The matlab engine.
+        * @param matrix The matrix of symbols to output.
+        * @return A matlab string array.
+        */
+        [[nodiscard]] matlab::data::Array operator()(const PolynomialMatrix &matrix) const;
+    };
+
 
 }

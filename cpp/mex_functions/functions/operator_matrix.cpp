@@ -9,6 +9,7 @@
 #include "storage_manager.h"
 
 #include "matrix/operator_matrix.h"
+#include "matrix/polynomial_matrix.h"
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_operator_formatter.h"
 
@@ -25,7 +26,7 @@ namespace Moment::mex::functions  {
     namespace {
 
         void export_masks(matlab::engine::MATLABEngine &engine, IOArgumentRange& output,
-                          const MatrixSystem& system, const MonomialMatrix &matrix) {
+                          const MatrixSystem& system, const Matrix &matrix) {
             const auto num_outputs = output.size();
             auto read_lock = system.get_read_lock();
 
@@ -184,19 +185,32 @@ namespace Moment::mex::functions  {
             auto lock = matrixSystem.get_read_lock();
 
             switch (input.output_mode) {
-                case OperatorMatrixParams::OutputMode::Symbols:
-                    output[0] = export_symbol_matrix(this->omvb_matlabEngine, theMatrix.SymbolMatrix());
+                case OperatorMatrixParams::OutputMode::Symbols: {
+                    SymbolMatrixExporter exporter{this->omvb_matlabEngine};
+                    if (theMatrix.is_monomial()) {
+                        output[0] = exporter(dynamic_cast<const MonomialMatrix&>(theMatrix));
+                    } else {
+                        output[0] = exporter(dynamic_cast<const PolynomialMatrix&>(theMatrix));
+                    }
+                }
                     break;
                 case OperatorMatrixParams::OutputMode::Sequences: {
-                    const auto * locality_ms = dynamic_cast<const Locality::LocalityMatrixSystem*>(&matrixSystem);
-                    if (locality_ms != nullptr) {
-                        auto formatter = this->omvb_settings().get_locality_formatter();
-                        assert(formatter);
-                        output[0] = export_sequence_matrix(this->omvb_matlabEngine, *locality_ms, *formatter, theMatrix);
+                    SequenceMatrixExporter exporter{this->omvb_matlabEngine};
+                    if (theMatrix.is_monomial()) {
+                        const auto& monoMatrix = dynamic_cast<const MonomialMatrix&>(theMatrix);
+                        const auto * locality_ms = dynamic_cast<const Locality::LocalityMatrixSystem*>(&matrixSystem);
+                        if (locality_ms != nullptr) {
+                            auto formatter = this->omvb_settings().get_locality_formatter();
+                            assert(formatter);
+                            output[0] = exporter(monoMatrix, *formatter);
+                        } else {
+                            output[0] = exporter(monoMatrix, matrixSystem);
+                        }
                     } else {
-                        output[0] = export_sequence_matrix(this->omvb_matlabEngine, matrixSystem, theMatrix);
+                        const auto& polyMatrix = dynamic_cast<const PolynomialMatrix&>(theMatrix);
+                        output[0] = exporter(polyMatrix, matrixSystem);
                     }
-                    }
+                }
                     break;
                 case OperatorMatrixParams::OutputMode::IndexAndDimension: {
                     matlab::data::ArrayFactory factory;
@@ -216,7 +230,7 @@ namespace Moment::mex::functions  {
         }
     }
 
-    std::pair<size_t, const Moment::MonomialMatrix&>
+    std::pair<size_t, const Moment::Matrix&>
     RawOperatorMatrix::get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) {
         try {
             const auto &input = dynamic_cast<const RawOperatorMatrixParams &>(omp);

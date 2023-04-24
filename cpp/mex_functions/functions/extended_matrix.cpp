@@ -94,7 +94,7 @@ namespace Moment::mex::functions {
         this->max_inputs = 3;
     }
 
-    std::pair<size_t, const Moment::MonomialMatrix&>
+    std::pair<size_t, const Moment::Matrix&>
     ExtendedMatrix::get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp)  {
         // Get extended parameters
         auto& emp = dynamic_cast<ExtendedMatrixParams&>(omp);
@@ -108,7 +108,9 @@ namespace Moment::mex::functions {
 
         // Make sure moment matrix exists (or create it, otherwise)
         auto [mm_index, mm_op_matrix] = inflationSystem.create_moment_matrix(emp.hierarchy_level);
-        const auto& moment_matrix = dynamic_cast<const MomentMatrix&>(mm_op_matrix);
+        //        const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix(mm_op_matrix);
+        //        const auto& moment_matrix = *mmPtr;
+        const auto& monoMatrix = dynamic_cast<const MonomialMatrix&>(mm_op_matrix);
 
 
         if (emp.extension_type == ExtendedMatrixParams::ExtensionType::Manual) {
@@ -124,7 +126,7 @@ namespace Moment::mex::functions {
         } else {
             // Get automatic symbols
             auto lock = inflationSystem.get_read_lock();
-            auto extension_set = inflationSystem.suggest_extensions(moment_matrix);
+            auto extension_set = inflationSystem.suggest_extensions(monoMatrix);
             emp.extensions.clear();
             emp.extensions.reserve(extension_set.size());
             std::copy(extension_set.cbegin(), extension_set.cend(), std::back_inserter(emp.extensions));
@@ -133,7 +135,7 @@ namespace Moment::mex::functions {
         // Verbose output
         if (this->verbose) {
             std::stringstream ss;
-            ss << "Extended " << moment_matrix.description() << " "
+            ss << "Extended " << monoMatrix.description() << " "
                 << (emp.extension_type == ExtendedMatrixParams::ExtensionType::Automatic ? "automatically" : "manually")
                 << " with " << emp.extensions.size() << (emp.extensions.size()!=1 ? " extensions" : " extension")
                 << ": ";
@@ -151,7 +153,7 @@ namespace Moment::mex::functions {
         }
 
         // Now, call for extension
-        return inflationSystem.create_extended_matrix(moment_matrix, emp.extensions);
+        return inflationSystem.create_extended_matrix(monoMatrix, emp.extensions);
     }
 
 }

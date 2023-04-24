@@ -23,7 +23,7 @@
 namespace Moment::mex::functions {
 
     namespace {
-        const MonomialMatrix& getMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
+        const Matrix& getMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
                                                const MatrixSystem& matrixSystem, size_t index) {
             try {
                 return matrixSystem[index];
@@ -95,7 +95,7 @@ namespace Moment::mex::functions {
 
         auto lock = matrixSystem.get_read_lock();
 
-        const auto& operatorMatrix = [&]() -> const MonomialMatrix& {
+        const auto& operatorMatrix = [&]() -> const Matrix& {
             try {
                 return matrixSystem[input.matrix_index];
             } catch (const Moment::errors::missing_component& mce) {

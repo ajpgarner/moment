@@ -5,6 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "localizing_matrix.h"
+#include "localizing_matrix_properties.h"
 
 #include "operator_sequence_generator.h"
 
@@ -41,17 +42,40 @@ namespace Moment {
     }
 
 
-    LocalizingMatrix::LocalizingMatrix(const Context& context, SymbolTable& symbols, LocalizingMatrixIndex lmi)
-        : OperatorMatrix{assert_context(context, lmi), symbols,
+    LocalizingMatrix::LocalizingMatrix(const Context& context, LocalizingMatrixIndex lmi)
+        : OperatorMatrix{assert_context(context, lmi),
                          generate_localizing_matrix_sequences(context, lmi.Level, lmi.Word)},
           Index{std::move(lmi)} {
 
     }
 
+    LocalizingMatrix::~LocalizingMatrix() noexcept = default;
+
     std::string LocalizingMatrix::description() const {
         std::stringstream ss;
         ss << "Localizing Matrix, Level " << this->Index.Level << ", Word " << this->Index.Word;
         return ss.str();
+    }
+
+
+    const LocalizingMatrix* LocalizingMatrix::as_monomial_localizing_matrix(const Matrix& input) noexcept {
+        if (!input.is_monomial()) {
+            return nullptr;
+        }
+
+        if (!input.has_operator_matrix()) {
+            return nullptr;
+        }
+
+        const auto& op_matrix = input.operator_matrix();
+        return dynamic_cast<const LocalizingMatrix*>(&op_matrix); // might be nullptr!
+    }
+
+    std::unique_ptr<MatrixProperties>
+    LocalizingMatrix::replace_properties(std::unique_ptr<MatrixProperties> input) const {
+        return std::make_unique<LocalizingMatrixProperties>(std::move(*input), this->Index,
+                                                            this->op_seq_matrix->is_hermitian(),
+                                                            this->description());
     }
 
 }

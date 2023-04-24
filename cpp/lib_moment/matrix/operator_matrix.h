@@ -25,10 +25,10 @@
 namespace Moment {
 
     class SymbolTable;
+    class SymbolMatrix;
     class MatrixProperties;
 
-
-    class OperatorMatrix : public MonomialMatrix {
+    class OperatorMatrix {
     public:
         class OpSeqMatrix : public SquareMatrix<OperatorSequence> {
         private:
@@ -55,34 +55,6 @@ namespace Moment {
             void calculate_hermicity();
         };
 
-        class SequenceMatrixView {
-        private:
-            const OperatorMatrix& matrix;
-        public:
-            explicit SequenceMatrixView(const OperatorMatrix& theMatrix) noexcept : matrix{theMatrix} { };
-
-            [[nodiscard]] size_t Dimension() const noexcept { return matrix.Dimension(); }
-
-            /**
-            * Return a view (std::span<const OperatorSequence>) to the requested row of the NPA matrix's operator
-            * sequences. Since std::span also provides an operator[], it is possible to index using
-            * "mySMV[row][col]" notation.
-            * @param row The index of the row to return.
-            * @return A std::span<const OperatorSequence> of the requested row.
-            */
-            std::span<const OperatorSequence> operator[](size_t row) const noexcept {
-                return (*(matrix.op_seq_matrix))[row];
-            };
-
-            /**
-             * Provides access to square matrix of operator sequences.
-             */
-            const auto& operator()() const noexcept {
-                return (*(matrix.op_seq_matrix));
-            }
-
-        };
-
 
     protected:
         /** Matrix, as operator sequences */
@@ -92,25 +64,45 @@ namespace Moment {
         std::unique_ptr<SquareMatrix<uint64_t>> hash_matrix;
 
     public:
-        /**
-         * Matrix, as operator strings
-         */
-        SequenceMatrixView SequenceMatrix;
+        const Context& context;
+        //const SymbolTable& symbols;
 
     public:
-        explicit OperatorMatrix(const Context& context, SymbolTable& symbols,
-                                std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
+        explicit OperatorMatrix(const Context& context, std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
 
-        OperatorMatrix(OperatorMatrix&& rhs) noexcept
-            : MonomialMatrix{std::move(rhs)},
-              op_seq_matrix{std::move(rhs.op_seq_matrix)},
-              hash_matrix{std::move(rhs.hash_matrix)},
-              SequenceMatrix{*this} { }
+        OperatorMatrix(OperatorMatrix&& rhs) noexcept = default;
 
-        ~OperatorMatrix() noexcept;
+        virtual ~OperatorMatrix() noexcept;
 
-        [[nodiscard]] std::string description() const override {
+        [[nodiscard]] size_t Dimension() const noexcept { return this->op_seq_matrix->dimension; }
+
+        /**
+          * Return a view (std::span<const OperatorSequence>) to the requested row of the NPA matrix's operator
+          * sequences. Since std::span also provides an operator[], it is possible to index using
+          * "mySMV[row][col]" notation.
+          * @param row The index of the row to return.
+          * @return A std::span<const OperatorSequence> of the requested row.
+          */
+        std::span<const OperatorSequence> operator[](size_t row) const noexcept {
+            return (*(this->op_seq_matrix))[row];
+        };
+
+        /**
+         * Provides access to square matrix of operator sequences.
+         */
+        const auto& operator()() const noexcept {
+            return (*(this->op_seq_matrix));
+        }
+
+
+        [[nodiscard]] virtual std::string description() const {
             return "Operator Matrix";
         }
+
+        [[nodiscard]] virtual std::unique_ptr<MatrixProperties>
+        replace_properties(std::unique_ptr<MatrixProperties> input) const {
+            return input;
+        }
+
     };
 }

@@ -24,71 +24,81 @@ namespace Moment::Tests {
             bool herm;
         };
 
-        void compare_unique_sequences(MomentMatrix &theMM, std::initializer_list<unique_seq_brace_ref> reference) {
+        void compare_unique_sequences(const Matrix &theMM, std::initializer_list<unique_seq_brace_ref> reference) {
             ASSERT_EQ(theMM.Symbols.size(), 2 + reference.size());
+
+            const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix(theMM);
+            ASSERT_NE(mmPtr, nullptr) << "Not a moment matrix!";
+
 
             // 0 is always zero
             auto iter = theMM.Symbols.begin();
-            ASSERT_NE(iter, theMM.Symbols.end()) << " Level = " << theMM.Level();
-            EXPECT_EQ(&(*iter), &theMM.Symbols[0]) << " Level = " << theMM.Level();
+            ASSERT_NE(iter, theMM.Symbols.end()) << " Level = " << mmPtr->Level();
+            EXPECT_EQ(&(*iter), &theMM.Symbols[0]) << " Level = " << mmPtr->Level();
             EXPECT_EQ(theMM.Symbols[0].sequence(), OperatorSequence::Zero(theMM.context))
-                << " Level = " << theMM.Level();
+                << " Level = " << mmPtr->Level();
             EXPECT_EQ(theMM.Symbols[0].sequence_conj(), OperatorSequence::Zero(theMM.context))
-                << " Level = " << theMM.Level();
-            EXPECT_TRUE(theMM.Symbols[0].is_hermitian()) << " Level = " << theMM.Level();
+                << " Level = " << mmPtr->Level();
+            EXPECT_TRUE(theMM.Symbols[0].is_hermitian()) << " Level = " << mmPtr->Level();
             ++iter;
 
             // 1 is always ID
-            ASSERT_NE(iter, theMM.Symbols.end()) << " Level = " << theMM.Level();
-            EXPECT_EQ(&(*iter), &theMM.Symbols[1]) << " Level = " << theMM.Level();
+            ASSERT_NE(iter, theMM.Symbols.end()) << " Level = " << mmPtr->Level();
+            EXPECT_EQ(&(*iter), &theMM.Symbols[1]) << " Level = " << mmPtr->Level();
             EXPECT_EQ(theMM.Symbols[1].sequence(), OperatorSequence::Identity(theMM.context))
-                << " Level = " << theMM.Level();
+                << " Level = " << mmPtr->Level();
             EXPECT_EQ(theMM.Symbols[1].sequence_conj(), OperatorSequence::Identity(theMM.context))
-                << " Level = " << theMM.Level();
-            EXPECT_TRUE(theMM.Symbols[1].is_hermitian())  << " Level = " << theMM.Level();
+                << " Level = " << mmPtr->Level();
+            EXPECT_TRUE(theMM.Symbols[1].is_hermitian())  << " Level = " << mmPtr->Level();
             ++iter;
 
             size_t index = 2;
             for (const auto& ref_seq : reference) {
-                ASSERT_NE(iter, theMM.Symbols.end()) << " Level = " << theMM.Level() << ", index = " << index;
-                EXPECT_EQ(&(*iter), &theMM.Symbols[index]) << " Level = " << theMM.Level()
+                ASSERT_NE(iter, theMM.Symbols.end()) << " Level = " << mmPtr->Level() << ", index = " << index;
+                EXPECT_EQ(&(*iter), &theMM.Symbols[index]) << " Level = " << mmPtr->Level()
                     << ", index = " << index;
-                EXPECT_EQ(iter->sequence(), ref_seq.fwd) << " Level = " << theMM.Level() << ", index = " << index;
-                EXPECT_EQ(iter->sequence_conj(), ref_seq.rev) << " Level = " << theMM.Level() << ", index = " << index;
-                EXPECT_EQ(iter->is_hermitian(), ref_seq.herm) << " Level = " << theMM.Level() << ", index = " << index;
+                EXPECT_EQ(iter->sequence(), ref_seq.fwd) << " Level = " << mmPtr->Level() << ", index = " << index;
+                EXPECT_EQ(iter->sequence_conj(), ref_seq.rev) << " Level = " << mmPtr->Level() << ", index = " << index;
+                EXPECT_EQ(iter->is_hermitian(), ref_seq.herm) << " Level = " << mmPtr->Level() << ", index = " << index;
                 ++index;
                 ++iter;
             }
 
-            EXPECT_EQ(index, 2 + reference.size()) << " Level = " << theMM.Level();
-            EXPECT_EQ(iter, theMM.Symbols.end()) << " Level = " << theMM.Level();
+            EXPECT_EQ(index, 2 + reference.size()) << " Level = " << mmPtr->Level();
+            EXPECT_EQ(iter, theMM.Symbols.end()) << " Level = " << mmPtr->Level();
         }
 
-        void compare_symbol_matrix(MomentMatrix &theMM, size_t dimension,
+        void compare_symbol_matrix(const Matrix &inputMM, size_t dimension,
                                    const std::vector<SymbolExpression>& reference) {
+            const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix(inputMM);
+            ASSERT_NE(mmPtr, nullptr) << "Not a moment matrix!";
+            ASSERT_TRUE(inputMM.is_monomial());
+            const auto& theMM = dynamic_cast<const MonomialMatrix&>(inputMM);
+
+
             ASSERT_EQ(theMM.SymbolMatrix.Dimension(), dimension);
 
             size_t row = 0;
             size_t col = 0;
             for (const auto &ref_symbol: reference) {
-                ASSERT_LT(row, dimension) << " Level = " << theMM.Level() << ", row = " << row << ", col = " << col;
-                ASSERT_LT(col, dimension) << " Level = " << theMM.Level() << ", row = " << row << ", col = " << col;
+                ASSERT_LT(row, dimension) << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
+                ASSERT_LT(col, dimension) << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
 
                 const auto &actual_symbol = theMM.SymbolMatrix[row][col];
                 EXPECT_EQ(actual_symbol, ref_symbol)
-                                    << " Level = " << theMM.Level() << ", row = " << row << ", col = " << col;
+                                    << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
                 ++col;
                 if (col >= dimension) {
                     col = 0;
                     ++row;
                 }
             }
-            EXPECT_EQ(col, 0) << " Level = " << theMM.Level();
-            EXPECT_EQ(row, dimension) << " Level = " << theMM.Level();
+            EXPECT_EQ(col, 0) << " Level = " << mmPtr->Level();
+            EXPECT_EQ(row, dimension) << " Level = " << mmPtr->Level();
 
         }
 
-        void compare_symbol_matrix(MomentMatrix &theMM, size_t dimension,
+        void compare_symbol_matrix(const Matrix &theMM, size_t dimension,
                                std::initializer_list<std::string> reference) {
             std::vector<SymbolExpression> txReference;
             txReference.reserve(reference.size());
@@ -105,20 +115,26 @@ namespace Moment::Tests {
         ASSERT_EQ(context.size(), 0);
 
         auto [id0, matLevel0] = system.create_moment_matrix(0);
+        const auto* mm0Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel0);
+        ASSERT_NE(mm0Ptr, nullptr);
 
-        EXPECT_EQ(matLevel0.Level(), 0);
+        EXPECT_EQ(mm0Ptr->Level(), 0);
         compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
         compare_unique_sequences(matLevel0, {});
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
         auto [id1, matLevel1] = system.create_moment_matrix(1);
-        EXPECT_EQ(matLevel1.Level(), 1);
+        const auto* mm1Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel1);
+        ASSERT_NE(mm1Ptr, nullptr);
+        EXPECT_EQ(mm1Ptr->Level(), 1);
         compare_mm_os_matrix(matLevel1, 1, {OperatorSequence::Identity(context)});
         compare_unique_sequences(matLevel1, {});
         compare_symbol_matrix(matLevel1, 1, {"1"});
 
         auto [id5, matLevel5] = system.create_moment_matrix(5);
-        EXPECT_EQ(matLevel5.Level(), 5);
+        const auto* mm5Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel5);
+        ASSERT_NE(mm5Ptr, nullptr);
+        EXPECT_EQ(mm5Ptr->Level(), 5);
         compare_mm_os_matrix(matLevel5, 1, {OperatorSequence::Identity(context)});
         compare_unique_sequences(matLevel5, {});
         compare_symbol_matrix(matLevel1, 1, {"1"});
@@ -132,12 +148,16 @@ namespace Moment::Tests {
         const auto theOp = 0;
 
         auto [id0, matLevel0] = system.create_moment_matrix(0);
-        EXPECT_EQ(matLevel0.Level(), 0);
+        const auto* mm0Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel0);
+        ASSERT_NE(mm0Ptr, nullptr);
+        EXPECT_EQ(mm0Ptr->Level(), 0);
         compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
 
         auto [id1, matLevel1] = system.create_moment_matrix(1);
-        EXPECT_EQ(matLevel1.Level(), 1);
+        const auto* mm1Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel1);
+        ASSERT_NE(mm1Ptr, nullptr);
+        EXPECT_EQ(mm1Ptr->Level(), 1);
         compare_mm_os_matrix(matLevel1, 2, {OperatorSequence::Identity(context),
                                          OperatorSequence({theOp}, context),
                                          OperatorSequence({theOp}, context),
@@ -145,7 +165,9 @@ namespace Moment::Tests {
 
 
         auto [id2, matLevel2] = system.create_moment_matrix(2);
-        EXPECT_EQ(matLevel2.Level(), 2);
+        const auto* mm2Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel2);
+        ASSERT_NE(mm2Ptr, nullptr);
+        EXPECT_EQ(mm2Ptr->Level(), 2);
         compare_mm_os_matrix(matLevel2, 3, {OperatorSequence::Identity(context),
                                          OperatorSequence({theOp}, context),
                                          OperatorSequence({theOp, theOp}, context),
@@ -238,7 +260,7 @@ namespace Moment::Tests {
                                          OperatorSequence({alice[1], alice[1], alice[1] , alice[1]}, context)}
 
                  );
-    };
+    }
 
     TEST(Operators_MomentMatrix, OpSeq_2Party1Opers) {
         using namespace Moment::Locality;
@@ -638,7 +660,7 @@ namespace Moment::Tests {
                                "5",  "9",   "10",  "15*", "18", "20", "21", // 01, 010, 011, 0100, 0101, 0110, 0111
                                "6",  "10*", "12",  "16*", "19*","21*","22" // 11, 110, 111, 1100, 1101, 1110, 1111
         });
-    };
+    }
 
     TEST(Operators_MomentMatrix, Symbol_2Party1Opers) {
         using namespace Moment::Locality;

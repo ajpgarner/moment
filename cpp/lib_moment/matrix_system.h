@@ -25,10 +25,7 @@ namespace Moment {
 
     class WordList;
 
-    class MonomialMatrix;
-    class OperatorMatrix;
-    class LocalizingMatrix;
-    class MomentMatrix;
+    class Matrix;
 
     namespace errors {
         /**
@@ -54,7 +51,7 @@ namespace Moment {
         std::unique_ptr<SymbolTable> symbol_table;
 
         /** List of matrices in the system */
-        std::vector<std::unique_ptr<MonomialMatrix>> matrices;
+        std::vector<std::unique_ptr<Matrix>> matrices;
 
         /** The index (in this->matrices) of generated moment matrices */
         std::vector<ptrdiff_t> momentMatrixIndices;
@@ -117,7 +114,7 @@ namespace Moment {
          * @return The MomentMatrix for this particular Level.
          * @throws errors::missing_compoment if not generated.
          */
-        [[nodiscard]] const class MomentMatrix& MomentMatrix(size_t level) const;
+        [[nodiscard]] const class Matrix& MomentMatrix(size_t level) const;
 
         /**
          * Gets the localizing matrix for a particular sequence and hierarchy Level.
@@ -126,13 +123,13 @@ namespace Moment {
          * @return The MomentMatrix for this particular Level.
          * @throws errors::missing_component if not generated.
          */
-        [[nodiscard]] const class LocalizingMatrix& LocalizingMatrix(const LocalizingMatrixIndex& lmi) const;
+        [[nodiscard]] const class Matrix& LocalizingMatrix(const LocalizingMatrixIndex& lmi) const;
 
         /**
          * Access matrix by subscript corresponding to order of creation.
          * For thread safety, call for a read lock first.
          */
-        [[nodiscard]] const MonomialMatrix& operator[](size_t index) const;
+        [[nodiscard]] const Matrix& operator[](size_t index) const;
 
         /**
          * Counts matrices in system.
@@ -169,7 +166,7 @@ namespace Moment {
           * @param level The hierarchy depth.
           * @return Pair: Matrix index and created MomentMatrix object reference.
           */
-        std::pair<size_t, class MomentMatrix&> create_moment_matrix(size_t level);
+        std::pair<size_t, class Matrix&> create_moment_matrix(size_t level);
 
         /**
          * Constructs a localizing matrix for a particular Level on a particular word, or returns a pre-existing one.
@@ -178,7 +175,7 @@ namespace Moment {
          * @param word The word
          * @return Pair: Matrix index and created LocalizingMatrix object reference.
          */
-        std::pair<size_t, class LocalizingMatrix&> create_localizing_matrix(const LocalizingMatrixIndex& lmi);
+        std::pair<size_t, class Matrix&> create_localizing_matrix(const LocalizingMatrixIndex& lmi);
 
         /**
          * Check if a MomentMatrix has been generated for a particular hierarchy Level.
@@ -200,7 +197,7 @@ namespace Moment {
          * Clone a matrix, with substituted values.
          * Will lock until all read locks have expired - so do NOT first call for a read lock...!
          */
-        std::pair<size_t, class MonomialMatrix&>
+        std::pair<size_t, class Matrix&>
         clone_and_substitute(size_t matrix_index, std::unique_ptr<SubstitutionList> list);
 
         /**
@@ -229,21 +226,21 @@ namespace Moment {
          * @param level The moment matrix level.
          * @return Owning pointer of new moment matrix.
          */
-        virtual std::unique_ptr<class MomentMatrix> createNewMomentMatrix(size_t level);
+        virtual std::unique_ptr<class Matrix> createNewMomentMatrix(size_t level);
 
         /**
          * Virtual method, called to generate a localizing matrix.
          * @param lmi The hierarchy Level and word that describes the localizing matrix.
          * @return Owning pointer of new localizing matrix.
          */
-        virtual std::unique_ptr<class LocalizingMatrix> createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi);
+        virtual std::unique_ptr<class Matrix> createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi);
 
         /**
          * Virtual method, called after a moment matrix is generated.
          * @param level The moment matrix level.
          * @param mm The newly generated moment matrix.
          */
-        virtual void onNewMomentMatrixCreated(size_t level, const class MomentMatrix& mm) { }
+        virtual void onNewMomentMatrixCreated(size_t level, const class Matrix& mm) { }
 
         /**
          * Virtual method, called after a localizing matrix is generated.
@@ -251,7 +248,7 @@ namespace Moment {
          * @param lm The newly generated localizing matrix.
          */
         virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
-                                                  const class LocalizingMatrix& lm) { }
+                                                  const class Matrix& lm) { }
 
         /**
          * Get read-write access to symbolic matrix by index. Changes should not be made without a write lock.
@@ -259,14 +256,14 @@ namespace Moment {
          * @return A reference to the requested matrix.
          * @throws errors::missing_component if index does not correspond to a matrix in the system.
          */
-        MonomialMatrix& get(size_t index);
+        Matrix& get(size_t index);
 
         /**
          * Add symbolic matrix to end of array. Changes should not be made without a write lock.
          * @param matrix Owning pointer to matrix to add.
          * @return The index of the newly appended matrix.
          */
-        ptrdiff_t push_back(std::unique_ptr<MonomialMatrix> matrix);
+        ptrdiff_t push_back(std::unique_ptr<Matrix> matrix);
 
     };
 }

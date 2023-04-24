@@ -46,7 +46,7 @@ namespace Moment::mex::functions {
         return level_specified || OperatorMatrixParams::any_param_set();
     }
 
-    std::pair<size_t, const Moment::MonomialMatrix &>
+    std::pair<size_t, const Moment::Matrix &>
     MomentMatrix::get_or_make_matrix(MatrixSystem &system, OperatorMatrixParams &inputOMP) {
         const auto& input = dynamic_cast<const MomentMatrixParams&>(inputOMP);
 

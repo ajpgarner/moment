@@ -10,6 +10,8 @@
 #include "scenarios/inflation/inflation_context.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
 
+#include "symbolic/symbol_table.h"
+
 #include "../../symbolic/symbolic_matrix_helpers.h"
 
 #include <sstream>
@@ -48,7 +50,7 @@ namespace Moment::Tests {
         auto& factors = ims.Factors();
 
         ims.create_moment_matrix(1);
-        const auto& base_MM = ims.MomentMatrix(1);
+        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(1));
 
         ASSERT_EQ(symbols.size(), 5);
         auto id_0 = find_or_fail(symbols, OperatorSequence::Zero(ims.Context()));
@@ -59,9 +61,9 @@ namespace Moment::Tests {
         std::set all_symbs{id_0, id_e, id_A, id_B, id_AB};
         ASSERT_EQ(all_symbs.size(), 5);
 
-        compare_symbol_matrices(base_MM.SymbolMatrix, {id_e, id_A, id_B,
-                                                       id_A, id_A, id_AB,
-                                                       id_B, id_AB, id_B});
+        compare_symbol_matrices(base_MM, {id_e, id_A, id_B,
+                                          id_A, id_A, id_AB,
+                                          id_B, id_AB, id_B});
 
         std::vector<symbol_name_t> extension_list{id_A};
 
@@ -87,7 +89,7 @@ namespace Moment::Tests {
         auto& factors = ims.Factors();
 
         ims.create_moment_matrix(1);
-        const auto& base_MM = ims.MomentMatrix(1);
+        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(1));
 
         ASSERT_EQ(symbols.size(), 5);
         auto id_0 = find_or_fail(symbols, OperatorSequence::Zero(ims.Context()));
@@ -98,9 +100,9 @@ namespace Moment::Tests {
         std::set all_symbs{id_0, id_e, id_A, id_B, id_AB};
         ASSERT_EQ(all_symbs.size(), 5);
 
-        compare_symbol_matrices(base_MM.SymbolMatrix, {id_e, id_A, id_B,
-                                                       id_A, id_A, id_AB,
-                                                       id_B, id_AB, id_B});
+        compare_symbol_matrices(base_MM, {id_e, id_A, id_B,
+                                          id_A, id_A, id_AB,
+                                          id_B, id_AB, id_B});
 
         std::vector<symbol_name_t> extension_list{id_A};
 
@@ -112,10 +114,10 @@ namespace Moment::Tests {
         all_symbs.emplace(id_A_A);
         ASSERT_EQ(all_symbs.size(), 6);
 
-        compare_symbol_matrices(extended_MM.SymbolMatrix, {id_e, id_A,   id_B,   id_A,
-                                                           id_A, id_A,   id_AB,  id_A_A,
-                                                           id_B, id_AB,  id_B,   id_AB,
-                                                           id_A, id_A_A, id_AB,  id_A_A});
+        compare_symbol_matrices(extended_MM, {id_e, id_A,   id_B,   id_A,
+                                              id_A, id_A,   id_AB,  id_A_A,
+                                              id_B, id_AB,  id_B,   id_AB,
+                                              id_A, id_A_A, id_AB,  id_A_A});
     }
 
     TEST(Scenarios_Inflation_ExtendedMatrix, Pair_DoubleExtension) {
@@ -124,7 +126,7 @@ namespace Moment::Tests {
         auto& factors = ims.Factors();
 
         ims.create_moment_matrix(1);
-        const auto& base_MM = ims.MomentMatrix(1);
+        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(1));
 
         ASSERT_EQ(symbols.size(), 5);
         auto id_0 = find_or_fail(symbols, OperatorSequence::Zero(ims.Context()));
@@ -162,6 +164,9 @@ namespace Moment::Tests {
     TEST(Scenarios_Inflation_ExtendedMatrix, MS_UnlinkedPair) {
         InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {}}, 1)};
         auto [mm_index, mm_ref] = ims.create_moment_matrix(1);
+
+        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(1));
+
         const auto& symbols = ims.Symbols();
         ASSERT_EQ(symbols.size(), 5);
         auto id_0 = find_or_fail(symbols, OperatorSequence::Zero(ims.Context()));
@@ -172,7 +177,7 @@ namespace Moment::Tests {
         std::set all_symbs{id_0, id_e, id_A, id_B, id_AB};
         ASSERT_EQ(all_symbs.size(), 5);
 
-        auto [em_index, em_ref] = ims.create_extended_matrix(mm_ref, std::vector<symbol_name_t>{id_A});
+        auto [em_index, em_ref] = ims.create_extended_matrix(base_MM, std::vector<symbol_name_t>{id_A});
 
         ASSERT_EQ(symbols.size(), 6);
         auto id_A_A = find_or_fail(ims.Factors(), {id_A, id_A});
@@ -184,7 +189,7 @@ namespace Moment::Tests {
                                                       id_B, id_AB,  id_B,   id_AB,
                                                       id_A, id_A_A, id_AB,  id_A_A});
 
-        auto [em_second_access, em_sa_ref] = ims.create_extended_matrix(mm_ref, std::vector<symbol_name_t>{id_A});
+        auto [em_second_access, em_sa_ref] = ims.create_extended_matrix(base_MM, std::vector<symbol_name_t>{id_A});
         EXPECT_EQ(em_second_access, em_index);
         EXPECT_EQ(&em_sa_ref, &em_ref);
     }
@@ -192,6 +197,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Inflation_ExtendedMatrix, MS_PairAndScalar) {
         InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{2, 2, 0}, {{0, 1}}}, 2)};
         auto [mm_index, mm_ref] = ims.create_moment_matrix(1);
+        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(mm_ref);
         const auto& context = ims.InflationContext();
         const auto& symbols = ims.Symbols();
 
@@ -222,7 +228,7 @@ namespace Moment::Tests {
                             id_B0B1, id_B0C0, id_C0C0};
         ASSERT_EQ(all_symbs.size(), 12) << symbols;
 
-        auto [em_index, em_ref] = ims.create_extended_matrix(mm_ref, std::vector<symbol_name_t>{id_A0});
+        auto [em_index, em_ref] = ims.create_extended_matrix(base_MM, std::vector<symbol_name_t>{id_A0});
 
     }
 }

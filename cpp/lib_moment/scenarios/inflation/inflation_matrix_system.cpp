@@ -15,6 +15,8 @@
 #include "inflation_explicit_symbols.h"
 #include "inflation_implicit_symbols.h"
 
+#include "matrix/moment_matrix.h"
+
 namespace Moment::Inflation {
     InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class InflationContext> contextIn)
             : MatrixSystem{std::move(contextIn)},
@@ -62,7 +64,7 @@ namespace Moment::Inflation {
     }
 
 
-    void InflationMatrixSystem::onNewMomentMatrixCreated(size_t level, const class MomentMatrix& mm) {
+    void InflationMatrixSystem::onNewMomentMatrixCreated(size_t level, const Matrix& mm) {
         // Register factors
         this->factors->on_new_symbols_added();
 
@@ -80,7 +82,7 @@ namespace Moment::Inflation {
     }
 
     void InflationMatrixSystem::onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi,
-                                                             const class LocalizingMatrix& lm) {
+                                                             const Matrix& lm) {
         // Register factors
         this->factors->on_new_symbols_added();
         MatrixSystem::onNewLocalizingMatrixCreated(lmi, lm);
@@ -102,12 +104,21 @@ namespace Moment::Inflation {
     }
 
     std::pair<size_t, ExtendedMatrix &>
-    InflationMatrixSystem::create_extended_matrix(const class MomentMatrix &source,
+    InflationMatrixSystem::create_extended_matrix(const class MonomialMatrix &source,
                                                   std::span<const symbol_name_t> extensions) {
+
+        const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix(source);
+        if (nullptr == mm_ptr) {
+            throw std::invalid_argument{"Source matrix to be extended must be a monomial moment matrix."};
+        }
+        const auto& moment_matrix = *mm_ptr;
+
+
+
         auto lock = this->get_write_lock();
 
         // Attempt to get pre-existing extended matrix
-        auto pre_existing = this->find_extended_matrix(source.Level(), extensions);
+        auto pre_existing = this->find_extended_matrix(moment_matrix.Level(), extensions);
         if (pre_existing >= 0) {
             auto& existingMatrix = this->get(pre_existing);
             return {pre_existing, dynamic_cast<ExtendedMatrix&>(existingMatrix)};
@@ -119,14 +130,14 @@ namespace Moment::Inflation {
         auto index = this->push_back(std::move(em_ptr));
 
         // Register index in tree
-        auto * root = this->extension_indices.add_node(static_cast<symbol_name_t>(source.Level()));
+        auto * root = this->extension_indices.add_node(static_cast<symbol_name_t>(moment_matrix.Level()));
         root->add(extensions, index);
 
         // Return created matrix
         return {index, ref};
     }
 
-    std::set<symbol_name_t> InflationMatrixSystem::suggest_extensions(const class MomentMatrix& matrix) const {
+    std::set<symbol_name_t> InflationMatrixSystem::suggest_extensions(const class MonomialMatrix& matrix) const {
         return (*this->extensionSuggester)(matrix);
     }
 

@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 
-#include "operator_matrix.h"
+#include "./operator_matrix.h"
 
 #include "integer_types.h"
 
@@ -47,7 +47,7 @@ namespace Moment::mex::functions  {
         ApplyValues(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
     protected:
-        std::pair<size_t, const Moment::MonomialMatrix&>
+        std::pair<size_t, const Moment::Matrix&>
         get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) final;
     };
 }

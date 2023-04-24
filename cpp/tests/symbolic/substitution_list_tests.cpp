@@ -148,9 +148,9 @@ namespace Moment::Tests {
         std::set all_symbols{id_e, id_a, id_b, id_ab};
         ASSERT_EQ(all_symbols.size(), 4);
 
-        compare_symbol_matrices(moment_matrix.SymbolMatrix, {id_e, id_a, id_b,
-                                                             id_a, id_a, id_ab,
-                                                             id_b, id_ab, id_b});
+        compare_symbol_matrices(moment_matrix, {id_e, id_a, id_b,
+                                                id_a, id_a, id_ab,
+                                                id_b, id_ab, id_b});
 
         // Build substitutions of just A
         auto sub_list = std::make_unique<SubstitutionList>(SubstitutionList::raw_map_t{{id_a, 2.0}});
@@ -162,10 +162,11 @@ namespace Moment::Tests {
         // Test matrix object is unique
         ASSERT_NE(mm_id, sub_id);
         ASSERT_NE(&moment_matrix, &sub_matrix);
+        ASSERT_TRUE(sub_matrix.is_monomial());
 
         // Symbol matrix should have with a replaced by 2.0
         ASSERT_EQ(sub_matrix.Dimension(), 3);
-        const auto& sub_symbols = sub_matrix.SymbolMatrix;
+        const auto& sub_symbols = dynamic_cast<const MonomialMatrix&>(sub_matrix).SymbolMatrix;
         EXPECT_EQ(sub_symbols[0][0], SymbolExpression(id_e));
         EXPECT_EQ(sub_symbols[0][1], SymbolExpression(id_e, 2.0));
         EXPECT_EQ(sub_symbols[0][2], SymbolExpression(id_b));
@@ -203,10 +204,9 @@ namespace Moment::Tests {
 
         std::set all_symbols{id_e, id_a, id_b, id_ab};
         ASSERT_EQ(all_symbols.size(), 4);
-
-        compare_symbol_matrices(moment_matrix.SymbolMatrix, {id_e, id_a, id_b,
-                                                             id_a, id_a, id_ab,
-                                                             id_b, id_ab, id_b});
+        compare_symbol_matrices(moment_matrix, {id_e, id_a, id_b,
+                                                id_a, id_a, id_ab,
+                                                id_b, id_ab, id_b});
 
         // Build substitutions of just A
         auto sub_list = std::make_unique<SubstitutionList>(SubstitutionList::raw_map_t{{id_a, 0.0}});
@@ -221,7 +221,7 @@ namespace Moment::Tests {
 
         // Symbol matrix should have with a replaced by 2.0
         ASSERT_EQ(sub_matrix.Dimension(), 3);
-        const auto& sub_symbols = sub_matrix.SymbolMatrix;
+        const auto& sub_symbols = dynamic_cast<const MonomialMatrix&>(sub_matrix).SymbolMatrix;
         EXPECT_EQ(sub_symbols[0][0], SymbolExpression(id_e));
         EXPECT_EQ(sub_symbols[0][1], SymbolExpression(id_0));
         EXPECT_EQ(sub_symbols[0][2], SymbolExpression(id_b));

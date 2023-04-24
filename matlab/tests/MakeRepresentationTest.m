@@ -17,7 +17,7 @@ classdef MakeRepresentationTest < MTKTestBase
         function add_chsh(testCase)
             base_id = mtk('new_locality_matrix_system', 2, 2, 2);
             [ref_id,elems] = mtk('new_symmetrized_matrix_system', ...
-                              base_id, testCase.chsh_generators);                
+                              base_id, testCase.chsh_generators, 2);                
             testCase.verifyGreaterThanOrEqual(ref_id,0);
             testCase.verifyEqual(length(elems), 16);
             
@@ -46,7 +46,7 @@ classdef MakeRepresentationTest < MTKTestBase
             function bad_call()                
                 ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
                 [idx,~] = mtk('new_symmetrized_matrix_system', ref_id, ...
-                              testCase.chsh_generators);                
+                              testCase.chsh_generators, 2);                
                 [~] = mtk('make_representation', ref_id, idx, 2, 2);        
             end
             testCase.verifyError(@() bad_call(), 'mtk:too_many_inputs');

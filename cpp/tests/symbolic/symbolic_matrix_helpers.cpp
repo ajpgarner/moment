@@ -25,6 +25,13 @@ namespace Moment::Tests {
         return find_ptr->Id();
     }
 
+    void compare_symbol_matrices(const Matrix& test,
+                                 const std::vector<symbol_name_t>& reference) {
+        ASSERT_TRUE(test.is_monomial());
+        const auto& test_mm = dynamic_cast<const MonomialMatrix&>(test);
+        compare_symbol_matrices(test_mm.SymbolMatrix, reference);
+    }
+
     void compare_symbol_matrices(const MonomialMatrix::MMSymbolMatrixView& test,
                                  const std::vector<symbol_name_t>& reference) {
         ASSERT_EQ(test.Dimension()*test.Dimension(), reference.size());

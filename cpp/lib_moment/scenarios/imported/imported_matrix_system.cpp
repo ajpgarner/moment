@@ -99,11 +99,11 @@ namespace Moment::Imported {
 
     }
 
-    std::unique_ptr<class MomentMatrix> ImportedMatrixSystem::createNewMomentMatrix(size_t level) {
+    std::unique_ptr<class Matrix> ImportedMatrixSystem::createNewMomentMatrix(size_t level) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
-    std::unique_ptr<class LocalizingMatrix>
+    std::unique_ptr<class Matrix>
     ImportedMatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
@@ -159,11 +159,12 @@ namespace Moment::Imported {
         if (changed_symbols) {
             for (size_t index = 0; index < this->size(); ++index) {
                 auto &old_mat = this->get(index);
+
                 old_mat.renumerate_bases(this->Symbols());
             }
         }
 
         // Construct new symbolic matrix
-        return this->push_back(std::make_unique<MonomialMatrix>(this->Context(), this->Symbols(), std::move(input)));
+        return this->push_back(std::make_unique<MonomialMatrix>(this->Symbols(), this->Context(), std::move(input)));
     }
 }

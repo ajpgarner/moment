@@ -87,10 +87,10 @@ namespace Moment::Derived {
         [[nodiscard]] virtual std::string describe_map() const;
 
     protected:
-        [[nodiscard]] std::unique_ptr<struct MomentMatrix>
+        [[nodiscard]] std::unique_ptr<class Matrix>
         createNewMomentMatrix(size_t level) override;
 
-        [[nodiscard]] std::unique_ptr<struct LocalizingMatrix>
+        [[nodiscard]] std::unique_ptr<class Matrix>
         createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) override;
 
     protected:

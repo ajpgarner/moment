@@ -6,6 +6,7 @@
  */
 
 #include "moment_matrix.h"
+#include "moment_matrix_properties.h"
 
 #include "operator_sequence_generator.h"
 
@@ -51,9 +52,10 @@ namespace Moment {
         }
     }
 
-    MomentMatrix::MomentMatrix(const Context& context, SymbolTable& symbols, size_t level)
-        : OperatorMatrix{context, symbols, generate_moment_matrix_sequences(context, level)},
+    MomentMatrix::MomentMatrix(const Context& context, size_t level)
+        : OperatorMatrix{context, generate_moment_matrix_sequences(context, level)},
           hierarchy_level{level} {
+
     }
 
     MomentMatrix::MomentMatrix(MomentMatrix &&src) noexcept :
@@ -62,7 +64,7 @@ namespace Moment {
 
     }
 
-    MomentMatrix::~MomentMatrix() = default;
+    MomentMatrix::~MomentMatrix() noexcept = default;
 
     const OperatorSequenceGenerator& MomentMatrix::Generators() const {
         return this->context.operator_sequence_generator(this->Level());
@@ -72,6 +74,25 @@ namespace Moment {
         std::stringstream ss;
         ss << "Moment Matrix, Level " << this->hierarchy_level;
         return ss.str();
+    }
+
+    const MomentMatrix* MomentMatrix::as_monomial_moment_matrix(const Matrix& input) noexcept {
+        if (!input.is_monomial()) {
+            return nullptr;
+        }
+
+        if (!input.has_operator_matrix()) {
+            return nullptr;
+        }
+
+        const auto &op_matrix = input.operator_matrix();
+        return dynamic_cast<const MomentMatrix *>(&op_matrix); // might be nullptr!
+    }
+
+    std::unique_ptr<MatrixProperties> MomentMatrix::replace_properties(std::unique_ptr<MatrixProperties> input) const {
+        return std::make_unique<MomentMatrixProperties>(std::move(*input),
+                                                        this->hierarchy_level, this->op_seq_matrix->is_hermitian(),
+                                                        this->description());
     }
 
 }

@@ -40,7 +40,7 @@ namespace Moment::Derived {
         return std::make_unique<Derived::DerivedContext>(source.Context());
     }
 
-    std::unique_ptr<class MomentMatrix> DerivedMatrixSystem::createNewMomentMatrix(size_t level) {
+    std::unique_ptr<class Matrix> DerivedMatrixSystem::createNewMomentMatrix(size_t level) {
         // First check if map is capable of defining this MM.
         const auto lsw = this->longest_supported_word();
         if ((level*2) > lsw) {
@@ -52,12 +52,12 @@ namespace Moment::Derived {
         }
 
         // Check source moment matrix exists, create it if it doesn't
-        const auto& source_matrix = [&]() -> const class MomentMatrix& {
+        const auto& source_matrix = [&]() -> const class Matrix& {
             auto read_source_lock = this->base_system().get_read_lock();
             // Get, if exists
             auto index = this->base_system().find_moment_matrix(level);
             if (index >= 0) {
-                return dynamic_cast<const class MomentMatrix&>(this->base_system()[index]);
+                return this->base_system()[index];
             }
             read_source_lock.unlock();
 
@@ -72,7 +72,7 @@ namespace Moment::Derived {
         throw std::runtime_error{"DerivedMatrixSystem::createNewMomentMatrix not implemented."};
     }
 
-    std::unique_ptr<class LocalizingMatrix>
+    std::unique_ptr<class Matrix>
     DerivedMatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) {
         // First check if map is capable of defining this LM.
         const auto lsw = this->longest_supported_word();
@@ -87,12 +87,12 @@ namespace Moment::Derived {
         }
 
         // Check if source localizing matrix exists, create it if it doesn't
-        const auto& source_matrix = [this, &lmi]() -> const class LocalizingMatrix& {
+        const auto& source_matrix = [this, &lmi]() -> const class Matrix& {
             auto read_source_lock = this->base_system().get_read_lock();
             // Get, if exists
             auto index = this->base_system().find_localizing_matrix(lmi);
             if (index >= 0) {
-                return dynamic_cast<const class LocalizingMatrix&>(this->base_system()[index]);
+                return this->base_system()[index];
             }
             read_source_lock.unlock();
 

@@ -41,22 +41,22 @@ namespace Moment {
         return static_cast<ptrdiff_t>(this->momentMatrixIndices.size()) - 1;
     }
 
-    const MomentMatrix &MatrixSystem::MomentMatrix(size_t level) const {
+    const Matrix& MatrixSystem::MomentMatrix(size_t level) const {
         auto index = this->find_moment_matrix(level);
         if (index < 0) {
             throw errors::missing_component("Moment matrix of Level " + std::to_string(level) + " not yet generated.");
         }
-        return dynamic_cast<const class MomentMatrix&>(*matrices[index]);
+        return *matrices[index];
     }
 
-    std::pair<size_t, class MomentMatrix&> MatrixSystem::create_moment_matrix(size_t level) {
+    std::pair<size_t, class Matrix&> MatrixSystem::create_moment_matrix(size_t level) {
         // Call for write lock...
         auto lock = this->get_write_lock();
 
         // First, try read
         auto index = this->find_moment_matrix(level);
         if (index >= 0) {
-            return {index, dynamic_cast<class MomentMatrix&>(*matrices[index])};
+            return {index, *matrices[index]};
         }
 
         // Fill with null elements if some are missing
@@ -69,7 +69,7 @@ namespace Moment {
         this->matrices.emplace_back(this->createNewMomentMatrix(level));
         this->momentMatrixIndices[level] = matrixIndex;
 
-        auto& output = dynamic_cast<class MomentMatrix&>(*this->matrices[matrixIndex]);
+        auto& output = *this->matrices[matrixIndex];
 
         // Delegated post-generation
         this->onNewMomentMatrixCreated(level, output);
@@ -78,7 +78,7 @@ namespace Moment {
     }
 
 
-    const LocalizingMatrix& MatrixSystem::LocalizingMatrix(const LocalizingMatrixIndex& lmi) const {
+    const Matrix& MatrixSystem::LocalizingMatrix(const LocalizingMatrixIndex& lmi) const {
         ptrdiff_t index = this->find_localizing_matrix(lmi);
 
         if (index <= 0) {
@@ -87,10 +87,10 @@ namespace Moment {
                                             + "\" not yet been generated.");
         }
 
-        return dynamic_cast<const class LocalizingMatrix&>(*matrices[momentMatrixIndices[index]]);
+        return *matrices[momentMatrixIndices[index]];
     }
 
-    std::pair<size_t, class LocalizingMatrix&>
+    std::pair<size_t, class Matrix&>
     MatrixSystem::create_localizing_matrix(const LocalizingMatrixIndex& lmi) {
         // Call for write lock...
         auto lock = this->get_write_lock();
@@ -98,7 +98,7 @@ namespace Moment {
         // First, try read...
         ptrdiff_t index = this->find_localizing_matrix(lmi);
         if (index >= 0) {
-            return {index, dynamic_cast<class LocalizingMatrix&>(*matrices[index])};
+            return {index, *matrices[index]};
         }
 
         // Otherwise,generate new localizing matrix, and insert index
@@ -107,7 +107,7 @@ namespace Moment {
         this->localizingMatrixIndices.emplace(std::make_pair(lmi, matrixIndex));
 
         // Get reference to new matrix, and call derived classes...
-        auto& newLM = dynamic_cast<class LocalizingMatrix&>(*this->matrices.back());
+        auto& newLM = (*this->matrices.back());
         this->onNewLocalizingMatrixCreated(lmi, newLM);
 
         // Return (reference to) matrix just added
@@ -144,18 +144,20 @@ namespace Moment {
         return where->second;
     }
 
-    std::unique_ptr<class MomentMatrix> MatrixSystem::createNewMomentMatrix(const size_t level) {
-        return std::make_unique<class MomentMatrix>(*this->context, *this->symbol_table, level);
+    std::unique_ptr<class Matrix> MatrixSystem::createNewMomentMatrix(const size_t level) {
+        auto operator_matrix = std::make_unique<class MomentMatrix>(*this->context, level);
+        return std::make_unique<MonomialMatrix>(*this->symbol_table, std::move(operator_matrix));
     }
 
 
-    std::unique_ptr<class LocalizingMatrix> MatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi) {
-        return std::make_unique<class LocalizingMatrix>(*this->context, *this->symbol_table, lmi);
+    std::unique_ptr<class Matrix> MatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi) {
+        auto operator_matrix = std::make_unique<class LocalizingMatrix>(*this->context, lmi);
+        return std::make_unique<MonomialMatrix>(*this->symbol_table, std::move(operator_matrix));
     }
 
 
 
-    const MonomialMatrix &MatrixSystem::operator[](size_t index) const {
+    const Matrix &MatrixSystem::operator[](size_t index) const {
         if (index >= this->matrices.size()) {
             throw errors::missing_component("Matrix index out of range.");
         }
@@ -165,7 +167,7 @@ namespace Moment {
         return *this->matrices[index];
     }
 
-    MonomialMatrix& MatrixSystem::get(size_t index) {
+    Matrix& MatrixSystem::get(size_t index) {
         if (index >= this->matrices.size()) {
             throw errors::missing_component("Matrix index out of range.");
         }
@@ -175,13 +177,13 @@ namespace Moment {
         return *this->matrices[index];
     }
 
-    ptrdiff_t MatrixSystem::push_back(std::unique_ptr<MonomialMatrix> matrix) {
+    ptrdiff_t MatrixSystem::push_back(std::unique_ptr<Matrix> matrix) {
         auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
         this->matrices.emplace_back(std::move(matrix));
         return matrixIndex;
     }
 
-    std::pair<size_t, class MonomialMatrix &>
+    std::pair<size_t, class Matrix &>
     MatrixSystem::clone_and_substitute(size_t matrix_index, std::unique_ptr<SubstitutionList> list) {
         assert(list);
 
@@ -190,8 +192,16 @@ namespace Moment {
 
         auto& source_matrix = this->get(matrix_index);
         size_t new_index = this->matrices.size();
-        this->matrices.emplace_back(std::make_unique<SubstitutedMatrix>(*this->context, *this->symbol_table,
-                                                                        source_matrix, std::move(list)));
+
+        if (source_matrix.is_monomial()) {
+            const auto& mono_source = dynamic_cast<MonomialMatrix&>(source_matrix);
+            this->matrices.emplace_back(std::make_unique<SubstitutedMatrix>(*this->context, *this->symbol_table,
+                                                                            mono_source, std::move(list)));
+        } else {
+            const auto& poly_source = dynamic_cast<PolynomialMatrix&>(source_matrix);
+            throw std::runtime_error{"Substitution into polynomial symbol matrices has not yet been implemented."};
+        }
+
         auto& new_matrix = *(this->matrices.back());
         return {new_index, new_matrix};
     }

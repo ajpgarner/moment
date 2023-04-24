@@ -177,8 +177,8 @@ namespace Moment::Tests {
 
         EXPECT_TRUE(matrix.IsHermitian());
         const auto& smp = matrix.SMP();
-        EXPECT_TRUE(smp.is_hermitian());
-        EXPECT_TRUE(smp.is_complex());
+        EXPECT_TRUE(smp.IsHermitian());
+        EXPECT_TRUE(smp.IsComplex());
     }
 
     TEST(Operators_PolynomialMatrix, DenseBasis) {

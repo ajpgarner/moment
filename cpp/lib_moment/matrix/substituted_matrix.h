@@ -7,10 +7,14 @@
 #pragma once
 
 #include "monomial_matrix.h"
+#include "polynomial_matrix.h"
 #include "symbolic/substitution_list.h"
 
 namespace Moment {
 
+    /**
+     * Substituted monomial matrix
+     */
     class SubstitutedMatrix : public MonomialMatrix {
     public:
         const MonomialMatrix& source_matrix;
@@ -23,7 +27,8 @@ namespace Moment {
 
         const SubstitutionList& substitutions() const { return *sub_list; }
 
-        std::string description() const override;
     };
+
+    // TODO: Polynomial substituted matrix
 
 }

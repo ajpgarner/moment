@@ -331,9 +331,11 @@ namespace Moment::Tests {
 
 
         auto [id1, mm1] = ams.create_moment_matrix(1); // 1, A, B; A A^2 I; B I B^2 ...
-        ASSERT_EQ(mm1.Level(), 1);
         EXPECT_TRUE(mm1.IsHermitian());
-        const auto& seqMat = mm1.SequenceMatrix;
+        const auto& seqMatPtr = MomentMatrix::as_monomial_moment_matrix(mm1);
+        ASSERT_NE(seqMatPtr, nullptr);
+        const auto& seqMat = *seqMatPtr;
+        ASSERT_EQ(seqMat.Level(), 1);
         ASSERT_EQ(seqMat.Dimension(), 3);
         EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(context));
         EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, context));
@@ -363,18 +365,23 @@ namespace Moment::Tests {
         AlgebraicMatrixSystem ams{std::move(ac_ptr)};
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
 
-
         auto [id1, mm1] = ams.create_moment_matrix(1); // 1 (because A=1, B=1...!)
-        ASSERT_EQ(mm1.Level(), 1);
+        const auto* seqMat1Ptr = MomentMatrix::as_monomial_moment_matrix(mm1);
+        ASSERT_NE(seqMat1Ptr, nullptr);
+        const auto& seqMat1 = *seqMat1Ptr;
+        ASSERT_EQ(seqMat1.Level(), 1);
         EXPECT_TRUE(mm1.IsHermitian());
         ASSERT_EQ(mm1.Dimension(), 1);
-        EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(seqMat1[0][0], OperatorSequence::Identity(ams.Context()));
 
         auto [id3, mm3] = ams.create_moment_matrix(3); // 1 (because A=1, B=1, still!)
-        ASSERT_EQ(mm3.Level(), 3);
+        const auto* seqMat3Ptr = MomentMatrix::as_monomial_moment_matrix(mm3);
+        ASSERT_NE(seqMat3Ptr, nullptr);
+        const auto& seqMat3 = *seqMat3Ptr;
+        ASSERT_EQ(seqMat3.Level(), 3);
         EXPECT_TRUE(mm3.IsHermitian());
         ASSERT_EQ(mm3.Dimension(), 1) << context.resolved_rules();
-        EXPECT_EQ(mm3.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(seqMat3[0][0], OperatorSequence::Identity(ams.Context()));
 
     }
 
@@ -390,15 +397,19 @@ namespace Moment::Tests {
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
 
         auto [id2, mm2] = ams.create_moment_matrix(2); // 1 a b ab ba bb
-        ASSERT_EQ(mm2.Level(), 2);
+        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix(mm2);
+        ASSERT_NE(seqMatPtr, nullptr);
+        const auto& seqMat = *seqMatPtr;
+
+        ASSERT_EQ(seqMat.Level(), 2);
         EXPECT_TRUE(mm2.IsHermitian());
         ASSERT_EQ(mm2.Dimension(), 6);
-        EXPECT_EQ(mm2.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
-        EXPECT_EQ(mm2.SequenceMatrix[0][1], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(mm2.SequenceMatrix[0][2], OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(mm2.SequenceMatrix[0][3], OperatorSequence({0, 1}, ams.Context()));
-        EXPECT_EQ(mm2.SequenceMatrix[0][4], OperatorSequence({1, 0}, ams.Context()));
-        EXPECT_EQ(mm2.SequenceMatrix[0][5], OperatorSequence({1, 1}, ams.Context()));
+        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(seqMat[0][3], OperatorSequence({0, 1}, ams.Context()));
+        EXPECT_EQ(seqMat[0][4], OperatorSequence({1, 0}, ams.Context()));
+        EXPECT_EQ(seqMat[0][5], OperatorSequence({1, 1}, ams.Context()));
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, CreateMomentMatrix_ABtoMinusBA) {
@@ -414,18 +425,21 @@ namespace Moment::Tests {
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
 
         auto [id1, mm1] = ams.create_moment_matrix(1); // 1 a b
-        ASSERT_EQ(mm1.Level(), 1);
+        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix(mm1);
+        ASSERT_NE(seqMatPtr, nullptr);
+        const auto& seqMat = *seqMatPtr;
+        ASSERT_EQ(seqMat.Level(), 1);
         EXPECT_TRUE(mm1.IsHermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
-        EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[0][1], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[0][2], OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[1][0], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[1][1], OperatorSequence({0, 0}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[1][2], OperatorSequence({0, 1}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[2][0], OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[2][1], OperatorSequence({0, 1}, ams.Context(), true));
-        EXPECT_EQ(mm1.SequenceMatrix[2][2], OperatorSequence({1, 1}, ams.Context()));
+        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(seqMat[1][0], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat[1][1], OperatorSequence({0, 0}, ams.Context()));
+        EXPECT_EQ(seqMat[1][2], OperatorSequence({0, 1}, ams.Context()));
+        EXPECT_EQ(seqMat[2][0], OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(seqMat[2][1], OperatorSequence({0, 1}, ams.Context(), true));
+        EXPECT_EQ(seqMat[2][2], OperatorSequence({1, 1}, ams.Context()));
 
         // Check symbols
         const auto& symTable = ams.Symbols();
@@ -452,18 +466,22 @@ namespace Moment::Tests {
         const auto& context = ams.AlgebraicContext();
 
         auto [id1, mm1] = ams.create_moment_matrix(1); // 1 a b
-        ASSERT_EQ(mm1.Level(), 1);
+        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix(mm1);
+        ASSERT_NE(seqMatPtr, nullptr);
+        const auto& seqMat = *seqMatPtr;
+
+        ASSERT_EQ(seqMat.Level(), 1);
         EXPECT_TRUE(mm1.IsHermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
-        EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[0][1], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[0][2], OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[1][0], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[1][1], OperatorSequence({0, 0}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[1][2], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[2][0], OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(mm1.SequenceMatrix[2][1], OperatorSequence({0}, ams.Context(), true));
-        EXPECT_EQ(mm1.SequenceMatrix[2][2], OperatorSequence({1, 1}, ams.Context()));
+        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(seqMat[1][0], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat[1][1], OperatorSequence({0, 0}, ams.Context()));
+        EXPECT_EQ(seqMat[1][2], OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat[2][0], OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(seqMat[2][1], OperatorSequence({0}, ams.Context(), true));
+        EXPECT_EQ(seqMat[2][2], OperatorSequence({1, 1}, ams.Context()));
 
     }
 
@@ -474,19 +492,23 @@ namespace Moment::Tests {
         ASSERT_EQ(context.size(), 2); // a, a*
 
         auto [id1, mm1] = ams.create_moment_matrix(1); // 1 a a*
-        ASSERT_EQ(mm1.Level(), 1);
+        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix(mm1);
+        ASSERT_NE(seqMatPtr, nullptr);
+        const auto& seqMat = *seqMatPtr;
+
+        ASSERT_EQ(seqMat.Level(), 1);
         EXPECT_TRUE(mm1.IsHermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
 
-        EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(context)); // 1
-        EXPECT_EQ(mm1.SequenceMatrix[0][1], OperatorSequence({0}, context));      // a
-        EXPECT_EQ(mm1.SequenceMatrix[0][2], OperatorSequence({1}, context));      // a*
-        EXPECT_EQ(mm1.SequenceMatrix[1][0], OperatorSequence({1}, context));      // a*
-        EXPECT_EQ(mm1.SequenceMatrix[1][1], OperatorSequence({1, 0}, context));   // a* a
-        EXPECT_EQ(mm1.SequenceMatrix[1][2], OperatorSequence({1, 1}, context));   // a* a*
-        EXPECT_EQ(mm1.SequenceMatrix[2][0], OperatorSequence({0}, context));   // a
-        EXPECT_EQ(mm1.SequenceMatrix[2][1], OperatorSequence({0, 0}, context));   // a a
-        EXPECT_EQ(mm1.SequenceMatrix[2][2], OperatorSequence({0, 1}, context));   // a a*
+        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(context)); // 1
+        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, context));      // a
+        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(seqMat[1][0], OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(seqMat[1][1], OperatorSequence({1, 0}, context));   // a* a
+        EXPECT_EQ(seqMat[1][2], OperatorSequence({1, 1}, context));   // a* a*
+        EXPECT_EQ(seqMat[2][0], OperatorSequence({0}, context));   // a
+        EXPECT_EQ(seqMat[2][1], OperatorSequence({0, 0}, context));   // a a
+        EXPECT_EQ(seqMat[2][2], OperatorSequence({0, 1}, context));   // a a*
 
         const auto& symbols = ams.Symbols();
         ASSERT_EQ(symbols.size(), 6); // 0, 1, a<->a*, aa<->a*a*, a*a, aa*
@@ -498,19 +520,23 @@ namespace Moment::Tests {
         ASSERT_EQ(context.size(), 2); // a, a*
 
         auto [id1, mm1] = ams.create_moment_matrix(1); // 1 a a*
-        ASSERT_EQ(mm1.Level(), 1);
+        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix(mm1);
+        ASSERT_NE(seqMatPtr, nullptr);
+        const auto& seqMat = *seqMatPtr;
+        ASSERT_EQ(seqMat.Level(), 1);
+
         EXPECT_TRUE(mm1.IsHermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
 
-        EXPECT_EQ(mm1.SequenceMatrix[0][0], OperatorSequence::Identity(context)); // 1
-        EXPECT_EQ(mm1.SequenceMatrix[0][1], OperatorSequence({0}, context));      // a
-        EXPECT_EQ(mm1.SequenceMatrix[0][2], OperatorSequence({1}, context));      // a*
-        EXPECT_EQ(mm1.SequenceMatrix[1][0], OperatorSequence({1}, context));      // a*
-        EXPECT_EQ(mm1.SequenceMatrix[1][1], OperatorSequence({0, 1}, context));   // a a *
-        EXPECT_EQ(mm1.SequenceMatrix[1][2], OperatorSequence({1, 1}, context));   // a* a*
-        EXPECT_EQ(mm1.SequenceMatrix[2][0], OperatorSequence({0}, context));   // a
-        EXPECT_EQ(mm1.SequenceMatrix[2][1], OperatorSequence({0, 0}, context));   // a a
-        EXPECT_EQ(mm1.SequenceMatrix[2][2], OperatorSequence({0, 1}, context));   // a a*
+        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(context)); // 1
+        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, context));      // a
+        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(seqMat[1][0], OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(seqMat[1][1], OperatorSequence({0, 1}, context));   // a a *
+        EXPECT_EQ(seqMat[1][2], OperatorSequence({1, 1}, context));   // a* a*
+        EXPECT_EQ(seqMat[2][0], OperatorSequence({0}, context));   // a
+        EXPECT_EQ(seqMat[2][1], OperatorSequence({0, 0}, context));   // a a
+        EXPECT_EQ(seqMat[2][2], OperatorSequence({0, 1}, context));   // a a*
 
         const auto& symbols = ams.Symbols();
         ASSERT_EQ(symbols.size(), 5); // 0, 1, a<->a*, aa<->a*a*, aa*

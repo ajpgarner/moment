@@ -38,7 +38,7 @@ namespace Moment::mex::functions  {
         MomentMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
     protected:
-        std::pair<size_t, const Moment::MonomialMatrix&>
+        std::pair<size_t, const Moment::Matrix&>
         get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) final;
     };
 }

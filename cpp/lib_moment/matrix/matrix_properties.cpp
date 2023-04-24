@@ -14,8 +14,10 @@
 
 namespace Moment {
     MatrixProperties::MatrixProperties(const Matrix& matrix, const SymbolTable& table,
-                                       std::set<symbol_name_t>&& included)
-            : dimension{matrix.Dimension()}, included_symbols{std::move(included)}, mat_is_herm{matrix.IsHermitian()} {
+                                       std::set<symbol_name_t>&& included, const std::string& desc,
+                                       const bool is_herm)
+            : dimension{matrix.Dimension()}, included_symbols{std::move(included)},
+              mat_is_herm{is_herm}, description(desc) {
 
         this->rebuild_keys(table);
     }
@@ -50,14 +52,14 @@ namespace Moment {
 
     std::ostream& operator<<(std::ostream& os, const MatrixProperties& mp) {
         os << mp.dimension << "x" << mp.dimension << " ";
-        if (mp.is_complex()) {
-            if (mp.is_hermitian()) {
+        if (mp.IsComplex()) {
+            if (mp.IsHermitian()) {
                 os << "Hermitian matrix";
             } else {
                 os << "Complex matrix";
             }
         } else {
-            if (mp.is_hermitian()) {
+            if (mp.IsHermitian()) {
                 os << "Symmetric matrix";
             } else {
                 os << "Real matrix";
@@ -78,5 +80,28 @@ namespace Moment {
         os << ".";
 
         return os;
+    }
+
+    void MatrixProperties::override_hermicity(const bool override_hermitian) noexcept {
+        this->mat_is_herm = override_hermitian;
+
+        const bool has_imaginary = !this->imaginary_entries.empty();
+        if (override_hermitian) {
+            if (has_imaginary) {
+                this->basis_type = MatrixType::Hermitian;
+            } else  {
+                this->basis_type = MatrixType::Real;
+            }
+        } else {
+            if (has_imaginary) {
+                this->basis_type = MatrixType::Complex;
+            } else {
+                this->basis_type = MatrixType::Real;
+            }
+        }
+    }
+
+    void MatrixProperties::set_description(std::string new_description) noexcept {
+        this->description = std::move(new_description);
     }
 }

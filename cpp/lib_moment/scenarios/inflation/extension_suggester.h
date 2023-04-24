@@ -34,7 +34,7 @@ namespace Moment::Inflation {
         explicit ExtensionSuggester(const InflationContext& context,
                                     const SymbolTable& symbols, const FactorTable& factors);
 
-        [[nodiscard]] std::set<symbol_name_t> operator()(const MomentMatrix& matrix) const;
+        [[nodiscard]] std::set<symbol_name_t> operator()(const MonomialMatrix& matrix) const;
 
         /**
          * Bitset, with set bits corresponding to non-fundamental symbols present in matrix.

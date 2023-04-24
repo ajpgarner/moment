@@ -17,13 +17,26 @@
 
 namespace Moment::mex::functions  {
     namespace {
-        const MonomialMatrix& getMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
-                                               const MatrixSystem& matrixSystem, size_t index) {
-            try {
-                return matrixSystem[index];
-            } catch (const Moment::errors::missing_component& mce) {
-                throw_error(matlabEngine, errors::bad_param, mce.what());
+        std::pair<const MonomialMatrix&, const MomentMatrix&>
+        getMomentMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
+                               const MatrixSystem& matrixSystem, size_t index) {
+            const auto& matrix = [&]() -> const MonomialMatrix& {
+                try {
+                    return dynamic_cast<const MonomialMatrix &>(matrixSystem[index]);
+                } catch (const Moment::errors::missing_component &mce) {
+                    throw_error(matlabEngine, errors::bad_param, mce.what());
+                } catch (const std::bad_cast &bce) {
+                    throw_error(matlabEngine, errors::bad_param,
+                                "Currently extensions can only be suggested for monomial matrices.");
+                }
+            }();
+
+            const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix(matrix);
+            if (mmPtr == nullptr) {
+                throw_error(matlabEngine, errors::bad_param,
+                            "Currently extensions can only be suggested for moment matrices.");
             }
+            return {matrix, *mmPtr};
         }
     }
 
@@ -61,15 +74,8 @@ namespace Moment::mex::functions  {
 
         // Lock to read, get operator matrix
         auto lock = inflationMatrixSystem.get_read_lock();
-        const auto& operatorMatrix = getMatrixOrThrow(this->matlabEngine, matrixSystem, input.matrix_index);
-
-        const auto* mmPtr = dynamic_cast<const MomentMatrix*>(&operatorMatrix);
-        if (mmPtr == nullptr) {
-            throw_error(matlabEngine, errors::bad_param,
-                        "Currently extensions can only be suggested for moment matrices.");
-        }
-        const auto& momentMatrix = *mmPtr;
-        auto extensions = inflationMatrixSystem.suggest_extensions(momentMatrix);
+        auto [symbolMatrix, momentMatrix] = getMomentMatrixOrThrow(this->matlabEngine, matrixSystem, input.matrix_index);
+        auto extensions = inflationMatrixSystem.suggest_extensions(symbolMatrix);
 
         // Print output
         matlab::data::ArrayFactory factory;

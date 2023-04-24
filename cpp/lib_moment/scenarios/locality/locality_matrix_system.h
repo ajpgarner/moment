@@ -81,6 +81,6 @@ namespace Moment::Locality {
         [[nodiscard]] const LocalityImplicitSymbols& ImplicitSymbolTable() const;
 
     protected:
-        void onNewMomentMatrixCreated(size_t level, const class MomentMatrix& mm) override;
+        void onNewMomentMatrixCreated(size_t level, const class Matrix& mm) override;
     };
 }

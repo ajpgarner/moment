@@ -41,7 +41,9 @@ namespace Moment::Tests {
         ASSERT_EQ(ims.size(), 1);
 
         // Check matrix
-        const auto& imported_matrix = ims[0];
+        ASSERT_TRUE(ims[0].is_monomial());
+        const auto& imported_matrix = dynamic_cast<const MonomialMatrix&>(ims[0]);
+
         EXPECT_EQ(&imported_matrix.Symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
@@ -84,7 +86,8 @@ namespace Moment::Tests {
         ASSERT_EQ(ims.size(), 1);
 
         // Check matrix
-        const auto& imported_matrix = ims[0];
+        ASSERT_TRUE(ims[0].is_monomial());
+        const auto& imported_matrix = dynamic_cast<const MonomialMatrix&>(ims[0]);
         EXPECT_EQ(&imported_matrix.Symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
@@ -126,7 +129,8 @@ namespace Moment::Tests {
         ASSERT_EQ(ims.size(), 1);
 
         // Check matrix
-        const auto& imported_matrix = ims[0];
+        ASSERT_TRUE(ims[0].is_monomial());
+        const auto& imported_matrix = dynamic_cast<const MonomialMatrix&>(ims[0]);
         EXPECT_EQ(&imported_matrix.Symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
@@ -168,7 +172,8 @@ namespace Moment::Tests {
         ASSERT_EQ(ims.size(), 1);
 
         // Check matrix
-        const auto& imported_matrix = ims[0];
+        ASSERT_TRUE(ims[0].is_monomial());
+        const auto& imported_matrix = dynamic_cast<const MonomialMatrix&>(ims[0]);
         EXPECT_EQ(&imported_matrix.Symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
@@ -210,7 +215,8 @@ namespace Moment::Tests {
         ASSERT_EQ(ims.size(), 1);
 
         // Check matrix
-        const auto& imported_matrix = ims[0];
+        ASSERT_TRUE(ims[0].is_monomial());
+        const auto& imported_matrix = dynamic_cast<const MonomialMatrix&>(ims[0]);
         EXPECT_EQ(&imported_matrix.Symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);

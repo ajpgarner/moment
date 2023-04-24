@@ -107,7 +107,7 @@ namespace Moment::mex::functions {
         this->max_inputs = 3;
     }
 
-    std::pair<size_t, const Moment::MonomialMatrix &>
+    std::pair<size_t, const Moment::Matrix &>
     LocalizingMatrix::get_or_make_matrix(MatrixSystem &system, OperatorMatrixParams &inputOMP) {
         const auto &input = dynamic_cast<const LocalizingMatrixParams&>(inputOMP);
 

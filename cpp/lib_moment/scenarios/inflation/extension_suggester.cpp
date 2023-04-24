@@ -20,8 +20,15 @@ namespace Moment::Inflation {
                                            const FactorTable& factors)
         : context{context}, symbols{symbols}, factors{factors} { }
 
-    std::set<symbol_name_t> ExtensionSuggester::operator()(const MomentMatrix& matrix) const {
+    std::set<symbol_name_t> ExtensionSuggester::operator()(const MonomialMatrix& matrix) const {
         assert(&matrix.Symbols == &this->symbols);
+
+        const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix(matrix);
+        if (nullptr == mm_ptr) {
+            throw std::invalid_argument{"Can only suggest extensions for monomial moment matrices."};
+        }
+        const auto& moment_matrix = *mm_ptr;
+
 
         DynamicBitset<uint64_t> tested_factors{this->symbols.size()};
         DynamicBitset<uint64_t> chosen_factors{this->symbols.size()};
@@ -45,7 +52,7 @@ namespace Moment::Inflation {
 
             // 2. see what constraints introducing this extension could impose
             bool any_use = false;
-            for (const auto &rawPrefix: matrix.Generators()) {
+            for (const auto &rawPrefix: moment_matrix.Generators()) {
                 // Find prefix as factored object
                 auto prefix = context.canonical_moment(rawPrefix);
 

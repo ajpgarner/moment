@@ -12,6 +12,10 @@
 #include "matrix_system.h"
 #include "utilities/index_tree.h"
 
+namespace Moment {
+    class MonomialMatrix;
+}
+
 namespace Moment::Inflation {
 
     class InflationContext;
@@ -78,7 +82,7 @@ namespace Moment::Inflation {
         /**
          * Create or retrieve an extended matrix. This function will call for a write lock.
          */
-        std::pair<size_t, ExtendedMatrix&> create_extended_matrix(const class MomentMatrix& source,
+        std::pair<size_t, ExtendedMatrix&> create_extended_matrix(const MonomialMatrix& source,
                                                                   std::span<const symbol_name_t> extensions);
 
         /**
@@ -115,12 +119,12 @@ namespace Moment::Inflation {
         /**
          * Suggest scalar extensions to impose factorization constraints on a matrix
          */
-        [[nodiscard]] std::set<symbol_name_t> suggest_extensions(const class MomentMatrix& matrix) const;
+        [[nodiscard]] std::set<symbol_name_t> suggest_extensions(const class MonomialMatrix& matrix) const;
 
     protected:
-        void onNewMomentMatrixCreated(size_t level, const class MomentMatrix &mm) override;
+        void onNewMomentMatrixCreated(size_t level, const class Matrix &mm) override;
 
-        void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const class LocalizingMatrix &lm) override;
+        void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const class Matrix &lm) override;
 
     };
 

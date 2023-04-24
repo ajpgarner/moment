@@ -13,6 +13,7 @@
 #include <string>
 
 namespace Moment {
+    class Matrix;
     class MatrixSystem;
     class MonomialMatrix;
 }
@@ -101,7 +102,7 @@ namespace Moment::mex::functions  {
          * Query matrix system for requested matrix.
          * @return Pair: Index of matrix, reference to matrix.
          */
-        virtual std::pair<size_t, const Moment::MonomialMatrix&>
+        virtual std::pair<size_t, const Moment::Matrix&>
         get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) = 0;
 
         /**
@@ -164,7 +165,7 @@ namespace Moment::mex::functions  {
             : OperatorMatrix(matlabEngine, storage, u"operator_matrix") { }
 
     protected:
-        std::pair<size_t, const Moment::MonomialMatrix&>
+        std::pair<size_t, const Moment::Matrix&>
         get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) final;
     };
 }

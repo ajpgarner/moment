@@ -18,6 +18,9 @@ namespace Moment {
 namespace Moment::Tests {
     symbol_name_t find_or_fail(const SymbolTable& symbols, const OperatorSequence& seq);
 
+    void compare_symbol_matrices(const Matrix& test,
+                                 const std::vector<symbol_name_t>& reference);
+
     void compare_symbol_matrices(const MonomialMatrix::MMSymbolMatrixView& test,
                                  const std::vector<symbol_name_t>& reference);
 

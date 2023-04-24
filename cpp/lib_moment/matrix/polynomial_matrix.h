@@ -53,18 +53,22 @@ namespace Moment {
         PolynomialMatrix(const Context& context, SymbolTable& symbols,
                          std::unique_ptr<SquareMatrix<SymbolCombo>> symbolMatrix);
 
-
         PolynomialMatrix(PolynomialMatrix&& rhs) noexcept : Matrix{std::move(rhs)},
             sym_exp_matrix{std::move(rhs.sym_exp_matrix)},  SymbolMatrix{*this} { }
 
         ~PolynomialMatrix() noexcept = default;
 
         /**
-         * Description of matrix type
+         * True if matrix is monomial in terms of symbols.
          */
-        [[nodiscard]] std::string description() const override {
-            return "Symbolic Polynomial Matrix";
+        [[nodiscard]] bool is_monomial() const noexcept override {
+            return false;
         }
+
+        /**
+         * Force renumbering of matrix bases keys
+         */
+        void renumerate_bases(const SymbolTable& symbols) override;
 
     protected:
         std::pair<MatrixBasis::dense_real_storage_t, MatrixBasis::dense_complex_storage_t>

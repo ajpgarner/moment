@@ -6,34 +6,28 @@
  */
 #pragma once
 
-#include "matrix/operator_matrix.h"
-#include "matrix/moment_matrix.h"
+#include "matrix/monomial_matrix.h"
 
 #include "factor_table.h"
 
+#include <string>
 #include <span>
 
 namespace Moment::Inflation {
 
 
     /**
-     * Scalar extensions of moment matrix
+     * Scalar extensions of monomial moment matrix
      */
     class ExtendedMatrix : public MonomialMatrix {
     public:
         const size_t OriginalDimension;
 
-    private:
-        std::string description_string;
-
     public:
         ExtendedMatrix(SymbolTable& symbols, Inflation::FactorTable& factors,
-                       const MomentMatrix& source,
+                       const MonomialMatrix& source,
                        std::span<const symbol_name_t> extensions);
 
-        std::string description() const override {
-            return description_string;
-        }
     };
 
 }

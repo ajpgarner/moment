@@ -13,12 +13,14 @@
 
 #include <atomic>
 #include <complex>
-#include <mutex>
-#include <vector>
 #include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
 
 namespace Moment {
 
+    class OperatorMatrix;
     class SymbolTable;
     class Context;
 
@@ -57,11 +59,11 @@ namespace Moment {
         /** Square matrix size */
         size_t dimension = 0;
 
-        /** True, if Hermitian */
-        bool is_hermitian = false;
-
         /** Symbol matrix properties (basis size, etc.) */
         std::unique_ptr<MatrixProperties> mat_prop;
+
+        /** Operator matrix, if set - (may be null) */
+        std::unique_ptr<OperatorMatrix> op_mat;
 
     public:
         /**
@@ -184,21 +186,11 @@ namespace Moment {
 
 
     public:
+        Matrix(const Context& context, SymbolTable& symbols, size_t dimension = 0);
 
-        explicit Matrix(const Context& context, SymbolTable& symbols, size_t dimension = 0)
-            : context{context}, symbol_table{symbols}, Symbols{symbols}, dimension{dimension}, Basis{*this} { }
+        Matrix(Matrix&& rhs) noexcept;
 
-        Matrix(Matrix&& rhs) noexcept : context{rhs.context}, symbol_table{rhs.symbol_table}, dimension{rhs.dimension},
-                      is_hermitian{rhs.is_hermitian}, mat_prop{std::move(rhs.mat_prop)}, Symbols{rhs.Symbols},
-                      Basis{*this, std::move(rhs.Basis)} { }
-
-        virtual ~Matrix() noexcept = default;
-
-        /**
-         * Description of matrix type
-         */
-        [[nodiscard]] virtual std::string description() const = 0;
-
+        virtual ~Matrix() noexcept;
 
         /**
          * Dimension of the matrix
@@ -208,20 +200,61 @@ namespace Moment {
         }
 
         /**
-         * True, if matrix is Hermitian
+         * Description of matrix type
          */
-        [[nodiscard]] constexpr bool IsHermitian() const noexcept {
-            return this->is_hermitian;
+        [[nodiscard]] const std::string& description() const {
+            assert(this->mat_prop);
+            return this->mat_prop->Description();
         }
 
         /**
-         * Properties of the matrix
+         * True, if matrix is Hermitian.
+         */
+        [[nodiscard]] constexpr bool IsHermitian() const noexcept {
+            assert(this->mat_prop);
+            return this->mat_prop->IsHermitian();
+        }
+
+        /**
+         * Properties of the matrix.
          */
         [[nodiscard]] const MatrixProperties& SMP() const noexcept {
             assert(this->mat_prop);
             return *this->mat_prop;
         }
 
+        /**
+         * True if matrix has operator matrix.
+         */
+         [[nodiscard]] bool has_operator_matrix() const noexcept {
+             return static_cast<bool>(this->op_mat);
+         }
+
+         /**
+          * Gets operator matrix.
+          * @throws errors::missing_component if no operator matrix defined for this matrix.
+          */
+         [[nodiscard]] const OperatorMatrix& operator_matrix() const;
+
+         /**
+          * True if matrix is defined in terms of monomial symbols.
+          */
+         [[nodiscard]] virtual bool is_monomial() const noexcept {
+              return true;
+          }
+
+          /**
+           * True if matrix is defined in terms of polynomial symbols.
+           */
+         [[nodiscard]] inline bool is_polynomial() const noexcept {
+             return !this->is_monomial();
+         }
+
+
+        /**
+         * Force renumbering of matrix bases keys
+         */
+        virtual void renumerate_bases(const SymbolTable& symbols) = 0;
 
     protected:
         /**
@@ -239,6 +272,8 @@ namespace Moment {
          */
         [[nodiscard]] virtual std::pair<MatrixBasis::sparse_real_storage_t, MatrixBasis::sparse_complex_storage_t>
         create_sparse_basis() const = 0;
+
+        void set_description(std::string new_description) noexcept;
 
 
     };

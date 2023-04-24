@@ -6,16 +6,17 @@
  */
 #pragma once
 
+#include "matrix.h"
+
 #include "symbolic/symbol_expression.h"
 #include "utilities/square_matrix.h"
-
-#include "matrix.h"
 
 #include <memory>
 
 namespace Moment {
 
     class SymbolTable;
+    class OperatorMatrix;
     class MatrixProperties;
 
     /**
@@ -56,10 +57,11 @@ namespace Moment {
         /** Matrix, as symbolic expression */
         std::unique_ptr<SquareMatrix<SymbolExpression>> sym_exp_matrix;
 
-
     public:
-        MonomialMatrix(const Context& context, SymbolTable& symbols,
+        MonomialMatrix(SymbolTable& symbols, const Context& context,
                        std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix);
+
+        MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix);
 
         MonomialMatrix(MonomialMatrix&& rhs) noexcept
             : Matrix{std::move(rhs)},
@@ -68,16 +70,9 @@ namespace Moment {
         ~MonomialMatrix() noexcept;
 
         /**
-         * Description of matrix type
-         */
-        [[nodiscard]] std::string description() const override {
-            return "Symbolic Matrix";
-        }
-
-        /**
          * Force renumbering of matrix bases keys
          */
-        void renumerate_bases(const SymbolTable& symbols);
+        void renumerate_bases(const SymbolTable& symbols) override;
 
     protected:
 

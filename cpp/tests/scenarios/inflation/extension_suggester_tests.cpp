@@ -11,6 +11,8 @@
 #include "scenarios/inflation/inflation_matrix_system.h"
 #include "scenarios/inflation/extension_suggester.h"
 
+#include "symbolic/symbol_table.h"
+
 #include "../../symbolic/symbolic_matrix_helpers.h"
 
 #include <sstream>
@@ -26,7 +28,7 @@ namespace Moment::Tests {
         ExtensionSuggester suggester{ims.InflationContext(), symbols, factors};
 
         ims.create_moment_matrix(1);
-        const auto& base_MM = ims.MomentMatrix(1);
+        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(1));
 
         ASSERT_EQ(symbols.size(), 5);
         auto id_0 = find_or_fail(symbols, OperatorSequence::Zero(ims.Context()));
@@ -56,7 +58,7 @@ namespace Moment::Tests {
         ExtensionSuggester suggester{context, symbols, factors};
 
         ims.create_moment_matrix(2);
-        const auto& base_MM = ims.MomentMatrix(2);
+        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(2));
 
         ASSERT_EQ(context.Observables().size(), 3);
         auto op_A = context.Observables()[0].operator_offset;

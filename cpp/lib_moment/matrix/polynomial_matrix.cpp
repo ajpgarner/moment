@@ -151,10 +151,12 @@ namespace Moment {
         }
 
         // Test for Hermiticity
-        this->is_hermitian = test_hermicity(symbols, *sym_exp_matrix);
+        const bool is_hermitian = test_hermicity(symbols, *sym_exp_matrix);
 
         // Create symbol matrix properties
-        this->mat_prop = std::make_unique<MatrixProperties>(*this, this->symbol_table, std::move(included_symbols));
+        this->mat_prop = std::make_unique<MatrixProperties>(*this, this->symbol_table, std::move(included_symbols),
+                                                            "Polynomial Symbolic Matrix", is_hermitian);
+
     }
 
 
@@ -171,8 +173,8 @@ namespace Moment {
         im.assign(this->symbol_table.ImaginarySymbolIds().size(),
                   dense_real_elem_t::Zero(dim, dim));
 
-        const bool symmetric = this->SMP().is_hermitian();
-        const bool complex = this->SMP().is_complex();
+        const bool symmetric = this->SMP().IsHermitian();
+        const bool complex = this->SMP().IsComplex();
 
         if (symmetric) {
             if (complex) {
@@ -194,8 +196,8 @@ namespace Moment {
     PolynomialMatrix::create_sparse_basis() const {
         // Get matrix properties
         const auto dim = static_cast<sparse_real_elem_t::Index>(this->dimension);
-        const bool symmetric = this->SMP().is_hermitian();
-        const bool complex = this->SMP().is_complex();
+        const bool symmetric = this->SMP().IsHermitian();
+        const bool complex = this->SMP().IsComplex();
 
         // Prepare triplets
         std::vector<std::vector<re_trip_t>> real_frame(this->Symbols.RealSymbolIds().size());
@@ -235,4 +237,11 @@ namespace Moment {
         return output;
     }
 
+    /**
+     * Force renumbering of matrix bases keys
+     */
+    void PolynomialMatrix::renumerate_bases(const SymbolTable& symbols) {
+        // TODO: Support renumbering for polynomial matrix
+        throw std::runtime_error{"PolynomialMatrix::renumerate_bases not implemented."};
+    }
 }

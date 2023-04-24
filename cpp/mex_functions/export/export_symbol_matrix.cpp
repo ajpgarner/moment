@@ -6,15 +6,22 @@
  */
 #include "export_symbol_matrix.h"
 
+#include "matrix/monomial_matrix.h"
+#include "matrix/polynomial_matrix.h"
+
 #include "error_codes.h"
 #include "utilities/reporting.h"
+
 
 #include "mex.hpp"
 
 namespace Moment::mex {
 
-    matlab::data::Array export_symbol_matrix(matlab::engine::MATLABEngine &engine,
-                                             const SquareMatrix<SymbolExpression> &inputMatrix) {
+
+    matlab::data::Array SymbolMatrixExporter::operator()(const MonomialMatrix &monomialMatrix) const {
+
+        const auto &inputMatrix = monomialMatrix.SymbolMatrix();
+
         matlab::data::ArrayFactory factory;
         matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
 
@@ -39,4 +46,12 @@ namespace Moment::mex {
 
         return outputArray;
     }
+
+
+
+    matlab::data::Array SymbolMatrixExporter::operator()(const PolynomialMatrix &matrix) const {
+        throw_error(this->engine, errors::internal_error,
+                    "SymbolMatrixExporter::operator()(const PolynomialMatrix &matrix) not yet implemented.");
+    }
+
 }
