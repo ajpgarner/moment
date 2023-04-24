@@ -21,3 +21,6 @@ sym_scenario = SymmetrizedScenario(chsh_scenario, chsh_generators, 2);
 
 sym_scenario.System;
 mtk('list','verbose');
+
+% Get symmetrized moment matrix
+mm = sym_scenario.MakeMomentMatrix(1);

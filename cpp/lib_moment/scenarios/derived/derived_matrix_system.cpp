@@ -61,13 +61,11 @@ namespace Moment::Derived {
             }
             read_source_lock.unlock();
 
-            // Wait for write lock...
-            auto write_source_lock = this->base_system().get_write_lock();
+            // Create new MM (will call write lock on base system).
             auto [mm_index, mm] = this->base_system().create_moment_matrix(level);
 
-            return mm; // write_source_lock unlocks
+            return mm;
         }();
-
 
         throw std::runtime_error{"DerivedMatrixSystem::createNewMomentMatrix not implemented."};
     }
@@ -96,11 +94,10 @@ namespace Moment::Derived {
             }
             read_source_lock.unlock();
 
-            // Wait for write lock...
-            auto write_source_lock = this->base_system().get_write_lock();
+            // Create LM; will call write lock on base system
             auto [mm_index, mm] = this->base_system().create_localizing_matrix(lmi);
 
-            return mm; // write_source_lock unlocks
+            return mm;
         }();
 
         throw std::runtime_error{"DerivedMatrixSystem::createNewLocalizingMatrix not implemented."};
