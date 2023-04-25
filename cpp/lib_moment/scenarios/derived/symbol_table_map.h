@@ -103,8 +103,7 @@ namespace Moment {
             [[nodiscard]] SymbolCombo operator()(const SymbolCombo& symbol) const;
 
             /**
-              * Create new polynomial symbolic matrix, mapping source matrix
-              * Also takes into account pre-factors/complex conjugation etc.
+              * Create new polynomial symbolic matrix, mapping source monomial matrix into new symbol set.
               * @param symbol_id Source matrix.
               * @return New symbolic matrix, transforming the supplied input.
               * @throws error::bad_map If any contained symbol is out of range.
@@ -113,8 +112,7 @@ namespace Moment {
             operator()(const SquareMatrix<SymbolExpression>& matrix) const;
 
             /**
-              * Create new polynomial symbolic matrix, mapping source matrix
-              * Also takes into account pre-factors/complex conjugation etc.
+              * Create new polynomial symbolic matrix, mapping source polynomial matrix into new symbol set.
               * @param symbol_id Source matrix.
               * @return New symbolic matrix, transforming the supplied input.
               * @throws error::bad_map If any contained symbol is out of range.
@@ -123,7 +121,7 @@ namespace Moment {
             operator()(const SquareMatrix<SymbolCombo>& matrix) const;
 
             /**
-             * Get symbol/symbol combo in source, associated with symbol in target
+             * Get symbol/symbol combo in source, associated with symbol in target.
              * @param symbol_id Target symbol ID
              * @return Reference to symbol combo.
              * @throws error::bad_map If symbol id is out of range.

@@ -34,7 +34,7 @@ namespace Moment::Tests {
 
     namespace {
         // Find CHSH symbols:
-        symbol_name_t find_symbol(const Locality::LocalityContext& context, const SymbolTable& symbols,
+        symbol_name_t find_symbol(const Context& context, const SymbolTable& symbols,
                                     std::initializer_list<oper_name_t> ops) {
             OperatorSequence opSeq{ops, context};
             auto symPtr = symbols.where(opSeq);
@@ -85,6 +85,23 @@ namespace Moment::Tests {
         }
 
 
+        std::array<symbol_name_t, 5> get_algebraic_symbol_ids(const Context& context, const SymbolTable& symbols) {
+            auto a = find_symbol(context, symbols, {0});
+            auto b = find_symbol(context, symbols, {1});
+            auto aa = find_symbol(context, symbols, {0, 0});
+            auto ab = find_symbol(context, symbols, {0, 1}); // ba = ab*
+            auto bb = find_symbol(context, symbols, {1, 1});
+
+            auto output = std::array<symbol_name_t, 5>{a, b, aa, ab, bb};
+
+            std::set check_unique(output.begin(), output.end());
+            if (check_unique.size() != 5) {
+                throw std::runtime_error{"All 5 symbols should be unique."};
+            }
+            return output;
+        }
+
+
     }
 
     using namespace Moment::Symmetrized;
@@ -96,7 +113,11 @@ namespace Moment::Tests {
         );
         auto& ams = *amsPtr;
         auto& context = ams.Context();
+        const auto& algebraic_symbols = ams.Symbols();
         ams.generate_dictionary(2);
+
+        // Algebraic symbols
+        const auto [a, b, aa, ab, bb] = get_algebraic_symbol_ids(context, algebraic_symbols);
 
         // Z2 symmetry; e.g. max "a + b" subject to "a + b < 10"
         std::vector<Eigen::SparseMatrix<double>> generators;
@@ -105,12 +126,41 @@ namespace Moment::Tests {
                                                 0, 1, 0}));
 
         auto group_elems = Group::dimino_generation(generators);
+
         auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));
         auto group = std::make_unique<Group>(context, std::move(base_rep));
-
+        ASSERT_EQ(group->size, 2); // I, X
         SymmetrizedMatrixSystem sms{amsPtr, std::move(group), 2, std::make_unique<Derived::LUMapCoreProcessor>()};
 
         ASSERT_EQ(&ams, &sms.base_system());
+        const auto& sym_symbols = sms.Symbols();
+
+        const auto& map = sms.map();
+        ASSERT_EQ(algebraic_symbols.size(), map.fwd_size()) << algebraic_symbols; // All symbols mapped
+        EXPECT_EQ(map.inv_size(), 5); // 0, 1, y
+        ASSERT_EQ(sym_symbols.size(), 5) << sms.Symbols();
+
+        // Check inverse map
+        EXPECT_EQ(map.inverse(0), SymbolCombo::Zero());
+        EXPECT_EQ(map.inverse(1), SymbolCombo::Scalar(1.0));
+        EXPECT_EQ(map.inverse(2), SymbolCombo({SymbolExpression{a, 0.5}, SymbolExpression{b, 0.5}}));
+        EXPECT_TRUE(sym_symbols[2].is_hermitian());
+        EXPECT_EQ(map.inverse(3), SymbolCombo({SymbolExpression{aa, 0.5}, SymbolExpression{bb, 0.5}}));
+        EXPECT_TRUE(sym_symbols[3].is_hermitian());
+        EXPECT_EQ(map.inverse(4), SymbolCombo({SymbolExpression{ab, 0.5}, SymbolExpression{ab, 0.5, true}}));
+        EXPECT_TRUE(sym_symbols[4].is_hermitian());
+
+        // Check forward map
+        ASSERT_EQ(map.fwd_size(), 7);
+        EXPECT_EQ(map(0), SymbolCombo::Zero());
+        EXPECT_EQ(map(1), SymbolCombo::Scalar(1.0));
+        EXPECT_EQ(map(a), SymbolCombo({SymbolExpression{2, 1.0}}));
+        EXPECT_EQ(map(b), SymbolCombo({SymbolExpression{2, 1.0}}));
+        EXPECT_EQ(map(aa), SymbolCombo({SymbolExpression{3, 1.0}}));
+        EXPECT_EQ(map(ab), SymbolCombo({SymbolExpression{4, 1.0}}));
+        EXPECT_EQ(map(bb), SymbolCombo({SymbolExpression{3, 1.0}}));
+
+
     }
 
     TEST(Scenarios_Symmetry_MatrixSystem, Locality_CHSH) {
@@ -124,7 +174,7 @@ namespace Moment::Tests {
         lms.generate_dictionary(2);
 
         // Get CHSH symbols
-        auto [a0, a1, b0, b1, a0a1, a0b0, a0b1, a1b0, a1b1, b0b1] =
+        const auto [a0, a1, b0, b1, a0a1, a0b0, a0b1, a1b0, a1b1, b0b1] =
                 get_chsh_symbol_ids(locality_context, locality_symbols);
 
 
@@ -152,7 +202,7 @@ namespace Moment::Tests {
 
         const auto& map = sms.map();
         ASSERT_EQ(locality_symbols.size(), map.fwd_size()) << lms.Symbols(); // All symbols mapped
-        EXPECT_EQ(map.inv_size(), 3); // 0, 1, 'y'
+        EXPECT_EQ(map.inv_size(), 3); // 0, 1,
         ASSERT_EQ(sym_symbols.size(), 3) << sms.Symbols();
 
         // Check inverse map

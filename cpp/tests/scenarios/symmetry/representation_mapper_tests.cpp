@@ -63,9 +63,23 @@ namespace Moment::Tests {
                 ASSERT_EQ(mapped_elem.rows(), 7);
                 ASSERT_EQ(mapped_elem.cols(), 7);
                 EXPECT_EQ(mapped_elem.nonZeros(), 1);
-                //std::cout << "i = " << i << "j = " << j << " :\n" << mapped_elem << "\n";
             }
         }
+
+        // Example symmetry group tx:, a,b->x implies aa, ab, ba, bb -> "x^2", hermitian
+        const auto z2_rep1_av = make_sparse(3, {1,   0,   0,
+                                             0, 0.5, 0.5,
+                                             0, 0.5, 0.5});
+        const auto expected_expand = make_sparse(7, {1,   0,   0,    0,    0,    0,    0,
+                                                      0, 0.5, 0.5,    0,    0,    0,    0,
+                                                      0, 0.5, 0.5,    0,    0,    0,    0,
+                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
+                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
+                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
+                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25});
+        auto actual_expand = remapper(z2_rep1_av);
+        EXPECT_TRUE(actual_expand.isApprox(expected_expand)) << actual_expand;
+
     }
 
     TEST(Scenarios_Symmetry_RepresentationMapper, Remap1to2_CHSH) {
@@ -87,7 +101,7 @@ namespace Moment::Tests {
         }
 
         // Check addition of values
-        const auto& lhs = remapper.LHS();
+        const auto &lhs = remapper.LHS();
         ASSERT_EQ(lhs.nonZeros(), 25);
         EXPECT_EQ(lhs.coeff(0, 0), 1.0);   // e
         EXPECT_EQ(lhs.coeff(1, 1), 1.0);   // a0
@@ -116,7 +130,7 @@ namespace Moment::Tests {
         EXPECT_EQ(lhs.coeff(4, 24), 1.0);  // b1 alias
 
         // Check elision of redundant rows
-        const auto& rhs = remapper.RHS();
+        const auto &rhs = remapper.RHS();
         ASSERT_EQ(rhs.nonZeros(), 13);
         EXPECT_EQ(rhs.coeff(0, 0), 1.0); // e
         EXPECT_EQ(rhs.coeff(1, 1), 1.0); // a0
@@ -188,6 +202,21 @@ namespace Moment::Tests {
         auto rep_level2 = remapper(rep_base);
         ASSERT_EQ(rep_level2.nonZeros(), expected_level2.nonZeros()) << rep_level2;
         EXPECT_TRUE(rep_level2.isApprox(expected_level2));
+
+//        // Example symmetry group tx:, a,b->x implies aa, ab, ba, bb -> "x^2", hermitian
+//        const auto z2_rep1 = make_sparse(3, {1,   0,   0,   0,   0,
+//                                             0, 0.5, 0.5,
+//                                             0, 0.5, 0.5});
+//
+//        const auto z2_rep2_expected = make_sparse(7, {1,   0,   0,    0,    0,    0,    0,
+//                                                      0, 0.5, 0.5,    0,    0,    0,    0,
+//                                                      0, 0.5, 0.5,    0,    0,    0,    0,
+//                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
+//                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
+//                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
+//                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25});
+
+
 
     }
 }
