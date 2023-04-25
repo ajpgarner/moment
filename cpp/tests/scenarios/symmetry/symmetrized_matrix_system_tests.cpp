@@ -142,6 +142,7 @@ namespace Moment::Tests {
         ASSERT_EQ(algebraic_symbols.size(), map.fwd_size()) << algebraic_symbols; // All symbols mapped
         EXPECT_EQ(map.inv_size(), 5); // 0, 1, y
         ASSERT_EQ(sym_symbols.size(), 5) << sms.Symbols();
+        EXPECT_TRUE(map.monomial_map());
 
         // Check inverse map
         EXPECT_EQ(map.inverse(0), SymbolCombo::Zero());
@@ -231,6 +232,7 @@ namespace Moment::Tests {
         ASSERT_EQ(locality_symbols.size(), map.fwd_size()) << lms.Symbols(); // All symbols mapped
         EXPECT_EQ(map.inv_size(), 3); // 0, 1,
         ASSERT_EQ(sym_symbols.size(), 3) << sms.Symbols();
+        EXPECT_FALSE(map.monomial_map());
 
         // Check inverse map
         EXPECT_EQ(map.inverse(0), SymbolCombo::Zero());

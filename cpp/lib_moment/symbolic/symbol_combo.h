@@ -39,13 +39,18 @@ namespace Moment {
 
         SymbolCombo(SymbolCombo&& rhs) = default;
 
+        /** Construct combination from monomial */
+        explicit SymbolCombo(const SymbolExpression& monomial);
+
+        /** Construct combination from vector of monomials */
+        explicit SymbolCombo(storage_t input);
+
+        /** Construct combination from map of symbol names to weights */
+        explicit SymbolCombo(const std::map<symbol_name_t, double>& input);
+
         inline SymbolCombo& operator=(const SymbolCombo& rhs) = default;
 
         inline SymbolCombo& operator=(SymbolCombo&& rhs) noexcept = default;
-
-        explicit SymbolCombo(storage_t input);
-
-        explicit SymbolCombo(const std::map<symbol_name_t, double>& input);
 
         SymbolCombo(std::initializer_list<SymbolExpression> input)
             : SymbolCombo{storage_t{input}} { }
@@ -56,6 +61,17 @@ namespace Moment {
         [[nodiscard]] auto end() const noexcept { return this->data.cend(); }
         [[nodiscard]] const SymbolExpression& operator[](size_t index) const noexcept { return this->data[index]; }
 
+        /** True if combo consists of at most one element */
+        [[nodiscard]] inline bool is_monomial() const noexcept {
+            return this->data.size() <= 1;
+        }
+
+        /**
+         * Downgrade combination to a single symbol expression.
+         * @return The symbol expression.
+         * @throws std::logic_error if SymbolCombo is not a monomial.
+         */
+        explicit operator SymbolExpression() const;
 
 
         SymbolCombo& operator+=(const SymbolCombo& rhs);

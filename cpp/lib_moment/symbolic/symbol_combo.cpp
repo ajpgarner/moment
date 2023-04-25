@@ -10,6 +10,7 @@
 #include "utilities/float_utils.h"
 
 #include <iostream>
+#include <sstream>
 
 namespace Moment {
 
@@ -78,7 +79,7 @@ namespace Moment {
 
             while (read_iter != last_iter) {
                 assert(write_iter <= read_iter);
-                if (approximately_zero(read_iter->factor)) {
+                if (approximately_zero(read_iter->factor) || (read_iter->id == 0)) {
                     ++read_iter; // skip zeros
                     continue;
                 }
@@ -97,23 +98,25 @@ namespace Moment {
         }
     }
 
+    SymbolCombo::SymbolCombo(const SymbolExpression& expr) {
+        if (0 != expr.id) {
+            this->data.emplace_back(expr);
+        }
+    }
+
     SymbolCombo::SymbolCombo(SymbolCombo::storage_t input)
         : data{std::move(input)} {
+
         // No pruning/sorting etc. if zero or one elements
-        if (this->data.size() <= 1) {
-            return;
+        if (this->data.size() > 1) {
+            // Put orders in lexographic order
+            std::sort(this->data.begin(), this->data.end(), LexLessComparator{});
+
+            // Remove duplicates
+            remove_duplicates(this->data);
         }
 
-        // Put orders in lexographic order
-        std::sort(this->data.begin(), this->data.end(), LexLessComparator{});
-
-        // Remove duplicates
-        remove_duplicates(this->data);
-
-        // Remove zeros
         remove_zeros(this->data);
-
-
     }
 
     SymbolCombo::SymbolCombo(const std::map<symbol_name_t, double> &input) {
@@ -121,6 +124,22 @@ namespace Moment {
         for (const auto& pair : input) {
             data.emplace_back(pair.first, pair.second);
         }
+    }
+
+    SymbolCombo::operator SymbolExpression() const {
+        if (!this->is_monomial()) {
+            std::stringstream errSS;
+            errSS << "\"" << *this << "\" is not a monomial expression.";
+            throw std::logic_error{errSS.str()};
+        }
+
+        // If empty, create a "zero"
+        if (this->data.empty()) {
+            return SymbolExpression{0, 1.0};
+        }
+
+        // Otherwise, copy first (and only) element:
+        return this->data[0];
     }
 
 
@@ -179,8 +198,9 @@ namespace Moment {
                 assert(lhsIter->id == rhsIter->id);
                 assert(lhsIter->conjugated == rhsIter->conjugated);
 
-                const auto sumVals = lhsIter->factor + rhsIter->factor  ;
-                if (sumVals != 0) {
+                const auto sumVals = lhsIter->factor + rhsIter->factor;
+
+                if (!approximately_zero(sumVals)) {
                     output_data.emplace_back(lhsIter->id, sumVals, lhsIter->conjugated);
                 }
                 ++lhsIter;

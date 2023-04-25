@@ -44,6 +44,7 @@ namespace Moment {
 
             std::vector<SymbolCombo> map;
             std::vector<SymbolCombo> inverse_map;
+            bool is_monomial_map = false;
 
             std::unique_ptr<MapCore> core;
             std::unique_ptr<SolvedMapCore> core_solution;
@@ -141,6 +142,11 @@ namespace Moment {
              * Number of elements in forward map.
              */
             [[nodiscard]] size_t fwd_size() const noexcept { return this->map.size(); }
+
+            /**
+             * True, if map takes monomials in source to monomials in destination (cf. polynomials in destination).
+             */
+            [[nodiscard]] bool monomial_map() const noexcept { return this->is_monomial_map; }
 
             /**
              * Number of elements in inverse  map.

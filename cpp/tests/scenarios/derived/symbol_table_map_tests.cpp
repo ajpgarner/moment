@@ -44,6 +44,7 @@ namespace Moment::Tests {
         const SymbolTableMap& stm = dms.map();
         ASSERT_EQ(stm.fwd_size(), 4); // 0, 1, a, b
         ASSERT_EQ(stm.inv_size(), 3); // 0, 1, x
+        EXPECT_TRUE(stm.monomial_map());
         const symbol_name_t I = 1, a = 2, b = 3, x = 2;
 
         EXPECT_EQ(stm.inverse(x), SymbolCombo({SymbolExpression{a, 0.5}, SymbolExpression{b, 0.5}}));

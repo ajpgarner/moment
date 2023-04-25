@@ -137,6 +137,10 @@ namespace Moment::Derived {
             ++core_col_id;
         }
 
+        // Check if map is monomial
+        this->is_monomial_map = std::all_of(this->map.cbegin(), this->map.cend(),
+                                            [](const auto& combo) { return combo.is_monomial(); });
+        
         // Create reverse map:
         this->inverse_map.reserve(2 + this->core_solution->output_symbols);
         this->inverse_map.emplace_back(SymbolCombo::Zero());      // 0 -> 0 always.

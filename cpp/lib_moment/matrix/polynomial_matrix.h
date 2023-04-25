@@ -70,6 +70,11 @@ namespace Moment {
          */
         void renumerate_bases(const SymbolTable& symbols) override;
 
+        /**
+         * True if matrix can be losslessly 'downgraded' to monomial matrix
+         */
+        [[nodiscard]] bool can_downgrade_to_monomial_matrix() const;
+
     protected:
         std::pair<MatrixBasis::dense_real_storage_t, MatrixBasis::dense_complex_storage_t>
         create_dense_basis() const override;

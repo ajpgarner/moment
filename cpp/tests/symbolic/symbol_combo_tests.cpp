@@ -12,14 +12,31 @@
 #include "scenarios/imported/imported_matrix_system.h"
 
 namespace Moment::Tests {
-    TEST(Symbolic_SymbolCombo, CreateEmpty) {
+    TEST(Symbolic_SymbolCombo, Create_Empty) {
         SymbolCombo empty{};
         EXPECT_TRUE(empty.empty());
         EXPECT_EQ(empty.size(), 0);
         EXPECT_EQ(empty.begin(), empty.end());
+        EXPECT_TRUE(empty.is_monomial());
     }
 
-    TEST(Symbolic_SymbolCombo, CreateThreeElems) {
+    TEST(Symbolic_SymbolCombo, Create_Scalar) {
+        SymbolCombo scalar = SymbolCombo::Scalar(2.5);
+        EXPECT_FALSE(scalar.empty());
+        ASSERT_EQ(scalar.size(), 1);
+        EXPECT_TRUE(scalar.is_monomial());
+        EXPECT_EQ(*scalar.begin(), SymbolExpression(1, 2.5));
+    }
+
+    TEST(Symbolic_SymbolCombo, Create_OneElem) {
+        SymbolCombo one_elem{SymbolExpression{13, -2.0}};
+        EXPECT_FALSE(one_elem.empty());
+        ASSERT_EQ(one_elem.size(), 1);
+        EXPECT_TRUE(one_elem.is_monomial());
+        EXPECT_EQ(*one_elem.begin(), SymbolExpression(13, -2.0));
+    }
+
+    TEST(Symbolic_SymbolCombo, Create_ThreeElems) {
         SymbolCombo threeElems{SymbolExpression{2, 13.0}, SymbolExpression{10, 100.0}, SymbolExpression{5, -23.0}};
         ASSERT_FALSE(threeElems.empty());
         ASSERT_EQ(threeElems.size(), 3);
@@ -43,6 +60,16 @@ namespace Moment::Tests {
 
         ++iter;
         ASSERT_EQ(iter, threeElems.end());
+
+        EXPECT_FALSE(threeElems.is_monomial());
+    }
+
+    TEST(Symbolic_SymbolCombo, Create_InitListZero) {
+        SymbolCombo empty{SymbolExpression{0, 1.0}};
+        EXPECT_TRUE(empty.empty()) << empty;
+        EXPECT_EQ(empty.size(), 0)  << empty;
+        EXPECT_EQ(empty.begin(), empty.end())  << empty;
+        EXPECT_TRUE(empty.is_monomial()) << empty;
     }
 
 
@@ -51,6 +78,7 @@ namespace Moment::Tests {
                                  SymbolExpression{2, 20.0}, SymbolExpression{3, 40.0}};
         const SymbolCombo expected{SymbolExpression{1, 10.0}, SymbolExpression{2, 50.0}, SymbolExpression{3, 40.0}};
         EXPECT_EQ(actual, expected);
+        EXPECT_FALSE(expected.is_monomial());
     }
 
     TEST(Symbolic_SymbolCombo, Create_Overlapped2) {
@@ -58,6 +86,7 @@ namespace Moment::Tests {
                                  SymbolExpression{1, 20.0}, SymbolExpression{2, 40.0}};
         const SymbolCombo expected{SymbolExpression{1, 30.0}, SymbolExpression{2, 70.0}};
         EXPECT_EQ(actual, expected);
+        EXPECT_FALSE(expected.is_monomial());
     }
 
     TEST(Symbolic_SymbolCombo, Create_Overlapped3) {
@@ -65,18 +94,21 @@ namespace Moment::Tests {
                                  SymbolExpression{1, 20.0}, SymbolExpression{2, 40.0}};
         const SymbolCombo expected{SymbolExpression{1, 30.0}, SymbolExpression{2, 70.0}, SymbolExpression{3, 50.0}};
         EXPECT_EQ(actual, expected);
+        EXPECT_FALSE(expected.is_monomial());
     }
 
     TEST(Symbolic_SymbolCombo, Create_OverlappedToZero) {
         const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{1, -10.0}};
         const SymbolCombo expected = SymbolCombo::Zero();
         EXPECT_EQ(actual, expected);
+        EXPECT_TRUE(expected.is_monomial());
     }
 
     TEST(Symbolic_SymbolCombo, Create_OverlappedWithZero1) {
         const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{1, -10.0}, SymbolExpression{2, 20.0}};
         const SymbolCombo expected = SymbolCombo{{SymbolExpression{2, 20.0}}};
         EXPECT_EQ(actual, expected);
+        EXPECT_TRUE(expected.is_monomial());
     }
 
     TEST(Symbolic_SymbolCombo, Create_OverlappedWithZero2) {
@@ -84,9 +116,10 @@ namespace Moment::Tests {
                                  SymbolExpression{2, 20.0}, SymbolExpression{3, 10.0}};
         const SymbolCombo expected = SymbolCombo{{SymbolExpression{1, 10.0}, SymbolExpression{3, 10.0}}};
         EXPECT_EQ(actual, expected);
+        EXPECT_FALSE(expected.is_monomial());
     }
 
-    TEST(Symbolic_SymbolCombo, CreateFromMap) {
+    TEST(Symbolic_SymbolCombo, Create_FromMap) {
         std::map<symbol_name_t, double> testMap{{2,  13.0},
                                                 {10, 100.0},
                                                 {5,  -23.0}};
@@ -114,6 +147,24 @@ namespace Moment::Tests {
 
         ++iter;
         ASSERT_EQ(iter, threeElems.end());
+
+        EXPECT_FALSE(threeElems.is_monomial());
+    }
+
+
+    TEST(Symbolic_SymboCombo, Create_FromExpr) {
+        const SymbolExpression expr{5, -2.0, true};
+        const SymbolCombo combo{expr};
+        ASSERT_EQ(combo.size(), 1);
+        EXPECT_EQ(*combo.begin(), SymbolExpression(5, -2.0, true));
+        EXPECT_TRUE(combo.is_monomial());
+    }
+
+    TEST(Symbolic_SymboCombo, Create_FromExprZero) {
+        const SymbolExpression expr{0, 1.0};
+        const SymbolCombo combo(expr); // <- can't use {} as this will call init_list c'tor!!
+        ASSERT_EQ(combo.size(), 0);
+        EXPECT_TRUE(combo.is_monomial());
     }
 
 
@@ -358,5 +409,36 @@ namespace Moment::Tests {
         const auto comboConj = combo.conjugate(symbols);
         EXPECT_EQ(comboConj, comboConjExp);
     }
+
+
+    TEST(Symbolic_SymboCombo, CastToExpr_Valid) {
+        const SymbolCombo combo{SymbolExpression{3, 2.0, false}};
+
+        const SymbolExpression expr{combo};
+        EXPECT_EQ(expr, SymbolExpression(3, 2.0, false));
+    }
+
+    TEST(Symbolic_SymboCombo, CastToExpr_Valid2) {
+        const SymbolCombo combo{SymbolExpression{5, -2.0, true}};
+
+        const SymbolExpression expr = static_cast<SymbolExpression>(combo);
+        EXPECT_EQ(expr, SymbolExpression(5, -2.0, true));
+    }
+
+    TEST(Symbolic_SymboCombo, CastToExpr_Zero) {
+        const SymbolCombo zero = SymbolCombo::Zero();
+
+        const SymbolExpression expr = static_cast<SymbolExpression>(zero);
+        EXPECT_EQ(expr.id, 0);
+    }
+
+    TEST(Symbolic_SymboCombo, CastToExpr_Bad) {
+        const SymbolCombo combo{SymbolExpression{3, 1.0, false}, SymbolExpression{4, 1.0, false}};
+
+        EXPECT_THROW([[maybe_unused]] const SymbolExpression expr = static_cast<SymbolExpression>(combo),
+                    std::logic_error);
+    }
+
+
 
 }
