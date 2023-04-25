@@ -23,6 +23,32 @@
 #include <cassert>
 
 namespace Moment::Derived {
+
+    namespace {
+        std::unique_ptr<Matrix> do_create_transformed_matrix(const Context& context, SymbolTable& symbols,
+                                                             const SymbolTableMap& map, const Matrix& source_matrix) {
+            // Monomial map on monomial matrix creates monomial matrix
+            if (map.is_monomial_map() && source_matrix.is_monomial()) {
+                auto mono_sym_mat_ptr = map.monomial(dynamic_cast<const MonomialMatrix &>(source_matrix).SymbolMatrix());
+                return std::make_unique<MonomialMatrix>(symbols, context,
+                                                        std::move(mono_sym_mat_ptr), source_matrix.is_hermitian());
+            }
+
+            // Otherwise, resultant matrix is Polynomial
+            auto symbol_mat_ptr = [&]() {
+                if (source_matrix.is_monomial()) {
+                    return map(dynamic_cast<const MonomialMatrix &>(source_matrix).SymbolMatrix());
+                } else {
+                    return map(dynamic_cast<const PolynomialMatrix &>(source_matrix).SymbolMatrix());
+                }
+            }();
+
+            // Create matrix
+            return std::make_unique<PolynomialMatrix>(context, symbols, std::move(symbol_mat_ptr));
+
+        }
+    }
+
     DerivedMatrixSystem::DerivedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system, STMFactory&& stm_factory)
         : MatrixSystem(DerivedMatrixSystem::make_derived_context(*base_system)),
           base_ms_ptr{std::move(base_system)}
@@ -69,17 +95,8 @@ namespace Moment::Derived {
             return mm;
         }();
 
-        // Transform
-        auto symbol_mat_ptr = [&]() {
-            if (source_matrix.is_monomial()) {
-                return (*this->map_ptr)(dynamic_cast<const MonomialMatrix &>(source_matrix).SymbolMatrix());
-            } else {
-                return (*this->map_ptr)(dynamic_cast<const PolynomialMatrix &>(source_matrix).SymbolMatrix());
-            }
-        }();
-
-        // Create matrix
-        return std::make_unique<PolynomialMatrix>(this->Context(), this->Symbols(), std::move(symbol_mat_ptr));
+        // Create transformation of this matrix
+        return do_create_transformed_matrix(this->Context(), this->Symbols(), this->map(), source_matrix);
     }
 
     std::unique_ptr<class Matrix>
@@ -112,17 +129,8 @@ namespace Moment::Derived {
             return mm;
         }();
 
-        // Transform
-        auto symbol_mat_ptr = [&]() {
-            if (source_matrix.is_monomial()) {
-                return (*this->map_ptr)(dynamic_cast<const MonomialMatrix &>(source_matrix).SymbolMatrix());
-            } else {
-                return (*this->map_ptr)(dynamic_cast<const PolynomialMatrix &>(source_matrix).SymbolMatrix());
-            }
-        }();
-
-        // Create matrix
-        return std::make_unique<PolynomialMatrix>(this->Context(), this->Symbols(), std::move(symbol_mat_ptr));
+        // Create transformation of this matrix
+        return do_create_transformed_matrix(this->Context(), this->Symbols(), this->map(), source_matrix);
     }
 
     std::string DerivedMatrixSystem::describe_map() const {

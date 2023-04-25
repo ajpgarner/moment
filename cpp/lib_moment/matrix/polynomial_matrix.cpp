@@ -237,13 +237,6 @@ namespace Moment {
         return output;
     }
 
-    bool PolynomialMatrix::can_downgrade_to_monomial_matrix() const {
-        assert(this->sym_exp_matrix);
-
-        return std::all_of(this->sym_exp_matrix->begin(), this->sym_exp_matrix->end(),
-            [](const auto& combo) { return combo.is_monomial(); });
-    }
-
     /**
      * Force renumbering of matrix bases keys
      */

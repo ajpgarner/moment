@@ -44,7 +44,7 @@ namespace Moment {
 
             std::vector<SymbolCombo> map;
             std::vector<SymbolCombo> inverse_map;
-            bool is_monomial_map = false;
+            bool _is_monomial_map = false;
 
             std::unique_ptr<MapCore> core;
             std::unique_ptr<SolvedMapCore> core_solution;
@@ -122,6 +122,15 @@ namespace Moment {
             operator()(const SquareMatrix<SymbolCombo>& matrix) const;
 
             /**
+             * Create new monomial symbolic matrix, mapping source monomial matrix into new symbol set.
+             * @param symbol_id Source matrix.
+             * @return New symbolic matrix, transforming the supplied input.
+             * @throws error::bad_map If any contained symbol is out of range, or if map is not monomial.
+             */
+            [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolExpression>>
+            monomial(const SquareMatrix<SymbolExpression>& matrix) const;
+
+            /**
              * Get symbol/symbol combo in source, associated with symbol in target.
              * @param symbol_id Target symbol ID
              * @return Reference to symbol combo.
@@ -146,7 +155,7 @@ namespace Moment {
             /**
              * True, if map takes monomials in source to monomials in destination (cf. polynomials in destination).
              */
-            [[nodiscard]] bool monomial_map() const noexcept { return this->is_monomial_map; }
+            [[nodiscard]] bool is_monomial_map() const noexcept { return this->_is_monomial_map; }
 
             /**
              * Number of elements in inverse  map.

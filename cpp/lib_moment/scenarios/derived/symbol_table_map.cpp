@@ -138,9 +138,9 @@ namespace Moment::Derived {
         }
 
         // Check if map is monomial
-        this->is_monomial_map = std::all_of(this->map.cbegin(), this->map.cend(),
+        this->_is_monomial_map = std::all_of(this->map.cbegin(), this->map.cend(),
                                             [](const auto& combo) { return combo.is_monomial(); });
-        
+
         // Create reverse map:
         this->inverse_map.reserve(2 + this->core_solution->output_symbols);
         this->inverse_map.emplace_back(SymbolCombo::Zero());      // 0 -> 0 always.
@@ -246,6 +246,19 @@ namespace Moment::Derived {
             output_data.emplace_back((*this)(combo));
         }
         return std::make_unique<SquareMatrix<SymbolCombo>>(input_matrix.dimension, std::move(output_data));
+    }
+
+    std::unique_ptr<SquareMatrix<SymbolExpression>>
+    SymbolTableMap::monomial(const SquareMatrix<SymbolExpression>& input_matrix) const {
+        if (!this->_is_monomial_map) {
+            throw errors::bad_map{"Cannot create monomial matrix from action of non-monomial map."};
+        }
+        std::vector<SymbolExpression> output_data;
+        output_data.reserve(input_matrix.dimension * input_matrix.dimension);
+        for (const auto& expr : input_matrix) {
+            output_data.emplace_back(SymbolExpression{(*this)(expr)});
+        }
+        return std::make_unique<SquareMatrix<SymbolExpression>>(input_matrix.dimension, std::move(output_data));
     }
 
     const SymbolCombo& SymbolTableMap::inverse(symbol_name_t symbol_id) const {

@@ -142,7 +142,7 @@ namespace Moment::Tests {
         ASSERT_EQ(algebraic_symbols.size(), map.fwd_size()) << algebraic_symbols; // All symbols mapped
         EXPECT_EQ(map.inv_size(), 5); // 0, 1, y
         ASSERT_EQ(sym_symbols.size(), 5) << sms.Symbols();
-        EXPECT_TRUE(map.monomial_map());
+        EXPECT_TRUE(map.is_monomial_map());
 
         // Check inverse map
         EXPECT_EQ(map.inverse(0), SymbolCombo::Zero());
@@ -174,20 +174,20 @@ namespace Moment::Tests {
         const auto& source_symbol_matrix = ams[0];
         EXPECT_TRUE(source_symbol_matrix.is_monomial());
 
-        EXPECT_TRUE(mapped_symbol_matrix.is_polynomial());
-        EXPECT_FALSE(mapped_symbol_matrix.is_monomial());
+        EXPECT_FALSE(mapped_symbol_matrix.is_polynomial());
+        EXPECT_TRUE(mapped_symbol_matrix.is_monomial());
 
-        const auto& poly_sm = dynamic_cast<const PolynomialMatrix&>(mapped_symbol_matrix);
-        ASSERT_EQ(poly_sm.Dimension(), 3);
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][0], SymbolCombo::Scalar(1.0));
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][1], SymbolCombo({SymbolExpression{2, 1.0}}));
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][2], SymbolCombo({SymbolExpression{2, 1.0}}));
-        EXPECT_EQ(poly_sm.SymbolMatrix[1][0], SymbolCombo({SymbolExpression{2, 1.0}}));
-        EXPECT_EQ(poly_sm.SymbolMatrix[1][1], SymbolCombo({SymbolExpression{3, 1.0}}));
-        EXPECT_EQ(poly_sm.SymbolMatrix[1][2], SymbolCombo({SymbolExpression{4, 1.0}}));
-        EXPECT_EQ(poly_sm.SymbolMatrix[2][0], SymbolCombo({SymbolExpression{2, 1.0}}));
-        EXPECT_EQ(poly_sm.SymbolMatrix[2][1], SymbolCombo({SymbolExpression{4, 1.0}}));
-        EXPECT_EQ(poly_sm.SymbolMatrix[2][2], SymbolCombo({SymbolExpression{3, 1.0}}));
+        const auto& mono_sm = dynamic_cast<const  MonomialMatrix&>(mapped_symbol_matrix);
+        ASSERT_EQ(mono_sm.Dimension(), 3);
+        EXPECT_EQ(mono_sm.SymbolMatrix[0][0], SymbolExpression(1, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix[0][1], SymbolExpression(2, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix[0][2], SymbolExpression(2, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix[1][0], SymbolExpression(2, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix[1][1], SymbolExpression(3, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix[1][2], SymbolExpression(4, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix[2][0], SymbolExpression(2, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix[2][1], SymbolExpression(4, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix[2][2], SymbolExpression(3, 1.0));
 
     }
 
@@ -232,7 +232,7 @@ namespace Moment::Tests {
         ASSERT_EQ(locality_symbols.size(), map.fwd_size()) << lms.Symbols(); // All symbols mapped
         EXPECT_EQ(map.inv_size(), 3); // 0, 1,
         ASSERT_EQ(sym_symbols.size(), 3) << sms.Symbols();
-        EXPECT_FALSE(map.monomial_map());
+        EXPECT_FALSE(map.is_monomial_map());
 
         // Check inverse map
         EXPECT_EQ(map.inverse(0), SymbolCombo::Zero());
