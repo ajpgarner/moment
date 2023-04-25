@@ -6,6 +6,9 @@
  */
 #include "gtest/gtest.h"
 
+#include "matrix/monomial_matrix.h"
+#include "matrix/polynomial_matrix.h"
+
 #include "scenarios/derived/symbol_table_map.h"
 #include "scenarios/derived/lu_map_core_processor.h"
 
@@ -161,6 +164,30 @@ namespace Moment::Tests {
         EXPECT_EQ(map(bb), SymbolCombo({SymbolExpression{3, 1.0}}));
 
 
+        ASSERT_EQ(ams.size(), 0);
+        ASSERT_EQ(sms.size(), 0);
+
+        auto [mm_index, mapped_symbol_matrix] = sms.create_moment_matrix(1);
+        ASSERT_EQ(mm_index, 0); // first matrix in system.
+        ASSERT_EQ(ams.size(), 1); // source system now has MM.
+        const auto& source_symbol_matrix = ams[0];
+        EXPECT_TRUE(source_symbol_matrix.is_monomial());
+
+        EXPECT_TRUE(mapped_symbol_matrix.is_polynomial());
+        EXPECT_FALSE(mapped_symbol_matrix.is_monomial());
+
+        const auto& poly_sm = dynamic_cast<const PolynomialMatrix&>(mapped_symbol_matrix);
+        ASSERT_EQ(poly_sm.Dimension(), 3);
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][0], SymbolCombo::Scalar(1.0));
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][1], SymbolCombo({SymbolExpression{2, 1.0}}));
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][2], SymbolCombo({SymbolExpression{2, 1.0}}));
+        EXPECT_EQ(poly_sm.SymbolMatrix[1][0], SymbolCombo({SymbolExpression{2, 1.0}}));
+        EXPECT_EQ(poly_sm.SymbolMatrix[1][1], SymbolCombo({SymbolExpression{3, 1.0}}));
+        EXPECT_EQ(poly_sm.SymbolMatrix[1][2], SymbolCombo({SymbolExpression{4, 1.0}}));
+        EXPECT_EQ(poly_sm.SymbolMatrix[2][0], SymbolCombo({SymbolExpression{2, 1.0}}));
+        EXPECT_EQ(poly_sm.SymbolMatrix[2][1], SymbolCombo({SymbolExpression{4, 1.0}}));
+        EXPECT_EQ(poly_sm.SymbolMatrix[2][2], SymbolCombo({SymbolExpression{3, 1.0}}));
+
     }
 
     TEST(Scenarios_Symmetry_MatrixSystem, Locality_CHSH) {
@@ -231,5 +258,60 @@ namespace Moment::Tests {
         EXPECT_EQ(map(a1b0), SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)}));
         EXPECT_EQ(map(a1b1), SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)}));
 
+        // Make moment matrix.
+
+
+
+        ASSERT_EQ(lms.size(), 0);
+        ASSERT_EQ(sms.size(), 0);
+
+        auto [mm_index, mapped_symbol_matrix] = sms.create_moment_matrix(1);
+        ASSERT_EQ(mm_index, 0); // first matrix in system.
+        ASSERT_EQ(lms.size(), 1); // source system now has MM.
+        const auto& source_symbol_matrix = lms[0];
+        EXPECT_TRUE(source_symbol_matrix.is_monomial());
+
+        EXPECT_TRUE(mapped_symbol_matrix.is_polynomial());
+        EXPECT_FALSE(mapped_symbol_matrix.is_monomial());
+
+        const auto& poly_sm = dynamic_cast<const PolynomialMatrix&>(mapped_symbol_matrix);
+        ASSERT_EQ(poly_sm.Dimension(), 5);
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][0], SymbolCombo::Scalar(1.0));
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][1], SymbolCombo::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][2], SymbolCombo::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][3], SymbolCombo::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][4], SymbolCombo::Scalar(0.5));
+
+        EXPECT_EQ(poly_sm.SymbolMatrix[1][0], SymbolCombo::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix[1][1], SymbolCombo::Scalar(0.5)); // a0^2 -> a0 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix[1][2], SymbolCombo::Scalar(0.25)); // a0a1 -> 0.25
+        EXPECT_EQ(poly_sm.SymbolMatrix[1][3],
+                  SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a0b0 -> 0.375 + y
+        EXPECT_EQ(poly_sm.SymbolMatrix[1][4],
+                  SymbolCombo({SymbolExpression(1, 0.125), SymbolExpression(2, -1.0)})); // a0b1 -> 0.125 - y
+
+        EXPECT_EQ(poly_sm.SymbolMatrix[2][0], SymbolCombo::Scalar(0.5)); // a1
+        EXPECT_EQ(poly_sm.SymbolMatrix[2][1], SymbolCombo::Scalar(0.25)); // a1a0
+        EXPECT_EQ(poly_sm.SymbolMatrix[2][2], SymbolCombo::Scalar(0.5)); // a1^2 -> a1 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix[2][3],
+                  SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a1b0 -> 0.375 + y
+        EXPECT_EQ(poly_sm.SymbolMatrix[2][4],
+                  SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a1b1 -> 0.375 + y
+
+        EXPECT_EQ(poly_sm.SymbolMatrix[3][0], SymbolCombo::Scalar(0.5)); // b0 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix[3][1],
+                  SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a0b0 -> 0.375 + y
+        EXPECT_EQ(poly_sm.SymbolMatrix[3][2],
+                  SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a1b0 -> 0.375 + y
+        EXPECT_EQ(poly_sm.SymbolMatrix[3][3], SymbolCombo::Scalar(0.5));  // b0^2 -> b0 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix[3][4], SymbolCombo::Scalar(0.25)); // b0b1 -> 0.25
+
+        EXPECT_EQ(poly_sm.SymbolMatrix[4][0], SymbolCombo::Scalar(0.5)); // b1 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix[4][1],
+                  SymbolCombo({SymbolExpression(1, 0.125), SymbolExpression(2, -1.0)})); // a0b1 -> 0.125 - y
+        EXPECT_EQ(poly_sm.SymbolMatrix[4][2],
+                  SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a1b1 -> 0.375 + y
+        EXPECT_EQ(poly_sm.SymbolMatrix[4][3], SymbolCombo::Scalar(0.25));  // b1b0 -> 0.25
+        EXPECT_EQ(poly_sm.SymbolMatrix[4][4], SymbolCombo::Scalar(0.5)); // b1^2 -> b1 -> 0.25
     }
 }
