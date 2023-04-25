@@ -14,6 +14,7 @@
 #include "symbolic/symbol_combo.h"
 
 #include "utilities/dynamic_bitset.h"
+#include "utilities/square_matrix.h"
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
@@ -28,7 +29,6 @@
 #include <cassert>
 
 namespace Moment {
-
     class SymbolCombo;
     class SymbolTable;
 
@@ -92,6 +92,35 @@ namespace Moment {
               * @throws error::bad_map If symbol is out of range.
               */
             [[nodiscard]] SymbolCombo operator()(const SymbolExpression& symbol) const;
+
+            /**
+              * Create symbol/symbol combo in target, associated with symbol combo in source.
+              * Also takes into account pre-factors/complex conjugation etc.
+              * @param symbol_id Source symbol
+              * @return New symbol combo, transforming the supplied expression.
+              * @throws error::bad_map If symbol is out of range.
+              */
+            [[nodiscard]] SymbolCombo operator()(const SymbolCombo& symbol) const;
+
+            /**
+              * Create new polynomial symbolic matrix, mapping source matrix
+              * Also takes into account pre-factors/complex conjugation etc.
+              * @param symbol_id Source matrix.
+              * @return New symbolic matrix, transforming the supplied input.
+              * @throws error::bad_map If any contained symbol is out of range.
+              */
+            [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolCombo>>
+            operator()(const SquareMatrix<SymbolExpression>& matrix) const;
+
+            /**
+              * Create new polynomial symbolic matrix, mapping source matrix
+              * Also takes into account pre-factors/complex conjugation etc.
+              * @param symbol_id Source matrix.
+              * @return New symbolic matrix, transforming the supplied input.
+              * @throws error::bad_map If any contained symbol is out of range.
+              */
+            [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolCombo>>
+            operator()(const SquareMatrix<SymbolCombo>& matrix) const;
 
             /**
              * Get symbol/symbol combo in source, associated with symbol in target

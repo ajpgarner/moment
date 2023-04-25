@@ -62,7 +62,7 @@ namespace Moment {
          * If supplied input is symbol matrix associated with a monomial localizng matrix, extract that matrix.
          * Otherwise, returns nullptr.
          */
-        static const LocalizingMatrix* as_monomial_localizing_matrix(const Matrix& input) noexcept;
+        static const LocalizingMatrix* as_monomial_localizing_matrix_ptr(const Matrix& input) noexcept;
 
         std::unique_ptr<MatrixProperties> replace_properties(std::unique_ptr<MatrixProperties> input) const override;
     };

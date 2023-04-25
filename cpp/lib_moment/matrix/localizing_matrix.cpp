@@ -58,7 +58,7 @@ namespace Moment {
     }
 
 
-    const LocalizingMatrix* LocalizingMatrix::as_monomial_localizing_matrix(const Matrix& input) noexcept {
+    const LocalizingMatrix* LocalizingMatrix::as_monomial_localizing_matrix_ptr(const Matrix& input) noexcept {
         if (!input.is_monomial()) {
             return nullptr;
         }

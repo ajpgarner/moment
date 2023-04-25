@@ -61,7 +61,7 @@ namespace Moment::Inflation {
             const auto& context = dynamic_cast<const InflationContext&>(source.context); // throws if invalid!
 
             // Source matrix must be moment matrix
-            const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix(source);
+            const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix_ptr(source);
             if (nullptr == mm_ptr) {
                 throw std::invalid_argument{"Can only extend monomial moment matrices."};
             }
@@ -147,7 +147,7 @@ namespace Moment::Inflation {
                          source.is_hermitian()},
           OriginalDimension{source.Dimension()} {
 
-        const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix(source);
+        const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix_ptr(source);
         assert(mm_ptr); // ^- make_extended_matrix should have already thrown exception if above is nullptr!
 
         // Make description string of extended matrix

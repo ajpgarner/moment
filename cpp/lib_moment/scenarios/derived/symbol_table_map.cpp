@@ -9,12 +9,14 @@
 
 #include "map_core.h"
 
+#include "matrix/monomial_matrix.h"
+#include "matrix/polynomial_matrix.h"
+
 #include "scenarios/context.h"
 
 #include "symbolic/symbol_table.h"
 #include "utilities/dynamic_bitset.h"
 #include "utilities/float_utils.h"
-
 
 #include <limits>
 #include <ranges>
@@ -208,6 +210,38 @@ namespace Moment::Derived {
         }
 
         return output;
+    }
+
+    SymbolCombo SymbolTableMap::operator()(const SymbolCombo &symbol) const {
+        SymbolCombo::storage_t joint_storage{};
+        for (const auto& expr : symbol) {
+            const auto tx_symbol = (*this)(expr);
+            joint_storage.insert(joint_storage.end(), tx_symbol.begin(), tx_symbol.end());
+        }
+
+        return SymbolCombo{std::move(joint_storage)};
+    }
+
+
+    std::unique_ptr<SquareMatrix<SymbolCombo>>
+    SymbolTableMap::operator()(const SquareMatrix<SymbolExpression>& input_matrix) const {
+        std::vector<SymbolCombo> output_data;
+        output_data.reserve(input_matrix.dimension * input_matrix.dimension);
+        for (const auto& expr : input_matrix) {
+            output_data.emplace_back((*this)(expr));
+        }
+        return std::make_unique<SquareMatrix<SymbolCombo>>(input_matrix.dimension, std::move(output_data));
+    }
+
+
+    [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolCombo>>
+    SymbolTableMap::operator()(const SquareMatrix<SymbolCombo>& input_matrix) const {
+        std::vector<SymbolCombo> output_data;
+        output_data.reserve(input_matrix.dimension * input_matrix.dimension);
+        for (const auto& combo : input_matrix) {
+            output_data.emplace_back((*this)(combo));
+        }
+        return std::make_unique<SquareMatrix<SymbolCombo>>(input_matrix.dimension, std::move(output_data));
     }
 
     const SymbolCombo& SymbolTableMap::inverse(symbol_name_t symbol_id) const {

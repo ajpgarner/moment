@@ -27,7 +27,7 @@ namespace Moment::Tests {
         void compare_unique_sequences(const Matrix &theMM, std::initializer_list<unique_seq_brace_ref> reference) {
             ASSERT_EQ(theMM.Symbols.size(), 2 + reference.size());
 
-            const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix(theMM);
+            const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(theMM);
             ASSERT_NE(mmPtr, nullptr) << "Not a moment matrix!";
 
 
@@ -70,7 +70,7 @@ namespace Moment::Tests {
 
         void compare_symbol_matrix(const Matrix &inputMM, size_t dimension,
                                    const std::vector<SymbolExpression>& reference) {
-            const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix(inputMM);
+            const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(inputMM);
             ASSERT_NE(mmPtr, nullptr) << "Not a moment matrix!";
             ASSERT_TRUE(inputMM.is_monomial());
             const auto& theMM = dynamic_cast<const MonomialMatrix&>(inputMM);
@@ -115,7 +115,7 @@ namespace Moment::Tests {
         ASSERT_EQ(context.size(), 0);
 
         auto [id0, matLevel0] = system.create_moment_matrix(0);
-        const auto* mm0Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel0);
+        const auto* mm0Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel0);
         ASSERT_NE(mm0Ptr, nullptr);
 
         EXPECT_EQ(mm0Ptr->Level(), 0);
@@ -124,7 +124,7 @@ namespace Moment::Tests {
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
         auto [id1, matLevel1] = system.create_moment_matrix(1);
-        const auto* mm1Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel1);
+        const auto* mm1Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel1);
         ASSERT_NE(mm1Ptr, nullptr);
         EXPECT_EQ(mm1Ptr->Level(), 1);
         compare_mm_os_matrix(matLevel1, 1, {OperatorSequence::Identity(context)});
@@ -132,7 +132,7 @@ namespace Moment::Tests {
         compare_symbol_matrix(matLevel1, 1, {"1"});
 
         auto [id5, matLevel5] = system.create_moment_matrix(5);
-        const auto* mm5Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel5);
+        const auto* mm5Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel5);
         ASSERT_NE(mm5Ptr, nullptr);
         EXPECT_EQ(mm5Ptr->Level(), 5);
         compare_mm_os_matrix(matLevel5, 1, {OperatorSequence::Identity(context)});
@@ -148,14 +148,14 @@ namespace Moment::Tests {
         const auto theOp = 0;
 
         auto [id0, matLevel0] = system.create_moment_matrix(0);
-        const auto* mm0Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel0);
+        const auto* mm0Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel0);
         ASSERT_NE(mm0Ptr, nullptr);
         EXPECT_EQ(mm0Ptr->Level(), 0);
         compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
 
         auto [id1, matLevel1] = system.create_moment_matrix(1);
-        const auto* mm1Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel1);
+        const auto* mm1Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel1);
         ASSERT_NE(mm1Ptr, nullptr);
         EXPECT_EQ(mm1Ptr->Level(), 1);
         compare_mm_os_matrix(matLevel1, 2, {OperatorSequence::Identity(context),
@@ -165,7 +165,7 @@ namespace Moment::Tests {
 
 
         auto [id2, matLevel2] = system.create_moment_matrix(2);
-        const auto* mm2Ptr = MomentMatrix::as_monomial_moment_matrix(matLevel2);
+        const auto* mm2Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel2);
         ASSERT_NE(mm2Ptr, nullptr);
         EXPECT_EQ(mm2Ptr->Level(), 2);
         compare_mm_os_matrix(matLevel2, 3, {OperatorSequence::Identity(context),

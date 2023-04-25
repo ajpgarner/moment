@@ -76,7 +76,7 @@ namespace Moment {
         return ss.str();
     }
 
-    const MomentMatrix* MomentMatrix::as_monomial_moment_matrix(const Matrix& input) noexcept {
+    const MomentMatrix* MomentMatrix::as_monomial_moment_matrix_ptr(const Matrix& input) noexcept {
         if (!input.is_monomial()) {
             return nullptr;
         }

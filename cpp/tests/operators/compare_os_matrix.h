@@ -40,7 +40,7 @@ namespace Moment::Tests {
 
     inline void compare_mm_os_matrix(const Matrix& theMM, size_t dimension,
                                      const std::initializer_list<OperatorSequence> reference) {
-        const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix(theMM);
+        const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(theMM);
         ASSERT_NE(mmPtr, nullptr);
 
         std::string prefix{" Level = "};
@@ -50,7 +50,7 @@ namespace Moment::Tests {
 
     inline void compare_lm_os_matrix(const Matrix& theLM, size_t dimension,
                                      const std::initializer_list<OperatorSequence> reference) {
-        const auto* lmPtr = LocalizingMatrix::as_monomial_localizing_matrix(theLM);
+        const auto* lmPtr = LocalizingMatrix::as_monomial_localizing_matrix_ptr(theLM);
         ASSERT_NE(lmPtr, nullptr);
 
         std::stringstream ss;

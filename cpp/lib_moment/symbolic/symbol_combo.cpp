@@ -7,6 +7,8 @@
 #include "symbol_combo.h"
 #include "symbol_table.h"
 
+#include "utilities/float_utils.h"
+
 #include <iostream>
 
 namespace Moment {
@@ -40,6 +42,59 @@ namespace Moment {
                 return true;
             }
         };
+
+        void remove_duplicates(SymbolCombo::storage_t& data) {
+            // Iterate forwards, looking for duplicates
+            LexEqComparator lex_eq{};
+            auto leading_iter = data.begin();
+            auto lagging_iter = leading_iter;
+            ++leading_iter;
+            const auto last_iter = data.end();
+            while (leading_iter != last_iter) {
+                assert(lagging_iter <= leading_iter);
+                assert(leading_iter <= last_iter);
+                if (lex_eq(*lagging_iter, *leading_iter)) {
+                    lagging_iter->factor += leading_iter->factor;
+                } else {
+                    ++lagging_iter;
+                    if (leading_iter != lagging_iter) {
+                        // copy/move
+                        *lagging_iter = *leading_iter;
+                    }
+                }
+                ++leading_iter;
+            }
+            ++lagging_iter;
+            assert(lagging_iter <= leading_iter);
+            assert(leading_iter <= last_iter);
+            data.erase(lagging_iter, last_iter);
+        }
+
+        void remove_zeros(SymbolCombo::storage_t& data) {
+
+            auto read_iter = data.begin();
+            auto write_iter = data.begin();
+            const auto last_iter = data.end();
+
+            while (read_iter != last_iter) {
+                assert(write_iter <= read_iter);
+                if (approximately_zero(read_iter->factor)) {
+                    ++read_iter; // skip zeros
+                    continue;
+                }
+
+                if (read_iter != write_iter) {
+                    *write_iter = *read_iter;
+                }
+
+                ++write_iter;
+                ++read_iter;
+            }
+
+            assert(write_iter <= read_iter);
+            assert(read_iter <= last_iter);
+            data.erase(write_iter, last_iter);
+        }
     }
 
     SymbolCombo::SymbolCombo(SymbolCombo::storage_t input)
@@ -52,30 +107,13 @@ namespace Moment {
         // Put orders in lexographic order
         std::sort(this->data.begin(), this->data.end(), LexLessComparator{});
 
-        // Iterate forwards, looking for duplicates
-        LexEqComparator lex_eq{};
-        auto leading_iter = this->data.begin();
-        auto lagging_iter = leading_iter;
-        ++leading_iter;
-        const auto last_iter = this->data.end();
-        while (leading_iter != last_iter) {
-            assert(lagging_iter <= leading_iter);
-            assert(leading_iter <= last_iter);
-            if (lex_eq(*lagging_iter, *leading_iter)) {
-                lagging_iter->factor += leading_iter->factor;
-            } else {
-                ++lagging_iter;
-                if (leading_iter != lagging_iter) {
-                    // copy/move
-                    *lagging_iter = *leading_iter;
-                }
-            }
-            ++leading_iter;
-        }
-        ++lagging_iter;
-        assert(lagging_iter <= leading_iter);
-        assert(leading_iter <= last_iter);
-        this->data.erase(lagging_iter, last_iter);
+        // Remove duplicates
+        remove_duplicates(this->data);
+
+        // Remove zeros
+        remove_zeros(this->data);
+
+
     }
 
     SymbolCombo::SymbolCombo(const std::map<symbol_name_t, double> &input) {

@@ -107,7 +107,7 @@ namespace Moment::Inflation {
     InflationMatrixSystem::create_extended_matrix(const class MonomialMatrix &source,
                                                   std::span<const symbol_name_t> extensions) {
 
-        const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix(source);
+        const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix_ptr(source);
         if (nullptr == mm_ptr) {
             throw std::invalid_argument{"Source matrix to be extended must be a monomial moment matrix."};
         }

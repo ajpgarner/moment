@@ -27,6 +27,8 @@ namespace Moment::Derived {
         protected:
             STMFactory() noexcept = default;
 
+            virtual ~STMFactory() noexcept = default;
+
         public:
             [[nodiscard]] virtual std::unique_ptr<SymbolTableMap>
             operator()(const SymbolTable& origin, SymbolTable& target) = 0;

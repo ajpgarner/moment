@@ -67,6 +67,25 @@ namespace Moment::Tests {
         EXPECT_EQ(actual, expected);
     }
 
+    TEST(Symbolic_SymbolCombo, Create_OverlappedToZero) {
+        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{1, -10.0}};
+        const SymbolCombo expected = SymbolCombo::Zero();
+        EXPECT_EQ(actual, expected);
+    }
+
+    TEST(Symbolic_SymbolCombo, Create_OverlappedWithZero1) {
+        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{1, -10.0}, SymbolExpression{2, 20.0}};
+        const SymbolCombo expected = SymbolCombo{{SymbolExpression{2, 20.0}}};
+        EXPECT_EQ(actual, expected);
+    }
+
+    TEST(Symbolic_SymbolCombo, Create_OverlappedWithZero2) {
+        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{2, -20.0},
+                                 SymbolExpression{2, 20.0}, SymbolExpression{3, 10.0}};
+        const SymbolCombo expected = SymbolCombo{{SymbolExpression{1, 10.0}, SymbolExpression{3, 10.0}}};
+        EXPECT_EQ(actual, expected);
+    }
+
     TEST(Symbolic_SymbolCombo, CreateFromMap) {
         std::map<symbol_name_t, double> testMap{{2,  13.0},
                                                 {10, 100.0},
@@ -167,6 +186,16 @@ namespace Moment::Tests {
         const SymbolCombo listA{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0}, SymbolExpression{3, 50.0}};
         const SymbolCombo listB{SymbolExpression{1, 20.0}, SymbolExpression{2, 40.0}};
         const SymbolCombo expected{SymbolExpression{1, 30.0}, SymbolExpression{2, 70.0}, SymbolExpression{3, 50.0}};
+        auto actualAB = listA + listB;
+        EXPECT_EQ(actualAB, expected);
+        auto actualBA = listB + listA;
+        EXPECT_EQ(actualBA, expected);
+    }
+
+    TEST(Symbolic_SymbolCombo, Addition_ToZero) {
+        const SymbolCombo listA{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0}};
+        const SymbolCombo listB{SymbolExpression{1, -10.0}, SymbolExpression{2, -30.0}};
+        const SymbolCombo expected = SymbolCombo::Zero();
         auto actualAB = listA + listB;
         EXPECT_EQ(actualAB, expected);
         auto actualBA = listB + listA;

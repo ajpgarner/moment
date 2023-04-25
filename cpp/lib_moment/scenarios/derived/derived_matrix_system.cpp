@@ -15,6 +15,8 @@
 #include "derived_context.h"
 #include "symbol_table_map.h"
 
+#include "matrix/monomial_matrix.h"
+#include "matrix/polynomial_matrix.h"
 #include "matrix/moment_matrix.h"
 #include "matrix/localizing_matrix.h"
 
@@ -67,7 +69,17 @@ namespace Moment::Derived {
             return mm;
         }();
 
-        throw std::runtime_error{"DerivedMatrixSystem::createNewMomentMatrix not implemented."};
+        // Transform
+        auto symbol_mat_ptr = [&]() {
+            if (source_matrix.is_monomial()) {
+                return (*this->map_ptr)(dynamic_cast<const MonomialMatrix &>(source_matrix).SymbolMatrix());
+            } else {
+                return (*this->map_ptr)(dynamic_cast<const PolynomialMatrix &>(source_matrix).SymbolMatrix());
+            }
+        }();
+
+        // Create matrix
+        return std::make_unique<PolynomialMatrix>(this->Context(), this->Symbols(), std::move(symbol_mat_ptr));
     }
 
     std::unique_ptr<class Matrix>
@@ -100,7 +112,17 @@ namespace Moment::Derived {
             return mm;
         }();
 
-        throw std::runtime_error{"DerivedMatrixSystem::createNewLocalizingMatrix not implemented."};
+        // Transform
+        auto symbol_mat_ptr = [&]() {
+            if (source_matrix.is_monomial()) {
+                return (*this->map_ptr)(dynamic_cast<const MonomialMatrix &>(source_matrix).SymbolMatrix());
+            } else {
+                return (*this->map_ptr)(dynamic_cast<const PolynomialMatrix &>(source_matrix).SymbolMatrix());
+            }
+        }();
+
+        // Create matrix
+        return std::make_unique<PolynomialMatrix>(this->Context(), this->Symbols(), std::move(symbol_mat_ptr));
     }
 
     std::string DerivedMatrixSystem::describe_map() const {
