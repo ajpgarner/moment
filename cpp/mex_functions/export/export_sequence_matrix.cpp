@@ -9,6 +9,7 @@
 
 #include "matrix_system.h"
 #include "matrix/operator_matrix.h"
+#include "matrix/polynomial_matrix.h"
 
 #include "symbolic/symbol_table.h"
 #include "scenarios/context.h"
@@ -187,39 +188,58 @@ namespace Moment::mex {
                 }
 
                 value_type operator*() const {
-                    assert(context != nullptr);
+                    return {matlab::engine::convertUTF8StringToUTF16String(infer_one_symbol(*symbols, *raw_iter))};
+                }
 
-                    const auto id = raw_iter->id;
-                    if ((raw_iter->id < 0) || (raw_iter->id >= symbols->size())) {
-                        std::stringstream ssErr;
-                        ssErr << "[MISSING:" << id << "]";
-                        return {matlab::engine::convertUTF8StringToUTF16String(ssErr.str())};
-                    }
-
-
-                    const auto& symEntry = (*symbols)[raw_iter->id];
-
-                    const std::string symbol_str = raw_iter->conjugated ? symEntry.formatted_sequence_conj()
-                                                                        : symEntry.formatted_sequence();
-
-                    if (1.0 == raw_iter->factor) {
-                        return {matlab::engine::convertUTF8StringToUTF16String(symbol_str)};
-                    } else if (0.0 == raw_iter->factor) {
-                        return {u"0"};
-                    }
+                [[nodiscard]] static std::string infer_one_symbol(const SymbolTable& symbols,
+                                                                  const SymbolExpression& expr,
+                                                                  bool with_prefix = false) {
 
                     std::stringstream ss;
-                    if (-1.0 == raw_iter->factor) {
-                        ss << "-" << symbol_str;
+                    if ((expr.id < 0) || (expr.id >= symbols.size())) {
+                        if (with_prefix) {
+                            ss << " + ";
+                        }
+                        ss << "[MISSING:" << expr.id << "]";
+                        return ss.str();
+                    }
+
+                    const auto& symEntry = symbols[expr.id];
+
+                    std::string symbol_str = expr.conjugated ? symEntry.formatted_sequence_conj()
+                                                                   : symEntry.formatted_sequence();
+
+                    if (1.0 == expr.factor) {
+                        if (with_prefix) {
+                            ss << " + ";
+                        }
+                        ss << symbol_str;
+                        return ss.str();
+                    } else if (0.0 == expr.factor) {
+                        if (with_prefix) {
+                            return "";
+                        }
+                        return "0";
+                    }
+
+                    if (-1.0 == expr.factor) {
+                        if (with_prefix) {
+                            ss << " - ";
+                        } else {
+                            ss << "-";
+                        }
+                        ss << symbol_str;
                     } else {
-                        ss << raw_iter->factor;
+                        if (with_prefix) {
+                            ss << " - " << (-expr.factor);
+                        } else {
+                            ss << expr.factor;
+                        }
                         if (symEntry.Id() != 1) {
                             ss << symbol_str;
                         }
                     }
-
-                    return {matlab::engine::convertUTF8StringToUTF16String(ss.str())};
-
+                    return ss.str();
                 }
             };
 
@@ -240,6 +260,71 @@ namespace Moment::mex {
             [[nodiscard]] auto end() const { return iter_end; }
 
         };
+
+        class InferredPolynomialFormatView {
+        public:
+            using raw_const_iterator = SquareMatrix<SymbolCombo>::ColumnMajorView::TransposeIterator;
+
+            class const_iterator {
+            public:
+                using iterator_category = std::input_iterator_tag;
+                using difference_type = ptrdiff_t;
+                using value_type = matlab::data::MATLABString;
+
+            private:
+                const Context * context = nullptr;
+                const SymbolTable * symbols = nullptr;
+                InferredPolynomialFormatView::raw_const_iterator raw_iter;
+
+            public:
+                constexpr const_iterator(const Context& context,
+                                         const SymbolTable& symbols,
+                                         raw_const_iterator rci)
+                        : context{&context}, symbols{&symbols}, raw_iter{rci} { }
+
+                constexpr bool operator==(const const_iterator& rhs) const noexcept { return this->raw_iter == rhs.raw_iter; }
+                constexpr bool operator!=(const const_iterator& rhs)  const noexcept { return this->raw_iter != rhs.raw_iter; }
+
+                constexpr const_iterator& operator++() {
+                    ++(this->raw_iter);
+                    return *this;
+                }
+
+                constexpr const_iterator operator++(int) & {
+                    auto copy = *this;
+                    ++(*this);
+                    return copy;
+                }
+
+                value_type operator*() const {
+                    bool done_once = false;
+                    std::stringstream output;
+                    for (const auto& expr : *raw_iter) {
+                        output << InferredFormatView::const_iterator::infer_one_symbol(*symbols, expr, done_once);
+                        done_once = true;
+                    }
+                    return {matlab::engine::convertUTF8StringToUTF16String(output.str())};
+                }
+            };
+
+            static_assert(std::input_iterator<InferredPolynomialFormatView::const_iterator>);
+
+        private:
+            const const_iterator iter_begin;
+            const const_iterator iter_end;
+
+        public:
+            InferredPolynomialFormatView(const Context &context, const SymbolTable& symbols,
+                             const SquareMatrix<SymbolCombo>& inputMatrix)
+                : iter_begin{context, symbols, inputMatrix.ColumnMajor.begin()},
+                  iter_end{context, symbols, inputMatrix.ColumnMajor.end()} {
+            }
+
+            [[nodiscard]] auto begin() const { return iter_begin; }
+            [[nodiscard]] auto end() const { return iter_end; }
+
+        };
+
 
         class FactorFormatView {
         public:
@@ -326,6 +411,38 @@ namespace Moment::mex {
             [[nodiscard]] auto end() const { return iter_end; }
 
         };
+
+
+        template<class format_view_t, class matrix_data_t, typename... Args>
+        matlab::data::Array do_export(matlab::engine::MATLABEngine& engine,
+                                      const SquareMatrix<matrix_data_t>& inputMatrix,
+                                      Args&... fv_extra_args) {
+
+            matlab::data::ArrayFactory factory;
+            matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
+
+            format_view_t formatView{std::forward<Args&>(fv_extra_args)..., inputMatrix};
+
+            auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
+            auto writeIter = outputArray.begin();
+            auto readIter = formatView.begin();
+
+            while ((writeIter != outputArray.end()) && (readIter != formatView.end())) {
+                *writeIter = *readIter;
+                ++writeIter;
+                ++readIter;
+            }
+            if (writeIter != outputArray.end()) {
+                throw_error(engine, errors::internal_error,
+                            "export_symbol_matrix index count mismatch: too few input elements." );
+            }
+            if (readIter != formatView.end()) {
+                throw_error(engine, errors::internal_error,
+                            "export_symbol_matrix index count mismatch: too many input elements.");
+            }
+
+            return outputArray;
+        }
     }
 
 
@@ -401,71 +518,30 @@ namespace Moment::mex {
 
     matlab::data::Array
     SequenceMatrixExporter::operator()(const PolynomialMatrix &matrix, const MatrixSystem &system) const {
-        throw_error(this->engine, errors::internal_error,
-                "SequenceMatrixExporter::operator()(const PolynomialMatrix &matrix, const MatrixSystem &system) not yet implemented.");
+
+        // Do we have direct sequences? If so, export direct (neutral) view.
+        if (matrix.has_operator_matrix()) [[unlikely]] {
+             // Unlikely: Most polynomial matrices are not created from categorizing symbols in an operator matrix.
+            return this->export_direct(matrix.operator_matrix());
+        }
+
+        // Use inferred string formatting
+        return this->export_inferred(matrix);
     }
 
 
     matlab::data::Array SequenceMatrixExporter::export_direct(const OperatorMatrix& opMatrix) const {
-        const auto& context = opMatrix.context;
-        const auto& inputMatrix = opMatrix();
-
-        matlab::data::ArrayFactory factory;
-        matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
-
-        DirectFormatView formatView{context, inputMatrix};
-
-        auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
-        auto writeIter = outputArray.begin();
-        auto readIter = formatView.begin();
-
-        while ((writeIter != outputArray.end()) && (readIter != formatView.end())) {
-            *writeIter = *readIter;
-            ++writeIter;
-            ++readIter;
-        }
-        if (writeIter != outputArray.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix index count mismatch: too few input elements." );
-        }
-        if (readIter != formatView.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix index count mismatch: too many input elements.");
-        }
-
-        return outputArray;
+        return do_export<DirectFormatView>(this->engine, opMatrix(), opMatrix.context);
     }
 
     matlab::data::Array SequenceMatrixExporter::export_inferred(const MonomialMatrix& inputMatrix) const {
-        matlab::data::ArrayFactory factory;
+        return do_export<InferredFormatView>(this->engine, inputMatrix.SymbolMatrix(),
+                                             inputMatrix.context, inputMatrix.Symbols);
+    }
 
-        const auto& context = inputMatrix.context;
-        const auto& symbols = inputMatrix.Symbols;
-
-        // Prepare output
-        const auto dimension = inputMatrix.Dimension();
-        matlab::data::ArrayDimensions array_dims{dimension, dimension};
-        auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
-
-        InferredFormatView formatView{context, symbols, inputMatrix.SymbolMatrix()};
-
-        auto writeIter = outputArray.begin();
-        auto readIter = formatView.begin();
-
-        while ((writeIter != outputArray.end()) && (readIter != formatView.end())) {
-            *writeIter = *readIter;
-            ++writeIter;
-            ++readIter;
-        }
-        if (writeIter != outputArray.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_factor_sequence_matrix  index count mismatch: too few input elements." );
-        }
-        if (readIter != formatView.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_factor_sequence_matrix index count mismatch: too many input elements.");
-        }
-        return outputArray;
+    matlab::data::Array SequenceMatrixExporter::export_inferred(const PolynomialMatrix& inputMatrix) const {
+        return do_export<InferredPolynomialFormatView>(this->engine, inputMatrix.SymbolMatrix(),
+                                                       inputMatrix.context, inputMatrix.Symbols);
     }
 
     matlab::data::Array
@@ -473,34 +549,7 @@ namespace Moment::mex {
                                             const Inflation::FactorTable& factors,
                                             const MonomialMatrix& inputMatrix) const {
         assert(&inputMatrix.context == &context);
-
-
-
-        matlab::data::ArrayFactory factory;
-
-        // Prepare output
-        const auto dimension = inputMatrix.Dimension();
-        matlab::data::ArrayDimensions array_dims{dimension, dimension};
-        auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
-
-        FactorFormatView formatView{context, factors, inputMatrix.SymbolMatrix()};
-
-        auto writeIter = outputArray.begin();
-        auto readIter = formatView.begin();
-
-        while ((writeIter != outputArray.end()) && (readIter != formatView.end())) {
-            *writeIter = *readIter;
-            ++writeIter;
-            ++readIter;
-        }
-        if (writeIter != outputArray.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_factor_sequence_matrix  index count mismatch: too few input elements." );
-        }
-        if (readIter != formatView.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_factor_sequence_matrix index count mismatch: too many input elements.");
-        }
-        return outputArray;
+         return do_export<FactorFormatView>(this->engine, inputMatrix.SymbolMatrix(),
+                                           context, factors);
     }
 }

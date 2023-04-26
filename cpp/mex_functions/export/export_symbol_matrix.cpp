@@ -17,41 +17,42 @@
 
 namespace Moment::mex {
 
+    namespace {
+        template<typename matrix_data_t>
+        matlab::data::Array do_export(matlab::engine::MATLABEngine& engine,
+                                      const SquareMatrix<matrix_data_t>& inputMatrix) {
+
+            matlab::data::ArrayFactory factory;
+            matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
+
+            auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
+            auto writeIter = outputArray.begin();
+
+            auto readIter = inputMatrix.ColumnMajor.begin();
+
+            while ((writeIter != outputArray.end()) && (readIter != inputMatrix.ColumnMajor.end())) {
+                *writeIter = readIter->as_string();
+                ++writeIter;
+                ++readIter;
+            }
+            if (writeIter != outputArray.end()) {
+                throw_error(engine, errors::internal_error,
+                            "export_symbol_matrix count_indices mismatch: too few input elements.");
+            }
+            if (readIter != inputMatrix.ColumnMajor.end()) {
+                throw_error(engine, errors::internal_error,
+                            "export_symbol_matrix count_indices mismatch: too many input elements.");
+            }
+
+            return outputArray;
+        }
+    }
 
     matlab::data::Array SymbolMatrixExporter::operator()(const MonomialMatrix &monomialMatrix) const {
-
-        const auto &inputMatrix = monomialMatrix.SymbolMatrix();
-
-        matlab::data::ArrayFactory factory;
-        matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
-
-        auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
-        auto writeIter = outputArray.begin();
-
-        auto readIter = inputMatrix.ColumnMajor.begin();
-
-        while ((writeIter != outputArray.end()) && (readIter != inputMatrix.ColumnMajor.end())) {
-            *writeIter = readIter->as_string();
-            ++writeIter;
-            ++readIter;
-        }
-        if (writeIter != outputArray.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix count_indices mismatch: too few input elements.");
-        }
-        if (readIter != inputMatrix.ColumnMajor.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix count_indices mismatch: too many input elements.");
-        }
-
-        return outputArray;
+        return do_export(this->engine, monomialMatrix.SymbolMatrix());
     }
 
-
-
-    matlab::data::Array SymbolMatrixExporter::operator()(const PolynomialMatrix &matrix) const {
-        throw_error(this->engine, errors::internal_error,
-                    "SymbolMatrixExporter::operator()(const PolynomialMatrix &matrix) not yet implemented.");
+    matlab::data::Array SymbolMatrixExporter::operator()(const PolynomialMatrix &polynomialMatrix) const {
+        return do_export(this->engine, polynomialMatrix.SymbolMatrix());
     }
-
 }

@@ -74,6 +74,8 @@ namespace Moment::mex {
     private:
         [[nodiscard]] matlab::data::Array export_inferred(const MonomialMatrix& matrix) const;
 
+        [[nodiscard]] matlab::data::Array export_inferred(const PolynomialMatrix& matrix) const;
+
         [[nodiscard]] matlab::data::Array export_direct(const OperatorMatrix& opMatrix) const;
 
         [[nodiscard]] matlab::data::Array export_factored(const Inflation::InflationContext& context,

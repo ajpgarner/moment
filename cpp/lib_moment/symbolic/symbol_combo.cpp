@@ -249,17 +249,6 @@ namespace Moment {
         return *this;
     }
 
-    std::ostream &operator<<(std::ostream &os, const SymbolCombo &combo) {
-        bool done_once = false;
-        for (const auto& se : combo) {
-            if (done_once) {
-                os << " + ";
-            }
-            done_once = true;
-            os << se;
-        }
-        return os;
-    }
 
     bool SymbolCombo::is_hermitian(const SymbolTable& symbols) const noexcept {
 
@@ -361,6 +350,35 @@ namespace Moment {
         }
 
         return true;
+    }
+
+
+    std::ostream &operator<<(std::ostream &os, const SymbolCombo &combo) {
+        const bool initial_plus_status = os.flags() & std::ios::showpos;
+        os.unsetf(std::ios::showpos);
+
+        for (const auto& se : combo) {
+            os << se;
+            os.setf(std::ios::showpos); // 'done once'
+        }
+
+        // Restore initial "plus" status
+        if (initial_plus_status) {
+            os.setf(std::ios::showpos);
+        } else {
+            os.unsetf(std::ios::showpos);
+        }
+
+        return os;
+    }
+
+    std::string SymbolCombo::as_string() const {
+
+        std::stringstream ss;
+        ss.setf(std::ios::showbase);
+        ss << *this;
+
+        return ss.str();
     }
 
 

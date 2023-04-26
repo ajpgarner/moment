@@ -12,20 +12,64 @@
 namespace Moment {
 
     std::ostream& operator<<(std::ostream& os, const SymbolExpression& expr) {
+
+        const bool show_plus = os.flags() & std::ios::showpos;
+        os.unsetf(std::ios::showpos);
+
         if ((expr.id == 0) || (expr.factor==0.0)) {
+            if (show_plus) {
+                os << " + ";
+                os.setf(std::ios::showpos);
+            }
             os << "0";
             return os;
         }
 
-        if (expr.factor == -1.0) {
-            os << "-";
-        } else if (expr.factor != 1.0) {
-            os << expr.factor << "*";
-        }
+        if (1 == expr.id) {
+            if (show_plus) {
+                if( expr.factor < 0) {
+                    os << " - " << (-expr.factor);
+                } else {
+                    os << " + " << expr.factor;
+                }
+            } else {
+                os << expr.factor;
+            }
+        } else {
+            if (expr.factor == -1.0) {
+                if (show_plus) {
+                    os << " - ";
+                } else {
+                    os << "-";
+                }
+            } else if (expr.factor != 1.0) {
+                if (show_plus) {
+                    if (expr.factor > 0) {
+                        os << " + " << expr.factor;
+                    } else {
+                        os << " - " << (-expr.factor);
+                    }
+                } else {
+                    os << expr.factor << "*";
+                }
+            } else if (show_plus) { // implicit factor == 1.0
+                os << " + ";
+            }
 
-        os << expr.id;
-        if (expr.conjugated) {
-            os << "*";
+            const bool show_hash = os.flags() & std::ios::showbase;
+            if (show_hash) {
+                os.unsetf(std::ios::showbase);
+                os << "#" << expr.id;
+                os.setf(std::ios::showbase);
+            } else {
+                os << expr.id;
+            }
+            if (expr.conjugated) {
+                os << "*";
+            }
+        }
+        if (show_plus) {
+            os.setf(std::ios::showpos);
         }
         return os;
     }
