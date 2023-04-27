@@ -127,7 +127,22 @@ classdef ComplexObject < handle
             end
         end
     end
-    
+
+    %% power function overloading
+    methods
+        function val = mpower(lhs,rhs)
+        
+            if rhs <= 0 || rhs ~= floor(rhs)
+                error("Invalid exponent");
+            end
+
+            val = lhs;
+            for i=1:rhs-1
+                val = mtimes(val,val);
+            end
+        end
+    end
+
     %% Protected methods
     methods(Access=protected)
         function checkSameScenario(obj, other)
