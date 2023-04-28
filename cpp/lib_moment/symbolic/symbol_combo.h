@@ -141,6 +141,9 @@ namespace Moment {
 
         [[nodiscard]] std::string as_string() const;
 
+        friend class SymbolComboToBasisVec;
+        friend class BasisVecToSymbolCombo;
+
         friend std::ostream& operator<<(std::ostream& os, const SymbolCombo& combo);
 
     };

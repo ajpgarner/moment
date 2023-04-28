@@ -152,7 +152,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Symbolic_SymboCombo, Create_FromExpr) {
+    TEST(Symbolic_SymbolCombo, Create_FromExpr) {
         const SymbolExpression expr{5, -2.0, true};
         const SymbolCombo combo{expr};
         ASSERT_EQ(combo.size(), 1);
@@ -160,7 +160,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(combo.is_monomial());
     }
 
-    TEST(Symbolic_SymboCombo, Create_FromExprZero) {
+    TEST(Symbolic_SymbolCombo, Create_FromExprZero) {
         const SymbolExpression expr{0, 1.0};
         const SymbolCombo combo(expr); // <- can't use {} as this will call init_list c'tor!!
         ASSERT_EQ(combo.size(), 0);
@@ -287,7 +287,7 @@ namespace Moment::Tests {
         EXPECT_EQ(listB, expected);
     }
 
-    TEST(Symbolic_SymboCombo, IsHermitian) {
+    TEST(Symbolic_SymbolCombo, IsHermitian) {
         Imported::ImportedMatrixSystem ims;
         auto &symbols = ims.Symbols();
         symbols.create(true, false); // 2 real
@@ -320,7 +320,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Symbolic_SymboCombo, Conjugate_Empty) {
+    TEST(Symbolic_SymbolCombo, Conjugate_Empty) {
         Imported::ImportedMatrixSystem ims;
         auto &symbols = ims.Symbols();
         symbols.create(true, false); // 2 real
@@ -332,7 +332,7 @@ namespace Moment::Tests {
         EXPECT_EQ(comboEmpty, comboEmptyConj);
     }
 
-    TEST(Symbolic_SymboCombo, Conjugate_Real) {
+    TEST(Symbolic_SymbolCombo, Conjugate_Real) {
         Imported::ImportedMatrixSystem ims;
         auto &symbols = ims.Symbols();
         symbols.create(true, false); // 2 real
@@ -345,7 +345,7 @@ namespace Moment::Tests {
         EXPECT_EQ(comboConj, comboConjExp);
     }
 
-    TEST(Symbolic_SymboCombo, Conjugate_RealCombo) {
+    TEST(Symbolic_SymbolCombo, Conjugate_RealCombo) {
         Imported::ImportedMatrixSystem ims;
         auto &symbols = ims.Symbols();
         symbols.create(true, false); // 2 real
@@ -358,7 +358,7 @@ namespace Moment::Tests {
         EXPECT_EQ(comboConj, comboConjExp);
     }
 
-    TEST(Symbolic_SymboCombo, Conjugate_Imaginary) {
+    TEST(Symbolic_SymbolCombo, Conjugate_Imaginary) {
         Imported::ImportedMatrixSystem ims;
         auto &symbols = ims.Symbols();
         symbols.create(true, false); // 2 real
@@ -371,7 +371,7 @@ namespace Moment::Tests {
         EXPECT_EQ(comboConj, comboConjExp);
     }
 
-    TEST(Symbolic_SymboCombo, Conjugate_RealImaginaryCombo) {
+    TEST(Symbolic_SymbolCombo, Conjugate_RealImaginaryCombo) {
         Imported::ImportedMatrixSystem ims;
         auto &symbols = ims.Symbols();
         symbols.create(true, false); // 2 real
@@ -384,7 +384,7 @@ namespace Moment::Tests {
         EXPECT_EQ(comboConj, comboConjExp);
     }
 
-    TEST(Symbolic_SymboCombo, Conjugate_Complex) {
+    TEST(Symbolic_SymbolCombo, Conjugate_Complex) {
         Imported::ImportedMatrixSystem ims;
         auto &symbols = ims.Symbols();
         symbols.create(true, false); // 2 real
@@ -397,7 +397,7 @@ namespace Moment::Tests {
         EXPECT_EQ(comboConj, comboConjExp);
     }
 
-    TEST(Symbolic_SymboCombo, Conjugate_ComplexCombo) {
+    TEST(Symbolic_SymbolCombo, Conjugate_ComplexCombo) {
         Imported::ImportedMatrixSystem ims;
         auto &symbols = ims.Symbols();
         symbols.create(true, false); // 2 real
@@ -411,34 +411,33 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Symbolic_SymboCombo, CastToExpr_Valid) {
+    TEST(Symbolic_SymbolCombo, CastToExpr_Valid) {
         const SymbolCombo combo{SymbolExpression{3, 2.0, false}};
 
         const SymbolExpression expr{combo};
         EXPECT_EQ(expr, SymbolExpression(3, 2.0, false));
     }
 
-    TEST(Symbolic_SymboCombo, CastToExpr_Valid2) {
+    TEST(Symbolic_SymbolCombo, CastToExpr_Valid2) {
         const SymbolCombo combo{SymbolExpression{5, -2.0, true}};
 
         const SymbolExpression expr = static_cast<SymbolExpression>(combo);
         EXPECT_EQ(expr, SymbolExpression(5, -2.0, true));
     }
 
-    TEST(Symbolic_SymboCombo, CastToExpr_Zero) {
+    TEST(Symbolic_SymbolCombo, CastToExpr_Zero) {
         const SymbolCombo zero = SymbolCombo::Zero();
 
         const SymbolExpression expr = static_cast<SymbolExpression>(zero);
         EXPECT_EQ(expr.id, 0);
     }
 
-    TEST(Symbolic_SymboCombo, CastToExpr_Bad) {
+    TEST(Symbolic_SymbolCombo, CastToExpr_Bad) {
         const SymbolCombo combo{SymbolExpression{3, 1.0, false}, SymbolExpression{4, 1.0, false}};
 
         EXPECT_THROW([[maybe_unused]] const SymbolExpression expr = static_cast<SymbolExpression>(combo),
                     std::logic_error);
     }
-
 
 
 }

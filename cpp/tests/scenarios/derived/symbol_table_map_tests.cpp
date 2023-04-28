@@ -63,6 +63,9 @@ namespace Moment::Tests {
         EXPECT_EQ(stm(SymbolCombo({SymbolExpression{a, 1.0}, SymbolExpression{b, -2.0}})),
                       SymbolCombo({SymbolExpression{x, -1.0}}));
 
+        EXPECT_EQ(stm(SymbolCombo({SymbolExpression{a, -3.0}})),
+                      SymbolCombo({SymbolExpression{x, -3.0}}));
+
         EXPECT_EQ(stm(SymbolCombo({SymbolExpression{a, 2.0}, SymbolExpression{b, -2.0}})),
                       SymbolCombo::Zero());
     }

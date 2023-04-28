@@ -30,7 +30,7 @@ namespace Moment::mex {
                                                                 const SymbolCombo &combo) {
             // Special case, for completely zero matrix:
             const size_t nnz = combo.size();
-            const size_t real_symbol_count = table.RealSymbolIds().size();
+            const size_t real_symbol_count = table.Basis.RealSymbolCount();
             if (nnz == 0) {
                 return make_zero_sparse_matrix<double>(engine, {1, real_symbol_count});
             }
@@ -81,7 +81,7 @@ namespace Moment::mex {
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{impliedSymbols.context},
                       formatter{formatter},
                       implicit_table_length{implicitSymbols.Data().size() + 1},
-                      real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()},
+                      real_symbol_count{implicitSymbols.symbols.Basis.RealSymbolCount()},
                       output_array{factory.createStructArray({1, implicit_table_length},
                                                              {"sequence", "indices", "real_coefficients"})} {
 
@@ -101,7 +101,7 @@ namespace Moment::mex {
 
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{impliedSymbols.context},
                       formatter{formatter}, implicit_table_length{symbols.size()},
-                      real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()},
+                      real_symbol_count{implicitSymbols.symbols.Basis.RealSymbolCount()},
                       output_array{factory.createStructArray({1, implicit_table_length},
                                                              {"sequence", "indices", "real_coefficients"})} {
                 // Add entry
@@ -187,7 +187,7 @@ namespace Moment::mex {
                                          const Inflation::InflationImplicitSymbols &impliedSymbols)
                     : engine{engine}, implicitSymbols{impliedSymbols}, context{impliedSymbols.context},
                       canonicalObservables{impliedSymbols.canonicalObservables},
-                      real_symbol_count{implicitSymbols.symbols.RealSymbolIds().size()} {
+                      real_symbol_count{implicitSymbols.symbols.Basis.RealSymbolCount()} {
             }
 
             matlab::data::StructArray whole_table() {

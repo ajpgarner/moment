@@ -32,6 +32,21 @@ classdef SymmetrizedScenario < Abstract.Scenario
         end
     end
     
+    %% Translation methods
+    methods
+        function output = Transform(obj, input)
+            if isa(input, 'Abstract.RealObject')
+                [re_output, im_output] = ...
+                    mtk('transform_symbols', obj.System.RefId, ...
+                         input.Coefficients);
+                output = Abstract.RealObject(obj, reshape(re_output, 1,[]));
+                return;
+            end
+            
+            error("Object of type %s cannot be transformed", class(input));
+        end
+    end
+    
     %% Virtual methods
     methods(Access={?Abstract.Scenario,?MatrixSystem})
         
@@ -51,6 +66,8 @@ classdef SymmetrizedScenario < Abstract.Scenario
              
         end
     end
+    
+   
     
   
     

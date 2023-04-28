@@ -168,9 +168,9 @@ namespace Moment {
 
         auto dim = static_cast<dense_real_elem_t::Index>(this->dimension);
 
-        real.assign(this->symbol_table.RealSymbolIds().size(),
+        real.assign(this->symbol_table.Basis.RealSymbolCount(),
                     dense_real_elem_t::Zero(dim, dim));
-        im.assign(this->symbol_table.ImaginarySymbolIds().size(),
+        im.assign(this->symbol_table.Basis.ImaginarySymbolCount(),
                   dense_real_elem_t::Zero(dim, dim));
 
         const bool symmetric = this->SMP().IsHermitian();
@@ -200,8 +200,8 @@ namespace Moment {
         const bool complex = this->SMP().IsComplex();
 
         // Prepare triplets
-        std::vector<std::vector<re_trip_t>> real_frame(this->Symbols.RealSymbolIds().size());
-        std::vector<std::vector<im_trip_t>> im_frame(this->Symbols.ImaginarySymbolIds().size());
+        std::vector<std::vector<re_trip_t>> real_frame(this->Symbols.Basis.RealSymbolCount());
+        std::vector<std::vector<im_trip_t>> im_frame(this->Symbols.Basis.ImaginarySymbolCount());
 
         if (symmetric) {
             if (complex) {

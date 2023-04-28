@@ -144,16 +144,16 @@ namespace Moment::Tests {
         auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
         auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
         ASSERT_EQ(symbols.size(), 7) << symbols; // 0 1 a0 a1 a0a0 a0a1(=a1a0*) a1a1
-        ASSERT_EQ(symbols.RealSymbolIds().size(), 6) << symbols;
-        ASSERT_EQ(symbols.ImaginarySymbolIds().size(), 1) << symbols; // just a0a1
+        ASSERT_EQ(symbols.Basis.RealSymbolCount(), 6) << symbols;
+        ASSERT_EQ(symbols.Basis.ImaginarySymbolCount(), 1) << symbols; // just a0a1
 
         for (size_t i = 0; i < 6; ++i) {
-            EXPECT_EQ(symbols.RealSymbolIds()[i], i+1) << i;
+            EXPECT_EQ(symbols.Basis.RealSymbols()[i], i+1) << i;
             auto [re_id, im_id] = symbols[i+1].basis_key();
             EXPECT_EQ(re_id, i) << i;
         }
 
-        EXPECT_EQ(symbols.ImaginarySymbolIds()[0], 5);
+        EXPECT_EQ(symbols.Basis.ImaginarySymbols()[0], 5);
         auto [re_id, im_id] = symbols[5].basis_key();
         EXPECT_EQ(im_id, 0);
 
@@ -202,6 +202,28 @@ namespace Moment::Tests {
         EXPECT_EQ(f6Iter->second.first, 5);
         EXPECT_EQ(f6Iter->second.second, -1);
     };
+
+    TEST(Symbols_SymbolTable, SMP_CrossList) {
+        // One party, two symbols
+        MatrixSystem system{std::make_unique<Context>(2)};
+        const auto& context = system.Context();
+        const auto& symbols = system.Symbols();
+
+        auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
+        auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
+        ASSERT_EQ(symbols.size(), 7); // 0 1 a0 a1 a0a0 a0a1(=a1a0*) a1a1
+
+        // [0,-1]; [1, -1]; [2, -1]; [3, -1]; [4, 0]; [5, -1]
+        EXPECT_EQ(symbols.Basis.imaginary_from_real(0), -1);
+        EXPECT_EQ(symbols.Basis.imaginary_from_real(1), -1);
+        EXPECT_EQ(symbols.Basis.imaginary_from_real(2), -1);
+        EXPECT_EQ(symbols.Basis.imaginary_from_real(3), -1);
+        EXPECT_EQ(symbols.Basis.imaginary_from_real(4), 0);
+        EXPECT_EQ(symbols.Basis.imaginary_from_real(5), -1);
+
+        EXPECT_EQ(symbols.Basis.real_from_imaginary(0), 4);
+    };
+
 
     TEST(Symbols_SymbolTable, FillToWordLength) {
         // One party, two symbols

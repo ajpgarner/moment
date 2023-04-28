@@ -56,8 +56,8 @@ namespace Moment::mex {
         matlab::data::ArrayFactory factory;
 
         // Create arrays, make them all false
-        const auto real_symbol_count = symbol_table.RealSymbolIds().size();
-        const auto imaginary_symbol_count = symbol_table.ImaginarySymbolIds().size();
+        const auto real_symbol_count = symbol_table.Basis.RealSymbolCount();
+        const auto imaginary_symbol_count = symbol_table.Basis.ImaginarySymbolCount();
 
         auto output = std::make_pair(
                 factory.createArray<bool>(matlab::data::ArrayDimensions{1, real_symbol_count}),

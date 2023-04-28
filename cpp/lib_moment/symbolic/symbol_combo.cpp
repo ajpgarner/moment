@@ -16,7 +16,7 @@ namespace Moment {
 
     namespace {
         struct LexLessComparator {
-            bool operator()(const SymbolExpression& lhs, const SymbolExpression& rhs) const noexcept {
+            bool operator()(const SymbolExpression &lhs, const SymbolExpression &rhs) const noexcept {
                 if (lhs.id < rhs.id) {
                     return true;
                 } else if (lhs.id > rhs.id) {
@@ -33,7 +33,7 @@ namespace Moment {
         };
 
         struct LexEqComparator {
-            bool operator()(const SymbolExpression& lhs, const SymbolExpression& rhs) const noexcept {
+            bool operator()(const SymbolExpression &lhs, const SymbolExpression &rhs) const noexcept {
                 if (lhs.id != rhs.id) {
                     return false;
                 }
@@ -44,7 +44,7 @@ namespace Moment {
             }
         };
 
-        void remove_duplicates(SymbolCombo::storage_t& data) {
+        void remove_duplicates(SymbolCombo::storage_t &data) {
             // Iterate forwards, looking for duplicates
             LexEqComparator lex_eq{};
             auto leading_iter = data.begin();
@@ -71,7 +71,7 @@ namespace Moment {
             data.erase(lagging_iter, last_iter);
         }
 
-        void remove_zeros(SymbolCombo::storage_t& data) {
+        void remove_zeros(SymbolCombo::storage_t &data) {
 
             auto read_iter = data.begin();
             auto write_iter = data.begin();
@@ -125,6 +125,7 @@ namespace Moment {
             data.emplace_back(pair.first, pair.second);
         }
     }
+
 
     SymbolCombo::operator SymbolExpression() const {
         if (!this->is_monomial()) {
@@ -355,18 +356,27 @@ namespace Moment {
 
     std::ostream &operator<<(std::ostream &os, const SymbolCombo &combo) {
         const bool initial_plus_status = os.flags() & std::ios::showpos;
-        os.unsetf(std::ios::showpos);
+        const bool initial_show_base_status = os.flags() & std::ios::showbase;
 
+        os.unsetf(std::ios::showpos);
+        os.setf(std::ios::showbase);
         for (const auto& se : combo) {
             os << se;
             os.setf(std::ios::showpos); // 'done once'
         }
 
-        // Restore initial "plus" status
+        // Restore initial "showpos" status
         if (initial_plus_status) {
             os.setf(std::ios::showpos);
         } else {
             os.unsetf(std::ios::showpos);
+        }
+
+        // Restore initial "showbase" status
+        if (initial_show_base_status) {
+            os.setf(std::ios::showbase);
+        } else {
+            os.unsetf(std::ios::showbase);
         }
 
         return os;
@@ -375,9 +385,7 @@ namespace Moment {
     std::string SymbolCombo::as_string() const {
 
         std::stringstream ss;
-        ss.setf(std::ios::showbase);
         ss << *this;
-
         return ss.str();
     }
 

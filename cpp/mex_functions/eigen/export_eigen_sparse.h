@@ -9,12 +9,18 @@
 #include "mex.hpp"
 #include "MatlabDataArray.hpp"
 
-#include <Eigen/Sparse>
+#include <Eigen/SparseCore>
 
 #include <complex>
 #include <vector>
 
 namespace Moment::mex {
+    /** Export real eigen sparse vector as MATLAB sparse matrix. */
+    matlab::data::SparseArray<double>
+    export_eigen_sparse(matlab::engine::MATLABEngine& engine,
+                        matlab::data::ArrayFactory& factory,
+                        const Eigen::SparseVector<double>& vector);
+
     /** Export real eigen sparse matrix as MATLAB sparse matrix. */
     matlab::data::SparseArray<double>
     export_eigen_sparse(matlab::engine::MATLABEngine& engine,

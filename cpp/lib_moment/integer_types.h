@@ -11,6 +11,14 @@
 
 namespace Moment {
 
+#ifdef MOMENT_DEBUG
+    /** True: moment will be compiled with some additional debug checks. */
+    constexpr const bool debug_mode = true;
+#else
+    /** False: moment will be compiled without additional debug checks. */
+    constexpr const bool debug_mode = false;
+#endif
+
     /**
      * For enumerating parties (Alice, Bob, etc).
      */

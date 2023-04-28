@@ -25,6 +25,10 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     endif()
 endif()
 
+if(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    add_compile_definitions(MOMENT_DEBUG)
+endif()
+
 include_directories(cpp/eigen)
 
 add_subdirectory(cpp/lib_moment)

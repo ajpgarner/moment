@@ -11,6 +11,7 @@
 #include "functions/apply_values.h"
 #include "functions/collins_gisin.h"
 #include "functions/complete.h"
+#include "functions/conjugate.h"
 #include "functions/echo.h"
 #include "functions/extended_matrix.h"
 #include "functions/generate_basis.h"
@@ -32,7 +33,7 @@
 #include "functions/settings.h"
 #include "functions/suggest_extensions.h"
 #include "functions/symbol_table.h"
-#include "functions/conjugate.h"
+#include "functions/transform_symbols.h"
 #include "functions/version.h"
 
 #include "utilities/reporting.h"
@@ -126,6 +127,9 @@ namespace Moment::mex::functions {
             case functions::MEXEntryPointID::SymbolTable:
                 the_function = std::make_unique<functions::SymbolTable>(engine, storageManager);
                 break;
+            case functions::MEXEntryPointID::TransformSymbols:
+                the_function = std::make_unique<functions::TransformSymbols>(engine, storageManager);
+                break;
             case functions::MEXEntryPointID::Version:
                 the_function = std::make_unique<functions::Version>(engine, storageManager);
                 break;
@@ -155,18 +159,19 @@ namespace Moment::mex::functions {
         output.emplace(u"make_representation",   MEXEntryPointID::MakeRepresentation);
         output.emplace(u"moment_matrix",   MEXEntryPointID::MomentMatrix);
         output.emplace(u"operator_matrix", MEXEntryPointID::OperatorMatrix);
-        output.emplace(u"new_algebraic_matrix_system", MEXEntryPointID::NewAlgebraicMatrixSystem);
-        output.emplace(u"new_imported_matrix_system",  MEXEntryPointID::NewImportedMatrixSystem);
-        output.emplace(u"new_inflation_matrix_system", MEXEntryPointID::NewInflationMatrixSystem);
-        output.emplace(u"new_locality_matrix_system",  MEXEntryPointID::NewLocalityMatrixSystem);
+        output.emplace(u"new_algebraic_matrix_system",   MEXEntryPointID::NewAlgebraicMatrixSystem);
+        output.emplace(u"new_imported_matrix_system",    MEXEntryPointID::NewImportedMatrixSystem);
+        output.emplace(u"new_inflation_matrix_system",   MEXEntryPointID::NewInflationMatrixSystem);
+        output.emplace(u"new_locality_matrix_system",    MEXEntryPointID::NewLocalityMatrixSystem);
         output.emplace(u"new_symmetrized_matrix_system", MEXEntryPointID::NewSymmetrizedMatrixSystem);
-        output.emplace(u"probability_table", MEXEntryPointID::ProbabilityTable);
-        output.emplace(u"release",         MEXEntryPointID::Release);
-        output.emplace(u"rules",           MEXEntryPointID::Rules);
-        output.emplace(u"settings",        MEXEntryPointID::Settings);
+        output.emplace(u"probability_table",  MEXEntryPointID::ProbabilityTable);
+        output.emplace(u"release",            MEXEntryPointID::Release);
+        output.emplace(u"rules",              MEXEntryPointID::Rules);
+        output.emplace(u"settings",           MEXEntryPointID::Settings);
         output.emplace(u"suggest_extensions", MEXEntryPointID::SuggestExtensions);
-        output.emplace(u"symbol_table",    MEXEntryPointID::SymbolTable);
-        output.emplace(u"version",         MEXEntryPointID::Version);
+        output.emplace(u"symbol_table",       MEXEntryPointID::SymbolTable);
+        output.emplace(u"transform_symbols",  MEXEntryPointID::TransformSymbols);
+        output.emplace(u"version",            MEXEntryPointID::Version);
         return output;
     }
 

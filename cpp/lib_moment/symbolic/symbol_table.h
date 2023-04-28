@@ -26,9 +26,23 @@
 namespace Moment {
 
     namespace errors {
-        struct zero_symbol : std::runtime_error {
+        class zero_symbol : public std::runtime_error {
+        public:
             const symbol_name_t id;
-            zero_symbol(symbol_name_t id);
+            explicit zero_symbol(symbol_name_t id);
+        };
+
+        class unknown_symbol : public std::range_error {
+        public:
+            const symbol_name_t id;
+            explicit unknown_symbol(symbol_name_t id);
+        };
+
+        class unknown_basis_elem : public std::range_error {
+        public:
+            const ptrdiff_t id;
+            const bool real;
+            unknown_basis_elem(bool is_real, ptrdiff_t id);
         };
     }
 
@@ -135,16 +149,107 @@ namespace Moment {
          * Invariant promise: non-hermitian elements will have both forward and reverse hashes saved. */
         std::map<size_t, ptrdiff_t> hash_table;
 
-        /**
-         * Ordered list of symbols with real components.
-         * For now, this should just be 0, 1, ... sizeof(unique_sequences)-1.
-         */
-        std::vector<size_t> real_symbols;
 
-        /**
-         * Ordered list of symbols with imaginary components (i.e. corresponding to non-Hermitian operators)
-         */
-        std::vector<size_t> imaginary_symbols;
+    public:
+        class BasisView {
+        private:
+            /** Back reference to containing object */
+            SymbolTable& symbol_table;
+
+            /**
+              * Ordered list of symbols with real components.
+              * Effectively find x such that of UniqueSequence[x].real_index == index.
+              */
+            std::vector<size_t> real_symbols;
+
+            /**
+             * Ordered list of symbols with imaginary components (i.e. corresponding to non-Hermitian operators)
+             * Effectively find x such that of UniqueSequence[x].img_index == index
+             */
+            std::vector<size_t> imaginary_symbols;
+
+            /**
+             * Cross list: associated imaginary basis element with real basis element (or -1).
+             */
+            std::vector<ptrdiff_t> im_of_real;
+
+            /**
+             * Cross list: associated real basis element with imaginary basis element (or -1).
+             */
+            std::vector<ptrdiff_t> re_of_imaginary;
+
+
+        private:
+            explicit BasisView(SymbolTable& table) noexcept
+                    : symbol_table{table} { }
+
+            /**
+             * Go through symbols, and re-number real/imaginary bases based on whether symbols can be have
+             * real or imaginary parts.
+             * @return A pair: the number of real basis elements, and the number of imaginary basis elements.
+             */
+            std::pair<size_t, size_t> renumerate_bases();
+
+
+            std::pair<ptrdiff_t, ptrdiff_t> push_back(symbol_name_t symbol_id, bool has_real, bool has_imaginary);
+
+        public:
+            /**
+             * Vector of symbol IDs of every symbol containing a real component.
+             */
+            [[nodiscard]] const auto& RealSymbols() const noexcept { return this->real_symbols; }
+
+            /**
+             * Number of symbols with real parts.
+             */
+            [[nodiscard]] size_t RealSymbolCount() const noexcept { return this->real_symbols.size(); }
+
+            /**
+             * Vector of symbol IDs of every symbol containing an imaginary component.
+             */
+            [[nodiscard]] const auto& ImaginarySymbols() const noexcept { return this->imaginary_symbols; }
+
+
+            /**
+             * Number of symbols with imaginary parts.
+             */
+            [[nodiscard]] size_t ImaginarySymbolCount() const noexcept { return this->imaginary_symbols.size(); }
+
+
+            /**
+             * Get basis key associated with symbol id
+             */
+            [[nodiscard]] std::pair<ptrdiff_t, ptrdiff_t> operator()(symbol_name_t symbol_id) const noexcept {
+                assert((symbol_id >= 0) && (symbol_id < this->symbol_table.unique_sequences.size()));
+                return std::make_pair(this->symbol_table.unique_sequences[symbol_id].real_index,
+                                      this->symbol_table.unique_sequences[symbol_id].img_index);
+            }
+
+            /**
+             * Get imaginary part associated with real basis element
+             */
+            [[nodiscard]] ptrdiff_t imaginary_from_real(ptrdiff_t re_basis_elem) const noexcept {
+                assert(re_basis_elem <= this->im_of_real.size());
+                if (re_basis_elem < 0) {
+                    return -1;
+                }
+                return this->im_of_real[re_basis_elem];
+            }
+
+            /**
+             * Get real part associated with imaginary basis element
+             */
+            [[nodiscard]] ptrdiff_t real_from_imaginary(ptrdiff_t im_basis_elem) const noexcept {
+                assert(im_basis_elem <= this->re_of_imaginary.size());
+                if (im_basis_elem < 0) {
+                    return -1;
+                }
+                return this->re_of_imaginary[im_basis_elem];
+            }
+
+
+            friend class SymbolTable;
+        } Basis;
 
     public:
         /**
@@ -158,17 +263,6 @@ namespace Moment {
          * @param context The context, for simplifying and formatting operator sequences.
          */
         explicit SymbolTable(const Context& context);
-
-        /**
-         * Vector of symbol IDs of every symbol containing a real component.
-         */
-        [[nodiscard]] const auto& RealSymbolIds() const noexcept { return this->real_symbols; }
-
-        /**
-         * Vector of symbol IDs of every symbol containing an imaginary component.
-         */
-        [[nodiscard]] const auto& ImaginarySymbolIds() const noexcept { return this->imaginary_symbols; }
-
 
         /**
          * Add symbols to table, if not already present
@@ -205,12 +299,6 @@ namespace Moment {
          */
         symbol_name_t create(size_t count, bool has_real = true, bool has_imaginary = true);
 
-        /**
-         * Go through symbols, and re-number real/imaginary bases based on whether symbols can be have
-         * real or imaginary parts.
-         * @return A pair: the number of real basis elements, and the number of imaginary basis elements.
-         */
-        std::pair<size_t, size_t> renumerate_bases();
 
         /**
          * Generate all symbols up to a particular word length (merging with existing symbols).
@@ -261,14 +349,6 @@ namespace Moment {
          */
         [[nodiscard]] SymbolExpression to_symbol(const OperatorSequence& seq) const noexcept;
 
-        /**
-         * Get basis key associated with symbol id
-         */
-        [[nodiscard]] std::pair<ptrdiff_t, ptrdiff_t> to_basis(symbol_name_t symbol_id) const noexcept {
-            assert((symbol_id >= 0) && (symbol_id < this->unique_sequences.size()));
-            return std::make_pair(this->unique_sequences[symbol_id].real_index,
-                                  this->unique_sequences[symbol_id].img_index);
-        }
 
         /**
          * Find ID, and conjugation status, of element in unique_sequences corresponding to hash.

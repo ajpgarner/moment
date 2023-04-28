@@ -61,6 +61,7 @@ add_library(lib_moment
         symbolic/substitution_list.cpp
         symbolic/symbol.cpp
         symbolic/symbol_combo.cpp
+        symbolic/symbol_combo_to_basis.cpp
         symbolic/symbol_expression.cpp
         symbolic/symbol_table.cpp
         utilities/alphabetic_namer.cpp

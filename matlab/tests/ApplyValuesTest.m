@@ -15,9 +15,9 @@ classdef ApplyValuesTest < MTKTestBase
    
             base_sm = mtk('operator_matrix', 'symbols', ref_id, mm_index);
             sub_sm = mtk('operator_matrix', 'symbols', ref_id, sub_index);
-            base_sm(1,2) = "0.5*1";
-            base_sm(2,2) = "0.5*1";
-            base_sm(2,1) = "0.5*1";
+            base_sm(1,2) = "0.5";
+            base_sm(2,2) = "0.5";
+            base_sm(2,1) = "0.5";
             testCase.verifyEqual(sub_sm, base_sm);
         end
         
@@ -40,12 +40,12 @@ classdef ApplyValuesTest < MTKTestBase
    
             base_sm = mtk('operator_matrix', 'symbols', ref_id, mm_index);
             sub_sm = mtk('operator_matrix', 'symbols', ref_id, sub_index);
-            base_sm(1,2) = "0.3*1";
-            base_sm(1,3) = "0.4*1";
-            base_sm(2,2) = "0.3*1";
-            base_sm(2,1) = "0.3*1";
-            base_sm(3,1) = "0.4*1";
-            base_sm(3,3) = "0.4*1";
+            base_sm(1,2) = "0.3";
+            base_sm(1,3) = "0.4";
+            base_sm(2,2) = "0.3";
+            base_sm(2,1) = "0.3";
+            base_sm(3,1) = "0.4";
+            base_sm(3,3) = "0.4";
             testCase.verifyEqual(sub_sm, base_sm);
         end
         
@@ -82,8 +82,8 @@ classdef ApplyValuesTest < MTKTestBase
             testCase.verifyEqual(sub_mm, expected_mm);
                    
             sub_sm = mtk('operator_matrix', 'symbols', ref_id, sub_index);
-            expected_sm = [["1", "0.5*1", "3"]; ...
-                           ["0.5*1", "0.5*1", "0.5*3"];...
+            expected_sm = [["1", "0.5", "3"]; ...
+                           ["0.5", "0.5", "0.5*3"];...
                            ["3", "0.5*3", "3"]];
             testCase.verifyEqual(sub_sm, expected_sm);
         end  

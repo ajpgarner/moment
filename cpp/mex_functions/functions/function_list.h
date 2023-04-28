@@ -50,6 +50,7 @@ namespace Moment::mex::functions {
         Settings,
         SuggestExtensions,
         SymbolTable,
+        TransformSymbols,
         Version
     };
 

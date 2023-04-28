@@ -37,19 +37,19 @@ namespace Moment::Tests {
         EXPECT_EQ(symbol.as_string(), minus_one);
     }
 
-    TEST(Symbolic_SymbolExpression, Parse_OneStar) {
-        std::string one_star = "1*";
+    TEST(Symbolic_SymbolExpression, Parse_TwoStar) {
+        std::string one_star = "2*";
         SymbolExpression symbol{one_star};
-        EXPECT_EQ(symbol.id, 1);
+        EXPECT_EQ(symbol.id, 2);
         EXPECT_FALSE(symbol.negated());
         EXPECT_TRUE(symbol.conjugated);
         EXPECT_EQ(symbol.as_string(), one_star);
     }
 
-    TEST(Symbolic_SymbolExpression, Parse_MinusOneStar) {
-        std::string minus_one_star = "-1*";
+    TEST(Symbolic_SymbolExpression, Parse_MinusTwoStar) {
+        std::string minus_one_star = "-2*";
         SymbolExpression symbol{minus_one_star};
-        EXPECT_EQ(symbol.id, 1);
+        EXPECT_EQ(symbol.id, 2);
         EXPECT_TRUE(symbol.negated());
         EXPECT_TRUE(symbol.conjugated);
         EXPECT_EQ(symbol.as_string(), minus_one_star);

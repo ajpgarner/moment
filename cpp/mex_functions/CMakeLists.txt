@@ -17,6 +17,7 @@ matlab_add_mex(NAME moment_mex
             eigen/export_eigen_dense.cpp
             eigen/export_eigen_sparse.cpp
             export/export_basis.cpp
+            export/export_symbol_combo.cpp
             export/export_implicit_symbols.cpp
             export/export_matrix_basis_masks.cpp
             export/export_monomial_rules.cpp
@@ -64,6 +65,7 @@ matlab_add_mex(NAME moment_mex
             functions/settings.cpp
             functions/suggest_extensions.cpp
             functions/symbol_table.cpp
+            functions/transform_symbols.cpp
             functions/version.cpp
         OUTPUT_NAME mtk
         MODULE

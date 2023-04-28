@@ -52,7 +52,7 @@ namespace Moment::Locality {
 
         // Base level points to identity element symbol
         this->indices.set({0,1});
-        this->data.push_back({1, matrixSystem.Symbols().to_basis(1).first});
+        this->data.push_back({1, matrixSystem.Symbols().Basis(1).first});
         size_t index_counter = 1;
 
         // For each level,

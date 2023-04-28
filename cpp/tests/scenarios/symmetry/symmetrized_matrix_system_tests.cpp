@@ -208,16 +208,26 @@ namespace Moment::Tests {
 
         // Standard CHSH inequality symmetry
         std::vector<Eigen::SparseMatrix<double>> generators;
-        generators.emplace_back(make_sparse(5, {1, 1, 0, 0, 0,
-                                                0, 0, 0, 1, 0,
-                                                0, 0, 0, 0, 1,
-                                                0, 0, 1, 0, 0,
-                                                0, -1,0, 0, 0}));
+//        generators.emplace_back(make_sparse(5, {1, 1, 0, 0, 0,
+//                                                0, 0, 0, 1, 0,
+//                                                0, 0, 0, 0, 1,
+//                                                0, 0, 1, 0, 0,
+//                                                0, -1,0, 0, 0}));
+//        generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
+//                                                0, 0, 0, 0, 1,
+//                                                0, 0, 0, 1, 0,
+//                                                0, 0, 1, 0, 0,
+//                                                0, 1, 0, 0, 0}));
+     generators.emplace_back(make_sparse(5, {1, 0, 1, 0, 0,
+                                             0, 1, 0, 0, 0,
+                                             0, 0,-1, 0, 0,
+                                             0, 0, 0, 0, 1,
+                                             0, 0, 0, 1, 0}));
         generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 1,
                                                 0, 0, 0, 1, 0,
-                                                0, 0, 1, 0, 0,
-                                                0, 1, 0, 0, 0}));
+                                                0, 0, 0, 0, 1,
+                                                0, 1, 0, 0, 0,
+                                                0, 0, 1, 0, 0}));
 
         auto group_elems = Group::dimino_generation(generators);
         auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));
@@ -237,12 +247,12 @@ namespace Moment::Tests {
         // Check inverse map
         EXPECT_EQ(map.inverse(0), SymbolCombo::Zero());
         EXPECT_EQ(map.inverse(1), SymbolCombo::Scalar(1.0));
-        SymbolCombo expected_new_symbol{SymbolExpression{a1, -0.25},
+        SymbolCombo expected_new_symbol{SymbolExpression{a0, -0.25},
                                         SymbolExpression{b0, -0.25},
                                         SymbolExpression{a0b0, +0.25},
-                                        SymbolExpression{a0b1, -0.25},
+                                        SymbolExpression{a0b1, +0.25},
                                         SymbolExpression{a1b0, +0.25},
-                                        SymbolExpression{a1b1, +0.25}};
+                                        SymbolExpression{a1b1, -0.25}};
         EXPECT_EQ(map.inverse(2), expected_new_symbol);
 
         // Check forward map
@@ -256,13 +266,19 @@ namespace Moment::Tests {
         EXPECT_EQ(map(a0a1), SymbolCombo::Scalar(0.25));
         EXPECT_EQ(map(b0b1), SymbolCombo::Scalar(0.25));
         EXPECT_EQ(map(a0b0), SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)}));
-        EXPECT_EQ(map(a0b1), SymbolCombo({SymbolExpression(1, 0.125), SymbolExpression(2, -1.0)}));
+        EXPECT_EQ(map(a0b1), SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)}));
         EXPECT_EQ(map(a1b0), SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)}));
-        EXPECT_EQ(map(a1b1), SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)}));
+        EXPECT_EQ(map(a1b1), SymbolCombo({SymbolExpression(1, 0.125), SymbolExpression(2, -1.0)}));
+
+        // Check on CHSH inequality
+        SymbolCombo chsh_ineq{SymbolExpression{1, 2.0}, SymbolExpression{a0, -4.0}, SymbolExpression{b0, -4.0},
+                              SymbolExpression{a0b0, 4.0}, SymbolExpression{a0b1, 4.0},
+                              SymbolExpression{a1b0, 4.0}, SymbolExpression{a1b1, -4.0}};
+        SymbolCombo mapped_chsh{SymbolExpression{1, 2.0}, SymbolExpression{2, 16.0}};
+
+        EXPECT_EQ(map(chsh_ineq), mapped_chsh);
 
         // Make moment matrix.
-
-
 
         ASSERT_EQ(lms.size(), 0);
         ASSERT_EQ(sms.size(), 0);
@@ -290,7 +306,7 @@ namespace Moment::Tests {
         EXPECT_EQ(poly_sm.SymbolMatrix[1][3],
                   SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a0b0 -> 0.375 + y
         EXPECT_EQ(poly_sm.SymbolMatrix[1][4],
-                  SymbolCombo({SymbolExpression(1, 0.125), SymbolExpression(2, -1.0)})); // a0b1 -> 0.125 - y
+                  SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a0b1 -> 0.125 - y
 
         EXPECT_EQ(poly_sm.SymbolMatrix[2][0], SymbolCombo::Scalar(0.5)); // a1
         EXPECT_EQ(poly_sm.SymbolMatrix[2][1], SymbolCombo::Scalar(0.25)); // a1a0
@@ -298,7 +314,7 @@ namespace Moment::Tests {
         EXPECT_EQ(poly_sm.SymbolMatrix[2][3],
                   SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a1b0 -> 0.375 + y
         EXPECT_EQ(poly_sm.SymbolMatrix[2][4],
-                  SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a1b1 -> 0.375 + y
+                  SymbolCombo({SymbolExpression(1, 0.125), SymbolExpression(2, -1.0)})); // a1b1 -> 0.125 - y
 
         EXPECT_EQ(poly_sm.SymbolMatrix[3][0], SymbolCombo::Scalar(0.5)); // b0 -> 0.5
         EXPECT_EQ(poly_sm.SymbolMatrix[3][1],
@@ -310,10 +326,11 @@ namespace Moment::Tests {
 
         EXPECT_EQ(poly_sm.SymbolMatrix[4][0], SymbolCombo::Scalar(0.5)); // b1 -> 0.5
         EXPECT_EQ(poly_sm.SymbolMatrix[4][1],
-                  SymbolCombo({SymbolExpression(1, 0.125), SymbolExpression(2, -1.0)})); // a0b1 -> 0.125 - y
+                  SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a0b1 -> 0.375 - y
         EXPECT_EQ(poly_sm.SymbolMatrix[4][2],
-                  SymbolCombo({SymbolExpression(1, 0.375), SymbolExpression(2, 1.0)})); // a1b1 -> 0.375 + y
+                  SymbolCombo({SymbolExpression(1, 0.125), SymbolExpression(2, -1.0)})); // a1b1 -> 0.125 - y
         EXPECT_EQ(poly_sm.SymbolMatrix[4][3], SymbolCombo::Scalar(0.25));  // b1b0 -> 0.25
         EXPECT_EQ(poly_sm.SymbolMatrix[4][4], SymbolCombo::Scalar(0.5)); // b1^2 -> b1 -> 0.25
+
     }
 }

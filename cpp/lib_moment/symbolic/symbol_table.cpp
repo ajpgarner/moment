@@ -17,13 +17,37 @@
 namespace Moment {
 
     namespace errors {
-        std::string make_zs_err_msg(symbol_name_t id) {
-            std::stringstream errMsg;
-            errMsg << "Symbol " << id << " is identically zero; but zero should be uniquely represented as \"0\"";
-            return errMsg.str();
+        namespace {
+            std::string make_zs_err_msg(symbol_name_t id) {
+                std::stringstream errMsg;
+                errMsg << "Symbol " << id << " is identically zero; but zero should be uniquely represented as \"0\"";
+                return errMsg.str();
+            }
+
+            std::string make_us_err_msg(symbol_name_t id) {
+                std::stringstream errMsg;
+                errMsg << "Symbol " << id << " is not defined in symbol table.";
+                return errMsg.str();
+            }
+
+            std::string make_ube_err_msg(bool real, ptrdiff_t id) {
+                std::stringstream errMsg;
+                if (real) {
+                    errMsg << "Real";
+                } else {
+                    errMsg << "Imaginary";
+                }
+                errMsg << " basis element " << id << " is not defined in symbol table.";
+                return errMsg.str();
+            }
         }
 
-        errors::zero_symbol::zero_symbol(symbol_name_t sid) : std::runtime_error{make_zs_err_msg(sid)}, id{sid} { }
+        zero_symbol::zero_symbol(symbol_name_t sid) : std::runtime_error{make_zs_err_msg(sid)}, id{sid} { }
+
+        unknown_symbol::unknown_symbol(Moment::symbol_name_t sid) : std::range_error{make_us_err_msg(sid)}, id{sid} { }
+
+        unknown_basis_elem::unknown_basis_elem(bool real_or, ptrdiff_t basis_id)
+        : std::range_error{make_ube_err_msg(real_or, basis_id)}, real{real_or}, id{basis_id} { }
     }
 
     UniqueSequence::UniqueSequence(OperatorSequence sequence,
@@ -41,7 +65,7 @@ namespace Moment {
     }
 
     SymbolTable::SymbolTable(const Context& context)
-        : context{context}, OSGIndex{context, *this} {
+        : Basis{*this}, context{context}, OSGIndex{context, *this} {
 
         // Zero and identity are always in symbol table, in indices 0 and 1 respectively.
         this->unique_sequences.emplace_back(UniqueSequence::Zero(this->context));
@@ -49,7 +73,9 @@ namespace Moment {
 
         this->hash_table.insert({this->unique_sequences[0].hash(), 0});
         this->hash_table.insert({this->unique_sequences[1].hash(), 1});
-        this->real_symbols.emplace_back(1);
+
+        // '1' is always in real basis.
+        this->Basis.push_back(1, true, false);
     }
 
 
@@ -103,21 +129,10 @@ namespace Moment {
         // Make element
         elem.id = next_index;
 
-        // Real part
-        if (!re_zero) {
-            elem.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
-            this->real_symbols.emplace_back(next_index);
-        } else {
-            elem.real_index = -1;
-        }
-
-        // Imaginary part
-        if (!im_zero) {
-            elem.img_index = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
-            this->imaginary_symbols.emplace_back(next_index);
-        } else {
-            elem.img_index = -1;
-        }
+        // Add to basis
+        const auto [re_index, im_index] = this->Basis.push_back(next_index, !re_zero, !im_zero);
+        elem.real_index = re_index;
+        elem.img_index = im_index;
 
         // Add hash(es)
         this->hash_table.emplace(std::make_pair(elem.hash(), next_index));
@@ -137,20 +152,18 @@ namespace Moment {
         auto next_id = static_cast<symbol_name_t>(this->unique_sequences.size());
         UniqueSequence blank;
         blank.id = next_id;
-        if (has_real) {
-            blank.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
-            this->real_symbols.push_back(blank.id);
-        } else {
+
+        auto [re_index, im_index] = this->Basis.push_back(next_id, has_real, has_imaginary);
+        blank.real_index = re_index;
+        blank.img_index = im_index;
+
+        if (!has_real) {
             blank.antihermitian = true;
-            blank.real_index = -1;
         }
-        if (has_imaginary) {
-            blank.img_index = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
-            this->imaginary_symbols.push_back(blank.id);
-        } else {
+        if (!has_imaginary) {
             blank.hermitian = true;
-            blank.img_index = -1;
         }
+
         this->unique_sequences.emplace_back(std::move(blank));
 
         return next_id;
@@ -162,29 +175,27 @@ namespace Moment {
 
         this->unique_sequences.reserve(range_end);
         if (has_real) {
-            this->real_symbols.reserve(this->real_symbols.size() + count);
+            this->Basis.real_symbols.reserve(this->Basis.real_symbols.size() + count);
         }
         if (has_imaginary) {
-            this->imaginary_symbols.reserve(this->imaginary_symbols.size() + count);
+            this->Basis.imaginary_symbols.reserve(this->Basis.imaginary_symbols.size() + count);
         }
 
         for (size_t next_id = first_id; next_id < range_end; ++next_id) {
             UniqueSequence blank;
             blank.id = static_cast<symbol_name_t>(next_id);
-            if (has_real) {
-                blank.real_index = static_cast<ptrdiff_t>(this->real_symbols.size());
-                this->real_symbols.push_back(blank.id);
-            } else {
-                blank.real_index = -1;
+
+            auto [re_index, im_index] = this->Basis.push_back(blank.id, has_real, has_imaginary);
+            blank.real_index = re_index;
+            blank.img_index = im_index;
+
+            if (!has_real) {
                 blank.antihermitian = true;
             }
-            if (has_imaginary) {
-                blank.img_index = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
-                this->imaginary_symbols.push_back(blank.id);
-            } else {
-                blank.img_index = -1;
+            if (!has_imaginary) {
                 blank.hermitian = true;
             }
+
             this->unique_sequences.emplace_back(std::move(blank));
        }
         return first_id;
@@ -236,39 +247,11 @@ namespace Moment {
         }
 
         // With new real/imaginary information, re-count the bases
-        this->renumerate_bases();
+        this->Basis.renumerate_bases();
 
         return changes;
     }
 
-
-    std::pair<size_t, size_t> SymbolTable::renumerate_bases() {
-        ptrdiff_t real_index = 0;
-        ptrdiff_t imaginary_index = 0;
-        this->real_symbols.clear();
-        this->imaginary_symbols.clear();
-        for (auto& symbol : this->unique_sequences) {
-            const bool has_real = !symbol.antihermitian;
-            const bool has_im = !symbol.hermitian;
-
-            if (has_real) {
-                this->real_symbols.emplace_back(symbol.id);
-                symbol.real_index = real_index;
-                ++real_index;
-            } else {
-                symbol.real_index = -1;
-            }
-
-            if (has_im) {
-                this->imaginary_symbols.emplace_back(symbol.id);
-                symbol.img_index = imaginary_index;
-                ++imaginary_index;
-            } else {
-                symbol.img_index = -1;
-            }
-        }
-        return {real_index, imaginary_index};
-    }
 
     const UniqueSequence *
     SymbolTable::where(const OperatorSequence &seq) const noexcept {
@@ -377,55 +360,6 @@ namespace Moment {
         }
         return os;
     }
-
-    std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {
-        os << "Symbol table with ";
-        os << table.unique_sequences.size()
-           << " unique sequence" << ((table.unique_sequences.size() != 1)  ? "s" : "") << ", ";
-        os << table.real_symbols.size() << " with real parts, "
-           << table.imaginary_symbols.size() << " with imaginary parts:\n";
-
-        // List real symbol IDs
-        if (table.real_symbols.empty()) {
-            os << "No symbols with real parts.\n";
-        } else {
-            os << "Symbols with real parts: ";
-            bool one_real = false;
-            for (auto i: table.real_symbols) {
-                if (one_real) {
-                    os << ", ";
-                }
-                os << i;
-                one_real = true;
-            }
-            os << "\n";
-        }
-
-        // List imaginary symbol IDs
-        if (table.imaginary_symbols.empty()) {
-            os << "No symbols with imaginary parts.\n";
-        } else {
-            os << "Symbols with imaginary parts: ";
-            bool one_im = false;
-            for (auto i: table.imaginary_symbols) {
-                if (one_im) {
-                    os << ", ";
-                }
-                os << i;
-                one_im = true;
-            }
-            os << "\n";
-        }
-
-        // List symbols
-        for (const auto& us : table.unique_sequences) {
-            os << us << "\n";
-        }
-
-
-        return os;
-    }
-
     std::pair<size_t, size_t> SymbolTable::fill_to_word_length(size_t word_length) {
         const auto& osg = this->context.operator_sequence_generator(word_length);
         std::vector<UniqueSequence> build_unique;
@@ -444,6 +378,111 @@ namespace Moment {
         this->OSGIndex.update();
 
         return std::make_pair(osg.size(), new_symbols);
+    }
+
+    std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {
+        const auto& real_symbols = table.Basis.RealSymbols();
+        const auto& im_symbols = table.Basis.ImaginarySymbols();
+
+        os << "Symbol table with ";
+        os << table.unique_sequences.size()
+           << " unique sequence" << ((table.unique_sequences.size() != 1)  ? "s" : "") << ", ";
+        os << real_symbols.size() << " with real parts, "
+           << im_symbols.size() << " with imaginary parts:\n";
+
+        // List real symbol IDs
+        if (real_symbols.empty()) {
+            os << "No symbols with real parts.\n";
+        } else {
+            os << "Symbols with real parts: ";
+            bool one_real = false;
+            for (auto i: real_symbols) {
+                if (one_real) {
+                    os << ", ";
+                }
+                os << i;
+                one_real = true;
+            }
+            os << "\n";
+        }
+
+        // List imaginary symbol IDs
+        if (im_symbols.empty()) {
+            os << "No symbols with imaginary parts.\n";
+        } else {
+            os << "Symbols with imaginary parts: ";
+            bool one_im = false;
+            for (auto i: im_symbols) {
+                if (one_im) {
+                    os << ", ";
+                }
+                os << i;
+                one_im = true;
+            }
+            os << "\n";
+        }
+
+        // List symbols
+        for (const auto& us : table.unique_sequences) {
+            os << us << "\n";
+        }
+
+        return os;
+    }
+
+    std::pair<size_t, size_t> SymbolTable::BasisView::renumerate_bases() {
+        ptrdiff_t real_index = 0;
+        ptrdiff_t imaginary_index = 0;
+        this->real_symbols.clear();
+        this->imaginary_symbols.clear();
+        this->im_of_real.clear();
+        this->re_of_imaginary.clear();
+
+        for (auto& symbol : symbol_table.unique_sequences) {
+            const bool has_real = !symbol.antihermitian;
+            const bool has_im = !symbol.hermitian;
+
+            if (has_real) {
+                this->real_symbols.emplace_back(symbol.id);
+                symbol.real_index = real_index;
+                ++real_index;
+            } else {
+                symbol.real_index = -1;
+            }
+
+            if (has_im) {
+                this->imaginary_symbols.emplace_back(symbol.id);
+                symbol.img_index = imaginary_index;
+                this->re_of_imaginary.emplace_back(symbol.real_index);
+                ++imaginary_index;
+            } else {
+                symbol.img_index = -1;
+            }
+
+            if (has_real) {
+                this->im_of_real.emplace_back(symbol.img_index);
+            }
+        }
+        return {real_index, imaginary_index};
+    }
+
+
+    std::pair<ptrdiff_t, ptrdiff_t> SymbolTable::BasisView::push_back(const Moment::symbol_name_t symbol_id,
+                                                                      const bool has_real, const bool has_im) {
+        std::pair<ptrdiff_t, ptrdiff_t> output{-1, -1};
+        if (has_real) {
+            output.first = static_cast<ptrdiff_t>(this->real_symbols.size());
+            this->real_symbols.emplace_back(symbol_id);
+        }
+        if (has_im) {
+            output.second = static_cast<ptrdiff_t>(this->imaginary_symbols.size());
+            this->imaginary_symbols.emplace_back(symbol_id);
+            this->re_of_imaginary.emplace_back(output.first);
+        }
+        if (has_real) {
+            this->im_of_real.emplace_back(output.second);
+        }
+        return output;
     }
 
 }

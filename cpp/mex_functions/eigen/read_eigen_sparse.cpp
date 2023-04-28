@@ -118,6 +118,11 @@ namespace Moment::mex {
 
     }
 
+    Eigen::SparseVector<double> read_eigen_sparse_vector(matlab::engine::MATLABEngine& engine,
+                                                         const matlab::data::Array& input) {
+        return DispatchVisitor(engine, input, ReadNumericMatrixVisitor{engine});
+    }
+
 
     std::vector<Eigen::SparseMatrix<double>>
     read_eigen_sparse_array(matlab::engine::MATLABEngine& engine, const matlab::data::Array& array) {

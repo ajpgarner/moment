@@ -23,6 +23,11 @@ namespace Moment::mex {
     Eigen::SparseMatrix<double> read_eigen_sparse(matlab::engine::MATLABEngine& engine,
                                                   const matlab::data::Array& array);
 
+
+    /** Reads a matlab matrix into a real eigen sparse matrix. */
+    Eigen::SparseVector<double> read_eigen_sparse_vector(matlab::engine::MATLABEngine& engine,
+                                                         const matlab::data::Array& array);
+
     /** Reads a matlab cell array into a vector of real eigen sparse matrices. */
     std::vector<Eigen::SparseMatrix<double>>
     read_eigen_sparse_array(matlab::engine::MATLABEngine& engine, const matlab::data::Array& array);
