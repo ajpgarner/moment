@@ -200,9 +200,9 @@ namespace Moment::mex::functions {
             if (unit_value != explicit_form.end()) {
                 if ((!this->quiet) && (std::abs(unit_value->second - 1.0) > 1e-7)) {
                     std::stringstream warningSS;
-                    warningSS << "WARNING: probability distribution supplied summed up to " << unit_value->second
+                    warningSS << "Probability distribution supplied summed up to " << unit_value->second
                               << " but unity was expected.\n";
-                    print_to_console(this->matlabEngine, warningSS.str());
+                    print_warning(this->matlabEngine, warningSS.str());
                 }
                 explicit_form.erase(unit_value);
             }
@@ -223,9 +223,9 @@ namespace Moment::mex::functions {
             if (unit_value != explicit_form.end()) {
                 if ((!this->quiet) && (std::abs(unit_value->second - 1.0) > 1e-7)) {
                     std::stringstream warningSS;
-                    warningSS << "WARNING: probability distribution supplied summed up to " << unit_value->second
+                    warningSS << "Probability distribution supplied summed up to " << unit_value->second
                               << " but unity was expected.\n";
-                    print_to_console(this->matlabEngine, warningSS.str());
+                    print_warning(this->matlabEngine, warningSS.str());
                 }
                 explicit_form.erase(unit_value);
             }

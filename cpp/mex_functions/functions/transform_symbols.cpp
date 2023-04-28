@@ -149,9 +149,10 @@ namespace Moment::mex::functions {
                 if (output.size() >= 2) {
                     output[1] = std::move(im_part);
                 } else if (!this->quiet) {
-                    // TODO: Check for non-zeros
-
-                    print_to_console(this->matlabEngine, "WARNING: Output term has imaginary basis parts that have been truncated.\n");
+                    const matlab::data::SparseArray<double> im_output = im_part;
+                    if (im_output.getNumberOfNonZeroElements() >= 0) {
+                        print_warning(this->matlabEngine, "Output has imaginary basis parts that have been truncated.");
+                    }
                 }
             }
                 break;

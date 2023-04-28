@@ -224,10 +224,10 @@ namespace Moment::mex::functions {
         // Give warning if rules are incomplete
         if (!this->quiet && !complete_rules) {
             std::stringstream ss;
-            ss << "WARNING: Supplied ruleset was not completed.\n"
+            ss << "Supplied ruleset was not completed.\n"
                << "This may result in missed algebraic substitutions and unpredictable behaviour,\n"
                << "especially for lower-order operator matrices.\n";
-            print_to_console(this->matlabEngine, ss.str());
+            print_warning(this->matlabEngine, ss.str());
         }
 
         // Make new system around context

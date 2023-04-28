@@ -28,6 +28,12 @@ namespace Moment::mex {
         throw; // hint for compiler
     }
 
+    void print_warning(matlab::engine::MATLABEngine &engine,
+                       const std::string &message) {
+        std::string warn_msg = std::string("WARNING: [\b") + message + "]\b\n";
+        print_to_console(engine, warn_msg);
+    }
+
     void print_to_console(matlab::engine::MATLABEngine &engine,
                           const std::string &message) {
         matlab::data::ArrayFactory factory;
