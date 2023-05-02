@@ -150,7 +150,7 @@ namespace Moment::mex::functions {
                     output[1] = std::move(im_part);
                 } else if (!this->quiet) {
                     const matlab::data::SparseArray<double> im_output = im_part;
-                    if (im_output.getNumberOfNonZeroElements() >= 0) {
+                    if (im_output.getNumberOfNonZeroElements() > 0) {
                         print_warning(this->matlabEngine, "Output has imaginary basis parts that have been truncated.");
                     }
                 }

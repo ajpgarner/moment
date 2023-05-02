@@ -8,13 +8,14 @@
 #include "lu_map_core_processor.h"
 
 #include <Eigen/LU>
+#include <Eigen/SparseLU>
 
 #include <algorithm>
 #include <iostream>
 
 namespace Moment::Derived {
 
-    std::unique_ptr<SolvedMapCore> LUMapCoreProcessor::operator()(const MapCore &core) const {
+    std::unique_ptr<SolvedMapCore> LUMapCoreProcessor::operator()(const DenseMapCore &core) const {
         auto solutionPtr = std::make_unique<SolvedMapCore>();
         auto& solution = *solutionPtr;
 
@@ -23,25 +24,47 @@ namespace Moment::Derived {
 
         if ((core.core.cols() == 0) || (core.core.rows() == 0)) {
             solution.trivial_solution = true;
-            solution.map.resize(0, 0);
-            solution.inv_map.resize(0, 0);
+            solution.dense_map.resize(0, 0);
+            solution.dense_inv_map.resize(0, 0);
             return solutionPtr;
         }
 
         // Decompose matrix
-        Eigen::FullPivLU<Eigen::MatrixXd> lu{core.core.transpose()};
+        Eigen::FullPivLU<Eigen::MatrixXd> lu{core.core};
         const Eigen::Index rank = lu.rank();
         solution.output_symbols = static_cast<size_t>(rank);
         solution.trivial_solution = false;
+        solution.dense_solution = true;
 
         // Otherwise, we have non-trivial rank reduction; extract L and U matrices as map and inverse map.
-        solution.map = Eigen::MatrixXd::Identity(input_cols, rank);
-        solution.map.triangularView<Eigen::StrictlyLower>() = lu.matrixLU().topLeftCorner(input_cols, rank);
-        solution.map = lu.permutationP().inverse() * solution.map;
+        solution.dense_map = Eigen::MatrixXd::Identity(input_rows, rank);
+        solution.dense_map.triangularView<Eigen::StrictlyLower>() = lu.matrixLU().topLeftCorner(input_rows, rank);
+        solution.dense_map = lu.permutationP().inverse() * solution.dense_map;
 
-        solution.inv_map = lu.matrixLU().topLeftCorner(rank, input_rows).triangularView<Eigen::Upper>();
-        solution.inv_map = solution.inv_map * lu.permutationQ().inverse();
+        solution.dense_inv_map = lu.matrixLU().topLeftCorner(rank, input_cols).triangularView<Eigen::Upper>();
+        solution.dense_inv_map = solution.dense_inv_map * lu.permutationQ().inverse();
 
         return solutionPtr;
+    }
+
+    std::unique_ptr<SolvedMapCore> LUMapCoreProcessor::operator()(const SparseMapCore &core) const {
+        auto solutionPtr = std::make_unique<SolvedMapCore>();
+        auto& solution = *solutionPtr;
+
+        const Eigen::Index input_cols = core.core.cols();
+        const Eigen::Index input_rows = core.core.rows();
+
+        if ((core.core.cols() == 0) || (core.core.rows() == 0)) {
+            solution.trivial_solution = true;
+            solution.sparse_solution = true;
+            solution.sparse_map.resize(0, 0);
+            solution.sparse_inv_map.resize(0, 0);
+            return solutionPtr;
+        }
+
+       // Rational: Still looking for suitable rank-revealing LU decomposition for sparse matrices.
+       //           Eigen's built-in solvers are only for full-rank (i.e. useless here!) decompositions.
+       throw std::logic_error{"LUMapCoreProcessor::operator()(const SparseMapCore &core) is currently not supported."};
+
     }
 }

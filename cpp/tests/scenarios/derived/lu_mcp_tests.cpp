@@ -20,19 +20,19 @@ namespace Moment::Tests {
 
     using namespace Moment::Derived;
 
-    TEST(Scenarios_Derived_luMCP, Trivial) {
+    TEST(Scenarios_Derived_luMCP, Trivial_OnDense) {
         Eigen::SparseMatrix<double> m = make_sparse(3, {1.0, 2.0, 3.0,
                                                         0.0, 0.0, 0.0,
                                                         0.0, 0.0, 0.0});
-        MapCore core{DynamicBitset<size_t>(3,false), m};
+        DenseMapCore core{DynamicBitset<size_t>(3,false), m};
 
         auto solution = core.accept(LUMapCoreProcessor{});
         ASSERT_TRUE(solution);
         EXPECT_TRUE(solution->trivial_solution);
         EXPECT_EQ(solution->output_symbols, 0);
 
-        const auto& x_to_y = solution->map;
-        const auto& y_to_x = solution->inv_map;
+        const auto& x_to_y = solution->dense_map;
+        const auto& y_to_x = solution->dense_inv_map;
         EXPECT_EQ(x_to_y.rows(), 0);
         EXPECT_EQ(x_to_y.cols(), 0);
         EXPECT_EQ(y_to_x.rows(), 0);
@@ -40,11 +40,31 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Scenarios_Derived_luMCP, RankReducingMap) {
+    TEST(Scenarios_Derived_luMCP, Trivial_OnSparse) {
+        Eigen::SparseMatrix<double> m = make_sparse(3, {1.0, 2.0, 3.0,
+                                                        0.0, 0.0, 0.0,
+                                                        0.0, 0.0, 0.0});
+        SparseMapCore core{DynamicBitset<size_t>(3,false), m};
+
+        auto solution = core.accept(LUMapCoreProcessor{});
+        ASSERT_TRUE(solution);
+        EXPECT_TRUE(solution->trivial_solution);
+        EXPECT_EQ(solution->output_symbols, 0);
+
+        const auto& x_to_y = solution->sparse_map;
+        const auto& y_to_x = solution->sparse_inv_map;
+        EXPECT_EQ(x_to_y.rows(), 0);
+        EXPECT_EQ(x_to_y.cols(), 0);
+        EXPECT_EQ(y_to_x.rows(), 0);
+        EXPECT_EQ(y_to_x.cols(), 0);
+
+    }
+
+    TEST(Scenarios_Derived_luMCP, RankReducingMap_OnDense) {
         Eigen::SparseMatrix<double> m = make_sparse(3, {1.0, 0.0, 0.0,
                                                         0.0, 1.0, 1.0,
                                                         0.0, 1.0, 1.0});
-        MapCore core{DynamicBitset<size_t>(3,false), m};
+        DenseMapCore core{DynamicBitset<size_t>(3,false), m};
 
 
         auto solution = core.accept(LUMapCoreProcessor{});
@@ -52,8 +72,8 @@ namespace Moment::Tests {
         EXPECT_FALSE(solution->trivial_solution);
         EXPECT_EQ(solution->output_symbols, 1);
 
-        const auto& x_to_y = solution->map;
-        const auto& y_to_x = solution->inv_map;
+        const auto& x_to_y = solution->dense_map;
+        const auto& y_to_x = solution->dense_inv_map;
         ASSERT_EQ(x_to_y.rows(), 2);
         ASSERT_EQ(x_to_y.cols(), 1);
         ASSERT_EQ(y_to_x.rows(), 1);

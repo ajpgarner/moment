@@ -66,7 +66,7 @@ namespace Moment::Derived {
 
         auto [osg_to_sym, conjugates] = unzip_indices(this->origin_symbols, src.cols());
 
-        this->core = std::make_unique<MapCore>(conjugates, src);
+        this->core = std::make_unique<DenseMapCore>(conjugates, src);
         this->core_solution = core->accept(processor);
         this->construct_map(osg_to_sym, conjugates);
         this->populate_target_symbols();
@@ -78,7 +78,7 @@ namespace Moment::Derived {
 
         auto [osg_to_sym, conjugates] = unzip_indices(this->origin_symbols, src.cols());
 
-        this->core = std::make_unique<MapCore>(conjugates, src);
+        this->core = std::make_unique<DenseMapCore>(conjugates, src);
         this->core_solution = core->accept(processor);
         this->construct_map(osg_to_sym, conjugates);
         this->populate_target_symbols();
@@ -105,8 +105,8 @@ namespace Moment::Derived {
             this->map[symbol_id] = SymbolCombo::Scalar(scalar);
         }
 
-        const auto& raw_map = this->core_solution->map;
-        const auto& raw_inv_map = this->core_solution->inv_map;
+        const auto& raw_map = this->core_solution->dense_map;
+        const auto& raw_inv_map = this->core_solution->dense_inv_map;
 
         // Create non-trivial map:
         Eigen::Index core_col_id = 0;
@@ -148,7 +148,7 @@ namespace Moment::Derived {
 
         for (Eigen::Index im_row_id = 0; im_row_id < this->core_solution->output_symbols; ++im_row_id) {
             SymbolCombo::storage_t from_y_to_x;
-            assert(this->core->nontrivial_rows.count() == this->core_solution->inv_map.cols());
+            assert(this->core->nontrivial_rows.count() == this->core_solution->dense_inv_map.cols());
 
             Eigen::Index im_col_id = 0;
             for (auto non_trivial_idx : this->core->nontrivial_rows) {
@@ -176,7 +176,6 @@ namespace Moment::Derived {
         if (this->inverse_map.size() < 2) {
             throw errors::bad_map{"Inverse map must define zero and identity."};
         }
-
 
         for (const auto& polynomial : this->inverse_map | std::views::drop(2)) {
             const bool is_hermitian = polynomial.is_hermitian(this->origin_symbols);
