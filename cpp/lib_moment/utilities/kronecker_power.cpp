@@ -12,7 +12,7 @@
 namespace Moment {
 
     namespace {
-        Eigen::SparseMatrix<double> id1() {
+        inline Eigen::SparseMatrix<double> id1() {
             Eigen::SparseMatrix<double> id{1,1};
             id.setIdentity();
             return id;

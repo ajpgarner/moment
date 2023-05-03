@@ -13,7 +13,7 @@
 
 namespace Moment {
 
-    template<bool reversed_indices = false>
+    template<bool reversed_indices = false, class size_storage_t = std::vector<size_t>>
     class MultiDimensionalIndexIterator {
     public:
         using iterator_category = std::input_iterator_tag;
@@ -23,13 +23,13 @@ namespace Moment {
     private:
         size_t num_indices;
         size_t global_index = 0;
-        std::vector<size_t> max_vals;
-        std::vector<size_t> indices;
+        size_storage_t max_vals;
+        size_storage_t indices;
         bool is_done = false;
 
     public:
-        constexpr explicit MultiDimensionalIndexIterator(std::vector<size_t> sizes, bool end = false)
-            : num_indices(sizes.size()), max_vals(std::move(sizes)), indices(num_indices, 0), is_done{end} {
+        constexpr explicit MultiDimensionalIndexIterator(size_storage_t sizes, bool end = false)
+            : num_indices{sizes.size()}, max_vals(std::move(sizes)), indices(num_indices, 0), is_done{end} {
             // No iteration if no indices.
             if (num_indices == 0) {
                  this->is_done = true;

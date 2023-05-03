@@ -1,11 +1,13 @@
 /**
  * explicit_symbols.cpp
  * 
- * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 #include "explicit_symbols.h"
 
+#include "utilities/dynamic_bitset.h"
+#include "utilities/small_vector.h"
 #include "utilities/multi_dimensional_index_iterator.h"
 
 #include <algorithm>
@@ -15,22 +17,23 @@ namespace Moment {
     ExplicitSymbolIndex::get(const std::span<const size_t> mmtIndices,
                              const std::span<const oper_name_t> fixedOutcomes) const {
         assert(mmtIndices.size() == fixedOutcomes.size());
+
+        using IndexFlagBitset = DynamicBitset<uint64_t, SmallVector<uint64_t, 1>>;
         // Number of outcomes to copy; also which is fixed
-        std::vector<size_t> iterating_indices;
-        std::vector<bool> iterates;
-        std::vector<size_t> iteratingSizes;
+
+        SmallVector<size_t, 4> iterating_indices;
+        IndexFlagBitset iterates(mmtIndices.size());
+        SmallVector<size_t, 4> iterating_sizes;
 
         // Examine which indices are fixed, and which iterate
         size_t total_outcomes = 1;
         for (size_t i = 0; i < mmtIndices.size(); ++i) {
             if (fixedOutcomes[i] == -1) {
                 const auto op_count = this->operator_counts[mmtIndices[i]];
-                iterating_indices.push_back(mmtIndices[i]);
-                iteratingSizes.push_back(op_count);
+                iterating_indices.emplace_back(mmtIndices[i]);
+                iterating_sizes.emplace_back(op_count);
                 total_outcomes *= op_count;
-                iterates.push_back(true);
-            } else {
-                iterates.push_back(false);
+                iterates.set(i);
             }
         }
 
@@ -51,7 +54,7 @@ namespace Moment {
         for (size_t m = 0; m < mmtIndices.size(); ++m) {
             const size_t invM = mmtIndices.size() - m - 1;
 
-            if (iterates[invM]) {
+            if (iterates.test(invM)) {
                 stride.push_back(current_stride);
             } else {
                 assert (fixedOutcomes[invM] != -1);
@@ -70,19 +73,19 @@ namespace Moment {
         output.reserve(total_outcomes);
 
         // Make iterator over free indices
-        std::reverse(iteratingSizes.begin(), iteratingSizes.end());
-        MultiDimensionalIndexIterator freeOutcomeIndexIter{std::move(iteratingSizes)};
+        std::reverse(iterating_sizes.begin(), iterating_sizes.end());
+        MultiDimensionalIndexIterator free_outcome_index_iter{std::move(iterating_sizes)};
 
         // Blit values we care about
-        while (!freeOutcomeIndexIter.done()) {
+        while (!free_outcome_index_iter.done()) {
             size_t the_index = the_offset;
             for (size_t i = 0 ; i < num_iterating_indices; ++i) {
-                the_index += freeOutcomeIndexIter[i] * stride[i];
+                the_index += free_outcome_index_iter[i] * stride[i];
             }
             output.push_back(fullMmtSpan[the_index]);
 
             // Onto next
-            ++freeOutcomeIndexIter;
+            ++free_outcome_index_iter;
         }
 
         return output; // NRVO

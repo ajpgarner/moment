@@ -110,7 +110,7 @@ namespace Moment::Symmetrized {
         this->remapped_dim = osg.size();
 
         // XXX: '1+op_count' will fail on contexts with single character rewrite equivalences (e.g. "b = a")
-        // Get raw kroenecker size
+        // Get raw Kronecker size
         const auto op_count = context.size();
         this->raw_dim = ipow(1+op_count, target_word_length);
 

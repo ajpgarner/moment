@@ -36,12 +36,13 @@ namespace Moment::Tests {
                                         10, 14, 15, 21,
                                         10, 15, 14, 21,
                                         25, 35, 35, 49});
+        EXPECT_TRUE(m2.isApprox(expected));
     }
 
     TEST(Utilities_KroneckerPower, PowM_3) {
 
         auto m = make_sparse(2, {2.0, 3.0, 5.0, 7.0});
-        auto m2 = kronecker_power(m, 3);
+        auto m3 = kronecker_power(m, 3);
         auto expected = make_sparse(8, {8, 12, 12, 18, 12, 18, 18, 27,
                                         20, 28, 30, 42, 30, 42, 45, 63,
                                         20, 30, 28, 42, 30, 45, 42, 63,
@@ -50,11 +51,12 @@ namespace Moment::Tests {
                                         50, 70, 75, 105, 70, 98, 105, 147,
                                         50, 75, 70, 105, 70, 105, 98, 147,
                                         125, 175, 175, 245, 175, 245, 245, 343});
+        EXPECT_TRUE(m3.isApprox(expected));
     }
 
     TEST(Utilities_KroneckerPower, PowM_4) {
         auto m = make_sparse(2, {2.0, 3.0, 5.0, 7.0});
-        auto m2 = kronecker_power(m, 4);
+        auto m4 = kronecker_power(m, 4);
         auto expected = make_sparse(16,
             {16, 24, 24, 36, 24, 36, 36, 54, 24, 36, 36, 54, 36, 54, 54, 81,
              40, 56, 60, 84, 60, 84, 90, 126, 60, 84, 90, 126, 90, 126, 135, 189,
@@ -72,5 +74,6 @@ namespace Moment::Tests {
              250, 350, 375, 525, 350, 490, 525, 735, 350, 490, 525, 735, 490, 686, 735, 1029,
              250, 375, 350, 525, 350, 525, 490, 735, 350, 525, 490, 735, 490, 735, 686, 1029,
              625, 875, 875, 1225, 875, 1225, 1225, 1715, 875, 1225, 1225, 1715, 1225, 1715, 1715, 2401});
+        EXPECT_TRUE(m4.isApprox(expected));
     }
 }

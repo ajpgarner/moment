@@ -52,7 +52,6 @@ namespace Moment::Symmetrized {
                   << " was expected (matching number of fundamental operators + 1).";
             throw std::runtime_error{errSS.str()};
         }
-
     }
 
     std::vector<repmat_t>
