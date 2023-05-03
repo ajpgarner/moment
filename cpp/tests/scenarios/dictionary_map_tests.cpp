@@ -38,13 +38,20 @@ namespace Moment::Tests {
         EXPECT_EQ(symbols.OSGIndex.max_length(), 2);
 
         const auto& wordlist = symbols.OSGIndex;
-        EXPECT_EQ(wordlist(0), std::make_pair(1LL, false)); // e -> 1
-        EXPECT_EQ(wordlist(1), std::make_pair(2LL, false)); // a -> 2
-        EXPECT_EQ(wordlist(2), std::make_pair(3LL, false)); // b -> 3
-        EXPECT_EQ(wordlist(3), std::make_pair(4LL, false)); // aa -> 4
-        EXPECT_EQ(wordlist(4), std::make_pair(5LL, false)); // ab -> 5
-        EXPECT_EQ(wordlist(5), std::make_pair(5LL, true)); // ba -> 5*
-        EXPECT_EQ(wordlist(6), std::make_pair(6LL, false)); // bb -> 6
+        EXPECT_EQ(wordlist(0).first, 1LL); // e -> 1
+        EXPECT_EQ(wordlist(0).second, false); // e -> 1
+        EXPECT_EQ(wordlist(1).first, 2LL); // a -> 2
+        EXPECT_EQ(wordlist(1).second, false); // a -> 2
+        EXPECT_EQ(wordlist(2).first, 3LL); // b -> 3
+        EXPECT_EQ(wordlist(2).second,  false); // b -> 3
+        EXPECT_EQ(wordlist(3).first, 4LL); // aa -> 4
+        EXPECT_EQ(wordlist(3).second, false); // aa -> 4
+        EXPECT_EQ(wordlist(4).first, 5LL); // ab -> 5
+        EXPECT_EQ(wordlist(4).second, false); // ab -> 5
+        EXPECT_EQ(wordlist(5).first, 5LL); // ba -> 5*
+        EXPECT_EQ(wordlist(5).second, true); // ba -> 5*
+        EXPECT_EQ(wordlist(6).first, 6LL); // bb -> 6
+        EXPECT_EQ(wordlist(6).second, false); // bb -> 6
         EXPECT_THROW(auto discard = wordlist(7), std::range_error); // 7 not defined.
 
         bool nothing = ams.generate_dictionary(2);

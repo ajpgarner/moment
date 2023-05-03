@@ -12,6 +12,8 @@
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
+#include <memory>
+
 namespace Moment {
 
 
