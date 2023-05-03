@@ -11,9 +11,9 @@
 #include <Eigen/SparseLU>
 
 #include <algorithm>
-#include <iostream>
 
 namespace Moment::Derived {
+    LUMapCoreProcessor::~LUMapCoreProcessor() noexcept = default;
 
     std::unique_ptr<SolvedMapCore> LUMapCoreProcessor::operator()(const DenseMapCore &core) const {
         auto solutionPtr = std::make_unique<SolvedMapCore>();

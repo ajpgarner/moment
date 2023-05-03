@@ -8,6 +8,8 @@
 #pragma once
 #include "map_core.h"
 
+#include <memory>
+
 namespace Moment::Derived {
     /**
      * Lower/Upper-decomposition based map core processor.
@@ -25,5 +27,7 @@ namespace Moment::Derived {
         std::unique_ptr<SolvedMapCore> operator()(const DenseMapCore& core) const final;
 
         std::unique_ptr<SolvedMapCore> operator()(const SparseMapCore& core) const final;
+
+        ~LUMapCoreProcessor() noexcept;
     };
 }

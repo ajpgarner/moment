@@ -19,6 +19,7 @@
 #include <sstream>
 
 namespace Moment::Derived {
+    MapCoreProcessor::~MapCoreProcessor() noexcept = default;
 
     MapCore::MapCore(const size_t initial_src_size, const size_t initial_target_size, DynamicBitset<size_t> skipped)
             : initial_size{initial_src_size},
@@ -318,6 +319,8 @@ namespace Moment::Derived {
     SparseMapCore::SparseMapCore(DynamicBitset<size_t> skipped, const Eigen::MatrixXd& raw_remap, const double zero_tolerance)
         : MapCore{static_cast<size_t>(raw_remap.cols()), static_cast<size_t>(raw_remap.rows()), std::move(skipped)} {
 
+        using Index_t = Eigen::SparseMatrix<double>::StorageIndex;
+
         const auto [remapped_cols, remapped_rows] = this->identify_nontrivial(raw_remap, zero_tolerance);
 
         // Prepare core and offset
@@ -329,20 +332,20 @@ namespace Moment::Derived {
         const std::vector<Eigen::Index> row_remap = MapCore::remap_vector(this->nontrivial_rows);
 
         std::vector<Eigen::Triplet<double>> triplets;
-        Eigen::Index new_col_idx = 0;
+        Index_t new_col_idx = 0;
         for (const auto old_col_idx : this->nontrivial_cols) {
 
             // Handle constant offset, if any
-            const bool has_offset = !approximately_zero(raw_remap(0, static_cast<Eigen::Index>(old_col_idx)), zero_tolerance);
+            const bool has_offset = !approximately_zero(raw_remap(0, static_cast<Index_t>(old_col_idx)), zero_tolerance);
             if (has_offset) {
-                this->core_offset[new_col_idx] = raw_remap(0, static_cast<Eigen::Index>(old_col_idx));
+                this->core_offset[new_col_idx] = raw_remap(0, static_cast<Index_t>(old_col_idx));
             }
 
             // Rest of row, if any
             for (const auto old_row_idx : this->nontrivial_rows) {
-                const double value = raw_remap(static_cast<Eigen::Index>(old_row_idx),
-                                               static_cast<Eigen::Index>(old_col_idx));
-                triplets.emplace_back(new_col_idx, row_remap[old_row_idx], value);
+                const double value = raw_remap(static_cast<Index_t>(old_row_idx),
+                                               static_cast<Index_t>(old_col_idx));
+                triplets.emplace_back(new_col_idx, static_cast<Index_t>(row_remap[old_row_idx]), value);
             }
             ++new_col_idx;
         }
@@ -359,6 +362,8 @@ namespace Moment::Derived {
         : MapCore{static_cast<size_t>(raw_remap.cols()), static_cast<size_t>(raw_remap.rows()), std::move(skipped)} {
 
         const auto [remapped_cols, remapped_rows] = this->identify_nontrivial(raw_remap);
+        using Index_t = Eigen::SparseMatrix<double>::StorageIndex;
+
 
         // Make random-access map from 'old' index to new
         const std::vector<Eigen::Index> row_remap = MapCore::remap_vector(this->nontrivial_rows);
@@ -369,11 +374,11 @@ namespace Moment::Derived {
         this->core.resize(remapped_cols, remapped_rows);
 
         std::vector<Eigen::Triplet<double>> triplets;
-        Eigen::Index new_col_idx = 0;
+        Index_t new_col_idx = 0;
         for (const auto old_col_idx : this->nontrivial_cols) {
             // First, do we have constant?
             Eigen::SparseMatrix<double>::InnerIterator iter_over_rows{raw_remap,
-                                                                      static_cast<Eigen::Index>(old_col_idx)};
+                                                                      static_cast<Index_t>(old_col_idx)};
 
             assert(iter_over_rows); // Should not be empty!
 
@@ -386,7 +391,7 @@ namespace Moment::Derived {
 
             // Rest of row, if any
             while(iter_over_rows) {
-                triplets.emplace_back(new_col_idx, row_remap[iter_over_rows.index()], iter_over_rows.value());
+                triplets.emplace_back(new_col_idx, static_cast<Index_t>(row_remap[iter_over_rows.index()]), iter_over_rows.value());
                 ++iter_over_rows;
             }
             ++new_col_idx;

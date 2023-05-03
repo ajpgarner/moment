@@ -19,7 +19,7 @@
 
 namespace Moment {
 
-    template<std::unsigned_integral page_t = uint64_t>
+    template<std::unsigned_integral page_t = uint64_t, typename storage_t = std::vector<page_t>>
     class DynamicBitset {
     public:
 
@@ -83,7 +83,7 @@ namespace Moment {
 
     private:
         const page_t final_page_mask;
-        std::vector<page_t> data;
+        storage_t data;
 
     public:
         /** Construct an empty dynamic bitset */

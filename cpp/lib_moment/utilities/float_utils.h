@@ -14,13 +14,21 @@
 
 namespace Moment {
     /**
+     * Constexpr implementation of abs.
+     */
+    template<typename type_t>
+    [[nodiscard]] constexpr inline type_t abs(type_t val) noexcept {
+        return (val > 0) ? val : -val;
+    }
+    
+    /**
      * True if x is almost y. The tolerance is scaled by the larger absolute value of the numbers.
      * @param x LHS test parameter.
      * @param y RHS test parameter.
      * @param eps_multiplier
      */
     [[nodiscard]] constexpr bool approximately_equal(const double x, const double y, const double eps_multiplier = 1.0) {
-        return std::abs(x - y)
+        return abs(x - y)
                <= eps_multiplier * std::numeric_limits<double>::epsilon() * std::max(std::abs(x), std::abs(y));
     }
 
@@ -30,7 +38,7 @@ namespace Moment {
      * @param eps_multiplier The tolerance, in units of epsilon.
      */
     [[nodiscard]] constexpr bool approximately_zero(const double x, const double eps_multiplier = 1.0) {
-        return std::abs(x) <= eps_multiplier * std::numeric_limits<double>::epsilon();
+        return abs(x) <= eps_multiplier * std::numeric_limits<double>::epsilon();
     }
 
     /**
@@ -40,7 +48,7 @@ namespace Moment {
      * @param eps_multiplier
      */
     [[nodiscard]] constexpr bool essentially_equal(const double x, const double y, const double eps_multiplier = 1.0) {
-        return std::abs(x - y)
+        return abs(x - y)
                <= eps_multiplier * std::numeric_limits<double>::epsilon() * std::min(std::abs(x), std::abs(y));
     }
 

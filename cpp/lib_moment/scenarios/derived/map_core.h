@@ -25,7 +25,8 @@ namespace Moment {
         /**
          * Processed MapCore.
          */
-        struct SolvedMapCore {
+        class SolvedMapCore {
+        public:
             /** Number of non-constant symbols in range of map (i.e. 'rank' of map). */
             size_t output_symbols = 0;
 
@@ -39,7 +40,6 @@ namespace Moment {
 
             /** True if sparse solution provided. */
             bool sparse_solution = false;
-
 
             /**
               * Map from old core variables to new variables.
@@ -75,7 +75,7 @@ namespace Moment {
          */
         class MapCoreProcessor {
         public:
-            virtual ~MapCoreProcessor() noexcept = default;
+            virtual ~MapCoreProcessor() noexcept;
 
             /**
              * Process dense MapCore into a SolvedMapCore.

@@ -7,10 +7,13 @@
 #include "gtest/gtest.h"
 
 #include "matrix_system.h"
+
 #include "matrix/moment_matrix.h"
+
 #include "scenarios/context.h"
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_matrix_system.h"
+
 #include "symbolic/symbol_table.h"
 
 namespace Moment::Tests {

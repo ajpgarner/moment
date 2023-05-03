@@ -16,6 +16,7 @@
 #include "symbolic/symbol_table.h"
 
 #include "../sparse_utils.h"
+
 #include "stm_factories.h"
 
 
