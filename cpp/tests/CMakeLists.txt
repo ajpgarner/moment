@@ -1,5 +1,7 @@
 include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
 
+include(GoogleTest)
+
 add_executable(moment_tests
     operators/hashed_sequence_tests.cpp
     operators/localizing_matrix_tests.cpp
@@ -65,3 +67,5 @@ target_link_libraries(moment_tests
     gtest
     gtest_main
 )
+
+gtest_discover_tests(moment_tests)

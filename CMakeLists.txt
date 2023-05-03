@@ -39,6 +39,7 @@ include_directories(cpp/eigen)
 add_subdirectory(cpp/lib_moment)
 
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cpp/googletest/CMakeLists.txt")
+    enable_testing()
     add_subdirectory(cpp/googletest)
     add_subdirectory(cpp/tests)
 endif()
