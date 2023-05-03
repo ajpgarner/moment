@@ -7,6 +7,8 @@
 #include "inflation_context.h"
 
 #include "utilities/alphabetic_namer.h"
+#include "utilities/dynamic_bitset.h"
+#include "utilities/small_vector.h"
 
 #include <cassert>
 
@@ -14,6 +16,10 @@
 #include <sstream>
 
 namespace Moment::Inflation {
+
+    namespace {
+        using OpStringBitset = DynamicBitset<uint64_t, SmallVector<uint64_t, 1>>;
+    }
 
     std::vector<InflationContext::ICObservable::Variant>
     InflationContext::ICObservable::make_variants(const CausalNetwork& network, const Observable &baseObs,
@@ -25,7 +31,7 @@ namespace Moment::Inflation {
         for (oper_name_t variant_index = 0; variant_index < variant_count; ++variant_index) {
             auto vector_indices = baseObs.unflatten_index(inflation_level, variant_index);
             std::map<oper_name_t, oper_name_t> map_to_sources;
-            DynamicBitset<uint64_t> sourceMap{inflation_level * network.Sources().size()};
+            SourceListBitset sourceMap{inflation_level * network.Sources().size()};
 
             oper_name_t i = 0;
             for (auto source_id : baseObs.sources) {
@@ -35,7 +41,7 @@ namespace Moment::Inflation {
             }
 
             output.emplace_back(InflationContext::ICObservable::Variant{global_id, variant_index, std::move(vector_indices),
-                                                                        std::move(map_to_sources), sourceMap});
+                                                                        std::move(map_to_sources), std::move(sourceMap)});
 
             global_id += static_cast<oper_name_t>(baseObs.operators());
 
@@ -47,9 +53,9 @@ namespace Moment::Inflation {
                                                      const oper_name_t index,
                                                      std::vector<oper_name_t> &&vecIndex,
                                                      std::map<oper_name_t, oper_name_t> &&srcVariants,
-                                                     const DynamicBitset<uint64_t>& sourceBMP)
+                                                     SourceListBitset sourceBMP)
             : operator_offset{op_offset},  flat_index{index}, indices{std::move(vecIndex)},
-              source_variants{std::move(srcVariants)}, connected_sources{sourceBMP} { }
+              source_variants{std::move(srcVariants)}, connected_sources{std::move(sourceBMP)} { }
 
     bool InflationContext::ICObservable::Variant::independent(const InflationContext::ICObservable::Variant &other)
         const noexcept {
@@ -158,14 +164,14 @@ namespace Moment::Inflation {
         }
 
         // Otherwise, try to factorize properly
-        DynamicBitset<uint64_t> checklist{seq.size(), true};
+        OpStringBitset checklist{seq.size(), true};
 
         const auto total_source_count = this->Sources().size() * this->inflation;
 
         while (!checklist.empty()) {
             // Next string of unfactorized operators...
             sequence_storage_t opers{};
-            DynamicBitset<uint64_t> included_sources{total_source_count};
+            SourceListBitset included_sources{total_source_count};
 
             // Get next operator from input string that's not been put into any of the factors
             const size_t this_pos = checklist.first_index();
@@ -259,7 +265,7 @@ namespace Moment::Inflation {
             return input;
         }
 
-        std::vector<oper_name_t> next_available_source(this->base_network.Sources().size(), 0);
+        SmallVector<oper_name_t, 8> next_available_source(this->base_network.Sources().size(), 0);
         std::map<oper_name_t, oper_name_t> permutation{};
         sequence_storage_t permuted_operators;
 
@@ -269,7 +275,7 @@ namespace Moment::Inflation {
             const auto& obs_info = this->inflated_observables[op_info.observable];
             const auto& variant_info = obs_info.variants[op_info.flattenedSourceIndex];
 
-            std::vector<oper_name_t> source_indices;
+            SmallVector<oper_name_t, 4> source_indices;
             source_indices.reserve(variant_info.indices.size());
 
             for (auto src : variant_info.connected_sources) {
@@ -303,7 +309,7 @@ namespace Moment::Inflation {
             return {};
         }
 
-        std::vector<oper_name_t> next_available_source(this->base_network.Sources().size(), 0);
+        SmallVector<oper_name_t, 8> next_available_source(this->base_network.Sources().size(), 0);
         std::map<oper_name_t, oper_name_t> permutation{};
         std::vector<OVIndex> permuted_variants;
 
@@ -313,7 +319,7 @@ namespace Moment::Inflation {
             assert((var_id>=0) && (var_id < obs_info.variant_count));
             const auto& variant_info = obs_info.variants[var_id];
 
-            std::vector<oper_name_t> source_indices;
+            SmallVector<oper_name_t, 4> source_indices;
             source_indices.reserve(variant_info.indices.size());
 
             for (auto src : variant_info.connected_sources) {

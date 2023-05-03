@@ -13,6 +13,7 @@
 #include "observable_variant_index.h"
 
 #include "utilities/dynamic_bitset.h"
+#include "utilities/small_vector.h"
 
 #include <map>
 #include <set>
@@ -22,6 +23,8 @@
 #include <vector>
 
 namespace Moment::Inflation {
+
+    using SourceListBitset = DynamicBitset<uint64_t, SmallVector<uint64_t, 1>>;
 
 
     class InflationContext : public Context {
@@ -96,7 +99,7 @@ namespace Moment::Inflation {
                 std::map<oper_name_t, oper_name_t> source_variants;
 
                 /** Bitmap, flagging which sources are connected to variant. */
-                DynamicBitset<uint64_t> connected_sources;
+                SourceListBitset connected_sources;
 
                 /** True, if no overlapping sources, and not the same variant as other. */
                 [[nodiscard]] bool independent(const Variant& other) const noexcept;
@@ -107,7 +110,7 @@ namespace Moment::Inflation {
                         oper_name_t index,
                         std::vector<oper_name_t>&& vecIndex,
                         std::map<oper_name_t, oper_name_t>&& srcVariants,
-                        const DynamicBitset<uint64_t>& connected_sources);
+                        SourceListBitset connected_sources);
             };
 
         private:

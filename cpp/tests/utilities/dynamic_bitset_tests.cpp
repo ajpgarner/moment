@@ -7,6 +7,7 @@
 #include "gtest/gtest.h"
 
 #include "utilities/dynamic_bitset.h"
+#include "utilities/small_vector.h"
 
 namespace Moment::Tests {
     TEST(Utilities_DynamicBitset, Empty_Empty) {
@@ -142,6 +143,53 @@ namespace Moment::Tests {
     TEST(Utilities_DynamicBitset, SetTestUnset_Large) {
         for (size_t magic_bit = 0; magic_bit < 70; ++magic_bit) {
             DynamicBitset<uint64_t> bitset{70};
+            EXPECT_TRUE(bitset.empty());
+            bitset.set(magic_bit);
+            EXPECT_EQ(bitset.count(), 1);
+            EXPECT_FALSE(bitset.empty());
+            EXPECT_EQ(bitset.first_index(), magic_bit);
+            for (size_t i = 0; i < 70; ++i) {
+                if (i == magic_bit) {
+                    EXPECT_TRUE(bitset.test(i)) << i;
+                } else {
+                    EXPECT_FALSE(bitset.test(i)) << i;
+                }
+            }
+            bitset.unset(magic_bit);
+            EXPECT_TRUE(bitset.empty());
+            for (size_t i = 0; i < 70; ++i) {
+                EXPECT_FALSE(bitset.test(i)) << i;
+            }
+        }
+    }
+
+
+    TEST(Utilities_DynamicBitset, SetTestUnset_SmallVectorSmall) {
+        for (size_t magic_bit = 0; magic_bit < 40; ++magic_bit) {
+            DynamicBitset<uint64_t, SmallVector<uint64_t, 1>> bitset{40};
+            EXPECT_TRUE(bitset.empty());
+            bitset.set(magic_bit);
+            EXPECT_EQ(bitset.count(), 1);
+            EXPECT_FALSE(bitset.empty());
+            EXPECT_EQ(bitset.first_index(), magic_bit);
+            for (size_t i = 0; i < 40; ++i) {
+                if (i == magic_bit) {
+                    EXPECT_TRUE(bitset.test(i)) << i;
+                } else {
+                    EXPECT_FALSE(bitset.test(i)) << i;
+                }
+            }
+            bitset.unset(magic_bit);
+            EXPECT_TRUE(bitset.empty());
+            for (size_t i = 0; i < 40; ++i) {
+                EXPECT_FALSE(bitset.test(i)) << i;
+            }
+        }
+    }
+
+    TEST(Utilities_DynamicBitset, SetTestUnset_SmallVectorLarge) {
+        for (size_t magic_bit = 0; magic_bit < 70; ++magic_bit) {
+            DynamicBitset<uint64_t, SmallVector<uint64_t, 1>> bitset{70};
             EXPECT_TRUE(bitset.empty());
             bitset.set(magic_bit);
             EXPECT_EQ(bitset.count(), 1);

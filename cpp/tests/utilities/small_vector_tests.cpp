@@ -46,6 +46,30 @@ namespace Moment::Tests {
         EXPECT_TRUE(small.on_heap());
     }
 
+    TEST(Utilities_SmallVector, Construct_RepeatedStack) {
+        SmallVector<std::string, 5> small(3, "hello");
+        EXPECT_FALSE(small.empty());
+        ASSERT_EQ(small.size(), 3);
+        EXPECT_GE(small.capacity(), 5);
+        EXPECT_FALSE(small.on_heap());
+        EXPECT_EQ(small[0], "hello");
+        EXPECT_EQ(small[1], "hello");
+        EXPECT_EQ(small[2], "hello");
+    }
+
+    TEST(Utilities_SmallVector, Construct_RepeatedHeap) {
+        SmallVector<std::string, 3> small(5, "hello");
+        EXPECT_FALSE(small.empty());
+        ASSERT_EQ(small.size(), 5);
+        EXPECT_GE(small.capacity(), 5);
+        EXPECT_TRUE(small.on_heap());
+        EXPECT_EQ(small[0], "hello");
+        EXPECT_EQ(small[1], "hello");
+        EXPECT_EQ(small[2], "hello");
+        EXPECT_EQ(small[3], "hello");
+        EXPECT_EQ(small[4], "hello");
+    }
+
     TEST(Utilities_SmallVector, Construct_FromIteratorsSmall) {
         std::vector<double> src{1.0, 2.0, 3.0};
         SmallVector<double, 5> small(src.begin(), src.end());

@@ -127,6 +127,28 @@ namespace Moment {
             return *this;
          }
 
+      /**
+       * Construct small vector, repeating supplied value N times.
+       *
+       * @param N The number of copies
+       * @param Val The value to be copied
+       */
+        constexpr SmallVector(const size_t N, const value_t Val)
+                : _size{N} {
+            if (_size <= SmallN) {
+                this->data_start = this->stack_data.data();
+            } else {
+                this->_capacity = suggest_capacity(this->_size);
+                this->heap_data = std::make_unique<value_t[]>(this->_capacity);
+                this->data_start = this->heap_data.get();
+            }
+
+            // Copy object N times:~
+            for (size_t r = 0; r < N; ++r) {
+                new(&this->data_start[r]) value_t(Val);
+            }
+        }
+
         /**
          * Construct small vector, copying data from iterator
          *
