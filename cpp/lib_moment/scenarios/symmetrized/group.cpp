@@ -202,11 +202,17 @@ namespace Moment::Symmetrized {
             if (is_power_two) {
                 remainder >>= 1;
             } else {
-                const auto bitfloor = std::bit_floor(remainder);
+                auto bitfloor = std::bit_floor(remainder);
                 assert(output.back() > bitfloor);
-                output.emplace_back(bitfloor);
+
                 remainder = remainder ^ bitfloor; // = target_word_length - bitfloor
                 assert(bitfloor > remainder);
+                // and other pow2's
+                while (bitfloor > remainder) {
+                    output.emplace_back(bitfloor);
+                    bitfloor >>= 1;
+                }
+
                 assert(remainder > 0);
 
             }

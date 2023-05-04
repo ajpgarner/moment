@@ -115,6 +115,16 @@ namespace Moment::Tests {
 
     }
 
+    TEST(Scenarios_Symmetry_RepresentationMapper, Two_Ops_ToTen) {
+        Algebraic::AlgebraicContext ac{2}; // two operators
+
+        RepresentationMapper rm1{ac};
+        RepresentationMapper rm2{ac, rm1, rm1, 2};
+        RepresentationMapper rm4{ac, rm2, rm2, 4};
+        RepresentationMapper rm8{ac, rm4, rm4, 8};
+        RepresentationMapper rm10{ac, rm8, rm2, 10};
+    }
+
 
     TEST(Scenarios_Symmetry_RepresentationMapper, CHSH_1to2) {
         Locality::LocalityContext context{Locality::Party::MakeList(2, 2, 2)};

@@ -8,6 +8,7 @@
 
 #include "../sparse_utils.h"
 
+#include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/symmetrized/group.h"
 
@@ -161,9 +162,29 @@ namespace Moment::Tests {
         EXPECT_EQ(dc[3], 2);
     }
 
+    TEST(Scenarios_Symmetry_Group, DecomposeBuildList10) {
+        auto dc = Group::decompose_build_list(10);
+        ASSERT_EQ(dc.size(), 4);
+        EXPECT_EQ(dc[0], 10);
+        EXPECT_EQ(dc[1], 8);
+        EXPECT_EQ(dc[2], 4);
+        EXPECT_EQ(dc[3], 2);
+    }
+
+    TEST(Scenarios_Symmetry_Group, DecomposeBuildList21) {
+        auto dc = Group::decompose_build_list(21);
+        ASSERT_EQ(dc.size(), 6);
+        EXPECT_EQ(dc[0], 21);
+        EXPECT_EQ(dc[1], 16);
+        EXPECT_EQ(dc[2], 8);
+        EXPECT_EQ(dc[3], 5);
+        EXPECT_EQ(dc[4], 4);
+        EXPECT_EQ(dc[5], 2);
+    }
 
 
-    TEST(Scenarios_Symmetry_Group, CreateRepresentation) {
+
+    TEST(Scenarios_Symmetry_Group, CreateRepresentation_CHSH_1to2) {
 
         // CHSH
         Locality::LocalityContext context{Locality::Party::MakeList(2, 2, 2)};
@@ -203,5 +224,33 @@ namespace Moment::Tests {
             EXPECT_EQ(mat.cols(), 13);
         }
 
+    }
+
+    TEST(Scenarios_Symmetry_Group, CreateRepresentation_Z2_1to10) {
+
+        // CHSH
+        Algebraic::AlgebraicContext context{2};
+
+        // Dihedral-8 group <-> symmetries of CHSH inequality.
+        std::vector<Eigen::SparseMatrix<double>> generators;
+        generators.emplace_back(make_sparse(3, {1, 0, 0,
+                                                0, 0, 1,
+                                                0, 1, 0}));
+        auto group_elems = Group::dimino_generation(generators);
+
+        auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));
+        Group group{context, std::move(base_rep)};
+
+        auto& rep1 = group.representation(1);
+        ASSERT_EQ(rep1.size(), 2);
+        EXPECT_EQ(rep1.word_length, 1);
+        EXPECT_FALSE(rep1[0].isApprox(rep1[1]));
+        EXPECT_TRUE(rep1[0].isApprox(rep1[1] * rep1[1]));
+
+        auto& rep10 = group.create_representation(10);
+        ASSERT_EQ(rep10.size(), 2);
+        EXPECT_EQ(rep10.word_length, 10);
+        EXPECT_FALSE(rep10[0].isApprox(rep10[1]));
+        EXPECT_TRUE(rep10[0].isApprox(rep10[1] * rep10[1]));
     }
 }
