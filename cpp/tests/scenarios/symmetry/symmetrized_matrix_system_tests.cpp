@@ -208,16 +208,6 @@ namespace Moment::Tests {
 
         // Standard CHSH inequality symmetry
         std::vector<Eigen::SparseMatrix<double>> generators;
-//        generators.emplace_back(make_sparse(5, {1, 1, 0, 0, 0,
-//                                                0, 0, 0, 1, 0,
-//                                                0, 0, 0, 0, 1,
-//                                                0, 0, 1, 0, 0,
-//                                                0, -1,0, 0, 0}));
-//        generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
-//                                                0, 0, 0, 0, 1,
-//                                                0, 0, 0, 1, 0,
-//                                                0, 0, 1, 0, 0,
-//                                                0, 1, 0, 0, 0}));
      generators.emplace_back(make_sparse(5, {1, 0, 1, 0, 0,
                                              0, 1, 0, 0, 0,
                                              0, 0,-1, 0, 0,
@@ -331,6 +321,56 @@ namespace Moment::Tests {
                   SymbolCombo({SymbolExpression(1, 0.125), SymbolExpression(2, -1.0)})); // a1b1 -> 0.125 - y
         EXPECT_EQ(poly_sm.SymbolMatrix[4][3], SymbolCombo::Scalar(0.25));  // b1b0 -> 0.25
         EXPECT_EQ(poly_sm.SymbolMatrix[4][4], SymbolCombo::Scalar(0.5)); // b1^2 -> b1 -> 0.25
+    }
+
+
+    TEST(Scenarios_Symmetry_MatrixSystem, Locality_CHSH_Level4) {
+        // Two variables, a & b
+        auto lmsPtr = std::make_shared<Locality::LocalityMatrixSystem>(
+                std::make_unique<Locality::LocalityContext>(Locality::Party::MakeList(2, 2, 2))
+        );
+        auto &lms = *lmsPtr;
+        auto &locality_context = lms.localityContext;
+        auto &locality_symbols = lms.Symbols();
+        lms.generate_dictionary(8);
+
+        // Get CHSH symbols
+        const auto [a0, a1, b0, b1, a0a1, a0b0, a0b1, a1b0, a1b1, b0b1] =
+                get_chsh_symbol_ids(locality_context, locality_symbols);
+
+
+        // Standard CHSH inequality symmetry
+        std::vector<Eigen::SparseMatrix<double>> generators;
+        generators.emplace_back(make_sparse(5, {1, 0, 1, 0, 0,
+                                                0, 1, 0, 0, 0,
+                                                0, 0, -1, 0, 0,
+                                                0, 0, 0, 0, 1,
+                                                0, 0, 0, 1, 0}));
+        generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
+                                                0, 0, 0, 1, 0,
+                                                0, 0, 0, 0, 1,
+                                                0, 1, 0, 0, 0,
+                                                0, 0, 1, 0, 0}));
+
+        auto group_elems = Group::dimino_generation(generators);
+        auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));
+        auto group = std::make_unique<Group>(locality_context, std::move(base_rep));
+
+        ASSERT_EQ(group->size, 16);
+        SymmetrizedMatrixSystem sms{lmsPtr, std::move(group), 8, std::make_unique<Derived::LUMapCoreProcessor>()};
+        ASSERT_EQ(&lms, &sms.base_system());
+        const auto& sym_symbols = sms.Symbols();
+
+        const auto& map = sms.map();
+        ASSERT_EQ(locality_symbols.size(), map.fwd_size()) << lms.Symbols(); // All symbols mapped
+        //EXPECT_EQ(map.inv_size(), 14); // 0, 1,
+        //ASSERT_EQ(sym_symbols.size(), 14) << sms.Symbols();
+        EXPECT_FALSE(map.is_monomial_map());
+
+        // Check inverse map
+        EXPECT_EQ(map.inverse(0), SymbolCombo::Zero());
+        EXPECT_EQ(map.inverse(1), SymbolCombo::Scalar(1.0));
+
 
     }
 }

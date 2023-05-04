@@ -8,6 +8,8 @@
 
 #include "representation.h"
 
+#include "utilities/small_vector.h"
+
 #include <Eigen/Sparse>
 
 #include <memory>
@@ -32,6 +34,8 @@ namespace Moment {
 
 namespace Moment::Symmetrized {
 
+    class RepresentationMapper;
+
     class Group {
     public:
         /** Context this group represents a symmetry on */
@@ -46,9 +50,12 @@ namespace Moment::Symmetrized {
     private:
         mutable std::shared_mutex mutex;
         std::vector<std::unique_ptr<Representation>> representations;
+        std::vector<std::unique_ptr<RepresentationMapper>> mappers;
 
     public:
         Group(const Context& context, std::unique_ptr<Representation> basis_rep);
+
+        ~Group() noexcept;
 
         const Representation& create_representation(size_t word_length);
 
@@ -63,10 +70,14 @@ namespace Moment::Symmetrized {
          * @param generators Generator matrices, all square matrices of same dimension.
          * @return List of group elements.
          */
-        static std::vector<repmat_t>
+        [[nodiscard]] static std::vector<repmat_t>
         dimino_generation(const std::vector<repmat_t>& generators,
                          size_t max_subgroup_size = 1000000);
 
+        [[nodiscard]] static SmallVector<size_t, 4> decompose_build_list(size_t word_length);
+
+    private:
+        void identify_and_build_representations(const size_t word_length);
 
     };
 

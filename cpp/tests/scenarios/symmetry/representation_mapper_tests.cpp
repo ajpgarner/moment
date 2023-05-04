@@ -16,11 +16,26 @@
 using namespace Moment::Symmetrized;
 
 namespace Moment::Tests {
-
-    TEST(Scenarios_Symmetry_RepresentationMapper, Remap1to2_TwoOps) {
+    TEST(Scenarios_Symmetry_RepresentationMapper, TwoOps_Id) {
         Algebraic::AlgebraicContext ac{2}; // two operators
 
-        RepresentationMapper remapper{ac, 2};
+        RepresentationMapper rm1{ac};
+        EXPECT_EQ(rm1.target_word_length, 1);
+        EXPECT_EQ(&rm1.context, &ac);
+        ASSERT_EQ(rm1.raw_dimension(), 3); // 1, a, b
+        ASSERT_EQ(rm1.remapped_dimension(), 3); // 1, a, b
+        EXPECT_EQ(rm1[0], 0);
+        EXPECT_EQ(rm1[1], 1);
+        EXPECT_EQ(rm1[2], 2);
+    }
+
+
+    TEST(Scenarios_Symmetry_RepresentationMapper, TwoOps_1to2) {
+        Algebraic::AlgebraicContext ac{2}; // two operators
+
+        RepresentationMapper rm1{ac};
+        RepresentationMapper remapper{ac, rm1, rm1, 2};
+
         ASSERT_EQ(remapper.raw_dimension(), 9);
         ASSERT_EQ(remapper.remapped_dimension(), 7); // redundant ea -> a, redundant eb -> b
 
@@ -34,7 +49,7 @@ namespace Moment::Tests {
         EXPECT_EQ(remapper[7], 5); // ba -> ba
         EXPECT_EQ(remapper[8], 6); // bb -> bb
 
-        const auto& lhs = remapper.LHS();
+        const auto &lhs = remapper.LHS();
         EXPECT_EQ(lhs.nonZeros(), 9);
         EXPECT_EQ(lhs.coeff(0, 0), 1.0); // e
         EXPECT_EQ(lhs.coeff(1, 1), 1.0); // a
@@ -45,8 +60,8 @@ namespace Moment::Tests {
         EXPECT_EQ(lhs.coeff(2, 6), 1.0); // b alias
         EXPECT_EQ(lhs.coeff(5, 7), 1.0); // ba
         EXPECT_EQ(lhs.coeff(6, 8), 1.0); // b^2
-        
-        const auto& rhs = remapper.RHS();
+
+        const auto &rhs = remapper.RHS();
         EXPECT_EQ(rhs.nonZeros(), 7);
         EXPECT_EQ(rhs.coeff(0, 0), 1.0); // e
         EXPECT_EQ(rhs.coeff(1, 1), 1.0); // a
@@ -67,25 +82,48 @@ namespace Moment::Tests {
         }
 
         // Example symmetry group tx:, a,b->x implies aa, ab, ba, bb -> "x^2", hermitian
-        const auto z2_rep1_av = make_sparse(3, {1,   0,   0,
-                                             0, 0.5, 0.5,
-                                             0, 0.5, 0.5});
-        const auto expected_expand = make_sparse(7, {1,   0,   0,    0,    0,    0,    0,
-                                                      0, 0.5, 0.5,    0,    0,    0,    0,
-                                                      0, 0.5, 0.5,    0,    0,    0,    0,
-                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
-                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
-                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
-                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25});
+        const auto z2_rep1_av = make_sparse(3, {1, 0, 0,
+                                                0, 0.5, 0.5,
+                                                0, 0.5, 0.5});
+        const auto expected_expand = make_sparse(7, {1, 0, 0, 0, 0, 0, 0,
+                                                     0, 0.5, 0.5, 0, 0, 0, 0,
+                                                     0, 0.5, 0.5, 0, 0, 0, 0,
+                                                     0, 0, 0, 0.25, 0.25, 0.25, 0.25,
+                                                     0, 0, 0, 0.25, 0.25, 0.25, 0.25,
+                                                     0, 0, 0, 0.25, 0.25, 0.25, 0.25,
+                                                     0, 0, 0, 0.25, 0.25, 0.25, 0.25});
         auto actual_expand = remapper(z2_rep1_av);
         EXPECT_TRUE(actual_expand.isApprox(expected_expand)) << actual_expand;
+    }
+
+    TEST(Scenarios_Symmetry_RepresentationMapper, Two_Ops_1234) {
+        Algebraic::AlgebraicContext ac{2}; // two operators
+
+        RepresentationMapper rm1{ac};
+        RepresentationMapper rm2{ac, rm1, rm1, 2};
+        RepresentationMapper rm3{ac, rm2, rm1, 3};
+        RepresentationMapper rm4{ac, rm2, rm2, 4};
+
+        EXPECT_EQ(rm1.raw_dimension(), 3);
+        EXPECT_EQ(rm1.remapped_dimension(), 3);
+        EXPECT_EQ(rm2.raw_dimension(), 9);
+        EXPECT_EQ(rm2.remapped_dimension(), 7); // redundant ea -> a, redundant eb -> b
+        EXPECT_EQ(rm3.raw_dimension(), 21);
+        EXPECT_EQ(rm3.remapped_dimension(), 15);
+        EXPECT_EQ(rm4.raw_dimension(), 49); // 7 * 7 -> 49; vs; 21 * 3 -> 63; could 'add one' be better?
+        EXPECT_EQ(rm4.remapped_dimension(), 31);
 
     }
 
-    TEST(Scenarios_Symmetry_RepresentationMapper, Remap1to2_CHSH) {
+
+    TEST(Scenarios_Symmetry_RepresentationMapper, CHSH_1to2) {
         Locality::LocalityContext context{Locality::Party::MakeList(2, 2, 2)};
 
-        RepresentationMapper remapper{context, 2};
+        RepresentationMapper rm1{context};
+        ASSERT_EQ(rm1.raw_dimension(), 5);
+        ASSERT_EQ(rm1.remapped_dimension(), 5);
+
+        RepresentationMapper remapper{context, rm1, rm1, 2};
         ASSERT_EQ(remapper.raw_dimension(), 25);
         ASSERT_EQ(remapper.remapped_dimension(), 13);
 
@@ -202,21 +240,5 @@ namespace Moment::Tests {
         auto rep_level2 = remapper(rep_base);
         ASSERT_EQ(rep_level2.nonZeros(), expected_level2.nonZeros()) << rep_level2;
         EXPECT_TRUE(rep_level2.isApprox(expected_level2));
-
-//        // Example symmetry group tx:, a,b->x implies aa, ab, ba, bb -> "x^2", hermitian
-//        const auto z2_rep1 = make_sparse(3, {1,   0,   0,   0,   0,
-//                                             0, 0.5, 0.5,
-//                                             0, 0.5, 0.5});
-//
-//        const auto z2_rep2_expected = make_sparse(7, {1,   0,   0,    0,    0,    0,    0,
-//                                                      0, 0.5, 0.5,    0,    0,    0,    0,
-//                                                      0, 0.5, 0.5,    0,    0,    0,    0,
-//                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
-//                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
-//                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25,
-//                                                      0,   0,   0, 0.25, 0.25, 0.25, 0.25});
-
-
-
     }
 }

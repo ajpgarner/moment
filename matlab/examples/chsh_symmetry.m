@@ -5,7 +5,7 @@ clear
 clear mtk
 
 % Settings
-mm_level = 1;
+mm_level = 4;
 
 % Base scenario
 chsh_scenario = LocalityScenario(2, 2, 2);

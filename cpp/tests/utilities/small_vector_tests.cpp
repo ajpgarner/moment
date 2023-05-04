@@ -639,6 +639,50 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, small.cend());
     }
 
+    TEST(Utilities_SmallVector, Front_Stack) {
+        SmallVector<std::string, 3> small{"hello", "there!"};
+        EXPECT_FALSE(small.empty());
+        ASSERT_EQ(small.size(), 2);
+        EXPECT_FALSE(small.on_heap());
+        EXPECT_EQ(small.front(), "hello");
+
+        const auto& crSmall = small;
+        EXPECT_EQ(&small.front(), &crSmall.front());
+    }
+
+    TEST(Utilities_SmallVector, Front_Heap) {
+        SmallVector<std::string, 3> small{"hello", "how", "are", "you?"};
+        EXPECT_FALSE(small.empty());
+        ASSERT_EQ(small.size(), 4);
+        EXPECT_TRUE(small.on_heap());
+        EXPECT_EQ(small.front(), "hello");
+
+        const auto& crSmall = small;
+        EXPECT_EQ(&small.front(), &crSmall.front());
+    }
+
+    TEST(Utilities_SmallVector, Back_Stack) {
+        SmallVector<std::string, 3> small{"hello", "there!"};
+        EXPECT_FALSE(small.empty());
+        ASSERT_EQ(small.size(), 2);
+        EXPECT_FALSE(small.on_heap());
+        EXPECT_EQ(small.back(), "there!");
+
+        const auto& crSmall = small;
+        EXPECT_EQ(&small.back(), &crSmall.back());
+    }
+
+    TEST(Utilities_SmallVector, Back_Heap) {
+        SmallVector<std::string, 3> small{"hello", "how", "are", "you?"};
+        EXPECT_FALSE(small.empty());
+        ASSERT_EQ(small.size(), 4);
+        EXPECT_TRUE(small.on_heap());
+        EXPECT_EQ(small.back(), "you?");
+
+        const auto& crSmall = small;
+        EXPECT_EQ(&small.back(), &crSmall.back());
+    }
+
     /** Test object for counting destructions of non-moved objects */
     struct dtor_test {
         size_t * counter = nullptr;

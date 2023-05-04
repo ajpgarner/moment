@@ -391,6 +391,46 @@ namespace Moment {
         }
 
         /**
+         * Return reference to first element.
+         * Undefined if called on empty vector.
+         */
+        const value_t& front() const noexcept {
+            assert(!this->empty());
+            return *(this->data_start);
+        }
+
+
+        /**
+         * Return reference to first element.
+         * Undefined if called on empty vector.
+         */
+        value_t& front() noexcept {
+            assert(!this->empty());
+            return *(this->data_start);
+        }
+
+        /**
+         * Return reference to last element.
+         * Undefined if called on empty vector.
+         */
+        const value_t& back() const noexcept {
+            assert(!this->empty());
+            return *(this->data_start + this->_size - 1);
+        }
+
+
+        /**
+         * Return reference to last element.
+         * Undefined if called on empty vector.
+         */
+        value_t& back() noexcept {
+            assert(!this->empty());
+            return *(this->data_start + this->_size - 1);
+        }
+
+
+
+        /**
          * Swap vector contents: take contents of RHS into this vector, and put this vector's contents into RHS.
          */
         void swap(SmallVector& rhs) noexcept {
@@ -439,8 +479,6 @@ namespace Moment {
         friend void swap(SmallVector& lhs, SmallVector& rhs) noexcept {
             lhs.swap(rhs);
         }
-
-
 
         /**
          * Degrade to span

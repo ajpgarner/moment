@@ -126,6 +126,43 @@ namespace Moment::Tests {
         test_group_unique(group);
     }
 
+    TEST(Scenarios_Symmetry_Group, DecomposeBuildList1) {
+        auto dc = Group::decompose_build_list(1);
+        EXPECT_TRUE(dc.empty());
+
+    }
+
+    TEST(Scenarios_Symmetry_Group, DecomposeBuildList2) {
+        auto dc = Group::decompose_build_list(2);
+        ASSERT_EQ(dc.size(), 1);
+        EXPECT_EQ(dc[0], 2);
+    }
+
+    TEST(Scenarios_Symmetry_Group, DecomposeBuildList3) {
+        auto dc = Group::decompose_build_list(3);
+        ASSERT_EQ(dc.size(), 2);
+        EXPECT_EQ(dc[0], 3);
+        EXPECT_EQ(dc[1], 2);
+    }
+
+    TEST(Scenarios_Symmetry_Group, DecomposeBuildList4) {
+        auto dc = Group::decompose_build_list(4);
+        ASSERT_EQ(dc.size(), 2);
+        EXPECT_EQ(dc[0], 4);
+        EXPECT_EQ(dc[1], 2);
+    }
+
+    TEST(Scenarios_Symmetry_Group, DecomposeBuildList7) {
+        auto dc = Group::decompose_build_list(7);
+        ASSERT_EQ(dc.size(), 4);
+        EXPECT_EQ(dc[0], 7);
+        EXPECT_EQ(dc[1], 4);
+        EXPECT_EQ(dc[2], 3);
+        EXPECT_EQ(dc[3], 2);
+    }
+
+
+
     TEST(Scenarios_Symmetry_Group, CreateRepresentation) {
 
         // CHSH

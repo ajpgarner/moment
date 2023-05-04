@@ -13,7 +13,8 @@
 
 #include <atomic>
 #include <iostream>
-
+#include <ranges>
+#include <set>
 
 namespace Moment::Symmetrized {
 
@@ -30,6 +31,7 @@ namespace Moment::Symmetrized {
             }
             return rep_ptr.get();
         }
+
     }
 
 
@@ -52,7 +54,12 @@ namespace Moment::Symmetrized {
                   << " was expected (matching number of fundamental operators + 1).";
             throw std::runtime_error{errSS.str()};
         }
+
+        // Create trivial mapper
+        this->mappers.emplace_back(std::make_unique<RepresentationMapper>(context));
     }
+
+    Group::~Group() noexcept = default;
 
     std::vector<repmat_t>
     Group::dimino_generation(const std::vector<repmat_t> &generators,
@@ -131,6 +138,7 @@ namespace Moment::Symmetrized {
         return elements;
     }
 
+
     const Representation& Group::create_representation(const size_t word_length) {
         if (word_length <= 0) {
             throw std::range_error{"Word length must be at least 1."};
@@ -152,28 +160,12 @@ namespace Moment::Symmetrized {
             return *this->representations[index]; // unlock write_lock
         }
 
-        // Create remapper
-        RepresentationMapper remapper{this->context, word_length};
+        // Do build
+        this->identify_and_build_representations(word_length);
 
-        // Remap group elements
-        std::vector<repmat_t> remapped_elems;
-        remapped_elems.reserve(this->size);
-        const auto& fundamentals = this->representations[0]->group_elements();
-        for (const auto& elem : fundamentals) {
-            remapped_elems.emplace_back(remapper(elem));
-        }
-
-        // Construct new representation
-        std::unique_ptr<Representation> rep = std::make_unique<Representation>(word_length, std::move(remapped_elems));
-
-        // Do we need to expand list?
-        if (this->representations.size() <= index) {
-            this->representations.resize(index+1);
-        }
-        this->representations[index] = std::move(rep);
-
-        std::atomic_thread_fence(std::memory_order_release);
-        return *this->representations[index]; // Release write lock
+        // Get newly constructed representation+
+        assert(this->representations[index]);
+        return *this->representations[index];
     }
 
     const Representation& Group::representation(const size_t word_length) const {
@@ -191,6 +183,118 @@ namespace Moment::Symmetrized {
         }
 
         return *this->representations[index];
+    }
+
+
+
+    /** Split target rep size into (reverse) ordered constituent rep sizes */
+    SmallVector<size_t, 4> Group::decompose_build_list(const size_t target_word_length) {
+        // Rep 0 and Rep 1 are always "done"
+        if (target_word_length <= 1) {
+            return SmallVector<size_t, 4>{};
+        }
+
+        SmallVector<size_t, 4> output;
+        size_t remainder = target_word_length;
+        do {
+            output.emplace_back(remainder);
+            const bool is_power_two = (std::popcount(remainder) == 1);
+            if (is_power_two) {
+                remainder >>= 1;
+            } else {
+                const auto bitfloor = std::bit_floor(remainder);
+                assert(output.back() > bitfloor);
+                output.emplace_back(bitfloor);
+                remainder = remainder ^ bitfloor; // = target_word_length - bitfloor
+                assert(bitfloor > remainder);
+                assert(remainder > 0);
+
+            }
+        } while(remainder > 1);
+
+        assert(!output.empty());
+        return output;
+    }
+
+    void Group::identify_and_build_representations(const size_t word_length) {
+        // Assume lock is held!
+
+        // First, check mapper ptr list is long enough
+        if (this->mappers.size() < word_length) { // word length 1 is 1st element at index 0.
+            this->mappers.resize(word_length);
+        }
+
+        // See what intermediate steps we need to ensure exist
+        const auto build_list = Group::decompose_build_list(word_length);
+
+        // Make sure mappers are built.
+        for (const auto wl : std::ranges::reverse_view(build_list)) {
+            // Do not build, if already built.
+            if (this->mappers[wl-1]) {
+                continue;
+            }
+
+            // Otherwise, work out parents:
+            const auto& [left_parent, right_parent]
+                = [this](const size_t len) -> std::pair<const RepresentationMapper&,const RepresentationMapper&> {
+                const bool is_power_two = (std::popcount(len) == 1);
+                if (is_power_two) {
+                    const size_t parent_length = (len >> 1);
+                    return {*this->mappers[parent_length-1], *this->mappers[parent_length-1]};
+                }
+                const size_t bitfloor = std::bit_floor(len);
+                const size_t remainder = len ^ bitfloor;
+                assert(this->mappers[bitfloor-1]);
+                assert(this->mappers[remainder-1]);
+                return {*this->mappers[bitfloor-1], *this->mappers[remainder-1]};
+            }(wl);
+
+            // Make mapper
+            this->mappers[wl-1] = std::make_unique<RepresentationMapper>(context, left_parent, right_parent, wl);
+        }
+
+        // Next, check rep list is long enough
+        if (this->representations.size() < word_length) {
+            this->representations.resize(word_length);
+        }
+
+
+        // Build representations
+        for (const auto wl : std::ranges::reverse_view(build_list)) {
+            // Do not build, if already built
+            if (this->representations[wl-1]) {
+                continue;
+            }
+
+            // Get parent representations
+            const auto& [left_parent, right_parent]
+                = [this](const size_t len) -> std::pair<const Representation&,const Representation&> {
+                    const bool is_power_two = (std::popcount(len) == 1);
+                    if (is_power_two) {
+                        const size_t parent_length = (len >> 1);
+                        return {*this->representations[parent_length-1], *this->representations[parent_length-1]};
+                    }
+                    const size_t bitfloor = std::bit_floor(len);
+                    const size_t remainder = len ^ bitfloor;
+                    assert(this->representations[bitfloor-1]);
+                    assert(this->representations[remainder-1]);
+                    return {*this->representations[bitfloor-1], *this->representations[remainder-1]};
+                }(wl);
+
+            assert(left_parent.size() == right_parent.size());
+
+            // Get mapper
+            const auto& mapper = *this->mappers[wl-1];
+
+            // Combine parents to make new representation
+            std::vector<repmat_t> new_rep_data;
+            new_rep_data.reserve(this->size);
+            for (size_t idx = 0; idx < this->size; ++idx) {
+                new_rep_data.emplace_back(mapper(left_parent[idx], right_parent[idx]));
+            }
+
+            this->representations[wl-1] = std::make_unique<Representation>(wl, std::move(new_rep_data));
+        }
     }
 
 
