@@ -55,6 +55,7 @@ namespace Moment {
         bool antihermitian = false;
         ptrdiff_t real_index = -1;
         ptrdiff_t img_index = -1;
+        std::string fwd_sequence_str;
 
     public:
         constexpr UniqueSequence() = default;
@@ -62,7 +63,7 @@ namespace Moment {
         explicit UniqueSequence(OperatorSequence sequence) :
                 opSeq{std::move(sequence)},
                 conjSeq{}, hermitian{true}, antihermitian{false},
-                real_index{-1}, img_index{-1}  { }
+                real_index{-1}, img_index{-1}, fwd_sequence_str{opSeq->formatted_string()} { }
 
         UniqueSequence(OperatorSequence sequence, OperatorSequence conjSequence);
 
@@ -289,9 +290,12 @@ namespace Moment {
 
         /**
          * Add empty symbol to table.
+         * @param has_real True if symbol has real parts
+         * @param has_imaginary True if symbol has imaginary parts
+         * @param name The string the symbol represents.
          * @return The ID of the new symbol.
          */
-        symbol_name_t create(bool has_real = true, bool has_imaginary = true);
+        symbol_name_t create(bool has_real = true, bool has_imaginary = true, std::string name = "");
 
         /**
          * Add multiple empty symbols to table.

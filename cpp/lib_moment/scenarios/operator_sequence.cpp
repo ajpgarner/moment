@@ -45,11 +45,6 @@ namespace Moment {
 
     OperatorSequence OperatorSequence::conjugate() const {
         return this->context.conjugate(*this);
-//
-//        OperatorSequence output{*this};
-//        std::reverse(output.operators.begin(), output.operators.end());
-//        output.to_canonical_form();
-//        return output;
     }
 
     int OperatorSequence::compare_same_negation(const OperatorSequence &lhs, const OperatorSequence &rhs) {

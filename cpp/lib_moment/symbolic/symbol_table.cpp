@@ -54,7 +54,8 @@ namespace Moment {
                                    OperatorSequence conjSequence):
             opSeq{std::move(sequence)},
             conjSeq{std::move(conjSequence)},
-            hermitian{false}, antihermitian{false}, real_index{-1}, img_index{-1} {
+            hermitian{false}, antihermitian{false}, real_index{-1}, img_index{-1},
+            fwd_sequence_str{opSeq->formatted_string()} {
 
         int compare = OperatorSequence::compare_same_negation(*opSeq, *conjSeq);
         if (1 == compare) {
@@ -148,10 +149,11 @@ namespace Moment {
 
 
 
-    symbol_name_t SymbolTable::create(const bool has_real, const bool has_imaginary) {
+    symbol_name_t SymbolTable::create(const bool has_real, const bool has_imaginary, std::string fwd_name) {
         auto next_id = static_cast<symbol_name_t>(this->unique_sequences.size());
         UniqueSequence blank;
         blank.id = next_id;
+        blank.fwd_sequence_str = std::move(fwd_name);
 
         auto [re_index, im_index] = this->Basis.push_back(next_id, has_real, has_imaginary);
         blank.real_index = re_index;
@@ -316,50 +318,6 @@ namespace Moment {
         return ss.str();
     }
 
-    std::ostream& operator<<(std::ostream& os, const UniqueSequence& seq) {
-        const bool has_fwd = seq.opSeq.has_value();
-        const bool has_rev = seq.opSeq.has_value();
-
-        os << "#" << seq.id << ":\t";
-        if (has_fwd) {
-            os << seq.opSeq.value();
-        } else {
-            os << "[No sequence]";
-        }
-        os << ":\t";
-
-        if (seq.real_index>=0) {
-            if (seq.img_index>=0) {
-                os << "Complex";
-            } else {
-                os << "Real";
-            }
-        } else if (seq.img_index>=0) {
-            os << "Imaginary";
-        } else {
-            os << "Zero";
-        }
-
-        if (seq.hermitian) {
-            os << ", Hermitian";
-        }
-        if (seq.real_index>=0) {
-            os << ", Re#=" << seq.real_index;
-        }
-        if (seq.img_index>=0) {
-            os << ", Im#=" << seq.img_index;
-        }
-
-        if (has_fwd) {
-            os << ", hash=" << seq.hash();
-            if (seq.hash_conj() != seq.hash()) {
-                os << "/" << seq.hash_conj();
-            }
-        } else {
-            os << ", unhashable";
-        }
-        return os;
-    }
     std::pair<size_t, size_t> SymbolTable::fill_to_word_length(size_t word_length) {
         const auto& osg = this->context.operator_sequence_generator(word_length);
         std::vector<UniqueSequence> build_unique;
@@ -380,55 +338,6 @@ namespace Moment {
         return std::make_pair(osg.size(), new_symbols);
     }
 
-    std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {
-        const auto& real_symbols = table.Basis.RealSymbols();
-        const auto& im_symbols = table.Basis.ImaginarySymbols();
-
-        os << "Symbol table with ";
-        os << table.unique_sequences.size()
-           << " unique sequence" << ((table.unique_sequences.size() != 1)  ? "s" : "") << ", ";
-        os << real_symbols.size() << " with real parts, "
-           << im_symbols.size() << " with imaginary parts:\n";
-
-        // List real symbol IDs
-        if (real_symbols.empty()) {
-            os << "No symbols with real parts.\n";
-        } else {
-            os << "Symbols with real parts: ";
-            bool one_real = false;
-            for (auto i: real_symbols) {
-                if (one_real) {
-                    os << ", ";
-                }
-                os << i;
-                one_real = true;
-            }
-            os << "\n";
-        }
-
-        // List imaginary symbol IDs
-        if (im_symbols.empty()) {
-            os << "No symbols with imaginary parts.\n";
-        } else {
-            os << "Symbols with imaginary parts: ";
-            bool one_im = false;
-            for (auto i: im_symbols) {
-                if (one_im) {
-                    os << ", ";
-                }
-                os << i;
-                one_im = true;
-            }
-            os << "\n";
-        }
-
-        // List symbols
-        for (const auto& us : table.unique_sequences) {
-            os << us << "\n";
-        }
-
-        return os;
-    }
 
     std::pair<size_t, size_t> SymbolTable::BasisView::renumerate_bases() {
         ptrdiff_t real_index = 0;
@@ -483,6 +392,111 @@ namespace Moment {
             this->im_of_real.emplace_back(output.second);
         }
         return output;
+    }
+
+    std::ostream& operator<<(std::ostream& os, const UniqueSequence& seq) {
+        const bool has_fwd = seq.opSeq.has_value();
+        const bool has_rev = seq.opSeq.has_value();
+
+        os << "#" << seq.id << ":\t";
+        if (!seq.fwd_sequence_str.empty()) {
+            if (!has_fwd) {
+                os << "[";
+            }
+            os << seq.fwd_sequence_str;
+            if (!has_fwd) {
+                os << "]";
+            }
+        } else {
+            os << "[No sequence]";
+        }
+        if (seq.fwd_sequence_str.length() >= 80) {
+            os << "\n\t";
+        } else {
+            os << ":\t";
+        }
+
+        if (seq.real_index>=0) {
+            if (seq.img_index>=0) {
+                os << "Complex";
+            } else {
+                os << "Real";
+            }
+        } else if (seq.img_index>=0) {
+            os << "Imaginary";
+        } else {
+            os << "Zero";
+        }
+
+        if (seq.hermitian) {
+            os << ", Hermitian";
+        }
+        if (seq.real_index>=0) {
+            os << ", Re#=" << seq.real_index;
+        }
+        if (seq.img_index>=0) {
+            os << ", Im#=" << seq.img_index;
+        }
+
+        if (has_fwd) {
+            os << ", hash=" << seq.hash();
+            if (seq.hash_conj() != seq.hash()) {
+                os << "/" << seq.hash_conj();
+            }
+        } else {
+            os << ", unhashable";
+        }
+        return os;
+    }
+
+    std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {
+        const auto& real_symbols = table.Basis.RealSymbols();
+        const auto& im_symbols = table.Basis.ImaginarySymbols();
+
+        os << "Symbol table with ";
+        os << table.unique_sequences.size()
+           << " unique sequence" << ((table.unique_sequences.size() != 1)  ? "s" : "") << ", ";
+        os << real_symbols.size() << " with real parts, "
+           << im_symbols.size() << " with imaginary parts:\n";
+
+        // List real symbol IDs
+        if (real_symbols.empty()) {
+            os << "No symbols with real parts.\n";
+        } else {
+            os << "Symbols with real parts: ";
+            bool one_real = false;
+            for (auto i: real_symbols) {
+                if (one_real) {
+                    os << ", ";
+                }
+                os << i;
+                one_real = true;
+            }
+            os << "\n";
+        }
+
+        // List imaginary symbol IDs
+        if (im_symbols.empty()) {
+            os << "No symbols with imaginary parts.\n";
+        } else {
+            os << "Symbols with imaginary parts: ";
+            bool one_im = false;
+            for (auto i: im_symbols) {
+                if (one_im) {
+                    os << ", ";
+                }
+                os << i;
+                one_im = true;
+            }
+            os << "\n";
+        }
+
+        // List symbols
+        for (const auto& us : table.unique_sequences) {
+            os << us << "\n";
+        }
+
+        return os;
     }
 
 }
