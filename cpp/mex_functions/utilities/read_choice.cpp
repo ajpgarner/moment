@@ -8,6 +8,8 @@
 
 #include "mex.hpp"
 
+#include "utilities/utf_conversion.h"
+
 #include <algorithm>
 #include <cctype>
 #include <sstream>
@@ -34,8 +36,9 @@ namespace Moment::mex {
                 std::stringstream errSS;
                 errSS << param_name << " must be a single not-null string.";
             }
+            UTF16toUTF8Convertor convertor;
 
-            input_choice = matlab::engine::convertUTF16StringToUTF8String(*mls);
+            input_choice = convertor(*mls);
         } else {
             std::stringstream errSS;
             errSS << param_name << " must be a string.";

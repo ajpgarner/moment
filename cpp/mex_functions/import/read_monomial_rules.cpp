@@ -14,6 +14,7 @@
 #include "utilities/reporting.h"
 
 #include "utilities/shortlex_hasher.h"
+#include "utilities/utf_conversion.h"
 
 #include "scenarios/algebraic/algebraic_precontext.h"
 #include "scenarios/algebraic/name_table.h"
@@ -25,6 +26,7 @@ namespace Moment::mex {
 
         std::vector<oper_name_t>
         get_op_seq_from_string(matlab::engine::MATLABEngine &matlabEngine,
+                               const UTF16toUTF8Convertor& convertor,
                                const std::string &field_name,
                                const matlab::data::TypedArray<matlab::data::MATLABString> &input,
                                const Algebraic::AlgebraicPrecontext& apc,
@@ -41,7 +43,8 @@ namespace Moment::mex {
 
                 try {
                     // Convert from UTF16 -> UTF8
-                    std::string utf8str = matlab::engine::convertUTF16StringToUTF8String(mlStr);
+                    std::string utf8str = convertor(mlStr);
+
                     output.emplace_back(names.find(apc, utf8str));
                 } catch (const std::invalid_argument& iae) {
                     std::stringstream err;
@@ -108,6 +111,7 @@ namespace Moment::mex {
         }
 
         std::vector<oper_name_t> get_op_seq(matlab::engine::MATLABEngine &matlabEngine,
+                                            const UTF16toUTF8Convertor& convertor,
                                             const std::string &field_name,
                                             const matlab::data::Array &input,
                                             const Algebraic::AlgebraicPrecontext& apc,
@@ -117,7 +121,7 @@ namespace Moment::mex {
             // Parse as named operator string
             if (input.getType() == matlab::data::ArrayType::MATLAB_STRING) {
                 auto strArray = static_cast<matlab::data::TypedArray<matlab::data::MATLABString>>(input);
-                return get_op_seq_from_string(matlabEngine, field_name, strArray, apc, names);
+                return get_op_seq_from_string(matlabEngine, convertor, field_name, strArray, apc, names);
             }
 
             // Parse as one long string.
@@ -143,6 +147,9 @@ namespace Moment::mex {
         }
         const auto cell_input = static_cast<matlab::data::CellArray>(input);
         const size_t rule_count =  cell_input.getNumberOfElements();
+
+
+        const UTF16toUTF8Convertor convertor{};
 
         std::vector<RawMonomialRule> output;
         output.reserve(rule_count);
@@ -182,11 +189,11 @@ namespace Moment::mex {
             }
 
             auto lhs = rule_cell[0];
-            auto lhs_rules = get_op_seq(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " LHS",
+            auto lhs_rules = get_op_seq(matlabEngine, convertor, "Rule #" + std::to_string(rule_index+1) + " LHS",
                                              lhs, apc, names, matlabIndices);
 
             auto rhs = rule_cell[negated ? 2 : 1];
-            auto rhs_rules = get_op_seq(matlabEngine, "Rule #" + std::to_string(rule_index+1) + " RHS",
+            auto rhs_rules = get_op_seq(matlabEngine, convertor, "Rule #" + std::to_string(rule_index+1) + " RHS",
                                              rhs, apc, names, matlabIndices);
 
             output.emplace_back(std::move(lhs_rules), std::move(rhs_rules), negated);

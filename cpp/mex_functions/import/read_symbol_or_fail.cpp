@@ -6,7 +6,10 @@
  */
 
 #include "read_symbol_or_fail.h"
+
 #include "../utilities/reporting.h"
+
+#include "utilities/utf_conversion.h"
 
 namespace Moment::mex {
 
@@ -19,7 +22,7 @@ namespace Moment::mex {
             throw_error(engine, errors::bad_symbol, errMsg.str());
         }
         try {
-            SymbolExpression elem{matlab::engine::convertUTF16StringToUTF8String(matrix[index_i][index_j])};
+            SymbolExpression elem{UTF16toUTF8Convertor{}(matrix[index_i][index_j])};
             return elem;
         } catch (const SymbolExpression::SymbolParseException& e) {
             std::stringstream errMsg;

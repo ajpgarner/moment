@@ -9,6 +9,8 @@
 #include "utilities/visitor.h"
 #include "utilities/read_as_scalar.h"
 
+#include "utilities/utf_conversion.h"
+
 #include "mex.hpp"
 #include "MatlabDataArray.hpp"
 
@@ -61,9 +63,13 @@ namespace Moment::mex {
 
 
             return_type string(const matlab::data::StringArray& input_matrix) {
+
+                UTF16toUTF8Convertor convertor{};
+
                 const auto dims = input_matrix.getDimensions();
 
                 std::vector<Eigen::Triplet<double>> triplets;
+
 
                 for (int row = 0; row < dims[0]; ++row) {
                     for (int col = 0; col < dims[1]; ++col) {
@@ -75,7 +81,7 @@ namespace Moment::mex {
                         }
 
                         try {
-                            std::string utf8str = matlab::engine::convertUTF16StringToUTF8String(elem);
+                            std::string utf8str = convertor(elem);
                             std::stringstream ss{utf8str};
                             double value;
                             ss >> value;

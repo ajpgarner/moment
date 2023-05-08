@@ -7,6 +7,7 @@
 #include "read_as_scalar.h"
 #include "io_parameters.h"
 #include "visitor.h"
+#include "utilities/utf_conversion.h"
 
 #include <sstream>
 
@@ -95,7 +96,8 @@ namespace Moment::mex {
                 }
 
                 try {
-                    std::string utf8str = matlab::engine::convertUTF16StringToUTF8String(*str);
+                    UTF16toUTF8Convertor convertor;
+                    std::string utf8str = convertor(*str);
 
                     // Ensure string is not negative.
                     if constexpr (std::is_unsigned<return_type>::value) {
@@ -166,7 +168,8 @@ namespace Moment::mex {
                 }
 
                 try {
-                    std::string utf8str = matlab::engine::convertUTF16StringToUTF8String(*str);
+                    UTF16toUTF8Convertor convertor;
+                    std::string utf8str = convertor(*str);
                     std::stringstream ss{utf8str};
                     return_type output{};
                     ss >> output;
@@ -198,7 +201,8 @@ namespace Moment::mex {
         }
 
         try {
-            std::string utf8str = matlab::engine::convertUTF16StringToUTF8String(*str);
+            UTF16toUTF8Convertor convertor;
+            std::string utf8str = convertor(*str);
 
             // Ensure string is not negative.
             if (!utf8str.empty() && utf8str[0] == '-') {

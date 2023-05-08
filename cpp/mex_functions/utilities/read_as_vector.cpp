@@ -10,6 +10,7 @@
 #include "io_parameters.h"
 
 #include "visitor.h"
+#include "utilities/utf_conversion.h"
 
 #include <utility>
 
@@ -80,6 +81,7 @@ namespace Moment::mex {
                 return_type output;
                 output.reserve(data.getNumberOfElements());
 
+                UTF16toUTF8Convertor convertor;
                 for (const auto& str : data) {
 
                     if (!str.has_value()) {
@@ -87,7 +89,8 @@ namespace Moment::mex {
                     }
 
                     try {
-                        std::string utf8str = matlab::engine::convertUTF16StringToUTF8String(*str);
+
+                        std::string utf8str = convertor(*str);
 
                         // Ensure string is not negative.
                         if constexpr (std::is_unsigned<return_type>::value) {
@@ -155,6 +158,8 @@ namespace Moment::mex {
                 return_type output;
                 output.reserve(data.getNumberOfElements());
 
+                UTF16toUTF8Convertor convertor;
+
                 for (const auto& str : data) {
 
                     if (!str.has_value()) {
@@ -162,7 +167,7 @@ namespace Moment::mex {
                     }
 
                     try {
-                        std::string utf8str = matlab::engine::convertUTF16StringToUTF8String(*str);
+                        std::string utf8str = convertor(*str);
 
                         std::stringstream ss{utf8str};
                         value_type read_buf;

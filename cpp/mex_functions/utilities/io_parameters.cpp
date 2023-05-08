@@ -5,10 +5,9 @@
  * @author Andrew J. P. Garner
  */
 
-#include "utilities/read_as_scalar.h"
-#include "utilities/read_as_vector.h"
-#include "utilities/reporting.h"
 #include "utilities/reflection.h"
+
+#include "utilities/utf_conversion.h"
 
 #include "io_parameters.h"
 
@@ -131,7 +130,7 @@ namespace Moment::mex {
         auto param_iter = this->params.find(paramName);
         if (param_iter == this->params.end()) {
             std::stringstream ss;
-            ss << "Parameter '" << matlab::engine::convertUTF16StringToUTF8String(paramName)
+            ss << "Parameter '" << UTF16toUTF8Convertor::convert_as_ascii(paramName)
                << "' should be specified.";
             throw errors::BadInput(errors::missing_param, ss.str());
         }
@@ -148,7 +147,7 @@ namespace Moment::mex {
                     ss << ", ";
                 }
                 one_flag = true;
-                ss << matlab::engine::convertUTF16StringToUTF8String(flag);
+                ss << UTF16toUTF8Convertor::convert_as_ascii(flag);
             }
             ss << "\n";
 
@@ -157,7 +156,7 @@ namespace Moment::mex {
         }
 
         for (const auto& [param_name, val] : this->params) {
-            ss << matlab::engine::convertUTF16StringToUTF8String(param_name) << ": ";
+            ss << UTF16toUTF8Convertor::convert_as_ascii(param_name) << ": ";
             ss << summary_string(val);
             ss << "\n";
         }

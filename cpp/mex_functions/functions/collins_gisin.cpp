@@ -15,6 +15,8 @@
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 
+#include "utilities/utf_conversion.h"
+
 #include "mex.hpp"
 
 
@@ -79,7 +81,7 @@ namespace Moment::mex::functions  {
             auto readIter = readData.begin();
             while (writeIter != output.end() && readIter != readData.end()) {
                 std::string inStr{cgi.context.format_sequence(*readIter)};
-                *writeIter = matlab::engine::convertUTF8StringToUTF16String(inStr);
+                *writeIter = UTF8toUTF16Convertor::convert(inStr);
                 ++writeIter;
                 ++readIter;
             }

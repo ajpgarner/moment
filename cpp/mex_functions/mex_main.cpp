@@ -12,9 +12,10 @@
 #include "mex_function.h"
 #include "functions/function_list.h"
 
+#include "utilities/utf_conversion.h"
+
 #include "storage_manager.h"
 
-#include "MatlabEngine/engine_interface_util.hpp"
 #include <sstream>
 
 namespace Moment::mex {
@@ -159,7 +160,7 @@ namespace Moment::mex {
         if ((inputs.inputs.size() > max) || (inputs.inputs.size() < min)) {
 
             // Build error message:
-            std::string func_name{matlab::engine::convertUTF16StringToUTF8String(func.function_name)};
+            std::string func_name{ UTF16toUTF8Convertor::convert_as_ascii(func.function_name) };
             std::stringstream ss;
             ss << "Function \"" << func_name << "\" ";
             if (min != max) {
@@ -202,7 +203,7 @@ namespace Moment::mex {
         if ((outputs.size() > max) || (outputs.size() < min)) {
 
             // Build error message:
-            std::string func_name{matlab::engine::convertUTF16StringToUTF8String(func.function_name)};
+            std::string func_name{UTF16toUTF8Convertor::convert_as_ascii(func.function_name)};
             std::stringstream ss;
             ss << "Function \"" << func_name << "\" ";
             if (min != max) {
@@ -241,7 +242,7 @@ namespace Moment::mex {
         } catch (const errors::BadInput& bie) {
             std::basic_stringstream<char16_t> bss;
             bss << u"Invalid argument to function \"" << func.function_name << "\": "
-                << matlab::engine::convertUTF8StringToUTF16String(bie.what());
+                << UTF8toUTF16Convertor::convert(bie.what());
             throw_error(*matlabPtr, bie.errCode, bss.str());
         }
     }

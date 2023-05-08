@@ -24,6 +24,8 @@
 
 #include "utilities/reporting.h"
 
+#include "utilities/utf_conversion.h"
+
 #include "error_codes.h"
 
 #include "mex.hpp"
@@ -44,6 +46,7 @@ namespace Moment::mex {
             private:
                 const Context* context = nullptr;
                 DirectFormatView::raw_const_iterator raw_iter;
+                UTF8toUTF16Convertor convertor;
 
             public:
                 constexpr const_iterator(const Context& context, raw_const_iterator rci)
@@ -66,7 +69,7 @@ namespace Moment::mex {
 
                 value_type operator*() const {
                     assert(context != nullptr);
-                    return {matlab::engine::convertUTF8StringToUTF16String(context->format_sequence(*raw_iter))};
+                    return {convertor(context->format_sequence(*raw_iter))};
                 }
             };
 
@@ -126,9 +129,9 @@ namespace Moment::mex {
                 value_type operator*() const {
                     assert(context != nullptr);
                     assert(formatter != nullptr);
-                    return {matlab::engine::convertUTF8StringToUTF16String(
+                    return {UTF8toUTF16Convertor::convert(
                             context->format_sequence(*formatter, *raw_iter)
-                            )};
+                        )};
                 }
             };
 
@@ -167,6 +170,7 @@ namespace Moment::mex {
                 const SymbolTable * symbols = nullptr;
                 InferredFormatView::raw_const_iterator raw_iter;
 
+
             public:
                 constexpr const_iterator(const Context& context,
                                          const SymbolTable& symbols,
@@ -188,7 +192,7 @@ namespace Moment::mex {
                 }
 
                 value_type operator*() const {
-                    return {matlab::engine::convertUTF8StringToUTF16String(infer_one_symbol(*symbols, *raw_iter))};
+                    return {UTF8toUTF16Convertor::convert(infer_one_symbol(*symbols, *raw_iter))};
                 }
 
                 [[nodiscard]] static std::string infer_one_symbol(const SymbolTable& symbols,
@@ -303,7 +307,7 @@ namespace Moment::mex {
                         output << InferredFormatView::const_iterator::infer_one_symbol(*symbols, expr, done_once);
                         done_once = true;
                     }
-                    return {matlab::engine::convertUTF8StringToUTF16String(output.str())};
+                    return {UTF8toUTF16Convertor::convert(output.str())};
                 }
             };
 
@@ -368,7 +372,7 @@ namespace Moment::mex {
                     if ((raw_iter->id < 0) || (raw_iter->id >= factors->size())) {
                         std::stringstream ssErr;
                         ssErr << "[MISSING:" << id << "]";
-                        return {matlab::engine::convertUTF8StringToUTF16String(ssErr.str())};
+                        return {UTF8toUTF16Convertor::convert(ssErr.str())};
                     }
                     if (raw_iter->id == 0) {
                         return {u"0"};
@@ -376,7 +380,7 @@ namespace Moment::mex {
 
                     const auto& facEntry = (*factors)[raw_iter->id];
                     if (1.0 == raw_iter->factor) {
-                        return {matlab::engine::convertUTF8StringToUTF16String(facEntry.sequence_string())};
+                        return {UTF8toUTF16Convertor::convert(facEntry.sequence_string())};
                     }
 
                     std::stringstream ss;
@@ -389,7 +393,7 @@ namespace Moment::mex {
                         }
                     }
 
-                    return {matlab::engine::convertUTF8StringToUTF16String(ss.str())};
+                    return {UTF8toUTF16Convertor::convert(ss.str())};
 
                 }
             };

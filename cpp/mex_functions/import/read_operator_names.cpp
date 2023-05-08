@@ -9,6 +9,8 @@
 #include "error_codes.h"
 #include "utilities/reporting.h"
 
+#include "utilities/utf_conversion.h"
+
 namespace Moment::mex {
 
     std::unique_ptr<Algebraic::NameTable>
@@ -37,13 +39,16 @@ namespace Moment::mex {
         }
 
         // Is operator argument an array of strings?
-        if (input.getType() == matlab::data::ArrayType::MATLAB_STRING) {
+        if (input.getType() == matlab::data::ArrayType::MATLAB_STRING)
+        {
+            UTF16toUTF8Convertor convertor{};
+
             std::vector<std::string> raw_names;
             auto mls_array = static_cast<matlab::data::TypedArray<matlab::data::MATLABString>>(input);
             raw_names.reserve(mls_array.getNumberOfElements());
             for (auto elem : mls_array) {
                 if (elem.has_value()) {
-                    auto utf8str = matlab::engine::convertUTF16StringToUTF8String(elem);
+                    auto utf8str = convertor(elem);
                     raw_names.emplace_back(utf8str);
                 }
             }

@@ -65,6 +65,7 @@ add_library(lib_moment
         symbolic/symbol_expression.cpp
         symbolic/symbol_table.cpp
         utilities/alphabetic_namer.cpp
+        utilities/utf_conversion.cpp
         utilities/kronecker_power.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
