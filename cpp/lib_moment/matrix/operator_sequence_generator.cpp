@@ -13,14 +13,15 @@
 #include <map>
 
 namespace Moment {
-    OperatorSequenceGenerator::OperatorSequenceGenerator(const Context &operatorContext,
-                                                         size_t min_length, size_t max_length)
-            : context(operatorContext), min_sequence_length(min_length), max_sequence_length(max_length) {
+
+    std::vector<OperatorSequence>
+    OperatorSequenceGenerator::build_generic_sequences(const Context &context,
+                                                       size_t min_sequence_length, size_t max_sequence_length) {
 
         std::map<size_t, OperatorSequence> build_set;
 
         // If minimum length, include identity...
-        if (0 == min_length) {
+        if (0 == min_sequence_length) {
             build_set.emplace(1, OperatorSequence::Identity(context));
         }
 
@@ -35,10 +36,14 @@ namespace Moment {
             }
         }
 
-        this->unique_sequences.reserve(build_set.size());
-        std::transform(build_set.begin(), build_set.end(), std::back_inserter(this->unique_sequences),
+        // Copy to output
+        std::vector<OperatorSequence> output;
+        output.reserve(build_set.size());
+        std::transform(build_set.begin(), build_set.end(), std::back_inserter(output),
                        [](auto& swh) -> OperatorSequence&& { return std::move(swh.second); });
+        return output;
     }
+
 
 
     OperatorSequenceGenerator OperatorSequenceGenerator::conjugate() const {

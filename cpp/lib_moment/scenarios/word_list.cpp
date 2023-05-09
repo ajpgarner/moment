@@ -16,7 +16,7 @@
 namespace Moment {
     WordList::WordList(const Context& context) : context{context} {
         // Make order 0 OSG (e)
-        this->osgs.emplace_back(std::make_unique<OperatorSequenceGenerator>(context, 0, 0));
+        this->osgs.emplace_back(this->context.new_osg(0));
         this->conj_osgs.emplace_back(std::make_unique<OperatorSequenceGenerator>(this->osgs[0]->conjugate()));
     }
 
@@ -49,7 +49,7 @@ namespace Moment {
             this->osgs.resize(word_length+1);
             this->conj_osgs.resize(word_length+1);
         }
-        this->osgs[word_length] = std::make_unique<OperatorSequenceGenerator>(context, 0, word_length);
+        this->osgs[word_length] = this->context.new_osg(word_length);
 
         // Create conjugate
         auto conjed = this->osgs[word_length]->conjugate();

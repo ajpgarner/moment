@@ -131,6 +131,9 @@ namespace Moment::Locality {
          * Summarize the context as a string.
          */
         [[nodiscard]] std::string to_string() const override;
+
+    protected:
+        std::unique_ptr<OperatorSequenceGenerator> new_osg(size_t word_length) const override;
     };
 
 }

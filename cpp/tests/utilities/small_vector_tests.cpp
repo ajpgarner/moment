@@ -70,6 +70,16 @@ namespace Moment::Tests {
         EXPECT_EQ(small[4], "hello");
     }
 
+    TEST(Utilities_SmallVector, Construct_RepeatedEmpty) {
+        SmallVector<double, 5> empty(0, 1.0);
+        EXPECT_TRUE(empty.empty());
+        EXPECT_EQ(empty.size(), 0);
+        EXPECT_EQ(empty.capacity(), 5);
+        EXPECT_FALSE(empty.on_heap());
+    }
+
+
+
     TEST(Utilities_SmallVector, Construct_FromIteratorsSmall) {
         std::vector<double> src{1.0, 2.0, 3.0};
         SmallVector<double, 5> small(src.begin(), src.end());

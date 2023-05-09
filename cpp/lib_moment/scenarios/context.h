@@ -128,9 +128,20 @@ namespace Moment {
          [[nodiscard]] WordList& osg_list() noexcept { return *this->word_list; }
 
 
+    protected:
+        /**
+         * Instantiate an OSG of the requested length.
+         * (May be overloaded to use more efficient enumerations for specific scenarios).
+         * @param word_length The maximum length word in the OSG.
+         * @return Owning pointer to newly created OSG.
+         */
+        [[nodiscard]] virtual std::unique_ptr<OperatorSequenceGenerator> new_osg(size_t word_length) const;
+
 
     public:
          friend std::ostream& operator<< (std::ostream& os, const Context& context);
+
+         friend class WordList;
 
     };
 

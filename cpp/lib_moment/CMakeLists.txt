@@ -52,6 +52,7 @@ add_library(lib_moment
         scenarios/locality/locality_implicit_symbols.cpp
         scenarios/locality/locality_matrix_system.cpp
         scenarios/locality/locality_operator_formatter.cpp
+        scenarios/locality/locality_osg.cpp
         scenarios/locality/joint_measurement_iterator.cpp
         scenarios/locality/party.cpp
         scenarios/symmetrized/group.cpp

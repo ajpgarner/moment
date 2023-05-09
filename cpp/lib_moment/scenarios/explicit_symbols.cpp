@@ -77,7 +77,7 @@ namespace Moment {
         MultiDimensionalIndexIterator free_outcome_index_iter{std::move(iterating_sizes)};
 
         // Blit values we care about
-        while (!free_outcome_index_iter.done()) {
+        while (free_outcome_index_iter) {
             size_t the_index = the_offset;
             for (size_t i = 0 ; i < num_iterating_indices; ++i) {
                 the_index += free_outcome_index_iter[i] * stride[i];

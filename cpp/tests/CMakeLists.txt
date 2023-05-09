@@ -35,6 +35,7 @@ add_executable(moment_tests
     scenarios/locality/locality_context_tests.cpp
     scenarios/locality/locality_explicit_symbols_tests.cpp
     scenarios/locality/locality_implicit_symbols_tests.cpp
+    scenarios/locality/locality_osg_tests.cpp
     scenarios/locality/party_tests.cpp
     scenarios/symmetry/group_tests.cpp
     scenarios/symmetry/representation_mapper_tests.cpp
@@ -53,6 +54,7 @@ add_executable(moment_tests
     utilities/ipow_tests.cpp
     utilities/kronecker_power_tests.cpp
     utilities/multi_dimensional_index_iterator_tests.cpp
+    utilities/multi_partition_tests.cpp
     utilities/ordered_permutation_tests.cpp
     utilities/persistent_storage_tests.cpp
     utilities/recursive_storage_tests.cpp

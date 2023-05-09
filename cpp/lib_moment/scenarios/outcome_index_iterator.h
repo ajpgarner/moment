@@ -54,7 +54,7 @@ namespace Moment {
          * True if iterator is at end.
          */
         [[nodiscard]] constexpr bool done() const noexcept {
-            return indexIter.done();
+            return static_cast<bool>(!indexIter);
         }
 
         /**

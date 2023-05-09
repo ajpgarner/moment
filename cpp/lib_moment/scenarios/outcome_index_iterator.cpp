@@ -15,7 +15,7 @@ namespace Moment {
     }
 
     void OutcomeIndexIterator::check_implicit() {
-        if (this->indexIter.done()) {
+        if (!this->indexIter) {
             return;
         }
 

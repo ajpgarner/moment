@@ -148,6 +148,44 @@ namespace Moment::Tests {
     }
 
 
+    TEST(Operators_MultiOperatorIterator, Construct_LengthTwoOffset) {
+        Context collection{4};
+
+        MultiOperatorIterator iter{collection, 2, 2, 1};
+        auto iter_end = MultiOperatorIterator::end_of(collection, 2);
+
+        ASSERT_NE(iter, iter_end);
+        auto v11 = *iter;
+        ASSERT_EQ(v11.size(), 2);
+        EXPECT_EQ(v11[0], 1);
+        EXPECT_EQ(v11[1], 1);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        auto v12 = *iter;
+        ASSERT_EQ(v12.size(), 2);
+        EXPECT_EQ(v12[0], 1);
+        EXPECT_EQ(v12[1], 2);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        auto v21 = *iter;
+        ASSERT_EQ(v21.size(), 2);
+        EXPECT_EQ(v21[0], 2);
+        EXPECT_EQ(v21[1], 1);
+
+        ++iter;
+        ASSERT_NE(iter, iter_end);
+        auto v22 = *iter;
+        ASSERT_EQ(v22.size(), 2);
+        EXPECT_EQ(v22[0], 2);
+        EXPECT_EQ(v22[1], 2);
+
+        ++iter;
+        EXPECT_EQ(iter, iter_end);
+    }
+
+
     TEST(Operators_MultiOperatorIterator, RangeTest) {
         Context collection{4};
         ASSERT_EQ(collection.size(), 4);

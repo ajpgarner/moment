@@ -78,6 +78,13 @@ namespace Moment::Locality {
         [[nodiscard]] constexpr party_name_t id() const {return this->party_id; }
 
         /**
+         * The index of the first operator in the party.
+         */
+        [[nodiscard]] constexpr oper_name_t  global_offset() const noexcept {
+            return this->global_operator_offset;
+        }
+
+        /**
          * Gets a range of operators that correspond to the measurement outcomes from this party.
          * @return Span of operators
          * @throws logic_error if Party not yet attached to a Context.

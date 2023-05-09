@@ -230,7 +230,7 @@ namespace Moment::Tests {
 
         const auto& map = sms.map();
         ASSERT_EQ(locality_symbols.size(), map.fwd_size()) << lms.Symbols(); // All symbols mapped
-        EXPECT_EQ(map.inv_size(), 3); // 0, 1,
+        EXPECT_EQ(map.inv_size(), 3); // 0, 1, y
         ASSERT_EQ(sym_symbols.size(), 3) << sms.Symbols();
         EXPECT_FALSE(map.is_monomial_map());
 

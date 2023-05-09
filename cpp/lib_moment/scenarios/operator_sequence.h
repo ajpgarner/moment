@@ -42,7 +42,7 @@ namespace Moment {
          * @param context Context for further simplification.
          * @param negated True if sequence should be interpreted with a minus sign in front of it.
          */
-        explicit OperatorSequence(sequence_storage_t&& operators, const Context& context, bool negated = false);
+        OperatorSequence(sequence_storage_t operators, const Context& context, bool negated = false) noexcept;
 
         constexpr OperatorSequence(const OperatorSequence& rhs) = default;
 

@@ -7,7 +7,9 @@
 #include "locality_context.h"
 
 #include "../operator_sequence.h"
+
 #include "locality_operator_formatter.h"
+#include "locality_osg.h"
 
 #include "party.h"
 
@@ -263,6 +265,10 @@ namespace Moment::Locality {
            << " in total.\n";
 
         return ss.str();
+    }
+
+    std::unique_ptr<OperatorSequenceGenerator> LocalityContext::new_osg(const size_t word_length) const {
+        return std::make_unique<LocalityOperatorSequenceGenerator>(*this, word_length);
     }
 
 

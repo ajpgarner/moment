@@ -13,7 +13,7 @@
 #include "scenarios/context.h"
 #include "scenarios/operator_sequence.h"
 
-#include "utilities/ipow.h"
+#include "utilities/dynamic_bitset.h"
 #include "utilities/kronecker_power.h"
 #include "utilities/multi_dimensional_index_iterator.h"
 
@@ -68,9 +68,12 @@ namespace Moment::Symmetrized {
         }
 
 
-        repmat_t make_lhs(const std::vector<size_t>& remap, size_t raw_dim, size_t remapped_dim) {
+        /**
+         * Matrix to sum rows
+         */
+        RepresentationMapper::lhs_mat_t make_lhs(const std::vector<size_t>& remap, size_t raw_dim, size_t remapped_dim) {
             assert(raw_dim == remap.size());
-            repmat_t output(static_cast<int>(remapped_dim), static_cast<int>(raw_dim)); // rows, cols
+            RepresentationMapper::lhs_mat_t output(static_cast<int>(remapped_dim), static_cast<int>(raw_dim)); // rows, cols
             std::vector<Eigen::Triplet<double>> triplets;
 
             size_t true_index = 0;
@@ -86,25 +89,36 @@ namespace Moment::Symmetrized {
             return output;
         }
 
-        repmat_t make_rhs(const std::vector<size_t>& remap, size_t raw_dim, size_t remapped_dim) {
+        /**
+         * Matrix to skip columns
+         */
+        RepresentationMapper::rhs_mat_t make_rhs(const std::vector<size_t>& remap, size_t raw_dim, size_t remapped_dim) {
             assert(raw_dim == remap.size());
-            repmat_t output(static_cast<int>(raw_dim), static_cast<int>(remapped_dim)); // rows, cols
+            RepresentationMapper::rhs_mat_t output(static_cast<int>(raw_dim), static_cast<int>(remapped_dim)); // rows, cols
             std::vector<Eigen::Triplet<double>> triplets;
 
+            DynamicBitset<uint64_t> done_map(remapped_dim);
+
             size_t true_index = 0;
-            size_t expected_index = 0;
+
             for (const auto mapped_index : remap) {
-                const bool remapped = mapped_index != expected_index;
 
-                if (!remapped) {
+
+//                const bool remapped = mapped_index != expected_index;
+
+                //if (!remapped) {
+                if (!done_map.test(mapped_index)) {
                     triplets.emplace_back(static_cast<int>(true_index),   // row
-                                          static_cast<int>(expected_index), // col
+                                          static_cast<int>(mapped_index), // col
                                           1.0);
-                    ++expected_index;
-                }
+//                    ++expected_index;
+//                }
 
+                    done_map.set(mapped_index);
+                }
                 ++true_index;
             }
+            assert(done_map.count() == remapped_dim);
 
             output.setFromTriplets(triplets.begin(), triplets.end());
             return output;

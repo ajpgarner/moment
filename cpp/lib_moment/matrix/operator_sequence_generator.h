@@ -14,7 +14,7 @@ namespace Moment {
      * Range over all unique permutations of operators in the supplied context.
      */
     class OperatorSequenceGenerator {
-    private:
+    protected:
         /** Context to pull operators from */
         const Context& context;
 
@@ -28,15 +28,33 @@ namespace Moment {
         /** The maximum length of operator sequence */
         const size_t max_sequence_length;
 
-    public:
 
+    protected:
         /**
-         * Generates all unique permutations of operator sequences, from min_length up to max_length
+         * OSG template, from list of sequences.
          * @param operatorContext
          * @param min_length Shortest operator sequence
          * @param max_length Longest  operator sequence
          */
-        OperatorSequenceGenerator(const Context& operatorContext, size_t min_length, size_t max_length);
+        OperatorSequenceGenerator(const Context& operatorContext, std::vector<OperatorSequence>&& unique_sequences,
+                                  size_t min_length, size_t max_length)
+              : context{operatorContext}, unique_sequences{std::move(unique_sequences)},
+                min_sequence_length{min_length}, max_sequence_length{max_length} { }
+
+    public:
+        /**
+         * Generates all unique permutations of operator sequences, from min_length up to max_length.
+         * @param operatorContext
+         * @param min_length Shortest operator sequence
+         * @param max_length Longest  operator sequence
+         */
+        OperatorSequenceGenerator(const Context& operatorContext, size_t min_length, size_t max_length)
+            : OperatorSequenceGenerator{operatorContext,
+                                        OperatorSequenceGenerator::build_generic_sequences(operatorContext,
+                                                                                           min_length, max_length),
+                                            min_length, max_length} {
+
+        }
 
         /**
          * Move construct OSG
@@ -66,10 +84,20 @@ namespace Moment {
                                     min_sequence_length{min_length}, max_sequence_length{max_length},
                                     unique_sequences{std::move(preComputedSequences)} { }
 
+
+        virtual ~OperatorSequenceGenerator() noexcept = default;
+
         /**
          * Creates a generator for the piece-wise conjugated OperatorSequences of this generator.
          */
         [[nodiscard]] OperatorSequenceGenerator conjugate() const;
+
+        /**
+         * Create all generic sequences
+         * @return
+         */
+        static std::vector<OperatorSequence>
+        build_generic_sequences(const Context &context, size_t min_len, size_t max_len);
 
 
         [[nodiscard]] constexpr auto begin() const noexcept { return unique_sequences.begin(); }

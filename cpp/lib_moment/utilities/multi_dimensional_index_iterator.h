@@ -139,7 +139,17 @@ namespace Moment {
             return this->max_vals;
         }
 
-        [[nodiscard]] constexpr bool done() const noexcept {
+        /**
+         * True, if iterator is not done.
+         */
+        [[nodiscard]] constexpr explicit operator bool() const noexcept {
+            return !this->is_done;
+        }
+
+        /**
+         * True, if iterator is done.
+         */
+        [[nodiscard]] constexpr bool operator!() const noexcept {
             return this->is_done;
         }
 

@@ -23,7 +23,7 @@ namespace Moment {
         return this->context.format_sequence(*this);
     }
 
-    OperatorSequence::OperatorSequence(sequence_storage_t&& operators, const Context &context, const bool negated)
+    OperatorSequence::OperatorSequence(sequence_storage_t operators, const Context &context, const bool negated) noexcept
         : HashedSequence(std::move(operators), context.hash(operators)), context{context}, is_negated{negated}
     {
         this->to_canonical_form();

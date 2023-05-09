@@ -102,6 +102,10 @@ namespace Moment {
         return ss.str();
     }
 
+    std::unique_ptr<OperatorSequenceGenerator> Context::new_osg(const size_t word_length) const {
+        return std::make_unique<OperatorSequenceGenerator>(*this, 0, word_length);
+    }
+
     std::ostream &operator<<(std::ostream &os, const Context &context) {
         os << context.to_string();
         return os;
