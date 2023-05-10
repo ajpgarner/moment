@@ -77,15 +77,17 @@ classdef Rule < matlab.mixin.CustomDisplay
     
     methods(Static,Access=private)
       function str = opSeqToString(seq)
-            if isnumeric(seq)
-                str = "[" + num2str(seq) + "]";
-            elseif ischar(seq)
-                str = string(seq);
-            elseif isstring(seq)
-                str = join(seq, " ");
-            else
-                str = '[UNKNOWN]';
-            end
+          if isempty(seq)
+              str = "I";
+          elseif isnumeric(seq)
+              str = "[" + num2str(seq) + "]";
+          elseif ischar(seq)
+              str = string(seq);
+          elseif isstring(seq)
+              str = join(seq, " ");
+          else
+              str = '[UNKNOWN]';
+          end
         end
     end
 end

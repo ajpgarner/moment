@@ -232,7 +232,7 @@ classdef RuleBook < handle
         
                 
         function MakeProjector(obj, symbol)
-        % MAKEPROJECTOR Add a rule imposing that an operator is a projector.
+        % MAKEPROJECTOR Impose that an operator (or sequence) is projective.
         % If input is X, the rule created is XX -> X.
         %
         % PARAMS
@@ -243,9 +243,6 @@ classdef RuleBook < handle
                 obj (1,1) Algebraic.RuleBook
                 symbol (1,:)
             end
-
-            % Complain if locked
-            obj.errorIfLocked();
             
             % Make and add rule
             lhs = [symbol, symbol];
@@ -255,7 +252,7 @@ classdef RuleBook < handle
         
                  
         function MakeHermitian(obj, symbol)
-        % MAKEPROJECTOR Add a rule imposing that an operator is a Hermitian.
+        % MAKEHERMITIAN Impose that an operator (or sequence) is Hermitian.
         % If input is X, the rule created is X* -> X.
         %
         % PARAMS
@@ -265,15 +262,47 @@ classdef RuleBook < handle
                 obj (1,1) Algebraic.RuleBook
                 symbol (1,:)
             end
-
-            % Complain if locked
-            obj.errorIfLocked();
             
             % Make and add rule
             lhs = obj.RawConjugate(symbol);
-            obj.AddRule(lhs, symbol);
-            
+            obj.AddRule(lhs, symbol);            
         end
+        
+        function MakeUnitary(obj, symbol)
+        % MAKEUNITARY Impose that an operator (or sequence) is unitary.
+        % If input is X, the rules created are X* X -> I, and X X* -> I
+        %
+        % PARAMS
+        %   symbol - The operator, or operator sequence, that is unitary.
+        %
+            arguments
+                obj (1,1) Algebraic.RuleBook
+                symbol (1,:)
+            end
+
+            % Make and add rule
+            conjugated = obj.RawConjugate(symbol);
+            obj.AddRule([conjugated, symbol], []);
+            %obj.AddRule([symbol, conjugated], []);
+        end
+        
+            
+        function MakeSelfInverse(obj, symbol)
+        % MAKEUNITARY Impose that an operator (or sequence) is self-inverse.
+        % If input is X, the rule created is X X -> I.
+        %
+        % PARAMS
+        %   symbol - The operator, or operator sequence, that is self-inverse.
+        %
+            arguments
+                obj (1,1) Algebraic.RuleBook
+                symbol (1,:)
+            end
+            
+            % Make and add rule
+            obj.AddRule([symbol, symbol], []);
+        end
+        
     end
     
     %% Completion
