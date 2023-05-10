@@ -26,8 +26,6 @@ namespace Moment::mex::functions {
 
         uint64_t max_attempts = 128;
 
-        bool hermitian_operators = true;
-
         /** Precontext, including number of operators, and whether they are self-adjoint */
         std::unique_ptr<Algebraic::AlgebraicPrecontext> apc;
 

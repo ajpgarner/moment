@@ -1,21 +1,5 @@
 classdef CompleteTest < MTKTestBase
     %COMPLETETEST Unit tests for complete mex function
-    
-    properties(Constant)
-    end
-    
-    methods
-        function check_completion_nh(testCase, ops, input, expected)
-            output = mtk('complete', 'nonhermitian', ops, input);
-            testCase.verifyEqual(output, expected);
-        end
-        
-        function check_completion_h(testCase, ops, input, expected)
-            output = mtk('complete', 'hermitian', ops, input);
-            testCase.verifyEqual(output, expected);
-        end
-    end
-    
     methods (Test)
         function ABtoA_BAtoA(testCase)
             input = {{[1, 2], [1]}, {[2, 1], [2]}};
@@ -27,7 +11,23 @@ classdef CompleteTest < MTKTestBase
                 {uint64([3, 4]), uint64([4])}, ...
                 {uint64([4, 3]), uint64([3])}, ...
                 {uint64([4, 4]), uint64([4])}};
-            testCase.check_completion_nh(2, input, expected);
+            output = mtk('complete', 'nonhermitian', 2, input);
+            testCase.verifyEqual(output, expected);            
+        end
+        
+        function ABtoA_BAtoA_Interleaved(testCase)
+            input = {{[1, 3], [1]}, {[3, 1], [3]}};
+            expected = {...
+                {uint64([1, 1]), uint64([1])}, ...
+                {uint64([1, 3]), uint64([1])}, ...                
+                {uint64([2, 2]), uint64([2])}, ...                
+                {uint64([2, 4]), uint64([4])}, ...
+                {uint64([3, 1]), uint64([3])}, ...
+                {uint64([3, 3]), uint64([3])}, ... 
+                {uint64([4, 2]), uint64([2])}, ...
+                {uint64([4, 4]), uint64([4])}};
+            output = mtk('complete', 'interleaved', 2, input);
+            testCase.verifyEqual(output, expected);    
         end
         
         function AAAtoI_BBBtoI_ABABABtoI(testCase)
@@ -41,7 +41,25 @@ classdef CompleteTest < MTKTestBase
                 {uint64([2, 2, 1, 1]), uint64([1, 2, 1, 2])}, ...
                 {uint64([4, 3, 4, 3]), uint64([3, 3, 4, 4])}, ...
                 {uint64([4, 4, 3, 3]), uint64([3, 4, 3, 4])}};
-            testCase.check_completion_nh(2, input, expected);
+            
+            output = mtk('complete', 'nonhermitian', 2, input);
+            testCase.verifyEqual(output, expected);     
+        end
+          
+        function AAAtoI_BBBtoI_ABABABtoI_Interleaved(testCase)
+            input = {{[1, 1, 1], []}, {[3, 3, 3], []}, ...
+                {[1, 3, 1, 3, 1, 3], []}};
+            expected = {{uint64([1, 1, 1]), uint64.empty(1,0)}, ...
+                {uint64([2, 2, 2]), uint64.empty(1,0)}, ...
+                {uint64([3, 3, 3]), uint64.empty(1,0)}, ...
+                {uint64([4, 4, 4]), uint64.empty(1,0)}, ...
+                {uint64([3, 1, 3, 1]), uint64([1, 1, 3, 3])}, ...
+                {uint64([3, 3, 1, 1]), uint64([1, 3, 1, 3])}, ...
+                {uint64([4, 2, 4, 2]), uint64([2, 2, 4, 4])}, ...
+                {uint64([4, 4, 2, 2]), uint64([2, 4, 2, 4])}};
+            
+            output = mtk('complete', 'interleaved', 2, input);
+            testCase.verifyEqual(output, expected);     
         end
         
         function Herm_ABtoA_BCtoB_CAtoA(testCase)
@@ -50,7 +68,8 @@ classdef CompleteTest < MTKTestBase
             expected = {{uint64([2]), uint64([1])}, ...
                 {uint64([3]), uint64([1])}, ...
                 {uint64([1, 1]), uint64([1])}};
-            testCase.check_completion_h(3, input, expected);
+            output = mtk('complete', 'hermitian', 3, input);
+            testCase.verifyEqual(output, expected);     
         end
         
         function CharArray_Herm_ABtoA_BCtoB_CAtoA(testCase)
@@ -58,7 +77,8 @@ classdef CompleteTest < MTKTestBase
             expected = {{uint64([2]), uint64([1])}, ...
                 {uint64([3]), uint64([1])}, ...
                 {uint64([1, 1]), uint64([1])}};
-            testCase.check_completion_h('abc', input, expected);
+            output = mtk('complete', 'hermitian', 'abc', input);
+            testCase.verifyEqual(output, expected);
         end
         
         function StrArray_Herm_ABtoA_BCtoB_CAtoA(testCase)
@@ -67,14 +87,17 @@ classdef CompleteTest < MTKTestBase
             expected = {{uint64([2]), uint64([1])}, ...
                 {uint64([3]), uint64([1])}, ...
                 {uint64([1, 1]), uint64([1])}};
-            testCase.check_completion_h(["a", "b", "c"], input, expected);
+            output = mtk('complete', 'hermitian', ...
+                         ["a", "b", "c"], input);
+            testCase.verifyEqual(output, expected);
         end
         
         function NonHerm_InferHermitian(testCase)
             input = {{[1, 2], [1]}};
             expected = {{uint64([2]), uint64([1])}, ...
                 {uint64([1, 1]), uint64([1])}};
-            testCase.check_completion_nh(1, input, expected);
+            output = mtk('complete', 'nonhermitian', 1, input);
+            testCase.verifyEqual(output, expected);
         end
                 
         function Normal(testCase)
@@ -102,7 +125,14 @@ classdef CompleteTest < MTKTestBase
             end
             testCase.verifyError(@() no_in(), 'mtk:mutex_param');
         end
-        
+       
+        function Error_HermIx(testCase)
+            function no_in()
+                [~] = mtk('complete', 'hermitian', 'interleaved', ...
+                            1, {{[1],[]}});
+            end
+            testCase.verifyError(@() no_in(), 'mtk:mutex_param');
+        end      
         
         function Error_BadRule1(testCase)
             function no_in()

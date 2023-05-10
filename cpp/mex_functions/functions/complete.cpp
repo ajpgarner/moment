@@ -35,7 +35,7 @@ namespace Moment::mex::functions {
             if (input.commutative) {
                 Algebraic::RuleBook::commutator_rules(apc, rules);
             }
-            if (!input.hermitian_operators && input.normal_operators) {
+            if (!apc.self_adjoint() && input.normal_operators) {
                 Algebraic::RuleBook::normal_rules(apc, rules);
             }
 
@@ -71,8 +71,16 @@ namespace Moment::mex::functions {
         : SortedInputs(std::move(rawInput)) {
 
         // Default to Hermitian, but allow non-hermitian override
-        this->hermitian_operators = !(this->flags.contains(u"nonhermitian"));
-        if (!this->hermitian_operators) {
+        auto hermitian_mode = [&]() {
+            if (this->flags.contains(u"nonhermitian") || this->flags.contains(u"bunched")) {
+                return Algebraic::AlgebraicPrecontext::ConjugateMode::Bunched;
+            } else if (this->flags.contains(u"interleaved")) {
+               return Algebraic::AlgebraicPrecontext::ConjugateMode::Interleaved;
+            }
+            return Algebraic::AlgebraicPrecontext::ConjugateMode::SelfAdjoint;
+        }();
+
+        if (hermitian_mode != Algebraic::AlgebraicPrecontext::ConjugateMode::SelfAdjoint) {
             this->normal_operators = this->flags.contains(u"normal");
         } else {
             this->normal_operators = true;
@@ -83,22 +91,13 @@ namespace Moment::mex::functions {
             || (inputs[0].getType() == matlab::data::ArrayType::MATLAB_STRING)) {
 
             this->max_operators = get_name_table_length(matlabEngine, "Operator specification", inputs[0]);
-            this->apc = std::make_unique<Algebraic::AlgebraicPrecontext>(
-                    this->max_operators,
-                    this->hermitian_operators ? Algebraic::AlgebraicPrecontext::ConjugateMode::SelfAdjoint
-                                              : Algebraic::AlgebraicPrecontext::ConjugateMode::Bunched
-            );
+            this->apc = std::make_unique<Algebraic::AlgebraicPrecontext>(this->max_operators, hermitian_mode);
             this->names = read_name_table(matlabEngine, *this->apc, "Operator specification",  inputs[0]);
             assert(this->names);
-            this->max_operators = this->names->operator_count;
         } else {
             this->max_operators = read_positive_integer<uint64_t>(matlabEngine, "Operator specification",
                                                                   inputs[0], 1);
-            this->apc = std::make_unique<Algebraic::AlgebraicPrecontext>(
-                    this->max_operators,
-                    this->hermitian_operators ? Algebraic::AlgebraicPrecontext::ConjugateMode::SelfAdjoint
-                                              : Algebraic::AlgebraicPrecontext::ConjugateMode::Bunched
-            );
+            this->apc = std::make_unique<Algebraic::AlgebraicPrecontext>(this->max_operators, hermitian_mode);
             this->names = std::make_unique<Algebraic::NameTable>(*apc);
         }
 
@@ -148,8 +147,9 @@ namespace Moment::mex::functions {
 
         this->flag_names.emplace(u"hermitian");
         this->flag_names.emplace(u"nonhermitian");
-        // this->flag_names.emplace(u"interleaved");
-        this->mutex_params.add_mutex(u"hermitian", u"nonhermitian");
+        this->flag_names.emplace(u"bunched");
+        this->flag_names.emplace(u"interleaved");
+        this->mutex_params.add_mutex({u"hermitian", u"nonhermitian", u"bunched", u"interleaved"});
 
         this->flag_names.emplace(u"normal");
 
