@@ -25,10 +25,13 @@ namespace Moment::Tests {
     using namespace Moment::Derived;
 
     TEST(Scenarios_Symmetry_SymbolTableMap, Algebraic2to1) {
+        using namespace Moment::Algebraic;
 
-        auto amsPtr = std::make_shared<Algebraic::AlgebraicMatrixSystem>(
-                std::make_unique<Algebraic::AlgebraicContext>(Algebraic::NameTable{"a", "b"})
+        AlgebraicPrecontext apc{2};
+        auto amsPtr = std::make_shared<AlgebraicMatrixSystem>(
+                AlgebraicContext::FromNameList({"a", "b"})
         );
+
         auto& ams = *amsPtr;
         const auto& context = ams.Context();
         const auto& symbols = ams.Symbols();

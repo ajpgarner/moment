@@ -30,25 +30,25 @@ namespace Moment::Algebraic {
 
     public:
         /**
-         * Create table of names.
+         * Create table of names from precontext and list.
+         * @param apc The algebraic pre-context, defining number of operators and their self-adjointness.
          * @param names The names of each fundamental operator, in order.
          * @throws std::invalid_argument if any name is invalid, or if there is a duplicate name.
          */
-        explicit NameTable(std::vector<std::string>&& names);
+        NameTable(const AlgebraicPrecontext& apc, std::vector<std::string>&& names);
 
         /**
-         * Create table of names.
+         * Create default table of names.
+         * @param apc The algebraic pre-context, defining number of operators and their self-adjointness.
+         */
+        explicit NameTable(const AlgebraicPrecontext& apc);
+
+        /**
+         * Create table of names, inferring a Hermitian pre-context.
          * @param names The names of each fundamental operator, in order.
          * @throws std::invalid_argument if any name is invalid, or if there is a duplicate name.
          */
-        inline NameTable(std::initializer_list<std::string> input_names)
-            : NameTable{std::vector<std::string>(input_names.begin(), input_names.end())} { }
-
-        /**
-         * Create table of automatically generated names.
-         * @param num_operators The number of fundamental operators.
-         */
-        explicit NameTable(size_t num_operators) : NameTable(default_string_names(num_operators)) { }
+        NameTable(std::initializer_list<std::string> input_names);
 
         /** Gets the name associated with the operator at index. */
         inline const std::string& operator[](const size_t idx) const noexcept {
@@ -61,11 +61,10 @@ namespace Moment::Algebraic {
 
         /**
          * Translate name to operator number.
-         * @param apc The algebraic pre-context.
          * @param str The name to attempt to match.
          * @throws std::invalid_argument If string cannot be translated to valid operator number.
          */
-        [[nodiscard]] oper_name_t find(const AlgebraicPrecontext& apc, std::string str) const;
+        [[nodiscard]] oper_name_t find(const std::string& str) const;
 
     public:
         /** Checks if a name is allowed.

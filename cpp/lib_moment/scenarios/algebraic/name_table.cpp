@@ -14,18 +14,33 @@
 
 namespace Moment::Algebraic {
 
-    NameTable::NameTable(std::vector<std::string> &&input_names) :
-        operator_count(input_names.size()), names{std::move(input_names)} {
+
+    NameTable::NameTable(const AlgebraicPrecontext& apc, std::vector<std::string>&& input_names)
+        : operator_count(input_names.size()), names{std::move(input_names)} {
+        //const size_t raw_op_count =  (apc.num_operators / (apc.self_adjoint ? 2 : 1));
+
+        // Check number of names matches APC's expected number of names
+        if (operator_count != apc.raw_operators) {
+            std::stringstream ss;
+            ss << operator_count << " " << ((operator_count != 1) ? "names" : "name")
+               << " provided, but context expects "
+               << apc.raw_operators << ((apc.raw_operators != 1) ? "names" : "name") << ".";
+            throw std::invalid_argument{ss.str()};
+        }
+
+        // Validate raw names
         oper_name_t op_number = 0;
         this->all_single_char = true;
         for (const auto& name : this->names) {
+            const auto tx_op_number = static_cast<oper_name_t>(op_number
+                                        * ((apc.conj_mode == AlgebraicPrecontext::ConjugateMode::Interleaved) ? 2 : 1));
             auto result = NameTable::validate_name(name);
             if (result.has_value()) {
                 std::stringstream ss;
                 ss << "Invalid name for operator " << (op_number+1) << ": " << result.value();
                 throw std::invalid_argument{ss.str()};
             }
-            auto [iter, new_insert] = this->index.insert(std::make_pair(name, op_number));
+            auto [iter, new_insert] = this->index.insert(std::make_pair(name, tx_op_number));
             if (!new_insert) {
                 std::stringstream ss;
                 ss << "Operator #" << (op_number + 1) << " has duplicate name \"" << name << "\""
@@ -35,18 +50,58 @@ namespace Moment::Algebraic {
             if (name.length() != 1) {
                 this->all_single_char = false;
             }
+
             ++op_number;
         }
 
-        // Add "*" variants to names vector.
-        this->names.reserve(2*this->names.size());
-        for (size_t strIndex = 0, index_max = this->names.size(); strIndex < index_max; ++strIndex) {
-            this->names.emplace_back(this->names[strIndex]);
-            this->names.back().append("*");
+        // Add * variants, if required
+        switch (apc.conj_mode) {
+            case AlgebraicPrecontext::ConjugateMode::SelfAdjoint:
+                for (size_t idx = 0; idx < this->operator_count; ++idx) {
+                    std::string conj_str = this->names[idx];
+                    conj_str.append("*");
+                    this->index.emplace(std::make_pair(std::move(conj_str), idx));
+                }
+                break;
+            case AlgebraicPrecontext::ConjugateMode::Bunched:
+                this->names.reserve(2 * this->names.size());
+                for (size_t strIndex = 0; strIndex < this->operator_count; ++strIndex) {
+                    std::string conj_str = this->names[strIndex];
+                    conj_str.append("*");
+                    this->names.emplace_back(std::move(conj_str));
+                    this->index.emplace(std::make_pair(this->names.back(), this->names.size()-1));
+                }
+                break;
+            case AlgebraicPrecontext::ConjugateMode::Interleaved:
+                this->names.resize(2* this->names.size());
+                for (ptrdiff_t idx = this->operator_count-1; idx >= 0; --idx) {
+                    std::string conj_str = this->names[idx];
+                    conj_str.append("*");
+
+                    this->names[2*idx] = std::move(this->names[idx]);
+
+                    this->index.emplace(std::make_pair(conj_str, (2*idx+1)));
+                    this->names[2*idx+1] = std::move(conj_str);
+                }
+                break;
         }
     }
 
+    NameTable::NameTable(const AlgebraicPrecontext& apc)
+        : NameTable(apc, default_string_names(apc.raw_operators, "X")) {
+    }
+
+    NameTable::NameTable(std::initializer_list<std::string> input_names)
+        : NameTable{AlgebraicPrecontext{static_cast<oper_name_t>(input_names.size())},
+                    std::vector<std::string>(input_names.begin(), input_names.end())} {
+
+    }
+
     std::vector<std::string> NameTable::default_string_names(size_t num_operators, const std::string& var_name) {
+        if (num_operators <= 0) {
+            return {};
+        }
+
         std::vector<std::string> output;
         output.reserve(num_operators);
         for (size_t i = 0; i < num_operators; ++i) {
@@ -79,32 +134,22 @@ namespace Moment::Algebraic {
         return {"Name must be alphanumeric, and begin with a letter."};
     }
 
-    oper_name_t NameTable::find(const AlgebraicPrecontext& apc, std::string str) const {
+    oper_name_t NameTable::find(const std::string& str) const {
         if (str.empty()) {
             throw std::invalid_argument{"Operator cannot be empty string."};
         }
 
-        // Is operator conjugated?
-        bool conjugated = false;
-        if (str.ends_with('*')) {
-            str = str.substr(0, str.size()-1);
-            conjugated = !apc.self_adjoint;
-        }
-
-        // Try and match name
         auto search_iter = this->index.find(str);
+
         if (search_iter == this->index.end()) {
             std::stringstream errSS;
             errSS << "Cannot find operator \"" << str << "\"";
             throw std::invalid_argument{errSS.str()};
         }
 
-        // Extract operator name, apply conjugation if necessary
-        oper_name_t raw_oper = search_iter->second;
-        if (conjugated) {
-            raw_oper += apc.conj_offset;
-        }
-
-        return raw_oper;
+        // Names now stored in order.
+        return search_iter->second;
     }
+
+
 }

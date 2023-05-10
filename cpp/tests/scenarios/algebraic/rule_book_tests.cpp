@@ -37,7 +37,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, AddRule_ToNonEmpty) {
-        AlgebraicPrecontext apc{3, false};
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
 
         std::vector<MonomialSubstitutionRule> msr_list;
@@ -64,7 +64,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, AddRule_Redundant) {
-        AlgebraicPrecontext apc{3, false};
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         
         std::vector<MonomialSubstitutionRule> msr_list;
@@ -85,7 +85,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, AddRule_ImpliesZero) {
-        AlgebraicPrecontext apc{3, false};
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr_list;
         msr_list.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -111,7 +111,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, AddRule_CtoB_CtoA) {
-        AlgebraicPrecontext apc{3, false};
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr_list;
         msr_list.emplace_back(HashedSequence{{2}, hasher},
@@ -137,7 +137,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, AddRule_CtoA_CtoB) {
-        AlgebraicPrecontext apc{3, false};
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         
         std::vector<MonomialSubstitutionRule> msr_list;
@@ -164,7 +164,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, AddRule_Cascade) {
-        AlgebraicPrecontext apc{4, false};
+        AlgebraicPrecontext apc{4, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr_list;
         msr_list.emplace_back(HashedSequence{{3}, hasher},
@@ -198,7 +198,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, Reduce_String) {
-        AlgebraicPrecontext apc{2, false};
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         
         std::vector<MonomialSubstitutionRule> msr;
@@ -216,7 +216,7 @@ namespace Moment::Tests {
     }
 
      TEST(Scenarios_Algebraic_RuleBook, Reduce_StringRecursive) {
-        AlgebraicPrecontext apc{2, false};
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -233,7 +233,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, Reduce_ABToZero_AB) {
-        AlgebraicPrecontext apc{2, false};
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
@@ -250,7 +250,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, Reduce_ABToZero_ABBB) {
-        AlgebraicPrecontext apc{2, false};
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
@@ -267,7 +267,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, Reduce_ABToZero_BAB) {
-        AlgebraicPrecontext apc{2, false};
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
@@ -284,7 +284,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, Reduce_Rule) {
-        AlgebraicPrecontext apc{2, false};
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -307,7 +307,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, Reduce_RuleToZero) {
-        AlgebraicPrecontext apc{4, false};
+        AlgebraicPrecontext apc{4, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{2}, hasher},
@@ -329,7 +329,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, ReduceRuleset_AACtoAAB_CtoB) {
-        AlgebraicPrecontext apc{3, false};
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 0, 2}, hasher},
@@ -357,7 +357,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, ReduceRuleset_CtoB_BtoA) {
-        AlgebraicPrecontext apc{3, false};
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{2}, hasher},
@@ -428,7 +428,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, Complete_ABtoA_BAtoB) {
-        AlgebraicPrecontext apc{2, false};
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -457,7 +457,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_RuleBook, Complete_AAAtoI_BBBtoI_ABABABtoI) {
-        AlgebraicPrecontext apc{2, false};
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 0, 0}, hasher},
@@ -485,7 +485,7 @@ namespace Moment::Tests {
 
 
     TEST(Scenarios_Algebraic_RuleBook, Complete_ABtoA_BAtoMinusB) {
-        AlgebraicPrecontext apc{2, false};
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<MonomialSubstitutionRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
@@ -589,8 +589,8 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, GenerateNormalRules) {
-        AlgebraicPrecontext apc{3, false};
+    TEST(Scenarios_Algebraic_RuleBook, GenerateNormalRules_Bunched) {
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         auto normVec = RuleBook::normal_rules(apc);
         ASSERT_EQ(normVec.size(), 3);
@@ -608,6 +608,28 @@ namespace Moment::Tests {
 
         EXPECT_EQ(normVec[2].LHS(),HashedSequence({5, 2}, hasher));
         EXPECT_EQ(normVec[2].RHS(),HashedSequence({2, 5}, hasher));
+
+    }
+
+    TEST(Scenarios_Algebraic_RuleBook, GenerateNormalRules_Interleaved) {
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Interleaved};
+        const ShortlexHasher& hasher = apc.hasher;
+        auto normVec = RuleBook::normal_rules(apc);
+        ASSERT_EQ(normVec.size(), 3);
+
+        for (size_t i = 0; i < 3; ++i) {
+            ASSERT_EQ(normVec[i].LHS().size(), 2) << i;
+            ASSERT_EQ(normVec[i].RHS().size(), 2) << i;
+        }
+
+        EXPECT_EQ(normVec[0].LHS(),HashedSequence({1, 0}, hasher));
+        EXPECT_EQ(normVec[0].RHS(),HashedSequence({0, 1}, hasher));
+
+        EXPECT_EQ(normVec[1].LHS(),HashedSequence({3, 2}, hasher));
+        EXPECT_EQ(normVec[1].RHS(),HashedSequence({2, 3}, hasher));
+
+        EXPECT_EQ(normVec[2].LHS(),HashedSequence({5, 4}, hasher));
+        EXPECT_EQ(normVec[2].RHS(),HashedSequence({4, 5}, hasher));
 
     }
 

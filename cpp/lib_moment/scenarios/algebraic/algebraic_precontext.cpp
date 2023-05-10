@@ -10,24 +10,35 @@
 namespace Moment::Algebraic {
     sequence_storage_t AlgebraicPrecontext::conjugate(const sequence_storage_t &seq) const {
 
-        sequence_storage_t output;
+        // Do nothing on empty sequence
+        if (seq.empty()) {
+            return sequence_storage_t{};
+        }
 
-        // Reserve
+        // Prepare output
+        sequence_storage_t output;
         const size_t raw_size = seq.size();
         output.reserve(raw_size);
 
-        if (this->self_adjoint) {
-            // Just flip string
-            std::reverse_copy(seq.begin(), seq.end(), std::back_inserter(output));
-        } else {
-            assert(num_operators > 0);
-            // Flip string, and offset operators
-            for (size_t out_index = 0; out_index < raw_size; ++out_index) {
-                const size_t in_index = raw_size - out_index - 1;
-                // A1...An <-> B1...Bn
-                output.emplace_back((seq[in_index] + this->conj_offset) % this->num_operators);
-            }
+        switch (this->conj_mode) {
+            case ConjugateMode::SelfAdjoint:
+                std::reverse_copy(seq.begin(), seq.end(), std::back_inserter(output));
+                break;
+            case ConjugateMode::Bunched:
+                for (size_t out_index = 0; out_index < raw_size; ++out_index) {
+                    const size_t in_index = raw_size - out_index - 1;
+                    // A1...An <-> B1...Bn
+                    output.emplace_back((seq[in_index] + this->raw_operators) % this->num_operators);
+                }
+                break;
+            case ConjugateMode::Interleaved:
+                for (size_t out_index = 0; out_index < raw_size; ++out_index) {
+                    const size_t in_index = raw_size - out_index - 1;
+                    output.emplace_back(seq[in_index] ^ 0x1); // op 0<->1, 2<->3, etc.
+                }
+                break;
         }
+
         return output;
     }
 

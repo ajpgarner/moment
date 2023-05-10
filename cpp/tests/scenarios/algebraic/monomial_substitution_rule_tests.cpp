@@ -12,7 +12,7 @@
 namespace Moment::Tests {
     using namespace Moment::Algebraic;
 
-    TEST(Scenarios_Algebraic_MonomialSubRule, Conjugate) {
+    TEST(Scenarios_Algebraic_MonomialSubRule, Conjugate_SelfAdjoint) {
 
         AlgebraicPrecontext apc{3};
         const ShortlexHasher& hasher = apc.hasher;
@@ -34,6 +34,54 @@ namespace Moment::Tests {
         ASSERT_EQ(conj_msr.RHS().size(), 2);
         EXPECT_EQ(conj_msr.RHS()[0], 1);
         EXPECT_EQ(conj_msr.RHS()[1], 2);
+    }
+
+    TEST(Scenarios_Algebraic_MonomialSubRule, Conjugate_Bunched) {
+
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
+        const ShortlexHasher& hasher = apc.hasher;
+
+        // BBA -> BA
+        MonomialSubstitutionRule msr{HashedSequence{{2, 2, 1}, hasher},
+                                     HashedSequence{{2, 1}, hasher}};
+        EXPECT_FALSE(msr.negated());
+
+        // A*B*B* -> A*B*
+        auto conj_msr = msr.conjugate(apc);
+        EXPECT_FALSE(conj_msr.negated());
+
+        ASSERT_EQ(conj_msr.LHS().size(), 3);
+        EXPECT_EQ(conj_msr.LHS()[0], 4);
+        EXPECT_EQ(conj_msr.LHS()[1], 5);
+        EXPECT_EQ(conj_msr.LHS()[2], 5);
+
+        ASSERT_EQ(conj_msr.RHS().size(), 2);
+        EXPECT_EQ(conj_msr.RHS()[0], 4);
+        EXPECT_EQ(conj_msr.RHS()[1], 5);
+    }
+
+    TEST(Scenarios_Algebraic_MonomialSubRule, Conjugate_Interleaved) {
+
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Interleaved};
+        const ShortlexHasher& hasher = apc.hasher;
+
+        // BBA -> BA
+        MonomialSubstitutionRule msr{HashedSequence{{4, 4, 2}, hasher},
+                                     HashedSequence{{4, 2}, hasher}};
+        EXPECT_FALSE(msr.negated());
+
+        // A*B*B* -> A*B*
+        auto conj_msr = msr.conjugate(apc);
+        EXPECT_FALSE(conj_msr.negated());
+
+        ASSERT_EQ(conj_msr.LHS().size(), 3);
+        EXPECT_EQ(conj_msr.LHS()[0], 3);
+        EXPECT_EQ(conj_msr.LHS()[1], 5);
+        EXPECT_EQ(conj_msr.LHS()[2], 5);
+
+        ASSERT_EQ(conj_msr.RHS().size(), 2);
+        EXPECT_EQ(conj_msr.RHS()[0], 3);
+        EXPECT_EQ(conj_msr.RHS()[1], 5);
     }
 
     TEST(Scenarios_Algebraic_MonomialSubRule, Conjugate_WithNegation) {

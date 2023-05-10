@@ -183,8 +183,8 @@ namespace Moment::mex::functions {
 
         // Print a warning, if not complete (and not in quiet mode, or a test)
         if (!completed && !input.test_only && !this->quiet && !this->verbose) {
-            print_to_console(this->matlabEngine,
-                             "Maximum number of new rules were introduced, but the set was not completed.\n");
+            print_warning(this->matlabEngine,
+                          "Maximum number of new rules were introduced, but the set was not completed.\n");
         }
 
         if (input.test_only) {

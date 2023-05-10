@@ -184,7 +184,7 @@ namespace Moment::Tests {
 
     TEST(Operators_OperatorSequence, Conjugate) {
         using namespace Moment::Algebraic;
-        AlgebraicContext context{4, true};
+        AlgebraicContext context{4};
         OperatorSequence seqA{{0, 1, 2, 3}, context};
         OperatorSequence seqB{{3, 2, 1, 0}, context};
 
@@ -210,7 +210,7 @@ namespace Moment::Tests {
 
     TEST(Operators_OperatorSequence, Conjugate_Zero) {
         using namespace Moment::Algebraic;
-        AlgebraicContext context{4, true};
+        AlgebraicContext context{4};
         auto seqA = OperatorSequence::Zero(context);
 
         auto conjA = seqA.conjugate();
@@ -221,7 +221,7 @@ namespace Moment::Tests {
 
     TEST(Operators_OperatorSequence, Conjugate_Id) {
         using namespace Moment::Algebraic;
-        AlgebraicContext context{4, true};
+        AlgebraicContext context{4};
         auto seqA = OperatorSequence::Identity(context);
 
         auto conjA = seqA.conjugate();

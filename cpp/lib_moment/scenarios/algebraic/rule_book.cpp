@@ -12,9 +12,9 @@
 namespace Moment::Algebraic {
 
 
-    RuleBook::RuleBook(const AlgebraicPrecontext& pc,
+    RuleBook::RuleBook(const AlgebraicPrecontext& apc,
                        const std::vector<MonomialSubstitutionRule>& rules) :
-            precontext{pc}, is_hermitian{pc.self_adjoint} {
+            precontext{apc}, is_hermitian{apc.self_adjoint()} {
         this->add_rules(rules);
     }
 
@@ -418,16 +418,26 @@ namespace Moment::Algebraic {
 
 
    void RuleBook::normal_rules(const AlgebraicPrecontext& apc, std::vector<MonomialSubstitutionRule>& output) {
-        if (apc.self_adjoint || (apc.num_operators == 0)) {
+        if (apc.self_adjoint() || (apc.num_operators == 0)) {
             return;
         }
 
-        const auto raw_operator_count = static_cast<oper_name_t>(apc.num_operators / 2);
+        const auto raw_operator_count = apc.raw_operators;
 
-        output.reserve(output.size() + raw_operator_count);
-        for (oper_name_t a = 0; a < raw_operator_count; ++a) {
-            const auto aStar = static_cast<oper_name_t>(a + raw_operator_count);
-            output.emplace_back(HashedSequence{{aStar, a}, apc.hasher}, HashedSequence{{a, aStar}, apc.hasher});
+        if (apc.conj_mode == AlgebraicPrecontext::ConjugateMode::Bunched) {
+            output.reserve(output.size() + raw_operator_count);
+            for (oper_name_t a = 0; a < raw_operator_count; ++a) {
+                const auto aStar = static_cast<oper_name_t>(a + raw_operator_count);
+                output.emplace_back(HashedSequence{{aStar, a}, apc.hasher}, HashedSequence{{a, aStar}, apc.hasher});
+            }
+        } else {
+            assert(apc.conj_mode == AlgebraicPrecontext::ConjugateMode::Interleaved);
+            output.reserve(output.size() + raw_operator_count);
+            for (oper_name_t idx = 0; idx < raw_operator_count; ++idx) {
+                const auto a = static_cast<oper_name_t >(2*idx);
+                const auto aStar = static_cast<oper_name_t>(a + 1);
+                output.emplace_back(HashedSequence{{aStar, a}, apc.hasher}, HashedSequence{{a, aStar}, apc.hasher});
+            }
         }
     }
 

@@ -50,17 +50,29 @@ namespace Moment::Algebraic {
         std::unique_ptr<NameTable> op_names;
 
     public:
-        AlgebraicContext(std::unique_ptr<NameTable> names, bool self_adjoint, bool commutative, bool normal,
+        /**
+         * Construct context from pre-context and names.
+         * @param apc Pre-context (containing operator count, self-adjointness, conjugate type, etc.)
+         * @param names Names of each operator.
+         * @param commutative True, to add commutation rules for every operator.
+         * @param normal True, to add normality rules for every operator.
+         * @param rules Custom re-write rules.
+         */
+        AlgebraicContext(const AlgebraicPrecontext& apc,
+                         std::unique_ptr<NameTable> names,
+                         bool commutative, bool normal,
                          const std::vector<MonomialSubstitutionRule>& rules);
 
-        AlgebraicContext(size_t operator_count, bool self_adjoint, bool commutative, bool normal,
+        /** Delegates to first constructor, making default name table */
+        AlgebraicContext(const AlgebraicPrecontext& apc, bool commutative, bool normal,
                          const std::vector<MonomialSubstitutionRule>& rules);
 
-        AlgebraicContext(NameTable&& names, bool self_adjoint = true, bool commutative = false, bool normal = true);
+        /** Delegates to first constructor with default name table and default rules */
+        AlgebraicContext(const AlgebraicPrecontext& apc, bool commutative, bool normal)
+            : AlgebraicContext{apc, commutative, normal, {}} {}
 
-        explicit AlgebraicContext(size_t operator_count, bool self_adjoint = true,
-                                  bool commutative = false, bool normal = true)
-            : AlgebraicContext{operator_count, self_adjoint, commutative, normal, {}} { }
+        /** Delegates to first constructor, with hermitian, non-commutative APC of supplied size. */
+        explicit AlgebraicContext(oper_name_t num_ops);
 
         ~AlgebraicContext() noexcept override;
 
@@ -100,5 +112,9 @@ namespace Moment::Algebraic {
          * Access rule information
          */
         [[nodiscard]] const RuleBook& rulebook() const noexcept { return this->rules; }
+
+    public:
+        /** Named c'tor. */
+        static std::unique_ptr<AlgebraicContext> FromNameList(std::initializer_list<std::string> names);
     };
 }

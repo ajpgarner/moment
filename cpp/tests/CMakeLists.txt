@@ -15,6 +15,7 @@ add_executable(moment_tests
     scenarios/dictionary_map_tests.cpp
     scenarios/implicit_symbol_test_helpers.cpp
     scenarios/algebraic/algebraic_context_tests.cpp
+    scenarios/algebraic/algebraic_precontext_tests.cpp
     scenarios/algebraic/monomial_substitution_rule_tests.cpp
     scenarios/algebraic/name_table_tests.cpp
     scenarios/algebraic/rule_book_tests.cpp

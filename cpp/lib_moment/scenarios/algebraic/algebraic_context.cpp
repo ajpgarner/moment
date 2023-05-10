@@ -15,22 +15,16 @@
 
 namespace Moment::Algebraic {
 
-    AlgebraicContext::AlgebraicContext(size_t operator_count, bool self_adjoint, bool commutative, bool normal,
-                                       const std::vector<MonomialSubstitutionRule>& rules)
-        : AlgebraicContext{std::make_unique<NameTable>(operator_count), self_adjoint, commutative, normal, rules} {
-    }
 
-    AlgebraicContext::AlgebraicContext(NameTable&& names, bool self_adjoint, bool commutative, bool normal)
-        : AlgebraicContext{std::make_unique<NameTable>(std::move(names)), self_adjoint, commutative, normal, {}} {
-    }
 
-    AlgebraicContext::AlgebraicContext(std::unique_ptr<NameTable> names, const bool hermitian,
+    AlgebraicContext::AlgebraicContext(const AlgebraicPrecontext& input_apc,
+                                       std::unique_ptr<NameTable> names,
                                        const bool commute, const bool normal,
                                        const std::vector<MonomialSubstitutionRule>& initial_rules)
-        : Context{hermitian ? names->operator_count : 2 * names->operator_count},
-          precontext{static_cast<oper_name_t>(names->operator_count), hermitian},
-          self_adjoint{hermitian}, commutative{commute},
-          rules{precontext, initial_rules}, op_names{std::move(names)} {
+        : Context{static_cast<size_t>(input_apc.num_operators)},
+          precontext{input_apc},
+          self_adjoint{input_apc.self_adjoint()},
+          commutative{commute}, rules{precontext, initial_rules}, op_names{std::move(names)} {
 
         // Make rules
         if (this->commutative) {
@@ -42,6 +36,20 @@ namespace Moment::Algebraic {
             this->rules.add_rules(extra_rules);
         }
     }
+
+
+    AlgebraicContext::AlgebraicContext(const AlgebraicPrecontext& apc, bool commute, bool normal,
+                                       const std::vector<MonomialSubstitutionRule>& rules)
+            : AlgebraicContext{apc, std::make_unique<NameTable>(apc), commute, normal, rules} {
+        // delegated.
+    }
+
+
+    AlgebraicContext::AlgebraicContext(oper_name_t num_ops)
+            : AlgebraicContext{AlgebraicPrecontext(num_ops), false, true, {}} {
+        // delegated.
+    }
+
 
     AlgebraicContext::~AlgebraicContext() noexcept = default;
 
@@ -165,4 +173,14 @@ namespace Moment::Algebraic {
         }
         return ss.str();
     }
+
+
+    std::unique_ptr<AlgebraicContext>
+    AlgebraicContext::FromNameList(std::initializer_list<std::string> names) {
+        return std::make_unique<AlgebraicContext>(
+            AlgebraicPrecontext(static_cast<oper_name_t>(names.size()), AlgebraicPrecontext::ConjugateMode::SelfAdjoint),
+            std::make_unique<NameTable>(names), false, true, std::vector<MonomialSubstitutionRule>{}
+        );
+    }
+
 }

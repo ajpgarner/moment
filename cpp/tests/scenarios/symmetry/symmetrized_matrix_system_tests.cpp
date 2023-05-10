@@ -112,7 +112,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Symmetry_MatrixSystem, Algebraic_Z2) {
         // Two variables, a & b
         auto amsPtr = std::make_shared<Algebraic::AlgebraicMatrixSystem>(
-            std::make_unique<Algebraic::AlgebraicContext>(Algebraic::NameTable{"a", "b"})
+                Algebraic::AlgebraicContext::FromNameList({"a", "b"})
         );
         auto& ams = *amsPtr;
         auto& context = ams.Context();
