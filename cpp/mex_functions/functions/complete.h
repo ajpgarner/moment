@@ -15,6 +15,7 @@
 
 namespace Moment::Algebraic {
     class NameTable;
+    class AlgebraicPrecontext;
 }
 
 namespace Moment::mex::functions {
@@ -27,6 +28,9 @@ namespace Moment::mex::functions {
 
         bool hermitian_operators = true;
 
+        /** Precontext, including number of operators, and whether they are self-adjoint */
+        std::unique_ptr<Algebraic::AlgebraicPrecontext> apc;
+
         bool normal_operators = true;
 
         bool commutative = false;
@@ -36,6 +40,7 @@ namespace Moment::mex::functions {
 
         /** Name table object, for parsing rules */
         std::unique_ptr<Algebraic::NameTable> names;
+
 
         /** How the input to the complete command is supplied */
         enum class InputMode {

@@ -45,7 +45,7 @@ namespace Moment::mex {
                     // Convert from UTF16 -> UTF8
                     std::string utf8str = convertor(mlStr);
 
-                    output.emplace_back(names.find(apc, utf8str));
+                    output.emplace_back(names.find(utf8str));
                 } catch (const std::invalid_argument& iae) {
                     std::stringstream err;
                     err << field_name << " cannot be parsed: " << iae.what();
@@ -76,7 +76,7 @@ namespace Moment::mex {
 
             for (auto one_char : asString) {
                 try {
-                    output.emplace_back(names.find(apc,  std::string(1, one_char)));
+                    output.emplace_back(names.find(std::string(1, one_char)));
                 } catch (const std::invalid_argument& iae) {
                     std::stringstream err;
                     err << field_name << " cannot be parsed:" << iae.what();

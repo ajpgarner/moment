@@ -6,9 +6,9 @@
  */
 #include "complete.h"
 
-#include "scenarios/algebraic/rule_book.h"
 #include "scenarios/algebraic/algebraic_precontext.h"
 #include "scenarios/algebraic/name_table.h"
+#include "scenarios/algebraic/rule_book.h"
 #include "scenarios/algebraic/ostream_rule_logger.h"
 
 #include "import/read_operator_names.h"
@@ -28,8 +28,7 @@ namespace Moment::mex::functions {
             using namespace Algebraic;
 
             std::vector<Algebraic::MonomialSubstitutionRule> rules;
-            const Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(input.max_operators),
-                                                     input.hermitian_operators};
+            const auto& apc = *input.apc;
 
             const size_t max_strlen = apc.hasher.longest_hashable_string();
 
@@ -71,16 +70,36 @@ namespace Moment::mex::functions {
     CompleteParams::CompleteParams(SortedInputs &&rawInput)
         : SortedInputs(std::move(rawInput)) {
 
+        // Default to Hermitian, but allow non-hermitian override
+        this->hermitian_operators = !(this->flags.contains(u"nonhermitian"));
+        if (!this->hermitian_operators) {
+            this->normal_operators = this->flags.contains(u"normal");
+        } else {
+            this->normal_operators = true;
+        }
+
         // Do we specify number of operators, or list of names
         if ((inputs[0].getType() == matlab::data::ArrayType::CHAR)
             || (inputs[0].getType() == matlab::data::ArrayType::MATLAB_STRING)) {
-            this->names = read_name_table(matlabEngine, inputs[0], "Operator specification");
+
+            this->max_operators = get_name_table_length(matlabEngine, "Operator specification", inputs[0]);
+            this->apc = std::make_unique<Algebraic::AlgebraicPrecontext>(
+                    this->max_operators,
+                    this->hermitian_operators ? Algebraic::AlgebraicPrecontext::ConjugateMode::SelfAdjoint
+                                              : Algebraic::AlgebraicPrecontext::ConjugateMode::Bunched
+            );
+            this->names = read_name_table(matlabEngine, *this->apc, "Operator specification",  inputs[0]);
             assert(this->names);
             this->max_operators = this->names->operator_count;
         } else {
             this->max_operators = read_positive_integer<uint64_t>(matlabEngine, "Operator specification",
                                                                   inputs[0], 1);
-            this->names = std::make_unique<Algebraic::NameTable>(this->max_operators);
+            this->apc = std::make_unique<Algebraic::AlgebraicPrecontext>(
+                    this->max_operators,
+                    this->hermitian_operators ? Algebraic::AlgebraicPrecontext::ConjugateMode::SelfAdjoint
+                                              : Algebraic::AlgebraicPrecontext::ConjugateMode::Bunched
+            );
+            this->names = std::make_unique<Algebraic::NameTable>(*apc);
         }
 
         // Do we specify number of attempts?
@@ -99,28 +118,20 @@ namespace Moment::mex::functions {
             }
         }
 
-        // Default to Hermitian, but allow non-hermitian override
-        this->hermitian_operators = !(this->flags.contains(u"nonhermitian"));
-        if (!this->hermitian_operators) {
-            this->normal_operators = this->flags.contains(u"normal");
-        } else {
-            this->normal_operators = true;
-        }
-
         // Default to non-commutative, but allow commutative override
         this->commutative = this->flags.contains(u"commutative");
 
-        if ((this->max_operators == 0) && (!this->hermitian_operators)) {
+        // Check we have positive number of operators in our system
+        if (this->max_operators == 0) {
             throw_error(this->matlabEngine, errors::bad_param,
-                        "Cannot automatically infer operator count for non-Hermitian operator mode.");
+                        "Cannot automatically infer operator count.");
         }
+        assert(this->apc);
 
-        // Try to read raw rules (w/ matlab indices)
-        Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(this->max_operators), this->hermitian_operators};
-        this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", true, apc, *this->names);
+        this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", true, *this->apc, *this->names);
 
         // Assert that rule lengths are okay
-        check_rule_length(matlabEngine, apc.hasher, this->rules);
+        check_rule_length(matlabEngine, apc->hasher, this->rules);
     }
 
     CompleteParams::~CompleteParams() noexcept = default;
@@ -137,6 +148,7 @@ namespace Moment::mex::functions {
 
         this->flag_names.emplace(u"hermitian");
         this->flag_names.emplace(u"nonhermitian");
+        // this->flag_names.emplace(u"interleaved");
         this->mutex_params.add_mutex(u"hermitian", u"nonhermitian");
 
         this->flag_names.emplace(u"normal");

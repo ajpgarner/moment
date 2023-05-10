@@ -14,6 +14,7 @@
 #include <vector>
 
 namespace Moment::Algebraic {
+    class AlgebraicPrecontext;
     class NameTable;
 }
 
@@ -28,6 +29,8 @@ namespace Moment::mex::functions {
             bool commutative = false;
 
             std::vector<RawMonomialRule> rules{};
+
+            std::unique_ptr<Algebraic::AlgebraicPrecontext> apc;
 
             std::unique_ptr<Algebraic::NameTable> names;
 

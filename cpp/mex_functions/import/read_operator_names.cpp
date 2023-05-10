@@ -14,8 +14,10 @@
 namespace Moment::mex {
 
     std::unique_ptr<Algebraic::NameTable>
-    read_name_table(matlab::engine::MATLABEngine &matlabEngine, matlab::data::Array &input,
-                    const std::string& paramName) {
+    read_name_table(matlab::engine::MATLABEngine &matlabEngine,
+                    const Algebraic::AlgebraicPrecontext& apc,
+                    const std::string& paramName,
+                    matlab::data::Array &input) {
         std::unique_ptr<Algebraic::NameTable> output;
 
         // Is operator argument a single string?
@@ -29,7 +31,7 @@ namespace Moment::mex {
                 raw_names.emplace_back(1, x);
             }
             try {
-                output = std::make_unique<Algebraic::NameTable>(std::move(raw_names));
+                output = std::make_unique<Algebraic::NameTable>(apc, std::move(raw_names));
             } catch (const std::invalid_argument& iae) {
                 std::stringstream errSS;
                 errSS << paramName << " could not be parsed: " << iae.what();
@@ -54,7 +56,7 @@ namespace Moment::mex {
             }
 
             try {
-                output = std::make_unique<Algebraic::NameTable>(std::move(raw_names));
+                output = std::make_unique<Algebraic::NameTable>(apc, std::move(raw_names));
             } catch (const std::invalid_argument& iae) {
                 std::stringstream errSS;
                 errSS << paramName << " could not be parsed: " << iae.what();
@@ -63,6 +65,26 @@ namespace Moment::mex {
             return output;
         }
 
+        std::stringstream errSS;
+        errSS << paramName << " could not be parsed: name table must be char array or string array.";
+        throw_error(matlabEngine, errors::bad_param, errSS.str());
+    }
+
+    size_t get_name_table_length(matlab::engine::MATLABEngine &matlabEngine, const std::string &paramName,
+                                 matlab::data::Array &input) {
+        // Is operator argument a single string?
+        if (input.getType() == matlab::data::ArrayType::CHAR) {
+            auto name_char_array = static_cast<matlab::data::CharArray>(input);
+            auto name_str = name_char_array.toAscii();
+            return name_str.size();
+        }
+
+        // Is operator argument an array of ML strings?
+        if (input.getType() == matlab::data::ArrayType::MATLAB_STRING) {
+            return input.getNumberOfElements();
+        }
+
+        // Otherwise, error
         std::stringstream errSS;
         errSS << paramName << " could not be parsed: name table must be char array or string array.";
         throw_error(matlabEngine, errors::bad_param, errSS.str());

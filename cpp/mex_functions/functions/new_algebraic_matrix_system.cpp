@@ -6,6 +6,7 @@
  */
 #include "new_algebraic_matrix_system.h"
 
+#include "scenarios/algebraic/algebraic_precontext.h"
 #include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/algebraic/algebraic_matrix_system.h"
 #include "scenarios/algebraic/name_table.h"
@@ -23,8 +24,7 @@ namespace Moment::mex::functions {
         std::unique_ptr<Algebraic::AlgebraicContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                        NewAlgebraicMatrixSystemParams& input) {
             std::vector<Algebraic::MonomialSubstitutionRule> rules;
-            Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(input.total_operators),
-                                               input.hermitian_operators};
+            const auto& apc = *input.apc;
 
             const auto max_strlen = apc.hasher.longest_hashable_string();
 
@@ -53,8 +53,8 @@ namespace Moment::mex::functions {
                 ++rule_index;
             }
 
-            return std::make_unique<Algebraic::AlgebraicContext>(std::move(input.names),
-                                                                 input.hermitian_operators,
+
+            return std::make_unique<Algebraic::AlgebraicContext>(*input.apc, std::move(input.names),
                                                                  input.commutative, input.normal_operators,
                                                                  rules);
         }
@@ -113,11 +113,10 @@ namespace Moment::mex::functions {
 
         if (inputs.size() > 1) {
             assert(this->names);
+            assert(this->apc);
 
-            Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(this->total_operators),
-                                               this->hermitian_operators};
-            this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", true, apc, *this->names);
-            check_rule_length(matlabEngine, apc.hasher, this->rules);
+            this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", true, *this->apc, *this->names);
+            check_rule_length(matlabEngine, apc->hasher, this->rules);
         }
     }
 
@@ -135,11 +134,11 @@ namespace Moment::mex::functions {
         }
 
         assert(this->names);
-        Algebraic::AlgebraicPrecontext apc{static_cast<oper_name_t>(this->total_operators),
-                                           this->hermitian_operators};
+        assert(this->apc);
+
         this->rules = read_monomial_rules(matlabEngine, rules_param->second,
-                                          "Parameter 'rules'", true, apc, *this->names);
-        check_rule_length(matlabEngine, apc.hasher, this->rules);
+                                          "Parameter 'rules'", true, *this->apc, *this->names);
+        check_rule_length(matlabEngine, apc->hasher, this->rules);
     }
 
     void NewAlgebraicMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
@@ -148,15 +147,26 @@ namespace Moment::mex::functions {
         // Is operator argument a single string?
         if ((input.getType() == matlab::data::ArrayType::CHAR)
             || (input.getType() == matlab::data::ArrayType::MATLAB_STRING)) {
-            this->names = read_name_table(matlabEngine, input, paramName);
-            assert(this->names);
-            this->total_operators = this->names->operator_count;
+
+            this->total_operators = get_name_table_length(matlabEngine, paramName, input);
+            this->apc = std::make_unique<Algebraic::AlgebraicPrecontext>(
+                    this->total_operators,
+                    this->hermitian_operators ? Algebraic::AlgebraicPrecontext::ConjugateMode::SelfAdjoint
+                                              : Algebraic::AlgebraicPrecontext::ConjugateMode::Bunched
+            );
+            this->names = read_name_table(matlabEngine, *this->apc, paramName, input);
+            assert(names);
             return;
         }
 
         // Otherwise, assume operator argument is a number, and auto-generate names
         this->total_operators = read_positive_integer<size_t>(matlabEngine, paramName, input, 1);
-        this->names = std::make_unique<Algebraic::NameTable>(this->total_operators);
+        this->apc = std::make_unique<Algebraic::AlgebraicPrecontext>(
+                this->total_operators,
+                this->hermitian_operators ? Algebraic::AlgebraicPrecontext::ConjugateMode::SelfAdjoint
+                                          : Algebraic::AlgebraicPrecontext::ConjugateMode::Bunched
+        );
+        this->names = std::make_unique<Algebraic::NameTable>(*this->apc);
     }
 
     NewAlgebraicMatrixSystemParams::~NewAlgebraicMatrixSystemParams() = default;
