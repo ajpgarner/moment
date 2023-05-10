@@ -23,6 +23,9 @@ namespace Moment {
      * In particular, can be seen as a HashedSequence attached to a Context.
      */
     class OperatorSequence : public HashedSequence {
+    public:
+        struct ConstructRawFlag { };
+
     private:
         const Context& context;
 
@@ -37,12 +40,23 @@ namespace Moment {
             : HashedSequence{false}, context{context} { }
 
         /**
-         * Constructs a sequence of Hermitian operators, in canonical order, with all known simplifications applied.
+         * Constructs a sequence of operators, in canonical order, with all known simplifications applied.
          * @param operators A list of operators to include in the sequence
          * @param context Context for further simplification.
          * @param negated True if sequence should be interpreted with a minus sign in front of it.
          */
         OperatorSequence(sequence_storage_t operators, const Context& context, bool negated = false) noexcept;
+
+        /**
+         * Constructs a sequence of operators, with no further simplifications added
+         * @param rhs
+         */
+         OperatorSequence(const ConstructRawFlag&, sequence_storage_t operators, uint64_t hash,
+                          const Context& context,
+                          bool negated = false) noexcept
+              : HashedSequence{std::move(operators), hash}, context{context}, is_negated{negated} {
+             // No simplification, or check-sum of hash!
+         }
 
         constexpr OperatorSequence(const OperatorSequence& rhs) = default;
 
@@ -154,11 +168,14 @@ namespace Moment {
          */
         [[nodiscard]] static int compare_same_negation(const OperatorSequence& lhs, const OperatorSequence& rhs);
 
+
+
     private:
         /**
          * Perform simplifications on the raw operator sequence, calling context if supplied.
          */
         void to_canonical_form() noexcept;
+
 
 
         friend class Context;

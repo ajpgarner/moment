@@ -71,7 +71,9 @@ namespace Moment::Locality {
                 assert(offset == target_wl);
 
                 // Make new op sequence
-                output.emplace_back(next_seq, context); // <- copies next_seq.
+                output.emplace_back(OperatorSequence::ConstructRawFlag{},
+                                    next_seq, context.hash(next_seq),
+                                    context, false); // <- copies next_seq.
 
                 ++partition_iter;
             }
