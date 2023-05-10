@@ -32,7 +32,7 @@ classdef CompositeOperatorMatrix < handle
             end
             obj.Constituents = reshape(constituents, 1, []);
             obj.Weights = double(reshape(weights, 1, []));  
-            
+             
             % Check length of weights matches length of objects
             if length(obj.Constituents) ~= length(obj.Weights)
                 error("Number of weights must match number of matrices.");
@@ -68,27 +68,29 @@ classdef CompositeOperatorMatrix < handle
         function val = get.RealBasis(obj)
             % Resize real if necessary
             delta_re = obj.MatrixSystem.RealVarCount ...
-                        - size(obj.real_basis, 1);
-            if delta_re > 0
+                        - size(obj.real_basis, 2);
+                    
+            if delta_re > 0               
                obj.real_basis = ...
-                   [obj.real_basis; ...
-                    sparse(double(delta_re), ...
-                           double(obj.Dimension * obj.Dimension))];                                                    
+                   [obj.real_basis, ...
+                    sparse(double(obj.Dimension * obj.Dimension), ...
+                           double(delta_re))];               
             end
             
-            % return value
+            
+            % Otherwise, just get basis
             val = obj.real_basis;
         end
         
         function val = get.ImaginaryBasis(obj)
             % Resize imaginary if necessary
             delta_im = obj.MatrixSystem.ImaginaryVarCount ...
-                        - size(obj.im_basis, 1);
+                        - size(obj.im_basis, 2);
             if delta_im > 0
                obj.im_basis = ...
-                   [obj.im_basis ; ...
-                    sparse(double(delta_im), ...
-                           double(obj.Dimension * obj.Dimension))];                                                    
+                   [obj.im_basis, ...
+                    sparse(double(obj.Dimension * obj.Dimension), ...
+                           double(delta_im))];                                                    
             end
             
             val = obj.im_basis;
@@ -185,9 +187,9 @@ classdef CompositeOperatorMatrix < handle
                 [obj.Dimension, obj.Dimension]);
         end
         
-        function out_M = yalmipRealMatrix(obj, a)
+        function out_M = yalmipRealMatrix(obj, a)            
             out_M = reshape(obj.RealBasis * a, ...
-                [obj.Dimension, obj.Dimension]);
+                            [obj.Dimension, obj.Dimension]);
         end
     end
     

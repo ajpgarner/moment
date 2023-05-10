@@ -42,11 +42,13 @@ namespace Moment {
      * Sparse representation of a basis element, and monolithic variants thereof.
      */
     using sparse_real_elem_t = Eigen::SparseMatrix<double>;
+    static_assert(!sparse_real_elem_t::IsRowMajor);
 
     /**
      * Sparse representation of a complex basis element, and monolithic variants thereof.
      */
     using sparse_complex_elem_t = Eigen::SparseMatrix<std::complex<double>>;
+    static_assert(!sparse_complex_elem_t::IsRowMajor);
 
     class Matrix {
 
@@ -158,6 +160,7 @@ namespace Moment {
 
             /**
              * Get dense monolithic basis to be reshaped.
+             * Basis is col-major with each column encoding one basis element.
              * Mutable function: creation is deferred until first request.
              * For thread safety, call read lock on hosting matrix system.
              * @return Dense matrix, each column representing one basis element.
@@ -174,6 +177,7 @@ namespace Moment {
 
             /**
              * Get single "monolithic" sparse basis to be reshaped.
+             * Basis is col-major with each column encoding one basis element.
              * Mutable function: creation is deferred until first request.
              * For thread safety, call read lock on hosting matrix system.
              * @return Sparse matrix, each column representing one basis element.
@@ -251,7 +255,6 @@ namespace Moment {
          [[nodiscard]] inline bool is_polynomial() const noexcept {
              return !this->is_monomial();
          }
-
 
         /**
          * Force renumbering of matrix bases keys

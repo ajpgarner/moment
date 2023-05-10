@@ -259,11 +259,10 @@ classdef OperatorMatrix < handle
         function [re, im] = SparseMonolithicBasis(obj)
             arguments
                 obj (1,1) OpMatrix.OperatorMatrix
-            end
-            % TODO: Check length
-            
+            end            
             if (isempty(obj.sparse_mono_basis_real) || ...
                     isempty(obj.sparse_mono_basis_im))
+                % Create directly
                 [obj.sparse_mono_basis_real, ...
                     obj.sparse_mono_basis_im] = ...
                     mtk('generate_basis', ...
@@ -272,22 +271,22 @@ classdef OperatorMatrix < handle
              else
                 % Resize real if necessary
                 delta_re = obj.MatrixSystem.RealVarCount ...
-                            - size(obj.sparse_mono_basis_real, 1);
+                            - size(obj.sparse_mono_basis_real, 2);
                 if delta_re > 0
                    obj.sparse_mono_basis_real = ...
                        [obj.sparse_mono_basis_real; ...
-                        sparse(double(delta_re), ...
-                              double(obj.Dimension * obj.Dimension))];                                                    
+                        sparse(double(obj.Dimension * obj.Dimension),...
+                               double(delta_re))];                                                    
                 end
                 
                 % Resize imaginary if necessary
                 delta_im = obj.MatrixSystem.ImaginaryVarCount ...
-                            - size(obj.sparse_mono_basis_im, 1);
+                            - size(obj.sparse_mono_basis_im, 2);
                 if delta_im > 0
                    obj.sparse_mono_basis_im = ...
-                       [obj.sparse_mono_basis_im; ...
-                        sparse(double(delta_im), ...
-                              double(obj.Dimension * obj.Dimension))];                                                    
+                       [obj.sparse_mono_basis_im, ...
+                        sparse(double(obj.Dimension * obj.Dimension), ...
+                               double(delta_im))];                                                    
                 end
             end
             
@@ -296,6 +295,14 @@ classdef OperatorMatrix < handle
         end
         
         function [re, im] = DenseMonolithicBasis(obj)
+        % DENSEMONOLITHICBASIS
+        %   Basis encoded as a one or two matrices, each column of which
+        %   represents one basis element.
+        %
+        % Thus, this M x N matrix has:
+        %   M = dimension^2 of op matrix,
+        %   N = number of real (resp. imaginary) elements.
+        %
             arguments
                 obj (1,1) OpMatrix.OperatorMatrix
             end
@@ -307,24 +314,24 @@ classdef OperatorMatrix < handle
                     obj.MatrixSystem.RefId, obj.Index, ...
                     'monolith', 'dense');
             else
-                % Resize real if necessary
+                % Resize real part if necessary
                 delta_re = obj.MatrixSystem.RealVarCount ...
-                            - size(obj.mono_basis_real, 1);
+                            - size(obj.mono_basis_real, 2);
                 if delta_re > 0
                    obj.mono_basis_real = ...
-                       [obj.mono_basis_real; ...
-                        zeros(double(delta_re), ...
-                              double(obj.Dimension * obj.Dimension))];                                                    
+                       [obj.mono_basis_real, ...
+                        zeros(double(obj.Dimension * obj.Dimension), ...
+                              double(delta_re))];
                 end
                 
-                % Resize imaginary if necessary
+                % Resize imaginary part if necessary
                 delta_im = obj.MatrixSystem.ImaginaryVarCount ...
-                            - size(obj.mono_basis_im, 1);
+                            - size(obj.mono_basis_im, 2);
                 if delta_im > 0
                    obj.mono_basis_im = ...
-                       [obj.mono_basis_im; ...
-                        zeros(double(delta_im), ...
-                              double(obj.Dimension * obj.Dimension))];                                                    
+                       [obj.mono_basis_im, ...
+                        zeros(double(obj.Dimension * obj.Dimension), ...
+                              double(delta_im))];
                 end
             end
             
