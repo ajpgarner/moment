@@ -156,7 +156,7 @@ classdef AlgebraicScenario < Abstract.Scenario
         %
             arguments
                 obj (1,1) AlgebraicScenario
-                operators (1,:) uint64
+                operators (1,:)
             end
             
             item = Algebraic.Monomial(obj, operators, 1.0);

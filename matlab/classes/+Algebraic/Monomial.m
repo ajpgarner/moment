@@ -44,25 +44,23 @@ classdef Monomial < Abstract.ComplexObject
         %
             arguments
                 setting (1,1) AlgebraicScenario
-                operators (1,:) uint64
+                operators (1,:) 
                 scale (1,1) double = 1.0
             end
             
             obj = obj@Abstract.ComplexObject(setting);
-            
-            % Check operator string is in range
-            if any(operators > setting.EffectiveOperatorCount) ...
-                    || any(operators <= 0)
-                error("Operator string contains out of range index.");
-            end
-            
-            obj.Operators = operators;
+   
+            obj.Operators = uint64(setting.Simplify(operators));
             obj.Hash = obj.calculateShortlexHash();
             obj.Coefficient = scale;
             
             % Format operator string
-            as_str = setting.RuleBook.ToStringArray(obj.Operators);
-            obj.OperatorString = join(as_str, ' ');            
+            if ~isempty(obj.Operators)
+                as_str = setting.RuleBook.ToStringArray(obj.Operators);
+                obj.OperatorString = join(as_str, ' ');            
+            else
+                obj.OperatorString = "I";
+            end
         end        
     end
     

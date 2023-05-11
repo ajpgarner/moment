@@ -108,6 +108,7 @@ classdef Scenario < handle
         end
     end
     
+  
     %% Accessors: Operator matrices
     methods(Sealed)
          function mm_out = MakeMomentMatrix(obj, depth)
@@ -121,7 +122,17 @@ classdef Scenario < handle
             
             % Do binding...
             obj.onNewMomentMatrix(mm_out)
-        end
+         end
+         
+         function output = Simplify(obj, input)
+         % SIMPLIFY Get canonical form of operator sequence input.
+             arguments
+                 obj(1,1) Abstract.Scenario
+                 input(1,:)
+             end
+             
+             output = mtk('simplify', obj.System.RefId, input);
+         end
     end
             
     %% Internal/friend methods
