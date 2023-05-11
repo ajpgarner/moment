@@ -406,6 +406,11 @@ namespace Moment {
             for (size_t im_index = 0; im_index < im_frame.size(); ++im_index) {
                 im[im_index].setFromTriplets(im_frame[im_index].cbegin(), im_frame[im_index].cend());
             }
+        } else {
+            // Null case: symbols are complex, but matrix is not.
+            if (this->Symbols.Basis.ImaginarySymbolCount() > 0) {
+                output.second.assign(this->Symbols.Basis.ImaginarySymbolCount(), sparse_complex_elem_t(dim, dim));
+            }
         }
 
         // Return

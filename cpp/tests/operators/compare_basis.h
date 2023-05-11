@@ -14,7 +14,7 @@
 namespace Moment::Tests {
 
     template<typename matrix_t>
-    void assert_same_matrix(const std::string &name, const matrix_t& test, const matrix_t& ref) {
+    inline void assert_same_matrix(const std::string &name, const matrix_t& test, const matrix_t& ref) {
         ASSERT_EQ(test.cols(), ref.cols()) << name;
         ASSERT_EQ(test.rows(), ref.rows()) << name;
         for (int col_index = 0; col_index < ref.cols(); ++col_index) {
@@ -26,7 +26,7 @@ namespace Moment::Tests {
     }
 
     template<typename matrix_t>
-    void assert_same_basis(const std::string &name,
+    inline void assert_same_basis(const std::string &name,
                            const std::vector<matrix_t>& test, const std::vector<matrix_t>& ref) {
         ASSERT_EQ(test.size(), ref.size()) << name;
         for (size_t elem = 0; elem < test.size(); ++elem) {

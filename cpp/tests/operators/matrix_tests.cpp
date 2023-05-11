@@ -184,4 +184,43 @@ namespace Moment::Tests {
         assert_same_matrix("Imaginary", imaginary, ref_imaginary);
     }
 
+    TEST(Operators_Matrix, Level0LocalizingMatrixBasis) {
+        using namespace Moment::Algebraic;
+        AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
+        const auto& context = ams.AlgebraicContext();
+        const SymbolTable& symbol = ams.Symbols();
+        const auto [mm_id, mm] = ams.create_moment_matrix(1);
+        ASSERT_EQ(symbol.size(), 7);
+        ASSERT_EQ(symbol.Basis.RealSymbolCount(), 6);
+        ASSERT_EQ(symbol.Basis.ImaginarySymbolCount(), 1);
+
+        const auto [lmA_id, lmA_0] = ams.create_localizing_matrix(
+                                LocalizingMatrixIndex(0, OperatorSequence{{0}, context}));
+        ASSERT_EQ(symbol.size(), 7);
+        ASSERT_EQ(symbol.Basis.RealSymbolCount(), 6);
+        ASSERT_EQ(symbol.Basis.ImaginarySymbolCount(), 1);
+
+        // Check sparse cell basis
+        const auto& [real_cell, imaginary_cell] = lmA_0.Basis.Sparse();
+        ASSERT_EQ(real_cell.size(), 6);
+        ASSERT_EQ(imaginary_cell.size(), 1);
+
+
+        // Check sparse basis
+        ASSERT_NE(mm_id, lmA_id);
+        const auto& [real, imaginary] = lmA_0.Basis.SparseMonolithic();
+        ASSERT_EQ(real.cols(), 6);
+        ASSERT_EQ(real.rows(), 1);
+        EXPECT_EQ(real.nonZeros(), 1);
+        EXPECT_EQ(real.coeff(0, 1), 1.0);
+
+        ASSERT_EQ(imaginary.cols(), 1);
+        ASSERT_EQ(imaginary.rows(), 1);
+        EXPECT_EQ(imaginary.nonZeros(), 0);
+
+
+
+
+    }
+
 }

@@ -2,12 +2,14 @@ classdef Monomial < Abstract.ComplexObject
     %MONOMIAL A monomial expression, as part of an algebraic setting.
         
     properties(GetAccess = public, SetAccess = protected)
-        Operators % The operator string defining this monomial.
+        Operators % The operator string defining this monomial.        
+        OperatorString % String representation of operators.
         Coefficient % Scalar co-efficient factor of the monomial.
         Hash % Hash of the operator sequence in this monomial.
     end
     
-    properties(Dependent, GetAccess = public)
+    properties(Dependent, GetAccess = public)        
+
         % True if monomial can be found in symbol table.
         FoundSymbol  
         
@@ -57,8 +59,11 @@ classdef Monomial < Abstract.ComplexObject
             obj.Operators = operators;
             obj.Hash = obj.calculateShortlexHash();
             obj.Coefficient = scale;
-        end
-        
+            
+            % Format operator string
+            as_str = setting.RuleBook.ToStringArray(obj.Operators);
+            obj.OperatorString = join(as_str, ' ');            
+        end        
     end
     
     %% Localizing matrix...
