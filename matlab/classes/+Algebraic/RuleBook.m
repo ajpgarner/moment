@@ -8,15 +8,17 @@ classdef RuleBook < handle
         Rules = Algebraic.Rule.empty(1,0) % The rewrite rules.
         OperatorNames;      % String names of operators, if known.
         Hermitian = true;   % True if fundamental operators are Hermitian.
+        Interleave = false; % True if operators are ordered next to their conjugates.
         Normal = true;      % True if fundamental operators are Normal.
         IsComplete;         % True if the ruleset is confluent.
+        extended_names;
     end
     
     properties(Access = private)
         tested_complete = false;
         is_complete = false;
         locked = false;
-        extended_names;
+        
         mono_names = false;
     end
     
@@ -37,7 +39,7 @@ classdef RuleBook < handle
     %% Constructor
     methods
         function obj = RuleBook(operators, initialRules, ...
-                                is_hermitian, is_normal)
+                                is_hermitian, interleave, is_normal)
         % RULEBOOK Constructs a list of rewrite rules.
         %
         % SYNTAX
@@ -59,6 +61,7 @@ classdef RuleBook < handle
                 operators
                 initialRules (1,:)
                 is_hermitian (1,1) logical = true
+                interleave (1,1) logical = false
                 is_normal (1,1) logical = is_hermitian
             end 
             
@@ -68,6 +71,7 @@ classdef RuleBook < handle
                 obj.Rules = operators.Rules;
                 obj.OperatorNames = operators.OperatorNames;
                 obj.Hermitian = operators.Hermitian;
+                obj.Interleave = operators.Interleave;
                 obj.Normal = operators.Normal;
                 
                 if nargin >= 2
@@ -80,25 +84,49 @@ classdef RuleBook < handle
             % Parse operators
             if isnumeric(operators) && isscalar(operators)
                 obj.OperatorNames = string.empty(1,0);
-                obj.extended_names = string.empty(1,0);
                 obj.MaxOperators = uint64(operators);
                 obj.mono_names = false;
             elseif isstring(operators)
                 obj.OperatorNames = reshape(operators, 1, []);
-                obj.extended_names = [obj.OperatorNames, ...
-                                      obj.OperatorNames + "*"];
                 obj.MaxOperators = uint64(length(obj.OperatorNames));
                 obj.mono_names = ~any(strlength(obj.OperatorNames)>1);
             elseif ischar(operators)
                 obj.OperatorNames = string(operators(:))';
-                obj.extended_names = [obj.OperatorNames, ...
-                                      obj.OperatorNames + "*"];
                 obj.MaxOperators = uint64(length(obj.OperatorNames));
                 obj.mono_names = true;
             else
                 error("Argument 'operators' should either be the maximum"...
                       +" operator number, or a list of operator names.");
             end
+            
+            % Hermicity, interleave and normality
+            obj.Hermitian = logical(is_hermitian);
+            if is_hermitian && ~is_normal
+                error("Hermitian operators must be normal.");
+            end
+            if is_hermitian && interleave
+                error("Interleave mode only makes sense for non-Hermitian operators.");
+            end
+            obj.Interleave = logical(interleave);
+            obj.Normal = logical(is_normal);
+            
+            % Prepare 'extended names' map for formatting
+            if ~isempty(obj.OperatorNames)
+                if obj.Hermitian
+                    obj.extended_names = obj.OperatorNames;
+                elseif obj.Interleave 
+                    conj_names = obj.OperatorNames + "*";
+                    obj.extended_names = strings(1,2*length(obj.OperatorNames));
+                    for i = 1:length(obj.OperatorNames)
+                        obj.extended_names(2*i - [1, 0]) = ...
+                            [obj.OperatorNames(i), conj_names(i)];
+                    end
+                else
+                    obj.extended_names = [obj.OperatorNames, ...
+                                          obj.OperatorNames + "*"];
+                end
+            end
+               
             
             % Parse rules
             if isa(initialRules, 'Algebraic.Rule')
@@ -110,12 +138,6 @@ classdef RuleBook < handle
                        ' Algebraic.Rule, or as a cell array.']);    
             end
             
-            % Hermicity and normality
-            obj.Hermitian = logical(is_hermitian);
-            if is_hermitian && ~is_normal
-                error("Hermitian operators must be normal.");
-            end
-            obj.Normal = logical(is_normal);
         end
     end
     
@@ -283,7 +305,7 @@ classdef RuleBook < handle
             % Make and add rule
             conjugated = obj.RawConjugate(symbol);
             obj.AddRule([conjugated, symbol], []);
-            %obj.AddRule([symbol, conjugated], []);
+            obj.AddRule([symbol, conjugated], []);
         end
         
             
@@ -336,9 +358,13 @@ classdef RuleBook < handle
             if obj.Hermitian
                 extra_params{end+1} = 'hermitian';
             else
-                extra_params{end+1} = 'nonhermitian';
+                if obj.Interleave
+                    extra_params{end+1} = 'interleaved';
+                else
+                    extra_params{end+1} = 'bunched';
+                end
                 if obj.Normal
-                        extra_params{end+1} = 'normal';
+                    extra_params{end+1} = 'normal';
                 end
             end
             
@@ -358,12 +384,18 @@ classdef RuleBook < handle
         end
         
         function val = get.IsComplete(obj)
+        % ISCOMPLETE Test if the set of rules is complete.
+        %
             if ~obj.tested_complete
                 params = {};
                 if obj.Hermitian
                     params{end+1} = 'hermitian';
                 else
-                    params{end+1} = 'nonhermitian';
+                    if obj.Interleave
+                        params{end+1} = 'interleaved';
+                    else
+                        params{end+1} = 'bunched';
+                    end
                     if obj.Normal
                         params{end+1} = 'normal';
                     end
@@ -487,9 +519,15 @@ classdef RuleBook < handle
             if isnumeric(op_str)
                 conj = uint64(flip(op_str, 2));
                 if ~obj.Hermitian
-                    conj = conj + obj.MaxOperators - 1;
-                    conj = mod(conj , obj.MaxOperators*2);
-                    conj = conj + 1;                    
+                    if ~obj.Interleave
+                        conj = conj + obj.MaxOperators - 1;
+                        conj = mod(conj , obj.MaxOperators*2);
+                        conj = conj + 1;                    
+                    else
+                        conj = conj - 1;
+                        conj = conj ^ 0x1;
+                        conj = conj + 1;
+                    end
                 end
                 return;
             end

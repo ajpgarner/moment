@@ -9,6 +9,7 @@
 #include "algebraic_precontext.h"
 
 #include <regex>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 
@@ -149,6 +150,15 @@ namespace Moment::Algebraic {
 
         // Names now stored in order.
         return search_iter->second;
+    }
+
+    std::ostream& NameTable::format_stream(std::ostream&os, const oper_name_t id) const {
+        if ((id >=0) && (id< this->names.size())) {
+            os << this->names[id];
+        } else {
+            os << "[UNK:" << id << "]";
+        }
+        return os;
     }
 
 

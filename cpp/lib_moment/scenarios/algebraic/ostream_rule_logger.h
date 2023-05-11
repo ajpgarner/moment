@@ -12,12 +12,17 @@
 
 namespace Moment::Algebraic {
 
+    class NameTable;
+
     class OStreamRuleLogger : public RuleLogger {
     private:
         std::ostream& os;
+        const NameTable * names;
 
     public:
-        explicit OStreamRuleLogger(std::ostream& stream) : os{stream} { }
+        explicit OStreamRuleLogger(std::ostream& stream, const NameTable* names = nullptr) : os{stream}, names{names} {
+
+        }
 
         void rule_reduced(const MonomialSubstitutionRule& old_rule,
                           const MonomialSubstitutionRule& new_rule) override;
@@ -38,5 +43,6 @@ namespace Moment::Algebraic {
         void success(const RuleBook& rb, size_t attempts) override;
 
         void failure(const RuleBook& rb, size_t attempts) override;
+
     };
 }

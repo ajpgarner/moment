@@ -95,7 +95,7 @@ namespace Moment::Algebraic {
         [[nodiscard]] std::string to_string() const override;
 
         /**
-         * Summarize the substitution rules as a string
+         * Summarize the substitution rules as a string.
          */
         [[nodiscard]] std::string resolved_rules() const;
 
@@ -109,9 +109,14 @@ namespace Moment::Algebraic {
         [[nodiscard]]  std::string format_sequence(const OperatorSequence &seq) const override;
 
         /**
-         * Access rule information
+         * Access rule information.
          */
         [[nodiscard]] const RuleBook& rulebook() const noexcept { return this->rules; }
+
+        /**
+         * Access name information.
+         */
+        [[nodiscard]] const NameTable& names() const noexcept { return *this->op_names; }
 
     public:
         /** Named c'tor. */

@@ -10,6 +10,7 @@
 
 #include <cassert>
 
+#include <iosfwd>
 #include <map>
 #include <optional>
 #include <string>
@@ -65,6 +66,24 @@ namespace Moment::Algebraic {
          * @throws std::invalid_argument If string cannot be translated to valid operator number.
          */
         [[nodiscard]] oper_name_t find(const std::string& str) const;
+
+        /**
+         * Translate operator number to name, with bounds checking.
+         */
+         std::ostream& format_stream(std::ostream&, oper_name_t) const;
+
+         /**
+         * Translate operator sequence to names, with bounds checking.
+         */
+         template<typename iter_t>
+         std::ostream& format_stream(std::ostream& os, iter_t begin, const iter_t end) const {
+             while (begin != end) {
+                 format_stream(os, *begin);
+                 ++begin;
+             }
+             return os;
+         }
+
 
     public:
         /** Checks if a name is allowed.

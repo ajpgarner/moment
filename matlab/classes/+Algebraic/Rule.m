@@ -1,10 +1,10 @@
 classdef Rule < matlab.mixin.CustomDisplay
-    %RULE Rewrite rule for algebraic system
+    %RULE Rewrite rule for algebraic system.
     
     properties(GetAccess = public, SetAccess = protected)
-        LHS
-        RHS
-        Negated = false
+        LHS % Left-hand-side (match pattern) of rule.
+        RHS % Right-hand-side (substitution) of rule.
+        Negated = false % True if rule replaces LHS with -RHS.
     end
     
     methods
@@ -36,7 +36,30 @@ classdef Rule < matlab.mixin.CustomDisplay
             obj.LHS = lhs;
             obj.RHS = rhs;
             obj.Negated = logical(negate);
-        end        
+        end
+        
+        function str = string(obj)
+        % STRING Convert rule to human-readable string.
+            arguments
+                obj (1,:) Algebraic.Rule
+            end
+            switch numel(obj)
+                case 0
+                    str = "No rules";
+                case 1
+                    str = obj.ruleText;
+                otherwise
+                    once = false;
+                    str = "";
+                    for rule = obj
+                        if once
+                            str = str + newline;
+                        end
+                        str = str + rule.ruleText;
+                        once = true;
+                    end
+            end
+        end
     end
     
     %% Display overloads

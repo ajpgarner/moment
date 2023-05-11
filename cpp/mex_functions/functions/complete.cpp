@@ -168,7 +168,7 @@ namespace Moment::mex::functions {
         std::stringstream ss;
         std::unique_ptr<Algebraic::OStreamRuleLogger> logger;
         if (this->verbose) {
-            logger = std::make_unique<Algebraic::OStreamRuleLogger>(ss);
+            logger = std::make_unique<Algebraic::OStreamRuleLogger>(ss, input.names.get());
         }
 
         // Set up rules

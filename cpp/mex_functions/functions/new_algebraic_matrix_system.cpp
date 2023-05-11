@@ -220,7 +220,7 @@ namespace Moment::mex::functions {
             std::unique_ptr<OStreamRuleLogger> logger;
             if (this->verbose) {
                 ss << "Attempting completion of ruleset:\n";
-                logger = std::make_unique<OStreamRuleLogger>(ss);
+                logger = std::make_unique<OStreamRuleLogger>(ss, &(contextPtr->names()));
             }
             complete_rules = contextPtr->attempt_completion(input.complete_attempts, logger.get());
             if (this->verbose) {

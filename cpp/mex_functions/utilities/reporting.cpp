@@ -30,7 +30,7 @@ namespace Moment::mex {
 
     void print_warning(matlab::engine::MATLABEngine &engine,
                        const std::string &message) {
-        std::string warn_msg = std::string("WARNING: [\b") + message + "]\b\n";
+        std::string warn_msg = std::string("[\bWARNING: ") + message + "]\b\n";
         print_to_console(engine, warn_msg);
     }
 

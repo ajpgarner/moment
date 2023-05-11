@@ -20,6 +20,7 @@ classdef AlgebraicScenario < Abstract.Scenario
         OperatorCount % Number of fundamental operators in scenario.
         IsHermitian   % True if fundamental operators are Hermitian.
         IsNormal      % True if fundamental operators are Normal.
+        Interleave    % True if operators are ordered next to their conjugates.
         RuleBook      % Manages substitution rules for operator strings.
         OperatorNames % Names of the fundamental operators.
     end
@@ -32,7 +33,7 @@ classdef AlgebraicScenario < Abstract.Scenario
 %% Constructor
     methods
         function obj = AlgebraicScenario(operators, rules, ...
-                is_hermitian, is_normal)
+                is_hermitian, interleave, is_normal)
             % Creates an algebraic scenario.
             %
             % PARAMS:
@@ -46,6 +47,7 @@ classdef AlgebraicScenario < Abstract.Scenario
                 operators (1,:)
                 rules (1,:) = cell.empty(1,0)
                 is_hermitian (1,1) logical = true
+                interleave (1,1) logical = false
                 is_normal (1,1) logical = is_hermitian
             end
 
@@ -75,11 +77,18 @@ classdef AlgebraicScenario < Abstract.Scenario
             if is_hermitian && ~is_normal
                 error("Hermitian operators must be normal.");
             end
+
+            if is_hermitian && interleave 
+                error("Interleave mode only makes sense when operators are non-Hermitian.");
+            end
             
             obj.IsHermitian = logical(is_hermitian);
+            obj.Interleave = logical(interleave);
             obj.IsNormal = logical(is_normal);
             obj.RuleBook = Algebraic.RuleBook(operators, rules, ...
-                                              is_hermitian, is_normal);
+                                              obj.IsHermitian, ...
+                                              obj.Interleave, ...
+                                              is_normal);
         end
     end
 %% Dependent variables
@@ -209,7 +218,12 @@ classdef AlgebraicScenario < Abstract.Scenario
             if obj.IsHermitian
                 nams_args{end+1} = 'hermitian';
             else
-                nams_args{end+1} = 'nonhermitian';
+                if obj.Interleave
+                    nams_args{end+1} = 'interleaved';
+                else
+                    nams_args{end+1} = 'bunched';
+                end
+                
                 if obj.IsNormal
                     nams_args{end+1} = 'normal';
                 end
