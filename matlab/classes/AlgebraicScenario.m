@@ -179,13 +179,30 @@ classdef AlgebraicScenario < Abstract.Scenario
             if obj.OperatorCount == 0
                 error("No operators to get.");
             end
+            
+            export_conjugates = false;
             if nargout ~= obj.OperatorCount
-                error("getAll() expects %d outputs", obj.OperatorCount);
+                if obj.IsHermitian || nargout ~= 2*obj.OperatorCount
+                    error("getAll() expects %d outputs", obj.OperatorCount);
+                end
+                export_conjugates = true;
             end
             
             varargout = cell(1, nargout);
-            for index = 1:obj.OperatorCount
-                varargout{index} = obj.get(index);
+            if export_conjugates
+                for index = 1:(2*obj.OperatorCount)
+                    varargout{index} = obj.get(index);
+                end
+            else
+                if obj.Interleave
+                    for index = 1:obj.OperatorCount
+                        varargout{index} = obj.get((2*index)-1);
+                    end
+                else
+                    for index = 1:obj.OperatorCount
+                        varargout{index} = obj.get(index);
+                    end
+                end
             end
         end
         
