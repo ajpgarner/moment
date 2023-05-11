@@ -118,7 +118,7 @@ to the call to function `mtk(...)`:
 
 `conjugate`: Returns the complex-conjugation of an operator sequence.
 
-`echo`: *[Debug function]*: Returns supplied numerical array.
+`echo`: *[Debug function]*: Returns supplied numerical array; tests MATLAB to Eigen interface.
 
 `extended_matrix`: Creates a scalar extension of a moment matrix, extended by listed symbols.
 
@@ -155,6 +155,8 @@ settings.
 
 `settings`: Adjust environmental variables for Moment.
 
+`simplify`: Returns a simplified "canonical form" of an operator sequence.
+
 `suggest_extensions`: Returns list of symbols that could be used to extend a matrix to impose factorization constraints. 
 
 `symbol_table`: Returns total list of operators in a matrix system.
@@ -168,7 +170,7 @@ settings.
 
 `\cpp`: Root of the C++ source code.
 
-`\cpp\eigen`: Inclusion of [eigen](https://gitlab.com/libeigen/eigen) subproject.
+`\cpp\eigen`: Inclusion of [Eigen](https://gitlab.com/libeigen/eigen) subproject.
 
 `\cpp\googletest`: Inclusion of [googletest](https://github.com/google/googletest) subproject.
 

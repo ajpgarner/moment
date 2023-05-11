@@ -31,6 +31,7 @@
 #include "functions/release.h"
 #include "functions/rules.h"
 #include "functions/settings.h"
+#include "functions/simplify.h"
 #include "functions/suggest_extensions.h"
 #include "functions/symbol_table.h"
 #include "functions/transform_symbols.h"
@@ -121,6 +122,9 @@ namespace Moment::mex::functions {
             case functions::MEXEntryPointID::Settings:
                 the_function = std::make_unique<functions::Settings>(engine, storageManager);
                 break;
+            case functions::MEXEntryPointID::Simplify:
+                the_function = std::make_unique<functions::Simplify>(engine, storageManager);
+                break;
             case functions::MEXEntryPointID::SuggestExtensions:
                 the_function = std::make_unique<functions::SuggestExtensions>(engine, storageManager);
                 break;
@@ -168,6 +172,7 @@ namespace Moment::mex::functions {
         output.emplace(u"release",            MEXEntryPointID::Release);
         output.emplace(u"rules",              MEXEntryPointID::Rules);
         output.emplace(u"settings",           MEXEntryPointID::Settings);
+        output.emplace(u"simplify",           MEXEntryPointID::Simplify);
         output.emplace(u"suggest_extensions", MEXEntryPointID::SuggestExtensions);
         output.emplace(u"symbol_table",       MEXEntryPointID::SymbolTable);
         output.emplace(u"transform_symbols",  MEXEntryPointID::TransformSymbols);

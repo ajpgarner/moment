@@ -63,6 +63,7 @@ matlab_add_mex(NAME moment_mex
             functions/release.cpp
             functions/rules.cpp
             functions/settings.cpp
+            functions/simplify.cpp
             functions/suggest_extensions.cpp
             functions/symbol_table.cpp
             functions/transform_symbols.cpp

@@ -108,6 +108,8 @@ namespace Moment::Algebraic {
 
         [[nodiscard]]  std::string format_sequence(const OperatorSequence &seq) const override;
 
+        std::string format_raw_sequence(const sequence_storage_t &seq) const override;
+
         /**
          * Access rule information.
          */

@@ -107,6 +107,11 @@ namespace Moment {
           [[nodiscard]] virtual std::string format_sequence(const OperatorSequence& seq) const;
 
          /**
+          * Generates a formatted string representation of an untreated sequence
+          */
+          [[nodiscard]] virtual std::string format_raw_sequence(const sequence_storage_t& seq) const;
+
+         /**
           * Summarize the context as a string.
           */
          [[nodiscard]] virtual std::string to_string() const;

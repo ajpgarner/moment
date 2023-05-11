@@ -48,6 +48,7 @@ namespace Moment::mex::functions {
         Release,
         Rules,
         Settings,
+        Simplify,
         SuggestExtensions,
         SymbolTable,
         TransformSymbols,

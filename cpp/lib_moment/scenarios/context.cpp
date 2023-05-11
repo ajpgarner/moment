@@ -89,6 +89,25 @@ namespace Moment {
         return ss.str();
     }
 
+    std::string Context::format_raw_sequence(const sequence_storage_t &seq) const {
+        if (seq.empty()) {
+            return "1";
+        }
+
+        std::stringstream ss;
+        bool done_once = false;
+        for (const auto& oper : seq) {
+            if (done_once) {
+                ss << ";";
+            } else {
+                done_once = true;
+            }
+
+            ss << "X" << (oper+1); // MATLAB indexing...
+        }
+        return ss.str();
+    }
+
 
     std::string Context::to_string() const {
         // NB: May be overridden by subclasses!

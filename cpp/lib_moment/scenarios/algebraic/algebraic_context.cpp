@@ -168,7 +168,32 @@ namespace Moment::Algebraic {
                 } else {
                     done_once = true;
                 }
+                this->names().format_stream(ss, oper);
+            }
+        }
+        return ss.str();
+    }
+
+
+    std::string AlgebraicContext::format_raw_sequence(const sequence_storage_t &seq) const {
+        if (seq.empty()) {
+            return "1";
+        }
+
+        std::stringstream ss;
+        if (this->op_names->all_single()) {
+            for (const auto& oper: seq) {
                 ss << (*this->op_names)[oper];
+            }
+        } else {
+            bool done_once = false;
+            for (const auto &oper: seq) {
+                if (done_once) {
+                    ss << ";";
+                } else {
+                    done_once = true;
+                }
+                this->names().format_stream(ss, oper);
             }
         }
         return ss.str();
@@ -182,5 +207,6 @@ namespace Moment::Algebraic {
             std::make_unique<NameTable>(names), false, true, std::vector<MonomialSubstitutionRule>{}
         );
     }
+
 
 }
