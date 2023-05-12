@@ -36,6 +36,7 @@
 #include "functions/symbol_table.h"
 #include "functions/transform_symbols.h"
 #include "functions/version.h"
+#include "functions/word_list.h"
 
 #include "utilities/reporting.h"
 
@@ -137,6 +138,9 @@ namespace Moment::mex::functions {
             case functions::MEXEntryPointID::Version:
                 the_function = std::make_unique<functions::Version>(engine, storageManager);
                 break;
+            case functions::MEXEntryPointID::WordList:
+                the_function = std::make_unique<functions::WordList>(engine, storageManager);
+                break;
             case functions::MEXEntryPointID::Unknown:
                 return {};
         }
@@ -177,6 +181,7 @@ namespace Moment::mex::functions {
         output.emplace(u"symbol_table",       MEXEntryPointID::SymbolTable);
         output.emplace(u"transform_symbols",  MEXEntryPointID::TransformSymbols);
         output.emplace(u"version",            MEXEntryPointID::Version);
+        output.emplace(u"word_list",          MEXEntryPointID::WordList);
         return output;
     }
 

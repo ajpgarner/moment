@@ -52,7 +52,8 @@ namespace Moment::mex::functions {
         SuggestExtensions,
         SymbolTable,
         TransformSymbols,
-        Version
+        Version,
+        WordList
     };
 
     /**

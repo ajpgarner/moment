@@ -163,6 +163,8 @@ settings.
 
 `version`: Returns the version of this software.
 
+`word_list`: Returns all unique monomial sequences up to a given length.
+
 
 ### Directory structure
 

@@ -68,6 +68,7 @@ matlab_add_mex(NAME moment_mex
             functions/symbol_table.cpp
             functions/transform_symbols.cpp
             functions/version.cpp
+            functions/word_list.cpp
         OUTPUT_NAME mtk
         MODULE
         R2018a)
