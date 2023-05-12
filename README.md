@@ -103,68 +103,9 @@ respect no-signalling, and so operators associated with different parties are al
 
 
 ### Moment functions
-The matlab module `mtk` contains the following functions, the names of which should be provided as the first argument
-to the call to function `mtk(...)`:
-
-`add_symmetry`: Associate a symmetry group with a context.
-
-`alphabetic_name`: Converts a numerical index into an alphabetic one.
-
-`apply_values`: Create a new matrix by substituting listed symbols with numeric values.
-
-`collins_gisin`: Returns list of symbols in a matrix system, as a matrix using Collins-Gisin indexing.
-
-`complete`: Attempts to complete a set of algebraic rewrite rules.
-
-`conjugate`: Returns the complex-conjugation of an operator sequence.
-
-`echo`: *[Debug function]*: Returns supplied numerical array; tests MATLAB to Eigen interface.
-
-`extended_matrix`: Creates a scalar extension of a moment matrix, extended by listed symbols.
-
-`generate_basis`: Provide symmetric or Hermitian basis matrices for a given symbolic matrix.
-
-`import_matrix`: Adds a symbol matrix manually to an imported matrix system.
-
-`list`: Lists the matrices stored in a given matrix system.
-
-`localizing_matrix`: Generates a localizing matrix for a supplied set of Hermitian operators and monomial expression.
-
-`make_explicit`: Converts a full probability distribution into a list of explicit symbol assignments for the locality 
-and inflation scenarios. 
-
-`moment_matrix`: Generates a moment matrix for a supplied set of Hermitian operators.
-
-`new_algebraic_matrix_system`: Starts a new context of shared variables, with specified algebraic relations.
-
-`new_imported_matrix_system`: Starts a new context of shared variables, for matrices manually entered via
-`import_matrix`.
-
-`new_inflation_matrix_system`: Starts a new context of shared variables, for an inflated causal network.
-
-`new_locality_matrix_system`: Starts a new context of shared variables, for locality (party, measurement, outcome) 
-settings.
-
-`probability_table`: Calculates the coefficients of all implied outcomes from the moment matrix / matrix system.
-
-`operator_matrix`: Returns an operator matrix from a matrix system. 
-
-`release`: Frees the internally-stored object at the supplied key.
-
-`rules`: Returns a ruleset associated with an algebraic matrix system.
-
-`settings`: Adjust environmental variables for Moment.
-
-`simplify`: Returns a simplified "canonical form" of an operator sequence.
-
-`suggest_extensions`: Returns list of symbols that could be used to extend a matrix to impose factorization constraints. 
-
-`symbol_table`: Returns total list of operators in a matrix system.
-
-`version`: Returns the version of this software.
-
-`word_list`: Returns all unique monomial sequences up to a given length.
-
+The matlab module `mtk` defines a set of functions, the names of which should be provided as the first argument
+to the call to function `mtk(...)`. For information about these, type `help mtk` from MATLAB, or read the file 
+`matlab/mtk.m`
 
 ### Directory structure
 

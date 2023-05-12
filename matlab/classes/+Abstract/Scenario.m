@@ -123,7 +123,10 @@ classdef Scenario < handle
             % Do binding...
             obj.onNewMomentMatrix(mm_out)
          end
-         
+    end
+    
+    %% Operator sequence manipulations
+    methods         
          function output = Simplify(obj, input)
          % SIMPLIFY Get canonical form of operator sequence input.
              arguments
@@ -132,6 +135,26 @@ classdef Scenario < handle
              end
              
              output = mtk('simplify', obj.System.RefId, input);
+         end
+         
+         function output = Conjugate(obj, input)
+         % CONJUGATE Get canonical form of operator sequence's conjugate.
+             arguments
+                 obj(1,1) Abstract.Scenario
+                 input(1,:)
+             end
+             
+             output = mtk('conjugate', obj.System.RefId, input);
+         end
+         
+         function output = WordList(obj, length)
+         % WORDLIST Get all operator sequences up to requested length
+             arguments
+                 obj(1,1) Abstract.Scenario
+                 length(1,1) uint64
+             end
+             
+             output = mtk('word_list', obj.System.RefId, length);
          end
     end
             
