@@ -119,6 +119,12 @@ namespace Moment {
         remove_zeros(this->data);
     }
 
+    SymbolCombo::SymbolCombo(SymbolCombo::storage_t input, const SymbolTable &table)
+        : SymbolCombo{std::move(input)} {
+
+        this->fix_cc_in_place(table);
+    }
+
     SymbolCombo::SymbolCombo(const std::map<symbol_name_t, double> &input) {
         data.reserve(input.size());
         for (const auto& pair : input) {
@@ -223,6 +229,22 @@ namespace Moment {
         }
         return true;
     }
+
+    SymbolCombo &SymbolCombo::fix_cc_in_place(const SymbolTable &symbols) noexcept {
+        for (auto& elem: this->data) {
+            assert(elem.id < symbols.size());
+            auto& symbolInfo = symbols[elem.id];
+            if (symbolInfo.is_hermitian()) {
+                elem.conjugated = false;
+            }
+            if (symbolInfo.is_antihermitian() && elem.conjugated) {
+                elem.factor *= -1;
+                elem.conjugated = false;
+            }
+        }
+        return *this;
+    }
+
 
     SymbolCombo &SymbolCombo::conjugate_in_place(const SymbolTable& symbols) noexcept {
         bool any_conjugate = false;

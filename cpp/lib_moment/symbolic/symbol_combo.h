@@ -45,6 +45,9 @@ namespace Moment {
         /** Construct combination from vector of monomials */
         explicit SymbolCombo(storage_t input);
 
+        /** Construct combination from vector of monomials, and a table */
+        explicit SymbolCombo(storage_t input, const SymbolTable& table);
+
         /** Construct combination from map of symbol names to weights */
         explicit SymbolCombo(const std::map<symbol_name_t, double>& input);
 
@@ -93,6 +96,21 @@ namespace Moment {
 
         inline bool operator!=(const SymbolCombo& rhs) const noexcept {
             return !(this->operator==(rhs));
+        }
+
+        /**
+         * Replace all kX* with kX, if X is Hermitian, and kY* with -kY if Y is anti-Hermitian.
+         */
+        SymbolCombo& fix_cc_in_place(const SymbolTable& symbols) noexcept;
+
+        /**
+         * Return a new SymbolCombo with all Hermitian and anti-Hermitian operators in canonical format.
+         * @see SymbolCombo::fix_cc_in_place
+         */
+        [[nodiscard]] SymbolCombo fix_cc(const SymbolTable& symbols) const {
+            SymbolCombo output{*this};
+            output.fix_cc_in_place(symbols);
+            return output;
         }
 
         /**
