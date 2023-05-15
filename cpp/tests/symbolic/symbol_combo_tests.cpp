@@ -6,7 +6,6 @@
  */
 #include "gtest/gtest.h"
 
-#include "symbolic/compare_by_op_hash.h"
 #include "symbolic/symbol_combo.h"
 #include "symbolic/symbol_table.h"
 
@@ -462,21 +461,23 @@ namespace Moment::Tests {
         ams.generate_dictionary(2);
         ASSERT_EQ(symbols.size(), 7);  // 0, 1, a, b, aa, ab, (ba), bb
 
-        CompareByOpHash comparator{symbols};
+        SymbolExpression::IdMoreComparator comparator{};
 
-        EXPECT_TRUE(comparator(SymbolExpression{1}, SymbolExpression{2}));
-        EXPECT_FALSE(comparator(SymbolExpression{2}, SymbolExpression{1}));
+        EXPECT_TRUE(comparator(SymbolExpression{2}, SymbolExpression{1}));
+        EXPECT_TRUE(comparator(SymbolExpression{2, false}, SymbolExpression{2, true}));
+        EXPECT_FALSE(comparator(SymbolExpression{2, true}, SymbolExpression{2, false}));
+        EXPECT_FALSE(comparator(SymbolExpression{1}, SymbolExpression{2}));
 
         SymbolCombo combo({SymbolExpression{1, 1.0}, SymbolExpression{2, 1.0}, SymbolExpression{5, 2.0, true}},
                           symbols, comparator);
 
         ASSERT_EQ(combo.size(), 3);
-        EXPECT_EQ(combo[0], SymbolExpression(1, 1.0));
+        EXPECT_EQ(combo[0], SymbolExpression(5, 2.0, true));
         EXPECT_EQ(combo[1], SymbolExpression(2, 1.0));
-        EXPECT_EQ(combo[2], SymbolExpression(5, 2.0, true));
+        EXPECT_EQ(combo[2], SymbolExpression(1, 1.0));
         EXPECT_FALSE(combo.is_hermitian(symbols));
-        EXPECT_EQ(combo.first_id(), 1);
-        EXPECT_EQ(combo.last_id(), 5);
+        EXPECT_EQ(combo.first_id(), 5);
+        EXPECT_EQ(combo.last_id(), 1);
 
         auto cc_combo = combo.conjugate(symbols);
         EXPECT_TRUE(combo.is_conjugate(symbols, cc_combo));
@@ -492,7 +493,7 @@ namespace Moment::Tests {
         ams.generate_dictionary(2);
         ASSERT_EQ(symbols.size(), 7);  // 0, 1, a, b, aa, ab, (ba), bb
 
-        CompareByOpHash comparator{symbols};
+        SymbolExpression::IdMoreComparator comparator{};
 
         SymbolCombo combo({SymbolExpression{5, 2.0, false}, SymbolExpression{5, 2.0, true}},
                           symbols, comparator);

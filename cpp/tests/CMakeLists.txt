@@ -42,6 +42,7 @@ add_executable(moment_tests
     scenarios/symmetry/representation_mapper_tests.cpp
     scenarios/symmetry/symmetrized_matrix_system_tests.cpp
     symbolic/moment_substitution_rule_tests.cpp
+    symbolic/moment_substitution_rulebook_tests.cpp
     symbolic/substitution_list_tests.cpp
     symbolic/symbol_combo_tests.cpp
     symbolic/symbol_combo_to_basis_tests.cpp

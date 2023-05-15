@@ -59,7 +59,6 @@ add_library(lib_moment
         scenarios/symmetrized/representation.cpp
         scenarios/symmetrized/representation_mapper.cpp
         scenarios/symmetrized/symmetrized_matrix_system.cpp
-        symbolic/compare_by_op_hash.cpp
         symbolic/moment_substitution_rule.cpp
         symbolic/moment_substitution_rulebook.cpp
         symbolic/substitution_list.cpp

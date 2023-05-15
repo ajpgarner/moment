@@ -18,7 +18,7 @@ namespace Moment {
     struct SymbolExpression {
     public:
         /**
-          * Comparator defining #1 < #1* < #2 < #2 < ... for symbol IDs.
+          * Comparator defining #1 < #1* < #2 < #2* < ... for symbol IDs.
           */
         struct IdLessComparator {
         public:
@@ -26,6 +26,25 @@ namespace Moment {
                 if (lhs.id < rhs.id) {
                     return true;
                 } else if (lhs.id > rhs.id) {
+                    return false;
+                }
+                if (lhs.conjugated == rhs.conjugated) {
+                    return false;
+                }
+                return !lhs.conjugated; // true implies lhs a, rhs a*
+            }
+        };
+
+        /**
+          * Comparator defining #3 < #3* < #2 < #2* < ... for symbol IDs.
+          * Not quite the reverse ordering of IdLessComparator, because A < A* still.
+          */
+        struct IdMoreComparator {
+        public:
+            constexpr bool operator()(const SymbolExpression &lhs, const SymbolExpression &rhs) const noexcept {
+                if (lhs.id > rhs.id) {
+                    return true;
+                } else if (lhs.id < rhs.id) {
                     return false;
                 }
                 if (lhs.conjugated == rhs.conjugated) {
