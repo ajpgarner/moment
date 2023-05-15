@@ -9,11 +9,13 @@
 #include "integer_types.h"
 
 #include "symbol_expression.h"
+
 #include "utilities/small_vector.h"
+#include "utilities/float_utils.h"
 
 #include <algorithm>
-#include <map>
 #include <iosfwd>
+#include <map>
 #include <utility>
 #include <vector>
 
@@ -42,13 +44,45 @@ namespace Moment {
         /** Construct combination from monomial */
         explicit SymbolCombo(const SymbolExpression& monomial);
 
-        /** Construct combination from vector of monomials */
-        explicit SymbolCombo(storage_t input);
+        /**
+         * Construct combination from vector of monomials.
+         * @tparam ordering_func_t Ordering functional on symbol expressions. Complex conjugates must be adjacent.
+         * @param input The combination data.
+         * @param order Instance of the ordering functional.
+         */
+        template<typename ordering_func_t = SymbolExpression::IdLessComparator>
+        explicit SymbolCombo(storage_t input,
+                             const ordering_func_t& order = ordering_func_t{})
+            : data{std::move(input)} {
+            if (this->data.size() > 1) {
+                this->sort(order);
+                SymbolCombo::remove_duplicates(this->data);
+            }
+            SymbolCombo::remove_zeros(this->data);
+        }
 
-        /** Construct combination from vector of monomials, and a table */
-        explicit SymbolCombo(storage_t input, const SymbolTable& table);
+        /**
+         * Construct combination from vector of monomials, and the symbol table.
+         * @tparam ordering_func_t Ordering functional on symbol expressions. Complex conjugates must be adjacent.
+         * @param input The combination data.
+         * @param table The symbol table.
+         * @param order Instance of the ordering functional.
+         */
+        template<typename ordering_func_t =  SymbolExpression::IdLessComparator>
+        explicit SymbolCombo(storage_t input,
+                             const SymbolTable& table,
+                             const ordering_func_t& order = ordering_func_t{})
+                : data{std::move(input)} {
+            this->fix_cc_in_place(table, false);
+            if (this->data.size() > 1) {
+                this->sort(order);
+                SymbolCombo::remove_duplicates(this->data);
+            }
+            SymbolCombo::remove_zeros(this->data);
+        }
 
-        /** Construct combination from map of symbol names to weights */
+        /** Construct combination from map of symbol names to weights.
+         * This is automatically in id order, with no complex conjugates. */
         explicit SymbolCombo(const std::map<symbol_name_t, double>& input);
 
         inline SymbolCombo& operator=(const SymbolCombo& rhs) = default;
@@ -76,10 +110,11 @@ namespace Moment {
          */
         explicit operator SymbolExpression() const;
 
+        inline SymbolCombo& operator+=(const SymbolCombo& rhs) {
+            return this->append(rhs);
+        }
 
-        SymbolCombo& operator+=(const SymbolCombo& rhs);
-
-        [[nodiscard]] friend SymbolCombo operator+(const SymbolCombo& lhs, const SymbolCombo& rhs) {
+        [[nodiscard]] friend inline SymbolCombo operator+(const SymbolCombo& lhs, const SymbolCombo& rhs) {
             SymbolCombo output{lhs};
             output += rhs;
             return output;
@@ -100,23 +135,25 @@ namespace Moment {
 
         /**
          * Replace all kX* with kX, if X is Hermitian, and kY* with -kY if Y is anti-Hermitian.
+         * @return True, if this has changed the combination.
          */
-        SymbolCombo& fix_cc_in_place(const SymbolTable& symbols) noexcept;
+        bool fix_cc_in_place(const SymbolTable& symbols, bool make_canonical = false) noexcept;
 
         /**
          * Return a new SymbolCombo with all Hermitian and anti-Hermitian operators in canonical format.
          * @see SymbolCombo::fix_cc_in_place
          */
-        [[nodiscard]] SymbolCombo fix_cc(const SymbolTable& symbols) const {
+        [[nodiscard]] SymbolCombo fix_cc(const SymbolTable& symbols, bool make_canonical = false) const {
             SymbolCombo output{*this};
-            output.fix_cc_in_place(symbols);
+            output.fix_cc_in_place(symbols, make_canonical);
             return output;
         }
 
         /**
          * Transform this combo into its complex conjugate.
+         * @return True, if this might* have changed the combination. (*Some hermitian strings will trigger this).
          */
-        SymbolCombo& conjugate_in_place(const SymbolTable& symbols) noexcept;
+        bool conjugate_in_place(const SymbolTable& symbols) noexcept;
 
         /**
          * Return a new SymbolCombo equal to the complex conjugate of this one.
@@ -125,6 +162,97 @@ namespace Moment {
             SymbolCombo output{*this};
             output.conjugate_in_place(symbols);
             return output;
+        }
+
+        /** Put symbols into requested order */
+        template<typename ordering_func_t = SymbolExpression::IdLessComparator>
+        inline void sort(const ordering_func_t& sort_func = ordering_func_t{}) {
+            std::sort(this->data.begin(), this->data.end(), sort_func);
+        }
+
+
+        /**
+         * Construct add symbols to this combo.
+         * Undefined behaviour if ordering_func_t is different from that used to construct constituents.
+         */
+        template<typename ordering_func_t = SymbolExpression::IdLessComparator>
+        SymbolCombo& append(const SymbolCombo& rhs, const ordering_func_t& comp_less = ordering_func_t{}) {
+            SymbolCombo& lhs = *this;
+
+            // Debug validation
+            assert(std::is_sorted(lhs.begin(), lhs.end(), comp_less));
+            assert(std::is_sorted(rhs.begin(), rhs.end(), comp_less));
+
+            // Get data iterators for RHS
+            auto rhsIter = rhs.data.begin();
+            const auto rhsEnd = rhs.data.end();
+
+            // RHS is empty, nothing to do
+            if (rhsIter == rhsEnd) {
+                return *this;
+            }
+
+            // Get data iterators for LHS
+            auto lhsIter = lhs.data.begin();
+            const auto lhsEnd = lhs.data.end();
+
+            // LHS is empty, copy RHS
+            if (lhsIter == lhsEnd) {
+                lhs.data.reserve(rhs.size());
+                std::copy(rhs.data.cbegin(), rhs.data.cend(), lhs.data.begin());
+                return *this;
+            }
+
+            // Copy and merge, maintaining ID ordering
+            storage_t output_data;
+            while ((lhsIter != lhsEnd) || (rhsIter != rhsEnd)) {
+                if ((rhsIter == rhsEnd) || ((lhsIter != lhsEnd) && comp_less(*lhsIter, *rhsIter))) {
+                    output_data.push_back(*lhsIter); // Copy element from LHS
+                    ++lhsIter;
+                } else if ((lhsIter == lhsEnd) || ((rhsIter != rhsEnd) && comp_less(*rhsIter, *lhsIter))) {
+                    output_data.push_back(*rhsIter); // Copy element from RHS
+                    ++rhsIter;
+                } else {
+                    assert(lhsIter != lhsEnd);
+                    assert(rhsIter != rhsEnd);
+                    assert(lhsIter->id == rhsIter->id);
+                    assert(lhsIter->conjugated == rhsIter->conjugated);
+
+                    const auto sumVals = lhsIter->factor + rhsIter->factor;
+
+                    if (!approximately_zero(sumVals)) {
+                        output_data.emplace_back(lhsIter->id, sumVals, lhsIter->conjugated);
+                    }
+                    ++lhsIter;
+                    ++rhsIter;
+                }
+            }
+            this->data.swap(output_data);
+            return *this;
+
+        }
+
+
+        /**
+         * Get first included symbol ID.
+         * Returns 0 if combo is zero.
+         */
+        [[nodiscard]] inline symbol_name_t first_id() const noexcept {
+            if (this->empty()) {
+                return 0;
+            }
+            return this->data[0].id;
+        }
+
+        /**
+         * Get final included symbol ID.
+         * Returns 0 if combo is zero.
+         */
+        [[nodiscard]] inline symbol_name_t last_id() const noexcept {
+            if (this->empty()) {
+                return 0;
+            }
+            return this->data.back().id;
         }
 
         /**
@@ -157,12 +285,19 @@ namespace Moment {
         }
 
 
+        /**
+         * Get a string expression of this SymbolCombo.
+         */
         [[nodiscard]] std::string as_string() const;
 
         friend class SymbolComboToBasisVec;
         friend class BasisVecToSymbolCombo;
 
         friend std::ostream& operator<<(std::ostream& os, const SymbolCombo& combo);
+
+    private:
+        static void remove_duplicates(SymbolCombo::storage_t &data);
+        static void remove_zeros(SymbolCombo::storage_t &data);
 
     };
 

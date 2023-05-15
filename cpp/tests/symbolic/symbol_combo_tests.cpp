@@ -6,10 +6,14 @@
  */
 #include "gtest/gtest.h"
 
+#include "symbolic/compare_by_op_hash.h"
 #include "symbolic/symbol_combo.h"
 #include "symbolic/symbol_table.h"
 
+#include "scenarios/algebraic/algebraic_context.h"
+#include "scenarios/algebraic/algebraic_matrix_system.h"
 #include "scenarios/imported/imported_matrix_system.h"
+
 
 namespace Moment::Tests {
     TEST(Symbolic_SymbolCombo, Create_Empty) {
@@ -18,6 +22,8 @@ namespace Moment::Tests {
         EXPECT_EQ(empty.size(), 0);
         EXPECT_EQ(empty.begin(), empty.end());
         EXPECT_TRUE(empty.is_monomial());
+        EXPECT_EQ(empty.first_id(), 0);
+        EXPECT_EQ(empty.last_id(), 0);
     }
 
     TEST(Symbolic_SymbolCombo, Create_Scalar) {
@@ -26,6 +32,9 @@ namespace Moment::Tests {
         ASSERT_EQ(scalar.size(), 1);
         EXPECT_TRUE(scalar.is_monomial());
         EXPECT_EQ(*scalar.begin(), SymbolExpression(1, 2.5));
+
+        EXPECT_EQ(scalar.first_id(), 1);
+        EXPECT_EQ(scalar.last_id(), 1);
     }
 
     TEST(Symbolic_SymbolCombo, Create_OneElem) {
@@ -34,6 +43,9 @@ namespace Moment::Tests {
         ASSERT_EQ(one_elem.size(), 1);
         EXPECT_TRUE(one_elem.is_monomial());
         EXPECT_EQ(*one_elem.begin(), SymbolExpression(13, -2.0));
+
+        EXPECT_EQ(one_elem.first_id(), 13);
+        EXPECT_EQ(one_elem.last_id(), 13);
     }
 
     TEST(Symbolic_SymbolCombo, Create_ThreeElems) {
@@ -62,6 +74,8 @@ namespace Moment::Tests {
         ASSERT_EQ(iter, threeElems.end());
 
         EXPECT_FALSE(threeElems.is_monomial());
+        EXPECT_EQ(threeElems.first_id(), 2);
+        EXPECT_EQ(threeElems.last_id(), 10);
     }
 
     TEST(Symbolic_SymbolCombo, Create_InitListZero) {
@@ -439,5 +453,59 @@ namespace Moment::Tests {
                     std::logic_error);
     }
 
+    TEST(Symbolic_SymbolCombo, AlternativeOrdering) {
 
+        Algebraic::AlgebraicMatrixSystem ams{std::make_unique<Algebraic::AlgebraicContext>(2)};
+        const auto& context = ams.AlgebraicContext();
+        const auto& symbols = ams.Symbols();
+        ASSERT_EQ(context.size(), 2);
+        ams.generate_dictionary(2);
+        ASSERT_EQ(symbols.size(), 7);  // 0, 1, a, b, aa, ab, (ba), bb
+
+        CompareByOpHash comparator{symbols};
+
+        EXPECT_TRUE(comparator(SymbolExpression{1}, SymbolExpression{2}));
+        EXPECT_FALSE(comparator(SymbolExpression{2}, SymbolExpression{1}));
+
+        SymbolCombo combo({SymbolExpression{1, 1.0}, SymbolExpression{2, 1.0}, SymbolExpression{5, 2.0, true}},
+                          symbols, comparator);
+
+        ASSERT_EQ(combo.size(), 3);
+        EXPECT_EQ(combo[0], SymbolExpression(1, 1.0));
+        EXPECT_EQ(combo[1], SymbolExpression(2, 1.0));
+        EXPECT_EQ(combo[2], SymbolExpression(5, 2.0, true));
+        EXPECT_FALSE(combo.is_hermitian(symbols));
+        EXPECT_EQ(combo.first_id(), 1);
+        EXPECT_EQ(combo.last_id(), 5);
+
+        auto cc_combo = combo.conjugate(symbols);
+        EXPECT_TRUE(combo.is_conjugate(symbols, cc_combo));
+        EXPECT_TRUE(cc_combo.is_conjugate(symbols, combo));
+    }
+
+    TEST(Symbolic_SymbolCombo, AlternativeOrdering_NontrivialHermitian) {
+
+        Algebraic::AlgebraicMatrixSystem ams{std::make_unique<Algebraic::AlgebraicContext>(2)};
+        const auto& context = ams.AlgebraicContext();
+        const auto& symbols = ams.Symbols();
+        ASSERT_EQ(context.size(), 2);
+        ams.generate_dictionary(2);
+        ASSERT_EQ(symbols.size(), 7);  // 0, 1, a, b, aa, ab, (ba), bb
+
+        CompareByOpHash comparator{symbols};
+
+        SymbolCombo combo({SymbolExpression{5, 2.0, false}, SymbolExpression{5, 2.0, true}},
+                          symbols, comparator);
+
+        ASSERT_EQ(combo.size(), 2);
+        EXPECT_EQ(combo[0], SymbolExpression(5, 2.0, false));
+        EXPECT_EQ(combo[1], SymbolExpression(5, 2.0, true));
+        EXPECT_TRUE(combo.is_hermitian(symbols));
+        EXPECT_EQ(combo.first_id(), 5);
+        EXPECT_EQ(combo.last_id(), 5);
+
+        auto cc_combo = combo.conjugate(symbols);
+        EXPECT_TRUE(combo.is_conjugate(symbols, cc_combo));
+        EXPECT_TRUE(cc_combo.is_conjugate(symbols, combo));
+    }
 }

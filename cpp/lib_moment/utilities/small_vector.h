@@ -13,6 +13,8 @@
 #include <memory>
 #include <span>
 
+#include <cassert>
+
 namespace Moment {
 
     /**

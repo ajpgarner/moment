@@ -7,9 +7,9 @@
  * Floating point arithmetic leads to rounding errors.
  * Thus, we should only test for approximate equality.
  */
+#pragma once
 
 #include <cmath>
-
 #include <limits>
 
 namespace Moment {

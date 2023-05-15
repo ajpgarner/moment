@@ -15,22 +15,6 @@
 namespace Moment {
 
     namespace {
-        struct LexLessComparator {
-            bool operator()(const SymbolExpression &lhs, const SymbolExpression &rhs) const noexcept {
-                if (lhs.id < rhs.id) {
-                    return true;
-                } else if (lhs.id > rhs.id) {
-                    return false;
-                }
-
-                if (lhs.conjugated == rhs.conjugated) {
-                    return false;
-                }
-
-                return !lhs.conjugated; // true implies lhs a, rhs a*
-
-            }
-        };
 
         struct LexEqComparator {
             bool operator()(const SymbolExpression &lhs, const SymbolExpression &rhs) const noexcept {
@@ -43,86 +27,64 @@ namespace Moment {
                 return true;
             }
         };
+    }
 
-        void remove_duplicates(SymbolCombo::storage_t &data) {
-            // Iterate forwards, looking for duplicates
-            LexEqComparator lex_eq{};
-            auto leading_iter = data.begin();
-            auto lagging_iter = leading_iter;
-            ++leading_iter;
-            const auto last_iter = data.end();
-            while (leading_iter != last_iter) {
-                assert(lagging_iter <= leading_iter);
-                assert(leading_iter <= last_iter);
-                if (lex_eq(*lagging_iter, *leading_iter)) {
-                    lagging_iter->factor += leading_iter->factor;
-                } else {
-                    ++lagging_iter;
-                    if (leading_iter != lagging_iter) {
-                        // copy/move
-                        *lagging_iter = *leading_iter;
-                    }
-                }
-                ++leading_iter;
-            }
-            ++lagging_iter;
+    void SymbolCombo::remove_duplicates(SymbolCombo::storage_t &data) {
+        // Iterate forwards, looking for duplicates
+        LexEqComparator lex_eq{};
+        auto leading_iter = data.begin();
+        auto lagging_iter = leading_iter;
+        ++leading_iter;
+        const auto last_iter = data.end();
+        while (leading_iter != last_iter) {
             assert(lagging_iter <= leading_iter);
             assert(leading_iter <= last_iter);
-            data.erase(lagging_iter, last_iter);
+            if (lex_eq(*lagging_iter, *leading_iter)) {
+                lagging_iter->factor += leading_iter->factor;
+            } else {
+                ++lagging_iter;
+                if (leading_iter != lagging_iter) {
+                    // copy/move
+                    *lagging_iter = *leading_iter;
+                }
+            }
+            ++leading_iter;
         }
+        ++lagging_iter;
+        assert(lagging_iter <= leading_iter);
+        assert(leading_iter <= last_iter);
+        data.erase(lagging_iter, last_iter);
+    }
 
-        void remove_zeros(SymbolCombo::storage_t &data) {
+    void SymbolCombo::remove_zeros(SymbolCombo::storage_t &data) {
+        auto read_iter = data.begin();
+        auto write_iter = data.begin();
+        const auto last_iter = data.end();
 
-            auto read_iter = data.begin();
-            auto write_iter = data.begin();
-            const auto last_iter = data.end();
-
-            while (read_iter != last_iter) {
-                assert(write_iter <= read_iter);
-                if (approximately_zero(read_iter->factor) || (read_iter->id == 0)) {
-                    ++read_iter; // skip zeros
-                    continue;
-                }
-
-                if (read_iter != write_iter) {
-                    *write_iter = *read_iter;
-                }
-
-                ++write_iter;
-                ++read_iter;
+        while (read_iter != last_iter) {
+            assert(write_iter <= read_iter);
+            if (approximately_zero(read_iter->factor) || (read_iter->id == 0)) {
+                ++read_iter; // skip zeros
+                continue;
             }
 
-            assert(write_iter <= read_iter);
-            assert(read_iter <= last_iter);
-            data.erase(write_iter, last_iter);
+            if (read_iter != write_iter) {
+                *write_iter = *read_iter;
+            }
+
+            ++write_iter;
+            ++read_iter;
         }
+
+        assert(write_iter <= read_iter);
+        assert(read_iter <= last_iter);
+        data.erase(write_iter, last_iter);
     }
 
     SymbolCombo::SymbolCombo(const SymbolExpression& expr) {
         if (0 != expr.id) {
             this->data.emplace_back(expr);
         }
-    }
-
-    SymbolCombo::SymbolCombo(SymbolCombo::storage_t input)
-        : data{std::move(input)} {
-
-        // No pruning/sorting etc. if zero or one elements
-        if (this->data.size() > 1) {
-            // Put orders in lexographic order
-            std::sort(this->data.begin(), this->data.end(), LexLessComparator{});
-
-            // Remove duplicates
-            remove_duplicates(this->data);
-        }
-
-        remove_zeros(this->data);
-    }
-
-    SymbolCombo::SymbolCombo(SymbolCombo::storage_t input, const SymbolTable &table)
-        : SymbolCombo{std::move(input)} {
-
-        this->fix_cc_in_place(table);
     }
 
     SymbolCombo::SymbolCombo(const std::map<symbol_name_t, double> &input) {
@@ -166,58 +128,6 @@ namespace Moment {
         return *this;
     }
 
-    SymbolCombo& SymbolCombo::operator+=(const SymbolCombo &rhs) {
-        SymbolCombo& lhs = *this;
-
-        // Get data iterators for RHS
-        auto rhsIter = rhs.data.begin();
-        const auto rhsEnd = rhs.data.end();
-
-        // RHS is empty, nothing to do
-        if (rhsIter == rhsEnd) {
-            return *this;
-        }
-
-        // Get data iterators for LHS
-        auto lhsIter = lhs.data.begin();
-        const auto lhsEnd = lhs.data.end();
-
-        // LHS is empty, copy RHS
-        if (lhsIter == lhsEnd) {
-            lhs.data.reserve(rhs.size());
-            std::copy(rhs.data.cbegin(), rhs.data.cend(), lhs.data.begin());
-            return *this;
-        }
-
-        // Copy and merge, maintaining ordering
-        const LexLessComparator lex_less;
-        storage_t output_data;
-        while ((lhsIter != lhsEnd) || (rhsIter != rhsEnd)) {
-            if ((rhsIter == rhsEnd) || ((lhsIter != lhsEnd) && lex_less(*lhsIter, *rhsIter))) {
-                output_data.push_back(*lhsIter); // Copy element from LHS
-                ++lhsIter;
-            } else if ((lhsIter == lhsEnd) || ((rhsIter != rhsEnd) && lex_less(*rhsIter, *lhsIter))) {
-                output_data.push_back(*rhsIter); // Copy element from RHS
-                ++rhsIter;
-            } else {
-                assert(lhsIter != lhsEnd);
-                assert(rhsIter != rhsEnd);
-                assert(lhsIter->id == rhsIter->id);
-                assert(lhsIter->conjugated == rhsIter->conjugated);
-
-                const auto sumVals = lhsIter->factor + rhsIter->factor;
-
-                if (!approximately_zero(sumVals)) {
-                    output_data.emplace_back(lhsIter->id, sumVals, lhsIter->conjugated);
-                }
-                ++lhsIter;
-                ++rhsIter;
-            }
-        }
-        this->data.swap(output_data);
-        return *this;
-    }
-
     bool SymbolCombo::operator==(const SymbolCombo &rhs) const noexcept {
         if (this->data.size() != rhs.data.size()) {
             return false;
@@ -230,23 +140,34 @@ namespace Moment {
         return true;
     }
 
-    SymbolCombo &SymbolCombo::fix_cc_in_place(const SymbolTable &symbols) noexcept {
+    bool SymbolCombo::fix_cc_in_place(const SymbolTable &symbols, bool make_canonical) noexcept {
+        bool any_change = false;
         for (auto& elem: this->data) {
             assert(elem.id < symbols.size());
             auto& symbolInfo = symbols[elem.id];
             if (symbolInfo.is_hermitian()) {
+                any_change = elem.conjugated || any_change;
                 elem.conjugated = false;
             }
             if (symbolInfo.is_antihermitian() && elem.conjugated) {
+                any_change = elem.conjugated || any_change;
                 elem.factor *= -1;
                 elem.conjugated = false;
             }
         }
-        return *this;
+
+        // If any changes made, scan for duplicates and zeros
+        if (make_canonical && any_change) {
+            if (this->data.size() > 1) {
+                remove_duplicates(this->data);
+            }
+            remove_zeros(this->data);
+        }
+
+        return any_change;
     }
 
-
-    SymbolCombo &SymbolCombo::conjugate_in_place(const SymbolTable& symbols) noexcept {
+    bool SymbolCombo::conjugate_in_place(const SymbolTable& symbols) noexcept {
         bool any_conjugate = false;
 
         for (auto& elem: this->data) {
@@ -265,11 +186,21 @@ namespace Moment {
             any_conjugate = true;
         }
 
-        // Put into lexicographical order, if any non-trivial conjugations
-        if (any_conjugate) {
-            std::sort(this->data.begin(), this->data.end(), LexLessComparator{});
+        // Re-order so A < A*:
+        if (any_conjugate && (this->data.size() > 1)) {
+            auto iter = this->data.begin();
+            auto next_iter = iter+1;
+            while (next_iter != this->data.end()) {
+                if (iter->id == next_iter->id) {
+                    if (iter->conjugated && !next_iter->conjugated) {
+                        std::swap(*iter, *next_iter);
+                    }
+                }
+                ++iter;
+                ++next_iter;
+            }
         }
-        return *this;
+        return any_conjugate;
     }
 
 
