@@ -3,12 +3,13 @@ classdef Monomial < Abstract.ComplexObject
         
     properties(GetAccess = public, SetAccess = protected)
         Operators % The operator string defining this monomial.        
-        OperatorString % String representation of operators.
         Coefficient % Scalar co-efficient factor of the monomial.
         Hash % Hash of the operator sequence in this monomial.
     end
     
-    properties(Dependent, GetAccess = public)        
+    properties(Dependent, GetAccess = public)
+        % String representation of operators.
+        OperatorString 
 
         % True if monomial can be found in symbol table.
         FoundSymbol  
@@ -50,17 +51,9 @@ classdef Monomial < Abstract.ComplexObject
             
             obj = obj@Abstract.ComplexObject(setting);
    
-            obj.Operators = uint64(setting.Simplify(operators));
-            obj.Hash = obj.calculateShortlexHash();
+            [obj.Operators, obj.Hash] = setting.Simplify(operators);
             obj.Coefficient = scale;
-            
-            % Format operator string
-            if ~isempty(obj.Operators)
-                as_str = setting.RuleBook.ToStringArray(obj.Operators);
-                obj.OperatorString = join(as_str, ' ');            
-            else
-                obj.OperatorString = "I";
-            end
+           
         end        
     end
     
@@ -113,6 +106,18 @@ classdef Monomial < Abstract.ComplexObject
             end
             val = OpMatrix.LocalizingMatrix(obj.Scenario, ...
                 obj.Operators, level);
+        end
+    end
+    
+    %% Accessors: Operator name
+    methods
+        function val = get.OperatorString(obj)
+            if ~isempty(obj.Operators)
+                as_str = obj.Scenario.RuleBook.ToStringArray(obj.Operators);
+                val = join(as_str, ' ');
+            else
+                val = "I";
+            end
         end
     end
     
@@ -488,17 +493,7 @@ classdef Monomial < Abstract.ComplexObject
                 end
             end
         end
-        
-        function val = calculateShortlexHash(obj)
-            val = 1;
-            stride = uint64(1);
-            for index = length(obj.Operators):-1:1
-                val = val + stride*obj.Operators(index);
-                stride = uint64(stride * ...
-                    obj.Scenario.EffectiveOperatorCount);
-            end
-        end
-        
+               
         function success = loadSymbolInfo(obj)
             if obj.Scenario.HasMatrixSystem
                 sys = obj.Scenario.System;

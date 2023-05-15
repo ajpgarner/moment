@@ -33,6 +33,16 @@ classdef ConjugateTest < MTKTestBase
             expected = uint64([4, 3]);
             testCase.verifyEqual(output, expected);
         end
+        
+         function WithHash(testCase)
+            ms_id = mtk('new_algebraic_matrix_system', 2, 'nonhermitian');
+            input = uint64([1, 2]);
+            [output, output_hash] = mtk('conjugate', ms_id, input);
+            expected = uint64([4, 3]);
+            testCase.verifyEqual(output, expected);
+            testCase.verifyEqual(output_hash, ...
+                                Util.shortlex_hash(4, expected));
+        end
     end
     
     methods (Test, TestTags={'Error'})

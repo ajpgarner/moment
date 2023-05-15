@@ -127,28 +127,45 @@ classdef Scenario < handle
     
     %% Operator sequence manipulations
     methods         
-         function output = Simplify(obj, input)
+         function [output, hash] = Simplify(obj, input)
          % SIMPLIFY Get canonical form of operator sequence input.
+         % All applicable re-write rules will be applied.
+         %
+         % SYNTAX
+         %      1. output = setting.Simplify(input_str)
+         %      2. [output, hash] = setting.Simplify(input_str)
+         %
+         % The optional hash is the shortlex hash associated with this 
+         % context.
+         %
              arguments
                  obj(1,1) Abstract.Scenario
                  input(1,:)
              end
              
-             output = mtk('simplify', obj.System.RefId, input);
+             [output, hash] = mtk('simplify', obj.System.RefId, input);
          end
          
-         function output = Conjugate(obj, input)
+         function [output, hash] = Conjugate(obj, input)
          % CONJUGATE Get canonical form of operator sequence's conjugate.
+         %
+         % SYNTAX
+         %      1. output = setting.Simplify(input_str)
+         %      2. [output, hash] = setting.Simplify(input_str)
+         %
+         % The optional hash is the shortlex hash associated with this 
+         % context.
+         %
              arguments
                  obj(1,1) Abstract.Scenario
                  input(1,:)
              end
              
-             output = mtk('conjugate', obj.System.RefId, input);
+             [output, hash] = mtk('conjugate', obj.System.RefId, input);
          end
          
          function output = WordList(obj, length)
-         % WORDLIST Get all operator sequences up to requested length
+         % WORDLIST Get all operator sequences up to requested length.
              arguments
                  obj(1,1) Abstract.Scenario
                  length(1,1) uint64

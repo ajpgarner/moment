@@ -47,7 +47,7 @@ namespace Moment::mex::functions {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 1;
-        this->max_outputs = 1;
+        this->max_outputs = 2;
     }
 
     void Conjugate::operator()(IOArgumentRange output, ConjugateParams &input) {
@@ -78,7 +78,9 @@ namespace Moment::mex::functions {
 
         matlab::data::ArrayFactory factory;
         output[0] = export_operator_sequence(factory, conjugateSeq);
-
+        if (output.size() >= 2) {
+            output[1] = factory.createScalar<uint64_t>(conjugateSeq.hash());
+        }
     }
 
 }

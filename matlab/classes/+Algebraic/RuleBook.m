@@ -558,11 +558,10 @@ classdef RuleBook < handle
                 error("Expected string array, character array, "...
                       +"or numeric array");
             end
-                
-            
-            % Do nothing if no op names
+                            
+            % Default to 'X', if no op names
             if isempty(obj.OperatorNames)
-                str = input;
+                str = reshape("X" + input, 1, []);
                 return;
             end
             
@@ -571,6 +570,7 @@ classdef RuleBook < handle
                 str = input;
                 return;
             end
+           
             
             % Translate
             str = reshape(obj.extended_names(input), 1, []);

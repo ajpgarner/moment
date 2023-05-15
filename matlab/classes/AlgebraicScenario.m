@@ -91,6 +91,20 @@ classdef AlgebraicScenario < Abstract.Scenario
                                               is_normal);
         end
     end
+    
+%% Utilities
+    methods
+        function val = asString(obj, sequence)
+        % ASSTRING Format operator sequence as a string object
+            if isempty(sequence)
+                val = "I";
+                return
+            end
+            str_array = obj.RuleBook.ToStringArray(sequence);
+            val = join(str_array, " ");
+        end
+    end
+    
 %% Dependent variables
     methods
         function val = get.EffectiveOperatorCount(obj)            

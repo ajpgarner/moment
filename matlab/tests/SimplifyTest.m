@@ -52,7 +52,15 @@ classdef SimplifyTest < MTKTestBase
             testCase.verifyEqual(output, expected);
         end
         
-        
+             
+        function  WithHash(testCase)
+            ms_id = mtk('new_algebraic_matrix_system', 2);
+            input = uint64([2]);
+            [output, output_hash] = mtk('simplify', ms_id, input);
+            expected = uint64([2]);
+            testCase.verifyEqual(output, expected);
+            testCase.verifyEqual(output_hash, Util.shortlex_hash(2, expected));
+        end
     end
     
     methods (Test, TestTags={'Error'})

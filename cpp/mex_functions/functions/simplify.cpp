@@ -136,7 +136,7 @@ namespace Moment::mex::functions {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 1;
-        this->max_outputs = 1;
+        this->max_outputs = 2;
     }
 
     void Simplify::operator()(IOArgumentRange output, SimplifyParams &input) {
@@ -167,7 +167,12 @@ namespace Moment::mex::functions {
         }
 
         matlab::data::ArrayFactory factory;
+        // Export sequence
         output[0] = export_operator_sequence(factory, opSeq);
+        // Export hash
+        if (output.size() >= 2) {
+            output[1] = factory.createScalar<uint64_t>(opSeq.hash());
+        }
     }
 
 }
