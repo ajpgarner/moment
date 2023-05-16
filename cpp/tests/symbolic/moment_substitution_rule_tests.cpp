@@ -12,9 +12,89 @@
 #include "symbolic/moment_substitution_rule.h"
 
 namespace Moment::Tests {
+    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_Trivial) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+
+        MomentSubstitutionRule msr{table, SymbolCombo::Zero()};
+
+        EXPECT_EQ(msr.LHS(), 0);
+        EXPECT_EQ(msr.RHS(), SymbolCombo::Zero());
+        EXPECT_TRUE(msr.is_trivial());
+    }
+
+    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_ThreeToZero) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+
+        SymbolCombo combo{SymbolExpression{3, 1.0}}; // #2 + 0.5 = 0
+        MomentSubstitutionRule msr{table, std::move(combo)};
+
+        EXPECT_EQ(msr.LHS(), 3);
+        EXPECT_EQ(msr.RHS(), SymbolCombo::Zero());
+        EXPECT_FALSE(msr.is_trivial());
+    }
+
+    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_TwoToScalar) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+
+        SymbolCombo combo{SymbolExpression{2, 1.0}, SymbolExpression{1, -0.5}}; // #2 + 0.5 = 0
+        MomentSubstitutionRule msr{table, std::move(combo)};
+
+        EXPECT_EQ(msr.LHS(), 2);
+        EXPECT_EQ(msr.RHS(), SymbolCombo::Scalar(0.5));
+        EXPECT_FALSE(msr.is_trivial());
+    }
+
+    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_ThreeToTwoPlusOne) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+
+        SymbolCombo combo{SymbolExpression{3, -1.0}, SymbolExpression{2, 1.0}, SymbolExpression{1, 1.0}}; // -#3 + #2 + 1 = 0
+        MomentSubstitutionRule msr{table, std::move(combo)};
+
+        EXPECT_EQ(msr.LHS(), 3);
+        EXPECT_EQ(msr.RHS(), SymbolCombo({SymbolExpression{2, 1.0}, SymbolExpression{1, 1.0}}));
+        EXPECT_FALSE(msr.is_trivial());
+    }
+
+    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_HalfThreeStarToTwo) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+
+        SymbolCombo combo{SymbolExpression{3, 0.5, true}, SymbolExpression{2, 1.0}}; // 0.5#3* + #2 = 0
+        MomentSubstitutionRule msr{table, std::move(combo)};
+
+        EXPECT_EQ(msr.LHS(), 3);
+        EXPECT_EQ(msr.RHS(), SymbolCombo(SymbolExpression{2, -2.0, true}));
+        EXPECT_FALSE(msr.is_trivial());
+    }
+
+    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_ErrorBadScalar) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+
+        SymbolCombo combo{SymbolExpression{1, 2.5}}; // #2 + 0.5 = 0
+        EXPECT_THROW([[maybe_unused]] auto msr = MomentSubstitutionRule(table, std::move(combo)),
+                     errors::invalid_moment_rule);
+    }
+
 
     TEST(Symbolic_MomentSubstitutionRule, Reduce_TwoToZero) {
-        // Fake context/table with 4 symbols
+        // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);

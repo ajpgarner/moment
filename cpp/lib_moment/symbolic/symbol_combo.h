@@ -98,6 +98,20 @@ namespace Moment {
         [[nodiscard]] auto end() const noexcept { return this->data.cend(); }
         [[nodiscard]] const SymbolExpression& operator[](size_t index) const noexcept { return this->data[index]; }
 
+        /** Set the expression to zero */
+        void clear() noexcept { this->data.clear(); }
+
+        /** Remove the last term from the expression */
+        inline void pop_back() noexcept {
+            this->data.pop_back();
+        }
+
+        /** Gets the last term from the expression */
+        [[nodiscard]] inline const SymbolExpression& back() const noexcept  {
+            assert(!this->data.empty());
+            return this->data.back();
+        }
+
         /** True if combo consists of at most one element */
         [[nodiscard]] inline bool is_monomial() const noexcept {
             return this->data.size() <= 1;
@@ -283,7 +297,6 @@ namespace Moment {
         inline static SymbolCombo Scalar(const double the_factor = 1.0) {
             return SymbolCombo(storage_t{SymbolExpression{1, the_factor , false}});
         }
-
 
         /**
          * Get a string expression of this SymbolCombo.

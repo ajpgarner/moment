@@ -12,6 +12,18 @@
 namespace Moment {
     class SymbolTable;
 
+    namespace errors {
+        class invalid_moment_rule : public std::invalid_argument {
+        public:
+            const symbol_name_t lhs_id;
+
+        public:
+            invalid_moment_rule(const symbol_name_t sym_id, const std::string& what)
+                : std::invalid_argument(what), lhs_id{sym_id} { }
+        };
+    };
+
+
     class MomentSubstitutionRule {
 
     private:
@@ -20,9 +32,12 @@ namespace Moment {
         SymbolCombo rhs;
 
     public:
-        /** Create rule from symbol_id, and polynomial. */
+        /** Create rule: symbol_id -> polynomial. */
         MomentSubstitutionRule(const SymbolTable& table, symbol_name_t lhs, SymbolCombo&& rhs)
             : table{&table}, lhs{lhs}, rhs{std::move(rhs)} { }
+
+        /** Create rule from polynomial == 0. */
+        MomentSubstitutionRule(const SymbolTable& table, SymbolCombo&& rule);
 
     public:
         /**
@@ -44,6 +59,11 @@ namespace Moment {
          * Act with rule on combo to make new combo
          */
         [[nodiscard]] SymbolCombo reduce(const SymbolCombo& rhs) const;
+
+        /**
+         * Is rule effectively empty?
+         */
+        [[nodiscard]] inline bool is_trivial() const noexcept { return this->lhs == 0; }
 
     };
 }

@@ -273,6 +273,14 @@ namespace Moment {
         }
 
         /**
+         * Remove value from end of vector
+         */
+        inline void pop_back() noexcept {
+            assert(this->_size > 0);
+            this->_size -= 1;
+        }
+
+        /**
          * Construct object, and push to back of vector.
          * Note: pure emplace_back doesn't really exist, as value_t must be value type.
          */

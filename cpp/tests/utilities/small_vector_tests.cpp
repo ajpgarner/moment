@@ -397,6 +397,38 @@ namespace Moment::Tests {
         EXPECT_EQ(trickySmall[1].second, "Cheesecake");
     }
 
+    TEST(Utilities_SmallVector, PopBack_Stack) {
+        SmallVector<std::string, 3> vec{"Apple", "Banana", "Carrot"};
+        ASSERT_EQ(vec.size(), 3);
+        ASSERT_FALSE(vec.on_heap());
+        vec.pop_back();
+        ASSERT_EQ(vec.size(), 2);
+        EXPECT_EQ(vec[0], "Apple");
+        EXPECT_EQ(vec[1], "Banana");
+        EXPECT_EQ(vec.back(), "Banana");
+        vec.push_back("Dandelion");
+        ASSERT_EQ(vec.size(), 3);
+        EXPECT_FALSE(vec.on_heap());
+        EXPECT_EQ(vec[2], "Dandelion");
+        EXPECT_EQ(vec.back(), "Dandelion");
+    }
+    TEST(Utilities_SmallVector, PopBack_HeapUnderflow) {
+        SmallVector<std::string, 3> vec{"Apple", "Banana", "Carrot", "Dandelion"};
+        ASSERT_EQ(vec.size(), 4);
+        ASSERT_TRUE(vec.on_heap());
+        vec.pop_back();
+        ASSERT_EQ(vec.size(), 3);
+        ASSERT_TRUE(vec.on_heap());
+        EXPECT_EQ(vec[0], "Apple");
+        EXPECT_EQ(vec[1], "Banana");
+        EXPECT_EQ(vec[2], "Carrot");
+        EXPECT_EQ(vec.back(), "Carrot");
+        vec.push_back("Edamame");
+        ASSERT_EQ(vec.size(), 4);
+        EXPECT_EQ(vec[3], "Edamame");
+        EXPECT_EQ(vec.back(), "Edamame");
+    }
+
     TEST(Utilities_SmallVector, Iterator) {
         SmallVector<double, 4> small{1.0, 2.0, 3.0};
 

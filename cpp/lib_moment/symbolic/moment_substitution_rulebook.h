@@ -31,8 +31,16 @@ namespace Moment {
         const SymbolTable& symbols;
         const CompareByOpHash comparator;
 
+        std::map<symbol_name_t, MomentSubstitutionRule> rules;
+
+        std::vector<SymbolCombo> raw_rules;
+
     public:
         explicit MomentSubstitutionRulebook(const SymbolTable& table);
+
+        void add_raw_rules(std::vector<SymbolCombo>&& raw);
+
+        bool complete();
 
     };
 }
