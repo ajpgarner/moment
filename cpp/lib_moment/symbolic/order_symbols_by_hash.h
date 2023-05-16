@@ -38,8 +38,16 @@ namespace Moment {
         explicit ByHashSymbolComboFactory(const SymbolTable& symbols)
             : SymbolComboFactory{symbols}, comparator{symbols} { }
 
-        SymbolCombo operator()(SymbolCombo::storage_t &&data) const override {
-            return SymbolCombo(data, this->symbols, this->comparator);
+        [[nodiscard]] SymbolCombo operator()(SymbolCombo::storage_t&& data) const override {
+            return SymbolCombo{std::move(data), this->symbols, this->comparator};
+        }
+
+        void append(SymbolCombo &lhs, const SymbolCombo &rhs) const override {
+            lhs.append(rhs, this->comparator);
+        }
+
+        [[nodiscard]] bool less(const SymbolExpression &lhs, const SymbolExpression &rhs) const override {
+            return this->comparator(lhs, rhs);
         }
 
     };

@@ -318,16 +318,30 @@ namespace Moment {
     /** Utility class for constructing symbol combos from data.
      * Allows for virtualization of sorting order template parameter. */
     class SymbolComboFactory {
-    protected:
+    public:
         const SymbolTable& symbols;
 
-    public:
         explicit SymbolComboFactory(const SymbolTable& symbols) : symbols{symbols} { }
 
         virtual ~SymbolComboFactory() noexcept = default;
 
-        virtual SymbolCombo operator()(SymbolCombo::storage_t&& data) const {
-            return SymbolCombo{data, symbols};
+        [[nodiscard]] virtual SymbolCombo operator()(SymbolCombo::storage_t&& data) const {
+            return SymbolCombo{std::move(data), symbols};
+        }
+
+        [[nodiscard]] virtual bool less(const SymbolExpression& lhs, const SymbolExpression& rhs) const {
+            SymbolExpression::IdLessComparator comparator;
+            return comparator(lhs, rhs);
+        }
+
+        virtual void append(SymbolCombo& lhs, const SymbolCombo& rhs) const {
+            lhs.append(rhs);
+        }
+
+        [[nodiscard]] SymbolCombo sum(const SymbolCombo& lhs, const SymbolCombo& rhs) const {
+            SymbolCombo output{lhs};
+            this->append(output, rhs); // <- virtual call.
+            return output;
         }
     };
 

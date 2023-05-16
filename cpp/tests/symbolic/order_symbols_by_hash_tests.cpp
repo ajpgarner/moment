@@ -15,7 +15,7 @@
 
 namespace Moment::Tests {
 
-    TEST(Symbolic_CompareByOpHash, Comparator) {
+    TEST(Symbolic_OrderByHash, Comparator) {
 
         Algebraic::AlgebraicMatrixSystem ams{std::make_unique<Algebraic::AlgebraicContext>(2)};
         const auto& context = ams.AlgebraicContext();
@@ -45,7 +45,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(cc_combo.is_conjugate(symbols, combo));
     }
 
-    TEST(Symbolic_CompareByOpHash, Comparator_NontrivialHermitian) {
+    TEST(Symbolic_OrderByHash, Comparator_NontrivialHermitian) {
         Algebraic::AlgebraicMatrixSystem ams{std::make_unique<Algebraic::AlgebraicContext>(2)};
         const auto& context = ams.AlgebraicContext();
         const auto& symbols = ams.Symbols();
