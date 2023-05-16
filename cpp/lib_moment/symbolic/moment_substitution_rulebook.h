@@ -13,23 +13,9 @@ namespace Moment {
 
     class MomentSubstitutionRulebook {
     public:
-        /**
-         * Order first by operator hash of forward sequence, then by conjugation sequence.
-         * This is not quite the same as op-hash order; because it guarantees complex conjugate strings are adjacent.
-         */
-        struct CompareByOpHash {
-        public:
-            const SymbolTable& symbolTable;
-
-            explicit CompareByOpHash(const SymbolTable& symbolTable)
-                    : symbolTable{symbolTable} { }
-
-            [[nodiscard]] bool operator()(const SymbolExpression& lhs, const SymbolExpression& rhs) const noexcept;
-        };
 
     private:
         const SymbolTable& symbols;
-        const CompareByOpHash comparator;
 
         std::map<symbol_name_t, MomentSubstitutionRule> rules;
 
@@ -39,6 +25,12 @@ namespace Moment {
         explicit MomentSubstitutionRulebook(const SymbolTable& table);
 
         void add_raw_rules(std::vector<SymbolCombo>&& raw);
+
+        [[nodiscard]] SymbolCombo reduce(const SymbolCombo& lhs) {
+            return reduce(SymbolCombo{lhs});
+        }
+
+        [[nodiscard]] SymbolCombo reduce(SymbolCombo&& lhs);
 
         bool complete();
 

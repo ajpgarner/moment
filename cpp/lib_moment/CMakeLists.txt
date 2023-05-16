@@ -61,6 +61,7 @@ add_library(lib_moment
         scenarios/symmetrized/symmetrized_matrix_system.cpp
         symbolic/moment_substitution_rule.cpp
         symbolic/moment_substitution_rulebook.cpp
+        symbolic/order_symbols_by_hash.cpp
         symbolic/substitution_list.cpp
         symbolic/symbol.cpp
         symbolic/symbol_combo.cpp

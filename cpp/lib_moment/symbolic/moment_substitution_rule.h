@@ -23,18 +23,19 @@ namespace Moment {
         };
     };
 
-
+    /**
+     * Rule, matching symbol ID and replacing it with a polynomial.
+     */
     class MomentSubstitutionRule {
 
     private:
-        const SymbolTable * table;
         symbol_name_t lhs;
         SymbolCombo rhs;
 
     public:
         /** Create rule: symbol_id -> polynomial. */
-        MomentSubstitutionRule(const SymbolTable& table, symbol_name_t lhs, SymbolCombo&& rhs)
-            : table{&table}, lhs{lhs}, rhs{std::move(rhs)} { }
+        MomentSubstitutionRule(symbol_name_t lhs, SymbolCombo&& rhs)
+            : lhs{lhs}, rhs{std::move(rhs)} { }
 
         /** Create rule from polynomial == 0. */
         MomentSubstitutionRule(const SymbolTable& table, SymbolCombo&& rule);
@@ -55,15 +56,39 @@ namespace Moment {
          */
         [[nodiscard]] bool matches(const SymbolCombo& combo) const noexcept;
 
+
         /**
-         * Act with rule on combo to make new combo
+         * Checks if rule matches zero, one or two times (factoring complex conjugation), and return hint pointer.
          */
-        [[nodiscard]] SymbolCombo reduce(const SymbolCombo& rhs) const;
+        [[nodiscard]] std::pair<size_t, SymbolCombo::storage_t::const_iterator>
+        match_info(const SymbolCombo& combo) const noexcept;
+
+
+        /**
+         * Act with rule on combo to make new combo.
+         */
+        [[nodiscard]] SymbolCombo reduce(const SymbolComboFactory& factory, const SymbolCombo& rhs) const;
+
+        /**
+         * Act with rule on combo to make new combo, using binding hint.
+         * Will crash if hint is incorrect!
+         *
+         * @param factory The object for constructing new symbol combos (encodes sorting order).
+         * @param rhs The combo to reduce.
+         * @param hint Iterator to first match
+         * @param twice True if matches symbol and its CC
+         * @return Reduced combo.
+         */
+        [[nodiscard]] SymbolCombo reduce_with_hint(const SymbolComboFactory& factory,
+                                                   const SymbolCombo& rhs,
+                                                   SymbolCombo::storage_t::const_iterator hint,
+                                                   bool twice = false) const;
 
         /**
          * Is rule effectively empty?
          */
         [[nodiscard]] inline bool is_trivial() const noexcept { return this->lhs == 0; }
+
 
     };
 }

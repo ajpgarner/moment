@@ -7,6 +7,8 @@
 
 #include "moment_substitution_rule.h"
 
+#include "symbol_table.h"
+
 #include "utilities/float_utils.h"
 
 #include <algorithm>
@@ -15,8 +17,8 @@
 
 namespace Moment {
 
-    MomentSubstitutionRule::MomentSubstitutionRule(const SymbolTable &symbols, SymbolCombo &&rule)
-        : table{&symbols}, lhs{rule.last_id()}, rhs{std::move(rule)} {
+    MomentSubstitutionRule::MomentSubstitutionRule(const SymbolTable& table, SymbolCombo &&rule)
+        : lhs{rule.last_id()}, rhs{std::move(rule)} {
         // Trivial rule?
         if (0 == lhs) {
             rhs.clear();
@@ -50,7 +52,7 @@ namespace Moment {
             rhs *= prefactor;
         }
         if (needs_conjugate) {
-            rhs.conjugate_in_place(*table);
+            rhs.conjugate_in_place(table);
         }
     }
 
@@ -60,21 +62,59 @@ namespace Moment {
         });
     }
 
-    SymbolCombo MomentSubstitutionRule::reduce(const SymbolCombo &combo) const {
-        // Find matching symbol
-        auto inject_iter = std::find_if(combo.begin(), combo.end(), [this](const SymbolExpression& rhsExpr) {
+
+    [[nodiscard]] std::pair<size_t, SymbolCombo::storage_t::const_iterator>
+    MomentSubstitutionRule::match_info(const SymbolCombo &combo) const noexcept {
+        // Look for match
+        auto first_match = std::find_if(combo.begin(), combo.end(), [this](const SymbolExpression& rhsExpr) {
             return rhsExpr.id == this->lhs;
         });
 
-        // No match, copy output
-        if (inject_iter == combo.end()) {
-            return combo;
+        // No matches
+        if (first_match == combo.end()) {
+            return {0, first_match};
         }
 
-        // Match is first symbol
-        SymbolCombo::storage_t output_sequence;
+        // Do we also match CC?
+        auto next_match = first_match + 1;
+        if (next_match != combo.end()) {
+            if (next_match->id == this->lhs) {
+                assert(!first_match->conjugated);
+                assert(next_match->conjugated);
+                return {2, first_match};
+            }
+        }
+
+        // Just match once
+        return {1, first_match};
+    }
+
+    SymbolCombo MomentSubstitutionRule::reduce(const SymbolComboFactory& factory, const SymbolCombo &combo) const {
+
+        auto [matches, hint] = this->match_info(combo);
+
+        // No match, copy output without transformation
+        if (0 == matches) {
+            return combo;
+        }
+        assert(hint != combo.end());
+
+        // Otherwise, apply match
+        return this->reduce_with_hint(factory, combo, hint, (matches == 2));
+    }
+
+    SymbolCombo MomentSubstitutionRule::reduce_with_hint(const SymbolComboFactory& factory,
+                                                         const SymbolCombo &combo,
+                                                         SymbolCombo::storage_t::const_iterator inject_iter,
+                                                         const bool twice) const {
+        // Hint must be good:
+        assert(inject_iter != combo.end());
+        assert(inject_iter + (twice ? 1 : 0) != combo.end());
+        assert(inject_iter->id == this->lhs);
+        assert((inject_iter + (twice ? 1 : 0))->id == this->lhs);
 
         // Start of LHS string
+        SymbolCombo::storage_t output_sequence;
         std::copy(combo.begin(), inject_iter, std::back_inserter(output_sequence));
 
         // Copy RHS, with transformations
@@ -88,10 +128,25 @@ namespace Moment {
             return src;
         });
 
+        // Do we also have to transform complex conjugate?
+        if (twice) {
+            assert(inject_iter+1 != combo.end());
+            const auto& nextMatchExpr = *(inject_iter+1);
+            assert(nextMatchExpr.conjugated);
+
+            std::transform(rhs.begin(), rhs.end(), std::back_inserter(output_sequence),
+                           [&matchExpr](SymbolExpression src) {
+                               src.conjugated = !src.conjugated;
+                               src.factor *= matchExpr.factor;
+                               return src;
+                           });
+        }
+
         // Rest of LHS string
-        std::copy(inject_iter + 1, combo.end(), std::back_inserter(output_sequence));
+        std::copy(inject_iter + (twice ? 2 : 1), combo.end(), std::back_inserter(output_sequence));
 
         // Construct as combo
-        return SymbolCombo(std::move(output_sequence), *table);
+        return factory(std::move(output_sequence));
+
     }
 }

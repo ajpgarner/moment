@@ -314,4 +314,21 @@ namespace Moment {
 
     };
 
+
+    /** Utility class for constructing symbol combos from data.
+     * Allows for virtualization of sorting order template parameter. */
+    class SymbolComboFactory {
+    protected:
+        const SymbolTable& symbols;
+
+    public:
+        explicit SymbolComboFactory(const SymbolTable& symbols) : symbols{symbols} { }
+
+        virtual ~SymbolComboFactory() noexcept = default;
+
+        virtual SymbolCombo operator()(SymbolCombo::storage_t&& data) const {
+            return SymbolCombo{data, symbols};
+        }
+    };
+
 }

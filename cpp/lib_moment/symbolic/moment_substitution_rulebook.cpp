@@ -15,26 +15,10 @@
 namespace Moment {
 
 
-    bool MomentSubstitutionRulebook::CompareByOpHash::operator()(const SymbolExpression& lhs,
-                                                                 const SymbolExpression& rhs) const noexcept {
-        assert(lhs.id < this->symbolTable.size());
-        assert(rhs.id < this->symbolTable.size());
-        const auto lhs_hash = this->symbolTable[lhs.id].hash();
-        const auto rhs_hash = this->symbolTable[rhs.id].hash();
-
-        if (lhs_hash < rhs_hash) {
-            return true;
-        } else if ((lhs_hash > rhs_hash) || (lhs.conjugated == rhs.conjugated)) {
-            return false;
-        }
-
-        return !lhs.conjugated; // true implies lhs a, rhs a*
-    }
-
 
 
     MomentSubstitutionRulebook::MomentSubstitutionRulebook(const SymbolTable &symbolTable)
-        : symbols{symbolTable}, comparator{symbolTable} {
+        : symbols{symbolTable}  {
     }
 
     void MomentSubstitutionRulebook::add_raw_rules(std::vector<SymbolCombo> &&raw) {
@@ -77,6 +61,19 @@ namespace Moment {
 
         // Rules now complete
         return true;
+    }
+
+    SymbolCombo MomentSubstitutionRulebook::reduce(SymbolCombo&& polynomial) {
+        throw std::logic_error{"MomentSubstitutionRulebook::reduce() not implemented"};
+
+        SymbolCombo output{std::move(polynomial)};
+
+//        for (const auto& [lhs, rule] : this->rules) {
+//
+//
+//        }
+
+        return output;
     }
 
 }
