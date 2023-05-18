@@ -116,35 +116,12 @@ namespace Moment::mex::functions {
             );
         }
 
-        // Do generation
-        if (input.monolithic_output) {
-            if (input.sparse_output) {
-                auto [sym, anti_sym] = export_sparse_monolith_basis(this->matlabEngine, operatorMatrix);
-                output[0] = std::move(sym);
-                if (output.size() >= 2) {
-                    output[1] = std::move(anti_sym);
-                }
-            } else {
-                auto [sym, anti_sym] = export_dense_monolith_basis(this->matlabEngine, operatorMatrix);
-                output[0] = std::move(sym);
-                if (output.size() >= 2) {
-                    output[1] = std::move(anti_sym);
-                }
-            }
-        } else {
-            if (input.sparse_output) {
-                auto [sym, anti_sym] = export_sparse_cell_basis(this->matlabEngine, operatorMatrix);
-                output[0] = std::move(sym);
-                if (output.size() >= 2) {
-                    output[1] = std::move(anti_sym);
-                }
-            } else {
-                auto [sym, anti_sym] = export_dense_cell_basis(this->matlabEngine, operatorMatrix);
-                output[0] = std::move(sym);
-                if (output.size() >= 2) {
-                    output[1] = std::move(anti_sym);
-                }
-            }
+        // Do generation of basis
+        BasisExporter exporter{this->matlabEngine, input.sparse_output, input.monolithic_output};
+        auto [sym, anti_sym] = exporter(operatorMatrix);
+        output[0] = std::move(sym);
+        if (output.size() >= 2) {
+                output[1] = std::move(anti_sym);
         }
 
         // If enough outputs supplied, also provide basis key

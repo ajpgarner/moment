@@ -7,6 +7,7 @@
 #pragma once
 
 #include "MatlabDataArray.hpp"
+#include "exporter.h"
 
 #include <complex>
 #include <utility>
@@ -19,16 +20,29 @@ namespace Moment {
     class Matrix;
 }
 
+
 namespace Moment::mex {
-    std::pair<matlab::data::CellArray, matlab::data::CellArray>
-    export_dense_cell_basis(matlab::engine::MATLABEngine &engine, const Matrix& mm);
 
-    std::pair<matlab::data::CellArray, matlab::data::CellArray>
-    export_sparse_cell_basis(matlab::engine::MATLABEngine &engine, const Matrix& mm);
+    class BasisExporter : public Exporter {
+    public:
+        const bool Sparse;
+        const bool Monolithic;
+    public:
+        /**
+         * Create object that exports bases from supplied symbol matrices.
+         * @param engine The MATLAB engine
+         * @param sparse True to export as sparse matrices
+         * @param monolithic True to export as a single giant matrix, false to export as a cell array.
+         */
+        explicit BasisExporter(matlab::engine::MATLABEngine& engine, bool sparse = false, bool monolithic = false)
+            : Exporter{engine}, Sparse{sparse}, Monolithic{monolithic} { }
 
-    std::pair<matlab::data::TypedArray<double>, matlab::data::TypedArray<std::complex<double>>>
-    export_dense_monolith_basis(matlab::engine::MATLABEngine &engine,const Matrix& mm);
+        /**
+        * Exports basis of matrix in requested format. Will infer if complex parts are necessary.
+        * @param matrix The matrix whose basis to output.
+        */
+        [[nodiscard]] std::pair<matlab::data::Array, matlab::data::Array>
+        operator()(const Matrix &matrix) const;
 
-    std::pair<matlab::data::SparseArray<double>, matlab::data::SparseArray<std::complex<double>>>
-    export_sparse_monolith_basis(matlab::engine::MATLABEngine &engine,const Matrix& mm);
+    };
 }
