@@ -18,6 +18,11 @@
 namespace Moment::Tests {
     namespace {
 
+        using dense_real_elem_t = Eigen::MatrixXd;
+        using dense_complex_elem_t =  Eigen::MatrixXcd;
+        using sparse_real_elem_t = Eigen::SparseMatrix<double>;
+        using sparse_complex_elem_t = Eigen::SparseMatrix<std::complex<double>>;
+
         std::pair<std::unique_ptr<Imported::ImportedMatrixSystem>,std::unique_ptr<PolynomialMatrix>>
         stage() {
             auto system = std::make_unique<Imported::ImportedMatrixSystem>();

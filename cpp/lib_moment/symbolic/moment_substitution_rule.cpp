@@ -33,7 +33,7 @@ namespace Moment {
         }
 
         // Extract information about last element
-        auto [prefactor, needs_conjugate] = [&]() -> std::pair<double, bool> {
+        auto [prefactor, needs_conjugate] = [&]() -> std::pair<std::complex<double>, bool> {
             assert(!rhs.empty());
             // Lambda exists to avoid this being a dangling reference
             const auto& lhs_elem = rhs.back();
@@ -43,7 +43,7 @@ namespace Moment {
                 errSS << "Polynomial rule \"" << rhs << " == 0\" is ill-formed: leading element has a pre-factor of 0.";
                 throw errors::invalid_moment_rule{lhs, errSS.str()};
             }
-            return {-1.0 / lhs_elem.factor, lhs_elem.conjugated};
+            return {std::complex<double>(-1.0, 0) / lhs_elem.factor, lhs_elem.conjugated};
         }();
 
         // Remove leading element, multiply out RHS, and conjugate if necessary.

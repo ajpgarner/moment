@@ -8,6 +8,9 @@
 
 #include "symbol.h"
 
+#include "utilities/float_utils.h"
+
+#include <complex>
 #include <iosfwd>
 
 namespace Moment {
@@ -64,21 +67,21 @@ namespace Moment {
             std::optional<std::exception> cause;
 
         public:
-            explicit SymbolParseException (const std::string &badExpr) :
-                    std::runtime_error(make_msg(badExpr)) { }
+            explicit SymbolParseException(const std::string &badExpr) :
+                    std::runtime_error(make_msg(badExpr)) {}
 
-            explicit SymbolParseException (const std::string &badExpr, const std::exception& e) :
-                    std::runtime_error(make_msg(badExpr, e)), cause{e} { }
+            explicit SymbolParseException(const std::string &badExpr, const std::exception &e) :
+                    std::runtime_error(make_msg(badExpr, e)), cause{e} {}
 
             static std::string make_msg(const std::string &badExpr);
 
-            static std::string make_msg(const std::string &badExpr, const std::exception& e);
+            static std::string make_msg(const std::string &badExpr, const std::exception &e);
 
         };
 
     public:
         symbol_name_t id;
-        double factor;
+        std::complex<double> factor;
         bool conjugated;
 
     public:
@@ -106,7 +109,16 @@ namespace Moment {
          * @param conj Whether the symbol is conjugated.
          */
         constexpr explicit SymbolExpression(symbol_name_t name, double factor, bool conj = false) noexcept
-                : id{name}, factor{factor}, conjugated{conj} { }
+                : id{name}, factor{factor, 0.0}, conjugated{conj} {}
+
+        /**
+         * Construct a symbol expression.
+         * @param name The symbol ID.
+         * @param neg The scalar factor for this symbol.
+         * @param conj Whether the symbol is conjugated.
+         */
+        constexpr explicit SymbolExpression(symbol_name_t name, std::complex<double> factor, bool conj = false) noexcept
+                : id{name}, factor{factor}, conjugated{conj} {}
 
         /**
          * Construct a symbol expression.
@@ -115,26 +127,26 @@ namespace Moment {
          * @param conj Whether the symbol is conjugated.
          */
         constexpr SymbolExpression(symbol_name_t name, bool neg, bool conj) noexcept
-                : id(name), factor{neg ? -1.0 : 1.0}, conjugated(conj) { }
+                : id(name), factor{neg ? -1.0 : 1.0}, conjugated(conj) {}
 
         /**
          * Construct a symbol expression, from supplied string input.
          * @param strExpr String representing the expression
          * @throws SymbolParseException if strExpr cannot be interpreted as a valid symbol.
          */
-        explicit SymbolExpression(const std::string& strExpr);
+        explicit SymbolExpression(const std::string &strExpr);
 
-        [[nodiscard]] bool operator==(const SymbolExpression& rhs) const {
+        [[nodiscard]] bool operator==(const SymbolExpression &rhs) const {
             return (this->id == rhs.id)
                    && ((this->id == 0) || ((this->conjugated == rhs.conjugated)
-                                            && (this->factor == rhs.factor)));
+                                           && approximately_equal(this->factor, rhs.factor)));
 
         }
 
-        [[nodiscard]] bool operator!=(const SymbolExpression&rhs) const {
+        [[nodiscard]] bool operator!=(const SymbolExpression &rhs) const {
             return (this->id != rhs.id)
                    || ((this->id != 0) && ((this->conjugated != rhs.conjugated)
-                                            || (this->factor != rhs.factor)));
+                                           || !approximately_equal(this->factor, rhs.factor)));
         }
 
         /**
@@ -142,23 +154,50 @@ namespace Moment {
          */
         const static size_t max_strlen = 32;
 
+//        /**
+//         * Gets the symbol expression as a signed integer. This ignores conjugation, and factors!
+//         */
+//        [[nodiscard]] constexpr std::make_signed_t<symbol_name_t> as_integer() const noexcept {
+//            return static_cast<std::make_signed_t<symbol_name_t>>(this->id) * ((this->factor < 0) ? -1 : 1);
+//        }
+
         /**
-         * Gets the symbol expression as a signed integer. This ignores conjugation, and factors!
+         * True if the symbol has a complex factor.
          */
-        [[nodiscard]] constexpr std::make_signed_t<symbol_name_t> as_integer() const noexcept {
-            return static_cast<std::make_signed_t<symbol_name_t>>(this->id) * ((this->factor < 0) ? -1 : 1);
+        [[nodiscard]] constexpr bool complex_factor() const noexcept {
+            return !approximately_real(this->factor);
         }
 
         /**
-         * True if the symbol has a negative factor
+         * True if the symbol has a negative factor. (False if factor is complex.)
          */
-        [[nodiscard]] constexpr bool negated() const noexcept { return this->factor < 0; }
+        [[nodiscard]] constexpr bool negated() const noexcept {
+            return approximately_real(this->factor) && (this->factor.real() < 0);
+        }
 
         /**
          * Gets the symbol expression as a string.
          */
         [[nodiscard]] std::string as_string() const;
 
-        friend std::ostream& operator<<(std::ostream& os, const SymbolExpression& expr);
+        friend std::ostream &operator<<(std::ostream &os, const SymbolExpression &expr);
+
+        /**
+         * Utility: format the factor part of symbol expression, unless it is +1 or -1.
+         * @param os  Output stream to write to.
+         * @param factor Number to format.
+         * @param mandatory_plus If true, always preface with " + " / " - ".
+         * @param include_times If true, suffix with "*" if factor is not +1/-1
+         */
+        static void format_factor_skip_one(std::ostream &os, std::complex<double> factor,
+                                           bool mandatory_plus = false, bool include_times = false);
+
+        /**
+         * Utility: format the factor part of symbol expression
+         * @param os  Output stream to write to.
+         * @param factor Number to format.
+         * @param mandatory_plus If true, always preface with " + " / " - ".
+         */
+        static void format_factor(std::ostream &os, std::complex<double> factor, bool mandatory_plus = false);
     };
 }

@@ -124,7 +124,7 @@ namespace Moment::Tests {
 
         // Z2 symmetry; e.g. max "a + b" subject to "a + b < 10"
         std::vector<Eigen::SparseMatrix<double>> generators;
-        generators.emplace_back(make_sparse(3, {1, 0, 0,
+        generators.emplace_back(make_sparse<double>(3, {1, 0, 0,
                                                 0, 0, 1,
                                                 0, 1, 0}));
 
@@ -208,12 +208,12 @@ namespace Moment::Tests {
 
         // Standard CHSH inequality symmetry
         std::vector<Eigen::SparseMatrix<double>> generators;
-     generators.emplace_back(make_sparse(5, {1, 0, 1, 0, 0,
+     generators.emplace_back(make_sparse<double>(5, {1, 0, 1, 0, 0,
                                              0, 1, 0, 0, 0,
                                              0, 0,-1, 0, 0,
                                              0, 0, 0, 0, 1,
                                              0, 0, 0, 1, 0}));
-        generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
+        generators.emplace_back(make_sparse<double>(5, {1, 0, 0, 0, 0,
                                                 0, 0, 0, 1, 0,
                                                 0, 0, 0, 0, 1,
                                                 0, 1, 0, 0, 0,
@@ -341,12 +341,12 @@ namespace Moment::Tests {
 
         // Standard CHSH inequality symmetry
         std::vector<Eigen::SparseMatrix<double>> generators;
-        generators.emplace_back(make_sparse(5, {1, 0, 1, 0, 0,
+        generators.emplace_back(make_sparse<double>(5, {1, 0, 1, 0, 0,
                                                 0, 1, 0, 0, 0,
                                                 0, 0, -1, 0, 0,
                                                 0, 0, 0, 0, 1,
                                                 0, 0, 0, 1, 0}));
-        generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
+        generators.emplace_back(make_sparse<double>(5, {1, 0, 0, 0, 0,
                                                 0, 0, 0, 1, 0,
                                                 0, 0, 0, 0, 1,
                                                 0, 1, 0, 0, 0,

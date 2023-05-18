@@ -213,34 +213,19 @@ namespace Moment::mex {
                     std::string symbol_str = expr.conjugated ? symEntry.formatted_sequence_conj()
                                                                    : symEntry.formatted_sequence();
 
-                    if (1.0 == expr.factor) {
-                        if (with_prefix) {
-                            ss << " + ";
-                        }
-                        ss << symbol_str;
-                        return ss.str();
-                    } else if (0.0 == expr.factor) {
-                        if (with_prefix) {
-                            return "";
-                        }
-                        return "0";
-                    }
-
-                    if (-1.0 == expr.factor) {
-                        if (with_prefix) {
-                            ss << " - ";
+                    if (!approximately_zero(expr.factor)) {
+                        if (symEntry.Id() != 1) {
+                            SymbolExpression::format_factor_skip_one(ss, expr.factor, with_prefix);
+                            ss << symbol_str;
                         } else {
-                            ss << "-";
+                            SymbolExpression::format_factor(ss, expr.factor, with_prefix);
                         }
-                        ss << symbol_str;
+
                     } else {
                         if (with_prefix) {
-                            ss << " - " << (-expr.factor);
+                            return "";
                         } else {
-                            ss << expr.factor;
-                        }
-                        if (symEntry.Id() != 1) {
-                            ss << symbol_str;
+                            return "0";
                         }
                     }
                     return ss.str();
@@ -379,18 +364,16 @@ namespace Moment::mex {
                     }
 
                     const auto& facEntry = (*factors)[raw_iter->id];
-                    if (1.0 == raw_iter->factor) {
+                    if (approximately_equal(raw_iter->factor, 1.0)) {
                         return {UTF8toUTF16Convertor::convert(facEntry.sequence_string())};
                     }
 
                     std::stringstream ss;
-                    if (-1.0 == raw_iter->factor) {
-                        ss << "-" << facEntry.sequence_string();
+                    if (facEntry.id != 1) {
+                        SymbolExpression::format_factor_skip_one(ss, raw_iter->factor, false, false);
+                        ss << facEntry.sequence_string();
                     } else {
-                        ss << raw_iter->factor;
-                        if (facEntry.id != 1) {
-                            ss << facEntry.sequence_string();
-                        }
+                        SymbolExpression::format_factor(ss, raw_iter->factor, false);
                     }
 
                     return {UTF8toUTF16Convertor::convert(ss.str())};

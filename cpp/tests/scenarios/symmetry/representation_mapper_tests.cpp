@@ -82,16 +82,16 @@ namespace Moment::Tests {
         }
 
         // Example symmetry group tx:, a,b->x implies aa, ab, ba, bb -> "x^2", hermitian
-        const auto z2_rep1_av = make_sparse(3, {1, 0, 0,
-                                                0, 0.5, 0.5,
-                                                0, 0.5, 0.5});
-        const auto expected_expand = make_sparse(7, {1, 0, 0, 0, 0, 0, 0,
-                                                     0, 0.5, 0.5, 0, 0, 0, 0,
-                                                     0, 0.5, 0.5, 0, 0, 0, 0,
-                                                     0, 0, 0, 0.25, 0.25, 0.25, 0.25,
-                                                     0, 0, 0, 0.25, 0.25, 0.25, 0.25,
-                                                     0, 0, 0, 0.25, 0.25, 0.25, 0.25,
-                                                     0, 0, 0, 0.25, 0.25, 0.25, 0.25});
+        const auto z2_rep1_av = make_sparse<double>(3, {1, 0, 0,
+                                                        0, 0.5, 0.5,
+                                                        0, 0.5, 0.5});
+        const auto expected_expand = make_sparse<double>(7, {1, 0, 0, 0, 0, 0, 0,
+                                                             0, 0.5, 0.5, 0, 0, 0, 0,
+                                                             0, 0.5, 0.5, 0, 0, 0, 0,
+                                                             0, 0, 0, 0.25, 0.25, 0.25, 0.25,
+                                                             0, 0, 0, 0.25, 0.25, 0.25, 0.25,
+                                                             0, 0, 0, 0.25, 0.25, 0.25, 0.25,
+                                                             0, 0, 0, 0.25, 0.25, 0.25, 0.25});
         auto actual_expand = remapper(z2_rep1_av);
         EXPECT_TRUE(actual_expand.isApprox(expected_expand)) << actual_expand;
     }
@@ -202,11 +202,11 @@ namespace Moment::Tests {
 
 
         // Check "inversion of operators" symmetry:
-        auto rep_base = make_sparse(5, {1, 1, 1, 1, 1,
-                                        0, -1, 0, 0, 0,
-                                        0, 0, -1, 0, 0,
-                                        0, 0, 0, -1, 0,
-                                        0, 0, 0, 0, -1});
+        auto rep_base = make_sparse<double>(5, {1, 1, 1, 1, 1,
+                                                0, -1, 0, 0, 0,
+                                                0, 0, -1, 0, 0,
+                                                0, 0, 0, -1, 0,
+                                                0, 0, 0, 0, -1});
 
         Eigen::SparseMatrix<double> expected_level2(13, 13);
         std::vector<Eigen::Triplet<double>> trips;

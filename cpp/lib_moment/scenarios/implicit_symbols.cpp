@@ -52,11 +52,11 @@ namespace Moment {
                     // Do we know value of this?
                     auto expr_iter = calculated_symbols.find(symbol);
                     if (expr_iter != calculated_symbols.end()) {
-                        the_value -= expr_iter->second * factor;
+                        the_value -= expr_iter->second * factor.real();
                     } else {
                         assert(the_symbol == -1);
                         the_symbol = symbol;
-                        final_weight = factor;
+                        final_weight = factor.real();
                     }
                 }
                 assert(the_symbol != -1);

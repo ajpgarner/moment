@@ -5,12 +5,15 @@ add_library(lib_moment
         matrix_system.cpp
         matrix/localizing_matrix.cpp
         matrix/matrix.cpp
+        matrix/matrix_basis.cpp
         matrix/matrix_properties.cpp
         matrix/moment_matrix.cpp
         matrix/monomial_matrix.cpp
+        matrix/monomial_matrix_basis.cpp
         matrix/operator_matrix.cpp
         matrix/operator_sequence_generator.cpp
         matrix/polynomial_matrix.cpp
+        matrix/polynomial_matrix_basis.cpp
         matrix/substituted_matrix.cpp
         scenarios/context.cpp
         scenarios/dictionary_map.cpp

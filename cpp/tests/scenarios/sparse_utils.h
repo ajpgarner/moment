@@ -8,6 +8,8 @@
 
 #include <Eigen/Sparse>
 
+#include <complex>
+#include <initializer_list>
 #include <vector>
 
 #include "utilities/float_utils.h"
@@ -15,49 +17,55 @@
 
 
 namespace Moment::Tests {
-    inline Eigen::SparseMatrix<double> sparse_id(size_t dim) {
-        Eigen::SparseMatrix<double> id(static_cast<int>(dim), static_cast<int>(dim));
+    template<typename value_t = double>
+    inline Eigen::SparseMatrix<value_t> sparse_id(size_t dim) {
+        Eigen::SparseMatrix<value_t> id(static_cast<int>(dim), static_cast<int>(dim));
         id.setIdentity();
         return id;
     }
 
-    inline Eigen::SparseMatrix<double> make_sparse(size_t dim, std::initializer_list<double> vals) {
-        using Index_t = Eigen::SparseMatrix<double>::StorageIndex;
+    template<typename value_t = double>
+    inline Eigen::SparseMatrix<value_t> make_sparse(size_t dim, std::initializer_list<value_t> vals) {
+        using Index_t = typename Eigen::SparseMatrix<value_t>::Index;
 
-        std::vector<Eigen::Triplet<double>> trips;
+        std::vector<Eigen::Triplet<value_t>> trips;
 
         trips.reserve(vals.size());
         assert(vals.size() == dim * dim);
         auto iter = vals.begin();
         for (Index_t i = 0; i < dim; ++i) {
             for (Index_t j = 0; j < dim; ++j) {
-                double val = *iter;
-                if (val != 0) {
+                value_t val = *iter;
+                if (!approximately_zero(val)) {
                     trips.emplace_back(i, j, val);
                 }
                 ++iter;
             }
         }
 
-        Eigen::SparseMatrix<double> sparse(static_cast<int>(dim), static_cast<int>(dim));
-        sparse.setFromTriplets(trips.begin(), trips.end());
+        Eigen::SparseMatrix<value_t> output(static_cast<Index_t>(dim), static_cast<Index_t>(dim));
+        output.setFromTriplets(trips.begin(), trips.end());
 
-        return sparse;
+        return output;
     }
 
-    inline Eigen::SparseMatrix<double> make_sparse_vector( std::initializer_list<double> values) {
-        const auto dim = static_cast<int>(values.size());
-        const size_t nnz = std::transform_reduce(values.begin(), values.end(), 0ULL,
-                                                 std::plus{},
-                                                 [](double val) -> size_t { return (val != 0.0) ? 1ULL : 0ULL; });
+    template<typename value_t = double>
+    inline Eigen::SparseMatrix<value_t> make_sparse_vector(std::initializer_list<value_t> values) {
+        using Index_t = typename Eigen::SparseVector<value_t>::Index;
 
-        Eigen::SparseVector<double> sparse(static_cast<Eigen::Index>(dim));
-        sparse.reserve(static_cast<Eigen::Index>(nnz));
+        const auto dim = static_cast<int>(values.size());
+        const size_t nnz = std::transform_reduce(values.begin(), values.end(), 0ULL, std::plus{},
+                                                 [](value_t val) -> size_t {
+                                                        return approximately_zero(val) ? 1ULL : 0ULL;
+                                                 });
+
+        Eigen::SparseVector<value_t> sparse(static_cast<Index_t>(dim));
+        sparse.reserve(static_cast<Index_t>(nnz));
 
         auto iter = values.begin();
         for (Eigen::Index i = 0; i < dim; ++i) {
-            double val = *iter;
-            if (val != 0) {
+            value_t val = *iter;
+            if (!approximately_zero(val)) {
                 sparse.insert(i) = val;
             }
             ++iter;

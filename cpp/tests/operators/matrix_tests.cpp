@@ -21,6 +21,11 @@ namespace Moment::Tests {
 
     namespace {
 
+        using dense_real_elem_t = Eigen::MatrixXd;
+        using dense_complex_elem_t =  Eigen::MatrixXcd;
+        using sparse_real_elem_t = Eigen::SparseMatrix<double>;
+        using sparse_complex_elem_t = Eigen::SparseMatrix<std::complex<double>>;
+
         std::pair<std::vector<dense_real_elem_t>, std::vector<dense_complex_elem_t>> reference_dense() {
             std::pair<std::vector<dense_real_elem_t>, std::vector<dense_complex_elem_t>> output
                 = std::make_pair(std::vector<dense_real_elem_t>(6, dense_real_elem_t::Zero(3, 3)),

@@ -14,7 +14,6 @@
 
 #include <Eigen/Sparse>
 
-#include <initializer_list>
 #include <vector>
 
 using namespace Moment::Symmetrized;
@@ -31,7 +30,6 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Symmetry_Group, Dimino_ID) {
 
-        //Eigen::SparseMatrix<double> gen_a(2);
         auto group = Group::dimino_generation(std::vector<Eigen::SparseMatrix<double>>{});
 
         ASSERT_EQ(group.size(), 1);
@@ -41,7 +39,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Symmetry_Group, Dimino_Z2_2d) {
 
         std::vector<Eigen::SparseMatrix<double>> generators;
-        generators.emplace_back(make_sparse(2, {0, 1, 1, 0}));
+        generators.emplace_back(make_sparse<double>(2, {0, 1, 1, 0}));
 
         auto group = Group::dimino_generation(generators);
 
@@ -54,10 +52,10 @@ namespace Moment::Tests {
     TEST(Scenarios_Symmetry_Group, Dimino_Z2_4d) {
 
         std::vector<Eigen::SparseMatrix<double>> generators;
-        generators.emplace_back(make_sparse(4, {0, 1, 0, 0,
-                                                1, 0, 0, 0,
-                                                0, 0, 0, 1,
-                                                0, 0, 1, 0}));
+        generators.emplace_back(make_sparse<double>(4, {0, 1, 0, 0,
+                                                        1, 0, 0, 0,
+                                                        0, 0, 0, 1,
+                                                        0, 0, 1, 0}));
 
         auto group = Group::dimino_generation(generators);
 
@@ -69,12 +67,12 @@ namespace Moment::Tests {
     TEST(Scenarios_Symmetry_Group, Dimino_S3) {
 
         std::vector<Eigen::SparseMatrix<double>> generators;
-        generators.emplace_back(make_sparse(3, {0, 1, 0,
-                                                1, 0, 0,
-                                                0, 0, 1}));
-        generators.emplace_back(make_sparse(3, {1, 0, 0,
-                                                0, 0, 1,
-                                                0, 1, 0}));
+        generators.emplace_back(make_sparse<double>(3, {0, 1, 0,
+                                                        1, 0, 0,
+                                                        0, 0, 1}));
+        generators.emplace_back(make_sparse<double>(3, {1, 0, 0,
+                                                        0, 0, 1,
+                                                        0, 1, 0}));
 
         auto group = Group::dimino_generation(generators);
 
@@ -86,15 +84,15 @@ namespace Moment::Tests {
     TEST(Scenarios_Symmetry_Group, Dimino_S4) {
 
         std::vector<Eigen::SparseMatrix<double>> generators;
-        generators.emplace_back(make_sparse(4, {0, 1, 0, 0,
+        generators.emplace_back(make_sparse<double>(4, {0, 1, 0, 0,
                                                 1, 0, 0, 0,
                                                 0, 0, 1, 0,
                                                 0, 0, 0, 1}));
-        generators.emplace_back(make_sparse(4, {1, 0, 0, 0,
+        generators.emplace_back(make_sparse<double>(4, {1, 0, 0, 0,
                                                 0, 0, 1, 0,
                                                 0, 1, 0, 0,
                                                 0, 0, 0, 1}));
-        generators.emplace_back(make_sparse(4, {1, 0, 0, 0,
+        generators.emplace_back(make_sparse<double>(4, {1, 0, 0, 0,
                                                 0, 1, 0, 0,
                                                 0, 0, 0, 1,
                                                 0, 0, 1, 0}));
@@ -109,16 +107,16 @@ namespace Moment::Tests {
     TEST(Scenarios_Symmetry_Group, Dimino_D8) {
         // Dihedral-8 group <-> symmetries of CHSH inequality.
         std::vector<Eigen::SparseMatrix<double>> generators;
-        generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
-                                                1, 0, 0, 0,-1,
-                                                0, 0, 0, 1, 0,
-                                                0, 1, 0, 0 ,0,
-                                                0, 0, 1, 0 ,0}));
-        generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 1,
-                                                0, 0, 0, 1, 0,
-                                                0, 0, 1, 0 ,0,
-                                                0, 1, 0, 0 ,0}));
+        generators.emplace_back(make_sparse<double>(5, {1, 0, 0, 0, 0,
+                                                        1, 0, 0, 0,-1,
+                                                        0, 0, 0, 1, 0,
+                                                        0, 1, 0, 0 ,0,
+                                                        0, 0, 1, 0 ,0}));
+        generators.emplace_back(make_sparse<double>(5, {1, 0, 0, 0, 0,
+                                                        0, 0, 0, 0, 1,
+                                                        0, 0, 0, 1, 0,
+                                                        0, 0, 1, 0 ,0,
+                                                        0, 1, 0, 0 ,0}));
 
         auto group = Group::dimino_generation(generators);
 
@@ -191,16 +189,16 @@ namespace Moment::Tests {
 
         // Dihedral-8 group <-> symmetries of CHSH inequality.
         std::vector<Eigen::SparseMatrix<double>> generators;
-        generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
-                                                1, 0, 0, 0,-1,
-                                                0, 0, 0, 1, 0,
-                                                0, 1, 0, 0 ,0,
-                                                0, 0, 1, 0 ,0}));
-        generators.emplace_back(make_sparse(5, {1, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 1,
-                                                0, 0, 0, 1, 0,
-                                                0, 0, 1, 0 ,0,
-                                                0, 1, 0, 0 ,0}));
+        generators.emplace_back(make_sparse<double>(5, {1, 0, 0, 0, 0,
+                                                        1, 0, 0, 0,-1,
+                                                        0, 0, 0, 1, 0,
+                                                        0, 1, 0, 0 ,0,
+                                                        0, 0, 1, 0 ,0}));
+        generators.emplace_back(make_sparse<double>(5, {1, 0, 0, 0, 0,
+                                                        0, 0, 0, 0, 1,
+                                                        0, 0, 0, 1, 0,
+                                                        0, 0, 1, 0 ,0,
+                                                        0, 1, 0, 0 ,0}));
 
         auto group_elems = Group::dimino_generation(generators);
         auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));
@@ -233,9 +231,9 @@ namespace Moment::Tests {
 
         // Dihedral-8 group <-> symmetries of CHSH inequality.
         std::vector<Eigen::SparseMatrix<double>> generators;
-        generators.emplace_back(make_sparse(3, {1, 0, 0,
-                                                0, 0, 1,
-                                                0, 1, 0}));
+        generators.emplace_back(make_sparse<double>(3, {1, 0, 0,
+                                                        0, 0, 1,
+                                                        0, 1, 0}));
         auto group_elems = Group::dimino_generation(generators);
 
         auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));

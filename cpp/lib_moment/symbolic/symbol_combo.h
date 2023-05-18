@@ -14,6 +14,7 @@
 #include "utilities/float_utils.h"
 
 #include <algorithm>
+#include <complex>
 #include <iosfwd>
 #include <map>
 #include <utility>
@@ -134,9 +135,9 @@ namespace Moment {
             return output;
         }
 
-        SymbolCombo& operator*=(double factor) noexcept;
+        SymbolCombo& operator*=(std::complex<double> factor) noexcept;
 
-        [[nodiscard]] friend SymbolCombo operator*(SymbolCombo lhs, const double factor) noexcept {
+        [[nodiscard]] friend SymbolCombo operator*(SymbolCombo lhs, const std::complex<double> factor) noexcept {
             lhs *= factor;
             return lhs;
         }
@@ -270,6 +271,15 @@ namespace Moment {
         }
 
         /**
+         * True if every factor in this symbol combo is real.
+         */
+        [[nodiscard]] bool real_factors() const noexcept {
+            return std::none_of(this->data.begin(), this->data.end(), [](const auto& expr) {
+                return expr.complex_factor();
+            });
+        }
+
+        /**
          * True if sum of symbols is Hermitian.
          * @param symbols Symbol table (needed to know which symbols are purely real/imaginary etc.).
          */
@@ -296,6 +306,14 @@ namespace Moment {
          */
         inline static SymbolCombo Scalar(const double the_factor = 1.0) {
             return SymbolCombo(storage_t{SymbolExpression{1, the_factor , false}});
+        }
+
+        /**
+         * Construct a combination representing a scalar.
+         * @param the_factor Complex scalar value
+         */
+        inline static SymbolCombo Scalar(const std::complex<double> the_factor) {
+            return SymbolCombo(storage_t{SymbolExpression{1, the_factor, false}});
         }
 
         /**

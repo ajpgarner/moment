@@ -112,13 +112,13 @@ namespace Moment {
     }
 
 
-    SymbolCombo& SymbolCombo::operator*=(const double factor) noexcept {
-        if (factor == 0) {
+    SymbolCombo& SymbolCombo::operator*=(const std::complex<double> factor) noexcept {
+        if (approximately_zero(factor)) {
             this->data.clear();
             return *this;
         }
 
-        if (factor == 1.0) {
+        if (approximately_equal(factor, 1.0)) {
             return *this;
         }
 
@@ -173,6 +173,8 @@ namespace Moment {
         for (auto& elem: this->data) {
             assert(elem.id < symbols.size());
             auto& symbolInfo = symbols[elem.id];
+            // k -> k*
+            elem.factor = std::conj(elem.factor);
             if (symbolInfo.is_hermitian()) {
                 continue;
             }
@@ -239,8 +241,8 @@ namespace Moment {
                     }
                 }
 
-                // Expect kX, kX*
-                if (last_symbol->factor != elem.factor) {
+                // Expect kX, k*X*
+                if (last_symbol->factor != std::conj(elem.factor)) {
                     return false;
                 }
 
@@ -283,17 +285,17 @@ namespace Moment {
             assert(!(symbolInfo.is_antihermitian() && symbolInfo.is_hermitian()));
 
             if (symbolInfo.is_hermitian()) {
-                if (lhs_elem.factor != rhs_elem.factor) {
+                if (!approximately_equal(lhs_elem.factor, std::conj(rhs_elem.factor))) {
                     return false;
                 }
                 // no need to compare conjugation, symbol is real.
             } else if (symbolInfo.is_antihermitian()) {
                 // Symbol is purely imaginary; so either A = -A, or A = A*.
-                if (lhs_elem.factor == rhs_elem.factor) {
+                if (lhs_elem.factor == std::conj(rhs_elem.factor)) {
                     if (lhs_elem.conjugated == rhs_elem.conjugated) {
                         return false;
                     }
-                } else if (lhs_elem.factor == -rhs_elem.factor) {
+                } else if (lhs_elem.factor == -std::conj(rhs_elem.factor)) {
                     if (lhs_elem.conjugated != rhs_elem.conjugated) {
                         return false;
                     }

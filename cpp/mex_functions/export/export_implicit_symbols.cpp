@@ -51,7 +51,7 @@ namespace Moment::mex {
                 assert(re_key >= 0);
                 assert(im_key < 0);
                 *(colsPtr++) = re_key;
-                *(dataPtr++) = weight;
+                *(dataPtr++) = weight.real();
             }
 
             return factory.createSparseArray<double>({1, real_symbol_count}, nnz,

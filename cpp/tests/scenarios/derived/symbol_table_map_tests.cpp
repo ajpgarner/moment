@@ -38,9 +38,9 @@ namespace Moment::Tests {
         ams.generate_dictionary(1);
         EXPECT_EQ(symbols.size(), 4); // 0, 1, a, b
 
-        Eigen::SparseMatrix<double> averaging_map = make_sparse(3, {1, 0, 0,
-                                                                    0, 0.5, 0.5,
-                                                                    0, 0.5, 0.5});
+        Eigen::SparseMatrix<double> averaging_map = make_sparse(3, {1.0, 0.0, 0.0,
+                                                                    0.0, 0.5, 0.5,
+                                                                    0.0, 0.5, 0.5});
 
         DerivedMatrixSystem dms{amsPtr, DirectSparseSTMFactory{std::move(averaging_map)}};
         ASSERT_EQ(dms.Symbols().size(),3); // 0, 1, x

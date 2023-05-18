@@ -57,6 +57,9 @@ namespace Moment {
         /** Matrix, as symbolic expression */
         std::unique_ptr<SquareMatrix<SymbolExpression>> sym_exp_matrix;
 
+        /** True if matrix has no complex prefactors in its symbol expressions */
+        bool real_prefactors = true;
+
     public:
         MonomialMatrix(SymbolTable& symbols, const Context& context,
                        std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix,
@@ -75,19 +78,31 @@ namespace Moment {
          */
         void renumerate_bases(const SymbolTable& symbols) override;
 
+        bool real_coefficients() const noexcept override {
+            return this->real_prefactors;
+        }
+
     protected:
 
         /**
          * Create dense basis.
          */
-        [[nodiscard]] std::pair<MatrixBasis::dense_real_storage_t, MatrixBasis::dense_complex_storage_t>
-        create_dense_basis() const override;
+        [[nodiscard]] DenseBasisInfo::MakeStorageType create_dense_basis() const override;
 
         /**
          * Create sparse basis.
          */
-        [[nodiscard]] std::pair<MatrixBasis::sparse_real_storage_t, MatrixBasis::sparse_complex_storage_t>
-        create_sparse_basis() const override;
+        [[nodiscard]] SparseBasisInfo::MakeStorageType create_sparse_basis() const override;
+
+        /**
+         * Create dense complex basis.
+         */
+        [[nodiscard]] DenseComplexBasisInfo::MakeStorageType create_dense_complex_basis() const override;
+
+        /**
+         * Create sparse basis.
+         */
+        [[nodiscard]] SparseComplexBasisInfo::MakeStorageType create_sparse_complex_basis() const override;
 
 
 

@@ -11,6 +11,55 @@
 
 namespace Moment {
 
+    void SymbolExpression::format_factor(std::ostream& os, std::complex<double> factor, bool mandatory_plus) {
+        if (approximately_real(factor)) {
+            if (mandatory_plus) {
+                if (factor.real() > 0) {
+                    os << " + " << factor.real();
+                } else {
+                    os << " - " << (-factor.real());
+                }
+            } else {
+                os << factor.real();
+            }
+        } else if (approximately_imaginary(factor)) {
+            if (mandatory_plus) {
+                if (factor.imag() > 0) {
+                    os << " + " << factor.imag() << "i";
+                } else {
+                    os << " - " << (-factor.imag()) << "i";
+                }
+            } else {
+                os << factor.imag() << "i";
+            }
+        } else { // Complex number
+            if (mandatory_plus) {
+                os << " + ";
+            }
+            os << "(" << factor.real() << " + " << factor.imag() << "i)";
+        }
+    }
+
+    void SymbolExpression::format_factor_skip_one(std::ostream& os, std::complex<double> factor,
+                                                  bool mandatory_plus, bool include_times) {
+        if (approximately_equal(factor, 1.0)) { // +1
+            if (mandatory_plus) {
+                os << " + ";
+            }
+        } else if (approximately_equal(factor, -1.0)) { // -1
+            if (mandatory_plus) {
+                os << " - ";
+            } else {
+                os << "-";
+            }
+        } else { // General factor
+            format_factor(os, factor, mandatory_plus);
+            if (include_times) {
+                os << "*";
+            }
+        }
+    }
+
     std::ostream& operator<<(std::ostream& os, const SymbolExpression& expr) {
 
         const bool show_plus = os.flags() & std::ios::showpos;
@@ -26,35 +75,9 @@ namespace Moment {
         }
 
         if (1 == expr.id) {
-            if (show_plus) {
-                if( expr.factor < 0) {
-                    os << " - " << (-expr.factor);
-                } else {
-                    os << " + " << expr.factor;
-                }
-            } else {
-                os << expr.factor;
-            }
+            SymbolExpression::format_factor(os, expr.factor, show_plus);
         } else {
-            if (expr.factor == -1.0) {
-                if (show_plus) {
-                    os << " - ";
-                } else {
-                    os << "-";
-                }
-            } else if (expr.factor != 1.0) {
-                if (show_plus) {
-                    if (expr.factor > 0) {
-                        os << " + " << expr.factor;
-                    } else {
-                        os << " - " << (-expr.factor);
-                    }
-                } else {
-                    os << expr.factor << "*";
-                }
-            } else if (show_plus) { // implicit factor == 1.0
-                os << " + ";
-            }
+            SymbolExpression::format_factor_skip_one(os, expr.factor, show_plus, true);
 
             const bool show_hash = os.flags() & std::ios::showbase;
             if (show_hash) {
@@ -117,7 +140,6 @@ namespace Moment {
         ss << *this;
         return ss.str();
     }
-
 
     std::string SymbolExpression::SymbolParseException::make_msg(const std::string &badExpr) {
         if (badExpr.length() > SymbolExpression::max_strlen) {

@@ -49,6 +49,9 @@ namespace Moment {
         /** Matrix, as symbolic expression */
         std::unique_ptr<SquareMatrix<SymbolCombo>> sym_exp_matrix;
 
+        /** Complex? */
+        bool real_prefactors = true;
+
     public:
         PolynomialMatrix(const Context& context, SymbolTable& symbols,
                          std::unique_ptr<SquareMatrix<SymbolCombo>> symbolMatrix);
@@ -65,16 +68,38 @@ namespace Moment {
             return false;
         }
 
+
+        /**
+         * True if matrix has no complex prefactors in any of its constituent polynomials.
+         */
+        bool real_coefficients() const noexcept override {
+            return this->real_prefactors;
+        }
+
         /**
          * Force renumbering of matrix bases keys
          */
         void renumerate_bases(const SymbolTable& symbols) override;
 
     protected:
-        std::pair<MatrixBasis::dense_real_storage_t, MatrixBasis::dense_complex_storage_t>
-        create_dense_basis() const override;
+        /**
+         * Create dense basis.
+         */
+        [[nodiscard]] DenseBasisInfo::MakeStorageType create_dense_basis() const override;
 
-        std::pair<MatrixBasis::sparse_real_storage_t, MatrixBasis::sparse_complex_storage_t>
-        create_sparse_basis() const override;
+        /**
+         * Create sparse basis.
+         */
+        [[nodiscard]] SparseBasisInfo::MakeStorageType create_sparse_basis() const override;
+
+        /**
+         * Create dense complex basis.
+         */
+        [[nodiscard]] DenseComplexBasisInfo::MakeStorageType create_dense_complex_basis() const override;
+
+        /**
+         * Create sparse complex basis.
+         */
+        [[nodiscard]] SparseComplexBasisInfo::MakeStorageType create_sparse_complex_basis() const override;
     };
 }
