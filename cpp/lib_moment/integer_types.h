@@ -19,6 +19,9 @@ namespace Moment {
     constexpr const bool debug_mode = false;
 #endif
 
+    using std::size_t;
+    using std::ptrdiff_t;
+
     /**
      * For enumerating parties (Alice, Bob, etc).
      */

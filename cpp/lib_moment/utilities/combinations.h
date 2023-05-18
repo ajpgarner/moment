@@ -111,7 +111,7 @@ namespace Moment {
                 return true;
             }
 
-            for (std::size_t j = 0; j < K; ++j) {
+            for (size_t j = 0; j < K; ++j) {
                 if (this->indices[j] != other.indices[j]) {
                     return false;
                 }
