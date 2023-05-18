@@ -17,8 +17,12 @@ namespace matlab::engine {
 
 namespace Moment::mex {
 
-    /** Reads a matlab matrix into a real eigen sparse matrix */
+    /** Reads a matlab matrix into a real eigen dense matrix */
     Eigen::MatrixXd read_eigen_dense(matlab::engine::MATLABEngine& engine,
                                      const matlab::data::Array& array);
+
+    /** Reads a matlab matrix into a complex eigen dense matrix */
+    Eigen::MatrixXcd read_eigen_dense_complex(matlab::engine::MATLABEngine& engine,
+                                             const matlab::data::Array& array);
 
 }

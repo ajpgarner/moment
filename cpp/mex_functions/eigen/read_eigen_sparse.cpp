@@ -17,25 +17,26 @@
 namespace Moment::mex {
 
     namespace {
+        template<typename scalar_type = double>
         struct ReadNumericMatrixVisitor {
         private:
             matlab::engine::MATLABEngine &engine;
 
         public:
-            using return_type = Eigen::SparseMatrix<double>;
+            using return_type = Eigen::SparseMatrix<scalar_type>;
 
             explicit ReadNumericMatrixVisitor(matlab::engine::MATLABEngine &engineRef)
                     : engine(engineRef) {}
 
-            template<std::convertible_to<double> data_t>
+            template<std::convertible_to<scalar_type> data_t>
             return_type dense(const matlab::data::TypedArray<data_t>& input_matrix) {
                 const auto dims = input_matrix.getDimensions();
-                std::vector<Eigen::Triplet<double>> triplets;
+                std::vector<Eigen::Triplet<scalar_type>> triplets;
 
                 for (int row = 0; row < dims[0]; ++row) {
                     for (int col = 0; col < dims[1]; ++col) {
-                        auto val = static_cast<double>(input_matrix[row][col]);
-                        if (val != 0) {
+                        auto val = static_cast<scalar_type>(input_matrix[row][col]);
+                        if (val != 0.0) {
                             triplets.emplace_back(row, col, val);
                         }
                     }
@@ -44,10 +45,10 @@ namespace Moment::mex {
                 return triplet_to_sparse({dims[0], dims[1]}, triplets);
             }
 
-            template<std::convertible_to<double> data_t>
+            template<std::convertible_to<scalar_type> data_t>
             return_type sparse(const matlab::data::SparseArray<data_t>& input_matrix) {
                 const auto dims = input_matrix.getDimensions();
-                std::vector<Eigen::Triplet<double>> triplets;
+                std::vector<Eigen::Triplet<scalar_type>> triplets;
                 triplets.reserve(input_matrix.getNumberOfNonZeroElements());
 
                 for (matlab::data::TypedIterator<const data_t> iter = input_matrix.begin();
@@ -55,7 +56,7 @@ namespace Moment::mex {
                     auto indices = input_matrix.getIndex(iter);
                     triplets.emplace_back(static_cast<int>(indices.first),
                                           static_cast<int>(indices.second),
-                                          static_cast<double>(*iter));
+                                          static_cast<scalar_type>(*iter));
                 }
 
                 return triplet_to_sparse({dims[0], dims[1]}, triplets);
@@ -68,7 +69,7 @@ namespace Moment::mex {
 
                 const auto dims = input_matrix.getDimensions();
 
-                std::vector<Eigen::Triplet<double>> triplets;
+                std::vector<Eigen::Triplet<scalar_type>> triplets;
 
 
                 for (int row = 0; row < dims[0]; ++row) {
@@ -101,7 +102,7 @@ namespace Moment::mex {
 
         private:
             static return_type triplet_to_sparse(std::pair<size_t,size_t> dims,
-                                                 const std::vector<Eigen::Triplet<double>>& triplet) {
+                                                 const std::vector<Eigen::Triplet<scalar_type>>& triplet) {
                 return_type matrix(static_cast<int>(dims.first), static_cast<int>(dims.second));
                 if (!triplet.empty()) {
                     matrix.setFromTriplets(triplet.begin(), triplet.end());
@@ -112,9 +113,12 @@ namespace Moment::mex {
             }
         };
 
-        static_assert(concepts::VisitorHasRealDense<ReadNumericMatrixVisitor>);
-        static_assert(concepts::VisitorHasRealSparse<ReadNumericMatrixVisitor>);
-        static_assert(concepts::VisitorHasString<ReadNumericMatrixVisitor>);
+        static_assert(concepts::VisitorHasRealDense<ReadNumericMatrixVisitor<double>>);
+        static_assert(concepts::VisitorHasRealSparse<ReadNumericMatrixVisitor<double>>);
+        static_assert(concepts::VisitorHasString<ReadNumericMatrixVisitor<double>>);
+        static_assert(concepts::VisitorHasRealDense<ReadNumericMatrixVisitor<std::complex<double>>>);
+        static_assert(concepts::VisitorHasRealSparse<ReadNumericMatrixVisitor<std::complex<double>>>);
+        static_assert(concepts::VisitorHasString<ReadNumericMatrixVisitor<std::complex<double>>>);
     }
 
     Eigen::SparseMatrix<double> read_eigen_sparse(matlab::engine::MATLABEngine& engine,
@@ -137,6 +141,30 @@ namespace Moment::mex {
         output.reserve(cell_array.getNumberOfElements());
         for (const auto& elem : cell_array) {
             output.emplace_back(read_eigen_sparse(engine, elem));
+        }
+        return output;
+    }
+
+    Eigen::SparseMatrix<std::complex<double>> read_eigen_sparse_complex(matlab::engine::MATLABEngine& engine,
+                                                                        const matlab::data::Array& input) {
+
+        return DispatchVisitor(engine, input, ReadNumericMatrixVisitor<std::complex<double>>{engine});
+
+    }
+
+    Eigen::SparseVector<std::complex<double>> read_eigen_sparse_complex_vector(matlab::engine::MATLABEngine& engine,
+                                                         const matlab::data::Array& input) {
+        return DispatchVisitor(engine, input, ReadNumericMatrixVisitor<std::complex<double>>{engine});
+    }
+
+
+    std::vector<Eigen::SparseMatrix<std::complex<double>>>
+    read_eigen_sparse_complex_array(matlab::engine::MATLABEngine& engine, const matlab::data::Array& array) {
+        std::vector<Eigen::SparseMatrix<std::complex<double>>> output;
+        const matlab::data::TypedArray<matlab::data::Array> cell_array = array;
+        output.reserve(cell_array.getNumberOfElements());
+        for (const auto& elem : cell_array) {
+            output.emplace_back(read_eigen_sparse_complex(engine, elem));
         }
         return output;
     }

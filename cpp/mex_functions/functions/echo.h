@@ -17,6 +17,11 @@ namespace Moment::mex::functions  {
             Dense,
             Sparse
         } output_mode = OutputMode::Dense;
+
+        enum MatrixMode {
+            Real,
+            Complex
+        } matrix_mode = MatrixMode::Real;
     };
 
     class Echo : public ParameterizedMexFunction<EchoParams, MEXEntryPointID::Echo> {

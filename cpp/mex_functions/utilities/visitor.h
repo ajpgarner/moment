@@ -72,7 +72,20 @@ namespace Moment::mex {
          * @tparam functor_t The visited functor class that will be applied to the array.
          */
         template <class functor_t>
-        concept VisitorHasComplexDense = requires(functor_t& functor, matlab::data::Array& a) {
+        concept VisitorHasComplexDenseFloat = requires(functor_t& functor, matlab::data::Array& a) {
+            typename functor_t::return_type;
+            {functor.template dense<std::complex<float>>(matlab::data::TypedArray<std::complex<float>>{a})}
+                -> std::same_as<typename functor_t::return_type>;
+            {functor.template dense<std::complex<double>>(matlab::data::TypedArray<std::complex<double>>{a})}
+                -> std::same_as<typename functor_t::return_type>;
+        };
+
+        /**
+         * True if functor can process complex, dense, integral arrays.
+         * @tparam functor_t The visited functor class that will be applied to the array.
+         */
+        template <class functor_t>
+        concept VisitorHasComplexDenseInteger = requires(functor_t& functor, matlab::data::Array& a) {
             typename functor_t::return_type;
             {functor.template dense<std::complex<int8_t>>(matlab::data::TypedArray<std::complex<int8_t>>{a})}
                 -> std::same_as<typename functor_t::return_type>;
@@ -89,10 +102,6 @@ namespace Moment::mex {
             {functor.template dense<std::complex<uint32_t>>(matlab::data::TypedArray<std::complex<uint32_t>>{a})}
                 -> std::same_as<typename functor_t::return_type>;
             {functor.template dense<std::complex<uint64_t>>(matlab::data::TypedArray<std::complex<uint64_t>>{a})}
-                -> std::same_as<typename functor_t::return_type>;
-            {functor.template dense<std::complex<float>>(matlab::data::TypedArray<std::complex<float>>{a})}
-                -> std::same_as<typename functor_t::return_type>;
-            {functor.template dense<std::complex<double>>(matlab::data::TypedArray<std::complex<double>>{a})}
                 -> std::same_as<typename functor_t::return_type>;
         };
 
@@ -160,7 +169,8 @@ namespace Moment::mex {
 
     public:
         static constexpr bool has_real_dense = concepts::VisitorHasRealDense<functor_t>;
-        static constexpr bool has_complex_dense = concepts::VisitorHasComplexDense<functor_t>;
+        static constexpr bool has_complex_dense_float = concepts::VisitorHasComplexDenseFloat<functor_t>;
+        static constexpr bool has_complex_dense_int = concepts::VisitorHasComplexDenseInteger<functor_t>;
         static constexpr bool has_boolean_dense = concepts::VisitorHasBooleanDense<functor_t>;
         static constexpr bool has_real_sparse = concepts::VisitorHasRealSparse<functor_t>;
         static constexpr bool has_complex_sparse = concepts::VisitorHasComplexSparse<functor_t>;
@@ -207,7 +217,7 @@ namespace Moment::mex {
             }
 
             // Dense numeric complex types
-            if constexpr(has_complex_dense) {
+            if constexpr(has_complex_dense_int) {
                 switch (as_array.getType()) {
                     case matlab::data::ArrayType::COMPLEX_INT8:
                     case matlab::data::ArrayType::COMPLEX_INT16:
@@ -217,9 +227,18 @@ namespace Moment::mex {
                     case matlab::data::ArrayType::COMPLEX_UINT16:
                     case matlab::data::ArrayType::COMPLEX_UINT32:
                     case matlab::data::ArrayType::COMPLEX_UINT64:
+                        return do_complex_dense_int_invocation(std::forward<matrix_t>(data));
+                    default:
+                        break;
+                }
+            }
+
+            // Dense numeric complex types
+            if constexpr(has_complex_dense_float) {
+                switch (as_array.getType()) {
                     case matlab::data::ArrayType::COMPLEX_SINGLE:
                     case matlab::data::ArrayType::COMPLEX_DOUBLE:
-                        return do_complex_dense_invocation(std::forward<matrix_t>(data));
+                        return do_complex_dense_float_invocation(std::forward<matrix_t>(data));
                     default:
                         break;
                 }
@@ -294,7 +313,7 @@ namespace Moment::mex {
         }
 
         template<typename matrix_t>
-        inline return_t do_complex_dense_invocation(matrix_t data) {
+        inline return_t do_complex_dense_int_invocation(matrix_t data) {
             const auto& as_array = static_cast<const matlab::data::Array&>(data);
             switch (as_array.getType()) {
                 case matlab::data::ArrayType::COMPLEX_INT8:
@@ -313,6 +332,13 @@ namespace Moment::mex {
                     return this->visitor.template dense<std::complex<uint32_t>>(matlab::data::TypedArray<std::complex<uint32_t>>{std::forward<matrix_t>(data)});
                 case matlab::data::ArrayType::COMPLEX_UINT64:
                     return this->visitor.template dense<std::complex<uint64_t>>(matlab::data::TypedArray<std::complex<uint64_t>>{std::forward<matrix_t>(data)});
+            }
+        }
+
+        template<typename matrix_t>
+        inline return_t do_complex_dense_float_invocation(matrix_t data) {
+            const auto& as_array = static_cast<const matlab::data::Array&>(data);
+            switch (as_array.getType()) {
                 case matlab::data::ArrayType::COMPLEX_SINGLE:
                     return this->visitor.template dense<std::complex<float>>(matlab::data::TypedArray<std::complex<float>>{std::forward<matrix_t>(data)});
                 case matlab::data::ArrayType::COMPLEX_DOUBLE:

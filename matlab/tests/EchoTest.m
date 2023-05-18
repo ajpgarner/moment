@@ -9,6 +9,12 @@ classdef EchoTest < MTKTestBase
             testCase.verifyEqual(actual, A);            
         end
         
+       function DenseComplexDouble_To_Dense(testCase)
+            A = complex([[1, 2, 0, 10]; [3, 4, 5, 11]; [6, 7, 0, 12]]);
+            actual = mtk('echo', 'dense', A);            
+            testCase.verifyEqual(actual, A);            
+        end
+        
         function Int64_To_Dense(testCase)
             A = [[1, 2, 0]; [3, 4, 5]; [6, 7, 0]];
             intA = int64(A);
@@ -49,6 +55,13 @@ classdef EchoTest < MTKTestBase
             
         function Sparse_To_Sparse(testCase)
             A = [[1, 2, 0, 10]; [3, 4, 5, 11]; [6, 7, 0, 12]];
+            expected = sparse(A);
+            actual = mtk('echo', 'sparse', expected);            
+            testCase.verifyEqual(actual, expected);            
+        end
+        
+        function Sparse_To_Sparse_Complex(testCase)
+            A = complex([[1, 2, 0, 10]; [3, 4, 5, 11]; [6, 7, 0, 12]]);
             expected = sparse(A);
             actual = mtk('echo', 'sparse', expected);            
             testCase.verifyEqual(actual, expected);            

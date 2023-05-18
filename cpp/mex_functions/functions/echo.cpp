@@ -28,9 +28,19 @@ namespace Moment::mex::functions {
             case matlab::data::ArrayType::INT64:
             case matlab::data::ArrayType::UINT64:
                 this->output_mode = OutputMode::Dense;
+                this->matrix_mode = MatrixMode::Real;
                 break;
             case matlab::data::ArrayType::SPARSE_DOUBLE:
                 this->output_mode = OutputMode::Sparse;
+                this->matrix_mode = MatrixMode::Real;
+                break;
+            case matlab::data::ArrayType::COMPLEX_DOUBLE:
+                this->output_mode = OutputMode::Dense;
+                this->matrix_mode = MatrixMode::Complex;
+                break;
+            case matlab::data::ArrayType::SPARSE_COMPLEX_DOUBLE:
+                this->output_mode = OutputMode::Sparse;
+                this->matrix_mode = MatrixMode::Complex;
                 break;
             default:
                 throw_error(this->matlabEngine, errors::bad_param, u"Input type not supported");
@@ -41,6 +51,13 @@ namespace Moment::mex::functions {
             this->output_mode = OutputMode::Dense;
         } else if (this->flags.contains(u"sparse")) {
             this->output_mode = OutputMode::Sparse;
+        }
+
+        // Allow for override of matrix output mode
+        if (this->flags.contains(u"complex")) {
+            this->matrix_mode = MatrixMode::Complex;
+        } else if (this->flags.contains(u"real")) {
+            this->matrix_mode = MatrixMode::Real;
         }
     }
 
@@ -55,6 +72,10 @@ namespace Moment::mex::functions {
         this->flag_names.emplace(u"dense");
         this->mutex_params.add_mutex(u"sparse", u"dense");
 
+        this->flag_names.emplace(u"complex");
+        this->flag_names.emplace(u"real");
+        this->mutex_params.add_mutex(u"complex", u"real");
+
     }
     void Echo::operator()(IOArgumentRange output, EchoParams &input) {
         const bool output_to_console = this->verbose || (output.size() == 0);
@@ -62,34 +83,66 @@ namespace Moment::mex::functions {
 
         if (input.output_mode == EchoParams::OutputMode::Dense) {
 
-            auto eigen_dense_object = read_eigen_dense(this->matlabEngine, input.inputs[0]);
-            if (output_to_console) {
-                std::stringstream ss;
-                ss << eigen_dense_object << "\n";
-                print_to_console(this->matlabEngine, ss.str());
-            }
+            if (input.matrix_mode == EchoParams::MatrixMode::Real) {
+                auto eigen_dense_object = read_eigen_dense(this->matlabEngine, input.inputs[0]);
+                if (output_to_console) {
+                    std::stringstream ss;
+                    ss << eigen_dense_object << "\n";
+                    print_to_console(this->matlabEngine, ss.str());
+                }
 
-            if (output_to_matlab) {
-                matlab::data::ArrayFactory factory;
-                output[0] = export_eigen_dense(this->matlabEngine, factory, eigen_dense_object);
+                if (output_to_matlab) {
+                    matlab::data::ArrayFactory factory;
+                    output[0] = export_eigen_dense(this->matlabEngine, factory, eigen_dense_object);
+                }
+                return;
+            } else if (input.matrix_mode == EchoParams::MatrixMode::Complex) {
+                auto eigen_dc_object = read_eigen_dense_complex(this->matlabEngine, input.inputs[0]);
+                if (output_to_console) {
+                    std::stringstream ss;
+                    ss << eigen_dc_object << "\n";
+                    print_to_console(this->matlabEngine, ss.str());
+                }
+
+                if (output_to_matlab) {
+                    matlab::data::ArrayFactory factory;
+                    output[0] = export_eigen_dense(this->matlabEngine, factory, eigen_dc_object);
+                }
+                return;
             }
-            return;
+            throw_error(this->matlabEngine, errors::internal_error, "Unsupported/unknown MatrixMode.");
         }
 
         if (input.output_mode == EchoParams::OutputMode::Sparse) {
 
-            auto eigen_sparse_object = read_eigen_sparse(this->matlabEngine, input.inputs[0]);
-            if (output_to_console) {
-                std::stringstream ss;
-                ss << eigen_sparse_object << "\n";
-                print_to_console(this->matlabEngine, ss.str());
-            }
+            if (input.matrix_mode == EchoParams::MatrixMode::Real) {
+                auto eigen_sparse_object = read_eigen_sparse(this->matlabEngine, input.inputs[0]);
+                if (output_to_console) {
+                    std::stringstream ss;
+                    ss << eigen_sparse_object << "\n";
+                    print_to_console(this->matlabEngine, ss.str());
+                }
 
-            if (output_to_matlab) {
-                matlab::data::ArrayFactory factory;
-                output[0] = export_eigen_sparse(this->matlabEngine, factory, eigen_sparse_object);
+                if (output_to_matlab) {
+                    matlab::data::ArrayFactory factory;
+                    output[0] = export_eigen_sparse(this->matlabEngine, factory, eigen_sparse_object);
+                }
+                return;
+            } else if (input.matrix_mode == EchoParams::MatrixMode::Complex) {
+                auto eigen_sc_object = read_eigen_sparse_complex(this->matlabEngine, input.inputs[0]);
+                if (output_to_console) {
+                    std::stringstream ss;
+                    ss << eigen_sc_object << "\n";
+                    print_to_console(this->matlabEngine, ss.str());
+                }
+
+                if (output_to_matlab) {
+                    matlab::data::ArrayFactory factory;
+                    output[0] = export_eigen_sparse(this->matlabEngine, factory, eigen_sc_object);
+                }
+                return;
             }
-            return;
+            throw_error(this->matlabEngine, errors::internal_error, "Unsupported/unknown MatrixMode.");
         }
         throw_error(this->matlabEngine, errors::internal_error, "Unsupported/unknown OutputMode.");
     }
