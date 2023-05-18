@@ -47,7 +47,7 @@ namespace Moment {
         for (const auto& poly : *sym_exp_matrix) {
             for (const auto& term : poly) {
                 included_symbols.emplace(term.id);
-                if (!this->real_prefactors && term.complex_factor()) { // <- first clause, avoid unnecessary tests
+                if (this->real_prefactors && term.complex_factor()) { // <- first clause, avoid unnecessary tests
                     this->real_prefactors = false;
                 }
             }

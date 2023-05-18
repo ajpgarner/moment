@@ -215,7 +215,7 @@ namespace Moment {
             for (const auto& x : *sym_exp_matrix) {
                 assert(x.id < max_symbol_id);
                 included_symbols.emplace(x.id);
-                if (!this->real_prefactors && x.complex_factor()) { // <- first clause, avoid unnecessary tests
+                if (this->real_prefactors && x.complex_factor()) { // <- first clause, avoid unnecessary tests
                     this->real_prefactors = false;
                 }
             }

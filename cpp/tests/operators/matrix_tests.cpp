@@ -127,6 +127,86 @@ namespace Moment::Tests {
             return output;
         }
 
+
+        std::pair<std::vector<dense_complex_elem_t>, std::vector<dense_complex_elem_t>> reference_dense_complex() {
+            std::pair<std::vector<dense_complex_elem_t>, std::vector<dense_complex_elem_t>> output
+                    = std::make_pair(std::vector<dense_complex_elem_t>(6, dense_complex_elem_t::Zero(2, 2)),
+                                     std::vector<dense_complex_elem_t>(1, dense_complex_elem_t::Zero(2, 2)));
+            auto& real = output.first;
+            auto& im = output.second;
+
+            real[0](0, 0) = 1.0;
+
+            real[1](1, 1) = 1.0;
+
+            real[4](0, 1) = std::complex(1.0, 1.0);
+            real[4](1, 0) = std::complex(1.0, -1.0);
+
+            im[0](0, 1) = std::complex(-1.0, 1.0);
+            im[0](1, 0) = std::complex(-1.0, -1.0);
+
+            return output;
+        }
+
+        std::pair<dense_complex_elem_t, dense_complex_elem_t> reference_dense_monolithic_complex() {
+            std:std::pair<dense_complex_elem_t, dense_complex_elem_t> output
+                = std::make_pair(dense_complex_elem_t::Zero(4, 6), dense_complex_elem_t::Zero(4, 1));
+
+            auto& real = output.first;
+            auto& im = output.second;
+
+            real(0, 0) = 1.0;
+
+            real(3, 1) = 1.0; // a
+
+            real(1, 4) = std::complex(1.0, -1.0); // 4*=ab*
+            real(2, 4) = std::complex(1.0, 1.0); // 4= ab
+
+            im(1, 0) = std::complex(-1.0, -1.0);
+            im(2, 0) = std::complex(-1.0, 1.0);
+
+            return output;
+        }
+//
+        std::pair<std::vector<sparse_complex_elem_t>, std::vector<sparse_complex_elem_t>> reference_sparse_complex() {
+            std::pair<std::vector<sparse_complex_elem_t>, std::vector<sparse_complex_elem_t>> output;
+
+            auto& real = output.first;
+            auto& im = output.second;
+
+            auto [dense_re, dense_im] = reference_dense_complex();
+            for (const auto& b : dense_re) {
+                real.emplace_back(b.sparseView());
+            }
+            for (const auto& b : dense_im) {
+                im.emplace_back(b.sparseView());
+            }
+
+            return output;
+        }
+
+        std::pair<sparse_complex_elem_t, sparse_complex_elem_t> reference_sparse_monolithic_complex() {
+            std::pair<sparse_complex_elem_t , sparse_complex_elem_t> output
+                    = std::make_pair(sparse_complex_elem_t(4,6), sparse_complex_elem_t(4,1));
+
+            auto& real = output.first;
+            real.setZero();
+            real.insert(0, 0) = 1.0;
+            real.insert(3, 1) = 1.0;
+            real.insert(1, 4) = std::complex(1.0, -1.0);
+            real.insert(2, 4) = std::complex(1.0, 1.0);
+            real.makeCompressed();
+
+
+            auto& im = output.second;
+            im.setZero();
+            im.insert(1, 0) = std::complex(-1.0, -1.0);
+            im.insert(2, 0) = std::complex(-1.0, 1.0);
+            im.makeCompressed();
+
+            return output;
+        }
+
     }
 
     TEST(Operators_Matrix, DenseBasis) {
@@ -222,10 +302,124 @@ namespace Moment::Tests {
         ASSERT_EQ(imaginary.cols(), 1);
         ASSERT_EQ(imaginary.rows(), 1);
         EXPECT_EQ(imaginary.nonZeros(), 0);
-
-
-
-
     }
+
+
+    TEST(Operators_Matrix, DenseComplexBasis) {
+        using namespace Moment::Algebraic;
+        AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
+        const SymbolTable& symbol = ams.Symbols();
+        ams.generate_dictionary(2); // 0, 1, a, b, aa, ab, (ba), bb
+
+        // Brew our own matrix
+        std::vector<SymbolExpression> matrix_data{
+            SymbolExpression(1, 1.0),
+            SymbolExpression(5, {1.0, 1.0}),
+            SymbolExpression(5, {1.0, -1.0}, true),
+            SymbolExpression(2, 1.0),
+        };
+
+
+        MonomialMatrix matrix{ams.Symbols(), ams.Context(),
+                                std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
+
+        ASSERT_FALSE(matrix.real_coefficients());
+
+        EXPECT_THROW([[maybe_unused]] const auto& bad = matrix.Basis.Dense(), Moment::errors::bad_basis_error);
+
+        const auto& [real, imaginary] = matrix.Basis.DenseComplex();
+        const auto [ref_real, ref_imaginary] = reference_dense_complex();
+
+        assert_same_basis("Real", real, ref_real);
+        assert_same_basis("Imaginary", imaginary, ref_imaginary);
+    }
+
+    TEST(Operators_Matrix, DenseMonolithicComplexBasis) {
+        using namespace Moment::Algebraic;
+        AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
+        const SymbolTable& symbol = ams.Symbols();
+        ams.generate_dictionary(2); // 0, 1, a, b, aa, ab, (ba), bb
+
+        // Brew our own matrix
+        std::vector<SymbolExpression> matrix_data{
+            SymbolExpression(1, 1.0),
+            SymbolExpression(5, {1.0, 1.0}),
+            SymbolExpression(5, {1.0, -1.0}, true),
+            SymbolExpression(2, 1.0),
+        };
+
+
+        MonomialMatrix matrix{ams.Symbols(), ams.Context(),
+                                std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
+
+        ASSERT_FALSE(matrix.real_coefficients());
+
+        EXPECT_THROW([[maybe_unused]] const auto& bad = matrix.Basis.DenseMonolithic(), Moment::errors::bad_basis_error);
+
+        const auto& [real, imaginary] = matrix.Basis.DenseMonolithicComplex();
+        const auto [ref_real, ref_imaginary] = reference_dense_monolithic_complex();
+
+        assert_same_matrix("Real", real, ref_real);
+        assert_same_matrix("Imaginary", imaginary, ref_imaginary);
+    }
+
+    TEST(Operators_Matrix, SparseComplexBasis) {
+        using namespace Moment::Algebraic;
+        AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
+        const SymbolTable& symbol = ams.Symbols();
+        ams.generate_dictionary(2); // 0, 1, a, b, aa, ab, (ba), bb
+
+        // Brew our own matrix
+        std::vector<SymbolExpression> matrix_data{
+            SymbolExpression(1, 1.0),
+            SymbolExpression(5, {1.0, 1.0}),
+            SymbolExpression(5, {1.0, -1.0}, true),
+            SymbolExpression(2, 1.0),
+        };
+
+
+        MonomialMatrix matrix{ams.Symbols(), ams.Context(),
+                                std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
+
+        ASSERT_FALSE(matrix.real_coefficients());
+
+        EXPECT_THROW([[maybe_unused]] const auto& bad = matrix.Basis.Sparse(), Moment::errors::bad_basis_error);
+
+        const auto& [real, imaginary] = matrix.Basis.SparseComplex();
+        const auto [ref_real, ref_imaginary] = reference_sparse_complex();
+
+        assert_same_basis("Real", real, ref_real);
+        assert_same_basis("Imaginary", imaginary, ref_imaginary);
+    }
+
+    TEST(Operators_Matrix, SparseMonolithicComplexBasis) {
+        using namespace Moment::Algebraic;
+        AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
+        const SymbolTable& symbol = ams.Symbols();
+        ams.generate_dictionary(2); // 0, 1, a, b, aa, ab, (ba), bb
+
+        // Brew our own matrix
+        std::vector<SymbolExpression> matrix_data{
+            SymbolExpression(1, 1.0),
+            SymbolExpression(5, {1.0, 1.0}),
+            SymbolExpression(5, {1.0, -1.0}, true),
+            SymbolExpression(2, 1.0),
+        };
+
+
+        MonomialMatrix matrix{ams.Symbols(), ams.Context(),
+                                std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
+
+        ASSERT_FALSE(matrix.real_coefficients());
+
+        EXPECT_THROW([[maybe_unused]] const auto& bad = matrix.Basis.SparseMonolithic(), Moment::errors::bad_basis_error);
+
+        const auto& [real, imaginary] = matrix.Basis.SparseMonolithicComplex();
+        const auto [ref_real, ref_imaginary] = reference_sparse_monolithic_complex();
+
+        assert_same_matrix("Real", real, ref_real);
+        assert_same_matrix("Imaginary", imaginary, ref_imaginary);
+    }
+
 
 }

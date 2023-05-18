@@ -55,6 +55,13 @@ namespace Moment::Tests {
         EXPECT_EQ(symbol.as_string(), minus_one_star);
     }
 
+    TEST(Symbolic_SymbolExpression, ComplexFactor) {
+        SymbolExpression symbolA{1, 2.0};
+        SymbolExpression symbolB{1, {2.0, 3.0}};
+        EXPECT_FALSE(symbolA.complex_factor());
+        EXPECT_TRUE(symbolB.complex_factor());
+    }
+
     TEST(Symbolic_SymbolExpression, Equality) {
         SymbolExpression symbolA{1, 2.0};
         SymbolExpression symbolA_again{1, 2.0};

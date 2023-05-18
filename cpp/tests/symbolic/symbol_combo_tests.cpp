@@ -21,6 +21,7 @@ namespace Moment::Tests {
         EXPECT_EQ(empty.size(), 0);
         EXPECT_EQ(empty.begin(), empty.end());
         EXPECT_TRUE(empty.is_monomial());
+        EXPECT_TRUE(empty.real_factors());
         EXPECT_EQ(empty.first_id(), 0);
         EXPECT_EQ(empty.last_id(), 0);
     }
@@ -30,10 +31,24 @@ namespace Moment::Tests {
         EXPECT_FALSE(scalar.empty());
         ASSERT_EQ(scalar.size(), 1);
         EXPECT_TRUE(scalar.is_monomial());
+        EXPECT_TRUE(scalar.real_factors());
         EXPECT_EQ(*scalar.begin(), SymbolExpression(1, 2.5));
 
         EXPECT_EQ(scalar.first_id(), 1);
         EXPECT_EQ(scalar.last_id(), 1);
+
+    }
+    TEST(Symbolic_SymbolCombo, Create_ComplexScalar) {
+        SymbolCombo scalar = SymbolCombo::Scalar({2.5, 1.0});
+        EXPECT_FALSE(scalar.empty());
+        ASSERT_EQ(scalar.size(), 1);
+        EXPECT_TRUE(scalar.is_monomial());
+        EXPECT_FALSE(scalar.real_factors());
+        EXPECT_EQ(*scalar.begin(), SymbolExpression(1, {2.5, 1.0}));
+
+        EXPECT_EQ(scalar.first_id(), 1);
+        EXPECT_EQ(scalar.last_id(), 1);
+
     }
 
     TEST(Symbolic_SymbolCombo, Create_OneElem) {
@@ -41,6 +56,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(one_elem.empty());
         ASSERT_EQ(one_elem.size(), 1);
         EXPECT_TRUE(one_elem.is_monomial());
+        EXPECT_TRUE(one_elem.real_factors());
         EXPECT_EQ(*one_elem.begin(), SymbolExpression(13, -2.0));
 
         EXPECT_EQ(one_elem.first_id(), 13);
@@ -51,6 +67,8 @@ namespace Moment::Tests {
         SymbolCombo threeElems{SymbolExpression{2, 13.0}, SymbolExpression{10, 100.0}, SymbolExpression{5, -23.0}};
         ASSERT_FALSE(threeElems.empty());
         ASSERT_EQ(threeElems.size(), 3);
+        EXPECT_TRUE(threeElems.real_factors());
+
         auto iter = threeElems.begin();
         ASSERT_NE(iter, threeElems.end());
         EXPECT_EQ(&(*iter), &threeElems[0]);

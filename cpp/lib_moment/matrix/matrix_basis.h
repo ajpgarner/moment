@@ -19,7 +19,7 @@ namespace Moment {
     namespace errors {
         class bad_basis_error : public std::runtime_error {
         public:
-            bad_basis_error(const std::string& what) : std::runtime_error{what} { }
+            explicit bad_basis_error(const std::string& what) : std::runtime_error{what} { }
         };
     }
 
