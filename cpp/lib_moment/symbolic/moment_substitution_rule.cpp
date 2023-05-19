@@ -8,6 +8,7 @@
 #include "moment_substitution_rule.h"
 
 #include "symbol_table.h"
+#include "symbol_tools.h"
 
 #include "utilities/float_utils.h"
 
@@ -103,6 +104,60 @@ namespace Moment {
         return this->reduce_with_hint(factory, combo, hint, (matches == 2));
     }
 
+    SymbolCombo MomentSubstitutionRule::reduce(const SymbolComboFactory &factory, const SymbolExpression &expr) const {
+        // No match, no substitution.
+        if (expr.id != this->lhs) {
+            return SymbolCombo{rhs};
+        }
+
+        // Copy RHS, with appropriate transformations
+        SymbolCombo::storage_t output_sequence;
+        if (expr.conjugated) {
+            std::transform(this->rhs.begin(), this->rhs.end(), std::back_inserter(output_sequence),
+                           [&expr](SymbolExpression src) {
+                               src.conjugated = !src.conjugated;
+                               src.factor = expr.factor * std::conj(src.factor);
+                               return src;
+                           });
+        } else {
+            std::transform(this->rhs.begin(), this->rhs.end(), std::back_inserter(output_sequence),
+                           [&expr](SymbolExpression src) {
+                               src.factor *= expr.factor;
+                               return src;
+                           });
+        }
+        // Construct as combo
+        return factory(std::move(output_sequence));
+    }
+
+    SymbolExpression MomentSubstitutionRule::reduce_monomial(const SymbolTable& table,
+                                                             const SymbolExpression &expr) const {
+        // No match, pass through:
+        if (this->LHS() != expr.id) {
+            return expr;
+        }
+
+        if constexpr (debug_mode) {
+            if (!this->rhs.is_monomial()) {
+                throw std::logic_error{
+                        "MomentSubstitutionRule::reduce_monomial cannot be called on non-monomial rule."};
+            }
+        }
+
+        // Rule is -> 0
+        if (this->rhs.empty()) {
+            return SymbolExpression{0};
+        }
+
+        // Otherwise...
+        auto& monoElem = *(this->rhs.begin());
+        SymbolExpression output = (expr.conjugated ?
+            SymbolExpression{monoElem.id, expr.factor * std::conj(monoElem.factor), !monoElem.conjugated}
+            : SymbolExpression{monoElem.id, expr.factor * monoElem.factor, monoElem.conjugated});
+        SymbolTools{table}.make_canonical(output);
+        return output;
+    }
+
     SymbolCombo MomentSubstitutionRule::reduce_with_hint(const SymbolComboFactory& factory,
                                                          const SymbolCombo &combo,
                                                          SymbolCombo::storage_t::const_iterator inject_iter,
@@ -119,14 +174,20 @@ namespace Moment {
 
         // Copy RHS, with transformations
         const auto& matchExpr = *inject_iter;
-        std::transform(rhs.begin(), rhs.end(), std::back_inserter(output_sequence),
-                       [&matchExpr](SymbolExpression src) {
-            if (matchExpr.conjugated) {
+        if (matchExpr.conjugated) {
+            std::transform(rhs.begin(), rhs.end(), std::back_inserter(output_sequence),
+                           [&matchExpr](SymbolExpression src) {
                 src.conjugated = !src.conjugated;
-            }
-            src.factor *= matchExpr.factor;
-            return src;
-        });
+                src.factor = matchExpr.factor * std::conj(src.factor);
+                return src;
+            });
+        } else {
+            std::transform(rhs.begin(), rhs.end(), std::back_inserter(output_sequence),
+                           [&matchExpr](SymbolExpression src) {
+               src.factor *= matchExpr.factor;
+               return src;
+           });
+        }
 
         // Do we also have to transform complex conjugate?
         if (twice) {
@@ -137,7 +198,7 @@ namespace Moment {
             std::transform(rhs.begin(), rhs.end(), std::back_inserter(output_sequence),
                            [&matchExpr](SymbolExpression src) {
                                src.conjugated = !src.conjugated;
-                               src.factor *= matchExpr.factor;
+                               src.factor = matchExpr.factor * std::conj(src.factor);
                                return src;
                            });
         }

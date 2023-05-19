@@ -320,7 +320,7 @@ namespace Moment::Tests {
         };
 
 
-        MonomialMatrix matrix{ams.Symbols(), ams.Context(),
+        MonomialMatrix matrix{ams.Context(), ams.Symbols(),
                                 std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
 
         ASSERT_FALSE(matrix.real_coefficients());
@@ -349,7 +349,7 @@ namespace Moment::Tests {
         };
 
 
-        MonomialMatrix matrix{ams.Symbols(), ams.Context(),
+        MonomialMatrix matrix{ams.Context(), ams.Symbols(),
                                 std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
 
         ASSERT_FALSE(matrix.real_coefficients());
@@ -378,7 +378,7 @@ namespace Moment::Tests {
         };
 
 
-        MonomialMatrix matrix{ams.Symbols(), ams.Context(),
+        MonomialMatrix matrix{ams.Context(), ams.Symbols(),
                                 std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
 
         ASSERT_FALSE(matrix.real_coefficients());
@@ -407,7 +407,7 @@ namespace Moment::Tests {
         };
 
 
-        MonomialMatrix matrix{ams.Symbols(), ams.Context(),
+        MonomialMatrix matrix{ams.Context(), ams.Symbols(),
                                 std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
 
         ASSERT_FALSE(matrix.real_coefficients());

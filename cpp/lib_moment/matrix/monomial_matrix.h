@@ -61,7 +61,7 @@ namespace Moment {
         bool real_prefactors = true;
 
     public:
-        MonomialMatrix(SymbolTable& symbols, const Context& context,
+        MonomialMatrix(const Context& context, SymbolTable& symbols,
                        std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix,
                        bool is_hermitian);
 

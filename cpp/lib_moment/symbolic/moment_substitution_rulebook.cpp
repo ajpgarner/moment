@@ -10,11 +10,24 @@
 #include "full_combo_ordering.h"
 #include "symbol_table.h"
 
+#include "matrix/substituted_matrix.h"
+
+
 #include <algorithm>
 #include <stdexcept>
+#include <sstream>
 #include <ranges>
 
 namespace Moment {
+    namespace errors {
+        std::string not_monomial::make_err_msg(const std::string& exprStr, const std::string& resultStr) {
+            std::stringstream errSS;
+            errSS << "Could not reduce expression \"" << exprStr
+                  << "\" as result \"" << resultStr << "\" was not monomial.";
+            return errSS.str();
+        }
+    }
+
     MomentSubstitutionRulebook::MomentSubstitutionRulebook(const SymbolTable &symbolTable,
                                                            std::unique_ptr<SymbolComboFactory> factoryPtr)
         : symbols{symbolTable}, factory{std::move(factoryPtr)}  {
@@ -39,10 +52,31 @@ namespace Moment {
         }
     }
 
+    void MomentSubstitutionRulebook::add_raw_rule(SymbolCombo&& raw) {
+        // Cannot add rules after completion.
+        assert(this->rules.empty());
+
+        this->raw_rules.emplace_back(std::move(raw));
+    }
+
     bool MomentSubstitutionRulebook::inject(MomentSubstitutionRule &&msr) {
         const auto id = msr.LHS();
-        auto [iter, added] = this->rules.insert(std::make_pair(id, std::move(msr)));
+        assert (id < this->symbols.size());
 
+        // If non-monomial rule is directly injected, rulebook becomes non-monomial.
+        if (!msr.RHS().is_monomial()) {
+            this->monomial_rules = false;
+        }
+
+        // If rule maps Hermitian symbol to non-Hermitian combo, rulebook becomes non-Hermitian.
+        if (this->symbols[msr.LHS()].is_hermitian()) {
+            if (!msr.RHS().is_hermitian(this->symbols)) {
+                this->hermitian_rules = false;
+            }
+        }
+
+        // Do add
+        auto [iter, added] = this->rules.insert(std::make_pair(id, std::move(msr)));
         return added;
     }
 
@@ -111,6 +145,21 @@ namespace Moment {
         // Clear raw-rules
         this->raw_rules.clear();
 
+        // Check if completed rule-set is strictly monomial
+        this->monomial_rules = std::all_of(this->rules.cbegin(), this->rules.cend(), [](const auto& pair) {
+            return pair.second.RHS().is_monomial();
+        });
+
+
+        // Check if completed rule-set is strictly Hermitian
+        this->hermitian_rules = std::all_of(this->rules.cbegin(), this->rules.cend(), [&](const auto& pair) {
+            if (this->symbols[pair.first].is_hermitian()) {
+                return pair.second.RHS().is_hermitian(this->symbols);
+            }
+            // Rules on non-Hermitian variables can do as they please.
+            return true;
+        });
+
         // Rules are now complete
         return rules_added;
     }
@@ -146,7 +195,48 @@ namespace Moment {
         return output;
     }
 
+    SymbolExpression MomentSubstitutionRulebook::reduce_monomial(SymbolExpression expr) const {
+        auto rule_iter = this->rules.find(expr.id);
+        // No match, pass through:
+        if (rule_iter == this->rules.cend()) {
+            return expr;
+        }
+        // Otherwise, verify rule results in monomial
+        const auto& rule = rule_iter->second;
+        if (!rule.RHS().is_monomial()) {
+            auto wrong_answer = rule.reduce(*this->factory, expr);
+            throw errors::not_monomial{expr.as_string(), wrong_answer.as_string()};
+        }
 
+        return rule.reduce_monomial(this->symbols, expr);
+    }
+
+    SymbolCombo MomentSubstitutionRulebook::reduce(SymbolExpression expr) const {
+        auto rule_iter = this->rules.find(expr.id);
+        // No match, pass through (promote to combo)
+        if (rule_iter == this->rules.cend()) {
+            return SymbolCombo{expr};
+        }
+
+        // Otherwise, make substitution
+        return rule_iter->second.reduce(*this->factory, expr);
+    }
+
+    std::unique_ptr<Matrix> MomentSubstitutionRulebook::reduce(SymbolTable& wSymbols, const Matrix &matrix) const {
+        assert(&matrix.Symbols == &wSymbols);
+
+        if (matrix.is_polynomial()) {
+            const auto& polyMatrix = dynamic_cast<const PolynomialMatrix&>(matrix);
+            return std::make_unique<PolynomialSubstitutedMatrix>(wSymbols, *this, polyMatrix);
+        } else {
+            const auto& monomialMatrix = dynamic_cast<const MonomialMatrix&>(matrix);
+            if (this->is_monomial()) {
+                return std::make_unique<MonomialSubstitutedMatrix>(wSymbols, *this, monomialMatrix);
+            } else {
+                return std::make_unique<PolynomialSubstitutedMatrix>(wSymbols, *this, monomialMatrix);
+            }
+        }
+    }
 
     bool MomentSubstitutionRulebook::collides(const MomentSubstitutionRule &msr) const noexcept {
         auto find_iter = std::find_if(this->rules.begin(), this->rules.cend(),

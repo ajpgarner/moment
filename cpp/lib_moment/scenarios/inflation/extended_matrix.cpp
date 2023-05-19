@@ -142,7 +142,7 @@ namespace Moment::Inflation {
     ExtendedMatrix::ExtendedMatrix(SymbolTable& symbols, Inflation::FactorTable& factors,
                                    const MonomialMatrix &source,
                                    const std::span<const symbol_name_t> extensions)
-        : MonomialMatrix{symbols, source.context,
+        : MonomialMatrix{source.context, symbols,
                          make_extended_matrix(symbols, factors, source, extensions),
                          source.is_hermitian()},
           OriginalDimension{source.Dimension()} {

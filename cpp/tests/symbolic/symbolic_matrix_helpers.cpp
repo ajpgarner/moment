@@ -6,6 +6,7 @@
  */
 #include "symbolic_matrix_helpers.h"
 
+#include "matrix/polynomial_matrix.h"
 #include "symbolic/symbol_table.h"
 
 #include "gtest/gtest.h"
@@ -23,6 +24,46 @@ namespace Moment::Tests {
             throw std::logic_error{ss.str()};
         }
         return find_ptr->Id();
+    }
+
+    void compare_symbol_matrices(const Matrix &test, const Matrix &reference) {
+        ASSERT_EQ(test.is_monomial(), reference.is_monomial());
+
+        if (reference.is_monomial()) {
+            compare_symbol_matrices(dynamic_cast<const MonomialMatrix&>(test),
+                                    dynamic_cast<const MonomialMatrix&>(reference));
+        } else {
+            compare_symbol_matrices(dynamic_cast<const PolynomialMatrix&>(test),
+                                    dynamic_cast<const PolynomialMatrix&>(reference));
+        }
+    }
+
+    void compare_symbol_matrices(const MonomialMatrix &test, const MonomialMatrix &reference) {
+        ASSERT_EQ(test.Dimension(), reference.Dimension());
+        EXPECT_EQ(test.real_coefficients(), reference.real_coefficients());
+        EXPECT_EQ(test.is_hermitian(), reference.is_hermitian());
+
+        for (size_t rIdx = 0; rIdx < reference.Dimension(); ++rIdx) {
+            for (size_t cIdx = 0; cIdx < reference.Dimension(); ++cIdx) {
+                const auto& test_elem = test.SymbolMatrix[rIdx][cIdx];
+                const auto& ref_elem = reference.SymbolMatrix[rIdx][cIdx];
+                EXPECT_EQ(test_elem, ref_elem) << "row = " << rIdx << ", col = " << cIdx;
+            }
+        }
+    }
+
+    void compare_symbol_matrices(const PolynomialMatrix &test, const PolynomialMatrix &reference) {
+        ASSERT_EQ(test.Dimension(), reference.Dimension());
+        EXPECT_EQ(test.real_coefficients(), reference.real_coefficients());
+        EXPECT_EQ(test.is_hermitian(), reference.is_hermitian());
+
+        for (size_t rIdx = 0; rIdx < reference.Dimension(); ++rIdx) {
+            for (size_t cIdx = 0; cIdx < reference.Dimension(); ++cIdx) {
+                const auto& test_elem = test.SymbolMatrix[rIdx][cIdx];
+                const auto& ref_elem = reference.SymbolMatrix[rIdx][cIdx];
+                EXPECT_EQ(test_elem, ref_elem) << "row = " << rIdx << ", col = " << cIdx;
+            }
+        }
     }
 
     void compare_symbol_matrices(const Matrix& test,

@@ -30,7 +30,7 @@ namespace Moment::Derived {
             // Monomial map on monomial matrix creates monomial matrix
             if (map.is_monomial_map() && source_matrix.is_monomial()) {
                 auto mono_sym_mat_ptr = map.monomial(dynamic_cast<const MonomialMatrix &>(source_matrix).SymbolMatrix());
-                return std::make_unique<MonomialMatrix>(symbols, context,
+                return std::make_unique<MonomialMatrix>(context, symbols,
                                                         std::move(mono_sym_mat_ptr), source_matrix.is_hermitian());
             }
 

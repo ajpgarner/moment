@@ -13,7 +13,24 @@
 #include <vector>
 
 namespace Moment {
+    class Matrix;
     class SymbolTable;
+
+    namespace errors {
+        /** Exception thrown when monomial reduction is attempted when rule-set is not monomial state */
+        class not_monomial : public std::logic_error {
+        public:
+            std::string expr;
+            std::string result;
+
+            explicit not_monomial(const std::string& exprStr, const std::string& resultStr)
+                : std::logic_error(make_err_msg(exprStr, resultStr)), expr{exprStr}, result{resultStr} { }
+
+        private:
+            static std::string make_err_msg(const std::string& exprStr, const std::string& resultStr);
+        };
+
+    }
 
     class MomentSubstitutionRulebook {
     public:
@@ -26,19 +43,41 @@ namespace Moment {
 
         std::unique_ptr<SymbolComboFactory> factory;
 
+        bool monomial_rules = true;
+
+        bool hermitian_rules = true;
+
     public:
         explicit MomentSubstitutionRulebook(const SymbolTable& table)
             : MomentSubstitutionRulebook(table, std::make_unique<SymbolComboFactory>(table)) { }
 
         explicit MomentSubstitutionRulebook(const SymbolTable& table, std::unique_ptr<SymbolComboFactory> factory);
 
+        /**
+         * Add substitution rules in the form of polynomials equal to zero.
+         * Completion is deferred until complete() is called.
+         */
         void add_raw_rules(std::vector<SymbolCombo>&& raw);
+
+        /**
+         * Add substitution rule in the form of polynomial equal to zero.
+         * Completion is deferred until complete() is called.
+         */
+        void add_raw_rule(SymbolCombo&& raw);
 
         /**
          * Try to add an oriented rule directly.
          * @returns True if rule added, false if collision.
          */
         bool inject(MomentSubstitutionRule&& msr);
+
+        /**
+         * Construct an an oriented rule and add it
+         */
+        template<typename... Args>
+        bool inject(Args&&... args) {
+            return this->inject(MomentSubstitutionRule(std::forward<Args>(args)...));
+        }
 
         /**
          * Process raw-rules into completed rule-set.
@@ -59,9 +98,43 @@ namespace Moment {
                 std::map<symbol_name_t, MomentSubstitutionRule>::const_reverse_iterator rule_hint,
                 SymbolCombo combo) const;
 
+        /**
+         * Apply all known rules to SymbolCombo.
+         */
         [[nodiscard]] SymbolCombo reduce(SymbolCombo combo) const {
             return this->reduce_with_rule_hint(this->rules.crbegin(), std::move(combo));
         }
+
+        /**
+         * Apply all known rules to SymbolExpression.
+         */
+        [[nodiscard]] SymbolCombo reduce(SymbolExpression expr) const;
+
+        /**
+         * Apply all known rules to SymbolExpression.
+         * @throws
+         */
+        [[nodiscard]] SymbolExpression reduce_monomial(SymbolExpression expr) const;
+
+        /**
+         * Apply reduction to every element of matrix
+         * @param symbols Write-access to symbol table.
+         * @param matrix
+         * @return Newly created matrix, either of type MonomialSubstitutionMatrix or PolynomialSubstitutionMatrix.
+         */
+        [[nodiscard]] std::unique_ptr<Matrix> reduce(SymbolTable& symbols, const Matrix& matrix) const;
+
+        /**
+         * True if rulebook is guaranteed to produce a monomial matrix if it acts on a monomial matrix.
+         * False if there exists a rule that will turn monomial matrices into polynomial matrices.
+         */
+        [[nodiscard]] bool is_monomial() const noexcept { return this->monomial_rules; }
+
+        /**
+         * True if rulebook is guaranteed to transform Hermitian matrices into Hermitian matrices.
+         * False if there exists a rule that transforms Hermitian symbols into a non-Hermitian SymbolCombo.
+         */
+        [[nodiscard]] bool is_hermitian() const noexcept { return this->hermitian_rules; }
 
         /**
          * True if supplied rule matches key already in rulebook.

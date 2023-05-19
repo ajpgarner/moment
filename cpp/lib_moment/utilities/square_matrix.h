@@ -108,15 +108,19 @@ namespace Moment {
 
         };
 
+        /** Type alias for matrix data array. */
+        using StorageType = storage_t;
 
     public:
         /** The number of columns/rows in the square matrix. */
         const size_t dimension;
 
     private:
+        /** Matrix data */
         storage_t data;
 
     public:
+        /** Iterate over the matrix in a column-major manner. */
         ColumnMajorView ColumnMajor;
 
     public:

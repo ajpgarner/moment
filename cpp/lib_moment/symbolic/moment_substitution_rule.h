@@ -18,8 +18,8 @@ namespace Moment {
             const symbol_name_t lhs_id;
 
         public:
-            invalid_moment_rule(const symbol_name_t sym_id, const std::string& what)
-                : std::invalid_argument(what), lhs_id{sym_id} { }
+            invalid_moment_rule(const symbol_name_t sym_id, const std::string &what)
+                    : std::invalid_argument(what), lhs_id{sym_id} {}
         };
     };
 
@@ -68,6 +68,18 @@ namespace Moment {
          * Act with rule on combo to make new combo.
          */
         [[nodiscard]] SymbolCombo reduce(const SymbolComboFactory& factory, const SymbolCombo& rhs) const;
+
+
+        /**
+         * Act with rule on symbol expression to make combo.
+         */
+        [[nodiscard]] SymbolCombo reduce(const SymbolComboFactory& factory, const SymbolExpression& rhs) const;
+
+        /**
+         * Try to act with rule on symbol expression to make monomial
+         */
+        [[nodiscard]] SymbolExpression reduce_monomial(const SymbolTable& table,
+                                                       const SymbolExpression& rhs) const;
 
         /**
          * Act with rule on combo to make new combo, using binding hint.

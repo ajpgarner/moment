@@ -71,6 +71,7 @@ add_library(lib_moment
         symbolic/symbol_combo_to_basis.cpp
         symbolic/symbol_expression.cpp
         symbolic/symbol_table.cpp
+        symbolic/symbol_tools.cpp
         utilities/alphabetic_namer.cpp
         utilities/utf_conversion.cpp
         utilities/kronecker_power.cpp

@@ -154,13 +154,6 @@ namespace Moment {
          */
         const static size_t max_strlen = 32;
 
-//        /**
-//         * Gets the symbol expression as a signed integer. This ignores conjugation, and factors!
-//         */
-//        [[nodiscard]] constexpr std::make_signed_t<symbol_name_t> as_integer() const noexcept {
-//            return static_cast<std::make_signed_t<symbol_name_t>>(this->id) * ((this->factor < 0) ? -1 : 1);
-//        }
-
         /**
          * True if the symbol has a complex factor.
          */

@@ -199,7 +199,7 @@ namespace Moment {
         };
     }
 
-    MonomialMatrix::MonomialMatrix(SymbolTable& symbols, const Context& context,
+    MonomialMatrix::MonomialMatrix(const Context& context, SymbolTable& symbols,
                                    std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix,
                                    const bool is_hermitian)
         : Matrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0},
@@ -226,7 +226,7 @@ namespace Moment {
     }
 
     MonomialMatrix::MonomialMatrix(SymbolTable &symbols, std::unique_ptr<OperatorMatrix> op_mat_ptr)
-        : MonomialMatrix{symbols, op_mat_ptr->context,
+        : MonomialMatrix{op_mat_ptr->context, symbols,
                          OpSeqToSymbolConverter{op_mat_ptr->context, symbols, (*op_mat_ptr)()}(),
                          op_mat_ptr->is_hermitian()} {
         this->op_mat = std::move(op_mat_ptr);

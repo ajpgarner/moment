@@ -51,6 +51,10 @@ namespace Moment {
 
     public:
         friend class MatrixBasis;
+
+        /**
+         * Numeric basis for this matrix, in terms of real and imaginary parts of symbols.
+         */
         MatrixBasis Basis;
 
 
