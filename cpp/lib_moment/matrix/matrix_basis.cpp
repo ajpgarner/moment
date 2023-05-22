@@ -190,25 +190,25 @@ namespace Moment {
     }
 
     template<>
-    inline DenseBasisInfo::MakeStorageType
+    DenseBasisInfo::MakeStorageType
     MatrixBasis::MatrixBasisImpl<DenseBasisInfo>::create_basis() const {
         return this->basis.create_dense();
     }
 
     template<>
-    inline DenseComplexBasisInfo::MakeStorageType
+    DenseComplexBasisInfo::MakeStorageType
     MatrixBasis::MatrixBasisImpl<DenseComplexBasisInfo>::create_basis() const {
         return this->basis.create_dense_complex();
     }
 
     template<>
-    inline SparseBasisInfo::MakeStorageType
+    SparseBasisInfo::MakeStorageType
     MatrixBasis::MatrixBasisImpl<SparseBasisInfo>::create_basis() const {
         return this->basis.create_sparse();
     }
 
     template<>
-    inline SparseComplexBasisInfo::MakeStorageType
+    SparseComplexBasisInfo::MakeStorageType
     MatrixBasis::MatrixBasisImpl<SparseComplexBasisInfo>::create_basis() const {
         return this->basis.create_sparse_complex();
     }
