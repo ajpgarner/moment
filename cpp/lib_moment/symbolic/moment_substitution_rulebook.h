@@ -187,6 +187,11 @@ namespace Moment {
         [[nodiscard]] auto end() const noexcept { return this->rules.cend(); }
 
         /**
+         * True if there are pending rules to complete
+         */
+        [[nodiscard]] bool pending_rules() const noexcept { return !this->raw_rules.empty(); }
+
+        /**
          * Return reference to associated SymbolComboFactory.
          */
         [[nodiscard]] const SymbolComboFactory& Factory() const noexcept { return *this->factory; }

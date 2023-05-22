@@ -44,6 +44,7 @@ add_executable(moment_tests
     symbolic/full_combo_ordering_tests.cpp
     symbolic/moment_substitution_rule_tests.cpp
     symbolic/moment_substitution_rulebook_tests.cpp
+    symbolic/moment_substitution_rulebook_factor_tests.cpp
     symbolic/order_symbols_by_hash_tests.cpp
     symbolic/substitution_list_tests.cpp
     symbolic/symbol_combo_tests.cpp

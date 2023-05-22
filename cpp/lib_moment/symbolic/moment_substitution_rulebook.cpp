@@ -43,9 +43,6 @@ namespace Moment {
     }
 
     void MomentSubstitutionRulebook::add_raw_rules(std::vector<SymbolCombo> &&raw) {
-        // Cannot add rules after completion.
-        assert(this->rules.empty());
-
         // Move in rules
         if (this->raw_rules.empty()) {
             this->raw_rules = std::move(raw);
@@ -56,8 +53,6 @@ namespace Moment {
     }
 
     void MomentSubstitutionRulebook::add_raw_rules(const MomentSubstitutionRulebook::raw_map_t& raw) {
-        assert(this->rules.empty());
-
         this->raw_rules.reserve(this->raw_rules.size() + raw.size());
         for (auto [id, value] : raw) {
             if (approximately_zero(value)) {
@@ -70,9 +65,6 @@ namespace Moment {
 
 
     void MomentSubstitutionRulebook::add_raw_rule(SymbolCombo&& raw) {
-        // Cannot add rules after completion.
-        assert(this->rules.empty());
-
         this->raw_rules.emplace_back(std::move(raw));
     }
 
@@ -98,15 +90,13 @@ namespace Moment {
     }
 
     size_t MomentSubstitutionRulebook::complete() {
-        // Rules already complete:
-        if (!this->rules.empty()) {
-            return 0;
-        }
-
         // Nothing to do, thus, already complete
         if (this->raw_rules.empty()) {
             return 0;
         }
+
+        // Rules already complete?
+        const bool existing_rules = !this->rules.empty();
 
         // First, sort raw rules by lowest leading monomial, tie-breaking with shorter strings first.
         std::sort(this->raw_rules.begin(), this->raw_rules.end(), FullComboOrdering(*this->factory));
@@ -125,22 +115,22 @@ namespace Moment {
             if (msr.is_trivial()) {
                 continue;
             }
+            ++rules_added;
 
             const symbol_name_t reduced_rule_id = msr.LHS();
 
-            // Can we add directly?
+            // Can we add directly to end?
             if (this->rules.empty() || (this->rules.crbegin()->first < reduced_rule_id)) {
                 // Otherwise, just directly add rule at end
                 this->rules.emplace_hint(this->rules.end(),
                                          std::make_pair(reduced_rule_id, std::move(msr)));
-                ++rules_added;
                 continue;
             }
 
             // Otherwise, rule had a collision.
             // We must insert its reduced form out of order, and then re-reduce all subsequent rules.
             auto [update_iter, was_new] = this->rules.emplace(std::make_pair(reduced_rule_id, std::move(msr)));
-            assert(was_new);
+            assert(was_new); // Cannot directly collide, due to reduction.
             ++update_iter;
             while (update_iter != this->rules.end()) {
                 auto& prior_rule = *update_iter;
@@ -182,82 +172,70 @@ namespace Moment {
     }
 
     size_t MomentSubstitutionRulebook::infer_additional_rules_from_factors(const MatrixSystem &ms) {
+        // If no rules, no additional rules
+        if (this->rules.empty()) {
+            return 0;
+        }
+
+        // Only handle inflation MS here.
         const auto* imsPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&ms);
         if (imsPtr == nullptr) {
             return 0;
         }
+        const Inflation::InflationMatrixSystem& inflation_system = *imsPtr;
+        const auto& factors = inflation_system.Factors();
 
-        throw std::runtime_error{" MomentSubstitutionRulebook::infer_additional_rules_from_factors not implemented"};
+        std::vector<SymbolCombo> new_rules;
 
+        // Go through factorized symbols...
+        for (const auto& symbol : factors) {
+            // Skip if not factorized (basic substitutions should be already handled)
+            if (symbol.fundamental() || symbol.canonical.symbols.empty()) {
+                continue;
+            }
 
-//
-//        // Get MS and factor table
-//        const Inflation::InflationMatrixSystem& inflation_system = *imsPtr;
-//        const auto& factors = inflation_system.Factors();
-//
-//        // Go through factorized symbols...
-//        for (const auto& factor : factors) {
-//            // Skip if not factorized (basic substitutions should be already handled)
-//            if (factor.fundamental()) {
-//                continue;
-//            }
-//
-//            // Bitmap, true if factor is matched.
-//            DynamicBitset<uint64_t> matched{factor.canonical.symbols.size()};
-//
-//
-//
-//
-//            size_t check_index = 0;
-//            double new_weight = 1.0;
-//            for (auto symbol : factor.canonical.symbols) {
-//                auto raw_sub_iter = raw_sub_data.find(symbol);
-//                if (raw_sub_iter != raw_sub_data.end()) {
-//                    matched.set(check_index);
-//                    new_weight *= raw_sub_iter->second;
-//                }
-//                ++check_index;
-//            }
-//
-//            // No matches, leave alone
-//            if (matched.empty()) {
-//                continue;
-//            }
-//
-//            // All matches, replace by scalar
-//            if (matched.count() == factor.canonical.symbols.size()) {
-//                this->sub_data.insert(std::make_pair(factor.id,
-//                                                     SymbolExpression{new_weight != 0.0 ? 1 : 0, new_weight}));
-//                continue;
-//            }
-//
-//            // Weight is zero, replace by scalar zero
-//            if (new_weight == 0) {
-//                this->sub_data.insert(std::make_pair(factor.id, SymbolExpression{0, 0.0}));
-//                continue;
-//            }
-//
-//            // Otherwise, we create a new factor sequence...
-//            std::vector<symbol_name_t> new_factor_sequence;
-//            new_factor_sequence.reserve(factor.canonical.symbols.size() - matched.count());
-//            for (size_t rewrite_index = 0, index_max = factor.canonical.symbols.size();
-//                 rewrite_index < index_max; ++rewrite_index) {
-//                if (!matched.test(rewrite_index)) {
-//                    new_factor_sequence.push_back(factor.canonical.symbols[rewrite_index]);
-//                }
-//            }
-//
-//            // Look up remaining unfactorized components
-//            auto maybe_index = factors.find_index_by_factors(new_factor_sequence);
-//            if (!maybe_index.has_value()) {
-//                throw std::logic_error{"Could not find symbol associated with partially substituted factor."};
-//            }
-//            symbol_name_t new_index = maybe_index.value();
-//
-//            // Add a substitution rule for this
-//            this->sub_data.insert(std::make_pair(factor.id, SymbolExpression{new_index, new_weight}));
-//        }
+            const size_t symbol_length = symbol.canonical.symbols.size();
+            assert (symbol_length >= 2);
 
+            // Match rules against factors
+            std::vector<decltype(this->rules.cbegin())> match_iterators;
+            std::transform(symbol.canonical.symbols.begin(), symbol.canonical.symbols.end(),
+                           std::back_inserter(match_iterators),
+                           [&](symbol_name_t factor_id) {
+                return this->rules.find(factor_id);
+            });
+            assert(match_iterators.size() == symbol_length);
+
+            // If no rules match, go to next factor
+            if (std::none_of(match_iterators.begin(), match_iterators.end(),
+                             [&](const auto& iter) { return iter != this->rules.cend();})) {
+                continue;
+            }
+
+            // Multiply together all substitutions
+            auto get_as_poly = [&](size_t index) {
+                if (match_iterators[index] != this->rules.cend()) {
+                    return match_iterators[index]->second.RHS();
+                } else {
+                    return SymbolCombo{SymbolExpression{symbol.canonical.symbols[index], 1.0, false}};
+                }
+            };
+            SymbolCombo product = get_as_poly(0);
+            for (size_t idx=1; idx < symbol_length; ++idx) {
+                if (product.empty()) {
+                    break;
+                }
+                product = factors.try_multiply(*this->factory, product, get_as_poly(idx));
+            }
+
+            this->factory->append(product, {SymbolExpression{symbol.id, -1.0, false}});
+
+            new_rules.emplace_back(std::move(product));
+        }
+
+        // Handle polynomials
+        this->add_raw_rules(std::move(new_rules));
+        return this->complete();
     }
 
     std::map<symbol_name_t, MomentSubstitutionRule>::const_reverse_iterator

@@ -527,4 +527,28 @@ namespace Moment::Tests {
         EXPECT_TRUE(combo.is_conjugate(symbols, cc_combo));
         EXPECT_TRUE(cc_combo.is_conjugate(symbols, combo));
     }
+
+    TEST(Symbolic_SymbolCombo, Append_APlusB) {
+        SymbolCombo lhs = SymbolCombo{SymbolExpression{2, 1.0}};
+        const SymbolCombo rhs{SymbolExpression{3, 1.0}};
+
+        lhs.append(rhs);
+        EXPECT_EQ(lhs, SymbolCombo({SymbolExpression{2, 1.0}, SymbolExpression{3, 1.0}}));
+    }
+
+    TEST(Symbolic_SymbolCombo, Append_ZeroPlusA) {
+        SymbolCombo lhs = SymbolCombo::Zero();
+        const SymbolCombo rhs{SymbolExpression{2, 1.0}};
+
+        lhs.append(rhs);
+        EXPECT_EQ(lhs, SymbolCombo(SymbolExpression{2, 1.0}));
+    }
+
+    TEST(Symbolic_SymbolCombo, Append_APlusZero) {
+        SymbolCombo lhs{SymbolExpression{2, 1.0}};
+        const SymbolCombo rhs = SymbolCombo::Zero();
+
+        lhs.append(rhs);
+        EXPECT_EQ(lhs, SymbolCombo(SymbolExpression{2, 1.0}));
+    }
 }

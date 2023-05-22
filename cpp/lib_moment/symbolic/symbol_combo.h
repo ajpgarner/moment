@@ -214,7 +214,7 @@ namespace Moment {
             // LHS is empty, copy RHS
             if (lhsIter == lhsEnd) {
                 lhs.data.reserve(rhs.size());
-                std::copy(rhs.data.cbegin(), rhs.data.cend(), lhs.data.begin());
+                std::copy(rhs.data.cbegin(), rhs.data.cend(), std::back_inserter(lhs.data));
                 return *this;
             }
 
