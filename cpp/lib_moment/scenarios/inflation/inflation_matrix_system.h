@@ -126,6 +126,8 @@ namespace Moment::Inflation {
 
         void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const class Matrix &lm) override;
 
+        void onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator &osg) override;
+
     };
 
 }

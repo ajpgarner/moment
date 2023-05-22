@@ -12,6 +12,9 @@
 
 #include "matrix/substituted_matrix.h"
 
+#include "scenarios/inflation/inflation_matrix_system.h"
+#include "scenarios/inflation/factor_table.h"
+
 
 #include <algorithm>
 #include <stdexcept>
@@ -51,6 +54,20 @@ namespace Moment {
             std::move(raw.begin(), raw.end(), std::back_inserter(this->raw_rules));
         }
     }
+
+    void MomentSubstitutionRulebook::add_raw_rules(const MomentSubstitutionRulebook::raw_map_t& raw) {
+        assert(this->rules.empty());
+
+        this->raw_rules.reserve(this->raw_rules.size() + raw.size());
+        for (auto [id, value] : raw) {
+            if (approximately_zero(value)) {
+                this->raw_rules.emplace_back(SymbolExpression{id});
+            } else {
+                this->raw_rules.emplace_back(SymbolCombo{SymbolExpression{id, 1.0}, SymbolExpression{1, -value}});
+            }
+        }
+    }
+
 
     void MomentSubstitutionRulebook::add_raw_rule(SymbolCombo&& raw) {
         // Cannot add rules after completion.
@@ -162,6 +179,85 @@ namespace Moment {
 
         // Rules are now complete
         return rules_added;
+    }
+
+    size_t MomentSubstitutionRulebook::infer_additional_rules_from_factors(const MatrixSystem &ms) {
+        const auto* imsPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&ms);
+        if (imsPtr == nullptr) {
+            return 0;
+        }
+
+        throw std::runtime_error{" MomentSubstitutionRulebook::infer_additional_rules_from_factors not implemented"};
+
+
+//
+//        // Get MS and factor table
+//        const Inflation::InflationMatrixSystem& inflation_system = *imsPtr;
+//        const auto& factors = inflation_system.Factors();
+//
+//        // Go through factorized symbols...
+//        for (const auto& factor : factors) {
+//            // Skip if not factorized (basic substitutions should be already handled)
+//            if (factor.fundamental()) {
+//                continue;
+//            }
+//
+//            // Bitmap, true if factor is matched.
+//            DynamicBitset<uint64_t> matched{factor.canonical.symbols.size()};
+//
+//
+//
+//
+//            size_t check_index = 0;
+//            double new_weight = 1.0;
+//            for (auto symbol : factor.canonical.symbols) {
+//                auto raw_sub_iter = raw_sub_data.find(symbol);
+//                if (raw_sub_iter != raw_sub_data.end()) {
+//                    matched.set(check_index);
+//                    new_weight *= raw_sub_iter->second;
+//                }
+//                ++check_index;
+//            }
+//
+//            // No matches, leave alone
+//            if (matched.empty()) {
+//                continue;
+//            }
+//
+//            // All matches, replace by scalar
+//            if (matched.count() == factor.canonical.symbols.size()) {
+//                this->sub_data.insert(std::make_pair(factor.id,
+//                                                     SymbolExpression{new_weight != 0.0 ? 1 : 0, new_weight}));
+//                continue;
+//            }
+//
+//            // Weight is zero, replace by scalar zero
+//            if (new_weight == 0) {
+//                this->sub_data.insert(std::make_pair(factor.id, SymbolExpression{0, 0.0}));
+//                continue;
+//            }
+//
+//            // Otherwise, we create a new factor sequence...
+//            std::vector<symbol_name_t> new_factor_sequence;
+//            new_factor_sequence.reserve(factor.canonical.symbols.size() - matched.count());
+//            for (size_t rewrite_index = 0, index_max = factor.canonical.symbols.size();
+//                 rewrite_index < index_max; ++rewrite_index) {
+//                if (!matched.test(rewrite_index)) {
+//                    new_factor_sequence.push_back(factor.canonical.symbols[rewrite_index]);
+//                }
+//            }
+//
+//            // Look up remaining unfactorized components
+//            auto maybe_index = factors.find_index_by_factors(new_factor_sequence);
+//            if (!maybe_index.has_value()) {
+//                throw std::logic_error{"Could not find symbol associated with partially substituted factor."};
+//            }
+//            symbol_name_t new_index = maybe_index.value();
+//
+//            // Add a substitution rule for this
+//            this->sub_data.insert(std::make_pair(factor.id, SymbolExpression{new_index, new_weight}));
+//        }
+
     }
 
     std::map<symbol_name_t, MomentSubstitutionRule>::const_reverse_iterator

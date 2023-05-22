@@ -14,7 +14,23 @@
 #include <algorithm>
 #include <sstream>
 
+
+
 namespace Moment::Inflation {
+    namespace errors {
+        namespace {
+            std::string make_us_err_msg(const std::string& bad_str) {
+                std::stringstream errSS;
+                errSS << "No symbol found in table for factored expression \"" << bad_str << "\"";
+                return errSS.str();
+            }
+        }
+
+        unknown_symbol::unknown_symbol(const std::string &bad_str)
+                : range_error(make_us_err_msg(bad_str)), unknown{bad_str} {
+
+        }
+    }
 
     std::string FactorTable::FactorEntry::sequence_string() const {
 
@@ -141,6 +157,114 @@ namespace Moment::Inflation {
 
     }
 
+    symbol_name_t FactorTable::try_multiply(symbol_name_t lhs, symbol_name_t rhs) const {
+        // Do not multiply nonsense symbols
+        assert((lhs >= 0) && (lhs < this->symbols.size()));
+        assert((rhs >= 0) && (rhs < this->symbols.size()));
+
+        // Anything times 0 is 0
+        if ((lhs == 0) || (rhs == 0)) {
+            return 0;
+        }
+        // Anything times 1 is itself
+        if (lhs == 1) {
+            return rhs;
+        }
+        // Anything times 1 is itself
+        if (rhs == 1) {
+            return lhs;
+        }
+
+        // Remaining possibilities are non-trivial: see if we can find matching factor.
+        std::array<symbol_name_t, 2> idx{lhs < rhs ? lhs : rhs, lhs < rhs ? rhs : lhs};
+        auto factor_entry = this->find_index_by_factors(idx);
+        if (!factor_entry.has_value() || (factor_entry.value() >= this->entries.size())) {
+            std::stringstream badSymSS;
+            badSymSS << "<" << this->symbols[lhs].formatted_sequence()
+                     << "><" << this->symbols[rhs].formatted_sequence() << ">";
+            throw errors::unknown_symbol{badSymSS.str()};
+        }
+        return this->entries[factor_entry.value()].id;
+    }
+
+
+    symbol_name_t FactorTable::try_multiply(std::vector<symbol_name_t> multiplicands) const {
+        // If zero or one entries, early exit
+        if (multiplicands.empty()) {
+            return 0;
+        }
+        if (1 == multiplicands.size()) {
+            return multiplicands[0];
+        }
+
+        // If a zero is in list, factor is zero.
+        if (std::any_of(multiplicands.begin(), multiplicands.end(), [](auto x){ return x == 0;})) {
+            return 0;
+        }
+
+        // Remove any 1s
+        auto erase_iter = std::remove(multiplicands.begin(), multiplicands.end(), 1);
+        if (erase_iter != multiplicands.end()) {
+            multiplicands.erase(erase_iter, multiplicands.end());
+
+            // If zero or one entries, early exit again
+            if (multiplicands.empty()) {
+                return 1;
+            }
+            if (multiplicands.size() == 1) {
+                return multiplicands[0];
+            }
+        }
+
+        // Any non-fundamental variables?
+        const bool any_non_fundamental = std::any_of(multiplicands.begin(), multiplicands.end(),
+            [this](auto x) {
+                assert(x < this->entries.size());
+                return !this->entries[x].fundamental();
+        });
+
+        // Make fundamental, if necessary
+        if (any_non_fundamental) {
+            std::vector<symbol_name_t> fundamental;
+            for (auto symbol_id: multiplicands) {
+                assert (symbol_id < this->symbols.size());
+                const auto &factor_entry = this->entries[symbol_id];
+                if (factor_entry.fundamental()) {
+                    fundamental.emplace_back(symbol_id);
+                } else {
+                    std::copy(factor_entry.canonical.symbols.begin(), factor_entry.canonical.symbols.end(),
+                              std::back_inserter(fundamental));
+                }
+            }
+            std::swap(multiplicands, fundamental);
+        }
+
+        // Sort remainder
+        std::sort(multiplicands.begin(), multiplicands.end());
+
+        // Query as canonical container
+        return try_multiply_canonical(multiplicands);
+
+    }
+
+    symbol_name_t FactorTable::try_multiply_canonical(std::span<const symbol_name_t> multiplicands) const {
+
+        assert(std::all_of(multiplicands.begin(), multiplicands.end(), [this](auto x) {
+            return ((x >= 0)) && (x < this->symbols.size());
+        }));
+
+        // General case:
+        auto factor_entry = this->find_index_by_factors(multiplicands);
+        if (!factor_entry.has_value() || (factor_entry.value() >= this->entries.size())) {
+            std::stringstream badSymSS;
+            for (auto sym : multiplicands) {
+                badSymSS << "<" << this->symbols[sym].formatted_sequence() << ">";
+            }
+            throw errors::unknown_symbol{badSymSS.str()};
+        }
+        return this->entries[factor_entry.value()].id;
+    }
+
     std::vector<symbol_name_t> FactorTable::combine_symbolic_factors(std::vector<symbol_name_t> left,
                                                                      const std::vector<symbol_name_t>& right) {
         // First, no factors on either side -> identity.
@@ -172,6 +296,8 @@ namespace Moment::Inflation {
         }
         return output;
     }
+
+
 
 
 }

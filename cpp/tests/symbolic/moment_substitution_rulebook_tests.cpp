@@ -423,8 +423,6 @@ namespace Moment::Tests {
 
     }
 
-
-
     TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_Ato0_BtoA) {
         // Prepare rulebook
         MomentSubstitutionRulebook book{this->get_symbols()};
@@ -511,4 +509,25 @@ namespace Moment::Tests {
 
         EXPECT_THROW(book.complete(), errors::invalid_moment_rule);
     }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_FromMap) {
+        // Prepare rulebook
+        MomentSubstitutionRulebook book{this->get_symbols()};
+        const auto& factory = book.Factory();
+
+        std::map<symbol_name_t, double> raw_assignments;
+        raw_assignments.insert(std::make_pair(2, 0.0)); // <a> = 0
+        raw_assignments.insert(std::make_pair(3, 1.5)); // <b> = 1.5
+
+        EXPECT_EQ(&book.symbols, &this->get_symbols());
+        EXPECT_TRUE(book.empty());
+
+        book.add_raw_rules(raw_assignments);
+        book.complete();
+
+        assert_matching_rules(book, {MomentSubstitutionRule{2, SymbolCombo::Zero()},
+                                     MomentSubstitutionRule{3, SymbolCombo::Scalar(1.5)}});
+
+    }
+
 }

@@ -14,6 +14,7 @@
 
 namespace Moment {
     class Matrix;
+    class MatrixSystem;
     class SymbolTable;
 
     namespace errors {
@@ -34,7 +35,10 @@ namespace Moment {
 
     class MomentSubstitutionRulebook {
     public:
+        using raw_map_t = std::map<symbol_name_t, double>;
+
         const SymbolTable& symbols;
+
 
     private:
         std::map<symbol_name_t, MomentSubstitutionRule> rules;
@@ -58,6 +62,12 @@ namespace Moment {
          * Completion is deferred until complete() is called.
          */
         void add_raw_rules(std::vector<SymbolCombo>&& raw);
+
+        /**
+         * Add substitution rules in the form of symbol equal to value map.
+         * Completion is deferred until complete() is called.
+         */
+        void add_raw_rules(const raw_map_t& raw);
 
         /**
          * Add substitution rule in the form of polynomial equal to zero.
@@ -84,6 +94,13 @@ namespace Moment {
          * @return Number of rules added.
          */
         size_t complete();
+
+        /**
+         * Attempt to infer additional rules from factorization structure
+         * @param A matrix system with associated factor table.
+         * @return The number of new rules inferred.
+         */
+        size_t infer_additional_rules_from_factors(const MatrixSystem& ms);
 
         /**
          * Returns iterator to first rule that would reduce sequence.
@@ -173,8 +190,5 @@ namespace Moment {
          * Return reference to associated SymbolComboFactory.
          */
         [[nodiscard]] const SymbolComboFactory& Factory() const noexcept { return *this->factory; }
-
-
-
     };
 }

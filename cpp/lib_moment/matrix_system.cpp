@@ -211,6 +211,8 @@ namespace Moment {
 
         auto [osg_size, new_symbols] = this->symbol_table->fill_to_word_length(word_length);
 
+        this->onDictionaryGenerated(word_length, this->context->operator_sequence_generator(word_length));
+
         return new_symbols;
     }
 }

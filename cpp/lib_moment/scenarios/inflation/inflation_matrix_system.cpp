@@ -141,4 +141,9 @@ namespace Moment::Inflation {
         return (*this->extensionSuggester)(matrix);
     }
 
+    void InflationMatrixSystem::onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator &osg) {
+        this->factors->on_new_symbols_added();
+        MatrixSystem::onDictionaryGenerated(word_length, osg);
+    }
+
 }

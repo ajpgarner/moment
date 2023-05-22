@@ -20,6 +20,7 @@
 namespace Moment {
 
     class Context;
+    class OperatorSequenceGenerator;
     class SymbolTable;
     class SubstitutionList;
 
@@ -249,6 +250,13 @@ namespace Moment {
          */
         virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
                                                   const class Matrix& lm) { }
+
+        /**
+         * Virtual method, called after dictionary is generated.
+         * @param word_length The dictionary word-length requested
+         * @param osg The operator sequence generator.
+         */
+        virtual void onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator& osg) { }
 
         /**
          * Get read-write access to symbolic matrix by index. Changes should not be made without a write lock.
