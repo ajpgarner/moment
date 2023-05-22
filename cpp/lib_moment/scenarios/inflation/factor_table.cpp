@@ -175,6 +175,11 @@ namespace Moment::Inflation {
             return lhs;
         }
 
+        // Is either side non-fundamental?
+        if (!this->entries[lhs].fundamental() || !this->entries[rhs].fundamental()) {;
+            return this->try_multiply(std::vector<symbol_name_t>{lhs, rhs});
+        }
+
         // Remaining possibilities are non-trivial: see if we can find matching factor.
         std::array<symbol_name_t, 2> idx{lhs < rhs ? lhs : rhs, lhs < rhs ? rhs : lhs};
         auto factor_entry = this->find_index_by_factors(idx);
@@ -264,6 +269,31 @@ namespace Moment::Inflation {
         }
         return this->entries[factor_entry.value()].id;
     }
+
+    SymbolCombo FactorTable::try_multiply(const SymbolComboFactory &factory,
+                                          const SymbolCombo &lhs, const SymbolCombo &rhs) const {
+
+        SymbolCombo::storage_t output;
+        output.reserve(lhs.size() * rhs.size());
+
+        for (const auto& lhs_expr : lhs) {
+            for (const auto& rhs_expr : rhs) {
+                // For now, throw on CC.
+                if ((lhs_expr.conjugated || rhs_expr.conjugated)) {
+                    std::stringstream badSS;
+                    badSS << lhs_expr << " * " << rhs_expr;
+                    throw errors::unknown_symbol{badSS.str()};
+                }
+
+                auto combined_symbol_id = this->try_multiply(lhs_expr.id, rhs_expr.id);
+                auto combined_factor = lhs_expr.factor * rhs_expr.factor;
+                output.emplace_back(combined_symbol_id, combined_factor, false);
+            }
+        }
+
+        return factory(std::move(output));
+    }
+
 
     std::vector<symbol_name_t> FactorTable::combine_symbolic_factors(std::vector<symbol_name_t> left,
                                                                      const std::vector<symbol_name_t>& right) {

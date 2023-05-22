@@ -7,7 +7,11 @@
 #pragma once
 
 #include "integer_types.h"
+
 #include "scenarios/operator_sequence.h"
+
+#include "symbolic/symbol_combo.h"
+
 #include "utilities/index_tree.h"
 
 #include <set>
@@ -120,22 +124,33 @@ namespace Moment {
             [[nodiscard]] symbol_name_t try_multiply(symbol_name_t lhs, symbol_name_t rhs) const;
 
             /**
-            * Attempt to multiply symbolic expressions
-            * @param multiplicands An array of symbol IDs.
-            * @throws errors::unknown_symbol If product is not registered as a known symbol.
-            * @returns The symbol ID of the product.
-            */
+             * Attempt to multiply symbolic expressions
+             * @param multiplicands An array of symbol IDs.
+             * @throws errors::unknown_symbol If product is not registered as a known symbol.
+             * @returns The symbol ID of the product.
+             */
             [[nodiscard]] symbol_name_t try_multiply(std::vector<symbol_name_t> multiplicands) const;
 
-            /**
-            * Attempt to multiply symbolic expressions.
-            * If parameter is not sorted, or contains zeros/ones, the behaviour is undefined.
-            * @param multiplicands A sorted array of symbol IDs, containing no zeros or ones.
-            * @throws errors::unknown_symbol If product is not registered as a known symbol.
-            * @returns The symbol ID of the product.
-            */
-            [[nodiscard]] symbol_name_t try_multiply_canonical(std::span<const symbol_name_t> multiplicands) const;
 
+            /**
+             * Attempt to multiply symbolic expressions
+             * @param factory L
+             * @param lhs LHS
+             * @param rhs RHS
+             * @throws errors::unknown_symbol If product is not registered as a known symbol.
+             * @returns The symbol ID of the product.
+             */
+            SymbolCombo try_multiply(const SymbolComboFactory& factory,
+                                     const SymbolCombo& lhs, const SymbolCombo& rhs) const;
+
+            /**
+             * Attempt to multiply symbolic expressions.
+             * If parameter is not sorted, or contains zeros/ones, the behaviour is undefined.
+             * @param multiplicands A sorted array of symbol IDs, containing no zeros or ones.
+             * @throws errors::unknown_symbol If product is not registered as a known symbol.
+             * @returns The symbol ID of the product.
+             */
+            [[nodiscard]] symbol_name_t try_multiply_canonical(std::span<const symbol_name_t> multiplicands) const;
 
 
         public:

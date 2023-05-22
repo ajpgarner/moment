@@ -490,11 +490,51 @@ namespace Moment::Tests {
         EXPECT_EQ(factors.try_multiply(std::vector<symbol_name_t>{4, 3, 2}), maybe_ABC.value());
 
         // <AB><C> -> <ABC>, <AC><B> -> <ABC> and <BC><A> -> <ABC>
+        EXPECT_EQ(factors.try_multiply(maybe_AB.value(), 4), maybe_ABC.value());
         EXPECT_EQ(factors.try_multiply(std::vector<symbol_name_t>{maybe_AB.value(), 4}), maybe_ABC.value());
+        EXPECT_EQ(factors.try_multiply(maybe_AC.value(), 3), maybe_ABC.value());
         EXPECT_EQ(factors.try_multiply(std::vector<symbol_name_t>{maybe_AC.value(), 3}), maybe_ABC.value());
+        EXPECT_EQ(factors.try_multiply(maybe_BC.value(), 2), maybe_ABC.value());
         EXPECT_EQ(factors.try_multiply(std::vector<symbol_name_t>{maybe_BC.value(), 2}), maybe_ABC.value());
 
         EXPECT_THROW([[maybe_unused]] auto err = factors.try_multiply(std::vector<symbol_name_t>{1, 2, 2, 3, 3}),
                      Moment::Inflation::errors::unknown_symbol);
+    }
+
+    TEST(Scenarios_Inflation_FactorTable, TryProduct_UnlinkedCVTriplet_SymbolCombo) {
+        std::unique_ptr<InflationContext> icPtr
+                = std::make_unique<InflationContext>(CausalNetwork{{0, 0, 0},
+                                                                   {}}, 1);
+        InflationMatrixSystem ims{std::move(icPtr)};
+        const auto &context = ims.InflationContext();
+        const auto &factors = ims.Factors();
+        const auto &symbols = ims.Symbols();
+        SymbolComboFactory factory{symbols};
+
+        ims.generate_dictionary(3);
+        auto maybe_AB = factors.find_index_by_factors({2, 3}); // A, B -> <AB> = <A><B>
+        auto maybe_BC = factors.find_index_by_factors({3, 4}); // B, C -> <BB> = <A><C>
+        auto maybe_AC = factors.find_index_by_factors({2, 4}); // A, C -> <AC> = <B><C>
+        auto maybe_ABC = factors.find_index_by_factors({2, 3, 4}); // A, B, C-> <ABC> = <A><B>
+        ASSERT_TRUE(maybe_AB.has_value());
+        ASSERT_TRUE(maybe_BC.has_value());
+        ASSERT_TRUE(maybe_AC.has_value());
+        ASSERT_TRUE(maybe_ABC.has_value());
+
+        const auto one_plus_A = factory({SymbolExpression{1, 1.0}, SymbolExpression{2, 1.0}});
+        const auto one_plus_B = factory({SymbolExpression{1, 1.0}, SymbolExpression{3, 1.0}});
+        const auto one_plus_C = factory({SymbolExpression{1, 1.0}, SymbolExpression{4, 1.0}});
+        const auto expected_IplusA_IplusB = factory({SymbolExpression{1, 1.0}, SymbolExpression{2, 1.0},
+                                                     SymbolExpression{3, 1.0}, SymbolExpression{maybe_AB.value(), 1.0}});
+        const auto expected_IA_IB_IC = factory({SymbolExpression{1, 1.0},
+                                                SymbolExpression{2, 1.0},
+                                                SymbolExpression{3, 1.0},
+                                                SymbolExpression{4, 1.0},
+                                                SymbolExpression{maybe_AB.value(), 1.0},
+                                                SymbolExpression{maybe_BC.value(), 1.0},
+                                                SymbolExpression{maybe_AC.value(), 1.0},
+                                                SymbolExpression{maybe_ABC.value(), 1.0}});
+        EXPECT_EQ(factors.try_multiply(factory, one_plus_A, one_plus_B), expected_IplusA_IplusB);
+        EXPECT_EQ(factors.try_multiply(factory, expected_IplusA_IplusB, one_plus_C), expected_IA_IB_IC);
     }
 }
