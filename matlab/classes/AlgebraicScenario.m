@@ -53,6 +53,7 @@ classdef AlgebraicScenario < Abstract.Scenario
 
             if nargin <= 3
             	is_normal = is_hermitian;
+                interleave = false;
             end
 
             % Call superclass c'tor
