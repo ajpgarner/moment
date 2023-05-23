@@ -525,7 +525,7 @@ classdef RuleBook < handle
                         conj = conj + 1;                    
                     else
                         conj = conj - 1;
-                        conj = bitxor(conj, uint64(0x1));
+                        conj = bitxor(conj, uint64(1));
                         conj = conj + 1;
                     end
                 end
