@@ -41,16 +41,14 @@ CMAKE 3.22
 ### GNU/Linux
 To download and compile the library use the following commands:
 
-<pre>git clone https://github.com/ajpgarner/moment.git
+<pre>git clone --recursive https://github.com/ajpgarner/moment.git
 cd moment
-git submodule init
-git submodule update
-cmake .
+cmake . -DCMAKE_BUILD_TYPE=Release
 cmake --build .</pre>
 
 Once the build is complete, the binary `mtk.mexa64` will be automatically copied into the `moment/matlab` folder. 
 
-To use from MATLAB, add the following folder to the matlab path: `moment/matlab`
+To use from MATLAB, add the following folders to the matlab path: `moment/matlab`, `moment/matlab/classes`, and `moment/matlab/functions`.
 
 
 ### Windows: CLion
@@ -63,7 +61,7 @@ button. Alternatively, select `Build Project` from the `Build` menu.
 
 Once the build is complete, the binary `mtk.mexw64` will have been copied to the `moment/matlab` folder.
 
-To use from MATLAB, add the following folder to the matlab path: `moment/matlab`.
+To use from MATLAB, add the following folders to the matlab path: `moment/matlab`, `moment/matlab/classes`, and `moment/matlab/functions`.
 
 ### Windows: Visual Studio 
 Clone the repository (e.g. with GitHub desktop).
@@ -74,7 +72,7 @@ Open Visual Studio 2022, and select "Open a local folder". Navigate to the root 
 
 Once the build is complete, the binary `mtk.mexw64` will have been copied to the `moment/matlab` folder.
 
-To use from MATLAB, add the following folder to the matlab path: `moment/matlab`.
+To use from MATLAB, add the following folders to the matlab path: `moment/matlab`, `moment/matlab/classes`, and `moment/matlab/functions`.
 
 ## Dependencies
 **[Googletest](https://github.com/google/googletest):** C++ unit test suite.
