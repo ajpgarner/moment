@@ -13,6 +13,8 @@
 #include "symbolic/moment_substitution_rulebook.h"
 #include "symbolic/symbol_table.h"
 
+#include "export/export_moment_substitution_rules.h"
+
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 #include "utilities/read_choice.h"
@@ -254,8 +256,9 @@ namespace Moment::mex::functions {
 
         // Output 'complete' rules
         if (output.size() >= 2) {
-            // TODO: MOMENT SUB RULE OUTPUT
-            output[1] = factory.createScalar<uint64_t>(0);
+            auto new_read_lock = msPtr->get_read_lock();
+            MomentSubstitutionRuleExporter msrExporter{this->matlabEngine, system.Symbols()};
+            output[1] = msrExporter(rulebook);
         }
     }
 }

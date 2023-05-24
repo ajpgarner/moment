@@ -24,6 +24,18 @@ namespace Moment::mex {
         explicit SymbolComboExporter(matlab::engine::MATLABEngine& engine, const SymbolTable& symbols) noexcept
                     : Exporter{engine}, symbols{symbols} { }
 
+        /**
+         * Export combo in basis form.
+         * @param combo The combo to export.
+         * @return Pair, first: real coefficients; second: imaginary coefficients.
+         */
         std::pair<matlab::data::Array, matlab::data::Array> operator()(const SymbolCombo& combo) const;
+
+        /**
+         * Export combo directly as a cell array.
+         * @param combo The combo to export.
+         * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
+         */
+        matlab::data::CellArray direct(const SymbolCombo& combo) const;
     };
 }

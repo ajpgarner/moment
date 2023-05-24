@@ -20,6 +20,7 @@ matlab_add_mex(NAME moment_mex
             export/export_symbol_combo.cpp
             export/export_implicit_symbols.cpp
             export/export_matrix_basis_masks.cpp
+            export/export_moment_substitution_rules.cpp
             export/export_monomial_rules.cpp
             export/export_operator_sequence.cpp
             export/export_sequence_matrix.cpp

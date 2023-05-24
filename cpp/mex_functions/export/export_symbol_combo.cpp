@@ -32,4 +32,26 @@ namespace Moment::mex {
             export_eigen_sparse(this->engine, factory, basis_im)
         };
     }
+
+    matlab::data::CellArray SymbolComboExporter::direct(const SymbolCombo &combo) const {
+
+        matlab::data::ArrayFactory factory;
+        auto output = factory.createCellArray({combo.size(), 1});
+        auto write_iter = output.begin();
+        for (const auto& term : combo) {
+            auto symbol_expr_out = factory.createCellArray({1ULL, term.conjugated ? 3ULL : 2ULL});
+            symbol_expr_out[0] = factory.createScalar<uint64_t>(term.id);
+            if (approximately_real(term.factor)) {
+                symbol_expr_out[1] = factory.createScalar<double>(term.factor.real());
+            } else {
+                symbol_expr_out[1] = factory.createScalar<std::complex<double>>(term.factor);
+            }
+            if (term.conjugated) {
+                symbol_expr_out[2] = factory.createScalar<bool>(true);
+            }
+            *write_iter = std::move( symbol_expr_out);
+            ++write_iter;
+        }
+        return output;
+    }
 }
