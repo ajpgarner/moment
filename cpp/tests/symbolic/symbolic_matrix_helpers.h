@@ -22,18 +22,23 @@ namespace Moment::Tests {
     symbol_name_t find_or_fail(const SymbolTable& symbols, const OperatorSequence& seq);
 
     void compare_symbol_matrices(const Matrix& test,
-                                 const Matrix& reference);
+                                 const Matrix& reference,
+                                 const std::string& label = "");
 
     void compare_symbol_matrices(const MonomialMatrix& test,
-                                 const MonomialMatrix& reference);
+                                 const MonomialMatrix& reference,
+                                 const std::string& label = "");
 
     void compare_symbol_matrices(const PolynomialMatrix& test,
-                                 const PolynomialMatrix& reference);
+                                 const PolynomialMatrix& reference,
+                                 const std::string& label = "");
 
     void compare_symbol_matrices(const Matrix& test,
-                                 const std::vector<symbol_name_t>& reference);
+                                 const std::vector<symbol_name_t>& reference,
+                                 const std::string& label = "");
 
     void compare_symbol_matrices(const MonomialMatrix::MMSymbolMatrixView& test,
-                                 const std::vector<symbol_name_t>& reference);
+                                 const std::vector<symbol_name_t>& reference,
+                                 const std::string& label = "");
 
 }

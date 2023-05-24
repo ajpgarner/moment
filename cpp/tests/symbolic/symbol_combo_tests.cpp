@@ -199,6 +199,219 @@ namespace Moment::Tests {
     }
 
 
+    TEST(Symbolic_SymbolCombo, CopyConstruct_Empty) {
+        const SymbolCombo src = SymbolCombo::Zero();
+        const SymbolCombo ref = SymbolCombo::Zero();
+
+        SymbolCombo test{src}; // NOLINT(performance-unnecessary-copy-initialization)
+        EXPECT_EQ(src, ref);
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, CopyConstruct_Scalar) {
+        const SymbolCombo src = SymbolCombo::Scalar(0.5);
+        const SymbolCombo ref = SymbolCombo::Scalar(0.5);
+
+        SymbolCombo test{src}; // NOLINT(performance-unnecessary-copy-initialization)
+        EXPECT_EQ(src, ref);
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, CopyConstruct_Polynomial) {
+        const SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+
+        SymbolCombo test{src}; // NOLINT(performance-unnecessary-copy-initialization)
+        EXPECT_EQ(src, ref);
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, CopyAssign_Empty_OverEmpty) {
+        const SymbolCombo src = SymbolCombo::Zero();
+        const SymbolCombo ref = SymbolCombo::Zero();
+
+        SymbolCombo test = SymbolCombo::Zero();
+        test = src;
+        EXPECT_EQ(src, ref);
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, CopyAssign_Empty_OverScalar) {
+        const SymbolCombo src = SymbolCombo::Zero();
+        const SymbolCombo ref = SymbolCombo::Zero();
+
+        SymbolCombo test = SymbolCombo::Scalar(13.37);
+        test = src;
+        EXPECT_EQ(src, ref);
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, CopyAssign_Empty_OverPolynomial) {
+        const SymbolCombo src = SymbolCombo::Zero();
+        const SymbolCombo ref = SymbolCombo::Zero();
+
+        SymbolCombo test = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        test = src;
+        EXPECT_EQ(src, ref);
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, CopyAssign_Scalar_OverScalar) {
+        const SymbolCombo src = SymbolCombo::Scalar(0.5);
+        const SymbolCombo ref = SymbolCombo::Scalar(0.5);
+
+        SymbolCombo test = SymbolCombo::Scalar(0.2);
+        test = src;
+        EXPECT_EQ(src, ref);
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, CopyAssign_Scalar_OverPolynomial) {
+        const SymbolCombo src = SymbolCombo::Scalar(0.5);
+        const SymbolCombo ref = SymbolCombo::Scalar(0.5);
+
+        SymbolCombo test = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        test = src;
+        EXPECT_EQ(src, ref);
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, CopyAssign_Polynomial_OverEmpty) {
+        const SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+
+        SymbolCombo test = SymbolCombo::Zero();
+        test = src; // NOLINT(performance-unnecessary-copy-initialization)
+        EXPECT_EQ(src, ref);
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, CopyAssign_Polynomial_OverScalar) {
+        const SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+
+        SymbolCombo test = SymbolCombo::Scalar(0.5);
+        test = src; // NOLINT(performance-unnecessary-copy-initialization)
+        EXPECT_EQ(src, ref);
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, CopyAssign_Polynomial_OverPolynomial) {
+        const SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+
+        SymbolCombo test = SymbolCombo{SymbolExpression{5, 1.0, false}, SymbolExpression{4, 0.5, true}, SymbolExpression{3, 0.5, true}};
+        test = src; // NOLINT(performance-unnecessary-copy-initialization)
+        EXPECT_EQ(src, ref);
+        EXPECT_EQ(test, ref);
+    }
+
+
+    TEST(Symbolic_SymbolCombo, MoveConstruct_Empty) {
+        SymbolCombo src = SymbolCombo::Zero();
+        const SymbolCombo ref = SymbolCombo::Zero();
+
+        SymbolCombo test{std::move(src)};
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, MoveConstruct_Scalar) {
+        SymbolCombo src = SymbolCombo::Scalar(0.5);
+        const SymbolCombo ref = SymbolCombo::Scalar(0.5);
+
+        SymbolCombo test{std::move(src)};
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, MoveConstruct_Polynomial) {
+        SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+
+        SymbolCombo test{std::move(src)};
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, MoveAssign_Empty_OverEmpty) {
+        SymbolCombo src = SymbolCombo::Zero();
+        const SymbolCombo ref = SymbolCombo::Zero();
+
+        SymbolCombo test = SymbolCombo::Zero();
+        test = std::move(src);
+        
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, MoveAssign_Empty_OverScalar) {
+        SymbolCombo src = SymbolCombo::Zero();
+        const SymbolCombo ref = SymbolCombo::Zero();
+
+        SymbolCombo test = SymbolCombo::Scalar(13.37);
+        test = std::move(src);
+        
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, MoveAssign_Empty_OverPolynomial) {
+        SymbolCombo src = SymbolCombo::Zero();
+        const SymbolCombo ref = SymbolCombo::Zero();
+
+        SymbolCombo test = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        test = std::move(src);
+        
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, MoveAssign_Scalar_OverScalar) {
+        SymbolCombo src = SymbolCombo::Scalar(0.5);
+        const SymbolCombo ref = SymbolCombo::Scalar(0.5);
+
+        SymbolCombo test = SymbolCombo::Scalar(0.2);
+        test = std::move(src);
+        
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, MoveAssign_Scalar_OverPolynomial) {
+        SymbolCombo src = SymbolCombo::Scalar(0.5);
+        const SymbolCombo ref = SymbolCombo::Scalar(0.5);
+
+        SymbolCombo test = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        test = std::move(src);
+        
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, MoveAssign_Polynomial_OverEmpty) {
+        SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+
+        SymbolCombo test = SymbolCombo::Zero();
+        test = std::move(src); // NOLINT(performance-unnecessary-copy-initialization)
+
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, MoveAssign_Polynomial_OverScalar) {
+        SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+
+        SymbolCombo test = SymbolCombo::Scalar(0.5);
+        test = std::move(src); // NOLINT(performance-unnecessary-copy-initialization)
+        
+        EXPECT_EQ(test, ref);
+    }
+
+    TEST(Symbolic_SymbolCombo, MoveAssign_Polynomial_OverPolynomial) {
+        SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+
+        SymbolCombo test = SymbolCombo{SymbolExpression{5, 1.0, false}, SymbolExpression{4, 0.5, true}, SymbolExpression{3, 0.5, true}};
+        test = std::move(src); // NOLINT(performance-unnecessary-copy-initialization)
+        
+        EXPECT_EQ(test, ref);
+    }
+
+
     TEST(Symbolic_SymbolCombo, Equality) {
         SymbolCombo listA{SymbolExpression{2, 10.0}, SymbolExpression{5, 20.0}};
         SymbolCombo listB{SymbolExpression{2, 10.0}, SymbolExpression{5, 20.0}};

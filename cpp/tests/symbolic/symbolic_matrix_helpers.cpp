@@ -26,60 +26,67 @@ namespace Moment::Tests {
         return find_ptr->Id();
     }
 
-    void compare_symbol_matrices(const Matrix &test, const Matrix &reference) {
-        ASSERT_EQ(test.is_monomial(), reference.is_monomial());
+    void compare_symbol_matrices(const Matrix &test, const Matrix &reference,const std::string& label) {
+        ASSERT_EQ(test.is_monomial(), reference.is_monomial()) << label;
 
         if (reference.is_monomial()) {
             compare_symbol_matrices(dynamic_cast<const MonomialMatrix&>(test),
-                                    dynamic_cast<const MonomialMatrix&>(reference));
+                                    dynamic_cast<const MonomialMatrix&>(reference),
+                                    label);
         } else {
             compare_symbol_matrices(dynamic_cast<const PolynomialMatrix&>(test),
-                                    dynamic_cast<const PolynomialMatrix&>(reference));
+                                    dynamic_cast<const PolynomialMatrix&>(reference),
+                                    label);
         }
     }
 
-    void compare_symbol_matrices(const MonomialMatrix &test, const MonomialMatrix &reference) {
-        ASSERT_EQ(test.Dimension(), reference.Dimension());
-        EXPECT_EQ(test.real_coefficients(), reference.real_coefficients());
-        EXPECT_EQ(test.is_hermitian(), reference.is_hermitian());
+    void compare_symbol_matrices(const MonomialMatrix &test, const MonomialMatrix &reference,
+                                 const std::string& label) {
+        ASSERT_EQ(test.Dimension(), reference.Dimension()) << label;
+        EXPECT_EQ(test.real_coefficients(), reference.real_coefficients()) << label;
+        EXPECT_EQ(test.is_hermitian(), reference.is_hermitian()) << label;
 
         for (size_t rIdx = 0; rIdx < reference.Dimension(); ++rIdx) {
             for (size_t cIdx = 0; cIdx < reference.Dimension(); ++cIdx) {
                 const auto& test_elem = test.SymbolMatrix[rIdx][cIdx];
                 const auto& ref_elem = reference.SymbolMatrix[rIdx][cIdx];
-                EXPECT_EQ(test_elem, ref_elem) << "row = " << rIdx << ", col = " << cIdx;
+                EXPECT_EQ(test_elem, ref_elem) << label << (label.empty() ? "" : ", ") << "row = " << rIdx << ", col = " << cIdx;
             }
         }
     }
 
-    void compare_symbol_matrices(const PolynomialMatrix &test, const PolynomialMatrix &reference) {
-        ASSERT_EQ(test.Dimension(), reference.Dimension());
-        EXPECT_EQ(test.real_coefficients(), reference.real_coefficients());
-        EXPECT_EQ(test.is_hermitian(), reference.is_hermitian());
+    void compare_symbol_matrices(const PolynomialMatrix &test,
+                                 const PolynomialMatrix &reference,
+                                 const std::string& label) {
+        ASSERT_EQ(test.Dimension(), reference.Dimension()) << label;
+        EXPECT_EQ(test.real_coefficients(), reference.real_coefficients()) << label;
+        EXPECT_EQ(test.is_hermitian(), reference.is_hermitian()) << label;
 
         for (size_t rIdx = 0; rIdx < reference.Dimension(); ++rIdx) {
             for (size_t cIdx = 0; cIdx < reference.Dimension(); ++cIdx) {
                 const auto& test_elem = test.SymbolMatrix[rIdx][cIdx];
                 const auto& ref_elem = reference.SymbolMatrix[rIdx][cIdx];
-                EXPECT_EQ(test_elem, ref_elem) << "row = " << rIdx << ", col = " << cIdx;
+                EXPECT_EQ(test_elem, ref_elem)
+                    << label << (label.empty() ? "" : ", ") << "row = " << rIdx << ", col = " << cIdx;
             }
         }
     }
 
     void compare_symbol_matrices(const Matrix& test,
-                                 const std::vector<symbol_name_t>& reference) {
-        ASSERT_TRUE(test.is_monomial());
+                                 const std::vector<symbol_name_t>& reference, const std::string& label) {
+        ASSERT_TRUE(test.is_monomial()) << label;
         const auto& test_mm = dynamic_cast<const MonomialMatrix&>(test);
-        compare_symbol_matrices(test_mm.SymbolMatrix, reference);
+        compare_symbol_matrices(test_mm.SymbolMatrix, reference, label);
     }
 
     void compare_symbol_matrices(const MonomialMatrix::MMSymbolMatrixView& test,
-                                 const std::vector<symbol_name_t>& reference) {
-        ASSERT_EQ(test.Dimension()*test.Dimension(), reference.size());
+                                 const std::vector<symbol_name_t>& reference,
+                                 const std::string& label) {
+        ASSERT_EQ(test.Dimension()*test.Dimension(), reference.size()) << label;
         auto refIter = reference.cbegin();
         for (size_t row_counter = 0; row_counter < test.Dimension(); ++row_counter) {
             for (size_t column_counter = 0; column_counter < test.Dimension(); ++column_counter) {
-                EXPECT_EQ(test[row_counter][column_counter].id, *refIter) << "row = " << row_counter
+                EXPECT_EQ(test[row_counter][column_counter].id, *refIter) << label << (label.empty() ? "" : ", ") << "row = " << row_counter
                                                                           << ", col = " << column_counter;
                 ++refIter;
             }

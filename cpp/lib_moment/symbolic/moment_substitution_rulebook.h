@@ -37,6 +37,8 @@ namespace Moment {
     public:
         using raw_map_t = std::map<symbol_name_t, double>;
 
+        using raw_complex_map_t = std::map<symbol_name_t, std::complex<double>>;
+
         const SymbolTable& symbols;
 
 
@@ -68,6 +70,12 @@ namespace Moment {
          * Completion is deferred until complete() is called.
          */
         void add_raw_rules(const raw_map_t& raw);
+
+        /**
+         * Add substitution rules in the form of symbol equal to value map.
+         * Completion is deferred until complete() is called.
+         */
+        void add_raw_rules(const raw_complex_map_t& raw);
 
         /**
          * Add substitution rule in the form of polynomial equal to zero.
@@ -152,19 +160,6 @@ namespace Moment {
          * False if there exists a rule that transforms Hermitian symbols into a non-Hermitian SymbolCombo.
          */
         [[nodiscard]] bool is_hermitian() const noexcept { return this->hermitian_rules; }
-
-        /**
-         * True if supplied rule matches key already in rulebook.
-         * (Complexity O(log(N)) where N are the number of rules.)
-         */
-        [[nodiscard]] bool collides(const MomentSubstitutionRule& msr) const noexcept;
-
-
-        /**
-         * True if supplied rule matches key at end of rulebook.
-         * (Complexity O(1))
-         */
-        [[nodiscard]] bool collides_at_end(const MomentSubstitutionRule& msr) const noexcept;
 
         /**
          * True if no reduction rules.

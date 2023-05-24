@@ -279,6 +279,40 @@ namespace Moment::Tests {
         EXPECT_EQ(moved_small[4], 5.0);
     }
 
+    TEST(Utilities_SmallVector, MoveAssign_StackToHeap) {
+        SmallVector<double, 3> with_heap{1.0, 2.0, 3.0, 4.0, 5.0};
+        ASSERT_TRUE(with_heap.on_heap());
+        ASSERT_EQ(with_heap.size(), 5);
+
+        SmallVector<double, 3> with_stack{6.0};
+        ASSERT_EQ(with_stack.size(), 1);
+        EXPECT_FALSE(with_stack.on_heap());
+
+        with_heap = std::move(with_stack);
+        ASSERT_EQ(with_heap.size(), 1);
+        EXPECT_EQ(with_heap[0], 6.0);
+    }
+
+    TEST(Utilities_SmallVector, MoveAssign_HeapToStack) {
+        SmallVector<double, 3> with_heap{1.0, 2.0, 3.0, 4.0, 5.0};
+        ASSERT_TRUE(with_heap.on_heap());
+        ASSERT_EQ(with_heap.size(), 5);
+
+        SmallVector<double, 3> with_stack{6.0};
+        ASSERT_EQ(with_stack.size(), 1);
+        EXPECT_FALSE(with_stack.on_heap());
+
+        with_stack = std::move(with_heap);
+        ASSERT_EQ(with_stack.size(), 5);
+        EXPECT_TRUE(with_stack.on_heap());
+        EXPECT_EQ(with_stack[0], 1.0);
+        EXPECT_EQ(with_stack[1], 2.0);
+        EXPECT_EQ(with_stack[2], 3.0);
+        EXPECT_EQ(with_stack[3], 4.0);
+        EXPECT_EQ(with_stack[4], 5.0);
+    }
+
+
     TEST(Utilities_SmallVector, PushBack) {
         SmallVector<double, 5> small{1.0, 2.0, 3.0};
         EXPECT_FALSE(small.empty());

@@ -12,14 +12,13 @@ triangle = InflationScenario(inflation_level, ...
  
 moment_matrix = triangle.MakeMomentMatrix(moment_matrix_level);
 extended_matrix = triangle.MakeExtendedMomentMatrix(moment_matrix_level);
-                      
+                 
 
 %% Apply values
 distribution = make_distribution(0.9);
 symbol_assignments = triangle.GetAssignments(distribution);
-
-subbed_matrix = extended_matrix.ApplyValues(symbol_assignments);
-
+substitutions = MomentRuleBook.ScalarSubstitutionCell(triangle, symbol_assignments);
+subbed_matrix = substitutions.Apply(extended_matrix);
 
 %% Define and solve SDP
 yalmip('clear');

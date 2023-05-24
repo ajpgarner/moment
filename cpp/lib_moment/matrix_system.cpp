@@ -10,7 +10,8 @@
 #include "matrix/moment_matrix.h"
 #include "matrix/substituted_matrix.h"
 
-#include "symbolic/substitution_list.h"
+#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/order_symbols_by_hash.h"
 #include "symbolic/symbol_table.h"
 
 #include "scenarios/context.h"
@@ -183,25 +184,59 @@ namespace Moment {
         return matrixIndex;
     }
 
-    std::pair<size_t, class Matrix &>
-    MatrixSystem::clone_and_substitute(size_t matrix_index, std::unique_ptr<SubstitutionList> list) {
-        assert(list);
-
-        // Get write lock before pushing matrix
+    std::pair<size_t, MomentSubstitutionRulebook&> MatrixSystem::create_rulebook() {
         auto write_lock = this->get_write_lock();
 
-        auto& source_matrix = this->get(matrix_index);
-        size_t new_index = this->matrices.size();
+        auto factory = std::make_unique<ByHashSymbolComboFactory>(*this->symbol_table);
+        this->rulebooks.emplace_back(std::make_unique<MomentSubstitutionRulebook>(*this->symbol_table,
+                                                                                  std::move(factory)));
 
-        if (source_matrix.is_monomial()) {
-            const auto& mono_source = dynamic_cast<MonomialMatrix&>(source_matrix);
-            this->matrices.emplace_back(std::make_unique<SubstitutedMatrix>(*this->context, *this->symbol_table,
-                                                                            mono_source, std::move(list)));
-        } else {
-            const auto& poly_source = dynamic_cast<PolynomialMatrix&>(source_matrix);
-            throw std::runtime_error{"Substitution into polynomial symbol matrices has not yet been implemented."};
+        return {static_cast<size_t>(this->rulebooks.size()-1), *this->rulebooks.back()};
+    }
+
+    std::pair<size_t, MomentSubstitutionRulebook&>
+    MatrixSystem::create_rulebook(std::unique_ptr<MomentSubstitutionRulebook> rulebook) {
+        auto write_lock = this->get_write_lock();
+        assert(&rulebook->symbols == this->symbol_table.get());
+
+        this->rulebooks.emplace_back(std::move(rulebook));
+        return {static_cast<size_t>(this->rulebooks.size()-1), *this->rulebooks.back()};
+    }
+
+    MomentSubstitutionRulebook &MatrixSystem::rulebook(size_t index) {
+        if (index >= this->rulebooks.size()) {
+            throw errors::missing_component("Rulebook index out of range.");
         }
+        if (!this->rulebooks[index]) {
+            throw errors::missing_component("Rulebook at supplied index was missing.");
+        }
+        return *this->rulebooks[index];
+    }
 
+    const MomentSubstitutionRulebook &MatrixSystem::rulebook(size_t index) const {
+        if (index >= this->rulebooks.size()) {
+            throw errors::missing_component("Rulebook index out of range.");
+        }
+        if (!this->rulebooks[index]) {
+            throw errors::missing_component("Rulebook at supplied index was missing.");
+        }
+        return *this->rulebooks[index];
+    }
+
+    std::pair<size_t, class Matrix &>
+    MatrixSystem::clone_and_substitute(const size_t matrix_index, const size_t rulebook_index) {
+        // Get write lock
+        auto write_lock = this->get_write_lock();
+
+        // Source matrix
+        const auto& source_matrix = this->get(matrix_index);
+
+        // Rules
+        const auto& rulebook = this->rulebook(rulebook_index);
+
+        // Make reduced matrix
+        this->matrices.emplace_back(rulebook.reduce(*this->symbol_table, source_matrix));
+        size_t new_index = this->matrices.size() - 1;
         auto& new_matrix = *(this->matrices.back());
         return {new_index, new_matrix};
     }

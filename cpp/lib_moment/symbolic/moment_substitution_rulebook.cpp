@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <stdexcept>
 #include <sstream>
-#include <ranges>
 
 namespace Moment {
     namespace errors {
@@ -52,7 +51,19 @@ namespace Moment {
         }
     }
 
+
     void MomentSubstitutionRulebook::add_raw_rules(const MomentSubstitutionRulebook::raw_map_t& raw) {
+        this->raw_rules.reserve(this->raw_rules.size() + raw.size());
+        for (auto [id, value] : raw) {
+            if (approximately_zero(value)) {
+                this->raw_rules.emplace_back(SymbolExpression{id});
+            } else {
+                this->raw_rules.emplace_back(SymbolCombo{SymbolExpression{id, 1.0}, SymbolExpression{1, -value}});
+            }
+        }
+    }
+
+    void MomentSubstitutionRulebook::add_raw_rules(const MomentSubstitutionRulebook::raw_complex_map_t& raw) {
         this->raw_rules.reserve(this->raw_rules.size() + raw.size());
         for (auto [id, value] : raw) {
             if (approximately_zero(value)) {
@@ -101,21 +112,23 @@ namespace Moment {
         // First, sort raw rules by lowest leading monomial, tie-breaking with shorter strings first.
         std::sort(this->raw_rules.begin(), this->raw_rules.end(), FullComboOrdering(*this->factory));
 
+        size_t rules_attempted = 0;
         size_t rules_added = 0;
+        size_t rules_removed = 0;
 
         // Now, attempt to add in each rule in order
         for (auto& rule : this->raw_rules) {
             // First, reduce polynomial according to known rules
-            SymbolCombo reduced_rule = reduce(std::move(rule));
+            SymbolCombo reduced_rule{this->reduce(std::move(rule))};
 
             // Second, orient to get leading term
             MomentSubstitutionRule msr{this->symbols, std::move(reduced_rule)};
 
             // If rule has been reduced to a trivial expression, do not add.
             if (msr.is_trivial()) {
+                ++rules_attempted;
                 continue;
             }
-            ++rules_added;
 
             const symbol_name_t reduced_rule_id = msr.LHS();
 
@@ -124,6 +137,8 @@ namespace Moment {
                 // Otherwise, just directly add rule at end
                 this->rules.emplace_hint(this->rules.end(),
                                          std::make_pair(reduced_rule_id, std::move(msr)));
+                ++rules_attempted;
+                ++rules_added;
                 continue;
             }
 
@@ -143,10 +158,14 @@ namespace Moment {
                 }
                 if (update_iter->second.is_trivial()) {
                     update_iter = this->rules.erase(update_iter);
+                    ++rules_removed;
                 } else {
                     ++update_iter;
                 }
             }
+
+            ++rules_attempted;
+            ++rules_added;
         }
 
         // Clear raw-rules
@@ -230,11 +249,14 @@ namespace Moment {
 
             this->factory->append(product, {SymbolExpression{symbol.id, -1.0, false}});
 
+            // Check if this infers anything new?
             new_rules.emplace_back(std::move(product));
+
         }
 
-        // Handle polynomials
         this->add_raw_rules(std::move(new_rules));
+
+        // Compile rules
         return this->complete();
     }
 
@@ -253,11 +275,7 @@ namespace Moment {
 
     SymbolCombo MomentSubstitutionRulebook::reduce_with_rule_hint(
             std::map<symbol_name_t, MomentSubstitutionRule>::const_reverse_iterator rule_hint,
-            Moment::SymbolCombo polynomial) const {
-
-        // No factory required for move constructor
-        SymbolCombo output{std::move(polynomial)};
-
+            Moment::SymbolCombo output) const {
         // Iterate, starting with supplied hint
         for (; rule_hint != this->rules.crend(); ++rule_hint) {
             const auto& [lhs, rule] = *rule_hint;
@@ -266,6 +284,7 @@ namespace Moment {
                 output = rule.reduce_with_hint(*this->factory, output, hint, matches == 2);
             }
         }
+
         return output;
     }
 
@@ -311,22 +330,4 @@ namespace Moment {
             }
         }
     }
-
-    bool MomentSubstitutionRulebook::collides(const MomentSubstitutionRule &msr) const noexcept {
-        auto find_iter = std::find_if(this->rules.begin(), this->rules.cend(),
-                                     [&](const auto& old) {
-                                            return old.first == msr.LHS();
-        });
-        return find_iter != this->rules.cend();
-    }
-
-    bool MomentSubstitutionRulebook::collides_at_end(const MomentSubstitutionRule &msr) const noexcept {
-        // Cannot collide with empty ruleset
-        if (this->rules.empty()) {
-            return false;
-        }
-        // Collides at end if last entry key matches this key
-        return this->rules.crbegin()->first == msr.LHS();
-    }
-
 }

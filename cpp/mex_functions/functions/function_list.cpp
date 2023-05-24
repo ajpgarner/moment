@@ -8,10 +8,11 @@
 #include "mex_function.h"
 
 #include "functions/alphabetic_name.h"
-#include "functions/apply_values.h"
+#include "functions/apply_moment_rules.h"
 #include "functions/collins_gisin.h"
 #include "functions/complete.h"
 #include "functions/conjugate.h"
+#include "functions/create_moment_rules.h"
 #include "functions/echo.h"
 #include "functions/extended_matrix.h"
 #include "functions/generate_basis.h"
@@ -54,8 +55,8 @@ namespace Moment::mex::functions {
             case functions::MEXEntryPointID::AlphabeticName:
                 the_function = std::make_unique<functions::AlphabeticName>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::ApplyValues:
-                the_function = std::make_unique<functions::ApplyValues>(engine, storageManager);
+            case functions::MEXEntryPointID::ApplyMomentRules:
+                the_function = std::make_unique<functions::ApplyMomentRules>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::CollinsGisin:
                 the_function = std::make_unique<functions::CollinsGisin>(engine, storageManager);
@@ -65,6 +66,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::Conjugate:
                 the_function = std::make_unique<functions::Conjugate>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::CreateMomentRules:
+                the_function = std::make_unique<functions::CreateMomentRules>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::Echo:
                 the_function = std::make_unique<functions::Echo>(engine, storageManager);
@@ -153,10 +157,11 @@ namespace Moment::mex::functions {
     std::map<std::basic_string<char16_t>, MEXEntryPointID> make_str_to_entrypoint_map() {
         std::map<std::basic_string<char16_t>, MEXEntryPointID> output;
         output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
-        output.emplace(u"apply_values",    MEXEntryPointID::ApplyValues);
+        output.emplace(u"apply_moment_rules",    MEXEntryPointID::ApplyMomentRules);
         output.emplace(u"collins_gisin",   MEXEntryPointID::CollinsGisin);
         output.emplace(u"complete",        MEXEntryPointID::Complete);
         output.emplace(u"conjugate",       MEXEntryPointID::Conjugate);
+        output.emplace(u"create_moment_rules",   MEXEntryPointID::CreateMomentRules);
         output.emplace(u"echo",            MEXEntryPointID::Echo);
         output.emplace(u"extended_matrix", MEXEntryPointID::ExtendedMatrix);
         output.emplace(u"generate_basis",  MEXEntryPointID::GenerateBasis);

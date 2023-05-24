@@ -54,6 +54,10 @@ namespace Moment::Tests {
             factory_ptr = std::make_unique<SymbolComboFactory>(ams_ptr->Symbols());
         }
 
+        [[nodiscard]] Algebraic::AlgebraicMatrixSystem& get_system() const noexcept {
+            return *this->ams_ptr;
+        }
+
         [[nodiscard]] const Algebraic::AlgebraicContext& get_context() const noexcept {
             return this->ams_ptr->AlgebraicContext();
         };
@@ -90,44 +94,6 @@ namespace Moment::Tests {
         EXPECT_EQ(rule.second.RHS(), SymbolCombo::Zero());
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Collides_Empty) {
-
-        MomentSubstitutionRulebook book{this->get_symbols()};
-        MomentSubstitutionRule msr{5, SymbolCombo::Zero()};
-
-        ASSERT_FALSE(book.collides(msr));
-    }
-
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Collides_InMiddle) {
-        // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_symbols()};
-        book.inject(2, SymbolCombo::Zero());
-        book.inject(3, SymbolCombo::Zero());
-        book.inject(5, SymbolCombo::Zero());
-
-        EXPECT_FALSE(book.collides(MomentSubstitutionRule{4, SymbolCombo::Zero()}));
-        EXPECT_TRUE(book.collides(MomentSubstitutionRule{3, SymbolCombo::Zero()}));
-    }
-
-
-    TEST_F(Symbolic_MomentSubstitutionRulebook, CollidesAtEnd_Empty) {
-        // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_symbols()};
-        MomentSubstitutionRule msr{5, SymbolCombo::Zero()};
-
-        ASSERT_FALSE(book.collides_at_end(msr));
-    }
-
-    TEST_F(Symbolic_MomentSubstitutionRulebook, CollidesAtEnd_OneRule) {
-        // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_symbols()};
-        ASSERT_TRUE(book.inject(5, SymbolCombo::Zero()));
-
-        EXPECT_TRUE(book.collides_at_end(MomentSubstitutionRule{5, SymbolCombo::Scalar(1.0)}));
-        EXPECT_FALSE(book.collides_at_end(MomentSubstitutionRule{6, SymbolCombo::Scalar(1.0)}));
-    }
-
-
     TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_Empty) {
         // Prepare rulebook
         MomentSubstitutionRulebook book{this->get_symbols()};
@@ -141,7 +107,6 @@ namespace Moment::Tests {
                               factory({SymbolExpression{3, 1.0}})); // b -> b
         EXPECT_EQ(book.reduce(factory({SymbolExpression{3, 1.0}, SymbolExpression{2, 0.5}})),
                               factory({SymbolExpression{3, 1.0}, SymbolExpression{2, 0.5}}));// b + 0.5a -> b + 0.5a
-
     }
 
     TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_OneRule) {
@@ -431,6 +396,8 @@ namespace Moment::Tests {
         std::vector<SymbolCombo> raw_combos;
         raw_combos.emplace_back(factory({SymbolExpression(2, 1.0)})); // <a> = 0
         raw_combos.emplace_back(factory({SymbolExpression(3, 1.0), SymbolExpression(2, -1.0)})); // <b> - <a> = 0
+
+        ASSERT_EQ(raw_combos.back().last_id(), 3);
         book.add_raw_rules(std::move(raw_combos));
 
         EXPECT_EQ(&book.symbols, &this->get_symbols());
@@ -529,5 +496,67 @@ namespace Moment::Tests {
                                      MomentSubstitutionRule{3, SymbolCombo::Scalar(1.5)}});
 
     }
+
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, CloneMomentMatrix) {
+        // Build unlinked pair (uninflated)
+        auto& ams = this->get_system();
+        const auto& context = this->get_context();
+        auto& symbols = this->get_symbols();
+
+        // Get operator names
+        ASSERT_EQ(context.size(), 2);
+        oper_name_t op_a = 0;
+        oper_name_t op_b = 1;
+
+        // Make moment matrix, then find symbols
+        auto [mm_id, moment_matrix] = ams.create_moment_matrix(1);
+        auto id_e = find_or_fail(symbols, OperatorSequence::Identity(context));
+        auto id_a = find_or_fail(symbols, OperatorSequence{{op_a}, context});
+        auto id_aa = find_or_fail(symbols, OperatorSequence{{op_a, op_a}, context});
+        auto id_b = find_or_fail(symbols, OperatorSequence{{op_b}, context});
+        auto id_bb = find_or_fail(symbols, OperatorSequence{{op_b, op_b}, context});
+        auto id_ab = find_or_fail(symbols, OperatorSequence{{op_a, op_b}, context});
+
+        std::set all_symbols{id_e, id_a, id_aa, id_b, id_bb, id_ab};
+        ASSERT_EQ(all_symbols.size(), 6);
+
+        std::vector<SymbolExpression> ref_mm_data
+            = {SymbolExpression{1}, SymbolExpression{id_a}, SymbolExpression{id_b},
+               SymbolExpression{id_a}, SymbolExpression{id_aa}, SymbolExpression{id_ab},
+               SymbolExpression{id_b}, SymbolExpression{id_ab, 1.0, true}, SymbolExpression{id_bb}};
+        MonomialMatrix ref_mm{context, symbols,
+                              std::make_unique<SquareMatrix<SymbolExpression>>(3, std::move(ref_mm_data)), true};
+
+        compare_symbol_matrices(moment_matrix, ref_mm, "Moment matrix");
+
+        // Build substitutions of just A
+        auto [rb_id, book] = ams.create_rulebook();
+        book.inject(id_a, SymbolCombo::Scalar(2.0)); // A -> 2
+        book.inject(id_b, SymbolCombo::Scalar(3.0)); // B -> 3
+        book.infer_additional_rules_from_factors(ams);
+
+        // Rewrite moment matrix with known values
+        auto [sub_id, sub_matrix] = ams.clone_and_substitute(mm_id, rb_id);
+
+        // Test matrix object is unique
+        ASSERT_NE(mm_id, sub_id);
+        ASSERT_NE(&moment_matrix, &sub_matrix);
+        ASSERT_TRUE(sub_matrix.is_monomial());
+
+        // Symbol matrix should have with a replaced by 2.0
+        ASSERT_EQ(sub_matrix.Dimension(), 3);
+        const auto& sub_symbols = dynamic_cast<const MonomialMatrix&>(sub_matrix).SymbolMatrix;
+        EXPECT_EQ(sub_symbols[0][0], SymbolExpression(id_e));
+        EXPECT_EQ(sub_symbols[0][1], SymbolExpression(id_e, 2.0));
+        EXPECT_EQ(sub_symbols[0][2], SymbolExpression(id_e, 3.0));
+        EXPECT_EQ(sub_symbols[1][0], SymbolExpression(id_e, 2.0));
+        EXPECT_EQ(sub_symbols[1][1], SymbolExpression(id_aa, 1.0));
+        EXPECT_EQ(sub_symbols[1][2], SymbolExpression(id_ab, 1.0));
+        EXPECT_EQ(sub_symbols[2][0], SymbolExpression(id_e, 3.0));
+        EXPECT_EQ(sub_symbols[2][1], SymbolExpression(id_ab, 1.0, true));
+        EXPECT_EQ(sub_symbols[2][2], SymbolExpression(id_bb));
+    }
+
 
 }

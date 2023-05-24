@@ -39,10 +39,11 @@ matlab_add_mex(NAME moment_mex
             utilities/reflection.cpp
             utilities/reporting.cpp
             functions/alphabetic_name.cpp
-            functions/apply_values.cpp
+            functions/apply_moment_rules.cpp
             functions/collins_gisin.cpp
             functions/complete.cpp
             functions/conjugate.cpp
+            functions/create_moment_rules.cpp
             functions/echo.cpp
             functions/extended_matrix.cpp
             functions/import_matrix.cpp

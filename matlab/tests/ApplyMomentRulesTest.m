@@ -1,10 +1,12 @@
-classdef ApplyValuesTest < MTKTestBase
+classdef ApplyMomentRulesTest < MTKTestBase
     %APPLYVALUESTEST Unit tests for apply_values function
     methods (Test)
         function SimpleSubstitution(testCase)            
             ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
             mm_index = mtk('moment_matrix', ref_id, 1);
-            sub_index = mtk('apply_values', ref_id, mm_index, {{2, 0.5}});
+            rules_index = mtk('create_moment_rules', ref_id, {{2, 0.5}});
+            sub_index = mtk('apply_moment_rules', ref_id, ...
+                             mm_index, rules_index);
             
             base_mm = mtk('operator_matrix', 'sequences', ref_id, mm_index);
             sub_mm = mtk('operator_matrix', 'sequences', ref_id, sub_index);
@@ -24,8 +26,10 @@ classdef ApplyValuesTest < MTKTestBase
         function MultiSubstitution(testCase)            
             ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
             mm_index = mtk('moment_matrix', ref_id, 1);
-            sub_index = mtk('apply_values', ref_id, mm_index, ...
-                            {{2, 0.3}, {3, 0.4}});
+            rules_index = mtk('create_moment_rules', ref_id, ...
+                              {{2, 0.3}, {3, 0.4}});
+            sub_index = mtk('apply_moment_rules', ref_id, ...
+                            mm_index, rules_index);
             
             base_mm = mtk('operator_matrix', 'sequences', ref_id, mm_index);
             sub_mm = mtk('operator_matrix', 'sequences', ref_id, sub_index);
@@ -52,7 +56,8 @@ classdef ApplyValuesTest < MTKTestBase
         function ZeroSubstitution(testCase)            
             ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
             mm_index = mtk('moment_matrix', ref_id, 1);
-            sub_index = mtk('apply_values', ref_id, mm_index, {{3, 0}});
+            rules_index = mtk('create_moment_rules', ref_id, {{3, 0.0}});
+            sub_index = mtk('apply_moment_rules', ref_id, mm_index, rules_index);
             
             base_mm = mtk('operator_matrix', 'sequences', ref_id, mm_index);
             sub_mm = mtk('operator_matrix', 'sequences', ref_id, sub_index);
@@ -73,7 +78,9 @@ classdef ApplyValuesTest < MTKTestBase
         function FactoredSubstitution(testCase)            
             ref_id = mtk('new_inflation_matrix_system', [2, 2], {}, 1);
             mm_index = mtk('moment_matrix', ref_id, 1);
-            sub_index = mtk('apply_values', ref_id, mm_index, {{2, 0.5}});
+            rules_index = mtk('create_moment_rules', ref_id, {{2, 0.5}});
+            sub_index = mtk('apply_moment_rules', ref_id, ...
+                            mm_index, rules_index);
            
             sub_mm = mtk('operator_matrix', 'sequences', ref_id, sub_index);
             expected_mm = [["1", "0.5", "<B>"]; ...
@@ -91,7 +98,9 @@ classdef ApplyValuesTest < MTKTestBase
         function FactoredZeroSubstitution(testCase)            
             ref_id = mtk('new_inflation_matrix_system', [2, 2], {}, 1);
             mm_index = mtk('moment_matrix', ref_id, 1);
-            sub_index = mtk('apply_values', ref_id, mm_index, {{2, 0}});
+            rules_index = mtk('create_moment_rules', ref_id, {{2, 0}});
+            sub_index = mtk('apply_moment_rules', ref_id, ...
+                            mm_index, rules_index);
            
             sub_mm = mtk('operator_matrix', 'sequences', ref_id, sub_index);
             expected_mm = [["1", "0", "<B>"]; ...

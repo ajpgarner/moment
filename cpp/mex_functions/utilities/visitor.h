@@ -132,7 +132,7 @@ namespace Moment::mex {
         template <class functor_t>
         concept VisitorHasComplexSparse = requires(functor_t& functor, matlab::data::Array& a) {
             typename functor_t::return_type;
-            {functor.template dense<std::complex<double>>(static_cast<matlab::data::SparseArray<std::complex<double>>>(a))} -> std::same_as<typename functor_t::return_type>;
+            {functor.template sparse<std::complex<double>>(static_cast<matlab::data::SparseArray<std::complex<double>>>(a))} -> std::same_as<typename functor_t::return_type>;
         };
 
         /**

@@ -25,10 +25,11 @@ namespace Moment::mex::functions {
     enum class MEXEntryPointID : int {
         Unknown = 0,
         AlphabeticName,
-        ApplyValues,
+        ApplyMomentRules,
         CollinsGisin,
         Complete,
         Conjugate,
+        CreateMomentRules,
         Echo,
         ExtendedMatrix,
         GenerateBasis,

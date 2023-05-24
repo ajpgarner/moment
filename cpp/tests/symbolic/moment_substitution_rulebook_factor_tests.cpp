@@ -29,23 +29,6 @@
 #include "symbolic_matrix_helpers.h"
 
 namespace Moment::Tests {
-//
-//    void assert_matching_rules(const MomentSubstitutionRulebook &book,
-//                               const std::vector<MomentSubstitutionRule> &expected) {
-//        ASSERT_EQ(book.size(), expected.size());
-//        ASSERT_EQ(book.empty(), expected.empty());
-//
-//        size_t rule_number = 0;
-//        auto expected_iter = expected.begin();
-//        for (const auto &[id, rule]: book) {
-//            EXPECT_EQ(id, expected_iter->LHS()) << "Rule #" << rule_number;
-//            EXPECT_EQ(rule.LHS(), expected_iter->LHS()) << "Rule #" << rule_number;
-//            EXPECT_EQ(rule.RHS(), expected_iter->RHS()) << "Rule #" << rule_number;
-//            ++expected_iter;
-//            ++rule_number;
-//        }
-//    }
-
 
     class Symbolic_MomentSubstitutionRulebookFactor : public ::testing::Test {
     private:

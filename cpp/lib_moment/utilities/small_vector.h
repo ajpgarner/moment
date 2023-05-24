@@ -66,6 +66,9 @@ namespace Moment {
          * @param rhs Source.
          */
         constexpr SmallVector& operator=(const SmallVector& rhs) {
+            if (this == &rhs) {
+                return *this;
+            }
             this->_size = rhs._size;
             this->_capacity = rhs._capacity;
             if (rhs.heap_data) {
@@ -75,6 +78,7 @@ namespace Moment {
             } else {
                 std::copy(rhs.stack_data.cbegin(), rhs.stack_data.cbegin() + rhs._size, this->stack_data.begin());
                 this->data_start = this->stack_data.data();
+                this->heap_data.reset();
             }
             return *this;
         }
@@ -106,6 +110,9 @@ namespace Moment {
          * Move assignment
          */
          constexpr SmallVector& operator=(SmallVector&& rhs) noexcept {
+             // No aliasing
+             assert(&rhs != this);
+
              if (rhs.heap_data) {
                  // Move and overwrite LHS
                  this->heap_data = std::move(rhs.heap_data); // release existing ptr.
@@ -118,9 +125,10 @@ namespace Moment {
                  rhs._size = 0;
                  rhs._capacity = SmallN;
              } else {
-                 // Stack data must be copied
+                 // Stack data must be moved
                  std::move(rhs.stack_data.begin(), rhs.stack_data.begin() + rhs._size,
                            this->stack_data.begin());
+                 this->heap_data.reset();
                  this->data_start = this->stack_data.data();
                  this->_size = rhs._size;
                  this->_capacity = SmallN;

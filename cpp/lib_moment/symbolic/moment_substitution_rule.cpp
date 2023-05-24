@@ -31,6 +31,7 @@ namespace Moment {
             std::stringstream errSS;
             errSS << "Polynomial rule \"" << rhs << " == 0\" is ill-formed: it implies a scalar value is zero.";
             throw errors::invalid_moment_rule{lhs, errSS.str()};
+
         }
 
         // Extract information about last element

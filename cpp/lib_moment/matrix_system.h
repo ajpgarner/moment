@@ -25,6 +25,8 @@ namespace Moment {
     class SubstitutionList;
 
     class WordList;
+    class MomentSubstitutionRulebook;
+
 
     class Matrix;
 
@@ -59,6 +61,9 @@ namespace Moment {
 
         /** The index (in this->matrices) of generated localizing matrices */
         std::map<LocalizingMatrixIndex, ptrdiff_t> localizingMatrixIndices;
+
+        /** Any moment-substitution rule-sets */
+        std::vector<std::unique_ptr<MomentSubstitutionRulebook>> rulebooks;
 
     private:
         /** Read-write mutex for matrices */
@@ -197,15 +202,44 @@ namespace Moment {
         /**
          * Clone a matrix, with substituted values.
          * Will lock until all read locks have expired - so do NOT first call for a read lock...!
+         * @param matrix_index The ID of the matrix to clone.
+         * @param rule_index The ID of the rulebook to apply.
+         * @return Index
          */
         std::pair<size_t, class Matrix&>
-        clone_and_substitute(size_t matrix_index, std::unique_ptr<SubstitutionList> list);
+        clone_and_substitute(size_t matrix_index, size_t rule_index);
 
         /**
          * Ensure that all symbols up to a particular length are defined in system, and mapped.
          * @return True if new symbols were created.
          */
         bool generate_dictionary(size_t word_length);
+
+        /**
+         * Create a list of moment substitution rules.
+         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
+         */
+        std::pair<size_t, MomentSubstitutionRulebook&> create_rulebook();
+
+        /**
+         * Import a list of moment substitution rules
+         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
+         */
+        std::pair<size_t, MomentSubstitutionRulebook&>
+        create_rulebook(std::unique_ptr<MomentSubstitutionRulebook> rulebook);
+
+        /**
+         * Get a list of moment substitution rules.
+         * For thread safety, call for a read lock first.
+         */
+        [[nodiscard]] MomentSubstitutionRulebook& rulebook(size_t index);
+
+        /**
+         * Get a list of moment substitution rules
+         * For thread safety, call for a read lock first.
+         */
+        [[nodiscard]] const MomentSubstitutionRulebook& rulebook(size_t index) const;
+
 
         /**
          * Gets a read (shared) lock for accessing data within the matrix system.
@@ -220,6 +254,7 @@ namespace Moment {
         [[nodiscard]] auto get_write_lock() {
             return std::unique_lock{this->rwMutex};
         }
+
 
     protected:
         /**

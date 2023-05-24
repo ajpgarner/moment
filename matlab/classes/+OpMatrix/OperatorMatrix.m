@@ -93,27 +93,16 @@ classdef OperatorMatrix < handle
     
     %% Apply values
     methods        
-        function val = ApplyValues(obj, arg_A, arg_B)
-            if nargin == 2 && isa(arg_A, 'cell')
-                value_list = arg_A;
-            elseif nargin == 3
-                if length(arg_A) ~= length(arg_B)
-                    error('Symbol list must match value list in length.')
-                end
-                value_list = cell(1, length(arg_A));
-                for index = 1:length(arg_A)
-                    value_list{index} = {uint64(arg_A(index)),...
-                                         double(arg_B(index))};
-                end
-            else
-                error(['ApplyValues takes either a cell array of pairs,'...
-                       ' or an array of symbol ids and an array of values.']);
+        function val = ApplyRules(obj, rulebook )
+            arguments
+                obj (1,1) OpMatrix.OperatorMatrix
+                rulebook (1,1) MomentRuleBook
             end
-            
+           
             val = OpMatrix.OperatorMatrix(obj.MatrixSystem);
             [val.Index, val.Dimension] = ...
-                mtk('apply_values', obj.MatrixSystem.RefId, obj.Index, ...
-                value_list);
+                mtk('apply_moment_rules', obj.MatrixSystem.RefId, ...
+                obj.Index, rulebook.RuleBookId);
         end 
     end    
     

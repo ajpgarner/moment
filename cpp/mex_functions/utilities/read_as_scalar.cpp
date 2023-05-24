@@ -124,9 +124,6 @@ namespace Moment::mex {
 
         };
 
-        static_assert(concepts::VisitorHasRealDense<IntReaderVisitor<long>>);
-        static_assert(concepts::VisitorHasString<IntReaderVisitor<long>>);
-
         template<std::floating_point output_type>
         class FloatReaderVisitor {
 
@@ -175,14 +172,50 @@ namespace Moment::mex {
                     ss >> output;
                     return output;
                 } catch (std::exception& e) {
-                    throw errors::unreadable_scalar{errors::could_not_convert, "Could not convert string to integer."};
+                    throw errors::unreadable_scalar{errors::could_not_convert,
+                                                    "Could not convert string to floating point."};
                 }
             }
+        };
+
+        template<std::floating_point float_type>
+        class ComplexReaderVisitor {
+
+        public:
+            using return_type = std::complex<float_type>;
+
+        public:
+            explicit ComplexReaderVisitor() = default;
+
+            /**
+              * Read through matlab dense numerical matrix, and identify pairs of elements that are not symmetric.
+              * @tparam datatype The data array type
+              * @param data The data array
+              * @return A vector of non-matching elements, in canonical form.
+              */
+            template<std::convertible_to<return_type> datatype>
+            return_type dense(const matlab::data::TypedArray<datatype> &data) {
+                if (data.isEmpty()) {
+                    throw errors::unreadable_scalar{errors::empty_array, "Unexpected empty array."};
+                }
+                if (data.getNumberOfElements() > 1) {
+                    throw errors::unreadable_scalar{errors::not_a_scalar, "Not a scalar."};
+                }
+
+                // Just directly cast:
+                return static_cast<return_type>(*data.begin());
+            }
+
 
         };
 
+        static_assert(concepts::VisitorHasRealDense<IntReaderVisitor<long>>);
+        static_assert(concepts::VisitorHasString<IntReaderVisitor<long>>);
         static_assert(concepts::VisitorHasRealDense<FloatReaderVisitor<double>>);
         static_assert(concepts::VisitorHasString<FloatReaderVisitor<double>>);
+        static_assert(concepts::VisitorHasRealDense<ComplexReaderVisitor<double>>);
+        static_assert(concepts::VisitorHasComplexDenseFloat<ComplexReaderVisitor<double>>);
+        static_assert(!concepts::VisitorHasComplexSparse<ComplexReaderVisitor<double>>);
 
         template<std::integral output_type>
         output_type do_read_as_scalar(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
@@ -192,6 +225,13 @@ namespace Moment::mex {
         template<std::floating_point output_type>
         output_type do_read_as_scalar(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
             return DispatchVisitor(engine, input, FloatReaderVisitor<output_type>{});
+        }
+
+
+        template<std::floating_point output_type>
+        std::complex<output_type> do_read_as_complex_scalar(matlab::engine::MATLABEngine &engine,
+                                                           const matlab::data::Array& input) {
+            return DispatchVisitor(engine, input, ComplexReaderVisitor<output_type>{});
         }
     }
 
@@ -254,6 +294,14 @@ namespace Moment::mex {
         return do_read_as_scalar<double>(engine, input);
     }
 
+    std::complex<float> read_as_complex_float(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return do_read_as_complex_scalar<float>(engine, input);
+    }
+
+    std::complex<double> read_as_complex_double(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return do_read_as_complex_scalar<double>(engine, input);
+    }
+
     bool castable_to_scalar_int(const matlab::data::Array &input) {
         if (input.isEmpty()) {
             return false;
@@ -284,5 +332,33 @@ namespace Moment::mex {
     bool castable_to_scalar_float(const matlab::data::Array &input) {
         // Same criteria as int:
         return castable_to_scalar_int(input);
+    }
+
+    bool castable_to_complex_scalar_float(const matlab::data::Array &input) {
+        if (input.isEmpty()) {
+            return false;
+        }
+
+        if (input.getNumberOfElements() != 1) {
+            return false;
+        }
+
+        switch(input.getType()) {
+            case matlab::data::ArrayType::DOUBLE:
+            case matlab::data::ArrayType::SINGLE:
+            case matlab::data::ArrayType::INT8:
+            case matlab::data::ArrayType::UINT8:
+            case matlab::data::ArrayType::INT16:
+            case matlab::data::ArrayType::UINT16:
+            case matlab::data::ArrayType::INT32:
+            case matlab::data::ArrayType::UINT32:
+            case matlab::data::ArrayType::INT64:
+            case matlab::data::ArrayType::UINT64:
+            case matlab::data::ArrayType::COMPLEX_SINGLE:
+            case matlab::data::ArrayType::COMPLEX_DOUBLE:
+                return true;
+            default:
+                return false;
+        }
     }
 }

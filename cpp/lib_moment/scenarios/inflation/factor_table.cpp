@@ -271,8 +271,22 @@ namespace Moment::Inflation {
     }
 
     SymbolCombo FactorTable::try_multiply(const SymbolComboFactory &factory,
-                                          const SymbolCombo &lhs, const SymbolCombo &rhs) const {
+                                          const SymbolCombo& lhs, const SymbolCombo &rhs) const {
+        // Multiply by zero is zero.
+        if (rhs.empty()) {
+            return SymbolCombo::Zero();
+        }
 
+        // Monomial?
+        if (rhs.is_monomial()) {
+            const auto& rhs_mono = rhs.back();
+            // Scalar?
+            if (rhs_mono.id == 1) {
+                return lhs * rhs_mono.factor;
+            }
+        }
+
+        // General multiplication:
         SymbolCombo::storage_t output;
         output.reserve(lhs.size() * rhs.size());
 
@@ -284,7 +298,6 @@ namespace Moment::Inflation {
                     badSS << lhs_expr << " * " << rhs_expr;
                     throw errors::unknown_symbol{badSS.str()};
                 }
-
                 auto combined_symbol_id = this->try_multiply(lhs_expr.id, rhs_expr.id);
                 auto combined_factor = lhs_expr.factor * rhs_expr.factor;
                 output.emplace_back(combined_symbol_id, combined_factor, false);

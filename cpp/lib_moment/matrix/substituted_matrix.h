@@ -9,7 +9,6 @@
 #include "monomial_matrix.h"
 #include "polynomial_matrix.h"
 
-#include "symbolic/substitution_list.h"
 #include "symbolic/moment_substitution_rulebook.h"
 
 
@@ -18,18 +17,14 @@ namespace Moment {
     /**
      * Substituted monomial matrix
      */
-    class SubstitutedMatrix : public MonomialMatrix {
+    class SubstitutedMatrix {
     public:
-        const MonomialMatrix& source_matrix;
+        const Matrix& source_matrix;
+        const MomentSubstitutionRulebook& rules;
 
-    private:
-        std::unique_ptr<SubstitutionList> sub_list;
     public:
-        SubstitutedMatrix(const Context& context, SymbolTable& symbols,
-                          const MonomialMatrix& source_matrix, std::unique_ptr<SubstitutionList> substitutions);
-
-        const SubstitutionList& substitutions() const { return *sub_list; }
-
+        explicit SubstitutedMatrix(const Matrix& source, const MomentSubstitutionRulebook& rules) noexcept
+            : source_matrix{source}, rules{rules} { }
     };
 
 
@@ -37,11 +32,7 @@ namespace Moment {
      * Substituted monomial matrix.
      * Source matrix is always monomial.
      */
-    class MonomialSubstitutedMatrix : public MonomialMatrix {
-    public:
-        const Matrix& source_matrix;
-        const MomentSubstitutionRulebook& rules;
-
+    class MonomialSubstitutedMatrix : public MonomialMatrix, public SubstitutedMatrix {
     public:
         MonomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
                                   const MonomialMatrix& source_matrix);
@@ -50,8 +41,8 @@ namespace Moment {
         /**
          * Forms a new monomial matrix by element-wise application of MSRB onto Matrix data.
          * @param msrb The rulebook of substitutions.
-         * @param matrix The monomial matrix
-         * @return
+         * @param matrix The raw monomial source matrix.
+         * @return Newly created raw monomial matrix.
          */
         static std::unique_ptr<SquareMatrix<SymbolExpression>>
         reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<SymbolExpression>& matrix);
@@ -63,11 +54,7 @@ namespace Moment {
      * Substituted polynomial matrix.
      * Source matrix can be monomial or polynomial.
      */
-    class PolynomialSubstitutedMatrix : public PolynomialMatrix {
-    public:
-        const Matrix& source_matrix;
-        const MomentSubstitutionRulebook& rules;
-
+    class PolynomialSubstitutedMatrix : public PolynomialMatrix, public SubstitutedMatrix {
     public:
         PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
                                     const MonomialMatrix& source_matrix);

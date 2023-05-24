@@ -1,5 +1,5 @@
 /**
- * apply_values.h
+ * apply_momnet_rules.h
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -13,13 +13,13 @@
 
 namespace Moment::mex::functions  {
 
-    struct ApplyValuesParams : public OperatorMatrixParams {
+    struct ApplyMomentRulesParams : public OperatorMatrixParams {
     public:
         uint64_t matrix_index = 0;
-        std::map<symbol_name_t, double> substitutions;
+        uint64_t rules_index = 0;
 
     public:
-        explicit ApplyValuesParams(SortedInputs&& inputs) : OperatorMatrixParams(std::move(inputs)) { }
+        explicit ApplyMomentRulesParams(SortedInputs&& inputs) : OperatorMatrixParams(std::move(inputs)) { }
 
     protected:
         void extra_parse_params() final;
@@ -34,17 +34,13 @@ namespace Moment::mex::functions  {
 
         /** Correct format */
         [[nodiscard]] std::string input_format() const final {
-            return "[matrix system ID, matrix index, substitution list]";
+            return "[matrix system ID, matrix index, rulebook index]";
         }
-
-        static std::map<symbol_name_t, double>
-        read_substitution_cell(matlab::engine::MATLABEngine &engine, const std::string &param_str,
-                               const matlab::data::Array &input);
     };
 
-    class ApplyValues : public Moment::mex::functions::OperatorMatrix<ApplyValuesParams, MEXEntryPointID::ApplyValues> {
+    class ApplyMomentRules : public Moment::mex::functions::OperatorMatrix<ApplyMomentRulesParams, MEXEntryPointID::ApplyMomentRules> {
     public:
-        ApplyValues(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
+        ApplyMomentRules(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
     protected:
         std::pair<size_t, const Moment::Matrix&>

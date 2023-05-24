@@ -536,5 +536,11 @@ namespace Moment::Tests {
                                                 SymbolExpression{maybe_ABC.value(), 1.0}});
         EXPECT_EQ(factors.try_multiply(factory, one_plus_A, one_plus_B), expected_IplusA_IplusB);
         EXPECT_EQ(factors.try_multiply(factory, expected_IplusA_IplusB, one_plus_C), expected_IA_IB_IC);
+
+        const auto expected_one_plus_A_times05 = factory({SymbolExpression{1, 0.5}, SymbolExpression{2, 0.5}});
+        EXPECT_EQ(factors.try_multiply(factory, one_plus_A, SymbolCombo::Scalar(0.5)),
+                  expected_one_plus_A_times05 );
+
+
     }
 }

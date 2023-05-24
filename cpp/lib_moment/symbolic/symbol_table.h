@@ -67,17 +67,46 @@ namespace Moment {
 
         UniqueSequence(OperatorSequence sequence, OperatorSequence conjSequence);
 
+        /** True if a concrete operator sequence is associated with this symbol */
+        [[nodiscard]] constexpr bool has_sequence() const noexcept { return this->opSeq.has_value(); }
+
+        /** The symbol ID */
         [[nodiscard]] constexpr symbol_name_t Id() const noexcept { return this->id; }
 
-        [[nodiscard]] constexpr size_t hash() const noexcept { return this->opSeq.value().hash(); }
+        /**
+         * The hash associated with the operator sequence.
+         * Undefined behaviour if no operator sequence associated with this entry.
+         */
 
+        [[nodiscard]] constexpr size_t hash() const noexcept {
+            assert(this->opSeq.has_value());
+            return this->opSeq.value().hash();
+        }
+
+        /**
+         * The hash associated with the operator sequence's complex conjugate..
+         * Undefined behaviour if no operator sequence associated with this entry.
+         */
         [[nodiscard]] constexpr size_t hash_conj() const noexcept {
+            assert(this->conjSeq.has_value() || this->opSeq.has_value());
             return this->conjSeq.has_value() ? this->conjSeq->hash() : this->opSeq.value().hash();
         }
 
-        [[nodiscard]] constexpr const OperatorSequence& sequence() const noexcept { return this->opSeq.value(); }
+        /**
+         * The operator sequence associated with this entry.
+         * Undefined behaviour if no operator sequence associated with this entry.
+         */
+        [[nodiscard]] constexpr const OperatorSequence& sequence() const noexcept {
+            assert(this->opSeq.has_value());
+            return this->opSeq.value();
+        }
 
+        /**
+         * The operator sequence associated with this entry's complex conjugate.
+         * Undefined behaviour if no operator sequence associated with this entry.
+         */
         [[nodiscard]] constexpr const OperatorSequence& sequence_conj() const noexcept {
+            assert(this->conjSeq.has_value() || this->opSeq.has_value());
             return this->hermitian ? opSeq.value() : this->conjSeq.value();
         }
 
@@ -110,6 +139,10 @@ namespace Moment {
             return {this->real_index, this->img_index};
         }
 
+        /**
+         * Named constructor for entry associated with '0'.
+         * @param context The operator context.
+         */
         inline static UniqueSequence Zero(const Context& context) {
             auto us = UniqueSequence{OperatorSequence::Zero(context)};
             us.id = 0;
@@ -118,6 +151,10 @@ namespace Moment {
             return us;
         }
 
+        /**
+         * Named constructor for entry associated with '1'.
+         * @param context The operator context.
+         */
         inline static UniqueSequence Identity(const Context& context) {
             auto us = UniqueSequence{OperatorSequence::Identity(context)};
             us.id = 1;

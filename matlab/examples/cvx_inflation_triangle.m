@@ -17,8 +17,12 @@ disp(moment_matrix.SequenceMatrix);
 % Impose P(000) = P(111) = 1/2
 primal_symbols = triangle.ObservablesToSymbols(...
         {[1], [2], [3], [1 2], [1 3], [2 3], [1 2 3]});
-subbed_matrix = moment_matrix.ApplyValues(primal_symbols, ...
-    [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
+    
+substitutions = MomentRuleBook.ScalarSubstitutions(triangle, ...
+                    primal_symbols, ...
+                    [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
+    
+subbed_matrix = substitutions.Apply(moment_matrix);
 disp(subbed_matrix.SequenceMatrix);
 
 % Solve
