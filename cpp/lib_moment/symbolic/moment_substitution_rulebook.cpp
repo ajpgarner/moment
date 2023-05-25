@@ -149,19 +149,8 @@ namespace Moment {
             ++update_iter;
             while (update_iter != this->rules.end()) {
                 auto& prior_rule = *update_iter;
-                auto reduce_iter = this->first_matching_rule(prior_rule.second.RHS());
-                if (reduce_iter != this->rules.crend()) {
-                    // Rule needs replacing
-                    update_iter->second = MomentSubstitutionRule(prior_rule.second.LHS(),
-                                                                 this->reduce_with_rule_hint(reduce_iter, prior_rule.second.RHS()));
-                    assert(update_iter->first == update_iter->second.LHS());
-                }
-                if (update_iter->second.is_trivial()) {
-                    update_iter = this->rules.erase(update_iter);
-                    ++rules_removed;
-                } else {
-                    ++update_iter;
-                }
+                this->reduce_in_place(prior_rule.second.rhs);
+                 ++update_iter;
             }
 
             ++rules_attempted;
@@ -260,32 +249,34 @@ namespace Moment {
         return this->complete();
     }
 
-    std::map<symbol_name_t, MomentSubstitutionRule>::const_reverse_iterator
-    MomentSubstitutionRulebook::first_matching_rule(const SymbolCombo &combo) const noexcept {
-        for (auto iter = this->rules.crbegin(); iter != this->rules.crend(); ++iter) {
-            if (iter->second.matches(combo)) {
-                return iter;
-            }
+    bool MomentSubstitutionRulebook::reduce_in_place(Moment::SymbolCombo& polynomial) const {
+        SymbolCombo::storage_t potential_output;
+        bool ever_matched = false;
+        for (auto poly_iter = polynomial.begin(); poly_iter != polynomial.end(); ++poly_iter) {
+            auto rule_iter = this->rules.find(poly_iter->id);
+
+            // Rule match?
+            if (rule_iter != rules.cend()) {
+                const auto& rule = rule_iter->second;
+                if (!ever_matched) {
+                    potential_output.reserve(polynomial.size() + rule_iter->second.RHS().size() - 1);
+                    std::copy(polynomial.begin(), poly_iter, std::back_inserter(potential_output));
+                    ever_matched = true;
+                }
+                rule.append_transformed(*poly_iter, std::back_inserter(potential_output));
+            } else {
+                // No match, but we still need to copy:
+                if (ever_matched) {
+                    potential_output.emplace_back(*poly_iter);
+                }
+            };
         }
 
-        // No match
-        return this->rules.crend();
-    }
-
-
-    SymbolCombo MomentSubstitutionRulebook::reduce_with_rule_hint(
-            std::map<symbol_name_t, MomentSubstitutionRule>::const_reverse_iterator rule_hint,
-            Moment::SymbolCombo output) const {
-        // Iterate, starting with supplied hint
-        for (; rule_hint != this->rules.crend(); ++rule_hint) {
-            const auto& [lhs, rule] = *rule_hint;
-            auto [matches, hint] = rule.match_info(output);
-            if (matches > 0) {
-                output = rule.reduce_with_hint(*this->factory, output, hint, matches == 2);
-            }
+        // If match made, replace rule
+        if (ever_matched) {
+            polynomial = (*this->factory)(std::move(potential_output));
         }
-
-        return output;
+        return ever_matched;
     }
 
     SymbolExpression MomentSubstitutionRulebook::reduce_monomial(SymbolExpression expr) const {

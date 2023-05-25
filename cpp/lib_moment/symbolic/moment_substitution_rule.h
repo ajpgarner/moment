@@ -9,6 +9,8 @@
 
 #include "symbol_combo.h"
 
+#include <algorithm>
+
 namespace Moment {
     class SymbolTable;
 
@@ -101,6 +103,28 @@ namespace Moment {
          */
         [[nodiscard]] inline bool is_trivial() const noexcept { return this->lhs == 0; }
 
+        /**
+         * Write out the RHS of the rule, up to conjugation and factors.
+         */
+        template<typename inserter_iter_t>
+        inline void append_transformed(const SymbolExpression& match, inserter_iter_t insert_iter) const {
+            assert(match.id == this->lhs);
+            if (match.conjugated) {
+                std::transform(rhs.begin(), rhs.end(), insert_iter,
+                               [&match](SymbolExpression src) {
+                                   src.conjugated = !src.conjugated;
+                                   src.factor = match.factor * std::conj(src.factor);
+                                   return src;
+                               });
+            } else {
+                std::transform(rhs.begin(), rhs.end(), insert_iter,
+                               [&match](SymbolExpression src) {
+                                   src.factor *= match.factor;
+                                   return src;
+                               });
+            }
+        }
 
+        friend class MomentSubstitutionRulebook;
     };
 }

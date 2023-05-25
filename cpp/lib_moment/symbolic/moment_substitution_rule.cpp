@@ -113,20 +113,8 @@ namespace Moment {
 
         // Copy RHS, with appropriate transformations
         SymbolCombo::storage_t output_sequence;
-        if (expr.conjugated) {
-            std::transform(this->rhs.begin(), this->rhs.end(), std::back_inserter(output_sequence),
-                           [&expr](SymbolExpression src) {
-                               src.conjugated = !src.conjugated;
-                               src.factor = expr.factor * std::conj(src.factor);
-                               return src;
-                           });
-        } else {
-            std::transform(this->rhs.begin(), this->rhs.end(), std::back_inserter(output_sequence),
-                           [&expr](SymbolExpression src) {
-                               src.factor *= expr.factor;
-                               return src;
-                           });
-        }
+        this->append_transformed(expr, std::back_inserter(output_sequence));
+
         // Construct as combo
         return factory(std::move(output_sequence));
     }
@@ -174,34 +162,12 @@ namespace Moment {
         std::copy(combo.begin(), inject_iter, std::back_inserter(output_sequence));
 
         // Copy RHS, with transformations
-        const auto& matchExpr = *inject_iter;
-        if (matchExpr.conjugated) {
-            std::transform(rhs.begin(), rhs.end(), std::back_inserter(output_sequence),
-                           [&matchExpr](SymbolExpression src) {
-                src.conjugated = !src.conjugated;
-                src.factor = matchExpr.factor * std::conj(src.factor);
-                return src;
-            });
-        } else {
-            std::transform(rhs.begin(), rhs.end(), std::back_inserter(output_sequence),
-                           [&matchExpr](SymbolExpression src) {
-               src.factor *= matchExpr.factor;
-               return src;
-           });
-        }
+        this->append_transformed(*inject_iter, std::back_inserter(output_sequence));
 
         // Do we also have to transform complex conjugate?
         if (twice) {
             assert(inject_iter+1 != combo.end());
-            const auto& nextMatchExpr = *(inject_iter+1);
-            assert(nextMatchExpr.conjugated);
-
-            std::transform(rhs.begin(), rhs.end(), std::back_inserter(output_sequence),
-                           [&matchExpr](SymbolExpression src) {
-                               src.conjugated = !src.conjugated;
-                               src.factor = matchExpr.factor * std::conj(src.factor);
-                               return src;
-                           });
+            this->append_transformed(*(inject_iter+1), std::back_inserter(output_sequence));
         }
 
         // Rest of LHS string

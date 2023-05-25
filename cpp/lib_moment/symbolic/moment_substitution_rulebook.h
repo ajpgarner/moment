@@ -111,23 +111,17 @@ namespace Moment {
         size_t infer_additional_rules_from_factors(const MatrixSystem& ms);
 
         /**
-         * Returns iterator to first rule that would reduce sequence.
+         * Apply all known rules to SymbolCombo.
+         * @return true if rules were applied.
          */
-        [[nodiscard]] std::map<symbol_name_t, MomentSubstitutionRule>::const_reverse_iterator
-        first_matching_rule(const SymbolCombo& combo) const noexcept;
-
-        /**
-         * Start reduction from hint onwards (will not apply any reductions before hint).
-         */
-        [[nodiscard]] SymbolCombo reduce_with_rule_hint(
-                std::map<symbol_name_t, MomentSubstitutionRule>::const_reverse_iterator rule_hint,
-                SymbolCombo combo) const;
+        bool reduce_in_place(SymbolCombo& combo) const;
 
         /**
          * Apply all known rules to SymbolCombo.
          */
         [[nodiscard]] SymbolCombo reduce(SymbolCombo combo) const {
-            return this->reduce_with_rule_hint(this->rules.crbegin(), std::move(combo));
+            this->reduce_in_place(combo);
+            return combo;
         }
 
         /**
