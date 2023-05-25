@@ -46,6 +46,7 @@ add_library(lib_moment
         scenarios/inflation/inflation_explicit_symbols.cpp
         scenarios/inflation/inflation_implicit_symbols.cpp
         scenarios/inflation/inflation_matrix_system.cpp
+        scenarios/inflation/inflation_osg.cpp
         scenarios/inflation/observable.cpp
         scenarios/inflation/observable_variant_index.cpp
         scenarios/inflation/source.cpp

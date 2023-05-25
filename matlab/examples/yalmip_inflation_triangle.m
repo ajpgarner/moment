@@ -12,7 +12,6 @@ triangle = InflationScenario(inflation_level, ...
  
 moment_matrix = triangle.MakeMomentMatrix(moment_matrix_level);
 extended_matrix = triangle.MakeExtendedMomentMatrix(moment_matrix_level);
-                 
 
 %% Apply values
 distribution = make_distribution(0.9);

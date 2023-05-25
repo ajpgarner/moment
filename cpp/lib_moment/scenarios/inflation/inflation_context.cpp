@@ -6,6 +6,8 @@
  */
 #include "inflation_context.h"
 
+#include "inflation_osg.h"
+
 #include "utilities/alphabetic_namer.h"
 #include "utilities/dynamic_bitset.h"
 #include "utilities/small_vector.h"
@@ -636,6 +638,9 @@ namespace Moment::Inflation {
         return ss.str();
     }
 
+    std::unique_ptr<OperatorSequenceGenerator> InflationContext::new_osg(size_t word_length) const {
+        return std::make_unique<InflationOperatorSequenceGenerator>(*this, word_length);
+    }
 
 
 }

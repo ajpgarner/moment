@@ -291,5 +291,10 @@ namespace Moment::Inflation {
 
 
         std::optional<OperatorSequence> get_if_canonical(const sequence_storage_t &sequence) const override;
+
+        friend class InflationOperatorSequenceGenerator;
+
+    protected:
+        std::unique_ptr<OperatorSequenceGenerator> new_osg(size_t word_length) const override;
     };
 }

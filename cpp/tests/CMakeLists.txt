@@ -66,6 +66,7 @@ add_executable(moment_tests
     utilities/shortlex_hasher_tests.cpp
     utilities/small_vector_tests.cpp
     utilities/square_matrix_tests.cpp
+    utilities/triangular_index_iterator_tests.cpp
     utilities/utf_conversion_tests.cpp
     utilities/variable_chunk_range_tests.cpp
 )

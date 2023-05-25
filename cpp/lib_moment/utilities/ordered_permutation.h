@@ -8,13 +8,15 @@
 
 #include <cassert>
 #include <cstdint>
+#include <iterator>
+#include <vector>
 
 namespace Moment {
 
-    template<class index_t>
+    template<class index_t, typename storage_t = std::vector<index_t>>
     class OrderedPermutationIterator {
     public:
-        using index_list = std::vector<index_t>;
+        using index_list = storage_t;
 
         /** Total number of objects in set. */
         const index_t N;
