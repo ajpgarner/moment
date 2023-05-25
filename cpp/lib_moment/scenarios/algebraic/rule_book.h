@@ -107,6 +107,9 @@ namespace Moment::Algebraic {
         /** Reduce rule, to best of knowledge, using rules in set */
         [[nodiscard]] MonomialSubstitutionRule reduce(const MonomialSubstitutionRule& input) const;
 
+        /** True, if the supplied operator sequence could be reduced by a rule in the set */
+        [[nodiscard]] bool can_reduce(const sequence_storage_t& input) const;
+
         /**
          * Simplify any rules in the set that can be reduced by other rules.
          * @param logger Pointer (may be null) to class logging which rules are reduced.

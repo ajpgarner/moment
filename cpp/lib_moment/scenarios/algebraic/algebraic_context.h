@@ -110,6 +110,8 @@ namespace Moment::Algebraic {
 
         std::string format_raw_sequence(const sequence_storage_t &seq) const override;
 
+        std::optional<OperatorSequence> get_if_canonical(const sequence_storage_t &sequence) const override;
+
         /**
          * Access rule information.
          */

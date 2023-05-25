@@ -54,6 +54,15 @@ namespace Moment::Algebraic {
     AlgebraicContext::~AlgebraicContext() noexcept = default;
 
 
+    std::optional<OperatorSequence> AlgebraicContext::get_if_canonical(const sequence_storage_t &sequence) const {
+        if (this->rules.can_reduce(sequence)) {
+            return std::nullopt;
+        }
+        return std::make_optional<OperatorSequence>(OperatorSequence::ConstructRawFlag{},
+                                                    sequence, this->hash(sequence), *this);
+    }
+
+
     bool AlgebraicContext::attempt_completion(size_t max_attempts, RuleLogger * logger) {
         return this->rules.complete(max_attempts, logger);
     }
@@ -207,6 +216,7 @@ namespace Moment::Algebraic {
             std::make_unique<NameTable>(names), false, true, std::vector<MonomialSubstitutionRule>{}
         );
     }
+
 
 
 }

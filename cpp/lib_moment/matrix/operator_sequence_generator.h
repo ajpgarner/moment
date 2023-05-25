@@ -22,67 +22,40 @@ namespace Moment {
         std::vector<OperatorSequence> unique_sequences;
 
     public:
-        /** The minimum length of operator sequence */
-        const size_t min_sequence_length;
-
         /** The maximum length of operator sequence */
         const size_t max_sequence_length;
 
 
     protected:
+
+
         /**
-         * OSG template, from list of sequences.
-         * @param operatorContext
-         * @param min_length Shortest operator sequence
-         * @param max_length Longest  operator sequence
+         * Create a generator with a list of pre-calculated operator sequences
+         * @param operatorContext Reference to context
+         * @param max_length The longest sequence in the pre-computed list
+         * @param preComputedSequences An ordered list of operator sequences the generator will produce
          */
-        OperatorSequenceGenerator(const Context& operatorContext, std::vector<OperatorSequence>&& unique_sequences,
-                                  size_t min_length, size_t max_length)
-              : context{operatorContext}, unique_sequences{std::move(unique_sequences)},
-                min_sequence_length{min_length}, max_sequence_length{max_length} { }
+        OperatorSequenceGenerator(const Context& operatorContext, size_t max_length,
+                                  std::vector<OperatorSequence>&& preComputedSequences)
+                : context{operatorContext}, max_sequence_length{max_length},
+                  unique_sequences{std::move(preComputedSequences)} { }
+
 
     public:
         /**
-         * Generates all unique permutations of operator sequences, from min_length up to max_length.
+         * Generates all unique permutations of operator sequences, up to max_length.
          * @param operatorContext
-         * @param min_length Shortest operator sequence
          * @param max_length Longest  operator sequence
          */
-        OperatorSequenceGenerator(const Context& operatorContext, size_t min_length, size_t max_length)
-            : OperatorSequenceGenerator{operatorContext,
-                                        OperatorSequenceGenerator::build_generic_sequences(operatorContext,
-                                                                                           min_length, max_length),
-                                            min_length, max_length} {
-
-        }
+        OperatorSequenceGenerator(const Context& operatorContext, size_t max_length)
+            : OperatorSequenceGenerator{operatorContext, max_length,
+                OperatorSequenceGenerator::build_generic_sequences(operatorContext, max_length)} { }
 
         /**
          * Move construct OSG
          */
         OperatorSequenceGenerator(OperatorSequenceGenerator&& rhs) = default;
 
-
-        /**
-          * Generates all unique permutations of operator sequences, up to sequence_length.
-          * @param operatorContext
-          * @param sequence_length
-          */
-        OperatorSequenceGenerator(const Context& operatorContext, size_t sequence_length)
-            : OperatorSequenceGenerator(operatorContext, 0, sequence_length) { }
-
-
-        /**
-         * Create a generator with a list of pre-calculated operator sequences
-         * @param operatorContext Reference to context
-         * @param min_length The shortest sequence in the pre-computed list
-         * @param max_length The longest sequence in the pre-computed list
-         * @param preComputedSequences An ordered list of operator sequences the generator will produce
-         */
-        OperatorSequenceGenerator(const Context& operatorContext, size_t min_length, size_t max_length,
-                                  std::vector<OperatorSequence>&& preComputedSequences)
-                                  : context{operatorContext},
-                                    min_sequence_length{min_length}, max_sequence_length{max_length},
-                                    unique_sequences{std::move(preComputedSequences)} { }
 
 
         virtual ~OperatorSequenceGenerator() noexcept = default;
@@ -97,7 +70,7 @@ namespace Moment {
          * @return
          */
         static std::vector<OperatorSequence>
-        build_generic_sequences(const Context &context, size_t min_len, size_t max_len);
+        build_generic_sequences(const Context &context, size_t max_len);
 
 
         [[nodiscard]] constexpr auto begin() const noexcept { return unique_sequences.begin(); }

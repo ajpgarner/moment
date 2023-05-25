@@ -7,9 +7,11 @@
 #pragma once
 #include "integer_types.h"
 #include "hashed_sequence.h"
+#include "operator_sequence.h"
 #include "utilities/shortlex_hasher.h"
 
 #include <iosfwd>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -132,6 +134,10 @@ namespace Moment {
           */
          [[nodiscard]] WordList& osg_list() noexcept { return *this->word_list; }
 
+         /**
+          * Gets an operator sequence, but only if it is 'canonical' (i.e. no simplifications performed on it)
+          */
+         [[nodiscard]] virtual std::optional<OperatorSequence> get_if_canonical(const sequence_storage_t& sequence) const;
 
     protected:
         /**

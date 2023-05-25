@@ -121,7 +121,7 @@ namespace Moment::Locality {
 
     LocalityOperatorSequenceGenerator::LocalityOperatorSequenceGenerator(const LocalityContext &context,
                                                                          const size_t the_wl)
-            : OperatorSequenceGenerator{context, std::vector<OperatorSequence>{}, 0, the_wl}, localityContext{context} {
+            : OperatorSequenceGenerator{context, the_wl, std::vector<OperatorSequence>{}}, localityContext{context} {
         // Step 1: make party OSGs
         this->parties.reserve(localityContext.Parties.size());
         for (const auto& party : localityContext.Parties) {

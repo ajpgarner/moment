@@ -13,6 +13,18 @@
 
 namespace Moment::Tests {
     using namespace Moment::Locality;
+    namespace {
+        void assert_current_raw_value(const std::string& label,
+                                      const MultiOperatorIterator& iter,
+                                      const MultiOperatorIterator& iter_end,
+                                      const sequence_storage_t& expected_raw) {
+            ASSERT_NE(iter, iter_end) << label;
+            ASSERT_EQ(iter.raw().size(), expected_raw.size()) << label;
+            for (size_t idx = 0; idx < expected_raw.size(); ++idx) {
+                EXPECT_EQ(iter.raw()[idx], expected_raw[idx]) << label << ", index = " << idx;
+            }
+        }
+    }
 
     TEST(Operators_MultiOperatorIterator, Construct_NoLength) {
         LocalityContext collection{Party::MakeList(2, 2, 2)};
@@ -183,6 +195,68 @@ namespace Moment::Tests {
 
         ++iter;
         EXPECT_EQ(iter, iter_end);
+    }
+
+    TEST(Operators_MultiOperatorIterator, CHSH_RawValues) {
+        Locality::LocalityContext context{Locality::Party::MakeList(2, 2, 2)};
+        ASSERT_EQ(context.size(), 4);
+
+        MultiOperatorIterator iter_level0{context, 0};
+        auto iter_level0_end = MultiOperatorIterator::end_of(context, 0);
+        ASSERT_EQ(iter_level0, iter_level0_end);
+
+        MultiOperatorIterator iter_level1{context, 1};
+        auto iter_level1_end = MultiOperatorIterator::end_of(context, 1);
+
+        assert_current_raw_value("L1 #0", iter_level1, iter_level1_end, sequence_storage_t{0});
+        ++iter_level1;
+        assert_current_raw_value("L1 #1", iter_level1, iter_level1_end, sequence_storage_t{1});
+        ++iter_level1;
+        assert_current_raw_value("L1 #2", iter_level1, iter_level1_end, sequence_storage_t{2});
+        ++iter_level1;
+        assert_current_raw_value("L1 #3", iter_level1, iter_level1_end, sequence_storage_t{3});
+        ++iter_level1;
+        ASSERT_EQ(iter_level1, iter_level1_end);
+
+        MultiOperatorIterator iter_level2{context, 2};
+        auto iter_level2_end = MultiOperatorIterator::end_of(context, 2);
+
+        assert_current_raw_value("L2 #0", iter_level2, iter_level2_end, sequence_storage_t{0, 0});
+        ++iter_level2;
+        assert_current_raw_value("L2 #1", iter_level2, iter_level2_end, sequence_storage_t{0, 1});
+        ++iter_level2;
+        assert_current_raw_value("L2 #2", iter_level2, iter_level2_end, sequence_storage_t{0, 2});
+        ++iter_level2;
+        assert_current_raw_value("L2 #3", iter_level2, iter_level2_end, sequence_storage_t{0, 3});
+        ++iter_level2;
+        assert_current_raw_value("L2 #4", iter_level2, iter_level2_end, sequence_storage_t{1, 0});
+        ++iter_level2;
+        assert_current_raw_value("L2 #5", iter_level2, iter_level2_end, sequence_storage_t{1, 1});
+        ++iter_level2;
+        assert_current_raw_value("L2 #6", iter_level2, iter_level2_end, sequence_storage_t{1, 2});
+        ++iter_level2;
+        assert_current_raw_value("L2 #7", iter_level2, iter_level2_end, sequence_storage_t{1, 3});
+        ++iter_level2;
+        assert_current_raw_value("L2 #8", iter_level2, iter_level2_end, sequence_storage_t{2, 0});
+        ++iter_level2;
+        assert_current_raw_value("L2 #9", iter_level2, iter_level2_end, sequence_storage_t{2, 1});
+        ++iter_level2;
+        assert_current_raw_value("L2 #10", iter_level2, iter_level2_end, sequence_storage_t{2, 2});
+        ++iter_level2;
+        assert_current_raw_value("L2 #11", iter_level2, iter_level2_end, sequence_storage_t{2, 3});
+        ++iter_level2;
+        assert_current_raw_value("L2 #12", iter_level2, iter_level2_end, sequence_storage_t{3, 0});
+        ++iter_level2;
+        assert_current_raw_value("L2 #13", iter_level2, iter_level2_end, sequence_storage_t{3, 1});
+        ++iter_level2;
+        assert_current_raw_value("L2 #14", iter_level2, iter_level2_end, sequence_storage_t{3, 2});
+        ++iter_level2;
+        assert_current_raw_value("L2 #15", iter_level2, iter_level2_end, sequence_storage_t{3, 3});
+        ++iter_level2;
+
+        ASSERT_EQ(iter_level2, iter_level2_end);
+
+
     }
 
 

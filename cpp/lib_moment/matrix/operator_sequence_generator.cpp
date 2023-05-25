@@ -15,41 +15,32 @@
 namespace Moment {
 
     std::vector<OperatorSequence>
-    OperatorSequenceGenerator::build_generic_sequences(const Context &context,
-                                                       size_t min_sequence_length, size_t max_sequence_length) {
+    OperatorSequenceGenerator::build_generic_sequences(const Context &context, size_t max_sequence_length) {
 
-        std::map<size_t, OperatorSequence> build_set;
+        std::vector<OperatorSequence> output;
 
-        // If minimum length, include identity...
-        if (0 == min_sequence_length) {
-            build_set.emplace(1, OperatorSequence::Identity(context));
-        }
+        // Always include identity
+        output.emplace_back(OperatorSequence::Identity(context));
 
         // Iterate through various generators...
-        for (size_t sub_length = min_sequence_length; sub_length <= max_sequence_length; ++sub_length) {
-            for (auto seq : MultiOperatorRange{context, sub_length}) {
-                if (seq.zero()) {
-                    continue;
+        for (size_t sub_length = 1; sub_length <= max_sequence_length; ++sub_length) {
+            const auto oper_iter_end = MultiOperatorIterator::end_of(context, sub_length);
+            for (auto oper_iter = MultiOperatorIterator{context, sub_length}; oper_iter != oper_iter_end; ++oper_iter) {
+
+                auto seq = context.get_if_canonical(oper_iter.raw());
+                if (seq.has_value()) {
+                    output.emplace_back(std::move(seq.value()));
                 }
-                size_t hash = context.hash(seq);
-                build_set.emplace(hash, std::move(seq));
             }
         }
 
-        // Copy to output
-        std::vector<OperatorSequence> output;
-        output.reserve(build_set.size());
-        std::transform(build_set.begin(), build_set.end(), std::back_inserter(output),
-                       [](auto& swh) -> OperatorSequence&& { return std::move(swh.second); });
         return output;
     }
-
 
 
     OperatorSequenceGenerator OperatorSequenceGenerator::conjugate() const {
         std::vector<OperatorSequence> conjList{};
         conjList.reserve(this->unique_sequences.size());
-        size_t shortest = std::numeric_limits<size_t>::max();
         size_t longest = 0;
 
         for (const auto& seq : this->unique_sequences) {
@@ -58,14 +49,11 @@ namespace Moment {
             if (len > longest) {
                 longest = len;
             }
-            if (len < shortest) {
-                shortest = len;
-            }
 
             conjList.emplace_back(std::move(seqConj));
         }
 
-        return OperatorSequenceGenerator{this->context, shortest, longest, std::move(conjList)};
+        return OperatorSequenceGenerator{this->context, longest, std::move(conjList)};
     }
 
 

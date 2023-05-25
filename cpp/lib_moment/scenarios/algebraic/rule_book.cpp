@@ -7,6 +7,7 @@
 #include "rule_book.h"
 #include "algebraic_context.h"
 
+#include <algorithm>
 #include <iostream>
 
 namespace Moment::Algebraic {
@@ -205,6 +206,15 @@ namespace Moment::Algebraic {
         } else {
             return MonomialSubstitutionRule{std::move(rhs), std::move(lhs), negative};
         }
+    }
+
+    bool RuleBook::can_reduce(const sequence_storage_t &input) const {
+        // Check all rules vs. sequence
+        return std::any_of(this->monomialRules.cbegin(), this->monomialRules.cend(),
+                    [&input](const auto& key_rule_pair) {
+            auto match_iter = key_rule_pair.second.matches_anywhere(input.begin(), input.end());
+            return match_iter != input.end();
+        });
     }
 
 

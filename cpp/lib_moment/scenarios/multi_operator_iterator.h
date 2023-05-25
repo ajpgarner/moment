@@ -139,6 +139,7 @@ namespace Moment {
         }
 
 
+
     private:
 
         /** 'End' iterator, private c'tor */

@@ -61,6 +61,23 @@ namespace Moment {
         return (*this->word_list)[level];
     }
 
+    std::optional<OperatorSequence> Context::get_if_canonical(const sequence_storage_t &raw_sequence) const {
+        std::optional<OperatorSequence> output = std::make_optional<OperatorSequence>(raw_sequence, *this);
+        // Don't insert sequence if it is the wrong length
+        if (output->size() != raw_sequence.size()) {
+            return std::nullopt;
+        }
+
+        // Don't insert sequence if its hash does not match its raw hash
+        const auto raw_hash = this->hash(raw_sequence);
+        if (output->hash() != raw_hash) {
+            return std::nullopt;
+        }
+
+        // Otherwise, return
+        return output;
+    }
+
     std::string Context::format_sequence(const OperatorSequence &seq) const {
         // NB: May be overridden by subclasses!
 
@@ -121,8 +138,10 @@ namespace Moment {
         return ss.str();
     }
 
+
+
     std::unique_ptr<OperatorSequenceGenerator> Context::new_osg(const size_t word_length) const {
-        return std::make_unique<OperatorSequenceGenerator>(*this, 0, word_length);
+        return std::make_unique<OperatorSequenceGenerator>(*this, word_length);
     }
 
     std::ostream &operator<<(std::ostream &os, const Context &context) {

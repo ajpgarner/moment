@@ -43,7 +43,7 @@ namespace Moment::Symmetrized {
         auto& rep = *(this->representations.front());
 
         // Calculate expected fundamental representation size:
-        OperatorSequenceGenerator osg{context, 0, 1};
+        const OperatorSequenceGenerator& osg = context.operator_sequence_generator(1); // {context, 1};
         const auto expected_size = osg.size();
 
         // Throw exception is unexpected size
