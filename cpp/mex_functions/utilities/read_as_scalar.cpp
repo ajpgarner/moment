@@ -262,6 +262,10 @@ namespace Moment::mex {
         }
     }
 
+    bool read_as_boolean(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return do_read_as_scalar<bool>(engine, input);
+    }
+
     int16_t read_as_int16(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
         return do_read_as_scalar<int16_t>(engine, input);
     }
@@ -314,6 +318,7 @@ namespace Moment::mex {
         switch(input.getType()) {
             case matlab::data::ArrayType::DOUBLE:
             case matlab::data::ArrayType::SINGLE:
+            case matlab::data::ArrayType::LOGICAL:
             case matlab::data::ArrayType::INT8:
             case matlab::data::ArrayType::UINT8:
             case matlab::data::ArrayType::INT16:

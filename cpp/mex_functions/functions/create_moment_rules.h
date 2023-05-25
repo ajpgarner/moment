@@ -11,7 +11,7 @@
 #include "../mex_function.h"
 #include "integer_types.h"
 
-#include "import/read_monomial_rules.h"
+#include "import/read_symbol_combo.h"
 
 #include <map>
 #include <memory>
@@ -52,7 +52,11 @@ namespace Moment::mex::functions {
             ByOperatorHash
         } ordering = SymbolOrdering::ById;
 
+        /** Direct substitutions, if specified. */
         std::map<symbol_name_t, std::complex<double>> sub_list;
+
+        /** Direct set of symbol combos, if specified. */
+        std::vector<std::vector<raw_sc_data>> raw_symbol_polynomials;
 
     public:
         /** Constructor */
@@ -63,6 +67,7 @@ namespace Moment::mex::functions {
 
     private:
         void parse_as_sublist(const matlab::data::Array& data);
+        void parse_as_symbol_polynomials(const matlab::data::Array& data);
 
     };
 

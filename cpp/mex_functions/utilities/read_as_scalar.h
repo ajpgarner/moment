@@ -53,6 +53,7 @@ namespace Moment::mex {
 
     }
 
+    [[nodiscard]] bool read_as_boolean(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
     [[nodiscard]] int16_t  read_as_int16(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
     [[nodiscard]] uint16_t read_as_uint16(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
     [[nodiscard]] int32_t  read_as_int32(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
@@ -70,6 +71,11 @@ namespace Moment::mex {
 
     template<std::integral int_t>
     inline int_t read_as_scalar(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+
+    template<>
+    inline bool read_as_scalar<bool>(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
+        return read_as_boolean(engine, input);
+    }
 
     template<>
     inline int16_t read_as_scalar<int16_t>(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {

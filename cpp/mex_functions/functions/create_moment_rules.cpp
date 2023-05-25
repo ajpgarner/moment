@@ -69,7 +69,41 @@ namespace Moment::mex::functions {
         std::unique_ptr<MomentSubstitutionRulebook>
         create_rulebook_from_symbols(matlab::engine::MATLABEngine& engine,
                                      SymbolTable& symbols, const CreateMomentRulesParams& input) {
-            throw_error(engine, errors::internal_error, "create_rulebook_from_symbols not implemented.");
+
+            // Construct ordering
+            std::unique_ptr<SymbolComboFactory> factory = make_factory(engine, symbols, input.ordering);
+
+            // Range check data vs. symbol table
+            size_t idx = 0;
+            for (const auto& rule : input.raw_symbol_polynomials) {
+                size_t elem_idx = 0;
+                for (const auto& elem : rule) {
+                    if (elem.symbol_id >= symbols.size()) {
+                        std::stringstream errSS;
+                        errSS << "Symbol " << elem.symbol_id << " not found "
+                              << "(rule #" << (idx+1) << ",  element " << (elem_idx+1) << ").";
+                        throw_error(engine, errors::bad_param, errSS.str());
+                    }
+                    ++elem_idx;
+                }
+                ++idx;
+            }
+
+            // Read rules
+            std::vector<SymbolCombo> raw_polynomials;
+            raw_polynomials.reserve(input.raw_symbol_polynomials.size());
+            for (const auto& raw_rule : input.raw_symbol_polynomials) {
+                raw_polynomials.emplace_back(raw_sc_data_to_symbol_combo(*factory, raw_rule));
+            }
+
+            //Make empty rulebook
+            auto output = std::make_unique<MomentSubstitutionRulebook>(symbols, std::move(factory));
+
+            // Import rules, and compile
+            output->add_raw_rules(std::move(raw_polynomials));
+            output->complete();
+
+            return output;
         }
 
         std::unique_ptr<MomentSubstitutionRulebook>
@@ -151,6 +185,9 @@ namespace Moment::mex::functions {
             case InputMode::SubstitutionList:
                 parse_as_sublist(this->inputs[1]);
                 break;
+            case InputMode::FromSymbolIds:
+                parse_as_symbol_polynomials(this->inputs[1]);
+                break;
             default:
                 break;
         }
@@ -210,6 +247,35 @@ namespace Moment::mex::functions {
         }
     }
 
+    void CreateMomentRulesParams::parse_as_symbol_polynomials(const matlab::data::Array &input) {
+        this->raw_symbol_polynomials.clear();
+
+        // Empty input can be interpreted as empty substitution list, and so is valid
+        if (input.isEmpty()) {
+            return;
+        }
+
+        // Input must be cell
+        if (input.getType() != matlab::data::ArrayType::CELL) {
+            std::stringstream errSS;
+            errSS << "Symbol polynomial list should be provided as a cell array.";
+            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+        }
+
+        // Cast input to cell array [matlab says this will be a reference, not copy. We can hope...]
+        const auto cell_input = static_cast<matlab::data::CellArray>(input);
+        const size_t sub_count = cell_input.getNumberOfElements();
+        this->raw_symbol_polynomials.reserve(sub_count);
+
+        // Go through elements
+        for (size_t index = 0; index < sub_count; ++index) {
+            std::stringstream ruleNameSS;
+            ruleNameSS << "Rule #" << (index+1);
+            this->raw_symbol_polynomials.emplace_back(read_raw_symbol_combo_data(this->matlabEngine,
+                                                                                 ruleNameSS.str(),
+                                                                                 cell_input[index]));
+        }
+    }
 
     CreateMomentRules::CreateMomentRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
             : ParameterizedMexFunction(matlabEngine, storage, u"create_moment_rules") {
@@ -237,7 +303,14 @@ namespace Moment::mex::functions {
 
     void CreateMomentRules::operator()(IOArgumentRange output, CreateMomentRulesParams &input) {
         // Get stored moment matrix
-        auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
+        auto msPtr = [&]() -> std::shared_ptr<MatrixSystem> {
+            try {
+                return this->storageManager.MatrixSystems.get(input.matrix_system_key);
+            } catch (const Moment::errors::not_found_error& nfe) {
+                throw_error(this->matlabEngine, errors::bad_param,
+                            std::string("Matrix system not found: ").append(nfe.what()));
+            }
+        }();
         auto& system = *msPtr;
 
         // Create rule-book (with read-lock on matrix system)
