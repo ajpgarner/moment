@@ -217,6 +217,7 @@ namespace Moment::Inflation {
          */
         [[nodiscard]] OperatorSequence canonical_moment(const OperatorSequence& input) const;
 
+
         /**
          * Calculate equivalent variant of observables with lowest possible source indices (e.g. 'A2' -> 'A0' etc.).
          */
@@ -287,5 +288,8 @@ namespace Moment::Inflation {
           * Output information about inflation context
           */
          [[nodiscard]] std::string to_string() const override;
+
+
+        std::optional<OperatorSequence> get_if_canonical(const sequence_storage_t &sequence) const override;
     };
 }

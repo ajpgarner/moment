@@ -254,6 +254,33 @@ namespace Moment::Inflation {
         return false;
     }
 
+
+    std::optional<OperatorSequence> InflationContext::get_if_canonical(const sequence_storage_t &sequence) const {
+        // Sequences commute, so canonical variations are sorted.
+        if (!std::is_sorted(sequence.cbegin(), sequence.cend())) {
+            return std::nullopt;
+        }
+
+        // If any adjacent elements from same measurement, then sequence is not unique [either projects out, or nullifies]
+        const ICOperatorInfo::IsOrthogonal isOrth;
+        for (size_t index = 1, iMax = sequence.size(); index < iMax; ++index) {
+            const auto& lhs = this->operator_info[sequence[index-1]];
+            const auto& rhs = this->operator_info[sequence[index]];
+            // A0A1 = 0 -> not canonical
+            if (isOrth(lhs, rhs)) {
+                return std::nullopt;
+            }
+            // A^2 = A -> not canonical
+            if (lhs.projective && (sequence[index-1] == sequence[index])) {
+                return std::nullopt;
+            }
+        }
+
+        return std::make_optional<OperatorSequence>(OperatorSequence::ConstructRawFlag{},
+                                                    sequence, this->hash(sequence), *this);
+
+    }
+
     OperatorSequence InflationContext::simplify_as_moment(OperatorSequence &&seq) const {
         return this->canonical_moment(seq);
     }

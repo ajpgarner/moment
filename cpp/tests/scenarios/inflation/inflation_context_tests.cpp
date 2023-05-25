@@ -1256,4 +1256,35 @@ namespace Moment::Tests {
 
     }
 
+    TEST(Scenarios_Inflation_InflationContext, GetIfCanonical) {
+        InflationContext ic{CausalNetwork{{3, 3}, {{0,1}}}, 1}; // A0,A1, B0,B1
+        ASSERT_EQ(ic.size(), 4);
+
+        // Projectors of A
+        ASSERT_NE(ic.get_if_canonical({0}), std::nullopt);
+        ASSERT_NE(ic.get_if_canonical({1}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({0, 0}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({0, 1}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({1, 1}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({1, 0}), std::nullopt);
+
+        // Projectors of B
+        ASSERT_NE(ic.get_if_canonical({2}), std::nullopt);
+        ASSERT_NE(ic.get_if_canonical({3}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({2, 2}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({2, 3}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({3, 3}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({3, 2}), std::nullopt);
+
+        // A/B combos
+        ASSERT_NE(ic.get_if_canonical({0, 2}), std::nullopt);
+        ASSERT_NE(ic.get_if_canonical({0, 3}), std::nullopt);
+        ASSERT_NE(ic.get_if_canonical({1, 2}), std::nullopt);
+        ASSERT_NE(ic.get_if_canonical({1, 3}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({2, 0}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({2, 1}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({3, 0}), std::nullopt);
+        EXPECT_EQ(ic.get_if_canonical({3, 1}), std::nullopt);
+    }
+
 }
