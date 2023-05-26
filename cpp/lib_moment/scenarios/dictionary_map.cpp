@@ -22,29 +22,28 @@ namespace Moment {
         this->symbol_map.emplace_back(1);
     }
 
-    bool DictionaryMap::update() {
+    bool DictionaryMap::update(const size_t promised_new_max) {
         std::shared_lock read_lock{this->mutex};
 
-        const auto& largest_osg = this->context.osg_list().largest();
-        const auto largest_osg_length = largest_osg.max_sequence_length;
-
-        // If largest OSG already generated, return.
-        if (largest_osg_length <= this->symbol_map_max_length.load(std::memory_order_acquire)) {
+        // If  OSG already processed, return.
+        if (promised_new_max <= this->symbol_map_max_length.load(std::memory_order_acquire)) {
             return false; // unlock read lock
         }
+
+        const auto& promised_osg = this->context.operator_sequence_generator(promised_new_max);
 
         // Upgrade lock
         read_lock.unlock();
         std::shared_lock write_lock{this->mutex};
-        if (largest_osg_length <= this->symbol_map_max_length.load(std::memory_order_acquire)) {
+        if (promised_new_max <= this->symbol_map_max_length.load(std::memory_order_acquire)) {
             return false;
         }
 
-        const auto target_size = largest_osg.size();
+        const auto target_size = promised_osg.size();
         const auto start_index = this->symbol_map.size();
 
         this->symbol_map.reserve(target_size);
-        for (auto iter = largest_osg.begin() + static_cast<ptrdiff_t>(start_index); iter != largest_osg.end(); ++iter) {
+        for (auto iter = promised_osg.begin() + static_cast<ptrdiff_t>(start_index); iter != promised_osg.end(); ++iter) {
             const auto& seq = *iter;
             const auto* datum = symbols.where(seq);
             assert(datum != nullptr);
@@ -52,10 +51,10 @@ namespace Moment {
             this->symbol_map.emplace_back((isConjugated ? -1 : 1) * datum->Id());
         }
 
-        assert(this->symbol_map.size() == largest_osg.size());
+        assert(this->symbol_map.size() == promised_osg.size());
 
         // Update atomic
-        this->symbol_map_max_length.store(largest_osg.max_sequence_length, std::memory_order_release);
+        this->symbol_map_max_length.store(promised_osg.max_sequence_length, std::memory_order_release);
 
         // Release write lock~
         return true;

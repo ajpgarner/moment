@@ -15,6 +15,8 @@ namespace Moment::mex::functions  {
     public:
         uint64_t storage_key = 0;
 
+        bool register_symbols = false;
+
         size_t word_length = 0;
 
     public:

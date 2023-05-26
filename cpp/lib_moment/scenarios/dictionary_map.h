@@ -36,10 +36,10 @@ namespace Moment {
 
         /**
          * Update map from OSG outputs to symbol ids
-         * @param table The symbol table.
+         * @param promised_new_max The length of sequence up to which are  promised to exist in the symbol table.
          * @return True if new entries added.
          */
-        bool update();
+        bool update(size_t promised_new_max);
 
         /**
          * Get maximum index currently generated

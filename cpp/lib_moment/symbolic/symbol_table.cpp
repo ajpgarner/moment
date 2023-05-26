@@ -289,7 +289,15 @@ namespace Moment {
     }
 
     std::pair<size_t, size_t> SymbolTable::fill_to_word_length(size_t word_length) {
+
         const auto& osg = this->context.operator_sequence_generator(word_length);
+
+        // Handle case where we have already generated a longer symbol table.
+        if (this->OSGIndex.max_length() > word_length) {
+            return std::make_pair(osg.size(), 0);
+        }
+
+        // Merge in symbols and update OSGIndex
         std::vector<Symbol> build_unique;
         build_unique.reserve(osg.size());
         for (const auto& op_seq : osg) {
@@ -303,7 +311,7 @@ namespace Moment {
         size_t new_symbols{};
         this->merge_in(std::move(build_unique), &new_symbols);
 
-        this->OSGIndex.update();
+        this->OSGIndex.update(word_length);
 
         return std::make_pair(osg.size(), new_symbols);
     }
