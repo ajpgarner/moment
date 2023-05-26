@@ -41,13 +41,13 @@ namespace Moment {
 
         private:
 
-            [[nodiscard]] std::vector<UniqueSequence> identify_unique_sequences_hermitian() const {
-                std::vector<UniqueSequence> build_unique;
+            [[nodiscard]] std::vector<Symbol> identify_unique_sequences_hermitian() const {
+                std::vector<Symbol> build_unique;
                 std::set<size_t> known_hashes;
 
                 // First, always manually insert zero and one
-                build_unique.emplace_back(UniqueSequence::Zero(context));
-                build_unique.emplace_back(UniqueSequence::Identity(context));
+                build_unique.emplace_back(Symbol::Zero(context));
+                build_unique.emplace_back(Symbol::Identity(context));
                 known_hashes.emplace(0);
                 known_hashes.emplace(1);
 
@@ -86,13 +86,13 @@ namespace Moment {
                 return build_unique;
             }
 
-            [[nodiscard]] std::vector<UniqueSequence> identify_unique_sequences_generic() const {
-                std::vector<UniqueSequence> build_unique;
+            [[nodiscard]] std::vector<Symbol> identify_unique_sequences_generic() const {
+                std::vector<Symbol> build_unique;
                 std::set<size_t> known_hashes;
 
                 // First, always manually insert zero and one
-                build_unique.emplace_back(UniqueSequence::Zero(context));
-                build_unique.emplace_back(UniqueSequence::Identity(context));
+                build_unique.emplace_back(Symbol::Zero(context));
+                build_unique.emplace_back(Symbol::Identity(context));
                 known_hashes.emplace(0);
                 known_hashes.emplace(1);
 

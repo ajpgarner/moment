@@ -50,27 +50,12 @@ namespace Moment {
         : std::range_error{make_ube_err_msg(real_or, basis_id)}, real{real_or}, id{basis_id} { }
     }
 
-    UniqueSequence::UniqueSequence(OperatorSequence sequence,
-                                   OperatorSequence conjSequence):
-            opSeq{std::move(sequence)},
-            conjSeq{std::move(conjSequence)},
-            hermitian{false}, antihermitian{false}, real_index{-1}, img_index{-1},
-            fwd_sequence_str{opSeq->formatted_string()} {
-
-        int compare = OperatorSequence::compare_same_negation(*opSeq, *conjSeq);
-        if (1 == compare) {
-            this->hermitian = true;
-        } else if (-1 == compare) {
-            this->antihermitian = true;
-        }
-    }
-
     SymbolTable::SymbolTable(const Context& context)
         : Basis{*this}, context{context}, OSGIndex{context, *this} {
 
         // Zero and identity are always in symbol table, in indices 0 and 1 respectively.
-        this->unique_sequences.emplace_back(UniqueSequence::Zero(this->context));
-        this->unique_sequences.emplace_back(UniqueSequence::Identity(this->context));
+        this->unique_sequences.emplace_back(Symbol::Zero(this->context));
+        this->unique_sequences.emplace_back(Symbol::Identity(this->context));
 
         this->hash_table.insert({this->unique_sequences[0].hash(), 0});
         this->hash_table.insert({this->unique_sequences[1].hash(), 1});
@@ -80,7 +65,7 @@ namespace Moment {
     }
 
 
-    std::set<symbol_name_t> SymbolTable::merge_in(std::vector<UniqueSequence> &&build_unique, size_t * newly_added) {
+    std::set<symbol_name_t> SymbolTable::merge_in(std::vector<Symbol> &&build_unique, size_t * newly_added) {
         std::set<symbol_name_t> included_symbols;
 
         size_t added = 0;
@@ -103,10 +88,10 @@ namespace Moment {
 
     symbol_name_t SymbolTable::merge_in(OperatorSequence&& sequence) {
         auto conj_seq = sequence.conjugate();
-        return this->merge_in(UniqueSequence{std::move(sequence), std::move(conj_seq)});
+        return this->merge_in(Symbol{std::move(sequence), std::move(conj_seq)});
     }
 
-    symbol_name_t SymbolTable::merge_in(UniqueSequence&& elem) {
+    symbol_name_t SymbolTable::merge_in(Symbol&& elem) {
         // Not unique, do not add...
         auto existing_iter = this->hash_table.find(elem.hash());
         if (existing_iter != this->hash_table.end()) {
@@ -156,7 +141,7 @@ namespace Moment {
 
     symbol_name_t SymbolTable::create(const bool has_real, const bool has_imaginary, std::string fwd_name) {
         auto next_id = static_cast<symbol_name_t>(this->unique_sequences.size());
-        UniqueSequence blank;
+        Symbol blank;
         blank.id = next_id;
         blank.fwd_sequence_str = std::move(fwd_name);
 
@@ -189,7 +174,7 @@ namespace Moment {
         }
 
         for (size_t next_id = first_id; next_id < range_end; ++next_id) {
-            UniqueSequence blank;
+            Symbol blank;
             blank.id = static_cast<symbol_name_t>(next_id);
 
             auto [re_index, im_index] = this->Basis.push_back(blank.id, has_real, has_imaginary);
@@ -260,13 +245,13 @@ namespace Moment {
     }
 
 
-    const UniqueSequence *
+    const Symbol *
     SymbolTable::where(const OperatorSequence &seq) const noexcept {
         auto [obj, is_conj] = where_and_is_conjugated(seq);
         return obj;
     }
 
-    std::pair<const UniqueSequence *, bool>
+    std::pair<const Symbol *, bool>
     SymbolTable::where_and_is_conjugated(const OperatorSequence &seq) const noexcept {
         size_t hash = this->context.hash(seq);
 
@@ -303,35 +288,9 @@ namespace Moment {
         }
     }
 
-
-    std::string UniqueSequence::formatted_sequence() const {
-        if (this->opSeq.has_value()) {
-            return this->opSeq->formatted_string();
-        }
-
-        std::stringstream ss;
-        ss << "#" << this->id;
-        return ss.str();
-    }
-
-    std::string UniqueSequence::formatted_sequence_conj() const {
-        if (this->conjSeq.has_value()) {
-            return this->conjSeq->formatted_string();
-        } else if (this->hermitian && this->opSeq.has_value()) {
-            return this->opSeq->formatted_string();
-        }
-
-        std::stringstream ss;
-        ss << "#" << this->id;
-        if (!this->hermitian) {
-            ss << "*";
-        }
-        return ss.str();
-    }
-
     std::pair<size_t, size_t> SymbolTable::fill_to_word_length(size_t word_length) {
         const auto& osg = this->context.operator_sequence_generator(word_length);
-        std::vector<UniqueSequence> build_unique;
+        std::vector<Symbol> build_unique;
         build_unique.reserve(osg.size());
         for (const auto& op_seq : osg) {
             auto conj_seq = op_seq.conjugate();
@@ -405,7 +364,7 @@ namespace Moment {
         return output;
     }
 
-    std::ostream& operator<<(std::ostream& os, const UniqueSequence& seq) {
+    std::ostream& operator<<(std::ostream& os, const Symbol& seq) {
         const bool has_fwd = seq.opSeq.has_value();
         const bool has_rev = seq.opSeq.has_value();
 

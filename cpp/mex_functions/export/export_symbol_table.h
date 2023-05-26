@@ -16,7 +16,7 @@ namespace matlab::engine {
 
 namespace Moment {
     class MatrixSystem;
-    class UniqueSequence;
+    class Symbol;
 }
 
 namespace Moment::mex {
@@ -24,7 +24,7 @@ namespace Moment::mex {
 
     matlab::data::StructArray export_symbol_table_row(matlab::engine::MATLABEngine& engine,
                                                       const EnvironmentalVariables& env,
-                                                      const MatrixSystem& system, const UniqueSequence& symbol);
+                                                      const MatrixSystem& system, const Symbol& symbol);
 
     matlab::data::StructArray export_symbol_table_struct(matlab::engine::MATLABEngine& engine,
                                                          const EnvironmentalVariables& env,

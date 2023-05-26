@@ -59,7 +59,7 @@ namespace Moment::mex {
                        const bool non_herm, const bool include_factors,
                        const Inflation::FactorTable *factorTablePtr, const Locality::LocalityContext *localityContextPtr,
                        const bool locality_format, matlab::data::StructArray &outputStruct, size_t write_index,
-                       const UniqueSequence &symbol) {
+                       const Symbol &symbol) {
 
             outputStruct[write_index]["symbol"] = factory.createScalar<uint64_t>(static_cast<uint64_t>(symbol.Id()));
             if (locality_format) {
@@ -97,7 +97,7 @@ namespace Moment::mex {
 
     matlab::data::StructArray export_symbol_table_row(matlab::engine::MATLABEngine& engine,
                                                       const EnvironmentalVariables& env,
-                                                      const MatrixSystem& system, const UniqueSequence& symbol) {
+                                                      const MatrixSystem& system, const Symbol& symbol) {
 
         matlab::data::ArrayFactory factory;
         const auto& context = system.Context();

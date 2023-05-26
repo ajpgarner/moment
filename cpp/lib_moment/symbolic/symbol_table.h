@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "symbol.h"
 #include "symbol_expression.h"
 
 #include "scenarios/dictionary_map.h"
@@ -45,134 +46,9 @@ namespace Moment {
         };
     }
 
-    class UniqueSequence {
-    private:
-        symbol_name_t id = -1;
-        std::optional<OperatorSequence> opSeq{};
-        std::optional<OperatorSequence> conjSeq{};
-        bool hermitian = false;
-        bool antihermitian = false;
-        ptrdiff_t real_index = -1;
-        ptrdiff_t img_index = -1;
-        std::string fwd_sequence_str;
-
-    public:
-        constexpr UniqueSequence() = default;
-
-        explicit UniqueSequence(OperatorSequence sequence) :
-                opSeq{std::move(sequence)},
-                conjSeq{}, hermitian{true}, antihermitian{false},
-                real_index{-1}, img_index{-1}, fwd_sequence_str{opSeq->formatted_string()} { }
-
-        UniqueSequence(OperatorSequence sequence, OperatorSequence conjSequence);
-
-        /** True if a concrete operator sequence is associated with this symbol */
-        [[nodiscard]] constexpr bool has_sequence() const noexcept { return this->opSeq.has_value(); }
-
-        /** The symbol ID */
-        [[nodiscard]] constexpr symbol_name_t Id() const noexcept { return this->id; }
-
-        /**
-         * The hash associated with the operator sequence.
-         * Undefined behaviour if no operator sequence associated with this entry.
-         */
-
-        [[nodiscard]] constexpr size_t hash() const noexcept {
-            assert(this->opSeq.has_value());
-            return this->opSeq.value().hash();
-        }
-
-        /**
-         * The hash associated with the operator sequence's complex conjugate..
-         * Undefined behaviour if no operator sequence associated with this entry.
-         */
-        [[nodiscard]] constexpr size_t hash_conj() const noexcept {
-            assert(this->conjSeq.has_value() || this->opSeq.has_value());
-            return this->conjSeq.has_value() ? this->conjSeq->hash() : this->opSeq.value().hash();
-        }
-
-        /**
-         * The operator sequence associated with this entry.
-         * Undefined behaviour if no operator sequence associated with this entry.
-         */
-        [[nodiscard]] constexpr const OperatorSequence& sequence() const noexcept {
-            assert(this->opSeq.has_value());
-            return this->opSeq.value();
-        }
-
-        /**
-         * The operator sequence associated with this entry's complex conjugate.
-         * Undefined behaviour if no operator sequence associated with this entry.
-         */
-        [[nodiscard]] constexpr const OperatorSequence& sequence_conj() const noexcept {
-            assert(this->conjSeq.has_value() || this->opSeq.has_value());
-            return this->hermitian ? opSeq.value() : this->conjSeq.value();
-        }
-
-        /**
-         * Formatted view of sequence, if any, otherwise just symbol name.
-         */
-        [[nodiscard]] std::string formatted_sequence() const;
-
-        /**
-         * Formatted view of conjugate sequence, if any, otherwise just symbol name.
-         */
-        [[nodiscard]] std::string formatted_sequence_conj() const;
-
-        /**
-         * Does the operator sequence represent its Hermitian conjugate?
-         * If true, the element will correspond to a real symbol (cf. complex if not) in the NPA matrix.
-         */
-        [[nodiscard]] constexpr bool is_hermitian() const noexcept { return this->hermitian; }
-
-        /**
-         * Does the operator sequence represent its Hermitian conjugate up to a minus sign.
-         */
-        [[nodiscard]] constexpr bool is_antihermitian() const noexcept { return this->antihermitian; }
-
-        /**
-         * The real and imaginary offsets of this symbol in the basis (or -1, if no such offset).
-         * @return Pair, first corresponding to real, second corresponding to imaginary.
-         */
-        [[nodiscard]] constexpr std::pair<ptrdiff_t, ptrdiff_t> basis_key() const noexcept {
-            return {this->real_index, this->img_index};
-        }
-
-        /**
-         * Named constructor for entry associated with '0'.
-         * @param context The operator context.
-         */
-        inline static UniqueSequence Zero(const Context& context) {
-            auto us = UniqueSequence{OperatorSequence::Zero(context)};
-            us.id = 0;
-            us.hermitian = true;
-            us.antihermitian = true;
-            return us;
-        }
-
-        /**
-         * Named constructor for entry associated with '1'.
-         * @param context The operator context.
-         */
-        inline static UniqueSequence Identity(const Context& context) {
-            auto us = UniqueSequence{OperatorSequence::Identity(context)};
-            us.id = 1;
-            us.hermitian = true;
-            us.antihermitian = false;
-            us.real_index = 0;
-            return us;
-        }
-
-        /**
-         * Output unique sequence entry, as debug info
-         */
-        friend std::ostream& operator<<(std::ostream& os, const UniqueSequence& seq);
-
-        friend class SymbolTable;
-    };
 
     /**
-     * List of sumbols associated with matrix system.
+     * List of symbols associated with matrix system.
      */
     class SymbolTable {
     private:
@@ -180,7 +56,7 @@ namespace Moment {
         const Context& context;
 
         /** Unique sequence list */
-        std::vector<UniqueSequence> unique_sequences{};
+        std::vector<Symbol> unique_sequences{};
 
         /** Maps hash to unique symbol; +ve is forward element, -ve is Hermitian conjugate.
          * Invariant promise: non-hermitian elements will have both forward and reverse hashes saved. */
@@ -195,13 +71,13 @@ namespace Moment {
 
             /**
               * Ordered list of symbols with real components.
-              * Effectively find x such that of UniqueSequence[x].real_index == index.
+              * Effectively find x such that of Symbol[x].real_index == index.
               */
             std::vector<size_t> real_symbols;
 
             /**
              * Ordered list of symbols with imaginary components (i.e. corresponding to non-Hermitian operators)
-             * Effectively find x such that of UniqueSequence[x].img_index == index
+             * Effectively find x such that of Symbol[x].img_index == index
              */
             std::vector<size_t> imaginary_symbols;
 
@@ -307,7 +183,7 @@ namespace Moment {
          * @paran new_symbols Output: number of new symbols if not nullptr.
          * @return Set of symbol IDs
          */
-        std::set<symbol_name_t> merge_in(std::vector<UniqueSequence>&& build_unique, size_t * new_symbols = nullptr);
+        std::set<symbol_name_t> merge_in(std::vector<Symbol>&& build_unique, size_t * new_symbols = nullptr);
 
         /**
          * Add symbol to table, if not already present by OperatorSequence
@@ -321,7 +197,7 @@ namespace Moment {
          * @param build_unique Symbols to be potentially merge
          * @return The ID of the (possibly new) symbol.
          */
-        symbol_name_t merge_in(UniqueSequence&& sequence);
+        symbol_name_t merge_in(Symbol&& sequence);
 
         /**
          * Add symbols to table, if not already present, and adjust real/imaginary zeros of those already present
@@ -377,7 +253,7 @@ namespace Moment {
        /**
          * Get the unique sequence at a supplied index.
          */
-        [[nodiscard]] const UniqueSequence& operator[](size_t index) const noexcept {
+        [[nodiscard]] const Symbol& operator[](size_t index) const noexcept {
             assert(index < this->unique_sequences.size());
             return this->unique_sequences[index];
         }
@@ -387,14 +263,14 @@ namespace Moment {
         * @param seq The sequence to match
         * @return Pointer to unique sequence element if matched, nullptr otherwise.
         */
-        [[nodiscard]] const UniqueSequence * where(const OperatorSequence& seq) const noexcept;
+        [[nodiscard]] const Symbol * where(const OperatorSequence& seq) const noexcept;
 
         /**
          * Find the unique sequence matching supplied operator string, and if it is conjugated.
          * @param seq The sequence to match
          * @return First, pointer to unique sequence element if matched, nullptr otherwise. Second true if conjugated.
          */
-        [[nodiscard]] std::pair<const UniqueSequence *, bool>
+        [[nodiscard]] std::pair<const Symbol *, bool>
         where_and_is_conjugated(const OperatorSequence &seq) const noexcept;
 
         /**

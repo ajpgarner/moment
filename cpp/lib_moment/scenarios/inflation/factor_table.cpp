@@ -100,7 +100,7 @@ namespace Moment::Inflation {
                     assert(where->is_hermitian());
                     entry.canonical.symbols.emplace_back(where->Id());
                 } else {
-                    UniqueSequence us{factor_seq}; 
+                    Symbol us{factor_seq};
                     auto new_entry = this->symbols.merge_in(std::move(us));
                     entry.canonical.symbols.emplace_back(new_entry);
                 }

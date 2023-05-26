@@ -17,7 +17,7 @@
 namespace Moment::Tests {
 
     symbol_name_t find_or_fail(const SymbolTable& symbols, const OperatorSequence& seq) {
-        const UniqueSequence * find_ptr = symbols.where(seq);
+        const Symbol * find_ptr = symbols.where(seq);
         if (find_ptr == nullptr) {
             std::stringstream ss;
             ss << "Could not find sequence \"" << seq << "\".";
