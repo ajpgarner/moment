@@ -6,7 +6,6 @@
  */
 #pragma once
 
-#include "symbol.h"
 #include "symbol_expression.h"
 
 #include "scenarios/dictionary_map.h"

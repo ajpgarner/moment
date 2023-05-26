@@ -6,12 +6,12 @@
  */
 #pragma once
 
-#include "symbol.h"
-
+#include "integer_types.h"
 #include "utilities/float_utils.h"
 
 #include <complex>
 #include <iosfwd>
+#include <optional>
 
 namespace Moment {
     /**
