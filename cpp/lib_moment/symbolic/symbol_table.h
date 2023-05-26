@@ -311,6 +311,13 @@ namespace Moment {
         std::set<symbol_name_t> merge_in(std::vector<UniqueSequence>&& build_unique, size_t * new_symbols = nullptr);
 
         /**
+         * Add symbol to table, if not already present by OperatorSequence
+         * @param build_unique Symbols to be potentially merge
+         * @return The ID of the (possibly new) symbol.
+         */
+        symbol_name_t merge_in(OperatorSequence&& sequence);
+
+        /**
          * Add symbol to table, if not already present
          * @param build_unique Symbols to be potentially merge
          * @return The ID of the (possibly new) symbol.
@@ -382,6 +389,14 @@ namespace Moment {
         * @return Pointer to unique sequence element if matched, nullptr otherwise.
         */
         [[nodiscard]] const UniqueSequence * where(const OperatorSequence& seq) const noexcept;
+
+        /**
+         * Find the unique sequence matching supplied operator string, and if it is conjugated.
+         * @param seq The sequence to match
+         * @return First, pointer to unique sequence element if matched, nullptr otherwise. Second true if conjugated.
+         */
+        [[nodiscard]] std::pair<const UniqueSequence *, bool>
+        where_and_is_conjugated(const OperatorSequence &seq) const noexcept;
 
         /**
          * Find symbol expression matching supplied operator sequence.

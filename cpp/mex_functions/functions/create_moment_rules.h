@@ -7,7 +7,6 @@
 
 #pragma once
 
-
 #include "../mex_function.h"
 #include "integer_types.h"
 
@@ -16,13 +15,17 @@
 #include <map>
 #include <memory>
 
-
-namespace Moment::Algebraic {
-    class NameTable;
-    class AlgebraicPrecontext;
+namespace Moment {
+    class MatrixSystem;
+    class MomentSubstitutionRulebook;
+    class SymbolCombo;
+    class SymbolComboFactory;
+    class SymbolTable;
 }
 
 namespace Moment::mex::functions {
+
+    class OpSeqRuleSpecification;
 
     class CreateMomentRulesParams : public SortedInputs {
     public:
@@ -31,6 +34,9 @@ namespace Moment::mex::functions {
 
         /** True = Also generate extra rules from currently-known factors. */
         bool infer_from_factors = true;
+
+        /** True = Allow for the creation of new symbols, if an operator sequence is unrecognized */
+        bool create_missing_symbols = true;
 
         /** How the input to the create-rules command is supplied */
         enum class InputMode {
@@ -58,6 +64,10 @@ namespace Moment::mex::functions {
         /** Direct set of symbol combos, if specified. */
         std::vector<std::vector<raw_sc_data>> raw_symbol_polynomials;
 
+        /** Weighted operator sequences, if specified. */
+        //std::vector<std::vector<OpSeqExpr>> raw_op_seq_polynomials;
+        std::unique_ptr<OpSeqRuleSpecification> raw_op_seq_polynomials;
+
     public:
         /** Constructor */
         explicit CreateMomentRulesParams(SortedInputs &&rawInput);
@@ -67,23 +77,41 @@ namespace Moment::mex::functions {
 
     private:
         void parse_as_sublist(const matlab::data::Array& data);
+
         void parse_as_symbol_polynomials(const matlab::data::Array& data);
+
+        void parse_as_op_seq_polynomials(const matlab::data::Array& data);
 
     };
 
     class CreateMomentRules : public ParameterizedMexFunction<CreateMomentRulesParams,
                                                               MEXEntryPointID::CreateMomentRules> {
     public:
-        explicit CreateMomentRules(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
+        explicit CreateMomentRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage);
 
         void extra_input_checks(CreateMomentRulesParams &input) const override;
 
     protected:
         void operator()(IOArgumentRange output, CreateMomentRulesParams &input) override;
 
+    private:
+        /** Get appropriate SymbolCombo factory */
+        [[nodiscard]] std::unique_ptr<SymbolComboFactory>
+        make_factory(SymbolTable &symbols, const CreateMomentRulesParams &input) const;
 
+        [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>
+        create_rulebook(MatrixSystem &system, CreateMomentRulesParams &input) const;
 
+        [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>
+        create_rulebook_from_sublist(MatrixSystem &system, CreateMomentRulesParams &input) const;
 
+        [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>
+        create_rulebook_from_symbols(MatrixSystem &system, CreateMomentRulesParams &input) const;
+
+        [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>
+        create_rulebook_from_existing_sequences(MatrixSystem &system, CreateMomentRulesParams &input) const;
+
+        [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>
+        create_rulebook_from_new_sequences(MatrixSystem &system, CreateMomentRulesParams &input) const;
     };
-
 }

@@ -101,6 +101,11 @@ namespace Moment {
         return included_symbols;
     }
 
+    symbol_name_t SymbolTable::merge_in(OperatorSequence&& sequence) {
+        auto conj_seq = sequence.conjugate();
+        return this->merge_in(UniqueSequence{std::move(sequence), std::move(conj_seq)});
+    }
+
     symbol_name_t SymbolTable::merge_in(UniqueSequence&& elem) {
         // Not unique, do not add...
         auto existing_iter = this->hash_table.find(elem.hash());
@@ -257,15 +262,21 @@ namespace Moment {
 
     const UniqueSequence *
     SymbolTable::where(const OperatorSequence &seq) const noexcept {
+        auto [obj, is_conj] = where_and_is_conjugated(seq);
+        return obj;
+    }
+
+    std::pair<const UniqueSequence *, bool>
+    SymbolTable::where_and_is_conjugated(const OperatorSequence &seq) const noexcept {
         size_t hash = this->context.hash(seq);
 
         auto [id, conj] = this->hash_to_index(hash);
         if (id == std::numeric_limits<ptrdiff_t>::max()) {
-            return nullptr;
+            return {nullptr, false};
         }
 
         assert(id < this->unique_sequences.size());
-        return &this->unique_sequences[id];
+        return {&this->unique_sequences[id], conj};
     }
 
     SymbolExpression SymbolTable::to_symbol(const OperatorSequence &seq) const noexcept {
