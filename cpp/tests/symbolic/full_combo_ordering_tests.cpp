@@ -11,14 +11,14 @@
 
 #include "symbolic/symbol_table.h"
 
-#include "symbolic/full_combo_ordering.h"
+#include "symbolic/polynomial_ordering.h"
 
 namespace Moment::Tests {
 
     class Symbolic_FullComboOrdering : public ::testing::Test {
     private:
         std::unique_ptr<Algebraic::AlgebraicMatrixSystem> ams_ptr;
-        std::unique_ptr<SymbolComboFactory> factory_ptr;
+        std::unique_ptr<PolynomialFactory> factory_ptr;
 
     protected:
         void SetUp() override {
@@ -26,7 +26,7 @@ namespace Moment::Tests {
                         std::make_unique<Algebraic::AlgebraicContext>(2)
             );
             ams_ptr->generate_dictionary(2);
-            factory_ptr = std::make_unique<SymbolComboFactory>(ams_ptr->Symbols());
+            factory_ptr = std::make_unique<PolynomialFactory>(ams_ptr->Symbols());
         }
 
         [[nodiscard]] const Algebraic::AlgebraicContext& get_context() const noexcept {
@@ -35,24 +35,24 @@ namespace Moment::Tests {
 
         [[nodiscard]] SymbolTable& get_symbols() noexcept { return this->ams_ptr->Symbols(); };
 
-        [[nodiscard]] const SymbolComboFactory& get_factory() const noexcept { return *this->factory_ptr; };
+        [[nodiscard]] const PolynomialFactory& get_factory() const noexcept { return *this->factory_ptr; };
 
     };
 
     TEST_F(Symbolic_FullComboOrdering, BothZero) {
-        FullComboOrdering fco{this->get_factory()};
+        PolynomialOrdering fco{this->get_factory()};
         EXPECT_FALSE(fco(Polynomial(), Polynomial()));
     }
 
     TEST_F(Symbolic_FullComboOrdering, BothScalar) {
-        FullComboOrdering fco{this->get_factory()};
+        PolynomialOrdering fco{this->get_factory()};
         EXPECT_FALSE(fco(Polynomial::Scalar(1.0), Polynomial::Scalar(2.0)));
         EXPECT_FALSE(fco(Polynomial::Scalar(2.0), Polynomial::Scalar(1.0)));
     }
 
     TEST_F(Symbolic_FullComboOrdering, ThreeVsTwo) {
         const auto& f = this->get_factory();
-        FullComboOrdering fco{f};
+        PolynomialOrdering fco{f};
         EXPECT_FALSE(fco(f({Monomial{3, 1.0}}),
                          f({Monomial{2, 1.0}})));
         EXPECT_TRUE(fco(f({Monomial{2, 1.0}}),
@@ -61,7 +61,7 @@ namespace Moment::Tests {
 
     TEST_F(Symbolic_FullComboOrdering, ThreeVsTwoPlusOne) {
         const auto& f = this->get_factory();
-        FullComboOrdering fco{f};
+        PolynomialOrdering fco{f};
         EXPECT_FALSE(fco(f({Monomial{3, 1.0}}),
                          f({Monomial{2, 1.0}, Monomial{1, 1.0}})));
         EXPECT_TRUE(fco(f({Monomial{2, 1.0}, Monomial{1, 1.0}}),
@@ -70,7 +70,7 @@ namespace Moment::Tests {
 
     TEST_F(Symbolic_FullComboOrdering, ThreeVsThreePlusTwo) {
         const auto& f = this->get_factory();
-        FullComboOrdering fco{f};
+        PolynomialOrdering fco{f};
         EXPECT_FALSE(fco(f({Monomial{3, 1.0}, Monomial{2, 1.0}}),
                         f({Monomial{3, 1.0}})));
         EXPECT_TRUE(fco(f({Monomial{3, 1.0}}),

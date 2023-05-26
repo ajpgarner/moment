@@ -7,7 +7,7 @@
 
 #include "moment_substitution_rulebook.h"
 
-#include "full_combo_ordering.h"
+#include "polynomial_ordering.h"
 #include "symbol_table.h"
 
 #include "matrix/substituted_matrix.h"
@@ -31,7 +31,7 @@ namespace Moment {
     }
 
     MomentSubstitutionRulebook::MomentSubstitutionRulebook(const SymbolTable &symbolTable,
-                                                           std::unique_ptr<SymbolComboFactory> factoryPtr)
+                                                           std::unique_ptr<PolynomialFactory> factoryPtr)
         : symbols{symbolTable}, factory{std::move(factoryPtr)}  {
         // Cannot provide null-ptr to factory.
         assert(factory);
@@ -110,7 +110,7 @@ namespace Moment {
         const bool existing_rules = !this->rules.empty();
 
         // First, sort raw rules by lowest leading monomial, tie-breaking with shorter strings first.
-        std::sort(this->raw_rules.begin(), this->raw_rules.end(), FullComboOrdering(*this->factory));
+        std::sort(this->raw_rules.begin(), this->raw_rules.end(), PolynomialOrdering(*this->factory));
 
         size_t rules_attempted = 0;
         size_t rules_added = 0;

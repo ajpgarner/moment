@@ -91,7 +91,7 @@ namespace Moment {
         return {1, first_match};
     }
 
-    Polynomial MomentSubstitutionRule::reduce(const SymbolComboFactory& factory, const Polynomial &combo) const {
+    Polynomial MomentSubstitutionRule::reduce(const PolynomialFactory& factory, const Polynomial &combo) const {
 
         auto [matches, hint] = this->match_info(combo);
 
@@ -105,7 +105,7 @@ namespace Moment {
         return this->reduce_with_hint(factory, combo, hint, (matches == 2));
     }
 
-    Polynomial MomentSubstitutionRule::reduce(const SymbolComboFactory &factory, const Monomial &expr) const {
+    Polynomial MomentSubstitutionRule::reduce(const PolynomialFactory &factory, const Monomial &expr) const {
         // No match, no substitution.
         if (expr.id != this->lhs) {
             return Polynomial{rhs};
@@ -147,7 +147,7 @@ namespace Moment {
         return output;
     }
 
-    Polynomial MomentSubstitutionRule::reduce_with_hint(const SymbolComboFactory& factory,
+    Polynomial MomentSubstitutionRule::reduce_with_hint(const PolynomialFactory& factory,
                                                         const Polynomial &combo,
                                                         Polynomial::storage_t::const_iterator inject_iter,
                                                         const bool twice) const {

@@ -270,7 +270,7 @@ namespace Moment::Inflation {
         return this->entries[factor_entry.value()].id;
     }
 
-    Polynomial FactorTable::try_multiply(const SymbolComboFactory &factory,
+    Polynomial FactorTable::try_multiply(const PolynomialFactory &factory,
                                          const Polynomial& lhs, const Polynomial &rhs) const {
         // Multiply by zero is zero.
         if (rhs.empty()) {

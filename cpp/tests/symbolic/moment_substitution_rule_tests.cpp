@@ -103,7 +103,7 @@ namespace Moment::Tests {
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
-        SymbolComboFactory factory{table};
+        PolynomialFactory factory{table};
 
         MomentSubstitutionRule msr{2, Polynomial()}; // #2 -> 0.
         ASSERT_EQ(msr.LHS(), 2);
@@ -134,7 +134,7 @@ namespace Moment::Tests {
         Context contxt{2};
         SymbolTable table{contxt};
         table.create(4, true, true);
-        SymbolComboFactory factory{table};
+        PolynomialFactory factory{table};
 
         MomentSubstitutionRule msr{2, Polynomial::Scalar(0.5)}; // #2 -> 0.5#1.
         ASSERT_EQ(msr.LHS(), 2);
@@ -174,7 +174,7 @@ namespace Moment::Tests {
         Context contxt{2};
         SymbolTable table{contxt};
         table.create(4, true, true);
-        SymbolComboFactory factory{table};
+        PolynomialFactory factory{table};
 
         MomentSubstitutionRule msr{3, Polynomial(Monomial{2, 1.0})}; // #3 -> #2
         ASSERT_EQ(msr.LHS(), 3);
@@ -217,7 +217,7 @@ namespace Moment::Tests {
         Context contxt{2};
         SymbolTable table{contxt};
         table.create(4, true, true);
-        SymbolComboFactory factory{table};
+        PolynomialFactory factory{table};
 
         MomentSubstitutionRule msr{3, Polynomial(Monomial{2, 0.5, true})}; // #3 -> 0.5#2*.
         ASSERT_EQ(msr.LHS(), 3);
@@ -255,7 +255,7 @@ namespace Moment::Tests {
         Context contxt{2};
         SymbolTable table{contxt};
         table.create(4, true, true);
-        SymbolComboFactory factory{table};
+        PolynomialFactory factory{table};
 
 
         MomentSubstitutionRule msr{3,
@@ -299,7 +299,7 @@ namespace Moment::Tests {
         const auto &table = ams.Symbols();
         ams.generate_dictionary(2); // 0, 1, a, b, aa, ab, (ba), bb
 
-        ByHashSymbolComboFactory factory{table};
+        ByHashPolynomialFactory factory{table};
 
         MomentSubstitutionRule msr{5, factory({Monomial{2, 0.5}})}; // #5 -> 0.5#2 (<ab> -> <a>).
         ASSERT_EQ(msr.LHS(), 5);

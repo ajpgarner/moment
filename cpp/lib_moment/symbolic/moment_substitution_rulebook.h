@@ -47,7 +47,7 @@ namespace Moment {
 
         std::vector<Polynomial> raw_rules;
 
-        std::unique_ptr<SymbolComboFactory> factory;
+        std::unique_ptr<PolynomialFactory> factory;
 
         bool monomial_rules = true;
 
@@ -55,9 +55,9 @@ namespace Moment {
 
     public:
         explicit MomentSubstitutionRulebook(const SymbolTable& table)
-            : MomentSubstitutionRulebook(table, std::make_unique<SymbolComboFactory>(table)) { }
+            : MomentSubstitutionRulebook(table, std::make_unique<PolynomialFactory>(table)) { }
 
-        explicit MomentSubstitutionRulebook(const SymbolTable& table, std::unique_ptr<SymbolComboFactory> factory);
+        explicit MomentSubstitutionRulebook(const SymbolTable& table, std::unique_ptr<PolynomialFactory> factory);
 
         /**
          * Add substitution rules in the form of polynomials equal to zero.
@@ -181,8 +181,8 @@ namespace Moment {
         [[nodiscard]] bool pending_rules() const noexcept { return !this->raw_rules.empty(); }
 
         /**
-         * Return reference to associated SymbolComboFactory.
+         * Return reference to associated PolynomialFactory.
          */
-        [[nodiscard]] const SymbolComboFactory& Factory() const noexcept { return *this->factory; }
+        [[nodiscard]] const PolynomialFactory& Factory() const noexcept { return *this->factory; }
     };
 }

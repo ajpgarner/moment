@@ -40,7 +40,7 @@ namespace Moment::mex {
     /**
      * Convert possible symbol combo data into an actual symbol combo, using factory.
      */
-    [[nodiscard]] Polynomial raw_data_to_polynomial(const SymbolComboFactory& factory,
+    [[nodiscard]] Polynomial raw_data_to_polynomial(const PolynomialFactory& factory,
                                                     std::span<const raw_sc_data> data);
 
     /**
@@ -48,7 +48,7 @@ namespace Moment::mex {
      */
     [[nodiscard]] inline Polynomial read_polynomial(matlab::engine::MATLABEngine& engine,
                                                     const std::string& fieldName,
-                                                    const SymbolComboFactory& factory,
+                                                    const PolynomialFactory& factory,
                                                     const matlab::data::Array& input) {
         auto raw_data = read_raw_polynomial_data(engine, fieldName, input);
         return raw_data_to_polynomial(factory, raw_data);

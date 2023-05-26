@@ -33,7 +33,7 @@ namespace Moment::Tests {
     class Symbolic_MomentSubstitutionRulebookFactor : public ::testing::Test {
     private:
         std::unique_ptr<Inflation::InflationMatrixSystem> ims_ptr;
-        std::unique_ptr<SymbolComboFactory> factory_ptr;
+        std::unique_ptr<PolynomialFactory> factory_ptr;
 
     protected:
         symbol_name_t id_a, id_b, id_c, id_ab, id_ac, id_bc, id_abc;
@@ -78,7 +78,7 @@ namespace Moment::Tests {
             EXPECT_EQ(this->id_acc, factors.find_index_by_factors({this->id_a, this->id_cc}).value());
 
 
-            factory_ptr = std::make_unique<SymbolComboFactory>(ims_ptr->Symbols());
+            factory_ptr = std::make_unique<PolynomialFactory>(ims_ptr->Symbols());
 
 
         }
@@ -99,7 +99,7 @@ namespace Moment::Tests {
             return *this->ims_ptr;
         };
 
-        [[nodiscard]] const SymbolComboFactory &get_factory() const noexcept {
+        [[nodiscard]] const PolynomialFactory &get_factory() const noexcept {
             return *this->factory_ptr;
         };
 

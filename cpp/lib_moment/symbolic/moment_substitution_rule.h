@@ -69,13 +69,13 @@ namespace Moment {
         /**
          * Act with rule on combo to make new combo.
          */
-        [[nodiscard]] Polynomial reduce(const SymbolComboFactory& factory, const Polynomial& rhs) const;
+        [[nodiscard]] Polynomial reduce(const PolynomialFactory& factory, const Polynomial& rhs) const;
 
 
         /**
          * Act with rule on symbol expression to make combo.
          */
-        [[nodiscard]] Polynomial reduce(const SymbolComboFactory& factory, const Monomial& rhs) const;
+        [[nodiscard]] Polynomial reduce(const PolynomialFactory& factory, const Monomial& rhs) const;
 
         /**
          * Try to act with rule on symbol expression to make monomial
@@ -93,7 +93,7 @@ namespace Moment {
          * @param twice True if matches symbol and its CC
          * @return Reduced combo.
          */
-        [[nodiscard]] Polynomial reduce_with_hint(const SymbolComboFactory& factory,
+        [[nodiscard]] Polynomial reduce_with_hint(const PolynomialFactory& factory,
                                                   const Polynomial& rhs,
                                                   Polynomial::storage_t::const_iterator hint,
                                                   bool twice = false) const;

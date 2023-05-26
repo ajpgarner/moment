@@ -43,7 +43,7 @@ namespace Moment::Tests {
     class Symbolic_MomentSubstitutionRulebook : public ::testing::Test {
     private:
         std::unique_ptr<Algebraic::AlgebraicMatrixSystem> ams_ptr;
-        std::unique_ptr<SymbolComboFactory> factory_ptr;
+        std::unique_ptr<PolynomialFactory> factory_ptr;
 
     protected:
         void SetUp() override {
@@ -51,7 +51,7 @@ namespace Moment::Tests {
                     std::make_unique<Algebraic::AlgebraicContext>(2)
             );
             ams_ptr->generate_dictionary(2); // e, a, b, aa, ab (ba), bb
-            factory_ptr = std::make_unique<SymbolComboFactory>(ams_ptr->Symbols());
+            factory_ptr = std::make_unique<PolynomialFactory>(ams_ptr->Symbols());
         }
 
         [[nodiscard]] Algebraic::AlgebraicMatrixSystem& get_system() const noexcept {
@@ -64,7 +64,7 @@ namespace Moment::Tests {
 
         [[nodiscard]] SymbolTable& get_symbols() noexcept { return this->ams_ptr->Symbols(); };
 
-        [[nodiscard]] const SymbolComboFactory& get_factory() const noexcept { return *this->factory_ptr; };
+        [[nodiscard]] const PolynomialFactory& get_factory() const noexcept { return *this->factory_ptr; };
 
     };
 

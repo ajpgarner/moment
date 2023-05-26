@@ -19,7 +19,7 @@ namespace Moment {
     class MatrixSystem;
     class MomentSubstitutionRulebook;
     class Polynomial;
-    class SymbolComboFactory;
+    class PolynomialFactory;
     class SymbolTable;
 }
 
@@ -96,7 +96,7 @@ namespace Moment::mex::functions {
 
     private:
         /** Get appropriate Polynomial factory */
-        [[nodiscard]] std::unique_ptr<SymbolComboFactory>
+        [[nodiscard]] std::unique_ptr<PolynomialFactory>
         make_factory(SymbolTable &symbols, const CreateMomentRulesParams &input) const;
 
         [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>

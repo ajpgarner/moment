@@ -1,5 +1,5 @@
 /**
- * full_combo_ordering.h
+ * polynomial_ordering.h
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -14,11 +14,11 @@ namespace Moment {
      * Comparator, defines ordering first on most-significant symbol, then on second, and so-forth.
      * If one string runs out of symbols before the tie is broken, and the other does not, then it is the lower string.
      */
-    class FullComboOrdering {
+    class PolynomialOrdering {
     public:
-        const SymbolComboFactory& factory;
+        const PolynomialFactory& factory;
 
-        explicit FullComboOrdering(const SymbolComboFactory& factory) : factory{factory} { }
+        explicit PolynomialOrdering(const PolynomialFactory& factory) : factory{factory} { }
 
         /**
          * Less than.

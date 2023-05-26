@@ -80,7 +80,7 @@ namespace Moment::mex {
         return output;
     }
 
-    Polynomial raw_data_to_polynomial(const SymbolComboFactory &factory, std::span<const raw_sc_data> data) {
+    Polynomial raw_data_to_polynomial(const PolynomialFactory &factory, std::span<const raw_sc_data> data) {
         Polynomial::storage_t output_data;
         output_data.reserve(data.size());
         for (const auto& datum: data) {

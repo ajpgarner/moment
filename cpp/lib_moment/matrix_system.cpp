@@ -187,7 +187,7 @@ namespace Moment {
     std::pair<size_t, MomentSubstitutionRulebook&> MatrixSystem::create_rulebook() {
         auto write_lock = this->get_write_lock();
 
-        auto factory = std::make_unique<ByHashSymbolComboFactory>(*this->symbol_table);
+        auto factory = std::make_unique<ByHashPolynomialFactory>(*this->symbol_table);
         this->rulebooks.emplace_back(std::make_unique<MomentSubstitutionRulebook>(*this->symbol_table,
                                                                                   std::move(factory)));
 

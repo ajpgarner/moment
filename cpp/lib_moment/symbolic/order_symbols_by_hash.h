@@ -27,16 +27,15 @@ namespace Moment {
     };
 
     /**
-     * Factory, construct symbols from blah.
+     * Factory, construct polynomial using op-hash ordering.
      */
-
-    class ByHashSymbolComboFactory : public SymbolComboFactory {
+    class ByHashPolynomialFactory : public PolynomialFactory {
     private:
         CompareByOpHash comparator;
 
     public:
-        explicit ByHashSymbolComboFactory(const SymbolTable& symbols)
-            : SymbolComboFactory{symbols}, comparator{symbols} { }
+        explicit ByHashPolynomialFactory(const SymbolTable& symbols)
+            : PolynomialFactory{symbols}, comparator{symbols} { }
 
         [[nodiscard]] Polynomial operator()(Polynomial::storage_t&& data) const override {
             return Polynomial{std::move(data), this->symbols, this->comparator};

@@ -140,7 +140,7 @@ namespace Moment {
              * @throws errors::unknown_symbol If product is not registered as a known symbol.
              * @returns The symbol ID of the product.
              */
-            Polynomial try_multiply(const SymbolComboFactory& factory,
+            Polynomial try_multiply(const PolynomialFactory& factory,
                                     const Polynomial& lhs, const Polynomial& rhs) const;
 
             /**

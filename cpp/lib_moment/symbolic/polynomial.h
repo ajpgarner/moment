@@ -335,13 +335,13 @@ namespace Moment {
 
     /** Utility class for constructing symbol combos from data.
      * Allows for virtualization of sorting order template parameter. */
-    class SymbolComboFactory {
+    class PolynomialFactory {
     public:
         const SymbolTable& symbols;
 
-        explicit SymbolComboFactory(const SymbolTable& symbols) : symbols{symbols} { }
+        explicit PolynomialFactory(const SymbolTable& symbols) : symbols{symbols} { }
 
-        virtual ~SymbolComboFactory() noexcept = default;
+        virtual ~PolynomialFactory() noexcept = default;
 
         [[nodiscard]] virtual Polynomial operator()(Polynomial::storage_t&& data) const {
             return Polynomial{std::move(data), symbols};

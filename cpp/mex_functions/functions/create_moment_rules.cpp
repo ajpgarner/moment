@@ -98,7 +98,7 @@ namespace Moment::mex::functions {
                 }
             }
 
-            [[nodiscard]] Polynomial to_symbol_combo(const SymbolComboFactory& factory) {
+            [[nodiscard]] Polynomial to_symbol_combo(const PolynomialFactory& factory) {
                 return factory(std::move(this->resolved_symbols));
             }
         };
@@ -447,13 +447,13 @@ namespace Moment::mex::functions {
     }
 
 
-    std::unique_ptr<SymbolComboFactory>
+    std::unique_ptr<PolynomialFactory>
     CreateMomentRules::make_factory(SymbolTable& symbols, const CreateMomentRulesParams &input) const {
         switch (input.ordering) {
             case CreateMomentRulesParams::SymbolOrdering::ById:
-                return std::make_unique<SymbolComboFactory>(symbols);
+                return std::make_unique<PolynomialFactory>(symbols);
             case CreateMomentRulesParams::SymbolOrdering::ByOperatorHash:
-                return std::make_unique<ByHashSymbolComboFactory>(symbols);
+                return std::make_unique<ByHashPolynomialFactory>(symbols);
             default:
             case CreateMomentRulesParams::SymbolOrdering::Unknown:
                 throw_error(this->matlabEngine, errors::internal_error, "Unknown symbol ordering type.");
