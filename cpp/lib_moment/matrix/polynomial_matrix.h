@@ -7,7 +7,7 @@
 #pragma once
 #include "matrix.h"
 
-#include "symbolic/symbol_combo.h"
+#include "symbolic/polynomial.h"
 #include "utilities/square_matrix.h"
 
 #include <memory>
@@ -31,7 +31,7 @@ namespace Moment {
             * @param row The index of the row to return.
             * @return A std::span<const Monomial> of the requested row.
             */
-            std::span<const SymbolCombo> operator[](size_t row) const noexcept {
+            std::span<const Polynomial> operator[](size_t row) const noexcept {
                 return (*(matrix.sym_exp_matrix))[row];
             };
 
@@ -47,14 +47,14 @@ namespace Moment {
 
     protected:
         /** Matrix, as symbolic expression */
-        std::unique_ptr<SquareMatrix<SymbolCombo>> sym_exp_matrix;
+        std::unique_ptr<SquareMatrix<Polynomial>> sym_exp_matrix;
 
         /** Complex? */
         bool real_prefactors = true;
 
     public:
         PolynomialMatrix(const Context& context, SymbolTable& symbols,
-                         std::unique_ptr<SquareMatrix<SymbolCombo>> symbolMatrix);
+                         std::unique_ptr<SquareMatrix<Polynomial>> symbolMatrix);
 
         PolynomialMatrix(PolynomialMatrix&& rhs) noexcept : Matrix{std::move(rhs)},
             sym_exp_matrix{std::move(rhs.sym_exp_matrix)},  SymbolMatrix{*this} { }

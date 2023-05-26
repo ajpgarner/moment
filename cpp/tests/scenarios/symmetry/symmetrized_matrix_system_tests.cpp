@@ -145,24 +145,24 @@ namespace Moment::Tests {
         EXPECT_TRUE(map.is_monomial_map());
 
         // Check inverse map
-        EXPECT_EQ(map.inverse(0), SymbolCombo::Zero());
-        EXPECT_EQ(map.inverse(1), SymbolCombo::Scalar(1.0));
-        EXPECT_EQ(map.inverse(2), SymbolCombo({Monomial{a, 0.5}, Monomial{b, 0.5}}));
+        EXPECT_EQ(map.inverse(0), Polynomial());
+        EXPECT_EQ(map.inverse(1), Polynomial::Scalar(1.0));
+        EXPECT_EQ(map.inverse(2), Polynomial({Monomial{a, 0.5}, Monomial{b, 0.5}}));
         EXPECT_TRUE(sym_symbols[2].is_hermitian());
-        EXPECT_EQ(map.inverse(3), SymbolCombo({Monomial{aa, 0.5}, Monomial{bb, 0.5}}));
+        EXPECT_EQ(map.inverse(3), Polynomial({Monomial{aa, 0.5}, Monomial{bb, 0.5}}));
         EXPECT_TRUE(sym_symbols[3].is_hermitian());
-        EXPECT_EQ(map.inverse(4), SymbolCombo({Monomial{ab, 0.5}, Monomial{ab, 0.5, true}}));
+        EXPECT_EQ(map.inverse(4), Polynomial({Monomial{ab, 0.5}, Monomial{ab, 0.5, true}}));
         EXPECT_TRUE(sym_symbols[4].is_hermitian());
 
         // Check forward map
         ASSERT_EQ(map.fwd_size(), 7);
-        EXPECT_EQ(map(0), SymbolCombo::Zero());
-        EXPECT_EQ(map(1), SymbolCombo::Scalar(1.0));
-        EXPECT_EQ(map(a), SymbolCombo({Monomial{2, 1.0}}));
-        EXPECT_EQ(map(b), SymbolCombo({Monomial{2, 1.0}}));
-        EXPECT_EQ(map(aa), SymbolCombo({Monomial{3, 1.0}}));
-        EXPECT_EQ(map(ab), SymbolCombo({Monomial{4, 1.0}}));
-        EXPECT_EQ(map(bb), SymbolCombo({Monomial{3, 1.0}}));
+        EXPECT_EQ(map(0), Polynomial());
+        EXPECT_EQ(map(1), Polynomial::Scalar(1.0));
+        EXPECT_EQ(map(a), Polynomial({Monomial{2, 1.0}}));
+        EXPECT_EQ(map(b), Polynomial({Monomial{2, 1.0}}));
+        EXPECT_EQ(map(aa), Polynomial({Monomial{3, 1.0}}));
+        EXPECT_EQ(map(ab), Polynomial({Monomial{4, 1.0}}));
+        EXPECT_EQ(map(bb), Polynomial({Monomial{3, 1.0}}));
 
 
         ASSERT_EQ(ams.size(), 0);
@@ -235,36 +235,36 @@ namespace Moment::Tests {
         EXPECT_FALSE(map.is_monomial_map());
 
         // Check inverse map
-        EXPECT_EQ(map.inverse(0), SymbolCombo::Zero());
-        EXPECT_EQ(map.inverse(1), SymbolCombo::Scalar(1.0));
-        SymbolCombo expected_new_symbol{Monomial{a0, -0.25},
-                                        Monomial{b0, -0.25},
-                                        Monomial{a0b0, +0.25},
-                                        Monomial{a0b1, +0.25},
-                                        Monomial{a1b0, +0.25},
-                                        Monomial{a1b1, -0.25}};
+        EXPECT_EQ(map.inverse(0), Polynomial());
+        EXPECT_EQ(map.inverse(1), Polynomial::Scalar(1.0));
+        Polynomial expected_new_symbol{Monomial{a0, -0.25},
+                                       Monomial{b0, -0.25},
+                                       Monomial{a0b0, +0.25},
+                                       Monomial{a0b1, +0.25},
+                                       Monomial{a1b0, +0.25},
+                                       Monomial{a1b1, -0.25}};
         EXPECT_EQ(map.inverse(2), expected_new_symbol);
 
         // Check forward map
         ASSERT_EQ(map.fwd_size(), 12);
-        EXPECT_EQ(map(0), SymbolCombo::Zero());
-        EXPECT_EQ(map(1), SymbolCombo::Scalar(1.0));
-        EXPECT_EQ(map(a0), SymbolCombo::Scalar(0.5));
-        EXPECT_EQ(map(a1), SymbolCombo::Scalar(0.5));
-        EXPECT_EQ(map(b0), SymbolCombo::Scalar(0.5));
-        EXPECT_EQ(map(b1), SymbolCombo::Scalar(0.5));
-        EXPECT_EQ(map(a0a1), SymbolCombo::Scalar(0.25));
-        EXPECT_EQ(map(b0b1), SymbolCombo::Scalar(0.25));
-        EXPECT_EQ(map(a0b0), SymbolCombo({Monomial(1, 0.375), Monomial(2, 1.0)}));
-        EXPECT_EQ(map(a0b1), SymbolCombo({Monomial(1, 0.375), Monomial(2, 1.0)}));
-        EXPECT_EQ(map(a1b0), SymbolCombo({Monomial(1, 0.375), Monomial(2, 1.0)}));
-        EXPECT_EQ(map(a1b1), SymbolCombo({Monomial(1, 0.125), Monomial(2, -1.0)}));
+        EXPECT_EQ(map(0), Polynomial());
+        EXPECT_EQ(map(1), Polynomial::Scalar(1.0));
+        EXPECT_EQ(map(a0), Polynomial::Scalar(0.5));
+        EXPECT_EQ(map(a1), Polynomial::Scalar(0.5));
+        EXPECT_EQ(map(b0), Polynomial::Scalar(0.5));
+        EXPECT_EQ(map(b1), Polynomial::Scalar(0.5));
+        EXPECT_EQ(map(a0a1), Polynomial::Scalar(0.25));
+        EXPECT_EQ(map(b0b1), Polynomial::Scalar(0.25));
+        EXPECT_EQ(map(a0b0), Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)}));
+        EXPECT_EQ(map(a0b1), Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)}));
+        EXPECT_EQ(map(a1b0), Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)}));
+        EXPECT_EQ(map(a1b1), Polynomial({Monomial(1, 0.125), Monomial(2, -1.0)}));
 
         // Check on CHSH inequality
-        SymbolCombo chsh_ineq{Monomial{1, 2.0}, Monomial{a0, -4.0}, Monomial{b0, -4.0},
-                              Monomial{a0b0, 4.0}, Monomial{a0b1, 4.0},
-                              Monomial{a1b0, 4.0}, Monomial{a1b1, -4.0}};
-        SymbolCombo mapped_chsh{Monomial{1, 2.0}, Monomial{2, 16.0}};
+        Polynomial chsh_ineq{Monomial{1, 2.0}, Monomial{a0, -4.0}, Monomial{b0, -4.0},
+                             Monomial{a0b0, 4.0}, Monomial{a0b1, 4.0},
+                             Monomial{a1b0, 4.0}, Monomial{a1b1, -4.0}};
+        Polynomial mapped_chsh{Monomial{1, 2.0}, Monomial{2, 16.0}};
 
         EXPECT_EQ(map(chsh_ineq), mapped_chsh);
 
@@ -284,43 +284,43 @@ namespace Moment::Tests {
 
         const auto& poly_sm = dynamic_cast<const PolynomialMatrix&>(mapped_symbol_matrix);
         ASSERT_EQ(poly_sm.Dimension(), 5);
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][0], SymbolCombo::Scalar(1.0));
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][1], SymbolCombo::Scalar(0.5));
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][2], SymbolCombo::Scalar(0.5));
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][3], SymbolCombo::Scalar(0.5));
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][4], SymbolCombo::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][0], Polynomial::Scalar(1.0));
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][1], Polynomial::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][2], Polynomial::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][3], Polynomial::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix[0][4], Polynomial::Scalar(0.5));
 
-        EXPECT_EQ(poly_sm.SymbolMatrix[1][0], SymbolCombo::Scalar(0.5));
-        EXPECT_EQ(poly_sm.SymbolMatrix[1][1], SymbolCombo::Scalar(0.5)); // a0^2 -> a0 -> 0.5
-        EXPECT_EQ(poly_sm.SymbolMatrix[1][2], SymbolCombo::Scalar(0.25)); // a0a1 -> 0.25
+        EXPECT_EQ(poly_sm.SymbolMatrix[1][0], Polynomial::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix[1][1], Polynomial::Scalar(0.5)); // a0^2 -> a0 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix[1][2], Polynomial::Scalar(0.25)); // a0a1 -> 0.25
         EXPECT_EQ(poly_sm.SymbolMatrix[1][3],
-                  SymbolCombo({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b0 -> 0.375 + y
+                  Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b0 -> 0.375 + y
         EXPECT_EQ(poly_sm.SymbolMatrix[1][4],
-                  SymbolCombo({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b1 -> 0.125 - y
+                  Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b1 -> 0.125 - y
 
-        EXPECT_EQ(poly_sm.SymbolMatrix[2][0], SymbolCombo::Scalar(0.5)); // a1
-        EXPECT_EQ(poly_sm.SymbolMatrix[2][1], SymbolCombo::Scalar(0.25)); // a1a0
-        EXPECT_EQ(poly_sm.SymbolMatrix[2][2], SymbolCombo::Scalar(0.5)); // a1^2 -> a1 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix[2][0], Polynomial::Scalar(0.5)); // a1
+        EXPECT_EQ(poly_sm.SymbolMatrix[2][1], Polynomial::Scalar(0.25)); // a1a0
+        EXPECT_EQ(poly_sm.SymbolMatrix[2][2], Polynomial::Scalar(0.5)); // a1^2 -> a1 -> 0.5
         EXPECT_EQ(poly_sm.SymbolMatrix[2][3],
-                  SymbolCombo({Monomial(1, 0.375), Monomial(2, 1.0)})); // a1b0 -> 0.375 + y
+                  Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a1b0 -> 0.375 + y
         EXPECT_EQ(poly_sm.SymbolMatrix[2][4],
-                  SymbolCombo({Monomial(1, 0.125), Monomial(2, -1.0)})); // a1b1 -> 0.125 - y
+                  Polynomial({Monomial(1, 0.125), Monomial(2, -1.0)})); // a1b1 -> 0.125 - y
 
-        EXPECT_EQ(poly_sm.SymbolMatrix[3][0], SymbolCombo::Scalar(0.5)); // b0 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix[3][0], Polynomial::Scalar(0.5)); // b0 -> 0.5
         EXPECT_EQ(poly_sm.SymbolMatrix[3][1],
-                  SymbolCombo({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b0 -> 0.375 + y
+                  Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b0 -> 0.375 + y
         EXPECT_EQ(poly_sm.SymbolMatrix[3][2],
-                  SymbolCombo({Monomial(1, 0.375), Monomial(2, 1.0)})); // a1b0 -> 0.375 + y
-        EXPECT_EQ(poly_sm.SymbolMatrix[3][3], SymbolCombo::Scalar(0.5));  // b0^2 -> b0 -> 0.5
-        EXPECT_EQ(poly_sm.SymbolMatrix[3][4], SymbolCombo::Scalar(0.25)); // b0b1 -> 0.25
+                  Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a1b0 -> 0.375 + y
+        EXPECT_EQ(poly_sm.SymbolMatrix[3][3], Polynomial::Scalar(0.5));  // b0^2 -> b0 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix[3][4], Polynomial::Scalar(0.25)); // b0b1 -> 0.25
 
-        EXPECT_EQ(poly_sm.SymbolMatrix[4][0], SymbolCombo::Scalar(0.5)); // b1 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix[4][0], Polynomial::Scalar(0.5)); // b1 -> 0.5
         EXPECT_EQ(poly_sm.SymbolMatrix[4][1],
-                  SymbolCombo({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b1 -> 0.375 - y
+                  Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b1 -> 0.375 - y
         EXPECT_EQ(poly_sm.SymbolMatrix[4][2],
-                  SymbolCombo({Monomial(1, 0.125), Monomial(2, -1.0)})); // a1b1 -> 0.125 - y
-        EXPECT_EQ(poly_sm.SymbolMatrix[4][3], SymbolCombo::Scalar(0.25));  // b1b0 -> 0.25
-        EXPECT_EQ(poly_sm.SymbolMatrix[4][4], SymbolCombo::Scalar(0.5)); // b1^2 -> b1 -> 0.25
+                  Polynomial({Monomial(1, 0.125), Monomial(2, -1.0)})); // a1b1 -> 0.125 - y
+        EXPECT_EQ(poly_sm.SymbolMatrix[4][3], Polynomial::Scalar(0.25));  // b1b0 -> 0.25
+        EXPECT_EQ(poly_sm.SymbolMatrix[4][4], Polynomial::Scalar(0.5)); // b1^2 -> b1 -> 0.25
     }
 
 
@@ -368,8 +368,8 @@ namespace Moment::Tests {
         EXPECT_FALSE(map.is_monomial_map());
 
         // Check inverse map
-        EXPECT_EQ(map.inverse(0), SymbolCombo::Zero());
-        EXPECT_EQ(map.inverse(1), SymbolCombo::Scalar(1.0));
+        EXPECT_EQ(map.inverse(0), Polynomial());
+        EXPECT_EQ(map.inverse(1), Polynomial::Scalar(1.0));
 
 
     }

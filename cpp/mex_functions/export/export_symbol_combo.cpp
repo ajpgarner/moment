@@ -7,8 +7,8 @@
 
 #include "export_symbol_combo.h"
 
-#include "symbolic/symbol_combo.h"
-#include "symbolic/symbol_combo_to_basis.h"
+#include "symbolic/polynomial.h"
+#include "symbolic/polynomial_to_basis.h"
 #include "symbolic/symbol_table.h"
 
 #include "utilities/make_sparse_matrix.h"
@@ -21,9 +21,9 @@
 namespace Moment::mex {
 
     std::pair<matlab::data::Array, matlab::data::Array>
-        SymbolComboExporter::operator()(const SymbolCombo& combo) const {
+        SymbolComboExporter::operator()(const Polynomial& combo) const {
 
-        auto [basis_re, basis_im] = SymbolComboToBasisVec{symbols}(combo);
+        auto [basis_re, basis_im] = PolynomialToBasisVec{symbols}(combo);
 
         matlab::data::ArrayFactory factory;
 
@@ -33,7 +33,7 @@ namespace Moment::mex {
         };
     }
 
-    matlab::data::CellArray SymbolComboExporter::direct(const SymbolCombo &combo) const {
+    matlab::data::CellArray SymbolComboExporter::direct(const Polynomial &combo) const {
 
         matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({combo.size(), 1});

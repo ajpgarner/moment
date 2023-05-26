@@ -13,7 +13,7 @@
 
 namespace Moment {
     class SymbolTable;
-    class SymbolCombo;
+    class Polynomial;
 }
 
 namespace Moment::mex {
@@ -29,13 +29,13 @@ namespace Moment::mex {
          * @param combo The combo to export.
          * @return Pair, first: real coefficients; second: imaginary coefficients.
          */
-        std::pair<matlab::data::Array, matlab::data::Array> operator()(const SymbolCombo& combo) const;
+        std::pair<matlab::data::Array, matlab::data::Array> operator()(const Polynomial& combo) const;
 
         /**
          * Export combo directly as a cell array.
          * @param combo The combo to export.
          * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
          */
-        matlab::data::CellArray direct(const SymbolCombo& combo) const;
+        matlab::data::CellArray direct(const Polynomial& combo) const;
     };
 }

@@ -1,11 +1,11 @@
 /**
- * symbol_combo_to_basis.cpp
+ * polynomial_to_basis.cpp
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 
-#include "symbol_combo_to_basis.h"
+#include "polynomial_to_basis.h"
 
 #include "symbol_table.h"
 
@@ -61,12 +61,12 @@ namespace Moment {
         }
 
         template<class number_t>
-        SymbolCombo do_basis_vec_to_symbol_combo(const SymbolTable& symbols,
-                                                 const Eigen::SparseVector<number_t>& real_basis,
-                                                 const Eigen::SparseVector<number_t>& img_basis) {
+        Polynomial do_basis_vec_to_symbol_combo(const SymbolTable& symbols,
+                                                const Eigen::SparseVector<number_t>& real_basis,
+                                                const Eigen::SparseVector<number_t>& img_basis) {
             const auto zipped_basis = zip_basis(symbols, real_basis, img_basis);
 
-            SymbolCombo::storage_t output;
+            Polynomial::storage_t output;
 
             for (const auto [symbol_id, values] : zipped_basis) {
                 const auto& symbol_info = symbols[symbol_id];
@@ -90,7 +90,7 @@ namespace Moment {
                     }
                 }
             }
-            return SymbolCombo{std::move(output)};
+            return Polynomial{std::move(output)};
         }
 
 
@@ -107,7 +107,7 @@ namespace Moment {
 
         template<class number_t>
         std::pair<Eigen::SparseVector<number_t>, Eigen::SparseVector<number_t>>
-        do_symbol_combo_to_basis_vec(const SymbolTable& symbols, const SymbolCombo& combo) {
+        do_symbol_combo_to_basis_vec(const SymbolTable& symbols, const Polynomial& combo) {
 
             using basis_t = typename Eigen::SparseVector<number_t>;
             using index_t = typename Eigen::SparseVector<number_t>::Index;
@@ -174,23 +174,23 @@ namespace Moment {
     }
 
     std::pair<basis_vec_t, basis_vec_t>
-    SymbolComboToBasisVec::operator()(const SymbolCombo& combo) const {
+    PolynomialToBasisVec::operator()(const Polynomial& combo) const {
         assert(combo.real_factors());
         return do_symbol_combo_to_basis_vec<double>(this->symbols, combo);
     }
 
     std::pair<complex_basis_vec_t, complex_basis_vec_t>
-    SymbolComboToComplexBasisVec::operator()(const SymbolCombo& combo) const {
+    PolynomialToComplexBasisVec::operator()(const Polynomial& combo) const {
         return do_symbol_combo_to_basis_vec<std::complex<double>>(this->symbols, combo);
     }
 
-    SymbolCombo BasisVecToSymbolCombo::operator()(const basis_vec_t& real_basis,
-                                                  const basis_vec_t& img_basis) const {
+    Polynomial BasisVecToPolynomial::operator()(const basis_vec_t& real_basis,
+                                                const basis_vec_t& img_basis) const {
         return do_basis_vec_to_symbol_combo(this->symbols, real_basis, img_basis);
     }
 
-    SymbolCombo ComplexBasisVecToSymbolCombo::operator()(const complex_basis_vec_t& real_basis,
-                                                         const complex_basis_vec_t& img_basis) const {
+    Polynomial ComplexBasisVecToPolynomial::operator()(const complex_basis_vec_t& real_basis,
+                                                       const complex_basis_vec_t& img_basis) const {
         return do_basis_vec_to_symbol_combo(this->symbols, real_basis, img_basis);
     }
 }

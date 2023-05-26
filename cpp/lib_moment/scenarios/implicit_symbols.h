@@ -10,7 +10,7 @@
 
 #include "joint_measurement_index.h"
 
-#include "symbolic/symbol_combo.h"
+#include "symbolic/polynomial.h"
 
 #include <cassert>
 
@@ -40,10 +40,10 @@ namespace Moment {
     /** Definition of an implied symbol */
     struct PMODefinition {
         symbol_name_t symbol_id = 0;
-        SymbolCombo expression{};
+        Polynomial expression{};
 
     public:
-        PMODefinition(symbol_name_t symbol_id, SymbolCombo expr)
+        PMODefinition(symbol_name_t symbol_id, Polynomial expr)
                 : symbol_id{symbol_id}, expression(std::move(expr)) { }
     };
 

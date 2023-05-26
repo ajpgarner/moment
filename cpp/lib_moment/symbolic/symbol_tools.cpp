@@ -7,7 +7,7 @@
 
 #include "symbol_tools.h"
 
-#include "symbol_combo.h"
+#include "polynomial.h"
 #include "monomial.h"
 #include "symbol_table.h"
 
@@ -30,7 +30,7 @@ namespace Moment {
         }
     }
 
-    void SymbolTools::make_canonical(SymbolCombo& combo) const {
+    void SymbolTools::make_canonical(Polynomial& combo) const {
         combo.fix_cc_in_place(this->table, true);
     }
 

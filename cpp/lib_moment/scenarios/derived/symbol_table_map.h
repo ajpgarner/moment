@@ -11,7 +11,7 @@
 
 #include "derived_errors.h"
 
-#include "symbolic/symbol_combo.h"
+#include "symbolic/polynomial.h"
 
 #include "utilities/dynamic_bitset.h"
 #include "utilities/square_matrix.h"
@@ -29,7 +29,7 @@
 #include <cassert>
 
 namespace Moment {
-    class SymbolCombo;
+    class Polynomial;
     class SymbolTable;
 
     namespace Derived {
@@ -42,8 +42,8 @@ namespace Moment {
             const SymbolTable& origin_symbols;
             SymbolTable& target_symbols;
 
-            std::vector<SymbolCombo> map;
-            std::vector<SymbolCombo> inverse_map;
+            std::vector<Polynomial> map;
+            std::vector<Polynomial> inverse_map;
             bool _is_monomial_map = false;
 
             std::unique_ptr<MapCore> core;
@@ -83,7 +83,7 @@ namespace Moment {
              * @return Reference to symbol combo.
              * @throws error::bad_map If symbol id is out of range.
              */
-            [[nodiscard]] const SymbolCombo& operator()(symbol_name_t symbol_id) const;
+            [[nodiscard]] const Polynomial& operator()(symbol_name_t symbol_id) const;
 
             /**
               * Create symbol/symbol combo in target, associated with symbol expression in source.
@@ -92,7 +92,7 @@ namespace Moment {
               * @return New symbol combo, transforming the supplied expression.
               * @throws error::bad_map If symbol is out of range.
               */
-            [[nodiscard]] SymbolCombo operator()(const Monomial& symbol) const;
+            [[nodiscard]] Polynomial operator()(const Monomial& symbol) const;
 
             /**
               * Create symbol/symbol combo in target, associated with symbol combo in source.
@@ -101,7 +101,7 @@ namespace Moment {
               * @return New symbol combo, transforming the supplied expression.
               * @throws error::bad_map If symbol is out of range.
               */
-            [[nodiscard]] SymbolCombo operator()(const SymbolCombo& symbol) const;
+            [[nodiscard]] Polynomial operator()(const Polynomial& symbol) const;
 
             /**
               * Create new polynomial symbolic matrix, mapping source monomial matrix into new symbol set.
@@ -109,7 +109,7 @@ namespace Moment {
               * @return New symbolic matrix, transforming the supplied input.
               * @throws error::bad_map If any contained symbol is out of range.
               */
-            [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolCombo>>
+            [[nodiscard]] std::unique_ptr<SquareMatrix<Polynomial>>
             operator()(const SquareMatrix<Monomial>& matrix) const;
 
             /**
@@ -118,8 +118,8 @@ namespace Moment {
               * @return New symbolic matrix, transforming the supplied input.
               * @throws error::bad_map If any contained symbol is out of range.
               */
-            [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolCombo>>
-            operator()(const SquareMatrix<SymbolCombo>& matrix) const;
+            [[nodiscard]] std::unique_ptr<SquareMatrix<Polynomial>>
+            operator()(const SquareMatrix<Polynomial>& matrix) const;
 
             /**
              * Create new monomial symbolic matrix, mapping source monomial matrix into new symbol set.
@@ -136,7 +136,7 @@ namespace Moment {
              * @return Reference to symbol combo.
              * @throws error::bad_map If symbol id is out of range.
              */
-            [[nodiscard]] const SymbolCombo& inverse(symbol_name_t symbol_id) const;
+            [[nodiscard]] const Polynomial& inverse(symbol_name_t symbol_id) const;
 
             /**
               * Create symbol/symbol combo in source, associated with symbol expression in target.
@@ -145,7 +145,7 @@ namespace Moment {
               * @return New symbol combo, transforming the supplied expression.
               * @throws error::bad_map If symbol is out of range.
               */
-            [[nodiscard]] SymbolCombo inverse(const Monomial& symbol) const;
+            [[nodiscard]] Polynomial inverse(const Monomial& symbol) const;
 
             /**
              * Number of elements in forward map.

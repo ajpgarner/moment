@@ -45,7 +45,7 @@ namespace Moment {
     private:
         std::map<symbol_name_t, MomentSubstitutionRule> rules;
 
-        std::vector<SymbolCombo> raw_rules;
+        std::vector<Polynomial> raw_rules;
 
         std::unique_ptr<SymbolComboFactory> factory;
 
@@ -63,7 +63,7 @@ namespace Moment {
          * Add substitution rules in the form of polynomials equal to zero.
          * Completion is deferred until complete() is called.
          */
-        void add_raw_rules(std::vector<SymbolCombo>&& raw);
+        void add_raw_rules(std::vector<Polynomial>&& raw);
 
         /**
          * Add substitution rules in the form of symbol equal to value map.
@@ -81,7 +81,7 @@ namespace Moment {
          * Add substitution rule in the form of polynomial equal to zero.
          * Completion is deferred until complete() is called.
          */
-        void add_raw_rule(SymbolCombo&& raw);
+        void add_raw_rule(Polynomial&& raw);
 
         /**
          * Try to add an oriented rule directly.
@@ -111,15 +111,15 @@ namespace Moment {
         size_t infer_additional_rules_from_factors(const MatrixSystem& ms);
 
         /**
-         * Apply all known rules to SymbolCombo.
+         * Apply all known rules to Polynomial.
          * @return true if rules were applied.
          */
-        bool reduce_in_place(SymbolCombo& combo) const;
+        bool reduce_in_place(Polynomial& combo) const;
 
         /**
-         * Apply all known rules to SymbolCombo.
+         * Apply all known rules to Polynomial.
          */
-        [[nodiscard]] SymbolCombo reduce(SymbolCombo combo) const {
+        [[nodiscard]] Polynomial reduce(Polynomial combo) const {
             this->reduce_in_place(combo);
             return combo;
         }
@@ -127,7 +127,7 @@ namespace Moment {
         /**
          * Apply all known rules to Monomial.
          */
-        [[nodiscard]] SymbolCombo reduce(Monomial expr) const;
+        [[nodiscard]] Polynomial reduce(Monomial expr) const;
 
         /**
          * Apply all known rules to Monomial.
@@ -151,7 +151,7 @@ namespace Moment {
 
         /**
          * True if rulebook is guaranteed to transform Hermitian matrices into Hermitian matrices.
-         * False if there exists a rule that transforms Hermitian symbols into a non-Hermitian SymbolCombo.
+         * False if there exists a rule that transforms Hermitian symbols into a non-Hermitian Polynomial.
          */
         [[nodiscard]] bool is_hermitian() const noexcept { return this->hermitian_rules; }
 

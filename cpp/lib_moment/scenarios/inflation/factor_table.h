@@ -10,7 +10,7 @@
 
 #include "scenarios/operator_sequence.h"
 
-#include "symbolic/symbol_combo.h"
+#include "symbolic/polynomial.h"
 
 #include "utilities/index_tree.h"
 
@@ -140,8 +140,8 @@ namespace Moment {
              * @throws errors::unknown_symbol If product is not registered as a known symbol.
              * @returns The symbol ID of the product.
              */
-            SymbolCombo try_multiply(const SymbolComboFactory& factory,
-                                     const SymbolCombo& lhs, const SymbolCombo& rhs) const;
+            Polynomial try_multiply(const SymbolComboFactory& factory,
+                                    const Polynomial& lhs, const Polynomial& rhs) const;
 
             /**
              * Attempt to multiply symbolic expressions.

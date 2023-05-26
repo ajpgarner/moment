@@ -33,15 +33,15 @@ namespace Moment::Tests {
             symbols.create(true, false); // 5, real
 
             // Now, create matrix
-            std::vector<SymbolCombo> smData;
+            std::vector<Polynomial> smData;
             smData.reserve(4);
 
-            smData.emplace_back(SymbolCombo{Monomial{1, 1.0}, Monomial{2, -1.0}});
-            smData.emplace_back(SymbolCombo{Monomial{3, 1.0}, Monomial{4, 2.0}});
-            smData.emplace_back(SymbolCombo{Monomial{3, 1.0, true}, Monomial{4, 2.0, true}});
-            smData.emplace_back(SymbolCombo{Monomial{5, 1.0}});
+            smData.emplace_back(Polynomial{Monomial{1, 1.0}, Monomial{2, -1.0}});
+            smData.emplace_back(Polynomial{Monomial{3, 1.0}, Monomial{4, 2.0}});
+            smData.emplace_back(Polynomial{Monomial{3, 1.0, true}, Monomial{4, 2.0, true}});
+            smData.emplace_back(Polynomial{Monomial{5, 1.0}});
 
-            std::unique_ptr<SquareMatrix<SymbolCombo>> sqMat = std::make_unique<SquareMatrix<SymbolCombo>>(2, std::move(smData));
+            std::unique_ptr<SquareMatrix<Polynomial>> sqMat = std::make_unique<SquareMatrix<Polynomial>>(2, std::move(smData));
             auto matrix = std::make_unique<PolynomialMatrix>(system->Context(), system->Symbols(), std::move(sqMat));
 
             return {std::move(system), std::move(matrix)};

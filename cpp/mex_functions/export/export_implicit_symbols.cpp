@@ -27,7 +27,7 @@ namespace Moment::mex {
         matlab::data::SparseArray<double> combo_to_sparse_array(matlab::engine::MATLABEngine &engine,
                                                                 matlab::data::ArrayFactory &factory,
                                                                 const SymbolTable& table,
-                                                                const SymbolCombo &combo) {
+                                                                const Polynomial &combo) {
             // Special case, for completely zero matrix:
             const size_t nnz = combo.size();
             const size_t real_symbol_count = table.Basis.RealSymbolCount();
@@ -118,7 +118,7 @@ namespace Moment::mex {
                     this->output_array[write_index]["sequence"] = factory.createScalar("1");
                     this->output_array[write_index]["indices"] = factory.createArray<uint64_t>({0, 3});
                     this->output_array[write_index]["real_coefficients"]
-                        = to_sparse_array(SymbolCombo{Monomial{1, 1.}});
+                        = to_sparse_array(Polynomial{Monomial{1, 1.}});
                     ++write_index;
                     return;
                 }
@@ -165,7 +165,7 @@ namespace Moment::mex {
 
 
         private:
-            inline matlab::data::SparseArray<double> to_sparse_array(const SymbolCombo &combo) {
+            inline matlab::data::SparseArray<double> to_sparse_array(const Polynomial &combo) {
                 return combo_to_sparse_array(this->engine, this->factory,
                                              this->implicitSymbols.symbols, combo);
             }

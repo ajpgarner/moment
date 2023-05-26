@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include "symbol_combo.h"
+#include "polynomial.h"
 
 namespace Moment {
 
@@ -23,7 +23,7 @@ namespace Moment {
         /**
          * Less than.
          */
-        [[nodiscard]] bool operator()(const SymbolCombo& lhs, const SymbolCombo& rhs) const noexcept {
+        [[nodiscard]] bool operator()(const Polynomial& lhs, const Polynomial& rhs) const noexcept {
             ptrdiff_t lhs_idx = static_cast<ptrdiff_t>(lhs.size()) - 1;
             ptrdiff_t rhs_idx = static_cast<ptrdiff_t>(rhs.size()) - 1;
 

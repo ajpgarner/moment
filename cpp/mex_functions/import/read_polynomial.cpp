@@ -1,11 +1,11 @@
 /**
- * read_symbol_combo.cpp
+ * read_polynomial.cpp
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 
-#include "read_symbol_combo.h"
+#include "read_polynomial.h"
 
 #include "error_codes.h"
 
@@ -15,8 +15,8 @@
 
 namespace Moment::mex {
     [[nodiscard]] raw_sc_data
-    read_raw_symbol_expression(matlab::engine::MATLABEngine& matlabEngine,
-                               const std::string& fieldName, const matlab::data::Array& input) {
+    read_raw_monomial(matlab::engine::MATLABEngine& matlabEngine,
+                      const std::string& fieldName, const matlab::data::Array& input) {
         // Input must be cell
         if (input.getType() != matlab::data::ArrayType::CELL) {
             std::stringstream errSS;
@@ -51,9 +51,9 @@ namespace Moment::mex {
 
 
     std::vector<raw_sc_data>
-    read_raw_symbol_combo_data(matlab::engine::MATLABEngine &matlabEngine,
-                               const std::string& fieldName,
-                               const matlab::data::Array &input) {
+    read_raw_polynomial_data(matlab::engine::MATLABEngine &matlabEngine,
+                             const std::string& fieldName,
+                             const matlab::data::Array &input) {
         // Input must be cell
         if (input.getType() != matlab::data::ArrayType::CELL) {
             std::stringstream errSS;
@@ -74,14 +74,14 @@ namespace Moment::mex {
         for (const auto& elem : cell_input) {
             std::stringstream elemSS;
             elemSS << fieldName << " element #" << (index+1);
-            output.emplace_back(read_raw_symbol_expression(matlabEngine, elemSS.str(), elem));
+            output.emplace_back(read_raw_monomial(matlabEngine, elemSS.str(), elem));
             ++index;
         }
         return output;
     }
 
-    SymbolCombo raw_sc_data_to_symbol_combo(const SymbolComboFactory &factory, std::span<const raw_sc_data> data) {
-        SymbolCombo::storage_t output_data;
+    Polynomial raw_data_to_polynomial(const SymbolComboFactory &factory, std::span<const raw_sc_data> data) {
+        Polynomial::storage_t output_data;
         output_data.reserve(data.size());
         for (const auto& datum: data) {
             output_data.emplace_back(datum.symbol_id, datum.factor, datum.conjugated);

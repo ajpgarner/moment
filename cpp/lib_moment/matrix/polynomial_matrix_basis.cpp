@@ -43,7 +43,7 @@ namespace Moment {
          */
         template<typename BasisInfo, bool symmetric, bool complex>
         void do_create_dense_basis_impl(const SymbolTable& symbols,
-                                        const SquareMatrix<SymbolCombo>& matrix,
+                                        const SquareMatrix<Polynomial>& matrix,
                                         typename BasisInfo::RealStorageType& real,
                                         typename BasisInfo::ImStorageType& im) {
             const auto dimension = matrix.dimension;
@@ -117,7 +117,7 @@ namespace Moment {
 
         template<typename BasisInfo, bool symmetric, bool complex>
         void do_create_sparse_frame(const SymbolTable& symbols,
-                                    const SquareMatrix<SymbolCombo>& matrix,
+                                    const SquareMatrix<Polynomial>& matrix,
                                     std::vector<std::vector<typename BasisInfo::RealTripletType>>& real_frame,
                                     std::vector<std::vector<typename BasisInfo::ImTripletType>>& im_frame) {
 

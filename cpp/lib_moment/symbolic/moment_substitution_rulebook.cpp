@@ -41,7 +41,7 @@ namespace Moment {
 
     }
 
-    void MomentSubstitutionRulebook::add_raw_rules(std::vector<SymbolCombo> &&raw) {
+    void MomentSubstitutionRulebook::add_raw_rules(std::vector<Polynomial> &&raw) {
         // Move in rules
         if (this->raw_rules.empty()) {
             this->raw_rules = std::move(raw);
@@ -58,7 +58,7 @@ namespace Moment {
             if (approximately_zero(value)) {
                 this->raw_rules.emplace_back(Monomial{id});
             } else {
-                this->raw_rules.emplace_back(SymbolCombo{Monomial{id, 1.0}, Monomial{1, -value}});
+                this->raw_rules.emplace_back(Polynomial{Monomial{id, 1.0}, Monomial{1, -value}});
             }
         }
     }
@@ -69,13 +69,13 @@ namespace Moment {
             if (approximately_zero(value)) {
                 this->raw_rules.emplace_back(Monomial{id});
             } else {
-                this->raw_rules.emplace_back(SymbolCombo{Monomial{id, 1.0}, Monomial{1, -value}});
+                this->raw_rules.emplace_back(Polynomial{Monomial{id, 1.0}, Monomial{1, -value}});
             }
         }
     }
 
 
-    void MomentSubstitutionRulebook::add_raw_rule(SymbolCombo&& raw) {
+    void MomentSubstitutionRulebook::add_raw_rule(Polynomial&& raw) {
         this->raw_rules.emplace_back(std::move(raw));
     }
 
@@ -119,7 +119,7 @@ namespace Moment {
         // Now, attempt to add in each rule in order
         for (auto& rule : this->raw_rules) {
             // First, reduce polynomial according to known rules
-            SymbolCombo reduced_rule{this->reduce(std::move(rule))};
+            Polynomial reduced_rule{this->reduce(std::move(rule))};
 
             // Second, orient to get leading term
             MomentSubstitutionRule msr{this->symbols, std::move(reduced_rule)};
@@ -193,7 +193,7 @@ namespace Moment {
         const Inflation::InflationMatrixSystem& inflation_system = *imsPtr;
         const auto& factors = inflation_system.Factors();
 
-        std::vector<SymbolCombo> new_rules;
+        std::vector<Polynomial> new_rules;
 
         // Go through factorized symbols...
         for (const auto& symbol : factors) {
@@ -225,10 +225,10 @@ namespace Moment {
                 if (match_iterators[index] != this->rules.cend()) {
                     return match_iterators[index]->second.RHS();
                 } else {
-                    return SymbolCombo{Monomial{symbol.canonical.symbols[index], 1.0, false}};
+                    return Polynomial{Monomial{symbol.canonical.symbols[index], 1.0, false}};
                 }
             };
-            SymbolCombo product = get_as_poly(0);
+            Polynomial product = get_as_poly(0);
             for (size_t idx=1; idx < symbol_length; ++idx) {
                 if (product.empty()) {
                     break;
@@ -249,8 +249,8 @@ namespace Moment {
         return this->complete();
     }
 
-    bool MomentSubstitutionRulebook::reduce_in_place(Moment::SymbolCombo& polynomial) const {
-        SymbolCombo::storage_t potential_output;
+    bool MomentSubstitutionRulebook::reduce_in_place(Moment::Polynomial& polynomial) const {
+        Polynomial::storage_t potential_output;
         bool ever_matched = false;
         for (auto poly_iter = polynomial.begin(); poly_iter != polynomial.end(); ++poly_iter) {
             auto rule_iter = this->rules.find(poly_iter->id);
@@ -295,11 +295,11 @@ namespace Moment {
         return rule.reduce_monomial(this->symbols, expr);
     }
 
-    SymbolCombo MomentSubstitutionRulebook::reduce(Monomial expr) const {
+    Polynomial MomentSubstitutionRulebook::reduce(Monomial expr) const {
         auto rule_iter = this->rules.find(expr.id);
         // No match, pass through (promote to combo)
         if (rule_iter == this->rules.cend()) {
-            return SymbolCombo{expr};
+            return Polynomial{expr};
         }
 
         // Otherwise, make substitution

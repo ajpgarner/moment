@@ -16,8 +16,8 @@
 #include "scenarios/derived/derived_matrix_system.h"
 #include "scenarios/derived/symbol_table_map.h"
 
-#include "symbolic/symbol_combo.h"
-#include "symbolic/symbol_combo_to_basis.h"
+#include "symbolic/polynomial.h"
+#include "symbolic/polynomial_to_basis.h"
 
 #include "eigen/read_eigen_sparse.h"
 #include "export/export_symbol_combo.h"
@@ -27,12 +27,12 @@
 namespace Moment::mex::functions {
 
     namespace {
-        SymbolCombo get_input_as_combo(matlab::engine::MATLABEngine matlabEngine,
-                                       const SymbolTable& symbols,
-                                       const TransformSymbolsParams& input) {
+        Polynomial get_input_as_combo(matlab::engine::MATLABEngine matlabEngine,
+                                      const SymbolTable& symbols,
+                                      const TransformSymbolsParams& input) {
 
             if (input.input_type == TransformSymbolsParams::InputType::SymbolId) {
-                return SymbolCombo{Monomial{input.symbol_id, 1.0, false}};
+                return Polynomial{Monomial{input.symbol_id, 1.0, false}};
             }
 
             if (input.input_type != TransformSymbolsParams::InputType::Basis) {
@@ -47,7 +47,7 @@ namespace Moment::mex::functions {
                     (input.inputs.size()>=3) ? read_eigen_sparse_vector(matlabEngine, input.inputs[2])
                                              : Eigen::SparseVector<double>(0);
 
-            return BasisVecToSymbolCombo{symbols}(real_base, complex_base);
+            return BasisVecToPolynomial{symbols}(real_base, complex_base);
 
         }
     }

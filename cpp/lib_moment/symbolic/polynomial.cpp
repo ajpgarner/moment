@@ -1,10 +1,10 @@
 /**
- * symbol_combo.cpp
+ * polynomial.cpp
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "symbol_combo.h"
+#include "polynomial.h"
 #include "symbol_table.h"
 
 #include "utilities/float_utils.h"
@@ -29,7 +29,7 @@ namespace Moment {
         };
     }
 
-    void SymbolCombo::remove_duplicates(SymbolCombo::storage_t &data) {
+    void Polynomial::remove_duplicates(Polynomial::storage_t &data) {
         // Iterate forwards, looking for duplicates
         LexEqComparator lex_eq{};
         auto leading_iter = data.begin();
@@ -56,7 +56,7 @@ namespace Moment {
         data.erase(lagging_iter, last_iter);
     }
 
-    void SymbolCombo::remove_zeros(SymbolCombo::storage_t &data) {
+    void Polynomial::remove_zeros(Polynomial::storage_t &data) {
         auto read_iter = data.begin();
         auto write_iter = data.begin();
         const auto last_iter = data.end();
@@ -81,13 +81,13 @@ namespace Moment {
         data.erase(write_iter, last_iter);
     }
 
-    SymbolCombo::SymbolCombo(const Monomial& expr) {
+    Polynomial::Polynomial(const Monomial& expr) {
         if (0 != expr.id) {
             this->data.emplace_back(expr);
         }
     }
 
-    SymbolCombo::SymbolCombo(const std::map<symbol_name_t, double> &input) {
+    Polynomial::Polynomial(const std::map<symbol_name_t, double> &input) {
         data.reserve(input.size());
         for (const auto& pair : input) {
             data.emplace_back(pair.first, pair.second);
@@ -95,7 +95,7 @@ namespace Moment {
     }
 
 
-    SymbolCombo::operator Monomial() const {
+    Polynomial::operator Monomial() const {
         if (!this->is_monomial()) {
             std::stringstream errSS;
             errSS << "\"" << *this << "\" is not a monomial expression.";
@@ -112,7 +112,7 @@ namespace Moment {
     }
 
 
-    SymbolCombo& SymbolCombo::operator*=(const std::complex<double> factor) noexcept {
+    Polynomial& Polynomial::operator*=(const std::complex<double> factor) noexcept {
         if (approximately_zero(factor)) {
             this->data.clear();
             return *this;
@@ -128,7 +128,7 @@ namespace Moment {
         return *this;
     }
 
-    bool SymbolCombo::operator==(const SymbolCombo &rhs) const noexcept {
+    bool Polynomial::operator==(const Polynomial &rhs) const noexcept {
         if (this->data.size() != rhs.data.size()) {
             return false;
         }
@@ -140,7 +140,7 @@ namespace Moment {
         return true;
     }
 
-    bool SymbolCombo::fix_cc_in_place(const SymbolTable &symbols, bool make_canonical) noexcept {
+    bool Polynomial::fix_cc_in_place(const SymbolTable &symbols, bool make_canonical) noexcept {
         bool any_change = false;
         for (auto& elem: this->data) {
             assert(elem.id < symbols.size());
@@ -167,7 +167,7 @@ namespace Moment {
         return any_change;
     }
 
-    bool SymbolCombo::conjugate_in_place(const SymbolTable& symbols) noexcept {
+    bool Polynomial::conjugate_in_place(const SymbolTable& symbols) noexcept {
         bool any_conjugate = false;
 
         for (auto& elem: this->data) {
@@ -206,7 +206,7 @@ namespace Moment {
     }
 
 
-    bool SymbolCombo::is_hermitian(const SymbolTable& symbols) const noexcept {
+    bool Polynomial::is_hermitian(const SymbolTable& symbols) const noexcept {
 
         const Monomial* last_symbol = nullptr;
         for (const auto& elem : this->data) {
@@ -263,7 +263,7 @@ namespace Moment {
         return true;
     }
 
-    bool SymbolCombo::is_conjugate(const SymbolTable& symbols, const SymbolCombo &other) const noexcept {
+    bool Polynomial::is_conjugate(const SymbolTable& symbols, const Polynomial &other) const noexcept {
         if (this->data.size() != other.data.size()) {
             return false;
         }
@@ -309,7 +309,7 @@ namespace Moment {
     }
 
 
-    std::ostream &operator<<(std::ostream &os, const SymbolCombo &combo) {
+    std::ostream &operator<<(std::ostream &os, const Polynomial &combo) {
         const bool initial_plus_status = os.flags() & std::ios::showpos;
         const bool initial_show_base_status = os.flags() & std::ios::showbase;
 
@@ -337,7 +337,7 @@ namespace Moment {
         return os;
     }
 
-    std::string SymbolCombo::as_string() const {
+    std::string Polynomial::as_string() const {
 
         std::stringstream ss;
         ss << *this;

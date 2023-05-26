@@ -1,5 +1,5 @@
 /**
- * symbol_combo.h
+ * polynomial.h
  * 
  * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -23,7 +23,7 @@
 namespace Moment {
     class SymbolTable;
 
-    class SymbolCombo {
+    class Polynomial {
     public:
         /**
          * Storage for linear  combination of symbolic expressions.
@@ -36,14 +36,14 @@ namespace Moment {
 
     public:
 
-        SymbolCombo() = default;
+        Polynomial() = default;
 
-        SymbolCombo(const SymbolCombo& rhs) = default;
+        Polynomial(const Polynomial& rhs) = default;
 
-        SymbolCombo(SymbolCombo&& rhs) = default;
+        Polynomial(Polynomial&& rhs) = default;
 
         /** Construct combination from monomial */
-        explicit SymbolCombo(const Monomial& monomial);
+        explicit Polynomial(const Monomial& monomial);
 
         /**
          * Construct combination from vector of monomials.
@@ -52,14 +52,14 @@ namespace Moment {
          * @param order Instance of the ordering functional.
          */
         template<typename ordering_func_t = Monomial::IdLessComparator>
-        explicit SymbolCombo(storage_t input,
-                             const ordering_func_t& order = ordering_func_t{})
+        explicit Polynomial(storage_t input,
+                            const ordering_func_t& order = ordering_func_t{})
             : data{std::move(input)} {
             if (this->data.size() > 1) {
                 this->sort(order);
-                SymbolCombo::remove_duplicates(this->data);
+                Polynomial::remove_duplicates(this->data);
             }
-            SymbolCombo::remove_zeros(this->data);
+            Polynomial::remove_zeros(this->data);
         }
 
         /**
@@ -70,28 +70,28 @@ namespace Moment {
          * @param order Instance of the ordering functional.
          */
         template<typename ordering_func_t =  Monomial::IdLessComparator>
-        explicit SymbolCombo(storage_t input,
-                             const SymbolTable& table,
-                             const ordering_func_t& order = ordering_func_t{})
+        explicit Polynomial(storage_t input,
+                            const SymbolTable& table,
+                            const ordering_func_t& order = ordering_func_t{})
                 : data{std::move(input)} {
             this->fix_cc_in_place(table, false);
             if (this->data.size() > 1) {
                 this->sort(order);
-                SymbolCombo::remove_duplicates(this->data);
+                Polynomial::remove_duplicates(this->data);
             }
-            SymbolCombo::remove_zeros(this->data);
+            Polynomial::remove_zeros(this->data);
         }
 
         /** Construct combination from map of symbol names to weights.
          * This is automatically in id order, with no complex conjugates. */
-        explicit SymbolCombo(const std::map<symbol_name_t, double>& input);
+        explicit Polynomial(const std::map<symbol_name_t, double>& input);
 
-        inline SymbolCombo& operator=(const SymbolCombo& rhs) = default;
+        inline Polynomial& operator=(const Polynomial& rhs) = default;
 
-        inline SymbolCombo& operator=(SymbolCombo&& rhs) noexcept = default;
+        inline Polynomial& operator=(Polynomial&& rhs) noexcept = default;
 
-        SymbolCombo(std::initializer_list<Monomial> input)
-            : SymbolCombo{storage_t{input}} { }
+        Polynomial(std::initializer_list<Monomial> input)
+            : Polynomial{storage_t{input}} { }
 
         [[nodiscard]] size_t size() const noexcept { return this->data.size(); }
         [[nodiscard]] bool empty() const noexcept { return this->data.empty(); }
@@ -121,30 +121,30 @@ namespace Moment {
         /**
          * Downgrade combination to a single symbol expression.
          * @return The symbol expression.
-         * @throws std::logic_error if SymbolCombo is not a monomial.
+         * @throws std::logic_error if Polynomial is not a monomial.
          */
         explicit operator Monomial() const;
 
-        inline SymbolCombo& operator+=(const SymbolCombo& rhs) {
+        inline Polynomial& operator+=(const Polynomial& rhs) {
             return this->append(rhs);
         }
 
-        [[nodiscard]] friend inline SymbolCombo operator+(const SymbolCombo& lhs, const SymbolCombo& rhs) {
-            SymbolCombo output{lhs};
+        [[nodiscard]] friend inline Polynomial operator+(const Polynomial& lhs, const Polynomial& rhs) {
+            Polynomial output{lhs};
             output += rhs;
             return output;
         }
 
-        SymbolCombo& operator*=(std::complex<double> factor) noexcept;
+        Polynomial& operator*=(std::complex<double> factor) noexcept;
 
-        [[nodiscard]] friend SymbolCombo operator*(SymbolCombo lhs, const std::complex<double> factor) noexcept {
+        [[nodiscard]] friend Polynomial operator*(Polynomial lhs, const std::complex<double> factor) noexcept {
             lhs *= factor;
             return lhs;
         }
 
-        bool operator==(const SymbolCombo& rhs) const noexcept;
+        bool operator==(const Polynomial& rhs) const noexcept;
 
-        inline bool operator!=(const SymbolCombo& rhs) const noexcept {
+        inline bool operator!=(const Polynomial& rhs) const noexcept {
             return !(this->operator==(rhs));
         }
 
@@ -155,11 +155,11 @@ namespace Moment {
         bool fix_cc_in_place(const SymbolTable& symbols, bool make_canonical = false) noexcept;
 
         /**
-         * Return a new SymbolCombo with all Hermitian and anti-Hermitian operators in canonical format.
-         * @see SymbolCombo::fix_cc_in_place
+         * Return a new Polynomial with all Hermitian and anti-Hermitian operators in canonical format.
+         * @see Polynomial::fix_cc_in_place
          */
-        [[nodiscard]] SymbolCombo fix_cc(const SymbolTable& symbols, bool make_canonical = false) const {
-            SymbolCombo output{*this};
+        [[nodiscard]] Polynomial fix_cc(const SymbolTable& symbols, bool make_canonical = false) const {
+            Polynomial output{*this};
             output.fix_cc_in_place(symbols, make_canonical);
             return output;
         }
@@ -171,10 +171,10 @@ namespace Moment {
         bool conjugate_in_place(const SymbolTable& symbols) noexcept;
 
         /**
-         * Return a new SymbolCombo equal to the complex conjugate of this one.
+         * Return a new Polynomial equal to the complex conjugate of this one.
          */
-        [[nodiscard]] SymbolCombo conjugate(const SymbolTable& symbols) const {
-            SymbolCombo output{*this};
+        [[nodiscard]] Polynomial conjugate(const SymbolTable& symbols) const {
+            Polynomial output{*this};
             output.conjugate_in_place(symbols);
             return output;
         }
@@ -191,8 +191,8 @@ namespace Moment {
          * Undefined behaviour if ordering_func_t is different from that used to construct constituents.
          */
         template<typename ordering_func_t = Monomial::IdLessComparator>
-        SymbolCombo& append(const SymbolCombo& rhs, const ordering_func_t& comp_less = ordering_func_t{}) {
-            SymbolCombo& lhs = *this;
+        Polynomial& append(const Polynomial& rhs, const ordering_func_t& comp_less = ordering_func_t{}) {
+            Polynomial& lhs = *this;
 
             // Debug validation
             assert(std::is_sorted(lhs.begin(), lhs.end(), comp_less));
@@ -288,47 +288,47 @@ namespace Moment {
         /**
          * True if other is conjugate of this symbol combo.
          * @param symbols Symbol table (needed to know which symbols are purely real).
-         * @param other SymbolCombo to compare against.
+         * @param other Polynomial to compare against.
          * @return True if this and other are Hermitian conjugates of each other.
          */
-        [[nodiscard]] bool is_conjugate(const SymbolTable& symbols, const SymbolCombo& other) const noexcept;
+        [[nodiscard]] bool is_conjugate(const SymbolTable& symbols, const Polynomial& other) const noexcept;
 
         /**
          * Construct an empty combination.
          */
-        inline static SymbolCombo Zero() {
-            return SymbolCombo{};
+        inline static Polynomial Zero() {
+            return Polynomial{};
         }
 
         /**
          * Construct a combination representing a scalar.
          * @param the_factor The scalar value (default: 1.0).
          */
-        inline static SymbolCombo Scalar(const double the_factor = 1.0) {
-            return SymbolCombo(storage_t{Monomial{1, the_factor , false}});
+        inline static Polynomial Scalar(const double the_factor = 1.0) {
+            return Polynomial(storage_t{Monomial{1, the_factor , false}});
         }
 
         /**
          * Construct a combination representing a scalar.
          * @param the_factor Complex scalar value
          */
-        inline static SymbolCombo Scalar(const std::complex<double> the_factor) {
-            return SymbolCombo(storage_t{Monomial{1, the_factor, false}});
+        inline static Polynomial Scalar(const std::complex<double> the_factor) {
+            return Polynomial(storage_t{Monomial{1, the_factor, false}});
         }
 
         /**
-         * Get a string expression of this SymbolCombo.
+         * Get a string expression of this Polynomial.
          */
         [[nodiscard]] std::string as_string() const;
 
-        friend class SymbolComboToBasisVec;
-        friend class BasisVecToSymbolCombo;
+        friend class PolynomialToBasisVec;
+        friend class BasisVecToPolynomial;
 
-        friend std::ostream& operator<<(std::ostream& os, const SymbolCombo& combo);
+        friend std::ostream& operator<<(std::ostream& os, const Polynomial& combo);
 
     private:
-        static void remove_duplicates(SymbolCombo::storage_t &data);
-        static void remove_zeros(SymbolCombo::storage_t &data);
+        static void remove_duplicates(Polynomial::storage_t &data);
+        static void remove_zeros(Polynomial::storage_t &data);
 
     };
 
@@ -343,8 +343,8 @@ namespace Moment {
 
         virtual ~SymbolComboFactory() noexcept = default;
 
-        [[nodiscard]] virtual SymbolCombo operator()(SymbolCombo::storage_t&& data) const {
-            return SymbolCombo{std::move(data), symbols};
+        [[nodiscard]] virtual Polynomial operator()(Polynomial::storage_t&& data) const {
+            return Polynomial{std::move(data), symbols};
         }
 
         [[nodiscard]] virtual bool less(const Monomial& lhs, const Monomial& rhs) const {
@@ -352,12 +352,12 @@ namespace Moment {
             return comparator(lhs, rhs);
         }
 
-        virtual void append(SymbolCombo& lhs, const SymbolCombo& rhs) const {
+        virtual void append(Polynomial& lhs, const Polynomial& rhs) const {
             lhs.append(rhs);
         }
 
-        [[nodiscard]] SymbolCombo sum(const SymbolCombo& lhs, const SymbolCombo& rhs) const {
-            SymbolCombo output{lhs};
+        [[nodiscard]] Polynomial sum(const Polynomial& lhs, const Polynomial& rhs) const {
+            Polynomial output{lhs};
             this->append(output, rhs); // <- virtual call.
             return output;
         }

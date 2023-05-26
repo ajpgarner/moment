@@ -12,7 +12,7 @@
 namespace Moment {
 
     namespace {
-        bool test_hermicity(const SymbolTable &table, const SquareMatrix<SymbolCombo> &matrix) {
+        bool test_hermicity(const SymbolTable &table, const SquareMatrix<Polynomial> &matrix) {
 
             for (size_t row = 0; row < matrix.dimension; ++row) {
                 if (!matrix[row][row].is_hermitian(table)) {
@@ -34,7 +34,7 @@ namespace Moment {
     }
 
     PolynomialMatrix::PolynomialMatrix(const Context& context, SymbolTable& symbols,
-                     std::unique_ptr<SquareMatrix<SymbolCombo>> symbolMatrix)
+                     std::unique_ptr<SquareMatrix<Polynomial>> symbolMatrix)
              : Matrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0}, SymbolMatrix{*this},
                sym_exp_matrix{std::move(symbolMatrix)}, real_prefactors{true} {
         if (!sym_exp_matrix) {

@@ -110,7 +110,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentSubstitutionRulebookFactor, Sub_AtoScalar) {
         // Prepare trivial rulebook
         MomentSubstitutionRulebook book{this->get_symbols()};
-        book.inject(this->id_a, SymbolCombo::Scalar(0.25)); // <A> = 0.25
+        book.inject(this->id_a, Polynomial::Scalar(0.25)); // <A> = 0.25
         EXPECT_EQ(book.size(), 1);
 
         // Infer factored rules
@@ -120,7 +120,7 @@ namespace Moment::Tests {
         const auto& factory = this->get_factory();
 
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_a, 16.0}})),
-                SymbolCombo::Scalar(4.0)); // 16<A> -> 4
+                  Polynomial::Scalar(4.0)); // 16<A> -> 4
 
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_ab, 2.0}})),
                   factory({Monomial{this->id_b, 0.5}})); // 2<AB> -> 2<A><B> -> 0.5<B>
@@ -148,7 +148,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentSubstitutionRulebookFactor, Sub_BtoZero) {
         // Prepare trivial rulebook
         MomentSubstitutionRulebook book{this->get_symbols()};
-        book.inject(this->id_b, SymbolCombo::Zero()); // <A> = 0.25
+        book.inject(this->id_b, Polynomial()); // <A> = 0.25
         EXPECT_EQ(book.size(), 1);
 
         // Infer factored rules
@@ -158,22 +158,22 @@ namespace Moment::Tests {
         const auto& factory = this->get_factory();
 
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_b, 16.0}})),
-                  SymbolCombo::Zero()); // 16<B> -> 0
+                  Polynomial()); // 16<B> -> 0
 
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_ab, 2.0}})),
-                  SymbolCombo::Zero()); // 2<AB> -> 2<A><B> -> 0
+                  Polynomial()); // 2<AB> -> 2<A><B> -> 0
 
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_bc, 2.0}})),
-                  SymbolCombo::Zero()); // 2<BC> -> 2<B><C> -> 0
+                  Polynomial()); // 2<BC> -> 2<B><C> -> 0
 
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_abc, 1.0}})),
-                  SymbolCombo::Zero()); // <ABC> -> <A><B><C> -> 0
+                  Polynomial()); // <ABC> -> <A><B><C> -> 0
 
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_aab, 4.0}})),
-                  SymbolCombo::Zero());
+                  Polynomial());
 
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_bcc, 8.0}})),
-                  SymbolCombo::Zero());
+                  Polynomial());
 
 
         // <B^3> should not change:
@@ -186,8 +186,8 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentSubstitutionRulebookFactor, Sub_AandBtoScalar) {
         // Prepare trivial rulebook
         MomentSubstitutionRulebook book{this->get_symbols()};
-        book.inject(this->id_a, SymbolCombo::Scalar(0.3)); // <A> = 0.3
-        book.inject(this->id_b, SymbolCombo::Scalar(0.4)); // <B> = 0.4
+        book.inject(this->id_a, Polynomial::Scalar(0.3)); // <A> = 0.3
+        book.inject(this->id_b, Polynomial::Scalar(0.4)); // <B> = 0.4
         EXPECT_EQ(book.size(), 2);
 
         // Infer factored rules
@@ -197,12 +197,12 @@ namespace Moment::Tests {
         const auto& factory = this->get_factory();
 
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_a, 1.0}})),
-                  SymbolCombo::Scalar(0.3));
+                  Polynomial::Scalar(0.3));
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_b, 1.0}})),
-                  SymbolCombo::Scalar(0.4));
+                  Polynomial::Scalar(0.4));
 
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_ab, 2.0}})),
-                  SymbolCombo::Scalar(0.24));
+                  Polynomial::Scalar(0.24));
 
         EXPECT_EQ(book.reduce(factory({Monomial{this->id_ac, 1.0}})),
                   factory({Monomial{this->id_c, 0.3}}));

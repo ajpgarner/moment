@@ -29,8 +29,8 @@ matlab_add_mex(NAME moment_mex
             export/export_symbol_table.cpp
             import/read_monomial_rules.cpp
             import/read_operator_names.cpp
+            import/read_polynomial.cpp
             import/read_raw_symbol_matrix.cpp
-            import/read_symbol_combo.cpp
             import/read_symbol_or_fail.cpp
             utilities/io_parameters.cpp
             utilities/make_sparse_matrix.cpp

@@ -46,8 +46,8 @@ add_executable(moment_tests
     symbolic/moment_substitution_rulebook_tests.cpp
     symbolic/moment_substitution_rulebook_factor_tests.cpp
     symbolic/order_symbols_by_hash_tests.cpp
-    symbolic/symbol_combo_tests.cpp
-    symbolic/symbol_combo_to_basis_tests.cpp
+    symbolic/polynomial_tests.cpp
+    symbolic/polynomial_to_basis_tests.cpp
     symbolic/symbol_expression_tests.cpp
     symbolic/symbol_table_tests.cpp
     symbolic/symbolic_matrix_helpers.cpp

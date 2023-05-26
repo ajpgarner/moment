@@ -41,13 +41,13 @@ namespace Moment::Tests {
 
     TEST_F(Symbolic_FullComboOrdering, BothZero) {
         FullComboOrdering fco{this->get_factory()};
-        EXPECT_FALSE(fco(SymbolCombo::Zero(), SymbolCombo::Zero()));
+        EXPECT_FALSE(fco(Polynomial(), Polynomial()));
     }
 
     TEST_F(Symbolic_FullComboOrdering, BothScalar) {
         FullComboOrdering fco{this->get_factory()};
-        EXPECT_FALSE(fco(SymbolCombo::Scalar(1.0), SymbolCombo::Scalar(2.0)));
-        EXPECT_FALSE(fco(SymbolCombo::Scalar(2.0), SymbolCombo::Scalar(1.0)));
+        EXPECT_FALSE(fco(Polynomial::Scalar(1.0), Polynomial::Scalar(2.0)));
+        EXPECT_FALSE(fco(Polynomial::Scalar(2.0), Polynomial::Scalar(1.0)));
     }
 
     TEST_F(Symbolic_FullComboOrdering, ThreeVsTwo) {

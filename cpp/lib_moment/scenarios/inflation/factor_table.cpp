@@ -270,11 +270,11 @@ namespace Moment::Inflation {
         return this->entries[factor_entry.value()].id;
     }
 
-    SymbolCombo FactorTable::try_multiply(const SymbolComboFactory &factory,
-                                          const SymbolCombo& lhs, const SymbolCombo &rhs) const {
+    Polynomial FactorTable::try_multiply(const SymbolComboFactory &factory,
+                                         const Polynomial& lhs, const Polynomial &rhs) const {
         // Multiply by zero is zero.
         if (rhs.empty()) {
-            return SymbolCombo::Zero();
+            return Polynomial{};
         }
 
         // Monomial?
@@ -287,7 +287,7 @@ namespace Moment::Inflation {
         }
 
         // General multiplication:
-        SymbolCombo::storage_t output;
+        Polynomial::storage_t output;
         output.reserve(lhs.size() * rhs.size());
 
         for (const auto& lhs_expr : lhs) {

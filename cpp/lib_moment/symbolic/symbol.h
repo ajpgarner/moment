@@ -14,6 +14,10 @@
 #include <string>
 
 namespace Moment {
+    /**
+     * Effectively represents a (monomial) moment.
+     * Could associate an ID in the symbol table with an operator sequence.
+     */
     class Symbol {
     private:
         symbol_name_t id = -1;

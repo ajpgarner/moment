@@ -102,7 +102,7 @@ namespace Moment::Locality {
         }
 
         // Construct level 0 with just normalization
-        this->tableData.emplace_back(1, SymbolCombo{Monomial{1, 1.0}});
+        this->tableData.emplace_back(1, Polynomial{Monomial{1, 1.0}});
         this->indices.set({0, 1});
         ++index_cursor;
 
@@ -132,17 +132,17 @@ namespace Moment::Locality {
                 }
 
                 // Explicit outcomes:
-                SymbolCombo::storage_t finalOutcome{Monomial{1, 1.0}};
+                Polynomial::storage_t finalOutcome{Monomial{1, 1.0}};
                 for (uint32_t outcome = 0; outcome < mmt.num_operators(); ++outcome) {
                     // Read symbol from Collins-Gisin object
                     const auto symbol_id = mmtSymb[outcome].symbol_id;
-                    this->tableData.emplace_back(symbol_id, SymbolCombo{Monomial{symbol_id, 1.0}});
+                    this->tableData.emplace_back(symbol_id, Polynomial{Monomial{symbol_id, 1.0}});
                     finalOutcome.push_back(Monomial{symbol_id, -1.0});
                     ++level_one_count;
                 }
 
                 // Add final measurement outcome, which is linear sum of remaining outcomes
-                this->tableData.emplace_back(-1, SymbolCombo(std::move(finalOutcome)));
+                this->tableData.emplace_back(-1, Polynomial(std::move(finalOutcome)));
                 ++level_one_count;
 
                 // Make index for measurement
@@ -203,9 +203,9 @@ namespace Moment::Locality {
                 assert(implicit_full_opers.size() == stack.count_operators());
                 assert(outcomeIter.explicit_outcome_index() < implicit_full_opers.size());
                 const auto symbol_id = implicit_full_opers[outcomeIter.explicit_outcome_index()].symbol_id;
-                this->tableData.emplace_back(symbol_id, SymbolCombo{Monomial{symbol_id, 1.0}});
+                this->tableData.emplace_back(symbol_id, Polynomial{Monomial{symbol_id, 1.0}});
             } else {
-                SymbolCombo::storage_t symbolComboData;
+                Polynomial::storage_t symbolComboData;
                 double the_sign = (num_implicit % 2 == 0) ? +1. : -1.;
                 for (size_t missing_index = num_implicit; missing_index > 0; --missing_index) {
                     PartitionIterator partitions{num_implicit, missing_index};
@@ -255,7 +255,7 @@ namespace Moment::Locality {
                 symbolComboData.emplace_back(normMmtSpan[0].symbol_id, the_sign);
 
                 // Add constructed representation to data table
-                this->tableData.emplace_back(-1, SymbolCombo{std::move(symbolComboData)});
+                this->tableData.emplace_back(-1, Polynomial{std::move(symbolComboData)});
             }
         }
 

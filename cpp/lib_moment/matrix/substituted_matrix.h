@@ -63,10 +63,10 @@ namespace Moment {
                                     const PolynomialMatrix& source_matrix);
 
     public:
-        static std::unique_ptr<SquareMatrix<SymbolCombo>>
-        reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<SymbolCombo>& matrix);
+        static std::unique_ptr<SquareMatrix<Polynomial>>
+        reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<Polynomial>& matrix);
 
-        static std::unique_ptr<SquareMatrix<SymbolCombo>>
+        static std::unique_ptr<SquareMatrix<Polynomial>>
         reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<Monomial>& matrix);
     };
 

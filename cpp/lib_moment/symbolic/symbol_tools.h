@@ -11,7 +11,7 @@
 namespace Moment {
     class SymbolTable;
     struct Monomial;
-    class SymbolCombo;
+    class Polynomial;
 
     class SymbolTools {
     public:
@@ -21,7 +21,7 @@ namespace Moment {
 
         void make_canonical(Monomial& expr) const;
 
-        void make_canonical(SymbolCombo& combo) const;
+        void make_canonical(Polynomial& combo) const;
     };
 
 

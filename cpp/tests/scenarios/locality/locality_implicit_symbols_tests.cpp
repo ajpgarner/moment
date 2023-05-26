@@ -53,7 +53,7 @@ namespace Moment::Tests {
 
         const auto& one = implSym.Data().front();
         EXPECT_EQ(one.symbol_id, 1);
-        SymbolCombo oneCombo{Monomial{1, 1.0}};
+        Polynomial oneCombo{Monomial{1, 1.0}};
         EXPECT_EQ(one.expression, oneCombo);
 
         const auto& getOne = implSym.get(std::vector<PMOIndex>{});

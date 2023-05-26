@@ -50,26 +50,26 @@ namespace Moment {
            SubstitutedMatrix{the_source, msrb} {
     }
 
-    std::unique_ptr<SquareMatrix<SymbolCombo>>
+    std::unique_ptr<SquareMatrix<Polynomial>>
     PolynomialSubstitutedMatrix::reduce( const MomentSubstitutionRulebook& msrb,
-                                         const SquareMatrix<SymbolCombo>& matrix) {
-        SquareMatrix<SymbolCombo>::StorageType data;
+                                         const SquareMatrix<Polynomial>& matrix) {
+        SquareMatrix<Polynomial>::StorageType data;
         data.reserve(matrix.dimension * matrix.dimension);
         for (const auto& combo : matrix) {
             data.emplace_back(msrb.reduce(combo));
         }
-        return std::make_unique<SquareMatrix<SymbolCombo>>(matrix.dimension, std::move(data));
+        return std::make_unique<SquareMatrix<Polynomial>>(matrix.dimension, std::move(data));
     }
 
-    std::unique_ptr<SquareMatrix<SymbolCombo>>
+    std::unique_ptr<SquareMatrix<Polynomial>>
     PolynomialSubstitutedMatrix::reduce( const MomentSubstitutionRulebook& msrb,
                                          const SquareMatrix<Monomial>& matrix) {
-        SquareMatrix<SymbolCombo>::StorageType data;
+        SquareMatrix<Polynomial>::StorageType data;
         data.reserve(matrix.dimension * matrix.dimension);
         for (const auto& expr : matrix) {
             data.emplace_back(msrb.reduce(expr));
         }
-        return std::make_unique<SquareMatrix<SymbolCombo>>(matrix.dimension, std::move(data));
+        return std::make_unique<SquareMatrix<Polynomial>>(matrix.dimension, std::move(data));
     }
 
 }

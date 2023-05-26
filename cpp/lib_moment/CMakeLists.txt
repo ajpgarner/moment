@@ -67,9 +67,9 @@ add_library(lib_moment
         symbolic/moment_substitution_rulebook.cpp
         symbolic/monomial.cpp
         symbolic/order_symbols_by_hash.cpp
+        symbolic/polynomial.cpp
+        symbolic/polynomial_to_basis.cpp
         symbolic/symbol.cpp
-        symbolic/symbol_combo.cpp
-        symbolic/symbol_combo_to_basis.cpp
         symbolic/symbol_table.cpp
         symbolic/symbol_tools.cpp
         utilities/alphabetic_namer.cpp

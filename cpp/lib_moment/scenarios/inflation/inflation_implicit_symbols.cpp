@@ -68,7 +68,7 @@ namespace Moment::Inflation {
     size_t InflationImplicitSymbols::generateLevelZero(const CanonicalObservable& canonicalObservable) {
         assert(canonicalObservable.empty());
         this->tableData.emplace_back(
-                1, SymbolCombo{Monomial{1, 1.0}}
+                1, Polynomial{Monomial{1, 1.0}}
         );
         return 1;
     }
@@ -93,16 +93,16 @@ namespace Moment::Inflation {
         }
 
         // Explicit outcomes:
-        SymbolCombo::storage_t finalOutcome{Monomial{1, 1.0}};
+        Polynomial::storage_t finalOutcome{Monomial{1, 1.0}};
         for (uint32_t outcome = 0; outcome < (mmt.outcomes - 1); ++outcome) {
             // Read explicit symbol
             const auto symbol_id = mmtSymb[outcome].symbol_id;
-            this->tableData.emplace_back(symbol_id, SymbolCombo{Monomial{symbol_id, 1.0}});
+            this->tableData.emplace_back(symbol_id, Polynomial{Monomial{symbol_id, 1.0}});
             finalOutcome.emplace_back(symbol_id, -1.0);
         }
 
         // Add final measurement outcome, which is linear sum of remaining outcomes
-        this->tableData.emplace_back(-1, SymbolCombo(std::move(finalOutcome)));
+        this->tableData.emplace_back(-1, Polynomial(std::move(finalOutcome)));
 
         return this->tableData.size() - initial_index;
     }
@@ -122,7 +122,7 @@ namespace Moment::Inflation {
                 assert(outcomeIter.explicit_outcome_index() < implicit_full_opers.size());
 
                 const auto symbol_id = implicit_full_opers[outcomeIter.explicit_outcome_index()].symbol_id;
-                this->tableData.emplace_back(symbol_id, SymbolCombo{Monomial{symbol_id, 1.0}});
+                this->tableData.emplace_back(symbol_id, Polynomial{Monomial{symbol_id, 1.0}});
 
                 // Early exit
                 ++outcomeIter;
@@ -186,7 +186,7 @@ namespace Moment::Inflation {
             }
 
             // Add constructed representation to data table
-            this->tableData.emplace_back(-1, SymbolCombo{symbolComboData});
+            this->tableData.emplace_back(-1, Polynomial{symbolComboData});
 
             ++outcomeIter;
         }

@@ -18,7 +18,7 @@
 
 namespace Moment {
 
-    MomentSubstitutionRule::MomentSubstitutionRule(const SymbolTable& table, SymbolCombo &&rule)
+    MomentSubstitutionRule::MomentSubstitutionRule(const SymbolTable& table, Polynomial &&rule)
         : lhs{rule.last_id()}, rhs{std::move(rule)} {
         // Trivial rule?
         if (0 == lhs) {
@@ -58,15 +58,15 @@ namespace Moment {
         }
     }
 
-    bool MomentSubstitutionRule::matches(const SymbolCombo &combo) const noexcept {
+    bool MomentSubstitutionRule::matches(const Polynomial &combo) const noexcept {
         return std::any_of(combo.begin(), combo.end(), [this](const Monomial& expr) {
             return expr.id == this->lhs;
         });
     }
 
 
-    [[nodiscard]] std::pair<size_t, SymbolCombo::storage_t::const_iterator>
-    MomentSubstitutionRule::match_info(const SymbolCombo &combo) const noexcept {
+    [[nodiscard]] std::pair<size_t, Polynomial::storage_t::const_iterator>
+    MomentSubstitutionRule::match_info(const Polynomial &combo) const noexcept {
         // Look for match
         auto first_match = std::find_if(combo.begin(), combo.end(), [this](const Monomial& rhsExpr) {
             return rhsExpr.id == this->lhs;
@@ -91,7 +91,7 @@ namespace Moment {
         return {1, first_match};
     }
 
-    SymbolCombo MomentSubstitutionRule::reduce(const SymbolComboFactory& factory, const SymbolCombo &combo) const {
+    Polynomial MomentSubstitutionRule::reduce(const SymbolComboFactory& factory, const Polynomial &combo) const {
 
         auto [matches, hint] = this->match_info(combo);
 
@@ -105,14 +105,14 @@ namespace Moment {
         return this->reduce_with_hint(factory, combo, hint, (matches == 2));
     }
 
-    SymbolCombo MomentSubstitutionRule::reduce(const SymbolComboFactory &factory, const Monomial &expr) const {
+    Polynomial MomentSubstitutionRule::reduce(const SymbolComboFactory &factory, const Monomial &expr) const {
         // No match, no substitution.
         if (expr.id != this->lhs) {
-            return SymbolCombo{rhs};
+            return Polynomial{rhs};
         }
 
         // Copy RHS, with appropriate transformations
-        SymbolCombo::storage_t output_sequence;
+        Polynomial::storage_t output_sequence;
         this->append_transformed(expr, std::back_inserter(output_sequence));
 
         // Construct as combo
@@ -147,10 +147,10 @@ namespace Moment {
         return output;
     }
 
-    SymbolCombo MomentSubstitutionRule::reduce_with_hint(const SymbolComboFactory& factory,
-                                                         const SymbolCombo &combo,
-                                                         SymbolCombo::storage_t::const_iterator inject_iter,
-                                                         const bool twice) const {
+    Polynomial MomentSubstitutionRule::reduce_with_hint(const SymbolComboFactory& factory,
+                                                        const Polynomial &combo,
+                                                        Polynomial::storage_t::const_iterator inject_iter,
+                                                        const bool twice) const {
         // Hint must be good:
         assert(inject_iter != combo.end());
         assert(inject_iter + (twice ? 1 : 0) != combo.end());
@@ -158,7 +158,7 @@ namespace Moment {
         assert((inject_iter + (twice ? 1 : 0))->id == this->lhs);
 
         // Start of LHS string
-        SymbolCombo::storage_t output_sequence;
+        Polynomial::storage_t output_sequence;
         std::copy(combo.begin(), inject_iter, std::back_inserter(output_sequence));
 
         // Copy RHS, with transformations

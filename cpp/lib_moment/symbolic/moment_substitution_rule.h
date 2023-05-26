@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "symbol_combo.h"
+#include "polynomial.h"
 
 #include <algorithm>
 
@@ -32,15 +32,15 @@ namespace Moment {
 
     private:
         symbol_name_t lhs;
-        SymbolCombo rhs;
+        Polynomial rhs;
 
     public:
         /** Create rule: symbol_id -> polynomial. */
-        MomentSubstitutionRule(symbol_name_t lhs, SymbolCombo&& rhs)
+        MomentSubstitutionRule(symbol_name_t lhs, Polynomial&& rhs)
             : lhs{lhs}, rhs{std::move(rhs)} { }
 
         /** Create rule from polynomial == 0. */
-        MomentSubstitutionRule(const SymbolTable& table, SymbolCombo&& rule);
+        MomentSubstitutionRule(const SymbolTable& table, Polynomial&& rule);
 
     public:
         /**
@@ -51,31 +51,31 @@ namespace Moment {
         /**
          * Replacement string.
          */
-        [[nodiscard]] const SymbolCombo& RHS() const noexcept { return this->rhs; }
+        [[nodiscard]] const Polynomial& RHS() const noexcept { return this->rhs; }
 
         /**
          * True if rule has non-trivial action on supplied combo.
          */
-        [[nodiscard]] bool matches(const SymbolCombo& combo) const noexcept;
+        [[nodiscard]] bool matches(const Polynomial& combo) const noexcept;
 
 
         /**
          * Checks if rule matches zero, one or two times (factoring complex conjugation), and return hint pointer.
          */
-        [[nodiscard]] std::pair<size_t, SymbolCombo::storage_t::const_iterator>
-        match_info(const SymbolCombo& combo) const noexcept;
+        [[nodiscard]] std::pair<size_t, Polynomial::storage_t::const_iterator>
+        match_info(const Polynomial& combo) const noexcept;
 
 
         /**
          * Act with rule on combo to make new combo.
          */
-        [[nodiscard]] SymbolCombo reduce(const SymbolComboFactory& factory, const SymbolCombo& rhs) const;
+        [[nodiscard]] Polynomial reduce(const SymbolComboFactory& factory, const Polynomial& rhs) const;
 
 
         /**
          * Act with rule on symbol expression to make combo.
          */
-        [[nodiscard]] SymbolCombo reduce(const SymbolComboFactory& factory, const Monomial& rhs) const;
+        [[nodiscard]] Polynomial reduce(const SymbolComboFactory& factory, const Monomial& rhs) const;
 
         /**
          * Try to act with rule on symbol expression to make monomial
@@ -93,10 +93,10 @@ namespace Moment {
          * @param twice True if matches symbol and its CC
          * @return Reduced combo.
          */
-        [[nodiscard]] SymbolCombo reduce_with_hint(const SymbolComboFactory& factory,
-                                                   const SymbolCombo& rhs,
-                                                   SymbolCombo::storage_t::const_iterator hint,
-                                                   bool twice = false) const;
+        [[nodiscard]] Polynomial reduce_with_hint(const SymbolComboFactory& factory,
+                                                  const Polynomial& rhs,
+                                                  Polynomial::storage_t::const_iterator hint,
+                                                  bool twice = false) const;
 
         /**
          * Is rule effectively empty?

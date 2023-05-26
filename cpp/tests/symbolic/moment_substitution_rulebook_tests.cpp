@@ -83,7 +83,7 @@ namespace Moment::Tests {
 
         // Prepare rulebook with single direct rule
         MomentSubstitutionRulebook book{this->get_symbols()};
-        ASSERT_TRUE(book.inject(5, SymbolCombo::Zero()));
+        ASSERT_TRUE(book.inject(5, Polynomial()));
         ASSERT_EQ(book.size(), 1);
         EXPECT_FALSE(book.empty());
         auto rule_iter = book.begin();
@@ -91,7 +91,7 @@ namespace Moment::Tests {
         const auto& rule = *rule_iter;
         EXPECT_EQ(rule.first, 5);
         EXPECT_EQ(rule.second.LHS(), 5);
-        EXPECT_EQ(rule.second.RHS(), SymbolCombo::Zero());
+        EXPECT_EQ(rule.second.RHS(), Polynomial());
     }
 
     TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_Empty) {
@@ -102,7 +102,7 @@ namespace Moment::Tests {
         ASSERT_TRUE(book.empty());
 
         EXPECT_EQ(book.reduce(Monomial{3, 1.0}), factory({Monomial{3, 1.0}}));
-        EXPECT_EQ(book.reduce(SymbolCombo::Zero()), SymbolCombo::Zero()); // 0 -> 0
+        EXPECT_EQ(book.reduce(Polynomial()), Polynomial()); // 0 -> 0
         EXPECT_EQ(book.reduce(factory({Monomial{3, 1.0}})),
                               factory({Monomial{3, 1.0}})); // b -> b
         EXPECT_EQ(book.reduce(factory({Monomial{3, 1.0}, Monomial{2, 0.5}})),
@@ -114,15 +114,15 @@ namespace Moment::Tests {
         MomentSubstitutionRulebook book{this->get_symbols()};
 
         const auto& factory = book.Factory();
-        ASSERT_TRUE(book.inject(5, SymbolCombo::Zero())); // ab -> 0 (inferred: ba -> 0)
+        ASSERT_TRUE(book.inject(5, Polynomial())); // ab -> 0 (inferred: ba -> 0)
         ASSERT_FALSE(book.empty());
 
-        EXPECT_EQ(book.reduce(SymbolCombo::Zero()), SymbolCombo::Zero()); // 0 -> 0
+        EXPECT_EQ(book.reduce(Polynomial()), Polynomial()); // 0 -> 0
         EXPECT_EQ(book.reduce(factory({Monomial{5, 2.0}})),
-                              SymbolCombo::Zero()); // ab -> 0
+                  Polynomial()); // ab -> 0
         EXPECT_EQ(book.reduce(factory({Monomial{5, 2.0, true}})),
-                              SymbolCombo::Zero()); // ba -> 0
-        EXPECT_EQ(book.reduce(Monomial{5, 1.0}), SymbolCombo::Zero());
+                  Polynomial()); // ba -> 0
+        EXPECT_EQ(book.reduce(Monomial{5, 1.0}), Polynomial());
         EXPECT_EQ(book.reduce(factory({Monomial{5, 2.0, true}, Monomial{2, 1.0}})),
                               factory({Monomial{2, 1.0}})); // ba + a -> a
         EXPECT_EQ(book.reduce(factory({Monomial{3, 1.0}})),
@@ -135,11 +135,11 @@ namespace Moment::Tests {
 
         const auto& factory = book.Factory();
         ASSERT_TRUE(book.inject(5, factory({Monomial{3, 0.5}}))); // ab -> 0.5 b
-        ASSERT_TRUE(book.inject(2, SymbolCombo::Zero())); // a -> 0
+        ASSERT_TRUE(book.inject(2, Polynomial())); // a -> 0
         ASSERT_EQ(book.size(), 2);
 
         // 0 -> 0
-        EXPECT_EQ(book.reduce(SymbolCombo::Zero()), SymbolCombo::Zero());
+        EXPECT_EQ(book.reduce(Polynomial()), Polynomial());
 
         // ab -> 0.5 b
         EXPECT_EQ(book.reduce({Monomial{5, 1.0}}),
@@ -151,7 +151,7 @@ namespace Moment::Tests {
 
         // 2a -> 0
         EXPECT_EQ(book.reduce(factory({Monomial{2, 2.0}})),
-                              SymbolCombo::Zero());
+                  Polynomial());
 
         // 4ab + a + 5 -> 2b + 5
         EXPECT_EQ(book.reduce(factory({Monomial{5, 4.0}, Monomial{2, 1.0}, Monomial{1, 5.0}})),
@@ -164,11 +164,11 @@ namespace Moment::Tests {
 
         const auto& factory = book.Factory();
         ASSERT_TRUE(book.inject(5, factory({Monomial{3, 0.5}, Monomial{1, 1.0}}))); // ab -> 0.5 b + 1
-        ASSERT_TRUE(book.inject(2, SymbolCombo::Scalar(1.0))); // a -> 1
+        ASSERT_TRUE(book.inject(2, Polynomial::Scalar(1.0))); // a -> 1
         ASSERT_EQ(book.size(), 2);
 
         // 0 -> 0
-        EXPECT_EQ(book.reduce(SymbolCombo::Zero()), SymbolCombo::Zero());
+        EXPECT_EQ(book.reduce(Polynomial()), Polynomial());
 
         // ab -> 0.5 b + 1
         EXPECT_EQ(book.reduce(factory({Monomial{5, 1.0}})),
@@ -176,7 +176,7 @@ namespace Moment::Tests {
 
         // 2a -> 2
         EXPECT_EQ(book.reduce(factory({Monomial{2, 2.0}})),
-                              SymbolCombo::Scalar(2.0));
+                  Polynomial::Scalar(2.0));
 
         // 4ab + a + 5 -> 2b + 10
         EXPECT_EQ(book.reduce(factory({Monomial{5, 4.0}, Monomial{2, 1.0}, Monomial{1, 5.0}})),
@@ -208,7 +208,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_MonoMatrix_MonomialRules) {
         // Prepare rulebook
         MomentSubstitutionRulebook book{this->get_symbols()};
-        book.inject(2, SymbolCombo::Scalar(0.5));
+        book.inject(2, Polynomial::Scalar(0.5));
 
         ASSERT_FALSE(book.empty());
         ASSERT_TRUE(book.is_monomial());
@@ -253,14 +253,14 @@ namespace Moment::Tests {
         MonomialMatrix input_mm{this->get_context(), this->get_symbols(),
                                 std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
-        SquareMatrix<SymbolCombo>::StorageType ref_matrix_data =
-                {SymbolCombo{Monomial(1, 1.0)},
-                 SymbolCombo{Monomial{4, {2.0, 3.0}}},
-                 SymbolCombo{Monomial{4, {2.0, -3.0}, true}},
+        SquareMatrix<Polynomial>::StorageType ref_matrix_data =
+                {Polynomial{Monomial(1, 1.0)},
+                 Polynomial{Monomial{4, {2.0, 3.0}}},
+                 Polynomial{Monomial{4, {2.0, -3.0}, true}},
                  factory({{Monomial{1, 4.0}, Monomial{2, -4.0}}})};
 
         PolynomialMatrix ref_pm{this->get_context(), this->get_symbols(),
-                          std::make_unique<SquareMatrix<SymbolCombo>>(2, std::move(ref_matrix_data))};
+                          std::make_unique<SquareMatrix<Polynomial>>(2, std::move(ref_matrix_data))};
 
         auto output = book.reduce(this->get_symbols(), input_mm);
         ASSERT_TRUE(output);
@@ -277,14 +277,14 @@ namespace Moment::Tests {
         ASSERT_TRUE(book.is_monomial());
         ASSERT_TRUE(book.is_hermitian());
 
-        SquareMatrix<SymbolCombo>::StorageType matrix_data =
-                {SymbolCombo{Monomial(1, 1.0)},
-                 SymbolCombo{{Monomial{1, 2.0}, Monomial{4, {2.0, 3.0}}}},
-                 SymbolCombo{{Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}},
-                 SymbolCombo{Monomial{2, 4.0}}};
+        SquareMatrix<Polynomial>::StorageType matrix_data =
+                {Polynomial{Monomial(1, 1.0)},
+                 Polynomial{{Monomial{1, 2.0}, Monomial{4, {2.0, 3.0}}}},
+                 Polynomial{{Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}},
+                 Polynomial{Monomial{2, 4.0}}};
 
         PolynomialMatrix input_pm{this->get_context(), this->get_symbols(),
-                                  std::make_unique<SquareMatrix<SymbolCombo>>(2, std::move(matrix_data))};
+                                  std::make_unique<SquareMatrix<Polynomial>>(2, std::move(matrix_data))};
 
         auto output = book.reduce(this->get_symbols(), input_pm);
         ASSERT_TRUE(output);
@@ -297,28 +297,28 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_PolyMatrix_MonomialRules) {
         // Prepare rulebook
         MomentSubstitutionRulebook book{this->get_symbols()};
-        book.inject(2, SymbolCombo::Scalar(2.0));
+        book.inject(2, Polynomial::Scalar(2.0));
         ASSERT_FALSE(book.empty());
         ASSERT_TRUE(book.is_monomial());
         ASSERT_TRUE(book.is_hermitian());
 
-        SquareMatrix<SymbolCombo>::StorageType matrix_data =
-                {SymbolCombo{Monomial(1, 1.0)},
-                 SymbolCombo{{Monomial{1, 2.0}, Monomial{4, {2.0, 3.0}}}},
-                 SymbolCombo{{Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}},
-                 SymbolCombo{Monomial{2, 4.0}}};
+        SquareMatrix<Polynomial>::StorageType matrix_data =
+                {Polynomial{Monomial(1, 1.0)},
+                 Polynomial{{Monomial{1, 2.0}, Monomial{4, {2.0, 3.0}}}},
+                 Polynomial{{Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}},
+                 Polynomial{Monomial{2, 4.0}}};
 
         PolynomialMatrix input_pm{this->get_context(), this->get_symbols(),
-                                  std::make_unique<SquareMatrix<SymbolCombo>>(2, std::move(matrix_data))};
+                                  std::make_unique<SquareMatrix<Polynomial>>(2, std::move(matrix_data))};
 
-        SquareMatrix<SymbolCombo>::StorageType ref_matrix_data =
-                {SymbolCombo{Monomial(1, 1.0)},
-                 SymbolCombo{{Monomial{1, 2.0}, Monomial{4, {2.0, 3.0}}}},
-                 SymbolCombo{{Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}},
-                 SymbolCombo{Monomial{1, 8.0}}};
+        SquareMatrix<Polynomial>::StorageType ref_matrix_data =
+                {Polynomial{Monomial(1, 1.0)},
+                 Polynomial{{Monomial{1, 2.0}, Monomial{4, {2.0, 3.0}}}},
+                 Polynomial{{Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}},
+                 Polynomial{Monomial{1, 8.0}}};
 
         PolynomialMatrix ref_pm{this->get_context(), this->get_symbols(),
-                                std::make_unique<SquareMatrix<SymbolCombo>>(2, std::move(ref_matrix_data))};
+                                std::make_unique<SquareMatrix<Polynomial>>(2, std::move(ref_matrix_data))};
 
 
         auto output = book.reduce(this->get_symbols(), input_pm);
@@ -340,23 +340,23 @@ namespace Moment::Tests {
         ASSERT_TRUE(book.is_hermitian());
 
 
-        SquareMatrix<SymbolCombo>::StorageType matrix_data =
+        SquareMatrix<Polynomial>::StorageType matrix_data =
                 {factory({Monomial(1, 1.0)}),
                  factory({Monomial{1, 2.0}, Monomial{4, {2.0, 3.0}}}),
                  factory({Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}),
                  factory({Monomial{3, 4.0}})};
 
         PolynomialMatrix input_pm{this->get_context(), this->get_symbols(),
-                                  std::make_unique<SquareMatrix<SymbolCombo>>(2, std::move(matrix_data))};
+                                  std::make_unique<SquareMatrix<Polynomial>>(2, std::move(matrix_data))};
 
-        SquareMatrix<SymbolCombo>::StorageType ref_matrix_data =
+        SquareMatrix<Polynomial>::StorageType ref_matrix_data =
                 {factory({Monomial(1, 1.0)}),
                  factory({Monomial{1, 2.0}, Monomial{4, {2.0, 3.0}}}),
                  factory({Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}),
                  factory({Monomial{2, -4.0}, Monomial{1, 4.0}})};
 
         PolynomialMatrix ref_pm{this->get_context(), this->get_symbols(),
-                                std::make_unique<SquareMatrix<SymbolCombo>>(2, std::move(ref_matrix_data))};
+                                std::make_unique<SquareMatrix<Polynomial>>(2, std::move(ref_matrix_data))};
 
         auto output = book.reduce(this->get_symbols(), input_pm);
         ASSERT_TRUE(output);
@@ -371,7 +371,7 @@ namespace Moment::Tests {
         MomentSubstitutionRulebook book{this->get_symbols()};
         const auto& factory = book.Factory();
 
-        std::vector<SymbolCombo> raw_combos;
+        std::vector<Polynomial> raw_combos;
         raw_combos.emplace_back(factory({Monomial(2, 1.0)})); // <a> = 0
         raw_combos.emplace_back(factory({Monomial(3, 1.0)})); // <b> = 0
         book.add_raw_rules(std::move(raw_combos));
@@ -383,8 +383,8 @@ namespace Moment::Tests {
 
         book.complete();
 
-        assert_matching_rules(book, {MomentSubstitutionRule{2, SymbolCombo::Zero()},
-                                     MomentSubstitutionRule{3, SymbolCombo::Zero()}});
+        assert_matching_rules(book, {MomentSubstitutionRule{2, Polynomial()},
+                                     MomentSubstitutionRule{3, Polynomial()}});
 
     }
 
@@ -393,7 +393,7 @@ namespace Moment::Tests {
         MomentSubstitutionRulebook book{this->get_symbols()};
         const auto& factory = book.Factory();
 
-        std::vector<SymbolCombo> raw_combos;
+        std::vector<Polynomial> raw_combos;
         raw_combos.emplace_back(factory({Monomial(2, 1.0)})); // <a> = 0
         raw_combos.emplace_back(factory({Monomial(3, 1.0), Monomial(2, -1.0)})); // <b> - <a> = 0
 
@@ -407,8 +407,8 @@ namespace Moment::Tests {
 
         book.complete();
 
-        assert_matching_rules(book, {MomentSubstitutionRule{2, SymbolCombo::Zero()},
-                                     MomentSubstitutionRule{3, SymbolCombo::Zero()}});
+        assert_matching_rules(book, {MomentSubstitutionRule{2, Polynomial()},
+                                     MomentSubstitutionRule{3, Polynomial()}});
 
     }
 
@@ -417,7 +417,7 @@ namespace Moment::Tests {
         MomentSubstitutionRulebook book{this->get_symbols()};
         const auto& factory = book.Factory();
 
-        std::vector<SymbolCombo> raw_combos;
+        std::vector<Polynomial> raw_combos;
         raw_combos.emplace_back(factory({Monomial(4, 1.0), Monomial(2, -1.0)})); // <aa> - <a> = 0
         raw_combos.emplace_back(factory({Monomial(4, 1.0), Monomial(3, -1.0)})); // <aa> - <b> = 0
         book.add_raw_rules(std::move(raw_combos));
@@ -440,7 +440,7 @@ namespace Moment::Tests {
         MomentSubstitutionRulebook book{this->get_symbols()};
         const auto& factory = book.Factory();
 
-        std::vector<SymbolCombo> raw_combos;
+        std::vector<Polynomial> raw_combos;
         raw_combos.emplace_back(factory({Monomial(4, 1.0), Monomial(2, -1.0)})); // <aa> - <a> = 0
         raw_combos.emplace_back(factory({Monomial(4, 1.0), Monomial(2, -2.0)})); // <aa> - 2<a> = 0
         book.add_raw_rules(std::move(raw_combos));
@@ -454,8 +454,8 @@ namespace Moment::Tests {
         ASSERT_FALSE(book.empty());
         ASSERT_EQ(book.size(), 2);
 
-        assert_matching_rules(book, {MomentSubstitutionRule{2, SymbolCombo::Zero()},   // <a> -> 0
-                                     MomentSubstitutionRule{4, SymbolCombo::Zero()}}); // <aa> -> 0
+        assert_matching_rules(book, {MomentSubstitutionRule{2, Polynomial()},   // <a> -> 0
+                                     MomentSubstitutionRule{4, Polynomial()}}); // <aa> -> 0
     }
 
     TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_AAtoA_AAto2A_AtoId) {
@@ -463,7 +463,7 @@ namespace Moment::Tests {
         MomentSubstitutionRulebook book{this->get_symbols()};
         const auto& factory = book.Factory();
 
-        std::vector<SymbolCombo> raw_combos;
+        std::vector<Polynomial> raw_combos;
         raw_combos.emplace_back(factory({Monomial(4, 1.0), Monomial(2, -1.0)})); // <aa> - <a> = 0
         raw_combos.emplace_back(factory({Monomial(4, 1.0), Monomial(2, -2.0)})); // <aa> - 2<a> = 0
         raw_combos.emplace_back(factory({Monomial(2, 1.0), Monomial(1, -1.0)})); // <a> - 1 = 0
@@ -492,8 +492,8 @@ namespace Moment::Tests {
         book.add_raw_rules(raw_assignments);
         book.complete();
 
-        assert_matching_rules(book, {MomentSubstitutionRule{2, SymbolCombo::Zero()},
-                                     MomentSubstitutionRule{3, SymbolCombo::Scalar(1.5)}});
+        assert_matching_rules(book, {MomentSubstitutionRule{2, Polynomial()},
+                                     MomentSubstitutionRule{3, Polynomial::Scalar(1.5)}});
 
     }
 
@@ -532,8 +532,8 @@ namespace Moment::Tests {
 
         // Build substitutions of just A
         auto [rb_id, book] = ams.create_rulebook();
-        book.inject(id_a, SymbolCombo::Scalar(2.0)); // A -> 2
-        book.inject(id_b, SymbolCombo::Scalar(3.0)); // B -> 3
+        book.inject(id_a, Polynomial::Scalar(2.0)); // A -> 2
+        book.inject(id_b, Polynomial::Scalar(3.0)); // B -> 3
         book.infer_additional_rules_from_factors(ams);
 
         // Rewrite moment matrix with known values

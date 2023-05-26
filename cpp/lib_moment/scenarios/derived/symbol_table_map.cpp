@@ -94,15 +94,15 @@ namespace Moment::Derived {
         this->core->check_solution(*this->core_solution);
 
         // First, build fixed constants.
-        this->map.assign(origin_symbols.size(), SymbolCombo::Zero()); // 0 -> 0 always
-        this->map[0] = SymbolCombo::Zero();      // 0 -> 0 always.
-        this->map[1] = SymbolCombo::Scalar(1.0); // 1 -> 1 always.
+        this->map.assign(origin_symbols.size(), Polynomial{}); // 0 -> 0 always
+        this->map[0] = Polynomial{};      // 0 -> 0 always.
+        this->map[1] = Polynomial::Scalar(1.0); // 1 -> 1 always.
 
         // Create scalars remap:
         for (auto [row_id, scalar] : this->core->constants) {
             auto [symbol_id, conjugated] = origin_symbols.OSGIndex(row_id);
             assert(!conjugated);
-            this->map[symbol_id] = SymbolCombo::Scalar(scalar);
+            this->map[symbol_id] = Polynomial::Scalar(scalar);
         }
 
         const auto& raw_map = this->core_solution->dense_map;
@@ -114,7 +114,7 @@ namespace Moment::Derived {
 
             const symbol_name_t source_symbol = osg_to_symbols[non_trivial_idx];
 
-            SymbolCombo::storage_t from_x_to_y;
+            Polynomial::storage_t from_x_to_y;
 
             // Constant offset, if any:
             const double offset = this->core->core_offset[core_col_id];
@@ -133,7 +133,7 @@ namespace Moment::Derived {
             }
 
             // Create mapping
-            this->map[source_symbol] = SymbolCombo{std::move(from_x_to_y)};
+            this->map[source_symbol] = Polynomial{std::move(from_x_to_y)};
             ++core_col_id;
         }
 
@@ -143,11 +143,11 @@ namespace Moment::Derived {
 
         // Create reverse map:
         this->inverse_map.reserve(2 + this->core_solution->output_symbols);
-        this->inverse_map.emplace_back(SymbolCombo::Zero());      // 0 -> 0 always.
-        this->inverse_map.emplace_back(SymbolCombo::Scalar(1.0)); // 1 -> 1 always.
+        this->inverse_map.emplace_back(Polynomial{});      // 0 -> 0 always.
+        this->inverse_map.emplace_back(Polynomial::Scalar(1.0)); // 1 -> 1 always.
 
         for (Eigen::Index im_row_id = 0; im_row_id < this->core_solution->output_symbols; ++im_row_id) {
-            SymbolCombo::storage_t from_y_to_x;
+            Polynomial::storage_t from_y_to_x;
             assert(this->core->nontrivial_rows.count() == this->core_solution->dense_inv_map.cols());
 
             Eigen::Index im_col_id = 0;
@@ -190,7 +190,7 @@ namespace Moment::Derived {
     SymbolTableMap::~SymbolTableMap() noexcept = default;
 
 
-    const SymbolCombo& SymbolTableMap::operator()(symbol_name_t symbol_id) const {
+    const Polynomial& SymbolTableMap::operator()(symbol_name_t symbol_id) const {
         // Bounds check
         if ((symbol_id < 0) || (symbol_id >= this->map.size())) {
             std::stringstream ss;
@@ -202,9 +202,9 @@ namespace Moment::Derived {
         return this->map[symbol_id];
     }
 
-    SymbolCombo SymbolTableMap::operator()(const Monomial &symbol) const {
+    Polynomial SymbolTableMap::operator()(const Monomial &symbol) const {
         // Get raw combo, or throw range error
-        SymbolCombo output = (*this)(symbol.id);
+        Polynomial output = (*this)(symbol.id);
 
         // Apply transformations (using target symbol table)
         output *= symbol.factor;
@@ -215,36 +215,36 @@ namespace Moment::Derived {
         return output;
     }
 
-    SymbolCombo SymbolTableMap::operator()(const SymbolCombo &symbol) const {
-        SymbolCombo::storage_t joint_storage{};
+    Polynomial SymbolTableMap::operator()(const Polynomial &symbol) const {
+        Polynomial::storage_t joint_storage{};
         for (const auto& expr : symbol) {
             const auto tx_symbol = (*this)(expr);
             joint_storage.insert(joint_storage.end(), tx_symbol.begin(), tx_symbol.end());
         }
 
-        return SymbolCombo{std::move(joint_storage)};
+        return Polynomial{std::move(joint_storage)};
     }
 
 
-    std::unique_ptr<SquareMatrix<SymbolCombo>>
+    std::unique_ptr<SquareMatrix<Polynomial>>
     SymbolTableMap::operator()(const SquareMatrix<Monomial>& input_matrix) const {
-        std::vector<SymbolCombo> output_data;
+        std::vector<Polynomial> output_data;
         output_data.reserve(input_matrix.dimension * input_matrix.dimension);
         for (const auto& expr : input_matrix) {
             output_data.emplace_back((*this)(expr));
         }
-        return std::make_unique<SquareMatrix<SymbolCombo>>(input_matrix.dimension, std::move(output_data));
+        return std::make_unique<SquareMatrix<Polynomial>>(input_matrix.dimension, std::move(output_data));
     }
 
 
-    [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolCombo>>
-    SymbolTableMap::operator()(const SquareMatrix<SymbolCombo>& input_matrix) const {
-        std::vector<SymbolCombo> output_data;
+    [[nodiscard]] std::unique_ptr<SquareMatrix<Polynomial>>
+    SymbolTableMap::operator()(const SquareMatrix<Polynomial>& input_matrix) const {
+        std::vector<Polynomial> output_data;
         output_data.reserve(input_matrix.dimension * input_matrix.dimension);
         for (const auto& combo : input_matrix) {
             output_data.emplace_back((*this)(combo));
         }
-        return std::make_unique<SquareMatrix<SymbolCombo>>(input_matrix.dimension, std::move(output_data));
+        return std::make_unique<SquareMatrix<Polynomial>>(input_matrix.dimension, std::move(output_data));
     }
 
     std::unique_ptr<SquareMatrix<Monomial>>
@@ -260,7 +260,7 @@ namespace Moment::Derived {
         return std::make_unique<SquareMatrix<Monomial>>(input_matrix.dimension, std::move(output_data));
     }
 
-    const SymbolCombo& SymbolTableMap::inverse(symbol_name_t symbol_id) const {
+    const Polynomial& SymbolTableMap::inverse(symbol_name_t symbol_id) const {
         // Bounds check
         if ((symbol_id < 0) || (symbol_id >= this->inverse_map.size())) {
             std::stringstream ss;
@@ -272,9 +272,9 @@ namespace Moment::Derived {
         return this->inverse_map[symbol_id];
     }
 
-    SymbolCombo SymbolTableMap::inverse(const Monomial& symbol) const {
+    Polynomial SymbolTableMap::inverse(const Monomial& symbol) const {
         // Get raw combo, or throw range error
-        SymbolCombo output = this->inverse(symbol.id);
+        Polynomial output = this->inverse(symbol.id);
 
         // Apply transformations (using target symbol table)
         output *= symbol.factor;

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "symbol_combo.h"
+#include "polynomial.h"
 #include "symbol_table.h"
 
 namespace Moment {
@@ -38,11 +38,11 @@ namespace Moment {
         explicit ByHashSymbolComboFactory(const SymbolTable& symbols)
             : SymbolComboFactory{symbols}, comparator{symbols} { }
 
-        [[nodiscard]] SymbolCombo operator()(SymbolCombo::storage_t&& data) const override {
-            return SymbolCombo{std::move(data), this->symbols, this->comparator};
+        [[nodiscard]] Polynomial operator()(Polynomial::storage_t&& data) const override {
+            return Polynomial{std::move(data), this->symbols, this->comparator};
         }
 
-        void append(SymbolCombo &lhs, const SymbolCombo &rhs) const override {
+        void append(Polynomial &lhs, const Polynomial &rhs) const override {
             lhs.append(rhs, this->comparator);
         }
 

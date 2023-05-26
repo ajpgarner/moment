@@ -29,8 +29,8 @@ namespace Moment::Tests {
         EXPECT_TRUE(comparator(Monomial{1}, Monomial{2}));
         EXPECT_FALSE(comparator(Monomial{2}, Monomial{1}));
 
-        SymbolCombo combo({Monomial{1, 1.0}, Monomial{2, 1.0}, Monomial{5, 2.0, true}},
-                          symbols, comparator);
+        Polynomial combo({Monomial{1, 1.0}, Monomial{2, 1.0}, Monomial{5, 2.0, true}},
+                         symbols, comparator);
 
         ASSERT_EQ(combo.size(), 3);
         EXPECT_EQ(combo[0], Monomial(1, 1.0));
@@ -55,8 +55,8 @@ namespace Moment::Tests {
 
         CompareByOpHash comparator{symbols};
 
-        SymbolCombo combo({Monomial{5, 2.0, false}, Monomial{5, 2.0, true}},
-                          symbols, comparator);
+        Polynomial combo({Monomial{5, 2.0, false}, Monomial{5, 2.0, true}},
+                         symbols, comparator);
 
         ASSERT_EQ(combo.size(), 2);
         EXPECT_EQ(combo[0], Monomial(5, 2.0, false));

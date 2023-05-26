@@ -10,7 +10,7 @@
 #include "../mex_function.h"
 #include "integer_types.h"
 
-#include "import/read_symbol_combo.h"
+#include "import/read_polynomial.h"
 
 #include <map>
 #include <memory>
@@ -18,7 +18,7 @@
 namespace Moment {
     class MatrixSystem;
     class MomentSubstitutionRulebook;
-    class SymbolCombo;
+    class Polynomial;
     class SymbolComboFactory;
     class SymbolTable;
 }
@@ -95,7 +95,7 @@ namespace Moment::mex::functions {
         void operator()(IOArgumentRange output, CreateMomentRulesParams &input) override;
 
     private:
-        /** Get appropriate SymbolCombo factory */
+        /** Get appropriate Polynomial factory */
         [[nodiscard]] std::unique_ptr<SymbolComboFactory>
         make_factory(SymbolTable &symbols, const CreateMomentRulesParams &input) const;
 

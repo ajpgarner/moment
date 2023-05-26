@@ -89,7 +89,7 @@ namespace Moment::mex::functions {
         class OpSeqRule {
         public:
             std::vector<OpSeqExpr> raw_elements;
-            SymbolCombo::storage_t resolved_symbols;
+            Polynomial::storage_t resolved_symbols;
 
             void make_resolved_symbols() {
                 resolved_symbols.reserve(raw_elements.size());
@@ -98,7 +98,7 @@ namespace Moment::mex::functions {
                 }
             }
 
-            [[nodiscard]] SymbolCombo to_symbol_combo(const SymbolComboFactory& factory) {
+            [[nodiscard]] Polynomial to_symbol_combo(const SymbolComboFactory& factory) {
                 return factory(std::move(this->resolved_symbols));
             }
         };
@@ -290,9 +290,9 @@ namespace Moment::mex::functions {
         for (size_t index = 0; index < sub_count; ++index) {
             std::stringstream ruleNameSS;
             ruleNameSS << "Rule #" << (index+1);
-            this->raw_symbol_polynomials.emplace_back(read_raw_symbol_combo_data(this->matlabEngine,
-                                                                                 ruleNameSS.str(),
-                                                                                 cell_input[index]));
+            this->raw_symbol_polynomials.emplace_back(read_raw_polynomial_data(this->matlabEngine,
+                                                                               ruleNameSS.str(),
+                                                                               cell_input[index]));
         }
     }
 
@@ -545,10 +545,10 @@ namespace Moment::mex::functions {
         const auto& factory = output->Factory();
 
         // Read rules
-        std::vector<SymbolCombo> raw_polynomials;
+        std::vector<Polynomial> raw_polynomials;
         raw_polynomials.reserve(input.raw_symbol_polynomials.size());
         for (const auto& raw_rule : input.raw_symbol_polynomials) {
-            raw_polynomials.emplace_back(raw_sc_data_to_symbol_combo(factory, raw_rule));
+            raw_polynomials.emplace_back(raw_data_to_polynomial(factory, raw_rule));
         }
 
         // Import rules, and compile
@@ -572,7 +572,7 @@ namespace Moment::mex::functions {
         auto& factory = output->Factory();
 
         // Import rules
-        std::vector<SymbolCombo> raw_polynomials;
+        std::vector<Polynomial> raw_polynomials;
         raw_polynomials.reserve(input.raw_op_seq_polynomials->data.size());
         for (auto& raw_rule : input.raw_op_seq_polynomials->data) {
             raw_polynomials.emplace_back(raw_rule.to_symbol_combo(factory));
@@ -597,7 +597,7 @@ namespace Moment::mex::functions {
         auto& factory = output->Factory();
 
         // Import rules
-        std::vector<SymbolCombo> raw_polynomials;
+        std::vector<Polynomial> raw_polynomials;
         raw_polynomials.reserve(input.raw_op_seq_polynomials->data.size());
         for (auto& raw_rule : input.raw_op_seq_polynomials->data) {
             raw_polynomials.emplace_back(raw_rule.to_symbol_combo(factory));

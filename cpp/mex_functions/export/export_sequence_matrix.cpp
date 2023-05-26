@@ -252,7 +252,7 @@ namespace Moment::mex {
 
         class InferredPolynomialFormatView {
         public:
-            using raw_const_iterator = SquareMatrix<SymbolCombo>::ColumnMajorView::TransposeIterator;
+            using raw_const_iterator = SquareMatrix<Polynomial>::ColumnMajorView::TransposeIterator;
 
             class const_iterator {
             public:
@@ -304,7 +304,7 @@ namespace Moment::mex {
 
         public:
             InferredPolynomialFormatView(const Context &context, const SymbolTable& symbols,
-                             const SquareMatrix<SymbolCombo>& inputMatrix)
+                             const SquareMatrix<Polynomial>& inputMatrix)
                 : iter_begin{context, symbols, inputMatrix.ColumnMajor.begin()},
                   iter_end{context, symbols, inputMatrix.ColumnMajor.end()} {
             }

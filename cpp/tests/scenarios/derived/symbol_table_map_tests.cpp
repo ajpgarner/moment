@@ -51,26 +51,26 @@ namespace Moment::Tests {
         EXPECT_TRUE(stm.is_monomial_map());
         const symbol_name_t I = 1, a = 2, b = 3, x = 2;
 
-        EXPECT_EQ(stm.inverse(x), SymbolCombo({Monomial{a, 0.5}, Monomial{b, 0.5}}));
+        EXPECT_EQ(stm.inverse(x), Polynomial({Monomial{a, 0.5}, Monomial{b, 0.5}}));
 
-        EXPECT_EQ(stm(I), SymbolCombo::Scalar(1.0)); // 1 -> 1
-        EXPECT_EQ(stm(a), SymbolCombo({Monomial{x, 1.0}})); // a -> x
-        EXPECT_EQ(stm(b), SymbolCombo({Monomial{x, 1.0}})); // b -> x
+        EXPECT_EQ(stm(I), Polynomial::Scalar(1.0)); // 1 -> 1
+        EXPECT_EQ(stm(a), Polynomial({Monomial{x, 1.0}})); // a -> x
+        EXPECT_EQ(stm(b), Polynomial({Monomial{x, 1.0}})); // b -> x
 
-        EXPECT_EQ(stm(Monomial{I, -5.0}), SymbolCombo({Monomial{I, -5.0}}));
-        EXPECT_EQ(stm(Monomial{a, 2.0}), SymbolCombo({Monomial{x, 2.0}}));
-        EXPECT_EQ(stm(Monomial{b, 2.0, true}), SymbolCombo({Monomial{x, 2.0}}));
+        EXPECT_EQ(stm(Monomial{I, -5.0}), Polynomial({Monomial{I, -5.0}}));
+        EXPECT_EQ(stm(Monomial{a, 2.0}), Polynomial({Monomial{x, 2.0}}));
+        EXPECT_EQ(stm(Monomial{b, 2.0, true}), Polynomial({Monomial{x, 2.0}}));
 
-        EXPECT_EQ(stm(SymbolCombo({Monomial{I, 1.0}, Monomial{a, -2.0}})),
-                      SymbolCombo({Monomial{I, 1.0}, Monomial{x, -2.0}}));
+        EXPECT_EQ(stm(Polynomial({Monomial{I, 1.0}, Monomial{a, -2.0}})),
+                  Polynomial({Monomial{I, 1.0}, Monomial{x, -2.0}}));
 
-        EXPECT_EQ(stm(SymbolCombo({Monomial{a, 1.0}, Monomial{b, -2.0}})),
-                      SymbolCombo({Monomial{x, -1.0}}));
+        EXPECT_EQ(stm(Polynomial({Monomial{a, 1.0}, Monomial{b, -2.0}})),
+                  Polynomial({Monomial{x, -1.0}}));
 
-        EXPECT_EQ(stm(SymbolCombo({Monomial{a, -3.0}})),
-                      SymbolCombo({Monomial{x, -3.0}}));
+        EXPECT_EQ(stm(Polynomial({Monomial{a, -3.0}})),
+                  Polynomial({Monomial{x, -3.0}}));
 
-        EXPECT_EQ(stm(SymbolCombo({Monomial{a, 2.0}, Monomial{b, -2.0}})),
-                      SymbolCombo::Zero());
+        EXPECT_EQ(stm(Polynomial({Monomial{a, 2.0}, Monomial{b, -2.0}})),
+                  Polynomial());
     }
 }
