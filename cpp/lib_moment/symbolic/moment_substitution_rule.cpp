@@ -59,7 +59,7 @@ namespace Moment {
     }
 
     bool MomentSubstitutionRule::matches(const SymbolCombo &combo) const noexcept {
-        return std::any_of(combo.begin(), combo.end(), [this](const SymbolExpression& expr) {
+        return std::any_of(combo.begin(), combo.end(), [this](const Monomial& expr) {
             return expr.id == this->lhs;
         });
     }
@@ -68,7 +68,7 @@ namespace Moment {
     [[nodiscard]] std::pair<size_t, SymbolCombo::storage_t::const_iterator>
     MomentSubstitutionRule::match_info(const SymbolCombo &combo) const noexcept {
         // Look for match
-        auto first_match = std::find_if(combo.begin(), combo.end(), [this](const SymbolExpression& rhsExpr) {
+        auto first_match = std::find_if(combo.begin(), combo.end(), [this](const Monomial& rhsExpr) {
             return rhsExpr.id == this->lhs;
         });
 
@@ -105,7 +105,7 @@ namespace Moment {
         return this->reduce_with_hint(factory, combo, hint, (matches == 2));
     }
 
-    SymbolCombo MomentSubstitutionRule::reduce(const SymbolComboFactory &factory, const SymbolExpression &expr) const {
+    SymbolCombo MomentSubstitutionRule::reduce(const SymbolComboFactory &factory, const Monomial &expr) const {
         // No match, no substitution.
         if (expr.id != this->lhs) {
             return SymbolCombo{rhs};
@@ -119,8 +119,8 @@ namespace Moment {
         return factory(std::move(output_sequence));
     }
 
-    SymbolExpression MomentSubstitutionRule::reduce_monomial(const SymbolTable& table,
-                                                             const SymbolExpression &expr) const {
+    Monomial MomentSubstitutionRule::reduce_monomial(const SymbolTable& table,
+                                                     const Monomial &expr) const {
         // No match, pass through:
         if (this->LHS() != expr.id) {
             return expr;
@@ -135,14 +135,14 @@ namespace Moment {
 
         // Rule is -> 0
         if (this->rhs.empty()) {
-            return SymbolExpression{0};
+            return Monomial{0};
         }
 
         // Otherwise...
         auto& monoElem = *(this->rhs.begin());
-        SymbolExpression output = (expr.conjugated ?
-            SymbolExpression{monoElem.id, expr.factor * std::conj(monoElem.factor), !monoElem.conjugated}
-            : SymbolExpression{monoElem.id, expr.factor * monoElem.factor, monoElem.conjugated});
+        Monomial output = (expr.conjugated ?
+                           Monomial{monoElem.id, expr.factor * std::conj(monoElem.factor), !monoElem.conjugated}
+                                           : Monomial{monoElem.id, expr.factor * monoElem.factor, monoElem.conjugated});
         SymbolTools{table}.make_canonical(output);
         return output;
     }

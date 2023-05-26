@@ -18,7 +18,7 @@
 namespace Moment::Imported {
 
     namespace {
-        void checkIMSymmetric(const SquareMatrix<SymbolExpression>& input,
+        void checkIMSymmetric(const SquareMatrix<Monomial>& input,
                             DynamicBitset<uint64_t>& can_be_real, DynamicBitset<uint64_t>& can_be_imaginary) {
             for (size_t i = 0; i < input.dimension; ++i) {
                 const auto& diagonal = input[i][i];
@@ -50,7 +50,7 @@ namespace Moment::Imported {
             }
         }
 
-        void checkIMHermitian(const SquareMatrix<SymbolExpression>& input, bool can_be_complex,
+        void checkIMHermitian(const SquareMatrix<Monomial>& input, bool can_be_complex,
                               DynamicBitset<uint64_t>& can_be_real, DynamicBitset<uint64_t>& can_be_imaginary) {
 
             for (size_t i = 0; i < input.dimension; ++i) {
@@ -108,7 +108,7 @@ namespace Moment::Imported {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
-    size_t ImportedMatrixSystem::import_matrix(std::unique_ptr<SquareMatrix<SymbolExpression>> input,
+    size_t ImportedMatrixSystem::import_matrix(std::unique_ptr<SquareMatrix<Monomial>> input,
                                                MatrixType matrix_type) {
         assert(input);
 

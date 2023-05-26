@@ -25,85 +25,85 @@ namespace Moment::Tests {
         std::vector<oper_name_t> a{0, 1};
 
         auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
-        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
+        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
+        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
 
         auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a0a0 a0a1 (a1a0=a0a1*) a1a1
         ASSERT_EQ(matLevel1.Symbols.size(), 7);
-        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[0]}, context})), SymbolExpression(2));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[1]}, context})), SymbolExpression(3));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[0], a[0]}, context})), SymbolExpression(4));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[0], a[1]}, context})), SymbolExpression(5));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[1], a[0]}, context})), SymbolExpression(5, true));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[1], a[1]}, context})), SymbolExpression(6));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[0]}, context})), Monomial(2));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[1]}, context})), Monomial(3));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[0], a[0]}, context})), Monomial(4));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[0], a[1]}, context})), Monomial(5));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[1], a[0]}, context})), Monomial(5, true));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{a[1], a[1]}, context})), Monomial(6));
 
         auto [id2, matLevel2] = system.create_moment_matrix(2);
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
 
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0]}, context)), SymbolExpression(2));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1]}, context)), SymbolExpression(3));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0]}, context)), Monomial(2));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1]}, context)), Monomial(3));
 
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0]}, context)),
-                  SymbolExpression(4));
+                  Monomial(4));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1]}, context)),
-                  SymbolExpression(5));
+                  Monomial(5));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0]}, context)),
-                  SymbolExpression(5, true));
+                  Monomial(5, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1]}, context)),
-                  SymbolExpression(6));
+                  Monomial(6));
 
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[0]}, context)),
-                  SymbolExpression(7));
+                  Monomial(7));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[1]}, context)),
-                  SymbolExpression(8));
+                  Monomial(8));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[0]}, context)),
-                  SymbolExpression(8, true));
+                  Monomial(8, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[0]}, context)),
-                  SymbolExpression(9));
+                  Monomial(9));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[1]}, context)),
-                  SymbolExpression(10));
+                  Monomial(10));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[0]}, context)),
-                  SymbolExpression(10, true));
+                  Monomial(10, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[1]}, context)),
-                  SymbolExpression(11));
+                  Monomial(11));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[1]}, context)),
-                  SymbolExpression(12));
+                  Monomial(12));
 
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[0], a[0]}, context)),
-                  SymbolExpression(13));
+                  Monomial(13));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[0], a[1]}, context)),
-                  SymbolExpression(14));
+                  Monomial(14));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[0], a[0]}, context)),
-                  SymbolExpression(14, true));
+                  Monomial(14, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[1], a[0]}, context)),
-                  SymbolExpression(15));
+                  Monomial(15));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[0], a[0]}, context)),
-                  SymbolExpression(15, true));
+                  Monomial(15, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[0], a[1], a[1]}, context)),
-                  SymbolExpression(16));
+                  Monomial(16));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[0], a[0]}, context)),
-                  SymbolExpression(16, true));
+                  Monomial(16, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[0], a[1]} , context)),
-                  SymbolExpression(17));
+                  Monomial(17));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[0], a[1]} , context)),
-                  SymbolExpression(18));
+                  Monomial(18));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[1], a[0]} , context)),
-                  SymbolExpression(18, true));
+                  Monomial(18, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[0], a[1], a[1]} , context)),
-                  SymbolExpression(19));
+                  Monomial(19));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[0], a[1]} , context)),
-                  SymbolExpression(19, true));
+                  Monomial(19, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[1], a[0]}, context)),
-                  SymbolExpression(20));
+                  Monomial(20));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[0], a[1], a[1], a[1]} , context)),
-                  SymbolExpression(21));
+                  Monomial(21));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[1], a[0]} , context)),
-                  SymbolExpression(21, true));
+                  Monomial(21, true));
         EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence({a[1], a[1], a[1], a[1]} , context)),
-                  SymbolExpression(22));
+                  Monomial(22));
     };
 
     TEST(Symbolic_SymbolTable, ToSymbol_2Party1Opers) {
@@ -118,22 +118,22 @@ namespace Moment::Tests {
         const auto& bob = context.Parties[1];
 
         auto [id0, matLevel0] = system.create_moment_matrix(0); //0 1
-        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
+        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
+        EXPECT_EQ(matLevel0.Symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
 
         auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a b ab
-        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{alice[0]}, context})), SymbolExpression(2));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{bob[0]}, context})), SymbolExpression(3));
-        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{alice[0], bob[0]}, context})), SymbolExpression(4));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{alice[0]}, context})), Monomial(2));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{bob[0]}, context})), Monomial(3));
+        EXPECT_EQ(matLevel1.Symbols.to_symbol((OperatorSequence{{alice[0], bob[0]}, context})), Monomial(4));
 
         auto [id2, matLevel2] = system.create_moment_matrix(2); // as above
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Zero(context)), SymbolExpression(0));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Identity(context)), SymbolExpression(1));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0]}, context})), SymbolExpression(2));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{bob[0]}, context})), SymbolExpression(3));
-        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0], bob[0]}, context})), SymbolExpression(4));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0]}, context})), Monomial(2));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{bob[0]}, context})), Monomial(3));
+        EXPECT_EQ(matLevel2.Symbols.to_symbol((OperatorSequence{{alice[0], bob[0]}, context})), Monomial(4));
 
 
     }

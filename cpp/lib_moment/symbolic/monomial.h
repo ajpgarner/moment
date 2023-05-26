@@ -1,5 +1,5 @@
 /**
- * symbol_expression.h
+ * monomial.h
  *
  * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -18,14 +18,14 @@ namespace Moment {
      * An algebraic element, as might be written in a matrix or equation.
      * Effectively, a symbol up to some pre-factor and conjugation.
      */
-    struct SymbolExpression {
+    struct Monomial {
     public:
         /**
           * Comparator defining #1 < #1* < #2 < #2* < ... for symbol IDs.
           */
         struct IdLessComparator {
         public:
-            constexpr bool operator()(const SymbolExpression &lhs, const SymbolExpression &rhs) const noexcept {
+            constexpr bool operator()(const Monomial &lhs, const Monomial &rhs) const noexcept {
                 if (lhs.id < rhs.id) {
                     return true;
                 } else if (lhs.id > rhs.id) {
@@ -44,7 +44,7 @@ namespace Moment {
           */
         struct IdMoreComparator {
         public:
-            constexpr bool operator()(const SymbolExpression &lhs, const SymbolExpression &rhs) const noexcept {
+            constexpr bool operator()(const Monomial &lhs, const Monomial &rhs) const noexcept {
                 if (lhs.id > rhs.id) {
                     return true;
                 } else if (lhs.id < rhs.id) {
@@ -86,16 +86,16 @@ namespace Moment {
 
     public:
         /**
-         * Default (uninitialized!) construction of SymbolExpression
+         * Default (uninitialized!) construction of Monomial
          */
-        constexpr explicit SymbolExpression() = default;
+        constexpr explicit Monomial() = default;
 
         /**
          * Construct a symbol expression.
          * @param name The symbol ID. Use a negative value to interpret as -1 times absolute value.
          * @param conj Whether the symbol is conjugated.
          */
-        constexpr explicit SymbolExpression(std::make_signed<symbol_name_t>::type name, bool conj = false) noexcept
+        constexpr explicit Monomial(std::make_signed<symbol_name_t>::type name, bool conj = false) noexcept
                 : id{name}, factor{(name < 0) ? -1.0 : 1.0}, conjugated{conj} {
             if (id < 0) {
                 id = -id;
@@ -108,7 +108,7 @@ namespace Moment {
          * @param neg The scalar factor for this symbol.
          * @param conj Whether the symbol is conjugated.
          */
-        constexpr explicit SymbolExpression(symbol_name_t name, double factor, bool conj = false) noexcept
+        constexpr explicit Monomial(symbol_name_t name, double factor, bool conj = false) noexcept
                 : id{name}, factor{factor, 0.0}, conjugated{conj} {}
 
         /**
@@ -117,7 +117,7 @@ namespace Moment {
          * @param neg The scalar factor for this symbol.
          * @param conj Whether the symbol is conjugated.
          */
-        constexpr explicit SymbolExpression(symbol_name_t name, std::complex<double> factor, bool conj = false) noexcept
+        constexpr explicit Monomial(symbol_name_t name, std::complex<double> factor, bool conj = false) noexcept
                 : id{name}, factor{factor}, conjugated{conj} {}
 
         /**
@@ -126,7 +126,7 @@ namespace Moment {
          * @param neg Whether the symbol is negated.
          * @param conj Whether the symbol is conjugated.
          */
-        constexpr SymbolExpression(symbol_name_t name, bool neg, bool conj) noexcept
+        constexpr Monomial(symbol_name_t name, bool neg, bool conj) noexcept
                 : id(name), factor{neg ? -1.0 : 1.0}, conjugated(conj) {}
 
         /**
@@ -134,23 +134,23 @@ namespace Moment {
          * @param strExpr String representing the expression
          * @throws SymbolParseException if strExpr cannot be interpreted as a valid symbol.
          */
-        explicit SymbolExpression(const std::string &strExpr);
+        explicit Monomial(const std::string &strExpr);
 
-        [[nodiscard]] bool operator==(const SymbolExpression &rhs) const {
+        [[nodiscard]] bool operator==(const Monomial &rhs) const {
             return (this->id == rhs.id)
                    && ((this->id == 0) || ((this->conjugated == rhs.conjugated)
                                            && approximately_equal(this->factor, rhs.factor)));
 
         }
 
-        [[nodiscard]] bool operator!=(const SymbolExpression &rhs) const {
+        [[nodiscard]] bool operator!=(const Monomial &rhs) const {
             return (this->id != rhs.id)
                    || ((this->id != 0) && ((this->conjugated != rhs.conjugated)
                                            || !approximately_equal(this->factor, rhs.factor)));
         }
 
         /**
-         * The maximum length string that we are willing to attempt to parse as an SymbolExpression.
+         * The maximum length string that we are willing to attempt to parse as an Monomial.
          */
         const static size_t max_strlen = 32;
 
@@ -173,7 +173,7 @@ namespace Moment {
          */
         [[nodiscard]] std::string as_string() const;
 
-        friend std::ostream &operator<<(std::ostream &os, const SymbolExpression &expr);
+        friend std::ostream &operator<<(std::ostream &os, const Monomial &expr);
 
         /**
          * Utility: format the factor part of symbol expression, unless it is +1 or -1.

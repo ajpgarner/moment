@@ -119,28 +119,28 @@ namespace Moment::Tests {
 
         const auto& factory = this->get_factory();
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_a, 16.0}})),
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_a, 16.0}})),
                 SymbolCombo::Scalar(4.0)); // 16<A> -> 4
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_ab, 2.0}})),
-                  factory({SymbolExpression{this->id_b, 0.5}})); // 2<AB> -> 2<A><B> -> 0.5<B>
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_ab, 2.0}})),
+                  factory({Monomial{this->id_b, 0.5}})); // 2<AB> -> 2<A><B> -> 0.5<B>
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_ac, 2.0}})),
-                  factory({SymbolExpression{this->id_c, 0.5}})); // 2<AC> -> 2<A><C> -> 0.5<C>
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_ac, 2.0}})),
+                  factory({Monomial{this->id_c, 0.5}})); // 2<AC> -> 2<A><C> -> 0.5<C>
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_abc, 1.0}})),
-                  factory({SymbolExpression{this->id_bc, 0.25}})); // <ABC> -> <A><BC> -> 0.25<BC>
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_abc, 1.0}})),
+                  factory({Monomial{this->id_bc, 0.25}})); // <ABC> -> <A><BC> -> 0.25<BC>
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_abb, 4.0}})),
-                  factory({SymbolExpression{this->id_bb, 1.0}})); // 4<ABB> -> 4<A><BB> -> <BB>
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_abb, 4.0}})),
+                  factory({Monomial{this->id_bb, 1.0}})); // 4<ABB> -> 4<A><BB> -> <BB>
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_acc, 8.0}})),
-                  factory({SymbolExpression{this->id_cc, 2.0}})); // 8<ACC> -> 8<A><CC> -> 2<CC>
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_acc, 8.0}})),
+                  factory({Monomial{this->id_cc, 2.0}})); // 8<ACC> -> 8<A><CC> -> 2<CC>
 
 
         // <A^3> should not change:
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_aaa, 2.0}})),
-                  factory({SymbolExpression{this->id_aaa, 2.0}}));
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_aaa, 2.0}})),
+                  factory({Monomial{this->id_aaa, 2.0}}));
 
 
     }
@@ -157,28 +157,28 @@ namespace Moment::Tests {
 
         const auto& factory = this->get_factory();
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_b, 16.0}})),
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_b, 16.0}})),
                   SymbolCombo::Zero()); // 16<B> -> 0
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_ab, 2.0}})),
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_ab, 2.0}})),
                   SymbolCombo::Zero()); // 2<AB> -> 2<A><B> -> 0
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_bc, 2.0}})),
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_bc, 2.0}})),
                   SymbolCombo::Zero()); // 2<BC> -> 2<B><C> -> 0
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_abc, 1.0}})),
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_abc, 1.0}})),
                   SymbolCombo::Zero()); // <ABC> -> <A><B><C> -> 0
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_aab, 4.0}})),
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_aab, 4.0}})),
                   SymbolCombo::Zero());
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_bcc, 8.0}})),
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_bcc, 8.0}})),
                   SymbolCombo::Zero());
 
 
         // <B^3> should not change:
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_bbb, 2.0}})),
-                  factory({SymbolExpression{this->id_bbb, 2.0}}));
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_bbb, 2.0}})),
+                  factory({Monomial{this->id_bbb, 2.0}}));
 
     }
 
@@ -196,42 +196,42 @@ namespace Moment::Tests {
 
         const auto& factory = this->get_factory();
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_a, 1.0}})),
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_a, 1.0}})),
                   SymbolCombo::Scalar(0.3));
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_b, 1.0}})),
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_b, 1.0}})),
                   SymbolCombo::Scalar(0.4));
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_ab, 2.0}})),
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_ab, 2.0}})),
                   SymbolCombo::Scalar(0.24));
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_ac, 1.0}})),
-                  factory({SymbolExpression{this->id_c, 0.3}}));
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_ac, 1.0}})),
+                  factory({Monomial{this->id_c, 0.3}}));
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_bc, 1.0}})),
-                  factory({SymbolExpression{this->id_c, 0.4}}));
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_bc, 1.0}})),
+                  factory({Monomial{this->id_c, 0.4}}));
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_abc, 1.0}})),
-                  factory({SymbolExpression{this->id_c, 0.12}}));
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_abc, 1.0}})),
+                  factory({Monomial{this->id_c, 0.12}}));
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_aab, 1.0}})),
-                  factory({SymbolExpression{this->id_aa, 0.4}}));
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_aab, 1.0}})),
+                  factory({Monomial{this->id_aa, 0.4}}));
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_abb, 1.0}})),
-                  factory({SymbolExpression{this->id_bb, 0.3}}));
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_abb, 1.0}})),
+                  factory({Monomial{this->id_bb, 0.3}}));
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_acc, 1.0}})),
-                  factory({SymbolExpression{this->id_cc, 0.3}}));
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_acc, 1.0}})),
+                  factory({Monomial{this->id_cc, 0.3}}));
 
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_bcc, 1.0}})),
-                  factory({SymbolExpression{this->id_cc, 0.4}}));
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_bcc, 1.0}})),
+                  factory({Monomial{this->id_cc, 0.4}}));
 
 
         // <A^3> should not change:
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_aaa, 2.0}})),
-                  factory({SymbolExpression{this->id_aaa, 2.0}}));
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_aaa, 2.0}})),
+                  factory({Monomial{this->id_aaa, 2.0}}));
         // <B^3> should not change:
-        EXPECT_EQ(book.reduce(factory({SymbolExpression{this->id_bbb, 2.0}})),
-                  factory({SymbolExpression{this->id_bbb, 2.0}}));
+        EXPECT_EQ(book.reduce(factory({Monomial{this->id_bbb, 2.0}})),
+                  factory({Monomial{this->id_bbb, 2.0}}));
 
 
     }

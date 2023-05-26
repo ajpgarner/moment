@@ -14,7 +14,7 @@
 #include "monomial_substitution_rule.h"
 #include "rule_book.h"
 
-#include "symbolic/symbol_expression.h"
+#include "symbolic/monomial.h"
 
 #include <memory>
 #include <set>

@@ -26,16 +26,16 @@ namespace Moment::Tests {
 
         CompareByOpHash comparator{symbols};
 
-        EXPECT_TRUE(comparator(SymbolExpression{1}, SymbolExpression{2}));
-        EXPECT_FALSE(comparator(SymbolExpression{2}, SymbolExpression{1}));
+        EXPECT_TRUE(comparator(Monomial{1}, Monomial{2}));
+        EXPECT_FALSE(comparator(Monomial{2}, Monomial{1}));
 
-        SymbolCombo combo({SymbolExpression{1, 1.0}, SymbolExpression{2, 1.0}, SymbolExpression{5, 2.0, true}},
+        SymbolCombo combo({Monomial{1, 1.0}, Monomial{2, 1.0}, Monomial{5, 2.0, true}},
                           symbols, comparator);
 
         ASSERT_EQ(combo.size(), 3);
-        EXPECT_EQ(combo[0], SymbolExpression(1, 1.0));
-        EXPECT_EQ(combo[1], SymbolExpression(2, 1.0));
-        EXPECT_EQ(combo[2], SymbolExpression(5, 2.0, true));
+        EXPECT_EQ(combo[0], Monomial(1, 1.0));
+        EXPECT_EQ(combo[1], Monomial(2, 1.0));
+        EXPECT_EQ(combo[2], Monomial(5, 2.0, true));
         EXPECT_FALSE(combo.is_hermitian(symbols));
         EXPECT_EQ(combo.first_id(), 1);
         EXPECT_EQ(combo.last_id(), 5);
@@ -55,12 +55,12 @@ namespace Moment::Tests {
 
         CompareByOpHash comparator{symbols};
 
-        SymbolCombo combo({SymbolExpression{5, 2.0, false}, SymbolExpression{5, 2.0, true}},
+        SymbolCombo combo({Monomial{5, 2.0, false}, Monomial{5, 2.0, true}},
                           symbols, comparator);
 
         ASSERT_EQ(combo.size(), 2);
-        EXPECT_EQ(combo[0], SymbolExpression(5, 2.0, false));
-        EXPECT_EQ(combo[1], SymbolExpression(5, 2.0, true));
+        EXPECT_EQ(combo[0], Monomial(5, 2.0, false));
+        EXPECT_EQ(combo[1], Monomial(5, 2.0, true));
         EXPECT_TRUE(combo.is_hermitian(symbols));
         EXPECT_EQ(combo.first_id(), 5);
         EXPECT_EQ(combo.last_id(), 5);

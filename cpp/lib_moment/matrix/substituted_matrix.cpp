@@ -24,15 +24,15 @@ namespace Moment {
            SubstitutedMatrix{the_source, msrb} {
     }
 
-    std::unique_ptr<SquareMatrix<SymbolExpression>>
+    std::unique_ptr<SquareMatrix<Monomial>>
     MonomialSubstitutedMatrix::reduce( const MomentSubstitutionRulebook& msrb,
-                                       const SquareMatrix<SymbolExpression>& matrix) {
-        SquareMatrix<SymbolExpression>::StorageType data;
+                                       const SquareMatrix<Monomial>& matrix) {
+        SquareMatrix<Monomial>::StorageType data;
         data.reserve(matrix.dimension * matrix.dimension);
         for (const auto& expr : matrix) {
             data.emplace_back(msrb.reduce_monomial(expr));
         }
-        return std::make_unique<SquareMatrix<SymbolExpression>>(matrix.dimension, std::move(data));
+        return std::make_unique<SquareMatrix<Monomial>>(matrix.dimension, std::move(data));
     }
 
 
@@ -63,7 +63,7 @@ namespace Moment {
 
     std::unique_ptr<SquareMatrix<SymbolCombo>>
     PolynomialSubstitutedMatrix::reduce( const MomentSubstitutionRulebook& msrb,
-                                         const SquareMatrix<SymbolExpression>& matrix) {
+                                         const SquareMatrix<Monomial>& matrix) {
         SquareMatrix<SymbolCombo>::StorageType data;
         data.reserve(matrix.dimension * matrix.dimension);
         for (const auto& expr : matrix) {

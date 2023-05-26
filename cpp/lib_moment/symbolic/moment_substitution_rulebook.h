@@ -125,15 +125,15 @@ namespace Moment {
         }
 
         /**
-         * Apply all known rules to SymbolExpression.
+         * Apply all known rules to Monomial.
          */
-        [[nodiscard]] SymbolCombo reduce(SymbolExpression expr) const;
+        [[nodiscard]] SymbolCombo reduce(Monomial expr) const;
 
         /**
-         * Apply all known rules to SymbolExpression.
+         * Apply all known rules to Monomial.
          * @throws
          */
-        [[nodiscard]] SymbolExpression reduce_monomial(SymbolExpression expr) const;
+        [[nodiscard]] Monomial reduce_monomial(Monomial expr) const;
 
         /**
          * Apply reduction to every element of matrix

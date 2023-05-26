@@ -23,7 +23,7 @@ namespace Moment {
         explicit CompareByOpHash(const SymbolTable& symbolTable)
                 : symbolTable{symbolTable} { }
 
-        [[nodiscard]] bool operator()(const SymbolExpression& lhs, const SymbolExpression& rhs) const noexcept;
+        [[nodiscard]] bool operator()(const Monomial& lhs, const Monomial& rhs) const noexcept;
     };
 
     /**
@@ -46,7 +46,7 @@ namespace Moment {
             lhs.append(rhs, this->comparator);
         }
 
-        [[nodiscard]] bool less(const SymbolExpression &lhs, const SymbolExpression &rhs) const override {
+        [[nodiscard]] bool less(const Monomial &lhs, const Monomial &rhs) const override {
             return this->comparator(lhs, rhs);
         }
 

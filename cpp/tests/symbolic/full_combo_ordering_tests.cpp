@@ -53,27 +53,27 @@ namespace Moment::Tests {
     TEST_F(Symbolic_FullComboOrdering, ThreeVsTwo) {
         const auto& f = this->get_factory();
         FullComboOrdering fco{f};
-        EXPECT_FALSE(fco(f({SymbolExpression{3, 1.0}}),
-                         f({SymbolExpression{2, 1.0}})));
-        EXPECT_TRUE(fco(f({SymbolExpression{2, 1.0}}),
-                        f({SymbolExpression{3, 1.0}})));
+        EXPECT_FALSE(fco(f({Monomial{3, 1.0}}),
+                         f({Monomial{2, 1.0}})));
+        EXPECT_TRUE(fco(f({Monomial{2, 1.0}}),
+                        f({Monomial{3, 1.0}})));
     }
 
     TEST_F(Symbolic_FullComboOrdering, ThreeVsTwoPlusOne) {
         const auto& f = this->get_factory();
         FullComboOrdering fco{f};
-        EXPECT_FALSE(fco(f({SymbolExpression{3, 1.0}}),
-                         f({SymbolExpression{2, 1.0}, SymbolExpression{1, 1.0}})));
-        EXPECT_TRUE(fco(f({SymbolExpression{2, 1.0}, SymbolExpression{1, 1.0}}),
-                        f({SymbolExpression{3, 1.0}})));
+        EXPECT_FALSE(fco(f({Monomial{3, 1.0}}),
+                         f({Monomial{2, 1.0}, Monomial{1, 1.0}})));
+        EXPECT_TRUE(fco(f({Monomial{2, 1.0}, Monomial{1, 1.0}}),
+                        f({Monomial{3, 1.0}})));
     }
 
     TEST_F(Symbolic_FullComboOrdering, ThreeVsThreePlusTwo) {
         const auto& f = this->get_factory();
         FullComboOrdering fco{f};
-        EXPECT_FALSE(fco(f({SymbolExpression{3, 1.0}, SymbolExpression{2, 1.0}}),
-                        f({SymbolExpression{3, 1.0}})));
-        EXPECT_TRUE(fco(f({SymbolExpression{3, 1.0}}),
-                        f({SymbolExpression{3, 1.0}, SymbolExpression{2, 1.0}}))); // "3 < 3 + 2"
+        EXPECT_FALSE(fco(f({Monomial{3, 1.0}, Monomial{2, 1.0}}),
+                        f({Monomial{3, 1.0}})));
+        EXPECT_TRUE(fco(f({Monomial{3, 1.0}}),
+                        f({Monomial{3, 1.0}, Monomial{2, 1.0}}))); // "3 < 3 + 2"
     }
 }

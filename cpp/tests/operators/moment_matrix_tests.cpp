@@ -69,7 +69,7 @@ namespace Moment::Tests {
         }
 
         void compare_symbol_matrix(const Matrix &inputMM, size_t dimension,
-                                   const std::vector<SymbolExpression>& reference) {
+                                   const std::vector<Monomial>& reference) {
             const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(inputMM);
             ASSERT_NE(mmPtr, nullptr) << "Not a moment matrix!";
             ASSERT_TRUE(inputMM.is_monomial());
@@ -100,7 +100,7 @@ namespace Moment::Tests {
 
         void compare_symbol_matrix(const Matrix &theMM, size_t dimension,
                                std::initializer_list<std::string> reference) {
-            std::vector<SymbolExpression> txReference;
+            std::vector<Monomial> txReference;
             txReference.reserve(reference.size());
             for (const auto& str : reference) {
                 txReference.emplace_back(str);

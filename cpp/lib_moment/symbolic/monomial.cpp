@@ -1,17 +1,17 @@
 /**
- * symbol_expression.cpp
+ * monomial.cpp
  *
- * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "symbol_expression.h"
+#include "monomial.h"
 
 #include <iostream>
 #include <sstream>
 
 namespace Moment {
 
-    void SymbolExpression::format_factor(std::ostream& os, std::complex<double> factor, bool mandatory_plus) {
+    void Monomial::format_factor(std::ostream& os, std::complex<double> factor, bool mandatory_plus) {
         if (approximately_real(factor)) {
             if (mandatory_plus) {
                 if (factor.real() > 0) {
@@ -40,8 +40,8 @@ namespace Moment {
         }
     }
 
-    void SymbolExpression::format_factor_skip_one(std::ostream& os, std::complex<double> factor,
-                                                  bool mandatory_plus, bool include_times) {
+    void Monomial::format_factor_skip_one(std::ostream& os, std::complex<double> factor,
+                                          bool mandatory_plus, bool include_times) {
         if (approximately_equal(factor, 1.0)) { // +1
             if (mandatory_plus) {
                 os << " + ";
@@ -60,7 +60,7 @@ namespace Moment {
         }
     }
 
-    std::ostream& operator<<(std::ostream& os, const SymbolExpression& expr) {
+    std::ostream& operator<<(std::ostream& os, const Monomial& expr) {
 
         const bool show_plus = os.flags() & std::ios::showpos;
         os.unsetf(std::ios::showpos);
@@ -75,9 +75,9 @@ namespace Moment {
         }
 
         if (1 == expr.id) {
-            SymbolExpression::format_factor(os, expr.factor, show_plus);
+            Monomial::format_factor(os, expr.factor, show_plus);
         } else {
-            SymbolExpression::format_factor_skip_one(os, expr.factor, show_plus, true);
+            Monomial::format_factor_skip_one(os, expr.factor, show_plus, true);
 
             const bool show_hash = os.flags() & std::ios::showbase;
             if (show_hash) {
@@ -97,9 +97,9 @@ namespace Moment {
         return os;
     }
 
-    SymbolExpression::SymbolExpression(const std::string &strExpr) {
+    Monomial::Monomial(const std::string &strExpr) {
         // Size must be in bounds
-        if (strExpr.empty() || (strExpr.size() > SymbolExpression::max_strlen)) {
+        if (strExpr.empty() || (strExpr.size() > Monomial::max_strlen)) {
             throw SymbolParseException{strExpr};
         }
         size_t read_to = strExpr.length();
@@ -135,22 +135,22 @@ namespace Moment {
         }
     }
 
-    std::string SymbolExpression::as_string() const {
+    std::string Monomial::as_string() const {
         std::stringstream ss;
         ss << *this;
         return ss.str();
     }
 
-    std::string SymbolExpression::SymbolParseException::make_msg(const std::string &badExpr) {
-        if (badExpr.length() > SymbolExpression::max_strlen) {
-            return std::string("Could not parse \"" + badExpr.substr(0, SymbolExpression::max_strlen) + "...\" as a symbol.");
+    std::string Monomial::SymbolParseException::make_msg(const std::string &badExpr) {
+        if (badExpr.length() > Monomial::max_strlen) {
+            return std::string("Could not parse \"" + badExpr.substr(0, Monomial::max_strlen) + "...\" as a symbol.");
         }
         return std::string("Could not parse \"" + badExpr + "\" as a symbol.");
     }
 
-    std::string SymbolExpression::SymbolParseException::make_msg(const std::string &badExpr, const std::exception &e) {
-        if (badExpr.length() > SymbolExpression::max_strlen) {
-            return std::string("Could not parse \"" + badExpr.substr(0, SymbolExpression::max_strlen) + "...\" as a symbol."
+    std::string Monomial::SymbolParseException::make_msg(const std::string &badExpr, const std::exception &e) {
+        if (badExpr.length() > Monomial::max_strlen) {
+            return std::string("Could not parse \"" + badExpr.substr(0, Monomial::max_strlen) + "...\" as a symbol."
                                + "\nThe following exception occurred: " + e.what());
         }
         return std::string("Could not parse \"" + badExpr + "\" as a symbol.\nThe following exception occurred: "

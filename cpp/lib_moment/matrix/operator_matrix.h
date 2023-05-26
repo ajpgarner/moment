@@ -12,7 +12,7 @@
 #include "scenarios/context.h"
 #include "scenarios/operator_sequence.h"
 
-#include "symbolic/symbol_expression.h"
+#include "symbolic/monomial.h"
 #include "symbolic/symbol_table.h"
 
 #include "utilities/square_matrix.h"

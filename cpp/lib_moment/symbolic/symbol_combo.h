@@ -8,7 +8,7 @@
 
 #include "integer_types.h"
 
-#include "symbol_expression.h"
+#include "monomial.h"
 
 #include "utilities/small_vector.h"
 #include "utilities/float_utils.h"
@@ -29,7 +29,7 @@ namespace Moment {
          * Storage for linear  combination of symbolic expressions.
          * Monomial on stack, polynomial on heap.
          * */
-        using storage_t = SmallVector<SymbolExpression, 1>;
+        using storage_t = SmallVector<Monomial, 1>;
 
     private:
         storage_t data;
@@ -43,7 +43,7 @@ namespace Moment {
         SymbolCombo(SymbolCombo&& rhs) = default;
 
         /** Construct combination from monomial */
-        explicit SymbolCombo(const SymbolExpression& monomial);
+        explicit SymbolCombo(const Monomial& monomial);
 
         /**
          * Construct combination from vector of monomials.
@@ -51,7 +51,7 @@ namespace Moment {
          * @param input The combination data.
          * @param order Instance of the ordering functional.
          */
-        template<typename ordering_func_t = SymbolExpression::IdLessComparator>
+        template<typename ordering_func_t = Monomial::IdLessComparator>
         explicit SymbolCombo(storage_t input,
                              const ordering_func_t& order = ordering_func_t{})
             : data{std::move(input)} {
@@ -69,7 +69,7 @@ namespace Moment {
          * @param table The symbol table.
          * @param order Instance of the ordering functional.
          */
-        template<typename ordering_func_t =  SymbolExpression::IdLessComparator>
+        template<typename ordering_func_t =  Monomial::IdLessComparator>
         explicit SymbolCombo(storage_t input,
                              const SymbolTable& table,
                              const ordering_func_t& order = ordering_func_t{})
@@ -90,14 +90,14 @@ namespace Moment {
 
         inline SymbolCombo& operator=(SymbolCombo&& rhs) noexcept = default;
 
-        SymbolCombo(std::initializer_list<SymbolExpression> input)
+        SymbolCombo(std::initializer_list<Monomial> input)
             : SymbolCombo{storage_t{input}} { }
 
         [[nodiscard]] size_t size() const noexcept { return this->data.size(); }
         [[nodiscard]] bool empty() const noexcept { return this->data.empty(); }
         [[nodiscard]] auto begin() const noexcept { return this->data.cbegin(); }
         [[nodiscard]] auto end() const noexcept { return this->data.cend(); }
-        [[nodiscard]] const SymbolExpression& operator[](size_t index) const noexcept { return this->data[index]; }
+        [[nodiscard]] const Monomial& operator[](size_t index) const noexcept { return this->data[index]; }
 
         /** Set the expression to zero */
         void clear() noexcept { this->data.clear(); }
@@ -108,7 +108,7 @@ namespace Moment {
         }
 
         /** Gets the last term from the expression */
-        [[nodiscard]] inline const SymbolExpression& back() const noexcept  {
+        [[nodiscard]] inline const Monomial& back() const noexcept  {
             assert(!this->data.empty());
             return this->data.back();
         }
@@ -123,7 +123,7 @@ namespace Moment {
          * @return The symbol expression.
          * @throws std::logic_error if SymbolCombo is not a monomial.
          */
-        explicit operator SymbolExpression() const;
+        explicit operator Monomial() const;
 
         inline SymbolCombo& operator+=(const SymbolCombo& rhs) {
             return this->append(rhs);
@@ -180,7 +180,7 @@ namespace Moment {
         }
 
         /** Put symbols into requested order */
-        template<typename ordering_func_t = SymbolExpression::IdLessComparator>
+        template<typename ordering_func_t = Monomial::IdLessComparator>
         inline void sort(const ordering_func_t& sort_func = ordering_func_t{}) {
             std::sort(this->data.begin(), this->data.end(), sort_func);
         }
@@ -190,7 +190,7 @@ namespace Moment {
          * Construct add symbols to this combo.
          * Undefined behaviour if ordering_func_t is different from that used to construct constituents.
          */
-        template<typename ordering_func_t = SymbolExpression::IdLessComparator>
+        template<typename ordering_func_t = Monomial::IdLessComparator>
         SymbolCombo& append(const SymbolCombo& rhs, const ordering_func_t& comp_less = ordering_func_t{}) {
             SymbolCombo& lhs = *this;
 
@@ -305,7 +305,7 @@ namespace Moment {
          * @param the_factor The scalar value (default: 1.0).
          */
         inline static SymbolCombo Scalar(const double the_factor = 1.0) {
-            return SymbolCombo(storage_t{SymbolExpression{1, the_factor , false}});
+            return SymbolCombo(storage_t{Monomial{1, the_factor , false}});
         }
 
         /**
@@ -313,7 +313,7 @@ namespace Moment {
          * @param the_factor Complex scalar value
          */
         inline static SymbolCombo Scalar(const std::complex<double> the_factor) {
-            return SymbolCombo(storage_t{SymbolExpression{1, the_factor, false}});
+            return SymbolCombo(storage_t{Monomial{1, the_factor, false}});
         }
 
         /**
@@ -347,8 +347,8 @@ namespace Moment {
             return SymbolCombo{std::move(data), symbols};
         }
 
-        [[nodiscard]] virtual bool less(const SymbolExpression& lhs, const SymbolExpression& rhs) const {
-            SymbolExpression::IdLessComparator comparator;
+        [[nodiscard]] virtual bool less(const Monomial& lhs, const Monomial& rhs) const {
+            Monomial::IdLessComparator comparator;
             return comparator(lhs, rhs);
         }
 

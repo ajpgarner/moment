@@ -75,13 +75,13 @@ namespace Moment {
         /**
          * Act with rule on symbol expression to make combo.
          */
-        [[nodiscard]] SymbolCombo reduce(const SymbolComboFactory& factory, const SymbolExpression& rhs) const;
+        [[nodiscard]] SymbolCombo reduce(const SymbolComboFactory& factory, const Monomial& rhs) const;
 
         /**
          * Try to act with rule on symbol expression to make monomial
          */
-        [[nodiscard]] SymbolExpression reduce_monomial(const SymbolTable& table,
-                                                       const SymbolExpression& rhs) const;
+        [[nodiscard]] Monomial reduce_monomial(const SymbolTable& table,
+                                               const Monomial& rhs) const;
 
         /**
          * Act with rule on combo to make new combo, using binding hint.
@@ -107,18 +107,18 @@ namespace Moment {
          * Write out the RHS of the rule, up to conjugation and factors.
          */
         template<typename inserter_iter_t>
-        inline void append_transformed(const SymbolExpression& match, inserter_iter_t insert_iter) const {
+        inline void append_transformed(const Monomial& match, inserter_iter_t insert_iter) const {
             assert(match.id == this->lhs);
             if (match.conjugated) {
                 std::transform(rhs.begin(), rhs.end(), insert_iter,
-                               [&match](SymbolExpression src) {
+                               [&match](Monomial src) {
                                    src.conjugated = !src.conjugated;
                                    src.factor = match.factor * std::conj(src.factor);
                                    return src;
                                });
             } else {
                 std::transform(rhs.begin(), rhs.end(), insert_iter,
-                               [&match](SymbolExpression src) {
+                               [&match](Monomial src) {
                                    src.factor *= match.factor;
                                    return src;
                                });

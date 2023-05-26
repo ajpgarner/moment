@@ -9,7 +9,7 @@
 #include "MatlabDataArray.hpp"
 
 #include "scenarios/operator_sequence.h"
-#include "symbolic/symbol_expression.h"
+#include "symbolic/monomial.h"
 #include "utilities/square_matrix.h"
 
 #include "exporter.h"

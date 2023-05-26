@@ -9,7 +9,7 @@
 #include "mex.hpp"
 #include "MatlabDataArray.hpp"
 
-#include "symbolic/symbol_expression.h"
+#include "symbolic/monomial.h"
 
 namespace Moment::mex {
 
@@ -23,10 +23,10 @@ namespace Moment::mex {
          * @param matrix The matrix of string values.
          * @param index_i The row of the matrix to read.
          * @param index_j The column of hte matrix to read.
-         * @return SymbolExpression found by parsing matrix element.
+         * @return Monomial found by parsing matrix element.
          */
-    [[nodiscard]] SymbolExpression read_symbol_or_fail(matlab::engine::MATLABEngine& engine,
-                                                       const matlab::data::StringArray& matrix,
-                                                       size_t index_i, size_t index_j);
+    [[nodiscard]] Monomial read_symbol_or_fail(matlab::engine::MATLABEngine& engine,
+                                               const matlab::data::StringArray& matrix,
+                                               size_t index_i, size_t index_j);
 
 }

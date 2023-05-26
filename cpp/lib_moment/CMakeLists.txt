@@ -65,11 +65,11 @@ add_library(lib_moment
         scenarios/symmetrized/symmetrized_matrix_system.cpp
         symbolic/moment_substitution_rule.cpp
         symbolic/moment_substitution_rulebook.cpp
+        symbolic/monomial.cpp
         symbolic/order_symbols_by_hash.cpp
         symbolic/symbol.cpp
         symbolic/symbol_combo.cpp
         symbolic/symbol_combo_to_basis.cpp
-        symbolic/symbol_expression.cpp
         symbolic/symbol_table.cpp
         symbolic/symbol_tools.cpp
         utilities/alphabetic_namer.cpp

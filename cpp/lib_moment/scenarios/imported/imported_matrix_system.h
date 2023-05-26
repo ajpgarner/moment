@@ -10,7 +10,7 @@
 #include "imported_context.h"
 
 #include "matrix/matrix_type.h"
-#include "symbolic/symbol_expression.h"
+#include "symbolic/monomial.h"
 #include "utilities/square_matrix.h"
 
 #include <memory>
@@ -46,7 +46,7 @@ namespace Moment::Imported {
          * @param input The input matrix.
          * @return The index of the newly inserted matrix.
          */
-        size_t import_matrix(std::unique_ptr<SquareMatrix<SymbolExpression>> input, MatrixType matrix_type);
+        size_t import_matrix(std::unique_ptr<SquareMatrix<Monomial>> input, MatrixType matrix_type);
 
         std::string system_type_name() const override {
             return "Imported Matrix System";

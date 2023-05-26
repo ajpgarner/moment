@@ -36,10 +36,10 @@ namespace Moment::Tests {
             std::vector<SymbolCombo> smData;
             smData.reserve(4);
 
-            smData.emplace_back(SymbolCombo{SymbolExpression{1, 1.0}, SymbolExpression{2, -1.0}});
-            smData.emplace_back(SymbolCombo{SymbolExpression{3, 1.0}, SymbolExpression{4, 2.0}});
-            smData.emplace_back(SymbolCombo{SymbolExpression{3, 1.0, true}, SymbolExpression{4, 2.0, true}});
-            smData.emplace_back(SymbolCombo{SymbolExpression{5, 1.0}});
+            smData.emplace_back(SymbolCombo{Monomial{1, 1.0}, Monomial{2, -1.0}});
+            smData.emplace_back(SymbolCombo{Monomial{3, 1.0}, Monomial{4, 2.0}});
+            smData.emplace_back(SymbolCombo{Monomial{3, 1.0, true}, Monomial{4, 2.0, true}});
+            smData.emplace_back(SymbolCombo{Monomial{5, 1.0}});
 
             std::unique_ptr<SquareMatrix<SymbolCombo>> sqMat = std::make_unique<SquareMatrix<SymbolCombo>>(2, std::move(smData));
             auto matrix = std::make_unique<PolynomialMatrix>(system->Context(), system->Symbols(), std::move(sqMat));
@@ -163,22 +163,22 @@ namespace Moment::Tests {
 
         const auto& elem00 = matrix.SymbolMatrix[0][0];
         ASSERT_EQ(elem00.size(), 2);
-        EXPECT_EQ(elem00[0], SymbolExpression(1, 1.0, false));
-        EXPECT_EQ(elem00[1], SymbolExpression(2, -1.0, false));
+        EXPECT_EQ(elem00[0], Monomial(1, 1.0, false));
+        EXPECT_EQ(elem00[1], Monomial(2, -1.0, false));
 
         const auto& elem01 = matrix.SymbolMatrix[0][1];
         ASSERT_EQ(elem01.size(), 2);
-        EXPECT_EQ(elem01[0], SymbolExpression(3, 1.0, false));
-        EXPECT_EQ(elem01[1], SymbolExpression(4, 2.0, false));
+        EXPECT_EQ(elem01[0], Monomial(3, 1.0, false));
+        EXPECT_EQ(elem01[1], Monomial(4, 2.0, false));
 
         const auto& elem10 = matrix.SymbolMatrix[1][0];
         ASSERT_EQ(elem10.size(), 2);
-        EXPECT_EQ(elem10[0], SymbolExpression(3, 1.0, true));
-        EXPECT_EQ(elem10[1], SymbolExpression(4, 2.0, true));
+        EXPECT_EQ(elem10[0], Monomial(3, 1.0, true));
+        EXPECT_EQ(elem10[1], Monomial(4, 2.0, true));
 
         const auto& elem11 = matrix.SymbolMatrix[1][1];
         ASSERT_EQ(elem11.size(), 1);
-        EXPECT_EQ(elem11[0], SymbolExpression(5, 1.0, false));
+        EXPECT_EQ(elem11[0], Monomial(5, 1.0, false));
 
         EXPECT_TRUE(matrix.is_hermitian());
         const auto& smp = matrix.SMP();

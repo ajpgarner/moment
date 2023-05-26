@@ -10,7 +10,7 @@
 
 namespace Moment {
     class SymbolTable;
-    class SymbolExpression;
+    struct Monomial;
     class SymbolCombo;
 
     class SymbolTools {
@@ -19,7 +19,7 @@ namespace Moment {
 
         SymbolTools(const SymbolTable& table) : table{table} { }
 
-        void make_canonical(SymbolExpression& expr) const;
+        void make_canonical(Monomial& expr) const;
 
         void make_canonical(SymbolCombo& combo) const;
     };

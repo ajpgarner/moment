@@ -521,23 +521,23 @@ namespace Moment::Tests {
         ASSERT_TRUE(maybe_AC.has_value());
         ASSERT_TRUE(maybe_ABC.has_value());
 
-        const auto one_plus_A = factory({SymbolExpression{1, 1.0}, SymbolExpression{2, 1.0}});
-        const auto one_plus_B = factory({SymbolExpression{1, 1.0}, SymbolExpression{3, 1.0}});
-        const auto one_plus_C = factory({SymbolExpression{1, 1.0}, SymbolExpression{4, 1.0}});
-        const auto expected_IplusA_IplusB = factory({SymbolExpression{1, 1.0}, SymbolExpression{2, 1.0},
-                                                     SymbolExpression{3, 1.0}, SymbolExpression{maybe_AB.value(), 1.0}});
-        const auto expected_IA_IB_IC = factory({SymbolExpression{1, 1.0},
-                                                SymbolExpression{2, 1.0},
-                                                SymbolExpression{3, 1.0},
-                                                SymbolExpression{4, 1.0},
-                                                SymbolExpression{maybe_AB.value(), 1.0},
-                                                SymbolExpression{maybe_BC.value(), 1.0},
-                                                SymbolExpression{maybe_AC.value(), 1.0},
-                                                SymbolExpression{maybe_ABC.value(), 1.0}});
+        const auto one_plus_A = factory({Monomial{1, 1.0}, Monomial{2, 1.0}});
+        const auto one_plus_B = factory({Monomial{1, 1.0}, Monomial{3, 1.0}});
+        const auto one_plus_C = factory({Monomial{1, 1.0}, Monomial{4, 1.0}});
+        const auto expected_IplusA_IplusB = factory({Monomial{1, 1.0}, Monomial{2, 1.0},
+                                                     Monomial{3, 1.0}, Monomial{maybe_AB.value(), 1.0}});
+        const auto expected_IA_IB_IC = factory({Monomial{1, 1.0},
+                                                Monomial{2, 1.0},
+                                                Monomial{3, 1.0},
+                                                Monomial{4, 1.0},
+                                                Monomial{maybe_AB.value(), 1.0},
+                                                Monomial{maybe_BC.value(), 1.0},
+                                                Monomial{maybe_AC.value(), 1.0},
+                                                Monomial{maybe_ABC.value(), 1.0}});
         EXPECT_EQ(factors.try_multiply(factory, one_plus_A, one_plus_B), expected_IplusA_IplusB);
         EXPECT_EQ(factors.try_multiply(factory, expected_IplusA_IplusB, one_plus_C), expected_IA_IB_IC);
 
-        const auto expected_one_plus_A_times05 = factory({SymbolExpression{1, 0.5}, SymbolExpression{2, 0.5}});
+        const auto expected_one_plus_A_times05 = factory({Monomial{1, 0.5}, Monomial{2, 0.5}});
         EXPECT_EQ(factors.try_multiply(factory, one_plus_A, SymbolCombo::Scalar(0.5)),
                   expected_one_plus_A_times05 );
 

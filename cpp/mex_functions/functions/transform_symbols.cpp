@@ -32,7 +32,7 @@ namespace Moment::mex::functions {
                                        const TransformSymbolsParams& input) {
 
             if (input.input_type == TransformSymbolsParams::InputType::SymbolId) {
-                return SymbolCombo{SymbolExpression{input.symbol_id, 1.0, false}};
+                return SymbolCombo{Monomial{input.symbol_id, 1.0, false}};
             }
 
             if (input.input_type != TransformSymbolsParams::InputType::Basis) {

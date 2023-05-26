@@ -32,9 +32,9 @@ namespace Moment::Tests {
         const auto& context = ims.Context();
         const auto& symbols = ims.Symbols();
 
-        std::vector<SymbolExpression> rawData{SymbolExpression{2}, SymbolExpression{3},
-                                              SymbolExpression{3}, SymbolExpression{4}};
-        auto raw_mat_ptr = std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(rawData));
+        std::vector<Monomial> rawData{Monomial{2}, Monomial{3},
+                                      Monomial{3}, Monomial{4}};
+        auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
         size_t index = ims.import_matrix(std::move(raw_mat_ptr), MatrixType::Complex);
         EXPECT_EQ(index, 0);
@@ -47,10 +47,10 @@ namespace Moment::Tests {
         EXPECT_EQ(&imported_matrix.Symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], SymbolExpression{2});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], SymbolExpression{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], SymbolExpression{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], SymbolExpression{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], Monomial{2});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{4});
 
         // Check symbols
         ASSERT_EQ(symbols.size(), 5);
@@ -77,9 +77,9 @@ namespace Moment::Tests {
         const auto& context = ims.Context();
         const auto& symbols = ims.Symbols();
 
-        std::vector<SymbolExpression> rawData{SymbolExpression{2}, SymbolExpression{3},
-                                              SymbolExpression{3}, SymbolExpression{4}};
-        auto raw_mat_ptr = std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(rawData));
+        std::vector<Monomial> rawData{Monomial{2}, Monomial{3},
+                                      Monomial{3}, Monomial{4}};
+        auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
         size_t index = ims.import_matrix(std::move(raw_mat_ptr), MatrixType::Symmetric);
         EXPECT_EQ(index, 0);
@@ -91,10 +91,10 @@ namespace Moment::Tests {
         EXPECT_EQ(&imported_matrix.Symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], SymbolExpression{2});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], SymbolExpression{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], SymbolExpression{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], SymbolExpression{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], Monomial{2});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{4});
 
         // Check symbols
         ASSERT_EQ(symbols.size(), 5);
@@ -120,9 +120,9 @@ namespace Moment::Tests {
         const auto& context = ims.Context();
         const auto& symbols = ims.Symbols();
 
-        std::vector<SymbolExpression> rawData{SymbolExpression{2}, SymbolExpression{3},
-                                              SymbolExpression{3, true}, SymbolExpression{4}};
-        auto raw_mat_ptr = std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(rawData));
+        std::vector<Monomial> rawData{Monomial{2}, Monomial{3},
+                                      Monomial{3, true}, Monomial{4}};
+        auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
         size_t index = ims.import_matrix(std::move(raw_mat_ptr), MatrixType::Hermitian);
         EXPECT_EQ(index, 0);
@@ -134,10 +134,10 @@ namespace Moment::Tests {
         EXPECT_EQ(&imported_matrix.Symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], SymbolExpression{2});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], SymbolExpression{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], SymbolExpression(3, true));
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], SymbolExpression{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], Monomial{2});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial(3, true));
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{4});
 
         // Check symbols
         ASSERT_EQ(symbols.size(), 5);
@@ -163,9 +163,9 @@ namespace Moment::Tests {
         const auto& context = ims.Context();
         const auto& symbols = ims.Symbols();
 
-        std::vector<SymbolExpression> rawData{SymbolExpression{2}, SymbolExpression{3},
-                                              SymbolExpression{3}, SymbolExpression{4}};
-        auto raw_mat_ptr = std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(rawData));
+        std::vector<Monomial> rawData{Monomial{2}, Monomial{3},
+                                      Monomial{3}, Monomial{4}};
+        auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
         size_t index = ims.import_matrix(std::move(raw_mat_ptr), MatrixType::Hermitian);
         EXPECT_EQ(index, 0);
@@ -177,10 +177,10 @@ namespace Moment::Tests {
         EXPECT_EQ(&imported_matrix.Symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], SymbolExpression{2});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], SymbolExpression{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], SymbolExpression{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], SymbolExpression{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], Monomial{2});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{4});
 
         // Check symbols
         ASSERT_EQ(symbols.size(), 5);
@@ -206,9 +206,9 @@ namespace Moment::Tests {
         const auto& context = ims.Context();
         const auto& symbols = ims.Symbols();
 
-        std::vector<SymbolExpression> rawData{SymbolExpression{2}, SymbolExpression{3},
-                                              SymbolExpression{-3}, SymbolExpression{4}};
-        auto raw_mat_ptr = std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(rawData));
+        std::vector<Monomial> rawData{Monomial{2}, Monomial{3},
+                                      Monomial{-3}, Monomial{4}};
+        auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
         size_t index = ims.import_matrix(std::move(raw_mat_ptr), MatrixType::Hermitian);
         EXPECT_EQ(index, 0);
@@ -220,10 +220,10 @@ namespace Moment::Tests {
         EXPECT_EQ(&imported_matrix.Symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], SymbolExpression{2});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], SymbolExpression{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], SymbolExpression{-3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], SymbolExpression{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], Monomial{2});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial{-3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{4});
 
         // Check symbols
         ASSERT_EQ(symbols.size(), 5);

@@ -312,16 +312,16 @@ namespace Moment::Tests {
         ams.generate_dictionary(2); // 0, 1, a, b, aa, ab, (ba), bb
 
         // Brew our own matrix
-        std::vector<SymbolExpression> matrix_data{
-            SymbolExpression(1, 1.0),
-            SymbolExpression(5, {1.0, 1.0}),
-            SymbolExpression(5, {1.0, -1.0}, true),
-            SymbolExpression(2, 1.0),
+        std::vector<Monomial> matrix_data{
+                Monomial(1, 1.0),
+                Monomial(5, {1.0, 1.0}),
+                Monomial(5, {1.0, -1.0}, true),
+                Monomial(2, 1.0),
         };
 
 
         MonomialMatrix matrix{ams.Context(), ams.Symbols(),
-                                std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
+                              std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
         ASSERT_FALSE(matrix.real_coefficients());
 
@@ -341,16 +341,16 @@ namespace Moment::Tests {
         ams.generate_dictionary(2); // 0, 1, a, b, aa, ab, (ba), bb
 
         // Brew our own matrix
-        std::vector<SymbolExpression> matrix_data{
-            SymbolExpression(1, 1.0),
-            SymbolExpression(5, {1.0, 1.0}),
-            SymbolExpression(5, {1.0, -1.0}, true),
-            SymbolExpression(2, 1.0),
+        std::vector<Monomial> matrix_data{
+                Monomial(1, 1.0),
+                Monomial(5, {1.0, 1.0}),
+                Monomial(5, {1.0, -1.0}, true),
+                Monomial(2, 1.0),
         };
 
 
         MonomialMatrix matrix{ams.Context(), ams.Symbols(),
-                                std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
+                              std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
         ASSERT_FALSE(matrix.real_coefficients());
 
@@ -370,16 +370,16 @@ namespace Moment::Tests {
         ams.generate_dictionary(2); // 0, 1, a, b, aa, ab, (ba), bb
 
         // Brew our own matrix
-        std::vector<SymbolExpression> matrix_data{
-            SymbolExpression(1, 1.0),
-            SymbolExpression(5, {1.0, 1.0}),
-            SymbolExpression(5, {1.0, -1.0}, true),
-            SymbolExpression(2, 1.0),
+        std::vector<Monomial> matrix_data{
+                Monomial(1, 1.0),
+                Monomial(5, {1.0, 1.0}),
+                Monomial(5, {1.0, -1.0}, true),
+                Monomial(2, 1.0),
         };
 
 
         MonomialMatrix matrix{ams.Context(), ams.Symbols(),
-                                std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
+                              std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
         ASSERT_FALSE(matrix.real_coefficients());
 
@@ -399,16 +399,16 @@ namespace Moment::Tests {
         ams.generate_dictionary(2); // 0, 1, a, b, aa, ab, (ba), bb
 
         // Brew our own matrix
-        std::vector<SymbolExpression> matrix_data{
-            SymbolExpression(1, 1.0),
-            SymbolExpression(5, {1.0, 1.0}),
-            SymbolExpression(5, {1.0, -1.0}, true),
-            SymbolExpression(2, 1.0),
+        std::vector<Monomial> matrix_data{
+                Monomial(1, 1.0),
+                Monomial(5, {1.0, 1.0}),
+                Monomial(5, {1.0, -1.0}, true),
+                Monomial(2, 1.0),
         };
 
 
         MonomialMatrix matrix{ams.Context(), ams.Symbols(),
-                                std::make_unique<SquareMatrix<SymbolExpression>>(2, std::move(matrix_data)), true};
+                              std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
         ASSERT_FALSE(matrix.real_coefficients());
 

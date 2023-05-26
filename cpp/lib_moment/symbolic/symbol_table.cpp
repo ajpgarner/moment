@@ -264,14 +264,14 @@ namespace Moment {
         return {&this->unique_sequences[id], conj};
     }
 
-    SymbolExpression SymbolTable::to_symbol(const OperatorSequence &seq) const noexcept {
+    Monomial SymbolTable::to_symbol(const OperatorSequence &seq) const noexcept {
         size_t hash = this->context.hash(seq);
         auto [id, conj] = this->hash_to_index(hash);
         if (id == std::numeric_limits<ptrdiff_t>::max()) {
-            return SymbolExpression{0};
+            return Monomial{0};
         }
 
-        return SymbolExpression{this->unique_sequences[id].id, conj};
+        return Monomial{this->unique_sequences[id].id, conj};
     }
 
 

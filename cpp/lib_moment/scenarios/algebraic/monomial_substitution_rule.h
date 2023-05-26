@@ -9,7 +9,7 @@
 #include "integer_types.h"
 
 #include "hashed_sequence.h"
-#include "symbolic/symbol_expression.h"
+#include "symbolic/monomial.h"
 
 #include <iosfwd>
 #include <optional>

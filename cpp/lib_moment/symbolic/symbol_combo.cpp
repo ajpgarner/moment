@@ -17,7 +17,7 @@ namespace Moment {
     namespace {
 
         struct LexEqComparator {
-            bool operator()(const SymbolExpression &lhs, const SymbolExpression &rhs) const noexcept {
+            bool operator()(const Monomial &lhs, const Monomial &rhs) const noexcept {
                 if (lhs.id != rhs.id) {
                     return false;
                 }
@@ -81,7 +81,7 @@ namespace Moment {
         data.erase(write_iter, last_iter);
     }
 
-    SymbolCombo::SymbolCombo(const SymbolExpression& expr) {
+    SymbolCombo::SymbolCombo(const Monomial& expr) {
         if (0 != expr.id) {
             this->data.emplace_back(expr);
         }
@@ -95,7 +95,7 @@ namespace Moment {
     }
 
 
-    SymbolCombo::operator SymbolExpression() const {
+    SymbolCombo::operator Monomial() const {
         if (!this->is_monomial()) {
             std::stringstream errSS;
             errSS << "\"" << *this << "\" is not a monomial expression.";
@@ -104,7 +104,7 @@ namespace Moment {
 
         // If empty, create a "zero"
         if (this->data.empty()) {
-            return SymbolExpression{0, 1.0};
+            return Monomial{0, 1.0};
         }
 
         // Otherwise, copy first (and only) element:
@@ -208,7 +208,7 @@ namespace Moment {
 
     bool SymbolCombo::is_hermitian(const SymbolTable& symbols) const noexcept {
 
-        const SymbolExpression* last_symbol = nullptr;
+        const Monomial* last_symbol = nullptr;
         for (const auto& elem : this->data) {
 
             // Factors of 0 are always hermitian.

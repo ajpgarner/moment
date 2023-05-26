@@ -7,7 +7,7 @@
 #pragma once
 
 #include "symbol.h"
-#include "symbol_expression.h"
+#include "monomial.h"
 
 #include "scenarios/dictionary_map.h"
 #include "scenarios/operator_sequence.h"
@@ -276,9 +276,9 @@ namespace Moment {
         /**
          * Find symbol expression matching supplied operator sequence.
          * @param seq The sequence to match
-         * @return The SymbolExpression matching the sequence, or zero if not found.
+         * @return The Monomial matching the sequence, or zero if not found.
          */
-        [[nodiscard]] SymbolExpression to_symbol(const OperatorSequence& seq) const noexcept;
+        [[nodiscard]] Monomial to_symbol(const OperatorSequence& seq) const noexcept;
 
 
         /**

@@ -8,7 +8,7 @@
 
 #include "matrix.h"
 
-#include "symbolic/symbol_expression.h"
+#include "symbolic/monomial.h"
 #include "utilities/square_matrix.h"
 
 #include <memory>
@@ -33,13 +33,13 @@ namespace Moment {
             [[nodiscard]] size_t Dimension() const noexcept { return matrix.Dimension(); }
 
             /**
-            * Return a view (std::span<const SymbolExpression>) to the requested row of the NPA matrix's symbolic
+            * Return a view (std::span<const Monomial>) to the requested row of the NPA matrix's symbolic
             * representation. Since std::span also provides an operator[], it is possible to index using
             * "mySMV[row][col]" notation.
             * @param row The index of the row to return.
-            * @return A std::span<const SymbolExpression> of the requested row.
+            * @return A std::span<const Monomial> of the requested row.
             */
-            std::span<const SymbolExpression> operator[](size_t row) const noexcept {
+            std::span<const Monomial> operator[](size_t row) const noexcept {
                 return (*(matrix.sym_exp_matrix))[row];
             };
 
@@ -55,14 +55,14 @@ namespace Moment {
 
     protected:
         /** Matrix, as symbolic expression */
-        std::unique_ptr<SquareMatrix<SymbolExpression>> sym_exp_matrix;
+        std::unique_ptr<SquareMatrix<Monomial>> sym_exp_matrix;
 
         /** True if matrix has no complex prefactors in its symbol expressions */
         bool real_prefactors = true;
 
     public:
         MonomialMatrix(const Context& context, SymbolTable& symbols,
-                       std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix,
+                       std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix,
                        bool is_hermitian);
 
         MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix);

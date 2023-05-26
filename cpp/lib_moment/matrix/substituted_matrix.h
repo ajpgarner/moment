@@ -44,8 +44,8 @@ namespace Moment {
          * @param matrix The raw monomial source matrix.
          * @return Newly created raw monomial matrix.
          */
-        static std::unique_ptr<SquareMatrix<SymbolExpression>>
-        reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<SymbolExpression>& matrix);
+        static std::unique_ptr<SquareMatrix<Monomial>>
+        reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<Monomial>& matrix);
 
     };
 
@@ -67,7 +67,7 @@ namespace Moment {
         reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<SymbolCombo>& matrix);
 
         static std::unique_ptr<SquareMatrix<SymbolCombo>>
-        reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<SymbolExpression>& matrix);
+        reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<Monomial>& matrix);
     };
 
 

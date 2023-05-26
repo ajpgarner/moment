@@ -9,7 +9,7 @@
 
 namespace Moment {
 
-    bool CompareByOpHash::operator()(const SymbolExpression& lhs, const SymbolExpression& rhs) const noexcept {
+    bool CompareByOpHash::operator()(const Monomial& lhs, const Monomial& rhs) const noexcept {
         assert(lhs.id < this->symbolTable.size());
         assert(rhs.id < this->symbolTable.size());
 

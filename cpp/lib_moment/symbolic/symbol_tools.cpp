@@ -8,11 +8,11 @@
 #include "symbol_tools.h"
 
 #include "symbol_combo.h"
-#include "symbol_expression.h"
+#include "monomial.h"
 #include "symbol_table.h"
 
 namespace Moment {
-    void SymbolTools::make_canonical(SymbolExpression& expr) const {
+    void SymbolTools::make_canonical(Monomial& expr) const {
         assert(expr.id >= 0 && expr.id < this->table.size());
         const auto& symbolInfo = this->table[expr.id];
 

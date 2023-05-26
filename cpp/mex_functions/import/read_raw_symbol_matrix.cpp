@@ -19,7 +19,7 @@ namespace Moment::mex {
             matlab::engine::MATLABEngine &engine;
 
         public:
-            using return_type = std::unique_ptr<SquareMatrix<SymbolExpression>>;
+            using return_type = std::unique_ptr<SquareMatrix<Monomial>>;
 
             explicit ReadSymbolicMatrixVisitor(matlab::engine::MATLABEngine &engineRef)
                     : engine(engineRef) {}
@@ -27,7 +27,7 @@ namespace Moment::mex {
             template<std::convertible_to<symbol_name_t> data_t>
             return_type dense(const matlab::data::TypedArray<data_t> &input_matrix) {
                 const size_t matrix_dimension = input_matrix.getDimensions()[0];
-                std::vector<SymbolExpression> data;
+                std::vector<Monomial> data;
                 data.reserve(matrix_dimension * matrix_dimension);
 
                 // Read through matrix, into vector
@@ -41,13 +41,13 @@ namespace Moment::mex {
                         }
                     }
                 }
-                return std::make_unique<SquareMatrix<SymbolExpression>>(matrix_dimension, std::move(data));
+                return std::make_unique<SquareMatrix<Monomial>>(matrix_dimension, std::move(data));
             }
 
 
             return_type string(const matlab::data::StringArray &input_matrix) {
                 const size_t matrix_dimension = input_matrix.getDimensions()[0];
-                std::vector<SymbolExpression> data;
+                std::vector<Monomial> data;
                 data.reserve(matrix_dimension * matrix_dimension);
 
                 for (size_t index_i = 0; index_i < matrix_dimension; ++index_i) {
@@ -56,12 +56,12 @@ namespace Moment::mex {
                     }
                 }
 
-                return std::make_unique<SquareMatrix<SymbolExpression>>(matrix_dimension, std::move(data));
+                return std::make_unique<SquareMatrix<Monomial>>(matrix_dimension, std::move(data));
             }
         };
     }
 
-    std::unique_ptr<SquareMatrix<SymbolExpression>>
+    std::unique_ptr<SquareMatrix<Monomial>>
     read_raw_symbol_matrix(matlab::engine::MATLABEngine &matlabEngine, const matlab::data::Array& input) {
         return DispatchVisitor(matlabEngine, input, ReadSymbolicMatrixVisitor{matlabEngine});
     }

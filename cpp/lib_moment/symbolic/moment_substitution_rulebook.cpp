@@ -56,9 +56,9 @@ namespace Moment {
         this->raw_rules.reserve(this->raw_rules.size() + raw.size());
         for (auto [id, value] : raw) {
             if (approximately_zero(value)) {
-                this->raw_rules.emplace_back(SymbolExpression{id});
+                this->raw_rules.emplace_back(Monomial{id});
             } else {
-                this->raw_rules.emplace_back(SymbolCombo{SymbolExpression{id, 1.0}, SymbolExpression{1, -value}});
+                this->raw_rules.emplace_back(SymbolCombo{Monomial{id, 1.0}, Monomial{1, -value}});
             }
         }
     }
@@ -67,9 +67,9 @@ namespace Moment {
         this->raw_rules.reserve(this->raw_rules.size() + raw.size());
         for (auto [id, value] : raw) {
             if (approximately_zero(value)) {
-                this->raw_rules.emplace_back(SymbolExpression{id});
+                this->raw_rules.emplace_back(Monomial{id});
             } else {
-                this->raw_rules.emplace_back(SymbolCombo{SymbolExpression{id, 1.0}, SymbolExpression{1, -value}});
+                this->raw_rules.emplace_back(SymbolCombo{Monomial{id, 1.0}, Monomial{1, -value}});
             }
         }
     }
@@ -225,7 +225,7 @@ namespace Moment {
                 if (match_iterators[index] != this->rules.cend()) {
                     return match_iterators[index]->second.RHS();
                 } else {
-                    return SymbolCombo{SymbolExpression{symbol.canonical.symbols[index], 1.0, false}};
+                    return SymbolCombo{Monomial{symbol.canonical.symbols[index], 1.0, false}};
                 }
             };
             SymbolCombo product = get_as_poly(0);
@@ -236,7 +236,7 @@ namespace Moment {
                 product = factors.try_multiply(*this->factory, product, get_as_poly(idx));
             }
 
-            this->factory->append(product, {SymbolExpression{symbol.id, -1.0, false}});
+            this->factory->append(product, {Monomial{symbol.id, -1.0, false}});
 
             // Check if this infers anything new?
             new_rules.emplace_back(std::move(product));
@@ -279,7 +279,7 @@ namespace Moment {
         return ever_matched;
     }
 
-    SymbolExpression MomentSubstitutionRulebook::reduce_monomial(SymbolExpression expr) const {
+    Monomial MomentSubstitutionRulebook::reduce_monomial(Monomial expr) const {
         auto rule_iter = this->rules.find(expr.id);
         // No match, pass through:
         if (rule_iter == this->rules.cend()) {
@@ -295,7 +295,7 @@ namespace Moment {
         return rule.reduce_monomial(this->symbols, expr);
     }
 
-    SymbolCombo MomentSubstitutionRulebook::reduce(SymbolExpression expr) const {
+    SymbolCombo MomentSubstitutionRulebook::reduce(Monomial expr) const {
         auto rule_iter = this->rules.find(expr.id);
         // No match, pass through (promote to combo)
         if (rule_iter == this->rules.cend()) {

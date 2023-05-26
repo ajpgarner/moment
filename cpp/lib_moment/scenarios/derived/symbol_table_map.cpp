@@ -202,7 +202,7 @@ namespace Moment::Derived {
         return this->map[symbol_id];
     }
 
-    SymbolCombo SymbolTableMap::operator()(const SymbolExpression &symbol) const {
+    SymbolCombo SymbolTableMap::operator()(const Monomial &symbol) const {
         // Get raw combo, or throw range error
         SymbolCombo output = (*this)(symbol.id);
 
@@ -227,7 +227,7 @@ namespace Moment::Derived {
 
 
     std::unique_ptr<SquareMatrix<SymbolCombo>>
-    SymbolTableMap::operator()(const SquareMatrix<SymbolExpression>& input_matrix) const {
+    SymbolTableMap::operator()(const SquareMatrix<Monomial>& input_matrix) const {
         std::vector<SymbolCombo> output_data;
         output_data.reserve(input_matrix.dimension * input_matrix.dimension);
         for (const auto& expr : input_matrix) {
@@ -247,17 +247,17 @@ namespace Moment::Derived {
         return std::make_unique<SquareMatrix<SymbolCombo>>(input_matrix.dimension, std::move(output_data));
     }
 
-    std::unique_ptr<SquareMatrix<SymbolExpression>>
-    SymbolTableMap::monomial(const SquareMatrix<SymbolExpression>& input_matrix) const {
+    std::unique_ptr<SquareMatrix<Monomial>>
+    SymbolTableMap::monomial(const SquareMatrix<Monomial>& input_matrix) const {
         if (!this->_is_monomial_map) {
             throw errors::bad_map{"Cannot create monomial matrix from action of non-monomial map."};
         }
-        std::vector<SymbolExpression> output_data;
+        std::vector<Monomial> output_data;
         output_data.reserve(input_matrix.dimension * input_matrix.dimension);
         for (const auto& expr : input_matrix) {
-            output_data.emplace_back(SymbolExpression{(*this)(expr)});
+            output_data.emplace_back(Monomial{(*this)(expr)});
         }
-        return std::make_unique<SquareMatrix<SymbolExpression>>(input_matrix.dimension, std::move(output_data));
+        return std::make_unique<SquareMatrix<Monomial>>(input_matrix.dimension, std::move(output_data));
     }
 
     const SymbolCombo& SymbolTableMap::inverse(symbol_name_t symbol_id) const {
@@ -272,7 +272,7 @@ namespace Moment::Derived {
         return this->inverse_map[symbol_id];
     }
 
-    SymbolCombo SymbolTableMap::inverse(const SymbolExpression& symbol) const {
+    SymbolCombo SymbolTableMap::inverse(const Monomial& symbol) const {
         // Get raw combo, or throw range error
         SymbolCombo output = this->inverse(symbol.id);
 

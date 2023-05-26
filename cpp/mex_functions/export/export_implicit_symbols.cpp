@@ -118,7 +118,7 @@ namespace Moment::mex {
                     this->output_array[write_index]["sequence"] = factory.createScalar("1");
                     this->output_array[write_index]["indices"] = factory.createArray<uint64_t>({0, 3});
                     this->output_array[write_index]["real_coefficients"]
-                        = to_sparse_array(SymbolCombo{SymbolExpression{1, 1.}});
+                        = to_sparse_array(SymbolCombo{Monomial{1, 1.}});
                     ++write_index;
                     return;
                 }

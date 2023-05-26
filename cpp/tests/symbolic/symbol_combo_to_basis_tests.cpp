@@ -74,24 +74,24 @@ namespace Moment::Tests {
 
         SymbolCombo combo_a0 = convertor(make_sparse_vector({0.0, 1.0, 0.0, 0.0, 0.0, 0.0}),
                                          make_sparse_vector({0.0}));
-        EXPECT_EQ(combo_a0, SymbolCombo({SymbolExpression{2, 1.0}}));
+        EXPECT_EQ(combo_a0, SymbolCombo({Monomial{2, 1.0}}));
 
         SymbolCombo combo_a1 = convertor(make_sparse_vector({0.0, 0.0, 1.0, 0.0, 0.0, 0.0}),
                                          make_sparse_vector({0.0}));
-        EXPECT_EQ(combo_a1, SymbolCombo({SymbolExpression{3, 1.0}}));
+        EXPECT_EQ(combo_a1, SymbolCombo({Monomial{3, 1.0}}));
 
         SymbolCombo combo_a0a0 = convertor(make_sparse_vector({0.0, 0.0, 0.0, 1.0, 0.0, 0.0}),
                                            make_sparse_vector({0.0}));
-        EXPECT_EQ(combo_a0a0, SymbolCombo({SymbolExpression{4, 1.0}}));
+        EXPECT_EQ(combo_a0a0, SymbolCombo({Monomial{4, 1.0}}));
 
         SymbolCombo combo_a1a1 = convertor(make_sparse_vector({0.0, 0.0, 0.0, 0.0, 0.0, 1.0}),
                                            make_sparse_vector({0.0}));
-        EXPECT_EQ(combo_a1a1, SymbolCombo({SymbolExpression{6, 1.0}}));
+        EXPECT_EQ(combo_a1a1, SymbolCombo({Monomial{6, 1.0}}));
 
         // Non-trivial element a0a1 has support in real and imaginary parts of basis:
         SymbolCombo combo_a0a1 = convertor(make_sparse_vector({0.0, 0.0, 0.0, 0.0, 1.0, 0.0}),
                                            make_sparse_vector({1.0}));
-        EXPECT_EQ(combo_a0a1, SymbolCombo({SymbolExpression{5, 1.0}}));
+        EXPECT_EQ(combo_a0a1, SymbolCombo({Monomial{5, 1.0}}));
     }
 
     TEST_F(Symbolic_SymbolComboToBasis, BasisToCombo_OutOfBounds) {
@@ -110,14 +110,14 @@ namespace Moment::Tests {
         BasisVecToSymbolCombo convertor{this->get_symbols()};
         SymbolCombo combo_a0a1_hermitian = convertor(make_sparse_vector({0.0, 0.0, 0.0, 0.0, 1.0, 0.0}),
                                                                           make_sparse_vector({0.0}));
-        EXPECT_EQ(combo_a0a1_hermitian, SymbolCombo({SymbolExpression{5, 0.5, false},
-                                                     SymbolExpression{5, 0.5, true}}));
+        EXPECT_EQ(combo_a0a1_hermitian, SymbolCombo({Monomial{5, 0.5, false},
+                                                     Monomial{5, 0.5, true}}));
 
         SymbolCombo combo_a0a1_antihermitian = convertor(
                 make_sparse_vector({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}),
                 make_sparse_vector({1.0}));
-        EXPECT_EQ(combo_a0a1_antihermitian, SymbolCombo({SymbolExpression{5, 0.5, false},
-                                                         SymbolExpression{5, -0.5, true}}));
+        EXPECT_EQ(combo_a0a1_antihermitian, SymbolCombo({Monomial{5, 0.5, false},
+                                                         Monomial{5, -0.5, true}}));
     }
 
     TEST_F(Symbolic_SymbolComboToBasis, ComplexBasisToCombo_Scalars) {
@@ -142,24 +142,24 @@ namespace Moment::Tests {
 
         SymbolCombo combo_a0 = convertor(make_sparse_vector<std::complex<double>>({0, 1.0, 0, 0, 0, 0}),
                                          make_sparse_vector<std::complex<double>>({0}));
-        EXPECT_EQ(combo_a0, SymbolCombo({SymbolExpression{2, 1.0}}));
+        EXPECT_EQ(combo_a0, SymbolCombo({Monomial{2, 1.0}}));
 
         SymbolCombo combo_a1 = convertor(make_sparse_vector<std::complex<double>>({0, 0, 1.0, 0, 0, 0}),
                                          make_sparse_vector<std::complex<double>>({0}));
-        EXPECT_EQ(combo_a1, SymbolCombo({SymbolExpression{3, 1.0}}));
+        EXPECT_EQ(combo_a1, SymbolCombo({Monomial{3, 1.0}}));
 
         SymbolCombo combo_a0a0 = convertor(make_sparse_vector<std::complex<double>>({0, 0, 0, {1.0, 2.0}, 0, 0}),
                                            make_sparse_vector<std::complex<double>>({0}));
-        EXPECT_EQ(combo_a0a0, SymbolCombo({SymbolExpression{4, {1.0, 2.0}}}));
+        EXPECT_EQ(combo_a0a0, SymbolCombo({Monomial{4, {1.0, 2.0}}}));
 
         SymbolCombo combo_a1a1 = convertor(make_sparse_vector<std::complex<double>>({0, 0, 0, 0, 0, 1.0}),
                                            make_sparse_vector<std::complex<double>>({0}));
-        EXPECT_EQ(combo_a1a1, SymbolCombo({SymbolExpression{6, 1.0}}));
+        EXPECT_EQ(combo_a1a1, SymbolCombo({Monomial{6, 1.0}}));
 
         // Non-trivial element a0a1 has support in real and imaginary parts of basis:
         SymbolCombo combo_a0a1 = convertor(make_sparse_vector<std::complex<double>>({0, 0, 0, 0, {2.0, 1.0}, 0.0}),
                                            make_sparse_vector<std::complex<double>>({{2.0, 1.0}}));
-        EXPECT_EQ(combo_a0a1, SymbolCombo({SymbolExpression{5, {2.0, 1.0}}}));
+        EXPECT_EQ(combo_a0a1, SymbolCombo({Monomial{5, {2.0, 1.0}}}));
     }
 
     TEST_F(Symbolic_SymbolComboToBasis, ComplexBasisToCombo_HermAntiHermTerms) {
@@ -167,14 +167,14 @@ namespace Moment::Tests {
 
         SymbolCombo combo_a0a1_hermitian = convertor(make_sparse_vector<std::complex<double>>({0, 0, 0, 0, 1.0, 0.0}),
                                                      make_sparse_vector<std::complex<double>>({0.0}));
-        EXPECT_EQ(combo_a0a1_hermitian, SymbolCombo({SymbolExpression{5, 0.5, false},
-                                                     SymbolExpression{5, 0.5, true}}));
+        EXPECT_EQ(combo_a0a1_hermitian, SymbolCombo({Monomial{5, 0.5, false},
+                                                     Monomial{5, 0.5, true}}));
 
         SymbolCombo combo_a0a1_antihermitian = convertor(
                 make_sparse_vector<std::complex<double>>({0, 0, 0, 0, 0.0, 0.0}),
                 make_sparse_vector<std::complex<double>>({1.0}));
-        EXPECT_EQ(combo_a0a1_antihermitian, SymbolCombo({SymbolExpression{5, 0.5, false},
-                                                         SymbolExpression{5, -0.5, true}}));
+        EXPECT_EQ(combo_a0a1_antihermitian, SymbolCombo({Monomial{5, 0.5, false},
+                                                         Monomial{5, -0.5, true}}));
     }
     
     TEST_F(Symbolic_SymbolComboToBasis, ComboToBasis_Scalars) {
@@ -192,27 +192,27 @@ namespace Moment::Tests {
     TEST_F(Symbolic_SymbolComboToBasis, ComboToBasis_Monomials) {
         SymbolComboToBasisVec convertor{this->get_symbols()};
 
-        auto [a0_re, a0_im] = convertor(SymbolCombo{{SymbolExpression(2, 1.0)}});
+        auto [a0_re, a0_im] = convertor(SymbolCombo{{Monomial(2, 1.0)}});
         compare_sparse_vectors(a0_re, make_sparse_vector<double>({0, 1.0, 0, 0, 0, 0}));
         compare_sparse_vectors(a0_im, make_sparse_vector<double>({0}));
 
-        auto [a1_re, a1_im] = convertor(SymbolCombo{{SymbolExpression(3, 1.0)}});
+        auto [a1_re, a1_im] = convertor(SymbolCombo{{Monomial(3, 1.0)}});
         compare_sparse_vectors(a1_re, make_sparse_vector<double>({0, 0, 1.0, 0, 0, 0}));
         compare_sparse_vectors(a1_im, make_sparse_vector<double>({0}));
 
-        auto [a0a0_re, a0a0_im] = convertor(SymbolCombo{{SymbolExpression(4, 1.0)}});
+        auto [a0a0_re, a0a0_im] = convertor(SymbolCombo{{Monomial(4, 1.0)}});
         compare_sparse_vectors(a0a0_re, make_sparse_vector<double>({0, 0, 0, 1.0, 0, 0}));
         compare_sparse_vectors(a0a0_im, make_sparse_vector<double>({0}));
 
-        auto [a1a1_re, a1a1_im] = convertor(SymbolCombo{{SymbolExpression(6, 1.0)}});
+        auto [a1a1_re, a1a1_im] = convertor(SymbolCombo{{Monomial(6, 1.0)}});
         compare_sparse_vectors(a1a1_re, make_sparse_vector<double>({0, 0, 0, 0, 0, 1.0}));
         compare_sparse_vectors(a1a1_im, make_sparse_vector<double>({0}));
 
-        auto [a0a1_re, a0a1_im] = convertor(SymbolCombo{{SymbolExpression(5, 1.0)}});
+        auto [a0a1_re, a0a1_im] = convertor(SymbolCombo{{Monomial(5, 1.0)}});
         compare_sparse_vectors(a0a1_re, make_sparse_vector<double>({0, 0, 0, 0, 1.0, 0}));
         compare_sparse_vectors(a0a1_im, make_sparse_vector<double>({1.0}));
 
-        auto [a0a1_star_re, a0a1_star_im] = convertor(SymbolCombo{{SymbolExpression(5, 1.0, true)}});
+        auto [a0a1_star_re, a0a1_star_im] = convertor(SymbolCombo{{Monomial(5, 1.0, true)}});
         compare_sparse_vectors(a0a1_star_re, make_sparse_vector<double>({0, 0, 0, 0, 1.0, 0}));
         compare_sparse_vectors(a0a1_star_im, make_sparse_vector<double>({-1.0}));
     }
@@ -220,14 +220,14 @@ namespace Moment::Tests {
     TEST_F(Symbolic_SymbolComboToBasis, ComboToBasis_HermAntiHerm) {
         SymbolComboToBasisVec convertor{this->get_symbols()};
 
-        auto [a0a1_a1a0_re, a0a1_a1a0_im] = convertor(SymbolCombo{{SymbolExpression(5, 0.5, false),
-                                                                                        SymbolExpression(5, 0.5, true)}});
+        auto [a0a1_a1a0_re, a0a1_a1a0_im] = convertor(SymbolCombo{{Monomial(5, 0.5, false),
+                                                                   Monomial(5, 0.5, true)}});
         compare_sparse_vectors(a0a1_a1a0_re, make_sparse_vector<double>({0, 0, 0, 0, 1.0, 0}));
         compare_sparse_vectors(a0a1_a1a0_im, make_sparse_vector<double>({0.0}));
 
         auto [a0a1_minus_a1a0_re, a0a1_minus_a1a0_im] = convertor(
-                                                            SymbolCombo{{SymbolExpression(5, 0.5, false),
-                                                                         SymbolExpression(5, -0.5, true)}});
+                                                            SymbolCombo{{Monomial(5, 0.5, false),
+                                                                         Monomial(5, -0.5, true)}});
         compare_sparse_vectors(a0a1_minus_a1a0_re, make_sparse_vector<double>({0, 0, 0, 0, 0.0, 0}));
         compare_sparse_vectors(a0a1_minus_a1a0_im, make_sparse_vector<double>({1.0}));
     }
@@ -250,27 +250,27 @@ namespace Moment::Tests {
     TEST_F(Symbolic_SymbolComboToBasis, ComboToComplexBasis_Monomials) {
         SymbolComboToComplexBasisVec convertor{this->get_symbols()};
 
-        auto [a0_re, a0_im] = convertor(SymbolCombo{{SymbolExpression(2, 1.0)}});
+        auto [a0_re, a0_im] = convertor(SymbolCombo{{Monomial(2, 1.0)}});
         compare_sparse_vectors(a0_re, make_sparse_vector<std::complex<double>>({0, 1.0, 0, 0, 0, 0}));
         compare_sparse_vectors(a0_im, make_sparse_vector<std::complex<double>>({0}));
 
-        auto [a1_re, a1_im] = convertor(SymbolCombo{{SymbolExpression(3, 1.0)}});
+        auto [a1_re, a1_im] = convertor(SymbolCombo{{Monomial(3, 1.0)}});
         compare_sparse_vectors(a1_re, make_sparse_vector<std::complex<double>>({0, 0, 1.0, 0, 0, 0}));
         compare_sparse_vectors(a1_im, make_sparse_vector<std::complex<double>>({0}));
 
-        auto [a0a0_re, a0a0_im] = convertor(SymbolCombo{{SymbolExpression(4, 1.0)}});
+        auto [a0a0_re, a0a0_im] = convertor(SymbolCombo{{Monomial(4, 1.0)}});
         compare_sparse_vectors(a0a0_re, make_sparse_vector<std::complex<double>>({0, 0, 0, 1.0, 0, 0}));
         compare_sparse_vectors(a0a0_im, make_sparse_vector<std::complex<double>>({0}));
 
-        auto [a1a1_re, a1a1_im] = convertor(SymbolCombo{{SymbolExpression(6, 1.0)}});
+        auto [a1a1_re, a1a1_im] = convertor(SymbolCombo{{Monomial(6, 1.0)}});
         compare_sparse_vectors(a1a1_re, make_sparse_vector<std::complex<double>>({0, 0, 0, 0, 0, 1.0}));
         compare_sparse_vectors(a1a1_im, make_sparse_vector<std::complex<double>>({0}));
 
-        auto [a0a1_re, a0a1_im] = convertor(SymbolCombo{{SymbolExpression(5, 1.0)}});
+        auto [a0a1_re, a0a1_im] = convertor(SymbolCombo{{Monomial(5, 1.0)}});
         compare_sparse_vectors(a0a1_re, make_sparse_vector<std::complex<double>>({0, 0, 0, 0, 1.0, 0}));
         compare_sparse_vectors(a0a1_im, make_sparse_vector<std::complex<double>>({1.0}));
 
-        auto [a0a1_star_re, a0a1_star_im] = convertor(SymbolCombo{{SymbolExpression(5, 1.0, true)}});
+        auto [a0a1_star_re, a0a1_star_im] = convertor(SymbolCombo{{Monomial(5, 1.0, true)}});
         compare_sparse_vectors(a0a1_star_re, make_sparse_vector<std::complex<double>>({0, 0, 0, 0, 1.0, 0}));
         compare_sparse_vectors(a0a1_star_im, make_sparse_vector<std::complex<double>>({-1.0}));
     }
@@ -278,14 +278,14 @@ namespace Moment::Tests {
     TEST_F(Symbolic_SymbolComboToBasis, ComboToComplexBasis_HermAntiHerm) {
         SymbolComboToComplexBasisVec convertor{this->get_symbols()};
 
-        auto [a0a1_a1a0_re, a0a1_a1a0_im] = convertor(SymbolCombo{{SymbolExpression(5, 0.5, false),
-                                                                                        SymbolExpression(5, 0.5, true)}});
+        auto [a0a1_a1a0_re, a0a1_a1a0_im] = convertor(SymbolCombo{{Monomial(5, 0.5, false),
+                                                                   Monomial(5, 0.5, true)}});
         compare_sparse_vectors(a0a1_a1a0_re, make_sparse_vector<std::complex<double>>({0, 0, 0, 0, 1.0, 0}));
         compare_sparse_vectors(a0a1_a1a0_im, make_sparse_vector<std::complex<double>>({0.0}));
 
         auto [a0a1_minus_a1a0_re, a0a1_minus_a1a0_im] = convertor(
-                                                            SymbolCombo{{SymbolExpression(5, 0.5, false),
-                                                                         SymbolExpression(5, -0.5, true)}});
+                                                            SymbolCombo{{Monomial(5, 0.5, false),
+                                                                         Monomial(5, -0.5, true)}});
         compare_sparse_vectors(a0a1_minus_a1a0_re, make_sparse_vector<std::complex<double>>({0, 0, 0, 0, 0.0, 0}));
         compare_sparse_vectors(a0a1_minus_a1a0_im, make_sparse_vector<std::complex<double>>({1.0}));
     }

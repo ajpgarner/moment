@@ -32,7 +32,7 @@ namespace Moment::Tests {
         ASSERT_EQ(scalar.size(), 1);
         EXPECT_TRUE(scalar.is_monomial());
         EXPECT_TRUE(scalar.real_factors());
-        EXPECT_EQ(*scalar.begin(), SymbolExpression(1, 2.5));
+        EXPECT_EQ(*scalar.begin(), Monomial(1, 2.5));
 
         EXPECT_EQ(scalar.first_id(), 1);
         EXPECT_EQ(scalar.last_id(), 1);
@@ -44,7 +44,7 @@ namespace Moment::Tests {
         ASSERT_EQ(scalar.size(), 1);
         EXPECT_TRUE(scalar.is_monomial());
         EXPECT_FALSE(scalar.real_factors());
-        EXPECT_EQ(*scalar.begin(), SymbolExpression(1, {2.5, 1.0}));
+        EXPECT_EQ(*scalar.begin(), Monomial(1, {2.5, 1.0}));
 
         EXPECT_EQ(scalar.first_id(), 1);
         EXPECT_EQ(scalar.last_id(), 1);
@@ -52,19 +52,19 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, Create_OneElem) {
-        SymbolCombo one_elem{SymbolExpression{13, -2.0}};
+        SymbolCombo one_elem{Monomial{13, -2.0}};
         EXPECT_FALSE(one_elem.empty());
         ASSERT_EQ(one_elem.size(), 1);
         EXPECT_TRUE(one_elem.is_monomial());
         EXPECT_TRUE(one_elem.real_factors());
-        EXPECT_EQ(*one_elem.begin(), SymbolExpression(13, -2.0));
+        EXPECT_EQ(*one_elem.begin(), Monomial(13, -2.0));
 
         EXPECT_EQ(one_elem.first_id(), 13);
         EXPECT_EQ(one_elem.last_id(), 13);
     }
 
     TEST(Symbolic_SymbolCombo, Create_ThreeElems) {
-        SymbolCombo threeElems{SymbolExpression{2, 13.0}, SymbolExpression{10, 100.0}, SymbolExpression{5, -23.0}};
+        SymbolCombo threeElems{Monomial{2, 13.0}, Monomial{10, 100.0}, Monomial{5, -23.0}};
         ASSERT_FALSE(threeElems.empty());
         ASSERT_EQ(threeElems.size(), 3);
         EXPECT_TRUE(threeElems.real_factors());
@@ -96,7 +96,7 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, Create_InitListZero) {
-        SymbolCombo empty{SymbolExpression{0, 1.0}};
+        SymbolCombo empty{Monomial{0, 1.0}};
         EXPECT_TRUE(empty.empty()) << empty;
         EXPECT_EQ(empty.size(), 0)  << empty;
         EXPECT_EQ(empty.begin(), empty.end())  << empty;
@@ -105,47 +105,47 @@ namespace Moment::Tests {
 
 
     TEST(Symbolic_SymbolCombo, Create_Overlapped1) {
-        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0},
-                                 SymbolExpression{2, 20.0}, SymbolExpression{3, 40.0}};
-        const SymbolCombo expected{SymbolExpression{1, 10.0}, SymbolExpression{2, 50.0}, SymbolExpression{3, 40.0}};
+        const SymbolCombo actual{Monomial{1, 10.0}, Monomial{2, 30.0},
+                                 Monomial{2, 20.0}, Monomial{3, 40.0}};
+        const SymbolCombo expected{Monomial{1, 10.0}, Monomial{2, 50.0}, Monomial{3, 40.0}};
         EXPECT_EQ(actual, expected);
         EXPECT_FALSE(expected.is_monomial());
     }
 
     TEST(Symbolic_SymbolCombo, Create_Overlapped2) {
-        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0},
-                                 SymbolExpression{1, 20.0}, SymbolExpression{2, 40.0}};
-        const SymbolCombo expected{SymbolExpression{1, 30.0}, SymbolExpression{2, 70.0}};
+        const SymbolCombo actual{Monomial{1, 10.0}, Monomial{2, 30.0},
+                                 Monomial{1, 20.0}, Monomial{2, 40.0}};
+        const SymbolCombo expected{Monomial{1, 30.0}, Monomial{2, 70.0}};
         EXPECT_EQ(actual, expected);
         EXPECT_FALSE(expected.is_monomial());
     }
 
     TEST(Symbolic_SymbolCombo, Create_Overlapped3) {
-        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0}, SymbolExpression{3, 50.0},
-                                 SymbolExpression{1, 20.0}, SymbolExpression{2, 40.0}};
-        const SymbolCombo expected{SymbolExpression{1, 30.0}, SymbolExpression{2, 70.0}, SymbolExpression{3, 50.0}};
+        const SymbolCombo actual{Monomial{1, 10.0}, Monomial{2, 30.0}, Monomial{3, 50.0},
+                                 Monomial{1, 20.0}, Monomial{2, 40.0}};
+        const SymbolCombo expected{Monomial{1, 30.0}, Monomial{2, 70.0}, Monomial{3, 50.0}};
         EXPECT_EQ(actual, expected);
         EXPECT_FALSE(expected.is_monomial());
     }
 
     TEST(Symbolic_SymbolCombo, Create_OverlappedToZero) {
-        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{1, -10.0}};
+        const SymbolCombo actual{Monomial{1, 10.0}, Monomial{1, -10.0}};
         const SymbolCombo expected = SymbolCombo::Zero();
         EXPECT_EQ(actual, expected);
         EXPECT_TRUE(expected.is_monomial());
     }
 
     TEST(Symbolic_SymbolCombo, Create_OverlappedWithZero1) {
-        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{1, -10.0}, SymbolExpression{2, 20.0}};
-        const SymbolCombo expected = SymbolCombo{{SymbolExpression{2, 20.0}}};
+        const SymbolCombo actual{Monomial{1, 10.0}, Monomial{1, -10.0}, Monomial{2, 20.0}};
+        const SymbolCombo expected = SymbolCombo{{Monomial{2, 20.0}}};
         EXPECT_EQ(actual, expected);
         EXPECT_TRUE(expected.is_monomial());
     }
 
     TEST(Symbolic_SymbolCombo, Create_OverlappedWithZero2) {
-        const SymbolCombo actual{SymbolExpression{1, 10.0}, SymbolExpression{2, -20.0},
-                                 SymbolExpression{2, 20.0}, SymbolExpression{3, 10.0}};
-        const SymbolCombo expected = SymbolCombo{{SymbolExpression{1, 10.0}, SymbolExpression{3, 10.0}}};
+        const SymbolCombo actual{Monomial{1, 10.0}, Monomial{2, -20.0},
+                                 Monomial{2, 20.0}, Monomial{3, 10.0}};
+        const SymbolCombo expected = SymbolCombo{{Monomial{1, 10.0}, Monomial{3, 10.0}}};
         EXPECT_EQ(actual, expected);
         EXPECT_FALSE(expected.is_monomial());
     }
@@ -184,15 +184,15 @@ namespace Moment::Tests {
 
 
     TEST(Symbolic_SymbolCombo, Create_FromExpr) {
-        const SymbolExpression expr{5, -2.0, true};
+        const Monomial expr{5, -2.0, true};
         const SymbolCombo combo{expr};
         ASSERT_EQ(combo.size(), 1);
-        EXPECT_EQ(*combo.begin(), SymbolExpression(5, -2.0, true));
+        EXPECT_EQ(*combo.begin(), Monomial(5, -2.0, true));
         EXPECT_TRUE(combo.is_monomial());
     }
 
     TEST(Symbolic_SymbolCombo, Create_FromExprZero) {
-        const SymbolExpression expr{0, 1.0};
+        const Monomial expr{0, 1.0};
         const SymbolCombo combo(expr); // <- can't use {} as this will call init_list c'tor!!
         ASSERT_EQ(combo.size(), 0);
         EXPECT_TRUE(combo.is_monomial());
@@ -218,8 +218,8 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, CopyConstruct_Polynomial) {
-        const SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
-        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo src = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
 
         SymbolCombo test{src}; // NOLINT(performance-unnecessary-copy-initialization)
         EXPECT_EQ(src, ref);
@@ -250,7 +250,7 @@ namespace Moment::Tests {
         const SymbolCombo src = SymbolCombo::Zero();
         const SymbolCombo ref = SymbolCombo::Zero();
 
-        SymbolCombo test = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        SymbolCombo test = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
         test = src;
         EXPECT_EQ(src, ref);
         EXPECT_EQ(test, ref);
@@ -270,15 +270,15 @@ namespace Moment::Tests {
         const SymbolCombo src = SymbolCombo::Scalar(0.5);
         const SymbolCombo ref = SymbolCombo::Scalar(0.5);
 
-        SymbolCombo test = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        SymbolCombo test = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
         test = src;
         EXPECT_EQ(src, ref);
         EXPECT_EQ(test, ref);
     }
 
     TEST(Symbolic_SymbolCombo, CopyAssign_Polynomial_OverEmpty) {
-        const SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
-        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo src = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
 
         SymbolCombo test = SymbolCombo::Zero();
         test = src; // NOLINT(performance-unnecessary-copy-initialization)
@@ -287,8 +287,8 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, CopyAssign_Polynomial_OverScalar) {
-        const SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
-        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo src = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
 
         SymbolCombo test = SymbolCombo::Scalar(0.5);
         test = src; // NOLINT(performance-unnecessary-copy-initialization)
@@ -297,10 +297,10 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, CopyAssign_Polynomial_OverPolynomial) {
-        const SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
-        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        const SymbolCombo src = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
 
-        SymbolCombo test = SymbolCombo{SymbolExpression{5, 1.0, false}, SymbolExpression{4, 0.5, true}, SymbolExpression{3, 0.5, true}};
+        SymbolCombo test = SymbolCombo{Monomial{5, 1.0, false}, Monomial{4, 0.5, true}, Monomial{3, 0.5, true}};
         test = src; // NOLINT(performance-unnecessary-copy-initialization)
         EXPECT_EQ(src, ref);
         EXPECT_EQ(test, ref);
@@ -324,8 +324,8 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, MoveConstruct_Polynomial) {
-        SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
-        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        SymbolCombo src = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
 
         SymbolCombo test{std::move(src)};
         EXPECT_EQ(test, ref);
@@ -355,7 +355,7 @@ namespace Moment::Tests {
         SymbolCombo src = SymbolCombo::Zero();
         const SymbolCombo ref = SymbolCombo::Zero();
 
-        SymbolCombo test = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        SymbolCombo test = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
         test = std::move(src);
         
         EXPECT_EQ(test, ref);
@@ -375,15 +375,15 @@ namespace Moment::Tests {
         SymbolCombo src = SymbolCombo::Scalar(0.5);
         const SymbolCombo ref = SymbolCombo::Scalar(0.5);
 
-        SymbolCombo test = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        SymbolCombo test = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
         test = std::move(src);
         
         EXPECT_EQ(test, ref);
     }
 
     TEST(Symbolic_SymbolCombo, MoveAssign_Polynomial_OverEmpty) {
-        SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
-        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        SymbolCombo src = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
 
         SymbolCombo test = SymbolCombo::Zero();
         test = std::move(src); // NOLINT(performance-unnecessary-copy-initialization)
@@ -392,8 +392,8 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, MoveAssign_Polynomial_OverScalar) {
-        SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
-        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        SymbolCombo src = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
 
         SymbolCombo test = SymbolCombo::Scalar(0.5);
         test = std::move(src); // NOLINT(performance-unnecessary-copy-initialization)
@@ -402,10 +402,10 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, MoveAssign_Polynomial_OverPolynomial) {
-        SymbolCombo src = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
-        const SymbolCombo ref = SymbolCombo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 0.5, true}};
+        SymbolCombo src = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
+        const SymbolCombo ref = SymbolCombo{Monomial{1, 1.0, false}, Monomial{2, 0.5, true}};
 
-        SymbolCombo test = SymbolCombo{SymbolExpression{5, 1.0, false}, SymbolExpression{4, 0.5, true}, SymbolExpression{3, 0.5, true}};
+        SymbolCombo test = SymbolCombo{Monomial{5, 1.0, false}, Monomial{4, 0.5, true}, Monomial{3, 0.5, true}};
         test = std::move(src); // NOLINT(performance-unnecessary-copy-initialization)
         
         EXPECT_EQ(test, ref);
@@ -413,12 +413,12 @@ namespace Moment::Tests {
 
 
     TEST(Symbolic_SymbolCombo, Equality) {
-        SymbolCombo listA{SymbolExpression{2, 10.0}, SymbolExpression{5, 20.0}};
-        SymbolCombo listB{SymbolExpression{2, 10.0}, SymbolExpression{5, 20.0}};
-        SymbolCombo listC{SymbolExpression{2, 10.0}, SymbolExpression{10, 20.0}};
-        SymbolCombo listD{SymbolExpression{2, 10.0}, SymbolExpression{10, 19.0}};
-        SymbolCombo listE{SymbolExpression{2, 10.0}};
-        SymbolCombo listF{SymbolExpression{2, 10.0}, SymbolExpression{5, 40.0}};
+        SymbolCombo listA{Monomial{2, 10.0}, Monomial{5, 20.0}};
+        SymbolCombo listB{Monomial{2, 10.0}, Monomial{5, 20.0}};
+        SymbolCombo listC{Monomial{2, 10.0}, Monomial{10, 20.0}};
+        SymbolCombo listD{Monomial{2, 10.0}, Monomial{10, 19.0}};
+        SymbolCombo listE{Monomial{2, 10.0}};
+        SymbolCombo listF{Monomial{2, 10.0}, Monomial{5, 40.0}};
 
         EXPECT_TRUE(listA == listB);
         EXPECT_TRUE(listB == listA);
@@ -436,10 +436,10 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, Addition_NoOverlap) {
-        const SymbolCombo listA{SymbolExpression{1, 10.0}, SymbolExpression{2, 20.0}};
-        const SymbolCombo listB{SymbolExpression{3, 30.0}, SymbolExpression{4, 40.0}};
-        const SymbolCombo expected{SymbolExpression{1, 10.0}, SymbolExpression{2, 20.0},
-                                   SymbolExpression{3, 30.0}, SymbolExpression{4, 40.0}};
+        const SymbolCombo listA{Monomial{1, 10.0}, Monomial{2, 20.0}};
+        const SymbolCombo listB{Monomial{3, 30.0}, Monomial{4, 40.0}};
+        const SymbolCombo expected{Monomial{1, 10.0}, Monomial{2, 20.0},
+                                   Monomial{3, 30.0}, Monomial{4, 40.0}};
         auto actualAB = listA + listB;
         EXPECT_EQ(actualAB, expected);
         auto actualBA = listB + listA;
@@ -447,10 +447,10 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, Addition_Interleaved) {
-        const SymbolCombo listA{SymbolExpression{1, 10.0}, SymbolExpression{3, 30.0}};
-        const SymbolCombo listB{SymbolExpression{2, 20.0}, SymbolExpression{4, 40.0}};
-        const SymbolCombo expected{SymbolExpression{1, 10.0}, SymbolExpression{2, 20.0},
-                                   SymbolExpression{3, 30.0}, SymbolExpression{4, 40.0}};
+        const SymbolCombo listA{Monomial{1, 10.0}, Monomial{3, 30.0}};
+        const SymbolCombo listB{Monomial{2, 20.0}, Monomial{4, 40.0}};
+        const SymbolCombo expected{Monomial{1, 10.0}, Monomial{2, 20.0},
+                                   Monomial{3, 30.0}, Monomial{4, 40.0}};
         auto actualAB = listA + listB;
         EXPECT_EQ(actualAB, expected);
         auto actualBA = listB + listA;
@@ -458,9 +458,9 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, Addition_Overlapped1) {
-        const SymbolCombo listA{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0}};
-        const SymbolCombo listB{SymbolExpression{2, 20.0}, SymbolExpression{3, 40.0}};
-        const SymbolCombo expected{SymbolExpression{1, 10.0}, SymbolExpression{2, 50.0}, SymbolExpression{3, 40.0}};
+        const SymbolCombo listA{Monomial{1, 10.0}, Monomial{2, 30.0}};
+        const SymbolCombo listB{Monomial{2, 20.0}, Monomial{3, 40.0}};
+        const SymbolCombo expected{Monomial{1, 10.0}, Monomial{2, 50.0}, Monomial{3, 40.0}};
         auto actualAB = listA + listB;
         EXPECT_EQ(actualAB, expected);
         auto actualBA = listB + listA;
@@ -468,9 +468,9 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, Addition_Overlapped2) {
-        const SymbolCombo listA{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0}};
-        const SymbolCombo listB{SymbolExpression{1, 20.0}, SymbolExpression{2, 40.0}};
-        const SymbolCombo expected{SymbolExpression{1, 30.0}, SymbolExpression{2, 70.0}};
+        const SymbolCombo listA{Monomial{1, 10.0}, Monomial{2, 30.0}};
+        const SymbolCombo listB{Monomial{1, 20.0}, Monomial{2, 40.0}};
+        const SymbolCombo expected{Monomial{1, 30.0}, Monomial{2, 70.0}};
         auto actualAB = listA + listB;
         EXPECT_EQ(actualAB, expected);
         auto actualBA = listB + listA;
@@ -478,9 +478,9 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, Addition_Overlapped3) {
-        const SymbolCombo listA{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0}, SymbolExpression{3, 50.0}};
-        const SymbolCombo listB{SymbolExpression{1, 20.0}, SymbolExpression{2, 40.0}};
-        const SymbolCombo expected{SymbolExpression{1, 30.0}, SymbolExpression{2, 70.0}, SymbolExpression{3, 50.0}};
+        const SymbolCombo listA{Monomial{1, 10.0}, Monomial{2, 30.0}, Monomial{3, 50.0}};
+        const SymbolCombo listB{Monomial{1, 20.0}, Monomial{2, 40.0}};
+        const SymbolCombo expected{Monomial{1, 30.0}, Monomial{2, 70.0}, Monomial{3, 50.0}};
         auto actualAB = listA + listB;
         EXPECT_EQ(actualAB, expected);
         auto actualBA = listB + listA;
@@ -488,8 +488,8 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, Addition_ToZero) {
-        const SymbolCombo listA{SymbolExpression{1, 10.0}, SymbolExpression{2, 30.0}};
-        const SymbolCombo listB{SymbolExpression{1, -10.0}, SymbolExpression{2, -30.0}};
+        const SymbolCombo listA{Monomial{1, 10.0}, Monomial{2, 30.0}};
+        const SymbolCombo listB{Monomial{1, -10.0}, Monomial{2, -30.0}};
         const SymbolCombo expected = SymbolCombo::Zero();
         auto actualAB = listA + listB;
         EXPECT_EQ(actualAB, expected);
@@ -499,10 +499,10 @@ namespace Moment::Tests {
 
 
     TEST(Symbolic_SymbolCombo, SelfAddition) {
-        const SymbolCombo listA{SymbolExpression{1, 10.0}, SymbolExpression{3, 30.0}};
-        const SymbolCombo listB{SymbolExpression{2, 20.0}, SymbolExpression{4, 40.0}};
-        const SymbolCombo expected{SymbolExpression{1, 10.0}, SymbolExpression{2, 20.0},
-                                   SymbolExpression{3, 30.0}, SymbolExpression{4, 40.0}};
+        const SymbolCombo listA{Monomial{1, 10.0}, Monomial{3, 30.0}};
+        const SymbolCombo listB{Monomial{2, 20.0}, Monomial{4, 40.0}};
+        const SymbolCombo expected{Monomial{1, 10.0}, Monomial{2, 20.0},
+                                   Monomial{3, 30.0}, Monomial{4, 40.0}};
 
         auto list = listA;
         EXPECT_EQ(list, listA);
@@ -512,8 +512,8 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, PostMultiply) {
-        const SymbolCombo listA{SymbolExpression{1, 10.0}, SymbolExpression{3, 30.0}};
-        const SymbolCombo expected{SymbolExpression{1, 30.0}, SymbolExpression{3, 90.0}};
+        const SymbolCombo listA{Monomial{1, 10.0}, Monomial{3, 30.0}};
+        const SymbolCombo expected{Monomial{1, 30.0}, Monomial{3, 90.0}};
 
         auto list = listA;
         EXPECT_EQ(list, listA);
@@ -523,8 +523,8 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, MultiplyFactor) {
-        const SymbolCombo listA{SymbolExpression{1, 10.0}, SymbolExpression{3, 30.0}};
-        const SymbolCombo expected{SymbolExpression{1, 30.0}, SymbolExpression{3, 90.0}};
+        const SymbolCombo listA{Monomial{1, 10.0}, Monomial{3, 30.0}};
+        const SymbolCombo expected{Monomial{1, 30.0}, Monomial{3, 90.0}};
 
         const auto listB = listA * 3;
         EXPECT_NE(listA, listB);
@@ -541,25 +541,25 @@ namespace Moment::Tests {
         const SymbolCombo comboEmpty{};
         EXPECT_TRUE(comboEmpty.is_hermitian(symbols));
 
-        const SymbolCombo combo_H_Id{SymbolExpression{1, 1.0}};
+        const SymbolCombo combo_H_Id{Monomial{1, 1.0}};
         EXPECT_TRUE(combo_H_Id.is_hermitian(symbols));
 
-        const SymbolCombo combo_H_A{SymbolExpression{2, 1.0}};
+        const SymbolCombo combo_H_A{Monomial{2, 1.0}};
         EXPECT_TRUE(combo_H_A.is_hermitian(symbols));
 
-        const SymbolCombo combo_H_B_Bstar{SymbolExpression{3, 1.0}, SymbolExpression{3, 1.0, true}};
+        const SymbolCombo combo_H_B_Bstar{Monomial{3, 1.0}, Monomial{3, 1.0, true}};
         EXPECT_TRUE(combo_H_B_Bstar.is_hermitian(symbols));
 
-        const SymbolCombo combo_H_C_Cstar{SymbolExpression{4, 1.0}, SymbolExpression{4, 1.0, true}};
+        const SymbolCombo combo_H_C_Cstar{Monomial{4, 1.0}, Monomial{4, 1.0, true}};
         EXPECT_TRUE(combo_H_C_Cstar.is_hermitian(symbols));
 
-        const SymbolCombo combo_Id_B{SymbolExpression{1, 1.0}, SymbolExpression{3, 1.0}};
+        const SymbolCombo combo_Id_B{Monomial{1, 1.0}, Monomial{3, 1.0}};
         EXPECT_FALSE(combo_Id_B.is_hermitian(symbols));
 
-        const SymbolCombo combo_B{SymbolExpression{3, 1.0}};
+        const SymbolCombo combo_B{Monomial{3, 1.0}};
         EXPECT_FALSE(combo_B.is_hermitian(symbols));
 
-        const SymbolCombo combo_B_3Bstar{SymbolExpression{3, 1.0}, SymbolExpression{3, 2.0, true}};
+        const SymbolCombo combo_B_3Bstar{Monomial{3, 1.0}, Monomial{3, 2.0, true}};
         EXPECT_FALSE(combo_B_3Bstar.is_hermitian(symbols));
 
     }
@@ -583,8 +583,8 @@ namespace Moment::Tests {
         symbols.create(true, true); // 3 complex
         symbols.create(false, true); // 4 imaginary
 
-        const SymbolCombo combo{SymbolExpression{2, 2.0, false}};
-        const SymbolCombo comboConjExp{SymbolExpression{2, 2.0, false}};
+        const SymbolCombo combo{Monomial{2, 2.0, false}};
+        const SymbolCombo comboConjExp{Monomial{2, 2.0, false}};
         const auto comboConj = combo.conjugate(symbols);
         EXPECT_EQ(comboConj, comboConjExp);
     }
@@ -596,8 +596,8 @@ namespace Moment::Tests {
         symbols.create(true, true); // 3 complex
         symbols.create(false, true); // 4 imaginary
 
-        const SymbolCombo combo{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 2.0, false}};
-        const SymbolCombo comboConjExp{SymbolExpression{1, 1.0, false}, SymbolExpression{2, 2.0, false}};
+        const SymbolCombo combo{Monomial{1, 1.0, false}, Monomial{2, 2.0, false}};
+        const SymbolCombo comboConjExp{Monomial{1, 1.0, false}, Monomial{2, 2.0, false}};
         const auto comboConj = combo.conjugate(symbols);
         EXPECT_EQ(comboConj, comboConjExp);
     }
@@ -609,8 +609,8 @@ namespace Moment::Tests {
         symbols.create(true, true); // 3 complex
         symbols.create(false, true); // 4 imaginary
 
-        const SymbolCombo combo{SymbolExpression{4, 2.0, false}};
-        const SymbolCombo comboConjExp{SymbolExpression{4, -2.0, false}};
+        const SymbolCombo combo{Monomial{4, 2.0, false}};
+        const SymbolCombo comboConjExp{Monomial{4, -2.0, false}};
         const auto comboConj = combo.conjugate(symbols);
         EXPECT_EQ(comboConj, comboConjExp);
     }
@@ -622,8 +622,8 @@ namespace Moment::Tests {
         symbols.create(true, true); // 3 complex
         symbols.create(false, true); // 4 imaginary
 
-        const SymbolCombo combo{SymbolExpression{1, 1.0, false}, SymbolExpression{4, 2.0, false}};
-        const SymbolCombo comboConjExp{SymbolExpression{1, 1.0, false}, SymbolExpression{4, -2.0, false}};
+        const SymbolCombo combo{Monomial{1, 1.0, false}, Monomial{4, 2.0, false}};
+        const SymbolCombo comboConjExp{Monomial{1, 1.0, false}, Monomial{4, -2.0, false}};
         const auto comboConj = combo.conjugate(symbols);
         EXPECT_EQ(comboConj, comboConjExp);
     }
@@ -635,8 +635,8 @@ namespace Moment::Tests {
         symbols.create(true, true); // 3 complex
         symbols.create(false, true); // 4 imaginary
 
-        const SymbolCombo combo{SymbolExpression{3, 2.0, false}};
-        const SymbolCombo comboConjExp{SymbolExpression{3, 2.0, true}};
+        const SymbolCombo combo{Monomial{3, 2.0, false}};
+        const SymbolCombo comboConjExp{Monomial{3, 2.0, true}};
         const auto comboConj = combo.conjugate(symbols);
         EXPECT_EQ(comboConj, comboConjExp);
     }
@@ -648,38 +648,38 @@ namespace Moment::Tests {
         symbols.create(true, true); // 3 complex
         symbols.create(false, true); // 4 imaginary
 
-        const SymbolCombo combo{SymbolExpression{3, 2.0, false}, SymbolExpression{3, 1.0, true}};
-        const SymbolCombo comboConjExp{SymbolExpression{3, 1.0, false}, SymbolExpression{3, 2.0, true}};
+        const SymbolCombo combo{Monomial{3, 2.0, false}, Monomial{3, 1.0, true}};
+        const SymbolCombo comboConjExp{Monomial{3, 1.0, false}, Monomial{3, 2.0, true}};
         const auto comboConj = combo.conjugate(symbols);
         EXPECT_EQ(comboConj, comboConjExp);
     }
 
 
     TEST(Symbolic_SymbolCombo, CastToExpr_Valid) {
-        const SymbolCombo combo{SymbolExpression{3, 2.0, false}};
+        const SymbolCombo combo{Monomial{3, 2.0, false}};
 
-        const SymbolExpression expr{combo};
-        EXPECT_EQ(expr, SymbolExpression(3, 2.0, false));
+        const Monomial expr{combo};
+        EXPECT_EQ(expr, Monomial(3, 2.0, false));
     }
 
     TEST(Symbolic_SymbolCombo, CastToExpr_Valid2) {
-        const SymbolCombo combo{SymbolExpression{5, -2.0, true}};
+        const SymbolCombo combo{Monomial{5, -2.0, true}};
 
-        const SymbolExpression expr = static_cast<SymbolExpression>(combo);
-        EXPECT_EQ(expr, SymbolExpression(5, -2.0, true));
+        const Monomial expr = static_cast<Monomial>(combo);
+        EXPECT_EQ(expr, Monomial(5, -2.0, true));
     }
 
     TEST(Symbolic_SymbolCombo, CastToExpr_Zero) {
         const SymbolCombo zero = SymbolCombo::Zero();
 
-        const SymbolExpression expr = static_cast<SymbolExpression>(zero);
+        const Monomial expr = static_cast<Monomial>(zero);
         EXPECT_EQ(expr.id, 0);
     }
 
     TEST(Symbolic_SymbolCombo, CastToExpr_Bad) {
-        const SymbolCombo combo{SymbolExpression{3, 1.0, false}, SymbolExpression{4, 1.0, false}};
+        const SymbolCombo combo{Monomial{3, 1.0, false}, Monomial{4, 1.0, false}};
 
-        EXPECT_THROW([[maybe_unused]] const SymbolExpression expr = static_cast<SymbolExpression>(combo),
+        EXPECT_THROW([[maybe_unused]] const Monomial expr = static_cast<Monomial>(combo),
                     std::logic_error);
     }
 
@@ -692,20 +692,20 @@ namespace Moment::Tests {
         ams.generate_dictionary(2);
         ASSERT_EQ(symbols.size(), 7);  // 0, 1, a, b, aa, ab, (ba), bb
 
-        SymbolExpression::IdMoreComparator comparator{};
+        Monomial::IdMoreComparator comparator{};
 
-        EXPECT_TRUE(comparator(SymbolExpression{2}, SymbolExpression{1}));
-        EXPECT_TRUE(comparator(SymbolExpression{2, false}, SymbolExpression{2, true}));
-        EXPECT_FALSE(comparator(SymbolExpression{2, true}, SymbolExpression{2, false}));
-        EXPECT_FALSE(comparator(SymbolExpression{1}, SymbolExpression{2}));
+        EXPECT_TRUE(comparator(Monomial{2}, Monomial{1}));
+        EXPECT_TRUE(comparator(Monomial{2, false}, Monomial{2, true}));
+        EXPECT_FALSE(comparator(Monomial{2, true}, Monomial{2, false}));
+        EXPECT_FALSE(comparator(Monomial{1}, Monomial{2}));
 
-        SymbolCombo combo({SymbolExpression{1, 1.0}, SymbolExpression{2, 1.0}, SymbolExpression{5, 2.0, true}},
+        SymbolCombo combo({Monomial{1, 1.0}, Monomial{2, 1.0}, Monomial{5, 2.0, true}},
                           symbols, comparator);
 
         ASSERT_EQ(combo.size(), 3);
-        EXPECT_EQ(combo[0], SymbolExpression(5, 2.0, true));
-        EXPECT_EQ(combo[1], SymbolExpression(2, 1.0));
-        EXPECT_EQ(combo[2], SymbolExpression(1, 1.0));
+        EXPECT_EQ(combo[0], Monomial(5, 2.0, true));
+        EXPECT_EQ(combo[1], Monomial(2, 1.0));
+        EXPECT_EQ(combo[2], Monomial(1, 1.0));
         EXPECT_FALSE(combo.is_hermitian(symbols));
         EXPECT_EQ(combo.first_id(), 5);
         EXPECT_EQ(combo.last_id(), 1);
@@ -724,14 +724,14 @@ namespace Moment::Tests {
         ams.generate_dictionary(2);
         ASSERT_EQ(symbols.size(), 7);  // 0, 1, a, b, aa, ab, (ba), bb
 
-        SymbolExpression::IdMoreComparator comparator{};
+        Monomial::IdMoreComparator comparator{};
 
-        SymbolCombo combo({SymbolExpression{5, 2.0, false}, SymbolExpression{5, 2.0, true}},
+        SymbolCombo combo({Monomial{5, 2.0, false}, Monomial{5, 2.0, true}},
                           symbols, comparator);
 
         ASSERT_EQ(combo.size(), 2);
-        EXPECT_EQ(combo[0], SymbolExpression(5, 2.0, false));
-        EXPECT_EQ(combo[1], SymbolExpression(5, 2.0, true));
+        EXPECT_EQ(combo[0], Monomial(5, 2.0, false));
+        EXPECT_EQ(combo[1], Monomial(5, 2.0, true));
         EXPECT_TRUE(combo.is_hermitian(symbols));
         EXPECT_EQ(combo.first_id(), 5);
         EXPECT_EQ(combo.last_id(), 5);
@@ -742,26 +742,26 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_SymbolCombo, Append_APlusB) {
-        SymbolCombo lhs = SymbolCombo{SymbolExpression{2, 1.0}};
-        const SymbolCombo rhs{SymbolExpression{3, 1.0}};
+        SymbolCombo lhs = SymbolCombo{Monomial{2, 1.0}};
+        const SymbolCombo rhs{Monomial{3, 1.0}};
 
         lhs.append(rhs);
-        EXPECT_EQ(lhs, SymbolCombo({SymbolExpression{2, 1.0}, SymbolExpression{3, 1.0}}));
+        EXPECT_EQ(lhs, SymbolCombo({Monomial{2, 1.0}, Monomial{3, 1.0}}));
     }
 
     TEST(Symbolic_SymbolCombo, Append_ZeroPlusA) {
         SymbolCombo lhs = SymbolCombo::Zero();
-        const SymbolCombo rhs{SymbolExpression{2, 1.0}};
+        const SymbolCombo rhs{Monomial{2, 1.0}};
 
         lhs.append(rhs);
-        EXPECT_EQ(lhs, SymbolCombo(SymbolExpression{2, 1.0}));
+        EXPECT_EQ(lhs, SymbolCombo(Monomial{2, 1.0}));
     }
 
     TEST(Symbolic_SymbolCombo, Append_APlusZero) {
-        SymbolCombo lhs{SymbolExpression{2, 1.0}};
+        SymbolCombo lhs{Monomial{2, 1.0}};
         const SymbolCombo rhs = SymbolCombo::Zero();
 
         lhs.append(rhs);
-        EXPECT_EQ(lhs, SymbolCombo(SymbolExpression{2, 1.0}));
+        EXPECT_EQ(lhs, SymbolCombo(Monomial{2, 1.0}));
     }
 }

@@ -8,7 +8,7 @@
 
 
 #include "utilities/square_matrix.h"
-#include "symbolic/symbol_expression.h"
+#include "symbolic/monomial.h"
 #include "integer_types.h"
 
 #include "MatlabDataArray.hpp"
@@ -21,7 +21,7 @@ namespace matlab::engine {
 
 namespace Moment::mex {
 
-    std::unique_ptr<SquareMatrix<SymbolExpression>>
+    std::unique_ptr<SquareMatrix<Monomial>>
     read_raw_symbol_matrix(matlab::engine::MATLABEngine &matlabEngine,
                            const matlab::data::Array& input);
 

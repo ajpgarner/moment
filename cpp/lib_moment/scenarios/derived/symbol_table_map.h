@@ -92,7 +92,7 @@ namespace Moment {
               * @return New symbol combo, transforming the supplied expression.
               * @throws error::bad_map If symbol is out of range.
               */
-            [[nodiscard]] SymbolCombo operator()(const SymbolExpression& symbol) const;
+            [[nodiscard]] SymbolCombo operator()(const Monomial& symbol) const;
 
             /**
               * Create symbol/symbol combo in target, associated with symbol combo in source.
@@ -110,7 +110,7 @@ namespace Moment {
               * @throws error::bad_map If any contained symbol is out of range.
               */
             [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolCombo>>
-            operator()(const SquareMatrix<SymbolExpression>& matrix) const;
+            operator()(const SquareMatrix<Monomial>& matrix) const;
 
             /**
               * Create new polynomial symbolic matrix, mapping source polynomial matrix into new symbol set.
@@ -127,8 +127,8 @@ namespace Moment {
              * @return New symbolic matrix, transforming the supplied input.
              * @throws error::bad_map If any contained symbol is out of range, or if map is not monomial.
              */
-            [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolExpression>>
-            monomial(const SquareMatrix<SymbolExpression>& matrix) const;
+            [[nodiscard]] std::unique_ptr<SquareMatrix<Monomial>>
+            monomial(const SquareMatrix<Monomial>& matrix) const;
 
             /**
              * Get symbol/symbol combo in source, associated with symbol in target.
@@ -145,7 +145,7 @@ namespace Moment {
               * @return New symbol combo, transforming the supplied expression.
               * @throws error::bad_map If symbol is out of range.
               */
-            [[nodiscard]] SymbolCombo inverse(const SymbolExpression& symbol) const;
+            [[nodiscard]] SymbolCombo inverse(const Monomial& symbol) const;
 
             /**
              * Number of elements in forward map.

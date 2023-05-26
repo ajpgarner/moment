@@ -25,11 +25,11 @@ namespace Moment {
             [[nodiscard]] size_t Dimension() const noexcept { return matrix.Dimension(); }
 
             /**
-            * Return a view (std::span<const SymbolExpression>) to the requested row of the NPA matrix's symbolic
+            * Return a view (std::span<const Monomial>) to the requested row of the NPA matrix's symbolic
             * representation. Since std::span also provides an operator[], it is possible to index using
             * "mySMV[row][col]" notation.
             * @param row The index of the row to return.
-            * @return A std::span<const SymbolExpression> of the requested row.
+            * @return A std::span<const Monomial> of the requested row.
             */
             std::span<const SymbolCombo> operator[](size_t row) const noexcept {
                 return (*(matrix.sym_exp_matrix))[row];

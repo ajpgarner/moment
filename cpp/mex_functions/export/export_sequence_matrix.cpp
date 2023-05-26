@@ -157,7 +157,7 @@ namespace Moment::mex {
 
         class InferredFormatView {
         public:
-            using raw_const_iterator = SquareMatrix<SymbolExpression>::ColumnMajorView::TransposeIterator;
+            using raw_const_iterator = SquareMatrix<Monomial>::ColumnMajorView::TransposeIterator;
 
             class const_iterator {
             public:
@@ -196,7 +196,7 @@ namespace Moment::mex {
                 }
 
                 [[nodiscard]] static std::string infer_one_symbol(const SymbolTable& symbols,
-                                                                  const SymbolExpression& expr,
+                                                                  const Monomial& expr,
                                                                   bool with_prefix = false) {
 
                     std::stringstream ss;
@@ -215,10 +215,10 @@ namespace Moment::mex {
 
                     if (!approximately_zero(expr.factor)) {
                         if (symEntry.Id() != 1) {
-                            SymbolExpression::format_factor_skip_one(ss, expr.factor, with_prefix);
+                            Monomial::format_factor_skip_one(ss, expr.factor, with_prefix);
                             ss << symbol_str;
                         } else {
-                            SymbolExpression::format_factor(ss, expr.factor, with_prefix);
+                            Monomial::format_factor(ss, expr.factor, with_prefix);
                         }
 
                     } else {
@@ -240,7 +240,7 @@ namespace Moment::mex {
 
         public:
             InferredFormatView(const Context &context, const SymbolTable& symbols,
-                             const SquareMatrix<SymbolExpression>& inputMatrix)
+                             const SquareMatrix<Monomial>& inputMatrix)
                 : iter_begin{context, symbols, inputMatrix.ColumnMajor.begin()},
                   iter_end{context, symbols, inputMatrix.ColumnMajor.end()} {
             }
@@ -317,7 +317,7 @@ namespace Moment::mex {
 
         class FactorFormatView {
         public:
-            using raw_const_iterator = SquareMatrix<SymbolExpression>::ColumnMajorView::TransposeIterator;
+            using raw_const_iterator = SquareMatrix<Monomial>::ColumnMajorView::TransposeIterator;
 
             class const_iterator {
             public:
@@ -370,10 +370,10 @@ namespace Moment::mex {
 
                     std::stringstream ss;
                     if (facEntry.id != 1) {
-                        SymbolExpression::format_factor_skip_one(ss, raw_iter->factor, false, false);
+                        Monomial::format_factor_skip_one(ss, raw_iter->factor, false, false);
                         ss << facEntry.sequence_string();
                     } else {
-                        SymbolExpression::format_factor(ss, raw_iter->factor, false);
+                        Monomial::format_factor(ss, raw_iter->factor, false);
                     }
 
                     return {UTF8toUTF16Convertor::convert(ss.str())};
@@ -389,7 +389,7 @@ namespace Moment::mex {
 
         public:
             FactorFormatView(const Inflation::InflationContext &context, const Inflation::FactorTable& factors,
-                             const SquareMatrix<SymbolExpression>& inputMatrix)
+                             const SquareMatrix<Monomial>& inputMatrix)
                 : iter_begin{context, factors, inputMatrix.ColumnMajor.begin()},
                   iter_end{context, factors, inputMatrix.ColumnMajor.end()} {
             }

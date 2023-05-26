@@ -52,7 +52,7 @@ namespace Moment::Inflation {
             return maybe_symbol_index.value();
         }
 
-        std::unique_ptr<SquareMatrix<SymbolExpression>>
+        std::unique_ptr<SquareMatrix<Monomial>>
         make_extended_matrix(SymbolTable& symbols, Inflation::FactorTable& factors,
                              const MonomialMatrix& source,
                              const std::span<const symbol_name_t> extension_scalars) {
@@ -84,7 +84,7 @@ namespace Moment::Inflation {
 
             // Create matrix, with source matrix as upper block
             const size_t padding = extension_scalars.size();
-            auto extended_matrix = source.SymbolMatrix().pad(padding, SymbolExpression{0});
+            auto extended_matrix = source.SymbolMatrix().pad(padding, Monomial{0});
 
             const size_t old_dimension = source.Dimension();
             const size_t new_dimension = source.Dimension() + padding;
@@ -112,8 +112,8 @@ namespace Moment::Inflation {
                                                                            source_factors, extended_factors);
 
                     // Write in symbol matrix
-                    extended_matrix[row_index][col_index] = SymbolExpression{factor_id};
-                    extended_matrix[col_index][row_index] = SymbolExpression{factor_id};
+                    extended_matrix[row_index][col_index] = Monomial{factor_id};
+                    extended_matrix[col_index][row_index] = Monomial{factor_id};
 
                     ++col_index;
                 }
@@ -126,16 +126,16 @@ namespace Moment::Inflation {
             for (size_t i = 0, iMax = extension_scalars.size(); i < iMax; ++i) {
                 const auto& row_factors = factors[extension_scalars[i]].canonical.symbols;
                 auto diag_fac_id = combine_and_register_factors(symbols, factors, row_factors, row_factors);
-                extended_matrix[old_dimension+i][old_dimension+i] = SymbolExpression{diag_fac_id};
+                extended_matrix[old_dimension+i][old_dimension+i] = Monomial{diag_fac_id};
 
                 for (size_t j = i+1; j < iMax; ++j) {
                     const auto& col_factors = factors[extension_scalars[j]].canonical.symbols;
                     auto offdiag_fac_id = combine_and_register_factors(symbols, factors, row_factors, col_factors);
-                    extended_matrix[old_dimension+i][old_dimension+j] = SymbolExpression{offdiag_fac_id};
-                    extended_matrix[old_dimension+j][old_dimension+i] = SymbolExpression{offdiag_fac_id};
+                    extended_matrix[old_dimension+i][old_dimension+j] = Monomial{offdiag_fac_id};
+                    extended_matrix[old_dimension+j][old_dimension+i] = Monomial{offdiag_fac_id};
                 }
             }
-            return std::make_unique<SquareMatrix<SymbolExpression>>(std::move(extended_matrix));
+            return std::make_unique<SquareMatrix<Monomial>>(std::move(extended_matrix));
         }
     }
 

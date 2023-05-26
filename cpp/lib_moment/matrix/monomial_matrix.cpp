@@ -29,7 +29,7 @@ namespace Moment {
                : context{context}, symbol_table{symbol_table}, osm{osm}, hermitian{osm.is_hermitian()} { }
 
 
-            std::unique_ptr<SquareMatrix<SymbolExpression>> operator()() {
+            std::unique_ptr<SquareMatrix<Monomial>> operator()() {
                 auto unique_sequences = hermitian ? identify_unique_sequences_hermitian()
                                                   : identify_unique_sequences_generic();
 
@@ -133,8 +133,8 @@ namespace Moment {
             }
 
 
-            [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolExpression>> build_symbol_matrix_hermitian() const {
-                std::vector<SymbolExpression> symbolic_representation(osm.dimension * osm.dimension);
+            [[nodiscard]] std::unique_ptr<SquareMatrix<Monomial>> build_symbol_matrix_hermitian() const {
+                std::vector<Monomial> symbolic_representation(osm.dimension * osm.dimension);
 
                 for (size_t row = 0; row < osm.dimension; ++row) {
                     for (size_t col = row; col < osm.dimension; ++col) {
@@ -152,27 +152,27 @@ namespace Moment {
                         }
                         const auto& unique_elem = symbol_table[symbol_id];
 
-                        symbolic_representation[upper_index] = SymbolExpression{unique_elem.Id(), negated, conjugated};
+                        symbolic_representation[upper_index] = Monomial{unique_elem.Id(), negated, conjugated};
 
                         // Make Hermitian, if off-diagonal
                         if (col > row) {
                             size_t lower_index = (col * osm.dimension) + row;
                             if (unique_elem.is_hermitian()) {
-                                symbolic_representation[lower_index] = SymbolExpression{unique_elem.Id(),
-                                                                                        negated, false};
+                                symbolic_representation[lower_index] = Monomial{unique_elem.Id(),
+                                                                                negated, false};
                             } else {
-                                symbolic_representation[lower_index] = SymbolExpression{unique_elem.Id(),
-                                                                                        negated, !conjugated};
+                                symbolic_representation[lower_index] = Monomial{unique_elem.Id(),
+                                                                                negated, !conjugated};
                             }
                         }
                     }
                 }
 
-                return std::make_unique<SquareMatrix<SymbolExpression>>(osm.dimension, std::move(symbolic_representation));
+                return std::make_unique<SquareMatrix<Monomial>>(osm.dimension, std::move(symbolic_representation));
             }
 
-            [[nodiscard]] std::unique_ptr<SquareMatrix<SymbolExpression>> build_symbol_matrix_generic() const {
-                std::vector<SymbolExpression> symbolic_representation(osm.dimension * osm.dimension);
+            [[nodiscard]] std::unique_ptr<SquareMatrix<Monomial>> build_symbol_matrix_generic() const {
+                std::vector<Monomial> symbolic_representation(osm.dimension * osm.dimension);
                 for (size_t row = 0; row < osm.dimension; ++row) {
                     for (size_t col = 0; col < osm.dimension; ++col) {
                         const size_t index = (row * osm.dimension) + col;
@@ -189,18 +189,18 @@ namespace Moment {
                         }
                         const auto& unique_elem = symbol_table[symbol_id];
 
-                        symbolic_representation[index] = SymbolExpression{unique_elem.Id(), negated, conjugated};
+                        symbolic_representation[index] = Monomial{unique_elem.Id(), negated, conjugated};
                     }
                 }
 
-                return std::make_unique<SquareMatrix<SymbolExpression>>(osm.dimension,
-                        std::move(symbolic_representation));
+                return std::make_unique<SquareMatrix<Monomial>>(osm.dimension,
+                                                                std::move(symbolic_representation));
             }
         };
     }
 
     MonomialMatrix::MonomialMatrix(const Context& context, SymbolTable& symbols,
-                                   std::unique_ptr<SquareMatrix<SymbolExpression>> symbolMatrix,
+                                   std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix,
                                    const bool is_hermitian)
         : Matrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0},
             SymbolMatrix{*this}, sym_exp_matrix{std::move(symbolMatrix)}, real_prefactors{true}
