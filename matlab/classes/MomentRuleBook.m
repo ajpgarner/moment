@@ -30,6 +30,8 @@ methods
 
         if isa(target, 'OpMatrix.OperatorMatrix')
             val = obj.ApplyToMatrix(target);
+        elseif isa(target, 'OpMatrix.CompositeOperatorMatrix')
+            val = target.ApplyRules(obj);
         else
             error("Could not apply rules to target of type %s.", ...
                   class(target));

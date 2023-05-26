@@ -139,6 +139,27 @@ classdef CompositeOperatorMatrix < handle
             end
         end
     end
+    
+    %% Apply values
+    methods        
+        function val = ApplyRules(obj, rulebook )
+        % APPLYRULES Transform moments of matrix according to rulebook.
+        %
+        % Effectively applies rules to each constituent matrix in turn.
+        % 
+            arguments
+                obj (1,1) OpMatrix.CompositeOperatorMatrix
+                rulebook (1,1) MomentRuleBook
+            end
+            tx_monos = OpMatrix.OperatorMatrix.empty(1,0);
+            for idx = 1:length(obj.Constituents)
+                tx_monos(end+1) = obj.Constituents(idx).ApplyRules(rulebook);
+            end
+            
+            val = OpMatrix.CompositeOperatorMatrix(tx_monos, obj.Weights);
+        end 
+    end    
+    
             
     
     %% CVX Methods
