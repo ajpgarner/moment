@@ -166,6 +166,22 @@ classdef CreateMomentRulesTest < MTKTestBase
             new_symbols = mtk('symbol_table', ref_id);
             testCase.verifyEqual(length(new_symbols), 4);
         end
+        
+        function AppendRules_NoClash(testCase)
+            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            [~] = mtk('moment_matrix', ref_id, 1);
+            [rules_index, ~] = mtk('create_moment_rules', ref_id, ...
+                                       {{2, 0.3}});
+                                   
+            [second_index, rules] = mtk('create_moment_rules', ref_id, ...
+                                    'rulebook', rules_index, ...
+                                   {{3, 0.4}});
+            testCase.verifyEqual(second_index, uint64(0));
+            testCase.assertFalse(isempty(rules));
+            testCase.verifyEqual(rules, ...
+                {{uint64(2), {{uint64(1), 0.3}}}; ...
+                 {uint64(3), {{uint64(1), 0.4}}}});
+        end
     end
     
    

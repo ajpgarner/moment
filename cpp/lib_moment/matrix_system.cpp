@@ -203,6 +203,16 @@ namespace Moment {
         return {static_cast<size_t>(this->rulebooks.size()-1), *this->rulebooks.back()};
     }
 
+    std::pair<size_t, MomentSubstitutionRulebook &>
+    MatrixSystem::merge_rulebooks(const size_t existing_rulebook_id, MomentSubstitutionRulebook&& rulebook) {
+        auto write_lock = this->get_write_lock();
+
+        auto& existing_rulebook = this->rulebook(existing_rulebook_id);
+        existing_rulebook.combine_and_complete(std::move(rulebook));
+
+        return {existing_rulebook_id, existing_rulebook};
+    }
+
     MomentSubstitutionRulebook &MatrixSystem::rulebook(size_t index) {
         if (index >= this->rulebooks.size()) {
             throw errors::missing_component("Rulebook index out of range.");
@@ -213,7 +223,7 @@ namespace Moment {
         return *this->rulebooks[index];
     }
 
-    const MomentSubstitutionRulebook &MatrixSystem::rulebook(size_t index) const {
+    const MomentSubstitutionRulebook& MatrixSystem::rulebook(size_t index) const {
         if (index >= this->rulebooks.size()) {
             throw errors::missing_component("Rulebook index out of range.");
         }
@@ -235,7 +245,7 @@ namespace Moment {
         const auto& rulebook = this->rulebook(rulebook_index);
 
         // Make reduced matrix
-        this->matrices.emplace_back(rulebook.reduce(*this->symbol_table, source_matrix));
+        this->matrices.emplace_back(rulebook.create_substituted_matrix(*this->symbol_table, source_matrix));
         size_t new_index = this->matrices.size() - 1;
         auto& new_matrix = *(this->matrices.back());
         return {new_index, new_matrix};

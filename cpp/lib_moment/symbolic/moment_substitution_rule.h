@@ -54,6 +54,11 @@ namespace Moment {
         [[nodiscard]] const Polynomial& RHS() const noexcept { return this->rhs; }
 
         /**
+         * Copy of entire rule as a polynomial (-LHS + RHS = 0)
+         */
+        [[nodiscard]] Polynomial as_polynomial(const PolynomialFactory& factory) const;
+
+        /**
          * True if rule has non-trivial action on supplied combo.
          */
         [[nodiscard]] bool matches(const Polynomial& combo) const noexcept;

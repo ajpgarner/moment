@@ -197,7 +197,7 @@ namespace Moment::Tests {
         MonomialMatrix input_mm{this->get_context(), this->get_symbols(),
                                 std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
-        auto output = book.reduce(this->get_symbols(), input_mm);
+        auto output = book.create_substituted_matrix(this->get_symbols(), input_mm);
         ASSERT_TRUE(output);
         ASSERT_TRUE(output->is_monomial());
         const auto& output_as_mm = dynamic_cast<const MonomialMatrix&>(*output);
@@ -228,7 +228,7 @@ namespace Moment::Tests {
         MonomialMatrix ref_mm{this->get_context(), this->get_symbols(),
                               std::make_unique<SquareMatrix<Monomial>>(2, std::move(ref_matrix_data)), true};
 
-        auto output = book.reduce(this->get_symbols(), input_mm);
+        auto output = book.create_substituted_matrix(this->get_symbols(), input_mm);
         ASSERT_TRUE(output);
         ASSERT_TRUE(output->is_monomial());
         const auto& output_as_mm = dynamic_cast<const MonomialMatrix&>(*output);
@@ -262,7 +262,7 @@ namespace Moment::Tests {
         PolynomialMatrix ref_pm{this->get_context(), this->get_symbols(),
                           std::make_unique<SquareMatrix<Polynomial>>(2, std::move(ref_matrix_data))};
 
-        auto output = book.reduce(this->get_symbols(), input_mm);
+        auto output = book.create_substituted_matrix(this->get_symbols(), input_mm);
         ASSERT_TRUE(output);
         ASSERT_FALSE(output->is_monomial());
         const auto& output_as_pm = dynamic_cast<const PolynomialMatrix&>(*output);
@@ -286,7 +286,7 @@ namespace Moment::Tests {
         PolynomialMatrix input_pm{this->get_context(), this->get_symbols(),
                                   std::make_unique<SquareMatrix<Polynomial>>(2, std::move(matrix_data))};
 
-        auto output = book.reduce(this->get_symbols(), input_pm);
+        auto output = book.create_substituted_matrix(this->get_symbols(), input_pm);
         ASSERT_TRUE(output);
         ASSERT_FALSE(output->is_monomial());
         const auto& output_as_pm = dynamic_cast<const PolynomialMatrix&>(*output);
@@ -321,7 +321,7 @@ namespace Moment::Tests {
                                 std::make_unique<SquareMatrix<Polynomial>>(2, std::move(ref_matrix_data))};
 
 
-        auto output = book.reduce(this->get_symbols(), input_pm);
+        auto output = book.create_substituted_matrix(this->get_symbols(), input_pm);
         ASSERT_TRUE(output);
         ASSERT_FALSE(output->is_monomial());
         const auto& output_as_pm = dynamic_cast<const PolynomialMatrix&>(*output);
@@ -358,7 +358,7 @@ namespace Moment::Tests {
         PolynomialMatrix ref_pm{this->get_context(), this->get_symbols(),
                                 std::make_unique<SquareMatrix<Polynomial>>(2, std::move(ref_matrix_data))};
 
-        auto output = book.reduce(this->get_symbols(), input_pm);
+        auto output = book.create_substituted_matrix(this->get_symbols(), input_pm);
         ASSERT_TRUE(output);
         ASSERT_FALSE(output->is_monomial());
         const auto& output_as_pm = dynamic_cast<const PolynomialMatrix&>(*output);
@@ -558,5 +558,114 @@ namespace Moment::Tests {
         EXPECT_EQ(sub_symbols[2][2], Monomial(id_bb));
     }
 
+    TEST_F(Symbolic_MomentSubstitutionRulebook, CombineAndComplete_IntoEmpty) {
+        // System
+        MomentSubstitutionRulebook empty_book{this->get_symbols()};
+
+        // Prepare rulebook
+        MomentSubstitutionRulebook book{this->get_symbols()};
+        const auto& factory = book.Factory();
+
+        std::map<symbol_name_t, double> raw_assignments;
+        raw_assignments.insert(std::make_pair(2, 0.0)); // <a> = 0
+        raw_assignments.insert(std::make_pair(3, 1.5)); // <b> = 1.5
+        EXPECT_EQ(&book.symbols, &this->get_symbols());
+        EXPECT_TRUE(book.empty());
+
+        book.add_raw_rules(raw_assignments);
+        book.complete();
+
+        assert_matching_rules(book, {MomentSubstitutionRule{2, Polynomial()},
+                                     MomentSubstitutionRule{3, Polynomial::Scalar(1.5)}});
+
+        size_t new_rules = empty_book.combine_and_complete(std::move(book));
+        EXPECT_EQ(new_rules, 2);
+        assert_matching_rules(empty_book, {MomentSubstitutionRule{2, Polynomial()},
+                                           MomentSubstitutionRule{3, Polynomial::Scalar(1.5)}});
+
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, CombineAndComplete_Trivial) {
+        // System
+        MomentSubstitutionRulebook book_one{this->get_symbols()};
+
+        std::map<symbol_name_t, double> raw_assignments_one;
+        raw_assignments_one.insert(std::make_pair(2, 0.0)); // <a> = 0
+
+
+        book_one.add_raw_rules(raw_assignments_one);
+        book_one.complete();
+
+        assert_matching_rules(book_one, {MomentSubstitutionRule{2, Polynomial()}});
+
+        // Prepare rulebook
+        MomentSubstitutionRulebook book_two{this->get_symbols()};
+        std::map<symbol_name_t, double> raw_assignments_two;
+        raw_assignments_two.insert(std::make_pair(3, 1.5)); // <b> = 1.5
+        book_two.add_raw_rules(raw_assignments_two);
+        book_two.complete();
+
+        assert_matching_rules(book_two, {MomentSubstitutionRule{3, Polynomial::Scalar(1.5)}});
+
+        size_t new_rules = book_one.combine_and_complete(std::move(book_two));
+        EXPECT_EQ(new_rules, 1);
+        assert_matching_rules(book_one, {MomentSubstitutionRule{2, Polynomial()},
+                                         MomentSubstitutionRule{3, Polynomial::Scalar(1.5)}});
+
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, CombineAndComplete_WithRewrite) {
+        // Prepare first rulebook <AA> -> <A>
+        MomentSubstitutionRulebook book_one{this->get_symbols()};
+        auto& factory = this->get_factory();
+
+        std::vector<Polynomial> raw_combos_one;
+        raw_combos_one.emplace_back(factory({Monomial(4, 1.0), Monomial(2, -0.5)})); // <aa> - 0.5<a> = 0
+        book_one.add_raw_rules(std::move(raw_combos_one));
+        book_one.complete();
+
+        assert_matching_rules(book_one, {MomentSubstitutionRule{4, factory({Monomial(2, 0.5)})}});
+
+        // Prepare second rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_two{this->get_symbols()};
+        std::map<symbol_name_t, double> raw_assignments_two;
+        raw_assignments_two.insert(std::make_pair(2, 0.5)); // <a> = 0.5
+        book_two.add_raw_rules(raw_assignments_two);
+        book_two.complete();
+        assert_matching_rules(book_two, {MomentSubstitutionRule{2, Polynomial::Scalar(0.5)}});
+
+        size_t new_rules = book_one.combine_and_complete(std::move(book_two));
+        EXPECT_EQ(new_rules, 1);
+        assert_matching_rules(book_one, {MomentSubstitutionRule{2, Polynomial::Scalar(0.5)},
+                                         MomentSubstitutionRule{4, Polynomial::Scalar(0.25)}});
+
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, CombineAndComplete_FailBadRule) {
+        // Prepare first rulebook <AA> -> <A>
+        MomentSubstitutionRulebook book_one{this->get_symbols()};
+        auto& factory = this->get_factory();
+
+        std::vector<Polynomial> raw_combos_one;
+        raw_combos_one.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
+        book_one.add_raw_rules(std::move(raw_combos_one));
+        book_one.complete();
+
+        assert_matching_rules(book_one, {MomentSubstitutionRule{4, Polynomial::Scalar(0.5)}});
+
+        // Prepare second rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_two{this->get_symbols()};
+        std::map<symbol_name_t, double> raw_assignments_two;
+        raw_assignments_two.insert(std::make_pair(4, 0.25)); // <aa> = 0.25
+        book_two.add_raw_rules(raw_assignments_two);
+        book_two.complete();
+        assert_matching_rules(book_two, {MomentSubstitutionRule{4, Polynomial::Scalar(0.25)}});
+
+        EXPECT_THROW(book_one.combine_and_complete(std::move(book_two)), errors::invalid_moment_rule);
+
+        assert_matching_rules(book_one, {MomentSubstitutionRule{4, Polynomial::Scalar(0.5)}});
+        EXPECT_FALSE(book_one.pending_rules());
+
+    }
 
 }

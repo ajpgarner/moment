@@ -58,6 +58,16 @@ namespace Moment {
         }
     }
 
+    Polynomial MomentSubstitutionRule::as_polynomial(const PolynomialFactory& factory) const {
+        if (this->is_trivial()) {
+            return Polynomial::Zero();
+        }
+
+        Polynomial as_poly{this->rhs};
+        factory.append(as_poly, Polynomial{Monomial{this->lhs, -1.0, false}});
+        return as_poly;
+    }
+
     bool MomentSubstitutionRule::matches(const Polynomial &combo) const noexcept {
         return std::any_of(combo.begin(), combo.end(), [this](const Monomial& expr) {
             return expr.id == this->lhs;

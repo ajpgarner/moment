@@ -8,6 +8,7 @@
 #pragma once
 #include "moment_substitution_rule.h"
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <vector>
@@ -31,6 +32,12 @@ namespace Moment {
             static std::string make_err_msg(const std::string& exprStr, const std::string& resultStr);
         };
 
+        /** Exception thrown if rules are added after the ruleset has already been used to reduce matrices */
+        class already_in_use : public std::logic_error {
+        public:
+            already_in_use() : std::logic_error{"No further rules can be added once the rulebook is already in use."}{ }
+        };
+
     }
 
     class MomentSubstitutionRulebook {
@@ -52,6 +59,8 @@ namespace Moment {
         bool monomial_rules = true;
 
         bool hermitian_rules = true;
+
+        mutable std::atomic<size_t> usages = 0;
 
     public:
         explicit MomentSubstitutionRulebook(const SymbolTable& table)
@@ -104,6 +113,13 @@ namespace Moment {
         size_t complete();
 
         /**
+         * Add all rules from another rulebook to this one.
+         * Exception guarantee: if merge fails, state of this ruleset is left unchanged.
+         * @return Number of rules added.
+         */
+         size_t combine_and_complete(MomentSubstitutionRulebook&& other);
+
+        /**
          * Attempt to infer additional rules from factorization structure
          * @param A matrix system with associated factor table.
          * @return The number of new rules inferred.
@@ -136,12 +152,12 @@ namespace Moment {
         [[nodiscard]] Monomial reduce_monomial(Monomial expr) const;
 
         /**
-         * Apply reduction to every element of matrix
+         * Apply reduction to every element of matrix, and make a new matrix
          * @param symbols Write-access to symbol table.
          * @param matrix
          * @return Newly created matrix, either of type MonomialSubstitutionMatrix or PolynomialSubstitutionMatrix.
          */
-        [[nodiscard]] std::unique_ptr<Matrix> reduce(SymbolTable& symbols, const Matrix& matrix) const;
+        [[nodiscard]] std::unique_ptr<Matrix> create_substituted_matrix(SymbolTable& symbols, const Matrix& matrix) const;
 
         /**
          * True if rulebook is guaranteed to produce a monomial matrix if it acts on a monomial matrix.
@@ -184,5 +200,12 @@ namespace Moment {
          * Return reference to associated PolynomialFactory.
          */
         [[nodiscard]] const PolynomialFactory& Factory() const noexcept { return *this->factory; }
+
+        /**
+         * True if rulebook has been applied to at least one matrix.
+         */
+         [[nodiscard]] const bool in_use() {
+             return this->usages.load(std::memory_order_acquire) > 0;
+         }
     };
 }

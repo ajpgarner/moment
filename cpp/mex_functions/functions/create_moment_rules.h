@@ -32,11 +32,17 @@ namespace Moment::mex::functions {
         /** The matrix system the ruleset is associated with */
         uint64_t matrix_system_key = 0;
 
+        /** The ID of an existing ruleset  */
+        uint64_t existing_rule_key = 0;
+
         /** True = Also generate extra rules from currently-known factors. */
         bool infer_from_factors = true;
 
         /** True = Allow for the creation of new symbols, if an operator sequence is unrecognized */
         bool create_missing_symbols = true;
+
+        /** True = Attempt to merge into existing ruleset */
+        bool merge_into_existing = false;
 
         /** How the input to the create-rules command is supplied */
         enum class InputMode {

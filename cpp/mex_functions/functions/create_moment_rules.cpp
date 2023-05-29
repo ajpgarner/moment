@@ -196,6 +196,15 @@ namespace Moment::mex::functions {
             this->create_missing_symbols = false;
         }
 
+        // Merge into existing rule-set?
+        auto rulebook_param_iter = this->params.find(u"rulebook");
+        if (rulebook_param_iter != this->params.cend()) {
+            this->existing_rule_key = read_as_uint64(this->matlabEngine, rulebook_param_iter->second);
+            this->merge_into_existing = true;
+        } else {
+            this->merge_into_existing = false;
+        }
+
         // Extra import
         switch (this->input_mode) {
             case InputMode::SubstitutionList:
@@ -403,9 +412,11 @@ namespace Moment::mex::functions {
         this->mutex_params.add_mutex({u"list", u"symbols", u"sequences"});
 
         this->param_names.emplace(u"order");
+        this->param_names.emplace(u"rulebook");
 
         this->flag_names.emplace(u"no_factors");
         this->flag_names.emplace(u"no_new_symbols");
+        this->flag_names.emplace(u"complete_only");
     }
 
     void CreateMomentRules::extra_input_checks(CreateMomentRulesParams &input) const {
@@ -426,11 +437,19 @@ namespace Moment::mex::functions {
         }();
         auto& system = *msPtr;
 
-        // Create rule-book
+        // Create rule-book with new rules
         auto rulebookPtr = this->create_rulebook(system, input);
 
-        // Register rulebook with matrix system
-        auto [rb_id, rulebook] = system.create_rulebook(std::move(rulebookPtr));
+        // Add or merge rulebooks
+        auto [rb_id, rulebook] = [&]() -> std::pair<size_t, MomentSubstitutionRulebook&> {
+            if (input.merge_into_existing) {
+                return system.merge_rulebooks(input.existing_rule_key, std::move(*rulebookPtr));
+            } else {
+                // Register rulebook with matrix system
+                return system.create_rulebook(std::move(rulebookPtr));
+            };
+        }();
+
 
         // Output rulebook ID
         matlab::data::ArrayFactory factory;

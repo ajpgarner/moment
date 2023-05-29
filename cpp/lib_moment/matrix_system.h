@@ -227,6 +227,12 @@ namespace Moment {
          */
         std::pair<size_t, MomentSubstitutionRulebook&>
         create_rulebook(std::unique_ptr<MomentSubstitutionRulebook> rulebook);
+        /**
+         * Import a list of moment substitution rules
+         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
+         */
+        std::pair<size_t, MomentSubstitutionRulebook&>
+        merge_rulebooks(size_t existing_rulebook_id, MomentSubstitutionRulebook&& rulebook);
 
         /**
          * Get a list of moment substitution rules.
@@ -239,7 +245,6 @@ namespace Moment {
          * For thread safety, call for a read lock first.
          */
         [[nodiscard]] const MomentSubstitutionRulebook& rulebook(size_t index) const;
-
 
         /**
          * Gets a read (shared) lock for accessing data within the matrix system.

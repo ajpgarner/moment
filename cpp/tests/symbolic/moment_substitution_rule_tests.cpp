@@ -336,4 +336,63 @@ namespace Moment::Tests {
         EXPECT_EQ(msr.reduce(factory, noMatch), noMatch);
     }
 
+    TEST(Symbolic_MomentSubstitutionRule, AsPolynomial_Trivial) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+        PolynomialFactory factory{table};
+
+        MomentSubstitutionRule msr{table, Polynomial::Zero()};
+
+        EXPECT_TRUE(msr.is_trivial());
+        EXPECT_EQ(msr.as_polynomial(factory), Polynomial::Zero());
+    }
+
+    TEST(Symbolic_MomentSubstitutionRule, AsPolynomial_ThreeToZero) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+        PolynomialFactory factory{table};
+
+        MomentSubstitutionRule msr{table, factory({Monomial{3, 1.0}})};
+        EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{3, -1.0}}));
+    }
+
+    TEST(Symbolic_MomentSubstitutionRule, AsPolynomial_TwoToScalar) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+        PolynomialFactory factory{table};
+
+        MomentSubstitutionRule msr{table, factory({Monomial{2, 1.0}, Monomial{1, -0.5}})};
+
+        EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{2, -1.0}, Monomial{1, 0.5}}));
+    }
+
+    TEST(Symbolic_MomentSubstitutionRule, AsPolynomial_ThreeToTwoPlusOne) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+        PolynomialFactory factory{table};
+
+        MomentSubstitutionRule msr{table, factory({Monomial{3, -1.0}, Monomial{2, 1.0}, Monomial{1, 1.0}})};
+
+        EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{3, -1.0}, Monomial{2, 1.0}, Monomial{1, 1.0}}));
+
+    }
+
+    TEST(Symbolic_MomentSubstitutionRule, AsPolynomial_HalfThreeStarToTwo) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+        PolynomialFactory factory{table};
+
+        MomentSubstitutionRule msr{table, factory({Monomial{3, 0.5, true}, Monomial{2, 1.0}})};
+        EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{3, -1.0}, Monomial{2, -2.0, true}}));
+    }
 }

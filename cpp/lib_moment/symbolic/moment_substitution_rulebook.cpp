@@ -42,6 +42,10 @@ namespace Moment {
     }
 
     void MomentSubstitutionRulebook::add_raw_rules(std::vector<Polynomial> &&raw) {
+        if (this->in_use()) {
+            throw errors::already_in_use{};
+        }
+
         // Move in rules
         if (this->raw_rules.empty()) {
             this->raw_rules = std::move(raw);
@@ -53,6 +57,10 @@ namespace Moment {
 
 
     void MomentSubstitutionRulebook::add_raw_rules(const MomentSubstitutionRulebook::raw_map_t& raw) {
+        if (this->in_use()) {
+            throw errors::already_in_use{};
+        }
+
         this->raw_rules.reserve(this->raw_rules.size() + raw.size());
         for (auto [id, value] : raw) {
             if (approximately_zero(value)) {
@@ -64,6 +72,10 @@ namespace Moment {
     }
 
     void MomentSubstitutionRulebook::add_raw_rules(const MomentSubstitutionRulebook::raw_complex_map_t& raw) {
+        if (this->in_use()) {
+            throw errors::already_in_use{};
+        }
+
         this->raw_rules.reserve(this->raw_rules.size() + raw.size());
         for (auto [id, value] : raw) {
             if (approximately_zero(value)) {
@@ -76,10 +88,18 @@ namespace Moment {
 
 
     void MomentSubstitutionRulebook::add_raw_rule(Polynomial&& raw) {
+        if (this->in_use()) {
+            throw errors::already_in_use{};
+        }
+
         this->raw_rules.emplace_back(std::move(raw));
     }
 
     bool MomentSubstitutionRulebook::inject(MomentSubstitutionRule &&msr) {
+        if (this->in_use()) {
+            throw errors::already_in_use{};
+        }
+
         const auto id = msr.LHS();
         assert (id < this->symbols.size());
 
@@ -101,6 +121,11 @@ namespace Moment {
     }
 
     size_t MomentSubstitutionRulebook::complete() {
+        // Can't complete if already in use
+        if (this->in_use()) {
+            throw errors::already_in_use{};
+        }
+
         // Nothing to do, thus, already complete
         if (this->raw_rules.empty()) {
             return 0;
@@ -179,7 +204,61 @@ namespace Moment {
         return rules_added;
     }
 
+
+    size_t MomentSubstitutionRulebook::combine_and_complete(MomentSubstitutionRulebook &&other) {
+        // Can't add new rules if already in use
+        if (this->in_use() && other.in_use()) {
+            throw errors::already_in_use{};
+        }
+
+        // Can't do combination if this has any pending rules
+        if (this->pending_rules()) {
+            throw std::runtime_error{"Cannot merge rulebook into rulebook which already has rules pending completion."};
+        }
+
+        // Can't do combination if other has any pending rules
+        if (other.pending_rules()) {
+            throw std::runtime_error{"Cannot merge rulebook with rules pending completion into another rulebook."};
+        }
+
+        // Special case if this rulebook is empty
+        if (this->rules.empty()) {
+            this->rules = std::move(other.rules);
+            return this->rules.size();
+        }
+
+        // Special case if other rulebook is empty
+        if (other.rules.empty()) {
+            return 0;
+        }
+
+        // Translate any processed rules into pending rules
+        this->raw_rules.reserve(this->raw_rules.size() + other.rules.size());
+        for (auto [id, rule] : other.rules) {
+            this->raw_rules.emplace_back(rule.as_polynomial(*this->factory));
+        }
+
+        // Finally, do completion in exception-guaranteed manner. Slow, but prevents bad rules from breaking everything.
+        std::map<symbol_name_t, MomentSubstitutionRule> old_rules{this->rules};
+        try {
+            // Attempt completion
+            return this->complete();
+        } catch(std::exception& e) {
+            // In case of fail, restore old rules, and clear the pending list.
+            this->rules = std::move(old_rules);
+            this->raw_rules.clear();
+
+            // Pass exception forward
+            throw;
+        }
+    }
+
     size_t MomentSubstitutionRulebook::infer_additional_rules_from_factors(const MatrixSystem &ms) {
+        // Can't make new rules if already in use
+        if (this->in_use()) {
+            throw errors::already_in_use{};
+        }
+
         // If no rules, no additional rules
         if (this->rules.empty()) {
             return 0;
@@ -306,8 +385,12 @@ namespace Moment {
         return rule_iter->second.reduce(*this->factory, expr);
     }
 
-    std::unique_ptr<Matrix> MomentSubstitutionRulebook::reduce(SymbolTable& wSymbols, const Matrix &matrix) const {
+    std::unique_ptr<Matrix> MomentSubstitutionRulebook::create_substituted_matrix(SymbolTable& wSymbols,
+                                                                                  const Matrix &matrix) const {
         assert(&matrix.Symbols == &wSymbols);
+
+        // Once this line is passed, MSR is in use:
+        this->usages.fetch_add(1, std::memory_order_release);
 
         if (matrix.is_polynomial()) {
             const auto& polyMatrix = dynamic_cast<const PolynomialMatrix&>(matrix);
