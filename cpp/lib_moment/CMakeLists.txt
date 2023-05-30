@@ -75,6 +75,11 @@ add_library(lib_moment
         utilities/alphabetic_namer.cpp
         utilities/utf_conversion.cpp
         utilities/kronecker_power.cpp
+        utilities/multithreading.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
 )
+
+if (UNIX)
+    SET_TARGET_PROPERTIES(lib_moment PROPERTIES PREFIX "")
+endif()

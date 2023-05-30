@@ -6,9 +6,11 @@
  */
 #include "version.h"
 
-#include "utilities/reporting.h"
-
 #include "integer_types.h"
+
+#include "utilities/multithreading.h"
+
+#include "utilities/reporting.h"
 
 #include <sstream>
 
@@ -43,7 +45,13 @@ namespace Moment::mex::functions {
                << "v" << Moment::version::VERSION_MAJOR
                << "." << Moment::version::VERSION_MINOR
                << "." << Moment::version::VERSION_PATCH << "\n";
-            ss << Moment::version::PROJECT_COPYRIGHT << "\n\n";
+            ss << Moment::version::PROJECT_COPYRIGHT << "\n";
+
+            if (this->debug) {
+                ss << "Maximum worker threads: " << get_max_worker_threads() << "\n";
+            }
+
+            ss << "\n";
 
             print_to_console(this->matlabEngine, ss.str());
         }
