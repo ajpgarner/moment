@@ -57,20 +57,19 @@ namespace Moment::mex::functions {
         WordList
     };
 
-
     /**
      * Return the ID of the entry point for a given string representation.
      * @param str The string to compare
      * @return The ID of the entry point (if any match).
      */
-    [[nodiscard]] MEXEntryPointID which_entrypoint(const std::basic_string<char16_t>& str);
+    [[nodiscard]] MEXEntryPointID which_entrypoint(const std::string& str);
 
     /**
      * Return the string an the entry point for a given ID
      * @param id ID of the entry point.
      * @return The string (if any match), "unknown" otherwise.
      */
-    [[nodiscard]] std::basic_string<char16_t> which_function_name(MEXEntryPointID);
+    [[nodiscard]] std::string which_function_name(MEXEntryPointID);
 
     /**
      *

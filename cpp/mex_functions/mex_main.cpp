@@ -83,16 +83,16 @@ namespace Moment::mex {
             return functions::MEXEntryPointID::Version;
         }
 
-        auto command_arg = read_as_utf16(inputs.pop_front());
+        auto command_arg = read_as_utf8(inputs.pop_front());
         if (!command_arg.has_value()) {
             throw_error(*matlabPtr, errors::bad_function,
-                        u"First argument must be a single function name (i.e. one string).");
+                        "First argument must be a single function name (i.e. one string).");
         }
 
         auto entry_id = functions::which_entrypoint(command_arg.value());
         if (entry_id == functions::MEXEntryPointID::Unknown) {
             throw_error(*matlabPtr, errors::bad_function,
-                        u"Function \"" + command_arg.value() + u"\" not known in Moment.");
+                        "Function \"" + command_arg.value() + "\" is not in the Moment library.");
         }
 
         return entry_id;
@@ -158,13 +158,9 @@ namespace Moment::mex {
         // First check number of inputs is okay
         auto [min, max] = func.NumInputs();
         if ((inputs.inputs.size() > max) || (inputs.inputs.size() < min)) {
-
-            std::string func_name{ UTF16toUTF8Convertor::convert_as_ascii(
-                    functions::which_function_name(func.function_id))};
-
             // Build error message:
             std::stringstream ss;
-            ss << "Function \"" << func_name << "\" ";
+            ss << "Function \"" << functions::which_function_name(func.function_id) << "\" ";
             if (min != max) {
                 ss << "requires between " << min << " and " << max << " input parameters.";
             } else {
@@ -190,10 +186,11 @@ namespace Moment::mex {
         // Next, check for mutual exclusion
         auto mutex_params = func.check_for_mutex(inputs);
         if (mutex_params.has_value()) {
-            std::basic_stringstream<char16_t> bss;
-            bss << u"Invalid argument to function \"" << functions::which_function_name(func.function_id) << "\": "
-                << u"Cannot specify mutually exclusive parameters \"" << mutex_params->first << "\""
-                << " and \"" << mutex_params->second << "\".";
+            UTF16toUTF8Convertor convertor;
+            std::stringstream bss;
+            bss << "Invalid argument to function \"" << functions::which_function_name(func.function_id) << "\": "
+                << "Cannot specify mutually exclusive parameters \"" << convertor(mutex_params->first) << "\""
+                << " and \"" << convertor(mutex_params->second) << "\".";
             throw_error(*matlabPtr, errors::mutex_param, bss.str());
         }
 
@@ -205,10 +202,8 @@ namespace Moment::mex {
         if ((outputs.size() > max) || (outputs.size() < min)) {
 
             // Build error message:
-            std::string func_name{ UTF16toUTF8Convertor::convert_as_ascii(
-                    functions::which_function_name(func.function_id))};
             std::stringstream ss;
-            ss << "Function \"" << func_name << "\" ";
+            ss << "Function \"" << functions::which_function_name(func.function_id) << "\" ";
             if (min != max) {
                 ss << "requires between " << min << " and " << max << " outputs.";
             } else {
@@ -243,10 +238,10 @@ namespace Moment::mex {
             return func.transform_inputs(std::move(inputs));
 
         } catch (const errors::BadInput& bie) {
-            std::basic_stringstream<char16_t> bss;
-            bss << u"Invalid argument to function \"" << functions::which_function_name(func.function_id) << "\": "
-                << UTF8toUTF16Convertor::convert(bie.what());
-            throw_error(*matlabPtr, bie.errCode, bss.str());
+            std::stringstream errSS;
+            errSS << "Invalid argument to function \"" << functions::which_function_name(func.function_id) << "\": "
+                << bie.what();
+            throw_error(*matlabPtr, bie.errCode, errSS.str());
         }
     }
 

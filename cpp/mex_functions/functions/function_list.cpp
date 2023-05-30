@@ -47,44 +47,44 @@
 namespace Moment::mex::functions {
     namespace {
 
-        std::map<std::basic_string<char16_t>, MEXEntryPointID> make_str_to_entrypoint_map() {
-            std::map<std::basic_string<char16_t>, MEXEntryPointID> output;
-            output.emplace(u"alphabetic_name", MEXEntryPointID::AlphabeticName);
-            output.emplace(u"apply_moment_rules",    MEXEntryPointID::ApplyMomentRules);
-            output.emplace(u"collins_gisin",   MEXEntryPointID::CollinsGisin);
-            output.emplace(u"complete",        MEXEntryPointID::Complete);
-            output.emplace(u"conjugate",       MEXEntryPointID::Conjugate);
-            output.emplace(u"create_moment_rules",   MEXEntryPointID::CreateMomentRules);
-            output.emplace(u"echo",            MEXEntryPointID::Echo);
-            output.emplace(u"extended_matrix", MEXEntryPointID::ExtendedMatrix);
-            output.emplace(u"generate_basis",  MEXEntryPointID::GenerateBasis);
-            output.emplace(u"list",            MEXEntryPointID::List);
-            output.emplace(u"localizing_matrix",  MEXEntryPointID::LocalizingMatrix);
-            output.emplace(u"import_matrix",   MEXEntryPointID::ImportMatrix);
-            output.emplace(u"make_explicit",   MEXEntryPointID::MakeExplicit);
-            output.emplace(u"make_representation",   MEXEntryPointID::MakeRepresentation);
-            output.emplace(u"moment_matrix",   MEXEntryPointID::MomentMatrix);
-            output.emplace(u"operator_matrix", MEXEntryPointID::OperatorMatrix);
-            output.emplace(u"new_algebraic_matrix_system",   MEXEntryPointID::NewAlgebraicMatrixSystem);
-            output.emplace(u"new_imported_matrix_system",    MEXEntryPointID::NewImportedMatrixSystem);
-            output.emplace(u"new_inflation_matrix_system",   MEXEntryPointID::NewInflationMatrixSystem);
-            output.emplace(u"new_locality_matrix_system",    MEXEntryPointID::NewLocalityMatrixSystem);
-            output.emplace(u"new_symmetrized_matrix_system", MEXEntryPointID::NewSymmetrizedMatrixSystem);
-            output.emplace(u"probability_table",  MEXEntryPointID::ProbabilityTable);
-            output.emplace(u"release",            MEXEntryPointID::Release);
-            output.emplace(u"rules",              MEXEntryPointID::Rules);
-            output.emplace(u"settings",           MEXEntryPointID::Settings);
-            output.emplace(u"simplify",           MEXEntryPointID::Simplify);
-            output.emplace(u"suggest_extensions", MEXEntryPointID::SuggestExtensions);
-            output.emplace(u"symbol_table",       MEXEntryPointID::SymbolTable);
-            output.emplace(u"transform_symbols",  MEXEntryPointID::TransformSymbols);
-            output.emplace(u"version",            MEXEntryPointID::Version);
-            output.emplace(u"word_list",          MEXEntryPointID::WordList);
+        std::map<std::string, MEXEntryPointID> make_str_to_entrypoint_map() {
+            std::map<std::string, MEXEntryPointID> output;
+            output.emplace("alphabetic_name", MEXEntryPointID::AlphabeticName);
+            output.emplace("apply_moment_rules",    MEXEntryPointID::ApplyMomentRules);
+            output.emplace("collins_gisin",   MEXEntryPointID::CollinsGisin);
+            output.emplace("complete",        MEXEntryPointID::Complete);
+            output.emplace("conjugate",       MEXEntryPointID::Conjugate);
+            output.emplace("create_moment_rules",   MEXEntryPointID::CreateMomentRules);
+            output.emplace("echo",            MEXEntryPointID::Echo);
+            output.emplace("extended_matrix", MEXEntryPointID::ExtendedMatrix);
+            output.emplace("generate_basis",  MEXEntryPointID::GenerateBasis);
+            output.emplace("list",            MEXEntryPointID::List);
+            output.emplace("localizing_matrix",  MEXEntryPointID::LocalizingMatrix);
+            output.emplace("import_matrix",   MEXEntryPointID::ImportMatrix);
+            output.emplace("make_explicit",   MEXEntryPointID::MakeExplicit);
+            output.emplace("make_representation",   MEXEntryPointID::MakeRepresentation);
+            output.emplace("moment_matrix",   MEXEntryPointID::MomentMatrix);
+            output.emplace("operator_matrix", MEXEntryPointID::OperatorMatrix);
+            output.emplace("new_algebraic_matrix_system",   MEXEntryPointID::NewAlgebraicMatrixSystem);
+            output.emplace("new_imported_matrix_system",    MEXEntryPointID::NewImportedMatrixSystem);
+            output.emplace("new_inflation_matrix_system",   MEXEntryPointID::NewInflationMatrixSystem);
+            output.emplace("new_locality_matrix_system",    MEXEntryPointID::NewLocalityMatrixSystem);
+            output.emplace("new_symmetrized_matrix_system", MEXEntryPointID::NewSymmetrizedMatrixSystem);
+            output.emplace("probability_table",  MEXEntryPointID::ProbabilityTable);
+            output.emplace("release",            MEXEntryPointID::Release);
+            output.emplace("rules",              MEXEntryPointID::Rules);
+            output.emplace("settings",           MEXEntryPointID::Settings);
+            output.emplace("simplify",           MEXEntryPointID::Simplify);
+            output.emplace("suggest_extensions", MEXEntryPointID::SuggestExtensions);
+            output.emplace("symbol_table",       MEXEntryPointID::SymbolTable);
+            output.emplace("transform_symbols",  MEXEntryPointID::TransformSymbols);
+            output.emplace("version",            MEXEntryPointID::Version);
+            output.emplace("word_list",          MEXEntryPointID::WordList);
             return output;
         }
 
-        std::map<MEXEntryPointID, std::basic_string<char16_t>> make_entrypoint_to_str_map() {
-            std::map<MEXEntryPointID, std::basic_string<char16_t>> output;
+        std::map<MEXEntryPointID, std::string> make_entrypoint_to_str_map() {
+            std::map<MEXEntryPointID, std::string> output;
             auto fwd_map = make_str_to_entrypoint_map();
             for (auto [str, entry] : fwd_map) {
                 output.insert(std::make_pair(entry, str));
@@ -94,7 +94,7 @@ namespace Moment::mex::functions {
     }
 
 
-    MEXEntryPointID which_entrypoint(const std::basic_string<char16_t> &str) {
+    MEXEntryPointID which_entrypoint(const std::string &str) {
         static const auto the_map = make_str_to_entrypoint_map();
         auto iter = the_map.find(str);
         if (iter == the_map.cend()) {
@@ -103,11 +103,11 @@ namespace Moment::mex::functions {
         return iter->second;
     }
 
-    std::basic_string<char16_t> which_function_name(MEXEntryPointID id) {
+    std::string which_function_name(MEXEntryPointID id) {
         static const auto the_map = make_entrypoint_to_str_map();
         auto iter = the_map.find(id);
         if (iter == the_map.cend()) {
-            return u"unknown";
+            return "unknown";
         }
         return iter->second;
     }
