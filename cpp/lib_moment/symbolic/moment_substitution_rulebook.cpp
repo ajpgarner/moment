@@ -224,6 +224,8 @@ namespace Moment {
         // Special case if this rulebook is empty
         if (this->rules.empty()) {
             this->rules = std::move(other.rules);
+            this->monomial_rules = other.monomial_rules;
+            this->hermitian_rules = other.hermitian_rules;
             return this->rules.size();
         }
 
