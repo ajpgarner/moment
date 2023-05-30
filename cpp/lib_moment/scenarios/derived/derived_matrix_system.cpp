@@ -68,7 +68,8 @@ namespace Moment::Derived {
         return std::make_unique<Derived::DerivedContext>(source.Context());
     }
 
-    std::unique_ptr<class Matrix> DerivedMatrixSystem::createNewMomentMatrix(size_t level) {
+    std::unique_ptr<class Matrix>
+    DerivedMatrixSystem::createNewMomentMatrix(size_t level, Multithreading::MultiThreadPolicy mt_policy) {
         // First check if map is capable of defining this MM.
         const auto lsw = this->longest_supported_word();
         if ((level*2) > lsw) {
@@ -90,7 +91,7 @@ namespace Moment::Derived {
             read_source_lock.unlock();
 
             // Create new MM (will call write lock on base system).
-            auto [mm_index, mm] = this->base_system().create_moment_matrix(level);
+            auto [mm_index, mm] = this->base_system().create_moment_matrix(level, mt_policy);
 
             return mm;
         }();
@@ -100,7 +101,8 @@ namespace Moment::Derived {
     }
 
     std::unique_ptr<class Matrix>
-    DerivedMatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) {
+    DerivedMatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi,
+                                                   Multithreading::MultiThreadPolicy mt_policy) {
         // First check if map is capable of defining this LM.
         const auto lsw = this->longest_supported_word();
         const auto size_req = lmi.Level*2 + lmi.Word.size();
@@ -114,7 +116,7 @@ namespace Moment::Derived {
         }
 
         // Check if source localizing matrix exists, create it if it doesn't
-        const auto& source_matrix = [this, &lmi]() -> const class Matrix& {
+        const auto& source_matrix = [&]() -> const class Matrix& {
             auto read_source_lock = this->base_system().get_read_lock();
             // Get, if exists
             auto index = this->base_system().find_localizing_matrix(lmi);
@@ -124,7 +126,7 @@ namespace Moment::Derived {
             read_source_lock.unlock();
 
             // Create LM; will call write lock on base system
-            auto [mm_index, mm] = this->base_system().create_localizing_matrix(lmi);
+            auto [mm_index, mm] = this->base_system().create_localizing_matrix(lmi, mt_policy);
 
             return mm;
         }();

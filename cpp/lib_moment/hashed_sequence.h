@@ -39,25 +39,34 @@ namespace Moment {
         using const_iter_t = sequence_storage_t::const_iterator;
 
     protected:
-        sequence_storage_t operators{};
+        sequence_storage_t operators;
 
-        bool is_zero = false;
+        bool is_zero;
 
-        uint64_t the_hash = 0;
+        uint64_t the_hash;
+
+        /** 'Uninitialized' constructor */
+        HashedSequence() = default;
 
     public:
         /**
          * Construct empty sequence (identity or zero)
          * @param zero True if sequence corresponds to zero, otherwise sequence is identity.
          */
-        constexpr explicit HashedSequence(const bool zero = false)
-            : the_hash{is_zero ? 0U : 1U}, is_zero{zero} { }
+        constexpr explicit HashedSequence(const bool zero)
+            : operators{}, the_hash{is_zero ? 0U : 1U}, is_zero{zero} { }
 
         /** Copy constructor */
         constexpr HashedSequence(const HashedSequence& rhs) = default;
 
         /** Move constructor */
         constexpr HashedSequence(HashedSequence&& rhs) = default;
+
+        /** Copy assignment */
+        HashedSequence& operator=(const HashedSequence& rhs) = default;
+
+        /** Move assignment */
+        HashedSequence& operator=(HashedSequence&& rhs) = default;
 
         /**
          * Construct a sequence, from a list of operators and its hash.

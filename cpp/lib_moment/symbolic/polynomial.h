@@ -363,4 +363,6 @@ namespace Moment {
         }
     };
 
+    // Only element is storage.
+    static_assert(sizeof(Polynomial) == sizeof(Polynomial::storage_t));
 }

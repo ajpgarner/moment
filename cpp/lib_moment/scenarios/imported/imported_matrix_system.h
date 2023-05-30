@@ -53,9 +53,12 @@ namespace Moment::Imported {
         }
 
     protected:
-        std::unique_ptr<class Matrix> createNewMomentMatrix(size_t level) override;
+        std::unique_ptr<class Matrix>
+        createNewMomentMatrix(size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
 
-        std::unique_ptr<class Matrix> createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi) override;
+        std::unique_ptr<class Matrix>
+        createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi,
+                                  Multithreading::MultiThreadPolicy mt_policy) override;
 
     };
 

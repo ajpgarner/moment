@@ -10,6 +10,10 @@
 #include "matrix_system.h"
 #include "matrix/moment_matrix.h"
 #include "scenarios/context.h"
+
+#include "scenarios/algebraic/algebraic_context.h"
+#include "scenarios/algebraic/algebraic_matrix_system.h"
+
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_matrix_system.h"
 
@@ -682,5 +686,14 @@ namespace Moment::Tests {
                                              "2", "2", "4", "4",  // a, a, ab, ab
                                              "3", "4", "3", "4",  // b, ab, b, ab
                                              "4", "4", "4", "4"});// ab, ab, ab, ab
+    }
+
+    TEST(Operators_MomentMatrix, ForceMultithreading) {
+        using namespace Moment::Algebraic;
+        AlgebraicMatrixSystem system{std::make_unique<AlgebraicContext>(5)};
+
+        auto [id2, matLevel2] = system.create_moment_matrix(2, Multithreading::MultiThreadPolicy::Always);
+        ASSERT_EQ(matLevel2.Dimension(), 31);
+
     }
 }

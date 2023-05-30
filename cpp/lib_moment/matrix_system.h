@@ -17,6 +17,8 @@
 
 #include "matrix/localizing_matrix_index.h"
 
+#include "utilities/multithreading.h"
+
 namespace Moment {
 
     class Context;
@@ -170,18 +172,24 @@ namespace Moment {
           * Constructs a moment matrix for a particular Level, or returns pre-existing one.
           * Will lock until all read locks have expired - so do NOT first call for a read lock...!
           * @param level The hierarchy depth.
+          * @param mt_policy Is multithreaded creation used?
           * @return Pair: Matrix index and created MomentMatrix object reference.
           */
-        std::pair<size_t, class Matrix&> create_moment_matrix(size_t level);
+        std::pair<size_t, class Matrix&>
+        create_moment_matrix(size_t level,
+                             Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
         /**
          * Constructs a localizing matrix for a particular Level on a particular word, or returns a pre-existing one.
          * Will lock until all read locks have expired - so do NOT first call for a read lock...!
          * @param level The hierarchy depth.
-         * @param word The word
+         * @param word The word.
+         * @param mt_policy Is multithreaded creation used?
          * @return Pair: Matrix index and created LocalizingMatrix object reference.
          */
-        std::pair<size_t, class Matrix&> create_localizing_matrix(const LocalizingMatrixIndex& lmi);
+        std::pair<size_t, class Matrix&>
+        create_localizing_matrix(const LocalizingMatrixIndex& lmi,
+                                 Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
         /**
          * Check if a MomentMatrix has been generated for a particular hierarchy Level.
@@ -265,16 +273,22 @@ namespace Moment {
         /**
          * Overrideable method, called to generate a moment matrix.
          * @param level The moment matrix level.
+         * @param mt_policy Is multithreaded creation used?
          * @return Owning pointer of new moment matrix.
          */
-        virtual std::unique_ptr<class Matrix> createNewMomentMatrix(size_t level);
+        virtual std::unique_ptr<class Matrix>
+        createNewMomentMatrix(size_t level,
+                              Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
         /**
          * Virtual method, called to generate a localizing matrix.
          * @param lmi The hierarchy Level and word that describes the localizing matrix.
+         * @param mt_policy Is multithreaded creation used?
          * @return Owning pointer of new localizing matrix.
          */
-        virtual std::unique_ptr<class Matrix> createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi);
+        virtual std::unique_ptr<class Matrix>
+        createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi,
+                                  Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
         /**
          * Virtual method, called after a moment matrix is generated.

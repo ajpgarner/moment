@@ -27,9 +27,14 @@ namespace Moment {
         struct ConstructRawFlag { };
 
     private:
-        const Context& context;
+        const Context * context;
 
-        bool is_negated = false;
+        bool is_negated;
+
+        /**
+         * Uninitialized constructor, only allowed privately.
+         */
+         OperatorSequence() = default;
 
     public:
         /**
@@ -37,7 +42,7 @@ namespace Moment {
          * @param context (Non-owning) point to the Context (if any) for further simplification.
          */
         constexpr explicit OperatorSequence(const Context& context)
-            : HashedSequence{false}, context{context} { }
+            : HashedSequence{false}, context{&context}, is_negated{false} { }
 
         /**
          * Constructs a sequence of operators, in canonical order, with all known simplifications applied.
@@ -54,13 +59,17 @@ namespace Moment {
          OperatorSequence(const ConstructRawFlag&, sequence_storage_t operators, uint64_t hash,
                           const Context& context,
                           bool negated = false) noexcept
-              : HashedSequence{std::move(operators), hash}, context{context}, is_negated{negated} {
+              : HashedSequence{std::move(operators), hash}, context{&context}, is_negated{negated} {
              // No simplification, or check-sum of hash!
          }
 
         constexpr OperatorSequence(const OperatorSequence& rhs) = default;
 
         constexpr OperatorSequence(OperatorSequence&& rhs) noexcept = default;
+
+        OperatorSequence& operator=(const OperatorSequence& rhs) = default;
+
+        OperatorSequence& operator=(OperatorSequence&& rhs) noexcept = default;
 
         [[nodiscard]] OperatorSequence conjugate() const;
 
@@ -113,7 +122,7 @@ namespace Moment {
          * True if supplied context matches
          */
         inline bool is_same_context(const Context& rhs) const noexcept {
-            return &this->context == &rhs;
+            return this->context == &rhs;
         }
 
 
@@ -168,6 +177,14 @@ namespace Moment {
          */
         [[nodiscard]] static int compare_same_negation(const OperatorSequence& lhs, const OperatorSequence& rhs);
 
+
+        /**
+         * Create a block of (mostly) uninitialized operator sequences for overwrite.
+         * @param elements The number of sequences to make in the block.
+         */
+        static std::vector<OperatorSequence> create_uninitialized_vector(const size_t elements) {
+            return std::vector<OperatorSequence>(elements, OperatorSequence{});
+        }
 
 
     private:

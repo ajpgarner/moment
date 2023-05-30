@@ -9,6 +9,8 @@
 #include "localizing_matrix_index.h"
 #include "operator_matrix.h"
 
+#include "utilities/multithreading.h"
+
 namespace Moment {
 
 
@@ -26,7 +28,8 @@ namespace Moment {
           * @param context The setting/scenario.
           * @param lmi Index, describing the hierarchy depth and localizing word.
           */
-        LocalizingMatrix(const Context& context, LocalizingMatrixIndex lmi);
+        LocalizingMatrix(const Context& context, LocalizingMatrixIndex lmi,
+                         Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
         /**
          * Constructs a localizing matrix at the requested hierarchy depth (level) for the supplied context,
@@ -35,8 +38,9 @@ namespace Moment {
          * @param level The hierarchy depth.
          * @param word The localizing word.
          */
-        LocalizingMatrix(const Context& context, size_t level, OperatorSequence&& word)
-            : LocalizingMatrix(context, LocalizingMatrixIndex{level, std::move(word)}) { }
+        LocalizingMatrix(const Context& context, size_t level, OperatorSequence&& word,
+                         Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional)
+            : LocalizingMatrix(context, LocalizingMatrixIndex{level, std::move(word)}, mt_policy) { }
 
         LocalizingMatrix(LocalizingMatrix&& rhs) = default;
 

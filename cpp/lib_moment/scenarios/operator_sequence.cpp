@@ -15,16 +15,16 @@ namespace Moment {
 
 
     std::ostream& operator<<(std::ostream &os, const OperatorSequence &seq) {
-        os << seq.context.format_sequence(seq);
+        os << seq.context->format_sequence(seq);
         return os;
     }
 
     std::string OperatorSequence::formatted_string() const {
-        return this->context.format_sequence(*this);
+        return this->context->format_sequence(*this);
     }
 
     OperatorSequence::OperatorSequence(sequence_storage_t operators, const Context &context, const bool negated) noexcept
-        : HashedSequence(std::move(operators), context.hash(operators)), context{context}, is_negated{negated}
+        : HashedSequence(std::move(operators), context.hash(operators)), context{&context}, is_negated{negated}
     {
         this->to_canonical_form();
     }
@@ -32,7 +32,7 @@ namespace Moment {
 
     void OperatorSequence::to_canonical_form() noexcept {
         // Contextual simplifications
-        bool simplify_to_zero = this->context.additional_simplification(this->operators, this->is_negated);
+        bool simplify_to_zero = this->context->additional_simplification(this->operators, this->is_negated);
         if (simplify_to_zero) {
             this->operators.clear();
             this->the_hash = 0;
@@ -40,11 +40,11 @@ namespace Moment {
             return;
         }
         // Rehash sequence
-        this->the_hash = this->context.hash(*this);
+        this->the_hash = this->context->hash(*this);
     }
 
     OperatorSequence OperatorSequence::conjugate() const {
-        return this->context.conjugate(*this);
+        return this->context->conjugate(*this);
     }
 
     int OperatorSequence::compare_same_negation(const OperatorSequence &lhs, const OperatorSequence &rhs) {

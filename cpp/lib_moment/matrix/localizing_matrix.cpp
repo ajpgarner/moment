@@ -15,7 +15,9 @@ namespace Moment {
     namespace {
 
         std::unique_ptr<OperatorMatrix::OpSeqMatrix>
-        generate_localizing_matrix_sequences(const Context& context, size_t level, const OperatorSequence& word) {
+        generate_localizing_matrix_sequences(const Context& context, size_t level,
+                                             const OperatorSequence& word,
+                                             Multithreading::MultiThreadPolicy mt_policy) {
             // Prepare generator of symbols
             const OperatorSequenceGenerator& colGen = context.operator_sequence_generator(level);
             const OperatorSequenceGenerator& rowGen = context.operator_sequence_generator(level, true);
@@ -42,9 +44,10 @@ namespace Moment {
     }
 
 
-    LocalizingMatrix::LocalizingMatrix(const Context& context, LocalizingMatrixIndex lmi)
+    LocalizingMatrix::LocalizingMatrix(const Context& context, LocalizingMatrixIndex lmi,
+                                       Multithreading::MultiThreadPolicy mt_policy)
         : OperatorMatrix{assert_context(context, lmi),
-                         generate_localizing_matrix_sequences(context, lmi.Level, lmi.Word)},
+                         generate_localizing_matrix_sequences(context, lmi.Level, lmi.Word, mt_policy)},
           Index{std::move(lmi)} {
 
     }

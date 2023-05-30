@@ -50,7 +50,9 @@ namespace Moment {
         return *matrices[index];
     }
 
-    std::pair<size_t, class Matrix&> MatrixSystem::create_moment_matrix(size_t level) {
+    std::pair<size_t, class Matrix&>
+    MatrixSystem::create_moment_matrix(const size_t level,
+                                       const Multithreading::MultiThreadPolicy mt_policy) {
         // Call for write lock...
         auto lock = this->get_write_lock();
 
@@ -67,7 +69,7 @@ namespace Moment {
 
         // Generate new moment matrix
         auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
-        this->matrices.emplace_back(this->createNewMomentMatrix(level));
+        this->matrices.emplace_back(this->createNewMomentMatrix(level, mt_policy));
         this->momentMatrixIndices[level] = matrixIndex;
 
         auto& output = *this->matrices[matrixIndex];
@@ -92,7 +94,8 @@ namespace Moment {
     }
 
     std::pair<size_t, class Matrix&>
-    MatrixSystem::create_localizing_matrix(const LocalizingMatrixIndex& lmi) {
+    MatrixSystem::create_localizing_matrix(const LocalizingMatrixIndex& lmi,
+                                           const Multithreading::MultiThreadPolicy mt_policy) {
         // Call for write lock...
         auto lock = this->get_write_lock();
 
@@ -104,7 +107,7 @@ namespace Moment {
 
         // Otherwise,generate new localizing matrix, and insert index
         auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
-        this->matrices.emplace_back(this->createNewLocalizingMatrix(lmi));
+        this->matrices.emplace_back(this->createNewLocalizingMatrix(lmi, mt_policy));
         this->localizingMatrixIndices.emplace(std::make_pair(lmi, matrixIndex));
 
         // Get reference to new matrix, and call derived classes...
@@ -145,14 +148,17 @@ namespace Moment {
         return where->second;
     }
 
-    std::unique_ptr<class Matrix> MatrixSystem::createNewMomentMatrix(const size_t level) {
-        auto operator_matrix = std::make_unique<class MomentMatrix>(*this->context, level);
+    std::unique_ptr<class Matrix>
+    MatrixSystem::createNewMomentMatrix(const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
+        auto operator_matrix = std::make_unique<class MomentMatrix>(*this->context, level, mt_policy);
         return std::make_unique<MonomialMatrix>(*this->symbol_table, std::move(operator_matrix));
     }
 
 
-    std::unique_ptr<class Matrix> MatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi) {
-        auto operator_matrix = std::make_unique<class LocalizingMatrix>(*this->context, lmi);
+    std::unique_ptr<class Matrix>
+    MatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi,
+                                            const Multithreading::MultiThreadPolicy mt_policy) {
+        auto operator_matrix = std::make_unique<class LocalizingMatrix>(*this->context, lmi, mt_policy);
         return std::make_unique<MonomialMatrix>(*this->symbol_table, std::move(operator_matrix));
     }
 

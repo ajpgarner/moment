@@ -48,7 +48,7 @@ namespace Moment::mex::functions {
             ss << Moment::version::PROJECT_COPYRIGHT << "\n";
 
             if (this->debug) {
-                ss << "Maximum worker threads: " << get_max_worker_threads() << "\n";
+                ss << "Maximum worker threads: " << Multithreading::get_max_worker_threads() << "\n";
             }
 
             ss << "\n";

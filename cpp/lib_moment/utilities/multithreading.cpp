@@ -26,7 +26,7 @@
 #include <algorithm>
 
 
-namespace Moment {
+namespace Moment::Multithreading {
 
     namespace {
 
@@ -65,6 +65,30 @@ namespace Moment {
     size_t get_max_worker_threads() {
         static auto OS_cores = os_core_reporting();
         return std::min(OS_cores, worker_thread_limit);
+    }
+
+    bool should_multithread_matrix_creation(MultiThreadPolicy policy, size_t elements) {
+        switch (policy) {
+            case MultiThreadPolicy::Never:
+                return false;
+            case MultiThreadPolicy::Always:
+                return true;
+            case MultiThreadPolicy::Optional:
+            default:
+                return elements >= minimum_matrix_element_count;
+        }
+    }
+
+    bool should_multithread_osg(MultiThreadPolicy policy, size_t potential_elements) {
+        switch (policy) {
+            case MultiThreadPolicy::Never:
+                return false;
+            case MultiThreadPolicy::Always:
+                return true;
+            case MultiThreadPolicy::Optional:
+            default:
+                return potential_elements >= minimum_osg_element_count;
+        }
     }
 
 }

@@ -16,7 +16,8 @@ extended_matrix = triangle.MakeExtendedMomentMatrix(moment_matrix_level);
 %% Apply values
 distribution = make_distribution(0.9);
 symbol_assignments = triangle.GetAssignments(distribution);
-substitutions = MomentRuleBook.ScalarSubstitutionCell(triangle, symbol_assignments);
+substitutions = MomentRuleBook(triangle);
+substitutions.AddScalarSubstitutionCell(symbol_assignments);
 subbed_matrix = substitutions.Apply(extended_matrix);
 
 %% Define and solve SDP

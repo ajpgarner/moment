@@ -8,6 +8,8 @@
 
 #include "operator_matrix.h"
 
+#include "utilities/multithreading.h"
+
 #include <optional>
 #include <stdexcept>
 
@@ -34,10 +36,11 @@ namespace Moment {
         /**
          * Constructs a moment matrix at the requested hierarchy depth (level) for the supplied context.
          * @param context The setting/scenario.
-         * @param symbols Source of existing symbols, sink for any new symbols first appearing in the matrix.
          * @param level The hierarchy depth.
+         * @param mt_policy Whether or not to use multi-threaded creation.
          */
-        MomentMatrix(const Context& context, size_t level);
+        MomentMatrix(const Context& context, size_t level,
+                     Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
         MomentMatrix(const MomentMatrix&) = delete;
 
