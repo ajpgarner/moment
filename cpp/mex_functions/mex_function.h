@@ -12,7 +12,7 @@
 #include <set>
 #include <utility>
 
-#include "functions/function_list.h"
+#include "function_list.h"
 #include "utilities/io_parameters.h"
 
 namespace matlab::engine {

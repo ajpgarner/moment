@@ -1,5 +1,5 @@
 /**
- * extend_matrix.cpp
+ * extended_matrix.cpp
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner

@@ -1,5 +1,5 @@
 /**
- * apply_momnet_rules.h
+ * apply_moment_rules.h
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner

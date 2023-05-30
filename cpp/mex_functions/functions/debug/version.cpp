@@ -6,7 +6,9 @@
  */
 #include "version.h"
 
-#include "../utilities/reporting.h"
+#include "utilities/reporting.h"
+
+#include "integer_types.h"
 
 #include <sstream>
 
@@ -19,16 +21,18 @@ namespace Moment::mex::functions {
         this->flag_names.emplace(u"structured");
 
         // DEBUG for mutual exclusion
-        this->flag_names.emplace(u"foo");
-        this->flag_names.emplace(u"bar");
-        this->param_names.emplace(u"cake");
-        this->mutex_params.add_mutex(u"bar", u"foo");
-        this->mutex_params.add_mutex(u"foo", u"cake");
+        if constexpr(debug_mode) {
+            this->flag_names.emplace(u"foo");
+            this->flag_names.emplace(u"bar");
+            this->param_names.emplace(u"cake");
+            this->mutex_params.add_mutex(u"bar", u"foo");
+            this->mutex_params.add_mutex(u"foo", u"cake");
 
-        this->flag_names.emplace(u"alice");
-        this->flag_names.emplace(u"bob");
-        this->flag_names.emplace(u"charlie");
-        this->mutex_params.add_mutex({u"alice", u"bob", u"charlie"});
+            this->flag_names.emplace(u"alice");
+            this->flag_names.emplace(u"bob");
+            this->flag_names.emplace(u"charlie");
+            this->mutex_params.add_mutex({u"alice", u"bob", u"charlie"});
+        }
     }
 
     void Version::operator()(IOArgumentRange output, std::unique_ptr<SortedInputs> inputPtr) {

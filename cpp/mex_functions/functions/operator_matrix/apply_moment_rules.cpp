@@ -1,5 +1,5 @@
 /**
- * apply_values.cpp
+ * apply_moment_rules.cpp
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner

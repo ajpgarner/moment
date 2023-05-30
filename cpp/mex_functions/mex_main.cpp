@@ -9,8 +9,8 @@
 #include "utilities/reporting.h"
 #include "utilities/read_as_string.h"
 
+#include "function_list.h"
 #include "mex_function.h"
-#include "functions/function_list.h"
 
 #include "utilities/utf_conversion.h"
 

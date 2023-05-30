@@ -8,6 +8,7 @@ include_directories(${Moment_SOURCE_DIR}/cpp/mex_functions)
 matlab_add_mex(NAME moment_mex
         SRC
             environmental_variables.cpp
+            function_list.cpp
             mex_entry.cpp
             mex_function.cpp
             mex_main.cpp
@@ -41,27 +42,14 @@ matlab_add_mex(NAME moment_mex
             utilities/reflection.cpp
             utilities/reporting.cpp
             functions/alphabetic_name.cpp
-            functions/apply_moment_rules.cpp
             functions/collins_gisin.cpp
             functions/complete.cpp
             functions/conjugate.cpp
             functions/create_moment_rules.cpp
-            functions/echo.cpp
-            functions/extended_matrix.cpp
             functions/import_matrix.cpp
-            functions/function_list.cpp
             functions/generate_basis.cpp
-            functions/list.cpp
-            functions/localizing_matrix.cpp
             functions/make_explicit.cpp
             functions/make_representation.cpp
-            functions/moment_matrix.cpp
-            functions/new_algebraic_matrix_system.cpp
-            functions/new_imported_matrix_system.cpp
-            functions/new_inflation_matrix_system.cpp
-            functions/new_locality_matrix_system.cpp
-            functions/new_symmetrized_matrix_system.cpp
-            functions/operator_matrix.cpp
             functions/probability_table.cpp
             functions/release.cpp
             functions/rules.cpp
@@ -70,8 +58,20 @@ matlab_add_mex(NAME moment_mex
             functions/suggest_extensions.cpp
             functions/symbol_table.cpp
             functions/transform_symbols.cpp
-            functions/version.cpp
             functions/word_list.cpp
+            functions/debug/echo.cpp
+            functions/debug/list.cpp
+            functions/debug/version.cpp
+            functions/matrix_system/new_algebraic_matrix_system.cpp
+            functions/matrix_system/new_imported_matrix_system.cpp
+            functions/matrix_system/new_inflation_matrix_system.cpp
+            functions/matrix_system/new_locality_matrix_system.cpp
+            functions/matrix_system/new_symmetrized_matrix_system.cpp
+            functions/operator_matrix/apply_moment_rules.cpp
+            functions/operator_matrix/extended_matrix.cpp
+            functions/operator_matrix/localizing_matrix.cpp
+            functions/operator_matrix/moment_matrix.cpp
+            functions/operator_matrix/operator_matrix.cpp
         OUTPUT_NAME mtk
         MODULE
         R2018a)

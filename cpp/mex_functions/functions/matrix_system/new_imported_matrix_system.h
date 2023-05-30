@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "../mex_function.h"
+#include "../../mex_function.h"
 
 #include "integer_types.h"
 
