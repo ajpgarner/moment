@@ -530,8 +530,26 @@ classdef Monomial < Abstract.ComplexObject
                     if obj.Coefficient == -1.0
                         obj.ObjectName = "-" + obj.ObjectName;
                     else
-                        obj.ObjectName = sprintf("%g %s", obj.Coefficient, ...
+                        if ~isreal(obj.Coefficient)
+                            if real(obj.Coefficient) == 0
+                                if imag(obj.Coefficient) == 1
+                                    obj.ObjectName = "i" + obj.ObjectName;
+                                elseif imag(obj.Coefficient) == -1
+                                    obj.ObjectName = "-i" + obj.ObjectName;
+                                else
+                                    obj.ObjectName = sprintf("%gi %s", ...
+                                            imag(obj.Coefficient), ...
+                                            obj.ObjectName);
+                                end
+                            else
+                                obj.ObjectName = sprintf("(%g+%gi) %s", ...
+                                    real(obj.Coefficient), ...
+                                    imag(obj.Coefficient), obj.ObjectName);
+                            end
+                        else
+                            obj.ObjectName = sprintf("%g %s", obj.Coefficient, ...
                                                           obj.ObjectName);
+                        end
                     end
                 end            
             else
