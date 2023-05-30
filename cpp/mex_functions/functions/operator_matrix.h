@@ -116,9 +116,8 @@ namespace Moment::mex::functions  {
     class OperatorMatrix : public ParameterizedMexFunction<om_param_t, om_entry_id>,
                            public OperatorMatrixVirtualBase {
     protected:
-        OperatorMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage,
-                       std::basic_string<char16_t> name)
-           : ParameterizedMexFunction<om_param_t, om_entry_id>{matlabEngine, storage, std::move(name)},
+        OperatorMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
+           : ParameterizedMexFunction<om_param_t, om_entry_id>{matlabEngine, storage},
              OperatorMatrixVirtualBase{matlabEngine, storage}
         {
             this->min_outputs = 1;
@@ -162,7 +161,7 @@ namespace Moment::mex::functions  {
     class RawOperatorMatrix : public OperatorMatrix<RawOperatorMatrixParams, MEXEntryPointID::OperatorMatrix> {
     public:
         RawOperatorMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
-            : OperatorMatrix(matlabEngine, storage, u"operator_matrix") { }
+            : OperatorMatrix{matlabEngine, storage} { }
 
     protected:
         std::pair<size_t, const Moment::Matrix&>

@@ -73,9 +73,6 @@ namespace Moment::mex::functions {
         /** The numeric ID of the function. */
         const MEXEntryPointID function_id;
 
-        /** The name of the function, as invoked as the first input parameter to mtk. */
-        const std::basic_string<char16_t> function_name;
-
         /**
          * Constructs a function, to be invoked from MATLAB as: mtk(name, args...)
          * @param engine Handle to the MATLAB engine.
@@ -83,8 +80,7 @@ namespace Moment::mex::functions {
          * @param id The numeric ID of the function.
          * @param name The name of the function, as it should be invoked.
          */
-        MexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage,
-                    MEXEntryPointID id, std::basic_string<char16_t> name);
+        MexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage, MEXEntryPointID id);
 
         virtual ~MexFunction();
 
@@ -180,9 +176,8 @@ namespace Moment::mex::functions {
          * @param storage Reference to persistent storage manager.
          * @param name The name of the function, as it should be invoked.
          */
-        ParameterizedMexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage,
-                                 std::basic_string<char16_t> name)
-                 : MexFunction(engine, storage, entry_id, name) { }
+        ParameterizedMexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage)
+                 : MexFunction(engine, storage, entry_id) { }
 
     public:
 

@@ -9,9 +9,8 @@
 #include "environmental_variables.h"
 
 namespace Moment::mex::functions {
-    MexFunction::MexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage,
-            MEXEntryPointID id, std::basic_string<char16_t> name)
-        : matlabEngine(engine), storageManager{storage}, function_id{id}, function_name{std::move(name)} {
+    MexFunction::MexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage, MEXEntryPointID id)
+        : matlabEngine(engine), storageManager{storage}, function_id{id} {
 
         this->settings = std::const_pointer_cast<const EnvironmentalVariables>(storage.Settings.get());
     }

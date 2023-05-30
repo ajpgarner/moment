@@ -19,7 +19,7 @@
 namespace Moment::mex::functions {
 
     MomentMatrix::MomentMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : OperatorMatrix{matlabEngine, storage, u"moment_matrix"} {
+            : OperatorMatrix{matlabEngine, storage} {
         // Either [ref, level] or named version thereof.
         this->param_names.erase(u"index");
         this->param_names.emplace(u"level");

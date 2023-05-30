@@ -399,7 +399,7 @@ namespace Moment::mex::functions {
 
 
     CreateMomentRules::CreateMomentRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : ParameterizedMexFunction(matlabEngine, storage, u"create_moment_rules") {
+            : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = 2;
         this->max_inputs = 2;
 

@@ -154,7 +154,7 @@ namespace Moment::mex::functions {
     }
 
     NewInflationMatrixSystem::NewInflationMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : ParameterizedMexFunction(matlabEngine, storage, u"new_inflation_matrix_system") {
+            : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_outputs = 1;
         this->max_outputs = 2;
 

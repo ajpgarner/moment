@@ -28,7 +28,7 @@ namespace Moment::mex::functions {
     }
 
     MakeRepresentation::MakeRepresentation(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : ParameterizedMexFunction(matlabEngine, storage, u"make_representation") {
+        : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 1;

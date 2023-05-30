@@ -137,7 +137,7 @@ namespace Moment::mex::functions {
 
 
     Complete::Complete(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : ParameterizedMexFunction(matlabEngine, storage, u"complete") {
+        : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_outputs = 1;
         this->max_outputs = 2;
 

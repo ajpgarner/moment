@@ -96,7 +96,7 @@ namespace Moment::mex::functions {
     }
 
     LocalizingMatrix::LocalizingMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : OperatorMatrix{matlabEngine, storage, u"localizing_matrix"} {
+            : OperatorMatrix{matlabEngine, storage} {
         // Either [ref, level, word] or named version thereof.
         this->param_names.erase(u"index");
         this->param_names.emplace(u"level");

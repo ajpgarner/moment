@@ -43,7 +43,7 @@ namespace Moment::mex::functions {
     }
 
     ImportMatrix::ImportMatrix(matlab::engine::MATLABEngine &matlabEngine, Moment::mex::StorageManager &storage)
-        : ParameterizedMexFunction(matlabEngine, storage, u"import_matrix") {
+        : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = this->max_inputs = 2;
         this->min_outputs = this->max_outputs = 1;
         this->flag_names.insert(u"hermitian");

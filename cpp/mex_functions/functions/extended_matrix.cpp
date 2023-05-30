@@ -84,7 +84,7 @@ namespace Moment::mex::functions {
 
 
     ExtendedMatrix::ExtendedMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : OperatorMatrix{matlabEngine, storage, u"extended_matrix"} {
+            : OperatorMatrix{matlabEngine, storage} {
         // Either [ref, level, extensions] or named version thereof.
         this->param_names.erase(u"index");
         this->param_names.emplace(u"level");

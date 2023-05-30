@@ -180,7 +180,7 @@ namespace Moment::mex::functions {
 
     NewAlgebraicMatrixSystem::NewAlgebraicMatrixSystem(matlab::engine::MATLABEngine &matlabEngine,
                                                        StorageManager &storage)
-           : ParameterizedMexFunction(matlabEngine, storage, u"new_algebraic_matrix_system") {
+           : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_outputs = 1;
         this->max_outputs = 1;
 

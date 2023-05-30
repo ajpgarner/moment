@@ -61,7 +61,7 @@ namespace Moment::mex::functions {
     }
 
     List::List(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : ParameterizedMexFunction<ListParams, MEXEntryPointID::List>(matlabEngine, storage, u"list") {
+        : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = 0;
         this->max_inputs = 1;
         this->min_outputs = 0;

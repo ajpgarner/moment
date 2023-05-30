@@ -159,8 +159,10 @@ namespace Moment::mex {
         auto [min, max] = func.NumInputs();
         if ((inputs.inputs.size() > max) || (inputs.inputs.size() < min)) {
 
+            std::string func_name{ UTF16toUTF8Convertor::convert_as_ascii(
+                    functions::which_function_name(func.function_id))};
+
             // Build error message:
-            std::string func_name{ UTF16toUTF8Convertor::convert_as_ascii(func.function_name) };
             std::stringstream ss;
             ss << "Function \"" << func_name << "\" ";
             if (min != max) {
@@ -189,7 +191,7 @@ namespace Moment::mex {
         auto mutex_params = func.check_for_mutex(inputs);
         if (mutex_params.has_value()) {
             std::basic_stringstream<char16_t> bss;
-            bss << u"Invalid argument to function \"" << func.function_name << "\": "
+            bss << u"Invalid argument to function \"" << functions::which_function_name(func.function_id) << "\": "
                 << u"Cannot specify mutually exclusive parameters \"" << mutex_params->first << "\""
                 << " and \"" << mutex_params->second << "\".";
             throw_error(*matlabPtr, errors::mutex_param, bss.str());
@@ -203,7 +205,8 @@ namespace Moment::mex {
         if ((outputs.size() > max) || (outputs.size() < min)) {
 
             // Build error message:
-            std::string func_name{UTF16toUTF8Convertor::convert_as_ascii(func.function_name)};
+            std::string func_name{ UTF16toUTF8Convertor::convert_as_ascii(
+                    functions::which_function_name(func.function_id))};
             std::stringstream ss;
             ss << "Function \"" << func_name << "\" ";
             if (min != max) {
@@ -241,7 +244,7 @@ namespace Moment::mex {
 
         } catch (const errors::BadInput& bie) {
             std::basic_stringstream<char16_t> bss;
-            bss << u"Invalid argument to function \"" << func.function_name << "\": "
+            bss << u"Invalid argument to function \"" << functions::which_function_name(func.function_id) << "\": "
                 << UTF8toUTF16Convertor::convert(bie.what());
             throw_error(*matlabPtr, bie.errCode, bss.str());
         }

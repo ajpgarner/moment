@@ -44,7 +44,7 @@ namespace Moment::mex::functions  {
 
 
     ApplyMomentRules::ApplyMomentRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : OperatorMatrix{matlabEngine, storage, u"apply_moment_rules"} {
+        : OperatorMatrix{matlabEngine, storage} {
         this->param_names.emplace(u"matrix");
         this->param_names.emplace(u"rules");
         this->max_inputs = 3;

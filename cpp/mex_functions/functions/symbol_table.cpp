@@ -105,7 +105,7 @@ namespace Moment::mex::functions {
 
 
     SymbolTable::SymbolTable(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : ParameterizedMexFunction(matlabEngine, storage, u"symbol_table") {
+            : ParameterizedMexFunction{matlabEngine, storage} {
 
         this->min_outputs = 1;
         this->max_outputs = 2;

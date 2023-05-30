@@ -56,7 +56,7 @@ namespace Moment::mex::functions {
     }
 
     GenerateBasis::GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-        : ParameterizedMexFunction(matlabEngine, storage, u"generate_basis") {
+        : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 1;

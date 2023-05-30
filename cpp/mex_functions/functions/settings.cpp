@@ -94,7 +94,7 @@ namespace Moment::mex::functions {
     }
 
     Settings::Settings(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : ParameterizedMexFunction{matlabEngine, storage, u"settings"} {
+        : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = 0;
         this->max_inputs = 1;
         this->flag_names.emplace(u"structured");

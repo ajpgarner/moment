@@ -86,7 +86,7 @@ namespace Moment::mex::functions {
     }
 
     TransformSymbols::TransformSymbols(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : ParameterizedMexFunction(matlabEngine, storage, u"transform_symbols") {
+            : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = 2;
         this->max_inputs = 3;
         this->min_outputs = 1;

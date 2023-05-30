@@ -132,7 +132,7 @@ namespace Moment::mex::functions {
     }
 
     Simplify::Simplify(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : ParameterizedMexFunction(matlabEngine, storage, u"simplify") {
+            : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 1;

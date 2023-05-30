@@ -141,7 +141,7 @@ namespace Moment::mex::functions {
 
 
     MakeExplicit::MakeExplicit(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : ParameterizedMexFunction(matlabEngine, storage, u"make_explicit") {
+        : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = 2;
         this->max_inputs = 3;
         this->min_outputs = 1;
