@@ -52,8 +52,8 @@ classdef Monomial < Abstract.ComplexObject
             obj = obj@Abstract.ComplexObject(setting);
    
             [obj.Operators, obj.Hash] = setting.Simplify(operators);
-            obj.Coefficient = scale;
-           
+            obj.Coefficient = scale; 
+            obj.makeObjectName();
         end        
     end
     
@@ -522,5 +522,21 @@ classdef Monomial < Abstract.ComplexObject
             obj.re_basis_index = 0;
             obj.im_basis_index = 0;
         end
+        
+        function makeObjectName(obj)
+            if ~isempty(obj.Operators)
+                obj.ObjectName = "<" + obj.OperatorString + ">";
+                if obj.Coefficient ~= 1.0
+                    if obj.Coefficient == -1.0
+                        obj.ObjectName = "-" + obj.ObjectName;
+                    else
+                        obj.ObjectName = sprintf("%g %s", obj.Coefficient, ...
+                                                          obj.ObjectName);
+                    end
+                end            
+            else
+                obj.ObjectName = sprintf("%g", obj.Coefficient);
+            end            
+        end            
     end
 end

@@ -13,6 +13,10 @@ classdef ComplexObject < handle
         Scenario % Associated Abstract.Scenario object
     end
     
+    properties(GetAccess = public, SetAccess = protected)
+        ObjectName = "ComplexObject" % User-readable description of object.
+    end
+    
     properties(Dependent, GetAccess = public, SetAccess = private)
         RealCoefficients      % Real coefficients as a vector.
         ImaginaryCoefficients % Imaginary coefficients as a vector.
@@ -60,7 +64,8 @@ classdef ComplexObject < handle
                 if success
                     obj.has_coefs = true;
                 else
-                    error("Could not retrieve real coefficients.");
+                    error("Could not retrieve real coefficients for %s.",...
+                           obj.ObjectName);
                 end
             end
             val = obj.real_coefs;
@@ -75,7 +80,8 @@ classdef ComplexObject < handle
                 if success
                     obj.has_coefs = true;
                 else
-                    error("Could not retrieve imaginary coefficients.");
+                    error("Could not retrieve imaginary coefficients for %s.",...
+                           obj.ObjectName);
                 end
             end
             val = obj.im_coefs;

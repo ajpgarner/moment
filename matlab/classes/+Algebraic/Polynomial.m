@@ -26,6 +26,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 constituents (1,:) Algebraic.Monomial
             end
             obj = obj@Abstract.ComplexObject(setting);
+            obj.ObjectName = "Polynomial";
             
             % Check constituents all belong to correct scenario
             for other = constituents
@@ -33,6 +34,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             end                        
             obj.Constituents = constituents;
             obj.orderAndMerge();
+            obj.makeObjectName();
         end
         
         function val = get.IsZero(obj)
@@ -452,6 +454,25 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             obj.Constituents = nc(nz_mask);
             
             
+        end
+        
+        function makeObjectName(obj)
+        % MAKEOBJECTNAME Create human-readable representation of polynomial.
+            
+            if isempty(obj.Constituents)
+                obj.ObjectName = 'Polynomial "0"';
+                return
+            end
+            obj.ObjectName = 'Polynomial "' + obj.Constituents(1).ObjectName;
+            if length(obj.Constituents) == 1  
+                obj.ObjectName = obj.ObjectName + '"';
+                return;
+            end
+            for idx=2:length(obj.Constituents)
+                obj.ObjectName = obj.ObjectName + " + " ...
+                                 + obj.Constituents(idx).ObjectName;
+            end
+            obj.ObjectName = obj.ObjectName + '"';
         end
     end
 end
