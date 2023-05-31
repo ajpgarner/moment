@@ -1,10 +1,10 @@
 /**
- * new_imported_matrix_system.cpp
+ * imported_matrix_system.cpp
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "new_imported_matrix_system.h"
+#include "imported_matrix_system.h"
 
 #include "storage_manager.h"
 
@@ -12,7 +12,7 @@
 
 namespace Moment::mex::functions {
 
-    NewImportedMatrixSystemParams::NewImportedMatrixSystemParams(SortedInputs &&rawInput)
+    ImportedMatrixSystemParams::ImportedMatrixSystemParams(SortedInputs &&rawInput)
          : SortedInputs(std::move(rawInput)) {
         if (this->flags.contains(u"real")) {
             this->purely_real = true;
@@ -22,8 +22,8 @@ namespace Moment::mex::functions {
 
     }
 
-    NewImportedMatrixSystem::NewImportedMatrixSystem(matlab::engine::MATLABEngine &matlabEngine,
-                                                     StorageManager &storage)
+    ImportedMatrixSystem::ImportedMatrixSystem(matlab::engine::MATLABEngine &matlabEngine,
+                                               StorageManager &storage)
          : ParameterizedMexFunction{matlabEngine, storage}
     {
         this->flag_names.insert(u"real");
@@ -33,7 +33,7 @@ namespace Moment::mex::functions {
         this->min_outputs = this->max_outputs = 1;
     }
 
-    void NewImportedMatrixSystem::operator()(IOArgumentRange output, NewImportedMatrixSystemParams &input) {
+    void ImportedMatrixSystem::operator()(IOArgumentRange output, ImportedMatrixSystemParams &input) {
         // Make new empty system
         std::unique_ptr<MatrixSystem> matrixSystemPtr
             = std::make_unique<Imported::ImportedMatrixSystem>(input.purely_real);

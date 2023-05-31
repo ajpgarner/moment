@@ -2,7 +2,7 @@ classdef ApplyMomentRulesTest < MTKTestBase
     %APPLYVALUESTEST Unit tests for apply_values function
     methods (Test)
         function SimpleSubstitution(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             mm_index = mtk('moment_matrix', ref_id, 1);
             rules_index = mtk('create_moment_rules', ref_id, {{2, 0.5}});
             sub_index = mtk('apply_moment_rules', ref_id, ...
@@ -24,7 +24,7 @@ classdef ApplyMomentRulesTest < MTKTestBase
         end
         
         function MultiSubstitution(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             mm_index = mtk('moment_matrix', ref_id, 1);
             rules_index = mtk('create_moment_rules', ref_id, ...
                               {{2, 0.3}, {3, 0.4}});
@@ -54,7 +54,7 @@ classdef ApplyMomentRulesTest < MTKTestBase
         end
         
         function ZeroSubstitution(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             mm_index = mtk('moment_matrix', ref_id, 1);
             rules_index = mtk('create_moment_rules', ref_id, {{3, 0.0}});
             sub_index = mtk('apply_moment_rules', ref_id, mm_index, rules_index);
@@ -76,7 +76,7 @@ classdef ApplyMomentRulesTest < MTKTestBase
         end     
         
         function FactoredSubstitution(testCase)            
-            ref_id = mtk('new_inflation_matrix_system', [2, 2], {}, 1);
+            ref_id = mtk('inflation_matrix_system', [2, 2], {}, 1);
             mm_index = mtk('moment_matrix', ref_id, 1);
             rules_index = mtk('create_moment_rules', ref_id, {{2, 0.5}});
             sub_index = mtk('apply_moment_rules', ref_id, ...
@@ -96,7 +96,7 @@ classdef ApplyMomentRulesTest < MTKTestBase
         end  
         
         function FactoredZeroSubstitution(testCase)            
-            ref_id = mtk('new_inflation_matrix_system', [2, 2], {}, 1);
+            ref_id = mtk('inflation_matrix_system', [2, 2], {}, 1);
             mm_index = mtk('moment_matrix', ref_id, 1);
             rules_index = mtk('create_moment_rules', ref_id, {{2, 0}});
             sub_index = mtk('apply_moment_rules', ref_id, ...

@@ -1,10 +1,10 @@
-classdef NewInflationMatrixSystemTest < MTKTestBase
+classdef InflationMatrixSystemTest < MTKTestBase
     %NEWINFLATEDMATRIXSYSTEMTESTS Unit tests for new_inflation_matrix_system
     % mex function
     
     methods (Test)
         function PairUninflated(testCase)
-            ref_id = mtk('new_inflation_matrix_system', ...
+            ref_id = mtk('inflation_matrix_system', ...
                 [2 2], {[ 1 2]}, 1);
             testCase.verifyGreaterThan(ref_id, 0);
             
@@ -16,7 +16,7 @@ classdef NewInflationMatrixSystemTest < MTKTestBase
         end
         
         function PairInflated(testCase)
-            ref_id = mtk('new_inflation_matrix_system', ...
+            ref_id = mtk('inflation_matrix_system', ...
                 [2 2], {[ 1 2]}, 2);
             testCase.verifyGreaterThan(ref_id, 0);
             
@@ -28,7 +28,7 @@ classdef NewInflationMatrixSystemTest < MTKTestBase
         end
         
         function PairCV(testCase)
-            ref_id = mtk('new_inflation_matrix_system', ...
+            ref_id = mtk('inflation_matrix_system', ...
                 [0 0], {[ 1 2]}, 1);
             testCase.verifyGreaterThan(ref_id, 0);
             
@@ -43,21 +43,21 @@ classdef NewInflationMatrixSystemTest < MTKTestBase
     methods (Test, TestTags={'Error'})
         function Error_NoInputs(testCase)
             function no_in()
-                ref_id = mtk('new_inflation_matrix_system');
+                ref_id = mtk('inflation_matrix_system');
             end
             testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');
         end
         
         function Error_TooFewInputs(testCase)
             function no_in()
-                ref_id = mtk('new_inflation_matrix_system', [2 2], {[1 2]});
+                ref_id = mtk('inflation_matrix_system', [2 2], {[1 2]});
             end
             testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');
         end
          
         function Error_BadObservable1(testCase)
             function no_in()
-                ref_id = mtk('new_inflation_matrix_system', ...
+                ref_id = mtk('inflation_matrix_system', ...
                             [2 -1], {[1 2]}, 1);
             end
             testCase.verifyError(@() no_in(), 'mtk:negative_value');
@@ -65,7 +65,7 @@ classdef NewInflationMatrixSystemTest < MTKTestBase
         
         function Error_BadObservable2(testCase)
             function no_in()
-                ref_id = mtk('new_inflation_matrix_system', ...
+                ref_id = mtk('inflation_matrix_system', ...
                             ["Bad", "Source"], {[1 2]}, 1);
             end
             testCase.verifyError(@() no_in(), 'mtk:could_not_convert');
@@ -73,7 +73,7 @@ classdef NewInflationMatrixSystemTest < MTKTestBase
          
         function Error_BadSource1(testCase)
             function no_in()
-                ref_id = mtk('new_inflation_matrix_system', ...
+                ref_id = mtk('inflation_matrix_system', ...
                             [2 2], {["Bad"]}, 1);
             end
             testCase.verifyError(@() no_in(), 'mtk:could_not_convert');
@@ -81,7 +81,7 @@ classdef NewInflationMatrixSystemTest < MTKTestBase
       
         function Error_BadSource2(testCase)
             function no_in()
-                ref_id = mtk('new_inflation_matrix_system', ...
+                ref_id = mtk('inflation_matrix_system', ...
                             [2 2], "Bad", 1);
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
@@ -89,7 +89,7 @@ classdef NewInflationMatrixSystemTest < MTKTestBase
         
         function Error_BadSource3(testCase)
             function no_in()
-                ref_id = mtk('new_inflation_matrix_system', ...
+                ref_id = mtk('inflation_matrix_system', ...
                             [2 2], {[1 3]}, 1);
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
@@ -97,7 +97,7 @@ classdef NewInflationMatrixSystemTest < MTKTestBase
         
         function Error_TooManyInputs(testCase)
             function bad_in()
-                ref_id = mtk('new_inflation_matrix_system', ...
+                ref_id = mtk('inflation_matrix_system', ...
                     [2 2], {[ 1 2]}, 1, 1);
             end
             testCase.verifyError(@() bad_in(), 'mtk:too_many_inputs');

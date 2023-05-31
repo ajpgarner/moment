@@ -1,5 +1,5 @@
 /**
- * new_algebraic_matrix_system.h
+ * algebraic_matrix_system.h
  * 
  * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -20,7 +20,7 @@ namespace Moment::Algebraic {
 
 namespace Moment::mex::functions {
 
-    class NewAlgebraicMatrixSystemParams : public SortedInputs {
+    class AlgebraicMatrixSystemParams : public SortedInputs {
         public:
             size_t total_operators = 0;
             size_t complete_attempts = 0;
@@ -34,9 +34,9 @@ namespace Moment::mex::functions {
             std::unique_ptr<Algebraic::NameTable> names;
 
     public:
-            explicit NewAlgebraicMatrixSystemParams(SortedInputs &&rawInput);
+            explicit AlgebraicMatrixSystemParams(SortedInputs &&rawInput);
 
-            ~NewAlgebraicMatrixSystemParams();
+            ~AlgebraicMatrixSystemParams();
 
     private:
         void getFromParams(matlab::engine::MATLABEngine &matlabEngine);
@@ -48,13 +48,13 @@ namespace Moment::mex::functions {
 
     };
 
-    class NewAlgebraicMatrixSystem
-        : public ParameterizedMexFunction<NewAlgebraicMatrixSystemParams, MEXEntryPointID::NewAlgebraicMatrixSystem> {
+    class AlgebraicMatrixSystem
+        : public ParameterizedMexFunction<AlgebraicMatrixSystemParams, MEXEntryPointID::AlgebraicMatrixSystem> {
     public:
-        explicit NewAlgebraicMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
+        explicit AlgebraicMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 
     protected:
-        void operator()(IOArgumentRange output, NewAlgebraicMatrixSystemParams &input) override;
+        void operator()(IOArgumentRange output, AlgebraicMatrixSystemParams &input) override;
 
     };
 

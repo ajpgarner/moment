@@ -3,7 +3,7 @@ classdef SimplifyTest < MTKTestBase
     
     methods (Test)
         function Identity(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2);
+            ms_id = mtk('algebraic_matrix_system', 2);
             input = uint64.empty(1,0);
             output = mtk('simplify', ms_id, input);
             expected = uint64.empty(1,0);
@@ -11,7 +11,7 @@ classdef SimplifyTest < MTKTestBase
         end
         
         function FundamentalOperator(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2);
+            ms_id = mtk('algebraic_matrix_system', 2);
             input = uint64([2]);
             output = mtk('simplify', ms_id, input);
             expected = uint64([2]);
@@ -19,7 +19,7 @@ classdef SimplifyTest < MTKTestBase
         end
         
         function SimpleString(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2);
+            ms_id = mtk('algebraic_matrix_system', 2);
             input = uint64([1, 2]);
             output = mtk('simplify', ms_id, input);
             expected = uint64([1, 2]);
@@ -27,7 +27,7 @@ classdef SimplifyTest < MTKTestBase
         end
         
         function StringWithRewrite(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2, 'nonhermitian', ...
+            ms_id = mtk('algebraic_matrix_system', 2, 'nonhermitian', ...
                         {{[1, 1], [2]}}, 'quiet');
             input = uint64([1, 1, 2]);
             output = mtk('simplify', ms_id, input);
@@ -36,7 +36,7 @@ classdef SimplifyTest < MTKTestBase
         end
         
         function EchoNamed(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', ["A", "B"]);
+            ms_id = mtk('algebraic_matrix_system', ["A", "B"]);
             input = ["A"];
             output = mtk('simplify', ms_id, input);
             expected = uint64([1]);
@@ -44,7 +44,7 @@ classdef SimplifyTest < MTKTestBase
         end
         
         function NamedWithRewrite(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', ["A", "B"], 'nonhermitian', ...
+            ms_id = mtk('algebraic_matrix_system', ["A", "B"], 'nonhermitian', ...
                         {{["A", "A"], ["B"]}}, 'quiet');
             input = ["A", "A"];
             output = mtk('simplify', ms_id, input);
@@ -54,7 +54,7 @@ classdef SimplifyTest < MTKTestBase
         
              
         function  WithHash(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2);
+            ms_id = mtk('algebraic_matrix_system', 2);
             input = uint64([2]);
             [output, output_hash] = mtk('simplify', ms_id, input);
             expected = uint64([2]);
@@ -73,7 +73,7 @@ classdef SimplifyTest < MTKTestBase
         
         function Error_TooFewInputs(testCase)
             function no_in()
-                ms_id = mtk('new_algebraic_matrix_system', 2);
+                ms_id = mtk('algebraic_matrix_system', 2);
                 [~] = mtk('simplify', ms_id);
             end
             testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');
@@ -81,7 +81,7 @@ classdef SimplifyTest < MTKTestBase
         
         function Error_BadMS(testCase)
             function no_in()
-                ms_id = mtk('new_algebraic_matrix_system', 2);
+                ms_id = mtk('algebraic_matrix_system', 2);
                 [~] = mtk('simplify', ms_id+1, [1 2]);
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
@@ -89,7 +89,7 @@ classdef SimplifyTest < MTKTestBase
         
          function Error_BadOperators(testCase)
             function no_in()
-                ms_id = mtk('new_algebraic_matrix_system', 2);
+                ms_id = mtk('algebraic_matrix_system', 2);
                 [~] = mtk('simplify', ms_id, [3 3]);
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
@@ -98,7 +98,7 @@ classdef SimplifyTest < MTKTestBase
          
          function Error_BadNamedOperators(testCase)
             function no_in()
-                ms_id = mtk('new_algebraic_matrix_system', ["A", "B"]);
+                ms_id = mtk('algebraic_matrix_system', ["A", "B"]);
                 [~] = mtk('simplify', ms_id, ["A", "C"]);
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');

@@ -2,7 +2,7 @@ classdef CreateMomentRulesTest < MTKTestBase
     %APPLYVALUESTEST Unit tests for apply_values function
     methods (Test)
         function SubList_Empty(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             [rules_index, rules] = mtk('create_moment_rules', ref_id, {});
             testCase.verifyEqual(rules_index, uint64(0));
@@ -13,7 +13,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         end
         
         function SubList_Simple(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             [rules_index, rules] = mtk('create_moment_rules', ...
                                        ref_id, {{2, 0.5}});
@@ -24,7 +24,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         end
         
         function SubList_Multi(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             [rules_index, rules] = mtk('create_moment_rules', ref_id, ...
                                        {{2, 0.3}, {3, 0.4}});
@@ -36,7 +36,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         end
         
           function Symbols_Empty(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             [rules_index, rules] = mtk('create_moment_rules', ref_id, 'symbols', {});
             testCase.verifyEqual(rules_index, uint64(0));
@@ -44,7 +44,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         end
         
         function Symbols_Simple(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             [rules_index, rules] = mtk('create_moment_rules', 'symbols',...
                                        ref_id, {{{2, -1.0}, {1, 0.5}}});
@@ -55,7 +55,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         end
         
         function Symbols_Multi(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             [rules_index, rules] = mtk('create_moment_rules', 'symbols',... 
                                        ref_id, ...
@@ -69,7 +69,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         end
                 
         function Symbols_Chain(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             [rules_index, rules] = mtk('create_moment_rules', 'symbols',...
                                        ref_id, ...
@@ -83,7 +83,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         end
         
         function OpSeq_Existing_Empty(testCase)
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             [rules_index, rules] = mtk('create_moment_rules', ref_id, ...
                                        'sequences', 'no_new_symbols', {});
@@ -92,7 +92,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         end
         
          function OpSeq_Existing_Simple(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             [rules_index, rules] = mtk('create_moment_rules', ref_id, ...
                                        'sequences', 'no_new_symbols', ...
@@ -105,7 +105,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         
          
         function OpSeq_Existing_Chain(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             [rules_index, rules] = mtk('create_moment_rules', ref_id, ...
                                        'sequences', 'no_new_symbols', ...
@@ -120,7 +120,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         
         
         function OpSeq_NewSymbols_Empty(testCase)
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             old_symbols = mtk('symbol_table', ref_id);
             testCase.verifyEqual(length(old_symbols), 2);
             [rules_index, rules] = mtk('create_moment_rules', ref_id, ...
@@ -132,7 +132,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         end
         
          function OpSeq_NewSymbols_Simple(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             old_symbols = mtk('symbol_table', ref_id);
             testCase.verifyEqual(length(old_symbols), 2);
             [rules_index, rules] = mtk('create_moment_rules', ref_id, ...
@@ -151,7 +151,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         
          
         function OpSeq_NewSymbols_Chain(testCase)            
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             old_symbols = mtk('symbol_table', ref_id);
             testCase.verifyEqual(length(old_symbols), 2);
             [rules_index, rules] = mtk('create_moment_rules', ref_id, ...
@@ -168,7 +168,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         end
         
         function AppendRules_NoClash(testCase)
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             [rules_index, ~] = mtk('create_moment_rules', ref_id, ...
                                        {{2, 0.3}});
@@ -195,7 +195,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         
         function Error_TooManyInputs(testCase)
             function bad_call()
-                ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+                ref_id = mtk('locality_matrix_system', 2, 2, 2);
                 [~, ~] = mtk('create_moment_rules', ref_id, ref_id, ref_id);
             end
             testCase.verifyError(@() bad_call(), 'mtk:too_many_inputs');
@@ -203,7 +203,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         
         function Error_BadMatrixSystem(testCase)
             function bad_call()
-                ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+                ref_id = mtk('locality_matrix_system', 2, 2, 2);
                 [~, ~] = mtk('create_moment_rules', ref_id+1, {});
             end
             testCase.verifyError(@() bad_call(), 'mtk:bad_param');
@@ -211,7 +211,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         
         function Error_SymbolNotFound_SubList(testCase)
             function bad_call()
-                ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+                ref_id = mtk('locality_matrix_system', 2, 2, 2);
                 [~, ~] = mtk('create_moment_rules', ref_id, {{100, 1.0}});
             end
             testCase.verifyError(@() bad_call(), 'mtk:bad_param');
@@ -219,7 +219,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         
         function Error_SymbolNotFound_SymbolPolynomial(testCase)
             function bad_call()
-                ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+                ref_id = mtk('locality_matrix_system', 2, 2, 2);
                 [~, ~] = mtk('create_moment_rules', ref_id, 'symbols', ...
                              {{{100, 1.0}}});
             end
@@ -228,7 +228,7 @@ classdef CreateMomentRulesTest < MTKTestBase
         
         function Error_SymbolNotFound_SequenceNoCreate(testCase)
             function bad_call()
-                ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+                ref_id = mtk('locality_matrix_system', 2, 2, 2);
                 [~, ~] = mtk('create_moment_rules', ref_id, ...
                              'sequences', 'no_new_symbols', ...
                              {{{[1 2], 1.0}}});

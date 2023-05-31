@@ -3,7 +3,7 @@ classdef ConjugateTest < MTKTestBase
     
     methods (Test)
         function Identity(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2);
+            ms_id = mtk('algebraic_matrix_system', 2);
             input = uint64.empty(1,0);
             output = mtk('conjugate', ms_id, input);
             expected = uint64.empty(1,0);
@@ -11,7 +11,7 @@ classdef ConjugateTest < MTKTestBase
         end
         
         function FundamentalOperator(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2);
+            ms_id = mtk('algebraic_matrix_system', 2);
             input = uint64([2]);
             output = mtk('conjugate', ms_id, input);
             expected = uint64([2]);
@@ -19,7 +19,7 @@ classdef ConjugateTest < MTKTestBase
         end
         
         function SimpleString(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2);
+            ms_id = mtk('algebraic_matrix_system', 2);
             input = uint64([1, 2]);
             output = mtk('conjugate', ms_id, input);
             expected = uint64([2, 1]);
@@ -27,7 +27,7 @@ classdef ConjugateTest < MTKTestBase
         end
         
         function NonHermitianSystem(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2, 'nonhermitian');
+            ms_id = mtk('algebraic_matrix_system', 2, 'nonhermitian');
             input = uint64([1, 2]);
             output = mtk('conjugate', ms_id, input);
             expected = uint64([4, 3]);
@@ -35,7 +35,7 @@ classdef ConjugateTest < MTKTestBase
         end
         
          function WithHash(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2, 'nonhermitian');
+            ms_id = mtk('algebraic_matrix_system', 2, 'nonhermitian');
             input = uint64([1, 2]);
             [output, output_hash] = mtk('conjugate', ms_id, input);
             expected = uint64([4, 3]);
@@ -55,7 +55,7 @@ classdef ConjugateTest < MTKTestBase
         
         function Error_TooFewInputs(testCase)
             function no_in()
-                ms_id = mtk('new_algebraic_matrix_system', 2);
+                ms_id = mtk('algebraic_matrix_system', 2);
                 [~] = mtk('conjugate', ms_id);
             end
             testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');
@@ -63,7 +63,7 @@ classdef ConjugateTest < MTKTestBase
         
         function Error_BadMS(testCase)
             function no_in()
-                ms_id = mtk('new_algebraic_matrix_system', 2);
+                ms_id = mtk('algebraic_matrix_system', 2);
                 [~] = mtk('conjugate', ms_id+1, [1 2]);
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');

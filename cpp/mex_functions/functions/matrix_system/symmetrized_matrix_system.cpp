@@ -1,10 +1,10 @@
 /**
- * add_symmetry.cpp
+ * symmetrized_matrix_system.cpp
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "new_symmetrized_matrix_system.h"
+#include "symmetrized_matrix_system.h"
 
 #include "storage_manager.h"
 
@@ -20,7 +20,7 @@
 
 namespace Moment::mex::functions {
 
-    NewSymmetrizedMatrixSystemParams::NewSymmetrizedMatrixSystemParams(SortedInputs&& raw_inputs)
+    SymmetrizedMatrixSystemParams::SymmetrizedMatrixSystemParams(SortedInputs&& raw_inputs)
         : SortedInputs(std::move(raw_inputs)) {
         // Get matrix system ID
         this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "Reference id", this->inputs[0], 0);
@@ -97,7 +97,7 @@ namespace Moment::mex::functions {
 
     }
 
-    NewSymmetrizedMatrixSystem::NewSymmetrizedMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
+    SymmetrizedMatrixSystem::SymmetrizedMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
          : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = 2;
         this->max_inputs = 3;
@@ -107,10 +107,7 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"max_subgroup");
     }
 
-    void NewSymmetrizedMatrixSystem::operator()(IOArgumentRange output, NewSymmetrizedMatrixSystemParams &input) {
-
-        using namespace Moment::Symmetrized;
-
+    void SymmetrizedMatrixSystem::operator()(IOArgumentRange output, SymmetrizedMatrixSystemParams &input) {
         // Get matrix system:
         auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
         assert(msPtr); // ^- above should throw if absent
@@ -131,9 +128,9 @@ namespace Moment::mex::functions {
             print_to_console(matlabEngine, ss.str());
         }
 
-        std::vector<repmat_t> group_elements = (input.max_subgroup > 0)
-                                             ? Group::dimino_generation(generators, input.max_subgroup)
-                                             : Group::dimino_generation(generators);
+        std::vector<Symmetrized::repmat_t> group_elements = (input.max_subgroup > 0)
+                                             ? Symmetrized::Group::dimino_generation(generators, input.max_subgroup)
+                                             : Symmetrized::Group::dimino_generation(generators);
 
         // Export expanded matrices, if requested
         if (output.size() >= 2) {
@@ -141,10 +138,10 @@ namespace Moment::mex::functions {
             output[1] = export_eigen_sparse_array(matlabEngine, factory, group_elements);
         }
 
-        std::unique_ptr<Representation> rep = std::make_unique<Representation>(1, std::move(group_elements));
-        std::unique_ptr<Group> groupPtr;
+        auto repPtr = std::make_unique<Symmetrized::Representation>(1, std::move(group_elements));
+        std::unique_ptr<Symmetrized::Group> groupPtr;
         try {
-            groupPtr = std::make_unique<Group>(matrixSystem.Context(), std::move(rep));
+            groupPtr = std::make_unique<Symmetrized::Group>(matrixSystem.Context(), std::move(repPtr));
         } catch (std::runtime_error& rte) {
             std::stringstream errSS;
             errSS << "Error creating symmetry group: " << rte.what();
@@ -173,13 +170,13 @@ namespace Moment::mex::functions {
 
         // Now, create new matrix system with group
         std::unique_ptr<MatrixSystem> smsPtr =
-                std::make_unique<SymmetrizedMatrixSystem>(std::move(msPtr), std::move(groupPtr),
+                std::make_unique<Symmetrized::SymmetrizedMatrixSystem>(std::move(msPtr), std::move(groupPtr),
                                                           input.max_word_length,
                                                           std::make_unique<Derived::LUMapCoreProcessor>());
         // Print map information
         if (verbose) {
             print_to_console(this->matlabEngine,
-                             dynamic_cast<SymmetrizedMatrixSystem&>(*smsPtr).describe_map());
+                             dynamic_cast<Symmetrized::SymmetrizedMatrixSystem&>(*smsPtr).describe_map());
         }
 
         // Store matrix system (makes visible to other threads!)
@@ -192,7 +189,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    void NewSymmetrizedMatrixSystem::extra_input_checks(NewSymmetrizedMatrixSystemParams &input) const {
+    void SymmetrizedMatrixSystem::extra_input_checks(SymmetrizedMatrixSystemParams &input) const {
         if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
             throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
         }

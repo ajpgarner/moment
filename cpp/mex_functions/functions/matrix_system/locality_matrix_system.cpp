@@ -1,10 +1,10 @@
 /**
- * new_matrix_system.cpp
+ * locality_matrix_system.cpp
  * 
  * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "new_locality_matrix_system.h"
+#include "locality_matrix_system.h"
 
 #include "storage_manager.h"
 
@@ -22,14 +22,14 @@
 namespace Moment::mex::functions {
     namespace {
         std::unique_ptr<Locality::LocalityContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
-                                                                const NewLocalityMatrixSystemParams &input) {
+                                                                const LocalityMatrixSystemParams &input) {
             return std::make_unique<Locality::LocalityContext>(
                     Locality::Party::MakeList(input.mmts_per_party, input.outcomes_per_mmt)
             );
         }
     }
 
-    NewLocalityMatrixSystemParams::NewLocalityMatrixSystemParams(SortedInputs &&rawInput)
+    LocalityMatrixSystemParams::LocalityMatrixSystemParams(SortedInputs &&rawInput)
             : SortedInputs(std::move(rawInput)) {
 
         // Either set named params OR give multiple params
@@ -51,7 +51,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    void NewLocalityMatrixSystemParams::getFromParams() {
+    void LocalityMatrixSystemParams::getFromParams() {
         // Read and check number of parties, or default to 1
         auto party_param = params.find(u"parties");
         if (party_param != params.end()) {
@@ -81,7 +81,7 @@ namespace Moment::mex::functions {
     }
 
 
-    void NewLocalityMatrixSystemParams::getFromInputs() {
+    void LocalityMatrixSystemParams::getFromInputs() {
         if (inputs.size() < 2) {
             std::string errStr{"Please supply either named inputs; or a list of integers in the form"};
             errStr += " \"number of parties, number of outcomes\",";
@@ -105,8 +105,8 @@ namespace Moment::mex::functions {
         }
     }
 
-    void NewLocalityMatrixSystemParams::readMeasurementSpecification(matlab::data::Array &input,
-                                                                     const std::string& paramName) {
+    void LocalityMatrixSystemParams::readMeasurementSpecification(matlab::data::Array &input,
+                                                                  const std::string& paramName) {
 
         const size_t num_elems = input.getNumberOfElements();
         if (1 == num_elems) {
@@ -125,8 +125,8 @@ namespace Moment::mex::functions {
 
     }
 
-    void NewLocalityMatrixSystemParams::readOutcomeSpecification(matlab::data::Array &input,
-                                                                 const std::string& paramName) {
+    void LocalityMatrixSystemParams::readOutcomeSpecification(matlab::data::Array &input,
+                                                              const std::string& paramName) {
 
         const size_t num_elems = input.getNumberOfElements();
         if (1 == num_elems) {
@@ -148,7 +148,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    NewLocalityMatrixSystem::NewLocalityMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
+    LocalityMatrixSystem::LocalityMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
             : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_outputs = 1;
         this->max_outputs = 1;
@@ -161,11 +161,9 @@ namespace Moment::mex::functions {
         this->max_inputs = 3;
     }
 
-    void NewLocalityMatrixSystem::operator()(IOArgumentRange output, NewLocalityMatrixSystemParams &input) {
-        using namespace Locality;
-
+    void LocalityMatrixSystem::operator()(IOArgumentRange output, LocalityMatrixSystemParams &input) {
         // Input to context:
-        std::unique_ptr<LocalityContext> contextPtr{make_context(this->matlabEngine, input)};
+        std::unique_ptr<Locality::LocalityContext> contextPtr{make_context(this->matlabEngine, input)};
         if (!contextPtr) {
             throw_error(this->matlabEngine, errors::internal_error, "Context object could not be created.");
         }
@@ -179,7 +177,8 @@ namespace Moment::mex::functions {
         }
 
         // Make new system around context
-        std::unique_ptr<MatrixSystem> matrixSystemPtr = std::make_unique<LocalityMatrixSystem>(std::move(contextPtr));
+        std::unique_ptr<MatrixSystem> matrixSystemPtr
+            = std::make_unique<Locality::LocalityMatrixSystem>(std::move(contextPtr));
 
         // Store context/system
         uint64_t storage_id = this->storageManager.MatrixSystems.store(std::move(matrixSystemPtr));

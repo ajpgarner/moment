@@ -1,10 +1,10 @@
 /**
- * new_inflation_matrix_system.cpp
+ * inflation_matrix_system.cpp
  * 
  * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "new_inflation_matrix_system.h"
+#include "inflation_matrix_system.h"
 
 #include "scenarios/inflation/inflation_context.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
@@ -21,7 +21,7 @@
 namespace Moment::mex::functions {
     namespace {
         std::unique_ptr<Inflation::InflationContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
-                                                                  NewInflationMatrixSystemParams &input) {
+                                                                  InflationMatrixSystemParams &input) {
             return std::make_unique<Inflation::InflationContext>(
                     Inflation::CausalNetwork{input.outcomes_per_observable, std::move(input.source_init_list)},
                     input.inflation_level
@@ -29,7 +29,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    NewInflationMatrixSystemParams::NewInflationMatrixSystemParams(SortedInputs &&rawInput)
+    InflationMatrixSystemParams::InflationMatrixSystemParams(SortedInputs &&rawInput)
             : SortedInputs(std::move(rawInput)) {
 
         // Either set named params OR give multiple params
@@ -53,7 +53,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    void NewInflationMatrixSystemParams::getFromParams() {
+    void InflationMatrixSystemParams::getFromParams() {
         auto obsIter = this->params.find(u"observables");
         if (obsIter == this->params.cend()) {
             throw errors::BadInput{errors::too_few_inputs, "If parameters are set, \"observables\" should be set."};
@@ -78,7 +78,7 @@ namespace Moment::mex::functions {
                                                       inflationIter->second, 1);
     }
 
-    void NewInflationMatrixSystemParams::getFromInputs() {
+    void InflationMatrixSystemParams::getFromInputs() {
         this->outcomes_per_observable = read_positive_integer_array<size_t>(matlabEngine, "Observables",
                                                                             this->inputs[0], 0);
         readSourceCell(this->outcomes_per_observable.size(), this->inputs[1]);
@@ -86,8 +86,8 @@ namespace Moment::mex::functions {
                                                               this->inputs[2], 1);
     }
 
-    void NewInflationMatrixSystemParams::readSourceCell(const size_t num_observables,
-                                                        const matlab::data::Array &input) {
+    void InflationMatrixSystemParams::readSourceCell(const size_t num_observables,
+                                                     const matlab::data::Array &input) {
         if (input.getType() != matlab::data::ArrayType::CELL) {
             throw errors::BadInput{errors::bad_param,
                "Source list should be provided as a cell array of arrays indicating connected observables."};
@@ -111,7 +111,7 @@ namespace Moment::mex::functions {
 
     }
 
-    std::string NewInflationMatrixSystemParams::to_string() const {
+    std::string InflationMatrixSystemParams::to_string() const {
         std::stringstream ss;
         size_t num_observables = this->outcomes_per_observable.size();
         size_t num_sources = this->source_init_list.size();
@@ -153,7 +153,7 @@ namespace Moment::mex::functions {
         return ss.str();
     }
 
-    NewInflationMatrixSystem::NewInflationMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
+    InflationMatrixSystem::InflationMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
             : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_outputs = 1;
         this->max_outputs = 2;
@@ -166,11 +166,9 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"sources");
     }
 
-    void NewInflationMatrixSystem::operator()(IOArgumentRange output, NewInflationMatrixSystemParams &input) {
-        using namespace Inflation;
-
+    void InflationMatrixSystem::operator()(IOArgumentRange output, InflationMatrixSystemParams &input) {
         // Interpret context
-        std::unique_ptr<InflationContext> contextPtr = make_context(this->matlabEngine, input);
+        std::unique_ptr<Inflation::InflationContext> contextPtr = make_context(this->matlabEngine, input);
 
         // Output context in verbose mode
         if (this->verbose) {
@@ -181,9 +179,11 @@ namespace Moment::mex::functions {
         }
 
         // Make new system around context
-        std::unique_ptr<MatrixSystem> matrixSystemPtr = std::make_unique<InflationMatrixSystem>(std::move(contextPtr));
+        std::unique_ptr<MatrixSystem> matrixSystemPtr
+            = std::make_unique<Inflation::InflationMatrixSystem>(std::move(contextPtr));
         auto lock = matrixSystemPtr->get_read_lock();
-        const auto& context = dynamic_cast<const InflationMatrixSystem*>(matrixSystemPtr.get())->InflationContext();
+        const auto& context
+            = dynamic_cast<const Inflation::InflationMatrixSystem*>(matrixSystemPtr.get())->InflationContext();
 
         // Store context/system
         uint64_t storage_id = this->storageManager.MatrixSystems.store(std::move(matrixSystemPtr));

@@ -110,7 +110,7 @@ classdef GenerateBasisTest < MTKTestBase
     
     methods (Test)
         function dense_cell_real(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'real');
+            sys_id = mtk('imported_matrix_system', 'real');
             m_id = mtk('import_matrix', 'symmetric', ...
                 sys_id, testCase.dense_input1);
             
@@ -123,7 +123,7 @@ classdef GenerateBasisTest < MTKTestBase
         end
         
         function dense_monolith_real(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'real');
+            sys_id = mtk('imported_matrix_system', 'real');
             m_id = mtk('import_matrix', 'symmetric', ...
                 sys_id, testCase.dense_input1);
             
@@ -138,7 +138,7 @@ classdef GenerateBasisTest < MTKTestBase
         end
         
         function sparse_cell_real(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'real');
+            sys_id = mtk('imported_matrix_system', 'real');
             m_id = mtk('import_matrix', 'symmetric', ...
                 sys_id, testCase.dense_input1);
             
@@ -151,7 +151,7 @@ classdef GenerateBasisTest < MTKTestBase
         end
         
         function sparse_monolith_real(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'real');
+            sys_id = mtk('imported_matrix_system', 'real');
             m_id = mtk('import_matrix', 'symmetric', ...
                 sys_id, testCase.dense_input1);
 
@@ -165,7 +165,7 @@ classdef GenerateBasisTest < MTKTestBase
         end
         
         function dense_cell_complex(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'complex');
+            sys_id = mtk('imported_matrix_system', 'complex');
             m_id = mtk('import_matrix', 'hermitian', ...
                 sys_id, testCase.string_input2);
             
@@ -178,7 +178,7 @@ classdef GenerateBasisTest < MTKTestBase
         end
         
         function dense_monolith_complex(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'complex');
+            sys_id = mtk('imported_matrix_system', 'complex');
             m_id = mtk('import_matrix', 'hermitian', ...
                 sys_id, testCase.string_input2);
             
@@ -193,7 +193,7 @@ classdef GenerateBasisTest < MTKTestBase
         end
         
         function sparse_cell_complex(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'complex');
+            sys_id = mtk('imported_matrix_system', 'complex');
             m_id = mtk('import_matrix', 'hermitian', ...
                 sys_id, testCase.string_input2);
             
@@ -206,7 +206,7 @@ classdef GenerateBasisTest < MTKTestBase
         end
         
         function sparse_monolith_complex(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'complex');
+            sys_id = mtk('imported_matrix_system', 'complex');
             m_id = mtk('import_matrix', 'hermitian', ...
                 sys_id, testCase.string_input2);
             
@@ -232,7 +232,7 @@ classdef GenerateBasisTest < MTKTestBase
         
         function Error_TooManyInputs(testCase)
             function bad_call()
-                sys_id = mtk('new_imported_matrix_system', 'real');
+                sys_id = mtk('imported_matrix_system', 'real');
                 m_id = mtk('import_matrix', 'symmetric', ...
                     sys_id, testCase.dense_input1);
                 
@@ -243,7 +243,7 @@ classdef GenerateBasisTest < MTKTestBase
         
         function Error_BadMatrixSystem(testCase)
             function bad_call()
-                sys_id = mtk('new_imported_matrix_system', 'real');
+                sys_id = mtk('imported_matrix_system', 'real');
                 m_id = mtk('import_matrix', 'symmetric', ...
                     sys_id, testCase.dense_input1);
                 
@@ -255,7 +255,7 @@ classdef GenerateBasisTest < MTKTestBase
         
         function Error_BadMatrix(testCase)
             function bad_call()
-                sys_id = mtk('new_imported_matrix_system', 'real');
+                sys_id = mtk('imported_matrix_system', 'real');
                 m_id = mtk('import_matrix', 'symmetric', ...
                     sys_id, testCase.dense_input1);
                 
@@ -267,7 +267,7 @@ classdef GenerateBasisTest < MTKTestBase
         
         function Error_CellAndMonolith(testCase)
             function call_bad()
-                sys_id = mtk('new_imported_matrix_system', 'real');
+                sys_id = mtk('imported_matrix_system', 'real');
                 m_id = mtk('import_matrix', 'symmetric', ...
                     sys_id, testCase.dense_input1);
                 
@@ -280,7 +280,7 @@ classdef GenerateBasisTest < MTKTestBase
         
         function Error_DenseAndSparse(testCase)
             function call_bad()
-                sys_id = mtk('new_imported_matrix_system', 'real');
+                sys_id = mtk('imported_matrix_system', 'real');
                 m_id = mtk('import_matrix', 'symmetric', ...
                     sys_id, testCase.dense_input1);
                 

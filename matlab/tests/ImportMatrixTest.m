@@ -2,7 +2,7 @@ classdef ImportMatrixTest < MTKTestBase
     %IMPORTMATRIXTEST Unit tests for import_matrix function
     methods (Test)
         function RealSystem_RealMatrix(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'real');
+            sys_id = mtk('imported_matrix_system', 'real');
             A = [[1, 2, 3]; [4, 5, 6]; [7, 8, 9]];
             m_id = mtk('import_matrix', 'real', sys_id, A);
             actual_A = mtk('operator_matrix', 'symbols', sys_id, m_id);
@@ -18,7 +18,7 @@ classdef ImportMatrixTest < MTKTestBase
         end
         
         function RealSystem_RealMatrixString(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'real');
+            sys_id = mtk('imported_matrix_system', 'real');
             A = [["1","2","3"]; ["4","5","6"]; ["7","8","9"]];
             m_id = mtk('import_matrix', 'real', sys_id, A);
             actual_A = mtk('operator_matrix', 'symbols', sys_id, m_id);
@@ -34,7 +34,7 @@ classdef ImportMatrixTest < MTKTestBase
         end
         
         function RealSystem_SymmetricMatrix(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'real');
+            sys_id = mtk('imported_matrix_system', 'real');
             A = [[1, 2, 3]; [2, 4, 5]; [3, 5, 6]];
             m_id = mtk('import_matrix', 'symmetric', sys_id, A);
             actual_A = mtk('operator_matrix', 'symbols', sys_id, m_id);
@@ -50,7 +50,7 @@ classdef ImportMatrixTest < MTKTestBase
         end
         
         function ComplexSystem_RealMatrix(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'complex');
+            sys_id = mtk('imported_matrix_system', 'complex');
             A = [[1, 2, 3]; [4, 5, 6]; [7, 8, 9]];
             m_id = mtk('import_matrix', 'real', sys_id, A);
             actual_A = mtk('operator_matrix', 'symbols', sys_id, m_id);
@@ -68,7 +68,7 @@ classdef ImportMatrixTest < MTKTestBase
         end
         
         function ComplexSystem_ComplexMatrix(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'complex');
+            sys_id = mtk('imported_matrix_system', 'complex');
             A = [[1, 2, 3]; [4, 5, 6]; [7, 8, 9]];
             m_id = mtk('import_matrix', 'complex', sys_id, A);
             actual_A = mtk('operator_matrix', 'symbols', sys_id, m_id);
@@ -87,7 +87,7 @@ classdef ImportMatrixTest < MTKTestBase
         
         
         function ComplexSystem_SymmetricMatrix(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'complex');
+            sys_id = mtk('imported_matrix_system', 'complex');
             A = [[1, 2, 3]; [2, 4, 5]; [3, 5, 6]];
             m_id = mtk('import_matrix', 'symmetric', 'quiet', sys_id, A);
             actual_A = mtk('operator_matrix', 'symbols', sys_id, m_id);
@@ -105,7 +105,7 @@ classdef ImportMatrixTest < MTKTestBase
         end
         
         function ComplexSystem_HermitianMatrix(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'complex');
+            sys_id = mtk('imported_matrix_system', 'complex');
             A = [["1","2","3"]; ["2*","4","5"]; ["3*","5*","6"]];
             m_id = mtk('import_matrix', 'hermitian', sys_id, A);
             actual_A = mtk('operator_matrix', 'symbols', sys_id, m_id);
@@ -123,7 +123,7 @@ classdef ImportMatrixTest < MTKTestBase
         end
         
         function ComplexSystem_RealHermitianMatrix(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'complex');
+            sys_id = mtk('imported_matrix_system', 'complex');
             A = [["1","2","3"]; ["2","4","5"]; ["3","5","6"]];
             m_id = mtk('import_matrix', 'hermitian', sys_id, A);
             actual_A = mtk('operator_matrix', 'symbols', sys_id, m_id);
@@ -141,7 +141,7 @@ classdef ImportMatrixTest < MTKTestBase
         end
         
         function ComplexSystem_ReassessRealness(testCase)
-            sys_id = mtk('new_imported_matrix_system', 'complex');
+            sys_id = mtk('imported_matrix_system', 'complex');
             A = [["1","2"]; ["2*","3"]];
             m_id = mtk('import_matrix', 'hermitian', sys_id, A);
             actual_A = mtk('operator_matrix', 'symbols', sys_id, m_id);
@@ -189,7 +189,7 @@ classdef ImportMatrixTest < MTKTestBase
         function Error_TooFewInputs(testCase)
             function no_in()
                 
-                sys_id = mtk('new_imported_matrix_system', 'real');
+                sys_id = mtk('imported_matrix_system', 'real');
                 [~] = mtk('import_matrix', sys_id);
             end
             testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');
@@ -198,7 +198,7 @@ classdef ImportMatrixTest < MTKTestBase
         function Error_TooManyInputs(testCase)
             function no_in()                
                 A = [[1, 2, 3]; [4, 5, 6]; [7, 8, 9]];
-                sys_id = mtk('new_imported_matrix_system', 'real');
+                sys_id = mtk('imported_matrix_system', 'real');
                 [~] = mtk('import_matrix', sys_id, A, A);
             end
             testCase.verifyError(@() no_in(), 'mtk:too_many_inputs');
@@ -207,7 +207,7 @@ classdef ImportMatrixTest < MTKTestBase
         function Error_BadShape(testCase)
             function no_in()
                 
-                sys_id = mtk('new_imported_matrix_system', 'real');
+                sys_id = mtk('imported_matrix_system', 'real');
                 [~] = mtk('import_matrix', sys_id, [[1 2]; [3 4]; [5 6]]);
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
@@ -216,7 +216,7 @@ classdef ImportMatrixTest < MTKTestBase
         function Error_NotSymmetric(testCase)
             function no_in()
                 
-                sys_id = mtk('new_imported_matrix_system', 'real');
+                sys_id = mtk('imported_matrix_system', 'real');
                 A = [[1, 2, 3]; [4, 5, 6]; [7, 8, 9]];
                 [~] = mtk('import_matrix', 'symmetric', sys_id, A);
             end
@@ -225,7 +225,7 @@ classdef ImportMatrixTest < MTKTestBase
         
         function Error_NotHermitian(testCase)
             function no_in()
-                sys_id = mtk('new_imported_matrix_system', 'complex');
+                sys_id = mtk('imported_matrix_system', 'complex');
                 A = [[1, 2, 3]; [4, 5, 6]; [7, 8, 9]];
                 [~] = mtk('import_matrix', 'hermitian', sys_id, A);
             end

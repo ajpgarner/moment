@@ -1,4 +1,4 @@
-classdef NewSymmetrizedMatrixSystemTest < MTKTestBase
+classdef SymmetrizedMatrixSystemTest < MTKTestBase
 %NEWSYMMETRIZEDMATRIXSYSTEMTEST Unit tests for new_symmetrized_matrix_system function
     properties(Constant)
         chsh_generators = ...
@@ -16,8 +16,8 @@ classdef NewSymmetrizedMatrixSystemTest < MTKTestBase
     
     methods (Test)
         function add_chsh(testCase)
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
-            [idx,elems] = mtk('new_symmetrized_matrix_system', ...
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
+            [idx,elems] = mtk('symmetrized_matrix_system', ...
                 ref_id, testCase.chsh_generators, 2);
             testCase.verifyGreaterThanOrEqual(idx,0);
             testCase.verifyEqual(length(elems), 16);
@@ -28,15 +28,15 @@ classdef NewSymmetrizedMatrixSystemTest < MTKTestBase
     methods (Test, TestTags={'Error'})
         function Error_NoInput(testCase)
             function no_in()
-                [~, ~] = mtk('new_symmetrized_matrix_system');
+                [~, ~] = mtk('symmetrized_matrix_system');
             end
             testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');
         end
         
         function Error_TooManyInputs(testCase)
             function bad_call()
-                ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
-                [~,~] = mtk('new_symmetrized_matrix_system', ref_id, ...
+                ref_id = mtk('locality_matrix_system', 2, 2, 2);
+                [~,~] = mtk('symmetrized_matrix_system', ref_id, ...
                     testCase.chsh_generators, 4, ...
                     testCase.chsh_generators);
             end

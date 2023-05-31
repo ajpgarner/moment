@@ -51,13 +51,13 @@ classdef MatrixSystem < handle
                 % Invoke appropriate MTK system creation
                 switch(lower(head))
                     case "algebraic"
-                        args{1} = 'new_algebraic_matrix_system';
+                        args{1} = 'algebraic_matrix_system';
                     case "locality"
-                        args{1} = 'new_locality_matrix_system';
+                        args{1} = 'locality_matrix_system';
                     case "imported"
-                        args{1} = 'new_imported_matrix_system';
+                        args{1} = 'imported_matrix_system';
                     case "inflation"
-                        args{1} = 'new_inflation_matrix_system';
+                        args{1} = 'inflation_matrix_system';
                     otherwise
                         error(obj.err_bad_scenario_type);
                 end

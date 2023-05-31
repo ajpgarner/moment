@@ -6,7 +6,7 @@ classdef CollinsGisinTest < MTKTestBase
     
     methods (Test)
         function CHSH(testCase)
-            system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            system_id = mtk('locality_matrix_system', 2, 2, 2);
             mm = mtk('moment_matrix', system_id, 1);
             sym_mat = mtk('collins_gisin', system_id, 'symbols');
             bas_mat = mtk('collins_gisin', system_id, 'basis');
@@ -32,7 +32,7 @@ classdef CollinsGisinTest < MTKTestBase
         
         function Error_MutexParams(testCase)
             function bad_in()
-               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               system_id = mtk('locality_matrix_system', 2, 2, 2);
                [~] = mtk('collins_gisin', system_id, ...
                            'sequences', 'basis');
             end
@@ -41,7 +41,7 @@ classdef CollinsGisinTest < MTKTestBase
         
         function Error_TooManyInputs(testCase)
             function bad_in()
-               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               system_id = mtk('locality_matrix_system', 2, 2, 2);
                [~] = mtk('collins_gisin', ...
                               system_id, system_id);
             end
@@ -50,7 +50,7 @@ classdef CollinsGisinTest < MTKTestBase
         
         function Error_NoMomentMatrix(testCase)
             function bad_in()
-               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               system_id = mtk('locality_matrix_system', 2, 2, 2);
                [~] = mtk('collins_gisin', ...
                               system_id);
             end

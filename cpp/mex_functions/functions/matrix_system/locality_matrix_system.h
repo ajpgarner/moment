@@ -1,5 +1,5 @@
 /**
- * new_locality_matrix_system.h
+ * locality_matrix_system.h
  * 
  * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -13,7 +13,7 @@ namespace Moment {
 }
 
 namespace Moment::mex::functions {
-    struct NewLocalityMatrixSystemParams : public SortedInputs {
+    struct LocalityMatrixSystemParams : public SortedInputs {
     public:
         size_t total_operators = 0;
         size_t number_of_parties = 1;
@@ -22,7 +22,7 @@ namespace Moment::mex::functions {
         std::vector<size_t> outcomes_per_mmt;
 
     public:
-        explicit NewLocalityMatrixSystemParams(SortedInputs &&inputs);
+        explicit LocalityMatrixSystemParams(SortedInputs &&inputs);
 
     private:
         void getFromParams();
@@ -36,12 +36,13 @@ namespace Moment::mex::functions {
     };
 
 
-    class NewLocalityMatrixSystem : public ParameterizedMexFunction<NewLocalityMatrixSystemParams, MEXEntryPointID::NewLocalityMatrixSystem> {
+    class LocalityMatrixSystem : public ParameterizedMexFunction<LocalityMatrixSystemParams,
+                                                                 MEXEntryPointID::LocalityMatrixSystem> {
     public:
-        explicit NewLocalityMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
+        explicit LocalityMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
     protected:
-        void operator()(IOArgumentRange output, NewLocalityMatrixSystemParams &input) override;
+        void operator()(IOArgumentRange output, LocalityMatrixSystemParams &input) override;
 
 
     };

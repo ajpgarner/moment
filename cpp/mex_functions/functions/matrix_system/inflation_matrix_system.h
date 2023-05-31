@@ -1,5 +1,5 @@
 /**
- * new_inflation_matrix_system.h
+ * inflation_matrix_system.h
  * 
  * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -15,14 +15,14 @@ namespace Moment {
 }
 
 namespace Moment::mex::functions {
-    struct NewInflationMatrixSystemParams : public SortedInputs {
+    struct InflationMatrixSystemParams : public SortedInputs {
     public:
         std::vector<size_t> outcomes_per_observable{};
         std::vector<std::set<oper_name_t>> source_init_list{};
         size_t inflation_level = 1;
 
     public:
-        explicit NewInflationMatrixSystemParams(SortedInputs &&inputs);
+        explicit InflationMatrixSystemParams(SortedInputs &&inputs);
 
         [[nodiscard]] std::string to_string() const override;
 
@@ -35,12 +35,12 @@ namespace Moment::mex::functions {
 
     };
 
-    class NewInflationMatrixSystem
-        : public ParameterizedMexFunction<NewInflationMatrixSystemParams, MEXEntryPointID::NewInflationMatrixSystem> {
+    class InflationMatrixSystem
+        : public ParameterizedMexFunction<InflationMatrixSystemParams, MEXEntryPointID::InflationMatrixSystem> {
     public:
-        explicit NewInflationMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
+        explicit InflationMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        void operator()(IOArgumentRange output, NewInflationMatrixSystemParams &input) override;
+        void operator()(IOArgumentRange output, InflationMatrixSystemParams &input) override;
 
     };
 }

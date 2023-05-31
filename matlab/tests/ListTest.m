@@ -10,7 +10,7 @@ classdef ListTest < MTKTestBase
             empty_list = mtk('list', 'structured');
             testCase.verifyEmpty(empty_list);
             
-            ref_id = mtk('new_imported_matrix_system');
+            ref_id = mtk('imported_matrix_system');
             list_all = mtk('list', 'structured');
             list_one = mtk('list', 'structured', ref_id);
             testCase.verifyEqual(list_all, list_one);
@@ -23,8 +23,8 @@ classdef ListTest < MTKTestBase
             empty_list = mtk('list', 'structured');
             testCase.verifyEmpty(empty_list);
             
-            ref_id_A = mtk('new_imported_matrix_system');
-            ref_id_B = mtk('new_locality_matrix_system', 2, 1, 2);
+            ref_id_A = mtk('imported_matrix_system');
+            ref_id_B = mtk('locality_matrix_system', 2, 1, 2);
             mm_index = mtk('moment_matrix', ref_id_B, 1);
             
             list_all = mtk('list', 'structured');

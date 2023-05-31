@@ -13,7 +13,7 @@ classdef MomentMatrixTest_Case
         end
         
         function CallAndVerify(testCase, testObj, params, level)
-            system_id = mtk('new_locality_matrix_system', params{:});
+            system_id = mtk('locality_matrix_system', params{:});
             [~, dim] = mtk('moment_matrix', system_id, level);
             sym_mat = mtk('moment_matrix', 'symbols', ...
                             system_id, level);

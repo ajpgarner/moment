@@ -1,9 +1,9 @@
-classdef NewImportedMatrixSystemTest < MTKTestBase
+classdef ImportedMatrixSystemTest < MTKTestBase
     %NEWIMPORTEDMATRIXSYSTEMTESTS Unit tests for new_imported_matrix_system
     % mex function
     methods (Test)
         function Empty(testCase)
-            ref_id = mtk('new_imported_matrix_system');
+            ref_id = mtk('imported_matrix_system');
             testCase.verifyGreaterThan(ref_id, 0);
             
             sys_info = mtk('list', 'structured', ref_id);
@@ -13,7 +13,7 @@ classdef NewImportedMatrixSystemTest < MTKTestBase
         end
         
         function Real(testCase)
-            ref_id = mtk('new_imported_matrix_system', 'real');
+            ref_id = mtk('imported_matrix_system', 'real');
             testCase.verifyGreaterThan(ref_id, 0);
             
             sys_info = mtk('list', 'structured', ref_id);
@@ -27,7 +27,7 @@ classdef NewImportedMatrixSystemTest < MTKTestBase
     methods (Test, TestTags={'Error'})
         function Error_TooManyInputs(testCase)
             function bad_in()
-                ref_id = mtk('new_imported_matrix_system', 1);
+                ref_id = mtk('imported_matrix_system', 1);
             end
             testCase.verifyError(@() bad_in(), 'mtk:too_many_inputs');
         end        

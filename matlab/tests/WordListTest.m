@@ -3,14 +3,14 @@ classdef WordListTest < MTKTestBase
     
     methods (Test)
         function Basic_Level0(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2);
+            ms_id = mtk('algebraic_matrix_system', 2);
             output = mtk('word_list', ms_id, 0);
             expected = {uint64.empty(1,0)};
             testCase.verifyEqual(output, expected);
         end
         
         function Basic_Level1(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2);
+            ms_id = mtk('algebraic_matrix_system', 2);
             output = mtk('word_list', ms_id,1);
             expected = {uint64.empty(1,0); ...
                         uint64([1]); ...
@@ -19,7 +19,7 @@ classdef WordListTest < MTKTestBase
         end
         
         function Basic_Level2(testCase)
-            ms_id = mtk('new_algebraic_matrix_system', 2);
+            ms_id = mtk('algebraic_matrix_system', 2);
             output = mtk('word_list', ms_id, 2);
             expected = {uint64.empty(1,0); ...
                         uint64([1]); ...
@@ -42,7 +42,7 @@ classdef WordListTest < MTKTestBase
         
         function Error_TooFewInputs(testCase)
             function no_in()
-                ms_id = mtk('new_algebraic_matrix_system', 2);
+                ms_id = mtk('algebraic_matrix_system', 2);
                 [~] = mtk('word_list', ms_id);
             end
             testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');
@@ -50,7 +50,7 @@ classdef WordListTest < MTKTestBase
         
         function Error_BadMS(testCase)
             function no_in()
-                ms_id = mtk('new_algebraic_matrix_system', 2);
+                ms_id = mtk('algebraic_matrix_system', 2);
                 [~] = mtk('word_list', ms_id+1, 5);
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');

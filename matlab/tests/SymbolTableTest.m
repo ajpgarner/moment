@@ -40,7 +40,7 @@ classdef SymbolTableTest < MTKTestBase
 
     methods (Test)
         function FullTable(testCase)
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             symbols = mtk('symbol_table', ref_id);
             
@@ -60,7 +60,7 @@ classdef SymbolTableTest < MTKTestBase
         end
         
          function BySequence(testCase)
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             find_1 = mtk('symbol_table', ref_id, [2]);
             find_2 = mtk('symbol_table', ref_id, [3]);
@@ -81,7 +81,7 @@ classdef SymbolTableTest < MTKTestBase
          end
                 
          function ByCell(testCase)
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             find = mtk('symbol_table', ref_id, {[2], [3]});
                         
@@ -121,7 +121,7 @@ classdef SymbolTableTest < MTKTestBase
        
         function Error_BadMatrixSystem3(testCase)
             function no_in()                
-                ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+                ref_id = mtk('locality_matrix_system', 2, 2, 2);
                 [~] = mtk('symbol_table', ref_id+1);
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');

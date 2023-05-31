@@ -62,11 +62,11 @@ matlab_add_mex(NAME moment_mex
             functions/debug/list.cpp
             functions/debug/monomial_rules.cpp
             functions/debug/version.cpp
-            functions/matrix_system/new_algebraic_matrix_system.cpp
-            functions/matrix_system/new_imported_matrix_system.cpp
-            functions/matrix_system/new_inflation_matrix_system.cpp
-            functions/matrix_system/new_locality_matrix_system.cpp
-            functions/matrix_system/new_symmetrized_matrix_system.cpp
+        functions/matrix_system/algebraic_matrix_system.cpp
+        functions/matrix_system/imported_matrix_system.cpp
+        functions/matrix_system/inflation_matrix_system.cpp
+        functions/matrix_system/locality_matrix_system.cpp
+        functions/matrix_system/symmetrized_matrix_system.cpp
             functions/operator_matrix/apply_moment_rules.cpp
             functions/operator_matrix/extended_matrix.cpp
             functions/operator_matrix/localizing_matrix.cpp

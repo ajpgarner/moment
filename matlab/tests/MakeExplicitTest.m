@@ -2,7 +2,7 @@ classdef MakeExplicitTest < MTKTestBase
     %MAKEEXPLICITTEST Unit tests for make_explicit function
     methods (Test)
         function Inflation_SimplePair(testCase)
-            ref_id = mtk('new_inflation_matrix_system', [2 2], {}, 1);
+            ref_id = mtk('inflation_matrix_system', [2 2], {}, 1);
             [~] = mtk('moment_matrix', ref_id, 1);
             symbols = mtk('symbol_table', ref_id, {[1], [2], [1 2]});
             [id_A, id_B, id_AB] = symbols.symbol;
@@ -13,7 +13,7 @@ classdef MakeExplicitTest < MTKTestBase
         end
         
         function Inflation_PairFromTriangle(testCase)
-            ref_id = mtk('new_inflation_matrix_system', [2 2 2], {}, 1);
+            ref_id = mtk('inflation_matrix_system', [2 2 2], {}, 1);
             [~] = mtk('moment_matrix', ref_id, 1);
             ABsymbols = mtk('symbol_table', ref_id, ...
                 {[1], [2], [3], [1 2], [1 3]});
@@ -31,7 +31,7 @@ classdef MakeExplicitTest < MTKTestBase
         end
         
         function Inflation_SimpleTriangle(testCase)
-            ref_id = mtk('new_inflation_matrix_system', [2 2 2], {}, 1);
+            ref_id = mtk('inflation_matrix_system', [2 2 2], {}, 1);
             [~] = mtk('moment_matrix', ref_id, 2);
             symbols = mtk('symbol_table', ref_id, ...
                 {[1], [2], [3], [1 2], [1 3], [2 3], [1 2 3]});
@@ -45,7 +45,7 @@ classdef MakeExplicitTest < MTKTestBase
         end
         
         function Inflation_TriangleWithVariants(testCase)
-            ref_id = mtk('new_inflation_matrix_system', [2 2 2], ...
+            ref_id = mtk('inflation_matrix_system', [2 2 2], ...
                 {[1, 2], [1, 3], [2, 3]}, 2);
             [~] = mtk('moment_matrix', ref_id, 2);
             symbols = mtk('symbol_table', ref_id, {[1], [5], [1 5]});
@@ -58,7 +58,7 @@ classdef MakeExplicitTest < MTKTestBase
         end
            
         function Locality_Pairs(testCase)
-            ref_id = mtk('new_locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             symbols = mtk('symbol_table', ref_id, ...
                 {[1], [2], [3], [4], [1 3], [1 4], [2 3], [2 4]});
@@ -96,7 +96,7 @@ classdef MakeExplicitTest < MTKTestBase
         
         function Error_TooFewInputs(testCase)
             function no_in()
-                ref_id = mtk('new_inflation_matrix_system', [2 2], {}, 1);
+                ref_id = mtk('inflation_matrix_system', [2 2], {}, 1);
                 [~] = mtk('moment_matrix', ref_id, 1);
                 [~] = mtk('make_explicit', ref_id);
             end
@@ -105,7 +105,7 @@ classdef MakeExplicitTest < MTKTestBase
         
         function Error_BadValues(testCase)
             function no_in()
-                ref_id = mtk('new_inflation_matrix_system', [2 2], {}, 1);
+                ref_id = mtk('inflation_matrix_system', [2 2], {}, 1);
                 [~] = mtk('moment_matrix', ref_id, 1);
                 [~] = mtk('make_explicit', ref_id, [0 0 0 0 1]);
             end
@@ -114,7 +114,7 @@ classdef MakeExplicitTest < MTKTestBase
         
         function Error_BadMmts(testCase)
             function no_in()
-                ref_id = mtk('new_inflation_matrix_system', [2 2], {}, 1);
+                ref_id = mtk('inflation_matrix_system', [2 2], {}, 1);
                 [~] = mtk('moment_matrix', ref_id, 1);
                 [~] = mtk('make_explicit', ref_id, [1 3], [0 0 0 1]);
             end

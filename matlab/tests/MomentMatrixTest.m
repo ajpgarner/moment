@@ -69,7 +69,7 @@
         
         function Error_BadLevel1(testCase)
             function bad_in()
-               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               system_id = mtk('locality_matrix_system', 2, 2, 2);
                [~] = mtk('moment_matrix', ...
                               'reference_id', system_id, ...
                               'level', 'ff');
@@ -79,7 +79,7 @@
         
         function Error_BadLevel2(testCase)
             function bad_in()             
-               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               system_id = mtk('locality_matrix_system', 2, 2, 2);
                [~] = mtk('moment_matrix', ...
                               'reference_id', system_id, ...
                               'level', -1);
@@ -89,7 +89,7 @@
       
         function Error_BadLevel3(testCase)
             function bad_in()             
-               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               system_id = mtk('locality_matrix_system', 2, 2, 2);
                [~] = mtk('moment_matrix', ...
                               'reference_id', system_id, ... 
                               'level', [1, 2]);
@@ -99,7 +99,7 @@
           
         function Error_BadLevel4(testCase)
             function bad_in()        
-               system_id = mtk('new_locality_matrix_system', 2, 2, 2);
+               system_id = mtk('locality_matrix_system', 2, 2, 2);
                [~] = mtk('moment_matrix', ...
                               'reference_id', system_id, ...
                               'level', "-1");

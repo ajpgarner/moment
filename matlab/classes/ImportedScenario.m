@@ -54,7 +54,7 @@ classdef ImportedScenario < Abstract.Scenario
                 cell_args{end+1} = 'real';
             end
             
-            ref_id = mtk('new_imported_matrix_system', cell_args{:});
+            ref_id = mtk('imported_matrix_system', cell_args{:});
         end
     end
     

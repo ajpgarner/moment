@@ -2,7 +2,7 @@ classdef ExtendedMatrixTest < MTKTestBase
     %APPLYVALUESTEST Unit tests for apply_values function
     methods (Test)
         function ExtendManual(testCase)
-            ref_id = mtk('new_inflation_matrix_system', [2, 2], {}, 1);
+            ref_id = mtk('inflation_matrix_system', [2, 2], {}, 1);
             mm_index = mtk('moment_matrix', ref_id, 1);
             em_index = mtk('extended_matrix', ref_id, 1, [2]);
             
@@ -34,7 +34,7 @@ classdef ExtendedMatrixTest < MTKTestBase
         end        
         
         function ExtendTwice(testCase)
-            ref_id = mtk('new_inflation_matrix_system', [2, 2], {}, 1);
+            ref_id = mtk('inflation_matrix_system', [2, 2], {}, 1);
             mm_index = mtk('moment_matrix', ref_id, 1);
             em_index = mtk('extended_matrix', ref_id, 1, [2, 3]);
             
@@ -60,7 +60,7 @@ classdef ExtendedMatrixTest < MTKTestBase
         end     
         
         function ExtendAutomatic(testCase)
-            ref_id = mtk('new_inflation_matrix_system', [2, 2], {}, 1);
+            ref_id = mtk('inflation_matrix_system', [2, 2], {}, 1);
             mm_index = mtk('moment_matrix', ref_id, 1);
             em_index = mtk('extended_matrix', ref_id, 1, 'auto');
             

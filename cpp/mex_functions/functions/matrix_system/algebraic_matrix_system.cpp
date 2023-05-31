@@ -1,10 +1,10 @@
 /**
- * new_algebraic_matrix_system.cpp
+ * algebraic_matrix_system.cpp
  * 
  * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "new_algebraic_matrix_system.h"
+#include "algebraic_matrix_system.h"
 
 #include "scenarios/algebraic/algebraic_precontext.h"
 #include "scenarios/algebraic/algebraic_context.h"
@@ -22,7 +22,7 @@
 namespace Moment::mex::functions {
     namespace {
         std::unique_ptr<Algebraic::AlgebraicContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
-                                                       NewAlgebraicMatrixSystemParams& input) {
+                                                                  AlgebraicMatrixSystemParams& input) {
             std::vector<Algebraic::MonomialSubstitutionRule> rules;
             const auto& apc = *input.apc;
 
@@ -60,7 +60,7 @@ namespace Moment::mex::functions {
         }
 
         // Default to Hermitian, but allow non-hermitian override
-        auto get_hermitian_mode(const NewAlgebraicMatrixSystemParams& params) {
+        auto get_hermitian_mode(const AlgebraicMatrixSystemParams& params) {
             if (params.flags.contains(u"nonhermitian") || params.flags.contains(u"bunched")) {
                 return Algebraic::AlgebraicPrecontext::ConjugateMode::Bunched;
             } else if (params.flags.contains(u"interleaved")) {
@@ -70,7 +70,7 @@ namespace Moment::mex::functions {
         };
     }
 
-    NewAlgebraicMatrixSystemParams::NewAlgebraicMatrixSystemParams(SortedInputs &&rawInput)
+    AlgebraicMatrixSystemParams::AlgebraicMatrixSystemParams(SortedInputs &&rawInput)
        : SortedInputs(std::move(rawInput)) {
 
         // Any completion requested?
@@ -110,7 +110,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    void NewAlgebraicMatrixSystemParams::getFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
+    void AlgebraicMatrixSystemParams::getFromInputs(matlab::engine::MATLABEngine &matlabEngine) {
         if (inputs.empty()) {
             std::string errStr{"Please supply either named parameters; "};
             errStr += " \"number of operators\",";
@@ -129,7 +129,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    void NewAlgebraicMatrixSystemParams::getFromParams(matlab::engine::MATLABEngine &matlabEngine) {
+    void AlgebraicMatrixSystemParams::getFromParams(matlab::engine::MATLABEngine &matlabEngine) {
         // Read number of operators
         auto oper_param = params.find(u"operators");
         if (oper_param == params.end()) {
@@ -150,9 +150,9 @@ namespace Moment::mex::functions {
         check_rule_length(matlabEngine, apc->hasher, this->rules);
     }
 
-    void NewAlgebraicMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
-                                                                  matlab::data::Array &input,
-                                                                  const std::string& paramName) {
+    void AlgebraicMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,
+                                                                matlab::data::Array &input,
+                                                                const std::string& paramName) {
         // Is operator argument a single string?
         if ((input.getType() == matlab::data::ArrayType::CHAR)
             || (input.getType() == matlab::data::ArrayType::MATLAB_STRING)) {
@@ -176,10 +176,10 @@ namespace Moment::mex::functions {
         this->names = std::make_unique<Algebraic::NameTable>(*this->apc);
     }
 
-    NewAlgebraicMatrixSystemParams::~NewAlgebraicMatrixSystemParams() = default;
+    AlgebraicMatrixSystemParams::~AlgebraicMatrixSystemParams() = default;
 
-    NewAlgebraicMatrixSystem::NewAlgebraicMatrixSystem(matlab::engine::MATLABEngine &matlabEngine,
-                                                       StorageManager &storage)
+    AlgebraicMatrixSystem::AlgebraicMatrixSystem(matlab::engine::MATLABEngine &matlabEngine,
+                                                 StorageManager &storage)
            : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_outputs = 1;
         this->max_outputs = 1;
@@ -204,11 +204,10 @@ namespace Moment::mex::functions {
         this->max_inputs = 2;
     }
 
-    void NewAlgebraicMatrixSystem::operator()(IOArgumentRange output, NewAlgebraicMatrixSystemParams &input) {
-        using namespace Algebraic;
+    void AlgebraicMatrixSystem::operator()(IOArgumentRange output, AlgebraicMatrixSystemParams &input) {
 
         // Input to context:
-        std::unique_ptr<AlgebraicContext> contextPtr{make_context(this->matlabEngine, input)};
+        std::unique_ptr<Algebraic::AlgebraicContext> contextPtr{make_context(this->matlabEngine, input)};
         if (!contextPtr) {
             throw_error(this->matlabEngine, errors::internal_error, "Context object could not be created.");
         }
@@ -217,10 +216,10 @@ namespace Moment::mex::functions {
         bool complete_rules;
         if (input.complete_attempts > 0) {
             std::stringstream ss;
-            std::unique_ptr<OStreamRuleLogger> logger;
+            std::unique_ptr<Algebraic::OStreamRuleLogger> logger;
             if (this->verbose) {
                 ss << "Attempting completion of ruleset:\n";
-                logger = std::make_unique<OStreamRuleLogger>(ss, &(contextPtr->names()));
+                logger = std::make_unique<Algebraic::OStreamRuleLogger>(ss, &(contextPtr->names()));
             }
             complete_rules = contextPtr->attempt_completion(input.complete_attempts, logger.get());
             if (this->verbose) {
@@ -250,7 +249,7 @@ namespace Moment::mex::functions {
         }
 
         // Make new system around context
-        std::unique_ptr<MatrixSystem> matrixSystemPtr = std::make_unique<AlgebraicMatrixSystem>(std::move(contextPtr));
+        std::unique_ptr<MatrixSystem> matrixSystemPtr = std::make_unique<Algebraic::AlgebraicMatrixSystem>(std::move(contextPtr));
 
         // Store context/system
         uint64_t storage_id = this->storageManager.MatrixSystems.store(std::move(matrixSystemPtr));

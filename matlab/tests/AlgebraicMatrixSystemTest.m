@@ -1,9 +1,9 @@
-classdef NewAlgebraicMatrixSystemTest < MTKTestBase
+classdef AlgebraicMatrixSystemTest < MTKTestBase
     %NEWALGEBRAICMATRIXSYSTEMTESTS Unit tests for new_algebraic_matrix_system
     % mex function
     methods (Test)
         function Basic(testCase)
-            ref_id = mtk('new_algebraic_matrix_system', 2);
+            ref_id = mtk('algebraic_matrix_system', 2);
             testCase.verifyGreaterThan(ref_id, 0);
             mm = mtk('moment_matrix', ref_id, 1);
             sys_info = mtk('list', 'structured', ref_id);
@@ -13,7 +13,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         end
         
         function SubRule(testCase)
-            ref_id = mtk('new_algebraic_matrix_system', 1, {{[1 1], [1]}});
+            ref_id = mtk('algebraic_matrix_system', 1, {{[1 1], [1]}});
             testCase.verifyGreaterThan(ref_id, 0);
             mm = mtk('moment_matrix', ref_id, 1);
             sys_info = mtk('list', 'structured', ref_id);
@@ -25,7 +25,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         function WithCompletion(testCase)
             raw_rules = {{[1, 1, 1], []}, {[2, 2, 2], []}, ...
                          {[1, 2, 1, 2, 1, 2], []}};
-            ref_id = mtk('new_algebraic_matrix_system', ...
+            ref_id = mtk('algebraic_matrix_system', ...
                          'complete_attempts', 20, ...
                          'nonhermitian', 2, raw_rules);
             comp_rules = mtk('monomial_rules', ref_id);
@@ -44,7 +44,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         function WithCompletionInterleaved(testCase)
             raw_rules = {{[1, 1, 1], []}, {[3, 3, 3], []}, ...
                          {[1, 3, 1, 3, 1, 3], []}};
-            ref_id = mtk('new_algebraic_matrix_system', ...
+            ref_id = mtk('algebraic_matrix_system', ...
                          'complete_attempts', 20, ...
                          'interleaved', 2, raw_rules);
             comp_rules = mtk('monomial_rules', ref_id);
@@ -62,7 +62,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         
         function NonHermitianButNormal(testCase)
             raw_rules = {};
-            ref_id = mtk('new_algebraic_matrix_system', ...
+            ref_id = mtk('algebraic_matrix_system', ...
                          'complete_attempts', 20, ...
                          'nonhermitian', 'normal', 2, raw_rules);
             comp_rules = mtk('monomial_rules', ref_id);
@@ -75,14 +75,14 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
     methods (Test, TestTags={'Error'})
         function Error_NoInputs(testCase)
             function no_in()
-                ref_id = mtk('new_algebraic_matrix_system');
+                ref_id = mtk('algebraic_matrix_system');
             end
             testCase.verifyError(@() no_in(), 'mtk:too_few_inputs');
         end
         
         function Error_TooManyInputs(testCase)
             function no_in()
-                ref_id = mtk('new_algebraic_matrix_system', ...
+                ref_id = mtk('algebraic_matrix_system', ...
                     2, {{[1 1], 1}}, 2);
             end
             testCase.verifyError(@() no_in(), 'mtk:too_many_inputs');
@@ -90,7 +90,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         
         function Error_Contradiction(testCase)
             function no_in()
-                ref_id = mtk('new_algebraic_matrix_system', ...
+                ref_id = mtk('algebraic_matrix_system', ...
                     2, {{[1 1], 1}}, 'hermitian', 'nonhermitian');
             end
             testCase.verifyError(@() no_in(), 'mtk:mutex_param');
@@ -98,7 +98,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         
         function Error_BadOpCount1(testCase)
             function no_in()
-                ref_id = mtk('new_algebraic_matrix_system', ...
+                ref_id = mtk('algebraic_matrix_system', ...
                     -1, {{[1 1], 1}});
             end
             testCase.verifyError(@() no_in(), 'mtk:negative_value');
@@ -106,7 +106,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         
         function Error_BadOpCount2(testCase)
             function no_in()
-                ref_id = mtk('new_algebraic_matrix_system', ...
+                ref_id = mtk('algebraic_matrix_system', ...
                     "", {{[1 1], 1}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
@@ -114,7 +114,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         
        function Error_DuplicateName(testCase)
             function no_in()
-                ref_id = mtk('new_algebraic_matrix_system', ...
+                ref_id = mtk('algebraic_matrix_system', ...
                     ["x", "x"], {{[1 1], 1}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
@@ -123,7 +123,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         
         function Error_BadRule1(testCase)
             function no_in()
-                ref_id = mtk('new_algebraic_matrix_system', ...
+                ref_id = mtk('algebraic_matrix_system', ...
                     1, {{[1 1], [2]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
@@ -131,7 +131,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         
         function Error_BadRule2(testCase)
             function no_in()
-                ref_id = mtk('new_algebraic_matrix_system', ...
+                ref_id = mtk('algebraic_matrix_system', ...
                     1, {{[1], [1 1]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
@@ -139,7 +139,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         
         function Error_BadRule3(testCase)
             function no_in()
-                ref_id = mtk('new_algebraic_matrix_system', ...
+                ref_id = mtk('algebraic_matrix_system', ...
                     2, {{[1 1], [1 2]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
@@ -147,7 +147,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         
         function Error_BadRule4(testCase)
             function no_in()
-                ref_id = mtk('new_algebraic_matrix_system', ...
+                ref_id = mtk('algebraic_matrix_system', ...
                     2, {{[1 1]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
@@ -155,7 +155,7 @@ classdef NewAlgebraicMatrixSystemTest < MTKTestBase
         
         function Error_BadRule5(testCase)
             function no_in()
-                ref_id = mtk('new_algebraic_matrix_system', ...
+                ref_id = mtk('algebraic_matrix_system', ...
                     2, {{[1 1], ["Not a number"]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
