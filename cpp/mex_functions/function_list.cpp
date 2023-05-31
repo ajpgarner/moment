@@ -33,7 +33,7 @@
 #include "functions/matrix_system/inflation_matrix_system.h"
 #include "functions/matrix_system/locality_matrix_system.h"
 #include "functions/matrix_system/symmetrized_matrix_system.h"
-#include "functions/operator_matrix/apply_moment_rules.h"
+#include "functions/operator_matrix/substituted_matrix.h"
 #include "functions/operator_matrix/extended_matrix.h"
 #include "functions/operator_matrix/localizing_matrix.h"
 #include "functions/operator_matrix/moment_matrix.h"
@@ -51,7 +51,6 @@ namespace Moment::mex::functions {
             std::map<std::string, MEXEntryPointID> output;
             output.emplace("algebraic_matrix_system",   MEXEntryPointID::AlgebraicMatrixSystem);
             output.emplace("alphabetic_name", MEXEntryPointID::AlphabeticName);
-            output.emplace("apply_moment_rules",    MEXEntryPointID::ApplyMomentRules);
             output.emplace("collins_gisin",   MEXEntryPointID::CollinsGisin);
             output.emplace("complete",        MEXEntryPointID::Complete);
             output.emplace("conjugate",       MEXEntryPointID::Conjugate);
@@ -74,6 +73,7 @@ namespace Moment::mex::functions {
             output.emplace("release",            MEXEntryPointID::Release);
             output.emplace("settings",           MEXEntryPointID::Settings);
             output.emplace("simplify",           MEXEntryPointID::Simplify);
+            output.emplace("substituted_matrix", MEXEntryPointID::SubstitutedMatrix);
             output.emplace("suggest_extensions", MEXEntryPointID::SuggestExtensions);
             output.emplace("symmetrized_matrix_system", MEXEntryPointID::SymmetrizedMatrixSystem);
             output.emplace("symbol_table",       MEXEntryPointID::SymbolTable);
@@ -123,9 +123,6 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::AlphabeticName:
                 the_function = std::make_unique<functions::AlphabeticName>(engine, storageManager);
-                break;
-            case functions::MEXEntryPointID::ApplyMomentRules:
-                the_function = std::make_unique<functions::ApplyMomentRules>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::CollinsGisin:
                 the_function = std::make_unique<functions::CollinsGisin>(engine, storageManager);
@@ -192,6 +189,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::Simplify:
                 the_function = std::make_unique<functions::Simplify>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::SubstitutedMatrix:
+                the_function = std::make_unique<functions::SubstitutedMatrix>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::SuggestExtensions:
                 the_function = std::make_unique<functions::SuggestExtensions>(engine, storageManager);

@@ -1,7 +1,8 @@
 %% MTK - Moment (Tool Kit).
 % (c) 2022-2023 Austrian Academy of Sciences
+%  Author: Andrew J. P. Garner
 %
-% This mex file is Moment's C++ library.
+% This mex file contains Moment's C++ library.
 %
 % GENERAL SYNTAX: 
 %
@@ -9,14 +10,11 @@
 %
 % FUNCTIONS:
 %
-% add_symmetry
-%       Associate a symmetry group with a context.
+% algebraic_matrix_system
+%       Creates context of shared variables, with algebraic relations.
 % 
 % alphabetic_name 
 %       Converts a numerical index into an alphabetic one.
-% 
-% apply_values
-%       Creates new matrix substituting listed symbols with numeric values.
 % 
 % collins_gisin
 %       Returns list of symbols in a matrix system as a matrix, using
@@ -28,6 +26,9 @@
 % conjugate
 %       Returns the complex-conjugation of an operator sequence.
 % 
+% create_moment_rules
+%       Creates polynomial rewrite rules, acting at the level of moments.
+%
 % echo [DEBUG]
 %       Returns supplied numerical array; tests MATLAB to Eigen interface.
 % 
@@ -39,12 +40,23 @@
 % 
 % import_matrix
 %       Adds a symbol matrix manually to an imported matrix system.
+%
+% imported_matrix_system
+%       Creates context of shared variables, for matrices manually input 
+%       via 'import_matrix'.
+% 
+% inflation_matrix_system
+%       Creates context of shared variables, for inflated causal network.
 % 
 % list [DEBUG]
 %       Lists the matrices stored in a given matrix system.
 % 
 % localizing_matrix
 %       Generates a localizing matrix for the supplied monomial expression.
+%
+% locality_matrix_system
+%       Creates context of shared variables, for locality (party, 
+%       measurement, outcome) settings.
 % 
 % make_explicit
 %       Converts a full probability distribution into a list of explicit 
@@ -56,20 +68,6 @@
 % monomial_rules [DEBUG]
 %       Returns the ruleset associated with an algebraic matrix system.
 %
-% new_algebraic_matrix_system
-%       Creates context of shared variables, with algebraic relations.
-% 
-% new_imported_matrix_system
-%       Creates context of shared variables, for matrices manually input 
-%       via 'import_matrix'.
-% 
-% new_inflation_matrix_system
-%       Creates context of shared variables, for inflated causal network.
-% 
-% new_locality_matrix_system
-%       Createscontext of shared variables, for locality (party, 
-%       measurement, outcome) settings.
-% 
 % probability_table
 %       Calculates all implied outcomes as sum of explicit operator 
 %       sequences found in the matrix system.
@@ -86,6 +84,9 @@
 % simplify
 %       Returns a simplified "canonical form" of an operator sequence.
 % 
+% substituted_matrix
+%       Creates new matrix, substituting symbols according to moment rules.
+%
 % suggest_extensions
 %       Returns list of symbols that could be used to extend a matrix to 
 %       impose factorization constraints. 
@@ -93,6 +94,10 @@
 % symbol_table
 %       Returns total list of operators in a matrix system.
 % 
+% symmetrized_matrix_system
+%       Creates context of shared variables by applying symmetries to an
+%       existing context.
+%
 % version
 %       Returns the compiled version of this software.
 % 

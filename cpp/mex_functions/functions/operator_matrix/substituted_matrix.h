@@ -1,5 +1,5 @@
 /**
- * apply_moment_rules.h
+ * substituted_matrix.h
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -13,13 +13,13 @@
 
 namespace Moment::mex::functions  {
 
-    struct ApplyMomentRulesParams : public OperatorMatrixParams {
+    struct SubstitutedMatrixParams : public OperatorMatrixParams {
     public:
         uint64_t matrix_index = 0;
         uint64_t rules_index = 0;
 
     public:
-        explicit ApplyMomentRulesParams(SortedInputs&& inputs) : OperatorMatrixParams(std::move(inputs)) { }
+        explicit SubstitutedMatrixParams(SortedInputs&& inputs) : OperatorMatrixParams(std::move(inputs)) { }
 
     protected:
         void extra_parse_params() final;
@@ -38,9 +38,10 @@ namespace Moment::mex::functions  {
         }
     };
 
-    class ApplyMomentRules : public Moment::mex::functions::OperatorMatrix<ApplyMomentRulesParams, MEXEntryPointID::ApplyMomentRules> {
+    class SubstitutedMatrix : public Moment::mex::functions::OperatorMatrix<SubstitutedMatrixParams,
+                                                                            MEXEntryPointID::SubstitutedMatrix> {
     public:
-        ApplyMomentRules(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
+        SubstitutedMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
     protected:
         std::pair<size_t, const Moment::Matrix&>

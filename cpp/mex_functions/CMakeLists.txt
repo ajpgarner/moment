@@ -67,7 +67,7 @@ matlab_add_mex(NAME moment_mex
         functions/matrix_system/inflation_matrix_system.cpp
         functions/matrix_system/locality_matrix_system.cpp
         functions/matrix_system/symmetrized_matrix_system.cpp
-            functions/operator_matrix/apply_moment_rules.cpp
+        functions/operator_matrix/substituted_matrix.cpp
             functions/operator_matrix/extended_matrix.cpp
             functions/operator_matrix/localizing_matrix.cpp
             functions/operator_matrix/moment_matrix.cpp
