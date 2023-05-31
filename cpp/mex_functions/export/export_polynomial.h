@@ -17,11 +17,11 @@ namespace Moment {
 }
 
 namespace Moment::mex {
-    class SymbolComboExporter : public Exporter {
+    class PolynomialExporter : public Exporter {
     public:
         const SymbolTable& symbols;
 
-        explicit SymbolComboExporter(matlab::engine::MATLABEngine& engine, const SymbolTable& symbols) noexcept
+        explicit PolynomialExporter(matlab::engine::MATLABEngine& engine, const SymbolTable& symbols) noexcept
                     : Exporter{engine}, symbols{symbols} { }
 
         /**

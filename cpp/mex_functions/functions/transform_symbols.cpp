@@ -20,7 +20,7 @@
 #include "symbolic/polynomial_to_basis.h"
 
 #include "eigen/read_eigen_sparse.h"
-#include "export/export_symbol_combo.h"
+#include "export/export_polynomial.h"
 
 #include <sstream>
 
@@ -142,7 +142,7 @@ namespace Moment::mex::functions {
                 }();
                 break;
             case TransformSymbolsParams::OutputType::Basis: {
-                auto [re_part, im_part] = SymbolComboExporter{this->matlabEngine, matrixSystem.Symbols()}(output_combo);
+                auto [re_part, im_part] = PolynomialExporter{this->matlabEngine, matrixSystem.Symbols()}(output_combo);
                 if (output.size() >= 1) {
                     output[0] = std::move(re_part);
                 }

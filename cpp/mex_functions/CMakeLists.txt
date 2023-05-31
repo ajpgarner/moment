@@ -18,12 +18,12 @@ matlab_add_mex(NAME moment_mex
             eigen/export_eigen_dense.cpp
             eigen/export_eigen_sparse.cpp
             export/export_basis.cpp
-            export/export_symbol_combo.cpp
             export/export_implicit_symbols.cpp
             export/export_matrix_basis_masks.cpp
             export/export_moment_substitution_rules.cpp
             export/export_monomial_rules.cpp
             export/export_operator_sequence.cpp
+            export/export_polynomial.cpp
             export/export_sequence_matrix.cpp
             export/export_substitution_list.cpp
             export/export_symbol_matrix.cpp
@@ -42,6 +42,7 @@ matlab_add_mex(NAME moment_mex
             utilities/reflection.cpp
             utilities/reporting.cpp
             functions/alphabetic_name.cpp
+            functions/apply_moment_rules.cpp
             functions/collins_gisin.cpp
             functions/complete.cpp
             functions/conjugate.cpp
@@ -62,12 +63,12 @@ matlab_add_mex(NAME moment_mex
             functions/debug/list.cpp
             functions/debug/monomial_rules.cpp
             functions/debug/version.cpp
-        functions/matrix_system/algebraic_matrix_system.cpp
-        functions/matrix_system/imported_matrix_system.cpp
-        functions/matrix_system/inflation_matrix_system.cpp
-        functions/matrix_system/locality_matrix_system.cpp
-        functions/matrix_system/symmetrized_matrix_system.cpp
-        functions/operator_matrix/substituted_matrix.cpp
+            functions/matrix_system/algebraic_matrix_system.cpp
+            functions/matrix_system/imported_matrix_system.cpp
+            functions/matrix_system/inflation_matrix_system.cpp
+            functions/matrix_system/locality_matrix_system.cpp
+            functions/matrix_system/symmetrized_matrix_system.cpp
+            functions/operator_matrix/substituted_matrix.cpp
             functions/operator_matrix/extended_matrix.cpp
             functions/operator_matrix/localizing_matrix.cpp
             functions/operator_matrix/moment_matrix.cpp

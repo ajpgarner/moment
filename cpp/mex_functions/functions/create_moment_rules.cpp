@@ -567,7 +567,7 @@ namespace Moment::mex::functions {
         std::vector<Polynomial> raw_polynomials;
         raw_polynomials.reserve(input.raw_symbol_polynomials.size());
         for (const auto& raw_rule : input.raw_symbol_polynomials) {
-            raw_polynomials.emplace_back(raw_data_to_polynomial(factory, raw_rule));
+            raw_polynomials.emplace_back(raw_data_to_polynomial(this->matlabEngine, factory, raw_rule));
         }
 
         // Import rules, and compile

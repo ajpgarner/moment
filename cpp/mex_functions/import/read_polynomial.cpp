@@ -9,6 +9,8 @@
 
 #include "error_codes.h"
 
+#include "symbolic/symbol_table.h"
+
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 
@@ -80,11 +82,21 @@ namespace Moment::mex {
         return output;
     }
 
-    Polynomial raw_data_to_polynomial(const PolynomialFactory &factory, std::span<const raw_sc_data> data) {
+    Polynomial raw_data_to_polynomial(matlab::engine::MATLABEngine &matlabEngine,
+                                      const PolynomialFactory &factory, std::span<const raw_sc_data> data) {
         Polynomial::storage_t output_data;
+        const auto& symbols = factory.symbols;
         output_data.reserve(data.size());
+        size_t idx = 0;
         for (const auto& datum: data) {
+            if (datum.symbol_id >= symbols.size()) {
+                std::stringstream elemSS;
+                elemSS << "Polynomial element #" << (idx+1) << " contains symbol '" << datum.symbol_id
+                       << "', which is out of range.";
+                throw_error(matlabEngine, errors::bad_param, elemSS.str());
+            }
             output_data.emplace_back(datum.symbol_id, datum.factor, datum.conjugated);
+            ++idx;
         }
 
         return factory(std::move(output_data));

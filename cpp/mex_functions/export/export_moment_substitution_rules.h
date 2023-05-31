@@ -8,7 +8,7 @@
 #pragma once
 
 #include "exporter.h"
-#include "export_symbol_combo.h"
+#include "export_polynomial.h"
 
 #include "MatlabDataArray.hpp"
 
@@ -29,7 +29,7 @@ namespace Moment {
 namespace Moment::mex {
     class MomentSubstitutionRuleExporter : public Exporter {
     private:
-        SymbolComboExporter combo_exporter;
+        PolynomialExporter combo_exporter;
 
     public:
         explicit MomentSubstitutionRuleExporter(matlab::engine::MATLABEngine &engine, const SymbolTable& symbols) noexcept

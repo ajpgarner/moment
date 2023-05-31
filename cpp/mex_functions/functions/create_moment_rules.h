@@ -71,7 +71,6 @@ namespace Moment::mex::functions {
         std::vector<std::vector<raw_sc_data>> raw_symbol_polynomials;
 
         /** Weighted operator sequences, if specified. */
-        //std::vector<std::vector<OpSeqExpr>> raw_op_seq_polynomials;
         std::unique_ptr<OpSeqRuleSpecification> raw_op_seq_polynomials;
 
     public:

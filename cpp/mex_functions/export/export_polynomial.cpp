@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 
-#include "export_symbol_combo.h"
+#include "export_polynomial.h"
 
 #include "symbolic/polynomial.h"
 #include "symbolic/polynomial_to_basis.h"
@@ -21,7 +21,7 @@
 namespace Moment::mex {
 
     std::pair<matlab::data::Array, matlab::data::Array>
-        SymbolComboExporter::operator()(const Polynomial& combo) const {
+        PolynomialExporter::operator()(const Polynomial& combo) const {
 
         auto [basis_re, basis_im] = PolynomialToBasisVec{symbols}(combo);
 
@@ -33,7 +33,7 @@ namespace Moment::mex {
         };
     }
 
-    matlab::data::CellArray SymbolComboExporter::direct(const Polynomial &combo) const {
+    matlab::data::CellArray PolynomialExporter::direct(const Polynomial &combo) const {
 
         matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({combo.size(), 1});

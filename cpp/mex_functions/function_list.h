@@ -26,6 +26,7 @@ namespace Moment::mex::functions {
         Unknown = 0,
         AlgebraicMatrixSystem,
         AlphabeticName,
+        ApplyMomentRules,
         CollinsGisin,
         Complete,
         Conjugate,

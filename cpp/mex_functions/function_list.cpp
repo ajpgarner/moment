@@ -8,6 +8,7 @@
 #include "mex_function.h"
 
 #include "functions/alphabetic_name.h"
+#include "functions/apply_moment_rules.h"
 #include "functions/collins_gisin.h"
 #include "functions/complete.h"
 #include "functions/conjugate.h"
@@ -51,6 +52,7 @@ namespace Moment::mex::functions {
             std::map<std::string, MEXEntryPointID> output;
             output.emplace("algebraic_matrix_system",   MEXEntryPointID::AlgebraicMatrixSystem);
             output.emplace("alphabetic_name", MEXEntryPointID::AlphabeticName);
+            output.emplace("apply_moment_rules", MEXEntryPointID::ApplyMomentRules);
             output.emplace("collins_gisin",   MEXEntryPointID::CollinsGisin);
             output.emplace("complete",        MEXEntryPointID::Complete);
             output.emplace("conjugate",       MEXEntryPointID::Conjugate);
@@ -123,6 +125,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::AlphabeticName:
                 the_function = std::make_unique<functions::AlphabeticName>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::ApplyMomentRules:
+                the_function = std::make_unique<functions::ApplyMomentRules>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::CollinsGisin:
                 the_function = std::make_unique<functions::CollinsGisin>(engine, storageManager);
