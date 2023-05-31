@@ -134,17 +134,21 @@ classdef ComplexObject < handle
         end
     end
 
-    %% power function overloading
+    %% Power function overloading
     methods
         function val = mpower(lhs,rhs)
+            arguments
+                lhs (1,1) Abstract.ComplexObject
+                rhs (1,1) double
+            end
         
             if rhs <= 0 || rhs ~= floor(rhs)
-                error("Invalid exponent");
+                error("Invalid exponent.");
             end
 
             val = lhs;
             for i=1:rhs-1
-                val = mtimes(val,val);
+                val = mtimes(val, lhs);
             end
         end
     end
