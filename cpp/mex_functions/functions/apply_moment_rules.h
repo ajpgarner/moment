@@ -26,9 +26,10 @@ namespace Moment::mex::functions {
         uint64_t rulebook_index = 0;
 
         enum class OutputFormat {
-            Cell,
+            SymbolCell,
+            OperatorCell,
             String
-        } output_format = OutputFormat::Cell;
+        } output_format = OutputFormat::SymbolCell;
 
         /** Direct set of symbol combos, if specified. */
         std::vector<raw_sc_data> raw_polynomial;

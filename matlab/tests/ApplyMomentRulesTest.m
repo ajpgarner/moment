@@ -12,6 +12,20 @@ classdef ApplyMomentRulesTest < MTKTestBase
             expected_out = {{uint64(1), 2.25}};
             testCase.verifyEqual(test_out, expected_out);
         end
+        
+        function SequenceOutput(testCase)
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
+            mm_index = mtk('moment_matrix', ref_id, 1);
+            op_rules = {{{[1, 2], 1.0}, {[], -0.5}}}; % A0, B0 = 0.5
+            [rules_index, ~] = mtk('create_moment_rules', 'sequences', ... 
+                            ref_id, op_rules);
+            test_out = mtk('apply_moment_rules', 'output', 'sequences',...
+                           ref_id, rules_index, ...
+                           {{6, 0.5}, {2, 10.0}, {1, 2.0}});
+            expected_out = {{uint64.empty(1,0), 2.25}, ...
+                            {uint64(1), 10.0}};
+            testCase.verifyEqual(test_out, expected_out);
+        end
     end    
     
     methods (Test, TestTags={'Error'})

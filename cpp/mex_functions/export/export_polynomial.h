@@ -37,5 +37,13 @@ namespace Moment::mex {
          * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
          */
         matlab::data::CellArray direct(const Polynomial& combo) const;
+
+        /**
+         * Export combo as a cell array, translating all symbols into operator sequences.
+         * Error if symbol not defined!
+         * @param combo The combo to export.
+         * @return Cell array of cell pairs/triplets {{[op sequence array], factor}}
+         */
+        matlab::data::CellArray sequences(const Polynomial& combo) const;
     };
 }

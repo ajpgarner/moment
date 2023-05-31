@@ -12,6 +12,7 @@
 
 #include "export/export_polynomial.h"
 
+#include "utilities/read_choice.h"
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 
@@ -33,10 +34,24 @@ namespace Moment::mex::functions {
         // Read symbol combo cell
         this->raw_polynomial = read_raw_polynomial_data(this->matlabEngine, "Polynomial", this->inputs[2]);
 
-        // Do we output as string?
-        if (this->flags.contains(u"string")) {
-            this->output_format = OutputFormat::String;
+        // Read output mode, if set
+        auto outputModeIter = this->params.find(u"output");
+        if (outputModeIter != this->params.end()) {
+            switch (read_choice("output", {"string", "symbols", "sequences"}, outputModeIter->second)) {
+                case 0:
+                    this->output_format = OutputFormat::String;
+                    break;
+                case 1:
+                    this->output_format = OutputFormat::SymbolCell;
+                    break;
+                case 2:
+                    this->output_format = OutputFormat::OperatorCell;
+                    break;
+                default:
+                    throw_error(this->matlabEngine, errors::bad_param, "Unknown output mode.");
+            }
         }
+
     }
 
     void ApplyMomentRules::extra_input_checks(ApplyMomentRulesParams &input) const {
@@ -52,7 +67,7 @@ namespace Moment::mex::functions {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
-        this->flag_names.insert(u"string");
+        this->param_names.insert(u"output");
     }
 
     void ApplyMomentRules::operator()(IOArgumentRange output, ApplyMomentRulesParams &input) {
@@ -117,9 +132,12 @@ namespace Moment::mex::functions {
         if (input.output_format == ApplyMomentRulesParams::OutputFormat::String) {
             matlab::data::ArrayFactory mlfactory;
             output[0] = mlfactory.createScalar(str_output);
-        } else if (input.output_format == ApplyMomentRulesParams::OutputFormat::Cell) {
+        } else if (input.output_format == ApplyMomentRulesParams::OutputFormat::SymbolCell) {
             PolynomialExporter polynomialExporter{this->matlabEngine, symbols};
             output[0] = polynomialExporter.direct(polynomial);
+        } else if (input.output_format == ApplyMomentRulesParams::OutputFormat::OperatorCell) {
+            PolynomialExporter polynomialExporter{this->matlabEngine, symbols};
+            output[0] = polynomialExporter.sequences(polynomial);
         } else {
             throw_error(this->matlabEngine, errors::bad_param, "Unknown output format.");
         }
