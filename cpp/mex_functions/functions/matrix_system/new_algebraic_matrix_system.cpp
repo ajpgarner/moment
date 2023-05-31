@@ -124,7 +124,7 @@ namespace Moment::mex::functions {
             assert(this->names);
             assert(this->apc);
 
-            this->rules = read_monomial_rules(matlabEngine, inputs[1], "Rules", true, *this->apc, *this->names);
+            this->rules = read_monomial_rules(matlabEngine, inputs[1], "MonomialRules", true, *this->apc, *this->names);
             check_rule_length(matlabEngine, apc->hasher, this->rules);
         }
     }

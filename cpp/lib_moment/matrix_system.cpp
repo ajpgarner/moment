@@ -247,7 +247,7 @@ namespace Moment {
         // Source matrix
         const auto& source_matrix = this->get(matrix_index);
 
-        // Rules
+        // MonomialRules
         const auto& rulebook = this->rulebook(rulebook_index);
 
         // Make reduced matrix

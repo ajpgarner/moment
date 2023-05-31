@@ -28,7 +28,7 @@
 % conjugate
 %       Returns the complex-conjugation of an operator sequence.
 % 
-% echo [Debug]
+% echo [DEBUG]
 %       Returns supplied numerical array; tests MATLAB to Eigen interface.
 % 
 % extended_matrix
@@ -40,7 +40,7 @@
 % import_matrix
 %       Adds a symbol matrix manually to an imported matrix system.
 % 
-% list
+% list [DEBUG]
 %       Lists the matrices stored in a given matrix system.
 % 
 % localizing_matrix
@@ -53,6 +53,9 @@
 % moment_matrix
 %       Generates a moment matrix for supplied set of Hermitian operators.
 % 
+% monomial_rules [DEBUG]
+%       Returns the ruleset associated with an algebraic matrix system.
+%
 % new_algebraic_matrix_system
 %       Creates context of shared variables, with algebraic relations.
 % 
@@ -76,9 +79,6 @@
 % 
 % release
 %       Frees the internally-stored object at the supplied key.
-% 
-% rules
-%       Returns a ruleset associated with an algebraic matrix system.
 % 
 % settings
 %       Adjust environmental variables for Moment.

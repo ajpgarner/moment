@@ -8,8 +8,6 @@
 #pragma once
 #include "../mex_function.h"
 
-//#include "symbolic/symbol_combo.h"
-
 #include "integer_types.h"
 
 #include <vector>

@@ -119,7 +119,7 @@ namespace Moment::Algebraic {
         }
         ss << "\n";
         if (rule_count > 0) {
-            ss << "Rules: \n";
+            ss << "MonomialRules: \n";
             for (const auto& [id, msr] : this->rules.rules()) {
                 ss << "\t" << msr << "\n";
             }
@@ -130,7 +130,7 @@ namespace Moment::Algebraic {
 
     std::string AlgebraicContext::resolved_rules() const {
         std::stringstream ss;
-        ss << "Rules: \n";
+        ss << "MonomialRules: \n";
         for (const auto& [id, msr] : this->rules.rules()) {
             ss << "\t" << msr << "\n";
         }

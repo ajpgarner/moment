@@ -131,7 +131,7 @@ namespace Moment {
             return 0;
         }
 
-        // Rules already complete?
+        // MonomialRules already complete?
         const bool existing_rules = !this->rules.empty();
 
         // First, sort raw rules by lowest leading monomial, tie-breaking with shorter strings first.
@@ -196,11 +196,11 @@ namespace Moment {
             if (this->symbols[pair.first].is_hermitian()) {
                 return pair.second.RHS().is_hermitian(this->symbols);
             }
-            // Rules on non-Hermitian variables can do as they please.
+            // MonomialRules on non-Hermitian variables can do as they please.
             return true;
         });
 
-        // Rules are now complete
+        // MonomialRules are now complete
         return rules_added;
     }
 

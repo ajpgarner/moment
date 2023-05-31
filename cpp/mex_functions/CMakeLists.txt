@@ -52,7 +52,6 @@ matlab_add_mex(NAME moment_mex
             functions/make_representation.cpp
             functions/probability_table.cpp
             functions/release.cpp
-            functions/rules.cpp
             functions/settings.cpp
             functions/simplify.cpp
             functions/suggest_extensions.cpp
@@ -61,6 +60,7 @@ matlab_add_mex(NAME moment_mex
             functions/word_list.cpp
             functions/debug/echo.cpp
             functions/debug/list.cpp
+            functions/debug/monomial_rules.cpp
             functions/debug/version.cpp
             functions/matrix_system/new_algebraic_matrix_system.cpp
             functions/matrix_system/new_imported_matrix_system.cpp

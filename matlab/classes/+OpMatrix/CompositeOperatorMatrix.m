@@ -44,7 +44,6 @@ classdef CompositeOperatorMatrix < handle
                 obj.Dimension = uint64(0);
                 obj.real_basis = sparse(0,0);
                 obj.im_basis = sparse(0,0);
-                
             else
                 obj.Dimension = obj.Constituents(1).Dimension;
                 obj.MatrixSystem = obj.Constituents(1).MatrixSystem;

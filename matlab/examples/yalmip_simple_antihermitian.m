@@ -13,7 +13,7 @@ setting.Complete(4);
 
 %% Make matrices and objective
 mm = setting.MakeMomentMatrix(mm_level);
-objective = 1i*(X*Y - Y*X);
+objective = -0.5i*(X*Y - Y*X);
 
 %% Define and solve SDP via YALMIP
 yalmip('clear');
@@ -29,7 +29,7 @@ yalmip('clear');
     
     % Objective
     obj = objective.yalmip(a, b);    
-    opt_results = optimize(constraints,obj);
+    opt_results = optimize(constraints, obj);
 
 %% Output solution
 format long

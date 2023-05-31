@@ -8,7 +8,6 @@
 #include "mex_function.h"
 
 #include "functions/alphabetic_name.h"
-
 #include "functions/collins_gisin.h"
 #include "functions/complete.h"
 #include "functions/conjugate.h"
@@ -19,7 +18,6 @@
 #include "functions/make_representation.h"
 #include "functions/probability_table.h"
 #include "functions/release.h"
-#include "functions/rules.h"
 #include "functions/settings.h"
 #include "functions/simplify.h"
 #include "functions/suggest_extensions.h"
@@ -28,6 +26,7 @@
 #include "functions/word_list.h"
 #include "functions/debug/echo.h"
 #include "functions/debug/list.h"
+#include "functions/debug/monomial_rules.h"
 #include "functions/debug/version.h"
 #include "functions/matrix_system/new_algebraic_matrix_system.h"
 #include "functions/matrix_system/new_imported_matrix_system.h"
@@ -65,6 +64,7 @@ namespace Moment::mex::functions {
             output.emplace("make_explicit",   MEXEntryPointID::MakeExplicit);
             output.emplace("make_representation",   MEXEntryPointID::MakeRepresentation);
             output.emplace("moment_matrix",   MEXEntryPointID::MomentMatrix);
+            output.emplace("monomial_rules",     MEXEntryPointID::MonomialRules);
             output.emplace("operator_matrix", MEXEntryPointID::OperatorMatrix);
             output.emplace("new_algebraic_matrix_system",   MEXEntryPointID::NewAlgebraicMatrixSystem);
             output.emplace("new_imported_matrix_system",    MEXEntryPointID::NewImportedMatrixSystem);
@@ -73,7 +73,6 @@ namespace Moment::mex::functions {
             output.emplace("new_symmetrized_matrix_system", MEXEntryPointID::NewSymmetrizedMatrixSystem);
             output.emplace("probability_table",  MEXEntryPointID::ProbabilityTable);
             output.emplace("release",            MEXEntryPointID::Release);
-            output.emplace("rules",              MEXEntryPointID::Rules);
             output.emplace("settings",           MEXEntryPointID::Settings);
             output.emplace("simplify",           MEXEntryPointID::Simplify);
             output.emplace("suggest_extensions", MEXEntryPointID::SuggestExtensions);
@@ -164,6 +163,9 @@ namespace Moment::mex::functions {
             case functions::MEXEntryPointID::MomentMatrix:
                 the_function = std::make_unique<functions::MomentMatrix>(engine, storageManager);
                 break;
+            case functions::MEXEntryPointID::MonomialRules:
+                the_function = std::make_unique<functions::MonomialRules>(engine, storageManager);
+                break;
             case functions::MEXEntryPointID::NewAlgebraicMatrixSystem:
                 the_function = std::make_unique<functions::NewAlgebraicMatrixSystem>(engine, storageManager);
                 break;
@@ -187,9 +189,6 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::Release:
                 the_function  = std::make_unique<functions::Release>(engine, storageManager);
-                break;
-            case functions::MEXEntryPointID::Rules:
-                the_function  = std::make_unique<functions::Rules>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::Settings:
                 the_function = std::make_unique<functions::Settings>(engine, storageManager);
