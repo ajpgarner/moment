@@ -34,6 +34,22 @@ namespace Moment::mex::functions {
         // Read symbol combo cell
         this->raw_polynomial = read_raw_polynomial_data(this->matlabEngine, "Polynomial", this->inputs[2]);
 
+        // Read input mode, if set
+        auto inputModeIter = this->params.find(u"input");
+        if (inputModeIter  != this->params.end()) {
+            switch (read_choice("output", {"symbols", "sequences"}, inputModeIter->second)) {
+                case 0:
+                    this->input_format = InputFormat::SymbolCell;
+                    break;
+                case 1:
+                    this->input_format = InputFormat::OperatorCell;
+                    throw_error(this->matlabEngine, errors::bad_param, "Operator input mode not yet supported.");
+                    break;
+                default:
+                    throw_error(this->matlabEngine, errors::bad_param, "Unknown input mode.");
+            }
+        }
+
         // Read output mode, if set
         auto outputModeIter = this->params.find(u"output");
         if (outputModeIter != this->params.end()) {
@@ -67,6 +83,7 @@ namespace Moment::mex::functions {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
+        this->param_names.insert(u"input");
         this->param_names.insert(u"output");
     }
 

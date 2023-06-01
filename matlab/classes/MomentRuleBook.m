@@ -56,7 +56,7 @@ methods
                                double(values(idx))};
         end
         
-        obj.AddScalarSubstitutionCell(cell_input)
+        obj.AddScalarSubstitutionCell(cell_input);
     end
 
     function obj = AddScalarSubstitutionCell(obj, symbol_value_pairs)
@@ -122,21 +122,17 @@ methods
         end
 
         if isa(target, 'OpMatrix.OperatorMatrix')
-            val = obj.ApplyToMatrix(target);
+            val = target.ApplyRules(obj);
         elseif isa(target, 'OpMatrix.CompositeOperatorMatrix')
+            val = target.ApplyRules(obj);
+        elseif isa(target, 'Algebraic.Monomial')
+            val = target.ApplyRules(obj);
+        elseif isa(target, 'Algebraic.Polynomial')
             val = target.ApplyRules(obj);
         else
             error("Could not apply rules to target of type %s.", ...
                   class(target));
         end            
-    end
-
-    function val = ApplyToMatrix(obj, target)
-        arguments
-            obj (1,1) MomentRuleBook
-            target (1,1) OpMatrix.OperatorMatrix
-        end            
-        val = target.ApplyRules(obj);           
     end
 end
     

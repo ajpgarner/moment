@@ -25,6 +25,13 @@ namespace Moment::mex::functions {
         /** The reference to the substitution rules . */
         uint64_t rulebook_index = 0;
 
+        /** The format in which the inputs polynomial is given. */
+        enum class InputFormat {
+            SymbolCell,
+            OperatorCell
+        } input_format = InputFormat::SymbolCell;
+
+        /** The format in which the output polynomial is given. */
         enum class OutputFormat {
             SymbolCell,
             OperatorCell,

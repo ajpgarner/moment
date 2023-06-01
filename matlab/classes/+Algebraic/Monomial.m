@@ -443,6 +443,24 @@ classdef Monomial < Abstract.ComplexObject
                 conj_ops, obj.Coefficient);
         end
     end
+            
+    %% Apply substitution rules
+    methods        
+        function val = ApplyRules(obj, rulebook )
+        % APPLYRULES Transform moments of matrix according to rulebook.
+        %
+        % Effectively applies rules to each constituent matrix in turn.
+        % 
+            arguments
+                obj (1,1) Algebraic.Monomial
+                rulebook (1,1) MomentRuleBook
+            end
+       
+            % Promote to polynomial, then apply
+            obj_as_poly = Algebraic.Polynomial(obj.Scenario, obj);
+            val = obj_as_poly.ApplyRules(rulebook);
+        end 
+    end
     
     %% Virtual methods
     methods(Access=protected)

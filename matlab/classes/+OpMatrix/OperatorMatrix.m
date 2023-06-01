@@ -91,7 +91,7 @@ classdef OperatorMatrix < handle
         end
     end
     
-    %% Apply values
+    %% Apply substitution rules
     methods        
         function val = ApplyRules(obj, rulebook )
             arguments

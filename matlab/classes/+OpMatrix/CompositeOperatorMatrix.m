@@ -139,7 +139,7 @@ classdef CompositeOperatorMatrix < handle
         end
     end
     
-    %% Apply values
+    %% Apply substitution rules
     methods        
         function val = ApplyRules(obj, rulebook )
         % APPLYRULES Transform moments of matrix according to rulebook.
@@ -158,8 +158,7 @@ classdef CompositeOperatorMatrix < handle
             val = OpMatrix.CompositeOperatorMatrix(tx_monos, obj.Weights);
         end 
     end    
-    
-            
+ 
     
     %% CVX Methods
     methods

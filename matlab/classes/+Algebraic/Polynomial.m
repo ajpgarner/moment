@@ -5,8 +5,18 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         Constituents = Algebraic.Monomial.empty(1,0)
     end
     
+    %properties(GetAccess=public, SetAccess=private)
+        
+    %end
+    
     properties(Dependent)
+        AsSymbolCell
         IsZero
+    end
+    
+    properties(Access=private)
+        done_sc = false;
+        symbol_cell = cell(1,0);
     end
     
     methods(Static)
@@ -23,22 +33,44 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         function obj = Polynomial(setting, constituents)
             arguments
                 setting (1,1) Abstract.Scenario
-                constituents (1,:) Algebraic.Monomial
+                constituents (1,:) 
             end
             obj = obj@Abstract.ComplexObject(setting);
             obj.ObjectName = "Polynomial";
             
-            % Check constituents all belong to correct scenario
-            for other = constituents
-                obj.checkSameScenario(other);
-            end                        
-            obj.Constituents = constituents;
+            if isempty(constituents) 
+                obj.Constituents = Algebraic.Monomial.empty(1,0);
+            elseif isa(constituents, 'Algebraic.Monomial')
+                for other = constituents
+                    obj.checkSameScenario(other);
+                end                        
+                obj.Constituents = constituents;
+            elseif isa(constituents, 'cell')
+               obj.makeFromOperatorCell(constituents);
+            else
+                error("Polynomial must be initialized from array of monomials, or a cell array.")
+            end
+               
             obj.orderAndMerge();
             obj.makeObjectName();
         end
         
+    end
+    
+    %% Dependent variables
+    methods
         function val = get.IsZero(obj)
             val = isempty(obj.Constituents);
+        end
+        
+        function val = get.AsSymbolCell(obj)
+            if ~obj.done_sc
+                obj.makeSymbolCell();
+                if ~obj.done_sc
+                    error("Not yet got symbol cell.");
+                end
+            end
+            val = obj.symbol_cell;
         end
     end
     
@@ -397,6 +429,41 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         end
     end
     
+                
+    %% Apply substitution rules
+    methods        
+        function val = ApplyRules(obj, rulebook )
+        % APPLYRULES Transform moments of matrix according to rulebook.
+        %
+        % Effectively applies rules to each constituent matrix in turn.
+        % 
+            arguments
+                obj (1,1) Algebraic.Polynomial
+                rulebook (1,1) MomentRuleBook
+            end
+            
+            % Scenarios must match
+            if (rulebook.Scenario ~= obj.Scenario)
+                error(obj.err_mismatched_scenario);
+            end
+            
+            % Get transformed version of polynomial
+            as_symbol_cell = obj.AsSymbolCell();
+            output_sequences = mtk('apply_moment_rules', ...
+                obj.Scenario.System.RefId, rulebook.RuleBookId, ...
+                'output', 'sequences', as_symbol_cell);
+            
+            % Construct new, transformed polynomial
+            val = Algebraic.Polynomial(obj.Scenario, output_sequences);
+            
+            % Degrade to monomial if only single element.
+            if length(val.Constituents) == 1
+                val = val.Constituents(1);
+            end
+        end
+    end   
+    
+    
     %% Virtual methods
     methods(Access=protected)
         function success = calculateCoefficients(obj)
@@ -425,6 +492,8 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
     %% Internal methods
     methods(Access=private)
         function orderAndMerge(obj)
+        % ORDERANDMERGE Sort monomials, and combine repeated elements.
+        
             % Order
             [~, order] = sort([obj.Constituents.Hash]);
             write_index = 0;
@@ -452,8 +521,16 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             % Trim zeros
             nz_mask = abs([nc(:).Coefficient]) >= 2*eps(0);
             obj.Constituents = nc(nz_mask);
-            
-            
+        end
+        
+        function makeFromOperatorCell(obj, input)
+        %MAKEFROMOPERATORCELL Configure according to cell array input.
+            obj.Constituents = Algebraic.Monomial.empty(1,0);
+            for idx = 1:length(input)
+                obj.Constituents(end+1) = ...
+                    Algebraic.Monomial(obj.Scenario, ...
+                        input{idx}{1}, input{idx}{2});                    
+            end
         end
         
         function makeObjectName(obj)
@@ -473,6 +550,29 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                                  + obj.Constituents(idx).ObjectName;
             end
             obj.ObjectName = obj.ObjectName + '"';
+        end
+        
+        function makeSymbolCell(obj)
+            % No constituents -> {} 
+            if isempty(obj.Constituents)
+                obj.symbol_cell = cell(1,0);
+                return;
+            end
+            
+            % Not yet got symbols -> error
+            if ~all([obj.Constituents.FoundSymbol])
+                error("Constituent terms not yet resolved to symbols.");
+            end
+            
+            obj.symbol_cell = cell(1, length(obj.Constituents));
+            for idx = 1:length(obj.Constituents)
+                obj.symbol_cell{idx} = {obj.Constituents(idx).SymbolId,...
+                                        obj.Constituents(idx).Coefficient};
+                if (obj.Constituents(idx).SymbolConjugated)
+                    obj.symbol_cell{idx}{end+1} = true;
+                end
+            end
+            obj.done_sc = true;
         end
     end
 end
