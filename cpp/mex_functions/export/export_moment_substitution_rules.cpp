@@ -9,6 +9,9 @@
 
 #include "symbolic/moment_substitution_rule.h"
 #include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/symbol_table.h"
+
+#include "utilities/utf_conversion.h"
 
 
 namespace Moment::mex {
@@ -24,6 +27,25 @@ namespace Moment::mex {
         return output;
     }
 
+    matlab::data::StringArray MomentSubstitutionRuleExporter::as_string(const MomentSubstitutionRulebook &rules) {
+        matlab::data::ArrayFactory factory;
+        auto output = factory.createArray<matlab::data::MATLABString>({rules.size(), 1});
+        auto write_iter = output.begin();
+        if (string_format_options.as_operators) {
+            for (const auto &rule: rules) {
+                *write_iter = this->write_rule_string_as_operator(factory, rule.second);
+                ++write_iter;
+            }
+        } else {
+            for (const auto &rule: rules) {
+                *write_iter = this->write_rule_string_as_symbol(factory, rule.second);
+                ++write_iter;
+            }
+        }
+        return output;
+    }
+
+
     matlab::data::CellArray MomentSubstitutionRuleExporter::write_rule(matlab::data::ArrayFactory &factory,
                                                                        const MomentSubstitutionRule &rule) {
         auto output = factory.createCellArray({1, 2});
@@ -32,6 +54,39 @@ namespace Moment::mex {
         output[1] = this->combo_exporter.direct(rule.RHS());
 
         return output;
+    }
+
+    matlab::data::MATLABString
+    MomentSubstitutionRuleExporter::write_rule_string_as_operator(matlab::data::ArrayFactory &factory,
+                                                                  const MomentSubstitutionRule &rule) {
+        std::stringstream ruleSS;
+        if (rule.LHS() < this->symbols.size()) {
+            const auto& symbolInfo= this->symbols[rule.LHS()];
+            if (symbolInfo.has_sequence()) {
+                if (this->string_format_options.show_braces) {
+                    ruleSS << "<" << symbolInfo.formatted_sequence() << ">";
+                } else {
+                    ruleSS << symbolInfo.formatted_sequence();
+                }
+            } else {
+                ruleSS << "S#" << rule.LHS();
+            }
+        } else {
+            ruleSS << "UNK#" << rule.LHS();
+        }
+
+        ruleSS << "  ->  ";
+        rule.RHS().as_string_with_operators(ruleSS, this->symbols, this->string_format_options.show_braces);
+
+        return UTF8toUTF16Convertor{}(ruleSS.str());
+    }
+
+    matlab::data::MATLABString
+    MomentSubstitutionRuleExporter::write_rule_string_as_symbol(matlab::data::ArrayFactory &factory,
+                                                                const MomentSubstitutionRule &rule) {
+        std::stringstream ruleSS;
+        ruleSS << "#" << rule.LHS() << "  ->  " << rule.RHS();
+        return UTF8toUTF16Convertor{}(ruleSS.str());
     }
 
 }

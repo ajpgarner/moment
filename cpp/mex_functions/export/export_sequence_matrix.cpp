@@ -24,6 +24,7 @@
 
 #include "utilities/reporting.h"
 
+#include "utilities/format_factor.h"
 #include "utilities/utf_conversion.h"
 
 #include "error_codes.h"
@@ -214,13 +215,14 @@ namespace Moment::mex {
                                                                    : symEntry.formatted_sequence();
 
                     if (!approximately_zero(expr.factor)) {
+                        const bool is_scalar = (symEntry.Id() == 1);
+                        const bool need_space = format_factor(ss, expr.factor, is_scalar, with_prefix);
                         if (symEntry.Id() != 1) {
-                            Monomial::format_factor_skip_one(ss, expr.factor, with_prefix);
+                            if (need_space) {
+                                ss << " ";
+                            }
                             ss << symbol_str;
-                        } else {
-                            Monomial::format_factor(ss, expr.factor, with_prefix);
                         }
-
                     } else {
                         if (with_prefix) {
                             return "";
@@ -369,11 +371,13 @@ namespace Moment::mex {
                     }
 
                     std::stringstream ss;
-                    if (facEntry.id != 1) {
-                        Monomial::format_factor_skip_one(ss, raw_iter->factor, false, false);
+                    const bool is_scalar = (facEntry.id == 1);
+                    const bool need_space = format_factor(ss, raw_iter->factor, is_scalar, false);
+                    if (!is_scalar) {
+                        if (need_space) {
+                            ss << " ";
+                        }
                         ss << facEntry.sequence_string();
-                    } else {
-                        Monomial::format_factor(ss, raw_iter->factor, false);
                     }
 
                     return {UTF8toUTF16Convertor::convert(ss.str())};
@@ -453,8 +457,6 @@ namespace Moment::mex {
         // If no operator matrix, infer one:
         if (!inputMatrix.has_operator_matrix()) {
             return this->export_inferred(inputMatrix);
-            //throw_error(this->engine, errors::internal_error,
-            //            "Supplied matrix is not associated with an operator matrix.");
         }
 
         matlab::data::ArrayFactory factory;

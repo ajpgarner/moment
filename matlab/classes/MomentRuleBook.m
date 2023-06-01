@@ -4,10 +4,10 @@ classdef MomentRuleBook < handle
 
 %% Properties
 properties(GetAccess = public, SetAccess = protected)
-    Scenario % Associated scenario.
-    RuleBookId % ID of the rulebook within the matrix system.
-    RawRules % Rules as cell array of symbol substitutions.
-    Locked
+    Scenario    % Associated scenario.
+    RuleBookId  % ID of the rulebook within the matrix system.
+    RawRules    % Rules as cell array of symbol substitutions.
+    RuleStrings % Rules as strings
 end
 
 
@@ -27,6 +27,8 @@ methods
         obj.Scenario = scenario;
         obj.RuleBookId = mtk('create_moment_rules', ...
                              scenario.System.RefId, {});
+        obj.RawRules = cell.empty(0,1);
+        obj.RuleStrings = string.empty(0,1);
     end
 end
 
@@ -72,12 +74,13 @@ methods
         end
 
         % Import rules into rulebook
-        [rule_id, rules] = mtk('create_moment_rules', 'list', ...
-                               obj.Scenario.System.RefId, ...
-                               'rulebook', obj.RuleBookId, ...
-                               symbol_value_pairs);                               
+        [rule_id, rules, strs] = mtk('create_moment_rules', 'list', ...
+                                      obj.Scenario.System.RefId, ...
+                                      'rulebook', obj.RuleBookId, ...
+                                      symbol_value_pairs);                               
         obj.RuleBookId = rule_id;
         obj.RawRules = rules;
+        obj.RuleStrings = strs;
     end
 
 
@@ -104,12 +107,13 @@ methods
         end
 
         % Construct rulebook, and import rules
-        [rule_id, rules] = mtk('create_moment_rules', extra_params{:},...
-                               obj.Scenario.System.RefId, ...                               
-                               'rulebook', obj.RuleBookId, ...
-                               op_seq_cell);                               
+        [rule_id, rules, strs] = mtk('create_moment_rules', extra_params{:},...
+                                     obj.Scenario.System.RefId, ...                               
+                                     'rulebook', obj.RuleBookId, ...
+                                     op_seq_cell);                               
         obj.RuleBookId = rule_id;
         obj.RawRules = rules;
+        obj.RuleStrings = strs;
     end
 end
 

@@ -9,57 +9,9 @@
 #include <iostream>
 #include <sstream>
 
+#include "utilities/format_factor.h"
+
 namespace Moment {
-
-    void Monomial::format_factor(std::ostream& os, std::complex<double> factor, bool mandatory_plus) {
-        if (approximately_real(factor)) {
-            if (mandatory_plus) {
-                if (factor.real() > 0) {
-                    os << " + " << factor.real();
-                } else {
-                    os << " - " << (-factor.real());
-                }
-            } else {
-                os << factor.real();
-            }
-        } else if (approximately_imaginary(factor)) {
-            if (mandatory_plus) {
-                if (factor.imag() > 0) {
-                    os << " + " << factor.imag() << "i";
-                } else {
-                    os << " - " << (-factor.imag()) << "i";
-                }
-            } else {
-                os << factor.imag() << "i";
-            }
-        } else { // Complex number
-            if (mandatory_plus) {
-                os << " + ";
-            }
-            os << "(" << factor.real() << " + " << factor.imag() << "i)";
-        }
-    }
-
-    void Monomial::format_factor_skip_one(std::ostream& os, std::complex<double> factor,
-                                          bool mandatory_plus, bool include_times) {
-        if (approximately_equal(factor, 1.0)) { // +1
-            if (mandatory_plus) {
-                os << " + ";
-            }
-        } else if (approximately_equal(factor, -1.0)) { // -1
-            if (mandatory_plus) {
-                os << " - ";
-            } else {
-                os << "-";
-            }
-        } else { // General factor
-            format_factor(os, factor, mandatory_plus);
-            if (include_times) {
-                os << "*";
-            }
-        }
-    }
-
     std::ostream& operator<<(std::ostream& os, const Monomial& expr) {
 
         const bool show_plus = os.flags() & std::ios::showpos;
@@ -74,12 +26,20 @@ namespace Moment {
             return os;
         }
 
-        if (1 == expr.id) {
-            Monomial::format_factor(os, expr.factor, show_plus);
-        } else {
-            Monomial::format_factor_skip_one(os, expr.factor, show_plus, true);
+        const bool is_scalar = (expr.id == 1);
+        const bool needs_space = format_factor(os, expr.factor, is_scalar, show_plus);
+
+        if (!is_scalar) {
 
             const bool show_hash = os.flags() & std::ios::showbase;
+            if (needs_space) {
+                if (show_hash) {
+                    os << " ";
+                } else {
+                    os << "*";
+                }
+            }
+
             if (show_hash) {
                 os.unsetf(std::ios::showbase);
                 os << "#" << expr.id;

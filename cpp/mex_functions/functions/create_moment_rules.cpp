@@ -404,7 +404,7 @@ namespace Moment::mex::functions {
         this->max_inputs = 2;
 
         this->min_outputs = 1;
-        this->max_outputs = 2;
+        this->max_outputs = 3;
 
         this->flag_names.emplace(u"list");
         this->flag_names.emplace(u"symbols");
@@ -462,6 +462,10 @@ namespace Moment::mex::functions {
             auto new_read_lock = msPtr->get_read_lock();
             MomentSubstitutionRuleExporter msrExporter{this->matlabEngine, system.Symbols()};
             output[1] = msrExporter(rulebook);
+
+            if (output.size() >= 3) {
+                output[2] = msrExporter.as_string(rulebook);
+            }
         }
     }
 

@@ -174,23 +174,5 @@ namespace Moment {
         [[nodiscard]] std::string as_string() const;
 
         friend std::ostream &operator<<(std::ostream &os, const Monomial &expr);
-
-        /**
-         * Utility: format the factor part of symbol expression, unless it is +1 or -1.
-         * @param os  Output stream to write to.
-         * @param factor Number to format.
-         * @param mandatory_plus If true, always preface with " + " / " - ".
-         * @param include_times If true, suffix with "*" if factor is not +1/-1
-         */
-        static void format_factor_skip_one(std::ostream &os, std::complex<double> factor,
-                                           bool mandatory_plus = false, bool include_times = false);
-
-        /**
-         * Utility: format the factor part of symbol expression
-         * @param os  Output stream to write to.
-         * @param factor Number to format.
-         * @param mandatory_plus If true, always preface with " + " / " - ".
-         */
-        static void format_factor(std::ostream &os, std::complex<double> factor, bool mandatory_plus = false);
     };
 }

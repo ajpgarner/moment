@@ -8,6 +8,7 @@
 #include "symbol_table.h"
 
 #include "utilities/float_utils.h"
+#include "utilities/format_factor.h"
 
 #include <iostream>
 #include <sstream>
@@ -313,6 +314,15 @@ namespace Moment {
         const bool initial_plus_status = os.flags() & std::ios::showpos;
         const bool initial_show_base_status = os.flags() & std::ios::showbase;
 
+        // If empty, just write "0" and be done.
+        if (combo.empty()) {
+            if (initial_plus_status) {
+                os << " + ";
+            }
+            os << "0";
+            return os;
+        }
+
         os.unsetf(std::ios::showpos);
         os.setf(std::ios::showbase);
         for (const auto& se : combo) {
@@ -338,10 +348,79 @@ namespace Moment {
     }
 
     std::string Polynomial::as_string() const {
-
         std::stringstream ss;
         ss << *this;
         return ss.str();
+    }
+
+    std::string Polynomial::as_string_with_operators(const SymbolTable &table, bool show_braces) const {
+        std::stringstream ss;
+        this->as_string_with_operators(ss, table, show_braces);
+        return ss.str();
+    }
+
+    void Polynomial::as_string_with_operators(std::ostream &os, const SymbolTable &table, bool show_braces) const {
+        // Empty string is always 0.
+        if (this->empty()) {
+            os << "0";
+            return;
+        }
+
+        bool done_once = false;
+        for (const auto& elem : this->data) {
+
+            // Zero
+            if ((elem.id == 0) || (approximately_zero(elem.factor))) {
+                if (done_once) {
+                    os << " + ";
+                }
+                os << "0";
+                done_once = true;
+                continue;
+            }
+
+            // Is element a scalar?
+            const bool is_scalar = (elem.id == 1);
+
+            // Write factor
+            const bool need_space = format_factor(os, elem.factor, is_scalar, done_once);
+            done_once = true;
+
+            // Scalar, factor alone is enough
+            if (is_scalar) {
+                continue;
+            }
+
+            if (need_space) {
+                os << " ";
+            }
+
+            // Skip if symbol not in table.
+            const bool valid_symbol = ((elem.id >= 0) && (elem.id < table.size()));
+            if (!valid_symbol) {
+                os << "UNK#" << elem.id;
+                continue;
+            }
+
+            // Get formatted sequence from within table.
+            const auto& symbol_info = table[elem.id];
+            if (show_braces) {
+                if (elem.conjugated) {
+                    os << "<" << symbol_info.formatted_sequence_conj() << ">";
+                } else {
+                    os << "<" << symbol_info.formatted_sequence() << ">";
+                }
+            } else {
+                if (elem.conjugated) {
+                    os << symbol_info.formatted_sequence_conj();
+                } else {
+                    os << symbol_info.formatted_sequence();
+                }
+            }
+            done_once = true;
+        }
+
+
     }
 
 

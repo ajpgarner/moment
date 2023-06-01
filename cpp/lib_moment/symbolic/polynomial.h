@@ -321,6 +321,22 @@ namespace Moment {
          */
         [[nodiscard]] std::string as_string() const;
 
+        /**
+         * Get a string expression of this Polynomial, as operators.
+         * @param table The symbol table, with operator information.
+         * @param show_braces True to add angular braces around operator sequences.
+         * @return A newly constructed string representation of the polynomial.
+         */
+        [[nodiscard]] std::string as_string_with_operators(const SymbolTable& table, bool show_braces) const;
+
+        /**
+         * Get a string expression of this Polynomial, as operators.
+         * @param os The output stream to write to.
+         * @param table The symbol table, with operator information.
+         * @param show_braces True to add angular braces around operator sequences.
+         */
+        void as_string_with_operators(std::ostream& os, const SymbolTable& table, bool show_braces) const;
+
         friend class PolynomialToBasisVec;
         friend class BasisVecToPolynomial;
 

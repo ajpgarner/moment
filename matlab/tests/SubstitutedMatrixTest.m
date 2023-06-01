@@ -84,8 +84,8 @@ classdef SubstitutedMatrixTest < MTKTestBase
            
             sub_mm = mtk('operator_matrix', 'sequences', ref_id, sub_index);
             expected_mm = [["1", "0.5", "<B>"]; ...
-                           ["0.5", "0.5", "0.5<B>"];...
-                           ["<B>", "0.5<B>", "<B>"]];
+                           ["0.5", "0.5", "0.5 <B>"];...
+                           ["<B>", "0.5 <B>", "<B>"]];
             testCase.verifyEqual(sub_mm, expected_mm);
                    
             sub_sm = mtk('operator_matrix', 'symbols', ref_id, sub_index);

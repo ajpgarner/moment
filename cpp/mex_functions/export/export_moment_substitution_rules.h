@@ -26,19 +26,46 @@ namespace Moment {
     class MomentSubstitutionRule;
 }
 
+
 namespace Moment::mex {
+    struct RuleStringFormatOptions {
+    public:
+        bool as_operators = true;
+        bool show_braces = true;
+
+        RuleStringFormatOptions() = default;
+    };
+
+
     class MomentSubstitutionRuleExporter : public Exporter {
+    public:
+
     private:
         PolynomialExporter combo_exporter;
+        const SymbolTable& symbols;
+        RuleStringFormatOptions string_format_options;
 
     public:
-        explicit MomentSubstitutionRuleExporter(matlab::engine::MATLABEngine &engine, const SymbolTable& symbols) noexcept
-                : Exporter(engine), combo_exporter{engine, symbols} {}
+        explicit MomentSubstitutionRuleExporter(matlab::engine::MATLABEngine &engine, const SymbolTable& symbols,
+                                                RuleStringFormatOptions rsfo = RuleStringFormatOptions{}) noexcept
+                : Exporter{engine}, combo_exporter{engine, symbols},
+                  symbols{symbols}, string_format_options{rsfo} { }
 
         matlab::data::CellArray operator()(const MomentSubstitutionRulebook &rules);
 
+        matlab::data::StringArray as_string(const MomentSubstitutionRulebook& rules);
+
     private:
-        matlab::data::CellArray write_rule(matlab::data::ArrayFactory& factory, const MomentSubstitutionRule& rule);
+        matlab::data::CellArray write_rule(matlab::data::ArrayFactory& factory,
+                                           const MomentSubstitutionRule& rule);
+
+        matlab::data::MATLABString write_rule_string_as_operator(matlab::data::ArrayFactory& factory,
+                                                                 const MomentSubstitutionRule& rule);
+
+        matlab::data::MATLABString write_rule_string_as_symbol(matlab::data::ArrayFactory& factory,
+                                                               const MomentSubstitutionRule& rule);
+
+
 
     };
 }
