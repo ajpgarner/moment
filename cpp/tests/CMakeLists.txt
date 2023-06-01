@@ -45,10 +45,10 @@ add_executable(moment_tests
     symbolic/moment_substitution_rule_tests.cpp
     symbolic/moment_substitution_rulebook_tests.cpp
     symbolic/moment_substitution_rulebook_factor_tests.cpp
+    symbolic/monomial_tests.cpp
     symbolic/order_symbols_by_hash_tests.cpp
     symbolic/polynomial_tests.cpp
     symbolic/polynomial_to_basis_tests.cpp
-    symbolic/symbol_expression_tests.cpp
     symbolic/symbol_table_tests.cpp
     symbolic/symbolic_matrix_helpers.cpp
     utilities/alphabetic_namer_tests.cpp

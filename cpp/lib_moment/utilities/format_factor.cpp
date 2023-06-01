@@ -15,7 +15,7 @@ namespace Moment {
 
     bool format_factor(std::ostream &os, std::complex<double> factor, bool is_scalar, bool needs_plus) {
         bool need_space = true;
-        
+
         if (approximately_real(factor)) { // Purely real factor
             if (factor.real() > 0) {
                 if (needs_plus) {
@@ -38,6 +38,7 @@ namespace Moment {
                     if (is_scalar || !approximately_equal(factor.real(), -1.0)) {
                         os << factor.real();
                     } else {
+                        os << "-";
                         need_space = false;
                     }
                 }
@@ -61,6 +62,8 @@ namespace Moment {
                 } else {
                     if (!approximately_equal(factor.imag(), -1.0)) {
                         os << factor.imag();
+                    } else {
+                        os << "-";
                     }
                     os << "i";
                 }
