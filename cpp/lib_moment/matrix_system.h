@@ -24,11 +24,9 @@ namespace Moment {
     class Context;
     class OperatorSequenceGenerator;
     class SymbolTable;
-    class SubstitutionList;
 
     class WordList;
     class MomentSubstitutionRulebook;
-
 
     class Matrix;
 
@@ -55,17 +53,21 @@ namespace Moment {
         /** Map from symbols to operator sequences, and real/imaginary indices */
         std::unique_ptr<SymbolTable> symbol_table;
 
-        /** List of matrices in the system */
+        /** List of matrices in the system. */
         std::vector<std::unique_ptr<Matrix>> matrices;
 
-        /** The index (in this->matrices) of generated moment matrices */
+        /** List of moment substitution rulebooks in the system. */
+        std::vector<std::unique_ptr<MomentSubstitutionRulebook>> rulebooks;
+
+        /** The index (in this->matrices) of generated moment matrices. */
         std::vector<ptrdiff_t> momentMatrixIndices;
 
-        /** The index (in this->matrices) of generated localizing matrices */
+        /** The index (in this->matrices) of generated localizing matrices. */
         std::map<LocalizingMatrixIndex, ptrdiff_t> localizingMatrixIndices;
 
-        /** Any moment-substitution rule-sets */
-        std::vector<std::unique_ptr<MomentSubstitutionRulebook>> rulebooks;
+        /** The index (in this->matrices) of substituted matrices. */
+        std::map<std::pair<ptrdiff_t, ptrdiff_t>, ptrdiff_t> substitutedMatrixIndices;
+
 
     private:
         /** Read-write mutex for matrices */
@@ -134,6 +136,16 @@ namespace Moment {
         [[nodiscard]] const class Matrix& LocalizingMatrix(const LocalizingMatrixIndex& lmi) const;
 
         /**
+         * Gets a substituted matrix from a particular source and rulebook index.
+         * For thread safety, call for a read lock first.
+         * @param source_index The matrix that the substitutions are applied to.
+         * @param rulebook_index The rules applied to the matrix.
+         * @return The SubstitutedMatrix.
+         * @throws errors::missing_component if not generated.
+         */
+        [[nodiscard]] const class Matrix& SubstitutedMatrix(size_t source_index, size_t rulebook_index) const;
+
+        /**
          * Access matrix by subscript corresponding to order of creation.
          * For thread safety, call for a read lock first.
          */
@@ -192,6 +204,16 @@ namespace Moment {
                                  Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
         /**
+         * Clone a matrix, with substituted values, or returns pre-existing substituted matrix.
+         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
+         * @param matrix_index The ID of the matrix to clone.
+         * @param rule_index The ID of the rulebook to apply.
+         * @return Index
+         */
+        std::pair<size_t, class Matrix&>
+        create_substituted_matrix(size_t matrix_index, size_t rule_index);
+
+        /**
          * Check if a MomentMatrix has been generated for a particular hierarchy Level.
          * For thread safety, call for a read lock first.
          * @param level The hierarchy depth.
@@ -208,14 +230,13 @@ namespace Moment {
         [[nodiscard]] ptrdiff_t find_localizing_matrix(const LocalizingMatrixIndex& lmi) const noexcept;
 
         /**
-         * Clone a matrix, with substituted values.
-         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
-         * @param matrix_index The ID of the matrix to clone.
-         * @param rule_index The ID of the rulebook to apply.
-         * @return Index
+         * Check if a substituted matrix has been generated from a particular source matrix and rulebook.
+         * For thread safety, call for a read lock first.
+         * @param source_index The matrix that the substitutions are applied to.
+         * @param rulebook_index The rules applied to the matrix..
+         * @return The numerical index within this matrix system, or -1 if not found.
          */
-        std::pair<size_t, class Matrix&>
-        clone_and_substitute(size_t matrix_index, size_t rule_index);
+        [[nodiscard]] ptrdiff_t find_substituted_matrix(size_t source_index, size_t rulebook_index) const noexcept;
 
         /**
          * Ensure that all symbols up to a particular length are defined in system, and mapped.
@@ -277,8 +298,7 @@ namespace Moment {
          * @return Owning pointer of new moment matrix.
          */
         virtual std::unique_ptr<class Matrix>
-        createNewMomentMatrix(size_t level,
-                              Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
+        createNewMomentMatrix(size_t level, Multithreading::MultiThreadPolicy mt_policy );
 
         /**
          * Virtual method, called to generate a localizing matrix.
@@ -287,8 +307,7 @@ namespace Moment {
          * @return Owning pointer of new localizing matrix.
          */
         virtual std::unique_ptr<class Matrix>
-        createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi,
-                                  Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
+        createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi, Multithreading::MultiThreadPolicy mt_policy);
 
         /**
          * Virtual method, called after a moment matrix is generated.

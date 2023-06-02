@@ -498,65 +498,6 @@ namespace Moment::Tests {
     }
 
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, CloneMomentMatrix) {
-        // Build unlinked pair (uninflated)
-        auto& ams = this->get_system();
-        const auto& context = this->get_context();
-        auto& symbols = this->get_symbols();
-
-        // Get operator names
-        ASSERT_EQ(context.size(), 2);
-        oper_name_t op_a = 0;
-        oper_name_t op_b = 1;
-
-        // Make moment matrix, then find symbols
-        auto [mm_id, moment_matrix] = ams.create_moment_matrix(1);
-        auto id_e = find_or_fail(symbols, OperatorSequence::Identity(context));
-        auto id_a = find_or_fail(symbols, OperatorSequence{{op_a}, context});
-        auto id_aa = find_or_fail(symbols, OperatorSequence{{op_a, op_a}, context});
-        auto id_b = find_or_fail(symbols, OperatorSequence{{op_b}, context});
-        auto id_bb = find_or_fail(symbols, OperatorSequence{{op_b, op_b}, context});
-        auto id_ab = find_or_fail(symbols, OperatorSequence{{op_a, op_b}, context});
-
-        std::set all_symbols{id_e, id_a, id_aa, id_b, id_bb, id_ab};
-        ASSERT_EQ(all_symbols.size(), 6);
-
-        std::vector<Monomial> ref_mm_data
-            = {Monomial{1}, Monomial{id_a}, Monomial{id_b},
-               Monomial{id_a}, Monomial{id_aa}, Monomial{id_ab},
-               Monomial{id_b}, Monomial{id_ab, 1.0, true}, Monomial{id_bb}};
-        MonomialMatrix ref_mm{context, symbols,
-                              std::make_unique<SquareMatrix<Monomial>>(3, std::move(ref_mm_data)), true};
-
-        compare_symbol_matrices(moment_matrix, ref_mm, "Moment matrix");
-
-        // Build substitutions of just A
-        auto [rb_id, book] = ams.create_rulebook();
-        book.inject(id_a, Polynomial::Scalar(2.0)); // A -> 2
-        book.inject(id_b, Polynomial::Scalar(3.0)); // B -> 3
-        book.infer_additional_rules_from_factors(ams);
-
-        // Rewrite moment matrix with known values
-        auto [sub_id, sub_matrix] = ams.clone_and_substitute(mm_id, rb_id);
-
-        // Test matrix object is unique
-        ASSERT_NE(mm_id, sub_id);
-        ASSERT_NE(&moment_matrix, &sub_matrix);
-        ASSERT_TRUE(sub_matrix.is_monomial());
-
-        // Symbol matrix should have with a replaced by 2.0
-        ASSERT_EQ(sub_matrix.Dimension(), 3);
-        const auto& sub_symbols = dynamic_cast<const MonomialMatrix&>(sub_matrix).SymbolMatrix;
-        EXPECT_EQ(sub_symbols[0][0], Monomial(id_e));
-        EXPECT_EQ(sub_symbols[0][1], Monomial(id_e, 2.0));
-        EXPECT_EQ(sub_symbols[0][2], Monomial(id_e, 3.0));
-        EXPECT_EQ(sub_symbols[1][0], Monomial(id_e, 2.0));
-        EXPECT_EQ(sub_symbols[1][1], Monomial(id_aa, 1.0));
-        EXPECT_EQ(sub_symbols[1][2], Monomial(id_ab, 1.0));
-        EXPECT_EQ(sub_symbols[2][0], Monomial(id_e, 3.0));
-        EXPECT_EQ(sub_symbols[2][1], Monomial(id_ab, 1.0, true));
-        EXPECT_EQ(sub_symbols[2][2], Monomial(id_bb));
-    }
 
     TEST_F(Symbolic_MomentSubstitutionRulebook, CombineAndComplete_IntoEmpty) {
         // System
@@ -668,4 +609,68 @@ namespace Moment::Tests {
 
     }
 
+    TEST_F(Symbolic_MomentSubstitutionRulebook, CloneMomentMatrix) {
+        // Build unlinked pair (uninflated)
+        auto& ams = this->get_system();
+        const auto& context = this->get_context();
+        auto& symbols = this->get_symbols();
+
+        // Get operator names
+        ASSERT_EQ(context.size(), 2);
+        oper_name_t op_a = 0;
+        oper_name_t op_b = 1;
+
+        // Make moment matrix, then find symbols
+        auto [mm_id, moment_matrix] = ams.create_moment_matrix(1);
+        auto id_e = find_or_fail(symbols, OperatorSequence::Identity(context));
+        auto id_a = find_or_fail(symbols, OperatorSequence{{op_a}, context});
+        auto id_aa = find_or_fail(symbols, OperatorSequence{{op_a, op_a}, context});
+        auto id_b = find_or_fail(symbols, OperatorSequence{{op_b}, context});
+        auto id_bb = find_or_fail(symbols, OperatorSequence{{op_b, op_b}, context});
+        auto id_ab = find_or_fail(symbols, OperatorSequence{{op_a, op_b}, context});
+
+        std::set all_symbols{id_e, id_a, id_aa, id_b, id_bb, id_ab};
+        ASSERT_EQ(all_symbols.size(), 6);
+
+        std::vector<Monomial> ref_mm_data
+                = {Monomial{1}, Monomial{id_a}, Monomial{id_b},
+                   Monomial{id_a}, Monomial{id_aa}, Monomial{id_ab},
+                   Monomial{id_b}, Monomial{id_ab, 1.0, true}, Monomial{id_bb}};
+        MonomialMatrix ref_mm{context, symbols,
+                              std::make_unique<SquareMatrix<Monomial>>(3, std::move(ref_mm_data)), true};
+
+        compare_symbol_matrices(moment_matrix, ref_mm, "Moment matrix");
+
+        // Build substitutions of just A
+        auto [rb_id, book] = ams.create_rulebook();
+        book.inject(id_a, Polynomial::Scalar(2.0)); // A -> 2
+        book.inject(id_b, Polynomial::Scalar(3.0)); // B -> 3
+        book.infer_additional_rules_from_factors(ams);
+
+        // Rewrite moment matrix with known values
+        auto [sub_id, sub_matrix] = ams.create_substituted_matrix(mm_id, rb_id);
+
+        // Test matrix object is unique
+        ASSERT_NE(mm_id, sub_id);
+        ASSERT_NE(&moment_matrix, &sub_matrix);
+        ASSERT_TRUE(sub_matrix.is_monomial());
+
+        // Symbol matrix should have with a replaced by 2.0
+        ASSERT_EQ(sub_matrix.Dimension(), 3);
+        const auto& sub_symbols = dynamic_cast<const MonomialMatrix&>(sub_matrix).SymbolMatrix;
+        EXPECT_EQ(sub_symbols[0][0], Monomial(id_e));
+        EXPECT_EQ(sub_symbols[0][1], Monomial(id_e, 2.0));
+        EXPECT_EQ(sub_symbols[0][2], Monomial(id_e, 3.0));
+        EXPECT_EQ(sub_symbols[1][0], Monomial(id_e, 2.0));
+        EXPECT_EQ(sub_symbols[1][1], Monomial(id_aa, 1.0));
+        EXPECT_EQ(sub_symbols[1][2], Monomial(id_ab, 1.0));
+        EXPECT_EQ(sub_symbols[2][0], Monomial(id_e, 3.0));
+        EXPECT_EQ(sub_symbols[2][1], Monomial(id_ab, 1.0, true));
+        EXPECT_EQ(sub_symbols[2][2], Monomial(id_bb));
+
+        // Check aliasing/caching
+        const auto& sub_matrix_alias = ams.SubstitutedMatrix(mm_id, rb_id);
+        EXPECT_EQ(&sub_matrix_alias.context, &context);
+        ASSERT_EQ(&sub_matrix_alias, &sub_matrix);
+    }
 }

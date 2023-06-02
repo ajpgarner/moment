@@ -23,9 +23,9 @@
 
 namespace Moment {
     namespace {
-        const Context& assertContext(const std::unique_ptr<Context>& ctxtIn) {
-            assert(ctxtIn);
-            return *ctxtIn;
+        const Context& assertContext(const std::unique_ptr<Context>& contextIn) {
+            assert(contextIn);
+            return *contextIn;
         }
     }
 
@@ -45,8 +45,36 @@ namespace Moment {
     const Matrix& MatrixSystem::MomentMatrix(size_t level) const {
         auto index = this->find_moment_matrix(level);
         if (index < 0) {
-            throw errors::missing_component("Moment matrix of Level " + std::to_string(level) + " not yet generated.");
+            std::stringstream errSS;
+            errSS << "Moment matrix of Level " << std::to_string(level) << " not yet been generated.";
+            throw errors::missing_component(errSS.str());
         }
+        return *matrices[index];
+    }
+
+    const Matrix& MatrixSystem::LocalizingMatrix(const LocalizingMatrixIndex& lmi) const {
+        ptrdiff_t index = this->find_localizing_matrix(lmi);
+
+        if (index <= 0) {
+            std::stringstream errSS;
+            errSS << "Localizing matrix of Level " << lmi.Level
+                    << " for sequence \"" << this->context->format_sequence(lmi.Word)
+                    << "\" has not yet been generated.";
+                  throw errors::missing_component(errSS.str());
+        }
+
+        return *matrices[index];
+    }
+
+    const class Matrix &MatrixSystem::SubstitutedMatrix(size_t source_index, size_t rulebook_index) const {
+        ptrdiff_t index = this->find_substituted_matrix(source_index, rulebook_index);
+        if (index <= 0) {
+            std::stringstream errSS;
+            errSS << "A substituted matrix formed by applying rule book " << rulebook_index
+                  << " to matrix index " << source_index << " has not yet been generated.";
+            throw errors::missing_component(errSS.str());
+        }
+
         return *matrices[index];
     }
 
@@ -80,19 +108,6 @@ namespace Moment {
         return {matrixIndex, output};
     }
 
-
-    const Matrix& MatrixSystem::LocalizingMatrix(const LocalizingMatrixIndex& lmi) const {
-        ptrdiff_t index = this->find_localizing_matrix(lmi);
-
-        if (index <= 0) {
-            throw errors::missing_component("Localizing matrix of Level " + std::to_string(lmi.Level)
-                                            + " for sequence \"" + this->context->format_sequence(lmi.Word)
-                                            + "\" not yet been generated.");
-        }
-
-        return *matrices[momentMatrixIndices[index]];
-    }
-
     std::pair<size_t, class Matrix&>
     MatrixSystem::create_localizing_matrix(const LocalizingMatrixIndex& lmi,
                                            const Multithreading::MultiThreadPolicy mt_policy) {
@@ -118,6 +133,40 @@ namespace Moment {
         return {matrixIndex, newLM};
     }
 
+
+    std::pair<size_t, class Matrix &>
+    MatrixSystem::create_substituted_matrix(const size_t matrix_index, const size_t rulebook_index) {
+        // Get write lock
+        auto write_lock = this->get_write_lock();
+
+        // First, try read...
+        ptrdiff_t index = this->find_substituted_matrix(matrix_index, rulebook_index);
+        if (index >= 0) {
+            return {index, *matrices[index]};
+        }
+
+        // Source matrix
+        const auto& source_matrix = this->get(matrix_index);
+
+        // MonomialRules
+        const auto& rulebook = this->rulebook(rulebook_index);
+
+        // Make reduced matrix
+        this->matrices.emplace_back(rulebook.create_substituted_matrix(*this->symbol_table, source_matrix));
+        size_t new_index = this->matrices.size() - 1;
+        auto& new_matrix = *(this->matrices.back());
+
+        // Add index
+        const auto index_key = std::make_pair(static_cast<ptrdiff_t>(matrix_index),
+                                              static_cast<ptrdiff_t>(rulebook_index));
+        this->substitutedMatrixIndices.emplace(std::make_pair(index_key, static_cast<ptrdiff_t>(new_index)));
+
+        // Return matrix
+        return {new_index, new_matrix};
+    }
+
+
+
     ptrdiff_t MatrixSystem::find_moment_matrix(size_t level) const noexcept {
         // Do our indices even extend this far?
         if (level >= momentMatrixIndices.size()) {
@@ -142,6 +191,26 @@ namespace Moment {
     ptrdiff_t MatrixSystem::find_localizing_matrix(const LocalizingMatrixIndex& lmi) const noexcept {
         auto where = this->localizingMatrixIndices.find(lmi);
         if (where == this->localizingMatrixIndices.end()) {
+            return -1;
+        }
+
+        if (!this->matrices[where->second]) {
+            return -1;
+        }
+
+        return where->second;
+    }
+
+    ptrdiff_t MatrixSystem::find_substituted_matrix(const size_t source_index,
+                                                    const size_t rulebook_index) const noexcept {
+        const auto index_key = std::make_pair(static_cast<ptrdiff_t>(source_index),
+                                              static_cast<ptrdiff_t>(rulebook_index));
+        auto where = this->substitutedMatrixIndices.find(index_key);
+        if (where == this->substitutedMatrixIndices.end()) {
+            return -1;
+        }
+
+        if (!this->matrices[where->second]) {
             return -1;
         }
 
@@ -239,23 +308,6 @@ namespace Moment {
         return *this->rulebooks[index];
     }
 
-    std::pair<size_t, class Matrix &>
-    MatrixSystem::clone_and_substitute(const size_t matrix_index, const size_t rulebook_index) {
-        // Get write lock
-        auto write_lock = this->get_write_lock();
-
-        // Source matrix
-        const auto& source_matrix = this->get(matrix_index);
-
-        // MonomialRules
-        const auto& rulebook = this->rulebook(rulebook_index);
-
-        // Make reduced matrix
-        this->matrices.emplace_back(rulebook.create_substituted_matrix(*this->symbol_table, source_matrix));
-        size_t new_index = this->matrices.size() - 1;
-        auto& new_matrix = *(this->matrices.back());
-        return {new_index, new_matrix};
-    }
 
     bool MatrixSystem::generate_dictionary(const size_t word_length) {
         auto write_lock = this->get_write_lock();
