@@ -142,9 +142,6 @@ classdef MatrixSystem < handle
         
         %% Destructor
         function delete(obj)
-            arguments
-                obj (1,1) MatrixSystem
-            end
             if obj.RefId ~= 0
                 try
                     mtk('release', 'matrix_system', obj.RefId);
