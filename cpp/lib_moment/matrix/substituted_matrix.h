@@ -25,6 +25,9 @@ namespace Moment {
     public:
         explicit SubstitutedMatrix(const Matrix& source, const MomentSubstitutionRulebook& rules) noexcept
             : source_matrix{source}, rules{rules} { }
+
+    protected:
+        [[nodiscard]] std::string make_name();
     };
 
 
@@ -46,6 +49,8 @@ namespace Moment {
          */
         static std::unique_ptr<SquareMatrix<Monomial>>
         reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<Monomial>& matrix);
+
+
 
     };
 

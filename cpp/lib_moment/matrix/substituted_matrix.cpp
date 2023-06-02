@@ -5,6 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "substituted_matrix.h"
+#include "substituted_matrix_properties.h"
 
 #include <sstream>
 
@@ -16,12 +17,20 @@ namespace Moment {
         }
     }
 
+    std::string SubstitutedMatrix::make_name() {
+        std::stringstream ss;
+        ss << "Substituted Matrix [Source: " << this->source_matrix.description() << "; Rules: " << rules.name() << "]";
+        return ss.str();
+    }
+
     MonomialSubstitutedMatrix::MonomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
                                                          const MonomialMatrix& the_source)
          : MonomialMatrix{the_source.context, assert_symbols(symbols, the_source),
                           MonomialSubstitutedMatrix::reduce(msrb, the_source.SymbolMatrix()),
                           the_source.is_hermitian() && msrb.is_hermitian()},
            SubstitutedMatrix{the_source, msrb} {
+
+        this->mat_prop = std::make_unique<SubstitutedMatrixProperties>(std::move(*this->mat_prop), this->make_name());
     }
 
     std::unique_ptr<SquareMatrix<Monomial>>
@@ -41,6 +50,7 @@ namespace Moment {
          : PolynomialMatrix{context, assert_symbols(symbols, the_source),
                             PolynomialSubstitutedMatrix::reduce(msrb, the_source.SymbolMatrix())},
            SubstitutedMatrix{the_source, msrb}  {
+        this->mat_prop = std::make_unique<SubstitutedMatrixProperties>(std::move(*this->mat_prop), this->make_name());
     }
 
     PolynomialSubstitutedMatrix::PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
@@ -48,6 +58,7 @@ namespace Moment {
          : PolynomialMatrix{context, assert_symbols(symbols, the_source),
                             PolynomialSubstitutedMatrix::reduce(msrb, the_source.SymbolMatrix())},
            SubstitutedMatrix{the_source, msrb} {
+        this->mat_prop = std::make_unique<SubstitutedMatrixProperties>(std::move(*this->mat_prop), this->make_name());
     }
 
     std::unique_ptr<SquareMatrix<Polynomial>>

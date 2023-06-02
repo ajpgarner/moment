@@ -276,6 +276,11 @@ namespace Moment {
         [[nodiscard]] const MomentSubstitutionRulebook& rulebook(size_t index) const;
 
         /**
+         * Counts number of rulebooks in system
+         */
+        [[nodiscard]] size_t rulebook_count() const noexcept { return this->rulebooks.size(); }
+
+        /**
          * Gets a read (shared) lock for accessing data within the matrix system.
          */
         [[nodiscard]] auto get_read_lock() const {
@@ -324,12 +329,32 @@ namespace Moment {
         virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
                                                   const class Matrix& lm) { }
 
+       /**
+        * Virtual method, called after a substituted matrix is generated.
+        * @param source_index The source matrix index.
+        * @param source The source matrix.
+        * @param rulebook_index The rulebook index.
+        * @param rulebook The rulebook.
+        * @param subbed_matrix The newly created substituted matrix.
+        */
+        virtual void onNewSubstitutedMatrixCreated(size_t source_index, const class Matrix& source,
+                                                   size_t rulebook_index, const MomentSubstitutionRulebook& rulebook,
+                                                   const class Matrix& subbed_matrix) { }
+
         /**
-         * Virtual method, called after dictionary is generated.
+         * Virtual method, called after a dictionary is generated.
          * @param word_length The dictionary word-length requested
          * @param osg The operator sequence generator.
          */
         virtual void onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator& osg) { }
+
+        /**
+         * Virtual method, called after a rulebook has been added
+         * @param index The index the new rulebook
+         * @param rulebook The rulebook itself.
+         * @param insertion True if new addition, false if a merge.
+         */
+        virtual void onRulebookAdded(size_t index, const MomentSubstitutionRulebook& rb, bool insertion) { }
 
         /**
          * Get read-write access to symbolic matrix by index. Changes should not be made without a write lock.

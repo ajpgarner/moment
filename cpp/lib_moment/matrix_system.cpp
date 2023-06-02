@@ -35,12 +35,33 @@ namespace Moment {
 
     MatrixSystem::~MatrixSystem() noexcept = default;
 
-    ptrdiff_t MatrixSystem::highest_moment_matrix() const noexcept {
-        if (this->momentMatrixIndices.empty()) {
-            return -1;
+    const Matrix &MatrixSystem::operator[](size_t index) const {
+        if (index >= this->matrices.size()) {
+            throw errors::missing_component("Matrix index out of range.");
         }
-        return static_cast<ptrdiff_t>(this->momentMatrixIndices.size()) - 1;
+        if (!this->matrices[index]) {
+            throw errors::missing_component("Matrix at supplied index was missing.");
+        }
+        return *this->matrices[index];
     }
+
+    Matrix& MatrixSystem::get(size_t index) {
+        if (index >= this->matrices.size()) {
+            throw errors::missing_component("Matrix index out of range.");
+        }
+        if (!this->matrices[index]) {
+            throw errors::missing_component("Matrix at supplied index was missing.");
+        }
+        return *this->matrices[index];
+    }
+
+    ptrdiff_t MatrixSystem::push_back(std::unique_ptr<Matrix> matrix) {
+        auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
+        this->matrices.emplace_back(std::move(matrix));
+        return matrixIndex;
+    }
+
+
 
     const Matrix& MatrixSystem::MomentMatrix(size_t level) const {
         auto index = this->find_moment_matrix(level);
@@ -161,11 +182,21 @@ namespace Moment {
                                               static_cast<ptrdiff_t>(rulebook_index));
         this->substitutedMatrixIndices.emplace(std::make_pair(index_key, static_cast<ptrdiff_t>(new_index)));
 
+        // Call derived-class post-processing
+        this->onNewSubstitutedMatrixCreated(matrix_index, source_matrix,
+                                            rulebook_index, rulebook, new_matrix);
+
         // Return matrix
         return {new_index, new_matrix};
     }
 
 
+    ptrdiff_t MatrixSystem::highest_moment_matrix() const noexcept {
+        if (this->momentMatrixIndices.empty()) {
+            return -1;
+        }
+        return static_cast<ptrdiff_t>(this->momentMatrixIndices.size()) - 1;
+    }
 
     ptrdiff_t MatrixSystem::find_moment_matrix(size_t level) const noexcept {
         // Do our indices even extend this far?
@@ -233,30 +264,14 @@ namespace Moment {
 
 
 
-    const Matrix &MatrixSystem::operator[](size_t index) const {
-        if (index >= this->matrices.size()) {
-            throw errors::missing_component("Matrix index out of range.");
-        }
-        if (!this->matrices[index]) {
-            throw errors::missing_component("Matrix at supplied index was missing.");
-        }
-        return *this->matrices[index];
-    }
+    bool MatrixSystem::generate_dictionary(const size_t word_length) {
+        auto write_lock = this->get_write_lock();
 
-    Matrix& MatrixSystem::get(size_t index) {
-        if (index >= this->matrices.size()) {
-            throw errors::missing_component("Matrix index out of range.");
-        }
-        if (!this->matrices[index]) {
-            throw errors::missing_component("Matrix at supplied index was missing.");
-        }
-        return *this->matrices[index];
-    }
+        auto [osg_size, new_symbols] = this->symbol_table->fill_to_word_length(word_length);
 
-    ptrdiff_t MatrixSystem::push_back(std::unique_ptr<Matrix> matrix) {
-        auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
-        this->matrices.emplace_back(std::move(matrix));
-        return matrixIndex;
+        this->onDictionaryGenerated(word_length, this->context->operator_sequence_generator(word_length));
+
+        return new_symbols;
     }
 
     std::pair<size_t, MomentSubstitutionRulebook&> MatrixSystem::create_rulebook() {
@@ -266,25 +281,60 @@ namespace Moment {
         this->rulebooks.emplace_back(std::make_unique<MomentSubstitutionRulebook>(*this->symbol_table,
                                                                                   std::move(factory)));
 
-        return {static_cast<size_t>(this->rulebooks.size()-1), *this->rulebooks.back()};
+        // Get info
+        size_t rulebook_index = this->rulebooks.size()-1;
+        auto& rulebook = *this->rulebooks[rulebook_index];
+
+        // Set default name
+        std::stringstream nameSS;
+        nameSS << "Rulebook #" << rulebook_index;
+        rulebook.set_name(nameSS.str());
+
+        // Dispatch notification to derived classes
+        this->onRulebookAdded(rulebook_index, rulebook, true);
+
+        // Report creation
+        return {rulebook_index, rulebook};
     }
 
     std::pair<size_t, MomentSubstitutionRulebook&>
-    MatrixSystem::create_rulebook(std::unique_ptr<MomentSubstitutionRulebook> rulebook) {
+    MatrixSystem::create_rulebook(std::unique_ptr<MomentSubstitutionRulebook> input_rulebook_ptr) {
         auto write_lock = this->get_write_lock();
-        assert(&rulebook->symbols == this->symbol_table.get());
+        assert(&input_rulebook_ptr->symbols == this->symbol_table.get());
 
-        this->rulebooks.emplace_back(std::move(rulebook));
-        return {static_cast<size_t>(this->rulebooks.size()-1), *this->rulebooks.back()};
+        this->rulebooks.emplace_back(std::move(input_rulebook_ptr));
+
+        // Get info
+        size_t rulebook_index = this->rulebooks.size()-1;
+        auto& rulebook = *this->rulebooks[rulebook_index];
+
+        // Check if rulebook has a name, set default name otherwise.
+        if (rulebook.name().empty()) {
+            std::stringstream nameSS;
+            nameSS << "Rulebook #" << rulebook_index;
+            rulebook.set_name(nameSS.str());
+        }
+
+        // Dispatch notification to derived classes
+        this->onRulebookAdded(rulebook_index, rulebook, true);
+
+        // Report creation
+        return {rulebook_index, rulebook};
     }
 
     std::pair<size_t, MomentSubstitutionRulebook &>
-    MatrixSystem::merge_rulebooks(const size_t existing_rulebook_id, MomentSubstitutionRulebook&& rulebook) {
+    MatrixSystem::merge_rulebooks(const size_t existing_rulebook_id, MomentSubstitutionRulebook&& input_rulebook) {
         auto write_lock = this->get_write_lock();
 
         auto& existing_rulebook = this->rulebook(existing_rulebook_id);
-        existing_rulebook.combine_and_complete(std::move(rulebook));
+        existing_rulebook.combine_and_complete(std::move(input_rulebook));
 
+        // NB: Name should be handled already, either from existing name, or newly-merged-in name.
+
+        // Dispatch notification of merge-in to derived classes
+        this->onRulebookAdded(existing_rulebook_id, existing_rulebook, false);
+
+        // Report merge
         return {existing_rulebook_id, existing_rulebook};
     }
 
@@ -308,14 +358,4 @@ namespace Moment {
         return *this->rulebooks[index];
     }
 
-
-    bool MatrixSystem::generate_dictionary(const size_t word_length) {
-        auto write_lock = this->get_write_lock();
-
-        auto [osg_size, new_symbols] = this->symbol_table->fill_to_word_length(word_length);
-
-        this->onDictionaryGenerated(word_length, this->context->operator_sequence_generator(word_length));
-
-        return new_symbols;
-    }
 }

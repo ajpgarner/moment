@@ -10,6 +10,8 @@
 
 #include "matrix/monomial_matrix.h"
 #include "matrix/matrix_properties.h"
+
+#include "symbolic/moment_substitution_rulebook.h"
 #include "symbolic/symbol_table.h"
 
 #include "utilities/read_as_scalar.h"
@@ -30,14 +32,29 @@ namespace Moment::mex::functions {
             const size_t symbol_count = ms.Symbols().size();
             os << ": " << symbol_count << " " << (symbol_count != 1 ? "symbols" : "symbol") << ", ";
             const size_t matrix_count = ms.size();
-            os << matrix_count << " " << (matrix_count != 1 ? "matrices" : "matrix");
+            os << matrix_count << " " << (matrix_count != 1 ? "matrices" : "matrix") << ", ";
+            const size_t rb_count = ms.rulebook_count();
+            os << rb_count <<  " " << (matrix_count != 1 ? "rulebooks" : "rulebook") << ".";
 
-            for (size_t matrix_index = 0; matrix_index < matrix_count; ++matrix_index) {
-                const auto& matrix = ms[matrix_index];
-                os << "\n " << matrix_index << ": " << matrix.Dimension() << "x" << matrix.Dimension();
-                os << " " << matrix.description();
-                if (export_mat_props) {
-                    os << "\n" << matrix.SMP();
+            if (matrix_count > 0) {
+                os << "\nMATRICES:";
+                for (size_t matrix_index = 0; matrix_index < matrix_count; ++matrix_index) {
+                    const auto &matrix = ms[matrix_index];
+                    os << "\n " << matrix_index << ": " << matrix.Dimension() << "x" << matrix.Dimension();
+                    os << " " << matrix.description();
+                    if (export_mat_props) {
+                        os << "\n" << matrix.SMP();
+                    }
+                }
+            }
+
+            if (rb_count > 0) {
+                os << "\nRULEBOOKS:";
+                for (size_t rb_index = 0; rb_index < rb_count; ++rb_index) {
+                    const auto& rulebook = ms.rulebook(rb_index);
+                    size_t rule_count = rulebook.size();
+                    os << "\n " << rb_index << ": " << rule_count << " " << (rule_count != 1 ? "rules" : "rule") << ": "
+                       << rulebook.name();
                 }
             }
 
@@ -158,8 +175,10 @@ namespace Moment::mex::functions {
             std::string desc;
             uint64_t matrices;
             uint64_t symbols;
-            temp_system_info_t(uint64_t id, std::string desc, uint64_t matrices, uint64_t symbols)
-                : id{id}, desc{std::move(desc)}, matrices{matrices}, symbols{symbols} { }
+            uint64_t rulebooks;
+
+            temp_system_info_t(uint64_t id, std::string desc, uint64_t matrices, uint64_t symbols, uint64_t rbs)
+                : id{id}, desc{std::move(desc)}, matrices{matrices}, symbols{symbols}, rulebooks{rbs} { }
         };
         std::vector<temp_system_info_t> data;
 
@@ -168,9 +187,10 @@ namespace Moment::mex::functions {
             auto lock = msPtr->get_read_lock();
 
             data.emplace_back(storageManager.MatrixSystems.sign_index(id), msPtr->system_type_name(),
-                              msPtr->size(), msPtr->Symbols().size());
+                              msPtr->size(), msPtr->Symbols().size(), msPtr->rulebook_count());
 
             lock.unlock();
+
             // Get next:
             auto [next_id, nextPtr] = storageManager.MatrixSystems.next(id);
             id = next_id;
@@ -178,13 +198,14 @@ namespace Moment::mex::functions {
         }
 
         matlab::data::ArrayDimensions dimensions{1, data.size()};
-        auto output = factory.createStructArray(std::move(dimensions), {"RefId", "Description", "Matrices", "Symbols"});
+        auto output = factory.createStructArray(std::move(dimensions), {"RefId", "Description", "Matrices", "Symbols", "Rulebooks"});
         size_t out_index = 0;
         for (const auto& datum : data) {
             output[out_index]["RefId"] = factory.createScalar(datum.id);
             output[out_index]["Description"] = factory.createScalar(datum.desc);
             output[out_index]["Matrices"] = factory.createScalar(datum.matrices);
             output[out_index]["Symbols"] = factory.createScalar(datum.symbols);
+            output[out_index]["Rulebooks"] = factory.createScalar(datum.rulebooks);
             ++out_index;
         }
         return output;
@@ -196,11 +217,12 @@ namespace Moment::mex::functions {
         auto lock = msPtr->get_read_lock();
 
         matlab::data::ArrayFactory factory;
-        auto output = factory.createStructArray({1, 1}, {"RefId", "Description", "Matrices", "Symbols"});
+        auto output = factory.createStructArray({1, 1}, {"RefId", "Description", "Matrices", "Symbols", "Rulebooks"});
         output[0]["RefId"] = factory.createScalar(input.matrix_system_key);
         output[0]["Description"] = factory.createScalar(msPtr->system_type_name());
         output[0]["Matrices"] = factory.createScalar(msPtr->size());
         output[0]["Symbols"] = factory.createScalar(msPtr->Symbols().size());
+        output[0]["Rulebooks"] = factory.createScalar(msPtr->rulebook_count());
         return output;
     }
 }

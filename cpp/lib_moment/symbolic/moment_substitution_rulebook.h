@@ -48,8 +48,9 @@ namespace Moment {
 
         const SymbolTable& symbols;
 
-
     private:
+        std::string human_readable_name;
+
         std::map<symbol_name_t, MomentSubstitutionRule> rules;
 
         std::vector<Polynomial> raw_rules;
@@ -67,7 +68,6 @@ namespace Moment {
             : MomentSubstitutionRulebook(table, std::make_unique<PolynomialFactory>(table)) { }
 
         explicit MomentSubstitutionRulebook(const SymbolTable& table, std::unique_ptr<PolynomialFactory> factory);
-
         /**
          * Add substitution rules in the form of polynomials equal to zero.
          * Completion is deferred until complete() is called.
@@ -105,6 +105,8 @@ namespace Moment {
         bool inject(Args&&... args) {
             return this->inject(MomentSubstitutionRule(std::forward<Args>(args)...));
         }
+
+
 
         /**
          * Process raw-rules into completed rule-set.
@@ -158,6 +160,18 @@ namespace Moment {
          * @return Newly created matrix, either of type MonomialSubstitutionMatrix or PolynomialSubstitutionMatrix.
          */
         [[nodiscard]] std::unique_ptr<Matrix> create_substituted_matrix(SymbolTable& symbols, const Matrix& matrix) const;
+
+
+        /**
+         * Gets name of rulebook.
+         */
+        [[nodiscard]] const std::string& name() const noexcept { return this->human_readable_name; }
+
+        /**
+         * Sets name of rulebook.
+         */
+        void set_name(std::string the_name) noexcept { this->human_readable_name = std::move(the_name); }
+
 
         /**
          * True if rulebook is guaranteed to produce a monomial matrix if it acts on a monomial matrix.

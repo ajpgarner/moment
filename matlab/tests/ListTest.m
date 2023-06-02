@@ -17,6 +17,7 @@ classdef ListTest < MTKTestBase
             testCase.verifyEqual(list_all.RefId, ref_id);
             testCase.verifyEqual(list_all.Matrices, uint64(0));
             testCase.verifyEqual(list_all.Symbols, uint64(2)); % 0 and 1
+            testCase.verifyEqual(list_all.Rulebooks, uint64(0));
          end     
                
          function MultiMatrixSystem(testCase)            
@@ -37,10 +38,12 @@ classdef ListTest < MTKTestBase
             testCase.verifyEqual(list_A.RefId, ref_id_A);
             testCase.verifyEqual(list_A.Matrices, uint64(0));
             testCase.verifyEqual(list_A.Symbols, uint64(2)); % 0 and 1
+            testCase.verifyEqual(list_A.Rulebooks, uint64(0));
             
             testCase.verifyEqual(list_B.RefId, ref_id_B);            
             testCase.verifyEqual(list_B.Matrices, uint64(1));
             testCase.verifyEqual(list_B.Symbols, uint64(5)); % 0/1/A/B/AB
+            testCase.verifyEqual(list_B.Rulebooks, uint64(0));
         end     
     end
 end

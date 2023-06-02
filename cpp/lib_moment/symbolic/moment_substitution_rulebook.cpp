@@ -242,9 +242,10 @@ namespace Moment {
 
         // Finally, do completion in exception-guaranteed manner. Slow, but prevents bad rules from breaking everything.
         std::map<symbol_name_t, MomentSubstitutionRule> old_rules{this->rules};
+        size_t processed_rules = 0;
         try {
             // Attempt completion
-            return this->complete();
+            processed_rules = this->complete();
         } catch(std::exception& e) {
             // In case of fail, restore old rules, and clear the pending list.
             this->rules = std::move(old_rules);
@@ -253,6 +254,13 @@ namespace Moment {
             // Pass exception forward
             throw;
         }
+
+        // Completion successful, steal other rulebook's name.
+        if (!other.human_readable_name.empty()) {
+            this->human_readable_name = std::move(other.human_readable_name);
+        }
+
+        return processed_rules;
     }
 
     size_t MomentSubstitutionRulebook::infer_additional_rules_from_factors(const MatrixSystem &ms) {
