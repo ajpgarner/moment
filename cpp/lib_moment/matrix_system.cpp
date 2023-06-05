@@ -262,8 +262,6 @@ namespace Moment {
         return std::make_unique<MonomialMatrix>(*this->symbol_table, std::move(operator_matrix));
     }
 
-
-
     bool MatrixSystem::generate_dictionary(const size_t word_length) {
         auto write_lock = this->get_write_lock();
 
@@ -274,31 +272,8 @@ namespace Moment {
         return new_symbols;
     }
 
-    std::pair<size_t, MomentSubstitutionRulebook&> MatrixSystem::create_rulebook() {
-        auto write_lock = this->get_write_lock();
-
-        auto factory = std::make_unique<ByHashPolynomialFactory>(*this->symbol_table);
-        this->rulebooks.emplace_back(std::make_unique<MomentSubstitutionRulebook>(*this->symbol_table,
-                                                                                  std::move(factory)));
-
-        // Get info
-        size_t rulebook_index = this->rulebooks.size()-1;
-        auto& rulebook = *this->rulebooks[rulebook_index];
-
-        // Set default name
-        std::stringstream nameSS;
-        nameSS << "Rulebook #" << rulebook_index;
-        rulebook.set_name(nameSS.str());
-
-        // Dispatch notification to derived classes
-        this->onRulebookAdded(rulebook_index, rulebook, true);
-
-        // Report creation
-        return {rulebook_index, rulebook};
-    }
-
     std::pair<size_t, MomentSubstitutionRulebook&>
-    MatrixSystem::create_rulebook(std::unique_ptr<MomentSubstitutionRulebook> input_rulebook_ptr) {
+    MatrixSystem::add_rulebook(std::unique_ptr<MomentSubstitutionRulebook> input_rulebook_ptr) {
         auto write_lock = this->get_write_lock();
         assert(&input_rulebook_ptr->symbols == this->symbol_table.get());
 
@@ -327,6 +302,7 @@ namespace Moment {
         auto write_lock = this->get_write_lock();
 
         auto& existing_rulebook = this->rulebook(existing_rulebook_id);
+
         existing_rulebook.combine_and_complete(std::move(input_rulebook));
 
         // NB: Name should be handled already, either from existing name, or newly-merged-in name.

@@ -51,7 +51,7 @@ namespace Moment::Tests {
                     std::make_unique<Algebraic::AlgebraicContext>(2)
             );
             ams_ptr->generate_dictionary(2); // e, a, b, aa, ab (ba), bb
-            factory_ptr = std::make_unique<PolynomialFactory>(ams_ptr->Symbols());
+            factory_ptr = std::make_unique<ByIDPolynomialFactory>(ams_ptr->Symbols());
         }
 
         [[nodiscard]] Algebraic::AlgebraicMatrixSystem& get_system() const noexcept {
@@ -642,7 +642,7 @@ namespace Moment::Tests {
         compare_symbol_matrices(moment_matrix, ref_mm, "Moment matrix");
 
         // Build substitutions of just A
-        auto [rb_id, book] = ams.create_rulebook();
+        auto [rb_id, book] = ams.add_rulebook(std::make_unique<MomentSubstitutionRulebook>(this->get_symbols()));
         book.inject(id_a, Polynomial::Scalar(2.0)); // A -> 2
         book.inject(id_b, Polynomial::Scalar(3.0)); // B -> 3
         book.infer_additional_rules_from_factors(ams);

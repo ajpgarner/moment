@@ -50,16 +50,18 @@ namespace Moment {
          * @tparam ordering_func_t Ordering functional on symbol expressions. Complex conjugates must be adjacent.
          * @param input The combination data.
          * @param order Instance of the ordering functional.
+         * @param zero_tolerance The multiplier, such that if a number is less than eps * zero_tolerance, treat as zero.
          */
         template<typename ordering_func_t = Monomial::IdLessComparator>
         explicit Polynomial(storage_t input,
-                            const ordering_func_t& order = ordering_func_t{})
+                            const ordering_func_t& order = ordering_func_t{},
+                            double zero_tolerance = 1.0)
             : data{std::move(input)} {
             if (this->data.size() > 1) {
                 this->sort(order);
                 Polynomial::remove_duplicates(this->data);
             }
-            Polynomial::remove_zeros(this->data);
+            Polynomial::remove_zeros(this->data, zero_tolerance);
         }
 
         /**
@@ -72,14 +74,15 @@ namespace Moment {
         template<typename ordering_func_t =  Monomial::IdLessComparator>
         explicit Polynomial(storage_t input,
                             const SymbolTable& table,
-                            const ordering_func_t& order = ordering_func_t{})
+                            const ordering_func_t& order = ordering_func_t{},
+                            double zero_tolerance = 1.0)
                 : data{std::move(input)} {
-            this->fix_cc_in_place(table, false);
+            this->fix_cc_in_place(table, false, zero_tolerance);
             if (this->data.size() > 1) {
                 this->sort(order);
                 Polynomial::remove_duplicates(this->data);
             }
-            Polynomial::remove_zeros(this->data);
+            Polynomial::remove_zeros(this->data, zero_tolerance);
         }
 
         /** Construct combination from map of symbol names to weights.
@@ -152,15 +155,19 @@ namespace Moment {
          * Replace all kX* with kX, if X is Hermitian, and kY* with -kY if Y is anti-Hermitian.
          * @return True, if this has changed the combination.
          */
-        bool fix_cc_in_place(const SymbolTable& symbols, bool make_canonical = false) noexcept;
+        bool fix_cc_in_place(const SymbolTable& symbols,
+                             bool make_canonical = false,
+                             double zero_tolerance = 1.0) noexcept;
 
         /**
          * Return a new Polynomial with all Hermitian and anti-Hermitian operators in canonical format.
          * @see Polynomial::fix_cc_in_place
          */
-        [[nodiscard]] Polynomial fix_cc(const SymbolTable& symbols, bool make_canonical = false) const {
+        [[nodiscard]] Polynomial fix_cc(const SymbolTable& symbols,
+                                        bool make_canonical = false,
+                                        double zero_tolerance = 1.0) const {
             Polynomial output{*this};
-            output.fix_cc_in_place(symbols, make_canonical);
+            output.fix_cc_in_place(symbols, make_canonical, zero_tolerance);
             return output;
         }
 
@@ -191,7 +198,9 @@ namespace Moment {
          * Undefined behaviour if ordering_func_t is different from that used to construct constituents.
          */
         template<typename ordering_func_t = Monomial::IdLessComparator>
-        Polynomial& append(const Polynomial& rhs, const ordering_func_t& comp_less = ordering_func_t{}) {
+        Polynomial& append(const Polynomial& rhs,
+                           const ordering_func_t& comp_less = ordering_func_t{},
+                           double eps_multiplier = 1.0) {
             Polynomial& lhs = *this;
 
             // Debug validation
@@ -235,7 +244,7 @@ namespace Moment {
 
                     const auto sumVals = lhsIter->factor + rhsIter->factor;
 
-                    if (!approximately_zero(sumVals)) {
+                    if (!approximately_zero(sumVals, eps_multiplier)) {
                         output_data.emplace_back(lhsIter->id, sumVals, lhsIter->conjugated);
                     }
                     ++lhsIter;
@@ -344,9 +353,12 @@ namespace Moment {
 
     private:
         static void remove_duplicates(Polynomial::storage_t &data);
-        static void remove_zeros(Polynomial::storage_t &data);
+        static void remove_zeros(Polynomial::storage_t &data, double eps_multiplier);
 
     };
+
+    // Only element is storage.
+    static_assert(sizeof(Polynomial) == sizeof(Polynomial::storage_t));
 
 
     /** Utility class for constructing symbol combos from data.
@@ -355,22 +367,19 @@ namespace Moment {
     public:
         const SymbolTable& symbols;
 
-        explicit PolynomialFactory(const SymbolTable& symbols) : symbols{symbols} { }
+        /** If a value is less than zero_tolerance * eps, treat it as zero. */
+        const double zero_tolerance = 1.0;
+
+        explicit PolynomialFactory(const SymbolTable& symbols, double zero_tolerance = 1.0)
+            : symbols{symbols}, zero_tolerance{zero_tolerance} { }
 
         virtual ~PolynomialFactory() noexcept = default;
 
-        [[nodiscard]] virtual Polynomial operator()(Polynomial::storage_t&& data) const {
-            return Polynomial{std::move(data), symbols};
-        }
+        [[nodiscard]] virtual Polynomial operator()(Polynomial::storage_t&& data) const = 0;
 
-        [[nodiscard]] virtual bool less(const Monomial& lhs, const Monomial& rhs) const {
-            Monomial::IdLessComparator comparator;
-            return comparator(lhs, rhs);
-        }
+        [[nodiscard]] virtual bool less(const Monomial& lhs, const Monomial& rhs) const = 0;
 
-        virtual void append(Polynomial& lhs, const Polynomial& rhs) const {
-            lhs.append(rhs);
-        }
+        virtual void append(Polynomial& lhs, const Polynomial& rhs) const = 0;
 
         [[nodiscard]] Polynomial sum(const Polynomial& lhs, const Polynomial& rhs) const {
             Polynomial output{lhs};
@@ -379,6 +388,35 @@ namespace Moment {
         }
     };
 
-    // Only element is storage.
-    static_assert(sizeof(Polynomial) == sizeof(Polynomial::storage_t));
+    template<typename comparator_t>
+    class PolynomialFactoryImpl : public PolynomialFactory {
+    public:
+        using Comparator = comparator_t;
+
+    protected:
+        Comparator comparator;
+
+    public:
+
+        template<typename... Args>
+        explicit PolynomialFactoryImpl(const SymbolTable& symbols, double zero_tolerance = 1.0, Args&&... args)
+            : PolynomialFactory{symbols, zero_tolerance}, comparator{std::forward<Args>(args)...} {
+        }
+
+        Polynomial operator()(Polynomial::storage_t &&data) const override {
+            return Polynomial{std::move(data), this->symbols,  this->comparator, this->zero_tolerance};
+        }
+
+        bool less(const Monomial &lhs, const Monomial &rhs) const override {
+            return comparator(lhs, rhs);
+        }
+
+        void append(Polynomial &lhs, const Polynomial &rhs) const override {
+            lhs.append(rhs, this->comparator, this->zero_tolerance);
+        }
+    };
+
+    using ByIDPolynomialFactory = PolynomialFactoryImpl<Monomial::IdLessComparator>;
+
+
 }

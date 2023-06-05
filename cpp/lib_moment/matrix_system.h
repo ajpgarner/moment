@@ -245,17 +245,12 @@ namespace Moment {
         bool generate_dictionary(size_t word_length);
 
         /**
-         * Create a list of moment substitution rules.
-         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
-         */
-        std::pair<size_t, MomentSubstitutionRulebook&> create_rulebook();
-
-        /**
          * Import a list of moment substitution rules
          * Will lock until all read locks have expired - so do NOT first call for a read lock...!
          */
         std::pair<size_t, MomentSubstitutionRulebook&>
-        create_rulebook(std::unique_ptr<MomentSubstitutionRulebook> rulebook);
+        add_rulebook(std::unique_ptr<MomentSubstitutionRulebook> rulebook);
+
         /**
          * Import a list of moment substitution rules
          * Will lock until all read locks have expired - so do NOT first call for a read lock...!

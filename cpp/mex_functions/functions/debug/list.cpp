@@ -198,7 +198,8 @@ namespace Moment::mex::functions {
         }
 
         matlab::data::ArrayDimensions dimensions{1, data.size()};
-        auto output = factory.createStructArray(std::move(dimensions), {"RefId", "Description", "Matrices", "Symbols", "Rulebooks"});
+        auto output = factory.createStructArray(std::move(dimensions),
+                                                {"RefId", "Description", "Matrices", "Symbols", "Rulebooks"});
         size_t out_index = 0;
         for (const auto& datum : data) {
             output[out_index]["RefId"] = factory.createScalar(datum.id);

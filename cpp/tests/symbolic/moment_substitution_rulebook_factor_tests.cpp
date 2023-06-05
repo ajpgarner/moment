@@ -78,7 +78,7 @@ namespace Moment::Tests {
             EXPECT_EQ(this->id_acc, factors.find_index_by_factors({this->id_a, this->id_cc}).value());
 
 
-            factory_ptr = std::make_unique<PolynomialFactory>(ims_ptr->Symbols());
+            factory_ptr = std::make_unique<ByIDPolynomialFactory>(ims_ptr->Symbols());
 
 
         }

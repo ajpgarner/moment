@@ -44,6 +44,12 @@ namespace Moment::mex::functions {
         /** True = Attempt to merge into existing ruleset */
         bool merge_into_existing = false;
 
+        /** The name to give the rules object (if any) */
+        std::string human_readable_name;
+
+        /** The 'precision' limit, such that if a value is less than eps*mult it is treated as zero. */
+        double zero_tolerance = 1.0;
+
         /** How the input to the create-rules command is supplied */
         enum class InputMode {
             Unknown,

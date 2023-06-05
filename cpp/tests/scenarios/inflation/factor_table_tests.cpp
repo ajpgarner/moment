@@ -509,7 +509,7 @@ namespace Moment::Tests {
         const auto &context = ims.InflationContext();
         const auto &factors = ims.Factors();
         const auto &symbols = ims.Symbols();
-        PolynomialFactory factory{symbols};
+        ByIDPolynomialFactory factory{symbols};
 
         ims.generate_dictionary(3);
         auto maybe_AB = factors.find_index_by_factors({2, 3}); // A, B -> <AB> = <A><B>

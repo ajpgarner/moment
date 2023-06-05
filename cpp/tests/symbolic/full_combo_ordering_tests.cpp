@@ -26,7 +26,7 @@ namespace Moment::Tests {
                         std::make_unique<Algebraic::AlgebraicContext>(2)
             );
             ams_ptr->generate_dictionary(2);
-            factory_ptr = std::make_unique<PolynomialFactory>(ams_ptr->Symbols());
+            factory_ptr = std::make_unique<ByIDPolynomialFactory>(ams_ptr->Symbols());
         }
 
         [[nodiscard]] const Algebraic::AlgebraicContext& get_context() const noexcept {

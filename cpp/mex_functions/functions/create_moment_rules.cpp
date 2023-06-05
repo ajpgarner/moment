@@ -18,6 +18,7 @@
 #include "export/export_moment_substitution_rules.h"
 
 #include "utilities/read_as_scalar.h"
+#include "utilities/read_as_string.h"
 #include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"
 #include "utilities/read_choice.h"
@@ -166,6 +167,26 @@ namespace Moment::mex::functions {
             this->input_mode = InputMode::FromOperatorSequences;
         }
 
+        // Do we have a label?
+        auto label_param_iter = this->params.find(u"label");
+        if (label_param_iter != this->params.cend()) {
+            auto maybe_str = read_as_utf8(label_param_iter->second);
+            if (maybe_str.has_value()) {
+                this->human_readable_name = std::move(maybe_str.value());
+            } else {
+                throw_error(matlabEngine, errors::bad_param, "If 'label' is set, it cannot be empty.");
+            }
+        }
+
+        // Merge into existing rule-set?
+        auto rulebook_param_iter = this->params.find(u"rulebook");
+        if (rulebook_param_iter != this->params.cend()) {
+            this->existing_rule_key = read_as_uint64(this->matlabEngine, rulebook_param_iter->second);
+            this->merge_into_existing = true;
+        } else {
+            this->merge_into_existing = false;
+        }
+
         // Ascertain symbol ordering
         auto order_param_iter = this->params.find(u"order");
         if (order_param_iter != this->params.cend()) {
@@ -186,23 +207,23 @@ namespace Moment::mex::functions {
             }
         }
 
+        // Do we have zero-tolerance set?
+        auto tolerance_param_iter = this->params.find(u"tolerance");
+        if (tolerance_param_iter != this->params.cend()) {
+            this->zero_tolerance = read_as_double(this->matlabEngine, tolerance_param_iter->second);
+            if (this->zero_tolerance < 0) {
+                throw_error(this->matlabEngine, errors::bad_param, "Tolerance must be non-negative value.");
+            }
+        }
+
         // Do we automatically add rules arising from factorization?
         if (this->flags.contains(u"no_factors")) {
             this->infer_from_factors = false;
         }
 
-        // Do we automatically register new symbols, if they are specified.
+        // Do we automatically register new symbols, if they are specified?
         if (this->flags.contains(u"no_new_symbols")) {
             this->create_missing_symbols = false;
-        }
-
-        // Merge into existing rule-set?
-        auto rulebook_param_iter = this->params.find(u"rulebook");
-        if (rulebook_param_iter != this->params.cend()) {
-            this->existing_rule_key = read_as_uint64(this->matlabEngine, rulebook_param_iter->second);
-            this->merge_into_existing = true;
-        } else {
-            this->merge_into_existing = false;
         }
 
         // Extra import
@@ -411,8 +432,10 @@ namespace Moment::mex::functions {
         this->flag_names.emplace(u"sequences");
         this->mutex_params.add_mutex({u"list", u"symbols", u"sequences"});
 
+        this->param_names.emplace(u"label");
         this->param_names.emplace(u"order");
         this->param_names.emplace(u"rulebook");
+        this->param_names.emplace(u"tolerance");
 
         this->flag_names.emplace(u"no_factors");
         this->flag_names.emplace(u"no_new_symbols");
@@ -446,7 +469,7 @@ namespace Moment::mex::functions {
                 return system.merge_rulebooks(input.existing_rule_key, std::move(*rulebookPtr));
             } else {
                 // Register rulebook with matrix system
-                return system.create_rulebook(std::move(rulebookPtr));
+                return system.add_rulebook(std::move(rulebookPtr));
             };
         }();
 
@@ -474,9 +497,9 @@ namespace Moment::mex::functions {
     CreateMomentRules::make_factory(SymbolTable& symbols, const CreateMomentRulesParams &input) const {
         switch (input.ordering) {
             case CreateMomentRulesParams::SymbolOrdering::ById:
-                return std::make_unique<PolynomialFactory>(symbols);
+                return std::make_unique<ByIDPolynomialFactory>(symbols, input.zero_tolerance);
             case CreateMomentRulesParams::SymbolOrdering::ByOperatorHash:
-                return std::make_unique<ByHashPolynomialFactory>(symbols);
+                return std::make_unique<ByHashPolynomialFactory>(symbols, input.zero_tolerance, symbols);
             default:
             case CreateMomentRulesParams::SymbolOrdering::Unknown:
                 throw_error(this->matlabEngine, errors::internal_error, "Unknown symbol ordering type.");
@@ -533,6 +556,9 @@ namespace Moment::mex::functions {
         }
         // Make empty rulebook
         auto output = std::make_unique<MomentSubstitutionRulebook>(symbols, this->make_factory(symbols, input));
+        if (!input.human_readable_name.empty()) {
+            output->set_name(input.human_readable_name);
+        }
 
         // Import rules, and compile
         output->add_raw_rules(input.sub_list);
@@ -565,6 +591,9 @@ namespace Moment::mex::functions {
 
         // Construct empty ruleset with ordering
         auto output = std::make_unique<MomentSubstitutionRulebook>(symbols, this->make_factory(symbols, input));
+        if (!input.human_readable_name.empty()) {
+            output->set_name(input.human_readable_name);
+        }
         const auto& factory = output->Factory();
 
         // Read rules
@@ -592,6 +621,9 @@ namespace Moment::mex::functions {
 
         //Make empty rulebook and get factory...
         auto output = std::make_unique<MomentSubstitutionRulebook>(symbols, this->make_factory(symbols, input));
+        if (!input.human_readable_name.empty()) {
+            output->set_name(input.human_readable_name);
+        }
         auto& factory = output->Factory();
 
         // Import rules
@@ -617,6 +649,9 @@ namespace Moment::mex::functions {
 
         //Make empty rulebook and get factory...
         auto output = std::make_unique<MomentSubstitutionRulebook>(symbols, this->make_factory(symbols, input));
+        if (!input.human_readable_name.empty()) {
+            output->set_name(input.human_readable_name);
+        }
         auto& factory = output->Factory();
 
         // Import rules

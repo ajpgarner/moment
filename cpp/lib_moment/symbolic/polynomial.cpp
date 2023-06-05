@@ -57,14 +57,14 @@ namespace Moment {
         data.erase(lagging_iter, last_iter);
     }
 
-    void Polynomial::remove_zeros(Polynomial::storage_t &data) {
+    void Polynomial::remove_zeros(Polynomial::storage_t &data, double eps_multiplier) {
         auto read_iter = data.begin();
         auto write_iter = data.begin();
         const auto last_iter = data.end();
 
         while (read_iter != last_iter) {
             assert(write_iter <= read_iter);
-            if (approximately_zero(read_iter->factor) || (read_iter->id == 0)) {
+            if (approximately_zero(read_iter->factor, eps_multiplier) || (read_iter->id == 0)) {
                 ++read_iter; // skip zeros
                 continue;
             }
@@ -141,7 +141,7 @@ namespace Moment {
         return true;
     }
 
-    bool Polynomial::fix_cc_in_place(const SymbolTable &symbols, bool make_canonical) noexcept {
+    bool Polynomial::fix_cc_in_place(const SymbolTable &symbols, bool make_canonical, double zero_tolerance) noexcept {
         bool any_change = false;
         for (auto& elem: this->data) {
             assert(elem.id < symbols.size());
@@ -162,7 +162,7 @@ namespace Moment {
             if (this->data.size() > 1) {
                 remove_duplicates(this->data);
             }
-            remove_zeros(this->data);
+            remove_zeros(this->data, zero_tolerance);
         }
 
         return any_change;

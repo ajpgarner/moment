@@ -182,6 +182,20 @@ classdef CreateMomentRulesTest < MTKTestBase
                 {{uint64(2), {{uint64(1), 0.3}}}; ...
                  {uint64(3), {{uint64(1), 0.4}}}});
         end
+                 
+        function WithLabelAndTolerance(testCase)            
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
+            [~] = mtk('moment_matrix', ref_id, 1);
+            [rules_index, rules] = mtk('create_moment_rules', 'symbols',...
+                                       'label', "Named rulebook", ...
+                                       'tolerance', 500, ...
+                                       ref_id, {{{2, -1.0}, {1, 0.5}}});
+            testCase.verifyEqual(rules_index, uint64(0));
+            testCase.assertFalse(isempty(rules));
+            testCase.verifyEqual(rules, ...
+                {{uint64(2), {{uint64(1), 0.5}}}});
+        end
+        
     end
     
    

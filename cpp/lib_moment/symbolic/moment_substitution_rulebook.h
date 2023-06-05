@@ -65,7 +65,7 @@ namespace Moment {
 
     public:
         explicit MomentSubstitutionRulebook(const SymbolTable& table)
-            : MomentSubstitutionRulebook(table, std::make_unique<PolynomialFactory>(table)) { }
+            : MomentSubstitutionRulebook(table, std::make_unique<ByIDPolynomialFactory>(table)) { }
 
         explicit MomentSubstitutionRulebook(const SymbolTable& table, std::unique_ptr<PolynomialFactory> factory);
         /**
