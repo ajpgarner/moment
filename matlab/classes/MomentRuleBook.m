@@ -30,7 +30,12 @@ methods
             tolerance (1,1) double {mustBeNonnegative} = 1.0 
         end    
         obj.Scenario = scenario;
-        
+
+        if nargin == 1
+            label = "";
+            tolerance = 1.0;
+        end
+
         % Extra arguments to MTK
         rb_args = cell(1,0);
         if tolerance ~= 1.0 
