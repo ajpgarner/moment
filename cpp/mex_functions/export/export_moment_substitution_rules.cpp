@@ -9,6 +9,7 @@
 
 #include "symbolic/moment_substitution_rule.h"
 #include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/polynomial.h"
 #include "symbolic/symbol_table.h"
 
 #include "utilities/utf_conversion.h"
@@ -16,12 +17,25 @@
 
 namespace Moment::mex {
 
-    matlab::data::CellArray MomentSubstitutionRuleExporter::operator()(const MomentSubstitutionRulebook &rules) {
+    matlab::data::CellArray MomentSubstitutionRuleExporter::as_symbol_cell(const MomentSubstitutionRulebook &rules) {
         matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({rules.size(), 1});
         auto write_iter = output.begin();
         for (const auto& rule : rules) {
             *write_iter = this->write_rule(factory, rule.second);
+            ++write_iter;
+        }
+        return output;
+    }
+
+    matlab::data::CellArray
+    MomentSubstitutionRuleExporter::as_operator_cell(const Moment::MomentSubstitutionRulebook &rules) {
+        matlab::data::ArrayFactory factory;
+        auto output = factory.createCellArray({rules.size(), 1});
+        auto write_iter = output.begin();
+        for (const auto& rule : rules) {
+            auto polynomial = rule.second.as_polynomial(rules.Factory());
+            *write_iter = this->combo_exporter.sequences(polynomial);
             ++write_iter;
         }
         return output;

@@ -31,14 +31,56 @@ namespace Moment::mex::functions {
         this->matrix_system_key = read_positive_integer<size_t>(matlabEngine, "Matrix system reference", inputs[0], 0);
 
         // Ascertain input mode
-        if (this->flags.contains(u"list")) {
-            this->input_mode = InputMode::SubstitutionList;
-        } else if (this->flags.contains(u"symbols")) {
-            this->input_mode = InputMode::FromSymbolIds;
-        } else if (this->flags.contains(u"sequences")) {
-            this->input_mode = InputMode::FromOperatorSequences;
-        } else if (this->flags.contains(u"info")) {
+        if (this->flags.contains(u"info")) {
             this->input_mode = InputMode::InformationOnly;
+        } else {
+            auto input_mode_iter = this->params.find(u"input");
+            if (input_mode_iter != this->params.cend()) {
+                try {
+                    switch (read_choice("Parameter 'input'",
+                                        {"list", "symbols", "sequences"},
+                                        input_mode_iter->second)) {
+                        case 0:
+                            this->input_mode = InputMode::SubstitutionList;
+                            break;
+                        case 1:
+                            this->input_mode = InputMode::FromSymbolIds;
+                            break;
+                        case 2:
+                            this->input_mode = InputMode::FromOperatorSequences;
+                            break;
+                    }
+                } catch (const Moment::mex::errors::invalid_choice &ice) {
+                    throw_error(this->matlabEngine, errors::bad_param, ice.what());
+                }
+            }
+        }
+
+        // Ascertain output mode
+        auto output_mode_iter = this->params.find(u"output");
+        if (output_mode_iter != this->params.cend()) {
+            try {
+                switch (read_choice("Parameter 'output'",
+                                    {"index", "symbols", "sequences", "strings"},
+                                    output_mode_iter->second)) {
+                    case 0:
+                        this->output_mode = OutputMode::IndexOnly;
+                        break;
+                    case 1:
+                        this->output_mode = OutputMode::SymbolCell;
+                        break;
+                    case 2:
+                        this->output_mode = OutputMode::SequenceCell;
+                        break;
+                    case 3:
+                        this->output_mode = OutputMode::String;
+                        break;
+                }
+            } catch (const Moment::mex::errors::invalid_choice& ice) {
+                throw_error(this->matlabEngine, errors::bad_param, ice.what());
+            }
+        } else {
+            this->output_mode = OutputMode::IndexOnly;
         }
 
         // Special case: info only mode
@@ -257,13 +299,13 @@ namespace Moment::mex::functions {
         this->max_inputs = 2;
 
         this->min_outputs = 1;
-        this->max_outputs = 3;
+        this->max_outputs = 1;
 
         this->flag_names.emplace(u"info");
-        this->flag_names.emplace(u"list");
-        this->flag_names.emplace(u"symbols");
-        this->flag_names.emplace(u"sequences");
-        this->mutex_params.add_mutex({u"info", u"list", u"symbols", u"sequences"});
+        this->param_names.emplace(u"input");
+        this->mutex_params.add_mutex({u"info", u"input"});
+
+        this->param_names.emplace(u"output");
 
         this->param_names.emplace(u"label");
         this->param_names.emplace(u"order");
@@ -336,20 +378,28 @@ namespace Moment::mex::functions {
             print_to_console(this->matlabEngine, infoSS.str());
         }
 
-        // Output rulebook ID
-        matlab::data::ArrayFactory factory;
+        // How do we output?
+
         if (output.size() >= 1) {
-            output[0] = factory.createScalar<uint64_t>(rb_id);
+            matlab::data::ArrayFactory factory;
+            MomentSubstitutionRuleExporter msrExporter{this->matlabEngine, system.Symbols()};
 
-            // Output 'complete' rules
-            if (output.size() >= 2) {
-                MomentSubstitutionRuleExporter msrExporter{this->matlabEngine, system.Symbols()};
-                output[1] = msrExporter(rulebook);
+            switch (input.output_mode) {
+                case CreateMomentRulesParams::OutputMode::IndexOnly:
+                    output[0] = factory.createScalar<uint64_t>(rb_id);
+                    break;
+                case CreateMomentRulesParams::OutputMode::SymbolCell:
 
-                // Output string-formatted rules
-                if (output.size() >= 3) {
-                    output[2] = msrExporter.as_string(rulebook);
-                }
+                    output[0] = msrExporter.as_symbol_cell(rulebook);
+                    break;
+                case CreateMomentRulesParams::OutputMode::SequenceCell:
+                    output[0] = msrExporter.as_operator_cell(rulebook);
+                    break;
+                case CreateMomentRulesParams::OutputMode::String:
+                    output[0] = msrExporter.as_string(rulebook);
+                    break;
+                default:
+                    throw_error(this->matlabEngine, errors::internal_error, "Unknown output mode!");
             }
         }
     }

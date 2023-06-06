@@ -6,13 +6,25 @@ classdef MomentRuleBook < handle
 properties(GetAccess = public, SetAccess = protected)
     Scenario    % Associated scenario.
     RuleBookId  % ID of the rulebook within the matrix system.
-    RawRules    % Rules as cell array of symbol substitutions.
-    RuleStrings % Rules as strings
     
     % Multiplier of epsilon, before coefficients are treated as zero.
     ZeroTolerance
 end
 
+properties(Dependent, GetAccess = public, SetAccess = private)
+    RawRuleCell     % Rules as cell array of symbol substitutions.
+    RulePolynomials % Rules as polynomials.
+    RuleStrings     % Rules as strings    
+end
+
+properties(Access=private)
+    cache_RawRuleCell;
+    cache_RulePolynomials;
+    cache_RuleStrings;
+    has_rrc = false;
+    has_rp = false;
+    has_rs = false;
+end
 
 properties(Constant, Access = private)
     err_locked = ['No more changes to this ruleset are possible, ',...
@@ -53,11 +65,58 @@ methods
                    
         obj.RuleBookId = mtk('create_moment_rules', rb_args{:}, ...
                              scenario.System.RefId, {});
-                         
-        obj.RawRules = cell.empty(0,1);
-        obj.RuleStrings = string.empty(0,1);
+        
+        obj.invalidate_cached_rules();        
     end
 end
+
+%% Getter methods
+methods
+    function val = get.RawRuleCell(obj)
+        if ~obj.has_rrc
+            obj.cache_RawRuleCell = ...
+                mtk('create_moment_rules', 'info', ...
+                    obj.Scenario.System.RefId, obj.RuleBookId, ...
+                    'output', 'sequences');            
+            obj.has_rrc = true;
+        end
+        val = obj.cache_RawRuleCell;
+    end
+    
+    function val = get.RulePolynomials(obj)
+        if ~obj.has_rp
+            rrc = obj.RawRuleCell;
+            obj.cache_RulePolynomials = Algebraic.Polynomial.empty(0, 1);
+            for idx=1:length(rrc)
+                obj.cache_RulePolynomials(end+1) = ...
+                    Algebraic.Polynomial(obj.Scenario, rrc{idx});
+            end
+            obj.has_rp = true;
+        end
+        val = obj.cache_RulePolynomials;
+    end
+    
+    function val = get.RuleStrings(obj)
+        if ~obj.has_rs
+            obj.cache_RuleStrings = ...
+                      mtk('create_moment_rules', 'info', ...
+                           obj.Scenario.System.RefId, obj.RuleBookId, ...
+                           'output', 'strings');               
+            obj.has_rs = true;
+        end
+        val = obj.cache_RuleStrings;
+    end
+    
+    function invalidate_cached_rules(obj)
+         obj.cache_RawRuleCell = cell.empty(0,1);
+         obj.cache_RulePolynomials = Algebraic.Polynomial.empty(0, 1);
+         obj.cache_RuleStrings = string.empty(0,1);
+         obj.has_rrc = false;
+         obj.has_rp = false;
+         obj.has_rs = false;
+    end
+end
+
 
 %% Add rules
 methods
@@ -120,19 +179,18 @@ methods
         end
 
         % Extra arguments
-        rb_args = {'list', 'rulebook', obj.RuleBookId};
+        rb_args = {'input', 'list', 'rulebook', obj.RuleBookId};
         if obj.ZeroTolerance ~= 1.0 
             rb_args{end+1} = "tolerance";
             rb_args{end+1} = double(obj.ZeroTolerance);
         end
        
         % Import rules into rulebook
-        [rule_id, rules, strs] = mtk('create_moment_rules', rb_args{:}, ...
-                                      obj.Scenario.System.RefId, ...
-                                      symbol_value_pairs);                               
-        obj.RuleBookId = rule_id;
-        obj.RawRules = rules;
-        obj.RuleStrings = strs;
+        rule_id = mtk('create_moment_rules', rb_args{:}, ...
+                      obj.Scenario.System.RefId, ...
+                      symbol_value_pairs);
+        assert(rule_id == obj.RuleBookId);
+        obj.invalidate_cached_rules();
     end
 
 
@@ -153,7 +211,7 @@ methods
         end
         
         % Prepare params
-        extra_params = {'sequences'};
+        extra_params = {'input', 'sequences', 'rulebook', obj.RuleBookId};
         if ~new_symbols
             extra_params{end+1} = 'no_new_symbols';
         end
@@ -163,13 +221,10 @@ methods
         end
 
         % Construct rulebook, and import rules
-        [rule_id, rules, strs] = mtk('create_moment_rules', extra_params{:},...
-                                     obj.Scenario.System.RefId, ...                               
-                                     'rulebook', obj.RuleBookId, ...
-                                     op_seq_cell);                               
-        obj.RuleBookId = rule_id;
-        obj.RawRules = rules;
-        obj.RuleStrings = strs;
+        rule_id = mtk('create_moment_rules', extra_params{:},...
+                      obj.Scenario.System.RefId, op_seq_cell);
+        assert(rule_id == obj.RuleBookId);
+        obj.invalidate_cached_rules();
         
         % Flag to system object that extra symbols may have been created.
         if new_symbols

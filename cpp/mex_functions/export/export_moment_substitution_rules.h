@@ -51,7 +51,13 @@ namespace Moment::mex {
                 : Exporter{engine}, combo_exporter{engine, symbols},
                   symbols{symbols}, string_format_options{rsfo} { }
 
-        matlab::data::CellArray operator()(const MomentSubstitutionRulebook &rules);
+        matlab::data::CellArray operator()(const MomentSubstitutionRulebook &rules) {
+            return this->as_symbol_cell(rules);
+        }
+
+        matlab::data::CellArray as_operator_cell(const MomentSubstitutionRulebook& rules);
+
+        matlab::data::CellArray as_symbol_cell(const MomentSubstitutionRulebook& rules);
 
         matlab::data::StringArray as_string(const MomentSubstitutionRulebook& rules);
 
@@ -64,6 +70,8 @@ namespace Moment::mex {
 
         matlab::data::MATLABString write_rule_string_as_symbol(matlab::data::ArrayFactory& factory,
                                                                const MomentSubstitutionRule& rule);
+
+
 
 
 

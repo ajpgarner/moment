@@ -65,6 +65,18 @@ namespace Moment::mex::functions {
             FromOperatorSequences
         } input_mode = InputMode::SubstitutionList;
 
+        /** How should we output rules */
+        enum class OutputMode {
+            /** Only provide ID of rulebook. */
+            IndexOnly,
+            /** Provide symbol cell of rulebook. */
+            SymbolCell,
+            /** Provide operator sequence cell of rulebook. */
+            SequenceCell,
+            /** Provide array of string representations of rules in rulebook. */
+            String
+        } output_mode = OutputMode::IndexOnly;
+
         /** How should symbol IDs be ordered */
         enum class SymbolOrdering {
             Unknown,
