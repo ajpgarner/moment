@@ -23,9 +23,11 @@ namespace Moment {
     class SymbolTable;
 }
 
-namespace Moment::mex::functions {
+namespace Moment::mex {
+    class StagingPolynomial;
+}
 
-    class OpSeqRuleSpecification;
+namespace Moment::mex::functions {
 
     class CreateMomentRulesParams : public SortedInputs {
     public:
@@ -79,7 +81,8 @@ namespace Moment::mex::functions {
         std::vector<std::vector<raw_sc_data>> raw_symbol_polynomials;
 
         /** Weighted operator sequences, if specified. */
-        std::unique_ptr<OpSeqRuleSpecification> raw_op_seq_polynomials;
+        std::vector<std::unique_ptr<StagingPolynomial>> raw_op_seq_polynomials;
+
 
     public:
         /** Constructor */
@@ -89,7 +92,9 @@ namespace Moment::mex::functions {
         ~CreateMomentRulesParams() noexcept;
 
         /** True if request is not to create rules, but to read information about them */
-        [[nodiscard]] bool info_only_mode() const noexcept { return this->input_mode == InputMode::InformationOnly; }
+        [[nodiscard]] inline bool info_only_mode() const noexcept {
+            return this->input_mode == InputMode::InformationOnly;
+        }
 
     private:
         void parse_as_sublist(const matlab::data::Array& data);
