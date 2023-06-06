@@ -110,19 +110,23 @@ namespace Moment {
 
         /**
          * Write out the RHS of the rule, up to conjugation and factors.
+         *
+         * @tparam inserter_iter_t
+         * @param match The monomial that matches the LHS of this rule.
+         * @param insert_iter Iterator to where in, e.g., a Polynomial, to insert the pattern.
          */
         template<typename inserter_iter_t>
         inline void append_transformed(const Monomial& match, inserter_iter_t insert_iter) const {
             assert(match.id == this->lhs);
             if (match.conjugated) {
-                std::transform(rhs.begin(), rhs.end(), insert_iter,
+                std::transform(this->rhs.begin(), this->rhs.end(), insert_iter,
                                [&match](Monomial src) {
                                    src.conjugated = !src.conjugated;
                                    src.factor = match.factor * std::conj(src.factor);
                                    return src;
                                });
             } else {
-                std::transform(rhs.begin(), rhs.end(), insert_iter,
+                std::transform(this->rhs.begin(), this->rhs.end(), insert_iter,
                                [&match](Monomial src) {
                                    src.factor *= match.factor;
                                    return src;

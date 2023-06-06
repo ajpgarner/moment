@@ -45,7 +45,7 @@ namespace Moment {
 
                         if constexpr(symmetric) {
                             if  (row_index != col_index) {
-                                real[re_id](col_index, row_index) = get_re_factor<MatrixInfo>(conj(elem.factor));
+                                real[re_id](col_index, row_index) = get_re_factor<MatrixInfo>(std::conj(elem.factor));
                             }
                         }
                     }
@@ -61,7 +61,7 @@ namespace Moment {
                                 if (row_index != col_index) {
                                     im[im_id](col_index, row_index) =
                                             std::complex<double>(0.0, (elem.conjugated ? 1.0 : -1.0))
-                                                    * conj(elem.factor);
+                                                    * std::conj(elem.factor);
                                 }
                             }
                         }

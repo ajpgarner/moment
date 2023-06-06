@@ -45,6 +45,7 @@ namespace Moment {
                 errSS << "Polynomial rule \"" << rhs << " == 0\" is ill-formed: leading element has a pre-factor of 0.";
                 throw errors::invalid_moment_rule{lhs, errSS.str()};
             }
+
             return {std::complex<double>(-1.0, 0) / lhs_elem.factor, lhs_elem.conjugated};
         }();
 

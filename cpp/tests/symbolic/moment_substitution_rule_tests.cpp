@@ -86,6 +86,23 @@ namespace Moment::Tests {
         EXPECT_FALSE(msr.is_trivial());
     }
 
+    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_HorriblyComplex) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(4, true, true);
+
+        // (0.5 + i) #3* + (1-3i) #2 = 0
+        Polynomial combo{Monomial{3, std::complex{0.5, 1.0}, true}, Monomial{2, std::complex{1.0, -3.0}}};
+        MomentSubstitutionRule msr{table, std::move(combo)};
+
+        std::complex<double> expected_prefactor = std::conj(-std::complex{1.0, -3.0} / std::complex{0.5, 1.0}); // 2-2i
+        EXPECT_EQ(msr.LHS(), 3);
+        ASSERT_EQ(msr.RHS().size(), 1);
+        EXPECT_TRUE(approximately_equal(msr.RHS()[0].factor, expected_prefactor, 100));
+        EXPECT_FALSE(msr.is_trivial());
+    }
+
     TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_ErrorBadScalar) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
@@ -291,6 +308,29 @@ namespace Moment::Tests {
         const Polynomial noMatch{{Monomial{2, 1.0}, Monomial{4, -1.0}}};
         EXPECT_FALSE(msr.matches(noMatch));
         EXPECT_EQ(msr.reduce(factory, noMatch), noMatch);
+    }
+
+
+    TEST(Symbolic_MomentSubstitutionRule, Reduce_RealToImaginary) {
+        // Fake context/table with 3 symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(1, true, false); // #2 is  Hermitian
+        table.create(2, true, true); // #3, #4 are not Hermitian.
+        ByIDPolynomialFactory factory{table};
+
+        ASSERT_EQ(factory({Monomial{2, 1.0}}), factory({Monomial{2, 1.0, true}}));
+        ASSERT_NE(factory({Monomial{3, 1.0}}), factory({Monomial{3, 1.0, true}}));
+
+        MomentSubstitutionRule msr{3, factory({Monomial{2, std::complex{0.0, 1.0}}, Monomial{1, 1.0}})}; // #3 -> i #2 + 1
+
+        Polynomial input_three_three_star = factory({Monomial{3, 1.0}, Monomial{3, 1.0, true}});
+        EXPECT_EQ(msr.reduce(factory, input_three_three_star), Polynomial::Scalar(2.0));
+
+        Polynomial input_three_minus_three_star = factory({Monomial{3, 1.0}, Monomial{3, -1.0, true}});
+        EXPECT_EQ(msr.reduce(factory, input_three_minus_three_star),
+                  factory({Monomial{2, std::complex{0.0, 2.0}, false}}));
+
     }
 
     TEST(Symbolic_MomentSubstitutionRule, Reduce_WithOpOrderFactory) {
