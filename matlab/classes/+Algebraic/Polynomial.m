@@ -450,7 +450,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             end
             
             % Get transformed version of polynomial
-            as_symbol_cell = obj.AsSymbolCell();
+            as_symbol_cell = obj.SymbolCell();
             output_sequences = mtk('apply_moment_rules', ...
                 obj.Scenario.System.RefId, rulebook.RuleBookId, ...
                 'output', 'sequences', as_symbol_cell);
