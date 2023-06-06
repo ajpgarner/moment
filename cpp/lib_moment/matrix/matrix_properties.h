@@ -7,7 +7,6 @@
 #pragma once
 
 #include "integer_types.h"
-#include "matrix_type.h"
 
 #include <iosfwd>
 #include <map>
@@ -24,16 +23,33 @@ namespace Moment {
     /** Information about the particular matrix (relative to the collection). */
     class MatrixProperties {
     private:
-        MatrixType basis_type = MatrixType::Unknown;
+        /** Dimension of the matrix */
         size_t dimension;
-        std::string description;
-        std::set<symbol_name_t> included_symbols;
-        std::set<symbol_name_t> real_entries;
-        std::set<symbol_name_t> imaginary_entries;
-        std::map<symbol_name_t, std::pair<ptrdiff_t, ptrdiff_t>> elem_keys;
+
+        /** True if matrix has any complex coefficients in front of its elements (real or otherwise) */
+        bool mat_has_complex_coefficients = false;
+
+        /** True if matrix has any complex elements */
+        bool mat_is_complex = false;
 
         /** True if matrix is complex Hermitian or real symmetric. */
         bool mat_is_herm = false;
+
+        /** Human-readable name for matrix */
+        std::string description;
+
+        /** The symbols involved in the matrix */
+        std::set<symbol_name_t> included_symbols;
+
+        /** ??? */
+        std::set<symbol_name_t> real_entries;
+
+        /** ??? */
+        std::set<symbol_name_t> imaginary_entries;
+
+        /** ??? */
+        std::map<symbol_name_t, std::pair<ptrdiff_t, ptrdiff_t>> elem_keys;
+
 
     public:
         /** Construct symbolic properties from operator matrix. */
@@ -41,33 +57,40 @@ namespace Moment {
                          const SymbolTable& table,
                          std::set<symbol_name_t>&& subset,
                          const std::string& description,
+                         bool has_complex_coefficients,
                          bool is_hermitian);
 
         MatrixProperties(MatrixProperties&& rhs) = default;
 
         virtual ~MatrixProperties() noexcept = default;
 
-        /** Set of all symbols involved in this matrix. */
-        [[nodiscard]] constexpr const auto& IncludedSymbols() const noexcept {
-            return this->included_symbols;
-        }
-
-        /** Use symbol table to sort included symbols into real and imaginary. */
-        void rebuild_keys(const SymbolTable& table);
-
-        /** Whether matrix is symmetric or Hermitian (i.e. does it contain imaginary symbols). */
-        [[nodiscard]] constexpr MatrixType Type() const noexcept {
-            return this->basis_type;
-        }
-
         /** Size of this (square) matrix. */
         [[nodiscard]] constexpr size_t Dimension() const noexcept {
             return this->dimension;
         }
 
+        /**
+         * True if the matrix has complex elements (Hermitian or otherwise).
+         */
+        [[nodiscard]] constexpr bool IsComplex() const noexcept {
+            return this->mat_is_complex;
+        }
+
+        /**
+         * True if the matrix has symmetry elements (real, or otherwise).
+         */
+        [[nodiscard]] constexpr bool IsHermitian() const noexcept {
+            return this->mat_is_herm;
+        }
+
         /** String description of the matrix */
         [[nodiscard]] constexpr const std::string& Description() const noexcept {
             return this->description;
+        }
+
+        /** Set of all symbols involved in this matrix. */
+        [[nodiscard]] constexpr const auto& IncludedSymbols() const noexcept {
+            return this->included_symbols;
         }
 
         /** Set of real symbols involved in this matrix. */
@@ -87,24 +110,19 @@ namespace Moment {
             return this->elem_keys;
         }
 
-        /**
-         * True if the matrix has complex elements (Hermitian or otherwise).
-         */
-        [[nodiscard]] bool IsComplex() const noexcept {
-            return(this->basis_type == MatrixType::Complex) || (this->basis_type == MatrixType::Hermitian);
-        }
-
-        /**
-         * True if the matrix has symmetry elements (real, or otherwise).
-         */
-        [[nodiscard]] bool IsHermitian() const noexcept {
-            return this->mat_is_herm;
-        }
+        /** Use symbol table to sort included symbols into real and imaginary parts. */
+        void rebuild_keys(const SymbolTable& table);
 
     protected:
-        void override_hermicity(bool is_hermitian) noexcept;
+        /** Set whether the matrix is Hermitian/symmetric */
+        void set_hermicity(bool is_hermitian) noexcept {
+            this->mat_is_herm = is_hermitian;
+        }
 
-        void set_description(std::string new_description) noexcept;
+        /** Set the name of the matrix */
+        void set_description(std::string new_description) noexcept {
+            this->description = std::move(new_description);
+        }
 
     public:
         friend std::ostream& operator<<(std::ostream& os, const MatrixProperties& mp);

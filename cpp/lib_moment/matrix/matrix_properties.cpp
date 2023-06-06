@@ -15,18 +15,21 @@
 namespace Moment {
     MatrixProperties::MatrixProperties(const Matrix& matrix, const SymbolTable& table,
                                        std::set<symbol_name_t>&& included, const std::string& desc,
-                                       const bool is_herm)
+                                       const bool complex_coefs, const bool is_herm)
             : dimension{matrix.Dimension()}, included_symbols{std::move(included)},
-              mat_is_herm{is_herm}, description(desc) {
+              mat_has_complex_coefficients{complex_coefs}, mat_is_herm{is_herm}, description(desc) {
 
         this->rebuild_keys(table);
     }
 
     void MatrixProperties::rebuild_keys(const SymbolTable& table) {
+
+        // Reset real, imaginary and basis
         this->real_entries.clear();
         this->imaginary_entries.clear();
         this->elem_keys.clear();
 
+        // Re-check every included symbol against symbol table
         for (const auto& id : this->included_symbols) {
             const auto& unique_symbol = table[id];
             assert(id == unique_symbol.Id());
@@ -41,13 +44,8 @@ namespace Moment {
             this->elem_keys.insert(this->elem_keys.end(), std::make_pair(id, unique_symbol.basis_key()));
         }
 
-        // Matrix type depends on whether there are imaginary symbols or not
-        const bool has_imaginary = !this->imaginary_entries.empty();
-        if (has_imaginary) {
-            this->basis_type = this->mat_is_herm ? MatrixType::Hermitian : MatrixType::Complex;
-        } else {
-            this->basis_type = this->mat_is_herm ? MatrixType::Symmetric : MatrixType::Real;
-        }
+        // Complex, if matrix has complex coefficients or elements.
+        this->mat_is_complex = this->mat_has_complex_coefficients || !this->imaginary_entries.empty();
     }
 
     std::ostream& operator<<(std::ostream& os, const MatrixProperties& mp) {
@@ -82,26 +80,4 @@ namespace Moment {
         return os;
     }
 
-    void MatrixProperties::override_hermicity(const bool override_hermitian) noexcept {
-        this->mat_is_herm = override_hermitian;
-
-        const bool has_imaginary = !this->imaginary_entries.empty();
-        if (override_hermitian) {
-            if (has_imaginary) {
-                this->basis_type = MatrixType::Hermitian;
-            } else  {
-                this->basis_type = MatrixType::Real;
-            }
-        } else {
-            if (has_imaginary) {
-                this->basis_type = MatrixType::Complex;
-            } else {
-                this->basis_type = MatrixType::Real;
-            }
-        }
-    }
-
-    void MatrixProperties::set_description(std::string new_description) noexcept {
-        this->description = std::move(new_description);
-    }
 }

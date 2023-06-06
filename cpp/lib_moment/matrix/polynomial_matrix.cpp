@@ -58,7 +58,8 @@ namespace Moment {
 
         // Create symbol matrix properties
         this->mat_prop = std::make_unique<MatrixProperties>(*this, this->symbol_table, std::move(included_symbols),
-                                                            "Polynomial Symbolic Matrix", is_hermitian);
+                                                            "Polynomial Symbolic Matrix",
+                                                            !this->real_prefactors, is_hermitian);
 
     }
 

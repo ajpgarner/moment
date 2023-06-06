@@ -31,13 +31,17 @@ namespace Moment::mex::functions {
 
         // Check explicitly requested type
         if (this->flags.contains(u"hermitian")) {
-            this->input_matrix_type = MatrixType::Hermitian;
+            this->matrix_is_complex = true;
+            this->matrix_is_hermitian = true;
         } else if (this->flags.contains(u"symmetric")) {
-            this->input_matrix_type = MatrixType::Symmetric;
+            this->matrix_is_complex = false;
+            this->matrix_is_hermitian = true;
         } else if (this->flags.contains(u"real")) {
-            this->input_matrix_type = MatrixType::Real;
+            this->matrix_is_complex = false;
+            this->matrix_is_hermitian = false;
         } else if (this->flags.contains(u"complex")) {
-            this->input_matrix_type = MatrixType::Complex;
+            this->matrix_is_complex = true;
+            this->matrix_is_hermitian = false;
         }
 
     }
@@ -84,34 +88,14 @@ namespace Moment::mex::functions {
 
         // Check consistent type requested
         if (imsPtr->importedContext.real_only()) {
-            if (input.input_matrix_type == MatrixType::Hermitian) {
-                if (!this->quiet) {
-                    std::stringstream noticeSS;
-                    noticeSS << "Hermitian matrix type was requested, but system is purely real. "
-                             << "Matrix will instead be interpreted as symmetric.";
-                    print_to_console(this->matlabEngine, noticeSS.str());
-                }
-                input.input_matrix_type = MatrixType::Symmetric;
-            }
-            if (input.input_matrix_type == MatrixType::Complex) {
+            if (input.matrix_is_complex) {
                 if (!this->quiet) {
                     std::stringstream noticeSS;
                     noticeSS << "Complex matrix type was requested, but system is purely real. "
                              << "Matrix will instead be interpreted as real.";
-                    print_to_console(this->matlabEngine, noticeSS.str());
+                    print_warning(this->matlabEngine, noticeSS.str());
                 }
-                input.input_matrix_type = MatrixType::Real;
-            }
-        } else {
-            // Complain, but proceed, with symmetric matrix types
-            if (input.input_matrix_type == MatrixType::Symmetric) {
-                if (!this->quiet) {
-                    std::stringstream noticeSS;
-                    noticeSS << "Symmetric matrix type was requested, but matrix system is complex. "
-                             << "This may potentially result in the import of a non-Hermitian matrix "
-                             << "(due to the imaginary components of off-diagonal elements).";
-                    print_to_console(this->matlabEngine, noticeSS.str());
-                }
+                input.matrix_is_complex = false;
             }
         }
 
@@ -119,13 +103,11 @@ namespace Moment::mex::functions {
         auto raw_sym_mat = read_raw_symbol_matrix(this->matlabEngine, input.inputMatrix);
         assert(raw_sym_mat);
 
-        // Lock for import
-        auto write_lock = ims.get_write_lock();
-
         // Try import
         size_t matrix_index;
         try {
-            matrix_index = ims.import_matrix(std::move(raw_sym_mat), input.input_matrix_type);
+            matrix_index = ims.import_matrix(std::move(raw_sym_mat),
+                                             input.matrix_is_complex, input.matrix_is_hermitian);
         } catch (Imported::errors::bad_import_matrix& e) {
             throw_error(this->matlabEngine, errors::bad_param, e.what());
         }

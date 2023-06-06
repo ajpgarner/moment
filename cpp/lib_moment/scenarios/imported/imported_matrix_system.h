@@ -9,7 +9,6 @@
 #include "matrix_system.h"
 #include "imported_context.h"
 
-#include "matrix/matrix_type.h"
 #include "symbolic/monomial.h"
 #include "utilities/square_matrix.h"
 
@@ -44,9 +43,13 @@ namespace Moment::Imported {
         /**
          * Register a matrix into the system, identifying symbols, etc. Call for write lock before importing.
          * @param input The input matrix.
+         * @param is_complex True if some aspect of the matrix represents complex components
+         * @param is_hermitian True if the matrix is self-adjoint (real symmetric, or complex Hermitian).
          * @return The index of the newly inserted matrix.
+         * Do not call for read lock before importing matrix! System will call its own write lock.
          */
-        size_t import_matrix(std::unique_ptr<SquareMatrix<Monomial>> input, MatrixType matrix_type);
+        size_t import_matrix(std::unique_ptr<SquareMatrix<Monomial>> input,
+                             bool is_complex, bool is_hermitian);
 
         std::string system_type_name() const override {
             return "Imported Matrix System";

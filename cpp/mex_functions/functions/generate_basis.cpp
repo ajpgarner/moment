@@ -106,12 +106,11 @@ namespace Moment::mex::functions {
 
         const auto& matrix_properties = operatorMatrix.SMP();
 
-        const auto basis_type = matrix_properties.Type();
-        const bool complex_output = (basis_type == MatrixType::Hermitian) || (basis_type == MatrixType::Complex);
+        const bool complex_output = matrix_properties.IsComplex();
 
         // Complex output requires two outputs... give warning
         if (!this->quiet && complex_output && (output.size() < 2)) {
-            print_to_console(this->matlabEngine,
+            print_warning(this->matlabEngine,
                  "Matrix is potentially complex, but the imaginary element output has not been bound."
             );
         }

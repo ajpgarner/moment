@@ -83,7 +83,7 @@ namespace Moment::Imported {
                         can_be_imaginary.unset(upper.id);
                     } // else, a* = a*, no constraints
 
-                    // In real-only context, no symbol mentioend can be imaginary
+                    // In real-only context, no symbol mentioned can be imaginary
                     if (!can_be_complex) {
                         can_be_imaginary.unset(upper.id);
                     }
@@ -111,14 +111,16 @@ namespace Moment::Imported {
     }
 
     size_t ImportedMatrixSystem::import_matrix(std::unique_ptr<SquareMatrix<Monomial>> input,
-                                               MatrixType matrix_type) {
+                                               const bool is_complex, const bool is_hermitian) {
         assert(input);
 
-        // Real context only defines real symbols, and real import only provides real symbols
-        bool can_be_complex = !this->importedContext.real_only();
-        if (matrix_type == MatrixType::Real) {
-            can_be_complex = false;
+        // Complain if context is real, but matrix is not.
+        if (this->importedContext.real_only() && is_complex) {
+            throw errors::bad_import_matrix{"Cannot import complex matrix into purely real context."};
         }
+
+        // Real context only defines real symbols, and real import only provides real symbols
+        const bool can_be_complex = !this->importedContext.real_only() && is_complex;
 
         // Parse for largest symbol identity
         const size_t initial_symbol_size = this->Symbols().size();
@@ -136,15 +138,16 @@ namespace Moment::Imported {
         DynamicBitset can_be_imaginary{new_max_symbol_id+1, !this->importedContext.real_only()};
 
         // Check if import type implies real or imaginary parts of mentioned symbols should be zero
-        bool is_hermitian = false;
-        if (matrix_type == MatrixType::Symmetric) {
-            is_hermitian = true;
-            checkIMSymmetric(*input, can_be_real, can_be_imaginary);
-        } else if (matrix_type == MatrixType::Hermitian) {
-            is_hermitian = true;
-            checkIMHermitian(*input, can_be_complex, can_be_real, can_be_imaginary);
-        } else if (matrix_type == MatrixType::Real) {
-            // If importing real matrix into non-real-only system, all reference symbols must be real.
+        if (is_hermitian) {
+            if (is_complex) {
+                checkIMHermitian(*input, can_be_complex, can_be_real, can_be_imaginary);
+            } else {
+                checkIMSymmetric(*input, can_be_real, can_be_imaginary);
+            }
+        }
+
+        // If importing real matrix into complex system, all imported reference symbols must be real.
+        if (!is_complex) {
             if (!this->importedContext.real_only()) {
                 for (auto &symbol: *input) {
                     can_be_imaginary.unset(symbol.id);
@@ -152,19 +155,21 @@ namespace Moment::Imported {
             }
         }
 
+        // Now, prepare to import
+        auto write_lock = this->get_write_lock();
+
         // Do merge, renumbering bases as appropriate, and complaining if a symbol becomes zero.
         bool changed_symbols = false;
         try {
             changed_symbols = this->Symbols().merge_in(can_be_real, can_be_imaginary);
         } catch (const Moment::errors::zero_symbol& zse) {
-            throw errors::bad_import_matrix{zse.what()};
+            throw errors::bad_import_matrix{zse.what()}; // Likely exception: importing alias for '0'
         }
 
-        // Reconstruct existing bases
+        // Reconstruct bases for all existing matrices, if any symbol changed from real to complex or vice versa.
         if (changed_symbols) {
             for (size_t index = 0; index < this->size(); ++index) {
                 auto &old_mat = this->get(index);
-
                 old_mat.renumerate_bases(this->Symbols());
             }
         }

@@ -84,10 +84,10 @@ namespace Moment::mex {
     export_basis_key(matlab::engine::MATLABEngine &engine, const MatrixProperties &imp) {
         matlab::data::ArrayFactory factory{};
         matlab::data::ArrayDimensions dims{imp.BasisKey().size(),
-                                           (imp.Type() == MatrixType::Hermitian) ? 3U : 2U};
+                                           (imp.IsComplex()) ? 3U : 2U};
         matlab::data::TypedArray<int32_t> output = factory.createArray<int32_t>(dims);
 
-        if (imp.Type() == MatrixType::Hermitian) {
+        if (imp.IsComplex()) {
             size_t index = 0;
             for (auto [elem_id, re_im_pair]: imp.BasisKey()) {
                 output[index][0] = static_cast<int32_t>(elem_id);

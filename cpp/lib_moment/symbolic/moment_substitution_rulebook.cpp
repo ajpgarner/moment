@@ -399,7 +399,7 @@ namespace Moment {
                                                                                   const Matrix &matrix) const {
         assert(&matrix.Symbols == &wSymbols);
 
-        // Once this line is passed, MSR is in use:
+        // Once this line is passed, MSR is officially in use:
         this->usages.fetch_add(1, std::memory_order_release);
 
         if (matrix.is_polynomial()) {

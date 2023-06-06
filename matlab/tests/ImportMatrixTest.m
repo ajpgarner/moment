@@ -89,7 +89,7 @@ classdef ImportMatrixTest < MTKTestBase
         function ComplexSystem_SymmetricMatrix(testCase)
             sys_id = mtk('imported_matrix_system', 'complex');
             A = [[1, 2, 3]; [2, 4, 5]; [3, 5, 6]];
-            m_id = mtk('import_matrix', 'symmetric', 'quiet', sys_id, A);
+            m_id = mtk('import_matrix', 'symmetric', sys_id, A);
             actual_A = mtk('operator_matrix', 'symbols', sys_id, m_id);
             expected_A = [["1","2","3"]; ["2","4","5"]; ["3","5","6"]];
             testCase.verifyEqual(actual_A, expected_A);
@@ -101,7 +101,7 @@ classdef ImportMatrixTest < MTKTestBase
             testCase.verifyEqual([symbol_table.basis_re], ...
                 uint64([0 1 2 3 4 5 6]));
             testCase.verifyEqual([symbol_table.basis_im], ...
-                uint64([0 0 1 2 3 4 5]));
+                uint64([0 0 0 0 0 0 0]));
         end
         
         function ComplexSystem_HermitianMatrix(testCase)

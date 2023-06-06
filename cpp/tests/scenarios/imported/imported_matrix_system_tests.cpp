@@ -33,10 +33,10 @@ namespace Moment::Tests {
         const auto& symbols = ims.Symbols();
 
         std::vector<Monomial> rawData{Monomial{2}, Monomial{3},
-                                      Monomial{3}, Monomial{4}};
+                                      Monomial{4}, Monomial{5}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
-        size_t index = ims.import_matrix(std::move(raw_mat_ptr), MatrixType::Complex);
+        size_t index = ims.import_matrix(std::move(raw_mat_ptr), true, false);
         EXPECT_EQ(index, 0);
         ASSERT_EQ(ims.size(), 1);
 
@@ -49,11 +49,11 @@ namespace Moment::Tests {
         ASSERT_EQ(imported_matrix.Dimension(), 2);
         EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], Monomial{2});
         EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], Monomial{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{5});
 
         // Check symbols
-        ASSERT_EQ(symbols.size(), 5);
+        ASSERT_EQ(symbols.size(), 6);
         EXPECT_EQ(symbols[0].Id(), 0);
         EXPECT_TRUE(symbols[0].is_hermitian());
         EXPECT_TRUE(symbols[0].is_antihermitian());
@@ -69,6 +69,9 @@ namespace Moment::Tests {
         EXPECT_EQ(symbols[4].Id(), 4);
         EXPECT_FALSE(symbols[4].is_hermitian());
         EXPECT_FALSE(symbols[4].is_antihermitian());
+        EXPECT_EQ(symbols[5].Id(), 5);
+        EXPECT_FALSE(symbols[5].is_hermitian());
+        EXPECT_FALSE(symbols[5].is_antihermitian());
 
     }
 
@@ -81,7 +84,7 @@ namespace Moment::Tests {
                                       Monomial{3}, Monomial{4}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
-        size_t index = ims.import_matrix(std::move(raw_mat_ptr), MatrixType::Symmetric);
+        size_t index = ims.import_matrix(std::move(raw_mat_ptr), false, true);
         EXPECT_EQ(index, 0);
         ASSERT_EQ(ims.size(), 1);
 
@@ -105,13 +108,13 @@ namespace Moment::Tests {
         EXPECT_TRUE(symbols[1].is_hermitian());
         EXPECT_FALSE(symbols[1].is_antihermitian());
         EXPECT_EQ(symbols[2].Id(), 2);
-        EXPECT_FALSE(symbols[2].is_hermitian());
+        EXPECT_TRUE(symbols[2].is_hermitian());
         EXPECT_FALSE(symbols[2].is_antihermitian());
         EXPECT_EQ(symbols[3].Id(), 3);
-        EXPECT_FALSE(symbols[3].is_hermitian());
+        EXPECT_TRUE(symbols[3].is_hermitian());
         EXPECT_FALSE(symbols[3].is_antihermitian());
         EXPECT_EQ(symbols[4].Id(), 4);
-        EXPECT_FALSE(symbols[4].is_hermitian());
+        EXPECT_TRUE(symbols[4].is_hermitian());
         EXPECT_FALSE(symbols[4].is_antihermitian());
     }
 
@@ -124,7 +127,7 @@ namespace Moment::Tests {
                                       Monomial{3, true}, Monomial{4}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
-        size_t index = ims.import_matrix(std::move(raw_mat_ptr), MatrixType::Hermitian);
+        size_t index = ims.import_matrix(std::move(raw_mat_ptr), true, true);
         EXPECT_EQ(index, 0);
         ASSERT_EQ(ims.size(), 1);
 
@@ -167,7 +170,7 @@ namespace Moment::Tests {
                                       Monomial{3}, Monomial{4}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
-        size_t index = ims.import_matrix(std::move(raw_mat_ptr), MatrixType::Hermitian);
+        size_t index = ims.import_matrix(std::move(raw_mat_ptr), true, true);
         EXPECT_EQ(index, 0);
         ASSERT_EQ(ims.size(), 1);
 
@@ -210,7 +213,7 @@ namespace Moment::Tests {
                                       Monomial{-3}, Monomial{4}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
-        size_t index = ims.import_matrix(std::move(raw_mat_ptr), MatrixType::Hermitian);
+        size_t index = ims.import_matrix(std::move(raw_mat_ptr), true, true);
         EXPECT_EQ(index, 0);
         ASSERT_EQ(ims.size(), 1);
 

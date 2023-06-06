@@ -16,15 +16,10 @@ namespace Moment {
     private:
         LocalizingMatrixIndex lmi;
     public:
-        LocalizingMatrixProperties(const Matrix& matrix, const SymbolTable& table, std::set<symbol_name_t>&& subset,
-                                                 const std::string& description, bool is_hermitian,
-                                                 LocalizingMatrixIndex index)
-            : MatrixProperties{matrix, table, std::move(subset), description, is_hermitian}, lmi{std::move(index)} { }
-
         LocalizingMatrixProperties(MatrixProperties&& rhs, LocalizingMatrixIndex index,
                                    bool override_hermitian, std::string override_desc) noexcept
             : MatrixProperties{std::move(rhs)}, lmi{std::move(index)} {
-            this->override_hermicity(override_hermitian);
+            this->set_hermicity(override_hermitian);
             this->set_description(std::move(override_desc));
         }
 

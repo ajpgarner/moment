@@ -222,7 +222,8 @@ namespace Moment {
 
             // Create symbol matrix properties
             this->mat_prop = std::make_unique<MatrixProperties>(*this, this->symbol_table, std::move(included_symbols),
-                                                                "Monomial Symbolic Matrix", is_hermitian);
+                                                                "Monomial Symbolic Matrix",
+                                                                !this->real_prefactors, is_hermitian);
     }
 
     MonomialMatrix::MonomialMatrix(SymbolTable &symbols, std::unique_ptr<OperatorMatrix> op_mat_ptr)
