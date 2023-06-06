@@ -20,7 +20,7 @@ disp(raw_mm.SequenceMatrix);
 
 %% Create moment ruleset, with rule <xy> -> i<z>
 fprintf("\nRulebook #1\n");
-rulebook1 = MomentRuleBook(setting);
+rulebook1 = MomentRuleBook(setting, "Example 1");
 rulebook1.Add(x*y - 1i * z);
 disp(rulebook1.RuleStrings);
 
@@ -30,7 +30,7 @@ disp(mm1.SequenceMatrix);
 
 %% Create moment ruleset, with rules <z> -> <y>, <y> -> <x>
 fprintf("\nRulebook #2\n");
-rulebook2 = MomentRuleBook(setting);
+rulebook2 = MomentRuleBook(setting, "Example 2");
 poly_rules = [z - y; y - x];
 rulebook2.Add(poly_rules);
 disp(rulebook2.RuleStrings);

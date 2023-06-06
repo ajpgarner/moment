@@ -314,7 +314,7 @@ namespace Moment {
         return {existing_rulebook_id, existing_rulebook};
     }
 
-    MomentSubstitutionRulebook &MatrixSystem::rulebook(size_t index) {
+    MomentSubstitutionRulebook& MatrixSystem::rulebook(size_t index) {
         if (index >= this->rulebooks.size()) {
             throw errors::missing_component("Rulebook index out of range.");
         }

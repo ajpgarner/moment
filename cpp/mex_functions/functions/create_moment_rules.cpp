@@ -165,6 +165,29 @@ namespace Moment::mex::functions {
             this->input_mode = InputMode::FromSymbolIds;
         } else if (this->flags.contains(u"sequences")) {
             this->input_mode = InputMode::FromOperatorSequences;
+        } else if (this->flags.contains(u"info")) {
+            this->input_mode = InputMode::InformationOnly;
+        }
+
+        // Special case: info only mode
+        if (this->info_only_mode()) {
+            // Check we don't set any other params in info only mode
+            if (this->params.contains(u"label")
+                || this->params.contains(u"order")
+                || this->params.contains(u"tolerance")
+                || this->flags.contains(u"no_factors")
+                || this->flags.contains(u"no_new_symbols")) {
+                throw_error(matlabEngine, errors::mutex_param,
+                            "No additional creation parameters can be set when in 'info' mode.");
+            }
+            if (this->params.contains(u"rulebook")) {
+                throw_error(matlabEngine, errors::mutex_param,
+                    "In 'info' mode, rulebook should be provided as the function argument, not as a named parameter.");
+            }
+
+            // Attempt to read last param as rulebook key.
+            this->existing_rule_key = read_positive_integer<size_t>(matlabEngine, "Rulebook index", inputs[1], 0);
+            return;
         }
 
         // Do we have a label?
@@ -427,10 +450,11 @@ namespace Moment::mex::functions {
         this->min_outputs = 1;
         this->max_outputs = 3;
 
+        this->flag_names.emplace(u"info");
         this->flag_names.emplace(u"list");
         this->flag_names.emplace(u"symbols");
         this->flag_names.emplace(u"sequences");
-        this->mutex_params.add_mutex({u"list", u"symbols", u"sequences"});
+        this->mutex_params.add_mutex({u"info", u"list", u"symbols", u"sequences"});
 
         this->param_names.emplace(u"label");
         this->param_names.emplace(u"order");
@@ -461,10 +485,18 @@ namespace Moment::mex::functions {
         auto& system = *msPtr;
 
         // Create rule-book with new rules
-        auto rulebookPtr = this->create_rulebook(system, input);
+        std::unique_ptr<MomentSubstitutionRulebook> rulebookPtr;
+        if (!input.info_only_mode()) {
+            rulebookPtr = this->create_rulebook(system, input);
+        }
 
         // Add or merge rulebooks
-        auto [rb_id, rulebook] = [&]() -> std::pair<size_t, MomentSubstitutionRulebook&> {
+        auto [rb_id, rulebook] = [&]() -> std::pair<size_t, const MomentSubstitutionRulebook&> {
+            // Either, just get information:
+            if (input.info_only_mode()) {
+                return {input.existing_rule_key, system.rulebook(input.existing_rule_key)};
+            }
+            // Or, add/merge for information
             if (input.merge_into_existing) {
                 return system.merge_rulebooks(input.existing_rule_key, std::move(*rulebookPtr));
             } else {
@@ -473,21 +505,42 @@ namespace Moment::mex::functions {
             };
         }();
 
+        // Prepare to write-out information
+        auto new_read_lock = msPtr->get_read_lock();
+
+        // Extra info, if verbose
+        if (this->verbose) {
+            std::stringstream infoSS;
+            infoSS << "Rulebook #" << rb_id << ": " << rulebook.name() << "\n";
+            const size_t rb_size = rulebook.size();
+            infoSS << "Contains " << rb_size << ((rb_size != 1) ? " rules" : " rule") << ".\n";
+            if (rulebook.is_hermitian()) {
+                infoSS << "Is hermitian-preserving.\n";
+            } else {
+                infoSS << "Is not hermitian-preserving.\n";
+            }
+            if (rulebook.is_monomial()) {
+                infoSS << "Is monomial-preserving.\n";
+            } else {
+                infoSS << "Is not monomial-preserving.\n";
+            }
+            print_to_console(this->matlabEngine, infoSS.str());
+        }
 
         // Output rulebook ID
         matlab::data::ArrayFactory factory;
         if (output.size() >= 1) {
             output[0] = factory.createScalar<uint64_t>(rb_id);
-        }
 
-        // Output 'complete' rules
-        if (output.size() >= 2) {
-            auto new_read_lock = msPtr->get_read_lock();
-            MomentSubstitutionRuleExporter msrExporter{this->matlabEngine, system.Symbols()};
-            output[1] = msrExporter(rulebook);
+            // Output 'complete' rules
+            if (output.size() >= 2) {
+                MomentSubstitutionRuleExporter msrExporter{this->matlabEngine, system.Symbols()};
+                output[1] = msrExporter(rulebook);
 
-            if (output.size() >= 3) {
-                output[2] = msrExporter.as_string(rulebook);
+                // Output string-formatted rules
+                if (output.size() >= 3) {
+                    output[2] = msrExporter.as_string(rulebook);
+                }
             }
         }
     }

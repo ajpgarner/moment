@@ -53,6 +53,8 @@ namespace Moment::mex::functions {
         /** How the input to the create-rules command is supplied */
         enum class InputMode {
             Unknown,
+            /** Do not add rules, just return information about existing rulebook */
+            InformationOnly,
             /** List of symbol ID / double value scalar substitutions */
             SubstitutionList,
             /** Polynomials, expressed as symbols. */
@@ -85,6 +87,9 @@ namespace Moment::mex::functions {
 
         /** Destructor */
         ~CreateMomentRulesParams() noexcept;
+
+        /** True if request is not to create rules, but to read information about them */
+        [[nodiscard]] bool info_only_mode() const noexcept { return this->input_mode == InputMode::InformationOnly; }
 
     private:
         void parse_as_sublist(const matlab::data::Array& data);
