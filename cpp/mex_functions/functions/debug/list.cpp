@@ -9,7 +9,7 @@
 #include "matrix_system.h"
 
 #include "matrix/monomial_matrix.h"
-#include "matrix/matrix_properties.h"
+#include "matrix/properties/matrix_properties.h"
 
 #include "symbolic/moment_substitution_rulebook.h"
 #include "symbolic/symbol_table.h"

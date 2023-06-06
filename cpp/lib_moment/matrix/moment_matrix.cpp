@@ -6,7 +6,7 @@
  */
 
 #include "moment_matrix.h"
-#include "moment_matrix_properties.h"
+#include "properties/moment_matrix_properties.h"
 
 #include "operator_sequence_generator.h"
 

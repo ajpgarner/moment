@@ -6,7 +6,8 @@
  */
 #pragma once
 
-#include "matrix_properties.h"
+#include "properties/matrix_properties.h"
+
 #include "matrix_basis.h"
 #include "matrix_basis_type.h"
 

@@ -6,7 +6,7 @@
  */
 #include "matrix_properties.h"
 
-#include "matrix.h"
+#include "../matrix.h"
 #include "symbolic/symbol_table.h"
 
 #include <iostream>

@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "localizing_matrix.h"
-#include "localizing_matrix_properties.h"
+#include "properties/localizing_matrix_properties.h"
 
 #include "operator_sequence_generator.h"
 

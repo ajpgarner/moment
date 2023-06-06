@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "substituted_matrix.h"
-#include "substituted_matrix_properties.h"
+#include "properties/substituted_matrix_properties.h"
 
 #include <sstream>
 

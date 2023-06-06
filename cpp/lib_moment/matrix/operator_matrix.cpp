@@ -8,7 +8,7 @@
 
 #include "operator_sequence_generator.h"
 
-#include "matrix_properties.h"
+#include "properties/matrix_properties.h"
 
 #include <limits>
 #include <stdexcept>

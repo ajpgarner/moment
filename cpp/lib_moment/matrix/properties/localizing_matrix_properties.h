@@ -8,7 +8,7 @@
 #pragma once
 
 #include "matrix_properties.h"
-#include "localizing_matrix_index.h"
+#include "../localizing_matrix_index.h"
 
 namespace Moment {
 

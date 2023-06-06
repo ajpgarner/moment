@@ -6,7 +6,7 @@
  */
 #include "export_matrix_basis_masks.h"
 
-#include "matrix/matrix_properties.h"
+#include "matrix/properties/matrix_properties.h"
 #include "matrix/operator_matrix.h"
 
 #include "symbolic/symbol_table.h"

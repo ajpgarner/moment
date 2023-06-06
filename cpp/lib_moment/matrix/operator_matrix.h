@@ -7,7 +7,6 @@
 #pragma once
 
 #include "monomial_matrix.h"
-#include "matrix_properties.h"
 
 #include "scenarios/context.h"
 #include "scenarios/operator_sequence.h"

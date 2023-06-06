@@ -6,7 +6,6 @@ add_library(lib_moment
         matrix/localizing_matrix.cpp
         matrix/matrix.cpp
         matrix/matrix_basis.cpp
-        matrix/matrix_properties.cpp
         matrix/moment_matrix.cpp
         matrix/monomial_matrix.cpp
         matrix/monomial_matrix_basis.cpp
@@ -15,6 +14,7 @@ add_library(lib_moment
         matrix/polynomial_matrix.cpp
         matrix/polynomial_matrix_basis.cpp
         matrix/substituted_matrix.cpp
+        matrix/properties/matrix_properties.cpp
         scenarios/context.cpp
         scenarios/dictionary_map.cpp
         scenarios/explicit_symbols.cpp
