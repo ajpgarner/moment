@@ -2,7 +2,7 @@ classdef Monomial < Abstract.ComplexObject
     %MONOMIAL A monomial expression, as part of an algebraic setting.
         
     properties(GetAccess = public, SetAccess = protected)
-        Operators % The operator string defining this monomial.        
+        Operators % The operator sequence defining this monomial.        
         Coefficient % Scalar co-efficient factor of the monomial.
         Hash % Hash of the operator sequence in this monomial.
     end

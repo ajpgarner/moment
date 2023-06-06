@@ -1,5 +1,4 @@
 %% Clear
-addpath('..')
 clear
 clear mtk;
 

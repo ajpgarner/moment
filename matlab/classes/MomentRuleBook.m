@@ -60,15 +60,34 @@ methods
 end
 
 %% Add rules
-
-%% Static 'constructors'
 methods
+    function Add(obj, polynomials, new_symbols)
+    % ADD Adds rules based on (list of) polynomials that should be zero.
+    %
+    % PARAMS
+    %   polynomials - One or more polynomial rules.
+    %   new_symbols - Set to true to create symbols in setting if they do
+    %                 not already exist.
+    %
+    arguments
+        obj (1,1) MomentRuleBook
+        polynomials (:,1) Algebraic.Polynomial
+        new_symbols (1,1) logical = true
+    end
+        raw_rules = cell(length(polynomials), 1);        
+        for idx=1:length(polynomials)
+            raw_rules{idx} = polynomials(idx).OperatorCell;
+        end        
+        obj.AddFromOperatorSequences(raw_rules, new_symbols);    
+    end
+    
     function AddScalarSubstitution(obj, symbol_ids, values)
-    % SCALARSUBSTITUTION Creates a simple substitution rulebook.
+    % ADDSCALARSUBSTITUTION Add replacement rules, each symbol by a scalar.
     %
-    % Each symbol id is replaced with the corresponding value.
+    % PARAMS
+    %   symbol_ids - Array of symbol IDs to create rules for.
+    %   values     - The corresponding value to assign to each symbol id.
     %
-    % Symbols and values are provided as two arrays of equal length.
         arguments
             obj (1,1) MomentRuleBook
             symbol_ids (1,:) uint64
@@ -88,7 +107,7 @@ methods
         obj.AddScalarSubstitutionCell(cell_input);
     end
 
-    function obj = AddScalarSubstitutionCell(obj, symbol_value_pairs)
+    function AddScalarSubstitutionCell(obj, symbol_value_pairs)
     % SCALARSUBSTITUTIONCELL Creates a simple substitution rulebook.
     % Each symbol id is replaced with the corresponding value.
     %
@@ -151,6 +170,12 @@ methods
         obj.RuleBookId = rule_id;
         obj.RawRules = rules;
         obj.RuleStrings = strs;
+        
+        % Flag to system object that extra symbols may have been created.
+        if new_symbols
+            obj.Scenario.System.UpdateSymbolTable();
+        end
+        
     end
 end
 

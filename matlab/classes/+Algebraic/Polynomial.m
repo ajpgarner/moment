@@ -5,18 +5,19 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         Constituents = Algebraic.Monomial.empty(1,0)
     end
     
-    %properties(GetAccess=public, SetAccess=private)
+    properties(GetAccess=public, SetAccess=private)
+        OperatorCell = cell(1, 0);
+    end
         
-    %end
-    
     properties(Dependent)
-        AsSymbolCell
+        SymbolCell
         IsZero
     end
     
     properties(Access=private)
         done_sc = false;
-        symbol_cell = cell(1,0);
+        symbol_cell = cell(1, 0);
+        done_oc = false;
     end
     
     methods(Static)
@@ -53,6 +54,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                
             obj.orderAndMerge();
             obj.makeObjectName();
+            obj.makeOperatorCell();
         end
         
     end
@@ -63,7 +65,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             val = isempty(obj.Constituents);
         end
         
-        function val = get.AsSymbolCell(obj)
+        function val = get.SymbolCell(obj)
             if ~obj.done_sc
                 obj.makeSymbolCell();
                 if ~obj.done_sc
@@ -532,6 +534,17 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                         input{idx}{1}, input{idx}{2});                    
             end
         end
+        
+        function makeOperatorCell(obj)
+        %MAKEOPERATORCELL Create cell description of polynomial.
+            obj.OperatorCell = cell(1, length(obj.Constituents));
+            for idx = 1:length(obj.Constituents)
+                obj.OperatorCell{idx} = ...
+                    {obj.Constituents(idx).Operators, ...
+                     obj.Constituents(idx).Coefficient};
+            end            
+        end
+            
         
         function makeObjectName(obj)
         % MAKEOBJECTNAME Create human-readable representation of polynomial.
