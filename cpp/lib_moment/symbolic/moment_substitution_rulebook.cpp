@@ -131,9 +131,6 @@ namespace Moment {
             return 0;
         }
 
-        // MonomialRules already complete?
-        const bool existing_rules = !this->rules.empty();
-
         // First, sort raw rules by lowest leading monomial, tie-breaking with shorter strings first.
         std::sort(this->raw_rules.begin(), this->raw_rules.end(), PolynomialOrdering(*this->factory));
 
@@ -147,7 +144,7 @@ namespace Moment {
             Polynomial reduced_rule{this->reduce(std::move(rule))};
 
             // Second, orient to get leading term
-            MomentSubstitutionRule msr{this->symbols, std::move(reduced_rule)};
+            MomentSubstitutionRule msr{*this->factory, std::move(reduced_rule)};
 
             // If rule has been reduced to a trivial expression, do not add.
             if (msr.is_trivial()) {
@@ -358,7 +355,7 @@ namespace Moment {
                 if (ever_matched) {
                     potential_output.emplace_back(*poly_iter);
                 }
-            };
+            }
         }
 
         // If match made, replace rule

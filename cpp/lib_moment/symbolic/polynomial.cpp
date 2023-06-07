@@ -129,12 +129,13 @@ namespace Moment {
         return *this;
     }
 
-    bool Polynomial::operator==(const Polynomial &rhs) const noexcept {
+
+    bool Polynomial::approximately_equals(const Polynomial &rhs, double eps_multiplier) const noexcept {
         if (this->data.size() != rhs.data.size()) {
             return false;
         }
         for (size_t index = 0; index < this->data.size(); ++index) {
-            if (this->data[index] != rhs.data[index]) {
+            if (!this->data[index].approximately_equals(rhs.data[index], eps_multiplier)) {
                 return false;
             }
         }

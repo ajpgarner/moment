@@ -21,8 +21,9 @@ namespace Moment::Tests {
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
+        ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{table, Polynomial()};
+        MomentSubstitutionRule msr{factory, Polynomial()};
 
         EXPECT_EQ(msr.LHS(), 0);
         EXPECT_EQ(msr.RHS(), Polynomial());
@@ -34,9 +35,11 @@ namespace Moment::Tests {
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
+        ByIDPolynomialFactory factory{table};
 
         Polynomial combo{Monomial{3, 1.0}}; // #2 + 0.5 = 0
-        MomentSubstitutionRule msr{table, std::move(combo)};
+        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        MomentSubstitutionRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 3);
         EXPECT_EQ(msr.RHS(), Polynomial());
@@ -48,9 +51,11 @@ namespace Moment::Tests {
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
+        ByIDPolynomialFactory factory{table};
 
-        Polynomial combo{Monomial{2, 1.0}, Monomial{1, -0.5}}; // #2 + 0.5 = 0
-        MomentSubstitutionRule msr{table, std::move(combo)};
+        Polynomial combo = factory({Monomial{2, 1.0}, Monomial{1, -0.5}}); // #2 + 0.5 = 0
+        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        MomentSubstitutionRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 2);
         EXPECT_EQ(msr.RHS(), Polynomial::Scalar(0.5));
@@ -62,10 +67,12 @@ namespace Moment::Tests {
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
+        ByIDPolynomialFactory factory{table};
 
-        Polynomial combo{Monomial{3, -1.0}, Monomial{2, 1.0},
-                         Monomial{1, 1.0}}; // -#3 + #2 + 1 = 0
-        MomentSubstitutionRule msr{table, std::move(combo)};
+        Polynomial combo = factory({Monomial{3, -1.0}, Monomial{2, 1.0},
+                                    Monomial{1, 1.0}}); // -#3 + #2 + 1 = 0
+        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        MomentSubstitutionRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 3);
         EXPECT_EQ(msr.RHS(), Polynomial({Monomial{2, 1.0}, Monomial{1, 1.0}}));
@@ -77,9 +84,11 @@ namespace Moment::Tests {
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
+        ByIDPolynomialFactory factory{table};
 
         Polynomial combo{Monomial{3, 0.5, true}, Monomial{2, 1.0}}; // 0.5#3* + #2 = 0
-        MomentSubstitutionRule msr{table, std::move(combo)};
+        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        MomentSubstitutionRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 3);
         EXPECT_EQ(msr.RHS(), Polynomial(Monomial{2, -2.0, true}));
@@ -91,10 +100,12 @@ namespace Moment::Tests {
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
+        ByIDPolynomialFactory factory{table};
 
         // (0.5 + i) #3* + (1-3i) #2 = 0
         Polynomial combo{Monomial{3, std::complex{0.5, 1.0}, true}, Monomial{2, std::complex{1.0, -3.0}}};
-        MomentSubstitutionRule msr{table, std::move(combo)};
+        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        MomentSubstitutionRule msr{factory, std::move(combo)};
 
         std::complex<double> expected_prefactor = std::conj(-std::complex{1.0, -3.0} / std::complex{0.5, 1.0}); // 2-2i
         EXPECT_EQ(msr.LHS(), 3);
@@ -108,12 +119,47 @@ namespace Moment::Tests {
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
+        ByIDPolynomialFactory factory{table};
 
         Polynomial combo{Monomial{1, 2.5}}; // #2 + 0.5 = 0
-        EXPECT_THROW([[maybe_unused]] auto msr = MomentSubstitutionRule(table, std::move(combo)),
+        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        EXPECT_THROW([[maybe_unused]] auto msr = MomentSubstitutionRule(factory, std::move(combo)),
                      errors::invalid_moment_rule);
     }
 
+    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_HardToOrient) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(2, true, true); // #2 and #3, complex.
+        ByIDPolynomialFactory factory{table, 10};
+
+
+        for (int index = 1; index < 10; ++index) { // try values 0.1 ... 0.9
+            std::complex<double> factor_k = {static_cast<double>(index)*0.1, 0};
+
+            // Analytic solution: <Z> -> 1/(k'k-1) <Y> - k/(k'k-1) <Y'>
+            const Polynomial trickyPoly = factory(
+                    {Monomial{3, 1.0, false}, Monomial{3, factor_k, true}, Monomial{2, 1.0}});
+            ASSERT_TRUE(MomentSubstitutionRule::hard_to_orient(trickyPoly)) << " k = " << factor_k;
+
+            const Polynomial reorientedPoly = MomentSubstitutionRule::try_to_reorient(factory, trickyPoly);
+
+
+            MomentSubstitutionRule trickyRule(factory, Polynomial{trickyPoly});
+
+            const std::complex<double> expected_y_coef =
+                    std::complex<double>{1.0, 0.0} / (factor_k * std::conj(factor_k) - std::complex{1.0,0.0});
+            const std::complex<double> expected_ystar_coef = -factor_k * expected_y_coef;
+            const Polynomial expectedRHS = factory({Monomial{2, expected_y_coef, false},
+                                                    Monomial{2, expected_ystar_coef, true}});
+
+            EXPECT_EQ(trickyRule.LHS(), 3) << " k = " << factor_k << ", rop = " << reorientedPoly;
+            EXPECT_TRUE(trickyRule.RHS().approximately_equals(expectedRHS, factory.zero_tolerance))
+                << " LHS = " << trickyRule.RHS() << " RHS = " << expectedRHS
+                << ", k = " << factor_k;
+        }
+    }
 
     TEST(Symbolic_MomentSubstitutionRule, Reduce_TwoToZero) {
         // Fake context/table with 4 non-trivial symbols
@@ -383,7 +429,7 @@ namespace Moment::Tests {
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{table, Polynomial::Zero()};
+        MomentSubstitutionRule msr{factory, Polynomial::Zero()};
 
         EXPECT_TRUE(msr.is_trivial());
         EXPECT_EQ(msr.as_polynomial(factory), Polynomial::Zero());
@@ -396,7 +442,7 @@ namespace Moment::Tests {
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{table, factory({Monomial{3, 1.0}})};
+        MomentSubstitutionRule msr{factory, factory({Monomial{3, 1.0}})};
         EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{3, -1.0}}));
     }
 
@@ -407,7 +453,7 @@ namespace Moment::Tests {
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{table, factory({Monomial{2, 1.0}, Monomial{1, -0.5}})};
+        MomentSubstitutionRule msr{factory, factory({Monomial{2, 1.0}, Monomial{1, -0.5}})};
 
         EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{2, -1.0}, Monomial{1, 0.5}}));
     }
@@ -419,7 +465,7 @@ namespace Moment::Tests {
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{table, factory({Monomial{3, -1.0}, Monomial{2, 1.0}, Monomial{1, 1.0}})};
+        MomentSubstitutionRule msr{factory, factory({Monomial{3, -1.0}, Monomial{2, 1.0}, Monomial{1, 1.0}})};
 
         EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{3, -1.0}, Monomial{2, 1.0}, Monomial{1, 1.0}}));
 
@@ -432,7 +478,7 @@ namespace Moment::Tests {
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{table, factory({Monomial{3, 0.5, true}, Monomial{2, 1.0}})};
+        MomentSubstitutionRule msr{factory, factory({Monomial{3, 0.5, true}, Monomial{2, 1.0}})};
         EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{3, -1.0}, Monomial{2, -2.0, true}}));
     }
 }

@@ -145,10 +145,14 @@ namespace Moment {
             return lhs;
         }
 
-        bool operator==(const Polynomial& rhs) const noexcept;
+        [[nodiscard]] bool approximately_equals(const Polynomial& rhs, double eps_multiplier = 1.0) const noexcept;
 
-        inline bool operator!=(const Polynomial& rhs) const noexcept {
-            return !(this->operator==(rhs));
+        [[nodiscard]] inline bool operator==(const Polynomial& rhs) const noexcept {
+            return this->approximately_equals(rhs);
+        }
+
+        [[nodiscard]] inline bool operator!=(const Polynomial& rhs) const noexcept {
+            return !this->approximately_equals(rhs);
         }
 
         /**

@@ -40,7 +40,7 @@ namespace Moment {
             : lhs{lhs}, rhs{std::move(rhs)} { }
 
         /** Create rule from polynomial == 0. */
-        MomentSubstitutionRule(const SymbolTable& table, Polynomial&& rule);
+        MomentSubstitutionRule(const PolynomialFactory& factory, Polynomial&& rule);
 
     public:
         /**
@@ -133,6 +133,14 @@ namespace Moment {
                                });
             }
         }
+
+        /** A polynomial is hard to orient if its leading two monomials are conjugates of each other.
+         * (It becomes impossible to orient if they are exactly conjugate or anti-conjugate.) */
+        [[nodiscard]] constexpr static bool hard_to_orient(const Polynomial& poly) noexcept {
+            return (poly.size() >= 2) && (poly[poly.size()-1].id == poly[poly.size()-2].id);
+        }
+
+        [[nodiscard]] static Polynomial try_to_reorient(const PolynomialFactory& factory, Polynomial input_rule);
 
         friend class MomentSubstitutionRulebook;
     };

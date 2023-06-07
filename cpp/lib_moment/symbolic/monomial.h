@@ -136,17 +136,26 @@ namespace Moment {
          */
         explicit Monomial(const std::string &strExpr);
 
-        [[nodiscard]] bool operator==(const Monomial &rhs) const {
+
+        [[nodiscard]] bool approximately_equals(const Monomial &rhs, double eps_multiplier = 1.0) const noexcept {
             return (this->id == rhs.id)
                    && ((this->id == 0) || ((this->conjugated == rhs.conjugated)
-                                           && approximately_equal(this->factor, rhs.factor)));
-
+                                           && approximately_equal(this->factor, rhs.factor, eps_multiplier)));
         }
 
-        [[nodiscard]] bool operator!=(const Monomial &rhs) const {
+        [[nodiscard]] bool not_approximately_equals(const Monomial &rhs, double eps_multiplier = 1.0) const noexcept {
             return (this->id != rhs.id)
                    || ((this->id != 0) && ((this->conjugated != rhs.conjugated)
-                                           || !approximately_equal(this->factor, rhs.factor)));
+                                           || !approximately_equal(this->factor, rhs.factor, eps_multiplier)));
+        }
+
+
+        [[nodiscard]] inline bool operator==(const Monomial &rhs) const noexcept {
+            return this->approximately_equals(rhs);
+        }
+
+        [[nodiscard]] inline bool operator!=(const Monomial &rhs) const noexcept {
+            return this->not_approximately_equals(rhs);
         }
 
         /**

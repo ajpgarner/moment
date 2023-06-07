@@ -18,12 +18,48 @@
 
 namespace Moment {
 
-    MomentSubstitutionRule::MomentSubstitutionRule(const SymbolTable& table, Polynomial &&rule)
+    namespace {
+        symbol_name_t pop_back_and_normalize(const PolynomialFactory& factory, Polynomial& poly) {
+            // Empty polynomial is already normalized
+            if (poly.empty()) {
+                return 0;
+            }
+
+            // Extract information about last element
+            auto [symbol_id, prefactor, needs_conjugate] = [&]() -> std::tuple<symbol_name_t, std::complex<double>, bool> {
+                // Lambda exists to avoid this being a dangling reference
+                const auto& lhs_elem = poly.back();
+
+                return {lhs_elem.id, std::complex<double>(-1.0, 0) / lhs_elem.factor, lhs_elem.conjugated};
+            }();
+
+            // Remove leading element, multiply out RHS, and conjugate if necessary.
+            poly.pop_back();
+            if (!approximately_equal(prefactor, 1.0)) {
+                poly *= prefactor;
+            }
+            if (needs_conjugate) {
+                poly.conjugate_in_place(factory.symbols);
+            }
+
+            return symbol_id;
+        }
+    }
+
+
+    MomentSubstitutionRule::MomentSubstitutionRule(const PolynomialFactory& factory, Polynomial &&rule)
         : lhs{rule.last_id()}, rhs{std::move(rule)} {
+
         // Trivial rule?
         if (0 == lhs) {
             rhs.clear();
             return;
+        }
+
+        // Really non-trivial rule...!
+        if (MomentSubstitutionRule::hard_to_orient(rhs)) {
+            this->rhs = try_to_reorient(factory, std::move(this->rhs));
+            this->lhs = this->rhs.last_id();
         }
 
         // If LHS of rule is a scalar, rule is ill-formed.
@@ -31,33 +67,33 @@ namespace Moment {
             std::stringstream errSS;
             errSS << "Polynomial rule \"" << rhs << " == 0\" is ill-formed: it implies a scalar value is zero.";
             throw errors::invalid_moment_rule{lhs, errSS.str()};
+        }
 
+        // If pre-factor is 0, rule is ill-formed.
+        if (approximately_zero(this->rhs.back().factor)) {
+            std::stringstream errSS;
+            errSS << "Polynomial rule \"" << rhs << " == 0\" is ill-formed: leading element has a pre-factor of 0.";
+            throw errors::invalid_moment_rule{lhs, errSS.str()};
         }
 
         // Extract information about last element
-        auto [prefactor, needs_conjugate] = [&]() -> std::pair<std::complex<double>, bool> {
-            assert(!rhs.empty());
-            // Lambda exists to avoid this being a dangling reference
-            const auto& lhs_elem = rhs.back();
-            // If pre-factor is 0, rule is ill-formed.
-            if (approximately_zero(lhs_elem.factor)) {
-                std::stringstream errSS;
-                errSS << "Polynomial rule \"" << rhs << " == 0\" is ill-formed: leading element has a pre-factor of 0.";
-                throw errors::invalid_moment_rule{lhs, errSS.str()};
-            }
+        auto check_lhs = pop_back_and_normalize(factory, this->rhs);
+        assert(check_lhs == this->lhs);
 
-            return {std::complex<double>(-1.0, 0) / lhs_elem.factor, lhs_elem.conjugated};
-        }();
-
-        // Remove leading element, multiply out RHS, and conjugate if necessary.
-        rhs.pop_back();
-        if (!approximately_equal(prefactor, 1.0)) {
-            rhs *= prefactor;
-        }
-        if (needs_conjugate) {
-            rhs.conjugate_in_place(table);
-        }
     }
+
+    Polynomial MomentSubstitutionRule::try_to_reorient(const PolynomialFactory& factory, Polynomial rule) {
+        assert(MomentSubstitutionRule::hard_to_orient(rule));
+        auto conjugate_rule = rule.conjugate(factory.symbols);
+
+        auto fwd_leading_id = pop_back_and_normalize(factory, rule);
+        auto rev_leading_id = pop_back_and_normalize(factory, conjugate_rule);
+        assert(fwd_leading_id == rev_leading_id);
+
+        factory.append(rule, conjugate_rule * -1.0);
+        return rule;
+    }
+
 
     Polynomial MomentSubstitutionRule::as_polynomial(const PolynomialFactory& factory) const {
         if (this->is_trivial()) {
