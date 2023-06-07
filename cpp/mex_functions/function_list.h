@@ -43,6 +43,7 @@ namespace Moment::mex::functions {
         MakeExplicit,
         MakeRepresentation,
         MomentMatrix,
+        MomentRuleSuperset,
         MonomialRules,
         OperatorMatrix,
         ProbabilityTable,

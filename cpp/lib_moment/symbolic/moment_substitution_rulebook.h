@@ -11,6 +11,7 @@
 #include <atomic>
 #include <map>
 #include <memory>
+#include <tuple>
 #include <vector>
 
 namespace Moment {
@@ -41,6 +42,19 @@ namespace Moment {
     }
 
     class MomentSubstitutionRulebook {
+    public:
+        /** Result, when checking if one rulebook contains another */
+        enum class RulebookComparisonResult {
+            /** A is equivalent to B. */
+            AEqualsB,
+            /** A is a strict superset of B. */
+            AContainsB,
+            /** B is a strict superset of A. */
+            BContainsA,
+            /** A and B are strictly disjoint. */
+            Disjoint,
+        };
+
     public:
         using raw_map_t = std::map<symbol_name_t, double>;
 
@@ -221,5 +235,17 @@ namespace Moment {
          [[nodiscard]] const bool in_use() {
              return this->usages.load(std::memory_order_acquire) > 0;
          }
+
+         /**
+          * Finds pointer to the first rule in RHS rulebook that is not implied by this rulebook, or nullptr otherwise.
+          */
+          [[nodiscard]] const MomentSubstitutionRule *
+          first_noncontained_rule(const MomentSubstitutionRulebook& rhs) const;
+
+          /**
+           * Compare rulebook
+           */
+           std::tuple<RulebookComparisonResult, const MomentSubstitutionRule *, const MomentSubstitutionRule *>
+           compare_rulebooks(const MomentSubstitutionRulebook& rhs) const;
     };
 }

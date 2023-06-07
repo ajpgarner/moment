@@ -411,4 +411,56 @@ namespace Moment {
             }
         }
     }
+
+    const MomentSubstitutionRule *
+    MomentSubstitutionRulebook::first_noncontained_rule(const MomentSubstitutionRulebook &rhs) const {
+        // Other empty rulebook is always implied by this rulebook.
+        if (rhs.rules.empty()) {
+            return nullptr;
+        }
+
+        // If this rulebook is empty, we cannot imply any rules
+        if (this->rules.empty()) {
+            const auto& [first_id, first_rule] = *(rhs.rules.cbegin());
+            return &first_rule;
+        }
+
+        // Otherwise, each rule in turn
+        for (const auto& [rhs_id, rhs_rule] : rhs.rules) {
+            auto rhs_poly = rhs_rule.as_polynomial(this->Factory());
+
+            this->reduce_in_place(rhs_poly);
+            if (!rhs_poly.empty()) {
+                return &rhs_rule;
+            }
+        }
+
+        // No matches, therefore, this rulebook is a superset of RHS
+        return nullptr;
+    }
+
+    std::tuple<MomentSubstitutionRulebook::RulebookComparisonResult,
+               const MomentSubstitutionRule *,
+               const MomentSubstitutionRule *>
+    MomentSubstitutionRulebook::compare_rulebooks(const MomentSubstitutionRulebook &rhs) const {
+
+        const auto * in_B_not_in_A = this->first_noncontained_rule(rhs);
+        const auto * in_A_not_in_B = rhs.first_noncontained_rule(*this);
+
+        if (in_A_not_in_B == nullptr) {
+            // Nothing in A not in B.
+            if (in_B_not_in_A == nullptr) {
+                // Nothing in B not in A.
+                return {RulebookComparisonResult::AEqualsB, nullptr, nullptr};
+            } else {
+                // Something in B not in A
+                return {RulebookComparisonResult::BContainsA, nullptr, in_B_not_in_A};
+            }
+        } else if (in_B_not_in_A == nullptr) {
+            return {RulebookComparisonResult::AContainsB, in_A_not_in_B, nullptr};
+        } else {
+            return {RulebookComparisonResult::Disjoint, in_A_not_in_B, in_B_not_in_A};
+        }
+    }
+
 }

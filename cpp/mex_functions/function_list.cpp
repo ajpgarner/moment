@@ -27,6 +27,7 @@
 #include "functions/word_list.h"
 #include "functions/debug/echo.h"
 #include "functions/debug/list.h"
+#include "functions/debug/moment_rule_superset.h"
 #include "functions/debug/monomial_rules.h"
 #include "functions/debug/version.h"
 #include "functions/matrix_system/algebraic_matrix_system.h"
@@ -69,6 +70,7 @@ namespace Moment::mex::functions {
             output.emplace("make_explicit",      MEXEntryPointID::MakeExplicit);
             output.emplace("make_representation",MEXEntryPointID::MakeRepresentation);
             output.emplace("moment_matrix",      MEXEntryPointID::MomentMatrix);
+            output.emplace("moment_rule_superset",      MEXEntryPointID::MomentRuleSuperset);
             output.emplace("monomial_rules",     MEXEntryPointID::MonomialRules);
             output.emplace("operator_matrix",    MEXEntryPointID::OperatorMatrix);
             output.emplace("probability_table",  MEXEntryPointID::ProbabilityTable);
@@ -176,6 +178,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::MomentMatrix:
                 the_function = std::make_unique<functions::MomentMatrix>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::MomentRuleSuperset:
+                the_function = std::make_unique<functions::MomentRuleSuperset>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::MonomialRules:
                 the_function = std::make_unique<functions::MonomialRules>(engine, storageManager);

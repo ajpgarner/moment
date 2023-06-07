@@ -673,4 +673,158 @@ namespace Moment::Tests {
         EXPECT_EQ(&sub_matrix_alias.context, &context);
         ASSERT_EQ(&sub_matrix_alias, &sub_matrix);
     }
+
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, FirstNoncontainedRule_BEmpty) {
+        // Prepare first rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_A{this->get_symbols()};
+        auto& factory = this->get_factory();
+        std::vector<Polynomial> raw_combos_one;
+        raw_combos_one.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
+        book_A.add_raw_rules(std::move(raw_combos_one));
+        book_A.complete();
+
+        // Prepare second rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_B{this->get_symbols()};
+        book_B.complete();
+        EXPECT_TRUE(book_B.empty());
+
+        const auto* AfncrB = book_A.first_noncontained_rule(book_B);
+        EXPECT_EQ(AfncrB, nullptr);
+
+        const auto* BfncrA = book_B.first_noncontained_rule(book_A);
+        ASSERT_NE(BfncrA, nullptr);
+        EXPECT_EQ(BfncrA->LHS(), 4);
+
+        auto [res, inAnotInB, inBnotInA] = book_A.compare_rulebooks(book_B);
+        EXPECT_EQ(res, MomentSubstitutionRulebook::RulebookComparisonResult::AContainsB);
+        EXPECT_EQ(inAnotInB, BfncrA);
+        EXPECT_EQ(inBnotInA, nullptr);
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, FirstNoncontainedRule_AEqualsB) {
+        // Prepare first rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_A{this->get_symbols()};
+        auto& factory = this->get_factory();
+        std::vector<Polynomial> raw_combos_one;
+        raw_combos_one.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
+        book_A.add_raw_rules(std::move(raw_combos_one));
+        book_A.complete();
+
+        // Prepare second rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_B{this->get_symbols()};
+        std::vector<Polynomial> raw_combos_two;
+        raw_combos_two.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
+        book_B.add_raw_rules(std::move(raw_combos_two));
+        book_B.complete();
+
+        const auto* AsupersetB = book_A.first_noncontained_rule(book_B);
+        EXPECT_EQ(AsupersetB, nullptr);
+
+        const auto* BsupersetA = book_B.first_noncontained_rule(book_A);
+        EXPECT_EQ(BsupersetA, nullptr);
+
+        auto [res, inAnotInB, inBnotInA] = book_A.compare_rulebooks(book_B);
+        EXPECT_EQ(res, MomentSubstitutionRulebook::RulebookComparisonResult::AEqualsB);
+        EXPECT_EQ(inAnotInB, nullptr);
+        EXPECT_EQ(inBnotInA, nullptr);
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, FirstNoncontainedRule_AsupersetB) {
+        // Prepare first rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_A{this->get_symbols()};
+        auto& factory = this->get_factory();
+        std::vector<Polynomial> raw_combos_one;
+        raw_combos_one.emplace_back(factory({Monomial(4, 1.0), Monomial{1, -0.5}})); // <aa> - 0.5 = 0
+        raw_combos_one.emplace_back(factory({Monomial(3, 1.0), Monomial{1, -2.0}})); // <b> - 2.0 = 0
+        book_A.add_raw_rules(std::move(raw_combos_one));
+        book_A.complete();
+
+        // Prepare second rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_B{this->get_symbols()};
+        std::vector<Polynomial> raw_combos_two;
+        raw_combos_two.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
+        book_B.add_raw_rules(std::move(raw_combos_two));
+        book_B.complete();
+
+        const auto* AsupersetB = book_A.first_noncontained_rule(book_B);
+        EXPECT_EQ(AsupersetB, nullptr);
+
+        const auto* BsupersetA = book_B.first_noncontained_rule(book_A);
+        ASSERT_NE(BsupersetA, nullptr);
+        EXPECT_EQ(BsupersetA->LHS(), 3);
+
+        auto [res, inAnotInB, inBnotInA] = book_A.compare_rulebooks(book_B);
+        EXPECT_EQ(res, MomentSubstitutionRulebook::RulebookComparisonResult::AContainsB);
+        EXPECT_EQ(inAnotInB, BsupersetA);
+        EXPECT_EQ(inBnotInA, nullptr);
+
+
+        auto [rev_res, rev_inAnotInB, rev_inBnotInA] = book_B.compare_rulebooks(book_A);
+        EXPECT_EQ(rev_res, MomentSubstitutionRulebook::RulebookComparisonResult::BContainsA);
+        EXPECT_EQ(rev_inAnotInB, nullptr);
+        EXPECT_EQ(rev_inBnotInA, BsupersetA);
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, FirstNoncontainedRule_AdisjointB_One) {
+        // Prepare first rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_A{this->get_symbols()};
+        auto& factory = this->get_factory();
+        std::vector<Polynomial> raw_combos_one;
+        raw_combos_one.emplace_back(factory({Monomial(3, 1.0), Monomial{1, -2.0}})); // <b> - 2.0 = 0
+        book_A.add_raw_rules(std::move(raw_combos_one));
+        book_A.complete();
+
+        // Prepare second rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_B{this->get_symbols()};
+        std::vector<Polynomial> raw_combos_two;
+        raw_combos_two.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
+        book_B.add_raw_rules(std::move(raw_combos_two));
+        book_B.complete();
+
+        const auto* AsupersetB = book_A.first_noncontained_rule(book_B);
+        ASSERT_NE(AsupersetB, nullptr);
+        EXPECT_EQ(AsupersetB->LHS(), 4);
+
+        const auto* BsupersetA = book_B.first_noncontained_rule(book_A);
+        ASSERT_NE(BsupersetA, nullptr);
+        EXPECT_EQ(BsupersetA->LHS(), 3);
+
+        auto [res, inAnotInB, inBnotInA] = book_A.compare_rulebooks(book_B);
+        EXPECT_EQ(res, MomentSubstitutionRulebook::RulebookComparisonResult::Disjoint);
+        EXPECT_EQ(inAnotInB, BsupersetA);
+        EXPECT_EQ(inBnotInA, AsupersetB);
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, FirstNoncontainedRule_AdisjointB_Contradict) {
+        // Prepare first rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_A{this->get_symbols()};
+        auto& factory = this->get_factory();
+        std::vector<Polynomial> raw_combos_one;
+        raw_combos_one.emplace_back(factory({Monomial(4, 1.0), Monomial{1, -2.0}})); // <b> - 2.0 = 0
+        book_A.add_raw_rules(std::move(raw_combos_one));
+        book_A.complete();
+
+        // Prepare second rulebook <A> -> 0.5
+        MomentSubstitutionRulebook book_B{this->get_symbols()};
+        std::vector<Polynomial> raw_combos_two;
+        raw_combos_two.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
+        book_B.add_raw_rules(std::move(raw_combos_two));
+        book_B.complete();
+
+        const auto* AsupersetB = book_A.first_noncontained_rule(book_B);
+        ASSERT_NE(AsupersetB, nullptr);
+        EXPECT_EQ(AsupersetB->LHS(), 4);
+        EXPECT_EQ(AsupersetB->RHS(), Polynomial::Scalar(0.5));
+
+        const auto* BsupersetA = book_B.first_noncontained_rule(book_A);
+        ASSERT_NE(BsupersetA, nullptr);
+        EXPECT_EQ(BsupersetA->LHS(), 4);
+        EXPECT_EQ(BsupersetA->RHS(), Polynomial::Scalar(2.0));
+
+        auto [res, inAnotInB, inBnotInA] = book_A.compare_rulebooks(book_B);
+        EXPECT_EQ(res, MomentSubstitutionRulebook::RulebookComparisonResult::Disjoint);
+        EXPECT_EQ(inAnotInB, BsupersetA);
+        EXPECT_EQ(inBnotInA, AsupersetB);
+    }
 }

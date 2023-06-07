@@ -62,6 +62,7 @@ matlab_add_mex(NAME moment_mex
             functions/word_list.cpp
             functions/debug/echo.cpp
             functions/debug/list.cpp
+            functions/debug/moment_rule_superset.cpp
             functions/debug/monomial_rules.cpp
             functions/debug/version.cpp
             functions/matrix_system/algebraic_matrix_system.cpp
