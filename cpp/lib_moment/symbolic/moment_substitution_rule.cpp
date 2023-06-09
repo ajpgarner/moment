@@ -18,6 +18,7 @@
 
 namespace Moment {
 
+
     namespace {
         symbol_name_t pop_back_and_normalize(const PolynomialFactory& factory, Polynomial& poly) {
             // Empty polynomial is already normalized
@@ -28,6 +29,7 @@ namespace Moment {
             // Extract information about last element
             auto [symbol_id, prefactor, needs_conjugate] = [&]() -> std::tuple<symbol_name_t, std::complex<double>, bool> {
                 // Lambda exists to avoid this being a dangling reference
+                assert(!poly.empty());
                 const auto& lhs_elem = poly.back();
 
                 return {lhs_elem.id, std::complex<double>(-1.0, 0) / lhs_elem.factor, lhs_elem.conjugated};
@@ -46,44 +48,91 @@ namespace Moment {
         }
     }
 
-
     MomentSubstitutionRule::MomentSubstitutionRule(const PolynomialFactory& factory, Polynomial &&rule)
-        : lhs{rule.last_id()}, rhs{std::move(rule)} {
-
-        // Trivial rule?
-        if (0 == lhs) {
-            rhs.clear();
-            return;
-        }
-
-        // Really non-trivial rule...!
-        if (MomentSubstitutionRule::hard_to_orient(rhs)) {
-            this->rhs = try_to_reorient(factory, std::move(this->rhs));
-            this->lhs = this->rhs.last_id();
-        }
-
-        // If LHS of rule is a scalar, rule is ill-formed.
-        if (1 == this->lhs) {
-            std::stringstream errSS;
-            errSS << "Polynomial rule \"" << rhs << " == 0\" is ill-formed: it implies a scalar value is zero.";
-            throw errors::invalid_moment_rule{lhs, errSS.str()};
-        }
-
-        // If pre-factor is 0, rule is ill-formed.
-        if (approximately_zero(this->rhs.back().factor)) {
-            std::stringstream errSS;
-            errSS << "Polynomial rule \"" << rhs << " == 0\" is ill-formed: leading element has a pre-factor of 0.";
-            throw errors::invalid_moment_rule{lhs, errSS.str()};
-        }
-
-        // Extract information about last element
-        auto check_lhs = pop_back_and_normalize(factory, this->rhs);
-        assert(check_lhs == this->lhs);
-
+            : lhs{rule.last_id()}, rhs{std::move(rule)} {
+        auto difficulty = MomentSubstitutionRule::get_difficulty(rhs);
+        this->set_up_rule(factory, difficulty);
     }
 
-    Polynomial MomentSubstitutionRule::try_to_reorient(const PolynomialFactory& factory, Polynomial rule) {
-        assert(MomentSubstitutionRule::hard_to_orient(rule));
+    MomentSubstitutionRule::MomentSubstitutionRule(const PolynomialFactory& factory,
+                                                   Polynomial &&rule,
+                                                   const PolynomialDifficulty difficulty)
+            : lhs{rule.last_id()}, rhs{std::move(rule)} {
+        this->set_up_rule(factory, difficulty);
+    }
+
+    void MomentSubstitutionRule::set_up_rule(const PolynomialFactory& factory, PolynomialDifficulty difficulty) {
+        switch(difficulty) {
+            case PolynomialDifficulty::Trivial:
+                rhs.clear();
+                return;
+            case PolynomialDifficulty::Contradiction: {
+                std::stringstream errSS;
+                errSS << "Polynomial rule \"" << rhs << " == 0\" is ill-formed: it implies a scalar value is zero.";
+                throw errors::invalid_moment_rule{lhs, errSS.str()};
+            }
+            case PolynomialDifficulty::Simple:
+                pop_back_and_normalize(factory, this->rhs);
+                break;
+            case PolynomialDifficulty::NeedsReorienting:
+                this->rhs = MomentSubstitutionRule::reorient_polynomial(factory, std::move(this->rhs));
+                pop_back_and_normalize(factory, this->rhs);
+                break;
+            case PolynomialDifficulty::NonorientableRule: {
+                std::stringstream errSS;
+                assert(this->lhs < factory.symbols.size());
+                auto& symbol_info = factory.symbols[this->lhs];
+                errSS << "Rule for #" << this->lhs;
+                if (symbol_info.has_sequence()) {
+                    errSS << " (" << symbol_info.formatted_sequence() << ")";
+                }
+                errSS << " only partially constraints complex scalar: ";
+                errSS << this->rhs;
+                throw errors::nonorientable_rule{this->lhs, errSS.str()};
+            }
+            case PolynomialDifficulty::Unknown:
+            default:
+                throw std::runtime_error{
+                    "Cannot initialize a MomentSubstitutionRule without first testing polynomial."
+                };
+        }
+    }
+
+
+    MomentSubstitutionRule::PolynomialDifficulty
+    MomentSubstitutionRule::get_difficulty(const Polynomial &poly, const double tolerance) noexcept {
+        // Is rule of form 0 == 0 ?
+        if (poly.empty()) {
+            return PolynomialDifficulty::Trivial;
+        }
+
+        // Is rule of form 1 == 0?
+        if (1 == poly.last_id()) {
+            return PolynomialDifficulty::Contradiction;
+        }
+
+        // Is rule of form <X> == 0
+        if (poly.size() <= 1) {
+            return PolynomialDifficulty::Simple;
+        }
+
+        // Is rule of form <X> -> P, where P contains no terms in X*.
+        const auto& leading_elem = poly[poly.size()-1];
+        const auto& second_leading_elem = poly[poly.size()-2];
+        if (leading_elem.id != second_leading_elem.id) {
+            return PolynomialDifficulty::Simple;
+        }
+
+        // Can we re-arrange rule to the form <X> -> P, where P contains no terms in X*?
+        if (!approximately_same_norm(leading_elem.factor, second_leading_elem.factor, tolerance)) {
+            return PolynomialDifficulty::NeedsReorienting;
+        }
+
+        // If not, we have a meaningful, but difficult rule
+        return PolynomialDifficulty::NonorientableRule;
+    }
+
+    Polynomial MomentSubstitutionRule::reorient_polynomial(const PolynomialFactory& factory, Polynomial rule) {
         auto conjugate_rule = rule.conjugate(factory.symbols);
 
         auto fwd_leading_id = pop_back_and_normalize(factory, rule);

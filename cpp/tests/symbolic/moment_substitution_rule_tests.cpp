@@ -15,6 +15,7 @@
 #include "symbolic/moment_substitution_rule.h"
 #include "symbolic/order_symbols_by_hash.h"
 
+
 namespace Moment::Tests {
     TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_Trivial) {
         // Fake context/table with 4 non-trivial symbols
@@ -23,7 +24,9 @@ namespace Moment::Tests {
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{factory, Polynomial()};
+        auto zero = Polynomial::Zero();
+        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(zero), MomentSubstitutionRule::PolynomialDifficulty::Trivial);
+        MomentSubstitutionRule msr{factory, Polynomial{zero}};
 
         EXPECT_EQ(msr.LHS(), 0);
         EXPECT_EQ(msr.RHS(), Polynomial());
@@ -38,7 +41,7 @@ namespace Moment::Tests {
         ByIDPolynomialFactory factory{table};
 
         Polynomial combo{Monomial{3, 1.0}}; // #2 + 0.5 = 0
-        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo), MomentSubstitutionRule::PolynomialDifficulty::Simple);
         MomentSubstitutionRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 3);
@@ -54,7 +57,7 @@ namespace Moment::Tests {
         ByIDPolynomialFactory factory{table};
 
         Polynomial combo = factory({Monomial{2, 1.0}, Monomial{1, -0.5}}); // #2 + 0.5 = 0
-        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo), MomentSubstitutionRule::PolynomialDifficulty::Simple);
         MomentSubstitutionRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 2);
@@ -71,7 +74,7 @@ namespace Moment::Tests {
 
         Polynomial combo = factory({Monomial{3, -1.0}, Monomial{2, 1.0},
                                     Monomial{1, 1.0}}); // -#3 + #2 + 1 = 0
-        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo), MomentSubstitutionRule::PolynomialDifficulty::Simple);
         MomentSubstitutionRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 3);
@@ -87,7 +90,7 @@ namespace Moment::Tests {
         ByIDPolynomialFactory factory{table};
 
         Polynomial combo{Monomial{3, 0.5, true}, Monomial{2, 1.0}}; // 0.5#3* + #2 = 0
-        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo), MomentSubstitutionRule::PolynomialDifficulty::Simple);
         MomentSubstitutionRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 3);
@@ -104,7 +107,7 @@ namespace Moment::Tests {
 
         // (0.5 + i) #3* + (1-3i) #2 = 0
         Polynomial combo{Monomial{3, std::complex{0.5, 1.0}, true}, Monomial{2, std::complex{1.0, -3.0}}};
-        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo), MomentSubstitutionRule::PolynomialDifficulty::Simple);
         MomentSubstitutionRule msr{factory, std::move(combo)};
 
         std::complex<double> expected_prefactor = std::conj(-std::complex{1.0, -3.0} / std::complex{0.5, 1.0}); // 2-2i
@@ -122,7 +125,8 @@ namespace Moment::Tests {
         ByIDPolynomialFactory factory{table};
 
         Polynomial combo{Monomial{1, 2.5}}; // #2 + 0.5 = 0
-        EXPECT_FALSE(MomentSubstitutionRule::hard_to_orient(combo));
+        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo),
+                  MomentSubstitutionRule::PolynomialDifficulty::Contradiction);
         EXPECT_THROW([[maybe_unused]] auto msr = MomentSubstitutionRule(factory, std::move(combo)),
                      errors::invalid_moment_rule);
     }
@@ -141,23 +145,41 @@ namespace Moment::Tests {
             // Analytic solution: <Z> -> 1/(k'k-1) <Y> - k/(k'k-1) <Y'>
             const Polynomial trickyPoly = factory(
                     {Monomial{3, 1.0, false}, Monomial{3, factor_k, true}, Monomial{2, 1.0}});
-            ASSERT_TRUE(MomentSubstitutionRule::hard_to_orient(trickyPoly)) << " k = " << factor_k;
-
-            const Polynomial reorientedPoly = MomentSubstitutionRule::try_to_reorient(factory, trickyPoly);
-
+            EXPECT_EQ(MomentSubstitutionRule::get_difficulty(trickyPoly),
+                      MomentSubstitutionRule::PolynomialDifficulty::NeedsReorienting) << " k = " << factor_k;
 
             MomentSubstitutionRule trickyRule(factory, Polynomial{trickyPoly});
-
             const std::complex<double> expected_y_coef =
                     std::complex<double>{1.0, 0.0} / (factor_k * std::conj(factor_k) - std::complex{1.0,0.0});
             const std::complex<double> expected_ystar_coef = -factor_k * expected_y_coef;
             const Polynomial expectedRHS = factory({Monomial{2, expected_y_coef, false},
                                                     Monomial{2, expected_ystar_coef, true}});
 
-            EXPECT_EQ(trickyRule.LHS(), 3) << " k = " << factor_k << ", rop = " << reorientedPoly;
+            EXPECT_EQ(trickyRule.LHS(), 3) << " k = " << factor_k;
             EXPECT_TRUE(trickyRule.RHS().approximately_equals(expectedRHS, factory.zero_tolerance))
                 << " LHS = " << trickyRule.RHS() << " RHS = " << expectedRHS
                 << ", k = " << factor_k;
+        }
+    }
+
+
+    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_ImpossibleToOrient) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(2, true, true); // #2 and #3, complex.
+        ByIDPolynomialFactory factory{table, 10};
+
+        for (int index = 0; index < 12; ++index) {
+            std::complex<double> factor = std::polar(1.0, 3.141592653589793238 * static_cast<double>(index)/12.0);
+
+            const Polynomial impossiblePoly = factory(
+                    {Monomial{3, 1.0, false}, Monomial{3, factor, true}, Monomial{2, 1.0}});
+            EXPECT_EQ(MomentSubstitutionRule::get_difficulty(impossiblePoly),
+                      MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule)
+                      << "theta = " << index << "*PI/6)";
+            EXPECT_THROW(MomentSubstitutionRule impossible_rule(factory, Polynomial{impossiblePoly}),
+                         Moment::errors::nonorientable_rule);
         }
     }
 

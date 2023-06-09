@@ -23,22 +23,48 @@ namespace Moment {
             invalid_moment_rule(const symbol_name_t sym_id, const std::string &what)
                     : std::invalid_argument(what), lhs_id{sym_id} {}
         };
+
+        class nonorientable_rule : public invalid_moment_rule {
+        public:
+            explicit nonorientable_rule(const symbol_name_t sym_id,  const std::string &what)
+                : invalid_moment_rule{sym_id, what} { }
+        };
     };
 
     /**
      * Rule, matching symbol ID and replacing it with a polynomial.
      */
     class MomentSubstitutionRule {
+    public:
+        enum class PolynomialDifficulty {
+            /** Rule has not been tested for difficulty (or even validity) */
+            Unknown,
+            /** Rule is 0 == 0 */
+            Trivial,
+            /** Rule is 1 = k, where k is a scalar not equal to 1. */
+            Contradiction,
+            /** Rule is straightforwardly orientable (leading term appears without its conjugate). */
+            Simple,
+            /** Rule contains leading term and its conjugate, but can be rearranged to be Simple. */
+            NeedsReorienting,
+            /** Rule contains leading term and conjugate in such a way that the rule only partially constraints term. */
+            NonorientableRule
+        };
 
     private:
         symbol_name_t lhs;
         Polynomial rhs;
 
     public:
-        /** Create rule: symbol_id -> polynomial. */
+        /** Create rule directly: symbol_id -> polynomial. */
         MomentSubstitutionRule(symbol_name_t lhs, Polynomial&& rhs)
             : lhs{lhs}, rhs{std::move(rhs)} { }
 
+    private:
+        MomentSubstitutionRule(const PolynomialFactory& factory, Polynomial&& rule, PolynomialDifficulty difficulty);
+
+
+    public:
         /** Create rule from polynomial == 0. */
         MomentSubstitutionRule(const PolynomialFactory& factory, Polynomial&& rule);
 
@@ -134,14 +160,30 @@ namespace Moment {
             }
         }
 
-        /** A polynomial is hard to orient if its leading two monomials are conjugates of each other.
-         * (It becomes impossible to orient if they are exactly conjugate or anti-conjugate.) */
-        [[nodiscard]] constexpr static bool hard_to_orient(const Polynomial& poly) noexcept {
-            return (poly.size() >= 2) && (poly[poly.size()-1].id == poly[poly.size()-2].id);
-        }
+        /**
+         * Judge the difficulty of a Polynomial to orient into a rule.
+         * @param poly The polynomial to test
+         * @param tolerance The tolerance factor for double equality.
+         */
+        [[nodiscard]] static PolynomialDifficulty get_difficulty(const Polynomial& poly,
+                                                                 double tolerance = 1.0) noexcept;
 
-        [[nodiscard]] static Polynomial try_to_reorient(const PolynomialFactory& factory, Polynomial input_rule);
 
+
+    private:
+        /**
+         * Processes RHS into proper rule.
+         * Ideally would be in constructor, but can't guarantee order of input evaluation.
+         */
+        void set_up_rule(const PolynomialFactory& factory, PolynomialDifficulty difficulty);
+
+        /**
+         * Re-orient a Polynomial of the form a X + b X* + P == 0, where P contains neither X or X* and |a| != |b|.
+         * @return Equivalent polynomial of the form X + Q == 0, where Q is a polynomial containing neither X or X*.
+         */
+        [[nodiscard]] static Polynomial reorient_polynomial(const PolynomialFactory& factory, Polynomial input_rule);
+
+    public:
         friend class MomentSubstitutionRulebook;
     };
 }
