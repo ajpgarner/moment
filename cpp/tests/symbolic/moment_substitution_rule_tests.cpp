@@ -503,4 +503,5 @@ namespace Moment::Tests {
         MomentSubstitutionRule msr{factory, factory({Monomial{3, 0.5, true}, Monomial{2, 1.0}})};
         EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{3, -1.0}, Monomial{2, -2.0, true}}));
     }
+
 }

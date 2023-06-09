@@ -132,6 +132,53 @@ namespace Moment {
         return PolynomialDifficulty::NonorientableRule;
     }
 
+
+    std::optional<Polynomial> MomentSubstitutionRule::impose_hermicity_of_LHS(const PolynomialFactory &factory) {
+        // Do nothing for trivial (or contradictory!) rules.
+        if (this->lhs <= 1) {
+            return std::nullopt;
+        }
+
+        assert(this->lhs < factory.symbols.size());
+        const auto& symbolInfo = factory.symbols[this->lhs];
+        if (symbolInfo.is_hermitian()) {
+            // If LHS and RHS is Hermitian, then taking Im(LHS) == Im(RHS) gives trivially 0 == 0.
+            if (factory.is_hermitian(this->rhs)) {
+                return std::nullopt;
+            }
+
+            // We have non-trivial case where LHS is Hermitian, but RHS is not.
+            Polynomial output{this->rhs.Imaginary(factory)}; // Imaginary part is an expression equal to zero!
+            assert(!output.empty()); // We have just inferred that we don't have hermitian RHS!
+
+            // Force realness on the RHS of the rule.
+            this->rhs = this->rhs.Real(factory);
+
+            // Return imaginary 'remainder'.
+            return output;
+        }
+
+        if (symbolInfo.is_antihermitian()) {
+            // If LHS and RHS are anti-Hermitian, then taking Re(LHS) == Re(RHS) gives trivially 0 == 0
+            if (factory.is_antihermitian(this->rhs)) {
+                return std::nullopt;
+            }
+
+            // We have non-trivial case where LHS is anti-Hermitian, but RHS is not
+            Polynomial output{this->rhs.Real(factory)};
+            assert(!output.empty()); // We have just inferred that RHS is not anti-Hermitian.
+
+            // Force imaginariness on the RHS of the rule.
+            this->rhs = this->rhs.Imaginary(factory) * std::complex<double>(0.0, 1.0); // LHS -> i Im(RHS)
+
+            // Return real 'remainder'.
+            return output;
+        }
+
+        // Rule is neither Hermitian nor anti-Hermitian, so is free to stand.
+        return std::nullopt;
+    }
+
     Polynomial MomentSubstitutionRule::reorient_polynomial(const PolynomialFactory& factory, Polynomial rule) {
         auto conjugate_rule = rule.conjugate(factory.symbols);
 
@@ -142,6 +189,7 @@ namespace Moment {
         factory.append(rule, conjugate_rule * -1.0);
         return rule;
     }
+
 
 
     Polynomial MomentSubstitutionRule::as_polynomial(const PolynomialFactory& factory) const {

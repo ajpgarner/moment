@@ -70,6 +70,12 @@ namespace Moment {
 
     public:
         /**
+         * Check if LHS is (anti)-Hermitian, and if so, split the rule in two, returning the second polynomial.
+         */
+        [[nodiscard]] std::optional<Polynomial> impose_hermicity_of_LHS(const PolynomialFactory& factory);
+
+
+        /**
          * Match pattern.
          */
         [[nodiscard]] symbol_name_t LHS() const noexcept { return this->lhs; }

@@ -27,9 +27,9 @@ namespace Moment {
     class Polynomial {
     public:
         /**
-         * Storage for linear  combination of symbolic expressions.
+         * Storage for linear  combination of monomials.
          * Monomial on stack, polynomial on heap.
-         * */
+         */
         using storage_t = SmallVector<Monomial, 1>;
 
     private:
@@ -303,11 +303,18 @@ namespace Moment {
         }
 
         /**
-         * True if sum of symbols is Hermitian.
+         * True if sum of monomials is Hermitian.
          * @param symbols Symbol table (needed to know which symbols are purely real/imaginary etc.).
          * @param tolerance How strict are we about zero?
          */
         [[nodiscard]] bool is_hermitian(const SymbolTable& symbols, double tolerance) const noexcept;
+
+        /**
+         * True if sum of monomials is anti-Hermitian.
+         * @param symbols Symbol table (needed to know which symbols are purely real/imaginary etc.).
+         * @param tolerance How strict are we about zero?
+         */
+        [[nodiscard]] bool is_antihermitian(const SymbolTable& symbols, double tolerance) const noexcept;
 
         /**
          * True if other is conjugate of this symbol combo.
@@ -404,6 +411,10 @@ namespace Moment {
 
         [[nodiscard]] inline bool is_hermitian(const Polynomial& poly) const {
             return poly.is_hermitian(this->symbols, this->zero_tolerance);
+        }
+
+        [[nodiscard]] inline bool is_antihermitian(const Polynomial& poly) const {
+            return poly.is_antihermitian(this->symbols, this->zero_tolerance);
         }
     };
 

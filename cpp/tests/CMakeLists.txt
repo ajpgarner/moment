@@ -43,6 +43,7 @@ add_executable(moment_tests
     scenarios/symmetry/symmetrized_matrix_system_tests.cpp
     symbolic/full_combo_ordering_tests.cpp
     symbolic/moment_substitution_rule_tests.cpp
+    symbolic/moment_substitution_rule_split_tests.cpp
     symbolic/moment_substitution_rulebook_tests.cpp
     symbolic/moment_substitution_rulebook_factor_tests.cpp
     symbolic/monomial_tests.cpp

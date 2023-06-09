@@ -209,11 +209,10 @@ namespace Moment {
 
 
     bool Polynomial::is_hermitian(const SymbolTable& symbols, double tolerance) const noexcept {
-
         const Monomial* last_symbol = nullptr;
         for (const auto& elem : this->data) {
 
-            // Factors of 0 are always hermitian.
+            // Factors of 0 are always hermitian (but evil...)
             if (elem.factor == 0.0) {
                 continue;
             }
@@ -268,6 +267,79 @@ namespace Moment {
                 last_symbol = nullptr;
             } else {
                 // X, Y; where X is not Hermitian
+                if (last_symbol != nullptr) {
+                    return false;
+                }
+                last_symbol = &elem;
+            }
+        }
+        // Expecting, but did not find, X*
+        if (last_symbol != nullptr) {
+            return false;
+        }
+
+        return true;
+    }
+
+    bool Polynomial::is_antihermitian(const SymbolTable& symbols, double tolerance) const noexcept {
+        const Monomial* last_symbol = nullptr;
+        for (const auto& elem : this->data) {
+
+            // Factors of 0 are always anti-hermitian (but evil...)
+            if (elem.factor == 0.0) {
+                continue;
+            }
+
+            assert(elem.id < symbols.size());
+            const auto& symbolInfo = symbols[elem.id];
+
+            // Adding a Hermitian term preserves Hermiticity
+            if (symbolInfo.is_antihermitian()) {
+                // X, Y; where X is not anti-Hermitian
+                if (last_symbol != nullptr) {
+                    return false;
+                }
+                last_symbol = nullptr;
+
+                // Factor must be real, for overall anti-Hermitianness
+                if (!approximately_real(elem.factor, tolerance)) {
+                    return false;
+                }
+                continue;
+            } else if (symbolInfo.is_hermitian()) {
+                // X, Y; where X is not anti-Hermitian
+                if (last_symbol != nullptr) {
+                    return false;
+                }
+                last_symbol = nullptr;
+
+                // Factor must be imaginary, for overall anti-Hermitianness
+                if (!approximately_imaginary(elem.factor, tolerance)) {
+                    return false;
+                }
+                continue;
+            }
+
+            // Symbol /could/ have complex parts. Note: X < X* in ordering.
+            if (elem.conjugated) {
+                if (last_symbol == nullptr) {
+                    // elem.factor != 0.0
+                    return false;
+                } else {
+                    // "X, Y*"; meaning either X* was missed, or Y was missed...
+                    if (last_symbol->id != elem.id) {
+                        return false;
+                    }
+                }
+
+                // Expect kX, -k*X*
+                if (!approximately_equal(last_symbol->factor, -std::conj(elem.factor), tolerance)) {
+                    return false;
+                }
+
+                last_symbol = nullptr;
+            } else {
+                // X, Y; where X is not anti-Hermitian
                 if (last_symbol != nullptr) {
                     return false;
                 }

@@ -574,6 +574,44 @@ namespace Moment::Tests {
         EXPECT_TRUE(combo_complex_H.is_hermitian(symbols, 1.0));
     }
 
+    TEST(Symbolic_Polynomial, IsAntiHermitian) {
+        Imported::ImportedMatrixSystem ims;
+        auto &symbols = ims.Symbols();
+        symbols.create(true, false); // 2 real
+        symbols.create(true, true); // 3 complex
+        symbols.create(false, true); // 4 imaginary
+
+        const Polynomial comboEmpty{};
+        EXPECT_TRUE(comboEmpty.is_antihermitian(symbols, 1.0));
+
+        const Polynomial combo_Id{Monomial{1, 1.0}};
+        EXPECT_FALSE(combo_Id.is_antihermitian(symbols, 1.0));
+
+        const Polynomial combo_Id_I{Monomial{1, std::complex{0.0, 1.0}}};
+        EXPECT_TRUE(combo_Id_I.is_antihermitian(symbols, 1.0));
+
+        const Polynomial combo_A{Monomial{2, 1.0}};
+        EXPECT_FALSE(combo_A.is_antihermitian(symbols, 1.0));
+
+        const Polynomial combo_A_I{Monomial{2, std::complex{0.0, 1.0}}};
+        EXPECT_TRUE(combo_A_I.is_antihermitian(symbols, 1.0));
+
+        const Polynomial combo_B{Monomial{3, 1.0}};
+        EXPECT_FALSE(combo_B.is_antihermitian(symbols, 1.0));
+
+        const Polynomial combo_B_I{Monomial{3, std::complex{0.0, 1.0}}};
+        EXPECT_FALSE(combo_B.is_antihermitian(symbols, 1.0));
+
+        const Polynomial combo_C{Monomial{4, 1.0}};
+        EXPECT_TRUE(combo_C.is_antihermitian(symbols, 1.0));
+
+        const Polynomial combo_C_I{Monomial{4, std::complex{0.0, 1.0}}};
+        EXPECT_FALSE(combo_C_I.is_antihermitian(symbols, 1.0));
+
+        const Polynomial combo_B_minus_Bstar{Monomial{3, 1.0}, Monomial{3, -1.0, true}};
+        EXPECT_TRUE(combo_B_minus_Bstar.is_antihermitian(symbols, 1.0));
+    }
+
     TEST(Symbolic_Polynomial, Conjugate_Empty) {
         Imported::ImportedMatrixSystem ims;
         auto &symbols = ims.Symbols();
