@@ -216,8 +216,8 @@ namespace Moment::Tests {
 
     TEST(Symbolic_MomentSubstitutionRule, Reduce_TwoToScalar) {
         // Fake context/table with 4 symbols
-        Context contxt{2};
-        SymbolTable table{contxt};
+        Context context{2};
+        SymbolTable table{context};
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 

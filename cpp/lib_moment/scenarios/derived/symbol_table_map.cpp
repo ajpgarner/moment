@@ -178,7 +178,7 @@ namespace Moment::Derived {
         }
 
         for (const auto& polynomial : this->inverse_map | std::views::drop(2)) {
-            const bool is_hermitian = polynomial.is_hermitian(this->origin_symbols);
+            const bool is_hermitian = polynomial.is_hermitian(this->origin_symbols, 1.0);
             this->target_symbols.create(true, !is_hermitian, polynomial.as_string());
         }
 

@@ -208,7 +208,7 @@ namespace Moment {
     }
 
 
-    bool Polynomial::is_hermitian(const SymbolTable& symbols) const noexcept {
+    bool Polynomial::is_hermitian(const SymbolTable& symbols, double tolerance) const noexcept {
 
         const Monomial* last_symbol = nullptr;
         for (const auto& elem : this->data) {
@@ -228,6 +228,23 @@ namespace Moment {
                     return false;
                 }
                 last_symbol = nullptr;
+
+                // Factor must be real, for reality.
+                if (!approximately_real(elem.factor, tolerance)) {
+                    return false;
+                }
+                continue;
+            } else if (symbolInfo.is_antihermitian()) {
+                // X, Y; where X is not Hermitian
+                if (last_symbol != nullptr) {
+                    return false;
+                }
+                last_symbol = nullptr;
+
+                // Factor must be imaginary, for reality.
+                if (!approximately_imaginary(elem.factor, tolerance)) {
+                    return false;
+                }
                 continue;
             }
 
@@ -244,7 +261,7 @@ namespace Moment {
                 }
 
                 // Expect kX, k*X*
-                if (last_symbol->factor != std::conj(elem.factor)) {
+                if (!approximately_equal(last_symbol->factor, std::conj(elem.factor), tolerance)) {
                     return false;
                 }
 
@@ -308,6 +325,120 @@ namespace Moment {
         }
 
         return true;
+    }
+
+    Polynomial Polynomial::Real(const PolynomialFactory &factory) const {
+        if (this->data.empty()) {
+            return Polynomial::Zero();
+        }
+
+        // Prepare for output
+        Polynomial::storage_t output_storage;
+
+        // Iterate
+        auto iter = this->data.begin();
+        while (iter != this->data.end()) {
+            const symbol_name_t id = iter->id;
+            // Three cases: X alone, X* alone, X, and X* together.
+            const std::complex<double> factor = iter->factor;
+
+            std::complex<double> output_factor, output_conj_factor;
+            if (!iter->conjugated) {
+                auto conjugate_factor = [&]() -> std::optional<std::complex<double>> {
+                    auto peek_iter = iter + 1;
+                    if (peek_iter != this->data.end()) {
+                        if (iter->id == peek_iter->id) {
+                            return peek_iter->factor;
+                        }
+                    }
+                    return std::nullopt;
+                }();
+                if (!conjugate_factor.has_value()) {
+                    // Case: X alone
+                    output_factor = std::complex{0.5, 0.0} * factor;
+                    output_conj_factor = std::complex{0.5, 0.0} * std::conj(factor);
+                    ++iter;
+                } else {
+                    // Case: X + X*
+                    output_factor = std::complex{0.5, 0.0} * (factor + std::conj(conjugate_factor.value()));
+                    output_conj_factor = std::complex{0.5, 0.0} * (std::conj(factor) + conjugate_factor.value());
+                    ++iter;
+                    ++iter;
+                }
+            } else {
+                // Case: X* alone [factor effectively acts as conjugate_factor]
+                output_factor = std::complex{0.5, 0.0} * std::conj(factor);
+                output_conj_factor = std::complex{0.5, 0.0} * factor;
+
+                ++iter;
+            }
+
+
+            if (!approximately_zero(output_factor, factory.zero_tolerance)) {
+                output_storage.emplace_back(id, output_factor, false);
+            }
+            if (!approximately_zero(output_conj_factor, factory.zero_tolerance)) {
+                output_storage.emplace_back(id, output_conj_factor, true);
+            }
+        }
+        return factory(std::move(output_storage));
+    }
+
+    Polynomial Polynomial::Imaginary(const PolynomialFactory &factory) const {
+        if (this->data.empty()) {
+            return Polynomial::Zero();
+        }
+
+        // Prepare for output
+        Polynomial::storage_t output_storage;
+
+        // Iterate
+        auto iter = this->data.begin();
+        while (iter != this->data.end()) {
+            const symbol_name_t id = iter->id;
+            // Three cases: X alone, X* alone, X, and X* together.
+            const std::complex<double> factor = iter->factor;
+
+            std::complex<double> output_factor, output_conj_factor;
+            if (!iter->conjugated) {
+                auto conjugate_factor = [&]() -> std::optional<std::complex<double>> {
+                    auto peek_iter = iter + 1;
+                    if (peek_iter != this->data.end()) {
+                        if (iter->id == peek_iter->id) {
+                            return peek_iter->factor;
+                        }
+                    }
+                    return std::nullopt;
+                }();
+                if (!conjugate_factor.has_value()) {
+                    // Case: X alone
+                    output_factor = std::complex{0.0, -0.5} * factor;
+                    output_conj_factor = std::complex{0.0, 0.5} * std::conj(factor);
+                    ++iter;
+                } else {
+                    // Case: X + X*
+                    output_factor = std::complex{0.0, -0.5} * (factor - std::conj(conjugate_factor.value()));
+                    output_conj_factor = std::complex{0.0 ,0.5} * (std::conj(factor) - conjugate_factor.value());
+                    ++iter;
+                    ++iter;
+                }
+            } else {
+                // Case: X* alone [factor effectively acts as conjugate_factor]
+                output_factor = std::complex{0.0, 0.5} * std::conj(factor);
+                output_conj_factor = std::complex{0.0, -0.5} * factor;
+
+                ++iter;
+            }
+
+
+            if (!approximately_zero(output_factor, factory.zero_tolerance)) {
+                output_storage.emplace_back(id, output_factor, false);
+            }
+            if (!approximately_zero(output_conj_factor, factory.zero_tolerance)) {
+                output_storage.emplace_back(id, output_conj_factor, true);
+            }
+        }
+        return factory(std::move(output_storage));
     }
 
 

@@ -539,29 +539,39 @@ namespace Moment::Tests {
         symbols.create(false, true); // 4 imaginary
 
         const Polynomial comboEmpty{};
-        EXPECT_TRUE(comboEmpty.is_hermitian(symbols));
+        EXPECT_TRUE(comboEmpty.is_hermitian(symbols, 1.0));
 
         const Polynomial combo_H_Id{Monomial{1, 1.0}};
-        EXPECT_TRUE(combo_H_Id.is_hermitian(symbols));
+        EXPECT_TRUE(combo_H_Id.is_hermitian(symbols, 1.0));
 
         const Polynomial combo_H_A{Monomial{2, 1.0}};
-        EXPECT_TRUE(combo_H_A.is_hermitian(symbols));
+        EXPECT_TRUE(combo_H_A.is_hermitian(symbols, 1.0));
+
+        const Polynomial combo_iA{Monomial{2, std::complex{0.0, 1.0}}};
+        EXPECT_FALSE(combo_iA.is_hermitian(symbols, 1.0));
 
         const Polynomial combo_H_B_Bstar{Monomial{3, 1.0}, Monomial{3, 1.0, true}};
-        EXPECT_TRUE(combo_H_B_Bstar.is_hermitian(symbols));
+        EXPECT_TRUE(combo_H_B_Bstar.is_hermitian(symbols, 1.0));
 
-        const Polynomial combo_H_C_Cstar{Monomial{4, 1.0}, Monomial{4, 1.0, true}};
-        EXPECT_TRUE(combo_H_C_Cstar.is_hermitian(symbols));
+        Polynomial combo_H_C_Cstar{Monomial{4, 1.0}, Monomial{4, 1.0, true}}; // Ill-formed, should be zero.
+        combo_H_C_Cstar.fix_cc_in_place(symbols, true, 1.0);
+        EXPECT_TRUE(combo_H_C_Cstar.is_hermitian(symbols, 1.0));
+
+        const Polynomial combo_iD{Monomial{4, std::complex{0.0, 1.0}}};
+        EXPECT_TRUE(combo_iD.is_hermitian(symbols, 1.0));
 
         const Polynomial combo_Id_B{Monomial{1, 1.0}, Monomial{3, 1.0}};
-        EXPECT_FALSE(combo_Id_B.is_hermitian(symbols));
+        EXPECT_FALSE(combo_Id_B.is_hermitian(symbols, 1.0));
 
         const Polynomial combo_B{Monomial{3, 1.0}};
-        EXPECT_FALSE(combo_B.is_hermitian(symbols));
+        EXPECT_FALSE(combo_B.is_hermitian(symbols, 1.0));
 
         const Polynomial combo_B_3Bstar{Monomial{3, 1.0}, Monomial{3, 2.0, true}};
-        EXPECT_FALSE(combo_B_3Bstar.is_hermitian(symbols));
+        EXPECT_FALSE(combo_B_3Bstar.is_hermitian(symbols, 1.0));
 
+        const Polynomial combo_complex_H{Monomial{3, std::complex{0.0, -1.0}, false},
+                                         Monomial{3, std::complex{0.0, 1.0}, true}}; // -iX + iX*
+        EXPECT_TRUE(combo_complex_H.is_hermitian(symbols, 1.0));
     }
 
     TEST(Symbolic_Polynomial, Conjugate_Empty) {
@@ -706,7 +716,7 @@ namespace Moment::Tests {
         EXPECT_EQ(combo[0], Monomial(5, 2.0, true));
         EXPECT_EQ(combo[1], Monomial(2, 1.0));
         EXPECT_EQ(combo[2], Monomial(1, 1.0));
-        EXPECT_FALSE(combo.is_hermitian(symbols));
+        EXPECT_FALSE(combo.is_hermitian(symbols, 1.0));
         EXPECT_EQ(combo.first_id(), 5);
         EXPECT_EQ(combo.last_id(), 1);
 
@@ -716,7 +726,6 @@ namespace Moment::Tests {
     }
 
     TEST(Symbolic_Polynomial, AlternativeOrdering_NontrivialHermitian) {
-
         Algebraic::AlgebraicMatrixSystem ams{std::make_unique<Algebraic::AlgebraicContext>(2)};
         const auto& context = ams.AlgebraicContext();
         const auto& symbols = ams.Symbols();
@@ -732,7 +741,7 @@ namespace Moment::Tests {
         ASSERT_EQ(combo.size(), 2);
         EXPECT_EQ(combo[0], Monomial(5, 2.0, false));
         EXPECT_EQ(combo[1], Monomial(5, 2.0, true));
-        EXPECT_TRUE(combo.is_hermitian(symbols));
+        EXPECT_TRUE(combo.is_hermitian(symbols, 1.0));
         EXPECT_EQ(combo.first_id(), 5);
         EXPECT_EQ(combo.last_id(), 5);
 
@@ -764,4 +773,5 @@ namespace Moment::Tests {
         lhs.append(rhs);
         EXPECT_EQ(lhs, Polynomial(Monomial{2, 1.0}));
     }
+
 }

@@ -12,10 +12,10 @@
 namespace Moment {
 
     namespace {
-        bool test_hermicity(const SymbolTable &table, const SquareMatrix<Polynomial> &matrix) {
+        bool test_hermicity(const SymbolTable &table, const SquareMatrix<Polynomial> &matrix, double tolerance) {
 
             for (size_t row = 0; row < matrix.dimension; ++row) {
-                if (!matrix[row][row].is_hermitian(table)) {
+                if (!matrix[row][row].is_hermitian(table, tolerance)) {
                     return false;
                 }
 
@@ -54,7 +54,7 @@ namespace Moment {
         }
 
         // Test for Hermiticity
-        const bool is_hermitian = test_hermicity(symbols, *sym_exp_matrix);
+        const bool is_hermitian = test_hermicity(symbols, *sym_exp_matrix, 1.0);
 
         // Create symbol matrix properties
         this->mat_prop = std::make_unique<MatrixProperties>(*this, this->symbol_table, std::move(included_symbols),
@@ -68,6 +68,6 @@ namespace Moment {
      */
     void PolynomialMatrix::renumerate_bases(const SymbolTable& symbols) {
         // TODO: Support renumbering for polynomial matrix
-        throw std::runtime_error{"PolynomialMatrix::renumerate_bases not implemented."};
+        throw std::runtime_error{"PolynomialMatrix::renumerate_bases not yet implemented."};
     }
 }

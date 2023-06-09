@@ -110,7 +110,7 @@ namespace Moment {
 
         // If rule maps Hermitian symbol to non-Hermitian combo, rulebook becomes non-Hermitian.
         if (this->symbols[msr.LHS()].is_hermitian()) {
-            if (!msr.RHS().is_hermitian(this->symbols)) {
+            if (!msr.RHS().is_hermitian(this->symbols, this->factory->zero_tolerance)) {
                 this->hermitian_rules = false;
             }
         }
@@ -191,7 +191,7 @@ namespace Moment {
         // Check if completed rule-set is strictly Hermitian
         this->hermitian_rules = std::all_of(this->rules.cbegin(), this->rules.cend(), [&](const auto& pair) {
             if (this->symbols[pair.first].is_hermitian()) {
-                return pair.second.RHS().is_hermitian(this->symbols);
+                return pair.second.RHS().is_hermitian(this->symbols, this->factory->zero_tolerance);
             }
             // MonomialRules on non-Hermitian variables can do as they please.
             return true;

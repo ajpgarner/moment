@@ -36,7 +36,7 @@ namespace Moment::Tests {
         EXPECT_EQ(combo[0], Monomial(1, 1.0));
         EXPECT_EQ(combo[1], Monomial(2, 1.0));
         EXPECT_EQ(combo[2], Monomial(5, 2.0, true));
-        EXPECT_FALSE(combo.is_hermitian(symbols));
+        EXPECT_FALSE(combo.is_hermitian(symbols, 1.0));
         EXPECT_EQ(combo.first_id(), 1);
         EXPECT_EQ(combo.last_id(), 5);
 
@@ -61,7 +61,7 @@ namespace Moment::Tests {
         ASSERT_EQ(combo.size(), 2);
         EXPECT_EQ(combo[0], Monomial(5, 2.0, false));
         EXPECT_EQ(combo[1], Monomial(5, 2.0, true));
-        EXPECT_TRUE(combo.is_hermitian(symbols));
+        EXPECT_TRUE(combo.is_hermitian(symbols, 1.0));
         EXPECT_EQ(combo.first_id(), 5);
         EXPECT_EQ(combo.last_id(), 5);
 

@@ -22,6 +22,7 @@
 
 namespace Moment {
     class SymbolTable;
+    class PolynomialFactory;
 
     class Polynomial {
     public:
@@ -176,6 +177,16 @@ namespace Moment {
         }
 
         /**
+         * Creates a new Polynomial that represents only the real/Hermitian part of this Polynomial.
+         */
+        [[nodiscard]] Polynomial Real(const PolynomialFactory& factory) const;
+
+        /**
+         * Creates a new Polynomial that represents only the imaginary/anti-Hermitian part of this Polynomial.
+         */
+        [[nodiscard]] Polynomial Imaginary(const PolynomialFactory& factory) const;
+
+        /**
          * Transform this combo into its complex conjugate.
          * @return True, if this might* have changed the combination. (*Some hermitian strings will trigger this).
          */
@@ -195,7 +206,6 @@ namespace Moment {
         inline void sort(const ordering_func_t& sort_func = ordering_func_t{}) {
             std::sort(this->data.begin(), this->data.end(), sort_func);
         }
-
 
         /**
          * Construct add symbols to this combo.
@@ -295,8 +305,9 @@ namespace Moment {
         /**
          * True if sum of symbols is Hermitian.
          * @param symbols Symbol table (needed to know which symbols are purely real/imaginary etc.).
+         * @param tolerance How strict are we about zero?
          */
-        [[nodiscard]] bool is_hermitian(const SymbolTable& symbols) const noexcept;
+        [[nodiscard]] bool is_hermitian(const SymbolTable& symbols, double tolerance) const noexcept;
 
         /**
          * True if other is conjugate of this symbol combo.
@@ -389,6 +400,10 @@ namespace Moment {
             Polynomial output{lhs};
             this->append(output, rhs); // <- virtual call.
             return output;
+        }
+
+        [[nodiscard]] inline bool is_hermitian(const Polynomial& poly) const {
+            return poly.is_hermitian(this->symbols, this->zero_tolerance);
         }
     };
 
