@@ -18,8 +18,27 @@
 
 namespace Moment {
 
-
     namespace {
+#ifndef NDEBUG
+        inline bool DEBUG_assert_nonorientable(const Polynomial &poly, double mult) {
+            if (poly.size() < 2) {
+                return false;
+            }
+            const auto &leading = poly[poly.size() - 1];
+            const auto &second = poly[poly.size() - 2];
+            if (leading.id != second.id) {
+                return false;
+            }
+            if (!leading.conjugated || second.conjugated) {
+                return false;
+            }
+            if (!approximately_same_norm(leading.factor, second.factor, mult)) {
+                return false;
+            }
+            return true;
+        }
+#endif
+
         symbol_name_t pop_back_and_normalize(const PolynomialFactory& factory, Polynomial& poly) {
             // Empty polynomial is already normalized
             if (poly.empty()) {
@@ -48,9 +67,24 @@ namespace Moment {
         }
     }
 
+    MomentSubstitutionRule::MomentSubstitutionRule(const PolynomialFactory& factory,
+                                                   symbol_name_t lhs, std::complex<double> constraint_direction,
+                                                   Polynomial&& replacement)
+       : lhs{lhs}, rhs{std::move(replacement)}, partial{true}, lhs_direction{constraint_direction} {
+        assert(rhs.is_hermitian(factory.symbols, factory.zero_tolerance));
+        assert(rhs.last_id() < lhs);
+
+        // Substitution rule will then be of form X -> e^id P + 0.5X - 0.5 e^2id X*
+        this->rhs *= this->lhs_direction;
+        factory.append(this->rhs,
+                       factory({Monomial{this->lhs, 0.5, false},
+                                Monomial{this->lhs, -0.5 * this->lhs_direction * this->lhs_direction, true}}));
+    }
+
+
     MomentSubstitutionRule::MomentSubstitutionRule(const PolynomialFactory& factory, Polynomial &&rule)
             : lhs{rule.last_id()}, rhs{std::move(rule)} {
-        auto difficulty = MomentSubstitutionRule::get_difficulty(rhs);
+        auto difficulty = MomentSubstitutionRule::get_difficulty(rhs, factory.zero_tolerance);
         this->set_up_rule(factory, difficulty);
     }
 
@@ -73,23 +107,16 @@ namespace Moment {
             }
             case PolynomialDifficulty::Simple:
                 pop_back_and_normalize(factory, this->rhs);
+                this->split_regular_rule(factory);
                 break;
             case PolynomialDifficulty::NeedsReorienting:
                 this->rhs = MomentSubstitutionRule::reorient_polynomial(factory, std::move(this->rhs));
                 pop_back_and_normalize(factory, this->rhs);
+                this->split_regular_rule(factory);
                 break;
-            case PolynomialDifficulty::NonorientableRule: {
-                std::stringstream errSS;
-                assert(this->lhs < factory.symbols.size());
-                auto& symbol_info = factory.symbols[this->lhs];
-                errSS << "Rule for #" << this->lhs;
-                if (symbol_info.has_sequence()) {
-                    errSS << " (" << symbol_info.formatted_sequence() << ")";
-                }
-                errSS << " only partially constraints complex scalar: ";
-                errSS << this->rhs;
-                throw errors::nonorientable_rule{this->lhs, errSS.str()};
-            }
+            case PolynomialDifficulty::NonorientableRule:
+                this->resolve_nonorientable_rule(factory);
+                break;
             case PolynomialDifficulty::Unknown:
             default:
                 throw std::runtime_error{
@@ -97,7 +124,6 @@ namespace Moment {
                 };
         }
     }
-
 
     MomentSubstitutionRule::PolynomialDifficulty
     MomentSubstitutionRule::get_difficulty(const Polynomial &poly, const double tolerance) noexcept {
@@ -133,18 +159,123 @@ namespace Moment {
     }
 
 
-    std::optional<Polynomial> MomentSubstitutionRule::impose_hermicity_of_LHS(const PolynomialFactory &factory) {
-        // Do nothing for trivial (or contradictory!) rules.
-        if (this->lhs <= 1) {
+
+    Polynomial MomentSubstitutionRule::reorient_polynomial(const PolynomialFactory& factory, Polynomial rule) {
+        auto conjugate_rule = rule.conjugate(factory.symbols);
+
+        [[maybe_unused]] auto fwd_leading_id = pop_back_and_normalize(factory, rule);
+        [[maybe_unused]] auto rev_leading_id = pop_back_and_normalize(factory, conjugate_rule);
+        assert(fwd_leading_id == rev_leading_id);
+
+        factory.append(rule, conjugate_rule * -1.0);
+        return rule;
+    }
+
+    void MomentSubstitutionRule::resolve_nonorientable_rule(const PolynomialFactory &factory) {
+        // Essentially, we need to identify the constrained direction e^id, where e^id is in the upper half-plane.
+        // Thus, we  take X and X* to the LHS and rotate such that the LHS is: Kd(X) := 0.5 e^-id X + 0.5 e^id X*.
+        // As Kd(X) is real, we take only the real part of (rotated) RHS, and split off the imaginary remainder.
+        //  We then rotate the rule back to point in the direction of Kd(X), and add the unconstrained part.
+        // The unconstrained part is given by Jd(X) := -0.5 i e^-id X + 0.5 i e^id X*.
+        // Note, e^-id X = Kd(X) + iJd(X); and so X = e^id Kd(X) + ie^id Jd(X)
+        // leading to final form of the rule: X -> e^id Kd(X) + 0.5 X - 0.5 e^2id X*
+
+
+        assert(DEBUG_assert_nonorientable(this->rhs, factory.zero_tolerance));
+        this->partial = true;
+        this->lhs = this->rhs.last_id();
+
+        // Initially, polynomial is:  k exp{ia} X + k exp{ib} X* + P = 0;
+        const auto k_exp_i_a = this->rhs[this->rhs.size()-2].factor;
+        const auto exp_i_b_minus_a = this->rhs[this->rhs.size()-1].factor / k_exp_i_a;
+        assert(approximately_equal(std::norm(exp_i_b_minus_a), 1.0, factory.zero_tolerance));
+        // To get e{id} := exp{i(b-a)/2}, we take the square root of exp{i(b-a)}
+        // std::sqrt is in right half plane, but we want e^id in the upper half plane, including +1, excluding -1.
+        this->lhs_direction = (exp_i_b_minus_a.imag() >= 0) ? std::sqrt(exp_i_b_minus_a)
+                                                           : -std::sqrt(exp_i_b_minus_a);
+
+        // Now we can safely remove terms in X and X* from RHS polynomial.
+        this->rhs.pop_back();
+        this->rhs.pop_back();
+
+        // We need to rotate and scale the RHS: k exp{ia} X + k exp{ib} X* = -P;
+        // multiply by 0.5 exp{-i(a+b)/2} k^-1:
+        //          0.5 exp{i{a-b}/2} X + 0.5 exp{i{b-a}/2} X* = -0.5 k^-1 exp{-i(a+b)/2) P
+        // Using  e{-i(b-a)/2} * e^-ia = exp{-i(b+a)/2}; so we make this transformation:
+        const auto poly_factor = -std::conj(this->lhs_direction) / (2.0 * k_exp_i_a);
+        this->rhs *= poly_factor;
+
+        // Rule now has real LHS. Thus, we split off imaginary part of RHS (if any), and ensure RHS is purely real.
+        this->split_polynomial = this->rhs.Imaginary(factory);
+        if (this->split_polynomial->empty()) {
+            this->split_polynomial.reset();
+        } else {
+            this->rhs = this->rhs.Real(factory);
+        }
+
+        // Finally, rotate rule back by e^id and insert non-constrained part of X [i e^id Jd(X)]
+        this->rhs *= this->lhs_direction;
+        const auto factor_x_star = -this->lhs_direction * this->lhs_direction * 0.5;
+        factory.append(this->rhs, Polynomial{{Monomial{this->lhs, 0.5, false},
+                                              Monomial{this->lhs, factor_x_star, true}}});
+
+    }
+
+
+    void MomentSubstitutionRule::merge_partial(const PolynomialFactory& factory, MomentSubstitutionRule&& other) {
+        // Assert compatibility
+        assert(this->partial);
+        assert(other.partial);
+        assert(this->lhs == other.lhs);
+        assert(this->rhs.size() >= 2);
+
+
+        // Same direction component should have always been projected out!
+        const std::complex<double> relative_angle = other.lhs_direction / this->lhs_direction;
+        assert(approximately_imaginary(relative_angle, factory.zero_tolerance));
+
+        // Remove terms in X from this and other RHS
+        this->rhs.pop_back();
+        this->rhs.pop_back();
+        other.rhs.pop_back();
+        other.rhs.pop_back();
+        if (relative_angle.imag() > 0) { // other = i this
+            factory.append(this->rhs, other.rhs);
+        } else { // other = - i this
+            other.rhs *= -1.0;
+            factory.append(this->rhs, other.rhs);
+        }
+
+        // Rule is now full.
+        this->partial = false;
+        this->lhs_direction = 0.0;
+    }
+
+    std::optional<Polynomial> MomentSubstitutionRule::split() {
+        if (!this->split_polynomial.has_value()) {
             return std::nullopt;
         }
 
+        // Release output
+        std::optional<Polynomial> output = std::move(this->split_polynomial);
+        this->split_polynomial.reset();
+        return output;
+    }
+
+    void MomentSubstitutionRule::split_regular_rule(const PolynomialFactory &factory) {
+
+        // Do nothing for trivial (or contradictory!) rules.
+        if (this->lhs <= 1) {
+            return;
+        }
+
+        // Split regular rule
         assert(this->lhs < factory.symbols.size());
         const auto& symbolInfo = factory.symbols[this->lhs];
         if (symbolInfo.is_hermitian()) {
             // If LHS and RHS is Hermitian, then taking Im(LHS) == Im(RHS) gives trivially 0 == 0.
             if (factory.is_hermitian(this->rhs)) {
-                return std::nullopt;
+                return;
             }
 
             // We have non-trivial case where LHS is Hermitian, but RHS is not.
@@ -155,41 +286,30 @@ namespace Moment {
             this->rhs = this->rhs.Real(factory);
 
             // Return imaginary 'remainder'.
-            return output;
+            this->split_polynomial = std::move(output);
+            return;
         }
 
         if (symbolInfo.is_antihermitian()) {
             // If LHS and RHS are anti-Hermitian, then taking Re(LHS) == Re(RHS) gives trivially 0 == 0
             if (factory.is_antihermitian(this->rhs)) {
-                return std::nullopt;
+                return;
             }
 
             // We have non-trivial case where LHS is anti-Hermitian, but RHS is not
             Polynomial output{this->rhs.Real(factory)};
             assert(!output.empty()); // We have just inferred that RHS is not anti-Hermitian.
 
-            // Force imaginariness on the RHS of the rule.
+            // Force imaginariness on the RHS of this rule.
             this->rhs = this->rhs.Imaginary(factory) * std::complex<double>(0.0, 1.0); // LHS -> i Im(RHS)
 
             // Return real 'remainder'.
-            return output;
+            this->split_polynomial = std::move(output);
+            return;
         }
 
-        // Rule is neither Hermitian nor anti-Hermitian, so is free to stand.
-        return std::nullopt;
+        // nothing happened
     }
-
-    Polynomial MomentSubstitutionRule::reorient_polynomial(const PolynomialFactory& factory, Polynomial rule) {
-        auto conjugate_rule = rule.conjugate(factory.symbols);
-
-        auto fwd_leading_id = pop_back_and_normalize(factory, rule);
-        auto rev_leading_id = pop_back_and_normalize(factory, conjugate_rule);
-        assert(fwd_leading_id == rev_leading_id);
-
-        factory.append(rule, conjugate_rule * -1.0);
-        return rule;
-    }
-
 
 
     Polynomial MomentSubstitutionRule::as_polynomial(const PolynomialFactory& factory) const {
@@ -207,7 +327,6 @@ namespace Moment {
             return expr.id == this->lhs;
         });
     }
-
 
     [[nodiscard]] std::pair<size_t, Polynomial::storage_t::const_iterator>
     MomentSubstitutionRule::match_info(const Polynomial &combo) const noexcept {
@@ -236,7 +355,6 @@ namespace Moment {
     }
 
     Polynomial MomentSubstitutionRule::reduce(const PolynomialFactory& factory, const Polynomial &combo) const {
-
         auto [matches, hint] = this->match_info(combo);
 
         // No match, copy output without transformation
@@ -252,7 +370,7 @@ namespace Moment {
     Polynomial MomentSubstitutionRule::reduce(const PolynomialFactory &factory, const Monomial &expr) const {
         // No match, no substitution.
         if (expr.id != this->lhs) {
-            return Polynomial{rhs};
+            return Polynomial{expr};
         }
 
         // Copy RHS, with appropriate transformations
@@ -265,16 +383,16 @@ namespace Moment {
 
     Monomial MomentSubstitutionRule::reduce_monomial(const SymbolTable& table,
                                                      const Monomial &expr) const {
-        // No match, pass through:
-        if (this->LHS() != expr.id) {
-            return expr;
-        }
-
         if constexpr (debug_mode) {
             if (!this->rhs.is_monomial()) {
                 throw std::logic_error{
                         "MomentSubstitutionRule::reduce_monomial cannot be called on non-monomial rule."};
             }
+        }
+
+        // No match, pass through:
+        if (this->LHS() != expr.id) {
+            return expr;
         }
 
         // Rule is -> 0

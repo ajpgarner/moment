@@ -15,8 +15,57 @@
 #include "symbolic/moment_substitution_rule.h"
 #include "symbolic/order_symbols_by_hash.h"
 
+#include "moment_rule_helpers.h"
+
+#include <numbers>
+
 
 namespace Moment::Tests {
+
+
+    TEST(Symbolic_MomentSubstitutionRule, DirectConstruction_PartialRule) {
+        // Fake context/table with 4 non-trivial symbols
+        Context context{2};
+        SymbolTable table{context};
+        table.create(1, true, false); // #2 is real
+        table.create(1, true, true); // #3 is complex.
+        ByIDPolynomialFactory factory{table, 10};
+
+        for (int index = 0; index < 12; ++index) {
+            const double theta = std::numbers::pi * static_cast<double>(index)/12.0;
+            std::complex<double> direction = std::polar(1.0, theta);
+
+            std::stringstream labelSS;
+            labelSS << "Theta = " << theta;
+            std::string label{labelSS.str()};
+
+            MomentSubstitutionRule msr{factory, 3, direction, Polynomial(Monomial{2, 1.0})};
+            EXPECT_TRUE(msr.is_partial()) << label;
+            EXPECT_TRUE(approximately_equal(msr.partial_direction(), direction))
+                                << label
+                                << ",\nActual = " << msr.partial_direction()
+                                << ",\nExpected = " << direction;
+
+            const Polynomial expected_rhs{factory({Monomial{3, 0.5, false},
+                                                   Monomial{3, -0.5*direction*direction, true},
+                                                   Monomial{2, direction}})};
+
+            expect_matching_polynomials(label, msr.RHS(), expected_rhs, factory.zero_tolerance);
+
+            Polynomial poly_rep{msr.as_polynomial(factory)};
+            const Polynomial expected_poly_rep{factory({Monomial{3, -0.5, false},
+                                                   Monomial{3, -0.5*direction*direction, true},
+                                                   Monomial{2, direction}})};
+            expect_matching_polynomials(label, poly_rep, expected_poly_rep, factory.zero_tolerance);
+
+            EXPECT_EQ(MomentSubstitutionRule::get_difficulty(poly_rep, factory.zero_tolerance),
+                      MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule) << label;
+
+            MomentSubstitutionRule re_rule{factory, std::move(poly_rep)};
+            expect_matching_rule(label, msr, re_rule, factory.zero_tolerance);
+        }
+    }
+
     TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_Trivial) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
@@ -171,15 +220,22 @@ namespace Moment::Tests {
         ByIDPolynomialFactory factory{table, 10};
 
         for (int index = 0; index < 12; ++index) {
-            std::complex<double> factor = std::polar(1.0, 3.141592653589793238 * static_cast<double>(index)/12.0);
+            const double theta = std::numbers::pi * static_cast<double>(index)/12.0;
+            std::complex<double> factor_Xstar = std::polar(1.0, theta);
+            std::complex<double> factor_X = std::conj(factor_Xstar);
+
 
             const Polynomial impossiblePoly = factory(
-                    {Monomial{3, 1.0, false}, Monomial{3, factor, true}, Monomial{2, 1.0}});
+                    {Monomial{3, factor_X, false}, Monomial{3, factor_Xstar, true}, Monomial{2, 1.0}});
             EXPECT_EQ(MomentSubstitutionRule::get_difficulty(impossiblePoly),
                       MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule)
                       << "theta = " << index << "*PI/6)";
-            EXPECT_THROW(MomentSubstitutionRule impossible_rule(factory, Polynomial{impossiblePoly}),
-                         Moment::errors::nonorientable_rule);
+            MomentSubstitutionRule impossible_rule(factory, Polynomial{impossiblePoly});
+
+            EXPECT_TRUE(impossible_rule.is_partial());
+            EXPECT_TRUE(approximately_equal(impossible_rule.partial_direction(), factor_Xstar))
+                << "Actual = " << impossible_rule.partial_direction()
+                << ",\n Expected = " << factor_Xstar;
         }
     }
 

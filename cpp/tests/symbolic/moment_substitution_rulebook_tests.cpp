@@ -21,25 +21,11 @@
 
 #include "symbolic_matrix_helpers.h"
 
+#include "moment_rule_helpers.h"
+
+#include <numbers>
+
 namespace Moment::Tests {
-    namespace {
-        void assert_matching_rules(const MomentSubstitutionRulebook &book,
-                                   const std::vector<MomentSubstitutionRule> &expected) {
-            ASSERT_EQ(book.size(), expected.size());
-            ASSERT_EQ(book.empty(), expected.empty());
-
-            size_t rule_number = 0;
-            auto expected_iter = expected.begin();
-            for (const auto &[id, rule]: book) {
-                EXPECT_EQ(id, expected_iter->LHS()) << "Rule #" << rule_number;
-                EXPECT_EQ(rule.LHS(), expected_iter->LHS()) << "Rule #" << rule_number;
-                EXPECT_EQ(rule.RHS(), expected_iter->RHS()) << "Rule #" << rule_number;
-                ++expected_iter;
-                ++rule_number;
-            }
-        }
-    }
-
     class Symbolic_MomentSubstitutionRulebook : public ::testing::Test {
     private:
         std::unique_ptr<Algebraic::AlgebraicMatrixSystem> ams_ptr;
@@ -66,6 +52,9 @@ namespace Moment::Tests {
 
         [[nodiscard]] const PolynomialFactory& get_factory() const noexcept { return *this->factory_ptr; };
 
+        void expect_approximately_equal(const Polynomial& LHS, const Polynomial& RHS) {
+            expect_matching_polynomials("Polynomial", LHS, RHS, this->factory_ptr->zero_tolerance);
+        }
     };
 
 
@@ -182,6 +171,58 @@ namespace Moment::Tests {
         EXPECT_EQ(book.reduce(factory({Monomial{5, 4.0}, Monomial{2, 1.0}, Monomial{1, 5.0}})),
                               factory({Monomial{3, 2.0}, Monomial{1, 10.0}}));
     }
+
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_NonorientableRule_Real) {
+        // Prepare rulebook
+        MomentSubstitutionRulebook book{this->get_symbols()};
+
+        const auto& factory = book.Factory(); // // e, a, b, aa, ab (ba), bb
+
+        // Re(ab) - a = 0
+        book.add_raw_rule(factory({Monomial{5, 0.5}, Monomial{5, 0.5, true}, Monomial{2, -1.0}}));
+        book.complete();
+        ASSERT_EQ(book.size(), 1);
+
+        // 0 -> 0
+        EXPECT_EQ(book.reduce(Polynomial()), Polynomial());
+
+        // ab -> iIm(ab) + a
+        auto reduced_ab = book.reduce(factory({Monomial{5, 1.0}}));
+        EXPECT_EQ(reduced_ab, factory({Monomial{5, std::complex{0.5, 0.0}},
+                                      Monomial{5, std::complex{-0.5, 0.0}, true},
+                                      Monomial{2, 1.0}}));
+
+        // Check idempotence
+        EXPECT_EQ(book.reduce(reduced_ab), reduced_ab);
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_NonorientableRule_Imaginary) {
+        // Prepare rulebook
+        MomentSubstitutionRulebook book{this->get_symbols()};
+
+        const auto& factory = book.Factory();
+        // Im(ab) - a + b = 0
+        book.add_raw_rule(factory({Monomial{5, std::complex{0.0, -0.5}},
+                                   Monomial{5, std::complex{0.0, 0.5}, true}, Monomial{2, -1.0}, Monomial{3, 1.0}}));
+        book.complete();
+        ASSERT_EQ(book.size(), 1);
+
+        // 0 -> 0
+        EXPECT_EQ(book.reduce(Polynomial()), Polynomial());
+
+        // ab -> Re(ab) + i(a - b)
+        auto reduced_ab = book.reduce(factory({Monomial{5, 1.0}}));
+        EXPECT_EQ(reduced_ab, factory({Monomial{5, std::complex{0.5, 0.0}},
+                                      Monomial{5, std::complex{0.5, 0.0}, true},
+                                      Monomial{2, std::complex{0.0, 1.0}},
+                                      Monomial{3, std::complex{0.0, -1.0}}}));
+
+        // Check idempotence
+        EXPECT_EQ(book.reduce(reduced_ab), reduced_ab);
+    }
+
+
 
     TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_MonoMatrix_EmptyRules) {
         // Prepare rulebook
@@ -476,6 +517,167 @@ namespace Moment::Tests {
 
         EXPECT_THROW(book.complete(), errors::invalid_moment_rule);
     }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_RealAndImParts) {
+        // Prepare rulebook
+        MomentSubstitutionRulebook book{this->get_symbols()};
+        const auto& factory = book.Factory();
+
+        std::vector<Polynomial> raw_combos; // Re(<ab>) = <a>; Im(<ab>) = <b>
+        raw_combos.emplace_back(factory({Monomial{5, 0.5}, Monomial{5, 0.5, true}, Monomial{2, -1.0}}));
+        raw_combos.emplace_back(factory({Monomial{5, std::complex{0.0, -0.5}},
+                                         Monomial{5, std::complex{0.0, 0.5}, true}, Monomial{3, -1.0}}));
+        book.add_raw_rules(std::move(raw_combos));
+        book.complete();
+        EXPECT_EQ(book.size(), 1);
+
+        auto reduced_ab = book.reduce(Polynomial{Monomial{5, 1.0}});
+        EXPECT_EQ(reduced_ab, factory({Monomial{2, 1.0}, Monomial{3, std::complex{0.0, 1.0}}}));
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_FullThenReal) {
+        // Prepare rulebook
+        MomentSubstitutionRulebook book{this->get_symbols()};
+        const auto& factory = book.Factory();
+
+        // Force full rule into book
+        book.inject(5, Polynomial::Scalar(std::complex{1.0, 1.0})); // <ab> = 1 + i
+
+        std::vector<Polynomial> raw_combos; // Re(<ab>) = <a>;
+        raw_combos.emplace_back(factory({Monomial{5, 0.5}, Monomial{5, 0.5, true}, Monomial{2, -1.0}}));
+        book.add_raw_rules(std::move(raw_combos));
+        book.complete();
+        ASSERT_EQ(book.size(), 2);
+
+        // Should map AB -> 1 + i
+        auto reduced_ab = book.reduce(Polynomial{Monomial{5, 1.0}});
+        EXPECT_EQ(reduced_ab, Polynomial::Scalar(std::complex{1.0, 1.0}));
+
+        // Should map A -> 1
+        EXPECT_EQ(book.reduce(Polynomial{Monomial{2}}), Polynomial::Scalar(std::complex{1.0, 0.0}));
+    }
+
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_RealThenFull) {
+        // Prepare rulebook
+        MomentSubstitutionRulebook book{this->get_symbols()};
+        const auto& factory = book.Factory();
+
+        // Add rule to book.
+        book.add_raw_rule(factory({Monomial{5, 0.5}, Monomial{5, 0.5, true}, Monomial{2, -1.0}}));
+        book.complete();
+        ASSERT_EQ(book.size(), 1);
+
+        // Add another rule afterwards
+        book.add_raw_rule(factory({Monomial{5, 1.0}, Monomial{1, std::complex{-1.0, -1.0}}}));
+        book.complete();
+
+        ASSERT_EQ(book.size(), 2);
+
+        // Should map AB -> 1 + i
+        auto reduced_ab = book.reduce(Polynomial{Monomial{5, 1.0}});
+        EXPECT_EQ(reduced_ab, Polynomial::Scalar(std::complex{1.0, 1.0}));
+
+        // Should map A -> 1
+        EXPECT_EQ(book.reduce(Polynomial{Monomial{2}}), Polynomial::Scalar(std::complex{1.0, 0.0}));
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_RealAndReal) {
+        // Prepare rulebook
+        MomentSubstitutionRulebook book{this->get_symbols()};
+        const auto& factory = book.Factory();
+
+        // Add rule to book: Re(ab) = a
+        book.add_raw_rule(factory({Monomial{5, 0.5}, Monomial{5, 0.5, true}, Monomial{2, -1.0}}));
+        book.complete();
+        ASSERT_EQ(book.size(), 1);
+
+        // Add another rule afterwards: Re(ab) = b
+        book.add_raw_rule(factory({Monomial{5, -0.5}, Monomial{5, -0.5, true}, Monomial{3, 1.0}}));
+        book.complete();
+
+        ASSERT_EQ(book.size(), 2);
+
+        // Should map AB -> iIm(AB) + a
+        auto reduced_ab = book.reduce(Polynomial{Monomial{5, 1.0}});
+        EXPECT_EQ(reduced_ab, factory({Monomial{5, 0.5}, Monomial{5, -0.5, true}, Monomial{2, 1.0}}));
+
+        // Should map b -> a
+        EXPECT_EQ(book.reduce(Polynomial{Monomial{3}}), Polynomial(Monomial{2}));
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_RealAndSkew) {
+        const std::complex<double> skew_direction{1.0 / std::numbers::sqrt2, 1.0 / std::numbers::sqrt2}; // pi / 4
+        const std::complex<double> offskew_direction{-1.0 / std::numbers::sqrt2, 1.0 / std::numbers::sqrt2}; // 3 pi / 4
+
+        // Add real rule to book
+        MomentSubstitutionRulebook book{this->get_symbols()};
+        const auto& factory = book.Factory();
+        book.inject(factory, 5, 1, Polynomial{Monomial{2, 1.0}}); // Rule should be Re(AB) -> <A>
+
+        // Make skew rule
+        const Polynomial skew_poly = factory({{Monomial{5, 0.5 * std::conj(skew_direction)},
+                                         Monomial{5, 0.5 * skew_direction, true},
+                                         Monomial{3, -1.0}}});
+        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(skew_poly),
+                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
+
+        // Check direct version of rule
+        MomentSubstitutionRule direct_skew_rule{factory, Polynomial{skew_poly}};
+        EXPECT_TRUE(direct_skew_rule.is_partial());
+        EXPECT_TRUE(approximately_equal(direct_skew_rule.partial_direction(), skew_direction, factory.zero_tolerance))
+                    << direct_skew_rule.partial_direction();
+        EXPECT_FALSE(direct_skew_rule.split().has_value());
+        expect_matching_polynomials("Reduction of direct_skew_rule",
+                                    direct_skew_rule.reduce(factory, Monomial{5, 1.0}),
+                                    factory({Monomial{3, skew_direction},
+                                             Monomial{5, 0.5},
+                                             Monomial{5, -0.5 * skew_direction * skew_direction, true}}),
+                                    factory.zero_tolerance);
+
+        // Incorporate new rule
+        book.add_raw_rule(Polynomial{skew_poly});
+        book.complete();
+        EXPECT_EQ(book.size(), 1);
+        const auto& complete_rule = book.begin()->second;
+        EXPECT_EQ(complete_rule.LHS(), 5);
+        EXPECT_FALSE(complete_rule.is_partial());
+
+        EXPECT_EQ(complete_rule.RHS(),
+                  factory({Monomial{2, std::complex{1.0, -1.0}},
+                           Monomial{3, std::complex{0.0, std::numbers::sqrt2}}}));
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_SkewAndReal) {
+        const std::complex<double> skew_direction{1.0 / std::numbers::sqrt2, 1.0 / std::numbers::sqrt2}; // pi / 4
+        const std::complex<double> offskew_direction{-1.0 / std::numbers::sqrt2, 1.0 / std::numbers::sqrt2}; // 3 pi / 4
+
+        // Add skew rule to book
+        MomentSubstitutionRulebook book{this->get_symbols(),
+                                        std::make_unique<ByIDPolynomialFactory>(this->get_symbols(), 10.0)};
+        const auto& factory = book.Factory();
+        book.inject(factory, 5, skew_direction, Polynomial{Monomial{3, 1.0}}); // Rule should be Kd(AB) -> <B>
+
+        // Make real rule
+        const Polynomial real_poly = factory({{Monomial{5, 0.5},
+                                               Monomial{5, 0.5, true},
+                                               Monomial{2, -1.0}}});
+        // Incorporate new rule
+        book.add_raw_rule(Polynomial{real_poly});
+        book.complete();
+        EXPECT_EQ(book.size(), 1);
+        const auto& complete_rule = book.begin()->second;
+        EXPECT_EQ(complete_rule.LHS(), 5);
+        EXPECT_FALSE(complete_rule.is_partial());
+
+        expect_matching_polynomials("Complete Rule",
+                                    complete_rule.RHS(),
+                                    factory({Monomial{2, std::complex{1.0, -1.0}},
+                                             Monomial{3, std::complex{0.0, std::numbers::sqrt2}}}),
+                                    factory.zero_tolerance);
+    }
+
+
 
     TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_FromMap) {
         // Prepare rulebook

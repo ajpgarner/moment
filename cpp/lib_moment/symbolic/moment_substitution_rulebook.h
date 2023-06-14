@@ -120,8 +120,6 @@ namespace Moment {
             return this->inject(MomentSubstitutionRule(std::forward<Args>(args)...));
         }
 
-
-
         /**
          * Process raw-rules into completed rule-set.
          * @return Number of rules added.
@@ -149,7 +147,7 @@ namespace Moment {
         bool reduce_in_place(Polynomial& combo) const;
 
         /**
-         * Apply all known rules to Polynomial.
+         * Apply all known rules to Polynomial (implicitly creating copy).
          */
         [[nodiscard]] Polynomial reduce(Polynomial combo) const {
             this->reduce_in_place(combo);

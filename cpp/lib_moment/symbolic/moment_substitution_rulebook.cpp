@@ -55,7 +55,6 @@ namespace Moment {
         }
     }
 
-
     void MomentSubstitutionRulebook::add_raw_rules(const MomentSubstitutionRulebook::raw_map_t& raw) {
         if (this->in_use()) {
             throw errors::already_in_use{};
@@ -85,7 +84,6 @@ namespace Moment {
             }
         }
     }
-
 
     void MomentSubstitutionRulebook::add_raw_rule(Polynomial&& raw) {
         if (this->in_use()) {
@@ -134,40 +132,61 @@ namespace Moment {
         // First, sort raw rules by lowest leading monomial, tie-breaking with shorter strings first.
         std::sort(this->raw_rules.begin(), this->raw_rules.end(), PolynomialOrdering(*this->factory));
 
-        size_t rules_attempted = 0;
         size_t rules_added = 0;
-        size_t rules_removed = 0;
+        size_t raw_rule_index = 0;
 
         // Now, attempt to add in each rule in order
-        for (auto& rule : this->raw_rules) {
+        while (raw_rule_index < this->raw_rules.size()) {
             // First, reduce polynomial according to known rules
-            Polynomial reduced_rule{this->reduce(std::move(rule))};
+            Polynomial reduced_rule{this->reduce(std::move(this->raw_rules[raw_rule_index]))};
 
-            // Second, orient to get leading term
+            // Second, attempt to orient into rule
             MomentSubstitutionRule msr{*this->factory, std::move(reduced_rule)};
 
             // If rule has been reduced to a trivial expression, do not add.
             if (msr.is_trivial()) {
-                ++rules_attempted;
+                ++raw_rule_index;
                 continue;
+            }
+
+            // Test if rule caused split (and rewrite if it does!)
+            auto split_rule = msr.split();
+            if (split_rule.has_value()) {
+                this->raw_rules.emplace_back(std::move(split_rule.value()));
             }
 
             const symbol_name_t reduced_rule_id = msr.LHS();
 
             // Can we add directly to end?
             if (this->rules.empty() || (this->rules.crbegin()->first < reduced_rule_id)) {
-                // Otherwise, just directly add rule at end
                 this->rules.emplace_hint(this->rules.end(),
                                          std::make_pair(reduced_rule_id, std::move(msr)));
-                ++rules_attempted;
+                ++raw_rule_index;
                 ++rules_added;
                 continue;
             }
 
-            // Otherwise, rule had a collision.
-            // We must insert its reduced form out of order, and then re-reduce all subsequent rules.
-            auto [update_iter, was_new] = this->rules.emplace(std::make_pair(reduced_rule_id, std::move(msr)));
-            assert(was_new); // Cannot directly collide, due to reduction.
+            // Does rule directly collide?
+            auto update_iter = this->rules.find(reduced_rule_id);
+            if (update_iter != this->rules.end()) {
+                // If existing rule wasn't partial, new rule would have reduced.
+                assert(update_iter->second.is_partial());
+                // Partial application of rule to this one will have left another partial rule
+                assert(msr.is_partial());
+
+                // Need to combine manually.
+                update_iter->second.merge_partial(*this->factory, std::move(msr));
+
+            } else {
+                // Otherwise, add rule
+                auto [insert_iter, was_new] = this->rules.emplace(std::make_pair(reduced_rule_id, std::move(msr)));
+                assert(was_new); // Cannot directly collide, we just checked.
+                update_iter = insert_iter;
+
+                ++rules_added;
+            }
+
+            // We now need to update all subsequent rules in table.
             ++update_iter;
             while (update_iter != this->rules.end()) {
                 auto& prior_rule = *update_iter;
@@ -175,11 +194,10 @@ namespace Moment {
                  ++update_iter;
             }
 
-            ++rules_attempted;
-            ++rules_added;
+            ++raw_rule_index;
         }
 
-        // Clear raw-rules
+        // Clear raw-rules as done.
         this->raw_rules.clear();
 
         // Check if completed rule-set is strictly monomial
@@ -200,7 +218,6 @@ namespace Moment {
         // MonomialRules are now complete
         return rules_added;
     }
-
 
     size_t MomentSubstitutionRulebook::combine_and_complete(MomentSubstitutionRulebook &&other) {
         // Can't add new rules if already in use
@@ -358,7 +375,7 @@ namespace Moment {
             }
         }
 
-        // If match made, replace rule
+        // If match made, simplify polynomial and replace.
         if (ever_matched) {
             polynomial = (*this->factory)(std::move(potential_output));
         }
@@ -371,6 +388,7 @@ namespace Moment {
         if (rule_iter == this->rules.cend()) {
             return expr;
         }
+
         // Otherwise, verify rule results in monomial
         const auto& rule = rule_iter->second;
         if (!rule.RHS().is_monomial()) {
@@ -383,7 +401,7 @@ namespace Moment {
 
     Polynomial MomentSubstitutionRulebook::reduce(Monomial expr) const {
         auto rule_iter = this->rules.find(expr.id);
-        // No match, pass through (promote to combo)
+        // No match, pass through (but promote to polynomial)
         if (rule_iter == this->rules.cend()) {
             return Polynomial{expr};
         }

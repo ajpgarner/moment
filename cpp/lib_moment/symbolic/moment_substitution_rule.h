@@ -52,13 +52,32 @@ namespace Moment {
         };
 
     private:
+        /** Match symbol */
         symbol_name_t lhs;
+
+        /** Replacement polynomial */
         Polynomial rhs;
+
+        /** True if rule only constrains one part of a complex symbol */
+        bool partial = false;
+
+        /** The value of k such that the match represents 'k X + k* X*' (e.g. k=1 for real, k=-i for imaginary). */
+        std::complex<double> lhs_direction =  std::complex<double>{0.0, 0.0};
+
+        /** Contains split polynomial, if any */
+        std::optional<Polynomial> split_polynomial = std::nullopt;
 
     public:
         /** Create rule directly: symbol_id -> polynomial. */
         MomentSubstitutionRule(symbol_name_t lhs, Polynomial&& rhs)
             : lhs{lhs}, rhs{std::move(rhs)} { }
+
+        /**
+         * Create partial rule directly: constrain part of lhs in lhs_direction to the rhs.
+         * Undefined behaviour if RHS is not real/Hermitian.
+         */
+        MomentSubstitutionRule(const PolynomialFactory& factory,
+                               symbol_name_t lhs, std::complex<double> lhs_direction, Polynomial&& rhs);
 
     private:
         MomentSubstitutionRule(const PolynomialFactory& factory, Polynomial&& rule, PolynomialDifficulty difficulty);
@@ -70,10 +89,14 @@ namespace Moment {
 
     public:
         /**
-         * Check if LHS is (anti)-Hermitian, and if so, split the rule in two, returning the second polynomial.
+         * Attempt to merge in second partial rule
          */
-        [[nodiscard]] std::optional<Polynomial> impose_hermicity_of_LHS(const PolynomialFactory& factory);
+        void merge_partial(const PolynomialFactory& factory, MomentSubstitutionRule&& other);
 
+        /**
+         * Some rules may imply a second rule. If so, return this second implied Polynomial (otherwise, std::nullopt).
+         */
+        [[nodiscard]] std::optional<Polynomial> split();
 
         /**
          * Match pattern.
@@ -104,18 +127,19 @@ namespace Moment {
 
 
         /**
-         * Act with rule on combo to make new combo.
+         * Act with rule on polynomial to make new polynomial.
          */
         [[nodiscard]] Polynomial reduce(const PolynomialFactory& factory, const Polynomial& rhs) const;
 
 
         /**
-         * Act with rule on symbol expression to make combo.
+         * Act with rule on monomial expression to make new polynomial.
          */
         [[nodiscard]] Polynomial reduce(const PolynomialFactory& factory, const Monomial& rhs) const;
 
         /**
-         * Try to act with rule on symbol expression to make monomial
+         * Try to act with rule on monomial expression to make a new monomial.
+         * (Undefined behaviour if RHS is not monomial or zero).
          */
         [[nodiscard]] Monomial reduce_monomial(const SymbolTable& table,
                                                const Monomial& rhs) const;
@@ -139,6 +163,18 @@ namespace Moment {
          * Is rule effectively empty?
          */
         [[nodiscard]] inline bool is_trivial() const noexcept { return this->lhs == 0; }
+
+        /**
+         * Does rule only constrain partial direction?
+         */
+        [[nodiscard]] inline bool is_partial() const noexcept { return this->partial; }
+
+        /**
+         * What direction does the rule apply to?
+         */
+        [[nodiscard]] inline std::complex<double> partial_direction() const noexcept {
+            return this->lhs_direction;
+        }
 
         /**
          * Write out the RHS of the rule, up to conjugation and factors.
@@ -174,8 +210,6 @@ namespace Moment {
         [[nodiscard]] static PolynomialDifficulty get_difficulty(const Polynomial& poly,
                                                                  double tolerance = 1.0) noexcept;
 
-
-
     private:
         /**
          * Processes RHS into proper rule.
@@ -184,10 +218,21 @@ namespace Moment {
         void set_up_rule(const PolynomialFactory& factory, PolynomialDifficulty difficulty);
 
         /**
+         * Processes non-orientable RHS into a proper rule.
+         */
+         void resolve_nonorientable_rule(const PolynomialFactory& factory);
+
+        /**
+         * Check if LHS is (anti)-Hermitian, and if so, split the rule in two, possibly returning a second polynomial.
+         */
+        void split_regular_rule(const PolynomialFactory& factory);
+
+        /**
          * Re-orient a Polynomial of the form a X + b X* + P == 0, where P contains neither X or X* and |a| != |b|.
          * @return Equivalent polynomial of the form X + Q == 0, where Q is a polynomial containing neither X or X*.
          */
         [[nodiscard]] static Polynomial reorient_polynomial(const PolynomialFactory& factory, Polynomial input_rule);
+
 
     public:
         friend class MomentSubstitutionRulebook;

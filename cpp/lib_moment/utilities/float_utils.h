@@ -20,7 +20,7 @@ namespace Moment {
      */
     template<std::floating_point float_t>
     [[nodiscard]] constexpr inline float_t abs(float_t val) noexcept {
-        return (val > 0) ? val : -val;
+        return (val >= 0) ? val : -val;
     }
 
     /**
