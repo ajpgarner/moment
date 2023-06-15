@@ -49,9 +49,6 @@ namespace Moment::mex::functions {
         /** The name to give the rules object (if any) */
         std::string human_readable_name;
 
-        /** The 'precision' limit, such that if a value is less than eps*mult it is treated as zero. */
-        double zero_tolerance = 1.0;
-
         /** How the input to the create-rules command is supplied */
         enum class InputMode {
             Unknown,
@@ -76,15 +73,6 @@ namespace Moment::mex::functions {
             /** Provide array of string representations of rules in rulebook. */
             String
         } output_mode = OutputMode::IndexOnly;
-
-        /** How should symbol IDs be ordered */
-        enum class SymbolOrdering {
-            Unknown,
-            /** Sort symbols by their ID (i.e. order of creation) */
-            ById,
-            /** Sort symbols by hash of their associated operators */
-            ByOperatorHash
-        } ordering = SymbolOrdering::ById;
 
         /** Direct substitutions, if specified. */
         std::map<symbol_name_t, std::complex<double>> sub_list;
@@ -128,10 +116,6 @@ namespace Moment::mex::functions {
         void operator()(IOArgumentRange output, CreateMomentRulesParams &input) override;
 
     private:
-        /** Get appropriate Polynomial factory */
-        [[nodiscard]] std::unique_ptr<PolynomialFactory>
-        make_factory(SymbolTable &symbols, const CreateMomentRulesParams &input) const;
-
         [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>
         create_rulebook(MatrixSystem &system, CreateMomentRulesParams &input) const;
 

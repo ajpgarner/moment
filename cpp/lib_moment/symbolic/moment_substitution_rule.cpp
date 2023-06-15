@@ -7,6 +7,7 @@
 
 #include "moment_substitution_rule.h"
 
+#include "polynomial_factory.h"
 #include "symbol_table.h"
 #include "symbol_tools.h"
 

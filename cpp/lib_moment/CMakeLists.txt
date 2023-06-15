@@ -68,6 +68,7 @@ add_library(lib_moment
         symbolic/monomial.cpp
         symbolic/order_symbols_by_hash.cpp
         symbolic/polynomial.cpp
+        symbolic/polynomial_factory.cpp
         symbolic/polynomial_to_basis.cpp
         symbolic/symbol.cpp
         symbolic/symbol_table.cpp

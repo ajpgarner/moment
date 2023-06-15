@@ -6,9 +6,6 @@ classdef MomentRuleBook < handle
 properties(GetAccess = public, SetAccess = protected)
     Scenario    % Associated scenario.
     RuleBookId  % ID of the rulebook within the matrix system.
-    
-    % Multiplier of epsilon, before coefficients are treated as zero.
-    ZeroTolerance
 end
 
 properties(Dependent, GetAccess = public, SetAccess = private)
@@ -34,30 +31,20 @@ end
 
 %% Constructor
 methods
-    function obj = MomentRuleBook(scenario, label, tolerance)
+    function obj = MomentRuleBook(scenario, label)
     % MOMENTRULEBOOK Creates a moment substitution rule book.
         arguments
             scenario (1,1) Abstract.Scenario
             label (1,1) string = ""
-            tolerance (1,1) double {mustBeNonnegative} = 1.0 
         end    
         obj.Scenario = scenario;
 
         if nargin == 1
             label = "";
-            tolerance = 1.0;
         end
 
         % Extra arguments to MTK
-        rb_args = cell(1,0);
-        if tolerance ~= 1.0 
-            obj.ZeroTolerance = double(tolerance);
-            rb_args{end+1} = "tolerance";
-            rb_args{end+1} = double(tolerance);
-        else
-            obj.ZeroTolerance = 1.0;
-        end
-        
+        rb_args = cell(1,0);       
         if ~isempty(label) && (label ~= "")
             rb_args{end+1} = "label";
             rb_args{end+1} = label;
@@ -133,11 +120,11 @@ methods
         polynomials (:,1) Algebraic.Polynomial
         new_symbols (1,1) logical = true
     end
-        raw_rules = cell(length(polynomials), 1);        
+        raw_rules = cell(length(polynomials), 1);
         for idx=1:length(polynomials)
             raw_rules{idx} = polynomials(idx).OperatorCell;
-        end        
-        obj.AddFromOperatorSequences(raw_rules, new_symbols);    
+        end
+        obj.AddFromOperatorSequences(raw_rules, new_symbols);
     end
     
     function AddScalarSubstitution(obj, symbol_ids, values)
@@ -180,10 +167,7 @@ methods
 
         % Extra arguments
         rb_args = {'input', 'list', 'rulebook', obj.RuleBookId};
-        if obj.ZeroTolerance ~= 1.0 
-            rb_args{end+1} = "tolerance";
-            rb_args{end+1} = double(obj.ZeroTolerance);
-        end
+
        
         % Import rules into rulebook
         rule_id = mtk('create_moment_rules', rb_args{:}, ...
@@ -214,10 +198,6 @@ methods
         extra_params = {'input', 'sequences', 'rulebook', obj.RuleBookId};
         if ~new_symbols
             extra_params{end+1} = 'no_new_symbols';
-        end
-        if obj.ZeroTolerance ~= 1.0 
-            extra_params{end+1} = "tolerance";
-            extra_params{end+1} = double(obj.ZeroTolerance);
         end
 
         % Construct rulebook, and import rules

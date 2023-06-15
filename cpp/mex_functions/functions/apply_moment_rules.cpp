@@ -113,7 +113,7 @@ namespace Moment::mex::functions {
                 throw_error(this->matlabEngine, errors::bad_param, errSS.str());
             }
         }();
-        const auto& factory = rulebook.Factory();
+        const auto& factory = rulebook.factory;
 
         // Convert input to polynomial.
         Polynomial polynomial = raw_data_to_polynomial(this->matlabEngine, factory, input.raw_polynomial);

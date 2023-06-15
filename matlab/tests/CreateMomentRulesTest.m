@@ -153,11 +153,11 @@ classdef CreateMomentRulesTest < MTKTestBase
         end
         
          function OpSeq_NewSymbols_Simple(testCase)            
-            ref_id = mtk('locality_matrix_system', 2, 2, 2);
+            ref_id = mtk('algebraic_matrix_system', 2, 'tolerance', 10);
             old_symbols = mtk('symbol_table', ref_id);
             testCase.verifyEqual(length(old_symbols), 2);
             rules_index = mtk('create_moment_rules', ref_id, ...
-                              'input', 'sequences', 'order', 'hash', ...
+                              'input', 'sequences', ...
                               {{{[2], -1.0}, {[1], 0.5}}});
             rules = mtk('create_moment_rules', 'info', ...
                        'output', 'symbols', ref_id, rules_index);
@@ -168,7 +168,7 @@ classdef CreateMomentRulesTest < MTKTestBase
             testCase.verifyEqual(rules_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(2), {{uint64(3), 0.5}}}}); % Rule is A1 -> 0.5 A0
+                {{uint64(2), {{uint64(3), 0.5}}}}); % Rule is Y -> 0.5 X
             
          end
         
@@ -207,12 +207,11 @@ classdef CreateMomentRulesTest < MTKTestBase
                  {uint64(3), {{uint64(1), 0.4}}}});
         end
                  
-        function WithLabelAndTolerance(testCase)            
+        function WithLabel(testCase)            
             ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
             rules_index = mtk('create_moment_rules', 'input', 'symbols',...
                               'label', "Named rulebook", ...
-                              'tolerance', 500, ...
                                ref_id, {{{2, -1.0}, {1, 0.5}}});
             rules = mtk('create_moment_rules', 'info', ...
                        'output', 'symbols', ref_id, rules_index);                                                                       

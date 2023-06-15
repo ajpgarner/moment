@@ -99,10 +99,10 @@ namespace Moment::mex::functions  {
             std::stringstream ss;
             ss << str_result << "\n";
             if (in_A_not_B != nullptr) {
-                ss << "Only in " << rulebook_A.name() << ": " << in_A_not_B->as_polynomial(rulebook_A.Factory()) << "\n";
+                ss << "Only in " << rulebook_A.name() << ": " << in_A_not_B->as_polynomial(rulebook_A.factory) << "\n";
             }
             if (in_B_not_A != nullptr) {
-                ss << "Only in " << rulebook_B.name() << ": " << in_B_not_A->as_polynomial(rulebook_B.Factory()) << "\n";
+                ss << "Only in " << rulebook_B.name() << ": " << in_B_not_A->as_polynomial(rulebook_B.factory) << "\n";
             }
             print_to_console(this->matlabEngine, ss.str());
         }

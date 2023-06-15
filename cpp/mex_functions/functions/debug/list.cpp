@@ -12,6 +12,7 @@
 #include "matrix/properties/matrix_properties.h"
 
 #include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
 #include "utilities/read_as_scalar.h"
@@ -35,6 +36,8 @@ namespace Moment::mex::functions {
             os << matrix_count << " " << (matrix_count != 1 ? "matrices" : "matrix") << ", ";
             const size_t rb_count = ms.rulebook_count();
             os << rb_count <<  " " << (matrix_count != 1 ? "rulebooks" : "rulebook") << ".";
+
+            os << "\nPOLYNOMIAL FACTORY:\n " << ms.polynomial_factory();
 
             if (matrix_count > 0) {
                 os << "\nMATRICES:";

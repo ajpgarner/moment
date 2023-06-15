@@ -124,35 +124,6 @@ namespace Moment::mex::functions {
             this->merge_into_existing = false;
         }
 
-        // Ascertain symbol ordering
-        auto order_param_iter = this->params.find(u"order");
-        if (order_param_iter != this->params.cend()) {
-            try {
-                switch (read_choice("Parameter 'order'", {"id", "hash"}, order_param_iter->second)) {
-                    case 0:
-                        this->ordering = SymbolOrdering::ById;
-                        break;
-                    case 1:
-                        this->ordering = SymbolOrdering::ByOperatorHash;
-                        break;
-                    default:
-                        this->ordering = SymbolOrdering::Unknown;
-                        break;
-                }
-            } catch (const Moment::mex::errors::invalid_choice& ice) {
-                throw_error(this->matlabEngine, errors::bad_param, ice.what());
-            }
-        }
-
-        // Do we have zero-tolerance set?
-        auto tolerance_param_iter = this->params.find(u"tolerance");
-        if (tolerance_param_iter != this->params.cend()) {
-            this->zero_tolerance = read_as_double(this->matlabEngine, tolerance_param_iter->second);
-            if (this->zero_tolerance < 0) {
-                throw_error(this->matlabEngine, errors::bad_param, "Tolerance must be non-negative value.");
-            }
-        }
-
         // Do we automatically add rules arising from factorization?
         if (this->flags.contains(u"no_factors")) {
             this->infer_from_factors = false;
@@ -308,9 +279,7 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"output");
 
         this->param_names.emplace(u"label");
-        this->param_names.emplace(u"order");
         this->param_names.emplace(u"rulebook");
-        this->param_names.emplace(u"tolerance");
 
         this->flag_names.emplace(u"no_factors");
         this->flag_names.emplace(u"no_new_symbols");
@@ -404,20 +373,6 @@ namespace Moment::mex::functions {
         }
     }
 
-
-    std::unique_ptr<PolynomialFactory>
-    CreateMomentRules::make_factory(SymbolTable& symbols, const CreateMomentRulesParams &input) const {
-        switch (input.ordering) {
-            case CreateMomentRulesParams::SymbolOrdering::ById:
-                return std::make_unique<ByIDPolynomialFactory>(symbols, input.zero_tolerance);
-            case CreateMomentRulesParams::SymbolOrdering::ByOperatorHash:
-                return std::make_unique<ByHashPolynomialFactory>(symbols, input.zero_tolerance, symbols);
-            default:
-            case CreateMomentRulesParams::SymbolOrdering::Unknown:
-                throw_error(this->matlabEngine, errors::internal_error, "Unknown symbol ordering type.");
-        }
-    }
-
     std::unique_ptr<MomentSubstitutionRulebook>
     CreateMomentRules::create_rulebook(MatrixSystem& system, CreateMomentRulesParams& input) const {
         std::unique_ptr<MomentSubstitutionRulebook> book;
@@ -467,7 +422,7 @@ namespace Moment::mex::functions {
             ++idx;
         }
         // Make empty rulebook
-        auto output = std::make_unique<MomentSubstitutionRulebook>(symbols, this->make_factory(symbols, input));
+        auto output = std::make_unique<MomentSubstitutionRulebook>(system);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }
@@ -502,17 +457,16 @@ namespace Moment::mex::functions {
         }
 
         // Construct empty ruleset with ordering
-        auto output = std::make_unique<MomentSubstitutionRulebook>(symbols, this->make_factory(symbols, input));
+        auto output = std::make_unique<MomentSubstitutionRulebook>(system);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }
-        const auto& factory = output->Factory();
 
         // Read rules
         std::vector<Polynomial> raw_polynomials;
         raw_polynomials.reserve(input.raw_symbol_polynomials.size());
         for (const auto& raw_rule : input.raw_symbol_polynomials) {
-            raw_polynomials.emplace_back(raw_data_to_polynomial(this->matlabEngine, factory, raw_rule));
+            raw_polynomials.emplace_back(raw_data_to_polynomial(this->matlabEngine, output->factory, raw_rule));
         }
 
         // Import rules, and compile
@@ -534,17 +488,16 @@ namespace Moment::mex::functions {
         }
 
         //Make empty rulebook and get factory...
-        auto output = std::make_unique<MomentSubstitutionRulebook>(symbols, this->make_factory(symbols, input));
+        auto output = std::make_unique<MomentSubstitutionRulebook>(system);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }
-        auto& factory = output->Factory();
 
         // Import rules
         std::vector<Polynomial> raw_polynomials;
         raw_polynomials.reserve(input.raw_op_seq_polynomials.size());
         for (auto& raw_rule : input.raw_op_seq_polynomials) {
-            raw_polynomials.emplace_back(raw_rule->to_polynomial(factory));
+            raw_polynomials.emplace_back(raw_rule->to_polynomial(output->factory));
         }
         output->add_raw_rules(std::move(raw_polynomials));
 
@@ -564,17 +517,16 @@ namespace Moment::mex::functions {
         }
 
         //Make empty rulebook and get factory...
-        auto output = std::make_unique<MomentSubstitutionRulebook>(symbols, this->make_factory(symbols, input));
+        auto output = std::make_unique<MomentSubstitutionRulebook>(system);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }
-        auto& factory = output->Factory();
-
+        
         // Import rules
         std::vector<Polynomial> raw_polynomials;
         raw_polynomials.reserve(input.raw_op_seq_polynomials.size());
         for (auto& raw_rule : input.raw_op_seq_polynomials) {
-            raw_polynomials.emplace_back(raw_rule->to_polynomial(factory));
+            raw_polynomials.emplace_back(raw_rule->to_polynomial(output->factory));
         }
         output->add_raw_rules(std::move(raw_polynomials));
 

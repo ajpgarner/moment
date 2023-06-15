@@ -8,6 +8,7 @@
 #include "gtest/gtest.h"
 
 #include "symbolic/polynomial.h"
+#include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
 #include "scenarios/algebraic/algebraic_context.h"

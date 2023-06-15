@@ -22,7 +22,12 @@ classdef AlgebraicScenario < Abstract.Scenario
         IsNormal      % True if fundamental operators are Normal.
         Interleave    % True if operators are ordered next to their conjugates.
         RuleBook      % Manages substitution rules for operator strings.
-        OperatorNames % Names of the fundamental operators.
+        OperatorNames % Names of the fundamental operators.        
+    end
+    
+    properties(Access=public)        
+        % Multiplier of epsilon (~, before coefficients are treated as zero.
+        ZeroTolerance
     end
     
     properties(Dependent, GetAccess = public)
@@ -86,10 +91,53 @@ classdef AlgebraicScenario < Abstract.Scenario
             obj.IsHermitian = logical(is_hermitian);
             obj.Interleave = logical(interleave);
             obj.IsNormal = logical(is_normal);
-            obj.RuleBook = Algebraic.RuleBook(operators, rules, ...
-                                              obj.IsHermitian, ...
-                                              obj.Interleave, ...
-                                              is_normal);
+            
+            if isa(rules, 'Algebraic.RuleBook')
+                % Check for consistency
+                assert(rules.Hermitian == obj.IsHermitian);
+                assert(rules.Interleave == obj.Interleave);
+                assert(rules.Normal == obj.IsNormal);
+                assert(rules.MaxOperators == obj.OperatorCount);
+      
+                % Copy construct
+                obj.RuleBook = Algebraic.RuleBook(rules);
+            else            
+                % Construct new
+                obj.RuleBook = Algebraic.RuleBook(operators, rules, ...
+                                                  obj.IsHermitian, ...
+                                                  obj.Interleave, ...
+                                                  is_normal);
+            end
+            obj.ZeroTolerance = 1.0;
+        end
+        
+        function set.ZeroTolerance(obj, value)
+            arguments
+                obj (1,1) AlgebraicScenario
+                value (1,1) double
+            end
+            obj.errorIfLocked();
+            if value < 0
+                error("ZeroTolerance must be non-negative.");
+            end
+            obj.ZeroTolerance = value;            
+        end
+        
+        function val = Clone(obj)
+        % CLONE Construct deep copy of scenario (without associated matrices).
+            
+            % Named or by number operators
+            ops_arg = obj.OperatorCount;
+            if (~isempty(obj.OperatorNames))
+                ops_arg = obj.OperatorNames;
+            end
+            
+            % Make copy
+            val = AlgebraicScenario(ops_arg, obj.RuleBook, ...
+                                    obj.IsHermitian, obj.Interleave, ...
+                                    obj.IsNormal);
+            val.ZeroTolerance = obj.ZeroTolerance;
+            
         end
     end
     
@@ -259,6 +307,11 @@ classdef AlgebraicScenario < Abstract.Scenario
                 if obj.IsNormal
                     nams_args{end+1} = 'normal';
                 end
+            end
+            
+            if obj.ZeroTolerance ~= 1.0
+                nams_args{end+1} = 'tolerance';
+                nams_args{end+1} = double(obj.ZeroTolerance);
             end
             
             % Call for matrix system

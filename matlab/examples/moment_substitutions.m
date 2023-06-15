@@ -11,6 +11,7 @@ mm_level = 1;
 %% Create setting with three projectors, get operators
 setting = AlgebraicScenario(["x", "y", "z"], ...
     {{[1, 1], 1}, {[2, 2], 2}, {[3, 3], 3}}, true);
+setting.ZeroTolerance = 10;
 [x, y, z] = setting.getAll();
 
 %% Create default moment matrix

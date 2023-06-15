@@ -9,6 +9,7 @@
 
 #include "scenarios/context.h"
 #include "symbolic/symbol_table.h"
+#include "symbolic/polynomial_factory.h"
 
 #include "error_codes.h"
 

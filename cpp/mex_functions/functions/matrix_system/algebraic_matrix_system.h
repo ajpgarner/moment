@@ -27,6 +27,10 @@ namespace Moment::mex::functions {
             bool normal_operators = true;
             bool commutative = false;
 
+
+            /** The 'precision' limit, such that if a value is less than eps * [this value] it is treated as zero. */
+            double zero_tolerance = 1.0;
+
             std::vector<RawMonomialRule> rules{};
 
             std::unique_ptr<Algebraic::AlgebraicPrecontext> apc;

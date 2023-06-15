@@ -22,6 +22,7 @@
 namespace Moment {
 
     class Context;
+    class PolynomialFactory;
     class OperatorSequenceGenerator;
     class SymbolTable;
 
@@ -52,6 +53,9 @@ namespace Moment {
 
         /** Map from symbols to operator sequences, and real/imaginary indices */
         std::unique_ptr<SymbolTable> symbol_table;
+
+        /** Factory object for constructing polynomials */
+        std::unique_ptr<PolynomialFactory> poly_factory;
 
         /** List of matrices in the system. */
         std::vector<std::unique_ptr<Matrix>> matrices;
@@ -289,8 +293,21 @@ namespace Moment {
             return std::unique_lock{this->rwMutex};
         }
 
+        /**
+         * Gets the polynomial factory for this system.
+         */
+        [[nodiscard]] const PolynomialFactory& polynomial_factory() const noexcept {
+            assert(this->poly_factory);
+            return *this->poly_factory;
+        }
 
     protected:
+        /**
+         * Replace polynomial factory with new factory.
+         * Undefined behaviour if called after construction of matrix system.
+         */
+        void replace_polynomial_factory(std::unique_ptr<PolynomialFactory> new_factory) noexcept;
+
         /**
          * Overrideable method, called to generate a moment matrix.
          * @param level The moment matrix level.

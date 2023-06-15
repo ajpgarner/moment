@@ -60,7 +60,15 @@ namespace Moment {
 
         using raw_complex_map_t = std::map<symbol_name_t, std::complex<double>>;
 
+        /**
+         * Associated symbol table.
+         */
         const SymbolTable& symbols;
+
+        /**
+         * Associated polynomial factory.
+         */
+        const PolynomialFactory& factory;
 
     private:
         std::string human_readable_name;
@@ -69,8 +77,6 @@ namespace Moment {
 
         std::vector<Polynomial> raw_rules;
 
-        std::unique_ptr<PolynomialFactory> factory;
-
         bool monomial_rules = true;
 
         bool hermitian_rules = true;
@@ -78,10 +84,13 @@ namespace Moment {
         mutable std::atomic<size_t> usages = 0;
 
     public:
-        explicit MomentSubstitutionRulebook(const SymbolTable& table)
-            : MomentSubstitutionRulebook(table, std::make_unique<ByIDPolynomialFactory>(table)) { }
+//        explicit MomentSubstitutionRulebook(const SymbolTable& table)
+//            : MomentSubstitutionRulebook(table, std::make_unique<ByIDPolynomialFactory>(table)) { }
 
-        explicit MomentSubstitutionRulebook(const SymbolTable& table, std::unique_ptr<PolynomialFactory> factory);
+        //explicit MomentSubstitutionRulebook(const SymbolTable& table, std::unique_ptr<PolynomialFactory> factory);
+
+        explicit MomentSubstitutionRulebook(const MatrixSystem& system);
+
         /**
          * Add substitution rules in the form of polynomials equal to zero.
          * Completion is deferred until complete() is called.
@@ -221,11 +230,6 @@ namespace Moment {
          * True if there are pending rules to complete
          */
         [[nodiscard]] bool pending_rules() const noexcept { return !this->raw_rules.empty(); }
-
-        /**
-         * Return reference to associated PolynomialFactory.
-         */
-        [[nodiscard]] const PolynomialFactory& Factory() const noexcept { return *this->factory; }
 
         /**
          * True if rulebook has been applied to at least one matrix.

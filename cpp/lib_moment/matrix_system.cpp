@@ -11,7 +11,8 @@
 #include "matrix/substituted_matrix.h"
 
 #include "symbolic/moment_substitution_rulebook.h"
-#include "symbolic/order_symbols_by_hash.h"
+#include "symbolic/polynomial.h"
+#include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
 #include "scenarios/context.h"
@@ -31,6 +32,8 @@ namespace Moment {
 
     MatrixSystem::MatrixSystem(std::unique_ptr<class Context> ctxtIn)
         : context{std::move(ctxtIn)}, symbol_table{std::make_unique<SymbolTable>(assertContext(context))} {
+
+        this->poly_factory = std::make_unique<ByIDPolynomialFactory>(*this->symbol_table, 1.0);
     }
 
     MatrixSystem::~MatrixSystem() noexcept = default;
@@ -332,6 +335,13 @@ namespace Moment {
             throw errors::missing_component("Rulebook at supplied index was missing.");
         }
         return *this->rulebooks[index];
+    }
+
+    void MatrixSystem::replace_polynomial_factory(std::unique_ptr<PolynomialFactory> new_factory) noexcept {
+        assert(new_factory);
+        assert(this->matrices.empty());
+        assert(this->rulebooks.empty());
+        this->poly_factory = std::move(new_factory);
     }
 
 }

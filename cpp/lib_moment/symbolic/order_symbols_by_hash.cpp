@@ -7,6 +7,8 @@
 
 #include "order_symbols_by_hash.h"
 
+#include "symbol_table.h"
+
 namespace Moment {
 
     bool CompareByOpHash::operator()(const Monomial& lhs, const Monomial& rhs) const noexcept {

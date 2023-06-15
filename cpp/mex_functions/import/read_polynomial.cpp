@@ -9,6 +9,7 @@
 
 #include "error_codes.h"
 
+#include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
 #include "utilities/read_as_scalar.h"

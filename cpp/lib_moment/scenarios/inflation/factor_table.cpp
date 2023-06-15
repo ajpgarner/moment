@@ -9,7 +9,9 @@
 #include "inflation_context.h"
 
 #include "matrix/monomial_matrix.h"
+
 #include "symbolic/symbol_table.h"
+#include "symbolic/polynomial_factory.h"
 
 #include <algorithm>
 #include <sstream>

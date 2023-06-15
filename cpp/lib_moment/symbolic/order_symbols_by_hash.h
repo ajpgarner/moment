@@ -7,8 +7,7 @@
 
 #pragma once
 
-#include "polynomial.h"
-#include "symbol_table.h"
+#include "polynomial_factory.h"
 
 namespace Moment {
 
@@ -26,32 +25,13 @@ namespace Moment {
         [[nodiscard]] bool operator()(const Monomial& lhs, const Monomial& rhs) const noexcept;
     };
 
+
+    struct ByHashPolynomialFactory_Name {
+        constexpr static char name[] = "Sort by hash";
+    };
+
     /**
      * Factory, construct polynomial using op-hash ordering.
      */
-     using ByHashPolynomialFactory = PolynomialFactoryImpl<CompareByOpHash>;
-
-//    class ByHashPolynomialFactory : public PolynomialFactory {
-//    private:
-//        CompareByOpHash comparator;
-//
-//    public:
-//        explicit ByHashPolynomialFactory(const SymbolTable& symbols, double zero_tolerance = 1.0)
-//            : PolynomialFactory{symbols, zero_tolerance}, comparator{symbols} { }
-//
-//        [[nodiscard]] Polynomial operator()(Polynomial::storage_t&& data) const override {
-//            return Polynomial{std::move(data), this->symbols, this->comparator, this->zero_tolerance};
-//        }
-//
-//        void append(Polynomial &lhs, const Polynomial &rhs) const override {
-//            lhs.append(rhs, this->comparator, this->zero_tolerance);
-//        }
-//
-//        [[nodiscard]] bool less(const Monomial &lhs, const Monomial &rhs) const override {
-//            return this->comparator(lhs, rhs);
-//        }
-//
-//    };
-
-
+     using ByHashPolynomialFactory = PolynomialFactoryImpl<CompareByOpHash, ByHashPolynomialFactory_Name>;
 }

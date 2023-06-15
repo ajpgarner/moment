@@ -34,7 +34,7 @@ namespace Moment::mex {
         auto output = factory.createCellArray({rules.size(), 1});
         auto write_iter = output.begin();
         for (const auto& rule : rules) {
-            auto polynomial = rule.second.as_polynomial(rules.Factory());
+            auto polynomial = rule.second.as_polynomial(rules.factory);
             *write_iter = this->combo_exporter.sequences(polynomial);
             ++write_iter;
         }

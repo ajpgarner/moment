@@ -5,6 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "polynomial.h"
+#include "polynomial_factory.h"
 #include "symbol_table.h"
 
 #include "utilities/float_utils.h"
@@ -444,7 +445,6 @@ namespace Moment {
 
                 ++iter;
             }
-
 
             if (!approximately_zero(output_factor, factory.zero_tolerance)) {
                 output_storage.emplace_back(id, output_factor, false);

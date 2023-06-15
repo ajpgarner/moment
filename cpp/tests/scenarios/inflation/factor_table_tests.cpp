@@ -7,6 +7,7 @@
 
 #include "gtest/gtest.h"
 
+#include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
 #include "scenarios/inflation/canonical_observables.h"

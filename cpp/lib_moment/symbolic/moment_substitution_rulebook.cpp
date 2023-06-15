@@ -7,6 +7,7 @@
 
 #include "moment_substitution_rulebook.h"
 
+#include "polynomial_factory.h"
 #include "polynomial_ordering.h"
 #include "symbol_table.h"
 
@@ -30,15 +31,8 @@ namespace Moment {
         }
     }
 
-    MomentSubstitutionRulebook::MomentSubstitutionRulebook(const SymbolTable &symbolTable,
-                                                           std::unique_ptr<PolynomialFactory> factoryPtr)
-        : symbols{symbolTable}, factory{std::move(factoryPtr)}  {
-        // Cannot provide null-ptr to factory.
-        assert(factory);
-
-        // Symbol table must match factory's symbol table.
-        assert(&symbolTable == &factory->symbols);
-
+    MomentSubstitutionRulebook::MomentSubstitutionRulebook(const MatrixSystem& matrix_system)
+        : symbols{matrix_system.Symbols()}, factory{matrix_system.polynomial_factory()}  {
     }
 
     void MomentSubstitutionRulebook::add_raw_rules(std::vector<Polynomial> &&raw) {
@@ -108,7 +102,7 @@ namespace Moment {
 
         // If rule maps Hermitian symbol to non-Hermitian combo, rulebook becomes non-Hermitian.
         if (this->symbols[msr.LHS()].is_hermitian()) {
-            if (!msr.RHS().is_hermitian(this->symbols, this->factory->zero_tolerance)) {
+            if (!msr.RHS().is_hermitian(this->symbols, this->factory.zero_tolerance)) {
                 this->hermitian_rules = false;
             }
         }
@@ -130,7 +124,7 @@ namespace Moment {
         }
 
         // First, sort raw rules by lowest leading monomial, tie-breaking with shorter strings first.
-        std::sort(this->raw_rules.begin(), this->raw_rules.end(), PolynomialOrdering(*this->factory));
+        std::sort(this->raw_rules.begin(), this->raw_rules.end(), PolynomialOrdering(this->factory));
 
         size_t rules_added = 0;
         size_t raw_rule_index = 0;
@@ -141,7 +135,7 @@ namespace Moment {
             Polynomial reduced_rule{this->reduce(std::move(this->raw_rules[raw_rule_index]))};
 
             // Second, attempt to orient into rule
-            MomentSubstitutionRule msr{*this->factory, std::move(reduced_rule)};
+            MomentSubstitutionRule msr{this->factory, std::move(reduced_rule)};
 
             // If rule has been reduced to a trivial expression, do not add.
             if (msr.is_trivial()) {
@@ -175,7 +169,7 @@ namespace Moment {
                 assert(msr.is_partial());
 
                 // Need to combine manually.
-                update_iter->second.merge_partial(*this->factory, std::move(msr));
+                update_iter->second.merge_partial(this->factory, std::move(msr));
 
             } else {
                 // Otherwise, add rule
@@ -209,7 +203,7 @@ namespace Moment {
         // Check if completed rule-set is strictly Hermitian
         this->hermitian_rules = std::all_of(this->rules.cbegin(), this->rules.cend(), [&](const auto& pair) {
             if (this->symbols[pair.first].is_hermitian()) {
-                return pair.second.RHS().is_hermitian(this->symbols, this->factory->zero_tolerance);
+                return pair.second.RHS().is_hermitian(this->symbols, this->factory.zero_tolerance);
             }
             // MonomialRules on non-Hermitian variables can do as they please.
             return true;
@@ -251,7 +245,7 @@ namespace Moment {
         // Translate any processed rules into pending rules
         this->raw_rules.reserve(this->raw_rules.size() + other.rules.size());
         for (auto [id, rule] : other.rules) {
-            this->raw_rules.emplace_back(rule.as_polynomial(*this->factory));
+            this->raw_rules.emplace_back(rule.as_polynomial(this->factory));
         }
 
         // Finally, do completion in exception-guaranteed manner. Slow, but prevents bad rules from breaking everything.
@@ -336,10 +330,10 @@ namespace Moment {
                 if (product.empty()) {
                     break;
                 }
-                product = factors.try_multiply(*this->factory, product, get_as_poly(idx));
+                product = factors.try_multiply(this->factory, product, get_as_poly(idx));
             }
 
-            this->factory->append(product, {Monomial{symbol.id, -1.0, false}});
+            this->factory.append(product, {Monomial{symbol.id, -1.0, false}});
 
             // Check if this infers anything new?
             new_rules.emplace_back(std::move(product));
@@ -377,7 +371,7 @@ namespace Moment {
 
         // If match made, simplify polynomial and replace.
         if (ever_matched) {
-            polynomial = (*this->factory)(std::move(potential_output));
+            polynomial = (this->factory)(std::move(potential_output));
         }
         return ever_matched;
     }
@@ -392,7 +386,7 @@ namespace Moment {
         // Otherwise, verify rule results in monomial
         const auto& rule = rule_iter->second;
         if (!rule.RHS().is_monomial()) {
-            auto wrong_answer = rule.reduce(*this->factory, expr);
+            auto wrong_answer = rule.reduce(this->factory, expr);
             throw errors::not_monomial{expr.as_string(), wrong_answer.as_string()};
         }
 
@@ -407,7 +401,7 @@ namespace Moment {
         }
 
         // Otherwise, make substitution
-        return rule_iter->second.reduce(*this->factory, expr);
+        return rule_iter->second.reduce(this->factory, expr);
     }
 
     std::unique_ptr<Matrix> MomentSubstitutionRulebook::create_substituted_matrix(SymbolTable& wSymbols,
@@ -445,7 +439,7 @@ namespace Moment {
 
         // Otherwise, each rule in turn
         for (const auto& [rhs_id, rhs_rule] : rhs.rules) {
-            auto rhs_poly = rhs_rule.as_polynomial(this->Factory());
+            auto rhs_poly = rhs_rule.as_polynomial(this->factory);
 
             this->reduce_in_place(rhs_poly);
             if (!rhs_poly.empty()) {

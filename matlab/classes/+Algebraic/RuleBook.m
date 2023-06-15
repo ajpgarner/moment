@@ -1,5 +1,5 @@
 classdef RuleBook < handle
-    %RULEBOOK Collection of algebraic rules.
+    %RULEBOOK Collection of algebraic operator rules.
     %
     % See also: AlgebraicScenario, Algebraic.Rule
    
@@ -59,7 +59,7 @@ classdef RuleBook < handle
         % See also: ALGEBRAIC.RULE
             arguments
                 operators
-                initialRules (1,:)
+                initialRules (1,:) = cell.empty(1,0);
                 is_hermitian (1,1) logical = true
                 interleave (1,1) logical = false
                 is_normal (1,1) logical = is_hermitian
