@@ -31,6 +31,20 @@ namespace Moment {
         };
     }
 
+    Polynomial::Polynomial(const Monomial& expr, double zero_tolerance) {
+        if ((0 != expr.id) && (!approximately_zero(expr.factor, zero_tolerance))) {
+            this->data.emplace_back(expr);
+        }
+    }
+
+    Polynomial::Polynomial(const std::map<symbol_name_t, double> &input) {
+        data.reserve(input.size());
+        for (const auto& pair : input) {
+            data.emplace_back(pair.first, pair.second);
+        }
+    }
+
+
     void Polynomial::remove_duplicates(Polynomial::storage_t &data) {
         // Iterate forwards, looking for duplicates
         LexEqComparator lex_eq{};
@@ -83,16 +97,9 @@ namespace Moment {
         data.erase(write_iter, last_iter);
     }
 
-    Polynomial::Polynomial(const Monomial& expr) {
-        if (0 != expr.id) {
-            this->data.emplace_back(expr);
-        }
-    }
-
-    Polynomial::Polynomial(const std::map<symbol_name_t, double> &input) {
-        data.reserve(input.size());
-        for (const auto& pair : input) {
-            data.emplace_back(pair.first, pair.second);
+    void Polynomial::real_or_imaginary_if_close(double zero_tolerance) noexcept {
+        for (auto& elem : this->data) {
+            Moment::real_or_imaginary_if_close(elem.factor);
         }
     }
 

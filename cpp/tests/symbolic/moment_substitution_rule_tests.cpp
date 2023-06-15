@@ -62,7 +62,7 @@ namespace Moment::Tests {
                       MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule) << label;
 
             MomentSubstitutionRule re_rule{factory, std::move(poly_rep)};
-            expect_matching_rule(label, msr, re_rule, factory.zero_tolerance);
+            expect_matching_rule(label, re_rule, msr, factory.zero_tolerance);
         }
     }
 

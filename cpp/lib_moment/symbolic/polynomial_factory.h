@@ -29,6 +29,11 @@ namespace Moment {
 
         virtual ~PolynomialFactory() noexcept = default;
 
+        /**
+         * Construct a Polynomial using the factory settings.
+         * @param data The data to synthesize into a polynomial.
+         * @return Newly constructed Polynomial.
+         */
         [[nodiscard]] virtual Polynomial operator()(Polynomial::storage_t&& data) const = 0;
 
         [[nodiscard]] virtual bool less(const Monomial& lhs, const Monomial& rhs) const = 0;
@@ -75,6 +80,7 @@ namespace Moment {
         }
 
         [[nodiscard]] Polynomial operator()(Polynomial::storage_t &&data) const override {
+
             return Polynomial{std::move(data), this->symbols,  this->comparator, this->zero_tolerance};
         }
 

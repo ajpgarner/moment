@@ -372,6 +372,7 @@ namespace Moment {
         // If match made, simplify polynomial and replace.
         if (ever_matched) {
             polynomial = (this->factory)(std::move(potential_output));
+            polynomial.real_or_imaginary_if_close(this->factory.zero_tolerance);
         }
         return ever_matched;
     }

@@ -111,4 +111,18 @@ namespace Moment {
                                                      const double eps_multiplier = 1.0) {
         return approximately_zero(x - y, eps_multiplier);
     }
+
+
+    /**
+     * Set complex number to be purely real (resp. purely imaginary) if very close.
+     */
+    template<std::floating_point float_t>
+    void real_or_imaginary_if_close(std::complex<float_t>& value,
+                                    const float_t eps_multiplier = static_cast<float_t>(1.0)) {
+        if (approximately_zero(value.real(), eps_multiplier)) {
+            value.real(0.0);
+        } else if (approximately_zero(value.imag(), eps_multiplier)) {
+            value.imag(0.0);
+        }
+    }
 }

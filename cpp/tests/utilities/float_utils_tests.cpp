@@ -106,4 +106,33 @@ namespace Moment::Tests {
         EXPECT_TRUE(approximately_equal(w, w));
     }
 
+    TEST(Utilities_FloatUtils, RealOrImaginaryIfClose) {
+        using namespace std::complex_literals;
+
+        std::complex<double> re{10, 1e-17};
+        EXPECT_NE(re, std::complex(10.0, 0.0));
+        real_or_imaginary_if_close(re);
+        EXPECT_EQ(re, std::complex(10.0, 0.0));
+
+        std::complex<double> minus_re{-10.0, 1e-17};
+        EXPECT_NE(minus_re, std::complex(-10.0, 0.0));
+        real_or_imaginary_if_close(minus_re);
+        EXPECT_EQ(minus_re, std::complex(-10.0, 0.0));
+
+        std::complex<double> im{1e-17, 10};
+        EXPECT_NE(im, std::complex(0.0, 10.0));
+        real_or_imaginary_if_close(im);
+        EXPECT_EQ(im, std::complex(0.0, 10.0));
+
+        std::complex<double> minus_im{1e-17, -10.0};
+        EXPECT_NE(minus_im, std::complex(0.0, -10.0));
+        real_or_imaginary_if_close(minus_im);
+        EXPECT_EQ(minus_im, std::complex(0.0, -10.0));
+
+        std::complex<double> complex{0.5, 0.5};
+        real_or_imaginary_if_close(complex);
+        EXPECT_EQ(complex, std::complex(0.5, 0.5));
+
+
+    }
 }

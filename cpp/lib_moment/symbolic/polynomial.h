@@ -37,14 +37,15 @@ namespace Moment {
 
     public:
 
+        /** Construct 'default' polynomial (equal to zero). */
         Polynomial() = default;
 
         Polynomial(const Polynomial& rhs) = default;
 
         Polynomial(Polynomial&& rhs) = default;
 
-        /** Construct combination from monomial */
-        explicit Polynomial(const Monomial& monomial);
+        /** Construct polynomial with single monomial term. */
+        explicit Polynomial(const Monomial& monomial, double zero_tolerance = 1.0);
 
         /**
          * Construct combination from vector of monomials.
@@ -71,6 +72,7 @@ namespace Moment {
          * @param input The combination data.
          * @param table The symbol table.
          * @param order Instance of the ordering functional.
+         * @param zero_tolerance The multiplier, such that if a number is less than eps * zero_tolerance, treat as zero.
          */
         template<typename ordering_func_t =  Monomial::IdLessComparator>
         explicit Polynomial(storage_t input,
@@ -86,8 +88,10 @@ namespace Moment {
             Polynomial::remove_zeros(this->data, zero_tolerance);
         }
 
-        /** Construct combination from map of symbol names to weights.
-         * This is automatically in id order, with no complex conjugates. */
+        /**
+         * Construct combination from map of symbol names to weights.
+         * This is by-construction in by-id order, with no complex conjugates or duplicates.
+         */
         explicit Polynomial(const std::map<symbol_name_t, double>& input);
 
         inline Polynomial& operator=(const Polynomial& rhs) = default;
@@ -97,16 +101,31 @@ namespace Moment {
         Polynomial(std::initializer_list<Monomial> input)
             : Polynomial{storage_t{input}} { }
 
+        /** Get number of terms in polynomial. */
         [[nodiscard]] size_t size() const noexcept { return this->data.size(); }
+
+        /** True if polynomial is equal to zero. */
         [[nodiscard]] bool empty() const noexcept { return this->data.empty(); }
+
+        /** Begin iteration over monomials within polynomial. */
         [[nodiscard]] auto begin() const noexcept { return this->data.cbegin(); }
+
+        /** End iteration over monomials within polynomial. */
         [[nodiscard]] auto end() const noexcept { return this->data.cend(); }
+
+        /**
+         * Gets the monomial at position index within polynomial.
+         * Undefined behaviour if index >= size().
+         */
         [[nodiscard]] const Monomial& operator[](size_t index) const noexcept { return this->data[index]; }
 
-        /** Set the expression to zero */
+        /** Set the expression to zero. */
         void clear() noexcept { this->data.clear(); }
 
-        /** Remove the last term from the expression */
+        /** Sets tiny real and imaginary terms in factors to zero. */
+        void real_or_imaginary_if_close(double zero_tolerance) noexcept;
+
+        /** Remove the last term from the expression. */
         inline void pop_back() noexcept {
             this->data.pop_back();
         }
@@ -324,28 +343,6 @@ namespace Moment {
          */
         [[nodiscard]] bool is_conjugate(const SymbolTable& symbols, const Polynomial& other) const noexcept;
 
-        /**
-         * Construct an empty combination.
-         */
-        inline static Polynomial Zero() {
-            return Polynomial{};
-        }
-
-        /**
-         * Construct a combination representing a scalar.
-         * @param the_factor The scalar value (default: 1.0).
-         */
-        inline static Polynomial Scalar(const double the_factor = 1.0) {
-            return Polynomial(storage_t{Monomial{1, the_factor , false}});
-        }
-
-        /**
-         * Construct a combination representing a scalar.
-         * @param the_factor Complex scalar value
-         */
-        inline static Polynomial Scalar(const std::complex<double> the_factor) {
-            return Polynomial(storage_t{Monomial{1, the_factor, false}});
-        }
 
         /**
          * Get a string expression of this Polynomial.
@@ -367,6 +364,29 @@ namespace Moment {
          * @param show_braces True to add angular braces around operator sequences.
          */
         void as_string_with_operators(std::ostream& os, const SymbolTable& table, bool show_braces) const;
+
+        /**
+         * Named constructor for polynomial zero.
+         */
+        inline static Polynomial Zero() {
+            return Polynomial{};
+        }
+
+        /**
+         * Named constructor for polynomial equal to a real scalar value.
+         * @param the_factor The scalar value (default: 1.0).
+         */
+        inline static Polynomial Scalar(const double the_factor = 1.0) {
+            return Polynomial(storage_t{Monomial{1, the_factor , false}});
+        }
+
+        /**
+         * Named constructor for polynomial equal to a complex scalar value.
+         * @param the_factor Complex scalar value
+         */
+        inline static Polynomial Scalar(const std::complex<double> the_factor) {
+            return Polynomial(storage_t{Monomial{1, the_factor, false}});
+        }
 
         friend class PolynomialToBasisVec;
         friend class BasisVecToPolynomial;

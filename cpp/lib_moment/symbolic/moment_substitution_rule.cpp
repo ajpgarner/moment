@@ -63,7 +63,7 @@ namespace Moment {
             if (needs_conjugate) {
                 poly.conjugate_in_place(factory.symbols);
             }
-
+            poly.real_or_imaginary_if_close(factory.zero_tolerance);
             return symbol_id;
         }
     }
@@ -76,10 +76,13 @@ namespace Moment {
         assert(rhs.last_id() < lhs);
 
         // Substitution rule will then be of form X -> e^id P + 0.5X - 0.5 e^2id X*
-        this->rhs *= this->lhs_direction;
+        real_or_imaginary_if_close(this->lhs_direction, factory.zero_tolerance);
+        this->rhs *=this->lhs_direction;
         factory.append(this->rhs,
                        factory({Monomial{this->lhs, 0.5, false},
                                 Monomial{this->lhs, -0.5 * this->lhs_direction * this->lhs_direction, true}}));
+
+        this->rhs.real_or_imaginary_if_close(factory.zero_tolerance);
     }
 
 
@@ -181,7 +184,6 @@ namespace Moment {
         // Note, e^-id X = Kd(X) + iJd(X); and so X = e^id Kd(X) + ie^id Jd(X)
         // leading to final form of the rule: X -> e^id Kd(X) + 0.5 X - 0.5 e^2id X*
 
-
         assert(DEBUG_assert_nonorientable(this->rhs, factory.zero_tolerance));
         this->partial = true;
         this->lhs = this->rhs.last_id();
@@ -190,10 +192,22 @@ namespace Moment {
         const auto k_exp_i_a = this->rhs[this->rhs.size()-2].factor;
         const auto exp_i_b_minus_a = this->rhs[this->rhs.size()-1].factor / k_exp_i_a;
         assert(approximately_equal(std::norm(exp_i_b_minus_a), 1.0, factory.zero_tolerance));
+
         // To get e{id} := exp{i(b-a)/2}, we take the square root of exp{i(b-a)}
         // std::sqrt is in right half plane, but we want e^id in the upper half plane, including +1, excluding -1.
-        this->lhs_direction = (exp_i_b_minus_a.imag() >= 0) ? std::sqrt(exp_i_b_minus_a)
-                                                           : -std::sqrt(exp_i_b_minus_a);
+
+        if (approximately_real(exp_i_b_minus_a, factory.zero_tolerance)) {
+            // Handle real case separately 1. for speed, and 2. to avoid errors with -0.0.
+            if (exp_i_b_minus_a.real() > 0) {
+                this->lhs_direction = 1.0;
+            } else {
+                this->lhs_direction = std::complex{0.0, 1.0};
+            }
+        } else {
+            this->lhs_direction = (exp_i_b_minus_a.imag() >= 0) ? std::sqrt(exp_i_b_minus_a)
+                                                                : -std::sqrt(exp_i_b_minus_a);
+        }
+
 
         // Now we can safely remove terms in X and X* from RHS polynomial.
         this->rhs.pop_back();
@@ -219,6 +233,10 @@ namespace Moment {
         const auto factor_x_star = -this->lhs_direction * this->lhs_direction * 0.5;
         factory.append(this->rhs, Polynomial{{Monomial{this->lhs, 0.5, false},
                                               Monomial{this->lhs, factor_x_star, true}}});
+
+        // Clean values.
+        this->rhs.real_or_imaginary_if_close(factory.zero_tolerance);
+        real_or_imaginary_if_close(this->lhs_direction);
 
     }
 
