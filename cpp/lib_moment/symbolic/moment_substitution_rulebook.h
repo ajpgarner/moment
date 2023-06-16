@@ -60,6 +60,11 @@ namespace Moment {
 
         using raw_complex_map_t = std::map<symbol_name_t, std::complex<double>>;
 
+        using rule_map_t = std::map<symbol_name_t, MomentSubstitutionRule>;
+
+        using rule_order_map_t = std::map<std::pair<uint64_t, uint64_t>, rule_map_t::iterator>;
+
+
         /**
          * Associated symbol table.
          */
@@ -73,9 +78,20 @@ namespace Moment {
     private:
         std::string human_readable_name;
 
-        std::map<symbol_name_t, MomentSubstitutionRule> rules;
-
+        /**
+         * Not-yet-processed polynomials, that will be subsequently converted into rules.
+         */
         std::vector<Polynomial> raw_rules;
+
+        /**
+         * Rules, keyed by symbol ID (for quick substitution).
+         */
+        rule_map_t rules;
+
+        /**
+         * Rules, keyed by comparator hash; for iteration in lexicographic order (e.g. while completing).
+         */
+        rule_order_map_t rules_in_order;
 
         bool monomial_rules = true;
 
@@ -84,12 +100,11 @@ namespace Moment {
         mutable std::atomic<size_t> usages = 0;
 
     public:
-//        explicit MomentSubstitutionRulebook(const SymbolTable& table)
-//            : MomentSubstitutionRulebook(table, std::make_unique<ByIDPolynomialFactory>(table)) { }
-
-        //explicit MomentSubstitutionRulebook(const SymbolTable& table, std::unique_ptr<PolynomialFactory> factory);
-
         explicit MomentSubstitutionRulebook(const MatrixSystem& system);
+
+        explicit MomentSubstitutionRulebook(const MomentSubstitutionRulebook&) = delete;
+
+
 
         /**
          * Add substitution rules in the form of polynomials equal to zero.
@@ -175,6 +190,19 @@ namespace Moment {
         [[nodiscard]] Monomial reduce_monomial(Monomial expr) const;
 
         /**
+         * Find first matching rule.
+         * @returns Pair: iterator to matching rule, iterator to matching monomial element (or end, end).
+         * If one output is not end, other is guaranteed to not be end.
+         */
+        [[nodiscard]] std::pair<rule_map_t::const_iterator,
+                                Polynomial::storage_t::const_iterator> match(const Polynomial& test) const noexcept;
+        /**
+         * Can only find match in l-values.
+         */
+        [[nodiscard]] std::pair<rule_map_t::const_iterator,
+                                Polynomial::storage_t::const_iterator> match(Polynomial&& test) const = delete;
+
+        /**
          * Apply reduction to every element of matrix, and make a new matrix
          * @param symbols Write-access to symbol table.
          * @param matrix
@@ -249,5 +277,11 @@ namespace Moment {
            */
            std::tuple<RulebookComparisonResult, const MomentSubstitutionRule *, const MomentSubstitutionRule *>
            compare_rulebooks(const MomentSubstitutionRulebook& rhs) const;
+
+    private:
+            /**
+             * Regenerate ordered rule keys.
+             */
+            void remake_keys();
     };
 }

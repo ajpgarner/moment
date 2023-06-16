@@ -9,6 +9,7 @@
 #include "integer_types.h"
 
 #include "monomial.h"
+#include "monomial_comparator.h"
 
 #include "utilities/small_vector.h"
 #include "utilities/float_utils.h"
@@ -54,7 +55,7 @@ namespace Moment {
          * @param order Instance of the ordering functional.
          * @param zero_tolerance The multiplier, such that if a number is less than eps * zero_tolerance, treat as zero.
          */
-        template<typename ordering_func_t = Monomial::IdLessComparator>
+        template<typename ordering_func_t = IdLessComparator>
         explicit Polynomial(storage_t input,
                             const ordering_func_t& order = ordering_func_t{},
                             double zero_tolerance = 1.0)
@@ -74,7 +75,7 @@ namespace Moment {
          * @param order Instance of the ordering functional.
          * @param zero_tolerance The multiplier, such that if a number is less than eps * zero_tolerance, treat as zero.
          */
-        template<typename ordering_func_t =  Monomial::IdLessComparator>
+        template<typename ordering_func_t =  IdLessComparator>
         explicit Polynomial(storage_t input,
                             const SymbolTable& table,
                             const ordering_func_t& order = ordering_func_t{},
@@ -221,7 +222,7 @@ namespace Moment {
         }
 
         /** Put symbols into requested order */
-        template<typename ordering_func_t = Monomial::IdLessComparator>
+        template<typename ordering_func_t = IdLessComparator>
         inline void sort(const ordering_func_t& sort_func = ordering_func_t{}) {
             std::sort(this->data.begin(), this->data.end(), sort_func);
         }
@@ -230,7 +231,7 @@ namespace Moment {
          * Construct add symbols to this combo.
          * Undefined behaviour if ordering_func_t is different from that used to construct constituents.
          */
-        template<typename ordering_func_t = Monomial::IdLessComparator>
+        template<typename ordering_func_t = IdLessComparator>
         Polynomial& append(const Polynomial& rhs,
                            const ordering_func_t& comp_less = ordering_func_t{},
                            double eps_multiplier = 1.0) {

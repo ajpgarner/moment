@@ -54,6 +54,11 @@ namespace Moment {
             return poly.is_antihermitian(this->symbols, this->zero_tolerance);
         }
 
+        /**
+         * Encodes Monomial into lexicographic order, such that key(A) < key(B) iff less(A<B).
+         */
+        [[nodiscard]] virtual std::pair<uint64_t, uint64_t> key(const Monomial& mono) const noexcept = 0;
+
         /** Gets string name of polynomial factory */
         [[nodiscard]] virtual const std::string& name() const = 0;
 
@@ -95,11 +100,16 @@ namespace Moment {
         [[nodiscard]] const std::string& name() const override {
             return this->func_name;
         }
+
+        [[nodiscard]] std::pair<uint64_t, uint64_t> key(const Monomial& mono) const noexcept override {
+            return this->comparator.key(mono);
+        }
     };
 
     struct ByIDPolynomialFactory_Name {
         constexpr static char name[] = "Sort by ID";
     };
 
-    using ByIDPolynomialFactory = PolynomialFactoryImpl<Monomial::IdLessComparator, ByIDPolynomialFactory_Name>;
+    using ByIDPolynomialFactory = PolynomialFactoryImpl<IdLessComparator, ByIDPolynomialFactory_Name>;
+
 }

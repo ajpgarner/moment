@@ -277,7 +277,7 @@ namespace Moment {
 
         // Release output
         std::optional<Polynomial> output = std::move(this->split_polynomial);
-        this->split_polynomial.reset();
+            this->split_polynomial.reset();
         return output;
     }
 
@@ -338,6 +338,7 @@ namespace Moment {
 
         Polynomial as_poly{this->rhs};
         factory.append(as_poly, Polynomial{Monomial{this->lhs, -1.0, false}});
+        as_poly.real_or_imaginary_if_close(factory.zero_tolerance);
         return as_poly;
     }
 

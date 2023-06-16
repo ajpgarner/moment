@@ -86,6 +86,54 @@ namespace Moment::Tests {
         EXPECT_EQ(rule.second.RHS(), Polynomial());
     }
 
+    TEST_F(Symbolic_MomentSubstitutionRulebook, Match_Empty) {
+        // Prepare rulebook
+        MomentSubstitutionRulebook book{this->get_system()};
+
+        const auto& factory = book.factory;
+        ASSERT_TRUE(book.empty());
+
+        Polynomial zero = Polynomial::Zero();
+        auto [zero_rule, zero_match] = book.match(zero);
+        EXPECT_EQ(zero_rule, book.end());
+        EXPECT_EQ(zero_match, zero.end());
+
+        Polynomial ab = factory({Monomial{5, 1.0}});
+        auto [ab_rule, ab_match] = book.match(ab);
+        EXPECT_EQ(ab_rule, book.end());
+        EXPECT_EQ(ab_match, ab.end());
+
+        Polynomial a_plus_ab = factory({Monomial{2, 1.0}, Monomial{5, 1.0}});
+        auto [a_plus_ab_rule, a_plus_ab_match] = book.match(a_plus_ab);
+        EXPECT_EQ(a_plus_ab_rule, book.end());
+        EXPECT_EQ(a_plus_ab_match, a_plus_ab.end());
+    }
+
+    TEST_F(Symbolic_MomentSubstitutionRulebook, Match_OneRule) {
+        // Prepare rulebook
+        MomentSubstitutionRulebook book{this->get_system()};
+
+        const auto& factory = book.factory;
+        ASSERT_TRUE(book.inject(5, Polynomial())); // ab -> 0 (inferred: ba -> 0)
+        ASSERT_FALSE(book.empty());
+
+        Polynomial zero = Polynomial::Zero();
+        auto [zero_rule, zero_match] = book.match(zero);
+        EXPECT_EQ(zero_rule, book.end());
+        EXPECT_EQ(zero_match, zero.end());
+
+        Polynomial ab = factory({Monomial{5, 1.0}});
+        auto [ab_rule, ab_match] = book.match(ab);
+        EXPECT_EQ(ab_rule, book.begin());
+        EXPECT_EQ(ab_match, ab.begin());
+
+        Polynomial a_plus_ab = factory({Monomial{2, 1.0}, Monomial{5, 1.0}});
+        auto [a_plus_ab_rule, a_plus_ab_match] = book.match(a_plus_ab);
+        EXPECT_EQ(a_plus_ab_rule, book.begin());
+        EXPECT_EQ(a_plus_ab_match, a_plus_ab.begin()+1);
+    }
+
+
     TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_Empty) {
         // Prepare rulebook
         MomentSubstitutionRulebook book{this->get_system()};

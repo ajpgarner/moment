@@ -11,7 +11,7 @@
 
 #include "scenarios/context.h"
 
-#include "symbolic/order_symbols_by_hash.h"
+#include "symbolic/monomial_comparator_by_hash.h"
 #include "symbolic/moment_substitution_rulebook.h"
 #include "symbolic/symbol_table.h"
 
@@ -521,7 +521,7 @@ namespace Moment::mex::functions {
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }
-        
+
         // Import rules
         std::vector<Polynomial> raw_polynomials;
         raw_polynomials.reserve(input.raw_op_seq_polynomials.size());

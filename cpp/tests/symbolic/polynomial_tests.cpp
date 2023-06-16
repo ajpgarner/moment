@@ -740,7 +740,7 @@ namespace Moment::Tests {
         ams.generate_dictionary(2);
         ASSERT_EQ(symbols.size(), 7);  // 0, 1, a, b, aa, ab, (ba), bb
 
-        Monomial::IdMoreComparator comparator{};
+        IdMoreComparator comparator{};
 
         EXPECT_TRUE(comparator(Monomial{2}, Monomial{1}));
         EXPECT_TRUE(comparator(Monomial{2, false}, Monomial{2, true}));
@@ -771,7 +771,7 @@ namespace Moment::Tests {
         ams.generate_dictionary(2);
         ASSERT_EQ(symbols.size(), 7);  // 0, 1, a, b, aa, ab, (ba), bb
 
-        Monomial::IdMoreComparator comparator{};
+        IdMoreComparator comparator{};
 
         Polynomial combo({Monomial{5, 2.0, false}, Monomial{5, 2.0, true}},
                          symbols, comparator);

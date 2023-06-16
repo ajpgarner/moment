@@ -21,44 +21,6 @@ namespace Moment {
     struct Monomial {
     public:
         /**
-          * Comparator defining #1 < #1* < #2 < #2* < ... for symbol IDs.
-          */
-        struct IdLessComparator {
-        public:
-            constexpr bool operator()(const Monomial &lhs, const Monomial &rhs) const noexcept {
-                if (lhs.id < rhs.id) {
-                    return true;
-                } else if (lhs.id > rhs.id) {
-                    return false;
-                }
-                if (lhs.conjugated == rhs.conjugated) {
-                    return false;
-                }
-                return !lhs.conjugated; // true implies lhs a, rhs a*
-            }
-        };
-
-        /**
-          * Comparator defining #3 < #3* < #2 < #2* < ... for symbol IDs.
-          * Not quite the reverse ordering of IdLessComparator, because A < A* still.
-          */
-        struct IdMoreComparator {
-        public:
-            constexpr bool operator()(const Monomial &lhs, const Monomial &rhs) const noexcept {
-                if (lhs.id > rhs.id) {
-                    return true;
-                } else if (lhs.id < rhs.id) {
-                    return false;
-                }
-                if (lhs.conjugated == rhs.conjugated) {
-                    return false;
-                }
-                return !lhs.conjugated; // true implies lhs a, rhs a*
-            }
-        };
-
-    public:
-        /**
          * Error thrown when string expression cannot be parsed as a symbol expression.
          */
         struct SymbolParseException : public std::runtime_error {

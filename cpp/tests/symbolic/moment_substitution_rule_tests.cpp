@@ -13,7 +13,7 @@
 
 #include "symbolic/symbol_table.h"
 #include "symbolic/moment_substitution_rule.h"
-#include "symbolic/order_symbols_by_hash.h"
+#include "symbolic/monomial_comparator_by_hash.h"
 
 #include "moment_rule_helpers.h"
 

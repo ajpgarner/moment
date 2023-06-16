@@ -66,7 +66,7 @@ add_library(lib_moment
         symbolic/moment_substitution_rule.cpp
         symbolic/moment_substitution_rulebook.cpp
         symbolic/monomial.cpp
-        symbolic/order_symbols_by_hash.cpp
+        symbolic/monomial_comparator_by_hash.cpp
         symbolic/polynomial.cpp
         symbolic/polynomial_factory.cpp
         symbolic/polynomial_to_basis.cpp

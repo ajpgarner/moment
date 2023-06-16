@@ -32,7 +32,9 @@ namespace Moment {
     }
 
     MomentSubstitutionRulebook::MomentSubstitutionRulebook(const MatrixSystem& matrix_system)
-        : symbols{matrix_system.Symbols()}, factory{matrix_system.polynomial_factory()}  {
+        : symbols{matrix_system.Symbols()}, factory{matrix_system.polynomial_factory()}, rules{}
+
+        {
     }
 
     void MomentSubstitutionRulebook::add_raw_rules(std::vector<Polynomial> &&raw) {
@@ -109,6 +111,11 @@ namespace Moment {
 
         // Do add
         auto [iter, added] = this->rules.insert(std::make_pair(id, std::move(msr)));
+
+        // Add key
+        this->rules_in_order.insert(std::make_pair(this->factory.key(Monomial{iter->second.lhs}),
+                                                   iter));
+
         return added;
     }
 
@@ -137,6 +144,14 @@ namespace Moment {
             // Second, attempt to orient into rule
             MomentSubstitutionRule msr{this->factory, std::move(reduced_rule)};
 
+            if (!msr.RHS().empty()) {
+                if (std::any_of(msr.RHS().begin(), msr.RHS().end(),
+                                [](const auto& entry) { return std::abs(entry.factor) > 50000; } )) {
+
+                    throw std::runtime_error{"Malformed rule."};
+                }
+            }
+
             // If rule has been reduced to a trivial expression, do not add.
             if (msr.is_trivial()) {
                 ++raw_rule_index;
@@ -151,18 +166,24 @@ namespace Moment {
 
             const symbol_name_t reduced_rule_id = msr.LHS();
 
+            // Test where rule would appear in sorted order
+            auto new_rule_key = this->factory.key(Monomial{reduced_rule_id});
+
             // Can we add directly to end?
-            if (this->rules.empty() || (this->rules.crbegin()->first < reduced_rule_id)) {
-                this->rules.emplace_hint(this->rules.end(),
-                                         std::make_pair(reduced_rule_id, std::move(msr)));
+            if (this->rules_in_order.empty() ||
+                this->rules_in_order.crbegin()->first < new_rule_key) {
+                auto [new_rule_iter, new_insert] = this->rules.emplace(std::make_pair(reduced_rule_id, std::move(msr)));
+                this->rules_in_order.emplace_hint(this->rules_in_order.end(),
+                                                  std::make_pair(new_rule_key, new_rule_iter));
                 ++raw_rule_index;
                 ++rules_added;
                 continue;
             }
 
             // Does rule directly collide?
-            auto update_iter = this->rules.find(reduced_rule_id);
-            if (update_iter != this->rules.end()) {
+            auto ordered_rule_iter = this->rules_in_order.find(new_rule_key);
+            if (ordered_rule_iter != this->rules_in_order.end()) {
+                auto update_iter = this->rules.find(reduced_rule_id);
                 // If existing rule wasn't partial, new rule would have reduced.
                 assert(update_iter->second.is_partial());
                 // Partial application of rule to this one will have left another partial rule
@@ -172,20 +193,51 @@ namespace Moment {
                 update_iter->second.merge_partial(this->factory, std::move(msr));
 
             } else {
+                assert(ordered_rule_iter == this->rules_in_order.end());
+
                 // Otherwise, add rule
                 auto [insert_iter, was_new] = this->rules.emplace(std::make_pair(reduced_rule_id, std::move(msr)));
                 assert(was_new); // Cannot directly collide, we just checked.
-                update_iter = insert_iter;
 
+                // Update iterators
+                auto [insert_order_iter, was_order_new]
+                    = this->rules_in_order.emplace(std::make_pair(new_rule_key, insert_iter));
+                assert(was_order_new);
+                ordered_rule_iter = insert_order_iter;
+
+                // We added a rule
                 ++rules_added;
             }
 
             // We now need to update all subsequent rules in table.
-            ++update_iter;
-            while (update_iter != this->rules.end()) {
-                auto& prior_rule = *update_iter;
-                this->reduce_in_place(prior_rule.second.rhs);
-                 ++update_iter;
+            ++ordered_rule_iter;
+            while (ordered_rule_iter != this->rules_in_order.end()) {
+                MomentSubstitutionRule& prior_rule = ordered_rule_iter->second->second;
+
+                // DEBUG
+                const Polynomial prev_rhs{prior_rule.rhs};
+
+                std::stringstream ss;
+
+                this->reduce_in_place(prior_rule.rhs);
+
+                if (std::any_of(prior_rule.rhs.begin(), prior_rule.rhs.end(),
+                                [](const auto& entry) { return std::abs(entry.factor) > 100000; } )) {
+
+                    const auto& new_rule = this->rules.find(reduced_rule_id)->second;
+                    ss << "Error while merging in: " << new_rule.lhs << " -> " << new_rule.RHS();
+                    ss << "\n reducing " << prior_rule.lhs << " -> " << prev_rhs;
+                    ss << "\n to " << prior_rule.lhs << " -> " << prior_rule.rhs;
+                    auto [matching_rule, matching_where] = this->match(prev_rhs);
+                    if (matching_rule != this->rules.cend()) {
+                        ss << "\n using rule " << matching_rule->second.lhs << " - > " << matching_rule->second.rhs;
+                    }
+                    ss << "\n";
+                    std::string bad_str = ss.str();
+                    throw std::runtime_error{bad_str};
+                }
+
+                 ++ordered_rule_iter;
             }
 
             ++raw_rule_index;
@@ -231,9 +283,11 @@ namespace Moment {
 
         // Special case if this rulebook is empty
         if (this->rules.empty()) {
+            assert(this->rules_in_order.empty());
             this->rules = std::move(other.rules);
             this->monomial_rules = other.monomial_rules;
             this->hermitian_rules = other.hermitian_rules;
+            this->remake_keys();
             return this->rules.size();
         }
 
@@ -257,8 +311,8 @@ namespace Moment {
         } catch(std::exception& e) {
             // In case of fail, restore old rules, and clear the pending list.
             this->rules = std::move(old_rules);
+            this->remake_keys();
             this->raw_rules.clear();
-
             // Pass exception forward
             throw;
         }
@@ -345,6 +399,18 @@ namespace Moment {
         // Compile rules
         return this->complete();
     }
+
+    std::pair<MomentSubstitutionRulebook::rule_map_t::const_iterator, Polynomial::storage_t::const_iterator>
+    MomentSubstitutionRulebook::match(const Polynomial &polynomial) const noexcept {
+        for (auto poly_iter = polynomial.begin(); poly_iter != polynomial.end(); ++poly_iter) {
+            auto rule_iter = this->rules.find(poly_iter->id);
+            if (rule_iter != rules.cend()) {
+                return {rule_iter, poly_iter};
+            }
+        }
+        return {rules.cend(), polynomial.end()};
+    }
+
 
     bool MomentSubstitutionRulebook::reduce_in_place(Moment::Polynomial& polynomial) const {
         Polynomial::storage_t potential_output;
@@ -473,6 +539,13 @@ namespace Moment {
             return {RulebookComparisonResult::AContainsB, in_A_not_in_B, nullptr};
         } else {
             return {RulebookComparisonResult::Disjoint, in_A_not_in_B, in_B_not_in_A};
+        }
+    }
+
+    void MomentSubstitutionRulebook::remake_keys() {
+        this->rules_in_order.clear();
+        for (auto iter = rules.begin(); iter != rules.end(); ++iter) {
+            this->rules_in_order.emplace(std::make_pair(this->factory.key(Monomial{iter->first}), iter));
         }
     }
 

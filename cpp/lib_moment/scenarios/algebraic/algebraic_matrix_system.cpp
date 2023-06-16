@@ -7,7 +7,7 @@
 #include "algebraic_matrix_system.h"
 #include "algebraic_context.h"
 
-#include "symbolic/order_symbols_by_hash.h"
+#include "symbolic/monomial_comparator_by_hash.h"
 
 namespace Moment::Algebraic {
 
