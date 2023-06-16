@@ -144,14 +144,6 @@ namespace Moment {
             // Second, attempt to orient into rule
             MomentSubstitutionRule msr{this->factory, std::move(reduced_rule)};
 
-            if (!msr.RHS().empty()) {
-                if (std::any_of(msr.RHS().begin(), msr.RHS().end(),
-                                [](const auto& entry) { return std::abs(entry.factor) > 50000; } )) {
-
-                    throw std::runtime_error{"Malformed rule."};
-                }
-            }
-
             // If rule has been reduced to a trivial expression, do not add.
             if (msr.is_trivial()) {
                 ++raw_rule_index;
@@ -210,33 +202,17 @@ namespace Moment {
             }
 
             // We now need to update all subsequent rules in table.
+            // Since rules are complete, we only need to check vs. newly added rule.
+            const auto& newly_added_rule = ordered_rule_iter->second->second;
             ++ordered_rule_iter;
             while (ordered_rule_iter != this->rules_in_order.end()) {
                 MomentSubstitutionRule& prior_rule = ordered_rule_iter->second->second;
 
-                // DEBUG
-                const Polynomial prev_rhs{prior_rule.rhs};
-
-                std::stringstream ss;
-
-                this->reduce_in_place(prior_rule.rhs);
-
-                if (std::any_of(prior_rule.rhs.begin(), prior_rule.rhs.end(),
-                                [](const auto& entry) { return std::abs(entry.factor) > 100000; } )) {
-
-                    const auto& new_rule = this->rules.find(reduced_rule_id)->second;
-                    ss << "Error while merging in: " << new_rule.lhs << " -> " << new_rule.RHS();
-                    ss << "\n reducing " << prior_rule.lhs << " -> " << prev_rhs;
-                    ss << "\n to " << prior_rule.lhs << " -> " << prior_rule.rhs;
-                    auto [matching_rule, matching_where] = this->match(prev_rhs);
-                    if (matching_rule != this->rules.cend()) {
-                        ss << "\n using rule " << matching_rule->second.lhs << " - > " << matching_rule->second.rhs;
-                    }
-                    ss << "\n";
-                    std::string bad_str = ss.str();
-                    throw std::runtime_error{bad_str};
+                auto [match_count, match_hint] = newly_added_rule.match_info(prior_rule.rhs);
+                if (match_count > 0) {
+                    prior_rule.rhs = newly_added_rule.reduce_with_hint(this->factory, prior_rule.rhs,
+                                                                       match_hint, match_count == 2 );
                 }
-
                  ++ordered_rule_iter;
             }
 
@@ -252,9 +228,11 @@ namespace Moment {
         });
 
 
+
         // Check if completed rule-set is strictly Hermitian
         this->hermitian_rules = std::all_of(this->rules.cbegin(), this->rules.cend(), [&](const auto& pair) {
             if (this->symbols[pair.first].is_hermitian()) {
+
                 return pair.second.RHS().is_hermitian(this->symbols, this->factory.zero_tolerance);
             }
             // MonomialRules on non-Hermitian variables can do as they please.
