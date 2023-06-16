@@ -66,8 +66,11 @@ namespace Moment {
     /**
      * Force renumbering of matrix bases keys
      */
-    void PolynomialMatrix::renumerate_bases(const SymbolTable& symbols) {
-        // TODO: Support renumbering for polynomial matrix
-        throw std::runtime_error{"PolynomialMatrix::renumerate_bases not yet implemented."};
+    void PolynomialMatrix::renumerate_bases(const SymbolTable& symbols, double zero_tolerance) {
+        for (auto& polynomial : *this->sym_exp_matrix) {
+            polynomial.fix_cc_in_place(symbols, true, zero_tolerance);
+        }
+
+        this->mat_prop->rebuild_keys(symbols);
     }
 }

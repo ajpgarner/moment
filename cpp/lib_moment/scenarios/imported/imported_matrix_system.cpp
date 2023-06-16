@@ -8,7 +8,10 @@
 #include "imported_context.h"
 
 #include "matrix/monomial_matrix.h"
+
+#include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
+
 #include "utilities/dynamic_bitset.h"
 
 #include <cassert>
@@ -170,7 +173,7 @@ namespace Moment::Imported {
         if (changed_symbols) {
             for (size_t index = 0; index < this->size(); ++index) {
                 auto &old_mat = this->get(index);
-                old_mat.renumerate_bases(this->Symbols());
+                old_mat.renumerate_bases(this->Symbols(), this->polynomial_factory().zero_tolerance);
             }
         }
 

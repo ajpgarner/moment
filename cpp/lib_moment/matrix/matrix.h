@@ -132,7 +132,7 @@ namespace Moment {
         /**
          * Force renumbering of matrix bases keys
          */
-        virtual void renumerate_bases(const SymbolTable& symbols) = 0;
+        virtual void renumerate_bases(const SymbolTable& symbols, double zero_tolerance) = 0;
 
     protected:
         /**

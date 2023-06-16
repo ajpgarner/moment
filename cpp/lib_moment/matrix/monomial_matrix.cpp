@@ -236,7 +236,7 @@ namespace Moment {
 
     MonomialMatrix::~MonomialMatrix() noexcept = default;
 
-    void MonomialMatrix::renumerate_bases(const SymbolTable &symbols) {
+    void MonomialMatrix::renumerate_bases(const SymbolTable &symbols, double zero_tolerance) {
         for (auto& symbol : *this->sym_exp_matrix) {
             // Make conjugation status canonical:~
             if (symbol.conjugated) {
@@ -247,6 +247,12 @@ namespace Moment {
                     symbol.conjugated = false;
                     symbol.factor *= -1.0;
                 }
+            }
+            // If zero, replace with canonical zero.
+            if (approximately_zero(symbol.factor, zero_tolerance)) {
+                symbol.id = 0;
+                symbol.conjugated = false;
+                symbol.factor = 0;
             }
         }
 

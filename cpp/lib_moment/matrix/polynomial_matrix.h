@@ -79,7 +79,7 @@ namespace Moment {
         /**
          * Force renumbering of matrix bases keys
          */
-        void renumerate_bases(const SymbolTable& symbols) override;
+        void renumerate_bases(const SymbolTable& symbols,  double zero_tolerance) override;
 
     protected:
         /**
@@ -101,5 +101,6 @@ namespace Moment {
          * Create sparse complex basis.
          */
         [[nodiscard]] SparseComplexBasisInfo::MakeStorageType create_sparse_complex_basis() const override;
+
     };
 }

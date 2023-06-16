@@ -76,7 +76,7 @@ namespace Moment {
         /**
          * Force renumbering of matrix bases keys
          */
-        void renumerate_bases(const SymbolTable& symbols) override;
+        void renumerate_bases(const SymbolTable& symbols, double zero_tolerance) override;
 
         bool real_coefficients() const noexcept override {
             return this->real_prefactors;
