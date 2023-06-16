@@ -266,7 +266,6 @@ classdef ComplexObject < handle
                 im_basis = reshape(im_basis, [], 1);
                 has_im = true;
             else
-                the_im_coefs = zeros(1, length(im_basis));
                 has_im = false;
             end
             
