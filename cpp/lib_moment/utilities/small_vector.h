@@ -65,7 +65,7 @@ namespace Moment {
          * Copy assignment.
          * @param rhs Source.
          */
-        constexpr SmallVector& operator=(const SmallVector& rhs) {
+        constexpr SmallVector& operator=(const SmallVector& rhs) & {
             if (this == &rhs) {
                 return *this;
             }
@@ -109,7 +109,7 @@ namespace Moment {
         /**
          * Move assignment
          */
-         constexpr SmallVector& operator=(SmallVector&& rhs) noexcept {
+         constexpr SmallVector& operator=(SmallVector&& rhs) & noexcept {
              // No aliasing
              assert(&rhs != this);
 
