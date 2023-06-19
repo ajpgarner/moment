@@ -9,6 +9,7 @@
 
 #include "matrix_system.h"
 #include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/polynomial_factory.h"
 
 #include "export/export_polynomial.h"
 
@@ -150,10 +151,10 @@ namespace Moment::mex::functions {
             matlab::data::ArrayFactory mlfactory;
             output[0] = mlfactory.createScalar(str_output);
         } else if (input.output_format == ApplyMomentRulesParams::OutputFormat::SymbolCell) {
-            PolynomialExporter polynomialExporter{this->matlabEngine, symbols};
+            PolynomialExporter polynomialExporter{this->matlabEngine, symbols, factory.zero_tolerance};
             output[0] = polynomialExporter.direct(polynomial);
         } else if (input.output_format == ApplyMomentRulesParams::OutputFormat::OperatorCell) {
-            PolynomialExporter polynomialExporter{this->matlabEngine, symbols};
+            PolynomialExporter polynomialExporter{this->matlabEngine, symbols, factory.zero_tolerance};
             output[0] = polynomialExporter.sequences(polynomial);
         } else {
             throw_error(this->matlabEngine, errors::bad_param, "Unknown output format.");

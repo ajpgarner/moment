@@ -7,6 +7,7 @@
 
 #include "polynomial_to_basis.h"
 
+#include "polynomial_factory.h"
 #include "symbol_table.h"
 
 #include "utilities/float_utils.h"
@@ -61,9 +62,10 @@ namespace Moment {
         }
 
         template<class number_t>
-        Polynomial do_basis_vec_to_symbol_combo(const SymbolTable& symbols,
+        Polynomial do_basis_vec_to_symbol_combo(const PolynomialFactory& factory,
                                                 const Eigen::SparseVector<number_t>& real_basis,
                                                 const Eigen::SparseVector<number_t>& img_basis) {
+            const auto& symbols = factory.symbols;
             const auto zipped_basis = zip_basis(symbols, real_basis, img_basis);
 
             Polynomial::storage_t output;
@@ -71,26 +73,26 @@ namespace Moment {
             for (const auto [symbol_id, values] : zipped_basis) {
                 const auto& symbol_info = symbols[symbol_id];
                 if (symbol_info.is_hermitian()) {
-                    assert(approximately_zero(values.second)); // No imaginary part??
+                    assert(approximately_zero(values.second, factory.zero_tolerance)); // No imaginary part??
                     output.emplace_back(symbol_id, values.first, false);
 
                 } else if (symbol_info.is_antihermitian()) {
-                    assert(approximately_zero(values.first)); // No real part??
+                    assert(approximately_zero(values.first, factory.zero_tolerance)); // No real part??
                     output.emplace_back(symbol_id, values.second, false); // A* = -A;
                 } else {
                     // Add X
                     const number_t coef = 0.5 * (values.first + values.second);
-                    if (!approximately_zero(coef)) {
+                    if (!approximately_zero(coef,  factory.zero_tolerance)) {
                         output.emplace_back(symbol_id, coef, false);
                     }
                     // Add X*
                     const number_t conj_coef = 0.5 * (values.first - values.second);
-                    if (!approximately_zero(conj_coef)) {
+                    if (!approximately_zero(conj_coef, factory.zero_tolerance)) {
                         output.emplace_back(symbol_id, conj_coef, true);
                     }
                 }
             }
-            return Polynomial{std::move(output)};
+            return factory(std::move(output));
         }
 
 
@@ -105,9 +107,72 @@ namespace Moment {
         }
 
 
+        template<class number_t, bool merge_in_im = false>
+        void do_polynomial_to_triplets(const SymbolTable& symbols, double zero_tolerance,
+                                       const Polynomial& combo, Eigen::Index row_id,
+                                       std::vector<Eigen::Triplet<number_t>>& real_triplets,
+                                       std::vector<Eigen::Triplet<number_t>>& im_triplets,
+                                       Eigen::Index im_offset = 0) {
+            assert(!merge_in_im || (&real_triplets == &im_triplets)); // If merging in only one triplet object.
+            assert(merge_in_im || (im_offset == 0)); // If not merging in, offset = 0.
+
+            for (auto iter = combo.begin(); iter != combo.end(); ++iter) {
+                //for (const auto& expr : combo) {
+                const auto& expr = *iter;
+                if (expr.id >= symbols.size()) {
+                    throw errors::unknown_symbol{expr.id};
+                }
+                const auto& symbolInfo = symbols[expr.id];
+                const auto [re_basis_idx, im_basis_idx] = symbolInfo.basis_key();
+
+                const auto [next_is_cc, cc_factor] = [&]() -> std::pair<bool, number_t> {
+                    if (expr.conjugated) {
+                        // Assume ordering X, X*; so if this is conjugated, following symbol must differ.
+                        return {false, number_t{0}};
+                    }
+                    auto peek_next_iter = iter + 1;
+                    if (peek_next_iter == combo.end()) {
+                        return {false, number_t{0}};
+                    }
+                    if (peek_next_iter->id != expr.id) {
+                        return {false, number_t{0}};
+                    }
+                    assert(peek_next_iter->conjugated); // Assume ordering X, X*
+                    return {true, get_factor<number_t>(peek_next_iter->factor)};
+                }();
+                assert(!expr.conjugated || (cc_factor == 0.0));
+
+                const number_t real_part = get_factor<number_t>(expr.factor) + cc_factor;
+                const number_t im_part = ((expr.conjugated ? -1.0 : 1.0) * get_factor<number_t>(expr.factor)) - cc_factor;
+
+                if (re_basis_idx >= 0) {
+                    if (!approximately_zero(real_part, zero_tolerance)) {
+                        real_triplets.emplace_back(row_id, re_basis_idx, real_part);
+                    }
+                }
+
+                if (im_basis_idx >= 0) {
+                    if (!approximately_zero(im_part, zero_tolerance)) {
+                        if constexpr(merge_in_im) {
+                            real_triplets.emplace_back(row_id, im_offset + im_basis_idx, im_part);
+                        } else {
+                            im_triplets.emplace_back(row_id, im_basis_idx, im_part);
+                        }
+                    }
+                }
+
+                // If next element is CC of this element, skip it (we've already handled CC case!)
+                if (next_is_cc) {
+                    ++iter;
+                }
+            }
+        }
+
+
+
         template<class number_t>
         std::pair<Eigen::SparseVector<number_t>, Eigen::SparseVector<number_t>>
-        do_symbol_combo_to_basis_vec(const SymbolTable& symbols, const Polynomial& combo) {
+        do_symbol_combo_to_basis_vec(const SymbolTable& symbols, double zero_tolerance, const Polynomial& combo) {
 
             using basis_t = typename Eigen::SparseVector<number_t>;
             using index_t = typename Eigen::SparseVector<number_t>::Index;
@@ -148,13 +213,13 @@ namespace Moment {
                 const number_t im_part = ((expr.conjugated ? -1.0 : 1.0) * get_factor<number_t>(expr.factor)) - cc_factor;
 
                 if (re_basis_idx >= 0) {
-                    if (!approximately_zero(real_part)) {
+                    if (!approximately_zero(real_part, zero_tolerance)) {
                         output.first.insert(re_basis_idx) = real_part;
                     }
                 }
 
                 if (im_basis_idx >= 0) {
-                    if (!approximately_zero(im_part)) {
+                    if (!approximately_zero(im_part, zero_tolerance)) {
                         output.second.insert(im_basis_idx) = im_part;
                     }
                 }
@@ -170,28 +235,62 @@ namespace Moment {
 
             return output;
         }
-
     }
 
     std::pair<basis_vec_t, basis_vec_t>
-    PolynomialToBasisVec::operator()(const Polynomial& combo) const {
-        assert(combo.real_factors());
-        return do_symbol_combo_to_basis_vec<double>(this->symbols, combo);
+    PolynomialToBasisVec::operator()(const Polynomial& poly) const {
+        assert(poly.real_factors());
+        return do_symbol_combo_to_basis_vec<double>(this->symbols, this->zero_tolerance, poly);
+    }
+
+
+    void PolynomialToBasisVec::add_triplet_row(const Moment::Polynomial &poly, Eigen::Index row_index,
+                                               std::vector<Eigen::Triplet<double>> &real_triplets,
+                                               std::vector<Eigen::Triplet<double>> &im_triplets) const {
+        assert(poly.real_factors());
+        do_polynomial_to_triplets<double, false>(this->symbols, this->zero_tolerance, poly, row_index,
+                                                 real_triplets, im_triplets);
+    }
+
+    void PolynomialToBasisVec::add_triplet_row(const Moment::Polynomial &poly, Eigen::Index row_index,
+                                               std::vector<Eigen::Triplet<double>> &combined_triplets,
+                                               Eigen::Index im_offset) const {
+        assert(poly.real_factors());
+        do_polynomial_to_triplets<double, true>(this->symbols, this->zero_tolerance, poly, row_index,
+                                                combined_triplets, combined_triplets, im_offset);
     }
 
     std::pair<complex_basis_vec_t, complex_basis_vec_t>
     PolynomialToComplexBasisVec::operator()(const Polynomial& combo) const {
-        return do_symbol_combo_to_basis_vec<std::complex<double>>(this->symbols, combo);
+        return do_symbol_combo_to_basis_vec<std::complex<double>>(this->symbols, this->zero_tolerance, combo);
     }
+
+    void PolynomialToComplexBasisVec::add_triplet_row(const Moment::Polynomial &poly, Eigen::Index row_index,
+                                              std::vector<Eigen::Triplet<std::complex<double>>> &real_triplets,
+                                              std::vector<Eigen::Triplet<std::complex<double>>> &im_triplets) const {
+        assert(poly.real_factors());
+        do_polynomial_to_triplets<std::complex<double>, false>(this->symbols, this->zero_tolerance, poly, row_index,
+                                                               real_triplets, im_triplets);
+    }
+
+    void PolynomialToComplexBasisVec::add_triplet_row(const Moment::Polynomial &poly, Eigen::Index row_index,
+                                              std::vector<Eigen::Triplet<std::complex<double>>> &combined_triplets,
+                                              Eigen::Index im_offset) const {
+        assert(poly.real_factors());
+        do_polynomial_to_triplets<std::complex<double>, true>(this->symbols, this->zero_tolerance, poly, row_index,
+                                                               combined_triplets, combined_triplets, im_offset);
+    }
+
+
 
     Polynomial BasisVecToPolynomial::operator()(const basis_vec_t& real_basis,
                                                 const basis_vec_t& img_basis) const {
-        return do_basis_vec_to_symbol_combo(this->symbols, real_basis, img_basis);
+        return do_basis_vec_to_symbol_combo(this->factory, real_basis, img_basis);
     }
 
     Polynomial ComplexBasisVecToPolynomial::operator()(const complex_basis_vec_t& real_basis,
                                                        const complex_basis_vec_t& img_basis) const {
-        return do_basis_vec_to_symbol_combo(this->symbols, real_basis, img_basis);
+        return do_basis_vec_to_symbol_combo(this->factory, real_basis, img_basis);
     }
 
 

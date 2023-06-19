@@ -47,8 +47,9 @@ namespace Moment::mex {
 
     public:
         explicit MomentSubstitutionRuleExporter(matlab::engine::MATLABEngine &engine, const SymbolTable& symbols,
+                                                const double zero_tolerance,
                                                 RuleStringFormatOptions rsfo = RuleStringFormatOptions{}) noexcept
-                : Exporter{engine}, combo_exporter{engine, symbols},
+                : Exporter{engine}, combo_exporter{engine, symbols, zero_tolerance},
                   symbols{symbols}, string_format_options{rsfo} { }
 
         matlab::data::CellArray operator()(const MomentSubstitutionRulebook &rules) {

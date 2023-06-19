@@ -24,7 +24,7 @@ namespace Moment::mex {
     std::pair<matlab::data::Array, matlab::data::Array>
         PolynomialExporter::operator()(const Polynomial& combo) const {
 
-        auto [basis_re, basis_im] = PolynomialToBasisVec{symbols}(combo);
+        auto [basis_re, basis_im] = PolynomialToBasisVec{this->symbols, this->zero_tolerance}(combo);
 
         matlab::data::ArrayFactory factory;
 
@@ -81,7 +81,7 @@ namespace Moment::mex {
 
             auto symbol_expr_out = factory.createCellArray({1ULL, 2ULL});
             symbol_expr_out[0] = export_operator_sequence(factory, op_seq, true);
-            if (approximately_real(term.factor)) {
+            if (approximately_real(term.factor, this->zero_tolerance)) {
                 symbol_expr_out[1] = factory.createScalar<double>(term.factor.real());
             } else {
                 symbol_expr_out[1] = factory.createScalar<std::complex<double>>(term.factor);

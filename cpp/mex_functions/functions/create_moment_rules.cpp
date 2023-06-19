@@ -352,7 +352,8 @@ namespace Moment::mex::functions {
 
         if (output.size() >= 1) {
             matlab::data::ArrayFactory factory;
-            MomentSubstitutionRuleExporter msrExporter{this->matlabEngine, system.Symbols()};
+            MomentSubstitutionRuleExporter msrExporter{this->matlabEngine, system.Symbols(),
+                                                       system.polynomial_factory().zero_tolerance};
 
             switch (input.output_mode) {
                 case CreateMomentRulesParams::OutputMode::IndexOnly:

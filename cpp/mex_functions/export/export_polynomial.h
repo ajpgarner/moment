@@ -20,9 +20,11 @@ namespace Moment::mex {
     class PolynomialExporter : public Exporter {
     public:
         const SymbolTable& symbols;
+        const double zero_tolerance;
 
-        explicit PolynomialExporter(matlab::engine::MATLABEngine& engine, const SymbolTable& symbols) noexcept
-                    : Exporter{engine}, symbols{symbols} { }
+        explicit PolynomialExporter(matlab::engine::MATLABEngine& engine, const SymbolTable& symbols,
+                                    const double zero_tolerance) noexcept
+                    : Exporter{engine}, symbols{symbols}, zero_tolerance{zero_tolerance} { }
 
         /**
          * Export combo in basis form.

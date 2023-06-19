@@ -7,6 +7,7 @@
 #include "gtest/gtest.h"
 
 #include "symbolic/polynomial.h"
+#include "symbolic/polynomial_factory.h"
 #include "symbolic/polynomial_to_basis.h"
 #include "symbolic/symbol_table.h"
 
@@ -34,7 +35,9 @@ namespace Moment::Tests {
             ASSERT_FALSE(symbols[5].is_hermitian());
         }
 
-        [[nodiscard]] SymbolTable& get_symbols() noexcept { return this->ms_ptr->Symbols(); };
+        [[nodiscard]] SymbolTable& get_symbols() noexcept { return this->ms_ptr->Symbols(); }
+
+        [[nodiscard]] const PolynomialFactory& get_factory() noexcept { return this->ms_ptr->polynomial_factory(); }
 
         static void compare_sparse_vectors(const Eigen::SparseVector<double>& actual, const Eigen::SparseVector<double>& expected) {
             ASSERT_EQ(actual.size(), expected.size()) << actual;
@@ -55,8 +58,8 @@ namespace Moment::Tests {
     };
 
 
-    TEST_F(Symbolic_PolynomialToBasis, BasisToCombo_Scalars) {
-        BasisVecToPolynomial convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, BasisToPolynomial_Scalars) {
+        BasisVecToPolynomial convertor{this->get_factory()};
         Polynomial scalar_one = convertor(make_sparse_vector({1.0, 0.0, 0.0, 0.0, 0.0, 0.0}),
                                           make_sparse_vector({0.0}));
         EXPECT_EQ(scalar_one, Polynomial::Scalar(1.0));
@@ -66,8 +69,8 @@ namespace Moment::Tests {
         EXPECT_EQ(scalar_five, Polynomial::Scalar(5.0));
     }
 
-    TEST_F(Symbolic_PolynomialToBasis, BasisToCombo_Monomials) {
-        BasisVecToPolynomial convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, BasisToPolynomial_Monomials) {
+        BasisVecToPolynomial convertor{this->get_factory()};
 
         Polynomial combo_a0 = convertor(make_sparse_vector({0.0, 1.0, 0.0, 0.0, 0.0, 0.0}),
                                         make_sparse_vector({0.0}));
@@ -91,9 +94,9 @@ namespace Moment::Tests {
         EXPECT_EQ(combo_a0a1, Polynomial({Monomial{5, 1.0}}));
     }
 
-    TEST_F(Symbolic_PolynomialToBasis, BasisToCombo_OutOfBounds) {
+    TEST_F(Symbolic_PolynomialToBasis, BasisToPolynomial_OutOfBounds) {
         // One party, two symbols
-        BasisVecToPolynomial convertor{this->get_symbols()};
+        BasisVecToPolynomial convertor{this->get_factory()};
 
         EXPECT_THROW([[maybe_unused]] auto x = convertor(
                              make_sparse_vector<double>({0, 0, 0, 0, 1.0, 0.0, 1.0}), make_sparse_vector<double>({0.0})),
@@ -103,8 +106,8 @@ namespace Moment::Tests {
                      Moment::errors::unknown_basis_elem);
     }
 
-    TEST_F(Symbolic_PolynomialToBasis, BasisToCombo_HermAntiHermTerms) {
-        BasisVecToPolynomial convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, BasisToPolynomial_HermAntiHermTerms) {
+        BasisVecToPolynomial convertor{this->get_factory()};
         Polynomial combo_a0a1_hermitian = convertor(make_sparse_vector({0.0, 0.0, 0.0, 0.0, 1.0, 0.0}),
                                                     make_sparse_vector({0.0}));
         EXPECT_EQ(combo_a0a1_hermitian, Polynomial({Monomial{5, 0.5, false},
@@ -117,8 +120,8 @@ namespace Moment::Tests {
                                                         Monomial{5, -0.5, true}}));
     }
 
-    TEST_F(Symbolic_PolynomialToBasis, ComplexBasisToCombo_Scalars) {
-        ComplexBasisVecToPolynomial convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, ComplexBasisToPolynomial_Scalars) {
+        ComplexBasisVecToPolynomial convertor{this->get_factory()};
 
         Polynomial scalar_one = convertor(make_sparse_vector({1.0, 0.0, 0.0, 0.0, 0.0, 0.0}),
                                           make_sparse_vector({0.0}));
@@ -134,8 +137,8 @@ namespace Moment::Tests {
 
     }
 
-    TEST_F(Symbolic_PolynomialToBasis, ComplexBasisToCombo_Monomials) {
-        ComplexBasisVecToPolynomial convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, ComplexBasisToPolynomial_Monomials) {
+        ComplexBasisVecToPolynomial convertor{this->get_factory()};
 
         Polynomial combo_a0 = convertor(make_sparse_vector<std::complex<double>>({0, 1.0, 0, 0, 0, 0}),
                                         make_sparse_vector<std::complex<double>>({0}));
@@ -159,8 +162,8 @@ namespace Moment::Tests {
         EXPECT_EQ(combo_a0a1, Polynomial({Monomial{5, {2.0, 1.0}}}));
     }
 
-    TEST_F(Symbolic_PolynomialToBasis, ComplexBasisToCombo_HermAntiHermTerms) {
-        ComplexBasisVecToPolynomial convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, ComplexBasisToPolynomial_HermAntiHermTerms) {
+        ComplexBasisVecToPolynomial convertor{this->get_factory()};
 
         Polynomial combo_a0a1_hermitian = convertor(make_sparse_vector<std::complex<double>>({0, 0, 0, 0, 1.0, 0.0}),
                                                     make_sparse_vector<std::complex<double>>({0.0}));
@@ -174,8 +177,8 @@ namespace Moment::Tests {
                                                         Monomial{5, -0.5, true}}));
     }
     
-    TEST_F(Symbolic_PolynomialToBasis, ComboToBasis_Scalars) {
-        PolynomialToBasisVec convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, PolynomialToBasis_Scalars) {
+        PolynomialToBasisVec convertor{this->get_symbols(), this->get_factory().zero_tolerance};
 
         auto [scalar_one_re, scalar_one_im] = convertor(Polynomial::Scalar(1.0));
         compare_sparse_vectors(scalar_one_re, make_sparse_vector<double>({1.0, 0, 0, 0, 0, 0}));
@@ -186,8 +189,8 @@ namespace Moment::Tests {
         compare_sparse_vectors(scalar_five_im, make_sparse_vector<double>({0}));
     }
 
-    TEST_F(Symbolic_PolynomialToBasis, ComboToBasis_Monomials) {
-        PolynomialToBasisVec convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, PolynomialToBasis_Monomials) {
+        PolynomialToBasisVec convertor{this->get_symbols(), this->get_factory().zero_tolerance};
 
         auto [a0_re, a0_im] = convertor(Polynomial{{Monomial(2, 1.0)}});
         compare_sparse_vectors(a0_re, make_sparse_vector<double>({0, 1.0, 0, 0, 0, 0}));
@@ -214,8 +217,8 @@ namespace Moment::Tests {
         compare_sparse_vectors(a0a1_star_im, make_sparse_vector<double>({-1.0}));
     }
 
-    TEST_F(Symbolic_PolynomialToBasis, ComboToBasis_HermAntiHerm) {
-        PolynomialToBasisVec convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, PolynomialToBasis_HermAntiHerm) {
+        PolynomialToBasisVec convertor{this->get_symbols(), this->get_factory().zero_tolerance};
 
         auto [a0a1_a1a0_re, a0a1_a1a0_im] = convertor(Polynomial{{Monomial(5, 0.5, false),
                                                                   Monomial(5, 0.5, true)}});
@@ -228,8 +231,8 @@ namespace Moment::Tests {
         compare_sparse_vectors(a0a1_minus_a1a0_re, make_sparse_vector<double>({0, 0, 0, 0, 0.0, 0}));
         compare_sparse_vectors(a0a1_minus_a1a0_im, make_sparse_vector<double>({1.0}));
     }
-    TEST_F(Symbolic_PolynomialToBasis, ComboToComplexBasis_Scalars) {
-        PolynomialToComplexBasisVec convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, PolynomialToComplexBasis_Scalars) {
+        PolynomialToComplexBasisVec convertor{this->get_symbols(), this->get_factory().zero_tolerance};
 
         auto [scalar_one_re, scalar_one_im] = convertor(Polynomial::Scalar(1.0));
         compare_sparse_vectors(scalar_one_re, make_sparse_vector<std::complex<double>>({1.0, 0, 0, 0, 0, 0}));
@@ -244,8 +247,8 @@ namespace Moment::Tests {
         compare_sparse_vectors(scalar_5_2i_im, make_sparse_vector<std::complex<double>>({0}));
     }
 
-    TEST_F(Symbolic_PolynomialToBasis, ComboToComplexBasis_Monomials) {
-        PolynomialToComplexBasisVec convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, PolynomialToComplexBasis_Monomials) {
+        PolynomialToComplexBasisVec convertor{this->get_symbols(), this->get_factory().zero_tolerance};
 
         auto [a0_re, a0_im] = convertor(Polynomial{{Monomial(2, 1.0)}});
         compare_sparse_vectors(a0_re, make_sparse_vector<std::complex<double>>({0, 1.0, 0, 0, 0, 0}));
@@ -272,8 +275,8 @@ namespace Moment::Tests {
         compare_sparse_vectors(a0a1_star_im, make_sparse_vector<std::complex<double>>({-1.0}));
     }
 
-    TEST_F(Symbolic_PolynomialToBasis, ComboToComplexBasis_HermAntiHerm) {
-        PolynomialToComplexBasisVec convertor{this->get_symbols()};
+    TEST_F(Symbolic_PolynomialToBasis, PolynomialToComplexBasis_HermAntiHerm) {
+        PolynomialToComplexBasisVec convertor{this->get_symbols(), this->get_factory().zero_tolerance};
 
         auto [a0a1_a1a0_re, a0a1_a1a0_im] = convertor(Polynomial{{Monomial(5, 0.5, false),
                                                                   Monomial(5, 0.5, true)}});

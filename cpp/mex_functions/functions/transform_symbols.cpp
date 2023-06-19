@@ -17,6 +17,7 @@
 #include "scenarios/derived/symbol_table_map.h"
 
 #include "symbolic/polynomial.h"
+#include "symbolic/polynomial_factory.h"
 #include "symbolic/polynomial_to_basis.h"
 
 #include "eigen/read_eigen_sparse.h"
@@ -28,7 +29,7 @@ namespace Moment::mex::functions {
 
     namespace {
         Polynomial get_input_as_combo(matlab::engine::MATLABEngine matlabEngine,
-                                      const SymbolTable& symbols,
+                                      const PolynomialFactory& factory,
                                       const TransformSymbolsParams& input) {
 
             if (input.input_type == TransformSymbolsParams::InputType::SymbolId) {
@@ -47,7 +48,7 @@ namespace Moment::mex::functions {
                     (input.inputs.size()>=3) ? read_eigen_sparse_vector(matlabEngine, input.inputs[2])
                                              : Eigen::SparseVector<double>(0);
 
-            return BasisVecToPolynomial{symbols}(real_base, complex_base);
+            return BasisVecToPolynomial{factory}(real_base, complex_base);
 
         }
     }
@@ -121,7 +122,9 @@ namespace Moment::mex::functions {
         }();
 
         // Get input as a symbol combo, as expressed in base matrix system.
-        const auto input_combo = get_input_as_combo(this->matlabEngine, matrixSystem.base_system().Symbols(), input);
+        const auto input_combo = get_input_as_combo(this->matlabEngine,
+                                                    matrixSystem.base_system().polynomial_factory(),
+                                                    input);
 
         if (verbose) {
             std::stringstream inputSS;
@@ -142,7 +145,9 @@ namespace Moment::mex::functions {
                 }();
                 break;
             case TransformSymbolsParams::OutputType::Basis: {
-                auto [re_part, im_part] = PolynomialExporter{this->matlabEngine, matrixSystem.Symbols()}(output_combo);
+                PolynomialExporter pe{this->matlabEngine, matrixSystem.Symbols(),
+                                      matrixSystem.polynomial_factory().zero_tolerance};
+                auto [re_part, im_part] = pe(output_combo);
                 if (output.size() >= 1) {
                     output[0] = std::move(re_part);
                 }
