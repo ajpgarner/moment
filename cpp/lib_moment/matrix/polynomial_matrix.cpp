@@ -10,6 +10,7 @@
 #include "polynomial_matrix.h"
 
 #include "symbolic/polynomial_to_basis.h"
+#include "symbolic/polynomial_to_basis_mask.h"
 #include "symbolic/symbol_table.h"
 
 namespace Moment {
@@ -69,7 +70,7 @@ namespace Moment {
         this->complex_coefficients = false;
         this->included_symbols.clear();
 
-        PolynomialToMask ptm{this->symbols, zero_tolerance};
+        PolynomialToBasisMask ptm{this->symbols, zero_tolerance};
 
         auto [real_mask, im_mask] = ptm.empty_mask();
 

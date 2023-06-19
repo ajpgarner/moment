@@ -69,6 +69,7 @@ add_library(lib_moment
         symbolic/polynomial.cpp
         symbolic/polynomial_factory.cpp
         symbolic/polynomial_to_basis.cpp
+        symbolic/polynomial_to_basis_mask.cpp
         symbolic/symbol.cpp
         symbolic/symbol_table.cpp
         symbolic/symbol_tools.cpp

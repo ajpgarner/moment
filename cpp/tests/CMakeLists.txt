@@ -51,6 +51,7 @@ add_executable(moment_tests
     symbolic/polynomial_tests.cpp
     symbolic/polynomial_real_imag_tests.cpp
     symbolic/polynomial_to_basis_tests.cpp
+    symbolic/polynomial_to_basis_mask_tests.cpp
     symbolic/symbol_table_tests.cpp
     symbolic/symbolic_matrix_helpers.cpp
     utilities/alphabetic_namer_tests.cpp
