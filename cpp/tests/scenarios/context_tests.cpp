@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 
 #include "scenarios/context.h"
-#include "scenarios/operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 
 
 namespace Moment::Tests {

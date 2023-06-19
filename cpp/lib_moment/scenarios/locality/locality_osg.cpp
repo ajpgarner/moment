@@ -8,7 +8,7 @@
 #include "locality_osg.h"
 
 #include "scenarios/multi_operator_iterator.h"
-#include "scenarios/operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 
 #include "utilities/multi_partition.h"
 #include "utilities/multi_dimensional_index_iterator.h"

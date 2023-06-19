@@ -9,8 +9,8 @@
 #include "symbol.h"
 #include "monomial.h"
 
-#include "scenarios/dictionary_map.h"
-#include "scenarios/operator_sequence.h"
+#include "dictionary/dictionary_map.h"
+#include "dictionary/operator_sequence.h"
 
 #include "utilities/dynamic_bitset.h"
 

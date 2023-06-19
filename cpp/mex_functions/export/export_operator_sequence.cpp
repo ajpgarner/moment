@@ -7,8 +7,8 @@
 #include "export_operator_sequence.h"
 #include "utilities/write_as_array.h"
 
-#include "scenarios/operator_sequence.h"
-#include "matrix/operator_sequence_generator.h"
+#include "dictionary/operator_sequence.h"
+#include "dictionary/operator_sequence_generator.h"
 
 namespace Moment::mex {
 

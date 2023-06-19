@@ -7,6 +7,9 @@
  */
 #pragma once
 
+#include "matrix/operator_matrix/localizing_matrix_index.h"
+#include "utilities/multithreading.h"
+
 #include <atomic>
 #include <map>
 #include <memory>
@@ -15,21 +18,16 @@
 #include <stdexcept>
 #include <vector>
 
-#include "matrix/operator_matrix/localizing_matrix_index.h"
-
-#include "utilities/multithreading.h"
 
 namespace Moment {
 
     class Context;
-    class PolynomialFactory;
-    class OperatorSequenceGenerator;
-    class SymbolTable;
-
-    class WordList;
-    class MomentSubstitutionRulebook;
-
+    class Dictionary;
     class Matrix;
+    class MomentSubstitutionRulebook;
+    class OperatorSequenceGenerator;
+    class PolynomialFactory;
+    class SymbolTable;
 
     namespace errors {
         /**

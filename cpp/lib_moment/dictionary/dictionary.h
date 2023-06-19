@@ -1,12 +1,14 @@
 /**
- * wordlist.h
+ * dictionary.h
+ *
+ * Cached lists of generated operator sequences.
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 #pragma once
 
-#include "matrix/operator_sequence_generator.h"
+#include "operator_sequence_generator.h"
 
 #include <atomic>
 #include <mutex>
@@ -22,7 +24,7 @@ namespace Moment {
      *
      * Design assumption: if k < k', then osg(k) is a prefix of osg(k').
      */
-    class WordList {
+    class Dictionary {
     private:
         mutable std::shared_mutex mutex;
 
@@ -33,7 +35,7 @@ namespace Moment {
         const Context& context;
 
     public:
-        WordList(const Context& context);
+        explicit Dictionary(const Context& context);
 
         /**
          * Gets dictionary of supplied word length. Creates dictionary if it doesn't already exist.

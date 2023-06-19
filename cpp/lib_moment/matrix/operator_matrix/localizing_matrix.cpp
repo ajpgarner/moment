@@ -6,7 +6,7 @@
  */
 #include "localizing_matrix.h"
 
-#include "matrix/operator_sequence_generator.h"
+#include "dictionary/operator_sequence_generator.h"
 
 #include <sstream>
 

@@ -7,7 +7,7 @@
 #pragma once
 
 #include "../context.h"
-#include "../operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 
 #include "causal_network.h"
 #include "observable_variant_index.h"

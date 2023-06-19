@@ -5,8 +5,6 @@
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
- *
- * @see polynomial_matrix_basis.cpp for basis function definitions.
  */
 #include "polynomial_matrix.h"
 

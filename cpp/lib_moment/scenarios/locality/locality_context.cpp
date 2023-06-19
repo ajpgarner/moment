@@ -6,7 +6,7 @@
  */
 #include "locality_context.h"
 
-#include "../operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 
 #include "locality_operator_formatter.h"
 #include "locality_osg.h"

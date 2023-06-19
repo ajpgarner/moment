@@ -8,10 +8,10 @@
 
 #include "integer_types.h"
 
-#include "matrix/operator_sequence_generator.h"
+#include "dictionary/operator_sequence_generator.h"
 
 #include "scenarios/context.h"
-#include "scenarios/operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 
 #include "utilities/dynamic_bitset.h"
 #include "utilities/kronecker_power.h"

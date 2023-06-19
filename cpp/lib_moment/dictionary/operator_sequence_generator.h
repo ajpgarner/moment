@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "scenarios/operator_sequence.h"
+#include "operator_sequence.h"
 #include "scenarios/context.h"
 
 namespace Moment {

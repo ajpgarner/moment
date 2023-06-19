@@ -7,7 +7,7 @@
 #pragma once
 #include "integer_types.h"
 #include "hashed_sequence.h"
-#include "operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 #include "utilities/shortlex_hasher.h"
 
 #include <iosfwd>
@@ -19,7 +19,7 @@ namespace Moment {
 
     class OperatorSequence;
     class OperatorSequenceGenerator;
-    class WordList;
+    class Dictionary;
 
     class Context {
     protected:
@@ -29,7 +29,7 @@ namespace Moment {
 
     private:
         /** List of operator-sequence-generators */
-        std::unique_ptr<WordList> word_list;
+        std::unique_ptr<Dictionary> word_list;
 
     public:
         explicit Context(size_t operator_count);
@@ -127,12 +127,12 @@ namespace Moment {
          /**
           * Gets a generator for operator sequences in this context
           */
-         [[nodiscard]] const WordList& osg_list() const noexcept { return *this->word_list; }
+         [[nodiscard]] const Dictionary& osg_list() const noexcept { return *this->word_list; }
 
          /**
           * Gets a generator for operator sequences in this context
           */
-         [[nodiscard]] WordList& osg_list() noexcept { return *this->word_list; }
+         [[nodiscard]] Dictionary& osg_list() noexcept { return *this->word_list; }
 
          /**
           * Gets an operator sequence, but only if it is 'canonical' (i.e. no simplifications performed on it)
@@ -152,7 +152,7 @@ namespace Moment {
     public:
          friend std::ostream& operator<< (std::ostream& os, const Context& context);
 
-         friend class WordList;
+         friend class Dictionary;
 
     };
 

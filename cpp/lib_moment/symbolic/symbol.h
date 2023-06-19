@@ -8,7 +8,7 @@
 #pragma once
 
 #include "integer_types.h"
-#include "scenarios/operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 
 #include <optional>
 #include <string>

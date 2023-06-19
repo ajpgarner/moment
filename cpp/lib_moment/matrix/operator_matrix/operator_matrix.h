@@ -9,7 +9,7 @@
 #include "matrix/monomial_matrix.h"
 
 #include "scenarios/context.h"
-#include "scenarios/operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 
 #include "symbolic/monomial.h"
 #include "symbolic/symbol_table.h"

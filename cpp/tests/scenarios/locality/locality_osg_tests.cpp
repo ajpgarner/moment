@@ -6,7 +6,7 @@
  */
 #include "gtest/gtest.h"
 
-#include "scenarios/operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_osg.h"
 

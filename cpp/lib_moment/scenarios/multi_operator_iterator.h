@@ -4,7 +4,7 @@
  * (c) 2022 Austrian Academy of Sciences.
  */
 #pragma once
-#include "operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 #include "scenarios/context.h"
 
 #include <vector>

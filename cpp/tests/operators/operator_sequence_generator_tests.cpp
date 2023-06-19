@@ -7,7 +7,7 @@
 
 #include "gtest/gtest.h"
 
-#include "matrix/operator_sequence_generator.h"
+#include "dictionary/operator_sequence_generator.h"
 #include "scenarios/locality/locality_context.h"
 
 namespace Moment::Tests {

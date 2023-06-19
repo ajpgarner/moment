@@ -8,7 +8,7 @@
 
 #include "MatlabDataArray.hpp"
 
-#include "scenarios/operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 #include "symbolic/monomial.h"
 #include "utilities/square_matrix.h"
 

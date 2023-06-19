@@ -7,7 +7,7 @@
 #pragma once
 
 #include "integer_types.h"
-#include "../operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 
 #include <stdexcept>
 #include <span>

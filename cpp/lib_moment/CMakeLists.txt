@@ -3,25 +3,25 @@ include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
 add_library(lib_moment
         hashed_sequence.cpp
         matrix_system.cpp
-        matrix/operator_matrix/localizing_matrix.cpp
+        dictionary/dictionary_map.cpp
+        dictionary/operator_sequence_generator.cpp
+        dictionary/dictionary.cpp
         matrix/matrix.cpp
         matrix/matrix_basis.cpp
-        matrix/operator_matrix/moment_matrix.cpp
         matrix/monomial_matrix.cpp
         matrix/monomial_matrix_basis.cpp
-        matrix/operator_matrix/operator_matrix.cpp
-        matrix/operator_sequence_generator.cpp
         matrix/polynomial_matrix.cpp
         matrix/polynomial_matrix_basis.cpp
         matrix/substituted_matrix.cpp
+        matrix/operator_matrix/localizing_matrix.cpp
+        matrix/operator_matrix/moment_matrix.cpp
+        matrix/operator_matrix/operator_matrix.cpp
         scenarios/context.cpp
-        scenarios/dictionary_map.cpp
         scenarios/explicit_symbols.cpp
         scenarios/implicit_outcome_iterator.cpp
         scenarios/implicit_symbols.cpp
-        scenarios/operator_sequence.cpp
+        dictionary/operator_sequence.cpp
         scenarios/outcome_index_iterator.cpp
-        scenarios/word_list.cpp
         scenarios/algebraic/algebraic_context.cpp
         scenarios/algebraic/algebraic_precontext.cpp
         scenarios/algebraic/algebraic_matrix_system.cpp

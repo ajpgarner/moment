@@ -1,10 +1,10 @@
 /**
- * wordlist.cpp
+ * dictionary.cpp
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "word_list.h"
+#include "dictionary.h"
 
 #include "symbolic/symbol_table.h"
 
@@ -14,13 +14,13 @@
 #include <sstream>
 
 namespace Moment {
-    WordList::WordList(const Context& context) : context{context} {
+    Dictionary::Dictionary(const Context& context) : context{context} {
         // Make order 0 OSG (e)
         this->osgs.emplace_back(this->context.new_osg(0));
         this->conj_osgs.emplace_back(std::make_unique<OperatorSequenceGenerator>(this->osgs[0]->conjugate()));
     }
 
-    const OperatorSequenceGenerator& WordList::operator[](size_t word_length) const {
+    const OperatorSequenceGenerator& Dictionary::operator[](size_t word_length) const {
         // Try and read
         std::shared_lock lock{this->mutex};
         if (word_length < this->osgs.size()) {
@@ -62,7 +62,7 @@ namespace Moment {
         return *this->osgs[word_length]; // release write lock
     }
 
-    const OperatorSequenceGenerator& WordList::conjugated(size_t word_length) const {
+    const OperatorSequenceGenerator& Dictionary::conjugated(size_t word_length) const {
         // Check generation using []
         const auto& x = (*this)[word_length];
 
@@ -73,14 +73,14 @@ namespace Moment {
     }
 
 
-    const OperatorSequenceGenerator& WordList::largest() const {
+    const OperatorSequenceGenerator& Dictionary::largest() const {
         // Find largest created OSG
         for (const auto &osg: std::ranges::reverse_view(osgs)) {
             if (osg) {
                 return *osg;
             }
         }
-        throw std::runtime_error{"WordList contains no OperatorSequenceGenerators!"};
+        throw std::runtime_error{"Dictionary contains no OperatorSequenceGenerators!"};
     }
 
 

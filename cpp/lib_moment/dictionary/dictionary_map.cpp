@@ -7,8 +7,8 @@
 
 #include "dictionary_map.h"
 
-#include "context.h"
-#include "word_list.h"
+#include "scenarios/context.h"
+#include "dictionary.h"
 
 #include "symbolic/symbol_table.h"
 

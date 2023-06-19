@@ -5,8 +5,8 @@
  * @author Andrew J. P. Garner
  */
 #include "context.h"
-#include "operator_sequence.h"
-#include "word_list.h"
+#include "dictionary/operator_sequence.h"
+#include "dictionary/dictionary.h"
 
 #include <algorithm>
 #include <iostream>
@@ -17,7 +17,7 @@ namespace Moment {
 
     Context::Context(const size_t count)
         : operator_count{static_cast<oper_name_t>(count)}, hasher{count} {
-        this->word_list = std::make_unique<WordList>(*this);
+        this->word_list = std::make_unique<Dictionary>(*this);
     }
 
     Context::~Context() = default;

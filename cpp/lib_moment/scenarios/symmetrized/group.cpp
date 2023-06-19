@@ -7,7 +7,7 @@
 #include "group.h"
 #include "representation_mapper.h"
 
-#include "matrix/operator_sequence_generator.h"
+#include "dictionary/operator_sequence_generator.h"
 
 #include "scenarios/context.h"
 

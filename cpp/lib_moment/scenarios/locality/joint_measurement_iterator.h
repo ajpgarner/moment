@@ -8,7 +8,7 @@
 
 #include "party.h"
 
-#include "../operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 #include "../outcome_index_iterator.h"
 
 #include "utilities/multi_dimensional_index_iterator.h"

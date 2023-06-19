@@ -8,7 +8,7 @@
 
 #include "name_table.h"
 
-#include "scenarios/operator_sequence.h"
+#include "dictionary/operator_sequence.h"
 
 #include <algorithm>
 #include <sstream>

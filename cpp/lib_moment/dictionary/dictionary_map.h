@@ -1,6 +1,8 @@
 /**
  * dictionary_map.h
  *
+ * Map from index as output from an OSG, to index in a SymbolTable.
+ *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */

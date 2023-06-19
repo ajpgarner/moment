@@ -8,7 +8,7 @@
 #include "word_list.h"
 
 #include "scenarios/context.h"
-#include "scenarios/word_list.h"
+#include "dictionary/dictionary.h"
 
 #include "storage_manager.h"
 

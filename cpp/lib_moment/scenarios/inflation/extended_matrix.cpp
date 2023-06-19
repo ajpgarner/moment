@@ -9,7 +9,7 @@
 
 #include "matrix/operator_matrix/moment_matrix.h"
 #include "matrix/operator_matrix/operator_matrix.h"
-#include "matrix/operator_sequence_generator.h"
+#include "dictionary/operator_sequence_generator.h"
 
 #include "factor_table.h"
 #include "inflation_context.h"

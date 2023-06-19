@@ -16,7 +16,7 @@
 #include "symbolic/symbol_table.h"
 
 #include "scenarios/context.h"
-#include "scenarios/word_list.h"
+#include "dictionary/dictionary.h"
 
 #include <algorithm>
 #include <memory>

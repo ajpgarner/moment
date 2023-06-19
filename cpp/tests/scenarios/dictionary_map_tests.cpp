@@ -7,7 +7,7 @@
 
 #include "gtest/gtest.h"
 
-#include "scenarios/word_list.h"
+#include "dictionary/dictionary.h"
 #include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/algebraic/algebraic_matrix_system.h"
 
