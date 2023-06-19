@@ -7,7 +7,7 @@
 #include "suggest_extensions.h"
 
 #include "storage_manager.h"
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 
 #include "scenarios/inflation/inflation_matrix_system.h"
 

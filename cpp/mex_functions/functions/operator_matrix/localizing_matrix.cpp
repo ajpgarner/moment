@@ -8,7 +8,7 @@
 
 #include "storage_manager.h"
 
-#include "matrix/localizing_matrix.h"
+#include "matrix/operator_matrix/localizing_matrix.h"
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/read_as_vector.h"

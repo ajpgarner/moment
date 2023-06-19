@@ -13,8 +13,8 @@
 #include "scenarios/locality/locality_operator_formatter.h"
 #include "scenarios/locality/joint_measurement_iterator.h"
 
-#include "matrix/operator_matrix.h"
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/operator_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 
 #include "error_codes.h"
 #include "utilities/make_sparse_matrix.h"

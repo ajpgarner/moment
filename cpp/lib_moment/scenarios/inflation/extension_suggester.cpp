@@ -10,7 +10,7 @@
 #include "inflation_context.h"
 
 #include "matrix/monomial_matrix.h"
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 #include "matrix/operator_sequence_generator.h"
 #include "symbolic/symbol_table.h"
 

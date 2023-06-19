@@ -10,7 +10,7 @@
 #include "scenarios/algebraic/algebraic_matrix_system.h"
 #include "scenarios/algebraic/algebraic_context.h"
 
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 
 #include "compare_basis.h"
 

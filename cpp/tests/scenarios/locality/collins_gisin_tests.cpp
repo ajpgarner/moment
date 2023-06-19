@@ -6,7 +6,7 @@
  */
 #include "gtest/gtest.h"
 
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 
 #include "scenarios/locality/locality_matrix_system.h"
 #include "scenarios/locality/locality_context.h"

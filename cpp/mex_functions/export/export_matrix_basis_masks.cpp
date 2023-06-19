@@ -7,7 +7,7 @@
 #include "export_matrix_basis_masks.h"
 
 #include "matrix/matrix.h"
-#include "matrix/operator_matrix.h"
+#include "matrix/operator_matrix/operator_matrix.h"
 
 #include "symbolic/symbol_table.h"
 #include "symbolic/symbol_table.h"

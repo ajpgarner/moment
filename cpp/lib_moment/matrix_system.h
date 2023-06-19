@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "matrix/localizing_matrix_index.h"
+#include "matrix/operator_matrix/localizing_matrix_index.h"
 
 #include "utilities/multithreading.h"
 

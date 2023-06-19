@@ -8,7 +8,7 @@
 #include "export_sequence_matrix.h"
 
 #include "matrix_system.h"
-#include "matrix/operator_matrix.h"
+#include "matrix/operator_matrix/operator_matrix.h"
 #include "matrix/polynomial_matrix.h"
 
 #include "symbolic/symbol_table.h"

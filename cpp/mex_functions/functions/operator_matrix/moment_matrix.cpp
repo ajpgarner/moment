@@ -8,7 +8,7 @@
 
 #include "storage_manager.h"
 
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 
 
 #include "utilities/read_as_scalar.h"

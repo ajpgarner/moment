@@ -8,7 +8,7 @@
 
 #include "storage_manager.h"
 
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 
 #include "export/export_basis.h"
 #include "export/export_matrix_basis_masks.h"

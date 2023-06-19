@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 
 #include "matrix/operator_sequence_generator.h"
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 #include "scenarios/operator_sequence.h"
 #include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/algebraic/algebraic_matrix_system.h"

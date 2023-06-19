@@ -7,7 +7,7 @@
  * @see monomial_matrix_basis.cpp for basis function definitions.
  */
 #include "monomial_matrix.h"
-#include "operator_matrix.h"
+#include "operator_matrix/operator_matrix.h"
 
 #include "symbolic/symbol_table.h"
 #include <stdexcept>

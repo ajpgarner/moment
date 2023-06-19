@@ -7,8 +7,8 @@
 #include "extended_matrix.h"
 
 
-#include "matrix/moment_matrix.h"
-#include "matrix/operator_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
+#include "matrix/operator_matrix/operator_matrix.h"
 #include "matrix/operator_sequence_generator.h"
 
 #include "factor_table.h"

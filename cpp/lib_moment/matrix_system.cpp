@@ -6,8 +6,8 @@
  */
 #include "matrix_system.h"
 
-#include "matrix/localizing_matrix.h"
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/localizing_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 #include "matrix/substituted_matrix.h"
 
 #include "symbolic/moment_substitution_rulebook.h"

@@ -11,7 +11,7 @@
 #include "scenarios/inflation/inflation_matrix_system.h"
 #include "scenarios/inflation/inflation_explicit_symbols.h"
 
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 
 namespace Moment::Tests {
     using namespace Moment::Inflation;

@@ -7,7 +7,7 @@
 #pragma once
 #include "../mex_function.h"
 
-#include "matrix/operator_matrix.h"
+#include "matrix/operator_matrix/operator_matrix.h"
 
 
 namespace Moment::mex::functions {

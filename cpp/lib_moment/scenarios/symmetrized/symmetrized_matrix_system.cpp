@@ -11,8 +11,8 @@
 #include "../derived/map_core.h"
 #include "../derived/symbol_table_map.h"
 
-#include "matrix/moment_matrix.h"
-#include "matrix/localizing_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
+#include "matrix/operator_matrix/localizing_matrix.h"
 
 #include <cassert>
 #include <sstream>

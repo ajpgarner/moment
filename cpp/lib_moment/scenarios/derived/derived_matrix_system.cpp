@@ -16,8 +16,8 @@
 
 #include "matrix/monomial_matrix.h"
 #include "matrix/polynomial_matrix.h"
-#include "matrix/moment_matrix.h"
-#include "matrix/localizing_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
+#include "matrix/operator_matrix/localizing_matrix.h"
 
 #include <cassert>
 

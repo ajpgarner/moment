@@ -7,7 +7,7 @@
 
 #include "moment_matrix.h"
 
-#include "operator_sequence_generator.h"
+#include "matrix/operator_sequence_generator.h"
 
 #include "utilities/multithreading.h"
 

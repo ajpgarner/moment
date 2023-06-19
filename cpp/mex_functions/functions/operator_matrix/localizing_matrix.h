@@ -7,7 +7,7 @@
 #pragma once
 
 #include "operator_matrix.h"
-#include "matrix/localizing_matrix_index.h"
+#include "matrix/operator_matrix/localizing_matrix_index.h"
 
 namespace Moment {
     class Context;

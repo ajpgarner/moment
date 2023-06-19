@@ -3,13 +3,13 @@ include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
 add_library(lib_moment
         hashed_sequence.cpp
         matrix_system.cpp
-        matrix/localizing_matrix.cpp
+        matrix/operator_matrix/localizing_matrix.cpp
         matrix/matrix.cpp
         matrix/matrix_basis.cpp
-        matrix/moment_matrix.cpp
+        matrix/operator_matrix/moment_matrix.cpp
         matrix/monomial_matrix.cpp
         matrix/monomial_matrix_basis.cpp
-        matrix/operator_matrix.cpp
+        matrix/operator_matrix/operator_matrix.cpp
         matrix/operator_sequence_generator.cpp
         matrix/polynomial_matrix.cpp
         matrix/polynomial_matrix_basis.cpp

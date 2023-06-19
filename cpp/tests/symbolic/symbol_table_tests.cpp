@@ -8,7 +8,7 @@
 
 #include "matrix_system.h"
 
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 
 #include "scenarios/context.h"
 #include "scenarios/locality/locality_context.h"

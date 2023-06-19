@@ -10,7 +10,7 @@
 #include "scenarios/context.h"
 
 #include "matrix_system.h"
-#include "matrix/localizing_matrix.h"
+#include "matrix/operator_matrix/localizing_matrix.h"
 
 #include "compare_os_matrix.h"
 

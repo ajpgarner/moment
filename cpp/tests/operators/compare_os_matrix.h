@@ -8,9 +8,9 @@
 
 #include "gtest/gtest.h"
 
-#include "matrix/operator_matrix.h"
-#include "matrix/moment_matrix.h"
-#include "matrix/localizing_matrix.h"
+#include "matrix/operator_matrix/operator_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
+#include "matrix/operator_matrix/localizing_matrix.h"
 
 #include <string>
 #include <sstream>

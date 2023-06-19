@@ -15,7 +15,7 @@
 #include "inflation_explicit_symbols.h"
 #include "inflation_implicit_symbols.h"
 
-#include "matrix/moment_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 
 #include "symbolic/polynomial_factory.h"
 
