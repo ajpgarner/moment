@@ -278,6 +278,16 @@ classdef AlgebraicScenario < Abstract.Scenario
         % See also: ALGEBRAIC.MONOMIAL
             val = obj.get([]);
         end
+        
+        function val = zero(obj)
+        % Creates algebraic zero object for this setting.
+        %
+        % RETURNS:
+        %   Newly created Algebraic.Zero
+        %
+        % See also: ALGEBRAIC.ZERO
+            val = Algebraic.Zero(obj);
+        end
     end
     
     %% Friend/interface methods

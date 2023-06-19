@@ -5,10 +5,16 @@ classdef AlgebraicTest < MTKTestBase
     methods(Test)
        function zero(testCase)
             setting = AlgebraicScenario(2);
-            zero = Algebraic.Polynomial.Zero(setting);
-            testCase.verifyTrue(isa(zero, 'Algebraic.Polynomial'));
+            zero = Algebraic.Zero(setting);
+            testCase.verifyTrue(isa(zero, 'Algebraic.Zero'));
             testCase.verifyEqual(zero.Scenario, setting);
-            testCase.verifyEqual(length(zero.Constituents), 0);           
+       end
+        
+        function get_zero(testCase)
+            setting = AlgebraicScenario(2);
+            zero = setting.zero();
+            testCase.verifyTrue(isa(zero, 'Algebraic.Zero'));            
+            testCase.verifyEqual(zero.Scenario, setting);
         end
         
         function get_id(testCase)
@@ -136,6 +142,15 @@ classdef AlgebraicTest < MTKTestBase
 
 %% Unary plus (uplus)
     methods(Test)
+        function uplus_zero(testCase)
+            setting = AlgebraicScenario(2);
+            zero = setting.zero;
+            plus_zero = +zero;
+            
+            testCase.assertTrue(isa(plus_zero, 'Algebraic.Zero'));
+            testCase.verifyEqual(plus_zero.Scenario, setting);
+        end
+        
         function uplus_mono(testCase)
             setting = AlgebraicScenario(2);
             x = setting.get(1);
@@ -167,6 +182,15 @@ classdef AlgebraicTest < MTKTestBase
     
 %% Unary minus (uminus)
     methods(Test)
+         function uminus_zero(testCase)
+            setting = AlgebraicScenario(2);
+            zero = setting.zero;
+            minus_zero = -zero;
+            
+            testCase.assertTrue(isa(minus_zero, 'Algebraic.Zero'));           
+            testCase.verifyEqual(minus_zero.Scenario, setting);
+         end
+        
         function uminus_mono(testCase)
             setting = AlgebraicScenario(2);
             x = setting.get(1);
@@ -198,6 +222,47 @@ classdef AlgebraicTest < MTKTestBase
     
 %% Addition (plus)
     methods(Test)
+        function plus_zero_zero(testCase)
+            setting = AlgebraicScenario(2);
+            zero = setting.zero();
+            also_zero = setting.zero();
+            zero_plus_zero = zero + also_zero;
+            
+            testCase.verifyTrue(isa(zero_plus_zero, 'Algebraic.Zero'));
+            testCase.assertEqual(zero_plus_zero.Scenario, setting);
+        end
+        
+        function plus_zero_num(testCase)
+            setting = AlgebraicScenario(2);
+            zero = setting.zero();
+            
+            also_zero = zero + 0.0;
+            testCase.verifyTrue(isa(also_zero, 'Algebraic.Zero'));
+            testCase.assertEqual(also_zero.Scenario, setting);
+            
+            not_zero = zero + 5.0;
+            testCase.verifyTrue(isa(not_zero, 'Algebraic.Monomial'));
+            testCase.assertEqual(not_zero.Scenario, setting);
+            testCase.verifyEqual(not_zero.Operators, uint64.empty(1,0));
+            testCase.verifyEqual(not_zero.Coefficient, 5.0);
+                        
+        end
+        
+        function plus_num_zero(testCase)
+            setting = AlgebraicScenario(2);
+            zero = setting.zero();
+            
+            also_zero = 0.0 + zero;
+            testCase.verifyTrue(isa(also_zero, 'Algebraic.Zero'));
+            testCase.assertEqual(also_zero.Scenario, setting);
+          
+            not_zero = 5.0 + zero;
+            testCase.verifyTrue(isa(not_zero, 'Algebraic.Monomial'));
+            testCase.assertEqual(not_zero.Scenario, setting);
+            testCase.verifyEqual(not_zero.Operators, uint64.empty(1,0));
+            testCase.verifyEqual(not_zero.Coefficient, 5.0);
+        end
+        
         function plus_num_mono(testCase)
             setting = AlgebraicScenario(2);
             x = setting.get(1);
@@ -230,6 +295,26 @@ classdef AlgebraicTest < MTKTestBase
             testCase.assertEqual(part_x.Operators, x.Operators);
             testCase.assertEqual(part_x.Coefficient, x.Coefficient);
         end
+        
+          
+        function plus_zero_mono(testCase)
+            setting = AlgebraicScenario(2);
+            zero = setting.zero();           
+            [x, ~] = setting.getAll();
+            
+            also_x = zero + x;
+            testCase.verifyTrue(eq(also_x, x));
+        end
+        
+        function plus_mono_zero(testCase)
+            setting = AlgebraicScenario(2);
+            zero = setting.zero();           
+            [x, ~] = setting.getAll();
+            
+            also_x = x + zero;
+            testCase.verifyTrue(eq(also_x, x));
+        end
+        
         
         function plus_mono_mono(testCase)
             setting = AlgebraicScenario(2);
@@ -346,6 +431,25 @@ classdef AlgebraicTest < MTKTestBase
             testCase.verifyEqual(partB_y.Operators, y.Operators);
             testCase.verifyEqual(partB_y.Coefficient, 2 * y.Coefficient);
         end
+                  
+        function plus_zero_poly(testCase)
+            setting = AlgebraicScenario(2);
+            zero = setting.zero();           
+            [x, y] = setting.getAll();
+            x_plus_y = x + y;           
+            also_x_plus_y = zero + x_plus_y;
+            testCase.verifyTrue(eq(also_x_plus_y, x_plus_y));
+        end
+        
+        function plus_poly_zero(testCase)
+            setting = AlgebraicScenario(2);
+            zero = setting.zero();           
+            [x, y] = setting.getAll();
+            x_plus_y = x + y;           
+            also_x_plus_y = x_plus_y + zero;
+            testCase.verifyTrue(eq(also_x_plus_y, x_plus_y));
+        end
+        
         
         function plus_poly_mono_overlap(testCase)
             setting = AlgebraicScenario(2);
@@ -569,8 +673,8 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get(1);
             
             x_minus_x = x - x;
-            testCase.verifyTrue(isa(x_minus_x, 'double'));
-            testCase.verifyEqual(x_minus_x, 0);
+            testCase.verifyTrue(isa(x_minus_x, 'Algebraic.Zero'));            
+            testCase.verifyEqual(x_minus_x.Scenario, setting);
         end
          
         function minus_mono_poly(testCase)
@@ -710,14 +814,34 @@ classdef AlgebraicTest < MTKTestBase
             
             as_zero = x_y - x_y2;
             
-            testCase.assertTrue(isa(as_zero, 'double'));
-            testCase.verifyEqual(as_zero, 0);
+            testCase.assertTrue(isa(as_zero, 'Algebraic.Zero'));
+            testCase.verifyEqual(as_zero.Scenario, setting);
   
         end
     end
     
 %% Multiplication (mtimes)
     methods(Test)
+        
+        function mtimes_zero_mono(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.get([1]);
+            zero = setting.zero();
+            also_zero = zero * x;
+            testCase.assertTrue(isa(also_zero, 'Algebraic.Zero'));
+            testCase.verifyEqual(also_zero.Scenario, setting);
+        end
+        
+        
+        function mtimes_mono_zero(testCase)
+            setting = AlgebraicScenario(2);
+            x = setting.get([1]);
+            zero = setting.zero();
+            also_zero = x * zero;
+            testCase.assertTrue(isa(also_zero, 'Algebraic.Zero'));
+            testCase.verifyEqual(also_zero.Scenario, setting);
+        end
+        
         function mtimes_num_mono(testCase)
             setting = AlgebraicScenario(2);
             x = setting.get([1]);
@@ -804,6 +928,28 @@ classdef AlgebraicTest < MTKTestBase
             testCase.verifyEqual(yz.Coefficient, yz_direct.Coefficient);
         end
         
+        function mtimes_zero_poly(testCase)
+            setting = AlgebraicScenario(2);
+            [x, y] = setting.getAll;
+            x_plus_y = x + y;
+            zero = setting.zero();
+            also_zero = zero * x_plus_y;
+            testCase.assertTrue(isa(also_zero, 'Algebraic.Zero'));
+             testCase.assertTrue(eq(also_zero, zero));
+            testCase.verifyEqual(also_zero.Scenario, setting);
+        end
+               
+        function mtimes_poly_zero(testCase)
+            setting = AlgebraicScenario(2);
+            [x, y] = setting.getAll;
+            x_plus_y = x + y;
+            zero = setting.zero();
+            also_zero = x_plus_y * zero;
+            testCase.assertTrue(isa(also_zero, 'Algebraic.Zero'));
+             testCase.assertTrue(eq(also_zero, zero));
+            testCase.verifyEqual(also_zero.Scenario, setting);
+        end
+                
         function mtimes_poly_poly(testCase)
             setting = AlgebraicScenario(4);
             [w, x, y, z] = setting.getAll();

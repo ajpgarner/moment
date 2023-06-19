@@ -1,5 +1,6 @@
-classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexObject
-    %POLYNOMIAL
+classdef (InferiorClasses={?Algebraic.Monomial,?Algebraic.Zero}) ...
+        Polynomial < Abstract.ComplexObject
+%POLYNOMIAL A polynomial expression of operators (or their moments).
     
     properties
         Constituents = Algebraic.Monomial.empty(1,0)
@@ -18,16 +19,6 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
         done_sc = false;
         symbol_cell = cell(1, 0);
         done_oc = false;
-    end
-    
-    methods(Static)
-        function obj = Zero(setting)
-            arguments
-                setting (1,1) Abstract.Scenario
-            end
-            obj = Algebraic.Polynomial(setting, ...
-                                       Algebraic.Monomial.empty(1,0));
-        end
     end
     
     methods
@@ -272,15 +263,22 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                     error("_*_ only supported for scalar multiplication.");
                 end
                 
-                new_coefs = Algebraic.Monomial.empty(1,0);
-                for i = 1:length(this.Constituents)
-                    old_m = this.Constituents(i);
-                    new_coefs(end+1) = ...
-                        Algebraic.Monomial(this.Scenario, ...
+                if other == 0 
+                    val = Algebraic.Zero(this.Scenario);
+                else                 
+                    new_coefs = Algebraic.Monomial.empty(1,0);
+                    for i = 1:length(this.Constituents)
+                        old_m = this.Constituents(i);
+                        new_coefs(end+1) = ...
+                            Algebraic.Monomial(this.Scenario, ...
                                            old_m.Operators, ...
                                            double(old_m.Coefficient * other));
+                    end
+                    val = Algebraic.Polynomial(this.Scenario, new_coefs);
                 end
-                val = Algebraic.Polynomial(this.Scenario, new_coefs);
+            elseif isa(other, 'Algebraic.Zero')
+                this.checkSameScenario(other);
+                val = Algebraic.Zero(this.Scenario);                
             elseif isa(other, 'Algebraic.Monomial')
                 this.checkSameScenario(other);                
                 new_coefs = Algebraic.Monomial.empty(1,0);
@@ -298,7 +296,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 val = Algebraic.Polynomial(this.Scenario, new_coefs);
             elseif isa(other, 'Algebraic.Polynomial')
                 this.checkSameScenario(other);
-                val = Algebraic.Polynomial.Zero(this.Scenario);                
+                val = Algebraic.Zero(this.Scenario);
                 for i = 1:length(this.Constituents)
                     new_m = this.Constituents(i) * other;
                     val = val + new_m;
@@ -354,7 +352,8 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 end
                 
                 other = Algebraic.Monomial(this.Scenario, [], double(other));
-            elseif ~isa(other, 'Algebraic.Monomial') && ...
+            elseif  ~isa(other, 'Algebraic.Zero') && ...
+                    ~isa(other, 'Algebraic.Monomial') && ...
                     ~isa(other, 'Algebraic.Polynomial')
                 error("_+_ not defined between " + class(lhs) ...
                         + " and " + class(rhs));
@@ -363,8 +362,10 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             % Check objects are from same scenario
             this.checkSameScenario(other);
                         
-            % Add monomial to polynomial?
-            if isa(other, 'Algebraic.Monomial')
+           
+            if isa(other, 'Algebraic.Zero')
+                val = Algebraic.Polynomial(this.Scenario, this.Constituents);
+            elseif isa(other, 'Algebraic.Monomial')
                 components = horzcat(this.Constituents, other);
                 val = Algebraic.Polynomial(this.Scenario, components);
             elseif isa(other, 'Algebraic.Polynomial')
@@ -374,7 +375,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 end
             else
                 error(['Assertion failed: ',...
-                       'other should be Monomial or Polynomial.']);
+                       'other should be Zero, Monomial or Polynomial.']);
             end
             
             % Degrade, as necessary
@@ -388,10 +389,10 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
             if length(obj.Constituents) == 1
                 val = obj.Constituents(1);
                 if abs(val.Coefficient) < 2*eps
-                    val = 0;
+                    val = Algebraic.Zero(obj.Scenario);
                 end
             elseif obj.IsZero
-                val = 0;
+                val = Algebraic.Zero(obj.Scenario);
             else
                 val = obj;
             end
@@ -434,7 +435,7 @@ classdef (InferiorClasses={?Algebraic.Monomial}) Polynomial < Abstract.ComplexOb
                 
     %% Apply substitution rules
     methods        
-        function val = ApplyRules(obj, rulebook )
+        function val = ApplyRules(obj, rulebook)
         % APPLYRULES Transform moments of matrix according to rulebook.
         %
         % Effectively applies rules to each constituent matrix in turn.

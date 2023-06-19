@@ -1,5 +1,6 @@
-classdef Monomial < Abstract.ComplexObject
-    %MONOMIAL A monomial expression, as part of an algebraic setting.
+classdef (InferiorClasses={?Algebraic.Zero}) ...
+        Monomial < Abstract.ComplexObject
+%MONOMIAL A monomial expression of operators (or their moment).
         
     properties(GetAccess = public, SetAccess = protected)
         Operators % The operator sequence defining this monomial.        
@@ -262,7 +263,7 @@ classdef Monomial < Abstract.ComplexObject
     %% Algebraic manipulation
     methods
         function val = uplus(obj)
-        % UPLUS Unary plus (do nothing).
+        % UPLUS Unary plus (typically nothing, could degrade to zero).
         %
         % SYNTAX
         %   v = +mono
@@ -270,7 +271,11 @@ classdef Monomial < Abstract.ComplexObject
         % RETURNS
         %   The same monomial object.
         %
-            val = obj;
+            if obj.Coefficient == 0
+                val = Algebraic.Zero(obj.Scenario);
+            else
+                val = obj;
+            end
         end
         
         function val = uminus(this)
@@ -309,10 +314,10 @@ classdef Monomial < Abstract.ComplexObject
             end
             
             % Pre-multiplication by a built-in type
-            if ~isa(lhs, 'Algebraic.Monomial')
+            if ~isa(lhs, 'Algebraic.Monomial') 
                 this = rhs;
                 other = lhs;
-                if ~isnumeric(other)
+                if (~isnumeric(other) && ~isa(other, 'Algebraic.Zero'))
                     error(['Pre-multiplication _*_ should only be ',...
                         'invoked when LHS is a built-in type.']);
                 end
@@ -327,13 +332,16 @@ classdef Monomial < Abstract.ComplexObject
                 end
                 
                 if abs(other) < eps(1)
-                    val = 0;
+                    val = Algebraic.Zero(this.Scenario);
                     return;
                 end
                 
                 
                 val = Algebraic.Monomial(this.Scenario, this.Operators, ...
                     double(this.Coefficient * other));
+            elseif isa(other, 'Algebraic.Zero') % mono * zero = zero
+                this.checkSameScenario(other);
+                val = Algebraic.Zero(this.Scenario);
             elseif isa(other, 'Algebraic.Monomial') % mono * mono = mono
                 this.checkSameScenario(other);
                 
@@ -377,15 +385,27 @@ classdef Monomial < Abstract.ComplexObject
                 rhs (1,1)
             end
             
+            % Add a scalar by a built-in type?
+            if ~isa(lhs, 'Algebraic.Monomial')
+                this = rhs;
+                other = lhs;
+            else
+                this = lhs;
+                other = rhs;
+            end
+            
             % Is it simply two monomials of the same type?
-            if isa(lhs, 'Algebraic.Monomial') ...
-                    && isa(rhs, 'Algebraic.Monomial')
-                
-                lhs.checkSameScenario(rhs);
+            if isa(other, 'Algebraic.Zero')
+                this.checkSameScenario(other);
+                val = Algebraic.Monomial(this.Scenario, this.Operators,...
+                                         this.Coefficient);
+                return;
+            elseif isa(other, 'Algebraic.Monomial')                
+                this.checkSameScenario(other);
                 
                 % Are these monomials equal up to negation?
                 if eq(lhs, -rhs)
-                    val = 0;
+                    val = Algebraic.Zero(lhs.Scenario);
                     return;
                 end
                 
@@ -397,25 +417,14 @@ classdef Monomial < Abstract.ComplexObject
                 end
             end
             
-            % Add a scalar by a built-in type?
-            if ~isa(lhs, 'Algebraic.Monomial')
-                this = rhs;
-                other = lhs;
-            else
-                this = lhs;
-                other = rhs;
-            end
-            
             % Quick pass through for "+0" case
             if Util.is_scalar_zero(other)
                 val = this;
                 return;
             end
             
-            % Otherwise, promote to polynomial to handle.
+            % Otherwise, promote to polynomial (noting commutation)
             this = Algebraic.Polynomial(this.Scenario, [this]);
-            
-            % Add commutes, so ordering does not matter.
             val = this.plus(other);
         end
         
