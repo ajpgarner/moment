@@ -10,6 +10,7 @@
 #include "scenarios/inflation/inflation_context.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
 
+#include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
 #include "../../symbolic/symbolic_matrix_helpers.h"
@@ -67,7 +68,7 @@ namespace Moment::Tests {
 
         std::vector<symbol_name_t> extension_list{id_A};
 
-        ExtendedMatrix extended_MM{symbols, factors, base_MM, extension_list};
+        ExtendedMatrix extended_MM{symbols, factors, ims.polynomial_factory().zero_tolerance, base_MM, extension_list};
 
         // new symbols to expect: <A><A>, <A><B>.
         ASSERT_EQ(symbols.size(), 7);
@@ -106,7 +107,7 @@ namespace Moment::Tests {
 
         std::vector<symbol_name_t> extension_list{id_A};
 
-        ExtendedMatrix extended_MM{symbols, factors, base_MM, extension_list};
+        ExtendedMatrix extended_MM{symbols, factors, ims.polynomial_factory().zero_tolerance, base_MM, extension_list};
 
         // new symbols to expect: <A><A>; meanwhile <A><B>=<AB>, so is not a new symbol
         ASSERT_EQ(symbols.size(), 6);
@@ -143,7 +144,7 @@ namespace Moment::Tests {
 
         std::vector<symbol_name_t> extension_list{id_A, id_B};
 
-        ExtendedMatrix extended_MM{symbols, factors, base_MM, extension_list};
+        ExtendedMatrix extended_MM{symbols, factors, ims.polynomial_factory().zero_tolerance, base_MM, extension_list};
 
         // new symbols to expect: <A><A>; <B><B> meanwhile <A><B>=<AB>, so is not a new symbol
         ASSERT_EQ(symbols.size(), 7);

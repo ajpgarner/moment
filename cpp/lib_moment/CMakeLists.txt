@@ -14,7 +14,6 @@ add_library(lib_moment
         matrix/polynomial_matrix.cpp
         matrix/polynomial_matrix_basis.cpp
         matrix/substituted_matrix.cpp
-        matrix/properties/matrix_properties.cpp
         scenarios/context.cpp
         scenarios/dictionary_map.cpp
         scenarios/explicit_symbols.cpp

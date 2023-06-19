@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "properties/matrix_properties.h"
+#include "integer_types.h"
 
 #include "matrix_basis.h"
 #include "matrix_basis_type.h"
@@ -14,7 +14,10 @@
 #include <cassert>
 
 #include <complex>
+#include <iosfwd>
+#include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -30,28 +33,46 @@ namespace Moment {
         /** Defining scenario for matrix (especially: rules for simplifying operator sequences). */
         const Context& context;
 
+        /** Table of symbols for entire system. */
+        const SymbolTable& symbols;
+
     protected:
-        /** Look-up key for symbols */
+        /** Table of symbols for entire system. */
         SymbolTable& symbol_table;
 
         /** Square matrix size */
         size_t dimension = 0;
 
-        /** Symbol matrix properties (basis size, etc.) */
-        std::unique_ptr<MatrixProperties> mat_prop;
+        /** Matrix is Hermitian? */
+        bool hermitian = false;
+
+        /** True if matrix has any complex coefficients in front of its elements (real or otherwise) */
+        bool complex_coefficients = false;
+
+        /** True if matrix could generate moments that take complex values (e.g. from non-Hermitian operators). */
+        bool complex_basis = false;
+
+        /** Human-readable name for matrix */
+        std::string description;
+
+        /** Symbols mentioned in the matrix. */
+        std::set<symbol_name_t> included_symbols;
+
+        /** Included real-valued basis elements, corresponding to real parts of symbols. */
+        std::set<symbol_name_t> real_basis_elements;
+
+        /** Included real-valued basis elements, corresponding to imaginary parts of symbols. */
+        std::set<symbol_name_t> imaginary_basis_elements;
+
+        /** Map from included symbols IDs to basis indices. */
+        std::map<symbol_name_t, std::pair<ptrdiff_t, ptrdiff_t>> basis_key;
 
         /** Operator matrix, if set - (may be null) */
         std::unique_ptr<OperatorMatrix> op_mat;
 
     public:
-        /**
-         * Table of symbols for entire system.
-         */
-        const SymbolTable& Symbols;
-
-
-    public:
         friend class MatrixBasis;
+        friend class OperatorMatrix;
 
         /**
          * Numeric basis for this matrix, in terms of real and imaginary parts of symbols.
@@ -62,7 +83,9 @@ namespace Moment {
     public:
         Matrix(const Context& context, SymbolTable& symbols, size_t dimension = 0);
 
-        Matrix(Matrix&& rhs) noexcept;
+        Matrix(const Matrix& rhs) = delete;
+
+        Matrix(Matrix&& rhs) noexcept = delete;
 
         virtual ~Matrix() noexcept;
 
@@ -73,33 +96,52 @@ namespace Moment {
             return this->dimension;
         }
 
-        /**
-         * Description of matrix type
-         */
-        [[nodiscard]] const std::string& description() const {
-            assert(this->mat_prop);
-            return this->mat_prop->Description();
+        /** Short description of matrix type. */
+        [[nodiscard]] const std::string& Description() const {
+            return this->description;
+        }
+
+        /** True, if matrix is Hermitian. */
+        [[nodiscard]] bool Hermitian() const noexcept {
+            return this->hermitian;
         }
 
         /**
-         * True, if matrix is Hermitian.
+         * True, if one or more imaginary parts of the SDP basis are be required to correctly specify the matrix.
+         * That is, if the 'b' sdpvars would have an impact on the matrix.
+         * Note, this could be true, and the matrix real, e.g. because of terms like "i<X>" where <X> is anti-hermitian.
          */
-        [[nodiscard]] bool is_hermitian() const noexcept {
-            assert(this->mat_prop);
-            return this->mat_prop->IsHermitian();
+        [[nodiscard]] bool HasComplexBasis() const noexcept {
+            return this->complex_basis;
         }
 
-        /**
-         * Properties of the matrix.
-         */
-        [[nodiscard]] const MatrixProperties& SMP() const noexcept {
-            assert(this->mat_prop);
-            return *this->mat_prop;
+        /** True, if any coefficients within the matrix are complex. */
+        [[nodiscard]] bool HasComplexCoefficients() const noexcept {
+            return this->complex_coefficients;
         }
 
-        /**
-         * True if matrix has operator matrix.
-         */
+        /** Set of all symbols involved in this matrix. */
+        [[nodiscard]] constexpr const auto& IncludedSymbols() const noexcept {
+            return this->included_symbols;
+        }
+
+        /** Set of real symbols involved in this matrix. */
+        [[nodiscard]] constexpr const auto& RealBasisIndices() const noexcept {
+            return this->real_basis_elements;
+        }
+
+        /** Set of imaginary symbols involved in this matrix. */
+        [[nodiscard]] constexpr const auto& ImaginaryBasisIndices() const noexcept {
+            return this->imaginary_basis_elements;
+        }
+
+        /** Set of imaginary symbols involved in this matrix. */
+        [[nodiscard]] constexpr const auto& BasisKey() const noexcept {
+            return this->basis_key;
+        }
+
+
+        /**  True if matrix has operator matrix. */
          [[nodiscard]] bool has_operator_matrix() const noexcept {
              return static_cast<bool>(this->op_mat);
          }
@@ -110,10 +152,6 @@ namespace Moment {
           */
          [[nodiscard]] const OperatorMatrix& operator_matrix() const;
 
-         /**
-          * Test if every co-efficient before symbols in this matrix is real.
-          */
-         [[nodiscard]] virtual bool real_coefficients() const noexcept = 0;
 
          /**
           * True if matrix is defined in terms of monomial symbols.
@@ -128,6 +166,11 @@ namespace Moment {
          [[nodiscard]] inline bool is_polynomial() const noexcept {
              return !this->is_monomial();
          }
+
+         /**
+          * Output matrix properties.
+          */
+          friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix);
 
         /**
          * Force renumbering of matrix bases keys
@@ -166,10 +209,6 @@ namespace Moment {
          * @return Pair; first: basis for real part of symbols, second: basis for imaginary part of symbols.
          */
         [[nodiscard]] virtual SparseComplexBasisInfo::MakeStorageType create_sparse_complex_basis() const = 0;
-
-        void set_description(std::string new_description) noexcept;
-
-
     };
 
 }

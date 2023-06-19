@@ -57,30 +57,20 @@ namespace Moment {
         /** Matrix, as symbolic expression */
         std::unique_ptr<SquareMatrix<Monomial>> sym_exp_matrix;
 
-        /** True if matrix has no complex prefactors in its symbol expressions */
-        bool real_prefactors = true;
-
     public:
-        MonomialMatrix(const Context& context, SymbolTable& symbols,
+        MonomialMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance,
                        std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix,
                        bool is_hermitian);
 
         MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix);
-
-        MonomialMatrix(MonomialMatrix&& rhs) noexcept
-            : Matrix{std::move(rhs)},
-              sym_exp_matrix{std::move(rhs.sym_exp_matrix)},  SymbolMatrix{*this} { }
 
         ~MonomialMatrix() noexcept;
 
         /**
          * Force renumbering of matrix bases keys
          */
-        void renumerate_bases(const SymbolTable& symbols, double zero_tolerance) override;
+        void renumerate_bases(const SymbolTable& symbols, double zero_tolerance) final;
 
-        bool real_coefficients() const noexcept override {
-            return this->real_prefactors;
-        }
 
     protected:
 
@@ -104,7 +94,10 @@ namespace Moment {
          */
         [[nodiscard]] SparseComplexBasisInfo::MakeStorageType create_sparse_complex_basis() const override;
 
-
+        /**
+         * Look up basis elements in matrix
+         */
+        void identify_symbols_and_basis_indices();
 
     };
 }

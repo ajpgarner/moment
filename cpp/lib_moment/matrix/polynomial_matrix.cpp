@@ -6,6 +6,7 @@
  */
 
 #include "polynomial_matrix.h"
+#include "symbolic/polynomial_to_basis.h"
 
 #include "symbolic/symbol_table.h"
 
@@ -33,34 +34,20 @@ namespace Moment {
 
     }
 
-    PolynomialMatrix::PolynomialMatrix(const Context& context, SymbolTable& symbols,
+    PolynomialMatrix::PolynomialMatrix(const Context& context, SymbolTable& symbols, const double zero_tolerance,
                      std::unique_ptr<SquareMatrix<Polynomial>> symbolMatrix)
              : Matrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0}, SymbolMatrix{*this},
-               sym_exp_matrix{std::move(symbolMatrix)}, real_prefactors{true} {
+               sym_exp_matrix{std::move(symbolMatrix)} {
         if (!sym_exp_matrix) {
             throw std::runtime_error{"Symbol matrix pointer passed to PolynomialMatrix constructor was nullptr."};
         }
 
-        // Find included symbols
-        std::set<symbol_name_t> included_symbols;
-        const size_t max_symbol_id = symbols.size();
-        for (const auto& poly : *sym_exp_matrix) {
-            for (const auto& term : poly) {
-                included_symbols.emplace(term.id);
-                if (this->real_prefactors && term.complex_factor()) { // <- first clause, avoid unnecessary tests
-                    this->real_prefactors = false;
-                }
-            }
-        }
+        // Matrix properties
+        this->hermitian = test_hermicity(symbols, *sym_exp_matrix, 1.0);
+        this->description = "Polynomial Symbolic Matrix";
 
-        // Test for Hermiticity
-        const bool is_hermitian = test_hermicity(symbols, *sym_exp_matrix, 1.0);
-
-        // Create symbol matrix properties
-        this->mat_prop = std::make_unique<MatrixProperties>(*this, this->symbol_table, std::move(included_symbols),
-                                                            "Polynomial Symbolic Matrix",
-                                                            !this->real_prefactors, is_hermitian);
-
+        // Included symbols and basis elements
+        this->identify_symbols_and_basis_indices(zero_tolerance);
     }
 
     /**
@@ -71,6 +58,45 @@ namespace Moment {
             polynomial.fix_cc_in_place(symbols, true, zero_tolerance);
         }
 
-        this->mat_prop->rebuild_keys(symbols);
+        this->identify_symbols_and_basis_indices(zero_tolerance);
     }
+
+    void PolynomialMatrix::identify_symbols_and_basis_indices(double zero_tolerance) {
+        // Find and canonicalize included symbols
+        const size_t max_symbol_id = symbols.size();
+        this->complex_coefficients = false;
+        this->included_symbols.clear();
+
+        PolynomialToMask ptm{this->symbols, zero_tolerance};
+
+        auto [real_mask, im_mask] = ptm.empty_mask();
+
+        for (auto& poly : *sym_exp_matrix) {
+            // Get raw symbols and coefficients
+            for (auto &monomial: poly) {
+                assert(monomial.id < max_symbol_id);
+                this->included_symbols.emplace(monomial.id);
+                if (!this->complex_coefficients && monomial.complex_factor()) { // <- first clause, avoid unnecessary tests
+                    this->complex_coefficients = true;
+                }
+            }
+            ptm.set_bits(real_mask, im_mask, poly);
+        }
+
+        this->real_basis_elements = real_mask.to_set();
+        this->imaginary_basis_elements = im_mask.to_set();
+
+        // Now make basis key [could include some basis elements that do not appear due to terms like X + X*].
+        this->basis_key.clear();
+        for (const auto symbol_id : this->included_symbols) {
+            auto &symbol_info = this->symbols[symbol_id];
+            auto [re_key, im_key] = symbol_info.basis_key();
+            this->basis_key.emplace_hint(this->basis_key.end(),
+                                         std::make_pair(symbol_id, std::make_pair(re_key, im_key)));
+        }
+
+        this->complex_basis = !this->imaginary_basis_elements.empty();
+    }
+
+
 }

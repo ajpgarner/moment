@@ -166,7 +166,7 @@ namespace Moment::Tests {
 
     TEST(Utilities_DynamicBitset, SetTestUnset_SmallVectorSmall) {
         for (size_t magic_bit = 0; magic_bit < 40; ++magic_bit) {
-            DynamicBitset<uint64_t, SmallVector<uint64_t, 1>> bitset{40};
+            DynamicBitset<uint64_t, size_t, SmallVector<uint64_t, 1>> bitset{40};
             EXPECT_TRUE(bitset.empty());
             bitset.set(magic_bit);
             EXPECT_EQ(bitset.count(), 1);
@@ -189,7 +189,7 @@ namespace Moment::Tests {
 
     TEST(Utilities_DynamicBitset, SetTestUnset_SmallVectorLarge) {
         for (size_t magic_bit = 0; magic_bit < 70; ++magic_bit) {
-            DynamicBitset<uint64_t, SmallVector<uint64_t, 1>> bitset{70};
+            DynamicBitset<uint64_t, size_t, SmallVector<uint64_t, 1>> bitset{70};
             EXPECT_TRUE(bitset.empty());
             bitset.set(magic_bit);
             EXPECT_EQ(bitset.count(), 1);

@@ -72,10 +72,10 @@ namespace Moment::Tests {
         auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
-        auto where_a0 = momentMatrix.Symbols.where(alice_a0);
+        auto where_a0 = momentMatrix.symbols.where(alice_a0);
         ASSERT_NE(where_a0, nullptr);
         const auto& alice_a1 = OperatorSequence({alice.measurement_outcome(0,1)}, context);
-        auto where_a1 = momentMatrix.Symbols.where(alice_a1);
+        auto where_a1 = momentMatrix.symbols.where(alice_a1);
         ASSERT_NE(where_a1, nullptr);
         ASSERT_NE(where_a0, where_a1);
 
@@ -122,10 +122,10 @@ namespace Moment::Tests {
         auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
-        auto where_a0 = momentMatrix.Symbols.where(alice_a0);
+        auto where_a0 = momentMatrix.symbols.where(alice_a0);
         ASSERT_NE(where_a0, nullptr);
         const auto& alice_b0 = OperatorSequence({alice.measurement_outcome(1,0)}, context);
-        auto where_b0 = momentMatrix.Symbols.where(alice_b0);
+        auto where_b0 = momentMatrix.symbols.where(alice_b0);
         ASSERT_NE(where_b0, nullptr);
         ASSERT_NE(where_a0, where_b0);
 
@@ -159,15 +159,15 @@ namespace Moment::Tests {
         auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
-        auto where_a0 = momentMatrix.Symbols.where(alice_a0);
+        auto where_a0 = momentMatrix.symbols.where(alice_a0);
         ASSERT_NE(where_a0, nullptr);
         const auto& bob_a0 = OperatorSequence({bob.measurement_outcome(0,0)}, context);
-        auto where_b0 = momentMatrix.Symbols.where(bob_a0);
+        auto where_b0 = momentMatrix.symbols.where(bob_a0);
         ASSERT_NE(where_b0, nullptr);
         ASSERT_NE(where_a0, where_b0);
         const auto& alice_a0_bob_a0 = OperatorSequence({alice.measurement_outcome(0,0), bob.measurement_outcome(0,0)},
                                                        context);
-        auto where_alice_bob = momentMatrix.Symbols.where(alice_a0_bob_a0);
+        auto where_alice_bob = momentMatrix.symbols.where(alice_a0_bob_a0);
         ASSERT_NE(where_alice_bob, nullptr);
         ASSERT_NE(where_alice_bob, where_a0);
         ASSERT_NE(where_alice_bob, where_b0);
@@ -212,24 +212,24 @@ namespace Moment::Tests {
 
         auto [id, momentMatrix] = system.create_moment_matrix(1);
 
-        auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
+        auto A0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
                                                                       context))->Id();
-        auto A1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1, 0)},
+        auto A1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1, 0)},
                                                                       context))->Id();
-        auto B0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0, 0)},
+        auto B0 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(0, 0)},
                                                                       context))->Id();
-        auto B1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1, 0)},
+        auto B1 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(1, 0)},
                                                                       context))->Id();
-        auto A0B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0),
+        auto A0B0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0, 0),
                                                                          bob.measurement_outcome(0, 0)},
                                                                         context))->Id();
-        auto A0B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0),
+        auto A0B1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0, 0),
                                                                          bob.measurement_outcome(1, 0)},
                                                                         context))->Id();
-        auto A1B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1, 0),
+        auto A1B0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1, 0),
                                                                          bob.measurement_outcome(0, 0)},
                                                                         context))->Id();
-        auto A1B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1, 0),
+        auto A1B1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1, 0),
                                                                          bob.measurement_outcome(1, 0)},
                                                                         context))->Id();
         const auto& implSym = system.ImplicitSymbolTable();
@@ -281,86 +281,86 @@ namespace Moment::Tests {
 
         auto [id, momentMatrix] = system.create_moment_matrix(2);
 
-        auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0)},
+        auto A0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0)},
                                                                        context))->Id();
-        auto A1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0)},
+        auto A1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0)},
                                                                        context))->Id();
-        auto B0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0)},
+        auto B0 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(0,0)},
                                                                        context))->Id();
-        auto B1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0)},
+        auto B1 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(1,0)},
                                                                        context))->Id();
-        auto C0 = momentMatrix.Symbols.where(OperatorSequence({charlie.measurement_outcome(0,0)},
+        auto C0 = momentMatrix.symbols.where(OperatorSequence({charlie.measurement_outcome(0,0)},
                                                                        context))->Id();
-        auto C1 = momentMatrix.Symbols.where(OperatorSequence({charlie.measurement_outcome(1,0)},
+        auto C1 = momentMatrix.symbols.where(OperatorSequence({charlie.measurement_outcome(1,0)},
                                                                        context))->Id();
 
-        auto A0B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
+        auto A0B0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          bob.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto A0B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
+        auto A0B1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          bob.measurement_outcome(1,0)},
                                                                          context))->Id();
-        auto A0C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
+        auto A0C0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto A0C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
+        auto A0C1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(1,0)},
                                                                          context))->Id();
-        auto A1B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+        auto A1B0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          bob.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto A1B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+        auto A1B1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          bob.measurement_outcome(1,0)},
                                                                          context))->Id();
-        auto A1C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+        auto A1C0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto A1C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+        auto A1C1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(1,0)},
                                                                          context))->Id();
 
-        auto B0C0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
+        auto B0C0 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto B0C1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
+        auto B0C1 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(1,0)},
                                                                          context))->Id();
-        auto B1C0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
+        auto B1C0 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto B1C1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
+        auto B1C1 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(1,0)},
                                                                          context))->Id();
 
-        auto A0B0C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
+        auto A0B0C0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                            bob.measurement_outcome(0,0),
                                                                            charlie.measurement_outcome(0,0)},
                                                                         context))->Id();
-        auto A0B0C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
-                                                                           bob.measurement_outcome(0,0),
-                                                                           charlie.measurement_outcome(1,0)},
-                                                                        context))->Id();
-        auto A0B1C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
-                                                                           bob.measurement_outcome(1,0),
-                                                                           charlie.measurement_outcome(0,0)},
-                                                                        context))->Id();
-        auto A0B1C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
-                                                                           bob.measurement_outcome(1,0),
-                                                                           charlie.measurement_outcome(1,0)},
-                                                                        context))->Id();
-        auto A1B0C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
-                                                                           bob.measurement_outcome(0,0),
-                                                                           charlie.measurement_outcome(0,0)},
-                                                                        context))->Id();
-        auto A1B0C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+        auto A0B0C1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                            bob.measurement_outcome(0,0),
                                                                            charlie.measurement_outcome(1,0)},
                                                                         context))->Id();
-        auto A1B1C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+        auto A0B1C0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                            bob.measurement_outcome(1,0),
                                                                            charlie.measurement_outcome(0,0)},
                                                                         context))->Id();
-        auto A1B1C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+        auto A0B1C1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
+                                                                           bob.measurement_outcome(1,0),
+                                                                           charlie.measurement_outcome(1,0)},
+                                                                        context))->Id();
+        auto A1B0C0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+                                                                           bob.measurement_outcome(0,0),
+                                                                           charlie.measurement_outcome(0,0)},
+                                                                        context))->Id();
+        auto A1B0C1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+                                                                           bob.measurement_outcome(0,0),
+                                                                           charlie.measurement_outcome(1,0)},
+                                                                        context))->Id();
+        auto A1B1C0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+                                                                           bob.measurement_outcome(1,0),
+                                                                           charlie.measurement_outcome(0,0)},
+                                                                        context))->Id();
+        auto A1B1C1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                            bob.measurement_outcome(1,0),
                                                                            charlie.measurement_outcome(1,0)},
                                                                         context))->Id();
@@ -469,54 +469,54 @@ namespace Moment::Tests {
 
         auto [id, momentMatrix] = system.create_moment_matrix(1);
 
-        auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0)},
+        auto A0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0)},
                                                                        context))->Id();
-        auto A1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0)},
+        auto A1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0)},
                                                                        context))->Id();
-        auto B0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0)},
+        auto B0 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(0,0)},
                                                                        context))->Id();
-        auto B1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0)},
+        auto B1 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(1,0)},
                                                                        context))->Id();
-        auto C0 = momentMatrix.Symbols.where(OperatorSequence({charlie.measurement_outcome(0,0)},
+        auto C0 = momentMatrix.symbols.where(OperatorSequence({charlie.measurement_outcome(0,0)},
                                                                        context))->Id();
-        auto C1 = momentMatrix.Symbols.where(OperatorSequence({charlie.measurement_outcome(1,0)},
+        auto C1 = momentMatrix.symbols.where(OperatorSequence({charlie.measurement_outcome(1,0)},
                                                                        context))->Id();
 
-        auto A0B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
+        auto A0B0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          bob.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto A0B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
+        auto A0B1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          bob.measurement_outcome(1,0)},
                                                                          context))->Id();
-        auto A0C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
+        auto A0C0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto A0C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
+        auto A0C1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(1,0)},
                                                                          context))->Id();
-        auto A1B0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+        auto A1B0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          bob.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto A1B1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+        auto A1B1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          bob.measurement_outcome(1,0)},
                                                                          context))->Id();
-        auto A1C0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+        auto A1C0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto A1C1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
+        auto A1C1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(1,0)},
                                                                          context))->Id();
 
-        auto B0C0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
+        auto B0C0 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto B0C1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
+        auto B0C1 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(0,0),
                                                                          charlie.measurement_outcome(1,0)},
                                                                          context))->Id();
-        auto B1C0 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
+        auto B1C0 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(0,0)},
                                                                          context))->Id();
-        auto B1C1 = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
+        auto B1C1 = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(1,0),
                                                                          charlie.measurement_outcome(1,0)},
                                                                          context))->Id();
 
@@ -597,17 +597,17 @@ namespace Moment::Tests {
 
         auto [id, momentMatrix] = system.create_moment_matrix(1);
         
-        auto A0 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
+        auto A0 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
                                                                       context))->Id();
-        auto A1 = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 1)},
+        auto A1 = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0, 1)},
                                                                       context))->Id();
-        auto B = momentMatrix.Symbols.where(OperatorSequence({bob.measurement_outcome(0, 0)},
+        auto B = momentMatrix.symbols.where(OperatorSequence({bob.measurement_outcome(0, 0)},
                                                                       context))->Id();
 
-        auto A0B = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 0),
+        auto A0B = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0, 0),
                                                                          bob.measurement_outcome(0, 0)},
                                                                         context))->Id();
-        auto A1B = momentMatrix.Symbols.where(OperatorSequence({alice.measurement_outcome(0, 1),
+        auto A1B = momentMatrix.symbols.where(OperatorSequence({alice.measurement_outcome(0, 1),
                                                                          bob.measurement_outcome(0, 0)},
                                                                         context))->Id();
 

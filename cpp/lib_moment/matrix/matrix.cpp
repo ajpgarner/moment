@@ -9,10 +9,17 @@
 #include "matrix_system.h"
 #include "operator_matrix.h"
 
+#include <iostream>
+
 namespace Moment {
 
     Matrix::Matrix(const Context& context, SymbolTable& symbols, size_t dimension )
-        : context{context}, symbol_table{symbols}, Symbols{symbols}, dimension{dimension}, Basis{*this} { }
+        : context{context}, symbols{symbols}, symbol_table{symbols}, dimension{dimension}, Basis{*this} {
+
+        if (debug_mode) {
+            this->description = "Abstract Matrix";
+        }
+    }
 
     Matrix::~Matrix() noexcept = default;
 
@@ -23,15 +30,35 @@ namespace Moment {
         return *this->op_mat;
     }
 
-    Matrix::Matrix(Matrix &&rhs) noexcept: context{rhs.context}, symbol_table{rhs.symbol_table},
-                                           dimension{rhs.dimension},
-                                           mat_prop{std::move(rhs.mat_prop)},
-                                           op_mat{std::move(rhs.op_mat)},
-                                           Symbols{rhs.Symbols},
-                                           Basis{*this, std::move(rhs.Basis)} { }
-
-    void Matrix::set_description(std::string new_description) noexcept {
-        assert(this->mat_prop);
-        this->mat_prop->set_description(std::move(new_description));
+    std::ostream& operator<<(std::ostream& os, const Matrix& mp) {
+        os << mp.dimension << "x" << mp.dimension << " ";
+        if (mp.complex_basis) {
+            if (mp.hermitian) {
+                os << "Hermitian matrix";
+            } else {
+                os << "Complex matrix";
+            }
+        } else {
+            if (mp.hermitian) {
+                os << "Symmetric matrix";
+            } else {
+                os << "Real matrix";
+            }
+        }
+        const auto num_us = mp.included_symbols.size();
+        os << " with "
+           << num_us << " unique " << (num_us != 1 ? "symbols" : "symbol");
+        const auto num_re = mp.real_basis_elements.size();
+        if (num_re > 0) {
+            os << ", " << num_re << " real";
+        }
+        const auto num_im = mp.imaginary_basis_elements.size();
+        if (num_im > 0) {
+            os << ", " << num_im << " imaginary";
+        }
+        os << ".";
+        return os;
     }
+
+
 }

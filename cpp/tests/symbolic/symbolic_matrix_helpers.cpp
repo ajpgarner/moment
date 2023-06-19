@@ -43,8 +43,8 @@ namespace Moment::Tests {
     void compare_symbol_matrices(const MonomialMatrix &test, const MonomialMatrix &reference,
                                  const std::string& label) {
         ASSERT_EQ(test.Dimension(), reference.Dimension()) << label;
-        EXPECT_EQ(test.real_coefficients(), reference.real_coefficients()) << label;
-        EXPECT_EQ(test.is_hermitian(), reference.is_hermitian()) << label;
+        EXPECT_EQ(test.HasComplexCoefficients(), reference.HasComplexCoefficients()) << label;
+        EXPECT_EQ(test.Hermitian(), reference.Hermitian()) << label;
 
         for (size_t rIdx = 0; rIdx < reference.Dimension(); ++rIdx) {
             for (size_t cIdx = 0; cIdx < reference.Dimension(); ++cIdx) {
@@ -59,8 +59,8 @@ namespace Moment::Tests {
                                  const PolynomialMatrix &reference,
                                  const std::string& label) {
         ASSERT_EQ(test.Dimension(), reference.Dimension()) << label;
-        EXPECT_EQ(test.real_coefficients(), reference.real_coefficients()) << label;
-        EXPECT_EQ(test.is_hermitian(), reference.is_hermitian()) << label;
+        EXPECT_EQ(test.HasComplexCoefficients(), reference.HasComplexCoefficients()) << label;
+        EXPECT_EQ(test.Hermitian(), reference.Hermitian()) << label;
 
         for (size_t rIdx = 0; rIdx < reference.Dimension(); ++rIdx) {
             for (size_t cIdx = 0; cIdx < reference.Dimension(); ++cIdx) {

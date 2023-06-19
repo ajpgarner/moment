@@ -9,7 +9,6 @@
 #include "matrix_system.h"
 
 #include "matrix/monomial_matrix.h"
-#include "matrix/properties/matrix_properties.h"
 
 #include "symbolic/moment_substitution_rulebook.h"
 #include "symbolic/polynomial_factory.h"
@@ -44,9 +43,20 @@ namespace Moment::mex::functions {
                 for (size_t matrix_index = 0; matrix_index < matrix_count; ++matrix_index) {
                     const auto &matrix = ms[matrix_index];
                     os << "\n " << matrix_index << ": " << matrix.Dimension() << "x" << matrix.Dimension();
-                    os << " " << matrix.description();
+                    os << " " << matrix.Description();
                     if (export_mat_props) {
-                        os << "\n" << matrix.SMP();
+                        os << "\n";
+                        const auto num_us = matrix.IncludedSymbols().size();
+                        os << " with "
+                           << num_us << " unique " << (num_us != 1 ? "symbols" : "symbol");
+                        const auto num_re = matrix.RealBasisIndices().size();
+                        if (num_re > 0) {
+                            os << ", " << num_re << " real";
+                        }
+                        const auto num_im = matrix.ImaginaryBasisIndices().size();
+                        if (num_im > 0) {
+                            os << ", " << num_im << " imaginary";
+                        }
                     }
                 }
             }

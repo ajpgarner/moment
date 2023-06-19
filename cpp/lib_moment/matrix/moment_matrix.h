@@ -67,7 +67,5 @@ namespace Moment {
          */
         static const MomentMatrix* as_monomial_moment_matrix_ptr(const Matrix& input) noexcept;
 
-        std::unique_ptr<MatrixProperties> replace_properties(std::unique_ptr<MatrixProperties> input) const override;
-
     };
 }

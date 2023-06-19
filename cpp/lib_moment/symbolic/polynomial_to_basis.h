@@ -10,6 +10,7 @@
 #include <Eigen/SparseCore>
 
 #include "polynomial.h"
+#include "utilities/dynamic_bitset.h"
 
 namespace Moment {
     class SymbolTable;
@@ -17,6 +18,45 @@ namespace Moment {
 
     using basis_vec_t = Eigen::SparseVector<double>;
     using complex_basis_vec_t = Eigen::SparseVector<std::complex<double>>;
+
+    /**
+     * Extract basis mask(s) from a polynomial
+     */
+    class PolynomialToMask {
+    public:
+        const SymbolTable& symbols;
+
+        using MaskType = DynamicBitset<uint64_t, symbol_name_t>;
+
+        const double zero_tolerance = 1.0;
+
+    public:
+        explicit PolynomialToMask(const SymbolTable& symbols, const double zero_tolerance)
+            : symbols{symbols}, zero_tolerance{zero_tolerance} { }
+
+        /** Get empty mask of correct size. */
+        [[nodiscard]] std::pair<MaskType, MaskType> empty_mask() const;
+
+        /** Set bits for real and imaginary basis elements of supplied polynomial. */
+        void set_bits(MaskType& real_mask, MaskType& imaginary_mask,
+                      const Polynomial& poly) const;
+
+        /** Set bits for real and imaginary basis elements of supplied monomial. */
+        void set_bits(MaskType& real_mask, MaskType& imaginary_mask,
+                      const Monomial& mono) const;
+
+        /** Get masks for real and imaginary basis elements of supplied polynomial */
+        [[nodiscard]] inline std::pair<MaskType, MaskType>
+        operator()(const Polynomial& poly) const {
+            auto output = this->empty_mask();
+            this->set_bits(output.first, output.second, poly);
+            return output;
+        }
+
+        /** Convert bitmasks to sets. */
+        [[nodiscard]] static std::pair<std::set<symbol_name_t>, std::set<symbol_name_t>>
+        masks_to_sets(const MaskType& real_mask, const MaskType& imaginary_mask);
+    };
 
     /**
      * Convert a Polynomial into a vector of basis co-efficients.
@@ -28,7 +68,7 @@ namespace Moment {
     public:
         explicit PolynomialToBasisVec(const SymbolTable& symbols) : symbols{symbols} { }
 
-        std::pair<basis_vec_t, basis_vec_t> operator()(const Polynomial& combo) const;
+        std::pair<basis_vec_t, basis_vec_t> operator()(const Polynomial& poly) const;
     };
 
     /**
@@ -41,7 +81,7 @@ namespace Moment {
     public:
         explicit PolynomialToComplexBasisVec(const SymbolTable& symbols) : symbols{symbols} { }
 
-        std::pair<complex_basis_vec_t, complex_basis_vec_t> operator()(const Polynomial& combo) const;
+        std::pair<complex_basis_vec_t, complex_basis_vec_t> operator()(const Polynomial& poly) const;
     };
 
     /**

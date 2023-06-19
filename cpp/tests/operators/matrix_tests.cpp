@@ -320,10 +320,10 @@ namespace Moment::Tests {
         };
 
 
-        MonomialMatrix matrix{ams.Context(), ams.Symbols(),
+        MonomialMatrix matrix{ams.Context(), ams.Symbols(), 1.0,
                               std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
-        ASSERT_FALSE(matrix.real_coefficients());
+        ASSERT_TRUE(matrix.HasComplexCoefficients());
 
         EXPECT_THROW([[maybe_unused]] const auto& bad = matrix.Basis.Dense(), Moment::errors::bad_basis_error);
 
@@ -349,10 +349,10 @@ namespace Moment::Tests {
         };
 
 
-        MonomialMatrix matrix{ams.Context(), ams.Symbols(),
+        MonomialMatrix matrix{ams.Context(), ams.Symbols(), 1.0,
                               std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
-        ASSERT_FALSE(matrix.real_coefficients());
+        ASSERT_TRUE(matrix.HasComplexCoefficients());
 
         EXPECT_THROW([[maybe_unused]] const auto& bad = matrix.Basis.DenseMonolithic(), Moment::errors::bad_basis_error);
 
@@ -378,10 +378,11 @@ namespace Moment::Tests {
         };
 
 
-        MonomialMatrix matrix{ams.Context(), ams.Symbols(),
+        MonomialMatrix matrix{ams.Context(), ams.Symbols(), 1.0,
                               std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
-        ASSERT_FALSE(matrix.real_coefficients());
+        ASSERT_TRUE(matrix.HasComplexCoefficients());
+
 
         EXPECT_THROW([[maybe_unused]] const auto& bad = matrix.Basis.Sparse(), Moment::errors::bad_basis_error);
 
@@ -407,11 +408,10 @@ namespace Moment::Tests {
         };
 
 
-        MonomialMatrix matrix{ams.Context(), ams.Symbols(),
+        MonomialMatrix matrix{ams.Context(), ams.Symbols(), 1.0,
                               std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
-        ASSERT_FALSE(matrix.real_coefficients());
-
+        ASSERT_TRUE(matrix.HasComplexCoefficients());
         EXPECT_THROW([[maybe_unused]] const auto& bad = matrix.Basis.SparseMonolithic(), Moment::errors::bad_basis_error);
 
         const auto& [real, imaginary] = matrix.Basis.SparseMonolithicComplex();

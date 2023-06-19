@@ -168,14 +168,14 @@ namespace Moment {
     }
 
     DenseBasisInfo::MakeStorageType MatrixBasis::create_dense() {
-        if (!this->matrix.real_coefficients()) {
+        if (this->matrix.HasComplexCoefficients()) {
             throw errors::bad_basis_error{"Matrix has complex coefficients, and so a basis of type [R,C] cannot be created."};
         }
         return this->matrix.create_dense_basis();
     }
 
     SparseBasisInfo::MakeStorageType MatrixBasis::create_sparse() {
-        if (!this->matrix.real_coefficients()) {
+        if (this->matrix.HasComplexCoefficients()) {
             throw errors::bad_basis_error{"Matrix has complex coefficients, and so a basis of type [R,C] cannot be created."};
         }
         return this->matrix.create_sparse_basis();

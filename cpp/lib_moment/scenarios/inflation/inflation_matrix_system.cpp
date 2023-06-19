@@ -17,6 +17,8 @@
 
 #include "matrix/moment_matrix.h"
 
+#include "symbolic/polynomial_factory.h"
+
 namespace Moment::Inflation {
     InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class InflationContext> contextIn)
             : MatrixSystem{std::move(contextIn)},
@@ -125,7 +127,9 @@ namespace Moment::Inflation {
         }
 
         // ...otherwise, create new one.
-        auto em_ptr = std::make_unique<ExtendedMatrix>(this->Symbols(), this->Factors(), source, extensions);
+        auto em_ptr = std::make_unique<ExtendedMatrix>(this->Symbols(), this->Factors(),
+                                                       this->polynomial_factory().zero_tolerance,
+                                                       source, extensions);
         auto& ref = *em_ptr;
         auto index = this->push_back(std::move(em_ptr));
 

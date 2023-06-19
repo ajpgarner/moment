@@ -105,11 +105,11 @@ namespace Moment::mex {
     }
 
     std::pair<matlab::data::Array, matlab::data::Array> BasisExporter::operator()(const Matrix &matrix) const {
-        const auto Real = matrix.real_coefficients();
+        const auto real_coefficients = !matrix.HasComplexCoefficients();
 
         if (!this->Monolithic) {
             if (!this->Sparse) {
-                if (Real) {
+                if (real_coefficients) {
                     // C / D / RC
                     return export_dense_basis(this->engine, matrix);
                 } else {
@@ -117,7 +117,7 @@ namespace Moment::mex {
                     return export_dense_complex_basis(this->engine, matrix);
                 }
             } else {
-                if (Real) {
+                if (real_coefficients) {
                     // C / S / RC
                     return export_sparse_basis(this->engine, matrix);
                 } else {
@@ -127,7 +127,7 @@ namespace Moment::mex {
             }
         } else {
             if (!this->Sparse) {
-                if (Real) {
+                if (real_coefficients) {
                     // M / D / RC
                     return export_dense_monolith_basis(this->engine, matrix);
                 } else {
@@ -135,7 +135,7 @@ namespace Moment::mex {
                     return export_dense_monolith_complex_basis(this->engine, matrix);
                 }
             } else {
-                if (Real) {
+                if (real_coefficients) {
                     // M / S / RC
                     return export_sparse_monolith_basis(this->engine, matrix);
                 } else {

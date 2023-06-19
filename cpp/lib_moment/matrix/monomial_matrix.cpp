@@ -199,39 +199,37 @@ namespace Moment {
         };
     }
 
-    MonomialMatrix::MonomialMatrix(const Context& context, SymbolTable& symbols,
+    MonomialMatrix::MonomialMatrix(const Context& context, SymbolTable& symbols, const double zero_tolerance,
                                    std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix,
-                                   const bool is_hermitian)
+                                   const bool constructed_as_hermitian)
         : Matrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0},
-            SymbolMatrix{*this}, sym_exp_matrix{std::move(symbolMatrix)}, real_prefactors{true}
+            SymbolMatrix{*this}, sym_exp_matrix{std::move(symbolMatrix)}
         {
             if (!sym_exp_matrix) {
                 throw std::runtime_error{"Symbol pointer passed to MonomialMatrix constructor was nullptr."};
             }
 
-            // Find included symbols
-            std::set<symbol_name_t> included_symbols;
-            const size_t max_symbol_id = symbols.size();
-            for (const auto& x : *sym_exp_matrix) {
-                assert(x.id < max_symbol_id);
-                included_symbols.emplace(x.id);
-                if (this->real_prefactors && x.complex_factor()) { // <- first clause, avoid unnecessary tests
-                    this->real_prefactors = false;
-                }
-            }
+            // Count symbols
+            this->MonomialMatrix::renumerate_bases(symbols, zero_tolerance);
 
-            // Create symbol matrix properties
-            this->mat_prop = std::make_unique<MatrixProperties>(*this, this->symbol_table, std::move(included_symbols),
-                                                                "Monomial Symbolic Matrix",
-                                                                !this->real_prefactors, is_hermitian);
+            // Set  matrix properties
+            this->description = "Monomial Symbolic Matrix";
+            this->hermitian = constructed_as_hermitian;
     }
 
     MonomialMatrix::MonomialMatrix(SymbolTable &symbols, std::unique_ptr<OperatorMatrix> op_mat_ptr)
-        : MonomialMatrix{op_mat_ptr->context, symbols,
+        : MonomialMatrix{op_mat_ptr->context, symbols, 1.0,
                          OpSeqToSymbolConverter{op_mat_ptr->context, symbols, (*op_mat_ptr)()}(),
                          op_mat_ptr->is_hermitian()} {
+        assert(op_mat_ptr);
         this->op_mat = std::move(op_mat_ptr);
-        this->mat_prop = this->op_mat->replace_properties(std::move(this->mat_prop));
+
+        // Count symbols
+        this->MonomialMatrix::renumerate_bases(symbols, 1.0);
+
+        // Set matrix properties
+        this->op_mat->set_properties(*this);
+
     }
 
     MonomialMatrix::~MonomialMatrix() noexcept = default;
@@ -256,7 +254,40 @@ namespace Moment {
             }
         }
 
-        this->mat_prop->rebuild_keys(symbols);
+        this->identify_symbols_and_basis_indices();
     }
+
+    void MonomialMatrix::identify_symbols_and_basis_indices() {
+        // Find and canonicalize included symbols
+        const size_t max_symbol_id = symbols.size();
+        this->complex_coefficients = false;
+        this->included_symbols.clear();
+        for (auto& x : *sym_exp_matrix) {
+            assert(x.id < max_symbol_id);
+            this->included_symbols.emplace(x.id);
+            if (!this->complex_coefficients && x.complex_factor()) { // <- first clause, avoid unnecessary tests
+                this->complex_coefficients = true;
+            }
+        }
+
+        // All included symbols:~
+        this->real_basis_elements.clear();
+        this->imaginary_basis_elements.clear();
+        this->basis_key.clear();
+        for (const auto symbol_id : this->included_symbols) {
+            auto &symbol_info = this->symbols[symbol_id];
+            auto [re_key, im_key] = symbol_info.basis_key();
+            if (re_key >= 0) {
+                this->real_basis_elements.emplace(re_key);
+            }
+            if (im_key >= 0) {
+                this->imaginary_basis_elements.emplace(im_key);
+            }
+            this->basis_key.emplace_hint(this->basis_key.end(),
+                                         std::make_pair(symbol_id, std::make_pair(re_key, im_key)));
+        }
+
+        this->complex_basis = !this->imaginary_basis_elements.empty();
+    };
 
 }

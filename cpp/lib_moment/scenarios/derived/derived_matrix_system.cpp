@@ -12,8 +12,7 @@
 #include "map_core.h"
 #include "symbol_table_map.h"
 
-#include "derived_context.h"
-#include "symbol_table_map.h"
+#include "symbolic/polynomial_factory.h"
 
 #include "matrix/monomial_matrix.h"
 #include "matrix/polynomial_matrix.h"
@@ -26,12 +25,13 @@ namespace Moment::Derived {
 
     namespace {
         std::unique_ptr<Matrix> do_create_transformed_matrix(const Context& context, SymbolTable& symbols,
+                                                             double zero_tolerance,
                                                              const SymbolTableMap& map, const Matrix& source_matrix) {
             // Monomial map on monomial matrix creates monomial matrix
             if (map.is_monomial_map() && source_matrix.is_monomial()) {
                 auto mono_sym_mat_ptr = map.monomial(dynamic_cast<const MonomialMatrix &>(source_matrix).SymbolMatrix());
-                return std::make_unique<MonomialMatrix>(context, symbols,
-                                                        std::move(mono_sym_mat_ptr), source_matrix.is_hermitian());
+                return std::make_unique<MonomialMatrix>(context, symbols, zero_tolerance,
+                                                        std::move(mono_sym_mat_ptr), source_matrix.Hermitian());
             }
 
             // Otherwise, resultant matrix is Polynomial
@@ -44,7 +44,7 @@ namespace Moment::Derived {
             }();
 
             // Create matrix
-            return std::make_unique<PolynomialMatrix>(context, symbols, std::move(symbol_mat_ptr));
+            return std::make_unique<PolynomialMatrix>(context, symbols, zero_tolerance, std::move(symbol_mat_ptr));
 
         }
     }
@@ -97,7 +97,9 @@ namespace Moment::Derived {
         }();
 
         // Create transformation of this matrix
-        return do_create_transformed_matrix(this->Context(), this->Symbols(), this->map(), source_matrix);
+        return do_create_transformed_matrix(this->Context(), this->Symbols(),
+                                            this->polynomial_factory().zero_tolerance,
+                                            this->map(), source_matrix);
     }
 
     std::unique_ptr<class Matrix>
@@ -132,7 +134,9 @@ namespace Moment::Derived {
         }();
 
         // Create transformation of this matrix
-        return do_create_transformed_matrix(this->Context(), this->Symbols(), this->map(), source_matrix);
+        return do_create_transformed_matrix(this->Context(), this->Symbols(),
+                                            this->polynomial_factory().zero_tolerance,
+                                            this->map(), source_matrix);
     }
 
     std::string DerivedMatrixSystem::describe_map() const {

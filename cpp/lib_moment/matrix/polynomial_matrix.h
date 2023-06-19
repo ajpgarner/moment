@@ -49,15 +49,9 @@ namespace Moment {
         /** Matrix, as symbolic expression */
         std::unique_ptr<SquareMatrix<Polynomial>> sym_exp_matrix;
 
-        /** Complex? */
-        bool real_prefactors = true;
-
     public:
-        PolynomialMatrix(const Context& context, SymbolTable& symbols,
+        PolynomialMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance,
                          std::unique_ptr<SquareMatrix<Polynomial>> symbolMatrix);
-
-        PolynomialMatrix(PolynomialMatrix&& rhs) noexcept : Matrix{std::move(rhs)},
-            sym_exp_matrix{std::move(rhs.sym_exp_matrix)},  SymbolMatrix{*this} { }
 
         ~PolynomialMatrix() noexcept = default;
 
@@ -68,18 +62,10 @@ namespace Moment {
             return false;
         }
 
-
-        /**
-         * True if matrix has no complex prefactors in any of its constituent polynomials.
-         */
-        bool real_coefficients() const noexcept override {
-            return this->real_prefactors;
-        }
-
         /**
          * Force renumbering of matrix bases keys
          */
-        void renumerate_bases(const SymbolTable& symbols,  double zero_tolerance) override;
+        void renumerate_bases(const SymbolTable& symbols,  double zero_tolerance) final;
 
     protected:
         /**
@@ -101,6 +87,12 @@ namespace Moment {
          * Create sparse complex basis.
          */
         [[nodiscard]] SparseComplexBasisInfo::MakeStorageType create_sparse_complex_basis() const override;
+
+
+        /**
+         * Look up basis elements in matrix
+         */
+        void identify_symbols_and_basis_indices(double zero_tolerance);
 
     };
 }

@@ -525,12 +525,12 @@ namespace Moment::mex {
 
     matlab::data::Array SequenceMatrixExporter::export_inferred(const MonomialMatrix& inputMatrix) const {
         return do_export<InferredFormatView>(this->engine, inputMatrix.SymbolMatrix(),
-                                             inputMatrix.context, inputMatrix.Symbols);
+                                             inputMatrix.context, inputMatrix.symbols);
     }
 
     matlab::data::Array SequenceMatrixExporter::export_inferred(const PolynomialMatrix& inputMatrix) const {
         return do_export<InferredPolynomialFormatView>(this->engine, inputMatrix.SymbolMatrix(),
-                                                       inputMatrix.context, inputMatrix.Symbols);
+                                                       inputMatrix.context, inputMatrix.symbols);
     }
 
     matlab::data::Array

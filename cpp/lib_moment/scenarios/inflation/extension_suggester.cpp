@@ -21,7 +21,7 @@ namespace Moment::Inflation {
         : context{context}, symbols{symbols}, factors{factors} { }
 
     std::set<symbol_name_t> ExtensionSuggester::operator()(const MonomialMatrix& matrix) const {
-        assert(&matrix.Symbols == &this->symbols);
+        assert(&matrix.symbols == &this->symbols);
 
         const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matrix);
         if (nullptr == mm_ptr) {
@@ -87,7 +87,7 @@ namespace Moment::Inflation {
 
     DynamicBitset<uint64_t> ExtensionSuggester::nonfundamental_symbols(const MonomialMatrix &matrix) const {
         DynamicBitset<uint64_t> expressions(this->symbols.size());
-        for (auto symbol_id : matrix.SMP().RealSymbols()) {
+        for (auto symbol_id : matrix.IncludedSymbols()) { 
             const auto& factor_info = factors[symbol_id];
             if (!factor_info.fundamental()) {
                 expressions.set(symbol_id);

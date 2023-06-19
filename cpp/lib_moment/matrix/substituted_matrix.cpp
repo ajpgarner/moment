@@ -5,32 +5,33 @@
  * @author Andrew J. P. Garner
  */
 #include "substituted_matrix.h"
-#include "properties/substituted_matrix_properties.h"
+
+#include "symbolic/polynomial_factory.h"
 
 #include <sstream>
 
 namespace Moment {
     namespace {
        inline SymbolTable& assert_symbols(SymbolTable& symbols, const Matrix& the_source) {
-            assert(&symbols == &the_source.Symbols);
+            assert(&symbols == &the_source.symbols);
             return symbols;
         }
     }
 
     std::string SubstitutedMatrix::make_name() {
         std::stringstream ss;
-        ss << "Substituted Matrix [Source: " << this->source_matrix.description() << "; Rules: " << rules.name() << "]";
+        ss << "Substituted Matrix [Source: " << this->source_matrix.Description() << "; Rules: " << rules.name() << "]";
         return ss.str();
     }
 
     MonomialSubstitutedMatrix::MonomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
                                                          const MonomialMatrix& the_source)
-         : MonomialMatrix{the_source.context, assert_symbols(symbols, the_source),
+         : MonomialMatrix{the_source.context, assert_symbols(symbols, the_source), msrb.factory.zero_tolerance,
                           MonomialSubstitutedMatrix::reduce(msrb, the_source.SymbolMatrix()),
-                          the_source.is_hermitian() && msrb.is_hermitian()},
+                          the_source.Hermitian() && msrb.is_hermitian()},
            SubstitutedMatrix{the_source, msrb} {
 
-        this->mat_prop = std::make_unique<SubstitutedMatrixProperties>(std::move(*this->mat_prop), this->make_name());
+        this->description = this->make_name();
     }
 
     std::unique_ptr<SquareMatrix<Monomial>>
@@ -47,18 +48,18 @@ namespace Moment {
 
     PolynomialSubstitutedMatrix::PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
                                                              const MonomialMatrix& the_source)
-         : PolynomialMatrix{context, assert_symbols(symbols, the_source),
+         : PolynomialMatrix{context, assert_symbols(symbols, the_source), msrb.factory.zero_tolerance,
                             PolynomialSubstitutedMatrix::reduce(msrb, the_source.SymbolMatrix())},
            SubstitutedMatrix{the_source, msrb}  {
-        this->mat_prop = std::make_unique<SubstitutedMatrixProperties>(std::move(*this->mat_prop), this->make_name());
+        this->description = this->make_name();
     }
 
     PolynomialSubstitutedMatrix::PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
                                                              const PolynomialMatrix& the_source)
-         : PolynomialMatrix{context, assert_symbols(symbols, the_source),
+         : PolynomialMatrix{context, assert_symbols(symbols, the_source), msrb.factory.zero_tolerance,
                             PolynomialSubstitutedMatrix::reduce(msrb, the_source.SymbolMatrix())},
            SubstitutedMatrix{the_source, msrb} {
-        this->mat_prop = std::make_unique<SubstitutedMatrixProperties>(std::move(*this->mat_prop), this->make_name());
+        this->description = this->make_name();
     }
 
     std::unique_ptr<SquareMatrix<Polynomial>>

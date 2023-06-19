@@ -18,7 +18,7 @@ namespace Moment {
                              const std::span<const oper_name_t> fixedOutcomes) const {
         assert(mmtIndices.size() == fixedOutcomes.size());
 
-        using IndexFlagBitset = DynamicBitset<uint64_t, SmallVector<uint64_t, 1>>;
+        using IndexFlagBitset = DynamicBitset<uint64_t, size_t, SmallVector<uint64_t, 1>>;
         // Number of outcomes to copy; also which is fixed
 
         SmallVector<size_t, 4> iterating_indices;

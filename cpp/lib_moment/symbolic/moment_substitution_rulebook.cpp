@@ -451,7 +451,7 @@ namespace Moment {
 
     std::unique_ptr<Matrix> MomentSubstitutionRulebook::create_substituted_matrix(SymbolTable& wSymbols,
                                                                                   const Matrix &matrix) const {
-        assert(&matrix.Symbols == &wSymbols);
+        assert(&matrix.symbols == &wSymbols);
 
         // Once this line is passed, MSR is officially in use:
         this->usages.fetch_add(1, std::memory_order_release);

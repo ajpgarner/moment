@@ -179,7 +179,9 @@ namespace Moment::Imported {
 
         // Construct new symbolic matrix
         return this->push_back(
-            std::make_unique<MonomialMatrix>(this->Context(), this->Symbols(), std::move(input), is_hermitian)
+            std::make_unique<MonomialMatrix>(this->Context(), this->Symbols(),
+                                             this->polynomial_factory().zero_tolerance,
+                                             std::move(input), is_hermitian)
         );
     }
 }

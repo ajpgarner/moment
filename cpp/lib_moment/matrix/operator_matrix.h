@@ -16,9 +16,10 @@
 
 #include "utilities/square_matrix.h"
 
-#include <memory>
 #include <cassert>
+
 #include <map>
+#include <memory>
 #include <span>
 
 namespace Moment {
@@ -64,7 +65,6 @@ namespace Moment {
 
     public:
         const Context& context;
-        //const SymbolTable& symbols;
 
     public:
         explicit OperatorMatrix(const Context& context, std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
@@ -95,15 +95,12 @@ namespace Moment {
             return (*(this->op_seq_matrix));
         }
 
-
         [[nodiscard]] virtual std::string description() const {
             return "Operator Matrix";
         }
 
-        [[nodiscard]] virtual std::unique_ptr<MatrixProperties>
-        replace_properties(std::unique_ptr<MatrixProperties> input) const {
-            return input;
-        }
+        /** Apply the properties from this operator matrix to the supplied matrix. */
+        void set_properties(Matrix& matrix) const;
 
     };
 }

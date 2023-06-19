@@ -23,10 +23,10 @@ namespace Moment::Tests {
         auto [id, momentMatrix] = system.create_moment_matrix(1);
 
         const auto& alice = context.Parties[0];
-        auto a0_loc = momentMatrix.Symbols.where(
+        auto a0_loc = momentMatrix.symbols.where(
                         OperatorSequence({alice.measurement_outcome(0, 0)}, context));
         ASSERT_NE(a0_loc, nullptr);
-        auto a1_loc = momentMatrix.Symbols.where(
+        auto a1_loc = momentMatrix.symbols.where(
                         OperatorSequence({alice.measurement_outcome(0, 1)}, context));
         ASSERT_NE(a1_loc, nullptr);
         ASSERT_NE(a0_loc->Id(), a1_loc->Id());
@@ -58,29 +58,29 @@ namespace Moment::Tests {
 
         auto [id, momentMatrix] = system.create_moment_matrix(1);
 
-        auto alice_a0 = momentMatrix.Symbols.where(
+        auto alice_a0 = momentMatrix.symbols.where(
                         OperatorSequence({alice.measurement_outcome(0, 0)}, context));
         ASSERT_NE(alice_a0, nullptr);
-        auto alice_b0 = momentMatrix.Symbols.where(
+        auto alice_b0 = momentMatrix.symbols.where(
                         OperatorSequence({alice.measurement_outcome(1, 0)}, context));
         ASSERT_NE(alice_b0, nullptr);
-        auto bob_a0 = momentMatrix.Symbols.where(
+        auto bob_a0 = momentMatrix.symbols.where(
                         OperatorSequence({bob.measurement_outcome(0, 0)}, context));
         ASSERT_NE(bob_a0, nullptr);
-        auto bob_b0 = momentMatrix.Symbols.where(
+        auto bob_b0 = momentMatrix.symbols.where(
                         OperatorSequence({bob.measurement_outcome(1, 0)}, context));
         ASSERT_NE(bob_b0, nullptr);
 
-        auto alice_a0_bob_a0 = momentMatrix.Symbols.where(
+        auto alice_a0_bob_a0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 0)}, context));
         ASSERT_NE(alice_a0_bob_a0, nullptr);
-        auto alice_a0_bob_b0 = momentMatrix.Symbols.where(
+        auto alice_a0_bob_b0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 0)}, context));
         ASSERT_NE(alice_a0_bob_b0, nullptr);
-        auto alice_b0_bob_a0 = momentMatrix.Symbols.where(
+        auto alice_b0_bob_a0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 0)}, context));
         ASSERT_NE(alice_b0_bob_a0, nullptr);
-        auto alice_b0_bob_b0 = momentMatrix.Symbols.where(
+        auto alice_b0_bob_b0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 0)}, context));
         ASSERT_NE(alice_b0_bob_b0, nullptr);
 
@@ -134,29 +134,29 @@ namespace Moment::Tests {
 
         auto [id, momentMatrix] = system.create_moment_matrix(1);
 
-        auto alice_a0 = momentMatrix.Symbols.where(
+        auto alice_a0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0)}, context));
         ASSERT_NE(alice_a0, nullptr);
-        auto alice_b0 = momentMatrix.Symbols.where(
+        auto alice_b0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 0)}, context));
         ASSERT_NE(alice_b0, nullptr);
-        auto bob_a0 = momentMatrix.Symbols.where(
+        auto bob_a0 = momentMatrix.symbols.where(
                 OperatorSequence({bob.measurement_outcome(0, 0)}, context));
         ASSERT_NE(bob_a0, nullptr);
-        auto bob_b0 = momentMatrix.Symbols.where(
+        auto bob_b0 = momentMatrix.symbols.where(
                 OperatorSequence({bob.measurement_outcome(1, 0)}, context));
         ASSERT_NE(bob_b0, nullptr);
 
-        auto alice_a0_bob_a0 = momentMatrix.Symbols.where(
+        auto alice_a0_bob_a0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 0)}, context));
         ASSERT_NE(alice_a0_bob_a0, nullptr);
-        auto alice_a0_bob_b0 = momentMatrix.Symbols.where(
+        auto alice_a0_bob_b0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 0)}, context));
         ASSERT_NE(alice_a0_bob_b0, nullptr);
-        auto alice_b0_bob_a0 = momentMatrix.Symbols.where(
+        auto alice_b0_bob_a0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 0)}, context));
         ASSERT_NE(alice_b0_bob_a0, nullptr);
-        auto alice_b0_bob_b0 = momentMatrix.Symbols.where(
+        auto alice_b0_bob_b0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 0)}, context));
         ASSERT_NE(alice_b0_bob_b0, nullptr);
 
@@ -237,52 +237,52 @@ namespace Moment::Tests {
 
         auto [id, momentMatrix] = system.create_moment_matrix(1);
 
-        auto alice_a0_bob_a0 = momentMatrix.Symbols.where(
+        auto alice_a0_bob_a0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 0)}, context));
-        auto alice_a0_bob_a1 = momentMatrix.Symbols.where(
+        auto alice_a0_bob_a1 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(0, 1)}, context));
-        auto alice_a0_bob_b0 = momentMatrix.Symbols.where(
+        auto alice_a0_bob_b0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 0)}, context));
-        auto alice_a0_bob_b1 = momentMatrix.Symbols.where(
+        auto alice_a0_bob_b1 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 0), bob.measurement_outcome(1, 1)}, context));
         ASSERT_NE(alice_a0_bob_a0, nullptr);
         ASSERT_NE(alice_a0_bob_a1, nullptr);
         ASSERT_NE(alice_a0_bob_b0, nullptr);
         ASSERT_NE(alice_a0_bob_b1, nullptr);
 
-        auto alice_a1_bob_a0 = momentMatrix.Symbols.where(
+        auto alice_a1_bob_a0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(0, 0)}, context));
-        auto alice_a1_bob_a1 = momentMatrix.Symbols.where(
+        auto alice_a1_bob_a1 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(0, 1)}, context));
-        auto alice_a1_bob_b0 = momentMatrix.Symbols.where(
+        auto alice_a1_bob_b0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(1, 0)}, context));
-        auto alice_a1_bob_b1 = momentMatrix.Symbols.where(
+        auto alice_a1_bob_b1 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(0, 1), bob.measurement_outcome(1, 1)}, context));
         ASSERT_NE(alice_a1_bob_a0, nullptr);
         ASSERT_NE(alice_a1_bob_a1, nullptr);
         ASSERT_NE(alice_a1_bob_b0, nullptr);
         ASSERT_NE(alice_a1_bob_b1, nullptr);
 
-        auto alice_b0_bob_a0 = momentMatrix.Symbols.where(
+        auto alice_b0_bob_a0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 0)}, context));
-        auto alice_b0_bob_a1 = momentMatrix.Symbols.where(
+        auto alice_b0_bob_a1 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(0, 1)}, context));
-        auto alice_b0_bob_b0 = momentMatrix.Symbols.where(
+        auto alice_b0_bob_b0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 0)}, context));
-        auto alice_b0_bob_b1 = momentMatrix.Symbols.where(
+        auto alice_b0_bob_b1 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 0), bob.measurement_outcome(1, 1)}, context));
         ASSERT_NE(alice_b0_bob_a0, nullptr);
         ASSERT_NE(alice_b0_bob_a1, nullptr);
         ASSERT_NE(alice_b0_bob_b0, nullptr);
         ASSERT_NE(alice_b0_bob_b1, nullptr);
 
-        auto alice_b1_bob_a0 = momentMatrix.Symbols.where(
+        auto alice_b1_bob_a0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(0, 0)}, context));
-        auto alice_b1_bob_a1 = momentMatrix.Symbols.where(
+        auto alice_b1_bob_a1 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(0, 1)}, context));
-        auto alice_b1_bob_b0 = momentMatrix.Symbols.where(
+        auto alice_b1_bob_b0 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(1, 0)}, context));
-        auto alice_b1_bob_b1 = momentMatrix.Symbols.where(
+        auto alice_b1_bob_b1 = momentMatrix.symbols.where(
                 OperatorSequence({alice.measurement_outcome(1, 1), bob.measurement_outcome(1, 1)}, context));
         ASSERT_NE(alice_b1_bob_a0, nullptr);
         ASSERT_NE(alice_b1_bob_a1, nullptr);

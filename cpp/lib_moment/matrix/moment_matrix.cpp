@@ -6,7 +6,6 @@
  */
 
 #include "moment_matrix.h"
-#include "properties/moment_matrix_properties.h"
 
 #include "operator_sequence_generator.h"
 
@@ -139,7 +138,6 @@ namespace Moment {
     MomentMatrix::MomentMatrix(MomentMatrix &&src) noexcept :
             OperatorMatrix{static_cast<OperatorMatrix&&>(src)},
             hierarchy_level{src.hierarchy_level} {
-
     }
 
     MomentMatrix::~MomentMatrix() noexcept = default;
@@ -165,12 +163,6 @@ namespace Moment {
 
         const auto &op_matrix = input.operator_matrix();
         return dynamic_cast<const MomentMatrix *>(&op_matrix); // might be nullptr!
-    }
-
-    std::unique_ptr<MatrixProperties> MomentMatrix::replace_properties(std::unique_ptr<MatrixProperties> input) const {
-        return std::make_unique<MomentMatrixProperties>(std::move(*input),
-                                                        this->hierarchy_level, this->op_seq_matrix->is_hermitian(),
-                                                        this->description());
     }
 
 }

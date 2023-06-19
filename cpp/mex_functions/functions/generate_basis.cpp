@@ -95,7 +95,7 @@ namespace Moment::mex::functions {
 
         auto lock = matrixSystem.get_read_lock();
 
-        const auto& operatorMatrix = [&]() -> const Matrix& {
+        const auto& symbolic_matrix = [&]() -> const Matrix& {
             try {
                 return matrixSystem[input.matrix_index];
             } catch (const Moment::errors::missing_component& mce) {
@@ -103,10 +103,7 @@ namespace Moment::mex::functions {
             }
         }();
 
-
-        const auto& matrix_properties = operatorMatrix.SMP();
-
-        const bool complex_output = matrix_properties.IsComplex();
+        const bool complex_output = symbolic_matrix.HasComplexBasis();
 
         // Complex output requires two outputs... give warning
         if (!this->quiet && complex_output && (output.size() < 2)) {
@@ -117,7 +114,7 @@ namespace Moment::mex::functions {
 
         // Do generation of basis
         BasisExporter exporter{this->matlabEngine, input.sparse_output, input.monolithic_output};
-        auto [sym, anti_sym] = exporter(operatorMatrix);
+        auto [sym, anti_sym] = exporter(symbolic_matrix);
         output[0] = std::move(sym);
         if (output.size() >= 2) {
                 output[1] = std::move(anti_sym);
@@ -125,7 +122,8 @@ namespace Moment::mex::functions {
 
         // If enough outputs supplied, also provide basis key
         if (output.size() >= 3) {
-            output[2] = export_basis_key(this->matlabEngine, matrix_properties);
+            BasisKeyExporter bke{this->matlabEngine};
+            output[2] = bke.basis_key(symbolic_matrix);
         }
 
     }

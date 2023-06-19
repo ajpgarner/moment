@@ -42,7 +42,7 @@ namespace Moment::Tests {
             smData.emplace_back(Polynomial{Monomial{5, 1.0}});
 
             std::unique_ptr<SquareMatrix<Polynomial>> sqMat = std::make_unique<SquareMatrix<Polynomial>>(2, std::move(smData));
-            auto matrix = std::make_unique<PolynomialMatrix>(system->Context(), system->Symbols(), std::move(sqMat));
+            auto matrix = std::make_unique<PolynomialMatrix>(system->Context(), system->Symbols(), 1.0, std::move(sqMat));
 
             return {std::move(system), std::move(matrix)};
         }
@@ -180,10 +180,8 @@ namespace Moment::Tests {
         ASSERT_EQ(elem11.size(), 1);
         EXPECT_EQ(elem11[0], Monomial(5, 1.0, false));
 
-        EXPECT_TRUE(matrix.is_hermitian());
-        const auto& smp = matrix.SMP();
-        EXPECT_TRUE(smp.IsHermitian());
-        EXPECT_TRUE(smp.IsComplex());
+        EXPECT_TRUE(matrix.Hermitian());
+        EXPECT_TRUE(matrix.HasComplexBasis());
     }
 
     TEST(Operators_PolynomialMatrix, DenseBasis) {

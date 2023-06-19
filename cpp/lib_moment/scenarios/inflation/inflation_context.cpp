@@ -20,7 +20,7 @@
 namespace Moment::Inflation {
 
     namespace {
-        using OpStringBitset = DynamicBitset<uint64_t, SmallVector<uint64_t, 1>>;
+        using OpStringBitset = DynamicBitset<uint64_t, size_t, SmallVector<uint64_t, 1>>;
     }
 
     std::vector<InflationContext::ICObservable::Variant>

@@ -24,7 +24,7 @@
 
 namespace Moment::Inflation {
 
-    using SourceListBitset = DynamicBitset<uint64_t, SmallVector<uint64_t, 1>>;
+    using SourceListBitset = DynamicBitset<uint64_t, size_t, SmallVector<uint64_t, 1>>;
 
 
     class InflationContext : public Context {

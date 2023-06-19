@@ -5,7 +5,6 @@
  * @author Andrew J. P. Garner
  */
 #include "localizing_matrix.h"
-#include "properties/localizing_matrix_properties.h"
 
 #include "operator_sequence_generator.h"
 
@@ -74,11 +73,11 @@ namespace Moment {
         return dynamic_cast<const LocalizingMatrix*>(&op_matrix); // might be nullptr!
     }
 
-    std::unique_ptr<MatrixProperties>
-    LocalizingMatrix::replace_properties(std::unique_ptr<MatrixProperties> input) const {
-        return std::make_unique<LocalizingMatrixProperties>(std::move(*input), this->Index,
-                                                            this->op_seq_matrix->is_hermitian(),
-                                                            this->description());
-    }
+//    std::unique_ptr<MatrixProperties>
+//    LocalizingMatrix::replace_properties(std::unique_ptr<MatrixProperties> input) const {
+//        return std::make_unique<LocalizingMatrixProperties>(std::move(*input), this->Index,
+//                                                            this->op_seq_matrix->is_hermitian(),
+//                                                            this->description());
+//    }
 
 }

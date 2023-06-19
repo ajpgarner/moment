@@ -80,25 +80,25 @@ namespace Moment {
 
             auto dim = static_cast<typename BasisInfo::IndexType>(mm.Dimension());
 
-            real.assign(mm.Symbols.Basis.RealSymbolCount(),
+            real.assign(mm.symbols.Basis.RealSymbolCount(),
                         BasisInfo::RealMatrixType::Zero(dim, dim));
-            im.assign(mm.Symbols.Basis.ImaginarySymbolCount(),
+            im.assign(mm.symbols.Basis.ImaginarySymbolCount(),
                       BasisInfo::ImMatrixType::Zero(dim, dim));
 
-            const bool symmetric = mm.SMP().IsHermitian();
-            const bool complex = mm.SMP().IsComplex();
+            const bool symmetric = mm.Hermitian();
+            const bool complex = mm.HasComplexBasis();
 
             if (symmetric) {
                 if (complex) {
-                    do_create_dense_basis_impl<BasisInfo, true, true>(mm.Symbols, mm.SymbolMatrix(), real, im);
+                    do_create_dense_basis_impl<BasisInfo, true, true>(mm.symbols, mm.SymbolMatrix(), real, im);
                 } else {
-                    do_create_dense_basis_impl<BasisInfo, true, false>(mm.Symbols, mm.SymbolMatrix(), real, im);
+                    do_create_dense_basis_impl<BasisInfo, true, false>(mm.symbols, mm.SymbolMatrix(), real, im);
                 }
             } else {
                 if (complex) {
-                    do_create_dense_basis_impl<BasisInfo, false, true>(mm.Symbols, mm.SymbolMatrix(), real, im);
+                    do_create_dense_basis_impl<BasisInfo, false, true>(mm.symbols, mm.SymbolMatrix(), real, im);
                 } else {
-                    do_create_dense_basis_impl<BasisInfo, false, false>(mm.Symbols, mm.SymbolMatrix(),  real, im);
+                    do_create_dense_basis_impl<BasisInfo, false, false>(mm.symbols, mm.SymbolMatrix(),  real, im);
                 }
             }
             return output;
@@ -153,29 +153,29 @@ namespace Moment {
         typename BasisInfo::MakeStorageType do_create_sparse_basis(const MonomialMatrix& matrix) {
             // Get matrix properties
             const auto dim = static_cast<typename BasisInfo::IndexType>(matrix.Dimension());
-            const bool symmetric = matrix.SMP().IsHermitian();
-            const bool complex = matrix.SMP().IsComplex();
+            const bool symmetric = matrix.Hermitian();
+            const bool complex = matrix.HasComplexBasis();
 
             // Prepare triplets
             std::vector<std::vector<typename BasisInfo::RealTripletType>>
-                    real_frame(matrix.Symbols.Basis.RealSymbolCount());
+                    real_frame(matrix.symbols.Basis.RealSymbolCount());
             std::vector<std::vector<typename BasisInfo::ImTripletType>>
-                    im_frame(matrix.Symbols.Basis.ImaginarySymbolCount());
+                    im_frame(matrix.symbols.Basis.ImaginarySymbolCount());
 
             if (symmetric) {
                 if (complex) {
-                    do_create_sparse_frame<BasisInfo, true, true>(matrix.Symbols, matrix.SymbolMatrix(),
+                    do_create_sparse_frame<BasisInfo, true, true>(matrix.symbols, matrix.SymbolMatrix(),
                                                                   real_frame, im_frame);
                 } else {
-                    do_create_sparse_frame<BasisInfo, true, false>(matrix.Symbols, matrix.SymbolMatrix(),
+                    do_create_sparse_frame<BasisInfo, true, false>(matrix.symbols, matrix.SymbolMatrix(),
                                                                    real_frame, im_frame);
                 }
             } else {
                 if (complex) {
-                    do_create_sparse_frame<BasisInfo, false, true>(matrix.Symbols, matrix.SymbolMatrix(),
+                    do_create_sparse_frame<BasisInfo, false, true>(matrix.symbols, matrix.SymbolMatrix(),
                                                                    real_frame, im_frame);
                 } else {
-                    do_create_sparse_frame<BasisInfo, false, false>(matrix.Symbols, matrix.SymbolMatrix(),
+                    do_create_sparse_frame<BasisInfo, false, false>(matrix.symbols, matrix.SymbolMatrix(),
                                                                     real_frame, im_frame);
                 }
             }
@@ -196,8 +196,8 @@ namespace Moment {
                 }
             } else {
                 // Null case: symbols are complex, but matrix is not.
-                if (matrix.Symbols.Basis.ImaginarySymbolCount() > 0) {
-                    output.second.assign(matrix.Symbols.Basis.ImaginarySymbolCount(),
+                if (matrix.symbols.Basis.ImaginarySymbolCount() > 0) {
+                    output.second.assign(matrix.symbols.Basis.ImaginarySymbolCount(),
                                          typename BasisInfo::ImMatrixType(dim, dim));
                 }
             }

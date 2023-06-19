@@ -30,9 +30,11 @@ namespace Moment::mex::functions  {
             const auto num_outputs = output.size();
             auto read_lock = system.get_read_lock();
 
+            BasisKeyExporter bke{engine};
+
             // Export lists, if requested
             if (num_outputs > 2) {
-                auto [re_list, im_list] = export_basis_lists(engine, system.Symbols(), matrix.SMP());
+                auto [re_list, im_list] = bke.basis_lists(matrix);
                 // Guaranteed by above if:
                 output[2] = std::move(re_list);
 
@@ -42,7 +44,7 @@ namespace Moment::mex::functions  {
             }
 
             // Export masks
-            auto [re_mask, im_mask] = export_basis_masks(engine, system.Symbols(), matrix.SMP());
+            auto [re_mask, im_mask] = bke.basis_masks(matrix);
             if (num_outputs >= 1) {
                 output[0] = std::move(re_mask);
             }

@@ -67,7 +67,5 @@ namespace Moment {
          * Otherwise, returns nullptr.
          */
         static const LocalizingMatrix* as_monomial_localizing_matrix_ptr(const Matrix& input) noexcept;
-
-        std::unique_ptr<MatrixProperties> replace_properties(std::unique_ptr<MatrixProperties> input) const override;
     };
 }

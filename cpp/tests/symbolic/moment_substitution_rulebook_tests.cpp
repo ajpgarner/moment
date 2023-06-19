@@ -278,6 +278,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_MonoMatrix_EmptyRules) {
         // Prepare rulebook
         MomentSubstitutionRulebook book{this->get_system()};
+        const auto& factory = book.factory;
         ASSERT_TRUE(book.empty());
         ASSERT_TRUE(book.is_monomial());
         ASSERT_TRUE(book.is_hermitian());
@@ -286,7 +287,7 @@ namespace Moment::Tests {
                 {Monomial(1, 1.0), Monomial{4, {2.0, 3.0}},
                  Monomial{4, {2.0, -3.0}, true}, Monomial{2, 4.0}};
 
-        MonomialMatrix input_mm{this->get_context(), this->get_symbols(),
+        MonomialMatrix input_mm{this->get_context(), this->get_symbols(), factory.zero_tolerance,
                                 std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
         auto output = book.create_substituted_matrix(this->get_symbols(), input_mm);
@@ -300,6 +301,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_MonoMatrix_MonomialRules) {
         // Prepare rulebook
         MomentSubstitutionRulebook book{this->get_system()};
+        const auto& factory = book.factory;
         book.inject(2, Polynomial::Scalar(0.5));
 
         ASSERT_FALSE(book.empty());
@@ -310,14 +312,14 @@ namespace Moment::Tests {
                 {Monomial(1, 1.0), Monomial{4, {2.0, 3.0}},
                  Monomial{4, {2.0, -3.0}, true}, Monomial{2, 4.0}};
 
-        MonomialMatrix input_mm{this->get_context(), this->get_symbols(),
+        MonomialMatrix input_mm{this->get_context(), this->get_symbols(), factory.zero_tolerance,
                                 std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
         SquareMatrix<Monomial>::StorageType ref_matrix_data =
                 {Monomial(1, 1.0), Monomial{4, {2.0, 3.0}},
                  Monomial{4, {2.0, -3.0}, true}, Monomial{1, 2.0}};
 
-        MonomialMatrix ref_mm{this->get_context(), this->get_symbols(),
+        MonomialMatrix ref_mm{this->get_context(), this->get_symbols(), factory.zero_tolerance,
                               std::make_unique<SquareMatrix<Monomial>>(2, std::move(ref_matrix_data)), true};
 
         auto output = book.create_substituted_matrix(this->get_symbols(), input_mm);
@@ -339,19 +341,19 @@ namespace Moment::Tests {
         ASSERT_TRUE(book.is_hermitian());
 
         SquareMatrix<Monomial>::StorageType matrix_data =
-                {Monomial(1, 1.0), Monomial{4, {2.0, 3.0}},
-                 Monomial{4, {2.0, -3.0}, true}, Monomial{3, 4.0}};
+                {Monomial(1, 1.0), Monomial{5, {2.0, 3.0}},
+                 Monomial{5, {2.0, -3.0}, true}, Monomial{3, 4.0}};
 
-        MonomialMatrix input_mm{this->get_context(), this->get_symbols(),
+        MonomialMatrix input_mm{this->get_context(), this->get_symbols(), factory.zero_tolerance,
                                 std::make_unique<SquareMatrix<Monomial>>(2, std::move(matrix_data)), true};
 
         SquareMatrix<Polynomial>::StorageType ref_matrix_data =
                 {Polynomial{Monomial(1, 1.0)},
-                 Polynomial{Monomial{4, {2.0, 3.0}}},
-                 Polynomial{Monomial{4, {2.0, -3.0}, true}},
+                 Polynomial{Monomial{5, {2.0, 3.0}}},
+                 Polynomial{Monomial{5, {2.0, -3.0}, true}},
                  factory({{Monomial{1, 4.0}, Monomial{2, -4.0}}})};
 
-        PolynomialMatrix ref_pm{this->get_context(), this->get_symbols(),
+        PolynomialMatrix ref_pm{this->get_context(), this->get_symbols(), factory.zero_tolerance,
                           std::make_unique<SquareMatrix<Polynomial>>(2, std::move(ref_matrix_data))};
 
         auto output = book.create_substituted_matrix(this->get_symbols(), input_mm);
@@ -365,6 +367,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_PolyMatrix_EmptyRules) {
         // Prepare rulebook
         MomentSubstitutionRulebook book{this->get_system()};
+        const auto& factory = book.factory;
         ASSERT_TRUE(book.empty());
         ASSERT_TRUE(book.is_monomial());
         ASSERT_TRUE(book.is_hermitian());
@@ -375,7 +378,7 @@ namespace Moment::Tests {
                  Polynomial{{Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}},
                  Polynomial{Monomial{2, 4.0}}};
 
-        PolynomialMatrix input_pm{this->get_context(), this->get_symbols(),
+        PolynomialMatrix input_pm{this->get_context(), this->get_symbols(), factory.zero_tolerance,
                                   std::make_unique<SquareMatrix<Polynomial>>(2, std::move(matrix_data))};
 
         auto output = book.create_substituted_matrix(this->get_symbols(), input_pm);
@@ -389,6 +392,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_PolyMatrix_MonomialRules) {
         // Prepare rulebook
         MomentSubstitutionRulebook book{this->get_system()};
+        const auto& factory = book.factory;
         book.inject(2, Polynomial::Scalar(2.0));
         ASSERT_FALSE(book.empty());
         ASSERT_TRUE(book.is_monomial());
@@ -400,7 +404,7 @@ namespace Moment::Tests {
                  Polynomial{{Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}},
                  Polynomial{Monomial{2, 4.0}}};
 
-        PolynomialMatrix input_pm{this->get_context(), this->get_symbols(),
+        PolynomialMatrix input_pm{this->get_context(), this->get_symbols(), factory.zero_tolerance,
                                   std::make_unique<SquareMatrix<Polynomial>>(2, std::move(matrix_data))};
 
         SquareMatrix<Polynomial>::StorageType ref_matrix_data =
@@ -409,7 +413,7 @@ namespace Moment::Tests {
                  Polynomial{{Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}},
                  Polynomial{Monomial{1, 8.0}}};
 
-        PolynomialMatrix ref_pm{this->get_context(), this->get_symbols(),
+        PolynomialMatrix ref_pm{this->get_context(), this->get_symbols(), factory.zero_tolerance,
                                 std::make_unique<SquareMatrix<Polynomial>>(2, std::move(ref_matrix_data))};
 
 
@@ -438,7 +442,7 @@ namespace Moment::Tests {
                  factory({Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}),
                  factory({Monomial{3, 4.0}})};
 
-        PolynomialMatrix input_pm{this->get_context(), this->get_symbols(),
+        PolynomialMatrix input_pm{this->get_context(), this->get_symbols(), factory.zero_tolerance,
                                   std::make_unique<SquareMatrix<Polynomial>>(2, std::move(matrix_data))};
 
         SquareMatrix<Polynomial>::StorageType ref_matrix_data =
@@ -447,7 +451,7 @@ namespace Moment::Tests {
                  factory({Monomial{1, 2.0}, Monomial{4, {2.0, -3.0}, true}}),
                  factory({Monomial{2, -4.0}, Monomial{1, 4.0}})};
 
-        PolynomialMatrix ref_pm{this->get_context(), this->get_symbols(),
+        PolynomialMatrix ref_pm{this->get_context(), this->get_symbols(), factory.zero_tolerance,
                                 std::make_unique<SquareMatrix<Polynomial>>(2, std::move(ref_matrix_data))};
 
         auto output = book.create_substituted_matrix(this->get_symbols(), input_pm);
@@ -868,6 +872,8 @@ namespace Moment::Tests {
         const auto& context = this->get_context();
         auto& symbols = this->get_symbols();
 
+        const auto& factory = this->get_factory();
+
         // Get operator names
         ASSERT_EQ(context.size(), 2);
         oper_name_t op_a = 0;
@@ -889,7 +895,7 @@ namespace Moment::Tests {
                 = {Monomial{1}, Monomial{id_a}, Monomial{id_b},
                    Monomial{id_a}, Monomial{id_aa}, Monomial{id_ab},
                    Monomial{id_b}, Monomial{id_ab, 1.0, true}, Monomial{id_bb}};
-        MonomialMatrix ref_mm{context, symbols,
+        MonomialMatrix ref_mm{context, symbols, factory.zero_tolerance,
                               std::make_unique<SquareMatrix<Monomial>>(3, std::move(ref_mm_data)), true};
 
         compare_symbol_matrices(moment_matrix, ref_mm, "Moment matrix");

@@ -135,7 +135,7 @@ namespace Moment::mex::functions {
         // Verbose output
         if (this->verbose) {
             std::stringstream ss;
-            ss << "Extended " << monoMatrix.description() << " "
+            ss << "Extended " << monoMatrix.Description() << " "
                 << (emp.extension_type == ExtendedMatrixParams::ExtensionType::Automatic ? "automatically" : "manually")
                 << " with " << emp.extensions.size() << (emp.extensions.size()!=1 ? " extensions" : " extension")
                 << ": ";
