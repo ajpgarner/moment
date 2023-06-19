@@ -272,4 +272,77 @@ namespace Moment::Tests {
 
     }
 
+    TEST_F(Symbolic_MomentSubstitutionRule_Split, Merge_ImIntoRe) {
+        const auto& factory = this->get_factory();
+        auto re_rule_poly = factory({Monomial{comp_e, std::complex{0.5, 0.0}},
+                                     Monomial{comp_e, std::complex{0.5, 0.0}, true},
+                                     Monomial{id, -2.0}});  // Re(E) - 2 = 0; -> E = iIm(E) + 2
+        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(re_rule_poly),
+                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
+        MomentSubstitutionRule re_rule{factory, std::move(re_rule_poly)};
+        auto re_split = re_rule.split();
+        EXPECT_FALSE(re_split.has_value());
+
+        expect_approximately_equal(re_rule.RHS(),
+                                   factory({Monomial{comp_e, std::complex{0.5, 0.0}, false},
+                                            Monomial{comp_e, std::complex{-0.5, 0.0}, true},
+                                            Monomial{id, std::complex{2.0, 0.0}}}));
+
+
+        auto im_rule_poly = factory({Monomial{comp_e, std::complex{0.0, -0.5}},
+                                     Monomial{comp_e, std::complex{0.0, 0.5}, true},
+                                     Monomial{id, -3.0}});  // Im(E) - 3 = 0; -> E = Re(E) + 3i
+        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(im_rule_poly),
+                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
+        MomentSubstitutionRule im_rule{factory, std::move(im_rule_poly)};
+        auto im_split = im_rule.split();
+        EXPECT_FALSE(im_split.has_value());
+        expect_approximately_equal(im_rule.RHS(),
+                                   factory({Monomial{comp_e, std::complex{0.5, 0.0}, false},
+                                            Monomial{comp_e, std::complex{0.5, 0.0}, true},
+                                            Monomial{id, std::complex{0.0, 3.0}}}));
+
+        re_rule.merge_partial(factory, std::move(im_rule));
+        ASSERT_FALSE(re_rule.is_partial());
+        EXPECT_EQ(re_rule.LHS(), comp_e);
+        EXPECT_EQ(re_rule.RHS(), factory({Monomial{1, std::complex{2.0, 3.0}}}));
+
+    }
+    TEST_F(Symbolic_MomentSubstitutionRule_Split, Merge_ReIntoIm) {
+        const auto& factory = this->get_factory();
+        auto re_rule_poly = factory({Monomial{comp_e, std::complex{0.5, 0.0}},
+                                     Monomial{comp_e, std::complex{0.5, 0.0}, true},
+                                     Monomial{id, -2.0}});  // Re(E) - 2 = 0; -> E = iIm(E) + 2
+        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(re_rule_poly),
+                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
+        MomentSubstitutionRule re_rule{factory, std::move(re_rule_poly)};
+        auto re_split = re_rule.split();
+        EXPECT_FALSE(re_split.has_value());
+
+        expect_approximately_equal(re_rule.RHS(),
+                                   factory({Monomial{comp_e, std::complex{0.5, 0.0}, false},
+                                            Monomial{comp_e, std::complex{-0.5, 0.0}, true},
+                                            Monomial{id, std::complex{2.0, 0.0}}}));
+
+
+        auto im_rule_poly = factory({Monomial{comp_e, std::complex{0.0, -0.5}},
+                                     Monomial{comp_e, std::complex{0.0, 0.5}, true},
+                                     Monomial{id, -3.0}});  // Im(E) - 3 = 0; -> E = Re(E) + 3i
+        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(im_rule_poly),
+                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
+        MomentSubstitutionRule im_rule{factory, std::move(im_rule_poly)};
+        auto im_split = im_rule.split();
+        EXPECT_FALSE(im_split.has_value());
+        expect_approximately_equal(im_rule.RHS(),
+                                   factory({Monomial{comp_e, std::complex{0.5, 0.0}, false},
+                                            Monomial{comp_e, std::complex{0.5, 0.0}, true},
+                                            Monomial{id, std::complex{0.0, 3.0}}}));
+
+        im_rule.merge_partial(factory, std::move(re_rule));
+        ASSERT_FALSE(im_rule.is_partial());
+        EXPECT_EQ(im_rule.LHS(), comp_e);
+        EXPECT_EQ(im_rule.RHS(), factory({Monomial{1, std::complex{2.0, 3.0}}}));
+
+    }
+
 }

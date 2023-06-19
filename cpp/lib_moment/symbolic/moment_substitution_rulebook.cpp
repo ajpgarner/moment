@@ -130,7 +130,7 @@ namespace Moment {
             return 0;
         }
 
-        // First, sort raw rules by lowest leading monomial, tie-breaking with shorter strings first.
+        // First, sort input raw rules by lowest leading monomial, tie-breaking with shorter strings first.
         std::sort(this->raw_rules.begin(), this->raw_rules.end(), PolynomialOrdering(this->factory));
 
         size_t rules_added = 0;
@@ -275,12 +275,14 @@ namespace Moment {
         }
 
         // Translate any processed rules into pending rules
-        this->raw_rules.reserve(this->raw_rules.size() + other.rules.size());
+        assert(this->raw_rules.empty());
+        this->raw_rules.reserve(other.rules.size());
         for (auto [id, rule] : other.rules) {
             this->raw_rules.emplace_back(rule.as_polynomial(this->factory));
         }
 
-        // Finally, do completion in exception-guaranteed manner. Slow, but prevents bad rules from breaking everything.
+        // Finally, do completion in exception-guaranteed manner.
+        // Slow, but prevents bad rules from breaking everything.
         std::map<symbol_name_t, MomentSubstitutionRule> old_rules{this->rules};
         size_t processed_rules = 0;
         try {

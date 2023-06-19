@@ -248,22 +248,15 @@ namespace Moment {
         assert(this->lhs == other.lhs);
         assert(this->rhs.size() >= 2);
 
-
         // Same direction component should have always been projected out!
-        const std::complex<double> relative_angle = other.lhs_direction / this->lhs_direction;
-        assert(approximately_imaginary(relative_angle, factory.zero_tolerance));
+        assert(approximately_imaginary(other.lhs_direction / this->lhs_direction, factory.zero_tolerance));
 
         // Remove terms in X from this and other RHS
         this->rhs.pop_back();
         this->rhs.pop_back();
         other.rhs.pop_back();
         other.rhs.pop_back();
-        if (relative_angle.imag() > 0) { // other = i this
-            factory.append(this->rhs, other.rhs);
-        } else { // other = - i this
-            other.rhs *= -1.0;
-            factory.append(this->rhs, other.rhs);
-        }
+        factory.append(this->rhs, other.rhs);
 
         // Rule is now full.
         this->partial = false;

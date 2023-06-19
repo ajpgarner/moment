@@ -310,6 +310,7 @@ namespace Moment::mex::functions {
             rulebookPtr = this->create_rulebook(system, input);
         }
 
+
         // Add or merge rulebooks
         auto [rb_id, rulebook] = [&]() -> std::pair<size_t, const MomentSubstitutionRulebook&> {
             // Either, just get information:
