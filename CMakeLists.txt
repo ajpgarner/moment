@@ -3,6 +3,8 @@ if(UNIX)
     set(CMAKE_CXX_COMPILER "/usr/bin/g++-12")
 endif()
 
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release;ASan")
+
 project(Moment)
 
 
@@ -33,6 +35,18 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
     endif()
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "ASan")
+    if (MSVC)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MD /Z7 /Od")
+        add_compile_definitions(_DISABLE_STRING_ANNOTATION=1 _DISABLE_VECTOR_ANNOTATION=1)
+
+    endif()
+    add_compile_options("-fsanitize=address")
+    add_compile_definitions(MOMENT_DEBUG)
+    add_compile_definitions(MOMENT_ASAN)
+    add_link_options("-fsanitize=address")
 endif()
 
 include_directories(cpp/eigen)

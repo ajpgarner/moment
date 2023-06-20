@@ -8,7 +8,11 @@
 
 #include "algebraic_precontext.h"
 
+#ifndef MOMENT_ASAN
+// Address sanitizer and MSVC's implementation of regex don't work.
 #include <regex>
+#endif
+
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -119,6 +123,7 @@ namespace Moment::Algebraic {
             return {"Name must not be empty string."};
         }
 
+#ifndef MOMENT_ASAN
         // Fully valid if matches pattern
         std::regex valid_pattern{"[A-Za-z][A-Za-z0-9_]*"};
         if (std::regex_match(name, valid_pattern)) {
@@ -130,6 +135,10 @@ namespace Moment::Algebraic {
         if (std::regex_match(first_char, std::regex{"[0-9_]"})) {
             return {"Name must begin with a letter."};
         }
+#else
+        // Skip validation, so address sanitizer builds.
+        return std::nullopt;
+#endif
 
         // Otherwise, generic fail:
         return {"Name must be alphanumeric, and begin with a letter."};

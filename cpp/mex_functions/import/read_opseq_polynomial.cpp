@@ -116,7 +116,7 @@ namespace Moment::mex {
             }
 
             // Check symbol expression cell has 1 or 2 elements
-            const auto symbol_expr_cell = static_cast<const matlab::data::CellArray>(polynomial_cell[elem_index]);
+            const matlab::data::CellArray symbol_expr_cell = polynomial_cell[elem_index];
             size_t symbol_expr_size = symbol_expr_cell.getNumberOfElements();
             if ((symbol_expr_size < 1) || (symbol_expr_size > 2)) {
                 std::stringstream errSS;
