@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../mex_function.h"
+#include "mex_function.h"
 #include "integer_types.h"
 
 #include "import/read_polynomial.h"
@@ -62,18 +62,6 @@ namespace Moment::mex::functions {
             FromOperatorSequences
         } input_mode = InputMode::SubstitutionList;
 
-        /** How should we output rules */
-        enum class OutputMode {
-            /** Only provide ID of rulebook. */
-            IndexOnly,
-            /** Provide symbol cell of rulebook. */
-            SymbolCell,
-            /** Provide operator sequence cell of rulebook. */
-            SequenceCell,
-            /** Provide array of string representations of rules in rulebook. */
-            String
-        } output_mode = OutputMode::IndexOnly;
-
         /** Direct substitutions, if specified. */
         std::map<symbol_name_t, std::complex<double>> sub_list;
 
@@ -82,7 +70,6 @@ namespace Moment::mex::functions {
 
         /** Weighted operator sequences, if specified. */
         std::vector<std::unique_ptr<StagingPolynomial>> raw_op_seq_polynomials;
-
 
     public:
         /** Constructor */

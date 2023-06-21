@@ -43,11 +43,9 @@ matlab_add_mex(NAME moment_mex
             utilities/reflection.cpp
             utilities/reporting.cpp
             functions/alphabetic_name.cpp
-            functions/apply_moment_rules.cpp
             functions/collins_gisin.cpp
             functions/complete.cpp
             functions/conjugate.cpp
-            functions/create_moment_rules.cpp
             functions/import_matrix.cpp
             functions/generate_basis.cpp
             functions/make_explicit.cpp
@@ -70,6 +68,9 @@ matlab_add_mex(NAME moment_mex
             functions/matrix_system/inflation_matrix_system.cpp
             functions/matrix_system/locality_matrix_system.cpp
             functions/matrix_system/symmetrized_matrix_system.cpp
+            functions/moment_rules/apply_moment_rules.cpp
+            functions/moment_rules/create_moment_rules.cpp
+            functions/moment_rules/moment_rules.cpp
             functions/operator_matrix/substituted_matrix.cpp
             functions/operator_matrix/extended_matrix.cpp
             functions/operator_matrix/localizing_matrix.cpp

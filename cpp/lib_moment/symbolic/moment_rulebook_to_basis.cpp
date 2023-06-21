@@ -8,16 +8,21 @@
 #include "moment_rulebook_to_basis.h"
 
 #include "moment_rulebook.h"
+
 #include "polynomial_factory.h"
 #include "polynomial_to_basis.h"
 #include "polynomial_to_basis_mask.h"
+
 #include "symbol_table.h"
 
 namespace Moment {
 
-    MomentRulebookToBasis::MomentRulebookToBasis(const PolynomialFactory& factory, const SymbolTable& symbols)
-         : factory{factory}, symbols{symbols} {
-        assert(&factory.symbols == &symbols);
+    MomentRulebookToBasis::MomentRulebookToBasis(const PolynomialFactory& factory)
+         : symbols{factory.symbols}, zero_tolerance{factory.zero_tolerance} {
+    }
+
+    MomentRulebookToBasis::MomentRulebookToBasis(const SymbolTable& symbols, double zero_tolerance)
+         : symbols{symbols}, zero_tolerance{zero_tolerance} {
     }
 
     MomentRulebookToBasis::output_t MomentRulebookToBasis::operator()(const MomentRulebook& rulebook) const {
@@ -29,10 +34,10 @@ namespace Moment {
         const auto num_elems = static_cast<Index>(num_real_elems + num_im_elems);
 
         // Record which basis elements are constrained by rules...
-        PolynomialToBasisMask ptbm{this->symbols, this->factory.zero_tolerance};
+        PolynomialToBasisMask ptbm{this->symbols, this->zero_tolerance};
         auto [mask_real, mask_imaginary] = ptbm.empty_mask();
 
-        PolynomialToBasisVec to_basis{this->symbols, this->factory.zero_tolerance};
+        PolynomialToBasisVec to_basis{this->symbols, this->zero_tolerance};
         std::vector<Eigen::Triplet<double>> triplets;
 
         for (const auto& [symbol_id, rule] : rulebook) {
@@ -43,10 +48,10 @@ namespace Moment {
             const bool lhs_has_im = lhs_im_index >= 0;
 
             if (rule.is_partial()) {
-                if (approximately_real(rule.partial_direction(), this->factory.zero_tolerance)) {
+                if (approximately_real(rule.partial_direction(), this->zero_tolerance)) {
                     to_basis.add_triplet_row(rule.RHS(), lhs_re_index, -1, triplets);
                     mask_real.set(lhs_re_index);
-                } else if (approximately_imaginary(rule.partial_direction(), this->factory.zero_tolerance)) {
+                } else if (approximately_imaginary(rule.partial_direction(), this->zero_tolerance)) {
                     to_basis.add_triplet_row(rule.RHS(), -1, lhs_im_index, triplets);
                     mask_imaginary.set(lhs_im_index);
                 } else {

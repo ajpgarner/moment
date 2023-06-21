@@ -8,11 +8,9 @@
 #include "mex_function.h"
 
 #include "functions/alphabetic_name.h"
-#include "functions/apply_moment_rules.h"
 #include "functions/collins_gisin.h"
 #include "functions/complete.h"
 #include "functions/conjugate.h"
-#include "functions/create_moment_rules.h"
 #include "functions/generate_basis.h"
 #include "functions/import_matrix.h"
 #include "functions/make_explicit.h"
@@ -35,6 +33,9 @@
 #include "functions/matrix_system/inflation_matrix_system.h"
 #include "functions/matrix_system/locality_matrix_system.h"
 #include "functions/matrix_system/symmetrized_matrix_system.h"
+#include "functions/moment_rules/apply_moment_rules.h"
+#include "functions/moment_rules/create_moment_rules.h"
+#include "functions/moment_rules/moment_rules.h"
 #include "functions/operator_matrix/substituted_matrix.h"
 #include "functions/operator_matrix/extended_matrix.h"
 #include "functions/operator_matrix/localizing_matrix.h"
@@ -69,6 +70,7 @@ namespace Moment::mex::functions {
             output.emplace("locality_matrix_system",    MEXEntryPointID::LocalityMatrixSystem);
             output.emplace("make_explicit",      MEXEntryPointID::MakeExplicit);
             output.emplace("make_representation",MEXEntryPointID::MakeRepresentation);
+            output.emplace("moment_rules",       MEXEntryPointID::MomentRules);
             output.emplace("moment_matrix",      MEXEntryPointID::MomentMatrix);
             output.emplace("moment_rule_superset",      MEXEntryPointID::MomentRuleSuperset);
             output.emplace("monomial_rules",     MEXEntryPointID::MonomialRules);
@@ -178,6 +180,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::MomentMatrix:
                 the_function = std::make_unique<functions::MomentMatrix>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::MomentRules:
+                the_function = std::make_unique<functions::MomentRules>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::MomentRuleSuperset:
                 the_function = std::make_unique<functions::MomentRuleSuperset>(engine, storageManager);

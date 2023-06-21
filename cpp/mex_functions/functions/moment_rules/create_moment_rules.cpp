@@ -15,7 +15,6 @@
 #include "symbolic/moment_rulebook.h"
 #include "symbolic/symbol_table.h"
 
-#include "export/export_moment_substitution_rules.h"
 #include "import/read_opseq_polynomial.h"
 
 #include "utilities/read_as_scalar.h"
@@ -54,33 +53,6 @@ namespace Moment::mex::functions {
                     throw_error(this->matlabEngine, errors::bad_param, ice.what());
                 }
             }
-        }
-
-        // Ascertain output mode
-        auto output_mode_iter = this->params.find(u"output");
-        if (output_mode_iter != this->params.cend()) {
-            try {
-                switch (read_choice("Parameter 'output'",
-                                    {"index", "symbols", "sequences", "strings"},
-                                    output_mode_iter->second)) {
-                    case 0:
-                        this->output_mode = OutputMode::IndexOnly;
-                        break;
-                    case 1:
-                        this->output_mode = OutputMode::SymbolCell;
-                        break;
-                    case 2:
-                        this->output_mode = OutputMode::SequenceCell;
-                        break;
-                    case 3:
-                        this->output_mode = OutputMode::String;
-                        break;
-                }
-            } catch (const Moment::mex::errors::invalid_choice& ice) {
-                throw_error(this->matlabEngine, errors::bad_param, ice.what());
-            }
-        } else {
-            this->output_mode = OutputMode::IndexOnly;
         }
 
         // Special case: info only mode
@@ -348,30 +320,10 @@ namespace Moment::mex::functions {
             print_to_console(this->matlabEngine, infoSS.str());
         }
 
-        // How do we output?
-
+        // Output index
         if (output.size() >= 1) {
             matlab::data::ArrayFactory factory;
-            MomentSubstitutionRuleExporter msrExporter{this->matlabEngine, system.Symbols(),
-                                                       system.polynomial_factory().zero_tolerance};
-
-            switch (input.output_mode) {
-                case CreateMomentRulesParams::OutputMode::IndexOnly:
-                    output[0] = factory.createScalar<uint64_t>(rb_id);
-                    break;
-                case CreateMomentRulesParams::OutputMode::SymbolCell:
-
-                    output[0] = msrExporter.as_symbol_cell(rulebook);
-                    break;
-                case CreateMomentRulesParams::OutputMode::SequenceCell:
-                    output[0] = msrExporter.as_operator_cell(rulebook);
-                    break;
-                case CreateMomentRulesParams::OutputMode::String:
-                    output[0] = msrExporter.as_string(rulebook);
-                    break;
-                default:
-                    throw_error(this->matlabEngine, errors::internal_error, "Unknown output mode!");
-            }
+            output[0] = factory.createScalar<uint64_t>(rb_id);
         }
     }
 

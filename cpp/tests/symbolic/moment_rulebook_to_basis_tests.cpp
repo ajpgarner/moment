@@ -50,7 +50,7 @@ namespace Moment::Tests {
 
             this->total_symbol_count = symbols.Basis.RealSymbolCount() + symbols.Basis.ImaginarySymbolCount();
 
-            this->mrtb_ptr = std::make_unique<MomentRulebookToBasis>(this->ms_ptr->polynomial_factory(), symbols);
+            this->mrtb_ptr = std::make_unique<MomentRulebookToBasis>(this->ms_ptr->polynomial_factory());
         }
 
         [[nodiscard]] MatrixSystem& get_system() noexcept { return *this->ms_ptr; }

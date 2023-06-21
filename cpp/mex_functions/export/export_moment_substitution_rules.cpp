@@ -9,10 +9,13 @@
 
 #include "symbolic/moment_rule.h"
 #include "symbolic/moment_rulebook.h"
+#include "symbolic/moment_rulebook_to_basis.h"
 #include "symbolic/polynomial.h"
 #include "symbolic/symbol_table.h"
 
 #include "utilities/utf_conversion.h"
+
+#include "eigen/export_eigen_sparse.h"
 
 
 namespace Moment::mex {
@@ -101,6 +104,13 @@ namespace Moment::mex {
         std::stringstream ruleSS;
         ruleSS << "#" << rule.LHS() << "  ->  " << rule.RHS();
         return UTF8toUTF16Convertor{}(ruleSS.str());
+    }
+
+    matlab::data::Array MomentSubstitutionRuleExporter::as_monolith(const MomentRulebook &rulebook) {
+        MomentRulebookToBasis mrtb{this->symbols, this->combo_exporter.zero_tolerance};
+        auto eigen_sparse_matrix = mrtb(rulebook);
+        matlab::data::ArrayFactory factory;
+        return export_eigen_sparse(this->engine, factory, eigen_sparse_matrix);
     }
 
 }

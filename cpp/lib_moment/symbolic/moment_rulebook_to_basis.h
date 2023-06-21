@@ -22,10 +22,13 @@ namespace Moment {
     public:
         using output_t = Eigen::SparseMatrix<double>;
 
-        const PolynomialFactory& factory;
         const SymbolTable& symbols;
+        const double zero_tolerance;
+
     public:
-        explicit MomentRulebookToBasis(const PolynomialFactory& factory, const SymbolTable& symbols);
+        explicit MomentRulebookToBasis(const PolynomialFactory& factory);
+
+        explicit MomentRulebookToBasis(const SymbolTable& symbols, double zero_tolerance);
 
         output_t operator()(const MomentRulebook& rulebook) const;
     };
