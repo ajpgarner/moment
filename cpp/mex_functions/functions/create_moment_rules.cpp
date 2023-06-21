@@ -12,7 +12,7 @@
 #include "scenarios/context.h"
 
 #include "symbolic/monomial_comparator_by_hash.h"
-#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/moment_rulebook.h"
 #include "symbolic/symbol_table.h"
 
 #include "export/export_moment_substitution_rules.h"
@@ -305,14 +305,14 @@ namespace Moment::mex::functions {
         auto& system = *msPtr;
 
         // Create rule-book with new rules
-        std::unique_ptr<MomentSubstitutionRulebook> rulebookPtr;
+        std::unique_ptr<MomentRulebook> rulebookPtr;
         if (!input.info_only_mode()) {
             rulebookPtr = this->create_rulebook(system, input);
         }
 
 
         // Add or merge rulebooks
-        auto [rb_id, rulebook] = [&]() -> std::pair<size_t, const MomentSubstitutionRulebook&> {
+        auto [rb_id, rulebook] = [&]() -> std::pair<size_t, const MomentRulebook&> {
             // Either, just get information:
             if (input.info_only_mode()) {
                 return {input.existing_rule_key, system.rulebook(input.existing_rule_key)};
@@ -375,9 +375,9 @@ namespace Moment::mex::functions {
         }
     }
 
-    std::unique_ptr<MomentSubstitutionRulebook>
+    std::unique_ptr<MomentRulebook>
     CreateMomentRules::create_rulebook(MatrixSystem& system, CreateMomentRulesParams& input) const {
-        std::unique_ptr<MomentSubstitutionRulebook> book;
+        std::unique_ptr<MomentRulebook> book;
         switch (input.input_mode) {
             case CreateMomentRulesParams::InputMode::SubstitutionList:
                 book = this->create_rulebook_from_sublist(system, input);
@@ -407,7 +407,7 @@ namespace Moment::mex::functions {
     }
 
 
-    std::unique_ptr<MomentSubstitutionRulebook>
+    std::unique_ptr<MomentRulebook>
     CreateMomentRules::create_rulebook_from_sublist(MatrixSystem& system, CreateMomentRulesParams& input) const {
         // Lock to read
         auto read_lock = system.get_read_lock();
@@ -424,7 +424,7 @@ namespace Moment::mex::functions {
             ++idx;
         }
         // Make empty rulebook
-        auto output = std::make_unique<MomentSubstitutionRulebook>(system);
+        auto output = std::make_unique<MomentRulebook>(system);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }
@@ -436,7 +436,7 @@ namespace Moment::mex::functions {
         return output;
     }
 
-    std::unique_ptr<MomentSubstitutionRulebook>
+    std::unique_ptr<MomentRulebook>
     CreateMomentRules::create_rulebook_from_symbols(MatrixSystem& system, CreateMomentRulesParams& input) const {
         // Lock to read
         auto read_lock = system.get_read_lock();
@@ -459,7 +459,7 @@ namespace Moment::mex::functions {
         }
 
         // Construct empty ruleset with ordering
-        auto output = std::make_unique<MomentSubstitutionRulebook>(system);
+        auto output = std::make_unique<MomentRulebook>(system);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }
@@ -479,7 +479,7 @@ namespace Moment::mex::functions {
     }
 
 
-    std::unique_ptr<MomentSubstitutionRulebook>
+    std::unique_ptr<MomentRulebook>
     CreateMomentRules::create_rulebook_from_new_sequences(Moment::MatrixSystem &system,
                                                           CreateMomentRulesParams &input) const {
         auto write_lock = system.get_write_lock();
@@ -490,7 +490,7 @@ namespace Moment::mex::functions {
         }
 
         //Make empty rulebook and get factory...
-        auto output = std::make_unique<MomentSubstitutionRulebook>(system);
+        auto output = std::make_unique<MomentRulebook>(system);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }
@@ -508,7 +508,7 @@ namespace Moment::mex::functions {
         return output;
     }
 
-    std::unique_ptr<MomentSubstitutionRulebook>
+    std::unique_ptr<MomentRulebook>
     CreateMomentRules::create_rulebook_from_existing_sequences(MatrixSystem& system,
                                                                CreateMomentRulesParams& input) const {
         auto read_lock = system.get_read_lock();
@@ -519,7 +519,7 @@ namespace Moment::mex::functions {
         }
 
         //Make empty rulebook and get factory...
-        auto output = std::make_unique<MomentSubstitutionRulebook>(system);
+        auto output = std::make_unique<MomentRulebook>(system);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }

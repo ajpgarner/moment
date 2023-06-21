@@ -9,7 +9,7 @@
 #include "monomial_matrix.h"
 #include "polynomial_matrix.h"
 
-#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/moment_rulebook.h"
 
 
 namespace Moment {
@@ -20,10 +20,10 @@ namespace Moment {
     class SubstitutedMatrix {
     public:
         const Matrix& source_matrix;
-        const MomentSubstitutionRulebook& rules;
+        const MomentRulebook& rules;
 
     public:
-        explicit SubstitutedMatrix(const Matrix& source, const MomentSubstitutionRulebook& rules) noexcept
+        explicit SubstitutedMatrix(const Matrix& source, const MomentRulebook& rules) noexcept
             : source_matrix{source}, rules{rules} { }
 
     protected:
@@ -37,7 +37,7 @@ namespace Moment {
      */
     class MonomialSubstitutedMatrix : public MonomialMatrix, public SubstitutedMatrix {
     public:
-        MonomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
+        MonomialSubstitutedMatrix(SymbolTable& symbols, const MomentRulebook& msrb,
                                   const MonomialMatrix& source_matrix);
 
 
@@ -48,7 +48,7 @@ namespace Moment {
          * @return Newly created raw monomial matrix.
          */
         static std::unique_ptr<SquareMatrix<Monomial>>
-        reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<Monomial>& matrix);
+        reduce(const MomentRulebook& msrb, const SquareMatrix<Monomial>& matrix);
 
 
 
@@ -61,18 +61,18 @@ namespace Moment {
      */
     class PolynomialSubstitutedMatrix : public PolynomialMatrix, public SubstitutedMatrix {
     public:
-        PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
+        PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentRulebook& msrb,
                                     const MonomialMatrix& source_matrix);
 
-        PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
+        PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentRulebook& msrb,
                                     const PolynomialMatrix& source_matrix);
 
     public:
         static std::unique_ptr<SquareMatrix<Polynomial>>
-        reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<Polynomial>& matrix);
+        reduce(const MomentRulebook& msrb, const SquareMatrix<Polynomial>& matrix);
 
         static std::unique_ptr<SquareMatrix<Polynomial>>
-        reduce(const MomentSubstitutionRulebook& msrb, const SquareMatrix<Monomial>& matrix);
+        reduce(const MomentRulebook& msrb, const SquareMatrix<Monomial>& matrix);
     };
 
 

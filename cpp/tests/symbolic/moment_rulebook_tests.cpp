@@ -1,5 +1,5 @@
 /**
- * moment_substitution_rulebook_tests.cpp
+ * moment_rulebook_tests.cpp
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -17,8 +17,8 @@
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
-#include "symbolic/moment_substitution_rule.h"
-#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/moment_rule.h"
+#include "symbolic/moment_rulebook.h"
 
 #include "symbolic_matrix_helpers.h"
 
@@ -27,7 +27,7 @@
 #include <numbers>
 
 namespace Moment::Tests {
-    class Symbolic_MomentSubstitutionRulebook : public ::testing::Test {
+    class Symbolic_MomentRulebook : public ::testing::Test {
     private:
         std::unique_ptr<Algebraic::AlgebraicMatrixSystem> ams_ptr;
         std::unique_ptr<PolynomialFactory> factory_ptr;
@@ -61,20 +61,20 @@ namespace Moment::Tests {
     };
 
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Construct_Empty) {
+    TEST_F(Symbolic_MomentRulebook, Construct_Empty) {
 
         // Prepare trivial rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         EXPECT_EQ(&book.symbols, &this->get_symbols());
         EXPECT_TRUE(book.empty());
         EXPECT_EQ(book.size(), 0);
         EXPECT_EQ(book.begin(), book.end());
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Inject) {
+    TEST_F(Symbolic_MomentRulebook, Inject) {
 
         // Prepare rulebook with single direct rule
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         ASSERT_TRUE(book.inject(5, Polynomial()));
         ASSERT_EQ(book.size(), 1);
         EXPECT_FALSE(book.empty());
@@ -86,9 +86,9 @@ namespace Moment::Tests {
         EXPECT_EQ(rule.second.RHS(), Polynomial());
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Match_Empty) {
+    TEST_F(Symbolic_MomentRulebook, Match_Empty) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
 
         const auto& factory = book.factory;
         ASSERT_TRUE(book.empty());
@@ -109,9 +109,9 @@ namespace Moment::Tests {
         EXPECT_EQ(a_plus_ab_match, a_plus_ab.end());
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Match_OneRule) {
+    TEST_F(Symbolic_MomentRulebook, Match_OneRule) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
 
         const auto& factory = book.factory;
         ASSERT_TRUE(book.inject(5, Polynomial())); // ab -> 0 (inferred: ba -> 0)
@@ -134,9 +134,9 @@ namespace Moment::Tests {
     }
 
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_Empty) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_Empty) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
 
         const auto& factory = book.factory;
         ASSERT_TRUE(book.empty());
@@ -149,9 +149,9 @@ namespace Moment::Tests {
                               factory({Monomial{3, 1.0}, Monomial{2, 0.5}}));// b + 0.5a -> b + 0.5a
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_OneRule) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_OneRule) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
 
         const auto& factory = book.factory;
         ASSERT_TRUE(book.inject(5, Polynomial())); // ab -> 0 (inferred: ba -> 0)
@@ -169,9 +169,9 @@ namespace Moment::Tests {
                               factory({Monomial{3, 1.0}})); // b -> b
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_TwoRules) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_TwoRules) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
 
         const auto& factory = book.factory;
         ASSERT_TRUE(book.inject(5, factory({Monomial{3, 0.5}}))); // ab -> 0.5 b
@@ -198,9 +198,9 @@ namespace Moment::Tests {
                               factory({Monomial{3, 2.0}, Monomial{1, 5.0}}));
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_TwoRulesOverap) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_TwoRulesOverap) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
 
         const auto& factory = book.factory;
         ASSERT_TRUE(book.inject(5, factory({Monomial{3, 0.5}, Monomial{1, 1.0}}))); // ab -> 0.5 b + 1
@@ -224,9 +224,9 @@ namespace Moment::Tests {
     }
 
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_NonorientableRule_Real) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_NonorientableRule_Real) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
 
         const auto& factory = book.factory; // // e, a, b, aa, ab (ba), bb
 
@@ -248,9 +248,9 @@ namespace Moment::Tests {
         EXPECT_EQ(book.reduce(reduced_ab), reduced_ab);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_NonorientableRule_Imaginary) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_NonorientableRule_Imaginary) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
 
         const auto& factory = book.factory;
         // Im(ab) - a + b = 0
@@ -275,9 +275,9 @@ namespace Moment::Tests {
 
 
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_MonoMatrix_EmptyRules) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_MonoMatrix_EmptyRules) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
         ASSERT_TRUE(book.empty());
         ASSERT_TRUE(book.is_monomial());
@@ -298,9 +298,9 @@ namespace Moment::Tests {
         compare_symbol_matrices(output_as_mm, input_mm);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_MonoMatrix_MonomialRules) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_MonoMatrix_MonomialRules) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
         book.inject(2, Polynomial::Scalar(0.5));
 
@@ -330,10 +330,10 @@ namespace Moment::Tests {
         compare_symbol_matrices(output_as_mm, ref_mm);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_MonoMatrix_PolynomialRules) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_MonoMatrix_PolynomialRules) {
         // Prepare rulebook
         const auto& factory = this->get_factory();
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         book.inject(3, factory({Monomial{2, -1.0}, Monomial{1, 1.0}}));
 
         ASSERT_FALSE(book.empty());
@@ -364,9 +364,9 @@ namespace Moment::Tests {
         compare_symbol_matrices(output_as_pm, ref_pm);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_PolyMatrix_EmptyRules) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_PolyMatrix_EmptyRules) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
         ASSERT_TRUE(book.empty());
         ASSERT_TRUE(book.is_monomial());
@@ -389,9 +389,9 @@ namespace Moment::Tests {
         compare_symbol_matrices(output_as_pm, input_pm);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_PolyMatrix_MonomialRules) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_PolyMatrix_MonomialRules) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
         book.inject(2, Polynomial::Scalar(2.0));
         ASSERT_FALSE(book.empty());
@@ -425,10 +425,10 @@ namespace Moment::Tests {
         compare_symbol_matrices(output_as_pm, ref_pm);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Reduce_PolyMatrix_PolynomialRules) {
+    TEST_F(Symbolic_MomentRulebook, Reduce_PolyMatrix_PolynomialRules) {
         // Prepare rulebook
         const auto& factory = this->get_factory();
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         book.inject(3, factory({Monomial{2, -1.0}, Monomial{1, 1.0}}));
 
         ASSERT_FALSE(book.empty());
@@ -462,9 +462,9 @@ namespace Moment::Tests {
         compare_symbol_matrices(output_as_pm, ref_pm);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_Ato0_Bto0) {
+    TEST_F(Symbolic_MomentRulebook, Complete_Ato0_Bto0) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
 
         std::vector<Polynomial> raw_combos;
@@ -479,14 +479,14 @@ namespace Moment::Tests {
 
         book.complete();
 
-        assert_matching_rules(book, {MomentSubstitutionRule{2, Polynomial()},
-                                     MomentSubstitutionRule{3, Polynomial()}});
+        assert_matching_rules(book, {MomentRule{2, Polynomial()},
+                                     MomentRule{3, Polynomial()}});
 
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_Ato0_BtoA) {
+    TEST_F(Symbolic_MomentRulebook, Complete_Ato0_BtoA) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
 
         std::vector<Polynomial> raw_combos;
@@ -503,14 +503,14 @@ namespace Moment::Tests {
 
         book.complete();
 
-        assert_matching_rules(book, {MomentSubstitutionRule{2, Polynomial()},
-                                     MomentSubstitutionRule{3, Polynomial()}});
+        assert_matching_rules(book, {MomentRule{2, Polynomial()},
+                                     MomentRule{3, Polynomial()}});
 
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_AAtoA_AAtoB) {
+    TEST_F(Symbolic_MomentRulebook, Complete_AAtoA_AAtoB) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
 
         std::vector<Polynomial> raw_combos;
@@ -527,13 +527,13 @@ namespace Moment::Tests {
         ASSERT_FALSE(book.empty());
         ASSERT_EQ(book.size(), 2);
 
-        assert_matching_rules(book, {MomentSubstitutionRule{3, factory({Monomial{2, 1.0}})},   // <b> -> <a>
-                                     MomentSubstitutionRule{4, factory({Monomial{2, 1.0}})}}); // <aa> -> <a>
+        assert_matching_rules(book, {MomentRule{3, factory({Monomial{2, 1.0}})},   // <b> -> <a>
+                                     MomentRule{4, factory({Monomial{2, 1.0}})}}); // <aa> -> <a>
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_AAtoA_AAto2A) {
+    TEST_F(Symbolic_MomentRulebook, Complete_AAtoA_AAto2A) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
 
         std::vector<Polynomial> raw_combos;
@@ -550,13 +550,13 @@ namespace Moment::Tests {
         ASSERT_FALSE(book.empty());
         ASSERT_EQ(book.size(), 2);
 
-        assert_matching_rules(book, {MomentSubstitutionRule{2, Polynomial()},   // <a> -> 0
-                                     MomentSubstitutionRule{4, Polynomial()}}); // <aa> -> 0
+        assert_matching_rules(book, {MomentRule{2, Polynomial()},   // <a> -> 0
+                                     MomentRule{4, Polynomial()}}); // <aa> -> 0
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_AAtoA_AAto2A_AtoId) {
+    TEST_F(Symbolic_MomentRulebook, Complete_AAtoA_AAto2A_AtoId) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
 
         std::vector<Polynomial> raw_combos;
@@ -573,9 +573,9 @@ namespace Moment::Tests {
         EXPECT_THROW(book.complete(), errors::invalid_moment_rule);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_RealAndImParts) {
+    TEST_F(Symbolic_MomentRulebook, Complete_RealAndImParts) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
 
         std::vector<Polynomial> raw_combos; // Re(<ab>) = <a>; Im(<ab>) = <b>
@@ -590,9 +590,9 @@ namespace Moment::Tests {
         EXPECT_EQ(reduced_ab, factory({Monomial{2, 1.0}, Monomial{3, std::complex{0.0, 1.0}}}));
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_FullThenReal) {
+    TEST_F(Symbolic_MomentRulebook, Complete_FullThenReal) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
 
         // Force full rule into book
@@ -613,9 +613,9 @@ namespace Moment::Tests {
     }
 
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_RealThenFull) {
+    TEST_F(Symbolic_MomentRulebook, Complete_RealThenFull) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
 
         // Add rule to book.
@@ -637,9 +637,9 @@ namespace Moment::Tests {
         EXPECT_EQ(book.reduce(Polynomial{Monomial{2}}), Polynomial::Scalar(std::complex{1.0, 0.0}));
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_RealAndReal) {
+    TEST_F(Symbolic_MomentRulebook, Complete_RealAndReal) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
 
         // Add rule to book: Re(ab) = a
@@ -661,12 +661,12 @@ namespace Moment::Tests {
         EXPECT_EQ(book.reduce(Polynomial{Monomial{3}}), Polynomial(Monomial{2}));
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_RealAndSkew) {
+    TEST_F(Symbolic_MomentRulebook, Complete_RealAndSkew) {
         const std::complex<double> skew_direction{1.0 / std::numbers::sqrt2, 1.0 / std::numbers::sqrt2}; // pi / 4
         const std::complex<double> offskew_direction{-1.0 / std::numbers::sqrt2, 1.0 / std::numbers::sqrt2}; // 3 pi / 4
 
         // Add real rule to book
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
         book.inject(factory, 5, 1, Polynomial{Monomial{2, 1.0}}); // Rule should be Re(AB) -> <A>
 
@@ -674,11 +674,11 @@ namespace Moment::Tests {
         const Polynomial skew_poly = factory({{Monomial{5, 0.5 * std::conj(skew_direction)},
                                          Monomial{5, 0.5 * skew_direction, true},
                                          Monomial{3, -1.0}}});
-        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(skew_poly),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
+        ASSERT_EQ(MomentRule::get_difficulty(skew_poly),
+                  MomentRule::PolynomialDifficulty::NonorientableRule);
 
         // Check direct version of rule
-        MomentSubstitutionRule direct_skew_rule{factory, Polynomial{skew_poly}};
+        MomentRule direct_skew_rule{factory, Polynomial{skew_poly}};
         EXPECT_TRUE(direct_skew_rule.is_partial());
         EXPECT_TRUE(approximately_equal(direct_skew_rule.partial_direction(), skew_direction, factory.zero_tolerance))
                     << direct_skew_rule.partial_direction();
@@ -703,12 +703,12 @@ namespace Moment::Tests {
                            Monomial{3, std::complex{0.0, std::numbers::sqrt2}}}));
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_SkewAndReal) {
+    TEST_F(Symbolic_MomentRulebook, Complete_SkewAndReal) {
         const std::complex<double> skew_direction{1.0 / std::numbers::sqrt2, 1.0 / std::numbers::sqrt2}; // pi / 4
         const std::complex<double> offskew_direction{-1.0 / std::numbers::sqrt2, 1.0 / std::numbers::sqrt2}; // 3 pi / 4
 
         // Add skew rule to book
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
 
         const auto& factory = book.factory;
         book.inject(factory, 5, skew_direction, Polynomial{Monomial{3, 1.0}}); // Rule should be Kd(AB) -> <B>
@@ -734,9 +734,9 @@ namespace Moment::Tests {
 
 
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, Complete_FromMap) {
+    TEST_F(Symbolic_MomentRulebook, Complete_FromMap) {
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
 
         std::map<symbol_name_t, double> raw_assignments;
@@ -749,19 +749,19 @@ namespace Moment::Tests {
         book.add_raw_rules(raw_assignments);
         book.complete();
 
-        assert_matching_rules(book, {MomentSubstitutionRule{2, Polynomial()},
-                                     MomentSubstitutionRule{3, Polynomial::Scalar(1.5)}});
+        assert_matching_rules(book, {MomentRule{2, Polynomial()},
+                                     MomentRule{3, Polynomial::Scalar(1.5)}});
 
     }
 
 
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, CombineAndComplete_IntoEmpty) {
+    TEST_F(Symbolic_MomentRulebook, CombineAndComplete_IntoEmpty) {
         // System
-        MomentSubstitutionRulebook empty_book{this->get_system()};
+        MomentRulebook empty_book{this->get_system()};
 
         // Prepare rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         const auto& factory = book.factory;
 
         std::map<symbol_name_t, double> raw_assignments;
@@ -773,19 +773,19 @@ namespace Moment::Tests {
         book.add_raw_rules(raw_assignments);
         book.complete();
 
-        assert_matching_rules(book, {MomentSubstitutionRule{2, Polynomial()},
-                                     MomentSubstitutionRule{3, Polynomial::Scalar(1.5)}});
+        assert_matching_rules(book, {MomentRule{2, Polynomial()},
+                                     MomentRule{3, Polynomial::Scalar(1.5)}});
 
         size_t new_rules = empty_book.combine_and_complete(std::move(book));
         EXPECT_EQ(new_rules, 2);
-        assert_matching_rules(empty_book, {MomentSubstitutionRule{2, Polynomial()},
-                                           MomentSubstitutionRule{3, Polynomial::Scalar(1.5)}});
+        assert_matching_rules(empty_book, {MomentRule{2, Polynomial()},
+                                           MomentRule{3, Polynomial::Scalar(1.5)}});
 
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, CombineAndComplete_Trivial) {
+    TEST_F(Symbolic_MomentRulebook, CombineAndComplete_Trivial) {
         // System
-        MomentSubstitutionRulebook book_one{this->get_system()};
+        MomentRulebook book_one{this->get_system()};
 
         std::map<symbol_name_t, double> raw_assignments_one;
         raw_assignments_one.insert(std::make_pair(2, 0.0)); // <a> = 0
@@ -794,27 +794,27 @@ namespace Moment::Tests {
         book_one.add_raw_rules(raw_assignments_one);
         book_one.complete();
 
-        assert_matching_rules(book_one, {MomentSubstitutionRule{2, Polynomial()}});
+        assert_matching_rules(book_one, {MomentRule{2, Polynomial()}});
 
         // Prepare rulebook
-        MomentSubstitutionRulebook book_two{this->get_system()};
+        MomentRulebook book_two{this->get_system()};
         std::map<symbol_name_t, double> raw_assignments_two;
         raw_assignments_two.insert(std::make_pair(3, 1.5)); // <b> = 1.5
         book_two.add_raw_rules(raw_assignments_two);
         book_two.complete();
 
-        assert_matching_rules(book_two, {MomentSubstitutionRule{3, Polynomial::Scalar(1.5)}});
+        assert_matching_rules(book_two, {MomentRule{3, Polynomial::Scalar(1.5)}});
 
         size_t new_rules = book_one.combine_and_complete(std::move(book_two));
         EXPECT_EQ(new_rules, 1);
-        assert_matching_rules(book_one, {MomentSubstitutionRule{2, Polynomial()},
-                                         MomentSubstitutionRule{3, Polynomial::Scalar(1.5)}});
+        assert_matching_rules(book_one, {MomentRule{2, Polynomial()},
+                                         MomentRule{3, Polynomial::Scalar(1.5)}});
 
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, CombineAndComplete_WithRewrite) {
+    TEST_F(Symbolic_MomentRulebook, CombineAndComplete_WithRewrite) {
         // Prepare first rulebook <AA> -> <A>
-        MomentSubstitutionRulebook book_one{this->get_system()};
+        MomentRulebook book_one{this->get_system()};
         auto& factory = this->get_factory();
 
         std::vector<Polynomial> raw_combos_one;
@@ -822,26 +822,26 @@ namespace Moment::Tests {
         book_one.add_raw_rules(std::move(raw_combos_one));
         book_one.complete();
 
-        assert_matching_rules(book_one, {MomentSubstitutionRule{4, factory({Monomial(2, 0.5)})}});
+        assert_matching_rules(book_one, {MomentRule{4, factory({Monomial(2, 0.5)})}});
 
         // Prepare second rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_two{this->get_system()};
+        MomentRulebook book_two{this->get_system()};
         std::map<symbol_name_t, double> raw_assignments_two;
         raw_assignments_two.insert(std::make_pair(2, 0.5)); // <a> = 0.5
         book_two.add_raw_rules(raw_assignments_two);
         book_two.complete();
-        assert_matching_rules(book_two, {MomentSubstitutionRule{2, Polynomial::Scalar(0.5)}});
+        assert_matching_rules(book_two, {MomentRule{2, Polynomial::Scalar(0.5)}});
 
         size_t new_rules = book_one.combine_and_complete(std::move(book_two));
         EXPECT_EQ(new_rules, 1);
-        assert_matching_rules(book_one, {MomentSubstitutionRule{2, Polynomial::Scalar(0.5)},
-                                         MomentSubstitutionRule{4, Polynomial::Scalar(0.25)}});
+        assert_matching_rules(book_one, {MomentRule{2, Polynomial::Scalar(0.5)},
+                                         MomentRule{4, Polynomial::Scalar(0.25)}});
 
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, CombineAndComplete_FailBadRule) {
+    TEST_F(Symbolic_MomentRulebook, CombineAndComplete_FailBadRule) {
         // Prepare first rulebook <AA> -> <A>
-        MomentSubstitutionRulebook book_one{this->get_system()};
+        MomentRulebook book_one{this->get_system()};
         auto& factory = this->get_factory();
 
         std::vector<Polynomial> raw_combos_one;
@@ -849,24 +849,24 @@ namespace Moment::Tests {
         book_one.add_raw_rules(std::move(raw_combos_one));
         book_one.complete();
 
-        assert_matching_rules(book_one, {MomentSubstitutionRule{4, Polynomial::Scalar(0.5)}});
+        assert_matching_rules(book_one, {MomentRule{4, Polynomial::Scalar(0.5)}});
 
         // Prepare second rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_two{this->get_system()};
+        MomentRulebook book_two{this->get_system()};
         std::map<symbol_name_t, double> raw_assignments_two;
         raw_assignments_two.insert(std::make_pair(4, 0.25)); // <aa> = 0.25
         book_two.add_raw_rules(raw_assignments_two);
         book_two.complete();
-        assert_matching_rules(book_two, {MomentSubstitutionRule{4, Polynomial::Scalar(0.25)}});
+        assert_matching_rules(book_two, {MomentRule{4, Polynomial::Scalar(0.25)}});
 
         EXPECT_THROW(book_one.combine_and_complete(std::move(book_two)), errors::invalid_moment_rule);
 
-        assert_matching_rules(book_one, {MomentSubstitutionRule{4, Polynomial::Scalar(0.5)}});
+        assert_matching_rules(book_one, {MomentRule{4, Polynomial::Scalar(0.5)}});
         EXPECT_FALSE(book_one.pending_rules());
 
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, CloneMomentMatrix) {
+    TEST_F(Symbolic_MomentRulebook, CloneMomentMatrix) {
         // Build unlinked pair (uninflated)
         auto& ams = this->get_system();
         const auto& context = this->get_context();
@@ -901,7 +901,7 @@ namespace Moment::Tests {
         compare_symbol_matrices(moment_matrix, ref_mm, "Moment matrix");
 
         // Build substitutions of just A
-        auto [rb_id, book] = ams.add_rulebook(std::make_unique<MomentSubstitutionRulebook>(this->get_system()));
+        auto [rb_id, book] = ams.add_rulebook(std::make_unique<MomentRulebook>(this->get_system()));
         book.inject(id_a, Polynomial::Scalar(2.0)); // A -> 2
         book.inject(id_b, Polynomial::Scalar(3.0)); // B -> 3
         book.infer_additional_rules_from_factors(ams);
@@ -934,9 +934,9 @@ namespace Moment::Tests {
     }
 
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, FirstNoncontainedRule_BEmpty) {
+    TEST_F(Symbolic_MomentRulebook, FirstNoncontainedRule_BEmpty) {
         // Prepare first rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_A{this->get_system()};
+        MomentRulebook book_A{this->get_system()};
         auto& factory = this->get_factory();
         std::vector<Polynomial> raw_combos_one;
         raw_combos_one.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
@@ -944,7 +944,7 @@ namespace Moment::Tests {
         book_A.complete();
 
         // Prepare second rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_B{this->get_system()};
+        MomentRulebook book_B{this->get_system()};
         book_B.complete();
         EXPECT_TRUE(book_B.empty());
 
@@ -956,14 +956,14 @@ namespace Moment::Tests {
         EXPECT_EQ(BfncrA->LHS(), 4);
 
         auto [res, inAnotInB, inBnotInA] = book_A.compare_rulebooks(book_B);
-        EXPECT_EQ(res, MomentSubstitutionRulebook::RulebookComparisonResult::AContainsB);
+        EXPECT_EQ(res, MomentRulebook::RulebookComparisonResult::AContainsB);
         EXPECT_EQ(inAnotInB, BfncrA);
         EXPECT_EQ(inBnotInA, nullptr);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, FirstNoncontainedRule_AEqualsB) {
+    TEST_F(Symbolic_MomentRulebook, FirstNoncontainedRule_AEqualsB) {
         // Prepare first rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_A{this->get_system()};
+        MomentRulebook book_A{this->get_system()};
         auto& factory = this->get_factory();
         std::vector<Polynomial> raw_combos_one;
         raw_combos_one.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
@@ -971,7 +971,7 @@ namespace Moment::Tests {
         book_A.complete();
 
         // Prepare second rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_B{this->get_system()};
+        MomentRulebook book_B{this->get_system()};
         std::vector<Polynomial> raw_combos_two;
         raw_combos_two.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
         book_B.add_raw_rules(std::move(raw_combos_two));
@@ -984,14 +984,14 @@ namespace Moment::Tests {
         EXPECT_EQ(BsupersetA, nullptr);
 
         auto [res, inAnotInB, inBnotInA] = book_A.compare_rulebooks(book_B);
-        EXPECT_EQ(res, MomentSubstitutionRulebook::RulebookComparisonResult::AEqualsB);
+        EXPECT_EQ(res, MomentRulebook::RulebookComparisonResult::AEqualsB);
         EXPECT_EQ(inAnotInB, nullptr);
         EXPECT_EQ(inBnotInA, nullptr);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, FirstNoncontainedRule_AsupersetB) {
+    TEST_F(Symbolic_MomentRulebook, FirstNoncontainedRule_AsupersetB) {
         // Prepare first rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_A{this->get_system()};
+        MomentRulebook book_A{this->get_system()};
         auto& factory = this->get_factory();
         std::vector<Polynomial> raw_combos_one;
         raw_combos_one.emplace_back(factory({Monomial(4, 1.0), Monomial{1, -0.5}})); // <aa> - 0.5 = 0
@@ -1000,7 +1000,7 @@ namespace Moment::Tests {
         book_A.complete();
 
         // Prepare second rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_B{this->get_system()};
+        MomentRulebook book_B{this->get_system()};
         std::vector<Polynomial> raw_combos_two;
         raw_combos_two.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
         book_B.add_raw_rules(std::move(raw_combos_two));
@@ -1014,20 +1014,20 @@ namespace Moment::Tests {
         EXPECT_EQ(BsupersetA->LHS(), 3);
 
         auto [res, inAnotInB, inBnotInA] = book_A.compare_rulebooks(book_B);
-        EXPECT_EQ(res, MomentSubstitutionRulebook::RulebookComparisonResult::AContainsB);
+        EXPECT_EQ(res, MomentRulebook::RulebookComparisonResult::AContainsB);
         EXPECT_EQ(inAnotInB, BsupersetA);
         EXPECT_EQ(inBnotInA, nullptr);
 
 
         auto [rev_res, rev_inAnotInB, rev_inBnotInA] = book_B.compare_rulebooks(book_A);
-        EXPECT_EQ(rev_res, MomentSubstitutionRulebook::RulebookComparisonResult::BContainsA);
+        EXPECT_EQ(rev_res, MomentRulebook::RulebookComparisonResult::BContainsA);
         EXPECT_EQ(rev_inAnotInB, nullptr);
         EXPECT_EQ(rev_inBnotInA, BsupersetA);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, FirstNoncontainedRule_AdisjointB_One) {
+    TEST_F(Symbolic_MomentRulebook, FirstNoncontainedRule_AdisjointB_One) {
         // Prepare first rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_A{this->get_system()};
+        MomentRulebook book_A{this->get_system()};
         auto& factory = this->get_factory();
         std::vector<Polynomial> raw_combos_one;
         raw_combos_one.emplace_back(factory({Monomial(3, 1.0), Monomial{1, -2.0}})); // <b> - 2.0 = 0
@@ -1035,7 +1035,7 @@ namespace Moment::Tests {
         book_A.complete();
 
         // Prepare second rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_B{this->get_system()};
+        MomentRulebook book_B{this->get_system()};
         std::vector<Polynomial> raw_combos_two;
         raw_combos_two.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
         book_B.add_raw_rules(std::move(raw_combos_two));
@@ -1050,14 +1050,14 @@ namespace Moment::Tests {
         EXPECT_EQ(BsupersetA->LHS(), 3);
 
         auto [res, inAnotInB, inBnotInA] = book_A.compare_rulebooks(book_B);
-        EXPECT_EQ(res, MomentSubstitutionRulebook::RulebookComparisonResult::Disjoint);
+        EXPECT_EQ(res, MomentRulebook::RulebookComparisonResult::Disjoint);
         EXPECT_EQ(inAnotInB, BsupersetA);
         EXPECT_EQ(inBnotInA, AsupersetB);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebook, FirstNoncontainedRule_AdisjointB_Contradict) {
+    TEST_F(Symbolic_MomentRulebook, FirstNoncontainedRule_AdisjointB_Contradict) {
         // Prepare first rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_A{this->get_system()};
+        MomentRulebook book_A{this->get_system()};
         auto& factory = this->get_factory();
         std::vector<Polynomial> raw_combos_one;
         raw_combos_one.emplace_back(factory({Monomial(4, 1.0), Monomial{1, -2.0}})); // <b> - 2.0 = 0
@@ -1065,7 +1065,7 @@ namespace Moment::Tests {
         book_A.complete();
 
         // Prepare second rulebook <A> -> 0.5
-        MomentSubstitutionRulebook book_B{this->get_system()};
+        MomentRulebook book_B{this->get_system()};
         std::vector<Polynomial> raw_combos_two;
         raw_combos_two.emplace_back(factory({Monomial(4, 1.0), Monomial(1, -0.5)})); // <aa> - 0.5 = 0
         book_B.add_raw_rules(std::move(raw_combos_two));
@@ -1082,7 +1082,7 @@ namespace Moment::Tests {
         EXPECT_EQ(BsupersetA->RHS(), Polynomial::Scalar(2.0));
 
         auto [res, inAnotInB, inBnotInA] = book_A.compare_rulebooks(book_B);
-        EXPECT_EQ(res, MomentSubstitutionRulebook::RulebookComparisonResult::Disjoint);
+        EXPECT_EQ(res, MomentRulebook::RulebookComparisonResult::Disjoint);
         EXPECT_EQ(inAnotInB, BsupersetA);
         EXPECT_EQ(inBnotInA, AsupersetB);
     }

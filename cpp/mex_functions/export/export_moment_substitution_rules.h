@@ -22,8 +22,8 @@ namespace matlab::engine {
 
 namespace Moment {
     class SymbolTable;
-    class MomentSubstitutionRulebook;
-    class MomentSubstitutionRule;
+    class MomentRulebook;
+    class MomentRule;
 }
 
 
@@ -52,25 +52,25 @@ namespace Moment::mex {
                 : Exporter{engine}, combo_exporter{engine, symbols, zero_tolerance},
                   symbols{symbols}, string_format_options{rsfo} { }
 
-        matlab::data::CellArray operator()(const MomentSubstitutionRulebook &rules) {
+        matlab::data::CellArray operator()(const MomentRulebook &rules) {
             return this->as_symbol_cell(rules);
         }
 
-        matlab::data::CellArray as_operator_cell(const MomentSubstitutionRulebook& rules);
+        matlab::data::CellArray as_operator_cell(const MomentRulebook& rules);
 
-        matlab::data::CellArray as_symbol_cell(const MomentSubstitutionRulebook& rules);
+        matlab::data::CellArray as_symbol_cell(const MomentRulebook& rules);
 
-        matlab::data::StringArray as_string(const MomentSubstitutionRulebook& rules);
+        matlab::data::StringArray as_string(const MomentRulebook& rules);
 
     private:
         matlab::data::CellArray write_rule(matlab::data::ArrayFactory& factory,
-                                           const MomentSubstitutionRule& rule);
+                                           const MomentRule& rule);
 
         matlab::data::MATLABString write_rule_string_as_operator(matlab::data::ArrayFactory& factory,
-                                                                 const MomentSubstitutionRule& rule);
+                                                                 const MomentRule& rule);
 
         matlab::data::MATLABString write_rule_string_as_symbol(matlab::data::ArrayFactory& factory,
-                                                               const MomentSubstitutionRule& rule);
+                                                               const MomentRule& rule);
 
 
 

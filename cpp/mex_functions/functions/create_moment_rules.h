@@ -17,7 +17,7 @@
 
 namespace Moment {
     class MatrixSystem;
-    class MomentSubstitutionRulebook;
+    class MomentRulebook;
     class Polynomial;
     class PolynomialFactory;
     class SymbolTable;
@@ -116,19 +116,19 @@ namespace Moment::mex::functions {
         void operator()(IOArgumentRange output, CreateMomentRulesParams &input) override;
 
     private:
-        [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>
+        [[nodiscard]] std::unique_ptr<MomentRulebook>
         create_rulebook(MatrixSystem &system, CreateMomentRulesParams &input) const;
 
-        [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>
+        [[nodiscard]] std::unique_ptr<MomentRulebook>
         create_rulebook_from_sublist(MatrixSystem &system, CreateMomentRulesParams &input) const;
 
-        [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>
+        [[nodiscard]] std::unique_ptr<MomentRulebook>
         create_rulebook_from_symbols(MatrixSystem &system, CreateMomentRulesParams &input) const;
 
-        [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>
+        [[nodiscard]] std::unique_ptr<MomentRulebook>
         create_rulebook_from_existing_sequences(MatrixSystem &system, CreateMomentRulesParams &input) const;
 
-        [[nodiscard]] std::unique_ptr<MomentSubstitutionRulebook>
+        [[nodiscard]] std::unique_ptr<MomentRulebook>
         create_rulebook_from_new_sequences(MatrixSystem &system, CreateMomentRulesParams &input) const;
     };
 }

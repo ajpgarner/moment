@@ -12,7 +12,7 @@
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 
-#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/moment_rulebook.h"
 
 namespace Moment::mex::functions  {
 

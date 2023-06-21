@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include "moment_substitution_rule.h"
+#include "moment_rule.h"
 
 #include <atomic>
 #include <map>
@@ -41,7 +41,7 @@ namespace Moment {
 
     }
 
-    class MomentSubstitutionRulebook {
+    class MomentRulebook {
     public:
         /** Result, when checking if one rulebook contains another */
         enum class RulebookComparisonResult {
@@ -60,7 +60,7 @@ namespace Moment {
 
         using raw_complex_map_t = std::map<symbol_name_t, std::complex<double>>;
 
-        using rule_map_t = std::map<symbol_name_t, MomentSubstitutionRule>;
+        using rule_map_t = std::map<symbol_name_t, MomentRule>;
 
         using rule_order_map_t = std::map<std::pair<uint64_t, uint64_t>, rule_map_t::iterator>;
 
@@ -100,9 +100,9 @@ namespace Moment {
         mutable std::atomic<size_t> usages = 0;
 
     public:
-        explicit MomentSubstitutionRulebook(const MatrixSystem& system);
+        explicit MomentRulebook(const MatrixSystem& system);
 
-        explicit MomentSubstitutionRulebook(const MomentSubstitutionRulebook&) = delete;
+        explicit MomentRulebook(const MomentRulebook&) = delete;
 
 
 
@@ -134,14 +134,14 @@ namespace Moment {
          * Try to add an oriented rule directly.
          * @returns True if rule added, false if collision.
          */
-        bool inject(MomentSubstitutionRule&& msr);
+        bool inject(MomentRule&& msr);
 
         /**
          * Construct an an oriented rule and add it
          */
         template<typename... Args>
         bool inject(Args&&... args) {
-            return this->inject(MomentSubstitutionRule(std::forward<Args>(args)...));
+            return this->inject(MomentRule(std::forward<Args>(args)...));
         }
 
         /**
@@ -155,7 +155,7 @@ namespace Moment {
          * Exception guarantee: if merge fails, state of this ruleset is left unchanged.
          * @return Number of rules added.
          */
-         size_t combine_and_complete(MomentSubstitutionRulebook&& other);
+         size_t combine_and_complete(MomentRulebook&& other);
 
         /**
          * Attempt to infer additional rules from factorization structure
@@ -269,14 +269,14 @@ namespace Moment {
          /**
           * Finds pointer to the first rule in RHS rulebook that is not implied by this rulebook, or nullptr otherwise.
           */
-          [[nodiscard]] const MomentSubstitutionRule *
-          first_noncontained_rule(const MomentSubstitutionRulebook& rhs) const;
+          [[nodiscard]] const MomentRule *
+          first_noncontained_rule(const MomentRulebook& rhs) const;
 
           /**
            * Compare rulebook
            */
-           std::tuple<RulebookComparisonResult, const MomentSubstitutionRule *, const MomentSubstitutionRule *>
-           compare_rulebooks(const MomentSubstitutionRulebook& rhs) const;
+           std::tuple<RulebookComparisonResult, const MomentRule *, const MomentRule *>
+           compare_rulebooks(const MomentRulebook& rhs) const;
 
     private:
             /**

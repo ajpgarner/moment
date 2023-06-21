@@ -34,7 +34,7 @@ namespace Moment {
     /**
      * Rule, matching symbol ID and replacing it with a polynomial.
      */
-    class MomentSubstitutionRule {
+    class MomentRule {
     public:
         enum class PolynomialDifficulty {
             /** Rule has not been tested for difficulty (or even validity) */
@@ -69,29 +69,29 @@ namespace Moment {
 
     public:
         /** Create rule directly: symbol_id -> polynomial. */
-        MomentSubstitutionRule(symbol_name_t lhs, Polynomial&& rhs)
+        MomentRule(symbol_name_t lhs, Polynomial&& rhs)
             : lhs{lhs}, rhs{std::move(rhs)} { }
 
         /**
          * Create partial rule directly: constrain part of lhs in lhs_direction to the rhs.
          * Undefined behaviour if RHS is not real/Hermitian.
          */
-        MomentSubstitutionRule(const PolynomialFactory& factory,
-                               symbol_name_t lhs, std::complex<double> lhs_direction, Polynomial&& rhs);
+        MomentRule(const PolynomialFactory& factory,
+                   symbol_name_t lhs, std::complex<double> lhs_direction, Polynomial&& rhs);
 
     private:
-        MomentSubstitutionRule(const PolynomialFactory& factory, Polynomial&& rule, PolynomialDifficulty difficulty);
+        MomentRule(const PolynomialFactory& factory, Polynomial&& rule, PolynomialDifficulty difficulty);
 
 
     public:
         /** Create rule from polynomial == 0. */
-        MomentSubstitutionRule(const PolynomialFactory& factory, Polynomial&& rule);
+        MomentRule(const PolynomialFactory& factory, Polynomial&& rule);
 
     public:
         /**
          * Attempt to merge in second partial rule
          */
-        void merge_partial(const PolynomialFactory& factory, MomentSubstitutionRule&& other);
+        void merge_partial(const PolynomialFactory& factory, MomentRule&& other);
 
         /**
          * Some rules may imply a second rule. If so, return this second implied Polynomial (otherwise, std::nullopt).
@@ -235,6 +235,6 @@ namespace Moment {
 
 
     public:
-        friend class MomentSubstitutionRulebook;
+        friend class MomentRulebook;
     };
 }

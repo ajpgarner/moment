@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 
-#include "moment_substitution_rulebook.h"
+#include "moment_rulebook.h"
 
 #include "polynomial_factory.h"
 #include "polynomial_ordering.h"
@@ -31,13 +31,13 @@ namespace Moment {
         }
     }
 
-    MomentSubstitutionRulebook::MomentSubstitutionRulebook(const MatrixSystem& matrix_system)
+    MomentRulebook::MomentRulebook(const MatrixSystem& matrix_system)
         : symbols{matrix_system.Symbols()}, factory{matrix_system.polynomial_factory()}, rules{}
 
         {
     }
 
-    void MomentSubstitutionRulebook::add_raw_rules(std::vector<Polynomial> &&raw) {
+    void MomentRulebook::add_raw_rules(std::vector<Polynomial> &&raw) {
         if (this->in_use()) {
             throw errors::already_in_use{};
         }
@@ -51,7 +51,7 @@ namespace Moment {
         }
     }
 
-    void MomentSubstitutionRulebook::add_raw_rules(const MomentSubstitutionRulebook::raw_map_t& raw) {
+    void MomentRulebook::add_raw_rules(const MomentRulebook::raw_map_t& raw) {
         if (this->in_use()) {
             throw errors::already_in_use{};
         }
@@ -66,7 +66,7 @@ namespace Moment {
         }
     }
 
-    void MomentSubstitutionRulebook::add_raw_rules(const MomentSubstitutionRulebook::raw_complex_map_t& raw) {
+    void MomentRulebook::add_raw_rules(const MomentRulebook::raw_complex_map_t& raw) {
         if (this->in_use()) {
             throw errors::already_in_use{};
         }
@@ -81,7 +81,7 @@ namespace Moment {
         }
     }
 
-    void MomentSubstitutionRulebook::add_raw_rule(Polynomial&& raw) {
+    void MomentRulebook::add_raw_rule(Polynomial&& raw) {
         if (this->in_use()) {
             throw errors::already_in_use{};
         }
@@ -89,7 +89,7 @@ namespace Moment {
         this->raw_rules.emplace_back(std::move(raw));
     }
 
-    bool MomentSubstitutionRulebook::inject(MomentSubstitutionRule &&msr) {
+    bool MomentRulebook::inject(MomentRule &&msr) {
         if (this->in_use()) {
             throw errors::already_in_use{};
         }
@@ -119,7 +119,7 @@ namespace Moment {
         return added;
     }
 
-    size_t MomentSubstitutionRulebook::complete() {
+    size_t MomentRulebook::complete() {
         // Can't complete if already in use
         if (this->in_use()) {
             throw errors::already_in_use{};
@@ -142,7 +142,7 @@ namespace Moment {
             Polynomial reduced_rule{this->reduce(std::move(this->raw_rules[raw_rule_index]))};
 
             // Second, attempt to orient into rule
-            MomentSubstitutionRule msr{this->factory, std::move(reduced_rule)};
+            MomentRule msr{this->factory, std::move(reduced_rule)};
 
             // If rule has been reduced to a trivial expression, do not add.
             if (msr.is_trivial()) {
@@ -206,7 +206,7 @@ namespace Moment {
             const auto& newly_added_rule = ordered_rule_iter->second->second;
             ++ordered_rule_iter;
             while (ordered_rule_iter != this->rules_in_order.end()) {
-                MomentSubstitutionRule& prior_rule = ordered_rule_iter->second->second;
+                MomentRule& prior_rule = ordered_rule_iter->second->second;
 
                 auto [match_count, match_hint] = newly_added_rule.match_info(prior_rule.rhs);
                 if (match_count > 0) {
@@ -243,7 +243,7 @@ namespace Moment {
         return rules_added;
     }
 
-    size_t MomentSubstitutionRulebook::combine_and_complete(MomentSubstitutionRulebook &&other) {
+    size_t MomentRulebook::combine_and_complete(MomentRulebook &&other) {
         // Can't add new rules if already in use
         if (this->in_use() && other.in_use()) {
             throw errors::already_in_use{};
@@ -283,7 +283,7 @@ namespace Moment {
 
         // Finally, do completion in exception-guaranteed manner.
         // Slow, but prevents bad rules from breaking everything.
-        std::map<symbol_name_t, MomentSubstitutionRule> old_rules{this->rules};
+        std::map<symbol_name_t, MomentRule> old_rules{this->rules};
         size_t processed_rules = 0;
         try {
             // Attempt completion
@@ -305,7 +305,7 @@ namespace Moment {
         return processed_rules;
     }
 
-    size_t MomentSubstitutionRulebook::infer_additional_rules_from_factors(const MatrixSystem &ms) {
+    size_t MomentRulebook::infer_additional_rules_from_factors(const MatrixSystem &ms) {
         // Can't make new rules if already in use
         if (this->in_use()) {
             throw errors::already_in_use{};
@@ -380,8 +380,8 @@ namespace Moment {
         return this->complete();
     }
 
-    std::pair<MomentSubstitutionRulebook::rule_map_t::const_iterator, Polynomial::storage_t::const_iterator>
-    MomentSubstitutionRulebook::match(const Polynomial &polynomial) const noexcept {
+    std::pair<MomentRulebook::rule_map_t::const_iterator, Polynomial::storage_t::const_iterator>
+    MomentRulebook::match(const Polynomial &polynomial) const noexcept {
         for (auto poly_iter = polynomial.begin(); poly_iter != polynomial.end(); ++poly_iter) {
             auto rule_iter = this->rules.find(poly_iter->id);
             if (rule_iter != rules.cend()) {
@@ -392,7 +392,7 @@ namespace Moment {
     }
 
 
-    bool MomentSubstitutionRulebook::reduce_in_place(Moment::Polynomial& polynomial) const {
+    bool MomentRulebook::reduce_in_place(Moment::Polynomial& polynomial) const {
         Polynomial::storage_t potential_output;
         bool ever_matched = false;
         for (auto poly_iter = polynomial.begin(); poly_iter != polynomial.end(); ++poly_iter) {
@@ -423,7 +423,7 @@ namespace Moment {
         return ever_matched;
     }
 
-    Monomial MomentSubstitutionRulebook::reduce_monomial(Monomial expr) const {
+    Monomial MomentRulebook::reduce_monomial(Monomial expr) const {
         auto rule_iter = this->rules.find(expr.id);
         // No match, pass through:
         if (rule_iter == this->rules.cend()) {
@@ -440,7 +440,7 @@ namespace Moment {
         return rule.reduce_monomial(this->symbols, expr);
     }
 
-    Polynomial MomentSubstitutionRulebook::reduce(Monomial expr) const {
+    Polynomial MomentRulebook::reduce(Monomial expr) const {
         auto rule_iter = this->rules.find(expr.id);
         // No match, pass through (but promote to polynomial)
         if (rule_iter == this->rules.cend()) {
@@ -451,8 +451,8 @@ namespace Moment {
         return rule_iter->second.reduce(this->factory, expr);
     }
 
-    std::unique_ptr<Matrix> MomentSubstitutionRulebook::create_substituted_matrix(SymbolTable& wSymbols,
-                                                                                  const Matrix &matrix) const {
+    std::unique_ptr<Matrix> MomentRulebook::create_substituted_matrix(SymbolTable& wSymbols,
+                                                                      const Matrix &matrix) const {
         assert(&matrix.symbols == &wSymbols);
 
         // Once this line is passed, MSR is officially in use:
@@ -471,8 +471,8 @@ namespace Moment {
         }
     }
 
-    const MomentSubstitutionRule *
-    MomentSubstitutionRulebook::first_noncontained_rule(const MomentSubstitutionRulebook &rhs) const {
+    const MomentRule *
+    MomentRulebook::first_noncontained_rule(const MomentRulebook &rhs) const {
         // Other empty rulebook is always implied by this rulebook.
         if (rhs.rules.empty()) {
             return nullptr;
@@ -498,10 +498,10 @@ namespace Moment {
         return nullptr;
     }
 
-    std::tuple<MomentSubstitutionRulebook::RulebookComparisonResult,
-               const MomentSubstitutionRule *,
-               const MomentSubstitutionRule *>
-    MomentSubstitutionRulebook::compare_rulebooks(const MomentSubstitutionRulebook &rhs) const {
+    std::tuple<MomentRulebook::RulebookComparisonResult,
+               const MomentRule *,
+               const MomentRule *>
+    MomentRulebook::compare_rulebooks(const MomentRulebook &rhs) const {
 
         const auto * in_B_not_in_A = this->first_noncontained_rule(rhs);
         const auto * in_A_not_in_B = rhs.first_noncontained_rule(*this);
@@ -522,7 +522,7 @@ namespace Moment {
         }
     }
 
-    void MomentSubstitutionRulebook::remake_keys() {
+    void MomentRulebook::remake_keys() {
         this->rules_in_order.clear();
         for (auto iter = rules.begin(); iter != rules.end(); ++iter) {
             this->rules_in_order.emplace(std::make_pair(this->factory.key(Monomial{iter->first}), iter));

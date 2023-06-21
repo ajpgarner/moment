@@ -1,5 +1,5 @@
 /**
- * moment_substitution_rule_split_tests.cpp
+ * moment_rule_split_tests.cpp
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -11,7 +11,7 @@
 #include "scenarios/imported/imported_matrix_system.h"
 
 #include "symbolic/symbol_table.h"
-#include "symbolic/moment_substitution_rule.h"
+#include "symbolic/moment_rule.h"
 #include "symbolic/monomial_comparator_by_hash.h"
 
 #include "moment_rule_helpers.h"
@@ -19,7 +19,7 @@
 
 namespace Moment::Tests {
 
-    class Symbolic_MomentSubstitutionRule_Split : public ::testing::Test {
+    class Symbolic_MomentRule_Split : public ::testing::Test {
     private:
         std::unique_ptr<Imported::ImportedMatrixSystem> ims_ptr;
         std::unique_ptr<PolynomialFactory> factory_ptr;
@@ -83,57 +83,57 @@ namespace Moment::Tests {
 
     };
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, NoSplit_Trivial) {
+    TEST_F(Symbolic_MomentRule_Split, NoSplit_Trivial) {
         const auto& factory = this->get_factory();
-        MomentSubstitutionRule msr{factory, Polynomial::Zero()};
+        MomentRule msr{factory, Polynomial::Zero()};
         auto split = msr.split();
         EXPECT_FALSE(split.has_value());
         EXPECT_EQ(msr.LHS(), 0);
         expect_approximately_equal(msr.RHS(), Polynomial::Zero());
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, NoSplit_SimpleEqualsZero) {
+    TEST_F(Symbolic_MomentRule_Split, NoSplit_SimpleEqualsZero) {
         const auto& factory = this->get_factory();
-        MomentSubstitutionRule msr{factory, factory({Monomial{comp_b, 1.0}})};
+        MomentRule msr{factory, factory({Monomial{comp_b, 1.0}})};
         auto split = msr.split();
         EXPECT_FALSE(split.has_value());
         EXPECT_EQ(msr.LHS(), comp_b);
         expect_approximately_equal(msr.RHS(), Polynomial::Zero());
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, NoSplit_SimpleEqualsNonzero) {
+    TEST_F(Symbolic_MomentRule_Split, NoSplit_SimpleEqualsNonzero) {
         const auto& factory = this->get_factory();
-        MomentSubstitutionRule msr{factory, factory({Monomial{comp_b, 1.0}, Monomial{re_a, -1.0}})};
+        MomentRule msr{factory, factory({Monomial{comp_b, 1.0}, Monomial{re_a, -1.0}})};
         auto split = msr.split();
         EXPECT_FALSE(split.has_value());
         EXPECT_EQ(msr.LHS(), comp_b);
         expect_approximately_equal(msr.RHS(), factory({Monomial{re_a, 1.0}}));
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, NoSplit_HermitianEqualsScalar) {
+    TEST_F(Symbolic_MomentRule_Split, NoSplit_HermitianEqualsScalar) {
         const auto& factory = this->get_factory();
-        MomentSubstitutionRule msr{factory, factory({Monomial{re_a, 1.0}, Monomial{id, -5.0}})};
+        MomentRule msr{factory, factory({Monomial{re_a, 1.0}, Monomial{id, -5.0}})};
         auto split = msr.split();
         EXPECT_FALSE(split.has_value());
         EXPECT_EQ(msr.LHS(), re_a);
         expect_approximately_equal(msr.RHS(), factory({Monomial{id, 5.0}}));
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, BadSplit_HermitianEqualsComplexScalar) {
+    TEST_F(Symbolic_MomentRule_Split, BadSplit_HermitianEqualsComplexScalar) {
         const auto& factory = this->get_factory();
-        MomentSubstitutionRule msr{factory, factory({Monomial{re_a, 1.0}, Monomial{id, std::complex{0.0, -5.0}}})};
+        MomentRule msr{factory, factory({Monomial{re_a, 1.0}, Monomial{id, std::complex{0.0, -5.0}}})};
         auto split = msr.split();
         ASSERT_TRUE(split.has_value());
         EXPECT_EQ(msr.LHS(), re_a);
         expect_approximately_equal(msr.RHS(), Polynomial::Zero());
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(split.value()),
-                  MomentSubstitutionRule::PolynomialDifficulty::Contradiction); // Split rule is 0 = 5
+        EXPECT_EQ(MomentRule::get_difficulty(split.value()),
+                  MomentRule::PolynomialDifficulty::Contradiction); // Split rule is 0 = 5
     }
 
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, Split_HermitianEqualsComplex) {
+    TEST_F(Symbolic_MomentRule_Split, Split_HermitianEqualsComplex) {
         const auto& factory = this->get_factory();
-        MomentSubstitutionRule msr{factory, factory({Monomial{re_d, 1.0}, Monomial{comp_b, -1.0}, Monomial{id, -1.0}})};
+        MomentRule msr{factory, factory({Monomial{re_d, 1.0}, Monomial{comp_b, -1.0}, Monomial{id, -1.0}})};
         auto split = msr.split();
         EXPECT_EQ(msr.LHS(), re_d);
         // d = Re(d) = Re(b) + 1
@@ -145,13 +145,13 @@ namespace Moment::Tests {
                                    factory({Monomial{comp_b, std::complex{0.0, -0.5}},
                                             Monomial{comp_b, std::complex{0.0, 0.5}, true}})); // Im(B) = 0.
 
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(split.value()),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
+        EXPECT_EQ(MomentRule::get_difficulty(split.value()),
+                  MomentRule::PolynomialDifficulty::NonorientableRule);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, Split_AntiHermitianEqualsComplex) {
+    TEST_F(Symbolic_MomentRule_Split, Split_AntiHermitianEqualsComplex) {
         const auto& factory = this->get_factory();
-        MomentSubstitutionRule msr{factory, factory({Monomial{im_f, 1.0}, Monomial{comp_b, -1.0}, Monomial{id, -1.0}})};
+        MomentRule msr{factory, factory({Monomial{im_f, 1.0}, Monomial{comp_b, -1.0}, Monomial{id, -1.0}})};
         auto split = msr.split();
         EXPECT_EQ(msr.LHS(), im_f);
         expect_approximately_equal(msr.RHS(),
@@ -163,16 +163,16 @@ namespace Moment::Tests {
                                    factory({Monomial{comp_b, 0.5}, Monomial{comp_b, 0.5, true},
                                             Monomial{id, 1.0}})); // 0 = Re(f) = Re(b) + 1.
 
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(split.value()),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
+        EXPECT_EQ(MomentRule::get_difficulty(split.value()),
+                  MomentRule::PolynomialDifficulty::NonorientableRule);
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, NonOrient_EasyConstraintOnReal) {
+    TEST_F(Symbolic_MomentRule_Split, NonOrient_EasyConstraintOnReal) {
         const auto& factory = this->get_factory();
         auto rule_poly = factory({Monomial{comp_e, 0.5}, Monomial{comp_e, 0.5, true}, Monomial{id, -1.0}});  // Re(E) = 1
-        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(rule_poly),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
-        MomentSubstitutionRule msr{factory, std::move(rule_poly)};
+        ASSERT_EQ(MomentRule::get_difficulty(rule_poly),
+                  MomentRule::PolynomialDifficulty::NonorientableRule);
+        MomentRule msr{factory, std::move(rule_poly)};
         auto split = msr.split();
         EXPECT_FALSE(split.has_value());
 
@@ -183,13 +183,13 @@ namespace Moment::Tests {
 
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, NonOrient_ContradictoryConstraintOnReal) {
+    TEST_F(Symbolic_MomentRule_Split, NonOrient_ContradictoryConstraintOnReal) {
         const auto& factory = this->get_factory();
         auto rule_poly = factory({Monomial{comp_e, 0.5}, Monomial{comp_e, 0.5, true},
                                   Monomial{id, -std::complex{1.0, 1.0}}});  // Re(E) = 1 + 1i
-        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(rule_poly),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
-        MomentSubstitutionRule msr{factory, std::move(rule_poly)};
+        ASSERT_EQ(MomentRule::get_difficulty(rule_poly),
+                  MomentRule::PolynomialDifficulty::NonorientableRule);
+        MomentRule msr{factory, std::move(rule_poly)};
         ASSERT_TRUE(msr.is_partial());
         EXPECT_TRUE(approximately_equal(msr.partial_direction(), std::complex{1.0, 0.0}, factory.zero_tolerance));
 
@@ -200,20 +200,20 @@ namespace Moment::Tests {
 
         auto split = msr.split();
         ASSERT_TRUE(split.has_value());
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(split.value()),
-                  MomentSubstitutionRule::PolynomialDifficulty::Contradiction);
+        EXPECT_EQ(MomentRule::get_difficulty(split.value()),
+                  MomentRule::PolynomialDifficulty::Contradiction);
         EXPECT_EQ(split.value(), Polynomial::Scalar(std::complex{1.0, 0.0})); // Im of above gives: 0 = 1.
     }
 
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, NonOrient_ComplexConstraintOnReal) {
+    TEST_F(Symbolic_MomentRule_Split, NonOrient_ComplexConstraintOnReal) {
         const auto& factory = this->get_factory();
         // Re(E) = b + 5i; Re: Re(E) = Re(b); Im: 0 = Im(b) + 5 -> Im(b) = -5.
         auto rule_poly = factory({Monomial{comp_e, 0.5}, Monomial{comp_e, 0.5, true},
                                   Monomial{comp_b, -1.0}, Monomial{id, std::complex{0.0, -5.0}}});
-        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(rule_poly),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
-        MomentSubstitutionRule msr{factory, std::move(rule_poly)};
+        ASSERT_EQ(MomentRule::get_difficulty(rule_poly),
+                  MomentRule::PolynomialDifficulty::NonorientableRule);
+        MomentRule msr{factory, std::move(rule_poly)};
         ASSERT_TRUE(msr.is_partial());
         EXPECT_TRUE(approximately_equal(msr.partial_direction(), std::complex{1.0, 0.0}, factory.zero_tolerance));
 
@@ -226,13 +226,13 @@ namespace Moment::Tests {
                                             Monomial{comp_b, std::complex{0.5, 0.0}, false},
                                             Monomial{comp_b, std::complex{+0.5, 0.0}, true}})); // X -> iIm(X) + Re(Y)
         ASSERT_TRUE(split.has_value());
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(split.value()),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule); // Im(b) = 5.
+        EXPECT_EQ(MomentRule::get_difficulty(split.value()),
+                  MomentRule::PolynomialDifficulty::NonorientableRule); // Im(b) = 5.
         expect_approximately_equal(split.value(), factory({Monomial{comp_b, std::complex{0.0, -0.5}, false},
                                                            Monomial{comp_b, std::complex{0.0, 0.5}, true},
                                                            Monomial{id, std::complex{5.0, 0.0}}}));
 
-        auto second_rule = MomentSubstitutionRule{factory, std::move(split.value())};
+        auto second_rule = MomentRule{factory, std::move(split.value())};
         ASSERT_TRUE(second_rule.is_partial());
         EXPECT_TRUE(approximately_equal(second_rule.partial_direction(),
                                         std::complex{0.0, 1.0},
@@ -254,14 +254,14 @@ namespace Moment::Tests {
 
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, NonOrient_EasyConstraintOnImaginary) {
+    TEST_F(Symbolic_MomentRule_Split, NonOrient_EasyConstraintOnImaginary) {
         const auto& factory = this->get_factory();
         auto rule_poly = factory({Monomial{comp_e, std::complex{0.0, -0.5}},
                                   Monomial{comp_e, std::complex{0.0, 0.5}, true},
                                   Monomial{id, -1.0}});  // Im(E) - 1 = 0; -> E = Re(E) + i
-        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(rule_poly),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
-        MomentSubstitutionRule msr{factory, std::move(rule_poly)};
+        ASSERT_EQ(MomentRule::get_difficulty(rule_poly),
+                  MomentRule::PolynomialDifficulty::NonorientableRule);
+        MomentRule msr{factory, std::move(rule_poly)};
         auto split = msr.split();
         EXPECT_FALSE(split.has_value());
 
@@ -272,14 +272,14 @@ namespace Moment::Tests {
 
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, Merge_ImIntoRe) {
+    TEST_F(Symbolic_MomentRule_Split, Merge_ImIntoRe) {
         const auto& factory = this->get_factory();
         auto re_rule_poly = factory({Monomial{comp_e, std::complex{0.5, 0.0}},
                                      Monomial{comp_e, std::complex{0.5, 0.0}, true},
                                      Monomial{id, -2.0}});  // Re(E) - 2 = 0; -> E = iIm(E) + 2
-        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(re_rule_poly),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
-        MomentSubstitutionRule re_rule{factory, std::move(re_rule_poly)};
+        ASSERT_EQ(MomentRule::get_difficulty(re_rule_poly),
+                  MomentRule::PolynomialDifficulty::NonorientableRule);
+        MomentRule re_rule{factory, std::move(re_rule_poly)};
         auto re_split = re_rule.split();
         EXPECT_FALSE(re_split.has_value());
 
@@ -292,9 +292,9 @@ namespace Moment::Tests {
         auto im_rule_poly = factory({Monomial{comp_e, std::complex{0.0, -0.5}},
                                      Monomial{comp_e, std::complex{0.0, 0.5}, true},
                                      Monomial{id, -3.0}});  // Im(E) - 3 = 0; -> E = Re(E) + 3i
-        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(im_rule_poly),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
-        MomentSubstitutionRule im_rule{factory, std::move(im_rule_poly)};
+        ASSERT_EQ(MomentRule::get_difficulty(im_rule_poly),
+                  MomentRule::PolynomialDifficulty::NonorientableRule);
+        MomentRule im_rule{factory, std::move(im_rule_poly)};
         auto im_split = im_rule.split();
         EXPECT_FALSE(im_split.has_value());
         expect_approximately_equal(im_rule.RHS(),
@@ -308,14 +308,14 @@ namespace Moment::Tests {
         EXPECT_EQ(re_rule.RHS(), factory({Monomial{1, std::complex{2.0, 3.0}}}));
 
     }
-    TEST_F(Symbolic_MomentSubstitutionRule_Split, Merge_ReIntoIm) {
+    TEST_F(Symbolic_MomentRule_Split, Merge_ReIntoIm) {
         const auto& factory = this->get_factory();
         auto re_rule_poly = factory({Monomial{comp_e, std::complex{0.5, 0.0}},
                                      Monomial{comp_e, std::complex{0.5, 0.0}, true},
                                      Monomial{id, -2.0}});  // Re(E) - 2 = 0; -> E = iIm(E) + 2
-        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(re_rule_poly),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
-        MomentSubstitutionRule re_rule{factory, std::move(re_rule_poly)};
+        ASSERT_EQ(MomentRule::get_difficulty(re_rule_poly),
+                  MomentRule::PolynomialDifficulty::NonorientableRule);
+        MomentRule re_rule{factory, std::move(re_rule_poly)};
         auto re_split = re_rule.split();
         EXPECT_FALSE(re_split.has_value());
 
@@ -328,9 +328,9 @@ namespace Moment::Tests {
         auto im_rule_poly = factory({Monomial{comp_e, std::complex{0.0, -0.5}},
                                      Monomial{comp_e, std::complex{0.0, 0.5}, true},
                                      Monomial{id, -3.0}});  // Im(E) - 3 = 0; -> E = Re(E) + 3i
-        ASSERT_EQ(MomentSubstitutionRule::get_difficulty(im_rule_poly),
-                  MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule);
-        MomentSubstitutionRule im_rule{factory, std::move(im_rule_poly)};
+        ASSERT_EQ(MomentRule::get_difficulty(im_rule_poly),
+                  MomentRule::PolynomialDifficulty::NonorientableRule);
+        MomentRule im_rule{factory, std::move(im_rule_poly)};
         auto im_split = im_rule.split();
         EXPECT_FALSE(im_split.has_value());
         expect_approximately_equal(im_rule.RHS(),

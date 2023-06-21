@@ -7,7 +7,7 @@
 
 #include "moment_rule_superset.h"
 
-#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/moment_rulebook.h"
 
 #include "storage_manager.h"
 #include "utilities/read_as_scalar.h"
@@ -54,13 +54,13 @@ namespace Moment::mex::functions  {
         std::shared_lock lock = matrixSystem.get_read_lock();
 
         // Get two referred-to rulebooks
-        const auto& rulebook_A = [&]() -> const MomentSubstitutionRulebook& {
+        const auto& rulebook_A = [&]() -> const MomentRulebook& {
             try { return matrixSystem.rulebook(input.ruleset_A_index); }
             catch (const Moment::errors::missing_component& mce) {
                 throw_error(this->matlabEngine, errors::bad_param, "Rulebook A not found.");
             }
         }();
-        const auto& rulebook_B = [&]() -> const MomentSubstitutionRulebook& {
+        const auto& rulebook_B = [&]() -> const MomentRulebook& {
             try { return matrixSystem.rulebook(input.ruleset_B_index); }
             catch (const Moment::errors::missing_component& mce) {
                 throw_error(this->matlabEngine, errors::bad_param, "Rulebook B not found.");
@@ -70,21 +70,21 @@ namespace Moment::mex::functions  {
         // Now, attempt to reduce every polynomial in rulebook_B
         const auto [result, in_A_not_B, in_B_not_A] = rulebook_A.compare_rulebooks(rulebook_B);
 
-        const std::string str_result = [&](MomentSubstitutionRulebook::RulebookComparisonResult the_result) -> std::string {
+        const std::string str_result = [&](MomentRulebook::RulebookComparisonResult the_result) -> std::string {
             std::stringstream makeRS;
 
             makeRS << rulebook_A.name();
             switch (the_result) {
-                case MomentSubstitutionRulebook::RulebookComparisonResult::AEqualsB:
+                case MomentRulebook::RulebookComparisonResult::AEqualsB:
                     makeRS << " == ";
                     break;
-                case MomentSubstitutionRulebook::RulebookComparisonResult::AContainsB:
+                case MomentRulebook::RulebookComparisonResult::AContainsB:
                     makeRS << " > ";
                     break;
-                case MomentSubstitutionRulebook::RulebookComparisonResult::BContainsA:
+                case MomentRulebook::RulebookComparisonResult::BContainsA:
                     makeRS << " < ";
                     break;
-                case MomentSubstitutionRulebook::RulebookComparisonResult::Disjoint:
+                case MomentRulebook::RulebookComparisonResult::Disjoint:
                     makeRS << " != ";
                     break;
                 default:

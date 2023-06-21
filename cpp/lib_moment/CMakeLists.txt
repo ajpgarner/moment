@@ -4,6 +4,7 @@ add_library(lib_moment
         hashed_sequence.cpp
         matrix_system.cpp
         dictionary/dictionary_map.cpp
+        dictionary/operator_sequence.cpp
         dictionary/operator_sequence_generator.cpp
         dictionary/dictionary.cpp
         matrix/matrix.cpp
@@ -20,7 +21,6 @@ add_library(lib_moment
         scenarios/explicit_symbols.cpp
         scenarios/implicit_outcome_iterator.cpp
         scenarios/implicit_symbols.cpp
-        dictionary/operator_sequence.cpp
         scenarios/outcome_index_iterator.cpp
         scenarios/algebraic/algebraic_context.cpp
         scenarios/algebraic/algebraic_precontext.cpp
@@ -62,8 +62,9 @@ add_library(lib_moment
         scenarios/symmetrized/representation.cpp
         scenarios/symmetrized/representation_mapper.cpp
         scenarios/symmetrized/symmetrized_matrix_system.cpp
-        symbolic/moment_substitution_rule.cpp
-        symbolic/moment_substitution_rulebook.cpp
+        symbolic/moment_rule.cpp
+        symbolic/moment_rulebook.cpp
+        symbolic/moment_rulebook_to_basis.cpp
         symbolic/monomial.cpp
         symbolic/monomial_comparator_by_hash.cpp
         symbolic/polynomial.cpp

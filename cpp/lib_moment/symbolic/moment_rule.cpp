@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 
-#include "moment_substitution_rule.h"
+#include "moment_rule.h"
 
 #include "polynomial_factory.h"
 #include "symbol_table.h"
@@ -68,9 +68,9 @@ namespace Moment {
         }
     }
 
-    MomentSubstitutionRule::MomentSubstitutionRule(const PolynomialFactory& factory,
-                                                   symbol_name_t lhs, std::complex<double> constraint_direction,
-                                                   Polynomial&& replacement)
+    MomentRule::MomentRule(const PolynomialFactory& factory,
+                           symbol_name_t lhs, std::complex<double> constraint_direction,
+                           Polynomial&& replacement)
        : lhs{lhs}, rhs{std::move(replacement)}, partial{true}, lhs_direction{constraint_direction} {
         assert(rhs.is_hermitian(factory.symbols, factory.zero_tolerance));
         assert(rhs.last_id() < lhs);
@@ -86,20 +86,20 @@ namespace Moment {
     }
 
 
-    MomentSubstitutionRule::MomentSubstitutionRule(const PolynomialFactory& factory, Polynomial &&rule)
+    MomentRule::MomentRule(const PolynomialFactory& factory, Polynomial &&rule)
             : lhs{rule.last_id()}, rhs{std::move(rule)} {
-        auto difficulty = MomentSubstitutionRule::get_difficulty(rhs, factory.zero_tolerance);
+        auto difficulty = MomentRule::get_difficulty(rhs, factory.zero_tolerance);
         this->set_up_rule(factory, difficulty);
     }
 
-    MomentSubstitutionRule::MomentSubstitutionRule(const PolynomialFactory& factory,
-                                                   Polynomial &&rule,
-                                                   const PolynomialDifficulty difficulty)
+    MomentRule::MomentRule(const PolynomialFactory& factory,
+                           Polynomial &&rule,
+                           const PolynomialDifficulty difficulty)
             : lhs{rule.last_id()}, rhs{std::move(rule)} {
         this->set_up_rule(factory, difficulty);
     }
 
-    void MomentSubstitutionRule::set_up_rule(const PolynomialFactory& factory, PolynomialDifficulty difficulty) {
+    void MomentRule::set_up_rule(const PolynomialFactory& factory, PolynomialDifficulty difficulty) {
         switch(difficulty) {
             case PolynomialDifficulty::Trivial:
                 rhs.clear();
@@ -114,7 +114,7 @@ namespace Moment {
                 this->split_regular_rule(factory);
                 break;
             case PolynomialDifficulty::NeedsReorienting:
-                this->rhs = MomentSubstitutionRule::reorient_polynomial(factory, std::move(this->rhs));
+                this->rhs = MomentRule::reorient_polynomial(factory, std::move(this->rhs));
                 pop_back_and_normalize(factory, this->rhs);
                 this->split_regular_rule(factory);
                 break;
@@ -124,13 +124,13 @@ namespace Moment {
             case PolynomialDifficulty::Unknown:
             default:
                 throw std::runtime_error{
-                    "Cannot initialize a MomentSubstitutionRule without first testing polynomial."
+                    "Cannot initialize a MomentRule without first testing polynomial."
                 };
         }
     }
 
-    MomentSubstitutionRule::PolynomialDifficulty
-    MomentSubstitutionRule::get_difficulty(const Polynomial &poly, const double tolerance) noexcept {
+    MomentRule::PolynomialDifficulty
+    MomentRule::get_difficulty(const Polynomial &poly, const double tolerance) noexcept {
         // Is rule of form 0 == 0 ?
         if (poly.empty()) {
             return PolynomialDifficulty::Trivial;
@@ -164,7 +164,7 @@ namespace Moment {
 
 
 
-    Polynomial MomentSubstitutionRule::reorient_polynomial(const PolynomialFactory& factory, Polynomial rule) {
+    Polynomial MomentRule::reorient_polynomial(const PolynomialFactory& factory, Polynomial rule) {
         auto conjugate_rule = rule.conjugate(factory.symbols);
 
         [[maybe_unused]] auto fwd_leading_id = pop_back_and_normalize(factory, rule);
@@ -175,7 +175,7 @@ namespace Moment {
         return rule;
     }
 
-    void MomentSubstitutionRule::resolve_nonorientable_rule(const PolynomialFactory &factory) {
+    void MomentRule::resolve_nonorientable_rule(const PolynomialFactory &factory) {
         // Essentially, we need to identify the constrained direction e^id, where e^id is in the upper half-plane.
         // Thus, we  take X and X* to the LHS and rotate such that the LHS is: Kd(X) := 0.5 e^-id X + 0.5 e^id X*.
         // As Kd(X) is real, we take only the real part of (rotated) RHS, and split off the imaginary remainder.
@@ -241,7 +241,7 @@ namespace Moment {
     }
 
 
-    void MomentSubstitutionRule::merge_partial(const PolynomialFactory& factory, MomentSubstitutionRule&& other) {
+    void MomentRule::merge_partial(const PolynomialFactory& factory, MomentRule&& other) {
         // Assert compatibility
         assert(this->partial);
         assert(other.partial);
@@ -263,7 +263,7 @@ namespace Moment {
         this->lhs_direction = 0.0;
     }
 
-    std::optional<Polynomial> MomentSubstitutionRule::split() {
+    std::optional<Polynomial> MomentRule::split() {
         if (!this->split_polynomial.has_value()) {
             return std::nullopt;
         }
@@ -274,7 +274,7 @@ namespace Moment {
         return output;
     }
 
-    void MomentSubstitutionRule::split_regular_rule(const PolynomialFactory &factory) {
+    void MomentRule::split_regular_rule(const PolynomialFactory &factory) {
 
         // Do nothing for trivial (or contradictory!) rules.
         if (this->lhs <= 1) {
@@ -324,7 +324,7 @@ namespace Moment {
     }
 
 
-    Polynomial MomentSubstitutionRule::as_polynomial(const PolynomialFactory& factory) const {
+    Polynomial MomentRule::as_polynomial(const PolynomialFactory& factory) const {
         if (this->is_trivial()) {
             return Polynomial::Zero();
         }
@@ -335,14 +335,14 @@ namespace Moment {
         return as_poly;
     }
 
-    bool MomentSubstitutionRule::matches(const Polynomial &combo) const noexcept {
+    bool MomentRule::matches(const Polynomial &combo) const noexcept {
         return std::any_of(combo.begin(), combo.end(), [this](const Monomial& expr) {
             return expr.id == this->lhs;
         });
     }
 
     [[nodiscard]] std::pair<size_t, Polynomial::storage_t::const_iterator>
-    MomentSubstitutionRule::match_info(const Polynomial &combo) const noexcept {
+    MomentRule::match_info(const Polynomial &combo) const noexcept {
         // Look for match
         auto first_match = std::find_if(combo.begin(), combo.end(), [this](const Monomial& rhsExpr) {
             return rhsExpr.id == this->lhs;
@@ -367,7 +367,7 @@ namespace Moment {
         return {1, first_match};
     }
 
-    Polynomial MomentSubstitutionRule::reduce(const PolynomialFactory& factory, const Polynomial &combo) const {
+    Polynomial MomentRule::reduce(const PolynomialFactory& factory, const Polynomial &combo) const {
         auto [matches, hint] = this->match_info(combo);
 
         // No match, copy output without transformation
@@ -380,7 +380,7 @@ namespace Moment {
         return this->reduce_with_hint(factory, combo, hint, (matches == 2));
     }
 
-    Polynomial MomentSubstitutionRule::reduce(const PolynomialFactory &factory, const Monomial &expr) const {
+    Polynomial MomentRule::reduce(const PolynomialFactory &factory, const Monomial &expr) const {
         // No match, no substitution.
         if (expr.id != this->lhs) {
             return Polynomial{expr};
@@ -394,12 +394,12 @@ namespace Moment {
         return factory(std::move(output_sequence));
     }
 
-    Monomial MomentSubstitutionRule::reduce_monomial(const SymbolTable& table,
-                                                     const Monomial &expr) const {
+    Monomial MomentRule::reduce_monomial(const SymbolTable& table,
+                                         const Monomial &expr) const {
         if constexpr (debug_mode) {
             if (!this->rhs.is_monomial()) {
                 throw std::logic_error{
-                        "MomentSubstitutionRule::reduce_monomial cannot be called on non-monomial rule."};
+                        "MomentRule::reduce_monomial cannot be called on non-monomial rule."};
             }
         }
 
@@ -422,10 +422,10 @@ namespace Moment {
         return output;
     }
 
-    Polynomial MomentSubstitutionRule::reduce_with_hint(const PolynomialFactory& factory,
-                                                        const Polynomial &combo,
-                                                        Polynomial::storage_t::const_iterator inject_iter,
-                                                        const bool twice) const {
+    Polynomial MomentRule::reduce_with_hint(const PolynomialFactory& factory,
+                                            const Polynomial &combo,
+                                            Polynomial::storage_t::const_iterator inject_iter,
+                                            const bool twice) const {
         // Hint must be good:
         assert(inject_iter != combo.end());
         assert(inject_iter + (twice ? 1 : 0) != combo.end());

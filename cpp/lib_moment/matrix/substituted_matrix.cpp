@@ -24,7 +24,7 @@ namespace Moment {
         return ss.str();
     }
 
-    MonomialSubstitutedMatrix::MonomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
+    MonomialSubstitutedMatrix::MonomialSubstitutedMatrix(SymbolTable& symbols, const MomentRulebook& msrb,
                                                          const MonomialMatrix& the_source)
          : MonomialMatrix{the_source.context, assert_symbols(symbols, the_source), msrb.factory.zero_tolerance,
                           MonomialSubstitutedMatrix::reduce(msrb, the_source.SymbolMatrix()),
@@ -35,7 +35,7 @@ namespace Moment {
     }
 
     std::unique_ptr<SquareMatrix<Monomial>>
-    MonomialSubstitutedMatrix::reduce( const MomentSubstitutionRulebook& msrb,
+    MonomialSubstitutedMatrix::reduce( const MomentRulebook& msrb,
                                        const SquareMatrix<Monomial>& matrix) {
         SquareMatrix<Monomial>::StorageType data;
         data.reserve(matrix.dimension * matrix.dimension);
@@ -46,7 +46,7 @@ namespace Moment {
     }
 
 
-    PolynomialSubstitutedMatrix::PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
+    PolynomialSubstitutedMatrix::PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentRulebook& msrb,
                                                              const MonomialMatrix& the_source)
          : PolynomialMatrix{context, assert_symbols(symbols, the_source), msrb.factory.zero_tolerance,
                             PolynomialSubstitutedMatrix::reduce(msrb, the_source.SymbolMatrix())},
@@ -54,7 +54,7 @@ namespace Moment {
         this->description = this->make_name();
     }
 
-    PolynomialSubstitutedMatrix::PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentSubstitutionRulebook& msrb,
+    PolynomialSubstitutedMatrix::PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentRulebook& msrb,
                                                              const PolynomialMatrix& the_source)
          : PolynomialMatrix{context, assert_symbols(symbols, the_source), msrb.factory.zero_tolerance,
                             PolynomialSubstitutedMatrix::reduce(msrb, the_source.SymbolMatrix())},
@@ -63,7 +63,7 @@ namespace Moment {
     }
 
     std::unique_ptr<SquareMatrix<Polynomial>>
-    PolynomialSubstitutedMatrix::reduce( const MomentSubstitutionRulebook& msrb,
+    PolynomialSubstitutedMatrix::reduce( const MomentRulebook& msrb,
                                          const SquareMatrix<Polynomial>& matrix) {
         SquareMatrix<Polynomial>::StorageType data;
         data.reserve(matrix.dimension * matrix.dimension);
@@ -74,7 +74,7 @@ namespace Moment {
     }
 
     std::unique_ptr<SquareMatrix<Polynomial>>
-    PolynomialSubstitutedMatrix::reduce( const MomentSubstitutionRulebook& msrb,
+    PolynomialSubstitutedMatrix::reduce( const MomentRulebook& msrb,
                                          const SquareMatrix<Monomial>& matrix) {
         SquareMatrix<Polynomial>::StorageType data;
         data.reserve(matrix.dimension * matrix.dimension);

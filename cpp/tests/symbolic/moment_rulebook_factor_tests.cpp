@@ -1,5 +1,5 @@
 /**
- * moment_substitution_rulebook_factor_tests.cpp
+ * moment_rulebook_factor_tests.cpp
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -14,14 +14,14 @@
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
-#include "symbolic/moment_substitution_rule.h"
-#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/moment_rule.h"
+#include "symbolic/moment_rulebook.h"
 
 #include "symbolic_matrix_helpers.h"
 
 namespace Moment::Tests {
 
-    class Symbolic_MomentSubstitutionRulebookFactor : public ::testing::Test {
+    class Symbolic_MomentRulebook_Factor : public ::testing::Test {
     private:
         std::unique_ptr<Inflation::InflationMatrixSystem> ims_ptr;
         std::unique_ptr<PolynomialFactory> factory_ptr;
@@ -98,9 +98,9 @@ namespace Moment::Tests {
     };
 
 
-    TEST_F(Symbolic_MomentSubstitutionRulebookFactor, Sub_AtoScalar) {
+    TEST_F(Symbolic_MomentRulebook_Factor, Sub_AtoScalar) {
         // Prepare trivial rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         book.inject(this->id_a, Polynomial::Scalar(0.25)); // <A> = 0.25
         EXPECT_EQ(book.size(), 1);
 
@@ -136,9 +136,9 @@ namespace Moment::Tests {
 
     }
 
-    TEST_F(Symbolic_MomentSubstitutionRulebookFactor, Sub_BtoZero) {
+    TEST_F(Symbolic_MomentRulebook_Factor, Sub_BtoZero) {
         // Prepare trivial rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         book.inject(this->id_b, Polynomial()); // <A> = 0.25
         EXPECT_EQ(book.size(), 1);
 
@@ -174,9 +174,9 @@ namespace Moment::Tests {
     }
 
 
-    TEST_F(Symbolic_MomentSubstitutionRulebookFactor, Sub_AandBtoScalar) {
+    TEST_F(Symbolic_MomentRulebook_Factor, Sub_AandBtoScalar) {
         // Prepare trivial rulebook
-        MomentSubstitutionRulebook book{this->get_system()};
+        MomentRulebook book{this->get_system()};
         book.inject(this->id_a, Polynomial::Scalar(0.3)); // <A> = 0.3
         book.inject(this->id_b, Polynomial::Scalar(0.4)); // <B> = 0.4
         EXPECT_EQ(book.size(), 2);

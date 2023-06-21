@@ -10,7 +10,7 @@
 #include "matrix/operator_matrix/moment_matrix.h"
 #include "matrix/substituted_matrix.h"
 
-#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/moment_rulebook.h"
 #include "symbolic/polynomial.h"
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
@@ -275,8 +275,8 @@ namespace Moment {
         return new_symbols;
     }
 
-    std::pair<size_t, MomentSubstitutionRulebook&>
-    MatrixSystem::add_rulebook(std::unique_ptr<MomentSubstitutionRulebook> input_rulebook_ptr) {
+    std::pair<size_t, MomentRulebook&>
+    MatrixSystem::add_rulebook(std::unique_ptr<MomentRulebook> input_rulebook_ptr) {
         auto write_lock = this->get_write_lock();
         assert(&input_rulebook_ptr->symbols == this->symbol_table.get());
 
@@ -300,8 +300,8 @@ namespace Moment {
         return {rulebook_index, rulebook};
     }
 
-    std::pair<size_t, MomentSubstitutionRulebook &>
-    MatrixSystem::merge_rulebooks(const size_t existing_rulebook_id, MomentSubstitutionRulebook&& input_rulebook) {
+    std::pair<size_t, MomentRulebook &>
+    MatrixSystem::merge_rulebooks(const size_t existing_rulebook_id, MomentRulebook&& input_rulebook) {
         auto write_lock = this->get_write_lock();
 
         auto& existing_rulebook = this->rulebook(existing_rulebook_id);
@@ -317,7 +317,7 @@ namespace Moment {
         return {existing_rulebook_id, existing_rulebook};
     }
 
-    MomentSubstitutionRulebook& MatrixSystem::rulebook(size_t index) {
+    MomentRulebook& MatrixSystem::rulebook(size_t index) {
         if (index >= this->rulebooks.size()) {
             throw errors::missing_component("Rulebook index out of range.");
         }
@@ -327,7 +327,7 @@ namespace Moment {
         return *this->rulebooks[index];
     }
 
-    const MomentSubstitutionRulebook& MatrixSystem::rulebook(size_t index) const {
+    const MomentRulebook& MatrixSystem::rulebook(size_t index) const {
         if (index >= this->rulebooks.size()) {
             throw errors::missing_component("Rulebook index out of range.");
         }

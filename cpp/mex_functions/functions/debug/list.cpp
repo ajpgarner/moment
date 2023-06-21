@@ -10,7 +10,7 @@
 
 #include "matrix/monomial_matrix.h"
 
-#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/moment_rulebook.h"
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 

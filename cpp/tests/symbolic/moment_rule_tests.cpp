@@ -1,5 +1,5 @@
 /**
- * moment_substitution_rule_tests.cpp
+ * moment_rule_tests.cpp
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -12,7 +12,7 @@
 #include "scenarios/algebraic/algebraic_matrix_system.h"
 
 #include "symbolic/symbol_table.h"
-#include "symbolic/moment_substitution_rule.h"
+#include "symbolic/moment_rule.h"
 #include "symbolic/monomial_comparator_by_hash.h"
 
 #include "moment_rule_helpers.h"
@@ -23,7 +23,7 @@
 namespace Moment::Tests {
 
 
-    TEST(Symbolic_MomentSubstitutionRule, DirectConstruction_PartialRule) {
+    TEST(Symbolic_MomentRule, DirectConstruction_PartialRule) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
@@ -39,7 +39,7 @@ namespace Moment::Tests {
             labelSS << "Theta = " << theta;
             std::string label{labelSS.str()};
 
-            MomentSubstitutionRule msr{factory, 3, direction, Polynomial(Monomial{2, 1.0})};
+            MomentRule msr{factory, 3, direction, Polynomial(Monomial{2, 1.0})};
             EXPECT_TRUE(msr.is_partial()) << label;
             EXPECT_TRUE(approximately_equal(msr.partial_direction(), direction))
                                 << label
@@ -58,15 +58,15 @@ namespace Moment::Tests {
                                                    Monomial{2, direction}})};
             expect_matching_polynomials(label, poly_rep, expected_poly_rep, factory.zero_tolerance);
 
-            EXPECT_EQ(MomentSubstitutionRule::get_difficulty(poly_rep, factory.zero_tolerance),
-                      MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule) << label;
+            EXPECT_EQ(MomentRule::get_difficulty(poly_rep, factory.zero_tolerance),
+                      MomentRule::PolynomialDifficulty::NonorientableRule) << label;
 
-            MomentSubstitutionRule re_rule{factory, std::move(poly_rep)};
+            MomentRule re_rule{factory, std::move(poly_rep)};
             expect_matching_rule(label, re_rule, msr, factory.zero_tolerance);
         }
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_Trivial) {
+    TEST(Symbolic_MomentRule, FromPolynomial_Trivial) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
@@ -74,15 +74,15 @@ namespace Moment::Tests {
         ByIDPolynomialFactory factory{table};
 
         auto zero = Polynomial::Zero();
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(zero), MomentSubstitutionRule::PolynomialDifficulty::Trivial);
-        MomentSubstitutionRule msr{factory, Polynomial{zero}};
+        EXPECT_EQ(MomentRule::get_difficulty(zero), MomentRule::PolynomialDifficulty::Trivial);
+        MomentRule msr{factory, Polynomial{zero}};
 
         EXPECT_EQ(msr.LHS(), 0);
         EXPECT_EQ(msr.RHS(), Polynomial());
         EXPECT_TRUE(msr.is_trivial());
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_ThreeToZero) {
+    TEST(Symbolic_MomentRule, FromPolynomial_ThreeToZero) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
@@ -90,15 +90,15 @@ namespace Moment::Tests {
         ByIDPolynomialFactory factory{table};
 
         Polynomial combo{Monomial{3, 1.0}}; // #2 + 0.5 = 0
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo), MomentSubstitutionRule::PolynomialDifficulty::Simple);
-        MomentSubstitutionRule msr{factory, std::move(combo)};
+        EXPECT_EQ(MomentRule::get_difficulty(combo), MomentRule::PolynomialDifficulty::Simple);
+        MomentRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 3);
         EXPECT_EQ(msr.RHS(), Polynomial());
         EXPECT_FALSE(msr.is_trivial());
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_TwoToScalar) {
+    TEST(Symbolic_MomentRule, FromPolynomial_TwoToScalar) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
@@ -106,15 +106,15 @@ namespace Moment::Tests {
         ByIDPolynomialFactory factory{table};
 
         Polynomial combo = factory({Monomial{2, 1.0}, Monomial{1, -0.5}}); // #2 + 0.5 = 0
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo), MomentSubstitutionRule::PolynomialDifficulty::Simple);
-        MomentSubstitutionRule msr{factory, std::move(combo)};
+        EXPECT_EQ(MomentRule::get_difficulty(combo), MomentRule::PolynomialDifficulty::Simple);
+        MomentRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 2);
         EXPECT_EQ(msr.RHS(), Polynomial::Scalar(0.5));
         EXPECT_FALSE(msr.is_trivial());
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_ThreeToTwoPlusOne) {
+    TEST(Symbolic_MomentRule, FromPolynomial_ThreeToTwoPlusOne) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
@@ -123,15 +123,15 @@ namespace Moment::Tests {
 
         Polynomial combo = factory({Monomial{3, -1.0}, Monomial{2, 1.0},
                                     Monomial{1, 1.0}}); // -#3 + #2 + 1 = 0
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo), MomentSubstitutionRule::PolynomialDifficulty::Simple);
-        MomentSubstitutionRule msr{factory, std::move(combo)};
+        EXPECT_EQ(MomentRule::get_difficulty(combo), MomentRule::PolynomialDifficulty::Simple);
+        MomentRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 3);
         EXPECT_EQ(msr.RHS(), Polynomial({Monomial{2, 1.0}, Monomial{1, 1.0}}));
         EXPECT_FALSE(msr.is_trivial());
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_HalfThreeStarToTwo) {
+    TEST(Symbolic_MomentRule, FromPolynomial_HalfThreeStarToTwo) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
@@ -139,15 +139,15 @@ namespace Moment::Tests {
         ByIDPolynomialFactory factory{table};
 
         Polynomial combo{Monomial{3, 0.5, true}, Monomial{2, 1.0}}; // 0.5#3* + #2 = 0
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo), MomentSubstitutionRule::PolynomialDifficulty::Simple);
-        MomentSubstitutionRule msr{factory, std::move(combo)};
+        EXPECT_EQ(MomentRule::get_difficulty(combo), MomentRule::PolynomialDifficulty::Simple);
+        MomentRule msr{factory, std::move(combo)};
 
         EXPECT_EQ(msr.LHS(), 3);
         EXPECT_EQ(msr.RHS(), Polynomial(Monomial{2, -2.0, true}));
         EXPECT_FALSE(msr.is_trivial());
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_HorriblyComplex) {
+    TEST(Symbolic_MomentRule, FromPolynomial_HorriblyComplex) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
@@ -156,8 +156,8 @@ namespace Moment::Tests {
 
         // (0.5 + i) #3* + (1-3i) #2 = 0
         Polynomial combo{Monomial{3, std::complex{0.5, 1.0}, true}, Monomial{2, std::complex{1.0, -3.0}}};
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo), MomentSubstitutionRule::PolynomialDifficulty::Simple);
-        MomentSubstitutionRule msr{factory, std::move(combo)};
+        EXPECT_EQ(MomentRule::get_difficulty(combo), MomentRule::PolynomialDifficulty::Simple);
+        MomentRule msr{factory, std::move(combo)};
 
         std::complex<double> expected_prefactor = std::conj(-std::complex{1.0, -3.0} / std::complex{0.5, 1.0}); // 2-2i
         EXPECT_EQ(msr.LHS(), 3);
@@ -166,7 +166,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(msr.is_trivial());
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_ErrorBadScalar) {
+    TEST(Symbolic_MomentRule, FromPolynomial_ErrorBadScalar) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
@@ -174,13 +174,13 @@ namespace Moment::Tests {
         ByIDPolynomialFactory factory{table};
 
         Polynomial combo{Monomial{1, 2.5}}; // #2 + 0.5 = 0
-        EXPECT_EQ(MomentSubstitutionRule::get_difficulty(combo),
-                  MomentSubstitutionRule::PolynomialDifficulty::Contradiction);
-        EXPECT_THROW([[maybe_unused]] auto msr = MomentSubstitutionRule(factory, std::move(combo)),
+        EXPECT_EQ(MomentRule::get_difficulty(combo),
+                  MomentRule::PolynomialDifficulty::Contradiction);
+        EXPECT_THROW([[maybe_unused]] auto msr = MomentRule(factory, std::move(combo)),
                      errors::invalid_moment_rule);
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_HardToOrient) {
+    TEST(Symbolic_MomentRule, FromPolynomial_HardToOrient) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
@@ -194,10 +194,10 @@ namespace Moment::Tests {
             // Analytic solution: <Z> -> 1/(k'k-1) <Y> - k/(k'k-1) <Y'>
             const Polynomial trickyPoly = factory(
                     {Monomial{3, 1.0, false}, Monomial{3, factor_k, true}, Monomial{2, 1.0}});
-            EXPECT_EQ(MomentSubstitutionRule::get_difficulty(trickyPoly),
-                      MomentSubstitutionRule::PolynomialDifficulty::NeedsReorienting) << " k = " << factor_k;
+            EXPECT_EQ(MomentRule::get_difficulty(trickyPoly),
+                      MomentRule::PolynomialDifficulty::NeedsReorienting) << " k = " << factor_k;
 
-            MomentSubstitutionRule trickyRule(factory, Polynomial{trickyPoly});
+            MomentRule trickyRule(factory, Polynomial{trickyPoly});
             const std::complex<double> expected_y_coef =
                     std::complex<double>{1.0, 0.0} / (factor_k * std::conj(factor_k) - std::complex{1.0,0.0});
             const std::complex<double> expected_ystar_coef = -factor_k * expected_y_coef;
@@ -212,7 +212,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Symbolic_MomentSubstitutionRule, FromPolynomial_ImpossibleToOrient) {
+    TEST(Symbolic_MomentRule, FromPolynomial_ImpossibleToOrient) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
@@ -227,10 +227,10 @@ namespace Moment::Tests {
 
             const Polynomial impossiblePoly = factory(
                     {Monomial{3, factor_X, false}, Monomial{3, factor_Xstar, true}, Monomial{2, 1.0}});
-            EXPECT_EQ(MomentSubstitutionRule::get_difficulty(impossiblePoly),
-                      MomentSubstitutionRule::PolynomialDifficulty::NonorientableRule)
+            EXPECT_EQ(MomentRule::get_difficulty(impossiblePoly),
+                      MomentRule::PolynomialDifficulty::NonorientableRule)
                       << "theta = " << index << "*PI/6)";
-            MomentSubstitutionRule impossible_rule(factory, Polynomial{impossiblePoly});
+            MomentRule impossible_rule(factory, Polynomial{impossiblePoly});
 
             EXPECT_TRUE(impossible_rule.is_partial());
             EXPECT_TRUE(approximately_equal(impossible_rule.partial_direction(), factor_Xstar))
@@ -239,14 +239,14 @@ namespace Moment::Tests {
         }
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, Reduce_TwoToZero) {
+    TEST(Symbolic_MomentRule, Reduce_TwoToZero) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{2, Polynomial()}; // #2 -> 0.
+        MomentRule msr{2, Polynomial()}; // #2 -> 0.
         ASSERT_EQ(msr.LHS(), 2);
         ASSERT_EQ(msr.RHS(), Polynomial());
 
@@ -270,14 +270,14 @@ namespace Moment::Tests {
         EXPECT_EQ(msr.reduce(factory, noMatch), noMatch);
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, Reduce_TwoToScalar) {
+    TEST(Symbolic_MomentRule, Reduce_TwoToScalar) {
         // Fake context/table with 4 symbols
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{2, Polynomial::Scalar(0.5)}; // #2 -> 0.5#1.
+        MomentRule msr{2, Polynomial::Scalar(0.5)}; // #2 -> 0.5#1.
         ASSERT_EQ(msr.LHS(), 2);
         ASSERT_EQ(msr.RHS(), Polynomial::Scalar(0.5));
 
@@ -310,14 +310,14 @@ namespace Moment::Tests {
         EXPECT_EQ(msr.reduce(factory, noMatch), noMatch);
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, Reduce_ThreeToTwo) {
+    TEST(Symbolic_MomentRule, Reduce_ThreeToTwo) {
         // Fake context/table with 4 symbols
         Context contxt{2};
         SymbolTable table{contxt};
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{3, Polynomial(Monomial{2, 1.0})}; // #3 -> #2
+        MomentRule msr{3, Polynomial(Monomial{2, 1.0})}; // #3 -> #2
         ASSERT_EQ(msr.LHS(), 3);
         ASSERT_EQ(msr.RHS(), Polynomial(Monomial{2, 1.0}));
 
@@ -353,14 +353,14 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, Reduce_ThreeToHalfTwoStar) {
+    TEST(Symbolic_MomentRule, Reduce_ThreeToHalfTwoStar) {
         // Fake context/table with 4 symbols
         Context contxt{2};
         SymbolTable table{contxt};
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{3, Polynomial(Monomial{2, 0.5, true})}; // #3 -> 0.5#2*.
+        MomentRule msr{3, Polynomial(Monomial{2, 0.5, true})}; // #3 -> 0.5#2*.
         ASSERT_EQ(msr.LHS(), 3);
         ASSERT_EQ(msr.RHS(), Polynomial(Monomial{2, 0.5, true}));
 
@@ -391,7 +391,7 @@ namespace Moment::Tests {
         EXPECT_EQ(msr.reduce(factory, noMatch), noMatch);
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, Reduce_ThreeToTwoPlusOne) {
+    TEST(Symbolic_MomentRule, Reduce_ThreeToTwoPlusOne) {
         // Fake context/table with 4 symbols
         Context contxt{2};
         SymbolTable table{contxt};
@@ -399,8 +399,8 @@ namespace Moment::Tests {
         ByIDPolynomialFactory factory{table};
 
 
-        MomentSubstitutionRule msr{3,
-                                   Polynomial({Monomial{2, 1.0}, Monomial{1, 1.0}})}; // #3 -> #2 + 1
+        MomentRule msr{3,
+                       Polynomial({Monomial{2, 1.0}, Monomial{1, 1.0}})}; // #3 -> #2 + 1
         ASSERT_EQ(msr.LHS(), 3);
         ASSERT_EQ(msr.RHS(), Polynomial({Monomial{2, 1.0}, Monomial{1, 1.0}}));
 
@@ -435,7 +435,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Symbolic_MomentSubstitutionRule, Reduce_RealToImaginary) {
+    TEST(Symbolic_MomentRule, Reduce_RealToImaginary) {
         // Fake context/table with 3 symbols
         Context context{2};
         SymbolTable table{context};
@@ -446,7 +446,7 @@ namespace Moment::Tests {
         ASSERT_EQ(factory({Monomial{2, 1.0}}), factory({Monomial{2, 1.0, true}}));
         ASSERT_NE(factory({Monomial{3, 1.0}}), factory({Monomial{3, 1.0, true}}));
 
-        MomentSubstitutionRule msr{3, factory({Monomial{2, std::complex{0.0, 1.0}}, Monomial{1, 1.0}})}; // #3 -> i #2 + 1
+        MomentRule msr{3, factory({Monomial{2, std::complex{0.0, 1.0}}, Monomial{1, 1.0}})}; // #3 -> i #2 + 1
 
         Polynomial input_three_three_star = factory({Monomial{3, 1.0}, Monomial{3, 1.0, true}});
         EXPECT_EQ(msr.reduce(factory, input_three_three_star), Polynomial::Scalar(2.0));
@@ -457,7 +457,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, Reduce_WithOpOrderFactory) {
+    TEST(Symbolic_MomentRule, Reduce_WithOpOrderFactory) {
         // Fake context/table with 4 non-trivial symbols
         Algebraic::AlgebraicMatrixSystem ams{std::make_unique<Algebraic::AlgebraicContext>(2)};
         const auto &table = ams.Symbols();
@@ -465,7 +465,7 @@ namespace Moment::Tests {
 
         ByHashPolynomialFactory factory{table, 1.0, table};
 
-        MomentSubstitutionRule msr{5, factory({Monomial{2, 0.5}})}; // #5 -> 0.5#2 (<ab> -> <a>).
+        MomentRule msr{5, factory({Monomial{2, 0.5}})}; // #5 -> 0.5#2 (<ab> -> <a>).
         ASSERT_EQ(msr.LHS(), 5);
         ASSERT_EQ(msr.RHS(), factory({Monomial{2, 0.5}}));
 
@@ -500,63 +500,63 @@ namespace Moment::Tests {
         EXPECT_EQ(msr.reduce(factory, noMatch), noMatch);
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, AsPolynomial_Trivial) {
+    TEST(Symbolic_MomentRule, AsPolynomial_Trivial) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{factory, Polynomial::Zero()};
+        MomentRule msr{factory, Polynomial::Zero()};
 
         EXPECT_TRUE(msr.is_trivial());
         EXPECT_EQ(msr.as_polynomial(factory), Polynomial::Zero());
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, AsPolynomial_ThreeToZero) {
+    TEST(Symbolic_MomentRule, AsPolynomial_ThreeToZero) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{factory, factory({Monomial{3, 1.0}})};
+        MomentRule msr{factory, factory({Monomial{3, 1.0}})};
         EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{3, -1.0}}));
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, AsPolynomial_TwoToScalar) {
+    TEST(Symbolic_MomentRule, AsPolynomial_TwoToScalar) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{factory, factory({Monomial{2, 1.0}, Monomial{1, -0.5}})};
+        MomentRule msr{factory, factory({Monomial{2, 1.0}, Monomial{1, -0.5}})};
 
         EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{2, -1.0}, Monomial{1, 0.5}}));
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, AsPolynomial_ThreeToTwoPlusOne) {
+    TEST(Symbolic_MomentRule, AsPolynomial_ThreeToTwoPlusOne) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{factory, factory({Monomial{3, -1.0}, Monomial{2, 1.0}, Monomial{1, 1.0}})};
+        MomentRule msr{factory, factory({Monomial{3, -1.0}, Monomial{2, 1.0}, Monomial{1, 1.0}})};
 
         EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{3, -1.0}, Monomial{2, 1.0}, Monomial{1, 1.0}}));
 
     }
 
-    TEST(Symbolic_MomentSubstitutionRule, AsPolynomial_HalfThreeStarToTwo) {
+    TEST(Symbolic_MomentRule, AsPolynomial_HalfThreeStarToTwo) {
         // Fake context/table with 4 non-trivial symbols
         Context context{2};
         SymbolTable table{context};
         table.create(4, true, true);
         ByIDPolynomialFactory factory{table};
 
-        MomentSubstitutionRule msr{factory, factory({Monomial{3, 0.5, true}, Monomial{2, 1.0}})};
+        MomentRule msr{factory, factory({Monomial{3, 0.5, true}, Monomial{2, 1.0}})};
         EXPECT_EQ(msr.as_polynomial(factory), factory({Monomial{3, -1.0}, Monomial{2, -2.0, true}}));
     }
 

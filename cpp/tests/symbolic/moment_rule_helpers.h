@@ -8,16 +8,16 @@
 
 #include "gtest/gtest.h"
 
-#include "symbolic/moment_substitution_rule.h"
-#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/moment_rule.h"
+#include "symbolic/moment_rulebook.h"
 
 #include <string>
 #include <vector>
 
 namespace Moment::Tests {
 
-    inline void assert_matching_rules(const MomentSubstitutionRulebook &book,
-                               const std::vector<MomentSubstitutionRule> &expected) {
+    inline void assert_matching_rules(const MomentRulebook &book,
+                               const std::vector<MomentRule> &expected) {
         ASSERT_EQ(book.size(), expected.size());
         ASSERT_EQ(book.empty(), expected.empty());
 
@@ -41,8 +41,8 @@ namespace Moment::Tests {
 
 
     inline void expect_matching_rule(const std::string& label,
-                                     const MomentSubstitutionRule& lhs,
-                                     const MomentSubstitutionRule& rhs,
+                                     const MomentRule& lhs,
+                                     const MomentRule& rhs,
                                      double zero_tolerance) {
         EXPECT_EQ(lhs.is_partial(), rhs.is_partial()) << label;
         EXPECT_EQ(lhs.LHS(), rhs.LHS()) << label;

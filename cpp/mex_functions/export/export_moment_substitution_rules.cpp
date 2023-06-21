@@ -7,8 +7,8 @@
 
 #include "export_moment_substitution_rules.h"
 
-#include "symbolic/moment_substitution_rule.h"
-#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/moment_rule.h"
+#include "symbolic/moment_rulebook.h"
 #include "symbolic/polynomial.h"
 #include "symbolic/symbol_table.h"
 
@@ -17,7 +17,7 @@
 
 namespace Moment::mex {
 
-    matlab::data::CellArray MomentSubstitutionRuleExporter::as_symbol_cell(const MomentSubstitutionRulebook &rules) {
+    matlab::data::CellArray MomentSubstitutionRuleExporter::as_symbol_cell(const MomentRulebook &rules) {
         matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({rules.size(), 1});
         auto write_iter = output.begin();
@@ -29,7 +29,7 @@ namespace Moment::mex {
     }
 
     matlab::data::CellArray
-    MomentSubstitutionRuleExporter::as_operator_cell(const Moment::MomentSubstitutionRulebook &rules) {
+    MomentSubstitutionRuleExporter::as_operator_cell(const Moment::MomentRulebook &rules) {
         matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({rules.size(), 1});
         auto write_iter = output.begin();
@@ -41,7 +41,7 @@ namespace Moment::mex {
         return output;
     }
 
-    matlab::data::StringArray MomentSubstitutionRuleExporter::as_string(const MomentSubstitutionRulebook &rules) {
+    matlab::data::StringArray MomentSubstitutionRuleExporter::as_string(const MomentRulebook &rules) {
         matlab::data::ArrayFactory factory;
         auto output = factory.createArray<matlab::data::MATLABString>({rules.size(), 1});
         auto write_iter = output.begin();
@@ -61,7 +61,7 @@ namespace Moment::mex {
 
 
     matlab::data::CellArray MomentSubstitutionRuleExporter::write_rule(matlab::data::ArrayFactory &factory,
-                                                                       const MomentSubstitutionRule &rule) {
+                                                                       const MomentRule &rule) {
         auto output = factory.createCellArray({1, 2});
 
         output[0] = factory.createScalar(static_cast<uint64_t>(rule.LHS()));
@@ -72,7 +72,7 @@ namespace Moment::mex {
 
     matlab::data::MATLABString
     MomentSubstitutionRuleExporter::write_rule_string_as_operator(matlab::data::ArrayFactory &factory,
-                                                                  const MomentSubstitutionRule &rule) {
+                                                                  const MomentRule &rule) {
         std::stringstream ruleSS;
         if (rule.LHS() < this->symbols.size()) {
             const auto& symbolInfo= this->symbols[rule.LHS()];
@@ -97,7 +97,7 @@ namespace Moment::mex {
 
     matlab::data::MATLABString
     MomentSubstitutionRuleExporter::write_rule_string_as_symbol(matlab::data::ArrayFactory &factory,
-                                                                const MomentSubstitutionRule &rule) {
+                                                                const MomentRule &rule) {
         std::stringstream ruleSS;
         ruleSS << "#" << rule.LHS() << "  ->  " << rule.RHS();
         return UTF8toUTF16Convertor{}(ruleSS.str());

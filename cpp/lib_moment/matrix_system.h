@@ -24,7 +24,7 @@ namespace Moment {
     class Context;
     class Dictionary;
     class Matrix;
-    class MomentSubstitutionRulebook;
+    class MomentRulebook;
     class OperatorSequenceGenerator;
     class PolynomialFactory;
     class SymbolTable;
@@ -59,7 +59,7 @@ namespace Moment {
         std::vector<std::unique_ptr<Matrix>> matrices;
 
         /** List of moment substitution rulebooks in the system. */
-        std::vector<std::unique_ptr<MomentSubstitutionRulebook>> rulebooks;
+        std::vector<std::unique_ptr<MomentRulebook>> rulebooks;
 
         /** The index (in this->matrices) of generated moment matrices. */
         std::vector<ptrdiff_t> momentMatrixIndices;
@@ -250,27 +250,27 @@ namespace Moment {
          * Import a list of moment substitution rules
          * Will lock until all read locks have expired - so do NOT first call for a read lock...!
          */
-        std::pair<size_t, MomentSubstitutionRulebook&>
-        add_rulebook(std::unique_ptr<MomentSubstitutionRulebook> rulebook);
+        std::pair<size_t, MomentRulebook&>
+        add_rulebook(std::unique_ptr<MomentRulebook> rulebook);
 
         /**
          * Import a list of moment substitution rules
          * Will lock until all read locks have expired - so do NOT first call for a read lock...!
          */
-        std::pair<size_t, MomentSubstitutionRulebook&>
-        merge_rulebooks(size_t existing_rulebook_id, MomentSubstitutionRulebook&& rulebook);
+        std::pair<size_t, MomentRulebook&>
+        merge_rulebooks(size_t existing_rulebook_id, MomentRulebook&& rulebook);
 
         /**
          * Get a list of moment substitution rules.
          * For thread safety, call for a read lock first.
          */
-        [[nodiscard]] MomentSubstitutionRulebook& rulebook(size_t index);
+        [[nodiscard]] MomentRulebook& rulebook(size_t index);
 
         /**
          * Get a list of moment substitution rules
          * For thread safety, call for a read lock first.
          */
-        [[nodiscard]] const MomentSubstitutionRulebook& rulebook(size_t index) const;
+        [[nodiscard]] const MomentRulebook& rulebook(size_t index) const;
 
         /**
          * Counts number of rulebooks in system
@@ -348,7 +348,7 @@ namespace Moment {
         * @param subbed_matrix The newly created substituted matrix.
         */
         virtual void onNewSubstitutedMatrixCreated(size_t source_index, const class Matrix& source,
-                                                   size_t rulebook_index, const MomentSubstitutionRulebook& rulebook,
+                                                   size_t rulebook_index, const MomentRulebook& rulebook,
                                                    const class Matrix& subbed_matrix) { }
 
         /**
@@ -364,7 +364,7 @@ namespace Moment {
          * @param rulebook The rulebook itself.
          * @param insertion True if new addition, false if a merge.
          */
-        virtual void onRulebookAdded(size_t index, const MomentSubstitutionRulebook& rb, bool insertion) { }
+        virtual void onRulebookAdded(size_t index, const MomentRulebook& rb, bool insertion) { }
 
         /**
          * Get read-write access to symbolic matrix by index. Changes should not be made without a write lock.

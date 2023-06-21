@@ -8,7 +8,7 @@
 #include "apply_moment_rules.h"
 
 #include "matrix_system.h"
-#include "symbolic/moment_substitution_rulebook.h"
+#include "symbolic/moment_rulebook.h"
 #include "symbolic/polynomial_factory.h"
 
 #include "export/export_polynomial.h"
@@ -105,7 +105,7 @@ namespace Moment::mex::functions {
         const auto& symbols = matrixSystem.Symbols();
 
         // Retrieve rules, or throw
-        const auto& rulebook = [&]() -> const MomentSubstitutionRulebook& {
+        const auto& rulebook = [&]() -> const MomentRulebook& {
             try {
                 return matrixSystem.rulebook(input.rulebook_index); // <- throws, if not found.
             } catch (const Moment::errors::missing_component& mce) {
