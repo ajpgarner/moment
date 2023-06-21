@@ -1,5 +1,5 @@
 classdef CreateMomentRulesTest < MTKTestBase
-    %APPLYVALUESTEST Unit tests for apply_values function
+%CREATEMOMENTRULESTEST Unit tests for create_moment_rules mex function
     methods (Test)
         function SubList_Empty(testCase)            
             ref_id = mtk('locality_matrix_system', 2, 2, 2);
