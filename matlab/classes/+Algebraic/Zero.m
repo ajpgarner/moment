@@ -195,5 +195,22 @@ classdef Zero < Abstract.ComplexObject
             val = lhs + (-rhs);            
         end
     end
+    
+        
+    %% Apply substitution rules
+    methods        
+        function val = ApplyRules(obj, rulebook)
+        % APPLYRULES Transform moments of matrix according to rulebook.
+        %
+        % Effectively applies rules to each constituent matrix in turn.
+        % 
+            arguments
+                obj (1,1) Algebraic.Zero
+                rulebook (1,1) MomentRuleBook
+            end
+            
+            val = Algebraic.Zero(obj.Scenario);
+        end
+    end   
 end
 

@@ -225,6 +225,8 @@ methods
         if isa(target, 'OpMatrix.OperatorMatrix')
             val = target.ApplyRules(obj);
         elseif isa(target, 'OpMatrix.CompositeOperatorMatrix')
+            val = target.ApplyRules(obj);            
+        elseif isa(target, 'Algebraic.Zero')
             val = target.ApplyRules(obj);
         elseif isa(target, 'Algebraic.Monomial')
             val = target.ApplyRules(obj);
