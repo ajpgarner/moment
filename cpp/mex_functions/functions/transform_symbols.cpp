@@ -147,7 +147,7 @@ namespace Moment::mex::functions {
             case TransformSymbolsParams::OutputType::Basis: {
                 PolynomialExporter pe{this->matlabEngine, matrixSystem.Symbols(),
                                       matrixSystem.polynomial_factory().zero_tolerance};
-                auto [re_part, im_part] = pe(output_combo);
+                auto [re_part, im_part] = pe.basis(output_combo);
                 if (output.size() >= 1) {
                     output[0] = std::move(re_part);
                 }
@@ -156,7 +156,8 @@ namespace Moment::mex::functions {
                 } else if (!this->quiet) {
                     const matlab::data::SparseArray<double> im_output = im_part;
                     if (im_output.getNumberOfNonZeroElements() > 0) {
-                        print_warning(this->matlabEngine, "Output has imaginary basis parts that have been truncated.");
+                        print_warning(this->matlabEngine,
+                                      "Output has dependence on imaginary terms, which have been truncated.");
                     }
                 }
             }

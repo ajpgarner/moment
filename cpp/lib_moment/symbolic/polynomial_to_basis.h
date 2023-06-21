@@ -19,7 +19,47 @@ namespace Moment {
     using complex_basis_vec_t = Eigen::SparseVector<std::complex<double>>;
 
     /**
-     * Convert a Polynomial into a vector of basis co-efficients.
+     * Specification of a real number, in terms of real coefficients to multiply 'a' and 'b' by.
+     */
+    struct RealBasisVector {
+        /** The (real) co-efficients to multiply the 'a' vector, associated with Hermitian terms, with. */
+        basis_vec_t real;
+        /** The (real) co-efficients to multiply the 'b' vector, associated with anti-Hermitian terms, with. */
+        basis_vec_t imaginary;
+    };
+
+    /**
+     * Specification of two real numbers (representing real and imaginary parts of a whole), each in terms of real
+     * coefficients to multiply 'a' and 'b' by.
+     */
+    struct RealAndImaginaryBasisVector {
+        /** The specification of the real part of the expression, in terms of real coefficients of a and b */
+        RealBasisVector real_part;
+        /** The specification of the imaginary part of the expression, in terms of real coefficients of a and b */
+        RealBasisVector imaginary_part;
+    };
+
+    /**
+     * Specification of a complex number each in terms of complex coefficients to multiply 'a' and 'b' by.
+     */
+    struct ComplexBasisVector {
+        /** The complex coefficients, with which to multiply the 'a' vector, associated with Hermitian terms. */
+        complex_basis_vec_t real;
+        /** The complex coefficients, with which to multiply the 'b' vector, associated with anti-Hermitian terms. */
+        complex_basis_vec_t imaginary;
+
+        ComplexBasisVector() = default;
+        explicit ComplexBasisVector(const RealAndImaginaryBasisVector& expr) {
+            this->real = (std::complex<double>{0.0, 1.0} * expr.real_part.real)
+                            + std::complex<double>{0.0, 1.0} * expr.imaginary_part.real;
+            this->imaginary = (std::complex<double>{1.0, 0.0} * expr.real_part.imaginary)
+                            + std::complex<double>{0.0, 1.0} * expr.imaginary_part.imaginary;
+        }
+    };
+
+    /**
+     * Convert a Polynomial into a pair of basis co-efficient vectors.
+     *
      */
     class PolynomialToBasisVec {
     public:
@@ -30,7 +70,14 @@ namespace Moment {
         explicit PolynomialToBasisVec(const SymbolTable& symbols, double zero_tolerance)
             : symbols{symbols}, zero_tolerance{zero_tolerance} { }
 
-        [[nodiscard]] std::pair<basis_vec_t, basis_vec_t> operator()(const Polynomial& poly) const;
+        /** Returns entire specification of potentially complex polynomial */
+        [[nodiscard]] RealAndImaginaryBasisVector operator()(const Polynomial& poly) const;
+
+        /** Returns only real part of polynomial */
+        [[nodiscard]] RealBasisVector Real(const Polynomial& poly) const;
+
+        /** Returns only imaginary part of polynomial */
+        [[nodiscard]] RealBasisVector Imaginary(const Polynomial& poly) const;
 
         /**
          * Add polynomial as a row in triplets (for later synthesizing into sparse matrix).
@@ -68,7 +115,7 @@ namespace Moment {
         explicit PolynomialToComplexBasisVec(const SymbolTable& symbols, double zero_tolerance)
             : symbols{symbols}, zero_tolerance{zero_tolerance} { }
 
-        [[nodiscard]] std::pair<complex_basis_vec_t, complex_basis_vec_t> operator()(const Polynomial& poly) const;
+        [[nodiscard]] ComplexBasisVector operator()(const Polynomial& poly) const;
     };
 
     /**

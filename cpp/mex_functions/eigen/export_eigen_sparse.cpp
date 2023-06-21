@@ -71,6 +71,13 @@ namespace Moment::mex {
     matlab::data::SparseArray<std::complex<double>>
     export_eigen_sparse(matlab::engine::MATLABEngine &engine,
                            matlab::data::ArrayFactory &factory,
+                           const Eigen::SparseVector<std::complex<double>> &matrix) {
+        return do_export_eigen_sparse<std::complex<double>>(engine, factory, matrix);
+    }
+
+    matlab::data::SparseArray<std::complex<double>>
+    export_eigen_sparse(matlab::engine::MATLABEngine &engine,
+                           matlab::data::ArrayFactory &factory,
                            const Eigen::SparseMatrix<std::complex<double>> &matrix) {
         return do_export_eigen_sparse<std::complex<double>>(engine, factory, matrix);
     }
