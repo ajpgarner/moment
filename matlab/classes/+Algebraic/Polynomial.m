@@ -346,7 +346,7 @@ classdef (InferiorClasses={?Algebraic.Monomial,?Algebraic.Zero}) ...
                 end
                 
                 % If +0; just return self (in canonical form)
-                if abs(other) < 2*eps
+                if abs(other) < 2*eps(1)
                     val = +this;
                     return
                 end
@@ -388,7 +388,7 @@ classdef (InferiorClasses={?Algebraic.Monomial,?Algebraic.Zero}) ...
         % If equal to zero, will degrade to numeric 0.
             if length(obj.Constituents) == 1
                 val = obj.Constituents(1);
-                if abs(val.Coefficient) < 2*eps
+                if abs(val.Coefficient) < 2*eps(1)
                     val = Algebraic.Zero(obj.Scenario);
                 end
             elseif obj.IsZero
@@ -488,6 +488,13 @@ classdef (InferiorClasses={?Algebraic.Monomial,?Algebraic.Zero}) ...
                 obj.im_coefs = obj.im_coefs + cObj.im_coefs;
             end
             success = true;
+            
+            %%FIXME: that's a hack, should be done properly at some point
+            real_mask = abs(obj.real_coefs) <= 2*eps(1);
+            im_mask = abs(obj.im_coefs) <= 2*eps(1);
+            obj.real_coefs(real_mask) = 0;
+            obj.im_coefs(im_mask) = 0;
+            
         end
     end
     
@@ -522,7 +529,7 @@ classdef (InferiorClasses={?Algebraic.Monomial,?Algebraic.Zero}) ...
             end
             
             % Trim zeros
-            nz_mask = abs([nc(:).Coefficient]) >= 2*eps(0);
+            nz_mask = abs([nc(:).Coefficient]) >= 2*eps(1);
             obj.Constituents = nc(nz_mask);
         end
         
