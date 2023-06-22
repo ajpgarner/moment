@@ -114,7 +114,7 @@ classdef (InferiorClasses={?Algebraic.Zero}) ...
     methods
         function val = get.OperatorString(obj)
             if ~isempty(obj.Operators)
-                as_str = obj.Scenario.RuleBook.ToStringArray(obj.Operators);
+                as_str = obj.Scenario.Rulebook.ToStringArray(obj.Operators);
                 val = join(as_str, ' ');
             else
                 val = "I";
@@ -462,7 +462,7 @@ classdef (InferiorClasses={?Algebraic.Zero}) ...
         % 
             arguments
                 obj (1,1) Algebraic.Monomial
-                rulebook (1,1) MomentRuleBook
+                rulebook (1,1) MomentRulebook
             end
        
             % Promote to polynomial, then apply

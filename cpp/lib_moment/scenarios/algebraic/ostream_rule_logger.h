@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "rule_book.h"
+#include "operator_rulebook.h"
 
 #include <iosfwd>
 
@@ -24,25 +24,25 @@ namespace Moment::Algebraic {
 
         }
 
-        void rule_reduced(const MonomialSubstitutionRule& old_rule,
-                          const MonomialSubstitutionRule& new_rule) override;
+        void rule_reduced(const OperatorRule& old_rule,
+                          const OperatorRule& new_rule) override;
 
-        void rule_removed(const MonomialSubstitutionRule& ex_rule) override;
+        void rule_removed(const OperatorRule& ex_rule) override;
 
-        void rule_introduced(const MonomialSubstitutionRule& new_rule) override;
+        void rule_introduced(const OperatorRule& new_rule) override;
 
         void rule_introduced(
-                const MonomialSubstitutionRule& parent_rule_a,
-                const MonomialSubstitutionRule& parent_rule_b,
-                const MonomialSubstitutionRule& new_rule) override;
+                const OperatorRule& parent_rule_a,
+                const OperatorRule& parent_rule_b,
+                const OperatorRule& new_rule) override;
 
         void rule_introduced_conjugate(
-                const MonomialSubstitutionRule& parent_rule,
-                const MonomialSubstitutionRule& new_rule) override;
+                const OperatorRule& parent_rule,
+                const OperatorRule& new_rule) override;
 
-        void success(const RuleBook& rb, size_t attempts) override;
+        void success(const OperatorRulebook& rb, size_t attempts) override;
 
-        void failure(const RuleBook& rb, size_t attempts) override;
+        void failure(const OperatorRulebook& rb, size_t attempts) override;
 
     };
 }

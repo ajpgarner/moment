@@ -20,7 +20,7 @@ namespace Moment::Algebraic {
     AlgebraicContext::AlgebraicContext(const AlgebraicPrecontext& input_apc,
                                        std::unique_ptr<NameTable> names,
                                        const bool commute, const bool normal,
-                                       const std::vector<MonomialSubstitutionRule>& initial_rules)
+                                       const std::vector<OperatorRule>& initial_rules)
         : Context{static_cast<size_t>(input_apc.num_operators)},
           precontext{input_apc},
           self_adjoint{input_apc.self_adjoint()},
@@ -28,18 +28,18 @@ namespace Moment::Algebraic {
 
         // Make rules
         if (this->commutative) {
-            auto extra_rules = RuleBook::commutator_rules(this->precontext);
+            auto extra_rules = OperatorRulebook::commutator_rules(this->precontext);
             this->rules.add_rules(extra_rules);
         }
         if (!this->self_adjoint && normal) {
-            auto extra_rules = RuleBook::normal_rules(this->precontext);
+            auto extra_rules = OperatorRulebook::normal_rules(this->precontext);
             this->rules.add_rules(extra_rules);
         }
     }
 
 
     AlgebraicContext::AlgebraicContext(const AlgebraicPrecontext& apc, bool commute, bool normal,
-                                       const std::vector<MonomialSubstitutionRule>& rules)
+                                       const std::vector<OperatorRule>& rules)
             : AlgebraicContext{apc, std::make_unique<NameTable>(apc), commute, normal, rules} {
         // delegated.
     }
@@ -213,7 +213,7 @@ namespace Moment::Algebraic {
     AlgebraicContext::FromNameList(std::initializer_list<std::string> names) {
         return std::make_unique<AlgebraicContext>(
             AlgebraicPrecontext(static_cast<oper_name_t>(names.size()), AlgebraicPrecontext::ConjugateMode::SelfAdjoint),
-            std::make_unique<NameTable>(names), false, true, std::vector<MonomialSubstitutionRule>{}
+            std::make_unique<NameTable>(names), false, true, std::vector<OperatorRule>{}
         );
     }
 

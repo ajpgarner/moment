@@ -206,7 +206,7 @@ classdef Zero < Abstract.ComplexObject
         % 
             arguments
                 obj (1,1) Algebraic.Zero
-                rulebook (1,1) MomentRuleBook
+                rulebook (1,1) MomentRulebook
             end
             
             val = Algebraic.Zero(obj.Scenario);

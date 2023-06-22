@@ -1,10 +1,10 @@
 /**
- * rule_book.cpp
+ * operator_rulebook.cpp
  * 
- * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "rule_book.h"
+#include "operator_rulebook.h"
 #include "algebraic_context.h"
 
 #include <algorithm>
@@ -13,13 +13,13 @@
 namespace Moment::Algebraic {
 
 
-    RuleBook::RuleBook(const AlgebraicPrecontext& apc,
-                       const std::vector<MonomialSubstitutionRule>& rules) :
+    OperatorRulebook::OperatorRulebook(const AlgebraicPrecontext& apc,
+                                       const std::vector<OperatorRule>& rules) :
             precontext{apc}, is_hermitian{apc.self_adjoint()} {
         this->add_rules(rules);
     }
 
-    ptrdiff_t RuleBook::add_rules(const std::vector<MonomialSubstitutionRule> &rules, RuleLogger * logger) {
+    ptrdiff_t OperatorRulebook::add_rules(const std::vector<OperatorRule> &rules, RuleLogger * logger) {
         ptrdiff_t added = 0;
         for (const auto& rule : rules) {
             added += this->add_rule(rule, logger);
@@ -27,7 +27,7 @@ namespace Moment::Algebraic {
         return added;
     }
 
-    ptrdiff_t RuleBook::add_rule(const MonomialSubstitutionRule& rule, RuleLogger * logger) {
+    ptrdiff_t OperatorRulebook::add_rule(const OperatorRule& rule, RuleLogger * logger) {
         // Skip trivial rule
         if (rule.trivial()) {
             return 0;
@@ -41,7 +41,7 @@ namespace Moment::Algebraic {
             // LHS doesn't already exist, just insert directly (making sure no 'minus zero' targets)
             if (rule.RHS().zero() && rule.negated()) {
                 const auto& [inSituRule, newElem] = this->monomialRules.insert(std::make_pair(hashLHS,
-                                                          MonomialSubstitutionRule{rule.LHS(), rule.RHS()}
+                                                                                              OperatorRule{rule.LHS(), rule.RHS()}
                                                           ));
                 if (nullptr != logger) {
                     logger->rule_introduced(inSituRule->second);
@@ -68,7 +68,7 @@ namespace Moment::Algebraic {
             // One rule is positive, the other is negative: hence zero is implied...
             if (rule.negated() != preexisting.negated()) {
                 ptrdiff_t rules_added = 0;
-                MonomialSubstitutionRule lhsToZero{rule.LHS(), HashedSequence(true)};
+                OperatorRule lhsToZero{rule.LHS(), HashedSequence(true)};
 
                 // Log reduction of rule LHS...
                 if (logger != nullptr) {
@@ -78,11 +78,11 @@ namespace Moment::Algebraic {
 
                 // LHS equal to zero, since we have erased this key we can just add directly...
                 this->monomialRules.insert(std::make_pair(hashLHS,
-                                                          MonomialSubstitutionRule{rule.LHS(), HashedSequence(true)}
+                                                          OperatorRule{rule.LHS(), HashedSequence(true)}
                 ));
 
                 // RHS also equal to zero, but we have to add carefully...
-                MonomialSubstitutionRule rhsToZero{rule.RHS(), HashedSequence(true)};
+                OperatorRule rhsToZero{rule.RHS(), HashedSequence(true)};
                 rules_added += this->add_rule(rhsToZero);
                 return rules_added;
             }
@@ -93,12 +93,12 @@ namespace Moment::Algebraic {
         const bool negated = rule.negated() != preexisting.negated();
         if (preexisting.RHS().hash() < rule.RHS().hash()) {
             // Then new rule should be B->A:
-            MonomialSubstitutionRule b_to_a{rule.RHS(), preexisting.RHS(), negated};
+            OperatorRule b_to_a{rule.RHS(), preexisting.RHS(), negated};
             rules_added += this->add_rule(b_to_a); // Add carefully, in case 'B' already exists...
         } else {
             // Otherwise, existing rule C->B is majorized by new rule C->A:
             // We will need to prepare a new rule B->A
-            MonomialSubstitutionRule b_to_a{preexisting.RHS(), rule.RHS(), negated};
+            OperatorRule b_to_a{preexisting.RHS(), rule.RHS(), negated};
 
             // Log removal of rule...
             if (logger != nullptr) {
@@ -116,7 +116,7 @@ namespace Moment::Algebraic {
         return rules_added;
     }
 
-    bool RuleBook::complete(size_t max_iterations, RuleLogger * logger) {
+    bool OperatorRulebook::complete(size_t max_iterations, RuleLogger * logger) {
         const bool mock_mode = max_iterations == 0;
 
         // First, if we are a Hermitian ruleset, introduce initial conjugate rules
@@ -154,7 +154,7 @@ namespace Moment::Algebraic {
         return is_complete;
     }
 
-    std::pair<HashedSequence, bool> RuleBook::reduce(const HashedSequence& input) const {
+    std::pair<HashedSequence, bool> OperatorRulebook::reduce(const HashedSequence& input) const {
         // Look through, and apply first match.
         auto rule_iter = this->monomialRules.begin();
 
@@ -188,7 +188,7 @@ namespace Moment::Algebraic {
         return {HashedSequence{std::move(test_sequence), this->precontext.hasher}, negated};
     }
 
-    MonomialSubstitutionRule RuleBook::reduce(const MonomialSubstitutionRule &input) const {
+    OperatorRule OperatorRulebook::reduce(const OperatorRule &input) const {
         // Reduce
         auto [lhs, lhsNeg] = this->reduce(input.rawLHS);
         auto [rhs, rhsNeg] = this->reduce(input.rawRHS);
@@ -197,18 +197,18 @@ namespace Moment::Algebraic {
 
         // Special reduction if rule implies something is zero:
         if ((lhs.hash() == rhs.hash()) && negative) {
-            return MonomialSubstitutionRule{std::move(lhs), HashedSequence(true)};
+            return OperatorRule{std::move(lhs), HashedSequence(true)};
         }
 
         // Otherwise, orient and return
         if (lhs.hash() > rhs.hash()) {
-            return MonomialSubstitutionRule{std::move(lhs), std::move(rhs), negative};
+            return OperatorRule{std::move(lhs), std::move(rhs), negative};
         } else {
-            return MonomialSubstitutionRule{std::move(rhs), std::move(lhs), negative};
+            return OperatorRule{std::move(rhs), std::move(lhs), negative};
         }
     }
 
-    bool RuleBook::can_reduce(const sequence_storage_t &input) const {
+    bool OperatorRulebook::can_reduce(const sequence_storage_t &input) const {
         // Check all rules vs. sequence
         return std::any_of(this->monomialRules.cbegin(), this->monomialRules.cend(),
                     [&input](const auto& key_rule_pair) {
@@ -218,18 +218,18 @@ namespace Moment::Algebraic {
     }
 
 
-    size_t RuleBook::reduce_ruleset(RuleLogger * logger) {
+    size_t OperatorRulebook::reduce_ruleset(RuleLogger * logger) {
         size_t number_reduced = 0;
 
         auto rule_iter = this->monomialRules.begin();
         while (rule_iter != this->monomialRules.end()) {
-            MonomialSubstitutionRule isolated_rule{std::move(rule_iter->second)};
+            OperatorRule isolated_rule{std::move(rule_iter->second)};
 
             // Pop off rule from set...
             rule_iter = this->monomialRules.erase(rule_iter);
 
             // Do reduction...
-            MonomialSubstitutionRule reduced_rule = this->reduce(isolated_rule);
+            OperatorRule reduced_rule = this->reduce(isolated_rule);
 
             // By definition, reduction is non-increasing of hash, so we can reinsert "before" iterator
             size_t reduced_hash = reduced_rule.LHS().hash();
@@ -261,7 +261,7 @@ namespace Moment::Algebraic {
         return number_reduced;
     }
 
-    bool RuleBook::is_complete(const bool test_cc) const {
+    bool OperatorRulebook::is_complete(const bool test_cc) const {
         // Look for CC rules
         if (test_cc && this->mock_conjugate()) {
             return false;
@@ -299,7 +299,7 @@ namespace Moment::Algebraic {
     }
 
 
-    bool RuleBook::try_new_combination(RuleLogger * logger) {
+    bool OperatorRulebook::try_new_combination(RuleLogger * logger) {
         // First, reduce
         this->reduce_ruleset(logger);
 
@@ -345,7 +345,7 @@ namespace Moment::Algebraic {
         return false;
     }
 
-    bool RuleBook::mock_conjugate() const {
+    bool OperatorRulebook::mock_conjugate() const {
         auto rule_iter = this->rules().begin();
 
         for (const auto& [hash, rule] : this->rules()) {
@@ -366,7 +366,7 @@ namespace Moment::Algebraic {
         return false;
     }
 
-    size_t RuleBook::conjugate_ruleset(RuleLogger * logger) {
+    size_t OperatorRulebook::conjugate_ruleset(RuleLogger * logger) {
         size_t added = 0;
 
         auto rule_iter = this->rules().begin();
@@ -385,7 +385,7 @@ namespace Moment::Algebraic {
         return added;
     }
 
-    bool RuleBook::try_conjugation(const MonomialSubstitutionRule& rule, RuleLogger * logger) {
+    bool OperatorRulebook::try_conjugation(const OperatorRule& rule, RuleLogger * logger) {
         // Conjugate and reduce rule
         auto conj_rule = rule.conjugate(this->precontext);
         auto conj_reduced_rule = this->reduce(conj_rule);
@@ -409,7 +409,7 @@ namespace Moment::Algebraic {
         return true;
     }
 
-    void RuleBook::commutator_rules(const AlgebraicPrecontext& apc, std::vector<MonomialSubstitutionRule>& output) {
+    void OperatorRulebook::commutator_rules(const AlgebraicPrecontext& apc, std::vector<OperatorRule>& output) {
         const oper_name_t operator_count = apc.num_operators;
 
         // Do nothing, if less than two operators
@@ -427,7 +427,7 @@ namespace Moment::Algebraic {
     }
 
 
-   void RuleBook::normal_rules(const AlgebraicPrecontext& apc, std::vector<MonomialSubstitutionRule>& output) {
+   void OperatorRulebook::normal_rules(const AlgebraicPrecontext& apc, std::vector<OperatorRule>& output) {
         if (apc.self_adjoint() || (apc.num_operators == 0)) {
             return;
         }
@@ -452,7 +452,7 @@ namespace Moment::Algebraic {
     }
 
 
-    std::ostream &operator<<(std::ostream &os, const RuleBook &rulebook) {
+    std::ostream &operator<<(std::ostream &os, const OperatorRulebook &rulebook) {
         if (rulebook.is_hermitian) {
             os << "Hermitian rule ";
         } else {

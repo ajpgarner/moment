@@ -9,7 +9,6 @@
 
 #include "functions/alphabetic_name.h"
 #include "functions/collins_gisin.h"
-#include "functions/complete.h"
 #include "functions/conjugate.h"
 #include "functions/generate_basis.h"
 #include "functions/import_matrix.h"
@@ -26,7 +25,6 @@
 #include "functions/debug/echo.h"
 #include "functions/debug/list.h"
 #include "functions/debug/moment_rule_superset.h"
-#include "functions/debug/monomial_rules.h"
 #include "functions/debug/version.h"
 #include "functions/matrix_system/algebraic_matrix_system.h"
 #include "functions/matrix_system/imported_matrix_system.h"
@@ -41,6 +39,8 @@
 #include "functions/operator_matrix/localizing_matrix.h"
 #include "functions/operator_matrix/moment_matrix.h"
 #include "functions/operator_matrix/operator_matrix.h"
+#include "functions/operator_rules/complete.h"
+#include "functions/operator_rules/operator_rules.h"
 
 #include "utilities/reporting.h"
 
@@ -73,8 +73,8 @@ namespace Moment::mex::functions {
             output.emplace("moment_rules",       MEXEntryPointID::MomentRules);
             output.emplace("moment_matrix",      MEXEntryPointID::MomentMatrix);
             output.emplace("moment_rule_superset",      MEXEntryPointID::MomentRuleSuperset);
-            output.emplace("monomial_rules",     MEXEntryPointID::MonomialRules);
             output.emplace("operator_matrix",    MEXEntryPointID::OperatorMatrix);
+            output.emplace("operator_rules",     MEXEntryPointID::OperatorRules);
             output.emplace("probability_table",  MEXEntryPointID::ProbabilityTable);
             output.emplace("release",            MEXEntryPointID::Release);
             output.emplace("settings",           MEXEntryPointID::Settings);
@@ -93,7 +93,8 @@ namespace Moment::mex::functions {
             std::map<MEXEntryPointID, std::string> output;
             auto fwd_map = make_str_to_entrypoint_map();
             for (auto [str, entry] : fwd_map) {
-                output.insert(std::make_pair(entry, str));
+                auto [key, did_insert] = output.insert(std::make_pair(entry, str));
+                assert(did_insert);
             }
             return output;
         }
@@ -187,11 +188,11 @@ namespace Moment::mex::functions {
             case functions::MEXEntryPointID::MomentRuleSuperset:
                 the_function = std::make_unique<functions::MomentRuleSuperset>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::MonomialRules:
-                the_function = std::make_unique<functions::MonomialRules>(engine, storageManager);
-                break;
             case functions::MEXEntryPointID::OperatorMatrix:
                 the_function = std::make_unique<functions::RawOperatorMatrix>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::OperatorRules:
+                the_function = std::make_unique<functions::OperatorRules>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::ProbabilityTable:
                 the_function = std::make_unique<functions::ProbabilityTable>(engine, storageManager);

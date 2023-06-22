@@ -23,7 +23,7 @@ namespace Moment::mex::functions {
     namespace {
         std::unique_ptr<Algebraic::AlgebraicContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                                   AlgebraicMatrixSystemParams& input) {
-            std::vector<Algebraic::MonomialSubstitutionRule> rules;
+            std::vector<Algebraic::OperatorRule> rules;
             const auto& apc = *input.apc;
 
             const auto max_strlen = apc.hasher.longest_hashable_string();

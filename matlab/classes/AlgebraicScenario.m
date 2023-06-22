@@ -13,7 +13,7 @@ classdef AlgebraicScenario < Abstract.Scenario
 %       /examples/nonhermitian_lm.m
 %       /examples/yalmip_polynomial.m
 %
-% See also: ALGEBRAIC.RULEBOOK, ABSTRACT.SCENARIO
+% See also: ALGEBRAIC.OPERATORRULEBOOK, ABSTRACT.SCENARIO
     
 %% Properties
     properties(GetAccess = public, SetAccess = protected)
@@ -21,7 +21,7 @@ classdef AlgebraicScenario < Abstract.Scenario
         IsHermitian   % True if fundamental operators are Hermitian.
         IsNormal      % True if fundamental operators are Normal.
         Interleave    % True if operators are ordered next to their conjugates.
-        RuleBook      % Manages substitution rules for operator strings.
+        Rulebook      % Manages substitution rules for operator strings.
         OperatorNames % Names of the fundamental operators.        
     end
     
@@ -92,7 +92,7 @@ classdef AlgebraicScenario < Abstract.Scenario
             obj.Interleave = logical(interleave);
             obj.IsNormal = logical(is_normal);
             
-            if isa(rules, 'Algebraic.RuleBook')
+            if isa(rules, 'Algebraic.OperatorRulebook')
                 % Check for consistency
                 assert(rules.Hermitian == obj.IsHermitian);
                 assert(rules.Interleave == obj.Interleave);
@@ -100,10 +100,10 @@ classdef AlgebraicScenario < Abstract.Scenario
                 assert(rules.MaxOperators == obj.OperatorCount);
       
                 % Copy construct
-                obj.RuleBook = Algebraic.RuleBook(rules);
+                obj.Rulebook = Algebraic.OperatorRulebook(rules);
             else            
                 % Construct new
-                obj.RuleBook = Algebraic.RuleBook(operators, rules, ...
+                obj.Rulebook = Algebraic.OperatorRulebook(operators, rules, ...
                                                   obj.IsHermitian, ...
                                                   obj.Interleave, ...
                                                   is_normal);
@@ -133,7 +133,7 @@ classdef AlgebraicScenario < Abstract.Scenario
             end
             
             % Make copy
-            val = AlgebraicScenario(ops_arg, obj.RuleBook, ...
+            val = AlgebraicScenario(ops_arg, obj.Rulebook, ...
                                     obj.IsHermitian, obj.Interleave, ...
                                     obj.IsNormal);
             val.ZeroTolerance = obj.ZeroTolerance;
@@ -149,7 +149,7 @@ classdef AlgebraicScenario < Abstract.Scenario
                 val = "I";
                 return
             end
-            str_array = obj.RuleBook.ToStringArray(sequence);
+            str_array = obj.Rulebook.ToStringArray(sequence);
             val = join(str_array, " ");
         end
     end
@@ -199,7 +199,7 @@ classdef AlgebraicScenario < Abstract.Scenario
             end
 
             obj.errorIfLocked();
-            success = obj.RuleBook.Complete(attempts, verbose);
+            success = obj.Rulebook.Complete(attempts, verbose);
         end
         
     end
@@ -327,10 +327,10 @@ classdef AlgebraicScenario < Abstract.Scenario
             % Call for matrix system
             ref_id = mtk('algebraic_matrix_system', ...
                 nams_args{:}, ...
-                obj.RuleBook.ExportCellArray());
+                obj.Rulebook.ExportCellArray());
             
             % No further changes to rules allowed...
-            obj.RuleBook.lock();
+            obj.Rulebook.lock();
         end
     end
     

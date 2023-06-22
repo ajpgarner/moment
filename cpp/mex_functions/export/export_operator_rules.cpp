@@ -1,18 +1,18 @@
 /**
- * export_monomial_rules.cpp
+ * export_operator_rules.cpp
  * 
  * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "export_monomial_rules.h"
+#include "export_operator_rules.h"
 
-#include "scenarios/algebraic/rule_book.h"
+#include "scenarios/algebraic/operator_rulebook.h"
 
 #include <algorithm>
 
 
 namespace Moment::mex {
-    matlab::data::CellArray export_monomial_rules(const Algebraic::RuleBook& rules, const bool matlabIndices) {
+    matlab::data::CellArray export_operator_rules(const Algebraic::OperatorRulebook& rules, const bool matlabIndices) {
         matlab::data::ArrayFactory factory;
         matlab::data::CellArray output = factory.createArray<matlab::data::Array>({1, rules.rules().size()});
 

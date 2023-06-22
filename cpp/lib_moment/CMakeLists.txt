@@ -25,10 +25,10 @@ add_library(lib_moment
         scenarios/algebraic/algebraic_context.cpp
         scenarios/algebraic/algebraic_precontext.cpp
         scenarios/algebraic/algebraic_matrix_system.cpp
-        scenarios/algebraic/monomial_substitution_rule.cpp
+        scenarios/algebraic/operator_rule.cpp
         scenarios/algebraic/name_table.cpp
         scenarios/algebraic/ostream_rule_logger.cpp
-        scenarios/algebraic/rule_book.cpp
+        scenarios/algebraic/operator_rulebook.cpp
         scenarios/derived/derived_context.cpp
         scenarios/derived/derived_matrix_system.cpp
         scenarios/derived/lu_map_core_processor.cpp

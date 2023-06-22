@@ -1,11 +1,11 @@
-classdef RuleBook < handle
-    %RULEBOOK Collection of algebraic operator rules.
+classdef OperatorRulebook < handle
+    %OPERATORRULEBOOK Collection of algebraic operator rewrite rules.
     %
-    % See also: AlgebraicScenario, Algebraic.Rule
+    % See also: AlgebraicScenario, Algebraic.OperatorRule
    
     properties(GetAccess = public, SetAccess = protected)        
         MaxOperators = uint64(0); % The number of operators in the system.
-        Rules = Algebraic.Rule.empty(1,0) % The rewrite rules.
+        Rules = Algebraic.OperatorRule.empty(1,0) % The rewrite rules.
         OperatorNames;      % String names of operators, if known.
         Hermitian = true;   % True if fundamental operators are Hermitian.
         Interleave = false; % True if operators are ordered next to their conjugates.
@@ -31,32 +31,32 @@ classdef RuleBook < handle
                         'specified as a pair.'];
                     
         err_badrule = ['Rule should be provided either as an ',...
-                       'Algebraic.Rule, a two element cell array, ',...
+                       'Algebraic.OperatorRule, a two element cell array, ',...
                        'or two numerical arrays.'];
     end
     
     
     %% Constructor
     methods
-        function obj = RuleBook(operators, initialRules, ...
-                                is_hermitian, interleave, is_normal)
-        % RULEBOOK Constructs a list of rewrite rules.
+        function obj = OperatorRulebook(operators, initialRules, ...
+                                        is_hermitian, interleave, is_normal)
+        % OPERATORRULEBOOK Constructs a list of rewrite rules.
         %
         % SYNTAX
-        %   1. book = RuleBook(otherRuleBook)
-        %   2. book = RuleBook(ops, rules, is_herm, is_normal)
+        %   1. book = OperatorRulebook(otherRulebook)
+        %   2. book = OperatorRulebook(ops, rules, is_herm, is_normal)
         %
         % PARAMS (Syntax 2):
         %  operators - Either the number of the highest number operators in 
         %              the scenario, or a list of names.
         %  initial_rules - Algebraic rewrite rules. Can be given as either 
-        %                  a cell array, an array of Algebraic.Rule or 
-        %                  another Algebraic.RuleBook object.       
+        %                  a cell array, an array of Algebraic.OperatorRule
+        %                  or another Algebraic.OperatorRulebook object.    
         %  is_hermitian - True if fundamental operators are Hermitian.
         %  is_normal - True if fundamental operators are normal.
         %  names_hint - List of operator names, if they exist.
         %
-        % See also: ALGEBRAIC.RULE
+        % See also: ALGEBRAIC.OPERATORRULE
             arguments
                 operators
                 initialRules (1,:) = cell.empty(1,0);
@@ -66,7 +66,7 @@ classdef RuleBook < handle
             end 
             
             % Copy c'tor
-            if isa(operators, 'Algebraic.RuleBook')
+            if isa(operators, 'Algebraic.OperatorRulebook')
                 obj.MaxOperators = operators.MaxOperators;
                 obj.Rules = operators.Rules;
                 obj.OperatorNames = operators.OperatorNames;
@@ -75,8 +75,8 @@ classdef RuleBook < handle
                 obj.Normal = operators.Normal;
                 
                 if nargin >= 2
-                    error(['Copy constructor of RuleBook does not ',...
-                           'take more than one input.']);
+                    error(['Copy constructor of OperatorRulebook',...
+                           ' does not take more than one input.']);
                 end
                 return;
             end
@@ -129,13 +129,13 @@ classdef RuleBook < handle
                
             
             % Parse rules
-            if isa(initialRules, 'Algebraic.Rule')
+            if isa(initialRules, 'Algebraic.OperatorRule')
                 obj.Rules = reshape(initialRules, 1, []);
             elseif iscell(initialRules)
                 obj.ImportCellArray(initialRules);
             else
                 error(['Rules should be provided either as an array of',...
-                       ' Algebraic.Rule, or as a cell array.']);    
+                       ' Algebraic.OperatorRule, or as a cell array.']);    
             end
             
         end
@@ -151,7 +151,7 @@ classdef RuleBook < handle
         %   2. rb.AddRule(lhs, rhs)
         %
         % PARAMS (Syntax 1)
-        %   new_rule - An object of type Algebraic.Rule, defining the rule
+        %   new_rule - An object of type Algebraic.OperatorRule, defining the rule
         %              or a cell array with two elements, the first
         %              defining the left-hand-side of the rule (pattern),
         %              the second the right-hand-side (replacement).
@@ -162,7 +162,7 @@ classdef RuleBook < handle
         %                  replace new_rule with.
         %   negate       - Set to true for LHS => -RHS.
         %
-        % See also: AlgebraicScenario, Algebraic.Rule
+        % See also: AlgebraicScenario, Algebraic.OperatorRule
         %
             
             % Complain if locked
@@ -176,18 +176,18 @@ classdef RuleBook < handle
             
             % Construct rule from inputs and append to list
             if nargin >= 3
-                obj.Rules(end+1) = Algebraic.Rule(new_rule, ...
+                obj.Rules(end+1) = Algebraic.OperatorRule(new_rule, ...
                                                   new_rule_rhs, negate);
             elseif nargin >= 2
-                if isa(new_rule, 'Algebraic.Rule')
+                if isa(new_rule, 'Algebraic.OperatorRule')
                     obj.Rules(end+1) = new_rule;
                 elseif iscell(new_rule)
                     if isequal(size(new_rule), [1, 2])
-                        obj.Rules(end+1) = Algebraic.Rule(new_rule{1}, ...
+                        obj.Rules(end+1) = Algebraic.OperatorRule(new_rule{1}, ...
                                                           new_rule{2});
                     elseif isequal(size(new_rule), [1, 3]) ...
                             && isequal(new_rule{2}, '-')
-                        obj.Rules(end+1) = Algebraic.Rule(new_rule{1}, ...
+                        obj.Rules(end+1) = Algebraic.OperatorRule(new_rule{1}, ...
                                                           new_rule{2}, ...
                                                           true);
                     else
@@ -215,7 +215,7 @@ classdef RuleBook < handle
         %   anti_comm - Set to true to make an anti-commutator instead:
         %
             arguments
-                obj (1,1) Algebraic.RuleBook
+                obj (1,1) Algebraic.OperatorRulebook
                 lhs (1,:)
                 rhs (1,:)
                 anti_comm (1,1) logical = false
@@ -244,7 +244,7 @@ classdef RuleBook < handle
         %   rhs - Right-hand side of the anti-commutation bracket.
         %
             arguments
-                obj (1,1) Algebraic.RuleBook
+                obj (1,1) Algebraic.OperatorRulebook
                 lhs (1,:)
                 rhs (1,:)
             end
@@ -262,7 +262,7 @@ classdef RuleBook < handle
         %   projective.
         %
             arguments
-                obj (1,1) Algebraic.RuleBook
+                obj (1,1) Algebraic.OperatorRulebook
                 symbol (1,:)
             end
             
@@ -281,7 +281,7 @@ classdef RuleBook < handle
         %   symbol - The operator, or operator sequence, that is Hermitian.
         %
             arguments
-                obj (1,1) Algebraic.RuleBook
+                obj (1,1) Algebraic.OperatorRulebook
                 symbol (1,:)
             end
             
@@ -298,7 +298,7 @@ classdef RuleBook < handle
         %   symbol - The operator, or operator sequence, that is unitary.
         %
             arguments
-                obj (1,1) Algebraic.RuleBook
+                obj (1,1) Algebraic.OperatorRulebook
                 symbol (1,:)
             end
 
@@ -317,7 +317,7 @@ classdef RuleBook < handle
         %   symbol - The operator, or operator sequence, that is self-inverse.
         %
             arguments
-                obj (1,1) Algebraic.RuleBook
+                obj (1,1) Algebraic.OperatorRulebook
                 symbol (1,:)
             end
             
@@ -342,7 +342,7 @@ classdef RuleBook < handle
         %
         % See also: ALGEBRAICSCENARIO.COMPLETE
             arguments
-                obj (1,1) Algebraic.RuleBook
+                obj (1,1) Algebraic.OperatorRulebook
                 max_iterations (1,1) uint64
                 verbose (1,1) logical = false
             end
@@ -418,19 +418,19 @@ classdef RuleBook < handle
     %% Import/Export cell array
     methods
         function ImportCellArray(obj, input)
-        % IMPORTCELLARRAY Converts cell array into array of Algebraic.Rule objects.
+        % IMPORTCELLARRAY Converts cell array into array of Algebraic.OperatorRule objects.
         %
         % PARAMS
         %   input - The cell array to parse.
         %
             arguments
-                obj (1,1) Algebraic.RuleBook
+                obj (1,1) Algebraic.OperatorRulebook
                 input cell
             end
             obj.errorIfLocked();
             
             input = reshape(input, 1, []);
-            obj.Rules = Algebraic.Rule.empty(1,0);
+            obj.Rules = Algebraic.OperatorRule.empty(1,0);
             for index = 1:length(input)
                 rule = input{index};
                 if ~iscell(input)
@@ -452,7 +452,7 @@ classdef RuleBook < handle
                 lhs = obj.ToStringArray(lhs);
                 rhs = obj.ToStringArray(rhs);
                 
-                obj.Rules(end+1) = Algebraic.Rule(lhs, rhs);                
+                obj.Rules(end+1) = Algebraic.OperatorRule(lhs, rhs);                
             end
             
             obj.tested_complete = false;
@@ -482,7 +482,7 @@ classdef RuleBook < handle
     methods
         function conj = RawConjugate(obj, op_str)
             arguments
-                obj (1,1) Algebraic.RuleBook
+                obj (1,1) Algebraic.OperatorRulebook
                 op_str (1,:)
             end
             
@@ -537,7 +537,7 @@ classdef RuleBook < handle
         % TOSTRING Format operator input sequence into string array.
         %
         arguments
-            obj (1,1) Algebraic.RuleBook
+            obj (1,1) Algebraic.OperatorRulebook
             input (1,:)
         end
         
@@ -578,7 +578,7 @@ classdef RuleBook < handle
     end
     
     %% Locking methods
-    methods(Access={?RuleBook, ?AlgebraicScenario})
+    methods(Access={?Algebraic.OperatorRulebook, ?AlgebraicScenario})
         function lock(obj)
             obj.locked = true;
         end

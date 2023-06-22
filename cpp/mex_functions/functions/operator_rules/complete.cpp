@@ -8,11 +8,11 @@
 
 #include "scenarios/algebraic/algebraic_precontext.h"
 #include "scenarios/algebraic/name_table.h"
-#include "scenarios/algebraic/rule_book.h"
+#include "scenarios/algebraic/operator_rulebook.h"
 #include "scenarios/algebraic/ostream_rule_logger.h"
 
 #include "import/read_operator_names.h"
-#include "export/export_monomial_rules.h"
+#include "export/export_operator_rules.h"
 
 #include "utilities/reporting.h"
 #include "utilities/read_as_scalar.h"
@@ -23,20 +23,20 @@ namespace Moment::mex::functions {
 
     namespace {
 
-        Algebraic::RuleBook make_rulebook(matlab::engine::MATLABEngine &matlabEngine,
-                                          CompleteParams& input) {
+        Algebraic::OperatorRulebook make_rulebook(matlab::engine::MATLABEngine &matlabEngine,
+                                                  CompleteParams& input) {
             using namespace Algebraic;
 
-            std::vector<Algebraic::MonomialSubstitutionRule> rules;
+            std::vector<Algebraic::OperatorRule> rules;
             const auto& apc = *input.apc;
 
             const size_t max_strlen = apc.hasher.longest_hashable_string();
 
             if (input.commutative) {
-                Algebraic::RuleBook::commutator_rules(apc, rules);
+                Algebraic::OperatorRulebook::commutator_rules(apc, rules);
             }
             if (!apc.self_adjoint() && input.normal_operators) {
-                Algebraic::RuleBook::normal_rules(apc, rules);
+                Algebraic::OperatorRulebook::normal_rules(apc, rules);
             }
 
             rules.reserve(rules.size() + input.rules.size());
@@ -63,7 +63,7 @@ namespace Moment::mex::functions {
                 }
                 ++rule_index;
             }
-            return Algebraic::RuleBook{apc, rules};
+            return Algebraic::OperatorRulebook{apc, rules};
         }
     }
 
@@ -206,7 +206,7 @@ namespace Moment::mex::functions {
 
         } else {
             // Output list of parsed rules, using matlab indices
-            output[0] = export_monomial_rules(rules, true);
+            output[0] = export_operator_rules(rules, true);
 
             // Output whether complete or not
             if (output.size()>=2) {

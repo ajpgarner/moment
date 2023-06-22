@@ -65,7 +65,7 @@
 % moment_matrix
 %       Generates a moment matrix for supplied set of Hermitian operators.
 % 
-% monomial_rules [DEBUG]
+% operator_rules [DEBUG]
 %       Returns the ruleset associated with an algebraic matrix system.
 %
 % probability_table

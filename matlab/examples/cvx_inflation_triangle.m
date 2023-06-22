@@ -18,7 +18,7 @@ disp(moment_matrix.SequenceMatrix);
 primal_symbols = triangle.ObservablesToSymbols(...
         {[1], [2], [3], [1 2], [1 3], [2 3], [1 2 3]});
     
-substitutions = MomentRuleBook(triangle);
+substitutions = MomentRulebook(triangle);
 substitutions.AddScalarSubstitution(primal_symbols, ...
                     [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
     

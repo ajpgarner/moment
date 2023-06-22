@@ -1,7 +1,7 @@
 /**
- * monomial_substitution_rule.h
+ * operator_rule.h
  * 
- * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 #pragma once
@@ -33,9 +33,9 @@ namespace Moment::Algebraic {
     }
 
     class AlgebraicPrecontext;
-    class RuleBook;
+    class OperatorRulebook;
 
-    class MonomialSubstitutionRule {
+    class OperatorRule {
     public:
         using iter_t = sequence_storage_t::iterator;
         using const_iter_t = sequence_storage_t::const_iterator;
@@ -48,12 +48,12 @@ namespace Moment::Algebraic {
         ptrdiff_t delta = 0;
 
     public:
-        MonomialSubstitutionRule(HashedSequence lhs, HashedSequence rhs,
-                                 bool negated = false);
+        OperatorRule(HashedSequence lhs, HashedSequence rhs,
+                     bool negated = false);
 
-        MonomialSubstitutionRule(const MonomialSubstitutionRule& rhs) = default;
+        OperatorRule(const OperatorRule& rhs) = default;
 
-        MonomialSubstitutionRule(MonomialSubstitutionRule&& rhs) = default;
+        OperatorRule(OperatorRule&& rhs) = default;
 
         /** The sequence on the left-hand side of the rule (pattern to match) */
         [[nodiscard]] const HashedSequence& LHS() const noexcept { return this->rawLHS; }
@@ -76,13 +76,13 @@ namespace Moment::Algebraic {
          * @param hasher The hash function, for generating new rule.
          * @return The new rule, if overlap is nonzero, empty otherwise.
          */
-        [[nodiscard]] std::optional<MonomialSubstitutionRule> combine(const MonomialSubstitutionRule& other,
-                                                                      const AlgebraicPrecontext& precontext) const;
+        [[nodiscard]] std::optional<OperatorRule> combine(const OperatorRule& other,
+                                                          const AlgebraicPrecontext& precontext) const;
 
         /**
          * True, if this rule directly implies the supplied other rule.
          */
-        [[nodiscard]] bool implies(const MonomialSubstitutionRule& other) const noexcept;
+        [[nodiscard]] bool implies(const OperatorRule& other) const noexcept;
 
         /** The amount the string-length changes by, on a successful match */
         [[nodiscard]] ptrdiff_t Delta() const noexcept { return this->delta; }
@@ -99,11 +99,11 @@ namespace Moment::Algebraic {
         }
 
         /** Forms a rule by conjugating both sides of the equality */
-        [[nodiscard]] MonomialSubstitutionRule conjugate(const AlgebraicPrecontext& precontext) const;
+        [[nodiscard]] OperatorRule conjugate(const AlgebraicPrecontext& precontext) const;
 
 
-        friend std::ostream& operator<<(std::ostream& os, const MonomialSubstitutionRule& msr);
+        friend std::ostream& operator<<(std::ostream& os, const OperatorRule& msr);
 
-        friend class RuleBook;
+        friend class OperatorRulebook;
     };
 }

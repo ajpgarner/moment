@@ -29,7 +29,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, OneSubstitution_ABtoA) {
-        std::vector<MonomialSubstitutionRule> rules;
+        std::vector<OperatorRule> rules;
 
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::SelfAdjoint};
         rules.emplace_back(
@@ -60,7 +60,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, TwoSubstitution_ABtoA_BAtoA) {
-        std::vector<MonomialSubstitutionRule> rules;
+        std::vector<OperatorRule> rules;
 
         rules.emplace_back(
                 HashedSequence{{1, 2}, ShortlexHasher{3}},
@@ -101,7 +101,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, TwoSubstitution_ABtoA_BAtoI) {
-        std::vector<MonomialSubstitutionRule> rules;
+        std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{1, 2}, ShortlexHasher{3}},
                 HashedSequence{{1}, ShortlexHasher{3}}
@@ -148,7 +148,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, OneSubstitution_ABtoBA) {
-        std::vector<MonomialSubstitutionRule> rules;
+        std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{2, 1}, ShortlexHasher{3}},
                 HashedSequence{{1, 2}, ShortlexHasher{3}}
@@ -195,7 +195,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, MakeGenerator_ABtoBA) {
-        std::vector<MonomialSubstitutionRule> rules;
+        std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{1, 0}, ShortlexHasher{2}},
                 HashedSequence{{0, 1}, ShortlexHasher{2}}
@@ -253,7 +253,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Algebraic_AlgebraicContext, MakeGenerator_ABtoA_BAtoI) {
         // AB=A, BA=1; but AB=A implies BA=A and hence A=1, and hence B=1.
-        std::vector<MonomialSubstitutionRule> rules;
+        std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{0, 1}, ShortlexHasher{2}},
                 HashedSequence{{0}, ShortlexHasher{2}}
@@ -288,7 +288,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Algebraic_AlgebraicContext, MakeGenerator_ABtoA_BCtoB_CAtoA) {
         // AB=A, BC=B, CA=C -> A = B = C
-        std::vector<MonomialSubstitutionRule> rules;
+        std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{0, 1}, ShortlexHasher{3}},
                 HashedSequence{{0}, ShortlexHasher{3}}
@@ -320,7 +320,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, CreateMomentMatrix_ABtoI) {
-        std::vector<MonomialSubstitutionRule> rules;
+        std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{0, 1}, ShortlexHasher{2}},
                 HashedSequence{{}, ShortlexHasher{2}}
@@ -352,7 +352,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, CreateMomentMatrix_ABtoA_BAtoI) {
-        std::vector<MonomialSubstitutionRule> rules;
+        std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{0, 1}, ShortlexHasher{2}},
                 HashedSequence{{0}, ShortlexHasher{2}}
@@ -387,7 +387,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, CreateMomentMatrix_AAtoA) {
-        std::vector<MonomialSubstitutionRule> rules;
+        std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{0, 0}, ShortlexHasher{2}},
                 HashedSequence{{0}, ShortlexHasher{2}}
@@ -414,7 +414,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, CreateMomentMatrix_ABtoMinusBA) {
-        std::vector<MonomialSubstitutionRule> rules;
+        std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{1, 0}, ShortlexHasher{2}},
                 HashedSequence{{0, 1}, ShortlexHasher{2}},
@@ -457,7 +457,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Algebraic_AlgebraicContext, CreateMomentMatrix_Commutative) {
         ShortlexHasher hasher{2};
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher}); // AB-> A
 

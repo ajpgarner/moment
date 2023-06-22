@@ -442,7 +442,7 @@ classdef (InferiorClasses={?Algebraic.Monomial,?Algebraic.Zero}) ...
         % 
             arguments
                 obj (1,1) Algebraic.Polynomial
-                rulebook (1,1) MomentRuleBook
+                rulebook (1,1) MomentRulebook
             end
             
             % Scenarios must match
@@ -453,7 +453,7 @@ classdef (InferiorClasses={?Algebraic.Monomial,?Algebraic.Zero}) ...
             % Get transformed version of polynomial
             as_symbol_cell = obj.SymbolCell();
             output_sequences = mtk('apply_moment_rules', ...
-                obj.Scenario.System.RefId, rulebook.RuleBookId, ...
+                obj.Scenario.System.RefId, rulebook.RulebookId, ...
                 'output', 'sequences', as_symbol_cell);
             
             % Construct new, transformed polynomial

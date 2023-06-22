@@ -28,7 +28,7 @@ function setting = make_bff_setting()
 
     setting = AlgebraicScenario(["A0", "A1", "B0", "B1", "Z0", "Z1"], ...
                                 {}, false, false);
-    rules = setting.RuleBook; 
+    rules = setting.Rulebook; 
 
     for op = rules.OperatorNames(1:4)
         rules.MakeHermitian(op);

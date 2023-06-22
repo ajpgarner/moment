@@ -1,5 +1,5 @@
-classdef Rule < matlab.mixin.CustomDisplay
-    %RULE Rewrite rule for algebraic system.
+classdef OperatorRule < matlab.mixin.CustomDisplay
+    %RULE Rewrite rule for operators in algebraic matrix system.
     
     properties(GetAccess = public, SetAccess = protected)
         LHS % Left-hand-side (match pattern) of rule.
@@ -8,7 +8,7 @@ classdef Rule < matlab.mixin.CustomDisplay
     end
     
     methods
-        function obj = Rule(lhs, rhs, negate)
+        function obj = OperatorRule(lhs, rhs, negate)
             arguments
                 lhs (1,:)
                 rhs (1,:)
@@ -41,7 +41,7 @@ classdef Rule < matlab.mixin.CustomDisplay
         function str = string(obj)
         % STRING Convert rule to human-readable string.
             arguments
-                obj (1,:) Algebraic.Rule
+                obj (1,:) Algebraic.OperatorRule
             end
             switch numel(obj)
                 case 0
@@ -87,8 +87,8 @@ classdef Rule < matlab.mixin.CustomDisplay
     
     methods(Access=private)
         function str = ruleText(obj)
-            lhs_str = Algebraic.Rule.opSeqToString(obj.LHS);
-            rhs_str = Algebraic.Rule.opSeqToString(obj.RHS);
+            lhs_str = Algebraic.OperatorRule.opSeqToString(obj.LHS);
+            rhs_str = Algebraic.OperatorRule.opSeqToString(obj.RHS);
             
             str = lhs_str + "  ->  ";
             if obj.Negated

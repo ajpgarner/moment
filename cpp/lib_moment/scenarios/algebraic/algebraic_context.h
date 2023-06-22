@@ -11,8 +11,8 @@
 #include "../context.h"
 
 #include "algebraic_precontext.h"
-#include "monomial_substitution_rule.h"
-#include "rule_book.h"
+#include "operator_rule.h"
+#include "operator_rulebook.h"
 
 #include "symbolic/monomial.h"
 
@@ -44,7 +44,7 @@ namespace Moment::Algebraic {
         AlgebraicPrecontext precontext;
 
         /** Monomial substitution rules */
-        RuleBook rules;
+        OperatorRulebook rules;
 
         /** Names */
         std::unique_ptr<NameTable> op_names;
@@ -61,11 +61,11 @@ namespace Moment::Algebraic {
         AlgebraicContext(const AlgebraicPrecontext& apc,
                          std::unique_ptr<NameTable> names,
                          bool commutative, bool normal,
-                         const std::vector<MonomialSubstitutionRule>& rules);
+                         const std::vector<OperatorRule>& rules);
 
         /** Delegates to first constructor, making default name table */
         AlgebraicContext(const AlgebraicPrecontext& apc, bool commutative, bool normal,
-                         const std::vector<MonomialSubstitutionRule>& rules);
+                         const std::vector<OperatorRule>& rules);
 
         /** Delegates to first constructor with default name table and default rules */
         AlgebraicContext(const AlgebraicPrecontext& apc, bool commutative, bool normal)
@@ -115,7 +115,7 @@ namespace Moment::Algebraic {
         /**
          * Access rule information.
          */
-        [[nodiscard]] const RuleBook& rulebook() const noexcept { return this->rules; }
+        [[nodiscard]] const OperatorRulebook& rulebook() const noexcept { return this->rules; }
 
         /**
          * Access name information.

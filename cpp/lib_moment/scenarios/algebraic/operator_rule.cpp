@@ -1,10 +1,10 @@
 /**
- * monomial_substitution_rule.cpp
+ * operator_rule.cpp
  * 
- * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "monomial_substitution_rule.h"
+#include "operator_rule.h"
 #include "algebraic_precontext.h"
 
 #include <cassert>
@@ -24,7 +24,7 @@ namespace Moment::Algebraic {
         }
     }
 
-    std::ostream& operator<<(std::ostream& os, const MonomialSubstitutionRule& msr) {
+    std::ostream& operator<<(std::ostream& os, const OperatorRule& msr) {
         if (msr.rawLHS.empty()) {
             os << "I";
         } else {
@@ -49,9 +49,9 @@ namespace Moment::Algebraic {
         return os;
     }
 
-    MonomialSubstitutionRule::MonomialSubstitutionRule(HashedSequence lhs,
-                                                       HashedSequence rhs,
-                                                       bool negated)
+    OperatorRule::OperatorRule(HashedSequence lhs,
+                               HashedSequence rhs,
+                               bool negated)
             : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, is_negated{negated},
               is_trivial{(lhs.hash() == rhs.hash()) && !negated},
               delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
@@ -62,8 +62,8 @@ namespace Moment::Algebraic {
     }
 
     sequence_storage_t
-    MonomialSubstitutionRule::apply_match_with_hint(const sequence_storage_t& input,
-                                                    const_iter_t hint) const {
+    OperatorRule::apply_match_with_hint(const sequence_storage_t& input,
+                                        const_iter_t hint) const {
 
         // Reserve vector, return empty vector, or give error:
         ptrdiff_t new_size = static_cast<ptrdiff_t>(input.size()) + this->delta;
@@ -94,7 +94,7 @@ namespace Moment::Algebraic {
         return output;
     }
 
-    bool MonomialSubstitutionRule::implies(const MonomialSubstitutionRule &other) const noexcept {
+    bool OperatorRule::implies(const OperatorRule &other) const noexcept {
         // First, do we find LHS in other rule?
         auto embeddedLHS_begin = this->rawLHS.matches_anywhere(other.rawLHS.begin(), other.rawLHS.end());
         if (embeddedLHS_begin== other.rawLHS.end()) {
@@ -125,8 +125,8 @@ namespace Moment::Algebraic {
         return true;
     }
 
-    std::optional<MonomialSubstitutionRule>
-    MonomialSubstitutionRule::combine(const MonomialSubstitutionRule &other, const AlgebraicPrecontext& pc) const {
+    std::optional<OperatorRule>
+    OperatorRule::combine(const OperatorRule &other, const AlgebraicPrecontext& pc) const {
         // First, do we have overlap? If not, early exit.
         ptrdiff_t overlap_size = this->LHS().suffix_prefix_overlap(other.rawLHS);
         if (overlap_size <= 0) {
@@ -157,21 +157,21 @@ namespace Moment::Algebraic {
 
         // Orient rules and return
         if (rawHashThis < rawHashOther) {
-            return MonomialSubstitutionRule{HashedSequence{std::move(rawViaOther), rawHashOther},
-                                            HashedSequence{std::move(rawViaThis), rawHashThis}, negation};
+            return OperatorRule{HashedSequence{std::move(rawViaOther), rawHashOther},
+                                HashedSequence{std::move(rawViaThis), rawHashThis}, negation};
         } else {
-            return MonomialSubstitutionRule{HashedSequence{std::move(rawViaThis), rawHashThis},
-                                            HashedSequence{std::move(rawViaOther), rawHashOther}, negation};
+            return OperatorRule{HashedSequence{std::move(rawViaThis), rawHashThis},
+                                HashedSequence{std::move(rawViaOther), rawHashOther}, negation};
         }
     }
 
-    MonomialSubstitutionRule MonomialSubstitutionRule::conjugate(const AlgebraicPrecontext& pc) const {
+    OperatorRule OperatorRule::conjugate(const AlgebraicPrecontext& pc) const {
         auto lhs = pc.conjugate(this->rawLHS);
         auto rhs = pc.conjugate(this->rawRHS);
         if (lhs < rhs) {
-            return MonomialSubstitutionRule(std::move(rhs), std::move(lhs), this->is_negated);
+            return OperatorRule(std::move(rhs), std::move(lhs), this->is_negated);
         } else {
-            return MonomialSubstitutionRule(std::move(lhs), std::move(rhs), this->is_negated);
+            return OperatorRule(std::move(lhs), std::move(rhs), this->is_negated);
         }
     }
 

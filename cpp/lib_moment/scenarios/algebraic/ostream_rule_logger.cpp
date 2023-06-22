@@ -17,9 +17,9 @@ namespace Moment::Algebraic {
         class RuleFormatter {
         public:
             const NameTable* names = nullptr;
-            const MonomialSubstitutionRule &rule;
+            const OperatorRule &rule;
 
-            explicit constexpr RuleFormatter(const NameTable* names, const MonomialSubstitutionRule &rule)
+            explicit constexpr RuleFormatter(const NameTable* names, const OperatorRule &rule)
                 : names{names}, rule{rule} { }
 
             friend std::ostream& operator<<(std::ostream& os, const RuleFormatter& rf) {
@@ -35,41 +35,41 @@ namespace Moment::Algebraic {
         };
     }
 
-    void OStreamRuleLogger::rule_reduced(const MonomialSubstitutionRule& old_rule,
-                                         const MonomialSubstitutionRule& new_rule) {
+    void OStreamRuleLogger::rule_reduced(const OperatorRule& old_rule,
+                                         const OperatorRule& new_rule) {
         os << "Reduce:\t" << RuleFormatter(names, old_rule)
            << "\n  |-\t" << RuleFormatter(names, new_rule) << "\n";
     }
 
-    void OStreamRuleLogger::rule_removed(const MonomialSubstitutionRule& ex_rule) {
+    void OStreamRuleLogger::rule_removed(const OperatorRule& ex_rule) {
         os << "Remove:\t" << RuleFormatter(names, ex_rule) << "\n";
     }
 
-    void OStreamRuleLogger::rule_introduced(const MonomialSubstitutionRule& parent_rule_a,
-                                            const MonomialSubstitutionRule& parent_rule_b,
-                                            const MonomialSubstitutionRule& new_rule) {
+    void OStreamRuleLogger::rule_introduced(const OperatorRule& parent_rule_a,
+                                            const OperatorRule& parent_rule_b,
+                                            const OperatorRule& new_rule) {
         os << "Combine:\t" << RuleFormatter(names, parent_rule_a)
            << "\tand " << RuleFormatter(names, parent_rule_b) << ":"
            << "\n  |-\t" << RuleFormatter(names, new_rule) << "\n";
     }
 
-    void OStreamRuleLogger::rule_introduced(const MonomialSubstitutionRule& new_rule) {
+    void OStreamRuleLogger::rule_introduced(const OperatorRule& new_rule) {
         os << "Directly added:\t" << RuleFormatter(names, new_rule) << "\n";
     }
 
-    void OStreamRuleLogger::rule_introduced_conjugate(const MonomialSubstitutionRule& parent_rule,
-                                                      const MonomialSubstitutionRule& new_rule) {
+    void OStreamRuleLogger::rule_introduced_conjugate(const OperatorRule& parent_rule,
+                                                      const OperatorRule& new_rule) {
         os << "Conjugate:\t" << RuleFormatter(names, parent_rule) << ":"
            << "\n  |-\t" << RuleFormatter(names, new_rule) << "\n";
     }
 
 
-    void OStreamRuleLogger::success(const RuleBook& rb, size_t attempts) {
+    void OStreamRuleLogger::success(const OperatorRulebook& rb, size_t attempts) {
         os << "The rule set was successfully completed after " << attempts
            << " new rule" << ((attempts != 1) ? "s" : "") << ".\n";
     }
 
-    void OStreamRuleLogger::failure(const RuleBook& rb, size_t attempts) {
+    void OStreamRuleLogger::failure(const OperatorRulebook& rb, size_t attempts) {
         os << "The rule set is still incomplete, after " << attempts
            << " new rule" << ((attempts != 1) ? "s" : "") << ".\n";
     }

@@ -148,7 +148,7 @@ classdef CompositeOperatorMatrix < handle
         % 
             arguments
                 obj (1,1) OpMatrix.CompositeOperatorMatrix
-                rulebook (1,1) MomentRuleBook
+                rulebook (1,1) MomentRulebook
             end
             tx_monos = OpMatrix.OperatorMatrix.empty(1,0);
             for idx = 1:length(obj.Constituents)

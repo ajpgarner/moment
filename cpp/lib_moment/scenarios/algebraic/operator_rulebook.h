@@ -1,12 +1,12 @@
 /**
- * rule_book.h
+ * operator_rulebook.h
  * 
- * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 #pragma once
 
-#include "monomial_substitution_rule.h"
+#include "operator_rule.h"
 #include "algebraic_precontext.h"
 
 #include "utilities/shortlex_hasher.h"
@@ -16,32 +16,32 @@
 #include <vector>
 
 namespace Moment::Algebraic {
-    class RuleBook;
+    class OperatorRulebook;
 
     class RuleLogger {
     public:
         virtual ~RuleLogger() = default;
 
-        virtual void rule_reduced(const MonomialSubstitutionRule& old_rule,
-                                      const MonomialSubstitutionRule& new_rule) = 0;
+        virtual void rule_reduced(const OperatorRule& old_rule,
+                                      const OperatorRule& new_rule) = 0;
 
-        virtual void rule_removed(const MonomialSubstitutionRule& ex_rule) = 0;
-
-        virtual void rule_introduced(
-                const MonomialSubstitutionRule& parent_rule_a,
-                const MonomialSubstitutionRule& parent_rule_b,
-                const MonomialSubstitutionRule& new_rule) = 0;
+        virtual void rule_removed(const OperatorRule& ex_rule) = 0;
 
         virtual void rule_introduced(
-                const MonomialSubstitutionRule& new_rule) = 0;
+                const OperatorRule& parent_rule_a,
+                const OperatorRule& parent_rule_b,
+                const OperatorRule& new_rule) = 0;
+
+        virtual void rule_introduced(
+                const OperatorRule& new_rule) = 0;
 
         virtual void rule_introduced_conjugate(
-                const MonomialSubstitutionRule& parent_rule,
-                const MonomialSubstitutionRule& new_rule) = 0;
+                const OperatorRule& parent_rule,
+                const OperatorRule& new_rule) = 0;
 
-        virtual void success(const RuleBook& rb, size_t attempts) = 0;
+        virtual void success(const OperatorRulebook& rb, size_t attempts) = 0;
 
-        virtual void failure(const RuleBook& rb, size_t attempts) = 0;
+        virtual void failure(const OperatorRulebook& rb, size_t attempts) = 0;
     };
 
     enum class OperatorType {
@@ -50,9 +50,9 @@ namespace Moment::Algebraic {
         Hermitian
     };
 
-    class RuleBook {
+    class OperatorRulebook {
     public:
-        using rule_map_t = std::map<size_t, MonomialSubstitutionRule>;
+        using rule_map_t = std::map<size_t, OperatorRule>;
 
     private:
         AlgebraicPrecontext precontext;
@@ -62,17 +62,17 @@ namespace Moment::Algebraic {
         bool is_hermitian = true;
 
     public:
-        RuleBook(const AlgebraicPrecontext& precontext,
-                 const std::vector<MonomialSubstitutionRule>& rules);
+        OperatorRulebook(const AlgebraicPrecontext& precontext,
+                         const std::vector<OperatorRule>& rules);
 
-        explicit RuleBook(const AlgebraicPrecontext& pc)
-            : RuleBook(pc, std::vector<MonomialSubstitutionRule>{}) { }
+        explicit OperatorRulebook(const AlgebraicPrecontext& pc)
+            : OperatorRulebook(pc, std::vector<OperatorRule>{}) { }
 
         /** Add rules */
-        ptrdiff_t add_rules(const std::vector<MonomialSubstitutionRule>& rules, RuleLogger * logger = nullptr);
+        ptrdiff_t add_rules(const std::vector<OperatorRule>& rules, RuleLogger * logger = nullptr);
 
         /** Add single rule */
-        ptrdiff_t add_rule(const MonomialSubstitutionRule& rule, RuleLogger * logger = nullptr);
+        ptrdiff_t add_rule(const OperatorRule& rule, RuleLogger * logger = nullptr);
 
 
         /** Handle to rules map. */
@@ -105,7 +105,7 @@ namespace Moment::Algebraic {
         [[nodiscard]] std::pair<HashedSequence, bool> reduce(const HashedSequence& input) const;
 
         /** Reduce rule, to best of knowledge, using rules in set */
-        [[nodiscard]] MonomialSubstitutionRule reduce(const MonomialSubstitutionRule& input) const;
+        [[nodiscard]] OperatorRule reduce(const OperatorRule& input) const;
 
         /** True, if the supplied operator sequence could be reduced by a rule in the set */
         [[nodiscard]] bool can_reduce(const sequence_storage_t& input) const;
@@ -143,21 +143,21 @@ namespace Moment::Algebraic {
          * @param logger Pointer (may be null) to class logging which new rule is deduced.
          * @return True, if conjugate was non-trivial (and hence added to set).
          */
-        bool try_conjugation(const MonomialSubstitutionRule& rule, RuleLogger * logger = nullptr);
+        bool try_conjugation(const OperatorRule& rule, RuleLogger * logger = nullptr);
 
         /**
          * Print out rules.
          */
-        friend std::ostream& operator<<(std::ostream& os, const RuleBook& rulebook);
+        friend std::ostream& operator<<(std::ostream& os, const OperatorRulebook& rulebook);
 
         /**
          * Generate complete commutation rule list.
          * @param apc Pre-context, for generating hashes and conjugates
          * @param output The vector of rules to append to - will have commutation rules added.
          */
-        inline static std::vector<MonomialSubstitutionRule> commutator_rules(const AlgebraicPrecontext& apc) {
-            std::vector<MonomialSubstitutionRule> output;
-            RuleBook::commutator_rules(apc, output);
+        inline static std::vector<OperatorRule> commutator_rules(const AlgebraicPrecontext& apc) {
+            std::vector<OperatorRule> output;
+            OperatorRulebook::commutator_rules(apc, output);
             return output;
         }
 
@@ -166,16 +166,16 @@ namespace Moment::Algebraic {
          * @param apc Pre-context, for generating hashes and conjugates
          * @return Vector of commutation rules.
          */
-        static void commutator_rules(const AlgebraicPrecontext& apc, std::vector<MonomialSubstitutionRule>& output);
+        static void commutator_rules(const AlgebraicPrecontext& apc, std::vector<OperatorRule>& output);
 
         /**
          * Generate "normal" rule list (a*a -> aa*), for non-self adjoint systems.
          * @param apc Pre-context, for generating hashes and conjugates.
          * @return Vector of normal rules; will be empty if apc is already self-adjoint.
          */
-        static inline std::vector<MonomialSubstitutionRule> normal_rules(const AlgebraicPrecontext& apc) {
-            std::vector<MonomialSubstitutionRule> output;
-            RuleBook::normal_rules(apc, output);
+        static inline std::vector<OperatorRule> normal_rules(const AlgebraicPrecontext& apc) {
+            std::vector<OperatorRule> output;
+            OperatorRulebook::normal_rules(apc, output);
             return output;
         }
 
@@ -184,7 +184,7 @@ namespace Moment::Algebraic {
          * @param apc Pre-context, for generating hashes and conjugates.
          * @param output The vector of rules to append to - will have normal rules added (no change if apc is self-adj.)
          */
-        static void normal_rules(const AlgebraicPrecontext& apc, std::vector<MonomialSubstitutionRule>& output);
+        static void normal_rules(const AlgebraicPrecontext& apc, std::vector<OperatorRule>& output);
 
     };
 

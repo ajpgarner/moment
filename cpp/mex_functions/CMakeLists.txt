@@ -21,7 +21,7 @@ matlab_add_mex(NAME moment_mex
             export/export_implicit_symbols.cpp
             export/export_matrix_basis_masks.cpp
             export/export_moment_substitution_rules.cpp
-            export/export_monomial_rules.cpp
+        export/export_operator_rules.cpp
             export/export_operator_sequence.cpp
             export/export_polynomial.cpp
             export/export_sequence_matrix.cpp
@@ -44,7 +44,7 @@ matlab_add_mex(NAME moment_mex
             utilities/reporting.cpp
             functions/alphabetic_name.cpp
             functions/collins_gisin.cpp
-            functions/complete.cpp
+        functions/operator_rules/complete.cpp
             functions/conjugate.cpp
             functions/import_matrix.cpp
             functions/generate_basis.cpp
@@ -61,7 +61,7 @@ matlab_add_mex(NAME moment_mex
             functions/debug/echo.cpp
             functions/debug/list.cpp
             functions/debug/moment_rule_superset.cpp
-            functions/debug/monomial_rules.cpp
+        functions/operator_rules/operator_rules.cpp
             functions/debug/version.cpp
             functions/matrix_system/algebraic_matrix_system.cpp
             functions/matrix_system/imported_matrix_system.cpp

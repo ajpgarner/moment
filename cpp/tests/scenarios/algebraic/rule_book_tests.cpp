@@ -8,14 +8,14 @@
 #include "gtest/gtest.h"
 
 #include "scenarios/algebraic/algebraic_precontext.h"
-#include "scenarios/algebraic/rule_book.h"
+#include "scenarios/algebraic/operator_rulebook.h"
 
 namespace Moment::Tests {
     using namespace Moment::Algebraic;
 
     TEST(Scenarios_Algebraic_RuleBook, Empty) {
         AlgebraicPrecontext apc{1};
-        RuleBook rules{apc};
+        OperatorRulebook rules{apc};
         EXPECT_EQ(rules.size(), 0);
         EXPECT_TRUE(rules.rules().empty());
     }
@@ -23,9 +23,9 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, AddRule_ToEmpty) {
         AlgebraicPrecontext apc{2};
         const ShortlexHasher& hasher = apc.hasher;
-        RuleBook rules{apc};
+        OperatorRulebook rules{apc};
         EXPECT_EQ(rules.size(), 0);
-        MonomialSubstitutionRule msr{HashedSequence{{0, 1}, hasher}, HashedSequence{{0}, hasher}};
+        OperatorRule msr{HashedSequence{{0, 1}, hasher}, HashedSequence{{0}, hasher}};
         EXPECT_EQ(rules.add_rule(msr), 1);
         ASSERT_EQ(rules.size(), 1);
 
@@ -40,13 +40,13 @@ namespace Moment::Tests {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
 
-        std::vector<MonomialSubstitutionRule> msr_list;
+        std::vector<OperatorRule> msr_list;
         msr_list.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
-        RuleBook rules{apc, msr_list};
+        OperatorRulebook rules{apc, msr_list};
         EXPECT_EQ(rules.size(), 1);
 
-        MonomialSubstitutionRule msr{HashedSequence{{0, 2}, hasher}, HashedSequence{{1}, hasher}, true};
+        OperatorRule msr{HashedSequence{{0, 2}, hasher}, HashedSequence{{1}, hasher}, true};
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 2);
 
@@ -67,13 +67,13 @@ namespace Moment::Tests {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         
-        std::vector<MonomialSubstitutionRule> msr_list;
+        std::vector<OperatorRule> msr_list;
         msr_list.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
-        RuleBook rules{apc, msr_list};
+        OperatorRulebook rules{apc, msr_list};
         EXPECT_EQ(rules.size(), 1);
 
-        MonomialSubstitutionRule msr{HashedSequence{{0, 1}, hasher}, HashedSequence{{0}, hasher}};
+        OperatorRule msr{HashedSequence{{0, 1}, hasher}, HashedSequence{{0}, hasher}};
         EXPECT_EQ(rules.add_rule(msr), 0);
         EXPECT_EQ(rules.size(), 1);
 
@@ -87,13 +87,13 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, AddRule_ImpliesZero) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr_list;
+        std::vector<OperatorRule> msr_list;
         msr_list.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
-        RuleBook rules{apc, msr_list};
+        OperatorRulebook rules{apc, msr_list};
         EXPECT_EQ(rules.size(), 1);
 
-        MonomialSubstitutionRule msr{HashedSequence{{0, 1}, hasher}, HashedSequence{{0}, hasher}, true};
+        OperatorRule msr{HashedSequence{{0, 1}, hasher}, HashedSequence{{0}, hasher}, true};
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 2);
 
@@ -113,13 +113,13 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, AddRule_CtoB_CtoA) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr_list;
+        std::vector<OperatorRule> msr_list;
         msr_list.emplace_back(HashedSequence{{2}, hasher},
                          HashedSequence{{1}, hasher});
-        RuleBook rules{apc, msr_list};
+        OperatorRulebook rules{apc, msr_list};
         EXPECT_EQ(rules.size(), 1);
 
-        MonomialSubstitutionRule msr{HashedSequence{{2}, hasher}, HashedSequence{{0}, hasher}};
+        OperatorRule msr{HashedSequence{{2}, hasher}, HashedSequence{{0}, hasher}};
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 2);
 
@@ -140,13 +140,13 @@ namespace Moment::Tests {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         
-        std::vector<MonomialSubstitutionRule> msr_list;
+        std::vector<OperatorRule> msr_list;
         msr_list.emplace_back(HashedSequence{{2}, hasher},
                          HashedSequence{{0}, hasher});
-        RuleBook rules{apc, msr_list};
+        OperatorRulebook rules{apc, msr_list};
         EXPECT_EQ(rules.size(), 1);
 
-        MonomialSubstitutionRule msr{HashedSequence{{2}, hasher}, HashedSequence{{1}, hasher}};
+        OperatorRule msr{HashedSequence{{2}, hasher}, HashedSequence{{1}, hasher}};
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 2);
 
@@ -166,15 +166,15 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, AddRule_Cascade) {
         AlgebraicPrecontext apc{4, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr_list;
+        std::vector<OperatorRule> msr_list;
         msr_list.emplace_back(HashedSequence{{3}, hasher},
                          HashedSequence{{2}, hasher}); // D -> C
         msr_list.emplace_back(HashedSequence{{2}, hasher},
                          HashedSequence{{0}, hasher}); // C -> A
-        RuleBook rules{apc, msr_list};
+        OperatorRulebook rules{apc, msr_list};
         EXPECT_EQ(rules.size(), 2);
 
-        MonomialSubstitutionRule msr{HashedSequence{{3}, hasher}, HashedSequence{{1}, hasher}}; // D -> B
+        OperatorRule msr{HashedSequence{{3}, hasher}, HashedSequence{{1}, hasher}}; // D -> B
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 3);
 
@@ -201,10 +201,10 @@ namespace Moment::Tests {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         auto [simplified_string, neg] = rules.reduce(
                 HashedSequence{{0, 1}, hasher}
@@ -218,10 +218,10 @@ namespace Moment::Tests {
      TEST(Scenarios_Algebraic_RuleBook, Reduce_StringRecursive) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         auto [simplified_string, neg] = rules.reduce(
                 HashedSequence{{0, 1, 1, 1}, hasher}
@@ -235,10 +235,10 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, Reduce_ABToZero_AB) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
                          HashedSequence{true});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         auto [simplified_string, neg] = rules.reduce(
                 HashedSequence{{0, 1}, hasher}
@@ -252,10 +252,10 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, Reduce_ABToZero_ABBB) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
                          HashedSequence{true});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         auto [simplified_string, neg] = rules.reduce(
                 HashedSequence{{0, 1, 1, 1}, hasher}
@@ -269,10 +269,10 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, Reduce_ABToZero_BAB) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
                          HashedSequence{true});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         auto [simplified_string, neg] = rules.reduce(
                 HashedSequence{{1, 0, 1}, hasher}
@@ -286,15 +286,15 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, Reduce_Rule) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
                          HashedSequence{{1}, hasher});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         auto simplified_rule = rules.reduce(
-               MonomialSubstitutionRule{HashedSequence{{0, 1}, hasher}, HashedSequence{{0, 0}, hasher}}
+                OperatorRule{HashedSequence{{0, 1}, hasher}, HashedSequence{{0, 0}, hasher}}
                 );
 
         ASSERT_EQ(simplified_rule.LHS().size(), 2); // 00
@@ -309,15 +309,15 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, Reduce_RuleToZero) {
         AlgebraicPrecontext apc{4, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{2}, hasher},
                          HashedSequence{{1}, hasher}); // 2 = 1
         msr.emplace_back(HashedSequence{{3}, hasher},
                          HashedSequence{{1}, hasher}, true); // 3 = -1
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         auto simplified_rule = rules.reduce(
-               MonomialSubstitutionRule{HashedSequence{{3}, hasher}, HashedSequence{{2}, hasher}}
+                OperatorRule{HashedSequence{{3}, hasher}, HashedSequence{{2}, hasher}}
                 );
 
         // Rule reduces to 1 = -1 => 1 = [null]
@@ -331,12 +331,12 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, ReduceRuleset_AACtoAAB_CtoB) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 0, 2}, hasher},
                          HashedSequence{{0, 0, 1}, hasher});
         msr.emplace_back(HashedSequence{{2}, hasher},
                          HashedSequence{{1}, hasher});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         size_t number_reduced = rules.reduce_ruleset();
         EXPECT_EQ(number_reduced, 1); // should have removed 002->001
@@ -359,12 +359,12 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, ReduceRuleset_CtoB_BtoA) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{2}, hasher},
                          HashedSequence{{1}, hasher});
         msr.emplace_back(HashedSequence{{1}, hasher},
                          HashedSequence{{0}, hasher});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         size_t number_reduced = rules.reduce_ruleset();
         EXPECT_EQ(number_reduced, 1); // should have altered 2->1 to 2->0
@@ -397,10 +397,10 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, AddConjugateRule) {
         AlgebraicPrecontext apc{2};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 0, 1}, hasher},
                          HashedSequence{{}, hasher});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         ASSERT_EQ(rules.rules().size(), 1);
         EXPECT_TRUE(rules.try_conjugation(rules.rules().begin()->second));
@@ -413,10 +413,10 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, ConjugateRuleset) {
         AlgebraicPrecontext apc{2};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 0, 1}, hasher},
                          HashedSequence{{}, hasher});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         ASSERT_EQ(rules.rules().size(), 1);
 
@@ -430,12 +430,12 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, Complete_ABtoA_BAtoB) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
                          HashedSequence{{1}, hasher});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         EXPECT_FALSE(rules.is_complete());
 
@@ -459,14 +459,14 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, Complete_AAAtoI_BBBtoI_ABABABtoI) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 0, 0}, hasher},
                          HashedSequence{{}, hasher});
         msr.emplace_back(HashedSequence{{1, 1, 1}, hasher},
                          HashedSequence{{}, hasher});
         msr.emplace_back(HashedSequence{{0, 1, 0, 1, 0, 1}, hasher},
                          HashedSequence{{}, hasher});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         EXPECT_FALSE(rules.is_complete());
 
@@ -487,12 +487,12 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, Complete_ABtoA_BAtoMinusB) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
                          HashedSequence{{1}, hasher}, true);
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         EXPECT_FALSE(rules.is_complete());
         ASSERT_TRUE(rules.complete(10));
@@ -510,12 +510,12 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, HermitianComplete_ABtoA_BAtoB_Hermitian) {
         AlgebraicPrecontext apc{2};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
                          HashedSequence{{1}, hasher});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         EXPECT_FALSE(rules.is_complete());
 
@@ -530,14 +530,14 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, HermitianComplete_ABtoA_BCtoB_CAtoC) {
         AlgebraicPrecontext apc{3};
         const ShortlexHasher& hasher = apc.hasher;
-        std::vector<MonomialSubstitutionRule> msr;
+        std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
         msr.emplace_back(HashedSequence{{1, 2}, hasher},
                          HashedSequence{{1}, hasher});
         msr.emplace_back(HashedSequence{{2, 0}, hasher},
                          HashedSequence{{2}, hasher});
-        RuleBook rules{apc, msr};
+        OperatorRulebook rules{apc, msr};
 
         EXPECT_FALSE(rules.is_complete());
 
@@ -570,7 +570,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, GenerateCommutators) {
         AlgebraicPrecontext apc{3};
         const ShortlexHasher& hasher = apc.hasher;
-        auto comVec = RuleBook::commutator_rules(apc);
+        auto comVec = OperatorRulebook::commutator_rules(apc);
         ASSERT_EQ(comVec.size(), 3);
 
         for (size_t i = 0; i < 3; ++i) {
@@ -592,7 +592,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, GenerateNormalRules_Bunched) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
-        auto normVec = RuleBook::normal_rules(apc);
+        auto normVec = OperatorRulebook::normal_rules(apc);
         ASSERT_EQ(normVec.size(), 3);
 
         for (size_t i = 0; i < 3; ++i) {
@@ -614,7 +614,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Algebraic_RuleBook, GenerateNormalRules_Interleaved) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Interleaved};
         const ShortlexHasher& hasher = apc.hasher;
-        auto normVec = RuleBook::normal_rules(apc);
+        auto normVec = OperatorRulebook::normal_rules(apc);
         ASSERT_EQ(normVec.size(), 3);
 
         for (size_t i = 0; i < 3; ++i) {

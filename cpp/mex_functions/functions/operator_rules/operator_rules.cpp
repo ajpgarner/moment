@@ -1,43 +1,42 @@
 /**
- * monomial_rules.cpp
+ * operator_rules.cpp
  * 
  * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "monomial_rules.h"
+#include "operator_rules.h"
 
 #include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/algebraic/algebraic_matrix_system.h"
 
 #include "storage_manager.h"
-#include "export/export_monomial_rules.h"
+#include "export/export_operator_rules.h"
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 
-
 namespace Moment::mex::functions {
 
-    MonomialRulesParams::MonomialRulesParams(SortedInputs &&rawInput)
+    OperatorRulesParams::OperatorRulesParams(SortedInputs &&rawInput)
         : SortedInputs(std::move(rawInput)) {
         this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
                                                             this->inputs[0], 0);
     }
 
-    MonomialRules::MonomialRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
+    OperatorRules::OperatorRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
             : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_outputs = this->max_outputs = 1;
         this->min_inputs = 1;
         this->max_inputs = 1;
     }
 
-    void MonomialRules::extra_input_checks(MonomialRulesParams &input) const {
+    void OperatorRules::extra_input_checks(OperatorRulesParams &input) const {
         if (!this->storageManager.MatrixSystems.check_signature(input.storage_key)) {
             throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
         }
     }
 
-    void MonomialRules::operator()(IOArgumentRange output, MonomialRulesParams &input) {
+    void OperatorRules::operator()(IOArgumentRange output, OperatorRulesParams &input) {
         // Get referred to matrix system (or fail)
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {
@@ -63,7 +62,7 @@ namespace Moment::mex::functions {
 
         // Output list of parsed rules
         if (output.size() >= 1) {
-            output[0] = export_monomial_rules(rules, true);
+            output[0] = export_operator_rules(rules, true);
         }
     }
 }

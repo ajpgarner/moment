@@ -96,13 +96,13 @@ classdef OperatorMatrix < handle
         function val = ApplyRules(obj, rulebook )
             arguments
                 obj (1,1) OpMatrix.OperatorMatrix
-                rulebook (1,1) MomentRuleBook
+                rulebook (1,1) MomentRulebook
             end
            
             val = OpMatrix.OperatorMatrix(obj.MatrixSystem);
             [val.Index, val.Dimension] = ...
                 mtk('substituted_matrix', obj.MatrixSystem.RefId, ...
-                obj.Index, rulebook.RuleBookId);
+                obj.Index, rulebook.RulebookId);
         end 
     end    
     
