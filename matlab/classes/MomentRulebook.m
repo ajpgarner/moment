@@ -1,11 +1,11 @@
-classdef MomentRulebook < handle
+classdef MomentRuleBook < handle
 %MOMENTRULEBOOK A list of substitutions to make at the level of moments.
 %
 
 %% Properties
 properties(GetAccess = public, SetAccess = protected)
     Scenario    % Associated scenario.
-    RulebookId  % ID of the rulebook within the matrix system.
+    RuleBookId  % ID of the rulebook within the matrix system.
 end
 
 properties(Dependent, GetAccess = public, SetAccess = private)
@@ -31,7 +31,7 @@ end
 
 %% Constructor
 methods
-    function obj = MomentRulebook(scenario, label)
+    function obj = MomentRuleBook(scenario, label)
     % MOMENTRULEBOOK Creates a moment substitution rule book.
         arguments
             scenario (1,1) Abstract.Scenario
@@ -50,7 +50,7 @@ methods
             rb_args{end+1} = label;
         end
                    
-        obj.RulebookId = mtk('create_moment_rules', rb_args{:}, ...
+        obj.RuleBookId = mtk('create_moment_rules', rb_args{:}, ...
                              scenario.System.RefId, {});
         
         obj.invalidate_cached_rules();        
@@ -63,7 +63,7 @@ methods
         if ~obj.has_rrc
             obj.cache_RawRuleCell = ...
                 mtk('moment_rules', obj.Scenario.System.RefId, ...
-                    obj.RulebookId, 'sequences');            
+                    obj.RuleBookId, 'sequences');            
             obj.has_rrc = true;
         end
         val = obj.cache_RawRuleCell;
@@ -72,10 +72,10 @@ methods
     function val = get.RulePolynomials(obj)
         if ~obj.has_rp
             rrc = obj.RawRuleCell;
-            obj.cache_RulePolynomials = MTKPolynomial.empty(0, 1);
+            obj.cache_RulePolynomials = Algebraic.Polynomial.empty(0, 1);
             for idx=1:length(rrc)
                 obj.cache_RulePolynomials(end+1) = ...
-                    MTKPolynomial(obj.Scenario, rrc{idx});
+                    Algebraic.Polynomial(obj.Scenario, rrc{idx});
             end
             obj.has_rp = true;
         end
@@ -86,7 +86,7 @@ methods
         if ~obj.has_rs
             obj.cache_RuleStrings = ...
                 mtk('moment_rules', obj.Scenario.System.RefId, ...
-                    obj.RulebookId, 'strings');
+                    obj.RuleBookId, 'strings');
             obj.has_rs = true;
         end
         val = obj.cache_RuleStrings;
@@ -94,7 +94,7 @@ methods
     
     function invalidate_cached_rules(obj)
          obj.cache_RawRuleCell = cell.empty(0,1);
-         obj.cache_RulePolynomials = MTKPolynomial.empty(0, 1);
+         obj.cache_RulePolynomials = Algebraic.Polynomial.empty(0, 1);
          obj.cache_RuleStrings = string.empty(0,1);
          obj.has_rrc = false;
          obj.has_rp = false;
@@ -114,8 +114,8 @@ methods
     %                 not already exist.
     %
     arguments
-        obj (1,1) MomentRulebook
-        polynomials (:,1) MTKPolynomial
+        obj (1,1) MomentRuleBook
+        polynomials (:,1) Algebraic.Polynomial
         new_symbols (1,1) logical = true
     end
         raw_rules = cell(length(polynomials), 1);
@@ -133,7 +133,7 @@ methods
     %   values     - The corresponding value to assign to each symbol id.
     %
         arguments
-            obj (1,1) MomentRulebook
+            obj (1,1) MomentRuleBook
             symbol_ids (1,:) uint64
             values (1,:) double
         end
@@ -159,19 +159,19 @@ methods
     % {symbol, value} cell pairs.
     %
         arguments
-            obj (1,1) MomentRulebook
+            obj (1,1) MomentRuleBook
             symbol_value_pairs (1,:) cell
         end
 
         % Extra arguments
-        rb_args = {'input', 'list', 'rulebook', obj.RulebookId};
+        rb_args = {'input', 'list', 'rulebook', obj.RuleBookId};
 
        
         % Import rules into rulebook
         rule_id = mtk('create_moment_rules', rb_args{:}, ...
                       obj.Scenario.System.RefId, ...
                       symbol_value_pairs);
-        assert(rule_id == obj.RulebookId);
+        assert(rule_id == obj.RuleBookId);
         obj.invalidate_cached_rules();
     end
 
@@ -187,13 +187,13 @@ methods
     % sequence is supplied.
     %
         arguments
-            obj (1,1) MomentRulebook
+            obj (1,1) MomentRuleBook
             op_seq_cell (1,:) cell
             new_symbols (1,1) logical = false
         end
         
         % Prepare params
-        extra_params = {'input', 'sequences', 'rulebook', obj.RulebookId};
+        extra_params = {'input', 'sequences', 'rulebook', obj.RuleBookId};
         if ~new_symbols
             extra_params{end+1} = 'no_new_symbols';
         end
@@ -201,7 +201,7 @@ methods
         % Construct rulebook, and import rules
         rule_id = mtk('create_moment_rules', extra_params{:},...
                       obj.Scenario.System.RefId, op_seq_cell);
-        assert(rule_id == obj.RulebookId);
+        assert(rule_id == obj.RuleBookId);
         obj.invalidate_cached_rules();
         
         % Flag to system object that extra symbols may have been created.
@@ -212,12 +212,11 @@ methods
     end
 end
 
-
 %% Apply rules to objects
 methods
     function val = Apply(obj, target)
         arguments
-            obj (1,1) MomentRulebook
+            obj (1,1) MomentRuleBook
             target
         end
 
@@ -225,11 +224,11 @@ methods
             val = target.ApplyRules(obj);
         elseif isa(target, 'OpMatrix.CompositeOperatorMatrix')
             val = target.ApplyRules(obj);            
-        elseif isa(target, 'Symbolic.Zero')
+        elseif isa(target, 'Algebraic.Zero')
             val = target.ApplyRules(obj);
-        elseif isa(target, 'MTKMonomial')
+        elseif isa(target, 'Algebraic.Monomial')
             val = target.ApplyRules(obj);
-        elseif isa(target, 'MTKPolynomial')
+        elseif isa(target, 'Algebraic.Polynomial')
             val = target.ApplyRules(obj);
         else
             error("Could not apply rules to target of type %s.", ...
@@ -237,58 +236,6 @@ methods
         end            
     end
 end
-
-%% Public yalmip methods
-methods
-    function ym_expr = yalmipConstraints(obj, real_vars, im_vars)
-    % YALMIP Convert rulebook to set of yalmip constraints.
-    %     
-    arguments
-        obj (1,1) MomentRulebook
-        real_vars
-        im_vars
-    end
     
-        % Has real...
-        if nargin >= 2
-            if ~isa(real_vars, 'sdpvar')
-                error("Expected YALMIP real basis vector input.");
-            end
-            if length(the_re_coefs) ~= length(real_vars)
-                error("YALMIP real vector dimension (" ...
-                    + num2str(length(real_vars)) + ") does not match "...
-                    + "object coefficient dimension (" ...
-                    + num2str(length(the_re_coefs)) + ").");
-            end
-            real_vars = reshape(real_vars, [], 1);
-        else
-            error("Expected YALMIP real basis vector input.");
-        end
-
-        % Has imaginary...
-        if nargin >= 3
-            if ~isa(im_vars, 'sdpvar')
-                error("Expected YALMIP imaginary basis vector input.");
-            end
-            if length(the_im_coefs) ~= length(im_basis)
-                error("YALMIP imaginary vector dimension (" ...
-                    + num2str(length(im_basis)) + ") does not match "...
-                    + "object coefficient dimension (" ...
-                    + num2str(length(the_im_coefs)) + ").");
-            end
-            im_basis = reshape(im_basis, [], 1);
-            has_im = true;
-        else
-            has_im = false;
-        end
-
-        % Generate expression...
-        ym_expr = (the_re_coefs * real_basis);
-        if (has_im)
-            ym_expr = ym_expr + 1i * (the_im_coefs * im_basis);
-        end
-    end
-end
-
 end
     
