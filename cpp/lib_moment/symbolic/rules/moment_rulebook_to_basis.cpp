@@ -9,20 +9,22 @@
 
 #include "moment_rulebook.h"
 
-#include "polynomial_factory.h"
-#include "polynomial_to_basis.h"
-#include "polynomial_to_basis_mask.h"
+#include "../polynomial_factory.h"
+#include "../polynomial_to_basis.h"
+#include "../polynomial_to_basis_mask.h"
 
-#include "symbol_table.h"
+#include "../symbol_table.h"
 
 namespace Moment {
 
-    MomentRulebookToBasis::MomentRulebookToBasis(const PolynomialFactory& factory)
-         : symbols{factory.symbols}, zero_tolerance{factory.zero_tolerance} {
+    MomentRulebookToBasis::MomentRulebookToBasis(const PolynomialFactory& factory,
+                                                 MomentRulebookToBasis::ExportMode mode)
+         : symbols{factory.symbols}, zero_tolerance{factory.zero_tolerance}, export_mode{mode} {
     }
 
-    MomentRulebookToBasis::MomentRulebookToBasis(const SymbolTable& symbols, double zero_tolerance)
-         : symbols{symbols}, zero_tolerance{zero_tolerance} {
+    MomentRulebookToBasis::MomentRulebookToBasis(const SymbolTable& symbols, double zero_tolerance,
+                                                 MomentRulebookToBasis::ExportMode mode)
+         : symbols{symbols}, zero_tolerance{zero_tolerance}, export_mode{mode} {
     }
 
     MomentRulebookToBasis::output_t MomentRulebookToBasis::operator()(const MomentRulebook& rulebook) const {
@@ -99,14 +101,26 @@ namespace Moment {
             }
         }
 
-        // Insert ID for non-mentioned elements
-        mask_real.invert_in_place();
-        for (auto index : mask_real) {
-            triplets.emplace_back(index, index, 1.0);
-        }
-        mask_imaginary.invert_in_place();
-        for (auto index : mask_imaginary) {
-            triplets.emplace_back(num_real_elems + index, num_real_elems + index, 1.0);
+        if (export_mode == ExportMode::Rewrite) {
+            // Insert ID for non-mentioned elements
+            mask_real.invert_in_place();
+            for (auto index: mask_real) {
+                triplets.emplace_back(index, index, 1.0);
+            }
+            mask_imaginary.invert_in_place();
+            for (auto index: mask_imaginary) {
+                triplets.emplace_back(num_real_elems + index, num_real_elems + index, 1.0);
+            }
+        } else {
+            assert(export_mode == ExportMode::Homogeneous);
+            // Subtract ID from mentioned elements
+            for (auto index: mask_real) {
+                triplets.emplace_back(index, index, -1.0);
+            }
+
+            for (auto index: mask_imaginary) {
+                triplets.emplace_back(num_real_elems + index, num_real_elems + index, -1.0);
+            }
         }
 
         // Construct matrix

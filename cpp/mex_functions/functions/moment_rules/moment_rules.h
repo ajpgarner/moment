@@ -43,8 +43,10 @@ namespace Moment::mex::functions {
             SymbolCell,
             /** List rules as operator-sequence cell array. */
             SequenceCell,
-            /** List rules as sparse matrix that can act on (a \oplus b) vector. */
-            Monolith,
+            /** List rules as sparse matrix that can act on an arbitrary (a \oplus b) vector to fill missing values. */
+            RewriteMatrix,
+            /** List rules as sparse matrix that can act on conformant (a \oplus b) vector to equal zero. */
+            HomogenousMatrix,
         } output_mode = OutputMode::String;
 
         /** Constructor */

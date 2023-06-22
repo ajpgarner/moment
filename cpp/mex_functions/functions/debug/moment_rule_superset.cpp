@@ -7,7 +7,7 @@
 
 #include "moment_rule_superset.h"
 
-#include "symbolic/moment_rulebook.h"
+#include "symbolic/rules/moment_rulebook.h"
 
 #include "storage_manager.h"
 #include "utilities/read_as_scalar.h"

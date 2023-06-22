@@ -12,7 +12,7 @@
 #include "scenarios/context.h"
 
 #include "symbolic/monomial_comparator_by_hash.h"
-#include "symbolic/moment_rulebook.h"
+#include "symbolic/rules/moment_rulebook.h"
 #include "symbolic/symbol_table.h"
 
 #include "import/read_opseq_polynomial.h"

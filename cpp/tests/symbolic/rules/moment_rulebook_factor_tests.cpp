@@ -14,10 +14,10 @@
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
-#include "symbolic/moment_rule.h"
-#include "symbolic/moment_rulebook.h"
+#include "symbolic/rules/moment_rule.h"
+#include "symbolic/rules/moment_rulebook.h"
 
-#include "symbolic_matrix_helpers.h"
+#include "../symbolic_matrix_helpers.h"
 
 namespace Moment::Tests {
 

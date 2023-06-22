@@ -12,7 +12,7 @@
 #include "scenarios/context.h"
 
 #include "symbolic/polynomial_factory.h"
-#include "symbolic/moment_rulebook.h"
+#include "symbolic/rules/moment_rulebook.h"
 #include "symbolic/symbol_table.h"
 
 #include "utilities/read_as_scalar.h"
@@ -37,7 +37,7 @@ namespace Moment::mex::functions {
         if (this->inputs.size() >= 3) {
             try {
                 switch (read_choice("Output mode",
-                                    {"strings", "symbols", "sequences", "matrix"},
+                                    {"strings", "symbols", "sequences", "rewrite", "homogenous"},
                                     this->inputs[2])) {
                     case 0:
                         this->output_mode = OutputMode::String;
@@ -49,7 +49,10 @@ namespace Moment::mex::functions {
                         this->output_mode = OutputMode::SequenceCell;
                         break;
                     case 3:
-                        this->output_mode = OutputMode::Monolith;
+                        this->output_mode = OutputMode::RewriteMatrix;
+                        break;
+                    case 4:
+                        this->output_mode = OutputMode::HomogenousMatrix;
                         break;
                 }
             } catch (const Moment::mex::errors::invalid_choice& ice) {
@@ -133,8 +136,11 @@ namespace Moment::mex::functions {
             case MomentRulesParams::OutputMode::SequenceCell:
                 output[0] = msrExporter.as_operator_cell(rulebook);
                 break;
-            case MomentRulesParams::OutputMode::Monolith:
-                output[0] = msrExporter.as_monolith(rulebook);
+            case MomentRulesParams::OutputMode::RewriteMatrix:
+                output[0] = msrExporter.as_rewrite_matrix(rulebook);
+                break;
+            case MomentRulesParams::OutputMode::HomogenousMatrix:
+                output[0] = msrExporter.as_homogenous_matrix(rulebook);
                 break;
             default:
                 throw_error(this->matlabEngine, errors::internal_error, "Unknown output mode!");

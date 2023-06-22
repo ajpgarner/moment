@@ -7,9 +7,9 @@
 
 #include "export_moment_substitution_rules.h"
 
-#include "symbolic/moment_rule.h"
-#include "symbolic/moment_rulebook.h"
-#include "symbolic/moment_rulebook_to_basis.h"
+#include "symbolic/rules/moment_rule.h"
+#include "symbolic/rules/moment_rulebook.h"
+#include "symbolic/rules/moment_rulebook_to_basis.h"
 #include "symbolic/polynomial.h"
 #include "symbolic/symbol_table.h"
 
@@ -106,8 +106,17 @@ namespace Moment::mex {
         return UTF8toUTF16Convertor{}(ruleSS.str());
     }
 
-    matlab::data::Array MomentSubstitutionRuleExporter::as_monolith(const MomentRulebook &rulebook) {
-        MomentRulebookToBasis mrtb{this->symbols, this->combo_exporter.zero_tolerance};
+    matlab::data::Array MomentSubstitutionRuleExporter::as_rewrite_matrix(const MomentRulebook &rulebook) {
+        MomentRulebookToBasis mrtb{this->symbols, this->combo_exporter.zero_tolerance,
+                                   MomentRulebookToBasis::ExportMode::Rewrite};
+        auto eigen_sparse_matrix = mrtb(rulebook);
+        matlab::data::ArrayFactory factory;
+        return export_eigen_sparse(this->engine, factory, eigen_sparse_matrix);
+    }
+
+    matlab::data::Array MomentSubstitutionRuleExporter::as_homogenous_matrix(const Moment::MomentRulebook &rulebook) {
+        MomentRulebookToBasis mrtb{this->symbols, this->combo_exporter.zero_tolerance,
+                                   MomentRulebookToBasis::ExportMode::Homogeneous};
         auto eigen_sparse_matrix = mrtb(rulebook);
         matlab::data::ArrayFactory factory;
         return export_eigen_sparse(this->engine, factory, eigen_sparse_matrix);

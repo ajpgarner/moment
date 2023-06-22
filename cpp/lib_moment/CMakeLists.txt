@@ -62,9 +62,6 @@ add_library(lib_moment
         scenarios/symmetrized/representation.cpp
         scenarios/symmetrized/representation_mapper.cpp
         scenarios/symmetrized/symmetrized_matrix_system.cpp
-        symbolic/moment_rule.cpp
-        symbolic/moment_rulebook.cpp
-        symbolic/moment_rulebook_to_basis.cpp
         symbolic/monomial.cpp
         symbolic/monomial_comparator_by_hash.cpp
         symbolic/polynomial.cpp
@@ -74,6 +71,9 @@ add_library(lib_moment
         symbolic/symbol.cpp
         symbolic/symbol_table.cpp
         symbolic/symbol_tools.cpp
+        symbolic/rules/moment_rule.cpp
+        symbolic/rules/moment_rulebook.cpp
+        symbolic/rules/moment_rulebook_to_basis.cpp
         utilities/alphabetic_namer.cpp
         utilities/format_factor.cpp
         utilities/kronecker_power.cpp

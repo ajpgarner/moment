@@ -14,13 +14,13 @@
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
-#include "symbolic/moment_rule.h"
-#include "symbolic/moment_rulebook.h"
-#include "symbolic/moment_rulebook_to_basis.h"
+#include "symbolic/rules/moment_rule.h"
+#include "symbolic/rules/moment_rulebook.h"
+#include "symbolic/rules/moment_rulebook_to_basis.h"
 
-#include "symbolic_matrix_helpers.h"
+#include "../symbolic_matrix_helpers.h"
 
-#include "../scenarios/sparse_utils.h"
+#include "../../scenarios/sparse_utils.h"
 
 #include <memory>
 #include <numbers>
@@ -30,7 +30,6 @@ namespace Moment::Tests {
     class Symbolic_MomentRulebookToBasis : public ::testing::Test {
     private:
         std::unique_ptr<MatrixSystem> ms_ptr;
-        std::unique_ptr<MomentRulebookToBasis> mrtb_ptr;
 
     protected:
         size_t total_symbol_count = 0;
@@ -49,8 +48,6 @@ namespace Moment::Tests {
             ASSERT_FALSE(symbols[9].is_hermitian());
 
             this->total_symbol_count = symbols.Basis.RealSymbolCount() + symbols.Basis.ImaginarySymbolCount();
-
-            this->mrtb_ptr = std::make_unique<MomentRulebookToBasis>(this->ms_ptr->polynomial_factory());
         }
 
         [[nodiscard]] MatrixSystem& get_system() noexcept { return *this->ms_ptr; }
@@ -61,8 +58,10 @@ namespace Moment::Tests {
             return this->ms_ptr->polynomial_factory();
         }
 
-        [[nodiscard]] const MomentRulebookToBasis& get_mrtb() noexcept {
-            return *this->mrtb_ptr;
+        [[nodiscard]] inline const MomentRulebookToBasis get_mrtb(const bool homogenous = false) noexcept {
+            return MomentRulebookToBasis{this->ms_ptr->polynomial_factory(),
+                                         homogenous ? MomentRulebookToBasis::ExportMode::Homogeneous
+                                                    : MomentRulebookToBasis::ExportMode::Rewrite};
         }
 
         void compare_sparse_matrices(const std::string& label,
@@ -88,7 +87,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentRulebookToBasis, Empty) {
 
         const auto& symbols = this->get_symbols();
-        const auto& mrtb = this->get_mrtb();
+        const auto mrtb = this->get_mrtb();
 
         MomentRulebook rulebook{this->get_system()};
         auto monolith = mrtb(rulebook);
@@ -104,7 +103,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentRulebookToBasis, RealToMonoScalar) {
         const auto& symbols = this->get_symbols();
         const auto& factory = this->get_factory();
-        const auto& mrtb = this->get_mrtb();
+        const auto mrtb = this->get_mrtb();
 
         MomentRulebook rulebook{this->get_system()};
         rulebook.inject(3, factory({Monomial{1, 1.0}})); // <B> = 1.
@@ -130,7 +129,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentRulebookToBasis, RealToPolynomial) {
         const auto& symbols = this->get_symbols();
         const auto& factory = this->get_factory();
-        const auto& mrtb = this->get_mrtb();
+        const auto mrtb = this->get_mrtb();
 
         MomentRulebook rulebook{this->get_system()};
         rulebook.inject(3, factory({Monomial{2, -2.0}, Monomial{1, 1.0}})); // <B> = <A> + 1.
@@ -157,7 +156,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentRulebookToBasis, ComplexToMonoScalar) {
         const auto& symbols = this->get_symbols();
         const auto& factory = this->get_factory();
-        const auto& mrtb = this->get_mrtb();
+        const auto mrtb = this->get_mrtb();
 
         MomentRulebook rulebook{this->get_system()};
         rulebook.inject(6, factory({Monomial{1, std::complex{1.0, 2.0}}})); // <AB> = 1+2i.
@@ -184,7 +183,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentRulebookToBasis, ComplexToComplexMono) {
         const auto& symbols = this->get_symbols();
         const auto& factory = this->get_factory();
-        const auto& mrtb = this->get_mrtb();
+        const auto mrtb = this->get_mrtb();
 
         MomentRulebook rulebook{this->get_system()};
         rulebook.inject(7, factory({Monomial{6, std::complex{0.0, 1.0}}})); // <AC> = i<AB>
@@ -217,7 +216,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentRulebookToBasis, ConstrainRealPart) {
         const auto& symbols = this->get_symbols();
         const auto& factory = this->get_factory();
-        const auto& mrtb = this->get_mrtb();
+        const auto mrtb = this->get_mrtb();
 
         MomentRulebook rulebook{this->get_system()};
         rulebook.inject(factory, 7, std::complex{1.0, 0.0}, factory({Monomial{2, 3.0}})); // Re(<AC>) = 3<A>
@@ -241,7 +240,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentRulebookToBasis, ConstrainImaginaryPart) {
         const auto& symbols = this->get_symbols();
         const auto& factory = this->get_factory();
-        const auto& mrtb = this->get_mrtb();
+        const auto mrtb = this->get_mrtb();
 
         MomentRulebook rulebook{this->get_system()};
         // Im(<AC>) = 2<B>
@@ -267,7 +266,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentRulebookToBasis, ConstrainSkewPart) {
         const auto& symbols = this->get_symbols();
         const auto& factory = this->get_factory();
-        const auto& mrtb = this->get_mrtb();
+        const auto mrtb = this->get_mrtb();
 
         const std::complex skew{std::numbers::sqrt2 / 2.0, std::numbers::sqrt2 / 2.0};
 
@@ -295,7 +294,7 @@ namespace Moment::Tests {
     TEST_F(Symbolic_MomentRulebookToBasis, ConstrainMostlyImaginaryPart) {
         const auto& symbols = this->get_symbols();
         const auto& factory = this->get_factory();
-        const auto& mrtb = this->get_mrtb();
+        const auto mrtb = this->get_mrtb();
 
         const std::complex skew{0.5, std::numbers::sqrt3/2.0}; // delta = pi / 3
 
@@ -320,5 +319,56 @@ namespace Moment::Tests {
 
     }
 
+    TEST_F(Symbolic_MomentRulebookToBasis, Homogenous_Empty) {
+
+        const auto& symbols = this->get_symbols();
+        const auto mrtb = this->get_mrtb(true);
+
+        MomentRulebook rulebook{this->get_system()};
+        auto monolith = mrtb(rulebook);
+
+        EXPECT_EQ(monolith.cols(), this->total_symbol_count);
+        EXPECT_EQ(monolith.rows(), this->total_symbol_count);
+        EXPECT_EQ(monolith.nonZeros(), 0);
+    }
+
+
+    TEST_F(Symbolic_MomentRulebookToBasis, Homogenous_RealToPolynomial) {
+        const auto& symbols = this->get_symbols();
+        const auto& factory = this->get_factory();
+        const auto mrtb = this->get_mrtb(true);
+
+        MomentRulebook rulebook{this->get_system()};
+        rulebook.inject(3, factory({Monomial{2, -2.0}, Monomial{1, 1.0}})); // <B> = <A> + 1.
+
+        auto monolith = mrtb(rulebook);
+
+        EXPECT_EQ(monolith.cols(), this->total_symbol_count);
+        EXPECT_EQ(monolith.rows(), this->total_symbol_count);
+        EXPECT_EQ(monolith.nonZeros(), 3);
+
+        EXPECT_EQ(monolith.coeff(2, 0), 1.0);
+        EXPECT_EQ(monolith.coeff(2, 1), -2.0);
+        EXPECT_EQ(monolith.coeff(2, 2), -1.0);
+    }
+
+
+    TEST_F(Symbolic_MomentRulebookToBasis, Homogenous_ConstrainRealPart) {
+        const auto& symbols = this->get_symbols();
+        const auto& factory = this->get_factory();
+        const auto mrtb = this->get_mrtb(true);
+
+        MomentRulebook rulebook{this->get_system()};
+        rulebook.inject(factory, 7, std::complex{1.0, 0.0}, factory({Monomial{2, 3.0}})); // Re(<AC>) = 3<A>
+        auto monolith = mrtb(rulebook);
+
+        EXPECT_EQ(monolith.cols(), this->total_symbol_count);
+        EXPECT_EQ(monolith.rows(), this->total_symbol_count);
+        EXPECT_EQ(monolith.nonZeros(), 2);
+
+        EXPECT_EQ(monolith.coeff(6, 1), 3.0);
+        EXPECT_EQ(monolith.coeff(6, 6), -1);
+
+    }
 
 }

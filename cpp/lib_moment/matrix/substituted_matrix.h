@@ -9,7 +9,7 @@
 #include "monomial_matrix.h"
 #include "polynomial_matrix.h"
 
-#include "symbolic/moment_rulebook.h"
+#include "symbolic/rules/moment_rulebook.h"
 
 
 namespace Moment {

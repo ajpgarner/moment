@@ -8,8 +8,8 @@
 
 #include "gtest/gtest.h"
 
-#include "symbolic/moment_rule.h"
-#include "symbolic/moment_rulebook.h"
+#include "symbolic/rules/moment_rule.h"
+#include "symbolic/rules/moment_rulebook.h"
 
 #include <string>
 #include <vector>

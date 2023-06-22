@@ -8,7 +8,7 @@
 #include "apply_moment_rules.h"
 
 #include "matrix_system.h"
-#include "symbolic/moment_rulebook.h"
+#include "symbolic/rules/moment_rulebook.h"
 #include "symbolic/polynomial_factory.h"
 
 #include "export/export_polynomial.h"

@@ -7,9 +7,9 @@
 
 #include "moment_rule.h"
 
-#include "polynomial_factory.h"
-#include "symbol_table.h"
-#include "symbol_tools.h"
+#include "../polynomial_factory.h"
+#include "../symbol_table.h"
+#include "../symbol_tools.h"
 
 #include "utilities/float_utils.h"
 

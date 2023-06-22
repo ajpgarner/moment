@@ -61,7 +61,10 @@ namespace Moment::mex {
 
         matlab::data::StringArray as_string(const MomentRulebook& rules);
 
-        matlab::data::Array as_monolith(const MomentRulebook &rules);
+        matlab::data::Array as_rewrite_matrix(const MomentRulebook &rules);
+
+        matlab::data::Array as_homogenous_matrix(const MomentRulebook &rules);
+
 
     private:
         matlab::data::CellArray write_rule(matlab::data::ArrayFactory& factory,

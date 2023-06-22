@@ -42,11 +42,6 @@ add_executable(moment_tests
         scenarios/symmetry/representation_mapper_tests.cpp
         scenarios/symmetry/symmetrized_matrix_system_tests.cpp
         symbolic/full_combo_ordering_tests.cpp
-        symbolic/moment_rule_tests.cpp
-        symbolic/moment_rule_split_tests.cpp
-        symbolic/moment_rulebook_tests.cpp
-        symbolic/moment_rulebook_factor_tests.cpp
-        symbolic/moment_rulebook_to_basis_tests.cpp
         symbolic/monomial_tests.cpp
         symbolic/order_symbols_by_hash_tests.cpp
         symbolic/polynomial_tests.cpp
@@ -55,6 +50,11 @@ add_executable(moment_tests
         symbolic/polynomial_to_basis_mask_tests.cpp
         symbolic/symbol_table_tests.cpp
         symbolic/symbolic_matrix_helpers.cpp
+        symbolic/rules/moment_rule_tests.cpp
+        symbolic/rules/moment_rule_split_tests.cpp
+        symbolic/rules/moment_rulebook_tests.cpp
+        symbolic/rules/moment_rulebook_factor_tests.cpp
+        symbolic/rules/moment_rulebook_to_basis_tests.cpp
         utilities/alphabetic_namer_tests.cpp
         utilities/combination_tests.cpp
         utilities/dynamic_bitset_tests.cpp

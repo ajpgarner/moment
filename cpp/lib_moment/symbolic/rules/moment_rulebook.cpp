@@ -7,9 +7,9 @@
 
 #include "moment_rulebook.h"
 
-#include "polynomial_factory.h"
-#include "polynomial_ordering.h"
-#include "symbol_table.h"
+#include "../polynomial_factory.h"
+#include "../polynomial_ordering.h"
+#include "../symbol_table.h"
 
 #include "matrix/substituted_matrix.h"
 

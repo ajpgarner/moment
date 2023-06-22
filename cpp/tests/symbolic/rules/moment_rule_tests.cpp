@@ -12,7 +12,7 @@
 #include "scenarios/algebraic/algebraic_matrix_system.h"
 
 #include "symbolic/symbol_table.h"
-#include "symbolic/moment_rule.h"
+#include "symbolic/rules/moment_rule.h"
 #include "symbolic/monomial_comparator_by_hash.h"
 
 #include "moment_rule_helpers.h"
