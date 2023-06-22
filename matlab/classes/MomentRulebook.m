@@ -1,11 +1,11 @@
-classdef MomentRuleBook < handle
+classdef MomentRulebook < handle
 %MOMENTRULEBOOK A list of substitutions to make at the level of moments.
 %
 
 %% Properties
 properties(GetAccess = public, SetAccess = protected)
     Scenario    % Associated scenario.
-    RuleBookId  % ID of the rulebook within the matrix system.
+    RulebookId  % ID of the rulebook within the matrix system.
 end
 
 properties(Dependent, GetAccess = public, SetAccess = private)
@@ -31,7 +31,7 @@ end
 
 %% Constructor
 methods
-    function obj = MomentRuleBook(scenario, label)
+    function obj = MomentRulebook(scenario, label)
     % MOMENTRULEBOOK Creates a moment substitution rule book.
         arguments
             scenario (1,1) Abstract.Scenario
@@ -50,7 +50,7 @@ methods
             rb_args{end+1} = label;
         end
                    
-        obj.RuleBookId = mtk('create_moment_rules', rb_args{:}, ...
+        obj.RulebookId = mtk('create_moment_rules', rb_args{:}, ...
                              scenario.System.RefId, {});
         
         obj.invalidate_cached_rules();        
@@ -63,7 +63,7 @@ methods
         if ~obj.has_rrc
             obj.cache_RawRuleCell = ...
                 mtk('moment_rules', obj.Scenario.System.RefId, ...
-                    obj.RuleBookId, 'sequences');            
+                    obj.RulebookId, 'sequences');            
             obj.has_rrc = true;
         end
         val = obj.cache_RawRuleCell;
@@ -86,7 +86,7 @@ methods
         if ~obj.has_rs
             obj.cache_RuleStrings = ...
                 mtk('moment_rules', obj.Scenario.System.RefId, ...
-                    obj.RuleBookId, 'strings');
+                    obj.RulebookId, 'strings');
             obj.has_rs = true;
         end
         val = obj.cache_RuleStrings;
@@ -114,7 +114,7 @@ methods
     %                 not already exist.
     %
     arguments
-        obj (1,1) MomentRuleBook
+        obj (1,1) MomentRulebook
         polynomials (:,1) Algebraic.Polynomial
         new_symbols (1,1) logical = true
     end
@@ -133,7 +133,7 @@ methods
     %   values     - The corresponding value to assign to each symbol id.
     %
         arguments
-            obj (1,1) MomentRuleBook
+            obj (1,1) MomentRulebook
             symbol_ids (1,:) uint64
             values (1,:) double
         end
@@ -159,19 +159,19 @@ methods
     % {symbol, value} cell pairs.
     %
         arguments
-            obj (1,1) MomentRuleBook
+            obj (1,1) MomentRulebook
             symbol_value_pairs (1,:) cell
         end
 
         % Extra arguments
-        rb_args = {'input', 'list', 'rulebook', obj.RuleBookId};
+        rb_args = {'input', 'list', 'rulebook', obj.RulebookId};
 
        
         % Import rules into rulebook
         rule_id = mtk('create_moment_rules', rb_args{:}, ...
                       obj.Scenario.System.RefId, ...
                       symbol_value_pairs);
-        assert(rule_id == obj.RuleBookId);
+        assert(rule_id == obj.RulebookId);
         obj.invalidate_cached_rules();
     end
 
@@ -187,13 +187,13 @@ methods
     % sequence is supplied.
     %
         arguments
-            obj (1,1) MomentRuleBook
+            obj (1,1) MomentRulebook
             op_seq_cell (1,:) cell
             new_symbols (1,1) logical = false
         end
         
         % Prepare params
-        extra_params = {'input', 'sequences', 'rulebook', obj.RuleBookId};
+        extra_params = {'input', 'sequences', 'rulebook', obj.RulebookId};
         if ~new_symbols
             extra_params{end+1} = 'no_new_symbols';
         end
@@ -201,7 +201,7 @@ methods
         % Construct rulebook, and import rules
         rule_id = mtk('create_moment_rules', extra_params{:},...
                       obj.Scenario.System.RefId, op_seq_cell);
-        assert(rule_id == obj.RuleBookId);
+        assert(rule_id == obj.RulebookId);
         obj.invalidate_cached_rules();
         
         % Flag to system object that extra symbols may have been created.
@@ -216,7 +216,7 @@ end
 methods
     function val = Apply(obj, target)
         arguments
-            obj (1,1) MomentRuleBook
+            obj (1,1) MomentRulebook
             target
         end
 
