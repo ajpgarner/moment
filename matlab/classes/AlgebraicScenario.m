@@ -25,10 +25,7 @@ classdef AlgebraicScenario < Abstract.Scenario
         OperatorNames % Names of the fundamental operators.        
     end
     
-    properties(Access=public)        
-        % Multiplier of epsilon (~, before coefficients are treated as zero.
-        ZeroTolerance
-    end
+
     
     properties(Dependent, GetAccess = public)
         % Number of operators, taking into acount conjugates
@@ -108,21 +105,9 @@ classdef AlgebraicScenario < Abstract.Scenario
                                                   obj.Interleave, ...
                                                   is_normal);
             end
-            obj.ZeroTolerance = 1.0;
         end
         
-        function set.ZeroTolerance(obj, value)
-            arguments
-                obj (1,1) AlgebraicScenario
-                value (1,1) double
-            end
-            obj.errorIfLocked();
-            if value < 0
-                error("ZeroTolerance must be non-negative.");
-            end
-            obj.ZeroTolerance = value;            
-        end
-        
+   
         function val = Clone(obj)
         % CLONE Construct deep copy of scenario (without associated matrices).
             
@@ -208,21 +193,22 @@ classdef AlgebraicScenario < Abstract.Scenario
     methods
         function item = get(obj, operators)
         % GET Return a monomial object associated with an operator string.
+        % Essentially, forward to Symbolic.Monomial's constructor.
         %
         % PARAMS:
         %     operators - The string of operators.
         %
         % RETURNS:
-        %     Object of type ALGEBRAIC.MONOMIAL representing the string.
+        %     Object of type SYMBOLIC.MONOMIAL representing the string.
         %
-        % See also: ALGEBRAIC.MONOMIAL
+        % See also: SYMBOLIC.MONOMIAL
         %
             arguments
                 obj (1,1) AlgebraicScenario
                 operators (1,:)
             end
             
-            item = Algebraic.Monomial(obj, operators, 1.0);
+            item = Symbolic.Monomial(obj, operators, 1.0);
         end
         
         function varargout = getAll(obj)
@@ -245,12 +231,21 @@ classdef AlgebraicScenario < Abstract.Scenario
             
             export_conjugates = false;
             if nargout ~= obj.OperatorCount
-                if obj.IsHermitian || nargout ~= 2*obj.OperatorCount
-                    error("getAll() expects %d outputs", obj.OperatorCount);
+                if ~obj.IsHermitian && nargout == 2*obj.OperatorCount
+                    export_conjugates = true;                    
+                else
+                    if obj.IsHermitian
+                        error("getAll() expects %d outputs.",...
+                              obj.OperatorCount);
+                    else
+                        error("getAll() expects %d or %d outputs.",...
+                              obj.OperatorCount, 2*obj.OperatorCount);
+                    end                        
                 end
-                export_conjugates = true;
+                
             end
-            
+
+            % Export as varargout cell
             varargout = cell(1, nargout);
             if export_conjugates
                 for index = 1:(2*obj.OperatorCount)
@@ -283,10 +278,10 @@ classdef AlgebraicScenario < Abstract.Scenario
         % Creates algebraic zero object for this setting.
         %
         % RETURNS:
-        %   Newly created Algebraic.Zero
+        %   Newly created Symbolic.Zero
         %
         % See also: ALGEBRAIC.ZERO
-            val = Algebraic.Zero(obj);
+            val = Symbolic.Zero(obj);
         end
     end
     

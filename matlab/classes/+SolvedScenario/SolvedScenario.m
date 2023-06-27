@@ -73,7 +73,7 @@ classdef SolvedScenario < handle
             if isa(thing, 'Abstract.RealObject')  
                 obj.checkScenario(thing)
                 val = thing.Apply(obj.RealValues);                
-            elseif isa(thing, 'Abstract.ComplexObject')
+            elseif isa(thing, 'Symbolic.ComplexObject')
                 obj.checkScenario(thing)
                 val = thing.Apply(obj.RealValues, obj.ImaginaryValues);                
             else

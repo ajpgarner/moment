@@ -1,26 +1,26 @@
 classdef AlgebraicTest < MTKTestBase
-%ALGEBRAICTEST Tests for Algebraic.Monomial and Algebraic.Polynomial
+%ALGEBRAICTEST Tests for Symbolic.Monomial and Symbolic.Polynomial
     
 %% Construction / binding
     methods(Test)
        function zero(testCase)
             setting = AlgebraicScenario(2);
-            zero = Algebraic.Zero(setting);
-            testCase.verifyTrue(isa(zero, 'Algebraic.Zero'));
+            zero = Symbolic.Zero(setting);
+            testCase.verifyTrue(isa(zero, 'Symbolic.Zero'));
             testCase.verifyEqual(zero.Scenario, setting);
        end
         
         function get_zero(testCase)
             setting = AlgebraicScenario(2);
             zero = setting.zero();
-            testCase.verifyTrue(isa(zero, 'Algebraic.Zero'));            
+            testCase.verifyTrue(isa(zero, 'Symbolic.Zero'));            
             testCase.verifyEqual(zero.Scenario, setting);
         end
         
         function get_id(testCase)
             setting = AlgebraicScenario(2);
             id = setting.get([]);
-            testCase.verifyTrue(isa(id, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(id, 'Symbolic.Monomial'));
             testCase.verifyEqual(id.Operators, uint64.empty(1,0));
             testCase.verifyEqual(id.Coefficient, 1.0);
         end
@@ -28,7 +28,7 @@ classdef AlgebraicTest < MTKTestBase
         function get_x(testCase)
             setting = AlgebraicScenario(2);
             x = setting.get([1]);
-            testCase.verifyTrue(isa(x, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(x, 'Symbolic.Monomial'));
             testCase.verifyEqual(x.Operators, uint64([1]));
             testCase.verifyEqual(x.Coefficient, 1.0);    
         end
@@ -36,7 +36,7 @@ classdef AlgebraicTest < MTKTestBase
         function get_xx(testCase)
             setting = AlgebraicScenario(2);
             xx = setting.get([1, 1]);
-            testCase.verifyTrue(isa(xx, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(xx, 'Symbolic.Monomial'));
             testCase.verifyEqual(xx.Operators, uint64([1, 1]));
             testCase.verifyEqual(xx.Coefficient, 1.0);    
         end
@@ -44,7 +44,7 @@ classdef AlgebraicTest < MTKTestBase
         function get_xy(testCase)
             setting = AlgebraicScenario(2);
             xy = setting.get([1, 2]);
-            testCase.verifyTrue(isa(xy, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(xy, 'Symbolic.Monomial'));
             testCase.verifyEqual(xy.Operators, uint64([1, 2]));
             testCase.verifyEqual(xy.Coefficient, 1.0);    
         end
@@ -52,9 +52,9 @@ classdef AlgebraicTest < MTKTestBase
         function getAll(testCase)
             setting = AlgebraicScenario(3);
             [x, y, z] = setting.getAll();
-            testCase.verifyTrue(isa(x, 'Algebraic.Monomial'));
-            testCase.verifyTrue(isa(y, 'Algebraic.Monomial'));
-            testCase.verifyTrue(isa(z, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(x, 'Symbolic.Monomial'));
+            testCase.verifyTrue(isa(y, 'Symbolic.Monomial'));
+            testCase.verifyTrue(isa(z, 'Symbolic.Monomial'));
             testCase.verifyEqual(x.Operators, uint64([1]));
             testCase.verifyEqual(y.Operators, uint64([2]));
             testCase.verifyEqual(z.Operators, uint64([3]));
@@ -66,7 +66,7 @@ classdef AlgebraicTest < MTKTestBase
         function id(testCase)
             setting = AlgebraicScenario(2);
             id = setting.id();
-            testCase.verifyTrue(isa(id, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(id, 'Symbolic.Monomial'));
             testCase.verifyEqual(id.Operators, uint64.empty(1,0));
             testCase.verifyEqual(id.Coefficient, 1.0);
         end
@@ -75,9 +75,9 @@ classdef AlgebraicTest < MTKTestBase
             setting = AlgebraicScenario(3);
             [x, y, z] = setting.getAll();
             mm = setting.MakeMomentMatrix(1);
-            testCase.verifyTrue(isa(x, 'Algebraic.Monomial'));
-            testCase.verifyTrue(isa(y, 'Algebraic.Monomial'));
-            testCase.verifyTrue(isa(z, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(x, 'Symbolic.Monomial'));
+            testCase.verifyTrue(isa(y, 'Symbolic.Monomial'));
+            testCase.verifyTrue(isa(z, 'Symbolic.Monomial'));
             testCase.verifyEqual(x.Operators, uint64([1]));
             testCase.verifyEqual(y.Operators, uint64([2]));
             testCase.verifyEqual(z.Operators, uint64([3]));
@@ -118,7 +118,7 @@ classdef AlgebraicTest < MTKTestBase
         
         function eq_mono_double(testCase)
             setting = AlgebraicScenario(2);
-            two = Algebraic.Monomial(setting, [], 2.0);                       
+            two = Symbolic.Monomial(setting, [], 2.0);                       
             testCase.verifyFalse(two == 1.0);
             testCase.verifyFalse(1.0 == two);
             testCase.verifyTrue(two == 2.0);
@@ -147,7 +147,7 @@ classdef AlgebraicTest < MTKTestBase
             zero = setting.zero;
             plus_zero = +zero;
             
-            testCase.assertTrue(isa(plus_zero, 'Algebraic.Zero'));
+            testCase.assertTrue(isa(plus_zero, 'Symbolic.Zero'));
             testCase.verifyEqual(plus_zero.Scenario, setting);
         end
         
@@ -156,7 +156,7 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get(1);
             i_x = +x;
             
-            testCase.verifyTrue(isa(i_x, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(i_x, 'Symbolic.Monomial'));
             testCase.assertEqual(i_x.Operators, uint64([1]));
             testCase.assertEqual(i_x.Coefficient, 1.0);
         end
@@ -168,7 +168,7 @@ classdef AlgebraicTest < MTKTestBase
             x_y = x+y;            
             ux_y = +x_y;
             
-            testCase.verifyTrue(isa(ux_y, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(ux_y, 'Symbolic.Polynomial'));
 
             testCase.assertEqual(length(ux_y.Constituents), 2);
             part_x = ux_y.Constituents(1);
@@ -187,7 +187,7 @@ classdef AlgebraicTest < MTKTestBase
             zero = setting.zero;
             minus_zero = -zero;
             
-            testCase.assertTrue(isa(minus_zero, 'Algebraic.Zero'));           
+            testCase.assertTrue(isa(minus_zero, 'Symbolic.Zero'));           
             testCase.verifyEqual(minus_zero.Scenario, setting);
          end
         
@@ -196,7 +196,7 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get(1);
             i_x = -x;
             
-            testCase.verifyTrue(isa(i_x, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(i_x, 'Symbolic.Monomial'));
             testCase.assertEqual(i_x.Operators, uint64([1]));
             testCase.assertEqual(i_x.Coefficient, -1.0);
         end
@@ -208,7 +208,7 @@ classdef AlgebraicTest < MTKTestBase
             x_y = x+y;            
             ux_y = -x_y;
             
-            testCase.verifyTrue(isa(ux_y, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(ux_y, 'Symbolic.Polynomial'));
 
             testCase.assertEqual(length(ux_y.Constituents), 2);
             part_x = ux_y.Constituents(1);
@@ -228,7 +228,7 @@ classdef AlgebraicTest < MTKTestBase
             also_zero = setting.zero();
             zero_plus_zero = zero + also_zero;
             
-            testCase.verifyTrue(isa(zero_plus_zero, 'Algebraic.Zero'));
+            testCase.verifyTrue(isa(zero_plus_zero, 'Symbolic.Zero'));
             testCase.assertEqual(zero_plus_zero.Scenario, setting);
         end
         
@@ -237,11 +237,11 @@ classdef AlgebraicTest < MTKTestBase
             zero = setting.zero();
             
             also_zero = zero + 0.0;
-            testCase.verifyTrue(isa(also_zero, 'Algebraic.Zero'));
+            testCase.verifyTrue(isa(also_zero, 'Symbolic.Zero'));
             testCase.assertEqual(also_zero.Scenario, setting);
             
             not_zero = zero + 5.0;
-            testCase.verifyTrue(isa(not_zero, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(not_zero, 'Symbolic.Monomial'));
             testCase.assertEqual(not_zero.Scenario, setting);
             testCase.verifyEqual(not_zero.Operators, uint64.empty(1,0));
             testCase.verifyEqual(not_zero.Coefficient, 5.0);
@@ -253,11 +253,11 @@ classdef AlgebraicTest < MTKTestBase
             zero = setting.zero();
             
             also_zero = 0.0 + zero;
-            testCase.verifyTrue(isa(also_zero, 'Algebraic.Zero'));
+            testCase.verifyTrue(isa(also_zero, 'Symbolic.Zero'));
             testCase.assertEqual(also_zero.Scenario, setting);
           
             not_zero = 5.0 + zero;
-            testCase.verifyTrue(isa(not_zero, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(not_zero, 'Symbolic.Monomial'));
             testCase.assertEqual(not_zero.Scenario, setting);
             testCase.verifyEqual(not_zero.Operators, uint64.empty(1,0));
             testCase.verifyEqual(not_zero.Coefficient, 5.0);
@@ -268,7 +268,7 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get(1);
             i_x = 1 + x;
             
-            testCase.verifyTrue(isa(i_x, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(i_x, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(i_x.Constituents), 2);
             part_i = i_x.Constituents(1);
             part_x = i_x.Constituents(2);
@@ -286,7 +286,7 @@ classdef AlgebraicTest < MTKTestBase
             
             x_i = x + 1;
             
-            testCase.verifyTrue(isa(x_i, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_i, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_i.Constituents), 2);
             part_i = x_i.Constituents(1);
             part_x = x_i.Constituents(2);
@@ -322,7 +322,7 @@ classdef AlgebraicTest < MTKTestBase
             
             x_plus_y = x + y;
             y_plus_x = y + x;
-            testCase.verifyTrue(isa(x_plus_y, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_plus_y, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_plus_y.Constituents), 2);
             part_x = x_plus_y.Constituents(1);
             part_y = x_plus_y.Constituents(2);
@@ -331,7 +331,7 @@ classdef AlgebraicTest < MTKTestBase
             testCase.assertEqual(part_y.Operators, y.Operators);
             testCase.assertEqual(part_y.Coefficient, y.Coefficient);
             
-            testCase.verifyTrue(isa(y_plus_x, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(y_plus_x, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(y_plus_x.Constituents), 2);
             partB_x = y_plus_x.Constituents(1);
             partB_y = y_plus_x.Constituents(2);
@@ -346,7 +346,7 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get(1);
             
             x_plus_x = x + x;
-            testCase.verifyTrue(isa(x_plus_x, 'Algebraic.Monomial'));
+            testCase.verifyTrue(isa(x_plus_x, 'Symbolic.Monomial'));
             testCase.verifyEqual(x_plus_x.Operators, x.Operators);
             testCase.verifyEqual(x_plus_x.Coefficient, 2 * x.Coefficient);
         end
@@ -359,7 +359,7 @@ classdef AlgebraicTest < MTKTestBase
             
             x_plus_xy = x + xy;
             xy_plus_x = xy + x;
-            testCase.verifyTrue(isa(x_plus_xy, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_plus_xy, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_plus_xy.Constituents), 2);
             part_x = x_plus_xy.Constituents(1);
             part_xy = x_plus_xy.Constituents(2);            
@@ -368,7 +368,7 @@ classdef AlgebraicTest < MTKTestBase
             testCase.assertEqual(part_xy.Operators, xy.Operators);
             testCase.assertEqual(part_xy.Coefficient, xy.Coefficient);            
             
-            testCase.verifyTrue(isa(xy_plus_x, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(xy_plus_x, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(xy_plus_x.Constituents), 2);
             partB_x = xy_plus_x.Constituents(1);
             partB_xy = xy_plus_x.Constituents(2);                       
@@ -383,9 +383,9 @@ classdef AlgebraicTest < MTKTestBase
             [x, y, z] = setting.getAll();
             
             y_z = y + z;
-            testCase.verifyTrue(isa(y_z , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(y_z , 'Symbolic.Polynomial'));
             x_y_z = x + y_z;
-            testCase.verifyTrue(isa(x_y_z , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_y_z , 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_y_z.Constituents), 3);
             part_x = x_y_z.Constituents(1);
             part_y = x_y_z.Constituents(2);
@@ -405,11 +405,11 @@ classdef AlgebraicTest < MTKTestBase
             [x, y] = setting.getAll();
             
             x_y = x + y;
-            testCase.verifyTrue(isa(x_y , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_y , 'Symbolic.Polynomial'));
             
             x_x_y = x + x_y;
-            testCase.verifyTrue(isa(x_x_y , 'Algebraic.Polynomial'));
-            testCase.verifyTrue(isa(x_x_y , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_x_y , 'Symbolic.Polynomial'));
+            testCase.verifyTrue(isa(x_x_y , 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_x_y.Constituents), 2);
             partA_x = x_x_y.Constituents(1);
             partA_y = x_x_y.Constituents(2);
@@ -420,8 +420,8 @@ classdef AlgebraicTest < MTKTestBase
             testCase.verifyEqual(partA_y.Coefficient, y.Coefficient);
             
             y_x_y = y + x_y;
-            testCase.verifyTrue(isa(y_x_y , 'Algebraic.Polynomial'));
-            testCase.verifyTrue(isa(y_x_y , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(y_x_y , 'Symbolic.Polynomial'));
+            testCase.verifyTrue(isa(y_x_y , 'Symbolic.Polynomial'));
             testCase.assertEqual(length(y_x_y.Constituents), 2);
             partB_x = y_x_y.Constituents(1);
             partB_y = y_x_y.Constituents(2);
@@ -456,11 +456,11 @@ classdef AlgebraicTest < MTKTestBase
             [x, y] = setting.getAll();
             
             x_y = x + y;
-            testCase.verifyTrue(isa(x_y , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_y , 'Symbolic.Polynomial'));
             
             x_y_x = x_y + x;
-            testCase.verifyTrue(isa(x_y_x , 'Algebraic.Polynomial'));
-            testCase.verifyTrue(isa(x_y_x , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_y_x , 'Symbolic.Polynomial'));
+            testCase.verifyTrue(isa(x_y_x , 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_y_x.Constituents), 2);
             partA_x = x_y_x.Constituents(1);
             partA_y = x_y_x.Constituents(2);
@@ -471,8 +471,8 @@ classdef AlgebraicTest < MTKTestBase
             testCase.verifyEqual(partA_y.Coefficient, y.Coefficient);
             
             x_y_y = x_y + y;
-            testCase.verifyTrue(isa(x_y_y , 'Algebraic.Polynomial'));
-            testCase.verifyTrue(isa(x_y_y , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_y_y , 'Symbolic.Polynomial'));
+            testCase.verifyTrue(isa(x_y_y , 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_y_y.Constituents), 2);
             partB_x = x_y_y.Constituents(1);
             partB_y = x_y_y.Constituents(2);
@@ -488,7 +488,7 @@ classdef AlgebraicTest < MTKTestBase
             [x, y] = setting.getAll();
             
             x_y = x + y;
-            testCase.verifyTrue(isa(x_y, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_y, 'Symbolic.Polynomial'));
             
             i_x_y = 1 + x_y;
             testCase.assertEqual(length(i_x_y.Constituents), 3);
@@ -509,7 +509,7 @@ classdef AlgebraicTest < MTKTestBase
             [x, y] = setting.getAll();
             
             x_y = x + y;
-            testCase.verifyTrue(isa(x_y, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_y, 'Symbolic.Polynomial'));
             
             x_y_i = x_y + 1;
             testCase.assertEqual(length(x_y_i.Constituents), 3);
@@ -532,11 +532,11 @@ classdef AlgebraicTest < MTKTestBase
             w_x = w + x;
             y_z = y + z;
             
-            testCase.assertTrue(isa(w_x, 'Algebraic.Polynomial'));
-            testCase.assertTrue(isa(y_z, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(w_x, 'Symbolic.Polynomial'));
+            testCase.assertTrue(isa(y_z, 'Symbolic.Polynomial'));
             
             w_x_y_z = w_x + y_z;
-            testCase.assertTrue(isa(w_x_y_z, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(w_x_y_z, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(w_x_y_z.Constituents), 4);
             part_w = w_x_y_z.Constituents(1);
             part_x = w_x_y_z.Constituents(2);
@@ -553,7 +553,7 @@ classdef AlgebraicTest < MTKTestBase
             testCase.assertEqual(part_z.Coefficient, z.Coefficient);
             
             y_z_w_x = y_z + w_x;
-            testCase.assertTrue(isa(y_z_w_x, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(y_z_w_x, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(y_z_w_x.Constituents), 4);
             partB_w = y_z_w_x.Constituents(1);
             partB_x = y_z_w_x.Constituents(2);
@@ -577,7 +577,7 @@ classdef AlgebraicTest < MTKTestBase
             x_y = x + y;
             y_z = y + z;
             x_2y_z = x_y + y_z;            
-            testCase.assertTrue(isa(x_2y_z, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(x_2y_z, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_2y_z.Constituents), 3);
             
             partA_x = x_2y_z.Constituents(1);
@@ -592,7 +592,7 @@ classdef AlgebraicTest < MTKTestBase
             testCase.assertEqual(partA_z.Coefficient, z.Coefficient);
             
             alt_x_2y_z = y_z + x_y; 
-            testCase.assertTrue(isa(alt_x_2y_z, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(alt_x_2y_z, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(alt_x_2y_z.Constituents), 3);
             
             partB_x = alt_x_2y_z.Constituents(1);
@@ -615,7 +615,7 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get(1);
             i_x = 1 - x;
             
-            testCase.verifyTrue(isa(i_x, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(i_x, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(i_x.Constituents), 2);
             part_i = i_x.Constituents(1);
             part_x = i_x.Constituents(2);
@@ -633,7 +633,7 @@ classdef AlgebraicTest < MTKTestBase
             
             x_i = x - 1;
             
-            testCase.verifyTrue(isa(x_i, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_i, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_i.Constituents), 2);
             part_i = x_i.Constituents(1);
             part_x = x_i.Constituents(2);
@@ -649,7 +649,7 @@ classdef AlgebraicTest < MTKTestBase
             
             x_minus_y = x - y;
             y_minus_x = y - x;
-            testCase.verifyTrue(isa(x_minus_y, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_minus_y, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_minus_y.Constituents), 2);
             part_x = x_minus_y.Constituents(1);
             part_y = x_minus_y.Constituents(2);
@@ -658,7 +658,7 @@ classdef AlgebraicTest < MTKTestBase
             testCase.assertEqual(part_y.Operators, y.Operators);
             testCase.assertEqual(part_y.Coefficient, -y.Coefficient);
             
-            testCase.verifyTrue(isa(y_minus_x, 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(y_minus_x, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(y_minus_x.Constituents), 2);
             partB_x = y_minus_x.Constituents(1);
             partB_y = y_minus_x.Constituents(2);
@@ -673,7 +673,7 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get(1);
             
             x_minus_x = x - x;
-            testCase.verifyTrue(isa(x_minus_x, 'Algebraic.Zero'));            
+            testCase.verifyTrue(isa(x_minus_x, 'Symbolic.Zero'));            
             testCase.verifyEqual(x_minus_x.Scenario, setting);
         end
          
@@ -682,9 +682,9 @@ classdef AlgebraicTest < MTKTestBase
             [x, y, z] = setting.getAll();
             
             y_z = y + z;
-            testCase.verifyTrue(isa(y_z , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(y_z , 'Symbolic.Polynomial'));
             x_y_z = x - y_z;
-            testCase.verifyTrue(isa(x_y_z , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_y_z , 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_y_z.Constituents), 3);
             part_x = x_y_z.Constituents(1);
             part_y = x_y_z.Constituents(2);
@@ -703,11 +703,11 @@ classdef AlgebraicTest < MTKTestBase
             [x, y] = setting.getAll();
             
             x_y = x + y;
-            testCase.verifyTrue(isa(x_y , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_y , 'Symbolic.Polynomial'));
             
             x_x_y = x - 2*x_y;
-            testCase.verifyTrue(isa(x_x_y , 'Algebraic.Polynomial'));
-            testCase.verifyTrue(isa(x_x_y , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_x_y , 'Symbolic.Polynomial'));
+            testCase.verifyTrue(isa(x_x_y , 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_x_y.Constituents), 2);
             partA_x = x_x_y.Constituents(1);
             partA_y = x_x_y.Constituents(2);
@@ -724,10 +724,10 @@ classdef AlgebraicTest < MTKTestBase
             [x, y] = setting.getAll();
             
             x_y = x + y;
-            testCase.verifyTrue(isa(x_y , 'Algebraic.Polynomial'));
+            testCase.verifyTrue(isa(x_y , 'Symbolic.Polynomial'));
             
             alt_y = x - x_y;
-            testCase.assertTrue(isa(alt_y , 'Algebraic.Monomial'));
+            testCase.assertTrue(isa(alt_y , 'Symbolic.Monomial'));
             
             testCase.verifyEqual(alt_y.Operators, y.Operators);
             testCase.verifyEqual(alt_y.Coefficient, -y.Coefficient);            
@@ -740,11 +740,11 @@ classdef AlgebraicTest < MTKTestBase
             w_x = w + x;
             y_z = y + z;
             
-            testCase.assertTrue(isa(w_x, 'Algebraic.Polynomial'));
-            testCase.assertTrue(isa(y_z, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(w_x, 'Symbolic.Polynomial'));
+            testCase.assertTrue(isa(y_z, 'Symbolic.Polynomial'));
             
             w_x_y_z = w_x - y_z;
-            testCase.assertTrue(isa(w_x_y_z, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(w_x_y_z, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(w_x_y_z.Constituents), 4);
             part_w = w_x_y_z.Constituents(1);
             part_x = w_x_y_z.Constituents(2);
@@ -768,7 +768,7 @@ classdef AlgebraicTest < MTKTestBase
             x_y = x + y;
             y_z = y + z;
             x_2y_z = x_y - 2*y_z;            
-            testCase.assertTrue(isa(x_2y_z, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(x_2y_z, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_2y_z.Constituents), 3);
             
             partA_x = x_2y_z.Constituents(1);
@@ -791,7 +791,7 @@ classdef AlgebraicTest < MTKTestBase
             x_y = x + y;
             y_z = y + z;
             x_2y_z = x_y - y_z;            
-            testCase.assertTrue(isa(x_2y_z, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(x_2y_z, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(x_2y_z.Constituents), 2);
             
             partA_x = x_2y_z.Constituents(1);
@@ -814,7 +814,7 @@ classdef AlgebraicTest < MTKTestBase
             
             as_zero = x_y - x_y2;
             
-            testCase.assertTrue(isa(as_zero, 'Algebraic.Zero'));
+            testCase.assertTrue(isa(as_zero, 'Symbolic.Zero'));
             testCase.verifyEqual(as_zero.Scenario, setting);
   
         end
@@ -828,7 +828,7 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get([1]);
             zero = setting.zero();
             also_zero = zero * x;
-            testCase.assertTrue(isa(also_zero, 'Algebraic.Zero'));
+            testCase.assertTrue(isa(also_zero, 'Symbolic.Zero'));
             testCase.verifyEqual(also_zero.Scenario, setting);
         end
         
@@ -838,7 +838,7 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get([1]);
             zero = setting.zero();
             also_zero = x * zero;
-            testCase.assertTrue(isa(also_zero, 'Algebraic.Zero'));
+            testCase.assertTrue(isa(also_zero, 'Symbolic.Zero'));
             testCase.verifyEqual(also_zero.Scenario, setting);
         end
         
@@ -846,7 +846,7 @@ classdef AlgebraicTest < MTKTestBase
             setting = AlgebraicScenario(2);
             x = setting.get([1]);
             cx = 5 * x;
-            testCase.assertTrue(isa(cx, 'Algebraic.Monomial'));
+            testCase.assertTrue(isa(cx, 'Symbolic.Monomial'));
             testCase.verifyEqual(cx.Operators, x.Operators);
             testCase.verifyEqual(cx.Coefficient, 5 * x.Coefficient);
         end
@@ -855,7 +855,7 @@ classdef AlgebraicTest < MTKTestBase
             setting = AlgebraicScenario(2);
             x = setting.get([1]);
             cx = x * 5;
-            testCase.assertTrue(isa(cx, 'Algebraic.Monomial'));
+            testCase.assertTrue(isa(cx, 'Symbolic.Monomial'));
             testCase.verifyEqual(cx.Operators, x.Operators);
             testCase.verifyEqual(cx.Coefficient, 5 * x.Coefficient);
         end
@@ -866,7 +866,7 @@ classdef AlgebraicTest < MTKTestBase
             xy_direct = setting.get([1 2]);
             
             xy = x * y;
-            testCase.assertTrue(isa(xy, 'Algebraic.Monomial'));
+            testCase.assertTrue(isa(xy, 'Symbolic.Monomial'));
             testCase.verifyEqual(xy.Operators, xy_direct.Operators);
             testCase.verifyEqual(xy.Coefficient, xy_direct.Coefficient);
         end
@@ -877,7 +877,7 @@ classdef AlgebraicTest < MTKTestBase
             xx_direct = setting.get([1 1]);
             
             xx = x * x;
-            testCase.assertTrue(isa(xx, 'Algebraic.Monomial'));
+            testCase.assertTrue(isa(xx, 'Symbolic.Monomial'));
             testCase.verifyEqual(xx.Operators, xx_direct.Operators);
             testCase.verifyEqual(xx.Coefficient, xx_direct.Coefficient);
         end
@@ -890,10 +890,10 @@ classdef AlgebraicTest < MTKTestBase
             xz_direct = setting.get([1, 3]);
             
             y_z = y + z;
-            testCase.assertTrue(isa(y_z, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(y_z, 'Symbolic.Polynomial'));
             
             xy_xz = x * y_z;
-            testCase.assertTrue(isa(xy_xz, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(xy_xz, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(xy_xz.Constituents), 2);
             
             xy = xy_xz.Constituents(1);
@@ -913,10 +913,10 @@ classdef AlgebraicTest < MTKTestBase
             yz_direct = setting.get([2, 3]);
             
             x_y = x + y;
-            testCase.assertTrue(isa(x_y , 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(x_y , 'Symbolic.Polynomial'));
             
             xz_yz = x_y * z;
-            testCase.assertTrue(isa(xz_yz, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(xz_yz, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(xz_yz.Constituents), 2);
             
             xz = xz_yz.Constituents(1);
@@ -934,7 +934,7 @@ classdef AlgebraicTest < MTKTestBase
             x_plus_y = x + y;
             zero = setting.zero();
             also_zero = zero * x_plus_y;
-            testCase.assertTrue(isa(also_zero, 'Algebraic.Zero'));
+            testCase.assertTrue(isa(also_zero, 'Symbolic.Zero'));
              testCase.assertTrue(eq(also_zero, zero));
             testCase.verifyEqual(also_zero.Scenario, setting);
         end
@@ -945,7 +945,7 @@ classdef AlgebraicTest < MTKTestBase
             x_plus_y = x + y;
             zero = setting.zero();
             also_zero = x_plus_y * zero;
-            testCase.assertTrue(isa(also_zero, 'Algebraic.Zero'));
+            testCase.assertTrue(isa(also_zero, 'Symbolic.Zero'));
              testCase.assertTrue(eq(also_zero, zero));
             testCase.verifyEqual(also_zero.Scenario, setting);
         end
@@ -961,11 +961,11 @@ classdef AlgebraicTest < MTKTestBase
             
             w_x = w + x;
             y_z = y + z;
-            testCase.assertTrue(isa(w_x, 'Algebraic.Polynomial'));
-            testCase.assertTrue(isa(y_z, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(w_x, 'Symbolic.Polynomial'));
+            testCase.assertTrue(isa(y_z, 'Symbolic.Polynomial'));
             
             wy_wz_xy_xz = w_x * y_z;
-            testCase.assertTrue(isa(wy_wz_xy_xz, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(wy_wz_xy_xz, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(wy_wz_xy_xz.Constituents), 4);
             
             wy = wy_wz_xy_xz.Constituents(1);
@@ -990,7 +990,7 @@ classdef AlgebraicTest < MTKTestBase
             setting = AlgebraicScenario(2);
             x = setting.id();
             ct_x = x';
-            testCase.assertTrue(isa(ct_x, 'Algebraic.Monomial'));
+            testCase.assertTrue(isa(ct_x, 'Symbolic.Monomial'));
             testCase.verifyEqual(ct_x.Operators, uint64.empty(1,0));
             testCase.verifyEqual(ct_x.Coefficient, 1);
         end  
@@ -999,7 +999,7 @@ classdef AlgebraicTest < MTKTestBase
             setting = AlgebraicScenario(2);
             x = setting.get([1 2 2]);
             ct_x = x';
-            testCase.assertTrue(isa(ct_x, 'Algebraic.Monomial'));
+            testCase.assertTrue(isa(ct_x, 'Symbolic.Monomial'));
             testCase.verifyEqual(ct_x.Operators, uint64([2 2 1]));
             testCase.verifyEqual(ct_x.Coefficient, x.Coefficient);
         end  
@@ -1008,7 +1008,7 @@ classdef AlgebraicTest < MTKTestBase
             setting = AlgebraicScenario(2, {}, false);
             x = setting.get([1 2 2]);
             ct_x = x';
-            testCase.assertTrue(isa(ct_x, 'Algebraic.Monomial'));
+            testCase.assertTrue(isa(ct_x, 'Symbolic.Monomial'));
             testCase.verifyEqual(ct_x.Operators, uint64([4 4 3]));
             testCase.verifyEqual(ct_x.Coefficient, x.Coefficient);
         end  
@@ -1019,7 +1019,7 @@ classdef AlgebraicTest < MTKTestBase
             y = setting.get([2]);
             x_plus_y = x + y;            
             ct = x_plus_y';
-            testCase.assertTrue(isa(ct, 'Algebraic.Polynomial'));
+            testCase.assertTrue(isa(ct, 'Symbolic.Polynomial'));
             testCase.assertEqual(length(ct.Constituents), 2);
             yc = ct.Constituents(1);
             yc_xc = ct.Constituents(2);            

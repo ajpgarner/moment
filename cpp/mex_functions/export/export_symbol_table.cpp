@@ -22,23 +22,20 @@
 
 namespace Moment::mex {
     namespace {
-        std::vector<std::string> column_names(const bool non_herm, const bool include_factors) {
-            std::vector<std::string> table_fields{"symbol", "operators"};
-            if (non_herm) {
-                table_fields.emplace_back("conjugate");
-                table_fields.emplace_back("hermitian");
-            }
-            table_fields.emplace_back("basis_re");
-            if (non_herm) {
-                table_fields.emplace_back("basis_im");
-            }
-            if (include_factors) {
-                table_fields.emplace_back("fundamental");
-                table_fields.emplace_back("factor_sequence");
-                table_fields.emplace_back("factor_symbols");
-                table_fields.emplace_back("factor_appearances");
-            }
-            return table_fields;
+
+        inline bool query_can_be_nonhermitian(const MatrixSystem &system) {
+            const auto& context = system.Context();
+            return context.can_be_nonhermitian();
+        }
+
+        inline bool query_can_have_factors(const MatrixSystem &system) {
+            const auto* inflationContextPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
+            return (nullptr != inflationContextPtr);
+        }
+
+        inline bool query_locality_format(const MatrixSystem &system) {
+            const auto *localityContextPtr = dynamic_cast<const Locality::LocalityContext *>(&(system.Context()));
+            return (nullptr != localityContextPtr);
         }
 
 
@@ -54,138 +51,237 @@ namespace Moment::mex {
         }
 
 
-        void write_row(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
-                       matlab::data::ArrayFactory &factory,
-                       const bool non_herm, const bool include_factors,
-                       const Inflation::FactorTable *factorTablePtr, const Locality::LocalityContext *localityContextPtr,
-                       const bool locality_format, matlab::data::StructArray &outputStruct, size_t write_index,
-                       const Symbol &symbol) {
 
-            outputStruct[write_index]["symbol"] = factory.createScalar<uint64_t>(static_cast<uint64_t>(symbol.Id()));
-            if (locality_format) {
-                outputStruct[write_index]["operators"] =  factory.createScalar(
-                        localityContextPtr->format_sequence(*env.get_locality_formatter(),symbol.sequence()));
-            } else {
-                outputStruct[write_index]["operators"] = factory.createScalar(symbol.formatted_sequence());
-            }
+    }
 
-            // +1 is from MATLAB indexing
-            outputStruct[write_index]["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
 
-            if (non_herm) {
-                if (locality_format) {
-                    outputStruct[write_index]["conjugate"] = factory.createScalar(
-                            localityContextPtr->format_sequence(*env.get_locality_formatter(), symbol.sequence_conj()));
-                } else {
-                    outputStruct[write_index]["conjugate"] = factory.createScalar(symbol.formatted_sequence_conj());
-                }
+    SymbolTableExporter::SymbolTableExporter(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
+                                             const MatrixSystem &system)
+            : Exporter{engine}, env{env}, system{system}, symbols{system.Symbols()}, context{system.Context()},
+              can_be_nonhermitian{query_can_be_nonhermitian(system)},
+              include_factors{query_can_have_factors(system)},
+              locality_format{query_locality_format(system)} {
+        if (this->locality_format) {
+            this->localityContextPtr = dynamic_cast<const Locality::LocalityContext *>(&(system.Context()));
+            assert(this->localityContextPtr != nullptr);
+        }
 
-                outputStruct[write_index]["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
-                // +1 is from MATLAB indexing
-                outputStruct[write_index]["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
-            }
-            if (include_factors) {
-                const auto& entry = (*factorTablePtr)[symbol.Id()];
-
-                outputStruct[write_index]["fundamental"] = factory.createScalar<bool>(entry.fundamental());
-                outputStruct[write_index]["factor_sequence"] = factory.createScalar(entry.sequence_string());
-                outputStruct[write_index]["factor_symbols"] = make_factor_symbol_array(factory, entry);
-                outputStruct[write_index]["factor_appearances"] = factory.createScalar(entry.appearances);
-            }
+        if (this->include_factors) {
+            const auto* inflationContextPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
+            assert(inflationContextPtr != nullptr);
+            this->factorTablePtr = &inflationContextPtr->Factors();
         }
     }
 
-    matlab::data::StructArray export_symbol_table_row(matlab::engine::MATLABEngine& engine,
-                                                      const EnvironmentalVariables& env,
-                                                      const MatrixSystem& system, const Symbol& symbol) {
+
+    std::vector<std::string>
+    SymbolTableExporter::column_names(const bool include_conj) const {
+        std::vector<std::string> table_fields{"symbol", "operators"};
+
+        if (include_conj) {
+            table_fields.emplace_back("conjugated");
+        }
+
+        if (this->can_be_nonhermitian) {
+            table_fields.emplace_back("conjugate");
+            table_fields.emplace_back("hermitian");
+        }
+
+        table_fields.emplace_back("basis_re");
+        if (this->can_be_nonhermitian) {
+            table_fields.emplace_back("basis_im");
+        }
+
+        if (this->include_factors) {
+            table_fields.emplace_back("fundamental");
+            table_fields.emplace_back("factor_sequence");
+            table_fields.emplace_back("factor_symbols");
+            table_fields.emplace_back("factor_appearances");
+        }
+        return table_fields;
+    }
+
+    matlab::data::StructArray SymbolTableExporter::export_empty_row(bool include_conj) const {
+        matlab::data::ArrayFactory factory;
+
+        // Construct structure array
+        return factory.createStructArray(matlab::data::ArrayDimensions{1, 0}, this->column_names(include_conj));
+    }
+
+
+    matlab::data::StructArray
+    SymbolTableExporter::export_row(const Symbol& symbol, std::optional<bool> conjugated) const {
 
         matlab::data::ArrayFactory factory;
         const auto& context = system.Context();
 
-        // Ascertain system properties
-        const bool non_herm = context.can_be_nonhermitian();
-        const auto* inflationContextPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
-        const bool include_factors = (nullptr != inflationContextPtr);
-        const Inflation::FactorTable* factorTablePtr = nullptr;
-        if (include_factors) {
-            factorTablePtr = &inflationContextPtr->Factors();
-        }
-
-        const auto* localityContextPtr = dynamic_cast<const Locality::LocalityContext*>(&(system.Context()));
-        const bool locality_format = (nullptr != localityContextPtr);
+        const bool include_conj = conjugated.has_value();
 
         // Construct structure array
-        auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, 1},
-                                                      column_names(non_herm, include_factors));
+        auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, 1}, column_names(include_conj));
 
         // Write single row
-        write_row(engine, env, factory, non_herm, include_factors, factorTablePtr,
-                  localityContextPtr, locality_format, outputStruct, 0, symbol);
+        auto write_iter = outputStruct.begin();
+        this->do_row_write(factory, write_iter, symbol, conjugated);
 
         return outputStruct;
     }
 
-
-    matlab::data::StructArray export_symbol_table_struct(matlab::engine::MATLABEngine& engine,
-                                                         const EnvironmentalVariables& env,
-                                                         const MatrixSystem& system,
-                                                         const size_t from_symbol) {
+    matlab::data::StructArray SymbolTableExporter::export_table(const size_t from_symbol) const {
         matlab::data::ArrayFactory factory;
-
-        const auto& table = system.Symbols();
-        const auto& context = system.Context();
 
 
         // Advance to first new symbol (if necessary)
-        auto symbolIter = table.begin();
+        auto symbolIter = this->symbols.begin();
         if (from_symbol > 0) {
-            if (from_symbol < table.size()) {
+            if (from_symbol < this->symbols.size()) {
                 symbolIter += static_cast<ptrdiff_t>(from_symbol);
             } else {
-                symbolIter = table.end();
+                symbolIter = this->symbols.end();
             }
         }
 
         // Number of symbols to be output
-        const size_t num_elems = (from_symbol < table.size()) ? (table.size() - from_symbol) : 0;
-
-        // Ascertain table field names
-        const bool non_herm = context.can_be_nonhermitian();
-        const auto* inflationContextPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
-        const bool include_factors = (nullptr != inflationContextPtr);
-        const Inflation::FactorTable* factorTablePtr = nullptr;
-        if (include_factors) {
-            factorTablePtr = &inflationContextPtr->Factors();
-        }
-
-        const auto* localityContextPtr = dynamic_cast<const Locality::LocalityContext*>(&(system.Context()));
-        const bool locality_format = (nullptr != localityContextPtr);
-
-        // Construct structure array
-        auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, num_elems},
-                                                      column_names(non_herm, include_factors));
+        const size_t num_elements = (from_symbol < this->symbols.size()) ? (this->symbols.size() - from_symbol) : 0;
 
         // Early exit, if empty
-        if (0 == num_elems) {
-            return outputStruct;
+        if (0 == num_elements) {
+            return this->export_empty_row(false);
         }
 
+
+        // Construct structure array
+        auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, num_elements},
+                                                      column_names(false));
+
         // Copy rest of table:
-        size_t write_index = 0;
-        while (symbolIter != table.end()) {
+        auto write_iter = outputStruct.begin();
+        while (symbolIter != this->symbols.end()) {
             const auto& symbol = *symbolIter;
-            if (write_index >= num_elems) {
+            if (write_iter == outputStruct.end()) {
                 throw_error(engine, errors::internal_error,
                             "Unexpectedly many sequences in export_symbol_table_struct.");
             }
 
-            write_row(engine, env, factory, non_herm, include_factors, factorTablePtr,
-                      localityContextPtr, locality_format, outputStruct, write_index, symbol);
+            this->do_row_write(factory, write_iter, symbol, std::nullopt);
 
-            ++write_index;
+            ++write_iter;
             ++symbolIter;
+        }
+        return outputStruct;
+    }
+
+    matlab::data::StructArray SymbolTableExporter::export_row_array(std::span<const size_t> shape,
+                                                                    std::span<const symbol_name_t> symbol_ids,
+                                                                    std::span<const uint8_t> conj_status) const {
+        const bool include_conjugates = !conj_status.empty();
+        if (include_conjugates && (conj_status.size() != symbol_ids.size())) {
+            throw_error(engine, errors::internal_error,
+                        "Conjugate status array size does not match symbol ID array.");
+        }
+        const size_t expected_length = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies());
+        if (expected_length != symbol_ids.size()) {
+            throw_error(engine, errors::internal_error,
+                        "Number of symbol IDs requested does not match the desired output shape.");
+        }
+
+        // Construct structure array
+        matlab::data::ArrayFactory factory;
+        matlab::data::ArrayDimensions array_dims{shape.begin(), shape.end()};
+        auto outputStruct = factory.createStructArray(std::move(array_dims), column_names(include_conjugates));
+
+        // Function: Is conjugated or don't care.
+        auto is_conjugated = [&](size_t index) -> std::optional<bool> {
+            if (include_conjugates) {
+                return conj_status[index];
+            }
+            return std::nullopt;
+        };
+
+        auto write_iter = outputStruct.begin();
+        for (size_t index = 0; index < expected_length; ++index) {
+            const auto symbol_id = symbol_ids[index];
+            if ((symbol_id < 0) || (symbol_id >= this->symbols.size())) {
+                this->do_missing_row_write(factory, write_iter, include_conjugates);
+            } else {
+                const auto &symbolInfo = this->symbols[symbol_id];
+                const auto conjugated = is_conjugated(index);
+                this->do_row_write(factory, write_iter, symbolInfo, conjugated);
+            }
+            ++write_iter;
         }
 
         return outputStruct;
+    }
+
+    void SymbolTableExporter::do_row_write(matlab::data::ArrayFactory& factory,
+                                           matlab::data::StructArray::iterator& write_iter,
+                                           const Symbol &symbol, std::optional<bool> conjugated) const {
+
+        (*write_iter)["symbol"] = factory.createScalar<int64_t>(static_cast<int64_t>(symbol.Id()));
+        if (this->locality_format) {
+            (*write_iter)["operators"] =  factory.createScalar(
+                    localityContextPtr->format_sequence(*env.get_locality_formatter(), symbol.sequence()));
+        } else {
+            (*write_iter)["operators"] = factory.createScalar(symbol.formatted_sequence());
+        }
+
+        if (conjugated.has_value()) {
+            (*write_iter)["conjugated"] = factory.createScalar(conjugated.value());
+        }
+
+        // +1 is from MATLAB indexing
+        (*write_iter)["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
+
+        if (this->can_be_nonhermitian) {
+            if (this->locality_format) {
+                (*write_iter)["conjugate"] = factory.createScalar(
+                        this->localityContextPtr->format_sequence(*env.get_locality_formatter(), symbol.sequence_conj()));
+            } else {
+                (*write_iter)["conjugate"] = factory.createScalar(symbol.formatted_sequence_conj());
+            }
+
+            (*write_iter)["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
+            // +1 is from MATLAB indexing
+            (*write_iter)["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
+        }
+        if (this->include_factors) {
+            const auto& entry = (*factorTablePtr)[symbol.Id()];
+
+            (*write_iter)["fundamental"] = factory.createScalar<bool>(entry.fundamental());
+            (*write_iter)["factor_sequence"] = factory.createScalar(entry.sequence_string());
+            (*write_iter)["factor_symbols"] = make_factor_symbol_array(factory, entry);
+            (*write_iter)["factor_appearances"] = factory.createScalar(entry.appearances);
+        }
+    }
+
+
+    void SymbolTableExporter::do_missing_row_write(matlab::data::ArrayFactory& factory,
+                                                   matlab::data::StructArray::iterator& write_iter,
+                                                   const bool include_conj) const {
+
+        (*write_iter)["symbol"] = factory.createScalar<int64_t>(-1);
+        (*write_iter)["operators"] = factory.createScalar("");
+
+        if (include_conj) {
+            (*write_iter)["conjugated"] = factory.createScalar<bool>(false);
+        }
+
+        // +1 is from MATLAB indexing
+        (*write_iter)["basis_re"] = factory.createScalar<uint64_t>(0);
+
+        if (this->can_be_nonhermitian) {
+            (*write_iter)["conjugate"] = factory.createScalar("");
+            (*write_iter)["hermitian"] = factory.createScalar<bool>(false);
+            // +1 is from MATLAB indexing
+            (*write_iter)["basis_im"] = factory.createScalar<uint64_t>(0);
+        }
+
+        if (this->include_factors) {
+            (*write_iter)["fundamental"] = factory.createScalar<bool>(false);
+            (*write_iter)["factor_sequence"] = factory.createScalar("");
+            (*write_iter)["factor_symbols"] = factory.createArray<uint64_t>({1, 0});
+            (*write_iter)["factor_appearances"] = factory.createScalar(0);
+        }
     }
 }

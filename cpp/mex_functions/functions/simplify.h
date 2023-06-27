@@ -20,7 +20,7 @@ namespace Moment::mex::functions {
         uint64_t matrix_system_key = 0;
 
         /** The operator string to simplify. */
-        std::vector<oper_name_t> operator_string;
+        std::vector<std::vector<oper_name_t>> operator_string;
 
         /** Operators, as UTF-8 strings, if provided */
         std::vector<std::string> named_operators;
@@ -28,12 +28,16 @@ namespace Moment::mex::functions {
         enum class InputType {
             Unknown,
             Numbers,
+            NumbersArray,
             String
         } input_type = InputType::Unknown;
+
+        std::vector<size_t> input_shape;
 
     public:
         explicit SimplifyParams(SortedInputs&& structuredInputs);
 
+        [[nodiscard]] bool scalar_input() const noexcept { return this->input_type != InputType::NumbersArray; }
     };
 
     class Simplify : public ParameterizedMexFunction<SimplifyParams, MEXEntryPointID::Simplify> {

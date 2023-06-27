@@ -6,7 +6,7 @@ classdef MatrixSystem < handle
         RefId = uint64(0)        
         SymbolTable = struct.empty;
         RealVarCount = uint64(0)
-        ImaginaryVarCount = uint64(0) 
+        ImaginaryVarCount = uint64(0);
     end
     
     properties(Access = private)
@@ -22,6 +22,10 @@ classdef MatrixSystem < handle
                             ' or a cell array of parameters.'];
     end  
     
+    events
+        % Trigged when symbols are added to the matrix system.
+        NewSymbolsAdded
+    end
     
     methods
         %% Constructor
@@ -134,7 +138,11 @@ classdef MatrixSystem < handle
                 else
                     obj.ImaginaryVarCount = 0;
                 end
+                % Trigger child class updates
                 obj.onNewSymbolsAdded();
+                
+                % Trigger independent listeners
+                notify(obj, 'NewSymbolsAdded');
             end
             
             val = obj.SymbolTable;

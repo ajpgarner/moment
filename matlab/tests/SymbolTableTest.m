@@ -65,11 +65,11 @@ classdef SymbolTableTest < MTKTestBase
             find_1 = mtk('symbol_table', ref_id, [2]);
             find_2 = mtk('symbol_table', ref_id, [3]);
             testCase.verifyEqual(fieldnames(find_1), ...
-                {'symbol'; 'operators'; 'conjugate'; 'hermitian'; ...
-                'basis_re'; 'basis_im'});
+                {'symbol'; 'operators'; 'conjugated'; 'conjugate'; ...
+                'hermitian'; 'basis_re'; 'basis_im'});
             testCase.verifyEqual(fieldnames(find_2), ...
-                {'symbol'; 'operators'; 'conjugate'; 'hermitian'; ...
-                'basis_re'; 'basis_im'});
+                {'symbol'; 'operators'; 'conjugated'; 'conjugate'; ...
+                'hermitian';'basis_re'; 'basis_im'});
             testCase.verifyNotEqual(find_1.symbol, find_2.symbol);
             testCase.verifyNotEqual(find_1.operators, find_2.operators);
             testCase.verifyNotEqual(find_1.conjugate, find_2.conjugate);            
@@ -86,12 +86,28 @@ classdef SymbolTableTest < MTKTestBase
             find = mtk('symbol_table', ref_id, {[2], [3]});
                         
             testCase.verifyEqual(fieldnames(find), ...
-                {'symbol'; 'operators'; 'conjugated'});
+                {'symbol'; 'operators'; 'conjugated'; 'conjugate'; ...
+                'hermitian'; 'basis_re'; 'basis_im'});
            
             testCase.verifyNotEqual(find(1).symbol, find(2).symbol);
             testCase.verifyNotEqual(find(1).operators, find(2).operators);            
             testCase.verifyFalse(find(1).conjugated);
             testCase.verifyFalse(find(2).conjugated);
+         end
+        
+                
+         function ByCellMatrix(testCase)
+            ref_id = mtk('locality_matrix_system', 2, 2, 2);
+            [~] = mtk('moment_matrix', ref_id, 1);
+            find = mtk('symbol_table', ref_id, {[1], [2]; [3], [4]});
+                        
+            testCase.verifyEqual(fieldnames(find), ...
+                {'symbol'; 'operators'; 'conjugated'; 'conjugate'; ...
+                'hermitian'; 'basis_re'; 'basis_im'});            
+            testCase.verifyEqual(find(1, 1).operators, "A.a0");
+            testCase.verifyEqual(find(1, 2).operators, "A.b0");
+            testCase.verifyEqual(find(2, 1).operators, "B.a0");
+            testCase.verifyEqual(find(2, 2).operators, "B.b0");
         end
     end
     

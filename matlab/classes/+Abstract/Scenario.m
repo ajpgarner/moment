@@ -12,6 +12,10 @@ classdef Scenario < handle
         HasMatrixSystem % True if a matrix system has been created in mtk.
     end
     
+    properties(Access = public)
+        ZeroTolerance;
+    end
+    
     properties(Access = protected)
         matrix_system % A MatrixSystem handle for the given scenario.
     end
@@ -28,11 +32,78 @@ classdef Scenario < handle
     
     %% Constructor (abstract base class)
     methods(Access = protected)
-        function obj = Scenario()
+        function obj = Scenario(tolerance)
         % SCENARIO Create an scenario object.
+        arguments
+            tolerance (1,1) double = 100
+        end        
             obj.matrix_system = MatrixSystem.empty;
+            obj.ZeroTolerance = tolerance;
         end
     end
+    
+    %% ZeroTolerance and rounding
+    methods
+         function set.ZeroTolerance(obj, value)
+            arguments
+                obj (1,1) Abstract.Scenario
+                value (1,1) double
+            end
+            obj.errorIfLocked();
+            if value < 0
+                error("ZeroTolerance must be non-negative.");
+            end
+            obj.ZeroTolerance = value;            
+         end
+         
+         function [val, mask, real_mask, im_mask] = Prune(obj, val, scale)
+         % PRUNE Remove terms close to zero.
+             arguments
+                 obj (1,1)  Abstract.Scenario
+                 val (:,:)  double
+                 scale (1,1) double = 1.0;
+             end
+             
+             if nargin < 3
+                 scale = 1.0;
+             end
+             
+             % Zero, if close
+             mask = abs(val) < (obj.ZeroTolerance * eps(scale));
+             val(mask) = 0.0;
+             
+             % Real, if close
+             real_mask = abs(imag(val)) < (obj.ZeroTolerance * eps(scale));
+             val(real_mask) = real(val(real_mask));
+             
+             % Imaginary, if close
+             im_mask = abs(real(val)) < (obj.ZeroTolerance * eps(scale));
+             val(im_mask) = 1i * imag(val(im_mask));             
+         end
+         
+         function output = IsClose(obj, lhs, rhs, scale)
+              arguments
+                 obj (1,1)  Abstract.Scenario
+                 lhs double,
+                 rhs double
+                 scale (1,1) double = 1.0;
+             end
+             if nargin < 4
+                 scale = 1.0;
+             end
+             assert(isequal(size(lhs), size(rhs)));
+             if ~isreal(lhs) || ~isreal(rhs)
+                 diff = (lhs - rhs);
+                 mod_diff = diff .* conj(diff);
+                 output = mod_diff < (obj.ZeroTolerance ...
+                                      * obj.ZeroTolerance ...
+                                      * eps(scale) * eps(scale));             
+             else
+                 output = abs(lhs - rhs) < obj.ZeroTolerance * eps(scale);
+             end
+         end
+    end
+        
        
     %% Accessors: MatrixSystem
     methods
@@ -127,41 +198,45 @@ classdef Scenario < handle
     
     %% Operator sequence manipulations
     methods         
-         function [output, hash] = Simplify(obj, input)
+         function [output, negated, hash] = Simplify(obj, input)
          % SIMPLIFY Get canonical form of operator sequence input.
          % All applicable re-write rules will be applied.
          %
          % SYNTAX
-         %      1. output = setting.Simplify(input_str)
-         %      2. [output, hash] = setting.Simplify(input_str)
+         %      1. [output, negated, hash] = setting.Simplify(input_str)
+         %      2. [o., n., h.] = setting.Simplify({cell of input_strs})
          %
-         % The optional hash is the shortlex hash associated with this 
-         % context.
+         % The hash is the shortlex hash associated with this context.
+         % In syntax 1, output is a uint64 row-vector, negated is scalar 
+         % bool and hash is scalar uint64.
+         % In syntax 2, output will be a cell array of uint64 row-vectors,
+         % and negated and hash will be arrays of matching dimensions.
          %
              arguments
                  obj(1,1) Abstract.Scenario
-                 input(1,:)
+                 input
              end
              
-             [output, hash] = mtk('simplify', obj.System.RefId, input);
+             [output, negated, hash] = mtk('simplify', obj.System.RefId, input);
          end
          
-         function [output, hash] = Conjugate(obj, input)
+         function [output, negated, hash] = Conjugate(obj, input)
          % CONJUGATE Get canonical form of operator sequence's conjugate.
          %
          % SYNTAX
          %      1. output = setting.Simplify(input_str)
-         %      2. [output, hash] = setting.Simplify(input_str)
+         %      2. [output, negated, hash] = setting.Simplify(input_str)
          %
          % The optional hash is the shortlex hash associated with this 
          % context.
          %
              arguments
                  obj(1,1) Abstract.Scenario
-                 input(1,:)
+                 input
              end
-             
-             [output, hash] = mtk('conjugate', obj.System.RefId, input);
+                          
+             [output, negated, hash] = ...
+                 mtk('conjugate', obj.System.RefId, input);
          end
          
          function output = WordList(obj, length, register)
@@ -176,15 +251,15 @@ classdef Scenario < handle
                  length(1,1) uint64
                  register(1,1) logical = false
              end
-             
+
              extra_args = cell(1,0);
              if register
                  extra_args{end+1} = 'register_symbols';
              end
-             
+
              output = mtk('word_list', obj.System.RefId, length, ...
                           extra_args{:});
-                      
+
              if register
                  obj.System.UpdateSymbolTable();
              end

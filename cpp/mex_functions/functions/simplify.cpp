@@ -46,16 +46,33 @@ namespace Moment::mex::functions {
                     }
                     ++idx;
                 }
-            } else {
-                for (auto op_num : input.operator_string) {
-                    size_t idx = 1; // MATLAB 1-indexing
-                    if ((op_num < 0) || (op_num >= context.size())) {
-                        std::stringstream errSS;
-                        errSS << "Operator " << (op_num+1) << " at index " << idx << " is out of range.";
-                        throw_error(engine, errors::bad_param, errSS.str());
-                    }
-                    ++idx;
+            } else if ((input.input_type == SimplifyParams::InputType::Numbers)
+                        || (input.input_type == SimplifyParams::InputType::NumbersArray)) {
+
+                if (input.scalar_input() && (input.operator_string.size() != 1)) {
+                    throw_error(engine, errors::internal_error, "Missing operator string.");
                 }
+
+                size_t elem_idx = 1; // MATLAB 1-indexing
+                for (const auto& op_str : input.operator_string) {
+                    size_t idx = 1; // MATLAB 1-indexing
+                    for (const auto op_num: op_str) {
+                        if ((op_num < 0) || (op_num >= context.size())) {
+                            std::stringstream errSS;
+                            errSS << "Operator " << (op_num + 1) << " at position " << idx;
+                            if (!input.scalar_input()) {
+                                errSS << " in index " << elem_idx;
+                            }
+                            errSS << " is out of range.";
+                            throw_error(engine, errors::bad_param, errSS.str());
+                        }
+                        ++idx;
+                    }
+                    ++elem_idx;
+                }
+
+            } else {
+                throw_error(engine, errors::internal_error, "Unknown input type.");
             }
         }
     }
@@ -79,6 +96,9 @@ namespace Moment::mex::functions {
             case matlab::data::ArrayType::UINT64:
                 this->input_type = SimplifyParams::InputType::Numbers;
                 break;
+            case matlab::data::ArrayType::CELL:
+                this->input_type = SimplifyParams::InputType::NumbersArray;
+                break;
             case matlab::data::ArrayType::MATLAB_STRING:
             case matlab::data::ArrayType::CHAR:
                 this->input_type = SimplifyParams::InputType::String;
@@ -92,14 +112,34 @@ namespace Moment::mex::functions {
         if (this->input_type == SimplifyParams::InputType::Numbers) {
 
             // Read op string, translate from MATLAB to C++ indexing
-            this->operator_string = read_integer_array<oper_name_t>(matlabEngine, "Operator string", inputs[1]);
-            for (auto &op: this->operator_string) {
+            this->operator_string.emplace_back(read_integer_array<oper_name_t>(matlabEngine, "Operator string", inputs[1]));
+            for (auto &op: this->operator_string.back()) {
                 if (op < 1) {
                     throw_error(matlabEngine, errors::bad_param, "Operator must be a positive integer.");
                 }
                 op -= 1;
             }
+            this->input_shape = {1, 1};
+        } else if (this->input_type == SimplifyParams::InputType::NumbersArray) {
+            const auto input_dims = inputs[1].getDimensions();
+            this->input_shape.reserve(input_dims.size());
+            std::copy(input_dims.cbegin(), input_dims.cend(), std::back_inserter(this->input_shape));
+
+            const matlab::data::CellArray as_cell = inputs[1];
+            this->operator_string.reserve(as_cell.getNumberOfElements());
+            for (auto str : as_cell) {
+                this->operator_string.emplace_back(
+                        read_integer_array<oper_name_t>(matlabEngine, "Operator string", str));
+                for (auto &op: this->operator_string.back()) {
+                    if (op < 1) {
+                        throw_error(matlabEngine, errors::bad_param, "Operator must be a positive integer.");
+                    }
+                    op -= 1;
+                }
+            }
+
         } else if (this->input_type == SimplifyParams::InputType::String) {
+            this->input_shape = {1, 1};
             this->named_operators.reserve(inputs[1].getNumberOfElements());
 
             // Pre-process string for later parsing
@@ -136,7 +176,7 @@ namespace Moment::mex::functions {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 1;
-        this->max_outputs = 2;
+        this->max_outputs = 3;
     }
 
     void Simplify::operator()(IOArgumentRange output, SimplifyParams &input) {
@@ -157,21 +197,80 @@ namespace Moment::mex::functions {
 
         process_input_string(matlabEngine, context, input);
 
-        sequence_storage_t rawOpStr{input.operator_string.begin(), input.operator_string.end()};
-        OperatorSequence opSeq{std::move(rawOpStr), context};
+        if (input.scalar_input()) {
+            assert(input.operator_string.size() == 1);
+            sequence_storage_t rawOpStr{input.operator_string[0].begin(), input.operator_string[0].end()};
+            OperatorSequence opSeq{std::move(rawOpStr), context};
 
-        if (this->verbose) {
+            if (this->verbose) {
+                std::stringstream ss;
+                sequence_storage_t copyOpStr{input.operator_string[0].begin(), input.operator_string[0].end()};
+                ss << context.format_raw_sequence(copyOpStr) << " -> " << opSeq << "\n";
+                print_to_console(matlabEngine, ss.str());
+            }
+
+            matlab::data::ArrayFactory factory;
+            // Export sequence
+            output[0] = export_operator_sequence(factory, opSeq);
+
+            // Export minus sign if necessary
+            if (output.size() >= 2) {
+                output[1] = factory.createScalar<bool>(opSeq.negated());
+            }
+
+            // Export hash
+            if (output.size() >= 3) {
+                output[2] = factory.createScalar<uint64_t>(opSeq.hash());
+            }
+        } else {
+
+            matlab::data::ArrayFactory factory;
+
+            // Prepare outputs
+            auto out_op_seqs = factory.createCellArray(input.input_shape);
+            auto out_negation = factory.createArray<bool>(input.input_shape);
+            auto out_hashes = factory.createArray<uint64_t>(input.input_shape);
+
+            // Parse and conjugate
+            size_t write_index = 0;
+            auto out_op_seqs_iter = out_op_seqs.begin();
+            auto out_negation_iter = out_negation.begin();
+            auto out_hashes_iter = out_hashes.begin();
+
             std::stringstream ss;
-            ss << context.format_raw_sequence(rawOpStr) << " -> " << opSeq << "\n";
-            print_to_console(matlabEngine, ss.str());
-        }
+            for (const auto& input_seq : input.operator_string) {
+                sequence_storage_t rawOpStr{input_seq.begin(), input_seq.end()};
+                OperatorSequence opSeq{std::move(rawOpStr), context};
 
-        matlab::data::ArrayFactory factory;
-        // Export sequence
-        output[0] = export_operator_sequence(factory, opSeq);
-        // Export hash
-        if (output.size() >= 2) {
-            output[1] = factory.createScalar<uint64_t>(opSeq.hash());
+                if (this->verbose) {
+                    sequence_storage_t copyOpStr{input.operator_string[0].begin(), input.operator_string[0].end()};
+                    ss << context.format_raw_sequence(copyOpStr) << " -> " << opSeq << "\n";
+                }
+
+                *out_op_seqs_iter = export_operator_sequence(factory, opSeq);
+                *out_negation_iter = opSeq.negated();
+                *out_hashes_iter = opSeq.hash();
+
+                // Next:
+                ++out_op_seqs_iter;
+                ++out_negation_iter;
+                ++out_hashes_iter;
+                ++write_index;
+            }
+
+            if (this->verbose) {
+                print_to_console(matlabEngine, ss.str());
+            }
+
+            // Move outputs
+            output[0] = std::move(out_op_seqs);
+            if (output.size() >= 2) {
+                output[1] = std::move(out_negation);
+            }
+            if (output.size() >= 3) {
+                output[2] = std::move(out_hashes);
+            }
+
         }
     }
 

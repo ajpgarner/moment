@@ -588,13 +588,6 @@ classdef OperatorRulebook < handle
                 error(obj.err_locked)
             end
         end
-    end
-    
-    %% Private
-    methods(Access=private)
-        function val = highestMentionedOp(obj)
-            error("Not implemented");
-        end
-    end
+    end    
 end
 

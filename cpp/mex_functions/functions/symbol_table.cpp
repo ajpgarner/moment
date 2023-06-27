@@ -42,8 +42,10 @@ namespace Moment::mex::functions {
                 const auto elems = query_inputs.getNumberOfElements();
                 this->sequences.reserve(elems);
 
-                for (size_t elem_index = 0; elem_index < elems; ++elem_index) {
-                    const auto the_elem = query_inputs[elem_index];
+                auto input_iter = query_inputs.cbegin();
+                while (input_iter != query_inputs.cend()) {
+                //for (size_t elem_index = 0; elem_index < elems; ++elem_index) {
+                    const matlab::data::Array the_elem = *input_iter;
                     std::vector<uint64_t> raw_op_seq = read_positive_integer_array<uint64_t>(matlabEngine,
                                                                                              "Operator sequence",
                                                                                              the_elem, 1);
@@ -53,7 +55,14 @@ namespace Moment::mex::functions {
                     for (auto ui: raw_op_seq) {
                         seq.emplace_back(static_cast<oper_name_t>(ui - 1));
                     }
+                    ++input_iter;
                 }
+
+                const auto dims = query_inputs.getDimensions();
+                this->sequence_dimensions.clear();
+                std::copy(dims.cbegin(), dims.cend(), std::back_inserter(this->sequence_dimensions));
+
+
             } else {
                 this->output_mode = OutputMode::SearchBySequence;
                 std::vector<uint64_t> raw_op_seq = read_positive_integer_array<uint64_t>(matlabEngine,
@@ -108,7 +117,7 @@ namespace Moment::mex::functions {
             : ParameterizedMexFunction{matlabEngine, storage} {
 
         this->min_outputs = 1;
-        this->max_outputs = 2;
+        this->max_outputs = 1;
         this->min_inputs = 1;
         this->max_inputs = 2;
         this->param_names.emplace(u"from");
@@ -123,15 +132,6 @@ namespace Moment::mex::functions {
         }
     }
 
-
-    void SymbolTable::validate_output_count(const size_t outputs, const SortedInputs &inputRaw) const {
-        const auto& input = dynamic_cast<const SymbolTableParams&>(inputRaw);
-
-        // Double check outputs
-        if ((outputs >= 2) && (input.output_mode != SymbolTableParams::OutputMode::SearchBySequence)) {
-            throw_error(this->matlabEngine, errors::too_many_outputs, "Too many outputs provided.");
-        }
-    }
 
     void SymbolTable::operator()(IOArgumentRange output, SymbolTableParams& input) {
         // Get referred to matrix system (or fail)
@@ -148,18 +148,20 @@ namespace Moment::mex::functions {
 
         // Export symbol table
         if (output.size() >= 1) {
+            SymbolTableExporter exporter{this->matlabEngine, *this->settings, matrixSystem};
+
             switch (input.output_mode) {
                 case SymbolTableParams::OutputMode::AllSymbols:
-                    output[0] = export_symbol_table_struct(this->matlabEngine, *this->settings, matrixSystem);
+                    output[0] = exporter.export_table();
                     break;
                 case SymbolTableParams::OutputMode::FromId:
-                    output[0] = export_symbol_table_struct(this->matlabEngine, *this->settings, matrixSystem, input.from_id);
+                    output[0] = exporter.export_table(input.from_id);
                     break;
                 case SymbolTableParams::OutputMode::SearchBySequence:
-                    find_and_return_symbol(output, input, matrixSystem);
+                    output[0] = find_and_return_symbol(input, exporter);
                     break;
                 case SymbolTableParams::OutputMode::SearchBySequenceArray:
-                    find_and_return_symbol_array(output, input, matrixSystem);
+                    output[0] = find_and_return_symbol_array(input, exporter);
                     break;
                 default:
                     throw_error(this->matlabEngine, errors::internal_error, "Unknown output mode.");
@@ -169,10 +171,11 @@ namespace Moment::mex::functions {
 
     }
 
-    void SymbolTable::find_and_return_symbol(IOArgumentRange output, const SymbolTableParams& input,
-                                const MatrixSystem &system) {
+    matlab::data::Array
+    SymbolTable::find_and_return_symbol(const SymbolTableParams& input, const SymbolTableExporter &exporter) {
         matlab::data::ArrayFactory factory;
 
+        const auto& system = exporter.system;
         const auto& context = system.Context();
         const auto& symbolTable = system.Symbols();
 
@@ -183,13 +186,7 @@ namespace Moment::mex::functions {
 
         // Return false if nothing found
         if (nullptr == symbolRow) {
-            if (output.size() >= 1) {
-                output[0] = factory.createScalar<bool>(false);
-            }
-            if (output.size() >= 2) {
-                output[1] = factory.createScalar<bool>(false);
-            }
-            return;
+            return exporter.export_empty_row(true);
         }
 
         // Otherwise, export row
@@ -197,50 +194,33 @@ namespace Moment::mex::functions {
         bool conjugated = trialSequence.hash() != unique.hash();
         assert(!conjugated || (trialSequence.hash() == unique.hash_conj()));
 
-        if (output.size() >= 1) {
-            output[0] = export_symbol_table_row(this->matlabEngine, *this->settings, system, unique);
-        }
-        if (output.size() >= 2) {
-            output[1] = factory.createScalar<bool>(conjugated);
-        }
+        return exporter.export_row(unique, conjugated);
     }
 
-
-    void SymbolTable::find_and_return_symbol_array(IOArgumentRange output, const SymbolTableParams& input,
-                                             const MatrixSystem &system) {
-        // Do nothing if no outputs
-        if (output.size() < 1) {
-            return;
-        }
-
+    matlab::data::Array
+    SymbolTable::find_and_return_symbol_array(const SymbolTableParams& input, const SymbolTableExporter &exporter) {
         matlab::data::ArrayFactory factory;
+
+        const auto& system = exporter.system;
         const auto& context = system.Context();
         const auto& symbolTable = system.Symbols();
 
         const size_t row_count = input.sequences.size();
-
-        auto out_struct = factory.createStructArray(matlab::data::ArrayDimensions{1, row_count},
-                                                    {"symbol", "operators", "conjugated"});
-
+        std::vector<symbol_name_t> symbol_ids;
+        std::vector<uint8_t> conj_status;
         for (size_t index = 0; index < row_count; ++ index) {
             const auto& seqRaw = input.sequences[index];
             OperatorSequence trialSequence(sequence_storage_t(seqRaw.begin(), seqRaw.end()), context);
             const auto symbolRow = symbolTable.where(trialSequence);
 
             if (symbolRow != nullptr) {
-                const bool conjugated = trialSequence.hash() != symbolRow->hash();
-
-                out_struct[index]["symbol"] = factory.createScalar<int64_t>(symbolRow->Id());
-                out_struct[index]["operators"] = conjugated ? factory.createScalar(symbolRow->formatted_sequence_conj())
-                                                           : factory.createScalar(symbolRow->formatted_sequence());
-                out_struct[index]["conjugated"] = factory.createScalar<bool>(conjugated);
-
+                symbol_ids.emplace_back(symbolRow->Id());
+                conj_status.emplace_back(trialSequence.hash() != symbolRow->hash() ? 1 : 0);
             } else {
-                out_struct[index]["symbol"] = factory.createScalar<int64_t>(-1);
-                out_struct[index]["operators"] = context.format_sequence(trialSequence);
-                out_struct[index]["conjugated"] = factory.createScalar<bool>(false);
+                symbol_ids.emplace_back(-1);
+                conj_status.emplace_back(0);
             }
         }
-        output[0] = std::move(out_struct);
+        return exporter.export_row_array(input.sequence_dimensions, std::span(symbol_ids), std::span(conj_status));
     }
 }
