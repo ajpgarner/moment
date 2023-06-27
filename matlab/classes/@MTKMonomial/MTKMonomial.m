@@ -1,5 +1,5 @@
-classdef Monomial < Symbolic.ComplexObject
-%MONOMIAL A monomial expression of operators (or their moment).
+classdef MTKMonomial < MTKObject
+%MTKMONOMIAL A monomial expression of operators (or their moment).
         
     properties(GetAccess = public, SetAccess = protected)
         Operators % The operator sequence defining this monomial.        
@@ -35,7 +35,7 @@ classdef Monomial < Symbolic.ComplexObject
     end
     
     methods
-        function obj = Monomial(setting, operators, scale)
+        function obj = MTKMonomial(setting, operators, scale)
         % MONOMIAL Construct a monomial.
         %
         % PARAMS
@@ -99,7 +99,7 @@ classdef Monomial < Symbolic.ComplexObject
             end
 
             % Superclass constructor
-            obj = obj@Symbolic.ComplexObject(setting, create_dimensions);
+            obj = obj@MTKObject(setting, create_dimensions);
             
             if array_creation
                 if init_for_overwrite
@@ -137,7 +137,7 @@ classdef Monomial < Symbolic.ComplexObject
                 setting (1,1) Abstract.Scenario
                 dimensions (1,:) double
             end
-            obj = Symbolic.Monomial(setting, 'overwrite', dimensions);
+            obj = MTKMonomial(setting, 'overwrite', dimensions);
         end
         
         function obj = InitValue(setting, values)
@@ -148,21 +148,21 @@ classdef Monomial < Symbolic.ComplexObject
             end
             
             if numel(values) == 1
-                obj = Symbolic.Monomial(setting, [], values);
+                obj = MTKMonomial(setting, [], values);
             else
                 dims = num2cell(size(values));
-                obj = Symbolic.Monomial(setting, repelem({[]}, dims{:}), values);
+                obj = MTKMonomial(setting, repelem({[]}, dims{:}), values);
             end
         end
     end
     
     %% Convertors
     methods
-        function poly = Symbolic.Polynomial(obj)
+        function poly = MTKPolynomial(obj)
             if obj.IsScalar
-                poly = Symbolic.Polynomial(obj.Scenario, obj);
+                poly = MTKPolynomial(obj.Scenario, obj);
             else
-                poly = Symbolic.Polynomial(obj.Scenario, obj.split());
+                poly = MTKPolynomial(obj.Scenario, obj.split());
             end
         end
     end
@@ -185,7 +185,7 @@ classdef Monomial < Symbolic.ComplexObject
         %           OpMatrix.LocalizingMatrix
         %
             arguments
-                obj (1,1) Symbolic.Monomial
+                obj (1,1) MTKMonomial
                 level (1,1) uint64
             end
             lm = obj.RawLocalizingMatrix(level);
@@ -211,7 +211,7 @@ classdef Monomial < Symbolic.ComplexObject
         % See also: Monomial.LocalizingMatrix, OpMatrix.LocalizingMatrix
         %
             arguments
-                obj (1,1) Symbolic.Monomial
+                obj (1,1) MTKMonomial
                 level (1,1) uint64
             end
             val = OpMatrix.LocalizingMatrix(obj.Scenario, ...
@@ -287,7 +287,7 @@ classdef Monomial < Symbolic.ComplexObject
         % be zero.
         %
         % Due to class precedence, "mono == poly" and "poly == mono" are 
-        % handled by Symbolic.Polynomial.eq.
+        % handled by MTKPolynomial.eq.
         %
         % See also: ALGEBRAIC.POLYNOMIAL.EQ
         %
@@ -299,7 +299,7 @@ classdef Monomial < Symbolic.ComplexObject
             end
             
             % Pre-multiplication by a built-in type
-            if ~isa(lhs, 'Symbolic.Monomial') 
+            if ~isa(lhs, 'MTKMonomial') 
                 this = rhs;
                 other = lhs;               
             else
@@ -350,7 +350,7 @@ classdef Monomial < Symbolic.ComplexObject
             end
                         
             % Otherwise, compare vs. another monomial
-            assert(isa(other, 'Symbolic.Monomial'));
+            assert(isa(other, 'MTKMonomial'));
             
             % Never equal if scenarios do not match
             if this.Scenario ~= other.Scenario
@@ -420,7 +420,7 @@ classdef Monomial < Symbolic.ComplexObject
                    new_ops = Util.cell_mask(obj.Operators, mask, []);
                end
                
-               val = Symbolic.Monomial(obj.Scenario, new_ops, new_coefs);
+               val = MTKMonomial(obj.Scenario, new_ops, new_coefs);
            end
         end
         
@@ -431,9 +431,9 @@ classdef Monomial < Symbolic.ComplexObject
         %   v = -mono
         %
         % RETURNS
-        %   A new Symbolic.Monomial, with the coefficient negated.
+        %   A new MTKMonomial, with the coefficient negated.
         %
-            val = Symbolic.Monomial.InitForOverwrite(this.Scenario, size(this));
+            val = MTKMonomial.InitForOverwrite(this.Scenario, size(this));
             val.Operators = this.Operators;
             val.Hash = this.Hash;
             val.Coefficient = -this.Coefficient;
@@ -450,7 +450,7 @@ classdef Monomial < Symbolic.ComplexObject
         % TIMES Element-wise multiplication .*
         
             % Pre-multiplication by a built-in type
-            if ~isa(lhs, 'Symbolic.Monomial') 
+            if ~isa(lhs, 'MTKMonomial') 
                 this = rhs;
                 other = lhs;               
                 if ~isnumeric(other)                    
@@ -478,30 +478,30 @@ classdef Monomial < Symbolic.ComplexObject
                     if numel(other) == 1
                         if new_coefs ~= 0
                             % Scaled monomial
-                            val = Symbolic.Monomial(this.Scenario, ...
+                            val = MTKMonomial(this.Scenario, ...
                                 this.Operators, new_coefs);                        
                         else
                             % Monomial zero
-                            val = Symbolic.Monomial(this.Scenario, [], 0);                        
+                            val = MTKMonomial(this.Scenario, [], 0);                        
                         end
                     else
                         cell_size = num2cell(size(new_coefs));
                         new_ops = repelem({this.Operators}, cell_size{:});
                         new_ops = Util.cell_mask(new_ops, prune_mask, []);
-                        val = Symbolic.Monomial(this.Scenario, ...
+                        val = MTKMonomial(this.Scenario, ...
                             new_ops, new_coefs);
                         
                     end
                 else
                     new_ops = Util.cell_mask(this.Operators, prune_mask, []);
-                    val = Symbolic.Monomial(this.Scenario, new_ops, new_coefs);
+                    val = MTKMonomial(this.Scenario, new_ops, new_coefs);
                 end
                 return;
             end
             
             
             assert(this==lhs);
-            assert(isa(other,'Symbolic.Monomial'));            
+            assert(isa(other,'MTKMonomial'));            
            
             % Handle various cases of Monomial with Monomial:
             [join_coefs, prune_mask] = ...
@@ -526,7 +526,7 @@ classdef Monomial < Symbolic.ComplexObject
                     lhs.Operators, rhs.Operators, 'UniformOutput', false);
                 new_ops = Util.cell_mask(new_ops, prune_mask, []);
             end
-            val = Symbolic.Monomial(this.Scenario, new_ops, join_coefs);            
+            val = MTKMonomial(this.Scenario, new_ops, join_coefs);            
         end
                 
         function val = mtimes(lhs, rhs)
@@ -538,11 +538,11 @@ classdef Monomial < Symbolic.ComplexObject
         %   3. v = monomial * monomial
         %
         % RETURNS
-        %   A new Symbolic.Monomial with appropriate coefficients and
+        %   A new MTKMonomial with appropriate coefficients and
         %   operators; except when double = 0, then 0.
         %
         % Due to class precedence, poly * mono and mono * poly cases are 
-        % handled by Symbolic.Polynomial.mtimes.
+        % handled by MTKPolynomial.mtimes.
         %
         % See also: ALGEBRAIC.POLYNOMIAL.MTIMES.
         %
@@ -572,24 +572,24 @@ classdef Monomial < Symbolic.ComplexObject
         %
         % RETURNS (Syntax 1,2)
         %   0 if monomial is proportional to identity with coefficient of
-        %   -double. Symbolic.Monomial, if monomial is proportional to 
-        %   identity but not equal to double. Symbolic.Polynomial with two 
+        %   -double. MTKMonomial, if monomial is proportional to 
+        %   identity but not equal to double. MTKPolynomial with two 
         %   terms otherwise.
         %
         % RETURNS (Suntax 3)
-        %   Symbolic.Monomial if operator string in two monomials matches,
+        %   MTKMonomial if operator string in two monomials matches,
         %   and the coefficients are not negations of each other. 0 if the
         %   operator string of the two monomials matches, and the
-        %   coefficients negate each other. Symbolic.Polynomial with two 
+        %   coefficients negate each other. MTKPolynomial with two 
         %   terms otherwise.
         %   
         % Due to class precedence, "poly + mono" and "mono + poly" cases 
-        % are handled by Symbolic.Polynomial.plus.
+        % are handled by MTKPolynomial.plus.
         %
         % See also: ALGEBRAIC.POLYNOMIAL.PLUS
         %
             % Add a scalar by a built-in type?
-            if ~isa(lhs, 'Symbolic.Monomial')
+            if ~isa(lhs, 'MTKMonomial')
                 this = rhs;
                 other = lhs;
             else
@@ -614,10 +614,10 @@ classdef Monomial < Symbolic.ComplexObject
             
             % If other is numeric, convert to monomial:
             if isnumeric(other)
-                other = Symbolic.Monomial.InitValue(this.Scenario, other);
+                other = MTKMonomial.InitValue(this.Scenario, other);
             else
                 assert(this == lhs);
-                assert(isa(other, 'Symbolic.Monomial'));
+                assert(isa(other, 'MTKMonomial'));
                 this.checkSameScenario(other);
             end
             
@@ -627,13 +627,13 @@ classdef Monomial < Symbolic.ComplexObject
                     coef = this.Scenario.Prune(this.Coefficient ...
                                                 + other.Coefficient);
                     if coef ~= 0
-                        val = Symbolic.Monomial(this.Scenario, ...
+                        val = MTKMonomial(this.Scenario, ...
                                                 this.Operators, coef);
                     else
-                        val = Symbolic.Monomial(this.Scenario, [], 0);
+                        val = MTKMonomial(this.Scenario, [], 0);
                     end
                 else
-                    val = Symbolic.Polynomial(this.Scenario, [this;other]);
+                    val = MTKPolynomial(this.Scenario, [this;other]);
                 end
             elseif this.IsScalar % And RHS is not.
                 if all(cellfun(@(x) isequal(this.Operators, x), ...
@@ -643,16 +643,16 @@ classdef Monomial < Symbolic.ComplexObject
                     if any(mask, 'all')
                        new_ops = other.Operators;
                        new_ops{mask} = [];
-                       val = Symbolic.Monomial(this.Scenario, new_ops, coef); 
+                       val = MTKMonomial(this.Scenario, new_ops, coef); 
                     else
-                       val = Symbolic.Monomial(this.Scenario, ...
+                       val = MTKMonomial(this.Scenario, ...
                                                other.Operators, coef);
                     end
                 else
                     mono_cells = other.split();
                     mono_cells = cellfun(@(x) [this; x], mono_cells, ...
                                        'UniformOutput', false);
-                    val = Symbolic.Polynomial(this.Scenario, mono_cells);                    
+                    val = MTKPolynomial(this.Scenario, mono_cells);                    
                 end
             elseif other.IsScalar % And LHS is not.
                 if all(cellfun(@(x) isequal(x, this.Operators), ...
@@ -662,16 +662,16 @@ classdef Monomial < Symbolic.ComplexObject
                     if any(mask, 'all')
                         new_ops = this.Operators;
                         new_ops{mask} = [];
-                        val = Symbolic.Monomial(this.Scenario, new_ops, coef);
+                        val = MTKMonomial(this.Scenario, new_ops, coef);
                     else
-                        val = Symbolic.Monomial(this.Scenario, ...
+                        val = MTKMonomial(this.Scenario, ...
                             this.Operators, coef);
                     end
                 else 
                     mono_cells = this.split();
                     mono_cells = cellfun(@(x) [x; other], mono_cells, ...
                                        'UniformOutput', false);
-                    val = Symbolic.Polynomial(this.Scenario, mono_cells);
+                    val = MTKPolynomial(this.Scenario, mono_cells);
                 end
             else % Nothing is scalar
                 if all(cellfun(@(x, y) isequal(x, y), ...
@@ -681,9 +681,9 @@ classdef Monomial < Symbolic.ComplexObject
                     if any(mask, 'all')
                         new_ops = this.Operators;
                         new_ops{mask} = [];
-                        val = Symbolic.Monomial(this.Scenario, new_ops, coef);
+                        val = MTKMonomial(this.Scenario, new_ops, coef);
                     else
-                        val = Symbolic.Monomial(this.Scenario, ...
+                        val = MTKMonomial(this.Scenario, ...
                             this.Operators, coef);
                     end
                 else                    
@@ -692,7 +692,7 @@ classdef Monomial < Symbolic.ComplexObject
                     mono_cells = cellfun(@(x, y) [x; y], ...
                                         mono_this, mono_other, ...
                                         'UniformOutput', false);
-                    val = Symbolic.Polynomial(this.Scenario, mono_cells);
+                    val = MTKPolynomial(this.Scenario, mono_cells);
                 end
             end
         end
@@ -713,7 +713,7 @@ classdef Monomial < Symbolic.ComplexObject
             neg_mask(negated) = -1;
             new_coefs = conj(obj.Coefficient) .* neg_mask;
             
-            val = Symbolic.Monomial.InitForOverwrite(obj.Scenario, size(obj));
+            val = MTKMonomial.InitForOverwrite(obj.Scenario, size(obj));
             val.Operators = conj_ops;
             val.Coefficient = new_coefs;
             val.Hash = hashes;
@@ -744,7 +744,7 @@ classdef Monomial < Symbolic.ComplexObject
             end
 
             % Make new object
-            val = Symbolic.Monomial.InitForOverwrite(obj.Scenario, size(conj_ops));
+            val = MTKMonomial.InitForOverwrite(obj.Scenario, size(conj_ops));
             val.Operators = conj_ops;
             val.Coefficient = new_coefs;
             val.Hash = hashes;
@@ -771,7 +771,7 @@ classdef Monomial < Symbolic.ComplexObject
             end
 
             % Make new object
-            val = Symbolic.Monomial.InitForOverwrite(obj.Scenario,...
+            val = MTKMonomial.InitForOverwrite(obj.Scenario,...
                                                      size(trans_ops));
             val.Operators = trans_ops;
             val.Coefficient = new_coefs;
@@ -787,12 +787,12 @@ classdef Monomial < Symbolic.ComplexObject
         % Effectively applies rules to each constituent matrix in turn.
         % 
             arguments
-                obj (1,1) Symbolic.Monomial
+                obj (1,1) MTKMonomial
                 rulebook (1,1) MomentRulebook
             end
        
             % Promote to polynomial, then apply
-            obj_as_poly = Symbolic.Polynomial(obj.Scenario, obj);
+            obj_as_poly = MTKPolynomial(obj.Scenario, obj);
             val = obj_as_poly.ApplyRules(rulebook);
         end 
     end
@@ -867,7 +867,7 @@ classdef Monomial < Symbolic.ComplexObject
         end
                 
         function spliceOut(output, source, indices)
-            spliceOut@Symbolic.ComplexObject(output, source, indices);
+            spliceOut@MTKObject(output, source, indices);
 
             if source.IsScalar
                 assert(output.IsScalar);
@@ -917,14 +917,14 @@ classdef Monomial < Symbolic.ComplexObject
                     matched = true;
                 otherwise
                     [output, matched] = ...
-                        spliceProperty@Symbolic.ComplexObject(obj, ...
+                        spliceProperty@MTKObject(obj, ...
                                                               indices, ...
                                                               propertyName);
             end
         end
         
         function mergeIn(obj, merge_dim, offsets, objects)
-            merge_type = mergeIn@Symbolic.ComplexObject(obj, merge_dim, ...
+            merge_type = mergeIn@MTKObject(obj, merge_dim, ...
                                                         offsets, objects);
 
             % If scalar, promote operator list to cell before merge.

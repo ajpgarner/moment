@@ -193,7 +193,7 @@ classdef AlgebraicScenario < Abstract.Scenario
     methods
         function item = get(obj, operators)
         % GET Return a monomial object associated with an operator string.
-        % Essentially, forward to Symbolic.Monomial's constructor.
+        % Essentially, forward to MTKMonomial's constructor.
         %
         % PARAMS:
         %     operators - The string of operators.
@@ -208,7 +208,7 @@ classdef AlgebraicScenario < Abstract.Scenario
                 operators (1,:)
             end
             
-            item = Symbolic.Monomial(obj, operators, 1.0);
+            item = MTKMonomial(obj, operators, 1.0);
         end
         
         function varargout = getAll(obj)
@@ -278,10 +278,10 @@ classdef AlgebraicScenario < Abstract.Scenario
         % Creates algebraic zero object for this setting.
         %
         % RETURNS:
-        %   Newly created Symbolic.Zero
+        %   Newly created MTKZero
         %
         % See also: ALGEBRAIC.ZERO
-            val = Symbolic.Zero(obj);
+            val = MTKZero(obj);
         end
     end
     

@@ -72,10 +72,10 @@ methods
     function val = get.RulePolynomials(obj)
         if ~obj.has_rp
             rrc = obj.RawRuleCell;
-            obj.cache_RulePolynomials = Symbolic.Polynomial.empty(0, 1);
+            obj.cache_RulePolynomials = MTKPolynomial.empty(0, 1);
             for idx=1:length(rrc)
                 obj.cache_RulePolynomials(end+1) = ...
-                    Symbolic.Polynomial(obj.Scenario, rrc{idx});
+                    MTKPolynomial(obj.Scenario, rrc{idx});
             end
             obj.has_rp = true;
         end
@@ -94,7 +94,7 @@ methods
     
     function invalidate_cached_rules(obj)
          obj.cache_RawRuleCell = cell.empty(0,1);
-         obj.cache_RulePolynomials = Symbolic.Polynomial.empty(0, 1);
+         obj.cache_RulePolynomials = MTKPolynomial.empty(0, 1);
          obj.cache_RuleStrings = string.empty(0,1);
          obj.has_rrc = false;
          obj.has_rp = false;
@@ -115,7 +115,7 @@ methods
     %
     arguments
         obj (1,1) MomentRulebook
-        polynomials (:,1) Symbolic.Polynomial
+        polynomials (:,1) MTKPolynomial
         new_symbols (1,1) logical = true
     end
         raw_rules = cell(length(polynomials), 1);
@@ -227,9 +227,9 @@ methods
             val = target.ApplyRules(obj);            
         elseif isa(target, 'Symbolic.Zero')
             val = target.ApplyRules(obj);
-        elseif isa(target, 'Symbolic.Monomial')
+        elseif isa(target, 'MTKMonomial')
             val = target.ApplyRules(obj);
-        elseif isa(target, 'Symbolic.Polynomial')
+        elseif isa(target, 'MTKPolynomial')
             val = target.ApplyRules(obj);
         else
             error("Could not apply rules to target of type %s.", ...

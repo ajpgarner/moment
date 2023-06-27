@@ -1,5 +1,5 @@
- classdef ComplexObject < handle & matlab.mixin.CustomDisplay
-% COMPLEXOBJECT An object that can be evaluated to a complex number.
+ classdef MTKObject < handle & matlab.mixin.CustomDisplay
+% MTKOBJECT An object that can be evaluated to a complex number.
 %
 % A complex object is defined by its real and imaginary coefficients,
 % corresponding to weightings to give to the real and imaginary basis
@@ -64,7 +64,7 @@
     
     %% Constructor
     methods
-        function obj = ComplexObject(scenario, array_dimensions)
+        function obj = MTKObject(scenario, array_dimensions)
         % COMPLEXOBJECT Construct an object that evaluates to a complex number.
         %
         % PARAMS:
@@ -102,7 +102,7 @@
     
     methods(Static)
         function obj = InitForOverwrite(scenario, array_dimensions)
-            obj = Symbolic.ComplexObject(scenario, array_dimensions);
+            obj = MTKObject(scenario, array_dimensions);
         end
     end
     
@@ -198,7 +198,7 @@
         %  Shape of output matches size(obj).
         %
             arguments
-                obj (:,:) Symbolic.ComplexObject
+                obj (:,:) MTKObject
                 re_vals (1,:)
                 im_vals (1,:)
             end
@@ -332,10 +332,7 @@
             end
         end
         
-        function padScalarCoefficients(obj)
-            arguments
-                obj (1,1) Symbolic.ComplexObject
-            end           
+        function padScalarCoefficients(obj)              
             % Pad real coefficients
             target_real = obj.Scenario.System.RealVarCount;
             delta_re = target_real - length(obj.real_coefs);
@@ -420,10 +417,12 @@
     methods
         function val = mpower(lhs,rhs)
             arguments
-                lhs (1,1) Symbolic.ComplexObject
+                lhs (1,1) MTKObject
                 rhs (1,1) double
             end
         
+            assert(lhs.IsScalar);
+            
             if rhs <= 0 || rhs ~= floor(rhs)
                 error("Invalid exponent.");
             end
@@ -609,7 +608,7 @@
         function output = cat(join_dimension, varargin)
             % Trivial cases:
             if nargin == 1
-                output = Symbolic.ComplexObject.empty(0,0);
+                output = MTKObject.empty(0,0);
                 return;
             elseif nargin == 2
                 output = varargin{1};
@@ -619,7 +618,7 @@
             % Semi-trivial cases (prune empty arrays!)
             mask = ~cellfun(@isempty, varargin);
             if ~any(mask, 'all')
-                output = Symbolic.ComplexObject.empty(0,0);
+                output = MTKObject.empty(0,0);
                 return;
             end
             varargin = varargin(mask);
@@ -629,21 +628,21 @@
             end
             
             % Ensure all inputs are ComplexObjects
-            if ~all(cellfun(@(x) isa(x, 'Symbolic.ComplexObject'), varargin), 'all')
-                error("Can only concatenate Symbolic.ComplexObjects");
+            if ~all(cellfun(@(x) isa(x, 'MTKObject'), varargin), 'all')
+                error("Can only concatenate MTKObjects");
             end
             
             % Disable concatenation from different scenarios
             matching_scenario = all(cellfun(@(x) (varargin{1}.Scenario == x.Scenario), varargin), 'all');
             if ~matching_scenario                
-                error("Can only concatenate Symbolic.ComplexObjects from the same scenario.");
+                error("Can only concatenate MTKObjects from the same scenario.");
             end
             
             % Disable hetrogenous concatenation
             homogenous = all(cellfun(@(x) strcmp(class(x), class(varargin{1})), varargin), 'all');
             if ~homogenous
                 % TODO: Cast to polynomial, and concatenate
-                error("Can only concatenate Symbolic.ComplexObjects of the same type.");
+                error("Can only concatenate MTKObjects of the same type.");
             end
             class_name = class(varargin{1});
                         

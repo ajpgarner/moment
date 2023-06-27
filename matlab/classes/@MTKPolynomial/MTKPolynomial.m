@@ -1,8 +1,7 @@
-classdef (InferiorClasses={?Symbolic.Monomial}) ...
-        Polynomial < Symbolic.ComplexObject
-%POLYNOMIAL A polynomial expression of operators (or their moments).
+classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
+%MTKPOLYNOMIAL A polynomial expression of operators (or their moments).
     properties
-        Constituents = Symbolic.Monomial.empty(1,0)
+        Constituents = MTKMonomial.empty(1,0)
     end
         
     properties(Dependent)
@@ -27,7 +26,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
     end
 
     methods
-        function obj = Polynomial(setting, varargin)
+        function obj = MTKPolynomial(setting, varargin)
         % POLYNOMIAL Constructs an algebraic polynomial object
         %
         % Syntax:
@@ -52,9 +51,9 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
                 create_dimensions = [1, 1];
                 array_construction = false;
                 zero_construction = true;
-                constituents = Symbolic.Monomial.empty(1,0);
+                constituents = MTKMonomial.empty(1,0);
             else
-                if isa(varargin{1}, 'Symbolic.Monomial')
+                if isa(varargin{1}, 'MTKMonomial')
                     create_dimensions = [1, 1];
                     array_construction = false;
                     constituents = varargin{1};
@@ -62,9 +61,9 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
                 elseif isa(varargin{1}, 'cell')
                     constituents = varargin{1};
                     create_dimensions = size(constituents);
-                    if ~all(cellfun(@(x) isa(x, 'Symbolic.Monomial'), ...
+                    if ~all(cellfun(@(x) isa(x, 'MTKMonomial'), ...
                             constituents))
-                        error(Symbolic.Polynomial.err_bad_ctr_input);
+                        error(MTKPolynomial.err_bad_ctr_input);
                     end
                     if numel(constituents) == 1
                         constituents = constituents{1};
@@ -80,21 +79,21 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
                     array_construction = prod(create_dimensions) ~= 1;
                     zero_construction = true;                    
                 else
-                    error(Symbolic.Polynomial.err_bad_ctr_input);
+                    error(MTKPolynomial.err_bad_ctr_input);
                 end
             end
 
             % Parent c'tor
-            obj = obj@Symbolic.ComplexObject(setting, create_dimensions);
+            obj = obj@MTKObject(setting, create_dimensions);
             
             % Quick construction for empty object
             if zero_construction
                 if array_construction
                     cell_dims = num2cell(create_dimensions);
                     obj.Constituents = ...
-                        repelem({Symbolic.Monomial.empty(0,1)}, cell_dims{:});                     
+                        repelem({MTKMonomial.empty(0,1)}, cell_dims{:});                     
                 else
-                    obj.Constituents = Symbolic.Monomial.empty(0,1);
+                    obj.Constituents = MTKMonomial.empty(0,1);
                 end
                 return;
             end
@@ -118,13 +117,13 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
         %
         % See also: SYMBOLIC.POLYNOMIAL.POLYNOMIAL
         %
-            obj = Symbolic.Polynomial(setting, 'overwrite', dimensions);
+            obj = MTKPolynomial(setting, 'overwrite', dimensions);
         end
     end
     
     %% Convertors
     methods
-        function mono = Symbolic.Monomial(obj)
+        function mono = MTKMonomial(obj)
             error("Down-conversion not yet implemented.");
         end
     end
@@ -177,7 +176,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
         %           OpMatrix.LocalizingMatrix
         %
             arguments
-                obj (1,1) Symbolic.Polynomial
+                obj (1,1) MTKPolynomial
                 level (1,1) uint64
             end
             
@@ -217,7 +216,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
         %        
         % For syntaxes 1 and 2, truth requires either the polynomial have 
         % one constituent, and this to be equal to the double (see
-        % Symbolic.Monomial.EQ), or for the polynomial to be zero as a
+        % MTKMonomial.EQ), or for the polynomial to be zero as a
         % whole, and the double to also be zero.
         %
         % For syntaxes 3 and 4, truth requires the polynomial contain only 
@@ -233,7 +232,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
                 return;
             end
        
-            if isa(lhs, 'Symbolic.Polynomial')
+            if isa(lhs, 'MTKPolynomial')
                 this = lhs;
                 other = rhs;
             else
@@ -268,7 +267,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             end
             
             % Never equal if scenarios do not match
-            assert(isa(other, 'Symbolic.ComplexObject'));
+            assert(isa(other, 'MTKObject'));
             if this.Scenario ~= other.Scenario
                 if this.IsScalar
                     val = false(size(other));
@@ -279,7 +278,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             end
                     
             % Handle comparison with monomials
-            if isa(other, 'Symbolic.Monomial')
+            if isa(other, 'MTKMonomial')
                 if this.IsScalar
                     if other.IsScalar
                         val = (numel(this.Constituents) == 1  ...
@@ -324,7 +323,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
                 return;
             end
             
-            assert (isa(other, 'Symbolic.Polynomial'))
+            assert (isa(other, 'MTKPolynomial'))
             errror("TODO: Poly == poly");
                 % Objects in different scenarios cannot be equal
                 if this.Scenario ~= other.Scenario
@@ -374,13 +373,13 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
        %   5. v = polynomial_A .* polynomial_B
        %
        % RETURNS
-       %   A new Symbolic.Polynomial with appropriate coefficients and
+       %   A new MTKPolynomial with appropriate coefficients and
        %   operators.
        %
        % See also: MONOMIAL.TIMES
        %
-            % Pre-multiplication by a built-in type, or Symbolic.Monomial
-            if ~isa(lhs, 'Symbolic.Polynomial')
+            % Pre-multiplication by a built-in type, or MTKMonomial
+            if ~isa(lhs, 'MTKPolynomial')
                 this = rhs;
                 other = lhs;
                 premult = true;
@@ -402,13 +401,13 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             % Handle numerics (commutes!)
             if isnumeric(other)                
                 if this.IsScalar 
-                    val = Symbolic.Polynomial(this.Scenario, other * this.Constituents);
+                    val = MTKPolynomial(this.Scenario, other * this.Constituents);
                 else                    
                     if numel(other)==1
                         monos = cellfun(@(x) (other * x), this.Constituents, 'UniformOutput', false);
-                        val = Symbolic.Polynomial(this.Scenario, monos);
+                        val = MTKPolynomial(this.Scenario, monos);
                     else
-                        val = Symbolic.Polynomial(this.Scenario, ...
+                        val = MTKPolynomial(this.Scenario, ...
                               cellfun(@(x,y) (x * y), this.Constituents,...
                                                       num2cell(other),  'UniformOutput', false));
                     end
@@ -417,7 +416,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             end
             
             % Handle monomials (including broadcasting)
-            if isa(other, 'Symbolic.Monomial')
+            if isa(other, 'MTKMonomial')
                 if premult
                     if this.IsScalar
                         if other.IsScalar
@@ -461,12 +460,12 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
                         end
                     end
                 end
-                val = Symbolic.Polynomial(this.Scenario, new_monos);
+                val = MTKPolynomial(this.Scenario, new_monos);
                 return;
             end
             
             % Handle polynomials
-            assert(isa(rhs, 'Symbolic.Polynomial'))
+            assert(isa(rhs, 'MTKPolynomial'))
             if lhs.IsScalar 
                 if rhs.IsScalar
                     monomials = ...
@@ -494,7 +493,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
                             lhs.Constituents, rhs.Constituents, ...
                             'UniformOutput', false);
             end
-            val = Symbolic.Polynomial(lhs.Scenario, monomials);
+            val = MTKPolynomial(lhs.Scenario, monomials);
         end
         
         function val = mtimes(lhs, rhs)
@@ -508,7 +507,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
        %   5. v = polynomial_A * polynomial_B
        %
        % RETURNS
-       %   A new Symbolic.Polynomial with appropriate coefficients and
+       %   A new MTKPolynomial with appropriate coefficients and
        %   operators.
        %
        % See also: Monomial.mtimes
@@ -536,16 +535,16 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
         %   5. val = poly + poly
         %
         % RETURNS 
-        %   Either 0, an Symbolic.Monomial, or Symbolic.Polynomial.
+        %   Either 0, an MTKMonomial, or MTKPolynomial.
         %   Numeric 0 is returned if all terms cancel out after addition.
-        %   Symbolic.Monomial is returned if all but one term cancels out.
-        %   Otherwise, Symbolic.Polynomial is returned.
+        %   MTKMonomial is returned if all but one term cancels out.
+        %   Otherwise, MTKPolynomial is returned.
         %
         % See also: ALGEBRAIC.MONOMIAL.PLUS
         %
             
             % Which are we??
-            if ~isa(lhs, 'Symbolic.Polynomial')
+            if ~isa(lhs, 'MTKPolynomial')
                 this = rhs;
                 other = lhs;
             else
@@ -555,32 +554,32 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             
             % Is other side built-in numeric; if so, cast to monomial
             if isnumeric(other)
-                other = Symbolic.Monomial.InitValue(this.Scenario, other);
+                other = MTKMonomial.InitValue(this.Scenario, other);
             end
                        
             % Check objects are from same scenario
             this.checkSameScenario(other);
             
             % Handle Monomial append case
-            if isa(other, 'Symbolic.Monomial')
+            if isa(other, 'MTKMonomial')
                 if this.IsScalar
                     if other.IsScalar
-                        val = Symbolic.Polynomial(this.Scenario, ...
+                        val = MTKPolynomial(this.Scenario, ...
                                         [this.Constituents; other]);
                     else
                         other = other.split();                        
-                        val = Symbolic.Polynomial(this.Scenario, ...
+                        val = MTKPolynomial(this.Scenario, ...
                             cellfun(@(x) [this.Constituents; x], other,...
                                     'UniformOutput', false));
                     end
                 else
                     if other.IsScalar
-                       val = Symbolic.Polynomial(this.Scenario, ...
+                       val = MTKPolynomial(this.Scenario, ...
                             cellfun(@(x) [x; other], ...
                                 this.Constituents, 'UniformOutput', false));
                     else
                         other = other.split();
-                        val = Symbolic.Polynomial(this.Scenario, ...
+                        val = MTKPolynomial(this.Scenario, ...
                             cellfun(@(x, y) [x; y], ...
                                 this.Constituents, other, ...
                                 'UniformOutput', false));
@@ -590,26 +589,26 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             end
             
             % Handle Polynomial append case
-            assert(isa(other, 'Symbolic.Polynomial'));
+            assert(isa(other, 'MTKPolynomial'));
             
             if this.IsScalar
                 if other.IsScalar
-                    val = Symbolic.Polynomial(this.Scenario, ...
+                    val = MTKPolynomial(this.Scenario, ...
                                     [this.Constituents; ...
                                      other.Constituents]);
                 else
-                    val = Symbolic.Polynomial(this.Scenario, ...
+                    val = MTKPolynomial(this.Scenario, ...
                         cellfun(@(x) [this.Constituents; x], ...
                                 other.Constituents, ...
                                 'UniformOutput', false));
                 end
             else
                 if other.IsScalar
-                   val = Symbolic.Polynomial(this.Scenario, ...
+                   val = MTKPolynomial(this.Scenario, ...
                         cellfun(@(x) [x; other.Constituents], ...
                             this.Constituents, 'UniformOutput', false));
                 else
-                    val = Symbolic.Polynomial(this.Scenario, ...
+                    val = MTKPolynomial(this.Scenario, ...
                         cellfun(@(x, y) [x; y], ...
                             this.Constituents, other.Constituents, ...
                             'UniformOutput', false));
@@ -630,9 +629,9 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
         % Creates new polynomial, with all coefficients negated.
         %
             if obj.IsScalar
-                val = Symbolic.Polynomial(obj.Scenario, -obj.Constituents);
+                val = MTKPolynomial(obj.Scenario, -obj.Constituents);
             else
-                val = Symbolic.Polynomial(obj.Scenario, ...
+                val = MTKPolynomial(obj.Scenario, ...
                          cellfun(@(x) unminus(x), obj.Constituents,...
                                  'UniformOutput', false));
             end            
@@ -655,13 +654,13 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
          function val = conj(obj)
             % CONJ Conjugation (without transpose).
             if obj.IsScalar
-                val = Symbolic.Polynomial(obj.Scenario, ...
+                val = MTKPolynomial(obj.Scenario, ...
                                           conj(obj.Constituents));
             else
                 new_constituents = cellfun(@(x) conj(x), ...
                                            obj.Constituents, ...
                                            'UniformOutput', false);
-                val = Symbolic.Polynomial(obj.Scenario, new_constituents);
+                val = MTKPolynomial(obj.Scenario, new_constituents);
             end
          end
         
@@ -688,7 +687,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             end
 
             % Make new object
-            val = Symbolic.Polynomial(obj.Scenario, conj_const);            
+            val = MTKPolynomial(obj.Scenario, conj_const);            
         end
         
         
@@ -707,7 +706,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             end
 
             % Make new object
-            val = Symbolic.Polynomial(obj.Scenario, trans_const);            
+            val = MTKPolynomial(obj.Scenario, trans_const);            
         end
         
     end
@@ -721,7 +720,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
         % Effectively applies rules to each constituent matrix in turn.
         % 
             arguments
-                obj (1,1) Symbolic.Polynomial
+                obj (1,1) MTKPolynomial
                 rulebook (1,1) MomentRulebook
             end
             
@@ -737,7 +736,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
                 'output', 'sequences', as_symbol_cell);
             
             % Construct new, transformed polynomial
-            val = Symbolic.Polynomial(obj.Scenario, output_sequences);
+            val = MTKPolynomial(obj.Scenario, output_sequences);
             
             % Degrade to monomial if only single element.
             if length(val.Constituents) == 1
@@ -819,7 +818,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
         
         
         function spliceOut(output, source, indices)
-            spliceOut@Symbolic.ComplexObject(output, source, indices);
+            spliceOut@MTKObject(output, source, indices);
 
             if source.IsScalar
                 assert(output.IsScalar);
@@ -840,14 +839,14 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
                     matched = true;                
                 otherwise
                     [output, matched] = ...
-                        spliceProperty@Symbolic.ComplexObject(obj, ...
+                        spliceProperty@MTKObject(obj, ...
                                                               indices, ...
                                                               propertyName);
             end
         end
         
         function mergeIn(obj, merge_dim, offsets, objects)
-            merge_type = mergeIn@Symbolic.ComplexObject(obj, merge_dim, ...
+            merge_type = mergeIn@MTKObject(obj, merge_dim, ...
                                                         offsets, objects);
 
             % If scalar, promote constituent list to cell before merge.
@@ -886,7 +885,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             len_lhs = numel(lhs);
             len_rhs = numel(rhs);
             if len_lhs == 0 || len_rhs ==0
-                val = Symbolic.Monomial.empty(0, 1);
+                val = MTKMonomial.empty(0, 1);
                 return;
             end
             
@@ -915,7 +914,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             end
 
             % Construct monomials (find canonical form, etc.)
-            val = Symbolic.Monomial(obj.Scenario, opers, coefs);
+            val = MTKMonomial(obj.Scenario, opers, coefs);
             
             % Clean-up polynomial
             val = obj.orderAndMerge(val);
@@ -924,19 +923,19 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
         function val = orderAndMerge(obj, monomials)
         % ORDERANDMERGE Sort monomials, and combine repeated elements.
         
-            assert(isa(monomials,'Symbolic.Monomial'));
+            assert(isa(monomials,'MTKMonomial'));
         
             % Trivial case: empty
             if numel(monomials) == 0
-                val = Symbolic.Monomial.empty(0, 1);
+                val = MTKMonomial.empty(0, 1);
                 return;
             % Semi-trivial case: only one monomial (check it isn't zero!)
             elseif numel(monomials) == 1                
                 [coef, m, mr, mi] = obj.Scenario.Prune(monomials.Coefficient);
                 if m
-                    val = Symbolic.Monomial.empty(0, 1);
+                    val = MTKMonomial.empty(0, 1);
                 elseif mr || mi
-                    val = Symbolic.Monomial(obj.Scenario, ...
+                    val = MTKMonomial(obj.Scenario, ...
                         monomials.Operators, coef);
                 else
                     val = monomials;
@@ -971,7 +970,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             [coefs, mask] = obj.Scenario.Prune(coefs);            
             if any(mask,'all')                
                 if all(mask,'all')
-                    val = Symbolic.Monomial.empty(0, 1);
+                    val = MTKMonomial.empty(0, 1);
                     return;
                 else
                     coefs = coefs(mask);
@@ -980,7 +979,7 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
             end
                         
             % Make good polynomial
-            val = Symbolic.Monomial(obj.Scenario, op_cell, coefs);
+            val = MTKMonomial(obj.Scenario, op_cell, coefs);
         end
         
         function makeFromOperatorCell(obj, input)
@@ -991,10 +990,10 @@ classdef (InferiorClasses={?Symbolic.Monomial}) ...
                 error("Not yet supported.");
             end
             
-            obj.Constituents = Symbolic.Monomial.empty(1,0);
+            obj.Constituents = MTKMonomial.empty(1,0);
             for idx = 1:length(input)
                 obj.Constituents(end+1) = ...
-                    Symbolic.Monomial(obj.Scenario, ...
+                    MTKMonomial(obj.Scenario, ...
                         input{idx}{1}, input{idx}{2});                    
             end
         end
