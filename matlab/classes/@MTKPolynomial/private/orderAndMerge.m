@@ -2,6 +2,7 @@
 % ORDERANDMERGE Sort monomials, and combine repeated elements.
 
     assert(isa(monomials, 'MTKMonomial'));
+    assert(monomials.IsScalar || monomials.IsColVector);
     
     % Trivial case: empty
     if numel(monomials) == 0
@@ -30,8 +31,8 @@
     coefs = double.empty(0, 1);            
     last_hash = -1;
 
-    for i = 1:numel(monomials)
-        oid = double(order(i));
+    for idx = 1:numel(monomials)
+        oid = double(order(idx));
         next_hash = monomials.Hash(oid);
         if last_hash == next_hash
             coefs(write_index, 1) = coefs(write_index) ...
@@ -51,8 +52,8 @@
             val = MTKMonomial.empty(0, 1);
             return;
         else
-            coefs = coefs(mask);
-            op_cell = op_cell(mask);
+            coefs = coefs(~mask);
+            op_cell = op_cell(~mask);
         end
     end
 

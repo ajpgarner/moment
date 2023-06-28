@@ -141,7 +141,7 @@ classdef (Abstract) MTKScenario < handle
         
         function val = get.OperatorNames(obj)            
             % Names are constantly refreshed until scenario is locked.
-            if isempty(obj.operator_names ) || isempty(obj.matrix_system)
+            if isempty(obj.operator_names) || isempty(obj.matrix_system)
                 obj.operator_names = obj.makeOperatorNames();                
             end
             

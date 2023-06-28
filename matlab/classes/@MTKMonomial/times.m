@@ -51,8 +51,6 @@ function val = times(lhs, rhs)
         return;
     end
 
-
-    assert(this==lhs);
     assert(isa(other,'MTKMonomial'));
 
     % Handle various cases of Monomial with Monomial:

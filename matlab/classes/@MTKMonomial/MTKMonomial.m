@@ -71,8 +71,14 @@ classdef MTKMonomial < MTKObject
                 elseif isnumeric(operators)                   
                     operators = reshape(uint64(operators), 1, []);
                 elseif iscell(operators)
-                    array_creation = true;
-                    create_dimensions = size(operators);
+                    create_dimensions = size(operators);                    
+                    if prod(create_dimensions)==1
+                        create_dimensions = [1 1];
+                        operators = reshape(uint64(operators{1}), 1, []);
+                    else
+                        array_creation = true;
+                    end
+                    
                 else
                     error("Operators strings should be supplied as row vector, or cell array of row vectors.");
                 end
@@ -159,6 +165,24 @@ classdef MTKMonomial < MTKObject
                 dims = num2cell(size(values));
                 obj = MTKMonomial(setting, repelem({[]}, dims{:}), values);
             end
+        end
+        
+        function obj = InitZero(setting, dimensions)
+            arguments
+                setting (1,1) MTKScenario
+                dimensions (1,:) double = [1 1]
+            end
+            
+            obj = MTKMonomial(setting, 'overwrite', dimensions);
+            obj.symbol_id = zeros(dimensions);
+            if prod(dimensions) == 1
+                obj.Operators = uint64.empty(1,0);
+            else
+                cell_dim = num2cell(dimensions);
+                obj.Operators = repelem({uint64.empty(1,0)}, cell_dim{:});
+            end
+            obj.Coefficient = zeros(dimensions);
+            obj.Hash = zeros(dimensions);
         end
     end
     

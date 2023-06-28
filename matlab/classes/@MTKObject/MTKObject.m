@@ -202,5 +202,7 @@
         merge_type = mergeIn(obj, merge_dim, offsets, objects);
 
         str = makeObjectName(obj)
+        
+        result = isPropertyMTKObject(obj, property_name);
     end
 end

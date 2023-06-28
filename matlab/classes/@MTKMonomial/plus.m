@@ -56,6 +56,10 @@
         assert(isa(other, 'MTKMonomial'));
         this.checkSameScenario(other);
     end
+    
+    % If all zeros, then pass through
+    %if all(this.Zero)
+    
 
     % Handle remaining cases
     if this.IsScalar && other.IsScalar

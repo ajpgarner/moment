@@ -3,17 +3,10 @@ classdef AlgebraicTest < MTKTestBase
     
 %% Construction / binding
     methods(Test)
-       function zero(testCase)
-            setting = AlgebraicScenario(2);
-            zero = Symbolic.Zero(setting);
-            testCase.verifyTrue(isa(zero, 'Symbolic.Zero'));
-            testCase.verifyEqual(zero.Scenario, setting);
-       end
-        
         function get_zero(testCase)
             setting = AlgebraicScenario(2);
             zero = setting.zero();
-            testCase.verifyTrue(isa(zero, 'Symbolic.Zero'));            
+            testCase.verifyTrue(isa(zero, 'MTKObject'));            
             testCase.verifyEqual(zero.Scenario, setting);
         end
         
@@ -147,7 +140,7 @@ classdef AlgebraicTest < MTKTestBase
             zero = setting.zero;
             plus_zero = +zero;
             
-            testCase.assertTrue(isa(plus_zero, 'Symbolic.Zero'));
+            testCase.assertTrue(plus_zero.IsZero);
             testCase.verifyEqual(plus_zero.Scenario, setting);
         end
         
@@ -187,7 +180,7 @@ classdef AlgebraicTest < MTKTestBase
             zero = setting.zero;
             minus_zero = -zero;
             
-            testCase.assertTrue(isa(minus_zero, 'Symbolic.Zero'));           
+            testCase.assertTrue(minus_zero.IsZero);
             testCase.verifyEqual(minus_zero.Scenario, setting);
          end
         
@@ -228,7 +221,7 @@ classdef AlgebraicTest < MTKTestBase
             also_zero = setting.zero();
             zero_plus_zero = zero + also_zero;
             
-            testCase.verifyTrue(isa(zero_plus_zero, 'Symbolic.Zero'));
+            testCase.verifyTrue(zero_plus_zero.IsZero);            
             testCase.assertEqual(zero_plus_zero.Scenario, setting);
         end
         
@@ -237,11 +230,12 @@ classdef AlgebraicTest < MTKTestBase
             zero = setting.zero();
             
             also_zero = zero + 0.0;
-            testCase.verifyTrue(isa(also_zero, 'Symbolic.Zero'));
+            testCase.assertTrue(isa(also_zero, 'MTKMonomial'));
+            testCase.verifyTrue(also_zero.IsZero);
             testCase.assertEqual(also_zero.Scenario, setting);
             
             not_zero = zero + 5.0;
-            testCase.verifyTrue(isa(not_zero, 'MTKMonomial'));
+            testCase.assertTrue(isa(not_zero, 'MTKMonomial'));
             testCase.assertEqual(not_zero.Scenario, setting);
             testCase.verifyEqual(not_zero.Operators, uint64.empty(1,0));
             testCase.verifyEqual(not_zero.Coefficient, 5.0);
@@ -253,7 +247,7 @@ classdef AlgebraicTest < MTKTestBase
             zero = setting.zero();
             
             also_zero = 0.0 + zero;
-            testCase.verifyTrue(isa(also_zero, 'Symbolic.Zero'));
+            testCase.verifyTrue(also_zero.IsZero);
             testCase.assertEqual(also_zero.Scenario, setting);
           
             not_zero = 5.0 + zero;
@@ -673,7 +667,7 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get(1);
             
             x_minus_x = x - x;
-            testCase.verifyTrue(isa(x_minus_x, 'Symbolic.Zero'));            
+            testCase.verifyTrue(x_minus_x.IsZero);
             testCase.verifyEqual(x_minus_x.Scenario, setting);
         end
          
@@ -727,10 +721,10 @@ classdef AlgebraicTest < MTKTestBase
             testCase.verifyTrue(isa(x_y , 'MTKPolynomial'));
             
             alt_y = x - x_y;
-            testCase.assertTrue(isa(alt_y , 'MTKMonomial'));
+            testCase.assertTrue(isa(alt_y , 'MTKPolynomial'));
             
-            testCase.verifyEqual(alt_y.Operators, y.Operators);
-            testCase.verifyEqual(alt_y.Coefficient, -y.Coefficient);            
+            testCase.verifyEqual(alt_y.Constituents(1).Operators, y.Operators);
+            testCase.verifyEqual(alt_y.Constituents(1).Coefficient, -y.Coefficient);            
         end
 
         function minus_poly_poly(testCase)
@@ -814,7 +808,7 @@ classdef AlgebraicTest < MTKTestBase
             
             as_zero = x_y - x_y2;
             
-            testCase.assertTrue(isa(as_zero, 'Symbolic.Zero'));
+            testCase.assertTrue(as_zero.IsZero);
             testCase.verifyEqual(as_zero.Scenario, setting);
   
         end
@@ -828,7 +822,7 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get([1]);
             zero = setting.zero();
             also_zero = zero * x;
-            testCase.assertTrue(isa(also_zero, 'Symbolic.Zero'));
+            testCase.assertTrue(also_zero.IsZero);
             testCase.verifyEqual(also_zero.Scenario, setting);
         end
         
@@ -838,7 +832,7 @@ classdef AlgebraicTest < MTKTestBase
             x = setting.get([1]);
             zero = setting.zero();
             also_zero = x * zero;
-            testCase.assertTrue(isa(also_zero, 'Symbolic.Zero'));
+            testCase.assertTrue(also_zero.IsZero);
             testCase.verifyEqual(also_zero.Scenario, setting);
         end
         
@@ -934,8 +928,8 @@ classdef AlgebraicTest < MTKTestBase
             x_plus_y = x + y;
             zero = setting.zero();
             also_zero = zero * x_plus_y;
-            testCase.assertTrue(isa(also_zero, 'Symbolic.Zero'));
-             testCase.assertTrue(eq(also_zero, zero));
+            testCase.assertTrue(also_zero.IsZero);
+            testCase.assertTrue(eq(also_zero, zero));
             testCase.verifyEqual(also_zero.Scenario, setting);
         end
                
@@ -945,8 +939,8 @@ classdef AlgebraicTest < MTKTestBase
             x_plus_y = x + y;
             zero = setting.zero();
             also_zero = x_plus_y * zero;
-            testCase.assertTrue(isa(also_zero, 'Symbolic.Zero'));
-             testCase.assertTrue(eq(also_zero, zero));
+            testCase.assertTrue(also_zero.IsZero);
+            testCase.assertTrue(eq(also_zero, zero));
             testCase.verifyEqual(also_zero.Scenario, setting);
         end
                 
@@ -1005,7 +999,8 @@ classdef AlgebraicTest < MTKTestBase
         end  
         
         function ctranspose_mono_nonhermitian(testCase)
-            setting = AlgebraicScenario(2, {}, false);
+            setting = AlgebraicScenario(2, 'hermitian', false,...
+                                           'interleave', false);
             x = setting.get([1 2 2]);
             ct_x = x';
             testCase.assertTrue(isa(ct_x, 'MTKMonomial'));
@@ -1014,7 +1009,8 @@ classdef AlgebraicTest < MTKTestBase
         end  
         
        function ctranspose_poly_hermitian(testCase)
-            setting = AlgebraicScenario(2, {}, false);
+            setting = AlgebraicScenario(2, 'hermitian', false, ...
+                                           'interleave', false);
             x = setting.get([1 2]);
             y = setting.get([2]);
             x_plus_y = x + y;            
@@ -1022,7 +1018,7 @@ classdef AlgebraicTest < MTKTestBase
             testCase.assertTrue(isa(ct, 'MTKPolynomial'));
             testCase.assertEqual(length(ct.Constituents), 2);
             yc = ct.Constituents(1);
-            yc_xc = ct.Constituents(2);            
+            yc_xc = ct.Constituents(2);
             testCase.verifyEqual(yc.Operators, uint64([4]));
             testCase.verifyEqual(yc_xc.Operators, uint64([4 3]));
             

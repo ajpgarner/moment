@@ -21,7 +21,7 @@ function merge_type = mergeIn(obj, merge_dim, offsets, objects)
 
         case 2 % Col Vector ->
             if (obj.dimension_type == 2)
-                merge_type = 2; % Col vector -> Bigger col vector
+                merge_type = 3; % Col vector -> Bigger col vector
             else
                 merge_type = 5; % Col vector -> Matrix
             end

@@ -2,9 +2,16 @@ function mergeIn(obj, merge_dim, offsets, objects)
     merge_type = mergeIn@MTKObject(obj, merge_dim, offsets, objects);
 
     % If scalar, promote operator list to cell before merge.
-    if merge_type == 0 || merge_type == 1
-        m_operators = (cellfun(@(x) {x.Operators}, objects, ...
-                               'UniformOutput', false));
+    if merge_type >= 0 || merge_type <= 3
+        m_operators = cell(1, numel(objects));
+        
+        for idx=1:numel(objects)
+            if objects{idx}.IsScalar
+                m_operators{idx} = {objects{idx}.Operators};
+            else
+                m_operators{idx} = objects{idx}.Operators;
+            end
+        end        
     else                                                   
         m_operators = (cellfun(@(x) x.Operators, objects, ...
                                'UniformOutput', false));

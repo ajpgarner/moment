@@ -17,10 +17,10 @@ function val = makeOneName(obj, opers, coef)
         % FIXME: Proper name-context object
         op_names = obj.Scenario.Rulebook.ToStringArray(opers);
 
-        val = "<" + join(op_names, '') + ">";
+        val = join(op_names, '');
 
         if coef ~= 1.0
-            if coef == -1.0x
+            if coef == -1.0
                 val = "-" + val;
             else
                 if ~isreal(coef)

@@ -2,8 +2,14 @@
  %SUBSREF Subscripting
     switch s(1).type
         case '.'
-            % Built-in can handle dot indexing
-            [varargout{1:nargout}] = builtin('subsref', obj, s);
+            if length(s) == 1 || ~obj.isPropertyMTKObject(s(1).subs)
+                % Built-in can handle /most/ dot indexing
+                [varargout{1:nargout}] = builtin('subsref', obj, s);
+            else
+                % Otherwise, we have to call recursively:
+                splice = builtin('subsref', obj, s(1));
+                [varargout{1:nargout}] = subsref(splice, s(2:end));
+            end
         case '()'
             % Do not currently handle logical indexing
             if any(cellfun( @(x) isa(x, 'logical'), s(1).subs), 'all')                       
@@ -14,7 +20,7 @@
             indices = obj.cleanIndices(s(1).subs);
 
             if length(s) == 1
-                % Implement obj(indices)                        
+                % Implement obj(indices)                    
                 varargout{1} = obj.splice(indices);
 
             elseif length(s) == 2 && strcmp(s(2).type,'.')                        

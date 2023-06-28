@@ -201,110 +201,7 @@ classdef AlgebraicScenario < MTKScenario
         end
         
     end
-    
-%% Bind algebraic expressions to MATLAB objects
-    methods
-        function item = get(obj, operators)
-        % GET Return a monomial object associated with an operator string.
-        % Essentially, forward to MTKMonomial's constructor.
-        %
-        % PARAMS:
-        %     operators - The string of operators.
-        %
-        % RETURNS:
-        %     Object of type SYMBOLIC.MONOMIAL representing the string.
-        %
-        % See also: SYMBOLIC.MONOMIAL
-        %
-            arguments
-                obj (1,1) AlgebraicScenario
-                operators (1,:)
-            end
-            
-            item = MTKMonomial(obj, operators, 1.0);
-        end
-        
-        function varargout = getAll(obj)
-        % GETALL Creates one monomial object per fundamental operator.
-        %
-        % USAGE:
-        %    [x, y, z] = scenario.getAll();
-        %  
-        % RETURNS:
-        %    Number of monomials equal to OperatorCount, one per operator.
-        %
-        % See also: ALGEBRAIC.MONOMIAL
-        %
-            arguments
-                obj (1,1) AlgebraicScenario
-            end
-            
-            % FIXME: Move to MTKScenario
-            
-            % Force generation of matrix system
-            obj.System;
-            
-            if obj.OperatorCount == 0
-                error("No operators to get.");
-            end
-            
-            export_conjugates = false;
-            if nargout ~= obj.OperatorCount
-                if ~obj.IsHermitian && nargout == 2*obj.OperatorCount
-                    export_conjugates = true;                    
-                else
-                    if obj.IsHermitian
-                        error("getAll() expects %d outputs.",...
-                              obj.OperatorCount);
-                    else
-                        error("getAll() expects %d or %d outputs.",...
-                              obj.OperatorCount, 2*obj.OperatorCount);
-                    end                        
-                end
-                
-            end
-
-            % Export as varargout cell
-            varargout = cell(1, nargout);
-            if export_conjugates
-                for index = 1:(2*obj.OperatorCount)
-                    varargout{index} = obj.get(index);
-                end
-            else
-                if ~obj.IsHermitian && obj.Interleave
-                    for index = 1:obj.OperatorCount
-                        varargout{index} = obj.get((2*index)-1);
-                    end
-                else
-                    for index = 1:obj.OperatorCount
-                        varargout{index} = obj.get(index);
-                    end
-                end
-            end
-        end
-        
-        function val = id(obj)
-        % ID Creates a monomial object for the identity element.
-        %
-        % RETURNS:
-        %   A monomial element representing identity.
-        %
-        % See also: ALGEBRAIC.MONOMIAL
-            val = obj.get([]);
-        end
-        
-        function val = zero(obj)
-        % Creates algebraic zero object for this setting.
-        %
-        % RETURNS:
-        %   Newly created MTKZero
-        %
-        % See also: ALGEBRAIC.ZERO
-            val = MTKZero(obj);
-        end
-    end
-    
-   
+       
     %% Virtual methods    
     methods(Access={?MTKScenario,?MatrixSystem})    
         function ref_id = createNewMatrixSystem(obj)        
@@ -314,10 +211,10 @@ classdef AlgebraicScenario < MTKScenario
             end
             
             nams_args = cell(1,0);
-            if isempty(obj.OperatorNames)
-                nams_args{end+1} = obj.OperatorCount;
+            if isempty(obj.listed_operator_names)
+                nams_args{end+1} = obj.operator_count;
             else
-                nams_args{end+1} = obj.OperatorNames;
+                nams_args{end+1} = obj.listed_operator_names;
             end
             
             if obj.IsHermitian
@@ -329,7 +226,7 @@ classdef AlgebraicScenario < MTKScenario
                     nams_args{end+1} = 'bunched';
                 end
                 
-                if obj.IsNormal
+                if obj.Rulebook.Normal
                     nams_args{end+1} = 'normal';
                 end
             end
@@ -355,6 +252,11 @@ classdef AlgebraicScenario < MTKScenario
         end
         
         function val = makeOperatorNames(obj)
+            if isempty(obj.listed_operator_names)
+                val = makeOperatorNames@MTKScenario(obj);
+                return
+            end
+            
             val = obj.listed_operator_names;
             if ~obj.IsHermitian
                 conj_str = obj.listed_operator_names + "*";
