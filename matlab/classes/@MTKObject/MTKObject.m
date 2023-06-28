@@ -190,7 +190,7 @@
             obj.symbol_added_listener.Enabled = false;
         end
     end
-    
+ 
     %% Declaration of virtual methods (to be overloaded by child classes!)
     methods(Access=protected)        
         [re, im] = calculateCoefficients(obj);

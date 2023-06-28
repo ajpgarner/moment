@@ -26,7 +26,7 @@ function val = eq(lhs, rhs)
 
     % Trivially equal if same object
     if eq@handle(lhs, rhs)
-        val = true;
+        val = true(size(lhs));
         return;
     end
 
