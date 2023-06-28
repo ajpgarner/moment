@@ -34,7 +34,7 @@ methods
     function obj = MomentRuleBook(scenario, label)
     % MOMENTRULEBOOK Creates a moment substitution rule book.
         arguments
-            scenario (1,1) Abstract.Scenario
+            scenario (1,1) MTKScenario
             label (1,1) string = ""
         end    
         obj.Scenario = scenario;

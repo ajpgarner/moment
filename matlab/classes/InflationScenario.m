@@ -1,4 +1,4 @@
-classdef InflationScenario < Abstract.Scenario
+classdef InflationScenario < MTKScenario
 %INFLATIONSCENARIO Classical observables with hidden classical sources.
 %
 % The inflation setting is a type of causal-compatibility testing scenario, 
@@ -93,7 +93,7 @@ classdef InflationScenario < Abstract.Scenario
             end
 
             % Call Superclass c'tor
-            obj = obj@Abstract.Scenario();
+            obj = obj@MTKScenario();
             
             % Save inflation level
             obj.InflationLevel = inf_level;
@@ -360,7 +360,7 @@ classdef InflationScenario < Abstract.Scenario
     end
  
     %% Virtual methods
-    methods(Access={?Abstract.Scenario,?MatrixSystem})        
+    methods(Access={?MTKScenario,?MatrixSystem})        
         function ref_id = createNewMatrixSystem(obj)
             arguments
                 obj (1,1) InflationScenario

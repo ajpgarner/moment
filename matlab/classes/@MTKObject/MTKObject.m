@@ -75,7 +75,7 @@
         %   scenario - The associated matrix system scenario.
         %
             arguments
-                scenario (1,1) Abstract.Scenario
+                scenario (1,1) MTKScenario
                 array_dimensions (1,:) = {1, 1};
             end
             
@@ -192,16 +192,15 @@
     end
  
     %% Declaration of virtual methods (to be overloaded by child classes!)
-    methods(Access=protected)        
+    methods(Access=protected)
         [re, im] = calculateCoefficients(obj);
-        
-        spliceOut(output, source, indices);
-        
-        [output, matched] = spliceProperty(obj, indices, propertyName);
-        
-        merge_type = mergeIn(obj, merge_dim, offsets, objects);
-        
-        str = makeObjectName(obj)
-    end         
-end
 
+        spliceOut(output, source, indices);
+
+        [output, matched] = spliceProperty(obj, indices, propertyName);
+
+        merge_type = mergeIn(obj, merge_dim, offsets, objects);
+
+        str = makeObjectName(obj)
+    end
+end

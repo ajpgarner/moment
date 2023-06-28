@@ -23,7 +23,7 @@ classdef Group < handle
             %   generators - Generators of the symmetry.
             %
             arguments
-                scenario (1,1) Abstract.Scenario
+                scenario (1,1) MTKScenario
                 generators (1,:) cell
             end
             

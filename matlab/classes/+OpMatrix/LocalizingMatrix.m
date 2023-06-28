@@ -11,7 +11,7 @@ classdef LocalizingMatrix < OpMatrix.OperatorMatrix
         %% Constructor
         function obj = LocalizingMatrix(setting, operators, level)
             arguments
-                setting (1,1) Abstract.Scenario
+                setting (1,1) MTKScenario
                 operators
                 level (1,1) {mustBeNonnegative, mustBeInteger} = 1
             end

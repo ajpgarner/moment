@@ -51,7 +51,7 @@ classdef MTKMonomial < MTKObject
             create_dimensions = [1, 1];
             init_for_overwrite = false;
             
-            if (nargin < 1) || ~isa(setting, 'Abstract.Scenario')
+            if (nargin < 1) || ~isa(setting, 'MTKScenario')
                 error("First argument must be a scenario.");
             end
             
@@ -140,7 +140,7 @@ classdef MTKMonomial < MTKObject
         function obj = InitForOverwrite(setting, dimensions)
         % INITFOROVERWRITE Create blank monomial to overwrite.
             arguments
-                setting (1,1) Abstract.Scenario
+                setting (1,1) MTKScenario
                 dimensions (1,:) double
             end
             obj = MTKMonomial(setting, 'overwrite', dimensions);
@@ -149,7 +149,7 @@ classdef MTKMonomial < MTKObject
         function obj = InitValue(setting, values)
         % INITVALUE Create monomials representing numeric values
             arguments
-                setting (1,1) Abstract.Scenario
+                setting (1,1) MTKScenario
                 values (:,:) double
             end
             

@@ -1,4 +1,4 @@
-classdef ImportedScenario < Abstract.Scenario
+classdef ImportedScenario < MTKScenario
 %IMPORTEDSCENARIO Scenario for manually input moment matrices.
 % 
 % Unlike the other scenarios, moment and localizing matrices are not 
@@ -34,7 +34,7 @@ classdef ImportedScenario < Abstract.Scenario
         end
             
             % Superclass c'tor
-            obj = obj@Abstract.Scenario();
+            obj = obj@MTKScenario();
             
             % Set whether all symbols are real or not
             obj.Real = logical(all_real);            
@@ -42,7 +42,7 @@ classdef ImportedScenario < Abstract.Scenario
     end
     
     %% Virtual methods
-    methods(Access={?Abstract.Scenario,?MatrixSystem})
+    methods(Access={?MTKScenario,?MatrixSystem})
         
         function ref_id = createNewMatrixSystem(obj)
         % CREATENEWMATRIXSYSTEM Invoke mtk to create imported matrix system.

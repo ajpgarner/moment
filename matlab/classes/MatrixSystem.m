@@ -35,7 +35,7 @@ classdef MatrixSystem < handle
             % End-users are encouraged not to invoke this manually, but
             % prefer automating it through a [System-Type]Scenario class.
             
-            if isa(args, 'Abstract.Scenario')
+            if isa(args, 'MTKScenario')
                 % Invoke Scenario's own MatrixSystem creation function
                 obj.RefId = args.createNewMatrixSystem();
             elseif isa(args, 'cell')

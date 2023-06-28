@@ -48,7 +48,7 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
             % Check argument 1
             if nargin < 1
                 error("Scenario must be provided.");
-            elseif ~isa(setting, 'Abstract.Scenario')
+            elseif ~isa(setting, 'MTKScenario')
                 error("First argument must be a scenario.");
             end
 

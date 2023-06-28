@@ -1,4 +1,4 @@
-classdef AlgebraicScenario < Abstract.Scenario
+classdef AlgebraicScenario < MTKScenario
 %ALGEBRAICSCENARIO Scenario for operators with monomial substitution rules.
 %
 % This general-purpose scenario defines a system of (non-commuting) 
@@ -16,60 +16,87 @@ classdef AlgebraicScenario < Abstract.Scenario
 % See also: ALGEBRAIC.OPERATORRULEBOOK, ABSTRACT.SCENARIO
     
 %% Properties
-    properties(GetAccess = public, SetAccess = protected)
-        OperatorCount % Number of fundamental operators in scenario.
-        IsHermitian   % True if fundamental operators are Hermitian.
-        IsNormal      % True if fundamental operators are Normal.
-        Interleave    % True if operators are ordered next to their conjugates.
-        Rulebook      % Manages substitution rules for operator strings.
-        OperatorNames % Names of the fundamental operators.        
+    properties(GetAccess = public, SetAccess = private)        
+        Rulebook % Manages substitution rules for operator strings.
     end
     
+    properties(Access = private)
+        operator_count;
+        listed_operator_names;
+    end
+        
 
-    
-    properties(Dependent, GetAccess = public)
-        % Number of operators, taking into acount conjugates
-        EffectiveOperatorCount
-    end
-    
 %% Constructor
     methods
-        function obj = AlgebraicScenario(operators, rules, ...
-                is_hermitian, interleave, is_normal)
-            % Creates an algebraic scenario.
-            %
-            % PARAMS:
-            %  operators - The number of fundamental operators, or an array
-            %              of names of operators to define.
-            %  rules - Cell array of rewrite rules on strings of operators.
-            %  is_hermitian - True if fundamental operators are Hermitian.
-            %  is_normal - True if fundamental operators are normal.
-            %
-            arguments
-                operators (1,:)
-                rules (1,:) = cell.empty(1,0)
-                is_hermitian (1,1) logical = true
-                interleave (1,1) logical = false
-                is_normal (1,1) logical = is_hermitian
-            end
+        function obj = AlgebraicScenario(operators, varargin)
+        % Creates an algebraic scenario.
+        %
+        % SYNTAX:
+        %      obj = AlgebraicScenario(number)
+        %      obj = AlgebraicScenario(number, rules)
+        %      obj = AlgebraicScenario(number, key1, value1, ...)
+        %      obj = AlgebraicScenario([name list])
+        %      obj = AlgebraicScenario([name list], rules)
+        %      obj = AlgebraicScenario([name list], key1, value1, ...)
+        %
+        % PARAMS:
+        %  operators - The number of fundamental operators, or an array
+        %              of names of operators to define.
+        %  rules - Cell array of rewrite rules, or existing Rulebook
+        %
+        % OPTIONAL [KEY,VALUE] PARAMETERS:
+        %  rules - Cell array of rewrite rules on strings of operators.
+        %  hermitian - True if fundamental operators are Hermitian.
+        %  interleave - True operators are ordered next to their conjugate.
+        %  tolerance - The multiplier of eps(1) to treat as zero.
+        %  normal - True if fundamental operators are normal.
+        %
+            
+            % Operators always provided as row vector
+            operators = reshape(operators, 1, []);
 
-            if nargin <= 3
-            	is_normal = is_hermitian;
-                interleave = false;
+            % Check and parse optional arguments            
+            rules = cell(1,0);
+            is_hermitian = true;
+            interleave = true;
+            is_normal = true;
+            tolerance = 100.0;
+            
+            if numel(varargin) == 1
+                rules = varargin{1};
+            else
+                param_names = ["rules", "hermitian", "interleave", ...
+                               "normal", "tolerance"];
+                options = Util.check_varargin_keys(param_names, varargin);
+                for idx = 1:2:numel(varargin)
+                    switch varargin{idx}
+                        case 'rules'
+                            rules = varargin{idx+1};
+                        case 'hermitian'
+                            is_hermitian = logical(varargin{idx+1});
+                        case 'interleave'
+                            interleave = logical(varargin{idx+1});
+                        case 'normal'
+                            is_normal = logical(varargin{idx+1});
+                        case 'tolerance'
+                            tolerance = double(varargin{idx+1});
+                    end
+                end
             end
 
             % Call superclass c'tor
-            obj = obj@Abstract.Scenario();
+            obj = obj@MTKScenario(tolerance, is_hermitian, interleave);
             
+            % Process operator input
             if isnumeric(operators) && isscalar(operators)
-                obj.OperatorNames = string.empty(1,0);
-                obj.OperatorCount = uint64(operators);
+                obj.listed_operator_names = string.empty(1,0);
+                obj.operator_count = uint64(operators);
             elseif isstring(operators)
-                obj.OperatorNames = reshape(operators, 1, []);
-                obj.OperatorCount = uint64(length(obj.OperatorNames));                  
+                obj.listed_operator_names = reshape(operators, 1, []);
+                obj.operator_count = uint64(length(obj.listed_operator_names));                  
             elseif ischar(operators)
-                obj.OperatorNames = reshape(string(operators(:)), 1, []);
-                obj.OperatorCount = uint64(length(obj.OperatorNames));                
+                obj.listed_operator_names = reshape(string(operators(:)), 1, []);
+                obj.operator_count = uint64(length(obj.listed_operator_names));                
             else
                 error("Input 'operators' must be set either to the "...
                       +"number of desired operators, or an array of "...
@@ -80,30 +107,26 @@ classdef AlgebraicScenario < Abstract.Scenario
             if is_hermitian && ~is_normal
                 error("Hermitian operators must be normal.");
             end
-
-            if is_hermitian && interleave 
-                error("Interleave mode only makes sense when operators are non-Hermitian.");
-            end
             
-            obj.IsHermitian = logical(is_hermitian);
-            obj.Interleave = logical(interleave);
-            obj.IsNormal = logical(is_normal);
+            obj.IsHermitian = is_hermitian;
+            obj.Interleave = interleave;
+            %obj.IsNormal = is_normal;
             
             if isa(rules, 'Algebraic.OperatorRulebook')
                 % Check for consistency
                 assert(rules.Hermitian == obj.IsHermitian);
                 assert(rules.Interleave == obj.Interleave);
-                assert(rules.Normal == obj.IsNormal);
+                %assert(rules.Normal == obj.IsNormal);
                 assert(rules.MaxOperators == obj.OperatorCount);
       
-                % Copy construct
+                % Copy construct existing rulebook
                 obj.Rulebook = Algebraic.OperatorRulebook(rules);
             else            
-                % Construct new
-                obj.Rulebook = Algebraic.OperatorRulebook(operators, rules, ...
-                                                  obj.IsHermitian, ...
-                                                  obj.Interleave, ...
-                                                  is_normal);
+                % Otherwise construct new rulebook
+                obj.Rulebook = ...
+                    Algebraic.OperatorRulebook(operators, rules, ...
+                                              is_hermitian, interleave, ...
+                                              is_normal);
             end
         end
         
@@ -138,17 +161,7 @@ classdef AlgebraicScenario < Abstract.Scenario
             val = join(str_array, " ");
         end
     end
-    
-%% Dependent variables
-    methods
-        function val = get.EffectiveOperatorCount(obj)            
-            if obj.IsHermitian
-                val = obj.OperatorCount;
-            else
-                val = 2 * obj.OperatorCount;
-            end
-        end
-    end
+
 
 %% Set-up / rule manipulation etc.
     methods
@@ -225,6 +238,12 @@ classdef AlgebraicScenario < Abstract.Scenario
             arguments
                 obj (1,1) AlgebraicScenario
             end
+            
+            % FIXME: Move to MTKScenario
+            
+            % Force generation of matrix system
+            obj.System;
+            
             if obj.OperatorCount == 0
                 error("No operators to get.");
             end
@@ -252,7 +271,7 @@ classdef AlgebraicScenario < Abstract.Scenario
                     varargout{index} = obj.get(index);
                 end
             else
-                if obj.Interleave
+                if ~obj.IsHermitian && obj.Interleave
                     for index = 1:obj.OperatorCount
                         varargout{index} = obj.get((2*index)-1);
                     end
@@ -285,14 +304,15 @@ classdef AlgebraicScenario < Abstract.Scenario
         end
     end
     
-    %% Friend/interface methods
-    methods(Access={?Abstract.Scenario,?MatrixSystem})
-        
+   
+    %% Virtual methods    
+    methods(Access={?MTKScenario,?MatrixSystem})    
         function ref_id = createNewMatrixSystem(obj)        
         % CREATENEWMATRIXSYSTEM Invoke mtk to create matrix system.
             arguments
                 obj (1,1) AlgebraicScenario
             end
+            
             nams_args = cell(1,0);
             if isempty(obj.OperatorNames)
                 nams_args{end+1} = obj.OperatorCount;
@@ -329,19 +349,24 @@ classdef AlgebraicScenario < Abstract.Scenario
         end
     end
     
-%% Virtual methods
     methods(Access=protected)
-        function onNewMomentMatrix(obj, mm)
-        % ONNEWMOMENTMATRIX Called after a moment matrix has been created.
-        %
-        % PARAMS:
-        %       mm - The newly created moment matrix.
-        %
-            arguments
-                obj (1,1) AlgebraicScenario
-                mm (1,1) OpMatrix.MomentMatrix
+        function val = operatorCount(obj)
+            val = obj.operator_count;
+        end
+        
+        function val = makeOperatorNames(obj)
+            val = obj.listed_operator_names;
+            if ~obj.IsHermitian
+                conj_str = obj.listed_operator_names + "*";
+                if obj.Interleave            
+                    val = [val; conj_str];
+                    val = reshape(val, 1, []);
+                else
+                    val = [val, conj_str];
+                end
             end
         end
     end
+ 
 end
 

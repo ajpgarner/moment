@@ -1,4 +1,4 @@
-classdef LocalityScenario < Abstract.Scenario
+classdef LocalityScenario < MTKScenario
 %LOCALITYSCENARIO Scenario for agents with projective measurements.
 %
 % This scenario is the classic locality setting, of spatially-disjoint
@@ -75,7 +75,7 @@ classdef LocalityScenario < Abstract.Scenario
             %
             
             % Superclass c'tor
-            obj = obj@Abstract.Scenario();
+            obj = obj@MTKScenario();
             
             % Create normalization object, and empty system ref
             obj.Parties = Locality.Party.empty;
@@ -435,7 +435,7 @@ classdef LocalityScenario < Abstract.Scenario
     end
     
     %% Friend/interface methods
-    methods(Access={?Abstract.Scenario,?MatrixSystem})
+    methods(Access={?MTKScenario,?MatrixSystem})
         % Query for a matrix system
         function ref_id = createNewMatrixSystem(obj)
             ref_id = mtk('locality_matrix_system', ...

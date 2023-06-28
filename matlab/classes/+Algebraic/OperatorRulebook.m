@@ -104,9 +104,8 @@ classdef OperatorRulebook < handle
             if is_hermitian && ~is_normal
                 error("Hermitian operators must be normal.");
             end
-            if is_hermitian && interleave
-                error("Interleave mode only makes sense for non-Hermitian operators.");
-            end
+            
+            
             obj.Interleave = logical(interleave);
             obj.Normal = logical(is_normal);
             

@@ -19,7 +19,7 @@ classdef SolvedScenario < handle
             % From either (Scenario, SolvedMomentMatrix) or
             % (Scenario, MomentMatrix, Symmetric elements, Anti-sym elements).
             arguments
-                setting (1,1) Abstract.Scenario
+                setting (1,1) MTKScenario
                 real_vals (:,1) = double.empty(0,1);
                 im_vals (:,1) = double.empty(0,1);
             end

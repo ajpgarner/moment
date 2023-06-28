@@ -1,4 +1,4 @@
-classdef SymmetrizedScenario < Abstract.Scenario
+classdef SymmetrizedScenario < MTKScenario
 %SYMMETRIZEDSCENARIO 
 %
 
@@ -21,7 +21,7 @@ classdef SymmetrizedScenario < Abstract.Scenario
         %                  symmetrized scenario. Set to 0 to deduce.
         %
             arguments
-                base (1,1) Abstract.Scenario
+                base (1,1) MTKScenario
                 generators
                 max_word_len (1,1) uint64 = 0
             end
@@ -48,7 +48,7 @@ classdef SymmetrizedScenario < Abstract.Scenario
     end
     
     %% Virtual methods
-    methods(Access={?Abstract.Scenario,?MatrixSystem})
+    methods(Access={?MTKScenario,?MatrixSystem})
         
         function ref_id = createNewMatrixSystem(obj)
         % CREATENEWMATRIXSYSTEM Invoke mtk to create imported matrix system.

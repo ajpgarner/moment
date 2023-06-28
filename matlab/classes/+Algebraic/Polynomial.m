@@ -24,7 +24,7 @@ classdef (InferiorClasses={?Algebraic.Monomial,?Algebraic.Zero}) ...
     methods
         function obj = Polynomial(setting, constituents)
             arguments
-                setting (1,1) Abstract.Scenario
+                setting (1,1) MTKScenario
                 constituents (1,:) 
             end
             obj = obj@Abstract.ComplexObject(setting);
