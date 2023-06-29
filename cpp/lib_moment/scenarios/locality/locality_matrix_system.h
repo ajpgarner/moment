@@ -38,13 +38,13 @@ namespace Moment::Locality {
          * Construct a system of matrices with shared operators.
          * @param context The operator scenario.
          */
-        explicit LocalityMatrixSystem(std::unique_ptr<class LocalityContext> context);
+        explicit LocalityMatrixSystem(std::unique_ptr<class LocalityContext> context, double tolerance = 1.0);
 
         /**
          * Construct a system of matrices with shared operators.
          * @param context The operator scenario.
          */
-        explicit LocalityMatrixSystem(std::unique_ptr<class Context> context);
+        explicit LocalityMatrixSystem(std::unique_ptr<class Context> context, double tolerance = 1.0);
 
         ~LocalityMatrixSystem() noexcept override;
 

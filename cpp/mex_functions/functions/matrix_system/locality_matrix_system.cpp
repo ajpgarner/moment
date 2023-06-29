@@ -49,6 +49,15 @@ namespace Moment::mex::functions {
             // Otherwise, try to interpret inputs as flat specification
             this->getFromInputs();
         }
+
+        // Optional parameters
+        auto tolerance_param_iter = this->params.find(u"tolerance");
+        if (tolerance_param_iter != this->params.cend()) {
+            this->zero_tolerance = read_as_double(this->matlabEngine, tolerance_param_iter->second);
+            if (this->zero_tolerance < 0) {
+                throw_error(this->matlabEngine, errors::bad_param, "Tolerance must be non-negative value.");
+            }
+        }
     }
 
     void LocalityMatrixSystemParams::getFromParams() {
@@ -157,6 +166,8 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"measurements");
         this->param_names.emplace(u"outcomes");
 
+        this->param_names.emplace(u"tolerance");
+
         this->min_inputs = 0;
         this->max_inputs = 3;
     }
@@ -178,7 +189,7 @@ namespace Moment::mex::functions {
 
         // Make new system around context
         std::unique_ptr<MatrixSystem> matrixSystemPtr
-            = std::make_unique<Locality::LocalityMatrixSystem>(std::move(contextPtr));
+            = std::make_unique<Locality::LocalityMatrixSystem>(std::move(contextPtr), input.zero_tolerance);
 
         // Store context/system
         uint64_t storage_id = this->storageManager.MatrixSystems.store(std::move(matrixSystemPtr));

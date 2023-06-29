@@ -21,6 +21,9 @@ namespace Moment::mex::functions {
         std::vector<size_t> mmts_per_party;
         std::vector<size_t> outcomes_per_mmt;
 
+        /** The 'precision' limit, such that if a value is less than eps * [this value] it is treated as zero. */
+        double zero_tolerance = 1.0;
+
     public:
         explicit LocalityMatrixSystemParams(SortedInputs &&inputs);
 

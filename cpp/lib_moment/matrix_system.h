@@ -79,8 +79,9 @@ namespace Moment {
         /**
          * Construct a system of matrices with shared operators.
          * @param context The operator scenario.
+         * @param zero_tolerance The multiplier of epsilon below which doubles are treated as zero.
          */
-        explicit MatrixSystem(std::unique_ptr<class Context> context);
+        explicit MatrixSystem(std::unique_ptr<class Context> context, double zero_tolerance = 1.0);
 
         /**
          * Frees a system of matrices.

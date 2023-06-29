@@ -11,22 +11,32 @@
 #include "locality_implicit_symbols.h"
 #include "collins_gisin.h"
 
+#include "symbolic/monomial_comparator_by_hash.h"
+
 namespace Moment::Locality {
     LocalityMatrixSystem::~LocalityMatrixSystem() noexcept = default;
 
 
-    LocalityMatrixSystem::LocalityMatrixSystem(std::unique_ptr<struct Context> contextIn)
-            : MatrixSystem(std::move(contextIn)),
+    LocalityMatrixSystem::LocalityMatrixSystem(std::unique_ptr<struct Context> contextIn, const double tolerance)
+            : MatrixSystem{std::move(contextIn), tolerance},
               localityContext{dynamic_cast<const LocalityContext&>(this->Context())} {
+
+        this->replace_polynomial_factory(
+                std::make_unique<ByHashPolynomialFactory>(this->Symbols(), tolerance, this->Symbols())
+        );
 
         this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, 0);
         this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
     }
 
 
-    LocalityMatrixSystem::LocalityMatrixSystem(std::unique_ptr<struct LocalityContext> contextIn)
-            : MatrixSystem{std::move(contextIn)},
+    LocalityMatrixSystem::LocalityMatrixSystem(std::unique_ptr<struct LocalityContext> contextIn,  const double tolerance)
+            : MatrixSystem{std::move(contextIn), tolerance},
               localityContext{dynamic_cast<const LocalityContext&>(this->Context())} {
+
+        this->replace_polynomial_factory(
+                std::make_unique<ByHashPolynomialFactory>(this->Symbols(), tolerance, this->Symbols())
+        );
 
         this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, 0);
         this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);

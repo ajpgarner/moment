@@ -30,10 +30,10 @@ namespace Moment {
         }
     }
 
-    MatrixSystem::MatrixSystem(std::unique_ptr<class Context> ctxtIn)
+    MatrixSystem::MatrixSystem(std::unique_ptr<class Context> ctxtIn, const double zero_tolerance)
         : context{std::move(ctxtIn)}, symbol_table{std::make_unique<SymbolTable>(assertContext(context))} {
 
-        this->poly_factory = std::make_unique<ByIDPolynomialFactory>(*this->symbol_table, 1.0);
+        this->poly_factory = std::make_unique<ByIDPolynomialFactory>(*this->symbol_table, zero_tolerance);
     }
 
     MatrixSystem::~MatrixSystem() noexcept = default;
