@@ -3,11 +3,11 @@ classdef Party < handle
     %   
     
     properties(GetAccess = public, SetAccess = private)
+        Scenario
         Id
         Name
         TotalOperators = uint64(0)
         Measurements
-        Scenario
     end
     
     methods(Access={?LocalityScenario})
@@ -19,7 +19,6 @@ classdef Party < handle
             end
             %PARTY Construct a party 
             % (Private c'tor. To construct, use Scenario.AddParty.)
-            import Locality.Measurement
             import Util.alphabetic_index
             
             % Link to a setting object
@@ -32,14 +31,14 @@ classdef Party < handle
             if nargin >= 3            
                 obj.Name = string(name);
             else
-                obj.Name = string(alphabetic_index(obj.Id, true));
+                obj.Name = string(alphabetic_index(obj.Id, true));                
             end
             
             % No operators until we have measurements
             obj.TotalOperators = uint64(0);
             
             % Prepare (empty) measurement array
-            obj.Measurements = Measurement.empty;
+            obj.Measurements = Locality.Measurement.empty(0,1);
         end
     end
     
@@ -58,8 +57,13 @@ classdef Party < handle
             
             % Automatically name, if non supplied
             next_id = length(obj.Measurements)+1;
-            if nargin < 3                
-                name = alphabetic_index(next_id, false);
+            if nargin < 3
+                format = mtk_locality_format();
+                if strcmp(format, "Natural")
+                    name = string(alphabetic_index(next_id, false));    
+                else
+                    name = num2str(next_id- 1);
+                end
             end
                 
             obj.Measurements(end+1) = Measurement(obj.Scenario, ...
@@ -72,9 +76,6 @@ classdef Party < handle
             
             % Add to total operator count (1 fewer than number of outcomes)
             obj.TotalOperators = obj.TotalOperators + num_outcomes - 1;
-                                              
-            % Build joint measurements, if any other measurements
-            obj.Scenario.make_joint_mmts(obj.Id, mmt);
         end
     end
 end

@@ -82,5 +82,9 @@ namespace Moment::Locality {
 
     protected:
         void onNewMomentMatrixCreated(size_t level, const class Matrix& mm) override;
+
+        void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const Matrix &lm) override;
+
+        void onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator &osg) override;
     };
 }

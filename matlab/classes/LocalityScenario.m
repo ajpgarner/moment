@@ -34,7 +34,6 @@ classdef LocalityScenario < MTKScenario
     
     properties(GetAccess = public, SetAccess = protected)
         Parties % Spatially disjoint agents (Alice, Bob, etc.).
-        Normalization % Normalization element of scenario (i.e. identity matrix).
         MeasurementsPerParty % Number of measurements each agent can make.
         OperatorsPerParty % Number of operators associated with each agent.
         OutcomesPerMeasurement % Number of outcomes associated with each measurement.
@@ -48,96 +47,67 @@ classdef LocalityScenario < MTKScenario
     
     %% Construction and initialization
     methods
-        function obj = LocalityScenario(argA, argB, argC)
-            % LOCALITYSCENARIO Construct a locality scenario.
-            % 
-            % SYNTAX:
-            %  1. LocalityScenario()
-            %       Creates an empty scenario (no parties).
-            %  2. LocalityScenario(number of parties)
-            %       Creates a scenario, with a number of parties, but no
-            %       measurements/outcomes.
-            %  3. LocalityScenario(number of parties, mmts per party, outcomers per mmt)
-            %       Creates a scenario, which each party has the same
-            %       number of measurements, and each measurement the same
-            %       number of outcomes.
-            %  4. LocalityScenario([out A, out B, ..., mmts A, mmts B, ...])
-            %       Creates a scenario where each party may have different
-            %       numbers of measurements/outcomes, but within any
-            %       particular party, all measurements have the same number
-            %       of outcomes.
-            %  5. LocalityScenario({[out A1, out A2, ..], [out B1, ...], ...})
-            %       Creates a scenario where each party can have a
-            %       different number of measurements, and each measurement
-            %       can have a different number of outcomes.
-            %
-            % See also: AddParty, Party.AddMeasurement
-            %
-            
-            % Superclass c'tor
-            obj = obj@MTKScenario();
-            
-            % Create normalization object, and empty system ref
-            obj.Parties = Locality.Party.empty;
-            
-            % How many parties?
-            if (nargin == 0)
-                initial_parties = uint64(0);
-                initialize_mmts = false;
-            else
-                if 1 == numel(argA)
-                    initial_parties = uint64(argA);
-                    if nargin == 1
-                        initialize_mmts = false;
-                    elseif nargin == 3
-                        initialize_mmts = true;
-                    else
-                        error("Invalid input.");
+        function obj = LocalityScenario(varargin)
+        % LOCALITYSCENARIO Construct a locality scenario.
+        % 
+        % SYNTAX:
+        %  1. LocalityScenario()
+        %       Creates an empty scenario (no parties).
+        %  2. LocalityScenario(number of parties)
+        %       Creates a scenario, with supplied number of parties, 
+        %       but no measurements/outcomes.
+        %  3. LocalityScenario(number of parties, mmts per party, outcomers per mmt)
+        %       Creates a scenario, which each party has the same
+        %       number of measurements, and each measurement the same
+        %       number of outcomes.
+        %  4. LocalityScenario([out A, out B, ..., mmts A, mmts B, ...])
+        %       Creates a scenario where each party may have different
+        %       numbers of measurements/outcomes, but within any
+        %       particular party, all measurements have the same number
+        %       of outcomes.
+        %  5. LocalityScenario({[out A1, out A2, ..], [out B1, ...], ...})
+        %       Creates a scenario where each party can have a
+        %       different number of measurements, and each measurement
+        %       can have a different number of outcomes.
+        %
+        % See also: AddParty, Party.AddMeasurement
+        %
+        
+            % Parse arguments to standard form
+            [desc, opt_idx] = LocalityScenario.parseInputArguments(varargin);
+                        
+            % Process optional parameters, if any            
+            zero_tolerance = 100;
+            if opt_idx <= nargin
+                options = Util.check_varargin_keys(...
+                    ["zero_tolerance"], ...
+                    varargin(opt_idx:end));
+                for idx = 1:2:numel(options)
+                    switch options{idx}
+                        case 'zero_tolerance'
+                            zero_tolerance = double(options{idx+1});
                     end
-                elseif isa(argA,'double')
-                    initial_parties = uint64(length(argA)/2);
-                    initialize_mmts = true;
-                elseif isa(argA,'cell')
-                    initial_parties = length(argA);
-                    initialize_mmts = true;
                 end
             end
-            
-            % Create empty parties
-            if (initial_parties >= 1 )
-                for x = 1:initial_parties
-                    obj.Parties(end+1) = Locality.Party(obj, x);
-                end
-            end
+           
+            % Superclass c'tor
+            obj = obj@MTKScenario(zero_tolerance, true, true);
             
             % Create normalization object
-            obj.Normalization = Locality.Normalization(obj);
+            %obj.Normalization = MTKMonomial(obj, [], 1.0);
             
-            % No more construction, if no initial measurements
-            if ~initialize_mmts
-                return
-            end
-            
-            if (nargin == 3)  % Do we have a (party, mmt, outcome) specification?
-                desc = cell(initial_parties,1);
-                for partyIndex = 1:initial_parties
-                    desc{partyIndex} = argC*ones(argB,1);
-                end
-            elseif isa(argA,'double') %Or we have a [outcomes, measurements] specification?
-                desc = cell(initial_parties,1);
-                for partyIndex = 1:initial_parties
-                    desc{partyIndex} = argA(partyIndex)*ones(argA(initial_parties+partyIndex),1);
-                end
-            elseif isa(argA,'cell') %Or the general case?
-                desc = argA;
-            end
-            
-            % Now, create measurements
-            for partyIndex = 1:initial_parties
-                for mmtIndex = 1:length(desc{partyIndex})
-                    obj.Parties(partyIndex).AddMeasurement(desc{partyIndex}(mmtIndex));
+            % Create parties, as supplied
+            obj.Parties = Locality.Party.empty(1,0);
+            initial_parties = numel(desc);
+            if (initial_parties >= 1)
+                for x = 1:initial_parties
+                    obj.Parties(end+1) = Locality.Party(obj, x);
+                    for mmtIndex = 1:numel(desc{x})
+                        obj.Parties(x).AddMeasurement(desc{x}(mmtIndex));
+                    end
                 end
             end
+            
         end
         
         function AddParty(obj, name)
@@ -185,7 +155,7 @@ classdef LocalityScenario < MTKScenario
         end
         
     end
-    
+
     
     %% Overloaded accessor: MatrixSystem
     methods
@@ -382,6 +352,10 @@ classdef LocalityScenario < MTKScenario
             val = fc.at(index);
         end
         
+        function val = CollinsGisin(obj)
+            val = Locality.CollinsGisin(obj);
+        end
+        
         function val = CGTensor(obj, tensor)
         % CGTENSOR Build an objective function by supplying weights to a Collins-Gisin tensor.
         %
@@ -413,75 +387,185 @@ classdef LocalityScenario < MTKScenario
         end
     end
     
-    %% Internal methods
-    methods(Access={?LocalityScenario,?Locality.Party})
-        function make_joint_mmts(obj, party_id, new_mmt)
-            % First, add new measurement to lower index parties
-            if party_id > 1
-                for i=1:(party_id-1)
-                    for m = obj.Parties(i).Measurements
-                        m.addJointMmt(new_mmt);
-                    end
-                end
-            end
-            
-            % Second, make joint measurement with higher index parties
-            for i=(party_id+1):length(obj.Parties)
-                for m = obj.Parties(i).Measurements
-                    new_mmt.addJointMmt(m);
-                end
-            end
-        end
-    end
+%     %% Internal methods
+%     methods(Access={?LocalityScenario,?Locality.Party})
+%         function make_joint_mmts(obj, party_id, new_mmt)
+%             % First, add new measurement to lower index parties
+%             if party_id > 1
+%                 for i=1:(party_id-1)
+%                     for m = obj.Parties(i).Measurements
+%                         m.addJointMmt(new_mmt);
+%                     end
+%                 end
+%             end
+%             
+%             % Second, make joint measurement with higher index parties
+%             for i=(party_id+1):length(obj.Parties)
+%                 for m = obj.Parties(i).Measurements
+%                     new_mmt.addJointMmt(m);
+%                 end
+%             end
+%         end
+%     end
     
     %% Friend/interface methods
     methods(Access={?MTKScenario,?MatrixSystem})
         % Query for a matrix system
         function ref_id = createNewMatrixSystem(obj)
+            
+            opt_args = {'tolerance', obj.ZeroTolerance};
+            
             ref_id = mtk('locality_matrix_system', ...
                 length(obj.Parties), ...
                 obj.MeasurementsPerParty, ...
-                obj.OutcomesPerMeasurement);
+                obj.OutcomesPerMeasurement, ...
+                opt_args{:});
         end
     end
     
     %% Virtual methods
     methods(Access=protected)
-        function onNewMomentMatrix(obj, mm)
-            p_table = mm.MatrixSystem.ProbabilityTable;
-            for p_row = p_table
-                seq_len = size(p_row.indices, 1);
-                
-                % Special case 0 and 1
-                if seq_len == 0
-                    if p_row.sequence == "1"
-                        obj.Normalization.setCoefficients(...
-                            p_row.real_coefficients);
-                    end
-                    continue;
-                end
-                
-                leading_outcome = obj.get(p_row.indices(1,:));
-                
-                if seq_len == 1
-                    % Directly link co-efficients with outcome
-                    leading_outcome.setCoefficients(p_row.real_coefficients);
-                else
-                    % Register co-effs as joint outcome
-                    joint_outcome = Locality.JointOutcome(obj, p_row.indices);
-                    joint_outcome.setCoefficients(p_row.real_coefficients);
-                    
-                    leading_outcome.joint_outcomes(end+1).indices = ...
-                        p_row.indices;
-                    leading_outcome.joint_outcomes(end).outcome = ...
-                        joint_outcome;
-                end
-            end
+        function val = operatorCount(obj)
+            val = sum(obj.OperatorsPerParty);            
         end
         
+        function onNewMomentMatrix(obj, mm)
+            %TODO: Forget this, instead use onNewSymbols...
+%             
+%             
+%             p_table = mm.MatrixSystem.ProbabilityTable;
+%             for p_row = p_table
+%                 seq_len = size(p_row.indices, 1);
+%                 
+%                 % Special case 0 and 1
+%                 if seq_len == 0
+%                     if p_row.sequence == "1"
+%                         obj.Normalization.setCoefficients(...
+%                             p_row.real_coefficients);
+%                     end
+%                     continue;
+%                 end
+%                 
+%                 leading_outcome = obj.get(p_row.indices(1,:));
+%                 
+%                 if seq_len == 1
+%                     % Directly link co-efficients with outcome
+%                     leading_outcome.setCoefficients(p_row.real_coefficients);
+%                 else
+%                     % Register co-effs as joint outcome
+%                     joint_outcome = Locality.JointOutcome(obj, p_row.indices);
+%                     joint_outcome.setCoefficients(p_row.real_coefficients);
+%                     
+%                     leading_outcome.joint_outcomes(end+1).indices = ...
+%                         p_row.indices;
+%                     leading_outcome.joint_outcomes(end).outcome = ...
+%                         joint_outcome;
+%                 end
+%             end
+        end
+        
+        function val = onSetHermitian(obj, old_value, new_value)
+            if new_value ~= true
+                error("Base operators in LocalityScenarios must be Hermitian.");
+            end
+            val = true;
+        end
+     
         function val = createSolvedScenario(obj, a, b)
             val = SolvedScenario.SolvedLocalityScenario(obj, a, b);
         end
+        
+        function str = makeOperatorNames(obj)
+            str = strings(1, obj.OperatorCount);
+            
+            format = mtk_locality_format();
+            switch format
+                case "Natural"                    
+                    idx = 1;
+                    for party_id = 1:numel(obj.Parties)
+                        for mmt_id = 1:numel(obj.Parties(party_id).Measurements)
+                            for out_id = 1:(numel(obj.Parties(party_id).Measurements(mmt_id).Outcomes)-1)
+                                str(idx) = obj.Parties(party_id).Name + ".";
+                                str(idx) = str(idx) + obj.Parties(party_id).Measurements(mmt_id).Name;
+                                str(idx) = str(idx) + num2str(out_id-1);
+                                idx = idx+1;
+                            end
+                        end
+                    end
+                case "Traditional"
+                    idx = 1;
+                    for party_id = 1:numel(obj.Parties)
+                        for mmt_id = 1:numel(obj.Parties(party_id).Measurements)
+                            for out_id = 1:(numel(obj.Parties(party_id).Measurements(mmt_id).Outcomes)-1)
+                                str(idx) = obj.Parties(party_id).Name;
+                                str(idx) = str(idx) + num2str(out_id-1) + "|";
+                                str(idx) = str(idx) + obj.Parties(party_id).Measurements(mmt_id).Name;                                
+                                idx = idx+1;
+                            end
+                        end
+                    end                    
+                otherwise
+                    str= makeOperatorNames@MTKScenario(obj);
+            end            
+        end
     end
+    
+    %% Static private functions
+    methods(Static, Access=private)
+        function [desc, optional_idx] = parseInputArguments(args)
+        % PARSEINPUTARGUMENTS Canonicalize constructor arguments.
+        %
+        % See also: LOCALITYSCENARIO.LOCALITYSCENARIO
+        %
+           
+            optional_idx = 0;
+            if numel(args) == 0 || Util.is_effectively_str(args{1})
+                % RESULT: Syntax 1
+                desc = cell(0, 1);
+                optional_idx = 1;
+            else                
+                if 1 == numel(args{1}) && isnumeric(args{1})
+                    initial_parties = (args{1});
+                    if numel(args) == 1 || Util.is_effectively_str(args{2})
+                        % RESULT: Syntax 2
+                        optional_idx = 2;
+                        desc = cell(initial_parties, 1);
+                    elseif numel(args) >= 3 ...
+                        && isnumeric(args{2}) && isnumeric(args{3})
+                            % RESULT: Syntax 3
+                            desc = cell(initial_parties, 1);
+                            for partyIndex = 1:initial_parties
+                                desc{partyIndex} = args{3}*ones(args{2},1);
+                            end                            
+                            optional_idx = 4;
+                    else
+                        error("Invalid input.");
+                    end
+                elseif isnumeric(args{1}) 
+                    % Result: Syntax 4
+                    monolith = args{1};                    
+                    assert(mod(numel(monolith), 2)==0, ...
+                        "Number of output counts should match number of input counts.");
+                    initial_parties = uint64(length(monolith)/2);                                       
+                    desc = cell(initial_parties,1);
+                    for partyIndex = 1:initial_parties
+                        desc{partyIndex} = monolith(partyIndex) ...
+                            * ones(monolith(initial_parties+partyIndex),1);
+                    end
+                    optional_idx = 2;
+                elseif isa(args{1}, 'cell')
+                    % Result: Syntax 5
+                    desc = args{1};                    
+                    optional_idx = 2;
+                else
+                    error("Invalid input format.");
+                end
+            end
+       
+            assert(iscell(desc));
+        end         
+        
+    end
+    
 end
 

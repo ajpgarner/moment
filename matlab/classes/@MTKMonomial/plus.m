@@ -52,7 +52,6 @@
     if isnumeric(other)
         other = MTKMonomial.InitValue(this.Scenario, other);
     else
-        assert(this == lhs);
         assert(isa(other, 'MTKMonomial'));
         this.checkSameScenario(other);
     end

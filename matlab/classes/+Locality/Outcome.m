@@ -1,15 +1,12 @@
-classdef Outcome < handle & Abstract.RealObject
+classdef Outcome
     %OUTCOME Measurement outcome
     properties(SetAccess={?LocalityScenario}, GetAccess=public)
+        Scenario
         Id
         Index
         Value
     end
-    
-    properties(Access={?LocalityScenario})
-        joint_outcomes       
-    end
-    
+        
     methods
         function obj = Outcome(setting, party_index, ...
                                mmt_index, outcome_index, ...
@@ -22,14 +19,12 @@ classdef Outcome < handle & Abstract.RealObject
                 value (1,1) double = 0
             end
             
-            % Superclass c'tor
-            obj = obj@Abstract.RealObject(setting);
-            
+            obj.Scenario = setting;
             obj.Id = outcome_index;
             obj.Index = uint64([party_index, mmt_index, outcome_index]);
             obj.Value = value;
            
-            obj.joint_outcomes = struct('indices', {}, 'outcome', {});
+            %obj.joint_outcomes = struct('indices', {}, 'outcome', {});
         end
         
         function joint_item = mtimes(objA, objB)

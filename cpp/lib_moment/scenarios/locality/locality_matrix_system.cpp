@@ -27,6 +27,7 @@ namespace Moment::Locality {
 
         this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, 0);
         this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
+        this->collinsGisin = std::make_unique<Moment::Locality::CollinsGisin>(*this);
     }
 
 
@@ -40,6 +41,7 @@ namespace Moment::Locality {
 
         this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, 0);
         this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
+        this->collinsGisin = std::make_unique<Moment::Locality::CollinsGisin>(*this);
     }
 
     size_t LocalityMatrixSystem::MaxRealSequenceLength() const noexcept {
@@ -72,8 +74,7 @@ namespace Moment::Locality {
 
     const class CollinsGisin& LocalityMatrixSystem::CollinsGisin() const {
         if (!this->collinsGisin) {
-            throw Moment::errors::missing_component(std::string("Collins-Gisin tensor has not yet been generated. ")
-                                            + "Perhaps a large enough moment matrix has not yet been created.");
+            throw Moment::errors::missing_component("Collins-Gisin tensor has not yet been generated. ");
         }
         return *this->collinsGisin;
     }
@@ -87,13 +88,27 @@ namespace Moment::Locality {
             this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, this->MaxRealSequenceLength());
             this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
 
-            // Can/should we make C-G tensor?
-            if (!this->collinsGisin && (newMRSL >= this->localityContext.Parties.size())) {
-                this->collinsGisin = std::make_unique<Moment::Locality::CollinsGisin>(*this);
-            }
+            // Fill CG tensor
+            this->collinsGisin->fill_missing_symbols(this->Symbols());
         }
     }
 
+    void LocalityMatrixSystem::onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const Matrix &lm) {
+        this->collinsGisin->fill_missing_symbols(this->Symbols());
+    }
+
+    void LocalityMatrixSystem::onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator &osg) {
+        if (word_length > this->maxProbabilityLength) {
+            this->maxProbabilityLength = word_length;
+
+            // Make explicit/implicit symbol table
+            this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, this->MaxRealSequenceLength());
+            this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
+
+            // Fill CG tensor
+            this->collinsGisin->fill_missing_symbols(this->Symbols());
+        }
+    }
 
 
 }

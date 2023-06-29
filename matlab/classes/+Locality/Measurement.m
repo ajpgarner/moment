@@ -1,18 +1,14 @@
-classdef Measurement < handle & Abstract.RealObject
+classdef Measurement < handle
     %MEASUREMENT A collection of outcomes with assigned values
     
     properties(SetAccess=private, GetAccess=public)
+        Scenario
         Id
         Index
         Name
         Outcomes
-        joint_mmts
     end
-    
-    properties(Access={?Scenario})
         
-    end
-    
     properties(Constant, Access = protected)
         err_overlapping_parties = ...
             "_*_ can only be used to form linear combinations of "...
@@ -33,14 +29,11 @@ classdef Measurement < handle & Abstract.RealObject
             end
             import Locality.Outcome
             
-            % Superclass c'tor
-            obj = obj@Abstract.RealObject(scenario);
-                        
+            obj.Scenario = scenario;
             obj.Id = mmt_index;
             obj.Index = uint64([party_index, mmt_index]);
             obj.Name = name;
             
-            obj.joint_mmts = struct('indices', {}, 'mmt', {});
             
             % Check values, set default values
             if nargin <= 5

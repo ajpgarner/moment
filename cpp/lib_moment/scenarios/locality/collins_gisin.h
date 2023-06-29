@@ -9,19 +9,22 @@
 #include "integer_types.h"
 #include "dictionary/operator_sequence.h"
 
+#include <shared_mutex>
+#include <set>
 #include <stdexcept>
 #include <span>
 #include <vector>
 
 namespace Moment {
     class MatrixSystem;
+    class SymbolTable;
 }
 
 namespace Moment::Locality {
     class LocalityContext;
 
     namespace errors {
-        class BadCGError : std::runtime_error {
+        class BadCGError : public std::runtime_error {
         public:
             explicit BadCGError(const std::string& what) : std::runtime_error(what) { }
         };
@@ -41,6 +44,10 @@ namespace Moment::Locality {
         std::vector<OperatorSequence> sequences;
 
         std::vector<symbol_name_t> symbols;
+
+        std::set<size_t> missing_symbols;
+
+        mutable std::shared_mutex symbol_mutex;
 
     public:
         explicit CollinsGisin(const MatrixSystem& matrixSystem);
@@ -65,11 +72,20 @@ namespace Moment::Locality {
             return index_to_sequence(v);
         }
 
-        [[nodiscard]] const std::vector<ptrdiff_t>& RealIndices() const noexcept { return this->real_indices; }
 
         [[nodiscard]] const std::vector<OperatorSequence>& Sequences() const noexcept { return this->sequences; }
 
-        [[nodiscard]] const std::vector<symbol_name_t>& Symbols() const noexcept { return this->symbols; }
+        [[nodiscard]] const std::vector<symbol_name_t>& Symbols() const;
+
+        [[nodiscard]] const std::vector<ptrdiff_t>& RealIndices() const;
+
+        [[nodiscard]] bool HasSymbols() const noexcept;
+
+        /**
+         * Attempt to find all missing symbol IDs.
+         * @return True if all symbols are now filled.
+         */
+        bool fill_missing_symbols(const SymbolTable& symbol_table) noexcept;
 
     };
 

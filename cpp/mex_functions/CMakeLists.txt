@@ -18,10 +18,11 @@ matlab_add_mex(NAME moment_mex
             eigen/export_eigen_dense.cpp
             eigen/export_eigen_sparse.cpp
             export/export_basis.cpp
+            export/export_collins_gisin.cpp
             export/export_implicit_symbols.cpp
             export/export_matrix_basis_masks.cpp
             export/export_moment_substitution_rules.cpp
-        export/export_operator_rules.cpp
+            export/export_operator_rules.cpp
             export/export_operator_sequence.cpp
             export/export_polynomial.cpp
             export/export_sequence_matrix.cpp

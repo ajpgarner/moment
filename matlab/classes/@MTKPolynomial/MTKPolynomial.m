@@ -126,6 +126,10 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
             obj = MTKPolynomial(setting, 'overwrite', dimensions);
         end
         
+        function obj = InitZero(setting, dimensions)
+            obj = MTKPolynomial(setting, 'overwrite', dimensions);            
+        end
+        
         function obj = InitFromOperatorCell(setting, cell)
             error("TODO");
         end

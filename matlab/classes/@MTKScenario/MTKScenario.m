@@ -83,6 +83,7 @@ classdef (Abstract) MTKScenario < handle
                 value (1,1) logical
             end
             obj.errorIfLocked();
+            value = obj.onSetHermitian(obj.IsHermitian, value);
             obj.IsHermitian = value;
          end
          
@@ -163,7 +164,8 @@ classdef (Abstract) MTKScenario < handle
     methods(Access=protected)
         onNewMomentMatrix(obj, mm);
         val = createSolvedScenario(obj, a, b);
-        str = makeOperatorNames(obj)       
+        str = makeOperatorNames(obj)
+        val = onSetHermitian(obj, old_val, new_val);
     end
    
 end

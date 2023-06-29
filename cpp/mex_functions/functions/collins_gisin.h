@@ -15,10 +15,10 @@ namespace Moment::mex::functions  {
         uint64_t matrix_system_key = 0;
 
         enum class OutputType {
-            RealBasis,
+            Sequences,
             SymbolIds,
-            Sequences
-        } outputType = OutputType::RealBasis;
+            SequenceStrings
+        } outputType = OutputType::Sequences;
 
     public:
         explicit CollinsGisinParams(SortedInputs&& inputs);

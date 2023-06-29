@@ -253,5 +253,11 @@ classdef MTKMonomial < MTKObject
                
         str = makeObjectName(obj);        
     end
+    
+    %% Virtual methods (defined, and implemented but can be overloaded)
+    methods(Access=protected)
+        [id, conj, re, im] = queryForSymbolInfo(obj);
+    end
+        
   
 end

@@ -14,10 +14,15 @@
 %% Private functions
 function val = makeOneName(obj, opers, coef)
     if ~isempty(opers)
-        % FIXME: Proper name-context object
-        op_names = obj.Scenario.Rulebook.ToStringArray(opers);
-
-        val = join(op_names, '');
+        
+        if all(strlength(obj.Scenario.OperatorNames)==1)
+            join_str = '';
+        else
+            join_str = ' ';
+        end
+            
+        op_names = obj.Scenario.ToStringArray(opers);   
+        val = join(op_names, join_str);
 
         if coef ~= 1.0
             if coef == -1.0

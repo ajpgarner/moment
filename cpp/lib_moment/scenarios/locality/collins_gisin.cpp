@@ -32,6 +32,22 @@ namespace Moment::Locality {
             return output;
         }
 
+        [[nodiscard]] errors::BadCGError make_missing_err(const std::set<size_t>& missing_symbols,
+                                                          const std::vector<OperatorSequence>& sequences) {
+            std::stringstream errSS;
+            errSS << "Not all symbol IDs for CG tensor could be found.";
+            errSS << "\nMissing symbols for: ";
+            bool once = false;
+            for (auto opIndex : missing_symbols) {
+                if (once) {
+                    errSS << ", ";
+                }
+                errSS << sequences[opIndex].formatted_string();
+                once = true;
+            }
+            return errors::BadCGError(errSS.str());
+        }
+
     }
 
     CollinsGisin::CollinsGisin(const MatrixSystem &matrixSystem)
@@ -42,18 +58,87 @@ namespace Moment::Locality {
 
         const size_t total_size = get_total_size(this->Dimensions);
 
-        this->real_indices.reserve(total_size);
-        this->symbols.reserve(total_size);
         this->sequences.reserve(total_size);
+        this->symbols.reserve(total_size);
+        this->real_indices.reserve(total_size);
 
         // Build array in column-major format, for quick export to matlab.
         for (const auto& cgIndex : MultiDimensionalIndexRange<true>{Dimensions}) {
             this->sequences.emplace_back(this->index_to_sequence(cgIndex));
-            auto * us = symbol_table.where(this->sequences.back());
-            assert(us != nullptr);
-            this->symbols.emplace_back(us->Id());
-            this->real_indices.emplace_back(us->basis_key().first);
         }
+
+        // Do initial symbol search
+        size_t index = 0;
+        for (const auto& seq : this->sequences) {
+            auto * us = symbol_table.where(seq);
+            if (us != nullptr) {
+                assert(us->is_hermitian());
+                assert(us->basis_key().second < 0);
+                this->symbols.emplace_back(us->Id());
+                this->real_indices.emplace_back(us->basis_key().first);
+            } else {
+                this->symbols.emplace_back(-1);
+                this->real_indices.emplace_back(-1);
+                this->missing_symbols.insert(this->missing_symbols.cend(), index);
+            }
+            ++index;
+        }
+    }
+
+
+    bool CollinsGisin::fill_missing_symbols(const SymbolTable& symbol_table) noexcept {
+        // Early exit without lock if nothing missing
+        std::shared_lock read_lock{this->symbol_mutex};
+        if (this->missing_symbols.empty()) {
+            return true;
+        }
+        read_lock.unlock();
+
+        // Otherwise, try to acquire write lock
+        std::unique_lock write_lock{this->symbol_mutex};
+
+        // If symbols filled in interrim, then following code does nothing anyway:
+        auto iter = this->missing_symbols.begin();
+        while (iter != this->missing_symbols.end()) {
+            size_t index = *iter;
+            auto * us = symbol_table.where(this->sequences[index]);
+            if (us != nullptr) {
+                assert(us->is_hermitian());
+                assert(us->basis_key().second < 0);
+                this->symbols[index] = us->Id();
+                this->real_indices[index] = us->basis_key().first;
+                iter = this->missing_symbols.erase(iter);
+            } else {
+                ++iter;
+            }
+        }
+
+        return this->missing_symbols.empty();
+    }
+
+    bool CollinsGisin::HasSymbols() const noexcept {
+        std::shared_lock read_lock{this->symbol_mutex};
+        return this->missing_symbols.empty();
+    }
+
+    const std::vector<symbol_name_t>& CollinsGisin::Symbols() const {
+        // Safe lock, because if HasSymbols passes, then returned object will never change.
+        std::shared_lock read_lock{this->symbol_mutex};
+
+        if (!this->missing_symbols.empty()) {
+            throw make_missing_err(this->missing_symbols, this->sequences);
+        }
+        return this->symbols;
+    }
+
+    const std::vector<symbol_name_t>& CollinsGisin::RealIndices() const {
+        // Safe lock, because if HasSymbols passes, then returned object will never change.
+        std::shared_lock read_lock{this->symbol_mutex};
+
+        if (!this->missing_symbols.empty()) {
+            throw make_missing_err(this->missing_symbols, this->sequences);
+        }
+        return this->real_indices;
     }
 
     void CollinsGisin::validate_index(const std::span<const size_t> index) const {
@@ -91,7 +176,7 @@ namespace Moment::Locality {
             ops.emplace_back(context.Parties[p][index[p]-1]);
         }
 
-        return OperatorSequence(std::move(ops), context);
+        return OperatorSequence{std::move(ops), context};
     }
 
 
