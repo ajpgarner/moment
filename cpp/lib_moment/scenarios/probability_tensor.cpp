@@ -185,8 +185,8 @@ namespace Moment {
                 }
 
                 // TODO: iterator 'repurpose'
-                CollinsGisinIterator cgIter{this->collinsGisin, CollinsGisinIndex(cgBase),
-                                            CollinsGisinIndex(cgLast)};
+                CollinsGisin::CollinsGisinIterator cgIter{this->collinsGisin, CollinsGisinIndex(cgBase),
+                                                                              CollinsGisinIndex(cgLast)};
                 while (cgIter) {
                     symbolComboData.emplace_back(cgIter.offset(), the_sign);
                     ++cgIter;

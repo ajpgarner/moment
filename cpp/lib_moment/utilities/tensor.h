@@ -60,10 +60,27 @@ namespace Moment {
         explicit Tensor(std::vector<size_t>&& dimensions);
 
         /**
+         * Destructor.
+         */
+        virtual ~Tensor() noexcept = default;
+
+        /**
          * Check that an index has the right number of elements, and is in range.
          * @throws bad_tensor_index if indices are invalid
          */
         void validate_index(IndexView indices) const;
+
+        /**
+         * Check that an index has the right number of elements, and is either in range or at the end of the range.
+         * @throws bad_tensor_index if indices are invalid
+         */
+        void validate_index_inclusive(IndexView indices) const;
+
+        /**
+         * Check that a pair of indices has the right number of elements, are in bounds, and refer to a positive range.
+
+         */
+        void validate_range(IndexView min, IndexView max) const;
 
         /**
          * Checks that an offset is in range.
@@ -98,6 +115,17 @@ namespace Moment {
          * Do not use this in a loop! Prefer an iterator object.
          */
         [[nodiscard]] Index offset_to_index_no_checks(size_t offset) const;
+
+        /**
+         * Name of tensor object.
+         */
+        [[nodiscard]] virtual std::string get_name(bool capital) const {
+            if (capital) {
+                return "Tensor";
+            } else {
+                return "tensor";
+            }
+        }
 
     };
 
@@ -138,18 +166,16 @@ namespace Moment {
             MultiDimensionalOffsetIndexIterator<true, Tensor::Index> mdoii;
 
             /** Global offset within the tensor. */
-            size_t current_offset;
+            size_t current_offset = 0;
 
         public:
             /**
              * Construct iterator over supplied index range.
              */
-            Iterator(const AutoStorageTensor& tensor, Tensor::Index&& first, Tensor::Index&& last)
+            Iterator(const AutoStorageTensor<elem_t, threshold>& tensor, Tensor::Index&& first, Tensor::Index&& last)
                 :  tensorPtr{&tensor}, mdoii{std::move(first), std::move(last)} {
                 if (this->mdoii) {
                     this->current_offset = this->tensorPtr->index_to_offset_no_checks(*this->mdoii);
-                } else {
-                    this->current_offset = 0;
                 }
             }
 
@@ -223,23 +249,46 @@ namespace Moment {
             /**
              * Gets offset within splice represented by this iterator.
              */
-            [[nodiscard]] inline const size_t block_index() const noexcept {
+            [[nodiscard]] inline size_t block_offset() const noexcept {
                 return mdoii.global();
             }
 
             /**
              * Gets offset within entire tensor.
              */
-            [[nodiscard]] inline const size_t offset() const noexcept {
+            [[nodiscard]] inline size_t offset() const noexcept {
                 return this->current_offset;
             }
         };
 
-    protected:
-        constexpr static const size_t automated_storage_threshold = threshold;
+        template<std::derived_from<AutoStorageTensor::Iterator> iter_t = AutoStorageTensor::Iterator,
+                typename tensor_t = AutoStorageTensor>
+        class Range {
+        private:
+            const tensor_t& tensor;
+            const Index first;
+            const Index last;
+
+            const iter_t iter_end;
+
+        public:
+            Range(const tensor_t& tensor, Index&& first, Index&& last)
+                    : tensor{tensor}, first(std::move(first)), last(std::move(last)),
+                      iter_end{tensor} { }
+
+            [[nodiscard]] inline iter_t begin() const {
+                return iter_t{tensor, Index(this->first), Index(this->last)};
+            }
+
+            [[nodiscard]] inline const iter_t& end() const noexcept {
+                return this->iter_end;
+            }
+        };
 
 
     public:
+        constexpr static const size_t automated_storage_threshold = threshold;
+
         const TensorStorageType StorageType;
 
     protected:
@@ -252,10 +301,9 @@ namespace Moment {
 
          virtual ~AutoStorageTensor() noexcept = default;
 
-
         const std::vector<Element>& Data() const {
             if (this->StorageType != TensorStorageType::Explicit) {
-                throw errors::bad_tensor::no_data_stored(this->get_name());
+                throw errors::bad_tensor::no_data_stored(this->get_name(true));
             }
             return this->data;
         }
@@ -270,12 +318,23 @@ namespace Moment {
             }
         }
 
+        template<typename range_t = AutoStorageTensor<elem_t, threshold>::Range<AutoStorageTensor<elem_t, threshold>::Iterator>>
+        range_t Splice(Index&& min, Index&& max) {
+            this->validate_range(min, max);
+            return range_t{*this, std::move(min), std::move(max)};
+        }
+
+        template<typename range_t = AutoStorageTensor<elem_t, threshold>::Range<AutoStorageTensor<elem_t, threshold>::Iterator>>
+        range_t Splice(const IndexView minV, const IndexView maxV) {
+            this->validate_range(minV, maxV);
+            return range_t{*this, Index(minV.begin(), minV.end()), Index(maxV.begin(), maxV.end())};
+        }
+
+
+
     protected:
         [[nodiscard]] virtual Element make_element_no_checks(Tensor::IndexView index) const = 0;
 
-        [[nodiscard]] virtual std::string get_name() const {
-            return "Tensor";
-        }
 
     public:
         static constexpr TensorStorageType get_storage_type(const TensorStorageType hint, const size_t num_elems) {

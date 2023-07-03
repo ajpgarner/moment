@@ -203,7 +203,7 @@ namespace Moment {
     }
 
 
-    CollinsGisinRange CollinsGisin::measurement_to_range(const std::span<const size_t> mmtIndices) const {
+    CollinsGisin::CollinsGisinRange CollinsGisin::measurement_to_range(const std::span<const size_t> mmtIndices) const {
         CollinsGisinIndex lower_bounds(this->Dimensions.size(), 0);
         CollinsGisinIndex upper_bounds(this->Dimensions.size(), 1);
 
@@ -221,7 +221,7 @@ namespace Moment {
         return CollinsGisinRange{*this, std::move(lower_bounds), std::move(upper_bounds)};
     }
 
-    CollinsGisinRange CollinsGisin::measurement_to_range(std::span<const size_t> mmtIndices,
+    CollinsGisin::CollinsGisinRange CollinsGisin::measurement_to_range(std::span<const size_t> mmtIndices,
                                                             std::span<const oper_name_t> fixedOutcomes) const {
         assert(mmtIndices.size() == fixedOutcomes.size());
 

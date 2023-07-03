@@ -32,8 +32,6 @@ namespace Moment {
     };
 
     class CollinsGisin;
-    class CollinsGisinIterator;
-    class CollinsGisinRange;
     using CollinsGisinIndex = Tensor::Index;
     using CollinsGisinIndexView = Tensor::IndexView;
 
@@ -65,6 +63,44 @@ namespace Moment {
      * Collins-Gisin tensor: an indexing scheme for real-valued operators that correspond to measurement outcomes.
      */
     class CollinsGisin : public AutoStorageTensor<CollinsGisinEntry, CG_explicit_element_limit> {
+    public:
+        class CollinsGisinIterator : public CollinsGisin::Iterator {
+        public:
+            /**
+             * Construct iterator over range.
+             */
+            CollinsGisinIterator(const CollinsGisin& cg, CollinsGisinIndex&& first, CollinsGisinIndex&& last)
+                    : CollinsGisin::Iterator{cg, std::move(first), std::move(last)} { }
+
+            /**
+             * 'End' iterator constructor.
+             */
+            explicit CollinsGisinIterator(const CollinsGisin& cg) : CollinsGisin::Iterator{cg} { }
+
+            /**
+              * Pointed to operator sequence.
+              */
+            [[nodiscard]] inline const OperatorSequence& sequence() const {
+                return this->operator*().sequence;
+            }
+
+            /**
+             * Pointed to symbol ID, if known.
+             */
+            [[nodiscard]] inline symbol_name_t symbol_id() const {
+                return this->operator*().symbol_id;
+            }
+
+            /**
+             * Pointed to real basis element, if known.
+             */
+            [[nodiscard]] inline ptrdiff_t real_basis() const {
+                return this->operator*().real_index;
+            }
+        };
+
+        using CollinsGisinRange = CollinsGisin::Range<CollinsGisinIterator, CollinsGisin>;
+
 
     public:
         struct GlobalMeasurementIndex {
@@ -154,7 +190,7 @@ namespace Moment {
         [[nodiscard]] bool HasAllSymbols() const noexcept;
 
         /**
-         * Get offset of all operators belonging to a supplied set of (global) measurement indices.
+         * Splice all operators belonging to a supplied set of (global) measurement indices.
          * Pair: First gives CG index of first outcome, second gives extent in each dimension.
          * @return Iterator over identified range.
          * @throws BadCGError If index is invalid.
@@ -162,7 +198,7 @@ namespace Moment {
         [[nodiscard]] CollinsGisinRange measurement_to_range(std::span<const size_t> mmtIndices) const;
 
         /**
-         * Get offset of all operators corresponding to supplied set of (global) measurement indices, fixing some of the
+         * Splice all operators corresponding to supplied set of (global) measurement indices, fixing some of the
          * measurement outcomes.
          * @param mmtIndices A sorted list of global indices of the measurement.
          * @param fixedOutcomes List of outcome indices, or -1 if not fixed.
@@ -175,73 +211,16 @@ namespace Moment {
     protected:
         [[nodiscard]] CollinsGisinEntry make_element_no_checks(Tensor::IndexView index) const override;
 
-        [[nodiscard]] std::string get_name() const override {
+        [[nodiscard]] std::string get_name(bool capital) const override {
             return "Collins-Gisin tensor";
         }
 
     public:
         friend class CollinsGisinEntry;
-        friend class CollinsGisinIterator;
         friend class ProbabilityTensor;
 
+
     };
 
-    class CollinsGisinIterator : public CollinsGisin::Iterator {
-    public:
-        /**
-         * Construct iterator over range.
-         */
-        CollinsGisinIterator(const CollinsGisin& cg, CollinsGisinIndex&& first, CollinsGisinIndex&& last)
-            : CollinsGisin::Iterator{cg, std::move(first), std::move(last)} { }
-
-        /**
-         * 'End' iterator constructor.
-         */
-        explicit CollinsGisinIterator(const CollinsGisin& cg) : CollinsGisin::Iterator{cg} { }
-
-        /**
-          * Pointed to operator sequence.
-          */
-        [[nodiscard]] inline const OperatorSequence& sequence() const {
-            return this->operator*().sequence;
-        }
-
-        /**
-         * Pointed to symbol ID, if known.
-         */
-        [[nodiscard]] inline  symbol_name_t symbol_id() const {
-            return this->operator*().symbol_id;
-        }
-
-        /**
-         * Pointed to real basis element, if known.
-         */
-        [[nodiscard]] inline ptrdiff_t real_basis() const {
-            return this->operator*().real_index;
-        }
-    };
-
-    class CollinsGisinRange {
-    private:
-        const CollinsGisin& collinsGisin;
-        const CollinsGisinIndex first;
-        const CollinsGisinIndex last;
-
-        const CollinsGisinIterator iter_end;
-
-    public:
-        CollinsGisinRange(const CollinsGisin& cg, CollinsGisinIndex&& first, CollinsGisinIndex&& last)
-                : collinsGisin{cg}, first(std::move(first)), last(std::move(last)),
-                  iter_end(cg) {
-        }
-
-        [[nodiscard]] CollinsGisinIterator begin() const {
-            return CollinsGisinIterator{collinsGisin, CollinsGisinIndex(this->first), CollinsGisinIndex(this->last)};
-        }
-
-        [[nodiscard]] inline const CollinsGisinIterator& end() const noexcept {
-            return this->iter_end;
-        }
-    };
 
 }

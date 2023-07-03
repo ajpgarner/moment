@@ -119,14 +119,18 @@ namespace Moment {
 
 
     protected:
-        ProbabilityTensorElement make_element_no_checks(Tensor::IndexView index) const override;
+        [[nodiscard]] ProbabilityTensorElement make_element_no_checks(Tensor::IndexView index) const override;
 
-        std::string get_name() const override {
-            return "Probability tensor";
+        [[nodiscard]] std::string get_name(bool capital) const override {
+            if (capital) {
+                return "Probability tensor";
+            } else {
+                return "probability tensor";
+            }
         }
 
     private:
-        ProbabilityTensorElement do_make_element(Tensor::IndexView elementIndex,
+        [[nodiscard]] ProbabilityTensorElement do_make_element(Tensor::IndexView elementIndex,
                                                  ElementConstructInfo& eci) const;
 
         void make_dimension_info(const ConstructInfo& info);

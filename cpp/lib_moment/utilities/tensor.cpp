@@ -50,13 +50,48 @@ namespace Moment {
 
     void Tensor::validate_index(const Tensor::IndexView index) const {
         if (index.size() != this->Dimensions.size()) {
-            throw errors::bad_tensor_index("Index dimensions must match tensor dimensions.");
+            std::stringstream errSS;
+            errSS << "Index dimensions (" << index.size() << ") did not match "
+                  << this->get_name(false) << " dimensions (" << this->DimensionCount << ").";
+            throw errors::bad_tensor_index(errSS.str());
         }
-        for (size_t n = 0; n < index.size(); ++n) {
+        for (size_t n = 0; n < this->DimensionCount; ++n) {
             if (index[n] >= this->Dimensions[n]) {
                 std::stringstream errSS;
                 errSS << "Index '" << index[n] << "' for dimension " << n
-                      << " was out of bounds (maximum: " << (this->Dimensions[n]-1) << ").";
+                      << " of " << this->get_name(false) << " was out of bounds (maximum: "
+                      << (this->Dimensions[n]-1) << ").";
+                throw errors::bad_tensor_index(errSS.str());
+            }
+        }
+    }
+
+    void Tensor::validate_index_inclusive(const Tensor::IndexView index) const {
+        if (index.size() != this->Dimensions.size()) {
+            std::stringstream errSS;
+            errSS << "Index dimensions (" << index.size() << ") did not match "
+                  << this->get_name(false) << " dimensions (" << this->DimensionCount << ").";
+            throw errors::bad_tensor_index(errSS.str());
+        }
+        for (size_t n = 0; n < this->DimensionCount; ++n) {
+            if (index[n] > this->Dimensions[n]) {
+                std::stringstream errSS;
+                errSS << "Index '" << index[n] << "' for dimension " << n
+                      << " of " << this->get_name(false) << " was out of bounds (maximum: "
+                      << (this->Dimensions[n]) << ").";
+                throw errors::bad_tensor_index(errSS.str());
+            }
+        }
+    }
+
+    void Tensor::validate_range(Tensor::IndexView min, Tensor::IndexView max) const {
+        this->validate_index(min);
+        this->validate_index_inclusive(max);
+        for (size_t d= 0; d < this->DimensionCount; ++d) {
+            if (min[d] > max[d]) {
+                std::stringstream errSS;
+                errSS << "Invalid splice dimension " << d << " of " << this->get_name(false) << ": "
+                      << "Index " << min[d] << " must be smaller than index " << max[d] << ".";
                 throw errors::bad_tensor_index(errSS.str());
             }
         }

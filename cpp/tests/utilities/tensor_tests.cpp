@@ -26,8 +26,12 @@ namespace Moment::Tests {
             return static_cast<int>(this->index_to_offset_no_checks(index));
         }
 
-        [[nodiscard]] std::string get_name() const override {
-            return "Boring tensor";
+        [[nodiscard]] std::string get_name(bool capital) const override {
+            if (capital) {
+                return "Boring tensor";
+            } else {
+                return "boring tensor";
+            }
         }
     };
 
@@ -157,25 +161,25 @@ namespace Moment::Tests {
         BoringTensor::Iterator iter_end(auto_deduce);
 
         EXPECT_NE(iter, iter_end);
-        EXPECT_EQ(iter.block_index(), 0);
+        EXPECT_EQ(iter.block_offset(), 0);
         EXPECT_EQ(iter.offset(), 0);
         EXPECT_EQ(*iter, 0);
 
         ++iter;
         EXPECT_NE(iter, iter_end);
-        EXPECT_EQ(iter.block_index(), 1);
+        EXPECT_EQ(iter.block_offset(), 1);
         EXPECT_EQ(iter.offset(), 1);
         EXPECT_EQ(*iter, 1);
 
         ++iter;
         EXPECT_NE(iter, iter_end);
-        EXPECT_EQ(iter.block_index(), 2);
+        EXPECT_EQ(iter.block_offset(), 2);
         EXPECT_EQ(iter.offset(), 2);
         EXPECT_EQ(*iter, 2);
 
         ++iter;
         EXPECT_NE(iter, iter_end);
-        EXPECT_EQ(iter.block_index(), 3);
+        EXPECT_EQ(iter.block_offset(), 3);
         EXPECT_EQ(iter.offset(), 3);
         EXPECT_EQ(*iter, 3);
 
@@ -192,13 +196,13 @@ namespace Moment::Tests {
         BoringTensor::Iterator iter_end(auto_deduce);
 
         EXPECT_NE(iter, iter_end);
-        EXPECT_EQ(iter.block_index(), 0);
+        EXPECT_EQ(iter.block_offset(), 0);
         EXPECT_EQ(iter.offset(), 1);
         EXPECT_EQ(*iter, 1);
 
         ++iter;
         EXPECT_NE(iter, iter_end);
-        EXPECT_EQ(iter.block_index(), 1);
+        EXPECT_EQ(iter.block_offset(), 1);
         EXPECT_EQ(iter.offset(), 3);
         EXPECT_EQ(*iter, 3);
 
@@ -214,13 +218,13 @@ namespace Moment::Tests {
         BoringTensor::Iterator iter_end(auto_deduce);
 
         EXPECT_NE(iter, iter_end);
-        EXPECT_EQ(iter.block_index(), 0);
+        EXPECT_EQ(iter.block_offset(), 0);
         EXPECT_EQ(iter.offset(), 2);
         EXPECT_EQ(*iter, 2);
 
         ++iter;
         EXPECT_NE(iter, iter_end);
-        EXPECT_EQ(iter.block_index(), 1);
+        EXPECT_EQ(iter.block_offset(), 1);
         EXPECT_EQ(iter.offset(), 3);
         EXPECT_EQ(*iter, 3);
 
@@ -237,7 +241,7 @@ namespace Moment::Tests {
         BoringTensor::Iterator iter_end(auto_deduce);
         for (size_t iteration = 0; iteration < 9; ++iteration) {
             ASSERT_NE(iter, iter_end) << "Iteration = " << iteration;
-            EXPECT_EQ(iter.block_index(), iteration);
+            EXPECT_EQ(iter.block_offset(), iteration);
             EXPECT_EQ(iter.offset(), iteration);
             EXPECT_EQ(*iter, iteration);
             ++iter;
@@ -254,7 +258,7 @@ namespace Moment::Tests {
         BoringTensor::Iterator iter_end(auto_deduce);
         for (size_t iteration = 0; iteration < 3; ++iteration) {
             ASSERT_NE(iter, iter_end) << "Iteration = " << iteration;
-            EXPECT_EQ(iter.block_index(), iteration);
+            EXPECT_EQ(iter.block_offset(), iteration);
             EXPECT_EQ(iter.offset(), 1+(3*iteration));
             EXPECT_EQ(*iter, 1+(3*iteration));
             ++iter;
@@ -271,7 +275,27 @@ namespace Moment::Tests {
         BoringTensor::Iterator iter_end(auto_deduce);
         for (size_t iteration = 0; iteration < 3; ++iteration) {
             ASSERT_NE(iter, iter_end) << "Iteration = " << iteration;
-            EXPECT_EQ(iter.block_index(), iteration);
+            EXPECT_EQ(iter.block_offset(), iteration);
+            EXPECT_EQ(iter.offset(), 3+iteration);
+            EXPECT_EQ(*iter, 3+iteration);
+            ++iter;
+        }
+
+        EXPECT_EQ(iter, iter_end);
+    }
+
+
+    TEST(Utilities_Tensor, Range_Col) {
+        BoringTensor auto_deduce({3, 3});
+        ASSERT_EQ(auto_deduce.StorageType, TensorStorageType::Virtual);
+
+        auto range = auto_deduce.Splice(Tensor::Index{0, 1}, Tensor::Index{3, 2});
+
+        auto iter = range.begin();
+        const auto iter_end = range.end();
+        for (size_t iteration = 0; iteration < 3; ++iteration) {
+            ASSERT_NE(iter, iter_end) << "Iteration = " << iteration;
+            EXPECT_EQ(iter.block_offset(), iteration);
             EXPECT_EQ(iter.offset(), 3+iteration);
             EXPECT_EQ(*iter, 3+iteration);
             ++iter;
