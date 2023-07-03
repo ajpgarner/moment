@@ -12,7 +12,14 @@ namespace Moment::Tests {
     class BoringTensor : public AutoStorageTensor<int, 5> {
     public:
         BoringTensor(std::vector<size_t>&& dims, TensorStorageType tst = TensorStorageType::Automatic)
-            : AutoStorageTensor<int, 5>(std::move(dims), tst) { }
+            : AutoStorageTensor<int, 5>(std::move(dims), tst) {
+
+            if (this->StorageType == TensorStorageType::Explicit) {
+                for (int i = 0; i < this->ElementCount; ++i) {
+                    this->data.emplace_back(i);
+                }
+            }
+        }
 
     private:
         [[nodiscard]] int make_element_no_checks(Tensor::IndexView index) const override {
@@ -141,5 +148,137 @@ namespace Moment::Tests {
         EXPECT_EQ(auto_deduce(Tensor::Index{2, 2, 2}), 34); // 2 + 2*4 + 2*4*3 = 34
 
     }
+
+    TEST(Utilities_Tensor, Iterator_Explicit_Full) {
+        BoringTensor auto_deduce({2, 2});
+        ASSERT_EQ(auto_deduce.StorageType, TensorStorageType::Explicit);
+
+        BoringTensor::Iterator iter(auto_deduce, Tensor::Index{0, 0}, Tensor::Index{2, 2});
+        BoringTensor::Iterator iter_end(auto_deduce);
+
+        EXPECT_NE(iter, iter_end);
+        EXPECT_EQ(iter.block_index(), 0);
+        EXPECT_EQ(iter.offset(), 0);
+        EXPECT_EQ(*iter, 0);
+
+        ++iter;
+        EXPECT_NE(iter, iter_end);
+        EXPECT_EQ(iter.block_index(), 1);
+        EXPECT_EQ(iter.offset(), 1);
+        EXPECT_EQ(*iter, 1);
+
+        ++iter;
+        EXPECT_NE(iter, iter_end);
+        EXPECT_EQ(iter.block_index(), 2);
+        EXPECT_EQ(iter.offset(), 2);
+        EXPECT_EQ(*iter, 2);
+
+        ++iter;
+        EXPECT_NE(iter, iter_end);
+        EXPECT_EQ(iter.block_index(), 3);
+        EXPECT_EQ(iter.offset(), 3);
+        EXPECT_EQ(*iter, 3);
+
+        ++iter;
+        EXPECT_EQ(iter, iter_end);
+    }
+
+
+    TEST(Utilities_Tensor, Iterator_Explicit_Row) {
+        BoringTensor auto_deduce({2, 2});
+        ASSERT_EQ(auto_deduce.StorageType, TensorStorageType::Explicit);
+
+        BoringTensor::Iterator iter(auto_deduce, Tensor::Index{1, 0}, Tensor::Index{2, 2});
+        BoringTensor::Iterator iter_end(auto_deduce);
+
+        EXPECT_NE(iter, iter_end);
+        EXPECT_EQ(iter.block_index(), 0);
+        EXPECT_EQ(iter.offset(), 1);
+        EXPECT_EQ(*iter, 1);
+
+        ++iter;
+        EXPECT_NE(iter, iter_end);
+        EXPECT_EQ(iter.block_index(), 1);
+        EXPECT_EQ(iter.offset(), 3);
+        EXPECT_EQ(*iter, 3);
+
+        ++iter;
+        EXPECT_EQ(iter, iter_end);
+    }
+
+    TEST(Utilities_Tensor, Iterator_Explicit_Col) {
+        BoringTensor auto_deduce({2, 2});
+        ASSERT_EQ(auto_deduce.StorageType, TensorStorageType::Explicit);
+
+        BoringTensor::Iterator iter(auto_deduce, Tensor::Index{0, 1}, Tensor::Index{2, 2});
+        BoringTensor::Iterator iter_end(auto_deduce);
+
+        EXPECT_NE(iter, iter_end);
+        EXPECT_EQ(iter.block_index(), 0);
+        EXPECT_EQ(iter.offset(), 2);
+        EXPECT_EQ(*iter, 2);
+
+        ++iter;
+        EXPECT_NE(iter, iter_end);
+        EXPECT_EQ(iter.block_index(), 1);
+        EXPECT_EQ(iter.offset(), 3);
+        EXPECT_EQ(*iter, 3);
+
+        ++iter;
+        EXPECT_EQ(iter, iter_end);
+    }
+
+
+    TEST(Utilities_Tensor, Iterator_Virtual_Full) {
+        BoringTensor auto_deduce({3, 3});
+        ASSERT_EQ(auto_deduce.StorageType, TensorStorageType::Virtual);
+
+        BoringTensor::Iterator iter(auto_deduce, Tensor::Index{0, 0}, Tensor::Index{3, 3});
+        BoringTensor::Iterator iter_end(auto_deduce);
+        for (size_t iteration = 0; iteration < 9; ++iteration) {
+            ASSERT_NE(iter, iter_end) << "Iteration = " << iteration;
+            EXPECT_EQ(iter.block_index(), iteration);
+            EXPECT_EQ(iter.offset(), iteration);
+            EXPECT_EQ(*iter, iteration);
+            ++iter;
+        }
+
+        EXPECT_EQ(iter, iter_end);
+    }
+
+    TEST(Utilities_Tensor, Iterator_Virtual_Row) {
+        BoringTensor auto_deduce({3, 3});
+        ASSERT_EQ(auto_deduce.StorageType, TensorStorageType::Virtual);
+
+        BoringTensor::Iterator iter(auto_deduce, Tensor::Index{1, 0}, Tensor::Index{2, 3});
+        BoringTensor::Iterator iter_end(auto_deduce);
+        for (size_t iteration = 0; iteration < 3; ++iteration) {
+            ASSERT_NE(iter, iter_end) << "Iteration = " << iteration;
+            EXPECT_EQ(iter.block_index(), iteration);
+            EXPECT_EQ(iter.offset(), 1+(3*iteration));
+            EXPECT_EQ(*iter, 1+(3*iteration));
+            ++iter;
+        }
+
+        EXPECT_EQ(iter, iter_end);
+    }
+
+    TEST(Utilities_Tensor, Iterator_Virtual_Col) {
+        BoringTensor auto_deduce({3, 3});
+        ASSERT_EQ(auto_deduce.StorageType, TensorStorageType::Virtual);
+
+        BoringTensor::Iterator iter(auto_deduce, Tensor::Index{0, 1}, Tensor::Index{3, 2});
+        BoringTensor::Iterator iter_end(auto_deduce);
+        for (size_t iteration = 0; iteration < 3; ++iteration) {
+            ASSERT_NE(iter, iter_end) << "Iteration = " << iteration;
+            EXPECT_EQ(iter.block_index(), iteration);
+            EXPECT_EQ(iter.offset(), 3+iteration);
+            EXPECT_EQ(*iter, 3+iteration);
+            ++iter;
+        }
+
+        EXPECT_EQ(iter, iter_end);
+    }
+
 
 }

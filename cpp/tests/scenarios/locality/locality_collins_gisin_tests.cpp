@@ -8,8 +8,6 @@
 
 #include "matrix/operator_matrix/moment_matrix.h"
 
-#include "scenarios/collins_gisin_iterator.h"
-
 #include "scenarios/locality/locality_collins_gisin.h"
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_matrix_system.h"

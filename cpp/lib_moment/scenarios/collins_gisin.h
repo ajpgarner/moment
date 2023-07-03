@@ -186,4 +186,62 @@ namespace Moment {
 
     };
 
+    class CollinsGisinIterator : public CollinsGisin::Iterator {
+    public:
+        /**
+         * Construct iterator over range.
+         */
+        CollinsGisinIterator(const CollinsGisin& cg, CollinsGisinIndex&& first, CollinsGisinIndex&& last)
+            : CollinsGisin::Iterator{cg, std::move(first), std::move(last)} { }
+
+        /**
+         * 'End' iterator constructor.
+         */
+        explicit CollinsGisinIterator(const CollinsGisin& cg) : CollinsGisin::Iterator{cg} { }
+
+        /**
+          * Pointed to operator sequence.
+          */
+        [[nodiscard]] inline const OperatorSequence& sequence() const {
+            return this->operator*().sequence;
+        }
+
+        /**
+         * Pointed to symbol ID, if known.
+         */
+        [[nodiscard]] inline  symbol_name_t symbol_id() const {
+            return this->operator*().symbol_id;
+        }
+
+        /**
+         * Pointed to real basis element, if known.
+         */
+        [[nodiscard]] inline ptrdiff_t real_basis() const {
+            return this->operator*().real_index;
+        }
+    };
+
+    class CollinsGisinRange {
+    private:
+        const CollinsGisin& collinsGisin;
+        const CollinsGisinIndex first;
+        const CollinsGisinIndex last;
+
+        const CollinsGisinIterator iter_end;
+
+    public:
+        CollinsGisinRange(const CollinsGisin& cg, CollinsGisinIndex&& first, CollinsGisinIndex&& last)
+                : collinsGisin{cg}, first(std::move(first)), last(std::move(last)),
+                  iter_end(cg) {
+        }
+
+        [[nodiscard]] CollinsGisinIterator begin() const {
+            return CollinsGisinIterator{collinsGisin, CollinsGisinIndex(this->first), CollinsGisinIndex(this->last)};
+        }
+
+        [[nodiscard]] inline const CollinsGisinIterator& end() const noexcept {
+            return this->iter_end;
+        }
+    };
+
 }

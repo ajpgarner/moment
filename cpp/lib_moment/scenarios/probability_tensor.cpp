@@ -8,7 +8,6 @@
 #include "probability_tensor.h"
 
 #include "collins_gisin.h"
-#include "collins_gisin_iterator.h"
 
 #include "utilities/combinations.h"
 

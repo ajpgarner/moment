@@ -5,7 +5,6 @@
  * @author Andrew J. P. Garner
  */
 #include "collins_gisin.h"
-#include "collins_gisin_iterator.h"
 
 #include "symbolic/symbol_table.h"
 

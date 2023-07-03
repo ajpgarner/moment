@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include "multi_dimensional_offset_index_iterator.h"
+
+#include <optional>
 #include <span>
 #include <stdexcept>
 #include <string>
@@ -115,10 +118,126 @@ namespace Moment {
      */
     template<class elem_t, size_t threshold>
     class AutoStorageTensor : public Tensor {
+    public:
+        using Element = elem_t;
+
+    public:
+        /**
+         * Splice iterator.
+         * Iterators must not be shared between threads, due to mutable virtual entry.
+         */
+        class Iterator {
+        protected:
+            /** Pointer to tensor. */
+            const AutoStorageTensor *tensorPtr;
+
+            /** Evaluated current entry (only in virtual mode). */
+            mutable std::optional<Element> virtual_entry;
+
+            /** Index, in tensor indices. */
+            MultiDimensionalOffsetIndexIterator<true, Tensor::Index> mdoii;
+
+            /** Global offset within the tensor. */
+            size_t current_offset;
+
+        public:
+            /**
+             * Construct iterator over supplied index range.
+             */
+            Iterator(const AutoStorageTensor& tensor, Tensor::Index&& first, Tensor::Index&& last)
+                :  tensorPtr{&tensor}, mdoii{std::move(first), std::move(last)} {
+                if (this->mdoii) {
+                    this->current_offset = this->tensorPtr->index_to_offset_no_checks(*this->mdoii);
+                } else {
+                    this->current_offset = 0;
+                }
+            }
+
+            /**
+             * 'End' iterator constructor.
+             */
+            explicit Iterator(const AutoStorageTensor& tensor) : tensorPtr{&tensor}, mdoii{}, current_offset{0} { }
+
+            /**
+             * Increment iterator.
+             */
+            Iterator& operator++() noexcept {
+                this->virtual_entry.reset();
+                ++this->mdoii;
+                if (this->mdoii) {
+                    this->current_offset = this->tensorPtr->index_to_offset_no_checks(*this->mdoii);
+                } else {
+                    this->current_offset = 0;
+                }
+                return *this;
+            }
+
+            /**
+             * True, if iterator is not done.
+             */
+            [[nodiscard]] inline explicit operator bool() const noexcept {
+                return static_cast<bool>(this->mdoii);
+            }
+
+            /**
+             * True, if iterator is done.
+             */
+            [[nodiscard]] inline bool operator!() const noexcept {
+                return !this->mdoii;
+            }
+
+            /**
+             * Gets current CG index.
+             */
+            [[nodiscard]] inline Tensor::IndexView index() const noexcept {
+                return *this->mdoii;
+            }
+
+            /**
+            * Gets current element (cache if necessary).
+            */
+            [[nodiscard]] const Element& operator*() const {
+                if (this->tensorPtr->StorageType == TensorStorageType::Explicit) {
+                    return this->tensorPtr->data[this->current_offset];
+                }
+                if (!this->virtual_entry.has_value()) {
+                    this->virtual_entry = this->tensorPtr->make_element_no_checks(*this->mdoii);
+                }
+                return this->virtual_entry.value();
+            }
+
+            /**
+             * Equality test.
+             */
+            [[nodiscard]] inline bool operator==(const Iterator& other) const noexcept {
+                return this->mdoii == other.mdoii;
+            }
+
+            /**
+             * Inequality test.
+             */
+            [[nodiscard]] inline bool operator!=(const Iterator& other) const noexcept {
+                return this->mdoii != other.mdoii;
+            }
+
+            /**
+             * Gets offset within splice represented by this iterator.
+             */
+            [[nodiscard]] inline const size_t block_index() const noexcept {
+                return mdoii.global();
+            }
+
+            /**
+             * Gets offset within entire tensor.
+             */
+            [[nodiscard]] inline const size_t offset() const noexcept {
+                return this->current_offset;
+            }
+        };
+
     protected:
         constexpr static const size_t automated_storage_threshold = threshold;
 
-        using Element = elem_t;
 
     public:
         const TensorStorageType StorageType;
@@ -151,6 +270,13 @@ namespace Moment {
             }
         }
 
+    protected:
+        [[nodiscard]] virtual Element make_element_no_checks(Tensor::IndexView index) const = 0;
+
+        [[nodiscard]] virtual std::string get_name() const {
+            return "Tensor";
+        }
+
     public:
         static constexpr TensorStorageType get_storage_type(const TensorStorageType hint, const size_t num_elems) {
             if (hint != TensorStorageType::Automatic) {
@@ -161,14 +287,6 @@ namespace Moment {
             } else {
                 return TensorStorageType::Explicit;
             }
-        }
-
-
-    protected:
-        [[nodiscard]] virtual Element make_element_no_checks(Tensor::IndexView index) const = 0;
-
-        [[nodiscard]] virtual std::string get_name() const {
-            return "Tensor";
         }
 
     };

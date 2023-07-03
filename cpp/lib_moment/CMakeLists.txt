@@ -18,7 +18,6 @@ add_library(lib_moment
         matrix/operator_matrix/moment_matrix.cpp
         matrix/operator_matrix/operator_matrix.cpp
         scenarios/collins_gisin.cpp
-        scenarios/collins_gisin_iterator.cpp
         scenarios/context.cpp
         scenarios/implicit_outcome_iterator.cpp
         scenarios/outcome_index_iterator.cpp
