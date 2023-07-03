@@ -56,7 +56,6 @@ namespace Moment::Locality {
         if (this->StorageType == TensorStorageType::Explicit) {
             for (const auto &cgIndex: MultiDimensionalIndexRange<true>{Dimensions}) {
                 this->data.emplace_back(*this, cgIndex);
-                //this->sequences.emplace_back(this->make_op_sequence(cgIndex));
             }
 
             // Try to find initial symbols

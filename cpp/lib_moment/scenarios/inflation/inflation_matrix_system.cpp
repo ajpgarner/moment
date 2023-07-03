@@ -63,12 +63,6 @@ namespace Moment::Inflation {
         const auto new_max_length = this->MaxRealSequenceLength();
         this->canonicalObservables->generate_up_to_level(new_max_length);
 
-        // Update explicit/implicit symbols
-//        if (!this->explicitSymbols || (this->explicitSymbols->PartyCount < new_max_length)) {
-////            this->explicitSymbols = std::make_unique<InflationExplicitSymbolIndex>(*this);
-////            this->implicitSymbols = std::make_unique<InflationImplicitSymbols>(*this);
-//        }
-
         MatrixSystem::onNewMomentMatrixCreated(level, mm);
     }
 
@@ -151,5 +145,44 @@ namespace Moment::Inflation {
             throw Moment::errors::missing_component("Collins-Gisin tensor has not yet been generated. ");
         }
         return *this->collinsGisin;
+    }
+
+
+
+    bool InflationMatrixSystem::RefreshCollinsGisin(std::shared_lock<std::shared_mutex>& read_lock) {
+        // First, if no explicit symbol table at all, we surely need to do something
+        if (!this->collinsGisin) {
+            read_lock.unlock();
+
+            auto write_lock = this->get_write_lock();
+            this->collinsGisin = std::make_unique<class Moment::Inflation::InflationCollinsGisin>(*this);
+            const bool has_all_symbols = this->collinsGisin->HasAllSymbols();
+            write_lock.unlock();
+
+            read_lock.lock();
+            return has_all_symbols;
+        }
+
+        // No missing symbols, return without ever having released read lock
+        if (this->collinsGisin->HasAllSymbols()) {
+            return true;
+        }
+
+        // Upgrade lock
+        read_lock.unlock();
+        auto write_lock = this->get_write_lock();
+
+        // Try to fill symbols
+        const bool filled = this->collinsGisin->fill_missing_symbols();
+
+        // Downgrade lock
+        write_lock.unlock();
+        read_lock.lock();
+        return filled;
+    }
+
+    bool InflationMatrixSystem::RefreshCollinsGisin() {
+        auto lock = this->get_read_lock();
+        return this->RefreshCollinsGisin(lock);
     }
 }

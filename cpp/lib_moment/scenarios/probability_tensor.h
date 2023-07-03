@@ -102,8 +102,6 @@ namespace Moment {
     private:
         std::vector<OneDimensionInfo> dimensionInfo;
 
-//        std::vector<Polynomial> data;
-
         DynamicBitset<uint64_t, size_t> hasSymbols;
 
 

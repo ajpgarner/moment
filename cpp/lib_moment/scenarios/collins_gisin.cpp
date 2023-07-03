@@ -77,8 +77,6 @@ namespace Moment {
                     context{context}, symbol_table{symbol_table},
                     dimensionInfo(DimensionCount, DimensionInfo{}) {
 
-        if (this->StorageType == TensorStorageType::Explicit) {
-        }
     }
 
     void CollinsGisin::do_initial_symbol_search() {

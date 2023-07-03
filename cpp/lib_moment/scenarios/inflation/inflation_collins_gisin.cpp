@@ -18,29 +18,18 @@ namespace Moment::Inflation {
     namespace {
         [[nodiscard]] constexpr std::vector<size_t> make_dimensions(const InflationContext& context) {
 
-            const size_t observable_count = context.Observables().size();
+            const size_t observable_count = context.observable_variant_count();
             std::vector<size_t> output;
             output.reserve(observable_count);
 
-            // TODO: ICG
+            for (const auto& observable : context.Observables()) {
+                // (outcomes - 1) + 1; for operators, but also with identity.
+                std::fill_n(std::back_inserter(output), observable.variant_count, observable.outcomes);
+            }
+            assert(output.size() == observable_count);
 
             return output;
         }
-
-        OperatorSequence make_op_seq(const InflationContext& context, std::span<const size_t> index) {
-            sequence_storage_t ops;
-            // TOTO: ICG
-
-//            for (size_t p = 0, pMax = context.Parties.size(); p < pMax; ++p) {
-//                if (0 == index[p]) {
-//                    continue;
-//                }
-//                ops.emplace_back(context.Parties[p][index[p]-1]);
-//            }
-
-            return OperatorSequence{std::move(ops), context};
-        }
-
     }
 
     InflationCollinsGisin::InflationCollinsGisin(const InflationMatrixSystem &matrixSystem)
@@ -48,31 +37,36 @@ namespace Moment::Inflation {
                            make_dimensions(matrixSystem.InflationContext())},
               context{matrixSystem.InflationContext()} {
 
+        // Prepare global measurement -> party/measurement data.
+        this->gmIndex.reserve(this->DimensionCount);
+        size_t d = 0;
+        for (const auto& observable : context.Observables()) {
+            const size_t op_num = observable.outcomes-1;
+            for (const auto& variant : observable.variants) {
 
-//        // Prepare global measurement -> party/measurement data
-//        for (const auto& observable : context.Observables()) {
-//            size_t party_offset = 0;
-//            for (const auto& mmt : party.Measurements) {
-//                this->gmIndex.emplace_back(static_cast<size_t>(party.id()),
-//                                           party_offset,
-//                                           static_cast<size_t>(mmt.num_operators()));
-//                party_offset += static_cast<size_t>(mmt.num_operators());
-//            }
-//        }
+                this->dimensionInfo[d].op_ids.reserve(this->Dimensions[d]);
+                this->dimensionInfo[d].op_ids.emplace_back(-1); // index 0 is always no-op.
 
-        // TODO: Decide, do we want 'AxAy' statistics, or just 'AxBy...' statistics?
-//
-//        const auto& symbol_table = matrixSystem.Symbols();
-//
-//
-////        // Build array in column-major format, for quick export to matlab.
-////        for (const auto& cgIndex : MultiDimensionalIndexRange<true>{Dimensions}) {
-////            this->sequences.emplace_back(make_op_seq(this->context, cgIndex));
-////        }
-//
-//        // Try to find symbols
-//        this->do_initial_symbol_search();
+                for (size_t outcome = 0; outcome < op_num; ++outcome) {
+                    this->dimensionInfo[d].op_ids.emplace_back(variant.operator_offset + outcome);
+                }
 
+                this->gmIndex.emplace_back(d, 1, op_num);
+                ++d;
+            }
+        }
+
+
+
+        if (this->StorageType == TensorStorageType::Explicit) {
+            // Make from tensor indices
+            for (const auto &cgIndex: MultiDimensionalIndexRange<true>{Dimensions}) {
+                this->data.emplace_back(*this, cgIndex);
+            }
+
+            // Try to find symbols
+            this->do_initial_symbol_search();
+        }
     }
 
 }
