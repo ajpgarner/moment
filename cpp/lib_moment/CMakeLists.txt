@@ -80,6 +80,7 @@ add_library(lib_moment
         utilities/multithreading.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
+        utilities/tensor.cpp
         utilities/utf_conversion.cpp
 )
 

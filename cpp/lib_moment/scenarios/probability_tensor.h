@@ -12,14 +12,15 @@
 #include "symbolic/polynomial.h"
 
 #include "utilities/dynamic_bitset.h"
+#include "utilities/tensor.h"
 
 #include <span>
 #include <vector>
 
 namespace Moment {
 
-    using ProbabilityTensorIndex = std::vector<size_t>;
-    using ProbabilityTensorIndexView = std::span<const size_t>;
+    using ProbabilityTensorIndex = Tensor::Index;
+    using ProbabilityTensorIndexView = Tensor::IndexView;
 
     namespace errors {
         class BadPTError : public std::runtime_error {
@@ -31,7 +32,7 @@ namespace Moment {
     /**
      * Similar to the Collins-Gisin tensor, but also includes /implicit/ dependent probabilities (e.g. a1 = 1 - a0, etc.)
      */
-    class ProbabilityTensor {
+    class ProbabilityTensor : public Tensor {
     public:
         struct ConstructInfo {
             /** Total number of outcomes per party over all measurements. */
@@ -85,15 +86,11 @@ namespace Moment {
     public:
         const CollinsGisin& collinsGisin;
 
-        /** The size of each dimension of the Collins Gisin (i.e. operators per party + 1) */
-        const std::vector<size_t> Dimensions;
-
-        const size_t total_size;
-
     private:
         std::vector<OneDimensionInfo> dimensionInfo;
 
         std::vector<Polynomial> data;
+
         DynamicBitset<uint64_t, size_t> hasSymbols;
 
 
@@ -103,19 +100,6 @@ namespace Moment {
         /** Deduce information about element. */
         [[nodiscard]] ElementConstructInfo element_info(ProbabilityTensorIndexView index) const;
 
-        /**
-         * Check index is valid.
-         * @throws errors::BadPTError if not valid.
-         */
-        void validate_indices(ProbabilityTensorIndexView index) const;
-
-        /**
-         * Convert index to offset.
-         */
-        [[nodiscard]] size_t index_to_offset(const ProbabilityTensorIndexView indices) const {
-            this->validate_indices(indices);
-            return this->index_to_offset_no_checks(indices);
-        }
 
         [[nodiscard]] const std::vector<Polynomial>& CGPolynomials() const;
 
@@ -129,11 +113,6 @@ namespace Moment {
 
         /** Deduce information about element, and write it to output. */
         void element_info(ProbabilityTensorIndexView index, ElementConstructInfo& output) const noexcept;
-
-        /**
-         * Convert index to offset.
-         */
-        [[nodiscard]] size_t index_to_offset_no_checks(CollinsGisinIndexView index) const noexcept;
 
     };
 

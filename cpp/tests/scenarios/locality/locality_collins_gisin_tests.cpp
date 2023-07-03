@@ -209,16 +209,16 @@ namespace Moment::Tests {
         const auto& cgi = system.CollinsGisin();
 
         std::vector<size_t> biA = {1};
-        EXPECT_THROW(cgi.validate_index(biA), Moment::errors::BadCGError);
+        EXPECT_THROW(cgi.validate_index(biA), Moment::errors::bad_tensor_index);
 
         std::vector<size_t> biB = {1, 1, 1};
-        EXPECT_THROW(cgi.validate_index(biA), Moment::errors::BadCGError);
+        EXPECT_THROW(cgi.validate_index(biA), Moment::errors::bad_tensor_index);
 
         std::vector<size_t> biC = {3, 1};
-        EXPECT_THROW(cgi.validate_index(biA), Moment::errors::BadCGError);
+        EXPECT_THROW(cgi.validate_index(biA), Moment::errors::bad_tensor_index);
 
         std::vector<size_t> biD = {1, 3};
-        EXPECT_THROW(cgi.validate_index(biA), Moment::errors::BadCGError);
+        EXPECT_THROW(cgi.validate_index(biA), Moment::errors::bad_tensor_index);
     }
 
     TEST(Scenarios_Locality_CollinsGisin, Range_CHSH) {

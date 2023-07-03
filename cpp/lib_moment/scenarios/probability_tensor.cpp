@@ -25,8 +25,7 @@ namespace Moment {
     }
 
     ProbabilityTensor::ProbabilityTensor(const CollinsGisin &collinsGisin, ConstructInfo&& info)
-        : collinsGisin{collinsGisin}, Dimensions{std::move(info.totalDimensions)},
-          total_size{get_total_size(Dimensions)}, hasSymbols(total_size) {
+        : Tensor{std::move(info.totalDimensions)}, collinsGisin{collinsGisin}, hasSymbols(ElementCount) {
 
 
         this->make_dimension_info(info);
@@ -38,13 +37,12 @@ namespace Moment {
 
     void ProbabilityTensor::make_dimension_info(const ConstructInfo& info) {
         // Flag which indices have implicit symbols
-        const size_t num_dimensions = Dimensions.size();
-        this->dimensionInfo.reserve(num_dimensions);
+        this->dimensionInfo.reserve(this->DimensionCount);
 
         // Build per-dimension information
         auto read_opm = info.outcomesPerMeasurement.cbegin();
         size_t global_mmt_id = 1;
-        for (size_t d = 0; d < num_dimensions; ++d) {
+        for (size_t d = 0; d < this->DimensionCount; ++d) {
             this->dimensionInfo.emplace_back(this->Dimensions[d]);
             auto& dimInfo = this->dimensionInfo.back();
 
@@ -81,7 +79,7 @@ namespace Moment {
 
     void ProbabilityTensor::calculate_implicit_symbols() {
         // Derive data
-        this->data.reserve(total_size);
+        this->data.reserve(this->ElementCount);
         MultiDimensionalIndexIterator<true> elementIndexIter(this->Dimensions);
 
         // Allocate outside of loop for speed...!
@@ -165,33 +163,6 @@ namespace Moment {
         }
     }
 
-    void ProbabilityTensor::validate_indices(const ProbabilityTensorIndexView indices) const {
-        if (indices.size() != this->Dimensions.size()) {
-            std::stringstream errSS;
-            errSS << "Expected index with " << this->Dimensions.size()
-                  << " entries, but only " << indices.size() << " were provided.";
-            throw errors::BadPTError{errSS.str()};
-        }
-
-        for (size_t d = 0; d < this->Dimensions.size(); ++d) {
-            if (indices[d] >= this->Dimensions[d]) {
-                std::stringstream errSS;
-                errSS << "Index " << indices[d] << " was out of range at dimension " << d
-                      << " (maximum: " << (this->Dimensions[d]-1) << ").";
-                throw errors::BadPTError{errSS.str()};
-            }
-        }
-    }
-
-    size_t ProbabilityTensor::index_to_offset_no_checks(CollinsGisinIndexView index) const noexcept {
-        size_t offset = 0;
-        size_t stride = 1;
-        for (size_t n = 0; n < index.size(); ++n) {
-            offset += (index[n] * stride);
-            stride *= this->Dimensions[n];
-        }
-        return offset;
-    }
 
     const std::vector<Polynomial>& ProbabilityTensor::CGPolynomials() const {
         if (this->data.empty()) {
@@ -203,7 +174,7 @@ namespace Moment {
 
     ProbabilityTensor::ElementConstructInfo
     ProbabilityTensor::element_info(const ProbabilityTensorIndexView indices) const {
-        this->validate_indices(indices);
+        this->validate_index(indices);
         ElementConstructInfo output(this->Dimensions.size());
         this->element_info(indices, output);
         return output;

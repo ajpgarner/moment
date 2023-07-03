@@ -39,6 +39,7 @@ namespace Moment {
                     errSS << ", ";
                 }
                 errSS << cgIndex;
+                once_cg = true;
             }
             errSS << "], corresponding to operator sequence \"" << seq << "\" does not yet exist in the symbol table.";
 
@@ -48,15 +49,12 @@ namespace Moment {
         [[nodiscard]] inline size_t get_size(const std::vector<size_t>& elems) {
             return std::reduce(elems.cbegin(), elems.cend(), 1ULL, std::multiplies());
         }
-
     }
 
-
-    CollinsGisin::CollinsGisin(std::vector<size_t>&& dimensions)
-        : Dimensions{std::move(dimensions)}, total_size(get_size(Dimensions)) {
-        this->sequences.reserve(total_size);
-        this->symbols.reserve(total_size);
-        this->real_indices.reserve(total_size);
+    CollinsGisin::CollinsGisin(std::vector<size_t>&& dimensions) : Tensor(std::move(dimensions)) {
+        this->sequences.reserve(this->ElementCount);
+        this->symbols.reserve(this->ElementCount);
+        this->real_indices.reserve(this->ElementCount);
     }
 
     void CollinsGisin::do_initial_symbol_search(const SymbolTable& symbol_table) {
@@ -156,31 +154,8 @@ namespace Moment {
         return this->real_indices[offset];
     }
 
-    void CollinsGisin::validate_index(const CollinsGisinIndexView index) const {
-        if (index.size() != this->Dimensions.size()) {
-            throw errors::BadCGError("Index dimensions must match CG table dimensions.");
-        }
-        for (size_t n = 0; n < index.size(); ++n) {
-            if (index[n] >= this->Dimensions[n]) {
-                throw errors::BadCGError("Index " + std::to_string(n) + " was out of bounds");
-            }
-        }
-    }
-
-
-    size_t CollinsGisin::index_to_offset_no_checks(Moment::CollinsGisinIndexView index) const noexcept {
-        size_t offset = 0;
-        size_t stride = 1;
-        for (size_t n = 0; n < index.size(); ++n) {
-            offset += (index[n] * stride);
-            stride *= this->Dimensions[n];
-        }
-        return offset;
-    }
-
-
     CollinsGisinIndex CollinsGisin::offset_to_index(size_t offset) const {
-        if (offset > this->total_size) {
+        if (offset > this->ElementCount) {
             throw errors::BadCGError("Offset out of bounds for CG table dimensions.");
         }
 

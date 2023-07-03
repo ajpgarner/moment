@@ -10,6 +10,7 @@
 #include "dictionary/operator_sequence.h"
 
 #include "utilities/multi_dimensional_index_iterator.h"
+#include "utilities/tensor.h"
 
 #include <shared_mutex>
 #include <set>
@@ -32,13 +33,13 @@ namespace Moment {
 
     class CollinsGisinIterator;
     class CollinsGisinRange;
-    using CollinsGisinIndex = std::vector<size_t>;
-    using CollinsGisinIndexView = std::span<const size_t>;
+    using CollinsGisinIndex = Tensor::Index;
+    using CollinsGisinIndexView = Tensor::IndexView;
 
     /**
      * Collins-Gisin tensor: an indexing scheme for real-valued operators that correspond to measurement outcomes.
      */
-    class CollinsGisin {
+    class CollinsGisin : public Tensor {
     protected:
         struct GlobalMeasurementIndex {
             /** Which dimension of tensor does this measurement correspond to */
@@ -52,12 +53,6 @@ namespace Moment {
             GlobalMeasurementIndex(size_t p, size_t o, size_t l) : party{p}, offset{o}, length{l} { }
         };
 
-
-    public:
-        /** The size of each dimension of the Collins Gisin (i.e. operators per party + 1) */
-        const std::vector<size_t> Dimensions;
-
-        const size_t total_size;
 
     protected:
         std::vector<ptrdiff_t> real_indices;
@@ -142,20 +137,6 @@ namespace Moment {
         [[nodiscard]] bool HasAllSymbols() const noexcept;
 
         /**
-         * Throws a BadCGError if the supplied index is invalid.
-         * @param index The Collins-Gisin index to check
-         */
-        void validate_index(CollinsGisinIndexView index) const;
-
-        /**
-         * Translates Collins-Gisin index to storage offset in tensor.
-         */
-        [[nodiscard]] inline size_t index_to_offset(CollinsGisinIndexView index) const {
-            this->validate_index(index);
-            return this->index_to_offset_no_checks(index);
-        }
-
-        /**
          * Translates Storage index in tensor to Collins-Gisin index.
          */
         [[nodiscard]] CollinsGisinIndex offset_to_index(size_t offset) const;
@@ -184,8 +165,6 @@ namespace Moment {
         friend class CollinsGisinIterator;
         friend class ProbabilityTensor;
 
-    private:
-        [[nodiscard]] size_t index_to_offset_no_checks(CollinsGisinIndexView index) const noexcept;
     };
 
 }
