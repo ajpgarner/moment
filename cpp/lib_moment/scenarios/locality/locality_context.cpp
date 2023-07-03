@@ -189,6 +189,32 @@ namespace Moment::Locality {
         return output;
     }
 
+
+    std::vector<size_t> LocalityContext::outcomes_per_measurement() const {
+        std::vector<size_t> output;
+        output.reserve(this->total_measurement_count);
+        for (auto& party : this->parties) {
+            for (auto& mmt : party.measurements) {
+                output.emplace_back(mmt.num_outcomes);
+            }
+        }
+        return output;
+    }
+
+    std::vector<size_t> LocalityContext::outcomes_per_party() const {
+        std::vector<size_t> output;
+        output.reserve(this->parties.size());
+        for (auto& party : this->parties) {
+            size_t party_outcomes = 0;
+            for (auto& mmt : party.measurements) {
+                party_outcomes += mmt.num_outcomes;
+
+            }
+            output.emplace_back(party_outcomes);
+        }
+        return output;
+    }
+
     std::string LocalityContext::format_sequence(const OperatorSequence &seq) const {
         NaturalLOFormatter formatter;
         return this->format_sequence(formatter, seq);
@@ -270,6 +296,7 @@ namespace Moment::Locality {
     std::unique_ptr<OperatorSequenceGenerator> LocalityContext::new_osg(const size_t word_length) const {
         return std::make_unique<LocalityOperatorSequenceGenerator>(*this, word_length);
     }
+
 
 
 }

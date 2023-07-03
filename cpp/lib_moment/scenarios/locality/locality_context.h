@@ -103,12 +103,25 @@ namespace Moment::Locality {
          */
         [[nodiscard]] std::vector<size_t> outcomes_per_measurement(std::span<const PMIndex> indices) const;
 
+
         /**
-         * Returns total number of operators per party in context;
+         * Returns number of outcomes for every measurement in context.
+         */
+        [[nodiscard]] std::vector<size_t> outcomes_per_measurement() const;
+
+        /**
+         * Returns total number of operators per party in context.
          */
         [[nodiscard]] const std::vector<size_t>& operators_per_party() const noexcept {
             return this->ops_per_party;
         }
+
+
+        /**
+         * Returns number of outcomes per party in context.
+         */
+        [[nodiscard]] std::vector<size_t> outcomes_per_party() const;
+
 
         /**
          * Generates a formatted string representation of an operator sequence

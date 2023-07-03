@@ -13,18 +13,20 @@
 #include "utilities/index_tree.h"
 
 namespace Moment {
+    class CollinsGisin;
     class MonomialMatrix;
+    class ProbabilityTensor;
 }
 
 namespace Moment::Inflation {
-
-    class InflationContext;
-    class FactorTable;
     class CanonicalObservables;
     class ExtendedMatrix;
     class ExtensionSuggester;
-    class InflationExplicitSymbolIndex;
-    class InflationImplicitSymbols;
+    class FactorTable;
+    class InflationCollinsGisin;
+    class InflationContext;
+    class InflationProbabilityTensor;
+
 
     class InflationMatrixSystem : public MatrixSystem {
     private:
@@ -36,9 +38,9 @@ namespace Moment::Inflation {
 
         std::unique_ptr<ExtensionSuggester> extensionSuggester;
 
-        std::unique_ptr<InflationExplicitSymbolIndex> explicitSymbols;
+        std::unique_ptr<InflationCollinsGisin> collinsGisin;
 
-        std::unique_ptr<InflationImplicitSymbols> implicitSymbols;
+        std::unique_ptr<InflationProbabilityTensor> probabilityTensor;
 
         IndexTree<symbol_name_t, size_t> extension_indices;
 
@@ -96,18 +98,17 @@ namespace Moment::Inflation {
         const class CanonicalObservables& CanonicalObservables() const noexcept { return *this->canonicalObservables; }
 
         /**
-        * Returns an indexing of real-valued symbols that correspond to explicit operators/operator sequences within
-        * the context (including joint measurements).
-        * @throws errors::missing_component if not generated.
-        */
-        [[nodiscard]] const InflationExplicitSymbolIndex& ExplicitSymbolTable() const;
+         * Returns an indexing in the Collins-Gisin ordering.
+         * @throws errors::missing_component if not generated.
+         */
+        [[nodiscard]] const class CollinsGisin& CollinsGisin() const;
 
         /**
-        * Returns an indexing of real-valued symbols that correspond to explicit operators/operator sequences within
-        * the context (including joint measurements).
-        * @throws errors::missing_component if not generated.
-        */
-        [[nodiscard]] const InflationImplicitSymbols& ImplicitSymbolTable() const;
+         * Returns an indexing of all real-valued symbols, including those from ExplicitSymbolTable(), but also implied
+         * "final" outcomes of measurements (including joint measurements).
+         * @throws errors::missing_component if not generated.
+         */
+        [[nodiscard]] const class ProbabilityTensor& ProbabilityTensor() const;
 
         /**
          * Calculates the longest real sequences that can exist within this system (i.e. the highest number of

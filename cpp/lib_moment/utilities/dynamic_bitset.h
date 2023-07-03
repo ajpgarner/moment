@@ -103,7 +103,7 @@ namespace Moment {
                 for (index_t i = 0, iMax = page_count -1; i < iMax; ++i) {
                     this->data[i] = ~static_cast<page_t>(0);
                 }
-                this->data[page_count - 1] = final_page_mask;
+                this->data[page_count - 1] = this->final_page_mask;
             }
         }
 
@@ -120,6 +120,12 @@ namespace Moment {
             const auto [page, bit] = this->unfold_index(index);
             this->data[page] = this->data[page] & ~(static_cast<page_t>(1) << bit);
             // So long as index is always in bound, no need for special masking for final page
+        }
+
+        constexpr void clear() noexcept {
+            for (index_t i = 0, iMax = page_count; i < iMax; ++i) {
+                this->data[i] = static_cast<page_t>(0);
+            }
         }
 
         [[nodiscard]] constexpr bool test(const index_t index) const noexcept {

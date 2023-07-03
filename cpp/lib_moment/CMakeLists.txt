@@ -17,11 +17,12 @@ add_library(lib_moment
         matrix/operator_matrix/localizing_matrix.cpp
         matrix/operator_matrix/moment_matrix.cpp
         matrix/operator_matrix/operator_matrix.cpp
+        scenarios/collins_gisin.cpp
+        scenarios/collins_gisin_iterator.cpp
         scenarios/context.cpp
-        scenarios/explicit_symbols.cpp
         scenarios/implicit_outcome_iterator.cpp
-        scenarios/implicit_symbols.cpp
         scenarios/outcome_index_iterator.cpp
+        scenarios/probability_tensor.cpp
         scenarios/algebraic/algebraic_context.cpp
         scenarios/algebraic/algebraic_precontext.cpp
         scenarios/algebraic/algebraic_matrix_system.cpp
@@ -41,20 +42,19 @@ add_library(lib_moment
         scenarios/inflation/extended_matrix.cpp
         scenarios/inflation/extension_suggester.cpp
         scenarios/inflation/factor_table.cpp
+        scenarios/inflation/inflation_collins_gisin.cpp
         scenarios/inflation/inflation_context.cpp
-        scenarios/inflation/inflation_explicit_symbols.cpp
-        scenarios/inflation/inflation_implicit_symbols.cpp
         scenarios/inflation/inflation_matrix_system.cpp
         scenarios/inflation/inflation_osg.cpp
+        scenarios/inflation/inflation_probability_tensor.cpp
         scenarios/inflation/observable.cpp
         scenarios/inflation/observable_variant_index.cpp
         scenarios/inflation/source.cpp
-        scenarios/locality/collins_gisin.cpp
+        scenarios/locality/locality_collins_gisin.cpp
         scenarios/locality/locality_context.cpp
-        scenarios/locality/locality_explicit_symbols.cpp
-        scenarios/locality/locality_implicit_symbols.cpp
         scenarios/locality/locality_matrix_system.cpp
         scenarios/locality/locality_operator_formatter.cpp
+        scenarios/locality/locality_probability_tensor.cpp
         scenarios/locality/locality_osg.cpp
         scenarios/locality/joint_measurement_iterator.cpp
         scenarios/locality/party.cpp

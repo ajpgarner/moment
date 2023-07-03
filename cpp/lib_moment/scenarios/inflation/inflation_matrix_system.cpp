@@ -11,9 +11,10 @@
 #include "extension_suggester.h"
 
 #include "extended_matrix.h"
+#include "inflation_collins_gisin.h"
 #include "inflation_context.h"
-#include "inflation_explicit_symbols.h"
-#include "inflation_implicit_symbols.h"
+#include "inflation_probability_tensor.h"
+
 
 #include "matrix/operator_matrix/moment_matrix.h"
 
@@ -40,19 +41,7 @@ namespace Moment::Inflation {
 
     InflationMatrixSystem::~InflationMatrixSystem() noexcept = default;
 
-    const InflationExplicitSymbolIndex &InflationMatrixSystem::ExplicitSymbolTable() const {
-        if (!this->explicitSymbols) {
-            throw Moment::errors::missing_component("ExplicitSymbolTable has not yet been generated.");
-        }
-        return *this->explicitSymbols;
-    }
 
-    const InflationImplicitSymbols &InflationMatrixSystem::ImplicitSymbolTable() const {
-        if (!this->implicitSymbols) {
-            throw Moment::errors::missing_component("ImplicitSymbolTable has not yet been generated.");
-        }
-        return *this->implicitSymbols;
-    }
 
     size_t InflationMatrixSystem::MaxRealSequenceLength() const noexcept {
         // Largest order of moment matrix?
@@ -75,10 +64,10 @@ namespace Moment::Inflation {
         this->canonicalObservables->generate_up_to_level(new_max_length);
 
         // Update explicit/implicit symbols
-        if (!this->explicitSymbols || (this->explicitSymbols->Level < new_max_length)) {
-            this->explicitSymbols = std::make_unique<InflationExplicitSymbolIndex>(*this, new_max_length);
-            this->implicitSymbols = std::make_unique<InflationImplicitSymbols>(*this);
-        }
+//        if (!this->explicitSymbols || (this->explicitSymbols->PartyCount < new_max_length)) {
+////            this->explicitSymbols = std::make_unique<InflationExplicitSymbolIndex>(*this);
+////            this->implicitSymbols = std::make_unique<InflationImplicitSymbols>(*this);
+//        }
 
         MatrixSystem::onNewMomentMatrixCreated(level, mm);
     }
@@ -150,4 +139,17 @@ namespace Moment::Inflation {
         MatrixSystem::onDictionaryGenerated(word_length, osg);
     }
 
+    const class ProbabilityTensor& InflationMatrixSystem::ProbabilityTensor() const {
+        if (!this->probabilityTensor) {
+            throw Moment::errors::missing_component("ProbabilityTensor has not yet been generated.");
+        }
+        return *this->probabilityTensor;
+    }
+
+    const class CollinsGisin& InflationMatrixSystem::CollinsGisin() const {
+        if (!this->collinsGisin) {
+            throw Moment::errors::missing_component("Collins-Gisin tensor has not yet been generated. ");
+        }
+        return *this->collinsGisin;
+    }
 }

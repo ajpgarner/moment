@@ -9,7 +9,7 @@
 
 #include "export_operator_sequence.h"
 
-#include "scenarios/locality/collins_gisin.h"
+#include "scenarios/collins_gisin.h"
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_operator_formatter.h"
 

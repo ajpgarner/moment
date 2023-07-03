@@ -28,14 +28,13 @@ add_executable(moment_tests
         scenarios/inflation/extended_matrix_tests.cpp
         scenarios/inflation/extension_suggester_tests.cpp
         scenarios/inflation/factor_table_tests.cpp
+        scenarios/inflation/inflation_collins_gisin_tests.cpp
         scenarios/inflation/inflation_context_tests.cpp
-        scenarios/inflation/inflation_explicit_symbols_tests.cpp
-        scenarios/inflation/inflation_implicit_symbols_tests.cpp
-        scenarios/locality/collins_gisin_tests.cpp
+        scenarios/inflation/inflation_probability_tensor_tests.cpp
         scenarios/locality/joint_measurement_iterator_tests.cpp
+        scenarios/locality/locality_collins_gisin_tests.cpp
         scenarios/locality/locality_context_tests.cpp
-        scenarios/locality/locality_explicit_symbols_tests.cpp
-        scenarios/locality/locality_implicit_symbols_tests.cpp
+        scenarios/locality/locality_probability_tensor_tests.cpp
         scenarios/locality/locality_osg_tests.cpp
         scenarios/locality/party_tests.cpp
         scenarios/symmetry/group_tests.cpp
@@ -63,6 +62,7 @@ add_executable(moment_tests
         utilities/ipow_tests.cpp
         utilities/kronecker_power_tests.cpp
         utilities/multi_dimensional_index_iterator_tests.cpp
+        utilities/multi_dimensional_offset_index_iterator_tests.cpp
         utilities/multi_partition_tests.cpp
         utilities/ordered_permutation_tests.cpp
         utilities/persistent_storage_tests.cpp

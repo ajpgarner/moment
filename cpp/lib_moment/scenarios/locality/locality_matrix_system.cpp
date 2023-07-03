@@ -6,10 +6,9 @@
  */
 #include "locality_matrix_system.h"
 
+#include "locality_collins_gisin.h"
 #include "locality_context.h"
-#include "locality_explicit_symbols.h"
-#include "locality_implicit_symbols.h"
-#include "collins_gisin.h"
+#include "locality_probability_tensor.h"
 
 #include "symbolic/monomial_comparator_by_hash.h"
 
@@ -25,9 +24,7 @@ namespace Moment::Locality {
                 std::make_unique<ByHashPolynomialFactory>(this->Symbols(), tolerance, this->Symbols())
         );
 
-        this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, 0);
-        this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
-        this->collinsGisin = std::make_unique<Moment::Locality::CollinsGisin>(*this);
+        //this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
     }
 
 
@@ -39,9 +36,7 @@ namespace Moment::Locality {
                 std::make_unique<ByHashPolynomialFactory>(this->Symbols(), tolerance, this->Symbols())
         );
 
-        this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, 0);
-        this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
-        this->collinsGisin = std::make_unique<Moment::Locality::CollinsGisin>(*this);
+        //this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
     }
 
     size_t LocalityMatrixSystem::MaxRealSequenceLength() const noexcept {
@@ -56,21 +51,50 @@ namespace Moment::Locality {
         return std::min(hierarchy_level*2, static_cast<ptrdiff_t>(this->localityContext.Parties.size()));
     }
 
-    const ExplicitSymbolIndex& LocalityMatrixSystem::ExplicitSymbolTable() const {
+    bool LocalityMatrixSystem::RefreshCollinsGisin(std::shared_lock<std::shared_mutex>& read_lock) {
+        // First, if no explicit symbol table at all, we surely need to do something
+        if (!this->collinsGisin) {
+            read_lock.unlock();
 
-        if (!this->explicitSymbols) {
-            throw Moment::errors::missing_component("ExplicitSymbolTable has not yet been generated.");
+            auto write_lock = this->get_write_lock();
+            this->collinsGisin = std::make_unique<class Moment::Locality::LocalityCollinsGisin>(*this);
+            const bool has_all_symbols = this->collinsGisin->HasAllSymbols();
+            write_lock.unlock();
+
+            read_lock.lock();
+            return has_all_symbols;
         }
-        return *this->explicitSymbols;
+
+        // No missing symbols, return without ever having released read lock
+        if (this->collinsGisin->HasAllSymbols()) {
+            return true;
+        }
+
+        // Upgrade lock
+        read_lock.unlock();
+        auto write_lock = this->get_write_lock();
+
+        // Try to fill symbols
+        const bool filled = this->collinsGisin->fill_missing_symbols(this->Symbols());
+
+        // Downgrade lock
+        write_lock.unlock();
+        read_lock.lock();
+        return filled;
     }
 
-    const LocalityImplicitSymbols& LocalityMatrixSystem::ImplicitSymbolTable() const {
-
-        if (!this->implicitSymbols) {
-            throw Moment::errors::missing_component("ImplicitSymbolTable has not yet been generated.");
-        }
-        return *this->implicitSymbols;
+    bool LocalityMatrixSystem::RefreshCollinsGisin() {
+        auto lock = this->get_read_lock();
+        return this->RefreshCollinsGisin(lock);
     }
+
+    const class ProbabilityTensor &LocalityMatrixSystem::ProbabilityTensor() const {
+        if (!this->probabilityTensor) {
+            throw Moment::errors::missing_component("ProbabilityTensor has not yet been generated.");
+        }
+        return *this->probabilityTensor;
+    }
+
 
     const class CollinsGisin& LocalityMatrixSystem::CollinsGisin() const {
         if (!this->collinsGisin) {
@@ -84,12 +108,12 @@ namespace Moment::Locality {
         if (newMRSL > this->maxProbabilityLength) {
             this->maxProbabilityLength = newMRSL;
 
-            // Make explicit/implicit symbol table
-            this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, this->MaxRealSequenceLength());
-            this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
-
             // Fill CG tensor
-            this->collinsGisin->fill_missing_symbols(this->Symbols());
+            //this->collinsGisin->fill_missing_symbols(this->Symbols());
+
+            // Make explicit/implicit symbol table
+            //this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
+
         }
     }
 
@@ -101,12 +125,12 @@ namespace Moment::Locality {
         if (word_length > this->maxProbabilityLength) {
             this->maxProbabilityLength = word_length;
 
-            // Make explicit/implicit symbol table
-            this->explicitSymbols = std::make_unique<LocalityExplicitSymbolIndex>(*this, this->MaxRealSequenceLength());
-            this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
-
             // Fill CG tensor
-            this->collinsGisin->fill_missing_symbols(this->Symbols());
+            //this->collinsGisin->fill_missing_symbols(this->Symbols());
+
+            // Make explicit/implicit symbol table
+            //this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
+
         }
     }
 
