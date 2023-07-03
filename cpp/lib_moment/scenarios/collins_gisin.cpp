@@ -49,27 +49,55 @@ namespace Moment {
         [[nodiscard]] inline size_t get_size(const std::vector<size_t>& elems) {
             return std::reduce(elems.cbegin(), elems.cend(), 1ULL, std::multiplies());
         }
+
+        [[nodiscard]] OperatorSequence cgi_to_op_seq(const Context& context,
+                                                     const std::vector<CollinsGisin::DimensionInfo>& dimInfo,
+                                                     const CollinsGisinIndexView index) {
+            sequence_storage_t ops;
+            for (size_t d = 0, dMax = dimInfo.size(); d < dMax; ++d) {
+                if (0 == index[d]) {
+                    continue;
+                }
+                ops.emplace_back(dimInfo[d].op_ids[index[d]]);
+            }
+            return OperatorSequence{std::move(ops), context};
+        }
+
+
     }
 
-    CollinsGisin::CollinsGisin(std::vector<size_t>&& dimensions) : Tensor(std::move(dimensions)) {
-        this->sequences.reserve(this->ElementCount);
-        this->symbols.reserve(this->ElementCount);
-        this->real_indices.reserve(this->ElementCount);
+
+    CollinsGisinEntry::CollinsGisinEntry(const CollinsGisin& cgt, const CollinsGisinIndexView index)
+        : sequence{cgi_to_op_seq(cgt.context, cgt.dimensionInfo, index)} {
+
     }
 
-    void CollinsGisin::do_initial_symbol_search(const SymbolTable& symbol_table) {
+    CollinsGisin::CollinsGisin(const Context& context, const SymbolTable& symbol_table,
+                               std::vector<size_t>&& dimensions, TensorStorageType storage)
+            : AutoStorageTensor{std::move(dimensions), storage},
+                    context{context}, symbol_table{symbol_table},
+                    dimensionInfo(DimensionCount, DimensionInfo{}) {
+
+        if (this->StorageType == TensorStorageType::Explicit) {
+        }
+    }
+
+    void CollinsGisin::do_initial_symbol_search() {
+        // Do nothing if in virtual-storage mode.
+        if (this->StorageType == TensorStorageType::Virtual) {
+            return;
+        }
+
         // Do initial symbol search
         size_t index = 0;
-        for (const auto& seq : this->sequences) {
-            auto * us = symbol_table.where(seq);
+        for (auto& datum : this->data) {
+            auto * us = this->symbol_table.where(datum.sequence);
             if (us != nullptr) {
                 assert(us->is_hermitian());
                 assert(us->basis_key().second < 0);
-                this->symbols.emplace_back(us->Id());
-                this->real_indices.emplace_back(us->basis_key().first);
+                datum.symbol_id = us->Id();
+                datum.real_index = us->basis_key().first;
             } else {
-                this->symbols.emplace_back(-1);
-                this->real_indices.emplace_back(-1);
                 this->missing_symbols.insert(this->missing_symbols.cend(), index);
             }
             ++index;
@@ -77,7 +105,12 @@ namespace Moment {
     }
 
 
-    bool CollinsGisin::fill_missing_symbols(const SymbolTable& symbol_table) noexcept {
+    bool CollinsGisin::fill_missing_symbols() noexcept {
+        // Do nothing if in virtual-storage mode.
+        if (this->StorageType == TensorStorageType::Virtual) {
+            return true;
+        }
+
         // Early exit without lock if nothing missing
         std::shared_lock read_lock{this->symbol_mutex};
         if (this->missing_symbols.empty()) {
@@ -92,12 +125,13 @@ namespace Moment {
         auto iter = this->missing_symbols.begin();
         while (iter != this->missing_symbols.end()) {
             size_t index = *iter;
-            auto * us = symbol_table.where(this->sequences[index]);
+            auto& datum = this->data[index];
+            auto * us = symbol_table.where(datum.sequence);
             if (us != nullptr) {
                 assert(us->is_hermitian());
                 assert(us->basis_key().second < 0);
-                this->symbols[index] = us->Id();
-                this->real_indices[index] = us->basis_key().first;
+                datum.symbol_id = us->Id();
+                datum.real_index = us->basis_key().first;
                 iter = this->missing_symbols.erase(iter);
             } else {
                 ++iter;
@@ -111,62 +145,62 @@ namespace Moment {
         return this->missing_symbols.empty();
     }
 
-    const std::vector<symbol_name_t>& CollinsGisin::Symbols() const {
-        // Safe lock, because if HasSymbols passes, then returned object will never change.
-        std::shared_lock read_lock{this->symbol_mutex};
-
-        if (!this->missing_symbols.empty()) {
-            throw make_missing_err(this->missing_symbols, this->sequences);
+    OperatorSequence CollinsGisin::Sequence(const  CollinsGisinIndexView index) const {
+        if (this->StorageType == TensorStorageType::Virtual) {
+            this->validate_index(index);
+            return cgi_to_op_seq(this->context, this->dimensionInfo, index);
+        } else {
+            return this->data[this->index_to_offset(index)].sequence;
         }
-        return this->symbols;
     }
 
-    symbol_name_t CollinsGisin::Symbols(const CollinsGisinIndexView index) const {
-        const size_t offset = this->index_to_offset(index);
+    symbol_name_t CollinsGisin::Symbol(const CollinsGisinIndexView index) const {
+        if (this->StorageType == TensorStorageType::Virtual) {
+            this->validate_index(index);
+            auto entry = this->make_element_no_checks(index);
+            auto * us = this->symbol_table.where(entry.sequence);
+            if (us != nullptr) {
+                assert(us->is_hermitian());
+                return us->Id();
+            } else {
+                throw make_missing_index_err(index, entry.sequence);
+            }
+        } else {
+            const size_t offset = this->index_to_offset(index);
 
-        std::shared_lock read_lock{this->symbol_mutex};
-        if (this->missing_symbols.contains(offset)) {
-            throw make_missing_index_err(index, this->sequences[offset]);
+            std::shared_lock read_lock{this->symbol_mutex};
+            if (this->missing_symbols.contains(offset)) {
+                throw make_missing_index_err(index, this->data[offset].sequence);
+            }
+
+            return this->data[offset].symbol_id;
         }
-
-        return this->symbols[offset];
     }
 
+    ptrdiff_t CollinsGisin::RealIndex(const CollinsGisinIndexView index) const {
+        if (this->StorageType == TensorStorageType::Virtual) {
 
-    const std::vector<ptrdiff_t>& CollinsGisin::RealIndices() const {
-        // Safe lock, because if HasSymbols passes, then returned object will never change.
-        std::shared_lock read_lock{this->symbol_mutex};
+            this->validate_index(index);
+            auto entry = this->make_element_no_checks(index);
+            auto * us = this->symbol_table.where(entry.sequence);
+            if (us != nullptr) {
+                assert(us->is_hermitian());
+                assert(us->basis_key().second < 0);
+                return us->basis_key().first;
+            } else {
+                throw make_missing_index_err(index, entry.sequence);
+            }
 
-        if (!this->missing_symbols.empty()) {
-            throw make_missing_err(this->missing_symbols, this->sequences);
+        } else {
+            const size_t offset = this->index_to_offset(index);
+
+            std::shared_lock read_lock{this->symbol_mutex};
+            if (this->missing_symbols.contains(offset)) {
+                throw make_missing_index_err(index, this->data[offset].sequence);
+            }
+
+            return this->data[offset].real_index;
         }
-        return this->real_indices;
-    }
-
-    ptrdiff_t CollinsGisin::RealIndices(const CollinsGisinIndexView index) const {
-        const size_t offset = this->index_to_offset(index);
-
-        std::shared_lock read_lock{this->symbol_mutex};
-        if (this->missing_symbols.contains(offset)) {
-            throw make_missing_index_err(index, this->sequences[offset]);
-        }
-
-        return this->real_indices[offset];
-    }
-
-    CollinsGisinIndex CollinsGisin::offset_to_index(size_t offset) const {
-        if (offset > this->ElementCount) {
-            throw errors::BadCGError("Offset out of bounds for CG table dimensions.");
-        }
-
-        const size_t dim_size = this->Dimensions.size();
-        CollinsGisinIndex output;
-        output.reserve(dim_size);
-        for (size_t n = 0; n < dim_size; ++n) {
-            output.emplace_back(offset % this->Dimensions.size());
-            offset /= this->Dimensions.size();
-        }
-        return output;
     }
 
 
@@ -215,5 +249,10 @@ namespace Moment {
         return CollinsGisinRange{*this, std::move(lower_bounds), std::move(upper_bounds)};
     }
 
+
+
+    CollinsGisinEntry CollinsGisin::make_element_no_checks(Tensor::IndexView index) const {
+        return Element{*this, index};
+    }
 
 }

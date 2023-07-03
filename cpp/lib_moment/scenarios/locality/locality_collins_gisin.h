@@ -15,7 +15,7 @@ namespace Moment::Locality {
 
     class LocalityCollinsGisin : public CollinsGisin {
     public:
-        const LocalityContext& context;
+        const LocalityContext& localityContext;
 
     public:
         explicit LocalityCollinsGisin(const LocalityMatrixSystem& lms);

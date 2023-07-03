@@ -6,6 +6,8 @@
  */
 #include "tensor.h"
 
+#include <cassert>
+
 #include <numeric>
 #include <sstream>
 
@@ -32,9 +34,18 @@ namespace Moment {
         }
     }
 
+    namespace errors {
+        bad_tensor bad_tensor::no_data_stored(const std::string &name) {
+            std::stringstream errSS;
+            errSS << name << " has no explicitly stored elements.";
+            return bad_tensor(errSS.str());
+        }
+    }
+
     Tensor::Tensor(std::vector<size_t> &&dimensions)
         : Dimensions(std::move(dimensions)), Strides(make_strides(Dimensions)),
           DimensionCount{this->Dimensions.size()}, ElementCount{take_prod(Dimensions, Strides)} {
+
     }
 
     void Tensor::validate_index(const Tensor::IndexView index) const {
@@ -51,8 +62,29 @@ namespace Moment {
         }
     }
 
+    void Tensor::validate_offset(const size_t offset) const {
+        if (offset >= this->ElementCount) {
+            std::stringstream errSS;
+            errSS << "Offset " << offset << " was out of bounds (maximum: " << (this->ElementCount-1) << ").";
+            throw errors::bad_tensor_index(errSS.str());
+        }
+    }
+
     size_t Tensor::index_to_offset_no_checks(const Tensor::IndexView index) const noexcept {
         return std::transform_reduce(this->Strides.cbegin(), this->Strides.cend(), index.begin(), 0ULL);
     }
+
+    Tensor::Index Tensor::offset_to_index_no_checks(size_t offset) const {
+        Index output;
+        output.reserve(this->DimensionCount);
+        for (size_t n = 0; n < this->DimensionCount; ++n) {
+            output.emplace_back(offset % this->Dimensions[n]);
+            offset /= this->Dimensions[n];
+        }
+        return output;
+    }
+
+
+
 
 }

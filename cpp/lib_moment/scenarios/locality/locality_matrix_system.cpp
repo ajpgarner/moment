@@ -75,7 +75,7 @@ namespace Moment::Locality {
         auto write_lock = this->get_write_lock();
 
         // Try to fill symbols
-        const bool filled = this->collinsGisin->fill_missing_symbols(this->Symbols());
+        const bool filled = this->collinsGisin->fill_missing_symbols();
 
         // Downgrade lock
         write_lock.unlock();
@@ -118,18 +118,12 @@ namespace Moment::Locality {
     }
 
     void LocalityMatrixSystem::onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const Matrix &lm) {
-        this->collinsGisin->fill_missing_symbols(this->Symbols());
+
     }
 
     void LocalityMatrixSystem::onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator &osg) {
         if (word_length > this->maxProbabilityLength) {
             this->maxProbabilityLength = word_length;
-
-            // Fill CG tensor
-            //this->collinsGisin->fill_missing_symbols(this->Symbols());
-
-            // Make explicit/implicit symbol table
-            //this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
 
         }
     }

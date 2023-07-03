@@ -61,54 +61,52 @@ namespace Moment::Tests {
         const auto& s_a1b1 = *system.Symbols().where(os_a1b1);
 
 
-        ASSERT_EQ(cgi.Symbols().size(), 9);
-        ASSERT_EQ(cgi.Sequences().size(), 9);
-        ASSERT_EQ(cgi.RealIndices().size(), 9);
-
+        ASSERT_EQ(cgi.Data().size(), 9);
+        
         EXPECT_EQ(cgi.index_to_offset(CollinsGisinIndex{0, 0}), 0);
-        EXPECT_EQ(cgi.Symbols()[0], s_id.Id());
-        EXPECT_EQ(cgi.Sequences()[0], os_id);
-        EXPECT_EQ(cgi.RealIndices()[0], s_id.basis_key().first);
+        EXPECT_EQ(cgi.Data()[0].symbol_id, s_id.Id());
+        EXPECT_EQ(cgi.Data()[0].sequence, os_id);
+        EXPECT_EQ(cgi.Data()[0].real_index, s_id.basis_key().first);
 
         EXPECT_EQ(cgi.index_to_offset(CollinsGisinIndex{1, 0}), 1);
-        EXPECT_EQ(cgi.Symbols()[1], s_a0.Id());
-        EXPECT_EQ(cgi.Sequences()[1], os_a0);
-        EXPECT_EQ(cgi.RealIndices()[1], s_a0.basis_key().first);
+        EXPECT_EQ(cgi.Data()[1].symbol_id, s_a0.Id());
+        EXPECT_EQ(cgi.Data()[1].sequence, os_a0);
+        EXPECT_EQ(cgi.Data()[1].real_index, s_a0.basis_key().first);
 
         EXPECT_EQ(cgi.index_to_offset(CollinsGisinIndex{2, 0}), 2);
-        EXPECT_EQ(cgi.Symbols()[2], s_a1.Id());
-        EXPECT_EQ(cgi.Sequences()[2], os_a1);
-        EXPECT_EQ(cgi.RealIndices()[2], s_a1.basis_key().first);
+        EXPECT_EQ(cgi.Data()[2].symbol_id, s_a1.Id());
+        EXPECT_EQ(cgi.Data()[2].sequence, os_a1);
+        EXPECT_EQ(cgi.Data()[2].real_index, s_a1.basis_key().first);
 
         EXPECT_EQ(cgi.index_to_offset(CollinsGisinIndex{0, 1}), 3);
-        EXPECT_EQ(cgi.Symbols()[3], s_b0.Id());
-        EXPECT_EQ(cgi.Sequences()[3], os_b0);
-        EXPECT_EQ(cgi.RealIndices()[3], s_b0.basis_key().first);
+        EXPECT_EQ(cgi.Data()[3].symbol_id, s_b0.Id());
+        EXPECT_EQ(cgi.Data()[3].sequence, os_b0);
+        EXPECT_EQ(cgi.Data()[3].real_index, s_b0.basis_key().first);
 
         EXPECT_EQ(cgi.index_to_offset(CollinsGisinIndex{1, 1}), 4);
-        EXPECT_EQ(cgi.Symbols()[4], s_a0b0.Id());
-        EXPECT_EQ(cgi.Sequences()[4], os_a0b0);
-        EXPECT_EQ(cgi.RealIndices()[4], s_a0b0.basis_key().first);
+        EXPECT_EQ(cgi.Data()[4].symbol_id, s_a0b0.Id());
+        EXPECT_EQ(cgi.Data()[4].sequence, os_a0b0);
+        EXPECT_EQ(cgi.Data()[4].real_index, s_a0b0.basis_key().first);
 
         EXPECT_EQ(cgi.index_to_offset(CollinsGisinIndex{2, 1}), 5);
-        EXPECT_EQ(cgi.Symbols()[5], s_a1b0.Id());
-        EXPECT_EQ(cgi.Sequences()[5], os_a1b0);
-        EXPECT_EQ(cgi.RealIndices()[5], s_a1b0.basis_key().first);
+        EXPECT_EQ(cgi.Data()[5].symbol_id, s_a1b0.Id());
+        EXPECT_EQ(cgi.Data()[5].sequence, os_a1b0);
+        EXPECT_EQ(cgi.Data()[5].real_index, s_a1b0.basis_key().first);
 
         EXPECT_EQ(cgi.index_to_offset(CollinsGisinIndex{0, 2}), 6);
-        EXPECT_EQ(cgi.Symbols()[6], s_b1.Id());
-        EXPECT_EQ(cgi.Sequences()[6], os_b1);
-        EXPECT_EQ(cgi.RealIndices()[6], s_b1.basis_key().first);
+        EXPECT_EQ(cgi.Data()[6].symbol_id, s_b1.Id());
+        EXPECT_EQ(cgi.Data()[6].sequence, os_b1);
+        EXPECT_EQ(cgi.Data()[6].real_index, s_b1.basis_key().first);
 
         EXPECT_EQ(cgi.index_to_offset(CollinsGisinIndex{1, 2}), 7);
-        EXPECT_EQ(cgi.Symbols()[7], s_a0b1.Id());
-        EXPECT_EQ(cgi.Sequences()[7], os_a0b1);
-        EXPECT_EQ(cgi.RealIndices()[7], s_a0b1.basis_key().first);
+        EXPECT_EQ(cgi.Data()[7].symbol_id, s_a0b1.Id());
+        EXPECT_EQ(cgi.Data()[7].sequence, os_a0b1);
+        EXPECT_EQ(cgi.Data()[7].real_index, s_a0b1.basis_key().first);
 
         EXPECT_EQ(cgi.index_to_offset(CollinsGisinIndex{2, 2}), 8);
-        EXPECT_EQ(cgi.Symbols()[8], s_a1b1.Id());
-        EXPECT_EQ(cgi.Sequences()[8], os_a1b1);
-        EXPECT_EQ(cgi.RealIndices()[8], s_a1b1.basis_key().first);
+        EXPECT_EQ(cgi.Data()[8].symbol_id, s_a1b1.Id());
+        EXPECT_EQ(cgi.Data()[8].sequence, os_a1b1);
+        EXPECT_EQ(cgi.Data()[8].real_index, s_a1b1.basis_key().first);
 
     }
 
@@ -141,20 +139,17 @@ namespace Moment::Tests {
         ASSERT_EQ(cgi.Dimensions.size(), 2);
         ASSERT_EQ(cgi.Dimensions[0], 3);
         ASSERT_EQ(cgi.Dimensions[1], 3);
-        ASSERT_EQ(cgi.Sequences().size(), 9);
+        ASSERT_EQ(cgi.Data().size(), 9);
 
-        EXPECT_EQ(cgi.Sequences()[0], os_id);
-        EXPECT_EQ(cgi.Sequences()[1], os_a0);
-        EXPECT_EQ(cgi.Sequences()[2], os_a1);
-        EXPECT_EQ(cgi.Sequences()[3], os_b0);
-        EXPECT_EQ(cgi.Sequences()[4], os_a0b0);
-        EXPECT_EQ(cgi.Sequences()[5], os_a1b0);
-        EXPECT_EQ(cgi.Sequences()[6], os_b1);
-        EXPECT_EQ(cgi.Sequences()[7], os_a0b1);
-        EXPECT_EQ(cgi.Sequences()[8], os_a1b1);
-
-        EXPECT_THROW([[maybe_unused]] const auto& s = cgi.Symbols(), Moment::errors::BadCGError);
-        EXPECT_THROW([[maybe_unused]] const auto& r = cgi.RealIndices(), Moment::errors::BadCGError);
+        EXPECT_EQ(cgi.Data()[0].sequence, os_id);
+        EXPECT_EQ(cgi.Data()[1].sequence, os_a0);
+        EXPECT_EQ(cgi.Data()[2].sequence, os_a1);
+        EXPECT_EQ(cgi.Data()[3].sequence, os_b0);
+        EXPECT_EQ(cgi.Data()[4].sequence, os_a0b0);
+        EXPECT_EQ(cgi.Data()[5].sequence, os_a1b0);
+        EXPECT_EQ(cgi.Data()[6].sequence, os_b1);
+        EXPECT_EQ(cgi.Data()[7].sequence, os_a0b1);
+        EXPECT_EQ(cgi.Data()[8].sequence, os_a1b1);
 
         system.generate_dictionary(2);
         system.RefreshCollinsGisin();
@@ -170,34 +165,33 @@ namespace Moment::Tests {
         const auto& s_a1b1 = *system.Symbols().where(os_a1b1);
 
 
-        ASSERT_EQ(cgi.Symbols().size(), 9);
-        ASSERT_EQ(cgi.RealIndices().size(), 9);
-        EXPECT_EQ(cgi.Symbols()[0], s_id.Id());
-        EXPECT_EQ(cgi.RealIndices()[0], s_id.basis_key().first);
+        ASSERT_EQ(cgi.Data().size(), 9);
+        EXPECT_EQ(cgi.Data()[0].symbol_id, s_id.Id());
+        EXPECT_EQ(cgi.Data()[0].real_index, s_id.basis_key().first);
 
-        EXPECT_EQ(cgi.Symbols()[1], s_a0.Id());
-        EXPECT_EQ(cgi.RealIndices()[1], s_a0.basis_key().first);
+        EXPECT_EQ(cgi.Data()[1].symbol_id, s_a0.Id());
+        EXPECT_EQ(cgi.Data()[1].real_index, s_a0.basis_key().first);
 
-        EXPECT_EQ(cgi.Symbols()[2], s_a1.Id());
-        EXPECT_EQ(cgi.RealIndices()[2], s_a1.basis_key().first);
+        EXPECT_EQ(cgi.Data()[2].symbol_id, s_a1.Id());
+        EXPECT_EQ(cgi.Data()[2].real_index, s_a1.basis_key().first);
 
-        EXPECT_EQ(cgi.Symbols()[3], s_b0.Id());
-        EXPECT_EQ(cgi.RealIndices()[3], s_b0.basis_key().first);
+        EXPECT_EQ(cgi.Data()[3].symbol_id, s_b0.Id());
+        EXPECT_EQ(cgi.Data()[3].real_index, s_b0.basis_key().first);
 
-        EXPECT_EQ(cgi.Symbols()[4], s_a0b0.Id());
-        EXPECT_EQ(cgi.RealIndices()[4], s_a0b0.basis_key().first);
+        EXPECT_EQ(cgi.Data()[4].symbol_id, s_a0b0.Id());
+        EXPECT_EQ(cgi.Data()[4].real_index, s_a0b0.basis_key().first);
 
-        EXPECT_EQ(cgi.Symbols()[5], s_a1b0.Id());
-        EXPECT_EQ(cgi.RealIndices()[5], s_a1b0.basis_key().first);
+        EXPECT_EQ(cgi.Data()[5].symbol_id, s_a1b0.Id());
+        EXPECT_EQ(cgi.Data()[5].real_index, s_a1b0.basis_key().first);
 
-        EXPECT_EQ(cgi.Symbols()[6], s_b1.Id());
-        EXPECT_EQ(cgi.RealIndices()[6], s_b1.basis_key().first);
+        EXPECT_EQ(cgi.Data()[6].symbol_id, s_b1.Id());
+        EXPECT_EQ(cgi.Data()[6].real_index, s_b1.basis_key().first);
 
-        EXPECT_EQ(cgi.Symbols()[7], s_a0b1.Id());
-        EXPECT_EQ(cgi.RealIndices()[7], s_a0b1.basis_key().first);
+        EXPECT_EQ(cgi.Data()[7].symbol_id, s_a0b1.Id());
+        EXPECT_EQ(cgi.Data()[7].real_index, s_a0b1.basis_key().first);
 
-        EXPECT_EQ(cgi.Symbols()[8], s_a1b1.Id());
-        EXPECT_EQ(cgi.RealIndices()[8], s_a1b1.basis_key().first);
+        EXPECT_EQ(cgi.Data()[8].symbol_id, s_a1b1.Id());
+        EXPECT_EQ(cgi.Data()[8].real_index, s_a1b1.basis_key().first);
 
 
     }

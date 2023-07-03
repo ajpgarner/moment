@@ -150,7 +150,7 @@ namespace Moment::Locality {
         }
 
         return std::span<const oper_name_t>{
-                this->operators().begin(), this->operators().end()
+                this->included_operators.begin(), this->included_operators.end()
         };
     }
 

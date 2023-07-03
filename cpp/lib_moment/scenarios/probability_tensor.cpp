@@ -24,9 +24,10 @@ namespace Moment {
         }
     }
 
-    ProbabilityTensor::ProbabilityTensor(const CollinsGisin &collinsGisin, ConstructInfo&& info)
-        : Tensor{std::move(info.totalDimensions)}, collinsGisin{collinsGisin}, hasSymbols(ElementCount) {
-
+    ProbabilityTensor::ProbabilityTensor(const CollinsGisin &collinsGisin, ConstructInfo&& info,
+                                         const TensorStorageType storage)
+        : AutoStorageTensor{std::move(info.totalDimensions), storage},
+          collinsGisin{collinsGisin}, hasSymbols(ElementCount) {
 
         this->make_dimension_info(info);
 
@@ -88,87 +89,19 @@ namespace Moment {
         // Loop over elements
         while (elementIndexIter) {
             const auto& elementIndex = *elementIndexIter;
-
-            // Calculate maximum length of operator sequence
-            size_t level = 0;
-            for (auto e : elementIndex) {
-                if (e != 0) {
-                    ++level;
-                }
-            }
-
-            // Get what measurement we refer to, and which indices are implied
-            this->element_info(elementIndex, elemInfo);
-
-            // Number of implicit indices to fill
-            const auto num_implicit = elemInfo.implicitMmts.size();
-
-            if (num_implicit == 0) {
-                // Construct single monomial
-                const auto index = this->collinsGisin.index_to_offset(elemInfo.baseIndex);
-                this->data.emplace_back(Monomial{static_cast<symbol_name_t>(index), 1.0});
-
-                // Move on to next symbol
-                ++elementIndexIter;
-                continue;
-            }
-
-            // Otherwise, we must build a polynomial algorithmically
-            Polynomial::storage_t symbolComboData;
-            double the_sign = (num_implicit % 2 == 0) ? +1. : -1.;
-
-            // L = 0 term is ID.
-            for (size_t L = 1; L <= num_implicit; ++L) {
-
-                CollinsGisinIndex cgBase(elemInfo.baseIndex.cbegin(), elemInfo.baseIndex.cend());
-                CollinsGisinIndex cgLast(elemInfo.finalIndex.cbegin(), elemInfo.finalIndex.cend());
-
-
-                // Choose L free indices from the implicit indices
-                PartitionIterator partitions{num_implicit, L};
-                while (!partitions.done()) {
-                    // Get first and last CG elements
-                    for (size_t rw_idx = 0; rw_idx < num_implicit; ++rw_idx) {
-                        size_t remap_index = elemInfo.implicitMmts[rw_idx];
-                        if (partitions.bits(rw_idx)) { // Get all
-                            cgBase[remap_index] = elemInfo.baseIndex[remap_index];
-                            cgLast[remap_index] = elemInfo.finalIndex[remap_index];
-                        } else { // Set to ID
-                            cgBase[remap_index] = 0;
-                            cgLast[remap_index] = 1;
-                        }
-                    }
-
-                    // TODO: iterator 'repurpose'
-                    CollinsGisinIterator cgIter{this->collinsGisin, CollinsGisinIndex(cgBase),
-                                                                    CollinsGisinIndex(cgLast)};
-                    while (cgIter) {
-                        symbolComboData.emplace_back(cgIter.offset(), the_sign);
-                        ++cgIter;
-                    }
-                    ++partitions;
-                }
-                the_sign = -the_sign;
-            }
-
-            // Finally, find the "Normalization" term
-            assert(the_sign == 1); // If correctly alternating, normalization should be positive always.
-            symbolComboData.emplace_back(1, the_sign);
-
-            // Now, construct polynomial
-            this->data.emplace_back(std::move(symbolComboData));
-
-            // Go to next index
+            this->data.emplace_back(this->do_make_element(elementIndex, elemInfo));
             ++elementIndexIter;
         }
     }
 
 
-    const std::vector<Polynomial>& ProbabilityTensor::CGPolynomials() const {
-        if (this->data.empty()) {
-            throw errors::BadPTError{"No polynomials are cached."};
+    Polynomial ProbabilityTensor::CGPolynomial(const ProbabilityTensorIndexView indices) const {
+        this->validate_index(indices);
+        if (this->StorageType == TensorStorageType::Explicit) {
+            return this->data[this->index_to_offset_no_checks(indices)].cgPolynomial;
+        } else {
+            return this->make_element_no_checks(indices).cgPolynomial;
         }
-        return this->data;
     }
 
 
@@ -204,4 +137,72 @@ namespace Moment {
             }
         }
     }
+
+    ProbabilityTensorElement ProbabilityTensor::make_element_no_checks(const Tensor::IndexView elementIndex) const {
+        ElementConstructInfo elemInfo(this->Dimensions.size());
+        return this->do_make_element(elementIndex, elemInfo);
+    }
+
+    ProbabilityTensorElement
+    ProbabilityTensor::do_make_element(const Tensor::IndexView elementIndex, ElementConstructInfo& elemInfo) const {
+
+        // Get what measurement we refer to, and which indices are implied
+        this->element_info(elementIndex, elemInfo);
+
+        // Number of implicit indices to fill
+        const auto num_implicit = elemInfo.implicitMmts.size();
+
+        if (num_implicit == 0) {
+            // Construct single monomial
+            const auto index = this->collinsGisin.index_to_offset(elemInfo.baseIndex);
+
+            return ProbabilityTensorElement{Polynomial{Monomial{static_cast<symbol_name_t>(index), 1.0}}};
+        }
+
+        // Otherwise, we must build a polynomial algorithmically
+        Polynomial::storage_t symbolComboData;
+        double the_sign = (num_implicit % 2 == 0) ? +1. : -1.;
+
+        // L = 0 term is ID.
+        for (size_t L = 1; L <= num_implicit; ++L) {
+
+            CollinsGisinIndex cgBase(elemInfo.baseIndex.cbegin(), elemInfo.baseIndex.cend());
+            CollinsGisinIndex cgLast(elemInfo.finalIndex.cbegin(), elemInfo.finalIndex.cend());
+
+
+            // Choose L free indices from the implicit indices
+            PartitionIterator partitions{num_implicit, L};
+            while (!partitions.done()) {
+                // Get first and last CG elements
+                for (size_t rw_idx = 0; rw_idx < num_implicit; ++rw_idx) {
+                    size_t remap_index = elemInfo.implicitMmts[rw_idx];
+                    if (partitions.bits(rw_idx)) { // Get all
+                        cgBase[remap_index] = elemInfo.baseIndex[remap_index];
+                        cgLast[remap_index] = elemInfo.finalIndex[remap_index];
+                    } else { // Set to ID
+                        cgBase[remap_index] = 0;
+                        cgLast[remap_index] = 1;
+                    }
+                }
+
+                // TODO: iterator 'repurpose'
+                CollinsGisinIterator cgIter{this->collinsGisin, CollinsGisinIndex(cgBase),
+                                            CollinsGisinIndex(cgLast)};
+                while (cgIter) {
+                    symbolComboData.emplace_back(cgIter.offset(), the_sign);
+                    ++cgIter;
+                }
+                ++partitions;
+            }
+            the_sign = -the_sign;
+        }
+
+        // Finally, find the "Normalization" term
+        assert(the_sign == 1); // If correctly alternating, normalization should be positive always.
+        symbolComboData.emplace_back(1, the_sign);
+
+        // Now, construct polynomial
+        return ProbabilityTensorElement{Polynomial{std::move(symbolComboData)}};
+    }
+
 }

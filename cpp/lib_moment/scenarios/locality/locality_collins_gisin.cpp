@@ -25,27 +25,15 @@ namespace Moment::Locality {
             }
             return output;
         }
-
-        OperatorSequence make_op_seq(const LocalityContext& context, std::span<const size_t> index) {
-            sequence_storage_t ops;
-            for (size_t p = 0, pMax = context.Parties.size(); p < pMax; ++p) {
-                if (0 == index[p]) {
-                    continue;
-                }
-                ops.emplace_back(context.Parties[p][index[p]-1]);
-            }
-
-            return OperatorSequence{std::move(ops), context};
-        }
-
     }
 
     LocalityCollinsGisin::LocalityCollinsGisin(const LocalityMatrixSystem &matrixSystem)
-        : CollinsGisin{make_dimensions(matrixSystem.localityContext.operators_per_party())},
-          context{matrixSystem.localityContext} {
+        : CollinsGisin{matrixSystem.Context(), matrixSystem.Symbols(),
+                       make_dimensions(matrixSystem.localityContext.operators_per_party())},
+          localityContext{matrixSystem.localityContext} {
 
         // Prepare global measurement -> party/measurement data
-        for (const auto& party : context.Parties) {
+        for (const auto& party : localityContext.Parties) {
             size_t party_offset = 1; // [Offset 0 is reserved for identity operator.]
             for (const auto& mmt : party.Measurements) {
                 this->gmIndex.emplace_back(static_cast<size_t>(party.id()),
@@ -55,14 +43,24 @@ namespace Moment::Locality {
             }
         }
 
-        // Build array in column-major format, for quick export to matlab.
-        for (const auto& cgIndex : MultiDimensionalIndexRange<true>{Dimensions}) {
-            this->sequences.emplace_back(make_op_seq(this->context, cgIndex));
+        // Prepare dimension information
+        for (size_t d = 0; d < DimensionCount; ++d) {
+            const auto& party = localityContext.Parties[d];
+            this->dimensionInfo[d].op_ids.reserve(this->Dimensions[d]);
+            this->dimensionInfo[d].op_ids.emplace_back(-1); // index 0 is always no-op.
+            const auto party_ops = party.operators();
+            std::copy(party_ops.begin(), party_ops.end(), std::back_inserter(this->dimensionInfo[d].op_ids));
         }
 
-        // Try to find symbols
-        this->do_initial_symbol_search(matrixSystem.Symbols());
+        // Build array in column-major format, for quick export to matlab.
+        if (this->StorageType == TensorStorageType::Explicit) {
+            for (const auto &cgIndex: MultiDimensionalIndexRange<true>{Dimensions}) {
+                this->data.emplace_back(*this, cgIndex);
+                //this->sequences.emplace_back(this->make_op_sequence(cgIndex));
+            }
 
+            // Try to find initial symbols
+            this->do_initial_symbol_search();
+        }
     }
-
 }

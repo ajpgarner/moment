@@ -44,7 +44,8 @@ namespace Moment::Inflation {
     }
 
     InflationCollinsGisin::InflationCollinsGisin(const InflationMatrixSystem &matrixSystem)
-            : CollinsGisin{make_dimensions(matrixSystem.InflationContext())},
+            : CollinsGisin{matrixSystem.Context(), matrixSystem.Symbols(),
+                           make_dimensions(matrixSystem.InflationContext())},
               context{matrixSystem.InflationContext()} {
 
 
@@ -60,17 +61,17 @@ namespace Moment::Inflation {
 //        }
 
         // TODO: Decide, do we want 'AxAy' statistics, or just 'AxBy...' statistics?
-
-        const auto& symbol_table = matrixSystem.Symbols();
-
-
-        // Build array in column-major format, for quick export to matlab.
-        for (const auto& cgIndex : MultiDimensionalIndexRange<true>{Dimensions}) {
-            this->sequences.emplace_back(make_op_seq(this->context, cgIndex));
-        }
-
-        // Try to find symbols
-        this->do_initial_symbol_search(matrixSystem.Symbols());
+//
+//        const auto& symbol_table = matrixSystem.Symbols();
+//
+//
+////        // Build array in column-major format, for quick export to matlab.
+////        for (const auto& cgIndex : MultiDimensionalIndexRange<true>{Dimensions}) {
+////            this->sequences.emplace_back(make_op_seq(this->context, cgIndex));
+////        }
+//
+//        // Try to find symbols
+//        this->do_initial_symbol_search();
 
     }
 

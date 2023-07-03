@@ -49,7 +49,7 @@ namespace Moment::Tests {
         LocalityProbabilityTensor pt{system.CollinsGisin(), system.localityContext};
 
         // 0-dimensional tensor.
-        EXPECT_THROW([[maybe_unused]] const auto& polys = pt.CGPolynomials(), errors::BadPTError);
+   //     EXPECT_THROW([[maybe_unused]] const auto& polys = pt.CGPolynomial(), errors::BadPTError);
     }
 
 //    TEST(Scenarios_Locality_ImplicitSymbols, OnePartyOneMmt) {

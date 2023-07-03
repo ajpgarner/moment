@@ -8,12 +8,22 @@
 #pragma once
 
 #include "collins_gisin.h"
+
 #include "utilities/multi_dimensional_offset_index_iterator.h"
 
+#include <optional>
+
 namespace Moment {
+    /**
+     * Iterator over elements in CG class.
+     * Iterator must not be shared between threads!
+     */
     class CollinsGisinIterator {
     private:
         const CollinsGisin* collinsGisinPtr;
+
+        /** Evaluated current entry (only in virtual mode). */
+        mutable std::optional<CollinsGisinEntry> current_entry;
 
         MultiDimensionalOffsetIndexIterator<true, CollinsGisinIndex> mdoii;
         size_t current_offset;
@@ -52,9 +62,14 @@ namespace Moment {
         /**
          * Gets current CG index.
          */
-        [[nodiscard]] inline const CollinsGisinIndex& operator*() const noexcept {
+        [[nodiscard]] inline const CollinsGisinIndex& index() const noexcept {
             return *this->mdoii;
         }
+
+         /**
+         * Gets current CG index.
+         */
+        [[nodiscard]] inline const CollinsGisinEntry& operator*() const;
 
         /**
          * Equality test.
@@ -87,9 +102,7 @@ namespace Moment {
         /**
          * Pointed to operator sequence.
          */
-        [[nodiscard]] inline const OperatorSequence& sequence() const noexcept {
-            return this->collinsGisinPtr->Sequences()[this->current_offset];
-        }
+        [[nodiscard]] const OperatorSequence& sequence() const;
 
         /**
          * Pointed to symbol ID, if known.
@@ -100,6 +113,9 @@ namespace Moment {
          * Pointed to real basis element, if known.
          */
         [[nodiscard]] ptrdiff_t real_basis() const;
+
+    private:
+        void make_cached_entry() const;
     };
 
     class CollinsGisinRange {

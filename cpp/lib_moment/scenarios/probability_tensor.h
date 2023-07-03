@@ -29,10 +29,23 @@ namespace Moment {
         };
     };
 
+    /** The number of elements, below which we cache the probability tensor explicitly. */
+    constexpr static const size_t PT_explicit_element_limit = 1024ULL;
+
+    struct ProbabilityTensorElement {
+    public:
+        Polynomial cgPolynomial;
+        Polynomial actualPolynomial;
+
+    public:
+        explicit ProbabilityTensorElement(Polynomial&& cgPoly)
+            : cgPolynomial(std::move(cgPoly)) { }
+    };
+
     /**
      * Similar to the Collins-Gisin tensor, but also includes /implicit/ dependent probabilities (e.g. a1 = 1 - a0, etc.)
      */
-    class ProbabilityTensor : public Tensor {
+    class ProbabilityTensor : public AutoStorageTensor<ProbabilityTensorElement, PT_explicit_element_limit> {
     public:
         struct ConstructInfo {
             /** Total number of outcomes per party over all measurements. */
@@ -89,24 +102,33 @@ namespace Moment {
     private:
         std::vector<OneDimensionInfo> dimensionInfo;
 
-        std::vector<Polynomial> data;
+//        std::vector<Polynomial> data;
 
         DynamicBitset<uint64_t, size_t> hasSymbols;
 
 
     public:
-        ProbabilityTensor(const CollinsGisin& collinsGisin, ConstructInfo&& constructInfo);
+        ProbabilityTensor(const CollinsGisin& collinsGisin, ConstructInfo&& constructInfo,
+                          TensorStorageType storage = TensorStorageType::Automatic);
 
         /** Deduce information about element. */
         [[nodiscard]] ElementConstructInfo element_info(ProbabilityTensorIndexView index) const;
 
 
-        [[nodiscard]] const std::vector<Polynomial>& CGPolynomials() const;
+        [[nodiscard]] Polynomial CGPolynomial(ProbabilityTensorIndexView index) const;
 
 
+    protected:
+        ProbabilityTensorElement make_element_no_checks(Tensor::IndexView index) const override;
 
+        std::string get_name() const override {
+            return "Probability tensor";
+        }
 
     private:
+        ProbabilityTensorElement do_make_element(Tensor::IndexView elementIndex,
+                                                 ElementConstructInfo& eci) const;
+
         void make_dimension_info(const ConstructInfo& info);
 
         void calculate_implicit_symbols();

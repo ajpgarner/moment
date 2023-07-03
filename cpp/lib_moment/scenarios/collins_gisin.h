@@ -31,16 +31,42 @@ namespace Moment {
         };
     };
 
+    class CollinsGisin;
     class CollinsGisinIterator;
     class CollinsGisinRange;
     using CollinsGisinIndex = Tensor::Index;
     using CollinsGisinIndexView = Tensor::IndexView;
 
+    /** The number of elements, below which we cache the CG tensor explicitly. */
+    constexpr static const size_t CG_explicit_element_limit = 1024ULL;
+
+    struct CollinsGisinEntry {
+    public:
+        OperatorSequence sequence;
+
+        symbol_name_t symbol_id = -1;
+
+        ptrdiff_t real_index = -1;
+
+    public:
+        /**
+         * Make operator sequence.
+         * No bounds checks are done on the index.
+         */
+        explicit CollinsGisinEntry(const CollinsGisin& cgt, CollinsGisinIndexView index);
+
+        bool find(const SymbolTable& table) noexcept;
+
+        void find_or_fail(const SymbolTable& table);
+
+    };
+
     /**
      * Collins-Gisin tensor: an indexing scheme for real-valued operators that correspond to measurement outcomes.
      */
-    class CollinsGisin : public Tensor {
-    protected:
+    class CollinsGisin : public AutoStorageTensor<CollinsGisinEntry, CG_explicit_element_limit> {
+
+    public:
         struct GlobalMeasurementIndex {
             /** Which dimension of tensor does this measurement correspond to */
             size_t party;
@@ -53,17 +79,25 @@ namespace Moment {
             GlobalMeasurementIndex(size_t p, size_t o, size_t l) : party{p}, offset{o}, length{l} { }
         };
 
+        struct DimensionInfo {
+            std::vector<oper_name_t> op_ids;
+        };
+
+    public:
+        const Context& context;
+
+        const SymbolTable& symbol_table;
 
     protected:
-        std::vector<ptrdiff_t> real_indices;
 
-        std::vector<OperatorSequence> sequences;
-
-        std::vector<symbol_name_t> symbols;
-
-        std::set<size_t> missing_symbols;
-
+        /** Map from global measurement numbers to tensor indices. */
         std::vector<GlobalMeasurementIndex> gmIndex;
+
+        /** Information about each dimension. */
+        std::vector<DimensionInfo> dimensionInfo;
+
+        /** Cached: missing real symbols. */
+        std::set<size_t> missing_symbols;
 
     private:
         mutable std::shared_mutex symbol_mutex;
@@ -73,41 +107,30 @@ namespace Moment {
          * Construct Collins-Gisin tensor object.
          * @param dimensions The tensor's dimensions.
          */
-        explicit CollinsGisin(std::vector<size_t>&& dimensions);
+        explicit CollinsGisin(const Context& context, const SymbolTable& symbol_table,
+                              std::vector<size_t>&& dimensions,
+                              TensorStorageType storage = TensorStorageType::Automatic);
 
         /**
          * Attempt to populate symbol IDs for first time, and identify which are still missing.
          */
-        void do_initial_symbol_search(const SymbolTable& symbols);
+        void do_initial_symbol_search();
 
     public:
         /**
          * Attempt to find all missing symbol IDs.
          * @return True if all symbols are now filled.
          */
-        bool fill_missing_symbols(const SymbolTable& symbol_table) noexcept;
+        bool fill_missing_symbols() noexcept;
 
     public:
-
-        /**
-         * Gets all operator sequences in tensor.
-         */
-        [[nodiscard]] const std::vector<OperatorSequence>& Sequences() const noexcept { return this->sequences; }
 
         /**
          * Gets indexed operator sequence
          * @param index Collins-Gisin index to operator sequence
          * @throws BadCGError If index is invalid.
          */
-        [[nodiscard]] const OperatorSequence& Sequences(CollinsGisinIndexView index) const {
-            return this->Sequences()[index_to_offset(index)];
-        }
-
-        /**
-         * Gets all symbols.
-         * @throws BadCGError If any operators have not yet been identified in symbol table.
-         */
-        [[nodiscard]] const std::vector<symbol_name_t>& Symbols() const;
+        [[nodiscard]] OperatorSequence Sequence(CollinsGisinIndexView index) const;
 
         /**
          * Gets indexed symbol ID.
@@ -115,13 +138,7 @@ namespace Moment {
          * @throws BadCGError If index is invalid.
          * @throws BadCGError If op sequence at index has not been identified in symbol table.
          */
-        [[nodiscard]] symbol_name_t Symbols(CollinsGisinIndexView index) const;
-
-        /**
-         * Gets all real basis elements.
-         * @throws BadCGError If any operators have not yet been identified in symbol table.
-         */
-        [[nodiscard]] const std::vector<ptrdiff_t>& RealIndices() const;
+        [[nodiscard]] symbol_name_t Symbol(CollinsGisinIndexView index) const;
 
         /**
          * Gets indexed real basis element
@@ -129,17 +146,12 @@ namespace Moment {
          * @throws BadCGError If index is invalid.
          * @throws BadCGError If op sequence at index has not been identified in symbol table.
          */
-        [[nodiscard]] ptrdiff_t RealIndices(CollinsGisinIndexView index) const;
+        [[nodiscard]] ptrdiff_t RealIndex(CollinsGisinIndexView index) const;
 
         /**
          * True if every symbol in tensor has been identified.
          */
         [[nodiscard]] bool HasAllSymbols() const noexcept;
-
-        /**
-         * Translates Storage index in tensor to Collins-Gisin index.
-         */
-        [[nodiscard]] CollinsGisinIndex offset_to_index(size_t offset) const;
 
         /**
          * Get offset of all operators belonging to a supplied set of (global) measurement indices.
@@ -160,8 +172,15 @@ namespace Moment {
         [[nodiscard]] CollinsGisinRange measurement_to_range(std::span<const size_t> mmtIndices,
                                                              std::span<const oper_name_t> fixedOutcomes) const;
 
+    protected:
+        [[nodiscard]] CollinsGisinEntry make_element_no_checks(Tensor::IndexView index) const override;
+
+        [[nodiscard]] std::string get_name() const override {
+            return "Collins-Gisin tensor";
+        }
 
     public:
+        friend class CollinsGisinEntry;
         friend class CollinsGisinIterator;
         friend class ProbabilityTensor;
 
