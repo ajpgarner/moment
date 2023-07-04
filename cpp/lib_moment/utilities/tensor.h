@@ -350,26 +350,143 @@ namespace Moment {
             }
         };
 
-        template<std::derived_from<AutoStorageTensor::Iterator> iter_t = AutoStorageTensor::Iterator,
-                typename tensor_t = AutoStorageTensor>
+
+        /**
+         * Iterator over entire tensor.
+         */
+        class FullIterator {
+        public:
+            struct end_tag_t{};
+        private:
+            const AutoStorageTensor* tensorPtr;
+            std::variant<typename std::vector<Element>::const_iterator, Iterator> implIter;
+            std::optional<typename std::vector<Element>::const_iterator> directIterEnd;
+
+        public:
+            FullIterator(const AutoStorageTensor& tensor) : tensorPtr(&tensor) {
+                if (tensor.StorageType == TensorStorageType::Explicit) {
+                    this->implIter.template emplace<0>(tensor.data.cbegin());
+                    this->directIterEnd = tensor.data.cend();
+                } else {
+                    this->implIter.template emplace<1>(tensor,
+                            Tensor::Index(tensor.DimensionCount, 0),
+                            Tensor::Index(tensor.Dimensions));
+                    this->directIterEnd = std::nullopt;
+                }
+            }
+
+            FullIterator(const AutoStorageTensor& tensor, end_tag_t) : tensorPtr(&tensor) {
+                if (tensor.StorageType == TensorStorageType::Explicit) {
+                    this->implIter.template emplace<0>(tensor.data.cend());
+                    this->directIterEnd = tensor.data.cend();
+                } else {
+                    this->implIter.template emplace<1>(tensor);
+                    this->directIterEnd = std::nullopt;
+                }
+            }
+
+            [[nodiscard]] inline bool explicit_mode() const noexcept {
+                return implIter.index() == 0;
+            }
+
+
+            Index index() const {
+                if (implIter.index() == 0) {
+                    const size_t offset = std::distance(tensorPtr->data.cbegin(), std::get<0>(implIter));
+                    return tensorPtr->offset_to_index_no_checks(offset);
+                } else {
+                    const auto index_view = std::get<1>(implIter).index();
+                    return Index(index_view.begin(), index_view.end());
+                }
+            }
+
+            size_t offset() const {
+                if (implIter.index() == 0) {
+                    return std::distance(tensorPtr->data.cbegin(), std::get<0>(implIter));
+                } else {
+                    const auto index_view = std::get<1>(implIter).index();
+                    return tensorPtr->index_to_offset_no_checks(index_view);
+                }
+            }
+
+            FullIterator& operator++() noexcept {
+                if (implIter.index() == 0) {
+                    ++std::get<0>(implIter);
+                } else {
+                    ++std::get<1>(implIter);
+                }
+                return *this;
+            }
+
+            [[nodiscard]] const Element& operator*() const {
+                if (implIter.index() == 0) {
+                    return *std::get<0>(implIter);
+                } else {
+                    return *std::get<1>(implIter);
+                }
+            }
+
+            [[nodiscard]] const Element* operator->() const  {
+                if (implIter.index() == 0) {
+                    return std::get<0>(implIter).operator->();
+                } else {
+                    return std::get<1>(implIter).operator->();
+                }
+            }
+
+            [[nodiscard]] bool operator==(const FullIterator& rhs) const noexcept {
+                assert(rhs.implIter.index() == this->implIter.index());
+                if (this->implIter.index() == 0) {
+                    return std::get<0>(this->implIter) == std::get<0>(rhs.implIter);
+                } else {
+                    return std::get<1>(this->implIter) == std::get<1>(rhs.implIter);
+                }
+            }
+
+            [[nodiscard]] inline bool operator!=(const FullIterator& rhs) const noexcept {
+                return !this->operator==(rhs);
+            }
+
+            [[nodiscard]] operator bool() const {
+                if (this->implIter.index() == 0) {
+                    assert(this->directIterEnd.has_value());
+                    return (std::get<0>(this->implIter) != this->directIterEnd.value());
+                } else {
+                    return std::get<1>(this->implIter).operator bool();
+                }
+            }
+
+            [[nodiscard]] bool operator!() const {
+                if (this->implIter.index() == 0) {
+                    assert(this->directIterEnd.has_value());
+                    return (std::get<0>(this->implIter) == this->directIterEnd.value());
+                } else {
+                    return std::get<1>(this->implIter).operator!();
+                }
+            }
+
+
+        };
+
+        template<typename tensor_t = AutoStorageTensor>
         class Range {
         private:
             const tensor_t& tensor;
             const Index first;
             const Index last;
 
-            const iter_t iter_end;
+            const Iterator iter_end;
 
         public:
             Range(const tensor_t& tensor, Index&& first, Index&& last)
                     : tensor{tensor}, first(std::move(first)), last(std::move(last)),
                       iter_end{tensor} { }
 
-            [[nodiscard]] inline iter_t begin() const {
-                return iter_t{tensor, Index(this->first), Index(this->last)};
+            [[nodiscard]] inline Iterator begin() const {
+                return Iterator{tensor, Index(this->first), Index(this->last)};
             }
 
-            [[nodiscard]] inline const iter_t& end() const noexcept {
+            [[nodiscard]] inline const Iterator& end() const noexcept {
                 return this->iter_end;
             }
         };
@@ -379,6 +496,7 @@ namespace Moment {
         constexpr static const size_t automated_storage_threshold = threshold;
 
         const TensorStorageType StorageType;
+
 
     protected:
         std::vector<Element> data;
@@ -401,18 +519,28 @@ namespace Moment {
             return ElementView{*this, indices};
         }
 
+        /** Iterate over entire tensor */
+        [[nodiscard]] FullIterator begin() const {
+            return FullIterator{*this};
+        }
+
+        /** Iterate over entire tensor */
+        [[nodiscard]] FullIterator end() const {
+            return FullIterator{*this, typename FullIterator::end_tag_t{}};
+        }
+
         /** Get element by index */
         inline ElementView at(const size_t offset) const {
             return ElementView{*this, offset};
         }
 
-        template<typename range_t = AutoStorageTensor<elem_t, threshold>::Range<AutoStorageTensor<elem_t, threshold>::Iterator>>
+        template<typename range_t = AutoStorageTensor<elem_t, threshold>::Range<AutoStorageTensor<elem_t, threshold>>>
         [[nodiscard]] range_t Splice(Index&& min, Index&& max) {
             this->validate_range(min, max);
             return range_t{*this, std::move(min), std::move(max)};
         }
 
-        template<typename range_t = AutoStorageTensor<elem_t, threshold>::Range<AutoStorageTensor<elem_t, threshold>::Iterator>>
+        template<typename range_t = AutoStorageTensor<elem_t, threshold>::Range<AutoStorageTensor<elem_t, threshold>>>
         [[nodiscard]] range_t Splice(const IndexView minV, const IndexView maxV) {
             this->validate_range(minV, maxV);
             return range_t{*this, Index(minV.begin(), minV.end()), Index(maxV.begin(), maxV.end())};

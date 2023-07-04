@@ -50,7 +50,7 @@ namespace Moment {
      */
     class ProbabilityTensor : public AutoStorageTensor<ProbabilityTensorElement, PT_explicit_element_limit> {
     public:
-        using ProbabilityTensorRange = ProbabilityTensor::Range<ProbabilityTensor::Iterator, ProbabilityTensor>;
+        using ProbabilityTensorRange = ProbabilityTensor::Range<ProbabilityTensor>;
 
         /** Utility structure: grouping of properties required to set up tensor. */
         struct TensorConstructInfo {

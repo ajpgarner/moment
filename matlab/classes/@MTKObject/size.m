@@ -1,5 +1,12 @@
 function varargout = size(obj, varargin)
-    % SIZE The dimension of the object.
+% SIZE The dimensions of the object.
+    
+    % Special case for empty objects
+    if isempty(obj)
+        [varargout{1:nargout}] = builtin('size', obj, varargin{:});
+        return;
+    end
+        
     if nargout <= 1
         if nargin <= 1
             varargout{1} = obj.dimensions;

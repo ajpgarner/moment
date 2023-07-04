@@ -322,5 +322,75 @@ namespace Moment::Tests {
         EXPECT_EQ(view, 4);
     }
 
+    TEST(Utilities_Tensor, FullIterator_Explicit) {
+        BoringTensor tensor({2, 2}, TensorStorageType::Explicit);
+        ASSERT_EQ(tensor.StorageType, TensorStorageType::Explicit);
+
+        auto full_iter = tensor.begin();
+        const auto full_iter_end = tensor.end();
+        ASSERT_TRUE(full_iter.explicit_mode());
+
+        ASSERT_NE(full_iter, full_iter_end);
+        EXPECT_EQ(*full_iter, 0);
+        EXPECT_EQ(full_iter.offset(), 0);
+        EXPECT_EQ(full_iter.index(), (BoringTensor::Index{0, 0}));
+
+        ++full_iter;
+        ASSERT_NE(full_iter, full_iter_end);
+        EXPECT_EQ(*full_iter, 1);
+        EXPECT_EQ(full_iter.offset(), 1);
+        EXPECT_EQ(full_iter.index(), (BoringTensor::Index{1, 0}));
+
+        ++full_iter;
+        ASSERT_NE(full_iter, full_iter_end);
+        EXPECT_EQ(*full_iter, 2);
+        EXPECT_EQ(full_iter.offset(), 2);
+        EXPECT_EQ(full_iter.index(), (BoringTensor::Index{0, 1}));
+
+        ++full_iter;
+        ASSERT_NE(full_iter, full_iter_end);
+        EXPECT_EQ(*full_iter, 3);
+        EXPECT_EQ(full_iter.offset(), 3);
+        EXPECT_EQ(full_iter.index(), (BoringTensor::Index{1, 1}));
+
+        ++full_iter;
+        EXPECT_EQ(full_iter, full_iter_end);
+    }
+
+    TEST(Utilities_Tensor, FullIterator_Virtual) {
+        BoringTensor tensor({2, 2}, TensorStorageType::Virtual);
+        ASSERT_EQ(tensor.StorageType, TensorStorageType::Virtual);
+
+        auto full_iter = tensor.begin();
+        const auto full_iter_end = tensor.end();
+        ASSERT_FALSE(full_iter.explicit_mode());
+
+        ASSERT_NE(full_iter, full_iter_end);
+        EXPECT_EQ(*full_iter, 0);
+        EXPECT_EQ(full_iter.offset(), 0);
+        EXPECT_EQ(full_iter.index(), (BoringTensor::Index{0, 0}));
+
+        ++full_iter;
+        ASSERT_NE(full_iter, full_iter_end);
+        EXPECT_EQ(*full_iter, 1);
+        EXPECT_EQ(full_iter.offset(), 1);
+        EXPECT_EQ(full_iter.index(), (BoringTensor::Index{1, 0}));
+
+        ++full_iter;
+        ASSERT_NE(full_iter, full_iter_end);
+        EXPECT_EQ(*full_iter, 2);
+        EXPECT_EQ(full_iter.offset(), 2);
+        EXPECT_EQ(full_iter.index(), (BoringTensor::Index{0, 1}));
+
+        ++full_iter;
+        ASSERT_NE(full_iter, full_iter_end);
+        EXPECT_EQ(*full_iter, 3);
+        EXPECT_EQ(full_iter.offset(), 3);
+        EXPECT_EQ(full_iter.index(), (BoringTensor::Index{1, 1}));
+
+        ++full_iter;
+        EXPECT_EQ(full_iter, full_iter_end);
+    }
+
 
 }

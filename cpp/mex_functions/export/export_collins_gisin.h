@@ -12,34 +12,36 @@
 
 namespace Moment {
     class SymbolTable;
+    class CollinsGisin;
+    class Context;
 
     namespace Locality {
         class LocalityContext;
         class LocalityOperatorFormatter;
-        class CollinsGisin;
     }
 
     namespace mex {
         class CollinsGisinExporter : Exporter {
         public:
-            const Moment::Locality::LocalityContext &context;
-            const SymbolTable &symbols;
+            const Context& context;
+            const SymbolTable& symbols;
 
             CollinsGisinExporter(matlab::engine::MATLABEngine &engine,
-                                 const Moment::Locality::LocalityContext &context, const SymbolTable& symbols)
-                    : Exporter{engine}, context{context}, symbols{symbols} { }
+                                 const Context &context, const SymbolTable& symbols);
 
-            [[nodiscard]] matlab::data::TypedArray<uint64_t> symbol_ids(const Moment::Locality::CollinsGisin& cg) const;
+            [[nodiscard]] std::pair<matlab::data::TypedArray<uint64_t>,
+                                    matlab::data::TypedArray<int64_t>>
+            symbol_and_basis(const Moment::CollinsGisin& cgi) const;
 
-            [[nodiscard]] matlab::data::TypedArray<int64_t> basis_elems(const Moment::Locality::CollinsGisin& cg) const;
-
-            [[nodiscard]] matlab::data::CellArray sequences(const Moment::Locality::CollinsGisin& cg) const;
-
-            [[nodiscard]] matlab::data::TypedArray<uint64_t> hashes(const Moment::Locality::CollinsGisin& cg) const;
+            [[nodiscard]] std::pair<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>>
+            sequence_and_hash(const Moment::CollinsGisin& cgi) const;
 
             [[nodiscard]] matlab::data::StringArray
-            strings(const Moment::Locality::CollinsGisin& cg,
+            strings(const Moment::CollinsGisin& cg,
                     const Moment::Locality::LocalityOperatorFormatter& formatter) const;
+
+            [[nodiscard]] matlab::data::StringArray
+            strings(const Moment::CollinsGisin& cg) const;
         };
     }
 }

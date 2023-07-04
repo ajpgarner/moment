@@ -13,10 +13,14 @@
 #include "utilities/read_as_scalar.h"
 #include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"
+
+#include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_matrix_system.h"
-#include "scenarios/locality/locality_implicit_symbols.h"
+#include "scenarios/locality/locality_probability_tensor.h"
+
+#include "scenarios/inflation/inflation_context.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
-#include "scenarios/inflation/inflation_implicit_symbols.h"
+#include "scenarios/inflation/inflation_probability_tensor.h"
 
 #include <cmath>
 #include <sstream>
@@ -191,47 +195,50 @@ namespace Moment::mex::functions {
     matlab::data::Array
     MakeExplicit::do_make_explicit(const Inflation::InflationMatrixSystem &ims, MakeExplicitParams &input) {
         auto ov_indices = mmts_to_ov_index(this->matlabEngine, ims.InflationContext(), input);
-        const auto& is_table = ims.ImplicitSymbolTable();
-
-        try {
-            auto explicit_form = is_table.implicit_to_explicit(ov_indices, input.values);
-
-            auto unit_value = explicit_form.find(1);
-            if (unit_value != explicit_form.end()) {
-                if ((!this->quiet) && (std::abs(unit_value->second - 1.0) > 1e-7)) {
-                    std::stringstream warningSS;
-                    warningSS << "Probability distribution supplied summed up to " << unit_value->second
-                              << " but unity was expected.\n";
-                    print_warning(this->matlabEngine, warningSS.str());
-                }
-                explicit_form.erase(unit_value);
-            }
-            return export_substitution_list(matlabEngine, explicit_form);
-        } catch (const Moment::errors::implicit_to_explicit_error& itee) {
-            throw_error(this->matlabEngine, errors::bad_param, itee.what());
-        }
+        throw std::runtime_error{"MakeExplicit::do_make_explicit not implemented."};
+//        const auto& is_table = ims.ImplicitSymbolTable();
+//
+//        try {
+//            auto explicit_form = is_table.implicit_to_explicit(ov_indices, input.values);
+//
+//            auto unit_value = explicit_form.find(1);
+//            if (unit_value != explicit_form.end()) {
+//                if ((!this->quiet) && (std::abs(unit_value->second - 1.0) > 1e-7)) {
+//                    std::stringstream warningSS;
+//                    warningSS << "Probability distribution supplied summed up to " << unit_value->second
+//                              << " but unity was expected.\n";
+//                    print_warning(this->matlabEngine, warningSS.str());
+//                }
+//                explicit_form.erase(unit_value);
+//            }
+//            return export_substitution_list(matlabEngine, explicit_form);
+//        } catch (const Moment::errors::implicit_to_explicit_error& itee) {
+//            throw_error(this->matlabEngine, errors::bad_param, itee.what());
+//        }
     }
 
     matlab::data::Array
     MakeExplicit::do_make_explicit(const Locality::LocalityMatrixSystem &lms, MakeExplicitParams &input) {
-        auto pm_indices = mmts_to_pm_index(this->matlabEngine, lms.localityContext, input);
-        const auto& is_table = lms.ImplicitSymbolTable();
-        try {
-            auto explicit_form = is_table.implicit_to_explicit(pm_indices, input.values);
+        throw std::runtime_error{"MakeExplicit::do_make_explicit not implemented."};
 
-            auto unit_value = explicit_form.find(1);
-            if (unit_value != explicit_form.end()) {
-                if ((!this->quiet) && (std::abs(unit_value->second - 1.0) > 1e-7)) {
-                    std::stringstream warningSS;
-                    warningSS << "Probability distribution supplied summed up to " << unit_value->second
-                              << " but unity was expected.\n";
-                    print_warning(this->matlabEngine, warningSS.str());
-                }
-                explicit_form.erase(unit_value);
-            }
-            return export_substitution_list(matlabEngine, explicit_form);
-        } catch (const Moment::errors::implicit_to_explicit_error& itee) {
-            throw_error(this->matlabEngine, errors::bad_param, itee.what());
-        }
+//        auto pm_indices = mmts_to_pm_index(this->matlabEngine, lms.localityContext, input);
+//        const auto& is_table = lms.ImplicitSymbolTable();
+//        try {
+//            auto explicit_form = is_table.implicit_to_explicit(pm_indices, input.values);
+//
+//            auto unit_value = explicit_form.find(1);
+//            if (unit_value != explicit_form.end()) {
+//                if ((!this->quiet) && (std::abs(unit_value->second - 1.0) > 1e-7)) {
+//                    std::stringstream warningSS;
+//                    warningSS << "Probability distribution supplied summed up to " << unit_value->second
+//                              << " but unity was expected.\n";
+//                    print_warning(this->matlabEngine, warningSS.str());
+//                }
+//                explicit_form.erase(unit_value);
+//            }
+//            return export_substitution_list(matlabEngine, explicit_form);
+//        } catch (const Moment::errors::implicit_to_explicit_error& itee) {
+//            throw_error(this->matlabEngine, errors::bad_param, itee.what());
+//        }
     }
 }

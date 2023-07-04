@@ -25,14 +25,25 @@ namespace Moment {
     class Symbol;
     class SymbolTable;
 
+    class CollinsGisin;
+
+
     namespace errors {
         class BadCGError : public std::runtime_error {
         public:
             explicit BadCGError(const std::string& what) : std::runtime_error(what) { }
+
+        public:
+            [[nodiscard]] static BadCGError make_missing_err(const CollinsGisin& cg);
+
+            [[nodiscard]] static BadCGError make_missing_index_err(std::span<const size_t> index,
+                                                                   const OperatorSequence& seq,
+                                                                   bool matlab_index = false);
         };
+
+
     };
 
-    class CollinsGisin;
     using CollinsGisinIndex = Tensor::Index;
     using CollinsGisinIndexView = Tensor::IndexView;
 
@@ -66,7 +77,7 @@ namespace Moment {
     class CollinsGisin : public AutoStorageTensor<CollinsGisinEntry, CG_explicit_element_limit> {
     public:
         using CollinsGisinIterator = CollinsGisin::Iterator;
-        using CollinsGisinRange = CollinsGisin::Range<CollinsGisinIterator, CollinsGisin>;
+        using CollinsGisinRange = CollinsGisin::Range<CollinsGisin>;
 
     public:
         struct GlobalMeasurementIndex {
@@ -154,6 +165,11 @@ namespace Moment {
          * True if every symbol in tensor has been identified.
          */
         [[nodiscard]] bool HasAllSymbols() const noexcept;
+
+        /**
+         * Set of missing symbols, if in explicit mode.
+         */
+        [[nodiscard]] const std::set<size_t>& MissingSymbols() const noexcept { return this->missing_symbols; }
 
         /**
          * Splice all operators belonging to a supplied set of (global) measurement indices.

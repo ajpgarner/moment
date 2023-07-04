@@ -53,7 +53,7 @@ classdef LocalityMatrixSystem < MatrixSystem
             arguments
                 obj (1,1) Locality.LocalityMatrixSystem
             end
-            obj.ProbabilityTable = mtk('probability_table', obj.RefId);
+            % obj.ProbabilityTable = mtk('probability_table', obj.RefId);
         end
     end 
 end

@@ -11,11 +11,10 @@
 #include "matrix/operator_matrix/moment_matrix.h"
 
 #include "scenarios/inflation/inflation_matrix_system.h"
-#include "scenarios/locality/locality_implicit_symbols.h"
+#include "scenarios/locality/locality_probability_tensor.h"
 #include "scenarios/locality/locality_matrix_system.h"
 #include "scenarios/locality/locality_operator_formatter.h"
 
-#include "export/export_implicit_symbols.h"
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 #include "utilities/visitor.h"
@@ -267,108 +266,109 @@ namespace Moment::mex::functions {
                                           ProbabilityTableParams& input, const Locality::LocalityMatrixSystem& lms) {
 
         using namespace Locality;
-
-        const LocalityContext& context = lms.localityContext;
-
-        // Get formatter
-        auto formatter = this->settings->get_locality_formatter();
-        assert(formatter);
-
-        // Create (or retrieve) implied sequence object
-        const LocalityImplicitSymbols& implSym = lms.ImplicitSymbolTable();
-
-        // Export whole table?
-        if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {
-            // Export symbols
-            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym);
-            return;
-        }
-
-        if (input.export_mode == ProbabilityTableParams::ExportMode::OneMeasurement) {
-            auto requested_measurement = input.requested_measurement();
-            // Check inputs are okay:
-            if (requested_measurement.size() > lms.MaxRealSequenceLength()) {
-                throw_error(this->matlabEngine, errors::bad_param,
-                    "A moment matrix of high enough order to define the requested probability was not specified.");
-            }
-            for (const auto& pm : requested_measurement) {
-                if (pm.party >= context.Parties.size()) {
-                    throw_error(this->matlabEngine, errors::bad_param, "Party index out of range.");
-                }
-                const auto &party = context.Parties[pm.party];
-                if (pm.mmt >= party.Measurements.size()) {
-                    throw_error(this->matlabEngine, errors::bad_param, "Measurement index out of range.");
-                }
-            }
-
-            // Assign global indices to input.requested_measurement object...
-            context.populate_global_mmt_index(requested_measurement);
-
-            // Request
-            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym, requested_measurement);
-            return;
-        }
-
-
-        if (input.export_mode == ProbabilityTableParams::ExportMode::OneOutcome) {
-            auto requested_outcome = input.requested_outcome();
-            // Check inputs are okay:
-            if (requested_outcome.size() > lms.MaxRealSequenceLength()) {
-                throw_error(this->matlabEngine, errors::bad_param,
-                    "A moment matrix of high enough order to define the requested probability was not specified.");
-            }
-            for (const auto& pm : requested_outcome) {
-                if (pm.party >= context.Parties.size()) {
-                    throw_error(this->matlabEngine, errors::bad_param, "Party index out of range.");
-                }
-                const auto &party = context.Parties[pm.party];
-                if (pm.mmt >= party.Measurements.size()) {
-                    throw_error(this->matlabEngine, errors::bad_param, "Measurement index out of range.");
-                }
-                const auto &mmt = party.Measurements[pm.mmt];
-                if (pm.outcome >= mmt.num_outcomes) {
-                    throw_error(this->matlabEngine, errors::bad_param, "Outcome index out of range.");
-                }
-            }
-            // Request
-            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym, requested_outcome);
-            return;
-        }
-
-
-
-        throw_error(this->matlabEngine, errors::internal_error, "Unknown export type.");
+        throw_error(this->matlabEngine, errors::internal_error, "ProbabilityTable::export_locality not implemented.");
+//
+//        const LocalityContext& context = lms.localityContext;
+//
+//        // Get formatter
+//        auto formatter = this->settings->get_locality_formatter();
+//        assert(formatter);
+//
+//        // Create (or retrieve) implied sequence object
+//        const LocalityImplicitSymbols& implSym = lms.ImplicitSymbolTable();
+//
+//        // Export whole table?
+//        if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {
+//            // Export symbols
+//            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym);
+//            return;
+//        }
+//
+//        if (input.export_mode == ProbabilityTableParams::ExportMode::OneMeasurement) {
+//            auto requested_measurement = input.requested_measurement();
+//            // Check inputs are okay:
+//            if (requested_measurement.size() > lms.MaxRealSequenceLength()) {
+//                throw_error(this->matlabEngine, errors::bad_param,
+//                    "A moment matrix of high enough order to define the requested probability was not specified.");
+//            }
+//            for (const auto& pm : requested_measurement) {
+//                if (pm.party >= context.Parties.size()) {
+//                    throw_error(this->matlabEngine, errors::bad_param, "Party index out of range.");
+//                }
+//                const auto &party = context.Parties[pm.party];
+//                if (pm.mmt >= party.Measurements.size()) {
+//                    throw_error(this->matlabEngine, errors::bad_param, "Measurement index out of range.");
+//                }
+//            }
+//
+//            // Assign global indices to input.requested_measurement object...
+//            context.populate_global_mmt_index(requested_measurement);
+//
+//            // Request
+//            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym, requested_measurement);
+//            return;
+//        }
+//
+//
+//        if (input.export_mode == ProbabilityTableParams::ExportMode::OneOutcome) {
+//            auto requested_outcome = input.requested_outcome();
+//            // Check inputs are okay:
+//            if (requested_outcome.size() > lms.MaxRealSequenceLength()) {
+//                throw_error(this->matlabEngine, errors::bad_param,
+//                    "A moment matrix of high enough order to define the requested probability was not specified.");
+//            }
+//            for (const auto& pm : requested_outcome) {
+//                if (pm.party >= context.Parties.size()) {
+//                    throw_error(this->matlabEngine, errors::bad_param, "Party index out of range.");
+//                }
+//                const auto &party = context.Parties[pm.party];
+//                if (pm.mmt >= party.Measurements.size()) {
+//                    throw_error(this->matlabEngine, errors::bad_param, "Measurement index out of range.");
+//                }
+//                const auto &mmt = party.Measurements[pm.mmt];
+//                if (pm.outcome >= mmt.num_outcomes) {
+//                    throw_error(this->matlabEngine, errors::bad_param, "Outcome index out of range.");
+//                }
+//            }
+//            // Request
+//            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym, requested_outcome);
+//            return;
+//        }
+//
+//
+//        throw_error(this->matlabEngine, errors::internal_error, "Unknown export type.");
     }
 
     void ProbabilityTable::export_inflation(IOArgumentRange output,
                                             ProbabilityTableParams& input,
                                             const Inflation::InflationMatrixSystem& ims) {
         using namespace Inflation;
+        throw_error(this->matlabEngine, errors::internal_error, "ProbabilityTable::export_inflation not implemented.");
 
-        const InflationContext& context = ims.InflationContext();
+//        const InflationContext& context = ims.InflationContext();
+//
+//        // Create (or retrieve) implied sequence object
+//        const InflationImplicitSymbols& implSym = ims.ImplicitSymbolTable();
+//
+//        // Export whole table?
+//        if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {
+//            // Export symbols
+//            output[0] = export_implied_symbols(this->matlabEngine, implSym);
+//            return;
+//        }
+//
+//        if (input.export_mode == ProbabilityTableParams::ExportMode::OneMeasurement) {
+//            auto requested_observable = input.requested_observables();
+//            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_observable);
+//            return;
+//        }
+//
+//        if (input.export_mode == ProbabilityTableParams::ExportMode::OneOutcome) {
+//            auto requested_outcome = input.requested_ovo();
+//            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_outcome);
+//            return;
+//        }
 
-        // Create (or retrieve) implied sequence object
-        const InflationImplicitSymbols& implSym = ims.ImplicitSymbolTable();
 
-        // Export whole table?
-        if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {
-            // Export symbols
-            output[0] = export_implied_symbols(this->matlabEngine, implSym);
-            return;
-        }
-
-        if (input.export_mode == ProbabilityTableParams::ExportMode::OneMeasurement) {
-            auto requested_observable = input.requested_observables();
-            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_observable);
-            return;
-        }
-
-        if (input.export_mode == ProbabilityTableParams::ExportMode::OneOutcome) {
-            auto requested_outcome = input.requested_ovo();
-            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_outcome);
-            return;
-        }
-
-        throw_error(this->matlabEngine, errors::internal_error, "Unknown export type.");
     }
 }

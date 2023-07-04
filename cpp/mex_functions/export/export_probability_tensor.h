@@ -1,7 +1,7 @@
 /**
- * export_implicit_symbols.h
+ * export_probability_tensor.h
  * 
- * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 #pragma once

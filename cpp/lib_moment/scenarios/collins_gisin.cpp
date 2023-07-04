@@ -11,40 +11,51 @@
 #include <numeric>
 
 namespace Moment {
-    namespace {
+    namespace errors {
 
-        [[nodiscard]] errors::BadCGError make_missing_err(const std::set<size_t>& missing_symbols,
-                                                          const std::vector<OperatorSequence>& sequences) {
+        BadCGError BadCGError::make_missing_err(const CollinsGisin &cg) {
+            assert(cg.StorageType == TensorStorageType::Explicit);
+            const auto &missing_symbols = cg.MissingSymbols();
+            const auto &data = cg.Data();
+
             std::stringstream errSS;
             errSS << "Not all symbol IDs for CG tensor could be found.";
             errSS << "\nMissing symbols for: ";
             bool once = false;
-            for (auto opIndex : missing_symbols) {
+            for (auto opIndex: missing_symbols) {
                 if (once) {
                     errSS << ", ";
                 }
-                errSS << sequences[opIndex].formatted_string();
+                errSS << data[opIndex].sequence.formatted_string();
                 once = true;
             }
             return errors::BadCGError(errSS.str());
         }
 
-        [[nodiscard]] errors::BadCGError make_missing_index_err(std::span<const size_t> index, const OperatorSequence& seq) {
+        [[nodiscard]] BadCGError BadCGError::make_missing_index_err(std::span<const size_t> index,
+                                                                    const OperatorSequence &seq,
+                                                                    bool offset) {
             std::stringstream errSS;
             errSS << "The object at index [";
             bool once_cg = false;
-            for (auto cgIndex : index) {
+            for (auto cgIndex: index) {
                 if (once_cg) {
                     errSS << ", ";
                 }
-                errSS << cgIndex;
+                if (offset) {
+                    errSS << (cgIndex + 1); // matlab indices;
+                } else {
+                    errSS << cgIndex;
+                }
                 once_cg = true;
             }
             errSS << "], corresponding to operator sequence \"" << seq << "\" does not yet exist in the symbol table.";
 
             return errors::BadCGError(errSS.str());
         }
+    }
 
+    namespace {
         [[nodiscard]] inline size_t get_size(const std::vector<size_t>& elems) {
             return std::reduce(elems.cbegin(), elems.cend(), 1ULL, std::multiplies());
         }
@@ -160,14 +171,14 @@ namespace Moment {
                 assert(us->is_hermitian());
                 return us->Id();
             } else {
-                throw make_missing_index_err(index, entry.sequence);
+                throw Moment::errors::BadCGError::make_missing_index_err(index, entry.sequence);
             }
         } else {
             const size_t offset = this->index_to_offset(index);
 
             std::shared_lock read_lock{this->symbol_mutex};
             if (this->missing_symbols.contains(offset)) {
-                throw make_missing_index_err(index, this->data[offset].sequence);
+                throw Moment::errors::BadCGError::make_missing_index_err(index, this->data[offset].sequence);
             }
 
             return this->data[offset].symbol_id;
@@ -185,7 +196,7 @@ namespace Moment {
                 assert(us->basis_key().second < 0);
                 return us->basis_key().first;
             } else {
-                throw make_missing_index_err(index, entry.sequence);
+                throw Moment::errors::BadCGError::make_missing_index_err(index, entry.sequence);
             }
 
         } else {
@@ -193,7 +204,7 @@ namespace Moment {
 
             std::shared_lock read_lock{this->symbol_mutex};
             if (this->missing_symbols.contains(offset)) {
-                throw make_missing_index_err(index, this->data[offset].sequence);
+                throw Moment::errors::BadCGError::make_missing_index_err(index, this->data[offset].sequence);
             }
 
             return this->data[offset].real_index;

@@ -9,6 +9,7 @@
 #include "scenarios/collins_gisin.h"
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_matrix_system.h"
+#include "scenarios/inflation/inflation_matrix_system.h"
 
 #include "storage_manager.h"
 
@@ -23,33 +24,7 @@
 
 namespace Moment::mex::functions  {
 
-    namespace {
-//
-//        matlab::data::TypedArray<uint64_t>
-//        export_cgt_real_basis(matlab::engine::MATLABEngine &matlabEngine,
-//                              const Moment::Locality::CollinsGisin& cgi) {
-//
-//            matlab::data::ArrayFactory factory;
-//            matlab::data::ArrayDimensions dimensions{cgi.Dimensions};
-//            matlab::data::TypedArray<uint64_t> output
-//                = factory.createArray<uint64_t>(std::move(dimensions));
-//
-//
-//            const auto& readData = cgi.RealIndices();
-//            auto writeIter = output.begin();
-//            auto readIter = readData.begin();
-//            while (writeIter != output.end() && readIter != readData.end()) {
-//                *writeIter = *readIter + 1; // +1 for matlab indexing
-//                ++writeIter;
-//                ++readIter;
-//            }
-//
-//            return output;
-//        }
-
-    }
-
-    CollinsGisinParams::CollinsGisinParams(SortedInputs &&inputIn)
+     CollinsGisinParams::CollinsGisinParams(SortedInputs &&inputIn)
             : SortedInputs(std::move(inputIn)) {
 
         // Get matrix system class
@@ -92,10 +67,29 @@ namespace Moment::mex::functions  {
 
     void CollinsGisin::operator()(IOArgumentRange output, CollinsGisinParams &input) {
 
-        // Check output
-        if (output.size() == 2 && input.outputType == CollinsGisinParams::OutputType::SequenceStrings) {
-            throw_error(this->matlabEngine, errors::too_many_outputs,
-                        "Two outputs only expected for 'sequences' and 'symbols' output mode.");
+        // Check output count vs. processed input type.
+        switch (input.outputType) {
+            case CollinsGisinParams::OutputType::Sequences:
+                if (output.size() != 2) {
+                    throw_error(this->matlabEngine,
+                                output.size() > 2 ? errors::too_many_outputs : errors::too_few_outputs,
+                                "'sequences' mode expects two outputs [sequences, hashes].");
+                }
+                break;
+            case CollinsGisinParams::OutputType::SymbolIds:
+                if (output.size() != 2) {
+                    throw_error(this->matlabEngine,
+                                output.size() > 2 ? errors::too_many_outputs : errors::too_few_outputs,
+                                "'symbols' mode expects two outputs [symbol IDs, basis elements].");
+                }
+                break;
+            case CollinsGisinParams::OutputType::SequenceStrings:
+                if (output.size() != 1) {
+                    throw_error(this->matlabEngine,
+                                output.size() > 1 ? errors::too_many_outputs : errors::too_few_outputs,
+                                "'strings' mode expects one output.");
+                }
+                break;
         }
 
         // Get stored moment matrix
@@ -104,38 +98,49 @@ namespace Moment::mex::functions  {
 
         // Get read lock
         auto lock = msPtr->get_read_lock();
-        const MatrixSystem& system = *msPtr;
+        MatrixSystem& system = *msPtr;
 
         // Create (or retrieve) CG information
         try {
-            const auto * lsm = dynamic_cast<const Locality::LocalityMatrixSystem *>(&system);
-            if (nullptr == lsm) {
-                throw_error(this->matlabEngine, errors::bad_cast, "MatrixSystem was not a LocalityMatrixSystem.");
-            }
 
-            const auto &cg = lsm->CollinsGisin();
+            /* Get CG tensor */
+            const auto& cg = [&]() -> const Moment::CollinsGisin& {
+                 auto *lms = dynamic_cast<Locality::LocalityMatrixSystem *>(&system);
+                if (nullptr != lms) {
+                    lms->RefreshCollinsGisin(lock);
+                    return lms->CollinsGisin();
+                } else {
+                    auto *ims = dynamic_cast<Inflation::InflationMatrixSystem*>(&system);
+                    if (nullptr != ims) {
+                        ims->RefreshCollinsGisin(lock);
+                        return ims->CollinsGisin();
+                    }
+                    throw_error(this->matlabEngine, errors::bad_param,
+                                "Matrix system must be a locality or inflation system.");
+                }
+            }();
 
-            CollinsGisinExporter cge{this->matlabEngine, lsm->localityContext, lsm->Symbols()};
+            CollinsGisinExporter cge{this->matlabEngine, system.Context(), system.Symbols()};
+
+
 
             // Export whole matrix?
             if (output.size() >= 1) {
                 switch (input.outputType) {
                     case CollinsGisinParams::OutputType::SymbolIds:
                         try {
-                            output[0] = cge.symbol_ids(cg);
-                            if (output.size() > 1) {
-                                output[1] = cge.basis_elems(cg);
-                            }
-                        } catch (const Moment::Locality::errors::BadCGError& bcge) {
+                            auto [symbols, bases] = cge.symbol_and_basis(cg);
+                            output[0] = std::move(symbols);
+                            output[1] = std::move(bases);
+                        } catch (const Moment::errors::BadCGError& bcge) {
                             throw_error(this->matlabEngine, "missing_cg", bcge.what());
                         }
                         break;
-                    case CollinsGisinParams::OutputType::Sequences:
-                        output[0] = cge.sequences(cg);
-                        if (output.size() > 1) {
-                            output[1] = cge.hashes(cg);
-                        }
-                        break;
+                    case CollinsGisinParams::OutputType::Sequences: {
+                        auto [sequences, hashes] = cge.sequence_and_hash(cg);
+                        output[0] = std::move(sequences);
+                        output[1] = std::move(hashes);
+                    } break;
                     case CollinsGisinParams::OutputType::SequenceStrings: {
                         auto formatter = this->settings->get_locality_formatter();
                         assert(formatter);
@@ -149,7 +154,8 @@ namespace Moment::mex::functions  {
             }
         } catch (const Moment::errors::missing_component& mce) {
             throw_error(this->matlabEngine, "missing_cg", mce.what());
+        } catch (const Moment::errors::BadCGError& cge) {
+            throw_error(this->matlabEngine, "missing_cg", cge.what());
         }
-
     }
 }

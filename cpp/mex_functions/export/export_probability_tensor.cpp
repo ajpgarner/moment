@@ -1,16 +1,17 @@
 /**
- * export_implicit_symbols.cpp
+ * export_probability_tensor.cpp
  * 
- * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "export_implicit_symbols.h"
+#include "export_probability_tensor.h"
 
 #include "scenarios/context.h"
 #include "scenarios/inflation/canonical_observables.h"
-#include "scenarios/inflation/inflation_implicit_symbols.h"
-#include "scenarios/locality/locality_implicit_symbols.h"
+#include "scenarios/inflation/inflation_probability_tensor.h"
+
 #include "scenarios/locality/locality_operator_formatter.h"
+#include "scenarios/locality/locality_probability_tensor.h"
 #include "scenarios/locality/joint_measurement_iterator.h"
 
 #include "matrix/operator_matrix/operator_matrix.h"

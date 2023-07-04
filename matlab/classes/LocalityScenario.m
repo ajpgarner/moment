@@ -284,6 +284,11 @@ classdef LocalityScenario < MTKScenario
             end
         end
         
+        function val = FullCorrelator(obj)
+        % FULLCORRELATOR Gets the associated full-correlator tensor
+            val = Locality.FullCorrelator(obj);
+        end
+        
         function val = FCTensor(obj, tensor)
         % FCTENSOR Build an objective function by supplying weights to a full correlator.
         %

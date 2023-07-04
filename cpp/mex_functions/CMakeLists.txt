@@ -19,7 +19,6 @@ matlab_add_mex(NAME moment_mex
             eigen/export_eigen_sparse.cpp
             export/export_basis.cpp
             export/export_collins_gisin.cpp
-            export/export_implicit_symbols.cpp
             export/export_matrix_basis_masks.cpp
             export/export_moment_substitution_rules.cpp
             export/export_operator_rules.cpp
@@ -45,7 +44,7 @@ matlab_add_mex(NAME moment_mex
             utilities/reporting.cpp
             functions/alphabetic_name.cpp
             functions/collins_gisin.cpp
-        functions/operator_rules/complete.cpp
+             functions/operator_rules/complete.cpp
             functions/conjugate.cpp
             functions/import_matrix.cpp
             functions/generate_basis.cpp

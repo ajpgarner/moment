@@ -1,14 +1,28 @@
 classdef Measurement < handle
     %MEASUREMENT A collection of outcomes with assigned values
     
-    properties(SetAccess=private, GetAccess=public)
+    %% Public properties
+    properties(GetAccess=public, SetAccess=private)
         Scenario
         Id
         Index
         Name
         Outcomes
     end
+    
+    %% Public dependent properties
+    properties(Dependent, GetAccess = public, SetAccess=private)
+        ExplicitOutcomes
+        ImplicitOutcomes
+    end
+    
+    %% Private properties
+    properties(Access=private)
+        explicit = MTKMonomial.empty(1,0);
+        implicit = MTKPolynomial.empty(1,0);
+    end
         
+    %% Error messages
     properties(Constant, Access = protected)
         err_overlapping_parties = ...
             "_*_ can only be used to form linear combinations of "...
@@ -16,6 +30,7 @@ classdef Measurement < handle
             + "parties).";
     end
     
+    %% Methods
     methods
         function obj = Measurement(scenario, party_index, mmt_index, ...
                                    name, num_outcomes, values)
@@ -57,20 +72,58 @@ classdef Measurement < handle
                                               values(x));
             end
         end
-        
-        function item = JointMeasurement(obj, indices)
-            arguments
-                obj (1,1) Locality.Measurement
-                indices (:,2) uint64
+    end
+    
+    %% Dependent methods
+    methods
+        function val = get.ExplicitOutcomes(obj)
+            if ~obj.Scenario.HasMatrixSystem
+                error("Explicit outcomes cannot be generated before matrix system is created.");
             end
-            table_index = find(arrayfun(@(s) ...
-                              isequal(indices, s.indices), ...
-                              obj.joint_mmts));
-            if length(table_index) ~= 1
-                error("Could not find joint measurement at supplied indices.");
+            if isempty(obj.explicit)
+                % TODO: Make explicit
             end
-            item = obj.joint_mmts(table_index).mmt;
+            
+           val = obj.explicit;            
         end
+        
+         function val = get.ImplicitOutcomes(obj)
+            if ~obj.Scenario.HasMatrixSystem
+                error("Implicit outcomes cannot be generated before matrix system is created.");
+            end
+            if isempty(obj.implicit)
+                % TODO: Make implicit
+            end
+            val = obj.implicit;            
+        end
+    end
+    
+    %% Conversion methods
+    methods
+        function val = MTKMonomial(obj)
+            val = obj.ExplicitOutcomes();
+        end
+        
+        function val = MTKPolynomial(obj)
+            val = obj.ImplicitOutcomes();
+        end
+    end
+    
+    methods
+%         
+%         function item = JointMeasurement(obj, indices)
+%             arguments
+%                 obj (1,1) Locality.Measurement
+%                 indices (:,2) uint64
+%             end
+%             table_index = find(arrayfun(@(s) ...
+%                               isequal(indices, s.indices), ...
+%                               obj.joint_mmts));
+%             if length(table_index) ~= 1
+%                 error("Could not find joint measurement at supplied indices.");
+%             end
+%             item = obj.joint_mmts(table_index).mmt;
+%         end
         
         function val = ExplicitValues(obj, distribution)
             arguments
@@ -83,83 +136,46 @@ classdef Measurement < handle
             val = mtk('make_explicit', obj.Scenario.System.RefId, ...
                       obj.Index, distribution);
         end
+    end
         
-        function joint_item = mtimes(objA, objB)
-            arguments
-                objA (1,1)
-                objB (1,1)
-            end
-                        
-            % Should only occur when A is a built-in object (e.g. scalar)
-            if ~isa(objA, 'Locality.Measurement')
-                joint_item = mtimes@RealObject(objA, objB);
-                return
-            end
-            
-            % Can multiply measurements to form joint measurements
-            if isa(objB, 'Locality.Measurement')                
-                if objA.Scenario ~= objB.Scenario
-                    error(objA.err_mismatched_scenario);
-                end
-                if ~isempty(intersect(objA.Index(:,1), ...
-                                      objB.Index(:,1)))
-                    error(objA.err_overlapping_parties);                    
-                end
-                indices = sortrows(vertcat(objA.Index, objB.Index));
-                joint_item = objA.Scenario.get(indices);
-            elseif isa(objB, 'Locality.JointMeasurement')
-                if objA.Scenario ~= objB.Scenario
-                    error(objA.err_mismatched_scenario);
-                end
-                if ~isempty(intersect(objA.Index(:,1), ...
-                                      objB.Indices(:,1)))
-                    error(objA.err_overlapping_parties);                    
-                end
-                indices = sortrows(vertcat(objA.Index, objB.Indices));
-                joint_item = objA.Scenario.get(indices);
-            else
-                % Fall back to superclass:~
-                joint_item = mtimes@RealObject(objA, objB);
-            end
-        end
-    end
-    
-    %% Overriden methods
-    methods(Access={?Locality.Measurement,?LocalityScenario})
-        function addJointMmt(obj, otherMmt)
-            % With existing joint measurements, if a new party
-            otherParty = otherMmt.Index(1);
-            initial_len = length(obj.joint_mmts);
-            for i = 1:initial_len 
-                existing_mmt = obj.joint_mmts(i).mmt;
-                if ~existing_mmt.ContainsParty(otherParty)
-                    njMmt = Locality.JointMeasurement(obj.Scenario, ...
-                                [existing_mmt.Marginals, otherMmt]);
-                    obj.joint_mmts(end+1) = ...
-                        struct('indices', njMmt.Indices, ...
-                               'mmt', njMmt);
-                end
-            end
-            
-            % With this...
-            jointMmt = Locality.JointMeasurement(obj.Scenario, ...
-                                                [obj, otherMmt]);
-            obj.joint_mmts(end+1) = struct('indices', jointMmt.Indices, ...
-                                           'mmt', jointMmt);
-            
-        end
-    end
-    
-    %% Overriden methods
-    methods(Access=protected)
-        function calculateCoefficients(obj)               
-            % Infer number of real elements:
-            re_basis_size = size(obj.Outcomes(1).Coefficients, 2);
-            obj.real_coefs = sparse(1, re_basis_size);
-            for outcome = obj.Outcomes
-                obj.real_coefs = obj.real_coefs ...
-                                    + (outcome.Value * outcome.Coefficients);
-            end
-        end
-    end
+%         function joint_item = mtimes(objA, objB)
+%             arguments
+%                 objA (1,1)
+%                 objB (1,1)
+%             end
+%                         
+%             % Should only occur when A is a built-in object (e.g. scalar)
+%             if ~isa(objA, 'Locality.Measurement')
+%                 joint_item = mtimes@RealObject(objA, objB);
+%                 return
+%             end
+%             
+%             % Can multiply measurements to form joint measurements
+%             if isa(objB, 'Locality.Measurement')                
+%                 if objA.Scenario ~= objB.Scenario
+%                     error(objA.err_mismatched_scenario);
+%                 end
+%                 if ~isempty(intersect(objA.Index(:,1), ...
+%                                       objB.Index(:,1)))
+%                     error(objA.err_overlapping_parties);                    
+%                 end
+%                 indices = sortrows(vertcat(objA.Index, objB.Index));
+%                 joint_item = objA.Scenario.get(indices);
+%             elseif isa(objB, 'Locality.JointMeasurement')
+%                 if objA.Scenario ~= objB.Scenario
+%                     error(objA.err_mismatched_scenario);
+%                 end
+%                 if ~isempty(intersect(objA.Index(:,1), ...
+%                                       objB.Indices(:,1)))
+%                     error(objA.err_overlapping_parties);                    
+%                 end
+%                 indices = sortrows(vertcat(objA.Index, objB.Indices));
+%                 joint_item = objA.Scenario.get(indices);
+%             else
+%                 % Fall back to superclass:~
+%                 joint_item = mtimes@RealObject(objA, objB);
+%             end
+%         end
+%     end
+%  
 end
