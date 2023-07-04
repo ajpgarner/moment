@@ -103,6 +103,13 @@ namespace Moment::Locality {
         return *this->collinsGisin;
     }
 
+    const class LocalityCollinsGisin& LocalityMatrixSystem::LocalityCollinsGisin() const {
+        if (!this->collinsGisin) {
+            throw Moment::errors::missing_component("Collins-Gisin tensor has not yet been generated. ");
+        }
+        return *this->collinsGisin;
+    }
+
     void LocalityMatrixSystem::onNewMomentMatrixCreated(size_t level, const class Matrix &mm) {
         auto newMRSL = this->MaxRealSequenceLength();
         if (newMRSL > this->maxProbabilityLength) {

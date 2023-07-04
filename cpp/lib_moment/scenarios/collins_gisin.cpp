@@ -88,7 +88,7 @@ namespace Moment {
         // Do initial symbol search
         size_t index = 0;
         for (auto& datum : this->data) {
-            auto * us = this->symbol_table.where(datum.sequence);
+            auto * us = this->try_find_symbol(datum.sequence);
             if (us != nullptr) {
                 assert(us->is_hermitian());
                 assert(us->basis_key().second < 0);
@@ -123,7 +123,7 @@ namespace Moment {
         while (iter != this->missing_symbols.end()) {
             size_t index = *iter;
             auto& datum = this->data[index];
-            auto * us = symbol_table.where(datum.sequence);
+            const auto * us = this->try_find_symbol(datum.sequence);
             if (us != nullptr) {
                 assert(us->is_hermitian());
                 assert(us->basis_key().second < 0);
@@ -155,7 +155,7 @@ namespace Moment {
         if (this->StorageType == TensorStorageType::Virtual) {
             this->validate_index(index);
             auto entry = this->make_element_no_checks(index);
-            auto * us = this->symbol_table.where(entry.sequence);
+            auto * us = this->try_find_symbol(entry.sequence);
             if (us != nullptr) {
                 assert(us->is_hermitian());
                 return us->Id();
@@ -179,7 +179,7 @@ namespace Moment {
 
             this->validate_index(index);
             auto entry = this->make_element_no_checks(index);
-            auto * us = this->symbol_table.where(entry.sequence);
+            auto * us = this->try_find_symbol(entry.sequence);
             if (us != nullptr) {
                 assert(us->is_hermitian());
                 assert(us->basis_key().second < 0);
@@ -252,4 +252,7 @@ namespace Moment {
         return Element{*this, index};
     }
 
+    const class Symbol* CollinsGisin::try_find_symbol(const OperatorSequence &seq) const noexcept {
+        return this->symbol_table.where(seq);
+    }
 }

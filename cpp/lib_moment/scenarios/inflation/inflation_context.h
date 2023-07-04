@@ -259,7 +259,7 @@ namespace Moment::Inflation {
          * Get a global observable variant index from the following pair:
          * @param observable
          * @param variant
-         * @return The global variant index
+         * @return The global variant index (a.k.a. global measurement index).
          */
         [[nodiscard]] oper_name_t obs_variant_to_index(oper_name_t observable, oper_name_t variant) const;
 
@@ -267,7 +267,7 @@ namespace Moment::Inflation {
          * Get a global observable variant index from the following pair:
          * @param observable
          * @param variant
-         * @return The global variant index
+         * @return The global variant index (a.k.a. global measurement index).
          */
         [[nodiscard]] oper_name_t obs_variant_to_index(const OVIndex& index) const {
             return this->obs_variant_to_index(index.observable, index.variant);

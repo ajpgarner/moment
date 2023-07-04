@@ -66,6 +66,12 @@ namespace Moment::Locality {
         [[nodiscard]] const class CollinsGisin& CollinsGisin() const;
 
         /**
+         * Returns an indexing in the Collins-Gisin ordering, with additional locality-specific functions.
+         * @throws errors::missing_component if not generated.
+         */
+        [[nodiscard]] const class LocalityCollinsGisin& LocalityCollinsGisin() const;
+
+        /**
          * Returns an indexing of all real-valued symbols, including those from ExplicitSymbolTable(), but also implied
          * "final" outcomes of measurements (including joint measurements).
          * @throws errors::missing_component if not generated.

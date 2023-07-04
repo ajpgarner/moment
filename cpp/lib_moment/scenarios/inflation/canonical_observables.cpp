@@ -79,8 +79,6 @@ namespace Moment::Inflation {
             // Make raw string
             const auto& global_indices = *comboIter;
 
-
-
             // Try to register as symbol
             try_add_entry(level, global_indices);
             ++comboIter;
@@ -159,7 +157,7 @@ namespace Moment::Inflation {
         this->hash_aliases.emplace(std::make_pair(raw_hash, the_index));
     }
 
-    size_t CanonicalObservables::hash(std::span<const OVIndex> indices) const {
+    size_t CanonicalObservables::hash(const std::span<const OVIndex> indices) const {
         size_t multiplier = 1;
         size_t hash = 0;
         for (auto rIter = indices.rbegin(); rIter != indices.rend(); ++rIter) {
@@ -170,7 +168,7 @@ namespace Moment::Inflation {
         return hash;
     }
 
-    size_t CanonicalObservables::hash(std::span<const OVOIndex> indices) const {
+    size_t CanonicalObservables::hash(const std::span<const OVOIndex> indices) const {
         size_t multiplier = 1;
         size_t hash = 0;
         for (auto rIter = indices.rbegin(); rIter != indices.rend(); ++rIter) {
@@ -181,7 +179,7 @@ namespace Moment::Inflation {
         return hash;
     }
 
-    size_t CanonicalObservables::hash(std::span<const size_t> global_indices) const {
+    size_t CanonicalObservables::hash(const std::span<const size_t> global_indices) const {
         size_t multiplier = 1;
         size_t hash = 0;
         for (auto rIter = global_indices.rbegin(); rIter != global_indices.rend(); ++rIter) {
@@ -206,7 +204,7 @@ namespace Moment::Inflation {
        return this->canonical_observables[index];
     }
 
-    const CanonicalObservable& CanonicalObservables::canonical(std::span<const OVIndex> indices) const {
+    const CanonicalObservable& CanonicalObservables::canonical(const std::span<const OVIndex> indices) const {
         try {
             if (indices.size() > this->max_level) {
                 throw errors::bad_ov_string{"String is too long."};
@@ -226,7 +224,7 @@ namespace Moment::Inflation {
         }
     }
 
-    const CanonicalObservable& CanonicalObservables::canonical(std::span<const OVOIndex> indices) const {
+    const CanonicalObservable& CanonicalObservables::canonical(const std::span<const OVOIndex> indices) const {
         try {
             if (indices.size() > this->max_level) {
                 throw errors::bad_ov_string{"String is too long."};
@@ -246,7 +244,7 @@ namespace Moment::Inflation {
         }
     }
 
-    const CanonicalObservable& CanonicalObservables::canonical(std::span<const size_t> indices) const {
+    const CanonicalObservable& CanonicalObservables::canonical(const std::span<const size_t> indices) const {
         try {
             if (indices.size() > this->max_level) {
                 throw errors::bad_ov_string{"String is too long."};

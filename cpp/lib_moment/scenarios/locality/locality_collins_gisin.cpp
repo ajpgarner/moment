@@ -62,4 +62,55 @@ namespace Moment::Locality {
             this->do_initial_symbol_search();
         }
     }
+
+
+    CollinsGisin::CollinsGisinRange
+    LocalityCollinsGisin::measurement_to_range(const std::span<const PMIndex> mmtIndices) const {
+        CollinsGisinIndex lower_bounds(this->Dimensions.size(), 0);
+        CollinsGisinIndex upper_bounds(this->Dimensions.size(), 1);
+        for (auto mmtIndex : mmtIndices) {
+            if (mmtIndex.global_mmt > this->gmIndex.size()) {
+                throw errors::BadCGError("Global measurement index out of bounds.");
+            }
+            const auto& gmInfo = this->gmIndex[mmtIndex.global_mmt];
+            if (lower_bounds[gmInfo.party] != 0) {
+                throw errors::BadCGError("Two measurements from same party cannot be specified.");
+            }
+            lower_bounds[gmInfo.party] = gmInfo.offset;
+            upper_bounds[gmInfo.party] = gmInfo.offset + gmInfo.length;
+        }
+        return CollinsGisinRange{*this, std::move(lower_bounds), std::move(upper_bounds)};
+    }
+
+    CollinsGisin::CollinsGisinRange
+    LocalityCollinsGisin::measurement_to_range(const std::span<const PMIndex> mmtIndices,
+                                               const std::span<const PMOIndex> fixedOutcomes) const {
+        CollinsGisinIndex lower_bounds(this->Dimensions.size(), 0);
+        CollinsGisinIndex upper_bounds(this->Dimensions.size(), 1);
+        for (auto mmtIndex : mmtIndices) {
+            if (mmtIndex.global_mmt > this->gmIndex.size()) {
+                throw errors::BadCGError("Global measurement index out of bounds.");
+            }
+            const auto& gmInfo = this->gmIndex[mmtIndex.global_mmt];
+            if (lower_bounds[gmInfo.party] != 0) {
+                throw errors::BadCGError("Two measurements from same party cannot be specified.");
+            }
+            lower_bounds[gmInfo.party] = gmInfo.offset;
+            upper_bounds[gmInfo.party] = gmInfo.offset + gmInfo.length;
+        }
+
+        for (auto mmtIndex : fixedOutcomes) {
+            if (mmtIndex.global_mmt > this->gmIndex.size()) {
+                throw errors::BadCGError("Global measurement index out of bounds.");
+            }
+            const auto& gmInfo = this->gmIndex[mmtIndex.global_mmt];
+            if (lower_bounds[gmInfo.party] != 0) {
+                throw errors::BadCGError("Two measurements from same party cannot be specified.");
+            }
+
+            lower_bounds[gmInfo.party] = gmInfo.offset + mmtIndex.outcome;
+            upper_bounds[gmInfo.party] = gmInfo.offset + mmtIndex.outcome + 1;
+        }
+        return CollinsGisinRange{*this, std::move(lower_bounds), std::move(upper_bounds)};
+    }
 }

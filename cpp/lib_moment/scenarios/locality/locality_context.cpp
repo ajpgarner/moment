@@ -134,10 +134,10 @@ namespace Moment::Locality {
         auto mmt_id = static_cast<mmt_name_t>(global_index - this->parties[party_id].global_measurement_offset);
 
         assert(mmt_id >= 0);
-        return PMIndex{party_id, mmt_id, static_cast<mmt_name_t>(global_index)};
+        return PMIndex{party_id, mmt_id, global_index};
     }
 
-    void LocalityContext::populate_global_mmt_index(std::vector<PMIndex> &pm_index) const noexcept {
+    void LocalityContext::populate_global_mmt_index(std::span<PMIndex> pm_index) const noexcept {
         for (auto& pm : pm_index) {
             assert (pm.party < this->parties.size());
             assert (pm.mmt < this->parties[pm.party].measurements.size());

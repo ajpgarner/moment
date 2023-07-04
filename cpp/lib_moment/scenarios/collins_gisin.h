@@ -19,10 +19,11 @@
 #include <vector>
 
 namespace Moment {
-    class MatrixSystem;
-    class SymbolTable;
     class Context;
+    class MatrixSystem;
     class ProbabilityTensor;
+    class Symbol;
+    class SymbolTable;
 
     namespace errors {
         class BadCGError : public std::runtime_error {
@@ -214,6 +215,8 @@ namespace Moment {
         [[nodiscard]] std::string get_name(bool capital) const override {
             return "Collins-Gisin tensor";
         }
+
+        [[nodiscard]] virtual const class Symbol * try_find_symbol(const OperatorSequence& seq) const noexcept;
 
     public:
         friend class CollinsGisinEntry;

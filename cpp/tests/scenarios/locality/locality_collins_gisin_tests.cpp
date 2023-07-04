@@ -437,7 +437,136 @@ namespace Moment::Tests {
         EXPECT_EQ(A0B1_fix_iter.real_basis(), s_Aa1_Bb1.basis_key().first);
         ++A0B1_fix_iter;
 
-        EXPECT_EQ(B1_iter, A0B1_fix_range.end());
+        EXPECT_EQ(A0B1_fix_iter, A0B1_fix_range.end());
+
+
+    }
+
+    TEST(Scenarios_Locality_CollinsGisin, Range_PMOIndex) {
+        LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 2, 3))};
+        const auto& context = system.localityContext;
+        system.generate_dictionary(2);
+
+        ASSERT_EQ(context.Parties.size(), 2);
+        const auto& alice = context.Parties[0];
+        const auto& bob = context.Parties[1];
+        ASSERT_EQ(alice.size(), 4);
+        ASSERT_EQ(bob.size(), 4);
+
+        const auto& A_a0 = alice[0];
+        const auto& A_a1 = alice[1];
+        const auto& A_b0 = alice[2];
+        const auto& A_b1 = alice[3];
+        const auto& B_a0 = bob[0];
+        const auto& B_a1 = bob[1];
+        const auto& B_b0 = bob[2];
+        const auto& B_b1 = bob[3];
+
+        system.RefreshCollinsGisin();
+        const auto& cgi = system.LocalityCollinsGisin();
+        EXPECT_EQ(&system.CollinsGisin(), &cgi);
+        ASSERT_TRUE(cgi.HasAllSymbols());
+
+        const OperatorSequence os_A_a0{{A_a0}, context};
+        const OperatorSequence os_A_a1{{A_a1}, context};
+        const OperatorSequence os_B_b0{{B_b0}, context};
+        const OperatorSequence os_B_b1{{B_b1}, context};
+
+        const OperatorSequence os_Aa0_Bb0{{A_a0, B_b0}, context};
+        const OperatorSequence os_Aa0_Bb1{{A_a0, B_b1}, context};
+        const OperatorSequence os_Aa1_Bb0{{A_a1, B_b0}, context};
+        const OperatorSequence os_Aa1_Bb1{{A_a1, B_b1}, context};
+
+        const auto& s_A_a0 = *system.Symbols().where(os_A_a0);
+        const auto& s_A_a1 = *system.Symbols().where(os_A_a1);
+        const auto& s_B_b0 = *system.Symbols().where(os_B_b0);
+        const auto& s_B_b1 = *system.Symbols().where(os_B_b1);
+
+        const auto& s_Aa0_Bb0 = *system.Symbols().where(os_Aa0_Bb0);
+        const auto& s_Aa0_Bb1 = *system.Symbols().where(os_Aa0_Bb1);
+        const auto& s_Aa1_Bb0 = *system.Symbols().where(os_Aa1_Bb0);
+        const auto& s_Aa1_Bb1 = *system.Symbols().where(os_Aa1_Bb1);
+
+        // Test 'A0' measurement, composed of two operators A_a0, A_a1
+        std::vector<PMIndex> index_A0{PMIndex{context, 0, 0}};
+        auto A0_range = cgi.measurement_to_range(index_A0); // A0 mmt.
+        auto A0_iter = A0_range.begin();
+        ASSERT_TRUE(A0_iter.operator bool());
+        ASSERT_FALSE(!A0_iter);
+        ASSERT_NE(A0_iter, A0_range.end());
+        EXPECT_EQ(A0_iter.block_offset(), 0);
+        EXPECT_EQ(A0_iter.sequence(), os_A_a0);
+        EXPECT_EQ(A0_iter.symbol_id(), s_A_a0.Id());
+        EXPECT_EQ(A0_iter.real_basis(), s_A_a0.basis_key().first);
+        ++A0_iter;
+
+        ASSERT_NE(A0_iter, A0_range.end());
+        EXPECT_EQ(A0_iter.block_offset(), 1);
+        EXPECT_EQ(A0_iter.sequence(), os_A_a1);
+        EXPECT_EQ(A0_iter.symbol_id(), s_A_a1.Id());
+        EXPECT_EQ(A0_iter.real_basis(), s_A_a1.basis_key().first);
+        ++A0_iter;
+
+        EXPECT_EQ(A0_iter, A0_range.end());
+
+        // Test 'A0B1' measurement explicit, composed of four operators A_a0 B_b0, A_a0 B_b1, A_a1 B_b0, A_a1 B_b1
+        std::vector<PMIndex> index_A0B1{PMIndex{context, 0, 0}, PMIndex{context, 1, 1}};
+        auto A0B1_range = cgi.measurement_to_range(index_A0B1); // A0 B1 joint measurement
+        auto A0B1_iter = A0B1_range.begin();
+        ASSERT_TRUE(A0B1_iter.operator bool());
+        ASSERT_FALSE(!A0B1_iter);
+        ASSERT_NE(A0B1_iter, A0B1_range.end());
+        EXPECT_EQ(A0B1_iter.block_offset(), 0);
+        EXPECT_EQ(A0B1_iter.sequence(), os_Aa0_Bb0);
+        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa0_Bb0.Id());
+        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa0_Bb0.basis_key().first);
+        ++A0B1_iter;
+
+        ASSERT_NE(A0B1_iter, A0B1_range.end());
+        EXPECT_EQ(A0B1_iter.block_offset(), 1);
+        EXPECT_EQ(A0B1_iter.sequence(), os_Aa1_Bb0);
+        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa1_Bb0.Id());
+        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa1_Bb0.basis_key().first);
+        ++A0B1_iter;
+
+        ASSERT_NE(A0B1_iter, A0B1_range.end());
+        EXPECT_EQ(A0B1_iter.block_offset(), 2);
+        EXPECT_EQ(A0B1_iter.sequence(), os_Aa0_Bb1);
+        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa0_Bb1.Id());
+        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa0_Bb1.basis_key().first);
+        ++A0B1_iter;
+
+        ASSERT_NE(A0B1_iter, A0B1_range.end());
+        EXPECT_EQ(A0B1_iter.block_offset(), 3);
+        EXPECT_EQ(A0B1_iter.sequence(), os_Aa1_Bb1);
+        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa1_Bb1.Id());
+        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa1_Bb1.basis_key().first);
+        ++A0B1_iter;
+
+        EXPECT_EQ(A0B1_iter, A0B1_range.end());
+
+
+        // Test 'A0B1' measurement with B1= outcome 1, composed of four operators  A_a0 B_b1, A_a1 B_b1
+        std::vector<PMOIndex> fixed_B11{PMOIndex{context, 1, 1, 1}};
+        auto A0B1_fix_range = cgi.measurement_to_range(index_A0, fixed_B11);
+        auto A0B1_fix_iter = A0B1_fix_range.begin();
+        ASSERT_TRUE(A0B1_fix_iter.operator bool());
+        ASSERT_FALSE(!A0B1_fix_iter);
+        ASSERT_NE(A0B1_fix_iter, A0B1_fix_range.end());
+        EXPECT_EQ(A0B1_fix_iter.block_offset(), 0);
+        EXPECT_EQ(A0B1_fix_iter.sequence(), os_Aa0_Bb1);
+        EXPECT_EQ(A0B1_fix_iter.symbol_id(), s_Aa0_Bb1.Id());
+        EXPECT_EQ(A0B1_fix_iter.real_basis(), s_Aa0_Bb1.basis_key().first);
+        ++A0B1_fix_iter;
+
+        ASSERT_NE(A0B1_fix_iter, A0B1_fix_range.end());
+        EXPECT_EQ(A0B1_fix_iter.block_offset(), 1);
+        EXPECT_EQ(A0B1_fix_iter.sequence(), os_Aa1_Bb1);
+        EXPECT_EQ(A0B1_fix_iter.symbol_id(), s_Aa1_Bb1.Id());
+        EXPECT_EQ(A0B1_fix_iter.real_basis(), s_Aa1_Bb1.basis_key().first);
+        ++A0B1_fix_iter;
+
+        EXPECT_EQ(A0B1_fix_iter, A0B1_fix_range.end());
 
 
     }

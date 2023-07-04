@@ -77,8 +77,16 @@ namespace Moment::Locality {
             return party.global_measurement_offset + pm_index.mmt;
         }
 
+        /** Gets global measurement index from party and measurement*/
+        [[nodiscard]] size_t get_global_mmt_index(party_name_t party_id, mmt_name_t mmt_id) const noexcept {
+            assert (party_id < this->parties.size());
+            const auto& party = this->parties[party_id];
+            assert (mmt_id < party.measurements.size());
+            return party.global_measurement_offset + mmt_id;
+        }
+
         /** Populates global index from party & measurements in pm_index */
-        void populate_global_mmt_index(std::vector<PMIndex>& pm_index) const noexcept;
+        void populate_global_mmt_index(std::span<PMIndex> pm_index) const noexcept;
 
         /** Creates vector of global measurement numbers based off PM index.
          * @throws std::range_error if any Party/Measurement in span is invalid.

@@ -104,6 +104,12 @@ namespace Moment::Inflation {
         [[nodiscard]] const class CollinsGisin& CollinsGisin() const;
 
         /**
+         * Returns an indexing in the Collins-Gisin ordering with additional inflation-scenario functionality.
+         * @throws errors::missing_component if not generated.
+         */
+        [[nodiscard]] const class InflationCollinsGisin& InflationCollinsGisin() const;
+
+        /**
          * Checks if it is necessary to refresh the explicit symbol table, and refresh it if so.
          * If a refresh is necessary msReadLock will be released, and system will wait for write lock. Read-lock will be
          * reacquired after write is complete.

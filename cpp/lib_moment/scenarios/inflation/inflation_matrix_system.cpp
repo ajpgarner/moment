@@ -147,7 +147,12 @@ namespace Moment::Inflation {
         return *this->collinsGisin;
     }
 
-
+    const class InflationCollinsGisin& InflationMatrixSystem::InflationCollinsGisin() const {
+        if (!this->collinsGisin) {
+            throw Moment::errors::missing_component("Collins-Gisin tensor has not yet been generated. ");
+        }
+        return *this->collinsGisin;
+    }
 
     bool InflationMatrixSystem::RefreshCollinsGisin(std::shared_lock<std::shared_mutex>& read_lock) {
         // First, if no explicit symbol table at all, we surely need to do something
