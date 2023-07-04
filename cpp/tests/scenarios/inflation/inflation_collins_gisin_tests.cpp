@@ -278,9 +278,9 @@ namespace Moment::Tests {
             auto range = icg.measurement_to_range(indices);
             auto iter = range.begin();
             ASSERT_NE(iter, range.end()) << mmt_name;
-            EXPECT_EQ(iter.sequence(), expected_os) << mmt_name;
-            EXPECT_EQ(iter.symbol_id(), expected_sym.Id()) << mmt_name;
-            EXPECT_EQ(iter.real_basis(), expected_sym.basis_key().first) << mmt_name;
+            EXPECT_EQ(iter->sequence, expected_os) << mmt_name;
+            EXPECT_EQ(iter->symbol_id, expected_sym.Id()) << mmt_name;
+            EXPECT_EQ(iter->real_index, expected_sym.basis_key().first) << mmt_name;
             ++iter;
             EXPECT_EQ(iter, range.end()) << mmt_name;
         };

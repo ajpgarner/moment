@@ -13,7 +13,7 @@ add_executable(moment_tests
         operators/polynomial_matrix_tests.cpp
         scenarios/context_tests.cpp
         scenarios/dictionary_map_tests.cpp
-        scenarios/implicit_symbol_test_helpers.cpp
+        scenarios/probability_tensor_test_helpers.cpp
         scenarios/algebraic/algebraic_context_tests.cpp
         scenarios/algebraic/algebraic_precontext_tests.cpp
         scenarios/algebraic/monomial_substitution_rule_tests.cpp

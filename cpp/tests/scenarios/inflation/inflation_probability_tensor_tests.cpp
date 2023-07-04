@@ -13,7 +13,7 @@
 
 #include "matrix/operator_matrix/moment_matrix.h"
 
-#include "../implicit_symbol_test_helpers.h"
+#include "../probability_tensor_test_helpers.h"
 
 #include <set>
 

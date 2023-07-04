@@ -304,5 +304,23 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, iter_end);
     }
 
+    TEST(Utilities_Tensor, View_Explicit) {
+        BoringTensor auto_deduce({3, 3}, TensorStorageType::Explicit);
+        ASSERT_EQ(auto_deduce.StorageType, TensorStorageType::Explicit);
+
+        BoringTensor::ElementView view{auto_deduce, BoringTensor::Index{1, 1}};
+
+        EXPECT_EQ(view, 4);
+
+    }
+
+    TEST(Utilities_Tensor, View_Virtual) {
+        BoringTensor auto_deduce({3, 3}, TensorStorageType::Virtual);
+        ASSERT_EQ(auto_deduce.StorageType, TensorStorageType::Virtual);
+
+        BoringTensor::ElementView view{auto_deduce, BoringTensor::Index{1, 1}};
+        EXPECT_EQ(view, 4);
+    }
+
 
 }

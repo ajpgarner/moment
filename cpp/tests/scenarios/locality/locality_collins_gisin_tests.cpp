@@ -260,9 +260,9 @@ namespace Moment::Tests {
         ASSERT_FALSE(!a0_iter);
         ASSERT_NE(a0_iter, a0_range.end());
         EXPECT_EQ(a0_iter.block_offset(), 0);
-        EXPECT_EQ(a0_iter.sequence(), os_a0);
-        EXPECT_EQ(a0_iter.symbol_id(), s_a0.Id());
-        EXPECT_EQ(a0_iter.real_basis(), s_a0.basis_key().first);
+        EXPECT_EQ(a0_iter->sequence, os_a0);
+        EXPECT_EQ(a0_iter->symbol_id, s_a0.Id());
+        EXPECT_EQ(a0_iter->real_index, s_a0.basis_key().first);
         ++a0_iter;
         EXPECT_EQ(a0_iter, a0_range.end());
 
@@ -273,9 +273,9 @@ namespace Moment::Tests {
         ASSERT_FALSE(!b1_iter);
         ASSERT_NE(b1_iter, b1_range.end());
         EXPECT_EQ(b1_iter.block_offset(), 0);
-        EXPECT_EQ(b1_iter.sequence(), os_b1);
-        EXPECT_EQ(b1_iter.symbol_id(), s_b1.Id());
-        EXPECT_EQ(b1_iter.real_basis(), s_b1.basis_key().first);
+        EXPECT_EQ(b1_iter->sequence, os_b1);
+        EXPECT_EQ(b1_iter->symbol_id, s_b1.Id());
+        EXPECT_EQ(b1_iter->real_index, s_b1.basis_key().first);
         ++b1_iter;
         EXPECT_EQ(b1_iter, b1_range.end());
 
@@ -286,9 +286,9 @@ namespace Moment::Tests {
         ASSERT_FALSE(!a0b1_iter);
         ASSERT_NE(a0b1_iter, a0b1_range.end());
         EXPECT_EQ(a0b1_iter.block_offset(), 0);
-        EXPECT_EQ(a0b1_iter.sequence(), os_a0b1);
-        EXPECT_EQ(a0b1_iter.symbol_id(), s_a0b1.Id());
-        EXPECT_EQ(a0b1_iter.real_basis(), s_a0b1.basis_key().first);
+        EXPECT_EQ(a0b1_iter->sequence, os_a0b1);
+        EXPECT_EQ(a0b1_iter->symbol_id, s_a0b1.Id());
+        EXPECT_EQ(a0b1_iter->real_index, s_a0b1.basis_key().first);
         ++a0b1_iter;
         EXPECT_EQ(a0b1_iter, a0b1_range.end());
     }
@@ -346,16 +346,16 @@ namespace Moment::Tests {
         ASSERT_FALSE(!A0_iter);
         ASSERT_NE(A0_iter, A0_range.end());
         EXPECT_EQ(A0_iter.block_offset(), 0);
-        EXPECT_EQ(A0_iter.sequence(), os_A_a0);
-        EXPECT_EQ(A0_iter.symbol_id(), s_A_a0.Id());
-        EXPECT_EQ(A0_iter.real_basis(), s_A_a0.basis_key().first);
+        EXPECT_EQ(A0_iter->sequence, os_A_a0);
+        EXPECT_EQ(A0_iter->symbol_id, s_A_a0.Id());
+        EXPECT_EQ(A0_iter->real_index, s_A_a0.basis_key().first);
         ++A0_iter;
 
         ASSERT_NE(A0_iter, A0_range.end());
         EXPECT_EQ(A0_iter.block_offset(), 1);
-        EXPECT_EQ(A0_iter.sequence(), os_A_a1);
-        EXPECT_EQ(A0_iter.symbol_id(), s_A_a1.Id());
-        EXPECT_EQ(A0_iter.real_basis(), s_A_a1.basis_key().first);
+        EXPECT_EQ(A0_iter->sequence, os_A_a1);
+        EXPECT_EQ(A0_iter->symbol_id, s_A_a1.Id());
+        EXPECT_EQ(A0_iter->real_index, s_A_a1.basis_key().first);
         ++A0_iter;
 
         EXPECT_EQ(A0_iter, A0_range.end());
@@ -367,16 +367,16 @@ namespace Moment::Tests {
         ASSERT_FALSE(!B1_iter);
         ASSERT_NE(B1_iter, B1_range.end());
         EXPECT_EQ(B1_iter.block_offset(), 0);
-        EXPECT_EQ(B1_iter.sequence(), os_B_b0);
-        EXPECT_EQ(B1_iter.symbol_id(), s_B_b0.Id());
-        EXPECT_EQ(B1_iter.real_basis(), s_B_b0.basis_key().first);
+        EXPECT_EQ(B1_iter->sequence, os_B_b0);
+        EXPECT_EQ(B1_iter->symbol_id, s_B_b0.Id());
+        EXPECT_EQ(B1_iter->real_index, s_B_b0.basis_key().first);
         ++B1_iter;
 
         ASSERT_NE(B1_iter, B1_range.end());
         EXPECT_EQ(B1_iter.block_offset(), 1);
-        EXPECT_EQ(B1_iter.sequence(), os_B_b1);
-        EXPECT_EQ(B1_iter.symbol_id(), s_B_b1.Id());
-        EXPECT_EQ(B1_iter.real_basis(), s_B_b1.basis_key().first);
+        EXPECT_EQ(B1_iter->sequence, os_B_b1);
+        EXPECT_EQ(B1_iter->symbol_id, s_B_b1.Id());
+        EXPECT_EQ(B1_iter->real_index, s_B_b1.basis_key().first);
         ++B1_iter;
 
         EXPECT_EQ(B1_iter, B1_range.end());
@@ -389,30 +389,30 @@ namespace Moment::Tests {
         ASSERT_FALSE(!A0B1_iter);
         ASSERT_NE(A0B1_iter, A0B1_range.end());
         EXPECT_EQ(A0B1_iter.block_offset(), 0);
-        EXPECT_EQ(A0B1_iter.sequence(), os_Aa0_Bb0);
-        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa0_Bb0.Id());
-        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa0_Bb0.basis_key().first);
+        EXPECT_EQ(A0B1_iter->sequence, os_Aa0_Bb0);
+        EXPECT_EQ(A0B1_iter->symbol_id, s_Aa0_Bb0.Id());
+        EXPECT_EQ(A0B1_iter->real_index, s_Aa0_Bb0.basis_key().first);
         ++A0B1_iter;
 
         ASSERT_NE(A0B1_iter, A0B1_range.end());
         EXPECT_EQ(A0B1_iter.block_offset(), 1);
-        EXPECT_EQ(A0B1_iter.sequence(), os_Aa1_Bb0);
-        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa1_Bb0.Id());
-        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa1_Bb0.basis_key().first);
+        EXPECT_EQ(A0B1_iter->sequence, os_Aa1_Bb0);
+        EXPECT_EQ(A0B1_iter->symbol_id, s_Aa1_Bb0.Id());
+        EXPECT_EQ(A0B1_iter->real_index, s_Aa1_Bb0.basis_key().first);
         ++A0B1_iter;
 
         ASSERT_NE(A0B1_iter, A0B1_range.end());
         EXPECT_EQ(A0B1_iter.block_offset(), 2);
-        EXPECT_EQ(A0B1_iter.sequence(), os_Aa0_Bb1);
-        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa0_Bb1.Id());
-        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa0_Bb1.basis_key().first);
+        EXPECT_EQ(A0B1_iter->sequence, os_Aa0_Bb1);
+        EXPECT_EQ(A0B1_iter->symbol_id, s_Aa0_Bb1.Id());
+        EXPECT_EQ(A0B1_iter->real_index, s_Aa0_Bb1.basis_key().first);
         ++A0B1_iter;
 
         ASSERT_NE(A0B1_iter, A0B1_range.end());
         EXPECT_EQ(A0B1_iter.block_offset(), 3);
-        EXPECT_EQ(A0B1_iter.sequence(), os_Aa1_Bb1);
-        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa1_Bb1.Id());
-        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa1_Bb1.basis_key().first);
+        EXPECT_EQ(A0B1_iter->sequence, os_Aa1_Bb1);
+        EXPECT_EQ(A0B1_iter->symbol_id, s_Aa1_Bb1.Id());
+        EXPECT_EQ(A0B1_iter->real_index, s_Aa1_Bb1.basis_key().first);
         ++A0B1_iter;
 
         EXPECT_EQ(A0B1_iter, A0B1_range.end());
@@ -425,16 +425,16 @@ namespace Moment::Tests {
         ASSERT_FALSE(!A0B1_fix_iter);
         ASSERT_NE(A0B1_fix_iter, A0B1_fix_range.end());
         EXPECT_EQ(A0B1_fix_iter.block_offset(), 0);
-        EXPECT_EQ(A0B1_fix_iter.sequence(), os_Aa0_Bb1);
-        EXPECT_EQ(A0B1_fix_iter.symbol_id(), s_Aa0_Bb1.Id());
-        EXPECT_EQ(A0B1_fix_iter.real_basis(), s_Aa0_Bb1.basis_key().first);
+        EXPECT_EQ(A0B1_fix_iter->sequence, os_Aa0_Bb1);
+        EXPECT_EQ(A0B1_fix_iter->symbol_id, s_Aa0_Bb1.Id());
+        EXPECT_EQ(A0B1_fix_iter->real_index, s_Aa0_Bb1.basis_key().first);
         ++A0B1_fix_iter;
 
         ASSERT_NE(A0B1_fix_iter, A0B1_fix_range.end());
         EXPECT_EQ(A0B1_fix_iter.block_offset(), 1);
-        EXPECT_EQ(A0B1_fix_iter.sequence(), os_Aa1_Bb1);
-        EXPECT_EQ(A0B1_fix_iter.symbol_id(), s_Aa1_Bb1.Id());
-        EXPECT_EQ(A0B1_fix_iter.real_basis(), s_Aa1_Bb1.basis_key().first);
+        EXPECT_EQ(A0B1_fix_iter->sequence, os_Aa1_Bb1);
+        EXPECT_EQ(A0B1_fix_iter->symbol_id, s_Aa1_Bb1.Id());
+        EXPECT_EQ(A0B1_fix_iter->real_index, s_Aa1_Bb1.basis_key().first);
         ++A0B1_fix_iter;
 
         EXPECT_EQ(A0B1_fix_iter, A0B1_fix_range.end());
@@ -495,16 +495,16 @@ namespace Moment::Tests {
         ASSERT_FALSE(!A0_iter);
         ASSERT_NE(A0_iter, A0_range.end());
         EXPECT_EQ(A0_iter.block_offset(), 0);
-        EXPECT_EQ(A0_iter.sequence(), os_A_a0);
-        EXPECT_EQ(A0_iter.symbol_id(), s_A_a0.Id());
-        EXPECT_EQ(A0_iter.real_basis(), s_A_a0.basis_key().first);
+        EXPECT_EQ(A0_iter->sequence, os_A_a0);
+        EXPECT_EQ(A0_iter->symbol_id, s_A_a0.Id());
+        EXPECT_EQ(A0_iter->real_index, s_A_a0.basis_key().first);
         ++A0_iter;
 
         ASSERT_NE(A0_iter, A0_range.end());
         EXPECT_EQ(A0_iter.block_offset(), 1);
-        EXPECT_EQ(A0_iter.sequence(), os_A_a1);
-        EXPECT_EQ(A0_iter.symbol_id(), s_A_a1.Id());
-        EXPECT_EQ(A0_iter.real_basis(), s_A_a1.basis_key().first);
+        EXPECT_EQ(A0_iter->sequence, os_A_a1);
+        EXPECT_EQ(A0_iter->symbol_id, s_A_a1.Id());
+        EXPECT_EQ(A0_iter->real_index, s_A_a1.basis_key().first);
         ++A0_iter;
 
         EXPECT_EQ(A0_iter, A0_range.end());
@@ -517,30 +517,30 @@ namespace Moment::Tests {
         ASSERT_FALSE(!A0B1_iter);
         ASSERT_NE(A0B1_iter, A0B1_range.end());
         EXPECT_EQ(A0B1_iter.block_offset(), 0);
-        EXPECT_EQ(A0B1_iter.sequence(), os_Aa0_Bb0);
-        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa0_Bb0.Id());
-        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa0_Bb0.basis_key().first);
+        EXPECT_EQ(A0B1_iter->sequence, os_Aa0_Bb0);
+        EXPECT_EQ(A0B1_iter->symbol_id, s_Aa0_Bb0.Id());
+        EXPECT_EQ(A0B1_iter->real_index, s_Aa0_Bb0.basis_key().first);
         ++A0B1_iter;
 
         ASSERT_NE(A0B1_iter, A0B1_range.end());
         EXPECT_EQ(A0B1_iter.block_offset(), 1);
-        EXPECT_EQ(A0B1_iter.sequence(), os_Aa1_Bb0);
-        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa1_Bb0.Id());
-        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa1_Bb0.basis_key().first);
+        EXPECT_EQ(A0B1_iter->sequence, os_Aa1_Bb0);
+        EXPECT_EQ(A0B1_iter->symbol_id, s_Aa1_Bb0.Id());
+        EXPECT_EQ(A0B1_iter->real_index, s_Aa1_Bb0.basis_key().first);
         ++A0B1_iter;
 
         ASSERT_NE(A0B1_iter, A0B1_range.end());
         EXPECT_EQ(A0B1_iter.block_offset(), 2);
-        EXPECT_EQ(A0B1_iter.sequence(), os_Aa0_Bb1);
-        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa0_Bb1.Id());
-        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa0_Bb1.basis_key().first);
+        EXPECT_EQ(A0B1_iter->sequence, os_Aa0_Bb1);
+        EXPECT_EQ(A0B1_iter->symbol_id, s_Aa0_Bb1.Id());
+        EXPECT_EQ(A0B1_iter->real_index, s_Aa0_Bb1.basis_key().first);
         ++A0B1_iter;
 
         ASSERT_NE(A0B1_iter, A0B1_range.end());
         EXPECT_EQ(A0B1_iter.block_offset(), 3);
-        EXPECT_EQ(A0B1_iter.sequence(), os_Aa1_Bb1);
-        EXPECT_EQ(A0B1_iter.symbol_id(), s_Aa1_Bb1.Id());
-        EXPECT_EQ(A0B1_iter.real_basis(), s_Aa1_Bb1.basis_key().first);
+        EXPECT_EQ(A0B1_iter->sequence, os_Aa1_Bb1);
+        EXPECT_EQ(A0B1_iter->symbol_id, s_Aa1_Bb1.Id());
+        EXPECT_EQ(A0B1_iter->real_index, s_Aa1_Bb1.basis_key().first);
         ++A0B1_iter;
 
         EXPECT_EQ(A0B1_iter, A0B1_range.end());
@@ -554,16 +554,16 @@ namespace Moment::Tests {
         ASSERT_FALSE(!A0B1_fix_iter);
         ASSERT_NE(A0B1_fix_iter, A0B1_fix_range.end());
         EXPECT_EQ(A0B1_fix_iter.block_offset(), 0);
-        EXPECT_EQ(A0B1_fix_iter.sequence(), os_Aa0_Bb1);
-        EXPECT_EQ(A0B1_fix_iter.symbol_id(), s_Aa0_Bb1.Id());
-        EXPECT_EQ(A0B1_fix_iter.real_basis(), s_Aa0_Bb1.basis_key().first);
+        EXPECT_EQ(A0B1_fix_iter->sequence, os_Aa0_Bb1);
+        EXPECT_EQ(A0B1_fix_iter->symbol_id, s_Aa0_Bb1.Id());
+        EXPECT_EQ(A0B1_fix_iter->real_index, s_Aa0_Bb1.basis_key().first);
         ++A0B1_fix_iter;
 
         ASSERT_NE(A0B1_fix_iter, A0B1_fix_range.end());
         EXPECT_EQ(A0B1_fix_iter.block_offset(), 1);
-        EXPECT_EQ(A0B1_fix_iter.sequence(), os_Aa1_Bb1);
-        EXPECT_EQ(A0B1_fix_iter.symbol_id(), s_Aa1_Bb1.Id());
-        EXPECT_EQ(A0B1_fix_iter.real_basis(), s_Aa1_Bb1.basis_key().first);
+        EXPECT_EQ(A0B1_fix_iter->sequence, os_Aa1_Bb1);
+        EXPECT_EQ(A0B1_fix_iter->symbol_id, s_Aa1_Bb1.Id());
+        EXPECT_EQ(A0B1_fix_iter->real_index, s_Aa1_Bb1.basis_key().first);
         ++A0B1_fix_iter;
 
         EXPECT_EQ(A0B1_fix_iter, A0B1_fix_range.end());

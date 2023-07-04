@@ -10,10 +10,10 @@
 #include "scenarios/probability_tensor.h"
 
 namespace Moment::Inflation {
-    class InflationContext;
+    class InflationMatrixSystem;
 
     class InflationProbabilityTensor : public ProbabilityTensor {
     public:
-        explicit InflationProbabilityTensor(const CollinsGisin& cg, const InflationContext& context);
+        explicit InflationProbabilityTensor(const InflationMatrixSystem& system);
     };
 }

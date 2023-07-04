@@ -9,6 +9,7 @@
 
 #include "collins_gisin.h"
 
+#include "symbolic/polynomial_factory.h"
 #include "utilities/combinations.h"
 
 #include <limits>
@@ -23,16 +24,20 @@ namespace Moment {
         }
     }
 
-    ProbabilityTensor::ProbabilityTensor(const CollinsGisin &collinsGisin, ConstructInfo&& info,
+    ProbabilityTensor::ProbabilityTensor(const CollinsGisin &collinsGisin, const PolynomialFactory& factory,
+                                         ConstructInfo&& info,
                                          const TensorStorageType storage)
         : AutoStorageTensor{std::move(info.totalDimensions), storage},
-          collinsGisin{collinsGisin}, hasSymbols(ElementCount) {
+          collinsGisin{collinsGisin}, symbolPolynomialFactory{factory}, missingSymbols(ElementCount) {
 
         this->make_dimension_info(info);
 
-        this->calculate_implicit_symbols();
-
-
+        if (this->StorageType == TensorStorageType::Explicit) {
+            this->hasAllSymbols = false;
+            this->calculate_implicit_symbols();
+        } else {
+            this->hasAllSymbols = true;
+        }
     }
 
     void ProbabilityTensor::make_dimension_info(const ConstructInfo& info) {
@@ -53,7 +58,7 @@ namespace Moment {
             size_t dim_index = 1;
             size_t cg_index = 1;
 
-            // Now copy remaining measurements
+            // Now copy measurements
             for (size_t i = 0; i < info.mmtsPerParty[d]; ++i) {
                 ++global_mmt_id;
                 const auto outcomes = *read_opm;
@@ -64,7 +69,7 @@ namespace Moment {
                     dimInfo.cgDimensionIndex.emplace_back(cg_index);
                     ++cg_index;
                 }
-                dimInfo.outcome_index.emplace_back(outcomes);
+                dimInfo.outcome_index.emplace_back(outcomes-1);
                 dimInfo.cgDimensionIndex.emplace_back(first_cg_index);
 
                 dim_index += outcomes;
@@ -86,11 +91,57 @@ namespace Moment {
         ElementConstructInfo elemInfo(this->Dimensions.size());
 
         // Loop over elements
+        this->hasAllSymbols = true;
         while (elementIndexIter) {
             const auto& elementIndex = *elementIndexIter;
             this->data.emplace_back(this->do_make_element(elementIndex, elemInfo));
+            if (!this->data.back().hasSymbolPoly) {
+                this->missingSymbols.set(elementIndexIter.global());
+                this->hasAllSymbols = false;
+            }
             ++elementIndexIter;
         }
+    }
+
+    bool ProbabilityTensor::fill_missing_polynomials() {
+        if (this->hasAllSymbols) {
+            return true;
+        }
+        assert(this->StorageType == TensorStorageType::Explicit);
+
+        this->hasAllSymbols = true;
+        DynamicBitset<uint64_t, size_t> still_missing(this->ElementCount);
+        for (size_t symbol_id : this->missingSymbols) {
+            // Attempt to resolve.
+            const bool found = this->attempt_symbol_resolution(this->data[symbol_id]);
+            if (!found) {
+                this->hasAllSymbols = false;
+                still_missing.set(symbol_id);
+            }
+        }
+
+        if (!this->hasAllSymbols) {
+            this->missingSymbols.swap(still_missing);
+        }
+        
+        return this->hasAllSymbols;
+    }
+
+    bool ProbabilityTensor::attempt_symbol_resolution(ProbabilityTensorElement& element) {
+        Polynomial::storage_t poly_data;
+        for (auto& mono_elem : element.cgPolynomial) {
+            assert(mono_elem.id > 0);
+            auto cg_view = this->collinsGisin.elem_no_checks(static_cast<size_t>(mono_elem.id) - 1);
+            if (cg_view->symbol_id >= 0) {
+                poly_data.emplace_back(cg_view->symbol_id, mono_elem.factor);
+            } else {
+                return false;
+            }
+        }
+        
+        element.symbolPolynomial = this->symbolPolynomialFactory(std::move(poly_data));
+        element.hasSymbolPoly = true;
+        return true;
     }
 
 
@@ -124,7 +175,7 @@ namespace Moment {
                 if (dimInfo.is_implicit(index)) {
                     // Index is implicit, so at some point will have to blit all implicit elements.
                     output.implicitMmts.emplace_back(d);
-                    output.finalIndex[d] = output.baseIndex[d] + dimInfo.outcome_index[index];
+                    output.finalIndex[d] = output.baseIndex[d] + dimInfo.outcome_index[index]; // +1 - 1
 
                 } else {
                     // Index not implicit, so will just need to copy one element.
@@ -151,23 +202,56 @@ namespace Moment {
         // Number of implicit indices to fill
         const auto num_implicit = elemInfo.implicitMmts.size();
 
+        // Special case: no explicit variables, so construct single monomial
         if (num_implicit == 0) {
-            // Construct single monomial
-            const auto index = this->collinsGisin.index_to_offset(elemInfo.baseIndex);
 
-            return ProbabilityTensorElement{Polynomial{Monomial{static_cast<symbol_name_t>(index), 1.0}}};
+            const size_t cg_offset = this->collinsGisin.index_to_offset(elemInfo.baseIndex) + 1;
+            const symbol_name_t symbol_id = this->collinsGisin.elem_no_checks(elemInfo.baseIndex)->symbol_id;
+            if (symbol_id >= 0) {
+                return ProbabilityTensorElement{Polynomial{Monomial{static_cast<symbol_name_t>(cg_offset), 1.0}},
+                                                Polynomial{Monomial{symbol_id, 1.0}}};
+            } else {
+                return ProbabilityTensorElement{Polynomial{Monomial{static_cast<symbol_name_t>(cg_offset), 1.0}}};
+            }
+
         }
 
         // Otherwise, we must build a polynomial algorithmically
-        Polynomial::storage_t symbolComboData;
-        double the_sign = (num_implicit % 2 == 0) ? +1. : -1.;
+        Polynomial::storage_t cg_poly_data;
+        Polynomial::storage_t symbol_poly_data;
+        bool symbol_poly_failed = false;
 
-        // L = 0 term is ID.
-        for (size_t L = 1; L <= num_implicit; ++L) {
+        // Parse through terms with alternating signs
+        double the_sign = 1.0;
+        for (size_t L = 0; L <= num_implicit; ++L) {
+
+
+
+            // Special case 'normalization' term
+            if (L == 0) {
+                CollinsGisinIndex cgLookUp(elemInfo.baseIndex.cbegin(), elemInfo.baseIndex.cend());
+                for (size_t rw_idx = 0; rw_idx < num_implicit; ++rw_idx) {
+                     // Set to ID
+                    const size_t remap_index = elemInfo.implicitMmts[rw_idx];
+                    cgLookUp[remap_index] = 0;
+                }
+
+                const size_t cg_offset = this->collinsGisin.index_to_offset(cgLookUp) + 1;
+                cg_poly_data.emplace_back(cg_offset, the_sign);
+
+                const symbol_name_t symbol_id = this->collinsGisin.elem_no_checks(cgLookUp)->symbol_id;
+                if (symbol_id >= 0) {
+                    symbol_poly_data.emplace_back(symbol_id, the_sign);
+                } else {
+                    symbol_poly_failed = true;
+                }
+
+                the_sign = -the_sign;
+                continue;
+            }
 
             CollinsGisinIndex cgBase(elemInfo.baseIndex.cbegin(), elemInfo.baseIndex.cend());
             CollinsGisinIndex cgLast(elemInfo.finalIndex.cbegin(), elemInfo.finalIndex.cend());
-
 
             // Choose L free indices from the implicit indices
             PartitionIterator partitions{num_implicit, L};
@@ -188,7 +272,14 @@ namespace Moment {
                 CollinsGisin::CollinsGisinIterator cgIter{this->collinsGisin, CollinsGisinIndex(cgBase),
                                                                               CollinsGisinIndex(cgLast)};
                 while (cgIter) {
-                    symbolComboData.emplace_back(cgIter.offset(), the_sign);
+                    cg_poly_data.emplace_back(cgIter.offset() + 1, the_sign); // Need offset to store ID as 0.
+
+                    if (!symbol_poly_failed && (cgIter->symbol_id >= 0)) {
+                        symbol_poly_data.emplace_back(cgIter->symbol_id, the_sign);
+                    } else {
+                        symbol_poly_failed = true;
+                    }
+
                     ++cgIter;
                 }
                 ++partitions;
@@ -196,12 +287,12 @@ namespace Moment {
             the_sign = -the_sign;
         }
 
-        // Finally, find the "Normalization" term
-        assert(the_sign == 1); // If correctly alternating, normalization should be positive always.
-        symbolComboData.emplace_back(1, the_sign);
-
         // Now, construct polynomial
-        return ProbabilityTensorElement{Polynomial{std::move(symbolComboData)}};
+        if (symbol_poly_failed) {
+            return ProbabilityTensorElement{Polynomial{std::move(cg_poly_data)}};
+        } else {
+            return ProbabilityTensorElement{Polynomial{std::move(cg_poly_data)},
+                                            this->symbolPolynomialFactory(std::move(symbol_poly_data))};
+        }
     }
-
 }

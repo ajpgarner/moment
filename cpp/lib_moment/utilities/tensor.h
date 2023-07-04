@@ -13,6 +13,7 @@
 #include <span>
 #include <stdexcept>
 #include <string>
+#include <variant>
 #include <vector>
 
 
@@ -150,6 +151,81 @@ namespace Moment {
         using Element = elem_t;
 
     public:
+
+        /**
+         * Holds either a pointer to data in the tensor, or a copy of the data itself.
+         */
+        class ElementView {
+        private:
+            struct flag_no_checks{
+
+            };
+
+            std::variant<const Element *, Element> view;
+
+        public:
+            /** Get view into tensor, constructing virtual object if necessary */
+            ElementView(const AutoStorageTensor& tensor, const Tensor::IndexView index) {
+                tensor.validate_index(index);
+                if (tensor.StorageType == TensorStorageType::Explicit) {
+                    const size_t offset = tensor.index_to_offset_no_checks(index);
+                    this->view.template emplace<0>(&tensor.data[offset]);
+                } else {
+                    this->view.template emplace<1>(tensor.make_element_no_checks(index));
+                }
+            }
+
+            /** Get view into tensor, constructing virtual object if necessary */
+            ElementView(const AutoStorageTensor& tensor, size_t offset) {
+                tensor.validate_offset(offset);
+                if (tensor.StorageType == TensorStorageType::Explicit) {
+                    this->view.template emplace<0>(&tensor.data[offset]);
+                } else {
+                    const auto index = tensor.offset_to_index_no_checks(offset);
+                    this->view.template emplace<1>(tensor.make_element_no_checks(index));
+                }
+            }
+
+        private:
+            /** Get view into tensor, constructing virtual object if necessary */
+            ElementView(const AutoStorageTensor& tensor, const Tensor::IndexView index, const flag_no_checks& /**/) {
+                if (tensor.StorageType == TensorStorageType::Explicit) {
+                    const size_t offset = tensor.index_to_offset_no_checks(index);
+                    this->view.template emplace<0>(&tensor.data[offset]);
+                } else {
+                    this->view.template emplace<1>(tensor.make_element_no_checks(index));
+                }
+            }
+
+            ElementView(const AutoStorageTensor& tensor, size_t offset, const flag_no_checks& /**/) {
+                if (tensor.StorageType == TensorStorageType::Explicit) {
+                    this->view.template emplace<0>(&tensor.data[offset]);
+                } else {
+                    const auto index = tensor.offset_to_index_no_checks(offset);
+                    this->view.template emplace<1>(tensor.make_element_no_checks(index));
+                }
+            }
+
+        public:
+            operator const Element&() const { // NOLINT(google-explicit-constructor)
+                if (this->view.index() == 0) {
+                    return *std::get<0>(this->view);
+                } else {
+                    return std::get<1>(this->view);
+                }
+            }
+
+            inline const Element* operator->() const {
+                if (this->view.index() == 0) {
+                    return std::get<0>(this->view);
+                } else {
+                    return &std::get<1>(this->view);
+                }
+            }
+
+            friend class AutoStorageTensor<elem_t, threshold>;
+        };
+
         /**
          * Splice iterator.
          * Iterators must not be shared between threads, due to mutable virtual entry.
@@ -233,6 +309,19 @@ namespace Moment {
             }
 
             /**
+            * Gets current element (cache if necessary).
+            */
+            [[nodiscard]] const Element* operator->() const {
+                if (this->tensorPtr->StorageType == TensorStorageType::Explicit) {
+                    return &this->tensorPtr->data[this->current_offset];
+                }
+                if (!this->virtual_entry.has_value()) {
+                    this->virtual_entry = this->tensorPtr->make_element_no_checks(*this->mdoii);
+                }
+                return &this->virtual_entry.value();
+            }
+
+            /**
              * Equality test.
              */
             [[nodiscard]] inline bool operator==(const Iterator& other) const noexcept {
@@ -308,24 +397,23 @@ namespace Moment {
             return this->data;
         }
 
-        Element operator()(const Tensor::IndexView indices) const {
-            this->validate_index(indices);
-            if (this->StorageType == TensorStorageType::Explicit) {
-                size_t offset = this->index_to_offset_no_checks(indices);
-                return this->data[offset];
-            } else {
-                return this->make_element_no_checks(indices);
-            }
+        inline ElementView operator()(const Tensor::IndexView indices) const {
+            return ElementView{*this, indices};
+        }
+
+        /** Get element by index */
+        inline ElementView at(const size_t offset) const {
+            return ElementView{*this, offset};
         }
 
         template<typename range_t = AutoStorageTensor<elem_t, threshold>::Range<AutoStorageTensor<elem_t, threshold>::Iterator>>
-        range_t Splice(Index&& min, Index&& max) {
+        [[nodiscard]] range_t Splice(Index&& min, Index&& max) {
             this->validate_range(min, max);
             return range_t{*this, std::move(min), std::move(max)};
         }
 
         template<typename range_t = AutoStorageTensor<elem_t, threshold>::Range<AutoStorageTensor<elem_t, threshold>::Iterator>>
-        range_t Splice(const IndexView minV, const IndexView maxV) {
+        [[nodiscard]] range_t Splice(const IndexView minV, const IndexView maxV) {
             this->validate_range(minV, maxV);
             return range_t{*this, Index(minV.begin(), minV.end()), Index(maxV.begin(), maxV.end())};
         }
@@ -333,6 +421,14 @@ namespace Moment {
 
 
     protected:
+        [[nodiscard]] inline ElementView elem_no_checks(const Tensor::IndexView indices) const {
+            return ElementView{*this, indices, typename ElementView::flag_no_checks{}};
+        }
+
+        [[nodiscard]] inline ElementView elem_no_checks(const size_t offset) const {
+            return ElementView{*this, offset, typename ElementView::flag_no_checks{}};
+        }
+
         [[nodiscard]] virtual Element make_element_no_checks(Tensor::IndexView index) const = 0;
 
 

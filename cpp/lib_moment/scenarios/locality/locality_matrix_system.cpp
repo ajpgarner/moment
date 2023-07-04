@@ -57,7 +57,9 @@ namespace Moment::Locality {
             read_lock.unlock();
 
             auto write_lock = this->get_write_lock();
-            this->collinsGisin = std::make_unique<class Moment::Locality::LocalityCollinsGisin>(*this);
+            if (!this->collinsGisin) { // Double-check, in case scooped.
+                this->collinsGisin = std::make_unique<class Moment::Locality::LocalityCollinsGisin>(*this);
+            }
             const bool has_all_symbols = this->collinsGisin->HasAllSymbols();
             write_lock.unlock();
 
@@ -88,7 +90,57 @@ namespace Moment::Locality {
         return this->RefreshCollinsGisin(lock);
     }
 
-    const class ProbabilityTensor &LocalityMatrixSystem::ProbabilityTensor() const {
+    bool LocalityMatrixSystem::RefreshProbabilityTensor(std::shared_lock<std::shared_mutex> &read_lock) {
+        // First, ensure CG exists and is up-to-date.
+        this->RefreshCollinsGisin(read_lock);
+
+        // If no PT, create one
+        if (!this->probabilityTensor) {
+            // Wait to upgrade locks...
+            read_lock.unlock();
+            auto write_lock = this->get_write_lock();
+
+            if (!this->probabilityTensor) {  // Double-check, in case scooped.
+                this->probabilityTensor = std::make_unique<class Moment::Locality::LocalityProbabilityTensor>(*this);
+            }
+            const bool has_all_symbols = this->probabilityTensor->HasAllPolynomials();
+            write_lock.unlock();
+
+            read_lock.lock();
+            return has_all_symbols;
+        }
+
+        // No missing symbols, return without ever having released read lock
+        if (this->probabilityTensor->HasAllPolynomials()) {
+            return true;
+        }
+
+        // Upgrade lock
+        read_lock.unlock();
+        auto write_lock = this->get_write_lock();
+
+        // Try to fill symbols
+        const bool filled = this->probabilityTensor->fill_missing_polynomials();
+
+        // Downgrade lock
+        write_lock.unlock();
+        read_lock.lock();
+        return filled;
+    }
+
+    bool LocalityMatrixSystem::RefreshProbabilityTensor() {
+        auto lock = this->get_read_lock();
+        return this->RefreshProbabilityTensor(lock);
+    }
+
+    const class ProbabilityTensor& LocalityMatrixSystem::ProbabilityTensor() const {
+        if (!this->probabilityTensor) {
+            throw Moment::errors::missing_component("ProbabilityTensor has not yet been generated.");
+        }
+        return *this->probabilityTensor;
+    }
+
+    const class LocalityProbabilityTensor& LocalityMatrixSystem::LocalityProbabilityTensor() const {
         if (!this->probabilityTensor) {
             throw Moment::errors::missing_component("ProbabilityTensor has not yet been generated.");
         }

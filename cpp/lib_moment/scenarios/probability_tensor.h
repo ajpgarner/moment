@@ -35,11 +35,14 @@ namespace Moment {
     struct ProbabilityTensorElement {
     public:
         Polynomial cgPolynomial;
-        Polynomial actualPolynomial;
+        Polynomial symbolPolynomial;
+        bool hasSymbolPoly;
 
     public:
         explicit ProbabilityTensorElement(Polynomial&& cgPoly)
-            : cgPolynomial(std::move(cgPoly)) { }
+            : cgPolynomial(std::move(cgPoly)), hasSymbolPoly{false} { }
+        explicit ProbabilityTensorElement(Polynomial&& cgPoly, Polynomial&& symPoly)
+            : cgPolynomial(std::move(cgPoly)), symbolPolynomial{std::move(symPoly)}, hasSymbolPoly{true} { }
     };
 
     /**
@@ -47,6 +50,8 @@ namespace Moment {
      */
     class ProbabilityTensor : public AutoStorageTensor<ProbabilityTensorElement, PT_explicit_element_limit> {
     public:
+        using ProbabilityTensorRange = ProbabilityTensor::Range<ProbabilityTensor::Iterator, ProbabilityTensor>;
+
         struct ConstructInfo {
             /** Total number of outcomes per party over all measurements. */
             std::vector<size_t> totalDimensions;
@@ -98,15 +103,19 @@ namespace Moment {
 
     public:
         const CollinsGisin& collinsGisin;
+        const PolynomialFactory& symbolPolynomialFactory;
 
     private:
         std::vector<OneDimensionInfo> dimensionInfo;
 
-        DynamicBitset<uint64_t, size_t> hasSymbols;
+        /** If in explicit mode, store whether we have symbols */
+        DynamicBitset<uint64_t, size_t> missingSymbols;
+        bool hasAllSymbols = false;
 
 
     public:
-        ProbabilityTensor(const CollinsGisin& collinsGisin, ConstructInfo&& constructInfo,
+        ProbabilityTensor(const CollinsGisin& collinsGisin, const PolynomialFactory& factory,
+                          ConstructInfo&& constructInfo,
                           TensorStorageType storage = TensorStorageType::Automatic);
 
         /** Deduce information about element. */
@@ -115,6 +124,30 @@ namespace Moment {
 
         [[nodiscard]] Polynomial CGPolynomial(ProbabilityTensorIndexView index) const;
 
+        /** True if all polynomials have been filled (or tensor is virtual). */
+        [[nodiscard]] bool HasAllPolynomials() const noexcept {
+            return this->hasAllSymbols;
+        }
+
+        /** Attempts to fill missing polynomials */
+        bool fill_missing_polynomials();
+
+        /**
+         * Splice all operators belonging to a supplied set of (global) measurement indices.
+         * @return Iterator over identified range.
+         * @throws BadCGError If index is invalid.
+         */
+        [[nodiscard]] ProbabilityTensorRange measurement_to_range(std::span<const size_t> mmtIndices) const;
+
+        /**
+         * Splice all operators corresponding to supplied set of (global) measurement indices, fixing some of the
+         * measurement outcomes.
+         * @param mmtIndices A sorted list of global indices of the measurement.
+         * @param fixedOutcomes List of outcome indices, or -1 if not fixed.
+         * @throws BadPTError If index is invalid.
+         */
+        [[nodiscard]] ProbabilityTensorRange  measurement_to_range(std::span<const size_t> mmtIndices,
+                                                                   std::span<const oper_name_t> fixedOutcomes) const;
 
     protected:
         [[nodiscard]] ProbabilityTensorElement make_element_no_checks(Tensor::IndexView index) const override;
@@ -129,7 +162,7 @@ namespace Moment {
 
     private:
         [[nodiscard]] ProbabilityTensorElement do_make_element(Tensor::IndexView elementIndex,
-                                                 ElementConstructInfo& eci) const;
+                                                               ElementConstructInfo& eci) const;
 
         void make_dimension_info(const ConstructInfo& info);
 
@@ -137,6 +170,9 @@ namespace Moment {
 
         /** Deduce information about element, and write it to output. */
         void element_info(ProbabilityTensorIndexView index, ElementConstructInfo& output) const noexcept;
+
+        /** Try to get actual polynomial values for element, if they exist. */
+        bool attempt_symbol_resolution(ProbabilityTensorElement& element);
 
     };
 

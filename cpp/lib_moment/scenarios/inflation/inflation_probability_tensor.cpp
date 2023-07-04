@@ -8,6 +8,7 @@
 #include "inflation_probability_tensor.h"
 
 #include "inflation_context.h"
+#include "inflation_matrix_system.h"
 
 namespace Moment::Inflation {
     namespace {
@@ -16,8 +17,9 @@ namespace Moment::Inflation {
         }
     }
 
-    InflationProbabilityTensor::InflationProbabilityTensor(const CollinsGisin &cg, const InflationContext &context)
-        : ProbabilityTensor(cg, make_construct_info(context)) {
+    InflationProbabilityTensor::InflationProbabilityTensor(const InflationMatrixSystem& system)
+        : ProbabilityTensor(system.CollinsGisin(), system.polynomial_factory(),
+                            make_construct_info(system.InflationContext())) {
 
     }
 

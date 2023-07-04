@@ -91,6 +91,33 @@ namespace Moment::Tests {
         EXPECT_EQ(bitset.first_index(),0 );
     }
 
+    TEST(Utilities_DynamicBitset, Swap) {
+        DynamicBitset<uint64_t> bitsetA{80, false};
+        DynamicBitset<uint64_t> bitsetB{80, false};
+        bitsetA.set(15);
+        bitsetA.set(18);
+        bitsetA.set(72);
+
+        bitsetB.set(40);
+        bitsetB.set(78);
+
+        bitsetA.swap(bitsetB);
+
+        EXPECT_EQ(bitsetA.count(), 2);
+        EXPECT_TRUE(bitsetA.test(40));
+        EXPECT_TRUE(bitsetA.test(78));
+        EXPECT_FALSE(bitsetA.test(15));
+        EXPECT_FALSE(bitsetA.test(18));
+        EXPECT_FALSE(bitsetA.test(72));
+
+        EXPECT_EQ(bitsetB.count(), 3);
+        EXPECT_TRUE(bitsetB.test(15));
+        EXPECT_TRUE(bitsetB.test(18));
+        EXPECT_TRUE(bitsetB.test(72));
+        EXPECT_FALSE(bitsetB.test(40));
+        EXPECT_FALSE(bitsetB.test(78));
+
+    }
 
 
 
