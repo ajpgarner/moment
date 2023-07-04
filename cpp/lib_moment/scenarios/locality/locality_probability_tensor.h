@@ -35,10 +35,10 @@ namespace Moment::Locality {
         explicit LocalityProbabilityTensor(const LocalityMatrixSystem& system,
                                            TensorStorageType tst = TensorStorageType::Automatic);
 
-        ProbabilityTensorRange measurement_to_range(std::span<const PMIndex> mmtIndices) const;
+        [[nodiscard]] ProbabilityTensorRange measurement_to_range(std::span<const PMIndex> mmtIndices) const;
 
-        ProbabilityTensorRange measurement_to_range(std::span<const PMIndex> freeMeasurements,
-                                                    std::span<const PMOIndex> fixedOutcomes) const;
+        [[nodiscard]] ProbabilityTensorRange measurement_to_range(std::span<const PMIndex> freeMeasurements,
+                                                                  std::span<const PMOIndex> fixedOutcomes) const;
 
     private:
 

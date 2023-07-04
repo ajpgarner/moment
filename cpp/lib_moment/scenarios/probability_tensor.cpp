@@ -25,7 +25,7 @@ namespace Moment {
     }
 
     ProbabilityTensor::ProbabilityTensor(const CollinsGisin &collinsGisin, const PolynomialFactory& factory,
-                                         ConstructInfo&& info,
+                                         TensorConstructInfo&& info,
                                          const TensorStorageType storage)
         : AutoStorageTensor{std::move(info.totalDimensions), storage},
           collinsGisin{collinsGisin}, symbolPolynomialFactory{factory}, missingSymbols(ElementCount) {
@@ -40,45 +40,53 @@ namespace Moment {
         }
     }
 
-    void ProbabilityTensor::make_dimension_info(const ConstructInfo& info) {
+    void ProbabilityTensor::make_dimension_info(const TensorConstructInfo& info) {
         // Flag which indices have implicit symbols
         this->dimensionInfo.reserve(this->DimensionCount);
 
         // Build per-dimension information
         auto read_opm = info.outcomesPerMeasurement.cbegin();
-        size_t global_mmt_id = 1;
+
+        size_t global_mmt_id = 0;
         for (size_t d = 0; d < this->DimensionCount; ++d) {
             this->dimensionInfo.emplace_back(this->Dimensions[d]);
             auto& dimInfo = this->dimensionInfo.back();
 
             // First measurement for each party is ID, and it is always explicitly defined!
             dimInfo.outcome_index.emplace_back(0);
-            dimInfo.measurement.emplace_back(0);
+
             dimInfo.cgDimensionIndex.emplace_back(0);
             size_t dim_index = 1;
             size_t cg_index = 1;
 
             // Now copy measurements
             for (size_t i = 0; i < info.mmtsPerParty[d]; ++i) {
-                ++global_mmt_id;
+
                 const auto outcomes = *read_opm;
-                std::fill_n(std::back_inserter(dimInfo.measurement), outcomes, global_mmt_id);
+                //std::fill_n(std::back_inserter(dimInfo.measurement), outcomes, global_mmt_id);
                 const size_t first_cg_index = cg_index;
                 for (size_t j = 0; j < outcomes-1; ++j) {
                     dimInfo.outcome_index.emplace_back(j);
                     dimInfo.cgDimensionIndex.emplace_back(cg_index);
                     ++cg_index;
                 }
-                dimInfo.outcome_index.emplace_back(outcomes-1);
-                dimInfo.cgDimensionIndex.emplace_back(first_cg_index);
 
                 dim_index += outcomes;
-                dimInfo.implicit.set(dim_index-1);
-                ++read_opm;
+                dimInfo.outcome_index.emplace_back(outcomes - 1);
+                if (info.fullyExplicit[global_mmt_id]) {
+                    dimInfo.cgDimensionIndex.emplace_back(cg_index);
+                    ++cg_index;
+                } else {
+                    dimInfo.cgDimensionIndex.emplace_back(first_cg_index);
+                    dimInfo.implicit.set(dim_index-1);
+                }
 
+                ++read_opm;
+                ++global_mmt_id;
             }
             assert(dim_index == this->Dimensions[d]);
         }
+        assert(global_mmt_id == info.outcomesPerMeasurement.size());
         assert(read_opm == info.outcomesPerMeasurement.end());
     }
 

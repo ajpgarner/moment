@@ -52,7 +52,8 @@ namespace Moment {
     public:
         using ProbabilityTensorRange = ProbabilityTensor::Range<ProbabilityTensor::Iterator, ProbabilityTensor>;
 
-        struct ConstructInfo {
+        /** Utility structure: grouping of properties required to set up tensor. */
+        struct TensorConstructInfo {
             /** Total number of outcomes per party over all measurements. */
             std::vector<size_t> totalDimensions;
 
@@ -61,10 +62,13 @@ namespace Moment {
 
             /** Number of outcomes each measurement has */
             std::vector<size_t> outcomesPerMeasurement;
+
+            /** True, if measurement does not need an implicit symbol. */
+            std::vector<bool> fullyExplicit;
         };
 
         /**
-         * Information required to construct an element.
+         * Information required to calculate a single element.
          */
         struct ElementConstructInfo {
             CollinsGisinIndex baseIndex;
@@ -115,7 +119,7 @@ namespace Moment {
 
     public:
         ProbabilityTensor(const CollinsGisin& collinsGisin, const PolynomialFactory& factory,
-                          ConstructInfo&& constructInfo,
+                          TensorConstructInfo&& constructInfo,
                           TensorStorageType storage = TensorStorageType::Automatic);
 
         /** Deduce information about element. */
@@ -164,7 +168,7 @@ namespace Moment {
         [[nodiscard]] ProbabilityTensorElement do_make_element(Tensor::IndexView elementIndex,
                                                                ElementConstructInfo& eci) const;
 
-        void make_dimension_info(const ConstructInfo& info);
+        void make_dimension_info(const TensorConstructInfo& info);
 
         void calculate_implicit_symbols();
 

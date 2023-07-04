@@ -25,44 +25,55 @@ namespace Moment::Tests {
                   symbol_name_t id, symbol_name_t alice,
                   const std::string &ctx) {
 
+        auto iter = spanA.begin();
+        ASSERT_NE(iter, spanA.end()) << ctx;
+        EXPECT_TRUE(iter->hasSymbolPoly) << ctx;
+        EXPECT_EQ(iter->symbolPolynomial, Polynomial(Monomial{alice, 1.0})) << ctx;
+        ++iter;
 
-            auto iter = spanA.begin();
-            ASSERT_NE(iter, spanA.end()) << ctx;
-            EXPECT_TRUE(iter->hasSymbolPoly) << ctx;
-            EXPECT_EQ(iter->symbolPolynomial, Polynomial(Monomial{alice, 1.0})) << ctx;
-            ++iter;
+        ASSERT_NE(iter, spanA.end()) << ctx;
+        EXPECT_TRUE(iter->hasSymbolPoly) << ctx;
+        EXPECT_EQ(iter->symbolPolynomial, Polynomial({Monomial{id, 1.0}, Monomial{alice, -1.0}})) << ctx;
+        ++iter;
 
-            ASSERT_NE(iter, spanA.end()) << ctx;
-            EXPECT_TRUE(iter->hasSymbolPoly) << ctx;
-            EXPECT_EQ(iter->symbolPolynomial, Polynomial({Monomial{id, 1.0}, Monomial{alice, -1.0}})) << ctx;
-            ++iter;
+        EXPECT_EQ(iter, spanA.end()) << ctx;
+    }
 
-            EXPECT_EQ(iter, spanA.end()) << ctx;
-        }
+    void testSingleCV(const ProbabilityTensor::ProbabilityTensorRange &span,
+                      symbol_name_t id, const std::string &ctx) {
+        auto iter = span.begin();
+        ASSERT_NE(iter, span.end()) << ctx;
+        EXPECT_TRUE(iter->hasSymbolPoly) << ctx;
+        EXPECT_EQ(iter->symbolPolynomial, Polynomial(Monomial{id, 1.0})) << ctx;
+        ++iter;
 
-        void test3Mmt(const ProbabilityTensor::ProbabilityTensorRange &spanA,
-                  symbol_name_t id, symbol_name_t a0, symbol_name_t a1,
-                  const std::string &ctx) {
+        EXPECT_EQ(iter, span.end()) << ctx;
+    }
 
-            auto iter = spanA.begin();
-            ASSERT_NE(iter, spanA.end()) << ctx;
-            EXPECT_TRUE(iter->hasSymbolPoly) << ctx;
-            EXPECT_EQ(iter->symbolPolynomial, Polynomial(Monomial{a0, 1.0})) << ctx;
-            ++iter;
 
-            ASSERT_NE(iter, spanA.end()) << ctx;
-            EXPECT_TRUE(iter->hasSymbolPoly) << ctx;
-            EXPECT_EQ(iter->symbolPolynomial, Polynomial(Monomial{a1, 1.0})) << ctx;
-            ++iter;
+    void test3Mmt(const ProbabilityTensor::ProbabilityTensorRange &spanA,
+              symbol_name_t id, symbol_name_t a0, symbol_name_t a1,
+              const std::string &ctx) {
 
-            ASSERT_NE(iter, spanA.end()) << ctx;
-            EXPECT_TRUE(iter->hasSymbolPoly) << ctx;
-            EXPECT_EQ(iter->symbolPolynomial,
-                      Polynomial({Monomial{id, 1.0}, Monomial{a0, -1.0}, Monomial{a1, -1.0}})) << ctx;
-            ++iter;
+        auto iter = spanA.begin();
+        ASSERT_NE(iter, spanA.end()) << ctx;
+        EXPECT_TRUE(iter->hasSymbolPoly) << ctx;
+        EXPECT_EQ(iter->symbolPolynomial, Polynomial(Monomial{a0, 1.0})) << ctx;
+        ++iter;
 
-            EXPECT_EQ(iter, spanA.end()) << ctx;
-        }
+        ASSERT_NE(iter, spanA.end()) << ctx;
+        EXPECT_TRUE(iter->hasSymbolPoly) << ctx;
+        EXPECT_EQ(iter->symbolPolynomial, Polynomial(Monomial{a1, 1.0})) << ctx;
+        ++iter;
+
+        ASSERT_NE(iter, spanA.end()) << ctx;
+        EXPECT_TRUE(iter->hasSymbolPoly) << ctx;
+        EXPECT_EQ(iter->symbolPolynomial,
+                  Polynomial({Monomial{id, 1.0}, Monomial{a0, -1.0}, Monomial{a1, -1.0}})) << ctx;
+        ++iter;
+
+        EXPECT_EQ(iter, spanA.end()) << ctx;
+    }
 
     void test22JoinMmt(const ProbabilityTensor::ProbabilityTensorRange &spanAB,
                        symbol_name_t id,

@@ -140,6 +140,13 @@ namespace Moment::Inflation {
         return *this->probabilityTensor;
     }
 
+    const class InflationProbabilityTensor& InflationMatrixSystem::InflationProbabilityTensor() const {
+        if (!this->probabilityTensor) {
+            throw Moment::errors::missing_component("ProbabilityTensor has not yet been generated.");
+        }
+        return *this->probabilityTensor;
+    }
+
     const class CollinsGisin& InflationMatrixSystem::CollinsGisin() const {
         if (!this->collinsGisin) {
             throw Moment::errors::missing_component("Collins-Gisin tensor has not yet been generated. ");
@@ -189,5 +196,48 @@ namespace Moment::Inflation {
     bool InflationMatrixSystem::RefreshCollinsGisin() {
         auto lock = this->get_read_lock();
         return this->RefreshCollinsGisin(lock);
+    }
+
+    bool InflationMatrixSystem::RefreshProbabilityTensor(std::shared_lock<std::shared_mutex> &read_lock) {
+        // First, ensure CG exists and is up-to-date.
+        this->RefreshCollinsGisin(read_lock);
+
+        // If no PT, create one
+        if (!this->probabilityTensor) {
+            // Wait to upgrade locks...
+            read_lock.unlock();
+            auto write_lock = this->get_write_lock();
+
+            if (!this->probabilityTensor) {  // Double-check, in case scooped.
+                this->probabilityTensor = std::make_unique<class InflationProbabilityTensor>(*this);
+            }
+            const bool has_all_symbols = this->probabilityTensor->HasAllPolynomials();
+            write_lock.unlock();
+
+            read_lock.lock();
+            return has_all_symbols;
+        }
+
+        // No missing symbols, return without ever having released read lock
+        if (this->probabilityTensor->HasAllPolynomials()) {
+            return true;
+        }
+
+        // Upgrade lock
+        read_lock.unlock();
+        auto write_lock = this->get_write_lock();
+
+        // Try to fill symbols
+        const bool filled = this->probabilityTensor->fill_missing_polynomials();
+
+        // Downgrade lock
+        write_lock.unlock();
+        read_lock.lock();
+        return filled;
+    }
+
+    bool InflationMatrixSystem::RefreshProbabilityTensor() {
+        auto lock = this->get_read_lock();
+        return this->RefreshProbabilityTensor(lock);
     }
 }

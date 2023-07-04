@@ -8,12 +8,24 @@
 #pragma once
 
 #include "scenarios/probability_tensor.h"
+#include "observable_variant_index.h"
+
 
 namespace Moment::Inflation {
     class InflationMatrixSystem;
+    class InflationContext;
 
     class InflationProbabilityTensor : public ProbabilityTensor {
     public:
+        const InflationContext& context;
+
+    public:
         explicit InflationProbabilityTensor(const InflationMatrixSystem& system);
+
+
+        [[nodiscard]] ProbabilityTensorRange measurement_to_range(std::span<const OVIndex> mmtIndices) const;
+
+        [[nodiscard]] ProbabilityTensorRange measurement_to_range(std::span<const OVIndex> freeMeasurements,
+                                                                  std::span<const OVOIndex> fixedOutcomes) const;
     };
 }

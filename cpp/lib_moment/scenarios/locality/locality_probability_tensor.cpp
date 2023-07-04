@@ -14,8 +14,8 @@ namespace Moment::Locality {
 
     namespace {
 
-        ProbabilityTensor::ConstructInfo make_construct_info(const LocalityContext& context) {
-            ProbabilityTensor::ConstructInfo info;
+        ProbabilityTensor::TensorConstructInfo make_construct_info(const LocalityContext& context) {
+            ProbabilityTensor::TensorConstructInfo info;
             info.totalDimensions = context.outcomes_per_party();
             for (auto& dim : info.totalDimensions) {
                 ++dim; // + identity measurement
@@ -23,6 +23,8 @@ namespace Moment::Locality {
             const auto& mpp = context.measurements_per_party();
             std::copy(mpp.cbegin(), mpp.cend(), std::back_inserter(info.mmtsPerParty));
             info.outcomesPerMeasurement = context.outcomes_per_measurement();
+
+            std::fill_n(std::back_inserter(info.fullyExplicit), info.outcomesPerMeasurement.size(), false);
             return info;
         }
 
@@ -46,7 +48,7 @@ namespace Moment::Locality {
     }
 
     ProbabilityTensor::ProbabilityTensorRange
-    LocalityProbabilityTensor::measurement_to_range(std::span<const PMIndex> mmtIndices) const {
+    LocalityProbabilityTensor::measurement_to_range(const std::span<const PMIndex> mmtIndices) const {
         ProbabilityTensorIndex lower_bounds(this->Dimensions.size(), 0);
         ProbabilityTensorIndex  upper_bounds(this->Dimensions.size(), 1);
         for (auto mmtIndex : mmtIndices) {
@@ -65,18 +67,18 @@ namespace Moment::Locality {
     }
 
     ProbabilityTensor::ProbabilityTensorRange
-    LocalityProbabilityTensor::measurement_to_range(std::span<const PMIndex> freeMeasurements,
-                                                    std::span<const PMOIndex> fixedOutcomes) const {
+    LocalityProbabilityTensor::measurement_to_range(const std::span<const PMIndex> freeMeasurements,
+                                                    const std::span<const PMOIndex> fixedOutcomes) const {
 
         CollinsGisinIndex lower_bounds(this->Dimensions.size(), 0);
         CollinsGisinIndex upper_bounds(this->Dimensions.size(), 1);
         for (auto mmtIndex : freeMeasurements) {
             if (mmtIndex.global_mmt > this->gmInfo.size()) {
-                throw errors::BadCGError("Global measurement index out of bounds.");
+                throw errors::BadPTError("Global measurement index out of bounds.");
             }
             const auto& gmEntry = this->gmInfo[mmtIndex.global_mmt];
             if (lower_bounds[gmEntry.party] != 0) {
-                throw errors::BadCGError("Two measurements from same party cannot be specified.");
+                throw errors::BadPTError("Two measurements from same party cannot be specified.");
             }
             lower_bounds[gmEntry.party] = gmEntry.offset;
             upper_bounds[gmEntry.party] = gmEntry.offset + gmEntry.length;
@@ -84,11 +86,11 @@ namespace Moment::Locality {
 
         for (auto mmtIndex : fixedOutcomes) {
             if (mmtIndex.global_mmt > this->gmInfo.size()) {
-                throw errors::BadCGError("Global measurement index out of bounds.");
+                throw errors::BadPTError("Global measurement index out of bounds.");
             }
             const auto& gmEntry = this->gmInfo[mmtIndex.global_mmt];
             if (lower_bounds[gmEntry.party] != 0) {
-                throw errors::BadCGError("Two measurements from same party cannot be specified.");
+                throw errors::BadPTError("Two measurements from same party cannot be specified.");
             }
 
             lower_bounds[gmEntry.party] = gmEntry.offset + mmtIndex.outcome;

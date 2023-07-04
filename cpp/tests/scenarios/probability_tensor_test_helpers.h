@@ -16,6 +16,10 @@
 namespace Moment::Tests {
     void testIdMmt(const ProbabilityTensor::ProbabilityTensorRange& spanID);
 
+    void testSingleCV(const ProbabilityTensor::ProbabilityTensorRange& range,
+                      symbol_name_t id,
+                      const std::string& ctx = "");
+
     void test2Mmt(const ProbabilityTensor::ProbabilityTensorRange& spanA,
                   symbol_name_t id, symbol_name_t alice,
                   const std::string& ctx = "");
