@@ -14,28 +14,28 @@
 
 
 namespace Moment::Tests {
-    void testIdMmt(const ProbabilityTensor::ProbabilityTensorRange& spanID);
+    void testIdMmt(const ProbabilityTensorRange& spanID);
 
-    void testSingleCV(const ProbabilityTensor::ProbabilityTensorRange& range,
+    void testSingleCV(const ProbabilityTensorRange& range,
                       symbol_name_t id,
                       const std::string& ctx = "");
 
-    void test2Mmt(const ProbabilityTensor::ProbabilityTensorRange& spanA,
+    void test2Mmt(const ProbabilityTensorRange& spanA,
                   symbol_name_t id, symbol_name_t alice,
                   const std::string& ctx = "");
 
-    void test3Mmt(const ProbabilityTensor::ProbabilityTensorRange& spanA,
+    void test3Mmt(const ProbabilityTensorRange& spanA,
                   symbol_name_t id, symbol_name_t a0, symbol_name_t a1,
                   const std::string& ctx = "");
 
-    void test22JoinMmt(const ProbabilityTensor::ProbabilityTensorRange& spanAB,
+    void test22JoinMmt(const ProbabilityTensorRange& spanAB,
                        symbol_name_t id,
                        symbol_name_t alice,
                        symbol_name_t bob,
                        symbol_name_t alice_bob,
                        const std::string& ctx = "");
 
-    void test32JoinMmt(const ProbabilityTensor::ProbabilityTensorRange& spanAB,
+    void test32JoinMmt(const ProbabilityTensorRange& spanAB,
                        symbol_name_t id,
                        symbol_name_t a0,
                        symbol_name_t a1,
@@ -44,7 +44,7 @@ namespace Moment::Tests {
                        symbol_name_t a1b,
                        const std::string& ctx = "");
 
-    void test222JoinMmt(const ProbabilityTensor::ProbabilityTensorRange& spanABC,
+    void test222JoinMmt(const ProbabilityTensorRange& spanABC,
                         symbol_name_t id,
                         symbol_name_t alice,
                         symbol_name_t bob,

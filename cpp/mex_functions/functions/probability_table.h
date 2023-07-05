@@ -6,16 +6,14 @@
  */
 #pragma once
 #include "../mex_function.h"
+
 #include "scenarios/inflation/observable_variant_index.h"
-#include "scenarios/locality/measurement.h"
+#include "scenarios/locality/party_measurement_index.h"
+
+#include "import/read_measurement_indices.h"
 
 namespace Moment {
-    namespace Locality {
-        class LocalityMatrixSystem;
-    }
-    namespace Inflation {
-        class InflationMatrixSystem;
-    }
+    class MatrixSystem;
 }
 
 namespace Moment::mex::functions {
@@ -23,35 +21,31 @@ namespace Moment::mex::functions {
     struct ProbabilityTableParams : public SortedInputs {
     public:
         /** Do we export the entire probability table, or just one entry... */
-        enum struct ExportMode {
-            WholeTable,
+        enum struct ExportShape {
+            /** Export probability tensor in its entirety. */
+            WholeTensor,
+            /** Export slice representing measurement. */
             OneMeasurement,
+            /** Export slice representing single outcome. */
             OneOutcome
-        } export_mode = ExportMode::WholeTable;
+        } export_shape = ExportShape::WholeTensor;
 
-
-        struct RawTriplet {
-            size_t first, second, third;
-            RawTriplet() = default;
-            RawTriplet(size_t a, size_t b, size_t c) : first{a}, second{b}, third{c} { }
-        };
+        /** How do we want to export */
+        enum struct OutputMode {
+            /** Export as cell array of operator sequences. */
+            OperatorSequences,
+            /** Export as cell array of symbols. */
+            Symbols
+        } output_mode = OutputMode::Symbols;
 
         /** The reference to the matrix system */
         uint64_t matrix_system_key = 0;
 
-        std::vector<RawTriplet> requested_indices{};
+        /** Measurements that we get all outcomes for */
+        std::vector<RawIndexPair> free{};
 
-        /** Interpret requested indices as PM index */
-        [[nodiscard]] std::vector<Locality::PMIndex> requested_measurement() const;
-
-        /** Interpret requested indices as PMO index */
-        [[nodiscard]] std::vector<Locality::PMOIndex> requested_outcome() const;
-
-        /** Interpret requested indices as OV index */
-        [[nodiscard]] std::vector<Inflation::OVIndex> requested_observables() const;
-
-        /** Interpret requested indices as OVO index */
-        [[nodiscard]] std::vector<Inflation::OVOIndex> requested_ovo() const;
+        /** Measurements that we fix outcomes for */
+        std::vector<RawIndexTriplet> fixed{};
 
     public:
         explicit ProbabilityTableParams(SortedInputs&& structuredInputs);
@@ -67,13 +61,19 @@ protected:
     void extra_input_checks(ProbabilityTableParams &input) const override;
 
 private:
-        void export_locality(IOArgumentRange output,
-                             ProbabilityTableParams& input,
-                             const Locality::LocalityMatrixSystem& lms);
 
-        void export_inflation(IOArgumentRange output,
-                              ProbabilityTableParams& input,
-                              const Inflation::InflationMatrixSystem& ims);
+private:
+        void export_whole_tensor(IOArgumentRange output,
+                                 ProbabilityTableParams& input,
+                                 MatrixSystem& system);
+
+        void export_one_measurement(IOArgumentRange output,
+                                    ProbabilityTableParams& input,
+                                    MatrixSystem& system);
+
+        void export_one_outcome(IOArgumentRange output,
+                                ProbabilityTableParams& input,
+                                MatrixSystem& system);
 
     };
 

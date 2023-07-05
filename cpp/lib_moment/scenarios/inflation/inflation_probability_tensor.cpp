@@ -41,7 +41,7 @@ namespace Moment::Inflation {
     }
 
 
-    ProbabilityTensor::ProbabilityTensorRange
+    ProbabilityTensorRange
     InflationProbabilityTensor::measurement_to_range(const std::span<const OVIndex> mmtIndices) const {
         ProbabilityTensorIndex lower_bounds(this->Dimensions.size(), 0);
         ProbabilityTensorIndex upper_bounds(this->Dimensions.size(), 1);
@@ -62,7 +62,7 @@ namespace Moment::Inflation {
         return ProbabilityTensorRange{*this, std::move(lower_bounds), std::move(upper_bounds)};
     }
 
-    ProbabilityTensor::ProbabilityTensorRange
+    ProbabilityTensorRange
     InflationProbabilityTensor::measurement_to_range(const std::span<const OVIndex> freeMeasurements,
                                                     const std::span<const OVOIndex> fixedOutcomes) const {
         ProbabilityTensorIndex lower_bounds(this->Dimensions.size(), 0);

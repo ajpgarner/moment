@@ -71,13 +71,17 @@ namespace Moment {
 
     };
 
+    class CollinsGisin;
+
+    using CollinsGisinRange = TensorRange<CollinsGisin>;
+
     /**
      * Collins-Gisin tensor: an indexing scheme for real-valued operators that correspond to measurement outcomes.
      */
     class CollinsGisin : public AutoStorageTensor<CollinsGisinEntry, CG_explicit_element_limit> {
     public:
         using CollinsGisinIterator = CollinsGisin::Iterator;
-        using CollinsGisinRange = CollinsGisin::Range<CollinsGisin>;
+
 
     public:
         struct GlobalMeasurementIndex {

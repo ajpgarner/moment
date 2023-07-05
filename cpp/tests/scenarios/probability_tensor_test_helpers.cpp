@@ -10,7 +10,7 @@
 
 namespace Moment::Tests {
 
-    void testIdMmt(const ProbabilityTensor::ProbabilityTensorRange& spanID) {
+    void testIdMmt(const ProbabilityTensorRange& spanID) {
 
         auto iter = spanID.begin();
         ASSERT_NE(iter, spanID.end());
@@ -21,7 +21,7 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, spanID.end());
     }
 
-    void test2Mmt(const ProbabilityTensor::ProbabilityTensorRange &spanA,
+    void test2Mmt(const ProbabilityTensorRange &spanA,
                   symbol_name_t id, symbol_name_t alice,
                   const std::string &ctx) {
 
@@ -39,7 +39,7 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, spanA.end()) << ctx;
     }
 
-    void testSingleCV(const ProbabilityTensor::ProbabilityTensorRange &span,
+    void testSingleCV(const ProbabilityTensorRange &span,
                       symbol_name_t id, const std::string &ctx) {
         auto iter = span.begin();
         ASSERT_NE(iter, span.end()) << ctx;
@@ -51,7 +51,7 @@ namespace Moment::Tests {
     }
 
 
-    void test3Mmt(const ProbabilityTensor::ProbabilityTensorRange &spanA,
+    void test3Mmt(const ProbabilityTensorRange &spanA,
               symbol_name_t id, symbol_name_t a0, symbol_name_t a1,
               const std::string &ctx) {
 
@@ -75,7 +75,7 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, spanA.end()) << ctx;
     }
 
-    void test22JoinMmt(const ProbabilityTensor::ProbabilityTensorRange &spanAB,
+    void test22JoinMmt(const ProbabilityTensorRange &spanAB,
                        symbol_name_t id,
                        symbol_name_t alice,
                        symbol_name_t bob,
@@ -116,7 +116,7 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, spanAB.end());
     }
 
-    void test32JoinMmt(const ProbabilityTensor::ProbabilityTensorRange& spanAB,
+    void test32JoinMmt(const ProbabilityTensorRange& spanAB,
                        symbol_name_t id,
                        symbol_name_t a0,
                        symbol_name_t a1,
@@ -162,7 +162,7 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, spanAB.end());
     }
 
-    void test222JoinMmt( const ProbabilityTensor::ProbabilityTensorRange& spanABC,
+    void test222JoinMmt( const ProbabilityTensorRange& spanABC,
                         symbol_name_t id,
                         symbol_name_t alice,
                         symbol_name_t bob,

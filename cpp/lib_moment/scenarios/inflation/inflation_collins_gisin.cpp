@@ -85,7 +85,7 @@ namespace Moment::Inflation {
     }
 
 
-    CollinsGisin::CollinsGisinRange
+    CollinsGisinRange
     InflationCollinsGisin::measurement_to_range(const std::span<const OVIndex> mmtIndices) const {
         CollinsGisinIndex lower_bounds(this->Dimensions.size(), 0);
         CollinsGisinIndex upper_bounds(this->Dimensions.size(), 1);
@@ -105,7 +105,7 @@ namespace Moment::Inflation {
         return CollinsGisinRange{*this, std::move(lower_bounds), std::move(upper_bounds)};
     }
 
-    CollinsGisin::CollinsGisinRange
+    CollinsGisinRange
     InflationCollinsGisin::measurement_to_range(const std::span<const OVIndex> mmtIndices,
                                                 const std::span<const OVOIndex> fixedOutcomes) const {
         CollinsGisinIndex lower_bounds(this->Dimensions.size(), 0);

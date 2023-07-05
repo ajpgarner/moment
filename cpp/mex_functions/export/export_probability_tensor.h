@@ -9,72 +9,50 @@
 #include "mex.hpp"
 #include "MatlabDataArray.hpp"
 
-#include "symbolic/polynomial.h"
-#include "scenarios/inflation/observable_variant_index.h"
-#include "scenarios/locality/measurement.h"
+#include "exporter.h"
 
 #include <span>
 
 namespace Moment {
     class Context;
-    class MomentMatrix;
-    namespace Locality {
-        class LocalityImplicitSymbols;
-        class LocalityOperatorFormatter;
-    }
+    class MatrixSystem;
+    class PolynomialFactory;
+    class ProbabilityTensor;
+    class ProbabilityTensorElement;
 
-    namespace Inflation {
-        class InflationImplicitSymbols;
 
-    }
+    template<typename tensor_t> class TensorRange;
+    using ProbabilityTensorRange = TensorRange<ProbabilityTensor>;
+
+    class SymbolTable;
 
     namespace mex {
-        /**
-         * Export complete table of implied symbols from inflation scenario
-         */
-        [[nodiscard]] matlab::data::StructArray
-        export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                               const Inflation::InflationImplicitSymbols &impliedSymbols);
+        class ProbabilityTensorExporter : public Exporter {
+        private:
+            mutable matlab::data::ArrayFactory factory;
+            const Context& context;
+            const SymbolTable& symbol_table;
+            const PolynomialFactory& polyFactory;
 
-        /**
-         * Export one observable of implied symbols from inflation scenario
-         */
-        [[nodiscard]] matlab::data::StructArray
-        export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                               const Inflation::InflationImplicitSymbols &impliedSymbols,
-                               std::span<const Inflation::OVIndex> obsVarIndices);
-        /**
-         * Export one outcome of implied symbols from inflation scenario
-         */
-        [[nodiscard]] matlab::data::StructArray
-        export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                               const Inflation::InflationImplicitSymbols &impliedSymbols,
-                               std::span<const Inflation::OVOIndex> obsVarIndices);
+        public:
+            ProbabilityTensorExporter(matlab::engine::MATLABEngine& engine, const MatrixSystem& system);
 
-        /**
-         * Export complete table of implied symbols from locality scenario
-         */
-        [[nodiscard]] matlab::data::StructArray
-        export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                               const Locality::LocalityOperatorFormatter& formatter,
-                               const Locality::LocalityImplicitSymbols &impliedSymbols);
+            [[nodiscard]] matlab::data::CellArray sequences(const ProbabilityTensor& tensor) const;
 
-        /**
-         * Export one measurement of implied symbols from locality scenario
-         */
-        [[nodiscard]] matlab::data::StructArray
-        export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                               const Locality::LocalityOperatorFormatter& formatter,
-                               const Locality::LocalityImplicitSymbols &impliedSymbols,
-                               std::span<const Locality::PMIndex> measurementIndex);
+            [[nodiscard]] matlab::data::CellArray symbols(const ProbabilityTensor& tensor) const;
 
-        /**
-         * Export one outcome of implied symbols from locality scenario
-         */
-        [[nodiscard]] matlab::data::StructArray
-        export_implied_symbols(matlab::engine::MATLABEngine &engine,
-                               const Locality::LocalityOperatorFormatter& formatter,
-                               const Locality::LocalityImplicitSymbols &impliedSymbols,
-                               std::span<const Locality::PMOIndex> outcomeIndex);
+            [[nodiscard]] matlab::data::CellArray sequences(const ProbabilityTensorRange& splice) const;
+
+            [[nodiscard]] matlab::data::CellArray symbols(const ProbabilityTensorRange& splice) const;
+
+            [[nodiscard]] matlab::data::CellArray sequence(const ProbabilityTensorElement& element) const;
+
+            [[nodiscard]] matlab::data::CellArray symbol(const ProbabilityTensorElement& element) const;
+
+            friend class SymbolWriterFunctor;
+            friend class SequenceWriterFunctor;
+        };
+
     }
+
 }

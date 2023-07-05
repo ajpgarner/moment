@@ -64,7 +64,7 @@ namespace Moment::Locality {
     }
 
 
-    CollinsGisin::CollinsGisinRange
+    CollinsGisinRange
     LocalityCollinsGisin::measurement_to_range(const std::span<const PMIndex> mmtIndices) const {
         CollinsGisinIndex lower_bounds(this->Dimensions.size(), 0);
         CollinsGisinIndex upper_bounds(this->Dimensions.size(), 1);
@@ -82,7 +82,7 @@ namespace Moment::Locality {
         return CollinsGisinRange{*this, std::move(lower_bounds), std::move(upper_bounds)};
     }
 
-    CollinsGisin::CollinsGisinRange
+    CollinsGisinRange
     LocalityCollinsGisin::measurement_to_range(const std::span<const PMIndex> mmtIndices,
                                                const std::span<const PMOIndex> fixedOutcomes) const {
         CollinsGisinIndex lower_bounds(this->Dimensions.size(), 0);

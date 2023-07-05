@@ -45,13 +45,15 @@ namespace Moment {
             : cgPolynomial(std::move(cgPoly)), symbolPolynomial{std::move(symPoly)}, hasSymbolPoly{true} { }
     };
 
+    class ProbabilityTensor;
+
+    using ProbabilityTensorRange = TensorRange<ProbabilityTensor>;
+
     /**
      * Similar to the Collins-Gisin tensor, but also includes /implicit/ dependent probabilities (e.g. a1 = 1 - a0, etc.)
      */
     class ProbabilityTensor : public AutoStorageTensor<ProbabilityTensorElement, PT_explicit_element_limit> {
     public:
-        using ProbabilityTensorRange = ProbabilityTensor::Range<ProbabilityTensor>;
-
         /** Utility structure: grouping of properties required to set up tensor. */
         struct TensorConstructInfo {
             /** Total number of outcomes per party over all measurements. */
@@ -144,7 +146,8 @@ namespace Moment {
          * @return Iterator over identified range.
          * @throws BadCGError If index is invalid.
          */
-        [[nodiscard]] ProbabilityTensorRange measurement_to_range(std::span<const size_t> mmtIndices) const;
+        [[nodiscard]] ProbabilityTensorRange
+        measurement_to_range(std::span<const size_t> mmtIndices) const;
 
         /**
          * Splice all operators corresponding to supplied set of (global) measurement indices, fixing some of the
@@ -153,8 +156,8 @@ namespace Moment {
          * @param fixedOutcomes List of outcome indices, or -1 if not fixed.
          * @throws BadPTError If index is invalid.
          */
-        [[nodiscard]] ProbabilityTensorRange  measurement_to_range(std::span<const size_t> mmtIndices,
-                                                                   std::span<const oper_name_t> fixedOutcomes) const;
+        [[nodiscard]] ProbabilityTensorRange
+        measurement_to_range(std::span<const size_t> mmtIndices, std::span<const oper_name_t> fixedOutcomes) const;
 
     protected:
         [[nodiscard]] ProbabilityTensorElement make_element_no_checks(Tensor::IndexView index) const override;

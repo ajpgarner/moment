@@ -47,7 +47,7 @@ namespace Moment::Locality {
         }
     }
 
-    ProbabilityTensor::ProbabilityTensorRange
+    ProbabilityTensorRange
     LocalityProbabilityTensor::measurement_to_range(const std::span<const PMIndex> mmtIndices) const {
         ProbabilityTensorIndex lower_bounds(this->Dimensions.size(), 0);
         ProbabilityTensorIndex  upper_bounds(this->Dimensions.size(), 1);
@@ -66,7 +66,7 @@ namespace Moment::Locality {
         return ProbabilityTensorRange{*this, std::move(lower_bounds), std::move(upper_bounds)};
     }
 
-    ProbabilityTensor::ProbabilityTensorRange
+    ProbabilityTensorRange
     LocalityProbabilityTensor::measurement_to_range(const std::span<const PMIndex> freeMeasurements,
                                                     const std::span<const PMOIndex> fixedOutcomes) const {
 

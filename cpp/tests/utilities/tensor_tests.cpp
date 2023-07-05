@@ -304,6 +304,15 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, iter_end);
     }
 
+    TEST(Utilities_Tensor, Range_SliceDimension) {
+        BoringTensor auto_deduce({5, 5});
+        auto range = auto_deduce.Splice(Tensor::Index{2, 3}, Tensor::Index{5, 5}); // 3 x 2 slice
+
+        auto range_dims = range.Dimensions();
+        EXPECT_EQ(range_dims, (BoringTensor::Index{3, 2}));
+    }
+
+
     TEST(Utilities_Tensor, View_Explicit) {
         BoringTensor auto_deduce({3, 3}, TensorStorageType::Explicit);
         ASSERT_EQ(auto_deduce.StorageType, TensorStorageType::Explicit);

@@ -9,6 +9,8 @@
 
 #include "multi_dimensional_offset_index_iterator.h"
 
+#include <algorithm>
+#include <functional>
 #include <optional>
 #include <span>
 #include <stdexcept>
@@ -139,6 +141,9 @@ namespace Moment {
         /** Automatically choose between Virtual and Explicit based on total element count. */
         Automatic
     };
+
+    template<typename tensor_t>
+    class TensorRange;
 
     /**
      * Tensor, that might be virtual or explicit.
@@ -363,7 +368,7 @@ namespace Moment {
             std::optional<typename std::vector<Element>::const_iterator> directIterEnd;
 
         public:
-            FullIterator(const AutoStorageTensor& tensor) : tensorPtr(&tensor) {
+            explicit FullIterator(const AutoStorageTensor& tensor) : tensorPtr(&tensor) {
                 if (tensor.StorageType == TensorStorageType::Explicit) {
                     this->implIter.template emplace<0>(tensor.data.cbegin());
                     this->directIterEnd = tensor.data.cend();
@@ -375,7 +380,7 @@ namespace Moment {
                 }
             }
 
-            FullIterator(const AutoStorageTensor& tensor, end_tag_t) : tensorPtr(&tensor) {
+            explicit FullIterator(const AutoStorageTensor& tensor, end_tag_t) : tensorPtr(&tensor) {
                 if (tensor.StorageType == TensorStorageType::Explicit) {
                     this->implIter.template emplace<0>(tensor.data.cend());
                     this->directIterEnd = tensor.data.cend();
@@ -464,32 +469,8 @@ namespace Moment {
                     return std::get<1>(this->implIter).operator!();
                 }
             }
-
-
         };
 
-        template<typename tensor_t = AutoStorageTensor>
-        class Range {
-        private:
-            const tensor_t& tensor;
-            const Index first;
-            const Index last;
-
-            const Iterator iter_end;
-
-        public:
-            Range(const tensor_t& tensor, Index&& first, Index&& last)
-                    : tensor{tensor}, first(std::move(first)), last(std::move(last)),
-                      iter_end{tensor} { }
-
-            [[nodiscard]] inline Iterator begin() const {
-                return Iterator{tensor, Index(this->first), Index(this->last)};
-            }
-
-            [[nodiscard]] inline const Iterator& end() const noexcept {
-                return this->iter_end;
-            }
-        };
 
 
     public:
@@ -534,19 +515,17 @@ namespace Moment {
             return ElementView{*this, offset};
         }
 
-        template<typename range_t = AutoStorageTensor<elem_t, threshold>::Range<AutoStorageTensor<elem_t, threshold>>>
+        template<typename range_t = TensorRange<AutoStorageTensor<elem_t, threshold>>>
         [[nodiscard]] range_t Splice(Index&& min, Index&& max) {
             this->validate_range(min, max);
             return range_t{*this, std::move(min), std::move(max)};
         }
 
-        template<typename range_t = AutoStorageTensor<elem_t, threshold>::Range<AutoStorageTensor<elem_t, threshold>>>
+        template<typename range_t = TensorRange<AutoStorageTensor<elem_t, threshold>>>
         [[nodiscard]] range_t Splice(const IndexView minV, const IndexView maxV) {
             this->validate_range(minV, maxV);
             return range_t{*this, Index(minV.begin(), minV.end()), Index(maxV.begin(), maxV.end())};
         }
-
-
 
     protected:
         [[nodiscard]] inline ElementView elem_no_checks(const Tensor::IndexView indices) const {
@@ -574,5 +553,42 @@ namespace Moment {
 
     };
 
+
+
+    template<typename tensor_t>
+    class TensorRange {
+    public:
+        using Tensor = tensor_t;
+        using Index = typename Tensor::Index;
+        using Iterator = typename Tensor::Iterator;
+
+    private:
+        const tensor_t& tensor;
+        const Index first;
+        const Index last;
+
+        const Iterator iter_end;
+
+    public:
+        TensorRange(const tensor_t& tensor, Index&& first, Index&& last)
+                : tensor{tensor}, first(std::move(first)), last(std::move(last)),
+                  iter_end{tensor} { }
+
+        [[nodiscard]] inline Iterator begin() const {
+            return Iterator{tensor, Index(this->first), Index(this->last)};
+        }
+
+        [[nodiscard]] inline const Iterator& end() const noexcept {
+            return this->iter_end;
+        }
+
+        [[nodiscard]] Index Dimensions() const {
+            Index output;
+            output.reserve(tensor.DimensionCount);
+            std::transform(last.begin(), last.end(), first.begin(), std::back_inserter(output), std::minus{});
+            return output;
+        }
+
+    };
 
 }

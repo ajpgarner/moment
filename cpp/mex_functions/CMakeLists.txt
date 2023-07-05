@@ -24,10 +24,12 @@ matlab_add_mex(NAME moment_mex
             export/export_operator_rules.cpp
             export/export_operator_sequence.cpp
             export/export_polynomial.cpp
+            export/export_probability_tensor.cpp
             export/export_sequence_matrix.cpp
             export/export_substitution_list.cpp
             export/export_symbol_matrix.cpp
             export/export_symbol_table.cpp
+            import/read_measurement_indices.cpp
             import/read_monomial_rules.cpp
             import/read_operator_names.cpp
             import/read_opseq_polynomial.cpp
@@ -44,7 +46,6 @@ matlab_add_mex(NAME moment_mex
             utilities/reporting.cpp
             functions/alphabetic_name.cpp
             functions/collins_gisin.cpp
-             functions/operator_rules/complete.cpp
             functions/conjugate.cpp
             functions/import_matrix.cpp
             functions/generate_basis.cpp
@@ -61,7 +62,6 @@ matlab_add_mex(NAME moment_mex
             functions/debug/echo.cpp
             functions/debug/list.cpp
             functions/debug/moment_rule_superset.cpp
-        functions/operator_rules/operator_rules.cpp
             functions/debug/version.cpp
             functions/matrix_system/algebraic_matrix_system.cpp
             functions/matrix_system/imported_matrix_system.cpp
@@ -76,6 +76,8 @@ matlab_add_mex(NAME moment_mex
             functions/operator_matrix/localizing_matrix.cpp
             functions/operator_matrix/moment_matrix.cpp
             functions/operator_matrix/operator_matrix.cpp
+            functions/operator_rules/complete.cpp
+            functions/operator_rules/operator_rules.cpp
         OUTPUT_NAME mtk
         MODULE
         R2018a)

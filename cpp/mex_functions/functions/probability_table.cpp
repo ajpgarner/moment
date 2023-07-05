@@ -11,88 +11,61 @@
 #include "matrix/operator_matrix/moment_matrix.h"
 
 #include "scenarios/inflation/inflation_matrix_system.h"
-#include "scenarios/locality/locality_probability_tensor.h"
+#include "scenarios/inflation/inflation_probability_tensor.h"
+
 #include "scenarios/locality/locality_matrix_system.h"
+#include "scenarios/locality/locality_probability_tensor.h"
 #include "scenarios/locality/locality_operator_formatter.h"
+
+#include "export/export_probability_tensor.h"
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
-#include "utilities/visitor.h"
 
 namespace Moment::mex::functions {
 
     namespace {
-        class IndexReaderVisitor {
-        private:
-            matlab::engine::MATLABEngine &engine;
-        public:
-            using return_type = std::vector<ProbabilityTableParams::RawTriplet>;
+        [[nodiscard]] ProbabilityTensorRange get_slice(matlab::engine::MATLABEngine& matlabEngine,
+                                                                          const ProbabilityTableParams& input,
+                                                                          MatrixSystem& system,
+                                                                          decltype(system.get_read_lock())& lock) {
 
-            explicit IndexReaderVisitor(matlab::engine::MATLABEngine &matlabEngine) : engine{matlabEngine} { }
+            if (auto* lmsPtr = dynamic_cast<Locality::LocalityMatrixSystem*>(&system); lmsPtr != nullptr) {
+                lmsPtr->RefreshProbabilityTensor(lock);
+                const auto& pt = lmsPtr->LocalityProbabilityTensor();
 
-            /** Dense input -> dense monolithic output */
-            template<std::convertible_to<size_t> data_t>
-            return_type dense(const matlab::data::TypedArray<data_t> &matrix) {
-                std::vector<ProbabilityTableParams::RawTriplet> output;
-                const auto dims = matrix.getDimensions();
-                assert(dims.size() == 2);
-                assert((dims[1] == 2) || (dims[1] == 3));
-                const bool triplet = (dims[1] == 3);
+                PMConvertor pmReader{matlabEngine, lmsPtr->localityContext};
+                auto free_mmts = pmReader.read_pm_index_list(input.free);
+                auto fixed_mmts = pmReader.read_pmo_index_list(input.fixed);
 
-                for (size_t row = 0; row < dims[0]; ++row) {
-                    if (matrix[row][0] < 1) {
-                        throw errors::BadInput{errors::bad_param, "Party index should be positive integer."};
-                    }
-                    if (matrix[row][1] < 1) {
-                        throw errors::BadInput{errors::bad_param, "Measurement index should be positive integer."};
-                    }
-                    if (triplet && (matrix[row][2] < 1)) {
-                        throw errors::BadInput{errors::bad_param, "Outcome index should be positive integer."};
-                    }
-                    if (triplet) {
-                        // from matlab index to C++ index
-                        output.emplace_back(static_cast<size_t>(matrix[row][0] - 1),
-                                            static_cast<size_t>(matrix[row][1] - 1),
-                                            static_cast<size_t>(matrix[row][2] - 1));
-                    } else {
-                        // from matlab index to C++ index
-                        output.emplace_back(static_cast<size_t>(matrix[row][0] - 1),
-                                            static_cast<size_t>(matrix[row][1] - 1), 0);
-                    }
+                try {
+                    return pt.measurement_to_range(free_mmts, fixed_mmts);
+                } catch (const Moment::errors::BadPTError& pte) {
+                    throw_error(matlabEngine, errors::bad_param, pte.what());
+                } catch (const std::exception& e) {
+                    throw_error(matlabEngine, errors::internal_error, e.what());
                 }
-                return output;
             }
 
-            /** Dense input -> dense monolithic output */
-            return_type string(const matlab::data::StringArray& matrix) {
-                std::vector<ProbabilityTableParams::RawTriplet> output;
-                const auto dims = matrix.getDimensions();
-                assert(dims.size() == 2);
-                const bool triplet = (dims[1] == 3);
+            if (auto* imsPtr = dynamic_cast<Inflation::InflationMatrixSystem*>(&system); imsPtr != nullptr) {
+                imsPtr->RefreshProbabilityTensor(lock);
+                const auto& pt = imsPtr->InflationProbabilityTensor();
 
-                for (size_t row = 0; row < dims[0]; ++row) {
-                    auto party_raw = read_positive_integer<size_t>(engine, "Party index", matrix[row][0], 1);
-                    auto mmt_raw = read_positive_integer<size_t>(engine, "Measurement index", matrix[row][1], 1);
+                OVConvertor ovReader{matlabEngine, imsPtr->InflationContext()};
+                auto free_mmts = ovReader.read_ov_index_list(input.free);
+                auto fixed_mmts = ovReader.read_ovo_index_list(input.fixed);
 
-                    if (!triplet) {
-                        // from matlab index to C++ index
-                        output.emplace_back(static_cast<size_t>(party_raw - 1),
-                                            static_cast<size_t>(mmt_raw - 1), 0);
-                    } else {
-                        auto outcome_raw = read_positive_integer<size_t>(engine, "Outcome index", matrix[row][2], 1);
-                        // from matlab index to C++ index
-                        output.emplace_back(static_cast<size_t>(party_raw - 1),
-                                            static_cast<size_t>(mmt_raw - 1),
-                                            static_cast<size_t>(outcome_raw - 1));
-                    }
+                try {
+                    return pt.measurement_to_range(free_mmts, fixed_mmts);
+                } catch (const Moment::errors::BadPTError& pte) {
+                    throw_error(matlabEngine, errors::bad_param, pte.what());
+                } catch (const std::exception& e) {
+                    throw_error(matlabEngine, errors::internal_error, e.what());
                 }
-                return output;
             }
-        };
 
-        static_assert(concepts::VisitorHasRealDense<IndexReaderVisitor>);
-        static_assert(concepts::VisitorHasString<IndexReaderVisitor>);
-
+            throw_error(matlabEngine, errors::bad_param, "Matrix system must be a locality or inflation system.");
+        }
     }
 
     ProbabilityTableParams::ProbabilityTableParams(SortedInputs &&inputIn)
@@ -100,117 +73,69 @@ namespace Moment::mex::functions {
         // Get matrix system ID
         this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "Reference id", this->inputs[0], 0);
 
+        // Get output mode if specified
+        if (this->flags.contains(u"sequences")) {
+            this->output_mode = OutputMode::OperatorSequences;
+        } else if (this->flags.contains(u"symbols")) {
+            this->output_mode = OutputMode::Symbols;
+        }
+
         // For single input, just get whole table
         if (this->inputs.size() < 2) {
-            this->export_mode = ExportMode::WholeTable;
+            this->export_shape = ExportShape::WholeTensor;
             return;
         }
 
-        // Check input type
-        switch (this->inputs[1].getType()) {
-            case matlab::data::ArrayType::SINGLE:
-            case matlab::data::ArrayType::DOUBLE:
-            case matlab::data::ArrayType::INT8:
-            case matlab::data::ArrayType::UINT8:
-            case matlab::data::ArrayType::INT16:
-            case matlab::data::ArrayType::UINT16:
-            case matlab::data::ArrayType::INT32:
-            case matlab::data::ArrayType::UINT32:
-            case matlab::data::ArrayType::INT64:
-            case matlab::data::ArrayType::UINT64:
-            case matlab::data::ArrayType::SPARSE_DOUBLE:
-            case matlab::data::ArrayType::MATLAB_STRING:
-                break;
-            default:
-                throw errors::BadInput{errors::bad_param, "Index type must be real numeric, or of numeric strings."};
+        // Otherwise, determine mode, and check dimensions
+        bool hasFreeMmts = false;
+        bool hasFixedMmts = false;
+        if (this->inputs.size() == 3) {
+            if (this->inputs[1].getNumberOfElements() != 0) {
+                auto inputOneDims = this->inputs[1].getDimensions();
+                if ((inputOneDims.size() != 2) || (inputOneDims[1] != 2)) {
+                    throw_error(this->matlabEngine, errors::bad_param, "Measurement list should be a Nx2 array.");
+                }
+                hasFreeMmts = true;
+            } else {
+                hasFreeMmts = false;
+            }
+            if (this->inputs[2].getNumberOfElements() != 0) {
+                auto inputTwoDims = this->inputs[2].getDimensions();
+                if ((inputTwoDims.size() != 2) || (inputTwoDims[1] != 3)) {
+                    throw_error(this->matlabEngine, errors::bad_param, "Outcome list should be a Nx3 array.");
+                }
+                hasFixedMmts = true;
+            } else {
+                hasFixedMmts = false;
+            }
+        } else {
+            auto onlyInputDims = this->inputs[1].getDimensions();
+            if (onlyInputDims.size() != 2) {
+                throw_error(this->matlabEngine, errors::bad_param, "Measurement/outcome list should be a 2D array.");
+            }
+            if (onlyInputDims[1] == 2) {
+                hasFreeMmts = true;
+                hasFixedMmts = false;
+            } else if (onlyInputDims[1] == 3) {
+                hasFreeMmts = false;
+                hasFixedMmts = true;
+            } else {
+                throw_error(this->matlabEngine, errors::bad_param,
+                            "Measurement list should be a Nx2 array, outcome list a Nx3 array.");
+            }
         }
 
-        // Check input dimensions
-        const auto keyDims = this->inputs[1].getDimensions();
-        if ((2 != keyDims.size()) || ((keyDims[1] != 3) && (keyDims[1] != 2))) {
-            throw errors::BadInput{errors::bad_param,
-                                   std::string("Measurement indices should be written as a")
-                                    + " Nx3 matrix (e.g., [[party, mmt, outcome]; [party mmt, outcome]]),"
-                                    + " or as a Nx2 matrix (e.g., [[party, mmt]; [party, mmt]])."};
-
-        }
-        this->export_mode = (keyDims[1] == 3) ? ExportMode::OneOutcome : ExportMode::OneMeasurement;
-
-        this->requested_indices = DispatchVisitor(matlabEngine, this->inputs[1], IndexReaderVisitor{matlabEngine});
-    }
-
-    std::vector<Locality::PMIndex> ProbabilityTableParams::requested_measurement() const {
-        std::vector<Locality::PMIndex> output{};
-        output.reserve(this->requested_indices.size());
-        for (const auto& i : this->requested_indices) {
-            output.emplace_back(static_cast<party_name_t>(i.first),
-                                static_cast<mmt_name_t>(i.second));
+        // Do read
+        if (hasFreeMmts) {
+            this->free = RawIndexPair::read_list(matlabEngine, inputs[1]);
+            this->export_shape = ExportShape::OneMeasurement;
+        } else {
+            this->export_shape = ExportShape::OneOutcome;
         }
 
-        // Check for duplicate parties
-        std::set<size_t> partySet;
-        for (const auto &pm: output) {
-            partySet.emplace(pm.party);
+        if (hasFixedMmts) {
+            this->fixed = RawIndexTriplet::read_list(matlabEngine, (this->inputs.size() == 2) ? inputs[1] : inputs[2]);
         }
-        if (partySet.size() != output.size()) {
-            throw errors::BadInput{errors::bad_param, "No duplicate parties may be specified."};
-        }
-
-        // Sort requested indices
-        std::sort(output.begin(), output.end(),
-                  [](const auto &lhs, const auto &rhs) { return lhs.party < rhs.party; });
-
-        return output;
-    }
-
-    std::vector<Locality::PMOIndex> ProbabilityTableParams::requested_outcome() const {
-        std::vector<Locality::PMOIndex> output{};
-        output.reserve(this->requested_indices.size());
-        for (const auto& i : this->requested_indices) {
-            output.emplace_back(static_cast<party_name_t>(i.first),
-                                static_cast<mmt_name_t>(i.second),
-                                static_cast<oper_name_t>(i.third));
-        }
-
-        // Check for duplicate parties
-        std::set<size_t> partySet;
-        for (const auto &pmo: output) {
-            partySet.emplace(pmo.party);
-        }
-        if (partySet.size() != output.size()) {
-            throw errors::BadInput{errors::bad_param, "No duplicate parties may be specified."};
-        }
-
-        // Sort requested indices
-        std::sort(output.begin(), output.end(),
-                  [](const auto &lhs, const auto &rhs) { return lhs.party < rhs.party; });
-
-        return output;
-    }
-
-    std::vector<Inflation::OVIndex> ProbabilityTableParams::requested_observables() const {
-        std::vector<Inflation::OVIndex> output{};
-        output.reserve(this->requested_indices.size());
-        for (const auto& i : this->requested_indices) {
-            output.emplace_back(static_cast<oper_name_t>(i.first), static_cast<oper_name_t>(i.second));
-        }
-        // Sort requested indices
-        std::sort(output.begin(), output.end());
-
-        return output;
-    }
-
-    std::vector<Inflation::OVOIndex> ProbabilityTableParams::requested_ovo() const {
-        std::vector<Inflation::OVOIndex> output{};
-        output.reserve(this->requested_indices.size());
-        for (const auto& i : this->requested_indices) {
-            output.emplace_back(static_cast<oper_name_t>(i.first),
-                                static_cast<oper_name_t>(i.second),
-                                static_cast<oper_name_t>(i.third));
-        }
-        // Sort requested indices
-        std::sort(output.begin(), output.end());
-        return output;
     }
 
     ProbabilityTable::ProbabilityTable(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
@@ -219,9 +144,11 @@ namespace Moment::mex::functions {
         this->max_outputs = 1;
 
         this->min_inputs = 1;
-        this->max_inputs = 2;
+        this->max_inputs = 3;
 
-        this->flag_names.emplace(u"inflation");
+        this->flag_names.emplace(u"symbols");
+        this->flag_names.emplace(u"sequences");
+        this->mutex_params.add_mutex(u"symbols", u"sequences");
     }
 
 
@@ -235,140 +162,85 @@ namespace Moment::mex::functions {
         // Get stored moment matrix
         auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
         assert(msPtr); // ^- above should throw if absent
+        auto& system = *msPtr;
 
-        // Get read lock
-        auto lock = msPtr->get_read_lock();
-        const MatrixSystem& system = *msPtr;
-
-        // Attempt to read as locality system
-        const auto * lms = dynamic_cast<const Locality::LocalityMatrixSystem *>(&system);
-        if (nullptr != lms) {
-            export_locality(output, input, *lms);
-            return;
+        switch (input.export_shape) {
+            case ProbabilityTableParams::ExportShape::WholeTensor:
+                export_whole_tensor(output, input, system);
+                return;
+            case ProbabilityTableParams::ExportShape::OneMeasurement:
+                export_one_measurement(output, input, system);
+                return;
+            case ProbabilityTableParams::ExportShape::OneOutcome:
+                export_one_outcome(output, input, system);
+                return;
         }
-
-        // Attempt to read as inflation system
-        const auto * ims = dynamic_cast<const Inflation::InflationMatrixSystem *>(&system);
-        if (nullptr != ims) {
-            export_inflation(output, input, *ims);
-            return;
-        }
-
-        // Could not read...!
-        throw_error(this->matlabEngine, errors::bad_cast,
-                    "MatrixSystem was neither a LocalityMatrixSystem, or an InflationMatrixSystem.");
-
     }
 
+    void ProbabilityTable::export_whole_tensor(IOArgumentRange output, ProbabilityTableParams &input,
+                                               MatrixSystem& system) {
+        auto* ptSystemPtr = dynamic_cast<MaintainsTensors*>(&system);
+        if (nullptr == ptSystemPtr) {
+            throw_error(this->matlabEngine, errors::bad_param, "MatrixSystem does not maintain a probability tensor.");
+        }
+        auto lock = ptSystemPtr->get_read_lock();
+        ptSystemPtr->RefreshProbabilityTensor(lock);
+        const auto& tensor = ptSystemPtr->ProbabilityTensor();
 
-
-    void ProbabilityTable::export_locality(IOArgumentRange output,
-                                          ProbabilityTableParams& input, const Locality::LocalityMatrixSystem& lms) {
-
-        using namespace Locality;
-        throw_error(this->matlabEngine, errors::internal_error, "ProbabilityTable::export_locality not implemented.");
-//
-//        const LocalityContext& context = lms.localityContext;
-//
-//        // Get formatter
-//        auto formatter = this->settings->get_locality_formatter();
-//        assert(formatter);
-//
-//        // Create (or retrieve) implied sequence object
-//        const LocalityImplicitSymbols& implSym = lms.ImplicitSymbolTable();
-//
-//        // Export whole table?
-//        if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {
-//            // Export symbols
-//            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym);
-//            return;
-//        }
-//
-//        if (input.export_mode == ProbabilityTableParams::ExportMode::OneMeasurement) {
-//            auto requested_measurement = input.requested_measurement();
-//            // Check inputs are okay:
-//            if (requested_measurement.size() > lms.MaxRealSequenceLength()) {
-//                throw_error(this->matlabEngine, errors::bad_param,
-//                    "A moment matrix of high enough order to define the requested probability was not specified.");
-//            }
-//            for (const auto& pm : requested_measurement) {
-//                if (pm.party >= context.Parties.size()) {
-//                    throw_error(this->matlabEngine, errors::bad_param, "Party index out of range.");
-//                }
-//                const auto &party = context.Parties[pm.party];
-//                if (pm.mmt >= party.Measurements.size()) {
-//                    throw_error(this->matlabEngine, errors::bad_param, "Measurement index out of range.");
-//                }
-//            }
-//
-//            // Assign global indices to input.requested_measurement object...
-//            context.populate_global_mmt_index(requested_measurement);
-//
-//            // Request
-//            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym, requested_measurement);
-//            return;
-//        }
-//
-//
-//        if (input.export_mode == ProbabilityTableParams::ExportMode::OneOutcome) {
-//            auto requested_outcome = input.requested_outcome();
-//            // Check inputs are okay:
-//            if (requested_outcome.size() > lms.MaxRealSequenceLength()) {
-//                throw_error(this->matlabEngine, errors::bad_param,
-//                    "A moment matrix of high enough order to define the requested probability was not specified.");
-//            }
-//            for (const auto& pm : requested_outcome) {
-//                if (pm.party >= context.Parties.size()) {
-//                    throw_error(this->matlabEngine, errors::bad_param, "Party index out of range.");
-//                }
-//                const auto &party = context.Parties[pm.party];
-//                if (pm.mmt >= party.Measurements.size()) {
-//                    throw_error(this->matlabEngine, errors::bad_param, "Measurement index out of range.");
-//                }
-//                const auto &mmt = party.Measurements[pm.mmt];
-//                if (pm.outcome >= mmt.num_outcomes) {
-//                    throw_error(this->matlabEngine, errors::bad_param, "Outcome index out of range.");
-//                }
-//            }
-//            // Request
-//            output[0] = export_implied_symbols(this->matlabEngine, *formatter, implSym, requested_outcome);
-//            return;
-//        }
-//
-//
-//        throw_error(this->matlabEngine, errors::internal_error, "Unknown export type.");
+        ProbabilityTensorExporter exporter{this->matlabEngine, system};
+        switch (input.output_mode) {
+            case ProbabilityTableParams::OutputMode::OperatorSequences:
+                output[0] = exporter.sequences(tensor);
+                break;
+            case ProbabilityTableParams::OutputMode::Symbols:
+                output[0] = exporter.symbols(tensor);
+                break;
+            default:
+                throw_error(matlabEngine, errors::internal_error, "Unknown output mode.");
+        }
     }
 
-    void ProbabilityTable::export_inflation(IOArgumentRange output,
-                                            ProbabilityTableParams& input,
-                                            const Inflation::InflationMatrixSystem& ims) {
-        using namespace Inflation;
-        throw_error(this->matlabEngine, errors::internal_error, "ProbabilityTable::export_inflation not implemented.");
+    void ProbabilityTable::export_one_measurement(IOArgumentRange output, ProbabilityTableParams &input,
+                                                  MatrixSystem& system) {
+        auto lock = system.get_read_lock();
+        auto slice = get_slice(this->matlabEngine, input, system, lock);
 
-//        const InflationContext& context = ims.InflationContext();
-//
-//        // Create (or retrieve) implied sequence object
-//        const InflationImplicitSymbols& implSym = ims.ImplicitSymbolTable();
-//
-//        // Export whole table?
-//        if (input.export_mode == ProbabilityTableParams::ExportMode::WholeTable) {
-//            // Export symbols
-//            output[0] = export_implied_symbols(this->matlabEngine, implSym);
-//            return;
-//        }
-//
-//        if (input.export_mode == ProbabilityTableParams::ExportMode::OneMeasurement) {
-//            auto requested_observable = input.requested_observables();
-//            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_observable);
-//            return;
-//        }
-//
-//        if (input.export_mode == ProbabilityTableParams::ExportMode::OneOutcome) {
-//            auto requested_outcome = input.requested_ovo();
-//            output[0] = export_implied_symbols(this->matlabEngine, implSym, requested_outcome);
-//            return;
-//        }
+        ProbabilityTensorExporter exporter{this->matlabEngine, system};
 
+        switch (input.output_mode) {
+            case ProbabilityTableParams::OutputMode::OperatorSequences:
+                output[0] = exporter.sequences(slice);
+                break;
+            case ProbabilityTableParams::OutputMode::Symbols:
+                output[0] = exporter.symbols(slice);
+                break;
+            default:
+                throw_error(matlabEngine, errors::internal_error, "Unknown output mode.");
+        }
+    }
 
+    void ProbabilityTable::export_one_outcome(IOArgumentRange output, ProbabilityTableParams &input,
+                                              MatrixSystem& system) {
+        auto lock = system.get_read_lock();
+        auto slice = get_slice(this->matlabEngine, input, system, lock);
+
+        ProbabilityTensorExporter exporter{this->matlabEngine, system};
+
+        // Check there is one element referred to.
+        auto iter = slice.begin();
+        if (iter == slice.end()) {
+            throw_error(matlabEngine, errors::internal_error, "Invalid measurement.");
+        }
+
+        switch (input.output_mode) {
+            case ProbabilityTableParams::OutputMode::OperatorSequences:
+                output[0] = exporter.sequence(*iter);
+                break;
+            case ProbabilityTableParams::OutputMode::Symbols:
+                output[0] = exporter.symbol(*iter);
+                break;
+            default:
+                throw_error(matlabEngine, errors::internal_error, "Unknown output mode.");
+        }
     }
 }
