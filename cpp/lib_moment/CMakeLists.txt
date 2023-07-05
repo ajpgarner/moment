@@ -19,7 +19,6 @@ add_library(lib_moment
         matrix/operator_matrix/operator_matrix.cpp
         scenarios/collins_gisin.cpp
         scenarios/context.cpp
-        scenarios/outcome_index_iterator.cpp
         scenarios/probability_tensor.cpp
         scenarios/algebraic/algebraic_context.cpp
         scenarios/algebraic/algebraic_precontext.cpp
@@ -54,7 +53,6 @@ add_library(lib_moment
         scenarios/locality/locality_operator_formatter.cpp
         scenarios/locality/locality_probability_tensor.cpp
         scenarios/locality/locality_osg.cpp
-        scenarios/locality/joint_measurement_iterator.cpp
         scenarios/locality/party.cpp
         scenarios/locality/party_measurement_index.cpp
         scenarios/symmetrized/group.cpp

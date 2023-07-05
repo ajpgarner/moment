@@ -6,7 +6,7 @@
  */
 #include "operator_sequence_generator.h"
 
-#include "scenarios/multi_operator_iterator.h"
+#include "multi_operator_iterator.h"
 
 #include <algorithm>
 #include <limits>

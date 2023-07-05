@@ -7,7 +7,7 @@
 
 #include "gtest/gtest.h"
 
-#include "scenarios/multi_operator_iterator.h"
+#include "dictionary/multi_operator_iterator.h"
 
 #include "scenarios/locality/locality_context.h"
 

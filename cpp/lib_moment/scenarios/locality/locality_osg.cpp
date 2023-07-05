@@ -7,7 +7,7 @@
 
 #include "locality_osg.h"
 
-#include "scenarios/multi_operator_iterator.h"
+#include "dictionary/multi_operator_iterator.h"
 #include "dictionary/operator_sequence.h"
 
 #include "utilities/multi_partition.h"
