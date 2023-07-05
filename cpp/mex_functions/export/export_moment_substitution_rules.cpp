@@ -32,13 +32,15 @@ namespace Moment::mex {
     }
 
     matlab::data::CellArray
-    MomentSubstitutionRuleExporter::as_operator_cell(const Moment::MomentRulebook &rules) {
+    MomentSubstitutionRuleExporter::as_polynomials(const Moment::MomentRulebook &rules,
+                                                   const bool include_symbol_info) {
         matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({rules.size(), 1});
         auto write_iter = output.begin();
         for (const auto& rule : rules) {
             auto polynomial = rule.second.as_polynomial(rules.factory);
-            *write_iter = this->combo_exporter.sequences(polynomial);
+            auto poly_data = this->combo_exporter.sequences(factory, polynomial, include_symbol_info);
+            *write_iter = poly_data.move_to_cell(factory);
             ++write_iter;
         }
         return output;

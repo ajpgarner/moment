@@ -36,9 +36,9 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
         % POLYNOMIAL Constructs an algebraic polynomial object
         %
         % Syntax:
-        %  1.   p = Polynomial(setting, [vector of monomials]
-        %  2.   p = Polynomial(setting, {Cell of [vector of monomials]}
-        %  3.   p = Polynomial(setting, 'overwrite', [creation size])
+        %  1.   p = MTKPolynomial(setting, [vector of monomials]
+        %  2.   p = MTKPolynomial(setting, {Cell of [vector of monomials]}
+        %  3.   p = MTKPolynomial(setting, 'overwrite', [creation size])
         %
         % Syntax 1 creates a scalar polynomial.
         % Syntax 2 creates an array of polynomials.

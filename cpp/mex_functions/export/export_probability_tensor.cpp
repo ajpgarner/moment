@@ -20,17 +20,17 @@
 
 namespace Moment::mex {
 
-    class SymbolWriterFunctor {
+    class SymbolCellWriterFunctor {
     private:
         const ProbabilityTensorExporter& exporter;
         PolynomialExporter polyExporter;
 
     public:
-        explicit SymbolWriterFunctor(const ProbabilityTensorExporter& exporter)
+        explicit SymbolCellWriterFunctor(const ProbabilityTensorExporter& exporter)
             : exporter(exporter),
               polyExporter(exporter.engine, exporter.symbol_table, exporter.polyFactory.zero_tolerance) { }
 
-        [[nodiscard]] matlab::data::CellArray operator()(const ProbabilityTensorElement& elem) const {
+        [[nodiscard]] matlab::data::CellArray  operator()(const ProbabilityTensorElement& elem) const {
             // Check symbols exist
             if (!elem.hasSymbolPoly) {
                 throw Moment::errors::BadPTError{"Symbols not yet found."};
@@ -41,20 +41,25 @@ namespace Moment::mex {
     };
 
     class SequenceWriterFunctor {
-    private:
+    public:
+        const bool full_export;
         const ProbabilityTensorExporter& exporter;
         PolynomialExporter polyExporter;
 
     public:
-        explicit SequenceWriterFunctor(const ProbabilityTensorExporter& exporter)
-            : exporter(exporter),
+        explicit SequenceWriterFunctor(const ProbabilityTensorExporter& exporter, const bool full_export)
+            : full_export{full_export}, exporter(exporter),
               polyExporter(exporter.engine, exporter.symbol_table, exporter.polyFactory.zero_tolerance) { }
 
         [[nodiscard]] matlab::data::CellArray operator()(const ProbabilityTensorElement& elem) const {
+            auto polySpec = this->fps(elem);
+            return polySpec.move_to_cell(exporter.factory);
+        }
 
+        [[nodiscard]] FullPolynomialSpecification fps(const ProbabilityTensorElement& elem) const {
             // We can do this the easy way, or the hard way...
             if (elem.hasSymbolPoly) {
-                return this->polyExporter.sequences(elem.symbolPolynomial);
+                return this->polyExporter.sequences(exporter.factory, elem.symbolPolynomial, this->full_export);
             } else {
                 throw Moment::errors::BadPTError{"Symbol deduction not yet implemented."};
             }
@@ -63,14 +68,13 @@ namespace Moment::mex {
 
 
     namespace {
-
-        template<typename read_iter_t, typename write_elem_functor_t>
+        template<typename read_iter_t, typename export_functor_t>
         matlab::data::CellArray
         do_export(matlab::engine::MATLABEngine& engine,
                   matlab::data::ArrayFactory& factory,
                   matlab::data::ArrayDimensions&& dimensions,
                   read_iter_t read_iter, const read_iter_t read_iter_end,
-                  const write_elem_functor_t& elem_writer) {
+                  const export_functor_t& elem_writer) {
 
             matlab::data::CellArray output = factory.createCellArray(std::move(dimensions));
 
@@ -124,45 +128,56 @@ namespace Moment::mex {
     }
 
     matlab::data::CellArray ProbabilityTensorExporter::sequences(const ProbabilityTensor &tensor) const {
-        return do_export(this->engine, this->factory,
-                         ProbabilityTensor::Index{tensor.Dimensions},
-                         tensor.begin(), tensor.end(),
-                         SequenceWriterFunctor{*this});
+        return do_export(this->engine, this->factory, ProbabilityTensor::Index{tensor.Dimensions},
+                         tensor.begin(), tensor.end(), SequenceWriterFunctor{*this, false});
     }
 
     matlab::data::CellArray ProbabilityTensorExporter::sequences(const ProbabilityTensorRange &splice) const {
         auto dims = splice.Dimensions();
         remove_unused_dimensions(dims);
-        return do_export(this->engine, this->factory,
-                         std::move(dims),
-                         splice.begin(), splice.end(),
-                         SequenceWriterFunctor{*this});
+        return do_export(this->engine, this->factory, std::move(dims),
+                         splice.begin(), splice.end(), SequenceWriterFunctor{*this, false});
+    }
+
+    FullPolynomialSpecification ProbabilityTensorExporter::sequence(const ProbabilityTensorElement &element) const {
+        SequenceWriterFunctor swf{*this, false};
+        return swf.fps(element);
+    }
+
+    matlab::data::CellArray ProbabilityTensorExporter::sequences_with_symbols(const ProbabilityTensor &tensor) const {
+        return do_export(this->engine, this->factory, ProbabilityTensor::Index{tensor.Dimensions},
+                         tensor.begin(), tensor.end(), SequenceWriterFunctor{*this, true});
+    }
+
+    matlab::data::CellArray ProbabilityTensorExporter::sequences_with_symbols(const ProbabilityTensorRange &splice) const {
+        auto dims = splice.Dimensions();
+        remove_unused_dimensions(dims);
+        return do_export(this->engine, this->factory, std::move(dims),
+                         splice.begin(), splice.end(), SequenceWriterFunctor{*this, true});
+    }
+
+    FullPolynomialSpecification
+    ProbabilityTensorExporter::sequence_with_symbols(const ProbabilityTensorElement &element) const {
+        SequenceWriterFunctor swf{*this, true};
+        return swf.fps(element);
     }
 
     matlab::data::CellArray ProbabilityTensorExporter::symbols(const ProbabilityTensor &tensor) const {
 
-        return do_export(this->engine, this->factory,
-                         ProbabilityTensor::Index{tensor.Dimensions},
-                         tensor.begin(), tensor.end(),
-                         SymbolWriterFunctor{*this});
+        return do_export(this->engine, this->factory, ProbabilityTensor::Index{tensor.Dimensions},
+                         tensor.begin(), tensor.end(), SymbolCellWriterFunctor{*this});
     }
 
     matlab::data::CellArray ProbabilityTensorExporter::symbols(const ProbabilityTensorRange &splice) const {
         auto dims = splice.Dimensions();
         remove_unused_dimensions(dims);
-        return do_export(this->engine, this->factory,
-                         std::move(dims),
-                         splice.begin(), splice.end(),
-                         SymbolWriterFunctor{*this});
+        return do_export(this->engine, this->factory, std::move(dims),
+                         splice.begin(), splice.end(), SymbolCellWriterFunctor{*this});
     }
 
-    matlab::data::CellArray ProbabilityTensorExporter::sequence(const ProbabilityTensorElement &element) const {
-        SequenceWriterFunctor swf{*this};
-        return swf(element);
-    }
 
     matlab::data::CellArray ProbabilityTensorExporter::symbol(const ProbabilityTensorElement &element) const {
-        SymbolWriterFunctor swf{*this};
+        SymbolCellWriterFunctor swf{*this};
         return swf(element);
     }
 

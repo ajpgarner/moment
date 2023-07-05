@@ -70,12 +70,15 @@ namespace Moment::mex::functions {
 
     ProbabilityTableParams::ProbabilityTableParams(SortedInputs &&inputIn)
             : SortedInputs(std::move(inputIn)) {
+
         // Get matrix system ID
         this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "Reference id", this->inputs[0], 0);
 
         // Get output mode if specified
         if (this->flags.contains(u"sequences")) {
             this->output_mode = OutputMode::OperatorSequences;
+        } else if (this->flags.contains(u"full_sequences")) {
+            this->output_mode = OutputMode::OperatorSequencesWithSymbolInfo;
         } else if (this->flags.contains(u"symbols")) {
             this->output_mode = OutputMode::Symbols;
         }
@@ -147,8 +150,9 @@ namespace Moment::mex::functions {
         this->max_inputs = 3;
 
         this->flag_names.emplace(u"symbols");
+        this->flag_names.emplace(u"full_sequences");
         this->flag_names.emplace(u"sequences");
-        this->mutex_params.add_mutex(u"symbols", u"sequences");
+        this->mutex_params.add_mutex({u"symbols", u"sequences", u"full_sequences"});
     }
 
 
@@ -159,6 +163,9 @@ namespace Moment::mex::functions {
     }
 
     void ProbabilityTable::operator()(IOArgumentRange output, ProbabilityTableParams &input) {
+        // Check output count matches
+
+
         // Get stored moment matrix
         auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
         assert(msPtr); // ^- above should throw if absent
@@ -192,6 +199,9 @@ namespace Moment::mex::functions {
             case ProbabilityTableParams::OutputMode::OperatorSequences:
                 output[0] = exporter.sequences(tensor);
                 break;
+            case ProbabilityTableParams::OutputMode::OperatorSequencesWithSymbolInfo:
+                output[0] = exporter.sequences_with_symbols(tensor);
+                break;
             case ProbabilityTableParams::OutputMode::Symbols:
                 output[0] = exporter.symbols(tensor);
                 break;
@@ -211,6 +221,11 @@ namespace Moment::mex::functions {
             case ProbabilityTableParams::OutputMode::OperatorSequences:
                 output[0] = exporter.sequences(slice);
                 break;
+
+            case ProbabilityTableParams::OutputMode::OperatorSequencesWithSymbolInfo:
+                output[0] = exporter.sequences_with_symbols(slice);
+                break;
+
             case ProbabilityTableParams::OutputMode::Symbols:
                 output[0] = exporter.symbols(slice);
                 break;
@@ -233,9 +248,15 @@ namespace Moment::mex::functions {
         }
 
         switch (input.output_mode) {
-            case ProbabilityTableParams::OutputMode::OperatorSequences:
-                output[0] = exporter.sequence(*iter);
-                break;
+            case ProbabilityTableParams::OutputMode::OperatorSequences: {
+                auto fullPolyInfo = exporter.sequence(*iter);
+                output[0] = fullPolyInfo.move_to_cell(exporter.factory);
+            }
+            break;
+            case ProbabilityTableParams::OutputMode::OperatorSequencesWithSymbolInfo:{
+                auto fullPolyInfo = exporter.sequence_with_symbols(*iter);
+                output[0] = fullPolyInfo.move_to_cell(exporter.factory);
+            }
             case ProbabilityTableParams::OutputMode::Symbols:
                 output[0] = exporter.symbol(*iter);
                 break;

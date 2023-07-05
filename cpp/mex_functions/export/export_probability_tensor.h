@@ -10,6 +10,7 @@
 #include "MatlabDataArray.hpp"
 
 #include "exporter.h"
+#include "export_polynomial.h"
 
 #include <span>
 
@@ -28,7 +29,7 @@ namespace Moment {
 
     namespace mex {
         class ProbabilityTensorExporter : public Exporter {
-        private:
+        public:
             mutable matlab::data::ArrayFactory factory;
             const Context& context;
             const SymbolTable& symbol_table;
@@ -37,19 +38,52 @@ namespace Moment {
         public:
             ProbabilityTensorExporter(matlab::engine::MATLABEngine& engine, const MatrixSystem& system);
 
+            /**
+             * Write the entire tensor as a polynomial.
+             */
             [[nodiscard]] matlab::data::CellArray sequences(const ProbabilityTensor& tensor) const;
 
-            [[nodiscard]] matlab::data::CellArray symbols(const ProbabilityTensor& tensor) const;
-
+            /**
+             * Write the tensor slice as a polynomial.
+             */
             [[nodiscard]] matlab::data::CellArray sequences(const ProbabilityTensorRange& splice) const;
 
+            /**
+             * Write a single element as a polynomial.
+             */
+            [[nodiscard]] FullPolynomialSpecification sequence(const ProbabilityTensorElement& element) const;
+
+            /**
+             * Write the entire tensor as a polynomial.
+             */
+            [[nodiscard]] matlab::data::CellArray sequences_with_symbols(const ProbabilityTensor& tensor) const;
+
+            /**
+             * Write the tensor slice as a polynomial.
+             */
+            [[nodiscard]] matlab::data::CellArray sequences_with_symbols(const ProbabilityTensorRange& splice) const;
+
+            /**
+             * Write a single element as a polynomial.
+             */
+            [[nodiscard]] FullPolynomialSpecification sequence_with_symbols(const ProbabilityTensorElement& element) const;
+
+            /**
+             * Write the entire tensor as a symbol cell.
+             */
+            [[nodiscard]] matlab::data::CellArray symbols(const ProbabilityTensor& tensor) const;
+
+            /**
+             * Write the tensor slice as a symbol cell
+             */
             [[nodiscard]] matlab::data::CellArray symbols(const ProbabilityTensorRange& splice) const;
 
-            [[nodiscard]] matlab::data::CellArray sequence(const ProbabilityTensorElement& element) const;
-
+            /**
+             * Write a single element as a symbol cell.
+             */
             [[nodiscard]] matlab::data::CellArray symbol(const ProbabilityTensorElement& element) const;
 
-            friend class SymbolWriterFunctor;
+            friend class SymbolCellWriterFunctor;
             friend class SequenceWriterFunctor;
         };
 

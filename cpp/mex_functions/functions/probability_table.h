@@ -32,8 +32,10 @@ namespace Moment::mex::functions {
 
         /** How do we want to export */
         enum struct OutputMode {
-            /** Export as cell array of operator sequences. */
+            /** Export specification of polynomials. */
             OperatorSequences,
+            /** Export specification of polynomials, but also include symbol info. */
+            OperatorSequencesWithSymbolInfo,
             /** Export as cell array of symbols. */
             Symbols
         } output_mode = OutputMode::Symbols;

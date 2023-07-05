@@ -54,7 +54,7 @@ namespace Moment::mex::functions {
         // Read output mode, if set
         auto outputModeIter = this->params.find(u"output");
         if (outputModeIter != this->params.end()) {
-            switch (read_choice("output", {"string", "symbols", "sequences"}, outputModeIter->second)) {
+            switch (read_choice("output", {"string", "symbols", "sequences", "full_sequences"}, outputModeIter->second)) {
                 case 0:
                     this->output_format = OutputFormat::String;
                     break;
@@ -62,7 +62,10 @@ namespace Moment::mex::functions {
                     this->output_format = OutputFormat::SymbolCell;
                     break;
                 case 2:
-                    this->output_format = OutputFormat::OperatorCell;
+                    this->output_format = OutputFormat::Polynomial;
+                    break;
+                case 3:
+                    this->output_format = OutputFormat::PolynomialWithSymbolInfo;
                     break;
                 default:
                     throw_error(this->matlabEngine, errors::bad_param, "Unknown output mode.");
@@ -147,18 +150,34 @@ namespace Moment::mex::functions {
             print_to_console(this->matlabEngine, debugSS.str());
         }
 
-        if (input.output_format == ApplyMomentRulesParams::OutputFormat::String) {
-            matlab::data::ArrayFactory mlfactory;
-            output[0] = mlfactory.createScalar(str_output);
-        } else if (input.output_format == ApplyMomentRulesParams::OutputFormat::SymbolCell) {
-            PolynomialExporter polynomialExporter{this->matlabEngine, symbols, factory.zero_tolerance};
-            output[0] = polynomialExporter.direct(polynomial);
-        } else if (input.output_format == ApplyMomentRulesParams::OutputFormat::OperatorCell) {
-            PolynomialExporter polynomialExporter{this->matlabEngine, symbols, factory.zero_tolerance};
-            output[0] = polynomialExporter.sequences(polynomial);
-        } else {
-            throw_error(this->matlabEngine, errors::bad_param, "Unknown output format.");
+        matlab::data::ArrayFactory mlfactory;
+
+        switch (input.output_format) {
+            case ApplyMomentRulesParams::OutputFormat::SymbolCell: {
+                PolynomialExporter polynomialExporter{this->matlabEngine, symbols, factory.zero_tolerance};
+                output[0] = polynomialExporter.direct(polynomial);
+            }
+                break;
+            case ApplyMomentRulesParams::OutputFormat::Polynomial: {
+                PolynomialExporter polynomialExporter{this->matlabEngine, symbols, factory.zero_tolerance};
+                auto fullPolyInfo = polynomialExporter.sequences(polynomial);
+                output[0] = fullPolyInfo.move_to_cell(mlfactory);
+            }
+                break;
+            case ApplyMomentRulesParams::OutputFormat::PolynomialWithSymbolInfo:{
+                PolynomialExporter polynomialExporter{this->matlabEngine, symbols, factory.zero_tolerance};
+                auto fullPolyInfo = polynomialExporter.sequences(polynomial, true);
+                output[0] = fullPolyInfo.move_to_cell(mlfactory);
+            }
+                break;
+            case ApplyMomentRulesParams::OutputFormat::String: {
+                output[0] = mlfactory.createScalar(str_output);
+            }
+                break;
+            default:
+                throw_error(this->matlabEngine, errors::bad_param, "Unknown output format.");
         }
+
     }
 
 }

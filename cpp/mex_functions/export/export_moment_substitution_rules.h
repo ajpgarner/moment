@@ -55,7 +55,8 @@ namespace Moment::mex {
         matlab::data::CellArray operator()(const MomentRulebook &rules) {
             return this->as_symbol_cell(rules);
         }
-        matlab::data::CellArray as_operator_cell(const MomentRulebook& rules);
+
+        matlab::data::CellArray as_polynomials(const MomentRulebook& rules, bool include_symbol_info = false);
 
         matlab::data::CellArray as_symbol_cell(const MomentRulebook& rules);
 

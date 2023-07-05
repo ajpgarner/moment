@@ -37,7 +37,7 @@ namespace Moment::mex::functions {
         if (this->inputs.size() >= 3) {
             try {
                 switch (read_choice("Output mode",
-                                    {"strings", "symbols", "sequences", "rewrite", "homogenous"},
+                                    {"strings", "symbols", "sequences", "full_sequences", "rewrite", "homogenous"},
                                     this->inputs[2])) {
                     case 0:
                         this->output_mode = OutputMode::String;
@@ -46,12 +46,15 @@ namespace Moment::mex::functions {
                         this->output_mode = OutputMode::SymbolCell;
                         break;
                     case 2:
-                        this->output_mode = OutputMode::SequenceCell;
+                        this->output_mode = OutputMode::Polynomial;
                         break;
                     case 3:
-                        this->output_mode = OutputMode::RewriteMatrix;
+                        this->output_mode = OutputMode::PolynomialWithSymbolInfo;
                         break;
                     case 4:
+                        this->output_mode = OutputMode::RewriteMatrix;
+                        break;
+                    case 5:
                         this->output_mode = OutputMode::HomogenousMatrix;
                         break;
                 }
@@ -133,8 +136,11 @@ namespace Moment::mex::functions {
             case MomentRulesParams::OutputMode::SymbolCell:
                 output[0] = msrExporter.as_symbol_cell(rulebook);
                 break;
-            case MomentRulesParams::OutputMode::SequenceCell:
-                output[0] = msrExporter.as_operator_cell(rulebook);
+            case MomentRulesParams::OutputMode::Polynomial:
+                output[0] = msrExporter.as_polynomials(rulebook, false);
+                break;
+            case MomentRulesParams::OutputMode::PolynomialWithSymbolInfo:
+                output[0] = msrExporter.as_polynomials(rulebook, true);
                 break;
             case MomentRulesParams::OutputMode::RewriteMatrix:
                 output[0] = msrExporter.as_rewrite_matrix(rulebook);
