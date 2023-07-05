@@ -22,7 +22,7 @@
 
 namespace Moment::Inflation {
     InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class InflationContext> contextIn)
-            : MatrixSystem{std::move(contextIn)},
+            : MaintainsTensors{std::move(contextIn)},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
         this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);
@@ -31,7 +31,7 @@ namespace Moment::Inflation {
     }
 
     InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class Context> contextIn)
-            : MatrixSystem{std::move(contextIn)},
+            : MaintainsTensors{std::move(contextIn)},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
         this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);
@@ -133,111 +133,22 @@ namespace Moment::Inflation {
         MatrixSystem::onDictionaryGenerated(word_length, osg);
     }
 
-    const class ProbabilityTensor& InflationMatrixSystem::ProbabilityTensor() const {
-        if (!this->probabilityTensor) {
-            throw Moment::errors::missing_component("ProbabilityTensor has not yet been generated.");
-        }
-        return *this->probabilityTensor;
-    }
-
     const class InflationProbabilityTensor& InflationMatrixSystem::InflationProbabilityTensor() const {
-        if (!this->probabilityTensor) {
-            throw Moment::errors::missing_component("ProbabilityTensor has not yet been generated.");
-        }
-        return *this->probabilityTensor;
-    }
-
-    const class CollinsGisin& InflationMatrixSystem::CollinsGisin() const {
-        if (!this->collinsGisin) {
-            throw Moment::errors::missing_component("Collins-Gisin tensor has not yet been generated. ");
-        }
-        return *this->collinsGisin;
+        auto& pt = this->ProbabilityTensor();
+        return dynamic_cast<const class InflationProbabilityTensor&>(pt);
     }
 
     const class InflationCollinsGisin& InflationMatrixSystem::InflationCollinsGisin() const {
-        if (!this->collinsGisin) {
-            throw Moment::errors::missing_component("Collins-Gisin tensor has not yet been generated. ");
-        }
-        return *this->collinsGisin;
+        auto& cg = this->CollinsGisin();
+        return dynamic_cast<const class InflationCollinsGisin&>(cg);
     }
 
-    bool InflationMatrixSystem::RefreshCollinsGisin(std::shared_lock<std::shared_mutex>& read_lock) {
-        // First, if no explicit symbol table at all, we surely need to do something
-        if (!this->collinsGisin) {
-            read_lock.unlock();
-
-            auto write_lock = this->get_write_lock();
-            this->collinsGisin = std::make_unique<class Moment::Inflation::InflationCollinsGisin>(*this);
-            const bool has_all_symbols = this->collinsGisin->HasAllSymbols();
-            write_lock.unlock();
-
-            read_lock.lock();
-            return has_all_symbols;
-        }
-
-        // No missing symbols, return without ever having released read lock
-        if (this->collinsGisin->HasAllSymbols()) {
-            return true;
-        }
-
-        // Upgrade lock
-        read_lock.unlock();
-        auto write_lock = this->get_write_lock();
-
-        // Try to fill symbols
-        const bool filled = this->collinsGisin->fill_missing_symbols();
-
-        // Downgrade lock
-        write_lock.unlock();
-        read_lock.lock();
-        return filled;
+    std::unique_ptr<class CollinsGisin> InflationMatrixSystem::makeCollinsGisin() {
+        return std::make_unique<class InflationCollinsGisin>(*this);
     }
 
-    bool InflationMatrixSystem::RefreshCollinsGisin() {
-        auto lock = this->get_read_lock();
-        return this->RefreshCollinsGisin(lock);
+    std::unique_ptr<class ProbabilityTensor> InflationMatrixSystem::makeProbabilityTensor() {
+        return std::make_unique<class InflationProbabilityTensor>(*this);
     }
 
-    bool InflationMatrixSystem::RefreshProbabilityTensor(std::shared_lock<std::shared_mutex> &read_lock) {
-        // First, ensure CG exists and is up-to-date.
-        this->RefreshCollinsGisin(read_lock);
-
-        // If no PT, create one
-        if (!this->probabilityTensor) {
-            // Wait to upgrade locks...
-            read_lock.unlock();
-            auto write_lock = this->get_write_lock();
-
-            if (!this->probabilityTensor) {  // Double-check, in case scooped.
-                this->probabilityTensor = std::make_unique<class InflationProbabilityTensor>(*this);
-            }
-            const bool has_all_symbols = this->probabilityTensor->HasAllPolynomials();
-            write_lock.unlock();
-
-            read_lock.lock();
-            return has_all_symbols;
-        }
-
-        // No missing symbols, return without ever having released read lock
-        if (this->probabilityTensor->HasAllPolynomials()) {
-            return true;
-        }
-
-        // Upgrade lock
-        read_lock.unlock();
-        auto write_lock = this->get_write_lock();
-
-        // Try to fill symbols
-        const bool filled = this->probabilityTensor->fill_missing_polynomials();
-
-        // Downgrade lock
-        write_lock.unlock();
-        read_lock.lock();
-        return filled;
-    }
-
-    bool InflationMatrixSystem::RefreshProbabilityTensor() {
-        auto lock = this->get_read_lock();
-        return this->RefreshProbabilityTensor(lock);
-    }
 }

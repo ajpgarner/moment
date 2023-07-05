@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "scenarios/probability_tensor.h"
+#include "probability/probability_tensor.h"
 
 #include "party_measurement_index.h"
 
@@ -34,6 +34,8 @@ namespace Moment::Locality {
     public:
         explicit LocalityProbabilityTensor(const LocalityMatrixSystem& system,
                                            TensorStorageType tst = TensorStorageType::Automatic);
+
+        virtual ~LocalityProbabilityTensor() noexcept = default;
 
         [[nodiscard]] ProbabilityTensorRange measurement_to_range(std::span<const PMIndex> mmtIndices) const;
 

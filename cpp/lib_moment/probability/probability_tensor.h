@@ -117,10 +117,13 @@ namespace Moment {
         bool hasAllSymbols = false;
 
 
-    public:
+    protected:
         ProbabilityTensor(const CollinsGisin& collinsGisin, const PolynomialFactory& factory,
                           TensorConstructInfo&& constructInfo,
                           TensorStorageType storage = TensorStorageType::Automatic);
+
+    public:
+        virtual ~ProbabilityTensor() noexcept = default;
 
         /** Deduce information about element. */
         [[nodiscard]] ElementConstructInfo element_info(ProbabilityTensorIndexView index) const;

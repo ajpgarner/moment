@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "scenarios/collins_gisin.h"
+#include "probability/collins_gisin.h"
 
 #include "observable_variant_index.h"
 

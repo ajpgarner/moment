@@ -6,7 +6,7 @@
  */
 #include "collins_gisin.h"
 
-#include "scenarios/collins_gisin.h"
+#include "probability/collins_gisin.h"
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_matrix_system.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
@@ -97,63 +97,51 @@ namespace Moment::mex::functions  {
         assert(msPtr); // ^- above should throw if absent
 
         // Get read lock
-        auto lock = msPtr->get_read_lock();
         MatrixSystem& system = *msPtr;
+        auto lock = msPtr->get_read_lock();
 
-        // Create (or retrieve) CG information
-        try {
-
-            /* Get CG tensor */
-            const auto& cg = [&]() -> const Moment::CollinsGisin& {
-                 auto *lms = dynamic_cast<Locality::LocalityMatrixSystem *>(&system);
-                if (nullptr != lms) {
-                    lms->RefreshCollinsGisin(lock);
-                    return lms->CollinsGisin();
-                } else {
-                    auto *ims = dynamic_cast<Inflation::InflationMatrixSystem*>(&system);
-                    if (nullptr != ims) {
-                        ims->RefreshCollinsGisin(lock);
-                        return ims->CollinsGisin();
-                    }
+        const auto& cg = [&]() -> const Moment::CollinsGisin& {
+            try {
+                auto* mtPtr = dynamic_cast<MaintainsTensors*>(&system);
+                if (nullptr == mtPtr) {
                     throw_error(this->matlabEngine, errors::bad_param,
                                 "Matrix system must be a locality or inflation system.");
                 }
-            }();
+                mtPtr->RefreshCollinsGisin(lock);
+                return mtPtr->CollinsGisin();
+            } catch (const Moment::errors::missing_component& mce) {
+                throw_error(this->matlabEngine, "missing_cg", mce.what());
+            } catch (const Moment::errors::BadCGError& cge) {
+                throw_error(this->matlabEngine, "missing_cg", cge.what());
+            }
+        }();
 
-            CollinsGisinExporter cge{this->matlabEngine, system.Context(), system.Symbols()};
-
-
-
-            // Export whole matrix?
-            if (output.size() >= 1) {
-                switch (input.outputType) {
-                    case CollinsGisinParams::OutputType::SymbolIds:
-                        try {
-                            auto [symbols, bases] = cge.symbol_and_basis(cg);
-                            output[0] = std::move(symbols);
-                            output[1] = std::move(bases);
-                        } catch (const Moment::errors::BadCGError& bcge) {
-                            throw_error(this->matlabEngine, "missing_cg", bcge.what());
-                        }
-                        break;
-                    case CollinsGisinParams::OutputType::Sequences: {
-                        auto [sequences, hashes] = cge.sequence_and_hash(cg);
-                        output[0] = std::move(sequences);
-                        output[1] = std::move(hashes);
-                    } break;
-                    case CollinsGisinParams::OutputType::SequenceStrings: {
-                        auto formatter = this->settings->get_locality_formatter();
-                        assert(formatter);
-                        output[0] = cge.strings(cg, *formatter);
+        CollinsGisinExporter cge{this->matlabEngine, system.Context(), system.Symbols()};
+        try {
+            switch (input.outputType) {
+                case CollinsGisinParams::OutputType::SymbolIds:
+                    try {
+                        auto [symbols, bases] = cge.symbol_and_basis(cg);
+                        output[0] = std::move(symbols);
+                        output[1] = std::move(bases);
+                    } catch (const Moment::errors::BadCGError& bcge) {
+                        throw_error(this->matlabEngine, "missing_cg", bcge.what());
                     }
                     break;
-                    default:
-                        throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
+                case CollinsGisinParams::OutputType::Sequences: {
+                    auto [sequences, hashes] = cge.sequence_and_hash(cg);
+                    output[0] = std::move(sequences);
+                    output[1] = std::move(hashes);
+                } break;
+                case CollinsGisinParams::OutputType::SequenceStrings: {
+                    auto formatter = this->settings->get_locality_formatter();
+                    assert(formatter);
+                    output[0] = cge.strings(cg, *formatter);
                 }
-
+                break;
+                default:
+                    throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
             }
-        } catch (const Moment::errors::missing_component& mce) {
-            throw_error(this->matlabEngine, "missing_cg", mce.what());
         } catch (const Moment::errors::BadCGError& cge) {
             throw_error(this->matlabEngine, "missing_cg", cge.what());
         }

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "scenarios/probability_tensor.h"
+#include "probability/probability_tensor.h"
 #include "observable_variant_index.h"
 
 

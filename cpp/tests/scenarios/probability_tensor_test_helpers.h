@@ -7,7 +7,7 @@
 #pragma once
 
 #include "integer_types.h"
-#include "scenarios/probability_tensor.h"
+#include "probability/probability_tensor.h"
 
 #include <string>
 #include <span>

@@ -17,7 +17,7 @@ namespace Moment::Locality {
 
 
     LocalityMatrixSystem::LocalityMatrixSystem(std::unique_ptr<struct Context> contextIn, const double tolerance)
-            : MatrixSystem{std::move(contextIn), tolerance},
+            : MaintainsTensors{std::move(contextIn), tolerance},
               localityContext{dynamic_cast<const LocalityContext&>(this->Context())} {
 
         this->replace_polynomial_factory(
@@ -29,7 +29,7 @@ namespace Moment::Locality {
 
 
     LocalityMatrixSystem::LocalityMatrixSystem(std::unique_ptr<struct LocalityContext> contextIn,  const double tolerance)
-            : MatrixSystem{std::move(contextIn), tolerance},
+            : MaintainsTensors{std::move(contextIn), tolerance},
               localityContext{dynamic_cast<const LocalityContext&>(this->Context())} {
 
         this->replace_polynomial_factory(
@@ -51,115 +51,14 @@ namespace Moment::Locality {
         return std::min(hierarchy_level*2, static_cast<ptrdiff_t>(this->localityContext.Parties.size()));
     }
 
-    bool LocalityMatrixSystem::RefreshCollinsGisin(std::shared_lock<std::shared_mutex>& read_lock) {
-        // First, if no explicit symbol table at all, we surely need to do something
-        if (!this->collinsGisin) {
-            read_lock.unlock();
-
-            auto write_lock = this->get_write_lock();
-            if (!this->collinsGisin) { // Double-check, in case scooped.
-                this->collinsGisin = std::make_unique<class Moment::Locality::LocalityCollinsGisin>(*this);
-            }
-            const bool has_all_symbols = this->collinsGisin->HasAllSymbols();
-            write_lock.unlock();
-
-            read_lock.lock();
-            return has_all_symbols;
-        }
-
-        // No missing symbols, return without ever having released read lock
-        if (this->collinsGisin->HasAllSymbols()) {
-            return true;
-        }
-
-        // Upgrade lock
-        read_lock.unlock();
-        auto write_lock = this->get_write_lock();
-
-        // Try to fill symbols
-        const bool filled = this->collinsGisin->fill_missing_symbols();
-
-        // Downgrade lock
-        write_lock.unlock();
-        read_lock.lock();
-        return filled;
-    }
-
-    bool LocalityMatrixSystem::RefreshCollinsGisin() {
-        auto lock = this->get_read_lock();
-        return this->RefreshCollinsGisin(lock);
-    }
-
-    bool LocalityMatrixSystem::RefreshProbabilityTensor(std::shared_lock<std::shared_mutex> &read_lock) {
-        // First, ensure CG exists and is up-to-date.
-        this->RefreshCollinsGisin(read_lock);
-
-        // If no PT, create one
-        if (!this->probabilityTensor) {
-            // Wait to upgrade locks...
-            read_lock.unlock();
-            auto write_lock = this->get_write_lock();
-
-            if (!this->probabilityTensor) {  // Double-check, in case scooped.
-                this->probabilityTensor = std::make_unique<class Moment::Locality::LocalityProbabilityTensor>(*this);
-            }
-            const bool has_all_symbols = this->probabilityTensor->HasAllPolynomials();
-            write_lock.unlock();
-
-            read_lock.lock();
-            return has_all_symbols;
-        }
-
-        // No missing symbols, return without ever having released read lock
-        if (this->probabilityTensor->HasAllPolynomials()) {
-            return true;
-        }
-
-        // Upgrade lock
-        read_lock.unlock();
-        auto write_lock = this->get_write_lock();
-
-        // Try to fill symbols
-        const bool filled = this->probabilityTensor->fill_missing_polynomials();
-
-        // Downgrade lock
-        write_lock.unlock();
-        read_lock.lock();
-        return filled;
-    }
-
-    bool LocalityMatrixSystem::RefreshProbabilityTensor() {
-        auto lock = this->get_read_lock();
-        return this->RefreshProbabilityTensor(lock);
-    }
-
-    const class ProbabilityTensor& LocalityMatrixSystem::ProbabilityTensor() const {
-        if (!this->probabilityTensor) {
-            throw Moment::errors::missing_component("ProbabilityTensor has not yet been generated.");
-        }
-        return *this->probabilityTensor;
-    }
-
     const class LocalityProbabilityTensor& LocalityMatrixSystem::LocalityProbabilityTensor() const {
-        if (!this->probabilityTensor) {
-            throw Moment::errors::missing_component("ProbabilityTensor has not yet been generated.");
-        }
-        return *this->probabilityTensor;
-    }
-
-
-    const class CollinsGisin& LocalityMatrixSystem::CollinsGisin() const {
-        if (!this->collinsGisin) {
-            throw Moment::errors::missing_component("Collins-Gisin tensor has not yet been generated. ");
-        }
-        return *this->collinsGisin;
+        const auto& pt = this->ProbabilityTensor();
+        return dynamic_cast<const class LocalityProbabilityTensor&>(pt);
     }
 
     const class LocalityCollinsGisin& LocalityMatrixSystem::LocalityCollinsGisin() const {
-        if (!this->collinsGisin) {
-            throw Moment::errors::missing_component("Collins-Gisin tensor has not yet been generated. ");
-        }
-        return *this->collinsGisin;
+        const auto& cg = this->CollinsGisin();
+        return dynamic_cast<const class LocalityCollinsGisin&>(cg);
     }
 
     void LocalityMatrixSystem::onNewMomentMatrixCreated(size_t level, const class Matrix &mm) {
@@ -185,6 +84,14 @@ namespace Moment::Locality {
             this->maxProbabilityLength = word_length;
 
         }
+    }
+
+    std::unique_ptr<class CollinsGisin> LocalityMatrixSystem::makeCollinsGisin() {
+        return std::make_unique<class LocalityCollinsGisin>(*this);
+    }
+
+    std::unique_ptr<class ProbabilityTensor> LocalityMatrixSystem::makeProbabilityTensor() {
+        return std::make_unique<class LocalityProbabilityTensor>(*this);
     }
 
 

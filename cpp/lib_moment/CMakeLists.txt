@@ -17,9 +17,10 @@ add_library(lib_moment
         matrix/operator_matrix/localizing_matrix.cpp
         matrix/operator_matrix/moment_matrix.cpp
         matrix/operator_matrix/operator_matrix.cpp
-        scenarios/collins_gisin.cpp
+        probability/collins_gisin.cpp
+        probability/maintains_tensors.cpp
+        probability/probability_tensor.cpp
         scenarios/context.cpp
-        scenarios/probability_tensor.cpp
         scenarios/algebraic/algebraic_context.cpp
         scenarios/algebraic/algebraic_precontext.cpp
         scenarios/algebraic/algebraic_matrix_system.cpp

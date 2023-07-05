@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include "scenarios/collins_gisin.h"
+#include "probability/collins_gisin.h"
 #include "party_measurement_index.h"
 
 

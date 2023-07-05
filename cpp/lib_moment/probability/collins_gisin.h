@@ -124,6 +124,10 @@ namespace Moment {
                               std::vector<size_t>&& dimensions,
                               TensorStorageType storage = TensorStorageType::Automatic);
 
+    public:
+        virtual ~CollinsGisin() noexcept = default;
+
+    protected:
         /**
          * Attempt to populate symbol IDs for first time, and identify which are still missing.
          */
