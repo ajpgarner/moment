@@ -184,6 +184,11 @@ classdef MTKMonomial < MTKObject
             obj.Coefficient = zeros(dimensions);
             obj.Hash = zeros(dimensions);
         end
+
+        obj = InitDirect(setting, operators, coefs, hash);
+                      
+        obj = InitAllInfo(setting, operators, coefs, hash, ...
+                          symbols, conj, real, im);
     end
     
     %% Convertors

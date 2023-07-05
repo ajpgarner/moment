@@ -28,8 +28,8 @@ namespace Moment::mex {
           operators{factory.createCellArray(dimensions)},
           coefficients{factory.createArray<std::complex<double>>(dimensions)},
           hashes{factory.createArray<uint64_t>(dimensions)},
-          symbol_ids{has_symbol_info ? factory.createArray<uint64_t>(dimensions)
-                                     : factory.createArray<uint64_t>({0, 0})},
+          symbol_ids{has_symbol_info ? factory.createArray<int64_t>(dimensions)
+                                     : factory.createArray<int64_t>({0, 0})},
           is_conjugated{has_symbol_info ? factory.createArray<bool>(dimensions)
                                         : factory.createArray<bool>({0, 0})},
           real_basis_elems{has_symbol_info ? factory.createArray<int64_t>(dimensions)
@@ -151,8 +151,8 @@ namespace Moment::mex {
             if (include_symbols) {
                 *symbol_iter = term.id;
                 *conj_iter = term.conjugated;
-                *real_basis_iter = symbol_info.basis_key().first + 1; // ML indexing ???
-                *im_basis_iter = symbol_info.basis_key().second + 1; // ML indexing ???
+                *real_basis_iter = symbol_info.basis_key().first + 1; // ML indexing
+                *im_basis_iter = symbol_info.basis_key().second + 1; // ML indexing
             }
 
             // Advance output iterators

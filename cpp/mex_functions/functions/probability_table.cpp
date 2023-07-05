@@ -247,21 +247,24 @@ namespace Moment::mex::functions {
             throw_error(matlabEngine, errors::internal_error, "Invalid measurement.");
         }
 
-        switch (input.output_mode) {
-            case ProbabilityTableParams::OutputMode::OperatorSequences: {
-                auto fullPolyInfo = exporter.sequence(*iter);
-                output[0] = fullPolyInfo.move_to_cell(exporter.factory);
+        matlab::data::CellArray one_by_one = exporter.factory.createCellArray({1, 1});
+        (*one_by_one.begin()) = [&]() -> matlab::data::CellArray {
+            switch (input.output_mode) {
+                case ProbabilityTableParams::OutputMode::OperatorSequences: {
+                    auto fullPolyInfo = exporter.sequence(*iter);
+                    return fullPolyInfo.move_to_cell(exporter.factory);
+                }
+                case ProbabilityTableParams::OutputMode::OperatorSequencesWithSymbolInfo: {
+                    auto fullPolyInfo = exporter.sequence_with_symbols(*iter);
+                    return fullPolyInfo.move_to_cell(exporter.factory);
+                }
+                case ProbabilityTableParams::OutputMode::Symbols:
+                    return exporter.symbol(*iter);
+                default:
+                    throw_error(matlabEngine, errors::internal_error, "Unknown output mode.");
             }
-            break;
-            case ProbabilityTableParams::OutputMode::OperatorSequencesWithSymbolInfo:{
-                auto fullPolyInfo = exporter.sequence_with_symbols(*iter);
-                output[0] = fullPolyInfo.move_to_cell(exporter.factory);
-            }
-            case ProbabilityTableParams::OutputMode::Symbols:
-                output[0] = exporter.symbol(*iter);
-                break;
-            default:
-                throw_error(matlabEngine, errors::internal_error, "Unknown output mode.");
-        }
+        }();
+        output[0] = std::move(one_by_one);
+
     }
 }

@@ -30,7 +30,7 @@ namespace Moment::mex {
         matlab::data::CellArray operators;
         matlab::data::TypedArray<std::complex<double>> coefficients;
         matlab::data::TypedArray<uint64_t> hashes;
-        matlab::data::TypedArray<uint64_t> symbol_ids;
+        matlab::data::TypedArray<int64_t> symbol_ids;
         matlab::data::TypedArray<bool> is_conjugated;
         matlab::data::TypedArray<int64_t> real_basis_elems;
         matlab::data::TypedArray<int64_t> im_basis_elems;
