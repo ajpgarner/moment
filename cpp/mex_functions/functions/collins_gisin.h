@@ -10,6 +10,15 @@
 
 #include "import/read_measurement_indices.h"
 
+namespace Moment {
+    class MatrixSystem;
+}
+
+
+namespace Moment::mex::errors {
+    constexpr char missing_cg[] = "missing_cg";
+}
+
 namespace Moment::mex::functions  {
 
     struct CollinsGisinParams : public SortedInputs {
@@ -32,6 +41,8 @@ namespace Moment::mex::functions  {
     public:
         explicit CollinsGisinParams(SortedInputs&& inputs);
 
+        std::vector<RawIndexPair> freeMeasurements;
+        std::vector<RawIndexTriplet> fixedOutcomes;
     };
 
     class CollinsGisin : public ParameterizedMexFunction<CollinsGisinParams, MEXEntryPointID::CollinsGisin> {
@@ -43,11 +54,11 @@ namespace Moment::mex::functions  {
 
         void extra_input_checks(CollinsGisinParams &input) const override;
 
-        void export_whole_tensor(IOArgumentRange output, CollinsGisinParams &input);
+        void export_whole_tensor(IOArgumentRange output, CollinsGisinParams &input, MatrixSystem& system);
 
-        void export_one_measurement(IOArgumentRange output, CollinsGisinParams &input);
+        void export_one_measurement(IOArgumentRange output, CollinsGisinParams &input, MatrixSystem& system);
 
-        void export_one_outcome(IOArgumentRange output, CollinsGisinParams &input);
+        void export_one_outcome(IOArgumentRange output, CollinsGisinParams &input, MatrixSystem& system);
 
     };
 

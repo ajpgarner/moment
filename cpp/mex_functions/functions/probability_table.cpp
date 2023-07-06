@@ -22,6 +22,8 @@
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
 
+#include <tuple>
+
 namespace Moment::mex::functions {
 
     namespace {
@@ -34,7 +36,7 @@ namespace Moment::mex::functions {
                 lmsPtr->RefreshProbabilityTensor(lock);
                 const auto& pt = lmsPtr->LocalityProbabilityTensor();
 
-                PMConvertor pmReader{matlabEngine, lmsPtr->localityContext};
+                PMConvertor pmReader{matlabEngine, lmsPtr->localityContext, true};
                 auto free_mmts = pmReader.read_pm_index_list(input.free);
                 auto fixed_mmts = pmReader.read_pmo_index_list(input.fixed);
 
@@ -51,7 +53,7 @@ namespace Moment::mex::functions {
                 imsPtr->RefreshProbabilityTensor(lock);
                 const auto& pt = imsPtr->InflationProbabilityTensor();
 
-                OVConvertor ovReader{matlabEngine, imsPtr->InflationContext()};
+                OVConvertor ovReader{matlabEngine, imsPtr->InflationContext(), true};
                 auto free_mmts = ovReader.read_ov_index_list(input.free);
                 auto fixed_mmts = ovReader.read_ovo_index_list(input.fixed);
 
@@ -90,55 +92,14 @@ namespace Moment::mex::functions {
         }
 
         // Otherwise, determine mode, and check dimensions
-        bool hasFreeMmts = false;
-        bool hasFixedMmts = false;
-        if (this->inputs.size() == 3) {
-            if (this->inputs[1].getNumberOfElements() != 0) {
-                auto inputOneDims = this->inputs[1].getDimensions();
-                if ((inputOneDims.size() != 2) || (inputOneDims[1] != 2)) {
-                    throw_error(this->matlabEngine, errors::bad_param, "Measurement list should be a Nx2 array.");
-                }
-                hasFreeMmts = true;
-            } else {
-                hasFreeMmts = false;
-            }
-            if (this->inputs[2].getNumberOfElements() != 0) {
-                auto inputTwoDims = this->inputs[2].getDimensions();
-                if ((inputTwoDims.size() != 2) || (inputTwoDims[1] != 3)) {
-                    throw_error(this->matlabEngine, errors::bad_param, "Outcome list should be a Nx3 array.");
-                }
-                hasFixedMmts = true;
-            } else {
-                hasFixedMmts = false;
-            }
+        if (this->inputs.size() == 2) {
+            std::tie(this->free, this->fixed) = read_pairs_and_triplets(this->matlabEngine, this->inputs[1]);
         } else {
-            auto onlyInputDims = this->inputs[1].getDimensions();
-            if (onlyInputDims.size() != 2) {
-                throw_error(this->matlabEngine, errors::bad_param, "Measurement/outcome list should be a 2D array.");
-            }
-            if (onlyInputDims[1] == 2) {
-                hasFreeMmts = true;
-                hasFixedMmts = false;
-            } else if (onlyInputDims[1] == 3) {
-                hasFreeMmts = false;
-                hasFixedMmts = true;
-            } else {
-                throw_error(this->matlabEngine, errors::bad_param,
-                            "Measurement list should be a Nx2 array, outcome list a Nx3 array.");
-            }
+            assert(this->inputs.size() == 3);
+            std::tie(this->free, this->fixed) = read_pairs_and_triplets(this->matlabEngine,
+                                                                        this->inputs[1], this->inputs[2]);
         }
-
-        // Do read
-        if (hasFreeMmts) {
-            this->free = RawIndexPair::read_list(matlabEngine, inputs[1]);
-            this->export_shape = ExportShape::OneMeasurement;
-        } else {
-            this->export_shape = ExportShape::OneOutcome;
-        }
-
-        if (hasFixedMmts) {
-            this->fixed = RawIndexTriplet::read_list(matlabEngine, (this->inputs.size() == 2) ? inputs[1] : inputs[2]);
-        }
+        this->export_shape = this->free.empty() ? ExportShape::OneOutcome : ExportShape::OneMeasurement;
     }
 
     ProbabilityTable::ProbabilityTable(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)

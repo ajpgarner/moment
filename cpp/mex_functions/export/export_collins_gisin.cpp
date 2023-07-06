@@ -13,9 +13,92 @@
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_operator_formatter.h"
 
+#include "utilities/iter_tuple.h"
 #include "utilities/utf_conversion.h"
 
 namespace Moment::mex {
+
+
+    namespace {
+        struct SymbolInfoWriter {
+            std::tuple<uint64_t, int64_t> operator()(CollinsGisinIndexView index, const CollinsGisinEntry& element) const {
+                // Fail within (virtual mode):
+                if (-1 == element.symbol_id) {
+                    throw Moment::errors::BadCGError::make_missing_index_err(index, element.sequence, true);
+                }
+
+                return {element.symbol_id, element.real_index};
+            }
+        };
+
+        struct SequenceWriter {
+            matlab::data::ArrayFactory& factory;
+            explicit SequenceWriter(matlab::data::ArrayFactory& factory) : factory{factory} { }
+
+            std::tuple<matlab::data::TypedArray<uint64_t>, uint64_t>
+            operator()(CollinsGisinIndexView index, const CollinsGisinEntry& element) const {
+                return {export_operator_sequence(factory, element.sequence, true), element.sequence.hash()};
+            }
+        };
+
+        struct EverythingWriter {
+            matlab::data::ArrayFactory& factory;
+            explicit EverythingWriter(matlab::data::ArrayFactory& factory) : factory{factory} { }
+
+            std::tuple<matlab::data::TypedArray<uint64_t>, uint64_t, uint64_t, int64_t>
+            operator()(CollinsGisinIndexView index, const CollinsGisinEntry& element) const {
+                // Fail within (virtual mode):
+                if (-1 == element.symbol_id) {
+                    throw Moment::errors::BadCGError::make_missing_index_err(index, element.sequence, true);
+                }
+
+                return {export_operator_sequence(factory, element.sequence, true), element.sequence.hash(),
+                        element.symbol_id, element.real_index};
+            }
+        };
+
+        struct LFStringWriter {
+            const Locality::LocalityContext& localityContext;
+            const Locality::LocalityOperatorFormatter& formatter;
+        public:
+            LFStringWriter(const Locality::LocalityContext& localityContext,
+                           const Locality::LocalityOperatorFormatter& formatter)
+                : localityContext{localityContext}, formatter{formatter} {
+
+            }
+
+            std::basic_string<char16_t>
+            operator()(CollinsGisinIndexView index, const CollinsGisinEntry& element) const {
+                std::string inStr{localityContext.format_sequence(formatter, element.sequence)};
+                return UTF8toUTF16Convertor::convert(inStr);
+            }
+        };
+
+        struct StringWriter {
+            const Context& context;
+        public:
+            StringWriter(const Context& context) : context{context} {}
+
+
+            std::basic_string<char16_t>
+            operator()(CollinsGisinIndexView index, const CollinsGisinEntry& element) const {
+                std::string inStr{this->context.format_sequence(element.sequence)};
+                return UTF8toUTF16Convertor::convert(inStr);
+            }
+        };
+
+
+        template<typename read_iter_t, typename write_iter_t, typename functor_t>
+        void indexed_transform(read_iter_t read_iter, const read_iter_t read_iter_end,
+                               write_iter_t write_iter, const functor_t& functor) {
+            while (read_iter != read_iter_end) {
+                *write_iter = functor(read_iter.index(), *read_iter);
+                ++read_iter;
+                ++write_iter;
+            }
+        }
+    }
+
 
     CollinsGisinExporter::CollinsGisinExporter(matlab::engine::MATLABEngine &engine,
                                                const Context &context, const SymbolTable &symbols)
@@ -24,72 +107,64 @@ namespace Moment::mex {
 
     std::pair<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<int64_t>>
     CollinsGisinExporter::symbol_and_basis(const Moment::CollinsGisin &cgi) const {
-        matlab::data::ArrayFactory factory;
-
-        matlab::data::ArrayDimensions dimensions{cgi.Dimensions};
-        auto output = std::make_pair(factory.createArray<uint64_t>(dimensions),
-                                     factory.createArray<int64_t>(dimensions));
-
         // Check before (explicit mode):
         if (!cgi.HasAllSymbols()) {
             throw Moment::errors::BadCGError::make_missing_err(cgi);
         }
 
-        auto writeSymbolIter = output.first.begin();
-        auto writeBasisIter = output.second.begin();
-        auto readIter = cgi.begin();
-        const auto readEnd = cgi.end();
-        while ((writeSymbolIter != output.first.end()) && (writeBasisIter != output.second.end())
-                && (readIter != readEnd)) {
+        matlab::data::ArrayDimensions dimensions{cgi.Dimensions};
+        auto output = std::make_pair(factory.createArray<uint64_t>(dimensions),
+                                     factory.createArray<int64_t>(dimensions));
+        IterTuple write_iter{output.first.begin(), output.second.begin()};
+        indexed_transform(cgi.begin(), cgi.end(), write_iter, SymbolInfoWriter{});
 
-            // Fail within (virtual mode):
-            if (-1 == readIter->symbol_id) {
-                throw Moment::errors::BadCGError::make_missing_index_err(readIter.index(), readIter->sequence, true);
-            }
+        return output;
+    }
 
-            *writeSymbolIter = readIter->symbol_id;
-            *writeBasisIter = readIter->real_index;
-            ++writeSymbolIter;
-            ++writeBasisIter;
-            ++readIter;
-        }
+    std::pair<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<int64_t>>
+    CollinsGisinExporter::symbol_and_basis(const Moment::CollinsGisinRange &cgr) const {
+
+        matlab::data::ArrayDimensions dimensions{cgr.Dimensions()};
+        auto output = std::make_pair(factory.createArray<uint64_t>(dimensions),
+                                     factory.createArray<int64_t>(dimensions));
+        IterTuple write_iter{output.first.begin(), output.second.begin()};
+        indexed_transform(cgr.begin(), cgr.end(), write_iter, SymbolInfoWriter{});
 
         return output;
     }
 
     std::pair<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>>
-    CollinsGisinExporter::sequence_and_hash(const Moment::CollinsGisin &cgi) const {
-        matlab::data::ArrayFactory factory;
-
+    CollinsGisinExporter::sequence_and_hash(const Moment::CollinsGisin& cgi) const {
         matlab::data::ArrayDimensions dimensions{cgi.Dimensions};
 
-        auto output = std::make_pair(factory.createCellArray(dimensions),
-                                     factory.createArray<uint64_t>(dimensions));
+        std::pair<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>>
+            output{factory.createCellArray(dimensions), factory.createArray<uint64_t>(dimensions)};
 
-        auto writeSequenceIter = output.first.begin();
-        auto writeHashIter = output.second.begin();
+        auto cell_iter = output.first.begin();
 
+        IterTuple write_iter{output.first.begin(), output.second.begin()};
+        indexed_transform(cgi.begin(), cgi.end(), write_iter, SequenceWriter{factory});
 
-        auto readIter = cgi.begin();
-        const auto readEnd = cgi.end();
+        return output;
+    }
 
-        while ((writeSequenceIter != output.first.end()) && (writeHashIter != output.second.end())
-                && (readIter != readEnd)) {
-            *writeSequenceIter = export_operator_sequence(factory, readIter->sequence, true);
-            *writeHashIter = readIter->sequence.hash();
+    std::pair<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>>
+    CollinsGisinExporter::sequence_and_hash(const Moment::CollinsGisinRange& cgr) const {
+        matlab::data::ArrayDimensions dimensions{cgr.Dimensions()};
+        std::pair<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>> output =
+                {factory.createCellArray(dimensions), factory.createArray<uint64_t>(dimensions)};
 
-            ++writeSequenceIter;
-            ++writeHashIter;
-            ++readIter;
-        }
+        IterTuple write_iter{output.first.begin(), output.second.begin()};
+        indexed_transform(cgr.begin(), cgr.end(), write_iter, SequenceWriter{factory});
+
         return output;
     }
 
     std::tuple<matlab::data::CellArray,
                matlab::data::TypedArray<uint64_t>,
                matlab::data::TypedArray<uint64_t>,
-               matlab::data::TypedArray<int64_t>> CollinsGisinExporter::everything(const CollinsGisin &cgi) const {
-        matlab::data::ArrayFactory factory;
+               matlab::data::TypedArray<int64_t>>
+   CollinsGisinExporter::everything(const CollinsGisin &cgi) const {
         matlab::data::ArrayDimensions  dimensions{cgi.Dimensions};
 
         // Check before (explicit mode):
@@ -98,45 +173,38 @@ namespace Moment::mex {
         }
 
         auto output = std::make_tuple(
-                factory.createCellArray(cgi.Dimensions),
-                factory.createArray<uint64_t>(cgi.Dimensions),
-                factory.createArray<uint64_t>(cgi.Dimensions),
-                factory.createArray<int64_t>(cgi.Dimensions)
+                factory.createCellArray(dimensions),
+                factory.createArray<uint64_t>(dimensions),
+                factory.createArray<uint64_t>(dimensions),
+                factory.createArray<int64_t>(dimensions)
             );
 
-        auto writeSequenceIter = std::get<0>(output).begin();
-        auto writeHashIter = std::get<1>(output).begin();
-        auto writeSymbolIter = std::get<2>(output).begin();
-        auto writeBasisIter = std::get<3>(output).begin();
-        const auto writeSequenceIterEnd = std::get<0>(output).end();
-        const auto writeHashIterEnd = std::get<1>(output).end();
-        const auto writeSymbolIterEnd = std::get<2>(output).end();
-        const auto writeBasisIterEnd = std::get<3>(output).end();
+        IterTuple write_iter{std::get<0>(output).begin(),
+                             std::get<1>(output).begin(),
+                             std::get<2>(output).begin(),
+                             std::get<3>(output).begin()};
+        indexed_transform(cgi.begin(), cgi.end(), write_iter, EverythingWriter{factory});
+        return output;
+    }
+    
+    std::tuple<matlab::data::CellArray,
+               matlab::data::TypedArray<uint64_t>,
+               matlab::data::TypedArray<uint64_t>,
+               matlab::data::TypedArray<int64_t>>
+   CollinsGisinExporter::everything(const CollinsGisinRange &cgr) const {
+        matlab::data::ArrayDimensions  dimensions{cgr.Dimensions()};
+        auto output = std::make_tuple(
+                factory.createCellArray(dimensions),
+                factory.createArray<uint64_t>(dimensions),
+                factory.createArray<uint64_t>(dimensions),
+                factory.createArray<int64_t>(dimensions)
+            );
 
-        auto readIter = cgi.begin();
-        const auto readEnd = cgi.end();
-
-        while ((writeSequenceIter != writeSequenceIterEnd) && (writeHashIter != writeHashIterEnd)
-               && (writeSymbolIter != writeSymbolIterEnd) && (writeBasisIter != writeBasisIterEnd)
-               && (readIter != readEnd)) {
-
-            // Fail within (virtual mode):
-            if (-1 == readIter->symbol_id) {
-                throw Moment::errors::BadCGError::make_missing_index_err(readIter.index(), readIter->sequence, true);
-            }
-
-            *writeSequenceIter = export_operator_sequence(factory, readIter->sequence, true);
-            *writeHashIter = readIter->sequence.hash();
-            *writeSymbolIter = readIter->symbol_id;
-            *writeBasisIter = readIter->real_index;
-
-            ++writeSequenceIter;
-            ++writeHashIter;
-            ++writeSymbolIter;
-            ++writeBasisIter;
-            ++readIter;
-        }
-
+        IterTuple write_iter{std::get<0>(output).begin(),
+                             std::get<1>(output).begin(),
+                             std::get<2>(output).begin(),
+                             std::get<3>(output).begin()};
+        indexed_transform(cgr.begin(), cgr.end(), write_iter, EverythingWriter{factory});
         return output;
     }
 
@@ -149,42 +217,48 @@ namespace Moment::mex {
         }
         const auto& localityContext = *lcPtr;
 
-        matlab::data::ArrayFactory factory;
-
         matlab::data::ArrayDimensions dimensions{cgi.Dimensions};
         matlab::data::TypedArray<matlab::data::MATLABString> output
                 = factory.createArray<matlab::data::MATLABString>(std::move(dimensions));
+        indexed_transform(cgi.begin(), cgi.end(), output.begin(), LFStringWriter{localityContext, formatter});
 
-        auto writeIter = output.begin();
-        auto readIter = cgi.begin();
-        const auto readEnd = cgi.end();;
-        while (writeIter != output.end() && readIter != readEnd) {
-            std::string inStr{localityContext.format_sequence(formatter, readIter->sequence)};
-            *writeIter = UTF8toUTF16Convertor::convert(inStr);
-            ++writeIter;
-            ++readIter;
+        return output;
+    }
+
+    matlab::data::StringArray
+    CollinsGisinExporter::strings(const Moment::CollinsGisinRange& cgr,
+                                  const Locality::LocalityOperatorFormatter& formatter) const {
+        auto lcPtr = dynamic_cast<const Locality::LocalityContext*>(&this->context);
+        if (lcPtr == nullptr) {
+            return (this->strings(cgr));
         }
+        const auto& localityContext = *lcPtr;
+
+        matlab::data::ArrayDimensions dimensions{cgr.Dimensions()};
+        matlab::data::TypedArray<matlab::data::MATLABString> output
+                = factory.createArray<matlab::data::MATLABString>(std::move(dimensions));
+        indexed_transform(cgr.begin(), cgr.end(), output.begin(), LFStringWriter{localityContext, formatter});
+
         return output;
     }
 
     matlab::data::StringArray
     CollinsGisinExporter::strings(const Moment::CollinsGisin& cgi) const {
-
-        matlab::data::ArrayFactory factory;
-
         matlab::data::ArrayDimensions dimensions{cgi.Dimensions};
         matlab::data::TypedArray<matlab::data::MATLABString> output
                 = factory.createArray<matlab::data::MATLABString>(std::move(dimensions));
+        indexed_transform(cgi.begin(), cgi.end(), output.begin(), StringWriter{this->context});
 
-        auto writeIter = output.begin();
-        auto readIter = cgi.begin();
-        const auto readEnd = cgi.end();
-        while (writeIter != output.end() && readIter != readEnd) {
-            std::string inStr{this->context.format_sequence(readIter->sequence)};
-            *writeIter = UTF8toUTF16Convertor::convert(inStr);
-            ++writeIter;
-            ++readIter;
-        }
+        return output;
+    }
+
+    matlab::data::StringArray
+    CollinsGisinExporter::strings(const Moment::CollinsGisinRange& cgr) const {
+        matlab::data::ArrayDimensions dimensions{cgr.Dimensions()};
+        matlab::data::TypedArray<matlab::data::MATLABString> output
+                = factory.createArray<matlab::data::MATLABString>(std::move(dimensions));
+        indexed_transform(cgr.begin(), cgr.end(), output.begin(), StringWriter{this->context});
+
         return output;
     }
 

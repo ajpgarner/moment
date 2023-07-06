@@ -128,6 +128,49 @@ namespace Moment::mex {
     }
 
 
+    std::pair<std::vector<RawIndexPair>, std::vector<RawIndexTriplet>>
+    read_pairs_and_triplets(matlab::engine::MATLABEngine &matlabEngine, const matlab::data::Array &only_array) {
+        if (only_array.getNumberOfElements() == 0) {
+            return std::pair<std::vector<RawIndexPair>, std::vector<RawIndexTriplet>>();
+        }
+        auto onlyInputDims = only_array.getDimensions();
+        if (onlyInputDims.size() != 2) {
+            throw_error(matlabEngine, errors::bad_param, "Measurement/outcome list should be a 2D array.");
+        }
+        if (onlyInputDims[1] == 2) {
+            return std::make_pair(RawIndexPair::read_list(matlabEngine, only_array),
+                                  std::vector<RawIndexTriplet>{});
+
+        } else if (onlyInputDims[1] == 3) {
+            return std::make_pair(std::vector<RawIndexPair>{},
+                                  RawIndexTriplet::read_list(matlabEngine, only_array));
+        }
+        throw_error(matlabEngine, errors::bad_param,
+                    "Measurement list should be a Nx2 array, outcome list a Nx3 array.");
+    }
+
+    std::pair<std::vector<RawIndexPair>, std::vector<RawIndexTriplet>>
+    read_pairs_and_triplets(matlab::engine::MATLABEngine &matlabEngine, const matlab::data::Array &first_array,
+                                 const matlab::data::Array &second_array) {
+
+        if (first_array.getNumberOfElements() != 0) {
+            auto inputOneDims = first_array.getDimensions();
+            if ((inputOneDims.size() != 2) || (inputOneDims[1] != 2)) {
+                throw_error(matlabEngine, errors::bad_param, "Measurement list should be a Nx2 array.");
+            }
+        }
+        if (second_array.getNumberOfElements() != 0) {
+            auto inputTwoDims = second_array.getDimensions();
+            if ((inputTwoDims.size() != 2) || (inputTwoDims[1] != 3)) {
+                throw_error(matlabEngine, errors::bad_param, "Outcome list should be a Nx3 array.");
+            }
+        }
+
+        return std::make_pair(RawIndexPair::read_list(matlabEngine, first_array),
+                              RawIndexTriplet::read_list(matlabEngine, second_array));
+    }
+
+
     Locality::PMIndex PMConvertor::read_pm_index(const RawIndexPair &pair) {
         if (pair.first >= context.Parties.size()) {
             std::stringstream errSS;
@@ -161,11 +204,13 @@ namespace Moment::mex {
         }
 
         const auto& mmt = party.Measurements[triplet.second];
-        if (triplet.third >= mmt.num_outcomes) {
+        const size_t max_outcome_index = this->inclusive ? mmt.num_outcomes : mmt.num_operators();
+        if (triplet.third >= max_outcome_index) {
             std::stringstream errSS;
-            errSS << "Outcome #" << (triplet.third+1) << " is out of range.";
+            errSS << "Outcome #" << (triplet.third + 1) << " is out of range.";
             throw bad_index_read{errSS.str()};
         }
+
 
         return Locality::PMOIndex{this->context, static_cast<party_name_t>(triplet.first),
                                                  static_cast<mmt_name_t>(triplet.second),
@@ -238,7 +283,7 @@ namespace Moment::mex {
         }
 
         if (observable.projective()) {
-            if (triplet.third >= observable.outcomes) {
+            if (triplet.third >= inclusive ? observable.outcomes : (observable.outcomes - 1)) {
                 std::stringstream errSS;
                 errSS << "Outcome #" << (triplet.third + 1) << " is out of range.";
                 throw bad_index_read{errSS.str()};

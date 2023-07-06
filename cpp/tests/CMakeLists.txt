@@ -59,6 +59,7 @@ add_executable(moment_tests
         utilities/float_utils_tests.cpp
         utilities/index_tree_tests.cpp
         utilities/ipow_tests.cpp
+        utilities/iter_tuple_tests.cpp
         utilities/kronecker_power_tests.cpp
         utilities/multi_dimensional_index_iterator_tests.cpp
         utilities/multi_dimensional_offset_index_iterator_tests.cpp
