@@ -85,6 +85,61 @@ namespace Moment::mex {
         return output;
     }
 
+    std::tuple<matlab::data::CellArray,
+               matlab::data::TypedArray<uint64_t>,
+               matlab::data::TypedArray<uint64_t>,
+               matlab::data::TypedArray<int64_t>> CollinsGisinExporter::everything(const CollinsGisin &cgi) const {
+        matlab::data::ArrayFactory factory;
+        matlab::data::ArrayDimensions  dimensions{cgi.Dimensions};
+
+        // Check before (explicit mode):
+        if (!cgi.HasAllSymbols()) {
+            throw Moment::errors::BadCGError::make_missing_err(cgi);
+        }
+
+        auto output = std::make_tuple(
+                factory.createCellArray(cgi.Dimensions),
+                factory.createArray<uint64_t>(cgi.Dimensions),
+                factory.createArray<uint64_t>(cgi.Dimensions),
+                factory.createArray<int64_t>(cgi.Dimensions)
+            );
+
+        auto writeSequenceIter = std::get<0>(output).begin();
+        auto writeHashIter = std::get<1>(output).begin();
+        auto writeSymbolIter = std::get<2>(output).begin();
+        auto writeBasisIter = std::get<3>(output).begin();
+        const auto writeSequenceIterEnd = std::get<0>(output).end();
+        const auto writeHashIterEnd = std::get<1>(output).end();
+        const auto writeSymbolIterEnd = std::get<2>(output).end();
+        const auto writeBasisIterEnd = std::get<3>(output).end();
+
+        auto readIter = cgi.begin();
+        const auto readEnd = cgi.end();
+
+        while ((writeSequenceIter != writeSequenceIterEnd) && (writeHashIter != writeHashIterEnd)
+               && (writeSymbolIter != writeSymbolIterEnd) && (writeBasisIter != writeBasisIterEnd)
+               && (readIter != readEnd)) {
+
+            // Fail within (virtual mode):
+            if (-1 == readIter->symbol_id) {
+                throw Moment::errors::BadCGError::make_missing_index_err(readIter.index(), readIter->sequence, true);
+            }
+
+            *writeSequenceIter = export_operator_sequence(factory, readIter->sequence, true);
+            *writeHashIter = readIter->sequence.hash();
+            *writeSymbolIter = readIter->symbol_id;
+            *writeBasisIter = readIter->real_index;
+
+            ++writeSequenceIter;
+            ++writeHashIter;
+            ++writeSymbolIter;
+            ++writeBasisIter;
+            ++readIter;
+        }
+
+        return output;
+    }
+
     matlab::data::StringArray
     CollinsGisinExporter::strings(const Moment::CollinsGisin& cgi,
                                   const Locality::LocalityOperatorFormatter& formatter) const {

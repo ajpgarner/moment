@@ -8,17 +8,26 @@
 
 #include "../mex_function.h"
 
+#include "import/read_measurement_indices.h"
+
 namespace Moment::mex::functions  {
 
     struct CollinsGisinParams : public SortedInputs {
     public:
         uint64_t matrix_system_key = 0;
 
+        enum class ExportShape {
+            WholeTensor,
+            OneMeasurement,
+            OneOutcome
+        } export_shape = ExportShape::WholeTensor;
+
         enum class OutputType {
             Sequences,
+            SequencesWithSymbolInfo,
             SymbolIds,
             SequenceStrings
-        } outputType = OutputType::Sequences;
+        } output_type = OutputType::Sequences;
 
     public:
         explicit CollinsGisinParams(SortedInputs&& inputs);
@@ -33,6 +42,12 @@ namespace Moment::mex::functions  {
         void operator()(IOArgumentRange output, CollinsGisinParams &input) override;
 
         void extra_input_checks(CollinsGisinParams &input) const override;
+
+        void export_whole_tensor(IOArgumentRange output, CollinsGisinParams &input);
+
+        void export_one_measurement(IOArgumentRange output, CollinsGisinParams &input);
+
+        void export_one_outcome(IOArgumentRange output, CollinsGisinParams &input);
 
     };
 

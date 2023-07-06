@@ -99,7 +99,7 @@
             obj = obj@handle();
             obj.Scenario = scenario;
             obj.dimensions = array_dimensions;       
-            obj.setDimensionType();
+            obj.dimension_type = obj.calculateDimensionType();
             obj.resetCoefficients();            
         end
     end
@@ -114,31 +114,35 @@
     %% Basic derived properties
     methods
         function val = DimensionType(obj)
-            val = obj.dimension_type;
+            if isempty(obj)
+                val = calculateDimensionType(obj);
+            else
+                val = obj.dimension_type;
+            end
         end
         
         function val = IsScalar(obj)
-            val = obj.dimension_type == 0;
+            val = obj.DimensionType == 0;
         end
         
         function val = IsVector(obj)
-            val = (obj.dimension_type == 1) || (obj.dimension_type == 2);
+            val = (obj.DimensionType == 1) || (obj.DimensionType == 2);
         end
         
         function val = IsRowVector(obj)
-            val = (obj.dimension_type == 1);
+            val = (obj.DimensionType == 1);
         end
         
         function val = IsColVector(obj)            
-            val = (obj.dimension_type == 2);
+            val = (obj.DimensionType == 2);
         end
         
         function val = IsMatrix(obj)
-            val = (obj.dimension_type == 3);
+            val = (obj.DimensionType == 3);
         end
         
         function val = IsTensor(obj)
-            val = (obj.dimension_type == 4);
+            val = (obj.DimensionType == 4);
         end
     end
       

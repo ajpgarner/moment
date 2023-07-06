@@ -36,6 +36,11 @@ namespace Moment {
             [[nodiscard]] std::pair<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>>
             sequence_and_hash(const Moment::CollinsGisin& cgi) const;
 
+            [[nodiscard]] std::tuple<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>,
+                                     matlab::data::TypedArray<uint64_t>,
+                                     matlab::data::TypedArray<int64_t>>
+            everything(const Moment::CollinsGisin& cgi) const;
+
             [[nodiscard]] matlab::data::StringArray
             strings(const Moment::CollinsGisin& cg,
                     const Moment::Locality::LocalityOperatorFormatter& formatter) const;

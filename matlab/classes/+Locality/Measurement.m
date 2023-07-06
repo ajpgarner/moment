@@ -101,11 +101,11 @@ classdef Measurement < handle
     %% Conversion methods
     methods
         function val = MTKMonomial(obj)
-            val = obj.ExplicitOutcomes();
+            val = obj.ExplicitOutcomes;
         end
         
         function val = MTKPolynomial(obj)
-            val = obj.ImplicitOutcomes();
+            val = obj.ImplicitOutcomes;
         end
     end
     

@@ -32,11 +32,13 @@ namespace Moment::mex::functions  {
 
         // See if output type is set
         if (this->flags.contains(u"symbols")) {
-            this->outputType = OutputType::SymbolIds;
+            this->output_type = OutputType::SymbolIds;
         } else if (this->flags.contains(u"sequences")) {
-            this->outputType = OutputType::Sequences;
+            this->output_type = OutputType::Sequences;
+        } else if (this->flags.contains(u"full_sequences")) {
+            this->output_type = OutputType::SequencesWithSymbolInfo;
         } else if (this->flags.contains(u"strings")) {
-            this->outputType = OutputType::SequenceStrings;
+            this->output_type = OutputType::SequenceStrings;
         }
     }
 
@@ -45,12 +47,13 @@ namespace Moment::mex::functions  {
 
         this->flag_names.emplace(u"symbols");
         this->flag_names.emplace(u"sequences");
+        this->flag_names.emplace(u"full_sequences");
         this->flag_names.emplace(u"strings");
 
-        this->mutex_params.add_mutex({u"symbols", u"sequences", u"strings"});
+        this->mutex_params.add_mutex({u"symbols", u"sequences", u"full_sequences", u"strings"});
 
         this->min_outputs = 1;
-        this->max_outputs = 2;
+        this->max_outputs = 4;
 
         this->min_inputs = 1;
         this->max_inputs = 1;
@@ -66,14 +69,20 @@ namespace Moment::mex::functions  {
 
 
     void CollinsGisin::operator()(IOArgumentRange output, CollinsGisinParams &input) {
-
         // Check output count vs. processed input type.
-        switch (input.outputType) {
+        switch (input.output_type) {
             case CollinsGisinParams::OutputType::Sequences:
                 if (output.size() != 2) {
                     throw_error(this->matlabEngine,
                                 output.size() > 2 ? errors::too_many_outputs : errors::too_few_outputs,
                                 "'sequences' mode expects two outputs [sequences, hashes].");
+                }
+                break;
+            case CollinsGisinParams::OutputType::SequencesWithSymbolInfo:
+                if (output.size() != 4) {
+                    throw_error(this->matlabEngine,
+                                output.size() > 4 ? errors::too_many_outputs : errors::too_few_outputs,
+                                "'full_sequences' mode expects four outputs [sequences, hashes, symbol ID, real basis elem].");
                 }
                 break;
             case CollinsGisinParams::OutputType::SymbolIds:
@@ -91,6 +100,22 @@ namespace Moment::mex::functions  {
                 }
                 break;
         }
+
+        switch (input.export_shape) {
+            case CollinsGisinParams::ExportShape::WholeTensor:
+                export_whole_tensor(output, input);
+                break;
+            case CollinsGisinParams::ExportShape::OneMeasurement:
+                export_one_measurement(output, input);
+                break;
+            case CollinsGisinParams::ExportShape::OneOutcome:
+                export_one_outcome(output, input);
+                break;
+        }
+
+    }
+
+    void CollinsGisin::export_whole_tensor(IOArgumentRange output, CollinsGisinParams &input) {
 
         // Get stored moment matrix
         auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
@@ -118,32 +143,46 @@ namespace Moment::mex::functions  {
 
         CollinsGisinExporter cge{this->matlabEngine, system.Context(), system.Symbols()};
         try {
-            switch (input.outputType) {
-                case CollinsGisinParams::OutputType::SymbolIds:
-                    try {
-                        auto [symbols, bases] = cge.symbol_and_basis(cg);
-                        output[0] = std::move(symbols);
-                        output[1] = std::move(bases);
-                    } catch (const Moment::errors::BadCGError& bcge) {
-                        throw_error(this->matlabEngine, "missing_cg", bcge.what());
-                    }
-                    break;
+            switch (input.output_type) {
+                case CollinsGisinParams::OutputType::SymbolIds: {
+                    auto [symbols, bases] = cge.symbol_and_basis(cg);
+                    output[0] = std::move(symbols);
+                    output[1] = std::move(bases);
+                }    break;
                 case CollinsGisinParams::OutputType::Sequences: {
                     auto [sequences, hashes] = cge.sequence_and_hash(cg);
                     output[0] = std::move(sequences);
                     output[1] = std::move(hashes);
+                } break;
+                case CollinsGisinParams::OutputType::SequencesWithSymbolInfo: {
+                    auto [sequences, hashes, symbols, bases] = cge.everything(cg);
+                    output[0] = std::move(sequences);
+                    output[1] = std::move(hashes);
+                    output[2] = std::move(symbols);
+                    output[3] = std::move(bases);
                 } break;
                 case CollinsGisinParams::OutputType::SequenceStrings: {
                     auto formatter = this->settings->get_locality_formatter();
                     assert(formatter);
                     output[0] = cge.strings(cg, *formatter);
                 }
-                break;
+                    break;
                 default:
                     throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
             }
         } catch (const Moment::errors::BadCGError& cge) {
             throw_error(this->matlabEngine, "missing_cg", cge.what());
         }
+    }
+
+    void CollinsGisin::export_one_measurement(IOArgumentRange output, CollinsGisinParams &input) {
+        throw_error(this->matlabEngine, errors::internal_error,
+                    "CollinsGisin::export_one_measurement not implemented.");
+    }
+
+    void CollinsGisin::export_one_outcome(IOArgumentRange output, CollinsGisinParams &input) {
+        throw_error(this->matlabEngine, errors::internal_error,
+                    "CollinsGisin::export_one_outcome not implemented.");
+
     }
 }
