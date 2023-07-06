@@ -20,4 +20,10 @@ function obj = InitFromOperatorCell(setting, cell_input)
         end
     end
     
+    % De-cellify if scalar
+    if obj.IsScalar
+        assert(numel(obj.Constituents)==1);
+        obj.Constituents = obj.Constituents{1};
+    end
+    
 end

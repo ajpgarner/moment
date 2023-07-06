@@ -5,7 +5,11 @@
     if source.IsScalar
         assert(output.IsScalar);
         output.Constituents = source.Constituents;
-    else
-        output.Constituents = source.Constituents(indices{:});
+    else        
+        if output.IsScalar
+            output.Constituents = source.Constituents{indices{:}};
+        else
+            output.Constituents = source.Constituents(indices{:});
+        end
     end
 end

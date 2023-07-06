@@ -4,7 +4,7 @@ function [output, matched] = spliceProperty(obj, indices, propertyName)
             if obj.IsScalar
                 output = obj.Constituents;
             else
-                output = obj.Constituents(indices{:});
+                output = obj.Constituents(indices{:});                
             end
             matched = true;                
         otherwise

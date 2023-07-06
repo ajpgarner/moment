@@ -1,4 +1,4 @@
-classdef Measurement < handle
+classdef (InferiorClasses={?Locality.Outcome}) Measurement < handle
     %MEASUREMENT A collection of outcomes with assigned values
     
     %% Public properties
@@ -33,14 +33,13 @@ classdef Measurement < handle
     %% Methods
     methods
         function obj = Measurement(scenario, party_index, mmt_index, ...
-                                   name, num_outcomes, values)
+                                   name, num_outcomes)
             arguments
                 scenario (1,1) LocalityScenario
                 party_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 mmt_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
                 name (1,1) string
                 num_outcomes (1,1) uint64 {mustBeInteger, mustBeNonnegative}
-                values (1,:) double = double.empty(1,0)
             end
             import Locality.Outcome
             
@@ -68,8 +67,7 @@ classdef Measurement < handle
             for x = 1:num_outcomes
                 obj.Outcomes(end+1) = Outcome(obj.Scenario, ...
                                               obj.Index(1), ...
-                                              obj.Index(2), uint64(x), ...
-                                              values(x));
+                                              obj.Index(2), uint64(x));
             end
         end
     end
@@ -137,22 +135,8 @@ classdef Measurement < handle
         end
     end
     
-    methods
-%         
-%         function item = JointMeasurement(obj, indices)
-%             arguments
-%                 obj (1,1) Locality.Measurement
-%                 indices (:,2) uint64
-%             end
-%             table_index = find(arrayfun(@(s) ...
-%                               isequal(indices, s.indices), ...
-%                               obj.joint_mmts));
-%             if length(table_index) ~= 1
-%                 error("Could not find joint measurement at supplied indices.");
-%             end
-%             item = obj.joint_mmts(table_index).mmt;
-%         end
-        
+    %% Misc methods
+    methods      
         function val = ExplicitValues(obj, distribution)
             arguments
                 obj Locality.Measurement
@@ -165,45 +149,66 @@ classdef Measurement < handle
                       obj.Index, distribution);
         end
     end
+       
+    %% Algebraic Manipulation
+    methods
+        function val = mtimes(lhs, rhs)
+        % MTIMES Multiplication *
         
-%         function joint_item = mtimes(objA, objB)
-%             arguments
-%                 objA (1,1)
-%                 objB (1,1)
-%             end
-%                         
-%             % Should only occur when A is a built-in object (e.g. scalar)
-%             if ~isa(objA, 'Locality.Measurement')
-%                 joint_item = mtimes@RealObject(objA, objB);
-%                 return
-%             end
-%             
-%             % Can multiply measurements to form joint measurements
-%             if isa(objB, 'Locality.Measurement')                
-%                 if objA.Scenario ~= objB.Scenario
-%                     error(objA.err_mismatched_scenario);
-%                 end
-%                 if ~isempty(intersect(objA.Index(:,1), ...
-%                                       objB.Index(:,1)))
-%                     error(objA.err_overlapping_parties);                    
-%                 end
-%                 indices = sortrows(vertcat(objA.Index, objB.Index));
-%                 joint_item = objA.Scenario.get(indices);
-%             elseif isa(objB, 'Locality.JointMeasurement')
-%                 if objA.Scenario ~= objB.Scenario
-%                     error(objA.err_mismatched_scenario);
-%                 end
-%                 if ~isempty(intersect(objA.Index(:,1), ...
-%                                       objB.Indices(:,1)))
-%                     error(objA.err_overlapping_parties);                    
-%                 end
-%                 indices = sortrows(vertcat(objA.Index, objB.Indices));
-%                 joint_item = objA.Scenario.get(indices);
-%             else
-%                 % Fall back to superclass:~
-%                 joint_item = mtimes@RealObject(objA, objB);
-%             end
-%         end
-%     end
+            % Check, for dominated LHS
+            if ~isa(lhs, 'Locality.Measurement')
+                this = rhs;
+                other = lhs;
+            else
+                this = lhs;
+                other = rhs;
+            end
+            
+            % Compose measurements
+            if isa(other, 'Locality.Measurement')
+                val = Locality.JointProbability(this.Scenario, ...
+                                                [this, other], ...
+                                                Locality.Outcome.empty(1,0));                
+                return;
+            end
+            
+            % Compose measurement with outcome
+            if isa(other, 'Locality.Outcome')
+                val = Locality.JointProbability(this.Scenario, ...
+                                                this, other, ...
+                                                Locality.Outcome.empty(1,0));
+                return;
+            end
+                        
+            % Complain
+            error("_*_ not defined between %s and %s", ...
+                  class(lhs), class(rhs));                 
+        end
+        
+        function val = times(lhs, rhs)
+        % TIMES Element-wise multiplication .*
+            % Check, for dominated LHS
+            if ~isa(lhs, 'Locality.Measurement')
+                this = rhs;
+                other = lhs;
+                this_on_left = false;
+            else
+                this = lhs;
+                other = rhs;
+                this_on_left = true;
+            end
+            
+            % Compose numerically
+            if isnumeric(other)
+                impl = this.ImplicitOutcomes;
+                val = mtimes(impl, other);
+                return;
+            end
+         
+            % Complain
+            error("_.*_ not defined between %s and %s", ...
+                  class(lhs), class(rhs));
+        end
+    end
 
 end

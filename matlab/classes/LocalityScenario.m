@@ -33,8 +33,9 @@ classdef LocalityScenario < MTKScenario
 %
     
     properties(GetAccess = public, SetAccess = protected)
-        Parties % Spatially disjoint agents (Alice, Bob, etc.).
+        Parties % Spatially disjoint agents (Alice, Bob, etc.).        
         MeasurementsPerParty % Number of measurements each agent can make.
+        TotalMeasurements % Total number of measurements across all parties.
         OperatorsPerParty % Number of operators associated with each agent.
         OutcomesPerMeasurement % Number of outcomes associated with each measurement.
     end
@@ -180,13 +181,20 @@ classdef LocalityScenario < MTKScenario
         end
     end
     
-    %% Locality accessors and information
+    %% Dependent accessors
     methods
         function val = get.MeasurementsPerParty(obj)
             val = zeros(1, length(obj.Parties));
-            for party_id = 1:length(obj.Parties)
-                val(party_id) = length(obj.Parties(party_id).Measurements);
+            for party_id = 1:numel(obj.Parties)
+                val(party_id) = numel(obj.Parties(party_id).Measurements);
             end
+        end
+        
+        function val = get.TotalMeasurements(obj)
+            val = 0;
+            for party_id = 1:numel(obj.Parties)
+                val = val + numel(obj.Parties(party_id).Measurements);
+            end            
         end
         
         function val = get.OperatorsPerParty(obj)
@@ -207,13 +215,30 @@ classdef LocalityScenario < MTKScenario
                 end
             end
         end
+    end
+    
+    %% Special accessors
+    methods        
+        function varargout = getMeasurements(obj)
+        % GETMEASURMENTS Get every measurement from each party, in order.
+            expected_out = obj.TotalMeasurements;
+            varargout = cell(1, expected_out);
+            
+            out_idx = 1;
+            for party_id = 1:numel(obj.Parties)
+                for mmt_id = 1:numel(obj.Parties(party_id).Measurements)
+                    varargout{out_idx} = obj.Parties(party_id).Measurements(mmt_id);
+                    out_idx = out_idx + 1;
+                end
+            end
+        end
         
-        function item = get(obj, index)
+        function item = get(obj, index, indexB)
         % GET Retrieve an object in the locality scenario by index.
         %
         % SYNTAX
         %   1. norm = setting.get();
-        %      Gets the normalization associated with 
+        %      Gets the Collins-Gisin tensor (i.e. everything probabilistic.)
         %   2. party = setting.get([party P])
         %      Gets the party at index P.
         %   3. mmt = setting.get([party P, mmt X])
@@ -225,12 +250,12 @@ classdef LocalityScenario < MTKScenario
         %      party P together with measurement Y of party Q. P must not
         %      be equal to Q. Multiple parties can be specified, but they
         %      must all be different.
-        %   6. joint_out = setting.get([[party P, mmt X, outcome A]; ...
-        %                               [party Q, mmt Y, outcome B]])
-        %      Gets the joint outcome formed from outcome A of measurement
-        %      X of party P with outcome B of measurement Y of party Q.
-        %      Multiple parties can be specified, but they must all be
-        %      different.
+        %   6. joint_out = setting.get([party P, mmt X, outcome A; ...
+        %                               party Q, mmt Y, outcome B])
+        %   7. joint_out = setting.get(free_indices, fixed_indices);
+        %      Gets the joint distribution formed from the measurements
+        %      listed in free_indices, joint with the outcomes listed in
+        %      fixed_indices. All referred to parties must be different.
         %
         % PARAMS
         %   index The index/indices of the outcome/measurement (as above).
@@ -242,46 +267,93 @@ classdef LocalityScenario < MTKScenario
         %
         % See also: Abstract.RealObject
         %
-            arguments
-                obj (1,1) LocalityScenario
-                index (:,:) uint64 = uint64.empty(1,0);
+            % No arguments: return C-G
+            if nargin == 1
+                item = obj.CollinsGisin;
+                return
             end
             
-            get_what = size(index, 2);
-            get_joint = size(index, 1) > 1;
+            if nargin == 2
+                index = uint64(index);
+                if isempty(index)
+                    error("If indices are supplied, they must not be empty.");
+                end
+                dim = size(index);
+                if numel(dim) ~= 2
+                    error("Indices must be 1x1, Nx2 or Nx3 array.");
+                end
+                if dim(2) == 1
+                    if dim(1) ~= 1
+                        error("Party index must be 1x1 array.");
+                    end
+                    % Quick return, party
+                    item = obj.Parties(index);
+                    return;
+                elseif dim(2) == 2
+                    m_idx = uint64(index);
+                    o_idx = uint64.empty(0, 3);
+                elseif dim(3) == 3
+                    m_idx = uint64.empty(0, 2);
+                    o_idx = uint64(index);
+                else
+                    error("Indices must be 1x1, Nx2 or Nx3 array.");
+                end                
+            elseif nargin == 3
+                if ~isempty(index)
+                    dimA = size(index);
+                    if numel(dimA) ~= 2 || dimA(2) ~= 2
+                        error("First set of indices must be Nx2 array.");
+                    end
+                    m_idx = uint64(index);
+                else
+                    m_idx = uint64.empty(0, 2);
+                end
+                
+                if ~isempty(indexB)
+                    dimB = size(indexB);
+                    if numel(dimB) ~= 2 || dimB(2) ~= 3
+                        error("Second set of indices must be Nx3 array.");
+                    end
+                    o_idx = uint64(indexB);
+                else
+                    o_idx = uint64.empty(0, 3);
+                end                
+            end
             
-            if isempty(index)
-                item = obj.Normalization;
+            % Nothing specified, raise error
+            if isempty(o_idx) && isempty(m_idx)
+                error("If indices are supplied, they must not all be empty.");
+            end
+                     
+            % Quick return of single measurement
+            if isempty(o_idx) && (size(m_idx, 1) == 1)
+                item = obj.Parties(m_idx(1)).Measurements(m_idx(2));
                 return;
             end
             
-            if get_joint
-                % Joint outcome object
-                if get_what == 2
-                    index = sortrows(index);
-                    leading_mmt = obj.Parties(index(1, 1)).Measurements(index(1, 2));
-                    item = leading_mmt.JointMeasurement(index);
-                elseif get_what == 3
-                    index = sortrows(index);
-                    leading_item = obj.Parties(index(1, 1)).Measurements(index(1, 2)).Outcomes(index(1, 3));
-                    item = leading_item.JointOutcome(index);
-                else
-                    error("Multiple indices must be in form" ...
-                        + " [[partyA, mmtA, outcomeA]; ... ].");
-                end
-            else
-                % Otherwise, single object [party, mmt, or outcome]
-                switch get_what
-                    case 1
-                        item = obj.Parties(index(1));
-                    case 2
-                        item = obj.Parties(index(1)).Measurements(index(2));
-                    case 3
-                        item = obj.Parties(index(1)).Measurements(index(2)).Outcomes(index(3));
-                    otherwise
-                        error("Index should be [party], [party, mmt], or [party, mmt, outcome].");
-                end
+            % Quick return of single outcome
+            if isempty(m_idx) && (size(o_idx, 1) == 1)
+               item = obj.Parties(o_idx(1)).Measurements(o_idx(2)).Outcomes(o_idx(3));
+               return;
             end
+            
+            % Get measurements
+            free = Locality.Measurement.empty(1,0);
+            for f = 1:size(m_idx, 1)
+                free(end+1) = ...
+                    obj.Parties(m_idx(f, 1)).Measurements(m_idx(f, 2));
+            end
+            
+            % Get outcomes
+            fixed = Locality.Outcome.empty(1,0);
+            for f = 1:size(o_idx, 1)
+                fixed(end+1) = ...
+                    obj.Parties(o_idx(f, 1)).Measurements(o_idx(f, 2)).Outcomes(o_idx(f, 3));
+            end
+            
+            % Try to make joint object
+            item = Locality.JointProbability(obj, free, fixed);
+            
         end
         
         function val = FullCorrelator(obj)
@@ -392,26 +464,6 @@ classdef LocalityScenario < MTKScenario
         end
     end
     
-%     %% Internal methods
-%     methods(Access={?LocalityScenario,?Locality.Party})
-%         function make_joint_mmts(obj, party_id, new_mmt)
-%             % First, add new measurement to lower index parties
-%             if party_id > 1
-%                 for i=1:(party_id-1)
-%                     for m = obj.Parties(i).Measurements
-%                         m.addJointMmt(new_mmt);
-%                     end
-%                 end
-%             end
-%             
-%             % Second, make joint measurement with higher index parties
-%             for i=(party_id+1):length(obj.Parties)
-%                 for m = obj.Parties(i).Measurements
-%                     new_mmt.addJointMmt(m);
-%                 end
-%             end
-%         end
-%     end
     
     %% Friend/interface methods
     methods(Access={?MTKScenario,?MatrixSystem})
@@ -435,43 +487,12 @@ classdef LocalityScenario < MTKScenario
         end
         
         function onNewMomentMatrix(obj, mm)
-            %TODO: Forget this, instead use onNewSymbols...
-%             
-%             
-%             p_table = mm.MatrixSystem.ProbabilityTable;
-%             for p_row = p_table
-%                 seq_len = size(p_row.indices, 1);
-%                 
-%                 % Special case 0 and 1
-%                 if seq_len == 0
-%                     if p_row.sequence == "1"
-%                         obj.Normalization.setCoefficients(...
-%                             p_row.real_coefficients);
-%                     end
-%                     continue;
-%                 end
-%                 
-%                 leading_outcome = obj.get(p_row.indices(1,:));
-%                 
-%                 if seq_len == 1
-%                     % Directly link co-efficients with outcome
-%                     leading_outcome.setCoefficients(p_row.real_coefficients);
-%                 else
-%                     % Register co-effs as joint outcome
-%                     joint_outcome = Locality.JointOutcome(obj, p_row.indices);
-%                     joint_outcome.setCoefficients(p_row.real_coefficients);
-%                     
-%                     leading_outcome.joint_outcomes(end+1).indices = ...
-%                         p_row.indices;
-%                     leading_outcome.joint_outcomes(end).outcome = ...
-%                         joint_outcome;
-%                 end
-%             end
+
         end
         
         function val = onSetHermitian(obj, old_value, new_value)
             if new_value ~= true
-                error("Base operators in LocalityScenarios must be Hermitian.");
+                error("Base operators in LocalityScenarios must always be Hermitian.");
             end
             val = true;
         end
