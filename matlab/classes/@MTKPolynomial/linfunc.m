@@ -16,9 +16,18 @@ function val = linfunc(obj, tensor)
     % Multiply coefficients by tensor
     product_polynomials = obj .* tensor;
     
-    % TODO: Contraction
+    % No contraction if scalar
+    if obj.IsScalar()
+        val = product_polynomials;
+        return;
+    end
     
-    error("TODO");
-    
-    val = MTKPolynomial(obj.Scenario, components);    
+    % Contraction
+    mask = ~cellfun(@isempty, product_polynomials.Constituents);
+    non_zero = product_polynomials.Constituents(mask);
+    if isempty(non_zero)
+        val = MTKPolynomial.InitZero(obj.Scenario, [1 1]);
+    else
+        val = MTKPolynomial(obj.Scenario, vertcat(non_zero{:}));    
+    end
 end

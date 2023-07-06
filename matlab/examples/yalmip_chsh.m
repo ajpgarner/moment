@@ -20,10 +20,10 @@ B1 = Bob.AddMeasurement(2);
 matrix = chsh.MakeMomentMatrix(1);
 
 % Make correlator objects
-Corr00 = Correlator(A0, B0);
-Corr01 = Correlator(A0, B1);
-Corr10 = Correlator(A1, B0);
-Corr11 = Correlator(A1, B1);
+Corr00 = A0.Correlator(B0);
+Corr01 = A0.Correlator(B1);
+Corr10 = A1.Correlator(B0);
+Corr11 = A1.Correlator(B1);
 
 % Make CHSH object
 CHSH_ineq = Corr00 + Corr01 + Corr10 - Corr11;

@@ -2,7 +2,7 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
 %MTKPOLYNOMIAL A polynomial expression of operators (or their moments).
     
     %% Public properties
-    properties(GetAccess=public, SetAccess=private)
+    properties(GetAccess=public, SetAccess=protected)
         Constituents = MTKMonomial.empty(1,0)
     end
         
@@ -129,6 +129,8 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
         function obj = InitZero(setting, dimensions)
             obj = MTKPolynomial(setting, 'overwrite', dimensions);
         end
+        
+        obj = InitValue(setting, values);
         
         obj = InitFromOperatorCell(setting, cell_input);
     end

@@ -40,10 +40,28 @@ classdef LocalityScenario < MTKScenario
         OutcomesPerMeasurement % Number of outcomes associated with each measurement.
     end
     
-    properties(Constant, Access = protected)
-        err_badFCT = [
-            'Cannot apply full-correlator tensor before ',...
-            'MatrixSystem has been generated.'];
+    properties(Dependent, GetAccess=public, SetAccess = private)
+        CollinsGisin
+        FullCorrelator
+    end
+    
+    properties(Access=private)
+        cached_CG = Locality.CollinsGisin.empty(0,0);
+        cached_FC = Locality.FullCorrelator.empty(0,0);
+    end
+    
+    
+    properties(Constant, Access = private)
+        err_badFCT_NoMS = [
+            'Cannot generate full correlator matrix before ',...
+            'MatrixSystem is generated.'];
+        
+        err_badCGT_NoMS = [
+            'Cannot generate Collins-Gisin tensor before ',...
+            'MatrixSystem is generated.'];
+        
+        err_badFCT_dims = ...
+            'System dimensions do not admit a full-correlator matrix.';
     end
     
     %% Construction and initialization
@@ -93,10 +111,7 @@ classdef LocalityScenario < MTKScenario
            
             % Superclass c'tor
             obj = obj@MTKScenario(zero_tolerance, true, true);
-            
-            % Create normalization object
-            %obj.Normalization = MTKMonomial(obj, [], 1.0);
-            
+                        
             % Create parties, as supplied
             obj.Parties = Locality.Party.empty(1,0);
             initial_parties = numel(desc);
@@ -217,6 +232,48 @@ classdef LocalityScenario < MTKScenario
         end
     end
     
+    %% Cached object accessors
+    methods
+        function val = get.CollinsGisin(obj)
+        % COLLINSGISIN Gets the associated Collins-Gisin tensor.
+            
+            % Prevent implicit early generation of matrix system.
+            if ~obj.HasMatrixSystem
+                error(obj.err_badCGT_NoMS);
+            end
+            
+            if isempty(obj.cached_CG)
+                obj.cached_CG = Locality.CollinsGisin(obj);
+            end
+            
+            val = obj.cached_CG;
+        end
+                    
+        function val = get.FullCorrelator(obj)
+        % FULLCORRELATOR Gets the associated full-correlator matrix
+        
+            % Prevent implicit early generation of matrix system.
+            if ~obj.HasMatrixSystem
+                error(obj.err_badFCT_NoMS);
+            end
+            
+            if isnumeric(obj.cached_FC)
+                error(obj.err_badFCT_dims)
+            end
+            
+            if isempty(obj.cached_FC)
+                try
+                    obj.cached_FC = Locality.FullCorrelator(obj);
+                catch Exception
+                    obj.cached_FC = 0;
+                    error(obj.err_badFCT_dims)
+                end
+            end
+            
+            val = obj.cached_FC;        
+        end
+    end
+    
     %% Special accessors
     methods        
         function varargout = getMeasurements(obj)
@@ -292,7 +349,7 @@ classdef LocalityScenario < MTKScenario
                 elseif dim(2) == 2
                     m_idx = uint64(index);
                     o_idx = uint64.empty(0, 3);
-                elseif dim(3) == 3
+                elseif dim(2) == 3
                     m_idx = uint64.empty(0, 2);
                     o_idx = uint64(index);
                 else
@@ -356,10 +413,6 @@ classdef LocalityScenario < MTKScenario
             
         end
         
-        function val = FullCorrelator(obj)
-        % FULLCORRELATOR Gets the associated full-correlator tensor
-            val = Locality.FullCorrelator(obj);
-        end
         
         function val = FCTensor(obj, tensor)
         % FCTENSOR Build an objective function by supplying weights to a full correlator.
@@ -385,14 +438,11 @@ classdef LocalityScenario < MTKScenario
                 tensor
             end
             
-            if ~obj.HasMatrixSystem
-                error(obj.err_badFCT);
-            end
-            fc = Locality.FullCorrelator(obj);
+            fc = obj.FullCorrelator;
             val = fc.linfunc(tensor);
         end
         
-        function val = FCIndex(obj, index)
+        function val = FCIndex(obj, indexA, indexB)
         % FCINDEX Retrieve an object corresponding an index in the full-correlator tensor.
         %
         % For a bipartite example, setting the value of index to:
@@ -418,20 +468,14 @@ classdef LocalityScenario < MTKScenario
         %
             arguments
                 obj (1,1) LocalityScenario
-                index (1,:) uint64
+                indexA (1,1) uint64
+                indexB (1,1) uint64
             end
             
-            if ~obj.HasMatrixSystem
-                error(obj.err_badFCT);
-            end
-            
-            fc = Locality.FullCorrelator(obj);
-            val = fc.at(index);
+            fc = obj.FullCorrelator;
+            val = fc(indexA, indexB);           
         end
         
-        function val = CollinsGisin(obj)
-            val = Locality.CollinsGisin(obj);
-        end
         
         function val = CGTensor(obj, tensor)
         % CGTENSOR Build an objective function by supplying weights to a Collins-Gisin tensor.
@@ -457,7 +501,7 @@ classdef LocalityScenario < MTKScenario
             tensor double
         end
             if ~obj.HasMatrixSystem
-                error(obj.err_badFCT);
+                error(obj.err_badFCT_NoMS);
             end
             fc = Locality.CollinsGisin(obj);
             val = fc.linfunc(tensor);

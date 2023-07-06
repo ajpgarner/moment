@@ -4,7 +4,6 @@ classdef FullCorrelator < MTKPolynomial
 % This is a specialization of MTKPolynomial with pre-determined properties.
 %  
 
-    
     properties(Access=private)
         mono_coefs = double.empty
     end
@@ -14,57 +13,59 @@ classdef FullCorrelator < MTKPolynomial
             arguments
                 scenario (1,1) LocalityScenario
             end
-            
+
             % Check scenario admits a full correlator
+            if numel(scenario.Parties) ~= 2
+                error("Full correlator matrix is only defined between two parties.");
+            end
             if ~all(scenario.OutcomesPerMeasurement == 2)
-                error("Full correlator tensor is only defined when every measurement has binary outcomes.");
-            end            
+                error("Full correlator matrix is only defined when every measurement has two outcomes.");
+            end
+
             shape = scenario.MeasurementsPerParty + 1;
-            
             obj = obj@MTKPolynomial(scenario, 'overwrite', shape);
-            
-            
+
+            % Special case: 0 measurements
+            if obj.IsScalar
+                assert(isequal(shape, [1 1]));
+                obj.Constituents = MTKMonomial.InitValue(scenario, 1.0);
+                return;
+            end
+
+            obj.Constituents{1} = MTKMonomial.InitValue(scenario, 1.0);
+
+            for mA_idx = 0:numel(scenario.Parties(1).Measurements)
+                for mB_idx = 0:numel(scenario.Parties(2).Measurements)
+                    poly_obj = obj.makeCorrObj(mA_idx, mB_idx);
+                    obj.Constituents{mA_idx+1, mB_idx+1} = ...
+                        poly_obj.Constituents;
+                end
+            end
         end
-        
-%         function val = get.Coefficients(obj)
-%             % Silently fail if no moment matrix yet
-%             if ~obj.Scenario.HasMatrixSystem
-%                 %TODO: Check deep enough matrix system
-%                 val = double.empty;
-%                 return;
-%             end
-%             
-%             % Return cached value, if any
-%             if ~isempty(obj.mono_coefs)
-%                 val = obj.mono_coefs;
-%                 return;
-%             end
-%             
-%             % Build monolith of co-efficients
-%             coefs = length(obj.Scenario.Normalization.Coefficients);
-%             elems = prod(obj.Shape);
-%             
-%             global_i = double.empty(1,0);
-%             global_j = double.empty(1,0);
-%             global_v = double.empty(1,0);
-%             
-%             for index = 1:elems
-%                 indices = Util.index_to_sub(obj.Shape, index) - 1;
-%                 thing = obj.at(indices);
-%                 [~, coefs_j, coefs_val] = find(thing.Coefficients);
-%                 global_i = horzcat(global_i, ...
-%                                 ones(1, length(coefs_j))*index);
-%                 global_j = horzcat(global_j, coefs_j);
-%                 global_v = horzcat(global_v, coefs_val);
-%                 
-%             end
-%             
-%             % Cache and return
-%             obj.mono_coefs = sparse(global_i, global_j, global_v, ...
-%                                     elems, coefs);
-%             val = obj.mono_coefs;            
-%         end
-%        
+    end
+
+    methods(Access=private)
+        function val = makeCorrObj(obj, mA, mB)
+            partyA = obj.Scenario.Parties(1);
+            partyB = obj.Scenario.Parties(2);            
+            if mA == 0
+                if mB == 0
+                    % <I>
+                    val = MTKPolynomial.InitValue(obj.Scenario, 1.0);                            
+                else
+                    % <Bi>
+                    impl = partyB.Measurements(mB).ExplicitOutcomes;
+                    val = 2*impl - 1;
+                end
+            elseif mB == 0
+                % <Ai>
+                impl = partyA.Measurements(mA).ExplicitOutcomes;
+                val = 2*impl - 1;
+            else
+                % <Ai, Bj>
+                val = partyA.Measurements(mA).Correlator(...
+                    partyB.Measurements(mB));
+            end
+        end
     end
 end
-

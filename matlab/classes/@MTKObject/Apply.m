@@ -10,11 +10,6 @@
 %  Object of the same type as re_vals; e.g. numeric or sdpvar.
 %  Shape of output matches size(obj).
 %
-    arguments
-        obj (:,:) MTKObject
-        re_vals (1,:)
-        im_vals (1,:)
-    end
 
     % Check and sanitize real inputs
     re_vals = reshape(re_vals, 1, []);
@@ -24,7 +19,7 @@
     end
 
     % Check and sanitize imaginary inputs if any
-    if nargin >= 2
+    if nargin >= 3
         has_imaginary = true;
         im_vals = reshape(im_vals, 1, []);
         if numel(im_vals) ~= obj.Scenario.System.ImaginaryVarCount

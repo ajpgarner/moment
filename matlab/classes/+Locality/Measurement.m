@@ -209,6 +209,15 @@ classdef (InferiorClasses={?Locality.Outcome}) Measurement < handle
             error("_.*_ not defined between %s and %s", ...
                   class(lhs), class(rhs));
         end
+        
+        function val = Correlator(this, other)
+            if ~isa(other, 'Locality.Measurement')
+                error("Correlator not defined for object of type %s", class(other));
+            end
+            
+            joint_object = mtimes(this, other);
+            val = joint_object.Correlator;           
+        end
     end
 
 end
