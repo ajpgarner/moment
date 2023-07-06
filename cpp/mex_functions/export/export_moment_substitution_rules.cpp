@@ -70,7 +70,7 @@ namespace Moment::mex {
         auto output = factory.createCellArray({1, 2});
 
         output[0] = factory.createScalar(static_cast<uint64_t>(rule.LHS()));
-        output[1] = this->combo_exporter.direct(rule.RHS());
+        output[1] = this->combo_exporter.symbol_cell(rule.RHS());
 
         return output;
     }

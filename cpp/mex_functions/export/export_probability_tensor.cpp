@@ -36,7 +36,7 @@ namespace Moment::mex {
                 throw Moment::errors::BadPTError{"Symbols not yet found."};
             }
 
-            return this->polyExporter.direct(elem.symbolPolynomial);
+            return this->polyExporter.symbol_cell(elem.symbolPolynomial);
         }
     };
 

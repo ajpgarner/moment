@@ -24,7 +24,7 @@ namespace Moment::mex {
     FullPolynomialSpecification::FullPolynomialSpecification(matlab::data::ArrayFactory &factory,
                                                              size_t length,
                                                              bool include_symbol_info)
-        : dimensions({1, length}), has_symbol_info{include_symbol_info},
+        : dimensions({length, 1}), has_symbol_info{include_symbol_info},
           operators{factory.createCellArray(dimensions)},
           coefficients{factory.createArray<std::complex<double>>(dimensions)},
           hashes{factory.createArray<uint64_t>(dimensions)},
@@ -89,7 +89,7 @@ namespace Moment::mex {
         };
     }
 
-    matlab::data::CellArray PolynomialExporter::direct(const Polynomial &combo) const {
+    matlab::data::CellArray PolynomialExporter::symbol_cell(const Polynomial &combo) const {
 
         matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({1, combo.size()});

@@ -71,7 +71,7 @@ namespace Moment::mex {
          * @param combo The combo to export.
          * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
          */
-        [[nodiscard]] matlab::data::CellArray direct(const Polynomial& combo) const;
+        [[nodiscard]] matlab::data::CellArray symbol_cell(const Polynomial& combo) const;
 
         /**
          * Export polynomial in terms of its constituent operator sequences, their hashes and weights.

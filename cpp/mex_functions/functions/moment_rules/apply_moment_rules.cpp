@@ -155,7 +155,7 @@ namespace Moment::mex::functions {
         switch (input.output_format) {
             case ApplyMomentRulesParams::OutputFormat::SymbolCell: {
                 PolynomialExporter polynomialExporter{this->matlabEngine, symbols, factory.zero_tolerance};
-                output[0] = polynomialExporter.direct(polynomial);
+                output[0] = polynomialExporter.symbol_cell(polynomial);
             }
                 break;
             case ApplyMomentRulesParams::OutputFormat::Polynomial: {
