@@ -80,8 +80,31 @@ classdef Measurement < handle
             if ~obj.Scenario.HasMatrixSystem
                 error("Explicit outcomes cannot be generated before matrix system is created.");
             end
-            if isempty(obj.explicit)
-                % TODO: Make explicit
+            
+            if isempty(obj.explicit)                
+                [ops, hashes] = mtk('collins_gisin', 'sequences', ...
+                             obj.Scenario.System.RefId, obj.Index);
+                coefs = ones(size(hashes));
+                try
+                    [symbols, real_indices] = mtk('collins_gisin', 'symbols', ...
+                                obj.Scenario.System.RefId, obj.Index);
+                    has_symbols = true;
+                catch CGE
+                    has_symbols = false;
+                   disp(CGE);
+                end
+                if (has_symbols)
+                    conj = false(size(hashes));
+                    im_indices = zeros(size(hashes));
+                    obj.explicit = ...
+                        MTKMonomial.InitAllInfo(obj.Scenario, ...
+                                ops, coefs, hashes, ...
+                                symbols, conj, real_indices, im_indices);
+                else
+                    obj.explicit = ...
+                        MTKMonomial.InitDirect(obj.Scenario, ...
+                            ops, coefs, hashes);
+                end
             end
             
            val = obj.explicit;            
@@ -91,8 +114,13 @@ classdef Measurement < handle
             if ~obj.Scenario.HasMatrixSystem
                 error("Implicit outcomes cannot be generated before matrix system is created.");
             end
+            
             if isempty(obj.implicit)
-                % TODO: Make implicit
+                poly_spec = mtk('probability_table', 'full_sequences',...
+                    obj.Scenario.System.RefId, obj.Index);
+                obj.implicit = ...
+                    MTKPolynomial.InitFromOperatorCell(obj.Scenario, ...
+                                                       poly_spec);
             end
             val = obj.implicit;            
         end

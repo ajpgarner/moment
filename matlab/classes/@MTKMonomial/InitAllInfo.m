@@ -7,7 +7,7 @@ function obj = InitAllInfo(setting, operators, coefs, hashes, ...
 %
     dimensions = size(operators);    
     obj = MTKMonomial(setting, 'overwrite', dimensions);
-    if obj.IsScalar
+    if obj.IsScalar && iscell(operators)
         obj.Operators = operators{1};
     else
         obj.Operators = operators;
