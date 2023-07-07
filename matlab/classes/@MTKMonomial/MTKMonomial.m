@@ -249,10 +249,10 @@ classdef MTKMonomial < MTKObject
     methods(Access=protected)
         
         [re, im] = calculateCoefficients(obj);
-                        
-        spliceOut(output, source, indices);
         
-        spliceIn(obj, indices, value);
+        mode = spliceIn(obj, indices, value);
+        
+        spliceOut(output, source, indices);
                 
         [output, matched] = spliceProperty(obj, indices, propertyName);
                  

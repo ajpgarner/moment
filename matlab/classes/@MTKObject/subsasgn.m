@@ -15,16 +15,17 @@
             end
             
             % Only allow expressions of form: obj(index) = new_obj
-            if length(s) ~= 1
-                error("subsasgn can only be used to splice in whole elements.");
+            if (length(s) ~= 1) || ~isa(val, 'MTKObject')
+                error("subsasgn can only be used to splice in MTKObjects.");
             end
   
             % Handle empty () case
             if isempty(s(1).subs)
-                if isa(val, 'MTKObject') && isequal(size(obj), size(val))
+                if isequal(size(obj), size(val))
                     obj = val;
                 else
-                    error("subsasgn can only be used to splice in whole elements.");
+                    error("A() = B requires B to be the same size as A."...
+                         + " Use A = B for dimension-changing overwrite.");
                 end
                 return;
             end
@@ -33,11 +34,8 @@
             indices = obj.cleanIndices(s(1).subs);
             
             % Implement obj(index) = new_obj.
-            if length(s) == 1
-                obj.spliceIn(indices, val);
-            else
-                error("subsasgn can only be used to replace elements.");                
-            end
+            obj.spliceIn(indices, val);
+            
         case '{}'
             error("Brace indexing is not supported for variables of this type."); 
         otherwise
