@@ -199,6 +199,8 @@
     methods(Access=protected)
         [re, im] = calculateCoefficients(obj);
 
+        spliceIn(obj, indices, value);
+        
         spliceOut(output, source, indices);
 
         [output, matched] = spliceProperty(obj, indices, propertyName);

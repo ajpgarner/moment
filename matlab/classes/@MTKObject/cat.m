@@ -7,14 +7,14 @@
         output = varargin{1};
         return;
     end
-
+    
     % Semi-trivial cases (prune empty arrays!)
-    mask = ~cellfun(@isempty, varargin);
-    if ~any(mask, 'all')
+    non_empty_mask = ~cellfun(@isempty, varargin);
+    if ~any(non_empty_mask, 'all')
         output = MTKObject.empty(0,0);
         return;
     end
-    varargin = varargin(mask);
+    varargin = varargin(non_empty_mask);
     if numel(varargin) == 1
         output = varargin(1);
         return;
@@ -24,7 +24,7 @@
     if ~all(cellfun(@(x) isa(x, 'MTKObject'), varargin), 'all')
         error("Can only concatenate MTKObjects");
     end
-
+    
     % Disable concatenation from different scenarios
     matching_scenario = ...
         all(cellfun(@(x) (varargin{1}.Scenario == x.Scenario),...

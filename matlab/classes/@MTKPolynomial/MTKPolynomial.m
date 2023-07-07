@@ -176,9 +176,11 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
     %% Virtual method implementations
     methods(Access=protected)
         [re, im] = calculateCoefficients(obj);
-                
-        spliceOut(output, source, indices);
         
+        spliceIn(obj, indices, value);
+        
+        spliceOut(output, source, indices);
+                
         [output, matched] = spliceProperty(obj, indices, propertyName);
           
         mergeIn(obj, merge_dim, offsets, objects);

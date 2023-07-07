@@ -1,4 +1,6 @@
 function mergeIn(obj, merge_dim, offsets, objects)
+    assert(~obj.IsScalar);
+    
     merge_type = mergeIn@MTKObject(obj, merge_dim, offsets, objects);
 
     % If scalar, promote operator list to cell before merge.

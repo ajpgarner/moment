@@ -251,6 +251,8 @@ classdef MTKMonomial < MTKObject
         [re, im] = calculateCoefficients(obj);
                         
         spliceOut(output, source, indices);
+        
+        spliceIn(obj, indices, value);
                 
         [output, matched] = spliceProperty(obj, indices, propertyName);
                  

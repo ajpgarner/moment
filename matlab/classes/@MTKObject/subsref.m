@@ -15,12 +15,22 @@
             if any(cellfun( @(x) isa(x, 'logical'), s(1).subs), 'all')                       
                 error("Logical indexing not supported.");
             end
-
+  
+            % Handle empty () case by ignoring indices.
+            if isempty(s(1).subs)
+                if length(s) == 1
+                    varargout{1} = obj;
+                else
+                    [varargout{1:nargout}] = subsref(obj, s(2:end));
+                end
+                return;
+            end
+            
             % Replace ':' with 1:end etc.
             indices = obj.cleanIndices(s(1).subs);
-
+            
             if length(s) == 1
-                % Implement obj(indices)                    
+                % Implement obj(indices)
                 varargout{1} = obj.splice(indices);
 
             elseif length(s) == 2 && strcmp(s(2).type,'.')                        
