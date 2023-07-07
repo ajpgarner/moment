@@ -70,8 +70,8 @@ namespace Moment::Locality {
     LocalityProbabilityTensor::measurement_to_range(const std::span<const PMIndex> freeMeasurements,
                                                     const std::span<const PMOIndex> fixedOutcomes) const {
 
-        CollinsGisinIndex lower_bounds(this->Dimensions.size(), 0);
-        CollinsGisinIndex upper_bounds(this->Dimensions.size(), 1);
+        ProbabilityTensorIndex lower_bounds(this->Dimensions.size(), 0);
+        ProbabilityTensorIndex upper_bounds(this->Dimensions.size(), 1);
         for (auto mmtIndex : freeMeasurements) {
             if (mmtIndex.global_mmt > this->gmInfo.size()) {
                 throw errors::BadPTError("Global measurement index out of bounds.");
@@ -99,6 +99,22 @@ namespace Moment::Locality {
         return ProbabilityTensorRange{*this, std::move(lower_bounds), std::move(upper_bounds)};
     }
 
+    ProbabilityTensor::ElementView
+    LocalityProbabilityTensor::outcome_to_element(std::span<const PMOIndex> fixedOutcomes) const {
+        ProbabilityTensorIndex index(this->Dimensions.size(), 0);
 
+        for (auto mmtIndex : fixedOutcomes) {
+            if (mmtIndex.global_mmt > this->gmInfo.size()) {
+                throw errors::BadPTError("Global measurement index out of bounds.");
+            }
+            const auto& gmEntry = this->gmInfo[mmtIndex.global_mmt];
+            if (index[gmEntry.party] != 0) {
+                throw errors::BadPTError("Two outcomes from same party cannot be specified.");
+            }
+            index[gmEntry.party] = gmEntry.offset + mmtIndex.outcome;
+        }
+
+        return this->elem_no_checks(index);
+    }
 
 }

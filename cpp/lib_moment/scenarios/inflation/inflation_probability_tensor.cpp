@@ -95,4 +95,21 @@ namespace Moment::Inflation {
     }
 
 
+    ProbabilityTensor::ElementView
+    InflationProbabilityTensor::outcome_to_element(std::span<const OVOIndex> fixedOutcomes) const {
+        ProbabilityTensorIndex index(this->Dimensions.size(), 0);
+        for (const auto& mmtIndex : fixedOutcomes) {
+            const size_t global_index = this->context.obs_variant_to_index(mmtIndex.observable_variant);
+            if (global_index > this->DimensionCount) {
+                throw Moment::errors::BadPTError("Global measurement index out of bounds.");
+            }
+            if (index[global_index] != 0) {
+                throw Moment::errors::BadPTError("Two measurements of the same observable cannot be specified.");
+            }
+
+            index[global_index] = 1 + mmtIndex.outcome;
+        }
+        return this->elem_no_checks(index);
+    }
+
 }

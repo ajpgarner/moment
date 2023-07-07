@@ -156,7 +156,7 @@ namespace Moment::mex {
     }
 
     matlab::data::CellArray ProbabilityTensorExporter::sequences(const ProbabilityTensorRange &splice) const {
-        auto dims = splice.Dimensions();
+        matlab::data::ArrayDimensions dims(splice.Dimensions().begin(), splice.Dimensions().end());
         remove_unused_dimensions(dims);
         return do_export(this->engine, this->factory, std::move(dims),
                          splice.begin(), splice.end(),
@@ -175,7 +175,7 @@ namespace Moment::mex {
     }
 
     matlab::data::CellArray ProbabilityTensorExporter::sequences_with_symbols(const ProbabilityTensorRange &splice) const {
-        auto dims = splice.Dimensions();
+        matlab::data::ArrayDimensions dims(splice.Dimensions().begin(), splice.Dimensions().end());;
         remove_unused_dimensions(dims);
         return do_export(this->engine, this->factory, std::move(dims),
                          splice.begin(), splice.end(),
@@ -196,7 +196,7 @@ namespace Moment::mex {
     }
 
     matlab::data::CellArray ProbabilityTensorExporter::symbols(const ProbabilityTensorRange &splice) const {
-        auto dims = splice.Dimensions();
+        matlab::data::ArrayDimensions dims(splice.Dimensions().begin(), splice.Dimensions().end());
         remove_unused_dimensions(dims);
         return do_export(this->engine, this->factory, std::move(dims),
                          splice.begin(), splice.end(), SymbolCellWriterFunctor{*this});

@@ -27,5 +27,7 @@ namespace Moment::Inflation {
 
         [[nodiscard]] ProbabilityTensorRange measurement_to_range(std::span<const OVIndex> freeMeasurements,
                                                                   std::span<const OVOIndex> fixedOutcomes) const;
+
+        [[nodiscard]] ProbabilityTensor::ElementView outcome_to_element(std::span<const OVOIndex> fixedOutcomes) const;
     };
 }

@@ -5,7 +5,9 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "../mex_function.h"
+#include "mex_function.h"
+
+#include "import/read_measurement_indices.h"
 
 #include <vector>
 
@@ -25,21 +27,23 @@ namespace Moment::mex::functions {
         /** The reference to the matrix system. */
         uint64_t matrix_system_key = 0;
 
-        /** The reference to the matrix within the system. */
-        uint64_t matrix_index = 0;
+        /** The requested measurements  */
+        std::vector<RawIndexPair> free_indices;
 
-        /** The type of input requested */
-        enum class InputType {
-            AllMeasurements,
-            SpecifiedMeasurement
-        } input_type = InputType::AllMeasurements;
+        /** The fixed outcomes */
+        std::vector<RawIndexTriplet> fixed_indices;
 
-        /** The requested measurements / observables */
-        std::vector<std::pair<uint64_t, uint64_t>> measurements_or_observables;
-
-        /** The supplied values */
+        /** The supplied values (flattened) */
         std::vector<double> values;
 
+        /** The type of output */
+        enum class OutputType {
+            SymbolCell,
+            Polynomial
+        } output_type = OutputType::SymbolCell;
+
+        /** True if a conditional probability is requested. */
+        [[nodiscard]] bool conditional() const noexcept { return !this->fixed_indices.empty(); }
 
     public:
         explicit MakeExplicitParams(SortedInputs&& structuredInputs);

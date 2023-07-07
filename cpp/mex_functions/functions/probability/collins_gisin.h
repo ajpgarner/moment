@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "../mex_function.h"
+#include "mex_function.h"
 
 #include "import/read_measurement_indices.h"
 

@@ -309,7 +309,16 @@ namespace Moment::Tests {
         auto range = auto_deduce.Splice(Tensor::Index{2, 3}, Tensor::Index{5, 5}); // 3 x 2 slice
 
         auto range_dims = range.Dimensions();
-        EXPECT_EQ(range_dims, (BoringTensor::Index{3, 2}));
+        EXPECT_EQ(range_dims.size(), 2);
+        EXPECT_EQ(range_dims[0], 3);
+        EXPECT_EQ(range_dims[1], 2);
+    }
+
+    TEST(Utilities_Tensor, Range_SliceSize) {
+        BoringTensor auto_deduce({5, 5});
+        auto range = auto_deduce.Splice(Tensor::Index{2, 3}, Tensor::Index{5, 5}); // 3 x 2 slice
+
+        EXPECT_EQ(range.size(), 6);
     }
 
 

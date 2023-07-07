@@ -44,6 +44,11 @@ namespace Moment::Tests {
 
         const auto range_A = pt.measurement_to_range(std::vector{OVIndex{0,0}});
         test2Mmt(range_A, 1, 2);
+
+        const auto elem_A = pt.outcome_to_element(std::vector{OVOIndex{0,0,0}});
+        EXPECT_TRUE(elem_A->hasSymbolPoly);
+        EXPECT_EQ(elem_A->symbolPolynomial, Polynomial({Monomial{2, 1.0}}));
+
     }
 
     TEST(Scenarios_Inflation_ProbabilityTensor, Singleton_Cloned) {
@@ -94,4 +99,6 @@ namespace Moment::Tests {
         const auto& getAAprime = pt.measurement_to_range(std::vector<OVIndex>{{0, 0}, {0, 1}});
         testSingleCV(getAAprime, id_a0a1, "A0A1");
     }
+
+
 }

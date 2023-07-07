@@ -124,7 +124,7 @@ namespace Moment::mex {
     std::pair<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<int64_t>>
     CollinsGisinExporter::symbol_and_basis(const Moment::CollinsGisinRange &cgr) const {
 
-        matlab::data::ArrayDimensions dimensions{cgr.Dimensions()};
+        matlab::data::ArrayDimensions dimensions(cgr.Dimensions().begin(), cgr.Dimensions().end());
         auto output = std::make_pair(factory.createArray<uint64_t>(dimensions),
                                      factory.createArray<int64_t>(dimensions));
         IterTuple write_iter{output.first.begin(), output.second.begin()};
@@ -150,7 +150,7 @@ namespace Moment::mex {
 
     std::pair<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>>
     CollinsGisinExporter::sequence_and_hash(const Moment::CollinsGisinRange& cgr) const {
-        matlab::data::ArrayDimensions dimensions{cgr.Dimensions()};
+        matlab::data::ArrayDimensions dimensions(cgr.Dimensions().begin(), cgr.Dimensions().end());
         std::pair<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>> output =
                 {factory.createCellArray(dimensions), factory.createArray<uint64_t>(dimensions)};
 
@@ -192,7 +192,7 @@ namespace Moment::mex {
                matlab::data::TypedArray<uint64_t>,
                matlab::data::TypedArray<int64_t>>
    CollinsGisinExporter::everything(const CollinsGisinRange &cgr) const {
-        matlab::data::ArrayDimensions  dimensions{cgr.Dimensions()};
+        matlab::data::ArrayDimensions dimensions(cgr.Dimensions().begin(), cgr.Dimensions().end());
         auto output = std::make_tuple(
                 factory.createCellArray(dimensions),
                 factory.createArray<uint64_t>(dimensions),
@@ -234,7 +234,7 @@ namespace Moment::mex {
         }
         const auto& localityContext = *lcPtr;
 
-        matlab::data::ArrayDimensions dimensions{cgr.Dimensions()};
+        matlab::data::ArrayDimensions dimensions(cgr.Dimensions().begin(), cgr.Dimensions().end());
         matlab::data::TypedArray<matlab::data::MATLABString> output
                 = factory.createArray<matlab::data::MATLABString>(std::move(dimensions));
         indexed_transform(cgr.begin(), cgr.end(), output.begin(), LFStringWriter{localityContext, formatter});
@@ -254,7 +254,7 @@ namespace Moment::mex {
 
     matlab::data::StringArray
     CollinsGisinExporter::strings(const Moment::CollinsGisinRange& cgr) const {
-        matlab::data::ArrayDimensions dimensions{cgr.Dimensions()};
+        matlab::data::ArrayDimensions dimensions(cgr.Dimensions().begin(), cgr.Dimensions().end());
         matlab::data::TypedArray<matlab::data::MATLABString> output
                 = factory.createArray<matlab::data::MATLABString>(std::move(dimensions));
         indexed_transform(cgr.begin(), cgr.end(), output.begin(), StringWriter{this->context});

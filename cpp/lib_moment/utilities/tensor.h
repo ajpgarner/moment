@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <numeric>
 #include <optional>
 #include <span>
 #include <stdexcept>
@@ -555,17 +556,26 @@ namespace Moment {
 
 
 
+    /**
+     * Slice of a tensor.
+     * Do not pass between threads! Create a copy first...!
+     * @tparam tensor_t
+     */
     template<typename tensor_t>
     class TensorRange {
     public:
         using TensorType = tensor_t;
         using Index = typename TensorType::Index;
+        using IndexView = typename TensorType::IndexView;
         using Iterator = typename TensorType::Iterator;
 
     private:
         const tensor_t& tensor;
         const Index first;
         const Index last;
+
+        mutable std::optional<Index> dimensions;
+        mutable std::optional<size_t> numel;
 
         const Iterator iter_end;
 
@@ -582,12 +592,26 @@ namespace Moment {
             return this->iter_end;
         }
 
-        [[nodiscard]] Index Dimensions() const {
-            Index output;
-            output.reserve(tensor.DimensionCount);
-            std::transform(last.begin(), last.end(), first.begin(), std::back_inserter(output), std::minus{});
-            return output;
+        /** Extent of slice, in terms of tensor dimensions */
+        [[nodiscard]] IndexView Dimensions() const {
+            if (!dimensions.has_value()) {
+                this->dimensions = Index{};
+                this->dimensions->reserve(tensor.DimensionCount);
+                std::transform(last.begin(), last.end(), first.begin(),
+                               std::back_inserter(this->dimensions.value()), std::minus{});
+            }
+            return IndexView(dimensions.value());
         }
+
+        /** Number of elements represented by slice */
+        [[nodiscard]] size_t size() const {
+            if (!this->numel.has_value()) {
+                auto dims = this->Dimensions();
+                this->numel = std::reduce(dims.begin(), dims.end(), 1ULL, std::multiplies());
+            }
+            return this->numel.value();
+        }
+
 
         [[nodiscard]] const TensorType& Tensor() const {
             return this->tensor;

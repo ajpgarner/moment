@@ -11,14 +11,16 @@
 
 #include "MatlabDataArray.hpp"
 
+#include "symbolic/polynomial.h"
+
 #include "utilities/io_parameters.h"
 
 #include <complex>
+#include <span>
 #include <utility>
 
 namespace Moment {
     class SymbolTable;
-    class Polynomial;
 }
 
 namespace Moment::mex {
@@ -71,7 +73,24 @@ namespace Moment::mex {
          * @param combo The combo to export.
          * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
          */
-        [[nodiscard]] matlab::data::CellArray symbol_cell(const Polynomial& combo) const;
+        [[nodiscard]] matlab::data::CellArray symbol_cell(matlab::data::ArrayFactory& factory,
+                                                          const Polynomial& combo) const;
+        /**
+         * Export polynomial directly as a cell array.
+         * @param combo The combo to export.
+         * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
+         */
+        [[nodiscard]] inline matlab::data::CellArray symbol_cell(const Polynomial& poly) const {
+            matlab::data::ArrayFactory factory;
+            return symbol_cell(factory, poly);
+        }
+
+        /**
+         * Export vector of polynomials as a vector of cell arrays.
+         * @param combo The combo to export.
+         * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
+         */
+        [[nodiscard]] matlab::data::CellArray symbol_cell_vector(std::span<const Polynomial> poly_list) const;
 
         /**
          * Export polynomial in terms of its constituent operator sequences, their hashes and weights.
@@ -96,5 +115,14 @@ namespace Moment::mex {
             matlab::data::ArrayFactory factory;
             return sequences(factory, polynomial, include_symbols);
         }
+
+        /**
+        * Export vector of polynomials as a vector of cell array full specifications
+        * @param combo The combo to export.
+        * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
+        */
+        [[nodiscard]] matlab::data::CellArray sequence_cell_vector(std::span<const Polynomial> poly_list,
+                                                                   bool include_symbols = false) const;
+
     };
 }

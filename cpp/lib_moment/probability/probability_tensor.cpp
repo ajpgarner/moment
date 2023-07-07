@@ -9,8 +9,11 @@
 
 #include "collins_gisin.h"
 
+#include "scenarios/context.h"
 #include "symbolic/polynomial_factory.h"
+
 #include "utilities/combinations.h"
+#include "utilities/format_factor.h"
 
 #include <limits>
 #include <numeric>
@@ -163,6 +166,122 @@ namespace Moment {
     }
 
 
+
+    std::vector<Polynomial> ProbabilityTensor::explicit_value_rules(const ProbabilityTensorRange &measurement,
+                                                                    const std::span<const double> values) const {
+        std::vector<Polynomial> output{};
+        auto value_iter = values.begin();
+        for (const ProbabilityTensorElement& elem : measurement) {
+            assert(value_iter != values.end());
+            // Each element must have symbols explicitly defined.
+            if (!elem.hasSymbolPoly) {
+                std::stringstream errSS;
+                errSS << "Can not find symbols for polynomial \"";
+                this->elem_as_string(errSS, elem);
+                errSS << "\".";
+                throw Moment::errors::BadPTError{errSS.str()};
+            }
+            output.emplace_back(elem.symbolPolynomial);
+            this->symbolPolynomialFactory.append(output.back(), Polynomial::Scalar(-*value_iter));
+            ++value_iter;
+        }
+        output.reserve(values.size());
+
+        return output;
+    }
+
+    std::vector<Polynomial> ProbabilityTensor::explicit_value_rules(const ProbabilityTensorRange &measurement,
+                                                                    const ProbabilityTensorElement &condition,
+                                                                    const std::span<const double> values) const {
+        // Check conditional element has symbols explicitly defined.
+        if (!condition.hasSymbolPoly) {
+            std::stringstream errSS;
+            errSS << "Can not find symbols for polynomial \"";
+            this->elem_as_string(errSS, condition);
+            errSS << "\".";
+            throw Moment::errors::BadPTError{errSS.str()};
+        }
+
+        std::vector<Polynomial> output{};
+        output.reserve(values.size());
+        auto value_iter = values.begin();
+        for (const ProbabilityTensorElement& elem : measurement) {
+            // Each element must have symbols explicitly defined.
+            assert(value_iter != values.end());
+            if (!elem.hasSymbolPoly) {
+                std::stringstream errSS;
+                errSS << "Can not find symbols for polynomial \"";
+                this->elem_as_string(errSS, elem);
+                errSS << "\".";
+                throw Moment::errors::BadPTError{errSS.str()};
+            }
+            output.emplace_back(elem.symbolPolynomial);
+            this->symbolPolynomialFactory.append(output.back(), condition.symbolPolynomial * -(*value_iter));
+
+            ++value_iter;
+        }
+
+        return output;
+    }
+
+    std::string ProbabilityTensor::elem_as_string(const ProbabilityTensorElement &element) const {
+        std::stringstream ss;
+        this->elem_as_string(ss, element);
+        return ss.str();
+    }
+
+    void ProbabilityTensor::elem_as_string(std::ostream& os, const ProbabilityTensorElement &element) const {
+
+        // Firstly, if we have symbolic poly, delegate to default:~
+        if (element.hasSymbolPoly) {
+            element.symbolPolynomial.as_string_with_operators(os, this->collinsGisin.symbol_table, true);
+            return;
+        }
+
+        // Empty string is always just 0.
+        if (element.cgPolynomial.empty()) {
+            os << "0";
+            return;
+        }
+
+        bool done_once = false;
+        for (const auto& elem : element.cgPolynomial) {
+            // Zero
+            if ((elem.id == 0) || (approximately_zero(elem.factor))) {
+                if (done_once) {
+                    os << " + ";
+                }
+                os << "0";
+                done_once = true;
+                continue;
+            }
+
+            // Is element a scalar?
+            const bool is_scalar = (elem.id == 1);
+
+            // Write factor
+            const bool need_space = format_factor(os, elem.factor, is_scalar, done_once);
+            done_once = true;
+
+            // Scalar, factor alone is enough
+            if (is_scalar) {
+                continue;
+            }
+
+            if (need_space) {
+                os << " ";
+            }
+
+            // Get CG entry
+            auto cg_entry = this->collinsGisin.elem_no_checks(elem.id - 1);
+
+            // Get context-formatted sequence
+            os << "<" << cg_entry->sequence.formatted_string() << ">";
+            done_once = true;
+        }
+    }
+
+
     ProbabilityTensor::ElementConstructInfo
     ProbabilityTensor::element_info(const ProbabilityTensorIndexView indices) const {
         this->validate_index(indices);
@@ -303,4 +422,7 @@ namespace Moment {
                                             this->symbolPolynomialFactory(std::move(symbol_poly_data))};
         }
     }
+
+
+
 }

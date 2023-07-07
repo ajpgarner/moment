@@ -8,13 +8,10 @@
 #include "mex_function.h"
 
 #include "functions/alphabetic_name.h"
-#include "functions/collins_gisin.h"
 #include "functions/conjugate.h"
 #include "functions/generate_basis.h"
 #include "functions/import_matrix.h"
-#include "functions/make_explicit.h"
 #include "functions/make_representation.h"
-#include "functions/probability_table.h"
 #include "functions/release.h"
 #include "functions/settings.h"
 #include "functions/simplify.h"
@@ -41,7 +38,9 @@
 #include "functions/operator_matrix/operator_matrix.h"
 #include "functions/operator_rules/complete.h"
 #include "functions/operator_rules/operator_rules.h"
-
+#include "functions/probability/collins_gisin.h"
+#include "functions/probability/make_explicit.h"
+#include "functions/probability/probability_table.h"
 #include "utilities/reporting.h"
 
 #include <cassert>

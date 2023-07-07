@@ -14,6 +14,7 @@
 #include "utilities/dynamic_bitset.h"
 #include "utilities/tensor.h"
 
+#include <iosfwd>
 #include <span>
 #include <vector>
 
@@ -27,6 +28,7 @@ namespace Moment {
         public:
             explicit BadPTError(const std::string& what) : std::runtime_error(what) { }
         };
+
     };
 
     /** The number of elements, below which we cache the probability tensor explicitly. */
@@ -130,7 +132,6 @@ namespace Moment {
         /** Deduce information about element. */
         [[nodiscard]] ElementConstructInfo element_info(ProbabilityTensorIndexView index) const;
 
-
         [[nodiscard]] Polynomial CGPolynomial(ProbabilityTensorIndexView index) const;
 
         /** True if all polynomials have been filled (or tensor is virtual). */
@@ -142,22 +143,28 @@ namespace Moment {
         bool fill_missing_polynomials();
 
         /**
-         * Splice all operators belonging to a supplied set of (global) measurement indices.
-         * @return Iterator over identified range.
-         * @throws BadCGError If index is invalid.
+         * Make implicit probability rules.
+         * @param measurement
          */
-        [[nodiscard]] ProbabilityTensorRange
-        measurement_to_range(std::span<const size_t> mmtIndices) const;
+        [[nodiscard]] std::vector<Polynomial> explicit_value_rules(const ProbabilityTensorRange& measurement,
+                                                                   std::span<const double> values) const;
 
         /**
-         * Splice all operators corresponding to supplied set of (global) measurement indices, fixing some of the
-         * measurement outcomes.
-         * @param mmtIndices A sorted list of global indices of the measurement.
-         * @param fixedOutcomes List of outcome indices, or -1 if not fixed.
-         * @throws BadPTError If index is invalid.
+         * Make implicit probability rules.
+         * @param measurement
+         * @param conditional
          */
-        [[nodiscard]] ProbabilityTensorRange
-        measurement_to_range(std::span<const size_t> mmtIndices, std::span<const oper_name_t> fixedOutcomes) const;
+        [[nodiscard]] std::vector<Polynomial> explicit_value_rules(const ProbabilityTensorRange& measurement,
+                                                                   const ProbabilityTensorElement& condition,
+                                                                   std::span<const double> values) const;
+
+
+        /**
+         * Get string representation of polynomial.
+         */
+        [[nodiscard]] std::string elem_as_string(const ProbabilityTensorElement& element) const;
+
+        void elem_as_string(std::ostream& os, const ProbabilityTensorElement& element) const;
 
     protected:
         [[nodiscard]] ProbabilityTensorElement make_element_no_checks(Tensor::IndexView index) const override;

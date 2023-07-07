@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "../mex_function.h"
+#include "mex_function.h"
 
 #include "scenarios/inflation/observable_variant_index.h"
 #include "scenarios/locality/party_measurement_index.h"

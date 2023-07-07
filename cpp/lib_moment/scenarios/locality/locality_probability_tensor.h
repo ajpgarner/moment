@@ -42,6 +42,8 @@ namespace Moment::Locality {
         [[nodiscard]] ProbabilityTensorRange measurement_to_range(std::span<const PMIndex> freeMeasurements,
                                                                   std::span<const PMOIndex> fixedOutcomes) const;
 
+        [[nodiscard]] ProbabilityTensor::ElementView outcome_to_element(std::span<const PMOIndex> fixedOutcomes) const;
+
     private:
 
     };
