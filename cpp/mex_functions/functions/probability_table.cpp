@@ -27,10 +27,9 @@
 namespace Moment::mex::functions {
 
     namespace {
-        [[nodiscard]] ProbabilityTensorRange get_slice(matlab::engine::MATLABEngine& matlabEngine,
-                                                                          const ProbabilityTableParams& input,
-                                                                          MatrixSystem& system,
-                                                                          decltype(system.get_read_lock())& lock) {
+        [[nodiscard]] std::pair<ProbabilityTensorRange, const MaintainsTensors&>
+        get_slice(matlab::engine::MATLABEngine& matlabEngine, const ProbabilityTableParams& input,
+                  MatrixSystem& system, decltype(system.get_read_lock())& lock) {
 
             if (auto* lmsPtr = dynamic_cast<Locality::LocalityMatrixSystem*>(&system); lmsPtr != nullptr) {
                 lmsPtr->RefreshProbabilityTensor(lock);
@@ -41,7 +40,7 @@ namespace Moment::mex::functions {
                 auto fixed_mmts = pmReader.read_pmo_index_list(input.fixed);
 
                 try {
-                    return pt.measurement_to_range(free_mmts, fixed_mmts);
+                    return std::pair<ProbabilityTensorRange, const MaintainsTensors&>(pt.measurement_to_range(free_mmts, fixed_mmts), *lmsPtr);
                 } catch (const Moment::errors::BadPTError& pte) {
                     throw_error(matlabEngine, errors::bad_param, pte.what());
                 } catch (const std::exception& e) {
@@ -58,7 +57,7 @@ namespace Moment::mex::functions {
                 auto fixed_mmts = ovReader.read_ovo_index_list(input.fixed);
 
                 try {
-                    return pt.measurement_to_range(free_mmts, fixed_mmts);
+                    return {pt.measurement_to_range(free_mmts, fixed_mmts), *imsPtr};
                 } catch (const Moment::errors::BadPTError& pte) {
                     throw_error(matlabEngine, errors::bad_param, pte.what());
                 } catch (const std::exception& e) {
@@ -172,9 +171,9 @@ namespace Moment::mex::functions {
     }
 
     void ProbabilityTable::export_one_measurement(IOArgumentRange output, ProbabilityTableParams &input,
-                                                  MatrixSystem& system) {
-        auto lock = system.get_read_lock();
-        auto slice = get_slice(this->matlabEngine, input, system, lock);
+                                                  MatrixSystem& raw_system) {
+        auto lock = raw_system.get_read_lock();
+        auto [slice, system] = get_slice(this->matlabEngine, input, raw_system, lock);
 
         ProbabilityTensorExporter exporter{this->matlabEngine, system};
 
@@ -196,9 +195,9 @@ namespace Moment::mex::functions {
     }
 
     void ProbabilityTable::export_one_outcome(IOArgumentRange output, ProbabilityTableParams &input,
-                                              MatrixSystem& system) {
-        auto lock = system.get_read_lock();
-        auto slice = get_slice(this->matlabEngine, input, system, lock);
+                                              MatrixSystem& raw_system) {
+        auto lock = raw_system.get_read_lock();
+        auto [slice, system] = get_slice(this->matlabEngine, input, raw_system, lock);
 
         ProbabilityTensorExporter exporter{this->matlabEngine, system};
 
@@ -209,14 +208,15 @@ namespace Moment::mex::functions {
         }
 
         matlab::data::CellArray one_by_one = exporter.factory.createCellArray({1, 1});
-        (*one_by_one.begin()) = [&]() -> matlab::data::CellArray {
+            (*one_by_one.begin()) = [&](const MaintainsTensors& the_system) -> matlab::data::CellArray {
+
             switch (input.output_mode) {
                 case ProbabilityTableParams::OutputMode::OperatorSequences: {
-                    auto fullPolyInfo = exporter.sequence(*iter);
+                    auto fullPolyInfo = exporter.sequence(*iter, the_system.CollinsGisin());
                     return fullPolyInfo.move_to_cell(exporter.factory);
                 }
                 case ProbabilityTableParams::OutputMode::OperatorSequencesWithSymbolInfo: {
-                    auto fullPolyInfo = exporter.sequence_with_symbols(*iter);
+                    auto fullPolyInfo = exporter.sequence_with_symbols(*iter, the_system.CollinsGisin());
                     return fullPolyInfo.move_to_cell(exporter.factory);
                 }
                 case ProbabilityTableParams::OutputMode::Symbols:
@@ -224,7 +224,7 @@ namespace Moment::mex::functions {
                 default:
                     throw_error(matlabEngine, errors::internal_error, "Unknown output mode.");
             }
-        }();
+        }(system);
         output[0] = std::move(one_by_one);
 
     }

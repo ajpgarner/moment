@@ -36,6 +36,7 @@ add_executable(moment_tests
         scenarios/locality/locality_probability_tensor_tests.cpp
         scenarios/locality/locality_osg_tests.cpp
         scenarios/locality/party_tests.cpp
+        scenarios/locality/virtual_polynomial_view_tests.cpp
         scenarios/symmetry/group_tests.cpp
         scenarios/symmetry/representation_mapper_tests.cpp
         scenarios/symmetry/symmetrized_matrix_system_tests.cpp

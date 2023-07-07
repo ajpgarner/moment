@@ -20,6 +20,7 @@ add_library(lib_moment
         probability/collins_gisin.cpp
         probability/maintains_tensors.cpp
         probability/probability_tensor.cpp
+        probability/virtual_polynomial_view.cpp
         scenarios/context.cpp
         scenarios/algebraic/algebraic_context.cpp
         scenarios/algebraic/algebraic_precontext.cpp

@@ -88,8 +88,11 @@ classdef (InferiorClasses={?Locality.Outcome}) Measurement < handle
                                 obj.Scenario.System.RefId, obj.Index);
                     has_symbols = true;
                 catch CGE
-                    has_symbols = false;
-                   disp(CGE);
+                    if isequal(CGE.identifier, 'mtk:missing_cg')
+                        has_symbols = false;
+                    else
+                        rethrow(CGE);
+                    end
                 end
                 if (has_symbols)
                     conj = false(size(hashes));

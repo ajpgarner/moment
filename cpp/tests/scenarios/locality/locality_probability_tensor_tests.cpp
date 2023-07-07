@@ -470,7 +470,7 @@ namespace Moment::Tests {
         test222JoinMmt(rangeA1B1C1, 1, A1, B1, C1, A1B1, A1C1, B1C1, A1B1C1, "A1B1C1");
     }
 
-    TEST(Scenarios_Locality_ImplicitSymbols, A13_B12) {
+    TEST(Scenarios_Locality_ProbabilityTensor, A13_B12) {
 
         std::vector<Party> buildParties;
         buildParties.emplace_back(0, "A", std::vector{Measurement("a", 3)});

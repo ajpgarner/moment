@@ -558,9 +558,9 @@ namespace Moment {
     template<typename tensor_t>
     class TensorRange {
     public:
-        using Tensor = tensor_t;
-        using Index = typename Tensor::Index;
-        using Iterator = typename Tensor::Iterator;
+        using TensorType = tensor_t;
+        using Index = typename TensorType::Index;
+        using Iterator = typename TensorType::Iterator;
 
     private:
         const tensor_t& tensor;
@@ -587,6 +587,10 @@ namespace Moment {
             output.reserve(tensor.DimensionCount);
             std::transform(last.begin(), last.end(), first.begin(), std::back_inserter(output), std::minus{});
             return output;
+        }
+
+        [[nodiscard]] const TensorType& Tensor() const {
+            return this->tensor;
         }
 
     };

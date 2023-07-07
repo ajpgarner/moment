@@ -16,6 +16,7 @@
 
 namespace Moment {
     class Context;
+    class CollinsGisin;
     class MatrixSystem;
     class PolynomialFactory;
     class ProbabilityTensor;
@@ -51,7 +52,8 @@ namespace Moment {
             /**
              * Write a single element as a polynomial.
              */
-            [[nodiscard]] FullPolynomialSpecification sequence(const ProbabilityTensorElement& element) const;
+            [[nodiscard]] FullPolynomialSpecification sequence(const ProbabilityTensorElement& element,
+                                                               const CollinsGisin& cg) const;
 
             /**
              * Write the entire tensor as a polynomial.
@@ -66,7 +68,8 @@ namespace Moment {
             /**
              * Write a single element as a polynomial.
              */
-            [[nodiscard]] FullPolynomialSpecification sequence_with_symbols(const ProbabilityTensorElement& element) const;
+            [[nodiscard]] FullPolynomialSpecification sequence_with_symbols(const ProbabilityTensorElement& element,
+                                                                            const CollinsGisin& cg) const;
 
             /**
              * Write the entire tensor as a symbol cell.
