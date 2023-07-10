@@ -70,45 +70,33 @@ classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
             end
             val = impl(1,1) + impl(2,2) - impl(1,2) - impl(2,1);
         end
-         
-        function val = Outcome(obj, index)
-            
-%             arguments
-%                 obj (1,1) Locality.JointMeasurement
-%                 index (1, :) uint64
-%             end
-%             if length(index) ~= length(obj.Shape)
-%                 error("Index should have " + length(obj.Shape) + " elements");
-%             end
-%             if any(index > obj.Shape)
-%                 error("Index out of bounds.")
-%             end
-%             
-%             indices = horzcat(obj.Indices, ...
-%                               reshape(index, [length(obj.Shape), 1]));
-%               
-%             val = obj.Scenario.get(indices);
-        end
-        
-        
-        
+
+                        
         function val = ContainsParty(obj, party_index)
             val = any(obj.FreeIndices(:,1) == party_index) ...
                     || any(obj.FixedIndices(:,1) == party_index);
         end
+    end
+    %% Probability handling / rule making
+    methods                       
+        function val = Probability(obj, distribution, varargin)
+        % PROBABILITY Create rules imposing probability distribution.
+            val = Locality.make_explicit(obj.Scenario, ...
+                obj.FreeIndices, obj.FixedIndices, false, ...
+                distribution, varargin{:});           
                 
-        function val = ExplicitValues(obj, distribution)
-            arguments
-                obj Locality.JointMeasurement
-                distribution (1,:) double
-            end
-            if length(distribution) ~= prod(obj.Shape)
-                error("Distribution must match number of outcomes.");
-            end
-            val = mtk('make_explicit', obj.Scenario.System.RefId, ...
-                      obj.Indices, distribution);
         end
         
+        function val = ConditionalProbability(obj, distribution, varargin)
+        % CONDITIONALPROBABILITY Create rules imposing conditional probability distribution.
+            val = Locality.make_explicit(obj.Scenario, ...
+                obj.FreeIndices, obj.FixedIndices, true, ...
+                distribution, varargin{:});      
+        end        
+    end
+    
+    %% Algebraic manipulation
+    methods
         function val = mtimes(lhs, rhs)
         % MTIMES Whole-object multiplication.
             
@@ -205,7 +193,7 @@ classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
                 free_indices(i) = input_free(i).Index(1);
             end
             
-            % Get party indices from fixedinputs
+            % Get party indices from fixed inputs
             fixed_indices = zeros(1, numel(input_fixed));
             for i = 1:numel(input_fixed)
                 if (input_fixed(i).Scenario ~= obj.Scenario)
@@ -221,15 +209,17 @@ classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
             end
             
             % Re-order free
+            [~, sort_free] = sort(free_indices);
             free = Locality.Measurement.empty(1,0);
             for i = 1:numel(input_free)
-                free(end+1) = input_free(free_indices(i));
+                free(end+1) = input_free(sort_free(i));
             end
             
             % Re-order fixed
+            [~, sort_fixed] = sort(fixed_indices);
             fixed = Locality.Outcome.empty(1,0);
             for i = 1:numel(input_fixed)
-                fixed(end+1) = input_fixed(fixed_indices(i));
+                fixed(end+1) = input_fixed(sort_fixed(i));
             end           
         end
         

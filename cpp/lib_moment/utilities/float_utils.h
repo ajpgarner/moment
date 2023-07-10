@@ -73,6 +73,14 @@ namespace Moment {
 
 
     /**
+     * True if x is definitely larger than y. The extra tolerance is scaled by the absolute value of Y.
+     */
+    [[nodiscard]] constexpr bool definitely_greater_than(const double x, const double y,
+                                                         const double eps_multiplier = 1.0) {
+        return x > y + (abs(y)*std::numeric_limits<double>::epsilon() * eps_multiplier);
+    }
+
+    /**
      * True if complex x is almost a real number (also true for zero).
      * @param x The test parameter
      * @param eps_multiplier The tolerance, in units of epsilon.
@@ -125,4 +133,5 @@ namespace Moment {
             value.imag(0.0);
         }
     }
+
 }

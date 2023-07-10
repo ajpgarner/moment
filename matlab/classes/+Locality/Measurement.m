@@ -138,18 +138,12 @@ classdef (InferiorClasses={?Locality.Outcome}) Measurement < handle
         end
     end
     
-    %% Misc methods
+    %% Probability methods
     methods      
-        function val = ExplicitValues(obj, distribution)
-            arguments
-                obj Locality.Measurement
-                distribution (1,:) double
-            end
-            if length(distribution) ~= length(obj.Outcomes)
-                error("Distribution must match number of outcomes.");
-            end
-            val = mtk('make_explicit', obj.Scenario.System.RefId, ...
-                      obj.Index, distribution);
+        function val = Probability(obj, distribution, varargin)            
+            val = Locality.make_explicit(obj.Scenario, ...
+                obj.Index, uint64.empty(0,3), false, ...
+                distribution, varargin{:});           
         end
     end
        
@@ -178,8 +172,7 @@ classdef (InferiorClasses={?Locality.Outcome}) Measurement < handle
             % Compose measurement with outcome
             if isa(other, 'Locality.Outcome')
                 val = Locality.JointProbability(this.Scenario, ...
-                                                this, other, ...
-                                                Locality.Outcome.empty(1,0));
+                                                this, other);
                 return;
             end
                         

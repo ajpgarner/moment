@@ -12,12 +12,7 @@
 #include <vector>
 
 namespace Moment {
-    namespace Inflation {
-        class InflationMatrixSystem;
-    }
-    namespace Locality {
-        class LocalityMatrixSystem;
-    }
+    class MatrixSystem;
 }
 
 namespace Moment::mex::functions {
@@ -42,8 +37,13 @@ namespace Moment::mex::functions {
             Polynomial
         } output_type = OutputType::SymbolCell;
 
-        /** True if a conditional probability is requested. */
-        [[nodiscard]] bool conditional() const noexcept { return !this->fixed_indices.empty(); }
+        /** Export conditional measurement ? */
+        bool is_conditional = false;
+
+        /** True if a conditional probability is required and requested. */
+        [[nodiscard]] inline bool conditional() const noexcept {
+            return this->is_conditional && !this->fixed_indices.empty();
+        }
 
     public:
         explicit MakeExplicitParams(SortedInputs&& structuredInputs);
@@ -60,9 +60,7 @@ namespace Moment::mex::functions {
         void extra_input_checks(MakeExplicitParams &input) const override;
 
     private:
-        matlab::data::Array do_make_explicit(const Inflation::InflationMatrixSystem& ims, MakeExplicitParams &input);
-
-        matlab::data::Array do_make_explicit(const Locality::LocalityMatrixSystem& lms, MakeExplicitParams &input);
+        void check_count(const MatrixSystem &system, size_t slice_size, MakeExplicitParams &input);
 
     };
 

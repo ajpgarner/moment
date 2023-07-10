@@ -81,31 +81,7 @@ namespace Moment::mex::functions {
             throw_error(matlabEngine, errors::bad_param, "Matrix system must be a locality or inflation system.");
         }
 
-        void expected_count(matlab::engine::MATLABEngine& matlabEngine, const size_t slice_size,
-                            std::vector<double>& values, double zero_tolerance, bool quiet) {
-            const size_t value_size = values.size();
-            if (slice_size != value_size) {
-                if (slice_size == value_size + 1) {
-                    const double all_but_one = std::reduce(values.cbegin(), values.cend(), 0.0, std::plus{});
-                    if (!quiet && (all_but_one > 1)) {
-                        std::stringstream warnSS;
-                        warnSS << "Supplied probabilities summed to " << all_but_one << ", which is larger than unity.";
-                        print_warning(matlabEngine, warnSS.str());
-                    }
-                    values.emplace_back(all_but_one);
-                } else {
-                    throw_error(matlabEngine, errors::bad_param,
-                                "Number of values provided must be equal to number of measurement outcomes (or one fewer).");
-                }
-            } else if (!quiet) {
-                const double total = std::reduce(values.cbegin(), values.cend(), 0.0, std::plus{});
-                if (!approximately_equal(total, 1.0, zero_tolerance)) {
-                    std::stringstream warnSS;
-                    warnSS << "Values of probability distribution add up to " << total << " (unity expected).";
-                    print_warning(matlabEngine, warnSS.str());
-                }
-            }
-        }
+
     }
 
     MakeExplicitParams::MakeExplicitParams(SortedInputs &&structuredInputs)
@@ -119,6 +95,13 @@ namespace Moment::mex::functions {
             this->output_type = OutputType::SymbolCell;
         } else if (this->flags.contains(u"polynomials")) {
             this->output_type = OutputType::Polynomial;
+        }
+
+        // Get if we are implicitly in conditional mode?
+        if (this->flags.contains(u"conditional")) {
+            this->is_conditional = true;
+        } else {
+            this->is_conditional = false;
         }
 
         // Get measurement
@@ -142,6 +125,8 @@ namespace Moment::mex::functions {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
+        this->flag_names.emplace(u"conditional");
+
         this->flag_names.emplace(u"symbols");
         this->flag_names.emplace(u"polynomials");
         this->mutex_params.add_mutex({u"symbols", u"polynomials", u"all"});
@@ -151,6 +136,12 @@ namespace Moment::mex::functions {
         if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
             throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a matrix system.");
         }
+
+        if (!this->quiet && input.is_conditional && input.free_indices.empty()) {
+            print_warning(matlabEngine,
+                          "Conditional probability export was requested, but no fixed outcomes were specified.");
+        }
+
     }
 
     void MakeExplicit::operator()(IOArgumentRange output, MakeExplicitParams &input) {
@@ -172,8 +163,7 @@ namespace Moment::mex::functions {
         auto [slice, norm, matrixSystem] = get_slice_and_norm(this->matlabEngine, input, *matrixSystemPtr, lock);
 
         // Check dimensions of RHS; add implicit final value if necessary; check that values sum to unity.
-        expected_count(matlabEngine, slice.size(), input.values,
-                       matrixSystem.polynomial_factory().zero_tolerance, this->quiet);
+        this->check_count(matrixSystem, slice.size(), input);
 
         // Get probability tensor
         const auto& pt = matrixSystem.ProbabilityTensor();
@@ -199,5 +189,49 @@ namespace Moment::mex::functions {
             default:
                 throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
         }
+    }
+
+    void MakeExplicit::check_count(const MatrixSystem &system, const size_t slice_size, MakeExplicitParams &input) {
+        const size_t value_size = input.values.size();
+        const bool can_be_normalized = input.is_conditional || input.fixed_indices.empty();
+        const double zero_tolerance = system.polynomial_factory().zero_tolerance;
+
+            if (slice_size != value_size) {
+                // If we are a complete probability distribution, we can infer final value:
+                if (can_be_normalized && (slice_size == value_size + 1)) {
+                    const double all_but_one = std::reduce(input.values.cbegin(), input.values.cend(), 0.0, std::plus{});
+                    if (!quiet && definitely_greater_than(all_but_one, 1.0, zero_tolerance)) {
+                        std::stringstream warnSS;
+                        warnSS << "Supplied probabilities summed to " << all_but_one << ", which is larger than unity.";
+                        print_warning(matlabEngine, warnSS.str());
+                    }
+                    input.values.emplace_back(all_but_one);
+                } else {
+                    std::stringstream errSS;
+                    errSS << "Expected " << slice_size << " values to define ";
+                    if (!can_be_normalized) {
+                        errSS << "(possibly subnormal)";
+                    }
+                    errSS << " probability distribution, but only " << value_size << " were provided.";
+                    throw_error(matlabEngine, errors::bad_param, errSS.str());
+                }
+            } else if (!quiet) {
+                const double total = std::reduce(input.values.cbegin(), input.values.cend(), 0.0, std::plus{});
+
+                if (can_be_normalized) {
+                    if (!approximately_equal(total, 1.0, zero_tolerance)) {
+                        std::stringstream warnSS;
+                        warnSS << "Values of probability distribution add up to " << total << " (unity expected).";
+                        print_warning(matlabEngine, warnSS.str());
+                    }
+                } else {
+                    if (definitely_greater_than(total, 1.0, zero_tolerance)) {
+                        std::stringstream warnSS;
+                        warnSS << "Supplied probabilities summed to " << total << ", which is larger than unity.";
+                        print_warning(matlabEngine, warnSS.str());
+                    }
+                }
+            }
+
     }
 }

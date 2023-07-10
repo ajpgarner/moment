@@ -143,14 +143,14 @@ namespace Moment {
         bool fill_missing_polynomials();
 
         /**
-         * Make implicit probability rules.
+         * Make implicit probability rules, for a (joint) probability distribution.
          * @param measurement
          */
         [[nodiscard]] std::vector<Polynomial> explicit_value_rules(const ProbabilityTensorRange& measurement,
                                                                    std::span<const double> values) const;
 
         /**
-         * Make implicit probability rules.
+         * Make implicit probability rules, for a (joint) conditional probability distribution.
          * @param measurement
          * @param conditional
          */
