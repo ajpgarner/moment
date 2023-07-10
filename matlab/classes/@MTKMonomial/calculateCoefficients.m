@@ -2,7 +2,7 @@
 
     % Early exit if we can't get symbol information...
     if ~all(obj.SymbolId >= 0, 'all')
-        error("Symbols are not yet all registered in MatrixSystem.");
+        error("Symbols are not yet all registered in matrix system.");
     end 
 
     % Real coefficients

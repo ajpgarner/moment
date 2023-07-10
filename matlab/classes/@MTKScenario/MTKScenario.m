@@ -39,7 +39,7 @@ classdef (Abstract) MTKScenario < handle
     
     %% Private properties
     properties(Access = protected)
-        matrix_system % A MatrixSystem handle for the given scenario.
+        matrix_system % A MTKMatrixSystem handle for the given scenario.
         operator_names = string.empty(1, 0);  
     end
       
@@ -48,7 +48,7 @@ classdef (Abstract) MTKScenario < handle
         % Error message when scenario is locked, but changes are requested.
         err_locked = [
             'This Scenario is locked, and no further changes are possible. ', ...
-            'This is because it has been associated with a MatrixSystem ', ...
+            'This is because it has been associated with a matrix system ', ...
             '(e.g. at least one moment matrix has already been generated). ', ...
             'To make changes to this Scenario first create a deep copy using ', ...
             'scenario.Clone(), then make alterations to the copy.'];
@@ -67,7 +67,7 @@ classdef (Abstract) MTKScenario < handle
                 interleave (1,1) logical
             end
             
-            obj.matrix_system = MatrixSystem.empty;
+            obj.matrix_system = MTKMatrixSystem.empty;
             obj.ZeroTolerance = tolerance;
             obj.IsHermitian = is_hermitian;
             obj.Interleave = interleave;
@@ -152,7 +152,7 @@ classdef (Abstract) MTKScenario < handle
     end
     
     %% Abstract virtual methods (must be overloaded)
-    methods(Abstract, Access={?MTKScenario,?MatrixSystem})
+    methods(Abstract, Access={?MTKScenario,?MTKMatrixSystem})
         ref_id = createNewMatrixSystem(obj) 
     end
     

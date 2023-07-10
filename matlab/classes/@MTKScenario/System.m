@@ -5,9 +5,9 @@ function val = System(obj)
 % created.
 %
 % RETURN:
-%   A MatrixSystem object.
+%   A MTKMatrixSystem object.
 %
-% See also: MatrixSystem
+% See also: MTKMATRIXSYSTEM
 %
     arguments
         obj (1,1) MTKScenario
@@ -15,7 +15,7 @@ function val = System(obj)
 
     % Make matrix system, if not already generated
     if isempty(obj.matrix_system)
-        obj.matrix_system = MatrixSystem(obj);
+        obj.matrix_system = MTKMatrixSystem(obj);
     end
 
     val = obj.matrix_system;

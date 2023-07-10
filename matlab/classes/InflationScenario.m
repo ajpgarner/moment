@@ -360,7 +360,7 @@ classdef InflationScenario < MTKScenario
     end
  
     %% Virtual methods
-    methods(Access={?MTKScenario,?MatrixSystem})        
+    methods(Access={?MTKScenario,?MTKMatrixSystem})        
         function ref_id = createNewMatrixSystem(obj)
             arguments
                 obj (1,1) InflationScenario

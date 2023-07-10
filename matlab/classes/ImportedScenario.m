@@ -42,7 +42,7 @@ classdef ImportedScenario < MTKScenario
     end
     
     %% Virtual methods
-    methods(Access={?MTKScenario,?MatrixSystem})
+    methods(Access={?MTKScenario,?MTKMatrixSystem})
         
         function ref_id = createNewMatrixSystem(obj)
         % CREATENEWMATRIXSYSTEM Invoke mtk to create imported matrix system.

@@ -173,29 +173,6 @@ classdef LocalityScenario < MTKScenario
     end
 
     
-    %% Overloaded accessor: MatrixSystem
-    methods
-        function val = System(obj)
-            % SYSTEM Gets associated Locality.LocalityMatrixSystem.
-            %
-            % Will generate the MatrixSystem if it has not yet been
-            % created.
-            %
-            % RETURN:
-            %   A Locality.LocalityMatrixSystem.object.
-            %
-            % See also: Locality.LocalityMatrixSystem.
-            %
-            
-            % Make matrix system, if not already generated
-            if isempty(obj.matrix_system)
-                obj.matrix_system = Locality.LocalityMatrixSystem(obj);
-            end
-            
-            val = obj.matrix_system;
-        end
-    end
-    
     %% Dependent accessors
     methods
         function val = get.MeasurementsPerParty(obj)
@@ -510,7 +487,7 @@ classdef LocalityScenario < MTKScenario
     
     
     %% Friend/interface methods
-    methods(Access={?MTKScenario,?MatrixSystem})
+    methods(Access={?MTKScenario,?MTKMatrixSystem})
         % Query for a matrix system
         function ref_id = createNewMatrixSystem(obj)
             

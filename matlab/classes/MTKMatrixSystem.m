@@ -1,18 +1,16 @@
-classdef MatrixSystem < handle
-    %MATRIXSYSTEM A matrix of operator products. 
-    % Wraps a reference to a MatrixSystem class stored within mtk.
-    
-    properties(SetAccess = private, GetAccess = public)
+classdef MTKMatrixSystem < handle
+%MTKMATRIXSYSTEM A matrix of operator products.
+% Wraps a reference to a MatrixSystem class stored within mtk.
+   
+    %% Properties
+    properties(GetAccess = public, SetAccess = private)
         RefId = uint64(0)        
         SymbolTable = struct.empty;
         RealVarCount = uint64(0)
         ImaginaryVarCount = uint64(0);
     end
     
-    properties(Access = private)
-        max_prob_len = uint64(0);
-    end
-    
+    %% Error messages
     properties(Constant, Access = protected)
         err_bad_scenario_type = [
             'First cell of array argument must be one of "algebraic",',...
@@ -22,14 +20,15 @@ classdef MatrixSystem < handle
                             ' or a cell array of parameters.'];
     end  
     
+    %% Events
     events
         % Trigged when symbols are added to the matrix system.
         NewSymbolsAdded
     end
     
+    %% Constructor
     methods
-        %% Constructor
-        function obj = MatrixSystem(args)
+        function obj = MTKMatrixSystem(args)
             % Checks if args is a Scenario, or cell array, then calls
             % appropriate MEX function to initiate setting.
             % End-users are encouraged not to invoke this manually, but
@@ -38,7 +37,7 @@ classdef MatrixSystem < handle
             if isa(args, 'MTKScenario')
                 % Invoke Scenario's own MatrixSystem creation function
                 obj.RefId = args.createNewMatrixSystem();
-            elseif isa(args, 'cell')
+            elseif iscell(args)
                 if length(args) < 1
                     error(obj.err_bad_scenario_type);
                 end
@@ -77,20 +76,21 @@ classdef MatrixSystem < handle
     end
     
     %% Operator matrices
-    methods    
-        function val = MakeMomentMatrix(obj, level)
-            arguments
-                obj (1,1) MatrixSystem
-                level (1,1) {mustBeNonnegative, mustBeInteger} = 1
+    methods                    
+        function varargout = List(obj, verbose)
+        % LIST Gets debug information about this matrix system.
+            if nargin < 2
+                verbose = false;
+            else
+                verbose = logical(verbose);
             end
-            val = MomentMatrix(obj, level);
-        end
-                
-        function varargout = List(obj)
-            arguments
-                obj (1,1) MatrixSystem
+            
+            if verbose
+                the_list = mtk('list', 'verbose', obj.RefId);
+            else
+                the_list = mtk('list', obj.RefId);
             end
-            the_list = mtk('list', obj.RefId);
+            
             if nargout == 1
                 varargout{1} = the_list;
             else
@@ -102,14 +102,10 @@ classdef MatrixSystem < handle
     %% Symbols
     methods
         function val = UpdateSymbolTable(obj, reset)
-            arguments
-                obj (1,1) MatrixSystem
-                reset (1,1) logical = false
-            end
             if nargin < 2
                 reset = false;
             else
-                reset = logical(reset);
+                reset = logical(reset(1));
             end
             
             if reset
@@ -138,63 +134,59 @@ classdef MatrixSystem < handle
                 else
                     obj.ImaginaryVarCount = 0;
                 end
-                % Trigger child class updates
-                obj.onNewSymbolsAdded();
-                
+                                
                 % Trigger independent listeners
                 notify(obj, 'NewSymbolsAdded');
             end
             
             val = obj.SymbolTable;
         end
-        
-        %% Destructor
+    end
+    
+    %% Destructor
+    methods        
         function delete(obj)
             if obj.RefId ~= 0
                 try
                     mtk('release', 'matrix_system', obj.RefId);
                 catch ME
-                    fprintf(2, "Error deleting MatrixSystem: %s\n", ...
+                    fprintf(2, "Error deleting matrix system: %s\n", ...
                         ME.message);
                 end
             end
         end        
     end
-    
-    %% Virtual methods
-    methods(Access=protected)
-        function onNewSymbolsAdded(obj)
-            arguments
-                obj (1,1) MatrixSystem
-            end
-        end
-    end 
-    
+        
     %% CVX Methods
     methods
         function cvxCreateVars(obj, real_name, im_name)
-            % Create SDP variables associated with MatrixSystem.
+            % Create SDP variables associated with matrix system.
             % Due to the design of CVX eschewing functional programming,
             % real_name (resp. im_name) should be set to the name desired
             % in the 
-            arguments
-                obj (1,1) MatrixSystem
-                real_name (1,:) char {mustBeValidVariableName}
-                im_name (1,:) char = char.empty
+
+            % Validate real name
+            if nargin < 2
+                error("Must specify real variable name.");
+            else
+                real_name = char(real_name);
+                if ~isvarname(real_name)
+                    error("Invalid real variable name '%s'", real_name);
+                end
             end
             
-            if nargin <= 2
+            % Validate imaginary name
+            if nargin < 3
+                export_imaginary = false;
             	im_name = char.empty;
-            end            
-            
-            % Check if exporting real, or real & imaginary
-            export_imaginary = ~isempty(im_name);
-            if export_imaginary
-             	if ~isvarname(im_name)
-             		error("Invalid variable name.");
-             	end
+            else
+                export_imaginary = true;
+                im_name = char(im_name);
+                if ~isvarname(im_name)                   
+                    error("Invalid imaginary variable name '%s'", im_name);
+                end
             end
-            
+
             % Get handle to CVX problem
             cvx_problem = evalin( 'caller', 'cvx_problem', '[]' );
             if ~isa( cvx_problem, 'cvxprob' )
@@ -219,12 +211,9 @@ classdef MatrixSystem < handle
     %% Yalmip Methods
     methods
         function [var_A, var_B] = yalmipCreateVars(obj)
-            % Creates SDP variables associated with MatrixSystem.
+            % Creates SDP variables associated with matrix system.
             % First output corresponds to real components. Second output 
             % (if requested) correponds to imaginary components.
-            arguments
-                obj (1,1) MatrixSystem
-            end
             
             if nargout == 1
                 export_imaginary = false;
