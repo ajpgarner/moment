@@ -4,7 +4,7 @@ function [id, conjugated, re, im] = queryForSymbolInfo(obj)
 
     if obj.IsScalar
         row = mtk('symbol_table', sys.RefId, obj.Operators);
-         if (isa(row, 'logical') && (row == false))
+        if isempty(row)
             [id, conjugated, re, im] = getDefaultSymbolInfo(obj);
         else
             id = int64(row.symbol);

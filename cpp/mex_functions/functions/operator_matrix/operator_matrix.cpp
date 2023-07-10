@@ -56,14 +56,18 @@ namespace Moment::mex::functions  {
 
     void OperatorMatrixParams::parse() {
         // Determine output mode:
-        if (this->flags.contains(u"sequences")) {
-            this->output_mode = OutputMode::Sequences;
-        } else if (this->flags.contains(u"symbols")) {
-            this->output_mode = OutputMode::Symbols;
+        if (this->flags.contains(u"sequence_string")) {
+            this->output_mode = OutputMode::SequenceStrings;
+        } else if (this->flags.contains(u"symbol_string")) {
+            this->output_mode = OutputMode::SymbolStrings;
+        } else if (this->flags.contains(u"monomial")) {
+            this->output_mode = OutputMode::Monomial;
+        } else if (this->flags.contains(u"polynomial")) {
+            this->output_mode = OutputMode::Polynomial;
         } else if (this->flags.contains(u"masks")) {
             this->output_mode = OutputMode::Masks;
         } else {
-            this->output_mode = OutputMode::IndexAndDimension;
+            this->output_mode = OutputMode::Properties;
         }
 
         // Either set named params OR give multiple params
@@ -140,17 +144,17 @@ namespace Moment::mex::functions  {
 
     void OperatorMatrixVirtualBase::do_validate_output_count(size_t outputs, const OperatorMatrixParams& input) const {
         switch(input.output_mode) {
-            case OperatorMatrixParams::OutputMode::IndexAndDimension:
-                if (outputs > 2) {
+            case OperatorMatrixParams::OutputMode::Properties:
+                if (outputs > 3) {
                     throw_error(this->omvb_matlabEngine, errors::too_many_outputs,
-                                "At most two outputs should be provided for index (and dimension).");
+                                "At most three outputs should be provided for properties");
                 }
                 break;
-            case OperatorMatrixParams::OutputMode::Symbols:
-            case OperatorMatrixParams::OutputMode::Sequences:
+            case OperatorMatrixParams::OutputMode::SequenceStrings:
+            case OperatorMatrixParams::OutputMode::SymbolStrings:
                 if (outputs > 1) {
                     throw_error(this->omvb_matlabEngine, errors::too_many_outputs,
-                                "Only one output should be provided for matrix export.");
+                                "Only one output should be provided for matrix string export.");
                 }
                 break;
             case OperatorMatrixParams::OutputMode::Masks:
@@ -187,7 +191,7 @@ namespace Moment::mex::functions  {
             auto lock = matrixSystem.get_read_lock();
 
             switch (input.output_mode) {
-                case OperatorMatrixParams::OutputMode::Symbols: {
+                case OperatorMatrixParams::OutputMode::SymbolStrings: {
                     SymbolMatrixExporter exporter{this->omvb_matlabEngine};
                     if (theMatrix.is_monomial()) {
                         output[0] = exporter(dynamic_cast<const MonomialMatrix&>(theMatrix));
@@ -196,7 +200,7 @@ namespace Moment::mex::functions  {
                     }
                 }
                     break;
-                case OperatorMatrixParams::OutputMode::Sequences: {
+                case OperatorMatrixParams::OutputMode::SequenceStrings: {
                     SequenceMatrixExporter exporter{this->omvb_matlabEngine};
                     if (theMatrix.is_monomial()) {
                         const auto& monoMatrix = dynamic_cast<const MonomialMatrix&>(theMatrix);
@@ -214,11 +218,14 @@ namespace Moment::mex::functions  {
                     }
                 }
                     break;
-                case OperatorMatrixParams::OutputMode::IndexAndDimension: {
+                case OperatorMatrixParams::OutputMode::Properties: {
                     matlab::data::ArrayFactory factory;
                     output[0] = factory.createScalar<uint64_t>(matIndexPair.first);
                     if (output.size() >= 2) {
                         output[1] = factory.createScalar<uint64_t>(theMatrix.Dimension());
+                    }
+                    if (output.size() >= 3) {
+                        output[2] = factory.createScalar<bool>(theMatrix.is_monomial());
                     }
                 }
                     break;

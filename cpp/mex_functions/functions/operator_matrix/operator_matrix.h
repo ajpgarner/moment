@@ -28,14 +28,18 @@ namespace Moment::mex::functions  {
             /** Unknown output */
             Unknown = 0,
             /** Output index and dimension of matrix */
-            IndexAndDimension,
-            /** Output matrix of symbol names */
-            Symbols,
-            /** Output matrix of string representation of operator sequences */
-            Sequences,
-            /** Output basis indices and masks associated with matrix */
-            Masks
-        } output_mode = OutputMode::Unknown;
+            Properties,
+            /** Output matrix of string symbol names. */
+            SymbolStrings,
+            /** Output matrix of string representation of operator sequences. */
+            SequenceStrings,
+            /** Output basis indices and masks associated with matrix. */
+            Masks,
+            /** Output monomial specification. */
+            Monomial,
+            /** Output polynomial specification. */
+            Polynomial
+        } output_mode = OutputMode::Properties;
 
     public:
         explicit OperatorMatrixParams(SortedInputs&& inputs) : SortedInputs(std::move(inputs)) { }
@@ -123,18 +127,21 @@ namespace Moment::mex::functions  {
             this->min_outputs = 1;
             this->max_outputs = 4;
 
-            this->flag_names.emplace(u"sequences");
-            this->flag_names.emplace(u"symbols");
-            this->flag_names.emplace(u"dimension");
+            this->flag_names.emplace(u"sequence_string");
+            this->flag_names.emplace(u"symbol_string");
+            this->flag_names.emplace(u"properties");
+            this->flag_names.emplace(u"monomial");
+            this->flag_names.emplace(u"polynomial");
             this->flag_names.emplace(u"masks");
 
             this->param_names.emplace(u"reference_id");
             this->param_names.emplace(u"index");
 
-            // One of four ways to output:
-            this->mutex_params.add_mutex({u"sequences", u"symbols", u"dimension", u"masks"});
+            // Output mutex
+            this->mutex_params.add_mutex({u"sequence_string", u"symbol_string", u"properties",
+                                          u"monomial", u"polynomial", u"masks"});
 
-            // Either [ref, ref] or named version thereof.
+            // Either [sys ref, matrix ID] or named version thereof.
             this->min_inputs = 0;
             this->max_inputs = 2;
         }

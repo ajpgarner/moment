@@ -1,16 +1,20 @@
  function [re, im] = calculateCoefficients(obj)
 % CALCULATECOEFFICIENTS Overload this with actual calculation.  
 %
-% The format of the expected output depends on the dimension_type.
-% For scalar, outputs should be complex, sparse, column vectors.
+% One must generate a sparse matrix for real and for imaginary parts.
+% In each matrix, there must be one column per element of the MTKObject.
 %
-% For row-vector and col-vector, outputs should be a complex,
-% sparse matrices; with each column defining one Scalar value
-% (transposes will happen elsewhere in the class for col-vecs).
+% That is, scalar MTKObjects produce col-vector coefficient objects;
+% (1,n) row-vector and (m, 1) col-vector MTKObjects respectively produce 
+% (R, n)  and (R, m) matrices (where R is the number of real symbols in
+% the matrix system; resp. I for imaginary).
 %
-% For matrices and tensors, output should be a cell array of
-% complex sparse matrices, with dimension 2 less than that of this
-% object.
+% For a MxN matrix MTKObject, one should generate (R, M*N) / (I, M*N)
+% matrices, where the column index corresponds to the col-major number of
+% the respective element in the MTKObject.
+% 
+% For tensors, the same principle applies, where col-major generalizes to
+% first-index-major.
 %
     error(obj.err_cannot_calculate, class(obj));
 end

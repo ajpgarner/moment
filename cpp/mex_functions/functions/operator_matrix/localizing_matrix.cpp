@@ -23,21 +23,15 @@
 
 namespace Moment::mex::functions {
 
-    namespace {
-        void offsetWordByMATLABIndices(matlab::engine::MATLABEngine& matlabEngine,
-                                       std::vector<oper_name_t>& word,
-                                       const LocalizingMatrixParams& lmp) {
-            // Only apply offset if flag is set
-            if (!lmp.flags.contains(u"matlab_indexing")) {
-                return;
-            }
-
-
-        }
-    }
-
     void LocalizingMatrixParams::extra_parse_params() {
         assert(inputs.empty()); // Should be guaranteed by parent.
+
+        // Do we offset by -1?
+        if (this->flags.contains(u"matlab_indexing")) {
+            this->matlab_indexing = true;
+        } else if (this->flags.contains(u"zero_indexing")) {
+            this->matlab_indexing = false;
+        }
 
         // Get depth
         auto& depth_param = this->find_or_throw(u"level");
@@ -47,46 +41,49 @@ namespace Moment::mex::functions {
         auto& word_param = this->find_or_throw(u"word");
         this->localizing_word = read_integer_array<oper_name_t>(matlabEngine, "Parameter 'word'", word_param);
 
-        // Do we offset by -1?
-        this->matlab_indexing = this->flags.contains(u"matlab_indexing");
     }
 
     void LocalizingMatrixParams::extra_parse_inputs() {
+        // Do we offset by -1?
+        if (this->flags.contains(u"matlab_indexing")) {
+            this->matlab_indexing = true;
+        } else if (this->flags.contains(u"zero_indexing")) {
+            this->matlab_indexing = false;
+        }
+
         // No named parameters... try to interpret inputs as matrix system, depth and word.
         assert(this->inputs.size() == 3); // should be guaranteed by parent.
         this->hierarchy_level = read_positive_integer<size_t>(matlabEngine, "Hierarchy level", inputs[1], 0);
         this->localizing_word = read_integer_array<oper_name_t>(matlabEngine, "Localizing word", inputs[2]);
 
-        // Do we offset by -1?
-        this->matlab_indexing = this->flags.contains(u"matlab_indexing");
-
     }
 
     LocalizingMatrixIndex LocalizingMatrixParams::to_index(const Context& context) const {
         // Do we have to offset?
-        auto oper_copy = this->localizing_word;
-        if (this->matlab_indexing) {
-            for (auto &o: oper_copy) {
-                // Throwing an error if any operator goes out of range
+        sequence_storage_t oper_copy{};
+        oper_copy.reserve(this->localizing_word.size());
+        for (auto o : this->localizing_word) {
+            if (this->matlab_indexing) {
                 if (0 == o) {
                     throw_error(matlabEngine, errors::bad_param,
                                 "Operator with index 0 in localizing word is out of range.");
                 }
-                --o;
+                o -= 1;
             }
-        }
 
-        // Check word is in range
-        for (const auto op : oper_copy) {
-            if (op >= context.size()) {
-                throw_error(matlabEngine, errors::bad_param,
-                            "Operator with index " + std::to_string(op) + " in localizing word is out of range.");
+            // Check in range
+            if ((o < 0) || (o >= context.size())) {
+                std::stringstream errSS;
+                errSS << "Operator " << (this->matlab_indexing ? o + 1 : o) << " at index ";
+                errSS << (oper_copy.size() + 1);
+                errSS << " is out of range.";
+                throw_error(matlabEngine, errors::bad_param, errSS.str());
             }
+            oper_copy.emplace_back(o);
         }
 
         // Copy and construct LMI
-        return LocalizingMatrixIndex{this->hierarchy_level,
-                                     OperatorSequence{sequence_storage_t(oper_copy.begin(), oper_copy.end()), context}};
+        return LocalizingMatrixIndex{this->hierarchy_level, OperatorSequence{std::move(oper_copy), context}};
     }
 
     bool LocalizingMatrixParams::any_param_set() const {
@@ -102,7 +99,10 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"level");
         this->param_names.emplace(u"word");
 
+        this->flag_names.emplace(u"zero_indexing");
         this->flag_names.emplace(u"matlab_indexing");
+        this->mutex_params.add_mutex(u"zero_indexing", u"matlab_indexing");
+
 
         this->max_inputs = 3;
     }

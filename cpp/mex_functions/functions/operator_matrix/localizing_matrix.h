@@ -17,10 +17,13 @@ namespace Moment::mex::functions  {
 
     struct LocalizingMatrixParams : public OperatorMatrixParams {
     public:
+        /** Matrix level. */
         unsigned long hierarchy_level = 0;
 
-        bool matlab_indexing = false;
+        /** Add one to all operator IDs. */
+        bool matlab_indexing = true;
 
+        /** Monomial matrix word. */
         std::vector<oper_name_t> localizing_word;
 
     public:

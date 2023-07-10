@@ -177,6 +177,8 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
     methods(Access=protected)
         [re, im] = calculateCoefficients(obj);
         
+        [mask_re, mask_im, elems_re, elems_im] = queryForMasks(obj);
+        
         mode = spliceIn(obj, indices, value);
         
         spliceOut(output, source, indices);

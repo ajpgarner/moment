@@ -30,6 +30,7 @@
         has_imaginary = false;
     end
 
+    % Query for co-efficients.
     rec = obj.RealCoefficients;
 
     switch obj.dimension_type
@@ -40,10 +41,12 @@
         case 2 % COL_VECTOR
             val = transpose(re_vals * rec);
         otherwise
-            error("Cannot yet apply to object of this type.");
+            cell_dims = num2cell(size(obj));
+            val = reshape(re_vals * rec, cell_dims{:});
     end
 
     if has_imaginary 
+        % Query for co-efficients
         imc = obj.ImaginaryCoefficients;
         switch obj.dimension_type
             case 0 % SCALAR
@@ -53,7 +56,7 @@
             case 2 % COL_VECTOR
                 val = val + transpose(im_vals * imc);
             otherwise
-                error("Cannot yet apply to object of this type.");
+                val = val + reshape(im_vals * imc, cell_dims{:});
         end
     end            
 end

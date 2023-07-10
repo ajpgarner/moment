@@ -23,9 +23,21 @@
         % Real coefficients as a complex row vector.
         RealCoefficients      
         
+        % Real mask
+        RealMask
+        
+        % Included real basis elements
+        RealBasisElements    
+        
         % Imaginary coefficients as a complex row vector.
         ImaginaryCoefficients 
         
+        % Imaginary mask
+        ImaginaryMask
+        
+        % Included imaginary basis elements
+        ImaginaryBasisElements
+ 
     end
         
     %% Private properties
@@ -53,6 +65,21 @@
         
         % Object name in cache
         cached_object_name = string.empty(1,0);
+        
+        % True if mask has been calculated
+        has_cached_masks = false;
+        
+        % Object mask for real elements.
+        mask_re
+        
+        % Object mask for imaginary eleemnts
+        mask_im
+        
+        % Included real coefficients
+        basis_elems_re
+        
+        % Included imaginary coefficients
+        basis_elems_im
     end
     
     %% Error message strings
@@ -98,9 +125,10 @@
             % All objects associated with same scenario
             obj = obj@handle();
             obj.Scenario = scenario;
-            obj.dimensions = array_dimensions;       
+            obj.dimensions = array_dimensions;
             obj.dimension_type = obj.calculateDimensionType();
-            obj.resetCoefficients();            
+            obj.resetCoefficients();
+            obj.resetMasks();
         end
     end
     
@@ -184,6 +212,46 @@
             
             val = obj.im_coefs;
         end
+        
+        function val = get.RealMask(obj)
+            if ~obj.has_cached_masks
+                acquireMasks(obj);
+            end
+            
+            if obj.needs_padding
+                padCoefficients(obj);
+            end
+            
+            val = obj.mask_re;
+        end
+            
+        function val = get.ImaginaryMask(obj)
+            if ~obj.has_cached_masks
+                acquireMasks(obj);
+            end
+            
+            if obj.needs_padding
+                padCoefficients(obj);
+            end
+            
+            val = obj.mask_im;
+        end
+        
+        function val = get.RealBasisElements(obj)
+            if ~obj.has_cached_masks
+                acquireMasks(obj);
+            end
+           
+            val = obj.basis_elems_re;
+        end
+        
+        function val = get.ImaginaryBasisElements(obj)
+            if ~obj.has_cached_masks
+                acquireMasks(obj);
+            end
+           
+            val = obj.basis_elems_im;
+        end
     end
 
     %% Event handlers
@@ -198,6 +266,8 @@
     %% Declaration of virtual methods (to be overloaded by child classes!)
     methods(Access=protected)
         [re, im] = calculateCoefficients(obj);
+        
+        [mask_re, mask_im, elems_re, elems_im] = queryForMasks(obj);
 
         mode = spliceIn(obj, indices, value);
         
