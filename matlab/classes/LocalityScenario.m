@@ -529,11 +529,7 @@ classdef LocalityScenario < MTKScenario
         function val = operatorCount(obj)
             val = sum(obj.OperatorsPerParty);            
         end
-        
-        function onNewMomentMatrix(obj, mm)
-
-        end
-        
+       
         function val = onSetHermitian(obj, old_value, new_value)
             if new_value ~= true
                 error("Base operators in LocalityScenarios must always be Hermitian.");

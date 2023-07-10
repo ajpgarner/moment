@@ -8,6 +8,7 @@
 #pragma once
 
 #include "exporter.h"
+#include "full_monomial_specification.h"
 
 #include "MatlabDataArray.hpp"
 
@@ -25,31 +26,6 @@ namespace Moment {
 
 namespace Moment::mex {
 
-    struct FullPolynomialSpecification {
-        const std::vector<size_t> dimensions;
-        const bool has_symbol_info;
-
-        matlab::data::CellArray operators;
-        matlab::data::TypedArray<std::complex<double>> coefficients;
-        matlab::data::TypedArray<uint64_t> hashes;
-        matlab::data::TypedArray<int64_t> symbol_ids;
-        matlab::data::TypedArray<bool> is_conjugated;
-        matlab::data::TypedArray<int64_t> real_basis_elems;
-        matlab::data::TypedArray<int64_t> im_basis_elems;
-
-    public:
-        FullPolynomialSpecification(matlab::data::ArrayFactory& factory, size_t length, bool include_symbol_info);
-
-        FullPolynomialSpecification(const FullPolynomialSpecification& rhs) = delete;
-
-        FullPolynomialSpecification(FullPolynomialSpecification&& rhs) noexcept = default;
-
-        /** Export polynomial to output range. */
-        void move_to_output(IOArgumentRange& output) noexcept;
-
-        /** Export polynomial as a cell array of constituent parts. */
-        matlab::data::CellArray move_to_cell(matlab::data::ArrayFactory& factory);
-    };
 
     class PolynomialExporter : public Exporter {
     public:
@@ -99,7 +75,7 @@ namespace Moment::mex {
          * @param polynomial The polynomial to export.
          * @param include_symbols True to also include symbol IDs and real/imaginary basis elements.
          */
-        [[nodiscard]] FullPolynomialSpecification
+        [[nodiscard]] FullMonomialSpecification
         sequences(matlab::data::ArrayFactory& factory,
                   const Polynomial& polynomial,
                   bool include_symbols = false) const;
@@ -110,7 +86,7 @@ namespace Moment::mex {
          * @param polynomial The polynomial to export.
          * @param include_symbols True to also include symbol IDs and real/imaginary basis elements.
          */
-        [[nodiscard]] inline FullPolynomialSpecification
+        [[nodiscard]] inline FullMonomialSpecification
         sequences(const Polynomial& polynomial, bool include_symbols = false) const {
             matlab::data::ArrayFactory factory;
             return sequences(factory, polynomial, include_symbols);

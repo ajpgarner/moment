@@ -61,7 +61,7 @@ namespace Moment::mex {
             return polySpec.move_to_cell(exporter.factory);
         }
 
-        [[nodiscard]] inline FullPolynomialSpecification fps(const ProbabilityTensorElement& elem) const {
+        [[nodiscard]] inline FullMonomialSpecification fps(const ProbabilityTensorElement& elem) const {
             // We can do this the easy way, or the hard way...
             if (elem.hasSymbolPoly) {
                 return this->polyExporter.sequences(exporter.factory, elem.symbolPolynomial, this->full_export);
@@ -70,9 +70,9 @@ namespace Moment::mex {
             }
         }
 
-        [[nodiscard]] FullPolynomialSpecification make_from_cgpoly(const Polynomial& cgPoly) const {
+        [[nodiscard]] FullMonomialSpecification make_from_cgpoly(const Polynomial& cgPoly) const {
             VirtualPolynomialView to_op_seq{this->collins_gisin, cgPoly};
-            FullPolynomialSpecification output{this->exporter.factory, to_op_seq.size(), false};
+            FullMonomialSpecification output{this->exporter.factory, to_op_seq.size(), false};
             auto write_ops = output.operators.begin();
             auto write_hash = output.hashes.begin();
             auto write_coefs = output.coefficients.begin();
@@ -163,7 +163,7 @@ namespace Moment::mex {
                          SequenceWriterFunctor{*this, false, splice.Tensor().collinsGisin});
     }
 
-    FullPolynomialSpecification ProbabilityTensorExporter::sequence(const ProbabilityTensorElement &element,
+    FullMonomialSpecification ProbabilityTensorExporter::sequence(const ProbabilityTensorElement &element,
                                                                     const CollinsGisin& cg) const {
         SequenceWriterFunctor swf{*this, false, cg};
         return swf.fps(element);
@@ -182,7 +182,7 @@ namespace Moment::mex {
                          SequenceWriterFunctor{*this, true, splice.Tensor().collinsGisin});
     }
 
-    FullPolynomialSpecification
+    FullMonomialSpecification
     ProbabilityTensorExporter::sequence_with_symbols(const ProbabilityTensorElement &element,
                                                      const CollinsGisin& cg) const {
         SequenceWriterFunctor swf{*this, true, cg};

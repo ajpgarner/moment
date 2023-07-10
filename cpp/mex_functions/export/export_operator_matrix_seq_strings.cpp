@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 
-#include "export_sequence_matrix.h"
+#include "export_operator_matrix_seq_strings.h"
 
 #include "matrix_system.h"
 #include "matrix/operator_matrix/operator_matrix.h"
@@ -45,24 +45,29 @@ namespace Moment::mex {
                 using value_type = matlab::data::MATLABString;
 
             private:
-                const Context* context = nullptr;
+                const Context *context = nullptr;
                 DirectFormatView::raw_const_iterator raw_iter;
                 UTF8toUTF16Convertor convertor;
 
             public:
-                constexpr const_iterator(const Context& context, raw_const_iterator rci)
-                        : context{&context}, raw_iter{rci} { }
+                constexpr const_iterator(const Context &context, raw_const_iterator rci)
+                        : context{&context}, raw_iter{rci} {}
 
 
-                constexpr bool operator==(const const_iterator& rhs) const noexcept { return this->raw_iter == rhs.raw_iter; }
-                constexpr bool operator!=(const const_iterator& rhs)  const noexcept { return this->raw_iter != rhs.raw_iter; }
+                constexpr bool operator==(const const_iterator &rhs) const noexcept {
+                    return this->raw_iter == rhs.raw_iter;
+                }
 
-                constexpr const_iterator& operator++() {
+                constexpr bool operator!=(const const_iterator &rhs) const noexcept {
+                    return this->raw_iter != rhs.raw_iter;
+                }
+
+                constexpr const_iterator &operator++() {
                     ++(this->raw_iter);
                     return *this;
                 }
 
-                constexpr const_iterator operator++(int) & {
+                constexpr const_iterator operator++(int) &{
                     auto copy = *this;
                     ++(*this);
                     return copy;
@@ -81,12 +86,13 @@ namespace Moment::mex {
             const const_iterator iter_end;
 
         public:
-            DirectFormatView(const Context &context, const SquareMatrix<OperatorSequence>& inputMatrix)
-                : iter_begin{context, inputMatrix.ColumnMajor.begin()},
-                  iter_end{context, inputMatrix.ColumnMajor.end()} {
+            DirectFormatView(const Context &context, const SquareMatrix<OperatorSequence> &inputMatrix)
+                    : iter_begin{context, inputMatrix.ColumnMajor.begin()},
+                      iter_end{context, inputMatrix.ColumnMajor.end()} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }
+
             [[nodiscard]] auto end() const { return iter_end; }
 
         };
@@ -102,26 +108,31 @@ namespace Moment::mex {
                 using value_type = matlab::data::MATLABString;
 
             private:
-                const Locality::LocalityContext* context = nullptr;
-                const Locality::LocalityOperatorFormatter* formatter = nullptr;
+                const Locality::LocalityContext *context = nullptr;
+                const Locality::LocalityOperatorFormatter *formatter = nullptr;
                 DirectFormatView::raw_const_iterator raw_iter;
 
             public:
-                constexpr const_iterator(const Locality::LocalityContext& context,
-                                         const Locality::LocalityOperatorFormatter& formatter,
+                constexpr const_iterator(const Locality::LocalityContext &context,
+                                         const Locality::LocalityOperatorFormatter &formatter,
                                          raw_const_iterator rci)
-                        : context{&context}, formatter{&formatter}, raw_iter{rci} { }
+                        : context{&context}, formatter{&formatter}, raw_iter{rci} {}
 
 
-                constexpr bool operator==(const const_iterator& rhs) const noexcept { return this->raw_iter == rhs.raw_iter; }
-                constexpr bool operator!=(const const_iterator& rhs)  const noexcept { return this->raw_iter != rhs.raw_iter; }
+                constexpr bool operator==(const const_iterator &rhs) const noexcept {
+                    return this->raw_iter == rhs.raw_iter;
+                }
 
-                constexpr const_iterator& operator++() {
+                constexpr bool operator!=(const const_iterator &rhs) const noexcept {
+                    return this->raw_iter != rhs.raw_iter;
+                }
+
+                constexpr const_iterator &operator++() {
                     ++(this->raw_iter);
                     return *this;
                 }
 
-                constexpr const_iterator operator++(int) & {
+                constexpr const_iterator operator++(int) &{
                     auto copy = *this;
                     ++(*this);
                     return copy;
@@ -132,7 +143,7 @@ namespace Moment::mex {
                     assert(formatter != nullptr);
                     return {UTF8toUTF16Convertor::convert(
                             context->format_sequence(*formatter, *raw_iter)
-                        )};
+                    )};
                 }
             };
 
@@ -141,17 +152,18 @@ namespace Moment::mex {
         private:
             const const_iterator iter_begin;
             const const_iterator iter_end;
-            const Locality::LocalityOperatorFormatter& formatter;
+            const Locality::LocalityOperatorFormatter &formatter;
 
         public:
             LocalityFormatView(const Locality::LocalityContext &context,
-                               const Locality::LocalityOperatorFormatter& formatter,
-                               const SquareMatrix<OperatorSequence>& inputMatrix)
-                : iter_begin{context, formatter, inputMatrix.ColumnMajor.begin()},
-                  iter_end{context, formatter, inputMatrix.ColumnMajor.end()}, formatter{formatter} {
+                               const Locality::LocalityOperatorFormatter &formatter,
+                               const SquareMatrix<OperatorSequence> &inputMatrix)
+                    : iter_begin{context, formatter, inputMatrix.ColumnMajor.begin()},
+                      iter_end{context, formatter, inputMatrix.ColumnMajor.end()}, formatter{formatter} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }
+
             [[nodiscard]] auto end() const { return iter_end; }
 
         };
@@ -167,26 +179,31 @@ namespace Moment::mex {
                 using value_type = matlab::data::MATLABString;
 
             private:
-                const Context * context = nullptr;
-                const SymbolTable * symbols = nullptr;
+                const Context *context = nullptr;
+                const SymbolTable *symbols = nullptr;
                 InferredFormatView::raw_const_iterator raw_iter;
 
 
             public:
-                constexpr const_iterator(const Context& context,
-                                         const SymbolTable& symbols,
+                constexpr const_iterator(const Context &context,
+                                         const SymbolTable &symbols,
                                          raw_const_iterator rci)
-                        : context{&context}, symbols{&symbols}, raw_iter{rci} { }
+                        : context{&context}, symbols{&symbols}, raw_iter{rci} {}
 
-                constexpr bool operator==(const const_iterator& rhs) const noexcept { return this->raw_iter == rhs.raw_iter; }
-                constexpr bool operator!=(const const_iterator& rhs)  const noexcept { return this->raw_iter != rhs.raw_iter; }
+                constexpr bool operator==(const const_iterator &rhs) const noexcept {
+                    return this->raw_iter == rhs.raw_iter;
+                }
 
-                constexpr const_iterator& operator++() {
+                constexpr bool operator!=(const const_iterator &rhs) const noexcept {
+                    return this->raw_iter != rhs.raw_iter;
+                }
+
+                constexpr const_iterator &operator++() {
                     ++(this->raw_iter);
                     return *this;
                 }
 
-                constexpr const_iterator operator++(int) & {
+                constexpr const_iterator operator++(int) &{
                     auto copy = *this;
                     ++(*this);
                     return copy;
@@ -196,8 +213,8 @@ namespace Moment::mex {
                     return {UTF8toUTF16Convertor::convert(infer_one_symbol(*symbols, *raw_iter))};
                 }
 
-                [[nodiscard]] static std::string infer_one_symbol(const SymbolTable& symbols,
-                                                                  const Monomial& expr,
+                [[nodiscard]] static std::string infer_one_symbol(const SymbolTable &symbols,
+                                                                  const Monomial &expr,
                                                                   bool with_prefix = false) {
 
                     std::stringstream ss;
@@ -209,10 +226,10 @@ namespace Moment::mex {
                         return ss.str();
                     }
 
-                    const auto& symEntry = symbols[expr.id];
+                    const auto &symEntry = symbols[expr.id];
 
                     std::string symbol_str = expr.conjugated ? symEntry.formatted_sequence_conj()
-                                                                   : symEntry.formatted_sequence();
+                                                             : symEntry.formatted_sequence();
 
                     if (!approximately_zero(expr.factor)) {
                         const bool is_scalar = (symEntry.Id() == 1);
@@ -241,13 +258,14 @@ namespace Moment::mex {
             const const_iterator iter_end;
 
         public:
-            InferredFormatView(const Context &context, const SymbolTable& symbols,
-                             const SquareMatrix<Monomial>& inputMatrix)
-                : iter_begin{context, symbols, inputMatrix.ColumnMajor.begin()},
-                  iter_end{context, symbols, inputMatrix.ColumnMajor.end()} {
+            InferredFormatView(const Context &context, const SymbolTable &symbols,
+                               const SquareMatrix<Monomial> &inputMatrix)
+                    : iter_begin{context, symbols, inputMatrix.ColumnMajor.begin()},
+                      iter_end{context, symbols, inputMatrix.ColumnMajor.end()} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }
+
             [[nodiscard]] auto end() const { return iter_end; }
 
         };
@@ -263,25 +281,30 @@ namespace Moment::mex {
                 using value_type = matlab::data::MATLABString;
 
             private:
-                const Context * context = nullptr;
-                const SymbolTable * symbols = nullptr;
+                const Context *context = nullptr;
+                const SymbolTable *symbols = nullptr;
                 InferredPolynomialFormatView::raw_const_iterator raw_iter;
 
             public:
-                constexpr const_iterator(const Context& context,
-                                         const SymbolTable& symbols,
+                constexpr const_iterator(const Context &context,
+                                         const SymbolTable &symbols,
                                          raw_const_iterator rci)
-                        : context{&context}, symbols{&symbols}, raw_iter{rci} { }
+                        : context{&context}, symbols{&symbols}, raw_iter{rci} {}
 
-                constexpr bool operator==(const const_iterator& rhs) const noexcept { return this->raw_iter == rhs.raw_iter; }
-                constexpr bool operator!=(const const_iterator& rhs)  const noexcept { return this->raw_iter != rhs.raw_iter; }
+                constexpr bool operator==(const const_iterator &rhs) const noexcept {
+                    return this->raw_iter == rhs.raw_iter;
+                }
 
-                constexpr const_iterator& operator++() {
+                constexpr bool operator!=(const const_iterator &rhs) const noexcept {
+                    return this->raw_iter != rhs.raw_iter;
+                }
+
+                constexpr const_iterator &operator++() {
                     ++(this->raw_iter);
                     return *this;
                 }
 
-                constexpr const_iterator operator++(int) & {
+                constexpr const_iterator operator++(int) &{
                     auto copy = *this;
                     ++(*this);
                     return copy;
@@ -290,7 +313,7 @@ namespace Moment::mex {
                 value_type operator*() const {
                     bool done_once = false;
                     std::stringstream output;
-                    for (const auto& expr : *raw_iter) {
+                    for (const auto &expr: *raw_iter) {
                         output << InferredFormatView::const_iterator::infer_one_symbol(*symbols, expr, done_once);
                         done_once = true;
                     }
@@ -305,13 +328,14 @@ namespace Moment::mex {
             const const_iterator iter_end;
 
         public:
-            InferredPolynomialFormatView(const Context &context, const SymbolTable& symbols,
-                             const SquareMatrix<Polynomial>& inputMatrix)
-                : iter_begin{context, symbols, inputMatrix.ColumnMajor.begin()},
-                  iter_end{context, symbols, inputMatrix.ColumnMajor.end()} {
+            InferredPolynomialFormatView(const Context &context, const SymbolTable &symbols,
+                                         const SquareMatrix<Polynomial> &inputMatrix)
+                    : iter_begin{context, symbols, inputMatrix.ColumnMajor.begin()},
+                      iter_end{context, symbols, inputMatrix.ColumnMajor.end()} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }
+
             [[nodiscard]] auto end() const { return iter_end; }
 
         };
@@ -328,25 +352,30 @@ namespace Moment::mex {
                 using value_type = matlab::data::MATLABString;
 
             private:
-                const Inflation::InflationContext * context = nullptr;
-                const Inflation::FactorTable * factors = nullptr;
+                const Inflation::InflationContext *context = nullptr;
+                const Inflation::FactorTable *factors = nullptr;
                 FactorFormatView::raw_const_iterator raw_iter;
 
             public:
-                constexpr const_iterator(const Inflation::InflationContext& context,
-                                         const Inflation::FactorTable& factors,
+                constexpr const_iterator(const Inflation::InflationContext &context,
+                                         const Inflation::FactorTable &factors,
                                          raw_const_iterator rci)
-                        : context{&context}, factors{&factors}, raw_iter{rci} { }
+                        : context{&context}, factors{&factors}, raw_iter{rci} {}
 
-                constexpr bool operator==(const const_iterator& rhs) const noexcept { return this->raw_iter == rhs.raw_iter; }
-                constexpr bool operator!=(const const_iterator& rhs)  const noexcept { return this->raw_iter != rhs.raw_iter; }
+                constexpr bool operator==(const const_iterator &rhs) const noexcept {
+                    return this->raw_iter == rhs.raw_iter;
+                }
 
-                constexpr const_iterator& operator++() {
+                constexpr bool operator!=(const const_iterator &rhs) const noexcept {
+                    return this->raw_iter != rhs.raw_iter;
+                }
+
+                constexpr const_iterator &operator++() {
                     ++(this->raw_iter);
                     return *this;
                 }
 
-                constexpr const_iterator operator++(int) & {
+                constexpr const_iterator operator++(int) &{
                     auto copy = *this;
                     ++(*this);
                     return copy;
@@ -365,7 +394,7 @@ namespace Moment::mex {
                         return {u"0"};
                     }
 
-                    const auto& facEntry = (*factors)[raw_iter->id];
+                    const auto &facEntry = (*factors)[raw_iter->id];
                     if (approximately_equal(raw_iter->factor, 1.0)) {
                         return {UTF8toUTF16Convertor::convert(facEntry.sequence_string())};
                     }
@@ -392,27 +421,28 @@ namespace Moment::mex {
             const const_iterator iter_end;
 
         public:
-            FactorFormatView(const Inflation::InflationContext &context, const Inflation::FactorTable& factors,
-                             const SquareMatrix<Monomial>& inputMatrix)
-                : iter_begin{context, factors, inputMatrix.ColumnMajor.begin()},
-                  iter_end{context, factors, inputMatrix.ColumnMajor.end()} {
+            FactorFormatView(const Inflation::InflationContext &context, const Inflation::FactorTable &factors,
+                             const SquareMatrix<Monomial> &inputMatrix)
+                    : iter_begin{context, factors, inputMatrix.ColumnMajor.begin()},
+                      iter_end{context, factors, inputMatrix.ColumnMajor.end()} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }
+
             [[nodiscard]] auto end() const { return iter_end; }
 
         };
 
 
         template<class format_view_t, class matrix_data_t, typename... Args>
-        matlab::data::Array do_export(matlab::engine::MATLABEngine& engine,
-                                      const SquareMatrix<matrix_data_t>& inputMatrix,
-                                      Args&... fv_extra_args) {
+        matlab::data::Array do_export(matlab::engine::MATLABEngine &engine,
+                                      const SquareMatrix<matrix_data_t> &inputMatrix,
+                                      Args &... fv_extra_args) {
 
             matlab::data::ArrayFactory factory;
             matlab::data::ArrayDimensions array_dims{inputMatrix.dimension, inputMatrix.dimension};
 
-            format_view_t formatView{std::forward<Args&>(fv_extra_args)..., inputMatrix};
+            format_view_t formatView{std::forward<Args &>(fv_extra_args)..., inputMatrix};
 
             auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
             auto writeIter = outputArray.begin();
@@ -425,7 +455,7 @@ namespace Moment::mex {
             }
             if (writeIter != outputArray.end()) {
                 throw_error(engine, errors::internal_error,
-                            "export_symbol_matrix index count mismatch: too few input elements." );
+                            "export_symbol_matrix index count mismatch: too few input elements.");
             }
             if (readIter != formatView.end()) {
                 throw_error(engine, errors::internal_error,
@@ -434,111 +464,114 @@ namespace Moment::mex {
 
             return outputArray;
         }
-    }
 
+        inline matlab::data::StringArray export_direct(matlab::engine::MATLABEngine& engine,
+                                                       const OperatorMatrix &opMatrix)  {
+            return do_export<DirectFormatView>(engine, opMatrix(), opMatrix.context);
+        }
 
-    matlab::data::Array SequenceMatrixExporter::operator()(const OperatorMatrix &op_matrix) const  {
-        return this->export_direct(op_matrix);
-    }
+        inline matlab::data::StringArray export_inferred(matlab::engine::MATLABEngine& engine,
+                                                         const MonomialMatrix &inputMatrix) {
+            return do_export<InferredFormatView>(engine, inputMatrix.SymbolMatrix(),
+                                                 inputMatrix.context, inputMatrix.symbols);
+        }
 
-    matlab::data::Array SequenceMatrixExporter::operator()(const MonomialMatrix &inputMatrix,
-                                                           const Locality::LocalityOperatorFormatter &formatter) const {
+        inline matlab::data::StringArray export_inferred(matlab::engine::MATLABEngine& engine,
+                                                         const PolynomialMatrix &inputMatrix) {
+            return do_export<InferredPolynomialFormatView>(engine, inputMatrix.SymbolMatrix(),
+                                                           inputMatrix.context, inputMatrix.symbols);
+        }
 
-        // Get locality context, or throw
-        const auto& localityContext = [&]() -> const Locality::LocalityContext& {
-            try {
-                return dynamic_cast<const Locality::LocalityContext&>(inputMatrix.context);
-            } catch (const std::bad_cast& bce) {
-                throw_error(this->engine, errors::internal_error,
-                            "Supplied matrix was not part of a locality matrix system.");
+        inline matlab::data::StringArray export_factored(matlab::engine::MATLABEngine& engine,
+                                                         const Inflation::InflationMatrixSystem& ims,
+                                                         const MonomialMatrix &inputMatrix)  {
+
+            return do_export<FactorFormatView>(engine, inputMatrix.SymbolMatrix(),
+                                               ims.InflationContext(), ims.Factors());
+        }
+
+        inline matlab::data::StringArray export_locality(matlab::engine::MATLABEngine& engine,
+                                                         const Locality::LocalityContext& context,
+                                                         const Locality::LocalityOperatorFormatter& formatter,
+                                                         const MonomialMatrix& inputMatrix) {
+
+            // LocalityFormatView formatView{localityContext, formatter, inputMatrix.operator_matrix()()};
+            if (!inputMatrix.has_operator_matrix()) {
+                return export_inferred(engine, inputMatrix);
             }
-        }();
 
-        // If no operator matrix, infer one:
-        if (!inputMatrix.has_operator_matrix()) {
-            return this->export_inferred(inputMatrix);
+            return do_export<LocalityFormatView>(engine, inputMatrix.operator_matrix()(), context, formatter);
         }
 
-        matlab::data::ArrayFactory factory;
-        const size_t dimension = inputMatrix.Dimension();
-        matlab::data::ArrayDimensions array_dims{dimension, dimension};
+        inline matlab::data::StringArray export_locality(matlab::engine::MATLABEngine& engine,
+                                                         const Locality::LocalityContext& context,
+                                                         const Locality::LocalityOperatorFormatter& formatter,
+                                                         const PolynomialMatrix& inputMatrix) {
 
-        LocalityFormatView formatView{localityContext, formatter, inputMatrix.operator_matrix()()};
+            // LocalityFormatView formatView{localityContext, formatter, inputMatrix.operator_matrix()()};
+            if (!inputMatrix.has_operator_matrix()) {
+                [[unlikely]]
+                return export_inferred(engine, inputMatrix);
+            }
 
-        auto outputArray = factory.createArray<matlab::data::MATLABString>(std::move(array_dims));
-        auto writeIter = outputArray.begin();
-        auto readIter = formatView.begin();
-
-        while ((writeIter != outputArray.end()) && (readIter != formatView.end())) {
-            *writeIter = *readIter;
-            ++writeIter;
-            ++readIter;
+            return do_export<LocalityFormatView>(engine, inputMatrix.operator_matrix()(), context, formatter);
         }
-        if (writeIter != outputArray.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix index count mismatch: too few input elements." );
-        }
-        if (readIter != formatView.end()) {
-            throw_error(engine, errors::internal_error,
-                        "export_symbol_matrix index count mismatch: too many input elements.");
-        }
-
-        return outputArray;
     }
 
-    matlab::data::Array SequenceMatrixExporter::operator()(const MonomialMatrix &matrix,
-                                                           const MatrixSystem& system) const {
+
+
+    SequenceStringMatrixExporter::SequenceStringMatrixExporter(matlab::engine::MATLABEngine &engine,
+                                                               const MatrixSystem &system) noexcept
+       : Exporter{engine}, system{system}, localityFormatterPtr{nullptr} {
+        this->localityContextPtr = nullptr; // Without formatter, do not use locality context.
+        this->imsPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
+    }
+
+    SequenceStringMatrixExporter::SequenceStringMatrixExporter(matlab::engine::MATLABEngine &engine,
+                                                               const Locality::LocalityMatrixSystem& locality_system,
+                                                               const Locality::LocalityOperatorFormatter &localityFormatter) noexcept
+        : Exporter{engine}, system{locality_system}, localityFormatterPtr{&localityFormatter} {
+            this->localityContextPtr = &locality_system.localityContext;
+    }
+
+
+    matlab::data::StringArray SequenceStringMatrixExporter::operator()(const MonomialMatrix &matrix) const {
         // Is this an inflation matrix? If so, display factorized format:
-        const auto* inflSystem = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
-        if (nullptr != inflSystem) {
-            return this->export_factored(inflSystem->InflationContext(), inflSystem->Factors(), matrix);
+        if (nullptr != this->imsPtr) {
+            return export_factored(engine, *this->imsPtr, matrix);
+        }
+
+        // Are we a locality system, with formatter?
+        if (this->localityContextPtr != nullptr) {
+            return export_locality(engine, *this->localityContextPtr, *this->localityFormatterPtr, matrix);
         }
 
         // Do we have direct sequences? If so, export direct (neutral) view.
         if (matrix.has_operator_matrix()) {
             const auto& op_mat = matrix.operator_matrix();
-
-            return this->export_direct(op_mat);
+            return export_direct(engine, op_mat);
         }
 
         // If all else fails, use inferred string formatting
-        return this->export_inferred( matrix);
+        return export_inferred(engine, matrix);
     }
 
-    matlab::data::Array
-    SequenceMatrixExporter::operator()(const PolynomialMatrix &matrix, const MatrixSystem &system) const {
+    matlab::data::StringArray
+    SequenceStringMatrixExporter::operator()(const PolynomialMatrix &matrix) const {
+        // Are we a locality system, with formatter?
+        if (this->localityContextPtr != nullptr) {
+            return export_locality(engine, *this->localityContextPtr, *this->localityFormatterPtr, matrix);
+        }
 
         // Do we have direct sequences? If so, export direct (neutral) view.
         if (matrix.has_operator_matrix()) [[unlikely]] {
              // Unlikely: Most polynomial matrices are not created from categorizing symbols in an operator matrix.
-            return this->export_direct(matrix.operator_matrix());
+            return export_direct(engine, matrix.operator_matrix());
         }
 
-        // Use inferred string formatting
-        return this->export_inferred(matrix);
+        // If all else fails, use inferred string formatting
+        return export_inferred(engine, matrix);
     }
 
 
-    matlab::data::Array SequenceMatrixExporter::export_direct(const OperatorMatrix& opMatrix) const {
-        return do_export<DirectFormatView>(this->engine, opMatrix(), opMatrix.context);
-    }
-
-    matlab::data::Array SequenceMatrixExporter::export_inferred(const MonomialMatrix& inputMatrix) const {
-        return do_export<InferredFormatView>(this->engine, inputMatrix.SymbolMatrix(),
-                                             inputMatrix.context, inputMatrix.symbols);
-    }
-
-    matlab::data::Array SequenceMatrixExporter::export_inferred(const PolynomialMatrix& inputMatrix) const {
-        return do_export<InferredPolynomialFormatView>(this->engine, inputMatrix.SymbolMatrix(),
-                                                       inputMatrix.context, inputMatrix.symbols);
-    }
-
-    matlab::data::Array
-    SequenceMatrixExporter::export_factored(const Inflation::InflationContext& context,
-                                            const Inflation::FactorTable& factors,
-                                            const MonomialMatrix& inputMatrix) const {
-        assert(&inputMatrix.context == &context);
-         return do_export<FactorFormatView>(this->engine, inputMatrix.SymbolMatrix(),
-                                           context, factors);
-    }
 }

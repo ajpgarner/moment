@@ -36,6 +36,7 @@ namespace Moment {
                 using value_type = element_t;
                 using cref_type = const element_t &;
                 using cptr_type = const element_t *;
+                using reference = const element_t &;
 
             private:
                 const SquareMatrix * theMatrix;

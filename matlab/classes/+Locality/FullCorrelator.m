@@ -24,6 +24,7 @@ classdef FullCorrelator < MTKPolynomial
 
             shape = scenario.MeasurementsPerParty + 1;
             obj = obj@MTKPolynomial(scenario, 'overwrite', shape);
+            obj.ReadOnly = true;
 
             % Special case: 0 measurements
             if obj.IsScalar

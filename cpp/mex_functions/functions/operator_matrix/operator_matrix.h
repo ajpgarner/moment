@@ -125,7 +125,7 @@ namespace Moment::mex::functions  {
              OperatorMatrixVirtualBase{matlabEngine, storage}
         {
             this->min_outputs = 1;
-            this->max_outputs = 4;
+            this->max_outputs = 7;
 
             this->flag_names.emplace(u"sequence_string");
             this->flag_names.emplace(u"symbol_string");
@@ -160,7 +160,7 @@ namespace Moment::mex::functions  {
             this->do_validate_output_count(outputs, cast_inputs);
         }
 
-        const EnvironmentalVariables& omvb_settings() const final {
+        [[nodiscard]] const EnvironmentalVariables& omvb_settings() const final {
             return *this->settings;
         }
     };
@@ -171,7 +171,7 @@ namespace Moment::mex::functions  {
             : OperatorMatrix{matlabEngine, storage} { }
 
     protected:
-        std::pair<size_t, const Moment::Matrix&>
+        [[nodiscard]] std::pair<size_t, const Moment::Matrix&>
         get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) final;
     };
 }

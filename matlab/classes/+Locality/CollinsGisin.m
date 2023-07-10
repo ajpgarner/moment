@@ -16,6 +16,7 @@ classdef CollinsGisin < MTKMonomial
                 mtk('collins_gisin', 'sequences', ...
                     obj.Scenario.System.RefId);            
             obj.Coefficient = ones(size(obj));
+            obj.ReadOnly = true;
             
         end       
     end

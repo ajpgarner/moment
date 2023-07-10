@@ -19,7 +19,7 @@
     properties(Dependent, GetAccess = public, SetAccess = private)
         % Human-readable description of object.
         ObjectName
-        
+       
         % Real coefficients as a complex row vector.
         RealCoefficients      
         
@@ -37,7 +37,12 @@
         
         % Included imaginary basis elements
         ImaginaryBasisElements
- 
+    end
+    
+    % Public changeable properties
+    properties(Dependent)
+        % Is this a read-only object? (Can only set to true.)
+        ReadOnly   
     end
         
     %% Private properties
@@ -47,6 +52,9 @@
         
         % Object type (scalar, row-vec, col-vec, matrix, tensor)
         dimension_type = 0
+        
+        % Can object be edited?
+        read_only = false;
         
         % Cached real coefficients.
         real_coefs 
@@ -95,15 +103,18 @@
     
     %% Constructor
     methods
-        function obj = MTKObject(scenario, array_dimensions)
+        function obj = MTKObject(scenario, array_dimensions, read_only)
         % COMPLEXOBJECT Construct an object that evaluates to a complex number.
         %
         % PARAMS:
         %   scenario - The associated matrix system scenario.
+        %   array_dimension - The extent of the MTKObject
+        %   read_only - True if this object cannot be changed.
         %
-            arguments
-                scenario (1,1) MTKScenario
-                array_dimensions (1,:) = {1, 1};
+
+            % Check argument 1
+            if nargin < 1 || ~isa(scenario, 'MTKScenario')
+                error("First argument to MTKObject must be a scenario.");
             end
             
             % Get dimensions argument
@@ -122,11 +133,19 @@
                 error("Dimensions should be numeric, if provided.");
             end
             
+            % Get if read only
+            if nargin < 3
+                read_only = false;
+            else
+                read_only = logical(read_only(1));
+            end
+            
             % All objects associated with same scenario
             obj = obj@handle();
-            obj.Scenario = scenario;
+            obj.Scenario = scenario;            
             obj.dimensions = array_dimensions;
             obj.dimension_type = obj.calculateDimensionType();
+            obj.read_only = read_only;
             obj.resetCoefficients();
             obj.resetMasks();
         end
@@ -171,6 +190,24 @@
         
         function val = IsTensor(obj)
             val = (obj.DimensionType == 4);
+        end
+    end
+    
+    %% Read only set/get
+    methods
+        function val = get.ReadOnly(obj)
+            if isempty(obj)
+                val = true;
+            else
+                val = obj.read_only;
+            end
+        end
+        
+        function set.ReadOnly(obj, new_val)
+            if obj.read_only && ~new_val 
+                error("Cannot make a read-only object writable.");
+            end
+            obj.read_only = logical(new_val);          
         end
     end
       

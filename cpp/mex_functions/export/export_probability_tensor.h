@@ -52,7 +52,7 @@ namespace Moment {
             /**
              * Write a single element as a polynomial.
              */
-            [[nodiscard]] FullPolynomialSpecification sequence(const ProbabilityTensorElement& element,
+            [[nodiscard]] FullMonomialSpecification sequence(const ProbabilityTensorElement& element,
                                                                const CollinsGisin& cg) const;
 
             /**
@@ -68,7 +68,7 @@ namespace Moment {
             /**
              * Write a single element as a polynomial.
              */
-            [[nodiscard]] FullPolynomialSpecification sequence_with_symbols(const ProbabilityTensorElement& element,
+            [[nodiscard]] FullMonomialSpecification sequence_with_symbols(const ProbabilityTensorElement& element,
                                                                             const CollinsGisin& cg) const;
 
             /**

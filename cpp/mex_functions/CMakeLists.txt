@@ -21,13 +21,14 @@ matlab_add_mex(NAME moment_mex
             export/export_collins_gisin.cpp
             export/export_matrix_basis_masks.cpp
             export/export_moment_substitution_rules.cpp
+            export/export_operator_matrix.cpp
+            export/export_operator_matrix_seq_strings.cpp
             export/export_operator_rules.cpp
             export/export_operator_sequence.cpp
             export/export_polynomial.cpp
             export/export_probability_tensor.cpp
-            export/export_sequence_matrix.cpp
-            export/export_symbol_matrix.cpp
             export/export_symbol_table.cpp
+            export/full_monomial_specification.cpp
             import/read_measurement_indices.cpp
             import/read_monomial_rules.cpp
             import/read_operator_names.cpp

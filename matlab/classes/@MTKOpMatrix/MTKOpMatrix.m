@@ -15,6 +15,8 @@ MTKOpMatrix < MTKObject
     properties(Access = private)
         cache_sym_str = string.empty(0,0);
         cache_seq_str = string.empty(0,0);
+        cache_mono_rep = MTKMonomial.empty(0,0);
+        cache_poly_rep = MTKPolynomial.empty(0,0);
     end
 
     %% Constructor
@@ -47,11 +49,46 @@ MTKOpMatrix < MTKObject
             end
             
             % Make MTKObject
-            obj = obj@MTKObject(scenario, dimension);
+            obj = obj@MTKObject(scenario, dimension, true);
             
             % Save properties
             obj.Index = index;
             obj.IsMonomial = logical(is_monomial);
+        end
+    end
+    
+    %% Convertors
+    methods
+        function val = MTKMonomial(obj)
+            if ~obj.IsMonomial
+                error("Cannot cast non-monomial matrix to MTKMonomial.");
+            end
+            
+            if isempty(obj.cache_mono_rep)
+                [ops, coefs, hash, symbols, conj, re, im] = ...
+                    mtk('operator_matrix', 'monomial', ...
+                        obj.Scenario.System.RefId, obj.Index);
+
+                obj.cache_mono_rep = ...
+                    MTKMonomial.InitAllInfo(obj.Scenario, ...
+                        ops, coefs, hash, symbols, conj, re, im);
+                obj.cache_mono_rep.ReadOnly = true;
+            end
+            val = obj.cache_mono_rep;
+        end
+        
+        function val = MTKPolynomial(obj)
+            if isempty(obj.cache_poly_rep)                
+                poly_cell = mtk('operator_matrix', 'polynomial', ...
+                            obj.Scenario.System.RefId, obj.Index);
+                        
+                obj.cache_poly_rep = ...
+                    MTKPolynomial.InitFromOperatorCell(...
+                        obj.Scenario, poly_cell);
+                obj.cache_poly_rep.ReadOnly = true;
+            end
+            
+            val = obj.cache_poly_rep;
         end
     end
     

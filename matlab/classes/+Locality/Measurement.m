@@ -106,9 +106,10 @@ classdef (InferiorClasses={?Locality.Outcome}) Measurement < handle
                         MTKMonomial.InitDirect(obj.Scenario, ...
                             ops, coefs, hashes);
                 end
+                obj.explicit.ReadOnly = true;
             end
             
-           val = obj.explicit;            
+            val = obj.explicit;            
         end
         
          function val = get.ImplicitOutcomes(obj)
@@ -122,7 +123,9 @@ classdef (InferiorClasses={?Locality.Outcome}) Measurement < handle
                 obj.implicit = ...
                     MTKPolynomial.InitFromOperatorCell(obj.Scenario, ...
                                                        poly_spec);
+                obj.implicit.ReadOnly = true;
             end
+            
             val = obj.implicit;            
         end
     end

@@ -1,5 +1,12 @@
  function obj = subsasgn(obj, s, val)
-    %SUBSASGN Subscript assignment
+ %SUBSASGN Subscript assignment
+ 
+    % Check if read only
+    if obj.read_only
+        error("Cannot assign to read-only object.");
+    end
+ 
+    % Do assignment
     switch s(1).type
         case '.'
             if length(s) == 1 || ~obj.isPropertyMTKObject(s(1).subs)

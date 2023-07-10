@@ -13,8 +13,7 @@
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_operator_formatter.h"
 
-#include "export/export_sequence_matrix.h"
-#include "export/export_symbol_matrix.h"
+#include "export/export_operator_matrix.h"
 #include "export/export_matrix_basis_masks.h"
 
 #include "utilities/read_as_scalar.h"
@@ -163,6 +162,11 @@ namespace Moment::mex::functions  {
                                 "Either one, two or four outputs should be provided for index (and mask) export");
                 }
                 break;
+            case OperatorMatrixParams::OutputMode::Monomial:
+                if ((outputs != 1) && (outputs != 7)) {
+                    throw_error(this->omvb_matlabEngine, errors::too_many_outputs,
+                        "Either one or seven outputs should be provided for monomial export.");
+                }
             case OperatorMatrixParams::OutputMode::Unknown:
             default:
                 break;
@@ -190,33 +194,24 @@ namespace Moment::mex::functions  {
         if (output.size() >= 1) {
             auto lock = matrixSystem.get_read_lock();
 
+            // Make exporter object
+            auto exporter = [&]() -> OperatorMatrixExporter {
+                const auto * locality_ms = dynamic_cast<const Locality::LocalityMatrixSystem*>(&matrixSystem);
+                if (locality_ms != nullptr) {
+                    auto formatter = this->omvb_settings().get_locality_formatter();
+                    assert(formatter);
+                    return OperatorMatrixExporter{this->omvb_matlabEngine, *locality_ms, *formatter};
+                }
+                return OperatorMatrixExporter{this->omvb_matlabEngine, matrixSystem};
+            }();
+
+            // Do export
             switch (input.output_mode) {
-                case OperatorMatrixParams::OutputMode::SymbolStrings: {
-                    SymbolMatrixExporter exporter{this->omvb_matlabEngine};
-                    if (theMatrix.is_monomial()) {
-                        output[0] = exporter(dynamic_cast<const MonomialMatrix&>(theMatrix));
-                    } else {
-                        output[0] = exporter(dynamic_cast<const PolynomialMatrix&>(theMatrix));
-                    }
-                }
+                case OperatorMatrixParams::OutputMode::SymbolStrings:
+                    output[0] = exporter.symbol_strings(theMatrix);
                     break;
-                case OperatorMatrixParams::OutputMode::SequenceStrings: {
-                    SequenceMatrixExporter exporter{this->omvb_matlabEngine};
-                    if (theMatrix.is_monomial()) {
-                        const auto& monoMatrix = dynamic_cast<const MonomialMatrix&>(theMatrix);
-                        const auto * locality_ms = dynamic_cast<const Locality::LocalityMatrixSystem*>(&matrixSystem);
-                        if (locality_ms != nullptr) {
-                            auto formatter = this->omvb_settings().get_locality_formatter();
-                            assert(formatter);
-                            output[0] = exporter(monoMatrix, *formatter);
-                        } else {
-                            output[0] = exporter(monoMatrix, matrixSystem);
-                        }
-                    } else {
-                        const auto& polyMatrix = dynamic_cast<const PolynomialMatrix&>(theMatrix);
-                        output[0] = exporter(polyMatrix, matrixSystem);
-                    }
-                }
+                case OperatorMatrixParams::OutputMode::SequenceStrings:
+                    output[0] = exporter.sequence_strings(theMatrix);
                     break;
                 case OperatorMatrixParams::OutputMode::Properties: {
                     matlab::data::ArrayFactory factory;
@@ -228,6 +223,23 @@ namespace Moment::mex::functions  {
                         output[2] = factory.createScalar<bool>(theMatrix.is_monomial());
                     }
                 }
+                    break;
+                case OperatorMatrixParams::OutputMode::Monomial: {
+                    if (!theMatrix.is_monomial()) {
+                        throw_error(omvb_matlabEngine, errors::bad_param,
+                                    "Cannot output non-monomial matrix in monomial format.");
+                    }
+                    auto monomial = exporter.monomials(dynamic_cast<const MonomialMatrix &>(theMatrix));
+                    if (output.size() == 1) {
+                        output[0] = monomial.move_to_cell(exporter.factory);
+                    } else {
+                        monomial.move_to_output(output);
+                    }
+
+                }
+                    break;
+                case OperatorMatrixParams::OutputMode::Polynomial:
+                    output[0] = exporter.polynomials(theMatrix);
                     break;
                 case OperatorMatrixParams::OutputMode::Masks:
                     export_masks(this->omvb_matlabEngine, output, matrixSystem, theMatrix);

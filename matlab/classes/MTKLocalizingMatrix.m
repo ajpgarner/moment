@@ -19,7 +19,7 @@ classdef MTKLocalizingMatrix < MTKOpMatrix
             "Localizing matrices can only be created from scalar monomial/polynomial objects.";
     end
     
-    %% Cosntructor
+    %% Constructor
     methods
         function obj = MTKLocalizingMatrix(scenario, level, expr)
             if nargin < 3
@@ -66,6 +66,9 @@ classdef MTKLocalizingMatrix < MTKOpMatrix
             obj = obj@MTKOpMatrix(scenario, lm_index, lm_dim, is_monomial);
             obj.Level = level;
             obj.Word = expr;
+            
+            % Trigger notification of possible new symbols
+            obj.Scenario.System.UpdateSymbolTable();
         end
     end
 end

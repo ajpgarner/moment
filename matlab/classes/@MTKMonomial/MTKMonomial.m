@@ -39,7 +39,7 @@ classdef MTKMonomial < MTKObject
     
     %% Constructor
     methods
-        function obj = MTKMonomial(setting, operators, scale)
+        function obj = MTKMonomial(setting, operators, scale, read_only)
         % MONOMIAL Construct a monomial.
         %
         % PARAMS
@@ -108,9 +108,13 @@ classdef MTKMonomial < MTKObject
                     end
                 end
             end
+            
+            if nargin < 4
+                read_only = false;
+            end
 
             % Superclass constructor
-            obj = obj@MTKObject(setting, create_dimensions);
+            obj = obj@MTKObject(setting, create_dimensions, read_only);
             
             if array_creation
                 if init_for_overwrite
