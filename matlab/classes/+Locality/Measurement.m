@@ -217,6 +217,12 @@ classdef (InferiorClasses={?Locality.Outcome}) Measurement < handle
             joint_object = mtimes(this, other);
             val = joint_object.Correlator;           
         end
+        
+        function val = Apply(obj, re_vals, ~)
+        % APPLY Forward to Apply function of outcome polynomials.
+            impl = obj.ImplicitOutcomes;
+            val = impl.Apply(re_vals);
+        end
     end
 
 end

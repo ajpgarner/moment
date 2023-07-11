@@ -77,7 +77,16 @@ classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
             val = any(obj.FreeIndices(:,1) == party_index) ...
                     || any(obj.FixedIndices(:,1) == party_index);
         end
+                
+        function val = Apply(obj, re_vals, ~)
+        % APPLY Forward to Apply function of explicit values.
+            impl = obj.ImplicitOutcomes;
+            val = impl.Apply(re_vals);
+            
+        end
     end
+    
+    
     %% Probability handling / rule making
     methods                       
         function val = Probability(obj, distribution, varargin)
