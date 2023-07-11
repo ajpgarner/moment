@@ -511,10 +511,6 @@ classdef LocalityScenario < MTKScenario
             val = true;
         end
      
-        function val = createSolvedScenario(obj, a, b)
-            val = SolvedScenario.SolvedLocalityScenario(obj, a, b);
-        end
-        
         function str = makeOperatorNames(obj)
             str = strings(1, obj.OperatorCount);
             

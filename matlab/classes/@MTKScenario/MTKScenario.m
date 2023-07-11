@@ -162,7 +162,6 @@ classdef (Abstract) MTKScenario < handle
     
     %% Virtual methods (can be overloaded)
     methods(Access=protected)
-        val = createSolvedScenario(obj, a, b);
         str = makeOperatorNames(obj)
         val = onSetHermitian(obj, old_val, new_val);
     end

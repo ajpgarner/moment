@@ -52,33 +52,33 @@ namespace Moment {
         do_infer_dense_monolithic(const MatrixBasis::MatrixBasisImpl<BasisInfo>& impl) {
             using Index_t = typename BasisInfo::RealMatrixType::Index;
 
-            // Ensures dense basis exists (creates otherwise)
+            // Ensures dense basis exists (create it otherwise).
             auto [dense_re, dense_im] = getDenseCellular<BasisInfo>(impl);
 
             // Common
             auto dim = static_cast<Index_t>(impl.basis.matrix.Dimension());
-            Index_t length = dim * dim;
+            const Index_t flat_dim = dim * dim;
 
             // Real
-            auto re_height = static_cast<Index_t>(dense_re.size());
-            auto re_ptr = std::make_unique<typename BasisInfo::RealMatrixType>(length, re_height);
+            const auto re_height = static_cast<Index_t>(dense_re.size());
+            auto re_ptr = std::make_unique<typename BasisInfo::RealMatrixType>(re_height, flat_dim);
             auto& real = *re_ptr;
-            Index_t re_col_index = 0;
+            Index_t re_basis_elem_index = 0;
             for (const auto& basis_elem : dense_re) {
-                assert(basis_elem.outerSize() * basis_elem.innerSize() == length);
-                real.col(re_col_index) = basis_elem.reshaped();
-                ++re_col_index;
+                assert(basis_elem.outerSize() * basis_elem.innerSize() == flat_dim);
+                real.row(re_basis_elem_index) = basis_elem.reshaped();
+                ++re_basis_elem_index;
             }
 
             // Imaginary
-            auto im_height = static_cast<Index_t>(dense_im.size());
-            auto im_ptr = std::make_unique<typename BasisInfo::ImMatrixType>(length, im_height);
+            const auto im_height = static_cast<Index_t>(dense_im.size());
+            auto im_ptr = std::make_unique<typename BasisInfo::ImMatrixType>(im_height, flat_dim);
             auto& imag = *im_ptr;
-            Index_t im_col_index = 0;
+            Index_t im_basis_elem_index = 0;
             for (const auto& basis_elem : dense_im) {
-                assert(basis_elem.outerSize() * basis_elem.innerSize() == length);
-                imag.col(im_col_index) = basis_elem.reshaped();
-                ++im_col_index;
+                assert(basis_elem.outerSize() * basis_elem.innerSize() == flat_dim);
+                imag.row(im_basis_elem_index) = basis_elem.reshaped();
+                ++im_basis_elem_index;
             }
 
             return {std::move(re_ptr), std::move(im_ptr)};
@@ -100,37 +100,35 @@ namespace Moment {
             for (const auto& b : sparse_re) {
                 re_nnz += b.nonZeros();
             }
-            auto re_height = static_cast<typename BasisInfo::IndexType>(sparse_re.size());
-
+            const auto re_height = static_cast<typename BasisInfo::IndexType>(sparse_re.size());
 
             // Prepare real trips
             std::vector<Eigen::Triplet<typename BasisInfo::RealMatrixType::Scalar>> re_trips;
             re_trips.reserve(re_nnz);
             typename BasisInfo::IndexType re_col_index = 0;
             for (const auto& src : sparse_re) {
-
                 for (int src_col=0; src_col < src.outerSize(); ++src_col) {
                     for (typename BasisInfo::RealMatrixType::InnerIterator it(src, src_col); it; ++it) {
                         typename BasisInfo::IndexType remapped_index = (src_col*dim) + it.row();
                         assert(remapped_index < flat_dim);
-                        re_trips.emplace_back(remapped_index, re_col_index, it.value());
+                        re_trips.emplace_back(re_col_index, remapped_index, it.value());
                     }
                 }
                 ++re_col_index;
             }
 
             // Copy to sparse matrix
-            auto sparse_mono_re = std::make_unique<typename BasisInfo::RealMatrixType>(flat_dim, re_height );
-            sparse_mono_re->setFromSortedTriplets(re_trips.cbegin(), re_trips.cend());
+            auto sparse_mono_re = std::make_unique<typename BasisInfo::RealMatrixType>(re_height, flat_dim);
+            sparse_mono_re->setFromTriplets(re_trips.cbegin(), re_trips.cend());
 
             // Make imaginary
             size_t im_nnz = 0;
             for (const auto& b : sparse_im) {
                 im_nnz += b.nonZeros();
             }
-            auto im_height = static_cast<typename BasisInfo::IndexType>(sparse_im.size());
+            const auto im_height = static_cast<typename BasisInfo::IndexType>(sparse_im.size());
 
-            // Prepare trips
+            // Prepare imaginary trips
             std::vector<Eigen::Triplet<typename BasisInfo::ImMatrixType::Scalar>> im_trips;
             im_trips.reserve(im_nnz);
             typename BasisInfo::IndexType im_col_index = 0;
@@ -140,15 +138,15 @@ namespace Moment {
                     for (typename BasisInfo::ImMatrixType::InnerIterator it(src, src_col); it; ++it) {
                         typename BasisInfo::IndexType remapped_index = (src_col*dim) + it.row();
                         assert(remapped_index < flat_dim);
-                        im_trips.emplace_back(remapped_index, im_col_index,  it.value());
+                        im_trips.emplace_back(im_col_index, remapped_index, it.value());
                     }
                 }
                 ++im_col_index;
             }
 
             // Copy to sparse matrix
-            auto sparse_mono_im = std::make_unique<typename BasisInfo::ImMatrixType>(flat_dim, im_height);
-            sparse_mono_im->setFromSortedTriplets(im_trips.cbegin(), im_trips.cend());
+            auto sparse_mono_im = std::make_unique<typename BasisInfo::ImMatrixType>(im_height, flat_dim);
+            sparse_mono_im->setFromTriplets(im_trips.cbegin(), im_trips.cend());
 
             // And return
             return {std::move(sparse_mono_re), std::move(sparse_mono_im)};

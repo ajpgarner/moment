@@ -1,6 +1,6 @@
-addpath('..')
-clear
-clear mtk;
+%% EXAMPLE: four_party.m
+% Demonstrates how locality objects can be manipulated.
+%
 
 setting = LocalityScenario(4);
 setting.Parties(1).AddMeasurement(2);
@@ -14,13 +14,10 @@ setting.Parties(4).AddMeasurement(2);
 
 matrix = setting.MomentMatrix(2);
 
-disp(struct2table(matrix.MatrixSystem.SymbolTable));
-disp(matrix.SymbolMatrix);
-disp(matrix.SequenceMatrix);
+disp(setting.Symbols);
+disp(matrix.SymbolStrings);
+disp(matrix.SequenceStrings);
  
-p_table = matrix.MatrixSystem.ProbabilityTable;
-disp(struct2table(p_table))
-
 a11 = setting.get([1, 1, 1]);
 b11 = setting.get([2, 1, 1]);
 c11 = setting.get([3, 1, 1]);
@@ -36,3 +33,6 @@ a11b11c11d11_two = a11c11 * b11d11;
 
 small_joint = setting.get([[1 1]; [2 1]]);
 big_joint = setting.get([[1 1]; [2 1]; [3 1]; [4 1]]);
+
+as_tensor = big_joint.ImplicitOutcomes;
+disp(as_tensor.ObjectName);

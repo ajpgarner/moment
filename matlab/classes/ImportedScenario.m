@@ -153,17 +153,10 @@ classdef ImportedScenario < MTKScenario
             end
             val = obj.ImportMatrix(input, 'hermitian');
         end
-    end
-    
-    %% Virtual methods
-    methods(Access=protected)
-        function onNewMomentMatrix(obj, mm)
-            arguments
-                obj (1,1) ImportedScenario
-                mm (1,1) OpMatrix.MomentMatrix
-            end
-            error('Imported scenario can not generate matrices.');
+        
+        function val = MomentMatrix(obj, level)
+            error("Imported scenarios cannot create moment matrices.");
         end
-    end
+    end    
 end
 

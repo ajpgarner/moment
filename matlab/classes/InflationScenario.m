@@ -375,14 +375,5 @@ classdef InflationScenario < MTKScenario
         end
     end
       
-    %% Virtual methods
-    methods(Access=protected)
-        function onNewMomentMatrix(obj, mm)
-            arguments
-                obj (1,1) InflationScenario
-                mm (1,1) OpMatrix.MomentMatrix
-            end            
-        end
-    end
 end
 

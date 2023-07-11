@@ -1,4 +1,5 @@
-% EXAMPLE: CHSH scenario, with CVX
+%% Example: cvx_chsh.m 
+% Solves CHSH scenario, with CVX.
 %
 addpath('..')
 clear
@@ -37,10 +38,10 @@ CHSH_ineq3 = scenario.CGTensor([[2 -4 0]; [-4 4 4]; [0 4 -4]]);
 cvx_begin sdp
 
     % Declare basis variables a (real) and b (imaginary)
-    matrix.cvxVars('a', 'b');
+    scenario.cvxVars('a', 'b');
     
     % Compose moment matrix from these basis variables
-    M = matrix.cvxComplexMatrix(a, b);
+    M = matrix.cvx(a, b);
 
     % Normalization
     a(1) == 1;
@@ -53,11 +54,7 @@ cvx_begin sdp
     maximize(solve_chsh_ineq);
 cvx_end
 
-% Get solutions
-solved_setting = scenario.Solved(a, b);
-disp(struct2table(solved_setting.SymbolTable));
-
 % Print out values found (should be identical!)
-chsh_max_val = solved_setting.Value(CHSH_ineq)
-chsh_max_val2 = solved_setting.Value(CHSH_ineq2)
-chsh_max_val3 = solved_setting.Value(CHSH_ineq3)
+chsh_max_val = CHSH_ineq.Apply(a, b)
+chsh_max_val2 = CHSH_ineq2.Apply(a, b)
+chsh_max_val3 = CHSH_ineq3.Apply(a, b)

@@ -1,14 +1,14 @@
-%% Clear
-addpath('..')
-clear
-clear mtk;
-
+%% EXAMPLE: cvx_polynomial.m
+% Demonstrates AlgebraicScenario with CVX.
+%
 %% Params
 mm_level = 4;
 lm_level = max(mm_level - 1, 0);
 
 %% Create setting
-setting = AlgebraicScenario(2, {{[1, 1], [1]}}, true);
+setting = AlgebraicScenario(["x1", "x2"], ...
+                            'rules', {{[1, 1], [1]}}, ...
+                            'hermitian', true);
 setting.Complete(4);
 
 x1x2 = setting.get([1 2]);

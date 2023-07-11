@@ -159,11 +159,11 @@ classdef MTKMatrixSystem < handle
         
     %% CVX Methods
     methods
-        function cvxCreateVars(obj, real_name, im_name)
-            % Create SDP variables associated with matrix system.
-            % Due to the design of CVX eschewing functional programming,
-            % real_name (resp. im_name) should be set to the name desired
-            % in the 
+        function cvxVars(obj, real_name, im_name) %#ok<INUSL>
+        % CVXVARS Create SDP variables associated with matrix system.
+        %
+        % Due to the design of CVX eschewing functional programming,
+        % real_name (resp. im_name) should be set to the name desired.
 
             % Validate real name
             if nargin < 2
@@ -176,7 +176,7 @@ classdef MTKMatrixSystem < handle
             end
             
             % Validate imaginary name
-            if nargin < 3
+            if nargin < 3 || isempty(im_name)
                 export_imaginary = false;
             	im_name = char.empty;
             else
@@ -187,10 +187,14 @@ classdef MTKMatrixSystem < handle
                 end
             end
 
-            % Get handle to CVX problem
-            cvx_problem = evalin( 'caller', 'cvx_problem', '[]' );
-            if ~isa( cvx_problem, 'cvxprob' )
-                error( 'No CVX model exists in this scope!');
+            % Get handle to CVX problem            
+            try
+                cvx_problem = evalin( 'caller', 'cvx_problem', '[]' );
+                if ~isa( cvx_problem, 'cvxprob' )
+                    error( 'No CVX model exists in this scope!');
+                end
+            catch
+                error('No CVX model exists in this scope!');
             end
             
             % Always prepare real variables
@@ -210,11 +214,12 @@ classdef MTKMatrixSystem < handle
     
     %% Yalmip Methods
     methods
-        function [var_A, var_B] = yalmipCreateVars(obj)
-            % Creates SDP variables associated with matrix system.
-            % First output corresponds to real components. Second output 
-            % (if requested) correponds to imaginary components.
-            
+        function [var_A, var_B] = yalmipVars(obj)
+        % YALMIPVARS Creates SDP variables associated with matrix system.
+        %
+        % First output corresponds to real components. 
+        % Second output (optional) correponds to imaginary components.
+        %
             if nargout == 1
                 export_imaginary = false;
             elseif nargout == 2

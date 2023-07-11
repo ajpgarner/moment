@@ -1,4 +1,4 @@
-%% Example: chsh_symmetry.m
+%% Example: cvx_chsh_symmetry.m
 % Demonstrates Ioannou-Rosset symmetry reduction on the CHSH scenario.
 
 clear

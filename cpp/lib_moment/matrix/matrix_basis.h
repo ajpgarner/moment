@@ -95,16 +95,32 @@ namespace Moment {
         /** Sparse basis, indexed by symbols, with imaginary elements for real part of symbols. */
         MatrixBasisImpl<SparseComplexBasisInfo>   SparseComplex;
 
-        /** Dense monolithic basis (to be reshaped), with no imaginary elements for real part of symbols. */
+        /**
+         * Dense monolithic basis (to be reshaped), with no imaginary elements for real part of symbols.
+         * Each column represents a matrix element; each row represents a basis element.
+         * Matrix elements (i.e. col index) are given in col-major ordering.
+         */
         MatrixBasisImpl<DenseMonolithicBasisInfo>  DenseMonolithic;
 
-        /** Dense monolithic basis (to be reshaped), with imaginary elements for real part of symbols. */
+        /**
+         * Dense monolithic basis (to be reshaped), with imaginary elements for real part of symbols.
+         * Each column represents a matrix element; each row represents a basis element.
+         * Matrix elements (i.e. col index) are given in col-major ordering.
+         */
         MatrixBasisImpl<DenseMonolithicComplexBasisInfo>   DenseMonolithicComplex;
 
-        /** Sparse monolithic basis (to be reshaped), with no imaginary elements for real part of symbols. */
+        /**
+         * Sparse monolithic basis (to be reshaped), with no imaginary elements for real part of symbols.
+         * Each column represents a matrix element; each row represents a basis element.
+         * Matrix elements (i.e. col index) are given in col-major ordering.
+         */
         MatrixBasisImpl<SparseMonolithicBasisInfo>   SparseMonolithic;
 
-        /** Sparse monolithic basis (to be reshaped), with imaginary elements for real part of symbols. */
+        /**
+         * Sparse monolithic basis (to be reshaped), with imaginary elements for real part of symbols.
+         * Each column represents a matrix element; each row represents a basis element.
+         * Matrix elements (i.e. col index) are given in col-major ordering.
+         */
         MatrixBasisImpl<SparseMonolithicComplexBasisInfo>    SparseMonolithicComplex;
 
     private:
