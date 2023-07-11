@@ -12,7 +12,7 @@ setting.Complete(4);
 [X, Y] = setting.getAll;
 
 %% Make matrices and objective
-mm = setting.MakeMomentMatrix(mm_level);
+mm = setting.MomentMatrix(mm_level);
 objective = -0.5i*(X*Y - Y*X);
 
 %% Define and solve SDP via YALMIP

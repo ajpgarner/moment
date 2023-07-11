@@ -10,7 +10,7 @@ triangle = InflationScenario(inflation_level, ...
                              [4, 4, 4], ...
                              {[1, 2], [2, 3], [1, 3]});
  
-moment_matrix = triangle.MakeMomentMatrix(moment_matrix_level);
+moment_matrix = triangle.MomentMatrix(moment_matrix_level);
 extended_matrix = triangle.MakeExtendedMomentMatrix(moment_matrix_level);
 
 %% Apply values

@@ -9,10 +9,6 @@ function val = System(obj)
 %
 % See also: MTKMATRIXSYSTEM
 %
-    arguments
-        obj (1,1) MTKScenario
-    end
-
     % Make matrix system, if not already generated
     if isempty(obj.matrix_system)
         obj.matrix_system = MTKMatrixSystem(obj);

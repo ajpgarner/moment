@@ -41,7 +41,7 @@ namespace Moment::mex {
     private:
         const SymbolTable& symbols;
         const double zero_tolerance;
-        PolynomialExporter combo_exporter;
+        PolynomialExporter polynomial_exporter;
         RuleStringFormatOptions string_format_options;
 
     public:
@@ -49,14 +49,14 @@ namespace Moment::mex {
                                                 const double zero_tolerance,
                                                 RuleStringFormatOptions rsfo = RuleStringFormatOptions{}) noexcept
                 : Exporter{engine}, symbols{symbols}, zero_tolerance{zero_tolerance},
-                   combo_exporter{engine, symbols, zero_tolerance},
-                   string_format_options{rsfo} { }
+                  polynomial_exporter{engine, symbols, zero_tolerance},
+                  string_format_options{rsfo} { }
 
         matlab::data::CellArray operator()(const MomentRulebook &rules) {
             return this->as_symbol_cell(rules);
         }
 
-        matlab::data::CellArray as_polynomials(const MomentRulebook& rules, bool include_symbol_info = false);
+        matlab::data::CellArray as_polynomials(const MomentRulebook& rules);
 
         matlab::data::CellArray as_symbol_cell(const MomentRulebook& rules);
 

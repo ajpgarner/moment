@@ -21,7 +21,7 @@ B1 = Bob.AddMeasurement(2);
 B2 = Bob.AddMeasurement(2);
 
 % Make moment matrix
-matrix = i3322.MakeMomentMatrix(level);
+matrix = i3322.MomentMatrix(level);
 
 % Make correlator objects
 Corr00 = Correlator(A0, B0);

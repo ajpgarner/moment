@@ -27,8 +27,8 @@ disp(val);
 function setting = make_bff_setting()
 
     setting = AlgebraicScenario(["A0", "A1", "B0", "B1", "Z0", "Z1"], ...
-                                {}, false, false);
-    rules = setting.Rulebook; 
+                                'hermitian', false, 'normal', false);
+    rules = setting.OperatorRulebook; 
 
     for op = rules.OperatorNames(1:4)
         rules.MakeHermitian(op);
@@ -68,7 +68,7 @@ end
 function val = solve_bff_sdp(setting, t, moment_matrix_level, ...
                              value_ch, verbose)
     % Generate MM
-    mm = setting.MakeMomentMatrix(moment_matrix_level);
+    mm = setting.MomentMatrix(moment_matrix_level);
     
     [A0, A1, B0, B1, Z0, Z1] = setting.getAll();
     
@@ -84,10 +84,10 @@ function val = solve_bff_sdp(setting, t, moment_matrix_level, ...
     yalmip('clear');
 
     % Declare basis variables a (real)
-    a = mm.yalmipVars;
+    a = setting.yalmipVars();
     
     % Compose moment matrix in these basis variables
-    M = mm.yalmipRealMatrix(a);
+    M = mm.yalmip(a);
         	
     % Impose constraints
     constraints = [a(1) == 1;  M >= 0, ch.yalmip(a) >= value_ch];

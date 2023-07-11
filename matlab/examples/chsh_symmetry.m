@@ -26,8 +26,8 @@ chsh_generators = {[[1 0 1 0 0];
 sym_scenario = SymmetrizedScenario(chsh_scenario, chsh_generators, 2*mm_level);
 
 % Get moment matrices
-base_mm = chsh_scenario.MakeMomentMatrix(mm_level);
-sym_mm = sym_scenario.MakeMomentMatrix(mm_level);
+base_mm = chsh_scenario.MomentMatrix(mm_level);
+sym_mm = sym_scenario.MomentMatrix(mm_level);
 
 
 % Show systems, and generated matrices

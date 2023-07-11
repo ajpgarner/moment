@@ -67,7 +67,7 @@ classdef AlgebraicTest < MTKTestBase
         function getAll_and_bind(testCase)
             setting = AlgebraicScenario(3);
             [x, y, z] = setting.getAll();
-            mm = setting.MakeMomentMatrix(1);
+            mm = setting.MomentMatrix(1);
             testCase.verifyTrue(isa(x, 'MTKMonomial'));
             testCase.verifyTrue(isa(y, 'MTKMonomial'));
             testCase.verifyTrue(isa(z, 'MTKMonomial'));

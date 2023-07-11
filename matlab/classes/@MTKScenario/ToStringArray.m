@@ -1,8 +1,6 @@
 function str = ToStringArray(obj, input)
-    arguments
-        obj (1,1) MTKScenario
-        input (1,:)
-    end
+
+    assert(nargin == 2);
 
     % Do nothing if input is already string
     if isstring(input)
@@ -12,7 +10,7 @@ function str = ToStringArray(obj, input)
 
     % Split up char array
     if ischar(input)
-        str = string(input(:))';
+        str = reshape(string(input(:)), 1, []);
         return
     end
 

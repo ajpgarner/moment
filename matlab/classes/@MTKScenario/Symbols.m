@@ -3,9 +3,6 @@ function val = Symbols(obj)
 %
 % RETURNS:
 %   Table object with symbol information. 
-    arguments
-        obj (1,1) MTKScenario
-    end
 
     val = struct2table(obj.System.SymbolTable);
 end

@@ -17,7 +17,7 @@ B0 = Bob.AddMeasurement(2);
 B1 = Bob.AddMeasurement(2);
 
 % Make moment matrix
-matrix = chsh.MakeMomentMatrix(1);
+matrix = chsh.MomentMatrix(1);
 
 % Make correlator objects
 Corr00 = A0.Correlator(B0);

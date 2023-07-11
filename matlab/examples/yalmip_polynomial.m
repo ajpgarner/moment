@@ -18,7 +18,7 @@ objective = x1 * x2 + x2 * x1;
 poly = -x2 * x2 + x2 + 0.5*I;
 
 %% Make matrices 
-mm = setting.MakeMomentMatrix(mm_level);
+mm = setting.MomentMatrix(mm_level);
 lm = poly.LocalizingMatrix(lm_level);
 
 %% Define and solve SDP via YALMIP

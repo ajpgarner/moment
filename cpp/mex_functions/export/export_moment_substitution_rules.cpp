@@ -32,14 +32,13 @@ namespace Moment::mex {
     }
 
     matlab::data::CellArray
-    MomentSubstitutionRuleExporter::as_polynomials(const Moment::MomentRulebook &rules,
-                                                   const bool include_symbol_info) {
+    MomentSubstitutionRuleExporter::as_polynomials(const Moment::MomentRulebook &rules) {
         matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({rules.size(), 1});
         auto write_iter = output.begin();
         for (const auto& rule : rules) {
             auto polynomial = rule.second.as_polynomial(rules.factory);
-            auto poly_data = this->combo_exporter.sequences(factory, polynomial, include_symbol_info);
+            auto poly_data = this->polynomial_exporter.sequences(factory, polynomial, true);
             *write_iter = poly_data.move_to_cell(factory);
             ++write_iter;
         }
@@ -70,7 +69,7 @@ namespace Moment::mex {
         auto output = factory.createCellArray({1, 2});
 
         output[0] = factory.createScalar(static_cast<uint64_t>(rule.LHS()));
-        output[1] = this->combo_exporter.symbol_cell(rule.RHS());
+        output[1] = this->polynomial_exporter.symbol_cell(rule.RHS());
 
         return output;
     }
@@ -109,7 +108,7 @@ namespace Moment::mex {
     }
 
     matlab::data::Array MomentSubstitutionRuleExporter::as_rewrite_matrix(const MomentRulebook &rulebook) {
-        MomentRulebookToBasis mrtb{this->symbols, this->combo_exporter.zero_tolerance,
+        MomentRulebookToBasis mrtb{this->symbols, this->polynomial_exporter.zero_tolerance,
                                    MomentRulebookToBasis::ExportMode::Rewrite};
         auto eigen_sparse_matrix = mrtb(rulebook);
         matlab::data::ArrayFactory factory;
@@ -117,7 +116,7 @@ namespace Moment::mex {
     }
 
     matlab::data::Array MomentSubstitutionRuleExporter::as_homogenous_matrix(const Moment::MomentRulebook &rulebook) {
-        MomentRulebookToBasis mrtb{this->symbols, this->combo_exporter.zero_tolerance,
+        MomentRulebookToBasis mrtb{this->symbols, this->polynomial_exporter.zero_tolerance,
                                    MomentRulebookToBasis::ExportMode::Homogeneous};
         auto eigen_sparse_matrix = mrtb(rulebook);
         matlab::data::ArrayFactory factory;

@@ -17,7 +17,7 @@ classdef AlgebraicScenario < MTKScenario
     
 %% Properties
     properties(GetAccess = public, SetAccess = private)        
-        Rulebook % Manages substitution rules for operator strings.
+        OperatorRulebook % Manages substitution rules for operator strings.
     end
     
     properties(Access = private)
@@ -110,7 +110,6 @@ classdef AlgebraicScenario < MTKScenario
             
             obj.IsHermitian = is_hermitian;
             obj.Interleave = interleave;
-            %obj.IsNormal = is_normal;
             
             if isa(rules, 'Algebraic.OperatorRulebook')
                 % Check for consistency
@@ -120,10 +119,10 @@ classdef AlgebraicScenario < MTKScenario
                 assert(rules.MaxOperators == obj.OperatorCount);
       
                 % Copy construct existing rulebook
-                obj.Rulebook = Algebraic.OperatorRulebook(rules);
+                obj.OperatorRulebook = Algebraic.OperatorRulebook(rules);
             else            
                 % Otherwise construct new rulebook
-                obj.Rulebook = ...
+                obj.OperatorRulebook = ...
                     Algebraic.OperatorRulebook(operators, rules, ...
                                               is_hermitian, interleave, ...
                                               is_normal);
@@ -141,7 +140,7 @@ classdef AlgebraicScenario < MTKScenario
             end
             
             % Make copy
-            val = AlgebraicScenario(ops_arg, obj.Rulebook, ...
+            val = AlgebraicScenario(ops_arg, obj.OperatorRulebook, ...
                                     obj.IsHermitian, obj.Interleave, ...
                                     obj.IsNormal);
             val.ZeroTolerance = obj.ZeroTolerance;
@@ -157,7 +156,7 @@ classdef AlgebraicScenario < MTKScenario
                 val = "I";
                 return
             end
-            str_array = obj.Rulebook.ToStringArray(sequence);
+            str_array = obj.OperatorRulebook.ToStringArray(sequence);
             val = join(str_array, " ");
         end
     end
@@ -197,7 +196,7 @@ classdef AlgebraicScenario < MTKScenario
             end
 
             obj.errorIfLocked();
-            success = obj.Rulebook.Complete(attempts, verbose);
+            success = obj.OperatorRulebook.Complete(attempts, verbose);
         end
         
     end
@@ -226,7 +225,7 @@ classdef AlgebraicScenario < MTKScenario
                     nams_args{end+1} = 'bunched';
                 end
                 
-                if obj.Rulebook.Normal
+                if obj.OperatorRulebook.Normal
                     nams_args{end+1} = 'normal';
                 end
             end
@@ -239,10 +238,10 @@ classdef AlgebraicScenario < MTKScenario
             % Call for matrix system
             ref_id = mtk('algebraic_matrix_system', ...
                 nams_args{:}, ...
-                obj.Rulebook.ExportCellArray());
+                obj.OperatorRulebook.ExportCellArray());
             
             % No further changes to rules allowed...
-            obj.Rulebook.lock();
+            obj.OperatorRulebook.lock();
         end
     end
     

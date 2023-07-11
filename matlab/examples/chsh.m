@@ -8,12 +8,10 @@ setting.Parties(1).AddMeasurement(2);
 setting.Parties(2).AddMeasurement(2);
 setting.Parties(2).AddMeasurement(2);
 
-matrix = setting.MakeMomentMatrix(10);
+matrix = setting.MomentMatrix(10);
 
-disp(struct2table(matrix.MatrixSystem.SymbolTable));
-disp(matrix.SymbolMatrix);
-disp(matrix.SequenceMatrix);
-
+disp(matrix.SymbolStrings);
+disp(matrix.SequenceStrings);
 disp(setting.Symbols());
 
 a22 = setting.Parties(1).Measurements(2).Outcomes(2);

@@ -9,7 +9,7 @@ setting.Parties(2).AddMeasurement(3);
 setting.Parties(3).AddMeasurement(3);
 setting.Parties(3).AddMeasurement(2);
 
-matrix = setting.MakeMomentMatrix(2);
+matrix = setting.MomentMatrix(2);
 
 disp(struct2table(matrix.MatrixSystem.SymbolTable));
 

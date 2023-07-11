@@ -43,8 +43,6 @@ namespace Moment::mex::functions {
             SymbolCell,
             /** List rules as a cell array of polynomials. */
             Polynomial,
-            /** List rules as a cell array of polynomials. */
-            PolynomialWithSymbolInfo,
             /** List rules as sparse matrix that can act on an arbitrary (a \oplus b) vector to fill missing values. */
             RewriteMatrix,
             /** List rules as sparse matrix that can act on conformant (a \oplus b) vector to equal zero. */

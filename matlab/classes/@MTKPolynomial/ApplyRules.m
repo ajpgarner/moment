@@ -3,10 +3,6 @@ function val = ApplyRules(obj, rulebook)
 %
 % Effectively applies rules to each constituent matrix in turn.
 % 
-    arguments
-        obj (1,1) MTKPolynomial
-        rulebook (1,1) MomentRulebook
-    end
 
     % Scenarios must match
     if (rulebook.Scenario ~= obj.Scenario)
@@ -22,8 +18,4 @@ function val = ApplyRules(obj, rulebook)
     % Construct new, transformed polynomial
     val = MTKPolynomial(obj.Scenario, output_sequences);
 
-    % Degrade to monomial if only single element.
-    if length(val.Constituents) == 1
-        val = val.Constituents(1);
-    end
 end

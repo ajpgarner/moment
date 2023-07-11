@@ -2,7 +2,8 @@ function val = combineToLM(lhs, rhs, negate_rhs)
 %COMBINETOLM Combine two operator matrices additively to make new matrix.
 % If matrices cannot be combined, returns false.
 
-    assert(lhs.Scenario == rhs.Scenario);  
+    % Only combine if scenarios match.
+    lhs.checkSameScenario(rhs);
     
     % If matrices are not same size, immediately fail:
     if ~isequal(size(lhs), size(rhs))

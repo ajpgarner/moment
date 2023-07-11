@@ -82,33 +82,6 @@ namespace Moment::mex {
             }
         };
 
-        class WriteMonoDataFunctor {
-        public:
-            matlab::data::ArrayFactory& factory;
-            const  SymbolTable& symbol_table;
-
-            explicit WriteMonoDataFunctor(matlab::data::ArrayFactory& factory, const SymbolTable& symbol_table)
-                : factory{factory}, symbol_table{symbol_table} { }
-
-            FullMonomialSpecification::full_iter_t::value_type
-            operator()(std::tuple<const Monomial&, const OperatorSequence&> input) const {
-                const auto& monomial = std::get<0>(input);
-                const auto& op_seq = std::get<1>(input);
-                assert(monomial.id >= 0 && monomial.id < this->symbol_table.size());
-                const auto& symbol_info = this->symbol_table[monomial.id];
-
-                return FullMonomialSpecification::full_iter_t::value_type{
-                    export_operator_sequence(factory, op_seq, true), // ML indexing
-                    monomial.factor,
-                    op_seq.hash(),
-                    monomial.id,
-                    monomial.conjugated,
-                    symbol_info.basis_key().first + 1, // ML indexing
-                    symbol_info.basis_key().second + 1 // ML indexing
-                };
-            }
-        };
-
         class WritePolyDataFunctor {
         public:
             matlab::data::ArrayFactory& factory;
@@ -207,7 +180,7 @@ namespace Moment::mex {
         const auto write_iter_end = output.full_write_end();
         do_export(this->engine, this->factory,
                   read_iter, read_iter_end, write_iter, write_iter_end,
-                  WriteMonoDataFunctor{this->factory, this->symbol_table});
+                  FullMonomialSpecification::FullWriteFunctor{this->factory, this->symbol_table});
 
         return output;
     }

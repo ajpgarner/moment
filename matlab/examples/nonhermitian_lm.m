@@ -15,7 +15,7 @@ re_x1x2 = (x1*x2 + x2*x1)*0.5;
 im_x1x2 = (x1*x2 - x2*x1)*(-0.5i);
 
 %% Make matrices 
-mm = setting.MakeMomentMatrix(mm_level);
+mm = setting.MomentMatrix(mm_level);
 lm1 = re_x1x2.LocalizingMatrix(lm_level);
 lm2 = im_x1x2.LocalizingMatrix(lm_level);
 

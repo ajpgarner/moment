@@ -37,7 +37,7 @@ namespace Moment::mex::functions {
         if (this->inputs.size() >= 3) {
             try {
                 switch (read_choice("Output mode",
-                                    {"strings", "symbols", "sequences", "full_sequences", "rewrite", "homogenous"},
+                                    {"strings", "symbols", "polynomials", "rewrite", "homogenous"},
                                     this->inputs[2])) {
                     case 0:
                         this->output_mode = OutputMode::String;
@@ -49,12 +49,9 @@ namespace Moment::mex::functions {
                         this->output_mode = OutputMode::Polynomial;
                         break;
                     case 3:
-                        this->output_mode = OutputMode::PolynomialWithSymbolInfo;
-                        break;
-                    case 4:
                         this->output_mode = OutputMode::RewriteMatrix;
                         break;
-                    case 5:
+                    case 4:
                         this->output_mode = OutputMode::HomogenousMatrix;
                         break;
                 }
@@ -137,10 +134,7 @@ namespace Moment::mex::functions {
                 output[0] = msrExporter.as_symbol_cell(rulebook);
                 break;
             case MomentRulesParams::OutputMode::Polynomial:
-                output[0] = msrExporter.as_polynomials(rulebook, false);
-                break;
-            case MomentRulesParams::OutputMode::PolynomialWithSymbolInfo:
-                output[0] = msrExporter.as_polynomials(rulebook, true);
+                output[0] = msrExporter.as_polynomials(rulebook);
                 break;
             case MomentRulesParams::OutputMode::RewriteMatrix:
                 output[0] = msrExporter.as_rewrite_matrix(rulebook);

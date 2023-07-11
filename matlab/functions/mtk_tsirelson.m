@@ -46,7 +46,7 @@ function [objective] = mtk_tsirelson(M, desc, level, toolkit)
     end
     
     % Make moment matrix and bell functional
-    moment_matrix = scenario.MakeMomentMatrix(level);
+    moment_matrix = scenario.MomentMatrix(level);
     bell_functional = scenario.CGTensor(M);
     
     % Invoke toolkit-specific SDP 

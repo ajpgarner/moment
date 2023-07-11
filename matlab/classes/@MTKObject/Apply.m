@@ -23,7 +23,7 @@
         has_imaginary = true;
         im_vals = reshape(im_vals, 1, []);
         if numel(im_vals) ~= obj.Scenario.System.ImaginaryVarCount
-            error("%d imaginary values expected, but %d were provided.", ...
+            error("%d imaginary values expected, but %d were provided.",...
                 obj.Scenario.System.ImaginaryVarCount, im_vals);
         end
     else
@@ -31,32 +31,32 @@
     end
 
     % Query for co-efficients.
-    rec = obj.RealCoefficients;
+    re_coefs = obj.RealCoefficients;
 
     switch obj.dimension_type
         case 0 % SCALAR
-            val = re_vals * rec;
+            val = re_vals * re_coefs;
         case 1 % ROW_VECTOR
-            val = re_vals * rec;
+            val = re_vals * re_coefs;
         case 2 % COL_VECTOR
-            val = transpose(re_vals * rec);
+            val = transpose(re_vals * re_coefs);
         otherwise
             cell_dims = num2cell(size(obj));
-            val = reshape(re_vals * rec, cell_dims{:});
+            val = reshape(re_vals * re_coefs, cell_dims{:});
     end
 
     if has_imaginary 
         % Query for co-efficients
-        imc = obj.ImaginaryCoefficients;
+        im_coefs = obj.ImaginaryCoefficients;
         switch obj.dimension_type
             case 0 % SCALAR
-                val = val + (im_vals * imc);
+                val = val + (im_vals * im_coefs);
             case 1 % ROW_VECTOR
-                val = val + (im_vals * imc);
+                val = val + (im_vals * im_coefs);
             case 2 % COL_VECTOR
-                val = val + transpose(im_vals * imc);
+                val = val + transpose(im_vals * im_coefs);
             otherwise
-                val = val + reshape(im_vals * imc, cell_dims{:});
+                val = val + reshape(im_vals * im_coefs, cell_dims{:});
         end
     end            
 end

@@ -19,6 +19,12 @@ namespace Moment::mex::functions  {
 
         size_t word_length = 0;
 
+        enum class OutputType {
+            OperatorCell,
+            Monomial,
+            FullMonomial
+        } output_type = OutputType::OperatorCell;
+
     public:
         explicit WordListParams(SortedInputs&& inputs);
     };
