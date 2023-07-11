@@ -9,7 +9,7 @@ function val = ctranspose(obj)
 
     % Transpose elements
     switch obj.DimensionType
-        case 0 %SCALAR                                
+        case 0 %SCALAR
         case {1, 2, 3} % ROW-VEC, COL-VEC, MATRIX
             conj_ops = conj_ops.';                   
             new_coefs = new_coefs.';
@@ -22,7 +22,13 @@ function val = ctranspose(obj)
     end
 
     % Make new object
-    val = MTKMonomial.InitForOverwrite(obj.Scenario, size(conj_ops));
+    if obj.IsScalar
+        new_size = [1, 1];
+    else
+        new_size = size(conj_ops);
+    end
+    
+    val = MTKMonomial.InitForOverwrite(obj.Scenario, new_size);
     val.Operators = conj_ops;
     val.Coefficient = new_coefs;
     val.Hash = hashes;

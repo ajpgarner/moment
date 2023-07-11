@@ -1,8 +1,9 @@
-classdef MTKMomentMatrix < MTKOpMatrix 
+classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
+    MTKMomentMatrix < MTKOpMatrix 
 %MTKMOMENTMATRIX Moment matrix for scenario.
     
-    properties
-        Level
+    properties(GetAccess=public, SetAccess=private)
+        Level % The level of the matrix.
     end
     
     methods
@@ -20,11 +21,28 @@ classdef MTKMomentMatrix < MTKOpMatrix
                 scenario.System.RefId, level);
             
             % Construct as operator matrix object
-            obj = obj@MTKOpMatrix(scenario, mm_index, mm_dim, true);
+            % NB: MM are monomial and hermitian by construction.
+            obj = obj@MTKOpMatrix(scenario, mm_index, mm_dim, true, true);
             obj.Level = level;
             
             % Trigger possible notification of symbol generation.
             obj.Scenario.System.UpdateSymbolTable();
+        end
+    end
+    
+    %% Overriden methods
+    methods(Access=protected)
+        function val = getLevel(obj)
+            val = obj.Level;
+        end
+        
+        function val = getWord(obj)
+            val = MTKMonomial.InitValue(1.0); % I
+        end
+        
+        function val = rescaleMatrix(obj, scale)
+            val = MTKLocalizingMatrix(obj.Scenario, obj.Level, ...
+                    MTKMonomial.InitValue(scale));
         end
     end
 end

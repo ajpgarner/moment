@@ -1,47 +1,48 @@
-classdef MomentRuleBook < handle
-%MOMENTRULEBOOK A list of substitutions to make at the level of moments.
+classdef MTKMomentRulebook < handle
+%MTKMOMENTRULEBOOK A list of substitutions to make at the level of moments.
 %
 
 %% Properties
 properties(GetAccess = public, SetAccess = protected)
     Scenario    % Associated scenario.
-    RuleBookId  % ID of the rulebook within the matrix system.
+    RulebookId  % ID of the rulebook within the matrix system.
 end
 
 properties(Dependent, GetAccess = public, SetAccess = private)
-    RawRuleCell     % Rules as cell array of symbol substitutions.
-    RulePolynomials % Rules as polynomials.
-    RuleStrings     % Rules as strings    
+    AsSymbolCells   % Rules as cell array of symbol substitutions.
+    AsPolynomials   % Rules as polynomials.
+    AsStrings       % Rules as strings    
 end
 
 properties(Access=private)
-    cache_RawRuleCell;
-    cache_RulePolynomials;
-    cache_RuleStrings;
-    has_rrc = false;
-    has_rp = false;
-    has_rs = false;
+    cache_symbol_cell
+    cache_polys
+    cache_strs;
+    has_symbol_cell = false;
+    has_polys = false;
+    has_strs = false;
 end
 
 properties(Constant, Access = private)
-    err_locked = ['No more changes to this ruleset are possible, ',...
+    err_locked = ['No more changes to this rulebook are possible, ',...
                   'because it has already been applied to a matrix.'];
 end
     
 
 %% Constructor
 methods
-    function obj = MomentRuleBook(scenario, label)
-    % MOMENTRULEBOOK Creates a moment substitution rule book.
-        arguments
-            scenario (1,1) MTKScenario
-            label (1,1) string = ""
-        end    
-        obj.Scenario = scenario;
-
+    function obj = MTKMomentRulebook(scenario, label)
+    % MOMENTRULEBOOK Creates a moment substitution rule book.                
+        if nargin < 1 || ~isa(scenario,'MTKScenario')
+            error("First argument must be a MTKScenario.");
+        
         if nargin == 1
             label = "";
+        else
+            label = string(label);
         end
+        
+        obj.Scenario = scenario;
 
         % Extra arguments to MTK
         rb_args = cell(1,0);       
@@ -50,7 +51,7 @@ methods
             rb_args{end+1} = label;
         end
                    
-        obj.RuleBookId = mtk('create_moment_rules', rb_args{:}, ...
+        obj.RulebookId = mtk('create_moment_rules', rb_args{:}, ...
                              scenario.System.RefId, {});
         
         obj.invalidate_cached_rules();        

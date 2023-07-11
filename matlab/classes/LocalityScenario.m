@@ -156,10 +156,7 @@ classdef LocalityScenario < MTKScenario
             end
         end
         
-        function val = Clone(obj)
-            arguments
-                obj (1,1) LocalityScenario
-            end
+        function val = Clone(obj)            
             % Construct new LocalityScenario
             val = LocalityScenario(0);
             

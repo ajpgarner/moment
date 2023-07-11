@@ -172,6 +172,23 @@ namespace Moment::mex {
 
     }
 
+    void OperatorMatrixExporter::properties(IOArgumentRange &output, size_t matrix_index,
+                                                   const Matrix &theMatrix) const {
+        switch (output.size()) {
+            default:
+            case 4:
+                output[3] = factory.createScalar<bool>(theMatrix.Hermitian());
+            case 3:
+                output[2] = factory.createScalar<bool>(theMatrix.is_monomial());
+            case 2:
+                output[1] = factory.createScalar<uint64_t>(theMatrix.Dimension());
+            case 1:
+                output[0] = factory.createScalar<uint64_t>(matrix_index);
+            case 0:
+                break;
+        }
+    }
+
     FullMonomialSpecification OperatorMatrixExporter::monomials(const MonomialMatrix &matrix) const {
         FullMonomialSpecification output{this->factory, OperatorMatrixExporter::matrix_dimensions(matrix), true};
 

@@ -1,10 +1,11 @@
-classdef (InferiorClasses={?MTKMonomial, ?MTKPolynomial}) ...
-MTKOpMatrix < MTKObject
+classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
+    MTKOpMatrix < MTKObject
 %MTKOPMATRIX Operator matrix (e.g. moment matrix / localizing matrix.)
 %    
     properties(SetAccess = protected, GetAccess = public)
-        Index      % The matrix unique ID within a scenario.
-        IsMonomial % True if every element is a monomial.
+        Index       % The matrix unique ID within a scenario.
+        IsMonomial  % True if every element is a monomial.
+        IsHermitian % True if matrix is equal to its conjugate tranpose.
     end
 
     properties(Dependent, GetAccess = public)
@@ -21,7 +22,8 @@ MTKOpMatrix < MTKObject
 
     %% Constructor
     methods
-        function obj = MTKOpMatrix(scenario, index, dimension, is_monomial)
+        function obj = MTKOpMatrix(scenario, index, dimension, ...
+                                   is_monomial, is_hermitian)
         % MTKOPMATRIX Handle for operator matrices stored in MTK.
         %            
             if (nargin < 1) || ~isa(scenario, 'MTKScenario')
@@ -48,12 +50,17 @@ MTKOpMatrix < MTKObject
                 is_monomial = true;
             end
             
+            if nargin < 5
+                is_hermitian = false;
+            end
+            
             % Make MTKObject
             obj = obj@MTKObject(scenario, dimension, true);
             
-            % Save properties
+            % Save matrix-specific properties
             obj.Index = index;
-            obj.IsMonomial = logical(is_monomial);
+            obj.IsMonomial = logical(is_monomial(1));
+            obj.IsHermitian = logical(is_hermitian(1));
         end
     end
     
@@ -112,15 +119,20 @@ MTKOpMatrix < MTKObject
             str = obj.cache_seq_str;
         end
     end
-
     
+
     %% Virtual method implementations
     methods(Access=protected)
         [re, im] = calculateCoefficients(obj);
- 
         [mask_re, mask_im, elems_re, elems_im] = queryForMasks(obj);
-
         str = makeObjectName(obj);
+    end
+    
+    %% Virtual method definitions
+    methods(Access=protected)
+        val = rescaleMatrix(obj, factor);       
+        val = getLevel(obj);
+        val = getWord(obj);
     end
 end
 

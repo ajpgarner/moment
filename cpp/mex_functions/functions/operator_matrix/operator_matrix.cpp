@@ -142,9 +142,9 @@ namespace Moment::mex::functions  {
     void OperatorMatrixVirtualBase::do_validate_output_count(size_t outputs, const OperatorMatrixParams& input) const {
         switch(input.output_mode) {
             case OperatorMatrixParams::OutputMode::Properties:
-                if (outputs > 3) {
+                if (outputs > 4) {
                     throw_error(this->omvb_matlabEngine, errors::too_many_outputs,
-                                "At most three outputs should be provided for properties");
+                                "At most four outputs should be provided for properties");
                 }
                 break;
             case OperatorMatrixParams::OutputMode::Name:
@@ -222,7 +222,6 @@ namespace Moment::mex::functions  {
                     } else {
                         monomial.move_to_output(output);
                     }
-
                 }
                     break;
 
@@ -230,16 +229,8 @@ namespace Moment::mex::functions  {
                     output[0] = exporter.name(theMatrix);
                     break;
 
-                case OperatorMatrixParams::OutputMode::Properties: {
-                    matlab::data::ArrayFactory factory;
-                    output[0] = factory.createScalar<uint64_t>(matIndexPair.first);
-                    if (output.size() >= 2) {
-                        output[1] = factory.createScalar<uint64_t>(theMatrix.Dimension());
-                    }
-                    if (output.size() >= 3) {
-                        output[2] = factory.createScalar<bool>(theMatrix.is_monomial());
-                    }
-                }
+                case OperatorMatrixParams::OutputMode::Properties:
+                    exporter.properties(output, matIndexPair.first, theMatrix);
                     break;
 
                 case OperatorMatrixParams::OutputMode::Polynomial:

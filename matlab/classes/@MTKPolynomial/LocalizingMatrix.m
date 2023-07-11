@@ -20,14 +20,7 @@ function val = LocalizingMatrix(obj, level)
         if ~obj.IsScalar
             error("Can only generate localizing matrices for scalar polynomials.");
         end
-
-        lm = OpMatrix.LocalizingMatrix.empty(1,0);
-        w = double.empty(1,0);
-
-        for c = obj.Constituents
-            lm(end+1) = c.RawLocalizingMatrix(level);
-            w(end+1) = c.Coefficient;
-        end
-
-        val = OpMatrix.CompositeOperatorMatrix(lm, w);
+        
+        % Call LM constructor.
+        val = MTKLocalizingMatrix(obj.Scenario, level, obj);
     end

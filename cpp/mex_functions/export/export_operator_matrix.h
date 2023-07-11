@@ -11,6 +11,8 @@
 #include "export_operator_matrix_seq_strings.h"
 #include "full_monomial_specification.h"
 
+#include "utilities/io_parameters.h"
+
 #include "MatlabDataArray.hpp"
 
 
@@ -47,6 +49,7 @@ namespace Moment::mex {
         OperatorMatrixExporter(matlab::engine::MATLABEngine& engine, const Locality::LocalityMatrixSystem& system,
                                const Locality::LocalityOperatorFormatter &localityFormatter);
 
+
         /**
          * Export matrix as monomials.
          */
@@ -63,6 +66,11 @@ namespace Moment::mex {
          * Export matrix as cell array of polynomials, completely defined by monomial constituents.
          */
         [[nodiscard]] matlab::data::CellArray polynomials(const Matrix& matrix) const;
+
+        /**
+         * Export matrix properties
+         */
+        void properties(IOArgumentRange& output, size_t matrix_index, const Matrix& matrix) const;
 
         /**
           * Outputs a matrix of operator sequences, as a matlab string matrix.
