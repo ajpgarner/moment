@@ -23,7 +23,7 @@ namespace Moment {
 
 namespace Moment::mex {
 
-    class BasisExporter : public Exporter {
+    class BasisExporter : public ExporterWithFactory {
     public:
         const bool Sparse;
         const bool Monolithic;
@@ -35,7 +35,7 @@ namespace Moment::mex {
          * @param monolithic True to export as a single giant matrix, false to export as a cell array.
          */
         explicit BasisExporter(matlab::engine::MATLABEngine& engine, bool sparse = false, bool monolithic = false)
-            : Exporter{engine}, Sparse{sparse}, Monolithic{monolithic} { }
+            : ExporterWithFactory{engine}, Sparse{sparse}, Monolithic{monolithic} { }
 
         /**
         * Exports basis of matrix in requested format. Will infer if complex parts are necessary.

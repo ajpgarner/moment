@@ -20,7 +20,6 @@ namespace Moment::mex {
 
     matlab::data::TypedArray<int32_t> BasisKeyExporter::basis_key(const Matrix &matrix) {
 
-        matlab::data::ArrayFactory factory{};
         matlab::data::ArrayDimensions dims{matrix.BasisKey().size(),
                                            (matrix.HasComplexBasis()) ? 3U : 2U};
         matlab::data::TypedArray<int32_t> output = factory.createArray<int32_t>(dims);
@@ -47,7 +46,6 @@ namespace Moment::mex {
     std::pair<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<uint64_t>>
     BasisKeyExporter::basis_lists(const Matrix& matrix) {
         // Prepare output lists
-        matlab::data::ArrayFactory factory;
         auto output = std::make_pair(
                 factory.createArray<uint64_t>(matlab::data::ArrayDimensions{1, matrix.RealBasisIndices().size()}),
                 factory.createArray<uint64_t>(matlab::data::ArrayDimensions{1, matrix.ImaginaryBasisIndices().size()})
@@ -70,8 +68,6 @@ namespace Moment::mex {
 
     std::pair<matlab::data::TypedArray<bool>, matlab::data::TypedArray<bool>>
     BasisKeyExporter::basis_masks(const Matrix &matrix) {
-        // Prepare masks
-        matlab::data::ArrayFactory factory;
 
         // Create arrays, make them all false
         const auto real_symbol_count = matrix.symbols.Basis.RealSymbolCount();

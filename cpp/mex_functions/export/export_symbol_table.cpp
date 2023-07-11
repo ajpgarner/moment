@@ -57,7 +57,7 @@ namespace Moment::mex {
 
     SymbolTableExporter::SymbolTableExporter(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
                                              const MatrixSystem &system)
-            : Exporter{engine}, env{env}, system{system}, symbols{system.Symbols()}, context{system.Context()},
+            : ExporterWithFactory{engine}, env{env}, system{system}, symbols{system.Symbols()}, context{system.Context()},
               can_be_nonhermitian{query_can_be_nonhermitian(system)},
               include_factors{query_can_have_factors(system)},
               locality_format{query_locality_format(system)} {
@@ -102,8 +102,6 @@ namespace Moment::mex {
     }
 
     matlab::data::StructArray SymbolTableExporter::export_empty_row(bool include_conj) const {
-        matlab::data::ArrayFactory factory;
-
         // Construct structure array
         return factory.createStructArray(matlab::data::ArrayDimensions{1, 0}, this->column_names(include_conj));
     }
@@ -111,8 +109,6 @@ namespace Moment::mex {
 
     matlab::data::StructArray
     SymbolTableExporter::export_row(const Symbol& symbol, std::optional<bool> conjugated) const {
-
-        matlab::data::ArrayFactory factory;
         const auto& context = system.Context();
 
         const bool include_conj = conjugated.has_value();
@@ -122,15 +118,12 @@ namespace Moment::mex {
 
         // Write single row
         auto write_iter = outputStruct.begin();
-        this->do_row_write(factory, write_iter, symbol, conjugated);
+        this->do_row_write(write_iter, symbol, conjugated);
 
         return outputStruct;
     }
 
     matlab::data::StructArray SymbolTableExporter::export_table(const size_t from_symbol) const {
-        matlab::data::ArrayFactory factory;
-
-
         // Advance to first new symbol (if necessary)
         auto symbolIter = this->symbols.begin();
         if (from_symbol > 0) {
@@ -163,7 +156,7 @@ namespace Moment::mex {
                             "Unexpectedly many sequences in export_symbol_table_struct.");
             }
 
-            this->do_row_write(factory, write_iter, symbol, std::nullopt);
+            this->do_row_write(write_iter, symbol, std::nullopt);
 
             ++write_iter;
             ++symbolIter;
@@ -186,7 +179,6 @@ namespace Moment::mex {
         }
 
         // Construct structure array
-        matlab::data::ArrayFactory factory;
         matlab::data::ArrayDimensions array_dims{shape.begin(), shape.end()};
         auto outputStruct = factory.createStructArray(std::move(array_dims), column_names(include_conjugates));
 
@@ -202,11 +194,11 @@ namespace Moment::mex {
         for (size_t index = 0; index < expected_length; ++index) {
             const auto symbol_id = symbol_ids[index];
             if ((symbol_id < 0) || (symbol_id >= this->symbols.size())) {
-                this->do_missing_row_write(factory, write_iter, include_conjugates);
+                this->do_missing_row_write(write_iter, include_conjugates);
             } else {
                 const auto &symbolInfo = this->symbols[symbol_id];
                 const auto conjugated = is_conjugated(index);
-                this->do_row_write(factory, write_iter, symbolInfo, conjugated);
+                this->do_row_write(write_iter, symbolInfo, conjugated);
             }
             ++write_iter;
         }
@@ -214,8 +206,7 @@ namespace Moment::mex {
         return outputStruct;
     }
 
-    void SymbolTableExporter::do_row_write(matlab::data::ArrayFactory& factory,
-                                           matlab::data::StructArray::iterator& write_iter,
+    void SymbolTableExporter::do_row_write(matlab::data::StructArray::iterator& write_iter,
                                            const Symbol &symbol, std::optional<bool> conjugated) const {
 
         (*write_iter)["symbol"] = factory.createScalar<int64_t>(static_cast<int64_t>(symbol.Id()));
@@ -256,8 +247,7 @@ namespace Moment::mex {
     }
 
 
-    void SymbolTableExporter::do_missing_row_write(matlab::data::ArrayFactory& factory,
-                                                   matlab::data::StructArray::iterator& write_iter,
+    void SymbolTableExporter::do_missing_row_write(matlab::data::StructArray::iterator& write_iter,
                                                    const bool include_conj) const {
 
         (*write_iter)["symbol"] = factory.createScalar<int64_t>(-1);

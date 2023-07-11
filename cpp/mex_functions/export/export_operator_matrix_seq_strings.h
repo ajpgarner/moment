@@ -42,9 +42,12 @@ namespace Moment::mex {
         const Inflation::InflationMatrixSystem* imsPtr = nullptr;
 
     public:
-        explicit SequenceStringMatrixExporter(matlab::engine::MATLABEngine& engine, const MatrixSystem& system) noexcept;
+        explicit SequenceStringMatrixExporter(matlab::engine::MATLABEngine& engine,
+                                              matlab::data::ArrayFactory& factory,
+                                              const MatrixSystem& system) noexcept;
 
         explicit SequenceStringMatrixExporter(matlab::engine::MATLABEngine& engine,
+                                              matlab::data::ArrayFactory& factory,
                                               const Locality::LocalityMatrixSystem& system,
                                               const Locality::LocalityOperatorFormatter& localityFormatter) noexcept;
 

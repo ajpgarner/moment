@@ -520,17 +520,19 @@ namespace Moment::mex {
 
 
 
-    SequenceStringMatrixExporter::SequenceStringMatrixExporter(matlab::engine::MATLABEngine &engine,
+    SequenceStringMatrixExporter::SequenceStringMatrixExporter(matlab::engine::MATLABEngine& engine,
+                                                               matlab::data::ArrayFactory& factory,
                                                                const MatrixSystem &system) noexcept
-       : Exporter{engine}, system{system}, localityFormatterPtr{nullptr} {
+       : Exporter{engine, factory}, system{system}, localityFormatterPtr{nullptr} {
         this->localityContextPtr = nullptr; // Without formatter, do not use locality context.
         this->imsPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
     }
 
-    SequenceStringMatrixExporter::SequenceStringMatrixExporter(matlab::engine::MATLABEngine &engine,
+    SequenceStringMatrixExporter::SequenceStringMatrixExporter(matlab::engine::MATLABEngine& engine,
+                                                               matlab::data::ArrayFactory& factory,
                                                                const Locality::LocalityMatrixSystem& locality_system,
                                                                const Locality::LocalityOperatorFormatter &localityFormatter) noexcept
-        : Exporter{engine}, system{locality_system}, localityFormatterPtr{&localityFormatter} {
+        : Exporter{engine, factory}, system{locality_system}, localityFormatterPtr{&localityFormatter} {
             this->localityContextPtr = &locality_system.localityContext;
     }
 

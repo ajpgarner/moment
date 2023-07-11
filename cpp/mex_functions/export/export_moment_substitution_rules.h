@@ -37,7 +37,7 @@ namespace Moment::mex {
     };
 
 
-    class MomentSubstitutionRuleExporter : public Exporter {
+    class MomentSubstitutionRuleExporter : public ExporterWithFactory {
     private:
         const SymbolTable& symbols;
         const double zero_tolerance;
@@ -48,8 +48,8 @@ namespace Moment::mex {
         explicit MomentSubstitutionRuleExporter(matlab::engine::MATLABEngine &engine, const SymbolTable& symbols,
                                                 const double zero_tolerance,
                                                 RuleStringFormatOptions rsfo = RuleStringFormatOptions{}) noexcept
-                : Exporter{engine}, symbols{symbols}, zero_tolerance{zero_tolerance},
-                  polynomial_exporter{engine, symbols, zero_tolerance},
+                : ExporterWithFactory{engine}, symbols{symbols}, zero_tolerance{zero_tolerance},
+                  polynomial_exporter{engine, factory, symbols, zero_tolerance},
                   string_format_options{rsfo} { }
 
         matlab::data::CellArray operator()(const MomentRulebook &rules) {
@@ -68,14 +68,11 @@ namespace Moment::mex {
 
 
     private:
-        matlab::data::CellArray write_rule(matlab::data::ArrayFactory& factory,
-                                           const MomentRule& rule);
+        matlab::data::CellArray write_rule(const MomentRule& rule);
 
-        matlab::data::MATLABString write_rule_string_as_operator(matlab::data::ArrayFactory& factory,
-                                                                 const MomentRule& rule);
+        matlab::data::MATLABString write_rule_string_as_operator(const MomentRule& rule);
 
-        matlab::data::MATLABString write_rule_string_as_symbol(matlab::data::ArrayFactory& factory,
-                                                               const MomentRule& rule);
+        matlab::data::MATLABString write_rule_string_as_symbol(const MomentRule& rule);
 
 
     };

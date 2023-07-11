@@ -29,9 +29,8 @@ namespace Moment {
     class SymbolTable;
 
     namespace mex {
-        class ProbabilityTensorExporter : public Exporter {
+        class ProbabilityTensorExporter : public ExporterWithFactory {
         public:
-            mutable matlab::data::ArrayFactory factory;
             const Context& context;
             const SymbolTable& symbol_table;
             const PolynomialFactory& polyFactory;

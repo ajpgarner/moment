@@ -28,49 +28,6 @@
 namespace Moment::mex {
 
     namespace {
-        template<typename read_iter_t, typename write_iter_t, typename export_functor_t>
-        void do_export(matlab::engine::MATLABEngine& engine, matlab::data::ArrayFactory& factory,
-                       read_iter_t read_iter, const read_iter_t read_iter_end,
-                       write_iter_t write_iter, const write_iter_t write_iter_end,
-                       const export_functor_t& elem_writer) {
-
-
-            while ((read_iter != read_iter_end) && (write_iter != write_iter_end)) {
-                *write_iter = elem_writer(*read_iter);
-                ++read_iter;
-                ++write_iter;
-            }
-
-            // Sanity checks
-            if (read_iter != read_iter_end) {
-                throw_error(engine, errors::internal_error,
-                            "Unexpectedly encountered end of write before end of read.");
-            }
-            if (write_iter != write_iter_end) {
-                throw_error(engine, errors::internal_error,
-                            "Unexpectedly encountered end of read before end of write.");
-            };
-        }
-
-        template<typename matrix_t>
-        matlab::data::StringArray do_export_symbol_strings(matlab::engine::MATLABEngine& engine,
-                                                           matlab::data::ArrayFactory& factory,
-                                                           const matrix_t& matrix) {
-
-            auto output = factory.createArray<matlab::data::MATLABString>(
-                OperatorMatrixExporter::matrix_dimensions(matrix)
-            );
-
-            auto readIter = matrix.SymbolMatrix().ColumnMajor.begin();
-            const auto readIterEnd = matrix.SymbolMatrix().ColumnMajor.end();
-            auto writeIter = output.begin();
-            const auto writeIterEnd = output.end();
-
-            do_export(engine, factory, readIter, readIterEnd, writeIter, writeIterEnd, WriteSymbolStringFunctor{});
-
-            return output;
-        }
-
         class WriteSymbolStringFunctor {
         public:
             matlab::data::MATLABString operator()(const Polynomial& poly) const {
@@ -93,7 +50,8 @@ namespace Moment::mex {
                     matlab::data::ArrayFactory& factory,
                     const SymbolTable& symbol_table,
                     const double zero_tolerance)
-                : factory{factory}, symbol_table{symbol_table}, polyExporter{engine, symbol_table, zero_tolerance} { }
+                : factory{factory}, symbol_table{symbol_table},
+                   polyExporter{engine, factory, symbol_table, zero_tolerance} { }
 
             matlab::data::CellArray
             operator()(const Monomial& monomial) const {
@@ -103,20 +61,16 @@ namespace Moment::mex {
 
             matlab::data::CellArray
             operator()(const Polynomial& polynomial) const {
-                auto constituents = polyExporter.sequences(this->factory, polynomial, true);
+                auto constituents = polyExporter.sequences(polynomial, true);
                 return constituents.move_to_cell(factory);
             }
         };
 
-
         template<typename matrix_t>
-        matlab::data::CellArray do_export_polynomials(matlab::engine::MATLABEngine& engine,
-                                                      matlab::data::ArrayFactory& factory,
-                                                      const SymbolTable& symbol_table,
-                                                      const double zero_tolerance,
+        matlab::data::CellArray do_export_polynomials(const OperatorMatrixExporter& exporter,
                                                       const matrix_t& matrix) {
 
-            auto output = factory.createCellArray(
+            auto output = exporter.factory.createCellArray(
                     OperatorMatrixExporter::matrix_dimensions(matrix)
             );
 
@@ -125,23 +79,45 @@ namespace Moment::mex {
             auto writeIter = output.begin();
             const auto writeIterEnd = output.end();
 
-            do_export(engine, factory, readIter, readIterEnd, writeIter, writeIterEnd,
-                      WritePolyDataFunctor{engine, factory, symbol_table, zero_tolerance});
+            exporter.do_write(readIter, readIterEnd, writeIter, writeIterEnd,
+                              WritePolyDataFunctor{exporter.engine, exporter.factory,
+                                                   exporter.symbol_table, exporter.zero_tolerance});
 
             return output;
         }
+
+        template<typename matrix_t>
+        matlab::data::StringArray do_export_symbol_strings(const OperatorMatrixExporter& exporter,
+                                                           const matrix_t& matrix) {
+
+            auto output = exporter.factory.createArray<matlab::data::MATLABString>(
+                    OperatorMatrixExporter::matrix_dimensions(matrix)
+            );
+
+            auto readIter = matrix.SymbolMatrix().ColumnMajor.begin();
+            const auto readIterEnd = matrix.SymbolMatrix().ColumnMajor.end();
+            auto writeIter = output.begin();
+            const auto writeIterEnd = output.end();
+
+            exporter.do_write(readIter, readIterEnd, writeIter, writeIterEnd, WriteSymbolStringFunctor{});
+
+            return output;
+        }
+
     }
 
     OperatorMatrixExporter::OperatorMatrixExporter(matlab::engine::MATLABEngine &engine, const MatrixSystem &system)
-        : Exporter{engine}, system{system}, context{system.Context()}, symbol_table{system.Symbols()},
-          sequence_string_exporter{engine, system} {
+        : ExporterWithFactory{engine}, system{system}, context{system.Context()}, symbol_table{system.Symbols()},
+          zero_tolerance{system.polynomial_factory().zero_tolerance},
+          sequence_string_exporter{engine, factory, system} {
     }
 
     OperatorMatrixExporter::OperatorMatrixExporter(matlab::engine::MATLABEngine &engine,
                                                    const Locality::LocalityMatrixSystem &locality_system,
                                                    const Locality::LocalityOperatorFormatter &localityFormatter)
-            : Exporter{engine}, system{locality_system}, context{system.Context()}, symbol_table{system.Symbols()},
-              sequence_string_exporter{engine, locality_system, localityFormatter} {
+            : ExporterWithFactory{engine}, system{locality_system}, context{system.Context()}, symbol_table{system.Symbols()},
+              zero_tolerance{system.polynomial_factory().zero_tolerance},
+              sequence_string_exporter{engine, factory, locality_system, localityFormatter} {
 
     }
 
@@ -178,9 +154,8 @@ namespace Moment::mex {
 
         auto write_iter = output.full_write_begin();
         const auto write_iter_end = output.full_write_end();
-        do_export(this->engine, this->factory,
-                  read_iter, read_iter_end, write_iter, write_iter_end,
-                  FullMonomialSpecification::FullWriteFunctor{this->factory, this->symbol_table});
+        this->do_write(read_iter, read_iter_end, write_iter, write_iter_end,
+                       FullMonomialSpecification::FullWriteFunctor{this->factory, this->symbol_table});
 
         return output;
     }
@@ -191,13 +166,9 @@ namespace Moment::mex {
 
     matlab::data::CellArray OperatorMatrixExporter::polynomials(const Matrix &matrix) const {
         if (matrix.is_monomial()) {
-            return do_export_polynomials(this->engine, this->factory, this->symbol_table,
-                                         this->system.polynomial_factory().zero_tolerance,
-                                         dynamic_cast<const MonomialMatrix&>(matrix));
+            return do_export_polynomials(*this, dynamic_cast<const MonomialMatrix&>(matrix));
         } else {
-            return do_export_polynomials(this->engine, this->factory, this->symbol_table,
-                                         this->system.polynomial_factory().zero_tolerance,
-                                         dynamic_cast<const PolynomialMatrix&>(matrix));
+            return do_export_polynomials(*this, dynamic_cast<const PolynomialMatrix&>(matrix));
         }
     }
 
@@ -211,11 +182,9 @@ namespace Moment::mex {
 
     matlab::data::StringArray OperatorMatrixExporter::symbol_strings(const Matrix &matrix) const {
         if (matrix.is_monomial()) {
-            return do_export_symbol_strings(this->engine, this->factory,
-                                            dynamic_cast<const MonomialMatrix&>(matrix));
+            return do_export_symbol_strings(*this, dynamic_cast<const MonomialMatrix&>(matrix));
         } else {
-            return do_export_symbol_strings(this->engine, this->factory,
-                                            dynamic_cast<const PolynomialMatrix&>(matrix));
+            return do_export_symbol_strings(*this, dynamic_cast<const PolynomialMatrix&>(matrix));
         }
     }
 

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "MatlabDataArray.hpp"
+
 namespace matlab::engine {
     class MATLABEngine;
 }
@@ -14,12 +16,14 @@ namespace matlab::engine {
 namespace Moment::mex {
 
     class Exporter {
-    protected:
-        matlab::engine::MATLABEngine& engine;
     public:
-        explicit Exporter(matlab::engine::MATLABEngine& engine) noexcept : engine{engine} { }
+        matlab::engine::MATLABEngine& engine;
+        matlab::data::ArrayFactory& factory;
 
-    protected:
+        explicit Exporter(matlab::engine::MATLABEngine& engine,
+                          matlab::data::ArrayFactory& factory) noexcept : engine{engine}, factory{factory} { }
+
+    public:
         template<typename read_iter_t, typename write_iter_t, typename functor_t>
         void do_write(read_iter_t read_iter, const read_iter_t read_iter_end,
                       write_iter_t write_iter, const write_iter_t write_iter_end,
@@ -37,11 +41,22 @@ namespace Moment::mex {
             }
         }
 
-    protected:
+    private:
         [[noreturn]] void report_too_small_output() const;
 
         [[noreturn]] void report_too_small_input() const;
 
     };
+
+    class ExporterWithFactory : public Exporter {
+    private:
+        mutable matlab::data::ArrayFactory own_factory{};
+
+    public:
+        explicit ExporterWithFactory(matlab::engine::MATLABEngine& engine)
+            : Exporter{engine, own_factory} { }
+
+    };
+
 
 }

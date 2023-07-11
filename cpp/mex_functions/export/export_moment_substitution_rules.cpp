@@ -21,11 +21,10 @@
 namespace Moment::mex {
 
     matlab::data::CellArray MomentSubstitutionRuleExporter::as_symbol_cell(const MomentRulebook &rules) {
-        matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({rules.size(), 1});
         auto write_iter = output.begin();
         for (const auto& rule : rules) {
-            *write_iter = this->write_rule(factory, rule.second);
+            *write_iter = this->write_rule( rule.second);
             ++write_iter;
         }
         return output;
@@ -33,12 +32,11 @@ namespace Moment::mex {
 
     matlab::data::CellArray
     MomentSubstitutionRuleExporter::as_polynomials(const Moment::MomentRulebook &rules) {
-        matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({rules.size(), 1});
         auto write_iter = output.begin();
         for (const auto& rule : rules) {
             auto polynomial = rule.second.as_polynomial(rules.factory);
-            auto poly_data = this->polynomial_exporter.sequences(factory, polynomial, true);
+            auto poly_data = this->polynomial_exporter.sequences(polynomial, true);
             *write_iter = poly_data.move_to_cell(factory);
             ++write_iter;
         }
@@ -46,17 +44,16 @@ namespace Moment::mex {
     }
 
     matlab::data::StringArray MomentSubstitutionRuleExporter::as_string(const MomentRulebook &rules) {
-        matlab::data::ArrayFactory factory;
         auto output = factory.createArray<matlab::data::MATLABString>({rules.size(), 1});
         auto write_iter = output.begin();
         if (string_format_options.as_operators) {
             for (const auto &rule: rules) {
-                *write_iter = this->write_rule_string_as_operator(factory, rule.second);
+                *write_iter = this->write_rule_string_as_operator(rule.second);
                 ++write_iter;
             }
         } else {
             for (const auto &rule: rules) {
-                *write_iter = this->write_rule_string_as_symbol(factory, rule.second);
+                *write_iter = this->write_rule_string_as_symbol(rule.second);
                 ++write_iter;
             }
         }
@@ -64,8 +61,7 @@ namespace Moment::mex {
     }
 
 
-    matlab::data::CellArray MomentSubstitutionRuleExporter::write_rule(matlab::data::ArrayFactory &factory,
-                                                                       const MomentRule &rule) {
+    matlab::data::CellArray MomentSubstitutionRuleExporter::write_rule(const MomentRule &rule) {
         auto output = factory.createCellArray({1, 2});
 
         output[0] = factory.createScalar(static_cast<uint64_t>(rule.LHS()));
@@ -75,8 +71,7 @@ namespace Moment::mex {
     }
 
     matlab::data::MATLABString
-    MomentSubstitutionRuleExporter::write_rule_string_as_operator(matlab::data::ArrayFactory &factory,
-                                                                  const MomentRule &rule) {
+    MomentSubstitutionRuleExporter::write_rule_string_as_operator(const MomentRule &rule) {
         std::stringstream ruleSS;
         if (rule.LHS() < this->symbols.size()) {
             const auto& symbolInfo= this->symbols[rule.LHS()];
@@ -100,8 +95,7 @@ namespace Moment::mex {
     }
 
     matlab::data::MATLABString
-    MomentSubstitutionRuleExporter::write_rule_string_as_symbol(matlab::data::ArrayFactory &factory,
-                                                                const MomentRule &rule) {
+    MomentSubstitutionRuleExporter::write_rule_string_as_symbol(const MomentRule &rule) {
         std::stringstream ruleSS;
         ruleSS << "#" << rule.LHS() << "  ->  " << rule.RHS();
         return UTF8toUTF16Convertor{}(ruleSS.str());
@@ -111,7 +105,6 @@ namespace Moment::mex {
         MomentRulebookToBasis mrtb{this->symbols, this->polynomial_exporter.zero_tolerance,
                                    MomentRulebookToBasis::ExportMode::Rewrite};
         auto eigen_sparse_matrix = mrtb(rulebook);
-        matlab::data::ArrayFactory factory;
         return export_eigen_sparse(this->engine, factory, eigen_sparse_matrix);
     }
 
@@ -119,7 +112,6 @@ namespace Moment::mex {
         MomentRulebookToBasis mrtb{this->symbols, this->polynomial_exporter.zero_tolerance,
                                    MomentRulebookToBasis::ExportMode::Homogeneous};
         auto eigen_sparse_matrix = mrtb(rulebook);
-        matlab::data::ArrayFactory factory;
         return export_eigen_sparse(this->engine, factory, eigen_sparse_matrix);
     }
 

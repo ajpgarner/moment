@@ -151,21 +151,19 @@ namespace Moment::mex::functions {
         }
 
         matlab::data::ArrayFactory mlfactory;
+        PolynomialExporter polynomialExporter{this->matlabEngine, mlfactory, symbols, factory.zero_tolerance};
 
         switch (input.output_format) {
             case ApplyMomentRulesParams::OutputFormat::SymbolCell: {
-                PolynomialExporter polynomialExporter{this->matlabEngine, symbols, factory.zero_tolerance};
                 output[0] = polynomialExporter.symbol_cell(polynomial);
             }
                 break;
             case ApplyMomentRulesParams::OutputFormat::Polynomial: {
-                PolynomialExporter polynomialExporter{this->matlabEngine, symbols, factory.zero_tolerance};
                 auto fullPolyInfo = polynomialExporter.sequences(polynomial);
                 output[0] = fullPolyInfo.move_to_cell(mlfactory);
             }
                 break;
             case ApplyMomentRulesParams::OutputFormat::PolynomialWithSymbolInfo:{
-                PolynomialExporter polynomialExporter{this->matlabEngine, symbols, factory.zero_tolerance};
                 auto fullPolyInfo = polynomialExporter.sequences(polynomial, true);
                 output[0] = fullPolyInfo.move_to_cell(mlfactory);
             }

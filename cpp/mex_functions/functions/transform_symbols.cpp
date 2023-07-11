@@ -145,7 +145,7 @@ namespace Moment::mex::functions {
                 }();
                 break;
             case TransformSymbolsParams::OutputType::Basis: {
-                PolynomialExporter pe{this->matlabEngine, matrixSystem.Symbols(),
+                PolynomialExporter pe{this->matlabEngine, factory, matrixSystem.Symbols(),
                                       matrixSystem.polynomial_factory().zero_tolerance};
                 auto [re_part, im_part] = pe.basis(output_combo);
                 if (output.size() >= 1) {

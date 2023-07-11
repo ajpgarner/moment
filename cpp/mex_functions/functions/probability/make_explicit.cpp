@@ -177,7 +177,9 @@ namespace Moment::mex::functions {
         }
 
         // Export rule polynomials
-        PolynomialExporter exporter{this->matlabEngine, matrixSystem.Symbols(),
+        matlab::data::ArrayFactory factory;
+        PolynomialExporter exporter{this->matlabEngine, factory,
+                                    matrixSystem.Symbols(),
                                     matrixSystem.polynomial_factory().zero_tolerance};
         switch (input.output_type) {
             case MakeExplicitParams::OutputType::SymbolCell:

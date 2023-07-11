@@ -102,7 +102,7 @@ namespace Moment::mex {
 
     CollinsGisinExporter::CollinsGisinExporter(matlab::engine::MATLABEngine &engine,
                                                const Context &context, const SymbolTable &symbols)
-            : Exporter{engine}, context{context}, symbols{symbols} { }
+            : ExporterWithFactory{engine}, context{context}, symbols{symbols} { }
 
 
     std::pair<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<int64_t>>

@@ -20,11 +20,11 @@ namespace Moment {
 
 namespace Moment::mex {
 
-    class BasisKeyExporter : public Exporter {
+    class BasisKeyExporter : public ExporterWithFactory {
     public:
 
         BasisKeyExporter(matlab::engine::MATLABEngine &engine)
-            : Exporter{engine} { }
+            : ExporterWithFactory{engine} { }
 
         /**
          * Outputs as list of symbols associated with a matrix, and their corresponding real and imaginary indices.

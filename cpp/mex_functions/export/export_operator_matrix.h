@@ -32,16 +32,15 @@ namespace Moment {
 
 namespace Moment::mex {
 
-    class OperatorMatrixExporter : public Exporter {
-    private:
+    class OperatorMatrixExporter : public ExporterWithFactory {
+    public:
         const MatrixSystem& system;
         const Context& context;
         const SymbolTable& symbol_table;
+        const double zero_tolerance;
 
         SequenceStringMatrixExporter sequence_string_exporter;
 
-    public:
-        mutable matlab::data::ArrayFactory factory{};
 
     public:
         OperatorMatrixExporter(matlab::engine::MATLABEngine& engine, const MatrixSystem& system);

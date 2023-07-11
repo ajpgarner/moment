@@ -37,8 +37,7 @@ namespace Moment::mex {
         };
     }
 
-    matlab::data::CellArray PolynomialExporter::symbol_cell(matlab::data::ArrayFactory& factory,
-                                                            const Polynomial &combo) const {
+    matlab::data::CellArray PolynomialExporter::symbol_cell(const Polynomial &combo) const {
 
         auto output = factory.createCellArray({1, combo.size()});
         auto write_iter = output.begin();
@@ -61,8 +60,7 @@ namespace Moment::mex {
 
 
     FullMonomialSpecification
-    PolynomialExporter::sequences(matlab::data::ArrayFactory& factory,
-                                  const Moment::Polynomial& polynomial, bool include_symbols) const {
+    PolynomialExporter::sequences(const Moment::Polynomial& polynomial, bool include_symbols) const {
 
         FullMonomialSpecification output{factory, polynomial.size(), include_symbols};
 
@@ -118,12 +116,11 @@ namespace Moment::mex {
     }
 
     matlab::data::CellArray PolynomialExporter::symbol_cell_vector(std::span<const Polynomial> poly_list) const {
-        matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({poly_list.size(), 1});
 
         auto write_iter = output.begin();
         for (const auto& poly : poly_list) {
-            (*write_iter) = this->symbol_cell(factory, poly);
+            (*write_iter) = this->symbol_cell(poly);
             ++write_iter;
         }
 
@@ -132,12 +129,11 @@ namespace Moment::mex {
 
     matlab::data::CellArray
     PolynomialExporter::sequence_cell_vector(std::span<const Polynomial> poly_list, bool include_symbols) const {
-        matlab::data::ArrayFactory factory;
         auto output = factory.createCellArray({poly_list.size(), 1});
 
         auto write_iter = output.begin();
         for (const auto& poly : poly_list) {
-            auto poly_spec = this->sequences(factory, poly, include_symbols);
+            auto poly_spec = this->sequences(poly, include_symbols);
             (*write_iter) = poly_spec.move_to_cell(factory);
             ++write_iter;
         }

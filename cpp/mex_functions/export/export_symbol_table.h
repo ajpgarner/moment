@@ -37,7 +37,7 @@ namespace Moment {
 namespace Moment::mex {
     class EnvironmentalVariables;
 
-    class SymbolTableExporter : public Exporter {
+    class SymbolTableExporter : public ExporterWithFactory {
     public:
         const EnvironmentalVariables& env;
         const MatrixSystem& system;
@@ -77,12 +77,10 @@ namespace Moment::mex {
         }
 
     private:
-        void do_row_write(matlab::data::ArrayFactory& factory,
-                          matlab::data::StructArray::iterator& write_iter,
+        void do_row_write(matlab::data::StructArray::iterator& write_iter,
                           const Symbol& symbol_info, std::optional<bool> conjugated) const;
 
-        void do_missing_row_write(matlab::data::ArrayFactory& factory,
-                                  matlab::data::StructArray::iterator& write_iter, bool include_conj) const;
+        void do_missing_row_write(matlab::data::StructArray::iterator& write_iter, bool include_conj) const;
 
     };
 

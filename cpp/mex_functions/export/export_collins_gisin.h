@@ -25,9 +25,8 @@ namespace Moment {
     }
 
     namespace mex {
-        class CollinsGisinExporter : Exporter {
+        class CollinsGisinExporter : public ExporterWithFactory {
         public:
-            mutable matlab::data::ArrayFactory factory;
             const Context& context;
             const SymbolTable& symbols;
 

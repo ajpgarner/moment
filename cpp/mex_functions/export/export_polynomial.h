@@ -32,9 +32,10 @@ namespace Moment::mex {
         const SymbolTable& symbols;
         const double zero_tolerance;
 
-        explicit PolynomialExporter(matlab::engine::MATLABEngine& engine, const SymbolTable& symbols,
+        explicit PolynomialExporter(matlab::engine::MATLABEngine& engine, matlab::data::ArrayFactory& factory,
+                                    const SymbolTable& symbols,
                                     const double zero_tolerance) noexcept
-                    : Exporter{engine}, symbols{symbols}, zero_tolerance{zero_tolerance} { }
+                    : Exporter{engine, factory}, symbols{symbols}, zero_tolerance{zero_tolerance} { }
 
         /**
          * Export combo in basis form: the complex coefficients sdpvars a & b would need multiplying by.
@@ -49,17 +50,7 @@ namespace Moment::mex {
          * @param combo The combo to export.
          * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
          */
-        [[nodiscard]] matlab::data::CellArray symbol_cell(matlab::data::ArrayFactory& factory,
-                                                          const Polynomial& combo) const;
-        /**
-         * Export polynomial directly as a cell array.
-         * @param combo The combo to export.
-         * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
-         */
-        [[nodiscard]] inline matlab::data::CellArray symbol_cell(const Polynomial& poly) const {
-            matlab::data::ArrayFactory factory;
-            return symbol_cell(factory, poly);
-        }
+        [[nodiscard]] matlab::data::CellArray symbol_cell(const Polynomial& combo) const;
 
         /**
          * Export vector of polynomials as a vector of cell arrays.
@@ -76,21 +67,8 @@ namespace Moment::mex {
          * @param include_symbols True to also include symbol IDs and real/imaginary basis elements.
          */
         [[nodiscard]] FullMonomialSpecification
-        sequences(matlab::data::ArrayFactory& factory,
-                  const Polynomial& polynomial,
+        sequences(const Polynomial& polynomial,
                   bool include_symbols = false) const;
-
-        /**
-         * Export polynomial in terms of its constituent operator sequences, their hashes and weights.
-         * Error if symbol not defined!
-         * @param polynomial The polynomial to export.
-         * @param include_symbols True to also include symbol IDs and real/imaginary basis elements.
-         */
-        [[nodiscard]] inline FullMonomialSpecification
-        sequences(const Polynomial& polynomial, bool include_symbols = false) const {
-            matlab::data::ArrayFactory factory;
-            return sequences(factory, polynomial, include_symbols);
-        }
 
         /**
         * Export vector of polynomials as a vector of cell array full specifications

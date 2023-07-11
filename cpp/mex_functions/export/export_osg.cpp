@@ -37,8 +37,8 @@ namespace Moment::mex {
         const size_t element_count = osg.size();
         FullMonomialSpecification monomial{factory, element_count, false};
 
-        do_write(osg.begin(), osg.end(),
-                 monomial.partial_write_begin(), monomial.partial_write_end(),
+        this->do_write(osg.begin(), osg.end(),
+                       monomial.partial_write_begin(), monomial.partial_write_end(),
                        FullMonomialSpecification::PartialWriteFunctor{this->factory, this->symbols});
 
         monomial.move_to_output(output);
@@ -49,9 +49,9 @@ namespace Moment::mex {
         FullMonomialSpecification monomial{factory, element_count, true};
 
         try {
-            do_write(osg.begin(), osg.end(),
-                     monomial.full_write_begin(), monomial.full_write_end(),
-                     FullMonomialSpecification::FullWriteFunctor{this->factory, this->symbols});
+            this->do_write(osg.begin(), osg.end(),
+                           monomial.full_write_begin(), monomial.full_write_end(),
+                           FullMonomialSpecification::FullWriteFunctor{this->factory, this->symbols});
 
         } catch (const FullMonomialSpecification::missing_symbol_error& mse) {
             throw_error(this->engine, errors::internal_error, std::string("Cannot export word list: ") + mse.what());

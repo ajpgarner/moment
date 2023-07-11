@@ -17,14 +17,13 @@ namespace Moment {
 }
 
 namespace Moment::mex {
-    class OSGExporter : public Exporter {
-    private:
-        mutable matlab::data::ArrayFactory factory;
+    class OSGExporter : public ExporterWithFactory {
+    public:
         const SymbolTable& symbols;
 
     public:
         explicit OSGExporter(matlab::engine::MATLABEngine& engine, const SymbolTable& symbols)
-            : Exporter{engine}, symbols{symbols} { }
+            : ExporterWithFactory{engine}, symbols{symbols} { }
 
         matlab::data::CellArray operators(const OperatorSequenceGenerator& osg, bool offset = true) const;
 
