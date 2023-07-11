@@ -1,5 +1,6 @@
 function str = makeObjectName(obj)
-%MAKEOBJECTNAME Get name of matrix...
-    str = "Unknown matrix.";
+    str = mtk('operator_matrix', 'name', ...
+              obj.Scenario.System.RefId, ...
+              obj.Index);
+        
 end
-

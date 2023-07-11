@@ -57,6 +57,7 @@ add_executable(moment_tests
         utilities/alphabetic_namer_tests.cpp
         utilities/combination_tests.cpp
         utilities/dynamic_bitset_tests.cpp
+        utilities/first_intersection_tests.cpp
         utilities/float_utils_tests.cpp
         utilities/index_tree_tests.cpp
         utilities/ipow_tests.cpp

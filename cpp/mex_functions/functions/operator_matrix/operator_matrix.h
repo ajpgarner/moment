@@ -24,22 +24,30 @@ namespace Moment::mex::functions  {
     public:
         uint64_t storage_key = 0;
 
+        /**
+         * How should matrix be output.
+         * NB: Modes should be given in alphabetic order (particularly as defined as flags).
+         */
         enum class OutputMode {
             /** Unknown output */
             Unknown = 0,
-            /** Output index and dimension of matrix */
-            Properties,
-            /** Output matrix of string symbol names. */
-            SymbolStrings,
-            /** Output matrix of string representation of operator sequences. */
-            SequenceStrings,
             /** Output basis indices and masks associated with matrix. */
             Masks,
             /** Output monomial specification. */
             Monomial,
+            /** Output name of matrix */
+            Name,
             /** Output polynomial specification. */
-            Polynomial
+            Polynomial,
+            /** Output index and dimension of matrix */
+            Properties,
+            /** Output matrix of string representation of operator sequences. */
+            SequenceStrings,
+            /** Output matrix of string symbol names. */
+            SymbolStrings
         } output_mode = OutputMode::Properties;
+
+        static const NameSet output_mode_names;
 
     public:
         explicit OperatorMatrixParams(SortedInputs&& inputs) : SortedInputs(std::move(inputs)) { }
@@ -127,19 +135,16 @@ namespace Moment::mex::functions  {
             this->min_outputs = 1;
             this->max_outputs = 7;
 
-            this->flag_names.emplace(u"sequence_string");
-            this->flag_names.emplace(u"symbol_string");
-            this->flag_names.emplace(u"properties");
-            this->flag_names.emplace(u"monomial");
-            this->flag_names.emplace(u"polynomial");
-            this->flag_names.emplace(u"masks");
+            for (const auto& mode_str : OperatorMatrixParams::output_mode_names) {
+                this->flag_names.emplace_hint(this->flag_names.end(), mode_str);
+            }
+
 
             this->param_names.emplace(u"reference_id");
             this->param_names.emplace(u"index");
 
-            // Output mutex
-            this->mutex_params.add_mutex({u"sequence_string", u"symbol_string", u"properties",
-                                          u"monomial", u"polynomial", u"masks"});
+            // Output type mutex
+            this->mutex_params.add_mutex(OperatorMatrixParams::output_mode_names);
 
             // Either [sys ref, matrix ID] or named version thereof.
             this->min_inputs = 0;

@@ -172,24 +172,6 @@ namespace Moment::mex {
 
     }
 
-    matlab::data::StringArray OperatorMatrixExporter::symbol_strings(const Matrix &matrix) const {
-        if (matrix.is_monomial()) {
-            return do_export_symbol_strings(this->engine, this->factory,
-                                            dynamic_cast<const MonomialMatrix&>(matrix));
-        } else {
-            return do_export_symbol_strings(this->engine, this->factory,
-                                            dynamic_cast<const PolynomialMatrix&>(matrix));
-        }
-    }
-
-    matlab::data::StringArray OperatorMatrixExporter::sequence_strings(const Matrix &matrix) const {
-        if (matrix.is_monomial()) {
-            return this->sequence_string_exporter(dynamic_cast<const MonomialMatrix&>(matrix));
-        } else {
-            return this->sequence_string_exporter(dynamic_cast<const PolynomialMatrix&>(matrix));
-        }
-    }
-
     FullMonomialSpecification OperatorMatrixExporter::monomials(const MonomialMatrix &matrix) const {
         FullMonomialSpecification output{this->factory, OperatorMatrixExporter::matrix_dimensions(matrix), true};
 
@@ -213,6 +195,10 @@ namespace Moment::mex {
         return output;
     }
 
+    matlab::data::StringArray OperatorMatrixExporter::name(const Matrix &matrix) const {
+        return this->factory.createScalar(matrix.Description());
+    }
+
     matlab::data::CellArray OperatorMatrixExporter::polynomials(const Matrix &matrix) const {
         if (matrix.is_monomial()) {
             return do_export_polynomials(this->engine, this->factory, this->symbol_table,
@@ -222,6 +208,24 @@ namespace Moment::mex {
             return do_export_polynomials(this->engine, this->factory, this->symbol_table,
                                          this->system.polynomial_factory().zero_tolerance,
                                          dynamic_cast<const PolynomialMatrix&>(matrix));
+        }
+    }
+
+    matlab::data::StringArray OperatorMatrixExporter::sequence_strings(const Matrix &matrix) const {
+        if (matrix.is_monomial()) {
+            return this->sequence_string_exporter(dynamic_cast<const MonomialMatrix&>(matrix));
+        } else {
+            return this->sequence_string_exporter(dynamic_cast<const PolynomialMatrix&>(matrix));
+        }
+    }
+
+    matlab::data::StringArray OperatorMatrixExporter::symbol_strings(const Matrix &matrix) const {
+        if (matrix.is_monomial()) {
+            return do_export_symbol_strings(this->engine, this->factory,
+                                            dynamic_cast<const MonomialMatrix&>(matrix));
+        } else {
+            return do_export_symbol_strings(this->engine, this->factory,
+                                            dynamic_cast<const PolynomialMatrix&>(matrix));
         }
     }
 

@@ -48,11 +48,21 @@ namespace Moment::mex {
                                const Locality::LocalityOperatorFormatter &localityFormatter);
 
         /**
-         * Export matrix as symbol strings.
+         * Export matrix as monomials.
+         */
+        [[nodiscard]] FullMonomialSpecification monomials(const MonomialMatrix& matrix) const;
+
+        /**
+         * Export matrix name.
          * @param matrix The matrix object.
          * @return A matlab string array.
          */
-        [[nodiscard]] matlab::data::StringArray symbol_strings(const Matrix &matrix) const;
+        [[nodiscard]] matlab::data::StringArray name(const Matrix &matrix) const;
+
+        /**
+         * Export matrix as cell array of polynomials, completely defined by monomial constituents.
+         */
+        [[nodiscard]] matlab::data::CellArray polynomials(const Matrix& matrix) const;
 
         /**
           * Outputs a matrix of operator sequences, as a matlab string matrix.
@@ -62,15 +72,11 @@ namespace Moment::mex {
         [[nodiscard]] matlab::data::StringArray sequence_strings(const Matrix& matrix) const;
 
         /**
-         * Export matrix as monomials.
+         * Export matrix as symbol strings.
+         * @param matrix The matrix object.
+         * @return A matlab string array.
          */
-        [[nodiscard]] FullMonomialSpecification monomials(const MonomialMatrix& matrix) const;
-
-        /**
-         * Export matrix as cell array of polynomials, completely defined by monomial constituents.
-         */
-        [[nodiscard]] matlab::data::CellArray polynomials(const Matrix& matrix) const;
-
+        [[nodiscard]] matlab::data::StringArray symbol_strings(const Matrix &matrix) const;
 
     public:
         /**

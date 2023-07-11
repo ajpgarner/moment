@@ -53,18 +53,16 @@ namespace Moment::mex::functions  {
         }
     }
 
+    const NameSet OperatorMatrixParams::output_mode_names{u"masks", u"monomial", u"name", u"properties",
+                                                           u"polynomial", u"sequence_string",
+                                                           u"symbol_string"};
+
     void OperatorMatrixParams::parse() {
         // Determine output mode:
-        if (this->flags.contains(u"sequence_string")) {
-            this->output_mode = OutputMode::SequenceStrings;
-        } else if (this->flags.contains(u"symbol_string")) {
-            this->output_mode = OutputMode::SymbolStrings;
-        } else if (this->flags.contains(u"monomial")) {
-            this->output_mode = OutputMode::Monomial;
-        } else if (this->flags.contains(u"polynomial")) {
-            this->output_mode = OutputMode::Polynomial;
-        } else if (this->flags.contains(u"masks")) {
-            this->output_mode = OutputMode::Masks;
+        auto output_index = this->get_index_of_matched_flag(OperatorMatrixParams::output_mode_names);
+
+        if (output_index.has_value()) {
+            this->output_mode = static_cast<OutputMode>(output_index.value()+1); // 0 = unknown.
         } else {
             this->output_mode = OutputMode::Properties;
         }
@@ -149,6 +147,7 @@ namespace Moment::mex::functions  {
                                 "At most three outputs should be provided for properties");
                 }
                 break;
+            case OperatorMatrixParams::OutputMode::Name:
             case OperatorMatrixParams::OutputMode::SequenceStrings:
             case OperatorMatrixParams::OutputMode::SymbolStrings:
                 if (outputs > 1) {
@@ -207,23 +206,11 @@ namespace Moment::mex::functions  {
 
             // Do export
             switch (input.output_mode) {
-                case OperatorMatrixParams::OutputMode::SymbolStrings:
-                    output[0] = exporter.symbol_strings(theMatrix);
+
+                case OperatorMatrixParams::OutputMode::Masks:
+                    export_masks(this->omvb_matlabEngine, output, matrixSystem, theMatrix);
                     break;
-                case OperatorMatrixParams::OutputMode::SequenceStrings:
-                    output[0] = exporter.sequence_strings(theMatrix);
-                    break;
-                case OperatorMatrixParams::OutputMode::Properties: {
-                    matlab::data::ArrayFactory factory;
-                    output[0] = factory.createScalar<uint64_t>(matIndexPair.first);
-                    if (output.size() >= 2) {
-                        output[1] = factory.createScalar<uint64_t>(theMatrix.Dimension());
-                    }
-                    if (output.size() >= 3) {
-                        output[2] = factory.createScalar<bool>(theMatrix.is_monomial());
-                    }
-                }
-                    break;
+
                 case OperatorMatrixParams::OutputMode::Monomial: {
                     if (!theMatrix.is_monomial()) {
                         throw_error(omvb_matlabEngine, errors::bad_param,
@@ -238,12 +225,35 @@ namespace Moment::mex::functions  {
 
                 }
                     break;
+
+                case OperatorMatrixParams::OutputMode::Name:
+                    output[0] = exporter.name(theMatrix);
+                    break;
+
+                case OperatorMatrixParams::OutputMode::Properties: {
+                    matlab::data::ArrayFactory factory;
+                    output[0] = factory.createScalar<uint64_t>(matIndexPair.first);
+                    if (output.size() >= 2) {
+                        output[1] = factory.createScalar<uint64_t>(theMatrix.Dimension());
+                    }
+                    if (output.size() >= 3) {
+                        output[2] = factory.createScalar<bool>(theMatrix.is_monomial());
+                    }
+                }
+                    break;
+
                 case OperatorMatrixParams::OutputMode::Polynomial:
                     output[0] = exporter.polynomials(theMatrix);
                     break;
-                case OperatorMatrixParams::OutputMode::Masks:
-                    export_masks(this->omvb_matlabEngine, output, matrixSystem, theMatrix);
+
+                case OperatorMatrixParams::OutputMode::SequenceStrings:
+                    output[0] = exporter.sequence_strings(theMatrix);
                     break;
+
+                case OperatorMatrixParams::OutputMode::SymbolStrings:
+                    output[0] = exporter.symbol_strings(theMatrix);
+                    break;
+
                 default:
                 case OperatorMatrixParams::OutputMode::Unknown:
                     throw_error(omvb_matlabEngine, errors::internal_error, "Unknown output mode!");

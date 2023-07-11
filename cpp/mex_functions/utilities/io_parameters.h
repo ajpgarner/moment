@@ -47,6 +47,11 @@ namespace Moment::mex {
         void add_mutex(std::initializer_list<ParamNameStr>&& list);
 
         /**
+         * Register a set of parameters as mutually exclusive
+         */
+        void add_mutex(const NameSet& mutex_list);
+
+        /**
          * Detects if a set of flags and parameters violates any mutual exclusions.
          * @param flags The set of flags
          * @param params The set of named parameters
@@ -130,9 +135,13 @@ namespace Moment::mex {
 
         virtual ~SortedInputs() = default;
 
-        matlab::data::Array& find_or_throw(const ParamNameStr& paramName);
+        [[nodiscard]] matlab::data::Array& find_or_throw(const ParamNameStr& paramName);
+
+        [[nodiscard]] std::optional<size_t> get_index_of_matched_flag(const NameSet& matches) const;
 
         [[nodiscard]] virtual std::string to_string() const;
+
+
 
     };
 

@@ -7,6 +7,7 @@
 
 #include "utilities/reflection.h"
 
+#include "utilities/first_intersection_index.h"
 #include "utilities/utf_conversion.h"
 
 #include "io_parameters.h"
@@ -126,6 +127,25 @@ namespace Moment::mex {
         }
     }
 
+    void MutuallyExclusiveParams::add_mutex(const NameSet& list) {
+        // Do nothing, if not at least two entries in list
+        if (list.size() < 2) {
+            return;
+        }
+
+        // Triangle-iteration, registering every pair
+        auto firstIter = list.begin();
+        while (firstIter != list.end()) {
+            auto secondIter = firstIter;
+            ++secondIter;
+            while (secondIter != list.end()) {
+                this->add_mutex(*firstIter, *secondIter);
+                ++secondIter;
+            }
+            ++firstIter;
+        }
+    }
+
     matlab::data::Array& SortedInputs::find_or_throw(const ParamNameStr& paramName) {
         auto param_iter = this->params.find(paramName);
         if (param_iter == this->params.end()) {
@@ -136,6 +156,12 @@ namespace Moment::mex {
         }
         return param_iter->second;
     }
+
+
+    std::optional<size_t> SortedInputs::get_index_of_matched_flag(const NameSet &matches) const {
+        return first_intersection_index(this->flags.begin(), this->flags.end(), matches.begin(), matches.end());
+    }
+
 
     std::string SortedInputs::to_string() const {
         std::stringstream ss;
@@ -172,7 +198,6 @@ namespace Moment::mex {
 
         return ss.str();
     }
-
 
 
 }
