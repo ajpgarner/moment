@@ -57,35 +57,33 @@ classdef AlgebraicScenario < MTKScenario
 
             % Check and parse optional arguments            
             rules = cell(1,0);
-            is_hermitian = true;
-            interleave = true;
             is_normal = true;
-            tolerance = 100.0;
-            
+                        
             if numel(varargin) == 1
                 rules = varargin{1};
+                options = cell.empty(1,0);
             else
                 param_names = ["rules", "hermitian", "interleave", ...
                                "normal", "tolerance"];
                 options = Util.check_varargin_keys(param_names, varargin);
+                exclude_mask = false(size(options));
                 for idx = 1:2:numel(varargin)
                     switch varargin{idx}
                         case 'rules'
                             rules = varargin{idx+1};
-                        case 'hermitian'
-                            is_hermitian = logical(varargin{idx+1});
-                        case 'interleave'
-                            interleave = logical(varargin{idx+1});
+                            exclude_mask(idx:(idx+1)) = true;
                         case 'normal'
                             is_normal = logical(varargin{idx+1});
-                        case 'tolerance'
-                            tolerance = double(varargin{idx+1});
+                            exclude_mask(idx:(idx+1)) = true;
                     end
+                end
+                if any(exclude_mask)
+                    options = options(~exclude_mask);
                 end
             end
 
             % Call superclass c'tor
-            obj = obj@MTKScenario(tolerance, is_hermitian, interleave);
+            obj = obj@MTKScenario(options{:});
             
             % Process operator input
             if isnumeric(operators) && isscalar(operators)
@@ -103,19 +101,19 @@ classdef AlgebraicScenario < MTKScenario
                       +"operator names.");
             end
             
-            % Default to normal, except if non-Hermitian
-            if is_hermitian && ~is_normal
+            % Default to normal, except if non-Hermitian, get interleave.
+            if obj.IsHermitian && ~is_normal
                 error("Hermitian operators must be normal.");
             end
+            interleave = true;
+            if ~obj.IsHermitian
+                interleave = obj.Interleave;
+            end
             
-            obj.IsHermitian = is_hermitian;
-            obj.Interleave = interleave;
-            
-            if isa(rules, 'Algebraic.OperatorRulebook')
+            if isa(rules, 'Algebraic.OperatorRulebook')              
                 % Check for consistency
                 assert(rules.Hermitian == obj.IsHermitian);
-                assert(rules.Interleave == obj.Interleave);
-                %assert(rules.Normal == obj.IsNormal);
+                assert(rules.Interleave == interleave);
                 assert(rules.MaxOperators == obj.OperatorCount);
       
                 % Copy construct existing rulebook
@@ -124,7 +122,8 @@ classdef AlgebraicScenario < MTKScenario
                 % Otherwise construct new rulebook
                 obj.OperatorRulebook = ...
                     Algebraic.OperatorRulebook(operators, rules, ...
-                                              is_hermitian, interleave, ...
+                                              obj.IsHermitian, ...
+                                              interleave, ...
                                               is_normal);
             end
         end
@@ -139,12 +138,13 @@ classdef AlgebraicScenario < MTKScenario
                 ops_arg = obj.OperatorNames;
             end
             
-            % Make copy
-            val = AlgebraicScenario(ops_arg, obj.OperatorRulebook, ...
-                                    obj.IsHermitian, obj.Interleave, ...
-                                    obj.IsNormal);
-            val.ZeroTolerance = obj.ZeroTolerance;
-            
+            % Make deep copy:
+            val = AlgebraicScenario(ops_arg, ...
+                                    'rules', obj.OperatorRulebook, ...
+                                    'hermitian', obj.IsHermitian, ...
+                                    'interleave', obj.Interleave, ...
+                                    'normal', obj.IsNormal, ...
+                                    'tolerance', obj.ZeroTolerance);
         end
     end
     

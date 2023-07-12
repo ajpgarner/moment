@@ -80,6 +80,9 @@ namespace Moment::Tests {
             im(7, 0) = std::complex(0.0, 1.0); // (1,2) -> 2*3+1=7 (col major!)
             im(5, 0) = std::complex(0.0, -1.0); // (2,1) -> 1*3+2=5 (col major!)
 
+            real = real.transpose().eval();
+            im = im.transpose().eval();
+
             return output;
         }
 
@@ -102,26 +105,26 @@ namespace Moment::Tests {
 
         std::pair<sparse_real_elem_t, sparse_complex_elem_t> reference_sparse_monolithic() {
             std::pair<sparse_real_elem_t , sparse_complex_elem_t> output
-                = std::make_pair(sparse_real_elem_t(9,6), sparse_complex_elem_t(9,1));
+                = std::make_pair(sparse_real_elem_t(6, 9), sparse_complex_elem_t(1,9));
 
             auto& real = output.first;
             real.setZero();
             real.insert(0, 0) = 1.0;
             real.insert(1, 1) = 1.0;
-            real.insert(3, 1) = 1.0;
+            real.insert(1, 3) = 1.0;
             real.insert(2, 2) = 1.0;
-            real.insert(6, 2) = 1.0;
-            real.insert(4, 3) = 1.0;
-            real.insert(5, 4) = 1.0;
-            real.insert(7, 4) = 1.0;
-            real.insert(8, 5) = 1.0;
+            real.insert(2, 6) = 1.0;
+            real.insert(3, 4) = 1.0;
+            real.insert(4, 5) = 1.0;
+            real.insert(4, 7) = 1.0;
+            real.insert(5, 8) = 1.0;
             real.makeCompressed();
 
 
             auto& im = output.second;
             im.setZero();
-            im.insert(5, 0) = std::complex(0.0, -1.0); // (2,1) -> 1*3+2=5 (col major!)
-            im.insert(7, 0) = std::complex(0.0, 1.0); // (1,2) -> 2*3+1=7 (col major!)
+            im.insert(0, 5) = std::complex(0.0, -1.0); // (2,1) -> 1*3+2=5 (col major!)
+            im.insert(0, 7) = std::complex(0.0, 1.0); // (1,2) -> 2*3+1=7 (col major!)
             im.makeCompressed();
 
             return output;
@@ -150,20 +153,20 @@ namespace Moment::Tests {
 
         std::pair<dense_complex_elem_t, dense_complex_elem_t> reference_dense_monolithic_complex() {
             std:std::pair<dense_complex_elem_t, dense_complex_elem_t> output
-                = std::make_pair(dense_complex_elem_t::Zero(4, 6), dense_complex_elem_t::Zero(4, 1));
+                = std::make_pair(dense_complex_elem_t::Zero(6, 4), dense_complex_elem_t::Zero(1, 4));
 
             auto& real = output.first;
             auto& im = output.second;
 
             real(0, 0) = 1.0;
 
-            real(3, 1) = 1.0; // a
+            real(1, 3) = 1.0; // a
 
-            real(1, 4) = std::complex(1.0, -1.0); // 4*=ab*
-            real(2, 4) = std::complex(1.0, 1.0); // 4= ab
+            real(4, 1) = std::complex(1.0, -1.0); // 4*=ab*
+            real(4, 2) = std::complex(1.0, 1.0); // 4= ab
 
-            im(1, 0) = std::complex(-1.0, -1.0);
-            im(2, 0) = std::complex(-1.0, 1.0);
+            im(0, 1) = std::complex(-1.0, -1.0);
+            im(0, 2) = std::complex(-1.0, 1.0);
 
             return output;
         }
@@ -187,21 +190,21 @@ namespace Moment::Tests {
 
         std::pair<sparse_complex_elem_t, sparse_complex_elem_t> reference_sparse_monolithic_complex() {
             std::pair<sparse_complex_elem_t , sparse_complex_elem_t> output
-                    = std::make_pair(sparse_complex_elem_t(4,6), sparse_complex_elem_t(4,1));
+                    = std::make_pair(sparse_complex_elem_t(6, 4), sparse_complex_elem_t(1, 4));
 
             auto& real = output.first;
             real.setZero();
             real.insert(0, 0) = 1.0;
-            real.insert(3, 1) = 1.0;
-            real.insert(1, 4) = std::complex(1.0, -1.0);
-            real.insert(2, 4) = std::complex(1.0, 1.0);
+            real.insert(1, 3) = 1.0;
+            real.insert(4, 1) = std::complex(1.0, -1.0);
+            real.insert(4, 2) = std::complex(1.0, 1.0);
             real.makeCompressed();
 
 
             auto& im = output.second;
             im.setZero();
-            im.insert(1, 0) = std::complex(-1.0, -1.0);
-            im.insert(2, 0) = std::complex(-1.0, 1.0);
+            im.insert(0, 1) = std::complex(-1.0, -1.0);
+            im.insert(0, 2) = std::complex(-1.0, 1.0);
             im.makeCompressed();
 
             return output;
@@ -294,10 +297,10 @@ namespace Moment::Tests {
         // Check sparse basis
         ASSERT_NE(mm_id, lmA_id);
         const auto& [real, imaginary] = lmA_0.Basis.SparseMonolithic();
-        ASSERT_EQ(real.cols(), 6);
-        ASSERT_EQ(real.rows(), 1);
+        ASSERT_EQ(real.cols(), 1);
+        ASSERT_EQ(real.rows(), 6);
         EXPECT_EQ(real.nonZeros(), 1);
-        EXPECT_EQ(real.coeff(0, 1), 1.0);
+        EXPECT_EQ(real.coeff(1, 0), 1.0);
 
         ASSERT_EQ(imaginary.cols(), 1);
         ASSERT_EQ(imaginary.rows(), 1);

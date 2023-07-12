@@ -98,19 +98,15 @@ classdef LocalityScenario < MTKScenario
             % Process optional parameters, if any            
             zero_tolerance = 100;
             if opt_idx <= nargin
-                options = Util.check_varargin_keys(...
-                    ["zero_tolerance"], ...
-                    varargin(opt_idx:end));
-                for idx = 1:2:numel(options)
-                    switch options{idx}
-                        case 'zero_tolerance'
-                            zero_tolerance = double(options{idx+1});
-                    end
-                end
+                options = Util.check_varargin_keys(["tolerance"], ...
+                                                   varargin(opt_idx:end));
+            else
+                options = cell(1,0);
             end
-           
+            options = [options, "hermitian", true];
+            
             % Superclass c'tor
-            obj = obj@MTKScenario(zero_tolerance, true, true);
+            obj = obj@MTKScenario(options{:});
                         
             % Create parties, as supplied
             obj.Parties = Locality.Party.empty(1,0);

@@ -19,42 +19,59 @@ classdef ImportedScenario < MTKScenario
         
     %% Construction and initialization
     methods
-        function obj = ImportedScenario(all_real)
+        function obj = ImportedScenario(varargin)
         % IMPORTEDSCENARIO Construct an empty scenario, ready for import.
         %
         % PARAMS
         %   all_real - True if every definable symbol in the system is real.
         %
-        arguments
-            all_real (1,1) logical = false
-        end
         
-        if nargin == 0
-        	all_real = false;
-        end
+            % Default parameters
+            all_real = false;
+        
+            % Validate parameters
+            options = Util.check_varargin_keys(...
+                        ["all_real", "zero_tolerance"], varargin);
+            prune_mask = false(size(options));
+            for o = 1:2:numel(options)
+                switch options{o}
+                    case "all_real"
+                        prune_mask(o) = true;
+                        prune_mask(o+1) = true;
+                        all_real = logical(options{o+1});
+                end
+            end
+            
+            % Remove processed parameters, and add new ones
+            if any(prune_mask)
+                options = options(~prune_mask);
+            end                        
+            options = [options, "defines_operators", false];
             
             % Superclass c'tor
-            obj = obj@MTKScenario();
+            obj = obj@MTKScenario(options{:});
             
             % Set whether all symbols are real or not
-            obj.Real = logical(all_real);            
+            obj.Real = all_real;
         end
     end
     
     %% Virtual methods
-    methods(Access={?MTKScenario,?MTKMatrixSystem})
-        
+    methods(Access={?MTKScenario,?MTKMatrixSystem})        
         function ref_id = createNewMatrixSystem(obj)
         % CREATENEWMATRIXSYSTEM Invoke mtk to create imported matrix system.
-            arguments
-                obj (1,1) ImportedScenario
-            end
             cell_args = cell.empty;
             if obj.Real
                 cell_args{end+1} = 'real';
             end
             
             ref_id = mtk('imported_matrix_system', cell_args{:});
+        end
+    end
+    
+    methods(Access=protected)
+        function val = operatorCount(obj)
+            error(MTKScenario.err_no_ops, class(obj));
         end
     end
     
@@ -94,12 +111,7 @@ classdef ImportedScenario < MTKScenario
         %   imported matrix.
         %
         % See also: OpMatrix.OperatorMatrix
-            arguments
-                obj (1,1) ImportedScenario
-                input
-                matrix_type 
-            end
-            cell_args = cell.empty;
+        
             
             % Validate input
             if nargin < 2
@@ -113,33 +125,33 @@ classdef ImportedScenario < MTKScenario
                 error("Input must be a square matrix.");
             end
             
-            % Validate matrix type
+            % Validate matrix type                       
             if nargin >= 3
                 matrix_type = lower(char(matrix_type));
                 if ~ismember(matrix_type, ...
                             {'real', 'complex', 'symmetric', 'hermitian'})
                     error("Matrix type must be real, complex, symmetric or hermitian.");
                 end
-                cell_args{end+1} = matrix_type;
-                
+                t_args = {matrix_type};
+            else
+                t_args  = cell.empty;
             end
-            index = mtk('import_matrix', obj.System.RefId, ...
-                                     input, cell_args{:});
+            
+            % Do import
+            [index, dim, is_mono, is_herm] = ...
+                mtk('import_matrix', obj.System.RefId, input, t_args{:});
 
-            val = OpMatrix.OperatorMatrix(obj.System, index, dimension);
+            assert(dim == dimension);
+            val = MTKOpMatrix(obj, index, dimension, is_mono, is_herm);
             
             % Update symbols, with forced reset
-            obj.System.UpdateSymbolTable(true);            
+            obj.System.UpdateSymbolTable(true);
         end
         
         function val = ImportSymmetricMatrix(obj, input)
         % IMPORTSYMMETRICMATRIX Alias for ImportMatrix with matrix_type set to 'symmetric'.
         %
         % See also: IMPORTMATRIX
-            arguments
-                obj (1,1) ImportedScenario
-                input
-            end
             val = obj.ImportMatrix(input, 'symmetric');
         end
         
@@ -147,10 +159,6 @@ classdef ImportedScenario < MTKScenario
         % IMPORTSYMMETRICMATRIX Alias for ImportMatrix with matrix_type set to 'hermitian'.
         %
         % See also: IMPORTMATRIX
-            arguments
-                obj (1,1) ImportedScenario
-                input
-            end
             val = obj.ImportMatrix(input, 'hermitian');
         end
         

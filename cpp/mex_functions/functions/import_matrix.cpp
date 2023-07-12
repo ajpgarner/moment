@@ -12,7 +12,9 @@
 
 #include "scenarios/imported/imported_matrix_system.h"
 
+#include "export/export_operator_matrix.h"
 #include "import/read_raw_symbol_matrix.h"
+
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
@@ -49,7 +51,8 @@ namespace Moment::mex::functions {
     ImportMatrix::ImportMatrix(matlab::engine::MATLABEngine &matlabEngine, Moment::mex::StorageManager &storage)
         : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = this->max_inputs = 2;
-        this->min_outputs = this->max_outputs = 1;
+        this->min_outputs = 1;
+        this->max_outputs = 4;
         this->flag_names.insert(u"hermitian");
         this->flag_names.insert(u"symmetric");
         this->flag_names.insert(u"real");
@@ -103,19 +106,17 @@ namespace Moment::mex::functions {
         auto raw_sym_mat = read_raw_symbol_matrix(this->matlabEngine, input.inputMatrix);
         assert(raw_sym_mat);
 
-        // Try import
-        size_t matrix_index;
-        try {
-            matrix_index = ims.import_matrix(std::move(raw_sym_mat),
-                                             input.matrix_is_complex, input.matrix_is_hermitian);
-        } catch (Imported::errors::bad_import_matrix& e) {
-            throw_error(this->matlabEngine, errors::bad_param, e.what());
-        }
+        // Try import:
+        auto [matrix_index, matrix] = [&]() { ;
+            try {
+                return ims.import_matrix(std::move(raw_sym_mat), input.matrix_is_complex, input.matrix_is_hermitian);
+            } catch (Imported::errors::bad_import_matrix &e) {
+                throw_error(this->matlabEngine, errors::bad_param, e.what());
+            }
+        }();
 
-        // Output created matrix ID
-        matlab::data::ArrayFactory factory;
-        if (output.size() > 0) {
-            output[0] = factory.createScalar(matrix_index);
-        }
+        // Output matrix data
+        OperatorMatrixExporter ome{this->matlabEngine, *imsPtr};
+        ome.properties(output, matrix_index, matrix);
     }
 }

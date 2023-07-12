@@ -45,11 +45,11 @@ namespace Moment::Imported {
          * @param input The input matrix.
          * @param is_complex True if some aspect of the matrix represents complex components
          * @param is_hermitian True if the matrix is self-adjoint (real symmetric, or complex Hermitian).
-         * @return The index of the newly inserted matrix.
+         * @return The index of the newly inserted matrix, and a reference to it in situ.
          * Do not call for read lock before importing matrix! System will call its own write lock.
          */
-        size_t import_matrix(std::unique_ptr<SquareMatrix<Monomial>> input,
-                             bool is_complex, bool is_hermitian);
+        std::pair<size_t, class Matrix&>
+        import_matrix(std::unique_ptr<SquareMatrix<Monomial>> input, bool is_complex, bool is_hermitian);
 
         std::string system_type_name() const override {
             return "Imported Matrix System";

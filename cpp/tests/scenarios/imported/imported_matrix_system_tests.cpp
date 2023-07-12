@@ -36,7 +36,8 @@ namespace Moment::Tests {
                                       Monomial{4}, Monomial{5}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
-        size_t index = ims.import_matrix(std::move(raw_mat_ptr), true, false);
+
+        auto [index, matrix] = ims.import_matrix(std::move(raw_mat_ptr), true, false);
         EXPECT_EQ(index, 0);
         ASSERT_EQ(ims.size(), 1);
 
@@ -84,7 +85,7 @@ namespace Moment::Tests {
                                       Monomial{3}, Monomial{4}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
-        size_t index = ims.import_matrix(std::move(raw_mat_ptr), false, true);
+        auto [index, matrix] = ims.import_matrix(std::move(raw_mat_ptr), false, true);
         EXPECT_EQ(index, 0);
         ASSERT_EQ(ims.size(), 1);
 
@@ -127,7 +128,7 @@ namespace Moment::Tests {
                                       Monomial{3, true}, Monomial{4}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
-        size_t index = ims.import_matrix(std::move(raw_mat_ptr), true, true);
+        auto [index, matrix] = ims.import_matrix(std::move(raw_mat_ptr), true, true);
         EXPECT_EQ(index, 0);
         ASSERT_EQ(ims.size(), 1);
 
@@ -170,7 +171,7 @@ namespace Moment::Tests {
                                       Monomial{3}, Monomial{4}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
-        size_t index = ims.import_matrix(std::move(raw_mat_ptr), true, true);
+        auto [index, matrix] = ims.import_matrix(std::move(raw_mat_ptr), true, true);
         EXPECT_EQ(index, 0);
         ASSERT_EQ(ims.size(), 1);
 
@@ -213,7 +214,7 @@ namespace Moment::Tests {
                                       Monomial{-3}, Monomial{4}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
-        size_t index = ims.import_matrix(std::move(raw_mat_ptr), true, true);
+        auto [index, matrix] = ims.import_matrix(std::move(raw_mat_ptr), true, true);
         EXPECT_EQ(index, 0);
         ASSERT_EQ(ims.size(), 1);
 

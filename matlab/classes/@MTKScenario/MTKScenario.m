@@ -12,18 +12,22 @@ classdef (Abstract) MTKScenario < handle
     %% Public configurable properties
     properties(Access = public)        
         % The multiplier of eps(1), below which we treate numbers as zero.
-        ZeroTolerance;
-        
+        ZeroTolerance = 100;
+                
         % True if individual operators are Hermitian
-        IsHermitian;
+        IsHermitian = true;
         
         % True if operators are next to their Hermitian conjugates     
-        Interleave;        
+        Interleave = true;
     end
     
-    
+    % True if the scenario defines operators
+    properties(GetAccess = public, SetAccess = protected)
+        DefinesOperators = true;
+    end 
+        
     %% Public dependent properties
-    properties(Dependent, GetAccess = public, SetAccess = private)
+    properties(Dependent, GetAccess = public, SetAccess = private)        
         % True if a matrix system has been created in mtk.
         HasMatrixSystem
         
@@ -55,57 +59,93 @@ classdef (Abstract) MTKScenario < handle
         
         err_not_ready = ['Property "%s" is not available until a ', ...
                          'MatrixSystem has been created.'];
+                     
+        err_no_ops = "%s does not define any operators.";
     end  
     
     %% Constructor (abstract base class)
     methods(Access = protected)
-        function obj = MTKScenario(tolerance, is_hermitian, interleave)
+        function obj = MTKScenario(varargin)
         % SCENARIO Create an scenario object.
-            arguments                
-                tolerance (1,1) double
-                is_hermitian (1,1) logical
-                interleave (1,1) logical
+            
+            % Parse options
+            options = Util.check_varargin_keys(...
+                        MTKScenario.ctorArgNames(), varargin);
+            defines_operators = true;
+            zero_tolerance = 100;
+            is_hermitian = true;
+            interleave = true;
+            implies_operators = false;
+            
+            for idx = 1:2:nargin
+                switch options{idx}
+                    case 'defines_operators'
+                        defines_operators = logical(options{idx+1});
+                    case 'tolerance'
+                        zero_tolerance = double(options{idx+1});
+                    case 'is_hermitian'
+                        is_hermitian = logical(options{idx+1});
+                        implies_operators = true;
+                    case 'interleave'
+                        interleave = logical(options{idx+1});                        
+                        implies_operators = true;
+                end
             end
             
-            obj.matrix_system = MTKMatrixSystem.empty;
-            obj.ZeroTolerance = tolerance;
-            obj.IsHermitian = is_hermitian;
-            obj.Interleave = interleave;
+            if implies_operators && ~defines_operators
+                error("Cannot set 'is_hermitian' or 'interleave' flags,"...
+                    + " when no operators are defined.");
+            end
+        
             
+            obj.matrix_system = MTKMatrixSystem.empty;
+            obj.ZeroTolerance = zero_tolerance;       
+            if defines_operators
+                obj.DefinesOperators = true;
+                obj.IsHermitian = is_hermitian;
+                obj.Interleave = interleave;
+            else
+                obj.DefinesOperators = false;
+            end
+                        
+        end
+    end
+    
+    %% Help class
+    methods(Static, Access = protected)
+        function val = ctorArgNames()
+        % CTORARGNAMES List of named parameters for the constructor.
+            val = ["tolerance", "hermitian", ...
+                   "interleave", "defines_operators"];
         end
     end
     
     %% Property setters
     methods
-         function set.IsHermitian(obj, value)
-             arguments
-                obj (1,1) MTKScenario
-                value (1,1) logical
-            end
+         function set.IsHermitian(obj, value)             
+            obj.errorIfNoOperators();
             obj.errorIfLocked();
-            value = obj.onSetHermitian(obj.IsHermitian, value);
+            assert(isscalar(value));
+                        
+            value = obj.onSetHermitian(obj.IsHermitian, logical(value));
             obj.IsHermitian = value;
          end
          
-         function set.Interleave(obj, value)
-             arguments
-                obj (1,1) MTKScenario
-                value (1,1) logical
-            end
+         function set.Interleave(obj, value)             
+            obj.errorIfNoOperators();            
             obj.errorIfLocked();
-            obj.Interleave = value;
+            assert(isscalar(value));
+            
+            obj.Interleave = logical(value);
          end
          
          function set.ZeroTolerance(obj, value)
-            arguments
-                obj (1,1) MTKScenario
-                value (1,1) double
-            end
             obj.errorIfLocked();
+            assert(isscalar(value));
             if value < 0
                 error("ZeroTolerance must be non-negative.");
             end
-            obj.ZeroTolerance = value;            
+            obj.ZeroTolerance = double(value); 
          end
     end
         
@@ -113,6 +153,8 @@ classdef (Abstract) MTKScenario < handle
     %% Accessors
     methods
         function val = get.Interleave(obj)
+            obj.errorIfNoOperators();
+            
             if obj.IsHermitian
                 error("Interleave not defined when operators are Hermitian.");
             end
@@ -124,6 +166,8 @@ classdef (Abstract) MTKScenario < handle
         end
         
         function val = get.OperatorCount(obj)
+            obj.errorIfNoOperators();
+            
             if isempty(obj.matrix_system)
                 error(obj.err_not_ready, 'OperatorCount');
             end
@@ -131,6 +175,8 @@ classdef (Abstract) MTKScenario < handle
         end
         
         function val = get.RawOperatorCount(obj)
+            obj.errorIfNoOperators();
+            
             if isempty(obj.matrix_system)
                 error(obj.err_not_ready, 'RawOperatorCount');
             end
@@ -140,7 +186,9 @@ classdef (Abstract) MTKScenario < handle
             end      
         end
         
-        function val = get.OperatorNames(obj)            
+        function val = get.OperatorNames(obj)      
+            obj.errorIfNoOperators();
+            
             % Names are constantly refreshed until scenario is locked.
             if isempty(obj.operator_names) || isempty(obj.matrix_system)
                 obj.operator_names = obj.makeOperatorNames();                

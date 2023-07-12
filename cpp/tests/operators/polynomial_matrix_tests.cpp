@@ -80,27 +80,27 @@ namespace Moment::Tests {
         std::pair<dense_real_elem_t, dense_complex_elem_t>
         reference_dense_monolithic() {
             std:std::pair<dense_real_elem_t, dense_complex_elem_t> output
-                = std::make_pair(dense_real_elem_t::Zero(4, 5), dense_complex_elem_t::Zero(4, 2));
+                = std::make_pair(dense_real_elem_t::Zero(5, 4), dense_complex_elem_t::Zero(2, 4));
 
             auto& real = output.first;
             auto& im = output.second;
 
             real(0, 0) = 1.0;
 
-            real(0, 1) = -1.0;
+            real(1, 0) = -1.0;
 
-            real(1, 2) = 1.0;
+            real(2, 1) = 1.0;
             real(2, 2) = 1.0; // col maj-> 1*2+0 = 2
 
-            real(1, 3) = 2.0;
-            real(2, 3) = 2.0;
+            real(3, 1) = 2.0;
+            real(3, 2) = 2.0;
 
-            real(3, 4) = 1.0;
+            real(4, 3) = 1.0;
 
-            im(2, 0) = std::complex(0.0, 1.0);
-            im(1, 0) = std::complex(0.0, -1.0);
+            im(0, 2) = std::complex(0.0, 1.0);
+            im(0, 1) = std::complex(0.0, -1.0);
 
-            im(2, 1) = std::complex(0.0, 2.0);
+            im(1, 2) = std::complex(0.0, 2.0);
             im(1, 1) = std::complex(0.0, -2.0);
 
             return output;
@@ -125,25 +125,25 @@ namespace Moment::Tests {
 
         std::pair<sparse_real_elem_t, sparse_complex_elem_t> reference_sparse_monolithic() {
             std::pair<sparse_real_elem_t , sparse_complex_elem_t> output
-                    = std::make_pair(sparse_real_elem_t(4,5), sparse_complex_elem_t(4,2));
+                    = std::make_pair(sparse_real_elem_t(5,4), sparse_complex_elem_t(2,4));
 
             auto& real = output.first;
             real.setZero();
             real.insert(0, 0) = 1.0;
-            real.insert(0, 1) = -1.0;
-            real.insert(1, 2) = 1.0;
+            real.insert(1, 0) = -1.0;
+            real.insert(2, 1) = 1.0;
             real.insert(2, 2) = 1.0;
-            real.insert(1, 3) = 2.0;
-            real.insert(2, 3) = 2.0;
-            real.insert(3, 4) = 1.0;
+            real.insert(3, 1) = 2.0;
+            real.insert(3, 2) = 2.0;
+            real.insert(4, 3) = 1.0;
             real.makeCompressed();
 
 
             auto& im = output.second;
             im.setZero();
-            im.insert(2, 0) = std::complex(0.0, 1.0);
-            im.insert(1, 0) = std::complex(0.0, -1.0);
-            im.insert(2, 1) = std::complex(0.0, 2.0);
+            im.insert(0, 2) = std::complex(0.0, 1.0);
+            im.insert(0, 1) = std::complex(0.0, -1.0);
+            im.insert(1, 2) = std::complex(0.0, 2.0);
             im.insert(1, 1) = std::complex(0.0, -2.0);
             im.makeCompressed();
 
