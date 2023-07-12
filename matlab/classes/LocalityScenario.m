@@ -103,7 +103,7 @@ classdef LocalityScenario < MTKScenario
             else
                 options = cell(1,0);
             end
-            options = [options, "hermitian", true];
+            options = [options, {"hermitian"}, true];
             
             % Superclass c'tor
             obj = obj@MTKScenario(options{:});

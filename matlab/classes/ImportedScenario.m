@@ -46,7 +46,7 @@ classdef ImportedScenario < MTKScenario
             if any(prune_mask)
                 options = options(~prune_mask);
             end                        
-            options = [options, "defines_operators", false];
+            options = [options, {"defines_operators"}, false];
             
             % Superclass c'tor
             obj = obj@MTKScenario(options{:});

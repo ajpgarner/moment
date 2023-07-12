@@ -83,7 +83,7 @@ classdef (Abstract) MTKScenario < handle
                         defines_operators = logical(options{idx+1});
                     case 'tolerance'
                         zero_tolerance = double(options{idx+1});
-                    case 'is_hermitian'
+                    case 'hermitian'
                         is_hermitian = logical(options{idx+1});
                         implies_operators = true;
                     case 'interleave'
@@ -93,7 +93,7 @@ classdef (Abstract) MTKScenario < handle
             end
             
             if implies_operators && ~defines_operators
-                error("Cannot set 'is_hermitian' or 'interleave' flags,"...
+                error("Cannot set 'hermitian' or 'interleave' flags,"...
                     + " when no operators are defined.");
             end
         
