@@ -10,7 +10,13 @@ function mode = spliceIn(obj, indices, value)
             poly_splice_array(obj, indices, value);
         case 3
             poly_splice_broadcast(obj, indices, value);
-    end    
+    end
+    
+    % FIXME: Symbol cell / operator cell splicing
+    obj.done_sc = false;
+    obj.done_oc = false;
+    
+    
 end
 
 %% Private functions

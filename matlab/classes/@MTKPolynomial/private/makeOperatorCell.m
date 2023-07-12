@@ -1,18 +1,17 @@
 function makeOperatorCell(obj)
 %MAKEOPERATORCELL Create cell description of polynomial.
     if obj.IsScalar
-        obj.operator_cell = makeOneCell(obj.Constituents);
+        obj.operator_cell = makeOneOperatorCell(obj.Constituents);
     else
-        obj.operator_cell = cell(size(obj));
-        for idx = 1:numel(obj)
-            obj.operator_cell{idx} = makeOneCell(obj.Constituents{idx});
-        end
+        obj.operator_cell = ...
+            cellfun(@makeOneOperatorCell, obj.Constituents, ...
+                    'UniformOutput', false);
     end 
     obj.done_oc = true;
 end
 
 %% Private functions
-function val = makeOneCell(constituents)
+function val = makeOneOperatorCell(constituents)
     assert(isa(constituents, 'MTKMonomial'));
     val = cell(1, numel(constituents));
     

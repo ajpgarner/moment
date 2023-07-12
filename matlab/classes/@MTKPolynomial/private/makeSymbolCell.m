@@ -1,27 +1,35 @@
 function makeSymbolCell(obj)
+% MAKESYMBOLCELL Produce cell-array representation of polynomial.
 
     if obj.IsScalar
-        % No constituents -> {} 
-        if isempty(obj.Constituents)
-            obj.symbol_cell = cell(1,0);
-            return;
-        end
-
-        % Not yet got symbols -> error
-        if ~all([obj.Constituents.FoundSymbol])
-            error(obj.err_missing_symbol);
-        end
-
-        obj.symbol_cell = cell(1, length(obj.Constituents));
-        for idx = 1:length(obj.Constituents)
-            obj.symbol_cell{idx} = {obj.Constituents(idx).SymbolId,...
-                                    obj.Constituents(idx).Coefficient};
-            if (obj.Constituents(idx).SymbolConjugated)
-                obj.symbol_cell{idx}{end+1} = true;
-            end
-        end
-        obj.done_sc = true;
+        obj.symbol_cell = makeOneSymbolCell(obj.Constituents);
     else
-         error("Symbol cell not supported for non-scalar polynomials.");
+        obj.symbol_cell = cellfun(@makeOneSymbolCell, obj.Constituents, ...
+                                  'UniformOutput', false);
     end            
+    obj.done_sc = true;
+end
+
+%% Private functions
+function val = makeOneSymbolCell(constituents)
+    % No constituents -> {} 
+    if isempty(constituents)
+        val = cell(1,0);
+        return;
+    end
+
+    % Not yet got symbols -> error
+    if ~all([constituents.FoundSymbol])
+        error(MTKPolynomial.err_missing_symbol);
+    end
+
+    % Copy specification of polynomial
+    val = cell(1, numel(constituents));
+    for idx = 1:numel(constituents)
+        val{idx} = {constituents(idx).SymbolId, ...
+                    constituents(idx).Coefficient};
+        if constituents(idx).SymbolConjugated
+            val{idx}{end+1} = true;
+        end
+    end
 end
