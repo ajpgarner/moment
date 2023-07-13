@@ -1,5 +1,5 @@
 /**
- * matrix_system_factories.h
+ * matrix_factories.h
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner

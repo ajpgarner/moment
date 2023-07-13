@@ -1,5 +1,5 @@
 /**
- * matrix_system_factories.cpp
+ * matrix_factories.cpp
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -7,7 +7,7 @@
 
 #include "matrix_indices.h"
 #include "matrix_system.h"
-#include "matrix_system_factories.h"
+#include "matrix_factories.h"
 
 #include "matrix/matrix.h"
 #include "scenarios/context.h"

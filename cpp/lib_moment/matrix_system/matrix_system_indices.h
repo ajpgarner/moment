@@ -14,7 +14,7 @@
 #include "moment_matrix_index_storage.h"
 #include "polynomial_index_storage.h"
 
-#include "matrix_system_factories.h"
+#include "matrix_factories.h"
 
 namespace Moment {
     /**
