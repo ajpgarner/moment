@@ -159,10 +159,14 @@ namespace Moment {
             return output;
         }
 
-        Polynomial& operator*=(std::complex<double> factor) noexcept;
+        Polynomial& scale(std::complex<double> factor, double eps_multiplier = 1.0) noexcept;
+
+        Polynomial& operator*=(std::complex<double> factor) noexcept {
+            return scale(factor);
+        }
 
         [[nodiscard]] friend Polynomial operator*(Polynomial lhs, const std::complex<double> factor) noexcept {
-            lhs *= factor;
+            lhs.scale(factor);
             return lhs;
         }
 

@@ -10,6 +10,7 @@ add_executable(moment_tests
         operators/moment_matrix_tests.cpp
         operators/operator_sequence_tests.cpp
         operators/operator_sequence_generator_tests.cpp
+        operators/polynomial_localizing_matrix_tests.cpp
         operators/polynomial_matrix_tests.cpp
         scenarios/context_tests.cpp
         scenarios/dictionary_map_tests.cpp

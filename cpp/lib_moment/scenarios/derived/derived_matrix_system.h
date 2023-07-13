@@ -96,8 +96,8 @@ namespace Moment::Derived {
         createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
                                   Multithreading::MultiThreadPolicy mt_policy) override;
 
-        std::unique_ptr<struct Matrix> createNewPolyLM(WriteLock &lock, const PolynomialLMIndex &index,
-                                                       Multithreading::MultiThreadPolicy mt_policy) override;
+        std::unique_ptr<class PolynomialMatrix> createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
+                                                                 Multithreading::MultiThreadPolicy mt_policy) override;
 
     protected:
         static std::unique_ptr<class Context> make_derived_context(const MatrixSystem& source_system);

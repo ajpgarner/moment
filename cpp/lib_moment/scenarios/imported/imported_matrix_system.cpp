@@ -113,7 +113,7 @@ namespace Moment::Imported {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
-    std::unique_ptr<struct Matrix>
+    std::unique_ptr<class PolynomialMatrix>
     ImportedMatrixSystem::createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
                                           Multithreading::MultiThreadPolicy mt_policy) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};

@@ -16,6 +16,8 @@ namespace Moment {
 
     class PolynomialMatrix : public Matrix {
     public:
+        using ElementType = Polynomial;
+        using MatrixData = SquareMatrix<Polynomial>;
         class PMSymbolMatrixView {
         private:
             const PolynomialMatrix& matrix;
@@ -41,17 +43,16 @@ namespace Moment {
             const auto& operator()() const noexcept {
                 return (*(matrix.sym_exp_matrix));
             }
-
         } SymbolMatrix;
 
 
     protected:
         /** Matrix, as symbolic expression */
-        std::unique_ptr<SquareMatrix<Polynomial>> sym_exp_matrix;
+        std::unique_ptr<MatrixData> sym_exp_matrix;
 
     public:
         PolynomialMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance,
-                         std::unique_ptr<SquareMatrix<Polynomial>> symbolMatrix);
+                         std::unique_ptr<MatrixData> symbolMatrix);
 
         ~PolynomialMatrix() noexcept = default;
 
@@ -60,6 +61,13 @@ namespace Moment {
          */
         [[nodiscard]] bool is_monomial() const noexcept override {
             return false;
+        }
+
+        /**
+         * Gets pointer to raw data
+         */
+        const Polynomial* raw_data() const noexcept {
+            return this->sym_exp_matrix->raw();
         }
 
         /**

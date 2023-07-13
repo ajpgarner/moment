@@ -142,7 +142,7 @@ namespace Moment::Derived {
     }
 
 
-    std::unique_ptr<struct Matrix>
+    std::unique_ptr<class PolynomialMatrix>
     DerivedMatrixSystem::createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
                                          Multithreading::MultiThreadPolicy mt_policy) {
         throw std::runtime_error{"DerivedMatrixSystem::createNewPolyLM not yet implemented."};

@@ -20,6 +20,7 @@
 namespace Moment {
 
     class Matrix;
+    class PolynomialMatrix;
     class MatrixSystem;
 
     using MatrixSystemWriteLock = std::unique_lock<std::shared_mutex>;
@@ -83,10 +84,10 @@ namespace Moment {
     public:
         explicit PolynomialLocalizingMatrixFactory(MatrixSystem& system) : system{system} {}
 
-        [[nodiscard]] std::pair<ptrdiff_t, Matrix&>
+        [[nodiscard]] std::pair<ptrdiff_t, PolynomialMatrix&>
         operator()(MatrixSystemWriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const Index& index, Matrix& matrix);
+        void notify(const Index& index, PolynomialMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const PolynomialLMIndex& pmi) const;
 
@@ -115,7 +116,5 @@ namespace Moment {
 
         [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
     };
-
-
 
 }

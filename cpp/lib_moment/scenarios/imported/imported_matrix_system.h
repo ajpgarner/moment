@@ -63,8 +63,8 @@ namespace Moment::Imported {
         createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
                                   Multithreading::MultiThreadPolicy mt_policy) override;
 
-        std::unique_ptr<struct Matrix>
-        createNewPolyLM(WriteLock &lock, const PolynomialLMIndex &index,
+        std::unique_ptr<class PolynomialMatrix>
+        createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
                         Multithreading::MultiThreadPolicy mt_policy) override;
 
     };

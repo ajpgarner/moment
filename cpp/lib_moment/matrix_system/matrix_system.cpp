@@ -6,19 +6,22 @@
  */
 #include "matrix_system.h"
 
+#include "polynomial_index_storage.h"
+
+#include "dictionary/dictionary.h"
+
 #include "matrix/operator_matrix/localizing_matrix.h"
 #include "matrix/operator_matrix/moment_matrix.h"
+#include "matrix/polynomial_localizing_matrix.h"
 #include "matrix/substituted_matrix.h"
+
+#include "scenarios/context.h"
 
 #include "symbolic/polynomial.h"
 #include "symbolic/polynomial_factory.h"
-#include "polynomial_index_storage.h"
 #include "symbolic/symbol_table.h"
 
 #include "symbolic/rules/moment_rulebook.h"
-
-#include "scenarios/context.h"
-#include "dictionary/dictionary.h"
 
 #include <algorithm>
 #include <memory>
@@ -97,21 +100,23 @@ namespace Moment {
         return std::make_unique<MonomialMatrix>(*this->symbol_table, std::move(operator_matrix));
     }
 
-    std::unique_ptr<class Matrix>
+    std::unique_ptr<class PolynomialMatrix>
     MatrixSystem::createNewPolyLM(MaintainsMutex::WriteLock &lock,
                                   const PolynomialLMIndex &index, Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
 
         // First ensure constituent parts exist
-        std::vector<std::pair<ptrdiff_t, std::complex<double>>> constituentIndices;
-        constituentIndices.reserve(index.Polynomial.size());
+        PolynomialLocalizingMatrix::Constituents constituents;
+        constituents.reserve(index.Polynomial.size());
         for (auto [mono_index, factor] : index.MonomialIndices(*this->symbol_table)) {
             auto [mono_offset, mono_matrix] = this->LocalizingMatrix.create(lock, mono_index, mt_policy);
-            constituentIndices.emplace_back(mono_offset, factor);
+            constituents.emplace_back(&mono_matrix, factor);
         }
 
-        // TODO
-        throw std::runtime_error{"MatrixSystem::createNewPolyLM not implemented."};
+        // Synthesize into polynomial matrix
+        return std::make_unique<class PolynomialLocalizingMatrix>(*this->context, *this->symbol_table,
+                                                                  *this->poly_factory,
+                                                                  PolynomialLMIndex{index}, std::move(constituents));
     }
 
     bool MatrixSystem::generate_dictionary(const size_t word_length) {

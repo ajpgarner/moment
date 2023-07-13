@@ -24,6 +24,8 @@ namespace Moment {
      */
     class MonomialMatrix : public Matrix {
     public:
+        using ElementType = Monomial;
+
         class MMSymbolMatrixView {
         private:
             const MonomialMatrix& matrix;
@@ -71,6 +73,12 @@ namespace Moment {
          */
         void renumerate_bases(const SymbolTable& symbols, double zero_tolerance) final;
 
+        /**
+         * Gets pointer to raw data
+         */
+        const Monomial* raw_data() const noexcept {
+            return this->sym_exp_matrix->raw();
+        }
 
     protected:
 

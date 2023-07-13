@@ -17,6 +17,10 @@
 #include "matrix_factories.h"
 
 namespace Moment {
+
+    class Matrix;
+    class PolynomialMatrix;
+
     /**
      * Stores moment matrices by integer hierarchy depth.
      */
@@ -30,7 +34,7 @@ namespace Moment {
     /**
      * Stores polynomial localizing matrices by polynomial and integer hierarchy depth.
      */
-    using PolynomialLMIndices = MatrixIndices<Matrix, PolynomialLMIndex, PolynomialIndexStorage,
+    using PolynomialLMIndices = MatrixIndices<PolynomialMatrix, PolynomialLMIndex, PolynomialIndexStorage,
                                               PolynomialLocalizingMatrixFactory>;
 
     /**

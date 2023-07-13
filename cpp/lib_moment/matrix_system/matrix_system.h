@@ -218,8 +218,8 @@ namespace Moment {
          * @param mt_policy Is multithreaded creation used?
          * @return Owning pointer of new localizing matrix.
          */
-        virtual std::unique_ptr<class Matrix>
-        createNewPolyLM(WriteLock& lock, const PolynomialLMIndex& index,
+        virtual std::unique_ptr<class PolynomialMatrix>
+        createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex& index,
                         Multithreading::MultiThreadPolicy mt_policy);
 
 
@@ -243,7 +243,7 @@ namespace Moment {
          * @param lmi The hierarchy Level and word that describes the localizing matrix.
          * @param lm The newly generated localizing matrix.
          */
-        virtual void onNewPolyLMCreated(const PolynomialLMIndex& lmi, const class Matrix& lm) { }
+        virtual void onNewPolyLMCreated(const PolynomialLMIndex& lmi, const class PolynomialMatrix& plm) { }
 
        /**
         * Virtual method, called after a substituted matrix is generated.

@@ -121,13 +121,13 @@ namespace Moment {
     }
 
 
-    Polynomial& Polynomial::operator*=(const std::complex<double> factor) noexcept {
-        if (approximately_zero(factor)) {
+    Polynomial& Polynomial::scale(const std::complex<double> factor, double eps_multiplier) noexcept {
+        if (approximately_zero(factor, eps_multiplier)) {
             this->data.clear();
             return *this;
         }
 
-        if (approximately_equal(factor, 1.0)) {
+        if (approximately_equal(factor, 1.0, eps_multiplier)) {
             return *this;
         }
 

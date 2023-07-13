@@ -176,6 +176,9 @@ namespace Moment {
         /** Gets the end of the column-major iterator over matrix data. */
         constexpr iterator end() noexcept { return this->data.end(); }
 
+        /** Gets raw data */
+        const element_t * raw() const noexcept { return this->data.data(); }
+
         /**
          * Create new square matrix with this matrix as the principle submatrix.
          * @param padding The number of 'zeros' to pad with

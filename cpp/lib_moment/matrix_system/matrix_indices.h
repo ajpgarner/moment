@@ -165,6 +165,10 @@ namespace Moment {
             return this->indices.find(index);
         }
 
+        [[nodiscard]] inline bool contains(const index_t& index) const noexcept {
+            return this->indices.contains(index);
+        }
+
 
         [[nodiscard]] inline const MatrixType& operator()(const index_t& index) const {
             return this->find(index);
