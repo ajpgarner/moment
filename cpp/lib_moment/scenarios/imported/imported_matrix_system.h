@@ -57,11 +57,15 @@ namespace Moment::Imported {
 
     protected:
         std::unique_ptr<class Matrix>
-        createNewMomentMatrix(size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
+        createNewMomentMatrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
 
         std::unique_ptr<class Matrix>
-        createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi,
+        createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
                                   Multithreading::MultiThreadPolicy mt_policy) override;
+
+        std::unique_ptr<struct Matrix>
+        createNewPolyLM(WriteLock &lock, const PolynomialLMIndex &index,
+                        Multithreading::MultiThreadPolicy mt_policy) override;
 
     };
 

@@ -18,6 +18,8 @@ add_library(lib_moment
         matrix/substituted_matrix.cpp
         matrix_system/matrix_system.cpp
         matrix_system/matrix_system_factories.cpp
+        matrix_system/polynomial_index_storage.cpp
+        matrix_system/polynomial_localizing_matrix_index.cpp
         probability/collins_gisin.cpp
         probability/maintains_tensors.cpp
         probability/probability_tensor.cpp
@@ -68,7 +70,6 @@ add_library(lib_moment
         symbolic/polynomial_factory.cpp
         symbolic/polynomial_to_basis.cpp
         symbolic/polynomial_to_basis_mask.cpp
-        matrix_system/polynomial_index_storage.cpp
         symbolic/symbol.cpp
         symbolic/symbol_table.cpp
         symbolic/symbol_tools.cpp

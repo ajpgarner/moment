@@ -103,13 +103,19 @@ namespace Moment::Imported {
     }
 
     std::unique_ptr<class Matrix>
-    ImportedMatrixSystem::createNewMomentMatrix(size_t level, Multithreading::MultiThreadPolicy mt_policy) {
+    ImportedMatrixSystem::createNewMomentMatrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
     std::unique_ptr<class Matrix>
-    ImportedMatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi,
+    ImportedMatrixSystem::createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
                                                     Multithreading::MultiThreadPolicy mt_policy) {
+        throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
+    }
+
+    std::unique_ptr<struct Matrix>
+    ImportedMatrixSystem::createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
+                                          Multithreading::MultiThreadPolicy mt_policy) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
@@ -186,4 +192,5 @@ namespace Moment::Imported {
         size_t index = this->push_back(std::move(matPr));
         return {index, matRef};
     }
+
 }

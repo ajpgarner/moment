@@ -22,6 +22,8 @@ namespace Moment {
     class Matrix;
     class MatrixSystem;
 
+    using MatrixSystemWriteLock = std::unique_lock<std::shared_mutex>;
+
     /**
      * Factory: makes moment matrices
      */
@@ -35,7 +37,8 @@ namespace Moment {
     public:
         explicit MomentMatrixFactory(MatrixSystem& system) : system{system} {}
 
-        [[nodiscard]] std::pair<ptrdiff_t, Matrix&> operator()(Index level, Multithreading::MultiThreadPolicy mt_policy);
+        [[nodiscard]] std::pair<ptrdiff_t, Matrix&>
+        operator()(MatrixSystemWriteLock& lock, Index level, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(size_t index, Matrix& matrix);
 
@@ -57,8 +60,8 @@ namespace Moment {
     public:
         explicit LocalizingMatrixFactory(MatrixSystem& system) : system{system} {}
 
-        [[nodiscard]] std::pair<ptrdiff_t, Matrix&> operator()(const Index& index,
-                                                               Multithreading::MultiThreadPolicy mt_policy);
+        [[nodiscard]] std::pair<ptrdiff_t, Matrix&>
+        operator()(MatrixSystemWriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(const Index& lmi, Matrix& matrix);
 
@@ -80,8 +83,8 @@ namespace Moment {
     public:
         explicit PolynomialLocalizingMatrixFactory(MatrixSystem& system) : system{system} {}
 
-        [[nodiscard]] std::pair<ptrdiff_t, Matrix&> operator()(const Index& index,
-                                                               Multithreading::MultiThreadPolicy mt_policy);
+        [[nodiscard]] std::pair<ptrdiff_t, Matrix&>
+        operator()(MatrixSystemWriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(const Index& index, Matrix& matrix);
 
@@ -103,8 +106,8 @@ namespace Moment {
     public:
         explicit SubstitutedMatrixFactory(MatrixSystem& system) : system{system} {}
 
-        [[nodiscard]] std::pair<ptrdiff_t, Matrix&> operator()(const Index& index,
-                                                                      Multithreading::MultiThreadPolicy mt_policy);
+        [[nodiscard]] std::pair<ptrdiff_t, Matrix&>
+        operator()(MatrixSystemWriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(const Index& index, Matrix& matrix);
 

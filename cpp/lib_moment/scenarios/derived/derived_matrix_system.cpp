@@ -69,7 +69,8 @@ namespace Moment::Derived {
     }
 
     std::unique_ptr<class Matrix>
-    DerivedMatrixSystem::createNewMomentMatrix(size_t level, Multithreading::MultiThreadPolicy mt_policy) {
+    DerivedMatrixSystem::createNewMomentMatrix(MaintainsMutex::WriteLock &lock,
+                                               size_t level, Multithreading::MultiThreadPolicy mt_policy) {
         // First check if map is capable of defining this MM.
         const auto lsw = this->longest_supported_word();
         if ((level*2) > lsw) {
@@ -103,7 +104,8 @@ namespace Moment::Derived {
     }
 
     std::unique_ptr<class Matrix>
-    DerivedMatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi,
+    DerivedMatrixSystem::createNewLocalizingMatrix(MaintainsMutex::WriteLock &lock,
+                                                   const LocalizingMatrixIndex &lmi,
                                                    Multithreading::MultiThreadPolicy mt_policy) {
         // First check if map is capable of defining this LM.
         const auto lsw = this->longest_supported_word();
@@ -138,6 +140,14 @@ namespace Moment::Derived {
                                             this->polynomial_factory().zero_tolerance,
                                             this->map(), source_matrix);
     }
+
+
+    std::unique_ptr<struct Matrix>
+    DerivedMatrixSystem::createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
+                                         Multithreading::MultiThreadPolicy mt_policy) {
+        throw std::runtime_error{"DerivedMatrixSystem::createNewPolyLM not yet implemented."};
+    }
+
 
     std::string DerivedMatrixSystem::describe_map() const {
         std::stringstream msgSS;

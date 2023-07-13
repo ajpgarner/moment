@@ -35,12 +35,12 @@ namespace Moment {
 
 
             [[nodiscard]] bool operator()(const PolynomialLMIndex& lhs, const PolynomialLMIndex& rhs) const noexcept {
-                if (lhs.first < rhs.first) {
+                if (lhs.Level < rhs.Level) {
                     return true;
-                } else if (lhs.first > rhs.first) {
+                } else if (lhs.Level > rhs.Level) {
                     return false;
                 }
-                return poly_comp(lhs.second, rhs.second);
+                return poly_comp(lhs.Polynomial, rhs.Polynomial);
             }
 
             friend class PolynomialIndexStorage;

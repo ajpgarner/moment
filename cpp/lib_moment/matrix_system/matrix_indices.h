@@ -16,6 +16,7 @@
 #include <concepts>
 #include <map>
 #include <memory>
+#include <shared_mutex>
 #include <string>
 
 namespace Moment {
@@ -42,10 +43,10 @@ namespace Moment {
     concept makes_matrices =
         std::is_same_v<typename factory_t::Index, index_t> &&
         requires (factory_t& factory, const factory_t& const_factory,
-                  const index_t& index, matrix_t& matrix_ref,
+                  const index_t& index, matrix_t& matrix_ref, std::unique_lock<std::shared_mutex>& lock,
                   const Multithreading::MultiThreadPolicy& mt_policy) {
             {factory.get_write_lock()};
-            {factory(index, mt_policy)} -> std::convertible_to<std::pair<ptrdiff_t, matrix_t&>>;
+            {factory(lock, index, mt_policy)} -> std::convertible_to<std::pair<ptrdiff_t, matrix_t&>>;
             {factory.notify(index, matrix_ref)};
             {const_factory.not_found_msg(index)} -> std::convertible_to<std::string>;
         };
@@ -68,6 +69,7 @@ namespace Moment {
         using IndexStorage = index_storage_t;
         using MatrixType = matrix_t;
         using FactoryType = factory_t;
+        using MTPolicy = Multithreading::MultiThreadPolicy;
 
     private:
         IndexStorage indices;
@@ -95,10 +97,23 @@ namespace Moment {
          * @return Offset of the matrix within the matrix system, and reference to the matrix.
          */
         [[nodiscard]] std::pair<size_t, matrix_t&>
-        create(const index_t& index,
-               const Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional) {
+        create(const index_t& index, const MTPolicy mt_policy = MTPolicy::Optional) {
             // Get write lock from factory.
             auto lock = matrixFactory.get_write_lock();
+            return this->create(lock, index, mt_policy); //~ releases lock
+        }
+
+        /**
+         * Create matrix with requested index, or retrieve if already existing.
+         * @param index The description of the matrix.
+         * @param mt_policy The multi-threaded policy for creation.
+         * @return Offset of the matrix within the matrix system, and reference to the matrix.
+         */
+        [[nodiscard]] std::pair<size_t, matrix_t&>
+        create(std::unique_lock<std::shared_mutex>& lock,
+               const index_t& index, const MTPolicy mt_policy = MTPolicy::Optional) {
+            // Must hold write lock
+            assert(this->system.is_locked_write_lock(lock));
 
             // Does matrix supposedly already exist?
             auto existing = this->indices.find(index);
@@ -118,7 +133,7 @@ namespace Moment {
             }
 
             // Otherwise, call factory to actually handle insertion into system.
-            auto [matrix_offset, matrix_ref] = matrixFactory(index, mt_policy);
+            auto [matrix_offset, matrix_ref] = matrixFactory(lock, index, mt_policy);
             [[maybe_unused]] const auto [actual_offset, did_insertion] = this->indices.insert(index, matrix_offset);
             assert(actual_offset == matrix_offset);
             assert(did_insertion);
@@ -156,9 +171,10 @@ namespace Moment {
         }
 
         [[nodiscard]] inline MatrixType& operator()(const index_t& index,
-            const Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional) {
-            auto [offset, matrix] = this->create(index, mt_policy);
-            return matrix;
+                                                    const MTPolicy mt_policy = MTPolicy::Optional) {
+            auto lock = matrixFactory.get_write_lock();
+            auto [offset, matrix] = this->create(lock, index, mt_policy);
+            return matrix; // ~releases lock
         }
 
     };

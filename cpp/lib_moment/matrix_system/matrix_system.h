@@ -12,14 +12,12 @@
 
 #include "utilities/multithreading.h"
 
-#include <atomic>
+#include "utilities/maintains_mutex.h"
+
 #include <map>
 #include <memory>
-#include <mutex>
-#include <shared_mutex>
 #include <stdexcept>
 #include <vector>
-
 
 namespace Moment {
 
@@ -31,13 +29,12 @@ namespace Moment {
     class PolynomialFactory;
     class SymbolTable;
 
-
     /**
      * Base class for systems of operators, and their associated moment/localizing matrices.
      *
      * FOR THREAD SAFETY: Functions accessing a matrix system should call for the read lock before accessing anything.
      */
-    class MatrixSystem {
+    class MatrixSystem : public MaintainsMutex {
     private:
         /** The operator context */
         std::unique_ptr<class Context> context;
@@ -54,10 +51,6 @@ namespace Moment {
         /** List of moment substitution rulebooks in the system. */
         std::vector<std::unique_ptr<MomentRulebook>> rulebooks;
 
-    private:
-        /** Read-write mutex for matrices */
-        mutable std::shared_mutex rwMutex;
-
     public:
         /** Indexed moment matrices */
         MomentMatrixIndices MomentMatrix;
@@ -72,15 +65,7 @@ namespace Moment {
         SubstitutedMatrixIndices SubstitutedMatrix;
 
     public:
-        /**
-         * Construct a system of matrices with shared operators.
-         * @param context The operator scenario.
-         * @param polynomialFactory The object for constructing polynomials.
-         */
-        MatrixSystem(std::unique_ptr<class Context> context,
-                              std::unique_ptr<PolynomialFactory> polynomialFactory);
-
-        /**
+         /**
          * Construct a system of matrices with shared operators.
          * @param context The operator scenario.
          * @param zero_tolerance The multiplier of epsilon below which doubles are treated as zero.
@@ -191,19 +176,6 @@ namespace Moment {
          */
         [[nodiscard]] size_t rulebook_count() const noexcept { return this->rulebooks.size(); }
 
-        /**
-         * Gets a read (shared) lock for accessing data within the matrix system.
-         */
-        [[nodiscard]] std::shared_lock<std::shared_mutex> get_read_lock() const {
-            return std::shared_lock{this->rwMutex};
-        }
-
-        /**
-         * Gets a write (exclusive) lock for manipulating data within the matrix system.
-         */
-        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock() {
-            return std::unique_lock{this->rwMutex};
-        }
 
         /**
          * Gets the polynomial factory for this system.
@@ -227,7 +199,8 @@ namespace Moment {
          * @return Owning pointer of new moment matrix.
          */
         virtual std::unique_ptr<class Matrix>
-        createNewMomentMatrix(size_t level, Multithreading::MultiThreadPolicy mt_policy );
+        createNewMomentMatrix(WriteLock& lock, size_t level,
+                              Multithreading::MultiThreadPolicy mt_policy );
 
         /**
          * Virtual method, called to generate a localizing matrix.
@@ -236,7 +209,8 @@ namespace Moment {
          * @return Owning pointer of new localizing matrix.
          */
         virtual std::unique_ptr<class Matrix>
-        createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi, Multithreading::MultiThreadPolicy mt_policy);
+        createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex& lmi,
+                                  Multithreading::MultiThreadPolicy mt_policy);
 
         /**
          * Virtual method, called to generate a polynomial localizing matrix matrix.
@@ -245,7 +219,8 @@ namespace Moment {
          * @return Owning pointer of new localizing matrix.
          */
         virtual std::unique_ptr<class Matrix>
-        createNewPolyLM(const PolynomialLMIndex& index, Multithreading::MultiThreadPolicy mt_policy);
+        createNewPolyLM(WriteLock& lock, const PolynomialLMIndex& index,
+                        Multithreading::MultiThreadPolicy mt_policy);
 
 
         /**

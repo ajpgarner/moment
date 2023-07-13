@@ -90,10 +90,14 @@ namespace Moment::Derived {
 
     protected:
         [[nodiscard]] std::unique_ptr<class Matrix>
-        createNewMomentMatrix(size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
+        createNewMomentMatrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
 
         [[nodiscard]] std::unique_ptr<class Matrix>
-        createNewLocalizingMatrix(const LocalizingMatrixIndex &lmi, Multithreading::MultiThreadPolicy mt_policy) override;
+        createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
+                                  Multithreading::MultiThreadPolicy mt_policy) override;
+
+        std::unique_ptr<struct Matrix> createNewPolyLM(WriteLock &lock, const PolynomialLMIndex &index,
+                                                       Multithreading::MultiThreadPolicy mt_policy) override;
 
     protected:
         static std::unique_ptr<class Context> make_derived_context(const MatrixSystem& source_system);

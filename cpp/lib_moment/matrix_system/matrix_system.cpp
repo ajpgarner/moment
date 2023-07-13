@@ -80,21 +80,37 @@ namespace Moment {
     }
 
     std::unique_ptr<class Matrix>
-    MatrixSystem::createNewMomentMatrix(const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
+    MatrixSystem::createNewMomentMatrix(MaintainsMutex::WriteLock &lock,
+                                        const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
+        assert(this->is_locked_write_lock(lock));
         auto operator_matrix = std::make_unique<class MomentMatrix>(*this->context, level, mt_policy);
         return std::make_unique<MonomialMatrix>(*this->symbol_table, std::move(operator_matrix));
     }
 
 
     std::unique_ptr<class Matrix>
-    MatrixSystem::createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi,
+    MatrixSystem::createNewLocalizingMatrix(MaintainsMutex::WriteLock &lock,
+                                            const LocalizingMatrixIndex& lmi,
                                             const Multithreading::MultiThreadPolicy mt_policy) {
+        assert(this->is_locked_write_lock(lock));
         auto operator_matrix = std::make_unique<class LocalizingMatrix>(*this->context, lmi, mt_policy);
         return std::make_unique<MonomialMatrix>(*this->symbol_table, std::move(operator_matrix));
     }
 
     std::unique_ptr<class Matrix>
-    MatrixSystem::createNewPolyLM(const PolynomialLMIndex &index, Multithreading::MultiThreadPolicy mt_policy) {
+    MatrixSystem::createNewPolyLM(MaintainsMutex::WriteLock &lock,
+                                  const PolynomialLMIndex &index, Multithreading::MultiThreadPolicy mt_policy) {
+        assert(this->is_locked_write_lock(lock));
+
+        // First ensure constituent parts exist
+        std::vector<std::pair<ptrdiff_t, std::complex<double>>> constituentIndices;
+        constituentIndices.reserve(index.Polynomial.size());
+        for (auto [mono_index, factor] : index.MonomialIndices(*this->symbol_table)) {
+            auto [mono_offset, mono_matrix] = this->LocalizingMatrix.create(lock, mono_index, mt_policy);
+            constituentIndices.emplace_back(mono_offset, factor);
+        }
+
+        // TODO
         throw std::runtime_error{"MatrixSystem::createNewPolyLM not implemented."};
     }
 

@@ -19,9 +19,10 @@ namespace Moment {
 
 
     std::pair<ptrdiff_t, Matrix &>
-    MomentMatrixFactory::operator()(const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
+    MomentMatrixFactory::operator()(MatrixSystemWriteLock& lock, const size_t level,
+                                    const Multithreading::MultiThreadPolicy mt_policy) {
         const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
-        system.matrices.emplace_back(system.createNewMomentMatrix(level, mt_policy));
+        system.matrices.emplace_back(system.createNewMomentMatrix(lock, level, mt_policy));
         return std::pair<ptrdiff_t, Matrix&>(matrixIndex, *system.matrices.back());
     }
 
@@ -41,10 +42,11 @@ namespace Moment {
 
 
 
-    std::pair<ptrdiff_t, Matrix &> LocalizingMatrixFactory::operator()(const LocalizingMatrixIndex& lmi,
-                                                                       Multithreading::MultiThreadPolicy mt_policy) {
+    std::pair<ptrdiff_t, Matrix &>
+    LocalizingMatrixFactory::operator()(MatrixSystemWriteLock& lock, const LocalizingMatrixIndex& lmi,
+                                        Multithreading::MultiThreadPolicy mt_policy) {
         const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
-        system.matrices.emplace_back(system.createNewLocalizingMatrix(lmi, mt_policy));
+        system.matrices.emplace_back(system.createNewLocalizingMatrix(lock, lmi, mt_policy));
         return std::pair<ptrdiff_t, Matrix&>(matrixIndex, *system.matrices.back());
     }
 
@@ -66,10 +68,11 @@ namespace Moment {
     }
 
     std::pair<ptrdiff_t, Matrix &>
-    PolynomialLocalizingMatrixFactory::operator()(const PolynomialLMIndex &index,
+    PolynomialLocalizingMatrixFactory::operator()(MatrixSystemWriteLock& lock,
+                                                  const PolynomialLMIndex &index,
                                                   Multithreading::MultiThreadPolicy mt_policy) {
         const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
-        system.matrices.emplace_back(system.createNewPolyLM(index, mt_policy));
+        system.matrices.emplace_back(system.createNewPolyLM(lock, index, mt_policy));
         return std::pair<ptrdiff_t, Matrix&>(matrixIndex, *system.matrices.back());
     }
 
@@ -79,8 +82,8 @@ namespace Moment {
 
     std::string PolynomialLocalizingMatrixFactory::not_found_msg(const PolynomialLMIndex &pmi) const {
         std::stringstream errSS;
-        errSS << "Localizing matrix of Level " << pmi.first
-              << " for polynomial \"" << pmi.second.as_string_with_operators(system.Symbols(), false)
+        errSS << "Localizing matrix of Level " << pmi.Level
+              << " for polynomial \"" << pmi.Polynomial.as_string_with_operators(system.Symbols(), false)
               << "\" has not yet been generated.";
         return errSS.str();
     }
@@ -91,8 +94,10 @@ namespace Moment {
 
 
     std::pair<ptrdiff_t, Matrix &>
-    SubstitutedMatrixFactory::operator()(const Index& index,
+    SubstitutedMatrixFactory::operator()(MatrixSystemWriteLock& lock,
+                                         const Index& index,
                                          Multithreading::MultiThreadPolicy mt_policy) {
+        assert(system.is_locked_write_lock(lock));
         auto& source_matrix = system.get(index.first); // <- throws if not found!
         auto& rulebook = system.rulebook(index.second); // <- throws if not found!
 
