@@ -60,7 +60,7 @@ namespace Moment::Tests {
                 std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 1)};
         const auto& ic = ims.InflationContext();
         const auto& co = ims.CanonicalObservables();
-        auto [mm, id] = ims.create_moment_matrix(1);
+        auto [mm, id] = ims.MomentMatrix.create(1);
         ASSERT_EQ(co.size(), 2); // e, A.
 
         EXPECT_EQ(co[0].outcomes_per_observable, std::vector<size_t>{});
@@ -72,7 +72,7 @@ namespace Moment::Tests {
                 std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 2)};
         const auto& ic = ims.InflationContext();
         const auto& co = ims.CanonicalObservables();
-        auto [mm, id] = ims.create_moment_matrix(1);
+        auto [mm, id] = ims.MomentMatrix.create(1);
         EXPECT_EQ(ic.observable_variant_count(), 2); // a0, a1)
         ASSERT_EQ(co.size(), 3); // e, A0, A0A1
 
@@ -87,7 +87,7 @@ namespace Moment::Tests {
                 std::make_unique<InflationContext>(CausalNetwork{{0, 0}, {{0, 1}}}, 1)};
         const auto& ic = ims.InflationContext();
         const auto& co = ims.CanonicalObservables();
-        auto [mm, id] = ims.create_moment_matrix(1);
+        auto [mm, id] = ims.MomentMatrix.create(1);
         ASSERT_EQ(co.size(), 6); // e, A, B, AA, AB, BB)
 
         const auto& canon_e = co.canonical(std::vector<OVIndex>{});
@@ -153,7 +153,7 @@ namespace Moment::Tests {
                 std::make_unique<InflationContext>(CausalNetwork{{2, 2, 0}, {{0, 1}}}, 1)};
         const auto& ic = ims.InflationContext();
         const auto& co = ims.CanonicalObservables();
-        auto [mm, id] = ims.create_moment_matrix(1);
+        auto [mm, id] = ims.MomentMatrix.create(1);
         ASSERT_EQ(co.size(), 8); // e, A, B, C, AB, AC, BC, CC)
 
         const auto& canon_e = co.canonical(std::vector<OVIndex>{});
@@ -242,7 +242,7 @@ namespace Moment::Tests {
                 std::make_unique<InflationContext>(CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}, {0, 2}}}, 2)};
         const auto& ic = ims.InflationContext();
         const auto& co = ims.CanonicalObservables();
-        auto [mm, id] = ims.create_moment_matrix(1);
+        auto [mm, id] = ims.MomentMatrix.create(1);
 
         EXPECT_EQ(co.distinct_observables(0), 1);
         EXPECT_EQ(co.distinct_observables(1), 3);

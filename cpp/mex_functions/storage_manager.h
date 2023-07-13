@@ -8,7 +8,7 @@
 
 #include "utilities/persistent_storage.h"
 
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 #include "environmental_variables.h"
 
 #include <string>

@@ -76,4 +76,13 @@ namespace Moment::Tests {
         EXPECT_TRUE(fco(f({Monomial{3, 1.0}}),
                         f({Monomial{3, 1.0}, Monomial{2, 1.0}}))); // "3 < 3 + 2"
     }
+
+    TEST_F(Symbolic_FullComboOrdering, WithCoefs) {
+        const auto& f = this->get_factory();
+        PolynomialOrderingWithCoefficients fco{f};
+        EXPECT_FALSE(fco(f({Monomial{3, 1.0}, Monomial{2, 1.0}}),
+                        f({Monomial{3, 1.0},  Monomial{2, 1.0}})));
+        EXPECT_TRUE(fco(f({Monomial{3, 1.0}, Monomial{2, 1.0}}),
+                        f({Monomial{3, 1.0},  Monomial{2, 1.1}})));
+    }
 }

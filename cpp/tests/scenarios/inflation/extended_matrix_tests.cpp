@@ -50,8 +50,8 @@ namespace Moment::Tests {
         auto& symbols = ims.Symbols();
         auto& factors = ims.Factors();
 
-        ims.create_moment_matrix(1);
-        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(1));
+        const auto& base_MM_raw = ims.MomentMatrix(1);
+        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(base_MM_raw);
 
         ASSERT_EQ(symbols.size(), 5);
         auto id_0 = find_or_fail(symbols, OperatorSequence::Zero(ims.Context()));
@@ -89,8 +89,8 @@ namespace Moment::Tests {
         auto& symbols = ims.Symbols();
         auto& factors = ims.Factors();
 
-        ims.create_moment_matrix(1);
-        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(1));
+        const auto& base_MM_raw = ims.MomentMatrix(1);
+        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(base_MM_raw);
 
         ASSERT_EQ(symbols.size(), 5);
         auto id_0 = find_or_fail(symbols, OperatorSequence::Zero(ims.Context()));
@@ -126,8 +126,8 @@ namespace Moment::Tests {
         auto& symbols = ims.Symbols();
         auto& factors = ims.Factors();
 
-        ims.create_moment_matrix(1);
-        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(1));
+        const auto& base_MM_raw = ims.MomentMatrix(1);
+        const auto& base_MM = dynamic_cast<const MonomialMatrix&>(base_MM_raw);
 
         ASSERT_EQ(symbols.size(), 5);
         auto id_0 = find_or_fail(symbols, OperatorSequence::Zero(ims.Context()));
@@ -164,7 +164,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Inflation_ExtendedMatrix, MS_UnlinkedPair) {
         InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{2, 2}, {}}, 1)};
-        auto [mm_index, mm_ref] = ims.create_moment_matrix(1);
+        auto [mm_index, mm_ref] = ims.MomentMatrix.create(1);
 
         const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(1));
 
@@ -197,7 +197,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Inflation_ExtendedMatrix, MS_PairAndScalar) {
         InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{2, 2, 0}, {{0, 1}}}, 2)};
-        auto [mm_index, mm_ref] = ims.create_moment_matrix(1);
+        auto [mm_index, mm_ref] = ims.MomentMatrix.create(1);
         const auto& base_MM = dynamic_cast<const MonomialMatrix&>(mm_ref);
         const auto& context = ims.InflationContext();
         const auto& symbols = ims.Symbols();

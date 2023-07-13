@@ -116,6 +116,6 @@ namespace Moment::mex::functions {
         auto lmi = input.to_index(system.Context());
         read_lock.unlock();
 
-        return system.create_localizing_matrix(lmi);
+        return system.LocalizingMatrix.create(lmi);
     }
 }

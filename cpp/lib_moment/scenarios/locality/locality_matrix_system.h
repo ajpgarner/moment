@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 #include "probability/maintains_tensors.h"
 
 namespace Moment::Locality {

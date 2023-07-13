@@ -6,7 +6,7 @@
  */
 #include "export_probability_tensor.h"
 
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 
 #include "symbolic/polynomial_factory.h"
 

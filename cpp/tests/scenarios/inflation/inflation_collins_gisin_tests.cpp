@@ -288,7 +288,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Inflation_CollinsGisin, SingletonPair) {
         InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{2, 2, 0}, {{0, 1}}}, 2)};
-        auto [id, momentMatrix] = ims.create_moment_matrix(2);
+        auto [id, momentMatrix] = ims.MomentMatrix.create(2);
         const auto& context = ims.InflationContext();
         const auto& symbols = ims.Symbols();
         ims.RefreshCollinsGisin();

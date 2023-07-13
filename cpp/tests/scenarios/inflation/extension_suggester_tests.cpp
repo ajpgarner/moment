@@ -27,7 +27,6 @@ namespace Moment::Tests {
 
         ExtensionSuggester suggester{ims.InflationContext(), symbols, factors};
 
-        ims.create_moment_matrix(1);
         const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(1));
 
         ASSERT_EQ(symbols.size(), 5);
@@ -57,7 +56,6 @@ namespace Moment::Tests {
 
         ExtensionSuggester suggester{context, symbols, factors};
 
-        ims.create_moment_matrix(2);
         const auto& base_MM = dynamic_cast<const MonomialMatrix&>(ims.MomentMatrix(2));
 
         ASSERT_EQ(context.Observables().size(), 3);

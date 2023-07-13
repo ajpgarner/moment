@@ -7,7 +7,7 @@
 
 #include "gtest/gtest.h"
 
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 #include "matrix/operator_matrix/moment_matrix.h"
 #include "scenarios/context.h"
 
@@ -118,7 +118,7 @@ namespace Moment::Tests {
         auto& context = system.Context();
         ASSERT_EQ(context.size(), 0);
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0);
+        auto [id0, matLevel0] = system.MomentMatrix.create(0);
         const auto* mm0Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel0);
         ASSERT_NE(mm0Ptr, nullptr);
 
@@ -127,7 +127,7 @@ namespace Moment::Tests {
         compare_unique_sequences(matLevel0, {});
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1);
+        auto [id1, matLevel1] = system.MomentMatrix.create(1);
         const auto* mm1Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel1);
         ASSERT_NE(mm1Ptr, nullptr);
         EXPECT_EQ(mm1Ptr->Level(), 1);
@@ -135,7 +135,7 @@ namespace Moment::Tests {
         compare_unique_sequences(matLevel1, {});
         compare_symbol_matrix(matLevel1, 1, {"1"});
 
-        auto [id5, matLevel5] = system.create_moment_matrix(5);
+        auto [id5, matLevel5] = system.MomentMatrix.create(5);
         const auto* mm5Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel5);
         ASSERT_NE(mm5Ptr, nullptr);
         EXPECT_EQ(mm5Ptr->Level(), 5);
@@ -151,14 +151,14 @@ namespace Moment::Tests {
         ASSERT_EQ(context.size(), 1);
         const auto theOp = 0;
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0);
+        auto [id0, matLevel0] = system.MomentMatrix.create(0);
         const auto* mm0Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel0);
         ASSERT_NE(mm0Ptr, nullptr);
         EXPECT_EQ(mm0Ptr->Level(), 0);
         compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1);
+        auto [id1, matLevel1] = system.MomentMatrix.create(1);
         const auto* mm1Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel1);
         ASSERT_NE(mm1Ptr, nullptr);
         EXPECT_EQ(mm1Ptr->Level(), 1);
@@ -168,7 +168,7 @@ namespace Moment::Tests {
                                          OperatorSequence({theOp, theOp}, context)});
 
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2);
+        auto [id2, matLevel2] = system.MomentMatrix.create(2);
         const auto* mm2Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel2);
         ASSERT_NE(mm2Ptr, nullptr);
         EXPECT_EQ(mm2Ptr->Level(), 2);
@@ -191,11 +191,11 @@ namespace Moment::Tests {
 
         ASSERT_EQ(alice.size(), 2);
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0);
+        auto [id0, matLevel0] = system.MomentMatrix.create(0);
 
         compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1);
+        auto [id1, matLevel1] = system.MomentMatrix.create(1);
         compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(context),
                                          OperatorSequence({alice[0]}, context),
                                          OperatorSequence({alice[1]}, context),
@@ -206,7 +206,7 @@ namespace Moment::Tests {
                                          OperatorSequence({alice[1], alice[0]}, context),
                                          OperatorSequence({alice[1], alice[1]}, context)});
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2);
+        auto [id2, matLevel2] = system.MomentMatrix.create(2);
         compare_mm_os_matrix(matLevel2, 7, {OperatorSequence::Identity(context),
                                          OperatorSequence({alice[0]}, context),
                                          OperatorSequence({alice[1]}, context),
@@ -280,11 +280,11 @@ namespace Moment::Tests {
         const auto& bob = context.Parties[1];
         ASSERT_EQ(bob.size(), 1);
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0);
+        auto [id0, matLevel0] = system.MomentMatrix.create(0);
 
         compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1);
+        auto [id1, matLevel1] = system.MomentMatrix.create(1);
         compare_mm_os_matrix(matLevel1, 3, {OperatorSequence::Identity(context),
                                          OperatorSequence({alice[0]}, context),
                                          OperatorSequence({bob[0]}, context),
@@ -295,7 +295,7 @@ namespace Moment::Tests {
                                          OperatorSequence({alice[0], bob[0]}, context),
                                          OperatorSequence({bob[0]}, context)});
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2);
+        auto [id2, matLevel2] = system.MomentMatrix.create(2);
         compare_mm_os_matrix(matLevel2, 4, {OperatorSequence::Identity(context),
                                          OperatorSequence({alice[0]}, context),
                                          OperatorSequence({bob[0]}, context),
@@ -341,10 +341,10 @@ namespace Moment::Tests {
         const auto& y0 = bob[2];
         const auto& y1 = bob[3];
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0);
+        auto [id0, matLevel0] = system.MomentMatrix.create(0);
         compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1);
+        auto [id1, matLevel1] = system.MomentMatrix.create(1);
         compare_mm_os_matrix(matLevel1, 9, {OperatorSequence::Identity(context),
                                          OperatorSequence({a0}, context),
                                          OperatorSequence({a1}, context),
@@ -447,16 +447,16 @@ namespace Moment::Tests {
         std::vector<oper_name_t> alice{0};
 
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0);
+        auto [id0, matLevel0] = system.MomentMatrix.create(0);
         compare_unique_sequences(matLevel0, {});
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1);
+        auto [id1, matLevel1] = system.MomentMatrix.create(1);
         compare_unique_sequences(matLevel1, {{OperatorSequence({alice[0]}, context),
                                                      OperatorSequence({alice[0]}, context), true},
                                              {OperatorSequence({alice[0], alice[0]}, context),
                                                      OperatorSequence({alice[0], alice[0]}, context), true}});
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2);
+        auto [id2, matLevel2] = system.MomentMatrix.create(2);
         compare_unique_sequences(matLevel2,
                                  {{OperatorSequence({alice[0]}, context),
                                           OperatorSequence({alice[0]}, context), true},
@@ -480,11 +480,11 @@ namespace Moment::Tests {
         ASSERT_EQ(alice.size(), 1);
         ASSERT_EQ(bob.size(), 1);
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0);
+        auto [id0, matLevel0] = system.MomentMatrix.create(0);
 
         compare_unique_sequences(matLevel0, {});
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1);
+        auto [id1, matLevel1] = system.MomentMatrix.create(1);
         compare_unique_sequences(matLevel1,
                                  {{OperatorSequence({alice[0]}, context),
                                    OperatorSequence({alice[0]}, context), true},
@@ -493,7 +493,7 @@ namespace Moment::Tests {
                                   {OperatorSequence({alice[0], bob[0]}, context),
                                    OperatorSequence({alice[0], bob[0]}, context), true}});
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2);
+        auto [id2, matLevel2] = system.MomentMatrix.create(2);
         compare_unique_sequences(matLevel2,
                                  {{OperatorSequence({alice[0]}, context),
                                    OperatorSequence({alice[0]}, context), true},
@@ -509,7 +509,7 @@ namespace Moment::Tests {
         ASSERT_EQ(context.size(), 2);
         const auto &alice = context;
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0);
+        auto [id0, matLevel0] = system.MomentMatrix.create(0);
         compare_unique_sequences(matLevel0, {});
 
     }
@@ -519,7 +519,7 @@ namespace Moment::Tests {
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
         std::vector<oper_name_t> alice{0, 1};
-        auto [id1, matLevel1] = system.create_moment_matrix(1);
+        auto [id1, matLevel1] = system.MomentMatrix.create(1);
 
         compare_unique_sequences(matLevel1, {{OperatorSequence({alice[0]}, context),
                                                      OperatorSequence({alice[0]}, context),           true},
@@ -539,7 +539,7 @@ namespace Moment::Tests {
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
         std::vector<oper_name_t> alice{0, 1};
-        auto [id2, matLevel2] = system.create_moment_matrix(2);
+        auto [id2, matLevel2] = system.MomentMatrix.create(2);
 
         compare_unique_sequences(matLevel2, {
                 {OperatorSequence({alice[0]}, context), // 2
@@ -596,7 +596,7 @@ namespace Moment::Tests {
         ASSERT_EQ(context.size(), 2);
         std::vector<oper_name_t> alice{0, 1};
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2);
+        auto [id2, matLevel2] = system.MomentMatrix.create(2);
 
         auto ptr_a0a0a0a0 = matLevel2.symbols.where(OperatorSequence{{alice[0], alice[0], alice[0], alice[0]},
                                                                      context});
@@ -629,14 +629,14 @@ namespace Moment::Tests {
         MatrixSystem system{std::make_unique<Context>(1)}; // One party, one symbol
         auto& context = system.Context();
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0);
+        auto [id0, matLevel0] = system.MomentMatrix.create(0);
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1); // id, a, a^2
+        auto [id1, matLevel1] = system.MomentMatrix.create(1); // id, a, a^2
         compare_symbol_matrix(matLevel1, 2, {"1", "2",
                                              "2", "3"});
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2); // id, a, a^2, a^3, a^4
+        auto [id2, matLevel2] = system.MomentMatrix.create(2); // id, a, a^2, a^3, a^4
         compare_symbol_matrix(matLevel2, 3, {"1", "2", "3",
                                              "2", "3", "4",
                                              "3", "4", "5"});
@@ -646,15 +646,15 @@ namespace Moment::Tests {
         MatrixSystem system{std::make_unique<Context>(2)}; // One party, two symbols
         auto& context = system.Context();
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0);
+        auto [id0, matLevel0] = system.MomentMatrix.create(0);
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1); // x, 0, 1???
+        auto [id1, matLevel1] = system.MomentMatrix.create(1); // x, 0, 1???
         compare_symbol_matrix(matLevel1, 3, {"1",  "2", "3",
                                              "2",  "4", "5",
                                              "3", "5*", "6"});
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2);
+        auto [id2, matLevel2] = system.MomentMatrix.create(2);
         compare_symbol_matrix(matLevel2, 7, // Remember symbol order is from hash function...
                               {"1",  "2",   "3",   "4",   "5",  "5*", "6",  // x, 0,  1,  00,  01,  10,  11
                                "2",  "4",   "5",   "7",   "8",  "9",  "10", // 0, 00, 01, 000, 001, 010, 011
@@ -673,15 +673,15 @@ namespace Moment::Tests {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>(Party::MakeList(2, 1, 2))}; // Two party, one operator each
         auto& context = system.Context();
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0);
+        auto [id0, matLevel0] = system.MomentMatrix.create(0);
         compare_symbol_matrix(matLevel0, 1, {"1"});
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1);
+        auto [id1, matLevel1] = system.MomentMatrix.create(1);
         compare_symbol_matrix(matLevel1, 3, {"1", "2", "3",   // 1, a, b
                                              "2", "2", "4",   // a, aa, ab
                                              "3", "4", "3"}); // b, ab, b
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2); // order of unique symbols: 1, a, b, ab
+        auto [id2, matLevel2] = system.MomentMatrix.create(2); // order of unique symbols: 1, a, b, ab
         compare_symbol_matrix(matLevel2, 4, {"1", "2", "3", "4",  // 1, a, b, ab
                                              "2", "2", "4", "4",  // a, a, ab, ab
                                              "3", "4", "3", "4",  // b, ab, b, ab
@@ -692,7 +692,7 @@ namespace Moment::Tests {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem system{std::make_unique<AlgebraicContext>(5)};
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2, Multithreading::MultiThreadPolicy::Always);
+        auto [id2, matLevel2] = system.MomentMatrix.create(2, Multithreading::MultiThreadPolicy::Always);
         ASSERT_EQ(matLevel2.Dimension(), 31);
 
     }

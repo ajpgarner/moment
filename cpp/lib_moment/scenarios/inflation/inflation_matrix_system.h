@@ -9,7 +9,7 @@
 #include <memory>
 #include <set>
 
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 #include "probability/maintains_tensors.h"
 #include "utilities/index_tree.h"
 

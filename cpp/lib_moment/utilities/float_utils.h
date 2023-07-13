@@ -10,8 +10,8 @@
 #pragma once
 
 #include <cmath>
-#include <concepts>
 #include <complex>
+#include <concepts>
 #include <limits>
 
 namespace Moment {
@@ -31,7 +31,7 @@ namespace Moment {
      */
     [[nodiscard]] constexpr bool approximately_equal(const double x, const double y, const double eps_multiplier = 1.0) {
         return abs(x - y)
-               <= eps_multiplier * std::numeric_limits<double>::epsilon() * std::max(std::abs(x), std::abs(y));
+               <= eps_multiplier * std::numeric_limits<double>::epsilon() * std::max(abs(x), abs(y));
     }
 
     /**
@@ -68,17 +68,39 @@ namespace Moment {
      */
     [[nodiscard]] constexpr bool essentially_equal(const double x, const double y, const double eps_multiplier = 1.0) {
         return abs(x - y)
-               <= eps_multiplier * std::numeric_limits<double>::epsilon() * std::min(std::abs(x), std::abs(y));
+               <= eps_multiplier * std::numeric_limits<double>::epsilon() * std::min(abs(x), abs(y));
     }
 
 
     /**
-     * True if x is definitely larger than y. The extra tolerance is scaled by the absolute value of Y.
+     * True if x is definitely larger than y.
+     * In particular, x is greater than y and x is not approximately equal to y.
      */
     [[nodiscard]] constexpr bool definitely_greater_than(const double x, const double y,
                                                          const double eps_multiplier = 1.0) {
-        return x > y + (abs(y)*std::numeric_limits<double>::epsilon() * eps_multiplier);
+        return (x > y) && ((x - y) > eps_multiplier*std::numeric_limits<double>::epsilon() * std::max(abs(x), abs(y)));
     }
+
+    /**
+     * True if x is definitely less than y.
+     * In particular, x is less than y and x is not approximately equal to y.
+     * Defined such that: !definitely_less_than(a, b) && !definitely_less_than(b, a) implies approximately_equal(a, b).
+     */
+    [[nodiscard]] constexpr bool definitely_less_than(const double x, const double y,
+                                                      const double eps_multiplier = 1.0) {
+        return (x < y) && ((y - x) > eps_multiplier*std::numeric_limits<double>::epsilon() * std::max(abs(x), abs(y)));
+    }
+
+    /** Compare x and y.
+     * Returns 0 if x == y (approximately); otherwise, return -1 if x < y and +1 if x > y.
+     */
+    [[nodiscard]] constexpr int approximately_compare(const double x, const double y, const double eps_multiplier = 1.0) {
+        if (approximately_equal(x, y, eps_multiplier)) {
+            return 0;
+        }
+        return x < y ? -1 : +1;
+    }
+
 
     /**
      * True if complex x is almost a real number (also true for zero).

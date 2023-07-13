@@ -10,7 +10,7 @@
 #include "export_operator_sequence.h"
 #include "export_polynomial.h"
 
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 #include "matrix/operator_matrix/operator_matrix.h"
 #include "matrix/monomial_matrix.h"
 #include "matrix/polynomial_matrix.h"

@@ -42,7 +42,7 @@ namespace Moment::Locality {
     size_t LocalityMatrixSystem::MaxRealSequenceLength() const noexcept {
 
         // Largest order of moment matrix?
-        ptrdiff_t hierarchy_level = this->highest_moment_matrix();
+        ptrdiff_t hierarchy_level = this->MomentMatrix.Indices().highest();
         if (hierarchy_level < 0) {
             hierarchy_level = 0;
         }
@@ -65,13 +65,6 @@ namespace Moment::Locality {
         auto newMRSL = this->MaxRealSequenceLength();
         if (newMRSL > this->maxProbabilityLength) {
             this->maxProbabilityLength = newMRSL;
-
-            // Fill CG tensor
-            //this->collinsGisin->fill_missing_symbols(this->Symbols());
-
-            // Make explicit/implicit symbol table
-            //this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
-
         }
     }
 

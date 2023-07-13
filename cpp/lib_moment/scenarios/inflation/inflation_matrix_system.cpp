@@ -45,7 +45,7 @@ namespace Moment::Inflation {
 
     size_t InflationMatrixSystem::MaxRealSequenceLength() const noexcept {
         // Largest order of moment matrix?
-        ptrdiff_t hierarchy_level = this->highest_moment_matrix();
+        ptrdiff_t hierarchy_level = this->MomentMatrix.Indices().highest();
         if (hierarchy_level < 0) {
             hierarchy_level = 0;
         }

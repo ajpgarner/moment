@@ -25,7 +25,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Locality_ProbabilityTensor, Empty) {
         LocalityMatrixSystem system{std::make_unique<LocalityContext>()};
-        auto [eid, emptyMM] = system.create_moment_matrix(1);
+        auto [eid, emptyMM] = system.MomentMatrix.create(1);
         system.RefreshCollinsGisin();
 
         LocalityProbabilityTensor pt{system};
@@ -42,7 +42,7 @@ namespace Moment::Tests {
         ASSERT_EQ(alice.Measurements.size(), 1);
         ASSERT_EQ(alice.Measurements[0].num_outcomes, 3);
 
-        auto [id, momentMatrix] = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.MomentMatrix.create(1);
         system.RefreshCollinsGisin();
 
         const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
@@ -120,7 +120,7 @@ namespace Moment::Tests {
         ASSERT_EQ(alice.Measurements[1].num_outcomes, 2);
 
 
-        auto [id, momentMatrix] = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.MomentMatrix.create(1);
 
         const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
         auto where_a0 = symbols.where(alice_a0);
@@ -159,7 +159,7 @@ namespace Moment::Tests {
         ASSERT_EQ(bob.Measurements[0].num_outcomes, 2);
 
 
-        auto [id, momentMatrix] = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.MomentMatrix.create(1);
 
         const auto& alice_a0 = OperatorSequence({alice.measurement_outcome(0,0)}, context);
         auto where_a0 = symbols.where(alice_a0);
@@ -207,7 +207,7 @@ namespace Moment::Tests {
         ASSERT_EQ(bob.Measurements[0].num_outcomes, 2);
         ASSERT_EQ(bob.Measurements[1].num_outcomes, 2);
 
-        auto [id, momentMatrix] = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.MomentMatrix.create(1);
 
         auto A0 = symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
                                                                       context))->Id();
@@ -283,7 +283,7 @@ namespace Moment::Tests {
         ASSERT_EQ(charlie.Measurements[0].num_outcomes, 2);
         ASSERT_EQ(charlie.Measurements[1].num_outcomes, 2);
 
-        auto [id, momentMatrix] = system.create_moment_matrix(2);
+        auto [id, momentMatrix] = system.MomentMatrix.create(2);
 
         auto A0 = symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
                                                               context))->Id();
@@ -493,7 +493,7 @@ namespace Moment::Tests {
         ASSERT_EQ(bob.Measurements.size(), 1);
         ASSERT_EQ(bob.Measurements[0].num_outcomes, 2);
 
-        auto [id, momentMatrix] = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.MomentMatrix.create(1);
 
         auto A0 = symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
                                                                       context))->Id();
@@ -575,7 +575,7 @@ namespace Moment::Tests {
         ASSERT_EQ(bob.Measurements[0].num_outcomes, 2);
         ASSERT_EQ(bob.Measurements[1].num_outcomes, 2);
 
-        auto [id, momentMatrix] = system.create_moment_matrix(1);
+        auto [id, momentMatrix] = system.MomentMatrix.create(1);
 
         auto A0 = symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
                                                  context))->Id();

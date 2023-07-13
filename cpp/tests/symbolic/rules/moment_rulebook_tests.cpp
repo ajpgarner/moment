@@ -880,7 +880,7 @@ namespace Moment::Tests {
         oper_name_t op_b = 1;
 
         // Make moment matrix, then find symbols
-        auto [mm_id, moment_matrix] = ams.create_moment_matrix(1);
+        auto [mm_id, moment_matrix] = ams.MomentMatrix.create(1);
         auto id_e = find_or_fail(symbols, OperatorSequence::Identity(context));
         auto id_a = find_or_fail(symbols, OperatorSequence{{op_a}, context});
         auto id_aa = find_or_fail(symbols, OperatorSequence{{op_a, op_a}, context});
@@ -907,7 +907,7 @@ namespace Moment::Tests {
         book.infer_additional_rules_from_factors(ams);
 
         // Rewrite moment matrix with known values
-        auto [sub_id, sub_matrix] = ams.create_substituted_matrix(mm_id, rb_id);
+        auto [sub_id, sub_matrix] = ams.SubstitutedMatrix.create(std::make_pair(mm_id, rb_id));
 
         // Test matrix object is unique
         ASSERT_NE(mm_id, sub_id);
@@ -928,7 +928,7 @@ namespace Moment::Tests {
         EXPECT_EQ(sub_symbols[2][2], Monomial(id_bb));
 
         // Check aliasing/caching
-        const auto& sub_matrix_alias = ams.SubstitutedMatrix(mm_id, rb_id);
+        const auto& sub_matrix_alias = ams.SubstitutedMatrix(std::make_pair(mm_id, rb_id));
         EXPECT_EQ(&sub_matrix_alias.context, &context);
         ASSERT_EQ(&sub_matrix_alias, &sub_matrix);
     }

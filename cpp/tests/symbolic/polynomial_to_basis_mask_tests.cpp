@@ -14,7 +14,7 @@
 #include "symbolic/polynomial_to_basis_mask.h"
 #include "symbolic/symbol_table.h"
 
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 
 
 #include <memory>

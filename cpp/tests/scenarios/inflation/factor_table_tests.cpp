@@ -70,7 +70,7 @@ namespace Moment::Tests {
         const auto &context = ims.InflationContext();
         const auto &factors = ims.Factors();
 
-        const auto &mm = ims.create_moment_matrix(1); // Symbols: 0, I, A, B, AB
+        const auto &mm = ims.MomentMatrix(1); // Symbols: 0, I, A, B, AB
         ASSERT_EQ(ims.Symbols().size(), 5);
         EXPECT_FALSE(factors.empty());
         ASSERT_EQ(factors.size(), 5);
@@ -155,7 +155,7 @@ namespace Moment::Tests {
         const auto &factors = ims.Factors();
         const auto &symbols = ims.Symbols();
 
-        const auto &mm = ims.create_moment_matrix(1); // Symbols: 0, I, A, B, A^2, AB, B^2
+        const auto &mm = ims.MomentMatrix(1); // Symbols: 0, I, A, B, A^2, AB, B^2
         ASSERT_EQ(symbols.size(), 7);
         EXPECT_FALSE(factors.empty());
         ASSERT_EQ(factors.size(), 7);
@@ -265,7 +265,7 @@ namespace Moment::Tests {
         const auto &context = ims.InflationContext();
         const auto &factors = ims.Factors();
 
-        const auto &mm = ims.create_moment_matrix(1); // Symbols: 0, I, A, B, C, AB, AC, BC
+        const auto &mm = ims.MomentMatrix(1); // Symbols: 0, I, A, B, C, AB, AC, BC
         ASSERT_EQ(ims.Symbols().size(), 8);
         EXPECT_FALSE(factors.empty());
         ASSERT_EQ(factors.size(), 8);
@@ -437,7 +437,7 @@ namespace Moment::Tests {
         const auto &factors = ims.Factors();
         const auto &symbols = ims.Symbols();
 
-        const auto &mm = ims.create_moment_matrix(1); // Symbols: 0, I, A, B, A^2, AB, B^2
+        const auto &mm = ims.MomentMatrix(1); // Symbols: 0, I, A, B, A^2, AB, B^2
         ASSERT_EQ(symbols.size(), 7);
         EXPECT_FALSE(factors.empty());
         ASSERT_EQ(factors.size(), 7);

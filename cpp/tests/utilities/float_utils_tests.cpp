@@ -132,7 +132,15 @@ namespace Moment::Tests {
         std::complex<double> complex{0.5, 0.5};
         real_or_imaginary_if_close(complex);
         EXPECT_EQ(complex, std::complex(0.5, 0.5));
+    }
 
+    TEST(Utilities_FloatUtils, ApproximatelyCompare) {
+        const double x = 1.0;
+        const double y = 1.0 + 1e-10;
+        ASSERT_NE(x, y);
 
+        EXPECT_EQ(approximately_compare(x, y, 1.0), -1);
+        EXPECT_EQ(approximately_compare(y, x, 1.0), +1);
+        EXPECT_EQ(approximately_compare(x, y, 10e5), 0);
     }
 }

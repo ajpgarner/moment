@@ -155,7 +155,7 @@ namespace Moment::mex::functions {
             matrixSystem.generate_dictionary(input.max_word_length);
             input_system_lock.lock();
         } else {
-            auto hmm = matrixSystem.highest_moment_matrix();
+            auto hmm = matrixSystem.MomentMatrix.Indices().highest();
             if (hmm > 0) {
                 input.max_word_length = 2 * hmm;
             }

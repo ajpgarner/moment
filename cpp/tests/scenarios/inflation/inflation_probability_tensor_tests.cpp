@@ -23,7 +23,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Inflation_ProbabilityTensor, Empty) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{}, {}}, 1);
         InflationMatrixSystem ims{std::move(icPtr)};
-        //auto [id, momentMatrix] = ims.create_moment_matrix(1);
+        //auto [id, momentMatrix] = ims.MomentMatrix.create(1);
 
         ims.RefreshProbabilityTensor();
         const auto& implSym = ims.InflationProbabilityTensor();
@@ -32,7 +32,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Inflation_ProbabilityTensor, Singleton) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 1);
         InflationMatrixSystem ims{std::move(icPtr)};
-        auto [id, momentMatrix] = ims.create_moment_matrix(1); // should be [[1 A]; [A A]]
+        auto [id, momentMatrix] = ims.MomentMatrix.create(1); // should be [[1 A]; [A A]]
         ims.RefreshProbabilityTensor();
         const auto& pt = ims.InflationProbabilityTensor();
 
@@ -54,7 +54,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Inflation_ProbabilityTensor, Singleton_Cloned) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{2}, {{0}}}, 2);
         InflationMatrixSystem ims{std::move(icPtr)};
-        auto [id, momentMatrix] = ims.create_moment_matrix(1);
+        auto [id, momentMatrix] = ims.MomentMatrix.create(1);
         ims.RefreshProbabilityTensor();
         const auto& pt = ims.InflationProbabilityTensor();
 
@@ -75,7 +75,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Inflation_ProbabilityTensor, CV_cloned) {
         auto icPtr = std::make_unique<InflationContext>(CausalNetwork{{0}, {{0}}}, 2);
         InflationMatrixSystem ims{std::move(icPtr)};
-        auto [id, momentMatrix] = ims.create_moment_matrix(1);
+        auto [id, momentMatrix] = ims.MomentMatrix.create(1);
         ims.RefreshProbabilityTensor();
         const auto& pt = ims.InflationProbabilityTensor();
 

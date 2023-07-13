@@ -84,14 +84,14 @@ namespace Moment::Derived {
         const auto& source_matrix = [&]() -> const class Matrix& {
             auto read_source_lock = this->base_system().get_read_lock();
             // Get, if exists
-            auto index = this->base_system().find_moment_matrix(level);
+            auto index = this->base_system().MomentMatrix.find_index(level);
             if (index >= 0) {
                 return this->base_system()[index];
             }
             read_source_lock.unlock();
 
             // Create new MM (will call write lock on base system).
-            auto [mm_index, mm] = this->base_system().create_moment_matrix(level, mt_policy);
+            auto [mm_index, mm] = this->base_system().MomentMatrix.create(level, mt_policy);
 
             return mm;
         }();
@@ -121,14 +121,14 @@ namespace Moment::Derived {
         const auto& source_matrix = [&]() -> const class Matrix& {
             auto read_source_lock = this->base_system().get_read_lock();
             // Get, if exists
-            auto index = this->base_system().find_localizing_matrix(lmi);
+            auto index = this->base_system().LocalizingMatrix.find_index(lmi);
             if (index >= 0) {
                 return this->base_system()[index];
             }
             read_source_lock.unlock();
 
             // Create LM; will call write lock on base system
-            auto [mm_index, mm] = this->base_system().create_localizing_matrix(lmi, mt_policy);
+            auto [mm_index, mm] = this->base_system().LocalizingMatrix.create(lmi, mt_policy);
 
             return mm;
         }();

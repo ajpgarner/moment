@@ -2,7 +2,6 @@ include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
 
 add_library(lib_moment
         hashed_sequence.cpp
-        matrix_system.cpp
         dictionary/dictionary_map.cpp
         dictionary/operator_sequence.cpp
         dictionary/operator_sequence_generator.cpp
@@ -13,10 +12,12 @@ add_library(lib_moment
         matrix/monomial_matrix_basis.cpp
         matrix/polynomial_matrix.cpp
         matrix/polynomial_matrix_basis.cpp
-        matrix/substituted_matrix.cpp
         matrix/operator_matrix/localizing_matrix.cpp
         matrix/operator_matrix/moment_matrix.cpp
         matrix/operator_matrix/operator_matrix.cpp
+        matrix/substituted_matrix.cpp
+        matrix_system/matrix_system.cpp
+        matrix_system/matrix_system_factories.cpp
         probability/collins_gisin.cpp
         probability/maintains_tensors.cpp
         probability/probability_tensor.cpp
@@ -67,6 +68,7 @@ add_library(lib_moment
         symbolic/polynomial_factory.cpp
         symbolic/polynomial_to_basis.cpp
         symbolic/polynomial_to_basis_mask.cpp
+        matrix_system/polynomial_index_storage.cpp
         symbolic/symbol.cpp
         symbolic/symbol_table.cpp
         symbolic/symbol_tools.cpp

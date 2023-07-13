@@ -6,7 +6,7 @@
  */
 #include "matrix.h"
 
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 #include "operator_matrix/operator_matrix.h"
 
 #include <iostream>

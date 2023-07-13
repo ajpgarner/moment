@@ -168,7 +168,7 @@ namespace Moment::Tests {
         ASSERT_EQ(ams.size(), 0);
         ASSERT_EQ(sms.size(), 0);
 
-        auto [mm_index, mapped_symbol_matrix] = sms.create_moment_matrix(1);
+        auto [mm_index, mapped_symbol_matrix] = sms.MomentMatrix.create(1);
         ASSERT_EQ(mm_index, 0); // first matrix in system.
         ASSERT_EQ(ams.size(), 1); // source system now has MM.
         const auto& source_symbol_matrix = ams[0];
@@ -273,7 +273,7 @@ namespace Moment::Tests {
         ASSERT_EQ(lms.size(), 0);
         ASSERT_EQ(sms.size(), 0);
 
-        auto [mm_index, mapped_symbol_matrix] = sms.create_moment_matrix(1);
+        auto [mm_index, mapped_symbol_matrix] = sms.MomentMatrix.create(1);
         ASSERT_EQ(mm_index, 0); // first matrix in system.
         ASSERT_EQ(lms.size(), 1); // source system now has MM.
         const auto& source_symbol_matrix = lms[0];

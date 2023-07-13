@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 #include "imported_context.h"
 
 #include "symbolic/monomial.h"

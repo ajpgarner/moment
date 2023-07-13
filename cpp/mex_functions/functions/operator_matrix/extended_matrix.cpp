@@ -107,7 +107,7 @@ namespace Moment::mex::functions {
         auto& inflationSystem = *inflationSystemPtr;
 
         // Make sure moment matrix exists (or create it, otherwise)
-        auto [mm_index, mm_op_matrix] = inflationSystem.create_moment_matrix(emp.hierarchy_level);
+        auto [mm_index, mm_op_matrix] = inflationSystem.MomentMatrix.create(emp.hierarchy_level);
         //        const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix(mm_op_matrix);
         //        const auto& moment_matrix = *mmPtr;
         const auto& monoMatrix = dynamic_cast<const MonomialMatrix&>(mm_op_matrix);

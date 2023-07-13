@@ -25,8 +25,8 @@ namespace Moment::Tests {
         void SetUp() override {
             // One party, two symbols
             this->ms_ptr = std::make_unique<MatrixSystem>(std::make_unique<Context>(2));
-            [[maybe_unused]] auto [id0, matLevel0] = ms_ptr->create_moment_matrix(0); // 0 1
-            [[maybe_unused]] auto [id1, matLevel1] =  ms_ptr->create_moment_matrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
+            [[maybe_unused]] auto [id0, matLevel0] = ms_ptr->MomentMatrix.create(0); // 0 1
+            [[maybe_unused]] auto [id1, matLevel1] =  ms_ptr->MomentMatrix.create(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
 
             const auto& symbols = this->ms_ptr->Symbols();
             ASSERT_EQ(symbols.size(), 7); // 0 1 a0 a1 a0a0 a0a1(=a1a0*) a1a1

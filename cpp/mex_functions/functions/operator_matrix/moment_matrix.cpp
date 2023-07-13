@@ -50,7 +50,7 @@ namespace Moment::mex::functions {
     MomentMatrix::get_or_make_matrix(MatrixSystem &system, OperatorMatrixParams &inputOMP) {
         const auto& input = dynamic_cast<const MomentMatrixParams&>(inputOMP);
 
-        return system.create_moment_matrix(input.hierarchy_level);
+        return system.MomentMatrix.create(input.hierarchy_level);
     }
 
 }

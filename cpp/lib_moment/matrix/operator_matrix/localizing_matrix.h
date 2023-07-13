@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "localizing_matrix_index.h"
+#include "matrix_system/localizing_matrix_index.h"
 #include "operator_matrix.h"
 
 #include "utilities/multithreading.h"

@@ -7,7 +7,9 @@
  */
 #pragma once
 
-#include "matrix/operator_matrix/localizing_matrix_index.h"
+#include "matrix_system_errors.h"
+#include "matrix_system_indices.h"
+
 #include "utilities/multithreading.h"
 
 #include <atomic>
@@ -29,15 +31,6 @@ namespace Moment {
     class PolynomialFactory;
     class SymbolTable;
 
-    namespace errors {
-        /**
-         * Error issued when a component from the matrix system is requested, but does not exist.
-         */
-        class missing_component : public std::runtime_error {
-        public:
-            explicit missing_component(const std::string& what) : std::runtime_error{what} { }
-        };
-    }
 
     /**
      * Base class for systems of operators, and their associated moment/localizing matrices.
@@ -61,27 +54,38 @@ namespace Moment {
         /** List of moment substitution rulebooks in the system. */
         std::vector<std::unique_ptr<MomentRulebook>> rulebooks;
 
-        /** The index (in this->matrices) of generated moment matrices. */
-        std::vector<ptrdiff_t> momentMatrixIndices;
-
-        /** The index (in this->matrices) of generated localizing matrices. */
-        std::map<LocalizingMatrixIndex, ptrdiff_t> localizingMatrixIndices;
-
-        /** The index (in this->matrices) of substituted matrices. */
-        std::map<std::pair<ptrdiff_t, ptrdiff_t>, ptrdiff_t> substitutedMatrixIndices;
-
-
     private:
         /** Read-write mutex for matrices */
         mutable std::shared_mutex rwMutex;
 
     public:
+        /** Indexed moment matrices */
+        MomentMatrixIndices MomentMatrix;
+
+        /** Indexed localizing matrices  */
+        LocalizingMatrixIndices LocalizingMatrix;
+
+        /** Indexed polynomial localizing matrices */
+        PolynomialLMIndices PolynomialLocalizingMatrix;
+
+        /** Indexed substituted matrices */
+        SubstitutedMatrixIndices SubstitutedMatrix;
+
+    public:
+        /**
+         * Construct a system of matrices with shared operators.
+         * @param context The operator scenario.
+         * @param polynomialFactory The object for constructing polynomials.
+         */
+        MatrixSystem(std::unique_ptr<class Context> context,
+                              std::unique_ptr<PolynomialFactory> polynomialFactory);
+
         /**
          * Construct a system of matrices with shared operators.
          * @param context The operator scenario.
          * @param zero_tolerance The multiplier of epsilon below which doubles are treated as zero.
          */
-        explicit MatrixSystem(std::unique_ptr<class Context> context, double zero_tolerance = 1.0);
+        explicit MatrixSystem(std::unique_ptr<class Context> context, double tolerance = 1.0);
 
         /**
          * Frees a system of matrices.
@@ -121,36 +125,9 @@ namespace Moment {
         }
 
         /**
-         * Returns the MomentMatrix for a particular hierarchy Level.
-         * For thread safety, call for a read lock first.
-         * @param level The hierarchy depth.
-         * @return The MomentMatrix for this particular Level.
-         * @throws errors::missing_compoment if not generated.
-         */
-        [[nodiscard]] const class Matrix& MomentMatrix(size_t level) const;
-
-        /**
-         * Gets the localizing matrix for a particular sequence and hierarchy Level.
-         * For thread safety, call for a read lock first.
-         * @param lmi The hierarchy Level and word that describes the localizing matrix.
-         * @return The MomentMatrix for this particular Level.
-         * @throws errors::missing_component if not generated.
-         */
-        [[nodiscard]] const class Matrix& LocalizingMatrix(const LocalizingMatrixIndex& lmi) const;
-
-        /**
-         * Gets a substituted matrix from a particular source and rulebook index.
-         * For thread safety, call for a read lock first.
-         * @param source_index The matrix that the substitutions are applied to.
-         * @param rulebook_index The rules applied to the matrix.
-         * @return The SubstitutedMatrix.
-         * @throws errors::missing_component if not generated.
-         */
-        [[nodiscard]] const class Matrix& SubstitutedMatrix(size_t source_index, size_t rulebook_index) const;
-
-        /**
          * Access matrix by subscript corresponding to order of creation.
          * For thread safety, call for a read lock first.
+         * @throws errors::missing_component If index is invalid.
          */
         [[nodiscard]] const Matrix& operator[](size_t index) const;
 
@@ -176,70 +153,6 @@ namespace Moment {
         [[nodiscard]] virtual std::string system_type_name() const {
             return "Generic Matrix System";
         }
-
-        /**
-         * Returns the highest moment matrix yet generated.
-         * For thread safety, call for a read lock first.
-         */
-        [[nodiscard]] ptrdiff_t highest_moment_matrix() const noexcept;
-
-        /**
-          * Constructs a moment matrix for a particular Level, or returns pre-existing one.
-          * Will lock until all read locks have expired - so do NOT first call for a read lock...!
-          * @param level The hierarchy depth.
-          * @param mt_policy Is multithreaded creation used?
-          * @return Pair: Matrix index and created MomentMatrix object reference.
-          */
-        std::pair<size_t, class Matrix&>
-        create_moment_matrix(size_t level,
-                             Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
-
-        /**
-         * Constructs a localizing matrix for a particular Level on a particular word, or returns a pre-existing one.
-         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
-         * @param level The hierarchy depth.
-         * @param word The word.
-         * @param mt_policy Is multithreaded creation used?
-         * @return Pair: Matrix index and created LocalizingMatrix object reference.
-         */
-        std::pair<size_t, class Matrix&>
-        create_localizing_matrix(const LocalizingMatrixIndex& lmi,
-                                 Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
-
-        /**
-         * Clone a matrix, with substituted values, or returns pre-existing substituted matrix.
-         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
-         * @param matrix_index The ID of the matrix to clone.
-         * @param rule_index The ID of the rulebook to apply.
-         * @return Index
-         */
-        std::pair<size_t, class Matrix&>
-        create_substituted_matrix(size_t matrix_index, size_t rule_index);
-
-        /**
-         * Check if a MomentMatrix has been generated for a particular hierarchy Level.
-         * For thread safety, call for a read lock first.
-         * @param level The hierarchy depth.
-         * @return The numerical index within this matrix system, or -1 if not found.
-         */
-        [[nodiscard]] ptrdiff_t find_moment_matrix(size_t level) const noexcept;
-
-        /**
-         * Check if a localizing matrix has been generated for a particular sequence and hierarchy Level.
-         * For thread safety, call for a read lock first.
-         * @param lmi The hierarchy Level and word that describes the localizing matrix.
-         * @return The numerical index within this matrix system, or -1 if not found.
-         */
-        [[nodiscard]] ptrdiff_t find_localizing_matrix(const LocalizingMatrixIndex& lmi) const noexcept;
-
-        /**
-         * Check if a substituted matrix has been generated from a particular source matrix and rulebook.
-         * For thread safety, call for a read lock first.
-         * @param source_index The matrix that the substitutions are applied to.
-         * @param rulebook_index The rules applied to the matrix..
-         * @return The numerical index within this matrix system, or -1 if not found.
-         */
-        [[nodiscard]] ptrdiff_t find_substituted_matrix(size_t source_index, size_t rulebook_index) const noexcept;
 
         /**
          * Ensure that all symbols up to a particular length are defined in system, and mapped.
@@ -281,14 +194,14 @@ namespace Moment {
         /**
          * Gets a read (shared) lock for accessing data within the matrix system.
          */
-        [[nodiscard]] auto get_read_lock() const {
+        [[nodiscard]] std::shared_lock<std::shared_mutex> get_read_lock() const {
             return std::shared_lock{this->rwMutex};
         }
 
         /**
          * Gets a write (exclusive) lock for manipulating data within the matrix system.
          */
-        [[nodiscard]] auto get_write_lock() {
+        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock() {
             return std::unique_lock{this->rwMutex};
         }
 
@@ -305,7 +218,7 @@ namespace Moment {
          * Replace polynomial factory with new factory.
          * Undefined behaviour if called after construction of matrix system.
          */
-        void replace_polynomial_factory(std::unique_ptr<PolynomialFactory> new_factory) noexcept;
+        void replace_polynomial_factory(std::unique_ptr<PolynomialFactory> new_factory);
 
         /**
          * Overrideable method, called to generate a moment matrix.
@@ -326,6 +239,16 @@ namespace Moment {
         createNewLocalizingMatrix(const LocalizingMatrixIndex& lmi, Multithreading::MultiThreadPolicy mt_policy);
 
         /**
+         * Virtual method, called to generate a polynomial localizing matrix matrix.
+         * @param lmi The hierarchy Level and word that describes the localizing matrix.
+         * @param mt_policy Is multithreaded creation used?
+         * @return Owning pointer of new localizing matrix.
+         */
+        virtual std::unique_ptr<class Matrix>
+        createNewPolyLM(const PolynomialLMIndex& index, Multithreading::MultiThreadPolicy mt_policy);
+
+
+        /**
          * Virtual method, called after a moment matrix is generated.
          * @param level The moment matrix level.
          * @param mm The newly generated moment matrix.
@@ -333,12 +256,19 @@ namespace Moment {
         virtual void onNewMomentMatrixCreated(size_t level, const class Matrix& mm) { }
 
         /**
-         * Virtual method, called after a localizing matrix is generated.
+         * Virtual method, called after a (flat monomial) localizing matrix is generated.
          * @param lmi The hierarchy Level and word that describes the localizing matrix.
          * @param lm The newly generated localizing matrix.
          */
         virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
                                                   const class Matrix& lm) { }
+
+        /**
+         * Virtual method, called after a polynomial localizing matrix is generated.
+         * @param lmi The hierarchy Level and word that describes the localizing matrix.
+         * @param lm The newly generated localizing matrix.
+         */
+        virtual void onNewPolyLMCreated(const PolynomialLMIndex& lmi, const class Matrix& lm) { }
 
        /**
         * Virtual method, called after a substituted matrix is generated.
@@ -382,5 +312,14 @@ namespace Moment {
          */
         ptrdiff_t push_back(std::unique_ptr<Matrix> matrix);
 
+    public:
+        friend MomentMatrixFactory;
+        friend MomentMatrixIndices;
+        friend LocalizingMatrixFactory;
+        friend LocalizingMatrixIndices;
+        friend PolynomialLocalizingMatrixFactory;
+        friend PolynomialLMIndices;
+        friend SubstitutedMatrixFactory;
+        friend SubstitutedMatrixIndices;
     };
 }

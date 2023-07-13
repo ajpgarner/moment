@@ -6,7 +6,7 @@
  */
 #include "gtest/gtest.h"
 
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 
 #include "matrix/operator_matrix/moment_matrix.h"
 
@@ -24,11 +24,11 @@ namespace Moment::Tests {
         auto& context = system.Context();
         std::vector<oper_name_t> a{0, 1};
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
+        auto [id0, matLevel0] = system.MomentMatrix.create(0); // 0 1
         EXPECT_EQ(matLevel0.symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
         EXPECT_EQ(matLevel0.symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a0a0 a0a1 (a1a0=a0a1*) a1a1
+        auto [id1, matLevel1] = system.MomentMatrix.create(1); // 0 1 a0a0 a0a1 (a1a0=a0a1*) a1a1
         ASSERT_EQ(matLevel1.symbols.size(), 7);
         EXPECT_EQ(matLevel1.symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
         EXPECT_EQ(matLevel1.symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
@@ -39,7 +39,7 @@ namespace Moment::Tests {
         EXPECT_EQ(matLevel1.symbols.to_symbol((OperatorSequence{{a[1], a[0]}, context})), Monomial(5, true));
         EXPECT_EQ(matLevel1.symbols.to_symbol((OperatorSequence{{a[1], a[1]}, context})), Monomial(6));
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2);
+        auto [id2, matLevel2] = system.MomentMatrix.create(2);
         EXPECT_EQ(matLevel2.symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
         EXPECT_EQ(matLevel2.symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
 
@@ -117,18 +117,18 @@ namespace Moment::Tests {
         const auto& alice = context.Parties[0];
         const auto& bob = context.Parties[1];
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0); //0 1
+        auto [id0, matLevel0] = system.MomentMatrix.create(0); //0 1
         EXPECT_EQ(matLevel0.symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
         EXPECT_EQ(matLevel0.symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
 
-        auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a b ab
+        auto [id1, matLevel1] = system.MomentMatrix.create(1); // 0 1 a b ab
         EXPECT_EQ(matLevel1.symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
         EXPECT_EQ(matLevel1.symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
         EXPECT_EQ(matLevel1.symbols.to_symbol((OperatorSequence{{alice[0]}, context})), Monomial(2));
         EXPECT_EQ(matLevel1.symbols.to_symbol((OperatorSequence{{bob[0]}, context})), Monomial(3));
         EXPECT_EQ(matLevel1.symbols.to_symbol((OperatorSequence{{alice[0], bob[0]}, context})), Monomial(4));
 
-        auto [id2, matLevel2] = system.create_moment_matrix(2); // as above
+        auto [id2, matLevel2] = system.MomentMatrix.create(2); // as above
         EXPECT_EQ(matLevel2.symbols.to_symbol(OperatorSequence::Zero(context)), Monomial(0));
         EXPECT_EQ(matLevel2.symbols.to_symbol(OperatorSequence::Identity(context)), Monomial(1));
         EXPECT_EQ(matLevel2.symbols.to_symbol((OperatorSequence{{alice[0]}, context})), Monomial(2));
@@ -144,8 +144,8 @@ namespace Moment::Tests {
         const auto& context = system.Context();
         const auto& symbols = system.Symbols();
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
-        auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
+        auto [id0, matLevel0] = system.MomentMatrix.create(0); // 0 1
+        auto [id1, matLevel1] = system.MomentMatrix.create(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
         ASSERT_EQ(symbols.size(), 7) << symbols; // 0 1 a0 a1 a0a0 a0a1(=a1a0*) a1a1
         ASSERT_EQ(symbols.Basis.RealSymbolCount(), 6) << symbols;
         ASSERT_EQ(symbols.Basis.ImaginarySymbolCount(), 1) << symbols; // just a0a1
@@ -168,8 +168,8 @@ namespace Moment::Tests {
         const auto& context = system.Context();
         const auto& symbols = system.Symbols();
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
-        auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
+        auto [id0, matLevel0] = system.MomentMatrix.create(0); // 0 1
+        auto [id1, matLevel1] = system.MomentMatrix.create(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
         ASSERT_EQ(symbols.size(), 7); // 0 1 a0 a1 a0a0 a0a1(=a1a0*) a1a1
 
         auto basis_key = matLevel1.BasisKey();
@@ -212,8 +212,8 @@ namespace Moment::Tests {
         const auto& context = system.Context();
         const auto& symbols = system.Symbols();
 
-        auto [id0, matLevel0] = system.create_moment_matrix(0); // 0 1
-        auto [id1, matLevel1] = system.create_moment_matrix(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
+        auto [id0, matLevel0] = system.MomentMatrix.create(0); // 0 1
+        auto [id1, matLevel1] = system.MomentMatrix.create(1); // 0 1 a0 a1 a0a0 a0a1 (a1a0=a0a1*) a1a1
         ASSERT_EQ(symbols.size(), 7); // 0 1 a0 a1 a0a0 a0a1(=a1a0*) a1a1
 
         // [0,-1]; [1, -1]; [2, -1]; [3, -1]; [4, 0]; [5, -1]
@@ -266,7 +266,7 @@ namespace Moment::Tests {
         auto& symbols = system.Symbols();
         ASSERT_EQ(symbols.size(), 2); // 0 & 1
 
-        const auto& mm1 = system.create_moment_matrix(1);
+        const auto& mm1 = system.MomentMatrix.create(1);
         ASSERT_EQ(symbols.size(), 7) << symbols;
 
         auto [totalA, addedA] = symbols.fill_to_word_length(1); // Should add a & b

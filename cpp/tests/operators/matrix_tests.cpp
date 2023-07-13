@@ -217,7 +217,7 @@ namespace Moment::Tests {
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();
 
-        const auto [id, mm] = ams.create_moment_matrix(1);
+        const auto [id, mm] = ams.MomentMatrix.create(1);
         ASSERT_EQ(symbol.size(), 7);
 
         const auto& [real, imaginary] = mm.Basis.Dense();
@@ -232,7 +232,7 @@ namespace Moment::Tests {
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();
 
-        const auto [id, mm] = ams.create_moment_matrix(1);
+        const auto [id, mm] = ams.MomentMatrix.create(1);
         ASSERT_EQ(symbol.size(), 7);
 
         const auto& [real, imaginary] = mm.Basis.DenseMonolithic();
@@ -247,7 +247,7 @@ namespace Moment::Tests {
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();
 
-        const auto [id, mm] = ams.create_moment_matrix(1);
+        const auto [id, mm] = ams.MomentMatrix.create(1);
         ASSERT_EQ(symbol.size(), 7);
 
         const auto& [real, imaginary] = mm.Basis.Sparse();
@@ -262,7 +262,7 @@ namespace Moment::Tests {
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();
 
-        const auto [id, mm] = ams.create_moment_matrix(1);
+        const auto [id, mm] = ams.MomentMatrix.create(1);
         ASSERT_EQ(symbol.size(), 7);
 
         const auto& [real, imaginary] = mm.Basis.SparseMonolithic();
@@ -277,12 +277,12 @@ namespace Moment::Tests {
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const auto& context = ams.AlgebraicContext();
         const SymbolTable& symbol = ams.Symbols();
-        const auto [mm_id, mm] = ams.create_moment_matrix(1);
+        const auto [mm_id, mm] = ams.MomentMatrix.create(1);
         ASSERT_EQ(symbol.size(), 7);
         ASSERT_EQ(symbol.Basis.RealSymbolCount(), 6);
         ASSERT_EQ(symbol.Basis.ImaginarySymbolCount(), 1);
 
-        const auto [lmA_id, lmA_0] = ams.create_localizing_matrix(
+        const auto [lmA_id, lmA_0] = ams.LocalizingMatrix.create(
                                 LocalizingMatrixIndex(0, OperatorSequence{{0}, context}));
         ASSERT_EQ(symbol.size(), 7);
         ASSERT_EQ(symbol.Basis.RealSymbolCount(), 6);

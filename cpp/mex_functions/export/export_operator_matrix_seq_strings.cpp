@@ -7,7 +7,7 @@
 
 #include "export_operator_matrix_seq_strings.h"
 
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 #include "matrix/operator_matrix/operator_matrix.h"
 #include "matrix/polynomial_matrix.h"
 

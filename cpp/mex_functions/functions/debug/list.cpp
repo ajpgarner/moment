@@ -6,7 +6,7 @@
  */
 #include "list.h"
 
-#include "matrix_system.h"
+#include "matrix_system/matrix_system.h"
 
 #include "matrix/monomial_matrix.h"
 
