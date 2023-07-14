@@ -77,34 +77,28 @@ classdef GenerateBasisTest < MTKTestBase
             
             % Check dimensions of real
             expt_re_length = length(ref_re);
-            expt_re_dims = [dim*dim, expt_re_length];
+            expt_re_dims = [expt_re_length, dim*dim];
             testCase.assertEqual(size(basis_re), expt_re_dims);
             
             % Rebuild real cell array
             rebuilt_cell_re = cell(1, expt_re_length);
             for k = 1:length(ref_re)
-                rebuilt_cell_re{k} = reshape(basis_re(:, k), [dim, dim]);
+                rebuilt_cell_re{k} = reshape(basis_re(k, :), [dim, dim]);
             end
             
             % Check dimensions of imaginary
             expt_im_length = length(ref_im);
             mono_im_dims = size(basis_im);
-            testCase.assertEqual(mono_im_dims, [dim*dim, expt_im_length]);
+            testCase.assertEqual(mono_im_dims, [expt_im_length, dim*dim]);
             
             % Rebuild imaginary cell array
             rebuilt_cell_im = cell(1, expt_im_length);
             for k = 1:length(ref_im)
-                rebuilt_cell_im {k} = reshape(basis_im(:,k), [dim, dim]);
+                rebuilt_cell_im {k} = reshape(basis_im(k, :), [dim, dim]);
             end
             
             testCase.verify_cell(rebuilt_cell_re, rebuilt_cell_im, keys, ...
                 ref_re, ref_im);
-        end
-        
-        function verify_monolith_sparse(testCase, ...
-                basis_re, basis_im, keys, ...
-                ref_re, ref_im)
-            error("Not implemented");
         end
     end
     

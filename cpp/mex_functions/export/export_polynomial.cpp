@@ -43,7 +43,7 @@ namespace Moment::mex {
         auto write_iter = output.begin();
         for (const auto& term : combo) {
             auto symbol_expr_out = factory.createCellArray({1ULL, term.conjugated ? 3ULL : 2ULL});
-            symbol_expr_out[0] = factory.createScalar<uint64_t>(term.id);
+            symbol_expr_out[0] = factory.createScalar<int64_t>(term.id);
             if (approximately_real(term.factor)) {
                 symbol_expr_out[1] = factory.createScalar<double>(term.factor.real());
             } else {

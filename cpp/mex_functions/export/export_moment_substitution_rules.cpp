@@ -24,7 +24,8 @@ namespace Moment::mex {
         auto output = factory.createCellArray({rules.size(), 1});
         auto write_iter = output.begin();
         for (const auto& rule : rules) {
-            *write_iter = this->write_rule( rule.second);
+            auto polynomial = rule.second.as_polynomial(rules.factory);
+            *write_iter = this->polynomial_exporter.symbol_cell(polynomial);
             ++write_iter;
         }
         return output;
@@ -60,15 +61,6 @@ namespace Moment::mex {
         return output;
     }
 
-
-    matlab::data::CellArray MomentSubstitutionRuleExporter::write_rule(const MomentRule &rule) {
-        auto output = factory.createCellArray({1, 2});
-
-        output[0] = factory.createScalar(static_cast<uint64_t>(rule.LHS()));
-        output[1] = this->polynomial_exporter.symbol_cell(rule.RHS());
-
-        return output;
-    }
 
     matlab::data::MATLABString
     MomentSubstitutionRuleExporter::write_rule_string_as_operator(const MomentRule &rule) {

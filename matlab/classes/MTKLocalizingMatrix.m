@@ -36,7 +36,6 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
             end
                         
             if isa(expr, "MTKObject")
-                disp(expr);
                 if ~expr.IsScalar
                     error(MTKLocalizingMatrix.err_bad_word);
                 end                                

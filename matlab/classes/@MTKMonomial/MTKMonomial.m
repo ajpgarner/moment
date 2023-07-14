@@ -149,50 +149,18 @@ classdef MTKMonomial < MTKObject
     methods(Static)
         function obj = InitForOverwrite(setting, dimensions)
         % INITFOROVERWRITE Create blank monomial to overwrite.
-            arguments
-                setting (1,1) MTKScenario
-                dimensions (1,:) double
-            end
             obj = MTKMonomial(setting, 'overwrite', dimensions);
         end
         
-        function obj = InitValue(setting, values)
-        % INITVALUE Create monomials representing numeric values
-            arguments
-                setting (1,1) MTKScenario
-                values (:,:) double
-            end
-            
-            if numel(values) == 1
-                obj = MTKMonomial(setting, [], values);
-            else
-                dims = num2cell(size(values));
-                obj = MTKMonomial(setting, repelem({[]}, dims{:}), values);
-            end
-        end
-        
-        function obj = InitZero(setting, dimensions)
-            arguments
-                setting (1,1) MTKScenario
-                dimensions (1,:) double = [1 1]
-            end
-            
-            obj = MTKMonomial(setting, 'overwrite', dimensions);
-            obj.symbol_id = zeros(dimensions);
-            if prod(dimensions) == 1
-                obj.Operators = uint64.empty(1,0);
-            else
-                cell_dim = num2cell(dimensions);
-                obj.Operators = repelem({uint64.empty(1,0)}, cell_dim{:});
-            end
-            obj.Coefficient = zeros(dimensions);
-            obj.Hash = zeros(dimensions);
-        end
-
-        obj = InitDirect(setting, operators, coefs, hash);
-                      
         obj = InitAllInfo(setting, operators, coefs, hash, ...
                           symbols, conj, real, im);
+        
+        obj = InitDirect(setting, operators, coefs, hash);
+        
+        obj = InitValue(setting, values);              
+        
+        obj = InitZero(setting, dimensions);
+
     end
     
     %% Convertors

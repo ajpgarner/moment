@@ -10,7 +10,7 @@ classdef ApplyMomentRulesTest < MTKTestBase
                             ref_id, op_rules);
             test_out = mtk('apply_moment_rules', ref_id, rules_index, ...
                            {{6, 0.5}, {1, 2.0}});
-            expected_out = {{uint64(1), 2.25}};
+            expected_out = {{int64(1), 2.25}};
             testCase.verifyEqual(test_out, expected_out);
         end
         

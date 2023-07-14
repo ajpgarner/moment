@@ -68,8 +68,6 @@ namespace Moment::mex {
 
 
     private:
-        matlab::data::CellArray write_rule(const MomentRule& rule);
-
         matlab::data::MATLABString write_rule_string_as_operator(const MomentRule& rule);
 
         matlab::data::MATLABString write_rule_string_as_symbol(const MomentRule& rule);

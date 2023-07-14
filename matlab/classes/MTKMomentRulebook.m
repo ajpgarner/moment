@@ -73,7 +73,6 @@ methods
     
     function val = get.Polynomials(obj)
         if ~obj.has_polys            
-            %obj.cache_polys = Algebraic.Polynomial.empty(0, 1);
             poly_cell = mtk('moment_rules', obj.Scenario.System.RefId, ...
                             obj.Id, 'polynomials');
             obj.cache_polys = MTKPolynomial.InitFromOperatorCell(...

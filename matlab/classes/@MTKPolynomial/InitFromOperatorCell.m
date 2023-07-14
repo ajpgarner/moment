@@ -4,7 +4,30 @@ function obj = InitFromOperatorCell(setting, cell_input)
         cell_input cell
     end
     dimensions = size(cell_input);
+    
+    % Special case 'empty':
+    if isempty(cell_input)
+        obj = MTKPolynomial.empty(dimensions);
+        return;
+    end
+    
+    % Otherwise, construct:
     obj = MTKPolynomial(setting, 'overwrite', dimensions);
+    
+    if obj.IsScalar
+        if numel(cell_input{1}) == 3
+            obj.Constituents = ...
+                MTKMonomial.InitDirect(setting, cell_input{1}{:});
+        elseif numel(cell_input{1}) == 7
+            obj.Constituents = ...
+                MTKMonomial.InitAllInfo(setting, cell_input{1}{:});
+        else
+            error("Error constructing polynomial: expected 3 or 7 " + ...
+                "arrays to specify polynomial, but %d were provided", ...
+                numel(cell_input{1}));
+        end
+        return;
+    end
     
     for idx=1:numel(cell_input)
         if numel(cell_input{idx}) == 3 
@@ -19,11 +42,5 @@ function obj = InitFromOperatorCell(setting, cell_input)
                   idx, numel(cell_input{idx}));
         end
     end
-    
-    % De-cellify if scalar
-    if obj.IsScalar
-        assert(numel(obj.Constituents)==1);
-        obj.Constituents = obj.Constituents{1};
-    end
-    
+  
 end

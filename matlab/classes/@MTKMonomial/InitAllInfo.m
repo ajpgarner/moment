@@ -3,9 +3,17 @@ function obj = InitAllInfo(setting, operators, coefs, hashes, ...
 % INITALLINFO Directly initialize a MTKMonomial with supplied parameters.
 % No simplifications or other checks are performed - so this function
 % should only be used to construct Monomials already in canonical form.
-% If the above does not make sense, do not use this function. 
+% If the above does not make sense, do not use this function.
 %
-    dimensions = size(operators);    
+
+    % Special case: empty
+    if isempty(coefs)
+        obj = MTKMonomial.empty(size(coefs));
+        return;
+    end
+
+    % Normal case:
+    dimensions = size(operators);
     obj = MTKMonomial(setting, 'overwrite', dimensions);
     if obj.IsScalar && iscell(operators)
         obj.Operators = operators{1};

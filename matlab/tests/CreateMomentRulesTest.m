@@ -15,26 +15,26 @@ classdef CreateMomentRulesTest < MTKTestBase
         function SubList_Simple(testCase)            
             ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
-            rules_index = mtk('create_moment_rules', ...
+            rules_index = mtk('create_moment_rules', 'input', 'list', ...
                              ref_id, {{2, 0.5}});
             rules = mtk('moment_rules', ref_id, rules_index, 'symbols');
             testCase.verifyEqual(rules_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(2), {{uint64(1), 0.5}}}});
+                {{{int64(1), 0.5}, {int64(2), -1}}});
         end
         
         function SubList_Multi(testCase)            
             ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
-            rules_index = mtk('create_moment_rules', ref_id, ...
-                              {{2, 0.3}, {3, 0.4}});
+            rules_index = mtk('create_moment_rules', 'input', 'list', ...
+                               ref_id, {{2, 0.3}, {3, 0.4}});
             rules = mtk('moment_rules', ref_id, rules_index, 'symbols');
             testCase.verifyEqual(rules_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(2), {{uint64(1), 0.3}}}; ...
-                 {uint64(3), {{uint64(1), 0.4}}}});
+                {{{int64(1), 0.3}, {int64(2), -1.0}}; ...
+                 {{int64(1), 0.4}, {int64(3), -1.0}}});
         end
         
           function Symbols_Empty(testCase)            
@@ -56,7 +56,7 @@ classdef CreateMomentRulesTest < MTKTestBase
             testCase.verifyEqual(rules_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(2), {{uint64(1), 0.5}}}});
+                {{{int64(1), 0.5}, {int64(2), -1.0}}});
         end
         
         function Symbols_Multi(testCase)            
@@ -70,8 +70,8 @@ classdef CreateMomentRulesTest < MTKTestBase
             testCase.verifyEqual(rules_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(2), {{uint64(1), 0.3}}}; ...
-                 {uint64(3), {{uint64(1), 0.4}}}});
+                {{{int64(1), 0.3}, {int64(2), -1.0}}; ...
+                 {{int64(1), 0.4}, {int64(3), -1.0}}});
         end
                 
         function Symbols_Chain(testCase)            
@@ -85,8 +85,8 @@ classdef CreateMomentRulesTest < MTKTestBase
             testCase.verifyEqual(rules_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(2), {{uint64(1), 0.3}}}; ...
-                 {uint64(3), {{uint64(1), 0.12}}}});
+                {{{int64(1), 0.3}, {int64(2), -1.0}}; ...
+                 {{int64(1), 0.12}, {int64(3), -1.0}}});
         end
         
         function OpSeq_Existing_Empty(testCase)
@@ -109,7 +109,7 @@ classdef CreateMomentRulesTest < MTKTestBase
             testCase.verifyEqual(rules_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(3), {{uint64(2), 0.5}}}}); % Rule is A1 -> 0.5 A0
+                {{{int64(2), 0.5}, {int64(3), -1.0}}}); % Rule is A1 -> 0.5 A0
          end
         
          
@@ -124,11 +124,10 @@ classdef CreateMomentRulesTest < MTKTestBase
             testCase.verifyEqual(rules_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(2), {{uint64(1), 0.3}}}; ...
-                 {uint64(3), {{uint64(1), 0.12}}}});
+                {{{int64(1), 0.3}, {int64(2), -1.0}}; ...
+                 {{int64(1), 0.12}, {int64(3), -1.0}}});
         end
-        
-        
+
         function OpSeq_NewSymbols_Empty(testCase)
             ref_id = mtk('locality_matrix_system', 2, 2, 2);
             old_symbols = mtk('symbol_table', ref_id);
@@ -157,7 +156,7 @@ classdef CreateMomentRulesTest < MTKTestBase
             testCase.verifyEqual(rules_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(2), {{uint64(3), 0.5}}}}); % Rule is Y -> 0.5 X
+                {{{int64(3), 0.5}, {int64(2), -1.0}}}); % Rule is Y -> 0.5 X
             
          end
         
@@ -174,8 +173,8 @@ classdef CreateMomentRulesTest < MTKTestBase
             testCase.verifyEqual(rules_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(2), {{uint64(1), 0.3}}}; ...
-                 {uint64(3), {{uint64(1), 0.12}}}});
+                {{{int64(1), 0.3}, {int64(2), -1.0}}; ...
+                 {{int64(1), 0.12}, {int64(3), -1.0}}});
             new_symbols = mtk('symbol_table', ref_id);
             testCase.verifyEqual(length(new_symbols), 4);
         end
@@ -190,8 +189,8 @@ classdef CreateMomentRulesTest < MTKTestBase
             testCase.verifyEqual(second_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(2), {{uint64(1), 0.3}}}; ...
-                 {uint64(3), {{uint64(1), 0.4}}}});
+                {{{int64(1), 0.3}, {int64(2), -1.0}}; ...
+                 {{int64(1), 0.4}, {int64(3), -1.0}}});
         end
                  
         function WithLabel(testCase)            
@@ -204,7 +203,7 @@ classdef CreateMomentRulesTest < MTKTestBase
             testCase.verifyEqual(rules_index, uint64(0));
             testCase.assertFalse(isempty(rules));
             testCase.verifyEqual(rules, ...
-                {{uint64(2), {{uint64(1), 0.5}}}});
+                {{{int64(1), 0.5}, {int64(2), -1.0}}});
         end
         
     end

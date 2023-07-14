@@ -1,4 +1,12 @@
 function obj = InitValue(setting, values)
+
+    % Special case: empty
+    if isempty(values)
+         obj = MTKPolynomial.empty(size(values));
+         return;
+    end
+
+    % Normal scalar construction
     dimensions = size(values);
     obj = MTKPolynomial(setting, 'overwrite', dimensions);
     if obj.IsScalar
