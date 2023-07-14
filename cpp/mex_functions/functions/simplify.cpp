@@ -34,11 +34,13 @@ namespace Moment::mex::functions {
                 }
                 assert(acPtr);
                 const auto& names = acPtr->names();
-                input.operator_string.reserve(input.named_operators.size());
+                input.operator_string.emplace_back();
+                auto& op_seq = input.operator_string.back();
+                op_seq.reserve(input.named_operators.size());
                 size_t idx = 1; // MATLAB 1-indexing
                 for (const auto& opStr : input.named_operators) {
                     try {
-                        input.operator_string.emplace_back(names.find(opStr));
+                        op_seq.emplace_back(names.find(opStr));
                     } catch (const std::invalid_argument& iae) {
                         std::stringstream errSS;
                         errSS << "Could not parse operator \"" << opStr << "\" at index " << idx << ".";

@@ -1,5 +1,5 @@
-classdef MomentRuleBookTest < MTKTestBase
-%MONOMIALRULESTESTS Unit tests for MomentRuleBook matlab class
+classdef MomentRulebookTest < MTKTestBase
+%MONOMIALRULESTESTS Unit tests for MomentRulebook matlab class
     methods (Test)
         function EmptyRules(testCase)
             setting = AlgebraicScenario(["x", "y"], {}, true);
