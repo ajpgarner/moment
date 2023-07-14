@@ -11,11 +11,11 @@ function val = ApplyRules(obj, rulebook)
 
     % Get transformed version of polynomial
     as_symbol_cell = obj.SymbolCell();
-    output_sequences = mtk('apply_moment_rules', ...
+    output_op_cell = mtk('apply_moment_rules', ...
         obj.Scenario.System.RefId, rulebook.RulebookId, ...
-        'output', 'sequences', as_symbol_cell);
+        'output', 'polynomials', as_symbol_cell);
 
     % Construct new, transformed polynomial
-    val = MTKPolynomial(obj.Scenario, output_sequences);
+    val = MTKPolynomial(obj.Scenario, output_op_cell);
 
 end

@@ -35,7 +35,6 @@ namespace Moment::mex::functions {
         enum class OutputFormat {
             SymbolCell,
             Polynomial,
-            PolynomialWithSymbolInfo,
             String
         } output_format = OutputFormat::SymbolCell;
 

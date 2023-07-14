@@ -38,7 +38,7 @@ namespace Moment::mex::functions {
         // Read input mode, if set
         auto inputModeIter = this->params.find(u"input");
         if (inputModeIter  != this->params.end()) {
-            switch (read_choice("output", {"symbols", "sequences"}, inputModeIter->second)) {
+            switch (read_choice("input", {"symbols", "sequences"}, inputModeIter->second)) {
                 case 0:
                     this->input_format = InputFormat::SymbolCell;
                     break;
@@ -54,7 +54,7 @@ namespace Moment::mex::functions {
         // Read output mode, if set
         auto outputModeIter = this->params.find(u"output");
         if (outputModeIter != this->params.end()) {
-            switch (read_choice("output", {"string", "symbols", "sequences", "full_sequences"}, outputModeIter->second)) {
+            switch (read_choice("output", {"string", "symbols", "polynomials"}, outputModeIter->second)) {
                 case 0:
                     this->output_format = OutputFormat::String;
                     break;
@@ -63,9 +63,6 @@ namespace Moment::mex::functions {
                     break;
                 case 2:
                     this->output_format = OutputFormat::Polynomial;
-                    break;
-                case 3:
-                    this->output_format = OutputFormat::PolynomialWithSymbolInfo;
                     break;
                 default:
                     throw_error(this->matlabEngine, errors::bad_param, "Unknown output mode.");
@@ -159,11 +156,6 @@ namespace Moment::mex::functions {
             }
                 break;
             case ApplyMomentRulesParams::OutputFormat::Polynomial: {
-                auto fullPolyInfo = polynomialExporter.sequences(polynomial);
-                output[0] = fullPolyInfo.move_to_cell(mlfactory);
-            }
-                break;
-            case ApplyMomentRulesParams::OutputFormat::PolynomialWithSymbolInfo:{
                 auto fullPolyInfo = polynomialExporter.sequences(polynomial, true);
                 output[0] = fullPolyInfo.move_to_cell(mlfactory);
             }
