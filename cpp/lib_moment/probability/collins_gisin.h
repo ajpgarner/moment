@@ -145,30 +145,6 @@ namespace Moment {
         bool fill_missing_symbols() noexcept;
 
     public:
-
-        /**
-         * Gets indexed operator sequence
-         * @param index Collins-Gisin index to operator sequence
-         * @throws BadCGError If index is invalid.
-         */
-        [[nodiscard]] OperatorSequence Sequence(CollinsGisinIndexView index) const;
-
-        /**
-         * Gets indexed symbol ID.
-         * @param index Collins-Gisin index to operator.
-         * @throws BadCGError If index is invalid.
-         * @throws BadCGError If op sequence at index has not been identified in symbol table.
-         */
-        [[nodiscard]] symbol_name_t Symbol(CollinsGisinIndexView index) const;
-
-        /**
-         * Gets indexed real basis element
-         * @param index Collins-Gisin index to operator.
-         * @throws BadCGError If index is invalid.
-         * @throws BadCGError If op sequence at index has not been identified in symbol table.
-         */
-        [[nodiscard]] ptrdiff_t RealIndex(CollinsGisinIndexView index) const;
-
         /**
          * True if every symbol in tensor has been identified.
          */

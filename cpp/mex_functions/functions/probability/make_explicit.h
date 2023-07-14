@@ -33,12 +33,19 @@ namespace Moment::mex::functions {
 
         /** The type of output */
         enum class OutputType {
+            /** Cell array of pairs {symbol, value} */
+            SubstitutionList,
+            /** Polynomial symbol cell specification. */
             SymbolCell,
+            /** Polynomial operator (full) cell specification. */
             Polynomial
         } output_type = OutputType::SymbolCell;
 
         /** Export conditional measurement ? */
         bool is_conditional = false;
+
+        /** Do simplification? */
+        bool simplify = false;
 
         /** True if a conditional probability is required and requested. */
         [[nodiscard]] inline bool conditional() const noexcept {

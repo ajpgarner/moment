@@ -396,7 +396,7 @@ namespace Moment {
             }
 
 
-            Index index() const {
+            [[nodiscard]] Index index() const {
                 if (implIter.index() == 0) {
                     const size_t offset = std::distance(tensorPtr->data.cbegin(), std::get<0>(implIter));
                     return tensorPtr->offset_to_index_no_checks(offset);
@@ -406,7 +406,7 @@ namespace Moment {
                 }
             }
 
-            size_t offset() const {
+            [[nodiscard]] size_t offset() const {
                 if (implIter.index() == 0) {
                     return std::distance(tensorPtr->data.cbegin(), std::get<0>(implIter));
                 } else {

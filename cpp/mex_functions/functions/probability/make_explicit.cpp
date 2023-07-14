@@ -23,8 +23,10 @@
 #include "scenarios/inflation/inflation_probability_tensor.h"
 
 #include "symbolic/polynomial_factory.h"
+#include "symbolic/rules/moment_rulebook.h"
 
 #include "utilities/float_utils.h"
+
 
 #include <functional>
 #include <numeric>
@@ -82,6 +84,47 @@ namespace Moment::mex::functions {
         }
 
 
+
+        matlab::data::CellArray make_sub_pair(matlab::data::ArrayFactory& factory, const Polynomial& poly) {
+            matlab::data::CellArray output = factory.createCellArray({1, 2});
+            if (poly.size() == 2) {
+                output[0] = factory.createScalar<int64_t>(poly[1].id);
+                output[1] = factory.createScalar<double>(poly[0].factor.real());
+                return output;
+            } else if (poly.size() == 1) {
+                output[0] = factory.createScalar<int64_t>(poly[0].id);
+                output[1] = factory.createScalar<double>(0.0);
+            } else {
+                assert(false);
+            }
+            return output;
+        }
+
+        matlab::data::CellArray
+        try_make_substitution_list(PolynomialExporter& exporter,
+                                   const std::vector<Polynomial>& rules) {
+            auto& factory = exporter.factory;
+
+
+            auto output = factory.createCellArray({rules.size(), 1});
+            auto write_iter = output.begin();
+
+            for (const auto& poly : rules) {
+                if ((poly.size() > 2) || (poly.size() < 1)
+                    || (poly.size() == 2) && (poly.first_id() != 1)) {
+                    std::stringstream errSS;
+                    errSS << "Cannot export as a substitution list: "
+                          << "simplified rules contained the following non-scalar defining polynomial: "
+                          << poly.as_string_with_operators(exporter.symbols, true);
+
+                    throw_error(exporter.engine, errors::internal_error, errSS.str());
+                }
+                *write_iter = make_sub_pair(factory, poly);
+                ++write_iter;
+            }
+
+            return output;
+        }
     }
 
     MakeExplicitParams::MakeExplicitParams(SortedInputs &&structuredInputs)
@@ -95,6 +138,13 @@ namespace Moment::mex::functions {
             this->output_type = OutputType::SymbolCell;
         } else if (this->flags.contains(u"polynomials")) {
             this->output_type = OutputType::Polynomial;
+        } else if (this->flags.contains(u"list")) {
+            this->output_type = OutputType::SubstitutionList;
+        }
+
+        // Do we do a simplification?
+        if (this->flags.contains(u"simplify")) {
+            this->simplify = true;
         }
 
         // Get if we are implicitly in conditional mode?
@@ -126,10 +176,12 @@ namespace Moment::mex::functions {
         this->max_outputs = 1;
 
         this->flag_names.emplace(u"conditional");
+        this->flag_names.emplace(u"simplify");
 
+        this->flag_names.emplace(u"list");
         this->flag_names.emplace(u"symbols");
         this->flag_names.emplace(u"polynomials");
-        this->mutex_params.add_mutex({u"symbols", u"polynomials", u"all"});
+        this->mutex_params.add_mutex({u"list", u"symbols", u"polynomials", u"all"});
     }
 
     void MakeExplicit::extra_input_checks(MakeExplicitParams &input) const {
@@ -176,12 +228,34 @@ namespace Moment::mex::functions {
             rules = pt.explicit_value_rules(slice, input.values);
         }
 
+        // Do we simplify?
+        if (input.simplify || (input.output_type == MakeExplicitParams::OutputType::SubstitutionList)) {
+            MomentRulebook rulebook{matrixSystem};
+            rulebook.add_raw_rules(std::move(rules));
+            try {
+                rulebook.complete();
+            } catch (const Moment::errors::invalid_moment_rule& imr) {
+                throw_error(this->matlabEngine, errors::bad_param,
+                            "Cannot simplify probability distribution, because it is not self-consistent.");
+            }
+
+            std::vector<Polynomial> replacement_rules;
+            replacement_rules.reserve(rulebook.size());
+            for (const auto& rule : rulebook) {
+                replacement_rules.emplace_back(rule.second.as_polynomial(rulebook.factory));
+            }
+            rules = std::move(replacement_rules);
+        }
+
         // Export rule polynomials
         matlab::data::ArrayFactory factory;
         PolynomialExporter exporter{this->matlabEngine, factory,
                                     matrixSystem.Symbols(),
                                     matrixSystem.polynomial_factory().zero_tolerance};
         switch (input.output_type) {
+            case MakeExplicitParams::OutputType::SubstitutionList:
+                output[0] = try_make_substitution_list(exporter, rules);
+                break;
             case MakeExplicitParams::OutputType::SymbolCell:
                 output[0] = exporter.symbol_cell_vector(rules);
                 break;
