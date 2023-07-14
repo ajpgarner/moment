@@ -33,7 +33,7 @@ namespace Moment::mex::functions {
             os << ": " << symbol_count << " " << (symbol_count != 1 ? "symbols" : "symbol") << ", ";
             const size_t matrix_count = ms.size();
             os << matrix_count << " " << (matrix_count != 1 ? "matrices" : "matrix") << ", ";
-            const size_t rb_count = ms.rulebook_count();
+            const size_t rb_count = ms.Rulebook.size();
             os << rb_count <<  " " << (matrix_count != 1 ? "rulebooks" : "rulebook") << ".";
 
             os << "\nPOLYNOMIAL FACTORY:\n " << ms.polynomial_factory();
@@ -64,7 +64,7 @@ namespace Moment::mex::functions {
             if (rb_count > 0) {
                 os << "\nRULEBOOKS:";
                 for (size_t rb_index = 0; rb_index < rb_count; ++rb_index) {
-                    const auto& rulebook = ms.rulebook(rb_index);
+                    const auto& rulebook = ms.Rulebook(rb_index);
                     size_t rule_count = rulebook.size();
                     os << "\n " << rb_index << ": " << rule_count << " " << (rule_count != 1 ? "rules" : "rule") << ": "
                        << rulebook.name();
@@ -200,7 +200,7 @@ namespace Moment::mex::functions {
             auto lock = msPtr->get_read_lock();
 
             data.emplace_back(storageManager.MatrixSystems.sign_index(id), msPtr->system_type_name(),
-                              msPtr->size(), msPtr->Symbols().size(), msPtr->rulebook_count());
+                              msPtr->size(), msPtr->Symbols().size(), msPtr->Rulebook.size());
 
             lock.unlock();
 
@@ -236,7 +236,7 @@ namespace Moment::mex::functions {
         output[0]["Description"] = factory.createScalar(msPtr->system_type_name());
         output[0]["Matrices"] = factory.createScalar(msPtr->size());
         output[0]["Symbols"] = factory.createScalar(msPtr->Symbols().size());
-        output[0]["Rulebooks"] = factory.createScalar(msPtr->rulebook_count());
+        output[0]["Rulebooks"] = factory.createScalar(msPtr->Rulebook.size());
         return output;
     }
 }

@@ -21,6 +21,7 @@ add_library(lib_moment
         matrix_system/matrix_system.cpp
         matrix_system/polynomial_index_storage.cpp
         matrix_system/polynomial_localizing_matrix_index.cpp
+        matrix_system/rulebook_storage.cpp
         probability/collins_gisin.cpp
         probability/maintains_tensors.cpp
         probability/probability_tensor.cpp

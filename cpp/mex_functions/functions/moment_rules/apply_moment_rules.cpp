@@ -110,7 +110,7 @@ namespace Moment::mex::functions {
         // Retrieve rules, or throw
         const auto& rulebook = [&]() -> const MomentRulebook& {
             try {
-                return matrixSystem.rulebook(input.rulebook_index); // <- throws, if not found.
+                return matrixSystem.Rulebook(input.rulebook_index); // <- throws, if not found.
             } catch (const Moment::errors::missing_component& mce) {
                 std::stringstream errSS;
                 errSS << "Could not find rulebook at index " << input.rulebook_index << ".";

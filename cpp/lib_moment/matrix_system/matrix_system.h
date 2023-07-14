@@ -9,6 +9,7 @@
 
 #include "matrix_system_errors.h"
 #include "matrix_system_indices.h"
+#include "rulebook_storage.h"
 
 #include "utilities/multithreading.h"
 
@@ -48,9 +49,6 @@ namespace Moment {
         /** List of matrices in the system. */
         std::vector<std::unique_ptr<Matrix>> matrices;
 
-        /** List of moment substitution rulebooks in the system. */
-        std::vector<std::unique_ptr<MomentRulebook>> rulebooks;
-
     public:
         /** Indexed moment matrices */
         MomentMatrixIndices MomentMatrix;
@@ -63,6 +61,9 @@ namespace Moment {
 
         /** Indexed substituted matrices */
         SubstitutedMatrixIndices SubstitutedMatrix;
+
+        /** Moment substitution rulebooks */
+        RulebookStorage Rulebook;
 
     public:
          /**
@@ -144,38 +145,6 @@ namespace Moment {
          * @return True if new symbols were created.
          */
         bool generate_dictionary(size_t word_length);
-
-        /**
-         * Import a list of moment substitution rules
-         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
-         */
-        std::pair<size_t, MomentRulebook&>
-        add_rulebook(std::unique_ptr<MomentRulebook> rulebook);
-
-        /**
-         * Import a list of moment substitution rules
-         * Will lock until all read locks have expired - so do NOT first call for a read lock...!
-         */
-        std::pair<size_t, MomentRulebook&>
-        merge_rulebooks(size_t existing_rulebook_id, MomentRulebook&& rulebook);
-
-        /**
-         * Get a list of moment substitution rules.
-         * For thread safety, call for a read lock first.
-         */
-        [[nodiscard]] MomentRulebook& rulebook(size_t index);
-
-        /**
-         * Get a list of moment substitution rules
-         * For thread safety, call for a read lock first.
-         */
-        [[nodiscard]] const MomentRulebook& rulebook(size_t index) const;
-
-        /**
-         * Counts number of rulebooks in system
-         */
-        [[nodiscard]] size_t rulebook_count() const noexcept { return this->rulebooks.size(); }
-
 
         /**
          * Gets the polynomial factory for this system.
@@ -265,7 +234,7 @@ namespace Moment {
         virtual void onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator& osg) { }
 
         /**
-         * Virtual method, called after a rulebook has been added
+         * Virtual method, called after a rulebook has been added or merged
          * @param index The index the new rulebook
          * @param rulebook The rulebook itself.
          * @param insertion True if new addition, false if a merge.
@@ -288,6 +257,7 @@ namespace Moment {
         ptrdiff_t push_back(std::unique_ptr<Matrix> matrix);
 
     public:
+        friend RulebookStorage;
         friend MomentMatrixFactory;
         friend MomentMatrixIndices;
         friend LocalizingMatrixFactory;

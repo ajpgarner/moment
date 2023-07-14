@@ -287,14 +287,14 @@ namespace Moment::mex::functions {
         auto [rb_id, rulebook] = [&]() -> std::pair<size_t, const MomentRulebook&> {
             // Either, just get information:
             if (input.info_only_mode()) {
-                return {input.existing_rule_key, system.rulebook(input.existing_rule_key)};
+                return {input.existing_rule_key, system.Rulebook(input.existing_rule_key)};
             }
             // Or, add/merge for information
             if (input.merge_into_existing) {
-                return system.merge_rulebooks(input.existing_rule_key, std::move(*rulebookPtr));
+                return system.Rulebook.merge_in(input.existing_rule_key, std::move(*rulebookPtr));
             } else {
                 // Register rulebook with matrix system
-                return system.add_rulebook(std::move(rulebookPtr));
+                return system.Rulebook.add(std::move(rulebookPtr));
             };
         }();
 

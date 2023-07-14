@@ -95,7 +95,7 @@ namespace Moment::mex::functions {
         // Try to get rulebook
         const auto& rulebook = [&]() -> const MomentRulebook& {
            try {
-               return msPtr->rulebook(input.rulebook_index);
+               return msPtr->Rulebook(input.rulebook_index);
            } catch (const Moment::errors::missing_component& mce) {
                throw_error(this->matlabEngine, errors::bad_param, mce.what());
            }

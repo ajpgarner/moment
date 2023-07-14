@@ -901,7 +901,7 @@ namespace Moment::Tests {
         compare_symbol_matrices(moment_matrix, ref_mm, "Moment matrix");
 
         // Build substitutions of just A
-        auto [rb_id, book] = ams.add_rulebook(std::make_unique<MomentRulebook>(this->get_system()));
+        auto [rb_id, book] = ams.Rulebook.add(std::make_unique<MomentRulebook>(this->get_system()));
         book.inject(id_a, Polynomial::Scalar(2.0)); // A -> 2
         book.inject(id_b, Polynomial::Scalar(3.0)); // B -> 3
         book.infer_additional_rules_from_factors(ams);

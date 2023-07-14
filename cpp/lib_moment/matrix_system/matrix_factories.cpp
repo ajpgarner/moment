@@ -102,7 +102,7 @@ namespace Moment {
                                          Multithreading::MultiThreadPolicy mt_policy) {
         assert(system.is_locked_write_lock(lock));
         auto& source_matrix = system.get(index.first); // <- throws if not found!
-        auto& rulebook = system.rulebook(index.second); // <- throws if not found!
+        auto& rulebook = system.Rulebook(index.second); // <- throws if not found!
 
         // Do creation
         const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
@@ -112,9 +112,9 @@ namespace Moment {
 
     void SubstitutedMatrixFactory::notify(const std::pair<ptrdiff_t, ptrdiff_t> &index, Matrix &matrix) {
         assert(index.first < system.matrices.size() && system.matrices[index.first]);
-        assert(index.second < system.rulebooks.size() && system.rulebooks[index.second]);
-        const auto& src_matrix = *system.matrices[index.first];
-        const auto& rulebook = *system.rulebooks[index.second];
+        assert(system.Rulebook.contains(index.second));
+        const auto& src_matrix = *(system.matrices[index.first]);
+        const auto& rulebook = system.Rulebook(index.second);
         system.onNewSubstitutedMatrixCreated(index.first, src_matrix, index.second, rulebook, matrix);
     }
 
@@ -125,7 +125,7 @@ namespace Moment {
         if ((source_index < 0) || (source_index > system.matrices.size())) {
             errSS << "\nThe source matrix index " << source_index
                   << " is out of range, so the requested substituted matrix does not exist.";
-        } else if ((rulebook_index < 0) || (rulebook_index > system.rulebooks.size())) {
+        } else if ((rulebook_index < 0) || (rulebook_index >= system.Rulebook.size())) {
             errSS << "\nThe rulebook index " << rulebook_index
                   << " is out of range, so the requested substituted matrix does not exist.";
         } else {
