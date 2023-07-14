@@ -37,7 +37,7 @@ classdef ConjugateTest < MTKTestBase
          function WithHash(testCase)
             ms_id = mtk('algebraic_matrix_system', 2, 'nonhermitian');
             input = uint64([1, 2]);
-            [output, output_hash] = mtk('conjugate', ms_id, input);
+            [output, ~, output_hash] = mtk('conjugate', ms_id, input);
             expected = uint64([4, 3]);
             testCase.verifyEqual(output, expected);
             testCase.verifyEqual(output_hash, ...

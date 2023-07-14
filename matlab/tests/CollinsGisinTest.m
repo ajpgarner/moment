@@ -8,16 +8,16 @@ classdef CollinsGisinTest < MTKTestBase
         function CHSH(testCase)
             system_id = mtk('locality_matrix_system', 2, 2, 2);
             mm = mtk('moment_matrix', system_id, 1);
-            sym_mat = mtk('collins_gisin', system_id, 'symbols');
-            bas_mat = mtk('collins_gisin', system_id, 'basis');
-            seq_mat = mtk('collins_gisin', system_id, 'sequences');            
+            [sym_mat, bas_mat] = mtk('collins_gisin', system_id, 'symbols');
+            [seq_mat, hash_mat] = mtk('collins_gisin', system_id, 'sequences');            
             expected = uint64([[1, 4, 5]; [2, 7, 8]; [3, 9, 10]]);
             testCase.verifyEqual(sym_mat, expected);
-            testCase.verifyEqual(bas_mat, expected);
-            testCase.verifyEqual(seq_mat, ...
-                [["1",   "B.a0", "B.b0"]; ...
-                 ["A.a0","A.a0;B.a0","A.a0;B.b0"]; ...
-                 ["A.b0","A.b0;B.a0","A.b0;B.b0"]]);
+            testCase.verifyEqual(bas_mat, int64(expected-1));
+            expected_ops = {uint64.empty(1,0), uint64(3), uint64(4);
+                            uint64(1), uint64([1, 3]), uint64([1, 4]);
+                            uint64(2), uint64([2, 3]), uint64([2, 4])};
+         
+            testCase.verifyEqual(seq_mat, expected_ops);
         end
     end
     
@@ -34,28 +34,10 @@ classdef CollinsGisinTest < MTKTestBase
             function bad_in()
                system_id = mtk('locality_matrix_system', 2, 2, 2);
                [~] = mtk('collins_gisin', system_id, ...
-                           'sequences', 'basis');
+                           'sequences', 'symbols');
             end
             testCase.verifyError(@() bad_in(), 'mtk:mutex_param');           
-        end  
-        
-        function Error_TooManyInputs(testCase)
-            function bad_in()
-               system_id = mtk('locality_matrix_system', 2, 2, 2);
-               [~] = mtk('collins_gisin', ...
-                              system_id, system_id);
-            end
-            testCase.verifyError(@() bad_in(), 'mtk:too_many_inputs');           
-        end  
-        
-        function Error_NoMomentMatrix(testCase)
-            function bad_in()
-               system_id = mtk('locality_matrix_system', 2, 2, 2);
-               [~] = mtk('collins_gisin', ...
-                              system_id);
-            end
-            testCase.verifyError(@() bad_in(), 'mtk:missing_cg');           
-        end  
+        end
         
     end
     
