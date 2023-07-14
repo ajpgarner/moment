@@ -39,12 +39,19 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
                 disp(expr);
                 if ~expr.IsScalar
                     error(MTKLocalizingMatrix.err_bad_word);
-                end                
-                expr.ReadOnly = true; % TODO: Clone.                
+                end                                
                 if isa(expr, "MTKPolynomial")
+                    expr.ReadOnly = true; 
                     is_monomial = false;
                 elseif isa(expr, "MTKMonomial")
-                    monomial_expr = uint64(reshape(expr.Operators, 1, []));
+                    if scenario.IsClose(expr.Coefficient, 1)
+                        is_monomial = true;
+                        monomial_expr = uint64(reshape(expr.Operators, 1, []));
+                    else
+                        is_monomial = false;
+                        expr = MTKPolynomial(expr);
+                        expr.ReadOnly = true;
+                    end
                 else
                     error(MTKLocalizingMatrix.err_bad_word);
                 end
@@ -56,20 +63,25 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
             end
             
             if is_monomial
-                if ~scenario.IsClose(expr.Coefficient, 1)
-                    error("Scaled localizing matrix not yet supported.");
-                end
-                [lm_index, lm_dim, lm_mono, is_hermitian] ...
+                [lm_index, lm_dim, actually_monomial, is_hermitian] ...
                     = mtk('localizing_matrix', scenario.System.RefId, ...
                           level, monomial_expr);
-                 assert(lm_mono == is_monomial);
+                      
             else
-                error("Polynomial localizing matrix not yet supported.");
+                if expr.FoundAllSymbols
+                    [lm_index, lm_dim, actually_monomial, is_hermitian]...
+                        = mtk('localizing_matrix', scenario.System.RefId,...
+                              level, 'symbols', expr.SymbolCell);
+                else
+                    [lm_index, lm_dim, actually_monomial, is_hermitian]...
+                        = mtk('localizing_matrix', scenario.System.RefId,...
+                              level, 'operators', expr.OperatorCell);
+                end                
             end
             
             % Construct MTKObject
             obj = obj@MTKOpMatrix(scenario, lm_index, lm_dim, ...
-                                  is_monomial, is_hermitian);
+                                  actually_monomial, is_hermitian);
             obj.Level = level;
             obj.Word = expr;
             
@@ -85,7 +97,6 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
                 val = obj;
                 return
             end
-            disp(obj.Word);
             val = MTKLocalizingMatrix(obj.Scenario, obj.Level, ...
                                       ctranspose(obj.Word));
         end

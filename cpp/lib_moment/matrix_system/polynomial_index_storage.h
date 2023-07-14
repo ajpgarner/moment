@@ -25,7 +25,7 @@ namespace Moment {
         private:
             PolynomialOrderingWithCoefficients poly_comp;
 
-            inline void set_factory(const PolynomialFactory& factory) {
+            inline void set_factory(const PolynomialFactory& factory) & {
                 this->poly_comp.set_factory(factory);
             }
 
@@ -46,10 +46,12 @@ namespace Moment {
             friend class PolynomialIndexStorage;
         };
 
+        using underlying_map_t = std::map<PolynomialLMIndex, ptrdiff_t, IndexPolyComparator>;
+
     private:
         const PolynomialFactory* factoryPtr;
         IndexPolyComparator ordering_functor;
-        std::map<PolynomialLMIndex, ptrdiff_t, IndexPolyComparator> poly_index_map;
+        std::unique_ptr<underlying_map_t> poly_index_map;
 
     public:
         PolynomialIndexStorage();
@@ -93,14 +95,14 @@ namespace Moment {
           * Are there any indices recorded?
           */
          [[nodiscard]] inline bool empty() const noexcept {
-             return this->poly_index_map.empty();
+             return !this->poly_index_map || this->poly_index_map->empty();
          }
 
          /**
           * How many indices are recorded?
           */
          [[nodiscard]] inline size_t size() const noexcept {
-             return this->poly_index_map.size();
+             return this->poly_index_map ? this->poly_index_map->size() : 0;
          }
 
     };

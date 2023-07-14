@@ -42,13 +42,42 @@ namespace Moment::mex {
 
         ~StagingPolynomial() noexcept;
 
+        /**
+         * Resolve numeric strings of operator numbers into a contextualized (i.e. simplified) operator sequence.
+         * @param context The context to interpret the operator sequences.
+         * @throws matlab::Exception (errors::bad_param) if operator string is invalid (e.g. out of range).
+         */
         void supply_context(const Context& context);
 
-        void find_symbols(const SymbolTable& symbols);
+        /**
+         * Look up symbols for contextualized monomials.
+         * @param symbols The table of registered symbols.
+         * @param fail_quietly If true, missing symbols are set to -1.
+         * @throws matlab::Exception (errors::bad_param) if fail_quietly is false and a symbol cannot be found.
+         * @returns True if all symbols are found.
+         */
+        bool find_symbols(const SymbolTable& symbol_table, bool fail_quietly = false);
 
+        /**
+         * Looks up symbols for contextualized monomials, or creates new symbols if they don't already exist.
+         * Can be called safely after find_symbols.
+         * A write lock should be held.
+         * @param symbols The table of registered symbols.
+         */
         void find_or_register_symbols(SymbolTable& symbols);
 
+        /**
+         * Instantiate a polynomial from resolved symbols.
+         * @param factory The polynomial factory.
+         */
         [[nodiscard]] Polynomial to_polynomial(const PolynomialFactory& factory) const;
+
+        /**
+         * True if polynomial can be instantiated
+         */
+         [[nodiscard]] inline bool ready() const noexcept {
+             return this->symbols_resolved;
+         }
 
     private:
         std::unique_ptr<StagingMonomial[]> data;

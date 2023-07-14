@@ -25,16 +25,23 @@ namespace Moment::mex {
         sequence_storage_t raw_sequence{};
         std::complex<double> factor = 1.0;
         std::optional<OperatorSequence> resolved_sequence = std::nullopt;
-        symbol_name_t symbol_id = 0;
+        symbol_name_t symbol_id = -1;
         bool conjugated = false;
 
     public:
+        /** Turn raw sequence into contextualized operator sequence. */
         void raw_to_resolved(matlab::engine::MATLABEngine& engine,
                              const Context& context, const std::string& name);
 
+        /** Try to find symbol, throw error if not found (should hold at least read lock). */
         void look_up_symbol(matlab::engine::MATLABEngine& engine,
                             const SymbolTable& symbols, const std::string& name);
 
+        /** Try to find symbol, set to  '-1' if not found (should hold at least read lock). */
+        bool look_up_symbol_or_fail_quietly(matlab::engine::MATLABEngine& engine,
+                                            const SymbolTable& symbols);
+
+        /** Try to find symbol, create it if not found (must hold write lock!). */
         void look_up_or_make_symbol(matlab::engine::MATLABEngine& engine,
                                     SymbolTable& symbols, const std::string& name);
 
@@ -68,6 +75,21 @@ namespace Moment::mex {
         }
         this->symbol_id = where->Id();
         this->conjugated = is_cc;
+    }
+
+    bool StagingMonomial::look_up_symbol_or_fail_quietly(matlab::engine::MATLABEngine& engine,
+                                                         const SymbolTable& symbols) {
+        assert(this->resolved_sequence.has_value());
+        auto [where, is_cc] = symbols.where_and_is_conjugated(this->resolved_sequence.value());
+
+        if (where == nullptr) {
+            this->symbol_id = -1;
+            this->conjugated = false;
+            return false;
+        }
+        this->symbol_id = where->Id();
+        this->conjugated = is_cc;
+        return true;
     }
 
     void StagingMonomial::look_up_or_make_symbol(matlab::engine::MATLABEngine& engine,
@@ -168,28 +190,46 @@ namespace Moment::mex {
         }
     }
 
-    void StagingPolynomial::find_symbols(const SymbolTable &symbols) {
+    bool StagingPolynomial::find_symbols(const SymbolTable &symbols, bool fail_quietly) {
         assert(this->data);
-        for (size_t index = 0; index < this->data_length; ++index) {
-            std::stringstream nameSS;
-            nameSS << this->name << " element #" << (index + 1);
-            this->data[index].look_up_symbol(this->matlabEngine, symbols, nameSS.str());
+        if (fail_quietly) {
+            bool found_all_symbols = true;
+            for (size_t index = 0; index < this->data_length; ++index) {
+                this->data[index].look_up_symbol_or_fail_quietly(this->matlabEngine, symbols);
+                if (this->data[index].symbol_id < 0) {
+                    found_all_symbols = false;
+                }
+            }
+            symbols_resolved = found_all_symbols;
+        } else {
+            for (size_t index = 0; index < this->data_length; ++index) {
+                std::stringstream nameSS;
+                nameSS << this->name << " element #" << (index + 1);
+                this->data[index].look_up_symbol(this->matlabEngine, symbols, nameSS.str());
+            }
+            symbols_resolved = true;
         }
-        symbols_resolved = true;
+        return symbols_resolved;
     }
 
     void StagingPolynomial::find_or_register_symbols(SymbolTable &symbols) {
         assert(this->data);
-        for (size_t index = 0; index < this->data_length; ++index) {
-            std::stringstream nameSS;
-            nameSS << this->name << " element #" << (index + 1);
-            this->data[index].look_up_or_make_symbol(this->matlabEngine, symbols, nameSS.str());
+        if (this->symbols_resolved) {
+            return;
         }
-        symbols_resolved = true;
+
+        for (size_t index = 0; index < this->data_length; ++index) {
+            if (this->data[index].symbol_id < 0) {
+                std::stringstream nameSS;
+                nameSS << this->name << " element #" << (index + 1);
+                this->data[index].look_up_or_make_symbol(this->matlabEngine, symbols, nameSS.str());
+            }
+        }
+        this->symbols_resolved = true;
     }
 
     Polynomial StagingPolynomial::to_polynomial(const PolynomialFactory &factory) const {
-        assert(symbols_resolved);
+        assert(this->symbols_resolved);
         Polynomial::storage_t resolved_symbols;
         resolved_symbols.reserve(this->data_length);
         for (size_t index = 0; index < this->data_length; ++index) {

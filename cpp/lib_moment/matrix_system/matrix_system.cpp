@@ -42,7 +42,7 @@ namespace Moment {
           PolynomialLocalizingMatrix{*this},
           SubstitutedMatrix{*this} {
         this->poly_factory = std::make_unique<ByIDPolynomialFactory>(*this->symbol_table, zero_tolerance);
-        this->PolynomialLocalizingMatrix.indices.set_factory(*this->poly_factory.get());
+        this->PolynomialLocalizingMatrix.indices.set_factory(*this->poly_factory);
     }
 
     MatrixSystem::~MatrixSystem() noexcept = default;

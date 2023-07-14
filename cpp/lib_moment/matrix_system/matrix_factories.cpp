@@ -72,10 +72,10 @@ namespace Moment {
     PolynomialLocalizingMatrixFactory::operator()(MatrixSystemWriteLock& lock,
                                                   const PolynomialLMIndex &index,
                                                   Multithreading::MultiThreadPolicy mt_policy) {
-        const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
         auto matrixPtr = system.createNewPolyLM(lock, index, mt_policy);
         PolynomialMatrix& matrixRef = *matrixPtr;
         system.matrices.emplace_back(std::move(matrixPtr));
+        const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size()) - 1;
         return std::pair<ptrdiff_t, PolynomialMatrix&>(matrixIndex, matrixRef);
     }
 

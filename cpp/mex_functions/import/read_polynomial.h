@@ -38,11 +38,19 @@ namespace Moment::mex {
                       const std::string& fieldName, const matlab::data::Array& input);
 
     /**
-     * Convert possible symbol combo data into an actual symbol combo, using factory.
+     * Convert possible symbol combo data into an actual polynomial, using factory.
+     * @throws matlab::Exception (errors::bad_param) if symbols are out of bounds.
      */
     [[nodiscard]] Polynomial raw_data_to_polynomial(matlab::engine::MATLABEngine& engine,
                                                     const PolynomialFactory& factory,
                                                     std::span<const raw_sc_data> data);
+
+    /**
+     * Do bounds check on symbol combo data.
+     * @throws matlab::Exception (errors::bad_param) if symbols are out of bounds.
+     */
+    void check_raw_polynomial_data(matlab::engine::MATLABEngine& engine, const SymbolTable& symbols,
+                                   std::span<const raw_sc_data> data);
 
     /**
      * Read cell array directly into a symbol combo.

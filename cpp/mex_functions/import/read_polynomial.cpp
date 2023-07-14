@@ -83,23 +83,29 @@ namespace Moment::mex {
         return output;
     }
 
-    Polynomial raw_data_to_polynomial(matlab::engine::MATLABEngine &matlabEngine,
-                                      const PolynomialFactory &factory, std::span<const raw_sc_data> data) {
-        Polynomial::storage_t output_data;
-        const auto& symbols = factory.symbols;
-        output_data.reserve(data.size());
+    void check_raw_polynomial_data(matlab::engine::MATLABEngine &matlabEngine, const SymbolTable &symbols,
+                                   std::span<const raw_sc_data> data) {
         size_t idx = 0;
         for (const auto& datum: data) {
             if (datum.symbol_id >= symbols.size()) {
                 std::stringstream elemSS;
-                elemSS << "Polynomial element #" << (idx+1) << " contains symbol '" << datum.symbol_id
+                elemSS << "Polynomial element #" << (idx + 1) << " contains symbol '" << datum.symbol_id
                        << "', which is out of range.";
                 throw_error(matlabEngine, errors::bad_param, elemSS.str());
             }
-            output_data.emplace_back(datum.symbol_id, datum.factor, datum.conjugated);
-            ++idx;
         }
+        ++idx;
+    }
 
+    Polynomial raw_data_to_polynomial(matlab::engine::MATLABEngine &matlabEngine,
+                                      const PolynomialFactory &factory, std::span<const raw_sc_data> data) {
+        check_raw_polynomial_data(matlabEngine, factory.symbols, data);
+
+        Polynomial::storage_t output_data;
+        output_data.reserve(data.size());
+        for (const auto& datum: data) {
+            output_data.emplace_back(datum.symbol_id, datum.factor, datum.conjugated);
+        }
         return factory(std::move(output_data));
     }
 }

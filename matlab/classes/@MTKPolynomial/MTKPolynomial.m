@@ -10,7 +10,10 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
     properties(Dependent, GetAccess=public, SetAccess=private)
         IsZero
         OperatorCell
-        SymbolCell        
+        SymbolCell
+        
+        % True if all symbols can be found in symbol table.
+        FoundAllSymbols
     end
     
     %% Cached properties
@@ -164,12 +167,19 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
         
         function val = get.SymbolCell(obj)
             if ~obj.done_sc
+                if ~obj.FoundAllSymbols
+                    error("Cannot make symbol cell before symbols are found.");
+                end
                 obj.makeSymbolCell();
                 if ~obj.done_sc
                     error("Could not make symbol cell.");
                 end
             end
             val = obj.symbol_cell;
+        end
+        
+        function val = get.FoundAllSymbols(obj)
+            val = checkAllSymbolsFound(obj);
         end
     end
     
