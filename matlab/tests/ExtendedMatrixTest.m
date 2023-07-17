@@ -6,8 +6,8 @@ classdef ExtendedMatrixTest < MTKTestBase
             mm_index = mtk('moment_matrix', ref_id, 1);
             em_index = mtk('extended_matrix', ref_id, 1, [2]);
             
-            mm_seq = mtk('operator_matrix', 'sequences', ref_id, mm_index);
-            em_seq = mtk('operator_matrix', 'sequences', ref_id, em_index);
+            mm_seq = mtk('operator_matrix', 'sequence_string', ref_id, mm_index);
+            em_seq = mtk('operator_matrix', 'sequence_string', ref_id, em_index);
             em_reference = strings(4,4);
             em_reference(1:3,1:3) = mm_seq;
             em_reference(1,4) = "<A>";
@@ -19,8 +19,8 @@ classdef ExtendedMatrixTest < MTKTestBase
             em_reference(4,4) = "<A><A>";
             testCase.verifyEqual(em_seq, em_reference);
             
-            mm_sym = mtk('operator_matrix', 'symbols', ref_id, mm_index);
-            em_sym = mtk('operator_matrix', 'symbols', ref_id, em_index);
+            mm_sym = mtk('operator_matrix', 'symbol_string', ref_id, mm_index);
+            em_sym = mtk('operator_matrix', 'symbol_string', ref_id, em_index);
             em_sym_ref = strings(4,4);
             em_sym_ref(1:3, 1:3) = mm_sym;
             em_sym_ref(1,4) = "2";
@@ -38,8 +38,8 @@ classdef ExtendedMatrixTest < MTKTestBase
             mm_index = mtk('moment_matrix', ref_id, 1);
             em_index = mtk('extended_matrix', ref_id, 1, [2, 3]);
             
-            mm_seq = mtk('operator_matrix', 'sequences', ref_id, mm_index);
-            em_seq = mtk('operator_matrix', 'sequences', ref_id, em_index);
+            mm_seq = mtk('operator_matrix', 'sequence_string', ref_id, mm_index);
+            em_seq = mtk('operator_matrix', 'sequence_string', ref_id, em_index);
             em_reference = [["1", "<A>", "<B>", "<A>", "<B>"]; ...
                             ["<A>", "<A>", "<A><B>", "<A><A>", "<A><B>"];...
                             ["<B>", "<A><B>", "<B>", "<A><B>", "<B><B>"];...
@@ -48,8 +48,8 @@ classdef ExtendedMatrixTest < MTKTestBase
             testCase.verifyEqual(mm_seq, em_reference(1:3,1:3));
             testCase.verifyEqual(em_seq, em_reference);
             
-            mm_sym = mtk('operator_matrix', 'symbols', ref_id, mm_index);
-            em_sym = mtk('operator_matrix', 'symbols', ref_id, em_index);
+            mm_sym = mtk('operator_matrix', 'symbol_string', ref_id, mm_index);
+            em_sym = mtk('operator_matrix', 'symbol_string', ref_id, em_index);
             em_sym_ref = [["1", "2", "3", "2", "3"];...
                           ["2", "2", "4", "5", "4"];...
                           ["3", "4", "3", "4", "6"];...
@@ -64,8 +64,8 @@ classdef ExtendedMatrixTest < MTKTestBase
             mm_index = mtk('moment_matrix', ref_id, 1);
             em_index = mtk('extended_matrix', ref_id, 1, 'auto');
             
-            mm_seq = mtk('operator_matrix', 'sequences', ref_id, mm_index);
-            em_seq = mtk('operator_matrix', 'sequences', ref_id, em_index);
+            mm_seq = mtk('operator_matrix', 'sequence_string', ref_id, mm_index);
+            em_seq = mtk('operator_matrix', 'sequence_string', ref_id, em_index);
             em_reference = strings(4,4);
             em_reference(1:3,1:3) = mm_seq;
             em_reference(1,4) = "<A>";
@@ -77,8 +77,8 @@ classdef ExtendedMatrixTest < MTKTestBase
             em_reference(4,4) = "<A><A>";
             testCase.verifyEqual(em_seq, em_reference);
             
-            mm_sym = mtk('operator_matrix', 'symbols', ref_id, mm_index);
-            em_sym = mtk('operator_matrix', 'symbols', ref_id, em_index);
+            mm_sym = mtk('operator_matrix', 'symbol_string', ref_id, mm_index);
+            em_sym = mtk('operator_matrix', 'symbol_string', ref_id, em_index);
             em_sym_ref = strings(4,4);
             em_sym_ref(1:3, 1:3) = mm_sym;
             em_sym_ref(1,4) = "2";
