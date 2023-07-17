@@ -23,11 +23,6 @@
 namespace Moment::mex {
     namespace {
 
-        inline bool query_can_be_nonhermitian(const MatrixSystem &system) {
-            const auto& context = system.Context();
-            return context.can_be_nonhermitian();
-        }
-
         inline bool query_can_have_factors(const MatrixSystem &system) {
             const auto* inflationContextPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
             return (nullptr != inflationContextPtr);
@@ -57,8 +52,8 @@ namespace Moment::mex {
 
     SymbolTableExporter::SymbolTableExporter(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
                                              const MatrixSystem &system)
-            : ExporterWithFactory{engine}, env{env}, system{system}, symbols{system.Symbols()}, context{system.Context()},
-              can_be_nonhermitian{query_can_be_nonhermitian(system)},
+            : ExporterWithFactory{engine}, env{env}, system{system},
+              symbols{system.Symbols()}, context{system.Context()},
               include_factors{query_can_have_factors(system)},
               locality_format{query_locality_format(system)} {
         if (this->locality_format) {
@@ -82,15 +77,12 @@ namespace Moment::mex {
             table_fields.emplace_back("conjugated");
         }
 
-        if (this->can_be_nonhermitian) {
-            table_fields.emplace_back("conjugate");
-            table_fields.emplace_back("hermitian");
-        }
+        table_fields.emplace_back("conjugate");
+        table_fields.emplace_back("hermitian");
 
         table_fields.emplace_back("basis_re");
-        if (this->can_be_nonhermitian) {
-            table_fields.emplace_back("basis_im");
-        }
+        table_fields.emplace_back("basis_im");
+
 
         if (this->include_factors) {
             table_fields.emplace_back("fundamental");
@@ -109,8 +101,6 @@ namespace Moment::mex {
 
     matlab::data::StructArray
     SymbolTableExporter::export_row(const Symbol& symbol, std::optional<bool> conjugated) const {
-        const auto& context = system.Context();
-
         const bool include_conj = conjugated.has_value();
 
         // Construct structure array
@@ -224,18 +214,18 @@ namespace Moment::mex {
         // +1 is from MATLAB indexing
         (*write_iter)["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
 
-        if (this->can_be_nonhermitian) {
-            if (this->locality_format) {
-                (*write_iter)["conjugate"] = factory.createScalar(
-                        this->localityContextPtr->format_sequence(*env.get_locality_formatter(), symbol.sequence_conj()));
-            } else {
-                (*write_iter)["conjugate"] = factory.createScalar(symbol.formatted_sequence_conj());
-            }
 
-            (*write_iter)["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
-            // +1 is from MATLAB indexing
-            (*write_iter)["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
+        if (this->locality_format) {
+            (*write_iter)["conjugate"] = factory.createScalar(
+                    this->localityContextPtr->format_sequence(*env.get_locality_formatter(), symbol.sequence_conj()));
+        } else {
+            (*write_iter)["conjugate"] = factory.createScalar(symbol.formatted_sequence_conj());
         }
+
+        (*write_iter)["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());
+        // +1 is from MATLAB indexing
+        (*write_iter)["basis_im"] = factory.createScalar<uint64_t>(symbol.basis_key().second + 1);
+
         if (this->include_factors) {
             const auto& entry = (*factorTablePtr)[symbol.Id()];
 
@@ -260,12 +250,11 @@ namespace Moment::mex {
         // +1 is from MATLAB indexing
         (*write_iter)["basis_re"] = factory.createScalar<uint64_t>(0);
 
-        if (this->can_be_nonhermitian) {
-            (*write_iter)["conjugate"] = factory.createScalar("");
-            (*write_iter)["hermitian"] = factory.createScalar<bool>(false);
-            // +1 is from MATLAB indexing
-            (*write_iter)["basis_im"] = factory.createScalar<uint64_t>(0);
-        }
+        (*write_iter)["conjugate"] = factory.createScalar("");
+        (*write_iter)["hermitian"] = factory.createScalar<bool>(false);
+        // +1 is from MATLAB indexing
+        (*write_iter)["basis_im"] = factory.createScalar<uint64_t>(0);
+
 
         if (this->include_factors) {
             (*write_iter)["fundamental"] = factory.createScalar<bool>(false);

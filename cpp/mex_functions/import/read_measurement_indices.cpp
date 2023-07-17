@@ -252,7 +252,7 @@ namespace Moment::mex {
     }
 
     Inflation::OVIndex OVConvertor::read_ov_index(const RawIndexPair &pair) {
-        if (pair.first >=  context.Observables().size()) {
+        if (pair.first >= context.Observables().size()) {
             std::stringstream errSS;
             errSS << "Observable #" << (pair.first+1) << " is out of range.";
             throw bad_index_read{errSS.str()};
@@ -283,7 +283,8 @@ namespace Moment::mex {
         }
 
         if (observable.projective()) {
-            if (triplet.third >= inclusive ? observable.outcomes : (observable.outcomes - 1)) {
+            const auto max_outcomes = this->inclusive ? observable.outcomes : (observable.outcomes-1);
+            if (triplet.third > max_outcomes) {
                 std::stringstream errSS;
                 errSS << "Outcome #" << (triplet.third + 1) << " is out of range.";
                 throw bad_index_read{errSS.str()};

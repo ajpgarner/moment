@@ -1,4 +1,4 @@
-classdef Outcome
+classdef Outcome < handle
     %OUTCOME Measurement outcome
     properties(SetAccess={?LocalityScenario}, GetAccess = public)
         Scenario
@@ -19,18 +19,15 @@ classdef Outcome
     end
         
     %% Constructor
-    methods
+    methods(Access={?Locality.Measurement, ?Locality.JointProbability})
         function obj = Outcome(setting, party_index, ...
                                mmt_index, outcome_index)
-            arguments
-                setting (1,1) LocalityScenario
-                party_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
-                mmt_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
-                outcome_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
-            end
-            
+                           
+            assert(nargin == 4);
+            assert(isa(setting, 'LocalityScenario'));
+                           
             obj.Scenario = setting;
-            obj.Id = outcome_index;
+            obj.Id = uint64(outcome_index);
             obj.Index = uint64([party_index, mmt_index, outcome_index]);            
         end
     end
@@ -45,6 +42,7 @@ classdef Outcome
                 obj.ops = ...
                     MTKPolynomial.InitFromOperatorCell(obj.Scenario, ...
                                                        poly_spec);
+                obj.ops.ReadOnly = true;
             end
             val = obj.ops;
         end
@@ -62,7 +60,7 @@ classdef Outcome
         % TIMES Multiplication *
             
             % Check, for dominated LHS
-            if ~isa(lhs, 'Locality.Measurement')
+            if ~isa(lhs, 'Locality.Outcome')
                 this = rhs;
                 other = lhs;
                 this_on_left = false;
@@ -100,7 +98,7 @@ classdef Outcome
         % TIMES Element-wise multiplication .*      
             
             % Check, for dominated LHS
-            if ~isa(lhs, 'Locality.Measurement')
+            if ~isa(lhs, 'Locality.Outcome')
                 this = rhs;
                 other = lhs;
             else

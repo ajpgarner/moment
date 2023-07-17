@@ -28,13 +28,13 @@ lm = poly.LocalizingMatrix(lm_level);
 cvx_begin sdp
 
     % Declare basis variables a (real)
-    mm.cvxVars('a');
+    setting.cvxVars('a');
     
     % Compose moment matrix from these basis variables
-    M = mm.cvxRealMatrix(a);
+    M = mm.cvx(a);
     
     % Compose localizing matrix from these basis variables
-    L = lm.cvxRealMatrix(a);
+    L = lm.cvx(a);
     
     % Constraints
     a(1) == 1;
@@ -46,6 +46,4 @@ cvx_begin sdp
     minimize(obj)
 cvx_end
 
-solution = setting.Solved(a);
-
-alt_obj = solution.Value(objective)
+alt_obj = objective.Apply(a)

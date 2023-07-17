@@ -46,10 +46,13 @@ classdef InflationScenario < MTKScenario
 %       /examples/yalmip_inflation_triangle.m
 %
 
-    properties(GetAccess = public, SetAccess = protected)
-        InflationLevel % The number of 'inflated' copies of each source.
+    properties(GetAccess = public, SetAccess = private)
+        % The number of 'inflated' copies of each source.
+        InflationLevel 
+        
         % Observable measurements from disjoint agents.
         Observables = Inflation.Observable.empty(1,0)
+        
         % Classical hidden variables.
         Sources = Inflation.Source.empty(1,0)
     end
@@ -57,13 +60,25 @@ classdef InflationScenario < MTKScenario
     properties(Dependent, GetAccess = public)
         % Number of outcomes each observable has.
         OutcomesPerObservable 
+        
+        % Number of sources each observable is linked to.
+        SourcesPerObservable
+        
+        % Number of variants from each observable
+        VariantsPerObservable
+        
+        % Total number of variants
+        TotalVariantCount
+        
         % The observables connected to each source.
         ObservablesFromEachSource 
+        
     end
     
     %% Construction and initialization
     methods
-        function obj = InflationScenario(inf_level, observables, sources)
+        function obj = InflationScenario(inf_level, observables,...
+                                         sources, varargin)
         % Constructs an inflation causal-compatibility scenario.
         % 
         % PARAMS:
@@ -86,14 +101,50 @@ classdef InflationScenario < MTKScenario
         %
         % See also: AddObservable, AddSource
         %
-            arguments
-                inf_level (1,1) uint64 = 1
-                observables (1,:) uint64 = uint64.empty(1,0);
-                sources (1,:) cell = cell(1,0)
+            
+            % Inflation level (or set default)
+            if nargin < 1 
+                inf_level = uint64(1);
+            elseif ~isnumeric(inf_level) || numel(inf_level)~=1
+                error("Inflation level must be a scalar integer.");
+            else
+                inf_level = uint64(inf_level);
             end
+            
+            % Define observables, by output count
+            if nargin < 2
+                observables = uint64.empty(1,0);
+            elseif ~isnumeric(observables)
+                error("Observables should be defined by a list of "...
+                    + "their outcome sizes (use 0 for CV).");
+            else
+                observables = reshape(uint64(observables), 1, []);
+            end
+            
+            % Define sources as a cell of int arrays
+            if nargin < 3
+                sources = cell(0,1);
+            else
+                sources = reshape(sources, [], 1);
+                for idx = 1:numel(sources)
+                    if ~isnumeric(sources{idx})
+                        error("Source list element %d was not numeric.", idx);
+                    else
+                        sources{idx} = reshape(uint64(sources{idx}), 1, []);
+                    end
+                end
+            end
+            
+            % Other options
+            if ~isempty(varargin)
+                options = Util.check_varargin_keys(["tolerance"], varargin);
+            else
+                options = cell(1,0);
+            end
+            options = [options, {"hermitian"}, true];
 
             % Call Superclass c'tor
-            obj = obj@MTKScenario();
+            obj = obj@MTKScenario(options{:});
             
             % Save inflation level
             obj.InflationLevel = inf_level;
@@ -107,7 +158,7 @@ classdef InflationScenario < MTKScenario
             
             % Add sources
             if ~isempty(sources)
-                for sIndex = 1:length(sources)
+                for sIndex = 1:numel(sources)
                     obj.AddSource(sources{sIndex});                    
                 end
             end
@@ -121,19 +172,27 @@ classdef InflationScenario < MTKScenario
         % PARAMS:
         %   outcomes - The number of outcomes the newly added observable
         %              has (set to 0 for continuous variable).
-        %        
-            arguments
-                obj (1,1) InflationScenario
-                outcomes (1,1) uint64
+        %
+        
+            % Check parameters
+            if nargin<2 || numel(outcomes)~=1 || ~isnumeric(outcomes)
+                error("You must specify a number of outcomes when adding an observable.");
+            else
+                outcomes = uint64(outcomes);
             end
             
             % Check not locked.
             obj.errorIfLocked();
             
-            % Add to end of sources
+            % Add to end of observables
             next_id = length(obj.Observables)+1;           
             obj.Observables(end+1) = Inflation.Observable(obj, next_id, ...
                                                           outcomes);
+
+            % Notify other observables
+            for idx=1:(numel(obj.Observables)-1)
+                obj.Observables(idx).OtherObservableAdded(obj.Observables(end));
+            end
         end
        
         function AddSource(obj, targets)
@@ -146,9 +205,12 @@ classdef InflationScenario < MTKScenario
         % Will throw an error if the matrix system has already been
         % generated.
         %
-            arguments
-                obj (1,1) InflationScenario
-                targets (1,:) uint64
+        
+            % Check parameters
+            if nargin<2 || ~isnumeric(targets)
+                error("You must specify a number of outcomes when adding an observable.");
+            else
+                targets = reshape(uint64(targets), 1, []);
             end
             
             % Check not locked.
@@ -158,8 +220,8 @@ classdef InflationScenario < MTKScenario
             targets = unique(targets);
             
             % Check range
-            max_target = length(obj.Observables);
-            for tindex = 1:length(targets)
+            max_target = numel(obj.Observables);
+            for tindex = 1:numel(targets)
                 if (targets(tindex) < 1) || (targets(tindex) > max_target)
                     error('Target "' + targets(tindex) + '" out of range:');
                 end
@@ -167,20 +229,120 @@ classdef InflationScenario < MTKScenario
                 
             % Add to end of targets
             next_id = length(obj.Sources)+1;
-            obj.Sources(end+1) = Inflation.Source(obj, next_id, targets);           
+            obj.Sources(end+1) = Inflation.Source(obj, next_id, targets);
+            
+            % Add to target source lists
+            for tIdx = 1:numel(targets)
+                obj.Observables(targets(tIdx)).AddSource(obj.Sources(end))
+            end
         end
         
         function val = Clone(obj)
         % CLONE Makes a copy of the scenario.       
-            arguments
-                obj (1,1) InflationScenario
-            end
+        
             val = InflationScenario(obj.InflationLevel, ...
                                     obj.OutcomesPerObservable, ...
-                                    obj.ObservablesFromEachSource);            
+                                    obj.ObservablesFromEachSource);
         end
     end
+            
+    %% Causal network / inflation accessors and information
+    methods
+       function val = get.OutcomesPerObservable(obj)
+           val = [obj.Observables.OutcomeCount];
+       end
+        
+       function val = get.SourcesPerObservable(obj)
+           val = cellfun(@numel, {obj.Observables.Sources});
+       end
+       
+       function val = get.VariantsPerObservable(obj)
+           val = [obj.Observables.VariantCount];
+       end
+       
+       function val = get.TotalVariantCount(obj)
+           val = sum([obj.Observables.VariantCount]);
+       end
+       
+       function val = get.ObservablesFromEachSource(obj)
+           val = {obj.Sources.TargetIndices};
+       end      
+    end
     
+    %% Accessors of sub-objects
+    methods
+        function val = get(obj, varargin)
+            
+            % Do we get as array, or as list of indices
+            if nargin == 2
+                indices = varargin{1};
+            else
+                if ~all(cellfun(@isnumeric, varargin))
+                    error("Indices should be numeric.");
+                end
+                indices = [varargin{:}];
+            end
+            
+            % Check indices are valid
+            object_type = size(indices, 2);
+            if object_type > 1 && ~obj.HasMatrixSystem
+                error("Variants and outcomes are not defined until matrix system is created.");
+            elseif object_type < 1 || object_type > 3
+                error("Indices should be an array with one, two or three columns.");
+            else
+                i = uint64(indices);
+            end
+            num_outputs = size(i, 1);
+            
+            % Retrieve objects
+            switch object_type
+                case 1 % Observables
+                    val = Inflation.Observable.empty(0, 1);
+                    for o = 1:num_outputs
+                        val(end+1) = obj.Observables(i(o, 1));
+                    end
+                case 2 % Observable variants
+                    val = Inflation.Variant.empty(0, 1);
+                    for o = 1:num_outputs
+                        val(end+1) = obj.Observables(i(o,1)) ...
+                            .Variants(i(o,2));
+                    end
+                case 3 % Observable variant outcomes
+                    val = Inflation.VariantOutcome.empty(0, 1);
+                    for o = 1:num_outputs
+                        val(end+1) = obj.Observables(i(o,1)) ...
+                            .Variants(i(o,2)).Outcomes(i(o,3));
+                    end
+            end            
+        end
+        
+        function varargout = getVariants(obj)
+        % GETVARIANTS Returns the Variant objects from every observable.
+        %
+        
+            if ~obj.HasMatrixSystem
+                error("Cannot get variants before matrix system is created.");
+            end
+            expected = obj.TotalVariantCount;
+            if nargout ~= expected
+                error("Expected %d outputs, but %d were provided.", ...
+                    expected, nargout);
+            end
+            
+            % Flatten variants and export
+            varargout = cell(1, expected);
+            out_idx = 1;
+            for o_idx = 1:numel(obj.Observables)
+                for v_idx = 1:numel(obj.Observables(o_idx).Variants)
+                    varargout{out_idx} = ...
+                        obj.Observables(o_idx).Variants(v_idx);
+                    out_idx = out_idx +1;
+                end
+            end
+        end            
+    end
+ 
+    %% Other accessors
     methods
         function val = ObservablesToOperators(obj, array)
         % OBSERVABLESTOOPERATORS Translate observable indices into operator ids.
@@ -320,60 +482,47 @@ classdef InflationScenario < MTKScenario
             end
         end
     end
-        
-    %% Overloaded accessor: MatrixSystem
-    methods
-        function val = System(obj)
-        % SYSTEM Gets MatrixSystem object associated with scenario.
-        %
-        % Will generate an InflationMatrixSystem if it has not yet been
-        % created.
-        %
-        % RETURN:
-        %   An Inflation.InflationMatrixSystem object.
-        %
-        % See also: Inflation.InflationMatrixSystem, MatrixSystem
-        %
-        arguments
-            obj (1,1) InflationScenario
-        end
-            
-            % Make matrix system, if not already generated
-            if isempty(obj.matrix_system)
-                obj.matrix_system = Inflation.InflationMatrixSystem(obj);
-            end
-            
-            % Return handle
-            val = obj.matrix_system;
-        end     
-    end
-        
-    %% Causal network / inflation accessors and information
-    methods
-       function val = get.OutcomesPerObservable(obj)
-           val = [obj.Observables.OutcomeCount];
-       end
-        
-       function val = get.ObservablesFromEachSource(obj)
-           val = {obj.Sources.TargetIndices};
-       end
-    end
- 
+
     %% Virtual methods
     methods(Access={?MTKScenario,?MTKMatrixSystem})        
         function ref_id = createNewMatrixSystem(obj)
-            arguments
-                obj (1,1) InflationScenario
+            
+            nams_args = cell(1,0);
+            if obj.ZeroTolerance ~= 1.0
+                nams_args{end+1} = 'tolerance';
+                nams_args{end+1} = double(obj.ZeroTolerance);
             end
+            
+            
             [ref_id, canObs] = mtk('inflation_matrix_system', ...
                                    obj.OutcomesPerObservable, ...
                                    obj.ObservablesFromEachSource, ...
-                                   obj.InflationLevel);
-            for index = 1:length(obj.Observables)
-                obj.Observables(index).OperatorOffset = canObs(index)+1;
+                                   obj.InflationLevel, ...
+                                   nams_args{:});
+
+            % Populate variants
+            for idx = 1:numel(obj.Observables)
+                obj.Observables(idx).MakeVariants(canObs(idx)+1);
             end
         end
     end
-      
+    
+    methods(Access=protected)
+        function val = operatorCount(obj)
+            val = sum([obj.Observables.TotalOperatorCount]);
+        end
+        
+        function str = makeOperatorNames(obj)
+            str = [obj.Observables.OperatorNames];
+        end
+        
+        function val = onSetHermitian(~, old_val, new_val)
+            if ~logical(new_val)
+                error("InflationScenario operators are always Hermitian.");
+            end
+            val = old_val;
+        end
+    end
+    
 end
 

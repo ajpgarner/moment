@@ -46,13 +46,13 @@ namespace Moment::Inflation {
          * Construct a system of matrices with shared operators.
          * @param context The operator scenario.
          */
-        explicit InflationMatrixSystem(std::unique_ptr<class InflationContext> context);
+        explicit InflationMatrixSystem(std::unique_ptr<class InflationContext> context, double zero_tolerance = 1.0);
 
         /**
          * Construct a system of matrices with shared operators.
          * @param context The operator scenario.
          */
-        explicit InflationMatrixSystem(std::unique_ptr<class Context> context);
+        explicit InflationMatrixSystem(std::unique_ptr<class Context> context, double zero_tolerance = 1.0);
 
         /** Destructor */
         ~InflationMatrixSystem() noexcept override;

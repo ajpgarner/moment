@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
+classdef (InferiorClasses={?Inflation.Variant})...
           JointProbability < Locality.JointProbabilityBase
 %JOINTMEASUREMENT Collection of measurements / outcomes from different parties.
     properties(SetAccess=private, GetAccess=public)
@@ -8,7 +8,9 @@ classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
   
     %% Constructor
     methods
-        function obj = JointProbability(scenario, free_measurements, fixed_outcomes)
+        function obj = JointProbability(scenario, ...
+                                        free_measurements, ...
+                                        fixed_outcomes)
         % JOINTMEASUREMENT Construct a joint measurement.
         %
         % SYNTAX:
@@ -18,29 +20,29 @@ classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
         %
             
             %  Validate inputs
-            if nargin < 1 || ~isa(scenario, 'LocalityScenario')
-                error("First argument must be a locality scenario.");
+            if nargin < 1 || ~isa(scenario, 'InflationScenario')
+                error("First argument must be an inflation scenario.");
             end
                         
             if nargin < 2 || isempty(free_measurements)
-                free_measurements = Locality.Measurement.empty(1,0);
-            elseif ~isa(free_measurements, 'Locality.Measurement')
-                error("Second argument must be locality scenario measurements.");
+                free_measurements = Inflation.Variant.empty(1,0);
+            elseif ~isa(free_measurements, 'Inflation.Variant')
+                error("Second argument must be inflation scenario variant.");
             end
             
             if nargin < 3 || isempty(fixed_outcomes)
-                fixed_outcomes = Locality.Outcome.empty(1,0);
-            elseif ~isa(fixed_outcomes, 'Locality.Outcome')
-                error("Third argument must be locality scenario outcomes.");
+                fixed_outcomes = Inflation.VariantOutcome.empty(1,0);
+            elseif ~isa(fixed_outcomes, 'Inflation.VariantOutcome')
+                error("Third argument must be inflation scenario variant outcome.");
             end
             
             % Sort, and get indices
             [free_measurements, fixed_outcomes] = ...
-                Locality.JointProbability.checkAndSortMmts(scenario, ...
+                Inflation.JointProbability.checkAndSortMmts(scenario, ...
                                  free_measurements, fixed_outcomes);
             
             [free_indices, fixed_indices] = ...
-                Locality.JointProbability.calculateIndices(...
+                Inflation.JointProbability.calculateIndices(...
                     free_measurements, fixed_outcomes);
             
             % Construct object
@@ -54,10 +56,10 @@ classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
     
     %% Accessors
     methods                             
-        function val = ContainsParty(obj, party_index)
-            val = any(obj.FreeIndices(:,1) == party_index) ...
-                    || any(obj.FixedIndices(:,1) == party_index);
-        end        
+        function val = ContainsObservable(obj, obs_index)
+            val = any(obj.FreeIndices(:,1) == obs_index) ...
+                    || any(obj.FixedIndices(:,1) == obs_index);
+        end
     end
     
     
@@ -66,7 +68,7 @@ classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
         function val = mtimes(lhs, rhs)
         % MTIMES Whole-object multiplication.
             
-            if ~isa(lhs, 'Locality.JointProbability')
+            if ~isa(lhs, 'Inflation.JointProbability')
                 this = rhs;
                 other = lhs;
                 this_on_left = false;
@@ -88,20 +90,39 @@ classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
             end
             
             % Compose measurements
-            if isa(other, 'Locality.Measurement')
-                val = Locality.JointProbability(this.Scenario, ...
-                    [this.Marginals, other], this.FixedOutcomes);                
+            if isa(other, 'Inflation.Variant')
+                if other.ContinuousVariable
+                    other = other.Outcome(1);
+                else                
+                    val = Inflation.JointProbability(this.Scenario, ...
+                        [this.Marginals, other], this.FixedOutcomes);                
+                    return;
+                end                
+            end
+            
+            if isa(other, 'Inflation.VariantOutcome')
+                if other.ContinuousVariable
+                    % Degrade to polynomial if can't combine
+                    if this.ContainsObservable(other.Index(1))
+                        impl = this.ImplicitOutcomes;
+                        other_expl = other.ExplicitOutcomes;
+                        if this_on_left
+                            val = mtimes(impl, other_expl);
+                        else
+                            val = mtimes(other_expl, impl);
+                        end
+                        return;
+                    end
+                end
+                
+                val = Inflation.JointProbability(this.Scenario, ...
+                        this.Marginals, [this.FixedOutcomes, other]);
+                
                 return;
             end
             
-            if isa(other, 'Locality.Outcome')
-                val = Locality.JointProbability(this.Scenario, ...
-                    this.Marginals, [this.FixedOutcomes, other]);
-                return;
-            end
-            
-            if isa(other, 'Locality.JointProbability')
-                val = Locality.JointProbability(this.Scenario, ...
+            if isa(other, 'Inflation.JointProbability')
+                val = Inflation.JointProbability(this.Scenario, ...
                     [this.Marginals, other.Marginals], ...
                     [this.FixedOutcomes, other.FixedOutcomes]);
                 return
@@ -162,19 +183,19 @@ classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
             % Check for duplicates
             all_indices = [free_indices, fixed_indices];
             if numel(all_indices ) ~= length(unique(all_indices))
-                error("Each measurement must be from a different party.");
+                error("mtk:dup_obs", "Each measurement must be from a different observable.");
             end
             
             % Re-order free
             [~, sort_free] = sort(free_indices);
-            free = Locality.Measurement.empty(1,0);
+            free = Inflation.Variant.empty(1,0);
             for i = 1:numel(input_free)
                 free(end+1) = input_free(sort_free(i));
             end
             
             % Re-order fixed
             [~, sort_fixed] = sort(fixed_indices);
-            fixed = Locality.Outcome.empty(1,0);
+            fixed = Inflation.VariantOutcome.empty(1,0);
             for i = 1:numel(input_fixed)
                 fixed(end+1) = input_fixed(sort_fixed(i));
             end           
@@ -195,4 +216,3 @@ classdef (InferiorClasses={?Locality.Measurement, ?Locality.Outcome})...
         end           
     end
 end
-

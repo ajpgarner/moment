@@ -20,6 +20,7 @@ namespace Moment::mex::functions {
         std::vector<size_t> outcomes_per_observable{};
         std::vector<std::set<oper_name_t>> source_init_list{};
         size_t inflation_level = 1;
+        double zero_tolerance = 1.0;
 
     public:
         explicit InflationMatrixSystemParams(SortedInputs &&inputs);

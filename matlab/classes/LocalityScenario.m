@@ -135,9 +135,13 @@ classdef LocalityScenario < MTKScenario
         %
         % See also: Locality.Party
         %
-            arguments
-                obj (1,1) LocalityScenario
-                name (1,1) string = string.empty(1,0)
+
+            % Validate input arguments
+            if nargin < 2
+                name = string.empty(1,0);
+            else
+                name = string(name);
+                assert(numel(name)==1);
             end
             
             % Check not locked.

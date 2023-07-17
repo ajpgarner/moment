@@ -21,8 +21,9 @@
 #include "symbolic/polynomial_factory.h"
 
 namespace Moment::Inflation {
-    InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class InflationContext> contextIn)
-            : MaintainsTensors{std::move(contextIn)},
+    InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class InflationContext> contextIn,
+                                                 const double zero_tolerance)
+            : MaintainsTensors{std::move(contextIn), zero_tolerance},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
         this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);
@@ -30,8 +31,8 @@ namespace Moment::Inflation {
                                                                         this->Symbols(), *this->factors);
     }
 
-    InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class Context> contextIn)
-            : MaintainsTensors{std::move(contextIn)},
+    InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class Context> contextIn, const double zero_tolerance)
+            : MaintainsTensors{std::move(contextIn), zero_tolerance},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
         this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);

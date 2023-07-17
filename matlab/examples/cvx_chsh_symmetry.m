@@ -1,9 +1,6 @@
 %% Example: cvx_chsh_symmetry.m
 % Demonstrates Ioannou-Rosset symmetry reduction on the CHSH scenario.
 
-clear
-clear mtk
-
 % Settings
 mm_level = 6;
 

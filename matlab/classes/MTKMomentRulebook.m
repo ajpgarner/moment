@@ -233,29 +233,38 @@ methods
         obj.invalidate_cached_rules();     
     end
     
-    function AddScalarSubstitutionList(obj, symbol_ids, values)
-    % ADDSCALARSUBSTITUTION Add replacement rules, each symbol by a scalar.
+    function AddFromList(obj, varargin)
+    % ADDFROMLIST Add replacement rules, each symbol by a scalar.
     %
-    % PARAMS
-    %   symbol_ids - Array of symbol IDs to create rules for.
-    %   values     - The corresponding value to assign to each symbol id.
+    % SYNTAX:
+    %   1. obj.AddFromList([cell array])
+    %   2. obj.AddFromList([symbol_id_array], [value_array])
     %
+    % For syntax 1, cell array should consist of pairs {symbol_id, value}.
+    % For syntax 2, two arrays should have same size.
+    %
+    
+        if nargin == 2
+            cell_input = varargin{1};
+        elseif narargin == 3
+            % Parse inputs:
+            symbol_ids = reshape(uint64(varargin{1}), [], 1);
+            values = reshape(double(varargin{2}), [], 1);        
+            if numel(symbol_ids) ~= numel(values)
+                error("Number of symbol IDs should match number of values.");
+            end
 
-        % Parse inputs:
-        assert(nargin == 3);
-        symbol_ids = reshape(uint64(symbol_ids), [], 1);
-        values = reshape(double(values), [], 1);        
-        if numel(symbol_ids) ~= numel(values)
-            error("Number of symbol IDs should match number of values.");
+            % Make substitution cell input
+            cell_input = cell(length(symbol_ids), 1);
+            for idx=1:length(symbol_ids)
+                cell_input{idx} = {uint64(symbol_ids(idx)), ...
+                                   double(values(idx))};
+            end
+        else
+            error("AddScalarSubstitutionList requires one or two arguments.");
         end
-        
-        % Make substitution cell input
-        cell_input = cell(length(symbol_ids), 1);
-        for idx=1:length(symbol_ids)
-            cell_input{idx} = {uint64(symbol_ids(idx)), ...
-                               double(values(idx))};
-        end
-        
+            
+
         % Call rulebook
         rule_id = mtk('create_moment_rules', 'input', 'list', ...
                       'rulebook', obj.Id, 'no_new_symbols', ...
@@ -269,7 +278,7 @@ end
 %% Apply rules to objects
 methods
     function val = Apply(obj, target)
-        if narargin < 2
+        if nargin < 2
             error("Missing argument: target for rules to be applied to.");
         end
         

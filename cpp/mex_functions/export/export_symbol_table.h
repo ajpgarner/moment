@@ -45,7 +45,6 @@ namespace Moment::mex {
         const Context& context;
 
     private:
-        const bool can_be_nonhermitian;
         const bool include_factors;
         const bool locality_format;
 

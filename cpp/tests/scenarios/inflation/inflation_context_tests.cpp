@@ -1187,10 +1187,10 @@ namespace Moment::Tests {
 
 
     TEST(Scenarios_Inflation_InflationContext, UnflattenOutcomeIndex) {
-        InflationContext ic{CausalNetwork{{3, 2}, {{0}, {0, 1}}}, 2}; // mmts: A00, A01, A10, A11, B0, B1
+        InflationContext ic{CausalNetwork{{3, 2}, {{0}, {0, 1}}}, 2}; // mmts: A00, A10, A01, A11, B0, B1
         ASSERT_EQ(ic.observable_variant_count(), 6);
 
-        const std::vector<OVIndex> ov{{0, 0}, {1, 0}}; // should have 6 outcomes...
+        const std::vector<OVIndex> ov{{0, 0}, {1, 0}}; // should have 6 outcomes... [A00, B0]
 
         // 0,0
         auto ovo_00 = ic.unflatten_outcome_index(ov, 0);

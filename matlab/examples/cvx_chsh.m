@@ -1,9 +1,6 @@
 %% Example: cvx_chsh.m 
 % Solves CHSH scenario, with CVX.
 %
-addpath('..')
-clear
-clear mtk;
 
 % Two parties
 scenario = LocalityScenario(2);

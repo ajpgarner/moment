@@ -1,9 +1,11 @@
-%% cvx_inflation_triangle
-%   Expected outcome: Infeasible
+%% Example: cvx_inflation_triangle.m
+% Test triangle scenario of three binary observables, each pair-wise linked 
+% by a source, with total probability distribution P(000) = P(111) = 1/2.
+%   
+% Expected outcome: Infeasible
 %
-clear
-clear mtk
 
+%% Construct scenario
 inflation_level = 2;
 moment_matrix_level = 2;
 triangle = InflationScenario(inflation_level, ...
@@ -12,24 +14,26 @@ triangle = InflationScenario(inflation_level, ...
 
 moment_matrix = triangle.MomentMatrix(moment_matrix_level);
 disp(struct2table(triangle.System.SymbolTable));
-disp(moment_matrix.SequenceMatrix);
+disp(moment_matrix.SequenceStrings);
 
-% Impose P(000) = P(111) = 1/2
-primal_symbols = triangle.ObservablesToSymbols(...
-        {[1], [2], [3], [1 2], [1 3], [2 3], [1 2 3]});
+%% Impose P(000) = P(111) = 1/2
+A00 = triangle.get(1,1);
+B00 = triangle.get(2,1);
+C00 = triangle.get(3,1);
+ABC_base = A00 * B00 * C00;
+sub_list = ABC_base.Probability([0.5, 0, 0, 0, 0, 0, 0, 0.5], 'list');
     
-substitutions = MomentRulebook(triangle);
-substitutions.AddScalarSubstitution(primal_symbols, ...
-                    [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
+substitutions = triangle.MomentRulebook();
+substitutions.AddFromList(sub_list);
     
 subbed_matrix = substitutions.Apply(moment_matrix);
-disp(subbed_matrix.SequenceMatrix);
+disp(subbed_matrix.SequenceStrings);
 
-% Solve
+%% Solve via CVX
 cvx_begin sdp
-    subbed_matrix.cvxVars('a')
+    triangle.cvxVars('a')
     
-    M = subbed_matrix.cvxRealMatrix(a);
+    M = subbed_matrix.cvx(a);
     
     a(1) == 1;
     M >= 0;

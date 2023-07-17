@@ -15,15 +15,31 @@ function val = make_explicit(scenario, free, fixed, ...
     % Check if mode flag provided
     extra_args = cell(1,0);
     parse_as_poly = true;
-    if numel(varargin) == 1
-        if strcmpi(varargin{1}, "symbols")
-            extra_args{end} = "symbols";
+    parse_as_list = false;
+    for idx = 1:numel(varargin)
+        if strcmpi(varargin{idx}, "symbols")
+            assert(~parse_as_list);
             parse_as_poly = false;
-        else            
-            extra_args{end+1} = "polynomials";
+        elseif strcmpi(varargin{idx}, "polynomials")
+            assert(~parse_as_list);
+            assert(parse_as_poly);
+        elseif strcmpi(varargin{idx}, "list")
+            parse_as_poly = false;
+            parse_as_list = true;
+        elseif strcmpi(varargin{idx}, "simplify")
+            extra_args{end+1} = "simplify";
+        else
+            error("Unrecognised flag '%s'", varargin{idx});
         end
-    else
+    end
+    
+    assert(~(parse_as_poly && parse_as_list));
+    if parse_as_poly
         extra_args{end+1} = "polynomials";
+    elseif parse_as_list
+        extra_args{end+1} = "list";
+    else
+        extra_args{end+1} = "symbols";
     end
     
     % Check if conditional

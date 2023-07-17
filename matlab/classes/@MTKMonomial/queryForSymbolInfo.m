@@ -8,7 +8,7 @@ function [id, conjugated, re, im] = queryForSymbolInfo(obj)
             [id, conjugated, re, im] = getDefaultSymbolInfo(obj);
         else
             id = int64(row.symbol);
-            re = uint64(row.basis_re);
+            re = uint64(row.basis_re);            
             im = uint64(row.basis_im);
             conjugated = logical(row.conjugated);
          end

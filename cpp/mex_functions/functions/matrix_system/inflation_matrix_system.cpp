@@ -37,6 +37,11 @@ namespace Moment::mex::functions {
                               || this->params.contains(u"sources")
                               || this->params.contains(u"inflation_level");
 
+        // Is tolerance set?
+        if (auto tol_param = this->params.find(u"tolerance"); tol_param != this->params.end()) {
+            this->zero_tolerance = read_as_double(this->matlabEngine, tol_param->second);
+        }
+
         if (set_any_param) {
             // No extra inputs
             if (!inputs.empty()) {
@@ -156,11 +161,12 @@ namespace Moment::mex::functions {
     InflationMatrixSystem::InflationMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
             : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_outputs = 1;
-        this->max_outputs = 2;
+        this->max_outputs = 3;
 
         this->min_inputs = 0;
         this->max_inputs = 3;
 
+        this->param_names.emplace(u"tolerance");
         this->param_names.emplace(u"inflation_level");
         this->param_names.emplace(u"observables");
         this->param_names.emplace(u"sources");
@@ -180,7 +186,7 @@ namespace Moment::mex::functions {
 
         // Make new system around context
         std::unique_ptr<MatrixSystem> matrixSystemPtr
-            = std::make_unique<Inflation::InflationMatrixSystem>(std::move(contextPtr));
+            = std::make_unique<Inflation::InflationMatrixSystem>(std::move(contextPtr), input.zero_tolerance);
         auto lock = matrixSystemPtr->get_read_lock();
         const auto& context
             = dynamic_cast<const Inflation::InflationMatrixSystem*>(matrixSystemPtr.get())->InflationContext();
@@ -192,16 +198,17 @@ namespace Moment::mex::functions {
         matlab::data::ArrayFactory factory;
         output[0] = factory.createScalar<uint64_t>(storage_id);
 
-        // Return list of canonical observable operator IDs
+        // Return operator offset IDs
         if (output.size() > 1) {
-            auto canonical_obs = factory.createArray<uint64_t>({1ULL, context.Observables().size()});
-            auto write_iter = canonical_obs.begin();
+            auto operator_offsets = factory.createArray<uint64_t>({1ULL, context.Observables().size()});
+            auto write_iter = operator_offsets.begin();
             for (const auto& cObs : context.Observables()) {
                 *write_iter = cObs.operator_offset;
                 ++write_iter;
             }
-            output[1] = std::move(canonical_obs);
+            output[1] = std::move(operator_offsets);
         }
+
     }
 
 }

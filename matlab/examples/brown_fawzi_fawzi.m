@@ -1,8 +1,7 @@
 %% EXAMPLE: brown_fawzi_fawzi.m
 % Computes the conditional von Neumann entropy using the Brown-Fawzi-Fawzi 
 % hierarchy [see arXiv:2106.13692].
-clear;
-clear mtk;
+
 
 %% Prepare setting
 setting = make_bff_setting();

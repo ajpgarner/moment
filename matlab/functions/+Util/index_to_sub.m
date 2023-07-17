@@ -1,12 +1,9 @@
 function val = index_to_sub(sz, index)
 %INDEX_TO_SUB Like ind2sub, but outputs array
-    arguments
-        sz(1,:) uint64 {mustBePositive}
-        index (1,1) uint64 {mustBePositive}
-    end
-
-    sz = uint64(sz);
-    index = uint64(index);    
+    
+    assert(nargin == 2);
+    sz = reshape(uint64(sz), 1, []);
+    index = uint64(index);
     dimension = length(sz);
     if index > prod(sz)
         error("Index out of bounds");
