@@ -9,6 +9,7 @@
 #include "integer_types.h"
 
 #include <set>
+#include <span>
 #include <vector>
 
 namespace Moment::Inflation {
@@ -31,7 +32,12 @@ namespace Moment::Inflation {
         /** Number of operators associated with this observable, at a given inflation level. */
         [[nodiscard]] size_t count_operators(size_t inflation_level) const;
 
-        /** Convert global index to vector of source indices. */
+        /** Convert vector of source indices to global index.
+         * Note: this uses a first-index-contiguous (col-major) scheme. */
+        [[nodiscard]] oper_name_t flatten_index(size_t inflation_level, std::span<const oper_name_t> index) const;
+
+        /** Convert global index to vector of source indices.
+         * Note: this uses a first-index-contiguous (col-major) scheme. */
         [[nodiscard]] std::vector<oper_name_t> unflatten_index(size_t inflation_level, oper_name_t index) const;
 
         /** Is this a projective measurement (cf. a generic moment)? */

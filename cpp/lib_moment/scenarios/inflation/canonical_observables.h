@@ -67,9 +67,17 @@ namespace Moment::Inflation {
         [[nodiscard]] constexpr auto empty() const noexcept { return this->indices.empty(); }
     };
 
+    /**
+     * When inflating a causal network, many redundant observables are generated.
+     * For instance, <A_00>, <A_01>, <A_10> and <A_11> should all give the same statistics (that of uninflated <A>).
+     * Likewise <A_0 B_0> sharing a source should give the same statistics as <A_1 B_1> (also sharing a source).
+     * This class keeps track of such sets of aliased observables, and labels each set by a single 'canonical'
+     * observable, with the 'lowest' index.
+     */
     class CanonicalObservables {
     private:
         const InflationContext& context;
+
         size_t max_level = 0;
 
         std::vector<size_t> distinct_observables_per_level;
@@ -87,6 +95,7 @@ namespace Moment::Inflation {
         /** Hash a string of OVO indices (outcome is ignored) */
         [[nodiscard]] size_t hash(std::span<const OVOIndex> index) const;
 
+        /** Hash according to global index */
         [[nodiscard]] size_t hash(std::span<const size_t> global_index) const;
 
         void generate_up_to_level(size_t new_level);

@@ -143,9 +143,11 @@ namespace Moment::Inflation {
 
     private:
         CausalNetwork base_network;
+
         size_t inflation;
 
         std::vector<ICOperatorInfo> operator_info;
+
         std::vector<ICObservable> inflated_observables;
 
         size_t total_inflated_observables = 0;
@@ -217,12 +219,18 @@ namespace Moment::Inflation {
          */
         [[nodiscard]] OperatorSequence canonical_moment(const OperatorSequence& input) const;
 
-
         /**
          * Calculate equivalent variant of observables with lowest possible source indices (e.g. 'A2' -> 'A0' etc.).
          */
         [[nodiscard]] std::vector<OVIndex>
-        canonical_variants(const std::vector<OVIndex>& input) const;
+        canonical_variants(std::span<const OVIndex> input) const;
+
+        [[nodiscard]] std::vector<OVIndex>
+        inline canonical_variants(std::initializer_list<OVIndex> input) const {
+            return this->canonical_variants(std::vector<OVIndex>{std::move(input)});
+        }
+
+
 
         /**
          * Unwrap outcome number to various outcomes of source measurements
@@ -242,6 +250,9 @@ namespace Moment::Inflation {
          */
         [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const override;
 
+        /**
+         * Generates a formatted string representation of a set of outcomes
+         */
         [[nodiscard]] std::string format_sequence(const std::vector<OVOIndex>& indices) const;
 
 
@@ -290,11 +301,11 @@ namespace Moment::Inflation {
          [[nodiscard]] std::string to_string() const override;
 
 
-        std::optional<OperatorSequence> get_if_canonical(const sequence_storage_t &sequence) const override;
+        [[nodiscard]] std::optional<OperatorSequence> get_if_canonical(const sequence_storage_t &sequence) const override;
 
         friend class InflationOperatorSequenceGenerator;
 
     protected:
-        std::unique_ptr<OperatorSequenceGenerator> new_osg(size_t word_length) const override;
+        [[nodiscard]] std::unique_ptr<OperatorSequenceGenerator> new_osg(size_t word_length) const override;
     };
 }

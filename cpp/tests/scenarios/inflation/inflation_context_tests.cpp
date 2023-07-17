@@ -389,30 +389,30 @@ namespace Moment::Tests {
         EXPECT_EQ(A0_sv_iter->second, 0);
 
         // A, V1
-        const auto& obsA_V1 = obsA.variant(std::vector<oper_name_t>{0, 1});
+        const auto& obsA_V1 = obsA.variant(std::vector<oper_name_t>{1, 0});
         EXPECT_EQ(obsA_V1.flat_index, 1);
         EXPECT_EQ(obsA_V1.source_variants.size(), 2);
         auto A1_sv_iter = obsA_V1.source_variants.begin();
         ASSERT_NE(A1_sv_iter, obsA_V1.source_variants.end());
         EXPECT_EQ(A1_sv_iter->first, 0);
-        EXPECT_EQ(A1_sv_iter->second, 0);
+        EXPECT_EQ(A1_sv_iter->second, 1);
         ++A1_sv_iter;
         ASSERT_NE(A1_sv_iter, obsA_V1.source_variants.end());
         EXPECT_EQ(A1_sv_iter->first, 2);
-        EXPECT_EQ(A1_sv_iter->second, 1);
+        EXPECT_EQ(A1_sv_iter->second, 0);
 
         // A, V2
-        const auto& obsA_V2 = obsA.variant(std::vector<oper_name_t>{1, 0});
+        const auto& obsA_V2 = obsA.variant(std::vector<oper_name_t>{0, 1});
         EXPECT_EQ(obsA_V2.flat_index, 2);
         EXPECT_EQ(obsA_V2.source_variants.size(), 2);
         auto A2_sv_iter = obsA_V2.source_variants.begin();
         ASSERT_NE(A2_sv_iter, obsA_V2.source_variants.end());
         EXPECT_EQ(A2_sv_iter->first, 0);
-        EXPECT_EQ(A2_sv_iter->second, 1);
+        EXPECT_EQ(A2_sv_iter->second, 0);
         ++A2_sv_iter;
         ASSERT_NE(A2_sv_iter, obsA_V2.source_variants.end());
         EXPECT_EQ(A2_sv_iter->first, 2);
-        EXPECT_EQ(A2_sv_iter->second, 0);
+        EXPECT_EQ(A2_sv_iter->second, 1);
 
         // A, V3
         const auto& obsA_V3 = obsA.variant(std::vector<oper_name_t>{1, 1});
@@ -1143,7 +1143,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Inflation_InflationContext, CanonicalVariants_TwoSourceTwoObs) {
-        InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2}; // A00,A01,A10,A11,B0,B1
+        InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2}; // A00, A10, A01, A11, B0, B1
 
         ASSERT_EQ(ic.observable_variant_count(), 6);
 
@@ -1164,12 +1164,22 @@ namespace Moment::Tests {
         EXPECT_EQ(fromA00B0[0], OVIndex(0LL, 0LL));
         EXPECT_EQ(fromA00B0[1], OVIndex(1LL, 0LL));
 
-        auto fromA01B1 = ic.canonical_variants({{0LL, 1LL}, {1LL, 1LL}}); // A01 B1
+        auto fromA01B1 = ic.canonical_variants({{0LL, 2LL}, {1LL, 1LL}}); // A01 B1 -> A00 B0
         ASSERT_EQ(fromA01B1.size(), 2);
         EXPECT_EQ(fromA01B1[0], OVIndex(0LL, 0LL));
         EXPECT_EQ(fromA01B1[1], OVIndex(1LL, 0LL));
 
-        auto fromB1A01 = ic.canonical_variants({{1LL, 1LL}, {0LL, 1LL}}); // B1 A01
+        auto fromA10B1 = ic.canonical_variants({{0LL, 1LL}, {1LL, 1LL}}); // A10 B1 -> A00 B1
+        ASSERT_EQ(fromA10B1.size(), 2);
+        EXPECT_EQ(fromA10B1[0], OVIndex(0LL, 0LL));
+        EXPECT_EQ(fromA10B1[1], OVIndex(1LL, 1LL));
+
+        auto fromA11B1 = ic.canonical_variants({{0LL, 3LL}, {1LL, 1LL}}); // A11 B1 -> A00 B0
+        ASSERT_EQ(fromA11B1.size(), 2);
+        EXPECT_EQ(fromA11B1[0], OVIndex(0LL, 0LL));
+        EXPECT_EQ(fromA11B1[1], OVIndex(1LL, 0LL));
+
+        auto fromB1A01 = ic.canonical_variants({{1LL, 1LL}, {0LL, 2LL}}); // B1 A01 -> A00 B0
         ASSERT_EQ(fromB1A01.size(), 2);
         EXPECT_EQ(fromB1A01[0], OVIndex(0LL, 0LL));
         EXPECT_EQ(fromB1A01[1], OVIndex(1LL, 0LL));

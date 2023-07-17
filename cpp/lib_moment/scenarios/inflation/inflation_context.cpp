@@ -86,12 +86,7 @@ namespace Moment::Inflation {
     const InflationContext::ICObservable::Variant &
     InflationContext::ICObservable::variant(std::span<const oper_name_t> indices) const {
         assert(indices.size() == this->source_count);
-        size_t index = 0;
-        size_t base = 1;
-        for (size_t n = indices.size(); n > 0; --n) {
-            index += indices[n-1] * base;
-            base *= this->context.inflation;
-        }
+        const auto index = this->flatten_index(this->context.inflation, indices);
         assert(index < this->variants.size());
         return this->variants[index];
     }
@@ -116,12 +111,12 @@ namespace Moment::Inflation {
             this->inflated_observables.emplace_back(*this, observable,
                                          this->inflation,global_id,
                                                     static_cast<oper_name_t>(this->total_inflated_observables));
-            const auto num_copies = this->inflated_observables.back().variant_count;
-            this->total_inflated_observables += num_copies;
-            for (oper_name_t copy_index = 0; copy_index < num_copies; ++copy_index) {
-                this->global_variant_indices.emplace_back(observable.id, copy_index);
+            const auto num_variants = this->inflated_observables.back().variant_count;
+            this->total_inflated_observables += num_variants;
+            for (oper_name_t variant_index = 0; variant_index < num_variants; ++variant_index) {
+                this->global_variant_indices.emplace_back(observable.id, variant_index);
                 for (oper_name_t outcome = 0; outcome < observable.operators(); ++outcome) {
-                    this->operator_info.emplace_back(global_id, observable.id, copy_index,
+                    this->operator_info.emplace_back(global_id, observable.id, variant_index,
                                                      outcome, observable.projective());
                     ++global_id;
                 }
@@ -332,7 +327,7 @@ namespace Moment::Inflation {
     }
 
     std::vector<OVIndex>
-    InflationContext::canonical_variants(const std::vector<OVIndex>& input) const {
+    InflationContext::canonical_variants(const std::span<const OVIndex> input) const {
         // If 0 or I; or no inflation, then nothing.
         if (input.empty() || (this->inflation < 1)) {
             return {};
