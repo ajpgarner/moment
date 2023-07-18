@@ -11,7 +11,8 @@
 
 #include "matrix_system/matrix_system.h"
 #include "probability/maintains_tensors.h"
-#include "utilities/index_tree.h"
+
+#include "extended_matrix_indices.h"
 
 namespace Moment {
     class CollinsGisin;
@@ -21,13 +22,13 @@ namespace Moment {
 }
 
 namespace Moment::Inflation {
-    class CanonicalObservables;
     class ExtendedMatrix;
     class ExtensionSuggester;
     class FactorTable;
     class InflationCollinsGisin;
     class InflationContext;
     class InflationProbabilityTensor;
+
 
 
     class InflationMatrixSystem : public MaintainsTensors {
@@ -38,7 +39,8 @@ namespace Moment::Inflation {
 
         std::unique_ptr<ExtensionSuggester> extensionSuggester;
 
-        IndexTree<symbol_name_t, size_t> extension_indices;
+    public:
+        ExtendedMatrixIndices ExtendedMatrices;
 
     public:
         /**
@@ -78,17 +80,6 @@ namespace Moment::Inflation {
         FactorTable& Factors() noexcept { return *this->factors; }
 
         /**
-         * Create or retrieve an extended matrix. This function will call for a write lock.
-         */
-        std::pair<size_t, ExtendedMatrix&> create_extended_matrix(const MonomialMatrix& source,
-                                                                  std::span<const symbol_name_t> extensions);
-
-        /**
-         * Retrieve index of extended matrix, that already exists, by extensions.
-         */
-        ptrdiff_t find_extended_matrix(size_t mm_level, std::span<const symbol_name_t> extensions);
-
-        /**
          * Returns an indexing in the Collins-Gisin ordering with additional inflation-scenario functionality.
          * @throws errors::missing_component if not generated.
          */
@@ -102,29 +93,37 @@ namespace Moment::Inflation {
         [[nodiscard]] const class InflationProbabilityTensor& InflationProbabilityTensor() const;
 
         /**
-         * Calculates the longest real sequences that can exist within this system (i.e. the highest number of
-         *  parties, all of whose joint measurement outcomes correspond to symbols within.).
-         * For thread safety, call for a read lock first.
-         */
-        [[nodiscard]] size_t MaxRealSequenceLength() const noexcept;
-
-        /**
          * Suggest scalar extensions to impose factorization constraints on a matrix
          */
         [[nodiscard]] std::set<symbol_name_t> suggest_extensions(const class MonomialMatrix& matrix) const;
 
     protected:
+        /**
+         * Virtual method, called to generate an extended matrix.
+         * @param lmi The hierarchy Level and word that describes the localizing matrix.
+         * @param mt_policy Is multithreaded creation used?
+         * @return Owning pointer of new localizing matrix.
+         */
+        virtual std::unique_ptr<class ExtendedMatrix>
+        createNewExtendedMatrix(MaintainsMutex::WriteLock &lock, const ExtendedMatrixIndex& index,
+                                Multithreading::MultiThreadPolicy mt_policy);
+
         void onNewMomentMatrixCreated(size_t level, const class Matrix &mm) override;
 
         void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const class Matrix &lm) override;
 
+        virtual void onNewExtendedMatrixCreated(const ExtendedMatrixIndex&, const class ExtendedMatrix& em);
+
         void onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator &osg) override;
+
 
     private:
         std::unique_ptr<class CollinsGisin> makeCollinsGisin() override;
 
         std::unique_ptr<class ProbabilityTensor> makeProbabilityTensor() override;
 
+        friend class ExtendedMatrixFactory;
+        friend ExtendedMatrixIndices;
     };
 
 }

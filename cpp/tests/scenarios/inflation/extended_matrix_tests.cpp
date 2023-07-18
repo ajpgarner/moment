@@ -178,7 +178,7 @@ namespace Moment::Tests {
         std::set all_symbs{id_0, id_e, id_A, id_B, id_AB};
         ASSERT_EQ(all_symbs.size(), 5);
 
-        auto [em_index, em_ref] = ims.create_extended_matrix(base_MM, std::vector<symbol_name_t>{id_A});
+        auto [em_index, em_ref] = ims.ExtendedMatrices.create({1, std::vector<symbol_name_t>{id_A}});
 
         ASSERT_EQ(symbols.size(), 6);
         auto id_A_A = find_or_fail(ims.Factors(), {id_A, id_A});
@@ -190,7 +190,7 @@ namespace Moment::Tests {
                                                       id_B, id_AB,  id_B,   id_AB,
                                                       id_A, id_A_A, id_AB,  id_A_A});
 
-        auto [em_second_access, em_sa_ref] = ims.create_extended_matrix(base_MM, std::vector<symbol_name_t>{id_A});
+        auto [em_second_access, em_sa_ref] = ims.ExtendedMatrices.create({1, std::vector<symbol_name_t>{id_A}});
         EXPECT_EQ(em_second_access, em_index);
         EXPECT_EQ(&em_sa_ref, &em_ref);
     }
@@ -229,7 +229,7 @@ namespace Moment::Tests {
                             id_B0B1, id_B0C0, id_C0C0};
         ASSERT_EQ(all_symbs.size(), 12) << symbols;
 
-        auto [em_index, em_ref] = ims.create_extended_matrix(base_MM, std::vector<symbol_name_t>{id_A0});
+        auto [em_index, em_ref] = ims.ExtendedMatrices.create({1, std::vector<symbol_name_t>{id_A0}});
 
     }
 }

@@ -79,6 +79,12 @@ namespace Moment::mex::functions {
 
         // Otherwise, read manually specified extensions
         this->extensions = read_positive_integer_array<symbol_name_t>(matlabEngine, paramName, input_array, 0);
+
+        // Sort inputs, and make unique
+        std::sort(this->extensions.begin(), this->extensions.end());
+        auto clip_iter = std::unique(this->extensions.begin(), this->extensions.end());
+        this->extensions.erase(clip_iter, this->extensions.end());
+
         this->extension_type = ExtensionType::Manual;
     }
 
@@ -123,6 +129,7 @@ namespace Moment::mex::functions {
                     throw_error(this->matlabEngine, errors::bad_param, errSS.str());
                 }
             }
+
         } else {
             // Get automatic symbols
             auto lock = inflationSystem.get_read_lock();
@@ -153,7 +160,7 @@ namespace Moment::mex::functions {
         }
 
         // Now, call for extension
-        return inflationSystem.create_extended_matrix(monoMatrix, emp.extensions);
+        return inflationSystem.ExtendedMatrices.create({emp.hierarchy_level, emp.extensions});
     }
 
 }

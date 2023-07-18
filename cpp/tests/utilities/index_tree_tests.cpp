@@ -183,4 +183,39 @@ namespace Moment::Tests {
         EXPECT_FALSE(tree.find(std::vector{1, 2}).has_value());
         EXPECT_FALSE(tree.find(std::vector{5}).has_value());
     }
+
+    TEST(Utilities_IndexTree, AddIfNew) {
+        IndexTree<int, size_t> tree{};
+        auto [e0, i0] = tree.add_if_new(std::vector{1, 2, 3}, 13);
+        EXPECT_EQ(e0, 13);
+        EXPECT_TRUE(i0);
+
+        auto [e1, i1] = tree.add_if_new(std::vector{1}, 10);
+        EXPECT_EQ(e1, 10);
+        EXPECT_TRUE(i1);
+
+        auto [e2, i2] = tree.add_if_new(std::vector{1, 2, 4}, 17);
+        EXPECT_EQ(e2, 17);
+        EXPECT_TRUE(i2);
+
+        auto [e3, i3] = tree.add_if_new(std::vector{1, 2, 3}, 99);
+        EXPECT_EQ(e3, 13);
+        EXPECT_FALSE(i3);
+
+        auto val_13 = tree.find(std::vector{1, 2, 3});
+        ASSERT_TRUE(val_13.has_value());
+        EXPECT_EQ(val_13.value(), 13);
+
+        auto val_10 = tree.find(std::vector{1});
+        ASSERT_TRUE(val_10.has_value());
+        EXPECT_EQ(val_10.value(), 10);
+
+        auto val_17 = tree.find(std::vector{1, 2, 4});
+        ASSERT_TRUE(val_17.has_value());
+        EXPECT_EQ(val_17.value(), 17);
+
+        EXPECT_FALSE(tree.find(std::vector<int>{}).has_value());
+        EXPECT_FALSE(tree.find(std::vector{1, 2}).has_value());
+        EXPECT_FALSE(tree.find(std::vector{5}).has_value());
+    }
 }

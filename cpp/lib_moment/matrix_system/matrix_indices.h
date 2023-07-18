@@ -61,28 +61,31 @@ namespace Moment {
     template<typename matrix_t,
             typename index_t,
             stores_indices<index_t> index_storage_t,
-            makes_matrices<matrix_t, index_t> factory_t>
+            makes_matrices<matrix_t, index_t> factory_t,
+            typename matrix_system_t>
     class MatrixIndices {
     public:
-        friend class MatrixSystem;
+
+        using MatrixSystemType = matrix_system_t;
         using Index = index_t;
         using IndexStorage = index_storage_t;
         using MatrixType = matrix_t;
         using FactoryType = factory_t;
         using MTPolicy = Multithreading::MultiThreadPolicy;
+        friend MatrixSystemType;
 
     private:
         IndexStorage indices;
-        MatrixSystem& system;
+        matrix_system_t& system;
         FactoryType matrixFactory;
 
     public:
         template<typename... Args>
-        explicit MatrixIndices(MatrixSystem& system, IndexStorage&& index, Args&&... args)
+        explicit MatrixIndices(matrix_system_t& system, IndexStorage&& index, Args&&... args)
             : system{system}, indices{index}, matrixFactory{system, std::forward<Args>(args)...} { }
 
         template<typename... Args>
-        explicit MatrixIndices(MatrixSystem& system, Args&&... args)
+        explicit MatrixIndices(matrix_system_t& system, Args&&... args)
             : system{system}, matrixFactory{system, std::forward<Args>(args)...} { }
 
     public:
@@ -216,9 +219,9 @@ namespace Moment {
      */
     template<std::derived_from<Moment::Matrix> matrix_t,
             typename index_t,
-            makes_matrices<matrix_t, index_t> factory_t>
-    using MappedMatrixIndices = MatrixIndices<matrix_t, index_t, MatrixIndexViaStdMap<index_t>, factory_t>;
-
-
+            makes_matrices<matrix_t, index_t> factory_t,
+            typename matrix_system_t>
+    using MappedMatrixIndices = MatrixIndices<matrix_t, index_t, MatrixIndexViaStdMap<index_t>,
+                                              factory_t, matrix_system_t>;
 
 }

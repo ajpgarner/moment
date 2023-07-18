@@ -15,15 +15,16 @@
 #include "inflation_probability_tensor.h"
 
 
+#include "matrix/matrix.h"
+#include "matrix/monomial_matrix.h"
 #include "matrix/operator_matrix/moment_matrix.h"
 
-#include "symbolic/polynomial_factory.h"
 
 namespace Moment::Inflation {
     InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class InflationContext> contextIn,
                                                  const double zero_tolerance)
             : MaintainsTensors{std::move(contextIn), zero_tolerance},
-              inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
+              inflationContext{dynamic_cast<class InflationContext&>(this->Context())}, ExtendedMatrices{*this} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
         this->extensionSuggester = std::make_unique<ExtensionSuggester>(this->inflationContext,
                                                                         this->Symbols(), *this->factors);
@@ -31,27 +32,13 @@ namespace Moment::Inflation {
 
     InflationMatrixSystem::InflationMatrixSystem(std::unique_ptr<class Context> contextIn, const double zero_tolerance)
             : MaintainsTensors{std::move(contextIn), zero_tolerance},
-              inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
+              inflationContext{dynamic_cast<class InflationContext&>(this->Context())}, ExtendedMatrices{*this} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
         this->extensionSuggester = std::make_unique<ExtensionSuggester>(this->inflationContext,
                                                                         this->Symbols(), *this->factors);
     }
 
     InflationMatrixSystem::~InflationMatrixSystem() noexcept = default;
-
-
-
-    size_t InflationMatrixSystem::MaxRealSequenceLength() const noexcept {
-        // Largest order of moment matrix?
-        ptrdiff_t hierarchy_level = this->MomentMatrix.Indices().highest();
-        if (hierarchy_level < 0) {
-            hierarchy_level = 0;
-        }
-
-        // Max sequence can't also be longer than number of observable variants
-        return std::min(hierarchy_level*2, static_cast<ptrdiff_t>(this->inflationContext.observable_variant_count()));
-    }
-
 
     void InflationMatrixSystem::onNewMomentMatrixCreated(size_t level, const Matrix& mm) {
         // Register factors
@@ -66,55 +53,24 @@ namespace Moment::Inflation {
         MatrixSystem::onNewLocalizingMatrixCreated(lmi, lm);
     }
 
-    ptrdiff_t InflationMatrixSystem::find_extended_matrix(size_t mm_level, std::span<const symbol_name_t> extensions) {
-        // Do we have any extended matrices at this MM level?
-        const auto* indexRoot = this->extension_indices.find_node(static_cast<symbol_name_t>(mm_level));
-        if (nullptr == indexRoot) {
-            return -1;
-        }
+    std::unique_ptr<class ExtendedMatrix>
+    InflationMatrixSystem::createNewExtendedMatrix(MaintainsMutex::WriteLock &lock, const ExtendedMatrixIndex &index,
+                                                   Multithreading::MultiThreadPolicy mt_policy) {
 
-        // Try with extensions
-        auto index = indexRoot->find(extensions);
-        if (!index.has_value()) {
-            return -1;
+        // Get source moment matrix (or create it under lock)
+        auto [source_index, source] = this->MomentMatrix.create(lock, index.moment_matrix_level, mt_policy);
+        if (!source.is_monomial()) [[unlikely]] {
+            throw std::logic_error{"Cannot extend non-monomial moment matrices."};
         }
-        return static_cast<ptrdiff_t>(index.value());
+        auto& monomial_source = dynamic_cast<MonomialMatrix&>(source);
+
+        return std::make_unique<ExtendedMatrix>(this->Symbols(), this->Factors(),
+                                                this->polynomial_factory().zero_tolerance,
+                                                monomial_source, index.extension_list);
     }
 
-    std::pair<size_t, ExtendedMatrix &>
-    InflationMatrixSystem::create_extended_matrix(const class MonomialMatrix &source,
-                                                  std::span<const symbol_name_t> extensions) {
+    void InflationMatrixSystem::onNewExtendedMatrixCreated(const ExtendedMatrixIndex &, const ExtendedMatrix &em) {
 
-        const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix_ptr(source);
-        if (nullptr == mm_ptr) {
-            throw std::invalid_argument{"Source matrix to be extended must be a monomial moment matrix."};
-        }
-        const auto& moment_matrix = *mm_ptr;
-
-
-
-        auto lock = this->get_write_lock();
-
-        // Attempt to get pre-existing extended matrix
-        auto pre_existing = this->find_extended_matrix(moment_matrix.Level(), extensions);
-        if (pre_existing >= 0) {
-            auto& existingMatrix = this->get(pre_existing);
-            return {pre_existing, dynamic_cast<ExtendedMatrix&>(existingMatrix)};
-        }
-
-        // ...otherwise, create new one.
-        auto em_ptr = std::make_unique<ExtendedMatrix>(this->Symbols(), this->Factors(),
-                                                       this->polynomial_factory().zero_tolerance,
-                                                       source, extensions);
-        auto& ref = *em_ptr;
-        auto index = this->push_back(std::move(em_ptr));
-
-        // Register index in tree
-        auto * root = this->extension_indices.add_node(static_cast<symbol_name_t>(moment_matrix.Level()));
-        root->add(extensions, index);
-
-        // Return created matrix
-        return {index, ref};
     }
 
     std::set<symbol_name_t> InflationMatrixSystem::suggest_extensions(const class MonomialMatrix& matrix) const {

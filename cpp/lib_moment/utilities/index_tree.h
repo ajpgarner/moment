@@ -53,11 +53,43 @@ namespace Moment {
         }
 
         /**
-         * Add an empty node to the tree
+         * Add an entry to the tree if it doesn't already exist
          * @param look_up_str Span over index sequence
          * @param entry_index The entry to write to the tree
          */
-        IndexTree * add_node(look_up_t current_index) {
+         std::pair<index_t, bool>
+         add_if_new(std::span<const look_up_t> look_up_str, index_t entry_index, bool did_addition = false) {
+            // If we have fully descended, write index
+            if (look_up_str.empty()) {
+                if (did_addition) {
+                    assert(!this->_index.has_value());
+                    this->_index = entry_index;
+                    return {entry_index, true};
+                } else {
+                    if (!this->_index.has_value()) {
+                        this->_index = entry_index;
+                        return {entry_index, true};
+                    } else {
+                        return {this->_index.value(), false};
+                    }
+                }
+            }
+
+            // Create (or find) next node
+            const auto& current_index = look_up_str.front();
+            auto* next_node = this->add_node(current_index, &did_addition);
+
+            // Recursively descend
+            return next_node->add_if_new(look_up_str.subspan(1), entry_index, did_addition);
+        }
+
+        /**
+         * Add an empty node to the tree
+         * @param current_index The index in the tree to insert.
+         * @param addition_flag Output param, writes true if node does not exist
+         * @return Pointer to (possibly newly added) node.
+         */
+         IndexTree * add_node(look_up_t current_index, bool * addition_flag = nullptr) {
             // Find new node, (or node just before)
             auto iter_to_child = std::lower_bound(this->children.begin(), this->children.end(),
                                                      current_index,
@@ -68,6 +100,9 @@ namespace Moment {
             // If not perfectly matching, add new node in situ
             if ((iter_to_child == this->children.end()) || (iter_to_child->id != current_index)) {
                 iter_to_child = this->children.emplace(iter_to_child, current_index);
+                if (addition_flag != nullptr) {
+                    *addition_flag = true;
+                }
             }
 
             // Return pointer to (possibly) added node.
