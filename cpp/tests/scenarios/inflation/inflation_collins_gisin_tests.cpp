@@ -30,21 +30,21 @@ namespace Moment::Tests {
         oper_name_t c0 = context.Observables()[2].operator_offset;
         oper_name_t c1 = context.Observables()[2].operator_offset + 1;
 
-        const auto* ePtr = symbols.where(OperatorSequence::Identity(context));
+        const auto ePtr = symbols.where(OperatorSequence::Identity(context));
 
-        const auto* a0Ptr = symbols.where(OperatorSequence{{a0}, context});
-        const auto* b0Ptr = symbols.where(OperatorSequence{{b0}, context});
-        const auto* c0Ptr = symbols.where(OperatorSequence{{c0}, context});
-        const auto* c1Ptr = symbols.where(OperatorSequence{{c1}, context});
+        const auto a0Ptr = symbols.where(OperatorSequence{{a0}, context});
+        const auto b0Ptr = symbols.where(OperatorSequence{{b0}, context});
+        const auto c0Ptr = symbols.where(OperatorSequence{{c0}, context});
+        const auto c1Ptr = symbols.where(OperatorSequence{{c1}, context});
 
-        const auto* a0b0Ptr = symbols.where(OperatorSequence{{a0, b0}, context});
-        const auto* a0c0Ptr = symbols.where(OperatorSequence{{a0, c0}, context});
-        const auto* a0c1Ptr = symbols.where(OperatorSequence{{a0, c1}, context});
-        const auto* b0c0Ptr = symbols.where(OperatorSequence{{b0, c0}, context});
-        const auto* b0c1Ptr = symbols.where(OperatorSequence{{b0, c1}, context});
+        const auto a0b0Ptr = symbols.where(OperatorSequence{{a0, b0}, context});
+        const auto a0c0Ptr = symbols.where(OperatorSequence{{a0, c0}, context});
+        const auto a0c1Ptr = symbols.where(OperatorSequence{{a0, c1}, context});
+        const auto b0c0Ptr = symbols.where(OperatorSequence{{b0, c0}, context});
+        const auto b0c1Ptr = symbols.where(OperatorSequence{{b0, c1}, context});
 
-        const auto* a0b0c0Ptr = symbols.where(OperatorSequence{{a0, b0, c0}, context});
-        const auto* a0b0c1Ptr = symbols.where(OperatorSequence{{a0, b0, c1}, context});
+        const auto a0b0c0Ptr = symbols.where(OperatorSequence{{a0, b0, c0}, context});
+        const auto a0b0c1Ptr = symbols.where(OperatorSequence{{a0, b0, c1}, context});
 
         ASSERT_NE(ePtr, nullptr);
 
@@ -147,21 +147,21 @@ namespace Moment::Tests {
         oper_name_t c0 = context.Observables()[2].operator_offset;
         oper_name_t c1 = context.Observables()[2].operator_offset + 1;
 
-        const auto* ePtr = symbols.where(OperatorSequence::Identity(context));
+        const auto ePtr = symbols.where(OperatorSequence::Identity(context));
 
-        const auto* a0Ptr = symbols.where(OperatorSequence{{a0}, context});
-        const auto* b0Ptr = symbols.where(OperatorSequence{{b0}, context});
-        const auto* c0Ptr = symbols.where(OperatorSequence{{c0}, context});
-        const auto* c1Ptr = symbols.where(OperatorSequence{{c1}, context});
+        const auto a0Ptr = symbols.where(OperatorSequence{{a0}, context});
+        const auto b0Ptr = symbols.where(OperatorSequence{{b0}, context});
+        const auto c0Ptr = symbols.where(OperatorSequence{{c0}, context});
+        const auto c1Ptr = symbols.where(OperatorSequence{{c1}, context});
 
-        const auto* a0b0Ptr = symbols.where(OperatorSequence{{a0, b0}, context});
-        const auto* a0c0Ptr = symbols.where(OperatorSequence{{a0, c0}, context});
-        const auto* a0c1Ptr = symbols.where(OperatorSequence{{a0, c1}, context});
-        const auto* b0c0Ptr = symbols.where(OperatorSequence{{b0, c0}, context});
-        const auto* b0c1Ptr = symbols.where(OperatorSequence{{b0, c1}, context});
+        const auto a0b0Ptr = symbols.where(OperatorSequence{{a0, b0}, context});
+        const auto a0c0Ptr = symbols.where(OperatorSequence{{a0, c0}, context});
+        const auto a0c1Ptr = symbols.where(OperatorSequence{{a0, c1}, context});
+        const auto b0c0Ptr = symbols.where(OperatorSequence{{b0, c0}, context});
+        const auto b0c1Ptr = symbols.where(OperatorSequence{{b0, c1}, context});
 
-        const auto* a0b0c0Ptr = symbols.where(OperatorSequence{{a0, b0, c0}, context});
-        const auto* a0b0c1Ptr = symbols.where(OperatorSequence{{a0, b0, c1}, context});
+        const auto a0b0c0Ptr = symbols.where(OperatorSequence{{a0, b0, c0}, context});
+        const auto a0b0c1Ptr = symbols.where(OperatorSequence{{a0, b0, c1}, context});
 
         ASSERT_NE(ePtr, nullptr);
 
@@ -317,34 +317,34 @@ namespace Moment::Tests {
         std::set all_ids{a0,a1,b0,b1,c0};
         ASSERT_EQ(all_ids.size(), 5);
 
-        const auto* ePtr = symbols.where(OperatorSequence::Identity(context));
+        const auto ePtr = symbols.where(OperatorSequence::Identity(context));
         ASSERT_NE(ePtr, nullptr);
 
-        const auto* a0Ptr = symbols.where(OperatorSequence{{a0}, context});
+        const auto a0Ptr = symbols.where(OperatorSequence{{a0}, context});
         ASSERT_NE(a0Ptr, nullptr);
-        ASSERT_EQ(symbols.where(OperatorSequence{{a1}, context}), nullptr); // Symmetric to a0
-        const auto* b0Ptr = symbols.where(OperatorSequence{{b0}, context});
+        ASSERT_EQ(symbols.where(OperatorSequence{{a1}, context}).symbol, a0Ptr.symbol); // Symmetric to a0
+        const auto b0Ptr = symbols.where(OperatorSequence{{b0}, context});
         ASSERT_NE(b0Ptr, nullptr);
-        ASSERT_EQ(symbols.where(OperatorSequence{{b1}, context}), nullptr); // Symmetric to b0
-        const auto* c0Ptr = symbols.where(OperatorSequence{{c0}, context});
+        ASSERT_EQ(symbols.where(OperatorSequence{{b1}, context}).symbol, b0Ptr.symbol); // Symmetric to b0
+        const auto c0Ptr = symbols.where(OperatorSequence{{c0}, context});
         ASSERT_NE(c0Ptr, nullptr);
 
-        const auto* a0a1Ptr = symbols.where(OperatorSequence{{a0, a1}, context});
+        const auto a0a1Ptr = symbols.where(OperatorSequence{{a0, a1}, context});
         ASSERT_NE(a0a1Ptr, nullptr);
-        const auto* a0b0Ptr = symbols.where(OperatorSequence{{a0, b0}, context});
+        const auto a0b0Ptr = symbols.where(OperatorSequence{{a0, b0}, context});
         ASSERT_NE(a0b0Ptr, nullptr);
-        const auto* a0b1Ptr = symbols.where(OperatorSequence{{a0, b1}, context});
+        const auto a0b1Ptr = symbols.where(OperatorSequence{{a0, b1}, context});
         ASSERT_NE(a0b1Ptr, nullptr);
-        const auto* a0c0Ptr = symbols.where(OperatorSequence{{a0, c0}, context});
+        const auto a0c0Ptr = symbols.where(OperatorSequence{{a0, c0}, context});
         ASSERT_NE(a0c0Ptr, nullptr);
-        ASSERT_EQ(symbols.where(OperatorSequence{{a1, b0}, context}), nullptr);// Symmetric to a0b1
-        ASSERT_EQ(symbols.where(OperatorSequence{{a1, b1}, context}), nullptr); // Symmetric to a0b0
-        ASSERT_EQ(symbols.where(OperatorSequence{{a1, c0}, context}), nullptr); // Symmetric to a0c0
-        const auto* b0b1Ptr = symbols.where(OperatorSequence{{b0, b1}, context});
+        ASSERT_EQ(symbols.where(OperatorSequence{{a1, b0}, context}).symbol, a0b1Ptr.symbol);// Symmetric to a0b1
+        ASSERT_EQ(symbols.where(OperatorSequence{{a1, b1}, context}).symbol, a0b0Ptr.symbol); // Symmetric to a0b0
+        ASSERT_EQ(symbols.where(OperatorSequence{{a1, c0}, context}).symbol, a0c0Ptr.symbol); // Symmetric to a0c0
+        const auto b0b1Ptr = symbols.where(OperatorSequence{{b0, b1}, context});
         ASSERT_NE(b0b1Ptr, nullptr);
-        const auto* b0c0Ptr = symbols.where(OperatorSequence{{b0, c0}, context});
+        const auto b0c0Ptr = symbols.where(OperatorSequence{{b0, c0}, context});
         ASSERT_NE(b0c0Ptr, nullptr);
-        ASSERT_EQ(symbols.where(OperatorSequence{{b1, c0}, context}), nullptr); // Symmetric to b0c0
+        ASSERT_EQ(symbols.where(OperatorSequence{{b1, c0}, context}).symbol, b0c0Ptr.symbol); // Symmetric to b0c0
 
         const auto& icg = ims.InflationCollinsGisin();
         ASSERT_EQ(icg.StorageType, TensorStorageType::Explicit);

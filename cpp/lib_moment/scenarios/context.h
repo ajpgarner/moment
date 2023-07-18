@@ -45,16 +45,19 @@ namespace Moment {
         /** True, if Context can generate (in principle) non-Hermitian operator strings */
         [[nodiscard]] virtual bool can_be_nonhermitian() const noexcept { return true; }
 
+        /** True, if Context can generate (in principle) two distinct operator strings that map to the same moment. */
+        [[nodiscard]] virtual bool can_have_aliases() const noexcept { return false; }
+
         /**
          * Use context to simplify an operator string.
-         * @param op_sequence The string of operators
-         * @return True if sequence is zero (cf. identity).
+         * @param op_sequence The string of operator to simplify.
+         * @return True if sequence is zero (cf. false for identity, which also is represented by empty sequence).
          */
          virtual bool additional_simplification(sequence_storage_t &op_sequence, bool& negate) const;
 
          /**
           * Use context to simplify or substitute an operator sequence, at the point where it is taken as a moment.
-          * @param seq The operator sequence to simplify
+          * @param seq The operator sequence representing the moment to simplify.
           */
          [[nodiscard]] virtual OperatorSequence simplify_as_moment(OperatorSequence&& seq) const;
 

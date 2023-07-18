@@ -609,7 +609,7 @@ namespace Moment::Tests {
                                                                      context});
         ASSERT_NE(ptr_a0a0a1a1, nullptr);
         ASSERT_NE(ptr_a1a1a0a0, nullptr);
-        EXPECT_EQ(ptr_a0a0a1a1, ptr_a1a1a0a0);
+        EXPECT_EQ(ptr_a0a0a1a1.symbol, ptr_a1a1a0a0.symbol);
 
         EXPECT_EQ(ptr_a0a0a1a1->sequence(), (OperatorSequence{{alice[0], alice[0], alice[1], alice[1]},
                                                               context}));

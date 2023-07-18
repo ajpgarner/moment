@@ -213,6 +213,6 @@ namespace Moment {
     }
 
     const class Symbol* CollinsGisin::try_find_symbol(const OperatorSequence &seq) const noexcept {
-        return this->symbol_table.where(seq);
+        return this->symbol_table.where(seq).symbol;
     }
 }

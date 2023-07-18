@@ -52,6 +52,16 @@ classdef (InferiorClasses={?Inflation.VariantOutcome}) Variant < handle
             end
         end
     end
+    
+    % Convertors
+    methods
+        function val = MTKMonomial(obj)
+            if ~obj.ContinuousVariable
+                error("Only CV variants can be directly converted to monomials.");
+            end
+            val = obj.ExplicitOutcomes;
+        end
+    end
 
     % Accessors
     methods

@@ -14,6 +14,7 @@
 #include "scenarios/context.h"
 
 #include "scenarios/locality/locality_context.h"
+#include "scenarios/locality/locality_matrix_system.h"
 #include "scenarios/locality/locality_operator_formatter.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
 #include "scenarios/inflation/factor_table.h"
@@ -22,18 +23,6 @@
 
 namespace Moment::mex {
     namespace {
-
-        inline bool query_can_have_factors(const MatrixSystem &system) {
-            const auto* inflationContextPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
-            return (nullptr != inflationContextPtr);
-        }
-
-        inline bool query_locality_format(const MatrixSystem &system) {
-            const auto *localityContextPtr = dynamic_cast<const Locality::LocalityContext *>(&(system.Context()));
-            return (nullptr != localityContextPtr);
-        }
-
-
         matlab::data::TypedArray<uint64_t>
         make_factor_symbol_array(matlab::data::ArrayFactory &factory, const Inflation::FactorTable::FactorEntry &entry) {
             auto factor_symbols = factory.createArray<uint64_t>({1, entry.canonical.symbols.size()});
@@ -44,9 +33,6 @@ namespace Moment::mex {
             }
             return factor_symbols;
         }
-
-
-
     }
 
 
@@ -54,27 +40,33 @@ namespace Moment::mex {
                                              const MatrixSystem &system)
             : ExporterWithFactory{engine}, env{env}, system{system},
               symbols{system.Symbols()}, context{system.Context()},
-              include_factors{query_can_have_factors(system)},
-              locality_format{query_locality_format(system)} {
-        if (this->locality_format) {
-            this->localityContextPtr = dynamic_cast<const Locality::LocalityContext *>(&(system.Context()));
-            assert(this->localityContextPtr != nullptr);
-        }
+              include_factors{false}, locality_format{false}, can_have_aliases{false} {
+     }
 
-        if (this->include_factors) {
-            const auto* inflationContextPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
-            assert(inflationContextPtr != nullptr);
-            this->factorTablePtr = &inflationContextPtr->Factors();
-        }
+
+    SymbolTableExporter::SymbolTableExporter(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
+                                             const Locality::LocalityMatrixSystem &lms)
+         : ExporterWithFactory{engine}, env{env}, system{lms}, symbols{system.Symbols()}, context{system.Context()},
+            include_factors{false}, locality_format{true}, can_have_aliases{false} {
+        this->localityContextPtr = &lms.localityContext;
     }
 
+    SymbolTableExporter::SymbolTableExporter(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
+                                             const Inflation::InflationMatrixSystem &ims)
+            : ExporterWithFactory{engine}, env{env}, system{ims}, symbols{system.Symbols()}, context{system.Context()},
+              include_factors{true}, locality_format{false}, can_have_aliases{true} {
+        this->factorTablePtr = &ims.Factors();
+    }
 
     std::vector<std::string>
-    SymbolTableExporter::column_names(const bool include_conj) const {
+    SymbolTableExporter::column_names(const bool look_up_mode) const {
         std::vector<std::string> table_fields{"symbol", "operators"};
 
-        if (include_conj) {
+        if (look_up_mode) {
             table_fields.emplace_back("conjugated");
+            if (this->can_have_aliases) {
+                table_fields.emplace_back("is_alias");
+            }
         }
 
         table_fields.emplace_back("conjugate");
@@ -82,7 +74,6 @@ namespace Moment::mex {
 
         table_fields.emplace_back("basis_re");
         table_fields.emplace_back("basis_im");
-
 
         if (this->include_factors) {
             table_fields.emplace_back("fundamental");
@@ -100,15 +91,18 @@ namespace Moment::mex {
 
 
     matlab::data::StructArray
-    SymbolTableExporter::export_row(const Symbol& symbol, std::optional<bool> conjugated) const {
-        const bool include_conj = conjugated.has_value();
+    SymbolTableExporter::export_row(const Symbol& symbol,
+                                    std::optional<bool> conjugated,
+                                    std::optional<bool> is_alias) const {
+        const bool lookup_mode = conjugated.has_value();
 
         // Construct structure array
-        auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, 1}, column_names(include_conj));
+        auto outputStruct = factory.createStructArray(matlab::data::ArrayDimensions{1, 1},
+                                                      column_names(lookup_mode));
 
         // Write single row
         auto write_iter = outputStruct.begin();
-        this->do_row_write(write_iter, symbol, conjugated);
+        this->do_row_write(write_iter, symbol, conjugated, this->can_have_aliases ? is_alias : std::nullopt);
 
         return outputStruct;
     }
@@ -146,7 +140,7 @@ namespace Moment::mex {
                             "Unexpectedly many sequences in export_symbol_table_struct.");
             }
 
-            this->do_row_write(write_iter, symbol, std::nullopt);
+            this->do_row_write(write_iter, symbol, std::nullopt, std::nullopt);
 
             ++write_iter;
             ++symbolIter;
@@ -154,41 +148,27 @@ namespace Moment::mex {
         return outputStruct;
     }
 
-    matlab::data::StructArray SymbolTableExporter::export_row_array(std::span<const size_t> shape,
-                                                                    std::span<const symbol_name_t> symbol_ids,
-                                                                    std::span<const uint8_t> conj_status) const {
-        const bool include_conjugates = !conj_status.empty();
-        if (include_conjugates && (conj_status.size() != symbol_ids.size())) {
-            throw_error(engine, errors::internal_error,
-                        "Conjugate status array size does not match symbol ID array.");
-        }
+    matlab::data::StructArray
+    SymbolTableExporter::export_row_array(std::span<const size_t> shape,
+                                          std::span<const SymbolLookupResult> symbol_info) const {
+
         const size_t expected_length = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies());
-        if (expected_length != symbol_ids.size()) {
+        if (expected_length != symbol_info.size()) {
             throw_error(engine, errors::internal_error,
                         "Number of symbol IDs requested does not match the desired output shape.");
         }
 
         // Construct structure array
         matlab::data::ArrayDimensions array_dims{shape.begin(), shape.end()};
-        auto outputStruct = factory.createStructArray(std::move(array_dims), column_names(include_conjugates));
-
-        // Function: Is conjugated or don't care.
-        auto is_conjugated = [&](size_t index) -> std::optional<bool> {
-            if (include_conjugates) {
-                return conj_status[index];
-            }
-            return std::nullopt;
-        };
+        auto outputStruct = factory.createStructArray(std::move(array_dims), column_names(true));
 
         auto write_iter = outputStruct.begin();
         for (size_t index = 0; index < expected_length; ++index) {
-            const auto symbol_id = symbol_ids[index];
-            if ((symbol_id < 0) || (symbol_id >= this->symbols.size())) {
-                this->do_missing_row_write(write_iter, include_conjugates);
+            const auto& symbol = symbol_info[index];
+            if (!symbol.found()) {
+                this->do_missing_row_write(write_iter, true);
             } else {
-                const auto &symbolInfo = this->symbols[symbol_id];
-                const auto conjugated = is_conjugated(index);
-                this->do_row_write(write_iter, symbolInfo, conjugated);
+                this->do_row_write(write_iter, *symbol, symbol.is_conjugated, symbol.is_aliased);
             }
             ++write_iter;
         }
@@ -197,18 +177,22 @@ namespace Moment::mex {
     }
 
     void SymbolTableExporter::do_row_write(matlab::data::StructArray::iterator& write_iter,
-                                           const Symbol &symbol, std::optional<bool> conjugated) const {
+                                           const Symbol &symbol, const std::optional<bool> conjugated,
+                                           const std::optional<bool> is_aliased) const {
 
         (*write_iter)["symbol"] = factory.createScalar<int64_t>(static_cast<int64_t>(symbol.Id()));
         if (this->locality_format) {
-            (*write_iter)["operators"] =  factory.createScalar(
+            (*write_iter)["operators"] = factory.createScalar(
                     localityContextPtr->format_sequence(*env.get_locality_formatter(), symbol.sequence()));
         } else {
             (*write_iter)["operators"] = factory.createScalar(symbol.formatted_sequence());
         }
 
         if (conjugated.has_value()) {
-            (*write_iter)["conjugated"] = factory.createScalar(conjugated.value());
+            (*write_iter)["conjugated"] = factory.createScalar<bool>(conjugated.value());
+        }
+        if (this->can_have_aliases && is_aliased.has_value()) {
+            (*write_iter)["is_alias"] = factory.createScalar<bool>(is_aliased.value());
         }
 
         // +1 is from MATLAB indexing
@@ -228,7 +212,6 @@ namespace Moment::mex {
 
         if (this->include_factors) {
             const auto& entry = (*factorTablePtr)[symbol.Id()];
-
             (*write_iter)["fundamental"] = factory.createScalar<bool>(entry.fundamental());
             (*write_iter)["factor_sequence"] = factory.createScalar(entry.sequence_string());
             (*write_iter)["factor_symbols"] = make_factor_symbol_array(factory, entry);
@@ -238,13 +221,16 @@ namespace Moment::mex {
 
 
     void SymbolTableExporter::do_missing_row_write(matlab::data::StructArray::iterator& write_iter,
-                                                   const bool include_conj) const {
+                                                   const bool lookup_mode) const {
 
         (*write_iter)["symbol"] = factory.createScalar<int64_t>(-1);
         (*write_iter)["operators"] = factory.createScalar("");
 
-        if (include_conj) {
+        if (lookup_mode) {
             (*write_iter)["conjugated"] = factory.createScalar<bool>(false);
+            if (this->can_have_aliases) {
+                (*write_iter)["is_alias"] = factory.createScalar<bool>(false);
+            }
         }
 
         // +1 is from MATLAB indexing
@@ -254,7 +240,6 @@ namespace Moment::mex {
         (*write_iter)["hermitian"] = factory.createScalar<bool>(false);
         // +1 is from MATLAB indexing
         (*write_iter)["basis_im"] = factory.createScalar<uint64_t>(0);
-
 
         if (this->include_factors) {
             (*write_iter)["fundamental"] = factory.createScalar<bool>(false);

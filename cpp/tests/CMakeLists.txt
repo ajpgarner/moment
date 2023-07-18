@@ -24,7 +24,6 @@ add_executable(moment_tests
         scenarios/derived/map_core_tests.cpp
         scenarios/derived/symbol_table_map_tests.cpp
         scenarios/imported/imported_matrix_system_tests.cpp
-        scenarios/inflation/canonical_observables_tests.cpp
         scenarios/inflation/causal_network_tests.cpp
         scenarios/inflation/extended_matrix_tests.cpp
         scenarios/inflation/extension_suggester_tests.cpp

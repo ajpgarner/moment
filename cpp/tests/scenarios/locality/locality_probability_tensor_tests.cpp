@@ -128,7 +128,7 @@ namespace Moment::Tests {
         const auto& alice_b0 = OperatorSequence({alice.measurement_outcome(1,0)}, context);
         auto where_b0 = symbols.where(alice_b0);
         ASSERT_NE(where_b0, nullptr);
-        ASSERT_NE(where_a0, where_b0);
+        ASSERT_NE(where_a0.symbol, where_b0.symbol);
 
         system.RefreshProbabilityTensor();
         const auto& pt = system.LocalityProbabilityTensor();
@@ -167,13 +167,13 @@ namespace Moment::Tests {
         const auto& bob_a0 = OperatorSequence({bob.measurement_outcome(0,0)}, context);
         auto where_b0 = symbols.where(bob_a0);
         ASSERT_NE(where_b0, nullptr);
-        ASSERT_NE(where_a0, where_b0);
+        ASSERT_NE(where_a0.symbol, where_b0.symbol);
         const auto& alice_a0_bob_a0 = OperatorSequence({alice.measurement_outcome(0,0), bob.measurement_outcome(0,0)},
                                                        context);
         auto where_alice_bob = symbols.where(alice_a0_bob_a0);
         ASSERT_NE(where_alice_bob, nullptr);
-        ASSERT_NE(where_alice_bob, where_a0);
-        ASSERT_NE(where_alice_bob, where_b0);
+        ASSERT_NE(where_alice_bob.symbol, where_a0.symbol);
+        ASSERT_NE(where_alice_bob.symbol, where_b0.symbol);
 
         system.RefreshProbabilityTensor();
         const auto& pt = system.LocalityProbabilityTensor();

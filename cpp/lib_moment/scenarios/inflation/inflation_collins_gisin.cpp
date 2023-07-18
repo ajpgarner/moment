@@ -137,17 +137,6 @@ namespace Moment::Inflation {
             upper_bounds[gmInfo.party] = gmInfo.offset + mmtIndex.outcome + 1;
         }
         return CollinsGisinRange{*this, std::move(lower_bounds), std::move(upper_bounds)};
-
     }
 
-    const Symbol* InflationCollinsGisin::try_find_symbol(const OperatorSequence &seq) const noexcept {
-        // Does it exist in table directly?
-        const auto * symbol = this->symbol_table.where(seq);
-        if (symbol != nullptr) {
-            return symbol;
-        }
-
-        // Can we make a canonical variant of this op seq?
-        return this->symbol_table.where(this->inflationContext.canonical_moment(seq));
-    }
 }

@@ -199,15 +199,18 @@ namespace Moment::Inflation {
         /** False: as InflationContext never generates non-Hermitian operator strings. */
         [[nodiscard]] bool can_be_nonhermitian() const noexcept override { return false; }
 
-         /**
-          * Commute operators, check for idempotency, and check for orthogonal projectors.
-          */
+        /** Sometimes true: 'non-canonical' forms of moments are possible, such as A1B1 -> A0B0, etc. */
+        [[nodiscard]] inline bool can_have_aliases() const noexcept final { return this->inflation > 1; }
+
+        /**
+         * Commute operators, check for idempotency, and check for orthogonal projectors.
+         */
         bool additional_simplification(sequence_storage_t &op_sequence, bool &negate) const override;
 
         /**
          * Replace string with symmetric equivalent
          */
-        OperatorSequence simplify_as_moment(OperatorSequence &&seq) const override;
+        OperatorSequence simplify_as_moment(OperatorSequence &&seq) const final;
 
          /**
           * Split operator sequence into smallest independent factors.
@@ -229,8 +232,6 @@ namespace Moment::Inflation {
         inline canonical_variants(std::initializer_list<OVIndex> input) const {
             return this->canonical_variants(std::vector<OVIndex>{std::move(input)});
         }
-
-
 
         /**
          * Unwrap outcome number to various outcomes of source measurements

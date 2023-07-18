@@ -444,7 +444,7 @@ namespace Moment::Tests {
 
         // Check symbols
         const auto& symTable = ams.Symbols();
-        const auto * x0x1Ptr = symTable.where(OperatorSequence({0, 1}, ams.Context()));
+        const auto x0x1Ptr = symTable.where(OperatorSequence({0, 1}, ams.Context()));
         ASSERT_NE(x0x1Ptr, nullptr);
         const auto& x0x1 = *x0x1Ptr;
         EXPECT_TRUE(x0x1.is_antihermitian()) << symTable;

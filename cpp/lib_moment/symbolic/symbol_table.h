@@ -7,6 +7,7 @@
 #pragma once
 
 #include "symbol.h"
+#include "symbol_lookup_result.h"
 #include "monomial.h"
 
 #include "dictionary/dictionary_map.h"
@@ -62,6 +63,9 @@ namespace Moment {
          * Invariant promise: non-hermitian elements will have both forward and reverse hashes saved. */
         std::map<size_t, ptrdiff_t> hash_table;
 
+    public:
+        /** True if aliased symbols could be present (that is, two operator sequences mapping to same moment). */
+        const bool can_have_aliases = false;
 
     public:
         class BasisView {
@@ -263,15 +267,7 @@ namespace Moment {
         * @param seq The sequence to match
         * @return Pointer to unique sequence element if matched, nullptr otherwise.
         */
-        [[nodiscard]] const Symbol * where(const OperatorSequence& seq) const noexcept;
-
-        /**
-         * Find the unique sequence matching supplied operator string, and if it is conjugated.
-         * @param seq The sequence to match
-         * @return First, pointer to unique sequence element if matched, nullptr otherwise. Second true if conjugated.
-         */
-        [[nodiscard]] std::pair<const Symbol *, bool>
-        where_and_is_conjugated(const OperatorSequence &seq) const noexcept;
+        [[nodiscard]] SymbolLookupResult where(const OperatorSequence& seq) const noexcept;
 
         /**
          * Find symbol expression matching supplied operator sequence.

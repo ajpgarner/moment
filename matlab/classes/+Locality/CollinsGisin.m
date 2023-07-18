@@ -23,16 +23,20 @@ classdef CollinsGisin < MTKMonomial
     
     %% Overridden methods
     methods(Access=protected)
-        function [id, conj, re, im] = queryForSymbolInfo(obj)
+        function [id, conj, re, im, aliased] = queryForSymbolInfo(obj)
             
             [id, re] = mtk('collins_gisin', 'symbols', ...
                            obj.Scenario.System.RefId);
             
+            dims = size(obj);
             % All operators should be Hermitian....
-            conj = false(size(obj));
+            conj = false(dims);
             
             % No imaginary parts.
-            im = zeros(size(obj));
+            im = zeros(dims);
+            
+            % No aliases (in locality scenario, at least!)
+            aliased = false(dims);            
         end
         
         

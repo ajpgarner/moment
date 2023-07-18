@@ -23,7 +23,11 @@ classdef (Abstract) MTKScenario < handle
     
     % True if the scenario defines operators
     properties(GetAccess = public, SetAccess = protected)
+        % If true, scenario defines a set of operators.
         DefinesOperators = true;
+        
+        % If true, distinct operator sequences can map to same symbol.        
+        PermitsSymbolAliases = false;
     end 
         
     %% Public dependent properties

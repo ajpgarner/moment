@@ -15,6 +15,7 @@
 
 namespace Moment {
     class CollinsGisin;
+    class Symbol;
     class MonomialMatrix;
     class ProbabilityTensor;
 }
@@ -34,8 +35,6 @@ namespace Moment::Inflation {
         class InflationContext &inflationContext;
 
         std::unique_ptr<FactorTable> factors;
-
-        std::unique_ptr<class CanonicalObservables> canonicalObservables;
 
         std::unique_ptr<ExtensionSuggester> extensionSuggester;
 
@@ -88,11 +87,6 @@ namespace Moment::Inflation {
          * Retrieve index of extended matrix, that already exists, by extensions.
          */
         ptrdiff_t find_extended_matrix(size_t mm_level, std::span<const symbol_name_t> extensions);
-
-        /**
-         * Get factorization list associated with matrices.
-         */
-        const class CanonicalObservables& CanonicalObservables() const noexcept { return *this->canonicalObservables; }
 
         /**
          * Returns an indexing in the Collins-Gisin ordering with additional inflation-scenario functionality.

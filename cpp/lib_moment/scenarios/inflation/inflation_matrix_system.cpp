@@ -6,7 +6,6 @@
  */
 #include "inflation_matrix_system.h"
 
-#include "canonical_observables.h"
 #include "factor_table.h"
 #include "extension_suggester.h"
 
@@ -26,7 +25,6 @@ namespace Moment::Inflation {
             : MaintainsTensors{std::move(contextIn), zero_tolerance},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
-        this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);
         this->extensionSuggester = std::make_unique<ExtensionSuggester>(this->inflationContext,
                                                                         this->Symbols(), *this->factors);
     }
@@ -35,7 +33,6 @@ namespace Moment::Inflation {
             : MaintainsTensors{std::move(contextIn), zero_tolerance},
               inflationContext{dynamic_cast<class InflationContext&>(this->Context())} {
         this->factors = std::make_unique<FactorTable>(this->inflationContext, this->Symbols());
-        this->canonicalObservables = std::make_unique<class CanonicalObservables>(this->inflationContext);
         this->extensionSuggester = std::make_unique<ExtensionSuggester>(this->inflationContext,
                                                                         this->Symbols(), *this->factors);
     }
@@ -59,11 +56,6 @@ namespace Moment::Inflation {
     void InflationMatrixSystem::onNewMomentMatrixCreated(size_t level, const Matrix& mm) {
         // Register factors
         this->factors->on_new_symbols_added();
-
-        // Update canonical observables (if necessary)
-        const auto new_max_length = this->MaxRealSequenceLength();
-        this->canonicalObservables->generate_up_to_level(new_max_length);
-
         MatrixSystem::onNewMomentMatrixCreated(level, mm);
     }
 

@@ -45,8 +45,8 @@ namespace Moment {
         this->symbol_map.reserve(target_size);
         for (auto iter = promised_osg.begin() + static_cast<ptrdiff_t>(start_index); iter != promised_osg.end(); ++iter) {
             const auto& seq = *iter;
-            const auto* datum = symbols.where(seq);
-            assert(datum != nullptr);
+            const auto datum = symbols.where(seq);
+            assert(datum.found());
             const bool isConjugated = (seq != datum->sequence());
             this->symbol_map.emplace_back((isConjugated ? -1 : 1) * datum->Id());
         }

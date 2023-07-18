@@ -10,7 +10,6 @@
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
-#include "scenarios/inflation/canonical_observables.h"
 #include "scenarios/inflation/factor_table.h"
 #include "scenarios/inflation/inflation_context.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
@@ -216,7 +215,7 @@ namespace Moment::Tests {
         // AA
         const auto &factors_AA = factors[4];
         EXPECT_EQ(factors_AA.id, 4);
-        ASSERT_EQ(factors_AA.raw.sequences.size(), 1) << symbols << ims.CanonicalObservables();
+        ASSERT_EQ(factors_AA.raw.sequences.size(), 1) << symbols;
         EXPECT_EQ(factors_AA.raw.sequences[0], OperatorSequence({0, 0}, context));
         ASSERT_EQ(factors_AA.canonical.sequences.size(), 1);
         EXPECT_EQ(factors_AA.canonical.sequences[0], OperatorSequence({0, 0}, context));
@@ -225,7 +224,6 @@ namespace Moment::Tests {
         auto find_AA = factors.find_index_by_factors({4});
         ASSERT_TRUE(find_AA.has_value());
         EXPECT_EQ(find_AA.value(), factors_AA.id);
-
 
         // AB -> A, B
         const auto &factors_AB = factors[5];

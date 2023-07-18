@@ -278,16 +278,12 @@ namespace Moment::Inflation {
 
     }
 
-    OperatorSequence InflationContext::simplify_as_moment(OperatorSequence &&seq) const {
-        return this->canonical_moment(seq);
-    }
-
-
-    OperatorSequence InflationContext::canonical_moment(const OperatorSequence& input) const {
-        // If 0 or I; or no inflation, just pass through
-        if (input.empty() || (this->inflation <= 1)) {
-            return input;
+    OperatorSequence InflationContext::simplify_as_moment(OperatorSequence&& input) const {
+        // If 0, or I, or no inflation, then just pass through
+        if (input.empty() || (!this->can_have_aliases())) {
+            return std::move(input);
         }
+
 
         SmallVector<oper_name_t, 8> next_available_source(this->base_network.Sources().size(), 0);
         std::map<oper_name_t, oper_name_t> permutation{};
@@ -324,12 +320,18 @@ namespace Moment::Inflation {
             permuted_operators.push_back(new_oper_id);
         }
         return OperatorSequence{std::move(permuted_operators), *this};
+
+    }
+
+
+    OperatorSequence InflationContext::canonical_moment(const OperatorSequence& input) const {
+        return this->simplify_as_moment(OperatorSequence{input});
     }
 
     std::vector<OVIndex>
     InflationContext::canonical_variants(const std::span<const OVIndex> input) const {
         // If 0 or I; or no inflation, then nothing.
-        if (input.empty() || (this->inflation < 1)) {
+        if (input.empty() || !this->can_have_aliases()) {
             return {};
         }
 

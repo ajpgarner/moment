@@ -22,6 +22,9 @@ namespace Moment {
     class Monomial;
     class OperatorSequence;
     class SymbolTable;
+    namespace Inflation {
+        class InflationContext;
+    }
 }
 
 namespace Moment::mex {
@@ -30,6 +33,7 @@ namespace Moment::mex {
     struct FullMonomialSpecification {
         const matlab::data::ArrayDimensions dimensions;
         const bool has_symbol_info;
+        const bool has_alias_info;
 
         matlab::data::CellArray operators;
         matlab::data::TypedArray<std::complex<double>> coefficients;
@@ -38,6 +42,7 @@ namespace Moment::mex {
         matlab::data::TypedArray<bool> is_conjugated;
         matlab::data::TypedArray<int64_t> real_basis_elems;
         matlab::data::TypedArray<int64_t> im_basis_elems;
+        matlab::data::TypedArray<bool> is_aliased;
 
         using partial_iter_t =
             IterTuple<matlab::data::CellArray::iterator,
@@ -53,12 +58,23 @@ namespace Moment::mex {
                     matlab::data::TypedArray<int64_t>::iterator,
                     matlab::data::TypedArray<int64_t>::iterator>;
 
+        using full_with_alias_t =
+            IterTuple<matlab::data::CellArray::iterator,
+                    matlab::data::TypedArray<std::complex<double>>::iterator,
+                    matlab::data::TypedArray<uint64_t>::iterator,
+                    matlab::data::TypedArray<int64_t>::iterator,
+                    matlab::data::TypedArray<bool>::iterator,
+                    matlab::data::TypedArray<int64_t>::iterator,
+                    matlab::data::TypedArray<int64_t>::iterator,
+                    matlab::data::TypedArray<bool>::iterator>;
+
 
     public:
-        FullMonomialSpecification(matlab::data::ArrayFactory& factory, size_t length, bool include_symbol_info);
+        FullMonomialSpecification(matlab::data::ArrayFactory& factory, size_t length,
+                                  bool include_symbol_info, bool include_alias_info = false);
 
         FullMonomialSpecification(matlab::data::ArrayFactory& factory, matlab::data::ArrayDimensions dimensions,
-                                  bool include_symbol_info);
+                                  bool include_symbol_info, bool include_alias_info = false);
 
         FullMonomialSpecification(const FullMonomialSpecification& rhs) = delete;
 
@@ -81,6 +97,12 @@ namespace Moment::mex {
 
         /** End of write iter for full data */
         full_iter_t full_write_end();
+
+        /** Write iter for full data with alias */
+        full_with_alias_t full_with_alias_write_begin();
+
+        /** End of write iter for full data with alias */
+        full_with_alias_t full_with_alias_write_end();
 
     public:
 
@@ -105,6 +127,9 @@ namespace Moment::mex {
 
         };
 
+        /**
+         * Write operator sequence of monomial.
+         */
         class PartialWriteFunctor : public WriteFunctor {
         public:
             PartialWriteFunctor(matlab::data::ArrayFactory& factory, const SymbolTable& symbols)
@@ -115,6 +140,10 @@ namespace Moment::mex {
             [[nodiscard]] typename partial_iter_t::value_type operator()(const OperatorSequence& sequence) const;
         };
 
+
+        /**
+         * Write monomial.
+         */
         class FullWriteFunctor : public WriteFunctor {
         public:
             FullWriteFunctor(matlab::data::ArrayFactory& factory, const SymbolTable& symbols)
@@ -126,6 +155,26 @@ namespace Moment::mex {
 
             [[nodiscard]] typename full_iter_t::value_type
             operator()(std::tuple<const Monomial&, const OperatorSequence&> mono_and_op) const;
+        };
+
+        /**
+         * Write monomial, also detecting if an alias.
+         */
+        class AliasedWriteFunctor : public WriteFunctor {
+        private:
+            const Inflation::InflationContext& context;
+        public:
+            AliasedWriteFunctor(matlab::data::ArrayFactory& factory, const SymbolTable& symbols,
+                                const Inflation::InflationContext& context)
+                : WriteFunctor{factory, symbols}, context{context} { }
+
+            /** Cannot infer if an alias from canonical symbol alone. */
+            [[nodiscard]] typename full_with_alias_t::value_type operator()(const Monomial& element) const = delete;
+
+            [[nodiscard]] typename full_with_alias_t::value_type operator()(const OperatorSequence& sequence) const;
+
+            [[nodiscard]] typename full_with_alias_t::value_type
+            operator()(std::tuple<const Monomial&, const OperatorSequence&, bool> mono_and_op) const;
         };
     };
 }

@@ -8,6 +8,9 @@
 #include "storage_manager.h"
 
 #include "scenarios/context.h"
+#include "scenarios/inflation/inflation_context.h"
+#include "scenarios/inflation/inflation_matrix_system.h"
+#include "scenarios/locality/locality_matrix_system.h"
 
 #include "symbolic/symbol_table.h"
 
@@ -146,27 +149,34 @@ namespace Moment::mex::functions {
         // Get read lock on system
         std::shared_lock lock = matrixSystem.get_read_lock();
 
-        // Export symbol table
-        if (output.size() >= 1) {
-            SymbolTableExporter exporter{this->matlabEngine, *this->settings, matrixSystem};
-
-            switch (input.output_mode) {
-                case SymbolTableParams::OutputMode::AllSymbols:
-                    output[0] = exporter.export_table();
-                    break;
-                case SymbolTableParams::OutputMode::FromId:
-                    output[0] = exporter.export_table(input.from_id);
-                    break;
-                case SymbolTableParams::OutputMode::SearchBySequence:
-                    output[0] = find_and_return_symbol(input, exporter);
-                    break;
-                case SymbolTableParams::OutputMode::SearchBySequenceArray:
-                    output[0] = find_and_return_symbol_array(input, exporter);
-                    break;
-                default:
-                    throw_error(this->matlabEngine, errors::internal_error, "Unknown output mode.");
-
+        // Get appropriate exporter
+        auto exporter = [&]() -> SymbolTableExporter {
+            if (auto lmsPtr = dynamic_cast<const Locality::LocalityMatrixSystem*>(&matrixSystem); lmsPtr != nullptr) {
+                return SymbolTableExporter{this->matlabEngine, *this->settings, *lmsPtr};
+            } else if (auto imsPtr = dynamic_cast<const Locality::LocalityMatrixSystem*>(&matrixSystem);
+                       imsPtr != nullptr) {
+                return SymbolTableExporter{this->matlabEngine, *this->settings, *imsPtr};
             }
+            return SymbolTableExporter{this->matlabEngine, *this->settings, matrixSystem};
+        }();
+
+        // Output
+        switch (input.output_mode) {
+            case SymbolTableParams::OutputMode::AllSymbols:
+                output[0] = exporter.export_table();
+                break;
+            case SymbolTableParams::OutputMode::FromId:
+                output[0] = exporter.export_table(input.from_id);
+                break;
+            case SymbolTableParams::OutputMode::SearchBySequence:
+                output[0] = find_and_return_symbol(input, exporter);
+                break;
+            case SymbolTableParams::OutputMode::SearchBySequenceArray:
+                output[0] = find_and_return_symbol_array(input, exporter);
+                break;
+            default:
+                throw_error(this->matlabEngine, errors::internal_error, "Unknown output mode.");
+
         }
 
     }
@@ -176,25 +186,25 @@ namespace Moment::mex::functions {
         matlab::data::ArrayFactory factory;
 
         const auto& system = exporter.system;
+        const auto* imsPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
+        assert(!exporter.can_have_aliases || (imsPtr != nullptr));
+
         const auto& context = system.Context();
         const auto& symbolTable = system.Symbols();
 
         // Try to find sequence
         const auto& seq = input.sequences.front();
         OperatorSequence trialSequence(sequence_storage_t(seq.begin(), seq.end()), context);
-        const auto* symbolRow = symbolTable.where(trialSequence);
+
+        auto symbolRow = symbolTable.where(trialSequence);
 
         // Return false if nothing found
-        if (nullptr == symbolRow) {
+        if (!symbolRow.found()) {
             return exporter.export_empty_row(true);
         }
 
         // Otherwise, export row
-        const auto& unique = *symbolRow;
-        bool conjugated = trialSequence.hash() != unique.hash();
-        assert(!conjugated || (trialSequence.hash() == unique.hash_conj()));
-
-        return exporter.export_row(unique, conjugated);
+        return exporter.export_row(*symbolRow.symbol, symbolRow.is_conjugated, symbolRow.is_aliased);
     }
 
     matlab::data::Array
@@ -206,21 +216,13 @@ namespace Moment::mex::functions {
         const auto& symbolTable = system.Symbols();
 
         const size_t row_count = input.sequences.size();
-        std::vector<symbol_name_t> symbol_ids;
-        std::vector<uint8_t> conj_status;
+        std::vector<SymbolLookupResult> results;
+
         for (size_t index = 0; index < row_count; ++ index) {
             const auto& seqRaw = input.sequences[index];
             OperatorSequence trialSequence(sequence_storage_t(seqRaw.begin(), seqRaw.end()), context);
-            const auto symbolRow = symbolTable.where(trialSequence);
-
-            if (symbolRow != nullptr) {
-                symbol_ids.emplace_back(symbolRow->Id());
-                conj_status.emplace_back(trialSequence.hash() != symbolRow->hash() ? 1 : 0);
-            } else {
-                symbol_ids.emplace_back(-1);
-                conj_status.emplace_back(0);
-            }
+            results.emplace_back(symbolTable.where(trialSequence));
         }
-        return exporter.export_row_array(input.sequence_dimensions, std::span(symbol_ids), std::span(conj_status));
+        return exporter.export_row_array(input.sequence_dimensions, std::span(results));
     }
 }

@@ -64,7 +64,7 @@ namespace Moment::mex {
     void StagingMonomial::look_up_symbol(matlab::engine::MATLABEngine& engine,
                         const SymbolTable& symbols,  const std::string& name) {
         assert(this->resolved_sequence.has_value());
-        auto [where, is_cc] = symbols.where_and_is_conjugated(this->resolved_sequence.value());
+        const auto where = symbols.where(this->resolved_sequence.value());
 
         if (where == nullptr) {
             std::stringstream errSS;
@@ -74,13 +74,13 @@ namespace Moment::mex {
             throw_error(engine, errors::bad_param, errSS.str());
         }
         this->symbol_id = where->Id();
-        this->conjugated = is_cc;
+        this->conjugated = where.is_conjugated;
     }
 
     bool StagingMonomial::look_up_symbol_or_fail_quietly(matlab::engine::MATLABEngine& engine,
                                                          const SymbolTable& symbols) {
         assert(this->resolved_sequence.has_value());
-        auto [where, is_cc] = symbols.where_and_is_conjugated(this->resolved_sequence.value());
+        const auto where = symbols.where(this->resolved_sequence.value());
 
         if (where == nullptr) {
             this->symbol_id = -1;
@@ -88,20 +88,20 @@ namespace Moment::mex {
             return false;
         }
         this->symbol_id = where->Id();
-        this->conjugated = is_cc;
+        this->conjugated = where.is_conjugated;
         return true;
     }
 
     void StagingMonomial::look_up_or_make_symbol(matlab::engine::MATLABEngine& engine,
                                             SymbolTable& symbols, const std::string& name) {
         assert(this->resolved_sequence.has_value());
-        auto [where, is_cc] = symbols.where_and_is_conjugated(this->resolved_sequence.value());
+        const auto where = symbols.where(this->resolved_sequence.value());
         if (where != nullptr) {
             this->symbol_id = where->Id();
-            this->conjugated = is_cc;
+            this->conjugated = where.is_conjugated;
         } else {
             this->symbol_id = symbols.merge_in(OperatorSequence{this->resolved_sequence.value()});
-            this->conjugated = false;
+            this->conjugated = where.is_conjugated;
         }
     }
 

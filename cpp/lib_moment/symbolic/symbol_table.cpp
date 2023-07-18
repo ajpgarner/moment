@@ -51,7 +51,8 @@ namespace Moment {
     }
 
     SymbolTable::SymbolTable(const Context& context)
-        : Basis{*this}, context{context}, OSGIndex{context, *this} {
+        : Basis{*this}, context{context}, OSGIndex{context, *this},
+          can_have_aliases{context.can_have_aliases()} {
 
         // Zero and identity are always in symbol table, in indices 0 and 1 respectively.
         this->unique_sequences.emplace_back(Symbol::Zero(this->context));
@@ -245,24 +246,36 @@ namespace Moment {
     }
 
 
-    const Symbol *
+    SymbolLookupResult
     SymbolTable::where(const OperatorSequence &seq) const noexcept {
-        auto [obj, is_conj] = where_and_is_conjugated(seq);
-        return obj;
-    }
-
-    std::pair<const Symbol *, bool>
-    SymbolTable::where_and_is_conjugated(const OperatorSequence &seq) const noexcept {
-        size_t hash = this->context.hash(seq);
-
+        const size_t hash = this->context.hash(seq);
         auto [id, conj] = this->hash_to_index(hash);
-        if (id == std::numeric_limits<ptrdiff_t>::max()) {
-            return {nullptr, false};
+        // Found normal.
+        if (id != std::numeric_limits<ptrdiff_t>::max()) {
+            assert(id < this->unique_sequences.size());
+            return {&this->unique_sequences[id], conj, false};
         }
 
-        assert(id < this->unique_sequences.size());
-        return {&this->unique_sequences[id], conj};
+        // Try aliases
+        if (this->can_have_aliases) {
+            auto aliasedSeq = this->context.simplify_as_moment(OperatorSequence(seq));
+            const size_t alias_hash = aliasedSeq.hash();
+            if (alias_hash != seq.hash()) {
+                auto [alias_id, alias_conj] = this->hash_to_index(alias_hash);
+                // Found alias?
+                if (alias_id != std::numeric_limits<ptrdiff_t>::max()) {
+                    assert(alias_id < this->unique_sequences.size());
+                    return {&this->unique_sequences[alias_id], alias_conj, true};
+                } else {
+                    return {nullptr, false, true}; // Not found, but also not canonical.
+                }
+            }
+        }
+
+        // Not found
+        return {};
     }
+
 
     Monomial SymbolTable::to_symbol(const OperatorSequence &seq) const noexcept {
         size_t hash = this->context.hash(seq);

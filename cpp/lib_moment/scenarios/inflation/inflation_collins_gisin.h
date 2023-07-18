@@ -40,10 +40,5 @@ namespace Moment::Inflation {
         [[nodiscard]] CollinsGisinRange measurement_to_range(std::span<const OVIndex> freeMeasurements,
                                                              std::span<const OVOIndex> fixedOutcomes) const;
 
-    protected:
-        /**
-         * Overloaded symbol look up, also considers canonical observable variants.
-         */
-        const class Symbol* try_find_symbol(const OperatorSequence &seq) const noexcept override;
     };
 }

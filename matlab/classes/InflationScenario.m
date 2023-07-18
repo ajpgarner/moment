@@ -145,6 +145,7 @@ classdef InflationScenario < MTKScenario
 
             % Call Superclass c'tor
             obj = obj@MTKScenario(options{:});
+            obj.PermitsSymbolAliases = inf_level > 1;
             
             % Save inflation level
             obj.InflationLevel = inf_level;

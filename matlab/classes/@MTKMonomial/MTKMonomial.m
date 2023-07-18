@@ -25,6 +25,9 @@ classdef MTKMonomial < MTKObject
         % The imaginary basis element representing the imaginary part of this monomial, or 0.
         ImaginaryBasisIndex
         
+        % True, if monomial represents a non-canonical expression.
+        IsAlias
+        
         % True, if monomial represents 0
         IsZero
     end
@@ -35,6 +38,7 @@ classdef MTKMonomial < MTKObject
         symbol_conjugated = false;
         re_basis_index = -1;
         im_basis_index = -1;
+        is_alias = false;
     end
     
     %% Constructor
@@ -203,6 +207,14 @@ classdef MTKMonomial < MTKObject
             obj.loadSymbolInfoOrError();
             val = obj.im_basis_index;
         end
+        
+        function val = get.IsAlias(obj)
+            if ~obj.Scenario.PermitsSymbolAliases
+                error("Aliasing not defined for %s.", class(obj.Scenario));
+            end
+            obj.loadSymbolInfoOrError();
+            val = obj.is_alias;
+        end
     end
     
     %% Accessors: Zero
@@ -237,7 +249,7 @@ classdef MTKMonomial < MTKObject
     
     %% Virtual methods (defined, and implemented but can be overloaded)
     methods(Access=protected)
-        [id, conj, re, im] = queryForSymbolInfo(obj);
+        [id, conj, re, im, alias] = queryForSymbolInfo(obj);
     end
         
   
