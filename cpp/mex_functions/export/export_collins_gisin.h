@@ -41,6 +41,16 @@ namespace Moment {
                                     matlab::data::TypedArray<int64_t>>
             symbol_and_basis(const Moment::CollinsGisinRange& cgi) const;
 
+            [[nodiscard]] std::tuple<matlab::data::TypedArray<uint64_t>,
+                                    matlab::data::TypedArray<int64_t>,
+                                    matlab::data::TypedArray<bool>>
+            symbol_basis_and_alias(const Moment::CollinsGisin& cgi) const;
+
+            [[nodiscard]] std::tuple<matlab::data::TypedArray<uint64_t>,
+                                     matlab::data::TypedArray<int64_t>,
+                                     matlab::data::TypedArray<bool>>
+            symbol_basis_and_alias(const Moment::CollinsGisinRange& cgi) const;
+
             [[nodiscard]] std::pair<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>>
             sequence_and_hash(const Moment::CollinsGisin& cgi) const;
 
@@ -56,6 +66,18 @@ namespace Moment {
                                      matlab::data::TypedArray<uint64_t>,
                                      matlab::data::TypedArray<int64_t>>
             everything(const Moment::CollinsGisinRange& cgi) const;
+
+            [[nodiscard]] std::tuple<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>,
+                                     matlab::data::TypedArray<uint64_t>,
+                                     matlab::data::TypedArray<int64_t>,
+                                     matlab::data::TypedArray<bool>>
+            everything_with_aliases(const Moment::CollinsGisin& cgi) const;
+
+            [[nodiscard]] std::tuple<matlab::data::CellArray, matlab::data::TypedArray<uint64_t>,
+                                     matlab::data::TypedArray<uint64_t>,
+                                     matlab::data::TypedArray<int64_t>,
+                                     matlab::data::TypedArray<bool>>
+            everything_with_aliases(const Moment::CollinsGisinRange& cgi) const;
 
             [[nodiscard]] matlab::data::StringArray
             strings(const Moment::CollinsGisin& cg,

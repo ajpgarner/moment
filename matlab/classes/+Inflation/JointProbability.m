@@ -135,7 +135,7 @@ classdef (InferiorClasses={?Inflation.Variant})...
         
         function val = times(lhs, rhs)
         % TIMES Element-wise multiplication .*
-            if ~isa(lhs, 'Locality.JointProbability')
+            if ~isa(lhs, 'Inflation.JointProbability')
                 this = rhs;
                 other = lhs;
             else
@@ -154,6 +154,30 @@ classdef (InferiorClasses={?Inflation.Variant})...
             error("Element-wise multiplication not defined between %s and %s", ...
                   class(lhs), class(rhs));
             
+        end
+        
+        function val = plus(lhs, rhs)
+            % Check, for dominated LHS
+            if ~isa(lhs, 'Inflation.JointProbability')
+                this = rhs;
+                other = lhs;
+            else
+                this = lhs;
+                other = rhs;
+            end
+            
+            % Cast to implicit variables and call again
+            the_ops = this.Operators;
+            val = plus(the_ops, other);
+        end
+        
+        function val = minus(lhs, rhs)
+            val = plus(lhs, -rhs);
+        end
+        
+        function val = uminus(this)
+            the_ops = this.Operators;
+            val = uminus(the_ops);
         end
     end
     

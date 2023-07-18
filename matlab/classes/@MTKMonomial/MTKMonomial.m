@@ -157,7 +157,7 @@ classdef MTKMonomial < MTKObject
         end
         
         obj = InitAllInfo(setting, operators, coefs, hash, ...
-                          symbols, conj, real, im);
+                          symbols, conj, real, im, is_aliased);
         
         obj = InitDirect(setting, operators, coefs, hash);
         

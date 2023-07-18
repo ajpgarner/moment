@@ -44,6 +44,15 @@ namespace Moment {
         return std::move(seq);
     }
 
+    bool Context::can_be_simplified_as_moment(const OperatorSequence &seq) const {
+        if (!this->can_have_aliases()) {
+            return false;
+        }
+
+        auto compare = this->simplify_as_moment(OperatorSequence{seq});
+        return compare.hash() != seq.hash();
+    }
+
     size_t Context::hash(const OperatorSequence &sequence) const noexcept {
         if (sequence.zero()) {
             return 0;

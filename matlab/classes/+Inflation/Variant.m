@@ -80,8 +80,9 @@ classdef (InferiorClasses={?Inflation.VariantOutcome}) Variant < handle
                     obj.Scenario.System.RefId, obj.Index);
                 coefs = ones(size(hashes));
                 try
-                    [symbols, real_indices] = mtk('collins_gisin', 'symbols', ...
-                        obj.Scenario.System.RefId, obj.Index);
+                    [symbols, real_indices, is_aliased] ...
+                        = mtk('collins_gisin', 'symbols', ...
+                              obj.Scenario.System.RefId, obj.Index);
                     has_symbols = true;
                 catch CGE
                     if isequal(CGE.identifier, 'mtk:missing_cg')
@@ -96,7 +97,8 @@ classdef (InferiorClasses={?Inflation.VariantOutcome}) Variant < handle
                     obj.explicit = ...
                         MTKMonomial.InitAllInfo(obj.Scenario, ...
                         ops, coefs, hashes, ...
-                        symbols, conj, real_indices, im_indices);
+                        symbols, conj, real_indices, im_indices, ...
+                        is_aliased);
                 else
                     obj.explicit = ...
                         MTKMonomial.InitDirect(obj.Scenario, ...
@@ -176,7 +178,7 @@ classdef (InferiorClasses={?Inflation.VariantOutcome}) Variant < handle
         function val = times(lhs, rhs)
         % TIMES Element-wise multiplication .*
             % Check, for dominated LHS
-            if ~isa(lhs, 'Inflation.Measurement')
+            if ~isa(lhs, 'Inflation.Variant')
                 this = rhs;
                 other = lhs;
                 this_on_left = false;
@@ -196,6 +198,40 @@ classdef (InferiorClasses={?Inflation.VariantOutcome}) Variant < handle
             % Complain
             error("_.*_ not defined between %s and %s", ...
                   class(lhs), class(rhs));
+        end
+        
+        function val = plus(lhs, rhs)
+             % Check, for dominated LHS
+            if ~isa(lhs, 'Inflation.Variant')
+                this = rhs;
+                other = lhs;
+            else
+                this = lhs;
+                other = rhs;
+            end
+            
+            % Cast to implicit/explicit variables and call again
+            if this.ContinuousVariable
+                expl = this.ExplicitOutcomes;
+                val = plus(expl, other);                
+            else 
+                impl = this.ImplicitOutcomes;
+                val = plus(impl, other);
+            end           
+        end
+                
+        function val = minus(lhs, rhs)
+            val = plus(lhs, -rhs);
+        end
+        
+        function val = uminus(this)
+             if this.ContinuousVariable
+                expl = this.ExplicitOutcomes;
+                val = uminus(expl);  
+             else 
+                impl = this.ImplicitOutcomes;
+                val = uminus(impl);
+             end
         end
         
         function val = mpower(obj, index)
@@ -218,8 +254,13 @@ classdef (InferiorClasses={?Inflation.VariantOutcome}) Variant < handle
         
         function val = Apply(obj, re_vals, ~)
         % APPLY Forward to Apply function of outcome polynomials.
-            impl = obj.ImplicitOutcomes;
-            val = impl.Apply(re_vals);
+            if this.ContinuousVariable
+                expl = obj.ExplicitOutcomes;
+                val = expl.Apply(re_vals);
+            else
+                impl = obj.ImplicitOutcomes;
+                val = impl.Apply(re_vals);
+            end
         end
     end
 end

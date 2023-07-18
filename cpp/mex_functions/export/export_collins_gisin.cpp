@@ -31,6 +31,17 @@ namespace Moment::mex {
             }
         };
 
+        struct SymbolInfoAliasedWriter {
+            std::tuple<uint64_t, int64_t, bool> operator()(CollinsGisinIndexView index, const CollinsGisinEntry& element) const {
+                // Fail within (virtual mode):
+                if (-1 == element.symbol_id) {
+                    throw Moment::errors::BadCGError::make_missing_index_err(index, element.sequence, true);
+                }
+
+                return {element.symbol_id, element.real_index, element.is_alias};
+            }
+        };
+
         struct SequenceWriter {
             matlab::data::ArrayFactory& factory;
             explicit SequenceWriter(matlab::data::ArrayFactory& factory) : factory{factory} { }
@@ -57,6 +68,22 @@ namespace Moment::mex {
             }
         };
 
+        struct EverythingAliasedWriter {
+            matlab::data::ArrayFactory& factory;
+            explicit EverythingAliasedWriter(matlab::data::ArrayFactory& factory) : factory{factory} { }
+
+            std::tuple<matlab::data::TypedArray<uint64_t>, uint64_t, uint64_t, int64_t, bool>
+            operator()(CollinsGisinIndexView index, const CollinsGisinEntry& element) const {
+                // Fail within (virtual mode):
+                if (-1 == element.symbol_id) {
+                    throw Moment::errors::BadCGError::make_missing_index_err(index, element.sequence, true);
+                }
+
+                return {export_operator_sequence(factory, element.sequence, true), element.sequence.hash(),
+                        element.symbol_id, element.real_index, element.is_alias};
+            }
+        };
+
         struct LFStringWriter {
             const Locality::LocalityContext& localityContext;
             const Locality::LocalityOperatorFormatter& formatter;
@@ -77,7 +104,7 @@ namespace Moment::mex {
         struct StringWriter {
             const Context& context;
         public:
-            StringWriter(const Context& context) : context{context} {}
+            explicit StringWriter(const Context& context) : context{context} {}
 
 
             std::basic_string<char16_t>
@@ -129,6 +156,36 @@ namespace Moment::mex {
                                      factory.createArray<int64_t>(dimensions));
         IterTuple write_iter{output.first.begin(), output.second.begin()};
         indexed_transform(cgr.begin(), cgr.end(), write_iter, SymbolInfoWriter{});
+
+        return output;
+    }
+
+    std::tuple<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<int64_t>, matlab::data::TypedArray<bool>>
+    CollinsGisinExporter::symbol_basis_and_alias(const Moment::CollinsGisin &cgi) const {
+        // Check before (explicit mode):
+        if (!cgi.HasAllSymbols()) {
+            throw Moment::errors::BadCGError::make_missing_err(cgi);
+        }
+
+        matlab::data::ArrayDimensions dimensions{cgi.Dimensions};
+        auto output = std::make_tuple(factory.createArray<uint64_t>(dimensions),
+                                      factory.createArray<int64_t>(dimensions),
+                                      factory.createArray<bool>(dimensions));
+        IterTuple write_iter{std::get<0>(output).begin(), std::get<1>(output).begin(), std::get<2>(output).begin()};
+        indexed_transform(cgi.begin(), cgi.end(), write_iter, SymbolInfoAliasedWriter{});
+
+        return output;
+    }
+
+    std::tuple<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<int64_t>, matlab::data::TypedArray<bool>>
+    CollinsGisinExporter::symbol_basis_and_alias(const Moment::CollinsGisinRange &cgr) const {
+
+        matlab::data::ArrayDimensions dimensions(cgr.Dimensions().begin(), cgr.Dimensions().end());
+        auto output = std::make_tuple(factory.createArray<uint64_t>(dimensions),
+                                      factory.createArray<int64_t>(dimensions),
+                                      factory.createArray<bool>(dimensions));
+        IterTuple write_iter{std::get<0>(output).begin(), std::get<1>(output).begin(), std::get<2>(output).begin()};
+        indexed_transform(cgr.begin(), cgr.end(), write_iter, SymbolInfoAliasedWriter{});
 
         return output;
     }
@@ -205,6 +262,60 @@ namespace Moment::mex {
                              std::get<2>(output).begin(),
                              std::get<3>(output).begin()};
         indexed_transform(cgr.begin(), cgr.end(), write_iter, EverythingWriter{factory});
+        return output;
+    }
+
+    std::tuple<matlab::data::CellArray,
+               matlab::data::TypedArray<uint64_t>,
+               matlab::data::TypedArray<uint64_t>,
+               matlab::data::TypedArray<int64_t>,
+               matlab::data::TypedArray<bool>>
+   CollinsGisinExporter::everything_with_aliases(const CollinsGisin &cgi) const {
+        matlab::data::ArrayDimensions  dimensions{cgi.Dimensions};
+
+        // Check before (explicit mode):
+        if (!cgi.HasAllSymbols()) {
+            throw Moment::errors::BadCGError::make_missing_err(cgi);
+        }
+
+        auto output = std::make_tuple(
+                factory.createCellArray(dimensions),
+                factory.createArray<uint64_t>(dimensions),
+                factory.createArray<uint64_t>(dimensions),
+                factory.createArray<int64_t>(dimensions),
+                factory.createArray<bool>(dimensions)
+            );
+
+        IterTuple write_iter{std::get<0>(output).begin(),
+                             std::get<1>(output).begin(),
+                             std::get<2>(output).begin(),
+                             std::get<3>(output).begin(),
+                             std::get<4>(output).begin()};
+        indexed_transform(cgi.begin(), cgi.end(), write_iter, EverythingAliasedWriter{factory});
+        return output;
+    }
+
+    std::tuple<matlab::data::CellArray,
+               matlab::data::TypedArray<uint64_t>,
+               matlab::data::TypedArray<uint64_t>,
+               matlab::data::TypedArray<int64_t>,
+               matlab::data::TypedArray<bool>>
+   CollinsGisinExporter::everything_with_aliases(const CollinsGisinRange &cgr) const {
+        matlab::data::ArrayDimensions dimensions(cgr.Dimensions().begin(), cgr.Dimensions().end());
+        auto output = std::make_tuple(
+                factory.createCellArray(dimensions),
+                factory.createArray<uint64_t>(dimensions),
+                factory.createArray<uint64_t>(dimensions),
+                factory.createArray<int64_t>(dimensions),
+                factory.createArray<bool>(dimensions)
+            );
+
+        IterTuple write_iter{std::get<0>(output).begin(),
+                             std::get<1>(output).begin(),
+                             std::get<2>(output).begin(),
+                             std::get<3>(output).begin(),
+                             std::get<4>(output).begin()};
+        indexed_transform(cgr.begin(), cgr.end(), write_iter, EverythingAliasedWriter{factory});
         return output;
     }
 

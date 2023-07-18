@@ -158,6 +158,30 @@ classdef(InferiorClasses={?MTKMonomial, ?MTKPolynomial}) VariantOutcome < handle
                   class(lhs), class(rhs));
         end
         
+        function val = plus(lhs, rhs)
+             % Check, for dominated LHS
+            if ~isa(lhs, 'Inflation.VariantOutcome')
+                this = rhs;
+                other = lhs;
+            else
+                this = lhs;
+                other = rhs;
+            end
+            
+            % Cast to implicit variables and call again
+            the_ops = this.Operators;
+            val = plus(the_ops, other);
+        end
+        
+        function val = minus(lhs, rhs)
+            val = plus(lhs, -rhs);
+        end
+        
+        function val = uminus(this)
+            the_ops = this.Operators;
+            val = uminus(the_ops);
+        end
+                
         function val = mpower(obj, index)
             if ~obj.ContinuousVariable
                 error('mpower is only defined on variants that are continuous variables.');
@@ -165,8 +189,16 @@ classdef(InferiorClasses={?MTKMonomial, ?MTKPolynomial}) VariantOutcome < handle
 
             cv_expr = this.Scenario.get(obj.Index(1), obj.Index(2)).ExplicitOutcomes;
             val = mpower(the_ops, double(index));
-        end
-        
+        end        
     end    
+    
+    %% Apply objects
+    methods
+        function val = Apply(obj, re_vals, ~)
+            % APPLY Forward to Apply function of outcome polynomials.
+            impl = obj.Operators;
+            val = impl.Apply(re_vals);
+        end
+    end
 end
 

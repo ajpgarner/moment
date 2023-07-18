@@ -91,7 +91,6 @@ namespace Moment::Tests {
 
         const auto& getA = pt.measurement_to_range(std::vector<OVIndex>{{0, 0}});
         testSingleCV(getA, id_a0, "A0");
-        //test2Mmt(getA, 1, 2, "A0");
 
         const auto& getAprime = pt.measurement_to_range(std::vector<OVIndex>{{0, 1}});
         testSingleCV(getAprime, id_a0, "A1");
@@ -99,6 +98,4 @@ namespace Moment::Tests {
         const auto& getAAprime = pt.measurement_to_range(std::vector<OVIndex>{{0, 0}, {0, 1}});
         testSingleCV(getAAprime, id_a0a1, "A0A1");
     }
-
-
 }

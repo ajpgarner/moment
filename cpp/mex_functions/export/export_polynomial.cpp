@@ -62,7 +62,9 @@ namespace Moment::mex {
     FullMonomialSpecification
     PolynomialExporter::sequences(const Moment::Polynomial& polynomial, bool include_symbols) const {
 
-        FullMonomialSpecification output{factory, polynomial.size(), include_symbols};
+        const bool include_aliases = this->symbols.can_have_aliases && include_symbols;
+
+        FullMonomialSpecification output{factory, polynomial.size(), include_symbols, include_aliases};
 
         auto op_iter = output.operators.begin();
         auto coef_iter = output.coefficients.begin();
@@ -71,6 +73,7 @@ namespace Moment::mex {
         auto symbol_iter = include_symbols ? output.symbol_ids.begin() : output.symbol_ids.end();
         auto real_basis_iter = include_symbols ? output.real_basis_elems.begin() : output.real_basis_elems.end();
         auto im_basis_iter = include_symbols ? output.im_basis_elems.begin() : output.im_basis_elems.end();
+        auto alias_iter = include_aliases ? output.is_aliased.begin() : output.is_aliased.end();
 
         size_t idx = 0;
         for (const auto& term : polynomial) {
@@ -99,6 +102,9 @@ namespace Moment::mex {
                 *conj_iter = term.conjugated;
                 *real_basis_iter = symbol_info.basis_key().first + 1; // ML indexing
                 *im_basis_iter = symbol_info.basis_key().second + 1; // ML indexing
+                if (include_aliases) {
+                    *alias_iter = false;
+                }
             }
 
             // Advance output iterators
@@ -110,6 +116,9 @@ namespace Moment::mex {
                 ++conj_iter;
                 ++real_basis_iter;
                 ++im_basis_iter;
+                if (include_aliases) {
+                    ++alias_iter;
+                }
             }
         }
         return output;

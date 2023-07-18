@@ -36,6 +36,8 @@ namespace Moment {
          */
         [[nodiscard]] virtual Polynomial operator()(Polynomial::storage_t&& data) const = 0;
 
+        SmallVector<size_t, 1> presort_data(Polynomial::storage_t& data) const;
+
         [[nodiscard]] virtual bool less(const Monomial& lhs, const Monomial& rhs) const = 0;
 
         virtual void append(Polynomial& lhs, const Polynomial& rhs) const = 0;

@@ -88,6 +88,14 @@ namespace Moment {
     }
 
     symbol_name_t SymbolTable::merge_in(OperatorSequence&& sequence) {
+        // First, is sequence canonical?
+        if (this->can_have_aliases) {
+            auto alias = this->context.simplify_as_moment(std::move(sequence));
+            auto alias_conj = alias.conjugate();
+            return this->merge_in(Symbol{std::move(alias), std::move(alias_conj)});
+        }
+
+        // Otherwise, directly attempt merge
         auto conj_seq = sequence.conjugate();
         return this->merge_in(Symbol{std::move(sequence), std::move(conj_seq)});
     }
@@ -99,6 +107,10 @@ namespace Moment {
             const ptrdiff_t stIndex = existing_iter->second >= 0 ? existing_iter->second : -existing_iter->second;
             return this->unique_sequences[stIndex].id;
         }
+
+        // Error if attempting to add an aliased symbol.
+        assert(!this->can_have_aliases || !elem.has_sequence()
+               || !this->context.can_be_simplified_as_moment(elem.sequence()));
 
         // Otherwise, query
         const auto next_index = static_cast<symbol_name_t>(this->unique_sequences.size());
@@ -314,6 +326,11 @@ namespace Moment {
         std::vector<Symbol> build_unique;
         build_unique.reserve(osg.size());
         for (const auto& op_seq : osg) {
+            // Skip aliased symbols
+            if (this->can_have_aliases && this->context.can_be_simplified_as_moment(op_seq)) {
+                continue;
+            }
+
             auto conj_seq = op_seq.conjugate();
             if (op_seq == conj_seq) {
                 build_unique.emplace_back(op_seq);

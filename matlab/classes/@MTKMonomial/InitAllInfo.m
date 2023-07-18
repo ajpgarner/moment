@@ -1,5 +1,6 @@
 function obj = InitAllInfo(setting, operators, coefs, hashes, ...
-                                   symbols, conj, real_index, im_index)
+                           symbols, conj, real_index, im_index, ...
+                           is_aliased)
 % INITALLINFO Directly initialize a MTKMonomial with supplied parameters.
 % No simplifications or other checks are performed - so this function
 % should only be used to construct Monomials already in canonical form.
@@ -10,6 +11,11 @@ function obj = InitAllInfo(setting, operators, coefs, hashes, ...
     if isempty(coefs)
         obj = MTKMonomial.empty(size(coefs));
         return;
+    end
+    
+    % Is alias info provided?
+    if nargin < 9
+        is_aliased = false(size(coefs));
     end
 
     % Normal case:
@@ -26,6 +32,7 @@ function obj = InitAllInfo(setting, operators, coefs, hashes, ...
     obj.symbol_id = symbols;
     obj.symbol_conjugated = conj;
     obj.re_basis_index = real_index;
-    obj.im_basis_index = im_index;
+    obj.im_basis_index = im_index;    
+    obj.is_alias = is_aliased;
     
 end

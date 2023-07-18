@@ -7,7 +7,10 @@
 #pragma once
 
 #include "integer_types.h"
+
 #include "dictionary/operator_sequence.h"
+
+#include "symbolic/symbol_lookup_result.h"
 
 #include "utilities/multi_dimensional_index_iterator.h"
 #include "utilities/tensor.h"
@@ -58,16 +61,14 @@ namespace Moment {
 
         ptrdiff_t real_index = -1;
 
+        bool is_alias = false;
+
     public:
         /**
          * Make operator sequence.
          * No bounds checks are done on the index.
          */
         explicit CollinsGisinEntry(const CollinsGisin& cgt, CollinsGisinIndexView index);
-
-        bool find(const SymbolTable& table) noexcept;
-
-        void find_or_fail(const SymbolTable& table);
 
     };
 
@@ -181,7 +182,7 @@ namespace Moment {
             return "Collins-Gisin tensor";
         }
 
-        [[nodiscard]] virtual const class Symbol * try_find_symbol(const OperatorSequence& seq) const noexcept;
+        [[nodiscard]] SymbolLookupResult try_find_symbol(const OperatorSequence& seq) const noexcept;
 
     public:
         friend class CollinsGisinEntry;

@@ -121,7 +121,7 @@ namespace Moment::mex::functions  {
         this->mutex_params.add_mutex({u"symbols", u"sequences", u"full_sequences", u"strings"});
 
         this->min_outputs = 1;
-        this->max_outputs = 4;
+        this->max_outputs = 5;
 
         this->min_inputs = 1;
         this->max_inputs = 3;
@@ -137,6 +137,13 @@ namespace Moment::mex::functions  {
 
 
     void CollinsGisin::operator()(IOArgumentRange output, CollinsGisinParams &input) {
+        // Get stored moment matrix
+        auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
+        assert(msPtr); // ^- above should throw if absent
+        MatrixSystem& system = *msPtr;
+
+        const bool allow_aliases = system.Context().can_have_aliases();
+
         // Check output count vs. processed input type.
         switch (input.output_type) {
             case CollinsGisinParams::OutputType::Sequences:
@@ -147,17 +154,30 @@ namespace Moment::mex::functions  {
                 }
                 break;
             case CollinsGisinParams::OutputType::SequencesWithSymbolInfo:
-                if (output.size() != 4) {
-                    throw_error(this->matlabEngine,
-                                output.size() > 4 ? errors::too_many_outputs : errors::too_few_outputs,
-                                "'full_sequences' mode expects four outputs [sequences, hashes, symbol ID, real basis elem].");
+                if ((output.size() != 4) && (output.size() != 5)) {
+
+                    if (allow_aliases) {
+                        throw_error(this->matlabEngine,
+                                    output.size() > 5 ? errors::too_many_outputs : errors::too_few_outputs,
+                                    "'full_sequences' mode expects five outputs [sequences, hashes, symbol ID, real basis elem, is aliased].");
+                    } else {
+                        throw_error(this->matlabEngine,
+                                    output.size() > 4 ? errors::too_many_outputs : errors::too_few_outputs,
+                                    "'full_sequences' mode expects four outputs [sequences, hashes, symbol ID, real basis elem].");
+                    }
                 }
                 break;
             case CollinsGisinParams::OutputType::SymbolIds:
-                if (output.size() != 2) {
-                    throw_error(this->matlabEngine,
-                                output.size() > 2 ? errors::too_many_outputs : errors::too_few_outputs,
-                                "'symbols' mode expects two outputs [symbol IDs, basis elements].");
+                if ((output.size() != 2) && (output.size() != 3)) {
+                    if (allow_aliases) {
+                        throw_error(this->matlabEngine,
+                                    output.size() > 3 ? errors::too_many_outputs : errors::too_few_outputs,
+                                    "'symbols' mode expects two outputs [symbol IDs, basis elements, alias status].");
+                    } else {
+                        throw_error(this->matlabEngine,
+                                    output.size() > 2 ? errors::too_many_outputs : errors::too_few_outputs,
+                                    "'symbols' mode expects two outputs [symbol IDs, basis elements].");
+                    }
                 }
                 break;
             case CollinsGisinParams::OutputType::SequenceStrings:
@@ -168,12 +188,6 @@ namespace Moment::mex::functions  {
                 }
                 break;
         }
-
-
-        // Get stored moment matrix
-        auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
-        assert(msPtr); // ^- above should throw if absent
-        MatrixSystem& system = *msPtr;
 
 
         switch (input.export_shape) {
@@ -193,6 +207,8 @@ namespace Moment::mex::functions  {
     void CollinsGisin::export_whole_tensor(IOArgumentRange output, CollinsGisinParams &input, MatrixSystem& system) {
         // Get read lock
         auto lock = system.get_read_lock();
+        const bool can_have_alias = system.Context().can_have_aliases();
+
         const auto& cg = [&]() -> const Moment::CollinsGisin& {
             try {
                 auto* mtPtr = dynamic_cast<MaintainsTensors*>(&system);
@@ -212,15 +228,31 @@ namespace Moment::mex::functions  {
         CollinsGisinExporter cge{this->matlabEngine, system.Context(), system.Symbols()};
         try {
             switch (input.output_type) {
-                case CollinsGisinParams::OutputType::SymbolIds: {
-                    std::tie(output[0], output[1]) = cge.symbol_and_basis(cg);
-                }    break;
-                case CollinsGisinParams::OutputType::Sequences: {
+                case CollinsGisinParams::OutputType::SymbolIds:
+                    if (can_have_alias && (output.size() >= 3)) {
+                        std::tie(output[0], output[1], output[2]) = cge.symbol_basis_and_alias(cg);
+                    } else {
+                        std::tie(output[0], output[1]) = cge.symbol_and_basis(cg);
+                        if (output.size() > 2) {
+                            output[2] = cge.factory.createEmptyArray();
+                        }
+                    }
+                    break;
+                case CollinsGisinParams::OutputType::Sequences:
                     std::tie(output[0], output[1]) = cge.sequence_and_hash(cg);
-                } break;
-                case CollinsGisinParams::OutputType::SequencesWithSymbolInfo: {
-                    std::tie(output[0], output[1], output[2], output[3]) = cge.everything(cg);
-                } break;
+                    break;
+                case CollinsGisinParams::OutputType::SequencesWithSymbolInfo:
+                    if (can_have_alias && (output.size() > 4)) {
+                        std::tie(output[0], output[1], output[2], output[3], output[4])
+                                = cge.everything_with_aliases(cg);
+                    } else {
+                        std::tie(output[0], output[1], output[2], output[3]) = cge.everything(cg);
+                        if (output.size() > 4) {
+                            output[4] = cge.factory.createEmptyArray();
+                        }
+                    }
+
+                     break;
                 case CollinsGisinParams::OutputType::SequenceStrings: {
                     auto formatter = this->settings->get_locality_formatter();
                     assert(formatter);
@@ -237,20 +269,36 @@ namespace Moment::mex::functions  {
 
     void CollinsGisin::export_one_measurement(IOArgumentRange output, CollinsGisinParams &input, MatrixSystem& system) {
         auto lock = system.get_read_lock();
+        const bool can_have_alias = system.Context().can_have_aliases();
         auto slice = get_slice(this->matlabEngine, input, system, lock);
 
         CollinsGisinExporter cge{this->matlabEngine, system.Context(), system.Symbols()};
         try {
             switch (input.output_type) {
-                case CollinsGisinParams::OutputType::SymbolIds: {
-                    std::tie(output[0], output[1]) = cge.symbol_and_basis(slice);
-                }    break;
-                case CollinsGisinParams::OutputType::Sequences: {
+                case CollinsGisinParams::OutputType::SymbolIds:
+                    if (can_have_alias && (output.size() >= 3)) {
+                        std::tie(output[0], output[1], output[2]) = cge.symbol_basis_and_alias(slice);
+                    } else {
+                        std::tie(output[0], output[1]) = cge.symbol_and_basis(slice);
+                        if (output.size() > 2) {
+                            output[2] = cge.factory.createEmptyArray();
+                        }
+                    }
+                    break;
+                case CollinsGisinParams::OutputType::Sequences:
                     std::tie(output[0], output[1]) = cge.sequence_and_hash(slice);
-                } break;
-                case CollinsGisinParams::OutputType::SequencesWithSymbolInfo: {
-                    std::tie(output[0], output[1], output[2], output[3]) = cge.everything(slice);
-                } break;
+                    break;
+                case CollinsGisinParams::OutputType::SequencesWithSymbolInfo:
+                    if (can_have_alias && (output.size() > 4)) {
+                        std::tie(output[0], output[1], output[2], output[3], output[4])
+                                = cge.everything_with_aliases(slice);
+                    } else {
+                        std::tie(output[0], output[1], output[2], output[3]) = cge.everything(slice);
+                        if (output.size() > 4) {
+                            output[4] = cge.factory.createEmptyArray();
+                        }
+                    }
+                    break;
                 case CollinsGisinParams::OutputType::SequenceStrings: {
                     auto formatter = this->settings->get_locality_formatter();
                     assert(formatter);
@@ -266,8 +314,9 @@ namespace Moment::mex::functions  {
     }
 
     void CollinsGisin::export_one_outcome(IOArgumentRange output, CollinsGisinParams &input, MatrixSystem& system) {
-
         auto lock = system.get_read_lock();
+        const bool can_have_alias = system.Context().can_have_aliases();
+
         auto slice = get_slice(this->matlabEngine, input, system, lock);
 
         // Check there is one element referred to.
@@ -279,15 +328,30 @@ namespace Moment::mex::functions  {
         CollinsGisinExporter cge{this->matlabEngine, system.Context(), system.Symbols()};
         try {
             switch (input.output_type) {
-                case CollinsGisinParams::OutputType::SymbolIds: {
-                    std::tie(output[0], output[1]) = cge.symbol_and_basis(slice);
-                }    break;
-                case CollinsGisinParams::OutputType::Sequences: {
+                case CollinsGisinParams::OutputType::SymbolIds:
+                    if (can_have_alias && (output.size() >= 3)) {
+                        std::tie(output[0], output[1], output[2]) = cge.symbol_basis_and_alias(slice);
+                    } else {
+                        std::tie(output[0], output[1]) = cge.symbol_and_basis(slice);
+                        if (output.size() > 2) {
+                            output[2] = cge.factory.createEmptyArray();
+                        }
+                    }
+                    break;
+                case CollinsGisinParams::OutputType::Sequences:
                     std::tie(output[0], output[1]) = cge.sequence_and_hash(slice);
-                } break;
-                case CollinsGisinParams::OutputType::SequencesWithSymbolInfo: {
-                    std::tie(output[0], output[1], output[2], output[3]) = cge.everything(slice);
-                } break;
+                    break;
+                case CollinsGisinParams::OutputType::SequencesWithSymbolInfo:
+                    if (can_have_alias && (output.size() > 4)) {
+                        std::tie(output[0], output[1], output[2], output[3], output[4])
+                            = cge.everything_with_aliases(slice);
+                    } else {
+                        std::tie(output[0], output[1], output[2], output[3]) = cge.everything(slice);
+                        if (output.size() > 4) {
+                            output[4] = cge.factory.createEmptyArray();
+                        }
+                    }
+                    break;
                 case CollinsGisinParams::OutputType::SequenceStrings: {
                     auto formatter = this->settings->get_locality_formatter();
                     assert(formatter);

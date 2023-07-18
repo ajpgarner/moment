@@ -61,6 +61,10 @@ namespace Moment {
           */
          [[nodiscard]] virtual OperatorSequence simplify_as_moment(OperatorSequence&& seq) const;
 
+         /**
+          * True, if context would not apply any moment simplification to supplied sequece.
+          */
+          [[nodiscard]] virtual bool can_be_simplified_as_moment(const OperatorSequence& seq) const;
 
         /**
          * Use context to conjugate operator sequence.

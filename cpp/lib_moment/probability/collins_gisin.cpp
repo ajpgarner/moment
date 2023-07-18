@@ -82,11 +82,12 @@ namespace Moment {
 
         // In virtual mode, attempt also to resolve symbols
         if (cgt.StorageType == TensorStorageType::Virtual) {
-            const auto* symInfo = cgt.try_find_symbol(sequence);
-            if (nullptr != symInfo) {
+            const auto symInfo = cgt.try_find_symbol(sequence);
+            if (symInfo.found()) {
                 this->symbol_id = symInfo->Id();
                 this->real_index = symInfo->basis_key().first;
             }
+            this->is_alias = symInfo.is_aliased;
         }
     }
 
@@ -107,12 +108,13 @@ namespace Moment {
         // Do initial symbol search
         size_t index = 0;
         for (auto& datum : this->data) {
-            auto * us = this->try_find_symbol(datum.sequence);
+            auto us = this->try_find_symbol(datum.sequence);
             if (us != nullptr) {
                 assert(us->is_hermitian());
                 assert(us->basis_key().second < 0);
                 datum.symbol_id = us->Id();
                 datum.real_index = us->basis_key().first;
+                datum.is_alias = us.is_aliased;
             } else {
                 this->missing_symbols.insert(this->missing_symbols.cend(), index);
             }
@@ -142,12 +144,13 @@ namespace Moment {
         while (iter != this->missing_symbols.end()) {
             size_t index = *iter;
             auto& datum = this->data[index];
-            const auto * us = this->try_find_symbol(datum.sequence);
+            const auto us = this->try_find_symbol(datum.sequence);
             if (us != nullptr) {
                 assert(us->is_hermitian());
                 assert(us->basis_key().second < 0);
                 datum.symbol_id = us->Id();
                 datum.real_index = us->basis_key().first;
+                datum.is_alias = us.is_aliased;
                 iter = this->missing_symbols.erase(iter);
             } else {
                 ++iter;
@@ -212,7 +215,7 @@ namespace Moment {
         return CollinsGisinEntry{*this, index};
     }
 
-    const class Symbol* CollinsGisin::try_find_symbol(const OperatorSequence &seq) const noexcept {
-        return this->symbol_table.where(seq).symbol;
+    SymbolLookupResult CollinsGisin::try_find_symbol(const OperatorSequence &seq) const noexcept {
+        return this->symbol_table.where(seq);
     }
 }
