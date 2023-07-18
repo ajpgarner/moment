@@ -59,7 +59,7 @@ classdef SimplifyTest < MTKTestBase
             [output, ~, output_hash] = mtk('simplify', ms_id, input);
             expected = uint64([2]);
             testCase.verifyEqual(output, expected);
-            testCase.verifyEqual(output_hash, Util.shortlex_hash(2, expected));
+            testCase.verifyEqual(output_hash, MTKUtil.shortlex_hash(2, expected));
         end
     end
     

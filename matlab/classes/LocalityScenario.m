@@ -98,7 +98,7 @@ classdef LocalityScenario < MTKScenario
             % Process optional parameters, if any            
             zero_tolerance = 100;
             if opt_idx <= nargin
-                options = Util.check_varargin_keys(["tolerance"], ...
+                options = MTKUtil.check_varargin_keys(["tolerance"], ...
                                                    varargin(opt_idx:end));
             else
                 options = cell(1,0);
@@ -555,14 +555,14 @@ classdef LocalityScenario < MTKScenario
         %
            
             optional_idx = 0;
-            if numel(args) == 0 || Util.is_effectively_str(args{1})
+            if numel(args) == 0 || MTKUtil.is_effectively_str(args{1})
                 % RESULT: Syntax 1
                 desc = cell(0, 1);
                 optional_idx = 1;
             else                
                 if 1 == numel(args{1}) && isnumeric(args{1})
                     initial_parties = (args{1});
-                    if numel(args) == 1 || Util.is_effectively_str(args{2})
+                    if numel(args) == 1 || MTKUtil.is_effectively_str(args{2})
                         % RESULT: Syntax 2
                         optional_idx = 2;
                         desc = cell(initial_parties, 1);

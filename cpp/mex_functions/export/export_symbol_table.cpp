@@ -40,21 +40,21 @@ namespace Moment::mex {
                                              const MatrixSystem &system)
             : ExporterWithFactory{engine}, env{env}, system{system},
               symbols{system.Symbols()}, context{system.Context()},
-              include_factors{false}, locality_format{false}, can_have_aliases{false} {
+              include_factors{false}, locality_format{false}, can_have_aliases{system.Symbols().can_have_aliases} {
      }
 
 
     SymbolTableExporter::SymbolTableExporter(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
                                              const Locality::LocalityMatrixSystem &lms)
          : ExporterWithFactory{engine}, env{env}, system{lms}, symbols{system.Symbols()}, context{system.Context()},
-            include_factors{false}, locality_format{true}, can_have_aliases{false} {
+            include_factors{false}, locality_format{true}, can_have_aliases{system.Symbols().can_have_aliases} {
         this->localityContextPtr = &lms.localityContext;
     }
 
     SymbolTableExporter::SymbolTableExporter(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
                                              const Inflation::InflationMatrixSystem &ims)
             : ExporterWithFactory{engine}, env{env}, system{ims}, symbols{system.Symbols()}, context{system.Context()},
-              include_factors{true}, locality_format{false}, can_have_aliases{true} {
+              include_factors{true}, locality_format{false}, can_have_aliases{system.Symbols().can_have_aliases} {
         this->factorTablePtr = &ims.Factors();
     }
 

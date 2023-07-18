@@ -41,7 +41,7 @@ classdef ConjugateTest < MTKTestBase
             expected = uint64([4, 3]);
             testCase.verifyEqual(output, expected);
             testCase.verifyEqual(output_hash, ...
-                                Util.shortlex_hash(4, expected));
+                                MTKUtil.shortlex_hash(4, expected));
         end
     end
     

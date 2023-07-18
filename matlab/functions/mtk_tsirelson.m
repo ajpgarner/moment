@@ -29,9 +29,9 @@ function [objective] = mtk_tsirelson(M, desc, level, toolkit)
             error("If specified, toolkit must be set to one of 'cvx' or 'yalmip'.");
         end
     else
-        if Util.has_yalmip()
+        if MTKUtil.has_yalmip()
             toolkit = 'yalmip';
-        elseif Util.has_cvx()
+        elseif MTKUtil.has_cvx()
             toolkit = 'cvx';
         else
             error("Could not detect yalmip or cvx installation.");

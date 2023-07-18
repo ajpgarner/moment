@@ -118,11 +118,11 @@ namespace Moment::mex::functions {
 
     SymbolTable::SymbolTable(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
             : ParameterizedMexFunction{matlabEngine, storage} {
-
         this->min_outputs = 1;
         this->max_outputs = 1;
         this->min_inputs = 1;
         this->max_inputs = 2;
+
         this->param_names.emplace(u"from");
     }
 
@@ -153,7 +153,7 @@ namespace Moment::mex::functions {
         auto exporter = [&]() -> SymbolTableExporter {
             if (auto lmsPtr = dynamic_cast<const Locality::LocalityMatrixSystem*>(&matrixSystem); lmsPtr != nullptr) {
                 return SymbolTableExporter{this->matlabEngine, *this->settings, *lmsPtr};
-            } else if (auto imsPtr = dynamic_cast<const Locality::LocalityMatrixSystem*>(&matrixSystem);
+            } else if (auto imsPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&matrixSystem);
                        imsPtr != nullptr) {
                 return SymbolTableExporter{this->matlabEngine, *this->settings, *imsPtr};
             }
@@ -186,16 +186,12 @@ namespace Moment::mex::functions {
         matlab::data::ArrayFactory factory;
 
         const auto& system = exporter.system;
-        const auto* imsPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
-        assert(!exporter.can_have_aliases || (imsPtr != nullptr));
-
         const auto& context = system.Context();
         const auto& symbolTable = system.Symbols();
 
         // Try to find sequence
         const auto& seq = input.sequences.front();
         OperatorSequence trialSequence(sequence_storage_t(seq.begin(), seq.end()), context);
-
         auto symbolRow = symbolTable.where(trialSequence);
 
         // Return false if nothing found

@@ -19,7 +19,7 @@
                new_ops = obj.Operators;
            end
        else
-           new_ops = Util.cell_mask(obj.Operators, mask, []);
+           new_ops = MTKUtil.cell_mask(obj.Operators, mask, []);
        end
 
        val = MTKMonomial(obj.Scenario, new_ops, new_coefs);

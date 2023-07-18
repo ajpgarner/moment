@@ -30,7 +30,7 @@ classdef ImportedScenario < MTKScenario
             all_real = false;
         
             % Validate parameters
-            options = Util.check_varargin_keys(...
+            options = MTKUtil.check_varargin_keys(...
                         ["all_real", "zero_tolerance"], varargin);
             prune_mask = false(size(options));
             for o = 1:2:numel(options)

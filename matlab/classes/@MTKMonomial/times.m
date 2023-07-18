@@ -39,13 +39,13 @@ function val = times(lhs, rhs)
             else
                 cell_size = num2cell(size(new_coefs));
                 new_ops = repelem({this.Operators}, cell_size{:});
-                new_ops = Util.cell_mask(new_ops, prune_mask, []);
+                new_ops = MTKUtil.cell_mask(new_ops, prune_mask, []);
                 val = MTKMonomial(this.Scenario, ...
                     new_ops, new_coefs);
 
             end
         else
-            new_ops = Util.cell_mask(this.Operators, prune_mask, []);
+            new_ops = MTKUtil.cell_mask(this.Operators, prune_mask, []);
             val = MTKMonomial(this.Scenario, new_ops, new_coefs);
         end
         return;
@@ -66,15 +66,15 @@ function val = times(lhs, rhs)
     elseif lhs.IsScalar
         new_ops = cellfun(@(x) [lhs.Operators, x], rhs.Operators, ...
             'UniformOutput', false);
-        new_ops = Util.cell_mask(new_ops, prune_mask, []);
+        new_ops = MTKUtil.cell_mask(new_ops, prune_mask, []);
     elseif rhs.IsScalar
         new_ops = cellfun(@(x) [x, rhs.Operators], lhs.Operators, ...
             'UniformOutput', false);
-        new_ops = Util.cell_mask(new_ops, prune_mask, []);
+        new_ops = MTKUtil.cell_mask(new_ops, prune_mask, []);
     else
         new_ops = cellfun(@(x, y) [x, y], ...
             lhs.Operators, rhs.Operators, 'UniformOutput', false);
-        new_ops = Util.cell_mask(new_ops, prune_mask, []);
+        new_ops = MTKUtil.cell_mask(new_ops, prune_mask, []);
     end
     val = MTKMonomial(this.Scenario, new_ops, join_coefs);
 end

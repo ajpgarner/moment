@@ -73,7 +73,7 @@ classdef (Abstract) MTKScenario < handle
         % SCENARIO Create an scenario object.
             
             % Parse options
-            options = Util.check_varargin_keys(...
+            options = MTKUtil.check_varargin_keys(...
                         MTKScenario.ctorArgNames(), varargin);
             defines_operators = true;
             zero_tolerance = 100;

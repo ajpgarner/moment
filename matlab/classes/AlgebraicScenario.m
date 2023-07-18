@@ -65,7 +65,7 @@ classdef AlgebraicScenario < MTKScenario
             else
                 param_names = ["rules", "hermitian", "interleave", ...
                                "normal", "tolerance"];
-                options = Util.check_varargin_keys(param_names, varargin);
+                options = MTKUtil.check_varargin_keys(param_names, varargin);
                 exclude_mask = false(size(options));
                 for idx = 1:2:numel(varargin)
                     switch varargin{idx}

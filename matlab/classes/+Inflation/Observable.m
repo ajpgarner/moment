@@ -131,7 +131,7 @@ classdef Observable < handle
             offset = uint64(offset);
             sizes = uint64(ones(1, numel(obj.Sources))) ...
                         .* obj.Scenario.InflationLevel;
-            index = Util.index_to_sub(sizes, offset);
+            index = MTKUtil.index_to_sub(sizes, offset);
         end
     end
     
@@ -139,7 +139,7 @@ classdef Observable < handle
     methods(Access=private)
         function str = makeOperatorNames(obj)
             % Get base name of observable, alphabetically.
-            base_name = Util.alphabetic_index(obj.Id, true, false);
+            base_name = MTKUtil.alphabetic_index(obj.Id, true, false);
             
             % First, observable names
             if obj.OutcomeCount > 2

@@ -19,7 +19,7 @@ classdef Party < handle
             end
             %PARTY Construct a party 
             % (Private c'tor. To construct, use Scenario.AddParty.)
-            import Util.alphabetic_index
+            import MTKUtil.alphabetic_index
             
             % Link to a setting object
             obj.Scenario = setting;
@@ -50,7 +50,7 @@ classdef Party < handle
                 name (1,1) string = ""
             end
             import Locality.Measurement
-            import Util.alphabetic_index
+            import MTKUtil.alphabetic_index
             
             % Check not locked
             obj.Scenario.errorIfLocked();

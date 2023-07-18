@@ -43,7 +43,7 @@
     end
 
     % Quick pass through for "+0" case
-    if Util.is_scalar_zero(other)
+    if MTKUtil.is_scalar_zero(other)
         val = this;
         return;
     end

@@ -137,7 +137,7 @@ classdef InflationScenario < MTKScenario
             
             % Other options
             if ~isempty(varargin)
-                options = Util.check_varargin_keys(["tolerance"], varargin);
+                options = MTKUtil.check_varargin_keys(["tolerance"], varargin);
             else
                 options = cell(1,0);
             end
