@@ -30,6 +30,7 @@ namespace Moment::mex::functions {
             throw_error(matlabEngine, errors::bad_param, "Second argument must be a cell array of group generators.");
         }
 
+
         // Following link promises this is a reference not a copy. I don't know if I believe it.
         // https://www.mathworks.com/help/matlab/matlab_external/avoid-copies-of-large-arrays.html
         const matlab::data::TypedArray<matlab::data::Array> as_cell_array = this->inputs[1];
@@ -77,33 +78,39 @@ namespace Moment::mex::functions {
             ++cell_index;
         }
 
-        // Read maximum element size, if one is set
-        if (this->inputs.size() >= 3) {
-            if (!castable_to_scalar_int(this->inputs[2])) {
+        // Is maximum word length set?
+        if (auto maxWLiter = this->params.find(u"max_word_length"); maxWLiter != this->params.end()) {
+            if (!castable_to_scalar_int(maxWLiter->second)) {
                 throw_error(matlabEngine, errors::bad_param,
                             "Maximum word length, if provided, must be a scalar non-negative integer.");
             }
-            this->max_word_length = read_as_uint64(this->matlabEngine, this->inputs[2]);
+            this->max_word_length = read_as_uint64(this->matlabEngine, maxWLiter->second);
         }
 
         // Is a subgroup limit specified?
-        auto maxSGiter = this->params.find(u"max_subgroup");
-        if (maxSGiter != this->params.end()) {
+        if (auto maxSGiter = this->params.find(u"max_subgroup"); maxSGiter != this->params.end()) {
             this->max_subgroup = read_positive_integer<size_t>(matlabEngine, "Parameter 'max_subgroup'",
                                                                maxSGiter->second, 0);
-        } else {
-            this->max_subgroup = 0;
         }
 
+        // Is the tolerance specified?
+        if (auto tolIter = this->params.find(u"tolerance"); tolIter != this->params.cend()) {
+            this->zero_tolerance = read_as_double(matlabEngine, tolIter->second);
+            if (this->zero_tolerance <= 0) {
+                this->zero_tolerance = -1.0;
+            }
+        }
     }
 
     SymmetrizedMatrixSystem::SymmetrizedMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
          : ParameterizedMexFunction{matlabEngine, storage} {
         this->min_inputs = 2;
-        this->max_inputs = 3;
+        this->max_inputs = 2;
         this->min_outputs = 1;
         this->max_outputs = 2;
 
+        this->param_names.emplace(u"tolerance");
+        this->param_names.emplace(u"max_word_length");
         this->param_names.emplace(u"max_subgroup");
     }
 

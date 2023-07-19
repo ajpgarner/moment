@@ -12,10 +12,13 @@
 #include "symbolic/polynomial_to_basis.h"
 #include "symbolic/symbol_table.h"
 
+#include "utilities/utf_conversion.h"
+
 #include "utilities/make_sparse_matrix.h"
 #include "utilities/reporting.h"
 
 #include "eigen/export_eigen_sparse.h"
+
 
 #include "error_codes.h"
 
@@ -56,6 +59,11 @@ namespace Moment::mex {
             ++write_iter;
         }
         return output;
+    }
+
+
+    matlab::data::MATLABString PolynomialExporter::string(const Polynomial &poly, const bool show_braces) const {
+        return {UTF8toUTF16Convertor::convert(poly.as_string_with_operators(this->symbols, show_braces))};
     }
 
 

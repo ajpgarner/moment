@@ -143,6 +143,15 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
         function mono = MTKMonomial(obj)
             error("Down-conversion not yet implemented.");
         end
+        
+        function val = MTKSymbolicObject(obj)
+            if obj.IsScalar
+                sc = {obj.SymbolCell};
+            else
+                sc = obj.SymbolCell;
+            end
+            val = MTKSymbolicObject(obj.Scenario, sc);
+        end
     end
     
     %% Dependent variables

@@ -21,6 +21,8 @@ namespace Moment::mex::functions {
         size_t max_subgroup = 0;
 
         size_t max_word_length = 0;
+
+        double zero_tolerance = -1.0; // deduce from base system.
     };
 
     class SymmetrizedMatrixSystem : public ParameterizedMexFunction<SymmetrizedMatrixSystemParams,

@@ -12,12 +12,8 @@ function [output, negated, hash] = Simplify(obj, input)
  % In syntax 2, output will be a cell array of uint64 row-vectors, and 
  % negated and hash will be arrays of matching dimensions.
  %
-     arguments
-         obj(1,1) MTKScenario
-         input
-     end
-     
-     assert(isnumeric(input) || iscell(input));
+    assert(nargin>=2); 
+    assert(isnumeric(input) || iscell(input));
 
-     [output, negated, hash] = mtk('simplify', obj.System.RefId, input);
+    [output, negated, hash] = mtk('simplify', obj.System.RefId, input);
  end

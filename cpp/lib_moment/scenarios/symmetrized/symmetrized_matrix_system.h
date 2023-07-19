@@ -46,10 +46,19 @@ namespace Moment::Symmetrized {
         const size_t max_word_length;
 
     public:
+        /**
+         * Creates a SymmetrizedMatrixSystem
+         * @param base_system The source system to symmetrize.
+         * @param group The symmetry group.
+         * @param max_word_length The longest operator string that can be mapped.
+         * @param processor The class for finding the map between groups.
+         * @param zero_tolerance The tolerance to which expressions are treated as zero (-1 for base system value).
+         */
         SymmetrizedMatrixSystem(std::shared_ptr<MatrixSystem> &&base_system,
                                 std::unique_ptr<Group>&& group,
                                 size_t max_word_length,
-                                std::unique_ptr<Derived::MapCoreProcessor>&& processor);
+                                std::unique_ptr<Derived::MapCoreProcessor>&& processor,
+                                double zero_tolerance = -1.0);
 
         ~SymmetrizedMatrixSystem() noexcept override;
 

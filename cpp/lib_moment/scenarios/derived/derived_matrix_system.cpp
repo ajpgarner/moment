@@ -49,8 +49,10 @@ namespace Moment::Derived {
         }
     }
 
-    DerivedMatrixSystem::DerivedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system, STMFactory&& stm_factory)
-        : MatrixSystem(DerivedMatrixSystem::make_derived_context(*base_system)),
+    DerivedMatrixSystem::DerivedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system, STMFactory&& stm_factory,
+                                             double tolerance)
+        : MatrixSystem(DerivedMatrixSystem::make_derived_context(*base_system),
+                       tolerance > 0 ? tolerance : base_system->polynomial_factory().zero_tolerance),
           base_ms_ptr{std::move(base_system)}
     {
         // Avoid deadlock. Should never occur...!

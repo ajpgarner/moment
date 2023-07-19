@@ -8,9 +8,15 @@
 #pragma once
 #include "../mex_function.h"
 
+#include "import/read_polynomial.h"
+
 #include "integer_types.h"
 
 #include <vector>
+
+namespace Moment {
+    class MatrixSystem;
+}
 
 namespace Moment::mex::functions {
 
@@ -25,12 +31,21 @@ namespace Moment::mex::functions {
         /** Operators, as UTF-8 strings, if provided */
         std::vector<std::string> named_operators;
 
+        /** The data as polynomials */
+        std::vector<std::vector<raw_sc_data>> rawPolynomials;
+
         enum class InputType {
             Unknown,
             Numbers,
             NumbersArray,
-            String
+            String,
+            SymbolCell
         } input_type = InputType::Unknown;
+
+        enum class OutputMode {
+            Default,
+            String
+        } output_mode = OutputMode::Default;
 
         std::vector<size_t> input_shape;
 
@@ -38,6 +53,11 @@ namespace Moment::mex::functions {
         explicit SimplifyParams(SortedInputs&& structuredInputs);
 
         [[nodiscard]] bool scalar_input() const noexcept { return this->input_type != InputType::NumbersArray; }
+
+    private:
+        void parse_as_polynomial();
+
+        void parse_as_operators();
     };
 
     class Simplify : public ParameterizedMexFunction<SimplifyParams, MEXEntryPointID::Simplify> {
@@ -48,6 +68,14 @@ namespace Moment::mex::functions {
         void operator()(IOArgumentRange output, SimplifyParams &input) override;
 
         void extra_input_checks(SimplifyParams &input) const override;
+
+    private:
+        void simplify_operator(IOArgumentRange& output, SimplifyParams& input, const MatrixSystem& matrixSystem);
+
+        void simplify_operator_array(IOArgumentRange& output, SimplifyParams& input, const MatrixSystem& matrixSystem);
+
+        void simplify_polynomials(IOArgumentRange& output, SimplifyParams& input, const MatrixSystem& matrixSystem);
+
     };
 
 }

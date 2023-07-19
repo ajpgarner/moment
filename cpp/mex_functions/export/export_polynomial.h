@@ -38,19 +38,19 @@ namespace Moment::mex {
                     : Exporter{engine, factory}, symbols{symbols}, zero_tolerance{zero_tolerance} { }
 
         /**
-         * Export combo in basis form: the complex coefficients sdpvars a & b would need multiplying by.
+         * Export polynomial in basis form: the complex coefficients sdpvars a & b would need multiplying by.
          * @param combo The combo to export.
          * @return Pair, first: real coefficients; second: imaginary coefficients.
          */
         [[nodiscard]] std::pair<matlab::data::SparseArray<std::complex<double>>,
-                                matlab::data::SparseArray<std::complex<double>>> basis(const Polynomial& combo) const;
+                                matlab::data::SparseArray<std::complex<double>>> basis(const Polynomial& poly) const;
 
         /**
          * Export polynomial directly as a cell array.
          * @param combo The combo to export.
          * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
          */
-        [[nodiscard]] matlab::data::CellArray symbol_cell(const Polynomial& combo) const;
+        [[nodiscard]] matlab::data::CellArray symbol_cell(const Polynomial& poly) const;
 
         /**
          * Export vector of polynomials as a vector of cell arrays.
@@ -58,6 +58,11 @@ namespace Moment::mex {
          * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
          */
         [[nodiscard]] matlab::data::CellArray symbol_cell_vector(std::span<const Polynomial> poly_list) const;
+
+        /**
+         * Export polynomial as strings.
+         */
+        [[nodiscard]] matlab::data::MATLABString string(const Polynomial& poly, bool show_braces = true) const;
 
         /**
          * Export polynomial in terms of its constituent operator sequences, their hashes and weights.

@@ -98,6 +98,8 @@
         
         err_cannot_calculate = ...
             "calculateCoefficients not implemented for object of type '%s'";
+        
+        err_undefined_op = "_%s_ not defined between %s and %s";
     end
     
     

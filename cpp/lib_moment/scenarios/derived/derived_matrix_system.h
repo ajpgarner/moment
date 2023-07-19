@@ -46,7 +46,8 @@ namespace Moment::Derived {
         std::unique_ptr<Derived::SymbolTableMap> map_ptr;
 
     public:
-        explicit DerivedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system, STMFactory&& stmf);
+        explicit DerivedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system, STMFactory&& stmf,
+                                     double tolerance = -1.0);
 
         virtual ~DerivedMatrixSystem() noexcept;
 
@@ -84,7 +85,7 @@ namespace Moment::Derived {
 
         /**
          * A description block for the map that defines this SMS.
-         * For thread safety, a read lock should be in place on this matrix system, and on the base matrix system.
+         * For thread safety, a read lock should be in place on this matrix system, AND on the base matrix system.
          */
         [[nodiscard]] virtual std::string describe_map() const;
 
@@ -96,8 +97,9 @@ namespace Moment::Derived {
         createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
                                   Multithreading::MultiThreadPolicy mt_policy) override;
 
-        std::unique_ptr<class PolynomialMatrix> createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
-                                                                 Multithreading::MultiThreadPolicy mt_policy) override;
+        [[nodiscard]] std::unique_ptr<class PolynomialMatrix>
+        createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
+                        Multithreading::MultiThreadPolicy mt_policy) override;
 
     protected:
         static std::unique_ptr<class Context> make_derived_context(const MatrixSystem& source_system);

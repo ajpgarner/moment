@@ -170,11 +170,32 @@ classdef MTKMonomial < MTKObject
     %% Convertors
     methods
         function poly = MTKPolynomial(obj)
+        %MTKPOLYNOMIAL Convert to MTKPolynomial
             if obj.IsScalar
                 poly = MTKPolynomial(obj.Scenario, obj);
             else
                 poly = MTKPolynomial(obj.Scenario, obj.split());
             end
+        end
+        
+        function sym = MTKSymbolicObject(obj)
+        %MTKSYMBOLICOBJECT Convert to symbolic object (if symbol known).
+            if ~obj.FoundSymbol
+                error("Cannot convert to symbolic object before symbol is identified.");
+            end
+            
+            symbol_cell = cell(size(obj));
+            for idx=1:numel(obj)
+                if obj.SymbolConjugated(idx)
+                     symbol_cell{idx} = ...
+                        {{obj.SymbolId(idx), obj.Coefficient(idx), true}};
+                else
+                    symbol_cell{idx} = ...
+                        {{obj.SymbolId(idx), obj.Coefficient(idx)}};
+                end
+            end
+            
+            sym = MTKSymbolicObject(obj.Scenario, symbol_cell, 'raw');
         end
     end
     

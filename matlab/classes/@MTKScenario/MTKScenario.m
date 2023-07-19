@@ -135,8 +135,8 @@ classdef (Abstract) MTKScenario < handle
             obj.IsHermitian = value;
          end
          
-         function set.Interleave(obj, value)             
-            obj.errorIfNoOperators();            
+         function set.Interleave(obj, value)
+            obj.errorIfNoOperators();
             obj.errorIfLocked();
             assert(isscalar(value));
             

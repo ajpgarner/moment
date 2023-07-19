@@ -18,8 +18,6 @@
 #include <sstream>
 
 namespace Moment::Symmetrized {
-
-
     SymmetrizedMatrixSystem::SymmetrizedSTMFactory::SymmetrizedSTMFactory(
             Group& group, size_t max_word_length, std::unique_ptr<Derived::MapCoreProcessor>&& proc_in) noexcept
           : group{group}, max_word_length{max_word_length}, processor{std::move(proc_in)}  {
@@ -48,14 +46,14 @@ namespace Moment::Symmetrized {
         return std::make_unique<Derived::SymbolTableMap>(origin_symbols, target_symbols, *this->processor, average);
     }
 
-
-
     SymmetrizedMatrixSystem::SymmetrizedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system,
                                                      std::unique_ptr<Group>&& group,
                                                      const size_t max_word_length,
-                                                     std::unique_ptr<Derived::MapCoreProcessor>&& processor)
+                                                     std::unique_ptr<Derived::MapCoreProcessor>&& processor,
+                                                     double tolerance)
         : Derived::DerivedMatrixSystem{std::move(base_system),
-                                       SymmetrizedSTMFactory{*group, max_word_length, std::move(processor)}},
+                                       SymmetrizedSTMFactory{*group, max_word_length, std::move(processor)},
+                                       tolerance},
           symmetry{std::move(group)}, max_word_length{max_word_length} {
 
     }

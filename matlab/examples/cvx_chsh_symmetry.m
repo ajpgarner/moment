@@ -1,13 +1,15 @@
 %% Example: cvx_chsh_symmetry.m
 % Demonstrates Ioannou-Rosset symmetry reduction on the CHSH scenario.
+clear
+clear mtk
 
-% Settings
-mm_level = 6;
+%% Settings
+mm_level = 3;
 
-% Base scenario
+%% Set up base scenario (CHSH)
 chsh_scenario = LocalityScenario(2, 2, 2);
 
-% Generators of symmetries of the CHSH inequality
+%% Define generators of symmetries of the CHSH inequality
 chsh_generators = {[[1 0 1 0 0];
                     [0 1 0 0 0];
                     [0 0 -1 0 0];
@@ -19,23 +21,24 @@ chsh_generators = {[[1 0 1 0 0];
                     [0 1 0 0 0];
                     [0 0 1 0 0]]};
                 
-% Symmetrized scenario
-sym_scenario = SymmetrizedScenario(chsh_scenario, chsh_generators, 2*mm_level);
+%% Set up symmetrized scenario
+sym_scenario = SymmetrizedScenario(chsh_scenario, ...
+                                   chsh_generators, ...
+                                   'word_length', 2*mm_level);
 
-% Get moment matrices
+%% Make moment matrices
 base_mm = chsh_scenario.MomentMatrix(mm_level);
 sym_mm = sym_scenario.MomentMatrix(mm_level);
-
-
-% Show systems, and generated matrices
 mtk('list','verbose');
-disp(base_mm.SymbolMatrix);
-disp(sym_mm.SymbolMatrix)
+disp(base_mm.SequenceStrings);
+disp(sym_mm.SequenceStrings)
 
-% Make CHSH inequality from full-correlator
+%% Make CHSH inequality from full-correlator
 CHSH_ineq = chsh_scenario.FCTensor([[0 0 0]; [0 1 1]; [0 1 -1]]);
 sym_CHSH_ineq = sym_scenario.Transform(CHSH_ineq);
 
+
+%% Solve SDP
 cvx_begin sdp
     % Declare CVX variables for symmetrized system
     sym_mm.cvxVars('a', 'b');
@@ -44,8 +47,8 @@ cvx_begin sdp
     M = sym_mm.cvxComplexMatrix(a, b);
     
     % Constraints (normalization & positivity)
-    a(1) == 1
-    M >= 0
+    a(1) == 1;
+    M >= 0;
     
     % Optimize equality
     solve_chsh_ineq = sym_CHSH_ineq.cvx(a);
