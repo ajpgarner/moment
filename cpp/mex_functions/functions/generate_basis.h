@@ -7,8 +7,12 @@
 #pragma once
 #include "../mex_function.h"
 
-#include "matrix/operator_matrix/operator_matrix.h"
+#include "import/read_polynomial.h"
+#include <variant>
 
+namespace Moment {
+    class MatrixSystem;
+}
 
 namespace Moment::mex::functions {
 
@@ -23,11 +27,32 @@ namespace Moment::mex::functions {
         /** The reference to the matrix system. */
         uint64_t matrix_system_key = 0;
 
-        /** The reference to the matrix within the system. */
-        uint64_t matrix_index = 0;
+        /** The type of input */
+        enum class InputType {
+            MatrixId,
+            SymbolCell
+        } input_type = InputType::MatrixId;
+
+    private:
+        std::variant<uint64_t, std::vector<std::vector<raw_sc_data>>> input_data;
+
+    public:
+
+        constexpr uint64_t matrix_index() const noexcept {
+            return std::get<0>(this->input_data);
+        }
+
+        constexpr const std::vector<std::vector<raw_sc_data>>& raw_polynomials() const noexcept {
+            return std::get<1>(this->input_data);
+        }
+
+        std::vector<size_t> input_shape;
 
     public:
         explicit GenerateBasisParams(SortedInputs&& structuredInputs);
+
+    private:
+        void read_symbol_cell(matlab::data::Array& raw_input);
 
     };
 
@@ -35,10 +60,18 @@ class GenerateBasis : public ParameterizedMexFunction<GenerateBasisParams, MEXEn
     public:
         explicit GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 
-protected:
-    void operator()(IOArgumentRange output, GenerateBasisParams &input) override;
+    protected:
+        void operator()(IOArgumentRange output, GenerateBasisParams &input) override;
 
-    void extra_input_checks(GenerateBasisParams &input) const override;
+        void extra_input_checks(GenerateBasisParams &input) const override;
+
+    private:
+        void generate_matrix_basis(IOArgumentRange& output, GenerateBasisParams &input,
+                                   const MatrixSystem& matrixSystem);
+
+        void generate_symbol_cell_basis(IOArgumentRange& output, GenerateBasisParams &input,
+                                        const MatrixSystem& matrixSystem);
+
 };
 
 }

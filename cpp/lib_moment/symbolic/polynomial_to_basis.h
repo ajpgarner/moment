@@ -7,9 +7,12 @@
 
 #pragma once
 
+#include "polynomial.h"
+
 #include <Eigen/SparseCore>
 
-#include "polynomial.h"
+#include <span>
+#include <vector>
 
 namespace Moment {
     class SymbolTable;
@@ -17,6 +20,7 @@ namespace Moment {
 
     using basis_vec_t = Eigen::SparseVector<double>;
     using complex_basis_vec_t = Eigen::SparseVector<std::complex<double>>;
+    using complex_matrix_t = Eigen::SparseMatrix<std::complex<double>>;
 
     /**
      * Specification of a real number, in terms of real coefficients to multiply 'a' and 'b' by.
@@ -54,6 +58,31 @@ namespace Moment {
                             + std::complex<double>{0.0, 1.0} * expr.imaginary_part.real;
             this->imaginary = (std::complex<double>{1.0, 0.0} * expr.real_part.imaginary)
                             + std::complex<double>{0.0, 1.0} * expr.imaginary_part.imaginary;
+        }
+    };
+
+    struct ComplexMonolith {
+        /** The complex coefficients, with which to post-multiply the 'a' row-vector, to yield the value per polynomial. */
+        complex_matrix_t real;
+
+        /** The complex coefficients, with which to post-multiply the 'b' row-vector, to yield the value per polynomial. */
+        complex_matrix_t imaginary;
+
+    public:
+        /** Empty constructor */
+        ComplexMonolith() = default;
+
+        /** Construct empty monoliths, of specified dimensions. */
+        ComplexMonolith(const size_t columns, const size_t real_rows, const size_t imaginary_rows)
+            :    real(real_rows, columns), imaginary(imaginary_rows, columns) { }
+
+        /** Construct empty monoliths, of specified dimensions, with sorted data. */
+        ComplexMonolith(const size_t columns, const size_t real_rows, const size_t imaginary_rows,
+                        std::span<Eigen::Triplet<std::complex<double>>> real_data,
+                        std::span<Eigen::Triplet<std::complex<double>>> imaginary_data)
+            : ComplexMonolith(columns, real_rows, imaginary_rows) {
+            this->real.setFromSortedTriplets(real_data.begin(), real_data.end());
+            this->imaginary.setFromSortedTriplets(imaginary_data.begin(), imaginary_data.end());
         }
     };
 
@@ -116,6 +145,14 @@ namespace Moment {
             : symbols{symbols}, zero_tolerance{zero_tolerance} { }
 
         [[nodiscard]] ComplexBasisVector operator()(const Polynomial& poly) const;
+
+        /**
+         * Monolith, where each column maps onto an element of some last-index-major object.
+         * Number of rows = number of basis elements, number of cols = number of polynomials.
+         * @param multi_poly
+         * @return
+         */
+        [[nodiscard]] ComplexMonolith operator()(std::span<const Polynomial> multi_poly) const;
     };
 
     /**

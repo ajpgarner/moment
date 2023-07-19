@@ -31,12 +31,24 @@ namespace Moment::mex {
         PolynomialExporter::basis(const Polynomial& combo) const {
 
         PolynomialToComplexBasisVec exporter{this->symbols, this->zero_tolerance};
-        auto [basis_re, basis_im] = exporter(combo);
+        const auto [basis_re, basis_im] = exporter(combo);
 
-        matlab::data::ArrayFactory factory;
         return {
             export_eigen_sparse(this->engine, factory, basis_re),
             export_eigen_sparse(this->engine, factory, basis_im)
+        };
+    }
+
+    std::pair<matlab::data::SparseArray<std::complex<double>>,
+              matlab::data::SparseArray<std::complex<double>>>
+    PolynomialExporter::basis(const std::span<const Polynomial> polys) const {
+        PolynomialToComplexBasisVec exporter{this->symbols, this->zero_tolerance};
+
+        const auto [real, imaginary] = exporter(polys);
+
+        return {
+            export_eigen_sparse(this->engine, factory, real),
+            export_eigen_sparse(this->engine, factory, imaginary)
         };
     }
 

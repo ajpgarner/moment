@@ -166,6 +166,16 @@ classdef (InferiorClasses={?MTKMonomial, ?MTKPolynomial}) ...
         
     end
     
+    %% Overriden methods
+    methods(Access=protected)
+        function [re, im] = calculateCoefficients(obj)
+            % Query MTK for basis from symbolic representation.
+            [re, im] = mtk('generate_basis', obj.Scenario.System.RefId, ...
+                           obj.SymbolCell);
+    
+        end
+    end
+    
     %% Private methods
     methods(Static, Access=protected)
         function [this, other, this_on_lhs] = find_this(lhs, rhs)

@@ -1,7 +1,6 @@
 %% Example: cvx_chsh_symmetry.m
 % Demonstrates Ioannou-Rosset symmetry reduction on the CHSH scenario.
-clear
-clear mtk
+% Expected answer: 2 sqrt 2 (2.828...)
 
 %% Settings
 mm_level = 3;
@@ -37,14 +36,13 @@ disp(sym_mm.SequenceStrings)
 CHSH_ineq = chsh_scenario.FCTensor([[0 0 0]; [0 1 1]; [0 1 -1]]);
 sym_CHSH_ineq = sym_scenario.Transform(CHSH_ineq);
 
-
 %% Solve SDP
 cvx_begin sdp
     % Declare CVX variables for symmetrized system
-    sym_mm.cvxVars('a', 'b');
+    sym_scenario.cvxVars('a', 'b');
     
     % Compose moment matrix from these basis variables
-    M = sym_mm.cvxComplexMatrix(a, b);
+    M = sym_mm.cvx(a, b);
     
     % Constraints (normalization & positivity)
     a(1) == 1;

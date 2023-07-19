@@ -138,23 +138,11 @@ classdef SymmetrizedScenario < MTKScenario
                 error(obj.err_bad_transform, class(input));
             end
            
-            % TODO: Monomials            
-            if isa(input, 'MTKMonomial')
-                error(obj.err_bad_transform, class(input));
+            % Monomial & polynomial objects -> symbolic object
+            if isa(input, 'MTKMonomial') || isa(input, 'MTKPolynomial')
+                output = Symmetry.TransformedObject(obj, input);
+                return;
             end
-            
-            % TODO: Polynomials
-            if isa(input, 'MTKPolynomial')
-                error(obj.err_bad_transform, class(input));
-            end
-
-%             
-%                 re_output = ...
-%                     mtk('transform_symbols', obj.System.RefId, ...
-%                          input.Coefficients);
-%                 output = Abstract.RealObject(obj, reshape(re_output, 1,[]));
-%                 return;
-%             end
             
             % Unknown object
             error(obj.err_bad_transform, class(input));

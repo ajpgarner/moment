@@ -46,6 +46,15 @@ namespace Moment::mex {
                                 matlab::data::SparseArray<std::complex<double>>> basis(const Polynomial& poly) const;
 
         /**
+         * Export polynomial in monolithic basis form: the complex coefficients sdpvars a & b would need multiplying by.
+         * @param combo The combo to export.
+         * @return Pair, first: real coefficients; second: imaginary coefficients.
+         */
+        [[nodiscard]] std::pair<matlab::data::SparseArray<std::complex<double>>,
+                                matlab::data::SparseArray<std::complex<double>>>
+        basis(std::span<const Polynomial> polys) const;
+
+        /**
          * Export polynomial directly as a cell array.
          * @param combo The combo to export.
          * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}

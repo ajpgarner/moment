@@ -310,6 +310,19 @@ namespace Moment {
                                         static_cast<Eigen::Index>(this->symbols.Basis.RealSymbolCount()));
     }
 
+    constexpr inline std::pair<std::complex<double>, std::complex<double>>
+    coefs_to_factors(const std::complex<double>& factor, const std::complex<double>& cc_factor) {
+        const double az_factor_ax = factor.real() + cc_factor.real();
+        const double az_factor_bx = -factor.imag() + cc_factor.imag();
+        const double bz_factor_ax = factor.imag() + cc_factor.imag();
+        const double bz_factor_bx = factor.real() - cc_factor.real();
+
+        return std::make_pair(
+                std::complex<double>{az_factor_ax, bz_factor_ax},
+                std::complex<double>{az_factor_bx, bz_factor_bx}
+        );
+    }
+
     ComplexBasisVector
     PolynomialToComplexBasisVec::operator()(const Polynomial& polynomial) const {
 
@@ -330,13 +343,7 @@ namespace Moment {
 
             const auto [next_is_cc, factor, cc_factor] = factor_and_cc(iter, polynomial.end());
 
-            const double az_factor_ax = factor.real() + cc_factor.real();
-            const double az_factor_bx = -factor.imag() + cc_factor.imag();
-            const double bz_factor_ax = factor.imag() + cc_factor.imag();
-            const double bz_factor_bx = factor.real() - cc_factor.real();
-
-            const std::complex<double> z_factor_ax{az_factor_ax, bz_factor_ax}; // z = az + i bz.
-            const std::complex<double> z_factor_bx{az_factor_bx, bz_factor_bx};
+            const auto [z_factor_ax, z_factor_bx] = coefs_to_factors(factor, cc_factor);
 
             // Re(X) can be non-zero
             if (basis_X_real >= 0) {
@@ -365,8 +372,6 @@ namespace Moment {
         return output;
     }
 
-
-
     Polynomial BasisVecToPolynomial::operator()(const basis_vec_t& real_basis,
                                                 const basis_vec_t& img_basis) const {
         return do_basis_vec_to_polynomial(this->factory, real_basis, img_basis);
@@ -377,5 +382,66 @@ namespace Moment {
         return do_basis_vec_to_polynomial(this->factory, real_basis, img_basis);
     }
 
+    ComplexMonolith PolynomialToComplexBasisVec::operator()(std::span<const Polynomial> multi_poly) const {
+        const size_t expected_cols = multi_poly.size();
+        const size_t real_symbols = this->symbols.Basis.RealSymbolCount();
+        const size_t imaginary_symbols = this->symbols.Basis.ImaginarySymbolCount();
+
+
+        std::vector<Eigen::Triplet<std::complex<double>>> a_trips;
+        std::vector<Eigen::Triplet<std::complex<double>>> b_trips;
+
+        for (size_t col_id = 0; col_id < expected_cols; ++col_id) {
+            const auto& poly = multi_poly[col_id];
+            const ptrdiff_t pre_a_index = a_trips.size();
+            const ptrdiff_t pre_b_index = b_trips.size();
+
+            auto mono_iter = poly.begin();
+            while (mono_iter != poly.end()) {
+                const auto& mono = *mono_iter;
+
+                if (mono.id >= symbols.size()) [[unlikely]] {
+                    throw errors::unknown_symbol{mono.id};
+                }
+
+
+                const auto& symbolInfo = this->symbols[mono.id];
+                const auto [basis_X_real, basis_X_imaginary] = symbolInfo.basis_key();
+                const auto [next_is_cc, factor, cc_factor] = factor_and_cc(mono_iter, poly.end());
+                const auto [z_factor_ax, z_factor_bx] = coefs_to_factors(factor, cc_factor);
+
+                // Re(X) can be non-zero
+                if (basis_X_real >= 0) {
+                    if (!approximately_zero(z_factor_ax, zero_tolerance)) {
+                        a_trips.emplace_back(basis_X_real, col_id, z_factor_ax);
+                    }
+                }
+
+                // Im(X) can be non-zero
+                if (basis_X_imaginary >= 0) {
+                    if (!approximately_zero(z_factor_bx, zero_tolerance)) {
+                        b_trips.emplace_back(basis_X_imaginary, col_id, z_factor_bx);
+                    }
+                }
+
+                if (next_is_cc) {
+                    ++mono_iter;
+                }
+                ++mono_iter;
+            }
+
+            // There remains possibility that newly inserted column is out of order, so do short sort of rows:
+            std::sort(a_trips.begin() + pre_a_index, a_trips.end(), [](const auto& lhs, const auto& rhs) {
+                return lhs.row() < rhs.row();
+            });
+
+            // There remains possibility that newly inserted column is out of order, so do short sort of rows
+            std::sort(b_trips.begin() + pre_b_index, b_trips.end(), [](const auto& lhs, const auto& rhs) {
+                return lhs.row() < rhs.row();
+            });
+        }
+
+        return ComplexMonolith{expected_cols, real_symbols, imaginary_symbols, a_trips, b_trips};
+    }
 
 }

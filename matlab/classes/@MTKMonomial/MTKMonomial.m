@@ -19,6 +19,9 @@ classdef MTKMonomial < MTKObject
         % True if this monomial represents a conjugation of the symbol in the table.
         SymbolConjugated
         
+        % Symbol cell representation of object
+        SymbolCell
+        
         % The real basis element representing the real part of this monomial, or 0.
         RealBasisIndex
         
@@ -39,6 +42,9 @@ classdef MTKMonomial < MTKObject
         re_basis_index = -1;
         im_basis_index = -1;
         is_alias = false;
+        
+        symbol_cell = cell(0,0);
+        has_sc = false;
     end
     
     %% Constructor
@@ -179,23 +185,13 @@ classdef MTKMonomial < MTKObject
         end
         
         function sym = MTKSymbolicObject(obj)
-        %MTKSYMBOLICOBJECT Convert to symbolic object (if symbol known).
-            if ~obj.FoundSymbol
-                error("Cannot convert to symbolic object before symbol is identified.");
+        %MTKSYMBOLICOBJECT Convert to symbolic object.
+        % Only works if symbols can be identified.
+            if ~all(obj.FoundSymbol, 'all')
+                error("Cannot convert to symbolic object before symbols are identified.");
             end
-            
-            symbol_cell = cell(size(obj));
-            for idx=1:numel(obj)
-                if obj.SymbolConjugated(idx)
-                     symbol_cell{idx} = ...
-                        {{obj.SymbolId(idx), obj.Coefficient(idx), true}};
-                else
-                    symbol_cell{idx} = ...
-                        {{obj.SymbolId(idx), obj.Coefficient(idx)}};
-                end
-            end
-            
-            sym = MTKSymbolicObject(obj.Scenario, symbol_cell, 'raw');
+           
+            sym = MTKSymbolicObject(obj.Scenario, obj.SymbolCell, 'raw');
         end
     end
     
@@ -227,6 +223,14 @@ classdef MTKMonomial < MTKObject
         function val = get.ImaginaryBasisIndex(obj)
             obj.loadSymbolInfoOrError();
             val = obj.im_basis_index;
+        end
+        
+        function val = get.SymbolCell(obj)
+            if ~obj.has_sc
+                obj.symbol_cell = obj.makeSymbolCell();
+                obj.has_sc = true;
+            end
+            val = obj.symbol_cell;                           
         end
         
         function val = get.IsAlias(obj)

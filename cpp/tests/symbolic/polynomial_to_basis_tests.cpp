@@ -339,4 +339,44 @@ namespace Moment::Tests {
         compare_sparse_vectors(a0a1_minus_a1a0_im, make_sparse_vector<std::complex<double>>({std::complex{0.0, 1.0}}));
     }
 
+
+    TEST_F(Symbolic_PolynomialToBasis, PolynomialToComplexBasis_Monolith) {
+        const auto& symbols = this->get_symbols();
+        PolynomialToComplexBasisVec convertor{symbols, this->get_factory().zero_tolerance};
+
+        std::vector<Polynomial> monolithicPolys;
+        monolithicPolys.push_back(Polynomial::Scalar(std::complex{1.0, 2.0})); // [1+2i, 0...], [0]
+        monolithicPolys.push_back(Polynomial{{Monomial(4, 1.0)}});
+        monolithicPolys.push_back(Polynomial{{Monomial(3, 2.0, false), Monomial(5, 0.5, true)}});
+        monolithicPolys.push_back(Polynomial{{Monomial(5, 0.5, false), Monomial(5, 0.5, true)}});
+        monolithicPolys.push_back(Polynomial{{Monomial(5, std::complex{0.0, -0.5}, false),
+                                              Monomial(5, std::complex{0.0, 0.5}, true)}});
+
+        auto monolithic_basis = convertor(monolithicPolys);
+        ASSERT_EQ(monolithic_basis.real.rows(), symbols.Basis.RealSymbolCount());
+        ASSERT_EQ(monolithic_basis.real.cols(), 5);
+        ASSERT_EQ(monolithic_basis.imaginary.rows(), symbols.Basis.ImaginarySymbolCount());
+        ASSERT_EQ(monolithic_basis.imaginary.cols(), 5);
+
+        EXPECT_EQ(monolithic_basis.real.nonZeros(), 5);
+        EXPECT_EQ(monolithic_basis.imaginary.nonZeros(), 2);
+
+        // Poly 0 : I
+        EXPECT_EQ(monolithic_basis.real.coeff(0, 0), std::complex(1.0, 2.0));
+
+        // Poly 1: a0a0
+        EXPECT_EQ(monolithic_basis.real.coeff(3, 1), std::complex(1.0, 0.0));
+
+        // Poly 2: 2 a1 + 0.5 a0a1*
+        EXPECT_EQ(monolithic_basis.real.coeff(2, 2), std::complex(2.0, 0.0));
+        EXPECT_EQ(monolithic_basis.real.coeff(4, 2), std::complex(0.5, 0.0));
+        EXPECT_EQ(monolithic_basis.imaginary.coeff(0, 2), std::complex(0.0, -0.5));
+
+        // Poly 3: Re(a0a1)
+        EXPECT_EQ(monolithic_basis.real.coeff(4, 3), std::complex(1.0, 0.0));
+
+        // Poly 4: Im(a0a1)
+        EXPECT_EQ(monolithic_basis.imaginary.coeff(0, 4), std::complex(1.0, 0.0));
+    }
+
 }
