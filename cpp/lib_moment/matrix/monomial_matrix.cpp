@@ -55,6 +55,11 @@ namespace Moment {
                 for (size_t row = 0; row < osm.dimension; ++row) {
                     for (size_t col = row; col < osm.dimension; ++col) {
                         const auto& elem = osm[row][col];
+
+                        const bool non_canonical = this->context.can_be_simplified_as_moment(elem);
+
+
+
                         const auto conj_elem = elem.conjugate();
                         int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
                         const bool elem_hermitian = (compare == 1);
@@ -100,6 +105,8 @@ namespace Moment {
                 for (size_t row = 0; row < osm.dimension; ++row) {
                     for (size_t col = 0; col < osm.dimension; ++col) {
                         const auto& elem = osm[row][col];
+                        const bool non_canonical = this->context.can_be_simplified_as_moment(elem);
+
                         const auto conj_elem = elem.conjugate();
                         int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
                         const bool elem_hermitian = (compare == 1);

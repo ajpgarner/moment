@@ -33,16 +33,16 @@ namespace Moment::Inflation {
         struct ICOperatorInfo {
             oper_name_t global_id;
             oper_name_t observable;
-            oper_name_t flattenedSourceIndex;
+            oper_name_t variant;
             oper_name_t outcome;
             bool projective;
 
         public:
             ICOperatorInfo() = default;
 
-            ICOperatorInfo(oper_name_t id, oper_name_t observable, oper_name_t flattenedIndex,
+            ICOperatorInfo(oper_name_t id, oper_name_t observable, oper_name_t variant,
                            oper_name_t outcome, bool projective)
-                : global_id{id}, observable{observable}, flattenedSourceIndex{flattenedIndex},
+                : global_id{id}, observable{observable}, variant{variant},
                   outcome{outcome}, projective{projective} { }
 
             /**
@@ -62,7 +62,7 @@ namespace Moment::Inflation {
                 constexpr IsOrthogonal() noexcept = default;
                 constexpr bool operator()(const ICOperatorInfo &lhs, const ICOperatorInfo &rhs) const noexcept {
                     // Not in same version of same observable, therefore not automatically orthogonal.
-                    if ((lhs.observable != rhs.observable) || (lhs.flattenedSourceIndex != rhs.flattenedSourceIndex)) {
+                    if ((lhs.observable != rhs.observable) || (lhs.variant != rhs.variant)) {
                         return false;
                     }
                     return (lhs.global_id != rhs.global_id);
@@ -135,6 +135,7 @@ namespace Moment::Inflation {
             /** Get variant by non-flat index */
             [[nodiscard]] const Variant& variant(std::span<const oper_name_t> indices) const;
 
+
         private:
             static std::vector<Variant> make_variants(const CausalNetwork& network,
                                                       const Observable &baseObs,
@@ -181,7 +182,6 @@ namespace Moment::Inflation {
          */
         [[nodiscard]] size_t Inflation() const noexcept { return this->inflation; }
 
-
         /**
          * Get total number of source variants
          */
@@ -200,7 +200,9 @@ namespace Moment::Inflation {
         [[nodiscard]] bool can_be_nonhermitian() const noexcept override { return false; }
 
         /** Sometimes true: 'non-canonical' forms of moments are possible, such as A1B1 -> A0B0, etc. */
-        [[nodiscard]] inline bool can_have_aliases() const noexcept final { return this->inflation > 1; }
+        [[nodiscard]] inline bool can_have_aliases() const noexcept final {
+            return (this->inflation > 1) && (this->base_network.explicit_source_count() > 0);
+        }
 
         /**
          * Commute operators, check for idempotency, and check for orthogonal projectors.
@@ -210,11 +212,28 @@ namespace Moment::Inflation {
         /**
          * Replace string with symmetric equivalent
          */
-        OperatorSequence simplify_as_moment(OperatorSequence &&seq) const final;
+        [[nodiscard]] OperatorSequence simplify_as_moment(OperatorSequence &&seq) const final;
 
-         /**
-          * Split operator sequence into smallest independent factors.
-          */
+
+        /**
+         * Bitstring of sources associated with an operator sequence.
+         */
+        [[nodiscard]] SourceListBitset connected_sources(const OperatorSequence& seq) const;
+
+        /**
+         * Bitstring of sources associated with an operator
+         */
+        [[nodiscard]] SourceListBitset connected_sources(oper_name_t op) const;
+
+
+        /**
+         * Determine if string can be simplified.
+         */
+        [[nodiscard]] bool can_be_simplified_as_moment(const OperatorSequence& seq) const final;
+
+        /**
+         * Split operator sequence into smallest independent factors.
+         */
         [[nodiscard]] std::vector<OperatorSequence> factorize(const OperatorSequence& seq) const;
 
         /**
@@ -222,16 +241,6 @@ namespace Moment::Inflation {
          */
         [[nodiscard]] OperatorSequence canonical_moment(const OperatorSequence& input) const;
 
-        /**
-         * Calculate equivalent variant of observables with lowest possible source indices (e.g. 'A2' -> 'A0' etc.).
-         */
-        [[nodiscard]] std::vector<OVIndex>
-        canonical_variants(std::span<const OVIndex> input) const;
-
-        [[nodiscard]] std::vector<OVIndex>
-        inline canonical_variants(std::initializer_list<OVIndex> input) const {
-            return this->canonical_variants(std::vector<OVIndex>{std::move(input)});
-        }
 
         /**
          * Unwrap outcome number to various outcomes of source measurements

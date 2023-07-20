@@ -10,6 +10,9 @@
 
 #include <cmath>
 
+#include <algorithm>
+#include <iterator>
+
 namespace Moment::Inflation {
     size_t Observable::count_copies(size_t inflation_level) const {
         return this->singleton ? 1 : ipow(inflation_level, this->source_count);
@@ -30,6 +33,14 @@ namespace Moment::Inflation {
         return index;
     }
 
+    bool Observable::contains_source(const oper_name_t source) const noexcept {
+        auto find = std::lower_bound(this->sources.cbegin(), this->sources.cend(), source);
+        if (find == this->sources.cend()) {
+            return false;
+        }
+        return *find == source;
+    }
+
     std::vector<oper_name_t> Observable::unflatten_index(const size_t inflation_level, oper_name_t index) const {
         std::vector<oper_name_t> output(this->source_count, 0);
 
@@ -47,6 +58,13 @@ namespace Moment::Inflation {
             index = next_index;
         }
 
+        return output;
+    }
+
+    std::vector<oper_name_t> Observable::set_to_vector(const std::set<oper_name_t> &input) {
+        std::vector<oper_name_t> output;
+        output.reserve(input.size());
+        std::copy(input.begin(), input.end(), std::back_inserter(output));
         return output;
     }
 }

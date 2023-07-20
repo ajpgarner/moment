@@ -21,6 +21,8 @@
 
 #include "utilities/reporting.h"
 
+#include <numeric>
+
 namespace Moment::mex {
     namespace {
         matlab::data::TypedArray<uint64_t>

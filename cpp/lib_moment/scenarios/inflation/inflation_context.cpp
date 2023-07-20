@@ -15,6 +15,7 @@
 #include <cassert>
 
 #include <algorithm>
+#include <bit>
 #include <sstream>
 
 namespace Moment::Inflation {
@@ -31,13 +32,14 @@ namespace Moment::Inflation {
         oper_name_t global_id = base_offset;
 
         for (oper_name_t variant_index = 0; variant_index < variant_count; ++variant_index) {
+            assert(!baseObs.singleton || variant_index == 0);
             auto vector_indices = baseObs.unflatten_index(inflation_level, variant_index);
             std::map<oper_name_t, oper_name_t> map_to_sources;
-            SourceListBitset sourceMap{inflation_level * network.Sources().size()};
 
+            SourceListBitset sourceMap{network.total_source_count(inflation_level)};
             oper_name_t i = 0;
             for (auto source_id : baseObs.sources) {
-                sourceMap.set((source_id * inflation_level) + vector_indices[i]);
+                sourceMap.set(network.source_variant_to_global_source(inflation_level, source_id, vector_indices[i]));
                 map_to_sources.emplace_hint(map_to_sources.end(), std::make_pair(source_id, vector_indices[i]));
                 ++i;
             }
@@ -46,7 +48,6 @@ namespace Moment::Inflation {
                                                                         std::move(map_to_sources), std::move(sourceMap)});
 
             global_id += static_cast<oper_name_t>(baseObs.operators());
-
         }
         return output;
     }
@@ -92,6 +93,8 @@ namespace Moment::Inflation {
     }
 
 
+
+
     InflationContext::InflationContext(CausalNetwork network, size_t inflation_level)
         : Context{network.total_operator_count(inflation_level)},
           base_network{std::move(network)},
@@ -130,7 +133,7 @@ namespace Moment::Inflation {
         this->dependent_operators.reserve(this->size());
         for (const auto& opInfo : this->operator_info) {
             const auto& obsInfo = this->inflated_observables[opInfo.observable];
-            const auto& variant = obsInfo.variants[opInfo.flattenedSourceIndex];
+            const auto& variant = obsInfo.variants[opInfo.variant];
 
             this->dependent_operators.emplace_back(this->size());
             auto& bitmap = this->dependent_operators.back();
@@ -163,7 +166,7 @@ namespace Moment::Inflation {
         // Otherwise, try to factorize properly
         OpStringBitset checklist{seq.size(), true};
 
-        const auto total_source_count = this->Sources().size() * this->inflation;
+        const auto total_source_count = this->total_inflated_sources; // this->Sources().size() * this->inflation;
 
         while (!checklist.empty()) {
             // Next string of unfactorized operators...
@@ -183,7 +186,7 @@ namespace Moment::Inflation {
 
             // Flag sources that are included
             const auto& this_observable_variant =
-                this->inflated_observables[this_oper_info.observable].variants[this_oper_info.flattenedSourceIndex];
+                this->inflated_observables[this_oper_info.observable].variants[this_oper_info.variant];
             included_sources |= this_observable_variant.connected_sources;
 
             // Loop over remaining symbols in string, trying greedily to include them if any link is found
@@ -196,7 +199,7 @@ namespace Moment::Inflation {
                     assert((other_oper_id >= 0) && (other_oper_id < this->operator_info.size()));
                     const auto& other_oper_info = this->operator_info[other_oper_id];
                     const auto& other_obs = this->inflated_observables[other_oper_info.observable];
-                    const auto& other_obs_variant = other_obs.variants[other_oper_info.flattenedSourceIndex];
+                    const auto& other_obs_variant = other_obs.variants[other_oper_info.variant];
 
                     // Test for overlap
                     const bool overlap = !(included_sources & other_obs_variant.connected_sources).empty();
@@ -278,110 +281,136 @@ namespace Moment::Inflation {
 
     }
 
+    SourceListBitset InflationContext::connected_sources(const OperatorSequence &seq) const {
+        SourceListBitset output(this->total_inflated_sources);
+        for (const auto op : seq) {
+            const auto& opInfo = this->operator_info[op];
+            const auto& observableInfo = this->inflated_observables[opInfo.observable];
+            output |= observableInfo.variants[opInfo.variant].connected_sources;
+        }
+
+        return output;
+    }
+
+    SourceListBitset InflationContext::connected_sources(const oper_name_t op) const {
+        assert(op < this->operator_count);
+        const auto& opInfo = this->operator_info[op];
+        const auto& observableInfo = this->inflated_observables[opInfo.observable];
+        return observableInfo.variants[opInfo.variant].connected_sources;
+    }
+
+    bool InflationContext::can_be_simplified_as_moment(const OperatorSequence& input) const {
+        // No aliasing without inflation, or for 0 or 1
+        if (input.empty() || !this->can_have_aliases()) {
+            return false;
+        }
+
+        SmallVector<oper_name_t, 4> next_free_source_variant(this->base_network.explicit_source_count(), 0);
+        std::map<oper_name_t, oper_name_t> permutation{}; // Permutations on sources
+
+        // Go through operators looking for permutations
+        for (const auto op : input) {
+            const auto &opData = this->operator_info[op];
+            const auto &observableInfo = this->inflated_observables[opData.observable];
+            // Singleton operators are always canonical
+            if (observableInfo.singleton) {
+                continue;
+            }
+
+            // Is this the lowest variant possible at this point?
+            const auto &variantInfo = observableInfo.variants[opData.variant];
+            for (size_t s_index = 0, sMax = observableInfo.sources.size(); s_index < sMax; ++s_index) {
+                const auto src_id = observableInfo.sources[s_index];
+                assert(src_id < base_network.explicit_source_count());
+                const auto src_variant = variantInfo.indices[s_index];
+                const auto src_global = (this->inflation * src_id) + src_variant;
+
+                if (!permutation.contains(src_global)) {
+                    const auto target_global = (this->inflation * src_id) + next_free_source_variant[src_id];
+                    if (src_global != target_global) {
+                        return true;
+                    }
+
+                    permutation.emplace(src_global, target_global);
+                    ++next_free_source_variant[src_id];
+                }
+            }
+        }
+
+        return false;
+    }
+
     OperatorSequence InflationContext::simplify_as_moment(OperatorSequence&& input) const {
         // If 0, or I, or no inflation, then just pass through
         if (input.empty() || (!this->can_have_aliases())) {
             return std::move(input);
         }
 
+        SmallVector<oper_name_t, 4> next_free_source_variant(this->base_network.explicit_source_count(), 0);
 
-        SmallVector<oper_name_t, 8> next_available_source(this->base_network.Sources().size(), 0);
-        std::map<oper_name_t, oper_name_t> permutation{};
-        sequence_storage_t permuted_operators;
+        std::map<oper_name_t, oper_name_t> permutation{}; // Permutations on sources
 
-        for (const oper_name_t op : input) {
-            assert((op>=0) && (op < this->operator_count));
-            const auto& op_info = this->operator_info[op];
-            const auto& obs_info = this->inflated_observables[op_info.observable];
-            const auto& variant_info = obs_info.variants[op_info.flattenedSourceIndex];
+        // Go through operators looking for permutations
+        for (const auto op : input) {
+            const auto &opData = this->operator_info[op];
+            const auto &observableInfo = this->inflated_observables[opData.observable];
+            // Singleton operators are always canonical
+            if (observableInfo.singleton) {
+                continue;
+            }
 
-            SmallVector<oper_name_t, 4> source_indices;
-            source_indices.reserve(variant_info.indices.size());
+            // Is this the lowest variant possible at this point?
+            const auto &variantInfo = observableInfo.variants[opData.variant];
+            for (size_t s_index = 0, sMax = observableInfo.sources.size(); s_index < sMax; ++s_index) {
+                const auto src_id = observableInfo.sources[s_index];
+                assert(src_id < base_network.explicit_source_count());
+                const auto src_variant = variantInfo.indices[s_index];
+                const auto src_global = (this->inflation * src_id) + src_variant;
 
-            for (auto src : variant_info.connected_sources) {
-                auto permIter = permutation.find(static_cast<oper_name_t>(src));
-                if (permIter != permutation.end()) {
-                    // permutation already known
-                    const oper_name_t new_src = permIter->second;
-                    const auto new_variant = static_cast<oper_name_t>(new_src % this->inflation);
-                    source_indices.emplace_back(new_variant);
-                } else {
-                    // new permutation required
-                    const auto source = static_cast<oper_name_t>(src / this->inflation);
-                    const oper_name_t new_variant = next_available_source[source];
-                    ++next_available_source[source];
-                    const auto new_src = static_cast<oper_name_t>((source * this->inflation) + new_variant);
-                    permutation.emplace(std::make_pair(static_cast<oper_name_t>(src), new_src));
-                    source_indices.emplace_back(new_variant);
+                if (!permutation.contains(src_global)) {
+                    const auto target_global = (this->inflation * src_id) + next_free_source_variant[src_id];
+                    permutation.emplace(src_global, target_global);
+
+                    ++next_free_source_variant[src_id];
                 }
             }
-            const auto& new_variant_info = obs_info.variant(source_indices);
-            const auto new_oper_id = static_cast<oper_name_t>(new_variant_info.operator_offset + op_info.outcome);
-            permuted_operators.push_back(new_oper_id);
+        }
+
+        // Clear redundant permutations
+        std::erase_if(permutation, [](const auto& key_val) {
+            return key_val.first == key_val.second;
+        });
+
+        // Early exit if no permutations made
+        if (permutation.empty()) {
+            return std::move(input);
+        }
+
+        // Permute operators
+        sequence_storage_t permuted_operators;
+        for (const oper_name_t op : input) {
+            assert((op >= 0) && (op < this->operator_count));
+            const auto& op_info = this->operator_info[op];
+            const auto& obs_info = this->inflated_observables[op_info.observable];
+            // Singleton operators are not permuted
+            if (obs_info.singleton) {
+                permuted_operators.emplace_back(op);
+                continue;
+            }
+
+            const auto& variant_info = obs_info.variants[op_info.variant];
+            const auto permuted_indices = this->base_network.permute_variant(this->inflation, obs_info.sources,
+                                                                             permutation, variant_info.indices);
+            const auto& permuted_variant = obs_info.variant(permuted_indices);
+
+            permuted_operators.push_back(permuted_variant.operator_offset + op_info.outcome);
         }
         return OperatorSequence{std::move(permuted_operators), *this};
-
     }
 
 
     OperatorSequence InflationContext::canonical_moment(const OperatorSequence& input) const {
         return this->simplify_as_moment(OperatorSequence{input});
-    }
-
-    std::vector<OVIndex>
-    InflationContext::canonical_variants(const std::span<const OVIndex> input) const {
-        // If 0 or I; or no inflation, then nothing.
-        if (input.empty() || !this->can_have_aliases()) {
-            return {};
-        }
-
-        SmallVector<oper_name_t, 8> next_available_source(this->base_network.Sources().size(), 0);
-        std::map<oper_name_t, oper_name_t> permutation{};
-        std::vector<OVIndex> permuted_variants;
-
-        for (const auto [obs_id, var_id] : input) {
-            assert((obs_id>=0) && (obs_id < this->inflated_observables.size()));
-            const auto& obs_info = this->inflated_observables[obs_id];
-            assert((var_id>=0) && (var_id < obs_info.variant_count));
-            const auto& variant_info = obs_info.variants[var_id];
-
-            SmallVector<oper_name_t, 4> source_indices;
-            source_indices.reserve(variant_info.indices.size());
-
-            for (auto src : variant_info.connected_sources) {
-                auto permIter = permutation.find(static_cast<oper_name_t>(src));
-                if (permIter != permutation.end()) {
-                    // permutation already known
-                    const oper_name_t new_src = permIter->second;
-                    const auto new_variant = static_cast<oper_name_t>(
-                            new_src % static_cast<oper_name_t>(this->inflation));
-                    source_indices.emplace_back(new_variant);
-                } else {
-                    // new permutation required
-                    const auto source = static_cast<oper_name_t>(src / this->inflation);
-                    const oper_name_t new_variant = next_available_source[source];
-                    ++next_available_source[source];
-                    const auto new_src = static_cast<oper_name_t>((source * this->inflation) + new_variant);
-                    permutation.emplace(std::make_pair(static_cast<oper_name_t>(src), new_src));
-                    source_indices.emplace_back(new_variant);
-                }
-            }
-            const auto& new_variant_info = obs_info.variant(source_indices);
-            permuted_variants.emplace_back(obs_id, new_variant_info.flat_index);
-        }
-
-        // Canonical sequence of variants is always sorted...
-        std::sort(permuted_variants.begin(), permuted_variants.end());
-
-        // Remove excess idempotent elements.
-        auto trim_idem = std::unique(permuted_variants.begin(), permuted_variants.end(),
-             [this](const OVIndex& lhs, const OVIndex& rhs) {
-                return (lhs == rhs) && this->Observables()[lhs.observable].projective();
-             });
-
-        permuted_variants.erase(trim_idem, permuted_variants.end());
-
-        return permuted_variants;
     }
 
     std::vector<OVOIndex>
@@ -524,7 +553,7 @@ namespace Moment::Inflation {
                 }
                 // Give indices, if inflated
                 if (this->inflation > 1) {
-                    const auto& infIndices = obsInfo.variants[extraInfo.flattenedSourceIndex].indices;
+                    const auto& infIndices = obsInfo.variants[extraInfo.variant].indices;
                     bool done_one = false;
                     if (needs_braces) {
                         ss << "[";
@@ -638,6 +667,7 @@ namespace Moment::Inflation {
     std::unique_ptr<OperatorSequenceGenerator> InflationContext::new_osg(size_t word_length) const {
         return std::make_unique<InflationOperatorSequenceGenerator>(*this, word_length);
     }
+
 
 
 }

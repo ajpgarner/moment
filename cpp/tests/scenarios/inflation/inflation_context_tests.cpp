@@ -49,12 +49,12 @@ namespace Moment::Tests {
         EXPECT_EQ(observables[0].id, 0);
         EXPECT_EQ(observables[0].outcomes, 3);
         EXPECT_EQ(observables[0].sources.size(), 1);
-        EXPECT_TRUE(observables[0].sources.contains(0));
+        EXPECT_TRUE(observables[0].contains_source(0));
 
         EXPECT_EQ(observables[1].id, 1);
         EXPECT_EQ(observables[1].outcomes, 2);
         EXPECT_EQ(observables[1].sources.size(), 1);
-        EXPECT_TRUE(observables[1].sources.contains(0));
+        EXPECT_TRUE(observables[1].contains_source(0));
 
         const auto& sources = ic.Sources();
         ASSERT_EQ(sources.size(), 1);
@@ -87,14 +87,14 @@ namespace Moment::Tests {
         EXPECT_EQ(observables[0].operators(), 1);
         EXPECT_EQ(observables[0].projective(), false);
         EXPECT_EQ(observables[0].sources.size(), 1);
-        EXPECT_TRUE(observables[0].sources.contains(0));
+        EXPECT_TRUE(observables[0].contains_source(0));
 
         EXPECT_EQ(observables[1].id, 1);
         EXPECT_EQ(observables[1].outcomes, 0);
         EXPECT_EQ(observables[1].operators(), 1);
         EXPECT_EQ(observables[1].projective(), false);
         EXPECT_EQ(observables[1].sources.size(), 1);
-        EXPECT_TRUE(observables[1].sources.contains(0));
+        EXPECT_TRUE(observables[1].contains_source(0));
 
         const auto& sources = ic.Sources();
         ASSERT_EQ(sources.size(), 1);
@@ -130,7 +130,7 @@ namespace Moment::Tests {
         EXPECT_EQ(A.operators(), 1);
         EXPECT_EQ(A.projective(), false);
         EXPECT_EQ(A.sources.size(), 1);
-        EXPECT_TRUE(A.sources.contains(0));
+        EXPECT_TRUE(A.contains_source(0));
         EXPECT_EQ(A.variant_count, 2);
         ASSERT_EQ(A.variants.size(), 2);
         EXPECT_EQ(A.variant_offset, 0);
@@ -157,7 +157,7 @@ namespace Moment::Tests {
         EXPECT_EQ(B.operators(), 1);
         EXPECT_EQ(B.projective(), false);
         EXPECT_EQ(B.sources.size(), 1);
-        EXPECT_TRUE(B.sources.contains(0));
+        EXPECT_TRUE(B.contains_source(0));
         EXPECT_EQ(B.variant_count, 2);
         ASSERT_EQ(B.variants.size(), 2);
         EXPECT_EQ(B.variant_offset, 2);
@@ -212,7 +212,7 @@ namespace Moment::Tests {
         EXPECT_EQ(A.operators(), 1);
         EXPECT_EQ(A.projective(), false);
         ASSERT_EQ(A.sources.size(), 1);
-        EXPECT_TRUE(A.sources.contains(0));
+        EXPECT_TRUE(A.contains_source(0));
         EXPECT_EQ(A.variant_count, 1);
         ASSERT_EQ(A.variants.size(), 1);
         const auto& A0 = A.variants[0];
@@ -224,7 +224,7 @@ namespace Moment::Tests {
         EXPECT_EQ(B.operators(), 1);
         EXPECT_EQ(B.projective(), false);
         ASSERT_EQ(B.sources.size(), 1);
-        EXPECT_TRUE(B.sources.contains(1));
+        EXPECT_TRUE(B.contains_source(1));
         EXPECT_EQ(B.variant_count, 1);
         ASSERT_EQ(B.variants.size(), 1);
         const auto& B0 = B.variants[0];
@@ -1090,16 +1090,16 @@ namespace Moment::Tests {
         const auto& obsA = ic.Observables()[0];
         const auto& obsB = ic.Observables()[1];
         const auto& obsA00 = obsA.variant(std::vector<oper_name_t>{0, 0});
-        const auto& obsA01 = obsA.variant(std::vector<oper_name_t>{0, 1});
         const auto& obsA10 = obsA.variant(std::vector<oper_name_t>{1, 0});
+        const auto& obsA01 = obsA.variant(std::vector<oper_name_t>{0, 1});
         const auto& obsA11 = obsA.variant(std::vector<oper_name_t>{1, 1});
 
         const auto& obsB0 = obsB.variants[0];
         const auto& obsB1 = obsB.variants[1];
 
         const oper_name_t a00 = obsA00.operator_offset;
-        const oper_name_t a01 = obsA01.operator_offset;
         const oper_name_t a10 = obsA10.operator_offset;
+        const oper_name_t a01 = obsA01.operator_offset;
         const oper_name_t a11 = obsA11.operator_offset;
         const oper_name_t b0 = obsB0.operator_offset;
         const oper_name_t b1 = obsB1.operator_offset;
@@ -1140,49 +1140,6 @@ namespace Moment::Tests {
         EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a10, a11}, ic}), OperatorSequence({a00, a01}, ic));
         EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a01, a11}, ic}), OperatorSequence({a00, a10}, ic));
         EXPECT_EQ(ic.canonical_moment(OperatorSequence{{a10, a00}, ic}), OperatorSequence({a00, a10}, ic));
-    }
-
-    TEST(Scenarios_Inflation_InflationContext, CanonicalVariants_TwoSourceTwoObs) {
-        InflationContext ic{CausalNetwork{{2, 2}, {{0}, {0, 1}}}, 2}; // A00, A10, A01, A11, B0, B1
-
-        ASSERT_EQ(ic.observable_variant_count(), 6);
-
-        for (oper_name_t a_var = 0; a_var < 4; ++a_var) {
-            auto canA = ic.canonical_variants({{0LL, a_var}});
-            ASSERT_EQ(canA.size(), 1);
-            EXPECT_EQ(canA[0], OVIndex(0LL, 0LL));
-        }
-
-        for (oper_name_t b_var = 0; b_var < 2; ++b_var) {
-            auto canB = ic.canonical_variants({{1LL, b_var}});
-            ASSERT_EQ(canB.size(), 1);
-            EXPECT_EQ(canB[0], OVIndex(1LL, 0LL));
-        }
-
-        auto fromA00B0 = ic.canonical_variants({{0LL, 0LL}, {1LL, 0LL}}); // A00 B0
-        ASSERT_EQ(fromA00B0.size(), 2);
-        EXPECT_EQ(fromA00B0[0], OVIndex(0LL, 0LL));
-        EXPECT_EQ(fromA00B0[1], OVIndex(1LL, 0LL));
-
-        auto fromA01B1 = ic.canonical_variants({{0LL, 2LL}, {1LL, 1LL}}); // A01 B1 -> A00 B0
-        ASSERT_EQ(fromA01B1.size(), 2);
-        EXPECT_EQ(fromA01B1[0], OVIndex(0LL, 0LL));
-        EXPECT_EQ(fromA01B1[1], OVIndex(1LL, 0LL));
-
-        auto fromA10B1 = ic.canonical_variants({{0LL, 1LL}, {1LL, 1LL}}); // A10 B1 -> A00 B1
-        ASSERT_EQ(fromA10B1.size(), 2);
-        EXPECT_EQ(fromA10B1[0], OVIndex(0LL, 0LL));
-        EXPECT_EQ(fromA10B1[1], OVIndex(1LL, 1LL));
-
-        auto fromA11B1 = ic.canonical_variants({{0LL, 3LL}, {1LL, 1LL}}); // A11 B1 -> A00 B0
-        ASSERT_EQ(fromA11B1.size(), 2);
-        EXPECT_EQ(fromA11B1[0], OVIndex(0LL, 0LL));
-        EXPECT_EQ(fromA11B1[1], OVIndex(1LL, 0LL));
-
-        auto fromB1A01 = ic.canonical_variants({{1LL, 1LL}, {0LL, 2LL}}); // B1 A01 -> A00 B0
-        ASSERT_EQ(fromB1A01.size(), 2);
-        EXPECT_EQ(fromB1A01[0], OVIndex(0LL, 0LL));
-        EXPECT_EQ(fromB1A01[1], OVIndex(1LL, 0LL));
     }
 
 

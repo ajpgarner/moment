@@ -78,11 +78,6 @@ namespace Moment::Inflation {
 
     }
 
-    size_t CausalNetwork::total_source_count(size_t inflation_level) const noexcept {
-        const size_t explicit_sources = this->implicit_source_index;
-        const size_t implicit_sources = this->sources.size() - explicit_sources;
-        return (explicit_sources * inflation_level) + implicit_sources;
-    }
 
     size_t CausalNetwork::total_operator_count(size_t inflation_level) const noexcept {
         size_t output = 0;
@@ -91,6 +86,35 @@ namespace Moment::Inflation {
         }
         return output;
     }
+
+    std::vector<oper_name_t>
+    CausalNetwork::permute_variant(const size_t inflation,
+                                   const std::span<const oper_name_t> source_ids,
+                                   const std::map<oper_name_t, oper_name_t>& source_permutation,
+                                   const std::span<const oper_name_t> old_source_indices) const {
+        assert(old_source_indices.size() == source_ids.size());
+
+        std::vector<oper_name_t> remapped_indices;
+        remapped_indices.reserve(old_source_indices.size());
+
+        for (size_t index = 0, iMax = old_source_indices.size(); index < iMax; ++index) {
+
+            const oper_name_t old_src_variant = old_source_indices[index];
+            const auto global_src = this->source_variant_to_global_source(inflation,
+                                                                          source_ids[index], old_source_indices[index]);
+            if (auto pIter = source_permutation.find(global_src); pIter != source_permutation.end()) {
+                auto [new_src_id, new_src_variant]
+                        = this->global_source_to_source_variant(inflation, pIter->second);
+                assert(new_src_id == source_ids[index]);
+                remapped_indices.emplace_back(new_src_variant);
+            } else {
+                remapped_indices.emplace_back(old_src_variant);
+            }
+        }
+        return remapped_indices;
+    }
+
+
 
     std::ostream& operator<<(std::ostream& os, const CausalNetwork& network) {
         AlphabeticNamer observable_namer{true};
