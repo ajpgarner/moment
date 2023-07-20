@@ -15,6 +15,7 @@
 #include "scenarios/context.h"
 
 #include "symbolic/symbol_table.h"
+
 #include "utilities/dynamic_bitset.h"
 #include "utilities/float_utils.h"
 

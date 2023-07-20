@@ -437,4 +437,197 @@ namespace Moment::Tests {
         EXPECT_TRUE(set.contains(68));
 
     }
+
+    TEST(Utilities_DynamicBitset, Subset_SimpleSmall) {
+        DynamicBitset<uint16_t> bitset{45};
+        bitset.set(0);
+        bitset.set(16);
+        bitset.set(32);
+
+        ASSERT_EQ(bitset.page_count, 3);
+
+        auto subset_p1 = bitset.subset(0, 16);
+        ASSERT_EQ(subset_p1.page_count, 1);
+        EXPECT_EQ(subset_p1.bit_size, 16);
+        EXPECT_TRUE(subset_p1.test(0));
+        EXPECT_EQ(subset_p1.count(), 1);
+
+        auto subset_p2 = bitset.subset(16, 16);
+        ASSERT_EQ(subset_p2.page_count, 1);
+        EXPECT_EQ(subset_p2.bit_size, 16);
+        EXPECT_TRUE(subset_p2.test(0));
+        EXPECT_EQ(subset_p2.count(), 1);
+
+        auto subset_p3 = bitset.subset(32, 13);
+        ASSERT_EQ(subset_p3.page_count, 1);
+        EXPECT_EQ(subset_p3.bit_size, 13);
+        EXPECT_TRUE(subset_p3.test(0));
+        EXPECT_EQ(subset_p3.count(), 1);
+    }
+
+    TEST(Utilities_DynamicBitset, Subset_ClipSmall) {
+        DynamicBitset<uint16_t> bitset{45, true};
+        bitset.unset(0);
+        bitset.unset(16);
+        bitset.unset(32);
+
+        ASSERT_EQ(bitset.page_count, 3);
+        EXPECT_EQ(bitset.count(), 42);
+
+        auto subset_p1 = bitset.subset(0, 5);
+        ASSERT_EQ(subset_p1.page_count, 1);
+        EXPECT_EQ(subset_p1.bit_size, 5);
+        EXPECT_FALSE(subset_p1.test(0));
+        EXPECT_EQ(subset_p1.count(), 4);
+
+        auto subset_p2 = bitset.subset(14, 5);
+        ASSERT_EQ(subset_p2.page_count, 1);
+        EXPECT_EQ(subset_p2.bit_size, 5);
+        EXPECT_FALSE(subset_p2.test(2));
+        EXPECT_EQ(subset_p2.count(), 4);
+
+    }
+
+    TEST(Utilities_DynamicBitset, Subset_NonalignedSmall) {
+        DynamicBitset<uint16_t> bitset{45};
+        bitset.set(0);
+        bitset.set(16);
+        bitset.set(32);
+
+        ASSERT_EQ(bitset.page_count, 3);
+
+        auto subset_p1 = bitset.subset(3, 16);
+        ASSERT_EQ(subset_p1.page_count, 1);
+        EXPECT_EQ(subset_p1.bit_size, 16);
+        EXPECT_TRUE(subset_p1.test(13));
+        EXPECT_EQ(subset_p1.count(), 1);
+
+        auto subset_p2 = bitset.subset(14, 16);
+        ASSERT_EQ(subset_p2.page_count, 1);
+        EXPECT_EQ(subset_p2.bit_size, 16);
+        EXPECT_TRUE(subset_p2.test(2));
+        EXPECT_EQ(subset_p2.count(), 1);
+
+        auto subset_p3 = bitset.subset(29, 16);
+        ASSERT_EQ(subset_p3.page_count, 1);
+        EXPECT_EQ(subset_p3.bit_size, 16);
+        EXPECT_TRUE(subset_p3.test(3));
+        EXPECT_EQ(subset_p3.count(), 1);
+    }
+
+
+    TEST(Utilities_DynamicBitset, Subset_SimpleLarge) {
+        DynamicBitset<uint16_t> bitset{45};
+        bitset.set(0);
+        bitset.set(16);
+        bitset.set(32);
+
+        ASSERT_EQ(bitset.page_count, 3);
+
+        auto subset_p1 = bitset.subset(0, 20);
+        ASSERT_EQ(subset_p1.page_count, 2);
+        EXPECT_EQ(subset_p1.bit_size, 20);
+        EXPECT_TRUE(subset_p1.test(0));
+        EXPECT_TRUE(subset_p1.test(16));
+        EXPECT_EQ(subset_p1.count(), 2);
+
+        auto subset_p2 = bitset.subset(16, 20);
+        ASSERT_EQ(subset_p2.page_count, 2);
+        EXPECT_EQ(subset_p2.bit_size, 20);
+        EXPECT_TRUE(subset_p2.test(0));
+        EXPECT_TRUE(subset_p2.test(16));
+        EXPECT_EQ(subset_p2.count(), 2);
+    }
+
+    TEST(Utilities_DynamicBitset, Subset_ClipLarge) {
+        DynamicBitset<uint16_t> bitset{45, true};
+        bitset.unset(0);
+        bitset.unset(16);
+        bitset.unset(32);
+
+        ASSERT_EQ(bitset.page_count, 3);
+
+        auto subset_p1 = bitset.subset(0, 20);
+        ASSERT_EQ(subset_p1.page_count, 2);
+        EXPECT_EQ(subset_p1.bit_size, 20);
+        EXPECT_FALSE(subset_p1.test(0));
+        EXPECT_FALSE(subset_p1.test(16));
+        EXPECT_EQ(subset_p1.count(), 18);
+
+        auto subset_p2 = bitset.subset(16, 20);
+        ASSERT_EQ(subset_p2.page_count, 2);
+        EXPECT_EQ(subset_p2.bit_size, 20);
+        EXPECT_FALSE(subset_p2.test(0));
+        EXPECT_FALSE(subset_p2.test(16));
+        EXPECT_EQ(subset_p2.count(), 18);
+    }
+
+    TEST(Utilities_DynamicBitset, Subset_NonalignedMedium) {
+        DynamicBitset<uint16_t> bitset{45};
+        bitset.set(0);
+        bitset.set(16);
+        bitset.set(32);
+
+        ASSERT_EQ(bitset.page_count, 3);
+
+        auto subset_p1 = bitset.subset(3, 20);
+        ASSERT_EQ(subset_p1.page_count, 2);
+        EXPECT_EQ(subset_p1.bit_size, 20);
+        EXPECT_TRUE(subset_p1.test(13));
+        EXPECT_EQ(subset_p1.count(), 1);
+
+        auto subset_p2 = bitset.subset(14, 20);
+        ASSERT_EQ(subset_p2.page_count, 2);
+        EXPECT_EQ(subset_p2.bit_size, 20);
+        EXPECT_TRUE(subset_p2.test(2));
+        EXPECT_TRUE(subset_p2.test(18));
+        EXPECT_EQ(subset_p2.count(), 2);
+    }
+
+
+    TEST(Utilities_DynamicBitset, Subset_NonalignedLarge) {
+        DynamicBitset<uint16_t> bitset{45};
+        bitset.set(0);
+        bitset.set(16);
+        bitset.set(32);
+
+        ASSERT_EQ(bitset.page_count, 3);
+
+        auto subset_p1 = bitset.subset(3, 40);
+        ASSERT_EQ(subset_p1.page_count, 3);
+        EXPECT_EQ(subset_p1.bit_size, 40);
+        EXPECT_TRUE(subset_p1.test(13));
+        EXPECT_TRUE(subset_p1.test(29));
+        EXPECT_EQ(subset_p1.count(), 2);
+
+    }
+
+    TEST(Utilities_DynamicBitset, Subset_FromSmall) {
+        DynamicBitset<uint16_t> bitset{15};
+        bitset.set(5);
+        ASSERT_EQ(bitset.page_count, 1);
+
+        auto subset_p1 = bitset.subset(3, 3);
+        ASSERT_EQ(subset_p1.page_count, 1);
+        EXPECT_EQ(subset_p1.bit_size, 3);
+        EXPECT_TRUE(subset_p1.test(2));
+        EXPECT_EQ(subset_p1.count(), 1);
+
+    }
+
+
+    TEST(Utilities_DynamicBitset, SmallSubset) {
+        DynamicBitset<uint16_t> bitset{45};
+        bitset.set(15);
+        bitset.set(16);
+        ASSERT_EQ(bitset.page_count, 3);
+
+        EXPECT_EQ(bitset.small_subset(0, 3), 0);
+        EXPECT_EQ(bitset.small_subset(14, 3), 6);
+        EXPECT_EQ(bitset.small_subset(15, 3), 3);
+        EXPECT_EQ(bitset.small_subset(16, 3), 1);
+
+    }
+
+
 }

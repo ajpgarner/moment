@@ -13,7 +13,7 @@
 
 #include "symbolic/polynomial.h"
 
-#include "utilities/dynamic_bitset.h"
+#include "utilities/dynamic_bitset_fwd.h"
 #include "utilities/square_matrix.h"
 
 #include <Eigen/Core>

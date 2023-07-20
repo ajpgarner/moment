@@ -13,7 +13,7 @@
 #include "dictionary/dictionary_map.h"
 #include "dictionary/operator_sequence.h"
 
-#include "utilities/dynamic_bitset.h"
+#include "utilities/dynamic_bitset_fwd.h"
 
 #include <cassert>
 

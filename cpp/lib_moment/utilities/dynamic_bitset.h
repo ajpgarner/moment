@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include "dynamic_bitset_fwd.h"
+
 #include <cassert>
 #include <cstdint>
 
@@ -19,9 +21,7 @@
 
 namespace Moment {
 
-    template<std::unsigned_integral page_t = uint64_t,
-             std::integral index_t = page_t,
-            typename storage_t = std::vector<page_t>>
+    template<std::unsigned_integral page_t, std::integral index_t, typename storage_t>
     class DynamicBitset {
     public:
         using Index = index_t;
@@ -85,22 +85,24 @@ namespace Moment {
         const index_t bit_size;
         const index_t page_count;
 
+        constexpr static const index_t page_size = std::numeric_limits<page_t>::digits;
+
     private:
         const page_t final_page_mask;
         storage_t data;
 
     public:
         /** Construct an empty dynamic bitset */
-        constexpr explicit DynamicBitset(index_t bit_size)
+        constexpr explicit DynamicBitset(const index_t bit_size)
             : bit_size{bit_size}, page_count{pages_required(bit_size)},
               final_page_mask{make_final_mask(bit_size)}, data(page_count, static_cast<page_t>(0)) {
         }
 
         /** Construct an empty dynamic bitset with all values set to default_value */
-        constexpr DynamicBitset(index_t bit_size, bool default_value)
+        constexpr DynamicBitset(const index_t bit_size, const bool default_value)
             : DynamicBitset<page_t, index_t, storage_t>{bit_size} {
             if (default_value) {
-                for (index_t i = 0, iMax = page_count -1; i < iMax; ++i) {
+                for (index_t i = 0, iMax = page_count - 1; i < iMax; ++i) {
                     this->data[i] = ~static_cast<page_t>(0);
                 }
                 this->data[page_count - 1] = this->final_page_mask;
@@ -273,21 +275,109 @@ namespace Moment {
             return output;
         }
 
+        /**
+         * Construct a subset
+         */
+        constexpr DynamicBitset subset(const index_t first_element_index, const index_t subset_size) const {
+            assert((first_element_index >= 0) && (first_element_index < this->bit_size));
+            const index_t last_element_index = (first_element_index + subset_size); // exclusive
+            assert((subset_size >= 0) && (last_element_index <= this->bit_size));
+
+            // Prepare output
+            DynamicBitset output(subset_size);
+
+            // Early return for empty subset
+            if (subset_size == 0) {
+                return output;
+            }
+
+            const index_t first_input_page = first_element_index / page_size;
+            const index_t copy_offset = first_element_index % page_size;
+
+            const index_t last_input_page = last_element_index  / page_size;
+            const index_t remainder = last_element_index % page_size;
+
+            if (copy_offset == 0) { // Aligned copy
+
+                // Copy any full pages
+                std::copy(this->data.begin() + first_input_page,
+                          this->data.begin() + last_input_page,
+                          output.data.begin());
+
+                if (remainder != 0) {
+                    assert(last_input_page < this->page_count);
+                    output.data.back() = *(this->data.begin() + last_input_page) & output.final_page_mask;
+                }
+            } else { // Unaligned copy
+                const auto anti_offset = page_size - copy_offset;
+
+                if ((first_input_page + output.page_count) < this->page_count) {
+                    for (index_t out_page = 0; out_page < output.page_count; ++out_page) {
+                        output.data[out_page] = (this->data[first_input_page + out_page] >> copy_offset)
+                                                    | this->data[first_input_page + out_page + 1] << anti_offset;
+                    }
+                    output.data.back() &= output.final_page_mask;
+                } else {
+                    for (index_t out_page = 0; out_page < output.page_count - 1; ++out_page) {
+                        output.data[out_page] = (this->data[first_input_page + out_page] >> copy_offset)
+                                                    | this->data[first_input_page + out_page + 1] << anti_offset;
+                    }
+                    output.data.back() = (this->data[first_input_page + output.page_count - 1] >> copy_offset);
+                    output.data.back() &= output.final_page_mask;
+                }
+            }
+            return output;
+        }
+
+
+        /**
+         * Get a small subset
+         */
+        constexpr page_t small_subset(const index_t first_element_index, const index_t subset_size) const {
+            assert(subset_size <= page_size);
+            assert((first_element_index >= 0) && (first_element_index < this->bit_size));
+            assert((subset_size >= 0) && (first_element_index + subset_size <= this->bit_size));
+
+            // Empty subset
+            if (subset_size == 0) {
+                return page_t{0};
+            }
+
+            const index_t first_page = first_element_index / page_size;
+            const index_t offset = first_element_index % page_size;
+            const page_t mask = make_final_mask(subset_size);
+
+            // Aligned subset
+            if (offset == 0) {
+                return this->data[first_page] & mask;
+            }
+
+            // Subset contained entirely within one page
+            if (offset + subset_size <= page_size) {
+                return (this->data[first_page] >> offset) & mask;
+            }
+
+            // Subset spans a page boundary
+            const index_t anti_offset = page_size - offset;
+            return ((this->data[first_page] >> offset) | (this->data[first_page+1] << anti_offset)) & mask;
+
+        }
+
     private:
         [[nodiscard]] constexpr std::pair<index_t, index_t> unfold_index(const index_t index) const noexcept {
             assert(index < bit_size);
-            const index_t page = index / std::numeric_limits<page_t>::digits;
-            const index_t bit = index % std::numeric_limits<page_t>::digits;
+            const index_t page = index / page_size;
+            const index_t bit = index % page_size;
             assert(page < page_count);
             return {page, bit};
         }
 
     private:
         [[nodiscard]] constexpr static index_t pages_required(const index_t size) noexcept {
-            if (0 == (size % std::numeric_limits<page_t>::digits)) {
-                return size / std::numeric_limits<page_t>::digits;
+            if (0 == (size % page_size)) {
+                return size / page_size;
             } else {
-                return (size / std::numeric_limits<page_t>::digits) + 1;
+                return (size / page_size) + 1;
             }
         }
 
