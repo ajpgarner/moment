@@ -5,9 +5,12 @@ classdef CollinsGisin < MTKMonomial
 %  
     methods
         function obj = CollinsGisin(scenario)
-            arguments
-                scenario (1,1) LocalityScenario
-            end            
+
+			if ~isa(scenario, 'LocalityScenario')
+				error("Collins-Gisin object only defined"...
+					  + " for locality scenario");
+			end
+          
             shape = scenario.OperatorsPerParty + 1;            
             
             % Set operators, hashes, and coefficients

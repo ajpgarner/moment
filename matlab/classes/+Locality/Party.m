@@ -12,13 +12,16 @@ classdef Party < handle
     
     methods(Access={?LocalityScenario})
         function obj = Party(setting, id, name)
+        %PARTY Construct a party 
+        % (Private c'tor. To construct, use Scenario.AddParty.)
+            
             arguments
                 setting (1,1) LocalityScenario
                 id (1,1) uint64 {mustBeInteger, mustBePositive}
                 name (1,1) string = ""
             end
-            %PARTY Construct a party 
-            % (Private c'tor. To construct, use Scenario.AddParty.)
+            
+            
             import MTKUtil.alphabetic_index
             
             % Link to a setting object

@@ -57,14 +57,8 @@ classdef OperatorRulebook < handle
         %  names_hint - List of operator names, if they exist.
         %
         % See also: ALGEBRAIC.OPERATORRULE
-            arguments
-                operators
-                initialRules (1,:) = cell.empty(1,0);
-                is_hermitian (1,1) logical = true
-                interleave (1,1) logical = false
-                is_normal (1,1) logical = is_hermitian
-            end 
-            
+        
+            assert(nargin>=1)        
             % Copy c'tor
             if isa(operators, 'Algebraic.OperatorRulebook')
                 obj.MaxOperators = operators.MaxOperators;
@@ -80,6 +74,17 @@ classdef OperatorRulebook < handle
                 end
                 return;
             end
+            
+            if nargin < 3
+                is_hermitian = true;
+            end
+            if nargin < 4 
+                interleave = true;
+            end
+            if nargin < 5
+                is_normal = is_hermitian;
+            end
+            
             
             % Parse operators
             if isnumeric(operators) && isscalar(operators)
@@ -213,13 +218,11 @@ classdef OperatorRulebook < handle
         %   rhs - Right-hand side of the commutation bracket.
         %   anti_comm - Set to true to make an anti-commutator instead:
         %
-            arguments
-                obj (1,1) Algebraic.OperatorRulebook
-                lhs (1,:)
-                rhs (1,:)
-                anti_comm (1,1) logical = false
-            end
-            
+        
+            % Validate arguments
+            assert(nargin>=3);
+            lhs = reshape(lhs, 1, []);
+            rhs = reshape(rhs, 1, []);             
             if nargin<4
                 anti_comm = false;
             end
@@ -242,11 +245,6 @@ classdef OperatorRulebook < handle
         %   lhs - Left-hand side of the anti-commutation bracket
         %   rhs - Right-hand side of the anti-commutation bracket.
         %
-            arguments
-                obj (1,1) Algebraic.OperatorRulebook
-                lhs (1,:)
-                rhs (1,:)
-            end
             
             obj.AddCommutator(lhs, rhs, true);
         end
@@ -260,10 +258,10 @@ classdef OperatorRulebook < handle
         %   symbol - The operator, or operator sequence, X that is
         %   projective.
         %
-            arguments
-                obj (1,1) Algebraic.OperatorRulebook
-                symbol (1,:)
-            end
+            
+            % Validate arguments
+            assert(nargin>=2);
+            symbol = reshape(symbol, 1, []);
             
             % Make and add rule
             lhs = [symbol, symbol];
@@ -279,10 +277,10 @@ classdef OperatorRulebook < handle
         % PARAMS
         %   symbol - The operator, or operator sequence, that is Hermitian.
         %
-            arguments
-                obj (1,1) Algebraic.OperatorRulebook
-                symbol (1,:)
-            end
+           
+            % Validate arguments
+            assert(nargin>=2);
+            symbol = reshape(symbol, 1, []);
             
             % Make and add rule
             lhs = obj.RawConjugate(symbol);
@@ -296,10 +294,11 @@ classdef OperatorRulebook < handle
         % PARAMS
         %   symbol - The operator, or operator sequence, that is unitary.
         %
-            arguments
-                obj (1,1) Algebraic.OperatorRulebook
-                symbol (1,:)
-            end
+
+        
+            % Validate arguments
+            assert(nargin>=2);
+            symbol = reshape(symbol, 1, []);
 
             % Make and add rule
             conjugated = obj.RawConjugate(symbol);
@@ -315,10 +314,10 @@ classdef OperatorRulebook < handle
         % PARAMS
         %   symbol - The operator, or operator sequence, that is self-inverse.
         %
-            arguments
-                obj (1,1) Algebraic.OperatorRulebook
-                symbol (1,:)
-            end
+            
+            % Validate arguments
+            assert(nargin>=2);
+            symbol = reshape(symbol, 1, []);
             
             % Make and add rule
             obj.AddRule([symbol, symbol], []);
@@ -340,10 +339,18 @@ classdef OperatorRulebook < handle
         %             reduced.
         %
         % See also: ALGEBRAICSCENARIO.COMPLETE
-            arguments
-                obj (1,1) Algebraic.OperatorRulebook
-                max_iterations (1,1) uint64
-                verbose (1,1) logical = false
+        
+            % Validate arguments
+            if nargin < 2
+                max_iterations = 20;
+            else
+                max_iterations = uint64(max_iterations);
+            end
+            
+            if nargin < 3
+                verbose = false;
+            else
+                verbose = logical(verbose);
             end
             
             % Complain if locked...
@@ -422,10 +429,12 @@ classdef OperatorRulebook < handle
         % PARAMS
         %   input - The cell array to parse.
         %
-            arguments
-                obj (1,1) Algebraic.OperatorRulebook
-                input cell
+            
+            % Validate arguments
+            if nargin < 2 || ~iscell(input)
+                error("Must specify cell array input.");
             end
+            
             obj.errorIfLocked();
             
             input = reshape(input, 1, []);
@@ -480,10 +489,9 @@ classdef OperatorRulebook < handle
     %% Raw manipulation of operator strings
     methods
         function conj = RawConjugate(obj, op_str)
-            arguments
-                obj (1,1) Algebraic.OperatorRulebook
-                op_str (1,:)
-            end
+            
+            assert(nargin==2)
+            op_str = reshape(op_str, 1, []);
             
             % If char array, parse first to string
             is_char = ischar(op_str);
@@ -535,14 +543,13 @@ classdef OperatorRulebook < handle
         function str = ToStringArray(obj, input)
         % TOSTRING Format operator input sequence into string array.
         %
-        arguments
-            obj (1,1) Algebraic.OperatorRulebook
-            input (1,:)
-        end
+                
+            assert(nargin==2)
+            input = reshape(input, 1, []);
         
             % Do nothing if input is already string
             if isstring(input)
-                str = reshape(input, 1, []);
+                str = input;
                 return;
             end
             

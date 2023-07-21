@@ -9,40 +9,39 @@ classdef OperatorRule < matlab.mixin.CustomDisplay
     
     methods
         function obj = OperatorRule(lhs, rhs, negate)
-            arguments
-                lhs (1,:)
-                rhs (1,:)
-                negate (1,1) logical = false
-            end
-            
-            if nargin <= 2
-                negate = false;
-            end
-            
+		
+			% Validate inputs
+			if nargin < 2
+				error("Rules require a left and a right hand side");
+			end
+		            
             % Read LHS
+			lhs = reshape(lhs, 1, []);
             if isnumeric(lhs)
-                lhs = uint64(lhs);
+				lhs = uint64(lhs);
             elseif ~isstring(lhs) && ~ischar(lhs)
                 error("LHS of rule should be numeric, or string of operators.");
             end
             
             % Read RHS
-            if isnumeric(rhs)
-                rhs = uint64(rhs);
+			rhs = reshape(rhs, 1, []);
+            if isnumeric(rhs)		
+				rhs = uint64(rhs);
             elseif ~isstring(rhs) && ~ischar(rhs)
                 error("RHS of rule should be numeric, or string of operators.");
+            end
+			
+            if nargin < 3
+                negate = false;
             end
             
             obj.LHS = lhs;
             obj.RHS = rhs;
-            obj.Negated = logical(negate);
+            obj.Negated = logical(negate(1));
         end
         
         function str = string(obj)
         % STRING Convert rule to human-readable string.
-            arguments
-                obj (1,:) Algebraic.OperatorRule
-            end
             switch numel(obj)
                 case 0
                     str = "No rules";

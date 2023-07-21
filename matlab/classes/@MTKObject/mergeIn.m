@@ -63,41 +63,10 @@ function merge_type = mergeIn(obj, merge_dim, offsets, objects)
             end
         end
 
-        % Combine rows into matrix:
-        if merge_type == 4                    
-            % Create empty vectors to recieve values
-            num_re = obj.Scenario.System.RealVarCount;
-            num_im = obj.Scenario.System.ImaginaryVarCount;
-            for col_id = 1:(obj.dimensions(2))
-                obj.real_coefs{col_id} = complex(sparse(num_re, 0));
-                obj.im_coefs{col_id} = complex(sparse(num_im, 0));
-            end
-
-            % Now 'transpose' and deal, because of col-majority...
-            for row_id = 1:(obj.dimensions(1))
-                for col_id = 1:obj.dimensions(2)
-                    obj.real_coefs{col_id} = ...
-                        [obj.real_coefs{col_id}, ...
-                            objects{row_id}.real_coefs(:, col_id)];
-                    obj.im_coefs{col_id} = ...
-                        [obj.im_coefs{col_id}, ...
-                            objects{row_id}.im_coefs(:, col_id)];
-                end
-            end                        
-        end
-
-        % Combine columns into matrix:
-        if merge_type == 5
-            % Due to col-majority, straightforward:
-            for col_id = 1:(obj.dimensions(2)) % NUMBER OF COLS
-                obj.real_coefs{col_id} = objects{col_id}.real_coefs;
-                obj.im_coefs{col_id} = objects{col_id}.im_coefs;
-            end
-        end
-
-        % FIXME: MATRIX AND TENSOR -> ???
-        if merge_type >= 6
-            error("Tensor merges are not yet supported!");
+        % For now, do not merge anything more complicated:
+        if merge_type >= 4
+			% FIXME
+			return;
         end
 
         % Register listener for symbol-table updates

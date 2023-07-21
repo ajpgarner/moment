@@ -31,37 +31,25 @@ classdef (InferiorClasses={?Locality.Outcome}) Measurement < handle
     end
     
     %% Methods
-    methods
+    methods(Access={?LocalityScenario,?Locality.Party})
         function obj = Measurement(scenario, party_index, mmt_index, ...
                                    name, num_outcomes)
-            arguments
-                scenario (1,1) LocalityScenario
-                party_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
-                mmt_index (1,1) uint64 {mustBeInteger, mustBeNonnegative}
-                name (1,1) string
-                num_outcomes (1,1) uint64 {mustBeInteger, mustBeNonnegative}
-            end
             import Locality.Outcome
             
+            if nargin < 5
+                error("Measurement defined by scenario, party, index,"...
+                      + " name and outcome count.");
+            end
+            
+            party_index = uint64(party_index);
+            mmt_index = uint64(mmt_index);
+            num_outcomes = uint64(num_outcomes);
+
             obj.Scenario = scenario;
             obj.Id = mmt_index;
             obj.Index = uint64([party_index, mmt_index]);
             obj.Name = name;
-            
-            
-            % Check values, set default values
-            if nargin <= 5
-                if num_outcomes == 2
-                    values = [+1, -1];
-                else
-                    values = 1:num_outcomes;
-                end
-            else
-                if length(values) ~= num_outcomes
-                    error("Number of outcomes must match number of supplied values")
-                end
-            end
-            
+
             % Construct outcomes
             obj.Outcomes = Outcome.empty;
             for x = 1:num_outcomes

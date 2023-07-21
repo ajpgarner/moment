@@ -9,7 +9,7 @@
     switch obj.DimensionType
         case 0 % SCALAR                    
             sys = obj.Scenario.System;
-            re = complex(sparse(double(sys.RealVarCount), 1));
+            re = zeros(double(sys.RealVarCount), 1, 'like' sparse(1i));
             if obj.re_basis_index > 0
                 re(obj.re_basis_index) = obj.Coefficient;
             end
@@ -36,7 +36,7 @@
     switch obj.DimensionType
         case 0 % SCALAR
             sys = obj.Scenario.System;
-            im = complex(sparse(double(sys.ImaginaryVarCount), 1));
+			im = zeros(double(sys.ImaginaryVarCount), 1, 'like' sparse(1i));
             if obj.im_basis_index > 0
                 if obj.SymbolConjugated
                     im(obj.im_basis_index) = -1i * obj.Coefficient;
@@ -71,7 +71,7 @@ function val = makeColOfImaginaryCoefficients(obj, index)
 
     imbi = double(reshape(obj.im_basis_index(:, index), 1, []));
     imbi_mask = imbi > 0;
-    val = complex(sparse(im_var_count, num_cols));
+	val = zeros(im_var_count, num_cols, 'like', sparse(1i));
     idx = im_var_count * (0:(num_cols-1)) + imbi;
     idx = idx(imbi_mask);
 
@@ -87,7 +87,7 @@ function val = makeColOfImaginaryCoefficientsRV(obj)
 
     imbi = double(obj.im_basis_index);
     imbi_mask = imbi > 0;
-    val = complex(sparse(im_var_count, num_cols));
+	val = zeros(im_var_count, num_cols, 'like', sparse(1i));
     idx = im_var_count * (0:(num_cols-1)) + imbi;
     idx = idx(imbi_mask);
 
@@ -101,10 +101,10 @@ function val = makeColOfRealCoefficients(obj, index)
     re_var_count = double(obj.Scenario.System.RealVarCount);
     num_cols = size(obj, 1);
 
-    rebi = double(reshape(obj.re_basis_index(:, index), 1, []));
+    rebi = double(reshape(obj.re_basis_index(:, index), 1, []));	
     rebi_mask = rebi > 0;
 
-    val = complex(sparse(re_var_count, num_cols));
+	val = zeros(re_var_count, num_cols, 'like', sparse(1i));
     idx = re_var_count * (0:(num_cols-1)) + rebi;
     idx = idx(rebi_mask);
 
@@ -118,7 +118,7 @@ function val = makeColOfRealCoefficientsRV(obj)
     rebi = double(obj.re_basis_index);
     rebi_mask = rebi > 0;
 
-    val = complex(sparse(re_var_count, num_cols));
+    val = zeros(re_var_count, num_cols, 'like', sparse(1i));
     idx = re_var_count * (0:(num_cols-1)) + rebi;
     idx = idx(rebi_mask);
 
