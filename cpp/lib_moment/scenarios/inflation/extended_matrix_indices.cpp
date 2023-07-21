@@ -81,7 +81,7 @@ namespace Moment::Inflation {
             } else {
                 errSS << "extended by symbols ";
                 const size_t num_ext = index.extension_list.size();
-                const size_t write_ext = std::min(num_ext, 10ULL);
+                const auto write_ext = std::min<size_t>(num_ext, 10ULL);
                 bool once = false;
                 for (size_t i = 0; i < write_ext; ++i) {
                     if (once) {

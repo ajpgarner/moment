@@ -15,6 +15,7 @@
 #include "utilities/multi_dimensional_index_iterator.h"
 #include "utilities/tensor.h"
 
+#include <mutex>
 #include <shared_mutex>
 #include <set>
 #include <stdexcept>

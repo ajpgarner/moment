@@ -374,14 +374,14 @@ namespace Moment::Tests {
         // Inflation 1
         EXPECT_EQ(empty.source_variant_to_global_source(1, 0, 0), 0);
         EXPECT_EQ(empty.source_variant_to_global_source(1, 1, 0), 1);
-        EXPECT_EQ(empty.global_source_to_source_variant(1, 0), std::make_pair(0ULL, 0ULL));
-        EXPECT_EQ(empty.global_source_to_source_variant(1, 1), std::make_pair(1ULL, 0ULL));
+        EXPECT_EQ(empty.global_source_to_source_variant(1, 0), (std::pair<size_t, size_t>{0, 0}));
+        EXPECT_EQ(empty.global_source_to_source_variant(1, 1), (std::pair<size_t, size_t>{1, 0}));
 
         // Inflation 2
         EXPECT_EQ(empty.source_variant_to_global_source(2, 0, 0), 0);
         EXPECT_EQ(empty.source_variant_to_global_source(2, 1, 0), 1);
-        EXPECT_EQ(empty.global_source_to_source_variant(2, 0), std::make_pair(0ULL, 0ULL));
-        EXPECT_EQ(empty.global_source_to_source_variant(2, 1), std::make_pair(1ULL, 0ULL));
+        EXPECT_EQ(empty.global_source_to_source_variant(2, 0), (std::pair<size_t, size_t>{0, 0}));
+        EXPECT_EQ(empty.global_source_to_source_variant(2, 1), (std::pair<size_t, size_t>{1, 0}));
     }
 
     TEST(Scenarios_Inflation_CausalNetwork, CountSources_Explicit) {
@@ -392,18 +392,18 @@ namespace Moment::Tests {
         // Inflation 1
         EXPECT_EQ(empty.source_variant_to_global_source(1, 0, 0), 0);
         EXPECT_EQ(empty.source_variant_to_global_source(1, 1, 0), 1);
-        EXPECT_EQ(empty.global_source_to_source_variant(1, 0), std::make_pair(0ULL, 0ULL));
-        EXPECT_EQ(empty.global_source_to_source_variant(1, 1), std::make_pair(1ULL, 0ULL));
+        EXPECT_EQ(empty.global_source_to_source_variant(1, 0), (std::pair<size_t, size_t>{0, 0}));
+        EXPECT_EQ(empty.global_source_to_source_variant(1, 1), (std::pair<size_t, size_t>{1, 0}));
 
         // Inflation 2
         EXPECT_EQ(empty.source_variant_to_global_source(2, 0, 0), 0);
         EXPECT_EQ(empty.source_variant_to_global_source(2, 0, 1), 1);
         EXPECT_EQ(empty.source_variant_to_global_source(2, 1, 0), 2);
         EXPECT_EQ(empty.source_variant_to_global_source(2, 1, 1), 3);
-        EXPECT_EQ(empty.global_source_to_source_variant(2, 0), std::make_pair(0ULL, 0ULL));
-        EXPECT_EQ(empty.global_source_to_source_variant(2, 1), std::make_pair(0ULL, 1ULL));
-        EXPECT_EQ(empty.global_source_to_source_variant(2, 2), std::make_pair(1ULL, 0ULL));
-        EXPECT_EQ(empty.global_source_to_source_variant(2, 3), std::make_pair(1ULL, 1ULL));
+        EXPECT_EQ(empty.global_source_to_source_variant(2, 0), (std::pair<size_t, size_t>{0, 0}));
+        EXPECT_EQ(empty.global_source_to_source_variant(2, 1), (std::pair<size_t, size_t>{0, 1}));
+        EXPECT_EQ(empty.global_source_to_source_variant(2, 2), (std::pair<size_t, size_t>{1, 0}));
+        EXPECT_EQ(empty.global_source_to_source_variant(2, 3), (std::pair<size_t, size_t>{1, 1}));
     }
 
     TEST(Scenarios_Inflation_CausalNetwork, CountSources_Mixed) {
@@ -415,16 +415,16 @@ namespace Moment::Tests {
         // Inflation 1
         EXPECT_EQ(empty.source_variant_to_global_source(1, 0, 0), 0);
         EXPECT_EQ(empty.source_variant_to_global_source(1, 1, 0), 1);
-        EXPECT_EQ(empty.global_source_to_source_variant(1, 0), std::make_pair(0ULL, 0ULL));
-        EXPECT_EQ(empty.global_source_to_source_variant(1, 1), std::make_pair(1ULL, 0ULL));
+        EXPECT_EQ(empty.global_source_to_source_variant(1, 0), (std::pair<size_t, size_t>{0, 0}));
+        EXPECT_EQ(empty.global_source_to_source_variant(1, 1), (std::pair<size_t, size_t>{1, 0}));
 
         // Inflation 2
         EXPECT_EQ(empty.source_variant_to_global_source(2, 0, 0), 0);
         EXPECT_EQ(empty.source_variant_to_global_source(2, 0, 1), 1);
         EXPECT_EQ(empty.source_variant_to_global_source(2, 1, 0), 2);
-        EXPECT_EQ(empty.global_source_to_source_variant(2, 0), std::make_pair(0ULL, 0ULL));
-        EXPECT_EQ(empty.global_source_to_source_variant(2, 1), std::make_pair(0ULL, 1ULL));
-        EXPECT_EQ(empty.global_source_to_source_variant(2, 2), std::make_pair(1ULL, 0ULL));
+        EXPECT_EQ(empty.global_source_to_source_variant(2, 0), (std::pair<size_t, size_t>{0, 0}));
+        EXPECT_EQ(empty.global_source_to_source_variant(2, 1), (std::pair<size_t, size_t>{0, 1}));
+        EXPECT_EQ(empty.global_source_to_source_variant(2, 2), (std::pair<size_t, size_t>{1, 0}));
     }
 
 

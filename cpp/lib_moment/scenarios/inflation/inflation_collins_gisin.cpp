@@ -18,7 +18,7 @@
 namespace Moment::Inflation {
 
     namespace {
-        [[nodiscard]] constexpr std::vector<size_t> make_dimensions(const InflationContext &context) {
+        [[nodiscard]] inline std::vector<size_t> make_dimensions(const InflationContext &context) {
 
             const size_t observable_count = context.observable_variant_count();
             std::vector<size_t> output;

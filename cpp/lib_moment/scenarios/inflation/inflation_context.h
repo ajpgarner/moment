@@ -192,7 +192,7 @@ namespace Moment::Inflation {
         /**
         * Counts total number of variants of all observables
         */
-        [[nodiscard]] size_t observable_variant_count() const noexcept {
+        [[nodiscard]] constexpr size_t observable_variant_count() const noexcept {
             return this->total_inflated_observables;
         }
 
