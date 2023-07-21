@@ -9,7 +9,7 @@
 %   numbers close to zero pruned.
 %
    [new_coefs, mask, mask_re, mask_im] = obj.Scenario.Prune(obj.Coefficient);
-   if ~any(mask | mask_re | mask_im, 'all')
+   if ~any(mask(:) | mask_re(:) | mask_im(:))
        val = obj;
    else
        if obj.IsScalar

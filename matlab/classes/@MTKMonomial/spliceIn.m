@@ -38,7 +38,7 @@ function obj = mono_splice_scalar(obj, indices, value)
     obj.Coefficient(indices{:}) = value.Coefficient;
     obj.Hash(indices{:}) = value.Hash;
     
-    if value.symbol_id > 0 && all(obj.symbol_id >= 0, 'all')
+    if value.symbol_id > 0 && all(obj.symbol_id(:) >= 0)
          obj.symbol_id(indices{:}) = value.symbol_id;
          obj.symbol_conjugated(indices{:}) = value.symbol_conjugated;
          obj.real_basis_index(indices{:}) = value.real_basis_index;
@@ -53,7 +53,7 @@ function obj = mono_splice_array(obj, indices, value)
     obj.Coefficient(indices{:}) = value.Coefficient(:);
     obj.Hash(indices{:}) = value.Hash(:);
     
-    if value.symbol_id > 0 && all(obj.symbol_id >= 0, 'all')
+    if value.symbol_id > 0 && all(obj.symbol_id(:) >= 0)
          obj.symbol_id(indices{:}) = value.symbol_id(:);
          obj.symbol_conjugated(indices{:}) = value.symbol_conjugated(:);
          obj.real_basis_index(indices{:}) = value.real_basis_index(:);
@@ -69,7 +69,7 @@ function obj = mono_splice_broadcast(obj, indices, value)
     obj.Coefficient(indices{:}) = value.Coefficient;
     obj.Hash(indices{:}) = value.Hash;
     
-    if value.symbol_id > 0 && all(obj.symbol_id >= 0, 'all')
+    if value.symbol_id > 0 && all(obj.symbol_id(:) >= 0)
          obj.symbol_id(indices{:}) = value.symbol_id;
          obj.symbol_conjugated(indices{:}) = value.symbol_conjugated;
          obj.real_basis_index(indices{:}) = value.real_basis_index;

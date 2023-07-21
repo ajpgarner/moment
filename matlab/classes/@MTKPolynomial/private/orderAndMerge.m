@@ -47,8 +47,8 @@
 
     % Identify and remove zeros
     [coefs, mask] = obj.Scenario.Prune(coefs);            
-    if any(mask,'all')                
-        if all(mask,'all')
+    if any(mask(:))
+        if all(mask(:))
             val = MTKMonomial.empty(0, 1);
             return;
         else
