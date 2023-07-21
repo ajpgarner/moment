@@ -4,7 +4,7 @@ function val = ApplyRules(obj, rulebook )
 % Effectively applies rules to each constituent object in turn.
 
     % Promote to polynomial, then apply
-    obj_as_poly = MTKPolynomial(obj.Scenario, obj);
+    obj_as_poly = MTKPolynomial(obj);
     val = obj_as_poly.ApplyRules(rulebook);
         
 end 

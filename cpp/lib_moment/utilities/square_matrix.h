@@ -193,7 +193,7 @@ namespace Moment {
                 const auto old_data_iter = this->data.begin() + (i * this->dimension);
                 const auto old_data_iter_end = this->data.begin() + ((i+1) * this->dimension);
                 // Copy
-                new_data.insert(new_data.end(), old_data_iter, old_data_iter_end);
+                std::copy(old_data_iter, old_data_iter_end, std::back_inserter(new_data));
                 // Pad
                 new_data.insert(new_data.end(), padding, zero);
             }
