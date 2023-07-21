@@ -407,10 +407,8 @@ classdef LocalityScenario < MTKScenario
         %
         % See also: Locality.FullCorrelator, Abstract.RealObject
         %
-            arguments
-                obj (1,1) LocalityScenario
-                tensor
-            end
+  
+			assert(nargin == 2);
             
             fc = obj.FullCorrelator;
             val = fc.linfunc(tensor);
@@ -440,14 +438,11 @@ classdef LocalityScenario < MTKScenario
         %
         % See also: Locality.FullCorrelator
         %
-            arguments
-                obj (1,1) LocalityScenario
-                indexA (1,1) uint64
-                indexB (1,1) uint64
-            end
+    
+			assert(nargin == 3);
             
             fc = obj.FullCorrelator;
-            val = fc(indexA, indexB);           
+            val = fc(uint64(indexA), uint64(indexB));
         end
         
         
@@ -470,15 +465,14 @@ classdef LocalityScenario < MTKScenario
         %
         % See also: Locality.CollinsGisin, Abstract.RealObject
         %
-        arguments
-            obj (1,1) LocalityScenario
-            tensor double
-        end
+        
+			assert(nargin == 2 && isnumeric(tensor));
+		
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT_NoMS);
             end
             fc = Locality.CollinsGisin(obj);
-            val = fc.linfunc(tensor);
+            val = fc.linfunc(double(tensor));
         end
     end
     

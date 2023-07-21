@@ -22,10 +22,14 @@ classdef Group < handle
             %   scenario - Scenario object that the symmetry will act on.
             %   generators - Generators of the symmetry.
             %
-            arguments
-                scenario (1,1) MTKScenario
-                generators (1,:) cell
-            end
+   
+			% Basic validation
+			if nargin < 1 || ~isa(scenario, 'MTKScenario')
+				error("First argument must be a scenario.");
+			end
+			if nargin < 2 || ~iscell(generators)
+				error("Second argument should be provided as cell array");
+			end
             
             % Record scenario
             obj.Scenario = scenario;

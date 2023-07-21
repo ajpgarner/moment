@@ -5,11 +5,17 @@ function output = WordListCell(obj, length, register)
 %  length - The maximum length monomial to generate
 %  register - Set true to register generated monomials as symbols.
 %
-    arguments
-        obj(1,1) MTKScenario
-        length(1,1) uint64
-        register(1,1) logical = false
-    end
+
+	if (nargin < 2) || (numel(length)~=1) || (length < 0)
+		error("Must specify a positive maximum word length.");
+	else
+		length = uint64(length);
+	end
+	
+	if nargin < 3
+		register = false;
+	end
+	
 
     extra_args = cell(1,0);
     if register

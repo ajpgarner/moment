@@ -185,15 +185,19 @@ classdef AlgebraicScenario < MTKScenario
         %
         % RETURNS:
         %   Logical true if the (extended) ruleset is confluent afterwards.
-            arguments
-                obj (1,1) AlgebraicScenario
-                attempts (1,1) uint64
-                verbose (1,1) logical = false
-            end
+   
+			% Validate
+			if nargin < 2
+				attempts = uint64(20);
+			else
+				attempts = uint64(attempts);
+			end	
 
-            if nargin <= 2
+            if nargin < 3
             	verbose = false;
-            end
+            else
+				verbose = logical(verbose);
+			end
 
             obj.errorIfLocked();
             success = obj.OperatorRulebook.Complete(attempts, verbose);
@@ -205,9 +209,6 @@ classdef AlgebraicScenario < MTKScenario
     methods(Access={?MTKScenario,?MTKMatrixSystem})    
         function ref_id = createNewMatrixSystem(obj)        
         % CREATENEWMATRIXSYSTEM Invoke mtk to create matrix system.
-            arguments
-                obj (1,1) AlgebraicScenario
-            end
             
             nams_args = cell(1,0);
             if isempty(obj.listed_operator_names)

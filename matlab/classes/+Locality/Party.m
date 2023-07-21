@@ -15,12 +15,12 @@ classdef Party < handle
         %PARTY Construct a party 
         % (Private c'tor. To construct, use Scenario.AddParty.)
             
-            arguments
-                setting (1,1) LocalityScenario
-                id (1,1) uint64 {mustBeInteger, mustBePositive}
-                name (1,1) string = ""
-            end
-            
+			% Validate:
+			assert(nargin>=2 && isa(setting, 'LocalityScenario'));
+			id = uint64(id);
+			if nargin<3
+				name = "";
+			end
             
             import MTKUtil.alphabetic_index
             
@@ -47,11 +47,18 @@ classdef Party < handle
     
     methods
         function mmt = AddMeasurement(obj, num_outcomes, name)
-            arguments
-                obj Locality.Party                
-                num_outcomes (1,1) uint64 {mustBeInteger, mustBePositive}
-                name (1,1) string = ""
-            end
+            
+			% Validate
+			if (nargin < 2) || (num_outcomes <= 0)
+				error("Must specify positive number of outcomes for party.");
+			else
+				num_outcomes = uint64(num_outcomes);
+			end
+			
+			if nargin < 3
+				name = "";
+			end
+			
             import Locality.Measurement
             import MTKUtil.alphabetic_index
             

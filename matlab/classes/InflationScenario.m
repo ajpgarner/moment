@@ -356,10 +356,10 @@ classdef InflationScenario < MTKScenario
         %   substituted by the number of the first fundamental operator
         %   associated with the observable. 
         %
-            arguments
-                obj (1,1) InflationScenario
-                array (:,:) uint64
-            end
+            
+			assert(nargin == 2);
+			array = uint64(array);
+			
             the_shape = size(array);
             array_row = array(:);            
             val = uint64(zeros(1, length(array_row)));
@@ -386,10 +386,11 @@ classdef InflationScenario < MTKScenario
         %   corresponding to the symbol representing the first operator
         %   associated with the specified observable.
         %        
-            arguments
-                obj (1,1) InflationScenario
-                input_list (1,:) cell
-            end
+  			
+			assert(nargin == 2 && iscell(input_list));
+			input_list = reshape(input_list, 1, []);
+			
+			
             for index = 1:length(input_list)
                 input_list{index} = ...
                     obj.ObservablesToOperators(input_list{index});

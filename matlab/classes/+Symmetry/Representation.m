@@ -14,11 +14,14 @@ classdef Representation
     
     methods
         function obj = Representation(group, elements)
-            arguments
-                group (1,1) Symmetry.Group
-                elements (1,:) cell
+ 			
+			if nargin < 1 || ~isa(group, 'Symmetry.Group')
+				error("First argument must be a group.");
+			end
+			if nargin < 2 || ~iscell(elements)
+				error("Second argument must be a cell array.");
             end
-            
+			
             obj.Group = group;
             
             if ~isempty(elements)
