@@ -187,7 +187,7 @@ classdef MTKMonomial < MTKObject
         function sym = MTKSymbolicObject(obj)
         %MTKSYMBOLICOBJECT Convert to symbolic object.
         % Only works if symbols can be identified.
-            if ~all(obj.FoundSymbol, 'all')
+            if ~all(obj.FoundSymbol(:))
                 error("Cannot convert to symbolic object before symbols are identified.");
             end
            

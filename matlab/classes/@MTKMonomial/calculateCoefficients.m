@@ -1,7 +1,7 @@
  function [re, im] = calculateCoefficients(obj)
 
     % Early exit if we can't get symbol information...
-    if ~all(obj.SymbolId >= 0, 'all')
+    if ~all(obj.SymbolId(:) >= 0)
         error("Symbols are not yet all registered in matrix system.");
     end 
 

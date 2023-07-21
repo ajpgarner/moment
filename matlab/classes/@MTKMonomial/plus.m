@@ -77,7 +77,7 @@
         if all(cellfun(@(x) isequal(this.Operators, x), other.Operators))
             [coef, mask] = this.Scenario.Prune(this.Coefficient...
                                              + other.Coefficient);
-            if any(mask, 'all')
+            if any(mask(:))
                new_ops = other.Operators;
                new_ops{mask} = [];
                val = MTKMonomial(this.Scenario, new_ops, coef); 
@@ -95,7 +95,7 @@
                 this.Operators))
             [coef, mask] = this.Scenario.Prune(this.Coefficient...
                                              + other.Coefficient);
-            if any(mask, 'all')
+            if any(mask(:))
                 new_ops = this.Operators;
                 new_ops{mask} = [];
                 val = MTKMonomial(this.Scenario, new_ops, coef);
@@ -113,7 +113,7 @@
                 this.Operators, other.Operators))
             [coef, mask] = this.Scenario.Prune(this.Coefficient ...
                                               + other.Coefficient);
-            if any(mask, 'all')
+            if any(mask(:))
                 new_ops = this.Operators;
                 new_ops{mask} = [];
                 val = MTKMonomial(this.Scenario, new_ops, coef);

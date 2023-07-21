@@ -17,7 +17,8 @@
             end
         case '()'
             % Do not currently handle logical indexing
-            if any(cellfun( @(x) isa(x, 'logical'), s(1).subs), 'all')                       
+            logical_indices = cellfun( @(x) isa(x, 'logical'), s(1).subs);
+            if any(logical_indices(:))
                 error("Logical indexing not supported.");
             end
             

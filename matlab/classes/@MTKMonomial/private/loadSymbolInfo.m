@@ -12,5 +12,5 @@
      obj.is_alias] = obj.queryForSymbolInfo();
     
     % Success, if all symbols now identified.
-    success = all(obj.symbol_id >= 0, 'all');
+    success = all(obj.symbol_id(:) >= 0);
  end
