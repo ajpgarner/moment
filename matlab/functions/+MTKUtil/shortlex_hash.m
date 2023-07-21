@@ -4,11 +4,13 @@ function hash = shortlex_hash(op_count, sequence)
 % PARAMS
 %   op_count - The number of operators (including complex conjugates)
 %   sequence - The operator string to hash
-    arguments
-        op_count (1,1) uint64
-        sequence (1,:) uint64
-    end
+
+    % Validate
+    assert(nargin==2 && numel(op_count)==1);
+    op_count = uint64(op_count);
+    sequence = reshape(uint64(sequence), 1, []);
     
+    % Calculate
     hash = 1;
     stride = uint64(1);
     for index = length(sequence):-1:1

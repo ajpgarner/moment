@@ -9,7 +9,7 @@
     switch obj.DimensionType
         case 0 % SCALAR                    
             sys = obj.Scenario.System;
-            re = zeros(double(sys.RealVarCount), 1, 'like' sparse(1i));
+            re = zeros(double(sys.RealVarCount), 1, 'like', sparse(1i));
             if obj.re_basis_index > 0
                 re(obj.re_basis_index) = obj.Coefficient;
             end
@@ -36,7 +36,7 @@
     switch obj.DimensionType
         case 0 % SCALAR
             sys = obj.Scenario.System;
-			im = zeros(double(sys.ImaginaryVarCount), 1, 'like' sparse(1i));
+			im = zeros(double(sys.ImaginaryVarCount), 1, 'like', sparse(1i));
             if obj.im_basis_index > 0
                 if obj.SymbolConjugated
                     im(obj.im_basis_index) = -1i * obj.Coefficient;

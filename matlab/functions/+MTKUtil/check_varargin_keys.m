@@ -1,10 +1,10 @@
 function input = check_varargin_keys(allowed_keys, input, func_name)
 %CHECK_VARARGIN_KEYS 
-    arguments
-        allowed_keys (1,:) string
-        input (1,:) cell
-        func_name (1,1) string = ""
-    end
+        
+    % Validate the validation...!
+    assert(nargin >= 2);    
+    allowed_keys = string(reshape(allowed_keys, 1, []));
+    input = reshape(input, 1, []);
     
     % Reflection to get function name
     if nargin < 3 || isempty(func_name) || isequal(func_name, "")

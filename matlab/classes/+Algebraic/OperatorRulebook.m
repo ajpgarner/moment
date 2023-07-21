@@ -219,7 +219,7 @@ classdef OperatorRulebook < handle
         %   anti_comm - Set to true to make an anti-commutator instead:
         %
         
-            % Validate arguments
+            % Validate
             assert(nargin>=3);
             lhs = reshape(lhs, 1, []);
             rhs = reshape(rhs, 1, []);             
@@ -259,7 +259,7 @@ classdef OperatorRulebook < handle
         %   projective.
         %
             
-            % Validate arguments
+            % Validate
             assert(nargin>=2);
             symbol = reshape(symbol, 1, []);
             
@@ -278,7 +278,7 @@ classdef OperatorRulebook < handle
         %   symbol - The operator, or operator sequence, that is Hermitian.
         %
            
-            % Validate arguments
+            % Validate
             assert(nargin>=2);
             symbol = reshape(symbol, 1, []);
             
@@ -296,7 +296,7 @@ classdef OperatorRulebook < handle
         %
 
         
-            % Validate arguments
+            % Validate
             assert(nargin>=2);
             symbol = reshape(symbol, 1, []);
 
@@ -315,7 +315,7 @@ classdef OperatorRulebook < handle
         %   symbol - The operator, or operator sequence, that is self-inverse.
         %
             
-            % Validate arguments
+            % Validate
             assert(nargin>=2);
             symbol = reshape(symbol, 1, []);
             
@@ -340,7 +340,7 @@ classdef OperatorRulebook < handle
         %
         % See also: ALGEBRAICSCENARIO.COMPLETE
         
-            % Validate arguments
+            % Validate
             if nargin < 2
                 max_iterations = 20;
             else
@@ -430,7 +430,7 @@ classdef OperatorRulebook < handle
         %   input - The cell array to parse.
         %
             
-            % Validate arguments
+            % Validate
             if nargin < 2 || ~iscell(input)
                 error("Must specify cell array input.");
             end

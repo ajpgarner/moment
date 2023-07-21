@@ -2,10 +2,10 @@ function output = commuting_sequences(operators, level)
 %COMMUTING_SEQUENCES Generate all commuting sequences of a certain length.
 %
 
-    arguments
-        operators (1,1) uint64
-        level (1,1) uint64
-    end
+    % Validate arguments
+    assert(nargin == 2 && numel(operators)==1 && numel(level) ==1)
+    operators = uint64(operators);
+    level = uint64(level);
 
     % Level 0, just identity
     if level <= 0
