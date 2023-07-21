@@ -5,7 +5,7 @@ function spliceOut(output, source, indices)
         assert(output.IsScalar);
         output.Operators = source.Operators;
     else
-        output.Operators = source.Operators{indices{:}};
+        output.Operators = source.Operators(indices{:});
     end
     output.Coefficient = source.Coefficient(indices{:});
     output.Hash = source.Hash(indices{:});
