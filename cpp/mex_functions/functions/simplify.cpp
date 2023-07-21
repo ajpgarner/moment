@@ -249,11 +249,10 @@ namespace Moment::mex::functions {
 
     void Simplify::simplify_operator(IOArgumentRange& output, SimplifyParams &input,
                                       const MatrixSystem &matrixSystem) {
-        assert(input.operator_string.size() == 1);
 
         const Context& context = matrixSystem.Context();
-
         process_input_string(matlabEngine, context, input);
+        assert(input.operator_string.size() == 1);
         sequence_storage_t rawOpStr{input.operator_string[0].begin(), input.operator_string[0].end()};
         OperatorSequence opSeq{std::move(rawOpStr), context};
 

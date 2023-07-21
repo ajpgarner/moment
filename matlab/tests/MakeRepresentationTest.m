@@ -17,7 +17,8 @@ classdef MakeRepresentationTest < MTKTestBase
         function add_chsh(testCase)
             base_id = mtk('locality_matrix_system', 2, 2, 2);
             [ref_id,elems] = mtk('symmetrized_matrix_system', ...
-                              base_id, testCase.chsh_generators, 2);                
+                              base_id, testCase.chsh_generators, ...
+                              'max_word_length', 2);                
             testCase.verifyGreaterThanOrEqual(ref_id,0);
             testCase.verifyEqual(length(elems), 16);
             
