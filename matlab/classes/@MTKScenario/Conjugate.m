@@ -8,10 +8,6 @@
  % The optional hash is the shortlex hash associated with this 
  % context.
  %
-     arguments
-         obj(1,1) MTKScenario
-         input
-     end
 
      assert(isnumeric(input) || iscell(input));
      

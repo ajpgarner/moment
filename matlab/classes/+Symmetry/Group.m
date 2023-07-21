@@ -76,10 +76,11 @@ classdef Group < handle
         % PARAMS
         %   word_length - The polynomial order of the representation.
         %
-            arguments
-                obj (1,1) Symmetry.Group
-                word_length (1,:) uint64
-            end
+            
+			if nargin ~= 2
+				error("Must specify word length for representation.");
+			end
+			word_length = uint64(word_length);
             
             % Already generated?
             if obj.representations.isKey(word_length)

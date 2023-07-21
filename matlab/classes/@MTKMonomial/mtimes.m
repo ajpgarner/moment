@@ -15,10 +15,6 @@ function val = mtimes(lhs, rhs)
 %
 % See also: ALGEBRAIC.POLYNOMIAL.MTIMES.
 %
-    arguments
-        lhs (:,:)
-        rhs (:,:)
-    end
 
     % Alias for .* if either side is a scalar.
     if numel(lhs)==1 || numel(rhs)==1

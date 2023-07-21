@@ -1,12 +1,10 @@
 function output = IsClose(obj, lhs, rhs, scale)
-      arguments
-         obj (1,1)  MTKScenario
-         lhs double,
-         rhs double
-         scale (1,1) double = 1.0;
-      end
      
-     % Hack for Mateus' ancient version of MATLAB
+     % Validate
+	 if nargin < 3
+		error("Must specify two values to compare.");
+	 end
+	 
      if nargin < 4
          scale = 1.0;
      end

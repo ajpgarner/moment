@@ -9,10 +9,7 @@
 %
 % See also: MTKMONOMIAL
 %
-    arguments
-        obj (1,1) AlgebraicScenario
-    end
-    
+     
     % Force generation of matrix system, if not already done
     obj.System;
     if obj.OperatorCount == 0

@@ -1,14 +1,11 @@
 function [val, mask, real_mask, im_mask] = Prune(obj, val, scale)
  % PRUNE Remove terms close to zero.
-     arguments
-         obj (1,1)  MTKScenario
-         val (:,:)  double
-         scale (1,1) double = 1.0;
-     end
-
-     if nargin < 3
-         scale = 1.0;
-     end
+    
+	assert(nargin >= 2 && isnumeric(val));
+	
+    if nargin < 3
+        scale = 1.0;
+    end
 
      % Zero, if close
      mask = abs(val) < (obj.ZeroTolerance * eps(scale));

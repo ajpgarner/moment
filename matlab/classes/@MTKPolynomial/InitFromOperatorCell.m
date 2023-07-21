@@ -1,8 +1,9 @@
 function obj = InitFromOperatorCell(setting, cell_input)
-    arguments
-        setting (1,1) MTKScenario
-        cell_input cell
-    end
+    
+	assert((nargin == 2) ...
+		&& isa(setting, 'MTKScenario') ...
+		&& iscell(cell_input));
+	
     dimensions = size(cell_input);
     
     % Special case 'empty':

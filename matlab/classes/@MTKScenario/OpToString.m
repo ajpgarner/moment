@@ -1,14 +1,12 @@
 function val = OpToString(obj, sequence)
 % OPTOSTRING Format operator sequence as a string object
-    arguments
-        obj MTKScenario
-        sequence (1,:) uint64
-    end
     
-    if isempty(sequence)
-        str= "I";
+    % Validate
+    if nargin < 2 || isempty(sequence)
+        str = "I";
         return
     end
+	sequence = reshape(uint64(sequence), 1, []);
     
     strs = obj.OperatorStrings
     

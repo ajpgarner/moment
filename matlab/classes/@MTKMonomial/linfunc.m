@@ -4,10 +4,12 @@ function val = linfunc(obj, tensor)
 % RETURN:
 %   A scalar polynomial.
 %
-    arguments
-        obj (:,:) MTKMonomial
-        tensor (:,:) double
-    end
+    
+	% Validate
+	if nargin < 2 || ~isnumeric(tensor)
+		error("linfunc expects a numeric argument.");
+	end
+	tensor = double(tensor);
     
     if ~isequal(size(tensor), size(obj))
         error("Expected input tensor with dimension " + mat2str(size(obj)));

@@ -1,7 +1,7 @@
 function obj = InitValue(setting, values)
 % INITVALUE Create an array of monomials representing scalar numeric values
     
-    % Check arguments
+    % Validate
     if nargin < 2 
         error("Must supply setting and values.");
     end    

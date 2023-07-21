@@ -12,10 +12,11 @@ function val = LocalizingMatrix(obj, level)
     % See also: OpMatrix.CompositeOperatorMatrix,
     %           OpMatrix.LocalizingMatrix
     %
-        arguments
-            obj (1,1) MTKPolynomial
-            level (1,1) uint64
-        end
+ 
+		if nargin<2 || ~isnumeric(level) || numel(level)~=1
+			error("Expected a numeric argument for the level.");
+		end
+		level = uint64(level);
 
         if ~obj.IsScalar
             error("Can only generate localizing matrices for scalar polynomials.");
