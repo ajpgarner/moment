@@ -412,11 +412,16 @@ classdef InflationScenario < MTKScenario
         %                use the instrinsic factorization relationships 
         %                to suggest extensions.
         %
-        arguments
-            obj (1,1) InflationScenario
-            level (1,1) uint64
-            extensions = 'auto';
-        end
+        
+            % Validate inputs
+            if nargin < 2 || ~isnumeric(level)
+                error("Must specify moment matrix level as first parameter.");
+            else
+                level = uint64(level);
+            end
+            if nargin < 3
+                extensions = 'auto';
+            end
         
             % Sanitize inputs
             level = uint64(level);
@@ -428,12 +433,13 @@ classdef InflationScenario < MTKScenario
             end
             
             % Call MTK to create
-            [index, dimension] = ...
+            [index, dimension, is_monomial, is_hermitian] = ...
                mtk('extended_matrix', obj.System.RefId, level, extensions);
                
             % Make wrapper object            
-            val = OpMatrix.OperatorMatrix(obj.System, index, dimension);
-            
+            val = MTKOpMatrix(obj, index, dimension, ...
+                              is_monomial, is_hermitian);
+                               
             % Symbol table update
             obj.System.UpdateSymbolTable();
         end

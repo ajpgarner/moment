@@ -105,7 +105,6 @@ namespace Moment {
                 auto raw_data = OperatorSequence::create_uninitialized_vector(dimension*dimension);
                 moment_matrix_generation_worker::create_execute_and_wait(context, colGen, rowGen, raw_data.data());
                 matrix_data.swap(raw_data);
-               // throw std::logic_error("Multithreading not supported.");
             }
 
 

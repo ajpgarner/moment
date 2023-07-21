@@ -1,33 +1,46 @@
-%%% Example inflation triangle, using distributions from arXiv:2203.16543
-%%%
-clear
-clear mtk
+%% Example: yalmip_inflation_triangle.m
+% Test triangle scenario of three binary observables, each pair-wise linked 
+% by a source, with probability distribution from arXiv:2203.16543
+%
+% Note: this is a non-trivial example, and may take a little time to solve!
+%
 
 %% Define triangle scenario and make moment matrix
 inflation_level = 2;
 moment_matrix_level = 2;
 triangle = InflationScenario(inflation_level, ...
-                             [4, 4, 4], ...
-                             {[1, 2], [2, 3], [1, 3]});
- 
+                             [4, 4, 4], ... % 4-nary measurements
+                             {[1, 2], [2, 3], [1, 3]}); % pair sources
+
+tic;
 moment_matrix = triangle.MomentMatrix(moment_matrix_level);
 extended_matrix = triangle.MakeExtendedMomentMatrix(moment_matrix_level);
+mm_gen_time = toc;
+fprintf("Generated base matrices in %f seconds.\n", mm_gen_time);
 
 %% Apply values
+tic;
+A00 = triangle.Observables(1).Variants(1);
+B00 = triangle.Observables(2).Variants(1);
+C00  = triangle.Observables(3).Variants(1);
+ABC = A00*B00*C00;
+
 distribution = make_distribution(0.9);
-symbol_assignments = triangle.GetAssignments(distribution);
+symbol_assignments = ABC.Probability(distribution, 'list');
 substitutions = MomentRulebook(triangle);
-substitutions.AddScalarSubstitutionCell(symbol_assignments);
+substitutions.AddFromList(symbol_assignments);
 subbed_matrix = substitutions.Apply(extended_matrix);
+sub_time = toc;
+fprintf("Calculated and applied substitutions in %f seconds.\n", sub_time);
 
 %% Define and solve SDP
 yalmip('clear');
 
 % Declare basis variables a (real)
-a = subbed_matrix.yalmipVars;
+a = triangle.yalmipVars;
 
 % Compose moment matrix from these basis variables
-M = subbed_matrix.yalmipRealMatrix(a);
+M = subbed_matrix.yalmip(a);
 
 % Constraints
 constraints = [a(1) == 1, M >= 0];

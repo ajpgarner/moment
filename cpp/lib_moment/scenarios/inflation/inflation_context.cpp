@@ -319,7 +319,8 @@ namespace Moment::Inflation {
 
             // Is this the lowest variant possible at this point?
             const auto &variantInfo = observableInfo.variants[opData.variant];
-            for (size_t s_index = 0, sMax = observableInfo.sources.size(); s_index < sMax; ++s_index) {
+            for (int s_index = observableInfo.sources.size()-1; s_index >= 0; --s_index) { // last-index-major
+
                 const auto src_id = observableInfo.sources[s_index];
                 assert(src_id < base_network.explicit_source_count());
                 const auto src_variant = variantInfo.indices[s_index];
@@ -361,7 +362,7 @@ namespace Moment::Inflation {
 
             // Is this the lowest variant possible at this point?
             const auto &variantInfo = observableInfo.variants[opData.variant];
-            for (size_t s_index = 0, sMax = observableInfo.sources.size(); s_index < sMax; ++s_index) {
+            for (int s_index = observableInfo.sources.size()-1; s_index >= 0; --s_index) { // last-index-major
                 const auto src_id = observableInfo.sources[s_index];
                 assert(src_id < base_network.explicit_source_count());
                 const auto src_variant = variantInfo.indices[s_index];
@@ -405,6 +406,12 @@ namespace Moment::Inflation {
 
             permuted_operators.push_back(permuted_variant.operator_offset + op_info.outcome);
         }
+
+        // If source-relabelling causes change in operator order, there could be further simplifications:
+        if (!std::is_sorted(permuted_operators.cbegin(), permuted_operators.cend())) {
+            return this->simplify_as_moment(OperatorSequence{std::move(permuted_operators), *this});
+        }
+
         return OperatorSequence{std::move(permuted_operators), *this};
     }
 

@@ -2,8 +2,6 @@
 % Demonstrates how substitutions on the level of moments can be performed,
 % to impose equality constraints.
 %
-clear
-clear mtk;
 
 %% Params
 mm_level = 1;

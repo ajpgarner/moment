@@ -30,6 +30,7 @@ add_executable(moment_tests
         scenarios/inflation/factor_table_tests.cpp
         scenarios/inflation/inflation_collins_gisin_tests.cpp
         scenarios/inflation/inflation_context_tests.cpp
+        scenarios/inflation/inflation_matrix_system_tests.cpp
         scenarios/inflation/inflation_probability_tensor_tests.cpp
         scenarios/locality/locality_collins_gisin_tests.cpp
         scenarios/locality/locality_context_tests.cpp
