@@ -10,10 +10,12 @@ classdef FullCorrelator < MTKPolynomial
     
     methods
         function obj = FullCorrelator(scenario)
-            arguments
-                scenario (1,1) LocalityScenario
-            end
-
+		
+            if ~isa(scenario, 'LocalityScenario')
+				error("Full correlator object only defined"...
+					  + " for locality scenario");
+			end
+			
             % Check scenario admits a full correlator
             if numel(scenario.Parties) ~= 2
                 error("Full correlator matrix is only defined between two parties.");

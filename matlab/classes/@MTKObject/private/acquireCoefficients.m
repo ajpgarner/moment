@@ -2,6 +2,7 @@
 % ACQUIRECOEFFICIENTS Try to find out coefficients.
     try
         [obj.real_coefs, obj.im_coefs] = obj.calculateCoefficients();
+               
         obj.has_cached_coefs = true;
         obj.needs_padding = false;
     catch error
