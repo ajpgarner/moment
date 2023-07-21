@@ -10,7 +10,7 @@
     
     % Semi-trivial cases (prune empty arrays!)
     non_empty_mask = ~cellfun(@isempty, varargin);
-    if ~any(non_empty_mask, 'all')
+    if ~any(non_empty_mask(:))
         output = MTKObject.empty(0,0);
         return;
     end
@@ -21,22 +21,20 @@
     end
 
     % Ensure all inputs are ComplexObjects
-    if ~all(cellfun(@(x) isa(x, 'MTKObject'), varargin), 'all')
+    is_object = cellfun(@(x) isa(x, 'MTKObject'), varargin);
+    if ~all(is_object(:))
         error("Can only concatenate MTKObjects");
     end
     
     % Disable concatenation from different scenarios
-    matching_scenario = ...
-        all(cellfun(@(x) (varargin{1}.Scenario == x.Scenario),...
-                          varargin), 'all');
-    if ~matching_scenario                
+    matching_scenario = cellfun(@(x) (varargin{1}.Scenario == x.Scenario), varargin);
+    if ~all(matching_scenario(:))
         error("Can only concatenate MTKObjects from the same scenario.");
     end
 
     % Disable hetrogenous concatenation
-    homogenous = all(cellfun(@(x) strcmp(class(x), class(varargin{1})),...
-                             varargin), 'all');
-    if ~homogenous
+    homogenous = cellfun(@(x) strcmp(class(x), class(varargin{1})), varargin);
+    if ~all(homogenous(:))
         % TODO: Cast to polynomial, and concatenate
         error("Can only concatenate MTKObjects of the same type.");
     end
@@ -44,9 +42,8 @@
 
     % Get output dimensions (fail if inconsistent)
     sizes = cellfun(@size, varargin, 'UniformOutput', false);
-    matching_tensor = all(numel(sizes{1}) == cellfun(@(x) numel(x),...
-                                                     sizes), 'all');
-    if ~matching_tensor
+    matching_tensor = (numel(sizes{1}) == cellfun(@(x) numel(x), sizes));
+    if ~all(matching_tensor(:))
         error("Cannot merge tensors of different dimensionality.");
     end
 
@@ -56,8 +53,8 @@
     cat_sizes = cellfun(@(x) x(join_dimension), sizes);
     non_cat_sizes = cellfun(@(x) x(nonjoin_dimensions), ...
                             sizes, 'UniformOutput', false);            
-    consistent = all(cellfun(@(x) (isequal(non_cat_sizes{1}, x)), non_cat_sizes), 'all');
-    if ~consistent
+    consistent = cellfun(@(x) (isequal(non_cat_sizes{1}, x)), non_cat_sizes);
+    if ~all(consistent(:))
         if numel(nonjoin_dimensions) == 1
             if join_dimension == 1
                 error("Cannot vertically concatenate objects with different column sizes.");
