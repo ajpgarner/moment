@@ -2,7 +2,7 @@ function symbol_cell = makeSymbolCell(obj)
 %MAKESYMBOLCELL Attempt to make symbol cell of object.
 
 
-    if any(obj.symbol_id == -1, 'all')    
+    if any(obj.symbol_id(:) == -1)
         error("Cannot make symbol cell representation before all symbols are identified.");
     end
             

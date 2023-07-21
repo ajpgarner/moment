@@ -29,8 +29,8 @@ classdef (InferiorClasses={?MTKMonomial, ?MTKPolynomial}) ...
             end
             
             % Determine if object is polynomial
-            obj.IsPolynomial = ...
-                    any(cellfun(@(x) numel(x) > 1, symbol_cell), 'all');                
+            is_polynomial = cellfun(@(x) numel(x) > 1, symbol_cell);
+            obj.IsPolynomial = any(is_polynomial(:));
         end
     end
     

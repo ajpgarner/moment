@@ -12,6 +12,6 @@ function result = isequal(lhs, rhs)
         return
     end
     
-    result = all(eq(lhs, rhs), 'all');
+    result = all(eq(lhs(:), rhs(:)));
 end
 

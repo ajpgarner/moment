@@ -2,12 +2,12 @@
  
     % Early exit if we can't get symbol information for all parts...
     if obj.IsScalar                
-        if ~all(obj.Constituents.FoundSymbol, 'all')
+        if ~all(obj.Constituents.FoundSymbol(:))
             error(obj.err_missing_symbol);
         end
     else
-        if ~all(cellfun(@(c) all(c.FoundSymbol, 'all'), ...
-                obj.Constituents), 'all')
+        found_symbols = cellfun(@(c) all(c.FoundSymbol(:)), obj.Constituents);
+        if ~all(found_symbols(:))
             error(obj.err_missing_symbol);
         end
     end
