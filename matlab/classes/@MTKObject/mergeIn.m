@@ -44,7 +44,8 @@ function merge_type = mergeIn(obj, merge_dim, offsets, objects)
 
 
     % Only merge coefficients if all non-empty objects have them:
-    if (all(cellfun(@(x) (x.has_cached_coefs), objects)))
+    hcc = cellfun(@(x) (x.has_cached_coefs), objects);
+    if (all(hcc(:)))
 
         % Do padding on sub-elements, if required
         for idx = 1:numel(objects)

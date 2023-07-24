@@ -13,23 +13,8 @@
             if obj.re_basis_index > 0
                 re(obj.re_basis_index) = obj.Coefficient;
             end
-        case 1
-            re = makeColOfRealCoefficientsRV(obj);
-        case 2 % ROW- and COL-VECTOR
-            re = makeColOfRealCoefficients(obj, 1);
-        otherwise                    
-            dims = size(obj);
-            if length(dims) <= 2
-                re = cell(dims(2), 1);
-            else
-                celldims = cell(dims);
-                re = cell(celldims{2:end});
-            end
-
-            % Iterate over remaining dimensions
-            for idx = 1:prod(dims(2:end))
-                re{idx} = makeColOfRealCoefficients(obj, idx);
-            end
+        otherwise
+            re = makeMonolithicRealCoefficients(obj);            
     end
 
     % Imaginary coefficients
@@ -43,84 +28,45 @@
                 else
                     im(obj.im_basis_index) = 1i * obj.Coefficient;
                 end
-            end
-        case 1
-            im = makeColOfImaginaryCoefficientsRV(obj);
-        case 2 % ROW- and COL-VECTOR
-            im = makeColOfImaginaryCoefficients(obj, 1);
-        otherwise
-             dims = size(obj);
-            if length(dims) <= 2
-                im = cell(dims(2), 1);
-            else
-                celldims = cell(dims);
-                im = cell(celldims{2:end});
-            end
-
-            % Iterate over remaining dimensions
-            for idx = 1:prod(dims(2:end))
-                im{idx} = makeColOfImaginaryCoefficients(obj, idx);
-            end
+            end        
+        otherwise             
+             im = makeMonolithicImaginaryCoefficients(obj);
+                   
+                   
     end
  end
 
 %% Private functions
-function val = makeColOfImaginaryCoefficients(obj, index)
-    im_var_count = double(obj.Scenario.System.ImaginaryVarCount);
-    num_cols = size(obj, 1);
+function re = makeMonolithicRealCoefficients(obj)  
+    nz_mask = obj.re_basis_index > 0;
+    nz_cols = find(obj.re_basis_index > 0);
+    nz_rows = double(obj.re_basis_index(nz_mask));
+    
+    re = sparse(nz_rows, nz_cols, obj.Coefficient(nz_mask), ...
+                double(obj.Scenario.System.RealVarCount), numel(obj));
+            
+    % Hack for old version of matlab where complex(sparse(...)) fails.
+    zero = zeros(double(obj.Scenario.System.RealVarCount), 0, ...
+                 'like', sparse(1i));
+    re = [zero, re];
 
-    imbi = double(reshape(obj.im_basis_index(:, index), 1, []));
-    imbi_mask = imbi > 0;
-	val = zeros(im_var_count, num_cols, 'like', sparse(1i));
-    idx = im_var_count * (0:(num_cols-1)) + imbi;
-    idx = idx(imbi_mask);
-
-    values = (1i * ~obj.symbol_conjugated(imbi_mask)) + ...
-        -1i * obj.symbol_conjugated(imbi_mask);
-    values = values .* obj.Coefficient(imbi_mask, index);
-    val(idx) = values;
 end
 
-function val = makeColOfImaginaryCoefficientsRV(obj)
-    im_var_count = double(obj.Scenario.System.ImaginaryVarCount);
-    num_cols = size(obj, 2);
+function im = makeMonolithicImaginaryCoefficients(obj)
+    nz_mask = obj.im_basis_index > 0;
+    nz_cols = find(obj.im_basis_index > 0);
+    nz_rows = double(obj.im_basis_index(nz_mask));
+    
+    values = (1i * ~obj.symbol_conjugated(nz_mask)) + ...
+        -1i * obj.symbol_conjugated(nz_mask);
+    values = values .* obj.Coefficient(nz_mask);
+    
+    im = sparse(nz_rows, nz_cols, values, ...
+                double(obj.Scenario.System.ImaginaryVarCount), numel(obj));
+    
+    % Hack for old version of matlab where complex(sparse(...)) fails.
+    zero = zeros(double(obj.Scenario.System.ImaginaryVarCount), 0, ...
+                 'like', sparse(1i));
+    im = [zero, im];
 
-    imbi = double(obj.im_basis_index);
-    imbi_mask = imbi > 0;
-	val = zeros(im_var_count, num_cols, 'like', sparse(1i));
-    idx = im_var_count * (0:(num_cols-1)) + imbi;
-    idx = idx(imbi_mask);
-
-    values = (1i * ~obj.symbol_conjugated(imbi_mask)) + ...
-        -1i * obj.symbol_conjugated(imbi_mask);
-    values = values .* obj.Coefficient(imbi_mask);
-    val(idx) = values;
-end
-
-function val = makeColOfRealCoefficients(obj, index)
-    re_var_count = double(obj.Scenario.System.RealVarCount);
-    num_cols = size(obj, 1);
-
-    rebi = double(reshape(obj.re_basis_index(:, index), 1, []));	
-    rebi_mask = rebi > 0;
-
-	val = zeros(re_var_count, num_cols, 'like', sparse(1i));
-    idx = re_var_count * (0:(num_cols-1)) + rebi;
-    idx = idx(rebi_mask);
-
-    val(idx) = obj.Coefficient(rebi_mask, index);
-end
-
-function val = makeColOfRealCoefficientsRV(obj)
-    re_var_count = double(obj.Scenario.System.RealVarCount);
-    num_cols = size(obj, 2);
-
-    rebi = double(obj.re_basis_index);
-    rebi_mask = rebi > 0;
-
-    val = zeros(re_var_count, num_cols, 'like', sparse(1i));
-    idx = re_var_count * (0:(num_cols-1)) + rebi;
-    idx = idx(rebi_mask);
-
-    val(idx) = obj.Coefficient(rebi_mask);
 end
