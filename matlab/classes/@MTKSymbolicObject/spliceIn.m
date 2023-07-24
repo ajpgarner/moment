@@ -27,5 +27,5 @@ function obj = so_splice_array(obj, indices, value)
 end
 
 function obj = so_splice_broadcast(obj, indices, value)
-    [obj.SymbolCell{indices{:}}] = deal(value.SymbolCell);
+    [obj.SymbolCell{indices{:}}] = deal(value.SymbolCell{1});
 end
