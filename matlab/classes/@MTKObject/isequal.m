@@ -12,6 +12,7 @@ function result = isequal(lhs, rhs)
         return
     end
     
-    result = all(eq(lhs(:), rhs(:)));
+    all_equal = eq(lhs(:), rhs(:));
+    result = all(all_equal(:));
 end
 
