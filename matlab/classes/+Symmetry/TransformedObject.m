@@ -37,7 +37,8 @@ classdef (InferiorClasses={?MTKMonomial, ?MTKPolynomial}) ...
                                    scenario.System.RefId, cell_input);
  
             % Call parent constructor
-            obj = obj@MTKSymbolicObject(scenario, transformed_cell, 'raw');
+            obj = obj@MTKSymbolicObject(scenario, transformed_cell, ...
+                                        'raw', 'read_only');
             obj.BaseObject = base_object;            
         end
     end

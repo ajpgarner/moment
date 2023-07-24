@@ -13,11 +13,27 @@ classdef (InferiorClasses={?MTKMonomial, ?MTKPolynomial}) ...
     methods
         function obj = MTKSymbolicObject(scenario, symbol_cell, varargin)
         %MTKSYMBOLICOBJECT Construct an instance of this class.        
-           
-            dimensions = size(symbol_cell);            
-            obj = obj@MTKObject(scenario, dimensions, true);
             
-            raw = (numel(varargin) >= 1) && strcmp(varargin{1}, 'raw');
+            overwrite = false;
+            raw = false;
+            read_only = false;
+            if numel(varargin) >= 1
+                if any(cellfun(@(x) strcmp(x, 'overwrite'), varargin))
+                    overwrite = true;
+                    raw = true;
+                end
+                if any(cellfun(@(x) strcmp(x, 'raw'), varargin))
+                    raw = true;
+                end
+                if any(cellfun(@(x) strcmp(x, 'read_only'), varargin))
+                    read_only = true;
+                end                    
+            end
+            
+            
+            dimensions = size(symbol_cell);            
+            obj = obj@MTKObject(scenario, dimensions, read_only);
+           
             
             % Put polynomials into canonical form
             if raw 
@@ -28,20 +44,33 @@ classdef (InferiorClasses={?MTKMonomial, ?MTKPolynomial}) ...
             end
             
             % Determine if object is polynomial
-            is_polynomial = cellfun(@(x) numel(x) > 1, symbol_cell);
-            obj.IsPolynomial = any(is_polynomial(:));
+            if ~overwrite
+                obj.IsPolynomial = test_if_polynomial(obj);
+            end
         end
     end
     
     %% Named constructors
     methods(Static)
         obj = InitValue(scenario, values);
+        
+        function obj = InitForOverwrite(scenario, dimensions)
+            obj = MTKSymbolicObject(scenario, ...
+                                    cell(dimensions), 'overwrite');
+        end
     end
     
     %% Overriden virtual methods
     methods(Access=protected)
         str = makeObjectName(obj);
+        
         [re, im] = calculateCoefficients(obj)
+        
+        mergeIn(obj, merge_dim, offsets, objects);        
+        
+        mode = spliceIn(obj, indices, value);        
+        spliceOut(output, source, indices);
+        [output, matched] = spliceProperty(obj, indices, propertyName);
     end
 
 end
