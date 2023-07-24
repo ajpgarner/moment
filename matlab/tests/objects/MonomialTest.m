@@ -1,6 +1,303 @@
 classdef MonomialTest < MTKTestBase
 %MONOMIALTEST Tests for MTKMonomial.
 
+%% Construction and symbol look-up
+methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'symbol'})
+    function construct_x(testCase)
+        setting = AlgebraicScenario(2);
+        x = MTKMonomial(setting, [1], -2.0);
+        
+        testCase.assertEqual(size(x), [1 1]);
+        testCase.assertEqual(numel(x), 1);
+        testCase.assertTrue(x.IsScalar);
+        testCase.verifyEqual(x.Operators, uint64(1));
+        testCase.verifyEqual(x.Coefficient, -2.0);
+        testCase.verifyEqual(x.Hash, uint64(2));
+        testCase.verifyFalse(x.FoundSymbol);
+        testCase.verifyFalse(x.IsZero);
+        
+        setting.WordList(1, true); % Build symbols
+        
+        testCase.verifyTrue(x.FoundSymbol);
+        testCase.verifyEqual(x.SymbolId, int64(2));
+        testCase.verifyEqual(x.RealBasisIndex, uint64(2));
+        testCase.verifyEqual(x.ImaginaryBasisIndex, uint64(0));
+    end
+    
+    function construct_xy(testCase)
+        setting = AlgebraicScenario(2);
+        xy = MTKMonomial(setting, [1, 2], 1.0 - 3.0i);
+        
+        testCase.assertEqual(size(xy), [1 1]);
+        testCase.assertEqual(numel(xy), 1);
+        testCase.assertTrue(xy.IsScalar);
+        testCase.verifyEqual(xy.Operators, uint64([1, 2]));
+        testCase.verifyEqual(xy.Coefficient, 1.0 - 3.0i);
+        testCase.verifyEqual(xy.Hash, uint64(5));
+        testCase.verifyFalse(xy.FoundSymbol);
+        testCase.verifyFalse(xy.IsZero);
+        
+        setting.WordList(2, true); % Build and register symbols
+        
+        testCase.verifyTrue(xy.FoundSymbol);
+        testCase.verifyEqual(xy.SymbolId, int64(5));
+        testCase.verifyEqual(xy.RealBasisIndex, uint64(5));
+        testCase.verifyEqual(xy.ImaginaryBasisIndex, uint64(1));
+    end
+    
+    function construct_row_vector(testCase)
+        setting = AlgebraicScenario(2);
+        x_y = MTKMonomial(setting, {[1], [2]}, 10.0);
+        
+        testCase.assertEqual(size(x_y), [1 2]);
+        testCase.assertEqual(numel(x_y), 2);
+        testCase.assertFalse(x_y.IsScalar);
+        testCase.assertTrue(x_y.IsVector);
+        testCase.assertTrue(x_y.IsRowVector);
+        testCase.verifyEqual(x_y.Operators, {uint64(1), uint64(2)});
+        testCase.verifyEqual(x_y.Coefficient, [10, 10]);
+        testCase.verifyEqual(x_y.Hash, uint64([2, 3]));
+        testCase.verifyEqual(x_y.FoundSymbol, [false false]);
+        testCase.verifyEqual(x_y.IsZero, [false false]);
+        
+        setting.WordList(1, true); % Build and register symbols        
+        testCase.verifyEqual(x_y.FoundSymbol, [true, true]);
+        testCase.verifyEqual(x_y.SymbolId, int64([2 3]));
+        testCase.verifyEqual(x_y.RealBasisIndex, uint64([2 3]));
+        testCase.verifyEqual(x_y.ImaginaryBasisIndex, uint64([0 0]));
+    end
+ 
+    function construct_col_vector(testCase)
+        setting = AlgebraicScenario(2);
+        x_y = MTKMonomial(setting, {[1]; [2]}, 10.0);
+        
+        testCase.assertEqual(size(x_y), [2 1]);
+        testCase.assertEqual(numel(x_y), 2);
+        testCase.assertFalse(x_y.IsScalar);
+        testCase.assertTrue(x_y.IsVector);
+        testCase.assertTrue(x_y.IsColVector);
+        testCase.verifyEqual(x_y.Operators, {uint64(1); uint64(2)});
+        testCase.verifyEqual(x_y.Coefficient, [10; 10]);
+        testCase.verifyEqual(x_y.Hash, uint64([2; 3]));
+        testCase.verifyEqual(x_y.FoundSymbol, [false; false]);
+        testCase.verifyEqual(x_y.IsZero, [false; false]);
+        
+        setting.WordList(1, true); % Build and register symbols        
+        testCase.verifyEqual(x_y.FoundSymbol, [true; true]);
+        testCase.verifyEqual(x_y.SymbolId, int64([2; 3]));
+        testCase.verifyEqual(x_y.RealBasisIndex, uint64([2; 3]));
+        testCase.verifyEqual(x_y.ImaginaryBasisIndex, uint64([0; 0]));
+    end
+    
+     function construct_matrix(testCase)
+        setting = AlgebraicScenario(2);
+        mat = MTKMonomial(setting, {[1], [2]; [2], [1 2]}, ...
+                                    [1.0, 2.0; 3.0, 4.0]); %x y; x xy
+        
+        testCase.assertEqual(size(mat), [2 2]);
+        testCase.assertEqual(numel(mat), 4);
+        testCase.assertFalse(mat.IsScalar);
+        testCase.assertFalse(mat.IsVector);
+        testCase.assertFalse(mat.IsRowVector);
+        testCase.assertFalse(mat.IsColVector);
+        testCase.assertTrue(mat.IsMatrix);
+        testCase.verifyEqual(mat.Operators, {uint64(1), uint64(2); ...
+                                             uint64(2), uint64([1, 2])});
+        testCase.verifyEqual(mat.Coefficient, [1, 2; 3, 4]);
+        testCase.verifyEqual(mat.Hash, uint64([2, 3; 3, 5]));
+        testCase.verifyEqual(mat.FoundSymbol, false(2,2));
+        testCase.verifyEqual(mat.IsZero, false(2,2));
+        
+        setting.WordList(2, true); % Build and register symbols        
+        testCase.verifyEqual(mat.FoundSymbol, true(2,2));
+        testCase.verifyEqual(mat.SymbolId, int64([2, 3; 3, 5]));
+        testCase.verifyEqual(mat.RealBasisIndex, uint64([2, 3; 3, 5]));
+        testCase.verifyEqual(mat.ImaginaryBasisIndex, uint64([0, 0;0, 1]));
+    end
+end
+
+%% Splice out / subsref
+methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'subsref'})
+    
+    function spliceout_no_symbols(testCase)
+        setting = AlgebraicScenario(4);
+        mat = MTKMonomial(setting, {[1], [2]; [3], [4]}, ...
+                                    [1.0, 2.0; 3.0, 4.0]);
+                                
+        xy = mat(1,:);
+        testCase.assertEqual(size(xy), [1 2]);
+        testCase.assertTrue(isa(xy, 'MTKMonomial'));
+        testCase.verifyEqual(xy.Operators, {uint64(1), uint64(2)});
+        testCase.verifyEqual(xy.Coefficient, [1.0, 2.0]);
+        testCase.verifyEqual(xy.Hash, uint64([2 3]));
+        
+        wz = mat(2,:);
+        testCase.assertEqual(size(wz), [1 2]);
+        testCase.assertTrue(isa(wz, 'MTKMonomial'));
+        testCase.verifyEqual(wz.Operators, {uint64(3), uint64(4)});
+        testCase.verifyEqual(wz.Coefficient, [3.0, 4.0]);
+        testCase.verifyEqual(wz.Hash, uint64([4 5]));
+        
+        xw = mat(:,1);
+        testCase.assertEqual(size(xw), [2 1]);
+        testCase.assertTrue(isa(xw, 'MTKMonomial'));
+        testCase.verifyEqual(xw.Operators, {uint64(1); uint64(3)});
+        testCase.verifyEqual(xw.Coefficient, [1.0; 3.0]);
+        testCase.verifyEqual(xw.Hash, uint64([2; 4]));
+        
+        yz = mat(:,2);
+        testCase.assertEqual(size(yz), [2 1]);
+        testCase.assertTrue(isa(yz, 'MTKMonomial'));
+        testCase.verifyEqual(yz.Operators, {uint64(2); uint64(4)});
+        testCase.verifyEqual(yz.Coefficient, [2.0; 4.0]);
+        testCase.verifyEqual(yz.Hash, uint64([3; 5]));
+       
+        x = mat(1,1);
+        testCase.assertEqual(size(x), [1 1]);
+        testCase.assertTrue(isa(x, 'MTKMonomial'));
+        testCase.verifyEqual(x.Operators, uint64(1));
+        testCase.verifyEqual(x.Coefficient, [1.0]);
+        testCase.verifyEqual(x.Hash, uint64([2]));
+              
+        x_alt = mat(1);
+        testCase.assertEqual(size(x_alt), [1 1]);
+        testCase.assertTrue(isa(x_alt, 'MTKMonomial'));
+        testCase.verifyEqual(x_alt.Operators, uint64(1));
+        testCase.verifyEqual(x_alt.Coefficient, [1.0]);
+        testCase.verifyEqual(x_alt.Hash, uint64([2]));        
+    end
+    
+    function spliceout_with_symbols(testCase)
+        setting = AlgebraicScenario(4);
+        mat = MTKMonomial(setting, {[1], [2]; [3], [4]}, ...
+                                    [1.0, 2.0; 3.0, 4.0]);
+        setting.WordList(1, true);
+        testCase.assertEqual(mat.FoundSymbol, true(2,2));
+                                
+        xy = mat(1,:);
+        testCase.assertEqual(size(xy), [1 2]);
+        testCase.assertTrue(isa(xy, 'MTKMonomial'));
+        testCase.verifyEqual(xy.Operators, {uint64(1), uint64(2)});
+        testCase.verifyEqual(xy.Coefficient, [1.0, 2.0]);
+        testCase.verifyEqual(xy.Hash, uint64([2 3]));
+        testCase.assertEqual(xy.FoundSymbol, true(1, 2));
+        testCase.verifyEqual(xy.SymbolId, int64([2, 3]));
+        testCase.verifyEqual(xy.RealBasisIndex, uint64([2, 3]));
+        testCase.verifyEqual(xy.ImaginaryBasisIndex, uint64([0, 0]));
+        
+        wz = mat(2,:);
+        testCase.assertEqual(size(wz), [1 2]);
+        testCase.assertTrue(isa(wz, 'MTKMonomial'));
+        testCase.verifyEqual(wz.Operators, {uint64(3), uint64(4)});
+        testCase.verifyEqual(wz.Coefficient, [3.0, 4.0]);
+        testCase.verifyEqual(wz.Hash, uint64([4 5]));
+        testCase.assertEqual(wz.FoundSymbol, true(1, 2));
+        testCase.verifyEqual(wz.SymbolId, int64([4, 5]));
+        testCase.verifyEqual(wz.RealBasisIndex, uint64([4, 5]));
+        testCase.verifyEqual(wz.ImaginaryBasisIndex, uint64([0, 0]));
+        
+        xw = mat(:,1);
+        testCase.assertEqual(size(xw), [2 1]);
+        testCase.assertTrue(isa(xw, 'MTKMonomial'));
+        testCase.verifyEqual(xw.Operators, {uint64(1); uint64(3)});
+        testCase.verifyEqual(xw.Coefficient, [1.0; 3.0]);
+        testCase.verifyEqual(xw.Hash, uint64([2; 4]));        
+        testCase.assertEqual(xw.FoundSymbol, true(2, 1));
+        testCase.verifyEqual(xw.SymbolId, int64([2; 4]));
+        testCase.verifyEqual(xw.RealBasisIndex, uint64([2; 4]));
+        testCase.verifyEqual(xw.ImaginaryBasisIndex, uint64([0; 0]));
+        
+        yz = mat(:,2);
+        testCase.assertEqual(size(yz), [2 1]);
+        testCase.assertTrue(isa(yz, 'MTKMonomial'));
+        testCase.verifyEqual(yz.Operators, {uint64(2); uint64(4)});
+        testCase.verifyEqual(yz.Coefficient, [2.0; 4.0]);
+        testCase.verifyEqual(yz.Hash, uint64([3; 5]));        
+        testCase.assertEqual(yz.FoundSymbol, true(2, 1));
+        testCase.verifyEqual(yz.SymbolId, int64([3; 5]));
+        testCase.verifyEqual(yz.RealBasisIndex, uint64([3; 5]));
+        testCase.verifyEqual(yz.ImaginaryBasisIndex, uint64([0; 0]));
+       
+        x = mat(1,1);
+        testCase.assertEqual(size(x), [1 1]);
+        testCase.assertTrue(isa(x, 'MTKMonomial'));
+        testCase.verifyEqual(x.Operators, uint64(1));
+        testCase.verifyEqual(x.Coefficient, [1.0]);
+        testCase.verifyEqual(x.Hash, uint64([2]));
+        testCase.assertEqual(x.FoundSymbol, true);
+        testCase.verifyEqual(x.SymbolId, int64(2));
+        testCase.verifyEqual(x.RealBasisIndex, uint64(2));
+        testCase.verifyEqual(x.ImaginaryBasisIndex, uint64(0));
+              
+        x_alt = mat(1);
+        testCase.assertEqual(size(x_alt), [1 1]);
+        testCase.assertTrue(isa(x_alt, 'MTKMonomial'));
+        testCase.verifyEqual(x_alt.Operators, uint64(1));
+        testCase.verifyEqual(x_alt.Coefficient, [1.0]);
+        testCase.verifyEqual(x_alt.Hash, uint64([2]));
+        testCase.assertEqual(x_alt.FoundSymbol, true);
+        testCase.verifyEqual(x_alt.SymbolId, int64(2));
+        testCase.verifyEqual(x_alt.RealBasisIndex, uint64(2));
+        testCase.verifyEqual(x_alt.ImaginaryBasisIndex, uint64(0)); 
+    end
+    
+    function splice_properties(testCase)
+        setting = AlgebraicScenario(4);
+        mat = MTKMonomial(setting, {[1], [2]; [3], [4]}, ...
+                                    [1.0, 2.0; 3.0, 4.0]);
+        setting.WordList(1, true);
+        testCase.assertEqual(mat.FoundSymbol, true(2,2));
+                                
+        testCase.verifyEqual(mat(1,:).Operators, {uint64(1), uint64(2)});
+        testCase.verifyEqual(mat(1,:).Coefficient, [1.0, 2.0]);
+        testCase.verifyEqual(mat(1,:).Hash, uint64([2 3]));
+        testCase.assertEqual(mat(1,:).FoundSymbol, true(1, 2));
+        testCase.verifyEqual(mat(1,:).SymbolId, int64([2, 3]));
+        testCase.verifyEqual(mat(1,:).RealBasisIndex, uint64([2, 3]));
+        testCase.verifyEqual(mat(1,:).ImaginaryBasisIndex, uint64([0, 0]));
+
+        testCase.verifyEqual(mat(2,:).Operators, {uint64(3), uint64(4)});
+        testCase.verifyEqual(mat(2,:).Coefficient, [3.0, 4.0]);
+        testCase.verifyEqual(mat(2,:).Hash, uint64([4 5]));
+        testCase.assertEqual(mat(2,:).FoundSymbol, true(1, 2));
+        testCase.verifyEqual(mat(2,:).SymbolId, int64([4, 5]));
+        testCase.verifyEqual(mat(2,:).RealBasisIndex, uint64([4, 5]));
+        testCase.verifyEqual(mat(2,:).ImaginaryBasisIndex, uint64([0, 0]));
+        
+        testCase.verifyEqual(mat(:,1).Operators, {uint64(1); uint64(3)});
+        testCase.verifyEqual(mat(:,1).Coefficient, [1.0; 3.0]);
+        testCase.verifyEqual(mat(:,1).Hash, uint64([2; 4]));        
+        testCase.assertEqual(mat(:,1).FoundSymbol, true(2, 1));
+        testCase.verifyEqual(mat(:,1).SymbolId, int64([2; 4]));
+        testCase.verifyEqual(mat(:,1).RealBasisIndex, uint64([2; 4]));
+        testCase.verifyEqual(mat(:,1).ImaginaryBasisIndex, uint64([0; 0]));
+        
+        testCase.verifyEqual(mat(:,2).Operators, {uint64(2); uint64(4)});
+        testCase.verifyEqual(mat(:,2).Coefficient, [2.0; 4.0]);
+        testCase.verifyEqual(mat(:,2).Hash, uint64([3; 5]));        
+        testCase.assertEqual(mat(:,2).FoundSymbol, true(2, 1));
+        testCase.verifyEqual(mat(:,2).SymbolId, int64([3; 5]));
+        testCase.verifyEqual(mat(:,2).RealBasisIndex, uint64([3; 5]));
+        testCase.verifyEqual(mat(:,2).ImaginaryBasisIndex, uint64([0; 0]));
+
+        testCase.verifyEqual(mat(1,1).Operators, uint64(1));
+        testCase.verifyEqual(mat(1,1).Coefficient, [1.0]);
+        testCase.verifyEqual(mat(1,1).Hash, uint64([2]));
+        testCase.assertEqual(mat(1,1).FoundSymbol, true);
+        testCase.verifyEqual(mat(1,1).SymbolId, int64(2));
+        testCase.verifyEqual(mat(1,1).RealBasisIndex, uint64(2));
+        testCase.verifyEqual(mat(1,1).ImaginaryBasisIndex, uint64(0));
+
+        testCase.verifyEqual(mat(1).Operators, uint64(1));
+        testCase.verifyEqual(mat(1).Coefficient, [1.0]);
+        testCase.verifyEqual(mat(1).Hash, uint64([2]));
+        testCase.assertEqual(mat(1).FoundSymbol, true);
+        testCase.verifyEqual(mat(1).SymbolId, int64(2));
+        testCase.verifyEqual(mat(1).RealBasisIndex, uint64(2));
+        testCase.verifyEqual(mat(1).ImaginaryBasisIndex, uint64(0)); 
+    end
+end
+
 %% Equality (eq)
 methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'eq'})
     function eq_mono_mono(testCase)

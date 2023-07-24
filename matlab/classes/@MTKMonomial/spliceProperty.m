@@ -5,6 +5,9 @@
                 output = obj.Operators;
             else
                 output = obj.Operators(indices{:});
+                if 1==numel(output)
+                    output = output{1};
+                end
             end
             matched = true;
         case 'Coefficient'
