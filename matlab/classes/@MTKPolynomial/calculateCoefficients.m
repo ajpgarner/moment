@@ -12,12 +12,8 @@
         end
     end
     
-    % Query MTK for basis from symbolic representation.
-    if obj.IsScalar
-        [re, im] = mtk('generate_basis', ...
-                       obj.Scenario.System.RefId, {obj.SymbolCell});
-    else
-        [re, im] = mtk('generate_basis', ...
-                       obj.Scenario.System.RefId, obj.SymbolCell);
-    end
+    % Query MTK for basis from symbolic representation.   
+	[re, im] = mtk('generate_basis', ...
+				   obj.Scenario.System.RefId, obj.SymbolCell);
+
 end

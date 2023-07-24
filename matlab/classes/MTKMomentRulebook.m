@@ -160,11 +160,7 @@ methods
         else
             % Prepare symbol cell
             try
-                if new_rules.IsScalar
-                    sym_cell = {new_rules.SymbolCell};
-                else
-                    sym_cell = new_rules.SymbolCell;
-                end
+				sym_cell = new_rules.SymbolCell;
             catch Exception
                 error("Cannot create rules from polynomials: %s", ...
                       Exception.message);

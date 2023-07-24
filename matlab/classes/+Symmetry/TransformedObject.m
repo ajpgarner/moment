@@ -24,11 +24,7 @@ classdef (InferiorClasses={?MTKMonomial, ?MTKPolynomial}) ...
                         
             % Infer symbol cell of base
             if isa(base_object, 'MTKPolynomial')
-                if base_object.IsScalar
-                    cell_input = {base_object.SymbolCell};
-                else
-                    cell_input = base_object.SymbolCell;
-                end                                
+                cell_input = base_object.SymbolCell;                
             elseif isa(base_object, 'MTKMonomial')
                 cell_input = base_object.SymbolCell;
             else

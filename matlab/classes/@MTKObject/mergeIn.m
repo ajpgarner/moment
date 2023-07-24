@@ -43,30 +43,61 @@ function merge_type = mergeIn(obj, merge_dim, offsets, objects)
     end
 
 
-    % Only merge coefficients if we have all of them:
+    % Only merge coefficients if all non-empty objects have them:
     if (all(cellfun(@(x) (x.has_cached_coefs), objects)))
 
         % Do padding on sub-elements, if required
         for idx = 1:numel(objects)
             objects{idx}.padCoefficients();
         end
+        
+        % Can directly concatenate coefficients, if merging along major
+        % direction, or if combining 0/1-dimensional objects.
+        if ((merge_type >= 0) && (merge_type <= 3)) ...
+            || merge_dim == ndims(obj)
+            src_re = cellfun(@(x) x.real_coefs, objects, ...
+                             'UniformOutput', false);
+            obj.real_coefs = cat(2, src_re{:});
+            src_im = cellfun(@(x) x.im_coefs, objects, ...
+                             'UniformOutput', false);
+            obj.im_coefs = cat(2, src_im{:});
+        else % Non-major matrix merge.
+            
+            % Prepare empty arrays
+            obj.real_coefs = zeros(obj.Scenario.System.RealVarCount, ...
+                                   numel(obj), 'like', sparse(1i));
+            obj.im_coefs = zeros(obj.Scenario.System.ImaginaryVarCount, ...
+                                 numel(obj), 'like', sparse(1i));
 
-        % Combine scalars into row/col-vec,
-        % or extend row-vec into bigger row-vec (resp. col-vec)
-        if (merge_type >= 0) && (merge_type <= 3)
-            obj.real_coefs = objects{1}.real_coefs;
-            obj.im_coefs = objects{1}.im_coefs;
-            for idx = 2:numel(objects)
-                obj.real_coefs = [obj.real_coefs, objects{idx}.real_coefs];
-                obj.im_coefs = [obj.im_coefs, ...
-                                objects{idx}.im_coefs];
+            % Get strides
+            minor_dims = 1:merge_dim;
+            major_dims = (merge_dim+1):ndims(obj); % col/last-index-major!
+            major_size = size(obj, major_dims);
+            num_major = prod(major_size);
+            
+            rOff = ones(1, numel(objects)); % read-offsets                       
+            wIdx = 1; % write offset.
+            
+            for major = 1:num_major % Iterate over major objects
+                for odx = 1:numel(objects) % Iterate over input objects
+                    % Copy major object from input object at major index.
+                    minor_size = size(objects{odx}, minor_dims);
+                    num_minor = prod(minor_size);
+                    
+                    write_range = wIdx:(wIdx+num_minor-1);
+                    read_range = rOff(odx):(rOff(odx)+num_minor-1);
+                    
+                    obj.real_coefs(:, write_range) = ...
+                        objects{odx}.real_coefs(:, read_range);
+                        
+                    obj.im_coefs(:, write_range) = ...
+                        objects{odx}.im_coefs(:, read_range);
+                    
+                    % Update ranges
+                    rOff(odx) = rOff(odx) + num_minor;
+                    wIdx = wIdx + num_minor;
+                end
             end
-        end
-
-        % For now, do not merge anything more complicated:
-        if merge_type >= 4
-			% FIXME
-			return;
         end
 
         % Register listener for symbol-table updates
@@ -75,5 +106,7 @@ function merge_type = mergeIn(obj, merge_dim, offsets, objects)
         obj.symbol_added_listener = ...
             obj.Scenario.System.listener('NewSymbolsAdded', ...
                                          @obj.onNewSymbolsAdded);
+    else
+        obj.has_cached_coefs = false;
     end
 end

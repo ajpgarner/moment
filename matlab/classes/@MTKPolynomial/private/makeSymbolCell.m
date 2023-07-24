@@ -2,7 +2,7 @@ function makeSymbolCell(obj)
 % MAKESYMBOLCELL Produce cell-array representation of polynomial.
 
     if obj.IsScalar
-        obj.symbol_cell = makeOneSymbolCell(obj.Constituents);
+        obj.symbol_cell = {makeOneSymbolCell(obj.Constituents)};
     else
         obj.symbol_cell = cellfun(@makeOneSymbolCell, obj.Constituents, ...
                                   'UniformOutput', false);

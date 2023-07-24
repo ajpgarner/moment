@@ -161,12 +161,7 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
         end
         
         function val = MTKSymbolicObject(obj)
-            if obj.IsScalar
-                sc = {obj.SymbolCell};
-            else
-                sc = obj.SymbolCell;
-            end
-            val = MTKSymbolicObject(obj.Scenario, sc);
+            val = MTKSymbolicObject(obj.Scenario, obj.SymbolCell, 'raw');
         end
     end
     
