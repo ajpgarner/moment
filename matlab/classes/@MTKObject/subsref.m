@@ -11,12 +11,6 @@
                 [varargout{1:nargout}] = subsref(splice, s(2:end));
             end
         case '()'
-            % Do not currently handle logical indexing
-            logical_indices = cellfun( @(x) isa(x, 'logical'), s(1).subs);
-            if any(logical_indices(:))
-                error("Logical indexing not supported.");
-            end
-  
             % Handle empty () case by ignoring indices.
             if isempty(s(1).subs)
                 if length(s) == 1
@@ -29,7 +23,7 @@
             
             % Replace ':' with 1:end etc.
             indices = obj.cleanIndices(s(1).subs);
-            
+                        
             if length(s) == 1
                 % Implement obj(indices)
                 varargout{1} = obj.splice(indices);
@@ -52,11 +46,11 @@
                 end
                 [varargout{1:nargout}] = property(s(3).subs{:});                        
             else                        
-                error('Not a valid indexing expression')
+                error('Not a valid indexing expression.')
             end
         case '{}'
             error("Brace indexing is not supported for variables of this type."); 
         otherwise
-            error('Not a valid indexing expression')
+            error('Not a valid indexing expression.')
     end
  end

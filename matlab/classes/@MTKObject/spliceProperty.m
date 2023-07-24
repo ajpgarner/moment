@@ -4,12 +4,14 @@ function [output, matched] = spliceProperty(obj, indices, propertyName)
 % Only public properties need overloading here!
 
     switch propertyName
-        case 'RealCoefficients'
-            % FIXME
-            error("RealCoefficients sub-indexing not supported.");
+        case 'RealCoefficients'            
+            output = splice_coef_array(obj, indices, ...
+                                       obj.RealCoefficients);
+            matched = true;
         case 'ImaginaryCoefficients'
-            % FIXME
-            error("ImaginaryCoefficients sub-indexing not supported.");
+            output = splice_coef_array(obj, indices, ...
+                                       obj.ImaginaryCoefficients);
+            matched = true;
         case 'ObjectName'
             output = obj.ObjectName(indices{:});
             matched = true;
@@ -19,4 +21,9 @@ function [output, matched] = spliceProperty(obj, indices, propertyName)
         otherwise
             matched = false;
     end
+end
+
+function val = splice_coef_array(obj, indices, coefs)
+    flat_indices = sub2ind(size(obj), indices{:});
+    val = coefs(:, flat_indices);
 end

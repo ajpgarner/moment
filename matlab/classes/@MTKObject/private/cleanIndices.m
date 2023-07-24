@@ -6,8 +6,15 @@ function indices = cleanIndices(obj, indices)
     if numel(indices) > numel(dims)
         error("Cannot provide more indices than the dimension of the object.");
     end
-
-    % Replace ':' with range
+    
+    % Replace logical indices with numeric indices
+    for dIdx = 1:numel(indices)
+        if islogical(indices{dIdx})
+            indices{dIdx} = find(indices{dIdx});
+        end
+    end
+    
+    % Replace ':' with full range
     if numel(indices)==1
         last_limit = numel(obj);
         if ischar(indices{1}) && indices{1} == ':'
