@@ -5,38 +5,53 @@
         error("Symbols are not yet all registered in matrix system.");
     end 
 
-    % Real coefficients
     switch obj.DimensionType
-        case 0 % SCALAR                    
-            sys = obj.Scenario.System;
-            re = zeros(double(sys.RealVarCount), 1, 'like', sparse(1i));
-            if obj.re_basis_index > 0
-                re(obj.re_basis_index) = obj.Coefficient;
-            end
-        otherwise
+        case 0 % SCALAR               
+            re = makeRealScalarCoefficient(obj);         
+            im = makeImaginaryScalarCoefficient(obj);            
+        otherwise % EVERYTHING ELSE
             re = makeMonolithicRealCoefficients(obj);            
+            im = makeMonolithicImaginaryCoefficients(obj);
     end
 
-    % Imaginary coefficients
-    switch obj.DimensionType
-        case 0 % SCALAR
-            sys = obj.Scenario.System;
-			im = zeros(double(sys.ImaginaryVarCount), 1, 'like', sparse(1i));
-            if obj.im_basis_index > 0
-                if obj.SymbolConjugated
-                    im(obj.im_basis_index) = -1i * obj.Coefficient;
-                else
-                    im(obj.im_basis_index) = 1i * obj.Coefficient;
-                end
-            end        
-        otherwise             
-             im = makeMonolithicImaginaryCoefficients(obj);
-                   
-                   
-    end
  end
 
 %% Private functions
+
+function re = makeRealScalarCoefficient(obj)
+    sys = obj.Scenario.System;
+    re = zeros(double(sys.RealVarCount), 1, 'like', sparse(1i));
+    if obj.re_basis_index > 0
+        re(obj.re_basis_index) = obj.Coefficient;
+    end
+    if isreal(re)
+        zero = zeros(...
+            double(obj.Scenario.System.RealVarCount), 0, ...
+                    'like', sparse(1i));
+        re = [zero, re];
+    end
+end
+          
+
+function im = makeImaginaryScalarCoefficient(obj)
+    sys = obj.Scenario.System;
+    im = zeros(double(sys.ImaginaryVarCount), 1, 'like', sparse(1i));
+    if obj.im_basis_index > 0
+        if obj.symbol_conjugated
+            im(obj.im_basis_index ) = obj.Coefficient * -1i;
+        else
+            im(obj.im_basis_index ) = obj.Coefficient * 1i;
+        end
+    end
+    if isreal(im)
+        zero = zeros(...
+            double(obj.Scenario.System.ImaginaryVarCount), 0, ...
+                    'like', sparse(1i));
+        im = [zero, im];
+    end
+end
+        
+            
 function re = makeMonolithicRealCoefficients(obj)  
     nz_mask = obj.re_basis_index > 0;
     nz_cols = find(obj.re_basis_index > 0);
@@ -46,10 +61,12 @@ function re = makeMonolithicRealCoefficients(obj)
                 double(obj.Scenario.System.RealVarCount), numel(obj));
             
     % Hack for old version of matlab where complex(sparse(...)) fails.
-    zero = zeros(double(obj.Scenario.System.RealVarCount), 0, ...
-                 'like', sparse(1i));
-    re = [zero, re];
-
+    if isreal(re)
+        zero = zeros(double(obj.Scenario.System.RealVarCount), 0, ...
+                     'like', sparse(1i));
+        re = [zero, re];
+    end
+    
 end
 
 function im = makeMonolithicImaginaryCoefficients(obj)
@@ -65,8 +82,10 @@ function im = makeMonolithicImaginaryCoefficients(obj)
                 double(obj.Scenario.System.ImaginaryVarCount), numel(obj));
     
     % Hack for old version of matlab where complex(sparse(...)) fails.
-    zero = zeros(double(obj.Scenario.System.ImaginaryVarCount), 0, ...
-                 'like', sparse(1i));
-    im = [zero, im];
+    if isreal(im)
+        zero = zeros(double(obj.Scenario.System.ImaginaryVarCount), 0, ...
+                     'like', sparse(1i));
+        im = [zero, im];
+    end
 
 end

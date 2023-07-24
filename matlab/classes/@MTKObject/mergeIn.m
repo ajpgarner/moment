@@ -59,9 +59,10 @@ function merge_type = mergeIn(obj, merge_dim, offsets, objects)
             src_re = cellfun(@(x) x.real_coefs, objects, ...
                              'UniformOutput', false);
             obj.real_coefs = cat(2, src_re{:});
+            
             src_im = cellfun(@(x) x.im_coefs, objects, ...
                              'UniformOutput', false);
-            obj.im_coefs = cat(2, src_im{:});
+            obj.im_coefs = cat(2, src_im{:});            
         else % Non-major matrix merge.
             
             % Prepare empty arrays

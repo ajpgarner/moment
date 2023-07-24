@@ -383,7 +383,9 @@ end
 
 %% Concatenation
 methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'cat'})
-    function cat_horz_scalars(testCase)
+   
+    
+     function cat_horz_scalars(testCase)
         setting = AlgebraicScenario(3);
         [x, y, z] = setting.getAll();
         setting.WordList(1, true);
@@ -410,12 +412,49 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'cat'})
         expected_re(2, 1) = 1;
         expected_re(3, 2) = 1;
         expected_re(4, 3) = 1;
+        expected_re = [zeros(4, 0, 'like', sparse(1i)), expected_re];
         testCase.verifyEqual(xyz.RealCoefficients, expected_re);
         
         expected_im = zeros(0, 3, 'like', sparse(1i));
         testCase.verifyEqual(xyz.ImaginaryCoefficients, expected_im);
+     end
+     
+     function cat_horz_row_vectors(testCase)
+        setting = AlgebraicScenario(4);
         
-    end
+        w_x = MTKMonomial(setting, {[1], [2]}, 1.0);
+        y_z = MTKMonomial(setting, {[3], [4]}, -1.0);
+        setting.WordList(1, true);
+        
+        testCase.assertNotEmpty(w_x.RealCoefficients);
+        testCase.assertNotEmpty(y_z.RealCoefficients);
+                
+        wxyz = [w_x, y_z];
+        testCase.assertTrue(isa(wxyz, 'MTKMonomial'));
+        testCase.assertEqual(size(wxyz), [1 4]);        
+        testCase.assertFalse(wxyz.IsScalar);
+        testCase.assertTrue(wxyz.IsVector);
+        testCase.assertTrue(wxyz.IsRowVector);
+        testCase.verifyEqual(wxyz.Operators, ...
+            {uint64(1), uint64(2), uint64(3), uint64(4)});
+        testCase.verifyEqual(wxyz.Coefficient, [1, 1, -1, -1]);
+        testCase.verifyEqual(wxyz.Hash, uint64([2, 3, 4, 5]));
+        testCase.verifyEqual(wxyz.FoundSymbol, true(1, 4));
+        testCase.verifyEqual(wxyz.SymbolId, int64([2 3 4 5]));
+        testCase.verifyEqual(wxyz.RealBasisIndex, uint64([2 3 4 5]));
+        testCase.verifyEqual(wxyz.ImaginaryBasisIndex, uint64([0 0 0 0]));
+        
+        expected_re = sparse(5, 4);
+        expected_re(2, 1) = 1;
+        expected_re(3, 2) = 1;
+        expected_re(4, 3) = -1;
+        expected_re(5, 4) = -1;
+        expected_re = [zeros(5, 0, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(wxyz.RealCoefficients, expected_re);
+        
+        expected_im = zeros(0, 4, 'like', sparse(1i));
+        testCase.verifyEqual(wxyz.ImaginaryCoefficients, expected_im);
+     end
     
      function cat_vert_scalars(testCase)
         setting = AlgebraicScenario(3);
@@ -445,6 +484,7 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'cat'})
         expected_re(2, 1) = 1;
         expected_re(3, 2) = 2;
         expected_re(4, 3) = 1;
+        expected_re = [zeros(4, 0, 'like', sparse(1i)), expected_re];
         testCase.verifyEqual(xyz.RealCoefficients, expected_re);
         
         expected_im = zeros(0, 3, 'like', sparse(1i));
