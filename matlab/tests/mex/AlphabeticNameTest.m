@@ -1,6 +1,6 @@
 classdef AlphabeticNameTest < MTKTestBase
-    %VERSIONTEST Unit tests for alphabetic_name function
-    methods (Test)
+%ALPHABETICNAME Unit tests for alphabetic_name function
+    methods (Test, TestTags={'mex'})
         function OneIndex_Lower_1(testCase)            
             actual_string = mtk('alphabetic_name', 'lower', 1);
             testCase.verifyEqual(actual_string, 'a');
@@ -92,7 +92,7 @@ classdef AlphabeticNameTest < MTKTestBase
         end      
     end
         
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInput(testCase)
             function no_in()             
                [~] = mtk('alphabetic_name');

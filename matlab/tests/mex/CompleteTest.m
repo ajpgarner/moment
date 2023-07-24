@@ -1,6 +1,6 @@
 classdef CompleteTest < MTKTestBase
     %COMPLETETEST Unit tests for complete mex function
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function ABtoA_BAtoA(testCase)
             input = {{[1, 2], [1]}, {[2, 1], [2]}};
             expected = {{uint64([1, 1]), uint64([1])}, ...
@@ -110,7 +110,7 @@ classdef CompleteTest < MTKTestBase
         end
     end
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()
                 [~] = mtk('complete');

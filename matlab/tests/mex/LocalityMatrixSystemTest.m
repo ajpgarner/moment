@@ -2,7 +2,7 @@ classdef LocalityMatrixSystemTest < MTKTestBase
     %NEWLOCALITYMATRIXSYSTEMTESTS Unit tests for new_locality_matrix_system
     % mex function
     
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function CHSH(testCase)
             ref_id = mtk('locality_matrix_system', 2, 2, 2);
             testCase.verifyGreaterThan(ref_id, 0);
@@ -15,7 +15,7 @@ classdef LocalityMatrixSystemTest < MTKTestBase
         end
     end
         
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()             
                ref_id = mtk('locality_matrix_system');

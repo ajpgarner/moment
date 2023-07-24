@@ -1,7 +1,7 @@
 classdef AlgebraicMatrixSystemTest < MTKTestBase
-    %NEWALGEBRAICMATRIXSYSTEMTESTS Unit tests for new_algebraic_matrix_system
-    % mex function
-    methods (Test)
+%NEWALGEBRAICMATRIXSYSTEMTESTS Unit tests for new_algebraic_matrix_system
+% mex function
+    methods (Test, TestTags={'mex'})
         function Basic(testCase)
             ref_id = mtk('algebraic_matrix_system', 2);
             testCase.verifyGreaterThan(ref_id, 0);
@@ -72,7 +72,7 @@ classdef AlgebraicMatrixSystemTest < MTKTestBase
         end
     end
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()
                 ref_id = mtk('algebraic_matrix_system');

@@ -102,7 +102,7 @@ classdef GenerateBasisTest < MTKTestBase
         end
     end
     
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function dense_cell_real(testCase)
             sys_id = mtk('imported_matrix_system', 'real');
             m_id = mtk('import_matrix', 'symmetric', ...
@@ -216,7 +216,7 @@ classdef GenerateBasisTest < MTKTestBase
     end
     
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInput(testCase)
             function no_in()
                 [~, ~] = mtk('generate_basis');

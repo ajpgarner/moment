@@ -1,6 +1,6 @@
 classdef ExtendedMatrixTest < MTKTestBase
     %APPLYVALUESTEST Unit tests for apply_values function
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function ExtendManual(testCase)
             ref_id = mtk('inflation_matrix_system', [2, 2], {}, 1);
             mm_index = mtk('moment_matrix', ref_id, 1);

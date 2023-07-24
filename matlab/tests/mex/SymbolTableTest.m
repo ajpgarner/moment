@@ -38,7 +38,7 @@ classdef SymbolTableTest < MTKTestBase
         end
     end
 
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function FullTable(testCase)
             ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
@@ -113,7 +113,7 @@ classdef SymbolTableTest < MTKTestBase
     
     
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()
                 [~] = mtk('symbol_table');

@@ -1,6 +1,6 @@
 classdef SubstitutedMatrixTest < MTKTestBase
     %APPLYVALUESTEST Unit tests for substituted_matrix function
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function SimpleSubstitution(testCase)            
             ref_id = mtk('locality_matrix_system', 2, 2, 2);
             mm_index = mtk('moment_matrix', ref_id, 1);

@@ -7,7 +7,7 @@ function spliceOut(output, source, indices)
     % Do not copy coefficients
     output.has_cached_coefs = false;
 
-    % Copy names
+    % Copy names if known
     if ~isempty(source.cached_object_name)
         output.cached_object_name = ...
             source.cached_object_name(indices{:});

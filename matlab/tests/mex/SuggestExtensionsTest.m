@@ -1,6 +1,6 @@
 classdef SuggestExtensionsTest < MTKTestBase
     %SUGGESTEXTENSIONSTESTS Unit tests for suggest_extensions mex function
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function UnlinkedPair(testCase)            
             ref_id = mtk('inflation_matrix_system', [2, 2], {}, 1);
             mm_index = mtk('moment_matrix', ref_id, 1);
@@ -16,7 +16,7 @@ classdef SuggestExtensionsTest < MTKTestBase
         end       
     end
         
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()
                 [~] = mtk('suggest_extensions');

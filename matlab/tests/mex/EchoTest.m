@@ -2,7 +2,7 @@ classdef EchoTest < MTKTestBase
 % ECHOTEST Unit tests for echo function.
 % Particularly, this tests import and export between MATLAB and Eigen-type
 % matrices.
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function DenseDouble_To_Dense(testCase)
             A = [[1, 2, 0, 10]; [3, 4, 5, 11]; [6, 7, 0, 12]];
             actual = mtk('echo', 'dense', A);            

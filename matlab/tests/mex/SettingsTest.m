@@ -1,6 +1,6 @@
 classdef SettingsTest < MTKTestBase
     %SETTTINGSTESTS Unit tests for settings mex function
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function ReportSettings(testCase)
             the_settings = mtk('settings', 'structured');
             testCase.assertTrue(isa(the_settings, 'struct'));
@@ -39,7 +39,7 @@ classdef SettingsTest < MTKTestBase
         
     end
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_BadInput(testCase)
             function no_in()
                 [~] = mtk('settings', 'not a setting');

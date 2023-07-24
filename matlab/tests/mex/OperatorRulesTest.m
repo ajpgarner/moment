@@ -1,6 +1,6 @@
 classdef OperatorRulesTest < MTKTestBase
 %OPERATORRULESTESTS Unit tests for `operator_rules` mex function
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function EmptyRules(testCase)
             expected = cell.empty(1,0);
             ref_id = mtk('algebraic_matrix_system', 2);
@@ -39,7 +39,7 @@ classdef OperatorRulesTest < MTKTestBase
         end
     end
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()
                 [~] = mtk('operator_rules');

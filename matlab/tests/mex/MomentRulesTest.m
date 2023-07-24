@@ -1,6 +1,6 @@
 classdef MomentRulesTest < MTKTestBase
 %CREATEMOMENTRULESTEST Unit tests for moment_rules mex function
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function Rewrite_Empty(testCase)
             ref_id = mtk('algebraic_matrix_system', 2);
             [~] = mtk('word_list', ref_id, 2, 'register_symbols');

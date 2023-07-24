@@ -8,7 +8,7 @@ classdef VersionTest < MTKTestBase
                                  'patch', int64(1));
     end
 
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function Version_String(testCase)
             actual_string = mtk('version');
             testCase.verifyEqual(actual_string, testCase.expected_string);
@@ -20,7 +20,7 @@ classdef VersionTest < MTKTestBase
         end
     end
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_MissingParam(testCase)
             testCase.verifyError(@() mtk('version', 'cake'), ...
                 'mtk:bad_param');

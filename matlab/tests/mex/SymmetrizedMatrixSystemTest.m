@@ -14,7 +14,7 @@ classdef SymmetrizedMatrixSystemTest < MTKTestBase
             [0 1 0 0 0]]};         
     end
     
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function add_chsh(testCase)
             ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [idx, elems] = mtk('symmetrized_matrix_system', ...
@@ -25,7 +25,7 @@ classdef SymmetrizedMatrixSystemTest < MTKTestBase
     end
     
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInput(testCase)
             function no_in()
                 [~, ~] = mtk('symmetrized_matrix_system');

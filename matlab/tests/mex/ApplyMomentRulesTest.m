@@ -1,6 +1,6 @@
 classdef ApplyMomentRulesTest < MTKTestBase
 %APPLYMOMENTRULESTEST Unit tests for `apply_moment_rules` mex function
-    methods (Test)        
+    methods (Test, TestTags={'mex'})
         function DoSubstitution(testCase)
             ref_id = mtk('locality_matrix_system', 2, 2, 2);
             mm_index = mtk('moment_matrix', ref_id, 1);
@@ -35,7 +35,7 @@ classdef ApplyMomentRulesTest < MTKTestBase
         end
     end    
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()             
                [~] = mtk('apply_moment_rules');

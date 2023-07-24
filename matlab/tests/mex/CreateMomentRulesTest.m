@@ -1,6 +1,7 @@
 classdef CreateMomentRulesTest < MTKTestBase
 %CREATEMOMENTRULESTEST Unit tests for create_moment_rules mex function
-    methods (Test)
+    
+    methods (Test, TestTags={'mex'})
         function SubList_Empty(testCase)            
             ref_id = mtk('locality_matrix_system', 2, 2, 2);
             [~] = mtk('moment_matrix', ref_id, 1);
@@ -209,7 +210,7 @@ classdef CreateMomentRulesTest < MTKTestBase
     end
     
    
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInput(testCase)
             function no_in()
                 [~] = mtk('create_moment_rules');

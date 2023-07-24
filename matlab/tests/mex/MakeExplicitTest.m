@@ -1,6 +1,6 @@
 classdef MakeExplicitTest < MTKTestBase
     %MAKEEXPLICITTEST Unit tests for make_explicit function
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function Inflation_SimplePair(testCase)
             ref_id = mtk('inflation_matrix_system', [2 2], {}, 1);
             [~] = mtk('moment_matrix', ref_id, 1);
@@ -100,7 +100,7 @@ classdef MakeExplicitTest < MTKTestBase
         end
     end
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()
                 [~] = mtk('make_explicit');

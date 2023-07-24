@@ -1,7 +1,7 @@
 classdef ImportedMatrixSystemTest < MTKTestBase
     %NEWIMPORTEDMATRIXSYSTEMTESTS Unit tests for new_imported_matrix_system
     % mex function
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function Empty(testCase)
             ref_id = mtk('imported_matrix_system');
             testCase.verifyGreaterThan(ref_id, 0);
@@ -24,7 +24,7 @@ classdef ImportedMatrixSystemTest < MTKTestBase
     end
     
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_TooManyInputs(testCase)
             function bad_in()
                 ref_id = mtk('imported_matrix_system', 1);

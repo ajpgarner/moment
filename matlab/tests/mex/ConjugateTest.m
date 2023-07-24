@@ -1,7 +1,7 @@
 classdef ConjugateTest < MTKTestBase
     %CONJUGATETEST Unit tests for conjugate function
     
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function Identity(testCase)
             ms_id = mtk('algebraic_matrix_system', 2);
             input = uint64.empty(1,0);
@@ -45,7 +45,7 @@ classdef ConjugateTest < MTKTestBase
         end
     end
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()
                 [~] = mtk('conjugate');

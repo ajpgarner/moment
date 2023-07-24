@@ -1,6 +1,6 @@
 classdef ImportMatrixTest < MTKTestBase
     %IMPORTMATRIXTEST Unit tests for import_matrix function
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function RealSystem_RealMatrix(testCase)
             sys_id = mtk('imported_matrix_system', 'real');
             A = [[1, 2, 3]; [4, 5, 6]; [7, 8, 9]];
@@ -178,7 +178,7 @@ classdef ImportMatrixTest < MTKTestBase
         end
     end
         
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()
                 [~] = mtk('import_matrix');

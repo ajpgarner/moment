@@ -1,10 +1,7 @@
 classdef CollinsGisinTest < MTKTestBase
     %COLLINSGISINTEST Unit tests for collins_gisin function
     
-    properties(Constant)
-    end
-    
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function CHSH(testCase)
             system_id = mtk('locality_matrix_system', 2, 2, 2);
             mm = mtk('moment_matrix', system_id, 1);
@@ -21,7 +18,7 @@ classdef CollinsGisinTest < MTKTestBase
         end
     end
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()             
                [~] = mtk('collins_gisin');

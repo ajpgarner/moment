@@ -2,7 +2,7 @@ classdef InflationMatrixSystemTest < MTKTestBase
     %NEWINFLATEDMATRIXSYSTEMTESTS Unit tests for new_inflation_matrix_system
     % mex function
     
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function PairUninflated(testCase)
             ref_id = mtk('inflation_matrix_system', ...
                 [2 2], {[ 1 2]}, 1);
@@ -40,7 +40,7 @@ classdef InflationMatrixSystemTest < MTKTestBase
         end
     end
         
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()
                 ref_id = mtk('inflation_matrix_system');

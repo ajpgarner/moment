@@ -1,6 +1,6 @@
 classdef ListTest < MTKTestBase
     %LISTTEST Unit tests for list function
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function EmptyList(testCase)            
             empty_list = mtk('list', 'structured');
             testCase.verifyEmpty(empty_list);

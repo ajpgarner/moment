@@ -1,6 +1,6 @@
 classdef MomentRulebookTest < MTKTestBase
 %MONOMIALRULESTESTS Unit tests for MomentRulebook matlab class
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function EmptyRules(testCase)
             setting = AlgebraicScenario(["x", "y"], 'hermitian', true);
             

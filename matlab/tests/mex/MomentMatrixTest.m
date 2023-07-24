@@ -31,7 +31,7 @@
   
     end
     
-    methods (Test)
+    methods (Test, TestTags={'mex'})
         function OneOper_Level0(testCase) 
             testCase.IDOnly.CallAndVerify(testCase, {1, 2}, 0);
         end
@@ -59,7 +59,7 @@
         end
     end
     
-    methods (Test, TestTags={'Error'})
+    methods (Test, TestTags={'Mex', 'Error'})
         function Error_NoInputs(testCase)
             function no_in()             
                [~] = mtk('moment_matrix');
