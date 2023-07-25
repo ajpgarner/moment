@@ -27,7 +27,7 @@
     end
     varargin = varargin(non_empty_mask);
     if numel(varargin) == 1
-        output = varargin(1);
+        output = varargin{1};
         return;
     end
 

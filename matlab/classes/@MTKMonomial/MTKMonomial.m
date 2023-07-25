@@ -10,8 +10,11 @@ classdef MTKMonomial < MTKObject
     
     %% Public dependent properties
     properties(Dependent, GetAccess = public)
-        % True if monomial can be found in symbol table.
+        % True if monomial can be found in symbol table (array)
         FoundSymbol
+        
+        % True if symbols are located for all contained values
+        FoundAllSymbols;
         
         % The ID number of the corresponding symbol in table.
         SymbolId
@@ -199,12 +202,18 @@ classdef MTKMonomial < MTKObject
     %% Accessors: Symbol row info
     methods
         function val = get.FoundSymbol(obj)
-            if any(obj.symbol_id < 0)
+            missing = obj.symbol_id < 0;
+            if any(missing(:))
                 obj.loadSymbolInfo();
             end
             val = logical(obj.symbol_id >= 0);
         end
         
+        function val = get.FoundAllSymbols(obj)
+            found = obj.FoundSymbol();
+            val = all(found(:));
+        end
+                
         function val = get.SymbolId(obj)
             obj.loadSymbolInfoOrError();
             val = obj.symbol_id;

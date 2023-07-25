@@ -3,8 +3,12 @@ function [output, matched] = spliceProperty(obj, indices, propertyName)
         case 'Constituents'
             if obj.IsScalar
                 output = obj.Constituents;
-            else
+            else                
                 output = obj.Constituents(indices{:});                
+                % If index resolves to a single object, drop cell:
+                if numel(output) == 1
+                    output = output{1};
+                end
             end
             matched = true;                
         otherwise

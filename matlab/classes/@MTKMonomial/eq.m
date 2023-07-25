@@ -82,7 +82,7 @@ function val = eq(lhs, rhs)
     end
 
     % Otherwise, compare vs. another monomial
-    assert(isa(other, 'MTKMonomial'));
+    assert(isa(other, 'MTKMonomial'), "Unexpected other class: %s", class(other));
 
     % Never equal if scenarios do not match
     if this.Scenario ~= other.Scenario
