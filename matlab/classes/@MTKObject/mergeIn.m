@@ -46,7 +46,7 @@ function merge_type = mergeIn(obj, merge_dim, offsets, objects)
     % Only merge coefficients if all non-empty objects have them:
     hcc = cellfun(@(x) (x.has_cached_coefs), objects);
     if (all(hcc(:)))
-
+        
         % Do padding on sub-elements, if required
         for idx = 1:numel(objects)
             objects{idx}.padCoefficients();
@@ -64,12 +64,12 @@ function merge_type = mergeIn(obj, merge_dim, offsets, objects)
                              'UniformOutput', false);
             obj.im_coefs = cat(2, src_im{:});            
         else % Non-major matrix merge.
+            rvc = obj.Scenario.System.RealVarCount;
+            ivc = obj.Scenario.System.ImaginaryVarCount;
             
             % Prepare empty arrays
-            obj.real_coefs = zeros(obj.Scenario.System.RealVarCount, ...
-                                   numel(obj), 'like', sparse(1i));
-            obj.im_coefs = zeros(obj.Scenario.System.ImaginaryVarCount, ...
-                                 numel(obj), 'like', sparse(1i));
+            obj.real_coefs = zeros(rvc, numel(obj), 'like', sparse(1i));
+            obj.im_coefs = zeros(ivc, numel(obj), 'like', sparse(1i));
 
             % Get strides
             minor_dims = 1:merge_dim;
@@ -99,6 +99,16 @@ function merge_type = mergeIn(obj, merge_dim, offsets, objects)
                     rOff(odx) = rOff(odx) + num_minor;
                     wIdx = wIdx + num_minor;
                 end
+            end
+            
+            % Fix complexity if necessary
+            if isreal(obj.real_coefs)
+                obj.real_coefs = [zeros(rvc, 0, 'like', sparse(1i)),...
+                                  obj.real_coefs];
+            end
+            if isreal(obj.im_coefs)
+                obj.im_coefs = [zeros(ivc, 0, 'like', sparse(1i)),...
+                                  obj.im_coefs];
             end
         end
 

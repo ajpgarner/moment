@@ -383,8 +383,135 @@ end
 
 %% Concatenation
 methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'cat'})
-   
+     function cat_vert_scalars(testCase)
+        setting = AlgebraicScenario(3);
+        [x, y, z] = setting.getAll();
+        setting.WordList(1, true);
+        
+        two_y = 2*y;        
+        testCase.assertNotEmpty(x.RealCoefficients);
+        testCase.assertNotEmpty(two_y.RealCoefficients);
+        testCase.assertNotEmpty(z.RealCoefficients);
+        
+        xyz = [x; two_y; z];
+        testCase.assertTrue(isa(xyz, 'MTKMonomial'));
+        testCase.assertEqual(size(xyz), [3 1]);
+        testCase.assertFalse(xyz.IsScalar);
+        testCase.assertTrue(xyz.IsVector);
+        testCase.assertTrue(xyz.IsColVector);
+        testCase.verifyEqual(xyz.Operators, {uint64(1); uint64(2); uint64(3)});
+        testCase.verifyEqual(xyz.Coefficient, [1; 2; 1]);
+        testCase.verifyEqual(xyz.Hash, uint64([2; 3; 4]));
+        testCase.verifyEqual(xyz.FoundSymbol, true(3, 1));
+        testCase.verifyEqual(xyz.SymbolId, int64([2; 3; 4]));
+        testCase.verifyEqual(xyz.RealBasisIndex, uint64([2; 3; 4]));
+        testCase.verifyEqual(xyz.ImaginaryBasisIndex, uint64([0; 0; 0]));   
+        
+        expected_re = sparse(4, 3);
+        expected_re(2, 1) = 1;
+        expected_re(3, 2) = 2;
+        expected_re(4, 3) = 1;
+        expected_re = [zeros(4, 0, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(xyz.RealCoefficients, expected_re);
+        
+        expected_im = zeros(0, 3, 'like', sparse(1i));
+        testCase.verifyEqual(xyz.ImaginaryCoefficients, expected_im);
+     end
     
+     function cat_vert_row_to_matrix(testCase)
+        setting = AlgebraicScenario(4);
+        
+        w_x = MTKMonomial(setting, {[1], [2]}, 1.0);
+        y_z = MTKMonomial(setting, {[3], [4]}, -1.0);
+        setting.WordList(1, true);
+        
+        testCase.assertNotEmpty(w_x.RealCoefficients);
+        testCase.assertNotEmpty(y_z.RealCoefficients);
+                
+        mat = [w_x; y_z];
+        testCase.assertTrue(isa(mat, 'MTKMonomial'));
+        testCase.assertEqual(size(mat), [2 2]);        
+        testCase.assertFalse(mat.IsScalar);
+        testCase.assertFalse(mat.IsVector);
+        testCase.assertTrue(mat.IsMatrix);
+        testCase.verifyEqual(mat.Operators, ...
+            {uint64(1), uint64(2); uint64(3), uint64(4)});
+        testCase.verifyEqual(mat.Coefficient, [1, 1; -1, -1]);
+        testCase.verifyEqual(mat.Hash, uint64([2, 3; 4, 5]));
+        testCase.verifyEqual(mat.FoundSymbol, true(2, 2));
+        testCase.verifyEqual(mat.SymbolId, int64([2 3; 4 5]));
+        testCase.verifyEqual(mat.RealBasisIndex, uint64([2 3; 4 5]));
+        testCase.verifyEqual(mat.ImaginaryBasisIndex, uint64([0 0; 0 0]));
+        
+        expected_re = sparse(5, 4);
+        expected_re(2, 1) = 1;
+        expected_re(4, 2) = -1;
+        expected_re(3, 3) = 1;        
+        expected_re(5, 4) = -1;
+        expected_re = [zeros(5, 0, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(mat.RealCoefficients, expected_re);
+        
+        expected_im = zeros(0, 4, 'like', sparse(1i));
+        testCase.verifyEqual(mat.ImaginaryCoefficients, expected_im);
+     end
+    
+     function cat_vert_matrix_to_matrix(testCase)
+        setting = AlgebraicScenario(4, 'hermitian', false);
+        setting.WordList(1, true);
+        testCase.assertEqual(setting.RawOperatorCount, uint64(8));
+        
+        matA = MTKMonomial(setting, {[1], [3]; [5], [7]}, 1.0);
+        matB = MTKMonomial(setting, {[2], [4]; [6], [8]}, -1.0);
+        
+        testCase.assertNotEmpty(matA.RealCoefficients);
+        testCase.assertNotEmpty(matB.RealCoefficients);
+               
+        mat = [matA; matB];
+        
+        testCase.assertTrue(isa(mat, 'MTKMonomial'));
+        testCase.assertEqual(size(mat), [4 2]);        
+        testCase.assertTrue(mat.IsMatrix);
+        testCase.verifyEqual(mat.Operators, ...
+            {uint64(1), uint64(3); 
+             uint64(5), uint64(7);
+             uint64(2), uint64(4);
+             uint64(6), uint64(8)});
+        testCase.verifyEqual(mat.Coefficient, [1, 1; 1, 1; -1, -1; -1, -1]);
+        testCase.verifyEqual(mat.Hash, uint64([2 4; 6 8; 3 5; 7 9]));
+        testCase.verifyEqual(mat.FoundSymbol, true(4, 2));
+        
+        testCase.verifyEqual(mat.SymbolId, int64([2 3; 4 5; 2 3; 4 5]));
+        testCase.verifyEqual(mat.SymbolConjugated, ...
+                             logical([0 0; 0 0; 1 1; 1 1]));
+        testCase.verifyEqual(mat.RealBasisIndex, ...
+                             uint64([2 3; 4 5; 2 3; 4 5]));
+        testCase.verifyEqual(mat.ImaginaryBasisIndex, ...
+                             uint64([1 2; 3 4; 1 2; 3 4]));
+        
+        expected_re = sparse(5, 8);
+        expected_re(2, 1) = 1;
+        expected_re(4, 2) = 1;
+        expected_re(2, 3) = -1;        
+        expected_re(4, 4) = -1;        
+        expected_re(3, 5) = 1;
+        expected_re(5, 6) = 1;
+        expected_re(3, 7) = -1;        
+        expected_re(5, 8) = -1;
+        expected_re = [zeros(5, 0, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(mat.RealCoefficients, expected_re);
+        
+        expected_im = sparse(4, 8);
+        expected_im(1, 1) = 1i;
+        expected_im(3, 2) = 1i;
+        expected_im(1, 3) = 1i;
+        expected_im(3, 4) = 1i;
+        expected_im(2, 5) = 1i;
+        expected_im(4, 6) = 1i;
+        expected_im(2, 7) = 1i;
+        expected_im(4, 8) = 1i;        
+        testCase.verifyEqual(mat.ImaginaryCoefficients, expected_im);
+     end
+     
      function cat_horz_scalars(testCase)
         setting = AlgebraicScenario(3);
         [x, y, z] = setting.getAll();
@@ -455,41 +582,199 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'cat'})
         expected_im = zeros(0, 4, 'like', sparse(1i));
         testCase.verifyEqual(wxyz.ImaginaryCoefficients, expected_im);
      end
-    
-     function cat_vert_scalars(testCase)
-        setting = AlgebraicScenario(3);
-        [x, y, z] = setting.getAll();
+     
+       
+     function cat_horz_mixed_row(testCase)
+        setting = AlgebraicScenario(4);
+        
+        x = MTKMonomial(setting, 2, 1i);
+        w_x = MTKMonomial(setting, {[1], [2]}, 1.0);
+        y_z = MTKMonomial(setting, {[3], [4]}, -1.0);
         setting.WordList(1, true);
         
-        two_y = 2*y;        
         testCase.assertNotEmpty(x.RealCoefficients);
-        testCase.assertNotEmpty(two_y.RealCoefficients);
-        testCase.assertNotEmpty(z.RealCoefficients);
+        testCase.assertNotEmpty(w_x.RealCoefficients);
+        testCase.assertNotEmpty(y_z.RealCoefficients);
+                
+        wxxyz = [w_x, x, y_z];
+        testCase.assertTrue(isa(wxxyz, 'MTKMonomial'));
+        testCase.assertEqual(size(wxxyz), [1 5]);        
+        testCase.assertFalse(wxxyz.IsScalar);
+        testCase.assertTrue(wxxyz.IsVector);
+        testCase.assertTrue(wxxyz.IsRowVector);
+        testCase.verifyEqual(wxxyz.Operators, ...
+            {uint64(1), uint64(2), uint64(2), uint64(3), uint64(4)});
+        testCase.verifyEqual(wxxyz.Coefficient, [1, 1, 1i, -1, -1]);
+        testCase.verifyEqual(wxxyz.Hash, uint64([2, 3, 3, 4, 5]));
+        testCase.verifyEqual(wxxyz.FoundSymbol, true(1, 5));
+        testCase.verifyEqual(wxxyz.SymbolId, int64([2 3 3 4 5]));
+        testCase.verifyEqual(wxxyz.RealBasisIndex, uint64([2 3 3 4 5]));
+        testCase.verifyEqual(wxxyz.ImaginaryBasisIndex, uint64([0 0 0 0 0]));
         
-        xyz = [x; two_y; z];
-        testCase.assertTrue(isa(xyz, 'MTKMonomial'));
-        testCase.assertEqual(size(xyz), [3 1]);
-        testCase.assertFalse(xyz.IsScalar);
-        testCase.assertTrue(xyz.IsVector);
-        testCase.assertTrue(xyz.IsColVector);
-        testCase.verifyEqual(xyz.Operators, {uint64(1); uint64(2); uint64(3)});
-        testCase.verifyEqual(xyz.Coefficient, [1; 2; 1]);
-        testCase.verifyEqual(xyz.Hash, uint64([2; 3; 4]));
-        testCase.verifyEqual(xyz.FoundSymbol, true(3, 1));
-        testCase.verifyEqual(xyz.SymbolId, int64([2; 3; 4]));
-        testCase.verifyEqual(xyz.RealBasisIndex, uint64([2; 3; 4]));
-        testCase.verifyEqual(xyz.ImaginaryBasisIndex, uint64([0; 0; 0]));   
-        
-        expected_re = sparse(4, 3);
+        expected_re = sparse(5, 4);
         expected_re(2, 1) = 1;
-        expected_re(3, 2) = 2;
-        expected_re(4, 3) = 1;
-        expected_re = [zeros(4, 0, 'like', sparse(1i)), expected_re];
-        testCase.verifyEqual(xyz.RealCoefficients, expected_re);
+        expected_re(3, 2) = 1;
+        expected_re(3, 3) = 1i;
+        expected_re(4, 4) = -1;
+        expected_re(5, 5) = -1;
+        expected_re = [zeros(5, 0, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(wxxyz.RealCoefficients, expected_re);
         
-        expected_im = zeros(0, 3, 'like', sparse(1i));
-        testCase.verifyEqual(xyz.ImaginaryCoefficients, expected_im);
-    end
+        expected_im = zeros(0, 5, 'like', sparse(1i));
+        testCase.verifyEqual(wxxyz.ImaginaryCoefficients, expected_im);
+     end
+     
+      function cat_horz_col_to_matrix(testCase)
+        setting = AlgebraicScenario(4);
+        
+        w_x = MTKMonomial(setting, {[1]; [2]}, 1.0);
+        y_z = MTKMonomial(setting, {[3]; [4]}, -1.0);
+        setting.WordList(1, true);
+        
+        testCase.assertNotEmpty(w_x.RealCoefficients);
+        testCase.assertNotEmpty(y_z.RealCoefficients);
+                
+        mat = [w_x, y_z];
+        testCase.assertTrue(isa(mat, 'MTKMonomial'));
+        testCase.assertEqual(size(mat), [2 2]);        
+        testCase.assertFalse(mat.IsScalar);
+        testCase.assertFalse(mat.IsVector);
+        testCase.assertTrue(mat.IsMatrix);
+        testCase.verifyEqual(mat.Operators, ...
+            {uint64(1), uint64(3); uint64(2), uint64(4)});
+        testCase.verifyEqual(mat.Coefficient, [1, -1; 1, -1]);
+        testCase.verifyEqual(mat.Hash, uint64([2, 4; 3, 5]));
+        testCase.verifyEqual(mat.FoundSymbol, true(2, 2));
+        testCase.verifyEqual(mat.SymbolId, int64([2 4; 3 5]));
+        testCase.verifyEqual(mat.RealBasisIndex, uint64([2 4; 3 5]));
+        testCase.verifyEqual(mat.ImaginaryBasisIndex, uint64([0 0; 0 0]));
+        
+        expected_re = sparse(5, 4);
+        expected_re(2, 1) = 1;
+        expected_re(3, 2) = 1;
+        expected_re(4, 3) = -1;
+        expected_re(5, 4) = -1;
+        expected_re = [zeros(5, 0, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(mat.RealCoefficients, expected_re);
+        
+        expected_im = zeros(0, 4, 'like', sparse(1i));
+        testCase.verifyEqual(mat.ImaginaryCoefficients, expected_im);
+      end
+    
+   function cat_horz_matrix_to_matrix(testCase)
+        setting = AlgebraicScenario(4, 'hermitian', false);
+        setting.WordList(1, true);
+        testCase.assertEqual(setting.RawOperatorCount, uint64(8));
+        
+        matA = MTKMonomial(setting, {[1], [3]; [5], [7]}, 1.0);
+        matB = MTKMonomial(setting, {[2], [4]; [6], [8]}, -1.0);
+        
+        testCase.assertNotEmpty(matA.RealCoefficients);
+        testCase.assertNotEmpty(matB.RealCoefficients);
+               
+        mat = [matA, matB];
+        
+        testCase.assertTrue(isa(mat, 'MTKMonomial'));
+        testCase.assertEqual(size(mat), [2 4]);        
+        testCase.assertTrue(mat.IsMatrix);
+        testCase.verifyEqual(mat.Operators, ...
+            {uint64(1), uint64(3), uint64(2), uint64(4);
+             uint64(5), uint64(7), uint64(6), uint64(8)});
+        testCase.verifyEqual(mat.Coefficient, [1, 1, -1, -1; 1, 1, -1, -1]);
+        testCase.verifyEqual(mat.Hash, uint64([2 4 3 5; 6 8 7 9]));
+        testCase.verifyEqual(mat.FoundSymbol, true(2, 4));
+        
+        testCase.verifyEqual(mat.SymbolId, int64([2 3 2 3; 4 5 4 5]));
+        testCase.verifyEqual(mat.SymbolConjugated, ...
+                             logical([0 0 1 1; 0 0 1 1]));
+        testCase.verifyEqual(mat.RealBasisIndex, ...
+                             uint64([2 3 2 3; 4 5 4 5]));
+        testCase.verifyEqual(mat.ImaginaryBasisIndex, ...
+                             uint64([1 2 1 2; 3 4 3 4]));
+        
+        expected_re = sparse(5, 8);
+        expected_re(2, 1) = 1;
+        expected_re(4, 2) = 1;
+        expected_re(3, 3) = 1;        
+        expected_re(5, 4) = 1;        
+        expected_re(2, 5) = -1;
+        expected_re(4, 6) = -1;
+        expected_re(3, 7) = -1;        
+        expected_re(5, 8) = -1;
+        expected_re = [zeros(5, 0, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(mat.RealCoefficients, expected_re);
+        
+        expected_im = sparse(4, 8);
+        expected_im(1, 1) = 1i;
+        expected_im(3, 2) = 1i;
+        expected_im(2, 3) = 1i;
+        expected_im(4, 4) = 1i;
+        expected_im(1, 5) = 1i;
+        expected_im(3, 6) = 1i;
+        expected_im(2, 7) = 1i;
+        expected_im(4, 8) = 1i;        
+        testCase.verifyEqual(mat.ImaginaryCoefficients, expected_im);
+   end
+     
+   function cat_3_matrix_to_tensor(testCase)
+        setting = AlgebraicScenario(4, 'hermitian', false);
+        setting.WordList(1, true);
+        testCase.assertEqual(setting.RawOperatorCount, uint64(8));
+        
+        matA = MTKMonomial(setting, {[1], [3]; [5], [7]}, 1.0);
+        matB = MTKMonomial(setting, {[2], [4]; [6], [8]}, -1.0);
+        
+        testCase.assertNotEmpty(matA.RealCoefficients);
+        testCase.assertNotEmpty(matB.RealCoefficients);
+               
+        tensor = cat(3, matA, matB);
+        
+        testCase.assertTrue(isa(tensor, 'MTKMonomial'));
+        testCase.assertEqual(size(tensor), [2 2 2]);        
+        testCase.assertFalse(tensor.IsMatrix);
+        testCase.verifyEqual(tensor.Operators, ...
+            cat(3, {uint64(1), uint64(3); uint64(5), uint64(7)}, ...
+                   {uint64(2), uint64(4); uint64(6), uint64(8)}));
+               
+        testCase.verifyEqual(tensor.Coefficient, ...
+            cat(3, [1 1; 1 1], [-1 -1; -1 -1]));
+        
+        testCase.verifyEqual(tensor.Hash, ...
+                           cat(3, uint64([2 4; 6 8]), uint64([3 5; 7 9])));
+        testCase.verifyEqual(tensor.FoundSymbol, true(2, 2, 2));
+        
+        testCase.verifyEqual(tensor.SymbolId, ...
+                          cat(3, int64([2 3; 4 5]), int64([2 3; 4 5])));
+        testCase.verifyEqual(tensor.SymbolConjugated, ...
+                          cat(3, logical([0 0; 0 0]), logical([1 1; 1 1])));
+        testCase.verifyEqual(tensor.RealBasisIndex, ...
+                          cat(3, uint64([2 3; 4 5]), uint64([2 3; 4 5])));
+        testCase.verifyEqual(tensor.ImaginaryBasisIndex, ...
+                          cat(3, uint64([1 2; 3 4]), uint64([1 2; 3 4])));
+        
+        expected_re = sparse(5, 8);
+        expected_re(2, 1) = 1;
+        expected_re(4, 2) = 1;
+        expected_re(3, 3) = 1;        
+        expected_re(5, 4) = 1;        
+        expected_re(2, 5) = -1;
+        expected_re(4, 6) = -1;
+        expected_re(3, 7) = -1;        
+        expected_re(5, 8) = -1;
+        expected_re = [zeros(5, 0, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(tensor.RealCoefficients, expected_re);
+        
+        expected_im = sparse(4, 8);
+        expected_im(1, 1) = 1i;
+        expected_im(3, 2) = 1i;
+        expected_im(2, 3) = 1i;
+        expected_im(4, 4) = 1i;
+        expected_im(1, 5) = 1i;
+        expected_im(3, 6) = 1i;
+        expected_im(2, 7) = 1i;
+        expected_im(4, 8) = 1i;        
+        testCase.verifyEqual(tensor.ImaginaryCoefficients, expected_im);
+     end
 end
 
 %% Equality (eq)

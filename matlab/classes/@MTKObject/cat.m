@@ -1,4 +1,15 @@
  function output = cat(join_dimension, varargin)
+ % CAT Concatenate MTKObjects along the supplied dimension.
+ %
+ % cat(1, a, b, ...) is equivalent to [a; b; ...] (vertcat)
+ % cat(2, a, b, ...) is equivalent to [a, b, ...] (horzcat)
+ %
+ % See also: MTKOBJECT.HORZCAT, MTKOBJECT.VERTCAT
+ 
+    % Check join dimension
+    assert((numel(join_dimension)==1) && (join_dimension > 0),...
+           "Join must be along a single positively-indexed dimension.");
+    
     % Trivial cases:
     if nargin == 1
         output = MTKObject.empty(0,0);
@@ -42,9 +53,49 @@
 
     % Get output dimensions (fail if inconsistent)
     sizes = cellfun(@size, varargin, 'UniformOutput', false);
+    [sizes, cat_sizes, non_cat_sizes, nonjoin_dimensions] ...
+        = validateSizes(join_dimension, sizes);
+   
+    % Construct target size
+    target_size = zeros(1, numel(sizes{1}));
+    target_size(join_dimension) = sum(cat_sizes);
+    [target_size(nonjoin_dimensions)] = non_cat_sizes{1};
+
+    % Construct object offsets
+    offsets = ones(numel(sizes{1}), numel(varargin));
+    offsets(join_dimension, 1:end) = cumsum(cat_sizes);
+
+    % Polymorphic c'tor
+    output = feval(class_name + ".InitForOverwrite", ...
+                   varargin{1}.Scenario, target_size);
+
+    % Do merge
+    output.mergeIn(join_dimension, offsets, varargin);
+
+ end
+
+
+ %% Private functions
+ function [sizes, cat_sizes, non_cat_sizes, nonjoin_dimensions] = ...
+     validateSizes(join_dimension, sizes)
+
+    % If joining on new dimension (i.e. to make a tensor), promote size
+    for idx = 1:numel(sizes)
+        if numel(sizes{idx}) == join_dimension - 1
+            sizes{idx} = [sizes{idx}, 1];
+        end
+    end
+ 
+    % Check dimensions
     matching_tensor = (numel(sizes{1}) == cellfun(@(x) numel(x), sizes));
     if ~all(matching_tensor(:))
         error("Cannot merge tensors of different dimensionality.");
+    end
+    
+    % Check join is along valid dimension
+    if numel(sizes{1}) < join_dimension
+        error("Cannot join objects of size %d along dimension %d", ...
+            numel(sizes{1}), join_dimension);
     end
 
     % Check matching sizes on dimensions that are not joined 
@@ -62,24 +113,7 @@
                 error("Cannot horizontally concatenate objects with different row sizes.");                        
             end
         else
-            error("Cannot concatenate objects with mismatched dimensions.");
+            error("Cannot concatenate objects with different sizes in the non-join dimension.");
         end
     end
-
-    % Construct target size
-    target_size = zeros(1, numel(sizes{1}));
-    target_size(join_dimension) = sum(cat_sizes);
-    [target_size(nonjoin_dimensions)] = non_cat_sizes{1};
-
-    % Construct object offsets
-    offsets = ones(numel(sizes{1}), numel(varargin));
-    offsets(join_dimension, 1:end) = cumsum(cat_sizes);
-
-    % Polymorphic c'tor
-    output = feval(class_name + ".InitForOverwrite", ...
-                   varargin{1}.Scenario, target_size);
-
-    % Do merge
-    output.mergeIn(join_dimension, offsets, varargin);
-
-end
+ end

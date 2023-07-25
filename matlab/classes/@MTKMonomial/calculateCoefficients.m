@@ -17,7 +17,6 @@
  end
 
 %% Private functions
-
 function re = makeRealScalarCoefficient(obj)
     sys = obj.Scenario.System;
     re = zeros(double(sys.RealVarCount), 1, 'like', sparse(1i));
