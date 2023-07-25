@@ -43,4 +43,17 @@ classdef (InferiorClasses={?MTKMonomial, ?MTKPolynomial}) ...
         end
     end
     
+    %% Overriden methods
+    methods(Access=protected)
+        function result = isPropertyMTKObject(obj, property_name)
+            switch property_name
+                case 'BaseObject'
+                    result = true;
+                otherwise
+                    result = ...
+                        isPropertyMTKObject@MTKSymbolicObject(obj, ...
+                                                            property_name);
+            end
+        end
+    end
 end

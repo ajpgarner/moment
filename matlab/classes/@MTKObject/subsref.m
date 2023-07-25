@@ -6,9 +6,20 @@
                 % Built-in can handle /most/ dot indexing
                 [varargout{1:nargout}] = builtin('subsref', obj, s);
             else
-                % Otherwise, we have to call recursively:
-                splice = builtin('subsref', obj, s(1));
-                [varargout{1:nargout}] = subsref(splice, s(2:end));
+                % Otherwise, we must interpret recursively:
+                last_mtko = obj;
+                splice = obj;
+                for idx = 1:(numel(s)-1)
+                    if ~isequal(s(idx).type, '.') ...
+                            || last_mtko.isPropertyMTKObject(s(idx).subs)
+                        splice = subsref(splice, s(idx));
+                        last_mtko = splice; 
+                    else
+                        splice = builtin('subsref', splice, s(idx));
+                    end
+                end
+
+                [varargout{1:nargout}] = subsref(splice, s(end));
             end
         case '()'
             % Handle empty () case by ignoring indices.

@@ -129,10 +129,14 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'coefficients'})
         expected_re = sparse(6, 1);
         expected_re(5) = 1 + 2.0i;
         testCase.verifyEqual(xy.RealCoefficients, expected_re);
+        testCase.verifyEqual(xy.RealMask, sparse(logical([0 0 0 0 1 0])));
+        testCase.verifyEqual(xy.RealBasisElements, uint64(5));
         
         expected_im = sparse(1, 1);
-        expected_im(1) = (1 + 2.0i) * i;
+        expected_im(1) = (1 + 2.0i) * 1i;
         testCase.verifyEqual(xy.ImaginaryCoefficients, expected_im);
+        testCase.verifyEqual(xy.ImaginaryMask, sparse(logical([1])));
+        testCase.verifyEqual(xy.ImaginaryBasisElements, uint64(1));
     end
 
     function coefs_col_vector(testCase)
@@ -149,11 +153,16 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'coefficients'})
         expected_re(5, 3) = 1;
         expected_re = [zeros(6, 0, 'like', sparse(1i)), expected_re];
         testCase.verifyEqual(xy_yy_yx.RealCoefficients, expected_re);
+        testCase.verifyEqual(xy_yy_yx.RealMask, ...
+                             sparse(logical([0 0 0 0 1 1])));
+        testCase.verifyEqual(xy_yy_yx.RealBasisElements, uint64([5, 6]));
         
         expected_im = zeros(1, 3, 'like', sparse(1i));
         expected_im(1,1) = 1i;
         expected_im(1,3) = -1i;
         testCase.verifyEqual(xy_yy_yx.ImaginaryCoefficients, expected_im);
+        testCase.verifyEqual(xy_yy_yx.ImaginaryMask, sparse(logical([1])));        
+        testCase.verifyEqual(xy_yy_yx.ImaginaryBasisElements, uint64(1));
     end
 
     function coefs_row_vector(testCase)
@@ -170,11 +179,16 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'coefficients'})
         expected_re(5, 3) = 1;
         expected_re = [zeros(6, 0, 'like', sparse(1i)), expected_re];
         testCase.verifyEqual(xy_yy_yx.RealCoefficients, expected_re);
+        testCase.verifyEqual(xy_yy_yx.RealMask, ...
+                             sparse(logical([0 0 0 0 1 1])));
+        testCase.verifyEqual(xy_yy_yx.RealBasisElements, uint64([5, 6]));
         
         expected_im = zeros(1, 3, 'like', sparse(1i));
         expected_im(1,1) = 1i;
         expected_im(1,3) = -1i;
         testCase.verifyEqual(xy_yy_yx.ImaginaryCoefficients, expected_im);
+        testCase.verifyEqual(xy_yy_yx.ImaginaryMask, sparse(logical([1])));
+        testCase.verifyEqual(xy_yy_yx.ImaginaryBasisElements, uint64(1));
     end
 
     function coefs_matrix(testCase)
@@ -192,10 +206,15 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'coefficients'})
         expected_re(6, 4) = 1; % [2 2]
         expected_re = [zeros(6, 0, 'like', sparse(1i)), expected_re];
         testCase.verifyEqual(mat.RealCoefficients, expected_re);
+        testCase.verifyEqual(mat.RealMask, ...
+                             sparse(logical([0 1 1 0 1 1])));
+        testCase.verifyEqual(mat.RealBasisElements, uint64([2, 3, 5, 6]));
         
         expected_im = zeros(1, 4, 'like', sparse(1i));
         expected_im(1, 2) = 1i; % [1 2] only
         testCase.verifyEqual(mat.ImaginaryCoefficients, expected_im);
+        testCase.verifyEqual(mat.ImaginaryMask, sparse(logical([1])));
+        testCase.verifyEqual(mat.ImaginaryBasisElements, uint64([1]));
     end
 end
 
@@ -1054,7 +1073,7 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'algebraic', 'plus'})
 
         x_plus_xy = x + xy;
         xy_plus_x = xy + x;
-        testCase.verifyTrue(isa(x_plus_xy, 'MTKPolynomial'));
+        testCase.assertTrue(isa(x_plus_xy, 'MTKPolynomial'));
         testCase.assertEqual(length(x_plus_xy.Constituents), 2);
         part_x = x_plus_xy.Constituents(1);
         part_xy = x_plus_xy.Constituents(2);

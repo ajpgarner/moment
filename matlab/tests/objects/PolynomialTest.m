@@ -1,6 +1,164 @@
 classdef PolynomialTest < MTKTestBase
 %POLYNOMIALTEST Tests for MTKPolynomial.
+
+%% Construction, symbol look-up and coefficients
+methods(Test, TestTags={'MTKPolynomial', 'MTKObject', 'construct', 'coefficients'})
+    function construct_scalar_x(testCase)
+        setting = AlgebraicScenario(2);        
+        x = MTKMonomial(setting, [1], -2.0);
         
+        poly_x = MTKPolynomial(setting, x);
+        
+        testCase.assertEqual(poly_x.Scenario, setting);
+        testCase.assertEqual(size(poly_x), [1 1]);
+        testCase.verifyFalse(poly_x.IsZero);
+        testCase.verifyEqual(poly_x.Constituents(1), x);
+        testCase.verifyFalse(poly_x.FoundAllSymbols);
+        
+        setting.WordList(1, true); % Make symbols
+        
+        testCase.verifyTrue(poly_x.FoundAllSymbols);
+        
+        expected_re = sparse(3, 1);
+        expected_re(2, 1) = -2.0;
+        expected_re = [zeros(0, 3, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(poly_x.RealCoefficients, expected_re);
+        testCase.verifyEqual(poly_x.RealMask, sparse([false true false]));
+        testCase.verifyEqual(poly_x.RealBasisElements, uint64([2]));
+        
+        expected_im = zeros(0, 1, 'like', sparse(1i));
+        testCase.verifyEqual(poly_x.ImaginaryCoefficients, expected_im);
+        testCase.verifyEqual(poly_x.ImaginaryMask, ...
+                             zeros(1,0,'like',sparse(false)));
+        testCase.verifyEqual(poly_x.ImaginaryBasisElements, ...
+                             uint64.empty(1,0));
+    end
+    
+    function construct_scalar_x_plus_y(testCase)
+        setting = AlgebraicScenario(2);           
+        [x,y] = setting.getAll();
+        x_plus_y = MTKMonomial(setting, {[1]; [2]}, [1; 1]);
+        
+        poly_x_plus_y = MTKPolynomial(setting, x_plus_y);
+        
+        testCase.assertEqual(poly_x_plus_y.Scenario, setting);
+        testCase.assertEqual(size(poly_x_plus_y), [1 1]);
+        testCase.verifyFalse(poly_x_plus_y.IsZero);
+        testCase.verifyEqual(poly_x_plus_y.Constituents(1), x);
+        testCase.verifyEqual(poly_x_plus_y.Constituents(2), y);
+        testCase.verifyFalse(poly_x_plus_y.FoundAllSymbols);
+        
+        setting.WordList(1, true); % Make symbols
+        
+        testCase.verifyTrue(poly_x_plus_y.FoundAllSymbols);
+        
+        expected_re = sparse(3, 1);
+        expected_re(2, 1) = 1.0;
+        expected_re(3, 1) = 1.0;
+        expected_re = [zeros(0, 3, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(poly_x_plus_y.RealCoefficients, expected_re);
+        testCase.verifyEqual(poly_x_plus_y.RealMask, ...
+                             sparse([false true true]));
+        testCase.verifyEqual(poly_x_plus_y.RealBasisElements, ...
+                             uint64([2, 3]));
+        
+        expected_im = zeros(0, 1, 'like', sparse(1i));
+        testCase.verifyEqual(poly_x_plus_y.ImaginaryCoefficients, expected_im);
+        testCase.verifyEqual(poly_x_plus_y.ImaginaryMask, ...
+                             zeros(1,0,'like',sparse(false)));
+        testCase.verifyEqual(poly_x_plus_y.ImaginaryBasisElements, ...
+                             uint64.empty(1,0));
+    end
+    
+    function construct_row_vector(testCase)
+        setting = AlgebraicScenario(2);           
+        [x,y] = setting.getAll();
+        x_plus_y = MTKMonomial(setting, {[1]; [2]}, [1; 1]);
+        
+        row_vec = MTKPolynomial(setting, {x_plus_y, x});
+        
+        testCase.assertEqual(row_vec.Scenario, setting);
+        testCase.assertEqual(size(row_vec), [1 2]);
+        testCase.verifyEqual(row_vec.IsZero, false(1, 2));
+        testCase.verifyEqual(row_vec.Constituents{1}(1), x);
+        testCase.verifyEqual(row_vec.Constituents{1}(2), y);
+        testCase.verifyEqual(row_vec.Constituents{2}, x);
+        testCase.verifyFalse(row_vec.FoundAllSymbols);
+        
+        setting.WordList(1, true); % Make symbols
+        
+        testCase.verifyTrue(row_vec.FoundAllSymbols);
+        
+        expected_re = sparse(3, 2);
+        expected_re(2, 1) = 1.0;
+        expected_re(3, 1) = 1.0;
+        expected_re(2, 2) = 1.0;
+        expected_re = [zeros(0, 3, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(row_vec.RealCoefficients, expected_re);
+        testCase.verifyEqual(row_vec.RealMask, sparse([false true true]));
+        testCase.verifyEqual(row_vec.RealBasisElements, ...
+                             uint64([2, 3]));
+        
+        expected_im = zeros(0, 2, 'like', sparse(1i));
+        testCase.verifyEqual(row_vec.ImaginaryCoefficients, expected_im);
+        testCase.verifyEqual(row_vec.ImaginaryMask, ...
+                             zeros(1,0,'like',sparse(false)));
+        testCase.verifyEqual(row_vec.ImaginaryBasisElements, ...
+                             uint64.empty(1,0));
+    end
+    
+    function construct_matrix(testCase)
+        setting = AlgebraicScenario(2, 'hermitian', false);
+        [x, y] = setting.getAll();
+        x_plus_y = MTKMonomial(setting, {[1]; [3]}, [1; 1]);
+        x_plus_y_c = MTKMonomial(setting, {[2]; [4]}, [1; 1]);
+        
+        mat = MTKPolynomial(setting, {x, x_plus_y; x_plus_y_c, y});
+        
+        testCase.assertEqual(mat.Scenario, setting);
+        testCase.assertEqual(size(mat), [2 2]);
+        testCase.verifyEqual(mat.IsZero, false(2, 2));
+        testCase.verifyEqual(mat.Constituents{1, 1}, x);
+        testCase.verifyEqual(mat.Constituents{1, 2}(1), x);
+        testCase.verifyEqual(mat.Constituents{1, 2}(2), y);        
+        testCase.verifyEqual(mat.Constituents{2, 1}(1), x');
+        testCase.verifyEqual(mat.Constituents{2, 1}(2), y');
+        testCase.verifyEqual(mat.Constituents{2, 2}, y);
+        testCase.verifyFalse(mat.FoundAllSymbols);
+        
+        setting.WordList(1, true); % Make symbols
+        
+        testCase.verifyTrue(mat.FoundAllSymbols);
+        
+        expected_re = sparse(3, 4);
+        expected_re(2, 1) = 1.0;
+        expected_re(2, 2) = 1.0;
+        expected_re(3, 2) = 1.0;
+        expected_re(2, 3) = 1.0;
+        expected_re(3, 3) = 1.0;
+        expected_re(3, 4) = 1.0;        
+        expected_re = [zeros(0, 3, 'like', sparse(1i)), expected_re];
+        testCase.verifyEqual(mat.RealCoefficients, expected_re);
+        testCase.verifyEqual(mat.RealMask, sparse([false true true]));
+        testCase.verifyEqual(mat.RealBasisElements, ...
+                             uint64([2, 3]));
+                         
+        expected_im = sparse(2, 4);        
+        expected_im(1, 1) = 1i;
+        expected_im(1, 2) = -1i;
+        expected_im(2, 2) = -1i;
+        expected_im(1, 3) = 1i;
+        expected_im(2, 3) = 1i;
+        expected_im(2, 4) = 1i;
+        expected_im = [zeros(0, 2, 'like', sparse(1i)), expected_im];
+        
+        testCase.verifyEqual(mat.ImaginaryCoefficients, expected_im);
+        testCase.verifyEqual(mat.ImaginaryMask, sparse([true true]));
+        testCase.verifyEqual(mat.ImaginaryBasisElements, ...
+                             uint64([1 2]));
+    end
+end
+
 %% Equality (eq)
 methods(Test, TestTags={'MTKPolynomial', 'MTKObject', 'eq'})
     function eq_poly_poly(testCase)
@@ -563,4 +721,3 @@ methods(Test, TestTags={'MTKPolynomial', 'MTKObject', 'algebraic', 'ctranspose'}
 end
     
 end
-
