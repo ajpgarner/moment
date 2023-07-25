@@ -41,5 +41,16 @@ function mergeIn(obj, merge_dim, offsets, objects)
 
     m_im_basis_index = (cellfun(@(x) x.im_basis_index, objects, ...
                                 'UniformOutput', false));
-    obj.im_basis_index = cat(merge_dim, m_im_basis_index{:});            
+    obj.im_basis_index = cat(merge_dim, m_im_basis_index{:});
+    
+    % If all components have symbol cells, combine:
+    has_sc = cellfun(@(x) x.has_sc, objects);
+    if all(has_sc(:))
+        sc = cellfun(@(x) x.symbol_cell, objects, 'UniformOutput', false);
+        obj.symbol_cell = cat(merge_dim, sc{:});
+        obj.has_sc = true;
+    else
+        obj.has_sc = false;
+    end
+    
 end        

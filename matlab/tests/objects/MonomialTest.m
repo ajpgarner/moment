@@ -777,6 +777,55 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'cat'})
      end
 end
 
+%% Symbol cells
+methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'SymbolCell'})
+    function symbol_cell_x(testCase)
+        setting = AlgebraicScenario(2, 'hermitian', false);
+        setting.WordList(1, true);
+        x_conj = MTKMonomial(setting, [2], -2.0);
+        
+        testCase.assertTrue(x_conj.FoundSymbol);
+        testCase.verifyEqual(x_conj.SymbolCell, ...
+            {{{int64(2), -2.0, true}}});        
+    end
+         
+    function symbol_cell_row_vector(testCase)
+        setting = AlgebraicScenario(2, 'hermitian', false);
+        setting.WordList(1, true);
+        x_y_conj = MTKMonomial(setting, {[1], [4]}, 10.0);
+
+        testCase.assertEqual(x_y_conj.FoundSymbol, [true true]);        
+        testCase.verifyEqual(x_y_conj.SymbolCell, ...
+            {{{int64(2), 10.0}}, {{int64(3), 10.0, true}}});
+    end
+
+    function symbol_cell_matrix(testCase)
+        setting = AlgebraicScenario(2, 'hermitian', false);
+        setting.WordList(1, true);
+        mat = MTKMonomial(setting, {[1], [4]; [3], [2]}, 2i);
+
+        testCase.assertEqual(mat.FoundSymbol, true(2,2));
+        testCase.verifyEqual(mat.SymbolCell, ...
+            {{{int64(2), 2i}}, {{int64(3), 2i, true}};
+             {{int64(3), 2i}}, {{int64(2), 2i, true}}});
+    end
+    
+    function symbol_cell_cat(testCase)
+        setting = AlgebraicScenario(2, 'hermitian', false);
+        setting.WordList(1, true);
+        vecA = MTKMonomial(setting, {[1]; [3]}, 2i); 
+        vecB = MTKMonomial(setting, {[4]; [2]}, 2i);
+        testCase.assertNotEmpty(vecA.SymbolCell);
+        testCase.assertNotEmpty(vecB.SymbolCell);
+        mat = [vecA, vecB];
+
+        testCase.assertEqual(mat.FoundSymbol, true(2,2));
+        testCase.verifyEqual(mat.SymbolCell, ...
+            {{{int64(2), 2i}}, {{int64(3), 2i, true}};
+             {{int64(3), 2i}}, {{int64(2), 2i, true}}});
+    end
+end
+
 %% Equality (eq)
 methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'eq'})
     function eq_mono_mono(testCase)
