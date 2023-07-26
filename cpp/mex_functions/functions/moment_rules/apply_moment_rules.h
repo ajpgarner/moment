@@ -39,10 +39,16 @@ namespace Moment::mex::functions {
         } output_format = OutputFormat::SymbolCell;
 
         /** Direct set of symbol combos, if specified. */
-        std::vector<raw_sc_data> raw_polynomial;
+        std::vector<std::vector<raw_sc_data>> raw_polynomial;
+
+        /** Shape of input array. */
+        std::vector<size_t> input_shape;
 
     public:
         explicit ApplyMomentRulesParams(SortedInputs&& structuredInputs);
+
+        void read_symbol_cell_input(const matlab::data::Array& array);
+
 
     };
 

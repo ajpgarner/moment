@@ -68,34 +68,14 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
                     constituents = varargin{1};
                     zero_construction = isempty(constituents);
                 elseif isa(varargin{1}, 'cell')
-                    constituents = varargin{1};
-                    
-                    if ~all(cellfun(@(x) isa(x, 'MTKMonomial'), ...
-                            constituents))
-                        % Try to reinterpret as monomial specification
-                        if numel(constituents) == 3
-                            constituents = ...
-                                MTKMonomial.InitDirect(setting, ...
-                                                       constituents{:});
-                        elseif numel(constituents) == 7 ...
-                                || numel(constituents) == 8
-                            constituents = ...
-                                MTKMonomial.InitAllInfo(setting, ...
-                                                        constituents{:});                            
-                        else                        
-                            error(MTKPolynomial.err_bad_ctr_input);
-                        end
-                        array_construction = false;
-                        create_dimensions = [1 1];
-                    else 
-                        create_dimensions = size(constituents);
-                        if numel(constituents) == 1
-                            constituents = constituents{1};
-                            create_dimensions = [1, 1];
-                            array_construction = false;                        
-                        else
-                            array_construction = true;
-                        end
+                    constituents = interpretCellInput(setting, varargin{1});                    
+                    create_dimensions = size(constituents);
+                    if numel(constituents) == 1
+                        constituents = constituents{1};
+                        create_dimensions = [1, 1];
+                        array_construction = false;                        
+                    else
+                        array_construction = true;
                     end
                     zero_construction = false;
                 elseif (isstring(varargin{1}) || ischar(varargin{1})) ...

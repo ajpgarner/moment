@@ -33,7 +33,7 @@ namespace Moment::mex::functions {
         this->rulebook_index = read_positive_integer<uint64_t>(matlabEngine, "Rulebook index", this->inputs[1], 0);
 
         // Read symbol combo cell
-        this->raw_polynomial = read_raw_polynomial_data(this->matlabEngine, "Polynomial", this->inputs[2]);
+        read_symbol_cell_input(this->inputs[2]);
 
         // Read input mode, if set
         auto inputModeIter = this->params.find(u"input");
@@ -68,7 +68,28 @@ namespace Moment::mex::functions {
                     throw_error(this->matlabEngine, errors::bad_param, "Unknown output mode.");
             }
         }
+    }
 
+    void ApplyMomentRulesParams::read_symbol_cell_input(const matlab::data::Array &array) {
+        if (array.getType() != matlab::data::ArrayType::CELL) {
+            throw_error(this->matlabEngine, errors::bad_param, "Expected cell array input.");
+        }
+
+        // Read dimensions
+        const matlab::data::CellArray as_cell = array;
+        auto dims = as_cell.getDimensions();
+        this->input_shape.reserve(dims.size());
+        std::copy(dims.begin(), dims.end(), std::back_inserter(this->input_shape));
+
+        // Read polynomials
+        size_t offset = 1;
+        this->raw_polynomial.reserve(as_cell.getNumberOfElements());
+        for (const auto& elem : as_cell) {
+            std::stringstream ss;
+            ss << "Polynomial at index " << offset;
+            this->raw_polynomial.emplace_back(read_raw_polynomial_data(this->matlabEngine, ss.str(), elem));
+            ++offset;
+        }
     }
 
     void ApplyMomentRules::extra_input_checks(ApplyMomentRulesParams &input) const {
@@ -116,35 +137,18 @@ namespace Moment::mex::functions {
         }();
         const auto& factory = rulebook.factory;
 
-        // Convert input to polynomial.
-        Polynomial polynomial = raw_data_to_polynomial(this->matlabEngine, factory, input.raw_polynomial);
-
-        // Echo input in debug mode
-        if (this->verbose) {
-            std::stringstream debugSS;
-            debugSS << "Input polynomial: " << polynomial << "\n";
-            print_to_console(this->matlabEngine, debugSS.str());
+        // Convert input to polynomials
+        std::vector<Polynomial> input_polynomials;
+        input_polynomials.reserve(input.raw_polynomial.size());
+        for (const auto& raw_poly : input.raw_polynomial) {
+            input_polynomials.emplace_back(raw_data_to_polynomial(this->matlabEngine, factory, raw_poly));
         }
 
-        bool match = rulebook.reduce_in_place(polynomial);
-
-        std::string str_output;
-        if (this->verbose || (input.output_format == ApplyMomentRulesParams::OutputFormat::String)) {
-            std::stringstream transformedSS;
-            transformedSS << polynomial;
-            str_output = transformedSS.str();
-        }
-
-        if (this->verbose) {
-            std::stringstream debugSS;
-            debugSS << "Output polynomial ";
-            if (!match) {
-                debugSS << "unchanged.";
-            } else {
-                debugSS << ": " << str_output;
-            }
-            debugSS  << "\n";
-            print_to_console(this->matlabEngine, debugSS.str());
+        // Transform input polynomials
+        std::vector<Polynomial> output_polynomials;
+        output_polynomials.reserve(input_polynomials.size());
+        for (const auto& input_poly : input_polynomials) {
+            output_polynomials.emplace_back(rulebook.reduce(input_poly));
         }
 
         matlab::data::ArrayFactory mlfactory;
@@ -152,16 +156,32 @@ namespace Moment::mex::functions {
 
         switch (input.output_format) {
             case ApplyMomentRulesParams::OutputFormat::SymbolCell: {
-                output[0] = polynomialExporter.symbol_cell(polynomial);
+                matlab::data::CellArray cell_out = mlfactory.createCellArray(input.input_shape);
+                std::transform(output_polynomials.cbegin(), output_polynomials.cend(), cell_out.begin(),
+                               [&polynomialExporter](const Polynomial &poly) -> matlab::data::CellArray {
+                                   return polynomialExporter.symbol_cell(poly);
+                               });
+                output[0] = std::move(cell_out);
             }
                 break;
             case ApplyMomentRulesParams::OutputFormat::Polynomial: {
-                auto fullPolyInfo = polynomialExporter.sequences(polynomial, true);
-                output[0] = fullPolyInfo.move_to_cell(mlfactory);
+                matlab::data::CellArray cell_out = mlfactory.createCellArray(input.input_shape);
+                std::transform(output_polynomials.cbegin(), output_polynomials.cend(), cell_out.begin(),
+                               [&mlfactory, &polynomialExporter](const Polynomial &poly) -> matlab::data::CellArray {
+                                   auto fpi = polynomialExporter.sequences(poly, true);
+                                   return fpi.move_to_cell(mlfactory);
+                               });
+                output[0] = std::move(cell_out);
             }
                 break;
             case ApplyMomentRulesParams::OutputFormat::String: {
-                output[0] = mlfactory.createScalar(str_output);
+                matlab::data::TypedArray<matlab::data::MATLABString> string_out
+                    = mlfactory.createArray<matlab::data::MATLABString>(input.input_shape);
+                std::transform(output_polynomials.cbegin(), output_polynomials.cend(), string_out.begin(),
+                               [&mlfactory, &polynomialExporter](const Polynomial &poly) -> matlab::data::MATLABString {
+                                   return polynomialExporter.string(poly, true);
+                               });
+                output[0] = std::move(string_out);
             }
                 break;
             default:
