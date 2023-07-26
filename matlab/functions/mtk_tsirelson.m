@@ -62,8 +62,8 @@ end
 
 function objective = tsirelson_yalmip(matrix, functional)
     % Define SDP variables, and represent moment matrix
-    a = matrix.yalmipVars();
-    Gamma = matrix.yalmipRealMatrix(a);
+    a = matrix.Scenario.yalmipVars();
+    Gamma = matrix.yalmip(a);
 
     % Constraints (normalization, positivity)
     constraints = [a(1) == 1, Gamma >= 0];
@@ -81,8 +81,8 @@ end
 function objective = tsirelson_cvx(matrix, functional)
     cvx_begin quiet sdp
         % Define SDP variables, and represent moment matrix
-        matrix.cvxVars('a');
-        Gamma = matrix.cvxRealMatrix(a);
+        matrix.Scenario.cvxVars('a');
+        Gamma = matrix.cvx(a);
    
         % Constraints (normalization, positivity)
         a(1) == 1;

@@ -38,6 +38,9 @@ matlab_add_mex(NAME moment_mex
             import/read_polynomial.cpp
             import/read_raw_symbol_matrix.cpp
             import/read_symbol_or_fail.cpp
+            logging/in_memory_logger.cpp
+            logging/logger.cpp
+            logging/to_file_logger.cpp
             utilities/io_parameters.cpp
             utilities/make_sparse_matrix.cpp
             utilities/read_choice.cpp
@@ -58,6 +61,7 @@ matlab_add_mex(NAME moment_mex
             functions/transform_symbols.cpp
             functions/word_list.cpp
             functions/debug/echo.cpp
+            functions/debug/logging.cpp
             functions/debug/list.cpp
             functions/debug/moment_rule_superset.cpp
             functions/debug/version.cpp

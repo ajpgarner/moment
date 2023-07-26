@@ -101,7 +101,8 @@ namespace Moment {
             return !static_cast<bool>(this->the_object);
         }
 
-        template<typename... Args>
+
+        template<std::derived_from<class_t> child_class_t, typename... Args>
         std::shared_ptr<class_t> create_if_empty(Args... args) {
             // If object already exists, just return it.
             std::shared_lock read_lock{theMutex};
@@ -117,7 +118,7 @@ namespace Moment {
                 return this->the_object;
             }
             // Create object
-            this->the_object = std::make_shared<class_t>(std::forward<Args>(args)...);
+            this->the_object = std::make_shared<child_class_t>(std::forward<Args>(args)...);
             return this->the_object;
         }
     };

@@ -178,7 +178,7 @@ namespace Moment::mex::functions {
                 matlab::data::TypedArray<matlab::data::MATLABString> string_out
                     = mlfactory.createArray<matlab::data::MATLABString>(input.input_shape);
                 std::transform(output_polynomials.cbegin(), output_polynomials.cend(), string_out.begin(),
-                               [&mlfactory, &polynomialExporter](const Polynomial &poly) -> matlab::data::MATLABString {
+                               [&polynomialExporter](const Polynomial &poly) -> matlab::data::MATLABString {
                                    return polynomialExporter.string(poly, true);
                                });
                 output[0] = std::move(string_out);

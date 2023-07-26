@@ -6,6 +6,8 @@
  */
 #include "mex_main.h"
 
+#include "logging/in_memory_logger.h"
+
 #include "utilities/reporting.h"
 #include "utilities/read_as_string.h"
 
@@ -16,64 +18,126 @@
 
 #include "storage_manager.h"
 
+#include <chrono>
 #include <sstream>
 
 namespace Moment::mex {
+
+    namespace {
+        void log_event(Logger& logger, functions::MEXEntryPointID function_id,
+                       size_t num_in, size_t num_out,
+                       const std::chrono::time_point<std::chrono::system_clock>& system_time,
+                       const std::chrono::time_point<std::chrono::high_resolution_clock>& precision_start,
+                       const std::exception& e) {
+            if (logger.is_trivial()) {
+                return;
+            }
+
+            auto precision_end = std::chrono::high_resolution_clock::now();
+
+            LogDuration duration = precision_end - precision_start;
+
+            logger.report_event(LogEvent{functions::which_function_name(function_id), false,
+                                         num_in, num_out, system_time, duration, std::string(e.what())});
+        }
+
+        void log_event(Logger& logger, functions::MEXEntryPointID function_id,
+                       size_t num_in, size_t num_out,
+                       const std::chrono::time_point<std::chrono::system_clock>& system_time,
+                       const std::chrono::time_point<std::chrono::high_resolution_clock>& precision_start) {
+            if (logger.is_trivial()) {
+                return;
+            }
+
+            auto precision_end = std::chrono::high_resolution_clock::now();
+
+            LogDuration duration = precision_end - precision_start;
+
+            logger.report_event(LogEvent{functions::which_function_name(function_id), true,
+                                         num_in, num_out, system_time, duration, ""});
+        }
+    }
+
+
     MexMain::MexMain(std::shared_ptr <matlab::engine::MATLABEngine> matlab_engine)
         : matlabPtr(std::move(matlab_engine)), persistentStorage{getStorageManager()} {
         // Ensure environmental variables are loaded
-        persistentStorage.Settings.create_if_empty();
+        persistentStorage.Settings.create_if_empty<EnvironmentalVariables>();
+        // Ensure a logger exists
+        if constexpr (debug_mode) {
+            persistentStorage.Logger.create_if_empty<InMemoryLogger>();
+        } else {
+            persistentStorage.Logger.create_if_empty<IgnoreLogger>();
+        }
     }
 
     void MexMain::operator()(IOArgumentRange outputs, IOArgumentRange inputs) {
+        // Start timer
+        auto system_time = std::chrono::system_clock::now();
+        auto start_time = std::chrono::high_resolution_clock::now();
+
         // Read and pop function name...
         functions::MEXEntryPointID function_id = get_function_id(inputs);
         assert(function_id != functions::MEXEntryPointID::Unknown);
 
-        // Construction function object from ID...
-        std::unique_ptr<functions::MexFunction> the_function = functions::make_mex_function(*matlabPtr,
-                                                                                            function_id,
-                                                                                            persistentStorage);
-        if (!the_function) {
-            throw_error(*matlabPtr, errors::bad_function, u"Internal error: could not create function object.");
-        }
-
-        // Get named parameters & flags
-        auto processed_inputs = this->clean_inputs(*the_function, inputs);
-        assert(processed_inputs);
-
-        // Check inputs are in range, and are valid
-        this->validate_inputs(*the_function, *processed_inputs);
-
-        // Pre-process universal input flags
-        bool is_debug = processed_inputs->flags.contains(u"debug");
-        bool is_verbose = is_debug || processed_inputs->flags.contains(u"verbose");
-        bool is_quiet = processed_inputs->flags.contains(u"quiet") && !is_verbose;
-
-        bool preprocess_only = processed_inputs->flags.contains(u"debug_preprocess");
-
-        the_function->setQuiet(is_quiet);
-        the_function->setDebug(is_debug);
-        the_function->setVerbose(is_verbose);
-
-        // Final function-specific pre-processing and validation of inputs (transfer ownership to function)
-        processed_inputs = this->transform_and_validate(*the_function, std::move(processed_inputs), outputs);
-
-        // Check outputs are in range
-        this->validate_outputs(*the_function, outputs, *processed_inputs);
-
-        // If only transforming parameters, print output:
-        if (preprocess_only) {
-            print_to_console(*this->matlabPtr, processed_inputs->to_string());
-            matlab::data::ArrayFactory factory{};
-            for (auto &output: outputs) {
-                output = factory.createScalar(0);
-            }
-            return;
-        }
-
         // Execute function
-        (*the_function)(outputs, std::move(processed_inputs));
+        try {
+
+            // Construction function object from ID...
+            std::unique_ptr<functions::MexFunction> the_function = functions::make_mex_function(*matlabPtr,
+                                                                                                function_id,
+                                                                                                persistentStorage);
+            if (!the_function) {
+                throw_error(*matlabPtr, errors::bad_function, u"Internal error: could not create function object.");
+            }
+
+            // Get named parameters & flags
+            auto processed_inputs = this->clean_inputs(*the_function, inputs);
+            assert(processed_inputs);
+
+            // Check inputs are in range, and are valid
+            this->validate_inputs(*the_function, *processed_inputs);
+
+            // Pre-process universal input flags
+            bool is_debug = processed_inputs->flags.contains(u"debug");
+            bool is_verbose = is_debug || processed_inputs->flags.contains(u"verbose");
+            bool is_quiet = processed_inputs->flags.contains(u"quiet") && !is_verbose;
+
+            bool preprocess_only = processed_inputs->flags.contains(u"debug_preprocess");
+
+            the_function->setQuiet(is_quiet);
+            the_function->setDebug(is_debug);
+            the_function->setVerbose(is_verbose);
+
+            // Final function-specific pre-processing and validation of inputs (transfer ownership to function)
+            processed_inputs = this->transform_and_validate(*the_function, std::move(processed_inputs), outputs);
+
+            // Check outputs are in range
+            this->validate_outputs(*the_function, outputs, *processed_inputs);
+
+            // If only transforming parameters, print output:
+            if (preprocess_only) {
+                print_to_console(*this->matlabPtr, processed_inputs->to_string());
+                matlab::data::ArrayFactory factory{};
+                for (auto &output: outputs) {
+                    output = factory.createScalar(0);
+                }
+                return;
+            }
+
+            (*the_function)(outputs, std::move(processed_inputs));
+        } catch (std::exception& e) {
+            // Log exception
+            log_event(*this->persistentStorage.Logger.get(),
+                      function_id, inputs.size(), outputs.size(), system_time, start_time, e);
+
+            // Rethrow exception
+            throw;
+        } // finally...
+
+        // Log
+        log_event(*this->persistentStorage.Logger.get(),
+                  function_id,  inputs.size(), outputs.size(), system_time, start_time);
 
         // ~the_function
     }

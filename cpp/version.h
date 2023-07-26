@@ -15,6 +15,6 @@ namespace Moment::version {
     static constexpr const char PROJECT_COPYRIGHT[] = "Copyright (c) 2022-2023 Austrian Academy of Sciences";
 
     static constexpr int VERSION_MAJOR = 0;
-    static constexpr int VERSION_MINOR = 1;
-    static constexpr int VERSION_PATCH = 1;
+    static constexpr int VERSION_MINOR = 2;
+    static constexpr int VERSION_PATCH = 0;
 }

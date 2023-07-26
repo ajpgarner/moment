@@ -20,6 +20,7 @@
 #include "functions/word_list.h"
 #include "functions/debug/echo.h"
 #include "functions/debug/list.h"
+#include "functions/debug/logging.h"
 #include "functions/debug/moment_rule_superset.h"
 #include "functions/debug/version.h"
 #include "functions/matrix_system/algebraic_matrix_system.h"
@@ -64,11 +65,12 @@ namespace Moment::mex::functions {
             output.emplace("flatten_indices", MEXEntryPointID::FlattenIndices);
             output.emplace("generate_basis",  MEXEntryPointID::GenerateBasis);
             output.emplace("list",            MEXEntryPointID::List);
-            output.emplace("localizing_matrix",  MEXEntryPointID::LocalizingMatrix);
             output.emplace("import_matrix",   MEXEntryPointID::ImportMatrix);
             output.emplace("imported_matrix_system",    MEXEntryPointID::ImportedMatrixSystem);
             output.emplace("inflation_matrix_system",   MEXEntryPointID::InflationMatrixSystem);
+            output.emplace("localizing_matrix",  MEXEntryPointID::LocalizingMatrix);
             output.emplace("locality_matrix_system",    MEXEntryPointID::LocalityMatrixSystem);
+            output.emplace("logging",  MEXEntryPointID::Logging);
             output.emplace("make_explicit",      MEXEntryPointID::MakeExplicit);
             output.emplace("make_representation",MEXEntryPointID::MakeRepresentation);
             output.emplace("moment_rules",       MEXEntryPointID::MomentRules);
@@ -176,6 +178,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::LocalizingMatrix:
                 the_function = std::make_unique<functions::LocalizingMatrix>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::Logging:
+                the_function = std::make_unique<functions::Logging>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::MakeExplicit:
                 the_function = std::make_unique<functions::MakeExplicit>(engine, storageManager);

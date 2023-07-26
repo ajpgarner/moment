@@ -41,6 +41,7 @@ namespace Moment::mex::functions {
         List,
         LocalityMatrixSystem,
         LocalizingMatrix,
+        Logging,
         MakeExplicit,
         MakeRepresentation,
         MomentMatrix,
