@@ -7,7 +7,6 @@
 #include "function_list.h"
 #include "mex_function.h"
 
-#include "functions/alphabetic_name.h"
 #include "functions/conjugate.h"
 #include "functions/generate_basis.h"
 #include "functions/import_matrix.h"
@@ -41,6 +40,8 @@
 #include "functions/probability/collins_gisin.h"
 #include "functions/probability/make_explicit.h"
 #include "functions/probability/probability_table.h"
+#include "functions/utility/alphabetic_name.h"
+#include "functions/utility/flatten_indices.h"
 #include "utilities/reporting.h"
 
 #include <cassert>
@@ -60,6 +61,7 @@ namespace Moment::mex::functions {
             output.emplace("create_moment_rules",   MEXEntryPointID::CreateMomentRules);
             output.emplace("echo",            MEXEntryPointID::Echo);
             output.emplace("extended_matrix", MEXEntryPointID::ExtendedMatrix);
+            output.emplace("flatten_indices", MEXEntryPointID::FlattenIndices);
             output.emplace("generate_basis",  MEXEntryPointID::GenerateBasis);
             output.emplace("list",            MEXEntryPointID::List);
             output.emplace("localizing_matrix",  MEXEntryPointID::LocalizingMatrix);
@@ -150,6 +152,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MEXEntryPointID::ExtendedMatrix:
                 the_function = std::make_unique<functions::ExtendedMatrix>(engine, storageManager);
+                break;
+            case functions::MEXEntryPointID::FlattenIndices:
+                the_function = std::make_unique<functions::FlattenIndices>(engine, storageManager);
                 break;
             case functions::MEXEntryPointID::GenerateBasis:
                 the_function = std::make_unique<functions::GenerateBasis>(engine, storageManager);

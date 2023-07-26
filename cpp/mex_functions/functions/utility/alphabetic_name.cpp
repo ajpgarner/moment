@@ -58,7 +58,7 @@ namespace Moment::mex::functions {
         };
     }
 
-    AlphabeticNameInputs::AlphabeticNameInputs(SortedInputs &&input)
+    AlphabeticNameParams::AlphabeticNameParams(SortedInputs &&input)
             : SortedInputs(std::move(input)) {
         this->is_upper = !this->flags.contains(u"lower");
         this->zero_index = this->flags.contains(u"zero_index");
@@ -97,7 +97,7 @@ namespace Moment::mex::functions {
         this->max_inputs = 1;
     }
 
-    void AlphabeticName::operator()(IOArgumentRange output, AlphabeticNameInputs &input) {
+    void AlphabeticName::operator()(IOArgumentRange output, AlphabeticNameParams &input) {
         AlphabeticNamer namer{input.is_upper};
         matlab::data::ArrayFactory factory{};
 

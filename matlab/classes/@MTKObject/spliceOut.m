@@ -5,8 +5,9 @@ function spliceOut(output, source, indices)
 % 
 
     % Copy coefficients if known
-    if source.has_cached_coefs       
-        flat_indices = sub2ind(size(source), indices{:});
+    if source.has_cached_coefs
+        % Get flattened indices
+        flat_indices = MTKUtil.sub_to_index(size(source), indices);
         
         % Trigger pad if necessary
         src_re = source.RealCoefficients;

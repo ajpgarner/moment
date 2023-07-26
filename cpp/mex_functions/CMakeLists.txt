@@ -46,7 +46,6 @@ matlab_add_mex(NAME moment_mex
             utilities/read_as_vector.cpp
             utilities/reflection.cpp
             utilities/reporting.cpp
-            functions/alphabetic_name.cpp
             functions/conjugate.cpp
             functions/import_matrix.cpp
             functions/generate_basis.cpp
@@ -80,6 +79,8 @@ matlab_add_mex(NAME moment_mex
             functions/probability/collins_gisin.cpp
             functions/probability/make_explicit.cpp
             functions/probability/probability_table.cpp
+            functions/utility/alphabetic_name.cpp
+            functions/utility/flatten_indices.cpp
         OUTPUT_NAME mtk
         MODULE
         R2018a)

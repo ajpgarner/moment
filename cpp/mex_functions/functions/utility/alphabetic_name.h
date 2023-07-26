@@ -7,23 +7,23 @@
 #pragma once
 
 
-#include "../mex_function.h"
+#include "mex_function.h"
 
 namespace Moment::mex::functions  {
 
-    class AlphabeticNameInputs : public SortedInputs {
+    class AlphabeticNameParams : public SortedInputs {
     public:
         bool is_upper = false;
         bool zero_index = false;
 
-        explicit AlphabeticNameInputs(SortedInputs&& input);
+        explicit AlphabeticNameParams(SortedInputs&& input);
     };
 
-    class AlphabeticName : public ParameterizedMexFunction<AlphabeticNameInputs, MEXEntryPointID::AlphabeticName> {
+    class AlphabeticName : public ParameterizedMexFunction<AlphabeticNameParams, MEXEntryPointID::AlphabeticName> {
     public:
         explicit AlphabeticName(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
     protected:
-        void operator()(IOArgumentRange output, AlphabeticNameInputs &input) override;
+        void operator()(IOArgumentRange output, AlphabeticNameParams &input) override;
     };
 }

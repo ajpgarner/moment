@@ -33,6 +33,7 @@ namespace Moment::mex::functions {
         CreateMomentRules,
         Echo,
         ExtendedMatrix,
+        FlattenIndices,
         GenerateBasis,
         ImportMatrix,
         ImportedMatrixSystem,

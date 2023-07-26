@@ -128,8 +128,7 @@ methods(Test, TestTags={'MTKPolynomial', 'MTKObject', 'construct', 'coefficients
         
         setting.WordList(1, true); % Make symbols
         
-        testCase.verifyTrue(mat.FoundAllSymbols);
-        
+        testCase.verifyTrue(mat.FoundAllSymbols);        
         expected_re = sparse(3, 4);
         expected_re(2, 1) = 1.0;
         expected_re(2, 2) = 1.0;
@@ -156,6 +155,119 @@ methods(Test, TestTags={'MTKPolynomial', 'MTKObject', 'construct', 'coefficients
         testCase.verifyEqual(mat.ImaginaryMask, sparse([true true]));
         testCase.verifyEqual(mat.ImaginaryBasisElements, ...
                              uint64([1 2]));
+    end
+end
+
+%% Splice out / subsref
+methods(Test, TestTags={'MTKPolynomial', 'MTKObject', 'subsref'})    
+    function spliceout_no_symbols(testCase)
+        setting = AlgebraicScenario(2, 'hermitian', false);
+        [x, y] = setting.getAll();
+        x_plus_y = MTKMonomial(setting, {[1]; [3]}, [1; 1]);
+        x_plus_y_c = MTKMonomial(setting, {[2]; [4]}, [1; 1]);
+        
+        mat = MTKPolynomial(setting, {x, x_plus_y; x_plus_y_c, y});
+        
+        m11 = mat(1, 1);                
+        testCase.verifyEqual(m11, MTKPolynomial(setting, x));
+        testCase.verifyEqual(m11.Constituents, x);
+        
+        m12 = mat(1, 2);
+        testCase.verifyEqual(m12, MTKPolynomial(setting, x_plus_y));
+        testCase.verifyEqual(m12.Constituents, x_plus_y);
+        
+        m21 = mat(2, 1);
+        testCase.verifyEqual(m21, MTKPolynomial(setting, x_plus_y_c));
+        testCase.verifyEqual(m21.Constituents, x_plus_y_c);
+        
+        m22 = mat(2, 2);        
+        testCase.verifyEqual(m22, MTKPolynomial(setting, y));
+        testCase.verifyEqual(m22.Constituents, y);
+        
+        left = mat(:,1);
+        testCase.assertEqual(size(left), [2 1]);
+        testCase.assertEqual(left, MTKPolynomial(setting, {x; x_plus_y_c}));
+        
+        right = mat(:,2);
+        testCase.assertEqual(size(right), [2 1]);
+        testCase.assertEqual(right, MTKPolynomial(setting, {x_plus_y; y}));
+                
+        upper = mat(1,:);
+        testCase.assertEqual(size(upper), [1 2]);
+        testCase.assertEqual(upper, MTKPolynomial(setting, {x, x_plus_y}));
+        
+        lower = mat(2,:);
+        testCase.assertEqual(size(lower), [1 2]);
+        testCase.assertEqual(lower, MTKPolynomial(setting, {x_plus_y_c, y}));
+    end
+    
+    function spliceout_symbols(testCase)
+        setting = AlgebraicScenario(2, 'hermitian', false);
+        [x, y] = setting.getAll();
+        x_plus_y = MTKMonomial(setting, {[1]; [3]}, [1; 1]);
+        x_plus_y_c = MTKMonomial(setting, {[2]; [4]}, [1; 1]);
+        setting.WordList(1, true);
+        
+        mat = MTKPolynomial(setting, {x, x_plus_y; x_plus_y_c, y});
+        
+        testCase.assertTrue(mat.FoundAllSymbols);
+        testCase.verifyTrue(mat.FoundAllSymbols);        
+        expected_re = sparse(3, 4);
+        expected_re(2, 1) = 1.0;
+        expected_re(2, 2) = 1.0;
+        expected_re(3, 2) = 1.0;
+        expected_re(2, 3) = 1.0;
+        expected_re(3, 3) = 1.0;
+        expected_re(3, 4) = 1.0;        
+        expected_re = [zeros(0, 3, 'like', sparse(1i)), expected_re];
+        testCase.assertEqual(mat.RealCoefficients, expected_re);
+                         
+        expected_im = sparse(2, 4);        
+        expected_im(1, 1) = 1i;
+        expected_im(1, 2) = -1i;
+        expected_im(2, 2) = -1i;
+        expected_im(1, 3) = 1i;
+        expected_im(2, 3) = 1i;
+        expected_im(2, 4) = 1i;
+        expected_im = [zeros(0, 2, 'like', sparse(1i)), expected_im];
+        
+        testCase.assertEqual(mat.ImaginaryCoefficients, expected_im);
+
+        x12 = mat(1, 2);
+        testCase.verifyEqual(x12.RealCoefficients, expected_re(:, 3));
+        testCase.verifyEqual(x12.ImaginaryCoefficients, expected_im(:, 3));
+        
+        upper = mat(1, :);
+        testCase.verifyEqual(upper.RealCoefficients, ...
+                             expected_re(:, [1 3]));
+        testCase.verifyEqual(upper.ImaginaryCoefficients, ...
+                             expected_im(:, [1 3]));
+        
+    end
+    
+    function spliceout_properties(testCase)
+        setting = AlgebraicScenario(2, 'hermitian', false);
+        [x, y] = setting.getAll();
+        x_plus_y = MTKMonomial(setting, {[1]; [3]}, [1; 1]);
+        x_plus_y_c = MTKMonomial(setting, {[2]; [4]}, [1; 1]);
+        
+        mat = MTKPolynomial(setting, {x, x_plus_y; x_plus_y_c, y});
+        
+        testCase.verifyEqual(mat(1, 1).Constituents, x);
+        
+        testCase.verifyEqual(mat(1, 2).Constituents, x_plus_y);
+        
+        testCase.verifyEqual(mat(2, 1).Constituents, x_plus_y_c);
+        
+        testCase.verifyEqual(mat(2, 2).Constituents, y);
+        
+        testCase.verifyEqual(mat(:,1).Constituents, {x; x_plus_y_c});
+                
+        testCase.verifyEqual(mat(:,2).Constituents, {x_plus_y; y});
+                
+        testCase.verifyEqual(mat(1,:).Constituents, {x, x_plus_y});
+        
+        testCase.verifyEqual(mat(2,:).Constituents, {x_plus_y_c, y});        
     end
 end
 

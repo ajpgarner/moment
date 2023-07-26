@@ -80,6 +80,7 @@ add_library(lib_moment
         symbolic/rules/moment_rulebook_to_basis.cpp
         utilities/alphabetic_namer.cpp
         utilities/format_factor.cpp
+        utilities/index_flattener.cpp
         utilities/kronecker_power.cpp
         utilities/multithreading.cpp
         utilities/persistent_storage.cpp
