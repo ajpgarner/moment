@@ -2,7 +2,7 @@
  %SUBSREF Subscripting
     switch s(1).type
         case '.'
-            if length(s) == 1 || ~obj.isPropertyMTKObject(s(1).subs)
+            if length(s) == 1 || ~obj.isPropertyMTKObject(s(1).subs) || isempty(obj)
                 % Built-in can handle /most/ dot indexing
                 [varargout{1:nargout}] = builtin('subsref', obj, s);
             else
@@ -10,7 +10,10 @@
                 last_mtko = obj;
                 splice = obj;
                 for idx = 1:(numel(s)-1)
-                    if ~isequal(s(idx).type, '.') ...
+                    if isempty(splice)
+                        [varargout{1:nargout}] = builtin('subsref', splice, s(idx:end));
+                        return;
+                    elseif ~isequal(s(idx).type, '.') ...
                             || last_mtko.isPropertyMTKObject(s(idx).subs)
                         splice = subsref(splice, s(idx));
                         last_mtko = splice; 
@@ -19,7 +22,11 @@
                     end
                 end
 
-                [varargout{1:nargout}] = subsref(splice, s(end));
+                if isempty(splice)
+                    [varargout{1:nargout}] = builtin('subsref', splice, s(end));
+                else
+                    [varargout{1:nargout}] = subsref(splice, s(end));
+                end
             end
         case '()'
             % Handle empty () case by ignoring indices.

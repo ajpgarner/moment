@@ -4,7 +4,12 @@ function n = numArgumentsFromSubscript(obj, s, indexingContext)
        case '.'
            % Built-in can handle /most/ but not all dot indexing            
             if obj.isPropertyMTKObject(s(1).subs)
-                n = 1;
+                splice = builtin('subsref', obj, s(1));
+                if isempty(splice)
+                    n = 0;
+                else
+                    n = 1;
+                end
             else
                 n = builtin('numArgumentsFromSubscript', obj, s, indexingContext);
             end

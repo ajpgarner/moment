@@ -1,6 +1,7 @@
 function output = interpretCellInput(setting, constituents)
-%INTERPRETCELLINPUT Summary of this function goes here
-%   Detailed explanation goes here
+%INTERPRETCELLINPUT Reads constituents cell array, and checks elements are
+% either an MTKMonomial or a cell array that can be initialized into an
+% MTKMonomial.
     
     % What elements are already monomials?
     entirely_mono = cellfun(@(x) isa(x, 'MTKMonomial'), constituents);
@@ -20,6 +21,14 @@ function output = interpretCellInput(setting, constituents)
         if entirely_mono(idx)
             output{idx} = elem;
             continue;
+        end
+
+        % Can we interpret as zero?
+        if numel(elem) == 1
+            if elem == 0
+                output{idx} = MTKMonomial.empty(0, 1);
+                continue;
+            end
         end
         
         % Try to reinterpret as (partial/full) monomial specification

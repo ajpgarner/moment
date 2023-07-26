@@ -2,15 +2,26 @@ function [mask_re, mask_im, elems_re, elems_im] = queryForMasks(obj)
 %QUERYFORMASKS Get object real and imaginary masks.
 
     if obj.IsScalar
-        mask_re = obj.Constituents.RealMask;
-        mask_im = obj.Constituents.ImaginaryMask;
-        elems_re = obj.Constituents.RealBasisElements;
-        elems_im = obj.Constituents.ImaginaryBasisElements;
+        if isempty(obj.Constituents)
+            mask_re = logical(sparse(1, obj.Scenario.System.RealVarCount));
+            mask_im = logical(sparse(1, obj.Scenario.System.ImaginaryVarCount));
+            elems_re = uint64.empty(1,0);
+            elems_im = uint64.empty(1,0);
+        else
+            mask_re = obj.Constituents.RealMask;
+            mask_im = obj.Constituents.ImaginaryMask;
+            elems_re = obj.Constituents.RealBasisElements;
+            elems_im = obj.Constituents.ImaginaryBasisElements;
+        end
     else
         mask_re = logical(sparse(1, obj.Scenario.System.RealVarCount));
         mask_im = logical(sparse(1, obj.Scenario.System.ImaginaryVarCount));
         
         for idx = 1:numel(obj)
+            if isempty(obj.Constituents{idx})
+                continue;
+            end
+            
             c_mask_re = obj.Constituents{idx}.RealMask;
             c_mask_im = obj.Constituents{idx}.ImaginaryMask;           
             

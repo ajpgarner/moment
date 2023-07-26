@@ -156,6 +156,19 @@ methods(Test, TestTags={'MTKPolynomial', 'MTKObject', 'construct', 'coefficients
         testCase.verifyEqual(mat.ImaginaryBasisElements, ...
                              uint64([1 2]));
     end
+
+    function construct_zero(testCase)
+        setting = AlgebraicScenario(2);
+        zero_poly = MTKPolynomial(setting, {0, 0});
+        testCase.assertEqual(size(zero_poly), [1 2]);
+        testCase.verifyEqual(zero_poly.IsZero, true(1, 2));
+        
+        expected_re = zeros(1, 2, 'like', sparse(1i));
+        testCase.verifyEqual(zero_poly.RealCoefficients, expected_re);
+        testCase.verifyEqual(zero_poly.RealMask, ...
+                             sparse([false]));
+        testCase.verifyEqual(zero_poly.RealBasisElements, uint64.empty(1,0));
+    end
 end
 
 %% Splice out / subsref
@@ -199,6 +212,17 @@ methods(Test, TestTags={'MTKPolynomial', 'MTKObject', 'subsref'})
         lower = mat(2,:);
         testCase.assertEqual(size(lower), [1 2]);
         testCase.assertEqual(lower, MTKPolynomial(setting, {x_plus_y_c, y}));
+    end
+    
+    function spliceout_logical_indexing(testCase)
+        setting = AlgebraicScenario(3);
+        [x, y, z] = setting.getAll();
+        vec_poly = MTKPolynomial(setting, {x; 0; z});
+        testCase.assertEqual(vec_poly.IsZero, [false; true; false]);
+        nz_poly = vec_poly(~vec_poly.IsZero);
+        testCase.assertEqual(numel(nz_poly), 2);
+        testCase.verifyEqual(nz_poly(1), x);
+        testCase.verifyEqual(nz_poly(2), z);
     end
     
     function spliceout_symbols(testCase)
