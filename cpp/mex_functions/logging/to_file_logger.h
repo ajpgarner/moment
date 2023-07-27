@@ -57,6 +57,12 @@ namespace Moment::mex {
 
         void clear_log() override;
 
+        void write_one_event_to_file(const LogEvent& event);
+
+    private:
+        /** Throws exception if cannot write to file. */
+        void check_file() const;
+
     };
 
 }

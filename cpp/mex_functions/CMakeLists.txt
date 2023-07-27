@@ -12,7 +12,6 @@ matlab_add_mex(NAME moment_mex
             mex_entry.cpp
             mex_function.cpp
             mex_main.cpp
-            storage_manager.cpp
             eigen/read_eigen_dense.cpp
             eigen/read_eigen_sparse.cpp
             eigen/export_eigen_dense.cpp

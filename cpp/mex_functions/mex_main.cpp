@@ -24,61 +24,79 @@
 namespace Moment::mex {
 
     namespace {
-        void log_event(Logger& logger, functions::MEXEntryPointID function_id,
-                       size_t num_in, size_t num_out,
-                       const std::chrono::time_point<std::chrono::system_clock>& system_time,
-                       const std::chrono::time_point<std::chrono::high_resolution_clock>& precision_start,
-                       const std::exception& e) {
-            if (logger.is_trivial()) {
-                return;
+
+        /** RAII Log wrapper */
+        class LogTrigger {
+        private:
+            Logger &logger;
+            std::optional<LogEvent> event;
+            std::chrono::time_point<std::chrono::high_resolution_clock> precision_start;
+
+        public:
+
+            LogTrigger(Logger &logger,
+                       functions::MEXEntryPointID function_id,
+                       size_t num_in, size_t num_out)
+                    : logger{logger} {
+                if (logger.is_trivial()) {
+                    return;
+                }
+
+                precision_start = std::chrono::high_resolution_clock::now();
+                event.emplace(functions::which_function_name(function_id),
+                              num_in, num_out,
+                              std::chrono::system_clock::now());
             }
 
-            auto precision_end = std::chrono::high_resolution_clock::now();
-
-            LogDuration duration = precision_end - precision_start;
-
-            logger.report_event(LogEvent{functions::which_function_name(function_id), false,
-                                         num_in, num_out, system_time, duration, std::string(e.what())});
-        }
-
-        void log_event(Logger& logger, functions::MEXEntryPointID function_id,
-                       size_t num_in, size_t num_out,
-                       const std::chrono::time_point<std::chrono::system_clock>& system_time,
-                       const std::chrono::time_point<std::chrono::high_resolution_clock>& precision_start) {
-            if (logger.is_trivial()) {
-                return;
+            ~LogTrigger()  {
+                try {
+                    this->reset();
+                } catch (...) {
+                    // Ignore all exceptions thrown by logger.
+                }
             }
 
-            auto precision_end = std::chrono::high_resolution_clock::now();
+            void reset() noexcept {
+                if (this->event.has_value()) {
+                    this->end_timer();
+                    logger.report_event(std::move(this->event.value()));
+                    this->event.reset();
+                }
+            }
 
-            LogDuration duration = precision_end - precision_start;
+            void end_timer() {
+                auto precision_end = std::chrono::high_resolution_clock::now();
+                this->event->execution_time = precision_end - precision_start;
+            }
 
-            logger.report_event(LogEvent{functions::which_function_name(function_id), true,
-                                         num_in, num_out, system_time, duration, ""});
-        }
+            void report_success() noexcept {
+                this->event->success = true;
+            }
+
+            void report_failure(std::string reason = "") noexcept {
+                this->event->success = false;
+                this->event->additional_info = std::move(reason);
+            }
+        };
     }
 
 
-    MexMain::MexMain(std::shared_ptr <matlab::engine::MATLABEngine> matlab_engine)
-        : matlabPtr(std::move(matlab_engine)), persistentStorage{getStorageManager()} {
-        // Ensure environmental variables are loaded
-        persistentStorage.Settings.create_if_empty<EnvironmentalVariables>();
-        // Ensure a logger exists
-        if constexpr (debug_mode) {
-            persistentStorage.Logger.create_if_empty<InMemoryLogger>();
-        } else {
-            persistentStorage.Logger.create_if_empty<IgnoreLogger>();
-        }
+    MexMain::MexMain(std::shared_ptr <matlab::engine::MATLABEngine> matlab_engine, StorageManager& storage)
+        : matlabPtr(std::move(matlab_engine)), persistentStorage{storage} {
+        this->logger = persistentStorage.Logger.get();
     }
+
+    MexMain::~MexMain() noexcept = default;
 
     void MexMain::operator()(IOArgumentRange outputs, IOArgumentRange inputs) {
         // Start timer
-        auto system_time = std::chrono::system_clock::now();
-        auto start_time = std::chrono::high_resolution_clock::now();
 
         // Read and pop function name...
         functions::MEXEntryPointID function_id = get_function_id(inputs);
         assert(function_id != functions::MEXEntryPointID::Unknown);
+
+        auto log_entry = LogTrigger{*this->logger,
+                                    function_id, inputs.size(), outputs.size()};
 
         // Execute function
         try {
@@ -126,20 +144,13 @@ namespace Moment::mex {
             }
 
             (*the_function)(outputs, std::move(processed_inputs));
+            log_entry.report_success();
         } catch (std::exception& e) {
-            // Log exception
-            log_event(*this->persistentStorage.Logger.get(),
-                      function_id, inputs.size(), outputs.size(), system_time, start_time, e);
-
-            // Rethrow exception
+            log_entry.report_failure(e.what());
             throw;
-        } // finally...
+        }
 
-        // Log
-        log_event(*this->persistentStorage.Logger.get(),
-                  function_id,  inputs.size(), outputs.size(), system_time, start_time);
-
-        // ~the_function
+        // ~the_function, ~log_entry
     }
 
     functions::MEXEntryPointID MexMain::get_function_id(IOArgumentRange& inputs) {

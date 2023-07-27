@@ -12,9 +12,6 @@
 #include "environmental_variables.h"
 #include "logging/logger.h"
 
-#include <string>
-#include <optional>
-
 namespace Moment::mex {
 
     namespace errors {
@@ -31,19 +28,17 @@ namespace Moment::mex {
         PersistentStorageMonoid<EnvironmentalVariables> Settings{make_signature({'e','n','v','v'})};
         PersistentStorageMonoid<Logger> Logger{make_signature({'l','o','g','r'})};
 
-        friend StorageManager& getStorageManager();
-
-    private:
-        StorageManager() = default;
-
     public:
+        StorageManager() = default;
         StorageManager(const StorageManager& rhs) = delete;
         StorageManager(StorageManager&& rhs) = delete;
-    };
 
-    /**
-     * Return storage manager singleton.
-     */
-    [[nodiscard]] StorageManager& getStorageManager();
+        /** Empties all storage. */
+        void reset_all() noexcept {
+            this->MatrixSystems.clear();
+            this->Logger.reset();
+            this->Settings.reset();
+        }
+    };
 
 }

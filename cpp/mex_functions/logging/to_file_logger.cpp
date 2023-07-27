@@ -44,32 +44,17 @@ namespace Moment::mex {
             }
             auto& event = **node_ptr;
 
-            try {
-                auto file_lock = this->logger.get_write_lock();
-                std::fstream os{this->logger.filename, std::fstream::out | std::fstream::app};
-                os << event;
-                // ~file_lock
-            } catch(std::exception& e) {
-                std::stringstream errSS;
-                errSS << "Cannot write to log file \"" << this->logger.filename << "\": " << e.what();
-                throw std::runtime_error{errSS.str()}; // Could just abort() as not in main thread...!
-            }
+            this->logger.write_one_event_to_file(event);
+            // ~node_ptr
         }
     }
 
 
     ToFileLogger::ToFileLogger(std::string filename) : filename(std::move(filename)) {
         // First, test file works.
-        try {
-            std::fstream os{this->filename, std::fstream::out | std::fstream::app};
-        }
-        catch(std::exception& e) {
-            std::stringstream errSS;
-            errSS << "Cannot write to log file \"" << this->filename << "\": " << e.what();
-            throw std::runtime_error{errSS.str()};
-        }
+        this->check_file();
 
-        // Next, launch writer thread
+        // Launch writer thread
         this->file_writer_thread.emplace(*this);
     }
 
@@ -96,5 +81,31 @@ namespace Moment::mex {
             errSS << "Cannot clear log file \"" << this->filename << "\".";
             throw std::runtime_error{errSS.str()};
         }
+    }
+
+    void ToFileLogger::write_one_event_to_file(const LogEvent &event) {
+        try {
+            auto file_lock = this->get_write_lock();
+            std::fstream os{this->filename, std::fstream::out | std::fstream::app};
+            os << event;
+            // ~file_lock
+        } catch(std::exception& e) {
+            std::stringstream errSS;
+            errSS << "Cannot write to log file \"" << this->filename << "\": " << e.what();
+            throw std::runtime_error{errSS.str()}; // Could just abort() as not in main thread...!
+        }
+    }
+
+    void ToFileLogger::check_file() const {
+        // First, test file works.
+        try {
+            std::fstream os{this->filename, std::fstream::out | std::fstream::app};
+        }
+        catch(std::exception& e) {
+            std::stringstream errSS;
+            errSS << "Cannot write to log file \"" << this->filename << "\": " << e.what();
+            throw std::runtime_error{errSS.str()};
+        }
+
     }
 }

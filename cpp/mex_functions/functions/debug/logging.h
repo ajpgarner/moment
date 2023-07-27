@@ -27,6 +27,9 @@ namespace Moment::mex::functions {
         } instruction = Instruction::Info;
 
         std::string filename;
+
+    private:
+        [[nodiscard]] std::string read_filename(const matlab::data::Array& input);
     };
 
     class Logging : public ParameterizedMexFunction<LoggingParams, MEXEntryPointID::Logging> {
@@ -36,7 +39,7 @@ namespace Moment::mex::functions {
         void operator()(IOArgumentRange output, LoggingParams &input) override;
 
     private:
-        void info(IOArgumentRange output);
+        void info(IOArgumentRange& output);
 
         void off();
 
@@ -44,7 +47,9 @@ namespace Moment::mex::functions {
 
         void set_memory();
 
-        void output(IOArgumentRange output);
+        void output(IOArgumentRange& output);
+
+        void output_to_file(IOArgumentRange& output, const std::string& filename);
 
         void clear();
 

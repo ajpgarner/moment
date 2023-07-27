@@ -43,6 +43,20 @@ namespace Moment::mex {
 
         /** Convert to string */
         friend std::ostream& operator<<(std::ostream& os, const LogEvent& event);
+
+        LogEvent() = default;
+        LogEvent(const LogEvent& rhs) = default;
+        LogEvent(LogEvent&& rhs) = default;
+
+        /** Partial construction. */
+        LogEvent(std::string mex_function, size_t num_inputs, size_t num_outputs, LogTime timestamp)
+            : mex_function{std::move(mex_function)},
+              num_inputs{num_inputs}, num_outputs{num_outputs},
+              timestamp{timestamp}, success{false} {
+
+        }
+
+
     };
 
     /** Interface for logging. */

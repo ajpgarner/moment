@@ -101,6 +101,11 @@ namespace Moment {
             return !static_cast<bool>(this->the_object);
         }
 
+        void reset() {
+            std::unique_lock lock{theMutex};
+            this->the_object.reset();
+        }
+
 
         template<std::derived_from<class_t> child_class_t, typename... Args>
         std::shared_ptr<class_t> create_if_empty(Args... args) {
@@ -258,6 +263,15 @@ namespace Moment {
         inline bool empty() const noexcept {
             const std::shared_lock<std::shared_mutex> lock(theMutex);
             return this->objects.empty();
+        }
+
+        /**
+         * Clears all objects from the bank. Thread safe.
+         */
+        inline void clear() noexcept {
+            std::unique_lock lock(theMutex);
+            this->objects.clear();
+            nextID = 0;
         }
 
 

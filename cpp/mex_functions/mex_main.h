@@ -21,18 +21,27 @@
 namespace Moment::mex {
 
     class StorageManager;
+    class Logger;
 
     namespace functions {
         class MexFunction;
     }
 
+    /**
+     * Lifetime of mex-main is duration of mex function call.
+     */
     class MexMain  {
     private:
         std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
         StorageManager& persistentStorage;
 
+        std::shared_ptr<Logger> logger;
+
     public:
-        explicit MexMain(std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr);
+        explicit MexMain(std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr,
+                         StorageManager& storage);
+
+        ~MexMain() noexcept;
 
         void operator()(IOArgumentRange outputs, IOArgumentRange inputs);
 
