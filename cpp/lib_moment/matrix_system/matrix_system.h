@@ -11,7 +11,7 @@
 #include "matrix_system_indices.h"
 #include "rulebook_storage.h"
 
-#include "utilities/multithreading.h"
+#include "multithreading/multithreading.h"
 
 #include "utilities/maintains_mutex.h"
 

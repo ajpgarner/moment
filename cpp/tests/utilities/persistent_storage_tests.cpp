@@ -158,11 +158,11 @@ namespace Moment::Tests {
         auto early_get = strMonoid.get();
         EXPECT_FALSE(static_cast<bool>(early_get));
 
-        auto emplaced_object = strMonoid.create_if_empty("Hello world");
+        auto emplaced_object = strMonoid.create_if_empty<std::string>("Hello world");
         ASSERT_TRUE(static_cast<bool>(emplaced_object));
         EXPECT_EQ(*emplaced_object, "Hello world");
 
-        auto second_creation = strMonoid.create_if_empty("No cheesecake");
+        auto second_creation = strMonoid.create_if_empty<std::string>("No cheesecake");
         ASSERT_TRUE(static_cast<bool>(second_creation));
         EXPECT_EQ(emplaced_object, second_creation);
         EXPECT_EQ(*second_creation, "Hello world");

@@ -8,7 +8,7 @@
 
 #include "integer_types.h"
 
-#include "utilities/multithreading.h"
+#include "multithreading/multithreading.h"
 
 #include "utilities/reporting.h"
 

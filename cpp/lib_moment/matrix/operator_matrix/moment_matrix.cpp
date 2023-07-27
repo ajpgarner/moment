@@ -9,7 +9,7 @@
 
 #include "dictionary/operator_sequence_generator.h"
 
-#include "utilities/multithreading.h"
+#include "multithreading/multithreading.h"
 
 #include <limits>
 #include <stdexcept>

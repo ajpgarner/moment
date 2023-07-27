@@ -10,7 +10,7 @@
 #include "localizing_matrix_index.h"
 #include "polynomial_localizing_matrix_index.h"
 
-#include "utilities/multithreading.h"
+#include "multithreading/multithreading.h"
 
 #include <shared_mutex>
 #include <string>

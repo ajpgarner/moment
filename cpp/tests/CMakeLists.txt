@@ -3,6 +3,7 @@ include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
 include(GoogleTest)
 
 add_executable(moment_tests
+        multithreading/queue_tests.cpp
         operators/hashed_sequence_tests.cpp
         operators/localizing_matrix_tests.cpp
         operators/matrix_tests.cpp

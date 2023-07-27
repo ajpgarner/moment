@@ -82,7 +82,7 @@ add_library(lib_moment
         utilities/format_factor.cpp
         utilities/index_flattener.cpp
         utilities/kronecker_power.cpp
-        utilities/multithreading.cpp
+        multithreading/multithreading.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
         utilities/tensor.cpp

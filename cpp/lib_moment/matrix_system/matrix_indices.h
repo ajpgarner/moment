@@ -10,7 +10,7 @@
 #include "integer_types.h"
 #include "matrix_system_errors.h"
 
-#include "utilities/multithreading.h"
+#include "multithreading/multithreading.h"
 
 #include <cassert>
 #include <concepts>

@@ -8,7 +8,7 @@
 
 #include "operator_matrix.h"
 
-#include "utilities/multithreading.h"
+#include "multithreading/multithreading.h"
 
 #include <optional>
 #include <stdexcept>
