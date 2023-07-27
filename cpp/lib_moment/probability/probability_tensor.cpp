@@ -315,13 +315,13 @@ namespace Moment {
         }
     }
 
-    ProbabilityTensorElement ProbabilityTensor::make_element_no_checks(const Tensor::IndexView elementIndex) const {
+    ProbabilityTensorElement ProbabilityTensor::make_element_no_checks(const IndexView elementIndex) const {
         ElementConstructInfo elemInfo(this->Dimensions.size());
         return this->do_make_element(elementIndex, elemInfo);
     }
 
     ProbabilityTensorElement
-    ProbabilityTensor::do_make_element(const Tensor::IndexView elementIndex, ElementConstructInfo& elemInfo) const {
+    ProbabilityTensor::do_make_element(const IndexView elementIndex, ElementConstructInfo& elemInfo) const {
 
         // Get what measurement we refer to, and which indices are implied
         this->element_info(elementIndex, elemInfo);

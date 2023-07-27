@@ -12,8 +12,8 @@
 
 #include "symbolic/symbol_lookup_result.h"
 
-#include "utilities/multi_dimensional_index_iterator.h"
-#include "utilities/tensor.h"
+#include "tensor/multi_dimensional_index_iterator.h"
+#include "tensor/auto_storage_tensor.h"
 
 #include <mutex>
 #include <shared_mutex>
@@ -48,8 +48,8 @@ namespace Moment {
 
     };
 
-    using CollinsGisinIndex = Tensor::Index;
-    using CollinsGisinIndexView = Tensor::IndexView;
+    using CollinsGisinIndex = AutoStorageIndex;
+    using CollinsGisinIndexView = AutoStorageIndexView;
 
     /** The number of elements, below which we cache the CG tensor explicitly. */
     constexpr static const size_t CG_explicit_element_limit = 1024ULL;
@@ -177,7 +177,7 @@ namespace Moment {
                                                              std::span<const oper_name_t> fixedOutcomes) const;
 
     protected:
-        [[nodiscard]] CollinsGisinEntry make_element_no_checks(Tensor::IndexView index) const override;
+        [[nodiscard]] CollinsGisinEntry make_element_no_checks(IndexView index) const override;
 
         [[nodiscard]] std::string get_name(bool capital) const override {
             return "Collins-Gisin tensor";

@@ -12,7 +12,7 @@
 
 #include "symbolic/symbol_table.h"
 
-#include "utilities/multi_dimensional_index_iterator.h"
+#include "tensor/multi_dimensional_index_iterator.h"
 
 namespace Moment::Locality {
 

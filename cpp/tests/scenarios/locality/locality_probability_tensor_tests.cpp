@@ -85,7 +85,7 @@ namespace Moment::Tests {
         ASSERT_EQ(virtual_pt.Dimensions[0], 4); // 0, a0, a1, (a2)
         ASSERT_EQ(virtual_pt.ElementCount, 4);
 
-        const auto range = pt.Splice(Tensor::Index{0}, Tensor::Index{4});
+        const auto range = pt.Splice(AutoStorageIndex{0}, AutoStorageIndex{4});
         auto iter = range.begin();
         ASSERT_NE(iter, range.end());
         ASSERT_TRUE(iter->hasSymbolPoly);

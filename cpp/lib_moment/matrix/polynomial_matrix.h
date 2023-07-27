@@ -8,7 +8,7 @@
 #include "matrix.h"
 
 #include "symbolic/polynomial.h"
-#include "utilities/square_matrix.h"
+#include "tensor/square_matrix.h"
 
 #include <memory>
 

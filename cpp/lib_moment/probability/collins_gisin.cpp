@@ -211,7 +211,7 @@ namespace Moment {
 
 
 
-    CollinsGisinEntry CollinsGisin::make_element_no_checks(Tensor::IndexView index) const {
+    CollinsGisinEntry CollinsGisin::make_element_no_checks(IndexView index) const {
         return CollinsGisinEntry{*this, index};
     }
 

@@ -22,6 +22,7 @@ add_library(lib_moment
         matrix_system/polynomial_index_storage.cpp
         matrix_system/polynomial_localizing_matrix_index.cpp
         matrix_system/rulebook_storage.cpp
+        multithreading/multithreading.cpp
         probability/collins_gisin.cpp
         probability/maintains_tensors.cpp
         probability/probability_tensor.cpp
@@ -78,14 +79,14 @@ add_library(lib_moment
         symbolic/rules/moment_rule.cpp
         symbolic/rules/moment_rulebook.cpp
         symbolic/rules/moment_rulebook_to_basis.cpp
+        tensor/auto_storage_tensor.cpp
+        tensor/index_flattener.cpp
+        tensor/tensor_errors.cpp
         utilities/alphabetic_namer.cpp
         utilities/format_factor.cpp
-        utilities/index_flattener.cpp
         utilities/kronecker_power.cpp
-        multithreading/multithreading.cpp
         utilities/persistent_storage.cpp
         utilities/shortlex_hasher.cpp
-        utilities/tensor.cpp
         utilities/utf_conversion.cpp
 )
 

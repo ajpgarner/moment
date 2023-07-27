@@ -36,7 +36,7 @@ namespace Moment::mex {
     namespace {
         class DirectFormatView {
         public:
-            using raw_const_iterator = SquareMatrix<OperatorSequence>::ColumnMajorView::TransposeIterator;
+            using raw_const_iterator = SquareMatrix<OperatorSequence>::TransposeView::TransposeIterator;
 
             class const_iterator {
             public:
@@ -87,8 +87,8 @@ namespace Moment::mex {
 
         public:
             DirectFormatView(const Context &context, const SquareMatrix<OperatorSequence> &inputMatrix)
-                    : iter_begin{context, inputMatrix.ColumnMajor.begin()},
-                      iter_end{context, inputMatrix.ColumnMajor.end()} {
+                    : iter_begin{context, inputMatrix.Transpose.begin()},
+                      iter_end{context, inputMatrix.Transpose.end()} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }
@@ -99,7 +99,7 @@ namespace Moment::mex {
 
         class LocalityFormatView {
         public:
-            using raw_const_iterator = SquareMatrix<OperatorSequence>::ColumnMajorView::TransposeIterator;
+            using raw_const_iterator = SquareMatrix<OperatorSequence>::TransposeView::TransposeIterator;
 
             class const_iterator {
             public:
@@ -158,8 +158,8 @@ namespace Moment::mex {
             LocalityFormatView(const Locality::LocalityContext &context,
                                const Locality::LocalityOperatorFormatter &formatter,
                                const SquareMatrix<OperatorSequence> &inputMatrix)
-                    : iter_begin{context, formatter, inputMatrix.ColumnMajor.begin()},
-                      iter_end{context, formatter, inputMatrix.ColumnMajor.end()}, formatter{formatter} {
+                    : iter_begin{context, formatter, inputMatrix.Transpose.begin()},
+                      iter_end{context, formatter, inputMatrix.Transpose.end()}, formatter{formatter} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }
@@ -170,7 +170,7 @@ namespace Moment::mex {
 
         class InferredFormatView {
         public:
-            using raw_const_iterator = SquareMatrix<Monomial>::ColumnMajorView::TransposeIterator;
+            using raw_const_iterator = SquareMatrix<Monomial>::TransposeView::TransposeIterator;
 
             class const_iterator {
             public:
@@ -260,8 +260,8 @@ namespace Moment::mex {
         public:
             InferredFormatView(const Context &context, const SymbolTable &symbols,
                                const SquareMatrix<Monomial> &inputMatrix)
-                    : iter_begin{context, symbols, inputMatrix.ColumnMajor.begin()},
-                      iter_end{context, symbols, inputMatrix.ColumnMajor.end()} {
+                    : iter_begin{context, symbols, inputMatrix.Transpose.begin()},
+                      iter_end{context, symbols, inputMatrix.Transpose.end()} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }
@@ -272,7 +272,7 @@ namespace Moment::mex {
 
         class InferredPolynomialFormatView {
         public:
-            using raw_const_iterator = SquareMatrix<Polynomial>::ColumnMajorView::TransposeIterator;
+            using raw_const_iterator = SquareMatrix<Polynomial>::TransposeView::TransposeIterator;
 
             class const_iterator {
             public:
@@ -330,8 +330,8 @@ namespace Moment::mex {
         public:
             InferredPolynomialFormatView(const Context &context, const SymbolTable &symbols,
                                          const SquareMatrix<Polynomial> &inputMatrix)
-                    : iter_begin{context, symbols, inputMatrix.ColumnMajor.begin()},
-                      iter_end{context, symbols, inputMatrix.ColumnMajor.end()} {
+                    : iter_begin{context, symbols, inputMatrix.Transpose.begin()},
+                      iter_end{context, symbols, inputMatrix.Transpose.end()} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }
@@ -343,7 +343,7 @@ namespace Moment::mex {
 
         class FactorFormatView {
         public:
-            using raw_const_iterator = SquareMatrix<Monomial>::ColumnMajorView::TransposeIterator;
+            using raw_const_iterator = SquareMatrix<Monomial>::TransposeView::TransposeIterator;
 
             class const_iterator {
             public:
@@ -423,8 +423,8 @@ namespace Moment::mex {
         public:
             FactorFormatView(const Inflation::InflationContext &context, const Inflation::FactorTable &factors,
                              const SquareMatrix<Monomial> &inputMatrix)
-                    : iter_begin{context, factors, inputMatrix.ColumnMajor.begin()},
-                      iter_end{context, factors, inputMatrix.ColumnMajor.end()} {
+                    : iter_begin{context, factors, inputMatrix.Transpose.begin()},
+                      iter_end{context, factors, inputMatrix.Transpose.end()} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }

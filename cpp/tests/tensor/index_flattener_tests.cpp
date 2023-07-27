@@ -7,12 +7,12 @@
 
 #include "gtest/gtest.h"
 
-#include "utilities/index_flattener.h"
+#include "tensor/index_flattener.h"
 
 namespace Moment::Tests {
 
 
-    TEST(Utilities_IndexFlattener, Empty) {
+    TEST(Tensor_IndexFlattener, Empty) {
         IndexFlattener empty{std::vector<size_t>{}, std::vector<std::vector<size_t>>{}};
 
         EXPECT_EQ(empty.object.Dimensions.size(), 0);
@@ -23,7 +23,7 @@ namespace Moment::Tests {
         EXPECT_EQ(empty.size(), 0);
     }
 
-    TEST(Utilities_IndexFlattener, Flatten_Linear) {
+    TEST(Tensor_IndexFlattener, Flatten_Linear) {
         IndexFlattener linear{std::vector<size_t>{5},
                               std::vector<std::vector<size_t>>{std::vector<size_t>{0, 1, 2, 3, 4}}};
         ASSERT_EQ(linear.object.Dimensions.size(), 1);
@@ -48,7 +48,7 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, iter_end);
     }
 
-    TEST(Utilities_IndexFlattener, Flatten_Square) {
+    TEST(Tensor_IndexFlattener, Flatten_Square) {
         IndexFlattener square{std::vector<size_t>{2, 2},
                               std::vector<std::vector<size_t>>{std::vector<size_t>{0, 1},
                                                                std::vector<size_t>{0, 1}}};
@@ -73,7 +73,7 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, iter_end);
     }
 
-    TEST(Utilities_IndexFlattener, Flatten_Subrectangle) {
+    TEST(Tensor_IndexFlattener, Flatten_Subrectangle) {
         IndexFlattener square{std::vector<size_t>{20, 10},
                               std::vector<std::vector<size_t>>{std::vector<size_t>{10, 11, 12},
                                                                std::vector<size_t>{5, 6}}};
@@ -116,7 +116,7 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, iter_end);
     }
 
-    TEST(Utilities_IndexFlattener, Flatten_DanglingIndices) {
+    TEST(Tensor_IndexFlattener, Flatten_DanglingIndices) {
         IndexFlattener tensor{std::vector<size_t>{2, 20, 5},
                               std::vector<std::vector<size_t>>{std::vector<size_t>{1},
                                                                std::vector<size_t>{10, 11, 12, 40}}};

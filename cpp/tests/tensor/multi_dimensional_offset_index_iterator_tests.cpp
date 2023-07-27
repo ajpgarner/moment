@@ -7,11 +7,11 @@
 
 #include "gtest/gtest.h"
 
-#include "utilities/multi_dimensional_offset_index_iterator.h"
+#include "tensor/multi_dimensional_offset_index_iterator.h"
 
 namespace Moment::Tests {
 
-    TEST(Utilities_MDIOffsetIterator, Empty) {
+    TEST(Tensor_MDIOffsetIterator, Empty) {
         MultiDimensionalOffsetIndexIterator mdiIter{std::vector<size_t>{}, std::vector<size_t>{}};
         MultiDimensionalOffsetIndexIterator mdiIterEnd{};
 
@@ -21,7 +21,7 @@ namespace Moment::Tests {
 
 
 
-    TEST(Utilities_MDIOffsetIterator, OneDimensional) {
+    TEST(Tensor_MDIOffsetIterator, OneDimensional) {
         MultiDimensionalOffsetIndexIterator mdiIter{std::vector<size_t>{2}, std::vector<size_t>{5}}; // 2, 3, 4
         MultiDimensionalOffsetIndexIterator mdiIterEnd{};
 
@@ -51,7 +51,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(mdiIter == mdiIterEnd);
     }
 
-    TEST(Utilities_MDIOffsetIterator, TwoDimensional) {
+    TEST(Tensor_MDIOffsetIterator, TwoDimensional) {
 
         MultiDimensionalOffsetIndexIterator mdiIter{std::vector<size_t>{2, 0}, std::vector<size_t>{5, 2}};
         MultiDimensionalOffsetIndexIterator mdiIterEnd{};

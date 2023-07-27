@@ -15,7 +15,7 @@
 
 #include "utilities/dynamic_bitset.h"
 #include "utilities/kronecker_power.h"
-#include "utilities/multi_dimensional_index_iterator.h"
+#include "tensor/multi_dimensional_index_iterator.h"
 
 #include <unsupported/Eigen/KroneckerProduct>
 

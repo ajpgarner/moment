@@ -12,7 +12,7 @@
 #include "symbolic/polynomial.h"
 
 #include "utilities/dynamic_bitset.h"
-#include "utilities/tensor.h"
+#include "tensor/auto_storage_tensor.h"
 
 #include <iosfwd>
 #include <span>
@@ -20,8 +20,8 @@
 
 namespace Moment {
 
-    using ProbabilityTensorIndex = Tensor::Index;
-    using ProbabilityTensorIndexView = Tensor::IndexView;
+    using ProbabilityTensorIndex = AutoStorageIndex;
+    using ProbabilityTensorIndexView = AutoStorageIndexView;
 
     namespace errors {
         class BadPTError : public std::runtime_error {
@@ -167,7 +167,7 @@ namespace Moment {
         void elem_as_string(std::ostream& os, const ProbabilityTensorElement& element) const;
 
     protected:
-        [[nodiscard]] ProbabilityTensorElement make_element_no_checks(Tensor::IndexView index) const override;
+        [[nodiscard]] ProbabilityTensorElement make_element_no_checks(IndexView index) const override;
 
         [[nodiscard]] std::string get_name(bool capital) const override {
             if (capital) {
@@ -178,7 +178,7 @@ namespace Moment {
         }
 
     private:
-        [[nodiscard]] ProbabilityTensorElement do_make_element(Tensor::IndexView elementIndex,
+        [[nodiscard]] ProbabilityTensorElement do_make_element(IndexView elementIndex,
                                                                ElementConstructInfo& eci) const;
 
         void make_dimension_info(const TensorConstructInfo& info);

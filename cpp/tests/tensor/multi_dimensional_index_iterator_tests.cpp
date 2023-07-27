@@ -6,11 +6,11 @@
  */
 #include "gtest/gtest.h"
 
-#include "utilities/multi_dimensional_index_iterator.h"
+#include "tensor/multi_dimensional_index_iterator.h"
 
 namespace Moment::Tests {
 
-    TEST(Utilities_MDIIterator, Empty) {
+    TEST(Tensor_MDIIterator, Empty) {
         MultiDimensionalIndexIterator mdiIter{{}};
         MultiDimensionalIndexIterator mdiIterEnd{{}, true};
 
@@ -18,7 +18,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(mdiIter != mdiIterEnd);
     }
 
-    TEST(Utilities_MDIIterator, OneDimensional) {
+    TEST(Tensor_MDIIterator, OneDimensional) {
         MultiDimensionalIndexIterator mdiIter{{4}};
         MultiDimensionalIndexIterator mdiIterEnd{{}, true};
 
@@ -52,7 +52,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(mdiIter == mdiIterEnd);
     }
 
-    TEST(Utilities_MDIIterator, TwoDimensional) {
+    TEST(Tensor_MDIIterator, TwoDimensional) {
         MultiDimensionalIndexIterator mdiIter{{3, 2}};
         MultiDimensionalIndexIterator mdiIterEnd{{3, 2}, true};
 

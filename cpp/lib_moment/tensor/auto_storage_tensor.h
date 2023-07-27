@@ -1,5 +1,5 @@
 /**
- * tensor.h
+ * auto_storage_tensor.h
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "multi_dimensional_object.h"
 #include "multi_dimensional_offset_index_iterator.h"
 
 #include <algorithm>
@@ -23,115 +24,8 @@
 namespace Moment {
 
     namespace errors {
-        class bad_tensor : public std::runtime_error {
-        public:
-            explicit bad_tensor(const std::string& what) noexcept : std::runtime_error(what) { }
-
-        public:
-            static bad_tensor no_data_stored(const std::string& name);
-
-        };
-
-        class bad_tensor_index : public bad_tensor {
-        public:
-            explicit bad_tensor_index(const std::string& what) noexcept : bad_tensor(what) { }
-        };
+        bad_tensor bad_tensor_no_data_stored(const std::string& name);
     }
-
-    /**
-     * Tensor object.
-     * Uses a generalized col-major storage order (first-index major).
-     */
-    class Tensor {
-    public:
-        using Index = std::vector<size_t>;
-        using IndexView = std::span<const size_t>;
-
-    public:
-        const std::vector<size_t> Dimensions;
-
-        const std::vector<size_t> Strides;
-
-        const size_t DimensionCount;
-
-        const size_t ElementCount;
-
-    public:
-        /**
-         * Construct tensor of supplied dimensions.
-         * @param dimensions
-         */
-        explicit Tensor(std::vector<size_t>&& dimensions);
-
-        /**
-         * Destructor.
-         */
-        virtual ~Tensor() noexcept = default;
-
-        /**
-         * Check that an index has the right number of elements, and is in range.
-         * @throws bad_tensor_index if indices are invalid
-         */
-        void validate_index(IndexView indices) const;
-
-        /**
-         * Check that an index has the right number of elements, and is either in range or at the end of the range.
-         * @throws bad_tensor_index if indices are invalid
-         */
-        void validate_index_inclusive(IndexView indices) const;
-
-        /**
-         * Check that a pair of indices has the right number of elements, are in bounds, and refer to a positive range.
-
-         */
-        void validate_range(IndexView min, IndexView max) const;
-
-        /**
-         * Checks that an offset is in range.
-         * @throws bad_tensor_index if offset is invalid
-         */
-        void validate_offset(size_t offset) const;
-
-        /**
-         * Converts an index to its numerical offset within the tensor.
-         */
-        [[nodiscard]] size_t index_to_offset(IndexView indices) const {
-            this->validate_index(indices);
-            return this->index_to_offset_no_checks(indices);
-        }
-
-       /**
-         * Converts an index to its numerical offset within the tensor.
-         */
-        [[nodiscard]] Index offset_to_index(const size_t offset) const {
-            this->validate_offset(offset);
-            return this->offset_to_index_no_checks(offset);
-        }
-
-    protected:
-        /**
-         * Converts an index to its numerical offset within the tensor.
-         */
-        [[nodiscard]] size_t index_to_offset_no_checks(IndexView indices) const noexcept;
-
-        /**
-         * Converts a numerical offset to its index within the tensor.
-         * Do not use this in a loop! Prefer an iterator object.
-         */
-        [[nodiscard]] Index offset_to_index_no_checks(size_t offset) const;
-
-        /**
-         * Name of tensor object.
-         */
-        [[nodiscard]] virtual std::string get_name(bool capital) const {
-            if (capital) {
-                return "Tensor";
-            } else {
-                return "tensor";
-            }
-        }
-
-    };
 
     /** Is this tensor explicitly filled, or do we generate on the fly? */
     enum class TensorStorageType {
@@ -146,14 +40,23 @@ namespace Moment {
     template<typename tensor_t>
     class TensorRange;
 
+    /** Convenience alias for index */
+    using AutoStorageIndex = std::vector<size_t>;
+
+    /** Convenience alias for index view. */
+    using AutoStorageIndexView = std::span<const size_t>;
+
+
+
     /**
      * Tensor, that might be virtual or explicit.
      * @tparam elem_t The element type.
      * @tparam threshold The maximum number of elements to store in explicit mode (unless overloaded).
      */
     template<class elem_t, size_t threshold>
-    class AutoStorageTensor : public Tensor {
+    class AutoStorageTensor : public MultiDimensionalObject<size_t, AutoStorageIndex, AutoStorageIndexView, true> {
     public:
+        using TensorType = MultiDimensionalObject<size_t, AutoStorageIndex, AutoStorageIndexView, true>;
         using Element = elem_t;
 
     public:
@@ -171,7 +74,7 @@ namespace Moment {
 
         public:
             /** Get view into tensor, constructing virtual object if necessary */
-            ElementView(const AutoStorageTensor& tensor, const Tensor::IndexView index) {
+            ElementView(const AutoStorageTensor& tensor, const IndexView index) {
                 tensor.validate_index(index);
                 if (tensor.StorageType == TensorStorageType::Explicit) {
                     const size_t offset = tensor.index_to_offset_no_checks(index);
@@ -194,7 +97,7 @@ namespace Moment {
 
         private:
             /** Get view into tensor, constructing virtual object if necessary */
-            ElementView(const AutoStorageTensor& tensor, const Tensor::IndexView index, const flag_no_checks& /**/) {
+            ElementView(const AutoStorageTensor& tensor, const IndexView index, const flag_no_checks& /**/) {
                 if (tensor.StorageType == TensorStorageType::Explicit) {
                     const size_t offset = tensor.index_to_offset_no_checks(index);
                     this->view.template emplace<0>(&tensor.data[offset]);
@@ -245,7 +148,7 @@ namespace Moment {
             mutable std::optional<Element> virtual_entry;
 
             /** Index, in tensor indices. */
-            MultiDimensionalOffsetIndexIterator<true, Tensor::Index> mdoii;
+            MultiDimensionalOffsetIndexIterator<true, Index> mdoii;
 
             /** Global offset within the tensor. */
             size_t current_offset = 0;
@@ -254,7 +157,7 @@ namespace Moment {
             /**
              * Construct iterator over supplied index range.
              */
-            Iterator(const AutoStorageTensor<elem_t, threshold>& tensor, Tensor::Index&& first, Tensor::Index&& last)
+            Iterator(const AutoStorageTensor<elem_t, threshold>& tensor, Index&& first, Index&& last)
                 :  tensorPtr{&tensor}, mdoii{std::move(first), std::move(last)} {
                 if (this->mdoii) {
                     this->current_offset = this->tensorPtr->index_to_offset_no_checks(*this->mdoii);
@@ -297,7 +200,7 @@ namespace Moment {
             /**
              * Gets current CG index.
              */
-            [[nodiscard]] inline Tensor::IndexView index() const noexcept {
+            [[nodiscard]] inline IndexView index() const noexcept {
                 return *this->mdoii;
             }
 
@@ -375,8 +278,8 @@ namespace Moment {
                     this->directIterEnd = tensor.data.cend();
                 } else {
                     this->implIter.template emplace<1>(tensor,
-                            Tensor::Index(tensor.DimensionCount, 0),
-                            Tensor::Index(tensor.Dimensions));
+                            Index(tensor.DimensionCount, 0),
+                            Index(tensor.Dimensions));
                     this->directIterEnd = std::nullopt;
                 }
             }
@@ -453,7 +356,7 @@ namespace Moment {
                 return !this->operator==(rhs);
             }
 
-            [[nodiscard]] operator bool() const {
+            [[nodiscard]] explicit operator bool() const {
                 if (this->implIter.index() == 0) {
                     assert(this->directIterEnd.has_value());
                     return (std::get<0>(this->implIter) != this->directIterEnd.value());
@@ -481,23 +384,24 @@ namespace Moment {
 
 
     protected:
+        /** Explicitly stored data */
         std::vector<Element> data;
 
     public:
         explicit AutoStorageTensor(std::vector<size_t>&& dimensions,
                                    TensorStorageType storage = TensorStorageType::Automatic)
-         : Tensor{std::move(dimensions)}, StorageType(get_storage_type(storage, ElementCount)) { }
+         : TensorType{std::move(dimensions)}, StorageType(get_storage_type(storage, ElementCount)) { }
 
          virtual ~AutoStorageTensor() noexcept = default;
 
         const std::vector<Element>& Data() const {
             if (this->StorageType != TensorStorageType::Explicit) {
-                throw errors::bad_tensor::no_data_stored(this->get_name(true));
+                throw errors::bad_tensor_no_data_stored(this->get_name(true));
             }
             return this->data;
         }
 
-        inline ElementView operator()(const Tensor::IndexView indices) const {
+        inline ElementView operator()(const IndexView indices) const {
             return ElementView{*this, indices};
         }
 
@@ -528,8 +432,20 @@ namespace Moment {
             return range_t{*this, Index(minV.begin(), minV.end()), Index(maxV.begin(), maxV.end())};
         }
 
+
+        /**
+          * Name of tensor object.
+          */
+        [[nodiscard]] virtual std::string get_name(bool capital) const {
+            if (capital) {
+                return "Tensor";
+            } else {
+                return "tensor";
+            }
+        }
+
     protected:
-        [[nodiscard]] inline ElementView elem_no_checks(const Tensor::IndexView indices) const {
+        [[nodiscard]] inline ElementView elem_no_checks(const IndexView indices) const {
             return ElementView{*this, indices, typename ElementView::flag_no_checks{}};
         }
 
@@ -537,7 +453,9 @@ namespace Moment {
             return ElementView{*this, offset, typename ElementView::flag_no_checks{}};
         }
 
-        [[nodiscard]] virtual Element make_element_no_checks(Tensor::IndexView index) const = 0;
+        [[nodiscard]] virtual Element make_element_no_checks(IndexView index) const = 0;
+
+    public:
 
 
     public:

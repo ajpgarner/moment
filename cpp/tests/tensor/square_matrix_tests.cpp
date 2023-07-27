@@ -5,18 +5,18 @@
  * @author Andrew J. P. Garner
  */
 #include "gtest/gtest.h"
-#include "utilities/square_matrix.h"
+#include "tensor/square_matrix.h"
 
 namespace Moment::Tests {
 
-    TEST(Utilities_SquareMatrix, Empty) {
+    TEST(Tensor_SquareMatrix, Empty) {
         SquareMatrix<int> empty{};
         EXPECT_EQ(empty.dimension, 0);
         EXPECT_EQ(empty.begin(), empty.end());
 
     }
 
-    TEST(Utilities_SquareMatrix, TwoByTwo) {
+    TEST(Tensor_SquareMatrix, TwoByTwo) {
         SquareMatrix<int> matrix{2, {1, 2, 3, 4}};
         ASSERT_EQ(matrix.dimension, 2);
         EXPECT_EQ(matrix[0][0], 1);
@@ -44,32 +44,32 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, matrix.end());
     }
 
-    TEST(Utilities_SquareMatrix, TransposeIterator) {
+    TEST(Tensor_SquareMatrix, TransposeIterator) {
         SquareMatrix<int> matrix{2, {1, 2, 3, 4}};
 
         ASSERT_EQ(matrix.dimension, 2);
-        auto txIter = matrix.ColumnMajor.begin();
-        ASSERT_NE(txIter, matrix.ColumnMajor.end());
+        auto txIter = matrix.Transpose.begin();
+        ASSERT_NE(txIter, matrix.Transpose.end());
         EXPECT_EQ(*txIter, 1);
         ++txIter;
 
-        ASSERT_NE(txIter, matrix.ColumnMajor.end());
+        ASSERT_NE(txIter, matrix.Transpose.end());
         EXPECT_EQ(*txIter, 3);
         ++txIter;
 
-        ASSERT_NE(txIter, matrix.ColumnMajor.end());
+        ASSERT_NE(txIter, matrix.Transpose.end());
         EXPECT_EQ(*txIter, 2);
         ++txIter;
 
-        ASSERT_NE(txIter, matrix.ColumnMajor.end());
+        ASSERT_NE(txIter, matrix.Transpose.end());
         EXPECT_EQ(*txIter, 4);
         ++txIter;
 
-        EXPECT_EQ(txIter, matrix.ColumnMajor.end());
+        EXPECT_EQ(txIter, matrix.Transpose.end());
     }
 
 
-    TEST(Utilities_SquareMatrix, Pad) {
+    TEST(Tensor_SquareMatrix, Pad) {
         SquareMatrix<int> matrix{2, {1, 2, 3, 4}};
         ASSERT_EQ(matrix.dimension, 2);
         ASSERT_EQ(matrix[0][0], 1);

@@ -7,7 +7,7 @@
 
 #include "flatten_indices.h"
 
-#include "utilities/index_flattener.h"
+#include "tensor/index_flattener.h"
 
 #include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"

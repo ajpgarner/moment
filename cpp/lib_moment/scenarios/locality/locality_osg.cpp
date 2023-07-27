@@ -11,7 +11,7 @@
 #include "dictionary/operator_sequence.h"
 
 #include "utilities/multi_partition.h"
-#include "utilities/multi_dimensional_index_iterator.h"
+#include "tensor/multi_dimensional_index_iterator.h"
 #include "utilities/small_vector.h"
 
 #include "locality_context.h"

@@ -10,7 +10,7 @@
 
 #include "dictionary/operator_sequence.h"
 #include "symbolic/monomial.h"
-#include "utilities/square_matrix.h"
+#include "tensor/square_matrix.h"
 
 #include "exporter.h"
 

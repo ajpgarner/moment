@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "multi_dimensional_object.h"
-#include "multi_dimensional_index_iterator.h"
+#include "tensor/multi_dimensional_object.h"
+#include "tensor/multi_dimensional_index_iterator.h"
 
 #include "integer_types.h"
 

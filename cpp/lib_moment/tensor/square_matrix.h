@@ -7,8 +7,12 @@
 #pragma once
 #include <cassert>
 
+#include <array>
 #include <vector>
 #include <span>
+
+#include "integer_types.h"
+#include "multi_dimensional_object.h"
 
 namespace Moment {
 
@@ -19,15 +23,17 @@ namespace Moment {
      */
     template<class element_t, class storage_t = std::vector<element_t>>
             requires std::random_access_iterator<typename storage_t::const_iterator>
-    class SquareMatrix {
+    class SquareMatrix
+            : public MultiDimensionalObject<size_t, std::array<size_t, 2>, std::span<const size_t>, true>
+    {
     public:
         using iterator = typename storage_t::iterator;
         using const_iterator = typename storage_t::const_iterator;
 
     public:
 
-        /** Object for iterating over matrix data in column-major order. */
-        class ColumnMajorView {
+        /** Object for iterating over matrix data in transposed order. */
+        const class TransposeView {
         public:
             class TransposeIterator {
             public:
@@ -99,7 +105,7 @@ namespace Moment {
 
         public:
             /** Construct view for data, in column-major order. */
-            explicit ColumnMajorView(const SquareMatrix& sm) : squareMatrix{sm} { }
+            explicit TransposeView(const SquareMatrix& sm) : squareMatrix{sm} { }
 
             /** Get column-major iterator start. */
             auto begin() const { return TransposeIterator{squareMatrix}; }
@@ -107,30 +113,35 @@ namespace Moment {
             /** Get column-major iterator end. */
             auto end() const { return TransposeIterator{squareMatrix, true}; }
 
-        };
+            /** Get transposed element */
+            inline const element_t& operator()(IndexView index) const noexcept(!debug_mode) {
+                return this->squareMatrix(Index{index[1], index[0]});
+            }
+
+        } Transpose;
 
         /** Type alias for matrix data array. */
         using StorageType = storage_t;
 
     public:
         /** The number of columns/rows in the square matrix. */
-        const size_t dimension;
+        const IndexElement dimension;
 
     private:
         /** Matrix data */
-        storage_t data;
+        StorageType data;
 
     public:
-        /** Iterate over the matrix in a column-major manner. */
-        ColumnMajorView ColumnMajor;
 
     public:
         /** Construct empty, 0 by 0, matrix */
-        SquareMatrix() : dimension{0}, data{}, ColumnMajor{*this} { }
+        SquareMatrix() : MultiDimensionalObject{std::array<size_t, 2>{0, 0}},
+        dimension{0}, data{}, Transpose{*this} { }
 
         /** Move-construct square matrix */
         constexpr SquareMatrix(SquareMatrix&& rhs) noexcept
-            : dimension{rhs.dimension}, data{std::move(rhs.data)}, ColumnMajor{*this} { }
+            : MultiDimensionalObject(static_cast<MultiDimensionalObject&&>(rhs)),
+                dimension{rhs.dimension}, data{std::move(rhs.data)}, Transpose{*this} { }
 
         /**
          * Construct a square matrix from supplied data.
@@ -138,7 +149,8 @@ namespace Moment {
          * @param data Row-major data for matrix. Must contain dimension*dimension elements.
          */
         constexpr SquareMatrix(size_t dimension, storage_t&& data)
-            : dimension{dimension}, data{std::move(data)}, ColumnMajor{*this} {
+            : MultiDimensionalObject{std::array<size_t, 2>{dimension, dimension}},
+              dimension{dimension}, data{std::move(data)}, Transpose{*this} {
             assert(this->data.size() == (this->dimension*this->dimension));
         }
 
@@ -162,6 +174,48 @@ namespace Moment {
             assert(row < this->dimension);
             auto iter_row_start = this->data.cbegin() + static_cast<ptrdiff_t>(row * this->dimension);
             return {iter_row_start.operator->(), this->dimension};
+        }
+
+        /**
+         * Get element by index.
+         */
+        constexpr element_t& operator()(IndexView index) noexcept(!debug_mode) {
+            if constexpr (debug_mode) {
+                this->validate_index(index);
+            }
+            auto offset = this->index_to_offset_no_checks(index);
+            return this->data[offset];
+        }
+
+        /**
+         * Get element by index.
+         */
+        constexpr const element_t& operator()(IndexView index) const noexcept(!debug_mode) {
+            if constexpr (debug_mode) {
+                this->validate_index(index);
+            }
+            auto offset = this->index_to_offset_no_checks(index);
+            return this->data[offset];
+        }
+
+        /**
+         * Get element by offset.
+         */
+        constexpr element_t& operator()(IndexElement offset) noexcept(!debug_mode) {
+            if constexpr (debug_mode) {
+                this->validate_offset(offset);
+            }
+            return this->data[offset];
+        }
+
+        /**
+         * Get element by offset.
+         */
+        constexpr const element_t& operator()(IndexElement offset) const noexcept(!debug_mode) {
+            if constexpr (debug_mode) {
+                this->validate_offset(offset);
+            }
+            return this->data[offset];
         }
 
         /** Gets a column-major read-only iterator over matrix data. */

@@ -45,15 +45,15 @@ namespace Moment::Tests {
 
         const auto& cg = system.CollinsGisin();
         ASSERT_FALSE(cg.HasAllSymbols());
-        ASSERT_EQ(cg.Dimensions, (Tensor::Index{3, 3, 3}));
+        ASSERT_EQ(cg.Dimensions, (AutoStorageIndex{3, 3, 3}));
 
         const auto& pt = system.LocalityProbabilityTensor();
         ASSERT_FALSE(pt.HasAllPolynomials());
-        ASSERT_EQ(pt.Dimensions, (Tensor::Index{5, 5, 5}));
+        ASSERT_EQ(pt.Dimensions, (AutoStorageIndex{5, 5, 5}));
 
         // Test element a0.0
-        const auto pt_a0 = pt(Tensor::Index{1, 0, 0}); // a0
-        const Polynomial expected_a0{Monomial{static_cast<symbol_name_t>(1+cg.index_to_offset(Tensor::Index{1, 0, 0})), 1.0}};
+        const auto pt_a0 = pt(AutoStorageIndex{1, 0, 0}); // a0
+        const Polynomial expected_a0{Monomial{static_cast<symbol_name_t>(1+cg.index_to_offset(AutoStorageIndex{1, 0, 0})), 1.0}};
         EXPECT_EQ(pt_a0->cgPolynomial, expected_a0);
         EXPECT_FALSE(pt_a0->hasSymbolPoly);
         const VirtualPolynomialView a0_view{cg, pt_a0->cgPolynomial};
@@ -68,10 +68,10 @@ namespace Moment::Tests {
         EXPECT_EQ(a0_view_iter, a0_view.end());
 
         // Test element b0.1 = 1 - b0.0
-        const auto pt_b01 = pt(Tensor::Index{0, 4, 0}); // 1- b0
+        const auto pt_b01 = pt(AutoStorageIndex{0, 4, 0}); // 1- b0
         const Polynomial expected_b01{
-            Monomial{static_cast<symbol_name_t>(1+cg.index_to_offset(Tensor::Index{0, 0, 0})), 1.0},
-            Monomial{static_cast<symbol_name_t>(1+cg.index_to_offset(Tensor::Index{0, 2, 0})), -1.0}
+            Monomial{static_cast<symbol_name_t>(1+cg.index_to_offset(AutoStorageIndex{0, 0, 0})), 1.0},
+            Monomial{static_cast<symbol_name_t>(1+cg.index_to_offset(AutoStorageIndex{0, 2, 0})), -1.0}
         };
         EXPECT_EQ(pt_b01->cgPolynomial, expected_b01);
         EXPECT_FALSE(pt_b01->hasSymbolPoly);

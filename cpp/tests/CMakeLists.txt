@@ -57,27 +57,27 @@ add_executable(moment_tests
         symbolic/rules/moment_rulebook_tests.cpp
         symbolic/rules/moment_rulebook_factor_tests.cpp
         symbolic/rules/moment_rulebook_to_basis_tests.cpp
+        tensor/index_flattener_tests.cpp
+        tensor/multi_dimensional_index_iterator_tests.cpp
+        tensor/multi_dimensional_object_tests.cpp
+        tensor/multi_dimensional_offset_index_iterator_tests.cpp
+        tensor/square_matrix_tests.cpp
+        tensor/auto_storage_tensor_tests.cpp
         utilities/alphabetic_namer_tests.cpp
         utilities/combination_tests.cpp
         utilities/dynamic_bitset_tests.cpp
         utilities/first_intersection_tests.cpp
         utilities/float_utils_tests.cpp
-        utilities/index_flattener_tests.cpp
         utilities/index_tree_tests.cpp
         utilities/ipow_tests.cpp
         utilities/iter_tuple_tests.cpp
         utilities/kronecker_power_tests.cpp
-        utilities/multi_dimensional_index_iterator_tests.cpp
-        utilities/multi_dimensional_object_tests.cpp
-        utilities/multi_dimensional_offset_index_iterator_tests.cpp
         utilities/multi_partition_tests.cpp
         utilities/ordered_permutation_tests.cpp
         utilities/persistent_storage_tests.cpp
         utilities/recursive_storage_tests.cpp
         utilities/shortlex_hasher_tests.cpp
         utilities/small_vector_tests.cpp
-        utilities/square_matrix_tests.cpp
-        utilities/tensor_tests.cpp
         utilities/triangular_index_iterator_tests.cpp
         utilities/utf_conversion_tests.cpp
         utilities/variable_chunk_range_tests.cpp

@@ -7,7 +7,7 @@
 #pragma once
 
 
-#include "utilities/square_matrix.h"
+#include "tensor/square_matrix.h"
 #include "symbolic/monomial.h"
 #include "integer_types.h"
 

@@ -14,7 +14,7 @@
 #include "symbolic/monomial.h"
 #include "symbolic/symbol_table.h"
 
-#include "utilities/square_matrix.h"
+#include "tensor/square_matrix.h"
 
 #include <cassert>
 
