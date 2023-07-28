@@ -99,14 +99,15 @@ namespace Moment {
     std::pair<ptrdiff_t, Matrix &>
     SubstitutedMatrixFactory::operator()(MatrixSystemWriteLock& lock,
                                          const Index& index,
-                                         Multithreading::MultiThreadPolicy mt_policy) {
+                                         const Multithreading::MultiThreadPolicy mt_policy) {
         assert(system.is_locked_write_lock(lock));
         auto& source_matrix = system.get(index.first); // <- throws if not found!
         auto& rulebook = system.Rulebook(index.second); // <- throws if not found!
 
         // Do creation
         const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
-        system.matrices.emplace_back(rulebook.create_substituted_matrix(*this->system.symbol_table, source_matrix));
+        system.matrices.emplace_back(rulebook.create_substituted_matrix(*this->system.symbol_table, source_matrix,
+                                                                        mt_policy));
         return {matrixIndex, *(system.matrices.back())};
     }
 

@@ -8,6 +8,8 @@
 #pragma once
 #include "moment_rule.h"
 
+#include "multithreading/multithreading.h"
+
 #include <atomic>
 #include <map>
 #include <memory>
@@ -205,10 +207,12 @@ namespace Moment {
         /**
          * Apply reduction to every element of matrix, and make a new matrix
          * @param symbols Write-access to symbol table.
-         * @param matrix
+         * @param matrix  The matrix to substitute.
+         * @param mt_policy Whether or not to use multi-threading.
          * @return Newly created matrix, either of type MonomialSubstitutionMatrix or PolynomialSubstitutionMatrix.
          */
-        [[nodiscard]] std::unique_ptr<Matrix> create_substituted_matrix(SymbolTable& symbols, const Matrix& matrix) const;
+        [[nodiscard]] std::unique_ptr<Matrix> create_substituted_matrix(SymbolTable& symbols, const Matrix& matrix,
+                        Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional) const;
 
 
         /**

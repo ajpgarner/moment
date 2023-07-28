@@ -11,6 +11,7 @@
 #include "multithreading.h"
 
 #include <thread>
+#include <vector>
 
 namespace Moment::Multithreading {
 

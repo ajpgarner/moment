@@ -110,4 +110,7 @@ namespace Moment {
         void identify_symbols_and_basis_indices();
 
     };
+
+    template<>
+    struct MatrixSpecialization<Monomial> { using type = MonomialMatrix; };
 }

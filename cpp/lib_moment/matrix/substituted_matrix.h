@@ -9,6 +9,8 @@
 #include "monomial_matrix.h"
 #include "polynomial_matrix.h"
 
+#include "multithreading/multithreading.h"
+
 #include "symbolic/rules/moment_rulebook.h"
 
 
@@ -38,8 +40,9 @@ namespace Moment {
     class MonomialSubstitutedMatrix : public MonomialMatrix, public SubstitutedMatrix {
     public:
         MonomialSubstitutedMatrix(SymbolTable& symbols, const MomentRulebook& msrb,
-                                  const MonomialMatrix& source_matrix);
-
+                                  const MonomialMatrix& source_matrix,
+                                  Multithreading::MultiThreadPolicy mt_policy
+                                    = Multithreading::MultiThreadPolicy::Optional);
 
         /**
          * Forms a new monomial matrix by element-wise application of MSRB onto Matrix data.
@@ -48,10 +51,8 @@ namespace Moment {
          * @return Newly created raw monomial matrix.
          */
         static std::unique_ptr<SquareMatrix<Monomial>>
-        reduce(const MomentRulebook& msrb, const SquareMatrix<Monomial>& matrix);
-
-
-
+        reduce(const MomentRulebook& msrb, const SquareMatrix<Monomial>& matrix,
+               Multithreading::MultiThreadPolicy mt_policy);
     };
 
 
@@ -62,17 +63,25 @@ namespace Moment {
     class PolynomialSubstitutedMatrix : public PolynomialMatrix, public SubstitutedMatrix {
     public:
         PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentRulebook& msrb,
-                                    const MonomialMatrix& source_matrix);
+                                    const MonomialMatrix& source_matrix,
+                                    Multithreading::MultiThreadPolicy mt_policy
+                                    = Multithreading::MultiThreadPolicy::Optional);
 
         PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentRulebook& msrb,
-                                    const PolynomialMatrix& source_matrix);
+                                    const PolynomialMatrix& source_matrix,
+                                    Multithreading::MultiThreadPolicy mt_policy
+                                            = Multithreading::MultiThreadPolicy::Optional);
 
     public:
         static std::unique_ptr<SquareMatrix<Polynomial>>
-        reduce(const MomentRulebook& msrb, const SquareMatrix<Polynomial>& matrix);
+        reduce(const MomentRulebook& msrb,
+               const SquareMatrix<Polynomial>& matrix,
+               Multithreading::MultiThreadPolicy mt_policy);
 
         static std::unique_ptr<SquareMatrix<Polynomial>>
-        reduce(const MomentRulebook& msrb, const SquareMatrix<Monomial>& matrix);
+        reduce(const MomentRulebook& msrb,
+               const SquareMatrix<Monomial>& matrix,
+               Multithreading::MultiThreadPolicy mt_policy);
     };
 
 

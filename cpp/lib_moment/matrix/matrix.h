@@ -211,4 +211,7 @@ namespace Moment {
         [[nodiscard]] virtual SparseComplexBasisInfo::MakeStorageType create_sparse_complex_basis() const = 0;
     };
 
+    template <typename elem_t>
+    struct MatrixSpecialization { using type = Matrix; };
+
 }

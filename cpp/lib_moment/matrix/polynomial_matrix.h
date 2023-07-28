@@ -106,4 +106,7 @@ namespace Moment {
         void identify_symbols_and_basis_indices(double zero_tolerance);
 
     };
+
+    template<>
+    struct MatrixSpecialization<Polynomial> { using type = PolynomialMatrix; };
 }

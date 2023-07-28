@@ -451,8 +451,9 @@ namespace Moment {
         return rule_iter->second.reduce(this->factory, expr);
     }
 
-    std::unique_ptr<Matrix> MomentRulebook::create_substituted_matrix(SymbolTable& wSymbols,
-                                                                      const Matrix &matrix) const {
+    std::unique_ptr<Matrix>
+    MomentRulebook::create_substituted_matrix(SymbolTable& wSymbols, const Matrix &matrix,
+                                              const Multithreading::MultiThreadPolicy mt_policy) const {
         assert(&matrix.symbols == &wSymbols);
 
         // Once this line is passed, MSR is officially in use:
@@ -460,13 +461,13 @@ namespace Moment {
 
         if (matrix.is_polynomial()) {
             const auto& polyMatrix = dynamic_cast<const PolynomialMatrix&>(matrix);
-            return std::make_unique<PolynomialSubstitutedMatrix>(wSymbols, *this, polyMatrix);
+            return std::make_unique<PolynomialSubstitutedMatrix>(wSymbols, *this, polyMatrix, mt_policy);
         } else {
             const auto& monomialMatrix = dynamic_cast<const MonomialMatrix&>(matrix);
             if (this->is_monomial()) {
-                return std::make_unique<MonomialSubstitutedMatrix>(wSymbols, *this, monomialMatrix);
+                return std::make_unique<MonomialSubstitutedMatrix>(wSymbols, *this, monomialMatrix, mt_policy);
             } else {
-                return std::make_unique<PolynomialSubstitutedMatrix>(wSymbols, *this, monomialMatrix);
+                return std::make_unique<PolynomialSubstitutedMatrix>(wSymbols, *this, monomialMatrix, mt_policy);
             }
         }
     }

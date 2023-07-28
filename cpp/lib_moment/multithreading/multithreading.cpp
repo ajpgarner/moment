@@ -24,6 +24,7 @@
 #endif
 
 #include <algorithm>
+#include <cmath>
 
 
 namespace Moment::Multithreading {
@@ -76,6 +77,23 @@ namespace Moment::Multithreading {
             case MultiThreadPolicy::Optional:
             default:
                 return elements >= minimum_matrix_element_count;
+        }
+    }
+
+    bool should_multithread_rule_application(MultiThreadPolicy policy, size_t elements, size_t rules) {
+        switch (policy) {
+            case MultiThreadPolicy::Never:
+                return false;
+            case MultiThreadPolicy::Always:
+                return true;
+            case MultiThreadPolicy::Optional:
+            default: {
+                if (rules <= 0) {
+                    return false;
+                }
+                size_t difficulty = elements * std::ceil(std::log2(static_cast<double>(rules)));
+                return difficulty > minimum_rule_difficulty;
+            }
         }
     }
 

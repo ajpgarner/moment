@@ -10,6 +10,7 @@ add_executable(moment_tests
         multithreading/queue_tests.cpp
         multithreading/moment_matrix_tests.cpp
         multithreading/localizing_matrix_tests.cpp
+        multithreading/substituted_matrix_tests.cpp
         operators/hashed_sequence_tests.cpp
         operators/localizing_matrix_tests.cpp
         operators/multi_operator_iterator_tests.cpp
