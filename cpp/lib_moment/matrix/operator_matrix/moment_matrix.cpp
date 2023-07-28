@@ -19,6 +19,7 @@
 namespace Moment {
     namespace {
 
+        template<bool can_have_aliases>
         class moment_matrix_generation_worker {
         private:
             std::thread the_thread;
@@ -51,7 +52,11 @@ namespace Moment {
                     for (size_t row_idx = 0; row_idx < row_length; ++row_idx) {
                         const auto& rowSeq = rowGen[row_idx];
                         size_t total_idx = (col_idx * row_length) + row_idx;
-                        base_ptr[total_idx] = context.simplify_as_moment(rowSeq * colSeq);
+                        if constexpr(can_have_aliases) {
+                            base_ptr[total_idx] = context.simplify_as_moment(rowSeq * colSeq);
+                        } else {
+                            base_ptr[total_idx] = rowSeq * colSeq;
+                        }
                     }
                 }
             }
@@ -95,14 +100,28 @@ namespace Moment {
             std::vector<OperatorSequence> matrix_data;
             if (!use_multithreading) {
                 matrix_data.reserve(dimension * dimension);
-                for (const auto &colSeq: colGen) {
-                    for (const auto &rowSeq: rowGen) {
-                        matrix_data.emplace_back(context.simplify_as_moment(rowSeq * colSeq));
+                if (context.can_have_aliases()) {
+                    for (const auto &colSeq: colGen) {
+                        for (const auto &rowSeq: rowGen) {
+                            matrix_data.emplace_back(context.simplify_as_moment(rowSeq * colSeq));
+                        }
+                    }
+                } else {
+                    for (const auto &colSeq: colGen) {
+                        for (const auto &rowSeq: rowGen) {
+                            matrix_data.emplace_back(rowSeq * colSeq);
+                        }
                     }
                 }
             } else {
                 auto raw_data = OperatorSequence::create_uninitialized_vector(dimension*dimension);
-                moment_matrix_generation_worker::create_execute_and_wait(context, colGen, rowGen, raw_data.data());
+                if (context.can_have_aliases()) {
+                    moment_matrix_generation_worker<true>::create_execute_and_wait(context, colGen, rowGen,
+                                                                                   raw_data.data());
+                } else {
+                    moment_matrix_generation_worker<true>::create_execute_and_wait(context, colGen, rowGen,
+                                                                                   raw_data.data());
+                }
                 matrix_data.swap(raw_data);
             }
 
