@@ -9,6 +9,7 @@
 
 #include "dictionary/operator_sequence_generator.h"
 
+#include "multithreading/matrix_generation_worker.h"
 #include "multithreading/multithreading.h"
 
 #include <limits>
@@ -18,72 +19,6 @@
 
 namespace Moment {
     namespace {
-
-        template<bool can_have_aliases>
-        class moment_matrix_generation_worker {
-        private:
-            std::thread the_thread;
-            const OperatorSequenceGenerator& colGen;
-            const OperatorSequenceGenerator& rowGen;
-        public:
-            const size_t worker_id;
-            const size_t max_workers;
-
-            const Context& context;
-            OperatorSequence * const base_ptr;
-            const size_t row_length;
-
-            moment_matrix_generation_worker(const Context& context,
-                                            const OperatorSequenceGenerator& cols,
-                                            const OperatorSequenceGenerator& rows,
-                                            OperatorSequence* const output_data,
-                                            const size_t worker_id, const size_t max_workers)
-            : context{context}, colGen{cols}, rowGen{rows}, base_ptr{output_data},
-                worker_id{worker_id}, max_workers{max_workers}, row_length{rowGen.size()} {
-                assert(rowGen.size() == colGen.size());
-                assert(worker_id < max_workers);
-                assert(max_workers != 0);
-                this->the_thread = std::thread(&moment_matrix_generation_worker::execute, this);
-            }
-
-            void execute() {
-                for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
-                    const auto & colSeq = colGen[col_idx];
-                    for (size_t row_idx = 0; row_idx < row_length; ++row_idx) {
-                        const auto& rowSeq = rowGen[row_idx];
-                        size_t total_idx = (col_idx * row_length) + row_idx;
-                        if constexpr(can_have_aliases) {
-                            base_ptr[total_idx] = context.simplify_as_moment(rowSeq * colSeq);
-                        } else {
-                            base_ptr[total_idx] = rowSeq * colSeq;
-                        }
-                    }
-                }
-            }
-
-            void join() {
-                this->the_thread.join();
-            }
-
-            static void create_execute_and_wait(const Context& context,
-                                                const OperatorSequenceGenerator& cols,
-                                                const OperatorSequenceGenerator& rows,
-                                                OperatorSequence* const output_data) {
-                const size_t num_threads = Multithreading::get_max_worker_threads();
-                std::vector<moment_matrix_generation_worker> workers;
-                workers.reserve(num_threads);
-                for (size_t index = 0; index < num_threads; ++index) {
-                    workers.emplace_back(context, cols, rows, output_data, index, num_threads);
-                }
-
-                // Wait for threads to finish...
-                for (auto& worker : workers) {
-                    worker.join();
-                }
-            }
-        };
-
-
         std::unique_ptr<OperatorMatrix::OpSeqMatrix>
         generate_moment_matrix_sequences(const Context& context, size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
             // Prepare generator of symbols
@@ -116,11 +51,17 @@ namespace Moment {
             } else {
                 auto raw_data = OperatorSequence::create_uninitialized_vector(dimension*dimension);
                 if (context.can_have_aliases()) {
-                    moment_matrix_generation_worker<true>::create_execute_and_wait(context, colGen, rowGen,
-                                                                                   raw_data.data());
+                    Multithreading::generate_matrix_data(context, colGen, rowGen,
+                                                         raw_data.data(),
+                                                         [](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+                        return lhs * rhs;
+                    });
                 } else {
-                    moment_matrix_generation_worker<true>::create_execute_and_wait(context, colGen, rowGen,
-                                                                                   raw_data.data());
+                    Multithreading::generate_matrix_data(context, colGen, rowGen,
+                                                         raw_data.data(),
+                                                         [&context](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+                                                             return context.simplify_as_moment(lhs * rhs);
+                                                         });
                 }
                 matrix_data.swap(raw_data);
             }
