@@ -26,20 +26,18 @@ namespace Moment::Multithreading {
         const size_t worker_id;
         const size_t max_workers;
 
-        const Context &context;
         OperatorSequence * const base_ptr;
         const size_t row_length;
 
         const elem_functor_t &functor;
 
-        matrix_generation_worker(const Context &context,
-                                 const OperatorSequenceGenerator &cols,
+        matrix_generation_worker(const OperatorSequenceGenerator &cols,
                                  const OperatorSequenceGenerator &rows,
                                  OperatorSequence *const output_data,
                                  const size_t worker_id,
                                  const size_t max_workers,
                                  const elem_functor_t &the_functor)
-                : context{context}, colGen{cols}, rowGen{rows}, base_ptr{output_data},
+                : colGen{cols}, rowGen{rows}, base_ptr{output_data},
                   worker_id{worker_id}, max_workers{max_workers}, row_length{rowGen.size()},
                   functor{the_functor} {
             assert(rowGen.size() == colGen.size());
@@ -66,8 +64,7 @@ namespace Moment::Multithreading {
 
     /** Create generation threads, run them, wait until they are finished. */
     template<typename elem_functor_t>
-    void generate_matrix_data(const Context& context,
-                              const OperatorSequenceGenerator& cols, const OperatorSequenceGenerator& rows,
+    void generate_matrix_data(const OperatorSequenceGenerator& cols, const OperatorSequenceGenerator& rows,
                               OperatorSequence* const output_data,
                               const elem_functor_t& the_functor) {
         const size_t num_threads = Multithreading::get_max_worker_threads();
@@ -75,7 +72,7 @@ namespace Moment::Multithreading {
         std::vector<matrix_generation_worker<elem_functor_t>> workers;
         workers.reserve(num_threads);
         for (size_t index = 0; index < num_threads; ++index) {
-            workers.emplace_back(context, cols, rows, output_data, index, num_threads, the_functor);
+            workers.emplace_back(cols, rows, output_data, index, num_threads, the_functor);
         }
 
         // Wait for threads to finish...

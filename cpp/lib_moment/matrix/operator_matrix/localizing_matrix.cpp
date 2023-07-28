@@ -8,6 +8,8 @@
 
 #include "dictionary/operator_sequence_generator.h"
 
+#include "scenarios/context.h"
+
 #include "multithreading/matrix_generation_worker.h"
 #include "multithreading/multithreading.h"
 
@@ -50,18 +52,18 @@ namespace Moment {
             } else {
                 auto raw_data = OperatorSequence::create_uninitialized_vector(dimension*dimension);
                 if (context.can_have_aliases()) {
-                    Multithreading::generate_matrix_data(context, colGen, rowGen,
-                                                         raw_data.data(),
-                                                         [&word](const OperatorSequence& lhs,
-                                                                 const OperatorSequence& rhs) {
-                                                             return lhs * (word * rhs);
-                                                         });
-                } else {
-                    Multithreading::generate_matrix_data(context, colGen, rowGen,
+                    Multithreading::generate_matrix_data(colGen, rowGen,
                                                          raw_data.data(),
                                                          [&context, &word](const OperatorSequence& lhs,
-                                                                           const OperatorSequence& rhs) {
+                                                                 const OperatorSequence& rhs) {
                                                              return context.simplify_as_moment(lhs * (word * rhs));
+                                                         });
+                } else {
+                    Multithreading::generate_matrix_data(colGen, rowGen,
+                                                         raw_data.data(),
+                                                         [&word](const OperatorSequence& lhs,
+                                                                           const OperatorSequence& rhs) {
+                                                             return lhs * (word * rhs);
                                                          });
                 }
                 matrix_data.swap(raw_data);
