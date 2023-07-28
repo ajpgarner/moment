@@ -54,10 +54,6 @@ namespace Moment {
             inline const auto& operator()(const size_t col, const size_t row) const noexcept(!debug_mode) {
                 return (*(matrix.sym_exp_matrix))(SquareMatrix<Monomial>::Index{col, row});
             }
-
-
-            // XXX: Subscript operator for offsets.
-
         } SymbolMatrix;
 
 

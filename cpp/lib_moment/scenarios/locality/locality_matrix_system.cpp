@@ -23,8 +23,6 @@ namespace Moment::Locality {
         this->replace_polynomial_factory(
                 std::make_unique<ByHashPolynomialFactory>(this->Symbols(), tolerance, this->Symbols())
         );
-
-        //this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
     }
 
 
@@ -35,20 +33,6 @@ namespace Moment::Locality {
         this->replace_polynomial_factory(
                 std::make_unique<ByHashPolynomialFactory>(this->Symbols(), tolerance, this->Symbols())
         );
-
-        //this->implicitSymbols = std::make_unique<LocalityImplicitSymbols>(*this);
-    }
-
-    size_t LocalityMatrixSystem::MaxRealSequenceLength() const noexcept {
-
-        // Largest order of moment matrix?
-        ptrdiff_t hierarchy_level = this->MomentMatrix.Indices().highest();
-        if (hierarchy_level < 0) {
-            hierarchy_level = 0;
-        }
-
-        // Max sequence can't also be longer than number of parties
-        return std::min(hierarchy_level*2, static_cast<ptrdiff_t>(this->localityContext.Parties.size()));
     }
 
     const class LocalityProbabilityTensor& LocalityMatrixSystem::LocalityProbabilityTensor() const {
@@ -59,24 +43,6 @@ namespace Moment::Locality {
     const class LocalityCollinsGisin& LocalityMatrixSystem::LocalityCollinsGisin() const {
         const auto& cg = this->CollinsGisin();
         return dynamic_cast<const class LocalityCollinsGisin&>(cg);
-    }
-
-    void LocalityMatrixSystem::onNewMomentMatrixCreated(size_t level, const class Matrix &mm) {
-        auto newMRSL = this->MaxRealSequenceLength();
-        if (newMRSL > this->maxProbabilityLength) {
-            this->maxProbabilityLength = newMRSL;
-        }
-    }
-
-    void LocalityMatrixSystem::onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const Matrix &lm) {
-
-    }
-
-    void LocalityMatrixSystem::onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator &osg) {
-        if (word_length > this->maxProbabilityLength) {
-            this->maxProbabilityLength = word_length;
-
-        }
     }
 
     std::unique_ptr<class CollinsGisin> LocalityMatrixSystem::makeCollinsGisin() {

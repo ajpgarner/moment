@@ -395,7 +395,6 @@ namespace Moment {
                     }
                 }
 
-                // TODO: iterator 'repurpose'
                 CollinsGisin::CollinsGisinIterator cgIter{this->collinsGisin, CollinsGisinIndex(cgBase),
                                                                               CollinsGisinIndex(cgLast)};
                 while (cgIter) {

@@ -17,11 +17,6 @@ namespace Moment::Locality {
     public:
         const class LocalityContext& localityContext;
 
-    private:
-
-        /** XXX: To remove */
-        size_t maxProbabilityLength = 0;
-
     public:
         /**
          * Construct a system of matrices with shared operators.
@@ -42,14 +37,6 @@ namespace Moment::Locality {
         }
 
         /**
-         * Calculates the longest real sequences that can exist within this system (i.e. the highest number of
-         *  parties, all of whose joint measurement outcomes correspond to symbols within.).
-         * For thread safety, call for a read lock first.
-         */
-        [[nodiscard]] size_t MaxRealSequenceLength() const noexcept;
-
-
-        /**
          * Returns an indexing in the Collins-Gisin ordering, with additional locality-specific functions.
          * @throws errors::missing_component if not generated.
          */
@@ -61,13 +48,6 @@ namespace Moment::Locality {
          * @throws errors::missing_component if not generated.
          */
         [[nodiscard]] const class LocalityProbabilityTensor& LocalityProbabilityTensor() const;
-
-    protected:
-        void onNewMomentMatrixCreated(size_t level, const class Matrix& mm) override;
-
-        void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const Matrix &lm) override;
-
-        void onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator &osg) override;
 
     private:
         std::unique_ptr<class CollinsGisin> makeCollinsGisin() override;
