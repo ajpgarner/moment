@@ -12,7 +12,7 @@
 #include "matrix_system/matrix_system.h"
 #include "matrix/operator_matrix/localizing_matrix.h"
 
-#include "compare_os_matrix.h"
+#include "../matrix/compare_os_matrix.h"
 
 namespace Moment::Tests {
     TEST(Operators_LocalizingMatrix, OpSeq_OneElem) {

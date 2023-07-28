@@ -17,7 +17,7 @@
 
 namespace Moment::Tests {
 
-    class Operators_PolyLMTests : public ::testing::Test {
+    class Matrix_PolyLMTests : public ::testing::Test {
     private:
         std::unique_ptr<Algebraic::AlgebraicMatrixSystem> ms_ptr;
 
@@ -60,7 +60,7 @@ namespace Moment::Tests {
         }
     };
 
-    TEST_F(Operators_PolyLMTests, MakeZero) {
+    TEST_F(Matrix_PolyLMTests, MakeZero) {
         const auto &factory = this->get_system();
         auto &system = this->get_system();
 
@@ -72,7 +72,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST_F(Operators_PolyLMTests, MakeMonomial) {
+    TEST_F(Matrix_PolyLMTests, MakeMonomial) {
         auto &system = this->get_system();
         const auto &factory = this->get_factory();
         const auto &context = this->get_context();
@@ -99,7 +99,7 @@ namespace Moment::Tests {
         }
     }
 
-    TEST_F(Operators_PolyLMTests, MakePoly) {
+    TEST_F(Matrix_PolyLMTests, MakePoly) {
         auto &system = this->get_system();
         const auto &factory = this->get_factory();
         const auto &context = this->get_context();

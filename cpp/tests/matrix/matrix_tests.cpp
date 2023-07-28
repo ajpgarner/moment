@@ -212,7 +212,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Operators_Matrix, DenseBasis) {
+    TEST(Matrix_Matrix, DenseBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();
@@ -227,7 +227,7 @@ namespace Moment::Tests {
         assert_same_basis("Imaginary", imaginary, ref_imaginary);
     }
 
-    TEST(Operators_Matrix, DenseMonolithicBasis) {
+    TEST(Matrix_Matrix, DenseMonolithicBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();
@@ -242,7 +242,7 @@ namespace Moment::Tests {
         assert_same_matrix("Imaginary", imaginary, ref_imaginary);
     }
 
-    TEST(Operators_Matrix, SparseBasis) {
+    TEST(Matrix_Matrix, SparseBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();
@@ -257,7 +257,7 @@ namespace Moment::Tests {
         assert_same_basis("Imaginary", imaginary, ref_imaginary);
     }
 
-    TEST(Operators_Matrix, SparseMonolithicBasis) {
+    TEST(Matrix_Matrix, SparseMonolithicBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();
@@ -272,7 +272,7 @@ namespace Moment::Tests {
         assert_same_matrix("Imaginary", imaginary, ref_imaginary);
     }
 
-    TEST(Operators_Matrix, Level0LocalizingMatrixBasis) {
+    TEST(Matrix_Matrix, Level0LocalizingMatrixBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const auto& context = ams.AlgebraicContext();
@@ -308,7 +308,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_Matrix, DenseComplexBasis) {
+    TEST(Matrix_Matrix, DenseComplexBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();
@@ -337,7 +337,7 @@ namespace Moment::Tests {
         assert_same_basis("Imaginary", imaginary, ref_imaginary);
     }
 
-    TEST(Operators_Matrix, DenseMonolithicComplexBasis) {
+    TEST(Matrix_Matrix, DenseMonolithicComplexBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();
@@ -366,7 +366,7 @@ namespace Moment::Tests {
         assert_same_matrix("Imaginary", imaginary, ref_imaginary);
     }
 
-    TEST(Operators_Matrix, SparseComplexBasis) {
+    TEST(Matrix_Matrix, SparseComplexBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();
@@ -396,7 +396,7 @@ namespace Moment::Tests {
         assert_same_basis("Imaginary", imaginary, ref_imaginary);
     }
 
-    TEST(Operators_Matrix, SparseMonolithicComplexBasis) {
+    TEST(Matrix_Matrix, SparseMonolithicComplexBasis) {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem ams{std::make_unique<AlgebraicContext>(2)};
         const SymbolTable& symbol = ams.Symbols();

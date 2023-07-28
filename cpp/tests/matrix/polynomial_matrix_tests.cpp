@@ -153,7 +153,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Operators_PolynomialMatrix, Construct) {
+    TEST(Matrix_PolynomialMatrix, Construct) {
         auto [imsPtr, matPtr] = stage();
         ASSERT_TRUE(imsPtr);
         ASSERT_TRUE(matPtr);
@@ -184,7 +184,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(matrix.HasComplexBasis());
     }
 
-    TEST(Operators_PolynomialMatrix, DenseBasis) {
+    TEST(Matrix_PolynomialMatrix, DenseBasis) {
         auto [imsPtr, matPtr] = stage();
         ASSERT_TRUE(imsPtr);
 
@@ -196,7 +196,7 @@ namespace Moment::Tests {
         assert_same_basis("Imaginary", imaginary, ref_imaginary);
     }
 
-    TEST(Operators_PolynomialMatrix, DenseMonolithicBasis) {
+    TEST(Matrix_PolynomialMatrix, DenseMonolithicBasis) {
         auto [imsPtr, matPtr] = stage();
         ASSERT_TRUE(imsPtr);
 
@@ -208,7 +208,7 @@ namespace Moment::Tests {
         assert_same_matrix("Imaginary", imaginary, ref_imaginary);
     }
 
-    TEST(Operators_PolynomialMatrix, SparseBasis) {
+    TEST(Matrix_PolynomialMatrix, SparseBasis) {
         auto [imsPtr, matPtr] = stage();
         ASSERT_TRUE(imsPtr);
 
@@ -220,7 +220,7 @@ namespace Moment::Tests {
         assert_same_basis("Imaginary", imaginary, ref_imaginary);
     }
 
-    TEST(Operators_PolynomialMatrix, SparseMonolithicBasis) {
+    TEST(Matrix_PolynomialMatrix, SparseMonolithicBasis) {
         auto [imsPtr, matPtr] = stage();
         ASSERT_TRUE(imsPtr);
 

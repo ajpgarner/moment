@@ -7,113 +7,20 @@
 
 #include "gtest/gtest.h"
 
-#include "matrix_system/matrix_system.h"
-#include "matrix/operator_matrix/moment_matrix.h"
-#include "scenarios/context.h"
+#include "compare_os_matrix.h"
+#include "compare_symbol_matrix.h"
+#include "compare_unique_sequences.h"
 
-#include "scenarios/algebraic/algebraic_context.h"
-#include "scenarios/algebraic/algebraic_matrix_system.h"
+#include "matrix_system/matrix_system.h"
+
+#include "scenarios/context.h"
 
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_matrix_system.h"
 
-#include "compare_os_matrix.h"
 
 namespace Moment::Tests {
-    namespace {
-
-        struct unique_seq_brace_ref {
-            OperatorSequence fwd;
-            OperatorSequence rev;
-            bool herm;
-        };
-
-        void compare_unique_sequences(const Matrix &theMM, std::initializer_list<unique_seq_brace_ref> reference) {
-            ASSERT_EQ(theMM.symbols.size(), 2 + reference.size());
-
-            const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(theMM);
-            ASSERT_NE(mmPtr, nullptr) << "Not a moment matrix!";
-
-
-            // 0 is always zero
-            auto iter = theMM.symbols.begin();
-            ASSERT_NE(iter, theMM.symbols.end()) << " Level = " << mmPtr->Level();
-            EXPECT_EQ(&(*iter), &theMM.symbols[0]) << " Level = " << mmPtr->Level();
-            EXPECT_EQ(theMM.symbols[0].sequence(), OperatorSequence::Zero(theMM.context))
-                << " Level = " << mmPtr->Level();
-            EXPECT_EQ(theMM.symbols[0].sequence_conj(), OperatorSequence::Zero(theMM.context))
-                << " Level = " << mmPtr->Level();
-            EXPECT_TRUE(theMM.symbols[0].is_hermitian()) << " Level = " << mmPtr->Level();
-            ++iter;
-
-            // 1 is always ID
-            ASSERT_NE(iter, theMM.symbols.end()) << " Level = " << mmPtr->Level();
-            EXPECT_EQ(&(*iter), &theMM.symbols[1]) << " Level = " << mmPtr->Level();
-            EXPECT_EQ(theMM.symbols[1].sequence(), OperatorSequence::Identity(theMM.context))
-                << " Level = " << mmPtr->Level();
-            EXPECT_EQ(theMM.symbols[1].sequence_conj(), OperatorSequence::Identity(theMM.context))
-                << " Level = " << mmPtr->Level();
-            EXPECT_TRUE(theMM.symbols[1].is_hermitian())  << " Level = " << mmPtr->Level();
-            ++iter;
-
-            size_t index = 2;
-            for (const auto& ref_seq : reference) {
-                ASSERT_NE(iter, theMM.symbols.end()) << " Level = " << mmPtr->Level() << ", index = " << index;
-                EXPECT_EQ(&(*iter), &theMM.symbols[index]) << " Level = " << mmPtr->Level()
-                    << ", index = " << index;
-                EXPECT_EQ(iter->sequence(), ref_seq.fwd) << " Level = " << mmPtr->Level() << ", index = " << index;
-                EXPECT_EQ(iter->sequence_conj(), ref_seq.rev) << " Level = " << mmPtr->Level() << ", index = " << index;
-                EXPECT_EQ(iter->is_hermitian(), ref_seq.herm) << " Level = " << mmPtr->Level() << ", index = " << index;
-                ++index;
-                ++iter;
-            }
-
-            EXPECT_EQ(index, 2 + reference.size()) << " Level = " << mmPtr->Level();
-            EXPECT_EQ(iter, theMM.symbols.end()) << " Level = " << mmPtr->Level();
-        }
-
-        void compare_symbol_matrix(const Matrix &inputMM, size_t dimension,
-                                   const std::vector<Monomial>& reference) {
-            const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(inputMM);
-            ASSERT_NE(mmPtr, nullptr) << "Not a moment matrix!";
-            ASSERT_TRUE(inputMM.is_monomial());
-            const auto& theMM = dynamic_cast<const MonomialMatrix&>(inputMM);
-
-
-            ASSERT_EQ(theMM.SymbolMatrix.Dimension(), dimension);
-
-            size_t row = 0;
-            size_t col = 0;
-            for (const auto &ref_symbol: reference) {
-                ASSERT_LT(row, dimension) << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
-                ASSERT_LT(col, dimension) << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
-
-                const auto &actual_symbol = theMM.SymbolMatrix(row, col);
-                EXPECT_EQ(actual_symbol, ref_symbol)
-                                    << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
-                ++col;
-                if (col >= dimension) {
-                    col = 0;
-                    ++row;
-                }
-            }
-            EXPECT_EQ(col, 0) << " Level = " << mmPtr->Level();
-            EXPECT_EQ(row, dimension) << " Level = " << mmPtr->Level();
-
-        }
-
-        void compare_symbol_matrix(const Matrix &theMM, size_t dimension,
-                               std::initializer_list<std::string> reference) {
-            std::vector<Monomial> txReference;
-            txReference.reserve(reference.size());
-            for (const auto& str : reference) {
-                txReference.emplace_back(str);
-            }
-            compare_symbol_matrix(theMM, dimension, txReference);
-        }
-    }
-
-    TEST(Operators_MomentMatrix, Empty) {
+    TEST(Matrix_MomentMatrix, Empty) {
         MatrixSystem system{std::make_unique<Context>(0)}; // No parties, no symbols
         auto& context = system.Context();
         ASSERT_EQ(context.size(), 0);
@@ -144,7 +51,7 @@ namespace Moment::Tests {
         compare_symbol_matrix(matLevel1, 1, {"1"});
     }
 
-    TEST(Operators_MomentMatrix, OpSeq_OneElem) {
+    TEST(Matrix_MomentMatrix, OpSeq_OneElem) {
         MatrixSystem system{std::make_unique<Context>(1)}; // One symbol
         auto& context = system.Context();
 
@@ -183,7 +90,7 @@ namespace Moment::Tests {
                                          OperatorSequence({theOp, theOp, theOp, theOp}, context)});
     }
 
-    TEST(Operators_MomentMatrix, OpSeq_TwoElem) {
+    TEST(Matrix_MomentMatrix, OpSeq_TwoElem) {
         MatrixSystem system{std::make_unique<Context>(2)}; // Two elements
         const auto& context = system.Context();
         std::vector<oper_name_t> alice{0, 1};
@@ -266,7 +173,7 @@ namespace Moment::Tests {
                  );
     }
 
-    TEST(Operators_MomentMatrix, OpSeq_2Party1Opers) {
+    TEST(Matrix_MomentMatrix, OpSeq_2Party1Opers) {
         using namespace Moment::Locality;
 
         // Two parties, each with one operator
@@ -318,7 +225,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Operators_MomentMatrix, OpSeq_223) {
+    TEST(Matrix_MomentMatrix, OpSeq_223) {
         using namespace Moment::Locality;
 
          // Two party, two mmts, three outcomes.
@@ -438,7 +345,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Operators_MomentMatrix, Unique_OneElem) {
+    TEST(Matrix_MomentMatrix, Unique_OneElem) {
         // One party, one symbol
         MatrixSystem system{std::make_unique<Context>(1)};
         auto& context = system.Context();
@@ -468,7 +375,7 @@ namespace Moment::Tests {
                                           OperatorSequence({alice[0], alice[0], alice[0], alice[0]}, context), true}});
     }
 
-    TEST(Operators_MomentMatrix, Unique_2Party1Opers) {
+    TEST(Matrix_MomentMatrix, Unique_2Party1Opers) {
         using namespace Moment::Locality;
 
         // Two parties, each with one operator
@@ -503,7 +410,7 @@ namespace Moment::Tests {
                                    OperatorSequence({alice[0], bob[0]}, context), true}});
     }
 
-    TEST(Operators_MomentMatrix, Unique_1Party2Opers_L0) {
+    TEST(Matrix_MomentMatrix, Unique_1Party2Opers_L0) {
         MatrixSystem system{std::make_unique<Context>(2)}; // Two symbols
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
@@ -514,7 +421,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Operators_MomentMatrix, Unique_1Party2Opers_L1) {
+    TEST(Matrix_MomentMatrix, Unique_1Party2Opers_L1) {
         MatrixSystem system{std::make_unique<Context>(2)}; // Two symbols
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
@@ -534,7 +441,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Operators_MomentMatrix, Unique_1Party2Opers_L2) {
+    TEST(Matrix_MomentMatrix, Unique_1Party2Opers_L2) {
         MatrixSystem system{std::make_unique<Context>(2)}; // One party, two symbols
         const auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
@@ -590,7 +497,7 @@ namespace Moment::Tests {
         });
     }
 
-    TEST(Operators_MomentMatrix, Where_1Party2Opers) {
+    TEST(Matrix_MomentMatrix, Where_1Party2Opers) {
         MatrixSystem system{std::make_unique<Context>(2)}; // Two symbols
         auto& context = system.Context();
         ASSERT_EQ(context.size(), 2);
@@ -625,7 +532,7 @@ namespace Moment::Tests {
         EXPECT_EQ(ptr_a0a0a0a0a0, nullptr);
     }
 
-    TEST(Operators_MomentMatrix, Symbol_OneElem) {
+    TEST(Matrix_MomentMatrix, Symbol_OneElem) {
         MatrixSystem system{std::make_unique<Context>(1)}; // One party, one symbol
         auto& context = system.Context();
 
@@ -642,7 +549,7 @@ namespace Moment::Tests {
                                              "3", "4", "5"});
     }
 
-    TEST(Operators_MomentMatrix, Symbol_1Party2Opers) {
+    TEST(Matrix_MomentMatrix, Symbol_1Party2Opers) {
         MatrixSystem system{std::make_unique<Context>(2)}; // One party, two symbols
         auto& context = system.Context();
 
@@ -666,7 +573,7 @@ namespace Moment::Tests {
         });
     }
 
-    TEST(Operators_MomentMatrix, Symbol_2Party1Opers) {
+    TEST(Matrix_MomentMatrix, Symbol_2Party1Opers) {
         using namespace Moment::Locality;
 
         // Two parties, each with one operator
@@ -688,12 +595,4 @@ namespace Moment::Tests {
                                              "4", "4", "4", "4"});// ab, ab, ab, ab
     }
 
-    TEST(Operators_MomentMatrix, ForceMultithreading) {
-        using namespace Moment::Algebraic;
-        AlgebraicMatrixSystem system{std::make_unique<AlgebraicContext>(5)};
-
-        auto [id2, matLevel2] = system.MomentMatrix.create(2, Multithreading::MultiThreadPolicy::Always);
-        ASSERT_EQ(matLevel2.Dimension(), 31);
-
-    }
 }

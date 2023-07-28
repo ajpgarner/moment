@@ -41,7 +41,7 @@ namespace Moment::Tests {
     inline void compare_mm_os_matrix(const Matrix& theMM, size_t dimension,
                                      const std::initializer_list<OperatorSequence> reference) {
         const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(theMM);
-        ASSERT_NE(mmPtr, nullptr);
+        ASSERT_NE(mmPtr, nullptr) << "Was not a monomial moment matrix!";
 
         std::string prefix{" Level = "};
         prefix += std::to_string(mmPtr->Level());
@@ -51,7 +51,7 @@ namespace Moment::Tests {
     inline void compare_lm_os_matrix(const Matrix& theLM, size_t dimension,
                                      const std::initializer_list<OperatorSequence> reference) {
         const auto* lmPtr = LocalizingMatrix::as_monomial_localizing_matrix_ptr(theLM);
-        ASSERT_NE(lmPtr, nullptr);
+        ASSERT_NE(lmPtr, nullptr) << "Was not a monomial localizing matrix!";
 
         std::stringstream ss;
         ss << " Level = " << lmPtr->Level() << ", word = " << theLM.context.format_sequence(lmPtr->Word());
