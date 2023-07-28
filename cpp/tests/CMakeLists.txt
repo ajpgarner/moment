@@ -59,7 +59,7 @@ add_executable(moment_tests
         symbolic/rules/moment_rulebook_to_basis_tests.cpp
         tensor/index_flattener_tests.cpp
         tensor/multi_dimensional_index_iterator_tests.cpp
-        tensor/multi_dimensional_object_tests.cpp
+        tensor/tensor_tests.cpp
         tensor/multi_dimensional_offset_index_iterator_tests.cpp
         tensor/square_matrix_tests.cpp
         tensor/auto_storage_tensor_tests.cpp

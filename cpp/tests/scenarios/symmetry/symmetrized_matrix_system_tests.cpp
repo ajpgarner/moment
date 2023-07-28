@@ -179,15 +179,15 @@ namespace Moment::Tests {
 
         const auto& mono_sm = dynamic_cast<const  MonomialMatrix&>(mapped_symbol_matrix);
         ASSERT_EQ(mono_sm.Dimension(), 3);
-        EXPECT_EQ(mono_sm.SymbolMatrix[0][0], Monomial(1, 1.0));
-        EXPECT_EQ(mono_sm.SymbolMatrix[0][1], Monomial(2, 1.0));
-        EXPECT_EQ(mono_sm.SymbolMatrix[0][2], Monomial(2, 1.0));
-        EXPECT_EQ(mono_sm.SymbolMatrix[1][0], Monomial(2, 1.0));
-        EXPECT_EQ(mono_sm.SymbolMatrix[1][1], Monomial(3, 1.0));
-        EXPECT_EQ(mono_sm.SymbolMatrix[1][2], Monomial(4, 1.0));
-        EXPECT_EQ(mono_sm.SymbolMatrix[2][0], Monomial(2, 1.0));
-        EXPECT_EQ(mono_sm.SymbolMatrix[2][1], Monomial(4, 1.0));
-        EXPECT_EQ(mono_sm.SymbolMatrix[2][2], Monomial(3, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix(0, 0), Monomial(1, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix(0, 1), Monomial(2, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix(0, 2), Monomial(2, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix(1, 0), Monomial(2, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix(1, 1), Monomial(3, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix(1, 2), Monomial(4, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix(2, 0), Monomial(2, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix(2, 1), Monomial(4, 1.0));
+        EXPECT_EQ(mono_sm.SymbolMatrix(2, 2), Monomial(3, 1.0));
 
     }
 
@@ -284,43 +284,43 @@ namespace Moment::Tests {
 
         const auto& poly_sm = dynamic_cast<const PolynomialMatrix&>(mapped_symbol_matrix);
         ASSERT_EQ(poly_sm.Dimension(), 5);
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][0], Polynomial::Scalar(1.0));
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][1], Polynomial::Scalar(0.5));
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][2], Polynomial::Scalar(0.5));
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][3], Polynomial::Scalar(0.5));
-        EXPECT_EQ(poly_sm.SymbolMatrix[0][4], Polynomial::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix(0, 0), Polynomial::Scalar(1.0));
+        EXPECT_EQ(poly_sm.SymbolMatrix(0, 1), Polynomial::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix(0, 2), Polynomial::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix(0, 3), Polynomial::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix(0, 4), Polynomial::Scalar(0.5));
 
-        EXPECT_EQ(poly_sm.SymbolMatrix[1][0], Polynomial::Scalar(0.5));
-        EXPECT_EQ(poly_sm.SymbolMatrix[1][1], Polynomial::Scalar(0.5)); // a0^2 -> a0 -> 0.5
-        EXPECT_EQ(poly_sm.SymbolMatrix[1][2], Polynomial::Scalar(0.25)); // a0a1 -> 0.25
-        EXPECT_EQ(poly_sm.SymbolMatrix[1][3],
+        EXPECT_EQ(poly_sm.SymbolMatrix(1, 0), Polynomial::Scalar(0.5));
+        EXPECT_EQ(poly_sm.SymbolMatrix(1, 1), Polynomial::Scalar(0.5)); // a0^2 -> a0 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix(1, 2), Polynomial::Scalar(0.25)); // a0a1 -> 0.25
+        EXPECT_EQ(poly_sm.SymbolMatrix(1, 3),
                   Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b0 -> 0.375 + y
-        EXPECT_EQ(poly_sm.SymbolMatrix[1][4],
+        EXPECT_EQ(poly_sm.SymbolMatrix(1, 4),
                   Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b1 -> 0.125 - y
 
-        EXPECT_EQ(poly_sm.SymbolMatrix[2][0], Polynomial::Scalar(0.5)); // a1
-        EXPECT_EQ(poly_sm.SymbolMatrix[2][1], Polynomial::Scalar(0.25)); // a1a0
-        EXPECT_EQ(poly_sm.SymbolMatrix[2][2], Polynomial::Scalar(0.5)); // a1^2 -> a1 -> 0.5
-        EXPECT_EQ(poly_sm.SymbolMatrix[2][3],
+        EXPECT_EQ(poly_sm.SymbolMatrix(2, 0), Polynomial::Scalar(0.5)); // a1
+        EXPECT_EQ(poly_sm.SymbolMatrix(2, 1), Polynomial::Scalar(0.25)); // a1a0
+        EXPECT_EQ(poly_sm.SymbolMatrix(2, 2), Polynomial::Scalar(0.5)); // a1^2 -> a1 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix(2, 3),
                   Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a1b0 -> 0.375 + y
-        EXPECT_EQ(poly_sm.SymbolMatrix[2][4],
+        EXPECT_EQ(poly_sm.SymbolMatrix(2, 4),
                   Polynomial({Monomial(1, 0.125), Monomial(2, -1.0)})); // a1b1 -> 0.125 - y
 
-        EXPECT_EQ(poly_sm.SymbolMatrix[3][0], Polynomial::Scalar(0.5)); // b0 -> 0.5
-        EXPECT_EQ(poly_sm.SymbolMatrix[3][1],
+        EXPECT_EQ(poly_sm.SymbolMatrix(3, 0), Polynomial::Scalar(0.5)); // b0 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix(3, 1),
                   Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b0 -> 0.375 + y
-        EXPECT_EQ(poly_sm.SymbolMatrix[3][2],
+        EXPECT_EQ(poly_sm.SymbolMatrix(3, 2),
                   Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a1b0 -> 0.375 + y
-        EXPECT_EQ(poly_sm.SymbolMatrix[3][3], Polynomial::Scalar(0.5));  // b0^2 -> b0 -> 0.5
-        EXPECT_EQ(poly_sm.SymbolMatrix[3][4], Polynomial::Scalar(0.25)); // b0b1 -> 0.25
+        EXPECT_EQ(poly_sm.SymbolMatrix(3, 3), Polynomial::Scalar(0.5));  // b0^2 -> b0 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix(3, 4), Polynomial::Scalar(0.25)); // b0b1 -> 0.25
 
-        EXPECT_EQ(poly_sm.SymbolMatrix[4][0], Polynomial::Scalar(0.5)); // b1 -> 0.5
-        EXPECT_EQ(poly_sm.SymbolMatrix[4][1],
+        EXPECT_EQ(poly_sm.SymbolMatrix(4, 0), Polynomial::Scalar(0.5)); // b1 -> 0.5
+        EXPECT_EQ(poly_sm.SymbolMatrix(4, 1),
                   Polynomial({Monomial(1, 0.375), Monomial(2, 1.0)})); // a0b1 -> 0.375 - y
-        EXPECT_EQ(poly_sm.SymbolMatrix[4][2],
+        EXPECT_EQ(poly_sm.SymbolMatrix(4, 2),
                   Polynomial({Monomial(1, 0.125), Monomial(2, -1.0)})); // a1b1 -> 0.125 - y
-        EXPECT_EQ(poly_sm.SymbolMatrix[4][3], Polynomial::Scalar(0.25));  // b1b0 -> 0.25
-        EXPECT_EQ(poly_sm.SymbolMatrix[4][4], Polynomial::Scalar(0.5)); // b1^2 -> b1 -> 0.25
+        EXPECT_EQ(poly_sm.SymbolMatrix(4, 3), Polynomial::Scalar(0.25));  // b1b0 -> 0.25
+        EXPECT_EQ(poly_sm.SymbolMatrix(4, 4), Polynomial::Scalar(0.5)); // b1^2 -> b1 -> 0.25
     }
 
 

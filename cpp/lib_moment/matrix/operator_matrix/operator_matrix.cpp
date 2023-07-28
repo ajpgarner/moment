@@ -20,15 +20,18 @@ namespace Moment {
 
     void OperatorMatrix::OpSeqMatrix::calculate_hermicity() {
         for (size_t row = 0; row < this->dimension; ++row) {
-            if ((*this)[row][row] != (*this)[row][row].conjugate()) {
+            auto& diag_elem = (*this)(std::array<size_t,2>{row, row});
+
+            if (diag_elem != diag_elem.conjugate()) {
                 this->hermitian = false;
                 this->nonh_i = static_cast<ptrdiff_t>(row);
                 this->nonh_j = static_cast<ptrdiff_t>(row);
                 return;
             }
             for (size_t col = row+1; col < this->dimension; ++col) {
-                const auto& upper = (*this)[row][col];
-                const auto& lower = (*this)[col][row];
+
+                const auto& upper = (*this)(std::array<size_t, 2>{row, col});
+                const auto& lower = (*this)(std::array<size_t, 2>{col, row});
                 const auto lower_conj = lower.conjugate();
                 if (upper != lower_conj) {
                     this->hermitian = false;

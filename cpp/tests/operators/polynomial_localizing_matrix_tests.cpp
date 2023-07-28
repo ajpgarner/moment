@@ -86,15 +86,15 @@ namespace Moment::Tests {
 
         ASSERT_EQ(plm.Dimension(), 4);
         ASSERT_EQ(lmA.Dimension(), 4);
-        for (size_t outer = 0; outer < 4; ++outer) {
-            for (size_t inner = 0; inner < 4; ++inner) {
-                const auto &poly_elem = plm.SymbolMatrix[outer][inner];
-                const auto &mono_elem = lmA.SymbolMatrix[outer][inner];
-                ASSERT_EQ(poly_elem.size(), 1) << "outer = " << outer << ", inner = " << inner;
-                EXPECT_EQ(poly_elem.back().id, mono_elem.id) << "outer = " << outer << ", inner = " << inner;
-                EXPECT_EQ(poly_elem.back().factor, -2.0) << "outer = " << outer << ", inner = " << inner;
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+                const auto &poly_elem = plm.SymbolMatrix(row, col);
+                const auto &mono_elem = lmA.SymbolMatrix(row, col);
+                ASSERT_EQ(poly_elem.size(), 1) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem.back().id, mono_elem.id) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem.back().factor, -2.0) << "col = " << col << ", row = " << row;
                 EXPECT_EQ(poly_elem.back().conjugated, mono_elem.conjugated)
-                                    << "outer = " << outer << ", inner = " << inner;
+                                    << "col = " << col << ", row = " << row;
             }
         }
     }
@@ -118,20 +118,20 @@ namespace Moment::Tests {
         ASSERT_EQ(plm.Dimension(), 4);
         ASSERT_EQ(lmA.Dimension(), 4);
         ASSERT_EQ(lmB.Dimension(), 4);
-        for (size_t outer = 0; outer < 4; ++outer) {
-            for (size_t inner = 0; inner < 4; ++inner) {
-                const auto &poly_elem = plm.SymbolMatrix[outer][inner];
-                const auto &monoA_elem = lmA.SymbolMatrix[outer][inner];
-                const auto &monoB_elem = lmB.SymbolMatrix[outer][inner];
-                ASSERT_EQ(poly_elem.size(), 2) << "outer = " << outer << ", inner = " << inner;
-                EXPECT_EQ(poly_elem[0].id, monoA_elem.id) << "outer = " << outer << ", inner = " << inner;
-                EXPECT_EQ(poly_elem[0].factor, -2.0) << "outer = " << outer << ", inner = " << inner;
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+                const auto &poly_elem = plm.SymbolMatrix(row, col);
+                const auto &monoA_elem = lmA.SymbolMatrix(row, col);
+                const auto &monoB_elem = lmB.SymbolMatrix(row, col);
+                ASSERT_EQ(poly_elem.size(), 2) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[0].id, monoA_elem.id) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[0].factor, -2.0) << "col = " << col << ", row = " << row;
                 EXPECT_EQ(poly_elem[0].conjugated, monoA_elem.conjugated)
-                                    << "outer = " << outer << ", inner = " << inner;
-                EXPECT_EQ(poly_elem[1].id, monoB_elem.id) << "outer = " << outer << ", inner = " << inner;
-                EXPECT_EQ(poly_elem[1].factor, 1.0) << "outer = " << outer << ", inner = " << inner;
+                                    << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[1].id, monoB_elem.id) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[1].factor, 1.0) << "col = " << col << ", row = " << row;
                 EXPECT_EQ(poly_elem[1].conjugated, monoB_elem.conjugated)
-                                    << "outer = " << outer << ", inner = " << inner;
+                                    << "col = " << col << ", row = " << row;
             }
         }
     }

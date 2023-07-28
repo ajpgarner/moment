@@ -21,10 +21,6 @@
 
 namespace Moment {
 
-    namespace errors {
-
-    }
-
     template<typename index_elem_t, typename index_storage_t, bool LastIndexMajor>
     class StrideCalculator {
     public:
@@ -128,7 +124,6 @@ namespace Moment {
     };
 
 
-
     /**
      * An object with indexed dimensions, which can be converted to a numerical offset.
      * @tparam index_elem_t The integral type underlining the index.
@@ -140,7 +135,7 @@ namespace Moment {
             typename index_storage_t = std::vector<size_t>,
             typename index_view_t = std::span<const size_t>,
             bool last_index_major = true>
-    struct MultiDimensionalObject {
+    struct Tensor {
     public:
         using IndexElement = index_elem_t;
         using Index = index_storage_t;
@@ -162,7 +157,11 @@ namespace Moment {
         /** The number of unique elements represented by the object. */
         const IndexElement ElementCount;
 
-        explicit MultiDimensionalObject(Index dimensions)
+        /**
+         * Constructs a new multi-dimensional tensor object.
+         * @param dimensions A list of sizes per dimension.
+         */
+        explicit Tensor(Index dimensions)
             : Dimensions{std::move(dimensions)},
               Strides{StrideCalculator<IndexElement , Index, last_index_major>{}(Dimensions)},
               DimensionCount{static_cast<IndexElement>(Dimensions.size())},
@@ -278,11 +277,11 @@ namespace Moment {
             return this->offset_to_index_no_checks(offset);
         }
 
-
-
     private:
 
-
+        /**
+         * Calculates the number of elements from the dimensions.
+         */
         [[nodiscard]] static constexpr IndexElement calculateNumberOfElements(const IndexView dimensions) {
             if (dimensions.empty()) {
                 return 0;
@@ -291,9 +290,4 @@ namespace Moment {
         }
 
     };
-
-
-
-
 }
-

@@ -161,22 +161,22 @@ namespace Moment::Tests {
         ASSERT_EQ(matPtr->Dimension(), 2);
         const auto& matrix = *matPtr;
 
-        const auto& elem00 = matrix.SymbolMatrix[0][0];
+        const auto& elem00 = matrix.SymbolMatrix(0, 0);
         ASSERT_EQ(elem00.size(), 2);
         EXPECT_EQ(elem00[0], Monomial(1, 1.0, false));
         EXPECT_EQ(elem00[1], Monomial(2, -1.0, false));
 
-        const auto& elem01 = matrix.SymbolMatrix[0][1];
+        const auto& elem01 = matrix.SymbolMatrix(0, 1);
         ASSERT_EQ(elem01.size(), 2);
         EXPECT_EQ(elem01[0], Monomial(3, 1.0, false));
         EXPECT_EQ(elem01[1], Monomial(4, 2.0, false));
 
-        const auto& elem10 = matrix.SymbolMatrix[1][0];
+        const auto& elem10 = matrix.SymbolMatrix(1, 0);
         ASSERT_EQ(elem10.size(), 2);
         EXPECT_EQ(elem10[0], Monomial(3, 1.0, true));
         EXPECT_EQ(elem10[1], Monomial(4, 2.0, true));
 
-        const auto& elem11 = matrix.SymbolMatrix[1][1];
+        const auto& elem11 = matrix.SymbolMatrix(1, 1);
         ASSERT_EQ(elem11.size(), 1);
         EXPECT_EQ(elem11[0], Monomial(5, 1.0, false));
 

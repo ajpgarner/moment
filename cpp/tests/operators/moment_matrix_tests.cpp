@@ -88,7 +88,7 @@ namespace Moment::Tests {
                 ASSERT_LT(row, dimension) << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
                 ASSERT_LT(col, dimension) << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
 
-                const auto &actual_symbol = theMM.SymbolMatrix[row][col];
+                const auto &actual_symbol = theMM.SymbolMatrix(row, col);
                 EXPECT_EQ(actual_symbol, ref_symbol)
                                     << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
                 ++col;

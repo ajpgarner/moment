@@ -7,13 +7,13 @@
 
 #include "gtest/gtest.h"
 
-#include "tensor/multi_dimensional_object.h"
+#include "tensor/tensor.h"
 
 #include <array>
 
 namespace Moment::Tests {
 
-    using MDO = MultiDimensionalObject<int, std::vector<int>, std::span<const int>, true>;
+    using MDO = Tensor<int, std::vector<int>, std::span<const int>, true>;
 
     TEST(Tensor_Tensor, Empty) {
         MDO empty{MDO::Index{}};
@@ -83,7 +83,7 @@ namespace Moment::Tests {
     }
 
     TEST(Tensor_Tensor, RowMajorMatrix) {
-        using RowMajorMDO = MultiDimensionalObject<int, std::vector<int>, std::span<const int>, false>;
+        using RowMajorMDO = Tensor<int, std::vector<int>, std::span<const int>, false>;
         RowMajorMDO mat{{3, 2}}; // 3 rows, 2 cols
 
         ASSERT_EQ(mat.Dimensions.size(), 2);
@@ -136,7 +136,7 @@ namespace Moment::Tests {
     }
 
     TEST(Tensor_Tensor, ArrayMatrix) {
-        using FixedMDO = MultiDimensionalObject<int, std::array<int, 2>, std::span<const int, 2>, false>;
+        using FixedMDO = Tensor<int, std::array<int, 2>, std::span<const int, 2>, false>;
         FixedMDO mat{{3, 2}}; // 3 rows, 2 cols
 
         ASSERT_EQ(mat.Dimensions.size(), 2);

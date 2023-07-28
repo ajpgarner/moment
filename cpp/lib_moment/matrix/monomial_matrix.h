@@ -34,23 +34,29 @@ namespace Moment {
 
             [[nodiscard]] size_t Dimension() const noexcept { return matrix.Dimension(); }
 
-            /**
-            * Return a view (std::span<const Monomial>) to the requested row of the NPA matrix's symbolic
-            * representation. Since std::span also provides an operator[], it is possible to index using
-            * "mySMV[row][col]" notation.
-            * @param row The index of the row to return.
-            * @return A std::span<const Monomial> of the requested row.
-            */
-            std::span<const Monomial> operator[](size_t row) const noexcept {
-                return (*(matrix.sym_exp_matrix))[row];
-            };
-
-            /**
+             /**
              * Provides access to square matrix of symbols.
              */
             const auto& operator()() const noexcept {
                 return (*(matrix.sym_exp_matrix));
             }
+
+            /**
+             * Provides access to an element from within the matrix of symbols.
+             */
+            const auto& operator()(SquareMatrix<Monomial>::IndexView index) const noexcept(!debug_mode) {
+                return (*(matrix.sym_exp_matrix))(index);
+            }
+
+            /**
+             * Convenience method, provide access to element in matrix.
+             */
+            inline const auto& operator()(const size_t col, const size_t row) const noexcept(!debug_mode) {
+                return (*(matrix.sym_exp_matrix))(SquareMatrix<Monomial>::Index{col, row});
+            }
+
+
+            // XXX: Subscript operator for offsets.
 
         } SymbolMatrix;
 

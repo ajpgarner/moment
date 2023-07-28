@@ -24,11 +24,11 @@ namespace Moment::Imported {
         void checkIMSymmetric(const SquareMatrix<Monomial>& input,
                             DynamicBitset<uint64_t>& can_be_real, DynamicBitset<uint64_t>& can_be_imaginary) {
             for (size_t i = 0; i < input.dimension; ++i) {
-                const auto& diagonal = input[i][i];
+                const auto& diagonal = input(std::array<size_t,2>{i, i});
 
                 for (size_t j = i+1; j < input.dimension; ++j) {
-                    auto& upper = input[i][j];
-                    auto& lower = input[j][i];
+                    auto& upper = input(std::array<size_t,2>{i, j});
+                    auto& lower = input(std::array<size_t,2>{j, i});
                     if ((upper.id != lower.id) || (abs(upper.factor) != abs(lower.factor))) {
                         std::stringstream errSS;
                         errSS << "In symmetric matrix import, element [" << i << ", " << j << "] = "
@@ -57,13 +57,13 @@ namespace Moment::Imported {
                               DynamicBitset<uint64_t>& can_be_real, DynamicBitset<uint64_t>& can_be_imaginary) {
 
             for (size_t i = 0; i < input.dimension; ++i) {
-                const auto &diagonal = input[i][i];
+                const auto& diagonal = input(std::array<size_t,2>{i, i});
                 // Diagonal elements are always real;
                 can_be_imaginary.unset(diagonal.id);
 
                 for (size_t j = i + 1; j < input.dimension; ++j) {
-                    auto &upper = input[i][j];
-                    auto &lower = input[j][i];
+                    auto& upper = input(std::array<size_t,2>{i, j});
+                    auto& lower = input(std::array<size_t,2>{j, i});
 
                     if ((upper.id != lower.id) || (abs(upper.factor) != abs(lower.factor))) {
                         std::stringstream errSS;

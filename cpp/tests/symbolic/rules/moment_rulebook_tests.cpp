@@ -917,15 +917,15 @@ namespace Moment::Tests {
         // Symbol matrix should have with a replaced by 2.0
         ASSERT_EQ(sub_matrix.Dimension(), 3);
         const auto& sub_symbols = dynamic_cast<const MonomialMatrix&>(sub_matrix).SymbolMatrix;
-        EXPECT_EQ(sub_symbols[0][0], Monomial(id_e));
-        EXPECT_EQ(sub_symbols[0][1], Monomial(id_e, 2.0));
-        EXPECT_EQ(sub_symbols[0][2], Monomial(id_e, 3.0));
-        EXPECT_EQ(sub_symbols[1][0], Monomial(id_e, 2.0));
-        EXPECT_EQ(sub_symbols[1][1], Monomial(id_aa, 1.0));
-        EXPECT_EQ(sub_symbols[1][2], Monomial(id_ab, 1.0));
-        EXPECT_EQ(sub_symbols[2][0], Monomial(id_e, 3.0));
-        EXPECT_EQ(sub_symbols[2][1], Monomial(id_ab, 1.0, true));
-        EXPECT_EQ(sub_symbols[2][2], Monomial(id_bb));
+        EXPECT_EQ(sub_symbols(0, 0), Monomial(id_e));
+        EXPECT_EQ(sub_symbols(0, 1), Monomial(id_e, 2.0));
+        EXPECT_EQ(sub_symbols(0, 2), Monomial(id_e, 3.0));
+        EXPECT_EQ(sub_symbols(1, 0), Monomial(id_e, 2.0));
+        EXPECT_EQ(sub_symbols(1, 1), Monomial(id_aa, 1.0));
+        EXPECT_EQ(sub_symbols(1, 2), Monomial(id_ab, 1.0));
+        EXPECT_EQ(sub_symbols(2, 0), Monomial(id_e, 3.0));
+        EXPECT_EQ(sub_symbols(2, 1), Monomial(id_ab, 1.0, true));
+        EXPECT_EQ(sub_symbols(2, 2), Monomial(id_bb));
 
         // Check aliasing/caching
         const auto& sub_matrix_alias = ams.SubstitutedMatrix(std::make_pair(mm_id, rb_id));

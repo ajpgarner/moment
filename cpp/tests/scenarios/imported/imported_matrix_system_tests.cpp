@@ -48,10 +48,10 @@ namespace Moment::Tests {
         EXPECT_EQ(&imported_matrix.symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], Monomial{2});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], Monomial{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial{4});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{5});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(0, 0), Monomial{2});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(0, 1), Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(1, 0), Monomial{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(1, 1), Monomial{5});
 
         // Check symbols
         ASSERT_EQ(symbols.size(), 6);
@@ -95,10 +95,10 @@ namespace Moment::Tests {
         EXPECT_EQ(&imported_matrix.symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], Monomial{2});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], Monomial{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(0, 0), Monomial{2});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(0, 1), Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(1, 0), Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(1, 1), Monomial{4});
 
         // Check symbols
         ASSERT_EQ(symbols.size(), 5);
@@ -138,10 +138,10 @@ namespace Moment::Tests {
         EXPECT_EQ(&imported_matrix.symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], Monomial{2});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], Monomial{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial(3, true));
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(0, 0), Monomial{2});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(0, 1), Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(1, 0), Monomial(3, true));
+        EXPECT_EQ(imported_matrix.SymbolMatrix(1, 1), Monomial{4});
 
         // Check symbols
         ASSERT_EQ(symbols.size(), 5);
@@ -181,10 +181,10 @@ namespace Moment::Tests {
         EXPECT_EQ(&imported_matrix.symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], Monomial{2});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], Monomial{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(0, 0), Monomial{2});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(0, 1), Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(1, 0), Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(1, 1), Monomial{4});
 
         // Check symbols
         ASSERT_EQ(symbols.size(), 5);
@@ -224,10 +224,10 @@ namespace Moment::Tests {
         EXPECT_EQ(&imported_matrix.symbols, &symbols);
         EXPECT_EQ(&imported_matrix.context, &context);
         ASSERT_EQ(imported_matrix.Dimension(), 2);
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][0], Monomial{2});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[0][1], Monomial{3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][0], Monomial{-3});
-        EXPECT_EQ(imported_matrix.SymbolMatrix[1][1], Monomial{4});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(0, 0), Monomial{2});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(0, 1), Monomial{3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(1, 0), Monomial{-3});
+        EXPECT_EQ(imported_matrix.SymbolMatrix(1, 1), Monomial{4});
 
         // Check symbols
         ASSERT_EQ(symbols.size(), 5);

@@ -112,8 +112,8 @@ namespace Moment::Inflation {
                                                                            source_factors, extended_factors);
 
                     // Write in symbol matrix
-                    extended_matrix[row_index][col_index] = Monomial{factor_id};
-                    extended_matrix[col_index][row_index] = Monomial{factor_id};
+                    extended_matrix(std::array<size_t, 2>{row_index, col_index}) = Monomial{factor_id};
+                    extended_matrix(std::array<size_t, 2>{col_index, row_index}) = Monomial{factor_id};
 
                     ++col_index;
                 }
@@ -126,13 +126,16 @@ namespace Moment::Inflation {
             for (size_t i = 0, iMax = extension_scalars.size(); i < iMax; ++i) {
                 const auto& row_factors = factors[extension_scalars[i]].canonical.symbols;
                 auto diag_fac_id = combine_and_register_factors(symbols, factors, row_factors, row_factors);
-                extended_matrix[old_dimension+i][old_dimension+i] = Monomial{diag_fac_id};
+                const std::array<size_t,2> diag_index{old_dimension+i, old_dimension+i};
+                extended_matrix(diag_index) = Monomial{diag_fac_id};
 
                 for (size_t j = i+1; j < iMax; ++j) {
                     const auto& col_factors = factors[extension_scalars[j]].canonical.symbols;
                     auto offdiag_fac_id = combine_and_register_factors(symbols, factors, row_factors, col_factors);
-                    extended_matrix[old_dimension+i][old_dimension+j] = Monomial{offdiag_fac_id};
-                    extended_matrix[old_dimension+j][old_dimension+i] = Monomial{offdiag_fac_id};
+                    const std::array<size_t,2> upper_index{old_dimension+i, old_dimension+j};
+                    extended_matrix(upper_index) = Monomial{offdiag_fac_id};
+                    const std::array<size_t,2> lower_index{old_dimension+j, old_dimension+i};
+                    extended_matrix(lower_index) = Monomial{offdiag_fac_id};
                 }
             }
             return std::make_unique<SquareMatrix<Monomial>>(std::move(extended_matrix));

@@ -20,13 +20,13 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <span>
 
 namespace Moment {
 
     class SymbolTable;
     class SymbolMatrix;
-    class MatrixProperties;
 
     class OperatorMatrix {
     public:
@@ -45,10 +45,15 @@ namespace Moment {
             [[nodiscard]] bool is_hermitian() const noexcept { return this->hermitian; }
 
             /**
-             * Get first row and column indices of non-hermitian element in matrix, if any. Otherwise, (-1,-1).
+             * Get first row and column indices of non-hermitian element in matrix, if any. Otherwise nullopt.
              */
-            [[nodiscard]] std::pair<ptrdiff_t, ptrdiff_t> nonhermitian_index() const noexcept {
-                return {nonh_i, nonh_j};
+            [[nodiscard]] std::optional<Index> nonhermitian_index() const noexcept {
+                if (nonh_i == -1) {
+                    assert(nonh_j == -1);
+                    return std::nullopt;
+                }
+                assert(nonh_j != -1);
+                return Index{static_cast<size_t>(nonh_i), static_cast<size_t>(nonh_j)};
             }
 
         private:
@@ -84,12 +89,21 @@ namespace Moment {
           * @param row The index of the row to return.
           * @return A std::span<const OperatorSequence> of the requested row.
           */
-        std::span<const OperatorSequence> operator[](size_t row) const noexcept {
-            return (*(this->op_seq_matrix))[row];
+        const OperatorSequence&
+        operator()(SquareMatrix<OperatorSequence>::IndexView index) const noexcept(!debug_mode) {
+            return (*(this->op_seq_matrix))(index);
         };
 
         /**
-         * Provides access to square matrix of operator sequences.
+         * Convenience indexing..
+         */
+        const OperatorSequence&
+        operator()(size_t row, size_t col) const noexcept(!debug_mode) {
+            return (*(this->op_seq_matrix))(SquareMatrix<OperatorSequence>::Index{row, col});
+        };
+
+        /**
+         * Provides direct access to square matrix of operator sequences.
          */
         const auto& operator()() const noexcept {
             return (*(this->op_seq_matrix));

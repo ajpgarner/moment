@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "multi_dimensional_object.h"
+#include "tensor.h"
 #include "multi_dimensional_offset_index_iterator.h"
 
 #include <algorithm>
@@ -54,9 +54,9 @@ namespace Moment {
      * @tparam threshold The maximum number of elements to store in explicit mode (unless overloaded).
      */
     template<class elem_t, size_t threshold>
-    class AutoStorageTensor : public MultiDimensionalObject<size_t, AutoStorageIndex, AutoStorageIndexView, true> {
+    class AutoStorageTensor : public Tensor<size_t, AutoStorageIndex, AutoStorageIndexView, true> {
     public:
-        using TensorType = MultiDimensionalObject<size_t, AutoStorageIndex, AutoStorageIndexView, true>;
+        using TensorType = Tensor<size_t, AutoStorageIndex, AutoStorageIndexView, true>;
         using Element = elem_t;
 
     public:

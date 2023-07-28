@@ -338,17 +338,17 @@ namespace Moment::Tests {
         const auto& seqMat = *seqMatPtr;
         ASSERT_EQ(seqMat.Level(), 1);
         ASSERT_EQ(seqMat.Dimension(), 3);
-        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(context));
-        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, context));
-        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, context));
+        EXPECT_EQ(seqMat(0, 0), OperatorSequence::Identity(context));
+        EXPECT_EQ(seqMat(0, 1), OperatorSequence({0}, context));
+        EXPECT_EQ(seqMat(0, 2), OperatorSequence({1}, context));
 
-        EXPECT_EQ(seqMat[1][0], OperatorSequence({0}, context));
-        EXPECT_EQ(seqMat[1][1], OperatorSequence({0, 0}, context));
-        EXPECT_EQ(seqMat[1][2], OperatorSequence::Identity(context));
+        EXPECT_EQ(seqMat(1, 0), OperatorSequence({0}, context));
+        EXPECT_EQ(seqMat(1, 1), OperatorSequence({0, 0}, context));
+        EXPECT_EQ(seqMat(1, 2), OperatorSequence::Identity(context));
 
-        EXPECT_EQ(seqMat[2][0], OperatorSequence({1}, context));
-        EXPECT_EQ(seqMat[2][1], OperatorSequence::Identity(context));
-        EXPECT_EQ(seqMat[2][2], OperatorSequence({1, 1}, context));
+        EXPECT_EQ(seqMat(2, 0), OperatorSequence({1}, context));
+        EXPECT_EQ(seqMat(2, 1), OperatorSequence::Identity(context));
+        EXPECT_EQ(seqMat(2, 2), OperatorSequence({1, 1}, context));
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, CreateMomentMatrix_ABtoA_BAtoI) {
@@ -373,7 +373,7 @@ namespace Moment::Tests {
         ASSERT_EQ(seqMat1.Level(), 1);
         EXPECT_TRUE(mm1.Hermitian());
         ASSERT_EQ(mm1.Dimension(), 1);
-        EXPECT_EQ(seqMat1[0][0], OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(seqMat1(0, 0), OperatorSequence::Identity(ams.Context()));
 
         auto& mm3 = ams.MomentMatrix(3); // 1 (because A=1, B=1, still!)
         const auto* seqMat3Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(mm3);
@@ -382,7 +382,7 @@ namespace Moment::Tests {
         ASSERT_EQ(seqMat3.Level(), 3);
         EXPECT_TRUE(mm3.Hermitian());
         ASSERT_EQ(mm3.Dimension(), 1) << context.resolved_rules();
-        EXPECT_EQ(seqMat3[0][0], OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(seqMat3(0, 0), OperatorSequence::Identity(ams.Context()));
 
     }
 
@@ -405,12 +405,12 @@ namespace Moment::Tests {
         ASSERT_EQ(seqMat.Level(), 2);
         EXPECT_TRUE(mm2.Hermitian());
         ASSERT_EQ(mm2.Dimension(), 6);
-        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(ams.Context()));
-        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(seqMat[0][3], OperatorSequence({0, 1}, ams.Context()));
-        EXPECT_EQ(seqMat[0][4], OperatorSequence({1, 0}, ams.Context()));
-        EXPECT_EQ(seqMat[0][5], OperatorSequence({1, 1}, ams.Context()));
+        EXPECT_EQ(seqMat(0, 0), OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(seqMat(0, 1), OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat(0, 2), OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(seqMat(0, 3), OperatorSequence({0, 1}, ams.Context()));
+        EXPECT_EQ(seqMat(0, 4), OperatorSequence({1, 0}, ams.Context()));
+        EXPECT_EQ(seqMat(0, 5), OperatorSequence({1, 1}, ams.Context()));
     }
 
     TEST(Scenarios_Algebraic_AlgebraicContext, CreateMomentMatrix_ABtoMinusBA) {
@@ -432,15 +432,15 @@ namespace Moment::Tests {
         ASSERT_EQ(seqMat.Level(), 1);
         EXPECT_TRUE(mm1.Hermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
-        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(ams.Context()));
-        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(seqMat[1][0], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(seqMat[1][1], OperatorSequence({0, 0}, ams.Context()));
-        EXPECT_EQ(seqMat[1][2], OperatorSequence({0, 1}, ams.Context()));
-        EXPECT_EQ(seqMat[2][0], OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(seqMat[2][1], OperatorSequence({0, 1}, ams.Context(), true));
-        EXPECT_EQ(seqMat[2][2], OperatorSequence({1, 1}, ams.Context()));
+        EXPECT_EQ(seqMat(0, 0), OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(seqMat(0, 1), OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat(0, 2), OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(seqMat(1, 0), OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat(1, 1), OperatorSequence({0, 0}, ams.Context()));
+        EXPECT_EQ(seqMat(1, 2), OperatorSequence({0, 1}, ams.Context()));
+        EXPECT_EQ(seqMat(2, 0), OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(seqMat(2, 1), OperatorSequence({0, 1}, ams.Context(), true));
+        EXPECT_EQ(seqMat(2, 2), OperatorSequence({1, 1}, ams.Context()));
 
         // Check symbols
         const auto& symTable = ams.Symbols();
@@ -474,15 +474,15 @@ namespace Moment::Tests {
         ASSERT_EQ(seqMat.Level(), 1);
         EXPECT_TRUE(mm1.Hermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
-        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(ams.Context()));
-        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(seqMat[1][0], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(seqMat[1][1], OperatorSequence({0, 0}, ams.Context()));
-        EXPECT_EQ(seqMat[1][2], OperatorSequence({0}, ams.Context()));
-        EXPECT_EQ(seqMat[2][0], OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(seqMat[2][1], OperatorSequence({0}, ams.Context(), true));
-        EXPECT_EQ(seqMat[2][2], OperatorSequence({1, 1}, ams.Context()));
+        EXPECT_EQ(seqMat(0, 0), OperatorSequence::Identity(ams.Context()));
+        EXPECT_EQ(seqMat(0, 1), OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat(0, 2), OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(seqMat(1, 0), OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat(1, 1), OperatorSequence({0, 0}, ams.Context()));
+        EXPECT_EQ(seqMat(1, 2), OperatorSequence({0}, ams.Context()));
+        EXPECT_EQ(seqMat(2, 0), OperatorSequence({1}, ams.Context()));
+        EXPECT_EQ(seqMat(2, 1), OperatorSequence({0}, ams.Context(), true));
+        EXPECT_EQ(seqMat(2, 2), OperatorSequence({1, 1}, ams.Context()));
 
     }
 
@@ -502,15 +502,15 @@ namespace Moment::Tests {
         EXPECT_TRUE(mm1.Hermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
 
-        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(context)); // 1
-        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, context));      // a
-        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, context));      // a*
-        EXPECT_EQ(seqMat[1][0], OperatorSequence({1}, context));      // a*
-        EXPECT_EQ(seqMat[1][1], OperatorSequence({1, 0}, context));   // a* a
-        EXPECT_EQ(seqMat[1][2], OperatorSequence({1, 1}, context));   // a* a*
-        EXPECT_EQ(seqMat[2][0], OperatorSequence({0}, context));   // a
-        EXPECT_EQ(seqMat[2][1], OperatorSequence({0, 0}, context));   // a a
-        EXPECT_EQ(seqMat[2][2], OperatorSequence({0, 1}, context));   // a a*
+        EXPECT_EQ(seqMat(0, 0), OperatorSequence::Identity(context)); // 1
+        EXPECT_EQ(seqMat(0, 1), OperatorSequence({0}, context));      // a
+        EXPECT_EQ(seqMat(0, 2), OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(seqMat(1, 0), OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(seqMat(1, 1), OperatorSequence({1, 0}, context));   // a* a
+        EXPECT_EQ(seqMat(1, 2), OperatorSequence({1, 1}, context));   // a* a*
+        EXPECT_EQ(seqMat(2, 0), OperatorSequence({0}, context));   // a
+        EXPECT_EQ(seqMat(2, 1), OperatorSequence({0, 0}, context));   // a a
+        EXPECT_EQ(seqMat(2, 2), OperatorSequence({0, 1}, context));   // a a*
 
         const auto& symbols = ams.Symbols();
         ASSERT_EQ(symbols.size(), 6); // 0, 1, a<->a*, aa<->a*a*, a*a, aa*
@@ -531,15 +531,15 @@ namespace Moment::Tests {
         EXPECT_TRUE(mm1.Hermitian());
         ASSERT_EQ(mm1.Dimension(), 3);
 
-        EXPECT_EQ(seqMat[0][0], OperatorSequence::Identity(context)); // 1
-        EXPECT_EQ(seqMat[0][1], OperatorSequence({0}, context));      // a
-        EXPECT_EQ(seqMat[0][2], OperatorSequence({1}, context));      // a*
-        EXPECT_EQ(seqMat[1][0], OperatorSequence({1}, context));      // a*
-        EXPECT_EQ(seqMat[1][1], OperatorSequence({0, 1}, context));   // a a *
-        EXPECT_EQ(seqMat[1][2], OperatorSequence({1, 1}, context));   // a* a*
-        EXPECT_EQ(seqMat[2][0], OperatorSequence({0}, context));   // a
-        EXPECT_EQ(seqMat[2][1], OperatorSequence({0, 0}, context));   // a a
-        EXPECT_EQ(seqMat[2][2], OperatorSequence({0, 1}, context));   // a a*
+        EXPECT_EQ(seqMat(0, 0), OperatorSequence::Identity(context)); // 1
+        EXPECT_EQ(seqMat(0, 1), OperatorSequence({0}, context));      // a
+        EXPECT_EQ(seqMat(0, 2), OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(seqMat(1, 0), OperatorSequence({1}, context));      // a*
+        EXPECT_EQ(seqMat(1, 1), OperatorSequence({0, 1}, context));   // a a *
+        EXPECT_EQ(seqMat(1, 2), OperatorSequence({1, 1}, context));   // a* a*
+        EXPECT_EQ(seqMat(2, 0), OperatorSequence({0}, context));   // a
+        EXPECT_EQ(seqMat(2, 1), OperatorSequence({0, 0}, context));   // a a
+        EXPECT_EQ(seqMat(2, 2), OperatorSequence({0, 1}, context));   // a a*
 
         const auto& symbols = ams.Symbols();
         ASSERT_EQ(symbols.size(), 5); // 0, 1, a<->a*, aa<->a*a*, aa*

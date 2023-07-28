@@ -47,7 +47,9 @@ namespace Moment {
             const auto dimension = matrix.dimension;
             for (int row_index = 0; row_index < dimension; ++row_index) {
                 for (int col_index = symmetric ? row_index : 0; col_index < dimension; ++col_index) {
-                    const auto &poly = matrix[row_index][col_index];
+                    // TODO move out of loop
+                    const std::array<size_t, 2> index{static_cast<size_t>(row_index), static_cast<size_t>(col_index)};
+                    const auto &poly = matrix(index);
                     for (const auto& elem : poly) {
 
                         assert(elem.id < symbols.size());
@@ -122,7 +124,9 @@ namespace Moment {
             const auto dimension = static_cast<int>(matrix.dimension);
             for (int row_index = 0; row_index < dimension; ++row_index) {
                 for (int col_index = symmetric ? row_index : 0; col_index < dimension; ++col_index) {
-                    const auto &poly = matrix[row_index][col_index];
+                    //TODO move out of loop
+                    const std::array<size_t, 2> index{static_cast<size_t>(row_index), static_cast<size_t>(col_index)};
+                    const auto &poly = matrix(index);
                     for (const auto &elem : poly) {
                         assert(elem.id < symbols.size());
                         auto [re_id, im_id] = symbols[elem.id].basis_key();

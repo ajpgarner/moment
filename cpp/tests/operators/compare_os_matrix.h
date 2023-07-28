@@ -26,7 +26,7 @@ namespace Moment::Tests {
             ASSERT_LT(row, dimension) << prefix << ", row = " << row << ", col = " << col;
             ASSERT_LT(col, dimension) << prefix << ", row = " << row << ", col = " << col;
 
-            const auto &actual_seq = theMM[row][col];
+            const auto &actual_seq = theMM(std::array<size_t,2>{row, col});
             EXPECT_EQ(actual_seq, ref_seq) << prefix << ", row = " << row << ", col = " << col;
             ++col;
             if (col >= dimension) {

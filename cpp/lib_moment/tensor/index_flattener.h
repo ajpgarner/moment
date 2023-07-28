@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "tensor/multi_dimensional_object.h"
+#include "tensor/tensor.h"
 #include "tensor/multi_dimensional_index_iterator.h"
 
 #include "integer_types.h"
@@ -20,7 +20,7 @@ namespace Moment {
     public:
         using Index = std::vector<size_t>;
         using IndexView = std::span<const size_t>;
-        using ObjectType = MultiDimensionalObject<size_t, Index, IndexView, true>;
+        using ObjectType = Tensor<size_t, Index, IndexView, true>;
 
     public:
         /** Object dimensions, etc. */

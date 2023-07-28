@@ -46,10 +46,10 @@ namespace Moment::Tests {
         EXPECT_EQ(test.HasComplexCoefficients(), reference.HasComplexCoefficients()) << label;
         EXPECT_EQ(test.Hermitian(), reference.Hermitian()) << label;
 
-        for (size_t rIdx = 0; rIdx < reference.Dimension(); ++rIdx) {
-            for (size_t cIdx = 0; cIdx < reference.Dimension(); ++cIdx) {
-                const auto& test_elem = test.SymbolMatrix[rIdx][cIdx];
-                const auto& ref_elem = reference.SymbolMatrix[rIdx][cIdx];
+        for (size_t cIdx = 0; cIdx < reference.Dimension(); ++cIdx) {
+            for (size_t rIdx = 0; rIdx < reference.Dimension(); ++rIdx) {
+                const auto& test_elem = test.SymbolMatrix(rIdx, cIdx);
+                const auto& ref_elem = reference.SymbolMatrix(rIdx, cIdx);
                 EXPECT_EQ(test_elem, ref_elem) << label << (label.empty() ? "" : ", ") << "row = " << rIdx << ", col = " << cIdx;
             }
         }
@@ -62,10 +62,10 @@ namespace Moment::Tests {
         EXPECT_EQ(test.HasComplexCoefficients(), reference.HasComplexCoefficients()) << label;
         EXPECT_EQ(test.Hermitian(), reference.Hermitian()) << label;
 
-        for (size_t rIdx = 0; rIdx < reference.Dimension(); ++rIdx) {
-            for (size_t cIdx = 0; cIdx < reference.Dimension(); ++cIdx) {
-                const auto& test_elem = test.SymbolMatrix[rIdx][cIdx];
-                const auto& ref_elem = reference.SymbolMatrix[rIdx][cIdx];
+        for (size_t cIdx = 0; cIdx < reference.Dimension(); ++cIdx) {
+            for (size_t rIdx = 0; rIdx < reference.Dimension(); ++rIdx) {
+                const auto& test_elem = test.SymbolMatrix(rIdx, cIdx);
+                const auto& ref_elem = reference.SymbolMatrix(rIdx, cIdx);
                 EXPECT_EQ(test_elem, ref_elem)
                     << label << (label.empty() ? "" : ", ") << "row = " << rIdx << ", col = " << cIdx;
             }
@@ -84,9 +84,9 @@ namespace Moment::Tests {
                                  const std::string& label) {
         ASSERT_EQ(test.Dimension()*test.Dimension(), reference.size()) << label;
         auto refIter = reference.cbegin();
-        for (size_t row_counter = 0; row_counter < test.Dimension(); ++row_counter) {
-            for (size_t column_counter = 0; column_counter < test.Dimension(); ++column_counter) {
-                EXPECT_EQ(test[row_counter][column_counter].id, *refIter) << label << (label.empty() ? "" : ", ") << "row = " << row_counter
+        for (size_t column_counter = 0; column_counter < test.Dimension(); ++column_counter) {
+            for (size_t row_counter = 0; row_counter < test.Dimension(); ++row_counter) {
+                EXPECT_EQ(test(row_counter, column_counter).id, *refIter) << label << (label.empty() ? "" : ", ") << "row = " << row_counter
                                                                           << ", col = " << column_counter;
                 ++refIter;
             }

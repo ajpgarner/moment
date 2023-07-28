@@ -112,15 +112,17 @@ namespace Moment {
 
             // Force MM to be Hermitian or throw exception
             if (!op_matrix->is_hermitian()) {
-                auto [bad_row, bad_col] = op_matrix->nonhermitian_index();
-                assert(bad_row >= 0);
-                assert(bad_col >= 0);
+                const auto maybe_bad_index = op_matrix->nonhermitian_index();
+                assert(maybe_bad_index.has_value());
+                const auto& bad_index = maybe_bad_index.value();
+                const std::array<size_t, 2> bad_tx_index{bad_index[1], bad_index[0]};
+
 
                 std::stringstream ss;
-                ss << "Generated moment matrix should be Hermitian, but element [" << bad_row << "," << bad_col << "]"
-                   << " " << (*op_matrix)[bad_row][bad_col] << " could not be established as the conjugate of element"
-                   << " [" << bad_col << "," << bad_row << "] " << (*op_matrix)[bad_col][bad_row] << " (conjugate: "
-                   << (*op_matrix)[bad_col][bad_row].conjugate() << ").";
+                ss << "Generated moment matrix should be Hermitian, but element [" << bad_index[0] << "," << bad_index[1] << "]"
+                   << " " << (*op_matrix)(bad_index) << " could not be established as the conjugate of element"
+                   << " [" <<  bad_index[1] << "," <<  bad_index[0] << "] " << (*op_matrix)(bad_tx_index) << " (conjugate: "
+                   << (*op_matrix)(bad_tx_index).conjugate() << ").";
                 throw errors::hermitian_failure{ss.str()};
             }
             return op_matrix;

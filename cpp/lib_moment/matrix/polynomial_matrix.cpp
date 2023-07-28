@@ -19,13 +19,14 @@ namespace Moment {
         bool test_hermicity(const SymbolTable &table, const PolynomialMatrix::MatrixData &matrix, double tolerance) {
 
             for (size_t row = 0; row < matrix.dimension; ++row) {
-                if (!matrix[row][row].is_hermitian(table, tolerance)) {
+
+                if (!matrix(std::array<size_t,2>{row, row}).is_hermitian(table, tolerance)) {
                     return false;
                 }
 
                 for (size_t col = row + 1; col < matrix.dimension; ++col) {
-                    const auto &upper = matrix[row][col];
-                    const auto &lower = matrix[col][row];
+                    const auto &upper = matrix(std::array<size_t,2>{row, col});
+                    const auto &lower = matrix(std::array<size_t,2>{col, row});
                     if (!upper.is_conjugate(table, lower)) {
                         return false;
                     }

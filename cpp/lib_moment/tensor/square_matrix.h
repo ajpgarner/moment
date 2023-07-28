@@ -5,14 +5,17 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include <cassert>
-
-#include <array>
-#include <vector>
-#include <span>
 
 #include "integer_types.h"
-#include "multi_dimensional_object.h"
+#include "tensor.h"
+
+#include <cassert>
+
+#include <algorithm>
+#include <array>
+#include <span>
+#include <type_traits>
+#include <vector>
 
 namespace Moment {
 
@@ -23,10 +26,10 @@ namespace Moment {
      */
     template<class element_t, class storage_t = std::vector<element_t>>
             requires std::random_access_iterator<typename storage_t::const_iterator>
-    class SquareMatrix
-            : public MultiDimensionalObject<size_t, std::array<size_t, 2>, std::span<const size_t>, true>
-    {
+    class SquareMatrix : public Tensor<size_t, std::array<size_t, 2>, std::span<const size_t, 2>, true> {
     public:
+        using TensorType = Tensor<size_t, std::array<size_t, 2>, std::span<const size_t, 2>, true>;
+
         using iterator = typename storage_t::iterator;
         using const_iterator = typename storage_t::const_iterator;
 
@@ -120,6 +123,218 @@ namespace Moment {
 
         } Transpose;
 
+        /** Object for iterating over triangle of matrix */
+        template<bool upper, bool inclusive, bool is_const>
+        class TriangularIterator {
+        public:
+            using iterator_category = std::input_iterator_tag;
+            using difference_type = ptrdiff_t;
+            using value_type = element_t;
+            using reference = typename std::conditional<is_const, const element_t&, element_t&>::type;
+            using matrix_ptr = typename std::conditional<is_const, const SquareMatrix*, SquareMatrix*>::type;
+            using matrix_ref = typename std::conditional<is_const, const SquareMatrix&, SquareMatrix&>::type;
+
+
+            /** For constructing end iterator */
+            struct end_tag{};
+
+        private:
+            matrix_ptr matrix;
+            typename SquareMatrix::Index index;
+            size_t offset;
+
+        public:
+            explicit constexpr TriangularIterator(matrix_ref theMatrix)
+                : matrix{&theMatrix},
+                  index{inclusive ? 0 : (upper ? 0 : 1),
+                        inclusive ? 0 : (upper ? 1 : 0)},
+                  offset{inclusive ? 0 : (upper ? matrix->dimension : std::min<size_t>(1, matrix->ElementCount))} { }
+
+            constexpr TriangularIterator(matrix_ref theMatrix, const end_tag& /**/)
+                : matrix{&theMatrix},
+                  index{upper ? 0 : theMatrix.dimension, theMatrix.dimension},
+                  offset{(upper || !inclusive) ? theMatrix.ElementCount
+                                               : theMatrix.ElementCount + theMatrix.dimension} { }
+
+            [[nodiscard]] constexpr IndexView Index() const noexcept {
+                return index;
+            }
+
+            [[nodiscard]] constexpr size_t Offset() const noexcept {
+                return offset;
+            }
+
+            inline reference operator*() noexcept {
+                return this->matrix->data[this->offset];
+            }
+
+            constexpr TriangularIterator& operator++() {
+                ++offset;
+                if constexpr(upper) { // UPPER triangle
+                    if constexpr(inclusive) {
+                        ++index[0]; // inc row index.
+                        if (index[0] > index[1]) { // row > col
+                            index[0] = 0; // back to top row
+                            offset += (this->matrix->dimension - index[1] - 1); // skip remainder of column
+
+                            ++index[1]; // next col
+                        }
+                    } else {
+                        ++index[0]; // inc row index.
+                        if (index[0] >= index[1]) { // row >= col
+                            index[0] = 0; // back to top row
+                            offset += (this->matrix->dimension - index[1]); // skip remainder of column
+                            ++index[1]; // next col
+                        }
+                    }
+                } else { // LOWER triangle
+                    if constexpr(inclusive) {
+                        ++index[0]; // inc row index.
+                        if (index[0] >= this->matrix->dimension) { // row > matrix size
+                            ++index[1]; // next col
+                            index[0] = index[1]; // back to diagonal (of next col)
+                            offset += index[1]; // skip first col elements of next col
+                        }
+                    } else {
+                        ++index[0]; // inc row index.
+                        if (index[0] >= this->matrix->dimension) { // row > matrix size
+                            ++index[1]; // next col
+                            index[0] = index[1]+1; // back to first off-diagonal (of next col)
+                            offset += index[0]; // skip first col elements of next col
+                        }
+                    }
+                }
+                return *this;
+            }
+
+            [[nodiscard]] constexpr TriangularIterator operator++(int) & {
+                TriangularIterator copy{*this};
+                ++(*this);
+                return copy;
+            }
+
+            [[nodiscard]] constexpr bool diagonal() const noexcept {
+                if constexpr(inclusive) {
+                    return this->index[0] == this->index[1];
+                } else {
+                    return false;
+                }
+            }
+
+            template<bool other_upper, bool other_inclusive, bool other_is_const>
+            [[nodiscard]] constexpr bool
+            operator==(const TriangularIterator<other_upper, other_inclusive, other_is_const>& other) const noexcept {
+                return this->offset == other.offset;
+            }
+
+            template<bool other_upper, bool other_inclusive, bool other_is_const>
+            [[nodiscard]] constexpr bool
+            operator!=(const TriangularIterator<other_upper, other_inclusive, other_is_const>& other) const noexcept {
+                return this->offset != other.offset;
+            }
+
+        };
+
+        /**
+         * Range over matrix triangle
+         */
+        template<bool upper, bool inclusive, bool is_const>
+        class TriangularView {
+        public:
+            using MatrixRef = typename std::conditional<is_const, const SquareMatrix&, SquareMatrix&>::type;
+            MatrixRef matrix;
+
+        public:
+            explicit TriangularView(MatrixRef matrix) : matrix{matrix} { }
+
+            /**
+             * Read-write iterator to triangle if view is not const; otherwise read-only iterator.
+             */
+            [[nodiscard]] inline auto begin() noexcept {
+                return TriangularIterator<upper, inclusive, is_const>{this->matrix};
+            }
+
+            /**
+             * Read-write iterator to end of triangle if view is not const; otherwise read-only iterator.
+             */
+            [[nodiscard]] inline auto end() noexcept {
+                return TriangularIterator<upper, inclusive, is_const>{this->matrix,
+                          typename TriangularIterator<upper, inclusive, is_const>::end_tag{}};
+            }
+
+            /**
+             * Read-only iterator to triangle.
+             */
+            [[nodiscard]] inline auto begin() const noexcept {
+                return TriangularIterator<upper, inclusive, true>{this->matrix};
+            }
+
+            /**
+             * Read-only iterator end to triangle.
+             */
+            [[nodiscard]] inline auto end() const noexcept {
+                return TriangularIterator<upper, inclusive, true>{this->matrix,
+                          typename TriangularIterator<upper, inclusive, true>::end_tag{}};
+            }
+
+            /**
+             * Read-only iterator end to triangle.
+             */
+            [[nodiscard]] inline auto cbegin() const noexcept {
+                return TriangularIterator<upper, inclusive, true>{this->matrix};
+            }
+
+            /**
+              * Read-only iterator end to triangle.
+              */
+            [[nodiscard]] inline auto cend() const noexcept {
+                return TriangularIterator<upper, inclusive, true>{this->matrix,
+                      typename TriangularIterator<upper, inclusive, true>::end_tag{}};
+            }
+
+        };
+
+        /**
+         * Range over matrix upper triangle including diagonal.
+         */
+        using UpperTriangularView = TriangularView<true, true, false>;
+
+        /**
+         * Range over matrix upper triangle including diagonal.
+         */
+        using UpperTriangularConstView = TriangularView<true, true, true>;
+
+        /**
+         * Range over matrix upper triangle excluding diagonal.
+         */
+        using ExclusiveUpperTriangularView = TriangularView<true, false, false>;
+
+        /**
+         * Range over matrix upper triangle excluding diagonal.
+         */
+        using ExclusiveUpperTriangularConstView = TriangularView<true, false, true>;
+
+        /**
+         * Range over matrix lower triangle including diagonal.
+         */
+        using LowerTriangularView = TriangularView<false, true, false>;
+
+        /**
+         * Range over matrix lower triangle including diagonal.
+         */
+        using LowerTriangularConstView = TriangularView<false, true, true>;
+
+        /**
+         * Range over matrix lower triangle excluding diagonal.
+         */
+        using ExclusiveLowerTriangularView = TriangularView<false, false, false>;
+
+        /**
+         * Range over matrix lower triangle excluding diagonal.
+         */
+        using ExclusiveLowerTriangularConstView = TriangularView<false, false, true>;
+
+
         /** Type alias for matrix data array. */
         using StorageType = storage_t;
 
@@ -135,12 +350,12 @@ namespace Moment {
 
     public:
         /** Construct empty, 0 by 0, matrix */
-        SquareMatrix() : MultiDimensionalObject{std::array<size_t, 2>{0, 0}},
+        SquareMatrix() :  TensorType{std::array<size_t, 2>{0, 0}},
         dimension{0}, data{}, Transpose{*this} { }
 
         /** Move-construct square matrix */
         constexpr SquareMatrix(SquareMatrix&& rhs) noexcept
-            : MultiDimensionalObject(static_cast<MultiDimensionalObject&&>(rhs)),
+            : Tensor(static_cast<Tensor&&>(rhs)),
                 dimension{rhs.dimension}, data{std::move(rhs.data)}, Transpose{*this} { }
 
         /**
@@ -149,32 +364,69 @@ namespace Moment {
          * @param data Row-major data for matrix. Must contain dimension*dimension elements.
          */
         constexpr SquareMatrix(size_t dimension, storage_t&& data)
-            : MultiDimensionalObject{std::array<size_t, 2>{dimension, dimension}},
+            : TensorType{std::array<size_t, 2>{dimension, dimension}},
               dimension{dimension}, data{std::move(data)}, Transpose{*this} {
             assert(this->data.size() == (this->dimension*this->dimension));
+            assert(this->data.size() == this->ElementCount);
         }
 
-        /**
-         * Read/write access a row of the square matrix.
-         * @param row The row's index.
-         * @return Span over elements in the row.
-         */
-        constexpr std::span<element_t> operator[](size_t row) noexcept {
-            assert(row < this->dimension);
-            auto iter_row_start = this->data.begin() + static_cast<ptrdiff_t>(row * this->dimension);
-            return {iter_row_start.operator->(), this->dimension};
-        }
 
         /**
-         * Read access a row of the square matrix.
-         * @param row The row's index.
-         * @return Span over elements in the row.
+         * Gets range over matrix upper triangle including diagonal.
          */
-        constexpr std::span<const element_t> operator[](size_t row) const noexcept {
-            assert(row < this->dimension);
-            auto iter_row_start = this->data.cbegin() + static_cast<ptrdiff_t>(row * this->dimension);
-            return {iter_row_start.operator->(), this->dimension};
-        }
+         UpperTriangularView UpperTriangle()  noexcept {
+             return UpperTriangularView{*this};
+         }
+
+        /**
+         * Gets range over matrix upper triangle including diagonal.
+         */
+         UpperTriangularConstView UpperTriangle() const noexcept {
+             return UpperTriangularConstView{*this};
+         }
+
+        /**
+         * Gets range over matrix upper triangle excluding diagonal.
+         */
+        ExclusiveUpperTriangularView ExclusiveUpperTriangle() noexcept {
+            return ExclusiveUpperTriangularView{*this};
+        };
+
+        /**
+         * Gets range over matrix upper triangle excluding diagonal.
+         */
+        ExclusiveUpperTriangularConstView ExclusiveUpperTriangle() const noexcept {
+            return ExclusiveUpperTriangularConstView{*this};
+        };
+
+        /**
+         * Gets range over matrix lower triangle including diagonal.
+         */
+        LowerTriangularView LowerTriangle() noexcept {
+            return LowerTriangularView{*this};
+        };
+
+        /**
+         * Gets range over matrix lower triangle including diagonal.
+         */
+        LowerTriangularConstView LowerTriangle() const noexcept {
+            return LowerTriangularConstView{*this};
+        };
+
+        /**
+         * Gets range over matrix lower triangle excluding diagonal.
+         */
+        ExclusiveLowerTriangularView ExclusiveLowerTriangle() noexcept  {
+            return ExclusiveLowerTriangularView{*this};
+        };
+
+        /**
+         * Gets range over matrix lower triangle excluding diagonal.
+         */
+        ExclusiveLowerTriangularConstView ExclusiveLowerTriangle() const noexcept  {
+            return ExclusiveLowerTriangularConstView{*this};
+        };
+
 
         /**
          * Get element by index.
@@ -198,10 +450,17 @@ namespace Moment {
             return this->data[offset];
         }
 
+       /**
+         * Get element by index.
+         */
+        constexpr inline const element_t& operator()(size_t row, size_t col) const noexcept(!debug_mode) {
+            return this->operator()(Index{row, col});
+        }
+
         /**
          * Get element by offset.
          */
-        constexpr element_t& operator()(IndexElement offset) noexcept(!debug_mode) {
+        constexpr element_t& operator[](IndexElement offset) noexcept(!debug_mode) {
             if constexpr (debug_mode) {
                 this->validate_offset(offset);
             }
@@ -211,7 +470,7 @@ namespace Moment {
         /**
          * Get element by offset.
          */
-        constexpr const element_t& operator()(IndexElement offset) const noexcept(!debug_mode) {
+        constexpr const element_t& operator[](IndexElement offset) const noexcept(!debug_mode) {
             if constexpr (debug_mode) {
                 this->validate_offset(offset);
             }
@@ -257,6 +516,5 @@ namespace Moment {
             new_data.insert(new_data.end(), remaining_zeros, zero);
             return SquareMatrix(new_dimension, std::move(new_data));
         }
-
     };
 }
