@@ -13,6 +13,22 @@
 
 namespace Moment::mex {
 
+    Monomial read_symbol_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::MATLABString& string) {
+        if (!string.has_value()) {
+            std::stringstream errMsg;
+            errMsg << "Cannot read empty string as a symbol.";
+            throw_error(engine, errors::bad_symbol, errMsg.str());
+        }
+        try {
+            Monomial elem{UTF16toUTF8Convertor{}(string)};
+            return elem;
+        } catch (const Monomial::SymbolParseException& e) {
+            std::stringstream errMsg;
+            errMsg << "Error in conversion: " << e.what();
+            throw_error(engine, errors::bad_symbol, errMsg.str());
+        }
+    }
+
     Monomial read_symbol_or_fail(matlab::engine::MATLABEngine& engine, const matlab::data::StringArray &matrix,
                                  size_t index_i, size_t index_j) {
 

@@ -893,8 +893,8 @@ namespace Moment::Tests {
 
         std::vector<Monomial> ref_mm_data
                 = {Monomial{1}, Monomial{id_a}, Monomial{id_b},
-                   Monomial{id_a}, Monomial{id_aa}, Monomial{id_ab},
-                   Monomial{id_b}, Monomial{id_ab, 1.0, true}, Monomial{id_bb}};
+                   Monomial{id_a}, Monomial{id_aa}, Monomial{id_ab, 1.0, true},
+                   Monomial{id_b}, Monomial{id_ab}, Monomial{id_bb}};
         MonomialMatrix ref_mm{context, symbols, factory.zero_tolerance,
                               std::make_unique<SquareMatrix<Monomial>>(3, std::move(ref_mm_data)), true};
 

@@ -30,17 +30,16 @@ namespace Moment::mex {
                 std::vector<Monomial> data;
                 data.reserve(matrix_dimension * matrix_dimension);
 
-                // Read through matrix, into vector
-                for (size_t i = 0; i < matrix_dimension; ++i) {
-                    for (size_t j = 0; j < matrix_dimension; ++j) {
-                        auto sym_id = static_cast<symbol_name_t>(input_matrix[i][j]);
-                        if (sym_id >= 0) {
-                            data.emplace_back(sym_id);
-                        } else {
-                            data.emplace_back(-sym_id, -1.0);
-                        }
+                // Col major data -> col major data
+                for (const auto& input_elem : input_matrix) {
+                    auto sym_id = static_cast<symbol_name_t>(input_elem);
+                    if (sym_id >= 0) {
+                        data.emplace_back(sym_id);
+                    } else {
+                        data.emplace_back(-sym_id, -1.0);
                     }
                 }
+
                 return std::make_unique<SquareMatrix<Monomial>>(matrix_dimension, std::move(data));
             }
 
@@ -50,9 +49,9 @@ namespace Moment::mex {
                 std::vector<Monomial> data;
                 data.reserve(matrix_dimension * matrix_dimension);
 
-                for (size_t index_i = 0; index_i < matrix_dimension; ++index_i) {
-                    for (size_t index_j = 0; index_j < matrix_dimension; ++index_j) {
-                        data.push_back(read_symbol_or_fail(this->engine, input_matrix, index_i, index_j));
+                for (size_t col = 0; col < matrix_dimension; ++col) {
+                    for (size_t row = 0; row < matrix_dimension; ++row) {
+                        data.push_back(read_symbol_or_fail(this->engine, input_matrix, row, col));
                     }
                 }
 
