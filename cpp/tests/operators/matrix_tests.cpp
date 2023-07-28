@@ -317,8 +317,8 @@ namespace Moment::Tests {
         // Brew our own matrix
         std::vector<Monomial> matrix_data{
                 Monomial(1, 1.0),
-                Monomial(5, {1.0, 1.0}),
                 Monomial(5, {1.0, -1.0}, true),
+                Monomial(5, {1.0, 1.0}),
                 Monomial(2, 1.0),
         };
 
@@ -346,8 +346,8 @@ namespace Moment::Tests {
         // Brew our own matrix
         std::vector<Monomial> matrix_data{
                 Monomial(1, 1.0),
-                Monomial(5, {1.0, 1.0}),
                 Monomial(5, {1.0, -1.0}, true),
+                Monomial(5, {1.0, 1.0}),
                 Monomial(2, 1.0),
         };
 
@@ -375,8 +375,8 @@ namespace Moment::Tests {
         // Brew our own matrix
         std::vector<Monomial> matrix_data{
                 Monomial(1, 1.0),
-                Monomial(5, {1.0, 1.0}),
                 Monomial(5, {1.0, -1.0}, true),
+                Monomial(5, {1.0, 1.0}),
                 Monomial(2, 1.0),
         };
 
@@ -405,8 +405,8 @@ namespace Moment::Tests {
         // Brew our own matrix
         std::vector<Monomial> matrix_data{
                 Monomial(1, 1.0),
-                Monomial(5, {1.0, 1.0}),
                 Monomial(5, {1.0, -1.0}, true),
+                Monomial(5, {1.0, 1.0}),
                 Monomial(2, 1.0),
         };
 

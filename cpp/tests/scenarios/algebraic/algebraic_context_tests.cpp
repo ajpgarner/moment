@@ -194,6 +194,69 @@ namespace Moment::Tests {
         EXPECT_EQ(seq_BAA[2], 2);
     }
 
+    TEST(Scenarios_Algebraic_AlgebraicContext, OneSubstitution_ABtoMinusBA) {
+        std::vector<OperatorRule> rules;
+        rules.emplace_back(
+                HashedSequence{{1, 0}, ShortlexHasher{2}},
+                HashedSequence{{0, 1}, ShortlexHasher{2}},
+                true
+        );
+        auto ac_ptr = std::make_unique<AlgebraicContext>(AlgebraicPrecontext{2}, false, true, std::move(rules));
+        const auto& context = *ac_ptr;
+
+        OperatorSequence seq_AB{sequence_storage_t{0, 1}, context};
+        ASSERT_EQ(seq_AB.size(), 2);
+        EXPECT_EQ(seq_AB[0], 0);
+        EXPECT_EQ(seq_AB[1], 1);
+        EXPECT_FALSE(seq_AB.negated());
+
+        OperatorSequence seq_minusAB{sequence_storage_t{0, 1}, context, true};
+        ASSERT_EQ(seq_minusAB.size(), 2);
+        EXPECT_EQ(seq_minusAB[0], 0);
+        EXPECT_EQ(seq_minusAB[1], 1);
+        EXPECT_TRUE(seq_minusAB.negated());
+
+        OperatorSequence seq_ABstar = seq_AB.conjugate();
+        ASSERT_EQ(seq_ABstar.size(), 2);
+        EXPECT_EQ(seq_ABstar[0], 0);
+        EXPECT_EQ(seq_ABstar[1], 1);
+        EXPECT_TRUE(seq_ABstar.negated());
+
+        OperatorSequence seq_BA{sequence_storage_t{1, 0}, context};
+        ASSERT_EQ(seq_BA.size(), 2);
+        EXPECT_EQ(seq_BA[0], 0);
+        EXPECT_EQ(seq_BA[1], 1);
+        EXPECT_TRUE(seq_BA.negated());
+
+        OperatorSequence seq_BAstar = seq_BA.conjugate(); // BA = -AB, BA.conj -> (-AB).conj = (-BA) = AB
+        ASSERT_EQ(seq_BAstar.size(), 2);
+        EXPECT_EQ(seq_BAstar[0], 0);
+        EXPECT_EQ(seq_BAstar[1], 1);
+        EXPECT_FALSE(seq_BAstar.negated());
+
+        OperatorSequence seq_minusBA{sequence_storage_t{1, 0}, context, true};
+        ASSERT_EQ(seq_minusBA.size(), 2);
+        EXPECT_EQ(seq_minusBA[0], 0);
+        EXPECT_EQ(seq_minusBA[1], 1);
+        EXPECT_FALSE(seq_minusBA.negated());
+
+        OperatorSequence seq_ABA{sequence_storage_t{0, 1, 0}, context};
+        ASSERT_EQ(seq_ABA.size(), 3);
+        EXPECT_EQ(seq_ABA[0], 0);
+        EXPECT_EQ(seq_ABA[1], 0);
+        EXPECT_EQ(seq_ABA[2], 1);
+        EXPECT_TRUE(seq_ABA.negated());
+
+        OperatorSequence seq_ABAA{sequence_storage_t{0, 1, 0, 0}, context};
+        ASSERT_EQ(seq_ABAA.size(), 4);
+        EXPECT_EQ(seq_ABAA[0], 0);
+        EXPECT_EQ(seq_ABAA[1], 0);
+        EXPECT_EQ(seq_ABAA[2], 0);
+        EXPECT_EQ(seq_ABAA[3], 1);
+        EXPECT_FALSE(seq_ABAA.negated());
+
+    }
+
     TEST(Scenarios_Algebraic_AlgebraicContext, MakeGenerator_ABtoBA) {
         std::vector<OperatorRule> rules;
         rules.emplace_back(

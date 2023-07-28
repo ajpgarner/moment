@@ -32,8 +32,7 @@ namespace Moment::Tests {
         const auto& context = ims.Context();
         const auto& symbols = ims.Symbols();
 
-        std::vector<Monomial> rawData{Monomial{2}, Monomial{3},
-                                      Monomial{4}, Monomial{5}};
+        std::vector<Monomial> rawData{Monomial{2}, Monomial{4}, Monomial{3}, Monomial{5}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
 
@@ -124,8 +123,7 @@ namespace Moment::Tests {
         const auto& context = ims.Context();
         const auto& symbols = ims.Symbols();
 
-        std::vector<Monomial> rawData{Monomial{2}, Monomial{3},
-                                      Monomial{3, true}, Monomial{4}};
+        std::vector<Monomial> rawData{Monomial{2}, Monomial{3, true}, Monomial{3}, Monomial{4}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
         auto [index, matrix] = ims.import_matrix(std::move(raw_mat_ptr), true, true);
@@ -210,8 +208,7 @@ namespace Moment::Tests {
         const auto& context = ims.Context();
         const auto& symbols = ims.Symbols();
 
-        std::vector<Monomial> rawData{Monomial{2}, Monomial{3},
-                                      Monomial{-3}, Monomial{4}};
+        std::vector<Monomial> rawData{Monomial{2}, Monomial{-3}, Monomial{3}, Monomial{4}};
         auto raw_mat_ptr = std::make_unique<SquareMatrix<Monomial>>(2, std::move(rawData));
 
         auto [index, matrix] = ims.import_matrix(std::move(raw_mat_ptr), true, true);

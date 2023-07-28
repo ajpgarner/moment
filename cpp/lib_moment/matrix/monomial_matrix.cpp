@@ -52,36 +52,43 @@ namespace Moment {
                 known_hashes.emplace(1);
 
                 // Now, look at elements and see if they are unique or not
-                for (size_t col = 0; col < osm.dimension; ++col) {
-                    for (size_t row = col; row < osm.dimension; ++row) {
-                        const auto& elem = osm(std::array<size_t, 2>{row, col});
+                auto lower_triangle = osm.LowerTriangle();
+                auto iter = lower_triangle.begin();
+                const auto iter_end = lower_triangle.end();
+                while (iter != iter_end) {
+                    // This is a bit of a hack to compensate for col-major storage, while preferring symbols to be
+                    // numbered according to the top /row/ of moment matrices, if possible.
+                    // Thus, we look at a col-major iterator over the lower triangle, which actually gives us the
+                    // conjugates of what were generated; but we define what we find as the conjugate element.
+                    const auto& conj_elem = *iter;
+                    const auto elem = conj_elem.conjugate();
 
-                        const auto conj_elem = elem.conjugate();
-                        int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
-                        const bool elem_hermitian = (compare == 1);
+                    int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
+                    const bool elem_hermitian = (compare == 1);
 
-                        const size_t hash = elem.hash();
-                        const size_t conj_hash = conj_elem.hash();
+                    const size_t hash = elem.hash();
+                    const size_t conj_hash = conj_elem.hash();
 
-                        // Don't add what is already known
-                        if (known_hashes.contains(hash) || (!elem_hermitian && known_hashes.contains(conj_hash))) {
-                            continue;
-                        }
-
-                        if (elem_hermitian) {
-                            build_unique.emplace_back(elem);
-                            known_hashes.emplace(hash);
-                        } else {
-                            if (hash < conj_hash) {
-                                build_unique.emplace_back(elem, conj_elem);
-                            } else {
-                                build_unique.emplace_back(conj_elem, elem);
-                            }
-
-                            known_hashes.emplace(hash);
-                            known_hashes.emplace(conj_hash);
-                        }
+                    // Don't add what is already known
+                    if (known_hashes.contains(hash) || (!elem_hermitian && known_hashes.contains(conj_hash))) {
+                        ++iter;
+                        continue;
                     }
+
+                    if (elem_hermitian) {
+                        build_unique.emplace_back(elem);
+                        known_hashes.emplace(hash);
+                    } else {
+                        if (hash < conj_hash) {
+                            build_unique.emplace_back(elem, conj_elem);
+                        } else {
+                            build_unique.emplace_back(conj_elem, elem);
+                        }
+
+                        known_hashes.emplace(hash);
+                        known_hashes.emplace(conj_hash);
+                    }
+                    ++iter;
                 }
                 // NRVO?
                 return build_unique;
@@ -136,45 +143,42 @@ namespace Moment {
             [[nodiscard]] std::unique_ptr<SquareMatrix<Monomial>> build_symbol_matrix_hermitian() const {
                 std::vector<Monomial> symbolic_representation(osm.dimension * osm.dimension);
 
-
-                //size_t& row = upper_index[0];
-                //size_t& col = upper_index[1];
-
                 // Iterate over upper index
-                std::array<size_t, 2> upper_index{0, 0};
-                for (size_t& col = *upper_index.data(); col < osm.dimension; ++col) {
-                    upper_index[0] = upper_index[1];
-                    for (size_t& row = *(upper_index.data()+1); row < osm.dimension; ++row) {
-                        const size_t upper_offset = osm.index_to_offset_no_checks(upper_index);
+                auto upper_triangle_view = osm.UpperTriangle();
+                auto iter = upper_triangle_view.begin();
+                const auto iter_end = upper_triangle_view.end();
+                while (iter != iter_end) {
+                    const size_t row = iter.Row();
+                    const size_t col = iter.Col();
+                    const auto& elem = *iter;
 
-                        const auto& elem = osm[upper_offset];
+                    const size_t hash = elem.hash();
+                    const bool negated = elem.negated();
 
-                        const size_t hash = elem.hash();
-                        const bool negated = elem.negated();
+                    auto [symbol_id, conjugated] = symbol_table.hash_to_index(hash);
+                    if (symbol_id == std::numeric_limits<ptrdiff_t>::max()) {
+                        std::stringstream ss;
+                        ss << "Symbol \"" << elem << "\" at index [" << row << "," << col << "]"
+                           << " was not found in symbol table, while parsing Hermitian matrix.";
+                        throw std::logic_error{ss.str()};
+                    }
+                    const auto& unique_elem = symbol_table[symbol_id];
 
-                        auto [symbol_id, conjugated] = symbol_table.hash_to_index(hash);
-                        if (symbol_id == std::numeric_limits<ptrdiff_t>::max()) {
-                            std::stringstream ss;
-                            ss << "Symbol \"" << elem << "\" at index [" << row << "," << col << "]"
-                               << " was not found in symbol table, while parsing Hermitian matrix.";
-                            throw std::logic_error{ss.str()};
-                        }
-                        const auto& unique_elem = symbol_table[symbol_id];
+                    symbolic_representation[iter.Offset()] = Monomial{unique_elem.Id(), negated, conjugated};
 
-                        symbolic_representation[upper_offset] = Monomial{unique_elem.Id(), negated, conjugated};
-
-                        // Make Hermitian, if off-diagonal
-                        if (col > row) {
-                            size_t lower_offset = osm.index_to_offset_no_checks(std::array<size_t, 2>{col, row});
-                            if (unique_elem.is_hermitian()) {
-                                symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
-                                                                                negated, false};
-                            } else {
-                                symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
-                                                                                negated, !conjugated};
-                            }
+                    // Make Hermitian, if off-diagonal
+                    if (!iter.diagonal()) {
+                        size_t lower_offset = osm.index_to_offset_no_checks(std::array<size_t, 2>{col, row});
+                        if (unique_elem.is_hermitian()) {
+                            symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
+                                                                            negated, false};
+                        } else {
+                            symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
+                                                                            negated, !conjugated};
                         }
                     }
+                    ++iter;
+
                 }
 
                 return std::make_unique<SquareMatrix<Monomial>>(osm.dimension, std::move(symbolic_representation));

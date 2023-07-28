@@ -27,8 +27,8 @@ namespace Moment {
 
             std::vector<OperatorSequence> matrix_data;
             matrix_data.reserve(dimension * dimension);
-            for (const auto& rowSeq : rowGen) {
-                for (const auto& colSeq : colGen) {
+            for (const auto& colSeq : colGen) {
+                for (const auto& rowSeq : rowGen) {
                     matrix_data.emplace_back(context.simplify_as_moment(rowSeq * (word * colSeq)));
                 }
             }
@@ -39,7 +39,6 @@ namespace Moment {
             assert(lmi.Word.is_same_context(context));
             return context;
         }
-
     }
 
 

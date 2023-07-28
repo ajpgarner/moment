@@ -37,8 +37,8 @@ namespace Moment::Tests {
             smData.reserve(4);
 
             smData.emplace_back(Polynomial{Monomial{1, 1.0}, Monomial{2, -1.0}});
-            smData.emplace_back(Polynomial{Monomial{3, 1.0}, Monomial{4, 2.0}});
             smData.emplace_back(Polynomial{Monomial{3, 1.0, true}, Monomial{4, 2.0, true}});
+            smData.emplace_back(Polynomial{Monomial{3, 1.0}, Monomial{4, 2.0}});
             smData.emplace_back(Polynomial{Monomial{5, 1.0}});
 
             std::unique_ptr<SquareMatrix<Polynomial>> sqMat = std::make_unique<SquareMatrix<Polynomial>>(2, std::move(smData));

@@ -164,6 +164,10 @@ namespace Moment {
                 return offset;
             }
 
+            [[nodiscard]] constexpr size_t Row() const noexcept { return this->index[0]; }
+
+            [[nodiscard]] constexpr size_t Col() const noexcept { return this->index[1]; }
+
             inline reference operator*() noexcept {
                 return this->matrix->data[this->offset];
             }

@@ -34,24 +34,22 @@ namespace Moment {
                                         typename MatrixInfo::ImStorageType& im) {
             const int dimension = static_cast<int>(matrix.dimension);
 
-            // TODO: Move index out of loop
-            for (int row_index = 0; row_index < dimension; ++row_index) {
-                for (int col_index = symmetric ? row_index : 0; col_index < dimension; ++col_index) {
-                    const SquareMatrix<Monomial>::Index index{static_cast<size_t>(row_index),
-                                                              static_cast<size_t>(col_index)};
-
-                    const auto& elem = matrix(index);
+            if constexpr(symmetric) {
+                auto range = matrix.UpperTriangle();
+                auto iter = range.begin();
+                const auto iter_end = range.end();
+                while (iter != iter_end) {
+                    const auto indices = iter.Index();
+                    const auto& elem = *iter;
                     assert(elem.id < symbols.size());
                     auto [re_id, im_id] = symbols[elem.id].basis_key();
 
                     if (re_id>=0) {
                         assert(re_id < real.size());
-                        real[re_id](row_index, col_index) = get_re_factor<MatrixInfo>(elem.factor);
+                        real[re_id](indices[0], indices[1]) = get_re_factor<MatrixInfo>(elem.factor);
 
-                        if constexpr(symmetric) {
-                            if  (row_index != col_index) {
-                                real[re_id](col_index, row_index) = get_re_factor<MatrixInfo>(std::conj(elem.factor));
-                            }
+                        if (!iter.diagonal()) [[likely]] {
+                            real[re_id](indices[1], indices[0]) = get_re_factor<MatrixInfo>(std::conj(elem.factor));
                         }
                     }
 
@@ -59,17 +57,41 @@ namespace Moment {
                         if (im_id >= 0) {
                             assert(im_id < im.size());
 
-                            im[im_id](row_index, col_index) =
+                            im[im_id](indices[0], indices[1]) =
                                     std::complex<double>(0.0, (elem.conjugated ? -1.0 : 1.0))
-                                            * elem.factor;
-                            if constexpr(symmetric) {
-                                if (row_index != col_index) {
-                                    im[im_id](col_index, row_index) =
-                                            std::complex<double>(0.0, (elem.conjugated ? 1.0 : -1.0))
-                                                    * std::conj(elem.factor);
-                                }
+                                    * elem.factor;
+                            if (!iter.diagonal()) [[likely]] {
+                                im[im_id](indices[1], indices[0]) =
+                                        std::complex<double>(0.0, (elem.conjugated ? 1.0 : -1.0))
+                                        * std::conj(elem.factor);
                             }
                         }
+                    }
+                    ++iter;
+                }
+            } else {
+                auto iter = matrix.begin();
+                size_t offset = 0;
+                for (int col_index = 0; col_index < dimension; ++col_index) {
+                    for (int row_index = 0; row_index < dimension; ++row_index) {
+                        const auto& elem = matrix[offset];
+                        assert(elem.id < symbols.size());
+                        auto [re_id, im_id] = symbols[elem.id].basis_key();
+
+                        if (re_id>=0) {
+                            assert(re_id < real.size());
+                            real[re_id](row_index, col_index) = get_re_factor<MatrixInfo>(elem.factor);
+                        }
+
+                        if constexpr (complex) {
+                            if (im_id >= 0) {
+                                assert(im_id < im.size());
+                                im[im_id](row_index, col_index) =
+                                        std::complex<double>(0.0, (elem.conjugated ? -1.0 : 1.0))
+                                        * elem.factor;
+                            }
+                        }
+                        ++offset;
                     }
                 }
             }
@@ -117,42 +139,66 @@ namespace Moment {
                                     std::vector<std::vector<typename BasisInfo::ImTripletType>>& im_frame) {
 
             const auto dimension = static_cast<int>(matrix.dimension);
-            // TODO: Move out of loop
-            for (int row_index = 0; row_index < dimension; ++row_index) {
-                for (int col_index = symmetric ? row_index : 0; col_index < dimension; ++col_index) {
 
-                    const SquareMatrix<Monomial>::Index index{static_cast<size_t>(row_index),
-                                                              static_cast<size_t>(col_index)};
+            if constexpr(symmetric) {
+                auto range = matrix.UpperTriangle();
+                auto iter = range.begin();
+                const auto iter_end = range.end();
+                while (iter != iter_end) {
+                    const auto &elem = *iter;
+                    const size_t row_index = iter.Row();
+                    const size_t col_index = iter.Col();
 
-                    const auto& elem = matrix(index);
                     assert(elem.id < symbols.size());
                     auto [re_id, im_id] = symbols[elem.id].basis_key();
 
-                    if (re_id>=0) {
+                    if (re_id >= 0) {
                         assert(re_id < real_frame.size());
                         real_frame[re_id].emplace_back(row_index, col_index, get_re_factor<BasisInfo>(elem.factor));
-                        if constexpr(symmetric) {
-                            if (row_index != col_index) {
-                                real_frame[re_id].emplace_back(col_index, row_index,
-                                                               get_re_factor<BasisInfo>(std::conj(elem.factor)));
-                            }
+                        if (!iter.diagonal()) {
+                            real_frame[re_id].emplace_back(col_index, row_index,
+                                                           get_re_factor<BasisInfo>(std::conj(elem.factor)));
                         }
+
                     }
 
-                    if constexpr(complex) {
+                    if constexpr (complex) {
                         if (im_id >= 0) {
                             assert(im_id < im_frame.size());
                             im_frame[im_id].emplace_back(row_index, col_index,
                                                          std::complex<double>(0, (elem.conjugated ? -1.0 : 1.0))
-                                                            * elem.factor);
-                            if constexpr(symmetric) {
-                                if (row_index != col_index) {
-                                    im_frame[im_id].emplace_back(col_index, row_index,
-                                                                 std::complex<double>(0, (elem.conjugated ? 1.0 : -1.0))
-                                                                     * std::conj(elem.factor));
-                                }
+                                                         * elem.factor);
+                            if (!iter.diagonal()) {
+                                im_frame[im_id].emplace_back(col_index, row_index,
+                                                             std::complex<double>(0, (elem.conjugated ? 1.0 : -1.0))
+                                                             * std::conj(elem.factor));
                             }
                         }
+                    }
+                    ++iter;
+                }
+            } else {
+                size_t offset = 0;
+                for (int col_index = 0; col_index < dimension; ++col_index) {
+                    for (int row_index = 0; row_index < dimension; ++row_index) {
+                        const auto &elem = matrix[offset];
+                        assert(elem.id < symbols.size());
+                        auto [re_id, im_id] = symbols[elem.id].basis_key();
+
+                        if (re_id >= 0) {
+                            assert(re_id < real_frame.size());
+                            real_frame[re_id].emplace_back(row_index, col_index, get_re_factor<BasisInfo>(elem.factor));
+                        }
+
+                        if constexpr (complex) {
+                            if (im_id >= 0) {
+                                assert(im_id < im_frame.size());
+                                im_frame[im_id].emplace_back(row_index, col_index,
+                                                             std::complex<double>(0, (elem.conjugated ? -1.0 : 1.0))
+                                                             * elem.factor);
+                            }
+                        }
+                        ++offset;
                     }
                 }
             }

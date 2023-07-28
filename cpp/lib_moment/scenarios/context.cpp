@@ -36,7 +36,7 @@ namespace Moment {
         sequence_storage_t str;
         str.reserve(seq.operators.size());
         std::reverse_copy(seq.operators.cbegin(), seq.operators.cend(), std::back_inserter(str));
-        return OperatorSequence(std::move(str), *this);
+        return OperatorSequence{std::move(str), *this, seq.is_negated};
     }
 
     OperatorSequence Context::simplify_as_moment(OperatorSequence &&seq) const {

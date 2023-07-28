@@ -46,12 +46,11 @@ namespace Moment {
             }
 
             void execute() {
-                for (size_t row_idx = worker_id; row_idx < row_length; row_idx += max_workers) {
-                    const auto& rowSeq = rowGen[row_idx];
-                    for (size_t col_idx = 0; col_idx < row_length; ++col_idx) {
-                        size_t total_idx = (row_idx * row_length) + col_idx;
-                        const auto & colSeq = colGen[col_idx];
-
+                for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
+                    const auto & colSeq = colGen[col_idx];
+                    for (size_t row_idx = 0; row_idx < row_length; ++row_idx) {
+                        const auto& rowSeq = rowGen[row_idx];
+                        size_t total_idx = (col_idx * row_length) + row_idx;
                         base_ptr[total_idx] = context.simplify_as_moment(rowSeq * colSeq);
                     }
                 }
@@ -90,14 +89,14 @@ namespace Moment {
             size_t dimension = colGen.size();
             assert(dimension == rowGen.size());
 
-            const bool use_multithreading = Multithreading::should_multithread_matrix_creation(mt_policy,
-                                                                                               dimension*dimension);
+            const bool use_multithreading
+                = Multithreading::should_multithread_matrix_creation(mt_policy, dimension*dimension);
 
             std::vector<OperatorSequence> matrix_data;
             if (!use_multithreading) {
                 matrix_data.reserve(dimension * dimension);
-                for (const auto &rowSeq: rowGen) {
-                    for (const auto &colSeq: colGen) {
+                for (const auto &colSeq: colGen) {
+                    for (const auto &rowSeq: rowGen) {
                         matrix_data.emplace_back(context.simplify_as_moment(rowSeq * colSeq));
                     }
                 }
@@ -111,7 +110,7 @@ namespace Moment {
             auto op_matrix = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(matrix_data));
 
             // Force MM to be Hermitian or throw exception
-            if (!op_matrix->is_hermitian()) {
+            if (!op_matrix->is_hermitian()) [[unlikely]] {
                 const auto maybe_bad_index = op_matrix->nonhermitian_index();
                 assert(maybe_bad_index.has_value());
                 const auto& bad_index = maybe_bad_index.value();
