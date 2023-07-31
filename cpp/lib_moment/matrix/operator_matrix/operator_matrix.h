@@ -30,6 +30,9 @@ namespace Moment {
 
     class OperatorMatrix {
     public:
+        /**
+         * Extend square matrix with Hermicity tests.
+         */
         class OpSeqMatrix : public SquareMatrix<OperatorSequence> {
         private:
             bool hermitian = false;
@@ -116,5 +119,8 @@ namespace Moment {
         /** Apply the properties from this operator matrix to the supplied matrix. */
         void set_properties(SymbolicMatrix& matrix) const;
 
+        friend class SymbolicMatrix;
+        friend class MonomialMatrix;
+        friend class PolynomialMatrix;
     };
 }

@@ -5,6 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "localizing_matrix.h"
+#include "operator_matrix_creation_context.h"
 
 #include "dictionary/operator_sequence_generator.h"
 
@@ -17,73 +18,48 @@
 
 namespace Moment {
     namespace {
-        std::unique_ptr<OperatorMatrix::OpSeqMatrix>
-        generate_localizing_matrix_sequences(const Context& context, size_t level,
-                                             const OperatorSequence& word,
-                                             Multithreading::MultiThreadPolicy mt_policy) {
-            // Prepare generator of symbols
-            const OperatorSequenceGenerator& colGen = context.operator_sequence_generator(level);
-            const OperatorSequenceGenerator& rowGen = context.operator_sequence_generator(level, true);
-
-            // Build matrix...
-            size_t dimension = colGen.size();
-            assert(dimension == rowGen.size());
-
-            const bool use_multithreading
-                    = Multithreading::should_multithread_matrix_creation(mt_policy, dimension*dimension);
-
-            std::vector<OperatorSequence> matrix_data;
-            if (!use_multithreading) {
-                matrix_data.reserve(dimension * dimension);
-                if (context.can_have_aliases()) {
-                    for (const auto &colSeq: colGen) {
-                        for (const auto &rowSeq: rowGen) {
-                            matrix_data.emplace_back(context.simplify_as_moment(rowSeq * (word * colSeq)));
-                        }
-                    }
-                } else {
-                    for (const auto &colSeq: colGen) {
-                        for (const auto &rowSeq: rowGen) {
-                            matrix_data.emplace_back(rowSeq * (word * colSeq));
-                        }
-                    }
-                }
-
-            } else {
-                auto raw_data = OperatorSequence::create_uninitialized_vector(dimension*dimension);
-                if (context.can_have_aliases()) {
-                    Multithreading::generate_matrix_data(colGen, rowGen,
-                                                         raw_data.data(),
-                                                         [&context, &word](const OperatorSequence& lhs,
-                                                                 const OperatorSequence& rhs) {
-                                                             return context.simplify_as_moment(lhs * (word * rhs));
-                                                         });
-                } else {
-                    Multithreading::generate_matrix_data(colGen, rowGen,
-                                                         raw_data.data(),
-                                                         [&word](const OperatorSequence& lhs,
-                                                                           const OperatorSequence& rhs) {
-                                                             return lhs * (word * rhs);
-                                                         });
-                }
-                matrix_data.swap(raw_data);
-            }
-
-            return std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(matrix_data));
-        }
-
         inline const Context& assert_context(const Context& context, const LocalizingMatrixIndex& lmi) {
             assert(lmi.Word.is_same_context(context));
             return context;
         }
     }
 
+    class LocalizingMatrixCreationContext : public OperatorMatrixCreationContext {
+    public:
+        const OperatorSequence Word;
+
+        LocalizingMatrixCreationContext(const Context& context, SymbolTable& symbols, size_t level,
+                                        OperatorSequence word,
+                                        Multithreading::MultiThreadPolicy mt_policy)
+            : OperatorMatrixCreationContext{context, symbols, level, mt_policy}, Word{std::move(word)} {
+
+        }
+
+    public:
+        void make_operator_matrix_single_thread() override {
+            this->operatorMatrix = do_make_operator_matrix_single_thread<LocalizingMatrix>(
+                    [&](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+                        return lhs * (this->Word * rhs);
+                    },
+                    LocalizingMatrixIndex{this->Level, this->Word}
+            );
+            assert(this->operatorMatrix);
+        }
+
+        void make_operator_matrix_multi_thread() override {
+            this->operatorMatrix = do_make_operator_matrix_multi_thread<LocalizingMatrix>(
+                    [&](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+                        return lhs * (this->Word * rhs);
+                    },
+                    LocalizingMatrixIndex{this->Level, this->Word}
+            );
+            assert(this->operatorMatrix);
+        }
+    };
 
     LocalizingMatrix::LocalizingMatrix(const Context& context, LocalizingMatrixIndex lmi,
-                                       Multithreading::MultiThreadPolicy mt_policy)
-        : OperatorMatrix{assert_context(context, lmi),
-                         generate_localizing_matrix_sequences(context, lmi.Level, lmi.Word, mt_policy)},
-          Index{std::move(lmi)} {
+                                       std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
+        : OperatorMatrix{assert_context(context, lmi), std::move(op_seq_mat)}, Index{std::move(lmi)} {
 
     }
 
@@ -109,11 +85,17 @@ namespace Moment {
         return dynamic_cast<const LocalizingMatrix*>(&op_matrix); // might be nullptr!
     }
 
-//    std::unique_ptr<MatrixProperties>
-//    LocalizingMatrix::replace_properties(std::unique_ptr<MatrixProperties> input) const {
-//        return std::make_unique<LocalizingMatrixProperties>(std::move(*input), this->Index,
-//                                                            this->op_seq_matrix->is_hermitian(),
-//                                                            this->description());
-//    }
+    std::unique_ptr<MonomialMatrix>
+    LocalizingMatrix::create_matrix(const Context &context, SymbolTable& symbols,
+                                    LocalizingMatrixIndex lmi,
+                                    Multithreading::MultiThreadPolicy mt_policy) {
+
+        LocalizingMatrixCreationContext lmcc{context, symbols, lmi.Level, std::move(lmi.Word), mt_policy};
+        lmcc.prepare_generators();
+        lmcc.make_operator_matrix();
+        lmcc.register_new_symbols();
+        lmcc.make_symbolic_matrix();
+        return lmcc.yield_matrix();
+    }
 
 }

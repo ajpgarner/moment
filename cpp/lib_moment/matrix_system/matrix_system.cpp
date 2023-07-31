@@ -85,8 +85,7 @@ namespace Moment {
     MatrixSystem::createNewMomentMatrix(MaintainsMutex::WriteLock &lock,
                                         const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
-        auto operator_matrix = std::make_unique<class MomentMatrix>(*this->context, level, mt_policy);
-        return std::make_unique<MonomialMatrix>(*this->symbol_table, std::move(operator_matrix));
+        return MomentMatrix::create_matrix(*this->context, *this->symbol_table, level, mt_policy);
     }
 
 
@@ -95,8 +94,7 @@ namespace Moment {
                                             const LocalizingMatrixIndex& lmi,
                                             const Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
-        auto operator_matrix = std::make_unique<class LocalizingMatrix>(*this->context, lmi, mt_policy);
-        return std::make_unique<MonomialMatrix>(*this->symbol_table, std::move(operator_matrix));
+        return LocalizingMatrix::create_matrix(*this->context, *this->symbol_table, lmi, mt_policy);
     }
 
     std::unique_ptr<class PolynomialMatrix>

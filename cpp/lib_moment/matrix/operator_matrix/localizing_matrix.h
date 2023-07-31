@@ -13,7 +13,6 @@
 
 namespace Moment {
 
-
     class LocalizingMatrix : public OperatorMatrix {
     public:
         /**
@@ -21,7 +20,6 @@ namespace Moment {
          */
         const LocalizingMatrixIndex Index;
 
-    public:
         /**
           * Constructs a localizing matrix at the requested hierarchy depth (level) for the supplied context,
           * with the supplied word.
@@ -29,18 +27,9 @@ namespace Moment {
           * @param lmi Index, describing the hierarchy depth and localizing word.
           */
         LocalizingMatrix(const Context& context, LocalizingMatrixIndex lmi,
-                         Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
+                         std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
 
-        /**
-         * Constructs a localizing matrix at the requested hierarchy depth (level) for the supplied context,
-         * with the supplied word.
-         * @param context The setting/scenario.
-         * @param level The hierarchy depth.
-         * @param word The localizing word.
-         */
-        LocalizingMatrix(const Context& context, size_t level, OperatorSequence&& word,
-                         Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional)
-            : LocalizingMatrix(context, LocalizingMatrixIndex{level, std::move(word)}, mt_policy) { }
+    public:
 
         LocalizingMatrix(LocalizingMatrix&& rhs) = default;
 
@@ -62,10 +51,20 @@ namespace Moment {
 
         [[nodiscard]] std::string description() const override;
 
+
+        /**
+         * Full creation stack, with possible multithreading.
+         */
+        static std::unique_ptr<MonomialMatrix>
+        create_matrix(const Context& context, SymbolTable& symbols, LocalizingMatrixIndex lmi,
+                      Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
+
         /**
          * If supplied input is symbol matrix associated with a monomial localizng matrix, extract that matrix.
          * Otherwise, returns nullptr.
          */
         static const LocalizingMatrix* as_monomial_localizing_matrix_ptr(const SymbolicMatrix& input) noexcept;
+
+        friend class LocalizingMatrixCreationContext;
     };
 }

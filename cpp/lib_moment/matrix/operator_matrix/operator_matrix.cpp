@@ -6,6 +6,8 @@
  */
 #include "operator_matrix.h"
 
+#include "operator_matrix_creation_context.h"
+
 #include "dictionary/operator_sequence_generator.h"
 
 #include <limits>

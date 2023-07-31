@@ -40,7 +40,7 @@ namespace Moment {
          * @param mt_policy Whether or not to use multi-threaded creation.
          */
         MomentMatrix(const Context& context, size_t level,
-                     Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
+                     std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
 
         MomentMatrix(const MomentMatrix&) = delete;
 
@@ -67,5 +67,14 @@ namespace Moment {
          */
         static const MomentMatrix* as_monomial_moment_matrix_ptr(const SymbolicMatrix& input) noexcept;
 
+        /**
+         * Full creation stack, with possible multithreading.
+         */
+        static std::unique_ptr<MonomialMatrix>
+        create_matrix(const Context& context, SymbolTable& symbols, size_t level,
+                      Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
+
+
+        friend class MomentMatrixCreationContext;
     };
 }
