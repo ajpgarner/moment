@@ -20,7 +20,7 @@ namespace Moment {
     class MatrixSystem;
     class PolynomialFactory;
     class ProbabilityTensor;
-    class ProbabilityTensorElement;
+    struct ProbabilityTensorElement;
 
 
     template<typename tensor_t> class TensorRange;

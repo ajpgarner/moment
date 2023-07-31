@@ -19,7 +19,7 @@
 #include <vector>
 
 namespace Moment {
-    class Monomial;
+    struct Monomial;
     class OperatorSequence;
     class SymbolTable;
     namespace Inflation {
