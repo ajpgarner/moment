@@ -46,7 +46,7 @@ namespace Moment {
 
     MatrixSystem::~MatrixSystem() noexcept = default;
 
-    const Matrix &MatrixSystem::operator[](size_t index) const {
+    const SymbolicMatrix &MatrixSystem::operator[](size_t index) const {
         if (index >= this->matrices.size()) {
             std::stringstream errSS;
             errSS << "Matrix index " << index << " is out of range (max index: " << (this->matrices.size()-1) << ").";
@@ -60,7 +60,7 @@ namespace Moment {
         return *this->matrices[index];
     }
 
-    Matrix& MatrixSystem::get(size_t index) {
+    SymbolicMatrix& MatrixSystem::get(size_t index) {
         if (index >= this->matrices.size()) {
             std::stringstream errSS;
             errSS << "Matrix index " << index << " is out of range (max index: " << (this->matrices.size()-1) << ").";
@@ -75,13 +75,13 @@ namespace Moment {
         return *this->matrices[index];
     }
 
-    ptrdiff_t MatrixSystem::push_back(std::unique_ptr<Matrix> matrix) {
+    ptrdiff_t MatrixSystem::push_back(std::unique_ptr<SymbolicMatrix> matrix) {
         auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
         this->matrices.emplace_back(std::move(matrix));
         return matrixIndex;
     }
 
-    std::unique_ptr<class Matrix>
+    std::unique_ptr<class SymbolicMatrix>
     MatrixSystem::createNewMomentMatrix(MaintainsMutex::WriteLock &lock,
                                         const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
@@ -90,7 +90,7 @@ namespace Moment {
     }
 
 
-    std::unique_ptr<class Matrix>
+    std::unique_ptr<class SymbolicMatrix>
     MatrixSystem::createNewLocalizingMatrix(MaintainsMutex::WriteLock &lock,
                                             const LocalizingMatrixIndex& lmi,
                                             const Multithreading::MultiThreadPolicy mt_policy) {

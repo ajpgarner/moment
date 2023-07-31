@@ -40,7 +40,7 @@ namespace Moment {
 
     PolynomialMatrix::PolynomialMatrix(const Context& context, SymbolTable& symbols, const double zero_tolerance,
                      std::unique_ptr<PolynomialMatrix::MatrixData> symbolMatrix)
-             : Matrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0}, SymbolMatrix{*this},
+             : SymbolicMatrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0}, SymbolMatrix{*this},
                sym_exp_matrix{std::move(symbolMatrix)} {
         if (!sym_exp_matrix) {
             throw std::runtime_error{"Symbol matrix pointer passed to PolynomialMatrix constructor was nullptr."};

@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "matrix.h"
+#include "symbolic_matrix.h"
 
 #include "symbolic/monomial.h"
 #include "tensor/square_matrix.h"
@@ -22,7 +22,7 @@ namespace Moment {
     /**
      * Symbolic matrix, where each entry represents a monomial expression.
      */
-    class MonomialMatrix : public Matrix {
+    class MonomialMatrix : public SymbolicMatrix {
     public:
         using ElementType = Monomial;
 

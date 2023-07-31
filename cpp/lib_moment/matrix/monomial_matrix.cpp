@@ -214,8 +214,8 @@ namespace Moment {
     MonomialMatrix::MonomialMatrix(const Context& context, SymbolTable& symbols, const double zero_tolerance,
                                    std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix,
                                    const bool constructed_as_hermitian)
-        : Matrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0},
-            SymbolMatrix{*this}, sym_exp_matrix{std::move(symbolMatrix)}
+        : SymbolicMatrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0},
+          SymbolMatrix{*this}, sym_exp_matrix{std::move(symbolMatrix)}
         {
             if (!sym_exp_matrix) {
                 throw std::runtime_error{"Symbol pointer passed to MonomialMatrix constructor was nullptr."};

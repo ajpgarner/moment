@@ -6,7 +6,7 @@
  */
 #include "export_basis.h"
 
-#include "matrix/matrix.h"
+#include "matrix/symbolic_matrix.h"
 
 #include "eigen/export_eigen_dense.h"
 #include "eigen/export_eigen_sparse.h"
@@ -20,7 +20,7 @@ namespace Moment::mex {
         std::pair<matlab::data::CellArray, matlab::data::CellArray>
         export_dense_basis(matlab::engine::MATLABEngine& engine,
                            matlab::data::ArrayFactory& factory,
-                           const Matrix &mm) {
+                           const SymbolicMatrix &mm) {
 
             const auto &[re_basis, im_basis] = mm.Basis.Dense();
 
@@ -32,7 +32,7 @@ namespace Moment::mex {
         std::pair<matlab::data::CellArray, matlab::data::CellArray>
         export_dense_complex_basis(matlab::engine::MATLABEngine &engine,
                                    matlab::data::ArrayFactory& factory,
-                                   const Matrix &mm) {
+                                   const SymbolicMatrix &mm) {
 
             const auto &[re_basis, im_basis] = mm.Basis.DenseComplex();
 
@@ -44,7 +44,7 @@ namespace Moment::mex {
         std::pair<matlab::data::CellArray, matlab::data::CellArray>
         export_sparse_basis(matlab::engine::MATLABEngine &engine,
                             matlab::data::ArrayFactory& factory,
-                            const Matrix &mm) {
+                            const SymbolicMatrix &mm) {
             const auto &[re_basis, im_basis] = mm.Basis.Sparse();
 
             return std::make_pair(export_eigen_sparse_array(engine, factory, re_basis),
@@ -54,7 +54,7 @@ namespace Moment::mex {
         std::pair<matlab::data::CellArray, matlab::data::CellArray>
         export_sparse_complex_basis(matlab::engine::MATLABEngine &engine,
                                     matlab::data::ArrayFactory& factory,
-                                 const Matrix &mm) {
+                                 const SymbolicMatrix &mm) {
             const auto &[re_basis, im_basis] = mm.Basis.SparseComplex();
 
             return std::make_pair(export_eigen_sparse_array(engine, factory, re_basis),
@@ -64,7 +64,7 @@ namespace Moment::mex {
         std::pair<matlab::data::TypedArray<double>, matlab::data::TypedArray<std::complex<double>>>
         export_dense_monolith_basis(matlab::engine::MATLABEngine &engine,
                                     matlab::data::ArrayFactory& factory,
-                                    const Matrix &mm) {
+                                    const SymbolicMatrix &mm) {
             const auto &[re_basis, im_basis] = mm.Basis.DenseMonolithic();
 
             return std::make_pair(export_eigen_dense(engine, factory, re_basis),
@@ -75,7 +75,7 @@ namespace Moment::mex {
         std::pair<matlab::data::TypedArray<std::complex<double>>, matlab::data::TypedArray<std::complex<double>>>
         export_dense_monolith_complex_basis(matlab::engine::MATLABEngine &engine,
                                             matlab::data::ArrayFactory& factory,
-                                            const Matrix &mm) {
+                                            const SymbolicMatrix &mm) {
             const auto &[re_basis, im_basis] = mm.Basis.DenseMonolithicComplex();
 
             return std::make_pair(export_eigen_dense(engine, factory, re_basis),
@@ -86,7 +86,7 @@ namespace Moment::mex {
         std::pair<matlab::data::SparseArray<double>, matlab::data::SparseArray<std::complex<double>>>
         export_sparse_monolith_basis(matlab::engine::MATLABEngine &engine,
                                      matlab::data::ArrayFactory& factory,
-                                     const Matrix &mm) {
+                                     const SymbolicMatrix &mm) {
             const auto &[re_basis, im_basis] = mm.Basis.SparseMonolithic();
 
             return std::make_pair(export_eigen_sparse(engine, factory, re_basis),
@@ -96,7 +96,7 @@ namespace Moment::mex {
         std::pair<matlab::data::SparseArray<std::complex<double>>, matlab::data::SparseArray<std::complex<double>>>
         export_sparse_monolith_complex_basis(matlab::engine::MATLABEngine &engine,
                                              matlab::data::ArrayFactory& factory,
-                                             const Matrix &mm) {
+                                             const SymbolicMatrix &mm) {
             const auto &[re_basis, im_basis] = mm.Basis.SparseMonolithicComplex();
 
             return std::make_pair(export_eigen_sparse(engine, factory, re_basis),
@@ -104,7 +104,7 @@ namespace Moment::mex {
         }
     }
 
-    std::pair<matlab::data::Array, matlab::data::Array> BasisExporter::operator()(const Matrix &matrix) const {
+    std::pair<matlab::data::Array, matlab::data::Array> BasisExporter::operator()(const SymbolicMatrix &matrix) const {
         const auto real_coefficients = !matrix.HasComplexCoefficients();
 
         if (!this->Monolithic) {

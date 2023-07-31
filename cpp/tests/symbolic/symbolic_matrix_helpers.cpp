@@ -26,7 +26,7 @@ namespace Moment::Tests {
         return find_ptr->Id();
     }
 
-    void compare_symbol_matrices(const Matrix &test, const Matrix &reference,const std::string& label) {
+    void compare_symbol_matrices(const SymbolicMatrix &test, const SymbolicMatrix &reference, const std::string& label) {
         ASSERT_EQ(test.is_monomial(), reference.is_monomial()) << label;
 
         if (reference.is_monomial()) {
@@ -72,7 +72,7 @@ namespace Moment::Tests {
         }
     }
 
-    void compare_symbol_matrices(const Matrix& test,
+    void compare_symbol_matrices(const SymbolicMatrix& test,
                                  const std::vector<symbol_name_t>& reference, const std::string& label) {
         ASSERT_TRUE(test.is_monomial()) << label;
         const auto& test_mm = dynamic_cast<const MonomialMatrix&>(test);

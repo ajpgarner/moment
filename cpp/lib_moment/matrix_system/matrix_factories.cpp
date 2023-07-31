@@ -9,7 +9,7 @@
 #include "matrix_system.h"
 #include "matrix_factories.h"
 
-#include "matrix/matrix.h"
+#include "matrix/symbolic_matrix.h"
 #include "matrix/polynomial_matrix.h"
 #include "scenarios/context.h"
 #include "symbolic/rules/moment_rulebook.h"
@@ -19,15 +19,15 @@
 namespace Moment {
 
 
-    std::pair<ptrdiff_t, Matrix &>
+    std::pair<ptrdiff_t, SymbolicMatrix &>
     MomentMatrixFactory::operator()(MatrixSystemWriteLock& lock, const size_t level,
                                     const Multithreading::MultiThreadPolicy mt_policy) {
         const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
         system.matrices.emplace_back(system.createNewMomentMatrix(lock, level, mt_policy));
-        return std::pair<ptrdiff_t, Matrix&>(matrixIndex, *system.matrices.back());
+        return std::pair<ptrdiff_t, SymbolicMatrix&>(matrixIndex, *system.matrices.back());
     }
 
-    void MomentMatrixFactory::notify(const size_t level, Matrix &matrix) {
+    void MomentMatrixFactory::notify(const size_t level, SymbolicMatrix &matrix) {
         this->system.onNewMomentMatrixCreated(level, matrix);
     }
 
@@ -43,16 +43,16 @@ namespace Moment {
 
 
 
-    std::pair<ptrdiff_t, Matrix &>
+    std::pair<ptrdiff_t, SymbolicMatrix &>
     LocalizingMatrixFactory::operator()(MatrixSystemWriteLock& lock, const LocalizingMatrixIndex& lmi,
                                         Multithreading::MultiThreadPolicy mt_policy) {
         const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
         system.matrices.emplace_back(system.createNewLocalizingMatrix(lock, lmi, mt_policy));
-        return std::pair<ptrdiff_t, Matrix&>(matrixIndex, *system.matrices.back());
+        return std::pair<ptrdiff_t, SymbolicMatrix&>(matrixIndex, *system.matrices.back());
     }
 
 
-    void LocalizingMatrixFactory::notify(const LocalizingMatrixIndex &lmi, Matrix &matrix) {
+    void LocalizingMatrixFactory::notify(const LocalizingMatrixIndex &lmi, SymbolicMatrix &matrix) {
         this->system.onNewLocalizingMatrixCreated(lmi, matrix);
     }
 
@@ -96,7 +96,7 @@ namespace Moment {
     }
 
 
-    std::pair<ptrdiff_t, Matrix &>
+    std::pair<ptrdiff_t, SymbolicMatrix &>
     SubstitutedMatrixFactory::operator()(MatrixSystemWriteLock& lock,
                                          const Index& index,
                                          const Multithreading::MultiThreadPolicy mt_policy) {
@@ -111,7 +111,7 @@ namespace Moment {
         return {matrixIndex, *(system.matrices.back())};
     }
 
-    void SubstitutedMatrixFactory::notify(const std::pair<ptrdiff_t, ptrdiff_t> &index, Matrix &matrix) {
+    void SubstitutedMatrixFactory::notify(const std::pair<ptrdiff_t, ptrdiff_t> &index, SymbolicMatrix &matrix) {
         assert(index.first < system.matrices.size() && system.matrices[index.first]);
         assert(system.Rulebook.contains(index.second));
         const auto& src_matrix = *(system.matrices[index.first]);
@@ -141,15 +141,15 @@ namespace Moment {
     }
 
     /** Ensure MomentMatrixFactory meets concept. */
-    static_assert(makes_matrices<MomentMatrixFactory, Matrix, size_t>);
+    static_assert(makes_matrices<MomentMatrixFactory, SymbolicMatrix, size_t>);
 
     /** Ensure PolynomialLocalizingMatrixFactory meets concept. */
-    static_assert(makes_matrices<LocalizingMatrixFactory, Matrix, LocalizingMatrixIndex>);
+    static_assert(makes_matrices<LocalizingMatrixFactory, SymbolicMatrix, LocalizingMatrixIndex>);
 
     /** Ensure PolynomialLocalizingMatrixFactory meets concept. */
     static_assert(makes_matrices<PolynomialLocalizingMatrixFactory, PolynomialMatrix, PolynomialLMIndex>);
 
     /** Ensure SubstitutedMatrixFactory meets concept. */
-    static_assert(makes_matrices<SubstitutedMatrixFactory, Matrix, std::pair<ptrdiff_t, ptrdiff_t>>);
+    static_assert(makes_matrices<SubstitutedMatrixFactory, SymbolicMatrix, std::pair<ptrdiff_t, ptrdiff_t>>);
 
 }

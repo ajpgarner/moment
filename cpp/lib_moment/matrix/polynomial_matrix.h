@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "matrix.h"
+#include "symbolic_matrix.h"
 
 #include "symbolic/polynomial.h"
 #include "tensor/square_matrix.h"
@@ -14,7 +14,7 @@
 
 namespace Moment {
 
-    class PolynomialMatrix : public Matrix {
+    class PolynomialMatrix : public SymbolicMatrix {
     public:
         using ElementType = Polynomial;
         using MatrixData = SquareMatrix<Polynomial>;

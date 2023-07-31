@@ -114,7 +114,7 @@ namespace Moment {
         }
 
         /** Apply the properties from this operator matrix to the supplied matrix. */
-        void set_properties(Matrix& matrix) const;
+        void set_properties(SymbolicMatrix& matrix) const;
 
     };
 }

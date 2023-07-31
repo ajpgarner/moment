@@ -23,7 +23,7 @@ namespace Moment::Tests {
         bool herm;
     };
 
-    inline void compare_unique_sequences(const Matrix &theMM, std::initializer_list<unique_seq_brace_ref> reference) {
+    inline void compare_unique_sequences(const SymbolicMatrix &theMM, std::initializer_list<unique_seq_brace_ref> reference) {
         ASSERT_EQ(theMM.symbols.size(), 2 + reference.size());
 
         const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(theMM);

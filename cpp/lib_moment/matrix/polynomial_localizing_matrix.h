@@ -18,7 +18,7 @@ namespace Moment {
 
     class PolynomialLocalizingMatrix : public PolynomialMatrix {
     public:
-        using Constituents = std::vector<std::pair<const Matrix*, std::complex<double>>>;
+        using Constituents = std::vector<std::pair<const SymbolicMatrix*, std::complex<double>>>;
 
     private:
         PolynomialLMIndex index;

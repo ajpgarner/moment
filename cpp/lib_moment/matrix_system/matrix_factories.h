@@ -19,7 +19,7 @@
 
 namespace Moment {
 
-    class Matrix;
+    class SymbolicMatrix;
     class PolynomialMatrix;
     class MatrixSystem;
 
@@ -38,10 +38,10 @@ namespace Moment {
     public:
         explicit MomentMatrixFactory(MatrixSystem& system) : system{system} {}
 
-        [[nodiscard]] std::pair<ptrdiff_t, Matrix&>
+        [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
         operator()(MatrixSystemWriteLock& lock, Index level, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(size_t index, Matrix& matrix);
+        void notify(size_t index, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(Index level) const;
 
@@ -61,10 +61,10 @@ namespace Moment {
     public:
         explicit LocalizingMatrixFactory(MatrixSystem& system) : system{system} {}
 
-        [[nodiscard]] std::pair<ptrdiff_t, Matrix&>
+        [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
         operator()(MatrixSystemWriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const Index& lmi, Matrix& matrix);
+        void notify(const Index& lmi, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& lmi) const;
 
@@ -107,10 +107,10 @@ namespace Moment {
     public:
         explicit SubstitutedMatrixFactory(MatrixSystem& system) : system{system} {}
 
-        [[nodiscard]] std::pair<ptrdiff_t, Matrix&>
+        [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
         operator()(MatrixSystemWriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const Index& index, Matrix& matrix);
+        void notify(const Index& index, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& index) const;
 

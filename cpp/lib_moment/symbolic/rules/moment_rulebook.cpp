@@ -451,8 +451,8 @@ namespace Moment {
         return rule_iter->second.reduce(this->factory, expr);
     }
 
-    std::unique_ptr<Matrix>
-    MomentRulebook::create_substituted_matrix(SymbolTable& wSymbols, const Matrix &matrix,
+    std::unique_ptr<SymbolicMatrix>
+    MomentRulebook::create_substituted_matrix(SymbolTable& wSymbols, const SymbolicMatrix &matrix,
                                               const Multithreading::MultiThreadPolicy mt_policy) const {
         assert(&matrix.symbols == &wSymbols);
 

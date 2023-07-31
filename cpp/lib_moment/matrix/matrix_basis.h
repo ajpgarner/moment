@@ -14,7 +14,7 @@
 #include <string>
 
 namespace Moment {
-    class Matrix;
+    class SymbolicMatrix;
 
     namespace errors {
         class bad_basis_error : public std::runtime_error {
@@ -30,7 +30,7 @@ namespace Moment {
     class MatrixBasis {
     public:
 
-        friend class Matrix;
+        friend class SymbolicMatrix;
 
         template<typename MBTInfo>
         struct MatrixBasisImpl {
@@ -81,7 +81,7 @@ namespace Moment {
         };
 
     public:
-        const Matrix& matrix;
+        const SymbolicMatrix& matrix;
 
         /** Dense basis, indexed by symbols, with no imaginary elements for real part of symbols. */
         MatrixBasisImpl<DenseBasisInfo> Dense;
@@ -127,13 +127,13 @@ namespace Moment {
         mutable std::recursive_mutex mutex;
 
     public:
-        explicit MatrixBasis(const Matrix& matrix) : matrix{matrix},
-                                                     Dense{*this}, DenseComplex{*this},
-                                                     Sparse{*this}, SparseComplex{*this},
-                                                     DenseMonolithic{*this}, DenseMonolithicComplex{*this},
-                                                     SparseMonolithic{*this}, SparseMonolithicComplex{*this} { }
+        explicit MatrixBasis(const SymbolicMatrix& matrix) : matrix{matrix},
+                                                             Dense{*this}, DenseComplex{*this},
+                                                             Sparse{*this}, SparseComplex{*this},
+                                                             DenseMonolithic{*this}, DenseMonolithicComplex{*this},
+                                                             SparseMonolithic{*this}, SparseMonolithicComplex{*this} { }
 
-        MatrixBasis(const Matrix& matrix, MatrixBasis&& rhs) noexcept;
+        MatrixBasis(const SymbolicMatrix& matrix, MatrixBasis&& rhs) noexcept;
 
     private:
         DenseBasisInfo::MakeStorageType create_dense();

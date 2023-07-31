@@ -17,7 +17,7 @@
 #include <vector>
 
 namespace Moment {
-    class Matrix;
+    class SymbolicMatrix;
     class MatrixSystem;
     class SymbolTable;
 
@@ -211,8 +211,8 @@ namespace Moment {
          * @param mt_policy Whether or not to use multi-threading.
          * @return Newly created matrix, either of type MonomialSubstitutionMatrix or PolynomialSubstitutionMatrix.
          */
-        [[nodiscard]] std::unique_ptr<Matrix> create_substituted_matrix(SymbolTable& symbols, const Matrix& matrix,
-                        Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional) const;
+        [[nodiscard]] std::unique_ptr<SymbolicMatrix> create_substituted_matrix(SymbolTable& symbols, const SymbolicMatrix& matrix,
+                                                                                Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional) const;
 
 
         /**

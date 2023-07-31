@@ -1,10 +1,10 @@
 /**
- * matrix.cpp
+ * symbolic_matrix.cpp
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "matrix.h"
+#include "symbolic_matrix.h"
 
 #include "matrix_system/matrix_system.h"
 #include "operator_matrix/operator_matrix.h"
@@ -13,7 +13,7 @@
 
 namespace Moment {
 
-    Matrix::Matrix(const Context& context, SymbolTable& symbols, size_t dimension )
+    SymbolicMatrix::SymbolicMatrix(const Context& context, SymbolTable& symbols, size_t dimension )
         : context{context}, symbols{symbols}, symbol_table{symbols}, dimension{dimension}, Basis{*this} {
 
         if (debug_mode) {
@@ -21,16 +21,16 @@ namespace Moment {
         }
     }
 
-    Matrix::~Matrix() noexcept = default;
+    SymbolicMatrix::~SymbolicMatrix() noexcept = default;
 
-    const OperatorMatrix &Matrix::operator_matrix() const {
+    const OperatorMatrix &SymbolicMatrix::operator_matrix() const {
         if (!has_operator_matrix()) {
             throw errors::missing_component{"No operator matrix defined for this matrix."};
         }
         return *this->op_mat;
     }
 
-    std::ostream& operator<<(std::ostream& os, const Matrix& mp) {
+    std::ostream& operator<<(std::ostream& os, const SymbolicMatrix& mp) {
         os << mp.dimension << "x" << mp.dimension << " ";
         if (mp.complex_basis) {
             if (mp.hermitian) {

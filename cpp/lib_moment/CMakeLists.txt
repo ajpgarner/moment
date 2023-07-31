@@ -6,7 +6,7 @@ add_library(lib_moment
         dictionary/operator_sequence.cpp
         dictionary/operator_sequence_generator.cpp
         dictionary/dictionary.cpp
-        matrix/matrix.cpp
+        matrix/symbolic_matrix.cpp
         matrix/matrix_basis.cpp
         matrix/monomial_matrix.cpp
         matrix/monomial_matrix_basis.cpp

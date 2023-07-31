@@ -23,7 +23,7 @@
 namespace Moment::mex::functions {
 
     namespace {
-        const Matrix& getMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
+        const SymbolicMatrix& getMatrixOrThrow(matlab::engine::MATLABEngine &matlabEngine,
                                                const MatrixSystem& matrixSystem, size_t index) {
             try {
                 return matrixSystem[index];
@@ -139,7 +139,7 @@ namespace Moment::mex::functions {
 
     void GenerateBasis::generate_matrix_basis(IOArgumentRange &output, GenerateBasisParams &input,
                                               const MatrixSystem& matrixSystem) {
-        const auto& symbolic_matrix = [&]() -> const Matrix& {
+        const auto& symbolic_matrix = [&]() -> const SymbolicMatrix& {
             try {
                 return matrixSystem[input.matrix_index()];
             } catch (const Moment::errors::missing_component& mce) {

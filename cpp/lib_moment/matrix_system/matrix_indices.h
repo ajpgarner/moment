@@ -21,7 +21,7 @@
 #include <string>
 
 namespace Moment {
-    class Matrix;
+    class SymbolicMatrix;
     class MatrixSystem;
 
     /**
@@ -123,7 +123,7 @@ namespace Moment {
             auto existing = this->indices.find(index);
             if (existing >= 0) {
                 try {
-                    if constexpr (std::is_same_v<MatrixType, Moment::Matrix>) {
+                    if constexpr (std::is_same_v<MatrixType, Moment::SymbolicMatrix>) {
                         return std::pair<size_t, MatrixType&>{static_cast<size_t>(existing), this->system.get(existing)};
                     } else {
                         return std::pair<size_t, MatrixType&>{static_cast<size_t>(existing),
@@ -158,7 +158,7 @@ namespace Moment {
                 throw Moment::errors::missing_component(matrixFactory.not_found_msg(index));
             }
 
-            if constexpr(std::is_same_v<MatrixType, Moment::Matrix>) {
+            if constexpr(std::is_same_v<MatrixType, Moment::SymbolicMatrix>) {
                 return this->system[where]; // throws if bad offset.
             } else {
                 return dynamic_cast<MatrixType&>(this->system.matrices[where]); // throws if bad offset.
@@ -218,7 +218,7 @@ namespace Moment {
     /**
      * Alias for matrix indices backed by std::map.
      */
-    template<std::derived_from<Moment::Matrix> matrix_t,
+    template<std::derived_from<Moment::SymbolicMatrix> matrix_t,
             typename index_t,
             makes_matrices<matrix_t, index_t> factory_t,
             typename matrix_system_t>

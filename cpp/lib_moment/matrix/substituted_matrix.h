@@ -21,11 +21,11 @@ namespace Moment {
      */
     class SubstitutedMatrix {
     public:
-        const Matrix& source_matrix;
+        const SymbolicMatrix& source_matrix;
         const MomentRulebook& rules;
 
     public:
-        explicit SubstitutedMatrix(const Matrix& source, const MomentRulebook& rules) noexcept
+        explicit SubstitutedMatrix(const SymbolicMatrix& source, const MomentRulebook& rules) noexcept
             : source_matrix{source}, rules{rules} { }
 
     protected:

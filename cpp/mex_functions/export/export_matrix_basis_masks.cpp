@@ -6,7 +6,7 @@
  */
 #include "export_matrix_basis_masks.h"
 
-#include "matrix/matrix.h"
+#include "matrix/symbolic_matrix.h"
 #include "matrix/operator_matrix/operator_matrix.h"
 
 #include "symbolic/symbol_table.h"
@@ -18,7 +18,7 @@
 
 namespace Moment::mex {
 
-    matlab::data::TypedArray<int32_t> BasisKeyExporter::basis_key(const Matrix &matrix) {
+    matlab::data::TypedArray<int32_t> BasisKeyExporter::basis_key(const SymbolicMatrix &matrix) {
 
         matlab::data::ArrayDimensions dims{matrix.BasisKey().size(),
                                            (matrix.HasComplexBasis()) ? 3U : 2U};
@@ -44,7 +44,7 @@ namespace Moment::mex {
     }
 
     std::pair<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<uint64_t>>
-    BasisKeyExporter::basis_lists(const Matrix& matrix) {
+    BasisKeyExporter::basis_lists(const SymbolicMatrix& matrix) {
         // Prepare output lists
         auto output = std::make_pair(
                 factory.createArray<uint64_t>(matlab::data::ArrayDimensions{1, matrix.RealBasisIndices().size()}),
@@ -67,7 +67,7 @@ namespace Moment::mex {
     }
 
     std::pair<matlab::data::TypedArray<bool>, matlab::data::TypedArray<bool>>
-    BasisKeyExporter::basis_masks(const Matrix &matrix) {
+    BasisKeyExporter::basis_masks(const SymbolicMatrix &matrix) {
 
         // Create arrays, make them all false
         const auto real_symbol_count = matrix.symbols.Basis.RealSymbolCount();

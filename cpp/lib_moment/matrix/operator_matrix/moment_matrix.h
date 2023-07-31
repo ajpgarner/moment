@@ -65,7 +65,7 @@ namespace Moment {
          * If supplied input is symbol matrix associated with a monomial moment matrix, extract that moment matrix.
          * Otherwise, returns std::nullopt.
          */
-        static const MomentMatrix* as_monomial_moment_matrix_ptr(const Matrix& input) noexcept;
+        static const MomentMatrix* as_monomial_moment_matrix_ptr(const SymbolicMatrix& input) noexcept;
 
     };
 }

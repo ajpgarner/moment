@@ -196,7 +196,7 @@ namespace Moment::mex::functions {
     }
 
     namespace {
-        std::pair<size_t, const Moment::Matrix &> getMonoLM(MatrixSystem &system, LocalizingMatrixParams& input) {
+        std::pair<size_t, const Moment::SymbolicMatrix &> getMonoLM(MatrixSystem &system, LocalizingMatrixParams& input) {
             // Try to get via read-lock only
             auto read_lock = system.get_read_lock();
             auto lmi = input.to_monomial_index(system.Context());
@@ -210,7 +210,7 @@ namespace Moment::mex::functions {
             return system.LocalizingMatrix.create(lmi);
         }
 
-        std::pair<size_t, const Moment::Matrix &>
+        std::pair<size_t, const Moment::SymbolicMatrix &>
         getPolySymbolLM(MatrixSystem &system, LocalizingMatrixParams& input) {
             // Try to get in read-only mode
             auto read_lock = system.get_read_lock();
@@ -225,7 +225,7 @@ namespace Moment::mex::functions {
             return system.PolynomialLocalizingMatrix.create(plmi);
         }
 
-        std::pair<size_t, const Moment::Matrix &>
+        std::pair<size_t, const Moment::SymbolicMatrix &>
         getPolyOpLM(MatrixSystem &system, LocalizingMatrixParams& input) {
             // Can expression be parsed without new symbols?
             auto read_lock = system.get_read_lock();
@@ -260,7 +260,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    std::pair<size_t, const Moment::Matrix &>
+    std::pair<size_t, const Moment::SymbolicMatrix &>
     LocalizingMatrix::get_or_make_matrix(MatrixSystem &system, OperatorMatrixParams &inputOMP) {
         auto &input = dynamic_cast<LocalizingMatrixParams&>(inputOMP);
 

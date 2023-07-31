@@ -18,20 +18,20 @@
 
 namespace Moment {
 
-    class Matrix;
+    class SymbolicMatrix;
     class MatrixSystem;
     class PolynomialMatrix;
 
     /**
      * Stores moment matrices by integer hierarchy depth.
      */
-    using MomentMatrixIndices = MatrixIndices<Matrix, size_t, MomentMatrixIndexStorage,
+    using MomentMatrixIndices = MatrixIndices<SymbolicMatrix, size_t, MomentMatrixIndexStorage,
                                               MomentMatrixFactory, MatrixSystem>;
 
     /**
      * Stores monomial localizing matrices by localizing words and integer hierarchy depth.
      */
-    using LocalizingMatrixIndices = MappedMatrixIndices<Matrix, LocalizingMatrixIndex,
+    using LocalizingMatrixIndices = MappedMatrixIndices<SymbolicMatrix, LocalizingMatrixIndex,
                                                         LocalizingMatrixFactory, MatrixSystem>;
 
     /**
@@ -43,6 +43,6 @@ namespace Moment {
     /**
      * Stores substituted matrices by source index and rulebook index.
      */
-    using SubstitutedMatrixIndices = MappedMatrixIndices<Matrix, std::pair<ptrdiff_t, ptrdiff_t>,
+    using SubstitutedMatrixIndices = MappedMatrixIndices<SymbolicMatrix, std::pair<ptrdiff_t, ptrdiff_t>,
                                                          SubstitutedMatrixFactory, MatrixSystem>;
 }

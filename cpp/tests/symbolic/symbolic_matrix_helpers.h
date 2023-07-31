@@ -21,8 +21,8 @@ namespace Moment {
 namespace Moment::Tests {
     symbol_name_t find_or_fail(const SymbolTable& symbols, const OperatorSequence& seq);
 
-    void compare_symbol_matrices(const Matrix& test,
-                                 const Matrix& reference,
+    void compare_symbol_matrices(const SymbolicMatrix& test,
+                                 const SymbolicMatrix& reference,
                                  const std::string& label = "");
 
     void compare_symbol_matrices(const MonomialMatrix& test,
@@ -33,7 +33,7 @@ namespace Moment::Tests {
                                  const PolynomialMatrix& reference,
                                  const std::string& label = "");
 
-    void compare_symbol_matrices(const Matrix& test,
+    void compare_symbol_matrices(const SymbolicMatrix& test,
                                  const std::vector<symbol_name_t>& reference,
                                  const std::string& label = "");
 

@@ -15,7 +15,7 @@ namespace matlab::engine {
 
 namespace Moment {
     class SymbolTable;
-    class Matrix;
+    class SymbolicMatrix;
 }
 
 namespace Moment::mex {
@@ -31,7 +31,7 @@ namespace Moment::mex {
          * @param matrix The symbolic matrix.
          * @return 2xn or 3xn matlab array. First column are symbol ids, second real indices, third imaginary indices.
          */
-        matlab::data::TypedArray<int32_t> basis_key(const Matrix &matrix);
+        matlab::data::TypedArray<int32_t> basis_key(const SymbolicMatrix &matrix);
 
         /**
          * Outputs a list of real and imaginary symbols associated with a matrix.
@@ -39,7 +39,7 @@ namespace Moment::mex {
          * @return Pair of matlab arrays, first for real symbols, second for imaginary symbols.
          */
         std::pair<matlab::data::TypedArray<uint64_t>, matlab::data::TypedArray<uint64_t>>
-        basis_lists(const Matrix& matrix);
+        basis_lists(const SymbolicMatrix& matrix);
 
         /**
          * Outputs masks for the real and imaginary symbols associated with a matrix.
@@ -49,7 +49,7 @@ namespace Moment::mex {
          * @return Pair of matlab arrays, first for real symbols, second for imaginary symbols.
          */
         std::pair<matlab::data::TypedArray<bool>, matlab::data::TypedArray<bool>>
-        basis_masks(const Matrix& matrix);
+        basis_masks(const SymbolicMatrix& matrix);
     };
 
 }

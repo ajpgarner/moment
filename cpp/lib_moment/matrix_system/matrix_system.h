@@ -24,7 +24,7 @@ namespace Moment {
 
     class Context;
     class Dictionary;
-    class Matrix;
+    class SymbolicMatrix;
     class MomentRulebook;
     class OperatorSequenceGenerator;
     class PolynomialFactory;
@@ -47,7 +47,7 @@ namespace Moment {
         std::unique_ptr<PolynomialFactory> poly_factory;
 
         /** List of matrices in the system. */
-        std::vector<std::unique_ptr<Matrix>> matrices;
+        std::vector<std::unique_ptr<SymbolicMatrix>> matrices;
 
     public:
         /** Indexed moment matrices */
@@ -115,7 +115,7 @@ namespace Moment {
          * For thread safety, call for a read lock first.
          * @throws errors::missing_component If index is invalid.
          */
-        [[nodiscard]] const Matrix& operator[](size_t index) const;
+        [[nodiscard]] const SymbolicMatrix& operator[](size_t index) const;
 
         /**
          * Counts matrices in system.
@@ -167,7 +167,7 @@ namespace Moment {
          * @param mt_policy Is multithreaded creation used?
          * @return Owning pointer of new moment matrix.
          */
-        virtual std::unique_ptr<class Matrix>
+        virtual std::unique_ptr<class SymbolicMatrix>
         createNewMomentMatrix(WriteLock& lock, size_t level,
                               Multithreading::MultiThreadPolicy mt_policy );
 
@@ -177,7 +177,7 @@ namespace Moment {
          * @param mt_policy Is multithreaded creation used?
          * @return Owning pointer of new localizing matrix.
          */
-        virtual std::unique_ptr<class Matrix>
+        virtual std::unique_ptr<class SymbolicMatrix>
         createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex& lmi,
                                   Multithreading::MultiThreadPolicy mt_policy);
 
@@ -197,7 +197,7 @@ namespace Moment {
          * @param level The moment matrix level.
          * @param mm The newly generated moment matrix.
          */
-        virtual void onNewMomentMatrixCreated(size_t level, const class Matrix& mm) { }
+        virtual void onNewMomentMatrixCreated(size_t level, const class SymbolicMatrix& mm) { }
 
         /**
          * Virtual method, called after a (flat monomial) localizing matrix is generated.
@@ -205,7 +205,7 @@ namespace Moment {
          * @param lm The newly generated localizing matrix.
          */
         virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
-                                                  const class Matrix& lm) { }
+                                                  const class SymbolicMatrix& lm) { }
 
         /**
          * Virtual method, called after a polynomial localizing matrix is generated.
@@ -222,9 +222,9 @@ namespace Moment {
         * @param rulebook The rulebook.
         * @param subbed_matrix The newly created substituted matrix.
         */
-        virtual void onNewSubstitutedMatrixCreated(size_t source_index, const class Matrix& source,
+        virtual void onNewSubstitutedMatrixCreated(size_t source_index, const class SymbolicMatrix& source,
                                                    size_t rulebook_index, const MomentRulebook& rulebook,
-                                                   const class Matrix& subbed_matrix) { }
+                                                   const class SymbolicMatrix& subbed_matrix) { }
 
         /**
          * Virtual method, called after a dictionary is generated.
@@ -247,14 +247,14 @@ namespace Moment {
          * @return A reference to the requested matrix.
          * @throws errors::missing_component if index does not correspond to a matrix in the system.
          */
-        Matrix& get(size_t index);
+        SymbolicMatrix& get(size_t index);
 
         /**
          * Add symbolic matrix to end of array. Changes should not be made without a write lock.
          * @param matrix Owning pointer to matrix to add.
          * @return The index of the newly appended matrix.
          */
-        ptrdiff_t push_back(std::unique_ptr<Matrix> matrix);
+        ptrdiff_t push_back(std::unique_ptr<SymbolicMatrix> matrix);
 
     public:
         friend RulebookStorage;

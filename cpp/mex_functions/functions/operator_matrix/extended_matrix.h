@@ -44,7 +44,7 @@ namespace Moment::mex::functions {
     public:
         explicit ExtendedMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
-        std::pair<size_t, const Moment::Matrix&>
+        std::pair<size_t, const Moment::SymbolicMatrix&>
         get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) override;
 
     };

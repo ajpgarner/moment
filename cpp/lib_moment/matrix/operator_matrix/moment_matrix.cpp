@@ -1,5 +1,5 @@
 /**
- * npa_matrix.cpp
+ * moment_matrix.cpp
  *
  * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -114,7 +114,7 @@ namespace Moment {
         return ss.str();
     }
 
-    const MomentMatrix* MomentMatrix::as_monomial_moment_matrix_ptr(const Matrix& input) noexcept {
+    const MomentMatrix* MomentMatrix::as_monomial_moment_matrix_ptr(const SymbolicMatrix& input) noexcept {
         if (!input.is_monomial()) {
             return nullptr;
         }

@@ -15,7 +15,7 @@
 #include "inflation_probability_tensor.h"
 
 
-#include "matrix/matrix.h"
+#include "matrix/symbolic_matrix.h"
 #include "matrix/monomial_matrix.h"
 #include "matrix/operator_matrix/moment_matrix.h"
 
@@ -40,14 +40,14 @@ namespace Moment::Inflation {
 
     InflationMatrixSystem::~InflationMatrixSystem() noexcept = default;
 
-    void InflationMatrixSystem::onNewMomentMatrixCreated(size_t level, const Matrix& mm) {
+    void InflationMatrixSystem::onNewMomentMatrixCreated(size_t level, const SymbolicMatrix& mm) {
         // Register factors
         this->factors->on_new_symbols_added();
         MatrixSystem::onNewMomentMatrixCreated(level, mm);
     }
 
     void InflationMatrixSystem::onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi,
-                                                             const Matrix& lm) {
+                                                             const SymbolicMatrix& lm) {
         // Register factors
         this->factors->on_new_symbols_added();
         MatrixSystem::onNewLocalizingMatrixCreated(lmi, lm);

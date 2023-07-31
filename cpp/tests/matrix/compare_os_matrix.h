@@ -38,7 +38,7 @@ namespace Moment::Tests {
         EXPECT_EQ(row, dimension) << prefix;
     }
 
-    inline void compare_mm_os_matrix(const Matrix& theMM, size_t dimension,
+    inline void compare_mm_os_matrix(const SymbolicMatrix& theMM, size_t dimension,
                                      const std::initializer_list<OperatorSequence> reference) {
         const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(theMM);
         ASSERT_NE(mmPtr, nullptr) << "Was not a monomial moment matrix!";
@@ -48,7 +48,7 @@ namespace Moment::Tests {
         return compare_os_matrix(prefix, *mmPtr, dimension, reference);
     }
 
-    inline void compare_lm_os_matrix(const Matrix& theLM, size_t dimension,
+    inline void compare_lm_os_matrix(const SymbolicMatrix& theLM, size_t dimension,
                                      const std::initializer_list<OperatorSequence> reference) {
         const auto* lmPtr = LocalizingMatrix::as_monomial_localizing_matrix_ptr(theLM);
         ASSERT_NE(lmPtr, nullptr) << "Was not a monomial localizing matrix!";

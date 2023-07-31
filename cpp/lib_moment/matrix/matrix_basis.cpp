@@ -6,7 +6,7 @@
  */
 
 #include "matrix_basis.h"
-#include "matrix.h"
+#include "symbolic_matrix.h"
 
 namespace Moment {
   namespace {
@@ -153,7 +153,7 @@ namespace Moment {
         }
     }
 
-    MatrixBasis::MatrixBasis(const Matrix &rhs_matrix, MatrixBasis &&rhs) noexcept :
+    MatrixBasis::MatrixBasis(const SymbolicMatrix &rhs_matrix, MatrixBasis &&rhs) noexcept :
             matrix{rhs_matrix},
             Dense{*this, std::move(rhs.Dense)},
             DenseComplex{*this, std::move(rhs.DenseComplex)},

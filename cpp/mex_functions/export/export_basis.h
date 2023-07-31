@@ -17,7 +17,7 @@ namespace matlab::engine {
 }
 
 namespace Moment {
-    class Matrix;
+    class SymbolicMatrix;
 }
 
 
@@ -42,7 +42,7 @@ namespace Moment::mex {
         * @param matrix The matrix whose basis to output.
         */
         [[nodiscard]] std::pair<matlab::data::Array, matlab::data::Array>
-        operator()(const Matrix &matrix) const;
+        operator()(const SymbolicMatrix &matrix) const;
 
     };
 }

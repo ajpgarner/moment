@@ -108,9 +108,9 @@ namespace Moment::Inflation {
         createNewExtendedMatrix(MaintainsMutex::WriteLock &lock, const ExtendedMatrixIndex& index,
                                 Multithreading::MultiThreadPolicy mt_policy);
 
-        void onNewMomentMatrixCreated(size_t level, const class Matrix &mm) override;
+        void onNewMomentMatrixCreated(size_t level, const class SymbolicMatrix &mm) override;
 
-        void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const class Matrix &lm) override;
+        void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const class SymbolicMatrix &lm) override;
 
         virtual void onNewExtendedMatrixCreated(const ExtendedMatrixIndex&, const class ExtendedMatrix& em);
 

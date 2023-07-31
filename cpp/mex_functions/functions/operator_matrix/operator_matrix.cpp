@@ -25,7 +25,7 @@ namespace Moment::mex::functions  {
     namespace {
 
         void export_masks(matlab::engine::MATLABEngine &engine, IOArgumentRange& output,
-                          const MatrixSystem& system, const Matrix &matrix) {
+                          const MatrixSystem& system, const SymbolicMatrix &matrix) {
             const auto num_outputs = output.size();
             auto read_lock = system.get_read_lock();
 
@@ -252,7 +252,7 @@ namespace Moment::mex::functions  {
         }
     }
 
-    std::pair<size_t, const Moment::Matrix&>
+    std::pair<size_t, const Moment::SymbolicMatrix&>
     RawOperatorMatrix::get_or_make_matrix(MatrixSystem& system, OperatorMatrixParams &omp) {
         try {
             const auto &input = dynamic_cast<const RawOperatorMatrixParams &>(omp);

@@ -18,7 +18,7 @@
 
 namespace Moment {
     class Context;
-    class Matrix;
+    class SymbolicMatrix;
     class MatrixSystem;
     class MonomialMatrix;
     class PolynomialMatrix;
@@ -59,38 +59,38 @@ namespace Moment::mex {
          * @param matrix The matrix object.
          * @return A matlab string array.
          */
-        [[nodiscard]] matlab::data::StringArray name(const Matrix &matrix) const;
+        [[nodiscard]] matlab::data::StringArray name(const SymbolicMatrix &matrix) const;
 
         /**
          * Export matrix as cell array of polynomials, completely defined by monomial constituents.
          */
-        [[nodiscard]] matlab::data::CellArray polynomials(const Matrix& matrix) const;
+        [[nodiscard]] matlab::data::CellArray polynomials(const SymbolicMatrix& matrix) const;
 
         /**
          * Export matrix properties
          */
-        void properties(IOArgumentRange& output, size_t matrix_index, const Matrix& matrix) const;
+        void properties(IOArgumentRange& output, size_t matrix_index, const SymbolicMatrix& matrix) const;
 
         /**
           * Outputs a matrix of operator sequences, as a matlab string matrix.
           * @param matrix The matrix object.
           * @return A matlab string array.
           */
-        [[nodiscard]] matlab::data::StringArray sequence_strings(const Matrix& matrix) const;
+        [[nodiscard]] matlab::data::StringArray sequence_strings(const SymbolicMatrix& matrix) const;
 
         /**
          * Export matrix as symbol strings.
          * @param matrix The matrix object.
          * @return A matlab string array.
          */
-        [[nodiscard]] matlab::data::StringArray symbol_strings(const Matrix &matrix) const;
+        [[nodiscard]] matlab::data::StringArray symbol_strings(const SymbolicMatrix &matrix) const;
 
     public:
         /**
          * Return dimensions of supplied operator matrix.
          * @param matrix
          */
-        [[nodiscard]] static matlab::data::ArrayDimensions matrix_dimensions(const Matrix& matrix);
+        [[nodiscard]] static matlab::data::ArrayDimensions matrix_dimensions(const SymbolicMatrix& matrix);
 
     };
 

@@ -122,7 +122,7 @@ namespace Moment::mex {
     }
 
     void OperatorMatrixExporter::properties(IOArgumentRange &output, size_t matrix_index,
-                                                   const Matrix &theMatrix) const {
+                                                   const SymbolicMatrix &theMatrix) const {
         switch (output.size()) {
             default:
             case 4:
@@ -160,11 +160,11 @@ namespace Moment::mex {
         return output;
     }
 
-    matlab::data::StringArray OperatorMatrixExporter::name(const Matrix &matrix) const {
+    matlab::data::StringArray OperatorMatrixExporter::name(const SymbolicMatrix &matrix) const {
         return this->factory.createScalar(matrix.Description());
     }
 
-    matlab::data::CellArray OperatorMatrixExporter::polynomials(const Matrix &matrix) const {
+    matlab::data::CellArray OperatorMatrixExporter::polynomials(const SymbolicMatrix &matrix) const {
         if (matrix.is_monomial()) {
             return do_export_polynomials(*this, dynamic_cast<const MonomialMatrix&>(matrix));
         } else {
@@ -172,7 +172,7 @@ namespace Moment::mex {
         }
     }
 
-    matlab::data::StringArray OperatorMatrixExporter::sequence_strings(const Matrix &matrix) const {
+    matlab::data::StringArray OperatorMatrixExporter::sequence_strings(const SymbolicMatrix &matrix) const {
         if (matrix.is_monomial()) {
             return this->sequence_string_exporter(dynamic_cast<const MonomialMatrix&>(matrix));
         } else {
@@ -180,7 +180,7 @@ namespace Moment::mex {
         }
     }
 
-    matlab::data::StringArray OperatorMatrixExporter::symbol_strings(const Matrix &matrix) const {
+    matlab::data::StringArray OperatorMatrixExporter::symbol_strings(const SymbolicMatrix &matrix) const {
         if (matrix.is_monomial()) {
             return do_export_symbol_strings(*this, dynamic_cast<const MonomialMatrix&>(matrix));
         } else {
@@ -188,7 +188,7 @@ namespace Moment::mex {
         }
     }
 
-    matlab::data::ArrayDimensions OperatorMatrixExporter::matrix_dimensions(const Matrix &matrix)  {
+    matlab::data::ArrayDimensions OperatorMatrixExporter::matrix_dimensions(const SymbolicMatrix &matrix)  {
         return {matrix.Dimension(), matrix.Dimension()};
     }
 

@@ -15,7 +15,7 @@
 
 namespace Moment {
     namespace {
-       inline SymbolTable& assert_symbols(SymbolTable& symbols, const Matrix& the_source) {
+       inline SymbolTable& assert_symbols(SymbolTable& symbols, const SymbolicMatrix& the_source) {
             assert(&symbols == &the_source.symbols);
             return symbols;
         }

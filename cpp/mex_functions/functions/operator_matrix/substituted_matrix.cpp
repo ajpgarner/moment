@@ -50,7 +50,7 @@ namespace Moment::mex::functions  {
         this->max_inputs = 3;
     }
 
-    std::pair<size_t, const Moment::Matrix &>
+    std::pair<size_t, const Moment::SymbolicMatrix &>
     SubstitutedMatrix::get_or_make_matrix(MatrixSystem &system, OperatorMatrixParams &omp) {
         auto& avp = dynamic_cast<SubstitutedMatrixParams&>(omp);
         return system.SubstitutedMatrix.create(SubstitutedMatrixIndices::Index(avp.matrix_index, avp.rules_index));

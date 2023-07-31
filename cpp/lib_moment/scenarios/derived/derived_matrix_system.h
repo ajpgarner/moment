@@ -90,10 +90,10 @@ namespace Moment::Derived {
         [[nodiscard]] virtual std::string describe_map() const;
 
     protected:
-        [[nodiscard]] std::unique_ptr<class Matrix>
+        [[nodiscard]] std::unique_ptr<class SymbolicMatrix>
         createNewMomentMatrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
 
-        [[nodiscard]] std::unique_ptr<class Matrix>
+        [[nodiscard]] std::unique_ptr<class SymbolicMatrix>
         createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
                                   Multithreading::MultiThreadPolicy mt_policy) override;
 

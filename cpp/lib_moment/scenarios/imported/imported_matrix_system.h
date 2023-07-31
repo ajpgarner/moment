@@ -48,7 +48,7 @@ namespace Moment::Imported {
          * @return The index of the newly inserted matrix, and a reference to it in situ.
          * Do not call for read lock before importing matrix! System will call its own write lock.
          */
-        std::pair<size_t, class Matrix&>
+        std::pair<size_t, class SymbolicMatrix&>
         import_matrix(std::unique_ptr<SquareMatrix<Monomial>> input, bool is_complex, bool is_hermitian);
 
         std::string system_type_name() const override {
@@ -56,10 +56,10 @@ namespace Moment::Imported {
         }
 
     protected:
-        std::unique_ptr<class Matrix>
+        std::unique_ptr<class SymbolicMatrix>
         createNewMomentMatrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
 
-        std::unique_ptr<class Matrix>
+        std::unique_ptr<class SymbolicMatrix>
         createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
                                   Multithreading::MultiThreadPolicy mt_policy) override;
 

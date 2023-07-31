@@ -24,9 +24,9 @@
 namespace Moment::Derived {
 
     namespace {
-        std::unique_ptr<Matrix> do_create_transformed_matrix(const Context& context, SymbolTable& symbols,
-                                                             double zero_tolerance,
-                                                             const SymbolTableMap& map, const Matrix& source_matrix) {
+        std::unique_ptr<SymbolicMatrix> do_create_transformed_matrix(const Context& context, SymbolTable& symbols,
+                                                                     double zero_tolerance,
+                                                                     const SymbolTableMap& map, const SymbolicMatrix& source_matrix) {
             // Monomial map on monomial matrix creates monomial matrix
             if (map.is_monomial_map() && source_matrix.is_monomial()) {
                 auto mono_sym_mat_ptr = map.monomial(dynamic_cast<const MonomialMatrix &>(source_matrix).SymbolMatrix());
@@ -70,7 +70,7 @@ namespace Moment::Derived {
         return std::make_unique<Derived::DerivedContext>(source.Context());
     }
 
-    std::unique_ptr<class Matrix>
+    std::unique_ptr<class SymbolicMatrix>
     DerivedMatrixSystem::createNewMomentMatrix(MaintainsMutex::WriteLock &lock,
                                                size_t level, Multithreading::MultiThreadPolicy mt_policy) {
         // First check if map is capable of defining this MM.
@@ -84,7 +84,7 @@ namespace Moment::Derived {
         }
 
         // Check source moment matrix exists, create it if it doesn't
-        const auto& source_matrix = [&]() -> const class Matrix& {
+        const auto& source_matrix = [&]() -> const class SymbolicMatrix& {
             auto read_source_lock = this->base_system().get_read_lock();
             // Get, if exists
             auto index = this->base_system().MomentMatrix.find_index(level);
@@ -105,7 +105,7 @@ namespace Moment::Derived {
                                             this->map(), source_matrix);
     }
 
-    std::unique_ptr<class Matrix>
+    std::unique_ptr<class SymbolicMatrix>
     DerivedMatrixSystem::createNewLocalizingMatrix(MaintainsMutex::WriteLock &lock,
                                                    const LocalizingMatrixIndex &lmi,
                                                    Multithreading::MultiThreadPolicy mt_policy) {
@@ -122,7 +122,7 @@ namespace Moment::Derived {
         }
 
         // Check if source localizing matrix exists, create it if it doesn't
-        const auto& source_matrix = [&]() -> const class Matrix& {
+        const auto& source_matrix = [&]() -> const class SymbolicMatrix& {
             auto read_source_lock = this->base_system().get_read_lock();
             // Get, if exists
             auto index = this->base_system().LocalizingMatrix.find_index(lmi);

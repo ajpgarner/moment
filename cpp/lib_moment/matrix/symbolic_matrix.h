@@ -1,5 +1,5 @@
 /**
- * matrix.h
+ * symbolic_matrix.h
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -27,7 +27,7 @@ namespace Moment {
     class SymbolTable;
     class Context;
 
-    class Matrix {
+    class SymbolicMatrix {
 
     public:
         /** Defining scenario for matrix (especially: rules for simplifying operator sequences). */
@@ -81,13 +81,13 @@ namespace Moment {
 
 
     public:
-        Matrix(const Context& context, SymbolTable& symbols, size_t dimension = 0);
+        SymbolicMatrix(const Context& context, SymbolTable& symbols, size_t dimension = 0);
 
-        Matrix(const Matrix& rhs) = delete;
+        SymbolicMatrix(const SymbolicMatrix& rhs) = delete;
 
-        Matrix(Matrix&& rhs) noexcept = delete;
+        SymbolicMatrix(SymbolicMatrix&& rhs) noexcept = delete;
 
-        virtual ~Matrix() noexcept;
+        virtual ~SymbolicMatrix() noexcept;
 
         /**
          * Dimension of the matrix
@@ -170,7 +170,7 @@ namespace Moment {
          /**
           * Output matrix properties.
           */
-          friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix);
+          friend std::ostream& operator<<(std::ostream& os, const SymbolicMatrix& matrix);
 
         /**
          * Force renumbering of matrix bases keys
@@ -212,6 +212,6 @@ namespace Moment {
     };
 
     template <typename elem_t>
-    struct MatrixSpecialization { using type = Matrix; };
+    struct MatrixSpecialization { using type = SymbolicMatrix; };
 
 }

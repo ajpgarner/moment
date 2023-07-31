@@ -102,12 +102,12 @@ namespace Moment::Imported {
 
     }
 
-    std::unique_ptr<class Matrix>
+    std::unique_ptr<class SymbolicMatrix>
     ImportedMatrixSystem::createNewMomentMatrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
-    std::unique_ptr<class Matrix>
+    std::unique_ptr<class SymbolicMatrix>
     ImportedMatrixSystem::createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
                                                     Multithreading::MultiThreadPolicy mt_policy) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
@@ -119,7 +119,7 @@ namespace Moment::Imported {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
-    std::pair<size_t, class Matrix&>
+    std::pair<size_t, class SymbolicMatrix&>
     ImportedMatrixSystem::import_matrix(std::unique_ptr<SquareMatrix<Monomial>> input,
                                         const bool is_complex, const bool is_hermitian) {
         assert(input);
@@ -188,7 +188,7 @@ namespace Moment::Imported {
         auto matPr = std::make_unique<MonomialMatrix>(this->Context(), this->Symbols(),
                                                       this->polynomial_factory().zero_tolerance,
                                                       std::move(input), is_hermitian);
-        Matrix& matRef = *matPr;
+        SymbolicMatrix& matRef = *matPr;
         size_t index = this->push_back(std::move(matPr));
         return {index, matRef};
     }
