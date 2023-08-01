@@ -64,8 +64,6 @@ namespace Moment::Symmetrized {
                              const RepresentationMapper& parent_B,
                              size_t max_word_length);
 
-        // RepresentationMapper(const Context& context, size_t max_word_length);
-
         /** Dimension of Kronecker product */
         [[nodiscard]] inline size_t raw_dimension() const noexcept { return this->raw_dim; }
 

@@ -34,7 +34,9 @@ namespace Moment::Symmetrized {
             SymmetrizedSTMFactory(Group &group, size_t max_word_length,
                                   std::unique_ptr<Derived::MapCoreProcessor>&& processor) noexcept;
 
-            std::unique_ptr<Derived::SymbolTableMap> operator()(const SymbolTable& origin, SymbolTable& target) final;
+            std::unique_ptr<Derived::SymbolTableMap> operator()(const SymbolTable& origin,
+                                                                SymbolTable& target,
+                                                                Multithreading::MultiThreadPolicy mt_policy) final;
 
         };
 
@@ -58,7 +60,8 @@ namespace Moment::Symmetrized {
                                 std::unique_ptr<Group>&& group,
                                 size_t max_word_length,
                                 std::unique_ptr<Derived::MapCoreProcessor>&& processor,
-                                double zero_tolerance = -1.0);
+                                double zero_tolerance = -1.0,
+                                Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
         ~SymmetrizedMatrixSystem() noexcept override;
 

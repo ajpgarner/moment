@@ -64,6 +64,7 @@ add_library(lib_moment
         scenarios/locality/party.cpp
         scenarios/locality/party_measurement_index.cpp
         scenarios/symmetrized/group.cpp
+        scenarios/symmetrized/group_rep_generation_worker.cpp
         scenarios/symmetrized/representation.cpp
         scenarios/symmetrized/representation_mapper.cpp
         scenarios/symmetrized/symmetrized_matrix_system.cpp

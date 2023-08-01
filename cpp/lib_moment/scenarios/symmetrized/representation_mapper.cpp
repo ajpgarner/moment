@@ -102,17 +102,10 @@ namespace Moment::Symmetrized {
             size_t true_index = 0;
 
             for (const auto mapped_index : remap) {
-
-
-//                const bool remapped = mapped_index != expected_index;
-
-                //if (!remapped) {
                 if (!done_map.test(mapped_index)) {
                     triplets.emplace_back(static_cast<int>(true_index),   // row
                                           static_cast<int>(mapped_index), // col
                                           1.0);
-//                    ++expected_index;
-//                }
 
                     done_map.set(mapped_index);
                 }

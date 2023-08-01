@@ -111,7 +111,24 @@ namespace Moment::Multithreading {
                     return false;
                 }
                 size_t difficulty = elements * std::ceil(std::log2(static_cast<double>(rules)));
-                return difficulty > minimum_rule_difficulty;
+                return difficulty >= minimum_rule_difficulty;
+            }
+        }
+    }
+
+    bool should_multithread_group_rep_generation(MultiThreadPolicy policy,
+                                                 const size_t raw_dim, const size_t group_elements) {
+        switch (policy) {
+            case MultiThreadPolicy::Never:
+                return false;
+            case MultiThreadPolicy::Always:
+                return true;
+            case MultiThreadPolicy::Optional:
+            default: {
+                if (group_elements <= 1) {
+                    return false;
+                }
+                return (raw_dim * raw_dim * group_elements) >= minimum_rule_difficulty;
             }
         }
     }

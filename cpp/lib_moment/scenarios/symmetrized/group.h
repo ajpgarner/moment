@@ -8,6 +8,9 @@
 
 #include "representation.h"
 
+#include "multithreading/multithreading.h"
+
+#include "utilities/maintains_mutex.h"
 #include "utilities/small_vector.h"
 
 #include <Eigen/Sparse>
@@ -36,7 +39,10 @@ namespace Moment::Symmetrized {
 
     class RepresentationMapper;
 
-    class Group {
+    class Group : private MaintainsMutex {
+    public:
+        using build_list_t = SmallVector<size_t, 4>;
+
     public:
         /** Context this group represents a symmetry on */
         const Context& context;
@@ -48,7 +54,6 @@ namespace Moment::Symmetrized {
         const size_t size;
 
     private:
-        mutable std::shared_mutex mutex;
         std::vector<std::unique_ptr<Representation>> representations;
         std::vector<std::unique_ptr<RepresentationMapper>> mappers;
 
@@ -57,11 +62,14 @@ namespace Moment::Symmetrized {
 
         ~Group() noexcept;
 
-        const Representation& create_representation(size_t word_length);
+        const Representation&
+        create_representation(size_t word_length,
+                              Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
         const Representation& representation(size_t word_length) const;
 
     private:
+
 
 
     public:
@@ -74,10 +82,17 @@ namespace Moment::Symmetrized {
         dimino_generation(const std::vector<repmat_t>& generators,
                          size_t max_subgroup_size = 1000000);
 
-        [[nodiscard]] static SmallVector<size_t, 4> decompose_build_list(size_t word_length);
+        [[nodiscard]] static build_list_t decompose_build_list(size_t word_length);
+
+        /**
+         * For a given word length, get its parent representations.
+         * Undefined behaviour if representations are not in supplied vector.
+         */
+        [[nodiscard]] static std::pair<const Representation&, const Representation&>
+        determine_parent_representations(const std::vector<std::unique_ptr<Representation>>&, size_t wl) noexcept;
 
     private:
-        void identify_and_build_representations(const size_t word_length);
+        void identify_and_build_representations(const size_t word_length, Multithreading::MultiThreadPolicy mt_policy);
 
     };
 

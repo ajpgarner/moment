@@ -26,7 +26,8 @@ namespace Moment::Symmetrized {
 
     std::unique_ptr<Derived::SymbolTableMap>
     SymmetrizedMatrixSystem::SymmetrizedSTMFactory::operator()(const SymbolTable& origin_symbols,
-                                                               SymbolTable& target_symbols) {
+                                                               SymbolTable& target_symbols,
+                                                               Multithreading::MultiThreadPolicy mt_policy) {
         // First, ensure source defines enough symbols to do generation
         const auto osg_length = origin_symbols.OSGIndex.max_length();
         if (osg_length < max_word_length) {
@@ -37,7 +38,7 @@ namespace Moment::Symmetrized {
         }
 
         // Next, ensure group has representation for requested length.
-        const auto& group_rep = this->group.create_representation(max_word_length);
+        const auto& group_rep = this->group.create_representation(max_word_length, mt_policy);
 
         // Next, get average of group action in this representation
         const repmat_t average = group_rep.sum_of() / static_cast<double>(group.size);
@@ -50,10 +51,11 @@ namespace Moment::Symmetrized {
                                                      std::unique_ptr<Group>&& group,
                                                      const size_t max_word_length,
                                                      std::unique_ptr<Derived::MapCoreProcessor>&& processor,
-                                                     double tolerance)
+                                                     double tolerance,
+                                                     Multithreading::MultiThreadPolicy mt_policy)
         : Derived::DerivedMatrixSystem{std::move(base_system),
                                        SymmetrizedSTMFactory{*group, max_word_length, std::move(processor)},
-                                       tolerance},
+                                       tolerance, mt_policy},
           symmetry{std::move(group)}, max_word_length{max_word_length} {
 
     }

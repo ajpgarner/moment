@@ -140,44 +140,44 @@ namespace Moment::Tests {
     TEST(Scenarios_Symmetry_Group, DecomposeBuildList3) {
         auto dc = Group::decompose_build_list(3);
         ASSERT_EQ(dc.size(), 2);
-        EXPECT_EQ(dc[0], 3);
-        EXPECT_EQ(dc[1], 2);
+        EXPECT_EQ(dc[0], 2);
+        EXPECT_EQ(dc[1], 3);
     }
 
     TEST(Scenarios_Symmetry_Group, DecomposeBuildList4) {
         auto dc = Group::decompose_build_list(4);
         ASSERT_EQ(dc.size(), 2);
-        EXPECT_EQ(dc[0], 4);
-        EXPECT_EQ(dc[1], 2);
+        EXPECT_EQ(dc[0], 2);
+        EXPECT_EQ(dc[1], 4);
     }
 
     TEST(Scenarios_Symmetry_Group, DecomposeBuildList7) {
         auto dc = Group::decompose_build_list(7);
         ASSERT_EQ(dc.size(), 4);
-        EXPECT_EQ(dc[0], 7);
-        EXPECT_EQ(dc[1], 4);
-        EXPECT_EQ(dc[2], 3);
-        EXPECT_EQ(dc[3], 2);
+        EXPECT_EQ(dc[0], 2);
+        EXPECT_EQ(dc[1], 3);
+        EXPECT_EQ(dc[2], 4);
+        EXPECT_EQ(dc[3], 7);
     }
 
     TEST(Scenarios_Symmetry_Group, DecomposeBuildList10) {
         auto dc = Group::decompose_build_list(10);
         ASSERT_EQ(dc.size(), 4);
-        EXPECT_EQ(dc[0], 10);
-        EXPECT_EQ(dc[1], 8);
-        EXPECT_EQ(dc[2], 4);
-        EXPECT_EQ(dc[3], 2);
+        EXPECT_EQ(dc[0], 2);
+        EXPECT_EQ(dc[1], 4);
+        EXPECT_EQ(dc[2], 8);
+        EXPECT_EQ(dc[3], 10);
     }
 
     TEST(Scenarios_Symmetry_Group, DecomposeBuildList21) {
         auto dc = Group::decompose_build_list(21);
         ASSERT_EQ(dc.size(), 6);
-        EXPECT_EQ(dc[0], 21);
-        EXPECT_EQ(dc[1], 16);
-        EXPECT_EQ(dc[2], 8);
-        EXPECT_EQ(dc[3], 5);
-        EXPECT_EQ(dc[4], 4);
-        EXPECT_EQ(dc[5], 2);
+        EXPECT_EQ(dc[0], 2);
+        EXPECT_EQ(dc[1], 4);
+        EXPECT_EQ(dc[2], 5);
+        EXPECT_EQ(dc[3], 8);
+        EXPECT_EQ(dc[4], 16);
+        EXPECT_EQ(dc[5], 21);
     }
 
 

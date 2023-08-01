@@ -10,6 +10,8 @@
 #include "matrix_system/matrix_system.h"
 #include "../derived/derived_matrix_system.h"
 
+#include "multithreading/multithreading.h"
+
 #include <memory>
 
 namespace Moment::Derived {
@@ -31,7 +33,7 @@ namespace Moment::Derived {
 
         public:
             [[nodiscard]] virtual std::unique_ptr<SymbolTableMap>
-            operator()(const SymbolTable& origin, SymbolTable& target) = 0;
+            operator()(const SymbolTable& origin, SymbolTable& target, Multithreading::MultiThreadPolicy mt_policy) = 0;
         };
 
 
@@ -47,7 +49,8 @@ namespace Moment::Derived {
 
     public:
         explicit DerivedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system, STMFactory&& stmf,
-                                     double tolerance = -1.0);
+                                     double tolerance = -1.0,
+                             Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
         virtual ~DerivedMatrixSystem() noexcept;
 

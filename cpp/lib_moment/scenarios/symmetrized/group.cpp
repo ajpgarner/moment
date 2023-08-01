@@ -6,6 +6,7 @@
  */
 #include "group.h"
 #include "representation_mapper.h"
+#include "group_rep_generation_worker.h"
 
 #include "dictionary/operator_sequence_generator.h"
 
@@ -13,7 +14,6 @@
 
 #include <atomic>
 #include <iostream>
-#include <ranges>
 #include <set>
 
 namespace Moment::Symmetrized {
@@ -30,6 +30,65 @@ namespace Moment::Symmetrized {
                 throw std::runtime_error{"Initial representation cannot be null pointer."};
             }
             return rep_ptr.get();
+        }
+
+        template<typename object_t>
+        std::pair<const object_t&, const object_t&>
+        determine_parents(const std::vector<std::unique_ptr<object_t>>& objects, const size_t len) noexcept {
+            const bool is_power_two = (std::popcount(len) == 1);
+            if (is_power_two) {
+                const size_t parent_length = (len >> 1);
+                assert(objects[parent_length-1]);
+                return {*objects[parent_length-1], *objects[parent_length-1]};
+            }
+            const size_t bitfloor = std::bit_floor(len);
+            const size_t remainder = len ^ bitfloor;
+            assert(objects[bitfloor-1]);
+            assert(objects[remainder-1]);
+            return {*objects[bitfloor-1], *objects[remainder-1]};
+        }
+
+        void build_representations_single_thread(std::vector<std::unique_ptr<Representation>>& representations,
+                                                 std::vector<std::unique_ptr<RepresentationMapper>>& mappers,
+                                                 const size_t group_size,
+                                                 const Group::build_list_t& build_list) {
+            // Build representations
+            for (const auto wl : build_list) {
+                // Do not build, if already built
+                assert(!representations[wl-1]);
+
+                // Get parent representations
+                const auto& [left_parent, right_parent] = determine_parents<Representation>(representations, wl);
+
+                assert(left_parent.size() == right_parent.size());
+
+                // Get mapper
+                const auto& mapper = *mappers[wl-1];
+
+                // Combine parents to make new representation
+                std::vector<repmat_t> new_rep_data;
+                new_rep_data.reserve(group_size);
+                for (size_t idx = 0; idx < group_size; ++idx) {
+                    new_rep_data.emplace_back(mapper(left_parent[idx], right_parent[idx]));
+                }
+
+                representations[wl-1] = std::make_unique<Representation>(wl, std::move(new_rep_data));
+            }
+        }
+
+        void build_representations_multi_thread(std::vector<std::unique_ptr<Representation>>& representations,
+                                                std::vector<std::unique_ptr<RepresentationMapper>>& mappers,
+                                                const size_t group_size, const Group::build_list_t& build_list) {
+            // No point parallelizing if just one element
+            if (group_size <= 1) {
+                build_representations_single_thread(representations, mappers, group_size, build_list);
+                return;
+            }
+
+
+            Multithreading::GroupRepGenerationBundle worker_bundle{representations, mappers, group_size, build_list};
+            worker_bundle.execute();
+
         }
 
     }
@@ -139,20 +198,21 @@ namespace Moment::Symmetrized {
     }
 
 
-    const Representation& Group::create_representation(const size_t word_length) {
+    const Representation& Group::create_representation(const size_t word_length,
+                                                       const Multithreading::MultiThreadPolicy mt_policy) {
         if (word_length <= 0) {
             throw std::range_error{"Word length must be at least 1."};
         }
         const size_t index = word_length - 1;
 
-        std::shared_lock read_lock{this->mutex};
+        auto read_lock = this->get_read_lock();
         if ((index < this->representations.size()) && this->representations[index]) {
             return *this->representations[index]; // unlock read_lock
         }
 
         // Could not retrieve, obtain write lock to create
         read_lock.unlock();
-        std::unique_lock write_lock{this->mutex};
+        auto write_lock = this->get_write_lock();
 
         // Avoid race condition creation:~
         std::atomic_thread_fence(std::memory_order_acquire);
@@ -161,7 +221,7 @@ namespace Moment::Symmetrized {
         }
 
         // Do build
-        this->identify_and_build_representations(word_length);
+        this->identify_and_build_representations(word_length, mt_policy);
 
         // Get newly constructed representation+
         assert(this->representations[index]);
@@ -169,7 +229,7 @@ namespace Moment::Symmetrized {
     }
 
     const Representation& Group::representation(const size_t word_length) const {
-        std::shared_lock lock{this->mutex};
+        auto read_lock = this->get_read_lock();
 
         if (word_length <= 0) {
             throw std::range_error{"Word length must be at least 1."};
@@ -188,13 +248,13 @@ namespace Moment::Symmetrized {
 
 
     /** Split target rep size into (reverse) ordered constituent rep sizes */
-    SmallVector<size_t, 4> Group::decompose_build_list(const size_t target_word_length) {
+    Group::build_list_t Group::decompose_build_list(const size_t target_word_length) {
         // Rep 0 and Rep 1 are always "done"
         if (target_word_length <= 1) {
             return SmallVector<size_t, 4>{};
         }
 
-        SmallVector<size_t, 4> output;
+        build_list_t output;
         size_t remainder = target_word_length;
         do {
             output.emplace_back(remainder);
@@ -218,11 +278,14 @@ namespace Moment::Symmetrized {
             }
         } while(remainder > 1);
 
+        std::reverse(output.begin(), output.end());
+
         assert(!output.empty());
         return output;
     }
 
-    void Group::identify_and_build_representations(const size_t word_length) {
+    void Group::identify_and_build_representations(const size_t word_length,
+                                                   Multithreading::MultiThreadPolicy mt_policy) {
         // Assume lock is held!
 
         // First, check mapper ptr list is long enough
@@ -234,26 +297,14 @@ namespace Moment::Symmetrized {
         const auto build_list = Group::decompose_build_list(word_length);
 
         // Make sure mappers are built.
-        for (const auto wl : std::ranges::reverse_view(build_list)) {
+        for (const auto wl : build_list) {
             // Do not build, if already built.
             if (this->mappers[wl-1]) {
                 continue;
             }
 
-            // Otherwise, work out parents:
-            const auto& [left_parent, right_parent]
-                = [this](const size_t len) -> std::pair<const RepresentationMapper&,const RepresentationMapper&> {
-                const bool is_power_two = (std::popcount(len) == 1);
-                if (is_power_two) {
-                    const size_t parent_length = (len >> 1);
-                    return {*this->mappers[parent_length-1], *this->mappers[parent_length-1]};
-                }
-                const size_t bitfloor = std::bit_floor(len);
-                const size_t remainder = len ^ bitfloor;
-                assert(this->mappers[bitfloor-1]);
-                assert(this->mappers[remainder-1]);
-                return {*this->mappers[bitfloor-1], *this->mappers[remainder-1]};
-            }(wl);
+            // Otherwise, work out parent mappers:
+            const auto& [left_parent, right_parent] = determine_parents<RepresentationMapper>(this->mappers, wl);
 
             // Make mapper
             this->mappers[wl-1] = std::make_unique<RepresentationMapper>(context, left_parent, right_parent, wl);
@@ -264,43 +315,31 @@ namespace Moment::Symmetrized {
             this->representations.resize(word_length);
         }
 
-
-        // Build representations
-        for (const auto wl : std::ranges::reverse_view(build_list)) {
-            // Do not build, if already built
-            if (this->representations[wl-1]) {
-                continue;
+        // Finally, remove already built representations from build list
+        Group::build_list_t pruned_list;
+        for (const auto wl : build_list) {
+            if (!this->representations[wl-1]) {
+                pruned_list.emplace_back(wl);
             }
-
-            // Get parent representations
-            const auto& [left_parent, right_parent]
-                = [this](const size_t len) -> std::pair<const Representation&,const Representation&> {
-                    const bool is_power_two = (std::popcount(len) == 1);
-                    if (is_power_two) {
-                        const size_t parent_length = (len >> 1);
-                        return {*this->representations[parent_length-1], *this->representations[parent_length-1]};
-                    }
-                    const size_t bitfloor = std::bit_floor(len);
-                    const size_t remainder = len ^ bitfloor;
-                    assert(this->representations[bitfloor-1]);
-                    assert(this->representations[remainder-1]);
-                    return {*this->representations[bitfloor-1], *this->representations[remainder-1]};
-                }(wl);
-
-            assert(left_parent.size() == right_parent.size());
-
-            // Get mapper
-            const auto& mapper = *this->mappers[wl-1];
-
-            // Combine parents to make new representation
-            std::vector<repmat_t> new_rep_data;
-            new_rep_data.reserve(this->size);
-            for (size_t idx = 0; idx < this->size; ++idx) {
-                new_rep_data.emplace_back(mapper(left_parent[idx], right_parent[idx]));
-            }
-
-            this->representations[wl-1] = std::make_unique<Representation>(wl, std::move(new_rep_data));
         }
+
+        // Determine if problem is hard-enough to warrant multithreading
+        assert(!this->mappers.empty());
+        const bool should_multithread
+            = Multithreading::should_multithread_group_rep_generation(mt_policy,
+                                                                      this->mappers.back()->raw_dimension(),
+                                                                      this->size);
+        if (should_multithread) {
+            build_representations_multi_thread(this->representations, this->mappers, this->size, pruned_list);
+        } else {
+            build_representations_single_thread(this->representations, this->mappers, this->size, pruned_list);
+        }
+    }
+
+    std::pair<const Representation &, const Representation &>
+    Group::determine_parent_representations(const std::vector<std::unique_ptr<Representation>>& reps,
+                                            size_t wl) noexcept {
+        return determine_parents<Representation>(reps, wl);
     }
 
 

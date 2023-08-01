@@ -41,6 +41,10 @@ namespace Moment::Multithreading {
     /** The minimum number of possible elements in an OSG to trigger multi-threaded creation in optional mode. */
     constexpr const size_t minimum_osg_element_count = 1000;
 
+    /** Threshold, for multi-threaded group  representation creation: raw dimension * raw dimension * group elems. */
+    constexpr const size_t minimum_group_rep_difficulty = 5000; // e.g. one ~25*25 matrix with 8 group elements.
+
+
     /**
      * Query the maximum number of workers that may be created
      * (This is the smaller value of the number of physical cores recorded and the hard-coded maximum, if any.
@@ -52,6 +56,10 @@ namespace Moment::Multithreading {
 
     /** Should the rule application be multithreaded ? */
     [[nodiscard]] bool should_multithread_rule_application(MultiThreadPolicy policy, size_t elements, size_t rules);
+
+    /** Should the rule application be multithreaded ? */
+    [[nodiscard]] bool should_multithread_group_rep_generation(MultiThreadPolicy policy,
+                                                               size_t raw_dim, size_t group_elements);
 
     [[nodiscard]] bool should_multithread_osg(MultiThreadPolicy policy, size_t potential_elements);
 

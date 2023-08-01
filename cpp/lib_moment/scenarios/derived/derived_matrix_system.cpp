@@ -50,7 +50,7 @@ namespace Moment::Derived {
     }
 
     DerivedMatrixSystem::DerivedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system, STMFactory&& stm_factory,
-                                             double tolerance)
+                                             double tolerance, Multithreading::MultiThreadPolicy mt_policy)
         : MatrixSystem(DerivedMatrixSystem::make_derived_context(*base_system),
                        tolerance > 0 ? tolerance : base_system->polynomial_factory().zero_tolerance),
           base_ms_ptr{std::move(base_system)}
@@ -60,7 +60,7 @@ namespace Moment::Derived {
 
         // Make map from factory (i.e. virtual call).
         auto lock = this->base_ms_ptr->get_read_lock();
-        this->map_ptr = stm_factory(this->base_ms_ptr->Symbols(), this->Symbols());
+        this->map_ptr = stm_factory(this->base_ms_ptr->Symbols(), this->Symbols(), mt_policy);
 
     }
 
