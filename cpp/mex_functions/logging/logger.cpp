@@ -6,15 +6,26 @@
  */
 #include "logger.h"
 
+#ifdef __cpp_lib_format
 #include <format>
+#else
+#include <ctime>
+#include <iomanip>
+#endif
+
 #include <iostream>
 #include <sstream>
 
 namespace Moment::mex {
 
     std::ostream& operator<<(std::ostream& os, const LogEvent& event) {
-        os << std::format("{0:%F}T{0:%R:%OS%z}", event.timestamp) << "\t";
-        os << "`" << event.mex_function << "` ";
+#ifdef __cpp_lib_format
+        os << std::format("{0:%F}T{0:%R:%OS%z}", event.timestamp);
+#else
+        const time_t time_int = std::chrono::system_clock::to_time_t(event.timestamp);
+        os << std::put_time(std::localtime(&time_int), "%FT%T%z");
+#endif
+        os << "\t`" << event.mex_function << "` ";
 
         if (event.success) {
             os << "succeeded in ";
