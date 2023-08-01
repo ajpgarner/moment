@@ -123,34 +123,27 @@ namespace Moment {
         return first_id;
     }
 
-    std::set<symbol_name_t> SymbolTable::merge_in(std::vector<Symbol> &&build_unique, size_t * newly_added) {
+    std::set<symbol_name_t> SymbolTable::merge_in(std::vector<Symbol> &&build_unique, size_t * const newly_added) {
         std::set<symbol_name_t> included_symbols;
-
-        size_t added = 0;
-        size_t symbol_max = this->unique_sequences.size();
-
         for (auto& elem : build_unique) {
-            const auto symbol_name = this->merge_in(std::move(elem));
+            const auto symbol_name = this->merge_in(std::move(elem), newly_added);
             included_symbols.emplace(symbol_name);
-            if (symbol_name >= symbol_max) {
-                ++added;
-                symbol_max = this->unique_sequences.size();
-            }
-        }
-        if (newly_added != nullptr) {
-            *newly_added = added;
         }
         return included_symbols;
     }
 
     std::set<symbol_name_t>
-    SymbolTable::merge_in(std::map<size_t, Symbol>::iterator iter, std::map<size_t, Symbol>::iterator iter_end) {
+    SymbolTable::merge_in(std::map<size_t, Symbol>::iterator iter,
+                          std::map<size_t, Symbol>::iterator iter_end,
+                          size_t * const new_symbols) {
         std::set<symbol_name_t> included_symbols;
         auto hash_iter = this->hash_table.begin();
         while (iter != iter_end) {
 
             symbol_name_t symbol_name;
-            std::tie(symbol_name, hash_iter) = this->merge_in_with_hash_hint(hash_iter, std::move(iter->second));
+            std::tie(symbol_name, hash_iter) = this->merge_in_with_hash_hint(hash_iter,
+                                                                             std::move(iter->second),
+                                                                             new_symbols);
             included_symbols.emplace(symbol_name);
             ++iter;
         }
@@ -175,7 +168,8 @@ namespace Moment {
 
 
     std::pair<symbol_name_t, std::map<size_t, ptrdiff_t>::iterator>
-    SymbolTable::merge_in_with_hash_hint(std::map<size_t, ptrdiff_t>::iterator hint, Symbol&& elem) {
+    SymbolTable::merge_in_with_hash_hint(std::map<size_t, ptrdiff_t>::iterator hint,
+                                         Symbol&& elem, size_t * new_symbols) {
         // Look for insertion point in hash table (with hints)
         auto find_hash = std::lower_bound(hint, this->hash_table.end(), elem.hash(),
                                           [](const auto& lhs, const auto& value) { return lhs.first < value; });
@@ -228,6 +222,11 @@ namespace Moment {
 
         // Register element
         this->unique_sequences.emplace_back(std::move(elem));
+
+        // Flag as added
+        if (new_symbols != nullptr) {
+            ++(*new_symbols);
+        }
 
         return output;
     }
@@ -351,8 +350,7 @@ namespace Moment {
         }
 
         // Merge in symbols and update OSGIndex
-        std::vector<Symbol> build_unique;
-        build_unique.reserve(osg.size());
+        std::map<size_t, Symbol> build_unique;
         for (const auto& op_seq : osg) {
             // Skip aliased symbols
             if (this->can_have_aliases && this->context.can_be_simplified_as_moment(op_seq)) {
@@ -360,14 +358,19 @@ namespace Moment {
             }
 
             auto conj_seq = op_seq.conjugate();
-            if (op_seq == conj_seq) {
-                build_unique.emplace_back(op_seq);
-            } else {
-                build_unique.emplace_back(op_seq, std::move(conj_seq));
+            const size_t seq_hash = op_seq.hash();
+            const size_t conj_hash = conj_seq.hash();
+
+            if (seq_hash == conj_hash) {
+                build_unique.emplace_hint(build_unique.end(),
+                                          std::make_pair(seq_hash, Symbol{op_seq}));
+            } else if (seq_hash < conj_hash) {
+                build_unique.emplace_hint(build_unique.end(),
+                                          std::make_pair(seq_hash, Symbol{op_seq, std::move(conj_seq)}));
             }
         }
         size_t new_symbols{};
-        this->merge_in(std::move(build_unique), &new_symbols);
+        this->merge_in(build_unique.begin(), build_unique.end(), &new_symbols);
 
         this->OSGIndex.update(word_length);
 
