@@ -120,6 +120,9 @@ namespace Moment::mex::functions {
         assert(msPtr); // ^- above should throw if absent
         auto& matrixSystem = *msPtr;
 
+        // Get multithreading policy
+        const auto mt_policy = this->settings->get_mt_policy();
+
         // Convert input to eigen sparse matrices
         const auto generators = read_eigen_sparse_array(matlabEngine, input.inputs[1]);
 
@@ -179,7 +182,8 @@ namespace Moment::mex::functions {
         std::unique_ptr<MatrixSystem> smsPtr =
                 std::make_unique<Symmetrized::SymmetrizedMatrixSystem>(std::move(msPtr), std::move(groupPtr),
                                                           input.max_word_length,
-                                                          std::make_unique<Derived::LUMapCoreProcessor>());
+                                                          std::make_unique<Derived::LUMapCoreProcessor>(),
+                                                          -1,  mt_policy);
         // Print map information
         if (verbose) {
             print_to_console(this->matlabEngine,

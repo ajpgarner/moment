@@ -21,9 +21,13 @@ chsh_generators = {[[1 0 1 0 0];
                     [0 0 1 0 0]]};
                 
 %% Set up symmetrized scenario
+tic
 sym_scenario = SymmetrizedScenario(chsh_scenario, ...
                                    chsh_generators, ...
                                    'word_length', 2*mm_level);
+sym_scenario.System;                               
+sym_time = toc;
+fprintf("Generated symmetrized scenario in %f seconds.\n", toc);
 
 %% Make moment matrices
 base_mm = chsh_scenario.MomentMatrix(mm_level);

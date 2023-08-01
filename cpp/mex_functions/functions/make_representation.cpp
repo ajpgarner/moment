@@ -8,6 +8,8 @@
 
 #include "storage_manager.h"
 
+#include "multithreading/multithreading.h"
+
 #include "scenarios/symmetrized/group.h"
 #include "scenarios/symmetrized/symmetrized_matrix_system.h"
 
@@ -61,7 +63,8 @@ namespace Moment::mex::functions {
         auto& group = symmetrizedMatrixSystem.group();
 
         // Make (or retrieve) representation
-        auto& representation = group.create_representation(input.word_length);
+        auto mt_policy = this->settings->get_mt_policy();
+        auto& representation = group.create_representation(input.word_length, mt_policy);
 
         // Export to matlab
         if (output.size() >= 1) {
