@@ -11,8 +11,10 @@
 
 #include "utilities/dynamic_bitset.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <tuple>
 
 namespace Moment {
 
@@ -63,91 +65,6 @@ namespace Moment {
 
         // '1' is always in real basis.
         this->Basis.push_back(1, true, false);
-    }
-
-
-    std::set<symbol_name_t> SymbolTable::merge_in(std::vector<Symbol> &&build_unique, size_t * newly_added) {
-        std::set<symbol_name_t> included_symbols;
-
-        size_t added = 0;
-        size_t symbol_max = this->unique_sequences.size();
-
-        for (auto& elem : build_unique) {
-            const auto symbol_name = this->merge_in(std::move(elem));
-            included_symbols.emplace(symbol_name);
-            if (symbol_name >= symbol_max) {
-                ++added;
-                symbol_max = this->unique_sequences.size();
-            }
-        }
-        if (newly_added != nullptr) {
-            *newly_added = added;
-        }
-
-        return included_symbols;
-    }
-
-    symbol_name_t SymbolTable::merge_in(OperatorSequence&& sequence) {
-        // First, is sequence canonical?
-        if (this->can_have_aliases) {
-            auto alias = this->context.simplify_as_moment(std::move(sequence));
-            auto alias_conj = alias.conjugate();
-            return this->merge_in(Symbol{std::move(alias), std::move(alias_conj)});
-        }
-
-        // Otherwise, directly attempt merge
-        auto conj_seq = sequence.conjugate();
-        return this->merge_in(Symbol{std::move(sequence), std::move(conj_seq)});
-    }
-
-    symbol_name_t SymbolTable::merge_in(Symbol&& elem) {
-        // Not unique, do not add...
-        auto existing_iter = this->hash_table.find(elem.hash());
-        if (existing_iter != this->hash_table.end()) {
-            const ptrdiff_t stIndex = existing_iter->second >= 0 ? existing_iter->second : -existing_iter->second;
-            return this->unique_sequences[stIndex].id;
-        }
-
-        // Error if attempting to add an aliased symbol.
-        assert(!this->can_have_aliases || !elem.has_sequence()
-               || !this->context.can_be_simplified_as_moment(elem.sequence()));
-
-        // Otherwise, query
-        const auto next_index = static_cast<symbol_name_t>(this->unique_sequences.size());
-
-        // Does context know about nullity?
-        auto [re_zero, im_zero] = this->context.is_sequence_null(elem.sequence());
-
-        // Is element hermitian
-        const bool is_hermitian = elem.is_hermitian();
-        if (is_hermitian) {
-            im_zero = true;
-        }
-
-        // Is element anti-hermitian
-        const bool is_anti_hermitian = elem.is_antihermitian();
-        if (is_anti_hermitian) {
-            re_zero = true;
-        }
-
-        // Make element
-        elem.id = next_index;
-
-        // Add to basis
-        const auto [re_index, im_index] = this->Basis.push_back(next_index, !re_zero, !im_zero);
-        elem.real_index = re_index;
-        elem.img_index = im_index;
-
-        // Add hash(es)
-        this->hash_table.emplace(std::make_pair(elem.hash(), next_index));
-        if (!is_hermitian) {
-            this->hash_table.emplace(std::make_pair(elem.hash_conj(), -next_index));
-        }
-
-        // Register element
-        this->unique_sequences.emplace_back(std::move(elem));
-
-        return next_index;
     }
 
 
@@ -202,9 +119,120 @@ namespace Moment {
             }
 
             this->unique_sequences.emplace_back(std::move(blank));
-       }
+        }
         return first_id;
     }
+
+    std::set<symbol_name_t> SymbolTable::merge_in(std::vector<Symbol> &&build_unique, size_t * newly_added) {
+        std::set<symbol_name_t> included_symbols;
+
+        size_t added = 0;
+        size_t symbol_max = this->unique_sequences.size();
+
+        for (auto& elem : build_unique) {
+            const auto symbol_name = this->merge_in(std::move(elem));
+            included_symbols.emplace(symbol_name);
+            if (symbol_name >= symbol_max) {
+                ++added;
+                symbol_max = this->unique_sequences.size();
+            }
+        }
+        if (newly_added != nullptr) {
+            *newly_added = added;
+        }
+        return included_symbols;
+    }
+
+    std::set<symbol_name_t>
+    SymbolTable::merge_in(std::map<size_t, Symbol>::iterator iter, std::map<size_t, Symbol>::iterator iter_end) {
+        std::set<symbol_name_t> included_symbols;
+        auto hash_iter = this->hash_table.begin();
+        while (iter != iter_end) {
+
+            symbol_name_t symbol_name;
+            std::tie(symbol_name, hash_iter) = this->merge_in_with_hash_hint(hash_iter, std::move(iter->second));
+            included_symbols.emplace(symbol_name);
+            ++iter;
+        }
+        return included_symbols;
+    }
+
+
+
+    symbol_name_t SymbolTable::merge_in(OperatorSequence&& sequence) {
+        // First, is sequence canonical?
+        if (this->can_have_aliases) {
+            auto alias = this->context.simplify_as_moment(std::move(sequence));
+            auto alias_conj = alias.conjugate();
+            return this->merge_in(Symbol{std::move(alias), std::move(alias_conj)});
+        }
+
+        // Otherwise, directly attempt merge
+        auto conj_seq = sequence.conjugate();
+        return this->merge_in(Symbol{std::move(sequence), std::move(conj_seq)});
+    }
+
+
+
+    std::pair<symbol_name_t, std::map<size_t, ptrdiff_t>::iterator>
+    SymbolTable::merge_in_with_hash_hint(std::map<size_t, ptrdiff_t>::iterator hint, Symbol&& elem) {
+        // Look for insertion point in hash table (with hints)
+        auto find_hash = std::lower_bound(hint, this->hash_table.end(), elem.hash(),
+                                          [](const auto& lhs, const auto& value) { return lhs.first < value; });
+
+        // Not unique, do not add
+        if ((find_hash != this->hash_table.end()) && find_hash->first == elem.hash()) {
+            const ptrdiff_t stIndex = find_hash->second >= 0 ? find_hash->second : -find_hash->second;
+            return {this->unique_sequences[stIndex].id, find_hash};
+        }
+
+        // Error if attempting to add an aliased symbol.
+        assert(!this->can_have_aliases || !elem.has_sequence()
+               || !this->context.can_be_simplified_as_moment(elem.sequence()));
+
+        // Otherwise, query
+        const auto next_index = static_cast<symbol_name_t>(this->unique_sequences.size());
+
+        // Does context know about nullity?
+        auto [re_zero, im_zero] = this->context.is_sequence_null(elem.sequence());
+
+        // Is element hermitian
+        const bool is_hermitian = elem.is_hermitian();
+        if (is_hermitian) {
+            im_zero = true;
+        }
+
+        // Is element anti-hermitian
+        const bool is_anti_hermitian = elem.is_antihermitian();
+        if (is_anti_hermitian) {
+            re_zero = true;
+        }
+
+        // Make element
+        elem.id = next_index;
+
+        // Add to basis
+        const auto [re_index, im_index] = this->Basis.push_back(next_index, !re_zero, !im_zero);
+        elem.real_index = re_index;
+        elem.img_index = im_index;
+
+        // Prepare output
+        std::pair<symbol_name_t, std::map<size_t, ptrdiff_t>::iterator> output;
+        output.first = next_index;
+
+        // Add hash(es)
+        output.second = this->hash_table.emplace_hint(find_hash, std::make_pair(elem.hash(), next_index));
+        if (!is_hermitian) {
+            this->hash_table.emplace(std::make_pair(elem.hash_conj(), -next_index));
+        }
+
+        // Register element
+        this->unique_sequences.emplace_back(std::move(elem));
+
+        return output;
+    }
+
+
 
     bool SymbolTable::merge_in(const DynamicBitset<uint64_t>& can_be_real,
                                const DynamicBitset<uint64_t>& can_be_imaginary) {

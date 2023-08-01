@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "localizing_matrix.h"
-#include "operator_matrix_creation_context.h"
+#include "operator_matrix_factory.h"
 
 #include "dictionary/operator_sequence_generator.h"
 
@@ -23,39 +23,6 @@ namespace Moment {
             return context;
         }
     }
-
-    class LocalizingMatrixCreationContext : public OperatorMatrixCreationContext {
-    public:
-        const OperatorSequence Word;
-
-        LocalizingMatrixCreationContext(const Context& context, SymbolTable& symbols, size_t level,
-                                        OperatorSequence word,
-                                        Multithreading::MultiThreadPolicy mt_policy)
-            : OperatorMatrixCreationContext{context, symbols, level, mt_policy}, Word{std::move(word)} {
-
-        }
-
-    public:
-        void make_operator_matrix_single_thread() override {
-            this->operatorMatrix = do_make_operator_matrix_single_thread<LocalizingMatrix>(
-                    [&](const OperatorSequence& lhs, const OperatorSequence& rhs) {
-                        return lhs * (this->Word * rhs);
-                    },
-                    LocalizingMatrixIndex{this->Level, this->Word}
-            );
-            assert(this->operatorMatrix);
-        }
-
-        void make_operator_matrix_multi_thread() override {
-            this->operatorMatrix = do_make_operator_matrix_multi_thread<LocalizingMatrix>(
-                    [&](const OperatorSequence& lhs, const OperatorSequence& rhs) {
-                        return lhs * (this->Word * rhs);
-                    },
-                    LocalizingMatrixIndex{this->Level, this->Word}
-            );
-            assert(this->operatorMatrix);
-        }
-    };
 
     LocalizingMatrix::LocalizingMatrix(const Context& context, LocalizingMatrixIndex lmi,
                                        std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
@@ -90,12 +57,24 @@ namespace Moment {
                                     LocalizingMatrixIndex lmi,
                                     Multithreading::MultiThreadPolicy mt_policy) {
 
-        LocalizingMatrixCreationContext lmcc{context, symbols, lmi.Level, std::move(lmi.Word), mt_policy};
-        lmcc.prepare_generators();
-        lmcc.make_operator_matrix();
-        lmcc.register_new_symbols();
-        lmcc.make_symbolic_matrix();
-        return lmcc.yield_matrix();
+        if (context.can_have_aliases()) {
+            const auto alias_lm_functor = [&context, &lmi](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+                return context.simplify_as_moment(lhs * (lmi.Word * rhs));
+            };
+            OperatorMatrixFactory<LocalizingMatrix, decltype(alias_lm_functor)>
+                creation_context{context, symbols, lmi.Level, alias_lm_functor, mt_policy};
+
+            return creation_context.execute(lmi);
+        } else {
+            const auto lm_functor = [&lmi](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+                return lhs * (lmi.Word * rhs);
+            };
+            OperatorMatrixFactory<LocalizingMatrix, decltype(lm_functor)>
+                    creation_context{context, symbols, lmi.Level, lm_functor, mt_policy};
+
+            return creation_context.execute(lmi);
+        }
+
     }
 
 }

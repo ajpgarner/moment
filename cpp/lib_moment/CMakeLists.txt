@@ -16,7 +16,6 @@ add_library(lib_moment
         matrix/operator_matrix/localizing_matrix.cpp
         matrix/operator_matrix/moment_matrix.cpp
         matrix/operator_matrix/operator_matrix.cpp
-        matrix/operator_matrix/operator_matrix_creation_context.cpp
         matrix/substituted_matrix.cpp
         matrix_system/matrix_factories.cpp
         matrix_system/matrix_system.cpp

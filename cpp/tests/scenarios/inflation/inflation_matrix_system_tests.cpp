@@ -108,8 +108,6 @@ namespace Moment::Tests {
         EXPECT_TRUE(context.can_be_simplified_as_moment(seq_A01C00C11));
         EXPECT_EQ(context.simplify_as_moment(OperatorSequence(seq_A01C00C11)), seq_A00C00C11);
 
-
-
         //A10.operator_offset -> 6
         //C00.operator_offset -> 24
         //C11.operator_offset -> 33

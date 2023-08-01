@@ -22,6 +22,7 @@
 #include <map>
 #include <set>
 #include <stdexcept>
+#include <tuple>
 #include <vector>
 
 namespace Moment {
@@ -201,7 +202,20 @@ namespace Moment {
          * @param build_unique Symbols to be potentially merge
          * @return The ID of the (possibly new) symbol.
          */
-        symbol_name_t merge_in(Symbol&& sequence);
+        inline symbol_name_t merge_in(Symbol&& elem) {
+            symbol_name_t symbol_id;
+            std::tie(symbol_id, std::ignore) = this->merge_in_with_hash_hint(this->hash_table.begin(), std::move(elem));
+            return symbol_id;
+        }
+
+        /**
+         * Add symbols to table, if not already present.
+         * @param iter Start of range of symbols to add.
+         * @param iter_end End of range of symbols to add.
+         * @return The IDs of the (possibly new) symbol.
+         */
+        std::set<symbol_name_t> merge_in(std::map<size_t, Symbol>::iterator iter,
+                                         std::map<size_t, Symbol>::iterator iter_end);
 
         /**
          * Add symbols to table, if not already present, and adjust real/imaginary zeros of those already present
@@ -289,6 +303,16 @@ namespace Moment {
          * Output symbol table, as debug info
          */
          friend std::ostream& operator<<(std::ostream& os, const SymbolTable& table);
+
+    private:
+        /**
+        * Add symbol to table, if not already present
+        * @param hint Iterator to hash value not after hash of input symbol.
+        * @param sequence Symbol to be potentially merged.
+        * @return The ID of the (possibly new) symbol, and iterator to its position in the hash.
+        */
+        std::pair<symbol_name_t, std::map<size_t, ptrdiff_t>::iterator>
+        merge_in_with_hash_hint(std::map<size_t, ptrdiff_t>::iterator hint, Symbol&& sequence);
     };
 
 }

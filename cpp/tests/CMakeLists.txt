@@ -75,6 +75,7 @@ add_executable(moment_tests
         utilities/ipow_tests.cpp
         utilities/iter_tuple_tests.cpp
         utilities/kronecker_power_tests.cpp
+        utilities/linear_map_merge_tests.cpp
         utilities/multi_partition_tests.cpp
         utilities/ordered_permutation_tests.cpp
         utilities/persistent_storage_tests.cpp

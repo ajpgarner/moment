@@ -6,7 +6,7 @@
  */
 
 #include "moment_matrix.h"
-#include "operator_matrix_creation_context.h"
+#include "operator_matrix_factory.h"
 
 #include "dictionary/operator_sequence_generator.h"
 
@@ -21,35 +21,6 @@
 #include <thread>
 
 namespace Moment {
-
-    class MomentMatrixCreationContext : public OperatorMatrixCreationContext {
-    public:
-        MomentMatrixCreationContext(const Context &context, SymbolTable& symbols, size_t level,
-                                        Multithreading::MultiThreadPolicy mt_policy)
-                : OperatorMatrixCreationContext{context, symbols, level, mt_policy} {
-        }
-
-    protected:
-        void make_operator_matrix_single_thread() override {
-            this->operatorMatrix = do_make_operator_matrix_single_thread<MomentMatrix>(
-                    [&](const OperatorSequence& lhs, const OperatorSequence& rhs) {
-                        return lhs * rhs;
-                    },
-                    this->Level
-            );
-            assert(this->operatorMatrix);
-        }
-
-        void make_operator_matrix_multi_thread() override {
-            this->operatorMatrix = do_make_operator_matrix_multi_thread<MomentMatrix>(
-                    [&](const OperatorSequence& lhs, const OperatorSequence& rhs) {
-                        return lhs * rhs;
-                    },
-                    this->Level
-            );
-            assert(this->operatorMatrix);
-        }
-    };
 
     MomentMatrix::MomentMatrix(const Context& context, const size_t level,
                                std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
@@ -90,12 +61,24 @@ namespace Moment {
     std::unique_ptr<MonomialMatrix>
     MomentMatrix::create_matrix(const Context &context, SymbolTable& symbols,
                                 const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
-        MomentMatrixCreationContext mmcc{context, symbols, level, mt_policy};
-        mmcc.prepare_generators();
-        mmcc.make_operator_matrix();
-        mmcc.register_new_symbols();
-        mmcc.make_symbolic_matrix();
-        return mmcc.yield_matrix();
+
+        if (context.can_have_aliases()) {
+            const auto alias_mm_functor = [&context](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+                return context.simplify_as_moment(lhs * rhs);
+            };
+            OperatorMatrixFactory<MomentMatrix, decltype(alias_mm_functor)>
+                    creation_context{context, symbols, level, alias_mm_functor, mt_policy};
+
+            return creation_context.execute(level);
+        } else {
+            const auto mm_functor = [](const OperatorSequence &lhs, const OperatorSequence &rhs) {
+                return lhs * rhs;
+            };
+            OperatorMatrixFactory<MomentMatrix, decltype(mm_functor)>
+                    creation_context{context, symbols, level, mm_functor, mt_policy};
+
+           return creation_context.execute(level);
+        }
     }
 
 }
