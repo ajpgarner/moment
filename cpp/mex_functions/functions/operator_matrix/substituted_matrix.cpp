@@ -53,6 +53,8 @@ namespace Moment::mex::functions  {
     std::pair<size_t, const Moment::SymbolicMatrix &>
     SubstitutedMatrix::get_or_make_matrix(MatrixSystem &system, OperatorMatrixParams &omp) {
         auto& avp = dynamic_cast<SubstitutedMatrixParams&>(omp);
-        return system.SubstitutedMatrix.create(SubstitutedMatrixIndices::Index(avp.matrix_index, avp.rules_index));
+        auto mt_policy = this->settings->get_mt_policy();
+        return system.SubstitutedMatrix.create(SubstitutedMatrixIndices::Index(avp.matrix_index, avp.rules_index),
+                                               mt_policy);
     }
 }

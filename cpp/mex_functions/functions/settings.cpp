@@ -28,36 +28,36 @@ namespace Moment::mex::functions {
 
 
     void SettingsParams::getFromParams() {
+        // Locality format param
         auto lf_iter = this->params.find(u"locality_format");
         if (lf_iter != this->params.end()) {
-            try {
-                auto choice = read_choice("locality_format", {"natural", "traditional"}, lf_iter->second);
-                switch (choice) {
-                    case 0:
-                        this->change_lof = change_lof_t::LOF_Natural;
-                        break;
-                    case 1:
-                        this->change_lof = change_lof_t::LOF_Traditional;
-                        break;
-                    default:
-                        assert(false);
-                        break;
-                }
-                this->any_changes = true;
-            } catch (const errors::invalid_choice& ice) {
-                throw_error(matlabEngine, errors::bad_param, ice.what());
-            }
-        } else {
-            this->change_lof = change_lof_t::LOF_Unchanged;
+            this->change_lof = read_choice_lof(lf_iter->second);
+            this->any_changes = true;
         }
+
+        // Multithreading param
+        auto mt_iter = this->params.find(u"multithreading");
+        if (mt_iter != this->params.end()) {
+            this->change_mt = read_choice_mt(mt_iter->second);
+            this->any_changes = true;
+        }
+
     }
 
     void SettingsParams::getFromStruct() {
+        // Check input is a struct
         if (inputs[0].getType() != matlab::data::ArrayType::STRUCT) {
             throw_error(matlabEngine, errors::bad_param,
                         "Input to settings must be a struct. (Possible misspelled parameter supplied!)");
         }
 
+        // Test parameters are not set
+        if (this->params.contains(u"locality_format") || this->params.contains(u"multithreading")) {
+            throw_error(matlabEngine, errors::bad_param,
+                        "If structured input supplied, no settings parameters should be supplied.");
+        }
+
+        // Check struct dimensions
         const matlab::data::StructArray structInput = inputs[0];
         auto dims = structInput.getDimensions();
         if ((dims.size() != 2) || (dims[0] != 1) || (dims[1] != 1)) {
@@ -65,32 +65,60 @@ namespace Moment::mex::functions {
                         "Input struct array must contain only one row.");
         }
 
-        // Now, test params not also set
-        if (this->params.contains(u"locality_format")) {
-            throw_error(matlabEngine, errors::bad_param,
-                        "If structured input supplied, no settings parameters should be supplied.");
-        }
 
+        // Read fields of input struct
         for (const auto& name : structInput.getFieldNames()) {
             std::string nameStr = static_cast<std::string>(name);
             if (nameStr == "locality_format") {
-                auto choice = read_choice("locality_format", {"natural", "traditional"}, structInput[0][nameStr]);
-                switch (choice) {
-                    case 0:
-                        this->change_lof = change_lof_t::LOF_Natural;
-                        break;
-                    case 1:
-                        this->change_lof = change_lof_t::LOF_Traditional;
-                        break;
-                    default:
-                        assert(false);
-                        break;
-                }
+                this->change_lof = read_choice_lof(structInput[0][nameStr]);
+                this->any_changes = true;
+            } else if (nameStr == "multithreading") {
+                this->change_mt = read_choice_mt(structInput[0][nameStr]);
                 this->any_changes = true;
             } else {
                 this->unknown_settings.emplace_back(nameStr);
             }
         }
+    }
+
+
+    SettingsParams::change_lof_t SettingsParams::read_choice_lof(const matlab::data::Array &field) const {
+        try {
+            auto choice = read_choice("locality_format", {"natural", "traditional"}, field);
+            switch (choice) {
+                case 0:
+                    return change_lof_t::LOF_Natural;
+                case 1:
+                    return change_lof_t::LOF_Traditional;
+                default: [[unlikely]]
+                    break;
+            }
+        } catch (const errors::invalid_choice& ice) {
+            throw_error(matlabEngine, errors::bad_param, ice.what());
+        }
+        throw_error(matlabEngine, errors::bad_param, "Unknown locality formatter choice.");
+    }
+
+
+
+    SettingsParams::change_mt_t SettingsParams::read_choice_mt(const matlab::data::Array &field) const {
+        try {
+            auto choice = read_choice("multithreading", {"off", "on", "auto", "always"}, field);
+            switch (choice) {
+                case 0:
+                    return change_mt_t::MT_Off;
+                case 1:
+                case 2:
+                    return change_mt_t::MT_Auto;
+                case 3:
+                    return change_mt_t::MT_Always;
+                default: [[unlikely]]
+                    break;
+            }
+        } catch (const errors::invalid_choice& ice) {
+            throw_error(matlabEngine, errors::bad_param, ice.what());
+        }
+        throw_error(matlabEngine, errors::bad_param, "Unknown multithreading choice.");
     }
 
     Settings::Settings(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
@@ -99,6 +127,7 @@ namespace Moment::mex::functions {
         this->max_inputs = 1;
         this->flag_names.emplace(u"structured");
         this->param_names.emplace(u"locality_format");
+        this->param_names.emplace(u"multithreading");
         this->min_outputs = 0;
         this->max_outputs = 1;
     }
@@ -146,6 +175,25 @@ namespace Moment::mex::functions {
                     break;
             }
 
+            // Change MT policy, if necessary
+            switch (input.change_mt) {
+                case SettingsParams::change_mt_t::MT_Off:
+                    cloned_settings->set_mt_policy(Multithreading::MultiThreadPolicy::Never);
+                    break;
+                case SettingsParams::change_mt_t::MT_Auto:
+                    cloned_settings->set_mt_policy(Multithreading::MultiThreadPolicy::Optional);
+                    break;
+                case SettingsParams::change_mt_t::MT_Always:
+                    if (!this->quiet) {
+                        print_warning(matlabEngine, "Due to thread-construction costs 'always' multithreading mode may be slower than 'auto' or 'off'.");
+                    }
+                    cloned_settings->set_mt_policy(Multithreading::MultiThreadPolicy::Always);
+                    break;
+                case SettingsParams::change_mt_t::MT_Unchanged:
+                default:
+                    break;
+            }
+
             // Save new settings
             this->storageManager.Settings.set(cloned_settings);
             altered_settings = std::const_pointer_cast<const EnvironmentalVariables>(cloned_settings);
@@ -178,8 +226,19 @@ namespace Moment::mex::functions {
 
     matlab::data::StructArray Settings::make_settings_struct(const EnvironmentalVariables& vars) const {
         matlab::data::ArrayFactory factory;
-        auto output = factory.createStructArray({1, 1}, {"locality_format"});
+        auto output = factory.createStructArray({1, 1}, {"locality_format", "multithreading"});
         output[0]["locality_format"] = factory.createScalar(vars.get_locality_formatter()->name());
+        switch (vars.get_mt_policy()) {
+            case Multithreading::MultiThreadPolicy::Never:
+                output[0]["multithreading"] = factory.createScalar("off");
+                break;
+            case Multithreading::MultiThreadPolicy::Optional:
+                output[0]["multithreading"] = factory.createScalar("auto");
+                break;
+            case Multithreading::MultiThreadPolicy::Always:
+                output[0]["multithreading"] = factory.createScalar("always");
+                break;
+        }
         return output;
     }
 }

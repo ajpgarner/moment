@@ -7,7 +7,9 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <limits>
+#include <string>
 
 #include "integer_types.h"
 
@@ -18,6 +20,13 @@ namespace Moment::Multithreading {
         Optional = 0,
         Always = 1
     };
+
+    /** Output MT policy. */
+    std::ostream& operator<<(std::ostream&, MultiThreadPolicy policy);
+
+    /** Get MT policy as a string. */
+    std::string to_string(MultiThreadPolicy policy);
+
 
     /** Set this value to something other than max() to hard-cap the number of worker threads that may be created. */
     constexpr const size_t worker_thread_limit = std::numeric_limits<size_t>::max();

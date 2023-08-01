@@ -196,7 +196,8 @@ namespace Moment::mex::functions {
     }
 
     namespace {
-        std::pair<size_t, const Moment::SymbolicMatrix &> getMonoLM(MatrixSystem &system, LocalizingMatrixParams& input) {
+        std::pair<size_t, const Moment::SymbolicMatrix &>
+        getMonoLM(MatrixSystem &system, LocalizingMatrixParams& input, Multithreading::MultiThreadPolicy mt_policy) {
             // Try to get via read-lock only
             auto read_lock = system.get_read_lock();
             auto lmi = input.to_monomial_index(system.Context());
@@ -207,11 +208,12 @@ namespace Moment::mex::functions {
 
             // Try to create
             read_lock.unlock();
-            return system.LocalizingMatrix.create(lmi);
+            return system.LocalizingMatrix.create(lmi, mt_policy);
         }
 
         std::pair<size_t, const Moment::SymbolicMatrix &>
-        getPolySymbolLM(MatrixSystem &system, LocalizingMatrixParams& input) {
+        getPolySymbolLM(MatrixSystem &system, LocalizingMatrixParams& input,
+                        Multithreading::MultiThreadPolicy mt_policy) {
             // Try to get in read-only mode
             auto read_lock = system.get_read_lock();
             auto plmi = input.to_polynomial_index(system.polynomial_factory());
@@ -222,11 +224,12 @@ namespace Moment::mex::functions {
 
             // Try to create polynomial matrix
             read_lock.unlock();
-            return system.PolynomialLocalizingMatrix.create(plmi);
+            return system.PolynomialLocalizingMatrix.create(plmi, mt_policy);
         }
 
         std::pair<size_t, const Moment::SymbolicMatrix &>
-        getPolyOpLM(MatrixSystem &system, LocalizingMatrixParams& input) {
+        getPolyOpLM(MatrixSystem &system, LocalizingMatrixParams& input,
+                    Multithreading::MultiThreadPolicy mt_policy) {
             // Can expression be parsed without new symbols?
             auto read_lock = system.get_read_lock();
             auto& context = system.Context();
@@ -244,7 +247,7 @@ namespace Moment::mex::functions {
                 auto write_lock = system.get_write_lock();
                 staging_poly.find_or_register_symbols(symbol_table);
                 auto index = input.to_polynomial_index(factory);
-                return system.PolynomialLocalizingMatrix.create(write_lock, index);
+                return system.PolynomialLocalizingMatrix.create(write_lock, index, mt_policy);
             }
 
             // Try to read LM entirely in read only mode
@@ -256,7 +259,7 @@ namespace Moment::mex::functions {
 
             // Otherwise, create (implicitly acquiring write lock)
             read_lock.unlock();
-            return system.PolynomialLocalizingMatrix.create(index);
+            return system.PolynomialLocalizingMatrix.create(index, mt_policy);
         }
     }
 
@@ -268,11 +271,11 @@ namespace Moment::mex::functions {
         try {
             switch (input.expression_type) {
                 case LocalizingMatrixParams::ExpressionType::OperatorSequence:
-                    return getMonoLM(system, input);
+                    return getMonoLM(system, input, this->settings->get_mt_policy());
                 case LocalizingMatrixParams::ExpressionType::SymbolCell:
-                    return getPolySymbolLM(system, input);
+                    return getPolySymbolLM(system, input, this->settings->get_mt_policy());
                 case LocalizingMatrixParams::ExpressionType::OperatorCell:
-                    return getPolyOpLM(system, input);
+                    return getPolyOpLM(system, input, this->settings->get_mt_policy());
                 default:
                 case LocalizingMatrixParams::ExpressionType::Unknown:
                     throw_error(matlabEngine, errors::internal_error, "Unknown localizing expression type.");

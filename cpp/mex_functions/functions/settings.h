@@ -25,6 +25,13 @@ namespace Moment::mex::functions  {
             LOF_Traditional,
         } change_lof = change_lof_t::LOF_Unchanged;
 
+        enum class change_mt_t {
+            MT_Unchanged = 0,
+            MT_Off,
+            MT_Auto,
+            MT_Always,
+        } change_mt = change_mt_t::MT_Unchanged;
+
         std::vector<std::string> unknown_settings;
 
     public:
@@ -34,6 +41,10 @@ namespace Moment::mex::functions  {
         void getFromParams();
 
         void getFromStruct();
+
+        change_lof_t read_choice_lof(const matlab::data::Array& field) const;
+
+        change_mt_t read_choice_mt(const matlab::data::Array& field) const;
     };
 
     class Settings : public ParameterizedMexFunction<SettingsParams, MEXEntryPointID::Settings> {

@@ -16,6 +16,7 @@ namespace Moment::mex {
     EnvironmentalVariables::EnvironmentalVariables() {
         // Default to natural format of locality operators
         this->the_l_op_formatter = std::make_shared<Locality::NaturalLOFormatter>();
+        this->mt_policy = Multithreading::MultiThreadPolicy::Optional;
     }
 
     EnvironmentalVariables::~EnvironmentalVariables() = default;
@@ -31,13 +32,15 @@ namespace Moment::mex {
     }
 
     std::ostream& operator<<(std::ostream& os, const EnvironmentalVariables& ev) {
-        os << "Locality scenario operator format: " << ev.the_l_op_formatter->name();
+        os << "Locality scenario operator format: " << ev.the_l_op_formatter->name() << "\n";
+        os << "Multithreading policy: " << ev.mt_policy << "\n";
         return os;
     }
 
     EnvironmentalVariables::EnvironmentalVariables(const EnvironmentalVariables &reference) {
         // shallow copy is okay, as formatter is const shared object
         this->the_l_op_formatter = reference.the_l_op_formatter;
+        this->mt_policy = reference.mt_policy;
     }
 
 }

@@ -25,9 +25,28 @@
 
 #include <algorithm>
 #include <cmath>
-
+#include <iostream>
 
 namespace Moment::Multithreading {
+
+
+    std::ostream& operator<<(std::ostream& os, MultiThreadPolicy policy) {
+        os << to_string(policy);
+        return os;
+    }
+
+    std::string to_string(MultiThreadPolicy policy) {
+        switch (policy) {
+            case MultiThreadPolicy::Never:
+                return "Never";
+            case MultiThreadPolicy::Optional:
+                return "Optional";
+            case MultiThreadPolicy::Always:
+                return "Always";
+            default: [[unlikely]]
+                return std::string("Unknown (") + std::to_string(static_cast<int>(policy)) + ")";
+        }
+    }
 
     namespace {
 
