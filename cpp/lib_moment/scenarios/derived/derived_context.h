@@ -14,8 +14,17 @@ namespace Moment::Derived {
     public:
         const Context& base_context;
 
+    private:
+        std::vector<std::string> derived_symbol_strs;
+
+
+    public:
+
         DerivedContext(const Context& source_context);
 
+        void format_symbol(std::ostream &os, const SymbolTable &table, const symbol_name_t symbol_id) const override;
+
+        friend class DerivedMatrixSystem;
     };
 
 }

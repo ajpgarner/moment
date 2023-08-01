@@ -8,6 +8,8 @@
 #include "dictionary/operator_sequence.h"
 #include "dictionary/dictionary.h"
 
+#include "symbolic/symbol_table.h"
+
 #include <algorithm>
 #include <iostream>
 #include <sstream>
@@ -132,6 +134,20 @@ namespace Moment {
             ss << "X" << (oper+1); // MATLAB indexing...
         }
         return ss.str();
+    }
+
+    std::string Context::format_symbol(const SymbolTable &table, const symbol_name_t symbol_id) const {
+        std::stringstream ss;
+        this->format_symbol(ss, table, symbol_id);
+        return ss.str();
+    }
+
+    void Context::format_symbol(std::ostream &os, const SymbolTable &table, const symbol_name_t symbol_id) const {
+        if (symbol_id < 0 || symbol_id >= table.size()) {
+            os << "[UNK: #" << symbol_id << "]";
+        } else {
+            os << "#" << symbol_id;
+        }
     }
 
 

@@ -27,7 +27,6 @@ namespace Moment {
         bool antihermitian = false;
         ptrdiff_t real_index = -1;
         ptrdiff_t img_index = -1;
-        std::string fwd_sequence_str;
 
     public:
         constexpr Symbol() = default;
@@ -35,7 +34,7 @@ namespace Moment {
         explicit Symbol(OperatorSequence sequence) :
                 opSeq{std::move(sequence)},
                 conjSeq{}, hermitian{true}, antihermitian{false},
-                real_index{-1}, img_index{-1}, fwd_sequence_str{opSeq->formatted_string()} { }
+                real_index{-1}, img_index{-1} { }
 
         Symbol(OperatorSequence sequence, OperatorSequence conjSequence);
 

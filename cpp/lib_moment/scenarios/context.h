@@ -17,6 +17,7 @@
 
 namespace Moment {
 
+    class SymbolTable;
     class OperatorSequence;
     class OperatorSequenceGenerator;
     class Dictionary;
@@ -119,6 +120,16 @@ namespace Moment {
           * Generates a formatted string representation of an untreated sequence
           */
           [[nodiscard]] virtual std::string format_raw_sequence(const sequence_storage_t& seq) const;
+
+         /**
+          * Gets extra contextual information about a supplied symbol, if any known.
+          */
+        [[nodiscard]] std::string format_symbol(const SymbolTable& table, const symbol_name_t symbol_id) const;
+
+          /**
+           * Gets extra contextual information about a supplied symbol, if any known.
+           */
+         virtual void format_symbol(std::ostream& os, const SymbolTable& table, const symbol_name_t symbol_id) const;
 
          /**
           * Summarize the context as a string.

@@ -12,14 +12,14 @@
 #include "map_core.h"
 #include "symbol_table_map.h"
 
-#include "symbolic/polynomial_factory.h"
-
 #include "matrix/monomial_matrix.h"
 #include "matrix/polynomial_matrix.h"
 #include "matrix/operator_matrix/moment_matrix.h"
 #include "matrix/operator_matrix/localizing_matrix.h"
 
 #include <cassert>
+
+#include <tuple>
 
 namespace Moment::Derived {
 
@@ -49,10 +49,19 @@ namespace Moment::Derived {
         }
     }
 
+    std::pair<std::unique_ptr<SymbolTableMap>, std::vector<std::string>>
+    DerivedMatrixSystem::STMFactory::operator()(const SymbolTable &origin, SymbolTable &target,
+                                                Multithreading::MultiThreadPolicy mt_policy) {
+        auto stm = this->make(origin, target, mt_policy);
+        std::vector<std::string> names = std::move(stm->target_symbol_names);
+        return {std::move(stm), std::move(names)};
+    }
+
     DerivedMatrixSystem::DerivedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system, STMFactory&& stm_factory,
                                              double tolerance, Multithreading::MultiThreadPolicy mt_policy)
         : MatrixSystem(DerivedMatrixSystem::make_derived_context(*base_system),
                        tolerance > 0 ? tolerance : base_system->polynomial_factory().zero_tolerance),
+          derived_context{dynamic_cast<class DerivedContext&>(this->Context())},
           base_ms_ptr{std::move(base_system)}
     {
         // Avoid deadlock. Should never occur...!
@@ -60,14 +69,15 @@ namespace Moment::Derived {
 
         // Make map from factory (i.e. virtual call).
         auto lock = this->base_ms_ptr->get_read_lock();
-        this->map_ptr = stm_factory(this->base_ms_ptr->Symbols(), this->Symbols(), mt_policy);
+        std::tie(this->map_ptr, this->derived_context.derived_symbol_strs)
+            = stm_factory(this->base_ms_ptr->Symbols(), this->Symbols(), mt_policy);
 
     }
 
     DerivedMatrixSystem::~DerivedMatrixSystem() noexcept = default;
 
     std::unique_ptr<Context> DerivedMatrixSystem::make_derived_context(const MatrixSystem& source) {
-        return std::make_unique<Derived::DerivedContext>(source.Context());
+        return std::make_unique<class DerivedContext>(source.Context());
     }
 
     std::unique_ptr<class SymbolicMatrix>

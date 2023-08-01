@@ -22,7 +22,7 @@ namespace Moment::Derived {
     public:
         /**
          * Virtual factory class for making the symbol table map.
-         * The purpose of this class is to fake a virtual function call in the constructor of DerivedMatrixSystem.
+         * The purpose of this class is to inject a virtual function call in the constructor of DerivedMatrixSystem.
          * Implementations only need to support operator() being called once.
          */
         class STMFactory {
@@ -32,12 +32,16 @@ namespace Moment::Derived {
             virtual ~STMFactory() noexcept = default;
 
         public:
-            [[nodiscard]] virtual std::unique_ptr<SymbolTableMap>
-            operator()(const SymbolTable& origin, SymbolTable& target, Multithreading::MultiThreadPolicy mt_policy) = 0;
+            [[nodiscard]] std::pair<std::unique_ptr<SymbolTableMap>, std::vector<std::string>>
+            operator()(const SymbolTable& origin, SymbolTable& target, Multithreading::MultiThreadPolicy mt_policy);
+
+            [[nodiscard]] virtual std::unique_ptr<SymbolTableMap> make(const SymbolTable& origin, SymbolTable& target,
+                                                                       Multithreading::MultiThreadPolicy mt_policy) = 0;
         };
 
-
     private:
+        DerivedContext& derived_context;
+
         /**
          * Owning pointer to base system.
          * Ownership is necessary, to prevent deletion of base system while SMS is still alive.
@@ -91,6 +95,11 @@ namespace Moment::Derived {
          * For thread safety, a read lock should be in place on this matrix system, AND on the base matrix system.
          */
         [[nodiscard]] virtual std::string describe_map() const;
+
+        /** Reference to derived context object. */
+        const DerivedContext& DerivedContext() const noexcept {
+            return this->derived_context;
+        }
 
     protected:
         [[nodiscard]] std::unique_ptr<class SymbolicMatrix>

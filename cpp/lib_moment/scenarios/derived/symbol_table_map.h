@@ -41,6 +41,7 @@ namespace Moment {
         private:
             const SymbolTable& origin_symbols;
             SymbolTable& target_symbols;
+            std::vector<std::string> target_symbol_names;
 
             std::vector<Polynomial> map;
             std::vector<Polynomial> inverse_map;
@@ -48,6 +49,8 @@ namespace Moment {
 
             std::unique_ptr<MapCore> core;
             std::unique_ptr<SolvedMapCore> core_solution;
+
+
 
         public:
 
@@ -167,8 +170,7 @@ namespace Moment {
              */
             [[nodiscard]] const SolvedMapCore& raw_solution() const noexcept { return *this->core_solution; }
 
-
+            friend class DerivedMatrixSystem;
         };
-    };
-
+    }
 }

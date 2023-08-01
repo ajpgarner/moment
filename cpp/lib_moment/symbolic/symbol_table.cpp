@@ -69,11 +69,10 @@ namespace Moment {
 
 
 
-    symbol_name_t SymbolTable::create(const bool has_real, const bool has_imaginary, std::string fwd_name) {
+    symbol_name_t SymbolTable::create(const bool has_real, const bool has_imaginary) {
         auto next_id = static_cast<symbol_name_t>(this->unique_sequences.size());
         Symbol blank;
         blank.id = next_id;
-        blank.fwd_sequence_str = std::move(fwd_name);
 
         auto [re_index, im_index] = this->Basis.push_back(next_id, has_real, has_imaginary);
         blank.real_index = re_index;
@@ -433,60 +432,6 @@ namespace Moment {
         return output;
     }
 
-    std::ostream& operator<<(std::ostream& os, const Symbol& seq) {
-        const bool has_fwd = seq.opSeq.has_value();
-        const bool has_rev = seq.opSeq.has_value();
-
-        os << "#" << seq.id << ":\t";
-        if (!seq.fwd_sequence_str.empty()) {
-            if (!has_fwd) {
-                os << "[";
-            }
-            os << seq.fwd_sequence_str;
-            if (!has_fwd) {
-                os << "]";
-            }
-        } else {
-            os << "[No sequence]";
-        }
-        if (seq.fwd_sequence_str.length() >= 80) {
-            os << "\n\t";
-        } else {
-            os << ":\t";
-        }
-
-        if (seq.real_index>=0) {
-            if (seq.img_index>=0) {
-                os << "Complex";
-            } else {
-                os << "Real";
-            }
-        } else if (seq.img_index>=0) {
-            os << "Imaginary";
-        } else {
-            os << "Zero";
-        }
-
-        if (seq.hermitian) {
-            os << ", Hermitian";
-        }
-        if (seq.real_index>=0) {
-            os << ", Re#=" << seq.real_index;
-        }
-        if (seq.img_index>=0) {
-            os << ", Im#=" << seq.img_index;
-        }
-
-        if (has_fwd) {
-            os << ", hash=" << seq.hash();
-            if (seq.hash_conj() != seq.hash()) {
-                os << "/" << seq.hash_conj();
-            }
-        } else {
-            os << ", unhashable";
-        }
-        return os;
-    }
 
     std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {
         const auto& real_symbols = table.Basis.RealSymbols();

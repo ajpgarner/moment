@@ -25,9 +25,9 @@ namespace Moment::Symmetrized {
     }
 
     std::unique_ptr<Derived::SymbolTableMap>
-    SymmetrizedMatrixSystem::SymmetrizedSTMFactory::operator()(const SymbolTable& origin_symbols,
-                                                               SymbolTable& target_symbols,
-                                                               Multithreading::MultiThreadPolicy mt_policy) {
+    SymmetrizedMatrixSystem::SymmetrizedSTMFactory::make(const SymbolTable& origin_symbols,
+                                                         SymbolTable& target_symbols,
+                                                         Multithreading::MultiThreadPolicy mt_policy) {
         // First, ensure source defines enough symbols to do generation
         const auto osg_length = origin_symbols.OSGIndex.max_length();
         if (osg_length < max_word_length) {

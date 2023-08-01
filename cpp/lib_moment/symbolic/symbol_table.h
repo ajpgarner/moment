@@ -234,7 +234,7 @@ namespace Moment {
          * @param name The string the symbol represents.
          * @return The ID of the new symbol.
          */
-        symbol_name_t create(bool has_real = true, bool has_imaginary = true, std::string name = "");
+        symbol_name_t create(bool has_real = true, bool has_imaginary = true);
 
         /**
          * Add multiple empty symbols to table.

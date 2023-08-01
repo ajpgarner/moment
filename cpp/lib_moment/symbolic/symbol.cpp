@@ -14,8 +14,7 @@ namespace Moment {
                    OperatorSequence conjSequence):
             opSeq{std::move(sequence)},
             conjSeq{std::move(conjSequence)},
-            hermitian{false}, antihermitian{false}, real_index{-1}, img_index{-1},
-            fwd_sequence_str{opSeq->formatted_string()} {
+            hermitian{false}, antihermitian{false}, real_index{-1}, img_index{-1} {
 
         int compare = OperatorSequence::compare_same_negation(*opSeq, *conjSeq);
         if (1 == compare) {
@@ -25,6 +24,55 @@ namespace Moment {
         }
     }
 
+    std::ostream& operator<<(std::ostream& os, const Symbol& seq) {
+        const bool has_fwd = seq.opSeq.has_value();
+
+        os << "#" << seq.id << ":\t";
+
+        if (has_fwd) {
+            std::string fwd_sequence = seq.formatted_sequence();
+            os << fwd_sequence;
+            if (fwd_sequence.length() >= 80) {
+                os << "\n\t";
+            } else {
+                os << ":\t";
+            }
+        } else {
+            os << "<No sequence>:\t";
+        }
+
+        if (seq.real_index>=0) {
+            if (seq.img_index>=0) {
+                os << "Complex";
+            } else {
+                os << "Real";
+            }
+        } else if (seq.img_index>=0) {
+            os << "Imaginary";
+        } else {
+            os << "Zero";
+        }
+
+        if (seq.hermitian) {
+            os << ", Hermitian";
+        }
+        if (seq.real_index>=0) {
+            os << ", Re#=" << seq.real_index;
+        }
+        if (seq.img_index>=0) {
+            os << ", Im#=" << seq.img_index;
+        }
+
+        if (has_fwd) {
+            os << ", hash=" << seq.hash();
+            if (seq.hash_conj() != seq.hash()) {
+                os << "/" << seq.hash_conj();
+            }
+        } else {
+            os << ", unhashable";
+        }
+        return os;
+    }
 
     std::string Symbol::formatted_sequence() const {
         if (this->opSeq.has_value()) {
