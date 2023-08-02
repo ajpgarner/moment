@@ -283,10 +283,10 @@ namespace Moment::Derived {
         // Get raw combo, or throw range error
         Polynomial output = this->inverse(symbol.id);
 
-        // Apply transformations (using target symbol table)
+        // Apply transformations (using origin symbol table)
         output *= symbol.factor;
         if (symbol.conjugated) {
-            output.conjugate_in_place(this->target_symbols);
+            output.conjugate_in_place(this->origin_symbols);
         }
 
         return output;

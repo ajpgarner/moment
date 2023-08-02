@@ -49,14 +49,6 @@ namespace Moment::Derived {
         }
     }
 
-    std::pair<std::unique_ptr<SymbolTableMap>, std::vector<std::string>>
-    DerivedMatrixSystem::STMFactory::operator()(const SymbolTable &origin, SymbolTable &target,
-                                                Multithreading::MultiThreadPolicy mt_policy) {
-        auto stm = this->make(origin, target, mt_policy);
-        std::vector<std::string> names = std::move(stm->target_symbol_names);
-        return {std::move(stm), std::move(names)};
-    }
-
     DerivedMatrixSystem::DerivedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system, STMFactory&& stm_factory,
                                              double tolerance, Multithreading::MultiThreadPolicy mt_policy)
         : MatrixSystem(DerivedMatrixSystem::make_derived_context(*base_system),
@@ -69,9 +61,11 @@ namespace Moment::Derived {
 
         // Make map from factory (i.e. virtual call).
         auto lock = this->base_ms_ptr->get_read_lock();
-        std::tie(this->map_ptr, this->derived_context.derived_symbol_strs)
-            = stm_factory(this->base_ms_ptr->Symbols(), this->Symbols(), mt_policy);
+        this->map_ptr = stm_factory(this->base_ms_ptr->Symbols(), this->Symbols(), mt_policy);
+        assert(this->map_ptr != nullptr);
 
+        // Register with context
+        this->derived_context.set_symbol_table_map(this->map_ptr.get());
     }
 
     DerivedMatrixSystem::~DerivedMatrixSystem() noexcept = default;

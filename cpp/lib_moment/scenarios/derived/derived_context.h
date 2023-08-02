@@ -7,16 +7,21 @@
 #pragma once
 
 #include "../context.h"
+#include "../contextual_os.h"
+
+#include <optional>
 
 namespace Moment::Derived {
+
+    class SymbolTableMap;
 
     class DerivedContext : public Context {
     public:
         const Context& base_context;
 
     private:
-        std::vector<std::string> derived_symbol_strs;
-
+        std::optional<StringFormatContext> sfc;
+        const SymbolTableMap * map_ptr = nullptr;
 
     public:
 
@@ -26,7 +31,15 @@ namespace Moment::Derived {
                                             const symbol_name_t symbol_id,
                                             bool conjugated) const override;
 
+        inline const SymbolTableMap& SymbolTableMap() const noexcept {
+            assert(this->map_ptr);
+            return *this->map_ptr;
+        }
+
         friend class DerivedMatrixSystem;
+
+    private:
+        void set_symbol_table_map(const class SymbolTableMap * new_map_ptr) noexcept;
     };
 
 }

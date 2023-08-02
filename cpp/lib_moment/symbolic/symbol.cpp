@@ -66,6 +66,7 @@ namespace Moment {
         } else {
             os.context.format_sequence_from_symbol_id(os, symbol.id, false);
         }
+        os << ":\t";
 
         symbol.output_uncontextual_info(os.os);
         return os;

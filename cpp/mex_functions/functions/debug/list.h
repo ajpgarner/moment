@@ -42,7 +42,7 @@ namespace Moment::mex::functions  {
     private:
         std::string generateListString(const ListParams &input) const;
 
-        matlab::data::StructArray generateListStruct(const ListParams &input) const;
+        matlab::data::StructArray generateListStruct() const;
 
         matlab::data::StructArray generateOneSystemStruct(const ListParams &input) const;
     };

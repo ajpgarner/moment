@@ -23,8 +23,8 @@ namespace Moment::Tests {
 
         }
 
-        std::unique_ptr<Derived::SymbolTableMap> make(const SymbolTable &origin, SymbolTable &target,
-                                                      Multithreading::MultiThreadPolicy mt_policy) override {
+        std::unique_ptr<Derived::SymbolTableMap> operator()(const SymbolTable &origin, SymbolTable &target,
+                                                      Multithreading::MultiThreadPolicy mt_policy) final {
             return std::make_unique<Derived::SymbolTableMap>(origin, target,
                                                              Derived::LUMapCoreProcessor{}, this->src_matrix);
         }
@@ -39,8 +39,8 @@ namespace Moment::Tests {
 
         }
 
-        std::unique_ptr<Derived::SymbolTableMap> make(const SymbolTable &origin, SymbolTable &target,
-                                                      Multithreading::MultiThreadPolicy mt_policy) override {
+        std::unique_ptr<Derived::SymbolTableMap> operator()(const SymbolTable &origin, SymbolTable &target,
+                                                      Multithreading::MultiThreadPolicy mt_policy) final {
             return std::make_unique<Derived::SymbolTableMap>(origin, target,
                                                              Derived::LUMapCoreProcessor{}, this->src_matrix);
         }

@@ -23,10 +23,15 @@
 
 namespace Moment::mex::functions {
     namespace {
-        void output_ms_info(std::ostream& os, uint32_t id,
-                            const MatrixSystem& ms, bool export_symbols, bool export_mat_props) {
+        void output_ms_info(std::ostream& raw_os, uint32_t id,
+                            const MatrixSystem& ms, bool export_symbols, bool export_mat_props,
+                            const EnvironmentalVariables& env) {
             auto read_lock = ms.get_read_lock();
+            const auto& context = ms.Context();
             const auto& symbols = ms.Symbols();
+            ContextualOS os{raw_os, context, symbols};
+            auto lf = env.get_locality_formatter();
+            os.format_info.locality_formatter = lf.get();
 
             os << "System #" << id << ": " << ms.system_type_name();
             const size_t symbol_count = ms.Symbols().size();
@@ -144,7 +149,7 @@ namespace Moment::mex::functions {
                 if (input.output_type == ListParams::OutputType::OneSystem) {
                     output[0] = generateOneSystemStruct(input);
                 } else {
-                    output[0] = generateListStruct(input);
+                    output[0] = generateListStruct();
                 }
             } else {
                 output[0] = factory.createScalar(list_as_str);
@@ -164,7 +169,8 @@ namespace Moment::mex::functions {
                     } else {
                         done_one = true;
                     }
-                    output_ms_info(ss, id, *msPtr, input.export_symbols, input.export_matrix_properties);
+                    output_ms_info(ss, id, *msPtr, input.export_symbols, input.export_matrix_properties,
+                                   *this->settings);
                     // Get next:
                     auto [next_id, nextPtr] = storageManager.MatrixSystems.next(id);
                     id = next_id;
@@ -176,12 +182,12 @@ namespace Moment::mex::functions {
         } else {
             auto id = PersistentStorage<MatrixSystem>::get_index(input.matrix_system_key);
             auto msPtr = storageManager.MatrixSystems.get(input.matrix_system_key);
-            output_ms_info(ss, id, *msPtr, input.export_symbols, input.export_matrix_properties);
+            output_ms_info(ss, id, *msPtr, input.export_symbols, input.export_matrix_properties, *this->settings);
         }
         return ss.str();
     }
 
-    matlab::data::StructArray List::generateListStruct(const ListParams &input) const {
+    matlab::data::StructArray List::generateListStruct() const {
         matlab::data::ArrayFactory factory;
         struct temp_system_info_t {
             uint64_t id;

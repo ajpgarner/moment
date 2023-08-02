@@ -170,6 +170,15 @@ namespace Moment {
              */
             [[nodiscard]] const SolvedMapCore& raw_solution() const noexcept { return *this->core_solution; }
 
+            const SymbolTable& Origin() const noexcept {
+                return this->origin_symbols;
+            }
+
+            const SymbolTable& Target() const noexcept {
+                return this->target_symbols;
+            }
+
+
             friend class DerivedMatrixSystem;
         };
     }

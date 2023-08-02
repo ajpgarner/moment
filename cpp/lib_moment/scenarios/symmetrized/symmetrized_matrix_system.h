@@ -34,9 +34,9 @@ namespace Moment::Symmetrized {
             SymmetrizedSTMFactory(Group &group, size_t max_word_length,
                                   std::unique_ptr<Derived::MapCoreProcessor>&& processor) noexcept;
 
-            std::unique_ptr<Derived::SymbolTableMap> make(const SymbolTable& origin,
-                                                          SymbolTable& target,
-                                                          Multithreading::MultiThreadPolicy mt_policy) final;
+            std::unique_ptr<Derived::SymbolTableMap> operator()(const SymbolTable& origin,
+                                                                SymbolTable& target,
+                                                                Multithreading::MultiThreadPolicy mt_policy) final;
 
         };
 

@@ -32,11 +32,8 @@ namespace Moment::Derived {
             virtual ~STMFactory() noexcept = default;
 
         public:
-            [[nodiscard]] std::pair<std::unique_ptr<SymbolTableMap>, std::vector<std::string>>
-            operator()(const SymbolTable& origin, SymbolTable& target, Multithreading::MultiThreadPolicy mt_policy);
-
-            [[nodiscard]] virtual std::unique_ptr<SymbolTableMap> make(const SymbolTable& origin, SymbolTable& target,
-                                                                       Multithreading::MultiThreadPolicy mt_policy) = 0;
+            [[nodiscard]] virtual std::unique_ptr<SymbolTableMap>
+            operator()(const SymbolTable& origin, SymbolTable& target, Multithreading::MultiThreadPolicy mt_policy) = 0;
         };
 
     private:
