@@ -4,8 +4,6 @@
  * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  *
- * TODO: Simplify, making use of ContextualOS.
- *
  */
 
 #include "export_operator_matrix_seq_strings.h"
@@ -38,9 +36,11 @@
 namespace Moment::mex {
 
     namespace {
-        class DirectFormatView {
+
+        template<typename matrix_elem_t>
+        class FormatView {
         public:
-            using raw_const_iterator = SquareMatrix<OperatorSequence>::const_iterator;
+            using raw_const_iterator = typename SquareMatrix<matrix_elem_t>::const_iterator;
 
             class const_iterator {
             public:
@@ -50,7 +50,7 @@ namespace Moment::mex {
 
             private:
                 const StringFormatContext * sfc = nullptr;
-                DirectFormatView::raw_const_iterator raw_iter;
+                raw_const_iterator raw_iter;
                 UTF8toUTF16Convertor convertor;
 
             public:
@@ -87,7 +87,7 @@ namespace Moment::mex {
                 }
             };
 
-            static_assert(std::input_iterator<DirectFormatView::const_iterator>);
+            static_assert(std::input_iterator<FormatView<matrix_elem_t>::const_iterator>);
 
         private:
             const StringFormatContext sfc;
@@ -95,7 +95,7 @@ namespace Moment::mex {
             const const_iterator iter_end;
 
         public:
-            DirectFormatView(StringFormatContext the_sfc, const SquareMatrix<OperatorSequence> &inputMatrix)
+            FormatView(StringFormatContext the_sfc, const SquareMatrix<matrix_elem_t>& inputMatrix)
                     : sfc{the_sfc},
                       iter_begin{&sfc, inputMatrix.begin()},
                       iter_end{&sfc, inputMatrix.end()} {
@@ -107,178 +107,9 @@ namespace Moment::mex {
 
         };
 
-        class InferredFormatView {
-        public:
-            using raw_const_iterator = SquareMatrix<Monomial>::const_iterator;
-
-            class const_iterator {
-            public:
-                using iterator_category = std::input_iterator_tag;
-                using difference_type = ptrdiff_t;
-                using value_type = matlab::data::MATLABString;
-
-            private:
-                const Context *context = nullptr;
-                const SymbolTable *symbols = nullptr;
-                InferredFormatView::raw_const_iterator raw_iter;
-
-
-            public:
-                constexpr const_iterator(const Context &context,
-                                         const SymbolTable &symbols,
-                                         raw_const_iterator rci)
-                        : context{&context}, symbols{&symbols}, raw_iter{rci} {}
-
-                constexpr bool operator==(const const_iterator &rhs) const noexcept {
-                    return this->raw_iter == rhs.raw_iter;
-                }
-
-                constexpr bool operator!=(const const_iterator &rhs) const noexcept {
-                    return this->raw_iter != rhs.raw_iter;
-                }
-
-                constexpr const_iterator &operator++() {
-                    ++(this->raw_iter);
-                    return *this;
-                }
-
-                constexpr const_iterator operator++(int) &{
-                    auto copy = *this;
-                    ++(*this);
-                    return copy;
-                }
-
-                value_type operator*() const {
-                    return {UTF8toUTF16Convertor::convert(infer_one_symbol(*symbols, *raw_iter))};
-                }
-
-                [[nodiscard]] static std::string infer_one_symbol(const SymbolTable &symbols,
-                                                                  const Monomial &expr,
-                                                                  bool with_prefix = false) {
-
-                    std::stringstream ss;
-                    if ((expr.id < 0) || (expr.id >= symbols.size())) {
-                        if (with_prefix) {
-                            ss << " + ";
-                        }
-                        ss << "[MISSING:" << expr.id << "]";
-                        return ss.str();
-                    }
-
-                    const auto &symEntry = symbols[expr.id];
-
-                    std::string symbol_str = expr.conjugated ? symEntry.formatted_sequence_conj()
-                                                             : symEntry.formatted_sequence();
-
-                    if (!approximately_zero(expr.factor)) {
-                        const bool is_scalar = (symEntry.Id() == 1);
-                        const bool need_space = format_factor(ss, expr.factor, is_scalar, with_prefix);
-                        if (symEntry.Id() != 1) {
-                            if (need_space) {
-                                ss << " ";
-                            }
-                            ss << symbol_str;
-                        }
-                    } else {
-                        if (with_prefix) {
-                            return "";
-                        } else {
-                            return "0";
-                        }
-                    }
-                    return ss.str();
-                }
-            };
-
-            static_assert(std::input_iterator<DirectFormatView::const_iterator>);
-
-        private:
-            const const_iterator iter_begin;
-            const const_iterator iter_end;
-
-        public:
-            InferredFormatView(const Context &context, const SymbolTable &symbols,
-                               const SquareMatrix<Monomial> &inputMatrix)
-                    : iter_begin{context, symbols, inputMatrix.begin()},
-                      iter_end{context, symbols, inputMatrix.end()} {
-            }
-
-            [[nodiscard]] auto begin() const { return iter_begin; }
-
-            [[nodiscard]] auto end() const { return iter_end; }
-
-        };
-
-        class InferredPolynomialFormatView {
-        public:
-            using raw_const_iterator = SquareMatrix<Polynomial>::const_iterator;
-
-            class const_iterator {
-            public:
-                using iterator_category = std::input_iterator_tag;
-                using difference_type = ptrdiff_t;
-                using value_type = matlab::data::MATLABString;
-
-            private:
-                const Context *context = nullptr;
-                const SymbolTable *symbols = nullptr;
-                InferredPolynomialFormatView::raw_const_iterator raw_iter;
-
-            public:
-                constexpr const_iterator(const Context &context,
-                                         const SymbolTable &symbols,
-                                         raw_const_iterator rci)
-                        : context{&context}, symbols{&symbols}, raw_iter{rci} {}
-
-                constexpr bool operator==(const const_iterator &rhs) const noexcept {
-                    return this->raw_iter == rhs.raw_iter;
-                }
-
-                constexpr bool operator!=(const const_iterator &rhs) const noexcept {
-                    return this->raw_iter != rhs.raw_iter;
-                }
-
-                constexpr const_iterator &operator++() {
-                    ++(this->raw_iter);
-                    return *this;
-                }
-
-                constexpr const_iterator operator++(int) &{
-                    auto copy = *this;
-                    ++(*this);
-                    return copy;
-                }
-
-                value_type operator*() const {
-                    bool done_once = false;
-                    std::stringstream output;
-                    for (const auto &expr: *raw_iter) {
-                        output << InferredFormatView::const_iterator::infer_one_symbol(*symbols, expr, done_once);
-                        done_once = true;
-                    }
-                    return {UTF8toUTF16Convertor::convert(output.str())};
-                }
-            };
-
-            static_assert(std::input_iterator<InferredPolynomialFormatView::const_iterator>);
-
-        private:
-            const const_iterator iter_begin;
-            const const_iterator iter_end;
-
-        public:
-            InferredPolynomialFormatView(const Context &context, const SymbolTable &symbols,
-                                         const SquareMatrix<Polynomial> &inputMatrix)
-                    : iter_begin{context, symbols, inputMatrix.begin()},
-                      iter_end{context, symbols, inputMatrix.end()} {
-            }
-
-            [[nodiscard]] auto begin() const { return iter_begin; }
-
-            [[nodiscard]] auto end() const { return iter_end; }
-
-        };
-
+        using DirectFormatView = FormatView<OperatorSequence>;
+        using InferredFormatView = FormatView<Monomial>;
+        using InferredPolynomialFormatView = FormatView<Polynomial>;
 
         class FactorFormatView {
         public:
@@ -405,25 +236,36 @@ namespace Moment::mex {
         }
 
         inline matlab::data::StringArray export_direct(matlab::engine::MATLABEngine& engine,
+                                                       const Context& context,
                                                        const SymbolTable& symbols,
                                                        const OperatorMatrix &opMatrix)  {
-            StringFormatContext sfc{opMatrix.context, symbols};
+            StringFormatContext sfc{context, symbols};
             sfc.format_info.show_braces = true;
             sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
 
-            return do_export<DirectFormatView>(engine, opMatrix(), sfc); // opMatrix.context);
+            return do_export<DirectFormatView>(engine, opMatrix(), sfc);
         }
 
         inline matlab::data::StringArray export_inferred(matlab::engine::MATLABEngine& engine,
+                                                         const Context& context,
+                                                         const SymbolTable& symbols,
                                                          const MonomialMatrix &inputMatrix) {
-            return do_export<InferredFormatView>(engine, inputMatrix.SymbolMatrix(),
-                                                 inputMatrix.context, inputMatrix.symbols);
+            StringFormatContext sfc{context, symbols};
+            sfc.format_info.show_braces = true;
+            sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
+
+            return do_export<InferredFormatView>(engine, inputMatrix.SymbolMatrix(), sfc);
         }
 
         inline matlab::data::StringArray export_inferred(matlab::engine::MATLABEngine& engine,
+                                                         const Context& context,
+                                                         const SymbolTable& symbols,
                                                          const PolynomialMatrix &inputMatrix) {
-            return do_export<InferredPolynomialFormatView>(engine, inputMatrix.SymbolMatrix(),
-                                                           inputMatrix.context, inputMatrix.symbols);
+            StringFormatContext sfc{context, symbols};
+            sfc.format_info.show_braces = true;
+            sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
+
+            return do_export<InferredPolynomialFormatView>(engine, inputMatrix.SymbolMatrix(), sfc);
         }
 
         inline matlab::data::StringArray export_factored(matlab::engine::MATLABEngine& engine,
@@ -434,17 +276,12 @@ namespace Moment::mex {
                                                ims.InflationContext(), ims.Factors());
         }
 
+        template<typename matrix_t>
         inline matlab::data::StringArray export_locality(matlab::engine::MATLABEngine& engine,
                                                          const Locality::LocalityContext& context,
                                                          const SymbolTable& symbols,
                                                          const Locality::LocalityOperatorFormatter& formatter,
-                                                         const MonomialMatrix& inputMatrix) {
-
-            // Default to inferred view if no operator matrix.
-            if (!inputMatrix.has_operator_matrix()) [[unlikely]] {
-                return export_inferred(engine, inputMatrix);
-            }
-
+                                                         const matrix_t& inputMatrix) {
             // Set up output context
             StringFormatContext sfc{context, symbols};
             sfc.format_info.show_braces = true;
@@ -452,27 +289,12 @@ namespace Moment::mex {
             sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
 
             // Export
-            return do_export<DirectFormatView>(engine, inputMatrix.operator_matrix()(), sfc);
-        }
-
-        inline matlab::data::StringArray export_locality(matlab::engine::MATLABEngine& engine,
-                                                         const Locality::LocalityContext& context,
-                                                         const SymbolTable& symbols,
-                                                         const Locality::LocalityOperatorFormatter& formatter,
-                                                         const PolynomialMatrix& inputMatrix) {
-
-            // Default to inferred view if no operator matrix
-            if (!inputMatrix.has_operator_matrix()) [[unlikely]] {
-                return export_inferred(engine, inputMatrix);
+            if (!inputMatrix.has_operator_matrix()) {
+                using AppropriateInferredFormatView = FormatView<typename matrix_t::ElementType>;
+                return do_export<AppropriateInferredFormatView>(engine, inputMatrix.SymbolMatrix(), sfc);
+            } else {
+                return do_export<DirectFormatView>(engine, inputMatrix.operator_matrix()(), sfc);
             }
-
-            // Set up output context
-            StringFormatContext sfc{context, symbols};
-            sfc.format_info.show_braces = true;
-            sfc.format_info.locality_formatter = &formatter;
-            sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
-
-            return do_export<DirectFormatView>(engine, inputMatrix.operator_matrix()(), sfc);
         }
     }
 
@@ -510,11 +332,11 @@ namespace Moment::mex {
         // Do we have direct sequences? If so, export direct (neutral) view.
         if (matrix.has_operator_matrix()) {
             const auto& op_mat = matrix.operator_matrix();
-            return export_direct(engine, this->system.Symbols(), op_mat);
+            return export_direct(engine, this->system.Context(), this->system.Symbols(), op_mat);
         }
 
         // If all else fails, use inferred string formatting
-        return export_inferred(engine, matrix);
+        return export_inferred(engine, this->system.Context(), this->system.Symbols(), matrix);
     }
 
     matlab::data::StringArray
@@ -528,11 +350,11 @@ namespace Moment::mex {
         // Do we have direct sequences? If so, export direct (neutral) view.
         if (matrix.has_operator_matrix()) [[unlikely]] {
              // Unlikely: Most polynomial matrices are not created from categorizing symbols in an operator matrix.
-            return export_direct(engine, this->system.Symbols(), matrix.operator_matrix());
+            return export_direct(engine, this->system.Context(), this->system.Symbols(), matrix.operator_matrix());
         }
 
         // If all else fails, use inferred string formatting
-        return export_inferred(engine, matrix);
+        return export_inferred(engine, this->system.Context(), this->system.Symbols(), matrix);
     }
 
 

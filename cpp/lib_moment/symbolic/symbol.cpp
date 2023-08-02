@@ -78,14 +78,9 @@ namespace Moment {
         os << "#" << symbol.id << ":\t";
 
         if (symbol.opSeq.has_value()) {
-            // Uncontextual, fallback.
-            std::string fwd_sequence = symbol.formatted_sequence();
-            os << fwd_sequence;
-            if (fwd_sequence.length() >= 80) {
-                os << "\n\t";
-            } else {
-                os << ":\t";
-            }
+            // Uncontextual fallback.
+            os << symbol.opSeq.value();
+            os << ":\t";
         } else {
             // Uncontextual, unknowable
             os << "<No sequence>:\t";
@@ -95,28 +90,38 @@ namespace Moment {
         return os;
     }
 
-    std::string Symbol::formatted_sequence() const {
-        if (this->opSeq.has_value()) {
-            return this->opSeq->formatted_string();
+    /** Format forward example of symbol */
+    ContextualOS& operator<<(ContextualOS &os, const Symbol::display_example_t<false>& elem) {
+        const auto& symbol = elem.symbol;
+        if (os.format_info.display_symbolic_as == StringFormatContext::DisplayAs::Operators) {
+            if (symbol.opSeq.has_value()) {
+                os << symbol.opSeq.value();
+                return os;
+            }
         }
 
-        std::stringstream ss;
-        ss << "#" << this->id;
-        return ss.str();
+        // Otherwise, try format as symbol
+        os.context.format_sequence_from_symbol_id(os, symbol.id, false);
+
+        return os;
     }
 
-    std::string Symbol::formatted_sequence_conj() const {
-        if (this->conjSeq.has_value()) {
-            return this->conjSeq->formatted_string();
-        } else if (this->hermitian && this->opSeq.has_value()) {
-            return this->opSeq->formatted_string();
+    /** Format conjugate example of symbol */
+    ContextualOS& operator<<(ContextualOS &os, const Symbol::display_example_t<true>& elem) {
+        const auto& symbol = elem.symbol;
+        if (os.format_info.display_symbolic_as == StringFormatContext::DisplayAs::Operators) {
+            if (symbol.conjSeq.has_value()) {
+                os << symbol.conjSeq.value();
+                return os;
+            } else if (symbol.hermitian && symbol.opSeq.has_value()) {
+                os << symbol.opSeq.value();
+                return os;
+            }
         }
 
-        std::stringstream ss;
-        ss << "#" << this->id;
-        if (!this->hermitian) {
-            ss << "*";
-        }
-        return ss.str();
+        // Otherwise, try format as symbol
+        os.context.format_sequence_from_symbol_id(os, symbol.id, !symbol.hermitian);
+
+        return os;
     }
 }

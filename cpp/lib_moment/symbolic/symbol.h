@@ -84,16 +84,6 @@ namespace Moment {
         }
 
         /**
-         * Formatted view of sequence, if any, otherwise just symbol name.
-         */
-        [[nodiscard]] std::string formatted_sequence() const;
-
-        /**
-         * Formatted view of conjugate sequence, if any, otherwise just symbol name.
-         */
-        [[nodiscard]] std::string formatted_sequence_conj() const;
-
-        /**
          * Does the operator sequence represent its Hermitian conjugate?
          * If true, the element will correspond to a real symbol (cf. complex if not) in the NPA matrix.
          */
@@ -148,6 +138,31 @@ namespace Moment {
         friend std::ostream& operator<<(ContextualOS& os, const Symbol& seq);
 
         friend class SymbolTable;
+
+    public:
+        template<bool conjugated>
+        class display_example_t {
+        public:
+            const Symbol& symbol;
+        private:
+            display_example_t(const Symbol& symbol) : symbol{symbol} { }
+
+            display_example_t(const display_example_t&) = delete;
+        public:
+            friend class Symbol;
+        };
+
+        [[nodiscard]] display_example_t<false> ForwardDisplayElement() const noexcept {
+            return display_example_t<false>{*this};
+        }
+
+        [[nodiscard]] display_example_t<true> ConjugateDisplayElement() const noexcept {
+            return display_example_t<true>{*this};
+        }
+
+
+        friend ContextualOS& operator<<(ContextualOS& os, const display_example_t<true>&);
+        friend ContextualOS& operator<<(ContextualOS& os, const display_example_t<false>&);
 
     private:
         void output_uncontextual_info(std::ostream& os) const;

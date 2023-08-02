@@ -6,6 +6,7 @@
  */
 #include "factor_table.h"
 
+#include "../contextual_os_helper.h"
 #include "inflation_context.h"
 
 #include "matrix/monomial_matrix.h"
@@ -186,10 +187,14 @@ namespace Moment::Inflation {
         std::array<symbol_name_t, 2> idx{lhs < rhs ? lhs : rhs, lhs < rhs ? rhs : lhs};
         auto factor_entry = this->find_index_by_factors(idx);
         if (!factor_entry.has_value() || (factor_entry.value() >= this->entries.size())) {
-            std::stringstream badSymSS;
-            badSymSS << "<" << this->symbols[lhs].formatted_sequence()
-                     << "><" << this->symbols[rhs].formatted_sequence() << ">";
-            throw errors::unknown_symbol{badSymSS.str()};
+            StringFormatContext sfc{this->context, this->symbols};
+            sfc.format_info.show_braces = true;
+            sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
+
+            throw errors::unknown_symbol{
+                make_contextualized_string(sfc, [this, lhs, rhs](ContextualOS& os) {
+                    os << this->symbols[lhs].ForwardDisplayElement() << this->symbols[rhs].ForwardDisplayElement();
+                })};
         }
         return this->entries[factor_entry.value()].id;
     }
@@ -263,11 +268,16 @@ namespace Moment::Inflation {
         // General case:
         auto factor_entry = this->find_index_by_factors(multiplicands);
         if (!factor_entry.has_value() || (factor_entry.value() >= this->entries.size())) {
-            std::stringstream badSymSS;
-            for (auto sym : multiplicands) {
-                badSymSS << "<" << this->symbols[sym].formatted_sequence() << ">";
-            }
-            throw errors::unknown_symbol{badSymSS.str()};
+            StringFormatContext sfc{this->context, this->symbols};
+            sfc.format_info.show_braces = true;
+            sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
+
+            throw errors::unknown_symbol{
+                make_contextualized_string(sfc, [this, &multiplicands](ContextualOS& os) {
+                    for (auto sym: multiplicands) {
+                        os << this->symbols[sym].ForwardDisplayElement();
+                    }
+                })};
         }
         return this->entries[factor_entry.value()].id;
     }
