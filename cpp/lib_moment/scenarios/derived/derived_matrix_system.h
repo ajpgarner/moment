@@ -37,7 +37,7 @@ namespace Moment::Derived {
         };
 
     private:
-        DerivedContext& derived_context;
+        class DerivedContext& derived_context;
 
         /**
          * Owning pointer to base system.
@@ -94,7 +94,7 @@ namespace Moment::Derived {
         [[nodiscard]] virtual std::string describe_map() const;
 
         /** Reference to derived context object. */
-        const DerivedContext& DerivedContext() const noexcept {
+        const class DerivedContext& DerivedContext() const noexcept {
             return this->derived_context;
         }
 
