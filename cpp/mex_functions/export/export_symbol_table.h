@@ -12,6 +12,8 @@
 #include "integer_types.h"
 #include "symbolic/symbol_lookup_result.h"
 
+#include "scenarios/contextual_os.h"
+
 #include <optional>
 #include <span>
 #include <vector>
@@ -47,6 +49,9 @@ namespace Moment::mex {
         const SymbolTable& symbols;
         const Context& context;
 
+    private:
+        StringFormatContext sfContext;
+
     public:
         const bool include_factors;
         const bool locality_format;
@@ -55,6 +60,8 @@ namespace Moment::mex {
     private:
         const Inflation::FactorTable * factorTablePtr = nullptr;
         const Locality::LocalityContext * localityContextPtr = nullptr;
+
+
 
     public:
 

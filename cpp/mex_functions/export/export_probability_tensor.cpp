@@ -32,7 +32,7 @@ namespace Moment::mex {
         explicit SymbolCellWriterFunctor(const ProbabilityTensorExporter& exporter)
             : exporter(exporter),
               polyExporter(exporter.engine, exporter.factory,
-                           exporter.symbol_table, exporter.polyFactory.zero_tolerance) { }
+                           exporter.context, exporter.symbol_table, exporter.polyFactory.zero_tolerance) { }
 
         [[nodiscard]] matlab::data::CellArray inline operator()(const ProbabilityTensorElement& elem) const {
             // Check symbols exist
@@ -56,7 +56,7 @@ namespace Moment::mex {
                                        const CollinsGisin& collins_gisin)
             : full_export{full_export}, exporter{exporter}, collins_gisin{collins_gisin},
               polyExporter(exporter.engine, exporter.factory,
-                           exporter.symbol_table, exporter.polyFactory.zero_tolerance) { }
+                           exporter.context, exporter.symbol_table, exporter.polyFactory.zero_tolerance) { }
 
         [[nodiscard]] inline matlab::data::CellArray operator()(const ProbabilityTensorElement& elem) const {
             auto polySpec = this->fps(elem);

@@ -215,40 +215,60 @@ namespace Moment::Locality {
         return output;
     }
 
-    std::string LocalityContext::format_sequence(const OperatorSequence &seq) const {
-        NaturalLOFormatter formatter;
-        return this->format_sequence(formatter, seq);
+    namespace {
+        void do_format_sequence(const LocalityContext& context, ContextualOS& os, const OperatorSequence& seq) {
+            assert(os.format_info.locality_formatter);
+            if (seq.zero()) {
+                os << "0";
+                return;
+            }
+            if (seq.empty()) {
+                os << "1";
+                return;
+            }
+
+            if (seq.negated()) {
+                os << "-";
+            }
+
+            if (os.format_info.show_braces) {
+                os << "<";
+            }
+
+            bool done_once = false;
+            for (const auto& oper : seq) {
+                if (done_once) {
+                    os << ";";
+                } else {
+                    done_once = true;
+                }
+
+                if (oper > context.size()) {
+                    os << "[UNK:" << oper << "]";
+                } else {
+                    const auto &party = context.associated_party(oper);
+                    party.format_operator(os, oper);
+                }
+            }
+
+            if (os.format_info.show_braces) {
+                os << ">";
+            }
+
+
+        }
     }
 
-    std::string LocalityContext::format_sequence(const LocalityOperatorFormatter& formatter,
-                                                 const OperatorSequence &seq) const {
-        if (seq.zero()) {
-            return "0";
-        }
-        if (seq.empty()) {
-            return "1";
-        }
 
-        std::stringstream ss;
-        if (seq.negated()) {
-            ss << "-";
+    void LocalityContext::format_sequence(ContextualOS &os, const OperatorSequence &seq) const {
+        if (os.format_info.locality_formatter == nullptr) {
+            thread_local NaturalLOFormatter formatter;
+            os.format_info.locality_formatter = &formatter;
+            do_format_sequence(*this, os, seq);
+            os.format_info.locality_formatter = nullptr;
+        } else {
+            do_format_sequence(*this, os, seq);
         }
-        bool done_once = false;
-        for (const auto& oper : seq) {
-            if (done_once) {
-                ss << ";";
-            } else {
-                done_once = true;
-            }
-
-            if (oper > this->size()) {
-                ss << "[UNK:" << oper << "]";
-            } else {
-                const auto &party = this->parties[this->global_op_id_to_party[oper]];
-                party.format_operator(ss, formatter, oper);
-            }
-        }
-        return ss.str();
     }
 
     std::string LocalityContext::format_sequence(const LocalityOperatorFormatter& formatter,
@@ -279,16 +299,17 @@ namespace Moment::Locality {
 
     std::string LocalityContext::to_string() const {
         std::stringstream ss;
+        ContextualOS cSS{ss, *this};
 
         const size_t party_count = this->parties.size();
-        ss << "Locality setting with " << party_count << ((party_count== 1 ? " party" : " parties")) << ".\n";
+        cSS << "Locality setting with " << party_count << ((party_count== 1 ? " party" : " parties")) << ".\n";
 
         for (const auto& party : this->parties) {
-            ss << party << "\n";
+            cSS << party << "\n";
         }
 
-        ss << this->operator_count << ((this->operator_count == 1) ? " operator" : " operators")
-           << " in total.\n";
+        cSS << this->operator_count << ((this->operator_count == 1) ? " operator" : " operators")
+            << " in total.\n";
 
         return ss.str();
     }

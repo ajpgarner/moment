@@ -17,6 +17,7 @@
 namespace Moment {
 
     class Context;
+    class ContextualOS;
 
     /**
      * Represents a sequence of Hermitian operators, in canonical order with all known simplifications applied.
@@ -82,6 +83,11 @@ namespace Moment {
          * Get operator sequence as a context-formatted string.
          */
         [[nodiscard]] std::string formatted_string() const;
+
+        /**
+         * Stream-out operator sequence as a context-formatted string.
+         */
+        friend std::ostream& operator<<(ContextualOS& os, const OperatorSequence& seq);
 
         /**
          * Stream-out operator sequence as a context-formatted string.

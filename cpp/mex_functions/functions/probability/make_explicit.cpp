@@ -115,7 +115,7 @@ namespace Moment::mex::functions {
                     std::stringstream errSS;
                     errSS << "Cannot export as a substitution list: "
                           << "simplified rules contained the following non-scalar defining polynomial: "
-                          << poly.as_string_with_operators(exporter.symbols, true);
+                          << poly.as_string_with_operators(exporter.context, exporter.symbols, true);
 
                     throw_error(exporter.engine, errors::internal_error, errSS.str());
                 }
@@ -250,6 +250,7 @@ namespace Moment::mex::functions {
         // Export rule polynomials
         matlab::data::ArrayFactory factory;
         PolynomialExporter exporter{this->matlabEngine, factory,
+                                    matrixSystem.Context(),
                                     matrixSystem.Symbols(),
                                     matrixSystem.polynomial_factory().zero_tolerance};
         switch (input.output_type) {

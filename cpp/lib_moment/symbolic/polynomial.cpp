@@ -522,6 +522,7 @@ namespace Moment {
 
 
     std::ostream &operator<<(std::ostream &os, const Polynomial &combo) {
+        // Get intial flags
         const bool initial_plus_status = os.flags() & std::ios::showpos;
         const bool initial_show_base_status = os.flags() & std::ios::showbase;
 
@@ -534,29 +535,47 @@ namespace Moment {
             return os;
         }
 
+        // Unset flags
         os.unsetf(std::ios::showpos);
-        os.setf(std::ios::showbase);
+        os.unsetf(std::ios::showbase);
+
+        // Output polynomial
+        bool show_plus = initial_plus_status;
         for (const auto& se : combo) {
-            os << se;
-            os.setf(std::ios::showpos); // 'done once'
+            se.format_as_symbol_id_without_context(os, show_plus, initial_show_base_status);
+            show_plus = true;
         }
 
-        // Restore initial "showpos" status
+        // Restore initial "showpos" and "showbase" flags
         if (initial_plus_status) {
             os.setf(std::ios::showpos);
-        } else {
-            os.unsetf(std::ios::showpos);
         }
-
-        // Restore initial "showbase" status
         if (initial_show_base_status) {
             os.setf(std::ios::showbase);
-        } else {
-            os.unsetf(std::ios::showbase);
+        }
+        return os;
+    }
+
+    ContextualOS& operator<<(ContextualOS& os, const Polynomial& poly) {
+        // Empty string is always 0.
+        if (poly.empty()) {
+            os.os << "0";
+            return os;
+        }
+
+        // Attempt format
+        os.format_info.first_in_polynomial = true;
+        for (const auto& elem : poly.data) {
+            // Call monomial formatter
+            os << elem;
+
+            // Switch to next-in-poly mode.
+            os.format_info.first_in_polynomial = false;
         }
 
         return os;
     }
+
 
     std::string Polynomial::as_string() const {
         std::stringstream ss;
@@ -564,75 +583,20 @@ namespace Moment {
         return ss.str();
     }
 
-    std::string Polynomial::as_string_with_operators(const SymbolTable &table, bool show_braces) const {
+    std::string Polynomial::as_string_with_operators(const Context& context,
+                                                     const SymbolTable& table,
+                                                     bool show_braces) const {
+
         std::stringstream ss;
-        this->as_string_with_operators(ss, table, show_braces);
+        ContextualOS cSS{ss, context, table};
+        cSS.format_info.show_braces = show_braces;
+        cSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
+
+        cSS << *this;
         return ss.str();
     }
 
-    void Polynomial::as_string_with_operators(std::ostream &os, const SymbolTable &table, bool show_braces) const {
-        // Empty string is always 0.
-        if (this->empty()) {
-            os << "0";
-            return;
-        }
 
-        bool done_once = false;
-        for (const auto& elem : this->data) {
-
-            // Zero
-            if ((elem.id == 0) || (approximately_zero(elem.factor))) {
-                if (done_once) {
-                    os << " + ";
-                }
-                os << "0";
-                done_once = true;
-                continue;
-            }
-
-            // Is element a scalar?
-            const bool is_scalar = (elem.id == 1);
-
-            // Write factor
-            const bool need_space = format_factor(os, elem.factor, is_scalar, done_once);
-            done_once = true;
-
-            // Scalar, factor alone is enough
-            if (is_scalar) {
-                continue;
-            }
-
-            if (need_space) {
-                os << " ";
-            }
-
-            // Skip if symbol not in table.
-            const bool valid_symbol = ((elem.id >= 0) && (elem.id < table.size()));
-            if (!valid_symbol) {
-                os << "UNK#" << elem.id;
-                continue;
-            }
-
-            // Get formatted sequence from within table.
-            const auto& symbol_info = table[elem.id];
-            if (show_braces) {
-                if (elem.conjugated) {
-                    os << "<" << symbol_info.formatted_sequence_conj() << ">";
-                } else {
-                    os << "<" << symbol_info.formatted_sequence() << ">";
-                }
-            } else {
-                if (elem.conjugated) {
-                    os << symbol_info.formatted_sequence_conj();
-                } else {
-                    os << symbol_info.formatted_sequence();
-                }
-            }
-            done_once = true;
-        }
-
-
-    }
 
 
 }

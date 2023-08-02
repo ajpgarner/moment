@@ -90,63 +90,92 @@ namespace Moment {
     }
 
     std::string Context::format_sequence(const OperatorSequence &seq) const {
-        // NB: May be overridden by subclasses!
+        std::stringstream ss;
+        ContextualOS cSS{ss, *this};
+        this->format_sequence(cSS, seq);
+        return ss.str();
+    }
 
+    void Context::format_sequence(ContextualOS& contextual_os, const OperatorSequence &seq) const {
+        // NB: May be overridden by subclasses!
         if (seq.zero()) {
-            return "0";
+            contextual_os.os << "0";
+            return;
         }
         if (seq.empty()) {
-            return "1";
+            if (seq.negated()) {
+                contextual_os.os << "-";
+            }
+            contextual_os.os << "1";
+            return;
         }
 
         std::stringstream ss;
         bool done_once = false;
         if (seq.negated()) {
-            ss << "-";
+            contextual_os.os << "-";
         }
 
+        if (contextual_os.format_info.show_braces) {
+            contextual_os.os << "<";
+        }
         for (const auto& oper : seq) {
             if (done_once) {
-                ss << ";";
+                contextual_os.os << ";";
             } else {
                 done_once = true;
             }
 
-            ss << "X" << (oper+1); // MATLAB indexing...
+            contextual_os.os << "X" << (oper+1); // MATLAB indexing...
         }
-        return ss.str();
+        if (contextual_os.format_info.show_braces) {
+            contextual_os.os << ">";
+        }
     }
 
     std::string Context::format_raw_sequence(const sequence_storage_t &seq) const {
+        std::stringstream ss;
+        ContextualOS cSS{ss, *this};
+        this->format_raw_sequence(cSS, seq);
+        return ss.str();
+    }
+
+    void Context::format_raw_sequence(ContextualOS& contextual_os, const sequence_storage_t &seq) const {
         if (seq.empty()) {
-            return "1";
+            contextual_os.os << "1";
+            return;
         }
 
-        std::stringstream ss;
+        if (contextual_os.format_info.show_braces) {
+            contextual_os.os << "<";
+        }
         bool done_once = false;
         for (const auto& oper : seq) {
             if (done_once) {
-                ss << ";";
+                contextual_os.os << ";";
             } else {
                 done_once = true;
             }
 
-            ss << "X" << (oper+1); // MATLAB indexing...
+            contextual_os.os << "X" << (oper+1); // MATLAB indexing...
         }
-        return ss.str();
+        if (contextual_os.format_info.show_braces) {
+            contextual_os.os << ">";
+        }
     }
 
-    std::string Context::format_symbol(const SymbolTable &table, const symbol_name_t symbol_id) const {
-        std::stringstream ss;
-        this->format_symbol(ss, table, symbol_id);
-        return ss.str();
-    }
 
-    void Context::format_symbol(std::ostream &os, const SymbolTable &table, const symbol_name_t symbol_id) const {
-        if (symbol_id < 0 || symbol_id >= table.size()) {
-            os << "[UNK: #" << symbol_id << "]";
-        } else {
-            os << "#" << symbol_id;
+
+    void Context::format_sequence_from_symbol_id(ContextualOS& contextual_os, const symbol_name_t symbol_id,
+                                                 const bool conjugated) const {
+        // Default behaviour does not know how to do this, and so displays as symbol (with hash)
+
+        if (contextual_os.format_info.hash_before_symbol_id) {
+            contextual_os.os << "#";
+        }
+        contextual_os.os << symbol_id;
+        if (conjugated) {
+            contextual_os.os << "*";
         }
     }
 

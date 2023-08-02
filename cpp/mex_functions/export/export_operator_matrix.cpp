@@ -48,10 +48,11 @@ namespace Moment::mex {
             WritePolyDataFunctor(
                     matlab::engine::MATLABEngine& engine,
                     matlab::data::ArrayFactory& factory,
+                    const Context& context,
                     const SymbolTable& symbol_table,
                     const double zero_tolerance)
                 : factory{factory}, symbol_table{symbol_table},
-                   polyExporter{engine, factory, symbol_table, zero_tolerance} { }
+                   polyExporter{engine, factory, context, symbol_table, zero_tolerance} { }
 
             matlab::data::CellArray
             operator()(const Monomial& monomial) const {
@@ -81,7 +82,7 @@ namespace Moment::mex {
 
             exporter.do_write(readIter, readIterEnd, writeIter, writeIterEnd,
                               WritePolyDataFunctor{exporter.engine, exporter.factory,
-                                                   exporter.symbol_table, exporter.zero_tolerance});
+                                                   exporter.context, exporter.symbol_table, exporter.zero_tolerance});
 
             return output;
         }

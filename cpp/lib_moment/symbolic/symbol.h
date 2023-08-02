@@ -10,6 +10,8 @@
 #include "integer_types.h"
 #include "dictionary/operator_sequence.h"
 
+#include "scenarios/contextual_os.h"
+
 #include <optional>
 #include <string>
 
@@ -140,6 +142,15 @@ namespace Moment {
          */
         friend std::ostream& operator<<(std::ostream& os, const Symbol& seq);
 
+        /**
+         * Output unique sequence entry, as debug info
+         */
+        friend std::ostream& operator<<(ContextualOS& os, const Symbol& seq);
+
         friend class SymbolTable;
+
+    private:
+        void output_uncontextual_info(std::ostream& os) const;
+
     };
 }

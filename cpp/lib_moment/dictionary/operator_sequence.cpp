@@ -14,8 +14,15 @@
 namespace Moment {
 
 
+    std::ostream& operator<<(ContextualOS& os, const OperatorSequence &seq) {
+        assert(&os.context == seq.context);
+        seq.context->format_sequence(os, seq);
+        return os;
+    }
+
     std::ostream& operator<<(std::ostream &os, const OperatorSequence &seq) {
-        os << seq.context->format_sequence(seq);
+        ContextualOS contextual_os{os, *seq.context};
+        seq.context->format_sequence(contextual_os, seq);
         return os;
     }
 

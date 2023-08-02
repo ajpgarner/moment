@@ -184,7 +184,8 @@ namespace Moment::mex::functions {
 
         // Export monolithic basis
         matlab::data::ArrayFactory factory;
-        PolynomialExporter exporter{matlabEngine, factory, matrixSystem.Symbols(), poly_factory.zero_tolerance};
+        PolynomialExporter exporter{matlabEngine, factory,
+                                    matrixSystem.Context(), matrixSystem.Symbols(), poly_factory.zero_tolerance};
         std::tie(output[0], output[1]) = exporter.basis(polynomial);
     }
 }

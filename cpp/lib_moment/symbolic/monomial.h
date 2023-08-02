@@ -7,6 +7,9 @@
 #pragma once
 
 #include "integer_types.h"
+
+#include "scenarios/contextual_os.h"
+
 #include "utilities/float_utils.h"
 
 #include <complex>
@@ -144,6 +147,20 @@ namespace Moment {
          */
         [[nodiscard]] std::string as_string() const;
 
-        friend std::ostream &operator<<(std::ostream &os, const Monomial &expr);
+
+        friend std::ostream& operator<<(std::ostream& os, const Monomial &expr);
+
+        friend ContextualOS& operator<<(ContextualOS& os, const Monomial &expr);
+
+        void format_as_symbol_id_without_context(std::ostream& os, bool show_plus, bool show_hash) const;
+
+        inline void format_as_symbol_id_with_context(ContextualOS& os) const {
+            this->format_as_symbol_id_without_context(os.os, !os.format_info.first_in_polynomial,
+                                                      os.format_info.hash_before_symbol_id);
+        }
+
+        void format_as_operator_sequence_with_context(ContextualOS& os) const;
+
+        friend class Polynomial;
     };
 }

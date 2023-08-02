@@ -99,14 +99,20 @@ namespace Moment::Locality {
      */
     std::string Party::format_operator(const LocalityOperatorFormatter& formatter, oper_name_t op) const {
         std::stringstream ss;
-        this->format_operator(ss, formatter, op);
+        ContextualOS cSS{ss, *(this->context)};
+        cSS.format_info.locality_formatter = &formatter;
+
+        this->format_operator(cSS, op);
         return ss.str();
     }
 
     /**
      * Gets the name of this operator (if within party)
      */
-    std::ostream& Party::format_operator(std::ostream& os, const LocalityOperatorFormatter& formatter, oper_name_t op) const {
+    std::ostream& Party::format_operator(ContextualOS& os, oper_name_t op) const {
+        assert(os.format_info.locality_formatter);
+        const LocalityOperatorFormatter& formatter = *os.format_info.locality_formatter;
+
         auto op_local_index = op - this->global_operator_offset;
         if ((op_local_index < 0) || (op_local_index >= this->party_operator_count)) {
             os << "[UNK#" << op << "]";

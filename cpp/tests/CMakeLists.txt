@@ -17,6 +17,7 @@ add_executable(moment_tests
         operators/operator_sequence_tests.cpp
         operators/operator_sequence_generator_tests.cpp
         scenarios/context_tests.cpp
+        scenarios/contextual_os_tests.cpp
         scenarios/dictionary_map_tests.cpp
         scenarios/probability_tensor_test_helpers.cpp
         scenarios/algebraic/algebraic_context_tests.cpp

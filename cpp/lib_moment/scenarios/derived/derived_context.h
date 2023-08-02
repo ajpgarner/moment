@@ -22,7 +22,9 @@ namespace Moment::Derived {
 
         DerivedContext(const Context& source_context);
 
-        void format_symbol(std::ostream &os, const SymbolTable &table, const symbol_name_t symbol_id) const override;
+        void format_sequence_from_symbol_id(ContextualOS& os,
+                                            const symbol_name_t symbol_id,
+                                            bool conjugated) const override;
 
         friend class DerivedMatrixSystem;
     };

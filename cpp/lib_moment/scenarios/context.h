@@ -10,6 +10,8 @@
 #include "dictionary/operator_sequence.h"
 #include "utilities/shortlex_hasher.h"
 
+#include "contextual_os.h"
+
 #include <iosfwd>
 #include <optional>
 #include <string>
@@ -114,22 +116,25 @@ namespace Moment {
          /**
           * Generates a formatted string representation of an operator sequence
           */
-          [[nodiscard]] virtual std::string format_sequence(const OperatorSequence& seq) const;
+          [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const;
+
+          virtual void format_sequence(ContextualOS& os, const OperatorSequence& seq) const;
 
          /**
           * Generates a formatted string representation of an untreated sequence
           */
-          [[nodiscard]] virtual std::string format_raw_sequence(const sequence_storage_t& seq) const;
+          [[nodiscard]] std::string format_raw_sequence(const sequence_storage_t& seq) const;
 
-         /**
-          * Gets extra contextual information about a supplied symbol, if any known.
-          */
-        [[nodiscard]] std::string format_symbol(const SymbolTable& table, const symbol_name_t symbol_id) const;
+          virtual void format_raw_sequence(ContextualOS& os, const sequence_storage_t& seq) const;
 
           /**
-           * Gets extra contextual information about a supplied symbol, if any known.
+           * Fall back: operator sequence string requested, but no actual sequence given. Can the context provide some
+           * useful alternative representation?
+           * @param os
+           * @param symbol_id
            */
-         virtual void format_symbol(std::ostream& os, const SymbolTable& table, const symbol_name_t symbol_id) const;
+          virtual void format_sequence_from_symbol_id(ContextualOS& os,
+                                                      const symbol_name_t symbol_id, bool conjugated) const;
 
          /**
           * Summarize the context as a string.

@@ -432,54 +432,70 @@ namespace Moment {
         return output;
     }
 
+    namespace {
+        void output_headers(std::ostream& os, const SymbolTable& table) {
+            const auto& real_symbols = table.Basis.RealSymbols();
+            const auto& im_symbols = table.Basis.ImaginarySymbols();
 
-    std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {
-        const auto& real_symbols = table.Basis.RealSymbols();
-        const auto& im_symbols = table.Basis.ImaginarySymbols();
+            os << "Symbol table with ";
+            os << table.size()
+               << " unique sequence" << ((table.size() != 1)  ? "s" : "") << ", ";
+            os << real_symbols.size() << " with real parts, "
+               << im_symbols.size() << " with imaginary parts:\n";
 
-        os << "Symbol table with ";
-        os << table.unique_sequences.size()
-           << " unique sequence" << ((table.unique_sequences.size() != 1)  ? "s" : "") << ", ";
-        os << real_symbols.size() << " with real parts, "
-           << im_symbols.size() << " with imaginary parts:\n";
-
-        // List real symbol IDs
-        if (real_symbols.empty()) {
-            os << "No symbols with real parts.\n";
-        } else {
-            os << "Symbols with real parts: ";
-            bool one_real = false;
-            for (auto i: real_symbols) {
-                if (one_real) {
-                    os << ", ";
+            // List real symbol IDs
+            if (real_symbols.empty()) {
+                os << "No symbols with real parts.\n";
+            } else {
+                os << "Symbols with real parts: ";
+                bool one_real = false;
+                for (auto i: real_symbols) {
+                    if (one_real) {
+                        os << ", ";
+                    }
+                    os << i;
+                    one_real = true;
                 }
-                os << i;
-                one_real = true;
+                os << "\n";
             }
-            os << "\n";
-        }
 
-        // List imaginary symbol IDs
-        if (im_symbols.empty()) {
-            os << "No symbols with imaginary parts.\n";
-        } else {
-            os << "Symbols with imaginary parts: ";
-            bool one_im = false;
-            for (auto i: im_symbols) {
-                if (one_im) {
-                    os << ", ";
+            // List imaginary symbol IDs
+            if (im_symbols.empty()) {
+                os << "No symbols with imaginary parts.\n";
+            } else {
+                os << "Symbols with imaginary parts: ";
+                bool one_im = false;
+                for (auto i: im_symbols) {
+                    if (one_im) {
+                        os << ", ";
+                    }
+                    os << i;
+                    one_im = true;
                 }
-                os << i;
-                one_im = true;
+                os << "\n";
             }
-            os << "\n";
         }
+    }
 
-        // List symbols
+    std::ostream& operator<<(ContextualOS& os, const SymbolTable& table) {
+        output_headers(os.os, table);
+
+        // List symbols using contextual OS
         for (const auto& us : table.unique_sequences) {
             os << us << "\n";
         }
 
+        return os;
+    }
+
+
+    std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {
+        output_headers(os, table);
+
+        // List symbols using plain OS
+        for (const auto& us : table.unique_sequences) {
+            os << us << "\n";
+        }
         return os;
     }
 

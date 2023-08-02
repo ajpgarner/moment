@@ -112,8 +112,7 @@ namespace Moment::Locality {
         /**
          * Gets the name of this operator (if within party)
          */
-        std::ostream& format_operator(std::ostream& os, const LocalityOperatorFormatter& formatter,
-                                      oper_name_t op) const;
+        std::ostream& format_operator(ContextualOS& os, oper_name_t op) const;
 
 
         [[nodiscard]] auto begin() const {

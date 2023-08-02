@@ -106,9 +106,9 @@ namespace Moment::Algebraic {
          */
         [[nodiscard]] OperatorSequence conjugate(const OperatorSequence &seq) const final;
 
-        [[nodiscard]]  std::string format_sequence(const OperatorSequence &seq) const override;
+        void format_sequence(ContextualOS &os, const OperatorSequence &seq) const override;
 
-        std::string format_raw_sequence(const sequence_storage_t &seq) const override;
+        void format_raw_sequence(ContextualOS &os, const sequence_storage_t &seq) const override;
 
         std::optional<OperatorSequence> get_if_canonical(const sequence_storage_t &sequence) const override;
 

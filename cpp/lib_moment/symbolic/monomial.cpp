@@ -6,32 +6,38 @@
  */
 #include "monomial.h"
 
+#include <cassert>
+
 #include <iostream>
 #include <sstream>
+
+#include "scenarios/context.h"
+#include "symbol_table.h"
 
 #include "utilities/format_factor.h"
 
 namespace Moment {
-    std::ostream& operator<<(std::ostream& os, const Monomial& expr) {
 
-        const bool show_plus = os.flags() & std::ios::showpos;
-        os.unsetf(std::ios::showpos);
+    std::string Monomial::as_string() const {
+        std::stringstream ss;
+        ss << *this;
+        return ss.str();
+    }
 
-        if ((expr.id == 0) || (expr.factor==0.0)) {
+    void Monomial::format_as_symbol_id_without_context(std::ostream& os, bool show_plus, bool show_hash) const {
+        // Zero
+        if ((this->id == 0) || (this->factor == 0.0)) { // not approx, actual!
             if (show_plus) {
                 os << " + ";
-                os.setf(std::ios::showpos);
             }
             os << "0";
-            return os;
+            return;
         }
 
-        const bool is_scalar = (expr.id == 1);
-        const bool needs_space = format_factor(os, expr.factor, is_scalar, show_plus);
+        const bool is_scalar = (this->id == 1);
+        const bool needs_space = format_factor(os, this->factor, is_scalar, show_plus);
 
         if (!is_scalar) {
-
-            const bool show_hash = os.flags() & std::ios::showbase;
             if (needs_space) {
                 if (show_hash) {
                     os << " ";
@@ -41,19 +47,103 @@ namespace Moment {
             }
 
             if (show_hash) {
-                os.unsetf(std::ios::showbase);
-                os << "#" << expr.id;
-                os.setf(std::ios::showbase);
-            } else {
-                os << expr.id;
+                os << "#";
             }
-            if (expr.conjugated) {
+            os << this->id;
+            if (this->conjugated) {
                 os << "*";
             }
         }
+    }
+
+
+    void Monomial::format_as_operator_sequence_with_context(ContextualOS& os) const {
+        if constexpr(debug_mode) {
+            if (os.symbols == nullptr) [[unlikely]] {
+                throw std::runtime_error{"Symbol table must be supplied to contextual OS for OS output."};
+            }
+        }
+
+        // Zero
+        if ((this->id == 0) || (this->factor == 0.0)) { // not approx, actual!
+            if (!os.format_info.first_in_polynomial) {
+                os << " + ";
+            }
+            os << "0";
+            return;
+        }
+
+        // Is element a scalar?
+        const bool is_scalar = (this->id == 1);
+
+        // Write factor
+        const bool need_space = format_factor(os.os, this->factor, is_scalar, !os.format_info.first_in_polynomial);
+
+        // Scalar, factor alone is enough
+        if (is_scalar) {
+            return;
+        }
+
+        if (need_space) {
+            os.os << " ";
+        }
+
+        // Skip if symbol not in table.
+        const auto& symbols = *os.symbols;
+        const bool valid_symbol = ((this->id >= 0) && (this->id < symbols.size()));
+        if (!valid_symbol) {
+            os.os << "UNK#" << this->id;
+            return;
+        }
+
+        // Get symbol information
+        const auto &symbol_info = symbols[this->id];
+
+        // Is symbol associated with operator sequence?
+        if (symbol_info.has_sequence()) {
+            if (this->conjugated) {
+                os.context.format_sequence(os, symbol_info.sequence_conj());
+            } else {
+                os.context.format_sequence(os, symbol_info.sequence());
+            }
+        } else { // Otherwise, fall back to other OS information
+            os.context.format_sequence_from_symbol_id(os, this->id, this->conjugated);
+        }
+    }
+
+
+    std::ostream& operator<<(std::ostream& os, const Monomial& expr) {
+        // Get flags
+        const bool show_plus = os.flags() & std::ios::showpos;
+        os.unsetf(std::ios::showpos);
+        const bool show_hash = os.flags() & std::ios::showbase;
+        os.unsetf(std::ios::showbase);
+
+        // Do output
+        expr.format_as_symbol_id_without_context(os, show_plus, show_hash);
+
+        // Reset flags
         if (show_plus) {
             os.setf(std::ios::showpos);
         }
+        if (show_hash) {
+            os.setf(std::ios::showbase);
+        }
+
+        return os;
+    }
+
+    ContextualOS& operator<<(ContextualOS& os, const Monomial& expr) {
+        // If we don't have the symbol table, default to normal << mode
+        if ((os.symbols == nullptr) || (os.format_info.display_symbolic_as == ContextualOS::DisplayAs::SymbolIds)) {
+            expr.format_as_symbol_id_with_context(os);
+            return os;
+        }
+
+        // Switch format mode
+        assert(os.format_info.display_symbolic_as == ContextualOS::DisplayAs::Operators);
+        expr.format_as_operator_sequence_with_context(os);
+
         return os;
     }
 
@@ -95,11 +185,6 @@ namespace Moment {
         }
     }
 
-    std::string Monomial::as_string() const {
-        std::stringstream ss;
-        ss << *this;
-        return ss.str();
-    }
 
     std::string Monomial::SymbolParseException::make_msg(const std::string &badExpr) {
         if (badExpr.length() > Monomial::max_strlen) {

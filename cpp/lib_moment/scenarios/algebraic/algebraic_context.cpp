@@ -138,7 +138,7 @@ namespace Moment::Algebraic {
     }
 
     OperatorSequence AlgebraicContext::conjugate(const OperatorSequence &seq) const {
-        // If self-adjoint, use default function
+        // If context only has self-adjoint operators, use default function
         if (this->self_adjoint) {
             return Context::conjugate(seq);
         }
@@ -148,64 +148,81 @@ namespace Moment::Algebraic {
             return OperatorSequence::Zero(*this);
         }
 
-        return OperatorSequence(this->precontext.conjugate(seq.raw()), *this);
+        return OperatorSequence{this->precontext.conjugate(seq.raw()), *this};
     }
 
-    std::string AlgebraicContext::format_sequence(const OperatorSequence &seq) const {
+
+    void AlgebraicContext::format_sequence(ContextualOS &os, const OperatorSequence &seq) const {
         if (seq.zero()) {
-            return "0";
-        }
-        if (seq.empty()) {
-            return "1";
+            os.os << "0";
+            return;
         }
 
-        std::stringstream ss;
+        if (seq.empty()) {
+            os.os << "1";
+            return;
+        }
 
         if (seq.negated()) {
-            ss << "-";
+            os.os << "-";
+        }
+
+        if (os.format_info.show_braces) {
+            os << "<";
         }
 
         if (this->op_names->all_single()) {
             for (const auto &oper: seq) {
-                ss << (*this->op_names)[oper];
+                os.os << (*this->op_names)[oper];
             }
         } else {
             bool done_once = false;
             for (const auto &oper: seq) {
                 if (done_once) {
-                    ss << ";";
+                    os.os << ";";
                 } else {
                     done_once = true;
                 }
-                this->names().format_stream(ss, oper);
+                this->names().format_stream(os.os, oper);
             }
         }
-        return ss.str();
+
+        if (os.format_info.show_braces) {
+            os << ">";
+        }
+
     }
 
 
-    std::string AlgebraicContext::format_raw_sequence(const sequence_storage_t &seq) const {
+    void AlgebraicContext::format_raw_sequence(ContextualOS &os, const sequence_storage_t &seq) const {
         if (seq.empty()) {
-            return "1";
+            os.os << "1";
+            return;
         }
 
-        std::stringstream ss;
+        if (os.format_info.show_braces) {
+            os << "<";
+        }
+
         if (this->op_names->all_single()) {
             for (const auto& oper: seq) {
-                ss << (*this->op_names)[oper];
+                os.os << (*this->op_names)[oper];
             }
         } else {
             bool done_once = false;
             for (const auto &oper: seq) {
                 if (done_once) {
-                    ss << ";";
+                    os.os << ";";
                 } else {
                     done_once = true;
                 }
-                this->names().format_stream(ss, oper);
+                this->names().format_stream(os.os, oper);
             }
         }
-        return ss.str();
+
+        if (os.format_info.show_braces) {
+            os << ">";
+        }
     }
 
 

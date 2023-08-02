@@ -29,13 +29,14 @@ namespace Moment::mex {
 
     class PolynomialExporter : public Exporter {
     public:
+        const Context& context;
         const SymbolTable& symbols;
         const double zero_tolerance;
 
         explicit PolynomialExporter(matlab::engine::MATLABEngine& engine, matlab::data::ArrayFactory& factory,
-                                    const SymbolTable& symbols,
+                                    const Context& context, const SymbolTable& symbols,
                                     const double zero_tolerance) noexcept
-                    : Exporter{engine, factory}, symbols{symbols}, zero_tolerance{zero_tolerance} { }
+                    : Exporter{engine, factory}, context{context}, symbols{symbols}, zero_tolerance{zero_tolerance} { }
 
         /**
          * Export polynomial in basis form: the complex coefficients sdpvars a & b would need multiplying by.

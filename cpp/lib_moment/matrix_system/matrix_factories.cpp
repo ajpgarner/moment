@@ -85,9 +85,14 @@ namespace Moment {
 
     std::string PolynomialLocalizingMatrixFactory::not_found_msg(const PolynomialLMIndex &pmi) const {
         std::stringstream errSS;
-        errSS << "Localizing matrix of Level " << pmi.Level
-              << " for polynomial \"" << pmi.Polynomial.as_string_with_operators(system.Symbols(), false)
-              << "\" has not yet been generated.";
+        ContextualOS cErrSS{errSS, system.Context(), system.Symbols()};
+        cErrSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
+        cErrSS.format_info.show_braces = false;
+
+        cErrSS << "Localizing matrix of Level " << pmi.Level
+               << " for polynomial \"" << pmi.Polynomial
+               << "\" has not yet been generated.";
+
         return errSS.str();
     }
 

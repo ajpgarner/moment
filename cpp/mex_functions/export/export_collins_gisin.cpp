@@ -96,8 +96,11 @@ namespace Moment::mex {
 
             std::basic_string<char16_t>
             operator()(CollinsGisinIndexView index, const CollinsGisinEntry& element) const {
-                std::string inStr{localityContext.format_sequence(formatter, element.sequence)};
-                return UTF8toUTF16Convertor::convert(inStr);
+                std::stringstream ss;
+                ContextualOS cSS{ss, this->localityContext};
+                cSS.format_info.locality_formatter = &this->formatter;
+                localityContext.format_sequence(cSS, element.sequence);
+                return UTF8toUTF16Convertor::convert(ss.str());
             }
         };
 

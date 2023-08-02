@@ -258,7 +258,7 @@ namespace Moment::Inflation {
         /**
          * Generates a formatted string representation of an operator sequence
          */
-        [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const override;
+        void format_sequence(ContextualOS& os, const OperatorSequence& seq) const override;
 
         /**
          * Generates a formatted string representation of a set of outcomes

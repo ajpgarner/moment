@@ -306,6 +306,11 @@ namespace Moment {
          */
          friend std::ostream& operator<<(std::ostream& os, const SymbolTable& table);
 
+        /**
+         * Output symbol table, as debug info
+         */
+         friend std::ostream& operator<<(ContextualOS& os, const SymbolTable& table);
+
     private:
         /**
         * Add symbol to table, if not already present

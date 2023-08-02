@@ -124,23 +124,23 @@ namespace Moment::Locality {
             return this->ops_per_party;
         }
 
+        /**
+         * Gets the part associated with an operator.
+         */
+        [[nodiscard]] inline const Party& associated_party(oper_name_t oper) const {
+            assert((oper >= 0) && (oper < this->size()));
+            return this->parties[this->global_op_id_to_party[oper]];
+        }
+
 
         /**
          * Returns number of outcomes per party in context.
          */
         [[nodiscard]] std::vector<size_t> outcomes_per_party() const;
 
+        using Context::format_sequence;
 
-        /**
-         * Generates a formatted string representation of an operator sequence
-         */
-        [[nodiscard]] std::string format_sequence(const OperatorSequence& seq) const override;
-
-        /**
-         * Generates a formatted string representation of an operator sequence
-         */
-        [[nodiscard]] std::string format_sequence(const LocalityOperatorFormatter& formatter,
-                                                  const OperatorSequence& seq) const;
+        void format_sequence(ContextualOS &os, const OperatorSequence &seq) const override;
 
         /**
          * Generates a formatted string representation of a list of PMO indices

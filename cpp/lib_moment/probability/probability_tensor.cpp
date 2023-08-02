@@ -232,9 +232,12 @@ namespace Moment {
 
     void ProbabilityTensor::elem_as_string(std::ostream& os, const ProbabilityTensorElement &element) const {
 
-        // Firstly, if we have symbolic poly, delegate to default:~
+        // Firstly, if we have symbolic poly, wrap in contextual OS and delegate.
         if (element.hasSymbolPoly) {
-            element.symbolPolynomial.as_string_with_operators(os, this->collinsGisin.symbol_table, true);
+            ContextualOS cSS{os, this->collinsGisin.context, this->collinsGisin.symbol_table};
+            cSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
+            cSS.format_info.show_braces = true;
+            cSS << element.symbolPolynomial;
             return;
         }
 

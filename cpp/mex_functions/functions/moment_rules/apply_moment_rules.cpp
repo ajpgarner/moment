@@ -123,6 +123,7 @@ namespace Moment::mex::functions {
         // Read-lock matrix system
         const MatrixSystem& matrixSystem = *matrixSystemPtr;
         auto lock = matrixSystem.get_read_lock();
+        const auto& context = matrixSystem.Context();
         const auto& symbols = matrixSystem.Symbols();
 
         // Retrieve rules, or throw
@@ -152,7 +153,8 @@ namespace Moment::mex::functions {
         }
 
         matlab::data::ArrayFactory mlfactory;
-        PolynomialExporter polynomialExporter{this->matlabEngine, mlfactory, symbols, factory.zero_tolerance};
+        PolynomialExporter polynomialExporter{this->matlabEngine, mlfactory,
+                                              context, symbols, factory.zero_tolerance};
 
         switch (input.output_format) {
             case ApplyMomentRulesParams::OutputFormat::SymbolCell: {

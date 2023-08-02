@@ -1,8 +1,11 @@
 /**
- * export_sequence_matrix.cpp
+ * export_operator_matrix_seq_strings.cpp
  *
  * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
+ *
+ * TODO: Simplify, making use of ContextualOS.
+ *
  */
 
 #include "export_operator_matrix_seq_strings.h"
@@ -13,6 +16,7 @@
 
 #include "symbolic/symbol_table.h"
 #include "scenarios/context.h"
+#include "scenarios/contextual_os_helper.h"
 
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_matrix_system.h"
@@ -45,13 +49,15 @@ namespace Moment::mex {
                 using value_type = matlab::data::MATLABString;
 
             private:
-                const Context *context = nullptr;
+                const StringFormatContext * sfc = nullptr;
                 DirectFormatView::raw_const_iterator raw_iter;
                 UTF8toUTF16Convertor convertor;
 
             public:
-                constexpr const_iterator(const Context &context, raw_const_iterator rci)
-                        : context{&context}, raw_iter{rci} {}
+                constexpr const_iterator(const StringFormatContext * sfc, raw_const_iterator rci)
+                        :  sfc{sfc}, raw_iter{rci} {
+                    assert(sfc);
+                }
 
 
                 constexpr bool operator==(const const_iterator &rhs) const noexcept {
@@ -74,92 +80,25 @@ namespace Moment::mex {
                 }
 
                 value_type operator*() const {
-                    assert(context != nullptr);
-                    return {convertor(context->format_sequence(*raw_iter))};
+                    assert(sfc != nullptr);
+                    return {convertor(make_contextualized_string(*sfc, [this](ContextualOS& os){
+                        os << *raw_iter;
+                    }))};
                 }
             };
 
             static_assert(std::input_iterator<DirectFormatView::const_iterator>);
 
         private:
+            const StringFormatContext sfc;
             const const_iterator iter_begin;
             const const_iterator iter_end;
 
         public:
-            DirectFormatView(const Context &context, const SquareMatrix<OperatorSequence> &inputMatrix)
-                    : iter_begin{context, inputMatrix.begin()},
-                      iter_end{context, inputMatrix.end()} {
-            }
-
-            [[nodiscard]] auto begin() const { return iter_begin; }
-
-            [[nodiscard]] auto end() const { return iter_end; }
-
-        };
-
-        class LocalityFormatView {
-        public:
-            using raw_const_iterator = SquareMatrix<OperatorSequence>::const_iterator;
-
-            class const_iterator {
-            public:
-                using iterator_category = std::input_iterator_tag;
-                using difference_type = ptrdiff_t;
-                using value_type = matlab::data::MATLABString;
-
-            private:
-                const Locality::LocalityContext *context = nullptr;
-                const Locality::LocalityOperatorFormatter *formatter = nullptr;
-                DirectFormatView::raw_const_iterator raw_iter;
-
-            public:
-                constexpr const_iterator(const Locality::LocalityContext &context,
-                                         const Locality::LocalityOperatorFormatter &formatter,
-                                         raw_const_iterator rci)
-                        : context{&context}, formatter{&formatter}, raw_iter{rci} {}
-
-
-                constexpr bool operator==(const const_iterator &rhs) const noexcept {
-                    return this->raw_iter == rhs.raw_iter;
-                }
-
-                constexpr bool operator!=(const const_iterator &rhs) const noexcept {
-                    return this->raw_iter != rhs.raw_iter;
-                }
-
-                constexpr const_iterator &operator++() {
-                    ++(this->raw_iter);
-                    return *this;
-                }
-
-                constexpr const_iterator operator++(int) &{
-                    auto copy = *this;
-                    ++(*this);
-                    return copy;
-                }
-
-                value_type operator*() const {
-                    assert(context != nullptr);
-                    assert(formatter != nullptr);
-                    return {UTF8toUTF16Convertor::convert(
-                            context->format_sequence(*formatter, *raw_iter)
-                    )};
-                }
-            };
-
-            static_assert(std::input_iterator<DirectFormatView::const_iterator>);
-
-        private:
-            const const_iterator iter_begin;
-            const const_iterator iter_end;
-            const Locality::LocalityOperatorFormatter &formatter;
-
-        public:
-            LocalityFormatView(const Locality::LocalityContext &context,
-                               const Locality::LocalityOperatorFormatter &formatter,
-                               const SquareMatrix<OperatorSequence> &inputMatrix)
-                    : iter_begin{context, formatter, inputMatrix.begin()},
-                      iter_end{context, formatter, inputMatrix.end()}, formatter{formatter} {
+            DirectFormatView(StringFormatContext the_sfc, const SquareMatrix<OperatorSequence> &inputMatrix)
+                    : sfc{the_sfc},
+                      iter_begin{&sfc, inputMatrix.begin()},
+                      iter_end{&sfc, inputMatrix.end()} {
             }
 
             [[nodiscard]] auto begin() const { return iter_begin; }
@@ -466,8 +405,13 @@ namespace Moment::mex {
         }
 
         inline matlab::data::StringArray export_direct(matlab::engine::MATLABEngine& engine,
+                                                       const SymbolTable& symbols,
                                                        const OperatorMatrix &opMatrix)  {
-            return do_export<DirectFormatView>(engine, opMatrix(), opMatrix.context);
+            StringFormatContext sfc{opMatrix.context, symbols};
+            sfc.format_info.show_braces = true;
+            sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
+
+            return do_export<DirectFormatView>(engine, opMatrix(), sfc); // opMatrix.context);
         }
 
         inline matlab::data::StringArray export_inferred(matlab::engine::MATLABEngine& engine,
@@ -492,29 +436,43 @@ namespace Moment::mex {
 
         inline matlab::data::StringArray export_locality(matlab::engine::MATLABEngine& engine,
                                                          const Locality::LocalityContext& context,
+                                                         const SymbolTable& symbols,
                                                          const Locality::LocalityOperatorFormatter& formatter,
                                                          const MonomialMatrix& inputMatrix) {
 
-            // LocalityFormatView formatView{localityContext, formatter, inputMatrix.operator_matrix()()};
-            if (!inputMatrix.has_operator_matrix()) {
+            // Default to inferred view if no operator matrix.
+            if (!inputMatrix.has_operator_matrix()) [[unlikely]] {
                 return export_inferred(engine, inputMatrix);
             }
 
-            return do_export<LocalityFormatView>(engine, inputMatrix.operator_matrix()(), context, formatter);
+            // Set up output context
+            StringFormatContext sfc{context, symbols};
+            sfc.format_info.show_braces = true;
+            sfc.format_info.locality_formatter = &formatter;
+            sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
+
+            // Export
+            return do_export<DirectFormatView>(engine, inputMatrix.operator_matrix()(), sfc);
         }
 
         inline matlab::data::StringArray export_locality(matlab::engine::MATLABEngine& engine,
                                                          const Locality::LocalityContext& context,
+                                                         const SymbolTable& symbols,
                                                          const Locality::LocalityOperatorFormatter& formatter,
                                                          const PolynomialMatrix& inputMatrix) {
 
-            // LocalityFormatView formatView{localityContext, formatter, inputMatrix.operator_matrix()()};
-            if (!inputMatrix.has_operator_matrix()) {
-                [[unlikely]]
+            // Default to inferred view if no operator matrix
+            if (!inputMatrix.has_operator_matrix()) [[unlikely]] {
                 return export_inferred(engine, inputMatrix);
             }
 
-            return do_export<LocalityFormatView>(engine, inputMatrix.operator_matrix()(), context, formatter);
+            // Set up output context
+            StringFormatContext sfc{context, symbols};
+            sfc.format_info.show_braces = true;
+            sfc.format_info.locality_formatter = &formatter;
+            sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
+
+            return do_export<DirectFormatView>(engine, inputMatrix.operator_matrix()(), sfc);
         }
     }
 
@@ -523,7 +481,7 @@ namespace Moment::mex {
     SequenceStringMatrixExporter::SequenceStringMatrixExporter(matlab::engine::MATLABEngine& engine,
                                                                matlab::data::ArrayFactory& factory,
                                                                const MatrixSystem &system) noexcept
-       : Exporter{engine, factory}, system{system}, localityFormatterPtr{nullptr} {
+       : Exporter{engine, factory}, system{system} {
         this->localityContextPtr = nullptr; // Without formatter, do not use locality context.
         this->imsPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&system);
     }
@@ -545,13 +503,14 @@ namespace Moment::mex {
 
         // Are we a locality system, with formatter?
         if (this->localityContextPtr != nullptr) {
-            return export_locality(engine, *this->localityContextPtr, *this->localityFormatterPtr, matrix);
+            return export_locality(engine, *this->localityContextPtr, this->system.Symbols(),
+                                   *this->localityFormatterPtr, matrix);
         }
 
         // Do we have direct sequences? If so, export direct (neutral) view.
         if (matrix.has_operator_matrix()) {
             const auto& op_mat = matrix.operator_matrix();
-            return export_direct(engine, op_mat);
+            return export_direct(engine, this->system.Symbols(), op_mat);
         }
 
         // If all else fails, use inferred string formatting
@@ -562,13 +521,14 @@ namespace Moment::mex {
     SequenceStringMatrixExporter::operator()(const PolynomialMatrix &matrix) const {
         // Are we a locality system, with formatter?
         if (this->localityContextPtr != nullptr) {
-            return export_locality(engine, *this->localityContextPtr, *this->localityFormatterPtr, matrix);
+            return export_locality(engine, *this->localityContextPtr, this->system.Symbols(),
+                                   *this->localityFormatterPtr, matrix);
         }
 
         // Do we have direct sequences? If so, export direct (neutral) view.
         if (matrix.has_operator_matrix()) [[unlikely]] {
              // Unlikely: Most polynomial matrices are not created from categorizing symbols in an operator matrix.
-            return export_direct(engine, matrix.operator_matrix());
+            return export_direct(engine, this->system.Symbols(), matrix.operator_matrix());
         }
 
         // If all else fails, use inferred string formatting

@@ -6,6 +6,7 @@
  */
 
 #include "symbol.h"
+#include "scenarios/context.h"
 
 #include <sstream>
 
@@ -24,13 +25,60 @@ namespace Moment {
         }
     }
 
-    std::ostream& operator<<(std::ostream& os, const Symbol& seq) {
-        const bool has_fwd = seq.opSeq.has_value();
+    void Symbol::output_uncontextual_info(std::ostream& os) const {
+        if (this->real_index>=0) {
+            if (this->img_index>=0) {
+                os << "Complex";
+            } else {
+                os << "Real";
+            }
+        } else if (this->img_index>=0) {
+            os << "Imaginary";
+        } else {
+            os << "Zero";
+        }
 
-        os << "#" << seq.id << ":\t";
-
+        if (this->hermitian) {
+            os << ", Hermitian";
+        }
+        if (this->real_index>=0) {
+            os << ", Re#=" << this->real_index;
+        }
+        if (this->img_index>=0) {
+            os << ", Im#=" << this->img_index;
+        }
+        const bool has_fwd = this->opSeq.has_value();
         if (has_fwd) {
-            std::string fwd_sequence = seq.formatted_sequence();
+            os << ", hash=" << this->hash();
+            if (this->hash_conj() != this->hash()) {
+                os << "/" << this->hash_conj();
+            }
+        } else {
+            os << ", unhashable";
+        }
+    }
+
+    std::ostream& operator<<(ContextualOS& os, const Symbol& symbol) {
+        os << "#" << symbol.id << ":\t";
+
+        if (symbol.opSeq.has_value()) {
+            os.context.format_sequence(os, symbol.opSeq.value());
+        } else {
+            os.context.format_sequence_from_symbol_id(os, symbol.id, false);
+        }
+
+        symbol.output_uncontextual_info(os.os);
+        return os;
+    }
+
+
+    std::ostream& operator<<(std::ostream& os, const Symbol& symbol) {
+
+        os << "#" << symbol.id << ":\t";
+
+        if (symbol.opSeq.has_value()) {
+            // Uncontextual, fallback.
+            std::string fwd_sequence = symbol.formatted_sequence();
             os << fwd_sequence;
             if (fwd_sequence.length() >= 80) {
                 os << "\n\t";
@@ -38,39 +86,11 @@ namespace Moment {
                 os << ":\t";
             }
         } else {
+            // Uncontextual, unknowable
             os << "<No sequence>:\t";
         }
 
-        if (seq.real_index>=0) {
-            if (seq.img_index>=0) {
-                os << "Complex";
-            } else {
-                os << "Real";
-            }
-        } else if (seq.img_index>=0) {
-            os << "Imaginary";
-        } else {
-            os << "Zero";
-        }
-
-        if (seq.hermitian) {
-            os << ", Hermitian";
-        }
-        if (seq.real_index>=0) {
-            os << ", Re#=" << seq.real_index;
-        }
-        if (seq.img_index>=0) {
-            os << ", Im#=" << seq.img_index;
-        }
-
-        if (has_fwd) {
-            os << ", hash=" << seq.hash();
-            if (seq.hash_conj() != seq.hash()) {
-                os << "/" << seq.hash_conj();
-            }
-        } else {
-            os << ", unhashable";
-        }
+        symbol.output_uncontextual_info(os);
         return os;
     }
 

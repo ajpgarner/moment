@@ -7,11 +7,14 @@
 
 #include "export_moment_substitution_rules.h"
 
+#include "scenarios/context.h"
+
 #include "symbolic/rules/moment_rule.h"
 #include "symbolic/rules/moment_rulebook.h"
 #include "symbolic/rules/moment_rulebook_to_basis.h"
 #include "symbolic/polynomial.h"
 #include "symbolic/symbol_table.h"
+
 
 #include "utilities/utf_conversion.h"
 
@@ -65,23 +68,24 @@ namespace Moment::mex {
     matlab::data::MATLABString
     MomentSubstitutionRuleExporter::write_rule_string_as_operator(const MomentRule &rule) {
         std::stringstream ruleSS;
+        ContextualOS cSS{ruleSS, this->context, this->symbols};
+        cSS.format_info.show_braces = string_format_options.show_braces;
+        cSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
+
         if (rule.LHS() < this->symbols.size()) {
             const auto& symbolInfo= this->symbols[rule.LHS()];
             if (symbolInfo.has_sequence()) {
-                if (this->string_format_options.show_braces) {
-                    ruleSS << "<" << symbolInfo.formatted_sequence() << ">";
-                } else {
-                    ruleSS << symbolInfo.formatted_sequence();
-                }
+                cSS << symbolInfo.sequence();
             } else {
-                ruleSS << "S#" << rule.LHS();
+                cSS.context.format_sequence_from_symbol_id(cSS, rule.LHS(), false);
             }
         } else {
             ruleSS << "UNK#" << rule.LHS();
         }
 
         ruleSS << "  ->  ";
-        rule.RHS().as_string_with_operators(ruleSS, this->symbols, this->string_format_options.show_braces);
+
+        cSS << rule.RHS();
 
         return UTF8toUTF16Convertor{}(ruleSS.str());
     }

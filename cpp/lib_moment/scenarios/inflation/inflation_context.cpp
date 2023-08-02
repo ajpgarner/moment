@@ -522,17 +522,24 @@ namespace Moment::Inflation {
         return this->global_variant_indices[global_variant_index];
     }
 
-    std::string InflationContext::format_sequence(const OperatorSequence &seq) const {
+    void InflationContext::format_sequence(ContextualOS& os, const OperatorSequence &seq) const {
+        assert(dynamic_cast<const InflationContext*>(&os.context) == this);
+
         if (seq.zero()) {
-            return "0";
+            os.os << "0";
+            return;
         }
         if (seq.empty()) {
-            return "1";
+            os.os << "1";
+            return;
         }
 
-        std::stringstream ss;
         if (seq.negated()) {
-            ss << "-";
+            os.os << "-";
+        }
+
+        if (os.format_info.show_braces) {
+            os.os << "<";
         }
 
         AlphabeticNamer obsNamer{true};
@@ -543,43 +550,46 @@ namespace Moment::Inflation {
         bool one_operator = false;
         for (const auto& oper : seq) {
             if (one_operator) {
-                ss << ";";
+                os.os << ";";
             } else {
                 one_operator = true;
             }
 
             if (oper >= this->operator_info.size()) {
-                ss << "[UNK:" << oper << "]";
+                os.os << "[UNK:" << oper << "]";
             } else {
                 const auto &extraInfo = this->operator_info[oper];
                 const auto &obsInfo = this->inflated_observables[extraInfo.observable];
 
-                ss << obsNamer(extraInfo.observable);
+                os.os << obsNamer(extraInfo.observable);
                 if (obsInfo.outcomes > 2) {
-                    ss << extraInfo.outcome;
+                    os.os << extraInfo.outcome;
                 }
                 // Give indices, if inflated
                 if (this->inflation > 1) {
                     const auto& infIndices = obsInfo.variants[extraInfo.variant].indices;
                     bool done_one = false;
                     if (needs_braces) {
-                        ss << "[";
+                        os.os << "[";
                     }
                     for (auto infIndex : infIndices){
                         if (needs_comma && done_one) {
-                            ss << ",";
+                            os.os << ",";
                         } else {
                             done_one = true;
                         }
-                        ss << infIndex;
+                        os.os << infIndex;
                     }
                     if (needs_braces) {
-                        ss << "]";
+                        os.os << "]";
                     }
                 }
             }
         }
-        return ss.str();
+
+        if (os.format_info.show_braces) {
+            os.os << ">";
+        }
     }
 
     std::string InflationContext::format_sequence(const std::vector<OVOIndex> &indices) const {

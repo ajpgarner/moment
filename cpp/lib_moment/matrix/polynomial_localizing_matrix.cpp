@@ -167,12 +167,16 @@ namespace Moment {
             return make_summed_matrices(context, factory, index, constituents);
         }
 
-        std::string make_description(const SymbolTable& symbols, const PolynomialLMIndex& index) {
+        std::string make_description(const Context& context, const SymbolTable& symbols, const PolynomialLMIndex& index) {
             std::stringstream ss;
-            ss << "Localizing Matrix, Level " << index.Level
-               << ", Phrase " << index.Polynomial.as_string_with_operators(symbols, false);
-            return ss.str();
+            ContextualOS cSS{ss, context, symbols};
+            cSS.format_info.show_braces = false;
+            cSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
 
+            cSS << "Localizing Matrix, Level " << index.Level
+                << ", Phrase " << index.Polynomial;
+
+            return ss.str();
         }
     }
 
@@ -185,7 +189,7 @@ namespace Moment {
                               sum_matrices(context, factory, index, constituents)),
                 index{std::move(index)}, constituents{std::move(constituents)} {
 
-        this->description = make_description(symbols, this->index);
+        this->description = make_description(context, symbols, this->index);
     }
 
 }

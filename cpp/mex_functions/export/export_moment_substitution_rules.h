@@ -21,6 +21,7 @@ namespace matlab::engine {
 }
 
 namespace Moment {
+    class Context;
     class SymbolTable;
     class MomentRulebook;
     class MomentRule;
@@ -39,17 +40,20 @@ namespace Moment::mex {
 
     class MomentSubstitutionRuleExporter : public ExporterWithFactory {
     private:
+        const Context& context;
         const SymbolTable& symbols;
         const double zero_tolerance;
         PolynomialExporter polynomial_exporter;
         RuleStringFormatOptions string_format_options;
 
     public:
-        explicit MomentSubstitutionRuleExporter(matlab::engine::MATLABEngine &engine, const SymbolTable& symbols,
+        explicit MomentSubstitutionRuleExporter(matlab::engine::MATLABEngine &engine,
+                                                const Context& context,
+                                                const SymbolTable& symbols,
                                                 const double zero_tolerance,
                                                 RuleStringFormatOptions rsfo = RuleStringFormatOptions{}) noexcept
-                : ExporterWithFactory{engine}, symbols{symbols}, zero_tolerance{zero_tolerance},
-                  polynomial_exporter{engine, factory, symbols, zero_tolerance},
+                : ExporterWithFactory{engine}, context{context}, symbols{symbols}, zero_tolerance{zero_tolerance},
+                  polynomial_exporter{engine, factory, context, symbols, zero_tolerance},
                   string_format_options{rsfo} { }
 
         matlab::data::CellArray operator()(const MomentRulebook &rules) {

@@ -17,16 +17,21 @@ namespace Moment::Derived {
 
     }
 
-    void DerivedContext::format_symbol(std::ostream &os, const SymbolTable &table,
-                                       const symbol_name_t symbol_id) const {
-        if (symbol_id < 0 || symbol_id >= table.size()) {
-            os << "[UNK: #" << symbol_id << "]";
-            return;
-        }
+    void DerivedContext::format_sequence_from_symbol_id(ContextualOS& os,
+                                                        const symbol_name_t symbol_id,
+                                                        bool conjugated) const {
+        assert(dynamic_cast<const DerivedContext*>(&os.context) == this);
 
-        // Get derived strings
-        assert(symbol_id < this->derived_symbol_strs.size());
-        os << this->derived_symbol_strs[symbol_id];
+        // Get derived strings if in bounds:
+        if ((symbol_id >= 0) && (symbol_id < this->derived_symbol_strs.size())) {
+            if (conjugated) {
+                os << this->derived_symbol_strs[symbol_id]; // TODO: Conjugated strings.
+            } else {
+                os << this->derived_symbol_strs[symbol_id];
+            }
+        } else {
+            Context::format_sequence_from_symbol_id(os, symbol_id, conjugated);
+        }
     }
 
 }

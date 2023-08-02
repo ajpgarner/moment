@@ -348,28 +348,6 @@ namespace Moment {
          */
         [[nodiscard]] bool is_conjugate(const SymbolTable& symbols, const Polynomial& other) const noexcept;
 
-
-        /**
-         * Get a string expression of this Polynomial.
-         */
-        [[nodiscard]] std::string as_string() const;
-
-        /**
-         * Get a string expression of this Polynomial, as operators.
-         * @param table The symbol table, with operator information.
-         * @param show_braces True to add angular braces around operator sequences.
-         * @return A newly constructed string representation of the polynomial.
-         */
-        [[nodiscard]] std::string as_string_with_operators(const SymbolTable& table, bool show_braces) const;
-
-        /**
-         * Get a string expression of this Polynomial, as operators.
-         * @param os The output stream to write to.
-         * @param table The symbol table, with operator information.
-         * @param show_braces True to add angular braces around operator sequences.
-         */
-        void as_string_with_operators(std::ostream& os, const SymbolTable& table, bool show_braces) const;
-
         /**
          * Named constructor for polynomial zero.
          */
@@ -396,7 +374,33 @@ namespace Moment {
         friend class PolynomialToBasisVec;
         friend class BasisVecToPolynomial;
 
-        friend std::ostream& operator<<(std::ostream& os, const Polynomial& combo);
+        /**
+         * Plain polynomial string (symbol ids).
+         */
+        friend std::ostream& operator<<(std::ostream& os, const Polynomial& poly);
+
+        /**
+         * Formatted (e.g. as operator sequence) polynomial string.
+         */
+        friend ContextualOS& operator<<(ContextualOS& os, const Polynomial& poly);
+
+        /**
+         * Get a plain string expression of this Polynomial, as symbol ids.
+         * Wraps operator<<(std::ostream&...)
+         */
+        [[nodiscard]] std::string as_string() const;
+
+        /**
+         * Get a string expression of this Polynomial, as operators.
+         * Wraps operator<<(ContextualOS&...).
+         * @param context The operator context.
+         * @param table The symbol table, with operator information.
+         * @param show_braces True to add angular braces around operator sequences.
+         * @return A newly constructed string representation of the polynomial.
+         */
+        [[nodiscard]] std::string as_string_with_operators(const Context& context,
+                                                           const SymbolTable& table,
+                                                           bool show_braces) const;
 
     private:
         static void remove_duplicates(Polynomial::storage_t &data);

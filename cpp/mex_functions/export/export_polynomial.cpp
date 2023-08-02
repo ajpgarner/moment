@@ -8,6 +8,8 @@
 #include "export_polynomial.h"
 #include "export_operator_sequence.h"
 
+#include "scenarios/contextual_os_helper.h"
+
 #include "symbolic/polynomial.h"
 #include "symbolic/polynomial_to_basis.h"
 #include "symbolic/symbol_table.h"
@@ -75,7 +77,13 @@ namespace Moment::mex {
 
 
     matlab::data::MATLABString PolynomialExporter::string(const Polynomial &poly, const bool show_braces) const {
-        return {UTF8toUTF16Convertor::convert(poly.as_string_with_operators(this->symbols, show_braces))};
+        StringFormatContext sfc{this->context, this->symbols};
+        sfc.format_info.show_braces = show_braces;
+        sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
+
+        return {UTF8toUTF16Convertor::convert(
+                make_contextualized_string(sfc, [&poly](ContextualOS& os) { os << poly; })
+        )};
     }
 
 

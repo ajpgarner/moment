@@ -61,7 +61,7 @@ namespace Moment::mex::functions {
 
         // Export output in new matrix system
         matlab::data::ArrayFactory factory;
-        PolynomialExporter exporter{matlabEngine, factory, targetSystem.Symbols(),
+        PolynomialExporter exporter{matlabEngine, factory, targetSystem.Context(), targetSystem.Symbols(),
                                     targetSystem.polynomial_factory().zero_tolerance};
 
         switch (input.output_type) {

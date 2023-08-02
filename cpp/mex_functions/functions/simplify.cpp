@@ -349,7 +349,8 @@ namespace Moment::mex::functions {
 
         // Export
         matlab::data::ArrayFactory factory;
-        PolynomialExporter exporter{this->matlabEngine, factory, matrixSystem.Symbols(), poly_factory.zero_tolerance};
+        PolynomialExporter exporter{this->matlabEngine, factory,
+                                    matrixSystem.Context(), matrixSystem.Symbols(), poly_factory.zero_tolerance};
         if (input.output_mode == SimplifyParams::OutputMode::String) {
             matlab::data::StringArray string_out = factory.createArray<matlab::data::MATLABString>(input.input_shape);
 

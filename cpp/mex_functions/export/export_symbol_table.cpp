@@ -12,6 +12,7 @@
 #include "symbolic/symbol_table.h"
 
 #include "scenarios/context.h"
+#include "scenarios/contextual_os_helper.h"
 
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/locality/locality_matrix_system.h"
@@ -22,6 +23,7 @@
 #include "utilities/reporting.h"
 
 #include <numeric>
+#include <sstream>
 
 namespace Moment::mex {
     namespace {
@@ -41,23 +43,32 @@ namespace Moment::mex {
     SymbolTableExporter::SymbolTableExporter(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
                                              const MatrixSystem &system)
             : ExporterWithFactory{engine}, env{env}, system{system},
-              symbols{system.Symbols()}, context{system.Context()},
+              symbols{system.Symbols()}, context{system.Context()}, sfContext(context, symbols),
               include_factors{false}, locality_format{false}, can_have_aliases{system.Symbols().can_have_aliases} {
+        sfContext.format_info.show_braces = true;
+        sfContext.format_info.hash_before_symbol_id = false;
      }
 
 
     SymbolTableExporter::SymbolTableExporter(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
                                              const Locality::LocalityMatrixSystem &lms)
          : ExporterWithFactory{engine}, env{env}, system{lms}, symbols{system.Symbols()}, context{system.Context()},
+            sfContext(context, symbols),
             include_factors{false}, locality_format{true}, can_have_aliases{system.Symbols().can_have_aliases} {
         this->localityContextPtr = &lms.localityContext;
+        sfContext.format_info.locality_formatter = env.get_locality_formatter().get();
+        sfContext.format_info.show_braces = true;
+        sfContext.format_info.hash_before_symbol_id = false;
     }
 
     SymbolTableExporter::SymbolTableExporter(matlab::engine::MATLABEngine &engine, const EnvironmentalVariables &env,
                                              const Inflation::InflationMatrixSystem &ims)
             : ExporterWithFactory{engine}, env{env}, system{ims}, symbols{system.Symbols()}, context{system.Context()},
+              sfContext(context, symbols),
               include_factors{true}, locality_format{false}, can_have_aliases{system.Symbols().can_have_aliases} {
         this->factorTablePtr = &ims.Factors();
+        sfContext.format_info.show_braces = true;
+        sfContext.format_info.hash_before_symbol_id = false;
     }
 
     std::vector<std::string>
@@ -183,11 +194,17 @@ namespace Moment::mex {
                                            const std::optional<bool> is_aliased) const {
 
         (*write_iter)["symbol"] = factory.createScalar<int64_t>(static_cast<int64_t>(symbol.Id()));
-        if (this->locality_format) {
+
+        if (symbol.has_sequence()) {
             (*write_iter)["operators"] = factory.createScalar(
-                    localityContextPtr->format_sequence(*env.get_locality_formatter(), symbol.sequence()));
+                    make_contextualized_string(this->sfContext, [&symbol](ContextualOS &os) {
+                        os << symbol.sequence();
+                    }));
         } else {
-            (*write_iter)["operators"] = factory.createScalar(symbol.formatted_sequence());
+            (*write_iter)["operators"] = factory.createScalar(
+                    make_contextualized_string(this->sfContext, [&symbol](ContextualOS &os) {
+                        os.context.format_sequence_from_symbol_id(os, symbol.Id(), false);
+                    }));
         }
 
         if (conjugated.has_value()) {
@@ -201,11 +218,17 @@ namespace Moment::mex {
         (*write_iter)["basis_re"] = factory.createScalar<uint64_t>(symbol.basis_key().first + 1);
 
 
-        if (this->locality_format) {
+        if (symbol.has_sequence()) {
             (*write_iter)["conjugate"] = factory.createScalar(
-                    this->localityContextPtr->format_sequence(*env.get_locality_formatter(), symbol.sequence_conj()));
+                    make_contextualized_string(this->sfContext, [&symbol](ContextualOS &os) {
+                        os << symbol.sequence_conj();
+                    }));
+
         } else {
-            (*write_iter)["conjugate"] = factory.createScalar(symbol.formatted_sequence_conj());
+            (*write_iter)["conjugate"] = factory.createScalar(
+                    make_contextualized_string(this->sfContext, [&symbol](ContextualOS &os) {
+                        os.context.format_sequence_from_symbol_id(os, symbol.Id(), true);
+                    }));
         }
 
         (*write_iter)["hermitian"] = factory.createScalar<bool>(symbol.is_hermitian());

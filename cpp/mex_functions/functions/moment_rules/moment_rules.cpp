@@ -123,7 +123,7 @@ namespace Moment::mex::functions {
 
         // How do we output?
         matlab::data::ArrayFactory factory;
-        MomentSubstitutionRuleExporter msrExporter{this->matlabEngine, system.Symbols(),
+        MomentSubstitutionRuleExporter msrExporter{this->matlabEngine, system.Context(), system.Symbols(),
                                                    system.polynomial_factory().zero_tolerance};
 
         switch (input.output_mode) {
