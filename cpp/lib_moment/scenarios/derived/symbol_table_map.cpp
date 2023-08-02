@@ -178,18 +178,12 @@ namespace Moment::Derived {
             throw errors::bad_map{"Inverse map must define zero and identity."};
         }
 
-
-        this->target_symbol_names.reserve(this->inverse_map.size());
-        this->target_symbol_names.emplace_back("0");
-        this->target_symbol_names.emplace_back("1");
         for (const auto& polynomial : this->inverse_map | std::views::drop(2)) {
             const bool is_hermitian = polynomial.is_hermitian(this->origin_symbols, 1.0);
             this->target_symbols.create(true, !is_hermitian);
-            this->target_symbol_names.emplace_back(polynomial.as_string());
         }
 
         assert(this->target_symbols.size() == this->inverse_map.size());
-        assert(this->target_symbol_names.size() == this->target_symbols.size());
     }
 
 

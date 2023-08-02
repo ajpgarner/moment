@@ -9,19 +9,19 @@
 #include <cassert>
 
 #include <iostream>
-#include <sstream>
 
 #include "scenarios/context.h"
+#include "scenarios/contextual_os_helper.h"
 #include "symbol_table.h"
 
 #include "utilities/format_factor.h"
 
 namespace Moment {
 
-    std::string Monomial::as_string() const {
-        std::stringstream ss;
-        ss << *this;
-        return ss.str();
+    std::string Monomial::as_string(const StringFormatContext &format_context) const {
+        return make_contextualized_string(format_context, [this](ContextualOS& os) {
+            os << *this;
+        });
     }
 
     void Monomial::format_as_symbol_id_without_context(std::ostream& os, bool show_plus, bool show_hash) const {

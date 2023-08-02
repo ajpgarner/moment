@@ -15,7 +15,6 @@ namespace Moment::Tests {
         EXPECT_EQ(symbol.id, 1);
         EXPECT_FALSE(symbol.negated());
         EXPECT_FALSE(symbol.conjugated);
-        EXPECT_EQ(symbol.as_string(), one);
     }
 
 
@@ -25,7 +24,6 @@ namespace Moment::Tests {
         EXPECT_EQ(symbol.id, 13);
         EXPECT_FALSE(symbol.negated());
         EXPECT_FALSE(symbol.conjugated);
-        EXPECT_EQ(symbol.as_string(), thirteen);
     }
 
     TEST(Symbolic_Monomial, Parse_MinusOne) {
@@ -34,7 +32,6 @@ namespace Moment::Tests {
         EXPECT_EQ(symbol.id, 1);
         EXPECT_TRUE(symbol.negated());
         EXPECT_FALSE(symbol.conjugated);
-        EXPECT_EQ(symbol.as_string(), minus_one);
     }
 
     TEST(Symbolic_Monomial, Parse_TwoStar) {
@@ -43,7 +40,6 @@ namespace Moment::Tests {
         EXPECT_EQ(symbol.id, 2);
         EXPECT_FALSE(symbol.negated());
         EXPECT_TRUE(symbol.conjugated);
-        EXPECT_EQ(symbol.as_string(), one_star);
     }
 
     TEST(Symbolic_Monomial, Parse_MinusTwoStar) {
@@ -52,7 +48,6 @@ namespace Moment::Tests {
         EXPECT_EQ(symbol.id, 2);
         EXPECT_TRUE(symbol.negated());
         EXPECT_TRUE(symbol.conjugated);
-        EXPECT_EQ(symbol.as_string(), minus_one_star);
     }
 
     TEST(Symbolic_Monomial, ComplexFactor) {

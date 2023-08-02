@@ -8,6 +8,8 @@
 #include "polynomial_factory.h"
 #include "symbol_table.h"
 
+#include "scenarios/contextual_os_helper.h"
+
 #include "utilities/float_utils.h"
 #include "utilities/format_factor.h"
 
@@ -576,27 +578,9 @@ namespace Moment {
         return os;
     }
 
-
-    std::string Polynomial::as_string() const {
-        std::stringstream ss;
-        ss << *this;
-        return ss.str();
+    std::string Polynomial::as_string(const StringFormatContext& sfc) const {
+        return make_contextualized_string(sfc, *this);
     }
-
-    std::string Polynomial::as_string_with_operators(const Context& context,
-                                                     const SymbolTable& table,
-                                                     bool show_braces) const {
-
-        std::stringstream ss;
-        ContextualOS cSS{ss, context, table};
-        cSS.format_info.show_braces = show_braces;
-        cSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
-
-        cSS << *this;
-        return ss.str();
-    }
-
-
 
 
 }

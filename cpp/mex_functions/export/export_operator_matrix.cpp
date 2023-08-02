@@ -29,13 +29,18 @@ namespace Moment::mex {
 
     namespace {
         class WriteSymbolStringFunctor {
+            StringFormatContext sfc;
         public:
+            WriteSymbolStringFunctor(const Context& context, const SymbolTable& symbols) : sfc{context, symbols} {
+                sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::SymbolIds;
+            }
+
             matlab::data::MATLABString operator()(const Polynomial& poly) const {
-                return UTF8toUTF16Convertor::convert(poly.as_string());
+                return UTF8toUTF16Convertor::convert(poly.as_string(sfc));
             }
 
             matlab::data::MATLABString operator()(const Monomial& mono) const {
-                return UTF8toUTF16Convertor::convert(mono.as_string());
+                return UTF8toUTF16Convertor::convert(mono.as_string(sfc));
             }
         };
 
@@ -100,7 +105,8 @@ namespace Moment::mex {
             auto writeIter = output.begin();
             const auto writeIterEnd = output.end();
 
-            exporter.do_write(readIter, readIterEnd, writeIter, writeIterEnd, WriteSymbolStringFunctor{});
+            exporter.do_write(readIter, readIterEnd, writeIter, writeIterEnd,
+                              WriteSymbolStringFunctor{exporter.context, exporter.symbol_table});
 
             return output;
         }

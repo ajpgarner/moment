@@ -113,9 +113,13 @@ namespace Moment::mex::functions {
                 if ((poly.size() > 2) || (poly.size() < 1)
                     || (poly.size() == 2) && (poly.first_id() != 1)) {
                     std::stringstream errSS;
-                    errSS << "Cannot export as a substitution list: "
+                    ContextualOS cSS{errSS, exporter.context, exporter.symbols};
+                    cSS.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
+                    cSS.format_info.show_braces = true;
+
+                    cSS << "Cannot export as a substitution list: "
                           << "simplified rules contained the following non-scalar defining polynomial: "
-                          << poly.as_string_with_operators(exporter.context, exporter.symbols, true);
+                          << poly;
 
                     throw_error(exporter.engine, errors::internal_error, errSS.str());
                 }

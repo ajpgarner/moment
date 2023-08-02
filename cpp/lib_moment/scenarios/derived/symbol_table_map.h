@@ -41,7 +41,6 @@ namespace Moment {
         private:
             const SymbolTable& origin_symbols;
             SymbolTable& target_symbols;
-            std::vector<std::string> target_symbol_names;
 
             std::vector<Polynomial> map;
             std::vector<Polynomial> inverse_map;

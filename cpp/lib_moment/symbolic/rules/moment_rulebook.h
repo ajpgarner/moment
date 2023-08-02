@@ -66,6 +66,10 @@ namespace Moment {
 
         using rule_order_map_t = std::map<std::pair<uint64_t, uint64_t>, rule_map_t::iterator>;
 
+        /**
+         * Associated operator context (mainly for error messages).
+         */
+        const Context& context;
 
         /**
          * Associated symbol table.

@@ -32,10 +32,8 @@ namespace Moment {
     }
 
     MomentRulebook::MomentRulebook(const MatrixSystem& matrix_system)
-        : symbols{matrix_system.Symbols()}, factory{matrix_system.polynomial_factory()}, rules{}
-
-        {
-    }
+        : context{matrix_system.Context()}, symbols{matrix_system.Symbols()},
+        factory{matrix_system.polynomial_factory()}, rules{} { }
 
     void MomentRulebook::add_raw_rules(std::vector<Polynomial> &&raw) {
         if (this->in_use()) {
@@ -430,11 +428,17 @@ namespace Moment {
             return expr;
         }
 
-        // Otherwise, verify rule results in monomial
+        // Otherwise, verify rule results is monomial
         const auto& rule = rule_iter->second;
         if (!rule.RHS().is_monomial()) {
             auto wrong_answer = rule.reduce(this->factory, expr);
-            throw errors::not_monomial{expr.as_string(), wrong_answer.as_string()};
+
+            StringFormatContext sfc{this->context, this->symbols};
+            sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::SymbolIds;
+            std::string mono = expr.as_string(sfc);
+            std::string poly = wrong_answer.as_string(sfc);
+
+            throw errors::not_monomial{mono, poly};
         }
 
         return rule.reduce_monomial(this->symbols, expr);

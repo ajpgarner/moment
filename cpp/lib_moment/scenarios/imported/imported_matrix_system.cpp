@@ -31,8 +31,8 @@ namespace Moment::Imported {
                     auto& lower = input(std::array<size_t,2>{j, i});
                     if ((upper.id != lower.id) || (abs(upper.factor) != abs(lower.factor))) {
                         std::stringstream errSS;
-                        errSS << "In symmetric matrix import, element [" << i << ", " << j << "] = "
-                              << upper.as_string() << " does not match element [" << j << ", " << i << "] = " << lower;
+                        errSS << "In symmetric matrix import, element [" << i << ", " << j << "] = " << upper
+                              << " does not match element [" << j << ", " << i << "] = " << lower;
 
                         throw errors::bad_import_matrix{errSS.str()};
                     }
@@ -67,8 +67,8 @@ namespace Moment::Imported {
 
                     if ((upper.id != lower.id) || (abs(upper.factor) != abs(lower.factor))) {
                         std::stringstream errSS;
-                        errSS << "In hermitian matrix import, element [" << i << ", " << j << "] = "
-                              << upper.as_string() << " does not match element [" << j << ", " << i << "] = " << lower;
+                        errSS << "In hermitian matrix import, element [" << i << ", " << j << "] = " << upper
+                              << " does not match element [" << j << ", " << i << "] = " << lower;
 
                         throw errors::bad_import_matrix{errSS.str()};
                     }

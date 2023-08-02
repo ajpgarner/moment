@@ -15,21 +15,38 @@
 namespace Moment {
 
     template<typename functor_t>
+    concept accepts_contextual_os = requires(const functor_t& f, ContextualOS& os) {
+        {f(os)};
+    };
+
+    template<accepts_contextual_os functor_t>
     std::string make_contextualized_string(const Context& context,
                                            const SymbolTable& symbols,
-                                           functor_t functor) {
+                                           const functor_t& functor) {
         std::stringstream ss;
         ContextualOS cSS{ss, context, symbols};
         functor(cSS);
         return ss.str();
     }
 
-    template<typename functor_t>
+    template<typename object_t>
     std::string make_contextualized_string(const StringFormatContext& sf_context,
-                                           functor_t functor) {
+                                           const object_t& object) {
+        std::stringstream ss;
+        ContextualOS cSS{ss, sf_context};
+        cSS << object;
+        return ss.str();
+    }
+
+
+    template<accepts_contextual_os functor_t>
+    std::string make_contextualized_string(const StringFormatContext& sf_context,
+                                           const functor_t& functor) {
         std::stringstream ss;
         ContextualOS cSS{ss, sf_context};
         functor(cSS);
         return ss.str();
     }
+
+
 }

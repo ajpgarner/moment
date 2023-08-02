@@ -385,22 +385,9 @@ namespace Moment {
         friend ContextualOS& operator<<(ContextualOS& os, const Polynomial& poly);
 
         /**
-         * Get a plain string expression of this Polynomial, as symbol ids.
-         * Wraps operator<<(std::ostream&...)
+         * Formatted polynomial string. (Wraps operator<<(ContextualOS&, *this)).
          */
-        [[nodiscard]] std::string as_string() const;
-
-        /**
-         * Get a string expression of this Polynomial, as operators.
-         * Wraps operator<<(ContextualOS&...).
-         * @param context The operator context.
-         * @param table The symbol table, with operator information.
-         * @param show_braces True to add angular braces around operator sequences.
-         * @return A newly constructed string representation of the polynomial.
-         */
-        [[nodiscard]] std::string as_string_with_operators(const Context& context,
-                                                           const SymbolTable& table,
-                                                           bool show_braces) const;
+        [[nodiscard]] std::string as_string(const StringFormatContext& format_context) const;
 
     private:
         static void remove_duplicates(Polynomial::storage_t &data);
