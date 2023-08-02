@@ -20,7 +20,7 @@ namespace Moment {
         this->conj_osgs.emplace_back(std::make_unique<OperatorSequenceGenerator>(this->osgs[0]->conjugate()));
     }
 
-    const OperatorSequenceGenerator& Dictionary::operator[](size_t word_length) const {
+    const OperatorSequenceGenerator& Dictionary::operator[](const size_t word_length) const {
         // Try and read
         std::shared_lock lock{this->mutex};
         if (word_length < this->osgs.size()) {

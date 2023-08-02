@@ -25,17 +25,11 @@ namespace Moment::Symmetrized {
     }
 
     std::unique_ptr<Derived::SymbolTableMap>
-    SymmetrizedMatrixSystem::SymmetrizedSTMFactory::operator()(const SymbolTable& origin_symbols,
+    SymmetrizedMatrixSystem::SymmetrizedSTMFactory::operator()(SymbolTable& origin_symbols,
                                                                SymbolTable& target_symbols,
                                                                Multithreading::MultiThreadPolicy mt_policy) {
-        // First, ensure source defines enough symbols to do generation
-        const auto osg_length = origin_symbols.OSGIndex.max_length();
-        if (osg_length < max_word_length) {
-            std::stringstream errSS;
-            errSS << "Could not generate map for strings of length " << max_word_length
-                 << ", because origin symbol table has only been populated up to strings of length " << osg_length;
-            throw errors::bad_map{errSS.str()};
-        }
+        // Update OSGIndex as required
+        origin_symbols.OSGIndex.update_if_necessary(max_word_length);
 
         // Next, ensure group has representation for requested length.
         const auto& group_rep = this->group.create_representation(max_word_length, mt_policy);

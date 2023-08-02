@@ -17,14 +17,17 @@ namespace Moment::Tests {
     class DirectSparseSTMFactory : public Derived::DerivedMatrixSystem::STMFactory {
     public:
         Eigen::SparseMatrix<double> src_matrix;
+        const size_t max_wl;
+
     public:
-        explicit DirectSparseSTMFactory(Eigen::SparseMatrix<double> input)
-            : Derived::DerivedMatrixSystem::STMFactory{}, src_matrix{std::move(input)} {
+        explicit DirectSparseSTMFactory(Eigen::SparseMatrix<double> input, size_t max_wl)
+            : Derived::DerivedMatrixSystem::STMFactory{}, src_matrix{std::move(input)}, max_wl{max_wl} {
 
         }
 
-        std::unique_ptr<Derived::SymbolTableMap> operator()(const SymbolTable &origin, SymbolTable &target,
+        std::unique_ptr<Derived::SymbolTableMap> operator()(SymbolTable &origin, SymbolTable &target,
                                                       Multithreading::MultiThreadPolicy mt_policy) final {
+            origin.OSGIndex.update_if_necessary(this->max_wl);
             return std::make_unique<Derived::SymbolTableMap>(origin, target,
                                                              Derived::LUMapCoreProcessor{}, this->src_matrix);
         }
@@ -32,15 +35,17 @@ namespace Moment::Tests {
 
     class DirectDenseSTMFactory : public Derived::DerivedMatrixSystem::STMFactory {
     public:
+        size_t max_wl;
         Eigen::MatrixXd src_matrix;
     public:
-        explicit DirectDenseSTMFactory(Eigen::MatrixXd input)
-            : Derived::DerivedMatrixSystem::STMFactory{}, src_matrix{std::move(input)} {
+        explicit DirectDenseSTMFactory(Eigen::MatrixXd input, size_t max_wl)
+            : Derived::DerivedMatrixSystem::STMFactory{}, src_matrix{std::move(input)}, max_wl{max_wl} {
 
         }
 
-        std::unique_ptr<Derived::SymbolTableMap> operator()(const SymbolTable &origin, SymbolTable &target,
+        std::unique_ptr<Derived::SymbolTableMap> operator()(SymbolTable &origin, SymbolTable &target,
                                                       Multithreading::MultiThreadPolicy mt_policy) final {
+            origin.OSGIndex.update_if_necessary(this->max_wl);
             return std::make_unique<Derived::SymbolTableMap>(origin, target,
                                                              Derived::LUMapCoreProcessor{}, this->src_matrix);
         }

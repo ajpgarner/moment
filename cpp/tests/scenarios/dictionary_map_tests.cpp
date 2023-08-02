@@ -29,15 +29,19 @@ namespace Moment::Tests {
     TEST(Scenarios_WordList, EnsureOSG_Level2) {
         Algebraic::AlgebraicMatrixSystem ams{std::make_unique<Algebraic::AlgebraicContext>(2)};
         const auto& context = ams.AlgebraicContext();
-        const auto& symbols = ams.Symbols();
+        auto& symbols = ams.Symbols();
 
         EXPECT_EQ(symbols.OSGIndex.max_length(), 0);
         bool anything = ams.generate_dictionary(2);
         EXPECT_TRUE(anything);
         EXPECT_EQ(symbols.size(), 7); // 0, e, a, b, aa, ab, bb
-        EXPECT_EQ(symbols.OSGIndex.max_length(), 2);
 
-        const auto& wordlist = symbols.OSGIndex;
+        auto& wordlist = symbols.OSGIndex;
+        EXPECT_EQ(wordlist.max_length(), 0);
+
+        wordlist.update_if_necessary(2);
+        EXPECT_EQ(wordlist.max_length(), 2);
+
         EXPECT_EQ(wordlist(0).first, 1LL); // e -> 1
         EXPECT_EQ(wordlist(0).second, false); // e -> 1
         EXPECT_EQ(wordlist(1).first, 2LL); // a -> 2

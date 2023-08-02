@@ -371,8 +371,6 @@ namespace Moment {
         size_t new_symbols{};
         this->merge_in(build_unique.begin(), build_unique.end(), &new_symbols);
 
-        this->OSGIndex.update(word_length);
-
         return std::make_pair(osg.size(), new_symbols);
     }
 

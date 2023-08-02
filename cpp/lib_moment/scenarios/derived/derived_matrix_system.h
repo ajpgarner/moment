@@ -33,7 +33,7 @@ namespace Moment::Derived {
 
         public:
             [[nodiscard]] virtual std::unique_ptr<SymbolTableMap>
-            operator()(const SymbolTable& origin, SymbolTable& target, Multithreading::MultiThreadPolicy mt_policy) = 0;
+            operator()(SymbolTable& origin, SymbolTable& target, Multithreading::MultiThreadPolicy mt_policy) = 0;
         };
 
     private:

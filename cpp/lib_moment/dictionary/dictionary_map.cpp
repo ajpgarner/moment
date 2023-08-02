@@ -22,23 +22,20 @@ namespace Moment {
         this->symbol_map.emplace_back(1);
     }
 
-    bool DictionaryMap::update(const size_t promised_new_max) {
-        std::shared_lock read_lock{this->mutex};
-
-        // If  OSG already processed, return.
-        if (promised_new_max <= this->symbol_map_max_length.load(std::memory_order_acquire)) {
-            return false; // unlock read lock
-        }
-
-        const auto& promised_osg = this->context.operator_sequence_generator(promised_new_max);
-
-        // Upgrade lock
-        read_lock.unlock();
-        std::shared_lock write_lock{this->mutex};
-        if (promised_new_max <= this->symbol_map_max_length.load(std::memory_order_acquire)) {
+    bool DictionaryMap::update_if_necessary(size_t desired_length) {
+        // No need to update if length is already long enough
+        if (desired_length <= this->symbol_map_max_length.load(std::memory_order_acquire)) {
             return false;
         }
 
+        // Lock for write, and check for race condition
+        std::unique_lock write_lock = this->get_write_lock();
+        if (desired_length <= this->symbol_map_max_length.load(std::memory_order_acquire)) {
+            return false; // Nothing more to do!
+        }
+
+        // Get long-enough OSG
+        const auto& promised_osg = this->context.operator_sequence_generator(desired_length);
         const auto target_size = promised_osg.size();
         const auto start_index = this->symbol_map.size();
 
@@ -62,7 +59,7 @@ namespace Moment {
 
 
     std::pair<symbol_name_t, bool> DictionaryMap::operator()(size_t index) const {
-        std::shared_lock read_lock{this->mutex};
+        std::shared_lock read_lock = this->get_read_lock();
         if (index >= this->symbol_map.size()) {
             std::stringstream errSS;
             errSS << "Symbol at index " << index << " not yet defined.";

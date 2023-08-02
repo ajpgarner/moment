@@ -11,8 +11,9 @@
 
 #include "integer_types.h"
 
+#include "utilities/maintains_mutex.h"
+
 #include <atomic>
-#include <shared_mutex>
 #include <utility>
 #include <vector>
 
@@ -25,11 +26,10 @@ namespace Moment {
     /**
      * Map from OSG output index to symbols in table.
      */
-    class DictionaryMap {
+    class DictionaryMap : private MaintainsMutex {
     private:
         const Context& context;
         const SymbolTable& symbols;
-        mutable std::shared_mutex mutex;
         std::atomic<size_t> symbol_map_max_length;
         std::vector<symbol_name_t> symbol_map;
 
@@ -42,6 +42,11 @@ namespace Moment {
          * @return True if new entries added.
          */
         bool update(size_t promised_new_max);
+
+        /**
+         * Update if necessary
+         */
+         bool update_if_necessary(size_t desired_length);
 
         /**
          * Get maximum index currently generated
