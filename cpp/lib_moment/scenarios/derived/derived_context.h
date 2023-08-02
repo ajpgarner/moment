@@ -21,7 +21,7 @@ namespace Moment::Derived {
 
     private:
         std::optional<StringFormatContext> sfc;
-        const SymbolTableMap * map_ptr = nullptr;
+        const class SymbolTableMap * map_ptr = nullptr;
 
     public:
 
@@ -31,7 +31,7 @@ namespace Moment::Derived {
                                             const symbol_name_t symbol_id,
                                             bool conjugated) const override;
 
-        inline const SymbolTableMap& SymbolTableMap() const noexcept {
+        inline const class SymbolTableMap& SymbolTableMap() const noexcept {
             assert(this->map_ptr);
             return *this->map_ptr;
         }
