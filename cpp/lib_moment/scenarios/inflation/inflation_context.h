@@ -93,7 +93,7 @@ namespace Moment::Inflation {
                 oper_name_t flat_index;
 
                 /** Index per source of variant within observable. */
-                std::vector<oper_name_t> indices;
+                SourceIndex indices;
 
                 /** Map, key: source ID, value: source variant. */
                 std::map<oper_name_t, oper_name_t> source_variants;
@@ -108,7 +108,7 @@ namespace Moment::Inflation {
             private:
                 Variant(oper_name_t operator_offset,
                         oper_name_t index,
-                        std::vector<oper_name_t>&& vecIndex,
+                        SourceIndex&& vecIndex,
                         std::map<oper_name_t, oper_name_t>&& srcVariants,
                         SourceListBitset connected_sources);
             };

@@ -512,6 +512,17 @@ namespace Moment {
             return std::span<const value_t>{this->data_start, this->_size};
         }
 
+
+        /** Equality comparison, with other similar vector. */
+        [[nodiscard]] constexpr bool operator==(const SmallVector& rhs) const noexcept {
+            return std::equal(this->cbegin(), this->cend(), rhs.cbegin(), rhs.cend());
+        }
+
+        /** Equality comparison, with other similar vector. */
+        [[nodiscard]] constexpr bool operator!=(const SmallVector& rhs) const noexcept {
+            return !std::equal(this->cbegin(), this->cend(), rhs.cbegin(), rhs.cend());
+        }
+
     private:
         [[nodiscard]] constexpr static size_t suggest_capacity(const size_t required_size) noexcept {
             return std::bit_ceil(required_size);

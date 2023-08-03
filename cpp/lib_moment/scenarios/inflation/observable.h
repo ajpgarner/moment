@@ -8,11 +8,18 @@
 
 #include "integer_types.h"
 
+#include "utilities/small_vector.h"
+#include "utilities/set_to_vector.h"
+
+#include <algorithm>
 #include <set>
 #include <span>
 #include <vector>
 
 namespace Moment::Inflation {
+
+    using SourceIndex = SmallVector<oper_name_t, 4>;
+
     class Observable  {
     public:
         const oper_name_t id;
@@ -42,7 +49,7 @@ namespace Moment::Inflation {
 
         /** Convert global index to vector of source indices.
          * Note: this uses a first-index-contiguous (col-major) scheme. */
-        [[nodiscard]] std::vector<oper_name_t> unflatten_index(size_t inflation_level, oper_name_t index) const;
+        [[nodiscard]] SourceIndex unflatten_index(size_t inflation_level, oper_name_t index) const;
 
         /** Is this a projective measurement (cf. a generic moment)? */
         [[nodiscard]] bool projective() const noexcept { return outcomes != 0; }
@@ -52,7 +59,5 @@ namespace Moment::Inflation {
             return (outcomes != 0) ? (outcomes - 1) : 1;
         }
 
-    private:
-        [[nodiscard]] static std::vector<oper_name_t> set_to_vector(const std::set<oper_name_t>& input);
     };
 }

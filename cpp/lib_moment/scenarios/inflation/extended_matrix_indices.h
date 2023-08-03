@@ -11,6 +11,7 @@
 
 #include "utilities/index_tree.h"
 #include "utilities/maintains_mutex.h"
+#include "utilities/set_to_vector.h"
 
 #include "integer_types.h"
 
@@ -48,9 +49,6 @@ namespace Moment::Inflation {
         [[nodiscard]] constexpr bool stores_list() const noexcept {
             return internal_extension_list.has_value();
         }
-
-    private:
-        [[nodiscard]] static std::vector<symbol_name_t> set_to_vector(const std::set<symbol_name_t>& input);
     };
 
     class ExtendedMatrixIndexStorage final {

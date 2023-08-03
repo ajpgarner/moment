@@ -132,10 +132,9 @@ namespace Moment::Inflation {
           * @param old_source_indices The index to permute
           * @return Permuted index array.
           */
-        std::vector<oper_name_t>
-        permute_variant(const size_t inflation, std::span<const oper_name_t> source_ids,
-                                                const std::map<oper_name_t, oper_name_t>& source_permutation,
-                                                std::span<const oper_name_t> old_source_indices) const;
+        SourceIndex permute_variant(const size_t inflation, std::span<const oper_name_t> source_ids,
+                                    const std::map<oper_name_t, oper_name_t>& source_permutation,
+                                    std::span<const oper_name_t> old_source_indices) const;
 
         /**
          * Calculate total number of operators required for expressing this network at a particular inflation level

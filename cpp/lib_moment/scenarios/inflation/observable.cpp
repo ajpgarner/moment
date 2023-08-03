@@ -41,8 +41,8 @@ namespace Moment::Inflation {
         return *find == source;
     }
 
-    std::vector<oper_name_t> Observable::unflatten_index(const size_t inflation_level, oper_name_t index) const {
-        std::vector<oper_name_t> output(this->source_count, 0);
+    SourceIndex Observable::unflatten_index(const size_t inflation_level, oper_name_t index) const {
+        SourceIndex output(this->source_count, 0);
 
         // Just return 0s if no inflation, or sources
         if (output.empty() || (inflation_level<=0)) {
@@ -58,13 +58,6 @@ namespace Moment::Inflation {
             index = next_index;
         }
 
-        return output;
-    }
-
-    std::vector<oper_name_t> Observable::set_to_vector(const std::set<oper_name_t> &input) {
-        std::vector<oper_name_t> output;
-        output.reserve(input.size());
-        std::copy(input.begin(), input.end(), std::back_inserter(output));
         return output;
     }
 }

@@ -9,6 +9,10 @@
 
 #include "scenarios/inflation/causal_network.h"
 
+#include <algorithm>
+
+
+
 namespace Moment::Tests {
     using namespace Moment::Inflation;
 
@@ -436,13 +440,13 @@ namespace Moment::Tests {
         const auto& src_names = line.Observables()[0].sources;
         ASSERT_EQ(src_names.size(), 1);
 
-        std::vector<oper_name_t> indexA{0};
+        SourceIndex indexA{0};
         auto permuted_indexA = line.permute_variant(2, src_names, permutation, indexA);
-        EXPECT_EQ(permuted_indexA, (std::vector<oper_name_t>{0}));
+        EXPECT_EQ(permuted_indexA, (SourceIndex{0}));
 
-        std::vector<oper_name_t> indexB{1};
+        SourceIndex indexB{1};
         auto permuted_indexB = line.permute_variant(2, src_names, permutation, indexB);
-        EXPECT_EQ(permuted_indexB, (std::vector<oper_name_t>{1}));
+        EXPECT_EQ(permuted_indexB, (SourceIndex{1}));
     }
 
     TEST(Scenarios_Inflation_CausalNetwork, PermuteSourceIndices_Swap) {
@@ -455,13 +459,13 @@ namespace Moment::Tests {
         const auto& src_names = line.Observables()[1].sources;
         ASSERT_EQ(src_names.size(), 2);
 
-        std::vector<oper_name_t> indexA{0, 0};
+        SourceIndex indexA{0, 0};
         auto permuted_indexA = line.permute_variant(2, src_names, permutation, indexA);
-        EXPECT_EQ(permuted_indexA, (std::vector<oper_name_t>{1, 0}));
+        EXPECT_EQ(permuted_indexA, (SourceIndex{1, 0}));
 
-        std::vector<oper_name_t> indexB{1, 0};
+        SourceIndex indexB{1, 0};
         auto permuted_indexB = line.permute_variant(2, src_names, permutation, indexB);
-        EXPECT_EQ(permuted_indexB, (std::vector<oper_name_t>{0, 0}));
+        EXPECT_EQ(permuted_indexB, (SourceIndex{0, 0}));
     }
 
 
@@ -472,29 +476,29 @@ namespace Moment::Tests {
         const auto& observables = ic.Observables();
 
         // Inflation level 1: A, B, C; no copies.
-        EXPECT_EQ(observables[0].unflatten_index(1, 0), (std::vector<oper_name_t>{0, 0}));
-        EXPECT_EQ(observables[1].unflatten_index(1, 0), (std::vector<oper_name_t>{0, 0}));
-        EXPECT_EQ(observables[2].unflatten_index(1, 0), (std::vector<oper_name_t>{0, 0}));
+        EXPECT_EQ(observables[0].unflatten_index(1, 0), (SourceIndex{0, 0}));
+        EXPECT_EQ(observables[1].unflatten_index(1, 0), (SourceIndex{0, 0}));
+        EXPECT_EQ(observables[2].unflatten_index(1, 0), (SourceIndex{0, 0}));
 
         // Inflation level 2: A00, A01, A10, A11; etc.
         for (size_t obs = 0; obs < 3; ++obs) {
-            EXPECT_EQ(observables[obs].unflatten_index(2, 0), (std::vector<oper_name_t>{0, 0})) << "obs = " << obs;
-            EXPECT_EQ(observables[obs].unflatten_index(2, 1), (std::vector<oper_name_t>{1, 0})) << "obs = " << obs;
-            EXPECT_EQ(observables[obs].unflatten_index(2, 2), (std::vector<oper_name_t>{0, 1})) << "obs = " << obs;
-            EXPECT_EQ(observables[obs].unflatten_index(2, 3), (std::vector<oper_name_t>{1, 1})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(2, 0), (SourceIndex{0, 0})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(2, 1), (SourceIndex{1, 0})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(2, 2), (SourceIndex{0, 1})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(2, 3), (SourceIndex{1, 1})) << "obs = " << obs;
         }
 
         // Inflation level 3: A00, A01, A02, A10...; etc.
         for (size_t obs = 0; obs < 3; ++obs) {
-            EXPECT_EQ(observables[obs].unflatten_index(3, 0), (std::vector<oper_name_t>{0, 0})) << "obs = " << obs;
-            EXPECT_EQ(observables[obs].unflatten_index(3, 1), (std::vector<oper_name_t>{1, 0})) << "obs = " << obs;
-            EXPECT_EQ(observables[obs].unflatten_index(3, 2), (std::vector<oper_name_t>{2, 0})) << "obs = " << obs;
-            EXPECT_EQ(observables[obs].unflatten_index(3, 3), (std::vector<oper_name_t>{0, 1})) << "obs = " << obs;
-            EXPECT_EQ(observables[obs].unflatten_index(3, 4), (std::vector<oper_name_t>{1, 1})) << "obs = " << obs;
-            EXPECT_EQ(observables[obs].unflatten_index(3, 5), (std::vector<oper_name_t>{2, 1})) << "obs = " << obs;
-            EXPECT_EQ(observables[obs].unflatten_index(3, 6), (std::vector<oper_name_t>{0, 2})) << "obs = " << obs;
-            EXPECT_EQ(observables[obs].unflatten_index(3, 7), (std::vector<oper_name_t>{1, 2})) << "obs = " << obs;
-            EXPECT_EQ(observables[obs].unflatten_index(3, 8), (std::vector<oper_name_t>{2, 2})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 0), (SourceIndex{0, 0})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 1), (SourceIndex{1, 0})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 2), (SourceIndex{2, 0})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 3), (SourceIndex{0, 1})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 4), (SourceIndex{1, 1})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 5), (SourceIndex{2, 1})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 6), (SourceIndex{0, 2})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 7), (SourceIndex{1, 2})) << "obs = " << obs;
+            EXPECT_EQ(observables[obs].unflatten_index(3, 8), (SourceIndex{2, 2})) << "obs = " << obs;
         }
     }
 }

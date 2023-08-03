@@ -172,7 +172,7 @@ namespace Moment::Tests {
 
         // Make extended matrix
         const auto [em_id, em] = ims.ExtendedMatrices.create(ExtendedMatrixIndex{mm_level, suggested_extensions},
-                                                             Multithreading::MultiThreadPolicy::Never);
+                                                             Multithreading::MultiThreadPolicy::Always);
         ASSERT_EQ(em_id, 1);
         EXPECT_EQ(em.OriginalDimension, mm.Dimension());
 

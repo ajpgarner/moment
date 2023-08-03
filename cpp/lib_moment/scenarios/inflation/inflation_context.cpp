@@ -54,7 +54,7 @@ namespace Moment::Inflation {
 
     InflationContext::ICObservable::Variant::Variant(const oper_name_t op_offset,
                                                      const oper_name_t index,
-                                                     std::vector<oper_name_t> &&vecIndex,
+                                                     SourceIndex&& vecIndex,
                                                      std::map<oper_name_t, oper_name_t> &&srcVariants,
                                                      SourceListBitset sourceBMP)
             : operator_offset{op_offset},  flat_index{index}, indices{std::move(vecIndex)},
