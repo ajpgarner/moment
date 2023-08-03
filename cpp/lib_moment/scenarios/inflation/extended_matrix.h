@@ -10,6 +10,8 @@
 
 #include "factor_table.h"
 
+#include "multithreading/multithreading.h"
+
 #include <string>
 #include <span>
 
@@ -26,7 +28,8 @@ namespace Moment::Inflation {
     public:
         ExtendedMatrix(SymbolTable& symbols, Inflation::FactorTable& factors, double zero_tolerance,
                        const MonomialMatrix& source,
-                       std::span<const symbol_name_t> extensions);
+                       std::span<const symbol_name_t> extensions,
+                       Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
     };
 

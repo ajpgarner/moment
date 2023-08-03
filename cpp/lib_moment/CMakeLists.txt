@@ -45,6 +45,7 @@ add_library(lib_moment
         scenarios/inflation/causal_network.cpp
         scenarios/inflation/extended_matrix.cpp
         scenarios/inflation/extended_matrix_indices.cpp
+        scenarios/inflation/extended_matrix_worker.cpp
         scenarios/inflation/extension_suggester.cpp
         scenarios/inflation/factor_table.cpp
         scenarios/inflation/inflation_collins_gisin.cpp

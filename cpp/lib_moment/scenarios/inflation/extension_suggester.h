@@ -13,6 +13,7 @@
 
 namespace Moment {
     class SymbolTable;
+    class SymbolicMatrix;
     class MonomialMatrix;
     class MomentMatrix;
 }
@@ -33,6 +34,8 @@ namespace Moment::Inflation {
     public:
         explicit ExtensionSuggester(const InflationContext& context,
                                     const SymbolTable& symbols, const FactorTable& factors);
+
+        [[nodiscard]] std::set<symbol_name_t> operator()(const SymbolicMatrix& matrix) const;
 
         [[nodiscard]] std::set<symbol_name_t> operator()(const MonomialMatrix& matrix) const;
 

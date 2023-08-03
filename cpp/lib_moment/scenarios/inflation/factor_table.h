@@ -156,7 +156,12 @@ namespace Moment {
         public:
             /** Merge and sort two sets of factors, removing redundant identities */
             [[nodiscard]] static std::vector<symbol_name_t>
-            combine_symbolic_factors(std::vector<symbol_name_t> left, const std::vector<symbol_name_t> &right);
+            combine_symbolic_factors(const std::vector<symbol_name_t>& left, const std::vector<symbol_name_t>& right);
+
+            /** Raw access to index tree. */
+            const IndexTree<symbol_name_t, symbol_name_t>& Indices() const noexcept {
+                return this->index_tree;
+            }
 
         private:
             size_t check_for_new_factors();

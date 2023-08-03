@@ -389,12 +389,12 @@ namespace Moment::Tests {
         std::vector<symbol_name_t> left{2};
         std::vector<symbol_name_t> right{3};
 
-        auto lr = FactorTable::combine_symbolic_factors(left, right);
+        auto lr = FactorTable::combine_symbolic_factors(left, std::move(right));
         ASSERT_EQ(lr.size(), 2);
         EXPECT_EQ(lr[0], 2);
         EXPECT_EQ(lr[1], 3);
 
-        auto rl = FactorTable::combine_symbolic_factors(right, left);
+        auto rl = FactorTable::combine_symbolic_factors(right, std::move(left));
         ASSERT_EQ(rl.size(), 2);
         EXPECT_EQ(rl[0], 2);
         EXPECT_EQ(rl[1], 3);
@@ -404,11 +404,11 @@ namespace Moment::Tests {
         std::vector<symbol_name_t> left{2};
         std::vector<symbol_name_t> right{1};
 
-        auto lr = FactorTable::combine_symbolic_factors(left, right);
+        auto lr = FactorTable::combine_symbolic_factors(left, std::move(right));
         ASSERT_EQ(lr.size(), 1);
         EXPECT_EQ(lr[0], 2);
 
-        auto rl = FactorTable::combine_symbolic_factors(right, left);
+        auto rl = FactorTable::combine_symbolic_factors(right, std::move(left));
         ASSERT_EQ(rl.size(), 1);
         EXPECT_EQ(rl[0], 2);
     }
@@ -417,11 +417,11 @@ namespace Moment::Tests {
         std::vector<symbol_name_t> left{1};
         std::vector<symbol_name_t> right{1};
 
-        auto lr = FactorTable::combine_symbolic_factors(left, right);
+        auto lr = FactorTable::combine_symbolic_factors(left, std::move(right));
         ASSERT_EQ(lr.size(), 1);
         EXPECT_EQ(lr[0], 1);
 
-        auto rl = FactorTable::combine_symbolic_factors(right, left);
+        auto rl = FactorTable::combine_symbolic_factors(right, std::move(left));
         ASSERT_EQ(rl.size(), 1);
         EXPECT_EQ(rl[0], 1);
     }

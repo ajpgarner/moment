@@ -13,6 +13,13 @@
 
 namespace Moment::Inflation {
 
+    std::vector<symbol_name_t> ExtendedMatrixIndex::set_to_vector(const std::set<symbol_name_t> &input) {
+        std::vector<symbol_name_t> output;
+        output.reserve(input.size());
+        std::copy(input.cbegin(), input.cend(), std::back_inserter(output));
+        return output;
+    }
+
     ExtendedMatrixFactory::ExtendedMatrixFactory(MatrixSystem &system)
         : ExtendedMatrixFactory{dynamic_cast<InflationMatrixSystem&>(system)} { }
 

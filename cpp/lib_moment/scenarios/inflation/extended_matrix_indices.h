@@ -14,6 +14,9 @@
 
 #include "integer_types.h"
 
+#include <set>
+#include <vector>
+
 namespace Moment {
     class MatrixSystem;
 };
@@ -39,9 +42,15 @@ namespace Moment::Inflation {
                 : moment_matrix_level{mm_level}, internal_extension_list(std::move(list)),
                   extension_list(internal_extension_list.value()) { }
 
+        ExtendedMatrixIndex(size_t mm_level, const std::set<symbol_name_t>& list_as_set)
+            : ExtendedMatrixIndex{mm_level, set_to_vector(list_as_set)} { }
+
         [[nodiscard]] constexpr bool stores_list() const noexcept {
             return internal_extension_list.has_value();
         }
+
+    private:
+        [[nodiscard]] static std::vector<symbol_name_t> set_to_vector(const std::set<symbol_name_t>& input);
     };
 
     class ExtendedMatrixIndexStorage final {

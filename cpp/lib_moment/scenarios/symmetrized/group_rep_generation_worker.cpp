@@ -82,7 +82,7 @@ namespace Moment::Multithreading {
             std::vector<std::unique_ptr<Symmetrized::Representation>>& representations,
             std::vector<std::unique_ptr<Symmetrized::RepresentationMapper>>& mappers, const size_t group_size,
             Group::build_list_t build_list)
-            : max_workers{std::max(Multithreading::get_max_worker_threads(), group_size)},
+            : max_workers{std::min(Multithreading::get_max_worker_threads(), group_size)},
               group_size{group_size}, build_list(std::move(build_list)),
               representations{representations}, mappers{mappers},
               global_index{0} {

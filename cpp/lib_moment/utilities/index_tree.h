@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <concepts>
+#include <memory>
 #include <optional>
 #include <span>
 #include <vector>
@@ -21,7 +22,7 @@ namespace Moment {
     private:
         look_up_t id;
         std::optional<index_t> _index;
-        std::vector<IndexTree> children;
+        std::vector<std::unique_ptr<IndexTree<look_up_t, index_t>>> children;
 
     public:
         IndexTree() : id{std::numeric_limits<look_up_t>::max()} { }
@@ -29,6 +30,10 @@ namespace Moment {
         explicit IndexTree(look_up_t id) : id{id} { }
 
         IndexTree(look_up_t id, index_t index) : id{id}, _index{index} { }
+
+        IndexTree(const IndexTree& rhs) = delete;
+
+        IndexTree(IndexTree&& rhs) = default;
 
         std::optional<index_t> index() const noexcept { return this->_index; }
 
@@ -94,19 +99,19 @@ namespace Moment {
             auto iter_to_child = std::lower_bound(this->children.begin(), this->children.end(),
                                                      current_index,
                                                      [](const auto& x, auto y) {
-                                                        return x.id < y;
+                                                        return x->id < y;
                                                      });
 
             // If not perfectly matching, add new node in situ
-            if ((iter_to_child == this->children.end()) || (iter_to_child->id != current_index)) {
-                iter_to_child = this->children.emplace(iter_to_child, current_index);
+            if ((iter_to_child == this->children.end()) || ((*iter_to_child)->id != current_index)) {
+                iter_to_child = this->children.emplace(iter_to_child, std::make_unique<IndexTree>(current_index));
                 if (addition_flag != nullptr) {
                     *addition_flag = true;
                 }
             }
 
             // Return pointer to (possibly) added node.
-            return &(*iter_to_child);
+            return (*iter_to_child).get();
         }
 
         /**
@@ -122,13 +127,39 @@ namespace Moment {
             auto iter_to_child = std::lower_bound(this->children.begin(), this->children.end(),
                                                   current_index,
                                                   [](const auto& x, auto y) {
-                                                      return x.id < y;
+                                                      return x->id < y;
                                                   });
-            if ((iter_to_child == this->children.end()) || (iter_to_child->id != current_index)) {
+            if ((iter_to_child == this->children.end()) || ((*iter_to_child)->id != current_index)) {
                 return std::nullopt;
             }
 
-            return iter_to_child->find(look_up_str.subspan(1));
+            return (*iter_to_child)->find(look_up_str.subspan(1));
+        }
+
+        /**
+         * Finds with hints
+         */
+        std::pair<const IndexTree*, std::span<const look_up_t>>
+        find_node_or_return_hint(std::span<const look_up_t> look_up_str) const noexcept {
+            // Full match
+            if (look_up_str.empty()) {
+                return {this, std::span<const look_up_t>{}};
+            }
+
+            // Find new node, (or node just before)
+            const auto& current_index = look_up_str.front();
+            auto iter_to_child = std::lower_bound(this->children.begin(), this->children.end(),
+                                                  current_index,
+                                                  [](const auto& x, auto y) {
+                                                      return x->id < y;
+                                                  });
+            if ((iter_to_child == this->children.end()) || ((*iter_to_child)->id != current_index)) {
+                // No match, return 'rebased' tree.
+                return {this, look_up_str};
+            }
+
+            // Found, so descend
+            return (*iter_to_child)->find_node_or_return_hint(look_up_str.subspan(1));
         }
 
         /**
@@ -156,12 +187,12 @@ namespace Moment {
             auto iter_to_child = std::lower_bound(this->children.begin(), this->children.end(),
                                                   current_index,
                                                   [](const auto& x, auto y) {
-                                                      return x.id < y;
+                                                      return x->id < y;
                                                   });
-            if ((iter_to_child == this->children.end()) || (iter_to_child->id != current_index)) {
+            if ((iter_to_child == this->children.end()) || ((*iter_to_child)->id != current_index)) {
                 return nullptr;
             }
-            return &(*iter_to_child);
+            return (*iter_to_child).get();
         }
 
         /**

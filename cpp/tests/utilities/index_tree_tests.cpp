@@ -218,4 +218,28 @@ namespace Moment::Tests {
         EXPECT_FALSE(tree.find(std::vector{1, 2}).has_value());
         EXPECT_FALSE(tree.find(std::vector{5}).has_value());
     }
+
+    TEST(Utilities_IndexTree, FindWithHint) {
+        IndexTree<int, size_t> tree{};
+        tree.add(std::vector{3}, 10);
+        tree.add(std::vector{12}, 20);
+        tree.add(std::vector{12, 5}, 30);
+        ASSERT_EQ(tree.find(std::vector{12, 5}).value(), 30);
+
+        const auto* twelve_node = tree.find_node(std::vector{12});
+        ASSERT_NE(twelve_node, nullptr);
+
+        std::vector search{12, 8};
+        auto [hint_ptr, remainder] = tree.find_node_or_return_hint(search);
+        EXPECT_EQ(hint_ptr, twelve_node);
+        ASSERT_EQ(remainder.size(), 1);
+        EXPECT_EQ(remainder[0], 8);
+
+        tree.add(std::vector{12, 8}, 40);
+        auto maybe_val = hint_ptr->find(remainder);
+        ASSERT_TRUE(maybe_val.has_value());
+        EXPECT_EQ(maybe_val.value(), 40);
+
+
+    }
 }

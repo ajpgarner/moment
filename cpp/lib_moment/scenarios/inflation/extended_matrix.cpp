@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "extended_matrix.h"
-
+#include "extended_matrix_worker.h"
 
 #include "matrix/operator_matrix/moment_matrix.h"
 #include "matrix/operator_matrix/operator_matrix.h"
@@ -38,8 +38,8 @@ namespace Moment::Inflation {
         }
 
         symbol_name_t combine_and_register_factors(SymbolTable &symbols, FactorTable &factors,
-                                                   const std::vector<symbol_name_t> &source_factors,
-                                                   const std::vector<symbol_name_t> &extended_factors) {
+                                                   const std::vector<symbol_name_t>& source_factors,
+                                                   const std::vector<symbol_name_t>& extended_factors) {
             auto joint_factors = FactorTable::combine_symbolic_factors(source_factors, extended_factors);
             auto maybe_symbol_index = factors.find_index_by_factors(joint_factors);
 
@@ -52,20 +52,14 @@ namespace Moment::Inflation {
             return maybe_symbol_index.value();
         }
 
+
         std::unique_ptr<SquareMatrix<Monomial>>
-        make_extended_matrix(SymbolTable& symbols, Inflation::FactorTable& factors,
-                             const MonomialMatrix& source,
-                             const std::span<const symbol_name_t> extension_scalars) {
-
-            // Moment matrix must come from inflation context
-            const auto& context = dynamic_cast<const InflationContext&>(source.context); // throws if invalid!
-
-            // Source matrix must be moment matrix
-            const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix_ptr(source);
-            if (nullptr == mm_ptr) {
-                throw std::invalid_argument{"Can only extend monomial moment matrices."};
-            }
-            const auto& moment_matrix = *mm_ptr;
+        make_extended_matrix_single_thread(const InflationContext& context,
+                                           SymbolTable& symbols,
+                                           Inflation::FactorTable& factors,
+                                           const MonomialMatrix& source,
+                                           const MomentMatrix& moment_matrix,
+                                           const std::span<const symbol_name_t> extension_scalars) {
 
             // Check scalars are in range
             for (const auto scalar : extension_scalars) {
@@ -75,12 +69,6 @@ namespace Moment::Inflation {
                     throw std::logic_error{errSS.str()};
                 }
             }
-
-            // Check source is Hermitian
-            if (!source.Hermitian()) {
-                throw std::logic_error{"Scalar extension of non-Hermitian matrices is not supported."};
-            }
-
 
             // Create matrix, with source matrix as upper block
             const size_t padding = extension_scalars.size();
@@ -140,13 +128,62 @@ namespace Moment::Inflation {
             }
             return std::make_unique<SquareMatrix<Monomial>>(std::move(extended_matrix));
         }
+
+
+        std::unique_ptr<SquareMatrix<Monomial>>
+        inline make_extended_matrix_multi_thread(const InflationContext& context,
+                                           SymbolTable& symbols,
+                                           Inflation::FactorTable& factors,
+                                           const MonomialMatrix& source,
+                                           const MomentMatrix& moment_matrix,
+                                           const std::span<const symbol_name_t> extension_scalars) {
+            Multithreading::ExtendedMatrixBundle factory{context, symbols, factors,
+                                                         source, moment_matrix, extension_scalars};
+            return factory.execute();
+        }
+
+        std::unique_ptr<SquareMatrix<Monomial>>
+        make_extended_matrix(SymbolTable& symbols, Inflation::FactorTable& factors,
+                             const MonomialMatrix& source,
+                             const std::span<const symbol_name_t> extension_scalars,
+                             const Multithreading::MultiThreadPolicy mt_policy) {
+
+            // Moment matrix must come from inflation context
+            const auto& context = dynamic_cast<const InflationContext&>(source.context); // throws if invalid!
+
+            // Source matrix must be moment matrix
+            const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix_ptr(source);
+            if (nullptr == mm_ptr) {
+                throw std::invalid_argument{"Can only extend monomial moment matrices."};
+            }
+            const auto& moment_matrix = *mm_ptr;
+
+            // Check source is Hermitian
+            if (!source.Hermitian()) {
+                throw std::invalid_argument{"Scalar extension of non-Hermitian matrices is not supported."};
+            }
+
+            // Get target dimension
+            const size_t target_dimension = source.Dimension() + extension_scalars.size();
+            const bool should_multithread
+                = Multithreading::should_multithread_matrix_creation(mt_policy, target_dimension * target_dimension);
+
+            if (should_multithread) {
+                return make_extended_matrix_multi_thread(context, symbols, factors,
+                                                          source, moment_matrix, extension_scalars);
+            } else {
+                return make_extended_matrix_single_thread(context, symbols, factors,
+                                                          source, moment_matrix, extension_scalars);
+            };
+        }
     }
 
-    ExtendedMatrix::ExtendedMatrix(SymbolTable& symbols, Inflation::FactorTable& factors, double zero_tolerance,
+    ExtendedMatrix::ExtendedMatrix(SymbolTable& symbols, Inflation::FactorTable& factors, const double zero_tolerance,
                                    const MonomialMatrix &source,
-                                   const std::span<const symbol_name_t> extensions)
+                                   const std::span<const symbol_name_t> extensions,
+                                   const Multithreading::MultiThreadPolicy mt_policy)
         : MonomialMatrix{source.context, symbols, zero_tolerance,
-                         make_extended_matrix(symbols, factors, source, extensions),
+                         make_extended_matrix(symbols, factors, source, extensions, mt_policy),
                          source.Hermitian()},
           OriginalDimension{source.Dimension()} {
 

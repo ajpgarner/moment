@@ -320,28 +320,29 @@ namespace Moment::Inflation {
     }
 
 
-    std::vector<symbol_name_t> FactorTable::combine_symbolic_factors(std::vector<symbol_name_t> left,
+    std::vector<symbol_name_t> FactorTable::combine_symbolic_factors(const std::vector<symbol_name_t>& left,
                                                                      const std::vector<symbol_name_t>& right) {
         // First, no factors on either side -> identity.
         if (left.empty() && right.empty()) {
             return {1};
         }
 
-        // Copy, and sort factors
-        std::vector<symbol_name_t> output{std::move(left)};
-        output.reserve(output.size() + right.size());
-        output.insert(output.end(), right.cbegin(), right.cend());
-        std::sort(output.begin(), output.end());
+        assert(std::is_sorted(left.cbegin(), left.cend()));
+        assert(std::is_sorted(right.cbegin(), right.cend()));
+
+        // Copy and sort factors
+        std::vector<symbol_name_t> output;
+        output.reserve(left.size() + right.size());
+        std::merge(left.cbegin(), left.cend(), right.cbegin(), right.cend(), std::back_inserter(output));
 
         // If "0" is somehow a factor of either left or right, the product is zero
         assert(!output.empty());
-        if (output[0] == 0) {
-            [[unlikely]]
+        if (output[0] == 0) [[unlikely]] {
             return {0};
         }
 
         // Now, if we have more than one factor, prune identities (unless only identity)
-        if (output.size()>1) {
+        if (output.size() > 1) {
             auto first_non_id = std::upper_bound(output.begin(), output.end(), 1);
             output.erase(output.begin(), first_non_id);
             // Factors were  1 x 1 x ... x 1

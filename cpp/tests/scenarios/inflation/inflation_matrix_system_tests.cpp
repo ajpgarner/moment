@@ -7,8 +7,11 @@
 
 #include "gtest/gtest.h"
 
+#include "matrix/operator_matrix/moment_matrix.h"
 #include "symbolic/symbol_table.h"
 
+#include "scenarios/inflation/extended_matrix.h"
+#include "scenarios/inflation/extension_suggester.h"
 #include "scenarios/inflation/inflation_context.h"
 #include "scenarios/inflation/inflation_matrix_system.h"
 
@@ -126,6 +129,62 @@ namespace Moment::Tests {
         EXPECT_TRUE(symbol_A00C10C01.is_aliased);
 
         //auto& mm2 = ims.MomentMatrix(2);
+
+    }
+
+    TEST(Scenarios_Inflation_MatrixSystem, ThreeOutcomeTriangle_ExtendedMatrix) {
+        InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{3, 3, 3},
+                                                                                   {{0, 1}, {1, 2}, {0, 2}}},
+                                                                     2)};
+        const auto& context = ims.InflationContext();
+        const auto& symbols = ims.Symbols();
+        const auto& factors = ims.Factors();
+
+        ASSERT_EQ(context.Observables().size(), 3);
+        const auto& A = context.Observables()[0];
+        ASSERT_EQ(A.variant_count, 4);
+        const auto& A00 = A.variants[0];
+        const auto& A10 = A.variants[1];
+        const auto& A01 = A.variants[2];
+        const auto& A11 = A.variants[3];
+
+        const auto& B = context.Observables()[1];
+        ASSERT_EQ(B.variant_count, 4);
+        const auto& B00 = B.variants[0];
+        const auto& B10 = B.variants[1];
+        const auto& B01 = B.variants[2];
+        const auto& B11 = B.variants[3];
+
+        const auto& C = context.Observables()[2];
+        ASSERT_EQ(C.variant_count, 4);
+        const auto& C00 = C.variants[0];
+        const auto& C10 = C.variants[1];
+        const auto& C01 = C.variants[2];
+        const auto& C11 = C.variants[3];
+
+        // Make moment matrix
+        const size_t mm_level = 2;
+        const auto& mm = ims.MomentMatrix(mm_level);
+
+        // Suggest extensions
+        ExtensionSuggester suggester{context, symbols, factors};
+        auto suggested_extensions = suggester(mm);
+
+        // Make extended matrix
+        const auto [em_id, em] = ims.ExtendedMatrices.create(ExtendedMatrixIndex{mm_level, suggested_extensions},
+                                                             Multithreading::MultiThreadPolicy::Never);
+        ASSERT_EQ(em_id, 1);
+        EXPECT_EQ(em.OriginalDimension, mm.Dimension());
+
+        // Check MM is subset of EM
+        const auto& mono_mm = dynamic_cast<const MonomialMatrix&>(mm);
+        for (size_t col = 0; col < mm.Dimension(); ++col) {
+            for (size_t row = 0; row < mm.Dimension(); ++row) {
+                EXPECT_EQ(mono_mm.SymbolMatrix(col, row), em.SymbolMatrix(col, row))
+                    << "col = " << col << ", row = " << row;
+            }
+        }
+        ///ims.ExtendedMatrices.create()
 
     }
 }

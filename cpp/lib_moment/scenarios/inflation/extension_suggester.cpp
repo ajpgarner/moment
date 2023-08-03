@@ -20,6 +20,14 @@ namespace Moment::Inflation {
                                            const FactorTable& factors)
         : context{context}, symbols{symbols}, factors{factors} { }
 
+    std::set<symbol_name_t> ExtensionSuggester::operator()(const SymbolicMatrix &matrix) const {
+        if (const auto* mmPtr = dynamic_cast<const MonomialMatrix*>(&matrix); mmPtr != nullptr) {
+            return (*this)(*mmPtr);
+        }
+
+        throw std::invalid_argument{"Can only suggest extensions for monomial moment matrices."};
+    }
+
     std::set<symbol_name_t> ExtensionSuggester::operator()(const MonomialMatrix& matrix) const {
         assert(&matrix.symbols == &this->symbols);
 

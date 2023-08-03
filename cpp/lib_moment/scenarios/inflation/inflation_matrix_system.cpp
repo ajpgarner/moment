@@ -55,7 +55,7 @@ namespace Moment::Inflation {
 
     std::unique_ptr<class ExtendedMatrix>
     InflationMatrixSystem::createNewExtendedMatrix(MaintainsMutex::WriteLock &lock, const ExtendedMatrixIndex &index,
-                                                   Multithreading::MultiThreadPolicy mt_policy) {
+                                                   const Multithreading::MultiThreadPolicy mt_policy) {
 
         // Get source moment matrix (or create it under lock)
         auto [source_index, source] = this->MomentMatrix.create(lock, index.moment_matrix_level, mt_policy);
@@ -66,7 +66,8 @@ namespace Moment::Inflation {
 
         return std::make_unique<ExtendedMatrix>(this->Symbols(), this->Factors(),
                                                 this->polynomial_factory().zero_tolerance,
-                                                monomial_source, index.extension_list);
+                                                monomial_source, index.extension_list,
+                                                mt_policy);
     }
 
     void InflationMatrixSystem::onNewExtendedMatrixCreated(const ExtendedMatrixIndex &, const ExtendedMatrix &em) {
