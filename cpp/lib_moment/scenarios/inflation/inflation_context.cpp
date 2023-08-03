@@ -22,6 +22,16 @@ namespace Moment::Inflation {
 
     namespace {
         using OpStringBitset = DynamicBitset<uint64_t, size_t, SmallVector<uint64_t, 1>>;
+
+
+        /** 'Scratch' permutation paper, per thread. */
+        inline std::vector<oper_name_t>& get_permutation_scratch(size_t size) {
+            thread_local std::vector<oper_name_t> permutation_scratch;
+            if (permutation_scratch.size() != size) {
+                permutation_scratch.resize(size);
+            }
+            return permutation_scratch;
+        }
     }
 
     std::vector<InflationContext::ICObservable::Variant>
@@ -306,7 +316,8 @@ namespace Moment::Inflation {
         }
 
         SmallVector<oper_name_t, 4> next_free_source_variant(this->base_network.explicit_source_count(), 0);
-        std::map<oper_name_t, oper_name_t> permutation{}; // Permutations on sources
+
+        DynamicBitset<uint64_t, size_t, SmallVector<uint64_t, 1>> done_permutation{this->total_inflated_sources};
 
         // Go through operators looking for permutations
         for (const auto op : input) {
@@ -326,13 +337,13 @@ namespace Moment::Inflation {
                 const auto src_variant = variantInfo.indices[s_index];
                 const auto src_global = (this->inflation * src_id) + src_variant;
 
-                if (!permutation.contains(src_global)) {
+                if (!done_permutation.test(src_global)) {
                     const auto target_global = (this->inflation * src_id) + next_free_source_variant[src_id];
                     if (src_global != target_global) {
                         return true;
                     }
 
-                    permutation.emplace(src_global, target_global);
+                    done_permutation.set(src_global);
                     ++next_free_source_variant[src_id];
                 }
             }
@@ -340,6 +351,7 @@ namespace Moment::Inflation {
 
         return false;
     }
+
 
     OperatorSequence InflationContext::simplify_as_moment(OperatorSequence&& input) const {
         // If 0, or I, or no inflation, then just pass through
@@ -349,7 +361,10 @@ namespace Moment::Inflation {
 
         SmallVector<oper_name_t, 4> next_free_source_variant(this->base_network.explicit_source_count(), 0);
 
-        std::map<oper_name_t, oper_name_t> permutation{}; // Permutations on sources
+        std::vector<oper_name_t>& permutation = get_permutation_scratch(this->total_inflated_sources);
+
+        DynamicBitset<uint64_t, size_t, SmallVector<uint64_t, 1>> done_permutation{this->total_inflated_sources};
+        bool non_trivial = false;
 
         // Go through operators looking for permutations
         for (const auto op : input) {
@@ -368,22 +383,19 @@ namespace Moment::Inflation {
                 const auto src_variant = variantInfo.indices[s_index];
                 const auto src_global = (this->inflation * src_id) + src_variant;
 
-                if (!permutation.contains(src_global)) {
+                if (!done_permutation.test(src_global)) {
                     const auto target_global = (this->inflation * src_id) + next_free_source_variant[src_id];
-                    permutation.emplace(src_global, target_global);
-
+                    permutation[src_global] = target_global;
                     ++next_free_source_variant[src_id];
+                    done_permutation.set(src_global);
+
+                    non_trivial |= (src_global != target_global);
                 }
             }
         }
 
-        // Clear redundant permutations
-        std::erase_if(permutation, [](const auto& key_val) {
-            return key_val.first == key_val.second;
-        });
-
         // Early exit if no permutations made
-        if (permutation.empty()) {
+        if (!non_trivial) {
             return std::move(input);
         }
 

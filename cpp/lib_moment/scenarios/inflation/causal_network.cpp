@@ -87,6 +87,33 @@ namespace Moment::Inflation {
         return output;
     }
 
+
+    SourceIndex CausalNetwork::permute_variant(const size_t inflation,
+                                               const std::span<const oper_name_t> source_ids,
+                                               const std::vector<oper_name_t>& source_permutation,
+                                               const std::span<const oper_name_t> old_source_indices) const {
+        assert(old_source_indices.size() == source_ids.size());
+
+        SourceIndex remapped_indices;
+        remapped_indices.reserve(old_source_indices.size());
+
+        for (size_t index = 0, iMax = old_source_indices.size(); index < iMax; ++index) {
+            const oper_name_t old_src_variant = old_source_indices[index];
+            const auto global_src = this->source_variant_to_global_source(inflation, source_ids[index], old_src_variant);
+            const auto new_global_src = source_permutation[global_src];
+            if (global_src == new_global_src) {
+                remapped_indices.emplace_back(old_src_variant);
+            } else {
+                auto [new_src_id, new_src_variant]
+                        = this->global_source_to_source_variant(inflation, new_global_src);
+                assert(new_src_id == source_ids[index]);
+                remapped_indices.emplace_back(new_src_variant);
+            }
+
+        }
+        return remapped_indices;
+    }
+
     SourceIndex CausalNetwork::permute_variant(const size_t inflation,
                                                const std::span<const oper_name_t> source_ids,
                                                const std::map<oper_name_t, oper_name_t>& source_permutation,

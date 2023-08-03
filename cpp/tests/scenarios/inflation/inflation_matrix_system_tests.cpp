@@ -132,7 +132,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Scenarios_Inflation_MatrixSystem, ThreeOutcomeTriangle_ExtendedMatrix) {
+    TEST(Scenarios_Inflation_MatrixSystem, ThreeOutcomeTriangle_Multithread) {
         InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{3, 3, 3},
                                                                                    {{0, 1}, {1, 2}, {0, 2}}},
                                                                      2)};
@@ -163,18 +163,21 @@ namespace Moment::Tests {
         const auto& C11 = C.variants[3];
 
         // Make moment matrix
-        const size_t mm_level = 2;
+        const size_t mm_level = 1;
         const auto& mm = ims.MomentMatrix(mm_level);
 
         // Suggest extensions
         ExtensionSuggester suggester{context, symbols, factors};
         auto suggested_extensions = suggester(mm);
+        const size_t extra_cols = suggested_extensions.size();
+        ASSERT_GT(extra_cols, 0);
 
         // Make extended matrix
         const auto [em_id, em] = ims.ExtendedMatrices.create(ExtendedMatrixIndex{mm_level, suggested_extensions},
                                                              Multithreading::MultiThreadPolicy::Always);
         ASSERT_EQ(em_id, 1);
         EXPECT_EQ(em.OriginalDimension, mm.Dimension());
+        EXPECT_EQ(em.Dimension(), mm.Dimension() + extra_cols);
 
         // Check MM is subset of EM
         const auto& mono_mm = dynamic_cast<const MonomialMatrix&>(mm);
@@ -184,7 +187,6 @@ namespace Moment::Tests {
                     << "col = " << col << ", row = " << row;
             }
         }
-        ///ims.ExtendedMatrices.create()
 
     }
 }
