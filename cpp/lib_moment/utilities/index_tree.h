@@ -17,32 +17,189 @@
 
 namespace Moment {
 
-    template<std::integral look_up_t, std::integral index_t = std::size_t>
+    template<std::integral look_up_t, typename value_t = std::size_t>
     class IndexTree {
+    public:
+        using ValueType = value_t;
+
     private:
         look_up_t id;
-        std::optional<index_t> _index;
-        std::vector<std::unique_ptr<IndexTree<look_up_t, index_t>>> children;
+        std::optional<value_t> _index;
+        std::vector<std::unique_ptr<IndexTree<look_up_t, value_t>>> children;
+
+    public:
+        template<bool is_const>
+        class Iterator {
+        public:
+            friend class Iterator<!is_const>;
+
+            using IndexTreeT = typename std::conditional<is_const, const IndexTree<look_up_t, value_t>,
+                                                                     IndexTree<look_up_t, value_t>>::type;
+            using iterator_category = std::input_iterator_tag;
+            using difference_type = typename std::make_signed<look_up_t>::type;
+            using value_type = IndexTreeT;
+
+            struct end_flag_t{};
+        private:
+            struct recursion_stack {
+            public:
+                IndexTreeT * node = nullptr;
+                look_up_t next_child = 0;
+
+                recursion_stack() = default;
+
+                recursion_stack(const recursion_stack&) = default;
+
+                recursion_stack(IndexTreeT * node, look_up_t next_child)
+                    : node{node}, next_child{next_child} { }
+
+                [[nodiscard]] constexpr bool has_next_child() const noexcept {
+                    return next_child < node->children.size();
+                }
+
+                [[nodiscard]] bool operator==(const typename Iterator<false>::recursion_stack& rhs) const noexcept {
+                    return (this->node == rhs.node) && (this->next_child == rhs.next_child);
+                }
+
+                [[nodiscard]] bool operator==(const typename Iterator<true>::recursion_stack& rhs) const noexcept {
+                    return (this->node == rhs.node) && (this->next_child == rhs.next_child);
+                }
+
+            };
+            std::vector<recursion_stack> stack;
+
+        public:
+            /** Begin state of iterator - stack points at base element, with option to descend to its children. */
+            explicit constexpr Iterator(IndexTreeT& base) {
+                this->stack.emplace_back(&base, 0);
+            }
+
+            /** End state of iterator - empty stack */
+            explicit constexpr Iterator() = default;
+
+            /** How deep in the stack are we?
+             * Undefined if iterator is in end state. */
+            [[nodiscard]] size_t current_depth() {
+                return this->stack.size() - 1;
+            }
+
+            /** Is iterator in end state? */
+            [[nodiscard]] bool operator!() const noexcept {
+                return this->stack.empty();
+            }
+
+            /** Is iterator not in end state? */
+            [[nodiscard]] explicit operator bool() const noexcept {
+                return !this->stack.empty();
+            }
+
+            /** Compare iterators */
+            template<bool other_iter_const>
+            [[nodiscard]] bool operator== (const Iterator<other_iter_const>& other) const noexcept {
+                return std::equal(this->stack.begin(), this->stack.end(),
+                                  other.stack.begin(), other.stack.end());
+            }
+
+            /** Compare iterators */
+            template<bool other_iter_const>
+            [[nodiscard]] bool operator!=(const Iterator<other_iter_const>& other) const noexcept {
+                return !std::equal(this->stack.begin(), this->stack.end(),
+                                   other.stack.begin(), other.stack.end());
+            }
+
+            /**
+             * Makes an index to the node in the tree.
+             * Undefined if iterator is in end state. */
+            [[nodiscard]] std::vector<look_up_t> lookup_index() const {
+                assert(!this->stack.empty());
+                std::vector<look_up_t> output;
+                output.reserve(this->stack.size() - 1);
+                std::transform(this->stack.begin(), this->stack.end() - 1, std::back_inserter(output),
+                               [](const recursion_stack& stack_elem) {
+                                    return stack_elem.node->children[stack_elem.next_child - 1]->id;
+                               });
+                return output;
+            }
+
+            [[nodiscard]] IndexTreeT& operator*() const noexcept {
+                assert(!this->stack.empty());
+                return *(this->stack.back().node);
+            }
+
+            [[nodiscard]] IndexTreeT* operator->() const noexcept {
+                assert(!this->stack.empty());
+                return this->stack.back().node;
+            }
+
+            Iterator& operator++() {
+                // Can we trivially descend?
+                if (this->try_descend()) {
+                    return *this;
+                }
+
+                // No more children, so we have to unwind the stack until we have children, or are done
+                do {
+                    this->stack.pop_back();
+
+                    // Iterator is in end state?
+                    if (this->stack.empty()) {
+                        return *this;
+                    }
+
+                } while (!this->stack.back().has_next_child());
+
+                // Unwound, but still have children, so descend again:
+                [[maybe_unused]] const bool successful_descend = this->try_descend();
+                assert(successful_descend);
+                return *this;
+            }
+
+            [[deprecated("This makes an expensive copy. Prefer ++iter;")]]
+            [[nodiscard]] const Iterator operator++(int) {
+                Iterator useless_copy{*this};
+                ++(*this);
+                return useless_copy;
+            }
+
+        private:
+            inline bool try_descend() {
+                assert(!this->stack.empty());
+                auto& last_in_stack = this->stack.back();
+                if (last_in_stack.has_next_child()) {
+                    const auto descend_child = last_in_stack.next_child;
+                    // Inc.
+                    ++last_in_stack.next_child;
+
+                    // Descend
+                    this->stack.emplace_back(last_in_stack.node->children[descend_child].get(), 0);
+                    return true;
+                }
+                return false;
+            }
+        };
+
+        static_assert(std::input_iterator<Iterator<true>>);
+        static_assert(std::input_iterator<Iterator<false>>);
 
     public:
         IndexTree() : id{std::numeric_limits<look_up_t>::max()} { }
 
         explicit IndexTree(look_up_t id) : id{id} { }
 
-        IndexTree(look_up_t id, index_t index) : id{id}, _index{index} { }
+        IndexTree(look_up_t id, value_t index) : id{id}, _index{index} { }
 
         IndexTree(const IndexTree& rhs) = delete;
 
         IndexTree(IndexTree&& rhs) = default;
 
-        std::optional<index_t> index() const noexcept { return this->_index; }
+        std::optional<value_t> index() const noexcept { return this->_index; }
 
         /**
          * Add an entry to the tree
          * @param look_up_str Span over index sequence
          * @param entry_index The entry to write to the tree
          */
-        void add(std::span<const look_up_t> look_up_str, index_t entry_index) {
+        void add(std::span<const look_up_t> look_up_str, value_t entry_index) {
             // If we have fully descended, write index
             if (look_up_str.empty()) {
                 this->_index = entry_index;
@@ -62,8 +219,8 @@ namespace Moment {
          * @param look_up_str Span over index sequence
          * @param entry_index The entry to write to the tree
          */
-         std::pair<index_t, bool>
-         add_if_new(std::span<const look_up_t> look_up_str, index_t entry_index, bool did_addition = false) {
+         std::pair<value_t, bool>
+         add_if_new(std::span<const look_up_t> look_up_str, value_t entry_index, bool did_addition = false) {
             // If we have fully descended, write index
             if (look_up_str.empty()) {
                 if (did_addition) {
@@ -117,7 +274,7 @@ namespace Moment {
         /**
          * Attempt to read an entry from the tree
          */
-        std::optional<index_t> find(std::span<const look_up_t> look_up_str) const noexcept {
+        std::optional<value_t> find(std::span<const look_up_t> look_up_str) const noexcept {
             if (look_up_str.empty()) {
                 return this->_index;
             }
@@ -201,6 +358,36 @@ namespace Moment {
          */
         [[nodiscard]] bool leaf() const noexcept {
             return this->children.empty();
+        }
+
+        /** Begin read-write iterator */
+        [[nodiscard]] Iterator<false> begin() {
+            return Iterator<false>(*this);
+        }
+
+        /** End read-write iterator */
+        [[nodiscard]] Iterator<false> end() {
+            return Iterator<false>();
+        }
+
+        /** Begin read-only iterator */
+        [[nodiscard]] Iterator<true> begin() const {
+            return Iterator<true>(*this);
+        }
+
+        /** End read-only iterator */
+        [[nodiscard]] Iterator<true> end() const {
+            return Iterator<true>();
+        }
+
+        /** Begin read-only iterator */
+        [[nodiscard]] Iterator<true> cbegin() const {
+            return Iterator<true>(*this);
+        }
+
+        /** End read-only iterator */
+        [[nodiscard]] Iterator<true> cend() const {
+            return Iterator<true>();
         }
     };
 

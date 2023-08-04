@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "extended_matrix.h"
-#include "extended_matrix_worker.h"
+#include "scenarios/inflation/multithreading/extended_matrix_worker.h"
 
 #include "matrix/operator_matrix/moment_matrix.h"
 #include "matrix/operator_matrix/operator_matrix.h"

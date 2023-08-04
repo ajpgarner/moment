@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "temporary_symbols_and_factors.h"
+
 #include "integer_types.h"
 
 #include "symbolic/monomial.h"
@@ -92,9 +94,12 @@ namespace Moment {
 
             std::vector<Monomial> output_data;
 
+            TemporarySymbolsAndFactors symbols_and_factors;
+
         private:
             std::vector<std::unique_ptr<ExtendedMatrixWorker>> workers;
 
+            /** Mutex for contesting with factor/symbol table writes */
             mutable std::shared_mutex symbol_table_mutex;
 
         public:

@@ -6,10 +6,10 @@
  */
 
 #include "extended_matrix_worker.h"
-#include "extended_matrix.h"
+#include "scenarios/inflation/extended_matrix.h"
 
-#include "inflation_context.h"
-#include "factor_table.h"
+#include "scenarios/inflation/inflation_context.h"
+#include "scenarios/inflation/factor_table.h"
 
 #include "dictionary/operator_sequence_generator.h"
 
@@ -127,7 +127,8 @@ namespace Moment::Multithreading {
              context{context}, symbols{symbols}, factors{factors},
              source_symbols{source}, source_operators{moment_matrix}, extension_scalars{extension_scalars},
              output_dimension{source.Dimension() + extension_scalars.size()},
-             source_osg{context.operator_sequence_generator(moment_matrix.Level(), false)} {
+             source_osg{context.operator_sequence_generator(moment_matrix.Level(), false)},
+             symbols_and_factors(symbols, factors) {
 
         assert(source_osg.size() == source.Dimension());
         // Create output data

@@ -242,4 +242,112 @@ namespace Moment::Tests {
 
 
     }
+
+    TEST(Utilities_IndexTree, Iterator) {
+        IndexTree<int, size_t> tree{};
+        tree.add(std::vector{1}, 10);
+        tree.add(std::vector{1, 2, 3}, 13);
+        tree.add(std::vector{1, 2, 4}, 17);
+        tree.add(std::vector{1, 3}, 20);
+
+        auto tree_iter = tree.begin();
+        const auto tree_iter_end = tree.end();
+
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 0);
+        EXPECT_EQ(tree_iter.lookup_index(), std::vector<int>());
+        EXPECT_FALSE(tree_iter->index().has_value());
+
+        ++tree_iter;
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 1);
+        EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1}));
+        ASSERT_TRUE(tree_iter->index().has_value());
+        EXPECT_EQ(tree_iter->index().value(), 10);
+
+        ++tree_iter;
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 2);
+        EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2}));
+        EXPECT_FALSE(tree_iter->index().has_value());
+
+        ++tree_iter;
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 3);
+        EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2, 3}));
+        ASSERT_TRUE(tree_iter->index().has_value());
+        EXPECT_EQ(tree_iter->index().value(), 13);
+
+        ++tree_iter;
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 3);
+        EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2, 4}));
+        ASSERT_TRUE(tree_iter->index().has_value());
+        EXPECT_EQ(tree_iter->index().value(), 17);
+
+        ++tree_iter;
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 2);
+        EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 3}));
+        ASSERT_TRUE(tree_iter->index().has_value());
+        EXPECT_EQ(tree_iter->index().value(), 20);
+
+        ++tree_iter;
+        EXPECT_EQ(tree_iter, tree_iter_end);
+
+    }
+
+    TEST(Utilities_IndexTree, ConstIterator) {
+        IndexTree<int, size_t> tree{};
+        tree.add(std::vector{1}, 10);
+        tree.add(std::vector{1, 2, 3}, 13);
+        tree.add(std::vector{1, 2, 4}, 17);
+        tree.add(std::vector{1, 3}, 20);
+
+        auto tree_iter = tree.cbegin();
+        const auto tree_iter_end = tree.cend();
+
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 0);
+        EXPECT_EQ(tree_iter.lookup_index(), std::vector<int>());
+        EXPECT_FALSE(tree_iter->index().has_value());
+
+        ++tree_iter;
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 1);
+        EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1}));
+        ASSERT_TRUE(tree_iter->index().has_value());
+        EXPECT_EQ(tree_iter->index().value(), 10);
+
+        ++tree_iter;
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 2);
+        EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2}));
+        EXPECT_FALSE(tree_iter->index().has_value());
+
+        ++tree_iter;
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 3);
+        EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2, 3}));
+        ASSERT_TRUE(tree_iter->index().has_value());
+        EXPECT_EQ(tree_iter->index().value(), 13);
+
+        ++tree_iter;
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 3);
+        EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2, 4}));
+        ASSERT_TRUE(tree_iter->index().has_value());
+        EXPECT_EQ(tree_iter->index().value(), 17);
+
+        ++tree_iter;
+        ASSERT_NE(tree_iter, tree_iter_end);
+        EXPECT_EQ(tree_iter.current_depth(), 2);
+        EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 3}));
+        ASSERT_TRUE(tree_iter->index().has_value());
+        EXPECT_EQ(tree_iter->index().value(), 20);
+
+        ++tree_iter;
+        EXPECT_EQ(tree_iter, tree_iter_end);
+
+    }
 }
