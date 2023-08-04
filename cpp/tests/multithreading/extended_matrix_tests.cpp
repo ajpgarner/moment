@@ -7,10 +7,6 @@
 
 #include "gtest/gtest.h"
 
-#include "../matrix/compare_os_matrix.h"
-#include "../matrix/compare_symbol_matrix.h"
-
-
 #include "matrix_system/matrix_system.h"
 #include "matrix/operator_matrix/localizing_matrix.h"
 #include "scenarios/context.h"
@@ -92,12 +88,19 @@ namespace Moment::Tests {
         EXPECT_EQ(symbols.size(), 20);
         EXPECT_EQ(tsaf.additional_symbol_count(), 0);
 
+        const std::vector<symbol_name_t> new_factor_string{where_A00->Id(), where_A00->Id(), where_A00->Id()};
+        EXPECT_FALSE(factors.find_index_by_factors(new_factor_string).has_value());
 
+        auto symbol_id = tsaf.find_or_register_factors(new_factor_string);
+        EXPECT_EQ(symbol_id, 20);
+        EXPECT_EQ(tsaf.additional_symbol_count(), 1);
 
+        EXPECT_EQ(symbols.size(), 20);
+        EXPECT_EQ(factors.size(), 20);
 
-
-
-
+        tsaf.register_new_symbols_and_factors();
+        ASSERT_EQ(symbols.size(), 21);
+        ASSERT_EQ(factors.size(), 21);
     }
 
 

@@ -19,19 +19,12 @@ namespace Moment::Multithreading {
     }
 
     const std::vector<symbol_name_t>& TemporarySymbolsAndFactors::find_factors_by_symbol_id(const symbol_name_t symbol_id) {
-        // First, if in existing table, no contention.
-        if (symbol_id < this->first_symbol_id) {
-            return this->factors[symbol_id].canonical.symbols;
-        }
 
-        // TODO: Check if we ever look up factors of /new/ symbols.
+        // We never do look-up of new factors
+        // Since these symbols already exist, there is no contention.
+        assert (symbol_id < this->first_symbol_id);
 
-        // If not, we have to look in new table
-        size_t offset = symbol_id - this->first_symbol_id;
-        // Need lock to access vector safely
-        auto read_lock = this->get_read_lock();
-        assert(offset < this->new_factors.size());
-        return *this->new_factors[offset];
+        return this->factors[symbol_id].canonical.symbols;
     }
 
     symbol_name_t TemporarySymbolsAndFactors::find_or_register_factors(std::span<const symbol_name_t> joint_factors) {
@@ -52,6 +45,11 @@ namespace Moment::Multithreading {
 
         // Did not find, so we have to upgrade our lock
         read_lock.unlock();
+
+        // Do memory assignment first (if we are scooped, we throw it away - but we want to minimize holding lock).
+        auto new_factor_str = std::make_unique<std::vector<symbol_name_t>>(joint_factors.begin(), joint_factors.end());
+
+        // Now, upgrade lock
         auto write_lock = this->get_write_lock();
 
         // Check again on subtree with hint [make sure racing thread hasn't already created!]
@@ -62,15 +60,38 @@ namespace Moment::Multithreading {
         // We have to create a new symbol, and list it as known in our tree.
         const auto registered_id = this->next_symbol_id;
         this->index_tree.add(joint_factors, registered_id);
-        this->new_factors.push_back(std::make_unique<std::vector<symbol_name_t>>(joint_factors.begin(),
-                                                                                 joint_factors.end()));
-        ++this->next_symbol_id;
+        this->new_factors.push_back(std::move(new_factor_str));
 
+        // Get ID.
+        ++this->next_symbol_id;
         return registered_id;
     }
 
     void TemporarySymbolsAndFactors::register_new_symbols_and_factors() {
-        // TODO
+        // Nothing new created, do nothing.
+        const auto new_symbol_count = this->next_symbol_id - this->first_symbol_id;
+        if (new_symbol_count == 0) {
+            return;
+        }
+        assert(new_symbol_count > 0);
+        assert(this->symbols.size() == this->first_symbol_id);
+
+        // Register new symbols in table
+        this->symbols.create(new_symbol_count, true, false);
+
+        // TODO: 'merge in'
+
+        // Register factors of symbols
+        for (symbol_name_t index = 0; index < new_symbol_count; ++index) {
+            auto& factor_ptr = this->new_factors[index];
+            assert(factor_ptr);
+            symbol_name_t new_symbol_id = this->first_symbol_id + index;
+            this->factors.register_new(new_symbol_id, std::move(*factor_ptr));
+
+            if constexpr (debug_mode) {
+                factor_ptr.reset();
+            }
+        }
 
     }
 

@@ -47,10 +47,6 @@ namespace Moment {
             std::thread the_thread;
             Monomial * const output_data;
 
-            /** Thread-local scratch data for left factor */
-            std::vector<symbol_name_t> scratch_left;
-            /** Thread-local scratch data for right factor */
-            std::vector<symbol_name_t> scratch_right;
             /** Thread-local scratch data for combined factors */
             std::vector<symbol_name_t> scratch_combined;
 
@@ -120,10 +116,10 @@ namespace Moment {
             void prepare_blank_data();
 
             void join_all() noexcept;
-
-            void find_factors_by_symbol_id(std::vector<symbol_name_t>& factors, const symbol_name_t symbol_id);
-
-            symbol_name_t find_or_register_factors(const std::vector<symbol_name_t>& joint_factors);
+//
+//            void find_factors_by_symbol_id(std::vector<symbol_name_t>& factors, const symbol_name_t symbol_id);
+//
+//            symbol_name_t find_or_register_factors(const std::vector<symbol_name_t>& joint_factors);
 
         };
 

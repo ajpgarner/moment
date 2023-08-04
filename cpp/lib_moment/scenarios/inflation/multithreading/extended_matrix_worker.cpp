@@ -45,9 +45,7 @@ namespace Moment::Multithreading {
         const size_t full_dimension = this->bundle.output_dimension;
 
         // Thread-local scratch assignment
-        this->scratch_left.assign(10, static_cast<symbol_name_t>(0));
-        this->scratch_right.assign(10, static_cast<symbol_name_t>(0));
-        this->scratch_combined.assign(10, static_cast<symbol_name_t>(0));
+        this->scratch_combined.reserve(10);
 
         // Step 1. Copy existing data
         for (size_t col = this->worker_id; col < src_dimension; col += max_workers) {
@@ -68,15 +66,15 @@ namespace Moment::Multithreading {
             assert(!source_conj);
 
             // First, get factors from column
-            this->bundle.find_factors_by_symbol_id(scratch_left, source_symbol_id);
+            const auto& col_factors = this->bundle.symbols_and_factors.find_factors_by_symbol_id(source_symbol_id);
 
             // Extensions for sides (and by symmetry, bottom)
             for (size_t row = src_dimension; row < full_dimension; ++row) {
                 const symbol_name_t extension_symbol_id = this->bundle.extension_scalars[row - src_dimension];
 
                 // Get factors from extension, and combine
-                this->bundle.find_factors_by_symbol_id(scratch_right, extension_symbol_id);
-                symbol_name_t combined_id = this->combine_and_register_factors(scratch_left, scratch_right);
+                const auto& row_factors = this->bundle.symbols_and_factors.find_factors_by_symbol_id(extension_symbol_id);
+                symbol_name_t combined_id = this->combine_and_register_factors(col_factors, row_factors);
 
                 // Write symmetrically to symbol matrix
                 *(this->output_data + output_col_offset + row) = Monomial{combined_id};
@@ -89,15 +87,15 @@ namespace Moment::Multithreading {
             const size_t output_col_offset = col * full_dimension;
 
             const symbol_name_t extension_symbol_col_id = this->bundle.extension_scalars[col - src_dimension];
-            this->bundle.find_factors_by_symbol_id(scratch_left, extension_symbol_col_id);
-            auto combined_diagonal_id = this->combine_and_register_factors(scratch_left, scratch_left);
+            const auto& col_factors = this->bundle.symbols_and_factors.find_factors_by_symbol_id(extension_symbol_col_id);
+            auto combined_diagonal_id = this->combine_and_register_factors(col_factors, col_factors);
 
             *(this->output_data + output_col_offset + col) = Monomial{combined_diagonal_id};
 
             for (size_t row = col+1; row < full_dimension; ++row) {
                 const symbol_name_t extension_symbol_row_id = this->bundle.extension_scalars[row - src_dimension];
-                this->bundle.find_factors_by_symbol_id(scratch_right, extension_symbol_row_id);
-                auto combined_off_diagonal_id = this->combine_and_register_factors(scratch_left, scratch_right);
+                const auto& row_factors = this->bundle.symbols_and_factors.find_factors_by_symbol_id(extension_symbol_row_id);
+                auto combined_off_diagonal_id = this->combine_and_register_factors(col_factors, row_factors);
 
                 // Write symmetrically
                 *(this->output_data + output_col_offset + row) = Monomial{combined_off_diagonal_id};
@@ -116,7 +114,7 @@ namespace Moment::Multithreading {
     ExtendedMatrixWorker::combine_and_register_factors(const std::vector<symbol_name_t>& source_factors,
                                                        const std::vector<symbol_name_t>& extended_factors) {
         FactorTable::combine_symbolic_factors(this->scratch_combined, source_factors, extended_factors);
-        return this->bundle.find_or_register_factors(this->scratch_combined);
+        return this->bundle.symbols_and_factors.find_or_register_factors(this->scratch_combined);
     }
 
     ExtendedMatrixBundle::ExtendedMatrixBundle(const InflationContext &context, SymbolTable &symbols,
@@ -151,8 +149,9 @@ namespace Moment::Multithreading {
             worker_ptr->launch();
         }
 
-
         this->join_all();
+
+        this->symbols_and_factors.register_new_symbols_and_factors();
 
         // Move output data
         return std::make_unique<SquareMatrix<Monomial>>(this->output_dimension, std::move(this->output_data));
@@ -171,52 +170,6 @@ namespace Moment::Multithreading {
         }
     }
 
-
-    void ExtendedMatrixBundle::find_factors_by_symbol_id(std::vector<symbol_name_t>& output_factors,
-                                                    const symbol_name_t symbol_id) {
-        std::shared_lock read_lock{this->symbol_table_mutex};
-        auto& table_factors = this->factors[symbol_id].canonical.symbols;
-
-        // We create a copy here, to avoid issues if the factor table does a re-allocation.
-        output_factors.resize(table_factors.size());
-        std::copy(table_factors.cbegin(), table_factors.cend(), output_factors.begin());
-    }
-
-
-    symbol_name_t ExtendedMatrixBundle::find_or_register_factors(const std::vector<symbol_name_t>& joint_factors) {
-        // NB: All this assumes a system-wide write mutex is already held (by bundle thread)
-        // The mutex/locks here are for fine-grained access to this data by the worker threads.
-
-
-        const auto& index_tree = factors.Indices();
-
-        std::shared_lock read_lock{this->symbol_table_mutex};
-        // Can we directly find node?
-        auto [hint_tree, hint_factors] = index_tree.find_node_or_return_hint(joint_factors);
-        if (hint_factors.empty()) {
-            assert (hint_tree->value().has_value());
-            return hint_tree->value().value();
-        }
-
-        // Push in new factors to symbol table, if not already there
-        read_lock.unlock();
-
-        // Quite contended...
-        std::unique_lock write_lock{this->symbol_table_mutex};
-
-        // Check again on subtree, to avoid races
-        auto maybe_symbol_index = hint_tree->find(hint_factors);
-        if (maybe_symbol_index.has_value()) {
-            return maybe_symbol_index.value();
-        }
-
-        // Otherwise, create new symbol/factor
-        maybe_symbol_index = symbols.create(true, false);
-        factors.register_new(*maybe_symbol_index, joint_factors);
-
-
-        return maybe_symbol_index.value();
-    }
 
 
 }
