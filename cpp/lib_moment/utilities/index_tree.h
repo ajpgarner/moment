@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <concepts>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <span>
