@@ -320,25 +320,32 @@ namespace Moment::Inflation {
     }
 
 
-    std::vector<symbol_name_t> FactorTable::combine_symbolic_factors(const std::vector<symbol_name_t>& left,
-                                                                     const std::vector<symbol_name_t>& right) {
+
+    void FactorTable::combine_symbolic_factors(std::vector<symbol_name_t>& output,
+                                          const std::vector<symbol_name_t>& left,
+                                          const std::vector<symbol_name_t>& right) {
+        // Ensure output is empty befor merge begins
+        output.clear();
+
         // First, no factors on either side -> identity.
         if (left.empty() && right.empty()) {
-            return {1};
+            output.emplace_back(1);
+            return;
         }
 
         assert(std::is_sorted(left.cbegin(), left.cend()));
         assert(std::is_sorted(right.cbegin(), right.cend()));
 
         // Copy and sort factors
-        std::vector<symbol_name_t> output;
+
         output.reserve(left.size() + right.size());
         std::merge(left.cbegin(), left.cend(), right.cbegin(), right.cend(), std::back_inserter(output));
 
         // If "0" is somehow a factor of either left or right, the product is zero
         assert(!output.empty());
         if (output[0] == 0) [[unlikely]] {
-            return {0};
+            output.emplace_back(0);
+            return;
         }
 
         // Now, if we have more than one factor, prune identities (unless only identity)
@@ -347,10 +354,10 @@ namespace Moment::Inflation {
             output.erase(output.begin(), first_non_id);
             // Factors were  1 x 1 x ... x 1
             if (output.empty()) {
-                return {1};
+                output.emplace_back(1);
+                return;
             }
         }
-        return output;
     }
 
 

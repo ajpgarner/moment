@@ -90,11 +90,11 @@ namespace Moment::Inflation {
                 assert(!source_conj); // No symbols should be conjugated in entirely commutative, Hermitian setting...!
                 assert(source_sym_index != std::numeric_limits<ptrdiff_t>::max()); // Must find symbol in table.
 
+                // Copy, because of possible re-allocation within factor table!
+                const auto source_factors = factors[source_sym_index].canonical.symbols;
                 size_t col_index = old_dimension;
                 for (auto scalar_symbol_id : extension_scalars) {
                     // Calculate factors
-                    // [look up each time, because of possible re-allocation of factors!]
-                    const auto& source_factors = factors[source_sym_index].canonical.symbols;
                     const auto& extended_factors = factors[scalar_symbol_id].canonical.symbols;
                     symbol_name_t factor_id = combine_and_register_factors(symbols, factors,
                                                                            source_factors, extended_factors);

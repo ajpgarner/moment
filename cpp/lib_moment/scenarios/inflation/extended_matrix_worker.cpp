@@ -44,6 +44,11 @@ namespace Moment::Multithreading {
         const size_t src_dimension = this->bundle.source_symbols.Dimension();
         const size_t full_dimension = this->bundle.output_dimension;
 
+        // Thread-local scratch assignment
+        this->scratch_left.assign(10, static_cast<symbol_name_t>(0));
+        this->scratch_right.assign(10, static_cast<symbol_name_t>(0));
+        this->scratch_combined.assign(10, static_cast<symbol_name_t>(0));
+
         // Step 1. Copy existing data
         for (size_t col = this->worker_id; col < src_dimension; col += max_workers) {
             const size_t input_col_offset = col * src_dimension;
@@ -62,13 +67,16 @@ namespace Moment::Multithreading {
             auto [source_symbol_id, source_conj] = this->bundle.symbols.hash_to_index(source_op_hash);
             assert(!source_conj);
 
+            // First, get factors from column
+            this->bundle.find_factors_by_symbol_id(scratch_left, source_symbol_id);
+
             // Extensions for sides (and by symmetry, bottom)
             for (size_t row = src_dimension; row < full_dimension; ++row) {
                 const symbol_name_t extension_symbol_id = this->bundle.extension_scalars[row - src_dimension];
 
-                const auto source_factors = this->bundle.find_factors_by_symbol_id(source_symbol_id);
-                const auto extended_factors = this->bundle.find_factors_by_symbol_id(extension_symbol_id);
-                symbol_name_t combined_id = this->combine_and_register_factors(source_factors, extended_factors);
+                // Get factors from extension, and combine
+                this->bundle.find_factors_by_symbol_id(scratch_right, extension_symbol_id);
+                symbol_name_t combined_id = this->combine_and_register_factors(scratch_left, scratch_right);
 
                 // Write symmetrically to symbol matrix
                 *(this->output_data + output_col_offset + row) = Monomial{combined_id};
@@ -81,15 +89,15 @@ namespace Moment::Multithreading {
             const size_t output_col_offset = col * full_dimension;
 
             const symbol_name_t extension_symbol_col_id = this->bundle.extension_scalars[col - src_dimension];
-            auto col_factors = this->bundle.find_factors_by_symbol_id(extension_symbol_col_id);
-            auto combined_diagonal_id = this->combine_and_register_factors(col_factors, col_factors);
+            this->bundle.find_factors_by_symbol_id(scratch_left, extension_symbol_col_id);
+            auto combined_diagonal_id = this->combine_and_register_factors(scratch_left, scratch_left);
 
             *(this->output_data + output_col_offset + col) = Monomial{combined_diagonal_id};
 
             for (size_t row = col+1; row < full_dimension; ++row) {
                 const symbol_name_t extension_symbol_row_id = this->bundle.extension_scalars[row - src_dimension];
-                auto row_factors = this->bundle.find_factors_by_symbol_id(extension_symbol_row_id);
-                auto combined_off_diagonal_id = this->combine_and_register_factors(row_factors, col_factors);
+                this->bundle.find_factors_by_symbol_id(scratch_right, extension_symbol_row_id);
+                auto combined_off_diagonal_id = this->combine_and_register_factors(scratch_left, scratch_right);
 
                 // Write symmetrically
                 *(this->output_data + output_col_offset + row) = Monomial{combined_off_diagonal_id};
@@ -107,8 +115,8 @@ namespace Moment::Multithreading {
     symbol_name_t
     ExtendedMatrixWorker::combine_and_register_factors(const std::vector<symbol_name_t>& source_factors,
                                                        const std::vector<symbol_name_t>& extended_factors) {
-        auto combined_factors = FactorTable::combine_symbolic_factors(source_factors, extended_factors);
-        return this->bundle.find_or_register_factors(combined_factors);
+        FactorTable::combine_symbolic_factors(this->scratch_combined, source_factors, extended_factors);
+        return this->bundle.find_or_register_factors(this->scratch_combined);
     }
 
     ExtendedMatrixBundle::ExtendedMatrixBundle(const InflationContext &context, SymbolTable &symbols,
@@ -162,11 +170,15 @@ namespace Moment::Multithreading {
         }
     }
 
-    std::vector<symbol_name_t>
-    ExtendedMatrixBundle::find_factors_by_symbol_id(const symbol_name_t symbol_id) {
+
+    void ExtendedMatrixBundle::find_factors_by_symbol_id(std::vector<symbol_name_t>& output_factors,
+                                                    const symbol_name_t symbol_id) {
         std::shared_lock read_lock{this->symbol_table_mutex};
-        return this->factors[symbol_id].canonical.symbols;
-        // We create a copy here, to avoid issues if factors does a re-allocation.
+        auto& table_factors = this->factors[symbol_id].canonical.symbols;
+
+        // We create a copy here, to avoid issues if the factor table does a re-allocation.
+        output_factors.resize(table_factors.size());
+        std::copy(table_factors.cbegin(), table_factors.cend(), output_factors.begin());
     }
 
 
