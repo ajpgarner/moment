@@ -46,8 +46,8 @@ namespace Moment::Multithreading {
         // Can we directly find node?
         auto [hint_tree, hint_factors] = this->index_tree.find_node_or_return_hint(joint_factors);
         if (hint_factors.empty()) {
-            assert (hint_tree->index().has_value());
-            return hint_tree->index().value();
+            assert (hint_tree->value().has_value());
+            return hint_tree->value().value();
         }
 
         // Did not find, so we have to upgrade our lock

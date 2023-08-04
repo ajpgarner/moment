@@ -39,8 +39,8 @@ namespace Moment::Tests {
         // Child
         const auto* childPtr = tree.find_node(std::vector<int>{12});
         ASSERT_NE(childPtr, nullptr);
-        ASSERT_TRUE(childPtr->index().has_value());
-        EXPECT_EQ(childPtr->index().value(), 52);
+        ASSERT_TRUE(childPtr->value().has_value());
+        EXPECT_EQ(childPtr->value().value(), 52);
 
     }
 
@@ -66,14 +66,14 @@ namespace Moment::Tests {
         // Child
         const auto* childAPtr = tree.find_node(std::vector<int>{3});
         ASSERT_NE(childAPtr, nullptr);
-        ASSERT_TRUE(childAPtr->index().has_value());
-        EXPECT_EQ(childAPtr->index().value(), 10);
+        ASSERT_TRUE(childAPtr->value().has_value());
+        EXPECT_EQ(childAPtr->value().value(), 10);
         
         // Child
         const auto* childBPtr = tree.find_node(std::vector<int>{12});
         ASSERT_NE(childBPtr, nullptr);
-        ASSERT_TRUE(childBPtr->index().has_value());
-        EXPECT_EQ(childBPtr->index().value(), 20);
+        ASSERT_TRUE(childBPtr->value().has_value());
+        EXPECT_EQ(childBPtr->value().value(), 20);
 
     }
 
@@ -102,14 +102,14 @@ namespace Moment::Tests {
         // Child
         const auto* childAPtr = tree.find_node(std::vector<int>{3});
         ASSERT_NE(childAPtr, nullptr);
-        ASSERT_TRUE(childAPtr->index().has_value());
-        EXPECT_EQ(childAPtr->index().value(), 10);
+        ASSERT_TRUE(childAPtr->value().has_value());
+        EXPECT_EQ(childAPtr->value().value(), 10);
 
         // Child
         const auto* childBPtr = tree.find_node(std::vector<int>{12});
         ASSERT_NE(childBPtr, nullptr);
-        ASSERT_TRUE(childBPtr->index().has_value());
-        EXPECT_EQ(childBPtr->index().value(), 20);
+        ASSERT_TRUE(childBPtr->value().has_value());
+        EXPECT_EQ(childBPtr->value().value(), 20);
 
     }
 
@@ -138,18 +138,18 @@ namespace Moment::Tests {
         // Child
         const auto* childAPtr = tree.find_node(1);
         ASSERT_NE(childAPtr, nullptr);
-        EXPECT_FALSE(childAPtr->index().has_value());
+        EXPECT_FALSE(childAPtr->value().has_value());
 
         // Grandchild
         const auto* grandChildPtr = childAPtr->find_node(2);
         ASSERT_NE(grandChildPtr, nullptr);
-        EXPECT_FALSE(grandChildPtr->index().has_value());
+        EXPECT_FALSE(grandChildPtr->value().has_value());
 
         // Great-grandchild
         const auto* greatGrandChildPtr = grandChildPtr->find_node(3);
         ASSERT_NE(greatGrandChildPtr, nullptr);
-        ASSERT_TRUE(greatGrandChildPtr->index().has_value());
-        EXPECT_EQ(greatGrandChildPtr->index().value(), 13);
+        ASSERT_TRUE(greatGrandChildPtr->value().has_value());
+        EXPECT_EQ(greatGrandChildPtr->value().value(), 13);
 
         // Alternative search
         const auto* altGGCPtr = childAPtr->find_node(std::vector{2, 3});
@@ -256,41 +256,41 @@ namespace Moment::Tests {
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 0);
         EXPECT_EQ(tree_iter.lookup_index(), std::vector<int>());
-        EXPECT_FALSE(tree_iter->index().has_value());
+        EXPECT_FALSE(tree_iter->value().has_value());
 
         ++tree_iter;
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 1);
         EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1}));
-        ASSERT_TRUE(tree_iter->index().has_value());
-        EXPECT_EQ(tree_iter->index().value(), 10);
+        ASSERT_TRUE(tree_iter->value().has_value());
+        EXPECT_EQ(tree_iter->value().value(), 10);
 
         ++tree_iter;
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 2);
         EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2}));
-        EXPECT_FALSE(tree_iter->index().has_value());
+        EXPECT_FALSE(tree_iter->value().has_value());
 
         ++tree_iter;
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 3);
         EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2, 3}));
-        ASSERT_TRUE(tree_iter->index().has_value());
-        EXPECT_EQ(tree_iter->index().value(), 13);
+        ASSERT_TRUE(tree_iter->value().has_value());
+        EXPECT_EQ(tree_iter->value().value(), 13);
 
         ++tree_iter;
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 3);
         EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2, 4}));
-        ASSERT_TRUE(tree_iter->index().has_value());
-        EXPECT_EQ(tree_iter->index().value(), 17);
+        ASSERT_TRUE(tree_iter->value().has_value());
+        EXPECT_EQ(tree_iter->value().value(), 17);
 
         ++tree_iter;
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 2);
         EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 3}));
-        ASSERT_TRUE(tree_iter->index().has_value());
-        EXPECT_EQ(tree_iter->index().value(), 20);
+        ASSERT_TRUE(tree_iter->value().has_value());
+        EXPECT_EQ(tree_iter->value().value(), 20);
 
         ++tree_iter;
         EXPECT_EQ(tree_iter, tree_iter_end);
@@ -310,41 +310,41 @@ namespace Moment::Tests {
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 0);
         EXPECT_EQ(tree_iter.lookup_index(), std::vector<int>());
-        EXPECT_FALSE(tree_iter->index().has_value());
+        EXPECT_FALSE(tree_iter->value().has_value());
 
         ++tree_iter;
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 1);
         EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1}));
-        ASSERT_TRUE(tree_iter->index().has_value());
-        EXPECT_EQ(tree_iter->index().value(), 10);
+        ASSERT_TRUE(tree_iter->value().has_value());
+        EXPECT_EQ(tree_iter->value().value(), 10);
 
         ++tree_iter;
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 2);
         EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2}));
-        EXPECT_FALSE(tree_iter->index().has_value());
+        EXPECT_FALSE(tree_iter->value().has_value());
 
         ++tree_iter;
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 3);
         EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2, 3}));
-        ASSERT_TRUE(tree_iter->index().has_value());
-        EXPECT_EQ(tree_iter->index().value(), 13);
+        ASSERT_TRUE(tree_iter->value().has_value());
+        EXPECT_EQ(tree_iter->value().value(), 13);
 
         ++tree_iter;
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 3);
         EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 2, 4}));
-        ASSERT_TRUE(tree_iter->index().has_value());
-        EXPECT_EQ(tree_iter->index().value(), 17);
+        ASSERT_TRUE(tree_iter->value().has_value());
+        EXPECT_EQ(tree_iter->value().value(), 17);
 
         ++tree_iter;
         ASSERT_NE(tree_iter, tree_iter_end);
         EXPECT_EQ(tree_iter.current_depth(), 2);
         EXPECT_EQ(tree_iter.lookup_index(), (std::vector<int>{1, 3}));
-        ASSERT_TRUE(tree_iter->index().has_value());
-        EXPECT_EQ(tree_iter->index().value(), 20);
+        ASSERT_TRUE(tree_iter->value().has_value());
+        EXPECT_EQ(tree_iter->value().value(), 20);
 
         ++tree_iter;
         EXPECT_EQ(tree_iter, tree_iter_end);

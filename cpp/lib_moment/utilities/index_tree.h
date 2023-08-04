@@ -24,7 +24,7 @@ namespace Moment {
 
     private:
         look_up_t id;
-        std::optional<value_t> _index;
+        std::optional<value_t> _value;
         std::vector<std::unique_ptr<IndexTree<look_up_t, value_t>>> children;
 
     public:
@@ -186,23 +186,23 @@ namespace Moment {
 
         explicit IndexTree(look_up_t id) : id{id} { }
 
-        IndexTree(look_up_t id, value_t index) : id{id}, _index{index} { }
+        IndexTree(look_up_t id, value_t value) : id{id}, _value{value} { }
 
         IndexTree(const IndexTree& rhs) = delete;
 
         IndexTree(IndexTree&& rhs) = default;
 
-        std::optional<value_t> index() const noexcept { return this->_index; }
+        std::optional<value_t> value() const noexcept { return this->_value; }
 
         /**
          * Add an entry to the tree
          * @param look_up_str Span over index sequence
-         * @param entry_index The entry to write to the tree
+         * @param entry_value The entry to write to the tree
          */
-        void add(std::span<const look_up_t> look_up_str, value_t entry_index) {
+        void add(std::span<const look_up_t> look_up_str, value_t entry_value) {
             // If we have fully descended, write index
             if (look_up_str.empty()) {
-                this->_index = entry_index;
+                this->_value = std::move(entry_value);
                 return;
             }
             const auto& current_index = look_up_str.front();
@@ -211,7 +211,7 @@ namespace Moment {
             auto* next_node = this->add_node(current_index);
 
             // Recursively descend
-            next_node->add(look_up_str.subspan(1), entry_index);
+            next_node->add(look_up_str.subspan(1), std::move(entry_value));
         }
 
         /**
@@ -220,19 +220,19 @@ namespace Moment {
          * @param entry_index The entry to write to the tree
          */
          std::pair<value_t, bool>
-         add_if_new(std::span<const look_up_t> look_up_str, value_t entry_index, bool did_addition = false) {
+         add_if_new(std::span<const look_up_t> look_up_str, value_t entry_value, bool did_addition = false) {
             // If we have fully descended, write index
             if (look_up_str.empty()) {
                 if (did_addition) {
-                    assert(!this->_index.has_value());
-                    this->_index = entry_index;
-                    return {entry_index, true};
+                    assert(!this->_value.has_value());
+                    this->_value = std::move(entry_value);
+                    return {this->_value.value(), true};
                 } else {
-                    if (!this->_index.has_value()) {
-                        this->_index = entry_index;
-                        return {entry_index, true};
+                    if (!this->_value.has_value()) {
+                        this->_value = std::move(entry_value);
+                        return {this->_value.value(), true};
                     } else {
-                        return {this->_index.value(), false};
+                        return {this->_value.value(), false};
                     }
                 }
             }
@@ -242,7 +242,7 @@ namespace Moment {
             auto* next_node = this->add_node(current_index, &did_addition);
 
             // Recursively descend
-            return next_node->add_if_new(look_up_str.subspan(1), entry_index, did_addition);
+            return next_node->add_if_new(look_up_str.subspan(1), std::move(entry_value), did_addition);
         }
 
         /**
@@ -276,7 +276,7 @@ namespace Moment {
          */
         std::optional<value_t> find(std::span<const look_up_t> look_up_str) const noexcept {
             if (look_up_str.empty()) {
-                return this->_index;
+                return this->_value;
             }
             const auto& current_index = look_up_str.front();
 
