@@ -78,7 +78,7 @@ namespace Moment {
 
             SymbolTable& symbols;
 
-            Inflation::FactorTable& factors;
+            TemporarySymbolsAndFactors symbols_and_factors;
 
             const MonomialMatrix& source_symbols;
 
@@ -90,7 +90,6 @@ namespace Moment {
 
             std::vector<Monomial> output_data;
 
-            TemporarySymbolsAndFactors symbols_and_factors;
 
         private:
             std::vector<std::unique_ptr<ExtendedMatrixWorker>> workers;
@@ -116,11 +115,6 @@ namespace Moment {
             void prepare_blank_data();
 
             void join_all() noexcept;
-//
-//            void find_factors_by_symbol_id(std::vector<symbol_name_t>& factors, const symbol_name_t symbol_id);
-//
-//            symbol_name_t find_or_register_factors(const std::vector<symbol_name_t>& joint_factors);
-
         };
 
     }

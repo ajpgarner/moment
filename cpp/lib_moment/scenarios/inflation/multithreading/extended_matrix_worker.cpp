@@ -122,11 +122,10 @@ namespace Moment::Multithreading {
                                                const MomentMatrix &moment_matrix,
                                                const std::span<const symbol_name_t> extension_scalars)
            : max_workers{Multithreading::get_max_worker_threads()},
-             context{context}, symbols{symbols}, factors{factors},
+             context{context},  symbols{symbols}, symbols_and_factors{symbols, factors},
              source_symbols{source}, source_operators{moment_matrix}, extension_scalars{extension_scalars},
              output_dimension{source.Dimension() + extension_scalars.size()},
-             source_osg{context.operator_sequence_generator(moment_matrix.Level(), false)},
-             symbols_and_factors(symbols, factors) {
+             source_osg{context.operator_sequence_generator(moment_matrix.Level(), false)} {
 
         assert(source_osg.size() == source.Dimension());
         // Create output data

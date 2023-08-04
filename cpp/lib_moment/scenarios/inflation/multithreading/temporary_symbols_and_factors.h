@@ -20,6 +20,7 @@ namespace Moment {
 
         class FactorTable;
     }
+    class OperatorSequence;
     class SymbolTable;
 
     namespace Multithreading {
@@ -32,10 +33,12 @@ namespace Moment {
             symbol_name_t next_symbol_id;
 
             std::vector<std::unique_ptr<std::vector<symbol_name_t>>> new_factors;
+            std::vector<std::unique_ptr<std::vector<OperatorSequence>>> new_op_seqs;
             IndexTree<symbol_name_t, symbol_name_t> index_tree;
 
         public:
             TemporarySymbolsAndFactors(SymbolTable& symbols, Inflation::FactorTable& factors);
+            ~TemporarySymbolsAndFactors() noexcept;
 
             const std::vector<symbol_name_t>& find_factors_by_symbol_id(const symbol_name_t symbol_id);
 

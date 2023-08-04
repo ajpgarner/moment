@@ -350,4 +350,127 @@ namespace Moment::Tests {
         EXPECT_EQ(tree_iter, tree_iter_end);
 
     }
+
+    TEST(Utilities_IndexTree, Merge_FromEmpty) {
+        IndexTree<int, size_t> treeA{};
+        treeA.add(std::vector{1}, 10);
+        treeA.add(std::vector{1, 2, 3}, 13);
+        treeA.add(std::vector{1, 2, 4}, 17);
+        treeA.add(std::vector{1, 3}, 20);
+
+        IndexTree<int, size_t> treeB{};
+
+        treeA.merge_in(std::move(treeB));
+
+        auto e1 = treeA.find(std::vector{1});
+        EXPECT_EQ(e1.value(), 10);
+
+        auto e13 = treeA.find(std::vector{1, 2, 3});
+        EXPECT_EQ(e13.value(), 13);
+
+        auto e17 = treeA.find(std::vector{1, 2, 4});
+        EXPECT_EQ(e17.value(), 17);
+
+        auto e20 = treeA.find(std::vector{1, 3});
+        EXPECT_EQ(e20.value(), 20);
+    }
+
+
+    TEST(Utilities_IndexTree, Merge_IntoEmpty) {
+        IndexTree<int, size_t> treeA{};
+
+        IndexTree<int, size_t> treeB{};
+        treeB.add(std::vector{1}, 10);
+        treeB.add(std::vector{1, 2, 3}, 13);
+        treeB.add(std::vector{1, 2, 4}, 17);
+        treeB.add(std::vector{1, 3}, 20);
+
+        treeA.merge_in(std::move(treeB));
+
+        auto e1 = treeA.find(std::vector{1});
+        EXPECT_EQ(e1.value(), 10);
+
+        auto e13 = treeA.find(std::vector{1, 2, 3});
+        EXPECT_EQ(e13.value(), 13);
+
+        auto e17 = treeA.find(std::vector{1, 2, 4});
+        EXPECT_EQ(e17.value(), 17);
+
+        auto e20 = treeA.find(std::vector{1, 3});
+        EXPECT_EQ(e20.value(), 20);
+    }
+
+    TEST(Utilities_IndexTree, Merge_ExtraChild) {
+        IndexTree<int, size_t> treeA{};
+        treeA.add(std::vector{1}, 10);
+        treeA.add(std::vector{1, 2, 3}, 13);
+        treeA.add(std::vector{1, 2, 4}, 17);
+
+        IndexTree<int, size_t> treeB{};
+        treeB.add(std::vector{1, 3}, 20);
+
+        treeA.merge_in(std::move(treeB));
+
+        auto e1 = treeA.find(std::vector{1});
+        EXPECT_EQ(e1.value(), 10);
+
+        auto e13 = treeA.find(std::vector{1, 2, 3});
+        EXPECT_EQ(e13.value(), 13);
+
+        auto e17 = treeA.find(std::vector{1, 2, 4});
+        EXPECT_EQ(e17.value(), 17);
+
+        auto e20 = treeA.find(std::vector{1, 3});
+        EXPECT_EQ(e20.value(), 20);
+    }
+
+    TEST(Utilities_IndexTree, Merge_ExtraChild_Deep) {
+        IndexTree<int, size_t> treeA{};
+        treeA.add(std::vector{1}, 10);
+        treeA.add(std::vector{1, 2, 3}, 13);
+        treeA.add(std::vector{1, 3}, 20);
+
+        IndexTree<int, size_t> treeB{};
+        treeB.add(std::vector{1, 2, 4}, 17);
+
+        treeA.merge_in(std::move(treeB));
+
+        auto e1 = treeA.find(std::vector{1});
+        EXPECT_EQ(e1.value(), 10);
+
+        auto e13 = treeA.find(std::vector{1, 2, 3});
+        EXPECT_EQ(e13.value(), 13);
+
+        auto e17 = treeA.find(std::vector{1, 2, 4});
+        EXPECT_EQ(e17.value(), 17);
+
+        auto e20 = treeA.find(std::vector{1, 3});
+        EXPECT_EQ(e20.value(), 20);
+    }
+
+    TEST(Utilities_IndexTree, Merge_NonLeafNode) {
+        IndexTree<int, size_t> treeA{};
+        treeA.add(std::vector{1, 2, 3}, 13);
+        treeA.add(std::vector{1, 2, 4}, 17);
+        treeA.add(std::vector{1, 3}, 20);
+        EXPECT_FALSE(treeA.find(std::vector{1}).has_value());
+
+        IndexTree<int, size_t> treeB{};
+        treeB.add(std::vector{1}, 10);
+
+        treeA.merge_in(std::move(treeB));
+
+        auto e1 = treeA.find(std::vector{1});
+        EXPECT_EQ(e1.value(), 10);
+
+        auto e13 = treeA.find(std::vector{1, 2, 3});
+        EXPECT_EQ(e13.value(), 13);
+
+        auto e17 = treeA.find(std::vector{1, 2, 4});
+        EXPECT_EQ(e17.value(), 17);
+
+        auto e20 = treeA.find(std::vector{1, 3});
+        EXPECT_EQ(e20.value(), 20);
+    }
+
 }

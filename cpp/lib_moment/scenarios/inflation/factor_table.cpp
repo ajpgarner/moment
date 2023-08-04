@@ -157,8 +157,32 @@ namespace Moment::Inflation {
 
         // Create index
         index_tree.add(new_entry.canonical.symbols, new_entry.id);
+    }
+
+    void FactorTable::register_new(std::vector<std::unique_ptr<std::vector<symbol_name_t>>>&& definitions,
+                                   std::vector<std::unique_ptr<std::vector<OperatorSequence>>>&& op_seqs,
+                                   IndexTree<symbol_name_t, symbol_name_t>&& indices) {
+        assert(definitions.size() == op_seqs.size());
+
+        symbol_name_t next_symbol_id = this->entries.size();
+        for (size_t index = 0; index < definitions.size(); ++index) {
+            auto& def_ptr = definitions[index];
+            auto& op_seq_ptr = op_seqs[index];
+
+            assert(def_ptr);
+            this->entries.emplace_back(next_symbol_id);
+            auto& new_entry = this->entries.back();
+            new_entry.canonical.symbols = std::move(*def_ptr);
+            new_entry.canonical.sequences = std::move(*op_seq_ptr);
+
+            ++next_symbol_id;
+        }
+
+        index_tree.merge_in(std::move(indices));
+
 
     }
+
 
     symbol_name_t FactorTable::try_multiply(symbol_name_t lhs, symbol_name_t rhs) const {
         // Do not multiply nonsense symbols

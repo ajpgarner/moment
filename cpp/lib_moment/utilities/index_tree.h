@@ -354,6 +354,43 @@ namespace Moment {
         }
 
         /**
+         * Attempt to merge in two trees
+         */
+        void merge_in(IndexTree&& other) {
+
+            // First, are there shared children?
+            auto this_children_iter = this->children.begin();
+            auto other_children_iter = other.children.begin();
+
+            // Merge values
+            if (other._value.has_value()) {
+                this->_value = std::move(other._value);
+            }
+
+            while ((this_children_iter != this->children.end()) && (other_children_iter != other.children.end())) {
+                const auto this_child_id = (*this_children_iter)->id;
+                const auto other_child_id = (*other_children_iter)->id;
+                if (this_child_id < other_child_id) {
+                    // Nothing to do, skip...
+                    ++this_children_iter;
+                } else if (this_child_id > other_child_id) {
+                    // Easy 'move-across' merge
+                    this_children_iter = this->children.insert(this_children_iter, std::move(*other_children_iter));
+                    ++other_children_iter;
+                } else {
+                    // Hard merge; descend: then move on to next
+                    (*this_children_iter)->merge_in(std::move(*(*other_children_iter)));
+                    ++this_children_iter;
+                    ++other_children_iter;
+                }
+            }
+            // Other tree still has items to merge, but are trivial
+            if (other_children_iter != other.children.end()) {
+                std::move(other_children_iter, other.children.end(), std::back_inserter(this->children));
+            }
+        }
+
+        /**
          * True, if tree node has no children
          * @return
          */

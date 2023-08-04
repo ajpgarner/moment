@@ -117,6 +117,13 @@ namespace Moment {
             void register_new(symbol_name_t id, std::vector<symbol_name_t> factors);
 
             /**
+             * Manually insert a list of factors associated with an entry.
+             */
+            void register_new(std::vector<std::unique_ptr<std::vector<symbol_name_t>>>&& definitions,
+                              std::vector<std::unique_ptr<std::vector<OperatorSequence>>>&& op_seqs,
+                              IndexTree<symbol_name_t, symbol_name_t>&& indices);
+
+            /**
              * Attempt to multiply symbolic expressions
              * @throws errors::unknown_symbol If product is not registered as a known symbol.
              * @returns The symbol ID of the product.

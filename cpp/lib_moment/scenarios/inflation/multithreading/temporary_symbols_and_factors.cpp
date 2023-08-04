@@ -10,13 +10,17 @@
 #include "symbolic/symbol_table.h"
 #include "../factor_table.h"
 
+#include "dictionary/operator_sequence.h"
 
 namespace Moment::Multithreading {
-    TemporarySymbolsAndFactors::TemporarySymbolsAndFactors(SymbolTable& symbols, Inflation::FactorTable& factors)
+    TemporarySymbolsAndFactors::TemporarySymbolsAndFactors(SymbolTable& symbols,
+                                                           Inflation::FactorTable& factors)
         : symbols{symbols}, factors{factors},
         first_symbol_id{static_cast<symbol_name_t>(symbols.size())}, next_symbol_id{first_symbol_id} {
 
     }
+
+    TemporarySymbolsAndFactors::~TemporarySymbolsAndFactors() noexcept = default;
 
     const std::vector<symbol_name_t>& TemporarySymbolsAndFactors::find_factors_by_symbol_id(const symbol_name_t symbol_id) {
 
@@ -46,10 +50,22 @@ namespace Moment::Multithreading {
         // Did not find, so we have to upgrade our lock
         read_lock.unlock();
 
-        // Do memory assignment first (if we are scooped, we throw it away - but we want to minimize holding lock).
+        // Do memory assignments and look-up of op seqs first, without blocking.
+        // If we are scooped, we throw these redundant results away - but its worth it to avoid holding lock too long.
         auto new_factor_str = std::make_unique<std::vector<symbol_name_t>>(joint_factors.begin(), joint_factors.end());
+        auto new_op_seq_str = std::make_unique<std::vector<OperatorSequence>>();
+        new_op_seq_str->reserve(joint_factors.size());
+        std::transform(
+            joint_factors.begin(), joint_factors.end(),
+            std::back_inserter(*new_op_seq_str),
+            [this](const auto factor) -> OperatorSequence {
+                assert(factor < this->first_symbol_id);
+                assert (this->symbols[factor].has_sequence());
+                return this->symbols[factor].sequence();
+            }
+        );
 
-        // Now, upgrade lock
+        // Now, upgrade lock to report results
         auto write_lock = this->get_write_lock();
 
         // Check again on subtree with hint [make sure racing thread hasn't already created!]
@@ -61,10 +77,11 @@ namespace Moment::Multithreading {
         const auto registered_id = this->next_symbol_id;
         this->index_tree.add(joint_factors, registered_id);
         this->new_factors.push_back(std::move(new_factor_str));
+        this->new_op_seqs.push_back(std::move(new_op_seq_str));
 
-        // Get ID.
+        // Get ID
         ++this->next_symbol_id;
-        return registered_id;
+        return registered_id; // ~writelock
     }
 
     void TemporarySymbolsAndFactors::register_new_symbols_and_factors() {
@@ -79,19 +96,10 @@ namespace Moment::Multithreading {
         // Register new symbols in table
         this->symbols.create(new_symbol_count, true, false);
 
-        // TODO: 'merge in'
-
-        // Register factors of symbols
-        for (symbol_name_t index = 0; index < new_symbol_count; ++index) {
-            auto& factor_ptr = this->new_factors[index];
-            assert(factor_ptr);
-            symbol_name_t new_symbol_id = this->first_symbol_id + index;
-            this->factors.register_new(new_symbol_id, std::move(*factor_ptr));
-
-            if constexpr (debug_mode) {
-                factor_ptr.reset();
-            }
-        }
+        // Register new factors
+        this->factors.register_new(std::move(this->new_factors),
+                                   std::move(this->new_op_seqs),
+                                   std::move(this->index_tree));
 
     }
 
