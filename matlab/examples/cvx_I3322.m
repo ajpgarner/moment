@@ -24,9 +24,9 @@ matrix = i3322.MomentMatrix(level);
 
 % Make I3322 object using FC tensor
 I3322_ineq = i3322.FCTensor([[0 -1 -1  0]
-                              [-1 -1 -1 -1]
-                              [-1 -1 -1  1]
-                              [0  -1  1  0]]);
+                             [-1 -1 -1 -1]
+                             [-1 -1 -1  1]
+                             [0  -1  1  0]]);
 
         
 % Define and solve SDP

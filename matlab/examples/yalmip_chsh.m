@@ -6,16 +6,8 @@
 mm_level = 3;
 
 %% Set up scenario
-% Two parties
-setting = LocalityScenario(2);
-Alice = setting.Parties(1);
-Bob = setting.Parties(2);
-
-% Each party with two measurements
-A0 = Alice.AddMeasurement(2);
-A1 = Alice.AddMeasurement(2);
-B0 = Bob.AddMeasurement(2);
-B1 = Bob.AddMeasurement(2);
+setting = LocalityScenario(2, 2, 2);
+[A0, A1, B0, B1] = setting.getMeasurements();
 
 %% Make matrices and polynomials
 % Make moment matrix

@@ -7,7 +7,7 @@
 
 %% Define triangle scenario and make moment matrix
 inflation_level = 2;
-moment_matrix_level = 2;
+moment_matrix_level = 3;
 triangle = InflationScenario(inflation_level, ...
                              [4, 4, 4], ... % 4-nary measurements
                              {[1, 2], [2, 3], [1, 3]}); % pair sources
