@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "mex_function.h"
+#include "mtk_function.h"
 
 #include <limits>
 
@@ -25,8 +25,8 @@ namespace Moment::mex::functions {
         double zero_tolerance = -1.0; // deduce from base system.
     };
 
-    class SymmetrizedMatrixSystem : public ParameterizedMexFunction<SymmetrizedMatrixSystemParams,
-                                                                    MEXEntryPointID::SymmetrizedMatrixSystem> {
+    class SymmetrizedMatrixSystem : public ParameterizedMTKFunction<SymmetrizedMatrixSystemParams,
+                                                                    MTKEntryPointID::SymmetrizedMatrixSystem> {
     public:
         explicit SymmetrizedMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

@@ -44,7 +44,7 @@ namespace Moment::mex::functions {
     }
 
     WordList::WordList(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : ParameterizedMexFunction{matlabEngine, storage} {
+            : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_outputs = 1;
         this->max_outputs = 7;
         this->min_inputs = 2;

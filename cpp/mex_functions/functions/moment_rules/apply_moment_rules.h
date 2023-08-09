@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "mex_function.h"
+#include "mtk_function.h"
 
 #include "integer_types.h"
 
@@ -52,7 +52,7 @@ namespace Moment::mex::functions {
 
     };
 
-    class ApplyMomentRules : public ParameterizedMexFunction<ApplyMomentRulesParams, MEXEntryPointID::ApplyMomentRules> {
+    class ApplyMomentRules : public ParameterizedMTKFunction<ApplyMomentRulesParams, MTKEntryPointID::ApplyMomentRules> {
     public:
         explicit ApplyMomentRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 

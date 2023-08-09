@@ -47,7 +47,7 @@ namespace Moment::mex::functions  {
     }
 
     SuggestExtensions::SuggestExtensions(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : ParameterizedMexFunction{matlabEngine, storage}
+        : ParameterizedMTKFunction{matlabEngine, storage}
     {
         this->min_inputs = this->max_inputs = 2;
         this->min_outputs = this->max_outputs = 1;

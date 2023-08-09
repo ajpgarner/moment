@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "../../mex_function.h"
+#include "../../mtk_function.h"
 
 namespace Moment::mex::functions  {
 
@@ -30,7 +30,7 @@ namespace Moment::mex::functions  {
 
     };
 
-    class List : public ParameterizedMexFunction<ListParams, MEXEntryPointID::List> {
+    class List : public ParameterizedMTKFunction<ListParams, MTKEntryPointID::List> {
     public:
         explicit List(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

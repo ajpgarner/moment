@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "mex_function.h"
+#include "mtk_function.h"
 
 #include <string>
 
@@ -32,7 +32,7 @@ namespace Moment::mex::functions {
         [[nodiscard]] std::string read_filename(const matlab::data::Array& input);
     };
 
-    class Logging : public ParameterizedMexFunction<LoggingParams, MEXEntryPointID::Logging> {
+    class Logging : public ParameterizedMTKFunction<LoggingParams, MTKEntryPointID::Logging> {
     public:
         explicit Logging(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

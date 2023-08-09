@@ -111,7 +111,7 @@ namespace Moment::mex::functions  {
     }
 
     CollinsGisin::CollinsGisin(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : ParameterizedMexFunction{matlabEngine, storage} {
+            : ParameterizedMTKFunction{matlabEngine, storage} {
 
         this->flag_names.emplace(u"symbols");
         this->flag_names.emplace(u"sequences");

@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "../../mex_function.h"
+#include "../../mtk_function.h"
 
 #include "integer_types.h"
 
@@ -37,7 +37,7 @@ namespace Moment::mex::functions {
     };
 
     class InflationMatrixSystem
-        : public ParameterizedMexFunction<InflationMatrixSystemParams, MEXEntryPointID::InflationMatrixSystem> {
+        : public ParameterizedMTKFunction<InflationMatrixSystemParams, MTKEntryPointID::InflationMatrixSystem> {
     public:
         explicit InflationMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

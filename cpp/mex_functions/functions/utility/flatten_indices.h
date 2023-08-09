@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "mex_function.h"
+#include "mtk_function.h"
 
 #include <vector>
 
@@ -27,7 +27,7 @@ namespace Moment::mex::functions  {
         explicit FlattenIndicesParams(SortedInputs&& input);
     };
 
-    class FlattenIndices : public ParameterizedMexFunction<FlattenIndicesParams, MEXEntryPointID::FlattenIndices> {
+    class FlattenIndices : public ParameterizedMTKFunction<FlattenIndicesParams, MTKEntryPointID::FlattenIndices> {
     public:
         explicit FlattenIndices(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

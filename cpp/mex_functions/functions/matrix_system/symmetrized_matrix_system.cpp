@@ -103,7 +103,7 @@ namespace Moment::mex::functions {
     }
 
     SymmetrizedMatrixSystem::SymmetrizedMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
-         : ParameterizedMexFunction{matlabEngine, storage} {
+         : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 1;
@@ -205,6 +205,6 @@ namespace Moment::mex::functions {
             throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
         }
 
-        ParameterizedMexFunction::extra_input_checks(input);
+        ParameterizedMTKFunction::extra_input_checks(input);
     }
 }

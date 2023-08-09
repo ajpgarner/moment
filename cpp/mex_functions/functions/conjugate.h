@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "../mex_function.h"
+#include "../mtk_function.h"
 
 #include "integer_types.h"
 
@@ -36,7 +36,7 @@ namespace Moment::mex::functions {
 
     };
 
-    class Conjugate : public ParameterizedMexFunction<ConjugateParams, MEXEntryPointID::Conjugate> {
+    class Conjugate : public ParameterizedMTKFunction<ConjugateParams, MTKEntryPointID::Conjugate> {
     public:
         explicit Conjugate(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 

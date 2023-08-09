@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "../../mex_function.h"
+#include "../../mtk_function.h"
 
 #include "integer_types.h"
 
@@ -20,7 +20,7 @@ namespace Moment::mex::functions {
     };
 
     class ImportedMatrixSystem
-        : public ParameterizedMexFunction<ImportedMatrixSystemParams, MEXEntryPointID::ImportedMatrixSystem> {
+        : public ParameterizedMTKFunction<ImportedMatrixSystemParams, MTKEntryPointID::ImportedMatrixSystem> {
     public:
         explicit ImportedMatrixSystem(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 

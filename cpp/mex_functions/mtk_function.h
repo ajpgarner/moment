@@ -1,5 +1,5 @@
 /**
- * mex_function.h
+ * mtk_function.h
  * 
  * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -29,7 +29,7 @@ namespace Moment::mex::functions {
     /**
      * Base class, for various mex functions called in the toolkit.
      */
-    class MexFunction {
+    class MTKFunction {
     protected:
         /** The MATLAB engine handle. */
         matlab::engine::MATLABEngine& matlabEngine;
@@ -71,7 +71,7 @@ namespace Moment::mex::functions {
 
     public:
         /** The numeric ID of the function. */
-        const MEXEntryPointID function_id;
+        const MTKEntryPointID function_id;
 
         /**
          * Constructs a function, to be invoked from MATLAB as: mtk(name, args...)
@@ -80,9 +80,9 @@ namespace Moment::mex::functions {
          * @param id The numeric ID of the function.
          * @param name The name of the function, as it should be invoked.
          */
-        MexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage, MEXEntryPointID id);
+        MTKFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage, MTKEntryPointID id);
 
-        virtual ~MexFunction();
+        virtual ~MTKFunction();
 
         /**
          * Executes the MEX function.
@@ -161,13 +161,13 @@ namespace Moment::mex::functions {
      * @tparam param_t Subclass of SortedInputs defining parameters specifically for this function.
      * @tparam i_entry_id The numeric ID of the mex function.
      */
-    template<std::derived_from<SortedInputs> param_t, MEXEntryPointID i_entry_id>
-    class ParameterizedMexFunction : public MexFunction {
+    template<std::derived_from<SortedInputs> param_t, MTKEntryPointID i_entry_id>
+    class ParameterizedMTKFunction : public MTKFunction {
     public:
         /** Subclass of SortedInputs defining parameters specifically for this mex function. */
         using parameter_type = param_t;
         /** The numeric ID of this mex function. */
-        static const MEXEntryPointID entry_id = i_entry_id;
+        static const MTKEntryPointID entry_id = i_entry_id;
 
     protected:
         /**
@@ -176,8 +176,8 @@ namespace Moment::mex::functions {
          * @param storage Reference to persistent storage manager.
          * @param name The name of the function, as it should be invoked.
          */
-        ParameterizedMexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage)
-                 : MexFunction(engine, storage, entry_id) { }
+        ParameterizedMTKFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage)
+                 : MTKFunction(engine, storage, entry_id) { }
 
     public:
 

@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "mex_function.h"
+#include "mtk_function.h"
 
 namespace Moment::mex::functions  {
 
@@ -18,7 +18,7 @@ namespace Moment::mex::functions  {
         explicit OperatorRulesParams(SortedInputs&& inputs);
     };
 
-    class OperatorRules : public ParameterizedMexFunction<OperatorRulesParams, MEXEntryPointID::OperatorRules> {
+    class OperatorRules : public ParameterizedMTKFunction<OperatorRulesParams, MTKEntryPointID::OperatorRules> {
     public:
         explicit OperatorRules(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

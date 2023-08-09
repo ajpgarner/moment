@@ -39,7 +39,7 @@ namespace Moment::mex::functions  {
     };
 
     class SubstitutedMatrix : public Moment::mex::functions::OperatorMatrix<SubstitutedMatrixParams,
-                                                                            MEXEntryPointID::SubstitutedMatrix> {
+                                                                            MTKEntryPointID::SubstitutedMatrix> {
     public:
         SubstitutedMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include "../mex_function.h"
+#include "../mtk_function.h"
 
 #include "integer_types.h"
 #include "import/read_polynomial.h"
@@ -66,7 +66,7 @@ namespace Moment::mex::functions {
 
     };
 
-    class TransformSymbols : public ParameterizedMexFunction<TransformSymbolsParams, MEXEntryPointID::TransformSymbols> {
+    class TransformSymbols : public ParameterizedMTKFunction<TransformSymbolsParams, MTKEntryPointID::TransformSymbols> {
     public:
         explicit TransformSymbols(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage);
 

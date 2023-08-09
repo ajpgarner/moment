@@ -29,7 +29,7 @@ namespace Moment::mex::functions  {
     }
 
     MomentRuleSuperset::MomentRuleSuperset(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : ParameterizedMexFunction{matlabEngine, storage} {
+            : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_outputs = this->max_outputs = 1;
         this->min_inputs = this->max_inputs = 3;
     }

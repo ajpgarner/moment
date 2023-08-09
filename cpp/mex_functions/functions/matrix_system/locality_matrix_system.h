@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "../../mex_function.h"
+#include "../../mtk_function.h"
 
 namespace Moment {
     class Context;
@@ -39,8 +39,8 @@ namespace Moment::mex::functions {
     };
 
 
-    class LocalityMatrixSystem : public ParameterizedMexFunction<LocalityMatrixSystemParams,
-                                                                 MEXEntryPointID::LocalityMatrixSystem> {
+    class LocalityMatrixSystem : public ParameterizedMTKFunction<LocalityMatrixSystemParams,
+                                                                 MTKEntryPointID::LocalityMatrixSystem> {
     public:
         explicit LocalityMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

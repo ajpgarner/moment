@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "../../mex_function.h"
+#include "../../mtk_function.h"
 
 namespace Moment::mex::functions  {
 
@@ -24,7 +24,7 @@ namespace Moment::mex::functions  {
         } matrix_mode = MatrixMode::Real;
     };
 
-    class Echo : public ParameterizedMexFunction<EchoParams, MEXEntryPointID::Echo> {
+    class Echo : public ParameterizedMTKFunction<EchoParams, MTKEntryPointID::Echo> {
     public:
         explicit Echo(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

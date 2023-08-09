@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "mex_function.h"
+#include "mtk_function.h"
 
 #include "import/read_measurement_indices.h"
 
@@ -45,7 +45,7 @@ namespace Moment::mex::functions  {
         std::vector<RawIndexTriplet> fixedOutcomes;
     };
 
-    class CollinsGisin : public ParameterizedMexFunction<CollinsGisinParams, MEXEntryPointID::CollinsGisin> {
+    class CollinsGisin : public ParameterizedMTKFunction<CollinsGisinParams, MTKEntryPointID::CollinsGisin> {
     public:
         explicit CollinsGisin(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

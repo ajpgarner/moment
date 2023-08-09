@@ -69,7 +69,7 @@ namespace Moment::mex::functions {
     }
 
     Conjugate::Conjugate(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : ParameterizedMexFunction{matlabEngine, storage} {
+            : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 1;

@@ -173,7 +173,7 @@ namespace Moment::mex::functions {
 
 
     MakeExplicit::MakeExplicit(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : ParameterizedMexFunction{matlabEngine, storage} {
+        : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_inputs = 3;
         this->max_inputs = 4;
         this->min_outputs = 1;

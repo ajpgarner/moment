@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "../mex_function.h"
+#include "../mtk_function.h"
 #include "storage_manager.h"
 
 namespace Moment::mex::functions {
@@ -22,7 +22,7 @@ namespace Moment::mex::functions {
         explicit ReleaseParams(SortedInputs&& raw_inputs);
     };
 
-    class Release : public ParameterizedMexFunction<ReleaseParams, MEXEntryPointID::Release> {
+    class Release : public ParameterizedMTKFunction<ReleaseParams, MTKEntryPointID::Release> {
     public:
         explicit Release(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

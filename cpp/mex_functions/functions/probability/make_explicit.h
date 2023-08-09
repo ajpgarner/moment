@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "mex_function.h"
+#include "mtk_function.h"
 
 #include "import/read_measurement_indices.h"
 
@@ -57,7 +57,7 @@ namespace Moment::mex::functions {
 
     };
 
-    class MakeExplicit : public ParameterizedMexFunction<MakeExplicitParams, MEXEntryPointID::MakeExplicit> {
+    class MakeExplicit : public ParameterizedMTKFunction<MakeExplicitParams, MTKEntryPointID::MakeExplicit> {
     public:
         explicit MakeExplicit(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 

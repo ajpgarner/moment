@@ -1,27 +1,27 @@
 /**
- * mex_function.cpp
+ * mtk_function.cpp
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "mex_function.h"
+#include "mtk_function.h"
 #include "storage_manager.h"
 #include "environmental_variables.h"
 
 namespace Moment::mex::functions {
-    MexFunction::MexFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage, MEXEntryPointID id)
+    MTKFunction::MTKFunction(matlab::engine::MATLABEngine& engine, StorageManager& storage, MTKEntryPointID id)
         : matlabEngine(engine), storageManager{storage}, function_id{id} {
 
         this->settings = std::const_pointer_cast<const EnvironmentalVariables>(storage.Settings.get());
     }
 
-    MexFunction::~MexFunction() = default;
+    MTKFunction::~MTKFunction() = default;
 
-    std::unique_ptr<SortedInputs> MexFunction::transform_inputs(std::unique_ptr<SortedInputs> input) const {
+    std::unique_ptr<SortedInputs> MTKFunction::transform_inputs(std::unique_ptr<SortedInputs> input) const {
         return std::move(input);
     }
 
-    void MexFunction::setQuiet(bool val) noexcept {
+    void MTKFunction::setQuiet(bool val) noexcept {
         // Quiet mode only turns on if debug mode not set.
         this->quiet = val && !this->debug;
         if (val) {
@@ -30,7 +30,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    void MexFunction::setVerbose(bool val) noexcept {
+    void MTKFunction::setVerbose(bool val) noexcept {
         this->verbose = val;
         if (val) {
             // Turning on verbosity turns off quiet mode
@@ -41,7 +41,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    void MexFunction::setDebug(bool val) noexcept {
+    void MTKFunction::setDebug(bool val) noexcept {
         this->debug = val;
         if (val) {
             // Turning on debug mode turns on verbosity, and turns off quiet mode

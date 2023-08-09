@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "mex_function.h"
+#include "mtk_function.h"
 #include "integer_types.h"
 
 #include "import/read_polynomial.h"
@@ -92,8 +92,8 @@ namespace Moment::mex::functions {
 
     };
 
-    class CreateMomentRules : public ParameterizedMexFunction<CreateMomentRulesParams,
-                                                              MEXEntryPointID::CreateMomentRules> {
+    class CreateMomentRules : public ParameterizedMTKFunction<CreateMomentRulesParams,
+                                                              MTKEntryPointID::CreateMomentRules> {
     public:
         explicit CreateMomentRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage);
 

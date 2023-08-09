@@ -7,11 +7,11 @@
 #pragma once
 
 #include "../../../version.h"
-#include "../../mex_function.h"
+#include "../../mtk_function.h"
 
 namespace Moment::mex::functions {
 
-    class Version : public MexFunction {
+    class Version : public MTKFunction {
     public:
         explicit Version(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

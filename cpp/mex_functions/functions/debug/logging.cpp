@@ -61,7 +61,7 @@ namespace Moment::mex::functions {
 
 
     Logging::Logging(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : ParameterizedMexFunction{matlabEngine, storage} {
+            : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_inputs = 0;
         this->max_inputs = 2;
         this->min_outputs = 0;

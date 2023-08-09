@@ -24,7 +24,7 @@ namespace Moment::mex::functions {
     }
 
     OperatorRules::OperatorRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : ParameterizedMexFunction{matlabEngine, storage} {
+            : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_outputs = this->max_outputs = 1;
         this->min_inputs = 1;
         this->max_inputs = 1;

@@ -62,7 +62,7 @@ namespace Moment::mex::functions {
     }
 
     Echo::Echo(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : ParameterizedMexFunction{matlabEngine, storage} {
+            : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_inputs = 1;
         this->max_inputs = 1;
         this->min_outputs = 0;

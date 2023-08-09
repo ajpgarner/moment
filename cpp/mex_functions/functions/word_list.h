@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../mex_function.h"
+#include "../mtk_function.h"
 
 namespace Moment::mex::functions  {
 
@@ -29,7 +29,7 @@ namespace Moment::mex::functions  {
         explicit WordListParams(SortedInputs&& inputs);
     };
 
-    class WordList : public ParameterizedMexFunction<WordListParams, MEXEntryPointID::WordList> {
+    class WordList : public ParameterizedMTKFunction<WordListParams, MTKEntryPointID::WordList> {
     public:
         explicit WordList(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

@@ -33,7 +33,7 @@ namespace Moment::mex::functions  {
     };
 
     class MomentMatrix
-        : public Moment::mex::functions::OperatorMatrix<MomentMatrixParams, MEXEntryPointID::MomentMatrix> {
+        : public Moment::mex::functions::OperatorMatrix<MomentMatrixParams, MTKEntryPointID::MomentMatrix> {
     public:
         MomentMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

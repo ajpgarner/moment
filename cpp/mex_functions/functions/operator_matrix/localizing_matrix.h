@@ -116,7 +116,7 @@ namespace Moment::mex::functions  {
     };
 
     class LocalizingMatrix
-        : public Moment::mex::functions::OperatorMatrix<LocalizingMatrixParams, MEXEntryPointID::LocalizingMatrix> {
+        : public Moment::mex::functions::OperatorMatrix<LocalizingMatrixParams, MTKEntryPointID::LocalizingMatrix> {
     public:
         explicit LocalizingMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

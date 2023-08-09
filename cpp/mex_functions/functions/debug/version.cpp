@@ -18,7 +18,7 @@ namespace Moment::mex::functions {
 
 
     Version::Version(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-        : MexFunction{matlabEngine, storage, MEXEntryPointID::Version} {
+        : MTKFunction{matlabEngine, storage, MTKEntryPointID::Version} {
         this->max_outputs = 1;
         this->flag_names.emplace(u"structured");
 

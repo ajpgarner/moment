@@ -12,7 +12,7 @@
 #include "utilities/read_as_string.h"
 
 #include "function_list.h"
-#include "mex_function.h"
+#include "mtk_function.h"
 
 #include "utilities/utf_conversion.h"
 
@@ -35,7 +35,7 @@ namespace Moment::mex {
         public:
 
             LogTrigger(Logger &logger,
-                       functions::MEXEntryPointID function_id,
+                       functions::MTKEntryPointID function_id,
                        size_t num_in, size_t num_out)
                     : logger{logger} {
                 if (logger.is_trivial()) {
@@ -92,8 +92,8 @@ namespace Moment::mex {
         // Start timer
 
         // Read and pop function name...
-        functions::MEXEntryPointID function_id = get_function_id(inputs);
-        assert(function_id != functions::MEXEntryPointID::Unknown);
+        functions::MTKEntryPointID function_id = get_function_id(inputs);
+        assert(function_id != functions::MTKEntryPointID::Unknown);
 
         auto log_entry = LogTrigger{*this->logger,
                                     function_id, inputs.size(), outputs.size()};
@@ -102,7 +102,7 @@ namespace Moment::mex {
         try {
 
             // Construction function object from ID...
-            std::unique_ptr<functions::MexFunction> the_function = functions::make_mex_function(*matlabPtr,
+            std::unique_ptr<functions::MTKFunction> the_function = functions::make_mtk_function(*matlabPtr,
                                                                                                 function_id,
                                                                                                 persistentStorage);
             if (!the_function) {
@@ -153,9 +153,9 @@ namespace Moment::mex {
         // ~the_function, ~log_entry
     }
 
-    functions::MEXEntryPointID MexMain::get_function_id(IOArgumentRange& inputs) {
+    functions::MTKEntryPointID MexMain::get_function_id(IOArgumentRange& inputs) {
         if (inputs.size() <= 0) {
-            return functions::MEXEntryPointID::Version;
+            return functions::MTKEntryPointID::Version;
         }
 
         auto command_arg = read_as_utf8(inputs.pop_front());
@@ -165,7 +165,7 @@ namespace Moment::mex {
         }
 
         auto entry_id = functions::which_entrypoint(command_arg.value());
-        if (entry_id == functions::MEXEntryPointID::Unknown) {
+        if (entry_id == functions::MTKEntryPointID::Unknown) {
             throw_error(*matlabPtr, errors::bad_function,
                         "Function \"" + command_arg.value() + "\" is not in the Moment library.");
         }
@@ -174,7 +174,7 @@ namespace Moment::mex {
     }
 
 
-    std::unique_ptr<SortedInputs> MexMain::clean_inputs(const functions::MexFunction &func, IOArgumentRange & inputs) {
+    std::unique_ptr<SortedInputs> MexMain::clean_inputs(const functions::MTKFunction &func, IOArgumentRange & inputs) {
         const auto& param_names = func.ParamNames();
         const auto& func_flag_names = func.FlagNames();
 
@@ -228,7 +228,7 @@ namespace Moment::mex {
         return sortedPtr;
     }
 
-    void MexMain::validate_inputs(const functions::MexFunction &func, const SortedInputs &inputs) {
+    void MexMain::validate_inputs(const functions::MTKFunction &func, const SortedInputs &inputs) {
 
         // First check number of inputs is okay
         auto [min, max] = func.NumInputs();
@@ -271,7 +271,7 @@ namespace Moment::mex {
 
     }
 
-    void MexMain::validate_outputs(const functions::MexFunction &func,
+    void MexMain::validate_outputs(const functions::MTKFunction &func,
                                    const IOArgumentRange &outputs,  const SortedInputs &inputs) {
         auto [min, max] = func.NumOutputs();
         if ((outputs.size() > max) || (outputs.size() < min)) {
@@ -305,7 +305,7 @@ namespace Moment::mex {
         func.validate_output_count(outputs.size(), inputs);
     }
 
-    std::unique_ptr<SortedInputs> MexMain::transform_and_validate(const functions::MexFunction& func,
+    std::unique_ptr<SortedInputs> MexMain::transform_and_validate(const functions::MTKFunction& func,
                                                          std::unique_ptr<SortedInputs> inputs,
                                                          const IOArgumentRange& outputs) {
         try {

@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "../mex_function.h"
+#include "../mtk_function.h"
 
 #include "integer_types.h"
 
@@ -29,7 +29,7 @@ namespace Moment::mex::functions  {
 
     };
 
-    class ImportMatrix : public ParameterizedMexFunction<ImportMatrixParams, MEXEntryPointID::ImportMatrix> {
+    class ImportMatrix : public ParameterizedMTKFunction<ImportMatrixParams, MTKEntryPointID::ImportMatrix> {
     public:
         ImportMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "../mex_function.h"
+#include "../mtk_function.h"
 
 #include <string>
 #include <vector>
@@ -47,7 +47,7 @@ namespace Moment::mex::functions  {
         change_mt_t read_choice_mt(const matlab::data::Array& field) const;
     };
 
-    class Settings : public ParameterizedMexFunction<SettingsParams, MEXEntryPointID::Settings> {
+    class Settings : public ParameterizedMTKFunction<SettingsParams, MTKEntryPointID::Settings> {
     public:
         explicit Settings(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

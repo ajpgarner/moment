@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "../../mex_function.h"
+#include "../../mtk_function.h"
 #include "integer_types.h"
 
 #include <concepts>
@@ -124,12 +124,12 @@ namespace Moment::mex::functions  {
 
     };
 
-    template<std::derived_from<OperatorMatrixParams> om_param_t, MEXEntryPointID om_entry_id>
-    class OperatorMatrix : public ParameterizedMexFunction<om_param_t, om_entry_id>,
+    template<std::derived_from<OperatorMatrixParams> om_param_t, MTKEntryPointID om_entry_id>
+    class OperatorMatrix : public ParameterizedMTKFunction<om_param_t, om_entry_id>,
                            public OperatorMatrixVirtualBase {
     protected:
         OperatorMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
-           : ParameterizedMexFunction<om_param_t, om_entry_id>{matlabEngine, storage},
+           : ParameterizedMTKFunction<om_param_t, om_entry_id>{matlabEngine, storage},
              OperatorMatrixVirtualBase{matlabEngine, storage}
         {
             this->min_outputs = 1;
@@ -170,7 +170,7 @@ namespace Moment::mex::functions  {
         }
     };
 
-    class RawOperatorMatrix : public OperatorMatrix<RawOperatorMatrixParams, MEXEntryPointID::OperatorMatrix> {
+    class RawOperatorMatrix : public OperatorMatrix<RawOperatorMatrixParams, MTKEntryPointID::OperatorMatrix> {
     public:
         RawOperatorMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
             : OperatorMatrix{matlabEngine, storage} { }

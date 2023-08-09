@@ -40,7 +40,7 @@ namespace Moment::mex::functions {
     };
 
     class ExtendedMatrix
-        : public Moment::mex::functions::OperatorMatrix<ExtendedMatrixParams, MEXEntryPointID::ExtendedMatrix> {
+        : public Moment::mex::functions::OperatorMatrix<ExtendedMatrixParams, MTKEntryPointID::ExtendedMatrix> {
     public:
         explicit ExtendedMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

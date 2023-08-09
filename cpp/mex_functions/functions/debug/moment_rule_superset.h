@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include "../../mex_function.h"
+#include "../../mtk_function.h"
 
 namespace Moment::mex::functions  {
 
@@ -22,8 +22,8 @@ namespace Moment::mex::functions  {
         explicit MomentRuleSupersetParams(SortedInputs&& inputs);
     };
 
-    class MomentRuleSuperset : public ParameterizedMexFunction<MomentRuleSupersetParams,
-                                                               MEXEntryPointID::MomentRuleSuperset> {
+    class MomentRuleSuperset : public ParameterizedMTKFunction<MomentRuleSupersetParams,
+                                                               MTKEntryPointID::MomentRuleSuperset> {
     public:
         explicit MomentRuleSuperset(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include "../mex_function.h"
+#include "../mtk_function.h"
 
 #include "import/read_polynomial.h"
 
@@ -60,7 +60,7 @@ namespace Moment::mex::functions {
         void parse_as_operators();
     };
 
-    class Simplify : public ParameterizedMexFunction<SimplifyParams, MEXEntryPointID::Simplify> {
+    class Simplify : public ParameterizedMTKFunction<SimplifyParams, MTKEntryPointID::Simplify> {
     public:
         explicit Simplify(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 

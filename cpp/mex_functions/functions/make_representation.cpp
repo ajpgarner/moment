@@ -30,7 +30,7 @@ namespace Moment::mex::functions {
     }
 
     MakeRepresentation::MakeRepresentation(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : ParameterizedMexFunction{matlabEngine, storage} {
+        : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 1;
@@ -41,7 +41,7 @@ namespace Moment::mex::functions {
         if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
             throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
         }
-        ParameterizedMexFunction::extra_input_checks(input);
+        ParameterizedMTKFunction::extra_input_checks(input);
     }
 
     void MakeRepresentation::operator()(IOArgumentRange output, MakeRepresentationParams &input) {

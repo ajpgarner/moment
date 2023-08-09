@@ -49,7 +49,7 @@ namespace Moment::mex::functions {
     }
 
     ImportMatrix::ImportMatrix(matlab::engine::MATLABEngine &matlabEngine, Moment::mex::StorageManager &storage)
-        : ParameterizedMexFunction{matlabEngine, storage} {
+        : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_inputs = this->max_inputs = 2;
         this->min_outputs = 1;
         this->max_outputs = 4;

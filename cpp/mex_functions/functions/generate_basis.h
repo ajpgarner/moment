@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "../mex_function.h"
+#include "../mtk_function.h"
 
 #include "import/read_polynomial.h"
 #include <variant>
@@ -56,7 +56,7 @@ namespace Moment::mex::functions {
 
     };
 
-class GenerateBasis : public ParameterizedMexFunction<GenerateBasisParams, MEXEntryPointID::GenerateBasis> {
+class GenerateBasis : public ParameterizedMTKFunction<GenerateBasisParams, MTKEntryPointID::GenerateBasis> {
     public:
         explicit GenerateBasis(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 

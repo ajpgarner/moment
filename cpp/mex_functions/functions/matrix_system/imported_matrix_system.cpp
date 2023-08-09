@@ -24,7 +24,7 @@ namespace Moment::mex::functions {
 
     ImportedMatrixSystem::ImportedMatrixSystem(matlab::engine::MATLABEngine &matlabEngine,
                                                StorageManager &storage)
-         : ParameterizedMexFunction{matlabEngine, storage}
+         : ParameterizedMTKFunction{matlabEngine, storage}
     {
         this->flag_names.insert(u"real");
         this->flag_names.insert(u"complex");

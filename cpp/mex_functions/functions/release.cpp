@@ -26,7 +26,7 @@ namespace Moment::mex::functions {
     }
 
     Release::Release(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : ParameterizedMexFunction{matlabEngine, storage} {
+            : ParameterizedMTKFunction{matlabEngine, storage} {
         this->max_outputs = 1;
         this->max_inputs = 0;
         this->min_inputs = 0;

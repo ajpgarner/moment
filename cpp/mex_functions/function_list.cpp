@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "function_list.h"
-#include "mex_function.h"
+#include "mtk_function.h"
 
 #include "functions/conjugate.h"
 #include "functions/generate_basis.h"
@@ -51,49 +51,49 @@
 namespace Moment::mex::functions {
     namespace {
 
-        std::map<std::string, MEXEntryPointID> make_str_to_entrypoint_map() {
-            std::map<std::string, MEXEntryPointID> output;
-            output.emplace("algebraic_matrix_system",   MEXEntryPointID::AlgebraicMatrixSystem);
-            output.emplace("alphabetic_name", MEXEntryPointID::AlphabeticName);
-            output.emplace("apply_moment_rules", MEXEntryPointID::ApplyMomentRules);
-            output.emplace("collins_gisin",   MEXEntryPointID::CollinsGisin);
-            output.emplace("complete",        MEXEntryPointID::Complete);
-            output.emplace("conjugate",       MEXEntryPointID::Conjugate);
-            output.emplace("create_moment_rules",   MEXEntryPointID::CreateMomentRules);
-            output.emplace("echo",            MEXEntryPointID::Echo);
-            output.emplace("extended_matrix", MEXEntryPointID::ExtendedMatrix);
-            output.emplace("flatten_indices", MEXEntryPointID::FlattenIndices);
-            output.emplace("generate_basis",  MEXEntryPointID::GenerateBasis);
-            output.emplace("list",            MEXEntryPointID::List);
-            output.emplace("import_matrix",   MEXEntryPointID::ImportMatrix);
-            output.emplace("imported_matrix_system",    MEXEntryPointID::ImportedMatrixSystem);
-            output.emplace("inflation_matrix_system",   MEXEntryPointID::InflationMatrixSystem);
-            output.emplace("localizing_matrix",  MEXEntryPointID::LocalizingMatrix);
-            output.emplace("locality_matrix_system",    MEXEntryPointID::LocalityMatrixSystem);
-            output.emplace("logging",  MEXEntryPointID::Logging);
-            output.emplace("make_explicit",      MEXEntryPointID::MakeExplicit);
-            output.emplace("make_representation",MEXEntryPointID::MakeRepresentation);
-            output.emplace("moment_rules",       MEXEntryPointID::MomentRules);
-            output.emplace("moment_matrix",      MEXEntryPointID::MomentMatrix);
-            output.emplace("moment_rule_superset",      MEXEntryPointID::MomentRuleSuperset);
-            output.emplace("operator_matrix",    MEXEntryPointID::OperatorMatrix);
-            output.emplace("operator_rules",     MEXEntryPointID::OperatorRules);
-            output.emplace("probability_table",  MEXEntryPointID::ProbabilityTable);
-            output.emplace("release",            MEXEntryPointID::Release);
-            output.emplace("settings",           MEXEntryPointID::Settings);
-            output.emplace("simplify",           MEXEntryPointID::Simplify);
-            output.emplace("substituted_matrix", MEXEntryPointID::SubstitutedMatrix);
-            output.emplace("suggest_extensions", MEXEntryPointID::SuggestExtensions);
-            output.emplace("symmetrized_matrix_system", MEXEntryPointID::SymmetrizedMatrixSystem);
-            output.emplace("symbol_table",       MEXEntryPointID::SymbolTable);
-            output.emplace("transform_symbols",  MEXEntryPointID::TransformSymbols);
-            output.emplace("version",            MEXEntryPointID::Version);
-            output.emplace("word_list",          MEXEntryPointID::WordList);
+        std::map<std::string, MTKEntryPointID> make_str_to_entrypoint_map() {
+            std::map<std::string, MTKEntryPointID> output;
+            output.emplace("algebraic_matrix_system",   MTKEntryPointID::AlgebraicMatrixSystem);
+            output.emplace("alphabetic_name", MTKEntryPointID::AlphabeticName);
+            output.emplace("apply_moment_rules", MTKEntryPointID::ApplyMomentRules);
+            output.emplace("collins_gisin",   MTKEntryPointID::CollinsGisin);
+            output.emplace("complete",        MTKEntryPointID::Complete);
+            output.emplace("conjugate",       MTKEntryPointID::Conjugate);
+            output.emplace("create_moment_rules",   MTKEntryPointID::CreateMomentRules);
+            output.emplace("echo",            MTKEntryPointID::Echo);
+            output.emplace("extended_matrix", MTKEntryPointID::ExtendedMatrix);
+            output.emplace("flatten_indices", MTKEntryPointID::FlattenIndices);
+            output.emplace("generate_basis",  MTKEntryPointID::GenerateBasis);
+            output.emplace("list",            MTKEntryPointID::List);
+            output.emplace("import_matrix",   MTKEntryPointID::ImportMatrix);
+            output.emplace("imported_matrix_system",    MTKEntryPointID::ImportedMatrixSystem);
+            output.emplace("inflation_matrix_system",   MTKEntryPointID::InflationMatrixSystem);
+            output.emplace("localizing_matrix",  MTKEntryPointID::LocalizingMatrix);
+            output.emplace("locality_matrix_system",    MTKEntryPointID::LocalityMatrixSystem);
+            output.emplace("logging",  MTKEntryPointID::Logging);
+            output.emplace("make_explicit",      MTKEntryPointID::MakeExplicit);
+            output.emplace("make_representation",MTKEntryPointID::MakeRepresentation);
+            output.emplace("moment_rules",       MTKEntryPointID::MomentRules);
+            output.emplace("moment_matrix",      MTKEntryPointID::MomentMatrix);
+            output.emplace("moment_rule_superset",      MTKEntryPointID::MomentRuleSuperset);
+            output.emplace("operator_matrix",    MTKEntryPointID::OperatorMatrix);
+            output.emplace("operator_rules",     MTKEntryPointID::OperatorRules);
+            output.emplace("probability_table",  MTKEntryPointID::ProbabilityTable);
+            output.emplace("release",            MTKEntryPointID::Release);
+            output.emplace("settings",           MTKEntryPointID::Settings);
+            output.emplace("simplify",           MTKEntryPointID::Simplify);
+            output.emplace("substituted_matrix", MTKEntryPointID::SubstitutedMatrix);
+            output.emplace("suggest_extensions", MTKEntryPointID::SuggestExtensions);
+            output.emplace("symmetrized_matrix_system", MTKEntryPointID::SymmetrizedMatrixSystem);
+            output.emplace("symbol_table",       MTKEntryPointID::SymbolTable);
+            output.emplace("transform_symbols",  MTKEntryPointID::TransformSymbols);
+            output.emplace("version",            MTKEntryPointID::Version);
+            output.emplace("word_list",          MTKEntryPointID::WordList);
             return output;
         }
 
-        std::map<MEXEntryPointID, std::string> make_entrypoint_to_str_map() {
-            std::map<MEXEntryPointID, std::string> output;
+        std::map<MTKEntryPointID, std::string> make_entrypoint_to_str_map() {
+            std::map<MTKEntryPointID, std::string> output;
             auto fwd_map = make_str_to_entrypoint_map();
             for (auto [str, entry] : fwd_map) {
                 auto [key, did_insert] = output.insert(std::make_pair(entry, str));
@@ -104,16 +104,16 @@ namespace Moment::mex::functions {
     }
 
 
-    MEXEntryPointID which_entrypoint(const std::string &str) {
+    MTKEntryPointID which_entrypoint(const std::string &str) {
         static const auto the_map = make_str_to_entrypoint_map();
         auto iter = the_map.find(str);
         if (iter == the_map.cend()) {
-            return MEXEntryPointID::Unknown;
+            return MTKEntryPointID::Unknown;
         }
         return iter->second;
     }
 
-    std::string which_function_name(MEXEntryPointID id) {
+    std::string which_function_name(MTKEntryPointID id) {
         static const auto the_map = make_entrypoint_to_str_map();
         auto iter = the_map.find(id);
         if (iter == the_map.cend()) {
@@ -122,121 +122,121 @@ namespace Moment::mex::functions {
         return iter->second;
     }
 
-    std::unique_ptr<MexFunction> make_mex_function(matlab::engine::MATLABEngine& engine,
-                                                   MEXEntryPointID function_id,
+    std::unique_ptr<MTKFunction> make_mtk_function(matlab::engine::MATLABEngine& engine,
+                                                   MTKEntryPointID function_id,
                                                    StorageManager& storageManager) {
-        std::unique_ptr<functions::MexFunction> the_function;
+        std::unique_ptr<functions::MTKFunction> the_function;
 
         switch(function_id) {
-            case functions::MEXEntryPointID::AlgebraicMatrixSystem:
+            case functions::MTKEntryPointID::AlgebraicMatrixSystem:
                 the_function = std::make_unique<functions::AlgebraicMatrixSystem>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::AlphabeticName:
+            case functions::MTKEntryPointID::AlphabeticName:
                 the_function = std::make_unique<functions::AlphabeticName>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::ApplyMomentRules:
+            case functions::MTKEntryPointID::ApplyMomentRules:
                 the_function = std::make_unique<functions::ApplyMomentRules>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::CollinsGisin:
+            case functions::MTKEntryPointID::CollinsGisin:
                 the_function = std::make_unique<functions::CollinsGisin>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::Complete:
+            case functions::MTKEntryPointID::Complete:
                 the_function = std::make_unique<functions::Complete>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::Conjugate:
+            case functions::MTKEntryPointID::Conjugate:
                 the_function = std::make_unique<functions::Conjugate>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::CreateMomentRules:
+            case functions::MTKEntryPointID::CreateMomentRules:
                 the_function = std::make_unique<functions::CreateMomentRules>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::Echo:
+            case functions::MTKEntryPointID::Echo:
                 the_function = std::make_unique<functions::Echo>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::ExtendedMatrix:
+            case functions::MTKEntryPointID::ExtendedMatrix:
                 the_function = std::make_unique<functions::ExtendedMatrix>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::FlattenIndices:
+            case functions::MTKEntryPointID::FlattenIndices:
                 the_function = std::make_unique<functions::FlattenIndices>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::GenerateBasis:
+            case functions::MTKEntryPointID::GenerateBasis:
                 the_function = std::make_unique<functions::GenerateBasis>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::ImportMatrix:
+            case functions::MTKEntryPointID::ImportMatrix:
                 the_function = std::make_unique<functions::ImportMatrix>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::ImportedMatrixSystem:
+            case functions::MTKEntryPointID::ImportedMatrixSystem:
                 the_function = std::make_unique<functions::ImportedMatrixSystem>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::InflationMatrixSystem:
+            case functions::MTKEntryPointID::InflationMatrixSystem:
                 the_function = std::make_unique<functions::InflationMatrixSystem>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::List:
+            case functions::MTKEntryPointID::List:
                 the_function = std::make_unique<functions::List>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::LocalityMatrixSystem:
+            case functions::MTKEntryPointID::LocalityMatrixSystem:
                 the_function = std::make_unique<functions::LocalityMatrixSystem>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::LocalizingMatrix:
+            case functions::MTKEntryPointID::LocalizingMatrix:
                 the_function = std::make_unique<functions::LocalizingMatrix>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::Logging:
+            case functions::MTKEntryPointID::Logging:
                 the_function = std::make_unique<functions::Logging>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::MakeExplicit:
+            case functions::MTKEntryPointID::MakeExplicit:
                 the_function = std::make_unique<functions::MakeExplicit>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::MakeRepresentation:
+            case functions::MTKEntryPointID::MakeRepresentation:
                 the_function = std::make_unique<functions::MakeRepresentation>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::MomentMatrix:
+            case functions::MTKEntryPointID::MomentMatrix:
                 the_function = std::make_unique<functions::MomentMatrix>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::MomentRules:
+            case functions::MTKEntryPointID::MomentRules:
                 the_function = std::make_unique<functions::MomentRules>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::MomentRuleSuperset:
+            case functions::MTKEntryPointID::MomentRuleSuperset:
                 the_function = std::make_unique<functions::MomentRuleSuperset>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::OperatorMatrix:
+            case functions::MTKEntryPointID::OperatorMatrix:
                 the_function = std::make_unique<functions::RawOperatorMatrix>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::OperatorRules:
+            case functions::MTKEntryPointID::OperatorRules:
                 the_function = std::make_unique<functions::OperatorRules>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::ProbabilityTable:
+            case functions::MTKEntryPointID::ProbabilityTable:
                 the_function = std::make_unique<functions::ProbabilityTable>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::Release:
+            case functions::MTKEntryPointID::Release:
                 the_function  = std::make_unique<functions::Release>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::Settings:
+            case functions::MTKEntryPointID::Settings:
                 the_function = std::make_unique<functions::Settings>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::Simplify:
+            case functions::MTKEntryPointID::Simplify:
                 the_function = std::make_unique<functions::Simplify>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::SubstitutedMatrix:
+            case functions::MTKEntryPointID::SubstitutedMatrix:
                 the_function = std::make_unique<functions::SubstitutedMatrix>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::SuggestExtensions:
+            case functions::MTKEntryPointID::SuggestExtensions:
                 the_function = std::make_unique<functions::SuggestExtensions>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::SymbolTable:
+            case functions::MTKEntryPointID::SymbolTable:
                 the_function = std::make_unique<functions::SymbolTable>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::SymmetrizedMatrixSystem:
+            case functions::MTKEntryPointID::SymmetrizedMatrixSystem:
                 the_function = std::make_unique<functions::SymmetrizedMatrixSystem>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::TransformSymbols:
+            case functions::MTKEntryPointID::TransformSymbols:
                 the_function = std::make_unique<functions::TransformSymbols>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::Version:
+            case functions::MTKEntryPointID::Version:
                 the_function = std::make_unique<functions::Version>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::WordList:
+            case functions::MTKEntryPointID::WordList:
                 the_function = std::make_unique<functions::WordList>(engine, storageManager);
                 break;
-            case functions::MEXEntryPointID::Unknown:
+            case functions::MTKEntryPointID::Unknown:
                 return {};
         }
 

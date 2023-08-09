@@ -20,9 +20,9 @@ namespace Moment::mex {
 
 namespace Moment::mex::functions {
 
-    class MexFunction;
+    class MTKFunction;
 
-    enum class MEXEntryPointID : int {
+    enum class MTKEntryPointID : int {
         Unknown = 0,
         AlgebraicMatrixSystem,
         AlphabeticName,
@@ -67,14 +67,14 @@ namespace Moment::mex::functions {
      * @param str The string to compare
      * @return The ID of the entry point (if any match).
      */
-    [[nodiscard]] MEXEntryPointID which_entrypoint(const std::string& str);
+    [[nodiscard]] MTKEntryPointID which_entrypoint(const std::string& str);
 
     /**
      * Return the string an the entry point for a given ID
      * @param id ID of the entry point.
      * @return The string (if any match), "unknown" otherwise.
      */
-    [[nodiscard]] std::string which_function_name(MEXEntryPointID);
+    [[nodiscard]] std::string which_function_name(MTKEntryPointID);
 
     /**
      *
@@ -82,7 +82,7 @@ namespace Moment::mex::functions {
      * @param id The MEXEntryPointID of the function to create
      * @return A unique pointer to a newly-constructed MexFunction object.
      */
-    std::unique_ptr<MexFunction> make_mex_function(matlab::engine::MATLABEngine& engine,
-                                                   MEXEntryPointID id,
+    std::unique_ptr<MTKFunction> make_mtk_function(matlab::engine::MATLABEngine& engine,
+                                                   MTKEntryPointID id,
                                                    StorageManager& storageManager);
 }

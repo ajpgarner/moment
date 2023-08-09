@@ -7,7 +7,7 @@
 #pragma once
 
 
-#include "mex_function.h"
+#include "mtk_function.h"
 
 namespace Moment::mex::functions  {
 
@@ -19,7 +19,7 @@ namespace Moment::mex::functions  {
         explicit AlphabeticNameParams(SortedInputs&& input);
     };
 
-    class AlphabeticName : public ParameterizedMexFunction<AlphabeticNameParams, MEXEntryPointID::AlphabeticName> {
+    class AlphabeticName : public ParameterizedMTKFunction<AlphabeticNameParams, MTKEntryPointID::AlphabeticName> {
     public:
         explicit AlphabeticName(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

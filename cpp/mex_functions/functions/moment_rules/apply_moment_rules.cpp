@@ -99,7 +99,7 @@ namespace Moment::mex::functions {
     }
 
     ApplyMomentRules::ApplyMomentRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-            : ParameterizedMexFunction{matlabEngine, storage} {
+            : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_inputs = 3;
         this->max_inputs = 3;
         this->min_outputs = 1;

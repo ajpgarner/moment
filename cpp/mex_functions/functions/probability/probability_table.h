@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "mex_function.h"
+#include "mtk_function.h"
 
 #include "scenarios/inflation/observable_variant_index.h"
 #include "scenarios/locality/party_measurement_index.h"
@@ -53,7 +53,7 @@ namespace Moment::mex::functions {
         explicit ProbabilityTableParams(SortedInputs&& structuredInputs);
     };
 
-class ProbabilityTable : public ParameterizedMexFunction<ProbabilityTableParams, MEXEntryPointID::ProbabilityTable> {
+class ProbabilityTable : public ParameterizedMTKFunction<ProbabilityTableParams, MTKEntryPointID::ProbabilityTable> {
     public:
         explicit ProbabilityTable(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 

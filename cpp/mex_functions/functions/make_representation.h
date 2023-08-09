@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "mex_function.h"
+#include "mtk_function.h"
 
 namespace Moment::mex::functions {
 
@@ -21,7 +21,7 @@ namespace Moment::mex::functions {
     };
 
     class MakeRepresentation
-            : public ParameterizedMexFunction<MakeRepresentationParams, MEXEntryPointID::MakeRepresentation> {
+            : public ParameterizedMTKFunction<MakeRepresentationParams, MTKEntryPointID::MakeRepresentation> {
     public:
         explicit MakeRepresentation(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

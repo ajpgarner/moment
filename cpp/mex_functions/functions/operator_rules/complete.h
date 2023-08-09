@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "mex_function.h"
+#include "mtk_function.h"
 #include "integer_types.h"
 
 #include "import/read_monomial_rules.h"
@@ -58,7 +58,7 @@ namespace Moment::mex::functions {
 
     };
 
-    class Complete : public ParameterizedMexFunction<CompleteParams, MEXEntryPointID::Complete> {
+    class Complete : public ParameterizedMTKFunction<CompleteParams, MTKEntryPointID::Complete> {
     public:
         explicit Complete(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

@@ -24,7 +24,7 @@ namespace Moment::mex {
     class Logger;
 
     namespace functions {
-        class MexFunction;
+        class MTKFunction;
     }
 
     /**
@@ -52,7 +52,7 @@ namespace Moment::mex {
          * @param inputs The input arguments. If function name is found, it is popped from front of this list.
          * @return The ID of the function implied by the input parameters.
          */
-        [[nodiscard]] functions::MEXEntryPointID get_function_id(IOArgumentRange& inputs);
+        [[nodiscard]] functions::MTKEntryPointID get_function_id(IOArgumentRange& inputs);
 
         /**
          * Transforms the raw inputs into a structured "SortedInputs" object
@@ -60,7 +60,7 @@ namespace Moment::mex {
          * @param inputs The raw inputs
          * @return A structured SortedInputs object
          */
-        [[nodiscard]] std::unique_ptr<SortedInputs> clean_inputs(const functions::MexFunction& func, IOArgumentRange& inputs);
+        [[nodiscard]] std::unique_ptr<SortedInputs> clean_inputs(const functions::MTKFunction& func, IOArgumentRange& inputs);
 
         /**
          * Apply further function-specific individual transform of the structured inputs.
@@ -68,7 +68,7 @@ namespace Moment::mex {
          * @param inputs Owning pointer to the structured inputs
          * @return Owning pointer to the possibly transformed inputs
          */
-        [[nodiscard]] std::unique_ptr<SortedInputs> transform_and_validate(const functions::MexFunction& func,
+        [[nodiscard]] std::unique_ptr<SortedInputs> transform_and_validate(const functions::MTKFunction& func,
                                                        std::unique_ptr<SortedInputs> inputs,
                                                        const IOArgumentRange& outputs);
 
@@ -78,9 +78,9 @@ namespace Moment::mex {
          * @param func The mex function
          * @param inputs The structured inputs
          */
-        void validate_inputs(const functions::MexFunction& func, const SortedInputs& inputs);
+        void validate_inputs(const functions::MTKFunction& func, const SortedInputs& inputs);
 
-        void validate_outputs(const functions::MexFunction& func,
+        void validate_outputs(const functions::MTKFunction& func,
                               const IOArgumentRange& outputs,
                               const SortedInputs& inputs);
     };

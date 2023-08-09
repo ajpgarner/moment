@@ -122,7 +122,7 @@ namespace Moment::mex::functions {
     }
 
     Settings::Settings(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
-        : ParameterizedMexFunction{matlabEngine, storage} {
+        : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_inputs = 0;
         this->max_inputs = 1;
         this->flag_names.emplace(u"structured");
@@ -221,7 +221,7 @@ namespace Moment::mex::functions {
     }
 
     void Settings::extra_input_checks(SettingsParams &input) const {
-        ParameterizedMexFunction::extra_input_checks(input);
+        ParameterizedMTKFunction::extra_input_checks(input);
     }
 
     matlab::data::StructArray Settings::make_settings_struct(const EnvironmentalVariables& vars) const {

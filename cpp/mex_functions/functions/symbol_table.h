@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "../mex_function.h"
+#include "../mtk_function.h"
 #include "integer_types.h"
 
 namespace Moment {
@@ -47,7 +47,7 @@ namespace Moment::mex::functions  {
         [[nodiscard]] std::string to_string() const override;
     };
 
-    class SymbolTable : public ParameterizedMexFunction<SymbolTableParams, MEXEntryPointID::SymbolTable> {
+    class SymbolTable : public ParameterizedMTKFunction<SymbolTableParams, MTKEntryPointID::SymbolTable> {
     public:
         explicit SymbolTable(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 

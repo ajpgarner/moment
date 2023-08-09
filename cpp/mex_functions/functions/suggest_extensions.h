@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "../mex_function.h"
+#include "../mtk_function.h"
 
 namespace Moment::mex::functions  {
     struct SuggestExtensionsParams : public SortedInputs {
@@ -25,7 +25,7 @@ namespace Moment::mex::functions  {
 
 
     class SuggestExtensions
-            : public ParameterizedMexFunction<SuggestExtensionsParams, MEXEntryPointID::SuggestExtensions> {
+            : public ParameterizedMTKFunction<SuggestExtensionsParams, MTKEntryPointID::SuggestExtensions> {
     public:
         explicit SuggestExtensions(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 

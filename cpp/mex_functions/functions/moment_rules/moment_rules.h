@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 
-#include "mex_function.h"
+#include "mtk_function.h"
 #include "integer_types.h"
 
 #include "import/read_polynomial.h"
@@ -53,7 +53,7 @@ namespace Moment::mex::functions {
         explicit MomentRulesParams(SortedInputs &&rawInput);
     };
 
-    class MomentRules : public ParameterizedMexFunction<MomentRulesParams, MEXEntryPointID::MomentRules> {
+    class MomentRules : public ParameterizedMTKFunction<MomentRulesParams, MTKEntryPointID::MomentRules> {
     public:
         explicit MomentRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage);
 
