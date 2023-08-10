@@ -202,12 +202,7 @@ namespace Moment {
          * @param build_unique Symbols to be potentially merge
          * @return The ID of the (possibly new) symbol.
          */
-        inline symbol_name_t merge_in(Symbol&& elem, size_t * const new_symbols = nullptr) {
-            symbol_name_t symbol_id;
-            std::tie(symbol_id, std::ignore) = this->merge_in_with_hash_hint(this->hash_table.begin(),
-                                                                             std::move(elem), new_symbols);
-            return symbol_id;
-        }
+        symbol_name_t merge_in(Symbol&& elem, size_t * const new_symbols = nullptr);
 
         /**
          * Add symbols to table, if not already present.
@@ -311,17 +306,6 @@ namespace Moment {
          */
          friend std::ostream& operator<<(ContextualOS& os, const SymbolTable& table);
 
-    private:
-        /**
-        * Add symbol to table, if not already present
-        * @param hint Iterator to hash value not after hash of input symbol.
-        * @param sequence Symbol to be potentially merged.
-        * @return The ID of the (possibly new) symbol, and iterator to its position in the hash.
-        */
-        std::pair<symbol_name_t, std::map<size_t, ptrdiff_t>::iterator>
-        merge_in_with_hash_hint(std::map<size_t, ptrdiff_t>::iterator hint,
-                                Symbol&& sequence,
-                                size_t * new_symbols = nullptr);
     };
 
 }

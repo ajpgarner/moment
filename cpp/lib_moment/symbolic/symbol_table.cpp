@@ -136,13 +136,8 @@ namespace Moment {
                           std::map<size_t, Symbol>::iterator iter_end,
                           size_t * const new_symbols) {
         std::set<symbol_name_t> included_symbols;
-        auto hash_iter = this->hash_table.begin();
         while (iter != iter_end) {
-
-            symbol_name_t symbol_name;
-            std::tie(symbol_name, hash_iter) = this->merge_in_with_hash_hint(hash_iter,
-                                                                             std::move(iter->second),
-                                                                             new_symbols);
+            symbol_name_t symbol_name = this->merge_in(std::move(iter->second), new_symbols);
             included_symbols.emplace(symbol_name);
             ++iter;
         }
@@ -164,19 +159,14 @@ namespace Moment {
         return this->merge_in(Symbol{std::move(sequence), std::move(conj_seq)});
     }
 
-
-
-    std::pair<symbol_name_t, std::map<size_t, ptrdiff_t>::iterator>
-    SymbolTable::merge_in_with_hash_hint(std::map<size_t, ptrdiff_t>::iterator hint,
-                                         Symbol&& elem, size_t * new_symbols) {
-        // Look for insertion point in hash table (with hints)
-        auto find_hash = std::lower_bound(hint, this->hash_table.end(), elem.hash(),
-                                          [](const auto& lhs, const auto& value) { return lhs.first < value; });
+    symbol_name_t SymbolTable::merge_in(Symbol&& elem, size_t * new_symbols) {
+        // Can we find hash already?
+        auto find_hash = this->hash_table.find(elem.hash());
 
         // Not unique, do not add
-        if ((find_hash != this->hash_table.end()) && find_hash->first == elem.hash()) {
+        if (find_hash != this->hash_table.end()) {
             const ptrdiff_t stIndex = find_hash->second >= 0 ? find_hash->second : -find_hash->second;
-            return {this->unique_sequences[stIndex].id, find_hash};
+            return this->unique_sequences[stIndex].id;
         }
 
         // Error if attempting to add an aliased symbol.
@@ -210,11 +200,7 @@ namespace Moment {
         elem.img_index = im_index;
 
         // Prepare output
-        std::pair<symbol_name_t, std::map<size_t, ptrdiff_t>::iterator> output;
-        output.first = next_index;
-
-        // Add hash(es)
-        output.second = this->hash_table.emplace_hint(find_hash, std::make_pair(elem.hash(), next_index));
+        this->hash_table.emplace(std::make_pair(elem.hash(), next_index));
         if (!is_hermitian) {
             this->hash_table.emplace(std::make_pair(elem.hash_conj(), -next_index));
         }
@@ -227,7 +213,7 @@ namespace Moment {
             ++(*new_symbols);
         }
 
-        return output;
+        return next_index;
     }
 
 

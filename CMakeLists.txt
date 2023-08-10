@@ -59,5 +59,7 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cpp/googletest/CMakeLists.txt")
     add_subdirectory(cpp/tests)
 endif()
 
+add_subdirectory(cpp/stress_tests)
+
 add_subdirectory(cpp/mex_functions)
 
