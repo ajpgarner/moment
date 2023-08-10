@@ -27,8 +27,10 @@ namespace Moment::Tests {
         AlgebraicMatrixSystem system{std::make_unique<AlgebraicContext>(3)}; // 1 x y z
         const auto &context = system.AlgebraicContext();
 
+        ASSERT_FALSE(context.can_make_unexpected_nonhermitian_matrices());
         auto [id1, matLevel1] = system.MomentMatrix.create(1, Multithreading::MultiThreadPolicy::Always);
         ASSERT_EQ(matLevel1.Dimension(), 4);
+
 
         const oper_name_t x = 0, y = 1, z = 2;
 
@@ -54,6 +56,7 @@ namespace Moment::Tests {
         using namespace Moment::Algebraic;
         AlgebraicMatrixSystem system{std::make_unique<AlgebraicContext>(3)}; // 1 x y z
         const auto& context = system.AlgebraicContext();
+        ASSERT_FALSE(context.can_make_unexpected_nonhermitian_matrices());
         auto [id2, matLevel2] = system.MomentMatrix.create(2, Multithreading::MultiThreadPolicy::Always);
         ASSERT_EQ(matLevel2.Dimension(), 13);
     }

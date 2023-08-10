@@ -241,7 +241,7 @@ namespace Moment::mex::functions {
             }
         } else {
             // Otherwise, just test for completeness
-            complete_rules = contextPtr->rulebook().is_complete();
+            complete_rules = contextPtr->is_complete();
         }
 
         // Output context in verbose mode

@@ -49,6 +49,9 @@ namespace Moment::Algebraic {
         /** Names */
         std::unique_ptr<NameTable> op_names;
 
+        /** True if rules have been completed. */
+        std::optional<bool> rules_completed = std::nullopt;
+
     public:
         /**
          * Construct context from pre-context and names.
@@ -76,6 +79,18 @@ namespace Moment::Algebraic {
 
         ~AlgebraicContext() noexcept override;
 
+        [[nodiscard]] bool can_be_nonhermitian() const noexcept override {
+            // In general, yes; except if all ops are self adjoint and commute, then no.
+            return !this->commutative || !this->self_adjoint;
+        }
+
+        [[nodiscard]] bool can_make_unexpected_nonhermitian_matrices() const noexcept override {
+            // If we don't know if the rules are complete, or if we know the rules are incomplete,
+            // then we must be paranoid about creating non-Hermitian matrices.
+            return !this->rules_completed.has_value() || !this->rules_completed.value();
+        }
+
+
         /**
          * Attempt to complete rule set
          * @param max_attempts Number of merges allowed before completion is aborted.
@@ -83,6 +98,20 @@ namespace Moment::Algebraic {
          * @return True, if rule-set was completed.
          */
         bool attempt_completion(size_t max_attempts, RuleLogger * logger = nullptr);
+
+        /**
+         * Is the ruleset complete?
+         * If unknown, test.
+         * @return True, if rule-set was completed.
+         */
+        [[nodiscard]] bool is_complete();
+
+        /**
+         * Is the ruleset complete?
+         * @return True, if rule-set was completed.
+         * @throws std::runtime_error if completion status is unknown.
+         */
+        [[nodiscard]] bool is_complete() const;
 
         /**
          * Simplify operator sequence using rules

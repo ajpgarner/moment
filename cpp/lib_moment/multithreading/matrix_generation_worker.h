@@ -123,8 +123,39 @@ namespace Moment::Multithreading {
             // Exit thread...
         }
 
+        /**
+         * Generates in a manner that assumes the result will be Hermitian
+         */
+        void generate_operator_sequence_matrix_hermitian() {
+            assert(this->bundle.os_data_ptr != nullptr);
+            assert(this->bundle.os_functor != nullptr);
 
-        void generate_operator_sequence_matrix() {
+            const size_t row_length = bundle.dimension;
+            for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
+                const auto &colSeq = bundle.colGen[col_idx];
+
+                // Diagonal element
+                const size_t diag_idx = (col_idx * row_length) + col_idx;
+                const auto &conjColSeq = bundle.rowGen[col_idx]; // <- Conjugate by construction
+                this->bundle.os_data_ptr[diag_idx] = (*this->bundle.os_functor)(conjColSeq, colSeq);
+
+                // Off diagonal elements
+                for (size_t row_idx = col_idx+1; row_idx < row_length; ++row_idx) {
+                    const auto &rowSeq = bundle.rowGen[row_idx];
+
+                    const size_t total_idx = (col_idx * row_length) + row_idx;
+                    this->bundle.os_data_ptr[total_idx] = (*this->bundle.os_functor)(rowSeq, colSeq);
+
+                    const size_t conj_idx = (row_idx * row_length) + col_idx;
+                    this->bundle.os_data_ptr[conj_idx] = this->bundle.os_data_ptr[total_idx].conjugate();
+                }
+            }
+        }
+
+        /**
+         * Generates in a manner that must test if the result is be Hermitian.
+         */
+        void generate_operator_sequence_matrix_generic() {
             assert(this->bundle.os_data_ptr != nullptr);
             assert(this->bundle.os_functor != nullptr);
 
@@ -168,6 +199,14 @@ namespace Moment::Multithreading {
                         }
                     }
                 }
+            }
+        }
+
+        inline void generate_operator_sequence_matrix() {
+            if (this->bundle.could_be_non_hermitian) {
+                generate_operator_sequence_matrix_generic();
+            } else {
+                generate_operator_sequence_matrix_hermitian();
             }
         }
 
@@ -392,6 +431,9 @@ namespace Moment::Multithreading {
 
         elem_functor_t * os_functor;
         OperatorSequence * os_data_ptr = nullptr;
+        /** True if, in principle, the generation requested could make a non-Hermitian matrix. */
+        bool could_be_non_hermitian = true;
+        /** True if, in actuality, the generation requested made a non-Hermitian matrix. */
         bool is_hermitian = false;
         Monomial * sm_data_ptr = nullptr;
         std::optional<NonHInfo> minimum_non_h_info;
@@ -454,10 +496,13 @@ namespace Moment::Multithreading {
             this->is_hermitian = !this->minimum_non_h_info.has_value();
         }
 
-        void generate_operator_sequence_matrix(OperatorSequence * const os_data, elem_functor_t functor) {
+        void generate_operator_sequence_matrix(OperatorSequence * const os_data, elem_functor_t functor,
+                                               const bool should_be_hermitian = false) {
             // Supply functor & data pointers
             this->os_data_ptr = os_data;
             this->os_functor = &functor;
+            this->could_be_non_hermitian = this->context.can_make_unexpected_nonhermitian_matrices()
+                                           || !should_be_hermitian;
 
             // Signal all workers to begin
             this->ready_to_begin_osm_generation.test_and_set(std::memory_order_release);

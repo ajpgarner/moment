@@ -16,6 +16,7 @@
 #include <chrono>
 #include <iostream>
 #include <ratio>
+#include <stdexcept>
 
 
 namespace Moment::StressTests {
@@ -87,15 +88,22 @@ namespace Moment::StressTests {
             }
         }
 
-
-        this->ams_ptr = std::make_unique<AlgebraicMatrixSystem>(
-                std::make_unique<AlgebraicContext>(apc, false, false, std::move(rules))
-        );
-        const auto& context = this->ams_ptr->AlgebraicContext();
-        bool complete = context.rulebook().is_complete();
-        if (!complete) {
+        if (rules.size() != expected_rule_count) {
             throw std::logic_error{"Not every expected rule was created."};
         }
+
+        std::unique_ptr<Algebraic::AlgebraicContext> contextPtr = std::make_unique<AlgebraicContext>(apc, false, false, std::move(rules));
+        if (!contextPtr->is_complete()) {
+            throw std::logic_error{"Rulebook should be complete."};
+        }
+
+        this->ams_ptr = std::make_unique<AlgebraicMatrixSystem>(std::move(contextPtr));
+        const auto& context = this->ams_ptr->AlgebraicContext();
+
+        if (context.can_make_unexpected_nonhermitian_matrices()) {
+            throw std::logic_error("Complete rulebook should promise Hermitian matrices.");
+        }
+
     }
 
     void BrownFawziFawzi::make_moment_matrix() {
@@ -107,23 +115,39 @@ namespace Moment::StressTests {
 
 int main() {
     using namespace Moment::StressTests;
-    BrownFawziFawzi bff{3, 2};
+    BrownFawziFawzi bff{4, 2};
+
 
     std::cout << "Setting up matrix system..." << std::endl;
     const auto before_ams = std::chrono::high_resolution_clock::now();
-    bff.set_up_ams();
-    const auto done_ams = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> ams_duration = done_ams - before_ams;
-    std::cout << "... done in " << ams_duration << "." << std::endl;
+    try {
+        bff.set_up_ams();
+
+        const auto done_ams = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> ams_duration = done_ams - before_ams;
+        std::cout << "... done in " << ams_duration << "." << std::endl;
+    } catch(const std::exception& e) {
+        const auto failure_time = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> ams_duration = failure_time - before_ams;
+        std::cout << "... failed after " << ams_duration << ": " << e.what() << std::endl;
+        return -1;
+    }
 
     std::cout << "Generating moment matrix level " << bff.mm_level << "..." << std::endl;
     const auto before_mm = std::chrono::high_resolution_clock::now();
-    bff.make_moment_matrix();
-    const auto done_mm = std::chrono::high_resolution_clock::now();
-    const std::chrono::duration<double> mm_duration = done_mm - before_mm;
+    try {
+        bff.make_moment_matrix();
+        const auto done_mm = std::chrono::high_resolution_clock::now();
+        const std::chrono::duration<double> mm_duration = done_mm - before_mm;
+        std::cout << "... done in " << mm_duration << "." << std::endl;
+    } catch(const std::exception& e) {
+        const auto failure_time = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> mm_duration = failure_time - before_ams;
+        std::cout << "... failed after " << mm_duration << ": " << e.what() << std::endl;
+        return -1;
+    }
 
-    std::cout << "... done in " << mm_duration << "." << std::endl;
 
-    return 0;
+return 0;
 }
 

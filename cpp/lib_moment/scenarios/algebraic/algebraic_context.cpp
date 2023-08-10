@@ -35,6 +35,11 @@ namespace Moment::Algebraic {
             auto extra_rules = OperatorRulebook::normal_rules(this->precontext);
             this->rules.add_rules(extra_rules);
         }
+
+        // If no rules, then automatically complete
+        if (this->rules.size() == 0) {
+            this->rules_completed.emplace(true);
+        }
     }
 
 
@@ -48,6 +53,7 @@ namespace Moment::Algebraic {
     AlgebraicContext::AlgebraicContext(oper_name_t num_ops)
             : AlgebraicContext{AlgebraicPrecontext(num_ops), false, true, {}} {
         // delegated.
+
     }
 
 
@@ -64,7 +70,22 @@ namespace Moment::Algebraic {
 
 
     bool AlgebraicContext::attempt_completion(size_t max_attempts, RuleLogger * logger) {
-        return this->rules.complete(max_attempts, logger);
+        this->rules_completed.emplace(this->rules.complete(max_attempts, logger));
+        return this->rules_completed.value();
+    }
+
+    bool AlgebraicContext::is_complete() {
+        if (!this->rules_completed.has_value()) {
+            this->rules_completed.emplace(this->rules.is_complete());
+        }
+        return this->rules_completed.value();
+    }
+
+    bool AlgebraicContext::is_complete() const {
+        if (this->rules_completed.has_value()) {
+            throw std::runtime_error{"It has not yet been checked whether the rules are complete."};
+        }
+        return this->rules_completed.value();
     }
 
     bool AlgebraicContext::additional_simplification(sequence_storage_t &op_sequence, bool& negated) const {
@@ -233,7 +254,6 @@ namespace Moment::Algebraic {
             std::make_unique<NameTable>(names), false, true, std::vector<OperatorRule>{}
         );
     }
-
 
 
 }

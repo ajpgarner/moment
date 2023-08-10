@@ -36,6 +36,8 @@ namespace Moment {
         SymbolTable& symbols;
 
         functor_t elem_functor;
+        const bool should_be_hermitian;
+
         std::optional<Multithreading::matrix_generation_worker_bundle<functor_t>> mt_bundle;
 
     public:
@@ -46,6 +48,7 @@ namespace Moment {
         size_t dimension = 0;
         size_t numel = 0;
 
+
         const OperatorSequenceGenerator* rowGen = nullptr;
         const OperatorSequenceGenerator* colGen = nullptr;
 
@@ -55,9 +58,10 @@ namespace Moment {
 
         explicit constexpr
         OperatorMatrixFactory(const Context& context, SymbolTable& symbols, size_t level,
-                              functor_t the_functor,
+                              functor_t the_functor, bool should_be_hermitian,
                               const Multithreading::MultiThreadPolicy mt_policy)
             : context{context}, symbols{symbols}, elem_functor{std::move(the_functor)},
+              should_be_hermitian{should_be_hermitian},
               Level{level}, mt_policy{mt_policy} {
         }
 
@@ -129,7 +133,8 @@ namespace Moment {
             assert(this->mt_bundle.has_value());
 
             std::vector<OperatorSequence> matrix_data{OperatorSequence::create_uninitialized_vector(this->numel)};
-            this->mt_bundle->generate_operator_sequence_matrix(matrix_data.data(), this->elem_functor);
+            this->mt_bundle->generate_operator_sequence_matrix(matrix_data.data(), this->elem_functor,
+                                                               this->should_be_hermitian);
 
             auto OSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(matrix_data),
                                                                      this->mt_bundle->non_hermitian_info());

@@ -5,7 +5,7 @@
 
 %% Prepare setting
 setting = make_bff_setting();
-mm_level = 3;
+mm_level = 2;
 gauss_radau_level = 8;
 verbose = false;
 
@@ -13,14 +13,15 @@ chsh = 0.80;
 value_chsh = 2*chsh-1.5;
 
 %% Gauss Radau estimation
+tic;
 [w, t] = gauss_radau(gauss_radau_level);
 val = (-1/gauss_radau_level^2 + sum(w./t))/log(2);
 for i=1:gauss_radau_level-1
 	val = val + (w(i)/(t(i)*log(2))) ...
              * solve_bff_sdp(setting, t(i), mm_level, value_chsh, verbose);
 end
-
-disp(val);
+timing = toc;
+fprintf("Solution: %f [calculated in %f seconds].\n", val, timing);
 
 %% Make BFF setting
 function setting = make_bff_setting()

@@ -57,12 +57,14 @@ namespace Moment {
                                     LocalizingMatrixIndex lmi,
                                     Multithreading::MultiThreadPolicy mt_policy) {
 
+        const bool should_be_hermitian = lmi.Word.hash() == lmi.Word.conjugate().hash();
+
         if (context.can_have_aliases()) {
             const auto alias_lm_functor = [&context, &lmi](const OperatorSequence& lhs, const OperatorSequence& rhs) {
                 return context.simplify_as_moment(lhs * (lmi.Word * rhs));
             };
             OperatorMatrixFactory<LocalizingMatrix, decltype(alias_lm_functor)>
-                creation_context{context, symbols, lmi.Level, alias_lm_functor, mt_policy};
+                creation_context{context, symbols, lmi.Level, alias_lm_functor, should_be_hermitian, mt_policy};
 
             return creation_context.execute(lmi);
         } else {
@@ -70,7 +72,7 @@ namespace Moment {
                 return lhs * (lmi.Word * rhs);
             };
             OperatorMatrixFactory<LocalizingMatrix, decltype(lm_functor)>
-                    creation_context{context, symbols, lmi.Level, lm_functor, mt_policy};
+                    creation_context{context, symbols, lmi.Level, lm_functor, should_be_hermitian, mt_policy};
 
             return creation_context.execute(lmi);
         }

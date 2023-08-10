@@ -48,6 +48,10 @@ namespace Moment {
         /** True, if Context can generate (in principle) non-Hermitian operator strings */
         [[nodiscard]] virtual bool can_be_nonhermitian() const noexcept { return true; }
 
+        /** True, if Context could generate (in principle, even if erroneously) non-Hermitian moment matrices,
+         *  or non-Hermitian localizing matrices with Hermitian words. */
+        [[nodiscard]] virtual bool can_make_unexpected_nonhermitian_matrices() const noexcept { return false; }
+
         /** True, if Context can generate (in principle) two distinct operator strings that map to the same moment. */
         [[nodiscard]] virtual bool can_have_aliases() const noexcept { return false; }
 
