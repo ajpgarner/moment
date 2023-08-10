@@ -15,7 +15,6 @@ namespace Moment::mex::functions {
         MakeRepresentationParams(SortedInputs&& raw_inputs);
 
         uint64_t matrix_system_key = 0;
-        uint64_t symmetry_index = 0;
         size_t word_length;
 
     };

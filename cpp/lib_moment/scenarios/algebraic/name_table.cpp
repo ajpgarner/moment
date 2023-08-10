@@ -125,7 +125,7 @@ namespace Moment::Algebraic {
 
 #ifndef MOMENT_ASAN
         // Fully valid if matches pattern
-        std::regex valid_pattern{"[A-Za-z][A-Za-z0-9_]*"};
+        std::regex valid_pattern{"[A-Za-z][A-Za-z0-9_\\.\\|]*"};
         if (std::regex_match(name, valid_pattern)) {
             return std::nullopt;
         }
@@ -141,7 +141,7 @@ namespace Moment::Algebraic {
 #endif
 
         // Otherwise, generic fail:
-        return {"Name must be alphanumeric, and begin with a letter."};
+        return {"Operator name must be alphanumeric, and begin with a letter."};
     }
 
     oper_name_t NameTable::find(const std::string& str) const {

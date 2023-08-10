@@ -409,7 +409,7 @@ classdef LocalityScenario < MTKScenario
         %
   
 			assert(nargin == 2);
-            
+            obj.System;
             fc = obj.FullCorrelator;
             val = fc.linfunc(tensor);
         end

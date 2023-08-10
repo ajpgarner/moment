@@ -10,7 +10,7 @@ matlab_add_mex(NAME moment_mex
             environmental_variables.cpp
             function_list.cpp
             mex_entry.cpp
-        mtk_function.cpp
+            mtk_function.cpp
             mex_main.cpp
             eigen/read_eigen_dense.cpp
             eigen/read_eigen_sparse.cpp
