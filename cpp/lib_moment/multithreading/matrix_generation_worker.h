@@ -42,6 +42,8 @@ namespace Moment::Multithreading {
 
         std::map<size_t, Symbol> unique_elements;
 
+        std::optional<NonHInfo> non_hermitian;
+
         /** Divide and conquer 'ready' index.
          * Should be changed only by this worker, but read by other workers. */
         std::atomic<size_t> merge_level;
@@ -76,9 +78,13 @@ namespace Moment::Multithreading {
             this->the_thread = std::thread(&matrix_generation_worker<elem_functor_t>::execute, this);
         }
 
-        std::map<size_t, Symbol>& yield_unique_elements() noexcept {
+        [[nodiscard]] std::map<size_t, Symbol>& yield_unique_elements() noexcept {
             return this->unique_elements;
         }
+
+        [[nodiscard]] std::optional<NonHInfo> non_hermitian_info() const noexcept {
+            return this->non_hermitian;
+        };
 
         void execute() {
             // OSM generation
@@ -126,10 +132,41 @@ namespace Moment::Multithreading {
 
             for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
                 const auto &colSeq = bundle.colGen[col_idx];
-                for (size_t row_idx = 0; row_idx < row_length; ++row_idx) {
+                const auto &conjColSeq = bundle.rowGen[col_idx]; // <- Conjugate by construction
+
+                // Diagonal element
+                const size_t diag_idx = (col_idx * row_length) + col_idx;
+                this->bundle.os_data_ptr[diag_idx] = (*this->bundle.os_functor)(conjColSeq, colSeq);
+
+                // Check for Hermiticity if not yet non-hermitian
+                if (!this->non_hermitian.has_value()) {
+                    const auto& seq = this->bundle.os_data_ptr[diag_idx];
+                    const auto conj_seq = seq.conjugate();
+                    if (seq.hash() != conj_seq.hash()) {
+                        this->non_hermitian.emplace(col_idx, col_idx);
+                    }
+                }
+
+                // Off diagonal elements
+                for (size_t row_idx = col_idx+1; row_idx < row_length; ++row_idx) {
                     const auto &rowSeq = bundle.rowGen[row_idx];
+                    const auto &conjRowSeq = bundle.colGen[row_idx]; // <- Conjugate by construction
+
                     const size_t total_idx = (col_idx * row_length) + row_idx;
                     this->bundle.os_data_ptr[total_idx] = (*this->bundle.os_functor)(rowSeq, colSeq);
+
+                    const size_t conj_idx = (row_idx * row_length) + col_idx;
+                    this->bundle.os_data_ptr[conj_idx] = (*this->bundle.os_functor)(conjColSeq, conjRowSeq);
+
+                    // Check for Hermiticity if not yet nonhermitian
+                    if (!this->non_hermitian.has_value()) {
+                        const auto& seq = this->bundle.os_data_ptr[total_idx];
+                        const auto conj_seq = seq.conjugate();
+                        const auto& tx_seq = this->bundle.os_data_ptr[conj_idx];
+                        if (conj_seq.hash() != tx_seq.hash()) {
+                            this->non_hermitian.emplace(row_idx, col_idx);
+                        }
+                    }
                 }
             }
         }
@@ -357,6 +394,7 @@ namespace Moment::Multithreading {
         OperatorSequence * os_data_ptr = nullptr;
         bool is_hermitian = false;
         Monomial * sm_data_ptr = nullptr;
+        std::optional<NonHInfo> minimum_non_h_info;
 
     public:
         friend class matrix_generation_worker<elem_functor_t>;
@@ -402,6 +440,20 @@ namespace Moment::Multithreading {
             }
         }
 
+        void determine_hermitian_status() {
+            // Query workers, and find lowest non-Hermitian element
+            const NonHInfoOrdering nh_less{};
+            this->minimum_non_h_info = std::nullopt;
+            for (const auto& worker_ptr : this->workers) {
+                const auto& nhi = worker_ptr->non_hermitian_info();
+                if (nh_less(nhi, this->minimum_non_h_info)) {
+                    this->minimum_non_h_info = nhi;
+                }
+            }
+
+            this->is_hermitian = !this->minimum_non_h_info.has_value();
+        }
+
         void generate_operator_sequence_matrix(OperatorSequence * const os_data, elem_functor_t functor) {
             // Supply functor & data pointers
             this->os_data_ptr = os_data;
@@ -420,13 +472,16 @@ namespace Moment::Multithreading {
                 }
             }
 
+            this->determine_hermitian_status();
+
             // Dispose functor
             this->os_functor = nullptr;
         }
 
-        void set_hermitian_status(const bool is_herm) {
-            this->is_hermitian = is_herm;
+        [[nodiscard]] inline std::optional<NonHInfo> non_hermitian_info() const noexcept {
+            return this->minimum_non_h_info;
         }
+
 
         void identify_unique_symbols() {
             // Signal all workers to begin

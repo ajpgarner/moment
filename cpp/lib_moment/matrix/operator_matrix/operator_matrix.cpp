@@ -15,34 +15,14 @@ namespace Moment {
 
    OperatorMatrix::OpSeqMatrix::OpSeqMatrix(size_t dimension, std::vector<OperatorSequence> matrix_data)
         : SquareMatrix<OperatorSequence>(dimension, std::move(matrix_data)) {
-        this->calculate_hermicity();
+       this->non_hermitian_elem = NonHInfo::find_first_index(*this);
+       this->hermitian = !this->non_hermitian_elem.has_value();
     }
 
-    void OperatorMatrix::OpSeqMatrix::calculate_hermicity() {
-        for (size_t col = 0; col < this->dimension; ++col) {
-            auto& diag_elem = (*this)(std::array<size_t,2>{col, col});
-
-            if (diag_elem != diag_elem.conjugate()) {
-                this->hermitian = false;
-                this->nonh_i = static_cast<ptrdiff_t>(col);
-                this->nonh_j = static_cast<ptrdiff_t>(col);
-                return;
-            }
-            for (size_t row = col+1; row < this->dimension; ++row) {
-
-                const auto& upper = (*this)(std::array<size_t, 2>{row, col});
-                const auto& lower = (*this)(std::array<size_t, 2>{col, row});
-                const auto lower_conj = lower.conjugate();
-                if (upper != lower_conj) {
-                    this->hermitian = false;
-                    this->nonh_i = static_cast<ptrdiff_t>(row);
-                    this->nonh_j = static_cast<ptrdiff_t>(col);
-                    return;
-                }
-            }
-        }
-        this->hermitian = true;
-        this->nonh_i = this->nonh_j = -1;
+    OperatorMatrix::OpSeqMatrix::OpSeqMatrix(size_t dimension, std::vector<OperatorSequence> matrix_data,
+                                             std::optional<NonHInfo> h_info)
+        : SquareMatrix<OperatorSequence>(dimension, std::move(matrix_data)), non_hermitian_elem{std::move(h_info)} {
+        this->hermitian = !non_hermitian_elem.has_value();
     }
 
     OperatorMatrix::OperatorMatrix(const Context& context, std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)

@@ -85,7 +85,6 @@ namespace Moment {
                 this->mt_bundle.emplace(this->context, this->symbols, *this->colGen, *this->rowGen);
 
                 this->make_operator_matrix_multi_thread(std::forward<Args>(args)...);
-                this->mt_bundle->set_hermitian_status(this->operatorMatrix->is_hermitian());
                 this->register_new_symbols_multi_thread();
                 this->make_symbolic_matrix_multi_thread();
             } else {
@@ -131,7 +130,10 @@ namespace Moment {
 
             std::vector<OperatorSequence> matrix_data{OperatorSequence::create_uninitialized_vector(this->numel)};
             this->mt_bundle->generate_operator_sequence_matrix(matrix_data.data(), this->elem_functor);
-            auto OSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(matrix_data));
+
+            auto OSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(matrix_data),
+                                                                     this->mt_bundle->non_hermitian_info());
+
             this->operatorMatrix = std::make_unique<os_matrix_t>(context, std::forward<Args>(params)..., std::move(OSM));
             assert(this->operatorMatrix);
         }

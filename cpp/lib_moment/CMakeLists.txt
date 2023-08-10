@@ -13,6 +13,7 @@ add_library(lib_moment
         matrix/polynomial_localizing_matrix.cpp
         matrix/polynomial_matrix.cpp
         matrix/polynomial_matrix_basis.cpp
+        matrix/operator_matrix/is_hermitian.cpp
         matrix/operator_matrix/localizing_matrix.cpp
         matrix/operator_matrix/moment_matrix.cpp
         matrix/operator_matrix/operator_matrix.cpp

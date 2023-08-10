@@ -16,6 +16,8 @@
 
 #include "tensor/square_matrix.h"
 
+#include "is_hermitian.h"
+
 #include <cassert>
 
 #include <map>
@@ -36,11 +38,12 @@ namespace Moment {
         class OpSeqMatrix : public SquareMatrix<OperatorSequence> {
         private:
             bool hermitian = false;
-            ptrdiff_t nonh_i = -1;
-            ptrdiff_t nonh_j = -1;
-        public:
+            std::optional<NonHInfo> non_hermitian_elem;
 
+        public:
             OpSeqMatrix(size_t dimension, std::vector<OperatorSequence> matrix_data);
+
+            OpSeqMatrix(size_t dimension, std::vector<OperatorSequence> matrix_data, std::optional<NonHInfo> h_info);
 
             /**
              * True if the matrix is Hermitian.
@@ -51,16 +54,12 @@ namespace Moment {
              * Get first row and column indices of non-hermitian element in matrix, if any. Otherwise nullopt.
              */
             [[nodiscard]] std::optional<Index> nonhermitian_index() const noexcept {
-                if (nonh_i == -1) {
-                    assert(nonh_j == -1);
+                if (non_hermitian_elem.has_value()) {
+                    return non_hermitian_elem->Index;
+                } else {
                     return std::nullopt;
                 }
-                assert(nonh_j != -1);
-                return Index{static_cast<size_t>(nonh_i), static_cast<size_t>(nonh_j)};
             }
-
-        private:
-            void calculate_hermicity();
         };
 
 
