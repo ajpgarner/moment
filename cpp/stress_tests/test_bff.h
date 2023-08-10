@@ -15,18 +15,15 @@ namespace Moment::StressTests {
     class BrownFawziFawzi {
     public:
         const size_t M;
-        const size_t mm_level;
 
     private:
         std::unique_ptr<Algebraic::AlgebraicMatrixSystem> ams_ptr;
 
-        const Moment::SymbolicMatrix * moment_matrix;
-
     public:
-        BrownFawziFawzi(size_t M, size_t mm_level);
+        BrownFawziFawzi(size_t M);
 
         void set_up_ams();
 
-        void make_moment_matrix();
+        const Moment::SymbolicMatrix& make_moment_matrix(size_t mm_level);
     };
 }

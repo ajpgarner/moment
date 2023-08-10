@@ -13,6 +13,8 @@
 #include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/algebraic/algebraic_matrix_system.h"
 
+#include "integer_types.h"
+
 #include <chrono>
 #include <iostream>
 #include <ratio>
@@ -22,9 +24,8 @@
 namespace Moment::StressTests {
     using namespace Moment::Algebraic;
 
-    BrownFawziFawzi::BrownFawziFawzi(const size_t M, const size_t mm_level) 
-        : M{M}, mm_level{mm_level} {
-
+    BrownFawziFawzi::BrownFawziFawzi(const size_t M)
+        : M{M} {
     }
 
     void BrownFawziFawzi::set_up_ams() {
@@ -106,48 +107,55 @@ namespace Moment::StressTests {
 
     }
 
-    void BrownFawziFawzi::make_moment_matrix() {
-        auto& mm = this->ams_ptr->MomentMatrix(2);
-        this->moment_matrix = &mm;
+    const SymbolicMatrix& BrownFawziFawzi::make_moment_matrix(const size_t mm_level) {
+        return this->ams_ptr->MomentMatrix(mm_level);
     }
 
 }
 
 int main() {
     using namespace Moment::StressTests;
-    BrownFawziFawzi bff{4, 2};
 
+    const size_t max_M = Moment::debug_mode ? 5 : 10;
+    const size_t max_MM = Moment::debug_mode ? 2 : 3;
 
-    std::cout << "Setting up matrix system..." << std::endl;
-    const auto before_ams = std::chrono::high_resolution_clock::now();
-    try {
-        bff.set_up_ams();
+    for (size_t M = 1; M <= max_M; ++M) {
+        std::cout << "---\nGauss-Radau level = " << M << std::endl;
 
-        const auto done_ams = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> ams_duration = done_ams - before_ams;
-        std::cout << "... done in " << ams_duration << "." << std::endl;
-    } catch(const std::exception& e) {
-        const auto failure_time = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> ams_duration = failure_time - before_ams;
-        std::cout << "... failed after " << ams_duration << ": " << e.what() << std::endl;
-        return -1;
+        BrownFawziFawzi bff{M};
+        std::cout << "Setting up matrix system..." << std::endl;
+        const auto before_ams = std::chrono::high_resolution_clock::now();
+        try {
+            bff.set_up_ams();
+
+            const auto done_ams = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::milli> ams_duration = done_ams - before_ams;
+            std::cout << "... done in " << ams_duration << "." << std::endl;
+        } catch (const std::exception &e) {
+            const auto failure_time = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::milli> ams_duration = failure_time - before_ams;
+            std::cout << "... failed after " << ams_duration << ": " << e.what() << std::endl;
+            return -1;
+        }
+
+        for (size_t mm_level = 1; mm_level <= max_MM; ++mm_level) {
+            std::cout << "Generating moment matrix level " << mm_level << "..." << std::endl;
+            const auto before_mm = std::chrono::high_resolution_clock::now();
+            try {
+                auto &mm = bff.make_moment_matrix(mm_level);
+                const auto done_mm = std::chrono::high_resolution_clock::now();
+                const std::chrono::duration<double> mm_duration = done_mm - before_mm;
+                std::cout << "... done in " << mm_duration << "." << std::endl;
+            } catch (const std::exception &e) {
+                const auto failure_time = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double, std::milli> mm_duration = failure_time - before_ams;
+                std::cout << "... failed after " << mm_duration << ": " << e.what() << std::endl;
+                return -1;
+            }
+        }
+        std::cout << "\n";
     }
 
-    std::cout << "Generating moment matrix level " << bff.mm_level << "..." << std::endl;
-    const auto before_mm = std::chrono::high_resolution_clock::now();
-    try {
-        bff.make_moment_matrix();
-        const auto done_mm = std::chrono::high_resolution_clock::now();
-        const std::chrono::duration<double> mm_duration = done_mm - before_mm;
-        std::cout << "... done in " << mm_duration << "." << std::endl;
-    } catch(const std::exception& e) {
-        const auto failure_time = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> mm_duration = failure_time - before_ams;
-        std::cout << "... failed after " << mm_duration << ": " << e.what() << std::endl;
-        return -1;
-    }
-
-
-return 0;
+    return 0;
 }
 
