@@ -13,6 +13,7 @@
 
 #include <iosfwd>
 #include <map>
+#include <span>
 #include <vector>
 
 namespace Moment::Algebraic {
@@ -52,6 +53,17 @@ namespace Moment::Algebraic {
 
     class OperatorRulebook {
     public:
+        /**
+         * Describe how an operator sequence will be reduced by the book.
+         * In particular for R rules on a string of length M, the complexities differ. */
+        enum class ReductionMethod : char {
+            /** Try each rule in turn on substrings of fixed length. O(RM)  */
+            IterateRules,
+            /** Try each (variable size) substring in turn, on all rules O(logR M^2) */
+            SearchRules
+        };
+
+    public:
         using rule_map_t = std::map<size_t, OperatorRule>;
 
     private:
@@ -59,7 +71,11 @@ namespace Moment::Algebraic {
 
         rule_map_t monomialRules{};
 
+        /** True if rules cannot make a Hermitian sequence non Hermitian. */
         bool is_hermitian = true;
+
+        /** The order of magnitude of the rulebook; zero if empty */
+        size_t mag = 0;
 
     public:
         OperatorRulebook(const AlgebraicPrecontext& precontext,
@@ -68,20 +84,24 @@ namespace Moment::Algebraic {
         explicit OperatorRulebook(const AlgebraicPrecontext& pc)
             : OperatorRulebook(pc, std::vector<OperatorRule>{}) { }
 
-        /** Add rules */
-        ptrdiff_t add_rules(const std::vector<OperatorRule>& rules, RuleLogger * logger = nullptr);
+        /** Add a set of rules */
+        ptrdiff_t add_rules(std::span<const OperatorRule> rules, RuleLogger * logger = nullptr);
 
         /** Add single rule */
         ptrdiff_t add_rule(const OperatorRule& rule, RuleLogger * logger = nullptr);
 
-
         /** Handle to rules map. */
-        [[nodiscard]] const auto& rules() const noexcept { return this->monomialRules; }
+        [[nodiscard]] inline const auto& rules() const noexcept { return this->monomialRules; }
 
         /**
-         * Number of rules in rule book.
+         * Number of rules in rulebook.
          */
-        [[nodiscard]]  size_t size() const noexcept { return this->monomialRules.size(); }
+        [[nodiscard]] inline  size_t size() const noexcept { return this->monomialRules.size(); }
+
+        /**
+         * Magnitude of the rulebook, ceil(log(size())
+         */
+         [[nodiscard]] inline constexpr size_t magnitude() const noexcept { return this->mag; }
 
         /**
          * Attempts, using Knuth-Bendix algorithm, to complete the rule sets.
@@ -96,6 +116,21 @@ namespace Moment::Algebraic {
          * @param test_cc Also see if rule-set misses complexly-conjugated rules
          */
         [[nodiscard]] bool is_complete(bool test_cc = true) const;
+
+        /**
+         * Identify, for a string of given length, how best to reduce it.
+         * @param string_length Must be greater than or equal to 1.
+         * @return Optimal ReductionMethod.
+         */
+        [[nodiscard]] inline ReductionMethod reduction_method(const size_t string_length) const noexcept {
+            assert(string_length>=1);
+            if ((string_length * this->monomialRules.size()) <= ((string_length*(string_length-1)/2)*this->mag)) {
+                return ReductionMethod::IterateRules;
+            } else {
+                return ReductionMethod::SearchRules;
+            }
+        }
+
 
         /**
          * Reduce sequence, to best of knowledge, using rules
@@ -145,10 +180,25 @@ namespace Moment::Algebraic {
          */
         bool try_conjugation(const OperatorRule& rule, RuleLogger * logger = nullptr);
 
+
         /**
          * Print out rules.
          */
         friend std::ostream& operator<<(std::ostream& os, const OperatorRulebook& rulebook);
+
+    private:
+
+        /**
+         * Recalculate magnitude of the rulebook.
+         */
+        void recalculate_magnitude() noexcept;
+
+        /**
+         * Register a new rule.
+         */
+         ptrdiff_t do_add_rule(const OperatorRule& rule, RuleLogger * logger);
+
+    public:
 
         /**
          * Generate complete commutation rule list.
@@ -185,6 +235,7 @@ namespace Moment::Algebraic {
          * @param output The vector of rules to append to - will have normal rules added (no change if apc is self-adj.)
          */
         static void normal_rules(const AlgebraicPrecontext& apc, std::vector<OperatorRule>& output);
+
 
     };
 

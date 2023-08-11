@@ -5,29 +5,53 @@
  * @author Andrew J. P. Garner
  */
 #include "operator_rulebook.h"
-#include "algebraic_context.h"
+
+#include <cmath>
 
 #include <algorithm>
 #include <iostream>
 
-namespace Moment::Algebraic {
 
+namespace Moment::Algebraic {
 
     OperatorRulebook::OperatorRulebook(const AlgebraicPrecontext& apc,
                                        const std::vector<OperatorRule>& rules) :
             precontext{apc}, is_hermitian{apc.self_adjoint()} {
         this->add_rules(rules);
+        this->recalculate_magnitude();
     }
 
-    ptrdiff_t OperatorRulebook::add_rules(const std::vector<OperatorRule> &rules, RuleLogger * logger) {
+    void OperatorRulebook::recalculate_magnitude() noexcept {
+        const size_t count = this->monomialRules.size();
+        if (0 == count) {
+            this->mag = 0;
+        } else if (1 == count) {
+            this->mag = 1;
+        } else {
+            this->mag = static_cast<size_t>(std::ceil(std::log2(static_cast<double>(count))) + 1e-8);
+        }
+    }
+
+    ptrdiff_t OperatorRulebook::add_rules(const std::span<const OperatorRule> rules, RuleLogger * logger) {
         ptrdiff_t added = 0;
         for (const auto& rule : rules) {
-            added += this->add_rule(rule, logger);
+            added += this->do_add_rule(rule, logger);
+        }
+        if (added != 0) {
+            this->recalculate_magnitude();
         }
         return added;
     }
 
     ptrdiff_t OperatorRulebook::add_rule(const OperatorRule& rule, RuleLogger * logger) {
+        ptrdiff_t num_added = do_add_rule(rule, logger);
+        if (num_added != 0) {
+            this->recalculate_magnitude();
+        }
+        return num_added;
+    }
+
+    ptrdiff_t OperatorRulebook::do_add_rule(const OperatorRule& rule, RuleLogger * logger) {
         // Skip trivial rule
         if (rule.trivial()) {
             return 0;
@@ -40,9 +64,8 @@ namespace Moment::Algebraic {
 
             // LHS doesn't already exist, just insert directly (making sure no 'minus zero' targets)
             if (rule.RHS().zero() && rule.negated()) {
-                const auto& [inSituRule, newElem] = this->monomialRules.insert(std::make_pair(hashLHS,
-                                                                                              OperatorRule{rule.LHS(), rule.RHS()}
-                                                          ));
+                const auto& [inSituRule, newElem] =
+                        this->monomialRules.insert(std::make_pair(hashLHS, OperatorRule{rule.LHS(), rule.RHS()}));
                 if (nullptr != logger) {
                     logger->rule_introduced(inSituRule->second);
                 }
@@ -83,7 +106,7 @@ namespace Moment::Algebraic {
 
                 // RHS also equal to zero, but we have to add carefully...
                 OperatorRule rhsToZero{rule.RHS(), HashedSequence(true)};
-                rules_added += this->add_rule(rhsToZero);
+                rules_added += this->do_add_rule(rhsToZero, logger);
                 return rules_added;
             }
         }
@@ -94,7 +117,7 @@ namespace Moment::Algebraic {
         if (preexisting.RHS().hash() < rule.RHS().hash()) {
             // Then new rule should be B->A:
             OperatorRule b_to_a{rule.RHS(), preexisting.RHS(), negated};
-            rules_added += this->add_rule(b_to_a); // Add carefully, in case 'B' already exists...
+            rules_added += this->do_add_rule(b_to_a, logger); // Add carefully, in case 'B' already exists...
         } else {
             // Otherwise, existing rule C->B is majorized by new rule C->A:
             // We will need to prepare a new rule B->A
@@ -111,7 +134,7 @@ namespace Moment::Algebraic {
             this->monomialRules.insert(std::make_pair(hashLHS, rule));
 
             // Add B->A carefully
-            rules_added += this->add_rule(b_to_a);
+            rules_added += this->do_add_rule(b_to_a, logger);
         }
         return rules_added;
     }
@@ -137,6 +160,7 @@ namespace Moment::Algebraic {
                 if (logger) {
                     logger->success(*this, iteration);
                 }
+                this->recalculate_magnitude();
                 return true;
             }
             ++iteration;
@@ -151,10 +175,22 @@ namespace Moment::Algebraic {
                 logger->failure(*this, iteration);
             }
         }
+        this->recalculate_magnitude();
         return is_complete;
     }
 
     std::pair<HashedSequence, bool> OperatorRulebook::reduce(const HashedSequence& input) const {
+        // Empty string, or empty rulebook, should just be forwarded
+        if (input.empty()) {
+            return std::make_pair(HashedSequence{input.zero()}, false);
+        } else if (this->monomialRules.empty()) {
+            return std::make_pair(input, false);
+        }
+
+        const auto how_to_reduce = this->reduction_method(input.size());
+
+
+
         // Look through, and apply first match.
         auto rule_iter = this->monomialRules.begin();
 
@@ -209,6 +245,11 @@ namespace Moment::Algebraic {
     }
 
     bool OperatorRulebook::can_reduce(const sequence_storage_t &input) const {
+        // Cannot reduce if string or rulebook are empty.
+        if (input.empty() || this->monomialRules.empty()) {
+            return false;
+        }
+
         // Check all rules vs. sequence
         return std::any_of(this->monomialRules.cbegin(), this->monomialRules.cend(),
                     [&input](const auto& key_rule_pair) {
