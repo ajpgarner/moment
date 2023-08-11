@@ -119,12 +119,11 @@ namespace Moment::Algebraic {
 
         /**
          * Identify, for a string of given length, how best to reduce it.
-         * @param string_length Must be greater than or equal to 1.
+         * @param string_length
          * @return Optimal ReductionMethod.
          */
         [[nodiscard]] inline ReductionMethod reduction_method(const size_t string_length) const noexcept {
-            assert(string_length>=1);
-            if ((string_length * this->monomialRules.size()) <= ((string_length*(string_length-1)/2)*this->mag)) {
+            if ((string_length * this->monomialRules.size()) <= ((string_length*(string_length+1)/2)*this->mag)) {
                 return ReductionMethod::IterateRules;
             } else {
                 return ReductionMethod::SearchRules;
@@ -138,6 +137,19 @@ namespace Moment::Algebraic {
          * @return First: Reduced sequence. Second: True if sequence should be negated.
          */
         [[nodiscard]] std::pair<HashedSequence, bool> reduce(const HashedSequence& input) const;
+
+        /**
+         * Reduce non-empty sequence, to best of knowledge, using rules
+         * @param input The sequence to reduce. Must not be empty.
+         * @return First: Reduced sequence. Second: True if sequence should be negated.
+         */
+        [[nodiscard]] std::pair<HashedSequence, bool> reduce_via_iteration(const HashedSequence& input) const;
+        /**
+         * Reduce non-empty  sequence, to best of knowledge, using rules
+         * @param input The sequence to reduce. Must not be empty.
+         * @return First: Reduced sequence. Second: True if sequence should be negated.
+         */
+        [[nodiscard]] std::pair<HashedSequence, bool> reduce_via_search(const HashedSequence& input) const;
 
         /** Reduce rule, to best of knowledge, using rules in set */
         [[nodiscard]] OperatorRule reduce(const OperatorRule& input) const;

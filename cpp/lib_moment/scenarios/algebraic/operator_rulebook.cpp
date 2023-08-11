@@ -6,10 +6,14 @@
  */
 #include "operator_rulebook.h"
 
+#include "utilities/substring_hasher.h"
+
 #include <cmath>
 
 #include <algorithm>
 #include <iostream>
+
+
 
 
 namespace Moment::Algebraic {
@@ -186,10 +190,18 @@ namespace Moment::Algebraic {
         } else if (this->monomialRules.empty()) {
             return std::make_pair(input, false);
         }
-
         const auto how_to_reduce = this->reduction_method(input.size());
 
+        if (how_to_reduce == ReductionMethod::SearchRules) {
+            return this->reduce_via_search(input);
+        } else {
+            assert(how_to_reduce == ReductionMethod::IterateRules);
+            return this->reduce_via_iteration(input);
+        }
+    }
 
+    std::pair<HashedSequence, bool> OperatorRulebook::reduce_via_iteration(const HashedSequence &input) const {
+        assert(!input.empty());
 
         // Look through, and apply first match.
         auto rule_iter = this->monomialRules.begin();
@@ -211,14 +223,56 @@ namespace Moment::Algebraic {
                 if (rule.negated()) {
                     negated = !negated;
                 }
-                auto replacement_sequence = rule.apply_match_with_hint(test_sequence, match_iter);
-                test_sequence.swap(replacement_sequence);
+                test_sequence = rule.apply_match_with_hint(test_sequence, match_iter);
                 // Reset rule iterator, as we now have new sequence to process
                 rule_iter = this->monomialRules.begin();
                 continue;
             }
             ++rule_iter;
         }
+
+        // No further matches of any rules, stop reduction
+        return {HashedSequence{std::move(test_sequence), this->precontext.hasher}, negated};
+    }
+
+
+    std::pair<HashedSequence, bool> OperatorRulebook::reduce_via_search(const HashedSequence &input) const {
+        assert(!input.empty());
+
+        bool negated = false;
+        sequence_storage_t test_sequence(input.begin(), input.end());
+        bool matching = true;
+        do {
+            SubstringHashRange range{test_sequence, this->precontext.hasher.radix};
+            auto iter = range.begin();
+            const auto iter_end = range.end();
+
+            while (iter != iter_end) {
+                // Do we match this substring?
+                if (auto found_rule = this->monomialRules.find(*iter); found_rule != this->monomialRules.end()) {
+                    // Reduced to zero?
+                    if (found_rule->second.rawRHS.zero()) {
+                        return {HashedSequence{true}, false};
+                    }
+
+                    // Otherwise, do a replacement
+                    auto * hint = &test_sequence[iter.index()];
+                    auto new_sequence = found_rule->second.apply_match_with_hint(test_sequence, hint);
+                    test_sequence = std::move(new_sequence);
+                    if (found_rule->second.negated()) {
+                        negated = !negated;
+                    }
+                    break;
+                }
+
+                ++iter;
+            }
+
+            if (iter == iter_end) {
+                matching = false;
+            }
+        } while (matching == true);
+
 
         // No further matches of any rules, stop reduction
         return {HashedSequence{std::move(test_sequence), this->precontext.hasher}, negated};

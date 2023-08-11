@@ -93,6 +93,12 @@ namespace Moment::Algebraic {
             assert(this->_substring_start >= 0);
             return this->_current_hash;
         }
+
+        [[nodiscard]] constexpr size_t index() const noexcept {
+            assert(this->_substring_start >= 0);
+            return static_cast<size_t>(this->_substring_start);
+        }
+
     };
 
     static_assert(std::input_iterator<SubstringHashIter>);

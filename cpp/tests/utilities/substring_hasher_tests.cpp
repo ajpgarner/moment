@@ -48,6 +48,8 @@ namespace Moment::Tests {
 
         ASSERT_NE(iter, iter_end);
         EXPECT_EQ(*iter, hasher.hash(str));
+        EXPECT_EQ(iter.index(), 0);
+
         ++iter;
         EXPECT_EQ(iter, iter_end);
     }
@@ -68,14 +70,17 @@ namespace Moment::Tests {
 
         ASSERT_NE(iter, iter_end);
         EXPECT_EQ(*iter, hasher.hash(sequence_storage_t{5}));
+        EXPECT_EQ(iter.index(), 1);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
         EXPECT_EQ(*iter, hasher.hash(sequence_storage_t{4, 5}));
+        EXPECT_EQ(iter.index(), 0);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
         EXPECT_EQ(*iter, hasher.hash(sequence_storage_t{4}));
+        EXPECT_EQ(iter.index(), 0);
 
         ++iter;
         EXPECT_EQ(iter, iter_end);
@@ -97,26 +102,32 @@ namespace Moment::Tests {
 
         ASSERT_NE(iter, iter_end);
         EXPECT_EQ(*iter, hasher.hash(sequence_storage_t{2}));
+        EXPECT_EQ(iter.index(), 2);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
         EXPECT_EQ(*iter, hasher.hash(sequence_storage_t{1, 2}));
+        EXPECT_EQ(iter.index(), 1);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
         EXPECT_EQ(*iter, hasher.hash(sequence_storage_t{0, 1, 2}));
+        EXPECT_EQ(iter.index(), 0);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
         EXPECT_EQ(*iter, hasher.hash(sequence_storage_t{1}));
+        EXPECT_EQ(iter.index(), 1);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
         EXPECT_EQ(*iter, hasher.hash(sequence_storage_t{0, 1}));
+        EXPECT_EQ(iter.index(), 0);
 
         ++iter;
         ASSERT_NE(iter, iter_end);
         EXPECT_EQ(*iter, hasher.hash(sequence_storage_t{0}));
+        EXPECT_EQ(iter.index(), 0);
 
         ++iter;
         EXPECT_EQ(iter, iter_end);

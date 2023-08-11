@@ -243,10 +243,13 @@ namespace Moment::Tests {
         auto [simplified_string, neg] = rules.reduce(
                 HashedSequence{{0, 1}, hasher}
         );
-
         EXPECT_FALSE(neg);
         ASSERT_EQ(simplified_string.size(), 0); // 0
         EXPECT_TRUE(simplified_string.zero());
+
+        auto [by_search_str, by_search_neg] = rules.reduce_via_search(HashedSequence{{0, 1}, hasher});
+        EXPECT_EQ(by_search_str, simplified_string);
+        EXPECT_EQ(by_search_neg, neg);
     }
 
     TEST(Scenarios_Algebraic_RuleBook, Reduce_ABToZero_ABBB) {
