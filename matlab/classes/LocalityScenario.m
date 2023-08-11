@@ -264,26 +264,26 @@ classdef LocalityScenario < MTKScenario
             end
         end
         
-        function item = get(obj, index, indexB)
+        function item = getPMO(obj, index, indexB)
         % GET Retrieve an object in the locality scenario by index.
         %
         % SYNTAX
-        %   1. norm = setting.get();
+        %   1. norm = setting.getPMO();
         %      Gets the Collins-Gisin tensor (i.e. everything probabilistic.)
-        %   2. party = setting.get([party P])
+        %   2. party = setting.getPMO([party P])
         %      Gets the party at index P.
-        %   3. mmt = setting.get([party P, mmt X])
+        %   3. mmt = setting.getPMO([party P, mmt X])
         %      Gets measurement X associated with party A.
-        %   4. out = setting.get([party P, mmt X, outcome A])
+        %   4. out = setting.getPMO([party P, mmt X, outcome A])
         %      Gets outcome A associated with measurement X of party A.
         %   5. joint_mmt = setting.get([[party P, mmt X]; [party Q, mmt Y]])
         %      Gets the joint measurement formed from measurement X of
         %      party P together with measurement Y of party Q. P must not
         %      be equal to Q. Multiple parties can be specified, but they
         %      must all be different.
-        %   6. joint_out = setting.get([party P, mmt X, outcome A; ...
+        %   6. joint_out = setting.getPMO([party P, mmt X, outcome A; ...
         %                               party Q, mmt Y, outcome B])
-        %   7. joint_out = setting.get(free_indices, fixed_indices);
+        %   7. joint_out = setting.getPMO(free_indices, fixed_indices);
         %      Gets the joint distribution formed from the measurements
         %      listed in free_indices, joint with the outcomes listed in
         %      fixed_indices. All referred to parties must be different.
@@ -385,6 +385,68 @@ classdef LocalityScenario < MTKScenario
             % Try to make joint object
             item = Locality.JointProbability(obj, free, fixed);
             
+        end
+        
+        function val = getOpIndex(obj, party_idx, mmt_idx, out_idx)
+        % GETOPINDEX Translate (party, mmt, outcome) into operator number.
+            val = 1;
+            
+            % No party...
+            if nargin < 2                
+                return;
+            end
+            
+            % Validate party input if any
+            assert(isnumeric(party_idx) && isscalar(party_idx), ...
+                   "Party must be a number.");
+            party_idx = uint64(party_idx);
+            assert(party_idx > 0 && party_idx <= numel(obj.Parties), ...
+                "Party index must be between 1 and %d", numel(obj.Parties));
+            
+            % Sum up to current party
+            val = 1;
+            for previous_party = 1:(party_idx-1)
+                party = obj.Parties(previous_party);
+                for m = 1:numel(party.Measurements)
+                    mmt = party.Measurements(m);
+                    val = val + numel(mmt.Outcomes) - 1;
+                end
+            end
+            
+            % No measurement...
+            if nargin < 3
+                return;
+            end
+           
+            % Validate measurement index
+            party = obj.Parties(party_idx);
+            assert(isnumeric(mmt_idx) && isscalar(mmt_idx), ...
+                   "Measurement must be a number.");
+               
+            mmt_idx = uint64(mmt_idx);
+            assert(mmt_idx > 0 && mmt_idx <= numel(party.Measurements), ...
+                "Measurement index must be between 1 and %d", numel(party.Measurements));
+            % Skip mmts
+            for previous_mmt = 1:(mmt_idx-1)
+                mmt = party.Measurements(previous_mmt);
+                val = val + numel(mmt.Outcomes) - 1;
+            end
+            
+            % No outcome
+            if nargin < 4
+                return;
+            end
+            
+            % Validate outcome
+            mmt = party.Measurements(out_idx);            
+            assert(isnumeric(out_idx) && isscalar(out_idx), ...
+                   "Outcome must be a number.");
+               
+            out_idx = uint64(out_idx);
+            assert(out_idx > 0 && out_idx < numel(mmt.Outcomes), ...
+                "Outcome index must be between 1 and %d", ...
+                numel(mmt.Outcomes)-1);
+            val = double(val + out_idx - 1);
         end
         
         

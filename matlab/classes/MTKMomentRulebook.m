@@ -75,7 +75,7 @@ methods
         if ~obj.has_polys            
             poly_cell = mtk('moment_rules', obj.Scenario.System.RefId, ...
                             obj.Id, 'polynomials');
-            obj.cache_polys = MTKPolynomial.InitFromOperatorCell(...
+            obj.cache_polys = MTKPolynomial.InitFromOperatorPolySpec(...
                                 obj.Scenario, poly_cell);
             obj.has_polys = true;
         end
@@ -150,12 +150,7 @@ methods
         
         if new_symbols
             % Prepare operator cell
-            if new_rules.IsScalar
-                op_cells = {new_rules.OperatorCell};
-            else
-                op_cells = new_rules.OperatorCell;
-            end
-
+            op_cells = new_rules.OperatorCell;
             obj.AddFromOperatorCell(op_cells, new_symbols);        
         else
             % Prepare symbol cell

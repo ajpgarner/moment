@@ -1,7 +1,11 @@
-function obj = InitFromOperatorCell(setting, cell_input)
-    
+function obj = InitFromOperatorCell(scenario, cell_input)
+%INITFROMOPERATORCELL Constructs MTKPolynomial object from operator cells.
+%
+% SEE ALSO: MTKPolynomial.OperatorCell
+%
+
 	assert((nargin == 2) ...
-		&& isa(setting, 'MTKScenario') ...
+		&& isa(scenario, 'MTKScenario') ...
 		&& iscell(cell_input));
 	
     dimensions = size(cell_input);
@@ -12,42 +16,22 @@ function obj = InitFromOperatorCell(setting, cell_input)
         return;
     end
     
-    % Otherwise, construct:
-    obj = MTKPolynomial(setting, 'overwrite', dimensions);
-    
-    if obj.IsScalar
-        if numel(cell_input{1}) == 3
-            obj.Constituents = ...
-                MTKMonomial.InitDirect(setting, cell_input{1}{:});
-        elseif numel(cell_input{1}) == 7
-            obj.Constituents = ...
-                MTKMonomial.InitAllInfo(setting, cell_input{1}{:});
-        elseif setting.PermitsSymbolAliases && numel(cell_input{1}) == 8
-            obj.Constituents = ...
-                MTKMonomial.InitAllInfo(setting, cell_input{1}{:});
-        else
-            error("Error constructing polynomial: expected 3 or 7 " + ...
-                "arrays to specify polynomial, but %d were provided", ...
-                numel(cell_input{1}));
-        end
-        return;
+    % Make constituents
+    constituents = cell(dimensions);
+    for poly_index = 1:numel(cell_input)
+        mono_count = numel(cell_input{poly_index});
+        op_seqs = cell(mono_count, 1);
+        weights = zeros(mono_count, 1);
+        for mono_index = 1:mono_count
+            op_seqs{mono_index} = cell_input{poly_index}{mono_index}{1};
+            weights(mono_index) = cell_input{poly_index}{mono_index}{2};            
+        end       
+        constituents{poly_index} = MTKMonomial(scenario, op_seqs, weights);
     end
     
-    for idx=1:numel(cell_input)
-        if numel(cell_input{idx}) == 3 
-            obj.Constituents{idx} = ...
-                MTKMonomial.InitDirect(setting, cell_input{idx}{:});            
-        elseif numel(cell_input{idx}) == 7
-            obj.Constituents{idx} = ...
-                MTKMonomial.InitAllInfo(setting, cell_input{idx}{:});
-        elseif setting.PermitsSymbolAliases && numel(cell_input{idx}) == 8
-            obj.Constituents{idx} = ...
-                MTKMonomial.InitAllInfo(setting, cell_input{idx}{:});           
-        else
-            error("Error constructing element %d: expected 3 or 7 " + ...
-                  "arrays to specify polynomial, but %d were provided", ...
-                  idx, numel(cell_input{idx}));
-        end
-    end
-  
+    
+    % Construct:
+    obj = MTKPolynomial(scenario, constituents);
+    
 end
+

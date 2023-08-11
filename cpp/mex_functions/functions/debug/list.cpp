@@ -259,7 +259,7 @@ namespace Moment::mex::functions {
         auto lock = msPtr->get_read_lock();
 
         matlab::data::ArrayFactory factory;
-        auto output = factory.createStructArray({1, 1}, {"RefId", "Description", "OperatorCounter",
+        auto output = factory.createStructArray({1, 1}, {"RefId", "Description", "OperatorCount",
                                                          "Matrices", "Symbols", "Rulebooks"});
         output[0]["RefId"] = factory.createScalar(input.matrix_system_key);
         output[0]["Description"] = factory.createScalar(msPtr->system_type_name());

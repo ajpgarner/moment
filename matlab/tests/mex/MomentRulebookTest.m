@@ -30,8 +30,8 @@ classdef MomentRulebookTest < MTKTestBase
         function AddCellRule(testCase)
             setting = AlgebraicScenario(["x", "y", "z"], 'hermitian', true);            
             rules = MomentRulebook(setting);
-            input_rule = {{uint64([3]), 1.0}, {uint64([1, 2]), -1.0}};
-            rules.AddFromOperatorCell({input_rule}, true);     
+            input_rule = {{{uint64([3]), 1.0}, {uint64([1, 2]), -1.0}}};
+            rules.AddFromOperatorCell(input_rule, true);     
             rule_poly = rules.Polynomials;
             testCase.verifyEqual(rule_poly.OperatorCell, input_rule);            
         end
@@ -42,7 +42,7 @@ classdef MomentRulebookTest < MTKTestBase
             input_rule = {{uint64([3]), 1.0}, ...
                           {uint64([1, 2]), -1.0}, ...
                           {uint64([3]), 2.0}};
-            expected_rule = {{uint64([3]), 3.0}, {uint64([1, 2]), -1.0}};
+            expected_rule = {{{uint64([3]), 3.0}, {uint64([1, 2]), -1.0}}};
             rules.AddFromOperatorCell({input_rule}, true);            
             rule_poly = rules.Polynomials;
             testCase.verifyEqual(rule_poly.OperatorCell, expected_rule);

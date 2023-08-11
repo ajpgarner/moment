@@ -58,7 +58,7 @@ function val = make_explicit(scenario, free, fixed, ...
     
     % Process output for polynomial mode
     if parse_as_poly    
-        val = MTKPolynomial.InitFromOperatorCell(scenario, val);
+        val = MTKPolynomial.InitFromOperatorPolySpec(scenario, val);
         val.ReadOnly = true;
     end
 end

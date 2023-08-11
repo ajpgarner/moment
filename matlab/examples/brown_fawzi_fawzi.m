@@ -12,11 +12,11 @@ verbose = false;
 chsh = 0.80;
 value_chsh = 2*chsh-1.5;
 
-%% Gauss Radau estimation
+%% Gauss-Radau estimation
 tic;
 [w, t] = gauss_radau(gauss_radau_level);
 val = (-1/gauss_radau_level^2 + sum(w./t))/log(2);
-for i=1:gauss_radau_level-1
+for i=1:(gauss_radau_level-1)
 	val = val + (w(i)/(t(i)*log(2))) ...
              * solve_bff_sdp(setting, t(i), mm_level, value_chsh, verbose);
 end
@@ -96,7 +96,7 @@ function val = solve_bff_sdp(setting, t, moment_matrix_level, ...
 	objective = obj.yalmip(a);
     
     % Set other settings    
-    ops = sdpsettings(sdpsettings, 'verbose', verbose);
+    ops = sdpsettings('verbose', verbose);
     
     % Solve
     optimize(constraints, objective, ops);

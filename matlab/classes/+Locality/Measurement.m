@@ -109,7 +109,7 @@ classdef (InferiorClasses={?Locality.Outcome}) Measurement < handle
                 poly_spec = mtk('probability_table', 'full_sequences',...
                     obj.Scenario.System.RefId, obj.Index);
                 obj.implicit = ...
-                    MTKPolynomial.InitFromOperatorCell(obj.Scenario, ...
+                    MTKPolynomial.InitFromOperatorPolySpec(obj.Scenario, ...
                                                        poly_spec);
                 obj.implicit.ReadOnly = true;
             end
@@ -205,6 +205,16 @@ classdef (InferiorClasses={?Locality.Outcome}) Measurement < handle
             joint_object = mtimes(this, other);
             val = joint_object.Correlator;           
         end
+        
+        function val = Expt(obj)
+        % Expectation value, if first outcome is +1, and second is -1.
+            if numel(obj.Outcomes) ~= 2
+                error("Expectation value only defined for binary measurements.");
+            end
+            impl = obj.ImplicitOutcomes;
+            val = impl(1) - impl(2);
+        end
+            
         
         function val = Apply(obj, re_vals, ~)
         % APPLY Forward to Apply function of outcome polynomials.

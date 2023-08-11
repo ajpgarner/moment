@@ -131,6 +131,8 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
         
         obj = InitValue(setting, values);
         
+        obj = InitFromOperatorPolySpec(setting, cell_input);
+        
         obj = InitFromOperatorCell(setting, cell_input);
     end
     

@@ -1,7 +1,7 @@
 function makeOperatorCell(obj)
 %MAKEOPERATORCELL Create cell description of polynomial.
     if obj.IsScalar
-        obj.operator_cell = makeOneOperatorCell(obj.Constituents);
+        obj.operator_cell = {makeOneOperatorCell(obj.Constituents)};
     else
         obj.operator_cell = ...
             cellfun(@makeOneOperatorCell, obj.Constituents, ...
