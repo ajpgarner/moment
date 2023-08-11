@@ -141,8 +141,23 @@ namespace Moment {
             return this->operators[index];
         }
 
-        /** Access operator string directly */
+        /** Access to operator string directly */
         [[nodiscard]] constexpr const auto& raw() const noexcept { return this->operators; }
+
+        /** Write access to operator string directly */
+        [[nodiscard]] constexpr auto& raw()  noexcept { return this->operators; }
+
+        /** Recalculate sequence's hash (only required after raw access write!) */
+        template<OperatorHasher hasher_t>
+        void rehash(const hasher_t& hasher) {
+            this->the_hash = hasher(static_cast<std::span<const oper_name_t>>(this->operators));
+        }
+
+        /** Manually reset sequence's hash (only required after raw access write!), or recontextualizing sequence. */
+        void rehash(const uint64_t hash) {
+            this->the_hash = hash;
+            this->is_zero = (hash == 0);
+        }
 
         /** Ordering by hash value (e.g. shortlex) */
         [[nodiscard]] constexpr bool operator<(const HashedSequence& rhs) const noexcept {

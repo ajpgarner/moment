@@ -192,22 +192,63 @@ namespace Moment::Algebraic {
         }
         const auto how_to_reduce = this->reduction_method(input.size());
 
-        if (how_to_reduce == ReductionMethod::SearchRules) {
-            return this->reduce_via_search(input);
-        } else {
-            assert(how_to_reduce == ReductionMethod::IterateRules);
-            return this->reduce_via_iteration(input);
+        // Copy (still...)
+        sequence_storage_t test_sequence(input.begin(), input.end());
+        const auto result = (how_to_reduce == ReductionMethod::SearchRules) ?
+                        this->reduce_via_search(test_sequence)
+                      : this->reduce_via_iteration(test_sequence);
+
+        switch (result) {
+            case RawReductionResult::NoMatch:
+                return std::make_pair(input, false);
+            case RawReductionResult::Match:
+                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, false);
+            case RawReductionResult::MatchWithNegation:
+                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, true);
+            case RawReductionResult::SetToZero:
+                return std::make_pair(HashedSequence{true}, false);
+            default:
+                assert(false);
         }
+
     }
 
-    std::pair<HashedSequence, bool> OperatorRulebook::reduce_via_iteration(const HashedSequence &input) const {
-        assert(!input.empty());
 
+    std::pair<bool, bool> OperatorRulebook::reduce_in_place(HashedSequence& input) const {
+        // Empty string, or empty rulebook, no change
+        if (input.empty() || this->monomialRules.empty()) {
+            return {false, false};
+        }
+
+        const auto how_to_reduce = this->reduction_method(input.size());
+        const auto result = (how_to_reduce == ReductionMethod::SearchRules) ?
+                          this->reduce_via_search(input.raw())
+                        : this->reduce_via_iteration(input.raw());
+
+        switch (result) {
+            case RawReductionResult::NoMatch:
+                return {false, false};
+            case RawReductionResult::Match:
+                input.rehash(this->precontext.hasher);
+                return {true, false};
+            case RawReductionResult::MatchWithNegation:
+                input.rehash(this->precontext.hasher);
+                return {true, true};
+            case RawReductionResult::SetToZero:
+                input.raw().clear();
+                input.rehash(0);
+                return {true, false};
+        }
+        assert(false);
+    }
+
+    OperatorRulebook::RawReductionResult
+    OperatorRulebook::reduce_via_iteration(sequence_storage_t& test_sequence) const {
         // Look through, and apply first match.
         auto rule_iter = this->monomialRules.begin();
 
+        bool matched_once = false;
         bool negated = false;
-        sequence_storage_t test_sequence(input.begin(), input.end());
 
         while (rule_iter != this->monomialRules.end()) {
             const auto& rule = rule_iter->second;
@@ -216,7 +257,7 @@ namespace Moment::Algebraic {
             if (match_iter != test_sequence.end()) {
                 // Reduced to zero?
                 if (rule.rawRHS.zero()) {
-                    return {HashedSequence{true}, false};
+                    return RawReductionResult::SetToZero;
                 }
 
                 // What about negation?
@@ -226,22 +267,25 @@ namespace Moment::Algebraic {
                 test_sequence = rule.apply_match_with_hint(test_sequence, match_iter);
                 // Reset rule iterator, as we now have new sequence to process
                 rule_iter = this->monomialRules.begin();
+                matched_once = true;
                 continue;
             }
             ++rule_iter;
         }
 
+        if (!matched_once) {
+            return RawReductionResult::NoMatch;
+        }
+
         // No further matches of any rules, stop reduction
-        return {HashedSequence{std::move(test_sequence), this->precontext.hasher}, negated};
+        return negated ? RawReductionResult::MatchWithNegation : RawReductionResult::Match;
     }
 
-
-    std::pair<HashedSequence, bool> OperatorRulebook::reduce_via_search(const HashedSequence &input) const {
-        assert(!input.empty());
-
+    OperatorRulebook::RawReductionResult
+    OperatorRulebook::reduce_via_search(sequence_storage_t& test_sequence) const {
         bool negated = false;
-        sequence_storage_t test_sequence(input.begin(), input.end());
         bool matching = true;
+        bool any_matches = false;
         do {
             SubstringHashRange range{test_sequence, this->precontext.hasher.radix};
             auto iter = range.begin();
@@ -252,8 +296,10 @@ namespace Moment::Algebraic {
                 if (auto found_rule = this->monomialRules.find(*iter); found_rule != this->monomialRules.end()) {
                     // Reduced to zero?
                     if (found_rule->second.rawRHS.zero()) {
-                        return {HashedSequence{true}, false};
+                        return RawReductionResult::SetToZero;
                     }
+
+                    any_matches = true;
 
                     // Otherwise, do a replacement
                     auto * hint = &test_sequence[iter.index()];
@@ -273,10 +319,63 @@ namespace Moment::Algebraic {
             }
         } while (matching == true);
 
-
         // No further matches of any rules, stop reduction
-        return {HashedSequence{std::move(test_sequence), this->precontext.hasher}, negated};
+        if (!any_matches) {
+            return RawReductionResult::NoMatch;
+        }
+        return negated ? RawReductionResult::MatchWithNegation : RawReductionResult::Match;
     }
+
+
+    std::pair<HashedSequence, bool> OperatorRulebook::reduce_via_iteration(const HashedSequence &input) const {
+        if (input.empty()) {
+            return std::make_pair(HashedSequence{input.zero()}, false);
+        } else if (this->monomialRules.empty()) {
+            return std::make_pair(input, false);
+        }
+
+        // Copy
+        sequence_storage_t test_sequence(input.begin(), input.end());
+        auto result = this->reduce_via_iteration(test_sequence);
+
+        switch (result) {
+            case RawReductionResult::NoMatch:
+                return std::make_pair(input, false);
+            case RawReductionResult::Match:
+                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, false);
+            case RawReductionResult::MatchWithNegation:
+                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, true);
+            case RawReductionResult::SetToZero:
+                return std::make_pair(HashedSequence{true}, false);
+            default:
+                assert(false);
+        }
+    }
+
+    std::pair<HashedSequence, bool> OperatorRulebook::reduce_via_search(const HashedSequence &input) const {
+        if (input.empty()) {
+            return std::make_pair(HashedSequence{input.zero()}, false);
+        } else if (this->monomialRules.empty()) {
+            return std::make_pair(input, false);
+        }
+
+        // Copy
+        sequence_storage_t test_sequence(input.begin(), input.end());
+        auto result = this->reduce_via_search(test_sequence);
+        switch (result) {
+            case RawReductionResult::NoMatch:
+                return std::make_pair(input, false);
+            case RawReductionResult::Match:
+                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, false);
+            case RawReductionResult::MatchWithNegation:
+                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, true);
+            case RawReductionResult::SetToZero:
+                return std::make_pair(HashedSequence{true}, false);
+            default:
+                assert(false);
+        }
+    }
+
 
     OperatorRule OperatorRulebook::reduce(const OperatorRule &input) const {
         // Reduce
@@ -304,12 +403,24 @@ namespace Moment::Algebraic {
             return false;
         }
 
-        // Check all rules vs. sequence
-        return std::any_of(this->monomialRules.cbegin(), this->monomialRules.cend(),
-                    [&input](const auto& key_rule_pair) {
-            auto match_iter = key_rule_pair.second.matches_anywhere(input.begin(), input.end());
-            return match_iter != input.end();
-        });
+        // How to test?
+        auto test_method = this->reduction_method(input.size());
+
+        if (test_method == ReductionMethod::IterateRules) {
+            // Check all rules vs. sequence
+            return std::any_of(this->monomialRules.cbegin(), this->monomialRules.cend(),
+                               [&input](const auto &key_rule_pair) {
+                                   auto match_iter = key_rule_pair.second.matches_anywhere(input.begin(), input.end());
+                                   return match_iter != input.end();
+                               });
+        } else {
+            assert(test_method == ReductionMethod::SearchRules);
+
+            SubstringHashRange range{input, this->precontext.hasher.radix};
+            return std::any_of(range.begin(), range.end(),
+                               [this](const uint64_t hash) { return this->monomialRules.contains(hash); });
+
+        }
     }
 
 

@@ -63,6 +63,16 @@ namespace Moment::Algebraic {
             SearchRules
         };
 
+        /**
+         * Result of raw reduction.
+         */
+        enum class RawReductionResult : char {
+            NoMatch,
+            Match,
+            MatchWithNegation,
+            SetToZero
+        };
+
     public:
         using rule_map_t = std::map<size_t, OperatorRule>;
 
@@ -130,26 +140,76 @@ namespace Moment::Algebraic {
             }
         }
 
+        /**
+         * Reduce sequence, to best of knowledge, by iterating over rules and checking for a matching substring.
+         * @complexity O(RN) for rulebook size R, string length N.
+         * @param input The sequence to reduce. Must not be empty.
+         * @return Result of match
+         */
+         [[nodiscard]] RawReductionResult reduce_via_iteration(sequence_storage_t& input) const;
 
         /**
-         * Reduce sequence, to best of knowledge, using rules
+         * Reduce sequence, to best of knowledge, by iterating over substrings and checking for a matching rule.
+         * @complexity O(log(R)N^2) for rulebook size R, string length N.
+         * @param input The sequence to reduce. Must not be empty.
+         * @return Result of match
+         */
+        [[nodiscard]] RawReductionResult reduce_via_search(sequence_storage_t& input) const;
+
+
+        /**
+         * Reduce sequence, to best of knowledge, by iterating over rules and checking for a matching substring.
+         * @complexity O(RN) for rulebook size R, string length N.
+         * @param input The sequence to reduce
+         * @return First: Reduced sequence. Second: True if sequence should be negated.
+         */
+        [[nodiscard]] std::pair<HashedSequence, bool> reduce_via_iteration(const HashedSequence& input) const;
+
+        /**
+         * Reduce sequence, to best of knowledge, by iterating over substrings and checking for a matching rule.
+         * @complexity O(log(R)N^2) for rulebook size R, string length N.
+         * @param input The sequence to reduce
+         * @return First: Reduced sequence. Second: True if sequence should be negated.
+         */
+        [[nodiscard]] std::pair<HashedSequence, bool> reduce_via_search(const HashedSequence& input) const;
+
+        /**
+         * Reduce sequence, to best of knowledge, using rules.
+         * Automatically choose the reduction method based algorithmically on string and rulebook lengths.
+         * @complexity lower of O(RN) and O(log(R)N^2) for rulebook size R, string length N.
          * @param input The sequence to reduce
          * @return First: Reduced sequence. Second: True if sequence should be negated.
          */
         [[nodiscard]] std::pair<HashedSequence, bool> reduce(const HashedSequence& input) const;
 
         /**
-         * Reduce non-empty sequence, to best of knowledge, using rules
-         * @param input The sequence to reduce. Must not be empty.
-         * @return First: Reduced sequence. Second: True if sequence should be negated.
+         * Reduce sequence in place (i.e. avoiding copying if possible), using rules.
+         * Automatically choose the reduction method based algorithmically on string and rulebook lengths.
+         * @complexity lower of O(RN) and O(log(R)N^2) for rulebook size R, string length N.
+         * @param input The sequence to reduce
+         * @param negate Output: will be set to true if the matched string should be negated.
+         * @return First: True if a match was found. Second: True if sequenec should be negated.
          */
-        [[nodiscard]] std::pair<HashedSequence, bool> reduce_via_iteration(const HashedSequence& input) const;
+        [[nodiscard]] inline RawReductionResult reduce_in_place(sequence_storage_t& input) const {
+            if (input.empty() || this->monomialRules.empty()) {
+                return RawReductionResult::NoMatch;
+            }
+
+            return (this->reduction_method(input.size()) == ReductionMethod::SearchRules)
+                        ? this->reduce_via_search(input)
+                        : this->reduce_via_iteration(input);
+        }
+
         /**
-         * Reduce non-empty  sequence, to best of knowledge, using rules
-         * @param input The sequence to reduce. Must not be empty.
-         * @return First: Reduced sequence. Second: True if sequence should be negated.
+         * Reduce sequence in place (i.e. avoiding copying if possible), using rules.
+         * Automatically choose the reduction method based algorithmically on string and rulebook lengths.
+         * @complexity lower of O(RN) and O(log(R)N^2) for rulebook size R, string length N.
+         * @param input The sequence to reduce
+         * @param negate Output: will be set to true if the matched string should be negated.
+         * @return First: True if a match was found. Second: True if sequenec should be negated.
          */
-        [[nodiscard]] std::pair<HashedSequence, bool> reduce_via_search(const HashedSequence& input) const;
+        [[nodiscard]] std::pair<bool, bool> reduce_in_place(HashedSequence& input) const;
+
 
         /** Reduce rule, to best of knowledge, using rules in set */
         [[nodiscard]] OperatorRule reduce(const OperatorRule& input) const;

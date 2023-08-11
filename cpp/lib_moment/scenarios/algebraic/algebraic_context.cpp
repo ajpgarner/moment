@@ -88,30 +88,23 @@ namespace Moment::Algebraic {
         return this->rules_completed.value();
     }
 
-    bool AlgebraicContext::additional_simplification(sequence_storage_t &op_sequence, bool& negated) const {
+    bool AlgebraicContext::additional_simplification(sequence_storage_t& op_sequence, bool& negated) const {
         if (this->commutative) {
             std::sort(op_sequence.begin(), op_sequence.end());
         }
 
-        HashedSequence inputSeq{std::move(op_sequence), this->hasher};
-
-        auto [reduced, ruleNeg] = this->rules.reduce(inputSeq);
-
-        // Simplify to zero?
-        if (reduced.zero()) {
-            op_sequence.clear();
-            return true;
+        const auto result = this->rules.reduce_in_place(op_sequence);
+        switch (result) {
+            case OperatorRulebook::RawReductionResult::SetToZero:
+                op_sequence.clear();
+                return true;
+            case OperatorRulebook::RawReductionResult::MatchWithNegation:
+                negated = !negated;
+                break;
+            default:
+                break;
         }
 
-        // Copy non-zero replacement
-        op_sequence.clear();
-        op_sequence.reserve(reduced.size());
-        for (const auto& op : reduced) {
-            op_sequence.emplace_back(op);
-        }
-
-        // Negate, if required.
-        negated = (negated != ruleNeg);
         return false;
     }
 

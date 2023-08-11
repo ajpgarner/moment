@@ -25,7 +25,7 @@ add_executable(moment_tests
         scenarios/algebraic/algebraic_precontext_tests.cpp
         scenarios/algebraic/monomial_substitution_rule_tests.cpp
         scenarios/algebraic/name_table_tests.cpp
-        scenarios/algebraic/rule_book_tests.cpp
+        scenarios/algebraic/rulebook_tests.cpp
         scenarios/derived/lu_mcp_tests.cpp
         scenarios/derived/map_core_tests.cpp
         scenarios/derived/symbol_table_map_tests.cpp

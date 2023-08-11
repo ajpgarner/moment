@@ -1,5 +1,5 @@
 /**
- * rule_book_tests.cpp
+ * rulebook_tests.cpp
  * 
  * @copyright Copyright (c) 2022 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -13,14 +13,14 @@
 namespace Moment::Tests {
     using namespace Moment::Algebraic;
 
-    TEST(Scenarios_Algebraic_RuleBook, Empty) {
+    TEST(Scenarios_Algebraic_Rulebook, Empty) {
         AlgebraicPrecontext apc{1};
         OperatorRulebook rules{apc};
         EXPECT_EQ(rules.size(), 0);
         EXPECT_TRUE(rules.rules().empty());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, AddRule_ToEmpty) {
+    TEST(Scenarios_Algebraic_Rulebook, AddRule_ToEmpty) {
         AlgebraicPrecontext apc{2};
         const ShortlexHasher& hasher = apc.hasher;
         OperatorRulebook rules{apc};
@@ -36,7 +36,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(theRule->second.negated());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, AddRule_ToNonEmpty) {
+    TEST(Scenarios_Algebraic_Rulebook, AddRule_ToNonEmpty) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
 
@@ -63,7 +63,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(theRuleB->second.negated());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, AddRule_Redundant) {
+    TEST(Scenarios_Algebraic_Rulebook, AddRule_Redundant) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         
@@ -84,7 +84,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(theRuleA->second.negated());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, AddRule_ImpliesZero) {
+    TEST(Scenarios_Algebraic_Rulebook, AddRule_ImpliesZero) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr_list;
@@ -110,7 +110,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(theRuleB->second.negated());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, AddRule_CtoB_CtoA) {
+    TEST(Scenarios_Algebraic_Rulebook, AddRule_CtoB_CtoA) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr_list;
@@ -136,7 +136,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(theRuleB->second.negated());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, AddRule_CtoA_CtoB) {
+    TEST(Scenarios_Algebraic_Rulebook, AddRule_CtoA_CtoB) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         
@@ -163,7 +163,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(theRuleB->second.negated());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, AddRule_Cascade) {
+    TEST(Scenarios_Algebraic_Rulebook, AddRule_Cascade) {
         AlgebraicPrecontext apc{4, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr_list;
@@ -197,7 +197,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(theRuleB->second.negated());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, Reduce_String) {
+    TEST(Scenarios_Algebraic_Rulebook, Reduce_String) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         
@@ -215,7 +215,7 @@ namespace Moment::Tests {
         EXPECT_EQ(simplified_string[0], 0);
     }
 
-     TEST(Scenarios_Algebraic_RuleBook, Reduce_StringRecursive) {
+     TEST(Scenarios_Algebraic_Rulebook, Reduce_StringRecursive) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -232,7 +232,7 @@ namespace Moment::Tests {
         EXPECT_EQ(simplified_string[0], 0);
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, Reduce_ABToZero_AB) {
+    TEST(Scenarios_Algebraic_Rulebook, Reduce_ABToZero_AB) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -252,7 +252,7 @@ namespace Moment::Tests {
         EXPECT_EQ(by_search_neg, neg);
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, Reduce_ABToZero_ABBB) {
+    TEST(Scenarios_Algebraic_Rulebook, Reduce_ABToZero_ABBB) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -269,7 +269,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(simplified_string.zero());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, Reduce_ABToZero_BAB) {
+    TEST(Scenarios_Algebraic_Rulebook, Reduce_ABToZero_BAB) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -286,7 +286,81 @@ namespace Moment::Tests {
         EXPECT_TRUE(simplified_string.zero());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, Reduce_Rule) {
+    TEST(Scenarios_Algebraic_Rulebook, ReduceInPlace_String) {
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
+        const ShortlexHasher& hasher = apc.hasher;
+
+        std::vector<OperatorRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher},
+                         HashedSequence{{0}, hasher});
+        OperatorRulebook rules{apc, msr};
+
+        HashedSequence string{{0, 1}, hasher};
+
+        auto [matched, negated] = rules.reduce_in_place(string);
+
+        EXPECT_TRUE(matched);
+        EXPECT_FALSE(negated);
+        ASSERT_EQ(string.size(), 1);
+        EXPECT_EQ(string[0], 0);
+        EXPECT_EQ(string.hash(), apc.hasher({0}));
+    }
+
+    TEST(Scenarios_Algebraic_Rulebook, ReduceInPlace_StringRecursive) {
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
+        const ShortlexHasher& hasher = apc.hasher;
+        std::vector<OperatorRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher},
+                         HashedSequence{{0}, hasher});
+        OperatorRulebook rules{apc, msr};
+
+        HashedSequence string{{0, 1, 1, 1}, hasher};
+
+        auto [matched, negated] = rules.reduce_in_place(string);
+
+        EXPECT_TRUE(matched);
+        EXPECT_FALSE(negated);
+        ASSERT_EQ(string.size(), 1);
+        EXPECT_EQ(string[0], 0);
+        EXPECT_EQ(string.hash(), apc.hasher({0}));
+    }
+
+    TEST(Scenarios_Algebraic_Rulebook, ReduceInPlace_ABToZero_ABBB) {
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
+        const ShortlexHasher& hasher = apc.hasher;
+        std::vector<OperatorRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
+                         HashedSequence{true});
+        OperatorRulebook rules{apc, msr};
+
+
+        HashedSequence abbb{{0, 1, 1, 1}, hasher};
+        auto [matched, negated] = rules.reduce_in_place(abbb);
+
+        EXPECT_TRUE(matched);
+        EXPECT_FALSE(negated);
+        EXPECT_EQ(abbb.size(), 0);
+        EXPECT_TRUE(abbb.zero());
+    }
+
+    TEST(Scenarios_Algebraic_Rulebook, ReduceInPlace_ABToZero_BAB) {
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
+        const ShortlexHasher& hasher = apc.hasher;
+        std::vector<OperatorRule> msr;
+        msr.emplace_back(HashedSequence{{0, 1}, hasher}, // AB = 0
+                         HashedSequence{true});
+        OperatorRulebook rules{apc, msr};
+
+        HashedSequence bab{{1, 0, 1}, hasher};
+        auto [matched, negated] = rules.reduce_in_place(bab);
+
+        EXPECT_TRUE(matched);
+        EXPECT_FALSE(negated);
+        EXPECT_EQ(bab.size(), 0);
+        EXPECT_TRUE(bab.zero());
+    }
+
+    TEST(Scenarios_Algebraic_Rulebook, Reduce_Rule) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -309,7 +383,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, Reduce_RuleToZero) {
+    TEST(Scenarios_Algebraic_Rulebook, Reduce_RuleToZero) {
         AlgebraicPrecontext apc{4, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -331,7 +405,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(simplified_rule.RHS().zero());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, ReduceRuleset_AACtoAAB_CtoB) {
+    TEST(Scenarios_Algebraic_Rulebook, ReduceRuleset_AACtoAAB_CtoB) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -359,7 +433,7 @@ namespace Moment::Tests {
         ASSERT_EQ(rule_map_iter, rule_map.cend());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, ReduceRuleset_CtoB_BtoA) {
+    TEST(Scenarios_Algebraic_Rulebook, ReduceRuleset_CtoB_BtoA) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -397,7 +471,7 @@ namespace Moment::Tests {
         ASSERT_EQ(rule_map_iter, rule_map.cend());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, AddConjugateRule) {
+    TEST(Scenarios_Algebraic_Rulebook, AddConjugateRule) {
         AlgebraicPrecontext apc{2};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -413,7 +487,7 @@ namespace Moment::Tests {
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, ConjugateRuleset) {
+    TEST(Scenarios_Algebraic_Rulebook, ConjugateRuleset) {
         AlgebraicPrecontext apc{2};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -430,7 +504,7 @@ namespace Moment::Tests {
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, Complete_ABtoA_BAtoB) {
+    TEST(Scenarios_Algebraic_Rulebook, Complete_ABtoA_BAtoB) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -459,7 +533,7 @@ namespace Moment::Tests {
         EXPECT_FALSE(rules.is_complete(true));
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, Complete_AAAtoI_BBBtoI_ABABABtoI) {
+    TEST(Scenarios_Algebraic_Rulebook, Complete_AAAtoI_BBBtoI_ABABABtoI) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -487,7 +561,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Scenarios_Algebraic_RuleBook, Complete_ABtoA_BAtoMinusB) {
+    TEST(Scenarios_Algebraic_Rulebook, Complete_ABtoA_BAtoMinusB) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -510,7 +584,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Scenarios_Algebraic_RuleBook, HermitianComplete_ABtoA_BAtoB_Hermitian) {
+    TEST(Scenarios_Algebraic_Rulebook, HermitianComplete_ABtoA_BAtoB_Hermitian) {
         AlgebraicPrecontext apc{2};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -530,7 +604,7 @@ namespace Moment::Tests {
         EXPECT_TRUE(rules.is_complete());
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, HermitianComplete_ABtoA_BCtoB_CAtoC) {
+    TEST(Scenarios_Algebraic_Rulebook, HermitianComplete_ABtoA_BCtoB_CAtoC) {
         AlgebraicPrecontext apc{3};
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
@@ -570,7 +644,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Scenarios_Algebraic_RuleBook, GenerateCommutators) {
+    TEST(Scenarios_Algebraic_Rulebook, GenerateCommutators) {
         AlgebraicPrecontext apc{3};
         const ShortlexHasher& hasher = apc.hasher;
         auto comVec = OperatorRulebook::commutator_rules(apc);
@@ -592,7 +666,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, GenerateNormalRules_Bunched) {
+    TEST(Scenarios_Algebraic_Rulebook, GenerateNormalRules_Bunched) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;
         auto normVec = OperatorRulebook::normal_rules(apc);
@@ -614,7 +688,7 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Scenarios_Algebraic_RuleBook, GenerateNormalRules_Interleaved) {
+    TEST(Scenarios_Algebraic_Rulebook, GenerateNormalRules_Interleaved) {
         AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::Interleaved};
         const ShortlexHasher& hasher = apc.hasher;
         auto normVec = OperatorRulebook::normal_rules(apc);
