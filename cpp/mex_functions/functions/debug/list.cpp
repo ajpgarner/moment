@@ -10,6 +10,8 @@
 
 #include "matrix/monomial_matrix.h"
 
+#include "scenarios/context.h"
+
 #include "symbolic/rules/moment_rulebook.h"
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
@@ -24,7 +26,8 @@
 namespace Moment::mex::functions {
     namespace {
         void output_ms_info(std::ostream& raw_os, uint32_t id,
-                            const MatrixSystem& ms, bool export_symbols, bool export_mat_props,
+                            const MatrixSystem& ms,
+                            bool export_context, bool export_symbols, bool export_mat_props,
                             const EnvironmentalVariables& env) {
             auto read_lock = ms.get_read_lock();
             const auto& context = ms.Context();
@@ -33,15 +36,21 @@ namespace Moment::mex::functions {
             auto lf = env.get_locality_formatter();
             os.format_info.locality_formatter = lf.get();
 
-            os << "System #" << id << ": " << ms.system_type_name();
-            const size_t symbol_count = ms.Symbols().size();
-            os << ": " << symbol_count << " " << (symbol_count != 1 ? "symbols" : "symbol") << ", ";
+            os << "System #" << id << ": " << ms.system_type_name() << ": ";
+            const size_t operator_count = context.size();
+            os << operator_count << " " << (operator_count != 1 ? "operators" : "operator") << ", ";
+            const size_t symbol_count = symbols.size();
+            os << symbol_count << " " << (symbol_count != 1 ? "symbols" : "symbol") << ", ";
             const size_t matrix_count = ms.size();
             os << matrix_count << " " << (matrix_count != 1 ? "matrices" : "matrix") << ", ";
             const size_t rb_count = ms.Rulebook.size();
             os << rb_count <<  " " << (matrix_count != 1 ? "rulebooks" : "rulebook") << ".";
 
             os << "\nPOLYNOMIAL FACTORY:\n " << ms.polynomial_factory();
+
+            if (export_context) {
+                os << "\nCONTEXT:\n " << context;
+            }
 
             if (matrix_count > 0) {
                 os << "\nMATRICES:";
@@ -91,6 +100,7 @@ namespace Moment::mex::functions {
             this->output_type = OutputType::All;
         }
         this->structured = this->flags.contains(u"structured");
+        this->export_contexts = this->flags.contains(u"contexts");
         this->export_symbols = this->flags.contains(u"symbols");
         this->export_matrix_properties = this->flags.contains(u"details");
     }
@@ -102,10 +112,13 @@ namespace Moment::mex::functions {
         this->min_outputs = 0;
         this->max_outputs = 1;
         this->flag_names.insert(u"structured");
+        this->flag_names.insert(u"context");
         this->flag_names.insert(u"symbols");
         this->flag_names.insert(u"details");
-        this->mutex_params.add_mutex(u"structured", u"symbols");
+
+        this->mutex_params.add_mutex(u"structured", u"context");
         this->mutex_params.add_mutex(u"structured", u"details");
+        this->mutex_params.add_mutex(u"structured", u"symbols");
     }
 
 
@@ -123,6 +136,7 @@ namespace Moment::mex::functions {
         // If verbose flag, override export flags
         bool generate_string = !input.structured;
         if (this->verbose) {
+            input.export_contexts = true;
             input.export_symbols = true;
             input.export_matrix_properties = true;
             generate_string = true;
@@ -169,7 +183,8 @@ namespace Moment::mex::functions {
                     } else {
                         done_one = true;
                     }
-                    output_ms_info(ss, id, *msPtr, input.export_symbols, input.export_matrix_properties,
+                    output_ms_info(ss, id, *msPtr,
+                                   input.export_contexts, input.export_symbols, input.export_matrix_properties,
                                    *this->settings);
                     // Get next:
                     auto [next_id, nextPtr] = storageManager.MatrixSystems.next(id);
@@ -182,7 +197,9 @@ namespace Moment::mex::functions {
         } else {
             auto id = PersistentStorage<MatrixSystem>::get_index(input.matrix_system_key);
             auto msPtr = storageManager.MatrixSystems.get(input.matrix_system_key);
-            output_ms_info(ss, id, *msPtr, input.export_symbols, input.export_matrix_properties, *this->settings);
+            output_ms_info(ss, id, *msPtr,
+                           input.export_contexts, input.export_symbols, input.export_matrix_properties,
+                           *this->settings);
         }
         return ss.str();
     }
@@ -192,12 +209,14 @@ namespace Moment::mex::functions {
         struct temp_system_info_t {
             uint64_t id;
             std::string desc;
+            uint64_t operators;
             uint64_t matrices;
             uint64_t symbols;
             uint64_t rulebooks;
 
-            temp_system_info_t(uint64_t id, std::string desc, uint64_t matrices, uint64_t symbols, uint64_t rbs)
-                : id{id}, desc{std::move(desc)}, matrices{matrices}, symbols{symbols}, rulebooks{rbs} { }
+            temp_system_info_t(uint64_t id, std::string desc, uint64_t operators, uint64_t matrices, uint64_t symbols, uint64_t rbs)
+                : id{id}, desc{std::move(desc)},
+                operators{operators}, matrices{matrices}, symbols{symbols}, rulebooks{rbs} { }
         };
         std::vector<temp_system_info_t> data;
 
@@ -206,6 +225,7 @@ namespace Moment::mex::functions {
             auto lock = msPtr->get_read_lock();
 
             data.emplace_back(storageManager.MatrixSystems.sign_index(id), msPtr->system_type_name(),
+                              msPtr->Context().size(),
                               msPtr->size(), msPtr->Symbols().size(), msPtr->Rulebook.size());
 
             lock.unlock();
@@ -218,11 +238,13 @@ namespace Moment::mex::functions {
 
         matlab::data::ArrayDimensions dimensions{1, data.size()};
         auto output = factory.createStructArray(std::move(dimensions),
-                                                {"RefId", "Description", "Matrices", "Symbols", "Rulebooks"});
+                                                {"RefId", "Description", "OperatorCount",
+                                                 "Matrices", "Symbols", "Rulebooks"});
         size_t out_index = 0;
         for (const auto& datum : data) {
             output[out_index]["RefId"] = factory.createScalar(datum.id);
             output[out_index]["Description"] = factory.createScalar(datum.desc);
+            output[out_index]["OperatorCount"] = factory.createScalar(datum.operators);
             output[out_index]["Matrices"] = factory.createScalar(datum.matrices);
             output[out_index]["Symbols"] = factory.createScalar(datum.symbols);
             output[out_index]["Rulebooks"] = factory.createScalar(datum.rulebooks);
@@ -237,9 +259,11 @@ namespace Moment::mex::functions {
         auto lock = msPtr->get_read_lock();
 
         matlab::data::ArrayFactory factory;
-        auto output = factory.createStructArray({1, 1}, {"RefId", "Description", "Matrices", "Symbols", "Rulebooks"});
+        auto output = factory.createStructArray({1, 1}, {"RefId", "Description", "OperatorCounter",
+                                                         "Matrices", "Symbols", "Rulebooks"});
         output[0]["RefId"] = factory.createScalar(input.matrix_system_key);
         output[0]["Description"] = factory.createScalar(msPtr->system_type_name());
+        output[0]["OperatorCount"] = factory.createScalar(msPtr->Context().size());
         output[0]["Matrices"] = factory.createScalar(msPtr->size());
         output[0]["Symbols"] = factory.createScalar(msPtr->Symbols().size());
         output[0]["Rulebooks"] = factory.createScalar(msPtr->Rulebook.size());

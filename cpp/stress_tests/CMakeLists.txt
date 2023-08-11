@@ -6,3 +6,10 @@ add_executable(stresstest_bff
 )
 target_link_libraries(stresstest_bff
     lib_moment)
+
+# Add inflation stress test
+add_executable(stresstest_inflation
+    test_inflated_triangle.cpp
+)
+target_link_libraries(stresstest_inflation
+    lib_moment)

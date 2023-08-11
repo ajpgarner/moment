@@ -116,9 +116,9 @@ namespace Moment::StressTests {
 int main() {
     using namespace Moment::StressTests;
 
-    const size_t max_M = Moment::debug_mode ? 5 : 10;
+    const size_t max_M = Moment::debug_mode ? 7 : 10;
 
-    for (size_t M = 1; M <= max_M; ++M) {
+    for (size_t M = 0; M <= max_M; ++M) {
         std::cout << "---\nGauss-Radau level = " << M << std::endl;
 
         BrownFawziFawzi bff{M};
@@ -137,7 +137,7 @@ int main() {
             return -1;
         }
 
-        const size_t max_MM = Moment::debug_mode ? ((M <= 4) ? 3 : 2) : 2;
+        const size_t max_MM = !Moment::debug_mode ? ((M <= 4) ? 3 : 2) : 2;
         for (size_t mm_level = 1; mm_level <= max_MM; ++mm_level) {
             std::cout << "Generating moment matrix level " << mm_level << "..." << std::endl;
             const auto before_mm = std::chrono::high_resolution_clock::now();

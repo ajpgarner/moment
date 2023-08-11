@@ -210,8 +210,59 @@ namespace Moment::Multithreading {
             }
         }
 
-        template<bool hermitian>
-        void do_identify_unique_symbols() {
+
+        void identify_unique_symbols_hermitian() {
+            const size_t row_length = bundle.dimension;
+            std::set<size_t> known_hashes;
+
+            // First, always manually insert zero and one (if thread 0).
+            if (this->worker_id == 0) {
+                unique_elements.emplace(static_cast<size_t>(0), Symbol::Zero(this->bundle.context));
+                unique_elements.emplace(static_cast<size_t>(1), Symbol::Identity(this->bundle.context));
+                known_hashes.emplace(0);
+                known_hashes.emplace(1);
+            }
+
+            // Now, look at elements and see if they are unique or not
+            for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
+                for (size_t row_idx = col_idx; row_idx < row_length; ++row_idx) {
+                    const size_t offset = (col_idx * row_length) + row_idx;
+                    const size_t conj_offset = (row_idx * row_length) + col_idx;
+                    const auto &elem = this->bundle.os_data_ptr[offset];
+                    const auto &conj_elem = this->bundle.os_data_ptr[conj_offset];
+
+                    int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
+                    const bool elem_hermitian = (compare == 1);
+
+                    const size_t hash = elem.hash();
+                    const size_t conj_hash = conj_elem.hash();
+
+                    // Don't add what is already known
+                    if (known_hashes.contains(hash)) {
+                        continue;
+                    }
+
+                    if (elem_hermitian) {
+                        unique_elements.emplace(hash, elem);
+                        known_hashes.emplace(hash);
+                    } else {
+                        if (hash < conj_hash) {
+                            unique_elements.emplace(hash, Symbol{elem, conj_elem});
+                        } else {
+                            unique_elements.emplace(conj_hash, Symbol{conj_elem, elem});
+                        }
+                        known_hashes.emplace(hash);
+                        known_hashes.emplace(conj_hash);
+                    }
+                }
+            }
+
+            // Flag, that we have calculated level 0, and notify any threads waiting on us.
+            this->merge_level.store(1, std::memory_order_release);
+            this->merge_level.notify_all();
+        }
+
+        void identify_unique_symbols_generic() {
             const size_t row_length = bundle.dimension;
             std::set<size_t> known_hashes;
 
@@ -226,7 +277,7 @@ namespace Moment::Multithreading {
 
             // Now, look at elements and see if they are unique or not
             for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
-                for (size_t row_idx = hermitian ? col_idx : 0; row_idx < row_length; ++row_idx) {
+                for (size_t row_idx = 0; row_idx < row_length; ++row_idx) {
                     const size_t offset = (col_idx * row_length) + row_idx;
                     const auto &elem = this->bundle.os_data_ptr[offset];
 
@@ -262,12 +313,12 @@ namespace Moment::Multithreading {
             this->merge_level.notify_all();
         }
 
-        void identify_unique_symbols() {
+        inline void identify_unique_symbols() {
             // Look for symbols
             if (this->bundle.is_hermitian) {
-                this->do_identify_unique_symbols<true>();
+                this->identify_unique_symbols_hermitian();
             } else {
-                this->do_identify_unique_symbols<false>();
+                this->identify_unique_symbols_generic();
             }
         }
 

@@ -23,6 +23,8 @@ namespace Moment::mex::functions  {
 
         bool export_symbols = false;
 
+        bool export_contexts = false;
+
         bool export_matrix_properties = false;
 
     public:

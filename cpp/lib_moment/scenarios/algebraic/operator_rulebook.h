@@ -133,7 +133,7 @@ namespace Moment::Algebraic {
          * @return Optimal ReductionMethod.
          */
         [[nodiscard]] inline ReductionMethod reduction_method(const size_t string_length) const noexcept {
-            if ((string_length * this->monomialRules.size()) <= ((string_length*(string_length+1)/2)*this->mag)) {
+            if (this->monomialRules.size() <= ((string_length+1)*this->mag/2)) {
                 return ReductionMethod::IterateRules;
             } else {
                 return ReductionMethod::SearchRules;
