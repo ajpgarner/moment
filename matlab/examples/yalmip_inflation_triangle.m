@@ -16,15 +16,14 @@ triangle = InflationScenario(inflation_level, ...
 moment_matrix = triangle.MomentMatrix(moment_matrix_level);
 
 %% Impose P(000) = P(111) = 1/2
-[A00, B00, C00] = triangle.getPrimaryVariants();
-ABC_base = A00 * B00 * C00;
-distribution = ABC_base.Probability([0.5, 0, 0, 0, 0, 0, 0, 0.5]);
+[A, B, C] = triangle.getPrimaryVariants();
+ABC = A * B * C;
+distribution = ABC.Probability([0.5, 0, 0, 0, 0, 0, 0, 0.5]);
 
 substitutions = triangle.MomentRulebook();
 substitutions.Add(distribution);
     
 subbed_matrix = substitutions.Apply(moment_matrix);
-
 
 %% Solve via Yalmip
 yalmip('clear');

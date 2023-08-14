@@ -155,11 +155,11 @@ classdef Observable < handle
             add_brace = any([obj.Scenario.Observables.OutcomeCount] > 2);
             
             % Now, per outcome, per variant
-            variants = obj.VariantCount;
-            if variants > 1
+            v_count = obj.VariantCount;
+            if v_count > 1
                 out_index = 1;
-                str = strings(1, variants*numel(obs_names));
-                for vdx = 1:variants
+                str = strings(1, v_count*numel(obs_names));
+                for vdx = 1:v_count
                     indices = obj.VariantOffsetToIndex(vdx) - 1;
                     if obj.Scenario.InflationLevel>= 10
                         var_str = join(string(indices), ',');

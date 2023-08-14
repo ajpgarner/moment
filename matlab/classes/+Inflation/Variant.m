@@ -254,7 +254,7 @@ classdef (InferiorClasses={?Inflation.VariantOutcome}) Variant < handle
         
         function val = Apply(obj, re_vals, ~)
         % APPLY Forward to Apply function of outcome polynomials.
-            if this.ContinuousVariable
+            if obj.ContinuousVariable
                 expl = obj.ExplicitOutcomes;
                 val = expl.Apply(re_vals);
             else
