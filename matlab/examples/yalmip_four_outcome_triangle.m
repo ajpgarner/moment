@@ -1,13 +1,14 @@
-%% Example: yalmip_inflation_triangle.m
+%% Example: yalmip_four_outcome_triangle.m
 % Test triangle scenario of three binary observables, each pair-wise linked 
-% by a source, with probability distribution from arXiv:2203.16543
+% by a source, with probability distribution from Pozas-Kerstjens et al.
+% 10.1103/PhysRevLett.130.090201 [arXiv:2203.16543]
 %
 % Note: this is a non-trivial example, and may take a little time to solve!
 %
 
 %% Define triangle scenario and make moment matrix
 inflation_level = 2;
-moment_matrix_level = 3;
+moment_matrix_level = 2;
 triangle = InflationScenario(inflation_level, ...
                              [4, 4, 4], ... % 4-nary measurements
                              {[1, 2], [2, 3], [1, 3]}); % pair sources

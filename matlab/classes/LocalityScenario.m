@@ -530,6 +530,7 @@ classdef LocalityScenario < MTKScenario
         
 			assert(nargin == 2 && isnumeric(tensor));
 		
+            obj.System;
             if ~obj.HasMatrixSystem
                 error(obj.err_badFCT_NoMS);
             end
