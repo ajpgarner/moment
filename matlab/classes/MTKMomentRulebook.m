@@ -31,7 +31,7 @@ end
 
 %% Constructor
 methods
-    function obj = MTKMomentRulebook(scenario, label)
+    function obj = MTKMomentRulebook(scenario, label, varargin)
     % MOMENTRULEBOOK Creates a moment substitution rule book.                
         if nargin < 1 || ~isa(scenario,'MTKScenario')
             error("First argument must be a MTKScenario.");
@@ -54,8 +54,13 @@ methods
         
         % Create rulebook with no rules
         obj.Id = mtk('create_moment_rules', rb_args{:}, ...
-                             scenario.System.RefId, {});        
+                             scenario.System.RefId, {});
         obj.invalidate_cached_rules();
+        
+        % Add any initial rules...
+        for i = 1:numel(varargin)
+            obj.Add(varargin{i});
+        end        
     end
 end
 

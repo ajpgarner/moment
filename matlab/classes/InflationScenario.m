@@ -272,7 +272,7 @@ classdef InflationScenario < MTKScenario
     
     %% Accessors of sub-objects
     methods
-        function val = get(obj, varargin)
+        function val = getOV(obj, varargin)
             
             % Do we get as array, or as list of indices
             if nargin == 2
@@ -340,7 +340,24 @@ classdef InflationScenario < MTKScenario
                     out_idx = out_idx +1;
                 end
             end
-        end            
+        end    
+        
+        function varargout = getPrimaryVariants(obj)
+            if ~obj.HasMatrixSystem
+                error("Cannot get variants before matrix system is created.");
+            end
+            expected = numel(obj.Observables);
+            if nargout ~= expected
+                error("Expected %d outputs, but %d were provided.", ...
+                    expected, nargout);
+            end
+            
+            varargout = cell(1, expected);
+            
+            for i=1:numel(obj.Observables)
+                varargout{i} = obj.Observables(i).Variants(1);
+            end            
+        end
     end
  
     %% Other accessors
