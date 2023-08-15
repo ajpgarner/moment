@@ -7,7 +7,9 @@
 
 #include "gtest/gtest.h"
 
+#include "dictionary/operator_sequence_generator.h"
 #include "matrix/operator_matrix/moment_matrix.h"
+
 #include "symbolic/symbol_table.h"
 
 #include "scenarios/inflation/extended_matrix.h"
@@ -21,33 +23,33 @@ namespace Moment::Tests {
     TEST(Scenarios_Inflation_MatrixSystem, FourOutcomeTriangle) {
         // Unit test to trigger bug encountered in matlab...
 
-        InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{4, 4, 4},
+        InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{4,      4,      4},
                                                                                    {{0, 1}, {1, 2}, {0, 2}}},
                                                                      2)};
-        const auto& context = ims.InflationContext();
-        const auto& symbols = ims.Symbols();
+        const auto &context = ims.InflationContext();
+        const auto &symbols = ims.Symbols();
 
         ASSERT_EQ(context.Observables().size(), 3);
-        const auto& A = context.Observables()[0];
+        const auto &A = context.Observables()[0];
         ASSERT_EQ(A.variant_count, 4);
-        const auto& A00 = A.variants[0];
-        const auto& A10 = A.variants[1];
-        const auto& A01 = A.variants[2];
-        const auto& A11 = A.variants[3];
+        const auto &A00 = A.variants[0];
+        const auto &A10 = A.variants[1];
+        const auto &A01 = A.variants[2];
+        const auto &A11 = A.variants[3];
 
-        const auto& B = context.Observables()[1];
+        const auto &B = context.Observables()[1];
         ASSERT_EQ(B.variant_count, 4);
-        const auto& B00 = B.variants[0];
-        const auto& B10 = B.variants[1];
-        const auto& B01 = B.variants[2];
-        const auto& B11 = B.variants[3];
+        const auto &B00 = B.variants[0];
+        const auto &B10 = B.variants[1];
+        const auto &B01 = B.variants[2];
+        const auto &B11 = B.variants[3];
 
-        const auto& C = context.Observables()[2];
+        const auto &C = context.Observables()[2];
         ASSERT_EQ(C.variant_count, 4);
-        const auto& C00 = C.variants[0];
-        const auto& C10 = C.variants[1];
-        const auto& C01 = C.variants[2];
-        const auto& C11 = C.variants[3];
+        const auto &C00 = C.variants[0];
+        const auto &C10 = C.variants[1];
+        const auto &C01 = C.variants[2];
+        const auto &C11 = C.variants[3];
 
         ASSERT_EQ(context.Sources().size(), 3);
 
@@ -130,5 +132,16 @@ namespace Moment::Tests {
 
         //auto& mm2 = ims.MomentMatrix(2);
 
+    }
+
+    TEST(Scenarios_Inflation_MatrixSystem, Point_Five) {
+        // Unit test to trigger another bug encountered in matlab...
+
+        InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{2, 2, 2}, {{0, 1}, {1, 2}}}, 1)};
+        const auto &context = ims.InflationContext();
+
+        const auto& dict3 = context.operator_sequence_generator(3); // Longest entry: a0 b0 c0
+        const auto& dict4 = context.operator_sequence_generator(4); // Longest entry is still a0 b0 c0!
+        EXPECT_EQ(dict3.size(), dict4.size());
     }
 }

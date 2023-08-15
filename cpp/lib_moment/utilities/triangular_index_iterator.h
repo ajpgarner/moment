@@ -51,6 +51,12 @@ namespace Moment {
             }
             assert(indices.size() == word_length);
 
+            if constexpr (!allow_duplicates) {
+                if (word_length > max_index) {
+                    this->is_done = true;
+                }
+            }
+
             // If done, set global index to be product of items
             if (this->is_done) {
                 this->global_index = ipow(static_cast<size_t>(maximum_index), word_length);

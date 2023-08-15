@@ -273,4 +273,13 @@ namespace Moment::Tests {
         EXPECT_EQ(mdiIter, mdiIterEnd);
     }
 
+    TEST(Utilities_TriangularIterator, TooLong_Unique) {
+        UniqueTriangularIndexIterator<> mdiIter{3, 4};
+        UniqueTriangularIndexIterator<> mdiIterEnd{3, 4, true};
+
+        EXPECT_FALSE(mdiIter);
+        EXPECT_TRUE(!mdiIter);
+        EXPECT_TRUE(mdiIter == mdiIterEnd);
+        EXPECT_FALSE(mdiIter != mdiIterEnd);
+    }
 }
