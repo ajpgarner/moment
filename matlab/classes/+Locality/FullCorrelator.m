@@ -9,17 +9,13 @@ classdef FullCorrelator < MTKPolynomial
     end
     
     methods
-        function obj = FullCorrelator(scenario)
-		
+        function obj = FullCorrelator(scenario)		
             if ~isa(scenario, 'LocalityScenario')
 				error("Full correlator object only defined"...
 					  + " for locality scenario");
 			end
 			
             % Check scenario admits a full correlator
-            if numel(scenario.Parties) ~= 2
-                error("Full correlator matrix is only defined between two parties.");
-            end
             if ~all(scenario.OutcomesPerMeasurement == 2)
                 error("Full correlator matrix is only defined when every measurement has two outcomes.");
             end
@@ -34,41 +30,44 @@ classdef FullCorrelator < MTKPolynomial
                 obj.Constituents = MTKMonomial.InitValue(scenario, 1.0);
                 return;
             end
-
-            obj.Constituents{1} = MTKMonomial.InitValue(scenario, 1.0);
-
-            for mA_idx = 0:numel(scenario.Parties(1).Measurements)
-                for mB_idx = 0:numel(scenario.Parties(2).Measurements)
-                    poly_obj = obj.makeCorrObj(mA_idx, mB_idx);
-                    obj.Constituents{mA_idx+1, mB_idx+1} = ...
-                        poly_obj.Constituents;
-                end
+            
+            % Multi-variable iterator
+            for offset = 1:prod(shape)
+                mmts = MTKUtil.index_to_sub(shape, offset);
+                party_mask = mmts > 1;
+                mmts = mmts(party_mask) - 1;
+                parties = find(party_mask);
+                obj.Constituents{offset} = obj.makeCorrelator(parties, mmts);
             end
         end
     end
 
     methods(Access=private)
-        function val = makeCorrObj(obj, mA, mB)
-            partyA = obj.Scenario.Parties(1);
-            partyB = obj.Scenario.Parties(2);            
-            if mA == 0
-                if mB == 0
-                    % <I>
-                    val = MTKPolynomial.InitValue(obj.Scenario, 1.0);                            
-                else
-                    % <Bi>
-                    impl = partyB.Measurements(mB).ExplicitOutcomes;
-                    val = 2*impl - 1;
-                end
-            elseif mB == 0
-                % <Ai>
-                impl = partyA.Measurements(mA).ExplicitOutcomes;
-                val = 2*impl - 1;
-            else
-                % <Ai, Bj>
-                val = partyA.Measurements(mA).Correlator(...
-                    partyB.Measurements(mB));
+        function val = makeCorrelator(obj, party_idx, mmt_idx)
+            % Special case, no parties -> <I>
+            if numel(party_idx) == 0
+                val = MTKMonomial.InitValue(obj.Scenario, 1.0);  
+                return;
             end
+            
+            % Otherwise, get measurements
+            ops = cell(numel(party_idx), 1);
+            for i = 1:numel(party_idx)
+                party = obj.Scenario.Parties(party_idx(i));
+                mmt = party.Measurements(mmt_idx);
+                ops{i} = mmt.ExplicitOutcomes;
+            end
+
+            % Start with expectation value of 1st measurement
+            expt = 2*ops{1} - 1;
+            
+            % Then, multiply at an operator level...
+            for j=2:numel(party_idx)
+                expt = expt * (2*ops{j} - 1);
+            end
+            
+            % Get constituents
+            val = expt.Constituents;            
         end
     end
 end
