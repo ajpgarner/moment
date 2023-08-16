@@ -85,7 +85,13 @@ namespace Moment {
     MatrixSystem::createNewMomentMatrix(MaintainsMutex::WriteLock &lock,
                                         const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
-        return MomentMatrix::create_matrix(*this->context, *this->symbol_table, level, mt_policy);
+        const size_t prev_symbol_count = this->symbol_table->size();
+        auto ptr = MomentMatrix::create_matrix(*this->context, *this->symbol_table, level, mt_policy);
+        const size_t new_symbol_count = this->symbol_table->size();
+        if (new_symbol_count > prev_symbol_count) {
+            this->onNewSymbolsRegistered(prev_symbol_count, new_symbol_count);
+        }
+        return ptr;
     }
 
 
@@ -94,7 +100,13 @@ namespace Moment {
                                             const LocalizingMatrixIndex& lmi,
                                             const Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
-        return LocalizingMatrix::create_matrix(*this->context, *this->symbol_table, lmi, mt_policy);
+        const size_t prev_symbol_count = this->symbol_table->size();
+        auto ptr = LocalizingMatrix::create_matrix(*this->context, *this->symbol_table, lmi, mt_policy);
+        const size_t new_symbol_count = this->symbol_table->size();
+        if (new_symbol_count > prev_symbol_count) {
+            this->onNewSymbolsRegistered(prev_symbol_count, new_symbol_count);
+        }
+        return ptr;
     }
 
     std::unique_ptr<class PolynomialMatrix>
@@ -110,16 +122,34 @@ namespace Moment {
             constituents.emplace_back(&mono_matrix, factor);
         }
 
+        // NB: Previous symbol updates from constituents will have already been accounted for...
+        const size_t prev_symbol_count = this->symbol_table->size();
+
         // Synthesize into polynomial matrix
-        return std::make_unique<class PolynomialLocalizingMatrix>(*this->context, *this->symbol_table,
-                                                                  *this->poly_factory,
-                                                                  PolynomialLMIndex{index}, std::move(constituents));
+        auto ptr = std::make_unique<class PolynomialLocalizingMatrix>(*this->context, *this->symbol_table,
+                                                                      *this->poly_factory,
+                                                                      PolynomialLMIndex{index},
+                                                                      std::move(constituents));
+
+        const size_t new_symbol_count = this->symbol_table->size();
+        if (new_symbol_count > prev_symbol_count) {
+            this->onNewSymbolsRegistered(prev_symbol_count, new_symbol_count);
+        }
+
+        return ptr;
     }
 
     bool MatrixSystem::generate_dictionary(const size_t word_length) {
         auto write_lock = this->get_write_lock();
 
+        const size_t prev_symbol_count = this->symbol_table->size();
+
         auto [osg_size, new_symbols] = this->symbol_table->fill_to_word_length(word_length);
+
+        const size_t new_symbol_count = this->symbol_table->size();
+        if (new_symbol_count > prev_symbol_count) {
+            this->onNewSymbolsRegistered(prev_symbol_count, new_symbol_count);
+        }
 
         this->onDictionaryGenerated(word_length, this->context->operator_sequence_generator(word_length));
 

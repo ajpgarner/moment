@@ -242,6 +242,13 @@ namespace Moment {
         virtual void onRulebookAdded(size_t index, const MomentRulebook& rb, bool insertion) { }
 
         /**
+         * Virtual method, called after new symbols have been added to the symbol table.
+         * @param old_symbol_count The number of symbols before the update.
+         * @param new_symbol_count The number of symbols after the update.
+         */
+        virtual void onNewSymbolsRegistered(size_t old_symbol_count, size_t new_symbol_count) { }
+
+        /**
          * Get read-write access to symbolic matrix by index. Changes should not be made without a write lock.
          * @param index The number of the matrix within the system.
          * @return A reference to the requested matrix.

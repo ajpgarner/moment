@@ -40,17 +40,8 @@ namespace Moment::Inflation {
 
     InflationMatrixSystem::~InflationMatrixSystem() noexcept = default;
 
-    void InflationMatrixSystem::onNewMomentMatrixCreated(size_t level, const SymbolicMatrix& mm) {
-        // Register factors
+    void InflationMatrixSystem::onNewSymbolsRegistered(size_t old_symbol_count, size_t new_symbol_count) {
         this->factors->on_new_symbols_added();
-        MatrixSystem::onNewMomentMatrixCreated(level, mm);
-    }
-
-    void InflationMatrixSystem::onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi,
-                                                             const SymbolicMatrix& lm) {
-        // Register factors
-        this->factors->on_new_symbols_added();
-        MatrixSystem::onNewLocalizingMatrixCreated(lmi, lm);
     }
 
     std::unique_ptr<class ExtendedMatrix>
@@ -70,17 +61,8 @@ namespace Moment::Inflation {
                                                 mt_policy);
     }
 
-    void InflationMatrixSystem::onNewExtendedMatrixCreated(const ExtendedMatrixIndex &, const ExtendedMatrix &em) {
-
-    }
-
     std::set<symbol_name_t> InflationMatrixSystem::suggest_extensions(const class MonomialMatrix& matrix) const {
         return (*this->extensionSuggester)(matrix);
-    }
-
-    void InflationMatrixSystem::onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator &osg) {
-        this->factors->on_new_symbols_added();
-        MatrixSystem::onDictionaryGenerated(word_length, osg);
     }
 
     const class InflationProbabilityTensor& InflationMatrixSystem::InflationProbabilityTensor() const {
@@ -100,5 +82,4 @@ namespace Moment::Inflation {
     std::unique_ptr<class ProbabilityTensor> InflationMatrixSystem::makeProbabilityTensor() {
         return std::make_unique<class InflationProbabilityTensor>(*this);
     }
-
 }

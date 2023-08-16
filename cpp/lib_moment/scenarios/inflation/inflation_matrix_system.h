@@ -108,14 +108,9 @@ namespace Moment::Inflation {
         createNewExtendedMatrix(MaintainsMutex::WriteLock &lock, const ExtendedMatrixIndex& index,
                                 Multithreading::MultiThreadPolicy mt_policy);
 
-        void onNewMomentMatrixCreated(size_t level, const class SymbolicMatrix &mm) override;
+        virtual void onNewExtendedMatrixCreated(const ExtendedMatrixIndex&, const class ExtendedMatrix& em) { }
 
-        void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex &lmi, const class SymbolicMatrix &lm) override;
-
-        virtual void onNewExtendedMatrixCreated(const ExtendedMatrixIndex&, const class ExtendedMatrix& em);
-
-        void onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator &osg) override;
-
+        void onNewSymbolsRegistered(size_t old_symbol_count, size_t new_symbol_count) override;
 
     private:
         std::unique_ptr<class CollinsGisin> makeCollinsGisin() override;

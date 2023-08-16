@@ -129,9 +129,6 @@ namespace Moment::Tests {
         auto symbol_A00C10C01 = symbols.where(seq_A00C10C01);
         EXPECT_TRUE(symbol_A00C10C01.found());
         EXPECT_TRUE(symbol_A00C10C01.is_aliased);
-
-        //auto& mm2 = ims.MomentMatrix(2);
-
     }
 
     TEST(Scenarios_Inflation_MatrixSystem, Point_Five) {

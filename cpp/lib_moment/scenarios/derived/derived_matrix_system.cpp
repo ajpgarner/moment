@@ -103,10 +103,13 @@ namespace Moment::Derived {
             return mm;
         }();
 
+        // NB: Cannot create new symbols.
+
         // Create transformation of this matrix
         return do_create_transformed_matrix(this->Context(), this->Symbols(),
                                             this->polynomial_factory().zero_tolerance,
                                             this->map(), source_matrix);
+
     }
 
     std::unique_ptr<class SymbolicMatrix>
@@ -141,6 +144,8 @@ namespace Moment::Derived {
             return mm;
         }();
 
+        // NB: Cannot create new symbols.
+
         // Create transformation of this matrix
         return do_create_transformed_matrix(this->Context(), this->Symbols(),
                                             this->polynomial_factory().zero_tolerance,
@@ -151,6 +156,8 @@ namespace Moment::Derived {
     std::unique_ptr<class PolynomialMatrix>
     DerivedMatrixSystem::createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
                                          Multithreading::MultiThreadPolicy mt_policy) {
+        // NB: Cannot create new symbols.
+
         throw std::runtime_error{"DerivedMatrixSystem::createNewPolyLM not yet implemented."};
     }
 

@@ -132,20 +132,24 @@ namespace Moment::Imported {
         // Real context only defines real symbols, and real import only provides real symbols
         const bool can_be_complex = !this->importedContext.real_only() && is_complex;
 
+        // We need exclusive access at this point
+        auto write_lock = this->get_write_lock();
+
+
         // Parse for largest symbol identity
         const size_t initial_symbol_size = this->Symbols().size();
         size_t new_max_symbol_id = (initial_symbol_size > 0) ? (initial_symbol_size - 1) : 0;
-        for (const auto& symbol_expression : *input) {
+        for (const auto &symbol_expression: *input) {
             if (symbol_expression.id > new_max_symbol_id) {
                 new_max_symbol_id = symbol_expression.id;
             }
         }
 
         // Flag whether a symbol can be real
-        DynamicBitset can_be_real{new_max_symbol_id+1, true};
+        DynamicBitset can_be_real{new_max_symbol_id + 1, true};
 
         // Flag whether a symbol can be imaginary
-        DynamicBitset can_be_imaginary{new_max_symbol_id+1, !this->importedContext.real_only()};
+        DynamicBitset can_be_imaginary{new_max_symbol_id + 1, !this->importedContext.real_only()};
 
         // Check if import type implies real or imaginary parts of mentioned symbols should be zero
         if (is_hermitian) {
@@ -165,16 +169,15 @@ namespace Moment::Imported {
             }
         }
 
-        // Now, prepare to import
-        auto write_lock = this->get_write_lock();
 
         // Do merge, renumbering bases as appropriate, and complaining if a symbol becomes zero.
-        bool changed_symbols = false;
-        try {
-            changed_symbols = this->Symbols().merge_in(can_be_real, can_be_imaginary);
-        } catch (const Moment::errors::zero_symbol& zse) {
-            throw errors::bad_import_matrix{zse.what()}; // Likely exception: importing alias for '0'
-        }
+        const bool changed_symbols = [&]() -> bool { ;
+            try {
+                return this->Symbols().merge_in(can_be_real, can_be_imaginary);
+            } catch (const Moment::errors::zero_symbol &zse) {
+                throw errors::bad_import_matrix{zse.what()}; // Likely exception: importing alias for '0'
+            }
+        }();
 
         // Reconstruct bases for all existing matrices, if any symbol changed from real to complex or vice versa.
         if (changed_symbols) {
@@ -188,6 +191,14 @@ namespace Moment::Imported {
         auto matPr = std::make_unique<MonomialMatrix>(this->Context(), this->Symbols(),
                                                       this->polynomial_factory().zero_tolerance,
                                                       std::move(input), is_hermitian);
+
+        // Did we create new symbols in this process?
+        const size_t new_symbol_count = this->Symbols().size();
+        if (new_symbol_count > initial_symbol_size) {
+            this->onNewSymbolsRegistered(initial_symbol_size, new_symbol_count);
+        }
+
+        // Finally, register new matrix
         SymbolicMatrix& matRef = *matPr;
         size_t index = this->push_back(std::move(matPr));
         return {index, matRef};
