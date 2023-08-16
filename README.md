@@ -6,23 +6,8 @@ Author: Andrew J. P. Garner
 Moment a set of tools designed to aid in the generation and manipulation of operator matrices, for use in the context 
 of convex optimization problems. 
 In particular, it aids in the generation of hierarchies of moment matrices and 
-localizing matrices, such as arise in the NPA [1] and PNA [2] hierarchies. 
-Can also generate matrices for inflated causal-compatibility scenarios [3].
-
-
-### References / additional reading
-**[1]:** *Navascues, Pironio, and Acin*: A convergent hierarchy of semidefinite programs characterizing the set of quantum correlations.\
-New J. Phys. 10, 073013 (2008).\
-[doi:10.1088/1367-2630/10/7/073013](https://doi.org/10.1088/1367-2630/10/7/073013).
-
-**[2]:** *Pironio,  Navascues, and Acin*: Convergent relaxations of polynomial optimization problems
-with non-commuting variables.\
-SIAM J. Optim. Volume 20, Issue 5, pp. 2157-2180 (2010).\
-[doi:10.1137/090760155](https://doi.org/10.1137/090760155).
-
-**[3]:** *Wolfe, Spekkens, and Fritz*: The Inflation Technique for Causal Inference with Latent Variables.\
-Journal of Causal Inference, Volume 7, Issue 2, pp. 20170020 (2019). \
-[doi:10.1515/jci-2017-0020](https://doi.org/10.1515/jci-2017-0020).
+localizing matrices, such as arise in the NPA and PNA hierarchies. 
+Can also generate matrices for inflated causal-compatibility scenarios.
 
 ## Minimum tested versions
 MATLAB 2018a (9.4)
@@ -83,29 +68,12 @@ Both dependencies are included as git submodules (and hence will be pulled by us
 
 
 ## List of classes, functions and folders
-### MATLAB classes
-
-`MatrixSystem`: A collection of matrices, with shared symbols. Usually associated with a `Scenario`. 
-
-`MomentMatrix`: Handle to an individual moment matrix (of particular depth) from within a matrix system.
-
-`RealObject`: Base class for objects, associated with a `Scenario` and `MatrixSystem`, representing things that can be
-expressed as linear combination of real-valued elements from a `MomentMatrix`. This includes probabilities, 
-normalizations, correlators, etc.
-
-`LocalityScenario`: A description of an experimental setting (including number of parties, measurements for each party,
-number of outcomes for each measurement).
-
-`LocalityScenario.Party`: A spatially isolated agent (e.g. Alice over here, Bob over there). By construction, all matrices generated
-respect no-signalling, and so operators associated with different parties are always assumed to commute.
-
-
 ### Moment functions
 The matlab module `mtk` defines a set of functions, the names of which should be provided as the first argument
 to the call to function `mtk(...)`. For information about these, type `help mtk` from MATLAB, or read the file 
 `matlab/mtk.m`
 
-### Directory structure
+### Directory outline
 
 `\`: Root of Moment.
 
@@ -117,74 +85,18 @@ to the call to function `mtk(...)`. For information about these, type `help mtk`
 
 `\cpp\lib_moment`: Toolkit algorithms agnostic of MATLAB. Builds `lib_moment`.
 
-`\cpp\lib_moment\matrix`: Aspects of `lib_moment` concerning operator matrices.
-
-`\cpp\lib_moment\scenarios`: Aspects of `lib_moment` concerning functionality shared between various matrix
-systems.
-
-`\cpp\lib_moment\scenarios\algebraic`: Aspects of `lib_moment` concerning generic algebraic operator
-manipulation (with monomial rewrite rules).
-
-`\cpp\lib_moment\scenarios\imported`: Aspects of `lib_moment` concerning manually imported matrices.
-
-`\cpp\lib_moment\scenarios\inflation`: Aspects of `lib_moment` concerning inflation scenarios.
-
-`\cpp\lib_moment\scenarios\locality`: Aspects of `lib_moment` concerning locality scenarios (e.g. NPA Hierarchy).
-
-`\cpp\lib_moment\operators\matrix`: Aspects of `lib_moment` concerning systems of moment matrices,
-localizing matrices, etc.
-
-`\cpp\lib_moment\symbolic`: Aspects of `lib_moment`  concerning symbolic expressions.
-
-`\cpp\lib_moment\utilities`: General boilerplate code for `lib_moment`, not entirely specific to the manipulation of 
-SDP hierarchies.
-
 `\cpp\mex_functions`: Root for MATLAB/C++ interface code (i.e. building `mtk` mex library).
 
-`\cpp\mex_functions\eigen`: Code pieces involving the conversion between MATLAB arrays and `eigen` matrices.
-
-`\cpp\mex_functions\export`: Code pieces specific to Moment, involving the conversion of Moment library objects 
-to MATLAB arrays.
-
-`\cpp\mex_functions\functions`: Entry points for the various `mtk` commands.
-
-`\cpp\mex_functions\import`: Code pieces specific to Moment, involving the reading of MATLAB arrays into Moment
-library objects.
-
-`\cpp\mex_functions\utilities`: Boilerplate code for interfacing MATLAB with C++, not specific to Moment.
+`\cpp\stress_tests`: Stand-alone benchmarking tests.
 
 `\cpp\tests`: C++ unit tests for `lib_moment` (build using googletest).
-
-`\cpp\tests\operators`: C++ unit tests for Hermitian-operator manipulation.
-
-`\cpp\tests\scenarios`: C++ unit tests for specific matrix system types.
-
-`\cpp\tests\scenarios\algebraic`: C++ unit tests for algebraic matrix systems.
-
-`\cpp\tests\scenarios\imported`: C++ unit tests for imported matrix systems.
-
-`\cpp\tests\scenarios\inflation`: C++ unit tests for inflation scenario matrix systems.
-
-`\cpp\tests\scenarios\locality`: C++ unit tests for locality scenario matrix systems.
-
-`\cpp\tests\symbolic`: C++ unit tests for symbolic manipulation.
-
-`\cpp\tests\utilities`: C++ unit tests for general utility functions.
 
 `\matlab`: Root of Moment MATLAB package
 
 `\matlab\classes`: Object-oriented interface for moment.
 
-`\matlab\classes\+Algebraic`: MATLAB classes associated with generic algebraic scenarios.
-
-`\matlab\classes\+Inflation`: MATLAB classes associated with inflation scenarios.
-
-`\matlab\classes\+Locality`: MATLAB classes associated with locality scenarios.
-
 `\matlab\examples`: Example scripts making use of the Moment library.
 
 `\matlab\functions`: MATLAB functional interface for Moment.
-
-`\matlab\functions\+Util`: Minor utility functions.
 
 `\matlab\tests`: MATLAB unit tests for `moment` mex library, and other matlab classes.
