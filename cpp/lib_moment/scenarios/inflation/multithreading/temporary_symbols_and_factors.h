@@ -10,7 +10,7 @@
 #include "integer_types.h"
 
 #include "utilities/index_tree.h"
-#include "utilities/maintains_mutex.h"
+#include "multithreading/maintains_mutex.h"
 
 #include <vector>
 

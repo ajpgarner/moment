@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "utilities/maintains_mutex.h"
+#include "multithreading/maintains_mutex.h"
 
 #include <memory>
 #include <vector>

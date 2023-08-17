@@ -10,7 +10,7 @@
 #include "matrix_system/matrix_indices.h"
 
 #include "utilities/index_tree.h"
-#include "utilities/maintains_mutex.h"
+#include "multithreading/maintains_mutex.h"
 #include "utilities/set_to_vector.h"
 
 #include "integer_types.h"

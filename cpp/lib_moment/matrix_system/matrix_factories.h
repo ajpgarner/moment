@@ -11,7 +11,7 @@
 #include "polynomial_localizing_matrix_index.h"
 
 #include "multithreading/multithreading.h"
-#include "utilities/maintains_mutex.h"
+#include "multithreading/maintains_mutex.h"
 
 #include <shared_mutex>
 #include <string>

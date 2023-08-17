@@ -11,7 +11,7 @@
 
 #include "integer_types.h"
 
-#include "utilities/maintains_mutex.h"
+#include "multithreading/maintains_mutex.h"
 
 #include <atomic>
 #include <utility>

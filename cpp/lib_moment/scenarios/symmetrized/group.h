@@ -10,7 +10,7 @@
 
 #include "multithreading/multithreading.h"
 
-#include "utilities/maintains_mutex.h"
+#include "multithreading/maintains_mutex.h"
 #include "utilities/small_vector.h"
 
 #include <Eigen/Sparse>

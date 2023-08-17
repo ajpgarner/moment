@@ -13,7 +13,7 @@
 
 #include "multithreading/multithreading.h"
 
-#include "utilities/maintains_mutex.h"
+#include "multithreading/maintains_mutex.h"
 
 #include <map>
 #include <memory>
