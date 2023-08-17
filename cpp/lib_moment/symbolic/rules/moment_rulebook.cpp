@@ -31,12 +31,12 @@ namespace Moment {
         }
     }
 
-    MomentRulebook::MomentRulebook(const MatrixSystem& matrix_system)
+    MomentRulebook::MomentRulebook(const MatrixSystem& matrix_system, const bool allow_safe_updates)
         : context{matrix_system.Context()}, symbols{matrix_system.Symbols()},
-        factory{matrix_system.polynomial_factory()}, rules{} { }
+        factory{matrix_system.polynomial_factory()}, rules{}, allow_safe_updates{allow_safe_updates} { }
 
     void MomentRulebook::add_raw_rules(std::vector<Polynomial> &&raw) {
-        if (this->in_use()) {
+        if (!this->in_expansion_mode && this->in_use()) {
             throw errors::already_in_use{};
         }
 
@@ -50,7 +50,7 @@ namespace Moment {
     }
 
     void MomentRulebook::add_raw_rules(const MomentRulebook::raw_map_t& raw) {
-        if (this->in_use()) {
+        if (!this->in_expansion_mode && this->in_use()) {
             throw errors::already_in_use{};
         }
 
@@ -65,7 +65,7 @@ namespace Moment {
     }
 
     void MomentRulebook::add_raw_rules(const MomentRulebook::raw_complex_map_t& raw) {
-        if (this->in_use()) {
+        if (!this->in_expansion_mode && this->in_use()) {
             throw errors::already_in_use{};
         }
 
@@ -80,7 +80,7 @@ namespace Moment {
     }
 
     void MomentRulebook::add_raw_rule(Polynomial&& raw) {
-        if (this->in_use()) {
+        if (!this->in_expansion_mode && this->in_use()) {
             throw errors::already_in_use{};
         }
 
@@ -88,7 +88,7 @@ namespace Moment {
     }
 
     bool MomentRulebook::inject(MomentRule &&msr) {
-        if (this->in_use()) {
+        if (!this->in_expansion_mode && this->in_use()) {
             throw errors::already_in_use{};
         }
 
@@ -119,7 +119,7 @@ namespace Moment {
 
     size_t MomentRulebook::complete() {
         // Can't complete if already in use
-        if (this->in_use()) {
+        if (!this->in_expansion_mode && this->in_use()) {
             throw errors::already_in_use{};
         }
 
@@ -243,7 +243,7 @@ namespace Moment {
 
     size_t MomentRulebook::combine_and_complete(MomentRulebook &&other) {
         // Can't add new rules if already in use
-        if (this->in_use() && other.in_use()) {
+        if ((!this->in_expansion_mode && this->in_use()) || other.in_use()) { // expansion mode does not allow absorption.
             throw errors::already_in_use{};
         }
 
@@ -301,81 +301,6 @@ namespace Moment {
         }
 
         return processed_rules;
-    }
-
-    size_t MomentRulebook::infer_additional_rules_from_factors(const MatrixSystem &ms) {
-        // Can't make new rules if already in use
-        if (this->in_use()) {
-            throw errors::already_in_use{};
-        }
-
-        // If no rules, no additional rules
-        if (this->rules.empty()) {
-            return 0;
-        }
-
-        // Only handle inflation MS here.
-        const auto* imsPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&ms);
-        if (imsPtr == nullptr) {
-            return 0;
-        }
-        const Inflation::InflationMatrixSystem& inflation_system = *imsPtr;
-        const auto& factors = inflation_system.Factors();
-
-        std::vector<Polynomial> new_rules;
-
-        // Go through factorized symbols...
-        for (const auto& symbol : factors) {
-            // Skip if not factorized (basic substitutions should be already handled)
-            if (symbol.fundamental() || symbol.canonical.symbols.empty()) {
-                continue;
-            }
-
-            const size_t symbol_length = symbol.canonical.symbols.size();
-            assert (symbol_length >= 2);
-
-            // Match rules against factors
-            std::vector<decltype(this->rules.cbegin())> match_iterators;
-            std::transform(symbol.canonical.symbols.begin(), symbol.canonical.symbols.end(),
-                           std::back_inserter(match_iterators),
-                           [&](symbol_name_t factor_id) {
-                return this->rules.find(factor_id);
-            });
-            assert(match_iterators.size() == symbol_length);
-
-            // If no rules match, go to next factor
-            if (std::none_of(match_iterators.begin(), match_iterators.end(),
-                             [&](const auto& iter) { return iter != this->rules.cend();})) {
-                continue;
-            }
-
-            // Multiply together all substitutions
-            auto get_as_poly = [&](size_t index) {
-                if (match_iterators[index] != this->rules.cend()) {
-                    return match_iterators[index]->second.RHS();
-                } else {
-                    return Polynomial{Monomial{symbol.canonical.symbols[index], 1.0, false}};
-                }
-            };
-            Polynomial product = get_as_poly(0);
-            for (size_t idx=1; idx < symbol_length; ++idx) {
-                if (product.empty()) {
-                    break;
-                }
-                product = factors.try_multiply(this->factory, product, get_as_poly(idx));
-            }
-
-            this->factory.append(product, {Monomial{symbol.id, -1.0, false}});
-
-            // Check if this infers anything new?
-            new_rules.emplace_back(std::move(product));
-
-        }
-
-        this->add_raw_rules(std::move(new_rules));
-
-        // Compile rules
-        return this->complete();
     }
 
     std::pair<MomentRulebook::rule_map_t::const_iterator, Polynomial::storage_t::const_iterator>

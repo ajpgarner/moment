@@ -904,7 +904,6 @@ namespace Moment::Tests {
         auto [rb_id, book] = ams.Rulebook.add(std::make_unique<MomentRulebook>(this->get_system()));
         book.inject(id_a, Polynomial::Scalar(2.0)); // A -> 2
         book.inject(id_b, Polynomial::Scalar(3.0)); // B -> 3
-        book.infer_additional_rules_from_factors(ams);
 
         // Rewrite moment matrix with known values
         auto [sub_id, sub_matrix] = ams.SubstitutedMatrix.create(std::make_pair(mm_id, rb_id));

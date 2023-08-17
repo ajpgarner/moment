@@ -45,10 +45,11 @@ namespace Moment {
         std::is_same_v<typename factory_t::Index, index_t> &&
         requires (factory_t& factory, const factory_t& const_factory,
                   const index_t& index, matrix_t& matrix_ref, std::unique_lock<std::shared_mutex>& lock,
+                  const std::unique_lock<std::shared_mutex>& const_lock,
                   const Multithreading::MultiThreadPolicy& mt_policy) {
             {factory.get_write_lock()};
             {factory(lock, index, mt_policy)} -> std::convertible_to<std::pair<ptrdiff_t, matrix_t&>>;
-            {factory.notify(index, matrix_ref)};
+            {factory.notify(const_lock, index, matrix_ref)};
             {const_factory.not_found_msg(index)} -> std::convertible_to<std::string>;
         };
 
@@ -141,7 +142,7 @@ namespace Moment {
             [[maybe_unused]] const auto [actual_offset, did_insertion] = this->indices.insert(index, matrix_offset);
             assert(actual_offset == matrix_offset);
             assert(did_insertion);
-            matrixFactory.notify(index, matrix_ref);
+            matrixFactory.notify(lock, index, matrix_ref);
 
             return std::pair<size_t, matrix_t&>{static_cast<size_t>(matrix_offset), matrix_ref};
         }

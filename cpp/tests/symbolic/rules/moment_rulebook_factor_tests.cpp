@@ -99,13 +99,14 @@ namespace Moment::Tests {
 
 
     TEST_F(Symbolic_MomentRulebook_Factor, Sub_AtoScalar) {
-        // Prepare trivial rulebook
-        MomentRulebook book{this->get_system()};
-        book.inject(this->id_a, Polynomial::Scalar(0.25)); // <A> = 0.25
-        EXPECT_EQ(book.size(), 1);
+         // Prepare trivial rulebook
+        auto& system = this->get_system();
+        auto book_ptr = std::make_unique<MomentRulebook>(system, true);
+        book_ptr->inject(this->id_a, Polynomial::Scalar(0.25)); // <A> = 0.25
+        EXPECT_EQ(book_ptr->size(), 1);
 
         // Infer factored rules
-        book.infer_additional_rules_from_factors(this->get_system());
+        auto [index, book] = system.Rulebook.add(std::move(book_ptr));
         EXPECT_EQ(book.size(), 6);
 
         const auto& factory = this->get_factory();
@@ -137,14 +138,17 @@ namespace Moment::Tests {
     }
 
     TEST_F(Symbolic_MomentRulebook_Factor, Sub_BtoZero) {
+
         // Prepare trivial rulebook
-        MomentRulebook book{this->get_system()};
-        book.inject(this->id_b, Polynomial()); // <A> = 0.25
-        EXPECT_EQ(book.size(), 1);
+        auto& system = this->get_system();
+        auto book_ptr = std::make_unique<MomentRulebook>(system, true);
+        book_ptr->inject(this->id_b, Polynomial()); // <B> = 0
+        EXPECT_EQ(book_ptr->size(), 1);
 
         // Infer factored rules
-        book.infer_additional_rules_from_factors(this->get_system());
-        ASSERT_EQ(book.size(), 6);
+        auto [index, book] = system.Rulebook.add(std::move(book_ptr));
+        EXPECT_EQ(book.size(), 6);
+
 
         const auto& factory = this->get_factory();
 
@@ -176,14 +180,17 @@ namespace Moment::Tests {
 
     TEST_F(Symbolic_MomentRulebook_Factor, Sub_AandBtoScalar) {
         // Prepare trivial rulebook
-        MomentRulebook book{this->get_system()};
-        book.inject(this->id_a, Polynomial::Scalar(0.3)); // <A> = 0.3
-        book.inject(this->id_b, Polynomial::Scalar(0.4)); // <B> = 0.4
-        EXPECT_EQ(book.size(), 2);
+        auto& system = this->get_system();
+        auto book_ptr = std::make_unique<MomentRulebook>(system, true);
+        book_ptr->inject(this->id_a, Polynomial::Scalar(0.3)); // <A> = 0.3
+        book_ptr->inject(this->id_b, Polynomial::Scalar(0.4)); // <B> = 0.4
+        book_ptr->complete();
+        EXPECT_EQ(book_ptr->size(), 2);
 
         // Infer factored rules
-        book.infer_additional_rules_from_factors(this->get_system());
+        auto [index, book] = system.Rulebook.add(std::move(book_ptr));
         EXPECT_EQ(book.size(), 10);
+
 
         const auto& factory = this->get_factory();
 
@@ -225,5 +232,9 @@ namespace Moment::Tests {
                   factory({Monomial{this->id_bbb, 2.0}}));
 
 
+    }
+
+    TEST_F(Symbolic_MomentRulebook_Factor, RulesWithUpdate) {
+        // TODO:
     }
 }

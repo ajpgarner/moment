@@ -23,6 +23,7 @@ namespace Moment {
     std::pair<size_t, MomentRulebook&>
     RulebookStorage::add(const MaintainsMutex::WriteLock& write_lock,
                          std::unique_ptr<MomentRulebook>&& input_rulebook_ptr) {
+        assert(write_lock.owns_lock());
         assert(&input_rulebook_ptr->symbols == this->system.symbol_table.get());
 
         // Exception safe insert:
@@ -42,11 +43,12 @@ namespace Moment {
             }
 
             // Dispatch notification to derived classes
-            this->system.onRulebookAdded(rulebook_index, rulebook, true);
+            this->system.onRulebookAdded(write_lock, rulebook_index, rulebook, true);
 
             // Return created book
             return {rulebook_index, rulebook};
         } catch (const std::exception& e) {
+            //If throwing an exception, return rulebook to input_rulebook_ptr object
             if (!this->rulebooks.empty()) {
                 this->rulebooks.back().swap(input_rulebook_ptr);
                 this->rulebooks.pop_back();
@@ -63,6 +65,7 @@ namespace Moment {
     std::pair<size_t, MomentRulebook &>
     RulebookStorage::merge_in(const MaintainsMutex::WriteLock& write_lock,
                               const size_t existing_rulebook_id, MomentRulebook&& input_rulebook) {
+        assert(write_lock.owns_lock());
         auto& existing_rulebook = this->find(existing_rulebook_id);
 
         existing_rulebook.combine_and_complete(std::move(input_rulebook));
@@ -70,7 +73,7 @@ namespace Moment {
         // NB: Name should be handled already, either from existing name, or newly-merged-in name.
 
         // Dispatch notification of merge-in to derived classes
-        this->system.onRulebookAdded(existing_rulebook_id, existing_rulebook, false);
+        this->system.onRulebookAdded(write_lock, existing_rulebook_id, existing_rulebook, false);
 
         // Return merged book
         return {existing_rulebook_id, existing_rulebook};
@@ -80,6 +83,13 @@ namespace Moment {
     RulebookStorage::merge_in(const size_t existing_rulebook_id, MomentRulebook&& input_rulebook) {
         auto write_lock = this->system.get_write_lock();
         return this->merge_in(write_lock, existing_rulebook_id, std::move(input_rulebook));
+    }
+
+    void RulebookStorage::refreshAll(const MaintainsMutex::WriteLock& write_lock, const size_t previous_symbol_count) {
+        assert(write_lock.owns_lock());
+        for (auto& bookPtr : this->rulebooks) {
+            this->system.expandRulebook(*bookPtr, previous_symbol_count);
+        }
     }
 
     MomentRulebook& RulebookStorage::find(size_t index) {

@@ -108,9 +108,17 @@ namespace Moment::Inflation {
         createNewExtendedMatrix(MaintainsMutex::WriteLock &lock, const ExtendedMatrixIndex& index,
                                 Multithreading::MultiThreadPolicy mt_policy);
 
-        virtual void onNewExtendedMatrixCreated(const ExtendedMatrixIndex&, const class ExtendedMatrix& em) { }
+        ptrdiff_t expandRulebook(MomentRulebook &rulebook, size_t from_symbol) override;
 
-        void onNewSymbolsRegistered(size_t old_symbol_count, size_t new_symbol_count) override;
+        virtual void onNewExtendedMatrixCreated(const MaintainsMutex::WriteLock& write_lock,
+                                                const ExtendedMatrixIndex& emi, const class ExtendedMatrix& em) { }
+
+        void onNewSymbolsRegistered(const MaintainsMutex::WriteLock& write_lock,
+                                    size_t old_symbol_count, size_t new_symbol_count) override;
+
+        void onRulebookAdded(const WriteLock &write_lock, size_t index,
+                             const MomentRulebook &rb, bool insertion) override;
+
 
     private:
         std::unique_ptr<class CollinsGisin> makeCollinsGisin() override;

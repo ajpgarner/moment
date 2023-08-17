@@ -59,6 +59,11 @@ namespace Moment {
         merge_in(size_t existing_rulebook_id, MomentRulebook&& rulebook);
 
         /**
+         * Update all rulebook with new symbols
+         */
+        void refreshAll(const MaintainsMutex::WriteLock& write_lock, size_t previous_symbol_count);
+
+        /**
          * Get a list of moment substitution rules.
          * For thread safety, call for a read lock first.
          * @throws errors::missing_component If index does not correspond to a valid rulebook.

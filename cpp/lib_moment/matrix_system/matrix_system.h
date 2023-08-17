@@ -191,20 +191,30 @@ namespace Moment {
         createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex& index,
                         Multithreading::MultiThreadPolicy mt_policy);
 
+        /**
+         * Virtual method, called to expand a rulebook according to matrix system extra rules.
+         * @param rulebook The rulebook to expand
+         * @param from_symbol The largest symbol the rulebook previously had knowledge about.
+         * @return Number of new rules added.
+         */
+        virtual ptrdiff_t expandRulebook(MomentRulebook& rulebook, size_t from_symbol) { return 0; }
+
 
         /**
          * Virtual method, called after a moment matrix is generated.
          * @param level The moment matrix level.
          * @param mm The newly generated moment matrix.
          */
-        virtual void onNewMomentMatrixCreated(size_t level, const class SymbolicMatrix& mm) { }
+        virtual void onNewMomentMatrixCreated(const MaintainsMutex::WriteLock& write_lock,
+                                              size_t level, const class SymbolicMatrix& mm) { }
 
         /**
          * Virtual method, called after a (flat monomial) localizing matrix is generated.
          * @param lmi The hierarchy Level and word that describes the localizing matrix.
          * @param lm The newly generated localizing matrix.
          */
-        virtual void onNewLocalizingMatrixCreated(const LocalizingMatrixIndex& lmi,
+        virtual void onNewLocalizingMatrixCreated(const MaintainsMutex::WriteLock& write_lock,
+                                                  const LocalizingMatrixIndex& lmi,
                                                   const class SymbolicMatrix& lm) { }
 
         /**
@@ -212,7 +222,8 @@ namespace Moment {
          * @param lmi The hierarchy Level and word that describes the localizing matrix.
          * @param lm The newly generated localizing matrix.
          */
-        virtual void onNewPolyLMCreated(const PolynomialLMIndex& lmi, const class PolynomialMatrix& plm) { }
+        virtual void onNewPolyLMCreated(const MaintainsMutex::WriteLock& write_lock,
+                                        const PolynomialLMIndex& lmi, const class PolynomialMatrix& plm) { }
 
        /**
         * Virtual method, called after a substituted matrix is generated.
@@ -222,7 +233,8 @@ namespace Moment {
         * @param rulebook The rulebook.
         * @param subbed_matrix The newly created substituted matrix.
         */
-        virtual void onNewSubstitutedMatrixCreated(size_t source_index, const class SymbolicMatrix& source,
+        virtual void onNewSubstitutedMatrixCreated(const MaintainsMutex::WriteLock& write_lock,
+                                                   size_t source_index, const class SymbolicMatrix& source,
                                                    size_t rulebook_index, const MomentRulebook& rulebook,
                                                    const class SymbolicMatrix& subbed_matrix) { }
 
@@ -231,7 +243,8 @@ namespace Moment {
          * @param word_length The dictionary word-length requested
          * @param osg The operator sequence generator.
          */
-        virtual void onDictionaryGenerated(size_t word_length, const OperatorSequenceGenerator& osg) { }
+        virtual void onDictionaryGenerated(const MaintainsMutex::WriteLock& write_lock,
+                                           size_t word_length, const OperatorSequenceGenerator& osg) { }
 
         /**
          * Virtual method, called after a rulebook has been added or merged
@@ -239,14 +252,16 @@ namespace Moment {
          * @param rulebook The rulebook itself.
          * @param insertion True if new addition, false if a merge.
          */
-        virtual void onRulebookAdded(size_t index, const MomentRulebook& rb, bool insertion) { }
+        virtual void onRulebookAdded(const MaintainsMutex::WriteLock& write_lock,
+                                     size_t index, const MomentRulebook& rb, bool insertion) { }
 
         /**
          * Virtual method, called after new symbols have been added to the symbol table.
          * @param old_symbol_count The number of symbols before the update.
          * @param new_symbol_count The number of symbols after the update.
          */
-        virtual void onNewSymbolsRegistered(size_t old_symbol_count, size_t new_symbol_count) { }
+        virtual void onNewSymbolsRegistered(const MaintainsMutex::WriteLock& write_lock,
+                                            size_t old_symbol_count, size_t new_symbol_count) { }
 
         /**
          * Get read-write access to symbolic matrix by index. Changes should not be made without a write lock.

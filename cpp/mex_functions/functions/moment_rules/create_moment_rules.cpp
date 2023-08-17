@@ -350,11 +350,6 @@ namespace Moment::mex::functions {
         }
         assert(book);
 
-        // Extra rules from factors (if any)
-        if (input.infer_from_factors) {
-            book->infer_additional_rules_from_factors(system);
-        }
-
         return book;
     }
 
@@ -376,7 +371,7 @@ namespace Moment::mex::functions {
             ++idx;
         }
         // Make empty rulebook
-        auto output = std::make_unique<MomentRulebook>(system);
+        auto output = std::make_unique<MomentRulebook>(system, input.infer_from_factors);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }
@@ -411,7 +406,7 @@ namespace Moment::mex::functions {
         }
 
         // Construct empty ruleset with ordering
-        auto output = std::make_unique<MomentRulebook>(system);
+        auto output = std::make_unique<MomentRulebook>(system, input.infer_from_factors);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }
@@ -442,7 +437,7 @@ namespace Moment::mex::functions {
         }
 
         //Make empty rulebook and get factory...
-        auto output = std::make_unique<MomentRulebook>(system);
+        auto output = std::make_unique<MomentRulebook>(system, input.infer_from_factors);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }
@@ -471,7 +466,7 @@ namespace Moment::mex::functions {
         }
 
         //Make empty rulebook and get factory...
-        auto output = std::make_unique<MomentRulebook>(system);
+        auto output = std::make_unique<MomentRulebook>(system, input.infer_from_factors);
         if (!input.human_readable_name.empty()) {
             output->set_name(input.human_readable_name);
         }

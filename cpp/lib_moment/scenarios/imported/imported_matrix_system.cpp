@@ -195,7 +195,7 @@ namespace Moment::Imported {
         // Did we create new symbols in this process?
         const size_t new_symbol_count = this->Symbols().size();
         if (new_symbol_count > initial_symbol_size) {
-            this->onNewSymbolsRegistered(initial_symbol_size, new_symbol_count);
+            this->onNewSymbolsRegistered(write_lock, initial_symbol_size, new_symbol_count);
         }
 
         // Finally, register new matrix

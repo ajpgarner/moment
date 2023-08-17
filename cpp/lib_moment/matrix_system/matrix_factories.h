@@ -11,6 +11,7 @@
 #include "polynomial_localizing_matrix_index.h"
 
 #include "multithreading/multithreading.h"
+#include "utilities/maintains_mutex.h"
 
 #include <shared_mutex>
 #include <string>
@@ -23,7 +24,7 @@ namespace Moment {
     class PolynomialMatrix;
     class MatrixSystem;
 
-    using MatrixSystemWriteLock = std::unique_lock<std::shared_mutex>;
+
 
     /**
      * Factory: makes moment matrices
@@ -39,9 +40,9 @@ namespace Moment {
         explicit MomentMatrixFactory(MatrixSystem& system) : system{system} {}
 
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
-        operator()(MatrixSystemWriteLock& lock, Index level, Multithreading::MultiThreadPolicy mt_policy);
+        operator()(MaintainsMutex::WriteLock& lock, Index level, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(size_t index, SymbolicMatrix& matrix);
+        void notify(const MaintainsMutex::WriteLock& lock, size_t index, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(Index level) const;
 
@@ -62,9 +63,9 @@ namespace Moment {
         explicit LocalizingMatrixFactory(MatrixSystem& system) : system{system} {}
 
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
-        operator()(MatrixSystemWriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
+        operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const Index& lmi, SymbolicMatrix& matrix);
+        void notify(const MaintainsMutex::WriteLock& lock, const Index& lmi, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& lmi) const;
 
@@ -85,9 +86,9 @@ namespace Moment {
         explicit PolynomialLocalizingMatrixFactory(MatrixSystem& system) : system{system} {}
 
         [[nodiscard]] std::pair<ptrdiff_t, PolynomialMatrix&>
-        operator()(MatrixSystemWriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
+        operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const Index& index, PolynomialMatrix& matrix);
+        void notify(const MaintainsMutex::WriteLock& lock, const Index& index, PolynomialMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const PolynomialLMIndex& pmi) const;
 
@@ -108,9 +109,9 @@ namespace Moment {
         explicit SubstitutedMatrixFactory(MatrixSystem& system) : system{system} {}
 
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
-        operator()(MatrixSystemWriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
+        operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const Index& index, SymbolicMatrix& matrix);
+        void notify(const MaintainsMutex::WriteLock& lock, const Index& index, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& index) const;
 

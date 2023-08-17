@@ -89,7 +89,7 @@ namespace Moment {
         auto ptr = MomentMatrix::create_matrix(*this->context, *this->symbol_table, level, mt_policy);
         const size_t new_symbol_count = this->symbol_table->size();
         if (new_symbol_count > prev_symbol_count) {
-            this->onNewSymbolsRegistered(prev_symbol_count, new_symbol_count);
+            this->onNewSymbolsRegistered(lock, prev_symbol_count, new_symbol_count);
         }
         return ptr;
     }
@@ -104,7 +104,7 @@ namespace Moment {
         auto ptr = LocalizingMatrix::create_matrix(*this->context, *this->symbol_table, lmi, mt_policy);
         const size_t new_symbol_count = this->symbol_table->size();
         if (new_symbol_count > prev_symbol_count) {
-            this->onNewSymbolsRegistered(prev_symbol_count, new_symbol_count);
+            this->onNewSymbolsRegistered(lock, prev_symbol_count, new_symbol_count);
         }
         return ptr;
     }
@@ -133,7 +133,7 @@ namespace Moment {
 
         const size_t new_symbol_count = this->symbol_table->size();
         if (new_symbol_count > prev_symbol_count) {
-            this->onNewSymbolsRegistered(prev_symbol_count, new_symbol_count);
+            this->onNewSymbolsRegistered(lock, prev_symbol_count, new_symbol_count);
         }
 
         return ptr;
@@ -148,10 +148,10 @@ namespace Moment {
 
         const size_t new_symbol_count = this->symbol_table->size();
         if (new_symbol_count > prev_symbol_count) {
-            this->onNewSymbolsRegistered(prev_symbol_count, new_symbol_count);
+            this->onNewSymbolsRegistered(write_lock, prev_symbol_count, new_symbol_count);
         }
 
-        this->onDictionaryGenerated(word_length, this->context->operator_sequence_generator(word_length));
+        this->onDictionaryGenerated(write_lock, word_length, this->context->operator_sequence_generator(word_length));
 
         return new_symbols;
     }

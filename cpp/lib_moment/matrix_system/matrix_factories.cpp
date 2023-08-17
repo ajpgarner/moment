@@ -20,15 +20,15 @@ namespace Moment {
 
 
     std::pair<ptrdiff_t, SymbolicMatrix &>
-    MomentMatrixFactory::operator()(MatrixSystemWriteLock& lock, const size_t level,
+    MomentMatrixFactory::operator()(MaintainsMutex::WriteLock& lock, const size_t level,
                                     const Multithreading::MultiThreadPolicy mt_policy) {
         const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
         system.matrices.emplace_back(system.createNewMomentMatrix(lock, level, mt_policy));
         return std::pair<ptrdiff_t, SymbolicMatrix&>(matrixIndex, *system.matrices.back());
     }
 
-    void MomentMatrixFactory::notify(const size_t level, SymbolicMatrix &matrix) {
-        this->system.onNewMomentMatrixCreated(level, matrix);
+    void MomentMatrixFactory::notify(const MaintainsMutex::WriteLock& lock, const size_t level, SymbolicMatrix &matrix) {
+        this->system.onNewMomentMatrixCreated(lock, level, matrix);
     }
 
     std::string MomentMatrixFactory::not_found_msg(size_t level) const {
@@ -44,7 +44,7 @@ namespace Moment {
 
 
     std::pair<ptrdiff_t, SymbolicMatrix &>
-    LocalizingMatrixFactory::operator()(MatrixSystemWriteLock& lock, const LocalizingMatrixIndex& lmi,
+    LocalizingMatrixFactory::operator()(MaintainsMutex::WriteLock& lock, const LocalizingMatrixIndex& lmi,
                                         Multithreading::MultiThreadPolicy mt_policy) {
         const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
         system.matrices.emplace_back(system.createNewLocalizingMatrix(lock, lmi, mt_policy));
@@ -52,8 +52,9 @@ namespace Moment {
     }
 
 
-    void LocalizingMatrixFactory::notify(const LocalizingMatrixIndex &lmi, SymbolicMatrix &matrix) {
-        this->system.onNewLocalizingMatrixCreated(lmi, matrix);
+    void LocalizingMatrixFactory::notify(const MaintainsMutex::WriteLock& lock,
+                                         const LocalizingMatrixIndex &lmi, SymbolicMatrix &matrix) {
+        this->system.onNewLocalizingMatrixCreated(lock, lmi, matrix);
     }
 
     std::string LocalizingMatrixFactory::not_found_msg(const LocalizingMatrixIndex &lmi) const {
@@ -69,7 +70,7 @@ namespace Moment {
     }
 
     std::pair<ptrdiff_t, PolynomialMatrix&>
-    PolynomialLocalizingMatrixFactory::operator()(MatrixSystemWriteLock& lock,
+    PolynomialLocalizingMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
                                                   const PolynomialLMIndex &index,
                                                   Multithreading::MultiThreadPolicy mt_policy) {
         auto matrixPtr = system.createNewPolyLM(lock, index, mt_policy);
@@ -79,8 +80,9 @@ namespace Moment {
         return std::pair<ptrdiff_t, PolynomialMatrix&>(matrixIndex, matrixRef);
     }
 
-    void PolynomialLocalizingMatrixFactory::notify(const PolynomialLMIndex &index, PolynomialMatrix& matrix) {
-        this->system.onNewPolyLMCreated(index, matrix);
+    void PolynomialLocalizingMatrixFactory::notify(const MaintainsMutex::WriteLock& lock,
+                                                   const PolynomialLMIndex &index, PolynomialMatrix& matrix) {
+        this->system.onNewPolyLMCreated(lock, index, matrix);
     }
 
     std::string PolynomialLocalizingMatrixFactory::not_found_msg(const PolynomialLMIndex &pmi) const {
@@ -102,7 +104,7 @@ namespace Moment {
 
 
     std::pair<ptrdiff_t, SymbolicMatrix &>
-    SubstitutedMatrixFactory::operator()(MatrixSystemWriteLock& lock,
+    SubstitutedMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
                                          const Index& index,
                                          const Multithreading::MultiThreadPolicy mt_policy) {
         assert(system.is_locked_write_lock(lock));
@@ -116,12 +118,13 @@ namespace Moment {
         return {matrixIndex, *(system.matrices.back())};
     }
 
-    void SubstitutedMatrixFactory::notify(const std::pair<ptrdiff_t, ptrdiff_t> &index, SymbolicMatrix &matrix) {
+    void SubstitutedMatrixFactory::notify(const MaintainsMutex::WriteLock& lock,
+                                          const std::pair<ptrdiff_t, ptrdiff_t> &index, SymbolicMatrix &matrix) {
         assert(index.first < system.matrices.size() && system.matrices[index.first]);
         assert(system.Rulebook.contains(index.second));
         const auto& src_matrix = *(system.matrices[index.first]);
         const auto& rulebook = system.Rulebook(index.second);
-        system.onNewSubstitutedMatrixCreated(index.first, src_matrix, index.second, rulebook, matrix);
+        system.onNewSubstitutedMatrixCreated(lock, index.first, src_matrix, index.second, rulebook, matrix);
     }
 
     std::string SubstitutedMatrixFactory::not_found_msg(const std::pair<ptrdiff_t, ptrdiff_t> &index) const {

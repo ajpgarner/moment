@@ -62,8 +62,9 @@ namespace Moment::Inflation {
         return std::pair<ptrdiff_t, ExtendedMatrix &>{offset, matrix};
     }
 
-    void ExtendedMatrixFactory::notify(const Index& index, ExtendedMatrix& matrix) {
-        this->system.onNewExtendedMatrixCreated(index, matrix);
+    void ExtendedMatrixFactory::notify(const MaintainsMutex::WriteLock& lock,
+                                       const Index& index, ExtendedMatrix& matrix) {
+        this->system.onNewExtendedMatrixCreated(lock, index, matrix);
     }
 
     std::string ExtendedMatrixFactory::not_found_msg(const ExtendedMatrixFactory::Index &index) const {

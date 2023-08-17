@@ -99,18 +99,43 @@ namespace Moment {
          */
         rule_order_map_t rules_in_order;
 
+        /**
+         * True if RHS of every rule is a monomial.
+         */
         bool monomial_rules = true;
 
+        /**
+         * True if rules do not break Hermiticity.
+         */
         bool hermitian_rules = true;
 
+        /**
+         * True if extra rules can be added to account for factorization relationships
+         */
+        bool allow_safe_updates = true;
+
+        /**
+         * Counts how many matrices this rulebook has been applied to.
+         */
         mutable std::atomic<size_t> usages = 0;
 
+        /**
+         * Disables 'usage' checks before adding rules.
+         */
+        bool in_expansion_mode = false;
+
     public:
-        explicit MomentRulebook(const MatrixSystem& system);
+        /**
+         * Constructs a moment rulebook.
+         * @param system The associated matrix system.
+         * @param allow_safe_updates
+         */
+        explicit MomentRulebook(const MatrixSystem& system, bool allow_safe_updates = true);
 
+        /**
+         * No copy constructor.
+         */
         explicit MomentRulebook(const MomentRulebook&) = delete;
-
-
 
         /**
          * Add substitution rules in the form of polynomials equal to zero.
@@ -164,13 +189,6 @@ namespace Moment {
          size_t combine_and_complete(MomentRulebook&& other);
 
         /**
-         * Attempt to infer additional rules from factorization structure
-         * @param A matrix system with associated factor table.
-         * @return The number of new rules inferred.
-         */
-        size_t infer_additional_rules_from_factors(const MatrixSystem& ms);
-
-        /**
          * Apply all known rules to Polynomial.
          * @return true if rules were applied.
          */
@@ -196,17 +214,25 @@ namespace Moment {
         [[nodiscard]] Monomial reduce_monomial(Monomial expr) const;
 
         /**
+         * Find rule, by LHS.
+         */
+        [[nodiscard]] auto find(const symbol_name_t symbol_id) const noexcept {
+            return this->rules.find(symbol_id);
+        }
+
+        /**
          * Find first matching rule.
          * @returns Pair: iterator to matching rule, iterator to matching monomial element (or end, end).
          * If one output is not end, other is guaranteed to not be end.
          */
-        [[nodiscard]] std::pair<rule_map_t::const_iterator,
-                                Polynomial::storage_t::const_iterator> match(const Polynomial& test) const noexcept;
+        [[nodiscard]] std::pair<rule_map_t::const_iterator, Polynomial::storage_t::const_iterator>
+        match(const Polynomial& test) const noexcept;
+
         /**
          * Can only find match in l-values.
          */
-        [[nodiscard]] std::pair<rule_map_t::const_iterator,
-                                Polynomial::storage_t::const_iterator> match(Polynomial&& test) const = delete;
+        [[nodiscard]] std::pair<rule_map_t::const_iterator, Polynomial::storage_t::const_iterator>
+        match(Polynomial&& test) const = delete;
 
         /**
          * Apply reduction to every element of matrix, and make a new matrix
@@ -215,8 +241,9 @@ namespace Moment {
          * @param mt_policy Whether or not to use multi-threading.
          * @return Newly created matrix, either of type MonomialSubstitutionMatrix or PolynomialSubstitutionMatrix.
          */
-        [[nodiscard]] std::unique_ptr<SymbolicMatrix> create_substituted_matrix(SymbolTable& symbols, const SymbolicMatrix& matrix,
-                                                                                Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional) const;
+        [[nodiscard]] std::unique_ptr<SymbolicMatrix>
+        create_substituted_matrix(SymbolTable& symbols, const SymbolicMatrix& matrix,
+              Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional) const;
 
 
         /**
@@ -272,6 +299,29 @@ namespace Moment {
          */
          [[nodiscard]] const bool in_use() {
              return this->usages.load(std::memory_order_acquire) > 0;
+         }
+
+         /**
+          * Call to enable writing of rules, even if rulebook is in use.
+          * Undefined behaviour if any new rules (or their completion) added would result in a /different/ result when
+          * applied to an object that the rulebook was previous applied to.
+          *
+          * Useful for things like adding new factor behaviour, etc.
+          * @return True, if expansion is allowed at all
+          */
+         inline bool enable_expansion() noexcept {
+             if (this->allow_safe_updates) {
+                 this->in_expansion_mode = true;
+                 return true;
+             }
+             return false;
+         }
+
+         /**
+          * Flag that 'safe' expansion mode is over.
+          */
+         inline void disable_expansion() noexcept {
+             this->in_expansion_mode = false;
          }
 
          /**
