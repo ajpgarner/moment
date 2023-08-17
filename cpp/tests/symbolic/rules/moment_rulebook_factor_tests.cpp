@@ -235,6 +235,40 @@ namespace Moment::Tests {
     }
 
     TEST_F(Symbolic_MomentRulebook_Factor, RulesWithUpdate) {
-        // TODO:
+        // Prepare trivial rulebook
+        auto& system = this->get_system();
+        auto book_ptr = std::make_unique<MomentRulebook>(system, true);
+        book_ptr->inject(this->id_a, Polynomial::Scalar(0.3)); // <A> = 0.3
+        book_ptr->inject(this->id_b, Polynomial::Scalar(0.4)); // <B> = 0.4
+        book_ptr->complete();
+        EXPECT_EQ(book_ptr->size(), 2);
+
+        // Infer factored rules
+        auto [index, book] = system.Rulebook.add(std::move(book_ptr));
+        EXPECT_EQ(book.size(), 10);
+
+        // Find AAC
+        const auto& symbols = this->get_symbols();
+        const auto id_aac = find_or_fail(symbols, OperatorSequence{sequence_storage_t{0, 0, 2}, this->get_context()});
+
+        // Assert AABC does not exist at this point
+        OperatorSequence aabc{sequence_storage_t{0, 0, 1, 2}, this->get_context()};
+        const auto first_lookup = symbols.where(aabc);
+        ASSERT_FALSE(first_lookup.found());
+
+        // Now, generate strings of length 4
+        system.generate_dictionary(4);
+
+        // Can now find AABC
+        const auto second_lookup = symbols.where(aabc);
+        ASSERT_TRUE(second_lookup.found());
+        const auto id_aabc = second_lookup->Id();
+
+        // Book is larger
+        EXPECT_GT(book.size(), 10);
+
+        // Check we now know how to reduce AABC
+        const auto& factory = this->get_factory();
+        EXPECT_EQ(book.reduce(factory({Monomial{id_aabc, 1.0}})), factory({Monomial{id_aac, 0.4}}));
     }
 }
