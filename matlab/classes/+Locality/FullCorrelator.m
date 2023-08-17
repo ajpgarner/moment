@@ -54,7 +54,7 @@ classdef FullCorrelator < MTKPolynomial
             ops = cell(numel(party_idx), 1);
             for i = 1:numel(party_idx)
                 party = obj.Scenario.Parties(party_idx(i));
-                mmt = party.Measurements(mmt_idx);
+                mmt = party.Measurements(mmt_idx(i));
                 ops{i} = mmt.ExplicitOutcomes;
             end
 
