@@ -7,6 +7,11 @@ classdef OperatorRule < matlab.mixin.CustomDisplay
         Negated = false % True if rule replaces LHS with -RHS.
     end
     
+    properties(GetAccess = public, Dependent)
+        IsZeroRHS
+    end
+        
+    
     methods
         function obj = OperatorRule(lhs, rhs, negate)
 		
@@ -59,6 +64,10 @@ classdef OperatorRule < matlab.mixin.CustomDisplay
                     end
             end
         end
+        
+        function val= get.IsZeroRHS(obj)
+            val = isequal(obj.RHS, uint64(0));
+        end
     end
     
     %% Display overloads
@@ -87,7 +96,11 @@ classdef OperatorRule < matlab.mixin.CustomDisplay
     methods(Access=private)
         function str = ruleText(obj)
             lhs_str = Algebraic.OperatorRule.opSeqToString(obj.LHS);
-            rhs_str = Algebraic.OperatorRule.opSeqToString(obj.RHS);
+            if obj.IsZeroRHS
+                rhs_str = "0";
+            else
+                rhs_str = Algebraic.OperatorRule.opSeqToString(obj.RHS);
+            end
             
             str = lhs_str + "  ->  ";
             if obj.Negated

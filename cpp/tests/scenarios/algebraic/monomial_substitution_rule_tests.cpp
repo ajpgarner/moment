@@ -338,4 +338,18 @@ namespace Moment::Tests {
 
     }
 
+    TEST(Scenarios_Algebraic_MonomialSubRule, Combine_ImplyZero) {
+
+        AlgebraicPrecontext apc{2};
+        const ShortlexHasher& hasher = apc.hasher;
+
+        const OperatorRule ruleA{HashedSequence{{1, 0}, hasher},
+                                 HashedSequence{{0, 1}, hasher}, true};
+        const OperatorRule ruleB{HashedSequence{{0, 0}, hasher},
+                                 HashedSequence{{0}, hasher}};
+        auto combined_rule = ruleA.combine(ruleB, apc);
+        ASSERT_TRUE(combined_rule.has_value());
+
+    }
+
 }

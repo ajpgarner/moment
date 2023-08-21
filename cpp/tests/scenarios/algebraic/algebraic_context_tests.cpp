@@ -644,7 +644,12 @@ namespace Moment::Tests {
         EXPECT_EQ(seqMat(2, 2), OperatorSequence({1, 1}, context));   // y y
 
         const auto& symbols = ams.Symbols();
+        auto findX = symbols.where(OperatorSequence({0}, context));
+        ASSERT_TRUE(findX.found());
 
+        auto findXY = symbols.where(OperatorSequence({0, 1}, context));
+        ASSERT_TRUE(findXY.found());
+        EXPECT_FALSE(findXY.is_conjugated);
 
     }
 }

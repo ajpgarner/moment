@@ -88,7 +88,7 @@ namespace Moment::mex {
             return output;
         }
 
-        std::vector<oper_name_t>
+        inline std::pair<std::vector<oper_name_t>, bool>
         get_op_seq_from_numeric(matlab::engine::MATLABEngine &matlabEngine,
                                 const std::string &field_name,
                                 const matlab::data::Array &input,
@@ -96,6 +96,11 @@ namespace Moment::mex {
                                 const bool matlabIndices) {
             std::vector<oper_name_t> output = read_integer_array<oper_name_t>(matlabEngine, field_name, input);
             if (matlabIndices) {
+                // Special case 'zero'
+                if ((output.size() == 1) && (output[0] == 0)) {
+                    return {std::vector<oper_name_t>{}, true};
+                }
+
                 for (auto& x : output) {
                     --x;
                 }
@@ -108,27 +113,28 @@ namespace Moment::mex {
                     throw errors::BadInput{errors::bad_param, err.str()};
                 }
             }
-            return output;
+            return {output, false};
         }
 
-        std::vector<oper_name_t> get_op_seq(matlab::engine::MATLABEngine &matlabEngine,
-                                            const UTF16toUTF8Convertor& convertor,
-                                            const std::string &field_name,
-                                            const matlab::data::Array &input,
-                                            const Algebraic::AlgebraicPrecontext& apc,
-                                            const Algebraic::NameTable& names,
-                                            const bool matlabIndices) {
+        inline std::pair<std::vector<oper_name_t>, bool>
+        get_op_seq(matlab::engine::MATLABEngine &matlabEngine,
+                  const UTF16toUTF8Convertor& convertor,
+                  const std::string &field_name,
+                  const matlab::data::Array &input,
+                  const Algebraic::AlgebraicPrecontext& apc,
+                  const Algebraic::NameTable& names,
+                  const bool matlabIndices) {
 
             // Parse as named operator string
             if (input.getType() == matlab::data::ArrayType::MATLAB_STRING) {
                 auto strArray = static_cast<matlab::data::TypedArray<matlab::data::MATLABString>>(input);
-                return get_op_seq_from_string(matlabEngine, convertor, field_name, strArray, apc, names);
+                return {get_op_seq_from_string(matlabEngine, convertor, field_name, strArray, apc, names), false};
             }
 
             // Parse as one long string.
             if (input.getType() == matlab::data::ArrayType::CHAR) {
                 auto charArray = static_cast<matlab::data::CharArray>(input);
-                return get_op_seq_from_char_array(matlabEngine, field_name, charArray, apc, names);
+                return {get_op_seq_from_char_array(matlabEngine, field_name, charArray, apc, names), false};
             }
 
             // Otherwise, parse as integer
@@ -158,6 +164,13 @@ namespace Moment::mex {
         const auto rhs_hash = apc.hasher.hash(this->RHS);
 
         try {
+            if (this->rhs_zero) {
+                return Algebraic::OperatorRule{
+                        HashedSequence{sequence_storage_t(this->LHS.begin(), this->LHS.end()), apc.hasher},
+                        HashedSequence{true},
+                        false};
+            }
+
             if (lhs_hash > rhs_hash) {
                 return Algebraic::OperatorRule{
                     HashedSequence{sequence_storage_t(this->LHS.begin(), this->LHS.end()), apc.hasher},
@@ -187,7 +200,6 @@ namespace Moment::mex {
         }
         const auto cell_input = static_cast<matlab::data::CellArray>(input);
         const size_t rule_count =  cell_input.getNumberOfElements();
-
 
         const UTF16toUTF8Convertor convertor{};
 
@@ -229,15 +241,19 @@ namespace Moment::mex {
             }
 
             auto lhs = rule_cell[0];
-            auto lhs_rules = get_op_seq(matlabEngine, convertor, "Rule #" + std::to_string(rule_index+1) + " LHS",
+            auto [lhs_rule, lhs_zero] = get_op_seq(matlabEngine, convertor, "Rule #" + std::to_string(rule_index+1) + " LHS",
                                              lhs, apc, names, matlabIndices);
 
+            if (lhs_zero) {
+                throw_error(matlabEngine, errors::bad_param,
+                            std::string("The LHS of a rule should not be zero."));
+            }
+
             auto rhs = rule_cell[negated ? 2 : 1];
-            auto rhs_rules = get_op_seq(matlabEngine, convertor, "Rule #" + std::to_string(rule_index+1) + " RHS",
+            auto [rhs_rule, rhs_zero] = get_op_seq(matlabEngine, convertor, "Rule #" + std::to_string(rule_index+1) + " RHS",
                                              rhs, apc, names, matlabIndices);
 
-            output.emplace_back(std::move(lhs_rules), std::move(rhs_rules), negated);
-
+            output.emplace_back(std::move(lhs_rule), std::move(rhs_rule), !rhs_zero && negated, rhs_zero);
             ++rule_index;
         }
         return output;

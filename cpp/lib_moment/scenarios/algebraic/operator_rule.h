@@ -45,6 +45,7 @@ namespace Moment::Algebraic {
         HashedSequence rawRHS;
         bool is_negated = false;
         bool is_trivial = false;
+        bool map_to_zero = false;
         ptrdiff_t delta = 0;
 
     public:
@@ -90,12 +91,12 @@ namespace Moment::Algebraic {
         /** True, if the rule is of the form A = A. */
         [[nodiscard]] bool trivial() const noexcept { return this->is_trivial; }
 
-        /** True, if the rule requires a negative sign */
+        /** True, if the rule requires a negative sign. */
         [[nodiscard]] bool negated() const noexcept { return this->is_negated; }
 
-        /** True if the rule is of the form A = -A */
+        /** True if the rule implies the LHS is equal to zero. */
         [[nodiscard]] bool implies_zero() const noexcept {
-            return this->is_negated && (this->rawLHS.hash() == this->rawRHS.hash());
+            return this->map_to_zero;
         }
 
         /** Forms a rule by conjugating both sides of the equality */

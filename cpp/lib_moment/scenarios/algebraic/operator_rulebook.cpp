@@ -190,6 +190,8 @@ namespace Moment::Algebraic {
         } else if (this->monomialRules.empty()) {
             return std::make_pair(input, false);
         }
+
+        // Choose reduction method
         const auto how_to_reduce = this->reduction_method(input.size());
 
         // Copy (still...)
@@ -310,7 +312,6 @@ namespace Moment::Algebraic {
                     }
                     break;
                 }
-
                 ++iter;
             }
 
@@ -382,7 +383,7 @@ namespace Moment::Algebraic {
         auto [lhs, lhsNeg] = this->reduce(input.rawLHS);
         auto [rhs, rhsNeg] = this->reduce(input.rawRHS);
 
-        bool negative = input.negated() != (lhsNeg != rhsNeg);
+        const bool negative = input.negated() != (lhsNeg != rhsNeg);
 
         // Special reduction if rule implies something is zero:
         if ((lhs.hash() == rhs.hash()) && negative) {
@@ -390,10 +391,12 @@ namespace Moment::Algebraic {
         }
 
         // Otherwise, orient and return
-        if (lhs.hash() > rhs.hash()) {
-            return OperatorRule{std::move(lhs), std::move(rhs), negative};
+        const auto lhs_hash = lhs.hash();
+        const auto rhs_hash = rhs.hash();
+        if (lhs_hash > rhs_hash) {
+            return OperatorRule{std::move(lhs), std::move(rhs), rhs_hash > 0 ? negative : false};
         } else {
-            return OperatorRule{std::move(rhs), std::move(lhs), negative};
+            return OperatorRule{std::move(rhs), std::move(lhs), lhs_hash > 0 ? negative : false};
         }
     }
 

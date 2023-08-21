@@ -132,28 +132,12 @@ classdef AlgebraicMatrixSystemTest < MTKTestBase
         function Error_BadRule2(testCase)
             function no_in()
                 ref_id = mtk('algebraic_matrix_system', ...
-                    1, {{[1], [1 1]}});
-            end
-            testCase.verifyError(@() no_in(), 'mtk:bad_param');
-        end
-        
-        function Error_BadRule3(testCase)
-            function no_in()
-                ref_id = mtk('algebraic_matrix_system', ...
-                    2, {{[1 1], [1 2]}});
-            end
-            testCase.verifyError(@() no_in(), 'mtk:bad_param');
-        end
-        
-        function Error_BadRule4(testCase)
-            function no_in()
-                ref_id = mtk('algebraic_matrix_system', ...
                     2, {{[1 1]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
         
-        function Error_BadRule5(testCase)
+        function Error_BadRule3(testCase)
             function no_in()
                 ref_id = mtk('algebraic_matrix_system', ...
                     2, {{[1 1], ["Not a number"]}});

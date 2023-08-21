@@ -458,11 +458,16 @@ classdef OperatorRulebook < handle
                 end
                 lhs = rule{1};
                 rhs = rule{rhs_index};
-                
+                                
                 lhs = obj.ToStringArray(lhs);
-                rhs = obj.ToStringArray(rhs);
+                if isequal(rhs, uint64(0))
+                    is_zero = true;
+                else
+                    is_zero = false;
+                    rhs = obj.ToStringArray(rhs);
+                end
                 
-                obj.Rules(end+1) = Algebraic.OperatorRule(lhs, rhs, negate);                
+                obj.Rules(end+1) = Algebraic.OperatorRule(lhs, rhs, negate);
             end
             
             obj.tested_complete = false;

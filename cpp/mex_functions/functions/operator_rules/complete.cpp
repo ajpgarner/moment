@@ -193,11 +193,12 @@ namespace Moment::mex::functions {
 
         } else {
             // Output list of parsed rules, using matlab indices
-            output[0] = export_operator_rules(rules, true);
+            matlab::data::ArrayFactory factory;
+            OperatorRuleExporter exporter{this->matlabEngine, factory, true};
+            output[0] = exporter(rules);
 
             // Output whether complete or not
             if (output.size()>=2) {
-                matlab::data::ArrayFactory factory;
                 output[1] = factory.createArray<bool>({1,1}, {completed});
             }
         }

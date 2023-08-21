@@ -710,4 +710,42 @@ namespace Moment::Tests {
 
     }
 
+
+    TEST(Scenarios_Algebraic_Rulebook, ImplyZero) {
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::SelfAdjoint};
+        const ShortlexHasher& hasher = apc.hasher;
+        std::vector<OperatorRule> msr;
+        msr.emplace_back(HashedSequence{{1, 0}, hasher},
+                         HashedSequence{{0, 1}, hasher}, true); // yx = -xy
+        msr.emplace_back(HashedSequence{{0, 0}, hasher},
+                         HashedSequence{{0}, hasher});          // xx = x
+        OperatorRulebook rules{apc, std::move(msr)};
+        EXPECT_TRUE(rules.complete(10));
+        ASSERT_EQ(rules.size(), 3) << rules;
+        auto ruleIter = rules.rules().begin();
+
+        ASSERT_NE(ruleIter, rules.rules().end());
+        const auto& ruleA = ruleIter->second;
+        EXPECT_EQ(ruleA.LHS(), HashedSequence({0, 0}, hasher)) << ruleA;
+        EXPECT_EQ(ruleA.RHS(), HashedSequence({0}, hasher)) << ruleA;
+        EXPECT_FALSE(ruleA.implies_zero());
+
+        ++ruleIter;
+        ASSERT_NE(ruleIter, rules.rules().end());
+        const auto& ruleB = ruleIter->second;
+        EXPECT_EQ(ruleB.LHS(), HashedSequence({0, 1}, hasher)) << ruleB;
+        EXPECT_EQ(ruleB.RHS(), HashedSequence(true)) << ruleB;
+        EXPECT_TRUE(ruleB.implies_zero());
+
+        ++ruleIter;
+        ASSERT_NE(ruleIter, rules.rules().end());
+        const auto& ruleC = ruleIter->second;
+        EXPECT_EQ(ruleC.LHS(), HashedSequence({1, 0}, hasher)) << ruleB;
+        EXPECT_EQ(ruleC.RHS(), HashedSequence(true)) << ruleB;
+        EXPECT_TRUE(ruleC.implies_zero());
+
+        ++ruleIter;
+        EXPECT_EQ(ruleIter, rules.rules().end());
+    }
+
 }

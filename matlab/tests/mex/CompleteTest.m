@@ -1,6 +1,14 @@
 classdef CompleteTest < MTKTestBase
     %COMPLETETEST Unit tests for complete mex function
     methods (Test, TestTags={'mex'})
+          function AtoZero(testCase)
+            input = {{[1], 0}};
+            expected = {{uint64([1]), uint64([0])}};
+            output = mtk('complete', 'hermitian', 1, input);
+            testCase.verifyEqual(output, expected);            
+          end
+        
+        
         function ABtoA_BAtoA(testCase)
             input = {{[1, 2], [1]}, {[2, 1], [2]}};
             expected = {{uint64([1, 1]), uint64([1])}, ...
@@ -72,6 +80,16 @@ classdef CompleteTest < MTKTestBase
             testCase.verifyEqual(output, expected);     
         end
         
+        function Herm_ImplyZero(testCase)
+            input = {{[2, 1], '-', [1, 2]}, {[1, 1], [1]}};
+            expected = {{uint64([1, 1]), uint64([1])}, ...
+                {uint64([1, 2]), uint64([0])}, ...
+                {uint64([2, 1]), uint64([0])}};
+            output = mtk('complete', 'hermitian', 2, input);
+            testCase.verifyEqual(output, expected);     
+        end
+        
+        
         function CharArray_Herm_ABtoA_BCtoB_CAtoA(testCase)
             input = {{'ab', 'a'}, {'bc', 'b'}, {'ca', 'c'}};
             expected = {{uint64([2]), uint64([1])}, ...
@@ -140,29 +158,15 @@ classdef CompleteTest < MTKTestBase
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
-        
+       
         function Error_BadRule2(testCase)
-            function no_in()
-                ref_id = mtk('complete', 1, {{[1], [1 1]}});
-            end
-            testCase.verifyError(@() no_in(), 'mtk:bad_param');
-        end
-        
-        function Error_BadRule3(testCase)
-            function no_in()
-                ref_id = mtk('complete', 2, {{[1 1], [1 2]}});
-            end
-            testCase.verifyError(@() no_in(), 'mtk:bad_param');
-        end
-        
-        function Error_BadRule4(testCase)
             function no_in()
                 ref_id = mtk('complete', 2, {{[1 1]}});
             end
             testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
         
-        function Error_BadRule5(testCase)
+        function Error_BadRule3(testCase)
             function no_in()
                 ref_id = mtk('complete', 2, ...
                     {{[1 1], ["Not a number"]}});

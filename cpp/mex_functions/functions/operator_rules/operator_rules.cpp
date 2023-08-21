@@ -62,7 +62,9 @@ namespace Moment::mex::functions {
 
         // Output list of parsed rules
         if (output.size() >= 1) {
-            output[0] = export_operator_rules(rules, true);
+            matlab::data::ArrayFactory factory;
+            OperatorRuleExporter exporter{this->matlabEngine, factory};
+            output[0] = exporter(rules);
         }
     }
 }

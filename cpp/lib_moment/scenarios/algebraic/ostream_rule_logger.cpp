@@ -24,9 +24,28 @@ namespace Moment::Algebraic {
 
             friend std::ostream& operator<<(std::ostream& os, const RuleFormatter& rf) {
                 if (rf.names) {
-                    rf.names->format_stream(os, rf.rule.LHS().begin(), rf.rule.LHS().end());
+                    if (rf.rule.LHS().empty()) {
+                        if (rf.rule.LHS().hash() != 0) {
+                            os << "I";
+                        } else {
+                            os << "0";
+                        }
+                    } else {
+                        rf.names->format_stream(os, rf.rule.LHS().begin(), rf.rule.LHS().end());
+                    }
                     os << " -> ";
-                    rf.names->format_stream(os, rf.rule.RHS().begin(), rf.rule.RHS().end());
+                    if (rf.rule.negated()) {
+                        os << "-";
+                    }
+                    if (rf.rule.RHS().empty()) {
+                        if (rf.rule.RHS().hash() != 0) {
+                            os << "I";
+                        } else {
+                            os << "0";
+                        }
+                    } else {
+                        rf.names->format_stream(os, rf.rule.RHS().begin(), rf.rule.RHS().end());
+                    }
                 } else {
                     os << rf.rule;
                 }

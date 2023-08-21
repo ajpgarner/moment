@@ -7,11 +7,25 @@
 #pragma once
 
 #include "MatlabDataArray.hpp"
+#include "exporter.h"
 
 namespace Moment::Algebraic {
     class OperatorRulebook;
 }
 
 namespace Moment::mex {
-    matlab::data::CellArray export_operator_rules(const Algebraic::OperatorRulebook& rules, bool matlab_indices);
+
+    class OperatorRuleExporter : public Exporter {
+    public:
+        const bool matlab_indices = false;
+
+        OperatorRuleExporter(matlab::engine::MATLABEngine& engine,
+                             matlab::data::ArrayFactory& factory,
+                             const bool matlab_indices = true)
+            : Exporter{engine, factory}, matlab_indices{matlab_indices} { };
+
+        matlab::data::CellArray operator()(const Algebraic::OperatorRulebook& rules);
+    };
+
+
 }

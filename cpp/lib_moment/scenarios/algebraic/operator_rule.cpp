@@ -53,7 +53,7 @@ namespace Moment::Algebraic {
                                HashedSequence rhs,
                                bool negated)
             : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, is_negated{negated},
-              is_trivial{(lhs.hash() == rhs.hash()) && !negated},
+              is_trivial{(lhs.hash() == rhs.hash()) && !negated}, map_to_zero(rhs.zero()),
               delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
         if (rawLHS < rawRHS) {
             throw errors::invalid_rule(std::string("Rule was not a reduction: ")
@@ -64,6 +64,10 @@ namespace Moment::Algebraic {
     sequence_storage_t
     OperatorRule::apply_match_with_hint(const sequence_storage_t& input,
                                         const_iter_t hint) const {
+        // If map to zero, return empty sequence.
+        if (this->map_to_zero) {
+            return sequence_storage_t{};
+        }
 
         // Reserve vector, return empty vector, or give error:
         ptrdiff_t new_size = static_cast<ptrdiff_t>(input.size()) + this->delta;
@@ -95,13 +99,13 @@ namespace Moment::Algebraic {
     }
 
     bool OperatorRule::implies(const OperatorRule &other) const noexcept {
-        // First, do we find LHS in other rule?
+        // First, do we find LHS in other rule LHS?
         auto embeddedLHS_begin = this->rawLHS.matches_anywhere(other.rawLHS.begin(), other.rawLHS.end());
         if (embeddedLHS_begin== other.rawLHS.end()) {
             return false;
         }
 
-        // Second, do we find RHS in other rule?
+        // Second, do we find RHS in other rule RHS?
         auto embeddedRHS_begin = this->rawRHS.matches_anywhere(other.rawRHS.begin(), other.rawRHS.end());
         if (embeddedRHS_begin == other.rawRHS.end()) {
             return false;
@@ -144,13 +148,13 @@ namespace Moment::Algebraic {
 
         // Apply this rule to joint string
         auto rawViaThis = this->apply_match_with_hint(joined_string, joined_string.begin());
-        auto rawHashThis = pc.hash(rawViaThis);
+        auto rawHashThis = this->implies_zero() ? 0 : pc.hash(rawViaThis);
 
         // Apply other rule to joint string
         auto rawViaOther = other.apply_match_with_hint(joined_string,
                                                        joined_string.cend()
-                                                            - static_cast<ptrdiff_t>(other.rawLHS.size()));
-        auto rawHashOther = pc.hash(rawViaOther);
+                                                        - static_cast<ptrdiff_t>(other.rawLHS.size()));
+        auto rawHashOther = other.implies_zero() ? 0 : pc.hash(rawViaOther);
 
         // Negative if only one rule involves negation
         bool negation = this->is_negated != other.is_negated;
@@ -158,10 +162,12 @@ namespace Moment::Algebraic {
         // Orient rules and return
         if (rawHashThis < rawHashOther) {
             return OperatorRule{HashedSequence{std::move(rawViaOther), rawHashOther},
-                                HashedSequence{std::move(rawViaThis), rawHashThis}, negation};
+                                HashedSequence{std::move(rawViaThis), rawHashThis},
+                                rawHashThis > 0 ? negation : false}; // No negation if equal to zero.
         } else {
             return OperatorRule{HashedSequence{std::move(rawViaThis), rawHashThis},
-                                HashedSequence{std::move(rawViaOther), rawHashOther}, negation};
+                                HashedSequence{std::move(rawViaOther), rawHashOther},
+                                rawHashOther > 0 ? negation : false}; // No negation if equal to zero.
         }
     }
 

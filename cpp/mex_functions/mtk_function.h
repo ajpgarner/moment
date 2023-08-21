@@ -189,6 +189,8 @@ namespace Moment::mex::functions {
             assert(output);
             try {
                 extra_input_checks(*output);
+            } catch (const matlab::Exception& e) {
+                throw; // rethrow matlab exceptions
             } catch (const std::exception& e) {
                 throw_error(this->matlabEngine, errors::bad_param, e.what());
             }
