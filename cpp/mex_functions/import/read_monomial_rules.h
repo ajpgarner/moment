@@ -17,6 +17,7 @@ namespace Moment {
     class ShortlexHasher;
     namespace Algebraic {
         class AlgebraicPrecontext;
+        class OperatorRule;
         class NameTable;
     }
 }
@@ -33,6 +34,16 @@ namespace Moment::mex {
         RawMonomialRule(std::vector<oper_name_t> lhs, std::vector<oper_name_t> rhs, bool neg)
                 : LHS(std::move(lhs)), RHS(std::move(rhs)), negated{neg} { }
 
+        /**
+         * Orient and hash rule.
+         * @param matlabEngine MATLAB engine, for errors
+         * @param apc AlgebraicPrecontext, for hashing and max length.
+         * @param index Index, for error messages.
+         * @return Oriented and hashed rule.
+         */
+        Moment::Algebraic::OperatorRule to_rule(matlab::engine::MATLABEngine &matlabEngine,
+                                                const Algebraic::AlgebraicPrecontext& apc,
+                                                const size_t index) const;
     };
 
 

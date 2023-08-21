@@ -30,8 +30,6 @@ namespace Moment::mex::functions {
             std::vector<Algebraic::OperatorRule> rules;
             const auto& apc = *input.apc;
 
-            const size_t max_strlen = apc.hasher.longest_hashable_string();
-
             if (input.commutative) {
                 Algebraic::OperatorRulebook::commutator_rules(apc, rules);
             }
@@ -42,25 +40,7 @@ namespace Moment::mex::functions {
             rules.reserve(rules.size() + input.rules.size());
             size_t rule_index = 0;
             for (auto &ir: input.rules) {
-                try {
-                    if (ir.LHS.size() > max_strlen) {
-                        std::stringstream errSS;
-                        errSS << "Error with rule #" + std::to_string(rule_index+1) + ": LHS too long.";
-                        throw_error(matlabEngine, errors::bad_param, errSS.str());
-                    }
-                    if (ir.RHS.size() > max_strlen) {
-                        std::stringstream errSS;
-                        errSS << "Error with rule #" + std::to_string(rule_index+1) + ": RHS too long.";
-                        throw_error(matlabEngine, errors::bad_param, errSS.str());
-                    }
-                    rules.emplace_back(HashedSequence{sequence_storage_t(ir.LHS.begin(), ir.LHS.end()), apc.hasher},
-                                       HashedSequence{sequence_storage_t(ir.RHS.begin(), ir.RHS.end()), apc.hasher},
-                                       ir.negated);
-                } catch (Moment::Algebraic::errors::invalid_rule& ire) {
-                    std::stringstream errSS;
-                    errSS << "Error with rule #" + std::to_string(rule_index+1) + ": " << ire.what();
-                    throw_error(matlabEngine, errors::bad_param, errSS.str());
-                }
+                rules.emplace_back(ir.to_rule(matlabEngine, apc, rule_index));
                 ++rule_index;
             }
             return Algebraic::OperatorRulebook{apc, rules};

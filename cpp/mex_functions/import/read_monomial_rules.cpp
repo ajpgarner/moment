@@ -17,6 +17,7 @@
 #include "utilities/utf_conversion.h"
 
 #include "scenarios/algebraic/algebraic_precontext.h"
+#include "scenarios/algebraic/operator_rule.h"
 #include "scenarios/algebraic/name_table.h"
 
 #include <stdexcept>
@@ -134,6 +135,45 @@ namespace Moment::mex {
             return get_op_seq_from_numeric(matlabEngine, field_name, input, apc, matlabIndices);
         }
 
+    }
+
+    Moment::Algebraic::OperatorRule RawMonomialRule::to_rule(matlab::engine::MATLABEngine &matlabEngine,
+                                                             const Algebraic::AlgebraicPrecontext &apc,
+                                                             const size_t index) const {
+        const auto max_strlen = apc.hasher.longest_hashable_string();
+
+        size_t rule_index = 0;
+        if (this->LHS.size() > max_strlen) {
+            std::stringstream errSS;
+            errSS << "Error with rule #" + std::to_string(rule_index+1) + ": LHS too long.";
+            throw_error(matlabEngine, errors::bad_param, errSS.str());
+        }
+        if (this->RHS.size() > max_strlen) {
+            std::stringstream errSS;
+            errSS << "Error with rule #" + std::to_string(rule_index+1) + ": RHS too long.";
+            throw_error(matlabEngine, errors::bad_param, errSS.str());
+        }
+
+        const auto lhs_hash = apc.hasher.hash(this->LHS);
+        const auto rhs_hash = apc.hasher.hash(this->RHS);
+
+        try {
+            if (lhs_hash > rhs_hash) {
+                return Algebraic::OperatorRule{
+                    HashedSequence{sequence_storage_t(this->LHS.begin(), this->LHS.end()), apc.hasher},
+                    HashedSequence{sequence_storage_t(this->RHS.begin(), this->RHS.end()), apc.hasher},
+                    this->negated};
+            } else {
+                return Algebraic::OperatorRule{
+                        HashedSequence{sequence_storage_t(this->RHS.begin(), this->RHS.end()), apc.hasher},
+                        HashedSequence{sequence_storage_t(this->LHS.begin(), this->LHS.end()), apc.hasher},
+                        this->negated};
+            }
+        } catch (Moment::Algebraic::errors::invalid_rule& ire) {
+            std::stringstream errSS;
+            errSS << "Error with rule #" + std::to_string(rule_index+1) + ": " << ire.what();
+            throw_error(matlabEngine, errors::bad_param, errSS.str());
+        }
     }
 
     std::vector<RawMonomialRule> read_monomial_rules(matlab::engine::MATLABEngine &matlabEngine,
