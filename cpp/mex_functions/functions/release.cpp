@@ -46,7 +46,11 @@ namespace Moment::mex::functions {
         size_t remainder = 0;
         switch (input.type) {
             case ReleaseParams::StorableType::MatrixSystem:
-                this->storageManager.MatrixSystems.release(input.key);
+                try {
+                    this->storageManager.MatrixSystems.release(input.key);
+                } catch (const std::exception& e) {
+                    throw_error(this->matlabEngine, errors::internal_error, e.what());
+                }
                 remainder = this->storageManager.MatrixSystems.size();
                 break;
             default:

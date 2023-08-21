@@ -14,6 +14,7 @@
 
 #include "function_list.h"
 #include "utilities/io_parameters.h"
+#include "utilities/reporting.h"
 
 namespace matlab::engine {
     class MATLABEngine;
@@ -186,7 +187,11 @@ namespace Moment::mex::functions {
             assert(input);
             auto output = std::make_unique<param_t>(std::move(*input));
             assert(output);
-            extra_input_checks(*output);
+            try {
+                extra_input_checks(*output);
+            } catch (const std::exception& e) {
+                throw_error(this->matlabEngine, errors::bad_param, e.what());
+            }
             return output;
         }
 

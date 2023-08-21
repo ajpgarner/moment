@@ -182,7 +182,14 @@ namespace Moment::mex::functions {
         }
 
         // Attempt completion
-        bool completed = rules.complete(input.max_attempts, logger.get());
+        bool completed = [&]() {
+            try {
+                return rules.complete(input.max_attempts, logger.get());
+            } catch (std::exception& e) {
+                throw_error(this->matlabEngine, errors::bad_param, e.what());
+            }
+        }();
+
 
         // Print completion log (in verbose mode)
         if (this->verbose) {
