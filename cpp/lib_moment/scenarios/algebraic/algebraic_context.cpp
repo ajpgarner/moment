@@ -82,7 +82,7 @@ namespace Moment::Algebraic {
     }
 
     bool AlgebraicContext::is_complete() const {
-        if (this->rules_completed.has_value()) {
+        if (!this->rules_completed.has_value()) {
             throw std::runtime_error{"It has not yet been checked whether the rules are complete."};
         }
         return this->rules_completed.value();

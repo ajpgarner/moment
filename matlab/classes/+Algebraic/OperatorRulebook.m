@@ -445,9 +445,11 @@ classdef OperatorRulebook < handle
                     error(obj.err_cellpair);
                 end
                 rhs_index = 2;
+                negate = false;
                 if isequal(size(rule), [1, 3])
                     if rule{2} == '-'
-                        rhs_index = 3;                        
+                        negate = true;
+                        rhs_index = 3;
                     else
                         error(obj.err_cellpair);
                     end
@@ -460,7 +462,7 @@ classdef OperatorRulebook < handle
                 lhs = obj.ToStringArray(lhs);
                 rhs = obj.ToStringArray(rhs);
                 
-                obj.Rules(end+1) = Algebraic.OperatorRule(lhs, rhs);                
+                obj.Rules(end+1) = Algebraic.OperatorRule(lhs, rhs, negate);                
             end
             
             obj.tested_complete = false;

@@ -607,4 +607,44 @@ namespace Moment::Tests {
         const auto& symbols = ams.Symbols();
         ASSERT_EQ(symbols.size(), 5); // 0, 1, a<->a*, aa<->a*a*, aa*
     }
+
+
+    TEST(Scenarios_Algebraic_AlgebraicContext, CreateMomentMatrix_AntiCommutator) {
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::SelfAdjoint};
+        std::vector<OperatorRule> msr;
+        msr.emplace_back(HashedSequence{{1, 0}, apc.hasher},
+                         HashedSequence{{0, 1}, apc.hasher}, true);
+
+        auto contextPtr = std::make_unique<AlgebraicContext>(apc, false, true, std::move(msr));
+        EXPECT_TRUE(contextPtr->attempt_completion(0));
+
+
+        AlgebraicMatrixSystem ams{std::move(contextPtr)};
+        auto& context = ams.AlgebraicContext();
+
+        ASSERT_TRUE(context.is_complete());
+
+        auto& mm1 = ams.MomentMatrix(1); // 1 x y
+        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix_ptr(mm1);
+        ASSERT_NE(seqMatPtr, nullptr);
+        const auto& seqMat = *seqMatPtr;
+        ASSERT_EQ(seqMat.Level(), 1);
+
+        EXPECT_TRUE(mm1.Hermitian());
+        ASSERT_EQ(mm1.Dimension(), 3);
+
+        EXPECT_EQ(seqMat(0, 0), OperatorSequence::Identity(context)); // 1
+        EXPECT_EQ(seqMat(0, 1), OperatorSequence({0}, context));      // x
+        EXPECT_EQ(seqMat(0, 2), OperatorSequence({1}, context));      // y
+        EXPECT_EQ(seqMat(1, 0), OperatorSequence({0}, context));      // x
+        EXPECT_EQ(seqMat(1, 1), OperatorSequence({0, 0}, context));   // x^2
+        EXPECT_EQ(seqMat(1, 2), OperatorSequence({0, 1}, context));   // x y
+        EXPECT_EQ(seqMat(2, 0), OperatorSequence({1}, context));   // y
+        EXPECT_EQ(seqMat(2, 1), OperatorSequence({0, 1}, context, true));   // -x y
+        EXPECT_EQ(seqMat(2, 2), OperatorSequence({1, 1}, context));   // y y
+
+        const auto& symbols = ams.Symbols();
+
+
+    }
 }
