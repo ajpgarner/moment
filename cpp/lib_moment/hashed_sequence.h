@@ -108,6 +108,13 @@ namespace Moment {
          */
         [[nodiscard]] constexpr bool negated() const noexcept { return this->is_negated; }
 
+        /**
+         * Set the hashed sequence's negation.
+         */
+        constexpr void set_negation(const bool new_negation) noexcept {
+            this->is_negated = new_negation;
+        }
+
 
         /** True if this sequence is a prefix of the string defined by the supplied iterators */
         [[nodiscard]] bool matches(const_iter_t test_begin, const_iter_t test_end) const noexcept;

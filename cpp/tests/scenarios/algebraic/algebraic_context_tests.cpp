@@ -651,5 +651,9 @@ namespace Moment::Tests {
         ASSERT_TRUE(findXY.found());
         EXPECT_FALSE(findXY.is_conjugated);
 
+        const auto& symbolXY = symbols[findXY->Id()];
+        ASSERT_TRUE(symbolXY.has_sequence());
+        EXPECT_EQ(symbolXY.sequence(), OperatorSequence({0, 1}, context));
+
     }
 }
