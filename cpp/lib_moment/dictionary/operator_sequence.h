@@ -30,8 +30,6 @@ namespace Moment {
     private:
         const Context * context;
 
-        bool is_negated;
-
         /**
          * Uninitialized constructor, only allowed privately.
          */
@@ -42,8 +40,8 @@ namespace Moment {
          * Constructs empty operator sequence; treated as identity.
          * @param context (Non-owning) point to the Context (if any) for further simplification.
          */
-        constexpr explicit OperatorSequence(const Context& context)
-            : HashedSequence{false}, context{&context}, is_negated{false} { }
+        constexpr explicit OperatorSequence(const Context& context, const bool is_zero = false)
+            : HashedSequence{is_zero}, context{&context} { }
 
         /**
          * Constructs a sequence of operators, in canonical order, with all known simplifications applied.
@@ -60,7 +58,7 @@ namespace Moment {
          OperatorSequence(const ConstructRawFlag&, sequence_storage_t operators, uint64_t hash,
                           const Context& context,
                           bool negated = false) noexcept
-              : HashedSequence{std::move(operators), hash}, context{&context}, is_negated{negated} {
+              : HashedSequence{std::move(operators), hash, negated}, context{&context} {
              // No simplification, or check-sum of hash!
          }
 
@@ -73,11 +71,6 @@ namespace Moment {
         OperatorSequence& operator=(OperatorSequence&& rhs) noexcept = default;
 
         [[nodiscard]] OperatorSequence conjugate() const;
-
-        /**
-         * True, if sequence should be interpreted with a negative sign.
-         */
-        [[nodiscard]] constexpr bool negated() const noexcept { return this->is_negated; }
 
         /**
          * Get operator sequence as a context-formatted string.
@@ -127,7 +120,7 @@ namespace Moment {
         /**
          * True if supplied context matches
          */
-        inline bool is_same_context(const Context& rhs) const noexcept {
+        [[nodiscard]] inline bool is_same_context(const Context& rhs) const noexcept {
             return this->context == &rhs;
         }
 
@@ -162,7 +155,6 @@ namespace Moment {
         static OperatorSequence Zero(const Context& context) {
             OperatorSequence output{context};
             output.the_hash = 0;
-            output.is_zero = true;
             return output;
         }
 
@@ -174,15 +166,6 @@ namespace Moment {
         static OperatorSequence Identity(const Context& context) {
             return OperatorSequence{context};
         }
-
-        /**
-         * Compare two sequences for equality or negative-equality.
-         * @param lhs First sequence to compare.
-         * @param rhs Second sequence to compare.
-         * @return +1 if sequences are identical, 0 if they are completely different, -1 if lhs = -rhs.
-         */
-        [[nodiscard]] static int compare_same_negation(const OperatorSequence& lhs, const OperatorSequence& rhs);
-
 
         /**
          * Create a block of (mostly) uninitialized operator sequences for overwrite.

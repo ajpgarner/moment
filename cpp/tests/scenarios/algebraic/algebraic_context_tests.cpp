@@ -544,7 +544,7 @@ namespace Moment::Tests {
         EXPECT_EQ(seqMat(1, 1), OperatorSequence({0, 0}, ams.Context()));
         EXPECT_EQ(seqMat(1, 2), OperatorSequence({0}, ams.Context()));
         EXPECT_EQ(seqMat(2, 0), OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(seqMat(2, 1), OperatorSequence({0}, ams.Context(), true));
+        EXPECT_EQ(seqMat(2, 1), OperatorSequence({0}, ams.Context()));
         EXPECT_EQ(seqMat(2, 2), OperatorSequence({1, 1}, ams.Context()));
 
     }

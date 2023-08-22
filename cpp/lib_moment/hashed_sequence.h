@@ -41,9 +41,9 @@ namespace Moment {
     protected:
         sequence_storage_t operators;
 
-        bool is_zero;
-
         uint64_t the_hash;
+
+        bool is_negated;
 
         /** 'Uninitialized' constructor */
         HashedSequence() = default;
@@ -54,7 +54,7 @@ namespace Moment {
          * @param zero True if sequence corresponds to zero, otherwise sequence is identity.
          */
         constexpr explicit HashedSequence(const bool zero)
-            : operators{}, the_hash{is_zero ? 0U : 1U}, is_zero{zero} { }
+            : operators{}, the_hash{zero ? 0U : 1U}, is_negated{false} { }
 
         /** Copy constructor */
         constexpr HashedSequence(const HashedSequence& rhs) = default;
@@ -72,9 +72,10 @@ namespace Moment {
          * Construct a sequence, from a list of operators and its hash.
          * @param oper_ids Sequence of operator names.
          * @param hash The calculated hash of the sequence.
+         * @param is_negated True if the sequence should be interpreted with a minus sign in front of it.
          */
-        HashedSequence(sequence_storage_t oper_ids, uint64_t hash)
-                : operators{std::move(oper_ids)}, the_hash{hash}, is_zero{hash == 0} { }
+        HashedSequence(sequence_storage_t oper_ids, const uint64_t hash, const bool is_negated = false)
+                : operators{std::move(oper_ids)}, the_hash{hash}, is_negated{is_negated} { }
 
         /**
          * Construct a sequence, from a list of operators.
@@ -83,10 +84,10 @@ namespace Moment {
          * @param hasher Functional that applies hash to sequence.
          */
         template<OperatorHasher hasher_t>
-        HashedSequence(sequence_storage_t oper_ids, const hasher_t& hasher)
+        HashedSequence(sequence_storage_t oper_ids, const hasher_t& hasher, const bool is_negated = false)
             : operators{std::move(oper_ids)},
               the_hash{hasher(static_cast<std::span<const oper_name_t>>(operators))},
-              is_zero{false} { }
+              is_negated{is_negated} { }
 
         /**
          * Get sequence hash
@@ -99,8 +100,14 @@ namespace Moment {
          * True if the operator sequence represents zero.
          */
         [[nodiscard]] constexpr bool zero() const noexcept {
-            return this->is_zero;
+            return this->the_hash == 0;
         }
+
+        /**
+         * True, if sequence should be interpreted with a negative sign.
+         */
+        [[nodiscard]] constexpr bool negated() const noexcept { return this->is_negated; }
+
 
         /** True if this sequence is a prefix of the string defined by the supplied iterators */
         [[nodiscard]] bool matches(const_iter_t test_begin, const_iter_t test_end) const noexcept;
@@ -156,7 +163,6 @@ namespace Moment {
         /** Manually reset sequence's hash (only required after raw access write!), or recontextualizing sequence. */
         void rehash(const uint64_t hash) {
             this->the_hash = hash;
-            this->is_zero = (hash == 0);
         }
 
         /** Ordering by hash value (e.g. shortlex) */
@@ -166,21 +172,30 @@ namespace Moment {
 
         /** Test for equality */
         [[nodiscard]] constexpr bool operator==(const HashedSequence& rhs) const noexcept {
+            // Do sequences have same hash?
             if (this->the_hash != rhs.the_hash) {
                 return false;
             }
-            if (this->is_zero != rhs.is_zero) {
-                return false;
+
+            // Sequences are equal, but are they the same sign?
+            return this->is_negated == rhs.is_negated;
+        }
+
+
+        /**
+         * Compare two sequences for equality or negative-equality.
+         * @param lhs First sequence to compare.
+         * @param rhs Second sequence to compare.
+         * @return +1 if sequences are identical, 0 if they are completely different, -1 if lhs = -rhs.
+         */
+        [[nodiscard]] static int compare_same_negation(const HashedSequence &lhs, const HashedSequence &rhs) {
+            // Do sequences have same hash?
+            if (lhs.the_hash != rhs.the_hash) {
+                return 0;
             }
-            if (this->operators.size() != rhs.operators.size()) {
-                return false;
-            }
-            for (size_t i = 0, iMax = this->operators.size(); i < iMax; ++i) {
-                if (this->operators[i] != rhs.operators[i]) {
-                    return false;
-                }
-            }
-            return true;
+
+            // Sequences are equal, but are they the same sign?
+            return lhs.negated() == rhs.negated() ? 1 : -1;
         }
 
         /** Test for inequality */
