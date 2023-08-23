@@ -114,6 +114,7 @@ namespace Moment {
          * @param rhs The operator sequence to append to this sequence.
          */
         OperatorSequence& operator *= (const OperatorSequence& rhs) {
+            this->is_negated = (this->is_negated != rhs.is_negated);
             return this->append(rhs.operators.begin(), rhs.operators.end());
         }
 

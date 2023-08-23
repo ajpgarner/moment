@@ -379,6 +379,47 @@ namespace Moment::Tests {
         EXPECT_TRUE(bab.zero());
     }
 
+
+    TEST(Scenarios_Algebraic_Rulebook, ReduceInPlace_PauliSet) {
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::SelfAdjoint};
+        const auto& hasher = apc.hasher;
+        std::vector<OperatorRule> msr;
+        msr.emplace_back(HashedSequence{{1, 0}, hasher}, HashedSequence{{0, 1}, hasher, true}); // yx = -xy
+        msr.emplace_back(HashedSequence{{2, 0}, hasher}, HashedSequence{{0, 2}, hasher, true}); // zx = -xz
+        msr.emplace_back(HashedSequence{{2, 1}, hasher}, HashedSequence{{1, 2}, hasher, true}); // zy = -yz
+        msr.emplace_back(HashedSequence{{0, 0}, hasher}, HashedSequence{false}); // yx = -xy
+        msr.emplace_back(HashedSequence{{1, 1}, hasher}, HashedSequence{false}); // zx = -xz
+        msr.emplace_back(HashedSequence{{2, 2}, hasher}, HashedSequence{false}); // zy = -yz
+        OperatorRulebook rules{apc, std::move(msr)};
+
+        EXPECT_TRUE(rules.complete(0)) << rules;
+
+        // X^2 -> 1
+        HashedSequence simp_xxx{{0, 0, 0}, hasher};
+        auto result_xxx = rules.reduce_in_place(simp_xxx);
+        EXPECT_EQ(result_xxx, OperatorRulebook::RawReductionResult::Match);
+        EXPECT_EQ(simp_xxx, HashedSequence({0}, hasher));
+
+        // YX -> -XY
+        HashedSequence simp_yx{{1, 0}, hasher};
+        auto result_yz = rules.reduce_in_place(simp_yx);
+        EXPECT_EQ(result_yz, OperatorRulebook::RawReductionResult::MatchWithNegation);
+        EXPECT_EQ(simp_yx, HashedSequence({0, 1}, hasher, true));
+
+        // YXX -> -XYX -> XXY - > Y
+        HashedSequence simp_yxx{{1, 0, 0}, hasher};
+        auto result_yxx = rules.reduce_in_place(simp_yxx);
+        EXPECT_EQ(result_yxx, OperatorRulebook::RawReductionResult::Match);
+        EXPECT_EQ(simp_yxx, HashedSequence({1}, hasher));
+
+        // ZYX -> -YZX -> YXZ -> -XYZ
+        HashedSequence simp_zyx{{2, 1, 0}, hasher};
+        auto result_zyx = rules.reduce_in_place(simp_zyx);
+        EXPECT_EQ(result_zyx, OperatorRulebook::RawReductionResult::MatchWithNegation);
+        EXPECT_EQ(simp_zyx, HashedSequence({0, 1, 2}, hasher, true));
+    }
+
+
     TEST(Scenarios_Algebraic_Rulebook, Reduce_Rule) {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::Bunched};
         const ShortlexHasher& hasher = apc.hasher;

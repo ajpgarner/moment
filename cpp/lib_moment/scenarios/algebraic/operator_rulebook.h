@@ -208,7 +208,7 @@ namespace Moment::Algebraic {
          * @param negate Output: will be set to true if the matched string should be negated.
          * @return RawReductionResult The outcome of reduction.
          */
-        [[nodiscard]] RawReductionResult reduce_in_place(HashedSequence& input) const;
+        RawReductionResult reduce_in_place(HashedSequence& input) const;
 
 
         /** Reduce rule, to best of knowledge, using rules in set */

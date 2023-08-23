@@ -7,11 +7,16 @@
 
 #include "gtest/gtest.h"
 
-#include "dictionary/operator_sequence_generator.h"
-#include "matrix/operator_matrix/moment_matrix.h"
 #include "dictionary/operator_sequence.h"
+#include "dictionary/operator_sequence_generator.h"
+
+#include "matrix/operator_matrix/moment_matrix.h"
+
 #include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/algebraic/algebraic_matrix_system.h"
+#include "scenarios/algebraic/name_table.h"
+
+#include "../../matrix/compare_os_matrix.h"
 
 namespace Moment::Tests {
     using namespace Moment::Algebraic;
@@ -652,6 +657,78 @@ namespace Moment::Tests {
         const auto& symbolXY = symbols[findXY->Id()];
         ASSERT_TRUE(symbolXY.has_sequence());
         EXPECT_EQ(symbolXY.sequence(), OperatorSequence({0, 1}, context));
+
+    }
+
+    TEST(Scenarios_Algebraic_AlgebraicContext, CreateLocalizingMatrix_PauliZ) {
+        AlgebraicPrecontext apc{3,
+                                AlgebraicPrecontext::ConjugateMode::SelfAdjoint};
+        auto namePtr = std::make_unique<NameTable>(apc, std::vector<std::string>{"x", "y", "z"});
+
+        const auto& hasher = apc.hasher;
+        std::vector<OperatorRule> msr;
+        msr.emplace_back(HashedSequence{{1, 0}, hasher}, HashedSequence{{0, 1}, hasher, true}); // yx = -xy
+        msr.emplace_back(HashedSequence{{2, 0}, hasher}, HashedSequence{{0, 2}, hasher, true}); // zx = -xz
+        msr.emplace_back(HashedSequence{{2, 1}, hasher}, HashedSequence{{1, 2}, hasher, true}); // zy = -yz
+        msr.emplace_back(HashedSequence{{0, 0}, hasher}, HashedSequence{false}); // yx = -xy
+        msr.emplace_back(HashedSequence{{1, 1}, hasher}, HashedSequence{false}); // zx = -xz
+        msr.emplace_back(HashedSequence{{2, 2}, hasher}, HashedSequence{false}); // zy = -yz
+
+        auto contextPtr = std::make_unique<AlgebraicContext>(apc, std::move(namePtr), false, true, std::move(msr));
+        EXPECT_TRUE(contextPtr->is_complete());
+        AlgebraicMatrixSystem ams{std::move(contextPtr)};
+        auto& context = ams.AlgebraicContext();
+
+        OperatorSequence I{context};
+        EXPECT_FALSE(I.negated());
+        OperatorSequence x{{0}, context};
+        OperatorSequence y{{1}, context};
+        OperatorSequence z{{2}, context};
+
+        auto zx = I * (z * x);
+        EXPECT_TRUE(zx.negated());
+        ASSERT_EQ(zx.raw().size(), 2);
+        EXPECT_EQ(zx.raw()[0], 0);
+        EXPECT_EQ(zx.raw()[1], 2);
+
+
+        OperatorSequence zy{{2, 1}, context};
+        EXPECT_TRUE(zy.negated());
+        EXPECT_EQ(zy, OperatorSequence({1, 2}, context, true));
+
+
+        const auto& lmZ = ams.LocalizingMatrix(LocalizingMatrixIndex{1, OperatorSequence{{2}, context}});
+        ASSERT_EQ(lmZ.Dimension(), 4);
+
+        compare_lm_os_matrix(lmZ, 4,
+                             std::initializer_list<OperatorSequence>{
+                                     OperatorSequence{{2}, context},
+                                     OperatorSequence{{0, 2}, context, true},
+                                     OperatorSequence{{1, 2}, context, true},
+                                     OperatorSequence{context},
+
+                                     OperatorSequence{{0, 2}, context},
+                                     OperatorSequence{{2}, context, true},
+                                     OperatorSequence{{0, 1, 2}, context, true},
+                                     OperatorSequence{{0}, context},
+
+                                     OperatorSequence{{1, 2}, context},
+                                     OperatorSequence{{0, 1, 2}, context},
+                                     OperatorSequence{{2}, context, true},
+                                     OperatorSequence{{1}, context},
+
+                                     OperatorSequence{context},
+                                     OperatorSequence{{0}, context},
+                                     OperatorSequence{{1}, context},
+                                     OperatorSequence{{2}, context},
+                             });
+
+        const auto* lmPtr = LocalizingMatrix::as_monomial_localizing_matrix_ptr(lmZ);
+
+
+        const auto& mono_lmZ = dynamic_cast<const MonomialMatrix&>(lmZ);
+
+
 
     }
 }

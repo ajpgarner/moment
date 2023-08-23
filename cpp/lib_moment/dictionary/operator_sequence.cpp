@@ -42,8 +42,10 @@ namespace Moment {
         if (simplify_to_zero) {
             this->operators.clear();
             this->the_hash = 0;
+            this->is_negated = false;
             return;
         }
+
         // Rehash sequence
         this->the_hash = this->context->hash(*this);
     }

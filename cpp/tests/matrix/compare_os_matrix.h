@@ -16,8 +16,14 @@
 #include <sstream>
 
 namespace Moment::Tests {
+    /**
+     * @param prefix
+     * @param theMM
+     * @param dimension
+     * @param reference NOTE: ROW-MAJOR REFERENCE LIST!
+     */
     inline void compare_os_matrix(const std::string& prefix,
-                                  const OperatorMatrix& theMM, size_t dimension,
+                                  const OperatorMatrix& theMM, const size_t dimension,
                                   const std::initializer_list<OperatorSequence> reference) {
         ASSERT_EQ(theMM.Dimension(), dimension) << prefix;
         size_t row = 0;
