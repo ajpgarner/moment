@@ -61,6 +61,9 @@ namespace Moment {
     }
 
     std::ostream& operator<<(std::ostream& os, const HashedSequence& seq) {
+        if (seq.negated()) {
+            os << "-";
+        }
         if (seq.empty()) {
             if (seq.zero()) {
                 os << "0";

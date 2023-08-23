@@ -73,6 +73,8 @@ namespace Moment::Algebraic {
             SetToZero
         };
 
+        friend std::ostream& operator<<(std::ostream& os, RawReductionResult rrr);
+
     public:
         using rule_map_t = std::map<size_t, OperatorRule>;
 
@@ -161,34 +163,32 @@ namespace Moment::Algebraic {
          * Reduce sequence, to best of knowledge, by iterating over rules and checking for a matching substring.
          * @complexity O(RN) for rulebook size R, string length N.
          * @param input The sequence to reduce
-         * @return First: Reduced sequence. Second: True if sequence should be negated.
+         * @return Reduced sequence.
          */
-        [[nodiscard]] std::pair<HashedSequence, bool> reduce_via_iteration(const HashedSequence& input) const;
+        [[nodiscard]] HashedSequence reduce_via_iteration(const HashedSequence& input) const;
 
         /**
          * Reduce sequence, to best of knowledge, by iterating over substrings and checking for a matching rule.
          * @complexity O(log(R)N^2) for rulebook size R, string length N.
          * @param input The sequence to reduce
-         * @return First: Reduced sequence. Second: True if sequence should be negated.
+         * @return Reduced sequence.
          */
-        [[nodiscard]] std::pair<HashedSequence, bool> reduce_via_search(const HashedSequence& input) const;
+        [[nodiscard]] HashedSequence reduce_via_search(const HashedSequence& input) const;
 
         /**
          * Reduce sequence, to best of knowledge, using rules.
          * Automatically choose the reduction method based algorithmically on string and rulebook lengths.
          * @complexity lower of O(RN) and O(log(R)N^2) for rulebook size R, string length N.
          * @param input The sequence to reduce
-         * @return First: Reduced sequence. Second: True if sequence should be negated.
+         * @return Reduced sequence.
          */
-        [[nodiscard]] std::pair<HashedSequence, bool> reduce(const HashedSequence& input) const;
+        [[nodiscard]] HashedSequence reduce(const HashedSequence& input) const;
 
         /**
          * Reduce sequence in place (i.e. avoiding copying if possible), using rules.
          * Automatically choose the reduction method based algorithmically on string and rulebook lengths.
          * @complexity lower of O(RN) and O(log(R)N^2) for rulebook size R, string length N.
          * @param input The sequence to reduce
-         * @param negate Output: will be set to true if the matched string should be negated.
-         * @return First: True if a match was found. Second: True if sequenec should be negated.
          */
         [[nodiscard]] inline RawReductionResult reduce_in_place(sequence_storage_t& input) const {
             if (input.empty() || this->monomialRules.empty()) {
@@ -206,9 +206,9 @@ namespace Moment::Algebraic {
          * @complexity lower of O(RN) and O(log(R)N^2) for rulebook size R, string length N.
          * @param input The sequence to reduce
          * @param negate Output: will be set to true if the matched string should be negated.
-         * @return First: True if a match was found. Second: True if sequenec should be negated.
+         * @return RawReductionResult The outcome of reduction.
          */
-        [[nodiscard]] std::pair<bool, bool> reduce_in_place(HashedSequence& input) const;
+        [[nodiscard]] RawReductionResult reduce_in_place(HashedSequence& input) const;
 
 
         /** Reduce rule, to best of knowledge, using rules in set */

@@ -9,6 +9,7 @@
 
 #include "scenarios/algebraic/algebraic_precontext.h"
 #include "scenarios/algebraic/operator_rulebook.h"
+#include "scenarios/algebraic/ostream_rule_logger.h"
 
 namespace Moment::Tests {
     using namespace Moment::Algebraic;
@@ -46,7 +47,7 @@ namespace Moment::Tests {
         OperatorRulebook rules{apc, msr_list};
         EXPECT_EQ(rules.size(), 1);
 
-        OperatorRule msr{HashedSequence{{0, 2}, hasher}, HashedSequence{{1}, hasher}, true};
+        OperatorRule msr{HashedSequence{{0, 2}, hasher}, HashedSequence{{1}, hasher, true}};
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 2);
 
@@ -59,7 +60,7 @@ namespace Moment::Tests {
         auto theRuleB = rules.rules().find(hasher({0, 2}));
         ASSERT_NE(theRuleB, rules.rules().cend());
         EXPECT_EQ(theRuleB->second.LHS(), HashedSequence({0, 2}, hasher));
-        EXPECT_EQ(theRuleB->second.RHS(), HashedSequence({1}, hasher));
+        EXPECT_EQ(theRuleB->second.RHS(), HashedSequence({1}, hasher, true));
         EXPECT_TRUE(theRuleB->second.negated());
     }
 
@@ -93,21 +94,24 @@ namespace Moment::Tests {
         OperatorRulebook rules{apc, msr_list};
         EXPECT_EQ(rules.size(), 1);
 
-        OperatorRule msr{HashedSequence{{0, 1}, hasher}, HashedSequence{{0}, hasher}, true};
+        OperatorRule msr{HashedSequence{{0, 1}, hasher}, HashedSequence{{0}, hasher, true}};
         EXPECT_EQ(rules.add_rule(msr), 1);
         EXPECT_EQ(rules.size(), 2);
 
-        auto theRuleA = rules.rules().find(hasher({0, 1}));
+        //EXPECT_TRUE(rules.complete(10));
+        EXPECT_EQ(rules.size(), 2) << rules;
+
+        auto theRuleA = rules.rules().find(hasher({0}));
         ASSERT_NE(theRuleA, rules.rules().cend());
-        EXPECT_EQ(theRuleA->second.LHS(), HashedSequence({0, 1}, hasher));
+        EXPECT_EQ(theRuleA->second.LHS(), HashedSequence({0}, hasher));
         EXPECT_EQ(theRuleA->second.RHS(), HashedSequence(true));
         EXPECT_FALSE(theRuleA->second.negated());
 
-        auto theRuleB = rules.rules().find(hasher({0}));
-        ASSERT_NE(theRuleB, rules.rules().cend());
-        EXPECT_EQ(theRuleB->second.LHS(), HashedSequence({0}, hasher));
-        EXPECT_EQ(theRuleB->second.RHS(), HashedSequence(true));
-        EXPECT_FALSE(theRuleB->second.negated());
+        auto theRuleAB = rules.rules().find(hasher({0, 1}));
+        ASSERT_NE(theRuleAB, rules.rules().cend()) << rules;
+        EXPECT_EQ(theRuleAB->second.LHS(), HashedSequence({0, 1}, hasher));
+        EXPECT_EQ(theRuleAB->second.RHS(), HashedSequence(true));
+        EXPECT_FALSE(theRuleAB->second.negated());
     }
 
     TEST(Scenarios_Algebraic_Rulebook, AddRule_CtoB_CtoA) {
@@ -206,11 +210,8 @@ namespace Moment::Tests {
                          HashedSequence{{0}, hasher});
         OperatorRulebook rules{apc, msr};
 
-        auto [simplified_string, neg] = rules.reduce(
-                HashedSequence{{0, 1}, hasher}
-        );
+        auto simplified_string = rules.reduce(HashedSequence{{0, 1}, hasher});
 
-        EXPECT_FALSE(neg);
         ASSERT_EQ(simplified_string.size(), 1); // 00
         EXPECT_EQ(simplified_string[0], 0);
     }
@@ -223,12 +224,10 @@ namespace Moment::Tests {
                          HashedSequence{{0}, hasher});
         OperatorRulebook rules{apc, msr};
 
-        auto [simplified_string, neg] = rules.reduce(
-                HashedSequence{{0, 1, 1, 1}, hasher}
-        );
+        auto simplified_string = rules.reduce(HashedSequence{{0, 1, 1, 1}, hasher});
 
-        EXPECT_FALSE(neg);
         ASSERT_EQ(simplified_string.size(), 1); // 00
+        EXPECT_FALSE(simplified_string.negated());
         EXPECT_EQ(simplified_string[0], 0);
     }
 
@@ -240,16 +239,14 @@ namespace Moment::Tests {
                          HashedSequence{true});
         OperatorRulebook rules{apc, msr};
 
-        auto [simplified_string, neg] = rules.reduce(
-                HashedSequence{{0, 1}, hasher}
-        );
-        EXPECT_FALSE(neg);
+        auto simplified_string = rules.reduce(HashedSequence{{0, 1}, hasher});
         ASSERT_EQ(simplified_string.size(), 0); // 0
+        EXPECT_FALSE(simplified_string.negated());
         EXPECT_TRUE(simplified_string.zero());
 
-        auto [by_search_str, by_search_neg] = rules.reduce_via_search(HashedSequence{{0, 1}, hasher});
+        auto by_search_str = rules.reduce_via_search(HashedSequence{{0, 1}, hasher});
         EXPECT_EQ(by_search_str, simplified_string);
-        EXPECT_EQ(by_search_neg, neg);
+        EXPECT_FALSE(by_search_str.negated());
     }
 
     TEST(Scenarios_Algebraic_Rulebook, Reduce_ABToZero_ABBB) {
@@ -260,11 +257,8 @@ namespace Moment::Tests {
                          HashedSequence{true});
         OperatorRulebook rules{apc, msr};
 
-        auto [simplified_string, neg] = rules.reduce(
-                HashedSequence{{0, 1, 1, 1}, hasher}
-        );
+        auto simplified_string = rules.reduce(HashedSequence{{0, 1, 1, 1}, hasher});
 
-        EXPECT_FALSE(neg);
         ASSERT_EQ(simplified_string.size(), 0); // 0
         EXPECT_TRUE(simplified_string.zero());
     }
@@ -277,13 +271,43 @@ namespace Moment::Tests {
                          HashedSequence{true});
         OperatorRulebook rules{apc, msr};
 
-        auto [simplified_string, neg] = rules.reduce(
-                HashedSequence{{1, 0, 1}, hasher}
-        );
+        auto simplified_string = rules.reduce(HashedSequence{{1, 0, 1}, hasher});
 
-        EXPECT_FALSE(neg);
         ASSERT_EQ(simplified_string.size(), 0); // 0
+        EXPECT_FALSE(simplified_string.negated());
         EXPECT_TRUE(simplified_string.zero());
+    }
+
+    TEST(Scenarios_Algebraic_Rulebook, Reduce_PauliSet) {
+        AlgebraicPrecontext apc{3, AlgebraicPrecontext::ConjugateMode::SelfAdjoint};
+        const auto& hasher = apc.hasher;
+        std::vector<OperatorRule> msr;
+        msr.emplace_back(HashedSequence{{1, 0}, hasher}, HashedSequence{{0, 1}, hasher, true}); // yx = -xy
+        msr.emplace_back(HashedSequence{{2, 0}, hasher}, HashedSequence{{0, 2}, hasher, true}); // zx = -xz
+        msr.emplace_back(HashedSequence{{2, 1}, hasher}, HashedSequence{{1, 2}, hasher, true}); // zy = -yz
+        msr.emplace_back(HashedSequence{{0, 0}, hasher}, HashedSequence{false}); // yx = -xy
+        msr.emplace_back(HashedSequence{{1, 1}, hasher}, HashedSequence{false}); // zx = -xz
+        msr.emplace_back(HashedSequence{{2, 2}, hasher}, HashedSequence{false}); // zy = -yz
+        OperatorRulebook rules{apc, std::move(msr)};
+
+        EXPECT_TRUE(rules.complete(0)) << rules;
+
+        // X^2 -> 1
+        auto simp_xxx = rules.reduce(HashedSequence{{0,0,0}, hasher});
+        EXPECT_EQ(simp_xxx, HashedSequence({0}, hasher));
+        EXPECT_NE(simp_xxx, HashedSequence({0}, hasher, true));
+
+        // YX -> -XY
+        auto simp_xy = rules.reduce(HashedSequence{{1, 0}, hasher});
+        EXPECT_EQ(simp_xy, HashedSequence({0, 1}, hasher, true));
+
+        // YXX -> -XYX -> XXY - > Y
+        auto simp_yxx = rules.reduce(HashedSequence{{1, 0, 0}, hasher});
+        EXPECT_EQ(simp_yxx, HashedSequence({1}, hasher));
+
+        // ZYX -> -YZX -> YXZ -> -XYZ
+        auto simp_zyx = rules.reduce(HashedSequence{{2, 1, 0}, hasher});
+        EXPECT_EQ(simp_zyx, HashedSequence({0, 1, 2}, hasher, true));
     }
 
     TEST(Scenarios_Algebraic_Rulebook, ReduceInPlace_String) {
@@ -297,10 +321,9 @@ namespace Moment::Tests {
 
         HashedSequence string{{0, 1}, hasher};
 
-        auto [matched, negated] = rules.reduce_in_place(string);
+        auto result = rules.reduce_in_place(string);
 
-        EXPECT_TRUE(matched);
-        EXPECT_FALSE(negated);
+        EXPECT_EQ(result, OperatorRulebook::RawReductionResult::Match);
         ASSERT_EQ(string.size(), 1);
         EXPECT_EQ(string[0], 0);
         EXPECT_EQ(string.hash(), apc.hasher({0}));
@@ -316,10 +339,9 @@ namespace Moment::Tests {
 
         HashedSequence string{{0, 1, 1, 1}, hasher};
 
-        auto [matched, negated] = rules.reduce_in_place(string);
+        auto result = rules.reduce_in_place(string);
 
-        EXPECT_TRUE(matched);
-        EXPECT_FALSE(negated);
+        EXPECT_EQ(result, OperatorRulebook::RawReductionResult::Match);
         ASSERT_EQ(string.size(), 1);
         EXPECT_EQ(string[0], 0);
         EXPECT_EQ(string.hash(), apc.hasher({0}));
@@ -335,10 +357,8 @@ namespace Moment::Tests {
 
 
         HashedSequence abbb{{0, 1, 1, 1}, hasher};
-        auto [matched, negated] = rules.reduce_in_place(abbb);
-
-        EXPECT_TRUE(matched);
-        EXPECT_FALSE(negated);
+        auto result = rules.reduce_in_place(abbb);
+        EXPECT_EQ(result, OperatorRulebook::RawReductionResult::SetToZero);
         EXPECT_EQ(abbb.size(), 0);
         EXPECT_TRUE(abbb.zero());
     }
@@ -352,10 +372,9 @@ namespace Moment::Tests {
         OperatorRulebook rules{apc, msr};
 
         HashedSequence bab{{1, 0, 1}, hasher};
-        auto [matched, negated] = rules.reduce_in_place(bab);
 
-        EXPECT_TRUE(matched);
-        EXPECT_FALSE(negated);
+        auto result = rules.reduce_in_place(bab);
+        EXPECT_EQ(result, OperatorRulebook::RawReductionResult::SetToZero);
         EXPECT_EQ(bab.size(), 0);
         EXPECT_TRUE(bab.zero());
     }
@@ -390,7 +409,7 @@ namespace Moment::Tests {
         msr.emplace_back(HashedSequence{{2}, hasher},
                          HashedSequence{{1}, hasher}); // 2 = 1
         msr.emplace_back(HashedSequence{{3}, hasher},
-                         HashedSequence{{1}, hasher}, true); // 3 = -1
+                         HashedSequence{{1}, hasher, true}); // 3 = -1
         OperatorRulebook rules{apc, msr};
 
         auto simplified_rule = rules.reduce(
@@ -483,8 +502,8 @@ namespace Moment::Tests {
         EXPECT_TRUE(rules.try_conjugation(rules.rules().begin()->second));
         EXPECT_EQ(rules.rules().size(), 2);
 
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 1}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 1}, hasher}), HashedSequence({}, hasher, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), HashedSequence({}, hasher, false));
     }
 
     TEST(Scenarios_Algebraic_Rulebook, ConjugateRuleset) {
@@ -500,8 +519,8 @@ namespace Moment::Tests {
         EXPECT_EQ(rules.conjugate_ruleset(), 1);
         EXPECT_EQ(rules.rules().size(), 2);
 
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 1}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 1}, hasher}), HashedSequence({}, hasher, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 0}, hasher}), HashedSequence({}, hasher, false));
     }
 
     TEST(Scenarios_Algebraic_Rulebook, Complete_ABtoA_BAtoB) {
@@ -524,10 +543,10 @@ namespace Moment::Tests {
 
         ASSERT_FALSE(rules.try_new_combination()); // No further confluences
 
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 1}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0}, hasher}), std::make_pair(HashedSequence{{1}, hasher}, false));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1}, hasher}), std::make_pair(HashedSequence{{1}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), HashedSequence({0}, hasher, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 1}, hasher}), HashedSequence({0}, hasher, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0}, hasher}), HashedSequence({1}, hasher, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1}, hasher}), HashedSequence({1}, hasher, false));
 
         EXPECT_TRUE(rules.is_complete(false));
         EXPECT_FALSE(rules.is_complete(true));
@@ -550,12 +569,12 @@ namespace Moment::Tests {
         ASSERT_TRUE(rules.complete(20));
         EXPECT_EQ(rules.rules().size(), 8);
 
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 0}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1, 1}, hasher}), std::make_pair(HashedSequence{{}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0, 0}, hasher}), HashedSequence({}, hasher, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1, 1}, hasher}), HashedSequence({}, hasher, false));
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 0, 1, 0}, hasher}),
-                  std::make_pair(HashedSequence{{0, 0, 1, 1}, hasher}, false));
+                  HashedSequence({0, 0, 1, 1}, hasher, false));
         EXPECT_EQ(rules.reduce(HashedSequence{{1, 1, 0, 0}, hasher}),
-                  std::make_pair(HashedSequence{{0, 1, 0, 1}, hasher}, false));
+                  HashedSequence({0, 1, 0, 1}, hasher, false));
 
         EXPECT_TRUE(rules.is_complete());
     }
@@ -568,17 +587,17 @@ namespace Moment::Tests {
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
-                         HashedSequence{{1}, hasher}, true);
+                         HashedSequence{{1}, hasher, true});
         OperatorRulebook rules{apc, msr};
 
         EXPECT_FALSE(rules.is_complete());
         ASSERT_TRUE(rules.complete(10));
 
         // aa = -a; ab = a; ba = -b; bb = b
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, true)) << rules;
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 1}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false)) << rules;
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0}, hasher}), std::make_pair(HashedSequence{{1}, hasher}, true)) << rules;
-        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1}, hasher}), std::make_pair(HashedSequence{{1}, hasher}, false)) << rules;
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), HashedSequence({0}, hasher, true)) << rules;
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 1}, hasher}), HashedSequence({0}, hasher, false)) << rules;
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 0}, hasher}), HashedSequence({1}, hasher, true)) << rules;
+        EXPECT_EQ(rules.reduce(HashedSequence{{1, 1}, hasher}), HashedSequence({1}, hasher, false)) << rules;
 
         EXPECT_TRUE(rules.is_complete());
     }
@@ -598,8 +617,8 @@ namespace Moment::Tests {
 
         rules.complete(10);
         ASSERT_EQ(rules.rules().size(), 2); // Should end up with 1 -> 0 and 00 -> 0.
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), HashedSequence({0}, hasher, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1}, hasher}), HashedSequence({0}, hasher, false));
 
         EXPECT_TRUE(rules.is_complete());
     }
@@ -636,9 +655,9 @@ namespace Moment::Tests {
 
         ASSERT_EQ(rule_iter, rules.rules().cend());
 
-        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
-        EXPECT_EQ(rules.reduce(HashedSequence{{1}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
-        EXPECT_EQ(rules.reduce(HashedSequence{{2}, hasher}), std::make_pair(HashedSequence{{0}, hasher}, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{0, 0}, hasher}), HashedSequence({0}, hasher, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{1}, hasher}), HashedSequence({0}, hasher, false));
+        EXPECT_EQ(rules.reduce(HashedSequence{{2}, hasher}), HashedSequence({0}, hasher, false));
 
         EXPECT_TRUE(rules.is_complete());
     }
@@ -716,7 +735,7 @@ namespace Moment::Tests {
         const ShortlexHasher& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
-                         HashedSequence{{0, 1}, hasher}, true); // yx = -xy
+                         HashedSequence{{0, 1}, hasher, true}); // yx = -xy
         msr.emplace_back(HashedSequence{{0, 0}, hasher},
                          HashedSequence{{0}, hasher});          // xx = x
         OperatorRulebook rules{apc, std::move(msr)};

@@ -26,7 +26,11 @@ namespace Moment::Algebraic {
 
     std::ostream& operator<<(std::ostream& os, const OperatorRule& msr) {
         if (msr.rawLHS.empty()) {
-            os << "I";
+            if (msr.rawLHS.zero()) {
+                os << "0";
+            } else {
+                os << "I";
+            }
         } else {
             for (const auto i : msr.rawLHS) {
                 os << "X" << i;
@@ -39,7 +43,11 @@ namespace Moment::Algebraic {
         }
 
         if (msr.rawRHS.empty()) {
-            os << "I";
+            if (msr.rawRHS.zero()) {
+                os << "0";
+            } else {
+                os << "I";
+            }
         } else {
             for (const auto i : msr.rawRHS) {
                 os << "X" << i;
@@ -50,12 +58,22 @@ namespace Moment::Algebraic {
     }
 
     OperatorRule::OperatorRule(HashedSequence lhs,
-                               HashedSequence rhs,
-                               bool negated)
-            : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)}, is_negated{negated},
-              is_trivial{(lhs.hash() == rhs.hash()) && !negated}, map_to_zero(rhs.zero()),
+                               HashedSequence rhs)
+            : rawLHS{std::move(lhs)}, rawRHS{std::move(rhs)},
+              map_to_zero(rhs.zero()),
               delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
-        if (rawLHS < rawRHS) {
+
+        // Move negation to RHS
+        if (this->rawLHS.negated()) {
+            this->rawLHS.set_negation(false);
+            this->rawRHS.set_negation(!rhs.negated());
+        }
+
+        // Determine if rule is trivial
+        this->is_trivial = (this->rawLHS.hash() == this->rawRHS.hash()) && !this->rawRHS.negated();
+
+        // Check rule is a reduction
+        if (rawLHS.hash() < rawRHS.hash()) {
             throw errors::invalid_rule(std::string("Rule was not a reduction: ")
                                        + "the RHS must not exceed LHS in shortlex ordering.");
         }
@@ -156,18 +174,17 @@ namespace Moment::Algebraic {
                                                         - static_cast<ptrdiff_t>(other.rawLHS.size()));
         auto rawHashOther = other.implies_zero() ? 0 : pc.hash(rawViaOther);
 
-        // Negative if only one rule involves negation
-        bool negation = this->is_negated != other.is_negated;
+        // Negative if only one rule involves negation (and we are not setting to zero).
+        const bool implies_zero = (rawHashThis == 0) || (rawHashOther == 0);
+        const bool negation = !implies_zero && (this->negated() != other.negated());
 
         // Orient rules and return
         if (rawHashThis < rawHashOther) {
             return OperatorRule{HashedSequence{std::move(rawViaOther), rawHashOther},
-                                HashedSequence{std::move(rawViaThis), rawHashThis},
-                                rawHashThis > 0 ? negation : false}; // No negation if equal to zero.
+                                HashedSequence{std::move(rawViaThis), rawHashThis, negation}};
         } else {
             return OperatorRule{HashedSequence{std::move(rawViaThis), rawHashThis},
-                                HashedSequence{std::move(rawViaOther), rawHashOther},
-                                rawHashOther > 0 ? negation : false}; // No negation if equal to zero.
+                                HashedSequence{std::move(rawViaOther), rawHashOther, negation}};
         }
     }
 
@@ -175,9 +192,9 @@ namespace Moment::Algebraic {
         auto lhs = pc.conjugate(this->rawLHS);
         auto rhs = pc.conjugate(this->rawRHS);
         if (lhs < rhs) {
-            return OperatorRule(std::move(rhs), std::move(lhs), this->is_negated);
+            return OperatorRule{std::move(rhs), std::move(lhs)};
         } else {
-            return OperatorRule(std::move(lhs), std::move(rhs), this->is_negated);
+            return OperatorRule{std::move(lhs), std::move(rhs)};
         }
     }
 

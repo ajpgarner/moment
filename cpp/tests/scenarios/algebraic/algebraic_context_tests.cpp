@@ -198,8 +198,7 @@ namespace Moment::Tests {
         std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{1, 0}, ShortlexHasher{2}},
-                HashedSequence{{0, 1}, ShortlexHasher{2}},
-                true
+                HashedSequence{{0, 1}, ShortlexHasher{2}, true}
         );
         auto ac_ptr = std::make_unique<AlgebraicContext>(AlgebraicPrecontext{2}, false, true, std::move(rules));
         const auto& context = *ac_ptr;
@@ -480,8 +479,7 @@ namespace Moment::Tests {
         std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{1, 0}, ShortlexHasher{2}},
-                HashedSequence{{0, 1}, ShortlexHasher{2}},
-                true
+                HashedSequence{{0, 1}, ShortlexHasher{2}, true}
         );
         auto ac_ptr = std::make_unique<AlgebraicContext>(AlgebraicPrecontext{2}, false, true, std::move(rules));
         ASSERT_TRUE(ac_ptr->attempt_completion(20));
@@ -613,7 +611,7 @@ namespace Moment::Tests {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::SelfAdjoint};
         std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{1, 0}, apc.hasher},
-                         HashedSequence{{0, 1}, apc.hasher}, true);
+                         HashedSequence{{0, 1}, apc.hasher, true});
 
         auto contextPtr = std::make_unique<AlgebraicContext>(apc, false, true, std::move(msr));
         EXPECT_TRUE(contextPtr->attempt_completion(0));

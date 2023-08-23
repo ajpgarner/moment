@@ -12,6 +12,19 @@
 namespace Moment::Tests {
     using namespace Moment::Algebraic;
 
+    TEST(Scenarios_Algebraic_MonomialSubRule, OrientSign) {
+
+        AlgebraicPrecontext apc{3};
+        const ShortlexHasher& hasher = apc.hasher;
+
+        // -BBA -> BA
+        OperatorRule msr{HashedSequence{{2, 2, 1}, hasher, true},
+                         HashedSequence{{2, 1}, hasher, false}};
+        EXPECT_TRUE(msr.negated());
+        EXPECT_EQ(msr.LHS(), HashedSequence({2, 2, 1}, hasher, false));
+        EXPECT_EQ(msr.RHS(), HashedSequence({2, 1}, hasher, true));
+    }
+
     TEST(Scenarios_Algebraic_MonomialSubRule, Conjugate_SelfAdjoint) {
 
         AlgebraicPrecontext apc{3};
@@ -90,7 +103,7 @@ namespace Moment::Tests {
 
         // BBA -> BA
         OperatorRule msr{HashedSequence{{2, 2, 1}, hasher},
-                         HashedSequence{{2, 1}, hasher}, true};
+                         HashedSequence{{2, 1}, hasher, true}};
         EXPECT_TRUE(msr.negated());
 
         // ABB -> AB
@@ -107,13 +120,32 @@ namespace Moment::Tests {
         EXPECT_EQ(conj_msr.RHS()[1], 2);
     }
 
+    TEST(Scenarios_Algebraic_MonomialSubRule, Conjugate_AntiCommutator) {
+        AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::SelfAdjoint};
+        const ShortlexHasher& hasher = apc.hasher;
+
+        // BA -> -BA
+        OperatorRule msr{HashedSequence{{1, 0}, hasher},
+                         HashedSequence{{0, 1}, hasher, true}}; // ba -> -ab
+        EXPECT_TRUE(msr.negated());
+
+        // BB -> -AB also
+        auto conj_msr = msr.conjugate(apc);
+        EXPECT_EQ(msr.LHS(), conj_msr.LHS());
+        EXPECT_EQ(msr.RHS(), conj_msr.RHS());
+        EXPECT_FALSE(conj_msr.implies_zero());
+        EXPECT_FALSE(conj_msr.trivial());
+        EXPECT_TRUE(conj_msr.negated());
+
+    }
+
     TEST(Scenarios_Algebraic_MonomialSubRule, Conjugate_WithZero) {
         AlgebraicPrecontext apc{3};
         const ShortlexHasher& hasher = apc.hasher;
 
         // BBA -> BA
         OperatorRule msr{HashedSequence{{2, 2, 1}, hasher},
-                         HashedSequence{true}, true};
+                         HashedSequence{true}};
         EXPECT_TRUE(msr.RHS().zero());
 
         // ABB -> AB
@@ -183,7 +215,7 @@ namespace Moment::Tests {
         sequence_storage_t sampleStr{1, 2, 2, 1};
 
         OperatorRule msr{HashedSequence{{2, 2, 1}, ShortlexHasher{3}},
-                         HashedSequence{{2, 1}, ShortlexHasher{3}}, true};
+                         HashedSequence{{2, 1}, ShortlexHasher{3}, true}};
 
         ASSERT_TRUE(msr.negated());
         ASSERT_EQ(msr.Delta(), -1);
@@ -307,7 +339,7 @@ namespace Moment::Tests {
         msr.emplace_back(HashedSequence{{0, 1}, hasher},
                          HashedSequence{{0}, hasher});
         msr.emplace_back(HashedSequence{{1, 0}, hasher},
-                         HashedSequence{{1}, hasher}, true);
+                         HashedSequence{{1}, hasher, true});
         auto joint01_opt = msr[0].combine(msr[1], apc);
         ASSERT_TRUE(joint01_opt.has_value());
         auto& joint01 = joint01_opt.value();
@@ -344,11 +376,13 @@ namespace Moment::Tests {
         const ShortlexHasher& hasher = apc.hasher;
 
         const OperatorRule ruleA{HashedSequence{{1, 0}, hasher},
-                                 HashedSequence{{0, 1}, hasher}, true};
+                                 HashedSequence{{0, 1}, hasher, true}};
         const OperatorRule ruleB{HashedSequence{{0, 0}, hasher},
                                  HashedSequence{{0}, hasher}};
         auto combined_rule = ruleA.combine(ruleB, apc);
         ASSERT_TRUE(combined_rule.has_value());
+        EXPECT_EQ(combined_rule->LHS(), HashedSequence({0, 1, 0}, hasher));
+        EXPECT_EQ(combined_rule->RHS(), HashedSequence({1, 0}, hasher, true));
 
     }
 

@@ -167,20 +167,18 @@ namespace Moment::mex {
             if (this->rhs_zero) {
                 return Algebraic::OperatorRule{
                         HashedSequence{sequence_storage_t(this->LHS.begin(), this->LHS.end()), apc.hasher},
-                        HashedSequence{true},
-                        false};
+                        HashedSequence{true}};
             }
 
             if (lhs_hash > rhs_hash) {
                 return Algebraic::OperatorRule{
                     HashedSequence{sequence_storage_t(this->LHS.begin(), this->LHS.end()), apc.hasher},
-                    HashedSequence{sequence_storage_t(this->RHS.begin(), this->RHS.end()), apc.hasher},
-                    this->negated};
+                    HashedSequence{sequence_storage_t(this->RHS.begin(), this->RHS.end()), apc.hasher, this->negated}};
             } else {
                 return Algebraic::OperatorRule{
                         HashedSequence{sequence_storage_t(this->RHS.begin(), this->RHS.end()), apc.hasher},
-                        HashedSequence{sequence_storage_t(this->LHS.begin(), this->LHS.end()), apc.hasher},
-                        this->negated};
+                        HashedSequence{sequence_storage_t(this->LHS.begin(), this->LHS.end()), apc.hasher,
+                                       this->negated}};
             }
         } catch (Moment::Algebraic::errors::invalid_rule& ire) {
             std::stringstream errSS;

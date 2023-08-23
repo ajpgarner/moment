@@ -86,7 +86,7 @@ namespace Moment::Algebraic {
 
         // Rule already exists...
         auto &preexisting = preexistingIter->second;
-        if (preexisting.rawRHS == rule.rawRHS) {
+        if (preexisting.rawRHS.hash() == rule.rawRHS.hash()) {
             // Is rule completely redundant?
             if (rule.negated() == preexisting.negated()) {
                 return 0;
@@ -105,35 +105,38 @@ namespace Moment::Algebraic {
 
                 // LHS equal to zero, since we have erased this key we can just add directly...
                 this->monomialRules.insert(std::make_pair(hashLHS,
-                                                          OperatorRule{rule.LHS(), HashedSequence(true)}
+                                                          OperatorRule{HashedSequence{rule.LHS().raw(), hashLHS, false},
+                                                                       HashedSequence(true)}
                 ));
 
                 // RHS also equal to zero, but we have to add carefully...
-                OperatorRule rhsToZero{rule.RHS(), HashedSequence(true)};
-                rules_added += this->do_add_rule(rhsToZero, logger);
+                rules_added += this->do_add_rule(OperatorRule{HashedSequence{rule.RHS().raw(), rule.RHS().hash(), false},
+                                                              HashedSequence(true)}, logger);
                 return rules_added;
             }
         }
 
         // If existing rule (C->A) already majorizes new rule (C->B):
         ptrdiff_t rules_added = 0;
-        const bool negated = rule.negated() != preexisting.negated();
+
         if (preexisting.RHS().hash() < rule.RHS().hash()) {
             // Then new rule should be B->A:
-            OperatorRule b_to_a{rule.RHS(), preexisting.RHS(), negated};
-            rules_added += this->do_add_rule(b_to_a, logger); // Add carefully, in case 'B' already exists...
+            OperatorRule b_to_a{rule.RHS(), preexisting.RHS()};
+            rules_added += this->do_add_rule(b_to_a, logger); // Add recursively, in case 'B' already exists...
         } else {
             // Otherwise, existing rule C->B is majorized by new rule C->A:
             // We will need to prepare a new rule B->A
-            OperatorRule b_to_a{preexisting.RHS(), rule.RHS(), negated};
+            OperatorRule b_to_a{preexisting.RHS(), rule.RHS()};
 
             // Log removal of rule...
             if (logger != nullptr) {
                 logger->rule_removed(preexisting);
                 logger->rule_introduced(rule);
             }
+
             // Remove existing rule
             this->monomialRules.erase(preexistingIter);
+
             // Since we have erased this key we can just add directly C->A
             this->monomialRules.insert(std::make_pair(hashLHS, rule));
 
@@ -183,12 +186,12 @@ namespace Moment::Algebraic {
         return is_complete;
     }
 
-    std::pair<HashedSequence, bool> OperatorRulebook::reduce(const HashedSequence& input) const {
+    HashedSequence OperatorRulebook::reduce(const HashedSequence& input) const {
         // Empty string, or empty rulebook, should just be forwarded
         if (input.empty()) {
-            return std::make_pair(HashedSequence{input.zero()}, false);
+            return HashedSequence{input.zero()};
         } else if (this->monomialRules.empty()) {
-            return std::make_pair(input, false);
+            return input;
         }
 
         // Choose reduction method
@@ -202,13 +205,13 @@ namespace Moment::Algebraic {
 
         switch (result) {
             case RawReductionResult::NoMatch:
-                return std::make_pair(input, false);
+                return input;
             case RawReductionResult::Match:
-                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, false);
+                return HashedSequence{std::move(test_sequence), this->precontext.hasher, input.negated()};
             case RawReductionResult::MatchWithNegation:
-                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, true);
+                return HashedSequence{std::move(test_sequence), this->precontext.hasher, !input.negated()};
             case RawReductionResult::SetToZero:
-                return std::make_pair(HashedSequence{true}, false);
+                return HashedSequence{true};
             default:
                 assert(false);
         }
@@ -216,10 +219,10 @@ namespace Moment::Algebraic {
     }
 
 
-    std::pair<bool, bool> OperatorRulebook::reduce_in_place(HashedSequence& input) const {
+    OperatorRulebook::RawReductionResult OperatorRulebook::reduce_in_place(HashedSequence& input) const {
         // Empty string, or empty rulebook, no change
         if (input.empty() || this->monomialRules.empty()) {
-            return {false, false};
+            return RawReductionResult::NoMatch;
         }
 
         const auto how_to_reduce = this->reduction_method(input.size());
@@ -229,19 +232,20 @@ namespace Moment::Algebraic {
 
         switch (result) {
             case RawReductionResult::NoMatch:
-                return {false, false};
+                break;
             case RawReductionResult::Match:
                 input.rehash(this->precontext.hasher);
-                return {true, false};
+                break;
             case RawReductionResult::MatchWithNegation:
                 input.rehash(this->precontext.hasher);
-                return {true, true};
+                input.set_negation(!input.negated());
+                break;
             case RawReductionResult::SetToZero:
                 input.raw().clear();
                 input.rehash(0);
-                return {true, false};
+                break;
         }
-        assert(false);
+        return result;
     }
 
     OperatorRulebook::RawReductionResult
@@ -328,11 +332,11 @@ namespace Moment::Algebraic {
     }
 
 
-    std::pair<HashedSequence, bool> OperatorRulebook::reduce_via_iteration(const HashedSequence &input) const {
+    HashedSequence OperatorRulebook::reduce_via_iteration(const HashedSequence& input) const {
         if (input.empty()) {
-            return std::make_pair(HashedSequence{input.zero()}, false);
+            return input;
         } else if (this->monomialRules.empty()) {
-            return std::make_pair(input, false);
+            return input;
         }
 
         // Copy
@@ -341,23 +345,23 @@ namespace Moment::Algebraic {
 
         switch (result) {
             case RawReductionResult::NoMatch:
-                return std::make_pair(input, false);
+                return input;
             case RawReductionResult::Match:
-                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, false);
+                return HashedSequence{std::move(test_sequence), this->precontext.hasher, input.negated()};
             case RawReductionResult::MatchWithNegation:
-                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, true);
+                return HashedSequence{std::move(test_sequence), this->precontext.hasher, !input.negated()};
             case RawReductionResult::SetToZero:
-                return std::make_pair(HashedSequence{true}, false);
+                return HashedSequence{true};
             default:
                 assert(false);
         }
     }
 
-    std::pair<HashedSequence, bool> OperatorRulebook::reduce_via_search(const HashedSequence &input) const {
+    HashedSequence OperatorRulebook::reduce_via_search(const HashedSequence& input) const {
         if (input.empty()) {
-            return std::make_pair(HashedSequence{input.zero()}, false);
+            return input;
         } else if (this->monomialRules.empty()) {
-            return std::make_pair(input, false);
+            return input;
         }
 
         // Copy
@@ -365,28 +369,29 @@ namespace Moment::Algebraic {
         auto result = this->reduce_via_search(test_sequence);
         switch (result) {
             case RawReductionResult::NoMatch:
-                return std::make_pair(input, false);
+                return input;
             case RawReductionResult::Match:
-                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, false);
+                return HashedSequence{std::move(test_sequence), this->precontext.hasher, input.negated()};
             case RawReductionResult::MatchWithNegation:
-                return std::make_pair(HashedSequence{std::move(test_sequence), this->precontext.hasher}, true);
+                return HashedSequence{std::move(test_sequence), this->precontext.hasher, !input.negated()};
             case RawReductionResult::SetToZero:
-                return std::make_pair(HashedSequence{true}, false);
+                return HashedSequence{true};
             default:
                 assert(false);
         }
     }
 
 
-    OperatorRule OperatorRulebook::reduce(const OperatorRule &input) const {
+    OperatorRule OperatorRulebook::reduce(const OperatorRule& input) const {
         // Reduce
-        auto [lhs, lhsNeg] = this->reduce(input.rawLHS);
-        auto [rhs, rhsNeg] = this->reduce(input.rawRHS);
+        auto lhs = this->reduce(input.rawLHS);
+        auto rhs = this->reduce(input.rawRHS);
 
-        const bool negative = input.negated() != (lhsNeg != rhsNeg);
+        const bool negative = (lhs.negated() != rhs.negated());
 
         // Special reduction if rule implies something is zero:
         if ((lhs.hash() == rhs.hash()) && negative) {
+            lhs.set_negation(false);
             return OperatorRule{std::move(lhs), HashedSequence(true)};
         }
 
@@ -394,13 +399,17 @@ namespace Moment::Algebraic {
         const auto lhs_hash = lhs.hash();
         const auto rhs_hash = rhs.hash();
         if (lhs_hash > rhs_hash) {
-            return OperatorRule{std::move(lhs), std::move(rhs), rhs_hash > 0 ? negative : false};
+            lhs.set_negation(false);
+            rhs.set_negation(negative);
+            return OperatorRule{std::move(lhs), std::move(rhs)};
         } else {
-            return OperatorRule{std::move(rhs), std::move(lhs), lhs_hash > 0 ? negative : false};
+            rhs.set_negation(false);
+            lhs.set_negation(negative);
+            return OperatorRule{std::move(rhs), std::move(lhs)};
         }
     }
 
-    bool OperatorRulebook::can_reduce(const sequence_storage_t &input) const {
+    bool OperatorRulebook::can_reduce(const sequence_storage_t& input) const {
         // Cannot reduce if string or rulebook are empty.
         if (input.empty() || this->monomialRules.empty()) {
             return false;
@@ -455,7 +464,7 @@ namespace Moment::Algebraic {
 
             // Test if rule has changed
             if ((isolated_rule.LHS().hash() != reduced_rule.LHS().hash()) ||
-                (isolated_rule.RHS().hash() != reduced_rule.RHS().hash())) {
+                (isolated_rule.RHS() != reduced_rule.RHS())) {
                 if (logger) {
                     logger->rule_reduced(isolated_rule, reduced_rule);
                 }
@@ -555,8 +564,6 @@ namespace Moment::Algebraic {
     }
 
     bool OperatorRulebook::mock_conjugate() const {
-        auto rule_iter = this->rules().begin();
-
         for (const auto& [hash, rule] : this->rules()) {
             // Conjugate and reduce rule
             auto conj_rule = rule.conjugate(this->precontext);
@@ -660,6 +667,23 @@ namespace Moment::Algebraic {
         }
     }
 
+    std::ostream& operator<<(std::ostream& os, OperatorRulebook::RawReductionResult rrr) {
+        switch (rrr) {
+            case OperatorRulebook::RawReductionResult::NoMatch:
+                os << "NoMatch";
+                break;
+            case OperatorRulebook::RawReductionResult::Match:
+                os << "Match";
+                break;
+            case OperatorRulebook::RawReductionResult::MatchWithNegation:
+                os << "MatchWithNegation";
+                break;
+            case OperatorRulebook::RawReductionResult::SetToZero:
+                os << "SetToZero";
+                break;
+        }
+        return os;
+    }
 
     std::ostream &operator<<(std::ostream &os, const OperatorRulebook &rulebook) {
         if (rulebook.is_hermitian) {

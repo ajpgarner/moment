@@ -43,14 +43,12 @@ namespace Moment::Algebraic {
     private:
         HashedSequence rawLHS;
         HashedSequence rawRHS;
-        bool is_negated = false;
         bool is_trivial = false;
         bool map_to_zero = false;
         ptrdiff_t delta = 0;
 
     public:
-        OperatorRule(HashedSequence lhs, HashedSequence rhs,
-                     bool negated = false);
+        OperatorRule(HashedSequence lhs, HashedSequence rhs);
 
         OperatorRule(const OperatorRule& rhs) = default;
 
@@ -92,7 +90,7 @@ namespace Moment::Algebraic {
         [[nodiscard]] bool trivial() const noexcept { return this->is_trivial; }
 
         /** True, if the rule requires a negative sign. */
-        [[nodiscard]] bool negated() const noexcept { return this->is_negated; }
+        [[nodiscard]] bool negated() const noexcept { return this->rawRHS.negated(); }
 
         /** True if the rule implies the LHS is equal to zero. */
         [[nodiscard]] bool implies_zero() const noexcept {
