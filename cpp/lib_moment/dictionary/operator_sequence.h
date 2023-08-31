@@ -95,7 +95,6 @@ namespace Moment {
          */
         template<std::input_iterator iter_t>
         inline OperatorSequence& append(iter_t begin, iter_t end) {
-            this->operators.reserve(this->operators.size() + std::distance(begin, end));
             this->operators.insert(this->operators.end(), begin, end);
             this->to_canonical_form();
             return *this;

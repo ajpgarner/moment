@@ -2,8 +2,8 @@ function varargout = mtk_solve(matrices, objective, varargin)
 % MTK_SOLVE Utility function for modelling and solving simple SDPs.
 %
 % SYNTAX:
-%   1. [result, a, b] = mtk_solve(matrix);
-%   2. [result, a, b] = mtk_solve(matrix, objective);
+%   1. [result, a, b, timing] = mtk_solve(matrix);
+%   2. [result, a, b, timing] = mtk_solve(matrix, objective);
 %
 % PARAMETERS:
 %  matrix - Should be a matrix object (e.g. MTKMomentMatrix), or a cell
@@ -28,7 +28,10 @@ function varargout = mtk_solve(matrices, objective, varargin)
 %                components of moments.
 % b (optional) - Final values of SDP variables associated with imaginary
 %                components of moments.
+% timing (optional) - The time the problem spent in the solver.
 %
+
+    totalTimerVal = tic;
 
     % Check first parameter, and extract scenario
     if nargin < 1
@@ -49,17 +52,22 @@ function varargout = mtk_solve(matrices, objective, varargin)
 
     % Dispatch to appropriate modeller and solve
     if (strcmp(opts.modeller, 'cvx'))
-        [result, a, b] = mtk_solve_cvx(scenario, objective, matrices, opts);
+        [result, a, b, solver_time] = ...
+            mtk_solve_cvx(scenario, objective, matrices, opts);
     elseif (strcmp(opts.modeller, 'yalmip'))
-        [result, a, b] = mtk_solve_yalmip(scenario, objective, matrices, opts);
+        [result, a, b, solver_time] = ...
+            mtk_solve_yalmip(scenario, objective, matrices, opts);
     else
         error("Unknown modeller '%s'.", opts.modeller);
     end
+    
+    total_time = toc(totalTimerVal);
     
     % Report results
     if nargout == 0 || opts.verbose
         fprintf("Result: %f\n", result);        
     end  
+    
     if nargout > 0 
         varargout = cell(1, nargout);
         if nargout >= 1
@@ -70,6 +78,10 @@ function varargout = mtk_solve(matrices, objective, varargin)
         end
         if nargout >= 3
             varargout{3} = b;
+        end
+        if nargout >= 4
+            timing = struct('function', total_time, 'solver', solver_time);
+            varargout{4} = timing;
         end
     end
 end
@@ -187,9 +199,9 @@ function val = parse_constraints(scenario, input_constraints)
 end
 
 
-%% Solve using CVX
-function [result, sdp_a, sdp_b] = mtk_solve_cvx(scenario, objective, ...
-                                                matrices, opts)
+%% Solve using YALMIP
+function [result, sdp_a, sdp_b, timing] ...
+    = mtk_solve_yalmip(scenario, objective, matrices, opts)
     % Reset yalmip
     yalmip('clear');
     
@@ -248,8 +260,10 @@ function [result, sdp_a, sdp_b] = mtk_solve_cvx(scenario, objective, ...
         end        
         diagnostics = optimize(constraints, O, yalmip_opts);
         result = value(O);
+        timing = diagnostics.solvertime;
     else
         diagnostics = optimize(constraints, yalmip_opts);
+        timing = diagnostics.solvertime;
         if diagnostics.problem == 0
             result = true;
         elseif diagnostics.problem == 1
@@ -269,9 +283,9 @@ function [result, sdp_a, sdp_b] = mtk_solve_cvx(scenario, objective, ...
     end        
 end
 
-%% Solve using yalmip
-function [result, sdp_a, sdp_b] = mtk_solve_yalmip(scenario, objective, ...
-                                                   matrices, opts)
+%% Solve using cvx
+function [result, sdp_a, sdp_b, solve_timing] ...
+    = mtk_solve_cvx(scenario, objective, matrices, opts)
     % Switch between verbose mode
     if opts.verbose
         modifiers = {'sdp'};
@@ -280,7 +294,9 @@ function [result, sdp_a, sdp_b] = mtk_solve_yalmip(scenario, objective, ...
     end
     
     if opts.complex
+        cvxSolveTimerVal = tic;
         cvx_begin(modifiers{:})
+            cvxTimerVal = tic;
             % Define SDP variables
             scenario.cvxVars('a', 'b');
             
@@ -306,9 +322,14 @@ function [result, sdp_a, sdp_b] = mtk_solve_yalmip(scenario, objective, ...
                 obj = objective.cvx(a, b);
                 minimize obj;
             end
+            timeInCVX = toc(cvxTimerVal);
         cvx_end
+        timeIncludingSolve = toc(cvxSolveTimerVal);
+        solve_timing = timeIncludingSolve - timeInCVX;
     else
+        cvxSolveTimerVal = tic;
         cvx_begin(modifiers{:})
+            cvxTimerVal = tic;
             % Define SDP variables
             scenario.cvxVars('a');
             
@@ -334,7 +355,10 @@ function [result, sdp_a, sdp_b] = mtk_solve_yalmip(scenario, objective, ...
                 obj = objective.cvx(a);
                 minimize obj;
             end
+            timeInCVX = toc(cvxTimerVal);
         cvx_end
+        timeIncludingSolve = toc(cvxSolveTimerVal);
+        solve_timing = timeIncludingSolve - timeInCVX;
     end
        
     % Output is either objective, or feasibility status
