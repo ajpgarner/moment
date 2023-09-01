@@ -12,9 +12,9 @@
 #include "extended_matrix.h"
 #include "inflation_collins_gisin.h"
 #include "inflation_context.h"
+#include "inflation_full_correlator.h"
 #include "inflation_probability_tensor.h"
 
-#include "matrix/symbolic_matrix.h"
 #include "matrix/monomial_matrix.h"
 #include "matrix/operator_matrix/moment_matrix.h"
 
@@ -69,18 +69,28 @@ namespace Moment::Inflation {
         return (*this->extensionSuggester)(matrix);
     }
 
-    const class InflationProbabilityTensor& InflationMatrixSystem::InflationProbabilityTensor() const {
-        auto& pt = this->ProbabilityTensor();
-        return dynamic_cast<const class InflationProbabilityTensor&>(pt);
-    }
 
     const class InflationCollinsGisin& InflationMatrixSystem::InflationCollinsGisin() const {
         auto& cg = this->CollinsGisin();
         return dynamic_cast<const class InflationCollinsGisin&>(cg);
     }
 
+    const class InflationFullCorrelator& InflationMatrixSystem::InflationFullCorrelator() const {
+        auto& fc = this->FullCorrelator();
+        return dynamic_cast<const class InflationFullCorrelator&>(fc);
+    }
+
+    const class InflationProbabilityTensor& InflationMatrixSystem::InflationProbabilityTensor() const {
+        auto& pt = this->ProbabilityTensor();
+        return dynamic_cast<const class InflationProbabilityTensor&>(pt);
+    }
+
     std::unique_ptr<class CollinsGisin> InflationMatrixSystem::makeCollinsGisin() {
         return std::make_unique<class InflationCollinsGisin>(*this);
+    }
+
+    std::unique_ptr<class FullCorrelator> InflationMatrixSystem::makeFullCorrelator() {
+        return std::make_unique<class InflationFullCorrelator>(*this);
     }
 
     std::unique_ptr<class ProbabilityTensor> InflationMatrixSystem::makeProbabilityTensor() {

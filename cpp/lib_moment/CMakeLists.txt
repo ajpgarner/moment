@@ -25,7 +25,9 @@ add_library(lib_moment
         matrix_system/rulebook_storage.cpp
         multithreading/multithreading.cpp
         probability/collins_gisin.cpp
+        probability/full_correlator.cpp
         probability/maintains_tensors.cpp
+        probability/polynomial_tensor.cpp
         probability/probability_tensor.cpp
         probability/virtual_polynomial_view.cpp
         scenarios/context.cpp
@@ -50,6 +52,7 @@ add_library(lib_moment
         scenarios/inflation/factor_table.cpp
         scenarios/inflation/inflation_collins_gisin.cpp
         scenarios/inflation/inflation_context.cpp
+        scenarios/inflation/inflation_full_correlator.cpp
         scenarios/inflation/inflation_matrix_system.cpp
         scenarios/inflation/inflation_osg.cpp
         scenarios/inflation/inflation_probability_tensor.cpp
@@ -60,6 +63,7 @@ add_library(lib_moment
         scenarios/inflation/multithreading/temporary_symbols_and_factors.cpp
         scenarios/locality/locality_collins_gisin.cpp
         scenarios/locality/locality_context.cpp
+        scenarios/locality/locality_full_correlator.cpp
         scenarios/locality/locality_matrix_system.cpp
         scenarios/locality/locality_operator_formatter.cpp
         scenarios/locality/locality_probability_tensor.cpp

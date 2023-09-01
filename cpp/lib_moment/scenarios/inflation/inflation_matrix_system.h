@@ -85,6 +85,13 @@ namespace Moment::Inflation {
          */
         [[nodiscard]] const class InflationCollinsGisin& InflationCollinsGisin() const;
 
+
+        /**
+         * Returns an indexing of all correlators, if the scenario is composed of binary measurements.
+         * @throws errors::missing_component if not generated.
+         */
+        [[nodiscard]] const class InflationFullCorrelator& InflationFullCorrelator() const;
+
         /**
          * Returns an indexing of all real-valued symbols, including those from ExplicitSymbolTable(), but also implied
          * "final" outcomes of measurements (including joint measurements). Includes inflation-related functionality.
@@ -122,6 +129,8 @@ namespace Moment::Inflation {
 
     private:
         std::unique_ptr<class CollinsGisin> makeCollinsGisin() override;
+
+        std::unique_ptr<class FullCorrelator> makeFullCorrelator() override;
 
         std::unique_ptr<class ProbabilityTensor> makeProbabilityTensor() override;
 

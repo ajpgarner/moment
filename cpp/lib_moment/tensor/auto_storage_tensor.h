@@ -444,19 +444,27 @@ namespace Moment {
             }
         }
 
-    protected:
+        /**
+         * Return a view to an element, without bounds checking indices.
+         * Undefined behaviour if indices are bad.
+         */
         [[nodiscard]] inline ElementView elem_no_checks(const IndexView indices) const {
             return ElementView{*this, indices, typename ElementView::flag_no_checks{}};
         }
 
+        /**
+         * Return a view to an element, without bounds checking offset.
+         * Undefined behaviour if offset is bad.
+         */
         [[nodiscard]] inline ElementView elem_no_checks(const size_t offset) const {
             return ElementView{*this, offset, typename ElementView::flag_no_checks{}};
         }
 
+        /**
+         * Construct element associated with specified indices, without bounds checks.
+         * Undefined behaviour if indices are bad.
+         */
         [[nodiscard]] virtual Element make_element_no_checks(IndexView index) const = 0;
-
-    public:
-
 
     public:
         static constexpr TensorStorageType get_storage_type(const TensorStorageType hint, const size_t num_elems) {

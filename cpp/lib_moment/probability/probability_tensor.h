@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "polynomial_tensor.h"
 #include "collins_gisin.h"
 
 #include "symbolic/polynomial.h"
@@ -31,30 +32,15 @@ namespace Moment {
 
     };
 
-    /** The number of elements, below which we cache the probability tensor explicitly. */
-    constexpr static const size_t PT_explicit_element_limit = 1024ULL;
-
-    struct ProbabilityTensorElement {
-    public:
-        Polynomial cgPolynomial;
-        Polynomial symbolPolynomial;
-        bool hasSymbolPoly;
-
-    public:
-        explicit ProbabilityTensorElement(Polynomial&& cgPoly)
-            : cgPolynomial(std::move(cgPoly)), hasSymbolPoly{false} { }
-        explicit ProbabilityTensorElement(Polynomial&& cgPoly, Polynomial&& symPoly)
-            : cgPolynomial(std::move(cgPoly)), symbolPolynomial{std::move(symPoly)}, hasSymbolPoly{true} { }
-    };
-
     class ProbabilityTensor;
 
+    using ProbabilityTensorElement = PolynomialElement;
     using ProbabilityTensorRange = TensorRange<ProbabilityTensor>;
 
     /**
      * Similar to the Collins-Gisin tensor, but also includes /implicit/ dependent probabilities (e.g. a1 = 1 - a0, etc.)
      */
-    class ProbabilityTensor : public AutoStorageTensor<ProbabilityTensorElement, PT_explicit_element_limit> {
+    class ProbabilityTensor : public PolynomialTensor {
     public:
         /** Utility structure: grouping of properties required to set up tensor. */
         struct TensorConstructInfo {
@@ -109,17 +95,8 @@ namespace Moment {
             }
         };
 
-    public:
-        const CollinsGisin& collinsGisin;
-        const PolynomialFactory& symbolPolynomialFactory;
-
     private:
         std::vector<OneDimensionInfo> dimensionInfo;
-
-        /** If in explicit mode, store whether we have symbols */
-        DynamicBitset<uint64_t, size_t> missingSymbols;
-        bool hasAllSymbols = false;
-
 
     protected:
         ProbabilityTensor(const CollinsGisin& collinsGisin, const PolynomialFactory& factory,
@@ -131,16 +108,6 @@ namespace Moment {
 
         /** Deduce information about element. */
         [[nodiscard]] ElementConstructInfo element_info(ProbabilityTensorIndexView index) const;
-
-        [[nodiscard]] Polynomial CGPolynomial(ProbabilityTensorIndexView index) const;
-
-        /** True if all polynomials have been filled (or tensor is virtual). */
-        [[nodiscard]] bool HasAllPolynomials() const noexcept {
-            return this->hasAllSymbols;
-        }
-
-        /** Attempts to fill missing polynomials */
-        bool fill_missing_polynomials();
 
         /**
          * Make implicit probability rules, for a (joint) probability distribution.
@@ -158,13 +125,6 @@ namespace Moment {
                                                                    const ProbabilityTensorElement& condition,
                                                                    std::span<const double> values) const;
 
-
-        /**
-         * Get string representation of polynomial.
-         */
-        [[nodiscard]] std::string elem_as_string(const ProbabilityTensorElement& element) const;
-
-        void elem_as_string(std::ostream& os, const ProbabilityTensorElement& element) const;
 
     protected:
         [[nodiscard]] ProbabilityTensorElement make_element_no_checks(IndexView index) const override;
@@ -187,9 +147,6 @@ namespace Moment {
 
         /** Deduce information about element, and write it to output. */
         void element_info(ProbabilityTensorIndexView index, ElementConstructInfo& output) const noexcept;
-
-        /** Try to get actual polynomial values for element, if they exist. */
-        bool attempt_symbol_resolution(ProbabilityTensorElement& element);
 
     };
 

@@ -13,6 +13,7 @@
 namespace Moment {
 
     class CollinsGisin;
+    class FullCorrelator;
     class ProbabilityTensor;
 
     /**
@@ -32,12 +33,20 @@ namespace Moment {
 
         std::unique_ptr<class ProbabilityTensor> probabilityTensor;
 
+        std::unique_ptr<class FullCorrelator> fullCorrelator;
+
     public:
         /**
          * Returns an indexing in the Collins-Gisin ordering.
          * @throws errors::missing_component if not generated.
          */
         [[nodiscard]] const class CollinsGisin& CollinsGisin() const;
+
+        /**
+         * Returns an indexing of all correlators, if the scenario is composed of binary measurements.
+         * @throws errors::missing_component if not generated.
+         */
+        [[nodiscard]] const class FullCorrelator& FullCorrelator() const;
 
         /**
          * Returns an indexing of all real-valued symbols, including those from ExplicitSymbolTable(), but also implied
@@ -68,6 +77,21 @@ namespace Moment {
          * reacquired after write is complete.
          * @return True if explicit symbol table is complete.
          */
+        bool RefreshFullCorrelator(std::shared_lock<std::shared_mutex>& read_lock);
+
+        /**
+         * Checks if it is necessary to refresh the implicit probability symbol table, and refresh it if so.
+         * Acquires write-lock if refresh is necessary: either release locks before calling, or use the overload
+         * with a read-lock parameter.
+         * @return True if explicit symbol table is complete.
+         */
+        bool RefreshFullCorrelator();
+        /**
+         * Checks if it is necessary to refresh the implicit probability symbol table, and refresh it if so.
+         * If a refresh is necessary msReadLock will be released, and system will wait for write lock. Read-lock will be
+         * reacquired after write is complete.
+         * @return True if explicit symbol table is complete.
+         */
         bool RefreshProbabilityTensor(std::shared_lock<std::shared_mutex>& read_lock);
 
         /**
@@ -78,10 +102,19 @@ namespace Moment {
          */
         bool RefreshProbabilityTensor();
 
+        /**
+         * True if the context associated with the tensor maintainer admits a full correlator.
+         */
+        virtual bool CanHaveFullCorrelator() const noexcept { return false; }
+
     private:
         virtual std::unique_ptr<class CollinsGisin> makeCollinsGisin() = 0;
 
         virtual std::unique_ptr<class ProbabilityTensor> makeProbabilityTensor() = 0;
+
+        virtual std::unique_ptr<class FullCorrelator> makeFullCorrelator() = 0;
+
+
 
 
     };

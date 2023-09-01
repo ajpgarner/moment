@@ -210,25 +210,25 @@ namespace Moment::Tests {
         auto [id, momentMatrix] = system.MomentMatrix.create(1);
 
         auto A0 = symbols.where(OperatorSequence({alice.measurement_outcome(0, 0)},
-                                                                      context))->Id();
+                                                 context))->Id();
         auto A1 = symbols.where(OperatorSequence({alice.measurement_outcome(1, 0)},
-                                                                      context))->Id();
+                                                 context))->Id();
         auto B0 = symbols.where(OperatorSequence({bob.measurement_outcome(0, 0)},
-                                                                      context))->Id();
+                                                 context))->Id();
         auto B1 = symbols.where(OperatorSequence({bob.measurement_outcome(1, 0)},
-                                                                      context))->Id();
+                                                 context))->Id();
         auto A0B0 = symbols.where(OperatorSequence({alice.measurement_outcome(0, 0),
-                                                                         bob.measurement_outcome(0, 0)},
-                                                                        context))->Id();
+                                                    bob.measurement_outcome(0, 0)},
+                                                   context))->Id();
         auto A0B1 = symbols.where(OperatorSequence({alice.measurement_outcome(0, 0),
-                                                                         bob.measurement_outcome(1, 0)},
-                                                                        context))->Id();
+                                                    bob.measurement_outcome(1, 0)},
+                                                   context))->Id();
         auto A1B0 = symbols.where(OperatorSequence({alice.measurement_outcome(1, 0),
-                                                                         bob.measurement_outcome(0, 0)},
-                                                                        context))->Id();
+                                                    bob.measurement_outcome(0, 0)},
+                                                   context))->Id();
         auto A1B1 = symbols.where(OperatorSequence({alice.measurement_outcome(1, 0),
-                                                                         bob.measurement_outcome(1, 0)},
-                                                                        context))->Id();
+                                                    bob.measurement_outcome(1, 0)},
+                                                   context))->Id();
         system.RefreshProbabilityTensor();
         const auto& pt = system.LocalityProbabilityTensor();
 

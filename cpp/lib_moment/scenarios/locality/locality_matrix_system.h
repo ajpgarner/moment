@@ -43,14 +43,24 @@ namespace Moment::Locality {
         [[nodiscard]] const class LocalityCollinsGisin& LocalityCollinsGisin() const;
 
         /**
+         * Returns an indexing of all correlators, if the scenario is composed of binary measurements.
+         * @throws errors::missing_component if not generated.
+         */
+        [[nodiscard]] const class LocalityFullCorrelator& LocalityFullCorrelator() const;
+
+        /**
          * Returns an indexing of all real-valued symbols, including those from ExplicitSymbolTable(), but also implied
          * "final" outcomes of measurements (including joint measurements). Includes locality-indexing options.
          * @throws errors::missing_component if not generated.
          */
         [[nodiscard]] const class LocalityProbabilityTensor& LocalityProbabilityTensor() const;
 
+        bool CanHaveFullCorrelator() const noexcept override;
+
     private:
         std::unique_ptr<class CollinsGisin> makeCollinsGisin() override;
+
+        std::unique_ptr<class FullCorrelator> makeFullCorrelator() override;
 
         std::unique_ptr<class ProbabilityTensor> makeProbabilityTensor() override;
     };

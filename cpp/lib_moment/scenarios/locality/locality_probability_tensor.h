@@ -43,8 +43,5 @@ namespace Moment::Locality {
                                                                   std::span<const PMOIndex> fixedOutcomes) const;
 
         [[nodiscard]] ProbabilityTensor::ElementView outcome_to_element(std::span<const PMOIndex> fixedOutcomes) const;
-
-    private:
-
     };
 }
