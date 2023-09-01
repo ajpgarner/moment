@@ -20,7 +20,7 @@ namespace Moment {
     class MatrixSystem;
     class PolynomialFactory;
     class ProbabilityTensor;
-    struct ProbabilityTensorElement;
+    struct PolynomialElement;
 
 
     template<typename tensor_t> class TensorRange;
@@ -51,7 +51,7 @@ namespace Moment {
             /**
              * Write a single element as a polynomial.
              */
-            [[nodiscard]] FullMonomialSpecification sequence(const ProbabilityTensorElement& element,
+            [[nodiscard]] FullMonomialSpecification sequence(const PolynomialElement& element,
                                                                const CollinsGisin& cg) const;
 
             /**
@@ -67,7 +67,7 @@ namespace Moment {
             /**
              * Write a single element as a polynomial.
              */
-            [[nodiscard]] FullMonomialSpecification sequence_with_symbols(const ProbabilityTensorElement& element,
+            [[nodiscard]] FullMonomialSpecification sequence_with_symbols(const PolynomialElement& element,
                                                                             const CollinsGisin& cg) const;
 
             /**
@@ -83,7 +83,7 @@ namespace Moment {
             /**
              * Write a single element as a symbol cell.
              */
-            [[nodiscard]] matlab::data::CellArray symbol(const ProbabilityTensorElement& element) const;
+            [[nodiscard]] matlab::data::CellArray symbol(const PolynomialElement& element) const;
 
             friend class SymbolCellWriterFunctor;
             friend class SequenceWriterFunctor;

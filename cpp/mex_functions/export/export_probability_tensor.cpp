@@ -150,7 +150,7 @@ namespace Moment::mex {
                          SequenceWriterFunctor{*this, false, splice.Tensor().collinsGisin});
     }
 
-    FullMonomialSpecification ProbabilityTensorExporter::sequence(const ProbabilityTensorElement &element,
+    FullMonomialSpecification ProbabilityTensorExporter::sequence(const PolynomialElement& element,
                                                                     const CollinsGisin& cg) const {
         SequenceWriterFunctor swf{*this, false, cg};
         return swf.fps(element);
@@ -170,7 +170,7 @@ namespace Moment::mex {
     }
 
     FullMonomialSpecification
-    ProbabilityTensorExporter::sequence_with_symbols(const ProbabilityTensorElement &element,
+    ProbabilityTensorExporter::sequence_with_symbols(const PolynomialElement& element,
                                                      const CollinsGisin& cg) const {
         SequenceWriterFunctor swf{*this, true, cg};
         return swf.fps(element);
@@ -190,7 +190,7 @@ namespace Moment::mex {
     }
 
 
-    matlab::data::CellArray ProbabilityTensorExporter::symbol(const ProbabilityTensorElement &element) const {
+    matlab::data::CellArray ProbabilityTensorExporter::symbol(const PolynomialElement& element) const {
         SymbolCellWriterFunctor swf{*this};
         return swf(element);
     }
