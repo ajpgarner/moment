@@ -34,6 +34,7 @@ namespace Moment::mex::functions {
         Echo,
         ExtendedMatrix,
         FlattenIndices,
+        FullCorrelator,
         GenerateBasis,
         ImportMatrix,
         ImportedMatrixSystem,

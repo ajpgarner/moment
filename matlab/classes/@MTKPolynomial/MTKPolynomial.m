@@ -54,6 +54,13 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
             elseif ~isa(setting, 'MTKScenario')
                 error("First argument must be a scenario.");
             end
+            
+            % Check if argument 3 is set
+            if nargin >= 3 && isequal(varargin{2}, 'direct')
+                no_checks = true;
+            else
+                no_checks = false;
+            end
 
             % Check argument 2
             if nargin < 2
@@ -103,13 +110,17 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
                 return;
             end
             
-            if ~array_construction
-                obj.Constituents = obj.orderAndMerge(constituents);
+            if no_checks
+                obj.Constituents = constituents;                
             else
-                obj.Constituents = cell(size(constituents));
-                for idx = 1:numel(constituents)
-                    obj.Constituents{idx} = obj.orderAndMerge(constituents{idx});
-                end                
+                if ~array_construction
+                    obj.Constituents = obj.orderAndMerge(constituents);
+                else
+                    obj.Constituents = cell(size(constituents));
+                    for idx = 1:numel(constituents)
+                        obj.Constituents{idx} = obj.orderAndMerge(constituents{idx});
+                    end                
+                end
             end
         end    
     end

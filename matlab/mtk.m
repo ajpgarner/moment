@@ -34,7 +34,10 @@
 % 
 % extended_matrix
 %       Creates a moment matrix, scalar-extended by listed symbols.
-% 
+%
+% full_correlator
+%       Retrieves the full correlator tensor.
+%
 % generate_basis
 %       Gets basis matrices for the specified matrix.
 % 

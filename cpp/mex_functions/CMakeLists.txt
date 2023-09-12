@@ -18,6 +18,7 @@ matlab_add_mex(NAME moment_mex
             eigen/export_eigen_sparse.cpp
             export/export_basis.cpp
             export/export_collins_gisin.cpp
+            export/export_full_correlator.cpp
             export/export_matrix_basis_masks.cpp
             export/export_moment_substitution_rules.cpp
             export/export_operator_matrix.cpp
@@ -26,6 +27,7 @@ matlab_add_mex(NAME moment_mex
             export/export_operator_sequence.cpp
             export/export_osg.cpp
             export/export_polynomial.cpp
+            export/export_polynomial_tensor.cpp
             export/export_probability_tensor.cpp
             export/export_symbol_table.cpp
             export/exporter.cpp
@@ -80,6 +82,7 @@ matlab_add_mex(NAME moment_mex
             functions/operator_rules/complete.cpp
             functions/operator_rules/operator_rules.cpp
             functions/probability/collins_gisin.cpp
+            functions/probability/full_correlator.cpp
             functions/probability/make_explicit.cpp
             functions/probability/probability_table.cpp
             functions/utility/alphabetic_name.cpp

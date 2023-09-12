@@ -14,7 +14,6 @@ namespace Moment {
     class MatrixSystem;
 }
 
-
 namespace Moment::mex::errors {
     constexpr char missing_cg[] = "missing_cg";
 }

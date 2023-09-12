@@ -39,6 +39,7 @@
 #include "functions/operator_rules/complete.h"
 #include "functions/operator_rules/operator_rules.h"
 #include "functions/probability/collins_gisin.h"
+#include "functions/probability/full_correlator.h"
 #include "functions/probability/make_explicit.h"
 #include "functions/probability/probability_table.h"
 #include "functions/utility/alphabetic_name.h"
@@ -63,6 +64,7 @@ namespace Moment::mex::functions {
             output.emplace("echo",            MTKEntryPointID::Echo);
             output.emplace("extended_matrix", MTKEntryPointID::ExtendedMatrix);
             output.emplace("flatten_indices", MTKEntryPointID::FlattenIndices);
+            output.emplace("full_correlator", MTKEntryPointID::FullCorrelator);
             output.emplace("generate_basis",  MTKEntryPointID::GenerateBasis);
             output.emplace("list",            MTKEntryPointID::List);
             output.emplace("import_matrix",   MTKEntryPointID::ImportMatrix);
@@ -157,6 +159,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MTKEntryPointID::FlattenIndices:
                 the_function = std::make_unique<functions::FlattenIndices>(engine, storageManager);
+                break;
+            case functions::MTKEntryPointID::FullCorrelator:
+                the_function = std::make_unique<functions::FullCorrelator>(engine, storageManager);
                 break;
             case functions::MTKEntryPointID::GenerateBasis:
                 the_function = std::make_unique<functions::GenerateBasis>(engine, storageManager);

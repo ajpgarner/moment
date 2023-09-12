@@ -6,22 +6,15 @@
  */
 #pragma once
 
-#include "mex.hpp"
 #include "MatlabDataArray.hpp"
 
-#include "exporter.h"
-#include "export_polynomial.h"
+#include "export_polynomial_tensor.h"
 
 #include <span>
 
 namespace Moment {
-    class Context;
-    class CollinsGisin;
-    class MatrixSystem;
-    class PolynomialFactory;
-    class ProbabilityTensor;
-    struct PolynomialElement;
 
+    class ProbabilityTensor;
 
     template<typename tensor_t> class TensorRange;
     using ProbabilityTensorRange = TensorRange<ProbabilityTensor>;
@@ -29,19 +22,14 @@ namespace Moment {
     class SymbolTable;
 
     namespace mex {
-        class ProbabilityTensorExporter : public ExporterWithFactory {
+        class ProbabilityTensorExporter : public PolynomialTensorExporter {
         public:
-            const Context& context;
-            const SymbolTable& symbol_table;
-            const PolynomialFactory& polyFactory;
+            ProbabilityTensorExporter(matlab::engine::MATLABEngine& engine, const MatrixSystem& system)
+                : PolynomialTensorExporter{engine, system} { }
 
-        public:
-            ProbabilityTensorExporter(matlab::engine::MATLABEngine& engine, const MatrixSystem& system);
-
-            /**
-             * Write the entire tensor as a polynomial.
-             */
-            [[nodiscard]] matlab::data::CellArray sequences(const ProbabilityTensor& tensor) const;
+            using PolynomialTensorExporter::sequences;
+            using PolynomialTensorExporter::sequences_with_symbols;
+            using PolynomialTensorExporter::symbols;
 
             /**
              * Write the tensor slice as a polynomial.
@@ -49,41 +37,15 @@ namespace Moment {
             [[nodiscard]] matlab::data::CellArray sequences(const ProbabilityTensorRange& splice) const;
 
             /**
-             * Write a single element as a polynomial.
-             */
-            [[nodiscard]] FullMonomialSpecification sequence(const PolynomialElement& element,
-                                                               const CollinsGisin& cg) const;
-
-            /**
-             * Write the entire tensor as a polynomial.
-             */
-            [[nodiscard]] matlab::data::CellArray sequences_with_symbols(const ProbabilityTensor& tensor) const;
-
-            /**
              * Write the tensor slice as a polynomial.
              */
             [[nodiscard]] matlab::data::CellArray sequences_with_symbols(const ProbabilityTensorRange& splice) const;
-
-            /**
-             * Write a single element as a polynomial.
-             */
-            [[nodiscard]] FullMonomialSpecification sequence_with_symbols(const PolynomialElement& element,
-                                                                            const CollinsGisin& cg) const;
-
-            /**
-             * Write the entire tensor as a symbol cell.
-             */
-            [[nodiscard]] matlab::data::CellArray symbols(const ProbabilityTensor& tensor) const;
 
             /**
              * Write the tensor slice as a symbol cell
              */
             [[nodiscard]] matlab::data::CellArray symbols(const ProbabilityTensorRange& splice) const;
 
-            /**
-             * Write a single element as a symbol cell.
-             */
-            [[nodiscard]] matlab::data::CellArray symbol(const PolynomialElement& element) const;
 
             friend class SymbolCellWriterFunctor;
             friend class SequenceWriterFunctor;
