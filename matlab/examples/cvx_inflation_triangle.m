@@ -17,11 +17,9 @@ disp(struct2table(triangle.System.SymbolTable));
 disp(moment_matrix.SequenceStrings);
 
 %% Impose P(000) = P(111) = 1/2
-A00 = triangle.get(1,1);
-B00 = triangle.get(2,1);
-C00 = triangle.get(3,1);
-ABC_base = A00 * B00 * C00;
-sub_list = ABC_base.Probability([0.5, 0, 0, 0, 0, 0, 0, 0.5], 'list');
+[A, B, C] = triangle.getPrimaryVariants();
+ABC = A * B * C;
+sub_list = ABC.Probability([0.5, 0, 0, 0, 0, 0, 0, 0.5], 'list');
     
 substitutions = triangle.MomentRulebook();
 substitutions.AddFromList(sub_list);

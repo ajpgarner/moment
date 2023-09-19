@@ -144,12 +144,13 @@ end
 function parsed = parse_optional_inputs(scenario, varargin)
     parsed = struct('complex', true, ...
                     'constraints', MTKPolynomial.empty(0,1), ...
-                    'verbose', false, ...
-                    'modeller', 'auto');
+                    'mock', false, ...
+                    'modeller', 'auto', ...
+                    'verbose', false);
 
     % Parse options
     options = MTKUtil.check_varargin_keys( ...
-        ["complex", "constraints", "modeller", "verbose"], ...
+        ["complex", "constraints", "mock", "modeller", "verbose"], ...
         varargin);
 
     for idx = 1:2:numel(varargin)
@@ -162,6 +163,11 @@ function parsed = parse_optional_inputs(scenario, varargin)
                     error("Complex should be true or false.");
                 end
                 parsed.complex = logical(options{idx+1});
+            case 'mock'
+                 if ~isscalar(options{idx+1}) || ~islogical(options{idx+1})
+                    error("Mock should be true or false.");
+                end
+                parsed.mock = logical(options{idx+1});
             case 'modeller'
                 toolkit = lower(char(options{idx+1}));
                 if ~ismember(toolkit, {'cvx', 'yalmip'})
@@ -257,11 +263,30 @@ function [result, sdp_a, sdp_b, timing] ...
             O = objective.yalmip(a, b);
         else 
             O = objective.yalmip(a);
-        end        
+        end
+        
+        % Do not solve, if in mock mode.
+        if opts.mock
+            result = NaN;
+            sdp_a = NaN(scenario.System.RealVarCount, 1);
+            sdp_b = NaN(scenario.System.ImaginaryVarCount, 1);
+            timing = 0;
+            return
+        end
+
         diagnostics = optimize(constraints, O, yalmip_opts);
         result = value(O);
         timing = diagnostics.solvertime;
     else
+        % Do not solve, if in mock mode.
+        if opts.mock
+            result = NaN;
+            sdp_a = NaN(scenario.System.RealVarCount, 1);
+            sdp_b = NaN(scenario.System.ImaginaryVarCount, 1);
+            timing = 0;
+            return
+        end
+            
         diagnostics = optimize(constraints, yalmip_opts);
         timing = diagnostics.solvertime;
         if diagnostics.problem == 0
@@ -323,6 +348,16 @@ function [result, sdp_a, sdp_b, solve_timing] ...
                 minimize obj;
             end
             timeInCVX = toc(cvxTimerVal);
+                            
+            % Do not solve, if in mock mode.
+            if opts.mock
+                result = NaN;
+                sdp_a = NaN(scenario.System.RealVarCount, 1);
+                sdp_b = NaN(scenario.System.ImaginaryVarCount, 1);
+                solve_timing = 0;
+                return
+            end
+            
         cvx_end
         timeIncludingSolve = toc(cvxSolveTimerVal);
         solve_timing = timeIncludingSolve - timeInCVX;
@@ -356,6 +391,16 @@ function [result, sdp_a, sdp_b, solve_timing] ...
                 minimize obj;
             end
             timeInCVX = toc(cvxTimerVal);
+            
+            % Do not solve, if in mock mode.
+            if opts.mock
+                result = NaN;
+                sdp_a = NaN(scenario.System.RealVarCount, 1);
+                sdp_b = NaN(scenario.System.ImaginaryVarCount, 1);
+                solve_timing = 0;
+                return
+            end
+            
         cvx_end
         timeIncludingSolve = toc(cvxSolveTimerVal);
         solve_timing = timeIncludingSolve - timeInCVX;
