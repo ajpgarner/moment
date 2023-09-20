@@ -19,8 +19,10 @@ namespace Moment {
     PolynomialTensor::PolynomialTensor(const CollinsGisin &collinsGisin, const PolynomialFactory &factory,
                                        AutoStorageIndex&& dimensions, TensorStorageType storage)
         : AutoStorageTensor<PolynomialElement, poly_tensor_explicit_element_limit>(std::move(dimensions), storage),
-      collinsGisin{collinsGisin}, symbolPolynomialFactory{factory}, missingSymbols(ElementCount) {
-
+      collinsGisin{collinsGisin}, symbolPolynomialFactory{factory}, missingSymbols{std::nullopt}  {
+        if (this->StorageType == TensorStorageType::Explicit) {
+            this->missingSymbols.emplace(this->ElementCount);
+        }
     }
 
     bool PolynomialTensor::fill_missing_polynomials() {
@@ -28,10 +30,11 @@ namespace Moment {
             return true;
         }
         assert(this->StorageType == TensorStorageType::Explicit);
+        assert(this->missingSymbols.has_value());
 
         this->hasAllSymbols = true;
         DynamicBitset<uint64_t, size_t> still_missing(this->ElementCount);
-        for (size_t symbol_id : this->missingSymbols) {
+        for (size_t symbol_id : *this->missingSymbols) {
             // Attempt to resolve.
             const bool found = this->attempt_symbol_resolution(this->data[symbol_id]);
             if (!found) {
@@ -41,7 +44,7 @@ namespace Moment {
         }
 
         if (!this->hasAllSymbols) {
-            this->missingSymbols.swap(still_missing);
+            this->missingSymbols->swap(still_missing);
         }
 
         return this->hasAllSymbols;

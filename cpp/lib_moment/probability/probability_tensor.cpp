@@ -91,6 +91,7 @@ namespace Moment {
     }
 
     void ProbabilityTensor::calculate_implicit_symbols() {
+        assert(this->StorageType == TensorStorageType::Explicit);
         // Derive data
         this->data.reserve(this->ElementCount);
         MultiDimensionalIndexIterator<true> elementIndexIter(this->Dimensions);
@@ -104,7 +105,7 @@ namespace Moment {
             const auto& elementIndex = *elementIndexIter;
             this->data.emplace_back(this->do_make_element(elementIndex, elemInfo));
             if (!this->data.back().hasSymbolPoly) {
-                this->missingSymbols.set(elementIndexIter.global());
+                this->missingSymbols->set(elementIndexIter.global());
                 this->hasAllSymbols = false;
             }
             ++elementIndexIter;

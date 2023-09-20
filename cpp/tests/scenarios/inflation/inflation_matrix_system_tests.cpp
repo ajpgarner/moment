@@ -129,6 +129,20 @@ namespace Moment::Tests {
         auto symbol_A00C10C01 = symbols.where(seq_A00C10C01);
         EXPECT_TRUE(symbol_A00C10C01.found());
         EXPECT_TRUE(symbol_A00C10C01.is_aliased);
+
+    }
+
+
+    TEST(Scenarios_Inflation_MatrixSystem, LevelThreeRefreshProbability) {
+        // 'bad allocation' bug found via matlab
+        InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{4,      4,      4},
+                                                                                   {{0, 1}, {1, 2}, {0, 2}}},
+                                                                     3)};
+        const auto &context = ims.InflationContext();
+        const auto &symbols = ims.Symbols();
+
+        const auto& mm = ims.MomentMatrix(1);
+        ims.RefreshProbabilityTensor();
     }
 
     TEST(Scenarios_Inflation_MatrixSystem, Point_Five) {

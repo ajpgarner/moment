@@ -169,11 +169,12 @@ namespace Moment {
 
         // Loop over elements
         this->hasAllSymbols = true;
+        assert(this->missingSymbols.has_value());
         while (elementIndexIter) {
             const auto& elementIndex = *elementIndexIter;
             this->data.emplace_back(this->make_element_no_checks(elementIndex));
             if (!this->data.back().hasSymbolPoly) {
-                this->missingSymbols.set(elementIndexIter.global());
+                this->missingSymbols->set(elementIndexIter.global());
                 this->hasAllSymbols = false;
             }
             ++elementIndexIter;

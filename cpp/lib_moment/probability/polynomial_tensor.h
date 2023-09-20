@@ -48,7 +48,7 @@ namespace Moment {
 
     protected:
         /** If in explicit mode, store whether we have symbols */
-        DynamicBitset<uint64_t, size_t> missingSymbols;
+        std::optional<DynamicBitset<uint64_t, size_t>> missingSymbols;
         bool hasAllSymbols = false;
 
 
