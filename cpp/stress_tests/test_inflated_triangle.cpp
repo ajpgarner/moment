@@ -85,7 +85,7 @@ int main() {
                 auto &mm = triangle.make_moment_matrix(mm_level);
                 const auto done_mm = std::chrono::high_resolution_clock::now();
                 const std::chrono::duration<double> mm_duration = done_mm - before_mm;
-                std::cout << "... done in " << mm_duration << "." << std::endl;
+                std::cout << "... done in " << mm_duration << " (size: " << mm.Dimension() << ")." << std::endl;
             } catch (const std::exception &e) {
                 const auto failure_time = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double, std::milli> mm_duration = failure_time - before_ams;
@@ -105,6 +105,7 @@ int main() {
                 std::cout << "... failed after " << em_duration << ": " << e.what() << std::endl;
                 return -1;
             }
+
         }
         std::cout << "\n";
     }
