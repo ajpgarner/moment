@@ -22,7 +22,7 @@
     % Semi-trivial cases (prune empty arrays!)
     non_empty_mask = ~cellfun(@isempty, varargin);
     if ~any(non_empty_mask(:))
-        output = MTKObject.empty(0,0);
+        output = varargin{1};
         return;
     end
     varargin = varargin(non_empty_mask);
