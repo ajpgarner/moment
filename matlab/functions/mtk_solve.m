@@ -129,8 +129,9 @@ function objective = parse_objective(scenario, input_objective)
         input_objective = MTKPolynomial(input_objective);
     end
 
-    % Error, if not polynomial
-    if ~isa(input_objective, 'MTKPolynomial')
+    % Error, if not polynomial or transformed object
+    if ~isa(input_objective, 'MTKPolynomial') ...
+        && ~isa(input_objective, 'Symmetry.TransformedObject')
         error("Objective must be a MTKPolynomial.");
     end
     if input_objective.Scenario ~= scenario
@@ -142,17 +143,19 @@ function objective = parse_objective(scenario, input_objective)
 end
 
 function parsed = parse_optional_inputs(scenario, varargin)
+    % Defaults
     parsed = struct('complex', true, ...
                     'constraints', MTKPolynomial.empty(0,1), ...
                     'mock', false, ...
                     'modeller', 'auto', ...
-                    'verbose', false);
+                    'verbose', false);                
+    parsed.complex = scenario.System.ImaginaryVarCount > 0;
 
     % Parse options
     options = MTKUtil.check_varargin_keys( ...
         ["complex", "constraints", "mock", "modeller", "verbose"], ...
         varargin);
-
+    
     for idx = 1:2:numel(varargin)
         switch options{idx}
             case 'constraints'
@@ -189,7 +192,8 @@ function parsed = parse_optional_inputs(scenario, varargin)
             error("Could not detect yalmip or cvx installation.");
         end
     end
-
+    
+ 
 end
 
 function val = parse_constraints(scenario, input_constraints)

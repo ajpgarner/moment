@@ -13,7 +13,7 @@ function ym_expr = yalmip(obj, real_basis, im_basis)
         error("Expected at least one YALMIP sdpvar basis input.");
     end
 
-    if nargin >=3
+    if nargin >=3 && ~isempty(im_basis)
         if ~isa(im_basis, 'sdpvar')
             error("Expected YALMIP sdpvar for imaginary basis input.");
         end

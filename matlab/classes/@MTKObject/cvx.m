@@ -13,7 +13,7 @@
         error("Expected at least one CVX basis vector input.");
     end
 
-    if nargin >=3
+    if nargin >=3 && ~isempty(im_basis)
         if ~isa(im_basis, 'cvx')
             error("Expected CVX vector for imaginary basis input.");
         end                
