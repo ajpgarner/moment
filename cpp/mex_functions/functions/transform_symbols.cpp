@@ -28,31 +28,6 @@
 #include <sstream>
 
 namespace Moment::mex::functions {
-
-//        Polynomial get_input_as_combo(matlab::engine::MATLABEngine matlabEngine,
-//                                      const PolynomialFactory& factory,
-//                                      const TransformSymbolsParams& input) {
-//
-//            if (input.input_type == TransformSymbolsParams::InputType::SymbolId) {
-//                return Polynomial{Monomial{input.symbol_id, 1.0, false}};
-//            }
-//
-//            if (input.input_type != TransformSymbolsParams::InputType::Basis) {
-//                throw_error(matlabEngine, errors::bad_param, "Unknown input type.");
-//            }
-//
-//            Eigen::SparseVector<double> real_base =
-//                    (input.inputs.size()>=2) ? read_eigen_sparse_vector(matlabEngine, input.inputs[1])
-//                                             : Eigen::SparseVector<double>(0);
-//
-//            Eigen::SparseVector<double> complex_base =
-//                    (input.inputs.size()>=3) ? read_eigen_sparse_vector(matlabEngine, input.inputs[2])
-//                                             : Eigen::SparseVector<double>(0);
-//
-//            return BasisVecToPolynomial{factory}(real_base, complex_base);
-//
-//        }
-
     namespace {
         void output_from_polynomials( matlab::engine::MATLABEngine& matlabEngine,
                                       IOArgumentRange& output, TransformSymbolsParams& input,
