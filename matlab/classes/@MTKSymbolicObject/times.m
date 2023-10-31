@@ -1,7 +1,7 @@
 function val = times(lhs, rhs)
     % TIMES Element-wise multiplication .*
     %
-    [this, other, ~] = MTKSymbolicObject.find_this(lhs,rhs);
+    [this, other, ~] = find_this(lhs,rhs);
 
     % Only support numeric multiplication
     if ~isnumeric(other)

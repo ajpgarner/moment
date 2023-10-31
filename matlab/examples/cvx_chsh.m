@@ -1,6 +1,6 @@
 %% Example: cvx_chsh.m 
 % Solves CHSH scenario, with CVX.
-%
+% Expected answer: 2 sqrt 2 (2.828...)
 
 %% Define scenario
 % Two parties

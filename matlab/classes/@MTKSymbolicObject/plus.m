@@ -1,5 +1,5 @@
 function val = plus(lhs, rhs)
-    [this, other, ~] = MTKSymbolicObject.find_this(lhs,rhs);
+    [this, other, ~] = find_this(lhs,rhs);
 
     % Make other a symbolic object (if possible)
     if isnumeric(other)

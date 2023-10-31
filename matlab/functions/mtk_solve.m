@@ -131,14 +131,19 @@ function objective = parse_objective(scenario, input_objective)
 
     % Error, if not polynomial or transformed object
     if ~isa(input_objective, 'MTKPolynomial') ...
-        && ~isa(input_objective, 'Symmetry.TransformedObject')
-        error("Objective must be a MTKPolynomial.");
+        && ~isa(input_objective, 'MTKSymbolicObject')
+        error("Objective must be a MTKPolynomial or MTKSymbolicObject.");
     end
     if input_objective.Scenario ~= scenario
         error("Objective and all matrices must be from the same scenario.");
     end
     
-    % Objective is okay...
+    % Error, if objective is not scalar
+    if numel(input_objective) ~= 1
+        error("Objective must be a scalar.");
+    end
+       
+    % Otherwise, objective is okay...
     objective = input_objective;
 end
 
