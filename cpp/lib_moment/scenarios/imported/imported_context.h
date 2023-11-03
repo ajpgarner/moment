@@ -20,5 +20,10 @@ namespace Moment::Imported {
 
         /** True if all operator sequences in context must be real */
         [[nodiscard]] bool real_only() const noexcept { return this->purely_real; };
+
+        /** Imported context has no operators */
+        [[nodiscard]] bool defines_operators() const noexcept final {
+            return false;
+        };
     };
 }

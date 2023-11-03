@@ -122,6 +122,26 @@ classdef ImportMatrixTest < MTKTestBase
                 uint64([0 0 1 2 0 3 0]));
         end
         
+        function ComplexSystem_HermitianMatrixWithFactors(testCase)
+            sys_id = mtk('imported_matrix_system', 'complex');
+            A = [["16.0","0.5#2","0.25#3"]; ["0.5#2*","-4","5"]; ["0.25#3*","5*","6"]];
+            m_id = mtk('import_matrix', 'hermitian', sys_id, A);
+            actual_A = mtk('operator_matrix', 'sequence_string', sys_id, m_id);
+            expected_A = [["16","0.5#2","0.25#3"]; 
+                          ["0.5#2*","-#4","#5"]; 
+                          ["0.25#3*","#5*","#6"]];
+            testCase.verifyEqual(actual_A, expected_A);
+            
+            symbol_table = mtk('symbol_table', sys_id);
+            testCase.assertEqual(length(symbol_table), 7);
+            testCase.verifyEqual([symbol_table.symbol], ...
+                int64([0 1 2 3 4 5 6]));
+            testCase.verifyEqual([symbol_table.basis_re], ...
+                uint64([0 1 2 3 4 5 6]));
+            testCase.verifyEqual([symbol_table.basis_im], ...
+                uint64([0 0 1 2 0 3 0]));
+        end
+        
         function ComplexSystem_RealHermitianMatrix(testCase)
             sys_id = mtk('imported_matrix_system', 'complex');
             A = [["1","2","3"]; ["2","4","5"]; ["3","5","6"]];

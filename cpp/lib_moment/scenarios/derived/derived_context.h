@@ -24,7 +24,6 @@ namespace Moment::Derived {
         const class SymbolTableMap * map_ptr = nullptr;
 
     public:
-
         DerivedContext(const Context& source_context);
 
         void format_sequence_from_symbol_id(ContextualOS& os,
@@ -35,6 +34,11 @@ namespace Moment::Derived {
             assert(this->map_ptr);
             return *this->map_ptr;
         }
+
+        /** Derived context has no direct operators */
+        [[nodiscard]] bool defines_operators() const noexcept final {
+            return false;
+        };
 
         friend class DerivedMatrixSystem;
 

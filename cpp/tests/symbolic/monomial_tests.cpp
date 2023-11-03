@@ -17,7 +17,6 @@ namespace Moment::Tests {
         EXPECT_FALSE(symbol.conjugated);
     }
 
-
     TEST(Symbolic_Monomial, Parse_Thirteen) {
         std::string thirteen = "13";
         Monomial symbol{thirteen};
@@ -34,6 +33,15 @@ namespace Moment::Tests {
         EXPECT_FALSE(symbol.conjugated);
     }
 
+    TEST(Symbolic_Monomial, Parse_Double) {
+        std::string thirteen = "13.0";
+        Monomial symbol{thirteen};
+        EXPECT_EQ(symbol.id, 1);
+        EXPECT_EQ(symbol.factor, 13.0);
+        EXPECT_FALSE(symbol.negated());
+        EXPECT_FALSE(symbol.conjugated);
+    }
+
     TEST(Symbolic_Monomial, Parse_TwoStar) {
         std::string one_star = "2*";
         Monomial symbol{one_star};
@@ -42,11 +50,37 @@ namespace Moment::Tests {
         EXPECT_TRUE(symbol.conjugated);
     }
 
+    TEST(Symbolic_Monomial, Parse_HashThree) {
+        std::string one_star = "#3";
+        Monomial symbol{one_star};
+        EXPECT_EQ(symbol.id, 3);
+        EXPECT_FALSE(symbol.negated());
+        EXPECT_FALSE(symbol.conjugated);
+    }
+
     TEST(Symbolic_Monomial, Parse_MinusTwoStar) {
         std::string minus_one_star = "-2*";
         Monomial symbol{minus_one_star};
         EXPECT_EQ(symbol.id, 2);
         EXPECT_TRUE(symbol.negated());
+        EXPECT_TRUE(symbol.conjugated);
+    }
+
+    TEST(Symbolic_Monomial, Parse_HalfTwo) {
+        std::string minus_one_star = "0.5#2";
+        Monomial symbol{minus_one_star};
+        EXPECT_EQ(symbol.id, 2);
+        EXPECT_EQ(symbol.factor, 0.5);
+        EXPECT_FALSE(symbol.negated());
+        EXPECT_FALSE(symbol.conjugated);
+    }
+
+    TEST(Symbolic_Monomial, Parse_QuarterThreeStar) {
+        std::string minus_one_star = "0.25#3*";
+        Monomial symbol{minus_one_star};
+        EXPECT_EQ(symbol.id, 3);
+        EXPECT_EQ(symbol.factor, 0.25);
+        EXPECT_FALSE(symbol.negated());
         EXPECT_TRUE(symbol.conjugated);
     }
 
@@ -115,6 +149,11 @@ namespace Moment::Tests {
         EXPECT_THROW(Monomial{empty}, Monomial::SymbolParseException);
     }
 
+    TEST(Symbolic_Monomial, BadStr_OnlyHash) {
+        std::string hash{"#"};
+        EXPECT_THROW(Monomial{hash}, Monomial::SymbolParseException);
+    }
+
     TEST(Symbolic_Monomial, BadStr_TooLong) {
         std::string longStr = std::string(Monomial::max_strlen + 1, '1');
         EXPECT_THROW(Monomial{longStr}, Monomial::SymbolParseException);
@@ -125,6 +164,11 @@ namespace Moment::Tests {
         EXPECT_THROW(Monomial{badStr}, Monomial::SymbolParseException);
     }
 
+    TEST(Symbolic_Monomial, BadStr_NANPrefactor) {
+        std::string badStr = "bad#3*";
+        EXPECT_THROW(Monomial{badStr}, Monomial::SymbolParseException);
+    }
+
     TEST(Symbolic_Monomial, BadStr_DoubleMinus) {
         std::string badStr = "--100";
         EXPECT_THROW(Monomial{badStr}, Monomial::SymbolParseException);
@@ -132,6 +176,16 @@ namespace Moment::Tests {
 
     TEST(Symbolic_Monomial, BadStr_DoubleConj) {
         std::string badStr = "100**";
+        EXPECT_THROW(Monomial{badStr}, Monomial::SymbolParseException);
+    }
+
+    TEST(Symbolic_Monomial, BadStr_DoublePrefactor) {
+        std::string badStr = "0.1#0.2#10*";
+        EXPECT_THROW(Monomial{badStr}, Monomial::SymbolParseException);
+    }
+
+    TEST(Symbolic_Monomial, BadStr_PrefactorAndNegative) {
+        std::string badStr = "0.1#-10";
         EXPECT_THROW(Monomial{badStr}, Monomial::SymbolParseException);
     }
 }

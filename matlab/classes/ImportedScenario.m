@@ -23,7 +23,7 @@ classdef ImportedScenario < MTKScenario
         % IMPORTEDSCENARIO Construct an empty scenario, ready for import.
         %
         % PARAMS
-        %   all_real - True if every definable symbol in the system is real.
+        %   real - True if every definable symbol in the system is real.
         %
         
             % Default parameters
@@ -31,11 +31,11 @@ classdef ImportedScenario < MTKScenario
         
             % Validate parameters
             options = MTKUtil.check_varargin_keys(...
-                        ["all_real", "zero_tolerance"], varargin);
+                        ["real", "zero_tolerance"], varargin);
             prune_mask = false(size(options));
             for o = 1:2:numel(options)
                 switch options{o}
-                    case "all_real"
+                    case "real"
                         prune_mask(o) = true;
                         prune_mask(o+1) = true;
                         all_real = logical(options{o+1});

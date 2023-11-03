@@ -56,6 +56,42 @@ namespace Moment {
         }
     }
 
+    void Monomial::format_as_symbol_id_with_context(ContextualOS &os) const {
+        // Zero
+        if ((this->id == 0) || (this->factor == 0.0)) { // not approx, actual!
+            if (!os.format_info.first_in_polynomial) {
+                os << " + ";
+            }
+            os << "0";
+            return;
+        }
+
+        const bool is_scalar = (this->id == 1);
+        const bool needs_space = format_factor(os, this->factor, is_scalar, !os.format_info.first_in_polynomial);
+
+        if (!is_scalar) {
+            if (needs_space) {
+                switch (os.format_info.prefactor_join) {
+                    case StringFormatContext::PrefactorJoin::Space:
+                        os.os << " ";
+                        break;
+                    case StringFormatContext::PrefactorJoin::Asterix:
+                        os.os << "*";
+                        break;
+                    case StringFormatContext::PrefactorJoin::Nothing:
+                        break;
+                }
+            }
+
+            if (os.format_info.hash_before_symbol_id) {
+                os << "#";
+            }
+            os << this->id;
+            if (this->conjugated) {
+                os << "*";
+            }
+        }
+    }
 
     void Monomial::format_as_operator_sequence_with_context(ContextualOS& os) const {
         if constexpr(debug_mode) {
@@ -85,7 +121,16 @@ namespace Moment {
         }
 
         if (need_space) {
-            os.os << " ";
+            switch (os.format_info.prefactor_join) {
+                case StringFormatContext::PrefactorJoin::Space:
+                    os.os << " ";
+                    break;
+                case StringFormatContext::PrefactorJoin::Asterix:
+                    os.os << "*";
+                    break;
+                case StringFormatContext::PrefactorJoin::Nothing:
+                    break;
+            }
         }
 
         // Skip if symbol not in table.
@@ -147,12 +192,57 @@ namespace Moment {
         return os;
     }
 
-    Monomial::Monomial(const std::string &strExpr) {
+    Monomial::Monomial(const std::string& strExpr) {
         // Size must be in bounds
         if (strExpr.empty() || (strExpr.size() > Monomial::max_strlen)) {
             throw SymbolParseException{strExpr};
         }
+        size_t read_from = 0;
         size_t read_to = strExpr.length();
+
+        // Test if monomial includes a prefactor with #
+        size_t prefactor_split = strExpr.find('#');
+        bool has_prefactor = (prefactor_split != std::string::npos);
+        bool just_a_number = false;
+        if (!has_prefactor) {
+            // No explicit prefactor, but number is a double:
+            if (strExpr.find('.') != std::string::npos) {
+                has_prefactor = true;
+                prefactor_split = read_to;
+                just_a_number = true;
+            }
+        }
+
+        // Attempt to read pre-factor
+        if (has_prefactor) {
+            read_from = prefactor_split+1;
+            if (prefactor_split > 0) {
+                try {
+                    size_t how_much = 0;
+                    this->factor = std::stod(strExpr.substr(0, prefactor_split), &how_much);
+                    if (how_much < prefactor_split) {
+                        throw SymbolParseException{strExpr};
+                    }
+                } catch (std::invalid_argument &e) {
+                    throw SymbolParseException{strExpr, e};
+                } catch (std::out_of_range &e) {
+                    throw SymbolParseException{strExpr, e};
+                }
+            } else {
+                this->factor = 1.0;
+            }
+        } else {
+            this->factor = 1.0;
+        }
+
+        // Prefactor only
+        if (just_a_number) {
+            this->conjugated = false;
+            this->id = 1;
+            return;
+        }
+
+        // Test if conjugate string
         if (strExpr.ends_with('*')) {
             this->conjugated = true;
             --read_to;
@@ -160,27 +250,29 @@ namespace Moment {
             this->conjugated = false;
         }
 
+        // Attempt to read symbol ID
         try {
             size_t how_much = 0;
-            auto read_me = std::stoi(strExpr, &how_much);
+            auto read_symbol_id = std::stoi(strExpr.substr(read_from, read_to - read_from), &how_much);
 
             // Make sure whole string is read
-            if (how_much < read_to) {
+            if (read_from + how_much < read_to) {
                 throw SymbolParseException{strExpr};
             }
 
-            if (read_me < 0) {
-                this->factor = -1.0;
-                read_me = -read_me;
-            } else {
-                this->factor = 1.0;
+            if (read_symbol_id < 0) {
+                if (!has_prefactor) {
+                    this->factor = -1.0;
+                    read_symbol_id = -read_symbol_id;
+                } else {
+                    // Negative and prefactor not allowed...!
+                    throw SymbolParseException{strExpr};
+                }
             }
-            this->id = static_cast<symbol_name_t>(read_me);
-        }
-        catch (std::invalid_argument& e) {
+            this->id = static_cast<symbol_name_t>(read_symbol_id);
+        } catch (std::invalid_argument& e) {
             throw SymbolParseException{strExpr, e};
-        }
-        catch (std::out_of_range& e) {
+        } catch (std::out_of_range& e) {
             throw SymbolParseException{strExpr, e};
         }
     }

@@ -59,16 +59,15 @@ namespace Moment::mex {
                     assert(sfc);
                 }
 
-
-                constexpr bool operator==(const const_iterator &rhs) const noexcept {
+                constexpr bool operator==(const const_iterator& rhs) const noexcept {
                     return this->raw_iter == rhs.raw_iter;
                 }
 
-                constexpr bool operator!=(const const_iterator &rhs) const noexcept {
+                constexpr bool operator!=(const const_iterator& rhs) const noexcept {
                     return this->raw_iter != rhs.raw_iter;
                 }
 
-                constexpr const_iterator &operator++() {
+                constexpr const_iterator& operator++() {
                     ++(this->raw_iter);
                     return *this;
                 }
@@ -127,8 +126,8 @@ namespace Moment::mex {
                 FactorFormatView::raw_const_iterator raw_iter;
 
             public:
-                constexpr const_iterator(const Inflation::InflationContext &context,
-                                         const Inflation::FactorTable &factors,
+                constexpr const_iterator(const Inflation::InflationContext& context,
+                                         const Inflation::FactorTable& factors,
                                          raw_const_iterator rci)
                         : context{&context}, factors{&factors}, raw_iter{rci} {}
 
@@ -140,7 +139,7 @@ namespace Moment::mex {
                     return this->raw_iter != rhs.raw_iter;
                 }
 
-                constexpr const_iterator &operator++() {
+                constexpr const_iterator& operator++() {
                     ++(this->raw_iter);
                     return *this;
                 }
@@ -246,6 +245,19 @@ namespace Moment::mex {
             return do_export<DirectFormatView>(engine, opMatrix(), sfc);
         }
 
+        inline matlab::data::StringArray export_only_symbols(matlab::engine::MATLABEngine& engine,
+                                                       const Context& context,
+                                                       const SymbolTable& symbols,
+                                                       const MonomialMatrix& inputMatrix)  {
+            StringFormatContext sfc{context, symbols};
+            sfc.format_info.show_braces = true;
+            sfc.format_info.prefactor_join = StringFormatContext::PrefactorJoin::Nothing;
+            sfc.format_info.hash_before_symbol_id = true;
+            sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::SymbolIds;
+
+            return do_export<InferredFormatView>(engine, inputMatrix.SymbolMatrix(), sfc);
+        }
+
         inline matlab::data::StringArray export_inferred(matlab::engine::MATLABEngine& engine,
                                                          const Context& context,
                                                          const SymbolTable& symbols,
@@ -318,6 +330,11 @@ namespace Moment::mex {
 
 
     matlab::data::StringArray SequenceStringMatrixExporter::operator()(const MonomialMatrix &matrix) const {
+        // Does system even define operators?
+        if (!this->system.Context().defines_operators()) {
+            return export_only_symbols(engine, this->system.Context(), this->system.Symbols(), matrix);
+        }
+
         // Is this an inflation matrix? If so, display factorized format:
         if (nullptr != this->imsPtr) {
             return export_factored(engine, *this->imsPtr, matrix);

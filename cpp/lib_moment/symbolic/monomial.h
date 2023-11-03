@@ -152,10 +152,7 @@ namespace Moment {
                                                  bool show_plus = false,
                                                  bool show_hash = true) const;
 
-        inline void format_as_symbol_id_with_context(ContextualOS& os) const {
-            this->format_as_symbol_id_without_context(os.os, !os.format_info.first_in_polynomial,
-                                                      os.format_info.hash_before_symbol_id);
-        }
+        inline void format_as_symbol_id_with_context(ContextualOS& os) const;
 
         void format_as_operator_sequence_with_context(ContextualOS& os) const;
 

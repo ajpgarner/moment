@@ -33,6 +33,8 @@ namespace Moment::mex {
         public:
             WriteSymbolStringFunctor(const Context& context, const SymbolTable& symbols) : sfc{context, symbols} {
                 sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::SymbolIds;
+                sfc.format_info.hash_before_symbol_id = false;
+                sfc.format_info.prefactor_join = StringFormatContext::PrefactorJoin::Asterix;
             }
 
             matlab::data::MATLABString operator()(const Polynomial& poly) const {

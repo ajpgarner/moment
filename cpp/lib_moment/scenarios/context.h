@@ -48,6 +48,9 @@ namespace Moment {
         /** True, if Context can generate (in principle) non-Hermitian operator strings */
         [[nodiscard]] virtual bool can_be_nonhermitian() const noexcept { return true; }
 
+        /** True, if Context directly defines operators */
+        [[nodiscard]] virtual bool defines_operators() const noexcept { return true; }
+
         /** True, if Context could generate (in principle, even if erroneously) non-Hermitian moment matrices,
          *  or non-Hermitian localizing matrices with Hermitian words. */
         [[nodiscard]] virtual bool can_make_unexpected_nonhermitian_matrices() const noexcept { return false; }

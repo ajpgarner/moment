@@ -26,6 +26,12 @@ namespace Moment {
             SymbolIds
         };
 
+        enum class PrefactorJoin : char {
+            Space,
+            Asterix,
+            Nothing
+        };
+
     public:
         /** Context. */
         const Context& context;
@@ -40,6 +46,9 @@ namespace Moment {
 
             /** Switch between outputting operator sequences or symbol ids, for symbolic objects. */
             DisplayAs display_symbolic_as = DisplayAs::Operators;
+
+            /** What to insert between prefactor and symbol/operator string */
+            PrefactorJoin prefactor_join = PrefactorJoin::Space;
 
             /** Show braces around operator sequences ('<X>' vs 'X') */
             bool show_braces = false;

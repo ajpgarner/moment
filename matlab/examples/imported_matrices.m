@@ -5,14 +5,12 @@
 
 imported_scenario = ImportedScenario();
 
-
-test_input = [["1", "2", "3"]; ["2*", "4", "3"]; ["3*", "3*", "5"]];
+test_input = [["1", "0.5#2", "3"]; ["0.5#2*", "4", "3"]; ["3*", "3*", "5"]];
 
 imported_matrix = imported_scenario.ImportHermitianMatrix(test_input);
 disp(imported_matrix.SymbolStrings)
 disp(imported_matrix.SequenceStrings)
 disp(imported_scenario.Symbols)
-
 
 % Since we import as Hermitian, this infers 2 = 2* and makes 2 Hermitian.
 test_input_2 = [[1, 2]; [2, 6]];
