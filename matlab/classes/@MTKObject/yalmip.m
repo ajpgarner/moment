@@ -5,9 +5,12 @@ function ym_expr = yalmip(obj, real_basis, im_basis)
 %
 % See also: SYMBOLIC.COMPLEXOBJECT.APPLY
 %
+
     if nargin >= 2
         if ~isa(real_basis, 'sdpvar')
-            error("Expected YALMIP sdpvar for real basis input.");
+            if (real_basis ~= 0)
+                error("Expected YALMIP sdpvar for real basis input.");
+            end
         end
     else
         error("Expected at least one YALMIP sdpvar basis input.");

@@ -214,24 +214,41 @@ classdef MTKMatrixSystem < handle
     
     %% Yalmip Methods
     methods
-        function [var_A, var_B] = yalmipVars(obj)
+        function [var_A, var_B] = yalmipVars(obj, export_type)
         % YALMIPVARS Creates SDP variables associated with matrix system.
         %
         % First output corresponds to real components. 
         % Second output (optional) correponds to imaginary components.
+        % export_type (optional) must be "real", "complex", or "imaginary"
         %
-            if nargout == 1
-                export_imaginary = false;
-            elseif nargout == 2
-                export_imaginary = true;
+
+            if nargin == 1
+                if nargout == 1
+                    export_type = 'real';
+                elseif nargout == 2
+                    export_type = 'complex';
+                else
+                    error("One or two outputs expected.");
+                end
             else
-                error("One or two outputs expected.");
+                if (strcmp(export_type,'real') || strcmp(export_type,'imaginary')) && nargout == 2
+                    error("One output expected.");
+                elseif strcmp(export_type,'complex') && nargout == 1
+                    error("Two outputs expected.");
+                end
             end
-           
-            var_A = sdpvar(double(obj.RealVarCount), 1);
-            if export_imaginary
+
+            if strcmp(export_type,'real')
+                var_A = sdpvar(double(obj.RealVarCount), 1);
+            elseif strcmp(export_type,'complex')
+                var_A = sdpvar(double(obj.RealVarCount), 1);
                 var_B = sdpvar(double(obj.ImaginaryVarCount), 1);
+            elseif strcmp(export_type,'imaginary')
+                var_A = sdpvar(double(obj.ImaginaryVarCount), 1);
+            else
+                error("Export type must be real, complex, or imaginary.");
             end
+
         end
     end
     
