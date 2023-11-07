@@ -67,6 +67,13 @@ namespace Moment {
          virtual bool additional_simplification(sequence_storage_t& op_sequence, SequenceSignType& sign) const;
 
          /**
+          * Use context to multiply together two operator strings, and store result in LHS.
+          * @param lhs The left-hand-side of the multiplication (stores result also).
+          * @param rhs The right-hand-side of the multiplication.
+          */
+         virtual void multiply(OperatorSequence& lhs, const OperatorSequence& rhs) const;
+
+         /**
           * Use context to simplify or substitute an operator sequence, at the point where it is taken as a moment.
           * @param seq The operator sequence representing the moment to simplify.
           */

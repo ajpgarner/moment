@@ -56,4 +56,21 @@ namespace Moment {
         return this->context->conjugate(*this);
     }
 
+    OperatorSequence &OperatorSequence::operator*=(const OperatorSequence &rhs) {
+        this->context->multiply(*this, rhs);
+        return *this;
+    }
+
+    OperatorSequence operator*(const OperatorSequence &lhs, const OperatorSequence &rhs) {
+        OperatorSequence output{lhs};
+        output.context->multiply(output, rhs);
+        return output;
+    }
+
+    OperatorSequence operator*(OperatorSequence &&lhs, const OperatorSequence &rhs) {
+        lhs.context->multiply(lhs, rhs);
+        return lhs;
+    }
+
+
 }

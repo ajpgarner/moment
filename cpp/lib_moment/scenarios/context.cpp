@@ -29,6 +29,14 @@ namespace Moment {
         return false;
     }
 
+    void Context::multiply(OperatorSequence &lhs, const OperatorSequence &rhs) const {
+        // Append
+        lhs.operators.insert(lhs.operators.end(), rhs.operators.begin(), rhs.operators.end());
+
+        // Simplify
+        lhs.to_canonical_form();
+    }
+
     OperatorSequence Context::conjugate(const OperatorSequence& seq) const {
         // 0* = 0
         if (seq.zero()) {
@@ -102,18 +110,41 @@ namespace Moment {
             contextual_os.os << "0";
             return;
         }
+
         if (seq.empty()) {
-            if (seq.negated()) {
-                contextual_os.os << "-";
+            switch (seq.get_sign()) {
+                case SequenceSignType::Positive:
+                    contextual_os.os << "1";
+                    break;
+                case SequenceSignType::Imaginary:
+                    contextual_os.os << "i";
+                    break;
+                case SequenceSignType::Negative:
+                    contextual_os.os << "-1";
+                    break;
+                case SequenceSignType::NegativeImaginary:
+                    contextual_os.os << "-i";
+                    break;
             }
-            contextual_os.os << "1";
             return;
         }
 
         std::stringstream ss;
         bool done_once = false;
-        if (seq.negated()) {
-            contextual_os.os << "-";
+
+
+        switch (seq.get_sign()) {
+            case SequenceSignType::Positive:
+                break;
+            case SequenceSignType::Imaginary:
+                contextual_os.os << "i";
+                break;
+            case SequenceSignType::Negative:
+                contextual_os.os << "-";
+                break;
+            case SequenceSignType::NegativeImaginary:
+                contextual_os.os << "-i";
+                break;
         }
 
         if (contextual_os.format_info.show_braces) {

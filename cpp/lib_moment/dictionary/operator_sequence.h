@@ -87,8 +87,17 @@ namespace Moment {
          */
         friend std::ostream& operator<<(std::ostream& os, const OperatorSequence& seq);
 
+
+        /**
+         * True if supplied context matches
+         */
+        [[nodiscard]] inline bool is_same_context(const Context& rhs) const noexcept {
+            return this->context == &rhs;
+        }
+
         /**
          * Adds a list of operators to the end of the sequence, then simplifies to canonical form.
+         * Effectively, a type of multiplication.
          * @tparam iter_t Input iterator type
          * @param begin Input iterator to start of sequence to append.
          * @param end Input iterator to past-the-end of sequence to append.
@@ -112,29 +121,14 @@ namespace Moment {
          * Concatenate an OperatorSequence to the end of this sequence, then simplifies to canonical form.
          * @param rhs The operator sequence to append to this sequence.
          */
-        OperatorSequence& operator *= (const OperatorSequence& rhs) {
-            this->sign = (this->sign * rhs.sign);
-            return this->append(rhs.operators.begin(), rhs.operators.end());
-        }
-
-        /**
-         * True if supplied context matches
-         */
-        [[nodiscard]] inline bool is_same_context(const Context& rhs) const noexcept {
-            return this->context == &rhs;
-        }
-
+        OperatorSequence& operator *= (const OperatorSequence& rhs);
 
         /**
         * Concatenates two OperatorSequences, putting the output in a new sequence, and simplifying to canonical form.
         * @param lhs The operator sequence to take as the beginning of the new sequence
         * @param rhs The operator sequence to take as the end of the new sequence.
         */
-        inline friend OperatorSequence operator * (const OperatorSequence& lhs, const OperatorSequence& rhs) {
-            OperatorSequence output{lhs};
-            output *= rhs;
-            return output;
-        }
+        friend OperatorSequence operator* (const OperatorSequence& lhs, const OperatorSequence& rhs);
 
         /**
         * Concatenates two OperatorSequences, putting the output in a new sequence, and simplifying to canonical form.
@@ -142,10 +136,7 @@ namespace Moment {
         * @param lhs The operator sequence to take as the beginning of the new sequence
         * @param rhs The operator sequence to take as the end of the new sequence.
         */
-        inline friend OperatorSequence operator * (OperatorSequence&& lhs, const OperatorSequence& rhs) {
-            lhs *= rhs;
-            return lhs;
-        }
+        friend OperatorSequence operator* (OperatorSequence&& lhs, const OperatorSequence& rhs);
 
         /**
          * Construct sequence equal to algebraic zero.
