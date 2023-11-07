@@ -88,19 +88,16 @@ namespace Moment::Algebraic {
         return this->rules_completed.value();
     }
 
-    bool AlgebraicContext::additional_simplification(sequence_storage_t& op_sequence, bool& negated) const {
+    bool AlgebraicContext::additional_simplification(sequence_storage_t& op_sequence, SequenceSignType& sign_type) const {
         if (this->commutative) {
             std::sort(op_sequence.begin(), op_sequence.end());
         }
 
-        const auto result = this->rules.reduce_in_place(op_sequence);
+        const auto result = this->rules.reduce_in_place(op_sequence, sign_type);
         switch (result) {
             case OperatorRulebook::RawReductionResult::SetToZero:
                 op_sequence.clear();
                 return true;
-            case OperatorRulebook::RawReductionResult::MatchWithNegation:
-                negated = !negated;
-                break;
             default:
                 break;
         }

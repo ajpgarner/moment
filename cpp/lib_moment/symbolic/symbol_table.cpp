@@ -148,7 +148,7 @@ namespace Moment {
 
     symbol_name_t SymbolTable::merge_in(OperatorSequence&& sequence) {
         // Sequence should not be negated
-        sequence.set_negation(false);
+        sequence.set_sign(SequenceSignType::Positive);
 
         // First, is sequence canonical?
         if (this->can_have_aliases) {

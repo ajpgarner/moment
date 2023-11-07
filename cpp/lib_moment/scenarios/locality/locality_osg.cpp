@@ -73,7 +73,7 @@ namespace Moment::Locality {
                 // Make new op sequence
                 output.emplace_back(OperatorSequence::ConstructRawFlag{},
                                     next_seq, context.hash(next_seq),
-                                    context, false); // <- copies next_seq.
+                                    context, SequenceSignType::Positive); // <- copies next_seq.
 
                 ++partition_iter;
             }

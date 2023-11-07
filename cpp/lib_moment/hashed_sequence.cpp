@@ -64,6 +64,10 @@ namespace Moment {
         if (seq.negated()) {
             os << "-";
         }
+        if (seq.imaginary()) {
+            os << "i";
+        }
+
         if (seq.empty()) {
             if (seq.zero()) {
                 os << "0";

@@ -30,19 +30,21 @@ namespace Moment {
         return this->context->format_sequence(*this);
     }
 
-    OperatorSequence::OperatorSequence(sequence_storage_t operators, const Context &context, const bool negated) noexcept
-        : HashedSequence{std::move(operators), context.hash(operators), negated}, context{&context} {
+    OperatorSequence::OperatorSequence(sequence_storage_t operators,
+                                       const Context &context,
+                                       const SequenceSignType sign_type) noexcept
+        : HashedSequence{std::move(operators), context.hash(operators), sign_type}, context{&context} {
         this->to_canonical_form();
     }
 
 
     void OperatorSequence::to_canonical_form() noexcept {
         // Contextual simplifications
-        bool simplify_to_zero = this->context->additional_simplification(this->operators, this->is_negated);
+        bool simplify_to_zero = this->context->additional_simplification(this->operators, this->sign);
         if (simplify_to_zero) {
             this->operators.clear();
             this->the_hash = 0;
-            this->is_negated = false;
+            this->sign = SequenceSignType::Positive;
             return;
         }
 

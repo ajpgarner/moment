@@ -89,8 +89,10 @@ namespace Moment::Algebraic {
         /** True, if the rule is of the form A = A. */
         [[nodiscard]] bool trivial() const noexcept { return this->is_trivial; }
 
-        /** True, if the rule requires a negative sign. */
-        [[nodiscard]] bool negated() const noexcept { return this->rawRHS.negated(); }
+        /** The sign change induced by this rule, if any. */
+        [[nodiscard]] constexpr SequenceSignType rule_sign() const noexcept {
+            return this->rawRHS.get_sign();
+        }
 
         /** True if the rule implies the LHS is equal to zero. */
         [[nodiscard]] bool implies_zero() const noexcept {
@@ -99,7 +101,6 @@ namespace Moment::Algebraic {
 
         /** Forms a rule by conjugating both sides of the equality */
         [[nodiscard]] OperatorRule conjugate(const AlgebraicPrecontext& precontext) const;
-
 
         friend std::ostream& operator<<(std::ostream& os, const OperatorRule& msr);
 

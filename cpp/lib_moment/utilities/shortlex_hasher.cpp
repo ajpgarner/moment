@@ -9,7 +9,7 @@
 #include <cmath>
 
 namespace Moment {
-    size_t ShortlexHasher::hash(std::span<const oper_name_t> rawOperators) const noexcept {
+    size_t ShortlexHasher::hash(const std::span<const oper_name_t> rawOperators) const noexcept {
         size_t hash = this->offset;
         size_t multiplier = 1;
         const size_t multiplier_stride = this->radix;

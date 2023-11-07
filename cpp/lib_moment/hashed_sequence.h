@@ -7,6 +7,7 @@
 #pragma once
 
 #include "integer_types.h"
+#include "sequence_sign_type.h"
 
 #include "utilities/small_vector.h"
 
@@ -30,6 +31,8 @@ namespace Moment {
         } -> std::convertible_to<uint64_t>;
     };
 
+
+
     /**
      * Sequence of operators, and associated hash.
      */
@@ -39,11 +42,11 @@ namespace Moment {
         using const_iter_t = sequence_storage_t::const_iterator;
 
     protected:
-        sequence_storage_t operators;
-
         uint64_t the_hash;
 
-        bool is_negated;
+        sequence_storage_t operators;
+
+        SequenceSignType sign;
 
         /** 'Uninitialized' constructor */
         HashedSequence() = default;
@@ -54,7 +57,7 @@ namespace Moment {
          * @param zero True if sequence corresponds to zero, otherwise sequence is identity.
          */
         constexpr explicit HashedSequence(const bool zero)
-            : operators{}, the_hash{zero ? 0U : 1U}, is_negated{false} { }
+            : operators{}, the_hash{zero ? 0U : 1U}, sign{SequenceSignType::Positive} { }
 
         /** Copy constructor */
         constexpr HashedSequence(const HashedSequence& rhs) = default;
@@ -74,8 +77,9 @@ namespace Moment {
          * @param hash The calculated hash of the sequence.
          * @param is_negated True if the sequence should be interpreted with a minus sign in front of it.
          */
-        HashedSequence(sequence_storage_t oper_ids, const uint64_t hash, const bool is_negated = false)
-                : operators{std::move(oper_ids)}, the_hash{hash}, is_negated{is_negated} { }
+        HashedSequence(sequence_storage_t oper_ids, const uint64_t hash,
+                       SequenceSignType sign_type = SequenceSignType::Positive)
+                : operators{std::move(oper_ids)}, the_hash{hash}, sign{sign_type} { }
 
         /**
          * Construct a sequence, from a list of operators.
@@ -84,10 +88,11 @@ namespace Moment {
          * @param hasher Functional that applies hash to sequence.
          */
         template<OperatorHasher hasher_t>
-        HashedSequence(sequence_storage_t oper_ids, const hasher_t& hasher, const bool is_negated = false)
-            : operators{std::move(oper_ids)},
-              the_hash{hasher(static_cast<std::span<const oper_name_t>>(operators))},
-              is_negated{is_negated} { }
+        HashedSequence(sequence_storage_t oper_ids, const hasher_t& hasher,
+                       SequenceSignType sign_type = SequenceSignType::Positive)
+            :   the_hash{hasher(static_cast<const std::span<const oper_name_t>>(oper_ids))},
+                operators{std::move(oper_ids)},
+                sign{sign_type} { }
 
         /**
          * Get sequence hash
@@ -106,15 +111,41 @@ namespace Moment {
         /**
          * True, if sequence should be interpreted with a negative sign.
          */
-        [[nodiscard]] constexpr bool negated() const noexcept { return this->is_negated; }
+        [[nodiscard]] constexpr bool negated() const noexcept {
+            return is_negative(this->sign);
+        }
+
+        /**
+         * True, if sequence should be interpreted as multiplied by imaginary unit.
+         */
+        [[nodiscard]] constexpr bool imaginary() const noexcept {
+            return is_imaginary(this->sign);
+        }
+
+        /**
+         * Get the hashed sequence's sign
+         */
+        [[nodiscard]] constexpr SequenceSignType get_sign() const noexcept {
+            return this->sign;
+        }
 
         /**
          * Set the hashed sequence's negation.
          */
-        constexpr void set_negation(const bool new_negation) noexcept {
-            this->is_negated = new_negation;
+        constexpr void set_sign(SequenceSignType new_type) noexcept {
+            this->sign = new_type;
         }
 
+        /**
+         * Set the hashed sequence's negation.
+         */
+        [[deprecated]] constexpr void set_sign(const bool new_negation, const bool new_imaginary = false) noexcept {
+            if (new_negation) {
+                this->sign = new_imaginary ? SequenceSignType::NegativeImaginary : SequenceSignType::Negative;
+            } else {
+                this->sign = new_imaginary ? SequenceSignType::Imaginary : SequenceSignType::Positive;
+            }
+        }
 
         /** True if this sequence is a prefix of the string defined by the supplied iterators */
         [[nodiscard]] bool matches(const_iter_t test_begin, const_iter_t test_end) const noexcept;
@@ -159,7 +190,7 @@ namespace Moment {
         [[nodiscard]] constexpr const auto& raw() const noexcept { return this->operators; }
 
         /** Write access to operator string directly */
-        [[nodiscard]] constexpr auto& raw()  noexcept { return this->operators; }
+        [[nodiscard]] constexpr auto& raw() noexcept { return this->operators; }
 
         /** Recalculate sequence's hash (only required after raw access write!) */
         template<OperatorHasher hasher_t>
@@ -185,7 +216,7 @@ namespace Moment {
             }
 
             // Sequences are equal, but are they the same sign?
-            return this->is_negated == rhs.is_negated;
+            return this->sign == rhs.sign;
         }
 
 
@@ -198,6 +229,11 @@ namespace Moment {
         [[nodiscard]] static int compare_same_negation(const HashedSequence &lhs, const HashedSequence &rhs) {
             // Do sequences have same hash?
             if (lhs.the_hash != rhs.the_hash) {
+                return 0;
+            }
+
+            // Sequences differ by complexity
+            if (lhs.imaginary() != rhs.imaginary()) {
                 return 0;
             }
 

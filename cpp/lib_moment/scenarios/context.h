@@ -61,9 +61,10 @@ namespace Moment {
         /**
          * Use context to simplify an operator string.
          * @param op_sequence The string of operator to simplify.
+         * @param sign Reference to the sequence's sign.
          * @return True if sequence is zero (cf. false for identity, which also is represented by empty sequence).
          */
-         virtual bool additional_simplification(sequence_storage_t &op_sequence, bool& negate) const;
+         virtual bool additional_simplification(sequence_storage_t& op_sequence, SequenceSignType& sign) const;
 
          /**
           * Use context to simplify or substitute an operator sequence, at the point where it is taken as a moment.

@@ -207,7 +207,7 @@ namespace Moment::Inflation {
         /**
          * Commute operators, check for idempotency, and check for orthogonal projectors.
          */
-        bool additional_simplification(sequence_storage_t &op_sequence, bool &negate) const override;
+        bool additional_simplification(sequence_storage_t &op_sequence, SequenceSignType& sign_type) const override;
 
         /**
          * Replace string with symmetric equivalent

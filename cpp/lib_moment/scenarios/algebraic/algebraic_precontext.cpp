@@ -46,7 +46,7 @@ namespace Moment::Algebraic {
         if (seq.zero()) {
             return HashedSequence{true};
         }
-        return HashedSequence{this->conjugate(seq.raw()), this->hasher, seq.negated()};
+        return HashedSequence{this->conjugate(seq.raw()), this->hasher, Moment::conjugate(seq.get_sign())};
     }
 }
 

@@ -17,6 +17,7 @@ add_executable(moment_tests
         operators/multi_operator_iterator_tests.cpp
         operators/operator_sequence_tests.cpp
         operators/operator_sequence_generator_tests.cpp
+        operators/sequence_sign_type_tests.cpp
         scenarios/context_tests.cpp
         scenarios/contextual_os_tests.cpp
         scenarios/dictionary_map_tests.cpp

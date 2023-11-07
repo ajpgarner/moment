@@ -67,9 +67,11 @@ namespace Moment::Algebraic {
          * Result of raw reduction.
          */
         enum class RawReductionResult : char {
+            /** Sequence not found within - no reduction occurred */
             NoMatch,
+            /** A reduction in the sequence occurred */
             Match,
-            MatchWithNegation,
+            /** The match implies that the object is reduced to zero. */
             SetToZero
         };
 
@@ -148,7 +150,7 @@ namespace Moment::Algebraic {
          * @param input The sequence to reduce. Must not be empty.
          * @return Result of match
          */
-         [[nodiscard]] RawReductionResult reduce_via_iteration(sequence_storage_t& input) const;
+         [[nodiscard]] RawReductionResult reduce_via_iteration(sequence_storage_t& input, SequenceSignType& sign) const;
 
         /**
          * Reduce sequence, to best of knowledge, by iterating over substrings and checking for a matching rule.
@@ -156,7 +158,7 @@ namespace Moment::Algebraic {
          * @param input The sequence to reduce. Must not be empty.
          * @return Result of match
          */
-        [[nodiscard]] RawReductionResult reduce_via_search(sequence_storage_t& input) const;
+        [[nodiscard]] RawReductionResult reduce_via_search(sequence_storage_t& input, SequenceSignType& sign) const;
 
 
         /**
@@ -190,14 +192,14 @@ namespace Moment::Algebraic {
          * @complexity lower of O(RN) and O(log(R)N^2) for rulebook size R, string length N.
          * @param input The sequence to reduce
          */
-        [[nodiscard]] inline RawReductionResult reduce_in_place(sequence_storage_t& input) const {
+        [[nodiscard]] inline RawReductionResult reduce_in_place(sequence_storage_t& input, SequenceSignType& sign) const {
             if (input.empty() || this->monomialRules.empty()) {
                 return RawReductionResult::NoMatch;
             }
 
             return (this->reduction_method(input.size()) == ReductionMethod::SearchRules)
-                        ? this->reduce_via_search(input)
-                        : this->reduce_via_iteration(input);
+                        ? this->reduce_via_search(input, sign)
+                        : this->reduce_via_iteration(input, sign);
         }
 
         /**

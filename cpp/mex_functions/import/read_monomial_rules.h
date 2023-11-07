@@ -10,6 +10,7 @@
 #include "MatlabDataArray.hpp"
 
 #include "integer_types.h"
+#include "sequence_sign_type.h"
 
 #include <vector>
 
@@ -27,13 +28,13 @@ namespace Moment::mex {
     struct RawMonomialRule {
         std::vector<oper_name_t> LHS{};
         std::vector<oper_name_t> RHS{};
-        bool negated = false;
+        SequenceSignType rule_sign = SequenceSignType::Positive;
         bool rhs_zero = false;
 
         RawMonomialRule() = default;
 
-        RawMonomialRule(std::vector<oper_name_t> lhs, std::vector<oper_name_t> rhs, bool neg, bool raw_zero)
-                : LHS(std::move(lhs)), RHS(std::move(rhs)), negated{neg}, rhs_zero{raw_zero} { }
+        RawMonomialRule(std::vector<oper_name_t> lhs, std::vector<oper_name_t> rhs, SequenceSignType sign, bool raw_zero)
+                : LHS(std::move(lhs)), RHS(std::move(rhs)), rule_sign{sign}, rhs_zero{raw_zero} { }
 
         /**
          * Orient and hash rule.

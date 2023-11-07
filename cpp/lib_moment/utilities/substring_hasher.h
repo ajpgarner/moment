@@ -111,9 +111,6 @@ namespace Moment::Algebraic {
         constexpr SubstringHashRange(const sequence_storage_t& ss, const size_t radix)
             : sequence_string{ss}, radix{radix} { }
 
-        constexpr SubstringHashRange(const HashedSequence& ss, const size_t radix)
-            : sequence_string{ss.raw()}, radix{radix} { }
-
         [[nodiscard]] constexpr auto begin() const noexcept {
             return SubstringHashIter{sequence_string, radix};
         }

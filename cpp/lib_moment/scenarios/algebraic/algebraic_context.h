@@ -116,7 +116,7 @@ namespace Moment::Algebraic {
         /**
          * Simplify operator sequence using rules
          */
-        bool additional_simplification(sequence_storage_t &op_sequence, bool& negated) const override;
+        bool additional_simplification(sequence_storage_t &op_sequence, SequenceSignType& negated) const override;
 
         /**
          * Summarize the context as a string.

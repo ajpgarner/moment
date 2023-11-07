@@ -38,8 +38,18 @@ namespace Moment::Algebraic {
         }
 
         os << " -> ";
-        if (msr.negated()) {
-            os << "-";
+        switch (msr.rule_sign()) {
+            case SequenceSignType::Positive:
+                break;
+            case SequenceSignType::Imaginary:
+                os << "i";
+                break;
+            case SequenceSignType::Negative:
+                os << "-";
+                break;
+            case SequenceSignType::NegativeImaginary:
+                os << "-i";
+                break;
         }
 
         if (msr.rawRHS.empty()) {
@@ -64,10 +74,8 @@ namespace Moment::Algebraic {
               delta{static_cast<ptrdiff_t>(rawRHS.size()) - static_cast<ptrdiff_t>(rawLHS.size())} {
 
         // Move negation to RHS
-        if (this->rawLHS.negated()) {
-            this->rawLHS.set_negation(false);
-            this->rawRHS.set_negation(!rhs.negated());
-        }
+        this->rawRHS.set_sign(difference(this->rawLHS.get_sign(), this->rawRHS.get_sign()));
+        this->rawLHS.set_sign(SequenceSignType::Positive);
 
         // Determine if rule is trivial
         this->is_trivial = (this->rawLHS.hash() == this->rawRHS.hash()) && !this->rawRHS.negated();
@@ -149,7 +157,7 @@ namespace Moment::Algebraic {
 
     std::optional<OperatorRule>
     OperatorRule::combine(const OperatorRule &other, const AlgebraicPrecontext& pc) const {
-        // First, do we have overlap? If not, early exit.
+        // First, do we have any overlap? If not, early exit.
         ptrdiff_t overlap_size = this->LHS().suffix_prefix_overlap(other.rawLHS);
         if (overlap_size <= 0) {
             return std::nullopt;
@@ -176,15 +184,28 @@ namespace Moment::Algebraic {
 
         // Negative if only one rule involves negation (and we are not setting to zero).
         const bool implies_zero = (rawHashThis == 0) || (rawHashOther == 0);
-        const bool negation = !implies_zero && (this->negated() != other.negated());
 
         // Orient rules and return
         if (rawHashThis < rawHashOther) {
-            return OperatorRule{HashedSequence{std::move(rawViaOther), rawHashOther},
-                                HashedSequence{std::move(rawViaThis), rawHashThis, negation}};
+            if (rawHashThis == 0) {
+                // RHS -> 0
+                return OperatorRule{HashedSequence{std::move(rawViaOther), rawHashOther}, HashedSequence{true}};
+            } else {
+                // RHS -> LHS
+                return OperatorRule{HashedSequence{std::move(rawViaOther), rawHashOther},
+                                    HashedSequence{std::move(rawViaThis), rawHashThis,
+                                                   difference(other.rule_sign(), this->rule_sign())}};
+            }
         } else {
-            return OperatorRule{HashedSequence{std::move(rawViaThis), rawHashThis},
-                                HashedSequence{std::move(rawViaOther), rawHashOther, negation}};
+            if (rawHashOther == 0) {
+                // LHS -> 0
+                return OperatorRule{HashedSequence{std::move(rawViaThis), rawHashThis}, HashedSequence{true}};
+            } else {
+                // LHS -> RHS
+                return OperatorRule{HashedSequence{std::move(rawViaThis), rawHashThis},
+                                    HashedSequence{std::move(rawViaOther), rawHashOther,
+                                                   difference(this->rule_sign(), other.rule_sign())}};
+            }
         }
     }
 

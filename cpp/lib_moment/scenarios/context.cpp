@@ -24,7 +24,7 @@ namespace Moment {
 
     Context::~Context() = default;
 
-    bool Context::additional_simplification(sequence_storage_t &op_sequence, bool& negate) const {
+    bool Context::additional_simplification(sequence_storage_t &op_sequence, SequenceSignType& sign) const {
         // Do nothing
         return false;
     }
@@ -38,7 +38,7 @@ namespace Moment {
         sequence_storage_t str;
         str.reserve(seq.operators.size());
         std::reverse_copy(seq.operators.cbegin(), seq.operators.cend(), std::back_inserter(str));
-        return OperatorSequence{std::move(str), *this, seq.is_negated};
+        return OperatorSequence{std::move(str), *this, Moment::conjugate(seq.get_sign())};
     }
 
     OperatorSequence Context::simplify_as_moment(OperatorSequence &&seq) const {

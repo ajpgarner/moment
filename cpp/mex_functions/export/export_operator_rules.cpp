@@ -25,10 +25,11 @@ namespace Moment::mex {
             assert(write_iter != output.end());
 
             // Is rule a negation?
-            const size_t rhs_index = rule.negated() ? 2 : 1;
+            const bool rule_positive = rule.rule_sign() == SequenceSignType::Positive;
+            const size_t rhs_index = rule_positive ? 1 : 2;
 
             // Create cell array pair
-            matlab::data::CellArray rule_pair = factory.createArray<matlab::data::Array>({1, (rule.negated() ? 3U : 2U)});
+            matlab::data::CellArray rule_pair = factory.createArray<matlab::data::Array>({1, (rule_positive ? 2U : 3U)});
 
             // Copy LHS
             rule_pair[0] = factory.createArray<uint64_t>({1, rule.LHS().size()});
@@ -41,9 +42,20 @@ namespace Moment::mex {
                 }
             }
 
-            // Add minus sign, if negated
-            if (rule.negated()) {
-                rule_pair[1] = factory.createCharArray("-");
+            // Add sign, if not positive
+            if (!rule_positive) {
+                switch (rule.rule_sign()) {
+                    default:
+                    case SequenceSignType::Positive:
+                        break;
+                    case SequenceSignType::Imaginary:
+                        rule_pair[1] = factory.createCharArray("i");
+                    case SequenceSignType::Negative:
+                        rule_pair[1] = factory.createCharArray("-");
+                    case SequenceSignType::NegativeImaginary:
+                        rule_pair[1] = factory.createCharArray("-i");
+
+                }
             }
 
             // Copy RHS

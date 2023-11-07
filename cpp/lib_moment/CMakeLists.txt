@@ -2,6 +2,7 @@ include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
 
 add_library(lib_moment
         hashed_sequence.cpp
+        sequence_sign_type.cpp
         dictionary/dictionary_map.cpp
         dictionary/operator_sequence.cpp
         dictionary/operator_sequence_generator.cpp

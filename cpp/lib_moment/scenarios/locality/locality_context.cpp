@@ -79,7 +79,8 @@ namespace Moment::Locality {
         assert(this->global_op_id_to_party.size() == this->operator_count);
     }
 
-    bool LocalityContext::additional_simplification(sequence_storage_t &op_sequence, bool& negated) const {
+    bool LocalityContext::additional_simplification(sequence_storage_t &op_sequence,
+                                                    SequenceSignType& sign_type) const {
         // Do nothing on empty set
         if (op_sequence.empty()) {
             return false;

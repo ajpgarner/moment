@@ -49,16 +49,16 @@ namespace Moment {
          * @param context Context for further simplification.
          * @param negated True if sequence should be interpreted with a minus sign in front of it.
          */
-        OperatorSequence(sequence_storage_t operators, const Context& context, bool negated = false) noexcept;
+        OperatorSequence(sequence_storage_t operators, const Context& context,
+                         SequenceSignType sign_type = SequenceSignType::Positive) noexcept;
 
         /**
          * Constructs a sequence of operators, with no further simplifications added
          * @param rhs
          */
          OperatorSequence(const ConstructRawFlag&, sequence_storage_t operators, uint64_t hash,
-                          const Context& context,
-                          bool negated = false) noexcept
-              : HashedSequence{std::move(operators), hash, negated}, context{&context} {
+                          const Context& context, SequenceSignType sign_type = SequenceSignType::Positive) noexcept
+              : HashedSequence{std::move(operators), hash, sign_type}, context{&context} {
              // No simplification, or check-sum of hash!
          }
 
@@ -113,7 +113,7 @@ namespace Moment {
          * @param rhs The operator sequence to append to this sequence.
          */
         OperatorSequence& operator *= (const OperatorSequence& rhs) {
-            this->is_negated = (this->is_negated != rhs.is_negated);
+            this->sign = (this->sign * rhs.sign);
             return this->append(rhs.operators.begin(), rhs.operators.end());
         }
 

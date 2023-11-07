@@ -67,7 +67,7 @@ namespace Moment::Algebraic {
         if (preexistingIter == this->monomialRules.end()) {
 
             // LHS doesn't already exist, just insert directly (making sure no 'minus zero' targets)
-            if (rule.RHS().zero() && rule.negated()) {
+            if (rule.RHS().zero() && (rule.rule_sign() != SequenceSignType::Positive)) {
                 const auto& [inSituRule, newElem] =
                         this->monomialRules.insert(std::make_pair(hashLHS, OperatorRule{rule.LHS(), rule.RHS()}));
                 if (nullptr != logger) {
@@ -88,32 +88,35 @@ namespace Moment::Algebraic {
         auto &preexisting = preexistingIter->second;
         if (preexisting.rawRHS.hash() == rule.rawRHS.hash()) {
             // Is rule completely redundant?
-            if (rule.negated() == preexisting.negated()) {
+            if (rule.rule_sign() == preexisting.rule_sign()) {
                 return 0;
             }
 
-            // One rule is positive, the other is negative: hence zero is implied...
-            if (rule.negated() != preexisting.negated()) {
-                ptrdiff_t rules_added = 0;
-                OperatorRule lhsToZero{rule.LHS(), HashedSequence(true)};
+            // Rule signs mismatch, and hence zero is implied...
+            ptrdiff_t rules_added = 0;
+            OperatorRule lhsToZero{rule.LHS(), HashedSequence(true)};
 
-                // Log reduction of rule LHS...
-                if (logger != nullptr) {
-                    logger->rule_reduced(preexisting, lhsToZero);
-                }
-                this->monomialRules.erase(preexistingIter);
-
-                // LHS equal to zero, since we have erased this key we can just add directly...
-                this->monomialRules.insert(std::make_pair(hashLHS,
-                                                          OperatorRule{HashedSequence{rule.LHS().raw(), hashLHS, false},
-                                                                       HashedSequence(true)}
-                ));
-
-                // RHS also equal to zero, but we have to add carefully...
-                rules_added += this->do_add_rule(OperatorRule{HashedSequence{rule.RHS().raw(), rule.RHS().hash(), false},
-                                                              HashedSequence(true)}, logger);
-                return rules_added;
+            // Log reduction of rule LHS...
+            if (logger != nullptr) {
+                logger->rule_reduced(preexisting, lhsToZero);
             }
+            this->monomialRules.erase(preexistingIter);
+
+            // LHS equal to zero, since we have erased this key we can just add directly...
+            this->monomialRules.insert(std::make_pair(hashLHS,
+                                                      OperatorRule{HashedSequence{rule.LHS().raw(),
+                                                                                  hashLHS,
+                                                                                  SequenceSignType::Positive},
+                                                                   HashedSequence(true)}
+            ));
+
+            // RHS also equal to zero, but we have to add carefully...
+            rules_added += this->do_add_rule(OperatorRule{HashedSequence{rule.RHS().raw(),
+                                                                         rule.RHS().hash(),
+                                                                         SequenceSignType::Positive},
+                                                          HashedSequence(true)}, logger);
+            return rules_added;
+
         }
 
         // If existing rule (C->A) already majorizes new rule (C->B):
@@ -199,17 +202,16 @@ namespace Moment::Algebraic {
 
         // Copy (still...)
         sequence_storage_t test_sequence(input.begin(), input.end());
+        SequenceSignType sign_type = input.get_sign();
         const auto result = (how_to_reduce == ReductionMethod::SearchRules) ?
-                        this->reduce_via_search(test_sequence)
-                      : this->reduce_via_iteration(test_sequence);
+                        this->reduce_via_search(test_sequence, sign_type)
+                      : this->reduce_via_iteration(test_sequence, sign_type);
 
         switch (result) {
             case RawReductionResult::NoMatch:
                 return input;
             case RawReductionResult::Match:
-                return HashedSequence{std::move(test_sequence), this->precontext.hasher, input.negated()};
-            case RawReductionResult::MatchWithNegation:
-                return HashedSequence{std::move(test_sequence), this->precontext.hasher, !input.negated()};
+                return HashedSequence{std::move(test_sequence), this->precontext.hasher, sign_type};
             case RawReductionResult::SetToZero:
                 return HashedSequence{true};
             default:
@@ -226,19 +228,17 @@ namespace Moment::Algebraic {
         }
 
         const auto how_to_reduce = this->reduction_method(input.size());
+        SequenceSignType sign_type = input.get_sign();
         const auto result = (how_to_reduce == ReductionMethod::SearchRules) ?
-                          this->reduce_via_search(input.raw())
-                        : this->reduce_via_iteration(input.raw());
+                          this->reduce_via_search(input.raw(), sign_type)
+                        : this->reduce_via_iteration(input.raw(), sign_type);
 
         switch (result) {
             case RawReductionResult::NoMatch:
                 break;
             case RawReductionResult::Match:
                 input.rehash(this->precontext.hasher);
-                break;
-            case RawReductionResult::MatchWithNegation:
-                input.rehash(this->precontext.hasher);
-                input.set_negation(!input.negated());
+                input.set_sign(sign_type);
                 break;
             case RawReductionResult::SetToZero:
                 input.raw().clear();
@@ -249,12 +249,11 @@ namespace Moment::Algebraic {
     }
 
     OperatorRulebook::RawReductionResult
-    OperatorRulebook::reduce_via_iteration(sequence_storage_t& test_sequence) const {
+    OperatorRulebook::reduce_via_iteration(sequence_storage_t& test_sequence, SequenceSignType& sign_type) const {
         // Look through, and apply first match.
         auto rule_iter = this->monomialRules.begin();
 
         bool matched_once = false;
-        bool negated = false;
 
         while (rule_iter != this->monomialRules.end()) {
             const auto& rule = rule_iter->second;
@@ -263,13 +262,12 @@ namespace Moment::Algebraic {
             if (match_iter != test_sequence.end()) {
                 // Reduced to zero?
                 if (rule.rawRHS.zero()) {
+                    sign_type = SequenceSignType::Positive;
                     return RawReductionResult::SetToZero;
                 }
 
                 // What about negation?
-                if (rule.negated()) {
-                    negated = !negated;
-                }
+                sign_type = sign_type * rule.rule_sign();
                 test_sequence = rule.apply_match_with_hint(test_sequence, match_iter);
                 // Reset rule iterator, as we now have new sequence to process
                 rule_iter = this->monomialRules.begin();
@@ -279,16 +277,12 @@ namespace Moment::Algebraic {
             ++rule_iter;
         }
 
-        if (!matched_once) {
-            return RawReductionResult::NoMatch;
-        }
-
         // No further matches of any rules, stop reduction
-        return negated ? RawReductionResult::MatchWithNegation : RawReductionResult::Match;
+        return matched_once ? RawReductionResult::Match : RawReductionResult::NoMatch;
     }
 
     OperatorRulebook::RawReductionResult
-    OperatorRulebook::reduce_via_search(sequence_storage_t& test_sequence) const {
+    OperatorRulebook::reduce_via_search(sequence_storage_t& test_sequence, SequenceSignType& sign_type) const {
         bool negated = false;
         bool matching = true;
         bool any_matches = false;
@@ -311,9 +305,7 @@ namespace Moment::Algebraic {
                     auto * hint = &test_sequence[iter.index()];
                     auto new_sequence = found_rule->second.apply_match_with_hint(test_sequence, hint);
                     test_sequence = std::move(new_sequence);
-                    if (found_rule->second.negated()) {
-                        negated = !negated;
-                    }
+                    sign_type = sign_type * found_rule->second.rule_sign();
                     break;
                 }
                 ++iter;
@@ -325,10 +317,7 @@ namespace Moment::Algebraic {
         } while (matching == true);
 
         // No further matches of any rules, stop reduction
-        if (!any_matches) {
-            return RawReductionResult::NoMatch;
-        }
-        return negated ? RawReductionResult::MatchWithNegation : RawReductionResult::Match;
+        return any_matches ? RawReductionResult::Match : RawReductionResult::NoMatch;
     }
 
 
@@ -341,15 +330,14 @@ namespace Moment::Algebraic {
 
         // Copy
         sequence_storage_t test_sequence(input.begin(), input.end());
-        auto result = this->reduce_via_iteration(test_sequence);
+        SequenceSignType sign_type = input.get_sign();
+        auto result = this->reduce_via_iteration(test_sequence, sign_type);
 
         switch (result) {
             case RawReductionResult::NoMatch:
                 return input;
             case RawReductionResult::Match:
-                return HashedSequence{std::move(test_sequence), this->precontext.hasher, input.negated()};
-            case RawReductionResult::MatchWithNegation:
-                return HashedSequence{std::move(test_sequence), this->precontext.hasher, !input.negated()};
+                return HashedSequence{std::move(test_sequence), this->precontext.hasher, sign_type};
             case RawReductionResult::SetToZero:
                 return HashedSequence{true};
             default:
@@ -366,14 +354,13 @@ namespace Moment::Algebraic {
 
         // Copy
         sequence_storage_t test_sequence(input.begin(), input.end());
-        auto result = this->reduce_via_search(test_sequence);
+        SequenceSignType sign_type = input.get_sign();
+        auto result = this->reduce_via_search(test_sequence, sign_type);
         switch (result) {
             case RawReductionResult::NoMatch:
                 return input;
             case RawReductionResult::Match:
-                return HashedSequence{std::move(test_sequence), this->precontext.hasher, input.negated()};
-            case RawReductionResult::MatchWithNegation:
-                return HashedSequence{std::move(test_sequence), this->precontext.hasher, !input.negated()};
+                return HashedSequence{std::move(test_sequence), this->precontext.hasher, sign_type};
             case RawReductionResult::SetToZero:
                 return HashedSequence{true};
             default:
@@ -387,11 +374,11 @@ namespace Moment::Algebraic {
         auto lhs = this->reduce(input.rawLHS);
         auto rhs = this->reduce(input.rawRHS);
 
-        const bool negative = (lhs.negated() != rhs.negated());
+        const SequenceSignType relative_sign = difference(lhs.get_sign(), rhs.get_sign());
 
         // Special reduction if rule implies something is zero:
-        if ((lhs.hash() == rhs.hash()) && negative) {
-            lhs.set_negation(false);
+        if ((lhs.hash() == rhs.hash()) && (relative_sign == SequenceSignType::Negative)) {
+            lhs.set_sign(SequenceSignType::Positive);
             return OperatorRule{std::move(lhs), HashedSequence(true)};
         }
 
@@ -399,12 +386,12 @@ namespace Moment::Algebraic {
         const auto lhs_hash = lhs.hash();
         const auto rhs_hash = rhs.hash();
         if (lhs_hash > rhs_hash) {
-            lhs.set_negation(false);
-            rhs.set_negation(negative);
+            lhs.set_sign(SequenceSignType::Positive);
+            rhs.set_sign(relative_sign);
             return OperatorRule{std::move(lhs), std::move(rhs)};
         } else {
-            rhs.set_negation(false);
-            lhs.set_negation(negative);
+            rhs.set_sign(SequenceSignType::Positive);
+            lhs.set_sign(conjugate(relative_sign));
             return OperatorRule{std::move(rhs), std::move(lhs)};
         }
     }
@@ -674,9 +661,6 @@ namespace Moment::Algebraic {
                 break;
             case OperatorRulebook::RawReductionResult::Match:
                 os << "Match";
-                break;
-            case OperatorRulebook::RawReductionResult::MatchWithNegation:
-                os << "MatchWithNegation";
                 break;
             case OperatorRulebook::RawReductionResult::SetToZero:
                 os << "SetToZero";

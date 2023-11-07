@@ -25,6 +25,16 @@ namespace Moment::Tests {
         }
     }
 
+    TEST(Operators_HashedSequence, Construct) {
+        sequence_storage_t sampleStr{0, 1};
+
+        HashedSequence msr{sampleStr, ShortlexHasher{2}};
+        ASSERT_EQ(msr.size(), 2);
+        ASSERT_EQ(msr[0], 0);
+        ASSERT_EQ(msr[1], 1);
+
+    }
+
     TEST(Operators_HashedSequence, Match_ABinABAB) {
         sequence_storage_t  sampleStr{3, 4, 3, 4};
 

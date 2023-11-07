@@ -203,7 +203,7 @@ namespace Moment::Tests {
         std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{1, 0}, ShortlexHasher{2}},
-                HashedSequence{{0, 1}, ShortlexHasher{2}, true}
+                HashedSequence{{0, 1}, ShortlexHasher{2}, SequenceSignType::Negative}
         );
         auto ac_ptr = std::make_unique<AlgebraicContext>(AlgebraicPrecontext{2}, false, true, std::move(rules));
         const auto& context = *ac_ptr;
@@ -214,7 +214,7 @@ namespace Moment::Tests {
         EXPECT_EQ(seq_AB[1], 1);
         EXPECT_FALSE(seq_AB.negated());
 
-        OperatorSequence seq_minusAB{sequence_storage_t{0, 1}, context, true};
+        OperatorSequence seq_minusAB{sequence_storage_t{0, 1}, context, SequenceSignType::Negative};
         ASSERT_EQ(seq_minusAB.size(), 2);
         EXPECT_EQ(seq_minusAB[0], 0);
         EXPECT_EQ(seq_minusAB[1], 1);
@@ -238,7 +238,7 @@ namespace Moment::Tests {
         EXPECT_EQ(seq_BAstar[1], 1);
         EXPECT_FALSE(seq_BAstar.negated());
 
-        OperatorSequence seq_minusBA{sequence_storage_t{1, 0}, context, true};
+        OperatorSequence seq_minusBA{sequence_storage_t{1, 0}, context, SequenceSignType::Negative};
         ASSERT_EQ(seq_minusBA.size(), 2);
         EXPECT_EQ(seq_minusBA[0], 0);
         EXPECT_EQ(seq_minusBA[1], 1);
@@ -484,7 +484,7 @@ namespace Moment::Tests {
         std::vector<OperatorRule> rules;
         rules.emplace_back(
                 HashedSequence{{1, 0}, ShortlexHasher{2}},
-                HashedSequence{{0, 1}, ShortlexHasher{2}, true}
+                HashedSequence{{0, 1}, ShortlexHasher{2}, SequenceSignType::Negative}
         );
         auto ac_ptr = std::make_unique<AlgebraicContext>(AlgebraicPrecontext{2}, false, true, std::move(rules));
         ASSERT_TRUE(ac_ptr->attempt_completion(20));
@@ -505,7 +505,7 @@ namespace Moment::Tests {
         EXPECT_EQ(seqMat(1, 1), OperatorSequence({0, 0}, ams.Context()));
         EXPECT_EQ(seqMat(1, 2), OperatorSequence({0, 1}, ams.Context()));
         EXPECT_EQ(seqMat(2, 0), OperatorSequence({1}, ams.Context()));
-        EXPECT_EQ(seqMat(2, 1), OperatorSequence({0, 1}, ams.Context(), true));
+        EXPECT_EQ(seqMat(2, 1), OperatorSequence({0, 1}, ams.Context(), SequenceSignType::Negative));
         EXPECT_EQ(seqMat(2, 2), OperatorSequence({1, 1}, ams.Context()));
 
         // Check symbols
@@ -616,7 +616,7 @@ namespace Moment::Tests {
         AlgebraicPrecontext apc{2, AlgebraicPrecontext::ConjugateMode::SelfAdjoint};
         std::vector<OperatorRule> msr;
         msr.emplace_back(HashedSequence{{1, 0}, apc.hasher},
-                         HashedSequence{{0, 1}, apc.hasher, true});
+                         HashedSequence{{0, 1}, apc.hasher, SequenceSignType::Negative});
 
         auto contextPtr = std::make_unique<AlgebraicContext>(apc, false, true, std::move(msr));
         EXPECT_TRUE(contextPtr->attempt_completion(0));
@@ -643,7 +643,7 @@ namespace Moment::Tests {
         EXPECT_EQ(seqMat(1, 1), OperatorSequence({0, 0}, context));   // x^2
         EXPECT_EQ(seqMat(1, 2), OperatorSequence({0, 1}, context));   // x y
         EXPECT_EQ(seqMat(2, 0), OperatorSequence({1}, context));   // y
-        EXPECT_EQ(seqMat(2, 1), OperatorSequence({0, 1}, context, true));   // -x y
+        EXPECT_EQ(seqMat(2, 1), OperatorSequence({0, 1}, context, SequenceSignType::Negative));   // -x y
         EXPECT_EQ(seqMat(2, 2), OperatorSequence({1, 1}, context));   // y y
 
         const auto& symbols = ams.Symbols();
@@ -660,19 +660,22 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Scenarios_Algebraic_AlgebraicContext, CreateLocalizingMatrix_PauliZ) {
+    TEST(Scenarios_Algebraic_AlgebraicContext, CreateLocalizingMatrix_AntiCommute) {
         AlgebraicPrecontext apc{3,
                                 AlgebraicPrecontext::ConjugateMode::SelfAdjoint};
         auto namePtr = std::make_unique<NameTable>(apc, std::vector<std::string>{"x", "y", "z"});
 
         const auto& hasher = apc.hasher;
         std::vector<OperatorRule> msr;
-        msr.emplace_back(HashedSequence{{1, 0}, hasher}, HashedSequence{{0, 1}, hasher, true}); // yx = -xy
-        msr.emplace_back(HashedSequence{{2, 0}, hasher}, HashedSequence{{0, 2}, hasher, true}); // zx = -xz
-        msr.emplace_back(HashedSequence{{2, 1}, hasher}, HashedSequence{{1, 2}, hasher, true}); // zy = -yz
-        msr.emplace_back(HashedSequence{{0, 0}, hasher}, HashedSequence{false}); // yx = -xy
-        msr.emplace_back(HashedSequence{{1, 1}, hasher}, HashedSequence{false}); // zx = -xz
-        msr.emplace_back(HashedSequence{{2, 2}, hasher}, HashedSequence{false}); // zy = -yz
+        msr.emplace_back(HashedSequence{{1, 0}, hasher},
+                         HashedSequence{{0, 1}, hasher, SequenceSignType::Negative}); // yx = -xy
+        msr.emplace_back(HashedSequence{{2, 0}, hasher},
+                         HashedSequence{{0, 2}, hasher, SequenceSignType::Negative}); // zx = -xz
+        msr.emplace_back(HashedSequence{{2, 1}, hasher},
+                         HashedSequence{{1, 2}, hasher, SequenceSignType::Negative}); // zy = -yz
+        msr.emplace_back(HashedSequence{{0, 0}, hasher}, HashedSequence{false}); // xx = 1
+        msr.emplace_back(HashedSequence{{1, 1}, hasher}, HashedSequence{false}); // yy = 1
+        msr.emplace_back(HashedSequence{{2, 2}, hasher}, HashedSequence{false}); // zz = 1
 
         auto contextPtr = std::make_unique<AlgebraicContext>(apc, std::move(namePtr), false, true, std::move(msr));
         EXPECT_TRUE(contextPtr->is_complete());
@@ -694,7 +697,7 @@ namespace Moment::Tests {
 
         OperatorSequence zy{{2, 1}, context};
         EXPECT_TRUE(zy.negated());
-        EXPECT_EQ(zy, OperatorSequence({1, 2}, context, true));
+        EXPECT_EQ(zy, OperatorSequence({1, 2}, context, SequenceSignType::Negative));
 
 
         const auto& lmZ = ams.LocalizingMatrix(LocalizingMatrixIndex{1, OperatorSequence{{2}, context}});
@@ -703,18 +706,18 @@ namespace Moment::Tests {
         compare_lm_os_matrix(lmZ, 4,
                              std::initializer_list<OperatorSequence>{
                                      OperatorSequence{{2}, context},
-                                     OperatorSequence{{0, 2}, context, true},
-                                     OperatorSequence{{1, 2}, context, true},
+                                     OperatorSequence{{0, 2}, context, SequenceSignType::Negative},
+                                     OperatorSequence{{1, 2}, context, SequenceSignType::Negative},
                                      OperatorSequence{context},
 
                                      OperatorSequence{{0, 2}, context},
-                                     OperatorSequence{{2}, context, true},
-                                     OperatorSequence{{0, 1, 2}, context, true},
+                                     OperatorSequence{{2}, context, SequenceSignType::Negative},
+                                     OperatorSequence{{0, 1, 2}, context, SequenceSignType::Negative},
                                      OperatorSequence{{0}, context},
 
                                      OperatorSequence{{1, 2}, context},
                                      OperatorSequence{{0, 1, 2}, context},
-                                     OperatorSequence{{2}, context, true},
+                                     OperatorSequence{{2}, context, SequenceSignType::Negative},
                                      OperatorSequence{{1}, context},
 
                                      OperatorSequence{context},

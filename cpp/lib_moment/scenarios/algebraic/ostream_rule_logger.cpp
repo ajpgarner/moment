@@ -34,9 +34,20 @@ namespace Moment::Algebraic {
                         rf.names->format_stream(os, rf.rule.LHS().begin(), rf.rule.LHS().end());
                     }
                     os << " -> ";
-                    if (rf.rule.negated()) {
-                        os << "-";
+                    switch (rf.rule.rule_sign()) {
+                        case SequenceSignType::Positive:
+                            break;
+                        case SequenceSignType::Imaginary:
+                            os << "i";
+                            break;
+                        case SequenceSignType::Negative:
+                            os << "-";
+                            break;
+                        case SequenceSignType::NegativeImaginary:
+                            os << "-i";
+                            break;
                     }
+
                     if (rf.rule.RHS().empty()) {
                         if (rf.rule.RHS().hash() != 0) {
                             os << "I";

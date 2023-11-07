@@ -173,12 +173,12 @@ namespace Moment::mex {
             if (lhs_hash > rhs_hash) {
                 return Algebraic::OperatorRule{
                     HashedSequence{sequence_storage_t(this->LHS.begin(), this->LHS.end()), apc.hasher},
-                    HashedSequence{sequence_storage_t(this->RHS.begin(), this->RHS.end()), apc.hasher, this->negated}};
+                    HashedSequence{sequence_storage_t(this->RHS.begin(), this->RHS.end()), apc.hasher, this->rule_sign}};
             } else {
                 return Algebraic::OperatorRule{
                         HashedSequence{sequence_storage_t(this->RHS.begin(), this->RHS.end()), apc.hasher},
                         HashedSequence{sequence_storage_t(this->LHS.begin(), this->LHS.end()), apc.hasher,
-                                       this->negated}};
+                                       this->rule_sign}};
             }
         } catch (Moment::Algebraic::errors::invalid_rule& ire) {
             std::stringstream errSS;
@@ -213,24 +213,33 @@ namespace Moment::mex {
 
             const auto rule_cell = static_cast<matlab::data::CellArray>(elem);
 
-            bool negated = false;
+            SequenceSignType rule_sign = SequenceSignType::Positive;
             if (elem.getNumberOfElements() == 3) {
                 auto mid = rule_cell[1];
                 switch (mid.getType()) {
                     case matlab::data::ArrayType::CHAR: {
                         matlab::data::CharArray midAsCA = mid;
                         std::string midVal = midAsCA.toAscii();
-                        negated = (midVal == "-");
+                        if (midVal == "-") {
+                            rule_sign = SequenceSignType::Negative;
+                        } else if (midVal == "i") {
+                            rule_sign = SequenceSignType::Imaginary;
+                        } else if (midVal == "-i") {
+                            rule_sign = SequenceSignType::NegativeImaginary;
+                        } else if (midVal == "+") {
+                            rule_sign = SequenceSignType::Positive;
+                        } else {
+                            std::stringstream errSS;
+                            errSS << "Each rule must be specified as a cell array of the form {[LHS], [RHS]} or "
+                                  << "{[LHS], [sign], [RHS]} where [sign] is one of '+', '-', 'i', '-i'.";
+                                    throw_error(matlabEngine, errors::bad_param, errSS.str());
+                        }
                     }
+                    break;
                     default:
-                        break;
-                }
-
-                // Could not verify negation:
-                if (!negated) {
-                    throw_error(matlabEngine, errors::bad_param,
-                                std::string("Each rule must be specified as a cell array of the form {[LHS], [RHS]} or ")
-                                + "{[LHS], '-', [RHS]}");
+                        throw_error(matlabEngine, errors::bad_param,
+                                    std::string("Each rule must be specified as a cell array of the form {[LHS], [RHS]} or ")
+                                    + "{[LHS], '-', [RHS]}; but the middle element provided was not a character array.");
                 }
             } else if (elem.getNumberOfElements() != 2) {
                 throw_error(matlabEngine, errors::bad_param,
@@ -247,11 +256,14 @@ namespace Moment::mex {
                             std::string("The LHS of a rule should not be zero."));
             }
 
-            auto rhs = rule_cell[negated ? 2 : 1];
+            auto rhs = rule_cell[elem.getNumberOfElements() - 1];
             auto [rhs_rule, rhs_zero] = get_op_seq(matlabEngine, convertor, "Rule #" + std::to_string(rule_index+1) + " RHS",
                                              rhs, apc, names, matlabIndices);
+            if (rhs_zero) {
+                rule_sign = SequenceSignType::Positive;
+            }
 
-            output.emplace_back(std::move(lhs_rule), std::move(rhs_rule), !rhs_zero && negated, rhs_zero);
+            output.emplace_back(std::move(lhs_rule), std::move(rhs_rule), rule_sign, rhs_zero);
             ++rule_index;
         }
         return output;

@@ -238,7 +238,7 @@ namespace Moment::Inflation {
         return output;
     }
 
-    bool InflationContext::additional_simplification(sequence_storage_t &op_sequence, bool &negate) const {
+    bool InflationContext::additional_simplification(sequence_storage_t &op_sequence, SequenceSignType& sign_type) const {
 
         // Completely commuting set, so sort (no need for stability)
         std::sort(op_sequence.begin(), op_sequence.end());

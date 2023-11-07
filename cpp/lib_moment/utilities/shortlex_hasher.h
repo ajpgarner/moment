@@ -28,10 +28,10 @@ namespace Moment {
         explicit ShortlexHasher(size_t r, size_t o = 1) : radix{r}, offset{o} { }
 
         /** Calculate the hash of an operator sequence */
-        [[nodiscard]] size_t hash(std::span<const oper_name_t> sequence) const noexcept;
+        [[nodiscard]] size_t hash(const std::span<const oper_name_t> sequence) const noexcept;
 
         /** Calculate the hash of an operator sequence */
-        [[nodiscard]] inline size_t operator()(std::span<const oper_name_t> sequence)  const noexcept {
+        [[nodiscard]] inline size_t operator()(const std::span<const oper_name_t> sequence)  const noexcept {
             return hash(sequence);
         }
 
