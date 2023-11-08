@@ -69,7 +69,7 @@ classdef PauliScenario < MTKScenario
         end
         
         function val = makeOperatorNames(obj)
-            if obj.QubitCount > 1
+            if obj.QubitCount >= 1
                 val = reshape(["X"; "Y"; "Z"] + (1:obj.QubitCount), 1, []);
             else
                 val = string.empty(1,0);
