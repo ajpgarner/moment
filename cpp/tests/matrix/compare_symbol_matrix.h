@@ -16,6 +16,12 @@
 
 
 namespace Moment::Tests {
+    /**
+     *
+     * @param inputMM
+     * @param dimension
+     * @param reference Warning: row major!
+     */
     inline void compare_symbol_matrix(const SymbolicMatrix &inputMM, size_t dimension,
                                       const std::vector<Monomial>& reference) {
         const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(inputMM);

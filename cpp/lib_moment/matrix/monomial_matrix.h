@@ -62,11 +62,17 @@ namespace Moment {
         std::unique_ptr<SquareMatrix<Monomial>> sym_exp_matrix;
 
     public:
+        /** Construct precomputed monomial matrix without operator matrix */
         MonomialMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance,
                        std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix,
                        bool is_hermitian);
 
+        /** Compute monomial matrix from operatormatrix */
         MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix);
+
+        /** Construct monomial matrix, with pre-calculated Monomials AND operator matrix */
+        MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix,
+                       std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix);
 
         ~MonomialMatrix() noexcept;
 

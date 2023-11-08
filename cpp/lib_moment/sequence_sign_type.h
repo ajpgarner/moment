@@ -11,6 +11,7 @@
 
 #include <cstdint>
 
+#include <complex>
 #include <iosfwd>
 
 namespace Moment {
@@ -88,6 +89,19 @@ namespace Moment {
      */
     [[nodiscard]] constexpr bool are_negatives(const SequenceSignType lhs, const SequenceSignType rhs) {
         return ((4 - static_cast<uint8_t>(lhs) + static_cast<uint8_t>(rhs)) & 0x03) == 0x02;
+    }
+
+    constexpr std::complex<double> to_scalar(const SequenceSignType sst) noexcept {
+        switch (sst) {
+            case SequenceSignType::Positive:
+                return {1.0, 0.0};
+            case SequenceSignType::Imaginary:
+                return {0.0, 1.0};
+            case SequenceSignType::Negative:
+                return {-1.0, 0.0};
+            case SequenceSignType::NegativeImaginary:
+                return {0.0, -1.0};
+        }
     }
 
 

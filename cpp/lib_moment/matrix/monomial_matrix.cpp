@@ -15,7 +15,10 @@
 namespace Moment {
 
     namespace {
-        /** Helper class, converts OSM -> Symbol matrix, registering new symbols */
+        /**
+         * Helper class, converts OSM -> Symbol matrix, registering new symbols.
+         * Note: this is the single-threaded implementation; see also /multithreading/matrix_generation_worker.h.
+         */
         class OpSeqToSymbolConverter {
         private:
             const Context& context;
@@ -141,6 +144,7 @@ namespace Moment {
 
 
             [[nodiscard]] std::unique_ptr<SquareMatrix<Monomial>> build_symbol_matrix_hermitian() const {
+
                 std::vector<Monomial> symbolic_representation(osm.dimension * osm.dimension);
 
                 // Iterate over upper index
@@ -153,7 +157,8 @@ namespace Moment {
                     const auto& elem = *iter;
 
                     const size_t hash = elem.hash();
-                    const bool negated = elem.negated();
+
+                    const auto monomial_sign = to_scalar(elem.get_sign());
 
                     auto [symbol_id, conjugated] = symbol_table.hash_to_index(hash);
                     if (symbol_id == std::numeric_limits<ptrdiff_t>::max()) {
@@ -164,17 +169,17 @@ namespace Moment {
                     }
                     const auto& unique_elem = symbol_table[symbol_id];
 
-                    symbolic_representation[iter.Offset()] = Monomial{unique_elem.Id(), negated, conjugated};
+                    symbolic_representation[iter.Offset()] = Monomial{unique_elem.Id(), monomial_sign, conjugated};
 
                     // Make Hermitian, if off-diagonal
                     if (!iter.diagonal()) {
                         size_t lower_offset = osm.index_to_offset_no_checks(std::array<size_t, 2>{col, row});
                         if (unique_elem.is_hermitian()) {
                             symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
-                                                                            negated, false};
+                                                                             std::conj(monomial_sign), false};
                         } else {
                             symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
-                                                                            negated, !conjugated};
+                                                                             std::conj(monomial_sign), !conjugated};
                         }
                     }
                     ++iter;
@@ -189,7 +194,7 @@ namespace Moment {
                 for (size_t offset = 0; offset < osm.ElementCount; ++offset) {
                     const auto& elem = osm[offset];
 
-                    const bool negated = elem.negated();
+                    const auto monomial_sign = to_scalar(elem.get_sign());
                     const size_t hash = elem.hash();
 
                     auto [symbol_id, conjugated] = symbol_table.hash_to_index(hash);
@@ -202,7 +207,7 @@ namespace Moment {
                     }
                     const auto& unique_elem = symbol_table[symbol_id];
 
-                    symbolic_representation[offset] = Monomial{unique_elem.Id(), negated, conjugated};
+                    symbolic_representation[offset] = Monomial{unique_elem.Id(), monomial_sign, conjugated};
                 }
 
                 return std::make_unique<SquareMatrix<Monomial>>(osm.dimension,
