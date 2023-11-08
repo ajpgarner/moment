@@ -28,7 +28,11 @@ namespace Moment {
             const oper_name_t moment_matrix_range = 1;
 
         public:
-            explicit PauliContext(oper_name_t qubits, oper_name_t range = 1) noexcept;
+            /**
+             * Construct a context for Pauli matrices
+             * @param qubits The number of unique qubits in the scenario.
+             */
+            explicit PauliContext(oper_name_t qubits) noexcept;
 
         public:
             [[nodiscard]] bool can_be_nonhermitian() const noexcept final {
@@ -45,6 +49,8 @@ namespace Moment {
 
             void format_raw_sequence(ContextualOS &os, const sequence_storage_t &seq) const final;
 
+            [[nodiscard]] std::string to_string() const final;
+
             /** Pauli sigma X  operator at site N. */
             [[nodiscard]] OperatorSequence sigmaX(const oper_name_t qubit,
                                                   SequenceSignType sign = SequenceSignType::Positive) const;
@@ -57,7 +63,8 @@ namespace Moment {
             [[nodiscard]] OperatorSequence sigmaZ(const oper_name_t qubit,
                                                   SequenceSignType sign = SequenceSignType::Positive) const;
 
-            std::string to_string() const override;
+        protected:
+            [[nodiscard]] std::unique_ptr<OperatorSequenceGenerator> new_osg(size_t word_length) const override;
         };
 
 

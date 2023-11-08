@@ -6,8 +6,10 @@
  */
 
 #include "pauli_context.h"
+#include "pauli_osg.h"
 
 #include "../contextual_os.h"
+
 
 #include <cassert>
 
@@ -17,8 +19,45 @@
 
 namespace Moment::Pauli {
 
-    PauliContext::PauliContext(const oper_name_t qubits, const oper_name_t range) noexcept
-        : Context{static_cast<size_t>(qubits*3)}, qubit_size{qubits}, moment_matrix_range{range} {
+    namespace {
+
+        constexpr static oper_name_t cayley_table_ixyz[16] = {0,  1,  2,  3,
+                                                              1,  0,  3, -2,
+                                                              2, -3,  0,  1,
+                                                              3,  2, -1,  0};
+
+        /**
+         * Multiply two Pauli matrices
+         * @param left Left pauli matrix: 0 = X, 1 = Y, 2 = Z
+         * @param right Right pauli matrix: 0 = X, 1 = Y, 2 = Z
+         * @return Product matrix, 0 = I, 1 = iX, 2 = iY, 3 = iZ, -1 = -iX, -2 = -iY, -3 = -iZ
+         */
+        [[nodiscard]] inline constexpr oper_name_t
+        multiply_pauli(const oper_name_t left, const oper_name_t right) {
+            assert(left >= 0 && left < 3);
+            assert(right >= 0 && right < 3);
+            return cayley_table_ixyz[((left+1)<<2) + (right+1)];
+        }
+
+        /**
+          * Multiply two Pauli matrices, treating 0 as ID.
+          * NB: For products with 0, no imaginary elements.
+          * @param left Left pauli matrix: 0 = I, 1 = X, 2 = Y, 3 = Z
+          * @param right Right pauli matrix: 0 = I, 1 = X, 2 = Y, 3 = Z
+          * @return Product matrix
+          *
+          */
+        [[nodiscard]] inline constexpr oper_name_t
+        multiply_pauli_with_id(const oper_name_t left, const oper_name_t right) {
+            assert(left >= 0 && left < 4);
+            assert(right >= 0 && right < 4);
+            return cayley_table_ixyz[(left<<2) + right];
+        }
+
+    }
+
+    PauliContext::PauliContext(const oper_name_t qubits) noexcept
+        : Context{static_cast<size_t>(qubits*3)}, qubit_size{qubits}{
 
     }
 
@@ -41,22 +80,22 @@ namespace Moment::Pauli {
         assert(read_iter != read_iter_end); // Already returned early if empty string.
 
         oper_name_t last_party = (*read_iter / 3);
-        oper_name_t last_pauli = (*read_iter % 3);
+        oper_name_t last_pauli = 1+(*read_iter % 3);
 
         ++read_iter;
 
         while (read_iter != read_iter_end) {
                 const oper_name_t current_op = *read_iter;
                 const oper_name_t current_party = current_op / 3;
-                const oper_name_t current_pauli = current_op % 3;
+                const oper_name_t current_pauli = 1+(current_op % 3);
 
                 // If onto a new party, advance and simply copy
                 if (current_party != last_party) {
 
                     // Multiplication resulted in non-trivial Pauli operator
-                    if (last_pauli != 3) {
+                    if (last_pauli != 0) {
                         // Otherwise, non-trivial multiplication, so write
-                        (*write_iter) = (last_party * 3) + last_pauli;
+                        (*write_iter) = (last_party * 3) + last_pauli - 1;
                         ++write_iter;
                         assert(write_iter != read_iter_end); // Write should always trail read.
                     }
@@ -68,56 +107,16 @@ namespace Moment::Pauli {
                     continue;
                 }
 
-                // Multiplication
-                switch (last_pauli) {
-                    case 0:
-                    switch (current_pauli) {
-                        case 0: // X X = 1
-                            last_pauli = 3;
-                            break;
-                        case 1: // X Y = i Z
-                            last_pauli = 2;
-                            sign = sign * SequenceSignType::Imaginary;
-                            break;
-                        case 2: // X Z = -i Y
-                            last_pauli = 1;
-                            sign = sign * SequenceSignType::NegativeImaginary;
-                            break;
+                if (last_pauli != 0) {
+                    last_pauli = multiply_pauli_with_id(last_pauli, current_pauli);
+                    if (last_pauli > 0) {
+                        sign = sign * SequenceSignType::Imaginary;
+                    } else if (last_pauli < 0) {
+                        sign = sign * SequenceSignType::NegativeImaginary;
+                        last_pauli = -last_pauli;
                     }
-                    break;
-                    case 1:
-                    switch (current_pauli) {
-                        case 0: // Y X = -i Z
-                            last_pauli = 2;
-                            sign = sign * SequenceSignType::NegativeImaginary;
-                            break;
-                        case 1: // Y Y = 1
-                            last_pauli = 3;
-                            break;
-                        case 2: // Y Z = i X
-                            last_pauli = 0;
-                            sign = sign * SequenceSignType::Imaginary;
-                            break;
-                    }
-                    break;
-                    case 2:
-                    switch (current_pauli) {
-                        case 0: // Z X = iY
-                            last_pauli = 1;
-                            sign = sign * SequenceSignType::Imaginary;
-                            break;
-                        case 1: // Z Y = -i X
-                            last_pauli = 0;
-                            sign = sign * SequenceSignType::NegativeImaginary;
-                            break;
-                        case 2: // Z Z = 1
-                            last_pauli = 3;
-                            break;
-                    }
-                    break;
-                    case 3: // ID x [x/y/z]
-                        last_pauli = current_pauli;
-                        break;
+                } else {
+                    last_pauli = current_pauli;
                 }
 
                 // Advance read iterator
@@ -125,8 +124,8 @@ namespace Moment::Pauli {
         }
 
         // Write last op
-        if (last_pauli != 3) {
-            (*write_iter) = (last_party * 3) + last_pauli;
+        if (last_pauli != 0) {
+            (*write_iter) = (last_party * 3) + last_pauli - 1;
             ++write_iter;
         }
 
@@ -228,60 +227,13 @@ namespace Moment::Pauli {
             } else {
                 assert(lhs_qubit == rhs_qubit);
                 // XX = YY = ZZ = 1, so skip....
-                switch (lhs_pauli) {
-                    case 0: // X
-                    switch (rhs_pauli) {
-                        case 0: // X
-                            // X X = 1
-                            break;
-                        case 1: // Y
-                            result.emplace_back(3*lhs_qubit + 2); // X Y = iZ
-                            sign = sign * SequenceSignType::Imaginary;
-                            break;
-                        case 2: // Z
-                            result.emplace_back(3*lhs_qubit + 1); // X Z = -iY;
-                            sign = sign * SequenceSignType::NegativeImaginary;
-                            break;
-                        default:
-                            assert(false);
-                    }
-                    break;
-                    case 1: // Y
-                        switch (rhs_pauli) {
-                            case 0: // X
-                                result.emplace_back(3*lhs_qubit + 2); // Y X = -iZ
-                                sign = sign * SequenceSignType::NegativeImaginary;
-                                break;
-                            case 1: // Y
-                                // Y Y = 1
-                                break;
-                            case 2: // Z
-                                result.emplace_back(3*lhs_qubit); // Y Z = iX;
-                                sign = sign * SequenceSignType::Imaginary;
-                                break;
-                            default:
-                                assert(false);
-                        }
-                    break;
-                    case 2: // Z
-                        switch (rhs_pauli) {
-                            case 0: // X
-                                result.emplace_back(3*lhs_qubit + 1); // Z X = iY;
-                                sign = sign * SequenceSignType::Imaginary;
-                                break;
-                            case 1: // Y
-                                result.emplace_back(3*lhs_qubit); // Z Y = -iX
-                                sign = sign * SequenceSignType::NegativeImaginary;
-                                break;
-                            case 2: // Z
-                                // Z Z = 1;
-                                break;
-                            default:
-                                assert(false);
-                        }
-                    break;
-                    default:
-                        assert(false);
+                auto pauli_product = multiply_pauli(lhs_pauli, rhs_pauli);
+                if (pauli_product > 0) {
+                    result.emplace_back(3*lhs_qubit + (pauli_product-1));
+                    sign = sign * SequenceSignType::Imaginary;
+                }  else if (pauli_product < 0) {
+                    result.emplace_back(3*lhs_qubit + (-pauli_product-1));
+                    sign = sign * SequenceSignType::NegativeImaginary;
                 }
 
                 // Advance LHS & RHS
@@ -413,5 +365,9 @@ namespace Moment::Pauli {
            << " (" << this->operator_count << " operators).\n";
 
         return ss.str();
+    }
+
+    std::unique_ptr<OperatorSequenceGenerator> PauliContext::new_osg(const size_t word_length) const {
+        return std::make_unique<PauliSequenceGenerator>(*this, word_length);
     }
 }
