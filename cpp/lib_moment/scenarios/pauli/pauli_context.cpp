@@ -10,6 +10,8 @@
 #include "../contextual_os.h"
 
 #include <cassert>
+
+#include <algorithm>
 #include <iostream>
 
 namespace Moment::Pauli {
@@ -19,8 +21,120 @@ namespace Moment::Pauli {
 
     }
 
-    bool PauliContext::additional_simplification(sequence_storage_t &op_sequence, SequenceSignType &sign) const {
-        // TODO: Write simplification rules
+    bool PauliContext::additional_simplification(sequence_storage_t& op_sequence, SequenceSignType &sign) const {
+        // Early exit on empty operator sequence
+        if (op_sequence.empty()) {
+            return false;
+        }
+
+        // First, order operators by party
+        std::stable_sort(op_sequence.begin(), op_sequence.end(), [](const oper_name_t lhs, const oper_name_t rhs) {
+            return (lhs / 3) < (rhs / 3);
+        });
+
+        // Note: Pauli simplification can only reduce sequence length
+
+        auto write_iter = op_sequence.begin();
+        auto read_iter = write_iter;
+        const auto read_iter_end = op_sequence.end();
+        assert(read_iter != read_iter_end); // Already returned early if empty string.
+
+        oper_name_t last_party = (*read_iter / 3);
+        oper_name_t last_pauli = (*read_iter % 3);
+
+        ++read_iter;
+
+        while (read_iter != read_iter_end) {
+                const oper_name_t current_op = *read_iter;
+                const oper_name_t current_party = current_op / 3;
+                const oper_name_t current_pauli = current_op % 3;
+
+                // If onto a new party, advance and simply copy
+                if (current_party != last_party) {
+
+                    // Multiplication resulted in non-trivial Pauli operator
+                    if (last_pauli != 3) {
+                        // Otherwise, non-trivial multiplication, so write
+                        (*write_iter) = (last_party * 3) + last_pauli;
+                        ++write_iter;
+                        assert(write_iter != read_iter_end); // Write should always trail read.
+                    }
+
+
+                    last_party = current_party;
+                    last_pauli = current_pauli;
+                    ++read_iter;
+                    continue;
+                }
+
+                // Multiplication
+                switch (last_pauli) {
+                    case 0:
+                    switch (current_pauli) {
+                        case 0: // X X = 1
+                            last_pauli = 3;
+                            break;
+                        case 1: // X Y = i Z
+                            last_pauli = 2;
+                            sign = sign * SequenceSignType::Imaginary;
+                            break;
+                        case 2: // X Z = -i Y
+                            last_pauli = 1;
+                            sign = sign * SequenceSignType::NegativeImaginary;
+                            break;
+                    }
+                    break;
+                    case 1:
+                    switch (current_pauli) {
+                        case 0: // Y X = -i Z
+                            last_pauli = 2;
+                            sign = sign * SequenceSignType::NegativeImaginary;
+                            break;
+                        case 1: // Y Y = 1
+                            last_pauli = 3;
+                            break;
+                        case 2: // Y Z = i X
+                            last_pauli = 0;
+                            sign = sign * SequenceSignType::Imaginary;
+                            break;
+                    }
+                    break;
+                    case 2:
+                    switch (current_pauli) {
+                        case 0: // Z X = iY
+                            last_pauli = 1;
+                            sign = sign * SequenceSignType::Imaginary;
+                            break;
+                        case 1: // Z Y = -i X
+                            last_pauli = 0;
+                            sign = sign * SequenceSignType::NegativeImaginary;
+                            break;
+                        case 2: // Z Z = 1
+                            last_pauli = 3;
+                            break;
+                    }
+                    break;
+                    case 3: // ID x [x/y/z]
+                        last_pauli = current_pauli;
+                        break;
+                }
+
+                // Advance read iterator
+                ++read_iter;
+        }
+
+        // Write last op
+        if (last_pauli != 3) {
+            (*write_iter) = (last_party * 3) + last_pauli;
+            ++write_iter;
+        }
+
+        // Clear rest of sequence
+        if (write_iter != read_iter_end) {
+            op_sequence.erase(write_iter, read_iter_end);
+        }
+
+        // Pauli simplification never resolves to 0
         return false;
     }
 
@@ -256,7 +370,6 @@ namespace Moment::Pauli {
             contextual_os.os << "<";
         }
 
-        bool done_once = false;
         for (const auto& oper : seq) {
             oper_name_t qubit = oper / 3;
             oper_name_t pauli_op = oper % 3;

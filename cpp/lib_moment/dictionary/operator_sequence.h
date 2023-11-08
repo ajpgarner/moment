@@ -143,7 +143,7 @@ namespace Moment {
          * @param context The scenario to associate with the constructed sequence.
          * @return Zero.
          */
-        static OperatorSequence Zero(const Context& context) {
+        [[nodiscard]] static OperatorSequence Zero(const Context& context) {
             OperatorSequence output{context};
             output.the_hash = 0;
             return output;
@@ -154,8 +154,21 @@ namespace Moment {
          * @param context The scenario to associate with the constructed sequence.
          * @return One.
          */
-        static OperatorSequence Identity(const Context& context) {
+        [[nodiscard]] static OperatorSequence Identity(const Context& context) {
             return OperatorSequence{context};
+        }
+
+
+        /**
+         * Construct sequence equal to algebraic identity up to a sign.
+         * @param context The scenario to associate with the constructed sequence.
+         * @param sign_type The sign of the sequence
+         * @return +1, +i, -1 or -i depending on sign_type.
+         */
+        [[nodiscard]] static OperatorSequence Identity(const Context& context, SequenceSignType sign_type) {
+            OperatorSequence id{context};
+            id.set_sign(sign_type);
+            return id;
         }
 
         /**
