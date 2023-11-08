@@ -349,6 +349,11 @@ namespace Moment::Pauli {
     }
 
     void PauliContext::format_sequence(ContextualOS &os, const OperatorSequence &seq) const {
+        if (seq.zero()) {
+            os.os << "0";
+            return;
+        }
+
         switch (seq.get_sign()) {
             case SequenceSignType::Positive:
                 break;
@@ -362,32 +367,39 @@ namespace Moment::Pauli {
                 os.os << "-i";
                 break;
         }
+
         this->format_raw_sequence(os, seq.raw());
     }
 
     void PauliContext::format_raw_sequence(ContextualOS& contextual_os, const sequence_storage_t &seq) const {
 
+
         if (contextual_os.format_info.show_braces) {
             contextual_os.os << "<";
         }
 
-        for (const auto& oper : seq) {
-            oper_name_t qubit = oper / 3;
-            oper_name_t pauli_op = oper % 3;
-            switch (pauli_op) {
-                case 0:
-                    contextual_os.os << "X";
-                    break;
-                case 1:
-                    contextual_os.os << "Y";
-                    break;
-                case 2:
-                    contextual_os.os << "Z";
-                    break;
-                default:
-                    assert(false);
+
+        if (seq.empty()) {
+            contextual_os.os << "I";
+        } else {
+            for (const auto &oper: seq) {
+                oper_name_t qubit = oper / 3;
+                oper_name_t pauli_op = oper % 3;
+                switch (pauli_op) {
+                    case 0:
+                        contextual_os.os << "X";
+                        break;
+                    case 1:
+                        contextual_os.os << "Y";
+                        break;
+                    case 2:
+                        contextual_os.os << "Z";
+                        break;
+                    default:
+                        assert(false);
+                }
+                contextual_os.os << (qubit + 1); // MATLAB indexing...
             }
-            contextual_os.os << (qubit+1); // MATLAB indexing...
         }
         if (contextual_os.format_info.show_braces) {
             contextual_os.os << ">";
