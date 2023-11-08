@@ -28,8 +28,7 @@ classdef LocalityScenario < MTKScenario
 %       /examples/three_party.m
 %       /examples/yalmip_chsh.m
 %
-% See also: Locality.Party, Locality.Measurement, Locality.Outcome,
-%           SolvedScenario.SolvedLocalityScenario
+% See also: Locality.Party, Locality.Measurement, Locality.Outcome
 %
     
     properties(GetAccess = public, SetAccess = protected)

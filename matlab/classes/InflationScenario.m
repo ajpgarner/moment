@@ -46,6 +46,7 @@ classdef InflationScenario < MTKScenario
 %       /examples/yalmip_inflation_triangle.m
 %
 
+    %% Properties
     properties(GetAccess = public, SetAccess = private)
         % The number of 'inflated' copies of each source.
         InflationLevel 

@@ -56,6 +56,8 @@ namespace Moment {
             /** Pauli sigma Z operator at site N. */
             [[nodiscard]] OperatorSequence sigmaZ(const oper_name_t qubit,
                                                   SequenceSignType sign = SequenceSignType::Positive) const;
+
+            std::string to_string() const override;
         };
 
 

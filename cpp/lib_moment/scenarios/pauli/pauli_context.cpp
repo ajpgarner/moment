@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 namespace Moment::Pauli {
 
@@ -391,5 +392,14 @@ namespace Moment::Pauli {
         if (contextual_os.format_info.show_braces) {
             contextual_os.os << ">";
         }
+    }
+
+    std::string PauliContext::to_string() const {
+        std::stringstream ss;
+        ss << "Pauli context over "
+           << this->qubit_size << " " << ((this->qubit_size !=1 ? "qubits" : "qubit"))
+           << " (" << this->operator_count << " operators).\n";
+
+        return ss.str();
     }
 }

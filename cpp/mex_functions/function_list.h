@@ -50,6 +50,7 @@ namespace Moment::mex::functions {
         MomentRuleSuperset,
         OperatorMatrix,
         OperatorRules,
+        PauliMatrixSystem,
         ProbabilityTable,
         Release,
         Settings,

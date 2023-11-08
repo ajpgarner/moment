@@ -27,6 +27,7 @@
 #include "functions/matrix_system/imported_matrix_system.h"
 #include "functions/matrix_system/inflation_matrix_system.h"
 #include "functions/matrix_system/locality_matrix_system.h"
+#include "functions/matrix_system/pauli_matrix_system.h"
 #include "functions/matrix_system/symmetrized_matrix_system.h"
 #include "functions/moment_rules/apply_moment_rules.h"
 #include "functions/moment_rules/create_moment_rules.h"
@@ -80,6 +81,7 @@ namespace Moment::mex::functions {
             output.emplace("moment_rule_superset",      MTKEntryPointID::MomentRuleSuperset);
             output.emplace("operator_matrix",    MTKEntryPointID::OperatorMatrix);
             output.emplace("operator_rules",     MTKEntryPointID::OperatorRules);
+            output.emplace("pauli_matrix_system",  MTKEntryPointID::PauliMatrixSystem);
             output.emplace("probability_table",  MTKEntryPointID::ProbabilityTable);
             output.emplace("release",            MTKEntryPointID::Release);
             output.emplace("settings",           MTKEntryPointID::Settings);
@@ -207,6 +209,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MTKEntryPointID::OperatorRules:
                 the_function = std::make_unique<functions::OperatorRules>(engine, storageManager);
+                break;
+            case functions::MTKEntryPointID::PauliMatrixSystem:
+                the_function = std::make_unique<functions::PauliMatrixSystem>(engine, storageManager);
                 break;
             case functions::MTKEntryPointID::ProbabilityTable:
                 the_function = std::make_unique<functions::ProbabilityTable>(engine, storageManager);
