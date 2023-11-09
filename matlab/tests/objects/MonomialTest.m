@@ -1233,7 +1233,17 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'algebraic', 'times'})
         testCase.assertTrue(also_zero.IsZero);
         testCase.verifyEqual(also_zero.Scenario, setting);
     end
-
+    
+    function times_scalar_empty(testCase)
+        setting = AlgebraicScenario(2);
+        x = setting.get([1]);
+        x_zero = 0 * x;
+        testCase.assertTrue(x_zero.IsZero);
+        testCase.verifyEqual(x_zero.Scenario, setting);
+        also_zero = 2 * x_zero;
+        testCase.assertTrue(also_zero.IsZero);
+        testCase.verifyEqual(also_zero.Scenario, setting);
+    end
 
     function times_mono_zero(testCase)
         setting = AlgebraicScenario(2);

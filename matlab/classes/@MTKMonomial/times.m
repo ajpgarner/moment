@@ -22,7 +22,14 @@ function val = times(lhs, rhs)
             error("Objects must be same size for _.*_, or one must be scalar.");
         end
     end
-
+    
+    % If either object is empty, result is empty
+    if isempty(this) || isempty(other)
+        val = this;
+        assert(isempty(val));
+        return;
+    end
+    
     % Handle case when other value is numeric
     if isnumeric(other)
         [new_coefs, prune_mask] = this.Scenario.Prune(this.Coefficient .* other);

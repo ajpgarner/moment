@@ -33,6 +33,14 @@
             error("Objects must be same size for _+_, or one must be scalar.");
         end
     end
+        
+    % If either object is empty, result is empty
+    if isempty(this) || isempty(other)
+        val = this;
+        assert(isempty(val));
+        return;
+    end
+    
 
     % Handle numerics (commutes!)
     if isnumeric(other)                
