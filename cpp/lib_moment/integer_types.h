@@ -40,7 +40,7 @@ namespace Moment {
     /**
      * For enumerating symbolic algebra elements
      */
-    using symbol_name_t = int64_t;
+    using symbol_name_t = int32_t;
 
     /**
      * The maximum length of operator sequence before heap allocations are required

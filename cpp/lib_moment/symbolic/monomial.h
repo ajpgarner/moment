@@ -46,14 +46,14 @@ namespace Moment {
 
     public:
         symbol_name_t id;
-        std::complex<double> factor;
         bool conjugated;
+        std::complex<double> factor;
 
     public:
         /**
          * Default (uninitialized!) construction of Monomial
          */
-        constexpr explicit Monomial() = default;
+        constexpr explicit Monomial() noexcept = default;
 
         /**
          * Construct a symbol expression.
@@ -61,7 +61,7 @@ namespace Moment {
          * @param conj Whether the symbol is conjugated.
          */
         constexpr explicit Monomial(std::make_signed<symbol_name_t>::type name, bool conj = false) noexcept
-                : id{name}, factor{(name < 0) ? -1.0 : 1.0}, conjugated{conj} {
+                : id{name}, conjugated{conj}, factor{(name < 0) ? -1.0 : 1.0}  {
             if (id < 0) {
                 id = -id;
             }
@@ -74,7 +74,7 @@ namespace Moment {
          * @param conj Whether the symbol is conjugated.
          */
         constexpr explicit Monomial(symbol_name_t name, double factor, bool conj = false) noexcept
-                : id{name}, factor{factor, 0.0}, conjugated{conj} {}
+                : id{name}, conjugated{conj}, factor{factor, 0.0} {}
 
         /**
          * Construct a symbol expression.
@@ -83,7 +83,7 @@ namespace Moment {
          * @param conj Whether the symbol is conjugated.
          */
         constexpr explicit Monomial(symbol_name_t name, std::complex<double> factor, bool conj = false) noexcept
-                : id{name}, factor{factor}, conjugated{conj} {}
+                : id{name}, conjugated{conj}, factor{factor} {}
 
         /**
          * Construct a symbol expression.
@@ -92,7 +92,7 @@ namespace Moment {
          * @param conj Whether the symbol is conjugated.
          */
         constexpr Monomial(symbol_name_t name, bool neg, bool conj) noexcept
-                : id(name), factor{neg ? -1.0 : 1.0}, conjugated(conj) {}
+                : id(name), conjugated{conj}, factor{neg ? -1.0 : 1.0}  {}
 
         /**
          * Construct a symbol expression, from supplied string input.
