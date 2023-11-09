@@ -5,6 +5,7 @@ include(GoogleTest)
 add_executable(moment_tests
         matrix/matrix_tests.cpp
         matrix/moment_matrix_tests.cpp
+        matrix/operator_matrix_tests.cpp
         matrix/polynomial_localizing_matrix_tests.cpp
         matrix/polynomial_matrix_tests.cpp
         multithreading/extended_matrix_tests.cpp

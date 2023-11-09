@@ -19,7 +19,7 @@ namespace Moment {
 
     /**
      * Vector, with optimized stack storage for short lengths
-     * @tparam value_t The value type stored in the vector. Must be default-constructable, and trivially copiable.
+     * @tparam value_t The value type stored in the vector. Must be default-constructable, and trivially copyable.
      * @tparam SmallN The number of values to store on the stack, before heap storage is required.
      */
     template<typename value_t, size_t SmallN>

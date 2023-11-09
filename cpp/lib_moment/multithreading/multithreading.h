@@ -34,6 +34,9 @@ namespace Moment::Multithreading {
     /** The minimum number of elements in a requested matrix to trigger multi-threaded creation in optional mode. */
     constexpr const size_t minimum_matrix_element_count = 6400; // = 80 x 80 matrix, or larger.
 
+    /** The minimum number of elements in a requested matrix to trigger multi-threaded multiplication in optional mode.*/
+    constexpr const size_t minimum_matrix_multiply_element_count = 6400; // = 80 x 80 matrix, or larger.
+
     /** The minimum product of of elements in a requested matrix with log2 of the number of rules,
      * to trigger multi-threaded creation in optional mode. */
     constexpr const size_t minimum_rule_difficulty = 6400; // = 80 x 80 matrix with 1 rule, or harder.
@@ -53,6 +56,9 @@ namespace Moment::Multithreading {
 
     /** Should the matrix creation be multithreaded ? */
     [[nodiscard]] bool should_multithread_matrix_creation(MultiThreadPolicy policy, size_t elements);
+
+    /** Should the matrix multiplication be multithreaded ? */
+    [[nodiscard]] bool should_multithread_matrix_multiplication(MultiThreadPolicy policy, size_t elements);
 
     /** Should the rule application be multithreaded ? */
     [[nodiscard]] bool should_multithread_rule_application(MultiThreadPolicy policy, size_t elements, size_t rules);

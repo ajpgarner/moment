@@ -97,6 +97,18 @@ namespace Moment::Multithreading {
             default:
                 return elements >= minimum_matrix_element_count;
         }
+
+    }
+    bool should_multithread_matrix_multiplication(MultiThreadPolicy policy, size_t elements) {
+        switch (policy) {
+            case MultiThreadPolicy::Never:
+                return false;
+            case MultiThreadPolicy::Always:
+                return true;
+            case MultiThreadPolicy::Optional:
+            default:
+                return elements >= minimum_matrix_multiply_element_count;
+        }
     }
 
     bool should_multithread_rule_application(MultiThreadPolicy policy, size_t elements, size_t rules) {

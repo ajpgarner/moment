@@ -11,6 +11,8 @@
 #include "scenarios/context.h"
 #include "dictionary/operator_sequence.h"
 
+#include "multithreading/multithreading.h"
+
 #include "symbolic/monomial.h"
 #include "symbolic/symbol_table.h"
 
@@ -117,6 +119,16 @@ namespace Moment {
 
         /** Apply the properties from this operator matrix to the supplied matrix. */
         void set_properties(SymbolicMatrix& matrix) const;
+
+        /** Create a new operator matrix by pre-multiplying by an operator sequence */
+        [[nodiscard]] OperatorMatrix
+        pre_multiply(const OperatorSequence& lhs,
+                    Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
+
+        /** Create a new operator matrix by post-multiplying by an operator sequence */
+        [[nodiscard]] OperatorMatrix
+        post_multiply(const OperatorSequence& rhs,
+                     Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
 
         friend class SymbolicMatrix;
         friend class MonomialMatrix;
