@@ -14,24 +14,26 @@
 namespace Moment {
 
     namespace {
-        [[nodiscard]] OperatorMatrix do_multiply_single_thread(const OperatorMatrix& lhs, const OperatorSequence& rhs) {
+        [[nodiscard]] std::unique_ptr<OperatorMatrix>
+        do_multiply_single_thread(const OperatorMatrix& lhs, const OperatorSequence& rhs) {
             std::vector<OperatorSequence> output_data;
             output_data.reserve(lhs.Dimension() * lhs.Dimension());
             for (const auto& lhs_elem : lhs()) {
                 output_data.push_back(lhs_elem * rhs);
             }
-            return OperatorMatrix{lhs.context,
-                                  std::make_unique<OperatorMatrix::OpSeqMatrix>(lhs.Dimension(), std::move(output_data))};
+            return std::make_unique<OperatorMatrix>(lhs.context,
+                        std::make_unique<OperatorMatrix::OpSeqMatrix>(lhs.Dimension(), std::move(output_data)));
         }
 
-        [[nodiscard]] OperatorMatrix do_multiply_single_thread(const OperatorSequence& lhs, const OperatorMatrix& rhs) {
+        [[nodiscard]] std::unique_ptr<OperatorMatrix>
+        do_multiply_single_thread(const OperatorSequence& lhs, const OperatorMatrix& rhs) {
             std::vector<OperatorSequence> output_data;
             output_data.reserve(rhs.Dimension() * rhs.Dimension());
             for (const auto& rhs_elem : rhs()) {
                 output_data.push_back(lhs * rhs_elem);
             }
-            return OperatorMatrix{rhs.context,
-                                  std::make_unique<OperatorMatrix::OpSeqMatrix>(rhs.Dimension(), std::move(output_data))};
+            return std::make_unique<OperatorMatrix>(rhs.context,
+                        std::make_unique<OperatorMatrix::OpSeqMatrix>(rhs.Dimension(), std::move(output_data)));
         }
     }
 
@@ -60,14 +62,14 @@ namespace Moment {
         matrix.hermitian = this->is_hermitian();
     }
 
-    OperatorMatrix
+    std::unique_ptr<OperatorMatrix>
     OperatorMatrix::pre_multiply(const OperatorSequence& lhs, Multithreading::MultiThreadPolicy policy) const {
         assert(lhs.is_same_context(this->context));
         const bool should_mt = should_multithread_matrix_multiplication(policy, this->Dimension() * this->Dimension());
         return do_multiply_single_thread(lhs, *this);
     }
 
-    OperatorMatrix
+    std::unique_ptr<OperatorMatrix>
     OperatorMatrix::post_multiply(const OperatorSequence& rhs, Multithreading::MultiThreadPolicy policy) const {
         assert(rhs.is_same_context(this->context));
         const bool should_mt = should_multithread_matrix_multiplication(policy, this->Dimension() * this->Dimension());

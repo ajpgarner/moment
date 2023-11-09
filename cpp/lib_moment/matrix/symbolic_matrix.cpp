@@ -30,6 +30,18 @@ namespace Moment {
         return *this->op_mat;
     }
 
+    std::unique_ptr<SymbolicMatrix>
+    SymbolicMatrix::pre_multiply(const Monomial &lhs,  SymbolTable& symbol_registry,
+                                 const Multithreading::MultiThreadPolicy policy) const {
+        throw errors::cannot_multiply_exception{"Pre-multiplication not defined for generic SymbolicMatrix."};
+    }
+
+    std::unique_ptr<SymbolicMatrix>
+    SymbolicMatrix::post_multiply(const Monomial &rhs,  SymbolTable& symbol_registry,
+                                  const Multithreading::MultiThreadPolicy policy) const {
+        throw errors::cannot_multiply_exception{"Post-multiplication not defined for generic SymbolicMatrix."};
+    }
+
     std::ostream& operator<<(std::ostream& os, const SymbolicMatrix& mp) {
         os << mp.dimension << "x" << mp.dimension << " ";
         if (mp.complex_basis) {

@@ -121,12 +121,12 @@ namespace Moment {
         void set_properties(SymbolicMatrix& matrix) const;
 
         /** Create a new operator matrix by pre-multiplying by an operator sequence */
-        [[nodiscard]] OperatorMatrix
+        [[nodiscard]] std::unique_ptr<OperatorMatrix>
         pre_multiply(const OperatorSequence& lhs,
                     Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
 
         /** Create a new operator matrix by post-multiplying by an operator sequence */
-        [[nodiscard]] OperatorMatrix
+        [[nodiscard]] std::unique_ptr<OperatorMatrix>
         post_multiply(const OperatorSequence& rhs,
                      Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
 

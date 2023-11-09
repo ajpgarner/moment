@@ -11,6 +11,8 @@
 #include "matrix_basis.h"
 #include "matrix_basis_type.h"
 
+#include "multithreading/multithreading.h"
+
 #include <cassert>
 
 #include <complex>
@@ -26,6 +28,18 @@ namespace Moment {
     class OperatorMatrix;
     class SymbolTable;
     class Context;
+    class Monomial;
+
+    namespace errors {
+        /**
+         * Exception to throw if multiplication is not possible for some reason.
+         */
+        class cannot_multiply_exception : std::logic_error {
+        public:
+            explicit cannot_multiply_exception(const std::string& what)
+                    : std::logic_error{what} { }
+        };
+    };
 
     class SymbolicMatrix {
 
@@ -176,6 +190,20 @@ namespace Moment {
          * Force renumbering of matrix bases keys
          */
         virtual void renumerate_bases(const SymbolTable& symbols, double zero_tolerance) = 0;
+
+        /**
+         * Create a new matrix by pre-multiplying this one by a Monomial.
+         */
+        [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
+        pre_multiply(const Monomial& lhs, SymbolTable& symbol_table,
+                     Multithreading::MultiThreadPolicy policy) const;
+
+        /**
+         * Create a new matrix by post-multiplying this one by a Monomial.
+         */
+        [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
+        post_multiply(const Monomial& rhs,  SymbolTable& symbol_table,
+                      Multithreading::MultiThreadPolicy policy) const;
 
     protected:
         /**

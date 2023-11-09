@@ -10,7 +10,11 @@
 #include "operator_matrix/operator_matrix.h"
 
 #include "symbolic/symbol_table.h"
+
+#include "utilities/float_utils.h"
+
 #include <stdexcept>
+
 
 namespace Moment {
 
@@ -19,17 +23,25 @@ namespace Moment {
          * Helper class, converts OSM -> Symbol matrix, registering new symbols.
          * Note: this is the single-threaded implementation; see also /multithreading/matrix_generation_worker.h.
          */
+        template<bool has_prefactor>
         class OpSeqToSymbolConverter {
         private:
             const Context& context;
             SymbolTable& symbol_table;
             const OperatorMatrix::OpSeqMatrix& osm;
+
         public:
             const bool hermitian;
+            const std::complex<double> prefactor;
         public:
             OpSeqToSymbolConverter(const Context &context, SymbolTable &symbol_table,
                                    const OperatorMatrix::OpSeqMatrix &osm)
                : context{context}, symbol_table{symbol_table}, osm{osm}, hermitian{osm.is_hermitian()} { }
+
+            OpSeqToSymbolConverter(const Context &context, SymbolTable &symbol_table,
+                                   const OperatorMatrix::OpSeqMatrix &osm, std::complex<double> the_factor)
+               : context{context}, symbol_table{symbol_table}, osm{osm}, hermitian{osm.is_hermitian()},
+                 prefactor{the_factor} { }
 
 
             std::unique_ptr<SquareMatrix<Monomial>> operator()() {
@@ -169,17 +181,33 @@ namespace Moment {
                     }
                     const auto& unique_elem = symbol_table[symbol_id];
 
-                    symbolic_representation[iter.Offset()] = Monomial{unique_elem.Id(), monomial_sign, conjugated};
+                    if constexpr (has_prefactor) {
+                        symbolic_representation[iter.Offset()] = Monomial{unique_elem.Id(), prefactor * monomial_sign, conjugated};
 
-                    // Make Hermitian, if off-diagonal
-                    if (!iter.diagonal()) {
-                        size_t lower_offset = osm.index_to_offset_no_checks(std::array<size_t, 2>{col, row});
-                        if (unique_elem.is_hermitian()) {
-                            symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
-                                                                             std::conj(monomial_sign), false};
-                        } else {
-                            symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
-                                                                             std::conj(monomial_sign), !conjugated};
+                        // Make Hermitian, if off-diagonal
+                        if (!iter.diagonal()) {
+                            size_t lower_offset = osm.index_to_offset_no_checks(std::array<size_t, 2>{col, row});
+                            if (unique_elem.is_hermitian()) {
+                                symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
+                                                                                 prefactor * std::conj(monomial_sign), false};
+                            } else {
+                                symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
+                                                                                 prefactor * std::conj(monomial_sign), !conjugated};
+                            }
+                        }
+                    } else {
+                        symbolic_representation[iter.Offset()] = Monomial{unique_elem.Id(), monomial_sign, conjugated};
+
+                        // Make Hermitian, if off-diagonal
+                        if (!iter.diagonal()) {
+                            size_t lower_offset = osm.index_to_offset_no_checks(std::array<size_t, 2>{col, row});
+                            if (unique_elem.is_hermitian()) {
+                                symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
+                                                                                 std::conj(monomial_sign), false};
+                            } else {
+                                symbolic_representation[lower_offset] = Monomial{unique_elem.Id(),
+                                                                                 std::conj(monomial_sign), !conjugated};
+                            }
                         }
                     }
                     ++iter;
@@ -194,7 +222,10 @@ namespace Moment {
                 for (size_t offset = 0; offset < osm.ElementCount; ++offset) {
                     const auto& elem = osm[offset];
 
-                    const auto monomial_sign = to_scalar(elem.get_sign());
+                    auto elem_factor = to_scalar(elem.get_sign());
+                    if constexpr (has_prefactor) {
+                        elem_factor *= this->prefactor;
+                    }
                     const size_t hash = elem.hash();
 
                     auto [symbol_id, conjugated] = symbol_table.hash_to_index(hash);
@@ -207,7 +238,7 @@ namespace Moment {
                     }
                     const auto& unique_elem = symbol_table[symbol_id];
 
-                    symbolic_representation[offset] = Monomial{unique_elem.Id(), monomial_sign, conjugated};
+                    symbolic_representation[offset] = Monomial{unique_elem.Id(), elem_factor, conjugated};
                 }
 
                 return std::make_unique<SquareMatrix<Monomial>>(osm.dimension,
@@ -218,9 +249,9 @@ namespace Moment {
 
     MonomialMatrix::MonomialMatrix(const Context& context, SymbolTable& symbols, const double zero_tolerance,
                                    std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix,
-                                   const bool constructed_as_hermitian)
+                                   const bool constructed_as_hermitian, std::complex<double> factor)
         : SymbolicMatrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0},
-          SymbolMatrix{*this}, sym_exp_matrix{std::move(symbolMatrix)}
+          SymbolMatrix{*this}, sym_exp_matrix{std::move(symbolMatrix)}, global_prefactor{factor}
         {
             if (!sym_exp_matrix) {
                 throw std::runtime_error{"Symbol pointer passed to MonomialMatrix constructor was nullptr."};
@@ -236,8 +267,8 @@ namespace Moment {
 
     MonomialMatrix::MonomialMatrix(SymbolTable &symbols, std::unique_ptr<OperatorMatrix> op_mat_ptr)
         : MonomialMatrix{op_mat_ptr->context, symbols, 1.0,
-                         OpSeqToSymbolConverter{op_mat_ptr->context, symbols, (*op_mat_ptr)()}(),
-                         op_mat_ptr->is_hermitian()} {
+                         OpSeqToSymbolConverter<false>{op_mat_ptr->context, symbols, (*op_mat_ptr)()}(),
+                         op_mat_ptr->is_hermitian(), std::complex<double>{1.0,0.0}} {
         assert(op_mat_ptr);
         this->op_mat = std::move(op_mat_ptr);
 
@@ -246,10 +277,69 @@ namespace Moment {
 
         // Set matrix properties
         this->op_mat->set_properties(*this);
+    }
 
+    MonomialMatrix::MonomialMatrix(SymbolTable &symbols, std::unique_ptr<OperatorMatrix> op_mat_ptr,
+                                   std::complex<double> prefactor)
+        : MonomialMatrix{op_mat_ptr->context, symbols, 1.0,
+                         OpSeqToSymbolConverter<true>{op_mat_ptr->context, symbols, (*op_mat_ptr)(), prefactor}(),
+                         op_mat_ptr->is_hermitian()  && approximately_real(prefactor), prefactor}  {
+        assert(op_mat_ptr);
+        this->op_mat = std::move(op_mat_ptr);
+
+        // Count symbols
+        this->MonomialMatrix::renumerate_bases(symbols, 1.0);
+
+        // Set matrix properties
+        this->op_mat->set_properties(*this);
     }
 
     MonomialMatrix::~MonomialMatrix() noexcept = default;
+
+    namespace {
+        template<bool post>
+        std::unique_ptr<MonomialMatrix>
+        do_multiply(const Monomial& mono, const MonomialMatrix& matrix,
+                    SymbolTable& symbol_registry, const Multithreading::MultiThreadPolicy policy) {
+
+            // Get operator sequence from monomial:
+            assert(mono.id >= 0 && mono.id < symbol_registry.size());
+            assert(symbol_registry[mono.id].has_sequence());
+            const auto& op_sequence = mono.conjugated ? symbol_registry[mono.id].sequence()
+                                                      : symbol_registry[mono.id].sequence_conj();
+
+            // Get operator matrix from RHS:
+            if (!matrix.has_operator_matrix()) {
+                throw errors::cannot_multiply_exception{"MonomialMatrix cannot multiply if no OperatorMatrix present."};
+            }
+
+            // Do multiplication
+            std::unique_ptr<OperatorMatrix> multiplied_op_ptr;
+            if constexpr(post) {
+                multiplied_op_ptr = matrix.operator_matrix().post_multiply(op_sequence, policy);
+            } else {
+                multiplied_op_ptr = matrix.operator_matrix().pre_multiply(op_sequence, policy);
+            }
+
+            // Prefactor multiplication
+            const auto new_factor = matrix.global_factor() * mono.factor;
+
+            // Do creation
+            return std::make_unique<MonomialMatrix>(symbol_registry, std::move(multiplied_op_ptr), new_factor);
+        }
+    }
+
+    std::unique_ptr<SymbolicMatrix>
+    MonomialMatrix::pre_multiply(const Monomial &lhs, SymbolTable& symbol_registry,
+                                 const Multithreading::MultiThreadPolicy policy) const {
+        return do_multiply<false>(lhs, *this, symbol_registry, policy);
+    }
+
+    std::unique_ptr<SymbolicMatrix>
+    MonomialMatrix::post_multiply(const Monomial &rhs, SymbolTable& symbol_registry,
+                                  const Multithreading::MultiThreadPolicy policy) const {
+        return do_multiply<true>(rhs, *this, symbol_registry, policy);
+    }
 
     void MonomialMatrix::renumerate_bases(const SymbolTable &symbols, double zero_tolerance) {
         for (auto& symbol : *this->sym_exp_matrix) {

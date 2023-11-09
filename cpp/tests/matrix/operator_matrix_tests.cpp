@@ -9,8 +9,6 @@
 
 #include "compare_os_matrix.h"
 
-#include "matrix/monomial_matrix.h"
-#include "matrix/operator_matrix/operator_matrix.h"
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
 
@@ -48,7 +46,8 @@ namespace Moment::Tests {
         ASSERT_TRUE(mmRaw.has_operator_matrix());
         auto& mm_ops = mmRaw.operator_matrix();
         ASSERT_EQ(mm_ops.Dimension(), 4);
-        auto zMM = mm_ops.pre_multiply(z);
+        auto zMMptr = mm_ops.pre_multiply(z);
+        const auto& zMM = *zMMptr;
         compare_os_matrix("Z*MM", zMM, 4, {z, iy, mix, I,
                                            iy, z, i, mx,
                                            mix, mi, z, my,
@@ -86,7 +85,8 @@ namespace Moment::Tests {
         auto& mm_ops = mm.operator_matrix();
         ASSERT_EQ(mm_ops.Dimension(), 4);
 
-        auto MMz = mm_ops.post_multiply(z);
+        auto MMzptr = mm_ops.post_multiply(z);
+        const auto& MMz = *MMzptr;
         compare_os_matrix("MM * z", MMz, 4, {z, miy, ix , I,
                                              miy, z, i, x,
                                              ix, mi, z, y,

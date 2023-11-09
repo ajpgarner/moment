@@ -16,39 +16,47 @@
 
 
 namespace Moment::Tests {
-    /**
-     *
-     * @param inputMM
-     * @param dimension
-     * @param reference Warning: row major!
-     */
-    inline void compare_symbol_matrix(const SymbolicMatrix &inputMM, size_t dimension,
-                                      const std::vector<Monomial>& reference) {
-        const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(inputMM);
-        ASSERT_NE(mmPtr, nullptr) << "Not a moment matrix!";
-        ASSERT_TRUE(inputMM.is_monomial());
-        const auto& theMM = dynamic_cast<const MonomialMatrix&>(inputMM);
 
+
+    inline void compare_monomial_matrix(const std::string& prefix,
+                                        const MonomialMatrix& theMM, const size_t dimension,
+                                        const std::vector<Monomial>& reference) {
 
         ASSERT_EQ(theMM.SymbolMatrix.Dimension(), dimension);
 
         size_t row = 0;
         size_t col = 0;
         for (const auto &ref_symbol: reference) {
-            ASSERT_LT(row, dimension) << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
-            ASSERT_LT(col, dimension) << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
+            ASSERT_LT(row, dimension) << " " << prefix << ", row = " << row << ", col = " << col;
+            ASSERT_LT(col, dimension) << " " << prefix << ", row = " << row << ", col = " << col;
 
             const auto &actual_symbol = theMM.SymbolMatrix(row, col);
             EXPECT_EQ(actual_symbol, ref_symbol)
-                    << " Level = " << mmPtr->Level() << ", row = " << row << ", col = " << col;
+                                << " " << prefix << ", row = " << row << ", col = " << col;
             ++col;
             if (col >= dimension) {
                 col = 0;
                 ++row;
             }
         }
-        EXPECT_EQ(col, 0) << " Level = " << mmPtr->Level();
-        EXPECT_EQ(row, dimension) << " Level = " << mmPtr->Level();
+        EXPECT_EQ(col, 0) << " " << prefix;
+        EXPECT_EQ(row, dimension) << " " << prefix;
+    }
+
+    /**
+     * @param inputMM
+     * @param dimension
+     * @param reference Warning: row major!
+     */
+    inline void compare_symbol_matrix(const SymbolicMatrix &inputMM, const size_t dimension,
+                                      const std::vector<Monomial>& reference) {
+        const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(inputMM);
+        ASSERT_NE(mmPtr, nullptr) << "Not a moment matrix!";
+        ASSERT_TRUE(inputMM.is_monomial());
+        const auto& theMM = dynamic_cast<const MonomialMatrix&>(inputMM);
+
+        compare_monomial_matrix(std::string("Level = ") + std::to_string(mmPtr->Level()),
+                                theMM, dimension, reference);
 
     }
 

@@ -11,13 +11,14 @@
 #include "symbolic/monomial.h"
 #include "tensor/square_matrix.h"
 
+#include <complex>
 #include <memory>
+#include <stdexcept>
 
 namespace Moment {
 
     class SymbolTable;
     class OperatorMatrix;
-    class MatrixProperties;
 
     /**
      * Symbolic matrix, where each entry represents a monomial expression.
@@ -61,19 +62,29 @@ namespace Moment {
         /** Matrix, as symbolic expression */
         std::unique_ptr<SquareMatrix<Monomial>> sym_exp_matrix;
 
+        /** Global prefactor linking operator matrix to monomial matrix. */
+        std::complex<double> global_prefactor;
+
     public:
-        /** Construct precomputed monomial matrix without operator matrix */
+        /** Construct precomputed monomial matrix without operator matrix. */
         MonomialMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance,
                        std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix,
-                       bool is_hermitian);
+                       bool is_hermitian, std::complex<double> prefactor = std::complex<double>{1.0, 0.0});
 
-        /** Compute monomial matrix from operatormatrix */
+        /** Compute monomial matrix from operator matrix, registering new symbols as necessary. */
         MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix);
 
-        /** Construct monomial matrix, with pre-calculated Monomials AND operator matrix */
+        /**
+         * Compute monomial matrix from operator matrix, registering new symbols as necessary, and multiplying all
+         * elements by a global factor. */
         MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix,
-                       std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix);
+                       std::complex<double> prefactor);
 
+        /** Construct monomial matrix, with pre-calculated Monomials AND operator matrix */
+//        MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix,
+//                       std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix);
+
+        /** Destruct monomial matrix. */
         ~MonomialMatrix() noexcept;
 
         /**
@@ -86,6 +97,27 @@ namespace Moment {
          */
         const Monomial* raw_data() const noexcept {
             return this->sym_exp_matrix->raw();
+        }
+
+        /**
+         * Pre-multiply by a Monomial.
+         */
+        [[nodiscard]] std::unique_ptr<SymbolicMatrix>
+        pre_multiply(const Monomial& lhs, SymbolTable& symbol_table,
+                     Multithreading::MultiThreadPolicy policy) const override;
+
+        /**
+         * Post-multiply by a Monomial.
+         */
+        [[nodiscard]] std::unique_ptr<SymbolicMatrix>
+        post_multiply(const Monomial& rhs, SymbolTable& symbol_table,
+                      Multithreading::MultiThreadPolicy policy) const override;
+
+        /**
+         * Get global prefactor relating OperatorMatrix to actual monomials within.
+         */
+        [[nodiscard]] constexpr std::complex<double> global_factor() const noexcept {
+            return this->global_prefactor;
         }
 
     protected:
