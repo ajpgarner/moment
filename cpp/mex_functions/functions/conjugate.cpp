@@ -111,7 +111,7 @@ namespace Moment::mex::functions {
 
             // Export minus sign if necessary
             if (output.size() >= 2) {
-                output[1] = factory.createScalar<bool>(conjugateSeq.negated());
+                output[1] = factory.createScalar<std::complex<double>>(to_scalar(conjugateSeq.get_sign()));
             }
 
             // Export hash
@@ -124,13 +124,13 @@ namespace Moment::mex::functions {
 
             // Prepare outputs
             auto out_op_seqs = factory.createCellArray(input.input_shape);
-            auto out_negation = factory.createArray<bool>(input.input_shape);
+            auto out_sign = factory.createArray<std::complex<double>>(input.input_shape);
             auto out_hashes = factory.createArray<uint64_t>(input.input_shape);
 
             // Parse and conjugate
             size_t write_index = 0;
             auto out_op_seqs_iter = out_op_seqs.begin();
-            auto out_negation_iter = out_negation.begin();
+            auto out_sign_iter = out_sign.begin();
             auto out_hashes_iter = out_hashes.begin();
 
             std::stringstream ss;
@@ -146,12 +146,12 @@ namespace Moment::mex::functions {
                 }
 
                 *out_op_seqs_iter = export_operator_sequence(factory, conjugateSeq);
-                *out_negation_iter = conjugateSeq.negated();
+                *out_sign_iter = to_scalar(conjugateSeq.get_sign());
                 *out_hashes_iter = conjugateSeq.hash();
 
                 // Next:
                 ++out_op_seqs_iter;
-                ++out_negation_iter;
+                ++out_sign_iter;
                 ++out_hashes_iter;
                 ++write_index;
             }
@@ -163,7 +163,7 @@ namespace Moment::mex::functions {
             // Move outputs
             output[0] = std::move(out_op_seqs);
             if (output.size() >= 2) {
-                output[1] = std::move(out_negation);
+                output[1] = std::move(out_sign);
             }
             if (output.size() >= 3) {
                 output[2] = std::move(out_hashes);

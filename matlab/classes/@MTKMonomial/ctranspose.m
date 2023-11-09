@@ -2,10 +2,8 @@ function val = ctranspose(obj)
 % CTRANSPOSE Complex conjugation / transpose.
 
     % Do conjugation of operators and coefficients
-    [conj_ops, negated, hashes] = obj.Scenario.Conjugate(obj.Operators);
-    neg_mask = ones(size(negated));
-    neg_mask(negated) = -1;
-    new_coefs = conj(obj.Coefficient) .* neg_mask;
+    [conj_ops, sign, hashes] = obj.Scenario.Conjugate(obj.Operators);    
+    new_coefs = conj(obj.Coefficient) .* sign;
 
     % Transpose elements
     switch obj.DimensionType

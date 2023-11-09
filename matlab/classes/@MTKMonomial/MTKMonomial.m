@@ -135,20 +135,15 @@ classdef MTKMonomial < MTKObject
                     obj.Coefficient = zeros(create_dimensions);
                     obj.Hash = uint64(zeros(create_dimensions));                    
                 else
-                    [obj.Operators, negated, obj.Hash] = ...
-                        setting.Simplify(operators);
-                    neg_mask = ones(size(negated));
-                    neg_mask(negated) = -1;
-                    obj.Coefficient = scale .* neg_mask;
+                    [obj.Operators, sign, obj.Hash] = ...
+                        setting.Simplify(operators);                    
+                    obj.Coefficient = scale .* sign;
                     obj.Hash(obj.Coefficient == 0) = 0;                    
                 end
             elseif ~init_for_overwrite
-                 [obj.Operators, negated, obj.Hash] = ...
+                 [obj.Operators, sign, obj.Hash] = ...
                      setting.Simplify(operators);
-                 obj.Coefficient = scale;
-                 if negated
-                     obj.Coefficient = -obj.Coefficient;
-                 end
+                 obj.Coefficient = scale * sign;
                  if obj.Coefficient == 0
                      obj.Hash = 0;
                  end
