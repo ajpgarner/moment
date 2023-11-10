@@ -17,11 +17,11 @@ namespace Moment {
             conjSeq{std::move(conjSequence)},
             hermitian{false}, antihermitian{false}, real_index{-1}, img_index{-1} {
 
-        // Transfer any signs from sequence to conjugate
-        SequenceSignType relativeNegation = difference(sequence.get_sign(), conjSequence.get_sign());
+        // If sequence is not +1, make it +1, and apply the /conjugate/ of it to the conjugate sequence
+        conjSeq->set_sign(conjSeq->get_sign()*opSeq->get_sign());
         opSeq->set_sign(SequenceSignType::Positive);
-        conjSeq->set_sign(relativeNegation);
 
+        // Now compare
         int compare = OperatorSequence::compare_same_negation(*opSeq, *conjSeq);
         if (1 == compare) {
             this->hermitian = true;

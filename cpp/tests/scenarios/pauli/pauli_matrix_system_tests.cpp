@@ -140,4 +140,25 @@ namespace Moment::Tests {
                                Monomial{sZ, 1.0}, Monomial{sY, i},   Monomial{sX, -i},  Monomial{1, 1.0}});
     }
 
+    TEST(Scenarios_Pauli_MatrixSystem, FiveQubitSymbolTable) {
+        // Test replicating weird bug found by Mateus whereby anti-Hermitian symbols are erroneously generated.
+
+        PauliMatrixSystem system{5};
+        const auto& context = system.pauliContext;
+        const auto& symbols = system.Symbols();
+
+        const auto& mm = system.MomentMatrix(2);
+
+        EXPECT_EQ(symbols.size(), 782);
+
+        for (const auto& symbol : symbols) {
+            EXPECT_TRUE(symbol.is_hermitian()) << "Symbol = " << symbol;
+            ASSERT_TRUE(symbol.has_sequence()) << "Symbol = " << symbol;
+            EXPECT_EQ(symbol.sequence().get_sign(), SequenceSignType::Positive) << "Symbol = " << symbol;
+            EXPECT_EQ(symbol.sequence_conj().get_sign(), SequenceSignType::Positive) << "Symbol = " << symbol;
+        }
+
+
+    }
+
 }
