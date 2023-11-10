@@ -54,9 +54,10 @@ namespace Moment::mex::functions  {
         size_t output_size;
 
         enum class OutputMode {
-            Default,
+            SymbolCell,
+            SequencesWithSymbolInfo,
             String
-        } output_mode = OutputMode::Default;
+        } output_mode = OutputMode::SymbolCell;
 
     public:
         explicit PlusParams(SortedInputs&& inputs);

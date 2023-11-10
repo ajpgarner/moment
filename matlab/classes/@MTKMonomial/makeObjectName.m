@@ -28,7 +28,7 @@ function val = makeOneName(obj, opers, coef)
             if coef == -1.0
                 val = "-" + val;
             else
-                if ~isreal(coef)
+                if imag(coef)~=0
                     if real(coef) == 0
                         if imag(coef) == 1
                             val = "i" + val;
@@ -47,7 +47,7 @@ function val = makeOneName(obj, opers, coef)
             end
         end
     else        
-        if isreal(coef)
+        if imag(coef) == 0
             val = sprintf("%g", coef);
         elseif real(coef) == 0
             if imag(coef) == 1

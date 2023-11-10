@@ -87,11 +87,20 @@ namespace Moment::mex {
 
         /**
         * Export vector of polynomials as a vector of cell array full specifications
-        * @param combo The combo to export.
+        * @param poly_list The list of polynomials to export.
         * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
         */
         [[nodiscard]] matlab::data::CellArray sequence_cell_vector(std::span<const Polynomial> poly_list,
                                                                    bool include_symbols = false) const;
+
+        /**
+        * Export vector of polynomials as a cell array full monomial specification.
+        * @param poly The list of polynomials to export. Each must be monomial (0 or 1 elements).
+        * @return Full monomial specification, as matlab array.
+        */
+        [[nodiscard]] FullMonomialSpecification monomial_sequence_cell_vector(std::span<const Polynomial> poly_list,
+                                                                              const std::vector<size_t>& shape,
+                                                                              bool include_symbols = false) const;
 
     };
 }

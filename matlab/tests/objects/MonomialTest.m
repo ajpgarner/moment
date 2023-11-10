@@ -958,7 +958,7 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'algebraic', 'plus'})
         testCase.assertTrue(isa(not_zero, 'MTKMonomial'));
         testCase.assertEqual(not_zero.Scenario, setting);
         testCase.verifyEqual(not_zero.Operators, uint64.empty(1,0));
-        testCase.verifyEqual(not_zero.Coefficient, 5.0);
+        testCase.verifyEqual(real(not_zero.Coefficient), 5.0);
 
     end
 
@@ -974,7 +974,7 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'algebraic', 'plus'})
         testCase.verifyTrue(isa(not_zero, 'MTKMonomial'));
         testCase.assertEqual(not_zero.Scenario, setting);
         testCase.verifyEqual(not_zero.Operators, uint64.empty(1,0));
-        testCase.verifyEqual(not_zero.Coefficient, 5.0);
+        testCase.verifyEqual(real(not_zero.Coefficient), 5.0);
     end
 
     function plus_num_mono(testCase)

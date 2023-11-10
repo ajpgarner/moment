@@ -33,6 +33,16 @@ function val = plus(lhs, rhs)
 
     % Check objects are from same scenario
     this.checkSameScenario(other);
+    
+    % Do we have symbolic representation for accelerated addition?
+    if this.FoundAllSymbols && other.FoundAllSymbols
+        result_cell = mtk('plus', this.Scenario.System.RefId, ...
+                          this.SymbolCell, other.SymbolCell);
+        celldisp(result_cell);
+        val = MTKPolynomial.InitFromOperatorPolySpec(this.Scenario, ...
+                                                     result_cell);
+        return;
+    end
 
     % Handle Monomial append case
     if isa(other, 'MTKMonomial')

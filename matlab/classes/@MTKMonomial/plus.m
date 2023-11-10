@@ -56,9 +56,19 @@
         this.checkSameScenario(other);
     end
     
-    % If all zeros, then pass through
-    %if all(this.Zero)
-    
+    % Do we have symbolic representation for accelerated addition?
+    if this.FoundAllSymbols && other.FoundAllSymbols
+        [result_cell, is_monomial] = ...
+            mtk('plus', 'sequences', this.Scenario.System.RefId, ...
+                this.SymbolCell, other.SymbolCell);
+        if is_monomial
+            val = MTKMonomial.InitAllInfo(this.Scenario, result_cell{:});
+        else
+            val = MTKPolynomial.InitFromOperatorPolySpec(this.Scenario, ...
+                                                         result_cell);
+        end
+        return;
+    end
 
     % Handle remaining cases
     if this.IsScalar && other.IsScalar
@@ -73,7 +83,7 @@
         else
             val = MTKPolynomial(this.Scenario, [this;other]);
         end
-    elseif this.IsScalar % And RHS is not.
+    elseif this.IsScalar % And other is not a scalar.
         if all(cellfun(@(x) isequal(this.Operators, x), other.Operators))
             [coef, mask] = this.Scenario.Prune(this.Coefficient...
                                              + other.Coefficient);
@@ -90,9 +100,8 @@
                                'UniformOutput', false);
             val = MTKPolynomial(this.Scenario, mono_cells);                    
         end
-    elseif other.IsScalar % And LHS is not.
-        if all(cellfun(@(x) isequal(x, this.Operators), ...
-                this.Operators))
+    elseif other.IsScalar % And this is not a scalar.
+        if all(cellfun(@(x) isequal(x, this.Operators), this.Operators))
             [coef, mask] = this.Scenario.Prune(this.Coefficient...
                                              + other.Coefficient);
             if any(mask(:))

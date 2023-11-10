@@ -178,4 +178,39 @@ namespace Moment::mex {
         return output;
     }
 
+    FullMonomialSpecification
+    PolynomialExporter::monomial_sequence_cell_vector(std::span<const Polynomial> poly_list,
+                                                      const std::vector<size_t>& shape,
+                                                      bool include_symbols) const {
+        FullMonomialSpecification fms{this->factory, shape, include_symbols};
+
+        if (include_symbols) {
+            auto write_iter = fms.full_write_begin();
+            FullMonomialSpecification::FullWriteFunctor functor{this->factory, this->symbols};
+            for (const auto& poly : poly_list) {
+                assert(poly.is_monomial());
+                if (poly.empty()) {
+                    *write_iter = functor(Monomial{0});
+                } else {
+                    *write_iter = functor(poly.back());
+                }
+                ++write_iter;
+            }
+        } else {
+            auto write_iter = fms.partial_write_begin();
+            FullMonomialSpecification::PartialWriteFunctor functor{this->factory, this->symbols};
+            for (const auto& poly : poly_list) {
+                assert(poly.is_monomial());
+                if (poly.empty()) {
+                    *write_iter = functor(Monomial{0});
+                } else {
+                    *write_iter = functor(poly.back());
+                }
+                ++write_iter;
+            }
+        }
+
+        return fms;
+    }
+
 }

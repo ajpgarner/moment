@@ -64,8 +64,12 @@ namespace Moment::mex::functions {
         }
 
         // How do we output?
-        if (this->flags.contains(u"string_out")) {
+        if (this->flags.contains(u"strings")) {
             this->output_mode = OutputMode::String;
+        } else if (this->flags.contains(u"sequences")) {
+            this->output_mode = OutputMode::SequencesWithSymbolInfo;
+        } else {
+            this->output_mode = OutputMode::SymbolCell;
         }
     }
 
@@ -104,9 +108,14 @@ namespace Moment::mex::functions {
         this->min_inputs = 3;
         this->max_inputs = 3;
         this->min_outputs = 1;
-        this->max_outputs = 1;
+        this->max_outputs = 2;
 
-        this->flag_names.emplace(u"string_out");
+        this->flag_names.emplace(u"symbols");
+        this->flag_names.emplace(u"sequences");
+        this->flag_names.emplace(u"strings");
+
+        this->mutex_params.add_mutex({u"symbols", u"sequences", u"strings"});
+
     }
 
     void Plus::operator()(IOArgumentRange output, PlusParams &input) {
@@ -159,27 +168,55 @@ namespace Moment::mex::functions {
                 break;
         }
 
+        // Attempt to infer if output is a monomial object
+        const bool detect_if_monomial = output.size() >= 2;
+        bool is_monomial = false;
+        if (detect_if_monomial) {
+            is_monomial = std::all_of(output_poly.begin(), output_poly.end(), [](const Polynomial& poly) {
+                return poly.is_monomial();
+            });
+        }
 
         // Export polynomials
         matlab::data::ArrayFactory factory;
         PolynomialExporter exporter{this->matlabEngine, factory,
                                     matrixSystem.Context(), matrixSystem.Symbols(), poly_factory.zero_tolerance};
-        if (input.output_mode == PlusParams::OutputMode::String) {
-            matlab::data::StringArray string_out = factory.createArray<matlab::data::MATLABString>(input.output_shape);
+        switch (input.output_mode) {
+            case PlusParams::OutputMode::String: {
+                matlab::data::StringArray string_out = factory.createArray<matlab::data::MATLABString>(
+                        input.output_shape);
 
-            std::transform(output_poly.cbegin(), output_poly.cend(), string_out.begin(),
-                           [&exporter](const Polynomial &poly) -> matlab::data::MATLABString {
-                               return exporter.string(poly);
-                           });
-            output[0] = std::move(string_out);
-        } else {
-            matlab::data::CellArray cell_out = factory.createCellArray(input.output_shape);
-            std::transform(output_poly.cbegin(), output_poly.cend(), cell_out.begin(),
-                           [&exporter](const Polynomial &poly) -> matlab::data::CellArray {
-                               return exporter.symbol_cell(poly);
-                           });
-            output[0] = std::move(cell_out);
+                std::transform(output_poly.cbegin(), output_poly.cend(), string_out.begin(),
+                               [&exporter](const Polynomial &poly) -> matlab::data::MATLABString {
+                                   return exporter.string(poly);
+                               });
+                output[0] = std::move(string_out);
+            } break;
+            case PlusParams::OutputMode::SymbolCell: {
+                matlab::data::CellArray cell_out = factory.createCellArray(input.output_shape);
+                std::transform(output_poly.cbegin(), output_poly.cend(), cell_out.begin(),
+                               [&exporter](const Polynomial &poly) -> matlab::data::CellArray {
+                                   return exporter.symbol_cell(poly);
+                               });
+                output[0] = std::move(cell_out);
+            } break;
+            case PlusParams::OutputMode::SequencesWithSymbolInfo: {
+                if (is_monomial) {
+                    assert(detect_if_monomial);
+                    auto fms = exporter.monomial_sequence_cell_vector(output_poly, input.output_shape, true);
+                    output[0] = fms.move_to_cell(factory);
+                } else {
+                    output[0] = exporter.sequence_cell_vector(output_poly, true);
+                }
+            } break;
+            default:
+                throw_error(this->matlabEngine, errors::internal_error, "Unknown output format for plus.");
         }
 
+        // Write if output object is purely monomial.
+        if (detect_if_monomial) {
+            assert (output.size() >= 2);
+            output[1] = factory.createScalar<bool>(is_monomial);
+        }
     }
 }
