@@ -45,7 +45,36 @@ classdef PauliScenario < MTKScenario
         end
     end
     
-       
+    %% Accessors
+    methods
+        function val = sigmaX(obj, site)
+            if (nargin < 2) || ~isnumeric(site) ...
+                    || (numel(site)~=1) ...
+                    || (site < 0) || (site > obj.QubitCount)
+                error("Qubit number must be between 1 and %d.", obj.QubitCount);
+            end
+            val = MTKMonomial(obj, (site-1)*3+1, 1.0);
+        end
+        
+        function val = sigmaY(obj, site)
+            if (nargin < 2) || ~isnumeric(site) ...
+                    || (numel(site)~=1) ...
+                    || (site < 0) || (site > obj.QubitCount)
+                error("Qubit number must be between 1 and %d.", obj.QubitCount);
+            end
+            val = MTKMonomial(obj, (site-1)*3+2, 1.0);
+        end
+        
+        function val = sigmaZ(obj, site)
+            if (nargin < 2) || ~isnumeric(site) ...
+                    || (numel(site)~=1) ...
+                    || (site < 0) || (site > obj.QubitCount)
+                error("Qubit number must be between 1 and %d.", obj.QubitCount);
+            end
+            val = MTKMonomial(obj, (site-1)*3+3, 1.0);
+        end
+    end
+           
     %% Virtual methods    
     methods(Access={?MTKScenario,?MTKMatrixSystem})    
         function ref_id = createNewMatrixSystem(obj)        
