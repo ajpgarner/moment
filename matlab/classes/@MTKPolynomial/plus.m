@@ -64,7 +64,6 @@ function val = plus(lhs, rhs)
 
     % Handle Polynomial append case
     assert(isa(other, 'MTKPolynomial'));
-
     if this.IsScalar
         if other.IsScalar
             val = MTKPolynomial(this.Scenario, ...

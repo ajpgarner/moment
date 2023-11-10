@@ -50,17 +50,19 @@ matlab_add_mex(NAME moment_mex
             utilities/read_as_vector.cpp
             utilities/reflection.cpp
             utilities/reporting.cpp
-            functions/conjugate.cpp
             functions/import_matrix.cpp
             functions/generate_basis.cpp
             functions/make_representation.cpp
             functions/release.cpp
             functions/settings.cpp
-            functions/simplify.cpp
             functions/suggest_extensions.cpp
             functions/symbol_table.cpp
             functions/transform_symbols.cpp
             functions/word_list.cpp
+            functions/algebraic/conjugate.cpp
+            functions/algebraic/multiply.cpp
+            functions/algebraic/plus.cpp
+            functions/algebraic/simplify.cpp
             functions/debug/echo.cpp
             functions/debug/logging.cpp
             functions/debug/list.cpp

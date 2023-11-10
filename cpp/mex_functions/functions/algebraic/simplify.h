@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include "../mtk_function.h"
+#include "mtk_function.h"
 
 #include "import/read_polynomial.h"
 

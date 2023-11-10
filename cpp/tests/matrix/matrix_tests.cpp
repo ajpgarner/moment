@@ -170,7 +170,7 @@ namespace Moment::Tests {
 
             return output;
         }
-//
+
         std::pair<std::vector<sparse_complex_elem_t>, std::vector<sparse_complex_elem_t>> reference_sparse_complex() {
             std::pair<std::vector<sparse_complex_elem_t>, std::vector<sparse_complex_elem_t>> output;
 

@@ -7,17 +7,19 @@
 #include "function_list.h"
 #include "mtk_function.h"
 
-#include "functions/conjugate.h"
 #include "functions/generate_basis.h"
 #include "functions/import_matrix.h"
 #include "functions/make_representation.h"
 #include "functions/release.h"
 #include "functions/settings.h"
-#include "functions/simplify.h"
 #include "functions/suggest_extensions.h"
 #include "functions/symbol_table.h"
 #include "functions/transform_symbols.h"
 #include "functions/word_list.h"
+#include "functions/algebraic/conjugate.h"
+#include "functions/algebraic/multiply.h"
+#include "functions/algebraic/plus.h"
+#include "functions/algebraic/simplify.h"
 #include "functions/debug/echo.h"
 #include "functions/debug/list.h"
 #include "functions/debug/logging.h"
@@ -73,15 +75,17 @@ namespace Moment::mex::functions {
             output.emplace("inflation_matrix_system",   MTKEntryPointID::InflationMatrixSystem);
             output.emplace("localizing_matrix",  MTKEntryPointID::LocalizingMatrix);
             output.emplace("locality_matrix_system",    MTKEntryPointID::LocalityMatrixSystem);
-            output.emplace("logging",  MTKEntryPointID::Logging);
+            output.emplace("logging",            MTKEntryPointID::Logging);
             output.emplace("make_explicit",      MTKEntryPointID::MakeExplicit);
             output.emplace("make_representation",MTKEntryPointID::MakeRepresentation);
             output.emplace("moment_rules",       MTKEntryPointID::MomentRules);
             output.emplace("moment_matrix",      MTKEntryPointID::MomentMatrix);
             output.emplace("moment_rule_superset",      MTKEntryPointID::MomentRuleSuperset);
+            output.emplace("multiply",           MTKEntryPointID::Multiply);
             output.emplace("operator_matrix",    MTKEntryPointID::OperatorMatrix);
             output.emplace("operator_rules",     MTKEntryPointID::OperatorRules);
-            output.emplace("pauli_matrix_system",  MTKEntryPointID::PauliMatrixSystem);
+            output.emplace("pauli_matrix_system",MTKEntryPointID::PauliMatrixSystem);
+            output.emplace("plus",               MTKEntryPointID::Plus);
             output.emplace("probability_table",  MTKEntryPointID::ProbabilityTable);
             output.emplace("release",            MTKEntryPointID::Release);
             output.emplace("settings",           MTKEntryPointID::Settings);
@@ -204,6 +208,9 @@ namespace Moment::mex::functions {
             case functions::MTKEntryPointID::MomentRuleSuperset:
                 the_function = std::make_unique<functions::MomentRuleSuperset>(engine, storageManager);
                 break;
+            case functions::MTKEntryPointID::Multiply:
+                the_function = std::make_unique<functions::Multiply>(engine, storageManager);
+                break;
             case functions::MTKEntryPointID::OperatorMatrix:
                 the_function = std::make_unique<functions::RawOperatorMatrix>(engine, storageManager);
                 break;
@@ -212,6 +219,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MTKEntryPointID::PauliMatrixSystem:
                 the_function = std::make_unique<functions::PauliMatrixSystem>(engine, storageManager);
+                break;
+            case functions::MTKEntryPointID::Plus:
+                the_function = std::make_unique<functions::Plus>(engine, storageManager);
                 break;
             case functions::MTKEntryPointID::ProbabilityTable:
                 the_function = std::make_unique<functions::ProbabilityTable>(engine, storageManager);

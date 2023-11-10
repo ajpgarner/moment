@@ -108,4 +108,17 @@ namespace Moment::mex {
         }
         return factory(std::move(output_data));
     }
+
+    Polynomial raw_data_to_polynomial_assume_sorted(matlab::engine::MATLABEngine &matlabEngine,
+                                                    const PolynomialFactory &factory, std::span<const raw_sc_data> data) {
+        // No check for range!
+
+        Polynomial::storage_t output_data;
+        output_data.reserve(data.size());
+        for (const auto& datum: data) {
+            output_data.emplace_back(datum.symbol_id, datum.factor, datum.conjugated);
+        }
+        // TODO: Creation without sort
+        return factory(std::move(output_data));
+    }
 }

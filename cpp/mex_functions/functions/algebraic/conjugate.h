@@ -1,11 +1,11 @@
 /**
- * transpose.h
+ * conjugate.h
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 #pragma once
-#include "../mtk_function.h"
+#include "mtk_function.h"
 
 #include "integer_types.h"
 

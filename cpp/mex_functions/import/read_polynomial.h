@@ -46,6 +46,14 @@ namespace Moment::mex {
                                                     std::span<const raw_sc_data> data);
 
     /**
+     * Convert possible symbol combo data into an actual polynomial, assuming pre-sorted.
+     * @throws matlab::Exception (errors::bad_param) if symbols are out of bounds.
+     */
+    [[nodiscard]] Polynomial raw_data_to_polynomial_assume_sorted(matlab::engine::MATLABEngine& engine,
+                                                                  const PolynomialFactory& factory,
+                                                                  std::span<const raw_sc_data> data);
+
+    /**
      * Do bounds check on symbol combo data.
      * @throws matlab::Exception (errors::bad_param) if symbols are out of bounds.
      */
