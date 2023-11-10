@@ -21,6 +21,9 @@ namespace Moment {
      * Could associate an ID in the symbol table with an operator sequence.
      */
     class Symbol {
+    public:
+        struct construct_positive_tag { };
+
     private:
         symbol_name_t id = -1;
         std::optional<OperatorSequence> opSeq{};
@@ -33,10 +36,15 @@ namespace Moment {
     public:
         constexpr Symbol() = default;
 
+        /** Use operator sequence to make Hermitian symbol.*/
         explicit Symbol(OperatorSequence sequence) :
-                opSeq{std::move(sequence)},
-                conjSeq{}, hermitian{true}, antihermitian{false},
-                real_index{-1}, img_index{-1} { }
+                opSeq{std::move(sequence)}, hermitian{true} { }
+
+        /** Use operator sequence to make Hermitian symbol, but force reset of sign to positive */
+        explicit Symbol(const construct_positive_tag&/**/, OperatorSequence sequence) :
+                opSeq{std::move(sequence)}, hermitian{true} {
+            opSeq->set_sign(SequenceSignType::Positive);
+        }
 
         Symbol(OperatorSequence sequence, OperatorSequence conjSequence);
 

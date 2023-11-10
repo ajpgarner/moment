@@ -22,8 +22,11 @@ namespace Moment {
         /**
          * Helper class, converts OSM -> Symbol matrix, registering new symbols.
          * Note: this is the single-threaded implementation; see also /multithreading/matrix_generation_worker.h.
+         *
+         * @tparam has_prefactor True if constant pre-factor for Monomials should be created
+         * @tparam only_hermitian_ops True if every operator is Hermitian
          */
-        template<bool has_prefactor>
+        template<bool has_prefactor, bool only_hermitian_ops=false>
         class OpSeqToSymbolConverter {
         private:
             const Context& context;
@@ -39,7 +42,7 @@ namespace Moment {
                : context{context}, symbol_table{symbol_table}, osm{osm}, hermitian{osm.is_hermitian()} { }
 
             OpSeqToSymbolConverter(const Context &context, SymbolTable &symbol_table,
-                                   const OperatorMatrix::OpSeqMatrix &osm, std::complex<double> the_factor)
+                                   const OperatorMatrix::OpSeqMatrix &osm, const std::complex<double> the_factor)
                : context{context}, symbol_table{symbol_table}, osm{osm}, hermitian{osm.is_hermitian()},
                  prefactor{the_factor} { }
 
@@ -70,40 +73,57 @@ namespace Moment {
                 auto lower_triangle = osm.LowerTriangle();
                 auto iter = lower_triangle.begin();
                 const auto iter_end = lower_triangle.end();
-                while (iter != iter_end) {
-                    // This is a bit of a hack to compensate for col-major storage, while preferring symbols to be
-                    // numbered according to the top /row/ of moment matrices, if possible.
-                    // Thus, we look at a col-major iterator over the lower triangle, which actually gives us the
-                    // conjugates of what were generated; but we define what we find as the conjugate element.
-                    const auto& conj_elem = *iter;
-                    const auto elem = conj_elem.conjugate();
 
-                    int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
-                    const bool elem_hermitian = (compare == 1);
-
-                    const size_t hash = elem.hash();
-                    const size_t conj_hash = conj_elem.hash();
-
-                    // Don't add what is already known
-                    if (known_hashes.contains(hash) || (!elem_hermitian && known_hashes.contains(conj_hash))) {
-                        ++iter;
-                        continue;
-                    }
-
-                    if (elem_hermitian) {
-                        build_unique.emplace_back(elem);
-                        known_hashes.emplace(hash);
-                    } else {
-                        if (hash < conj_hash) {
-                            build_unique.emplace_back(elem, conj_elem);
-                        } else {
-                            build_unique.emplace_back(conj_elem, elem);
+                if constexpr(only_hermitian_ops) {
+                    while (iter != iter_end) {
+                        const auto& conj_elem = *iter;
+                        const size_t hash = conj_elem.hash();
+                        // Don't add what is already known
+                        if (known_hashes.contains(hash)) {
+                            ++iter;
+                            continue;
                         }
 
+                        // Add hash and symbol
                         known_hashes.emplace(hash);
-                        known_hashes.emplace(conj_hash);
+                        build_unique.emplace_back(Symbol::construct_positive_tag{}, conj_elem);
                     }
-                    ++iter;
+                } else {
+                    while (iter != iter_end) {
+                        // This is a bit of a hack to compensate for col-major storage, while preferring symbols to be
+                        // numbered according to the top /row/ of moment matrices, if possible.
+                        // Thus, we look at a col-major iterator over the lower triangle, which actually gives us the
+                        // conjugates of what were generated; but we define what we find as the conjugate element.
+                        const auto &conj_elem = *iter;
+                        const auto elem = conj_elem.conjugate();
+
+                        int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
+                        const bool elem_hermitian = (compare == 1);
+
+                        const size_t hash = elem.hash();
+                        const size_t conj_hash = conj_elem.hash();
+
+                        // Don't add what is already known
+                        if (known_hashes.contains(hash) || (!elem_hermitian && known_hashes.contains(conj_hash))) {
+                            ++iter;
+                            continue;
+                        }
+
+                        if (elem_hermitian) {
+                            build_unique.emplace_back(elem);
+                            known_hashes.emplace(hash);
+                        } else {
+                            if (hash < conj_hash) {
+                                build_unique.emplace_back(elem, conj_elem);
+                            } else {
+                                build_unique.emplace_back(conj_elem, elem);
+                            }
+
+                            known_hashes.emplace(hash);
+                            known_hashes.emplace(conj_hash);
+                        }
+                        ++iter;
+                    }
                 }
                 // NRVO?
                 return build_unique;
@@ -119,38 +139,53 @@ namespace Moment {
                 known_hashes.emplace(0);
                 known_hashes.emplace(1);
 
+
                 // Now, look at elements and see if they are unique or not
-                for (const auto& elem : osm) {
-
-                    const auto conj_elem = elem.conjugate();
-                    int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
-                    const bool elem_hermitian = (compare == 1);
-
-                    const size_t hash = elem.hash();
-                    const size_t conj_hash = conj_elem.hash();
-
-                    // Don't add what is already known
-                    if (known_hashes.contains(hash) || (!elem_hermitian && known_hashes.contains(conj_hash))) {
-                        continue;
-                    }
-
-                    if (elem_hermitian) {
-                        build_unique.emplace_back(elem);
-                        known_hashes.emplace(hash);
-                    } else {
-                        if (hash < conj_hash) {
-                            build_unique.emplace_back(elem, conj_elem);
-                        } else {
-                            build_unique.emplace_back(conj_elem, elem);
+                if constexpr(only_hermitian_ops) {
+                    for (const auto &elem: osm) {
+                        const size_t hash = elem.hash();
+                        // Don't add what is already known
+                        if (known_hashes.contains(hash)) {
+                            continue;
                         }
 
+                        // Add hash and symbol
                         known_hashes.emplace(hash);
-                        known_hashes.emplace(conj_hash);
+                        build_unique.emplace_back(Symbol::construct_positive_tag{}, elem);
                     }
+                } else {
+                    // Now, look at elements and see if they are unique or not
+                    for (const auto &elem: osm) {
 
+                        const auto conj_elem = elem.conjugate();
+                        int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
+                        const bool elem_hermitian = (compare == 1);
+
+                        const size_t hash = elem.hash();
+                        const size_t conj_hash = conj_elem.hash();
+
+                        // Don't add what is already known
+                        if (known_hashes.contains(hash) || (!elem_hermitian && known_hashes.contains(conj_hash))) {
+                            continue;
+                        }
+
+                        if (elem_hermitian) {
+                            build_unique.emplace_back(elem);
+                            known_hashes.emplace(hash);
+                        } else {
+                            if (hash < conj_hash) {
+                                build_unique.emplace_back(elem, conj_elem);
+                            } else {
+                                build_unique.emplace_back(conj_elem, elem);
+                            }
+
+                            known_hashes.emplace(hash);
+                            known_hashes.emplace(conj_hash);
+                        }
+
+                    }
                 }
 
-                // NRVO?
                 return build_unique;
             }
 
@@ -245,6 +280,29 @@ namespace Moment {
                                                                 std::move(symbolic_representation));
             }
         };
+
+        std::unique_ptr<SquareMatrix<Monomial>> do_conversion(SymbolTable &symbols, OperatorMatrix * op_mat_ptr) {
+            assert(op_mat_ptr);
+            const auto& context = op_mat_ptr->context;
+            if (context.can_be_nonhermitian()) {
+                return OpSeqToSymbolConverter<false, false>{context, symbols, (*op_mat_ptr)()}();
+            } else {
+                return OpSeqToSymbolConverter<false, true>{context, symbols, (*op_mat_ptr)()}();
+            }
+        }
+
+        std::unique_ptr<SquareMatrix<Monomial>> do_conversion(SymbolTable &symbols,
+                                                              OperatorMatrix * op_mat_ptr,
+                                                              const std::complex<double> prefactor) {
+            assert(op_mat_ptr);
+            const auto& context = op_mat_ptr->context;
+            if (context.can_be_nonhermitian()) {
+                return OpSeqToSymbolConverter<true, false>{context, symbols, (*op_mat_ptr)(), prefactor}();
+            } else {
+                return OpSeqToSymbolConverter<true, true>{context, symbols, (*op_mat_ptr)(), prefactor}();
+            }
+        }
+
     }
 
     MonomialMatrix::MonomialMatrix(const Context& context, SymbolTable& symbols, const double zero_tolerance,
@@ -267,7 +325,7 @@ namespace Moment {
 
     MonomialMatrix::MonomialMatrix(SymbolTable &symbols, std::unique_ptr<OperatorMatrix> op_mat_ptr)
         : MonomialMatrix{op_mat_ptr->context, symbols, 1.0,
-                         OpSeqToSymbolConverter<false>{op_mat_ptr->context, symbols, (*op_mat_ptr)()}(),
+                         do_conversion(symbols, op_mat_ptr.get()),
                          op_mat_ptr->is_hermitian(), std::complex<double>{1.0,0.0}} {
         assert(op_mat_ptr);
         this->op_mat = std::move(op_mat_ptr);
@@ -282,7 +340,7 @@ namespace Moment {
     MonomialMatrix::MonomialMatrix(SymbolTable &symbols, std::unique_ptr<OperatorMatrix> op_mat_ptr,
                                    std::complex<double> prefactor)
         : MonomialMatrix{op_mat_ptr->context, symbols, 1.0,
-                         OpSeqToSymbolConverter<true>{op_mat_ptr->context, symbols, (*op_mat_ptr)(), prefactor}(),
+                         do_conversion(symbols, op_mat_ptr.get(), prefactor),
                          op_mat_ptr->is_hermitian()  && approximately_real(prefactor), prefactor}  {
         assert(op_mat_ptr);
         this->op_mat = std::move(op_mat_ptr);
