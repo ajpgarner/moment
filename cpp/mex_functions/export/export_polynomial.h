@@ -91,6 +91,7 @@ namespace Moment::mex {
         * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
         */
         [[nodiscard]] matlab::data::CellArray sequence_cell_vector(std::span<const Polynomial> poly_list,
+                                                                   const std::vector<size_t>& shape,
                                                                    bool include_symbols = false) const;
 
         /**

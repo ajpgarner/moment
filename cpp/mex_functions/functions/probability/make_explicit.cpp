@@ -265,7 +265,7 @@ namespace Moment::mex::functions {
                 output[0] = exporter.symbol_cell_vector(rules);
                 break;
             case MakeExplicitParams::OutputType::Polynomial:
-                output[0] = exporter.sequence_cell_vector(rules, true);
+                output[0] = exporter.sequence_cell_vector(rules, std::vector<size_t>{1, rules.size()}, true);
                 break;
             default:
                 throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");

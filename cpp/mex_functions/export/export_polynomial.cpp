@@ -165,8 +165,10 @@ namespace Moment::mex {
     }
 
     matlab::data::CellArray
-    PolynomialExporter::sequence_cell_vector(std::span<const Polynomial> poly_list, bool include_symbols) const {
-        auto output = factory.createCellArray({poly_list.size(), 1});
+    PolynomialExporter::sequence_cell_vector(std::span<const Polynomial> poly_list,
+                                             const std::vector<size_t>& shape,
+                                             bool include_symbols) const {
+        auto output = factory.createCellArray(shape);
 
         auto write_iter = output.begin();
         for (const auto& poly : poly_list) {

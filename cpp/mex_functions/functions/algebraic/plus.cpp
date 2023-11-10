@@ -206,7 +206,7 @@ namespace Moment::mex::functions {
                     auto fms = exporter.monomial_sequence_cell_vector(output_poly, input.output_shape, true);
                     output[0] = fms.move_to_cell(factory);
                 } else {
-                    output[0] = exporter.sequence_cell_vector(output_poly, true);
+                    output[0] = exporter.sequence_cell_vector(output_poly, input.output_shape, true);
                 }
             } break;
             default:
