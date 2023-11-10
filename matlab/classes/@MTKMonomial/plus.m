@@ -97,7 +97,7 @@
                                              + other.Coefficient);
             if any(mask(:))
                 new_ops = this.Operators;
-                new_ops{mask} = [];
+                [new_ops{mask}] = deal([]);
                 val = MTKMonomial(this.Scenario, new_ops, coef);
             else
                 val = MTKMonomial(this.Scenario, this.Operators, coef);
@@ -115,7 +115,7 @@
                                               + other.Coefficient);
             if any(mask(:))
                 new_ops = this.Operators;
-                new_ops{mask} = [];
+                [new_ops{mask}] = deal([]);
                 val = MTKMonomial(this.Scenario, new_ops, coef);
             else
                 val = MTKMonomial(this.Scenario, this.Operators, coef);
