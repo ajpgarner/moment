@@ -7,11 +7,18 @@
 
 #include "gtest/gtest.h"
 
+#include "matrix/monomial_matrix.h"
 #include "matrix/polynomial_matrix.h"
+
 #include "scenarios/imported/imported_matrix_system.h"
+#include "scenarios/algebraic/algebraic_context.h"
+#include "scenarios/algebraic/algebraic_matrix_system.h"
+
 #include "symbolic/symbol_table.h"
 
+
 #include "compare_basis.h"
+#include "compare_symbol_matrix.h"
 
 #include <string>
 
@@ -231,4 +238,68 @@ namespace Moment::Tests {
         assert_same_matrix("Real", real, ref_real);
         assert_same_matrix("Imaginary", imaginary, ref_imaginary);
     }
+
+    TEST(Matrix_PolynomialMatrix, CreateByAddition) {
+
+        // Make context with x, y
+        Algebraic::AlgebraicMatrixSystem ams{
+            std::make_unique<Algebraic::AlgebraicContext>(2)
+        };
+        const auto& context = ams.AlgebraicContext();
+        const auto& symbols = ams.Symbols();
+        OperatorSequence x{{0}, context};
+        OperatorSequence y{{1}, context};
+
+        // Make constitutent matrices
+        const auto& lmX = ams.LocalizingMatrix(LocalizingMatrixIndex{1, x});
+        ASSERT_TRUE(lmX.is_monomial());
+        ASSERT_EQ(lmX.Dimension(), 3);
+        const auto& lmY = ams.LocalizingMatrix(LocalizingMatrixIndex{1, y});
+        ASSERT_TRUE(lmY.is_monomial());
+        ASSERT_EQ(lmY.Dimension(), 3);
+
+        // Make array with pointers
+        std::array<const MonomialMatrix*, 2> mm_ptrs{
+            dynamic_cast<const MonomialMatrix*>(&lmX), dynamic_cast<const MonomialMatrix*>(&lmY)
+        };
+        ASSERT_NE(mm_ptrs[0], mm_ptrs[1]);
+
+        // Attempt to make joined matrix
+        PolynomialMatrix summed_matrix{context, ams.polynomial_factory(), ams.Symbols(), mm_ptrs};
+        ASSERT_FALSE(summed_matrix.is_monomial());
+        ASSERT_EQ(summed_matrix.Dimension(), 3);
+
+        // Find symbols
+        auto find_or_fail = [&symbols](OperatorSequence seq) -> Monomial {
+            auto fX = symbols.where(seq);
+            if (!fX.found()) {
+                throw std::runtime_error(std::string("Did not find ") + seq.formatted_string());
+            }
+            return Monomial{fX->Id(), 1.0, fX.is_conjugated};
+        };
+        auto sX = find_or_fail(x);
+        auto sY = find_or_fail(y);
+        auto sXX = find_or_fail(OperatorSequence{{0, 0}, context});
+        auto sXY = find_or_fail(OperatorSequence{{0, 1}, context});
+        auto sYX = find_or_fail(OperatorSequence{{1, 0}, context});
+        auto sYY = find_or_fail(OperatorSequence{{1, 1}, context});
+        auto sXXX = find_or_fail(OperatorSequence{{0, 0, 0}, context});
+        auto sXXY = find_or_fail(OperatorSequence{{0, 0, 1}, context});
+        auto sXYX = find_or_fail(OperatorSequence{{0, 1, 0}, context});
+        auto sXYY = find_or_fail(OperatorSequence{{0, 1, 1}, context});
+        auto sYXX = find_or_fail(OperatorSequence{{1, 0, 0}, context});
+        auto sYXY = find_or_fail(OperatorSequence{{1, 0, 1}, context});
+        auto sYYX = find_or_fail(OperatorSequence{{1, 1, 0}, context});
+        auto sYYY = find_or_fail(OperatorSequence{{1, 1, 1}, context});
+
+        // Compare matrices
+        const auto& factory = ams.polynomial_factory();
+        compare_polynomial_matrix("lmX + lmY", summed_matrix, 3, factory.zero_tolerance,
+                                  std::vector<Polynomial>{
+            Polynomial{{sX, sY}}, Polynomial{{sXX, sYX}}, Polynomial{{sXY, sYY}},
+            Polynomial{{sXX, sXY}}, Polynomial{{sXXX, sXYX}}, Polynomial{{sXXY, sXYY}},
+            Polynomial{{sYX, sYY}}, Polynomial{{sYXX, sYYX}}, Polynomial{{sYXY, sYYY}}});
+
+    }
+
 }

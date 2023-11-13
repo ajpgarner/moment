@@ -17,8 +17,8 @@
 
 namespace Moment {
 
-    class SymbolTable;
     class OperatorMatrix;
+    class SymbolTable;
 
     /**
      * Symbolic matrix, where each entry represents a monomial expression.
@@ -111,6 +111,20 @@ namespace Moment {
          */
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
         post_multiply(const Monomial& rhs, SymbolTable& symbol_table,
+                      Multithreading::MultiThreadPolicy policy) const override;
+
+        /**
+         * Pre-multiply by a Polynomial.
+         */
+        [[nodiscard]] std::unique_ptr<SymbolicMatrix>
+        pre_multiply(const Polynomial& lhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+                     Multithreading::MultiThreadPolicy policy) const override;
+
+        /**
+         * Post-multiply by a Polynomial.
+         */
+        [[nodiscard]] std::unique_ptr<SymbolicMatrix>
+        post_multiply(const Polynomial& rhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                       Multithreading::MultiThreadPolicy policy) const override;
 
         /**

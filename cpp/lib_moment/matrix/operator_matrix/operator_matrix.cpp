@@ -8,6 +8,10 @@
 
 #include "dictionary/operator_sequence_generator.h"
 
+#include "symbolic/monomial.h"
+#include "symbolic/polynomial.h"
+#include "symbolic/symbol_table.h"
+
 #include <limits>
 #include <stdexcept>
 
@@ -75,4 +79,39 @@ namespace Moment {
         const bool should_mt = should_multithread_matrix_multiplication(policy, this->Dimension() * this->Dimension());
         return do_multiply_single_thread(*this, rhs);
     }
+
+    std::vector<std::unique_ptr<OperatorMatrix>>
+    OperatorMatrix::pre_multiply(const Polynomial &lhs, const SymbolTable &symbols,
+                                 Multithreading::MultiThreadPolicy policy) const {
+        const bool should_mt =
+                should_multithread_matrix_multiplication(policy, lhs.size() * this->Dimension() * this->Dimension());
+
+        std::vector<std::unique_ptr<OperatorMatrix>> output;
+        for (const auto& monomial : lhs) {
+            assert(monomial.id < symbols.size());
+            const auto& lhs_symbol = symbols[monomial.id];
+            assert(lhs_symbol.has_sequence());
+            const auto& sequence = monomial.conjugated ? lhs_symbol.sequence_conj() : lhs_symbol.sequence();
+            output.emplace_back(do_multiply_single_thread(sequence, *this));
+        }
+        return output;
+    }
+
+    std::vector<std::unique_ptr<OperatorMatrix>>
+    OperatorMatrix::post_multiply(const Polynomial &rhs, const SymbolTable &symbols,
+                                  Multithreading::MultiThreadPolicy policy) const {
+        const bool should_mt =
+                should_multithread_matrix_multiplication(policy, rhs.size() * this->Dimension() * this->Dimension());
+
+        std::vector<std::unique_ptr<OperatorMatrix>> output;
+        for (const auto& monomial : rhs) {
+            assert(monomial.id < symbols.size());
+            const auto& rhs_symbol = symbols[monomial.id];
+            assert(rhs_symbol.has_sequence());
+            const auto& sequence = monomial.conjugated ? rhs_symbol.sequence_conj() : rhs_symbol.sequence();
+            output.emplace_back(do_multiply_single_thread(*this, sequence));
+        }
+        return output;
+    }
+
 }

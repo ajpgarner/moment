@@ -29,6 +29,7 @@
 
 namespace Moment {
 
+    class Polynomial;
     class SymbolTable;
     class SymbolMatrix;
 
@@ -129,6 +130,22 @@ namespace Moment {
         [[nodiscard]] std::unique_ptr<OperatorMatrix>
         post_multiply(const OperatorSequence& rhs,
                      Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
+
+        /**
+         * Create a new operator matrix per element of polynomial, by pre-multiplying.
+         * This ignores factors!
+         */
+        [[nodiscard]] std::vector<std::unique_ptr<OperatorMatrix>>
+        pre_multiply(const Polynomial& lhs, const SymbolTable& symbols,
+                     Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
+
+        /**
+         * Create a new operator matrix per element of polynomial, by post-multiplying.
+         * This ignores factors!
+         */
+        [[nodiscard]] std::vector<std::unique_ptr<OperatorMatrix>>
+        post_multiply(const Polynomial& rhs, const SymbolTable& symbols,
+                      Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
 
         friend class SymbolicMatrix;
         friend class MonomialMatrix;

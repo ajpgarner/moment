@@ -25,10 +25,12 @@
 
 namespace Moment {
 
-    class OperatorMatrix;
-    class SymbolTable;
     class Context;
     class Monomial;
+    class OperatorMatrix;
+    class Polynomial;
+    class PolynomialFactory;
+    class SymbolTable;
 
     namespace errors {
         /**
@@ -203,6 +205,20 @@ namespace Moment {
          */
         [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
         post_multiply(const Monomial& rhs,  SymbolTable& symbol_table,
+                      Multithreading::MultiThreadPolicy policy) const;
+
+        /**
+         * Create a new matrix by pre-multiplying this one by a Polynomial.
+         */
+        [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
+        pre_multiply(const Polynomial& lhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+                     Multithreading::MultiThreadPolicy policy) const;
+
+        /**
+         * Create a new matrix by post-multiplying this one by a Polynomial.
+         */
+        [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
+        post_multiply(const Polynomial& rhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                       Multithreading::MultiThreadPolicy policy) const;
 
     protected:

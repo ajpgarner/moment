@@ -31,13 +31,27 @@ namespace Moment {
     }
 
     std::unique_ptr<SymbolicMatrix>
-    SymbolicMatrix::pre_multiply(const Monomial &lhs,  SymbolTable& symbol_registry,
+    SymbolicMatrix::pre_multiply(const Monomial& lhs, SymbolTable& symbol_registry,
                                  const Multithreading::MultiThreadPolicy policy) const {
         throw errors::cannot_multiply_exception{"Pre-multiplication not defined for generic SymbolicMatrix."};
     }
 
     std::unique_ptr<SymbolicMatrix>
-    SymbolicMatrix::post_multiply(const Monomial &rhs,  SymbolTable& symbol_registry,
+    SymbolicMatrix::post_multiply(const Monomial& rhs, SymbolTable& symbol_registry,
+                                  const Multithreading::MultiThreadPolicy policy) const {
+        throw errors::cannot_multiply_exception{"Post-multiplication not defined for generic SymbolicMatrix."};
+    }
+
+    std::unique_ptr<SymbolicMatrix>
+    SymbolicMatrix::pre_multiply(const Polynomial& lhs,
+                                 const PolynomialFactory& poly_factory, SymbolTable& symbol_registry,
+                                 const Multithreading::MultiThreadPolicy policy) const {
+        throw errors::cannot_multiply_exception{"Pre-multiplication not defined for generic SymbolicMatrix."};
+    }
+
+    std::unique_ptr<SymbolicMatrix>
+    SymbolicMatrix::post_multiply(const Polynomial&rhs,
+                                  const PolynomialFactory& poly_factory, SymbolTable& symbol_registry,
                                   const Multithreading::MultiThreadPolicy policy) const {
         throw errors::cannot_multiply_exception{"Post-multiplication not defined for generic SymbolicMatrix."};
     }

@@ -11,8 +11,12 @@
 #include "tensor/square_matrix.h"
 
 #include <memory>
+#include <span>
 
 namespace Moment {
+
+    class MonomialMatrix;
+    class PolynomialFactory;
 
     class PolynomialMatrix : public SymbolicMatrix {
     public:
@@ -56,6 +60,9 @@ namespace Moment {
     public:
         PolynomialMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance,
                          std::unique_ptr<MatrixData> symbolMatrix);
+
+        PolynomialMatrix(const Context& context, const PolynomialFactory& factory, SymbolTable& symbols,
+                         std::span<const MonomialMatrix*> constituents);
 
         ~PolynomialMatrix() noexcept = default;
 

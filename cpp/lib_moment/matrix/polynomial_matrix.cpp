@@ -9,6 +9,9 @@
 
 #include "polynomial_matrix.h"
 
+#include "monomial_matrix.h"
+
+#include "symbolic/polynomial_factory.h"
 #include "symbolic/polynomial_to_basis.h"
 #include "symbolic/polynomial_to_basis_mask.h"
 #include "symbolic/symbol_table.h"
@@ -16,7 +19,8 @@
 namespace Moment {
 
     namespace {
-        bool test_hermicity(const SymbolTable &table, const PolynomialMatrix::MatrixData &matrix, double tolerance) {
+        [[nodiscard]] bool test_hermicity(const SymbolTable &table,
+                                          const PolynomialMatrix::MatrixData &matrix, double tolerance) {
 
             for (size_t row = 0; row < matrix.dimension; ++row) {
 
@@ -36,6 +40,38 @@ namespace Moment {
             return true;
         }
 
+        [[nodiscard]] std::unique_ptr<PolynomialMatrix::MatrixData>
+        synthesize_from_parts(const PolynomialFactory &factory, const SymbolTable& symbols,
+                              std::span<const MonomialMatrix *> constituents) {
+            assert(!constituents.empty());
+            const size_t num_monos = constituents.size();
+            const size_t dimension = constituents[0]->Dimension();
+            const size_t elements = dimension * dimension;
+
+            // Prepare iterators
+            std::vector<const Monomial*> iterators;
+            iterators.reserve(num_monos);
+            for (const auto * constituent_ptr : constituents) {
+                assert(constituent_ptr->Dimension() == dimension);
+                iterators.emplace_back(constituent_ptr->raw_data());
+            }
+
+            // Construct polynomials
+            std::vector<Polynomial> output_data;
+            output_data.reserve(elements);
+            for (size_t n = 0; n < elements; ++n) {
+                Polynomial::storage_t poly_data;
+                poly_data.reserve(num_monos);
+                for (size_t c = 0 ; c < num_monos; ++c) {
+                    poly_data.emplace_back(*iterators[c]);
+                    ++iterators[c];
+                }
+                output_data.emplace_back(factory(std::move(poly_data)));
+            }
+
+            // Make matrix
+            return std::make_unique<PolynomialMatrix::MatrixData>(dimension, std::move(output_data));
+        }
     }
 
     PolynomialMatrix::PolynomialMatrix(const Context& context, SymbolTable& symbols, const double zero_tolerance,
@@ -47,11 +83,26 @@ namespace Moment {
         }
 
         // Matrix properties
-        this->hermitian = test_hermicity(symbols, *sym_exp_matrix, 1.0);
+        this->hermitian = test_hermicity(symbols, *sym_exp_matrix, zero_tolerance);
         this->description = "Polynomial Symbolic Matrix";
 
         // Included symbols and basis elements
         this->identify_symbols_and_basis_indices(zero_tolerance);
+    }
+
+    PolynomialMatrix::PolynomialMatrix(const Context &context, const PolynomialFactory &factory, SymbolTable &symbols,
+                                       std::span<const MonomialMatrix *> constituents)
+           : SymbolicMatrix{context, symbols, (constituents.empty() ? 0 : constituents[0]->Dimension())},
+             SymbolMatrix{*this}, sym_exp_matrix{nullptr} {
+
+        // Add matrices
+        this->sym_exp_matrix = synthesize_from_parts(factory, symbols, constituents);
+
+        this->hermitian = test_hermicity(symbols, *sym_exp_matrix, factory.zero_tolerance);
+        this->description = "Polynomial Symbolic Matrix";
+
+        // Included symbols and basis elements
+        this->identify_symbols_and_basis_indices(factory.zero_tolerance);
     }
 
     /**

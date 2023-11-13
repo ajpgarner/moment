@@ -10,6 +10,9 @@
 #include "compare_os_matrix.h"
 #include "compare_symbol_matrix.h"
 
+#include "scenarios/algebraic/algebraic_context.h"
+#include "scenarios/algebraic/algebraic_matrix_system.h"
+
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
 
@@ -129,5 +132,111 @@ namespace Moment::Tests {
                                  Monomial{sY, -i}, Monomial{sZ, 1.0},  Monomial{1, i},   Monomial{sX, 1.0},
                                  Monomial{sX, i}, Monomial{1, -i},  Monomial{sZ, 1.0},  Monomial{sY, 1.0},
                                  Monomial{1, 1.0}, Monomial{sX, -1.0},   Monomial{sY, -1.0},  Monomial{sZ, 1.0}});
+    }
+
+
+    TEST(Matrix_MonomialMatrix, MultiplyByPolynomial) {
+
+        // Make context with x, y
+        Algebraic::AlgebraicMatrixSystem ams{
+                std::make_unique<Algebraic::AlgebraicContext>(2)
+        };
+        const auto& context = ams.AlgebraicContext();
+        auto& symbols = ams.Symbols();
+        OperatorSequence x{{0}, context};
+        OperatorSequence y{{1}, context};
+
+        // Make all words up to length 3
+        ams.generate_dictionary(3);
+
+        // Make moment matrix
+        const auto& mmRaw = ams.MomentMatrix(1);
+        ASSERT_TRUE(mmRaw.is_monomial());
+        const auto& mm = dynamic_cast<const MonomialMatrix&>(mmRaw);
+        ASSERT_EQ(mm.Dimension(), 3);
+
+        // Find symbols
+        auto find_or_fail = [&symbols](OperatorSequence seq) -> Monomial {
+            auto fX = symbols.where(seq);
+            if (!fX.found()) {
+                throw std::runtime_error(std::string("Did not find ") + seq.formatted_string());
+            }
+            return Monomial{fX->Id(), 1.0, fX.is_conjugated};
+        };
+        auto sX = find_or_fail(x);
+        auto sY = find_or_fail(y);
+        auto sXX = find_or_fail(OperatorSequence{{0, 0}, context});
+        auto sXY = find_or_fail(OperatorSequence{{0, 1}, context});
+        auto sYX = find_or_fail(OperatorSequence{{1, 0}, context});
+        auto sYY = find_or_fail(OperatorSequence{{1, 1}, context});
+        auto sXXX = find_or_fail(OperatorSequence{{0, 0, 0}, context});
+        auto sXXY = find_or_fail(OperatorSequence{{0, 0, 1}, context});
+        auto sXYX = find_or_fail(OperatorSequence{{0, 1, 0}, context});
+        auto sXYY = find_or_fail(OperatorSequence{{0, 1, 1}, context});
+        auto sYXX = find_or_fail(OperatorSequence{{1, 0, 0}, context});
+        auto sYXY = find_or_fail(OperatorSequence{{1, 0, 1}, context});
+        auto sYYX = find_or_fail(OperatorSequence{{1, 1, 0}, context});
+        auto sYYY = find_or_fail(OperatorSequence{{1, 1, 1}, context});
+
+        // Make polynomial
+        const auto& factory = ams.polynomial_factory();
+        const Polynomial x_plus_y = factory({sX, sY});
+        ASSERT_EQ(x_plus_y.size(), 2);
+
+        // Pre-multiply
+        auto poly_mm_ptr = mm.pre_multiply(x_plus_y, factory, symbols, Multithreading::MultiThreadPolicy::Never);
+        ASSERT_FALSE(poly_mm_ptr->is_monomial());
+        const auto& poly_mm = dynamic_cast<const PolynomialMatrix&>(*poly_mm_ptr);
+        compare_polynomial_matrix("(X + Y) * mm", poly_mm, 3, factory.zero_tolerance,
+                                  std::vector<Polynomial>{
+                                          factory({sX, sY}), factory({sXX, sYX}), factory({sXY, sYY}),
+                                          factory({sXX, sYX}), factory({sXXX, sYXX}), factory({sXXY, sYXY}),
+                                          factory({sXY, sYY}), factory({sXYX, sYYX}), factory({sXYY, sYYY})});
+
+        // Post-multiply
+        auto mm_poly_ptr = mm.post_multiply(x_plus_y, factory, symbols, Multithreading::MultiThreadPolicy::Never);
+        ASSERT_FALSE(mm_poly_ptr->is_monomial());
+        const auto& mm_poly = dynamic_cast<const PolynomialMatrix&>(*mm_poly_ptr);
+        compare_polynomial_matrix("mm * (X + Y)", mm_poly, 3, factory.zero_tolerance,
+                                  std::vector<Polynomial>{
+                                          factory({sX, sY}), factory({sXX, sXY}), factory({sYX, sYY}),
+                                          factory({sXX, sXY}), factory({sXXX, sXXY}), factory({sXYX, sXYY}),
+                                          factory({sYX, sYY}), factory({sYXX, sYXY}), factory({sYYX, sYYY})});
+    }
+
+    TEST(Matrix_MonomialMatrix, MultiplyByZero) {
+        // Make context with x, y
+        Algebraic::AlgebraicMatrixSystem ams{
+                std::make_unique<Algebraic::AlgebraicContext>(2)
+        };
+        const auto& context = ams.AlgebraicContext();
+        const auto& factory = ams.polynomial_factory();
+        auto& symbols = ams.Symbols();
+
+        // Make moment matrix
+        const auto& mmRaw = ams.MomentMatrix(1);
+        ASSERT_TRUE(mmRaw.is_monomial());
+        const auto& mm = dynamic_cast<const MonomialMatrix&>(mmRaw);
+        ASSERT_EQ(mm.Dimension(), 3);
+
+        auto poly_zero = Polynomial::Zero();
+        ASSERT_TRUE(poly_zero.empty());
+
+        auto zeroMMPtr = mm.pre_multiply(poly_zero, factory, symbols, Multithreading::MultiThreadPolicy::Never);
+        ASSERT_TRUE(zeroMMPtr->is_monomial());
+        ASSERT_EQ(zeroMMPtr->Dimension(), 3);
+        auto& zeroMM = dynamic_cast<const MonomialMatrix&>(*zeroMMPtr);
+        for (size_t n = 0; n < 9; ++n) {
+            EXPECT_EQ(zeroMM.raw_data()[n].id, 0) << n;
+        }
+
+        auto mmZeroPtr = mm.post_multiply(poly_zero, factory, symbols, Multithreading::MultiThreadPolicy::Never);
+        ASSERT_TRUE(mmZeroPtr->is_monomial());
+        ASSERT_EQ(mmZeroPtr->Dimension(), 3);
+        auto& mmZero = dynamic_cast<const MonomialMatrix&>(*mmZeroPtr);
+        for (size_t n = 0; n < 9; ++n) {
+            EXPECT_EQ(mmZero.raw_data()[n].id, 0) << n;
+        }
+
     }
 }
