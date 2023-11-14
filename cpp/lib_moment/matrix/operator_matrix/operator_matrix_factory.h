@@ -153,12 +153,14 @@ namespace Moment {
         void make_symbolic_matrix_multi_thread() {
             assert(this->operatorMatrix);
             assert(this->mt_bundle.has_value());
-            std::vector<Monomial> monomial_data; // XXX: Switch to std::unique_ptr<Monomial[]>, or the like
-            monomial_data.reserve(this->numel);
-            this->mt_bundle->generate_symbol_matrix(monomial_data.data()); // XXX: Output of this is currently discarded
+
+            std::vector<Monomial> monomial_data(this->numel);
+            this->mt_bundle->generate_symbol_matrix(monomial_data.data());
+            auto mono_m_ptr = std::make_unique<SquareMatrix<Monomial>>(this->dimension, std::move(monomial_data));
 
             this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols,
-                                                                    std::move(this->operatorMatrix));
+                                                                    std::move(this->operatorMatrix),
+                                                                    std::move(mono_m_ptr));
         }
     };
 

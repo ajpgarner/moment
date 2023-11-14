@@ -337,12 +337,9 @@ namespace Moment {
                          do_conversion(symbols, op_mat_ptr.get()),
                          op_mat_ptr->is_hermitian(), std::complex<double>{1.0,0.0}} {
         assert(op_mat_ptr);
+
+        // Register operator matrix with this monomial matrix
         this->op_mat = std::move(op_mat_ptr);
-
-        // Count symbols
-        this->MonomialMatrix::renumerate_bases(symbols, 1.0);
-
-        // Set matrix properties
         this->op_mat->set_properties(*this);
     }
 
@@ -352,14 +349,24 @@ namespace Moment {
                          do_conversion(symbols, op_mat_ptr.get(), prefactor),
                          op_mat_ptr->is_hermitian()  && approximately_real(prefactor), prefactor}  {
         assert(op_mat_ptr);
+
+        // Register operator matrix with this monomial matrix
         this->op_mat = std::move(op_mat_ptr);
-
-        // Count symbols
-        this->MonomialMatrix::renumerate_bases(symbols, 1.0);
-
-        // Set matrix properties
         this->op_mat->set_properties(*this);
     }
+
+
+    MonomialMatrix::MonomialMatrix(SymbolTable& symbols,
+                                   std::unique_ptr<OperatorMatrix> op_mat_ptr,
+                                   std::unique_ptr<SquareMatrix<Monomial>> sym_mat_ptr)
+        : MonomialMatrix{op_mat_ptr->context, symbols, 1.0, std::move(sym_mat_ptr),
+                         op_mat_ptr->is_hermitian(), 1.0} {
+
+            // Register operator matrix with this monomial matrix
+            this->op_mat = std::move(op_mat_ptr);
+            this->op_mat->set_properties(*this);
+        }
+
 
     MonomialMatrix::~MonomialMatrix() noexcept = default;
 

@@ -418,7 +418,7 @@ namespace Moment::Multithreading {
                     const size_t offset = (col_idx * row_length) + row_idx;
                     const auto& elem = this->bundle.os_data_ptr[offset];
 
-                    const bool negated = elem.negated();
+                    const auto monomial_sign = to_scalar(elem.get_sign());
                     const size_t hash = elem.hash();
                     auto [symbol_id, conjugated] = symbol_table.hash_to_index(hash);
 
@@ -430,7 +430,9 @@ namespace Moment::Multithreading {
                     }
                     const auto& unique_elem = symbol_table[symbol_id];
 
-                    this->bundle.sm_data_ptr[offset] = Monomial{unique_elem.Id(), negated, conjugated};
+                    this->bundle.sm_data_ptr[offset] = Monomial{unique_elem.Id(),
+                                                                monomial_sign,
+                                                                conjugated};
                 }
             }
         }
@@ -450,8 +452,9 @@ namespace Moment::Multithreading {
                     const size_t trans_offset = (row_idx * row_length) + col_idx;
                     const auto& elem = this->bundle.os_data_ptr[offset];
 
-                    const bool negated = elem.negated();
                     const size_t hash = elem.hash();
+                    const auto monomial_sign = to_scalar(elem.get_sign());
+
                     auto [symbol_id, conjugated] = symbol_table.hash_to_index(hash);
 
                     if (symbol_id == std::numeric_limits<ptrdiff_t>::max()) {
@@ -463,16 +466,14 @@ namespace Moment::Multithreading {
                     const auto& unique_elem = symbol_table[symbol_id];
 
                     // Write entry
-                    write_ptr[offset] = Monomial{unique_elem.Id(), negated, conjugated};
+                    write_ptr[offset] = Monomial{unique_elem.Id(), monomial_sign, conjugated};
 
                     // Write H conj entry
                     if (offset != trans_offset) {
                         if (unique_elem.is_hermitian()) {
-                            write_ptr[trans_offset] = Monomial{unique_elem.Id(),
-                                                                             negated, false};
+                            write_ptr[trans_offset] = Monomial{unique_elem.Id(), std::conj(monomial_sign), false};
                         } else {
-                            write_ptr[trans_offset] = Monomial{unique_elem.Id(),
-                                                                             negated, !conjugated};
+                            write_ptr[trans_offset] = Monomial{unique_elem.Id(), std::conj(monomial_sign), !conjugated};
                         }
                     }
                 }
@@ -483,9 +484,7 @@ namespace Moment::Multithreading {
             assert(this->the_thread.joinable());
             this->the_thread.join();
         }
-
     };
-
 
     template<typename elem_functor_t>
     class matrix_generation_worker_bundle {

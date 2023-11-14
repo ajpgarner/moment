@@ -81,8 +81,8 @@ namespace Moment {
                        std::complex<double> prefactor);
 
         /** Construct monomial matrix, with pre-calculated Monomials AND operator matrix */
-//        MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix,
-//                       std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix);
+        MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix,
+                       std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix);
 
         /** Destruct monomial matrix. */
         ~MonomialMatrix() noexcept;
