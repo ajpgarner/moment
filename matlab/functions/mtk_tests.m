@@ -51,6 +51,6 @@ function files = find_unit_tests(test_dir)
     test_search_struct = dir([test_dir, '**', filesep, '*Test.m']);
     names = {test_search_struct.name};
     folders = {test_search_struct.folder};
-    files = cellfun(@(a,b) [a, '\', b], folders, names, ...
+    files = cellfun(@(a,b) [a, filesep, b], folders, names, ...
                     'UniformOutput', false);
 end
