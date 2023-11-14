@@ -93,6 +93,7 @@ namespace Moment {
 
     constexpr std::complex<double> to_scalar(const SequenceSignType sst) noexcept {
         switch (sst) {
+            default:
             case SequenceSignType::Positive:
                 return {1.0, 0.0};
             case SequenceSignType::Imaginary:

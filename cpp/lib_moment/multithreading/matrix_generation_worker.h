@@ -15,6 +15,7 @@
 
 #include "utilities/linear_map_merge.h"
 
+#include <algorithm>
 #include <atomic>
 #include <bit>
 #include <future>
@@ -504,7 +505,7 @@ namespace Moment::Multithreading {
             this->ready_to_begin_symbol_identification.clear(std::memory_order_relaxed);
             this->ready_to_begin_sm_generation.clear(std::memory_order_relaxed);
 
-            const size_t num_threads = Multithreading::get_max_worker_threads();
+            const size_t num_threads = std::min(Multithreading::get_max_worker_threads(), rows.size());
 
             // Set up workers, get associated future
             this->workers.reserve(num_threads);

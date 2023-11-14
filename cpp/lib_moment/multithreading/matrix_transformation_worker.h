@@ -9,6 +9,7 @@
 
 #include "multithreading.h"
 
+#include <algorithm>
 #include <cassert>
 #include <thread>
 #include <vector>
@@ -71,7 +72,7 @@ namespace Moment::Multithreading {
                                const elem_functor_t &the_functor) {
 
         // Determine degree of parallelization
-        const size_t num_threads = Multithreading::get_max_worker_threads();
+        const size_t num_threads = std::min(Multithreading::get_max_worker_threads(), dimension);
 
         using worker_t = matrix_transformation_worker<input_elem_t, output_elem_t, elem_functor_t>;
 
