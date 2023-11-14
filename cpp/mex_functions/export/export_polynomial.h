@@ -57,17 +57,54 @@ namespace Moment::mex {
 
         /**
          * Export polynomial directly as a cell array.
-         * @param combo The combo to export.
+         * @param poly The polynomial to export.
          * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
          */
         [[nodiscard]] matlab::data::CellArray symbol_cell(const Polynomial& poly) const;
 
         /**
+         * Export monomial as a cell array.
+         * @param mono The monomial to export.
+         * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
+         */
+        [[nodiscard]] matlab::data::CellArray symbol_cell(const Monomial& mono) const;
+
+        /**
          * Export vector of polynomials as a vector of cell arrays.
+         * @param poly_list The polynomials to export.
+         * @param shape The shape of the symbol cell.
+         * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
+         */
+        [[nodiscard]] matlab::data::CellArray symbol_cell_vector(const std::span<const Polynomial> poly_list,
+                                                                 matlab::data::ArrayDimensions shape) const;
+
+
+        /**
+         * Export vector of polynomials as a vector of cell arrays.
+         * @param poly_list The polynomials to export.
+         * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
+         */
+        [[nodiscard]] matlab::data::CellArray symbol_cell_vector(const std::span<const Polynomial> poly_list) const {
+            return this->symbol_cell_vector(poly_list, matlab::data::ArrayDimensions{poly_list.size(), 1});
+        }
+
+        /**
+         * Export vector of monomials as a vector of cell arrays.
+         * @param combo The monomials to export.
+         * @param shape The shape of the symbol cell.
+         * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
+         */
+        [[nodiscard]] matlab::data::CellArray symbol_cell_vector(const std::span<const Monomial> mono_list,
+                                                                 matlab::data::ArrayDimensions shape) const;
+
+        /**
+         * Export vector of monomials as a vector of cell arrays.
          * @param combo The combo to export.
          * @return Cell array of cell pairs/triplets {{id, factor, [true, if conjugated]}}
          */
-        [[nodiscard]] matlab::data::CellArray symbol_cell_vector(std::span<const Polynomial> poly_list) const;
+        [[nodiscard]] matlab::data::CellArray symbol_cell_vector(const std::span<const Monomial> mono_list) const {
+            return this->symbol_cell_vector(mono_list, matlab::data::ArrayDimensions{mono_list.size(), 1});
+        }
 
         /**
          * Export polynomial as strings.

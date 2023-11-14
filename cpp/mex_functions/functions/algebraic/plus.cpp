@@ -85,7 +85,7 @@ namespace Moment::mex::functions {
         }
 
 
-        raw.raw.reserve(inputs[1].getNumberOfElements());
+        raw.raw.reserve(raw_input.getNumberOfElements());
 
         // Looks suspicious, but promised by MATLAB to be a reference, not copy.
         const matlab::data::CellArray cell_input = raw_input;

@@ -85,6 +85,13 @@ namespace Moment::mex {
          */
         [[nodiscard]] matlab::data::StringArray symbol_strings(const SymbolicMatrix &matrix) const;
 
+        /**
+         * Export matrix as symbol cell.
+         * @param matrix The matrix object.
+         * @return A matlab string array.
+         */
+        [[nodiscard]] matlab::data::CellArray symbol_cell(const SymbolicMatrix &matrix) const;
+
     public:
         /**
          * Return dimensions of supplied operator matrix.

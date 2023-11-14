@@ -54,11 +54,11 @@ namespace Moment::mex {
         };
     }
 
-    matlab::data::CellArray PolynomialExporter::symbol_cell(const Polynomial &combo) const {
+    matlab::data::CellArray PolynomialExporter::symbol_cell(const Polynomial& polynomial) const {
 
-        auto output = factory.createCellArray({1, combo.size()});
+        auto output = factory.createCellArray({1, polynomial.size()});
         auto write_iter = output.begin();
-        for (const auto& term : combo) {
+        for (const auto& term : polynomial) {
             auto symbol_expr_out = factory.createCellArray({1ULL, term.conjugated ? 3ULL : 2ULL});
             symbol_expr_out[0] = factory.createScalar<int64_t>(term.id);
             if (approximately_real(term.factor)) {
@@ -72,6 +72,25 @@ namespace Moment::mex {
             *write_iter = std::move( symbol_expr_out);
             ++write_iter;
         }
+        return output;
+    }
+
+    matlab::data::CellArray PolynomialExporter::symbol_cell(const Monomial& monomial) const {
+
+        auto output = factory.createCellArray({1, 1});
+        auto write_iter = output.begin();
+
+        auto symbol_expr_out = factory.createCellArray({1ULL, monomial.conjugated ? 3ULL : 2ULL});
+        symbol_expr_out[0] = factory.createScalar<int64_t>(monomial.id);
+        if (approximately_real(monomial.factor)) {
+            symbol_expr_out[1] = factory.createScalar<double>(monomial.factor.real());
+        } else {
+            symbol_expr_out[1] = factory.createScalar<std::complex<double>>(monomial.factor);
+        }
+        if (monomial.conjugated) {
+            symbol_expr_out[2] = factory.createScalar<bool>(true);
+        }
+        (*output.begin()) = std::move(symbol_expr_out);
         return output;
     }
 
@@ -152,12 +171,25 @@ namespace Moment::mex {
         return output;
     }
 
-    matlab::data::CellArray PolynomialExporter::symbol_cell_vector(std::span<const Polynomial> poly_list) const {
-        auto output = factory.createCellArray({poly_list.size(), 1});
+    matlab::data::CellArray PolynomialExporter::symbol_cell_vector(const std::span<const Polynomial> poly_list,
+                                                                   matlab::data::ArrayDimensions shape) const {
+        auto output = factory.createCellArray(std::move(shape));
 
         auto write_iter = output.begin();
         for (const auto& poly : poly_list) {
             (*write_iter) = this->symbol_cell(poly);
+            ++write_iter;
+        }
+
+        return output;
+    }
+    matlab::data::CellArray PolynomialExporter::symbol_cell_vector(const std::span<const Monomial> mono_list,
+                                                                   matlab::data::ArrayDimensions shape) const {
+        auto output = factory.createCellArray(std::move(shape));
+
+        auto write_iter = output.begin();
+        for (const auto& mono : mono_list) {
+            (*write_iter) = this->symbol_cell(mono);
             ++write_iter;
         }
 

@@ -113,7 +113,18 @@ namespace Moment::mex {
             return output;
         }
 
+        template<typename matrix_t>
+        matlab::data::CellArray do_export_symbol_cell(const OperatorMatrixExporter& exporter, const matrix_t& matrix) {
+            PolynomialExporter poly_exporter{exporter.engine, exporter.factory, exporter.context,
+                                             exporter.symbol_table, exporter.zero_tolerance};
+
+            return poly_exporter.symbol_cell_vector(matrix.SymbolMatrix(),
+                                                    matlab::data::ArrayDimensions{matrix.Dimension(),
+                                                                                  matrix.Dimension()});
+        }
     }
+
+
 
     OperatorMatrixExporter::OperatorMatrixExporter(matlab::engine::MATLABEngine &engine, const MatrixSystem &system)
         : ExporterWithFactory{engine}, system{system}, context{system.Context()}, symbol_table{system.Symbols()},
@@ -171,6 +182,14 @@ namespace Moment::mex {
 
     matlab::data::StringArray OperatorMatrixExporter::name(const SymbolicMatrix &matrix) const {
         return this->factory.createScalar(matrix.Description());
+    }
+
+    matlab::data::CellArray OperatorMatrixExporter::symbol_cell(const SymbolicMatrix &matrix) const {
+        if (matrix.is_monomial()) {
+            return do_export_symbol_cell(*this, dynamic_cast<const MonomialMatrix&>(matrix));
+        } else {
+            return do_export_symbol_cell(*this, dynamic_cast<const PolynomialMatrix&>(matrix));
+        }
     }
 
     matlab::data::CellArray OperatorMatrixExporter::polynomials(const SymbolicMatrix &matrix) const {
