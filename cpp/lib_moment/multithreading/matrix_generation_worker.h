@@ -59,7 +59,7 @@ namespace Moment::Multithreading {
                 : bundle{the_bundle}, worker_id{worker_id}, max_workers{max_workers} {
             assert(worker_id < max_workers);
             assert(max_workers != 0);
-            merge_level = 0;
+            merge_level = std::numeric_limits<size_t>::max();
         }
 
         matrix_generation_worker(const matrix_generation_worker& rhs) = delete;
@@ -211,6 +211,45 @@ namespace Moment::Multithreading {
             }
         }
 
+        /**
+         * First hierarchical level of merge.
+         */
+        constexpr size_t first_merge_level() const {
+            assert(this->max_workers > 0);
+            const size_t bf_mw = std::bit_floor(this->max_workers);
+            const size_t p = std::bit_width(bf_mw)-1;
+            // Trick is to think of division as partitioning the data among threads.
+            // Number of workers is a power of two, and so we have 1/2^p of the data in each worker.
+            if (bf_mw == this->max_workers) {
+                return p;
+            }
+
+            // Otherwise, 1/2^p of data in some workers, 1/2^(p+1) in other workers.
+            // E.g. 1: N = 10 will have 0, 8 and 1, 9 subdivided to 1/2^4 = 1/16, and all remaining at 1/2^3 = 1/8
+            // E.g. 2: N = 5 has 0, 4 subdivided  to 1/2^3 = 1/8, all remaining at 1/2^2 = 1/4
+
+            // Workers above bit floor have 1/2^(p+1) of data
+            // E.g. N = 10, bf_mw = 8; so threads 8 and 9 take 1/16.
+            if (this->worker_id >= bf_mw) {
+                return p+1;
+            }
+
+            // Any worker whose first power 2 pair is a thread above the bit floor also has 1/2^(p+1) of data
+            if ((this->worker_id + bf_mw) < this->max_workers) { // excess
+                return p+1;
+            }
+            // The remaining workers are not split in half, and have 1/2^(p) of the data.
+            return p;
+        }
+
+        /**
+         * Final hierarchical level of merge.
+         */
+        constexpr size_t final_merge_level() const {
+            // Thread 0 takes 1/1 of data; 1 takes 1/2, 2 and 3 take 1/4, 4...7 take 1/8, etc.
+            return std::bit_width(std::bit_floor(this->worker_id));
+        }
+
 
         void identify_unique_symbols_hermitian() {
             const size_t row_length = bundle.dimension;
@@ -259,7 +298,7 @@ namespace Moment::Multithreading {
             }
 
             // Flag, that we have calculated level 0, and notify any threads waiting on us.
-            this->merge_level.store(1, std::memory_order_release);
+            this->merge_level.store(this->first_merge_level(), std::memory_order_release);
             this->merge_level.notify_all();
         }
 
@@ -310,7 +349,7 @@ namespace Moment::Multithreading {
             }
 
             // Flag, that we have calculated level 0, and notify any threads waiting on us.
-            this->merge_level.store(1, std::memory_order_release);
+            this->merge_level.store(this->first_merge_level(), std::memory_order_release);
             this->merge_level.notify_all();
         }
 
@@ -324,33 +363,26 @@ namespace Moment::Multithreading {
         }
 
         void merge_unique_symbols() {
-            // Trivially, nothing to do if in right half
-            const size_t max_worker_bc = std::bit_ceil(this->max_workers);
-            if (this->worker_id >= (max_worker_bc >> 1)) {
-                return;
-            }
-            // Trivially, nothing to do if no paired thread to merge with
-            if (this->worker_id + (max_worker_bc >> 1) >= this->max_workers) {
-                return;
-            }
-
+            const size_t final_merge_level = this->final_merge_level();
             while (true) {
-                const size_t this_merge_level = this->merge_level.load(std::memory_order_relaxed);
-                // We are now done.
-                if (this->worker_id >= (max_worker_bc >> this_merge_level)) {
+                const size_t current_merge_level = this->merge_level.load(std::memory_order_acquire);
+
+                // We are done.
+                if (current_merge_level <= final_merge_level) {
                     return;
                 }
+                assert(current_merge_level > 0);
 
-                // Get other worker ID
-                size_t wait_for_worker_id = this->worker_id + (max_worker_bc >> this_merge_level); // 0 -> 4, 2, 1
+                // Get other worker ID and thread handle
+                // e.g. CML=4 pairs with +8; CML=3 pairs with +4; CML=2 pairs with +2; CML=1 pairs with +1
+                const size_t wait_for_worker_id = this->worker_id + (1 << (current_merge_level-1));
                 assert(wait_for_worker_id < this->max_workers);
-
-
                 auto& wait_for_worker = *this->bundle.workers[wait_for_worker_id];
 
-                // Wait for other worker to finish
+                // Wait for other worker to finish up-stream tasks
+                // E.g. CML=3: we have 1/8th of the data, so we must wait for the other thread to have this much data.
                 size_t other_merge_level = wait_for_worker.merge_level.load(std::memory_order_acquire);
-                while (other_merge_level < this_merge_level) {
+                while (other_merge_level > current_merge_level) {
                     wait_for_worker.merge_level.wait(other_merge_level, std::memory_order_relaxed);
                     other_merge_level = wait_for_worker.merge_level.load(std::memory_order_acquire);
                 }
@@ -358,8 +390,8 @@ namespace Moment::Multithreading {
                 // Do merge
                 linear_map_merge(this->unique_elements, std::move(wait_for_worker.unique_elements));
 
-                // Notify waiting threads that this level of merge has been completed.
-                this->merge_level.fetch_add(1, std::memory_order_release);
+                // After merge completed, notify waiting threads that this level of merge has been completed.
+                this->merge_level.fetch_sub(1, std::memory_order_release);
                 this->merge_level.notify_all();
             }
         }
@@ -595,14 +627,11 @@ namespace Moment::Multithreading {
             }
         }
 
-
         void register_unique_symbols() {
             // Merge on main thread...
             auto& elems = this->workers.front()->yield_unique_elements();
             this->symbols.merge_in(elems.begin(), elems.end());
         }
-
-
 
         void generate_symbol_matrix(Monomial* symbol_data) {
             // Supply data pointers
