@@ -1,6 +1,12 @@
 function val = mtimes(lhs, rhs)
 % MTIMES Matrix multiplication *
 
+    % First, delegate scalar case to .* function:
+    if numel(lhs) == 1 || numel(rhs) == 1
+        val = times(lhs, rhs);
+        return;
+    end
+
     % Rescale?
     if (isnumeric(lhs) && numel(lhs) == 1)
         val = rescaleMatrix(rhs, lhs);

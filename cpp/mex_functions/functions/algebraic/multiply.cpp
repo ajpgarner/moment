@@ -28,34 +28,20 @@ namespace Moment::mex::functions {
 
         [[nodiscard]] const MonomialMatrix&
         input_to_monomial_matrix(matlab::engine::MATLABEngine& matlabEngine,
-                                 const MatrixSystem& matrixSystem, const MultiplyParams::Operand& input) {
+                                 const MatrixSystem& matrixSystem, const AlgebraicOperand& input) {
             // Get matrix, or throw
-            auto matrix_id = input.matrix_key();
-            if (matrixSystem.size() <= matrix_id) {
-                std::stringstream errSS;
-                errSS << "Matrix with ID '" << matrix_id << "' is out of range.";
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
-            }
-            auto& matrix = matrixSystem[input.matrix_key()];
+            const auto& symMatrix = input.to_matrix(matlabEngine, matrixSystem);
 
-            if (!matrix.is_monomial()) {
+            if (!symMatrix.is_monomial()) {
                 throw_error(matlabEngine, errors::internal_error,
                             "Polynomial matrix multiplication not yet supported");
             }
 
-            if (!matrix.has_operator_matrix()) {
+            if (!symMatrix.has_operator_matrix()) {
                 throw_error(matlabEngine, errors::bad_param,
                             "Cannot multiply matrix that is not explicitly defined by monomial operators.");
             }
-            return dynamic_cast<const MonomialMatrix&>(matrix);
-        }
-
-        [[nodiscard]] const Polynomial input_to_polynomial(matlab::engine::MATLABEngine& matlabEngine,
-                                                           const MatrixSystem& system,
-                                                           const MultiplyParams::Operand& input) {
-            assert(!input.raw_polynomials().empty());
-            auto& first_poly_raw = input.raw_polynomials().front();
-            return raw_data_to_polynomial(matlabEngine, system.polynomial_factory(), first_poly_raw);
+            return dynamic_cast<const MonomialMatrix&>(symMatrix);
         }
 
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
@@ -66,7 +52,7 @@ namespace Moment::mex::functions {
             auto write_lock = matrixSystem.get_write_lock();
 
             const auto& matrix = input_to_monomial_matrix(matlabEngine, matrixSystem, input.lhs);
-            const auto& polynomial = input_to_polynomial(matlabEngine, matrixSystem, input.rhs);
+            const auto polynomial = input.rhs.to_polynomial(matlabEngine, matrixSystem);
 
             if (polynomial.is_monomial() && (!polynomial.empty())) {
                 return matrix.post_multiply(polynomial.back(), matrixSystem.Symbols(),
@@ -84,7 +70,7 @@ namespace Moment::mex::functions {
             // Get read lock on matrix system
             auto write_lock = matrixSystem.get_write_lock();
 
-            const auto& polynomial = input_to_polynomial(matlabEngine, matrixSystem, input.lhs);
+            const auto polynomial = input.lhs.to_polynomial(matlabEngine, matrixSystem);
             const auto& matrix = input_to_monomial_matrix(matlabEngine, matrixSystem, input.rhs);
 
             if (polynomial.is_monomial() && (!polynomial.empty())) {
@@ -100,31 +86,31 @@ namespace Moment::mex::functions {
         do_multiplication(matlab::engine::MATLABEngine& matlabEngine,
                           const MultiplyParams &input, MatrixSystem &matrixSystem) {
             switch (input.lhs.type) {
-                case MultiplyParams::Operand::InputType::MatrixID:
+                case AlgebraicOperand::InputType::MatrixID:
                     switch (input.rhs.type) {
-                        case MultiplyParams::Operand::InputType::MatrixID:
+                        case AlgebraicOperand::InputType::MatrixID:
                             throw_error(matlabEngine, errors::internal_error, "Matrix RHS not yet implemented.");
-                        case MultiplyParams::Operand::InputType::Polynomial:
+                        case AlgebraicOperand::InputType::Polynomial:
                             return matrix_by_polynomial(matlabEngine, input, matrixSystem);
                         default:
-                        case MultiplyParams::Operand::InputType::Unknown:
+                        case AlgebraicOperand::InputType::Unknown:
                             throw_error(matlabEngine, errors::bad_param, "Cannot multiply unknown RHS type.");
                     }
                     break;
-                case MultiplyParams::Operand::InputType::Polynomial:
+                case AlgebraicOperand::InputType::Polynomial:
                     switch (input.rhs.type) {
-                        case MultiplyParams::Operand::InputType::MatrixID:
+                        case AlgebraicOperand::InputType::MatrixID:
                             return polynomial_by_matrix(matlabEngine, input, matrixSystem);
-                        case MultiplyParams::Operand::InputType::Polynomial:
+                        case AlgebraicOperand::InputType::Polynomial:
                             throw_error(matlabEngine, errors::internal_error, "Polynomial RHS not yet implemented.");
                             break;
                         default:
-                        case MultiplyParams::Operand::InputType::Unknown:
+                        case AlgebraicOperand::InputType::Unknown:
                             throw_error(matlabEngine, errors::bad_param, "Cannot multiply unknown RHS type.");
                     }
                     break;
                 default:
-                case MultiplyParams::Operand::InputType::Unknown:
+                case AlgebraicOperand::InputType::Unknown:
                     throw_error(matlabEngine, errors::bad_param, "Cannot multiply unknown LHS type.");
             }
         }
@@ -212,49 +198,10 @@ namespace Moment::mex::functions {
                                                                   this->inputs[0], 0);
 
         // Check type of LHS input
-        switch (this->inputs[1].getType()) {
-            case matlab::data::ArrayType::DOUBLE:
-            case matlab::data::ArrayType::SINGLE:
-            case matlab::data::ArrayType::INT8:
-            case matlab::data::ArrayType::UINT8:
-            case matlab::data::ArrayType::INT16:
-            case matlab::data::ArrayType::UINT16:
-            case matlab::data::ArrayType::INT32:
-            case matlab::data::ArrayType::UINT32:
-            case matlab::data::ArrayType::INT64:
-            case matlab::data::ArrayType::UINT64:
-                this->lhs = this->parse_as_matrix_key("LHS", this->inputs[1]);
-                break;
-            case matlab::data::ArrayType::CELL:
-                this->lhs = this->parse_as_polynomial("LHS", this->inputs[1]);
-                break;
-            default:
-            case matlab::data::ArrayType::UNKNOWN:
-                throw_error(matlabEngine, errors::bad_param, "LHS was not a valid multiplicand type.");
-                break;
-        }
+        this->lhs.parse_input(matlabEngine, "LHS", this->inputs[1]);
 
         // Check type of RHS input
-        switch (this->inputs[2].getType()) {
-            case matlab::data::ArrayType::DOUBLE:
-            case matlab::data::ArrayType::SINGLE:
-            case matlab::data::ArrayType::INT8:
-            case matlab::data::ArrayType::UINT8:
-            case matlab::data::ArrayType::INT16:
-            case matlab::data::ArrayType::UINT16:
-            case matlab::data::ArrayType::INT32:
-            case matlab::data::ArrayType::UINT32:
-            case matlab::data::ArrayType::INT64:
-            case matlab::data::ArrayType::UINT64:
-                this->rhs = this->parse_as_matrix_key("RHS", this->inputs[2]);
-                break;
-            case matlab::data::ArrayType::CELL:
-                this->rhs = this->parse_as_polynomial("RHS", this->inputs[2]);
-                break;
-            default:
-            case matlab::data::ArrayType::UNKNOWN:
-                throw_error(matlabEngine, errors::bad_param, "RHS was not a valid multiplicand type.");
-        }
+        this->rhs.parse_input(matlabEngine, "RHS", this->inputs[2]);
 
         // How do we output?
         if (this->flags.contains(u"strings")) {
@@ -266,51 +213,6 @@ namespace Moment::mex::functions {
         } else {
             this->output_mode = OutputMode::MatrixIndex;
         }
-    }
-
-    MultiplyParams::Operand MultiplyParams::parse_as_matrix_key(const std::string& name,
-                                                                matlab::data::Array& raw_input) {
-        if (raw_input.getNumberOfElements() != 1) {
-            throw_error(this->matlabEngine, errors::bad_param, "Matrix index input must be a scalar integer.");
-        }
-
-        // Read key
-        Operand raw;
-        raw.type = Operand::InputType::MatrixID;
-        raw.shape = std::vector<size_t>{0, 0};
-        raw.raw.emplace<0>(read_as_uint64(this->matlabEngine, raw_input));
-        return raw;
-    }
-
-    MultiplyParams::Operand MultiplyParams::parse_as_polynomial(const std::string& name,
-                                                                matlab::data::Array& raw_input) {
-        const size_t expected_elements = raw_input.getNumberOfElements();
-        if (expected_elements == 0) {
-            throw_error(matlabEngine, errors::bad_param, "Polynomial multiplication expects non-empty operand.");
-        }
-        Operand raw;
-        raw.type = expected_elements!= 1 ? Operand::InputType::PolynomialArray
-                                                        : Operand::InputType::Polynomial;
-        const auto dimensions = raw_input.getDimensions();
-        raw.shape.reserve(dimensions.size());
-        std::copy(dimensions.cbegin(), dimensions.cend(), std::back_inserter(raw.shape));
-
-        if (raw_input.getType() != matlab::data::ArrayType::CELL) {
-            throw_error(matlabEngine, errors::bad_param, "Polynomial mode expects symbol cell input.");
-        }
-
-        raw.raw.emplace<1>();
-        auto& raw_vec = raw.raw_polynomials();
-        raw_vec.reserve(expected_elements);
-
-        // Looks suspicious, but promised by MATLAB to be a reference, not copy.
-        const matlab::data::CellArray cell_input = raw_input;
-        auto read_iter = cell_input.begin();
-        while (read_iter != cell_input.end()) {
-            raw_vec.emplace_back(read_raw_polynomial_data(this->matlabEngine, name, *read_iter));
-            ++read_iter;
-        }
-        return raw;
     }
 
     void Multiply::extra_input_checks(MultiplyParams& input) const {

@@ -9,14 +9,185 @@
 
 #include "utilities/reporting.h"
 #include "utilities/read_as_scalar.h"
-#include "utilities/read_as_vector.h"
+
+#include "matrix/symbolic_matrix.h"
 
 #include "storage_manager.h"
 
 #include "scenarios/context.h"
 #include "export/export_polynomial.h"
 
+#include <span>
+
 namespace Moment::mex::functions {
+
+    namespace {
+
+        void output_polynomials(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
+                                IOArgumentRange& output, PlusParams::OutputMode output_mode,
+                                matlab::data::ArrayDimensions output_shape,
+                                const std::span<const Polynomial> output_poly) {
+
+            // Attempt to infer if output is a monomial object
+            const bool detect_if_monomial = output.size() >= 2;
+            bool is_monomial = false;
+            if (detect_if_monomial) {
+                is_monomial = std::all_of(output_poly.begin(), output_poly.end(), [](const Polynomial& poly) {
+                    return poly.is_monomial();
+                });
+            }
+
+            // Export polynomials
+            matlab::data::ArrayFactory factory;
+            PolynomialExporter exporter{matlabEngine, factory,
+                                        matrixSystem.Context(), matrixSystem.Symbols(),
+                                        matrixSystem.polynomial_factory().zero_tolerance};
+            switch (output_mode) {
+                case PlusParams::OutputMode::String: {
+                    matlab::data::StringArray string_out
+                        = factory.createArray<matlab::data::MATLABString>(std::move(output_shape));
+
+                    std::transform(output_poly.begin(), output_poly.end(), string_out.begin(),
+                                   [&exporter](const Polynomial &poly) -> matlab::data::MATLABString {
+                                       return exporter.string(poly);
+                                   });
+                    output[0] = std::move(string_out);
+                } break;
+                case PlusParams::OutputMode::SymbolCell: {
+                    matlab::data::CellArray cell_out = factory.createCellArray(std::move(output_shape));
+                    std::transform(output_poly.begin(), output_poly.end(), cell_out.begin(),
+                                   [&exporter](const Polynomial &poly) -> matlab::data::CellArray {
+                                       return exporter.symbol_cell(poly);
+                                   });
+                    output[0] = std::move(cell_out);
+                } break;
+                case PlusParams::OutputMode::SequencesWithSymbolInfo: {
+                    if (is_monomial) {
+                        assert(detect_if_monomial);
+                        auto fms = exporter.monomial_sequence_cell_vector(output_poly, output_shape, true);
+                        output[0] = fms.move_to_cell(factory);
+                    } else {
+                        output[0] = exporter.sequence_cell_vector(output_poly, output_shape, true);
+                    }
+                } break;
+                default:
+                    throw_error(matlabEngine, errors::internal_error, "Unknown output format for plus.");
+            }
+
+            // Write if output object is purely monomial.
+            if (detect_if_monomial) {
+                assert (output.size() >= 2);
+                output[1] = factory.createScalar<bool>(is_monomial);
+            }
+        }
+
+        void add_matrix_matrix(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
+                               IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
+                               PlusParams::OutputMode output_mode) {
+            // Read inputs
+            auto read_lock = matrixSystem.get_read_lock();
+            auto& matrixLHS = lhs.to_matrix(matlabEngine, matrixSystem);
+            auto& matrixRHS = rhs.to_matrix(matlabEngine, matrixSystem);
+
+            // Check size compatibility for many<->many
+            if (matrixLHS.Dimension() != matrixRHS.Dimension()) {
+                throw_error(matlabEngine, errors::bad_param, "Matrix operand dimensions do not match");
+            }
+
+            throw_error(matlabEngine, errors::internal_error, "add_matrix_matrix not implemented.");
+        }
+
+        void add_one_matrix(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
+                            IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
+                            PlusParams::OutputMode output_mode) {
+            // Read inputs
+            auto read_lock = matrixSystem.get_read_lock();
+            auto polyLHS = lhs.to_polynomial(matlabEngine, matrixSystem, true);
+            auto& matrixRHS = rhs.to_matrix(matlabEngine, matrixSystem);
+
+            throw_error(matlabEngine, errors::internal_error, "add_one_matrix not implemented.");
+        }
+
+        void add_many_matrix(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
+                             IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
+                             PlusParams::OutputMode output_mode) {
+            // Read inputs
+            auto read_lock = matrixSystem.get_read_lock();
+            auto polysLHS = lhs.to_polynomial_array(matlabEngine, matrixSystem, true);
+            auto& matrixRHS = rhs.to_matrix(matlabEngine, matrixSystem);
+
+            // Check size compatibility for many<->many
+            if ((lhs.shape.size() != 2) || (lhs.shape[0] != matrixRHS.Dimension())
+                                        || (lhs.shape[1] != matrixRHS.Dimension())) {
+                throw_error(matlabEngine, errors::bad_param, "Polynomial dimensions do not match matrix dimensions.");
+            }
+
+            throw_error(matlabEngine, errors::internal_error, "add_many_matrix not implemented.");
+        }
+
+        void add_one_one(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
+                         IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
+                         PlusParams::OutputMode output_mode) {
+            // Read inputs
+            auto read_lock = matrixSystem.get_read_lock();
+            auto polyOutput = lhs.to_polynomial(matlabEngine, matrixSystem, true);
+            auto polyRHS = rhs.to_polynomial(matlabEngine, matrixSystem, true);
+
+            // Do addition
+            const auto& poly_factory = matrixSystem.polynomial_factory();
+            poly_factory.append(polyOutput, polyRHS);
+
+            // Output
+            output_polynomials(matlabEngine, matrixSystem, output, output_mode,
+                               matlab::data::ArrayDimensions{1, 1},
+                               std::span<const Polynomial>(&polyOutput, 1));
+        }
+
+        void add_one_many(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
+                         IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
+                         PlusParams::OutputMode output_mode) {
+            // Read inputs
+            auto read_lock = matrixSystem.get_read_lock();
+            const auto polyLHS = lhs.to_polynomial(matlabEngine, matrixSystem, true);
+            auto polysOutput = rhs.to_polynomial_array(matlabEngine, matrixSystem, true);
+
+            // Do addition
+            const auto& poly_factory = matrixSystem.polynomial_factory();
+            for (auto& polyOut : polysOutput) {
+                poly_factory.append(polyOut, polyLHS);
+            }
+
+            // Output
+            output_polynomials(matlabEngine, matrixSystem, output, output_mode,
+                               rhs.shape, polysOutput);
+        }
+
+        void add_many_many(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
+                           IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
+                           PlusParams::OutputMode output_mode) {
+            // Read inputs
+            auto read_lock = matrixSystem.get_read_lock();
+            auto polysOutput = lhs.to_polynomial_array(matlabEngine, matrixSystem, true);
+            auto polysRHS = rhs.to_polynomial_array(matlabEngine, matrixSystem, true);
+
+            // Check size compatibility for many<->many
+            if (!std::equal(lhs.shape.cbegin(), lhs.shape.cend(), rhs.shape.cbegin(), rhs.shape.cend())) {
+                throw_error(matlabEngine, errors::bad_param,
+                            "Argument dimensions must match (or one element must be a scalar) to use plus.");
+            }
+            assert(polysOutput.size() == polysRHS.size());
+
+            // Do addition
+            const auto& poly_factory = matrixSystem.polynomial_factory();
+            for (size_t n = 0; n < polysOutput.size(); ++n) {
+                poly_factory.append(polysOutput[n], polysRHS[n]);
+            }
+
+            // Output
+            output_polynomials(matlabEngine, matrixSystem, output, output_mode,
+                               rhs.shape, polysOutput);
+        }
+    }
 
     PlusParams::PlusParams(SortedInputs &&structuredInputs)
             : SortedInputs(std::move(structuredInputs)) {
@@ -25,76 +196,26 @@ namespace Moment::mex::functions {
                                                                   this->inputs[0], 0);
 
         // Get left operand
-        this->lhs = this->parse_as_polynomial("LHS", this->inputs[1]);
+        this->lhs.parse_input(this->matlabEngine, "LHS", this->inputs[1]);
 
         // Get right operand
-        this->rhs = this->parse_as_polynomial("RHS", this->inputs[2]);
-
-        // Check if we have to broadcast
-        if (this->lhs.raw.size() == 1) {
-            this->distribution_mode = (this->rhs.raw.size() == 1)
-                                    ? DistributionMode::ManyToMany : DistributionMode::OneToMany;
-        } else {
-            this->distribution_mode = (this->rhs.raw.size() == 1)
-                                      ? DistributionMode::ManyToOne : DistributionMode::ManyToMany;
-        }
-
-        // Check sizes
-        if (this->distribution_mode == DistributionMode::ManyToMany) {
-            if (!std::equal(this->lhs.shape.cbegin(), this->lhs.shape.cend(),
-                            this->rhs.shape.cbegin(), this->rhs.shape.cend())) {
-                throw_error(this->matlabEngine, errors::bad_param,
-                            "Argument dimensions must match (or one element must be a scalar) to use plus.");
-            }
-        }
-
-        // Calculate output size
-        switch (this->distribution_mode) {
-            case DistributionMode::ManyToMany:
-            case DistributionMode::ManyToOne:
-                this->output_shape.reserve(this->lhs.shape.size());
-                std::copy(this->lhs.shape.cbegin(), this->lhs.shape.cend(), std::back_inserter(this->output_shape));
-                this->output_size = this->lhs.raw.size();
-                break;
-            case DistributionMode::OneToMany:
-                this->output_shape.reserve(this->rhs.shape.size());
-                std::copy(this->rhs.shape.cbegin(), this->rhs.shape.cend(), std::back_inserter(this->output_shape));
-                this->output_size = this->rhs.raw.size();
-                break;
-        }
+        this->rhs.parse_input(this->matlabEngine, "RHS", this->inputs[2]);
 
         // How do we output?
         if (this->flags.contains(u"strings")) {
             this->output_mode = OutputMode::String;
         } else if (this->flags.contains(u"sequences")) {
             this->output_mode = OutputMode::SequencesWithSymbolInfo;
-        } else {
+        } else if (this->flags.contains(u"symbols")) {
             this->output_mode = OutputMode::SymbolCell;
+        } else {
+            this->output_mode = OutputMode::Index;
+            if ((this->lhs.type != AlgebraicOperand::InputType::MatrixID)
+                && (this->rhs.type != AlgebraicOperand::InputType::MatrixID)) {
+                throw_error(matlabEngine, errors::bad_param,
+                            "At least one operand must be a matrix for matrix index output.");
+            }
         }
-    }
-
-    PlusParams::Operand PlusParams::parse_as_polynomial(const std::string& name, matlab::data::Array& raw_input) {
-        Operand raw;
-        raw.type = Operand::InputType::SymbolCell;
-        const auto dimensions = raw_input.getDimensions();
-        raw.shape.reserve(dimensions.size());
-        std::copy(dimensions.cbegin(), dimensions.cend(), std::back_inserter(raw.shape));
-
-        if (raw_input.getType() != matlab::data::ArrayType::CELL) {
-            throw_error(matlabEngine, errors::bad_param, "Polynomial mode expects symbol cell input.");
-        }
-
-
-        raw.raw.reserve(raw_input.getNumberOfElements());
-
-        // Looks suspicious, but promised by MATLAB to be a reference, not copy.
-        const matlab::data::CellArray cell_input = raw_input;
-        auto read_iter = cell_input.begin();
-        while (read_iter != cell_input.end()) {
-            raw.raw.emplace_back(read_raw_polynomial_data(this->matlabEngine, name, *read_iter));
-            ++read_iter;
-        }
-        return raw;
     }
 
     void Plus::extra_input_checks(PlusParams& input) const {
@@ -108,17 +229,18 @@ namespace Moment::mex::functions {
         this->min_inputs = 3;
         this->max_inputs = 3;
         this->min_outputs = 1;
-        this->max_outputs = 2;
+        this->max_outputs = 4;
 
         this->flag_names.emplace(u"symbols");
         this->flag_names.emplace(u"sequences");
         this->flag_names.emplace(u"strings");
+        this->flag_names.emplace(u"index");
 
-        this->mutex_params.add_mutex({u"symbols", u"sequences", u"strings"});
-
+        this->mutex_params.add_mutex({u"index", u"symbols", u"sequences", u"strings"});
     }
 
     void Plus::operator()(IOArgumentRange output, PlusParams &input) {
+        // First, get matrix system
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {
             matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
@@ -129,94 +251,57 @@ namespace Moment::mex::functions {
         }
 
         assert(matrixSystemPtr); // ^-- should throw if not found
-        const MatrixSystem& matrixSystem = *matrixSystemPtr;
-        auto read_lock = matrixSystem.get_read_lock();
-        const auto& poly_factory = matrixSystem.polynomial_factory();
+        MatrixSystem& matrixSystem = *matrixSystemPtr;
 
-        // Read in LHS
-        std::vector<Polynomial> lhs_poly;
-        lhs_poly.reserve(input.lhs.raw.size());
-        for (auto& raw_lhs : input.lhs.raw) {
-            lhs_poly.emplace_back(raw_data_to_polynomial_assume_sorted(this->matlabEngine, poly_factory, raw_lhs));
-        }
-
-        // Read in RHS
-        std::vector<Polynomial> rhs_poly;
-        rhs_poly.reserve(input.rhs.raw.size());
-        for (auto& raw_rhs : input.rhs.raw) {
-            rhs_poly.emplace_back(raw_data_to_polynomial_assume_sorted(this->matlabEngine, poly_factory, raw_rhs));
-        }
-
-        // Combine
-        std::vector<Polynomial> output_poly;
-        output_poly.reserve(input.output_size);
-        switch (input.distribution_mode) {
-            case PlusParams::DistributionMode::OneToMany:
-                for (size_t n = 0; n < input.output_size; ++n) {
-                    output_poly.emplace_back(lhs_poly[0] + rhs_poly[n]);
+        // Switch between various additions
+        switch (input.lhs.type) {
+            case AlgebraicOperand::InputType::MatrixID:
+                switch (input.rhs.type) {
+                    case AlgebraicOperand::InputType::MatrixID:
+                        add_matrix_matrix(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
+                        break;
+                    case AlgebraicOperand::InputType::Polynomial:
+                        add_one_matrix(matlabEngine, matrixSystem, output, input.rhs, input.lhs, input.output_mode);
+                        break;
+                    case AlgebraicOperand::InputType::PolynomialArray:
+                        add_many_matrix(matlabEngine, matrixSystem, output, input.rhs, input.lhs, input.output_mode);
+                        break;
+                    case AlgebraicOperand::InputType::Unknown:
+                        throw_error(this->matlabEngine, errors::internal_error, "Unknown RHS operand.");
                 }
                 break;
-            case PlusParams::DistributionMode::ManyToOne:
-                for (size_t n = 0; n < input.output_size; ++n) {
-                    output_poly.emplace_back(lhs_poly[n] + rhs_poly[0]);
+            case AlgebraicOperand::InputType::Polynomial:
+                switch (input.rhs.type) {
+                    case AlgebraicOperand::InputType::MatrixID:
+                        add_one_matrix(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
+                        break;
+                    case AlgebraicOperand::InputType::Polynomial:
+                        add_one_one(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
+                        break;
+                    case AlgebraicOperand::InputType::PolynomialArray:
+                        add_one_many(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
+                        break;
+                    case AlgebraicOperand::InputType::Unknown:
+                        throw_error(this->matlabEngine, errors::internal_error, "Unknown RHS operand.");
                 }
                 break;
-            case PlusParams::DistributionMode::ManyToMany:
-                for (size_t n = 0; n < input.output_size; ++n) {
-                    output_poly.emplace_back(lhs_poly[n] + rhs_poly[n]);
+            case AlgebraicOperand::InputType::PolynomialArray:
+                switch (input.rhs.type) {
+                    case AlgebraicOperand::InputType::MatrixID:
+                        add_many_matrix(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
+                        break;
+                    case AlgebraicOperand::InputType::Polynomial:
+                        add_one_many(matlabEngine, matrixSystem, output, input.rhs, input.lhs, input.output_mode);
+                        break;
+                    case AlgebraicOperand::InputType::PolynomialArray:
+                        add_many_many(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
+                        break;
+                    case AlgebraicOperand::InputType::Unknown:
+                        throw_error(this->matlabEngine, errors::internal_error, "Unknown RHS operand.");
                 }
                 break;
-        }
-
-        // Attempt to infer if output is a monomial object
-        const bool detect_if_monomial = output.size() >= 2;
-        bool is_monomial = false;
-        if (detect_if_monomial) {
-            is_monomial = std::all_of(output_poly.begin(), output_poly.end(), [](const Polynomial& poly) {
-                return poly.is_monomial();
-            });
-        }
-
-        // Export polynomials
-        matlab::data::ArrayFactory factory;
-        PolynomialExporter exporter{this->matlabEngine, factory,
-                                    matrixSystem.Context(), matrixSystem.Symbols(), poly_factory.zero_tolerance};
-        switch (input.output_mode) {
-            case PlusParams::OutputMode::String: {
-                matlab::data::StringArray string_out = factory.createArray<matlab::data::MATLABString>(
-                        input.output_shape);
-
-                std::transform(output_poly.cbegin(), output_poly.cend(), string_out.begin(),
-                               [&exporter](const Polynomial &poly) -> matlab::data::MATLABString {
-                                   return exporter.string(poly);
-                               });
-                output[0] = std::move(string_out);
-            } break;
-            case PlusParams::OutputMode::SymbolCell: {
-                matlab::data::CellArray cell_out = factory.createCellArray(input.output_shape);
-                std::transform(output_poly.cbegin(), output_poly.cend(), cell_out.begin(),
-                               [&exporter](const Polynomial &poly) -> matlab::data::CellArray {
-                                   return exporter.symbol_cell(poly);
-                               });
-                output[0] = std::move(cell_out);
-            } break;
-            case PlusParams::OutputMode::SequencesWithSymbolInfo: {
-                if (is_monomial) {
-                    assert(detect_if_monomial);
-                    auto fms = exporter.monomial_sequence_cell_vector(output_poly, input.output_shape, true);
-                    output[0] = fms.move_to_cell(factory);
-                } else {
-                    output[0] = exporter.sequence_cell_vector(output_poly, input.output_shape, true);
-                }
-            } break;
-            default:
-                throw_error(this->matlabEngine, errors::internal_error, "Unknown output format for plus.");
-        }
-
-        // Write if output object is purely monomial.
-        if (detect_if_monomial) {
-            assert (output.size() >= 2);
-            output[1] = factory.createScalar<bool>(is_monomial);
+            case AlgebraicOperand::InputType::Unknown:
+                throw_error(this->matlabEngine, errors::internal_error, "Unknown LHS operand.");
         }
     }
 }

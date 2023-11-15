@@ -7,8 +7,10 @@
 
 
 #include "../../mtk_function.h"
+
 #include "integer_types.h"
-#include "import/read_polynomial.h"
+
+#include "import/algebraic_operand.h"
 
 #include <span>
 #include <string>
@@ -25,43 +27,8 @@ namespace Moment::mex::functions  {
     public:
         uint64_t matrix_system_key = 0;
 
-        struct Operand {
-            enum class InputType {
-                Unknown,
-                MatrixID,
-                Polynomial,
-                PolynomialArray
-            } type = InputType::Unknown;
-
-            std::vector<size_t> shape;
-            std::variant<size_t, std::vector<std::vector<raw_sc_data>>> raw;
-
-        public:
-            [[nodiscard]] size_t matrix_key() const { return std::get<0>(this->raw); }
-
-            [[nodiscard]] std::vector<std::vector<raw_sc_data>>& raw_polynomials() {
-                return std::get<1>(this->raw);
-            }
-
-            [[nodiscard]] const std::vector<std::vector<raw_sc_data>>& raw_polynomials() const {
-                return std::get<1>(this->raw);
-            }
-
-        public:
-            Operand() = default;
-            Operand(const Operand& lhs) = delete;
-            Operand(Operand&& lhs) = default;
-            Operand& operator=(const Operand& rhs) = delete;
-            Operand& operator=(Operand&& rhs) = default;
-        };
-
-        Operand lhs;
-        Operand rhs;
-
-    private:
-        [[nodiscard]] Operand parse_as_matrix_key(const std::string& name, matlab::data::Array& input);
-
-        [[nodiscard]] Operand parse_as_polynomial(const std::string& name, matlab::data::Array& input);
+        AlgebraicOperand lhs;
+        AlgebraicOperand rhs;
 
     public:
         explicit MultiplyParams(SortedInputs&& inputs);
@@ -83,9 +50,6 @@ namespace Moment::mex::functions  {
         void operator()(IOArgumentRange output, MultiplyParams &input) override;
 
         void extra_input_checks(MultiplyParams &input) const override;
-
-    private:
-        void matrix_by_polynomial(IOArgumentRange& output, const MultiplyParams& input, MatrixSystem& system);
 
     };
 }
