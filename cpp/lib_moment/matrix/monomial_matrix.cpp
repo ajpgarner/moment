@@ -312,6 +312,8 @@ namespace Moment {
             return std::make_unique<SquareMatrix<Monomial>>(dimension, std::move(data));
         }
 
+
+
     }
 
     MonomialMatrix::MonomialMatrix(const Context& context, SymbolTable& symbols, const double zero_tolerance,
@@ -476,6 +478,34 @@ namespace Moment {
                                                                   SymbolTable &symbol_table,
                                                                   Multithreading::MultiThreadPolicy policy) const {
         return do_polynomial_multiply<true>(rhs, *this, poly_factory, symbol_table, policy);
+    }
+
+
+    std::unique_ptr<PolynomialMatrix>
+    MonomialMatrix::add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
+                        Multithreading::MultiThreadPolicy policy) const {
+        if (rhs.is_monomial()) {
+            return this->add(dynamic_cast<const MonomialMatrix&>(rhs), poly_factory, policy);
+        } else {
+            const auto& poly_rhs = dynamic_cast<const PolynomialMatrix&>(rhs);
+            return poly_rhs.add(*this, poly_factory, policy);
+        }
+    }
+
+    std::unique_ptr<PolynomialMatrix>
+    MonomialMatrix::add(const MonomialMatrix& rhs, const PolynomialFactory& poly_factory,
+                        Multithreading::MultiThreadPolicy policy) const {
+        if (this->dimension != rhs.dimension) {
+            throw errors::cannot_add_exception{"Cannot add matrices with mismatched dimensions."};
+        }
+
+        std::array<const MonomialMatrix*, 2> summand_ptrs{this, &rhs};
+        return std::make_unique<PolynomialMatrix>(this->context, poly_factory, this->symbol_table, summand_ptrs);
+    }
+
+    std::unique_ptr<PolynomialMatrix> MonomialMatrix::add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
+                                                          Multithreading::MultiThreadPolicy policy) const {
+        throw errors::cannot_add_exception{"MonomialMatrix::add Polynomial RHS not implemented."};
     }
 
     void MonomialMatrix::renumerate_bases(const SymbolTable &symbols, double zero_tolerance) {

@@ -42,4 +42,37 @@ namespace Moment {
         return sort_order;
     }
 
+    Polynomial PolynomialFactory::sum(const Monomial& lhs, const Monomial& rhs) const {
+        // "Monomial"-like sum
+        if ((lhs.id == rhs.id) && (lhs.conjugated == rhs.conjugated)) {
+            std::complex<double> factor = lhs.factor + rhs.factor;
+            if (approximately_zero(factor, this->zero_tolerance)) {
+                return Polynomial::Zero();
+            } else {
+                return Polynomial{Monomial{lhs.id, factor, lhs.conjugated}};
+            }
+        }
+
+        // Otherwise, construct as two element sum:
+        if (this->less(lhs, rhs)) {
+            return Polynomial{Polynomial::init_raw_tag{}, Polynomial::storage_t{lhs, rhs}};
+        } else {
+            return Polynomial{Polynomial::init_raw_tag{}, Polynomial::storage_t{rhs, lhs}};
+        }
+    }
+
+    Polynomial PolynomialFactory::sum(const Polynomial& lhs, const Monomial& rhs) const {
+        // TODO: Efficient addition assuming LHS is sorted
+        Polynomial output{lhs};
+        this->append(output, Polynomial(rhs, this->zero_tolerance)); // <- virtual call.
+        return output;
+    }
+
+    Polynomial PolynomialFactory::sum(const Polynomial& lhs, const Polynomial& rhs) const {
+        // TODO: Efficient addition assuming LHS and RHS are sorted
+        Polynomial output{lhs};
+        this->append(output, rhs); // <- virtual call.
+        return output;
+    }
+
 }

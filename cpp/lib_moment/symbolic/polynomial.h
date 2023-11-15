@@ -33,6 +33,8 @@ namespace Moment {
          */
         using storage_t = SmallVector<Monomial, 1>;
 
+        struct init_raw_tag { };
+
     private:
         storage_t data;
 
@@ -393,6 +395,11 @@ namespace Moment {
         static void remove_duplicates(Polynomial::storage_t &data);
         static void remove_zeros(Polynomial::storage_t &data, double eps_multiplier);
 
+        /** Raw constructor, for friends only */
+        explicit Polynomial(const init_raw_tag& /**/, storage_t input)
+                : data{std::move(input)} { }
+
+        friend class PolynomialFactory;
     };
 
     // Only element is storage.

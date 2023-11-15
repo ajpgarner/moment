@@ -237,6 +237,59 @@ namespace Moment::Tests {
         for (size_t n = 0; n < 9; ++n) {
             EXPECT_EQ(mmZero.raw_data()[n].id, 0) << n;
         }
+    }
+
+    TEST(Matrix_MonomialMatrix, AddMonomialMatrix) {
+        // Make context with x, y
+        Algebraic::AlgebraicMatrixSystem ams{
+                std::make_unique<Algebraic::AlgebraicContext>(2)
+        };
+        const auto& context = ams.AlgebraicContext();
+        const auto& factory = ams.polynomial_factory();
+        auto& symbols = ams.Symbols();
+
+        // Make moment matrix
+        const auto& mmRaw = ams.MomentMatrix(1);
+        ASSERT_TRUE(mmRaw.is_monomial());
+        const auto& mm = dynamic_cast<const MonomialMatrix&>(mmRaw);
+        ASSERT_EQ(mm.Dimension(), 3);
+
+        // Make x localizing matrix
+        const auto& lmXRaw = ams.LocalizingMatrix({1, OperatorSequence{{0}, context}});
+        ASSERT_TRUE(lmXRaw.is_monomial());
+        const auto& lmX = dynamic_cast<const MonomialMatrix&>(lmXRaw);
+        ASSERT_EQ(lmXRaw.Dimension(), 3);
+
+        // Find symbols
+        auto find_or_fail = [&symbols](OperatorSequence seq) -> Monomial {
+            auto fX = symbols.where(seq);
+            if (!fX.found()) {
+                throw std::runtime_error(std::string("Did not find ") + seq.formatted_string());
+            }
+            return Monomial{fX->Id(), 1.0, fX.is_conjugated};
+        };
+        auto sI = find_or_fail(OperatorSequence{{}, context});
+        auto sX = find_or_fail(OperatorSequence{{0}, context});
+        auto sY = find_or_fail(OperatorSequence{{1}, context});
+        auto sXX = find_or_fail(OperatorSequence{{0, 0}, context});
+        auto sXY = find_or_fail(OperatorSequence{{0, 1}, context});
+        auto sYX = find_or_fail(OperatorSequence{{1, 0}, context});
+        auto sYY = find_or_fail(OperatorSequence{{1, 1}, context});
+        auto sXXX = find_or_fail(OperatorSequence{{0, 0, 0}, context});
+        auto sXXY = find_or_fail(OperatorSequence{{0, 0, 1}, context});
+        auto sYXX = find_or_fail(OperatorSequence{{1, 0, 0}, context});
+        auto sYXY = find_or_fail(OperatorSequence{{1, 0, 1}, context});
+
+        // Do mono+mono addition
+        auto mmPlusLmX_ptr = mm.add(lmX, ams.polynomial_factory(), Multithreading::MultiThreadPolicy::Never);
+        ASSERT_TRUE(mmPlusLmX_ptr->is_polynomial());
+        auto& mmPlusLmX = dynamic_cast<PolynomialMatrix&>(*mmPlusLmX_ptr);
+
+        compare_polynomial_matrix("mm + lmX", mmPlusLmX, 3, factory.zero_tolerance,
+                                  std::vector<Polynomial>{
+                                          factory({sI, sX}), factory({sX, sXX}), factory({sY, sXY}),
+                                          factory({sX, sXX}), factory({sXX, sXXX}), factory({sXY, sXXY}),
+                                          factory({sY, sYX}), factory({sYX, sYXX}), factory({sYY, sYXY})});
 
     }
 }

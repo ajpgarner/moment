@@ -127,6 +127,15 @@ namespace Moment {
         post_multiply(const Polynomial& rhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                       Multithreading::MultiThreadPolicy policy) const override;
 
+        std::unique_ptr<PolynomialMatrix> add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
+                                              Multithreading::MultiThreadPolicy policy) const override;
+
+        std::unique_ptr<PolynomialMatrix> add(const MonomialMatrix& rhs, const PolynomialFactory& poly_factory,
+                                              Multithreading::MultiThreadPolicy policy) const;
+
+        std::unique_ptr<PolynomialMatrix> add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
+                                              Multithreading::MultiThreadPolicy policy) const override;
+
         /**
          * Get global prefactor relating OperatorMatrix to actual monomials within.
          */

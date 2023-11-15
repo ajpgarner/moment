@@ -48,29 +48,68 @@ namespace Moment {
             const size_t dimension = constituents[0]->Dimension();
             const size_t elements = dimension * dimension;
 
-            // Prepare iterators
-            std::vector<const Monomial*> iterators;
-            iterators.reserve(num_monos);
-            for (const auto * constituent_ptr : constituents) {
-                assert(constituent_ptr->Dimension() == dimension);
-                iterators.emplace_back(constituent_ptr->raw_data());
-            }
-
-            // Construct polynomials
             std::vector<Polynomial> output_data;
             output_data.reserve(elements);
-            for (size_t n = 0; n < elements; ++n) {
-                Polynomial::storage_t poly_data;
-                poly_data.reserve(num_monos);
-                for (size_t c = 0 ; c < num_monos; ++c) {
-                    poly_data.emplace_back(*iterators[c]);
-                    ++iterators[c];
-                }
-                output_data.emplace_back(factory(std::move(poly_data)));
-            }
 
-            // Make matrix
+            if (1 == num_monos) {
+                // Special case overload just one element
+                std::transform(constituents[0]->SymbolMatrix().begin(), constituents[0]->SymbolMatrix().end(),
+                               std::back_inserter(output_data),
+                               [&factory](const Monomial& lhs) -> Polynomial {
+                    return Polynomial{lhs, factory.zero_tolerance};
+                });
+            } else if (2 == num_monos) {
+                // Special case overload, two elements
+                std::transform(constituents[0]->SymbolMatrix().begin(), constituents[0]->SymbolMatrix().end(),
+                               constituents[1]->SymbolMatrix().begin(),
+                               std::back_inserter(output_data),
+                               [&factory](const Monomial& lhs, const Monomial& rhs) -> Polynomial {
+                                   return factory.sum(lhs, rhs);
+                               });
+            } else {
+                // General case with N elements:
+                std::vector<const Monomial*> iterators;
+                iterators.reserve(num_monos);
+                for (const auto* constituent_ptr: constituents) {
+                    assert(constituent_ptr->Dimension() == dimension);
+                    iterators.emplace_back(constituent_ptr->raw_data());
+                }
+
+                // Construct polynomials
+                for (size_t n = 0; n < elements; ++n) {
+                    Polynomial::storage_t poly_data;
+                    poly_data.reserve(num_monos);
+                    for (size_t c = 0; c < num_monos; ++c) {
+                        poly_data.emplace_back(*iterators[c]);
+                        ++iterators[c];
+                    }
+                    output_data.emplace_back(factory(std::move(poly_data)));
+                }
+            }
             return std::make_unique<PolynomialMatrix::MatrixData>(dimension, std::move(output_data));
+        }
+
+        template<typename matrix_t>
+        inline std::unique_ptr<PolynomialMatrix>
+        do_addition(const PolynomialMatrix& lhs, const matrix_t& rhs,
+                    const Context& context,  SymbolTable& symbol_table,
+                    const PolynomialFactory& poly_factory, Multithreading::MultiThreadPolicy policy) {
+            if (lhs.Dimension() != rhs.Dimension()) {
+                throw errors::cannot_add_exception{"Cannot add matrices with mismatched dimensions."};
+            }
+            const size_t num_elements = lhs.Dimension() * lhs.Dimension();
+            std::vector<Polynomial> output_polynomials;
+            output_polynomials.reserve(num_elements);
+            std::transform(lhs.SymbolMatrix().begin(), lhs.SymbolMatrix().end(),
+                           rhs.SymbolMatrix().begin(),
+                           std::back_inserter(output_polynomials),
+                           [&poly_factory](const Polynomial& lhs, const auto& rhs) -> Polynomial {
+                return poly_factory.sum(lhs, rhs);
+            });
+            auto matrix_data = std::make_unique<PolynomialMatrix::MatrixData>(lhs.Dimension(),
+                                                                              std::move(output_polynomials));
+            return std::make_unique<PolynomialMatrix>(context, symbol_table, poly_factory.zero_tolerance,
+                                                      std::move(matrix_data));
         }
     }
 
@@ -151,6 +190,34 @@ namespace Moment {
         }
 
         this->complex_basis = !this->imaginary_basis_elements.empty();
+    }
+
+    std::unique_ptr<PolynomialMatrix>
+    PolynomialMatrix::add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
+                          Multithreading::MultiThreadPolicy policy) const {
+        if (rhs.is_monomial()) {
+            return this->add(dynamic_cast<const MonomialMatrix&>(rhs), poly_factory, policy);
+        } else {
+            return this->add(dynamic_cast<const PolynomialMatrix&>(rhs), poly_factory, policy);
+        }
+    }
+
+    std::unique_ptr<PolynomialMatrix>
+    PolynomialMatrix::add(const MonomialMatrix& rhs, const PolynomialFactory& poly_factory,
+                          Multithreading::MultiThreadPolicy policy) const {
+        return do_addition(*this, rhs, this->context, this->symbol_table, poly_factory, policy);
+    }
+
+    std::unique_ptr<PolynomialMatrix>
+    PolynomialMatrix::add(const PolynomialMatrix& rhs, const PolynomialFactory& poly_factory,
+                          Multithreading::MultiThreadPolicy policy) const {
+        return do_addition(*this, rhs, this->context, this->symbol_table, poly_factory, policy);
+    }
+
+    std::unique_ptr<PolynomialMatrix>
+    PolynomialMatrix::add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
+                          Multithreading::MultiThreadPolicy policy) const {
+        throw errors::cannot_add_exception{"PolynomialMatrix::add Polynomial RHS not implemented."};
     }
 
 

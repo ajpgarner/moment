@@ -30,6 +30,7 @@ namespace Moment {
     class OperatorMatrix;
     class Polynomial;
     class PolynomialFactory;
+    class PolynomialMatrix;
     class SymbolTable;
 
     namespace errors {
@@ -39,6 +40,15 @@ namespace Moment {
         class cannot_multiply_exception : std::logic_error {
         public:
             explicit cannot_multiply_exception(const std::string& what)
+                    : std::logic_error{what} { }
+        };
+
+        /**
+         * Exception to throw if addition is not possible for some reason.
+         */
+        class cannot_add_exception : std::logic_error {
+        public:
+            explicit cannot_add_exception(const std::string& what)
                     : std::logic_error{what} { }
         };
     };
@@ -220,6 +230,22 @@ namespace Moment {
         [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
         post_multiply(const Polynomial& rhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                       Multithreading::MultiThreadPolicy policy) const;
+
+        /**
+         * Create a new matrix by adding a matrix this one.
+         */
+        [[nodiscard]] virtual std::unique_ptr<PolynomialMatrix>
+        add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
+            Multithreading::MultiThreadPolicy policy) const;
+
+        /**
+         * Create a new matrix by adding a polynomial to this one.
+         */
+        [[nodiscard]] virtual std::unique_ptr<PolynomialMatrix>
+        add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
+            Multithreading::MultiThreadPolicy policy) const;
+
+
 
     protected:
         /**

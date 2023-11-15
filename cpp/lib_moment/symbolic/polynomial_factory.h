@@ -42,11 +42,11 @@ namespace Moment {
 
         virtual void append(Polynomial& lhs, const Polynomial& rhs) const = 0;
 
-        [[nodiscard]] Polynomial sum(const Polynomial& lhs, const Polynomial& rhs) const {
-            Polynomial output{lhs};
-            this->append(output, rhs); // <- virtual call.
-            return output;
-        }
+        [[nodiscard]] Polynomial sum(const Monomial& lhs, const Monomial& rhs) const;
+
+        [[nodiscard]] Polynomial sum(const Polynomial& lhs, const Monomial& rhs) const;
+
+        [[nodiscard]] Polynomial sum(const Polynomial& lhs, const Polynomial& rhs) const;
 
         [[nodiscard]] inline bool is_hermitian(const Polynomial& poly) const {
             return poly.is_hermitian(this->symbols, this->zero_tolerance);

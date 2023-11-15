@@ -85,6 +85,17 @@ namespace Moment {
          */
         void renumerate_bases(const SymbolTable& symbols,  double zero_tolerance) final;
 
+        std::unique_ptr<PolynomialMatrix> add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
+                                              Multithreading::MultiThreadPolicy policy) const override;
+
+        std::unique_ptr<PolynomialMatrix> add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
+                                              Multithreading::MultiThreadPolicy policy) const override;
+
+        std::unique_ptr<PolynomialMatrix> add(const MonomialMatrix& rhs, const PolynomialFactory& poly_factory,
+                                              Multithreading::MultiThreadPolicy policy) const;
+
+        std::unique_ptr<PolynomialMatrix> add(const PolynomialMatrix& rhs, const PolynomialFactory& poly_factory,
+                                              Multithreading::MultiThreadPolicy policy) const;
     protected:
         /**
          * Create dense basis.

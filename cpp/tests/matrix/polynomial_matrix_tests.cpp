@@ -250,7 +250,7 @@ namespace Moment::Tests {
         OperatorSequence x{{0}, context};
         OperatorSequence y{{1}, context};
 
-        // Make constitutent matrices
+        // Make constituent matrices
         const auto& lmX = ams.LocalizingMatrix(LocalizingMatrixIndex{1, x});
         ASSERT_TRUE(lmX.is_monomial());
         ASSERT_EQ(lmX.Dimension(), 3);
@@ -296,9 +296,152 @@ namespace Moment::Tests {
         const auto& factory = ams.polynomial_factory();
         compare_polynomial_matrix("lmX + lmY", summed_matrix, 3, factory.zero_tolerance,
                                   std::vector<Polynomial>{
-            Polynomial{{sX, sY}}, Polynomial{{sXX, sYX}}, Polynomial{{sXY, sYY}},
-            Polynomial{{sXX, sXY}}, Polynomial{{sXXX, sXYX}}, Polynomial{{sXXY, sXYY}},
-            Polynomial{{sYX, sYY}}, Polynomial{{sYXX, sYYX}}, Polynomial{{sYXY, sYYY}}});
+                                        factory({sX, sY}), factory({sXX, sYX}), factory({sXY, sYY}),
+                                        factory({sXX, sXY}), factory({sXXX, sXYX}), factory({sXXY, sXYY}),
+                                        factory({sYX, sYY}), factory({sYXX, sYYX}), factory({sYXY, sYYY})});
+    }
+
+    TEST(Matrix_PolynomialMatrix, AdditionPolyMono) {
+
+        // Make context with x, y
+        Algebraic::AlgebraicMatrixSystem ams{
+            std::make_unique<Algebraic::AlgebraicContext>(2)
+        };
+        const auto& context = ams.AlgebraicContext();
+        const auto& symbols = ams.Symbols();
+        const auto& factory = ams.polynomial_factory();
+        OperatorSequence x{{0}, context};
+        OperatorSequence y{{1}, context};
+
+        // Make constituent matrices
+        const auto& mm_raw = ams.MomentMatrix(1);
+        ASSERT_TRUE(mm_raw.is_monomial());
+        const auto& mm = dynamic_cast<const MonomialMatrix&>(mm_raw);
+        const auto& lmX = ams.LocalizingMatrix(LocalizingMatrixIndex{1, x});
+        ASSERT_TRUE(lmX.is_monomial());
+        ASSERT_EQ(lmX.Dimension(), 3);
+        const auto& lmY = ams.LocalizingMatrix(LocalizingMatrixIndex{1, y});
+        ASSERT_TRUE(lmY.is_monomial());
+        ASSERT_EQ(lmY.Dimension(), 3);
+
+        // Make array with pointers
+        std::array<const MonomialMatrix*, 2> mm_ptrs{
+            dynamic_cast<const MonomialMatrix*>(&lmX), dynamic_cast<const MonomialMatrix*>(&lmY)
+        };
+        ASSERT_NE(mm_ptrs[0], mm_ptrs[1]);
+
+        // Attempt to make joined matrix
+        PolynomialMatrix x_plus_y_matrix{context, factory, ams.Symbols(), mm_ptrs};
+        ASSERT_FALSE(x_plus_y_matrix.is_monomial());
+        ASSERT_EQ(x_plus_y_matrix.Dimension(), 3);
+
+        // Find symbols
+        auto find_or_fail = [&symbols](OperatorSequence seq) -> Monomial {
+            auto fX = symbols.where(seq);
+            if (!fX.found()) {
+                throw std::runtime_error(std::string("Did not find ") + seq.formatted_string());
+            }
+            return Monomial{fX->Id(), 1.0, fX.is_conjugated};
+        };
+        auto sI = find_or_fail(OperatorSequence{{}, context});
+        auto sX = find_or_fail(x);
+        auto sY = find_or_fail(y);
+        auto sXX = find_or_fail(OperatorSequence{{0, 0}, context});
+        auto sXY = find_or_fail(OperatorSequence{{0, 1}, context});
+        auto sYX = find_or_fail(OperatorSequence{{1, 0}, context});
+        auto sYY = find_or_fail(OperatorSequence{{1, 1}, context});
+        auto sXXX = find_or_fail(OperatorSequence{{0, 0, 0}, context});
+        auto sXXY = find_or_fail(OperatorSequence{{0, 0, 1}, context});
+        auto sXYX = find_or_fail(OperatorSequence{{0, 1, 0}, context});
+        auto sXYY = find_or_fail(OperatorSequence{{0, 1, 1}, context});
+        auto sYXX = find_or_fail(OperatorSequence{{1, 0, 0}, context});
+        auto sYXY = find_or_fail(OperatorSequence{{1, 0, 1}, context});
+        auto sYYX = find_or_fail(OperatorSequence{{1, 1, 0}, context});
+        auto sYYY = find_or_fail(OperatorSequence{{1, 1, 1}, context});
+
+        // Now, add MM lmX + lmY matrix
+        auto mm_lmx_lmy_ptr = x_plus_y_matrix.add(mm, factory, Multithreading::MultiThreadPolicy::Never);
+
+        ASSERT_TRUE(mm_lmx_lmy_ptr->is_polynomial());
+        const auto& three_sum_matrix = dynamic_cast<PolynomialMatrix&>(*mm_lmx_lmy_ptr);
+
+        compare_polynomial_matrix("mm + lmX + lmY", three_sum_matrix, 3, factory.zero_tolerance,
+                      std::vector<Polynomial>{
+                              factory({sI, sX, sY}), factory({sX, sXX, sYX}), factory({sY, sXY, sYY}),
+                              factory({sX, sXX, sXY}), factory({sXX, sXXX, sXYX}), factory({sXY, sXXY, sXYY}),
+                              factory({sY, sYX, sYY}), factory({sYX, sYXX, sYYX}), factory({sYY, sYXY, sYYY})});
+
+    }
+
+    TEST(Matrix_PolynomialMatrix, AdditionPolyPoly) {
+
+        // Make context with x, y
+        Algebraic::AlgebraicMatrixSystem ams{
+            std::make_unique<Algebraic::AlgebraicContext>(2)
+        };
+        const auto& context = ams.AlgebraicContext();
+        const auto& symbols = ams.Symbols();
+        const auto& factory = ams.polynomial_factory();
+        OperatorSequence x{{0}, context};
+        OperatorSequence y{{1}, context};
+
+        // Make constituent matrices
+        const auto& mm_raw = ams.MomentMatrix(1);
+        ASSERT_TRUE(mm_raw.is_monomial());
+        const auto& mm = dynamic_cast<const MonomialMatrix&>(mm_raw);
+        const auto& lmX = ams.LocalizingMatrix(LocalizingMatrixIndex{1, x});
+        ASSERT_TRUE(lmX.is_monomial());
+        ASSERT_EQ(lmX.Dimension(), 3);
+        const auto& lmY = ams.LocalizingMatrix(LocalizingMatrixIndex{1, y});
+        ASSERT_TRUE(lmY.is_monomial());
+        ASSERT_EQ(lmY.Dimension(), 3);
+
+        // Make array with pointers
+        std::array<const MonomialMatrix*, 2> mm_ptrs{
+            dynamic_cast<const MonomialMatrix*>(&lmX), dynamic_cast<const MonomialMatrix*>(&lmY)
+        };
+        ASSERT_NE(mm_ptrs[0], mm_ptrs[1]);
+
+        // Attempt to make joined matrix
+        PolynomialMatrix x_plus_y_matrix{context, factory, ams.Symbols(), mm_ptrs};
+        ASSERT_FALSE(x_plus_y_matrix.is_monomial());
+        ASSERT_EQ(x_plus_y_matrix.Dimension(), 3);
+
+        // Find symbols
+        auto find_or_fail_doubled = [&symbols](OperatorSequence seq) -> Monomial {
+            auto fX = symbols.where(seq);
+            if (!fX.found()) {
+                throw std::runtime_error(std::string("Did not find ") + seq.formatted_string());
+            }
+            return Monomial{fX->Id(), 2.0, fX.is_conjugated};
+        };
+        auto sI =  find_or_fail_doubled(OperatorSequence{{}, context});
+        auto sX =  find_or_fail_doubled(x);
+        auto sY =  find_or_fail_doubled(y);
+        auto sXX =  find_or_fail_doubled(OperatorSequence{{0, 0}, context});
+        auto sXY =  find_or_fail_doubled(OperatorSequence{{0, 1}, context});
+        auto sYX =  find_or_fail_doubled(OperatorSequence{{1, 0}, context});
+        auto sYY =  find_or_fail_doubled(OperatorSequence{{1, 1}, context});
+        auto sXXX =  find_or_fail_doubled(OperatorSequence{{0, 0, 0}, context});
+        auto sXXY =  find_or_fail_doubled(OperatorSequence{{0, 0, 1}, context});
+        auto sXYX =  find_or_fail_doubled(OperatorSequence{{0, 1, 0}, context});
+        auto sXYY =  find_or_fail_doubled(OperatorSequence{{0, 1, 1}, context});
+        auto sYXX =  find_or_fail_doubled(OperatorSequence{{1, 0, 0}, context});
+        auto sYXY =  find_or_fail_doubled(OperatorSequence{{1, 0, 1}, context});
+        auto sYYX =  find_or_fail_doubled(OperatorSequence{{1, 1, 0}, context});
+        auto sYYY =  find_or_fail_doubled(OperatorSequence{{1, 1, 1}, context});
+
+        // Now, add MM lmX + lmY matrix
+        auto four_sum_ptr = x_plus_y_matrix.add(x_plus_y_matrix, factory, Multithreading::MultiThreadPolicy::Never);
+
+        ASSERT_TRUE(four_sum_ptr->is_polynomial());
+        const auto& three_sum_matrix = dynamic_cast<PolynomialMatrix&>(*four_sum_ptr);
+
+        compare_polynomial_matrix("2 lmX + 2 lmY", three_sum_matrix, 3, factory.zero_tolerance,
+                                  std::vector<Polynomial>{
+                                          factory({sX, sY}), factory({sXX, sYX}), factory({sXY, sYY}),
+                                          factory({sXX, sXY}), factory({sXXX, sXYX}), factory({sXXY, sXYY}),
+                                          factory({sYX, sYY}), factory({sYXX, sYYX}), factory({sYXY, sYYY})});
 
     }
 

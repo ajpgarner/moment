@@ -56,6 +56,17 @@ namespace Moment {
         throw errors::cannot_multiply_exception{"Post-multiplication not defined for generic SymbolicMatrix."};
     }
 
+    std::unique_ptr<PolynomialMatrix>
+    SymbolicMatrix::add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
+                        Multithreading::MultiThreadPolicy policy) const {
+        throw errors::cannot_add_exception{"Addition not defined for generic SymbolicMatrix."};
+    }
+
+    std::unique_ptr<PolynomialMatrix> SymbolicMatrix::add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
+                                                          Multithreading::MultiThreadPolicy policy) const {
+        throw errors::cannot_add_exception{"Addition not defined for generic SymbolicMatrix."};
+    }
+
     std::ostream& operator<<(std::ostream& os, const SymbolicMatrix& mp) {
         os << mp.dimension << "x" << mp.dimension << " ";
         if (mp.complex_basis) {

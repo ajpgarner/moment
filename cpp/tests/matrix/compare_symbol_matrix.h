@@ -78,16 +78,18 @@ namespace Moment::Tests {
             const auto& actual_polynomial = testMatrix.SymbolMatrix(row, col);
 
             ASSERT_EQ(actual_polynomial.size(), ref_polynomial.size())
-                                << " " << prefix << ", row = " << row << ", col = " << col;
+                                << " " << prefix << ", row = " << row << ", col = " << col
+                                << "\n actual = " << actual_polynomial << ",\n reference = " << ref_polynomial;
             for (size_t pN = 0; pN < ref_polynomial.size(); ++pN) {
                 EXPECT_EQ(actual_polynomial[pN].id, ref_polynomial[pN].id)
-                                    << " " << prefix << ", row = " << row << ", col = " << col << ", elem = " << pN;
+                                    << " " << prefix << ", row = " << row << ", col = " << col << ", elem = " << pN
+                                    << "\n actual = " << actual_polynomial << ",\n reference = " << ref_polynomial;
                 EXPECT_EQ(actual_polynomial[pN].conjugated, ref_polynomial[pN].conjugated)
-                                    << " " << prefix << ", row = " << row << ", col = " << col << ", elem = " << pN;
+                                    << " " << prefix << ", row = " << row << ", col = " << col << ", elem = " << pN
+                                    << "\n actual = " << actual_polynomial << ",\n reference = " << ref_polynomial;
                 EXPECT_TRUE(approximately_equal(actual_polynomial[pN].factor, ref_polynomial[pN].factor, zero_tolerance))
                                     << " " << prefix << ", row = " << row << ", col = " << col << ", elem = " << pN
-                                    << ", actual = " << actual_polynomial[pN].factor
-                                    << ", expected = " << ref_polynomial[pN].factor;
+                                    << "\n actual = " << actual_polynomial << ",\n reference = " << ref_polynomial;
             }
             ++col;
             if (col >= dimension) {
