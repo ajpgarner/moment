@@ -200,7 +200,7 @@ namespace Moment::Imported {
 
         // Finally, register new matrix
         SymbolicMatrix& matRef = *matPr;
-        size_t index = this->push_back(std::move(matPr));
+        size_t index = this->push_back(write_lock, std::move(matPr));
         return {index, matRef};
     }
 

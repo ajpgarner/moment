@@ -57,8 +57,7 @@ namespace Moment::Inflation {
 
         auto extended_matrix_ptr = this->system.createNewExtendedMatrix(lock, index, mt_policy);
         auto& matrix = *extended_matrix_ptr;
-        this->system.push_back(std::move(extended_matrix_ptr));
-        ptrdiff_t offset = static_cast<ptrdiff_t>(this->system.size()) - 1;
+        ptrdiff_t offset = this->system.push_back(lock, std::move(extended_matrix_ptr));
         return std::pair<ptrdiff_t, ExtendedMatrix &>{offset, matrix};
     }
 

@@ -154,6 +154,14 @@ namespace Moment {
             return *this->poly_factory;
         }
 
+        /**
+         * Add symbolic matrix to end of array. Changes should not be made without a write lock.
+         * @param lock The write lock to the matrix system.
+         * @param matrix Owning pointer to matrix to add.
+         * @return The index of the newly appended matrix.
+         */
+        [[nodiscard]] ptrdiff_t push_back(WriteLock& lock, std::unique_ptr<SymbolicMatrix> matrix);
+
     protected:
         /**
          * Replace polynomial factory with new factory.
@@ -271,12 +279,6 @@ namespace Moment {
          */
         SymbolicMatrix& get(size_t index);
 
-        /**
-         * Add symbolic matrix to end of array. Changes should not be made without a write lock.
-         * @param matrix Owning pointer to matrix to add.
-         * @return The index of the newly appended matrix.
-         */
-        ptrdiff_t push_back(std::unique_ptr<SymbolicMatrix> matrix);
 
     public:
         friend RulebookStorage;

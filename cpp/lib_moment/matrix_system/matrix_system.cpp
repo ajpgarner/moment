@@ -75,14 +75,15 @@ namespace Moment {
         return *this->matrices[index];
     }
 
-    ptrdiff_t MatrixSystem::push_back(std::unique_ptr<SymbolicMatrix> matrix) {
+    ptrdiff_t MatrixSystem::push_back(MaintainsMutex::WriteLock& lock, std::unique_ptr<SymbolicMatrix> matrix) {
+        assert(this->is_locked_write_lock(lock));
         auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
         this->matrices.emplace_back(std::move(matrix));
         return matrixIndex;
     }
 
     std::unique_ptr<class SymbolicMatrix>
-    MatrixSystem::createNewMomentMatrix(MaintainsMutex::WriteLock &lock,
+    MatrixSystem::createNewMomentMatrix(MaintainsMutex::WriteLock& lock,
                                         const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
         const size_t prev_symbol_count = this->symbol_table->size();
@@ -96,7 +97,7 @@ namespace Moment {
 
 
     std::unique_ptr<class SymbolicMatrix>
-    MatrixSystem::createNewLocalizingMatrix(MaintainsMutex::WriteLock &lock,
+    MatrixSystem::createNewLocalizingMatrix(MaintainsMutex::WriteLock& lock,
                                             const LocalizingMatrixIndex& lmi,
                                             const Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));

@@ -72,7 +72,7 @@ namespace Moment::mex::functions  {
             String,
             SymbolCell,
             SequencesWithSymbolInfo
-        } output_mode = OutputMode::SequencesWithSymbolInfo;
+        } output_mode = OutputMode::MatrixIndex;
     };
 
     class Multiply : public ParameterizedMTKFunction<MultiplyParams, MTKEntryPointID::Multiply> {

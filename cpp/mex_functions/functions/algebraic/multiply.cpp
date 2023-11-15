@@ -127,8 +127,8 @@ namespace Moment::mex::functions {
                 case MultiplyParams::Operand::InputType::Unknown:
                     throw_error(matlabEngine, errors::bad_param, "Cannot multiply unknown LHS type.");
             }
-
         }
+
 
         void output_as_monomial(matlab::engine::MATLABEngine& matlabEngine, IOArgumentRange& output,
                                 MultiplyParams::OutputMode output_mode,
@@ -324,7 +324,7 @@ namespace Moment::mex::functions {
         this->min_inputs = 3;
         this->max_inputs = 3;
         this->min_outputs = 2;
-        this->max_outputs = 2;
+        this->max_outputs = 4;
 
         this->flag_names.emplace(u"index");
         this->flag_names.emplace(u"symbols");
@@ -335,11 +335,23 @@ namespace Moment::mex::functions {
     }
 
     void Multiply::operator()(IOArgumentRange output, MultiplyParams &input) {
+        // Match outputs with mode
+        const bool save_index_mode = (input.output_mode == MultiplyParams::OutputMode::MatrixIndex);
+        if (save_index_mode) {
+            if (output.size() < 4) {
+                throw_error(matlabEngine, errors::too_few_outputs, "Four outputs are required.");
+            }
+        } else {
+            if (output.size() > 2) {
+                throw_error(matlabEngine, errors::too_many_outputs, "Only 2 outputs expected.");
+            }
+        }
+
         // Get handle to matrix system
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {
             matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
-        } catch (const Moment::errors::persistent_object_error &poe) {
+        } catch (const Moment::errors::persistent_object_error& poe) {
             std::stringstream errSS;
             errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.matrix_system_key << std::dec;
             throw_error(this->matlabEngine, errors::bad_param, errSS.str());
@@ -351,7 +363,23 @@ namespace Moment::mex::functions {
         auto multiplied_matrix_ptr = do_multiplication(this->matlabEngine, input, matrixSystem);
         const bool output_is_monomial = multiplied_matrix_ptr->is_monomial();
 
-        // Export polynomials
+        // Save matrix if requested
+        if (input.output_mode == MultiplyParams::OutputMode::MatrixIndex) {
+            const size_t output_dimension = multiplied_matrix_ptr->Dimension();
+            const bool is_hermitian = multiplied_matrix_ptr->Hermitian();
+            auto write_lock = matrixSystem.get_write_lock();
+            const ptrdiff_t matrix_index = matrixSystem.push_back(write_lock, std::move(multiplied_matrix_ptr));
+            write_lock.unlock();
+
+            matlab::data::ArrayFactory factory;
+            output[0] = factory.createScalar<int64_t>(matrix_index);
+            output[1] = factory.createScalar<size_t>(output_dimension);
+            output[2] = factory.createScalar<bool>(output_is_monomial);
+            output[3] = factory.createScalar<bool>(is_hermitian);
+            return;
+        }
+
+        // Otherwise, export polynomial data
         if (output_is_monomial) {
             output_as_monomial(this->matlabEngine, output, input.output_mode,
                                matrixSystem, dynamic_cast<const MonomialMatrix&>(*multiplied_matrix_ptr));
