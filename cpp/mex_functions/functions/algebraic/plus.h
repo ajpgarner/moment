@@ -24,23 +24,12 @@ namespace Moment::mex::functions  {
         AlgebraicOperand lhs;
         AlgebraicOperand rhs;
 
-//        enum class DistributionMode {
-//            /** Broadcast LHS to many RHS. */
-//            OneToMany,
-//            /** Many LHS to broadcast RHS. */
-//            ManyToOne,
-//            /** Element-wise add. (Incorporates OneToOne). */
-//            ManyToMany
-//        } distribution_mode;
-
-        std::vector<size_t> output_shape;
-        size_t output_size;
-
         enum class OutputMode {
-            Index,
+            Unknown,
+            MatrixID,
+            String,
             SymbolCell,
-            SequencesWithSymbolInfo,
-            String
+            SequencesWithSymbolInfo
         } output_mode = OutputMode::SymbolCell;
 
     public:

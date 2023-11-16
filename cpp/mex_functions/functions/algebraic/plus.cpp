@@ -11,10 +11,12 @@
 #include "utilities/read_as_scalar.h"
 
 #include "matrix/symbolic_matrix.h"
+#include "matrix/polynomial_matrix.h"
 
 #include "storage_manager.h"
 
 #include "scenarios/context.h"
+#include "export/export_operator_matrix.h"
 #include "export/export_polynomial.h"
 
 #include <span>
@@ -81,6 +83,46 @@ namespace Moment::mex::functions {
             }
         }
 
+        void output_matrix(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
+                           IOArgumentRange& output, PlusParams::OutputMode output_mode,
+                           const PolynomialMatrix& matrix) {
+
+            // Export polynomial matrix
+            OperatorMatrixExporter ome{matlabEngine, matrixSystem};
+
+            switch (output_mode) {
+                case PlusParams::OutputMode::String:
+                    output[0] = ome.sequence_strings(matrix);
+                    break;
+                case PlusParams::OutputMode::SymbolCell:
+                    output[0] = ome.symbol_cell(matrix);
+                    break;
+                case PlusParams::OutputMode::SequencesWithSymbolInfo: {
+                    output[0] = ome.polynomials(matrix);
+                } break;
+                case PlusParams::OutputMode::Unknown:
+                default:
+                    throw_error(matlabEngine, errors::internal_error, "Unknown output format for plus.");
+            }
+        }
+
+        void save_and_output(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
+                             IOArgumentRange& output, std::unique_ptr<PolynomialMatrix> matrix) {
+
+            const size_t dimension = matrix->Dimension();
+            const bool is_hermitian = matrix->Hermitian(); // (Monomial = false automatically)
+            auto write_lock = matrixSystem.get_write_lock();
+            const ptrdiff_t matrix_index = matrixSystem.push_back(write_lock, std::move(matrix));
+            write_lock.unlock();
+
+            matlab::data::ArrayFactory factory;
+            output[0] = factory.createScalar<int64_t>(matrix_index);
+            output[1] = factory.createScalar<size_t>(dimension);
+            output[2] = factory.createScalar<bool>(false); // Monomial = false automatically.
+            output[3] = factory.createScalar<bool>(is_hermitian);
+            return;
+        }
+
         void add_matrix_matrix(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
                                IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
                                PlusParams::OutputMode output_mode) {
@@ -94,7 +136,19 @@ namespace Moment::mex::functions {
                 throw_error(matlabEngine, errors::bad_param, "Matrix operand dimensions do not match");
             }
 
-            throw_error(matlabEngine, errors::internal_error, "add_matrix_matrix not implemented.");
+            // Do addition
+            auto added_matrix_ptr = matrixLHS.add(matrixRHS, matrixSystem.polynomial_factory(),
+                                                  Multithreading::MultiThreadPolicy::Optional);
+
+            // Save and output, if matrix ID mode
+            if (output_mode == PlusParams::OutputMode::MatrixID) {
+                read_lock.unlock();
+                save_and_output(matlabEngine, matrixSystem, output, std::move(added_matrix_ptr));
+                return;
+            }
+
+            // Do output
+            output_matrix(matlabEngine, matrixSystem, output, output_mode,  *added_matrix_ptr);
         }
 
         void add_one_matrix(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
@@ -105,7 +159,19 @@ namespace Moment::mex::functions {
             auto polyLHS = lhs.to_polynomial(matlabEngine, matrixSystem, true);
             auto& matrixRHS = rhs.to_matrix(matlabEngine, matrixSystem);
 
-            throw_error(matlabEngine, errors::internal_error, "add_one_matrix not implemented.");
+            // Do addition
+            auto added_matrix_ptr = matrixRHS.add(polyLHS, matrixSystem.polynomial_factory(),
+                                                  Multithreading::MultiThreadPolicy::Optional);
+
+            // Save and output, if matrix ID mode
+            if (output_mode == PlusParams::OutputMode::MatrixID) {
+                read_lock.unlock();
+                save_and_output(matlabEngine, matrixSystem, output, std::move(added_matrix_ptr));
+                return;
+            }
+
+            // Do output
+            output_matrix(matlabEngine, matrixSystem, output, output_mode, *added_matrix_ptr);
         }
 
         void add_many_matrix(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
@@ -116,13 +182,32 @@ namespace Moment::mex::functions {
             auto polysLHS = lhs.to_polynomial_array(matlabEngine, matrixSystem, true);
             auto& matrixRHS = rhs.to_matrix(matlabEngine, matrixSystem);
 
+            const auto& poly_factory =  matrixSystem.polynomial_factory();
+
             // Check size compatibility for many<->many
             if ((lhs.shape.size() != 2) || (lhs.shape[0] != matrixRHS.Dimension())
                                         || (lhs.shape[1] != matrixRHS.Dimension())) {
                 throw_error(matlabEngine, errors::bad_param, "Polynomial dimensions do not match matrix dimensions.");
             }
 
-            throw_error(matlabEngine, errors::internal_error, "add_many_matrix not implemented.");
+            // Move constructed data into polynomial matrix object
+            auto matrixLHS_data = std::make_unique<PolynomialMatrix::MatrixData>(matrixRHS.Dimension(),
+                                                                                std::move(polysLHS));
+
+            PolynomialMatrix matrixLHS{matrixSystem.Context(), matrixSystem.Symbols(),
+                                       poly_factory.zero_tolerance, std::move(matrixLHS_data)};
+
+            auto added_matrix_ptr = matrixLHS.add(matrixRHS, poly_factory, Multithreading::MultiThreadPolicy::Optional);
+
+            // Save and output, if matrix ID mode
+            if (output_mode == PlusParams::OutputMode::MatrixID) {
+                read_lock.unlock();
+                save_and_output(matlabEngine, matrixSystem, output, std::move(added_matrix_ptr));
+                return;
+            }
+
+            // Do output
+            output_matrix(matlabEngine, matrixSystem, output, output_mode, *added_matrix_ptr);
         }
 
         void add_one_one(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
@@ -209,7 +294,7 @@ namespace Moment::mex::functions {
         } else if (this->flags.contains(u"symbols")) {
             this->output_mode = OutputMode::SymbolCell;
         } else {
-            this->output_mode = OutputMode::Index;
+            this->output_mode = OutputMode::MatrixID;
             if ((this->lhs.type != AlgebraicOperand::InputType::MatrixID)
                 && (this->rhs.type != AlgebraicOperand::InputType::MatrixID)) {
                 throw_error(matlabEngine, errors::bad_param,
@@ -240,6 +325,19 @@ namespace Moment::mex::functions {
     }
 
     void Plus::operator()(IOArgumentRange output, PlusParams &input) {
+        // Check output mode
+        if (input.output_mode == PlusParams::OutputMode::MatrixID) {
+            if (output.size() < 4) {
+                throw_error(matlabEngine, errors::too_few_outputs,
+                            "Must provide 4 outputs for operator matrix index output mode.");
+            }
+        } else {
+            if (output.size() > 2) {
+                throw_error(matlabEngine, errors::too_many_outputs,
+                            "Too many outputs provided when not in operator matrix index output mode.");
+            }
+        }
+
         // First, get matrix system
         std::shared_ptr<MatrixSystem> matrixSystemPtr;
         try {

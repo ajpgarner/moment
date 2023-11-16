@@ -15,7 +15,7 @@ function val = combineToLM(lhs, rhs, negate_rhs)
     try
         lhs_word = lhs.getWord();
         lhs_level = lhs.getLevel();
-        rhs_word = lhs.getWord();
+        rhs_word = rhs.getWord();
         rhs_level = rhs.getLevel();
     catch Exception
         if ~strcmp(Exception.identifier, 'mtk:no_word') && ...
