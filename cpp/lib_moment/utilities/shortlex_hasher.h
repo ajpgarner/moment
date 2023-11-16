@@ -25,15 +25,21 @@ namespace Moment {
         const size_t offset;
 
         /** Construct a shortlex hash function for supplied radix and offset. */
-        explicit ShortlexHasher(size_t r, size_t o = 1) : radix{r}, offset{o} { }
+        constexpr explicit ShortlexHasher(size_t r, size_t o = 1) : radix{r}, offset{o} { }
 
         /** Calculate the hash of an operator sequence */
         [[nodiscard]] size_t hash(const std::span<const oper_name_t> sequence) const noexcept;
+
+        /** Calculate the 'hash' for an isolated operator (sequence length 1) */
+        [[nodiscard]] constexpr size_t hash(const oper_name_t op) const noexcept {
+            return this->offset + op + 1;
+        }
 
         /** Calculate the hash of an operator sequence */
         [[nodiscard]] inline size_t operator()(const std::span<const oper_name_t> sequence)  const noexcept {
             return hash(sequence);
         }
+
 
         /** Calculate the hash of an operator sequence */
         [[nodiscard]] inline size_t operator()(std::initializer_list<oper_name_t> sequence)  const noexcept {

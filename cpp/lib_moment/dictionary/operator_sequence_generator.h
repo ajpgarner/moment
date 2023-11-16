@@ -14,10 +14,11 @@ namespace Moment {
      * Range over all unique permutations of operators in the supplied context.
      */
     class OperatorSequenceGenerator {
-    protected:
+    public:
         /** Context to pull operators from */
         const Context& context;
 
+    protected:
         /** List of unique sequences */
         std::vector<OperatorSequence> unique_sequences;
 
