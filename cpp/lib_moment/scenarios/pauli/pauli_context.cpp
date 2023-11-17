@@ -6,10 +6,12 @@
  */
 
 #include "pauli_context.h"
+
+#include "nearest_neighbour_index.h"
+#include "pauli_dictionary.h"
 #include "pauli_osg.h"
 
 #include "../contextual_os.h"
-
 
 #include <cassert>
 
@@ -57,8 +59,9 @@ namespace Moment::Pauli {
     }
 
     PauliContext::PauliContext(const oper_name_t qubits) noexcept
-        : Context{static_cast<size_t>(qubits*3)}, qubit_size{qubits}{
-
+        : Context{static_cast<size_t>(qubits*3)}, qubit_size{qubits} {
+        // Replace with a dictionary that can handle nearest-neighbour NPA sublevels.
+        this->replace_dictionary(std::make_unique<PauliDictionary>(*this));
     }
 
     bool PauliContext::additional_simplification(sequence_storage_t& op_sequence, SequenceSignType &sign) const {
@@ -365,6 +368,13 @@ namespace Moment::Pauli {
            << " (" << this->operator_count << " operators).\n";
 
         return ss.str();
+    }
+
+    const OperatorSequenceGenerator&
+    PauliContext::operator_sequence_generator(const NearestNeighbourIndex& index, bool conjugated) const {
+        const auto& dictionary = dynamic_cast<const PauliDictionary&>(this->dictionary());
+        const auto& osg_pair = dictionary.Level(index.moment_matrix_level);
+        return conjugated ? osg_pair.conjugate() : osg_pair();
     }
 
     std::unique_ptr<OperatorSequenceGenerator> PauliContext::new_osg(const size_t word_length) const {

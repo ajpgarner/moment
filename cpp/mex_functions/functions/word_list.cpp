@@ -104,7 +104,7 @@ namespace Moment::mex::functions {
 
         // Get symbol table and dictionary
         const auto& symbols = matrixSystemPtr->Symbols();
-        const auto& dictionary = matrixSystemPtr->Context().osg_list();
+        const auto& dictionary = matrixSystemPtr->Context().dictionary();
 
         // Get (or make) unique word list.
         const auto &osg = dictionary.Level(input.word_length)();

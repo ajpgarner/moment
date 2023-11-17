@@ -6,6 +6,7 @@
  */
 #include "pauli_matrix_system.h"
 #include "pauli_context.h"
+#include "nearest_neighbour_matrix.h"
 
 #include <cassert>
 
@@ -23,12 +24,12 @@ namespace Moment::Pauli {
 
     }
 
-    std::unique_ptr<PauliMomentMatrix>
-    PauliMatrixSystem::create_nearest_neighbour_moment_matrix(MaintainsMutex::WriteLock& lock,
+    std::unique_ptr<MonomialMatrix>
+    PauliMatrixSystem::create_nearest_neighbour_moment_matrix(MaintainsMutex::WriteLock& write_lock,
                                                               const PauliMomentMatrixIndex& index,
                                                               Multithreading::MultiThreadPolicy mt_policy) {
-        // TODO: Create NN MM
-        throw std::logic_error{"PauliMatrixSystem::create_nearest_neighbour_moment_matrix not implemented."};
+        assert(this->is_locked_write_lock(write_lock));
+        return NearestNeighbourMatrix::create_moment_matrix(this->pauliContext, this->Symbols(), index, mt_policy);
     }
 
     void PauliMatrixSystem::on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock,
@@ -48,7 +49,7 @@ namespace Moment::Pauli {
     void PauliMatrixSystem::on_new_nearest_neighbour_moment_matrix(const MaintainsMutex::WriteLock& write_lock,
                                                                    const PauliMomentMatrixIndex& index,
                                                                    ptrdiff_t matrix_offset,
-                                                                   const PauliMomentMatrix& mm) {
+                                                                   const MonomialMatrix& mm) {
         assert(this->is_locked_write_lock(write_lock));
 
         // Add plain MM index if unrestricted

@@ -15,6 +15,9 @@ namespace Moment {
 
     namespace Pauli {
 
+        class NearestNeighbourIndex;
+        class PauliSequenceGenerator;
+
         class PauliContext : public Context {
         public:
             /**
@@ -34,7 +37,6 @@ namespace Moment {
              */
             explicit PauliContext(oper_name_t qubits) noexcept;
 
-        public:
             [[nodiscard]] bool can_be_nonhermitian() const noexcept final {
                 return false;
             }
@@ -50,6 +52,10 @@ namespace Moment {
             void format_raw_sequence(ContextualOS &os, const sequence_storage_t &seq) const final;
 
             [[nodiscard]] std::string to_string() const final;
+
+            using Context::operator_sequence_generator;
+            const OperatorSequenceGenerator& operator_sequence_generator(const NearestNeighbourIndex& index,
+                                                                         bool conjugated=false) const;
 
             /** Pauli sigma X  operator at site N. */
             [[nodiscard]] OperatorSequence sigmaX(const oper_name_t qubit,

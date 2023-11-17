@@ -7,14 +7,14 @@
 #include "pauli_moment_matrix_indices.h"
 
 #include "pauli_matrix_system.h"
-#include "pauli_moment_matrix.h"
+#include "nearest_neighbour_matrix.h"
 
 namespace Moment::Pauli {
     PauliMomentMatrixFactory::PauliMomentMatrixFactory(MatrixSystem &system)
             : PauliMomentMatrixFactory{dynamic_cast<PauliMatrixSystem&>(system)} { }
 
 
-    std::pair<ptrdiff_t, PauliMomentMatrix&>
+    std::pair<ptrdiff_t, MonomialMatrix&>
     PauliMomentMatrixFactory::operator()(MaintainsMutex::WriteLock &lock, const Index &index,
                                       Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->system.is_locked_write_lock(lock));
@@ -22,11 +22,11 @@ namespace Moment::Pauli {
         auto pauli_matrix_ptr = this->system.create_nearest_neighbour_moment_matrix(lock, index, mt_policy);
         auto& matrix = *pauli_matrix_ptr;
         ptrdiff_t offset = this->system.push_back(lock, std::move(pauli_matrix_ptr));
-        return std::pair<ptrdiff_t, PauliMomentMatrix&>{offset, matrix};
+        return std::pair<ptrdiff_t, MonomialMatrix&>{offset, matrix};
     }
 
     void PauliMomentMatrixFactory::notify(const MaintainsMutex::WriteLock& lock,
-                                          const Index& index, ptrdiff_t offset, PauliMomentMatrix& matrix) {
+                                          const Index& index, ptrdiff_t offset, MonomialMatrix& matrix) {
         this->system.on_new_nearest_neighbour_moment_matrix(lock, index, offset, matrix);
     }
 
@@ -37,7 +37,7 @@ namespace Moment::Pauli {
             errSS << ", restricted to " << index.neighbours
                   << " nearest neighbour" << ((index.neighbours != 1) ? "s" : "");
         }
-        if (index.wrap_neighbours) {
+        if (index.wrapped) {
             errSS << " with wrapping.";
         }
         return errSS.str();

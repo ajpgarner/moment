@@ -165,12 +165,12 @@ namespace Moment {
          /**
           * Gets a generator for operator sequences in this context
           */
-         [[nodiscard]] const Dictionary& osg_list() const noexcept { return *this->word_list; }
+         [[nodiscard]] const Dictionary& dictionary() const noexcept { return *this->word_list; }
 
          /**
           * Gets a generator for operator sequences in this context
           */
-         [[nodiscard]] Dictionary& osg_list() noexcept { return *this->word_list; }
+         [[nodiscard]] Dictionary& dictionary() noexcept { return *this->word_list; }
 
          /**
           * Gets an operator sequence, but only if it is 'canonical' (i.e. no simplifications performed on it)
@@ -178,6 +178,12 @@ namespace Moment {
          [[nodiscard]] virtual std::optional<OperatorSequence> get_if_canonical(const sequence_storage_t& sequence) const;
 
     protected:
+        /**
+         * Replaces the dictionary of operator sequence generators with a custom dictionary.
+         * Undefined behaviour if called after construction is finished.
+         */
+        void replace_dictionary(std::unique_ptr<Dictionary> dictionary);
+
         /**
          * Instantiate an OSG of the requested length.
          * (May be overloaded to use more efficient enumerations for specific scenarios).

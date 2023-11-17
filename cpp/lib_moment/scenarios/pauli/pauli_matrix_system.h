@@ -43,7 +43,7 @@ namespace Moment::Pauli {
         /**
          * Construct a new moment matrix, with restriction of top-row elements to N-nearest neighbours.
          */
-        std::unique_ptr<PauliMomentMatrix>
+        std::unique_ptr<MonomialMatrix>
         create_nearest_neighbour_moment_matrix(WriteLock& lock, const PauliMomentMatrixIndex& index,
                                                Multithreading::MultiThreadPolicy mt_policy);
 
@@ -59,7 +59,7 @@ namespace Moment::Pauli {
         virtual void on_new_nearest_neighbour_moment_matrix(const MaintainsMutex::WriteLock& write_lock,
                                                             const PauliMomentMatrixIndex& index,
                                                             ptrdiff_t matrix_offset,
-                                                            const PauliMomentMatrix& mm);
+                                                            const MonomialMatrix& mm);
 
     public:
         ~PauliMatrixSystem();

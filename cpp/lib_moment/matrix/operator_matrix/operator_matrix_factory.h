@@ -27,10 +27,12 @@ namespace Moment {
     class SymbolicMatrix;
     class SymbolTable;
 
-    template<std::derived_from<OperatorMatrix> os_matrix_t, typename functor_t>
+    template<std::derived_from<OperatorMatrix> os_matrix_t,
+            std::derived_from<Context> context_t,
+            typename index_t, typename functor_t>
     class OperatorMatrixFactory  {
     public:
-        const Context& context;
+        const context_t& context;
 
     protected:
         SymbolTable& symbols;
@@ -41,28 +43,27 @@ namespace Moment {
         std::optional<Multithreading::matrix_generation_worker_bundle<functor_t>> mt_bundle;
 
     public:
-        const size_t Level;
+        const index_t Index;
 
         Multithreading::MultiThreadPolicy mt_policy;
 
         size_t dimension = 0;
         size_t numel = 0;
 
-
-        const OperatorSequenceGenerator* rowGen = nullptr;
-        const OperatorSequenceGenerator* colGen = nullptr;
+        OperatorSequenceGenerator const * rowGen = nullptr;
+        OperatorSequenceGenerator const * colGen = nullptr;
 
     public:
         std::unique_ptr<os_matrix_t> operatorMatrix;
         std::unique_ptr<MonomialMatrix> symbolicMatrix;
 
         explicit constexpr
-        OperatorMatrixFactory(const Context& context, SymbolTable& symbols, size_t level,
+        OperatorMatrixFactory(const context_t& context, SymbolTable& symbols, const index_t& matrix_index,
                               functor_t the_functor, bool should_be_hermitian,
                               const Multithreading::MultiThreadPolicy mt_policy)
             : context{context}, symbols{symbols}, elem_functor{std::move(the_functor)},
               should_be_hermitian{should_be_hermitian},
-              Level{level}, mt_policy{mt_policy} {
+              Index{matrix_index}, mt_policy{mt_policy} {
         }
 
         /** True, if we have determined that multithreading should be used */
@@ -73,8 +74,8 @@ namespace Moment {
         template<typename... Args>
         [[nodiscard]] std::unique_ptr<MonomialMatrix> execute(Args&&... args) {
             // Make or get generators
-            this->colGen = &context.operator_sequence_generator(this->Level);
-            this->rowGen = &context.operator_sequence_generator(this->Level, true);
+            this->colGen = &context.operator_sequence_generator(this->Index);
+            this->rowGen = &context.operator_sequence_generator(this->Index, true);
 
             // Ascertain dimension
             this->dimension = colGen->size();

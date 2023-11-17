@@ -22,7 +22,7 @@ namespace Moment {
                           const PolynomialFactory& factory,
                           size_t level) {
             // We have to call for an OSG to infer dimensions
-            const auto& osg_list = context.osg_list();
+            const auto& osg_list = context.dictionary();
             const auto& osg = osg_list.Level(level)();
             const size_t dimensions = osg.size();
 

@@ -7,6 +7,7 @@
 
 #pragma once
 #include "dictionary/operator_sequence_generator.h"
+#include "nearest_neighbour_index.h"
 
 namespace Moment::Pauli {
 
@@ -21,14 +22,10 @@ namespace Moment::Pauli {
         const PauliContext& pauliContext;
 
         /**
-         * The maximum (inclusive) distance between qubits to include in a sequence.
+         * The OSG index
          */
-         const size_t nearest_neighbours = 0;
+        const NearestNeighbourIndex nearest_neighbour_index;
 
-        /**
-         * Is qubit (N-1) considered to be adjacent to qubit 0 ?
-         */
-        const bool wrap = false;
 
     public:
         /**
@@ -39,10 +36,19 @@ namespace Moment::Pauli {
         /**
          * Generate only nearest neighbour operators up to word length.
          */
-        PauliSequenceGenerator(const PauliContext& context, size_t word_length, size_t neighbours, bool wrap = false);
+        PauliSequenceGenerator(const PauliContext& context, const NearestNeighbourIndex& index);
+
+        /**
+         * Generate only nearest neighbour operators up to word length.
+         */
+        PauliSequenceGenerator(const PauliContext& context, size_t word_length, size_t neighbours, bool wrap = false)
+            : PauliSequenceGenerator{context,
+                                     NearestNeighbourIndex{word_length, neighbours, wrap ? (neighbours > 0) : false}} {
+        }
+
 
         /** True, if only a limited subset of sequences are considered (i.e. nearest neighbour mode). */
-        [[nodiscard]] constexpr bool limited() const noexcept { return this->nearest_neighbours != 0; }
+        [[nodiscard]] constexpr bool limited() const noexcept { return this->nearest_neighbour_index.neighbours != 0; }
 
     };
 

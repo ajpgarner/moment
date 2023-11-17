@@ -221,13 +221,18 @@ namespace Moment::Pauli {
 
     PauliSequenceGenerator::PauliSequenceGenerator(const PauliContext& pauli_context, const size_t word_length)
         : OperatorSequenceGenerator{pauli_context, word_length, compute_all_sequences(pauli_context, word_length)},
-            pauliContext{pauli_context} { }
+            pauliContext{pauli_context}, nearest_neighbour_index{word_length, 0, false} { }
 
-    PauliSequenceGenerator::PauliSequenceGenerator(const PauliContext& pauli_context, const size_t word_length,
-                                                   const size_t neighbours, const bool wrap_around)
-       : OperatorSequenceGenerator{pauli_context, word_length,
-                                   compute_nn_sequences(pauli_context, word_length, neighbours, wrap_around)},
-            pauliContext{pauli_context}, nearest_neighbours{neighbours}, wrap{(neighbours > 0) && wrap_around} { }
+
+    PauliSequenceGenerator::PauliSequenceGenerator(const PauliContext& pauli_context,
+                                                   const NearestNeighbourIndex& index)
+       : OperatorSequenceGenerator{pauli_context, index.moment_matrix_level,
+                                   compute_nn_sequences(pauli_context, index.moment_matrix_level,
+                                                        index.neighbours, index.wrapped)},
+            pauliContext{pauli_context}, nearest_neighbour_index{index.moment_matrix_level, index.neighbours,
+                                                                 index.wrapped ? (index.neighbours > 0) : false} {
+
+    }
 
 
 }

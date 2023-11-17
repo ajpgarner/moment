@@ -70,10 +70,22 @@ namespace Moment {
         explicit Dictionary(const Context& context);
 
         /**
+         * Polymorphic destructor.
+         */
+        virtual ~Dictionary() = default;
+
+        /**
          * Gets a 'pure' NPA hierarchy level (e.g. Moment matrix) generator.
          * @param npa_level The maximum word length.
          */
         const Dictionary::OSGPair& Level(const size_t max_word_length) const;
+
+        /**
+         * Return number of registered OSGs
+         */
+        [[nodiscard]] inline size_t size() const noexcept {
+            return this->osgs.size();
+        }
 
     };
 }

@@ -66,7 +66,7 @@ namespace Moment {
             const auto alias_mm_functor = [&context](const OperatorSequence& lhs, const OperatorSequence& rhs) {
                 return context.simplify_as_moment(lhs * rhs);
             };
-            OperatorMatrixFactory<MomentMatrix, decltype(alias_mm_functor)>
+            OperatorMatrixFactory<MomentMatrix, class Context, size_t, decltype(alias_mm_functor)>
                     creation_context{context, symbols, level, alias_mm_functor, true, mt_policy};
 
             return creation_context.execute(level);
@@ -74,7 +74,7 @@ namespace Moment {
             const auto mm_functor = [](const OperatorSequence &lhs, const OperatorSequence &rhs) {
                 return lhs * rhs;
             };
-            OperatorMatrixFactory<MomentMatrix, decltype(mm_functor)>
+            OperatorMatrixFactory<MomentMatrix, class Context, size_t, decltype(mm_functor)>
                     creation_context{context, symbols, level, mm_functor, true, mt_policy};
 
            return creation_context.execute(level);

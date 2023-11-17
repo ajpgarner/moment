@@ -15,35 +15,20 @@
 #include "utilities/set_to_vector.h"
 
 #include "integer_types.h"
+#include "nearest_neighbour_index.h"
 
 #include <set>
 #include <vector>
 
 namespace Moment {
     class MatrixSystem;
+    class MonomialMatrix;
 };
 
 namespace Moment::Pauli {
-    class PauliMomentMatrix;
     class PauliMatrixSystem;
 
-    struct PauliMomentMatrixIndex {
-    public:
-        /** NPA Hierarchy level */
-        size_t moment_matrix_level = 0;
-
-        /** Number of neighbours to consider, or 0 to include all... */
-        size_t neighbours = 0;
-
-        /** True if qubit N-1 is considered as adjacent to qubit 0. */
-        bool wrap_neighbours = false;
-
-        friend auto operator<=>(const PauliMomentMatrixIndex& lhs, const PauliMomentMatrixIndex& rhs) = default;
-
-    public:
-        constexpr explicit PauliMomentMatrixIndex(size_t mm_level, size_t neighbours = 0, bool wrap = false)
-            : moment_matrix_level{mm_level}, neighbours{neighbours}, wrap_neighbours{wrap} { }
-    };
+    using PauliMomentMatrixIndex = NearestNeighbourIndex;
 
     class PauliMomentMatrixFactory final {
     private:
@@ -56,20 +41,20 @@ namespace Moment::Pauli {
 
         explicit PauliMomentMatrixFactory(PauliMatrixSystem& system) noexcept : system{system} { }
 
-        [[nodiscard]] std::pair<ptrdiff_t, PauliMomentMatrix&>
+        [[nodiscard]] std::pair<ptrdiff_t, MonomialMatrix&>
         operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
-                    ptrdiff_t offset, PauliMomentMatrix& matrix);
+                    ptrdiff_t offset, MonomialMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& index) const;
 
         MaintainsMutex::WriteLock get_write_lock();
     };
 
-    static_assert(makes_matrices<PauliMomentMatrixFactory, PauliMomentMatrix, PauliMomentMatrixIndex>);
+    static_assert(makes_matrices<PauliMomentMatrixFactory, MonomialMatrix, PauliMomentMatrixIndex>);
 
-    using PauliMomentMatrixIndices = MappedMatrixIndices<PauliMomentMatrix, PauliMomentMatrixIndex,
+    using PauliMomentMatrixIndices = MappedMatrixIndices<MonomialMatrix, PauliMomentMatrixIndex,
                                                          PauliMomentMatrixFactory, PauliMatrixSystem>;
 
 }

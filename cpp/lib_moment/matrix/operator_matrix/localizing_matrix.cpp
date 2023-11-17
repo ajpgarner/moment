@@ -63,7 +63,7 @@ namespace Moment {
             const auto alias_lm_functor = [&context, &lmi](const OperatorSequence& lhs, const OperatorSequence& rhs) {
                 return context.simplify_as_moment(lhs * (lmi.Word * rhs));
             };
-            OperatorMatrixFactory<LocalizingMatrix, decltype(alias_lm_functor)>
+            OperatorMatrixFactory<LocalizingMatrix, class Context, size_t, decltype(alias_lm_functor)>
                 creation_context{context, symbols, lmi.Level, alias_lm_functor, should_be_hermitian, mt_policy};
 
             return creation_context.execute(lmi);
@@ -71,7 +71,7 @@ namespace Moment {
             const auto lm_functor = [&lmi](const OperatorSequence& lhs, const OperatorSequence& rhs) {
                 return lhs * (lmi.Word * rhs);
             };
-            OperatorMatrixFactory<LocalizingMatrix, decltype(lm_functor)>
+            OperatorMatrixFactory<LocalizingMatrix, class Context, size_t, decltype(lm_functor)>
                     creation_context{context, symbols, lmi.Level, lm_functor, should_be_hermitian, mt_policy};
 
             return creation_context.execute(lmi);

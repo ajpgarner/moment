@@ -225,6 +225,16 @@ namespace Moment {
     }
 
 
+    void Context::replace_dictionary(std::unique_ptr<Dictionary> dictionary) {
+        assert(dictionary != nullptr);
+
+        if (this->word_list->size() > 1) {
+            throw std::logic_error{"Non-trivial dictionary was replaced!"};
+        }
+
+        this->word_list = std::move(dictionary);
+    }
+
 
     std::unique_ptr<OperatorSequenceGenerator> Context::new_osg(const size_t word_length) const {
         return std::make_unique<OperatorSequenceGenerator>(*this, word_length);
