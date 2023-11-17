@@ -53,13 +53,18 @@ namespace Moment::Tests {
      */
     inline void compare_symbol_matrix(const SymbolicMatrix &inputMM, const size_t dimension,
                                       const std::vector<Monomial>& reference) {
-        const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(inputMM);
-        ASSERT_NE(mmPtr, nullptr) << "Not a moment matrix!";
         ASSERT_TRUE(inputMM.is_monomial());
-        const auto& theMM = dynamic_cast<const MonomialMatrix&>(inputMM);
+        const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(inputMM);
+        if (mmPtr != nullptr) {
+            const auto& theMM = dynamic_cast<const MonomialMatrix&>(inputMM);
 
-        compare_monomial_matrix(std::string("Level = ") + std::to_string(mmPtr->Level()),
-                                theMM, dimension, reference);
+            compare_monomial_matrix(std::string("Level = ") + std::to_string(mmPtr->Level()),
+                                    theMM, dimension, reference);
+        } else {
+            compare_monomial_matrix(inputMM.Description(), dynamic_cast<const MonomialMatrix&>(inputMM),
+                                    dimension, reference);
+        }
+
 
     }
 

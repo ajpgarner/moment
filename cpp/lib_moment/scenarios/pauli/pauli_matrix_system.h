@@ -40,6 +40,9 @@ namespace Moment::Pauli {
 
 
     protected:
+        std::unique_ptr<SymbolicMatrix>
+        create_moment_matrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
+
         /**
          * Construct a new moment matrix, with restriction of top-row elements to N-nearest neighbours.
          */

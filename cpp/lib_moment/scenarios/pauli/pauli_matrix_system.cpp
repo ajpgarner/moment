@@ -6,7 +6,7 @@
  */
 #include "pauli_matrix_system.h"
 #include "pauli_context.h"
-#include "nearest_neighbour_matrix.h"
+#include "pauli_moment_matrix.h"
 
 #include <cassert>
 
@@ -24,12 +24,27 @@ namespace Moment::Pauli {
 
     }
 
+    std::unique_ptr<SymbolicMatrix>
+    PauliMatrixSystem::create_moment_matrix(MaintainsMutex::WriteLock& lock, size_t level,
+                                            Multithreading::MultiThreadPolicy mt_policy) {
+        return this->create_nearest_neighbour_moment_matrix(lock, NearestNeighbourIndex{level, 0, false}, mt_policy);
+    }
+
     std::unique_ptr<MonomialMatrix>
     PauliMatrixSystem::create_nearest_neighbour_moment_matrix(MaintainsMutex::WriteLock& write_lock,
                                                               const PauliMomentMatrixIndex& index,
                                                               Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(write_lock));
-        return NearestNeighbourMatrix::create_moment_matrix(this->pauliContext, this->Symbols(), index, mt_policy);
+        auto& symbol_table = this->Symbols();
+        const size_t prev_symbol_count = symbol_table.size();
+        auto ptr = PauliMomentMatrix::create_matrix(this->pauliContext, symbol_table, index, mt_policy);
+        const size_t new_symbol_count = symbol_table.size();
+        if (new_symbol_count > prev_symbol_count) {
+            this->on_new_symbols_registered(write_lock, prev_symbol_count, new_symbol_count);
+        }
+        return ptr;
+        //assert(this->is_locked_write_lock(write_lock));
+        //return PauliMomentMatrix::create_matrix(this->pauliContext, this->Symbols(), index, mt_policy);
     }
 
     void PauliMatrixSystem::on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock,
@@ -60,6 +75,7 @@ namespace Moment::Pauli {
             assert(actual_offset == matrix_offset);
         }
     }
+
 
     PauliMatrixSystem::~PauliMatrixSystem() = default;
 

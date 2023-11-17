@@ -7,7 +7,7 @@
 #include "pauli_moment_matrix_indices.h"
 
 #include "pauli_matrix_system.h"
-#include "nearest_neighbour_matrix.h"
+#include "matrix/monomial_matrix.h"
 
 namespace Moment::Pauli {
     PauliMomentMatrixFactory::PauliMomentMatrixFactory(MatrixSystem &system)

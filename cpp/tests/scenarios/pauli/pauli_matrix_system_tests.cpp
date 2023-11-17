@@ -56,10 +56,10 @@ namespace Moment::Tests {
         const auto& mmRaw = system.MomentMatrix(1, Multithreading::MultiThreadPolicy::Never);
 
         // Compare operator sequences
-        compare_mm_os_matrix(mmRaw, 4, {I, x, y, z,
-                                        x, I, iz, miy,
-                                        y, miz, I, ix,
-                                        z, iy, mix, I});
+        compare_os_matrix(mmRaw, 4, {I, x, y, z,
+                                     x, I, iz, miy,
+                                     y, miz, I, ix,
+                                     z, iy, mix, I});
 
         // Find symbols
         ASSERT_EQ(symbols.size(), 5); // 0, I, X, Y, Z
@@ -108,10 +108,10 @@ namespace Moment::Tests {
         const auto& mmRaw = system.MomentMatrix(1, Multithreading::MultiThreadPolicy::Always);
 
         // Compare operator sequences
-        compare_mm_os_matrix(mmRaw, 4, {I, x, y, z,
-                                        x, I, iz, miy,
-                                        y, miz, I, ix,
-                                        z, iy, mix, I});
+        compare_os_matrix(mmRaw, 4, {I, x, y, z,
+                                     x, I, iz, miy,
+                                     y, miz, I, ix,
+                                     z, iy, mix, I});
 
         // Find symbols
         ASSERT_EQ(symbols.size(), 5); // 0, I, X, Y, Z

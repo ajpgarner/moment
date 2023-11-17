@@ -83,7 +83,7 @@ namespace Moment::Tests {
 
         // Make and check MM
         auto& mmRaw = pms.MomentMatrix(1);
-        compare_mm_os_matrix(mmRaw, 4, {I, x, y, z,
+        compare_os_matrix(mmRaw, 4, {I, x, y, z,
                                         x, I, iz, miy,
                                         y, miz, I, ix,
                                         z, iy, mix, I});
@@ -106,7 +106,7 @@ namespace Moment::Tests {
 
         // Make and check MM
         auto& mm = pms.MomentMatrix(1);
-        compare_mm_os_matrix(mm, 4, {I, x, y, z,
+        compare_os_matrix(mm, 4, {I, x, y, z,
                                      x, I, iz, miy,
                                      y, miz, I, ix,
                                      z, iy, mix, I});
@@ -129,7 +129,7 @@ namespace Moment::Tests {
 
         // Make and check MM
         auto& mmRaw = pms.MomentMatrix(1);
-        compare_mm_os_matrix(mmRaw, 4, {I, x, y, z,
+        compare_os_matrix(mmRaw, 4, {I, x, y, z,
                                         x, I, iz, miy,
                                         y, miz, I, ix,
                                         z, iy, mix, I});
@@ -166,10 +166,10 @@ namespace Moment::Tests {
 
         // Make and check MM
         auto& mmRaw = pms.MomentMatrix(1);
-        compare_mm_os_matrix(mmRaw, 4, {I, x, y, z,
-                                        x, I, iz, miy,
-                                        y, miz, I, ix,
-                                        z, iy, mix, I});
+        compare_os_matrix(mmRaw, 4, {I, x, y, z,
+                                     x, I, iz, miy,
+                                     y, miz, I, ix,
+                                     z, iy, mix, I});
 
 
         ASSERT_TRUE(mmRaw.has_operator_matrix());

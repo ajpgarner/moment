@@ -44,10 +44,18 @@ namespace Moment::Tests {
         EXPECT_EQ(row, dimension) << prefix;
     }
 
+    inline void compare_os_matrix(const SymbolicMatrix& symbolic, const size_t dimension,
+                                  const std::initializer_list<OperatorSequence> reference) {
+        ASSERT_TRUE(symbolic.has_operator_matrix());
+        const auto& op_mat = symbolic.operator_matrix();
+        compare_os_matrix(symbolic.Description(), op_mat, dimension, reference);
+    }
+
     inline void compare_mm_os_matrix(const SymbolicMatrix& theMM, size_t dimension,
                                      const std::initializer_list<OperatorSequence> reference) {
         const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(theMM);
         ASSERT_NE(mmPtr, nullptr) << "Was not a monomial moment matrix!";
+
 
         std::string prefix{" Level = "};
         prefix += std::to_string(mmPtr->Level());
